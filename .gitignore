@@ -1,0 +1,340 @@
+# =============================================================================
+# .gitignore for Three-Body Problem Simulation Project
+# =============================================================================
+# This file uses specific patterns to avoid ignoring important documentation
+# and source files while excluding generated data, build artifacts, and caches.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# System Files (macOS, Windows, Linux)
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# -----------------------------------------------------------------------------
+# IDE and Editor Files
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*.kate-swp
+.project
+.classpath
+.settings/
+
+# -----------------------------------------------------------------------------
+# AI Assistant Directories (local configs and temp files)
+# -----------------------------------------------------------------------------
+.claude/
+.gemini/
+.tmp/
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+# NOTE: Excluding lib/ globally would ignore brutus lib/ source code
+# Only ignore Python-specific lib directories in venv contexts
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+parts/
+lib64/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments (but keep example files)
+.env.*
+!.env.example
+
+# Type checking and linting
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# -----------------------------------------------------------------------------
+# C++ Build Artifacts (Brutus Simulator)
+# -----------------------------------------------------------------------------
+# Object files
+*.o
+*.obj
+*.a
+*.lib
+
+# Executables
+brutus_Newton-main/brutus
+*.exe
+*.exe~
+*.dll
+*.dylib
+
+# Backup and temporary build files
+*.original
+makefile.original
+
+# -----------------------------------------------------------------------------
+# Three-Body Problem Data Directories
+# -----------------------------------------------------------------------------
+# These directories contain large simulation data files that should not be versioned
+
+# Initial condition datasets (raw and processed)
+3_Body_Problem/ic_raw_datasets/
+3_Body_Problem/final_stage_ic_datasets/
+
+# Simulation outputs
+3_Body_Problem/brutus_output/
+
+# Metrics and analysis results
+3_Body_Problem/brutus_metrics/
+
+# Failed/problematic initial conditions
+3_Body_Problem/problematic_ics/
+3_Body_Problem/problematic_ics_blacklist.json
+
+# Prescreening analysis outputs
+3_Body_Problem/prescreen_stage2/analysis_output/
+3_Body_Problem/prescreen_stage2/prescreen_run_results/
+3_Body_Problem/prescreen_stage2/processing_index_*.json
+
+# Generated figures and plots
+3_Body_Problem/analyze_data_generation/figures/
+
+# Temporary and debug outputs
+3_Body_Problem/debug_scripts/*.txt
+3_Body_Problem/debug_scripts/*.png
+
+# NOTE: Keep Python scripts, configs, and documentation in these directories
+
+# -----------------------------------------------------------------------------
+# PINN Training Data and Model Checkpoints
+# -----------------------------------------------------------------------------
+# Large data files
+*.h5
+*.hdf5
+*.mat
+*.npz
+*.npy
+
+# Model checkpoints and weights
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.pickle
+*.ptl
+
+# Training outputs
+pinn/data-handling/core/preprocessed-data/
+pinn/training_logs/
+pinn/checkpoints/
+pinn/results/
+
+# Keep the data-handling scripts themselves
+!pinn/data-handling/**/*.py
+!pinn/data-handling/**/*.md
+
+# -----------------------------------------------------------------------------
+# LaTeX Build Files (Paper Templates)
+# -----------------------------------------------------------------------------
+# Auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+*.out
+
+# Generated PDFs from compilation (keep source PDFs like logos)
+paper_templates/mdpi_template/paper.pdf
+paper_templates/mdpi_template/raw_template.pdf
+paper_templates/old_templates/*.pdf
+paper_templates/pinn_instruction/*.pdf
+!paper_templates/**/logo-*.pdf
+!paper_templates/**/Definitions/*.pdf
+
+# LaTeX log files
+*.log
+
+# -----------------------------------------------------------------------------
+# Media and Visualization Files
+# -----------------------------------------------------------------------------
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Large interactive visualizations (but keep template HTML)
+3_Body_Problem/**/figures/**/*.html
+paper_templates/**/figures/**/*.html
+
+# Keep source HTML templates and documentation
+!**/templates/**/*.html
+!**/docs/**/*.html
+
+# -----------------------------------------------------------------------------
+# Brutus Simulation Output Files (in brutus_Newton-main)
+# -----------------------------------------------------------------------------
+# Generated images from analysis
+brutus_Newton-main/*.png
+brutus_Newton-main/*.jpg
+brutus_Newton-main/*.svg
+
+# Test outputs
+brutus_Newton-main/output/
+brutus_Newton-main/test_output/
+
+# Keep input examples and documentation images
+!brutus_Newton-main/input/
+!brutus_Newton-main/img/
+
+# -----------------------------------------------------------------------------
+# Reference Code (Third-Party Libraries)
+# -----------------------------------------------------------------------------
+# Exclude large reference implementations
+reference-code/deepxde-master/
+reference-code/reference_NNs/pytorch-main/
+reference-code/reference_NNs/PINA-master/examples/dataset/
+
+# Node modules (if any JavaScript tools)
+node_modules/
+
+# Rust (if any Rust code)
+target/
+
+# -----------------------------------------------------------------------------
+# Backup and Temporary Files
+# -----------------------------------------------------------------------------
+*.backup
+*.bak
+*.orig
+*.tmp
+*.temp
+*.cache
+
+# -----------------------------------------------------------------------------
+# Logs and Diagnostic Files
+# -----------------------------------------------------------------------------
+*.diag
+*.trace
+
+# Simulation logs (keep scripts that generate logs)
+*.log
+!**/logging_config.py
+
+# -----------------------------------------------------------------------------
+# Documentation Build Artifacts
+# -----------------------------------------------------------------------------
+# Sphinx documentation
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# -----------------------------------------------------------------------------
+# Data Files (Specific Exclusions)
+# -----------------------------------------------------------------------------
+# Large simulation-specific text files (IC files and trajectories)
+# IMPORTANT: This is very specific to avoid ignoring README.txt or documentation
+3_Body_Problem/**/*.txt
+brutus_Newton-main/output/*.txt
+
+# Keep important documentation and config files
+!README.txt
+!README*.txt
+!LICENSE.txt
+!CHANGELOG.txt
+!requirements.txt
+!**/docs/**/*.txt
+
+# -----------------------------------------------------------------------------
+# Git and Version Control
+# -----------------------------------------------------------------------------
+*.orig
+*.rej
+.git-blame-ignore-revs
+
+# -----------------------------------------------------------------------------
+# Miscellaneous
+# -----------------------------------------------------------------------------
+# OS generated files
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Temporary Python files
+*.pyc.bak
+*.pyo.bak
+
+# Jupyter temporary files
+.virtual_documents/
+
+# -----------------------------------------------------------------------------
+# END OF .gitignore
+# -----------------------------------------------------------------------------

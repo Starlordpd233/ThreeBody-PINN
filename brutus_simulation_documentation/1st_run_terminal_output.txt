@@ -1,0 +1,489 @@
+(base) <user>@<host> cursor % /opt/anaconda3/bin/python <home>
+/Desktop/cursor/3_Body_Problem/run_brutus_hierarchical_only.py
+================================================================================
+Brutus Batch Runner - Hierarchical ICs (150 per run)
+Started at: 2025-06-30 13:29:39
+Brutus executable: <home>/Desktop/cursor/brutus_Newton-main/brutus
+================================================================================
+
+================================================================================
+PROCESSING HIERARCHICAL INITIAL CONDITIONS
+================================================================================
+Found 2 blacklisted ICs in 'hierarchical'
+Total ICs found: 1555
+Skipping 0 blacklisted ICs.
+Skipping 0 ICs with existing valid outputs.
+Available for processing: 1555
+
+Processing ICs 0000 to 0152 (150 files)
+Files to process: 150
+Using 7 parallel processes.
+Brutus params: tol=1e-14, wordlen=130, t=[0,10], dt=0.01
+--------------------------------------------------------------------------------
+🚀 STARTING: ic_hierarchical_0000.txt -> brutus_hierarchical_0000.txt
+🚀 STARTING: ic_hierarchical_0001.txt -> brutus_hierarchical_0001.txt
+🚀 STARTING: ic_hierarchical_0002.txt -> brutus_hierarchical_0002.txt
+🚀 STARTING: ic_hierarchical_0003.txt -> brutus_hierarchical_0003.txt
+🚀 STARTING: ic_hierarchical_0004.txt -> brutus_hierarchical_0004.txt
+🚀 STARTING: ic_hierarchical_0005.txt -> brutus_hierarchical_0005.txt
+🚀 STARTING: ic_hierarchical_0006.txt -> brutus_hierarchical_0006.txt
+✅ FINISHED: ic_hierarchical_0004.txt - Success in 31.2s
+🚀 STARTING: ic_hierarchical_0007.txt -> brutus_hierarchical_0007.txt
+📊 PROGRESS: [  1/150] (  0.7%) completed | Success rate: 1/1 (100.0%)
+✅ FINISHED: ic_hierarchical_0002.txt - Success in 993.1s
+🚀 STARTING: ic_hierarchical_0008.txt -> brutus_hierarchical_0008.txt
+📊 PROGRESS: [  2/150] (  1.3%) completed | Success rate: 2/2 (100.0%)
+✅ FINISHED: ic_hierarchical_0000.txt - Success in 1632.7s
+🚀 STARTING: ic_hierarchical_0009.txt -> brutus_hierarchical_0009.txt
+📊 PROGRESS: [  3/150] (  2.0%) completed | Success rate: 3/3 (100.0%)
+✅ FINISHED: ic_hierarchical_0003.txt - Success in 1887.5s
+🚀 STARTING: ic_hierarchical_0010.txt -> brutus_hierarchical_0010.txt
+📊 PROGRESS: [  4/150] (  2.7%) completed | Success rate: 4/4 (100.0%)
+✅ FINISHED: ic_hierarchical_0001.txt - Success in 2107.4s
+🚀 STARTING: ic_hierarchical_0011.txt -> brutus_hierarchical_0011.txt
+📊 PROGRESS: [  5/150] (  3.3%) completed | Success rate: 5/5 (100.0%)
+✅ FINISHED: ic_hierarchical_0006.txt - Success in 2221.4s
+🚀 STARTING: ic_hierarchical_0012.txt -> brutus_hierarchical_0012.txt
+📊 PROGRESS: [  6/150] (  4.0%) completed | Success rate: 6/6 (100.0%)
+✅ FINISHED: ic_hierarchical_0007.txt - Success in 2729.6s
+🚀 STARTING: ic_hierarchical_0013.txt -> brutus_hierarchical_0013.txt
+📊 PROGRESS: [  7/150] (  4.7%) completed | Success rate: 7/7 (100.0%)
+❌ FINISHED: ic_hierarchical_0005.txt - Timeout. Moved IC to 'hierarchical' in 3000.4s
+🚀 STARTING: ic_hierarchical_0014.txt -> brutus_hierarchical_0014.txt
+📊 PROGRESS: [  8/150] (  5.3%) completed | Success rate: 7/8 (87.5%)
+✅ FINISHED: ic_hierarchical_0008.txt - Success in 2374.5s
+🚀 STARTING: ic_hierarchical_0015.txt -> brutus_hierarchical_0015.txt
+📊 PROGRESS: [  9/150] (  6.0%) completed | Success rate: 8/9 (88.9%)
+✅ FINISHED: ic_hierarchical_0015.txt - Success in 100.5s
+🚀 STARTING: ic_hierarchical_0016.txt -> brutus_hierarchical_0016.txt
+📊 PROGRESS: [ 10/150] (  6.7%) completed | Success rate: 9/10 (90.0%)
+✅ FINISHED: ic_hierarchical_0009.txt - Success in 2167.1s
+🚀 STARTING: ic_hierarchical_0017.txt -> brutus_hierarchical_0017.txt
+📊 PROGRESS: [ 11/150] (  7.3%) completed | Success rate: 10/11 (90.9%)
+✅ FINISHED: ic_hierarchical_0011.txt - Success in 2381.1s
+🚀 STARTING: ic_hierarchical_0018.txt -> brutus_hierarchical_0018.txt
+📊 PROGRESS: [ 12/150] (  8.0%) completed | Success rate: 11/12 (91.7%)
+✅ FINISHED: ic_hierarchical_0013.txt - Success in 1806.8s
+🚀 STARTING: ic_hierarchical_0019.txt -> brutus_hierarchical_0019.txt
+📊 PROGRESS: [ 13/150] (  8.7%) completed | Success rate: 12/13 (92.3%)
+❌ FINISHED: ic_hierarchical_0010.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0020.txt -> brutus_hierarchical_0020.txt
+📊 PROGRESS: [ 14/150] (  9.3%) completed | Success rate: 12/14 (85.7%)
+❌ FINISHED: ic_hierarchical_0012.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0021.txt -> brutus_hierarchical_0021.txt
+📊 PROGRESS: [ 15/150] ( 10.0%) completed | Success rate: 12/15 (80.0%)
+✅ FINISHED: ic_hierarchical_0017.txt - Success in 1576.0s
+🚀 STARTING: ic_hierarchical_0022.txt -> brutus_hierarchical_0022.txt
+📊 PROGRESS: [ 16/150] ( 10.7%) completed | Success rate: 13/16 (81.2%)
+✅ FINISHED: ic_hierarchical_0020.txt - Success in 1075.7s
+🚀 STARTING: ic_hierarchical_0023.txt -> brutus_hierarchical_0023.txt
+📊 PROGRESS: [ 17/150] ( 11.3%) completed | Success rate: 14/17 (82.4%)
+❌ FINISHED: ic_hierarchical_0014.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0024.txt -> brutus_hierarchical_0024.txt
+📊 PROGRESS: [ 18/150] ( 12.0%) completed | Success rate: 14/18 (77.8%)
+❌ FINISHED: ic_hierarchical_0016.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0025.txt -> brutus_hierarchical_0025.txt
+📊 PROGRESS: [ 19/150] ( 12.7%) completed | Success rate: 14/19 (73.7%)
+❌ FINISHED: ic_hierarchical_0018.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0026.txt -> brutus_hierarchical_0026.txt
+📊 PROGRESS: [ 20/150] ( 13.3%) completed | Success rate: 14/20 (70.0%)
+❌ FINISHED: ic_hierarchical_0019.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0027.txt -> brutus_hierarchical_0027.txt
+📊 PROGRESS: [ 21/150] ( 14.0%) completed | Success rate: 14/21 (66.7%)
+✅ FINISHED: ic_hierarchical_0026.txt - Success in 126.0s
+🚀 STARTING: ic_hierarchical_0028.txt -> brutus_hierarchical_0028.txt
+📊 PROGRESS: [ 22/150] ( 14.7%) completed | Success rate: 15/22 (68.2%)
+✅ FINISHED: ic_hierarchical_0028.txt - Success in 56.3s
+🚀 STARTING: ic_hierarchical_0029.txt -> brutus_hierarchical_0029.txt
+📊 PROGRESS: [ 23/150] ( 15.3%) completed | Success rate: 16/23 (69.6%)
+✅ FINISHED: ic_hierarchical_0025.txt - Success in 1412.0s
+🚀 STARTING: ic_hierarchical_0030.txt -> brutus_hierarchical_0030.txt
+📊 PROGRESS: [ 24/150] ( 16.0%) completed | Success rate: 17/24 (70.8%)
+❌ FINISHED: ic_hierarchical_0021.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0031.txt -> brutus_hierarchical_0031.txt
+📊 PROGRESS: [ 25/150] ( 16.7%) completed | Success rate: 17/25 (68.0%)
+❌ FINISHED: ic_hierarchical_0022.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0032.txt -> brutus_hierarchical_0032.txt
+📊 PROGRESS: [ 26/150] ( 17.3%) completed | Success rate: 17/26 (65.4%)
+❌ FINISHED: ic_hierarchical_0023.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0033.txt -> brutus_hierarchical_0033.txt
+📊 PROGRESS: [ 27/150] ( 18.0%) completed | Success rate: 17/27 (63.0%)
+❌ FINISHED: ic_hierarchical_0024.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0034.txt -> brutus_hierarchical_0034.txt
+📊 PROGRESS: [ 28/150] ( 18.7%) completed | Success rate: 17/28 (60.7%)
+✅ FINISHED: ic_hierarchical_0033.txt - Success in 104.6s
+🚀 STARTING: ic_hierarchical_0035.txt -> brutus_hierarchical_0035.txt
+📊 PROGRESS: [ 29/150] ( 19.3%) completed | Success rate: 18/29 (62.1%)
+✅ FINISHED: ic_hierarchical_0032.txt - Success in 1852.8s
+🚀 STARTING: ic_hierarchical_0036.txt -> brutus_hierarchical_0036.txt
+📊 PROGRESS: [ 30/150] ( 20.0%) completed | Success rate: 19/30 (63.3%)
+❌ FINISHED: ic_hierarchical_0027.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0037.txt -> brutus_hierarchical_0037.txt
+📊 PROGRESS: [ 31/150] ( 20.7%) completed | Success rate: 19/31 (61.3%)
+❌ FINISHED: ic_hierarchical_0029.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0038.txt -> brutus_hierarchical_0038.txt
+📊 PROGRESS: [ 32/150] ( 21.3%) completed | Success rate: 19/32 (59.4%)
+✅ FINISHED: ic_hierarchical_0038.txt - Success in 100.8s
+🚀 STARTING: ic_hierarchical_0039.txt -> brutus_hierarchical_0039.txt
+📊 PROGRESS: [ 33/150] ( 22.0%) completed | Success rate: 20/33 (60.6%)
+❌ FINISHED: ic_hierarchical_0030.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0040.txt -> brutus_hierarchical_0040.txt
+📊 PROGRESS: [ 34/150] ( 22.7%) completed | Success rate: 20/34 (58.8%)
+✅ FINISHED: ic_hierarchical_0031.txt - Success in 2949.4s
+🚀 STARTING: ic_hierarchical_0041.txt -> brutus_hierarchical_0041.txt
+📊 PROGRESS: [ 35/150] ( 23.3%) completed | Success rate: 21/35 (60.0%)
+✅ FINISHED: ic_hierarchical_0034.txt - Success in 2861.3s
+🚀 STARTING: ic_hierarchical_0042.txt -> brutus_hierarchical_0042.txt
+📊 PROGRESS: [ 36/150] ( 24.0%) completed | Success rate: 22/36 (61.1%)
+❌ FINISHED: ic_hierarchical_0035.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0043.txt -> brutus_hierarchical_0043.txt
+📊 PROGRESS: [ 37/150] ( 24.7%) completed | Success rate: 22/37 (59.5%)
+✅ FINISHED: ic_hierarchical_0037.txt - Success in 1608.9s
+🚀 STARTING: ic_hierarchical_0044.txt -> brutus_hierarchical_0044.txt
+📊 PROGRESS: [ 38/150] ( 25.3%) completed | Success rate: 23/38 (60.5%)
+❌ FINISHED: ic_hierarchical_0036.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0045.txt -> brutus_hierarchical_0045.txt
+📊 PROGRESS: [ 39/150] ( 26.0%) completed | Success rate: 23/39 (59.0%)
+✅ FINISHED: ic_hierarchical_0044.txt - Success in 1228.6s
+🚀 STARTING: ic_hierarchical_0046.txt -> brutus_hierarchical_0046.txt
+📊 PROGRESS: [ 40/150] ( 26.7%) completed | Success rate: 24/40 (60.0%)
+❌ FINISHED: ic_hierarchical_0039.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0047.txt -> brutus_hierarchical_0047.txt
+📊 PROGRESS: [ 41/150] ( 27.3%) completed | Success rate: 24/41 (58.5%)
+❌ FINISHED: ic_hierarchical_0040.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0048.txt -> brutus_hierarchical_0048.txt
+📊 PROGRESS: [ 42/150] ( 28.0%) completed | Success rate: 24/42 (57.1%)
+✅ FINISHED: ic_hierarchical_0041.txt - Success in 2754.6s
+🚀 STARTING: ic_hierarchical_0049.txt -> brutus_hierarchical_0049.txt
+📊 PROGRESS: [ 43/150] ( 28.7%) completed | Success rate: 25/43 (58.1%)
+❌ FINISHED: ic_hierarchical_0042.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0050.txt -> brutus_hierarchical_0050.txt
+📊 PROGRESS: [ 44/150] ( 29.3%) completed | Success rate: 25/44 (56.8%)
+❌ FINISHED: ic_hierarchical_0043.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0051.txt -> brutus_hierarchical_0051.txt
+📊 PROGRESS: [ 45/150] ( 30.0%) completed | Success rate: 25/45 (55.6%)
+✅ FINISHED: ic_hierarchical_0051.txt - Success in 57.5s
+🚀 STARTING: ic_hierarchical_0052.txt -> brutus_hierarchical_0052.txt
+📊 PROGRESS: [ 46/150] ( 30.7%) completed | Success rate: 26/46 (56.5%)
+✅ FINISHED: ic_hierarchical_0047.txt - Success in 1416.1s
+🚀 STARTING: ic_hierarchical_0053.txt -> brutus_hierarchical_0053.txt
+📊 PROGRESS: [ 47/150] ( 31.3%) completed | Success rate: 27/47 (57.4%)
+✅ FINISHED: ic_hierarchical_0052.txt - Success in 77.5s
+🚀 STARTING: ic_hierarchical_0054.txt -> brutus_hierarchical_0054.txt
+📊 PROGRESS: [ 48/150] ( 32.0%) completed | Success rate: 28/48 (58.3%)
+✅ FINISHED: ic_hierarchical_0049.txt - Success in 1522.7s
+🚀 STARTING: ic_hierarchical_0055.txt -> brutus_hierarchical_0055.txt
+📊 PROGRESS: [ 49/150] ( 32.7%) completed | Success rate: 29/49 (59.2%)
+✅ FINISHED: ic_hierarchical_0045.txt - Success in 2949.4s
+🚀 STARTING: ic_hierarchical_0056.txt -> brutus_hierarchical_0056.txt
+📊 PROGRESS: [ 50/150] ( 33.3%) completed | Success rate: 30/50 (60.0%)
+❌ FINISHED: ic_hierarchical_0046.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0057.txt -> brutus_hierarchical_0057.txt
+📊 PROGRESS: [ 51/150] ( 34.0%) completed | Success rate: 30/51 (58.8%)
+❌ FINISHED: ic_hierarchical_0048.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0058.txt -> brutus_hierarchical_0058.txt
+📊 PROGRESS: [ 52/150] ( 34.7%) completed | Success rate: 30/52 (57.7%)
+✅ FINISHED: ic_hierarchical_0058.txt - Success in 100.7s
+🚀 STARTING: ic_hierarchical_0059.txt -> brutus_hierarchical_0059.txt
+📊 PROGRESS: [ 53/150] ( 35.3%) completed | Success rate: 31/53 (58.5%)
+❌ FINISHED: ic_hierarchical_0050.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0061.txt -> brutus_hierarchical_0061.txt
+📊 PROGRESS: [ 54/150] ( 36.0%) completed | Success rate: 31/54 (57.4%)
+✅ FINISHED: ic_hierarchical_0056.txt - Success in 1766.4s
+🚀 STARTING: ic_hierarchical_0062.txt -> brutus_hierarchical_0062.txt
+📊 PROGRESS: [ 55/150] ( 36.7%) completed | Success rate: 32/55 (58.2%)
+✅ FINISHED: ic_hierarchical_0053.txt - Success in 2855.0s
+🚀 STARTING: ic_hierarchical_0063.txt -> brutus_hierarchical_0063.txt
+📊 PROGRESS: [ 56/150] ( 37.3%) completed | Success rate: 33/56 (58.9%)
+✅ FINISHED: ic_hierarchical_0055.txt - Success in 2671.7s
+🚀 STARTING: ic_hierarchical_0064.txt -> brutus_hierarchical_0064.txt
+📊 PROGRESS: [ 57/150] ( 38.0%) completed | Success rate: 34/57 (59.6%)
+❌ FINISHED: ic_hierarchical_0054.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0065.txt -> brutus_hierarchical_0065.txt
+📊 PROGRESS: [ 58/150] ( 38.7%) completed | Success rate: 34/58 (58.6%)
+✅ FINISHED: ic_hierarchical_0063.txt - Success in 188.3s
+🚀 STARTING: ic_hierarchical_0066.txt -> brutus_hierarchical_0066.txt
+📊 PROGRESS: [ 59/150] ( 39.3%) completed | Success rate: 35/59 (59.3%)
+✅ FINISHED: ic_hierarchical_0061.txt - Success in 1541.0s
+🚀 STARTING: ic_hierarchical_0067.txt -> brutus_hierarchical_0067.txt
+📊 PROGRESS: [ 60/150] ( 40.0%) completed | Success rate: 36/60 (60.0%)
+❌ FINISHED: ic_hierarchical_0057.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+🚀 STARTING: ic_hierarchical_0068.txt -> brutus_hierarchical_0068.txt
+📊 PROGRESS: [ 61/150] ( 40.7%) completed | Success rate: 36/61 (59.0%)
+✅ FINISHED: ic_hierarchical_0068.txt - Success in 453.6s
+🚀 STARTING: ic_hierarchical_0069.txt -> brutus_hierarchical_0069.txt
+📊 PROGRESS: [ 62/150] ( 41.3%) completed | Success rate: 37/62 (59.7%)
+✅ FINISHED: ic_hierarchical_0064.txt - Success in 1831.7s
+🚀 STARTING: ic_hierarchical_0070.txt -> brutus_hierarchical_0070.txt
+📊 PROGRESS: [ 63/150] ( 42.0%) completed | Success rate: 38/63 (60.3%)
+❌ FINISHED: ic_hierarchical_0059.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0071.txt -> brutus_hierarchical_0071.txt
+📊 PROGRESS: [ 64/150] ( 42.7%) completed | Success rate: 38/64 (59.4%)
+✅ FINISHED: ic_hierarchical_0069.txt - Success in 198.7s
+🚀 STARTING: ic_hierarchical_0072.txt -> brutus_hierarchical_0072.txt
+📊 PROGRESS: [ 65/150] ( 43.3%) completed | Success rate: 39/65 (60.0%)
+❌ FINISHED: ic_hierarchical_0062.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0073.txt -> brutus_hierarchical_0073.txt
+📊 PROGRESS: [ 66/150] ( 44.0%) completed | Success rate: 39/66 (59.1%)
+✅ FINISHED: ic_hierarchical_0073.txt - Success in 106.3s
+🚀 STARTING: ic_hierarchical_0074.txt -> brutus_hierarchical_0074.txt
+📊 PROGRESS: [ 67/150] ( 44.7%) completed | Success rate: 40/67 (59.7%)
+❌ FINISHED: ic_hierarchical_0065.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0075.txt -> brutus_hierarchical_0075.txt
+📊 PROGRESS: [ 68/150] ( 45.3%) completed | Success rate: 40/68 (58.8%)
+❌ FINISHED: ic_hierarchical_0066.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0076.txt -> brutus_hierarchical_0076.txt
+📊 PROGRESS: [ 69/150] ( 46.0%) completed | Success rate: 40/69 (58.0%)
+✅ FINISHED: ic_hierarchical_0071.txt - Success in 1406.0s
+🚀 STARTING: ic_hierarchical_0077.txt -> brutus_hierarchical_0077.txt
+📊 PROGRESS: [ 70/150] ( 46.7%) completed | Success rate: 41/70 (58.6%)
+✅ FINISHED: ic_hierarchical_0077.txt - Success in 205.9s
+🚀 STARTING: ic_hierarchical_0078.txt -> brutus_hierarchical_0078.txt
+📊 PROGRESS: [ 71/150] ( 47.3%) completed | Success rate: 42/71 (59.2%)
+❌ FINISHED: ic_hierarchical_0067.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0079.txt -> brutus_hierarchical_0079.txt
+📊 PROGRESS: [ 72/150] ( 48.0%) completed | Success rate: 42/72 (58.3%)
+❌ FINISHED: ic_hierarchical_0070.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0080.txt -> brutus_hierarchical_0080.txt
+📊 PROGRESS: [ 73/150] ( 48.7%) completed | Success rate: 42/73 (57.5%)
+✅ FINISHED: ic_hierarchical_0072.txt - Success in 2926.0s
+🚀 STARTING: ic_hierarchical_0081.txt -> brutus_hierarchical_0081.txt
+📊 PROGRESS: [ 74/150] ( 49.3%) completed | Success rate: 43/74 (58.1%)
+✅ FINISHED: ic_hierarchical_0078.txt - Success in 1518.9s
+🚀 STARTING: ic_hierarchical_0082.txt -> brutus_hierarchical_0082.txt
+📊 PROGRESS: [ 75/150] ( 50.0%) completed | Success rate: 44/75 (58.7%)
+✅ FINISHED: ic_hierarchical_0082.txt - Success in 50.6s
+🚀 STARTING: ic_hierarchical_0083.txt -> brutus_hierarchical_0083.txt
+📊 PROGRESS: [ 76/150] ( 50.7%) completed | Success rate: 45/76 (59.2%)
+✅ FINISHED: ic_hierarchical_0083.txt - Success in 239.3s
+🚀 STARTING: ic_hierarchical_0084.txt -> brutus_hierarchical_0084.txt
+📊 PROGRESS: [ 77/150] ( 51.3%) completed | Success rate: 46/77 (59.7%)
+❌ FINISHED: ic_hierarchical_0074.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0085.txt -> brutus_hierarchical_0085.txt
+📊 PROGRESS: [ 78/150] ( 52.0%) completed | Success rate: 46/78 (59.0%)
+✅ FINISHED: ic_hierarchical_0085.txt - Success in 22.7s
+🚀 STARTING: ic_hierarchical_0086.txt -> brutus_hierarchical_0086.txt
+📊 PROGRESS: [ 79/150] ( 52.7%) completed | Success rate: 47/79 (59.5%)
+❌ FINISHED: ic_hierarchical_0075.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0087.txt -> brutus_hierarchical_0087.txt
+📊 PROGRESS: [ 80/150] ( 53.3%) completed | Success rate: 47/80 (58.8%)
+❌ FINISHED: ic_hierarchical_0076.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0088.txt -> brutus_hierarchical_0088.txt
+📊 PROGRESS: [ 81/150] ( 54.0%) completed | Success rate: 47/81 (58.0%)
+✅ FINISHED: ic_hierarchical_0084.txt - Success in 1344.3s
+🚀 STARTING: ic_hierarchical_0089.txt -> brutus_hierarchical_0089.txt
+📊 PROGRESS: [ 82/150] ( 54.7%) completed | Success rate: 48/82 (58.5%)
+❌ FINISHED: ic_hierarchical_0079.txt - Timeout. Moved IC to 'hierarchical' in 2999.8s
+🚀 STARTING: ic_hierarchical_0090.txt -> brutus_hierarchical_0090.txt
+📊 PROGRESS: [ 83/150] ( 55.3%) completed | Success rate: 48/83 (57.8%)
+✅ FINISHED: ic_hierarchical_0086.txt - Success in 1397.9s
+🚀 STARTING: ic_hierarchical_0091.txt -> brutus_hierarchical_0091.txt
+📊 PROGRESS: [ 84/150] ( 56.0%) completed | Success rate: 49/84 (58.3%)
+❌ FINISHED: ic_hierarchical_0080.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0092.txt -> brutus_hierarchical_0092.txt
+📊 PROGRESS: [ 85/150] ( 56.7%) completed | Success rate: 49/85 (57.6%)
+❌ FINISHED: ic_hierarchical_0081.txt - Timeout. Moved IC to 'hierarchical' in 2999.8s
+🚀 STARTING: ic_hierarchical_0093.txt -> brutus_hierarchical_0093.txt
+📊 PROGRESS: [ 86/150] ( 57.3%) completed | Success rate: 49/86 (57.0%)
+✅ FINISHED: ic_hierarchical_0092.txt - Success in 156.8s
+🚀 STARTING: ic_hierarchical_0094.txt -> brutus_hierarchical_0094.txt
+📊 PROGRESS: [ 87/150] ( 58.0%) completed | Success rate: 50/87 (57.5%)
+✅ FINISHED: ic_hierarchical_0090.txt - Success in 962.7s
+🚀 STARTING: ic_hierarchical_0095.txt -> brutus_hierarchical_0095.txt
+📊 PROGRESS: [ 88/150] ( 58.7%) completed | Success rate: 51/88 (58.0%)
+✅ FINISHED: ic_hierarchical_0088.txt - Success in 2478.9s
+🚀 STARTING: ic_hierarchical_0096.txt -> brutus_hierarchical_0096.txt
+📊 PROGRESS: [ 89/150] ( 59.3%) completed | Success rate: 52/89 (58.4%)
+✅ FINISHED: ic_hierarchical_0091.txt - Success in 1276.8s
+🚀 STARTING: ic_hierarchical_0097.txt -> brutus_hierarchical_0097.txt
+📊 PROGRESS: [ 90/150] ( 60.0%) completed | Success rate: 53/90 (58.9%)
+✅ FINISHED: ic_hierarchical_0089.txt - Success in 2310.1s
+🚀 STARTING: ic_hierarchical_0098.txt -> brutus_hierarchical_0098.txt
+📊 PROGRESS: [ 91/150] ( 60.7%) completed | Success rate: 54/91 (59.3%)
+❌ FINISHED: ic_hierarchical_0087.txt - Timeout. Moved IC to 'hierarchical' in 2999.8s
+🚀 STARTING: ic_hierarchical_0099.txt -> brutus_hierarchical_0099.txt
+📊 PROGRESS: [ 92/150] ( 61.3%) completed | Success rate: 54/92 (58.7%)
+✅ FINISHED: ic_hierarchical_0098.txt - Success in 940.5s
+🚀 STARTING: ic_hierarchical_0100.txt -> brutus_hierarchical_0100.txt
+📊 PROGRESS: [ 93/150] ( 62.0%) completed | Success rate: 55/93 (59.1%)
+✅ FINISHED: ic_hierarchical_0093.txt - Success in 2032.5s
+🚀 STARTING: ic_hierarchical_0101.txt -> brutus_hierarchical_0101.txt
+📊 PROGRESS: [ 94/150] ( 62.7%) completed | Success rate: 56/94 (59.6%)
+✅ FINISHED: ic_hierarchical_0100.txt - Success in 209.8s
+🚀 STARTING: ic_hierarchical_0102.txt -> brutus_hierarchical_0102.txt
+📊 PROGRESS: [ 95/150] ( 63.3%) completed | Success rate: 57/95 (60.0%)
+✅ FINISHED: ic_hierarchical_0097.txt - Success in 1952.6s
+🚀 STARTING: ic_hierarchical_0103.txt -> brutus_hierarchical_0103.txt
+📊 PROGRESS: [ 96/150] ( 64.0%) completed | Success rate: 58/96 (60.4%)
+✅ FINISHED: ic_hierarchical_0103.txt - Success in 133.3s
+🚀 STARTING: ic_hierarchical_0104.txt -> brutus_hierarchical_0104.txt
+📊 PROGRESS: [ 97/150] ( 64.7%) completed | Success rate: 59/97 (60.8%)
+❌ FINISHED: ic_hierarchical_0094.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0105.txt -> brutus_hierarchical_0105.txt
+📊 PROGRESS: [ 98/150] ( 65.3%) completed | Success rate: 59/98 (60.2%)
+✅ FINISHED: ic_hierarchical_0096.txt - Success in 2428.0s
+🚀 STARTING: ic_hierarchical_0106.txt -> brutus_hierarchical_0106.txt
+📊 PROGRESS: [ 99/150] ( 66.0%) completed | Success rate: 60/99 (60.6%)
+❌ FINISHED: ic_hierarchical_0095.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0107.txt -> brutus_hierarchical_0107.txt
+📊 PROGRESS: [100/150] ( 66.7%) completed | Success rate: 60/100 (60.0%)
+✅ FINISHED: ic_hierarchical_0102.txt - Success in 1881.8s
+🚀 STARTING: ic_hierarchical_0108.txt -> brutus_hierarchical_0108.txt
+📊 PROGRESS: [101/150] ( 67.3%) completed | Success rate: 61/101 (60.4%)
+❌ FINISHED: ic_hierarchical_0099.txt - Timeout. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0109.txt -> brutus_hierarchical_0109.txt
+📊 PROGRESS: [102/150] ( 68.0%) completed | Success rate: 61/102 (59.8%)
+✅ FINISHED: ic_hierarchical_0101.txt - Success in 2250.0s
+🚀 STARTING: ic_hierarchical_0110.txt -> brutus_hierarchical_0110.txt
+📊 PROGRESS: [103/150] ( 68.7%) completed | Success rate: 62/103 (60.2%)
+✅ FINISHED: ic_hierarchical_0109.txt - Success in 149.3s
+🚀 STARTING: ic_hierarchical_0111.txt -> brutus_hierarchical_0111.txt
+📊 PROGRESS: [104/150] ( 69.3%) completed | Success rate: 63/104 (60.6%)
+✅ FINISHED: ic_hierarchical_0105.txt - Success in 2510.8s
+🚀 STARTING: ic_hierarchical_0112.txt -> brutus_hierarchical_0112.txt
+📊 PROGRESS: [105/150] ( 70.0%) completed | Success rate: 64/105 (61.0%)
+❌ FINISHED: ic_hierarchical_0104.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0113.txt -> brutus_hierarchical_0113.txt
+📊 PROGRESS: [106/150] ( 70.7%) completed | Success rate: 64/106 (60.4%)
+✅ FINISHED: ic_hierarchical_0106.txt - Success in 2806.7s
+🚀 STARTING: ic_hierarchical_0114.txt -> brutus_hierarchical_0114.txt
+📊 PROGRESS: [107/150] ( 71.3%) completed | Success rate: 65/107 (60.7%)
+❌ FINISHED: ic_hierarchical_0107.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0115.txt -> brutus_hierarchical_0115.txt
+📊 PROGRESS: [108/150] ( 72.0%) completed | Success rate: 65/108 (60.2%)
+✅ FINISHED: ic_hierarchical_0110.txt - Success in 2497.8s
+🚀 STARTING: ic_hierarchical_0116.txt -> brutus_hierarchical_0116.txt
+📊 PROGRESS: [109/150] ( 72.7%) completed | Success rate: 66/109 (60.6%)
+❌ FINISHED: ic_hierarchical_0108.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0117.txt -> brutus_hierarchical_0117.txt
+📊 PROGRESS: [110/150] ( 73.3%) completed | Success rate: 66/110 (60.0%)
+✅ FINISHED: ic_hierarchical_0117.txt - Success in 75.2s
+🚀 STARTING: ic_hierarchical_0118.txt -> brutus_hierarchical_0118.txt
+📊 PROGRESS: [111/150] ( 74.0%) completed | Success rate: 67/111 (60.4%)
+✅ FINISHED: ic_hierarchical_0111.txt - Success in 2819.4s
+🚀 STARTING: ic_hierarchical_0119.txt -> brutus_hierarchical_0119.txt
+📊 PROGRESS: [112/150] ( 74.7%) completed | Success rate: 68/112 (60.7%)
+✅ FINISHED: ic_hierarchical_0112.txt - Success in 2125.9s
+🚀 STARTING: ic_hierarchical_0120.txt -> brutus_hierarchical_0120.txt
+📊 PROGRESS: [113/150] ( 75.3%) completed | Success rate: 69/113 (61.1%)
+✅ FINISHED: ic_hierarchical_0118.txt - Success in 1511.5s
+🚀 STARTING: ic_hierarchical_0121.txt -> brutus_hierarchical_0121.txt
+📊 PROGRESS: [114/150] ( 76.0%) completed | Success rate: 70/114 (61.4%)
+✅ FINISHED: ic_hierarchical_0121.txt - Success in 140.7s
+🚀 STARTING: ic_hierarchical_0122.txt -> brutus_hierarchical_0122.txt
+📊 PROGRESS: [115/150] ( 76.7%) completed | Success rate: 71/115 (61.7%)
+❌ FINISHED: ic_hierarchical_0113.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0124.txt -> brutus_hierarchical_0124.txt
+📊 PROGRESS: [116/150] ( 77.3%) completed | Success rate: 71/116 (61.2%)
+✅ FINISHED: ic_hierarchical_0124.txt - Success in 76.5s
+🚀 STARTING: ic_hierarchical_0125.txt -> brutus_hierarchical_0125.txt
+📊 PROGRESS: [117/150] ( 78.0%) completed | Success rate: 72/117 (61.5%)
+❌ FINISHED: ic_hierarchical_0114.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0126.txt -> brutus_hierarchical_0126.txt
+📊 PROGRESS: [118/150] ( 78.7%) completed | Success rate: 72/118 (61.0%)
+✅ FINISHED: ic_hierarchical_0125.txt - Success in 61.1s
+🚀 STARTING: ic_hierarchical_0127.txt -> brutus_hierarchical_0127.txt
+📊 PROGRESS: [119/150] ( 79.3%) completed | Success rate: 73/119 (61.3%)
+❌ FINISHED: ic_hierarchical_0115.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0128.txt -> brutus_hierarchical_0128.txt
+📊 PROGRESS: [120/150] ( 80.0%) completed | Success rate: 73/120 (60.8%)
+✅ FINISHED: ic_hierarchical_0128.txt - Success in 234.9s
+🚀 STARTING: ic_hierarchical_0129.txt -> brutus_hierarchical_0129.txt
+📊 PROGRESS: [121/150] ( 80.7%) completed | Success rate: 74/121 (61.2%)
+❌ FINISHED: ic_hierarchical_0116.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0130.txt -> brutus_hierarchical_0130.txt
+📊 PROGRESS: [122/150] ( 81.3%) completed | Success rate: 74/122 (60.7%)
+❌ FINISHED: ic_hierarchical_0119.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0131.txt -> brutus_hierarchical_0131.txt
+📊 PROGRESS: [123/150] ( 82.0%) completed | Success rate: 74/123 (60.2%)
+✅ FINISHED: ic_hierarchical_0129.txt - Success in 737.7s
+🚀 STARTING: ic_hierarchical_0133.txt -> brutus_hierarchical_0133.txt
+📊 PROGRESS: [124/150] ( 82.7%) completed | Success rate: 75/124 (60.5%)
+❌ FINISHED: ic_hierarchical_0120.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0134.txt -> brutus_hierarchical_0134.txt
+📊 PROGRESS: [125/150] ( 83.3%) completed | Success rate: 75/125 (60.0%)
+✅ FINISHED: ic_hierarchical_0122.txt - Success in 2618.4s
+🚀 STARTING: ic_hierarchical_0135.txt -> brutus_hierarchical_0135.txt
+📊 PROGRESS: [126/150] ( 84.0%) completed | Success rate: 76/126 (60.3%)
+✅ FINISHED: ic_hierarchical_0130.txt - Success in 2107.1s
+🚀 STARTING: ic_hierarchical_0136.txt -> brutus_hierarchical_0136.txt
+📊 PROGRESS: [127/150] ( 84.7%) completed | Success rate: 77/127 (60.6%)
+❌ FINISHED: ic_hierarchical_0126.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0137.txt -> brutus_hierarchical_0137.txt
+📊 PROGRESS: [128/150] ( 85.3%) completed | Success rate: 77/128 (60.2%)
+❌ FINISHED: ic_hierarchical_0127.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0138.txt -> brutus_hierarchical_0138.txt
+📊 PROGRESS: [129/150] ( 86.0%) completed | Success rate: 77/129 (59.7%)
+✅ FINISHED: ic_hierarchical_0135.txt - Success in 1491.4s
+🚀 STARTING: ic_hierarchical_0139.txt -> brutus_hierarchical_0139.txt
+📊 PROGRESS: [130/150] ( 86.7%) completed | Success rate: 78/130 (60.0%)
+❌ FINISHED: ic_hierarchical_0131.txt - Timeout. Moved IC to 'hierarchical' in 3000.5s
+🚀 STARTING: ic_hierarchical_0140.txt -> brutus_hierarchical_0140.txt
+📊 PROGRESS: [131/150] ( 87.3%) completed | Success rate: 78/131 (59.5%)
+❌ FINISHED: ic_hierarchical_0133.txt - Timeout. Moved IC to 'hierarchical' in 3000.5s
+🚀 STARTING: ic_hierarchical_0141.txt -> brutus_hierarchical_0141.txt
+📊 PROGRESS: [132/150] ( 88.0%) completed | Success rate: 78/132 (59.1%)
+✅ FINISHED: ic_hierarchical_0136.txt - Success in 1855.5s
+🚀 STARTING: ic_hierarchical_0142.txt -> brutus_hierarchical_0142.txt
+📊 PROGRESS: [133/150] ( 88.7%) completed | Success rate: 79/133 (59.4%)
+❌ FINISHED: ic_hierarchical_0134.txt - Timeout. Moved IC to 'hierarchical' in 3000.6s
+🚀 STARTING: ic_hierarchical_0143.txt -> brutus_hierarchical_0143.txt
+📊 PROGRESS: [134/150] ( 89.3%) completed | Success rate: 79/134 (59.0%)
+✅ FINISHED: ic_hierarchical_0138.txt - Success in 2337.6s
+🚀 STARTING: ic_hierarchical_0144.txt -> brutus_hierarchical_0144.txt
+📊 PROGRESS: [135/150] ( 90.0%) completed | Success rate: 80/135 (59.3%)
+✅ FINISHED: ic_hierarchical_0144.txt - Success in 94.1s
+🚀 STARTING: ic_hierarchical_0145.txt -> brutus_hierarchical_0145.txt
+📊 PROGRESS: [136/150] ( 90.7%) completed | Success rate: 81/136 (59.6%)
+❌ FINISHED: ic_hierarchical_0137.txt - Timeout. Moved IC to 'hierarchical' in 3000.6s
+🚀 STARTING: ic_hierarchical_0146.txt -> brutus_hierarchical_0146.txt
+📊 PROGRESS: [137/150] ( 91.3%) completed | Success rate: 81/137 (59.1%)
+✅ FINISHED: ic_hierarchical_0140.txt - Success in 1796.2s
+📊 PROGRESS: [138/150] ( 92.0%) completed | Success rate: 82/138 (59.4%)
+🚀 STARTING: ic_hierarchical_0147.txt -> brutus_hierarchical_0147.txt
+✅ FINISHED: ic_hierarchical_0139.txt - Success in 2431.9s
+📊 PROGRESS: [139/150] ( 92.7%) completed | Success rate: 83/139 (59.7%)
+🚀 STARTING: ic_hierarchical_0148.txt -> brutus_hierarchical_0148.txt
+✅ FINISHED: ic_hierarchical_0148.txt - Success in 62.1s
+🚀 STARTING: ic_hierarchical_0149.txt -> brutus_hierarchical_0149.txt
+📊 PROGRESS: [140/150] ( 93.3%) completed | Success rate: 84/140 (60.0%)
+✅ FINISHED: ic_hierarchical_0147.txt - Success in 543.4s
+🚀 STARTING: ic_hierarchical_0150.txt -> brutus_hierarchical_0150.txt
+📊 PROGRESS: [141/150] ( 94.0%) completed | Success rate: 85/141 (60.3%)
+✅ FINISHED: ic_hierarchical_0150.txt - Success in 122.2s
+🚀 STARTING: ic_hierarchical_0151.txt -> brutus_hierarchical_0151.txt
+📊 PROGRESS: [142/150] ( 94.7%) completed | Success rate: 86/142 (60.6%)
+✅ FINISHED: ic_hierarchical_0142.txt - Success in 2155.8s
+🚀 STARTING: ic_hierarchical_0152.txt -> brutus_hierarchical_0152.txt
+📊 PROGRESS: [143/150] ( 95.3%) completed | Success rate: 87/143 (60.8%)
+✅ FINISHED: ic_hierarchical_0141.txt - Success in 2919.1s
+📊 PROGRESS: [144/150] ( 96.0%) completed | Success rate: 88/144 (61.1%)
+✅ FINISHED: ic_hierarchical_0149.txt - Success in 1219.6s
+📊 PROGRESS: [145/150] ( 96.7%) completed | Success rate: 89/145 (61.4%)
+❌ FINISHED: ic_hierarchical_0143.txt - Timeout. Moved IC to 'hierarchical' in 3000.1s
+📊 PROGRESS: [146/150] ( 97.3%) completed | Success rate: 89/146 (61.0%)
+❌ FINISHED: ic_hierarchical_0145.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+📊 PROGRESS: [147/150] ( 98.0%) completed | Success rate: 89/147 (60.5%)
+❌ FINISHED: ic_hierarchical_0146.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+📊 PROGRESS: [148/150] ( 98.7%) completed | Success rate: 89/148 (60.1%)
+❌ FINISHED: ic_hierarchical_0151.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+📊 PROGRESS: [149/150] ( 99.3%) completed | Success rate: 89/149 (59.7%)
+❌ FINISHED: ic_hierarchical_0152.txt - Timeout. Moved IC to 'hierarchical' in 3000.0s
+📊 PROGRESS: [150/150] (100.0%) completed | Success rate: 89/150 (59.3%)
+--------------------------------------------------------------------------------
+COMPLETED: Hierarchical processing in 748.0 minutes
+  Successful: 89/150
+  Success rate: 59.3%
+--------------------------------------------------------------------------------
+
+================================================================================
+FINAL SUMMARY
+================================================================================
+Run completed at: 2025-07-01 01:57:42
+Total execution time: 12.47 hours (748.0 minutes)
+Successfully completed: 89 simulations
+Input directory: <home>/Desktop/cursor/3_Body_Problem/final_stage_ic_datasets/ic_hierarchical
+Output directory: <home>/Desktop/cursor/3_Body_Problem/brutus_output/brutus_hierarchical_final
+Problematic ICs moved to: <home>/Desktop/cursor/3_Body_Problem/problematic_ics/hierarchical
+
+================================================================================

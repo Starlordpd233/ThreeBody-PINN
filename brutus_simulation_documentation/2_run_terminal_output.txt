@@ -1,0 +1,260 @@
+(base) <user>@<host> cursor % /opt/anaconda3/bin/python <home>/Desktop/cursor/3_Body_Problem/run_brutus_hierarchical_only.py
+================================================================================
+Brutus Batch Runner - Hierarchical ICs (60 per run)
+Started at: 2025-07-02 10:00:39
+Brutus executable: <home>/Desktop/cursor/brutus_Newton-main/brutus
+================================================================================
+Found 63 blacklisted ICs in 'hierarchical'
+Total ICs found: 1494
+Skipping 0 blacklisted ICs.
+Skipping 90 ICs with existing valid outputs.
+Available for processing: 1404
+
+Processing ICs 0153 to 0214 (60 files)
+Files to process: 60
+Using 7 parallel processes.
+Brutus params: t=[0,10], dt=0.01
+--------------------------------------------------------------------------------
+🚀 STARTING: ic_hierarchical_0153.txt -> brutus_hierarchical_0153.txt
+🚀 STARTING: ic_hierarchical_0154.txt -> brutus_hierarchical_0154.txt
+🚀 STARTING: ic_hierarchical_0155.txt -> brutus_hierarchical_0155.txt
+🚀 STARTING: ic_hierarchical_0156.txt -> brutus_hierarchical_0156.txt
+🚀 STARTING: ic_hierarchical_0158.txt -> brutus_hierarchical_0158.txt
+🚀 STARTING: ic_hierarchical_0159.txt -> brutus_hierarchical_0159.txt
+🚀 STARTING: ic_hierarchical_0160.txt -> brutus_hierarchical_0160.txt
+✅ FINISHED: ic_hierarchical_0158.txt - Validation passed in 1607.1s
+🚀 STARTING: ic_hierarchical_0161.txt -> brutus_hierarchical_0161.txt
+📊 PROGRESS: [  1/60] (  1.7%) completed
+✅ FINISHED: ic_hierarchical_0160.txt - Validation passed in 1853.6s
+🚀 STARTING: ic_hierarchical_0162.txt -> brutus_hierarchical_0162.txt
+📊 PROGRESS: [  2/60] (  3.3%) completed
+✅ FINISHED: ic_hierarchical_0159.txt - Validation passed in 2430.7s
+🚀 STARTING: ic_hierarchical_0163.txt -> brutus_hierarchical_0163.txt
+📊 PROGRESS: [  3/60] (  5.0%) completed
+
+
+❌ FINISHED: ic_hierarchical_0153.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0164.txt -> brutus_hierarchical_0164.txt
+📊 PROGRESS: [  4/60] (  6.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0156.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0165.txt -> brutus_hierarchical_0165.txt
+
+
+
+❌ FINISHED: ic_hierarchical_0154.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+📊 PROGRESS: [  5/60] (  8.3%) completed
+
+
+❌ FINISHED: ic_hierarchical_0155.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0167.txt -> brutus_hierarchical_0167.txt
+🚀 STARTING: ic_hierarchical_0166.txt -> brutus_hierarchical_0166.txt
+📊 PROGRESS: [  6/60] ( 10.0%) completed
+📊 PROGRESS: [  7/60] ( 11.7%) completed
+✅ FINISHED: ic_hierarchical_0165.txt - Validation passed in 386.5s
+🚀 STARTING: ic_hierarchical_0168.txt -> brutus_hierarchical_0168.txt
+📊 PROGRESS: [  8/60] ( 13.3%) completed
+✅ FINISHED: ic_hierarchical_0166.txt - Validation passed in 1053.7s
+🚀 STARTING: ic_hierarchical_0169.txt -> brutus_hierarchical_0169.txt
+📊 PROGRESS: [  9/60] ( 15.0%) completed
+✅ FINISHED: ic_hierarchical_0167.txt - Validation passed in 1134.3s
+🚀 STARTING: ic_hierarchical_0170.txt -> brutus_hierarchical_0170.txt
+📊 PROGRESS: [ 10/60] ( 16.7%) completed
+
+
+
+❌ FINISHED: ic_hierarchical_0161.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0171.txt -> brutus_hierarchical_0171.txt
+📊 PROGRESS: [ 11/60] ( 18.3%) completed
+✅ FINISHED: ic_hierarchical_0162.txt - Validation passed in 2948.1s
+🚀 STARTING: ic_hierarchical_0172.txt -> brutus_hierarchical_0172.txt
+📊 PROGRESS: [ 12/60] ( 20.0%) completed
+✅ FINISHED: ic_hierarchical_0169.txt - Validation passed in 833.6s
+🚀 STARTING: ic_hierarchical_0173.txt -> brutus_hierarchical_0173.txt
+📊 PROGRESS: [ 13/60] ( 21.7%) completed
+✅ FINISHED: ic_hierarchical_0170.txt - Validation passed in 942.3s
+🚀 STARTING: ic_hierarchical_0174.txt -> brutus_hierarchical_0174.txt
+📊 PROGRESS: [ 14/60] ( 23.3%) completed
+
+
+❌ FINISHED: ic_hierarchical_0163.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0175.txt -> brutus_hierarchical_0175.txt
+📊 PROGRESS: [ 15/60] ( 25.0%) completed
+
+
+❌ FINISHED: ic_hierarchical_0164.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0176.txt -> brutus_hierarchical_0176.txt
+📊 PROGRESS: [ 16/60] ( 26.7%) completed
+✅ FINISHED: ic_hierarchical_0168.txt - Validation passed in 2929.8s
+🚀 STARTING: ic_hierarchical_0177.txt -> brutus_hierarchical_0177.txt
+📊 PROGRESS: [ 17/60] ( 28.3%) completed
+✅ FINISHED: ic_hierarchical_0177.txt - Validation passed in 832.8s
+🚀 STARTING: ic_hierarchical_0178.txt -> brutus_hierarchical_0178.txt
+📊 PROGRESS: [ 18/60] ( 30.0%) completed
+✅ FINISHED: ic_hierarchical_0174.txt - Validation passed in 2073.9s
+🚀 STARTING: ic_hierarchical_0179.txt -> brutus_hierarchical_0179.txt
+📊 PROGRESS: [ 19/60] ( 31.7%) completed
+✅ FINISHED: ic_hierarchical_0172.txt - Validation passed in 2745.5s
+🚀 STARTING: ic_hierarchical_0180.txt -> brutus_hierarchical_0180.txt
+📊 PROGRESS: [ 20/60] ( 33.3%) completed
+
+
+❌ FINISHED: ic_hierarchical_0171.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0181.txt -> brutus_hierarchical_0181.txt
+📊 PROGRESS: [ 21/60] ( 35.0%) completed
+
+
+❌ FINISHED: ic_hierarchical_0173.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0182.txt -> brutus_hierarchical_0182.txt
+📊 PROGRESS: [ 22/60] ( 36.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0175.txt - Timed out. Moved IC to 'hierarchical' in 2999.9s
+🚀 STARTING: ic_hierarchical_0184.txt -> brutus_hierarchical_0184.txt
+📊 PROGRESS: [ 23/60] ( 38.3%) completed
+
+
+❌ FINISHED: ic_hierarchical_0176.txt - Timed out. Moved IC to 'hierarchical' in 3000.5s
+🚀 STARTING: ic_hierarchical_0185.txt -> brutus_hierarchical_0185.txt
+📊 PROGRESS: [ 24/60] ( 40.0%) completed
+✅ FINISHED: ic_hierarchical_0185.txt - Validation passed in 132.5s
+🚀 STARTING: ic_hierarchical_0186.txt -> brutus_hierarchical_0186.txt
+📊 PROGRESS: [ 25/60] ( 41.7%) completed
+✅ FINISHED: ic_hierarchical_0184.txt - Validation passed in 1115.9s
+🚀 STARTING: ic_hierarchical_0187.txt -> brutus_hierarchical_0187.txt
+📊 PROGRESS: [ 26/60] ( 43.3%) completed
+✅ FINISHED: ic_hierarchical_0179.txt - Validation passed in 2761.3s
+🚀 STARTING: ic_hierarchical_0188.txt -> brutus_hierarchical_0188.txt
+📊 PROGRESS: [ 27/60] ( 45.0%) completed
+
+
+❌ FINISHED: ic_hierarchical_0178.txt - Timed out. Moved IC to 'hierarchical' in 3000.6s
+🚀 STARTING: ic_hierarchical_0189.txt -> brutus_hierarchical_0189.txt
+📊 PROGRESS: [ 28/60] ( 46.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0180.txt - Timed out. Moved IC to 'hierarchical' in 3000.6s
+🚀 STARTING: ic_hierarchical_0190.txt -> brutus_hierarchical_0190.txt
+📊 PROGRESS: [ 29/60] ( 48.3%) completed
+
+
+❌ FINISHED: ic_hierarchical_0181.txt - Timed out. Moved IC to 'hierarchical' in 3000.6s
+🚀 STARTING: ic_hierarchical_0191.txt -> brutus_hierarchical_0191.txt
+📊 PROGRESS: [ 30/60] ( 50.0%) completed
+
+
+❌ FINISHED: ic_hierarchical_0182.txt - Timed out. Moved IC to 'hierarchical' in 3000.6s
+🚀 STARTING: ic_hierarchical_0192.txt -> brutus_hierarchical_0192.txt
+📊 PROGRESS: [ 31/60] ( 51.7%) completed
+✅ FINISHED: ic_hierarchical_0186.txt - Validation passed in 1766.0s
+🚀 STARTING: ic_hierarchical_0193.txt -> brutus_hierarchical_0193.txt
+📊 PROGRESS: [ 32/60] ( 53.3%) completed
+✅ FINISHED: ic_hierarchical_0188.txt - Validation passed in 1201.6s
+🚀 STARTING: ic_hierarchical_0194.txt -> brutus_hierarchical_0194.txt
+📊 PROGRESS: [ 33/60] ( 55.0%) completed
+✅ FINISHED: ic_hierarchical_0194.txt - Validation passed in 1394.6s
+🚀 STARTING: ic_hierarchical_0195.txt -> brutus_hierarchical_0195.txt
+📊 PROGRESS: [ 34/60] ( 56.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0187.txt - Timed out. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0196.txt -> brutus_hierarchical_0196.txt
+📊 PROGRESS: [ 35/60] ( 58.3%) completed
+✅ FINISHED: ic_hierarchical_0190.txt - Validation passed in 2261.6s
+🚀 STARTING: ic_hierarchical_0197.txt -> brutus_hierarchical_0197.txt
+📊 PROGRESS: [ 36/60] ( 60.0%) completed
+
+
+❌ FINISHED: ic_hierarchical_0189.txt - Timed out. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0198.txt -> brutus_hierarchical_0198.txt
+📊 PROGRESS: [ 37/60] ( 61.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0191.txt - Timed out. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0199.txt -> brutus_hierarchical_0199.txt
+📊 PROGRESS: [ 38/60] ( 63.3%) completed
+
+
+❌ FINISHED: ic_hierarchical_0192.txt - Timed out. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0200.txt -> brutus_hierarchical_0200.txt
+📊 PROGRESS: [ 39/60] ( 65.0%) completed
+
+
+❌ FINISHED: ic_hierarchical_0193.txt - Timed out. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0201.txt -> brutus_hierarchical_0201.txt
+📊 PROGRESS: [ 40/60] ( 66.7%) completed
+✅ FINISHED: ic_hierarchical_0197.txt - Validation passed in 1153.9s
+🚀 STARTING: ic_hierarchical_0202.txt -> brutus_hierarchical_0202.txt
+📊 PROGRESS: [ 41/60] ( 68.3%) completed
+✅ FINISHED: ic_hierarchical_0199.txt - Validation passed in 837.6s
+🚀 STARTING: ic_hierarchical_0203.txt -> brutus_hierarchical_0203.txt
+📊 PROGRESS: [ 42/60] ( 70.0%) completed
+✅ FINISHED: ic_hierarchical_0203.txt - Validation passed in 136.3s
+🚀 STARTING: ic_hierarchical_0204.txt -> brutus_hierarchical_0204.txt
+📊 PROGRESS: [ 43/60] ( 71.7%) completed
+✅ FINISHED: ic_hierarchical_0196.txt - Validation passed in 2943.6s
+🚀 STARTING: ic_hierarchical_0205.txt -> brutus_hierarchical_0205.txt
+📊 PROGRESS: [ 44/60] ( 73.3%) completed
+
+
+❌ FINISHED: ic_hierarchical_0195.txt - Timed out. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0206.txt -> brutus_hierarchical_0206.txt
+📊 PROGRESS: [ 45/60] ( 75.0%) completed
+✅ FINISHED: ic_hierarchical_0198.txt - Validation passed in 2501.3s
+🚀 STARTING: ic_hierarchical_0207.txt -> brutus_hierarchical_0207.txt
+📊 PROGRESS: [ 46/60] ( 76.7%) completed
+✅ FINISHED: ic_hierarchical_0200.txt - Validation passed in 1765.7s
+🚀 STARTING: ic_hierarchical_0208.txt -> brutus_hierarchical_0208.txt
+📊 PROGRESS: [ 47/60] ( 78.3%) completed
+✅ FINISHED: ic_hierarchical_0202.txt - Validation passed in 1748.6s
+🚀 STARTING: ic_hierarchical_0209.txt -> brutus_hierarchical_0209.txt
+📊 PROGRESS: [ 48/60] ( 80.0%) completed
+✅ FINISHED: ic_hierarchical_0204.txt - Validation passed in 1934.9s
+🚀 STARTING: ic_hierarchical_0210.txt -> brutus_hierarchical_0210.txt
+📊 PROGRESS: [ 49/60] ( 81.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0201.txt - Timed out. Moved IC to 'hierarchical' in 3000.0s
+🚀 STARTING: ic_hierarchical_0211.txt -> brutus_hierarchical_0211.txt
+📊 PROGRESS: [ 50/60] ( 83.3%) completed
+✅ FINISHED: ic_hierarchical_0207.txt - Validation passed in 1319.5s
+🚀 STARTING: ic_hierarchical_0212.txt -> brutus_hierarchical_0212.txt
+📊 PROGRESS: [ 51/60] ( 85.0%) completed
+✅ FINISHED: ic_hierarchical_0212.txt - Validation passed in 73.2s
+🚀 STARTING: ic_hierarchical_0213.txt -> brutus_hierarchical_0213.txt
+📊 PROGRESS: [ 52/60] ( 86.7%) completed
+✅ FINISHED: ic_hierarchical_0208.txt - Validation passed in 1467.0s
+🚀 STARTING: ic_hierarchical_0214.txt -> brutus_hierarchical_0214.txt
+📊 PROGRESS: [ 53/60] ( 88.3%) completed
+✅ FINISHED: ic_hierarchical_0214.txt - Validation passed in 138.9s
+📊 PROGRESS: [ 54/60] ( 90.0%) completed
+✅ FINISHED: ic_hierarchical_0211.txt - Validation passed in 1568.7s
+📊 PROGRESS: [ 55/60] ( 91.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0205.txt - Timed out. Moved IC to 'hierarchical' in 3000.1s
+📊 PROGRESS: [ 56/60] ( 93.3%) completed
+
+❌ FINISHED: ic_hierarchical_0206.txt - Timed out. Moved IC to 'hierarchical' in 3000.1s
+📊 PROGRESS: [ 57/60] ( 95.0%) completed
+✅ FINISHED: ic_hierarchical_0210.txt - Validation passed in 2113.9s
+📊 PROGRESS: [ 58/60] ( 96.7%) completed
+
+
+❌ FINISHED: ic_hierarchical_0209.txt - Timed out. Moved IC to 'hierarchical' in 3000.1s
+📊 PROGRESS: [ 59/60] ( 98.3%) completed
+❌ FINISHED: ic_hierarchical_0213.txt - Timed out. Moved IC to 'hierarchical' in 3000.1s
+📊 PROGRESS: [ 60/60] (100.0%) completed
+
+================================================================================
+FINAL SUMMARY
+================================================================================
+Run completed at: 2025-07-02 15:34:43
+Total execution time: 5.57 hours (334.1 minutes)
+Successfully completed: 34 simulations
+Input directory: <home>/Desktop/cursor/3_Body_Problem/final_stage_ic_datasets/ic_hierarchical
+Output directory: <home>/Desktop/cursor/3_Body_Problem/brutus_output/brutus_hierarchical_final
+Problematic ICs moved to: <home>/Desktop/cursor/3_Body_Problem/problematic_ics/hierarchical
+
+================================================================================

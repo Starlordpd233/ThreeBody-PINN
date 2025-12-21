@@ -1,0 +1,1 @@
+"""Core modules for data structures, parsing, and scaling."""

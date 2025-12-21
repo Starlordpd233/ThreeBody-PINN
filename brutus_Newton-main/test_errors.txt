@@ -1,0 +1,1 @@
+Result: filename= testcase.txt N= 16 t_begin= 0 t_end= 1.1 dt= 0.1 eta= 0.319154 tol= 1e-08 Lw= 64 t_cpu= 0.226546
