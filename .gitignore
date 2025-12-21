@@ -150,6 +150,9 @@ makefile.original
 3_Body_Problem/problematic_ics/
 3_Body_Problem/problematic_ics_blacklist.json
 
+# Runtime state files (obsolete progress tracking)
+3_Body_Problem/*_progress.json
+
 # Prescreening analysis outputs
 3_Body_Problem/prescreen_stage2/analysis_output/
 3_Body_Problem/prescreen_stage2/prescreen_run_results/
