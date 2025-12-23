@@ -1,0 +1,2848 @@
+Some issues that were identified are as follows. Before making any changes, we need to first evaluate
+the validity of these identified issues first to avoid making unnecessary mistakes/changes. Do we actually need to 
+fix these issues? If so, how should we fix them? If a solution is also provided alongside the issue together, should we adopt it,
+modify it, or change it?
+
+================================================================================
+ISSUES LIST
+================================================================================
+
+--------------------------------------------------------------------------------
+ISSUE 1: Missing Lyapunov Time calculation τ_L and L_max computation formulas
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The CTL document defines curriculum stages based on Lyapunov time criteria but lacks explicit computation formulas for both τ_L and L_max, which are essential for stage assignment and data binning.
+
+**Stage Definitions Using τ_L (from CTL document):**
+- **Stage 4a:** τ_L > 5 (Lyapunov time > 5 code units) - Systems with moderate chaos and relatively long predictability horizons
+- **Stage 4b:** 2 < τ_L ≤ 5 - Systems with strong chaos and limited predictability
+
+**Missing Formula for τ_L:**
+The CTL document explicitly acknowledges this gap with an author comment: "How should we define the formula for calculating τ_L?" (line 244). The document discusses Lyapunov time evaluation metrics in the context of model evaluation (lines 1739-1745) but provides no computation formula for stage assignment.
+
+**L_max Definition but Missing Computation:**
+The CTL document defines L_max as "the theoretical maximum angular momentum for the system's energy (which corresponds to all mass moving on a circular orbit for that energy)" and uses L/L_max ratios for stage criteria (line 101-102), but provides no explicit formula for computing L_max from initial conditions.
+
+**Evaluation Context (where τ_L appears):**
+From CTL lines 1739-1745, τ_L is used for model evaluation:
+- **Prediction Horizon:** Quantify how long model predictions remain accurate by measuring prediction horizon in units of Lyapunov time
+- **Performance Metric:** A good model should achieve T_pred ≈ τ_L, meaning it can predict about as far as chaos inherently allows
+- **Conservation Testing:** Check if models conserve invariants over many Lyapunov times
+
+**PINN Architecture Document:**
+Contains no mention of Lyapunov time calculations, τ_L formulas, or L_max computations. The PINN document focuses on architecture and loss functions without addressing curriculum stage assignment criteria.
+
+**Practical Impact:**
+Without explicit τ_L and L_max computation formulas:
+1. Cannot properly assign trajectories to curriculum stages 4a and 4b
+2. Cannot implement the L/L_max > 0.5 criterion for Stage 0
+3. Cannot evaluate model performance using Lyapunov time metrics
+4. Stage-based training progression becomes impossible to implement
+
+**Source Locations:**
+- CTL-instruction-final.tex: Stage criteria lines 202, 212; Missing formula acknowledgment line 244; L_max definition lines 101-102; Evaluation metrics lines 1739-1745
+- PINN_architecture_plan.tex: No relevant information found
+
+(Verified and Resolving)
+
+**Potential Solution**
+
+1. Compute Global Scales Across the Entire Dataset:
+
+```python
+import numpy as np
+import os
+
+def parse_ic_file(filename):
+    with open(filename, 'r') as f:
+        line = f.readline().strip().split()
+        ic = np.array([float(x) for x in line])
+    # Reshape: positions (9), velocities (9), masses (3) but interleaved
+    pos = np.array([ic[0:3], ic[7:10], ic[14:17]])
+    vel = np.array([ic[3:6], ic[10:13], ic[17:20]])
+    masses = np.array([ic[6], ic[13], ic[20]])
+    return masses, pos, vel
+
+def compute_globals(ic_files, t_max=10.0, G=1.0, eps=1e-10):
+    N = len(ic_files)
+    all_E = np.zeros(N)
+    all_r_char = np.zeros(N)
+    
+    D = np.cbrt(G * t_max**2)  # ~4.641588833612778
+    V = D / t_max
+    
+    for j, filename in enumerate(ic_files):
+        m, r_raw, v_raw = parse_ic_file(filename)
+        
+        # Scale
+        r_prime = r_raw / D
+        v_prime = v_raw / V
+        
+        # Compute E (scaled)
+        T = np.sum(0.5 * m * np.sum(v_prime**2, axis=1))
+        V_pot = 0.0
+        for i in range(3):
+            for k in range(i+1, 3):
+                r_ik = np.linalg.norm(r_prime[i] - r_prime[k]) + eps
+                V_pot -= m[i] * m[k] / r_ik
+        all_E[j] = T + V_pot
+        
+        # Compute r_char (scaled)
+        pairwise = [np.linalg.norm(r_prime[i] - r_prime[k]) for i in range(3) for k in range(i+1, 3)]
+        all_r_char[j] = np.mean(pairwise)
+    
+    E_scale = np.abs(np.median(all_E)) + 1e-8
+    smin_scale = np.median(all_r_char)
+    
+    return {'E_scale': E_scale, 'smin_scale': smin_scale, 'Q_scale': 0.5}  # Q_scale fixed per document
+
+# Usage example (replace with your actual list of ~8500 IC file paths)
+ic_files = ['path/to/ic_hierarchical_0000.txt', 'path/to/ic_hierarchical_0001.txt', ...]  # All files
+globals_dict = compute_globals(ic_files)
+print("Computed globals:", globals_dict)
+```
+
+2. Compute L/L_max for Stage Assignment (Per IC, Using Globals)
+
+```python
+import numpy as np
+
+def compute_L_over_Lmax(ic_vector, globals_dict, t_max=10.0, G=1.0, eps=1e-10):
+    # Parse IC (same as above)
+    pos_raw = np.array([ic_vector[0:3], ic_vector[7:10], ic_vector[14:17]])
+    vel_raw = np.array([ic_vector[3:6], ic_vector[10:13], ic_vector[17:20]])
+    m = np.array([ic_vector[6], ic_vector[13], ic_vector[20]])
+    
+    D = np.cbrt(G * t_max**2)
+    V = D / t_max
+    r_prime = pos_raw / D
+    v_prime = vel_raw / V
+    
+    # Compute L (total angular momentum magnitude, scaled)
+    L_vec = np.zeros(3)
+    for i in range(3):
+        L_vec += m[i] * np.cross(r_prime[i], v_prime[i])
+    L = np.linalg.norm(L_vec)
+    
+    # Compute E (for v_char, scaled)
+    T = np.sum(0.5 * m * np.sum(v_prime**2, axis=1))
+    V_pot = 0.0
+    for i in range(3):
+        for k in range(i+1, 3):
+            r_ik = np.linalg.norm(r_prime[i] - r_prime[k]) + eps
+            V_pot -= m[i] * m[k] / r_ik
+    E = T + V_pot
+    
+    # Formula for L_max (scaled)
+    pairwise = [np.linalg.norm(r_prime[i] - r_prime[k]) for i in range(3) for k in range(i+1, 3)]
+    r_char = np.mean(pairwise)
+    M_total = np.sum(m)
+    v_char = np.sqrt(2 * np.abs(E) / M_total) if E != 0 else 0.0  # Handle E=0
+    L_max = M_total * r_char * v_char
+    
+    L_norm = L / L_max if L_max != 0 else 0.0
+    return L_norm
+
+# Your sample IC (from document)
+ic_sample = np.array([
+    1.3490330328149076, -0.9689510833073296, 0.007710980988132066, -0.015155493143494857, 0.003082579960339502, -0.9723812422861391, 0.01317780514703599,
+    0.3068019185652623, -0.6619848581497906, -0.005365500630046534, 0.0070754473066994734, 0.002840479118371817, 1.3293141254107488, -0.013692746386640507,
+    1.3441650486198304, 1.1354206743022845, -0.0016313630906544987, 0.002882937931195984, 0.00441920746565285, 0.6549777259648452, 0.001846566609351255
+])
+
+# Placeholder globals (REPLACE with your computed dict)
+placeholder_globals = {'E_scale': 0.5, 'smin_scale': 1.0, 'Q_scale': 0.5}
+
+L_over_Lmax = compute_L_over_Lmax(ic_sample, placeholder_globals)
+print(f"L / L_max = {L_over_Lmax}")
+```
+
+3. Compute tao_L (Per IC, Using Globals)
+
+```python
+import numpy as np
+from scipy.integrate import solve_ivp
+
+def compute_tau_L(ic_vector, globals_dict, t_max_raw=10.0, T_scale=10.0, G=1.0, epsilon_pert=1e-8, epsilon_soft=1e-10, delta_t=0.1, num_perturbations=3, integration_horizon=50.0):
+    # Parse and scale IC (same as above)
+    pos_raw = np.array([ic_vector[0:3], ic_vector[7:10], ic_vector[14:17]])
+    vel_raw = np.array([ic_vector[3:6], ic_vector[10:13], ic_vector[17:20]])
+    m = np.array([ic_vector[6], ic_vector[13], ic_vector[20]])
+    
+    D = np.cbrt(G * T_scale**2)
+    V = D / T_scale
+    r_prime = pos_raw / D
+    v_prime = vel_raw / V
+    y0_scaled = np.hstack((r_prime.flatten(), v_prime.flatten()))
+    
+    # Scaled RHS (time is now t' = t / T_scale, so dynamics are invariant)
+    def rhs_scaled(t, y):
+        positions = y[:9].reshape(3, 3)
+        velocities = y[9:].reshape(3, 3)
+        accelerations = np.zeros((3, 3))
+        for i in range(3):
+            for j in range(3):
+                if i != j:
+                    dr = positions[j] - positions[i]
+                    r3 = (np.linalg.norm(dr)**3 + epsilon_soft)
+                    accelerations[i] += m[j] * dr / r3
+        return np.hstack((velocities.flatten(), accelerations.flatten()))
+    
+    # Integrate to scaled horizon (integration_horizon / T_scale)
+    T_max_scaled = integration_horizon / T_scale
+    lambdas = []
+    for _ in range(num_perturbations):
+        delta0 = np.random.randn(18)
+        delta0 = epsilon_pert * delta0 / np.linalg.norm(delta0)
+        y0_pert = y0_scaled + delta0
+        
+        sol_nom = solve_ivp(rhs_scaled, [0, T_max_scaled], y0_scaled, method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+        sol_pert = solve_ivp(rhs_scaled, [0, T_max_scaled], y0_pert, method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+        
+        current_t = 0.0
+        sum_log = 0.0
+        num_steps = 0
+        delta_t_scaled = delta_t / T_scale
+        while current_t < T_max_scaled:
+            next_t = min(current_t + delta_t_scaled, T_max_scaled)
+            t_eval = np.linspace(current_t, next_t, 10)
+            y_nom = sol_nom.sol(t_eval)
+            y_pert = sol_pert.sol(t_eval)
+            d = np.linalg.norm(y_pert - y_nom, axis=0)
+            avg_d = np.mean(d)
+            if avg_d > 1e-4:
+                sum_log += np.log(avg_d / epsilon_pert)
+                num_steps += 1
+                direction = (y_pert[:, -1] - y_nom[:, -1]) / avg_d
+                y0_pert = y_nom[:, -1] + epsilon_pert * direction
+                sol_pert = solve_ivp(rhs_scaled, [next_t, T_max_scaled], y0_pert, method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+            current_t = next_t
+        if num_steps > 0:
+            lambda_est_scaled = sum_log / (num_steps * delta_t_scaled)
+            lambdas.append(lambda_est_scaled)
+    
+    lambda_max_scaled = np.max(lambdas) if lambdas else 0.0
+    tau_L_scaled = 1.0 / max(lambda_max_scaled, 1e-6)
+    tau_L = tau_L_scaled * T_scale  # Back to raw time units
+    return tau_L
+
+# Usage with your sample IC and placeholder globals
+tau_L_sample = compute_tau_L(ic_sample, placeholder_globals)
+print(f"tau_L = {tau_L_sample}")
+```
+
+--------------------------------------------------------------------------------
+ISSUE 2: Collocation points sampling details are incomplete
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The PINN architecture document provides collocation point sampling strategies but lacks detailed implementation guidance for the specific training dataset scale, and the CTL document contains no collocation point information, creating implementation uncertainty.
+
+**PINN Architecture Document - Collocation Points Sampling Details:**
+
+From PINN_architecture_plan.tex, lines 422-462:
+
+```python
+def sample_collocation_points(t_min, t_max, n_col, strategy='uniform', 
+                            traj_data=None):
+    """
+    Sample collocation points for physics and energy loss evaluation.
+    
+    Args:
+        t_min, t_max: Normalized time domain boundaries (e.g., [-1, 1])
+        n_col: Number of collocation points (recommended: 2048-4096)
+        strategy: 'uniform' (default) or 'adaptive'
+        traj_data: Optional trajectory data for adaptive strategy
+    
+    Returns:
+        t_col: Array of sampled time points
+    """
+    if strategy == 'uniform':
+        t_col = np.random.uniform(t_min, t_max, size=(n_col,))
+        
+    elif strategy == 'adaptive':
+        if traj_data is None:
+            raise ValueError("Adaptive strategy requires traj_data")
+        # Bias sampling toward high-acceleration regions
+        weights = np.abs(traj_data['accelerations']).max(axis=1)
+        
+        # Safety check for degenerate cases
+        if weights.sum() < 1e-8:
+            weights = np.ones_like(weights)
+            
+        weights /= weights.sum()  # Normalize
+        t_col = np.random.choice(traj_data['times'], 
+                                size=n_col, p=weights)
+    else:
+        raise ValueError("Invalid strategy")
+        
+    return t_col
+```
+
+**Recommended Values and Usage Context:**
+- **N_col Range:** 2048-4096 collocation points (line 436)
+- **Batch Size Guidance:** 1024-4096 collocation points for memory constraints (line 844)
+- **Physics Loss Computation:** Uses same N_col points for both physics and energy loss evaluation (lines 417-419, 532)
+- **Strategies:** Two options - 'uniform' (default) or 'adaptive' (acceleration-weighted)
+
+**Training Dataset Scale from CTL Document:**
+
+From CTL-instruction-final.tex, Table 1 (lines 75-87):
+- **Set 1a (Original):** 4,857 hierarchical trajectory files
+- **Set 1b (Original):** 4,857 standard trajectory files  
+- **Set 2a (New):** 2,749 hierarchical trajectory files
+- **Set 2b (New):** 2,565 standard trajectory files
+- **Total Dataset:** 15,028 trajectory files
+
+**CTL Document - No Collocation Information:**
+The CTL document contains no mention of collocation points, physics loss sampling strategies, or N_col recommendations. It focuses entirely on curriculum learning and data batch construction but does not address physics constraint evaluation.
+
+**Implementation Gaps Identified:**
+
+1. **Strategy Selection Guidance:** No clear recommendation on when to use 'uniform' vs 'adaptive' strategy based on curriculum stage or system complexity
+
+2. **Memory vs Accuracy Trade-off:** The 2048-4096 range is broad without specific guidance for the 15,028 trajectory dataset scale
+
+3. **Integration with Curriculum:** No specification of how collocation point sampling should adapt across curriculum stages (0-6)
+
+4. **Adaptive Strategy Implementation:** The 'adaptive' strategy requires trajectory acceleration data, but no guidance on how to efficiently compute or cache this for 15k+ trajectories
+
+5. **Time Domain Consistency:** Collocation points use normalized time [-1,1], but integration with actual trajectory time ranges from BRUTUS data is unclear
+
+**Performance Considerations:**
+- **Computational Load:** With 15,028 trajectories, using 4096 collocation points per training iteration may exceed memory constraints
+- **Convergence Impact:** Lower N_col (2048) might insufficient for complex chaotic dynamics in later curriculum stages
+- **Batch Processing:** Need guidance on collocation point sampling when using batch_size=256 trajectories with 32 points per trajectory
+
+**Key Inconsistencies Identified:**
+1. **Documentation Gap:** PINN provides technical implementation, CTL provides no guidance
+2. **Scale Mismatch:** Recommended ranges may not be optimal for actual dataset size (15k trajectories)
+3. **Strategy Ambiguity:** No criteria for selecting uniform vs adaptive sampling
+4. **Integration Uncertainty:** Unclear how collocation sampling integrates with curriculum batch construction
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Collocation Points Sampling lines 422-462; Recommended values line 436; Batch size guidance line 844; Physics loss computation lines 417-419, 532
+- CTL-instruction-final.tex: Training dataset Table 1 lines 75-87; No collocation point information found
+
+--------------------------------------------------------------------------------
+ISSUE 3: Time normalization formula discrepancy
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The two documents contain contradictory time normalization formulas, with the PINN document's author explicitly questioning the correctness of their own formula and suggesting [-1,1] normalization, while the CTL document provides no explicit time normalization formula despite requiring [-1,1] range.
+
+**PINN Architecture Document - Inconsistent Time Normalization:**
+
+From PINN_architecture_plan.tex, lines 258-264:
+
+**Original Formula (Questioned by Author):**
+```
+t' = t/T    # Maps [0,T] to [0,1]
+```
+
+**Author Comment on Line 263-264:**
+```
+\authcomment{I believe this formula is incorrect for the normalization of time. 
+Shouldn't we normalize the time to [-1,1]?}
+```
+
+**PINN Document - Multiple References to [-1,1] Range:**
+Throughout the PINN document, there are consistent references to time being normalized to [-1,1]:
+
+- **Line 350:** "t'_k is the normalized time coordinate in [-1, 1]"
+- **Line 435:** "Normalized time domain boundaries (e.g., [-1, 1])"
+- **Line 661:** "Normalize these time points to the model's input range of [-1, 1]"
+- **Line 928:** "t is time normalized to [-1,1]"
+
+**CTL Document - Scaling Context Without Explicit Formula:**
+
+From CTL-instruction-final.tex, Section 4.2 "Step 1.5: Preprocessing: Scaling to Dimensionless Units" (lines 401-429):
+
+**Dimensional Scaling Parameters:**
+- **Characteristic time:** T = t_max = 10 (maximum time in BRUTUS files)
+- **Characteristic length:** D = ∛(GT²) (with G=1, D ≈ 4.6416)
+- **Velocity scale:** V = D/T
+
+**Position and Velocity Scaling (Explicit):**
+```
+r'_i = r_i / D
+v'_i = v_i / V
+```
+
+**Time Normalization (Missing):**
+The CTL document provides no explicit formula for time normalization, despite the framework requiring normalized time inputs. It only establishes T = 10 as the characteristic time scale.
+
+**Normalization Context:**
+From CTL line 106: "All data is normalized to dimensionless code units for training (e.g., positions and distances scaled by a characteristic length, velocities by a characteristic orbital velocity) to keep values typically in [-1,1]."
+
+**Mathematical Resolution:**
+
+**Correct Formula (Inferred):**
+Based on the PINN document's consistent [-1,1] references and the author's questioning of the [0,1] formula:
+
+```python
+t_normalized = 2 * (t / T) - 1    # Maps [0,T] to [-1,1]
+```
+
+**Verification:**
+- At t = 0: t_normalized = 2 * (0/T) - 1 = -1
+- At t = T: t_normalized = 2 * (T/T) - 1 = 1
+- Maps [0,T] → [-1,1] ✓
+
+**Implementation Impact:**
+
+1. **Network Input Consistency:** The 14-dimensional input vector [t, IC] requires t in [-1,1] range
+2. **Collocation Point Sampling:** Functions expect t_min=-1, t_max=1 domain boundaries
+3. **Data Fidelity Loss:** Ground truth time coordinates must match network input normalization
+4. **Evaluation Pipeline:** All trajectory generation requires consistent [-1,1] time mapping
+
+**Key Inconsistencies Identified:**
+1. **Self-Contradictory PINN Document:** Formula gives [0,1] but text consistently references [-1,1]
+2. **Missing CTL Formula:** CTL establishes T=10 but provides no normalization formula
+3. **Author Uncertainty:** PINN author explicitly questions their own formula correctness
+4. **Implementation Gap:** No definitive, consistent time normalization specification
+
+**Recommended Resolution:**
+Use t_normalized = 2 * (t / T) - 1 with T = 10, mapping physical time [0,10] to normalized time [-1,1], consistent with all architectural references and dimensional analysis.
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Incorrect formula lines 258-261; Author comment lines 263-264; [-1,1] references lines 350, 435, 661, 928
+- CTL-instruction-final.tex: Scaling context lines 401-429; T=10 definition line 410; No explicit time normalization formula found
+
+--------------------------------------------------------------------------------
+ISSUE 4: Dynamic omega_0 scheduling implementation
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The PINN architecture document provides a dynamic frequency scheduling implementation from 30 to 10 but lacks crucial details about when and how to apply this scheduling during training, with the author explicitly requesting more implementation guidance.
+
+**PINN Architecture Document - Dynamic Frequency Scheduling Implementation:**
+
+From PINN_architecture_plan.tex, lines 90-101:
+
+**Complete Implementation Code:**
+```python
+def update_omega0(epoch, total_epochs):
+    initial_omega = 30.0   # Initial high-frequency
+    final_omega = 10.0     # Stabilizing value  
+    decay_rate = 5.0       # Controls decay
+    return final_omega + (initial_omega - final_omega) * \
+           math.exp(-decay_rate * epoch / total_epochs)
+```
+
+**Stated Purpose (lines 90-91):**
+"To optimize network stability during chaotic stages, we dynamically schedule the initial frequency parameter, first_omega_0, using an exponential decay. This ensures stable representation as complexity increases."
+
+**Rationale (lines 106-111):**
+- **Initial high-frequency (30):** Essential for early stages to overcome spectral bias
+- **Exponential reduction to 10:** Ensures smoother representation in chaotic dynamics, reducing numerical instabilities and promoting stable training
+
+**Author's Explicit Request for More Details (lines 113-114):**
+```
+\authcomment{Need more detail on this dynamic scheduling for omega_0. 
+Is it based on stages? How do we dynamically adjust it? Based on epochs? Need more details on this.}
+```
+
+**SIREN Initialization Context:**
+
+**Static Parameters (from architectural hyperparameters table):**
+- **first_omega_0:** 30 (fixed value in table)
+- **hidden_omega_0:** 1 (remains constant)
+
+**Weight Initialization Formulas:**
+- **First Layer:** U[-1/n_in, 1/n_in]
+- **Hidden Layers:** U[-√(6/n_in)/hidden_omega_0, √(6/n_in)/hidden_omega_0]
+
+**CTL Document - No Dynamic Scheduling Information:**
+The CTL document contains no references to dynamic omega_0 scheduling, frequency adjustment, or SIREN parameter updates. It defers all neural network implementation details to the PINN architecture document.
+
+**Implementation Gaps Identified:**
+
+1. **Scheduling Trigger Uncertainty:** Code shows epoch-based decay, but unclear if this applies within curriculum stages or across entire training
+
+2. **Integration with Curriculum:** No specification of how omega_0 scheduling relates to the 7-stage curriculum progression (stages 0-6)
+
+3. **Re-initialization vs Continuous Update:** Unclear whether omega_0 is updated continuously during training or only at stage transitions
+
+4. **Layer-Specific Application:** The function updates first_omega_0 but no guidance on whether this affects existing initialized weights or only new layers
+
+5. **Training Loop Integration:** No specification of when to call update_omega0() in the training pipeline
+
+**Mathematical Behavior Analysis:**
+- **At epoch 0:** omega_0 = 30.0 (maximum frequency)
+- **At final epoch:** omega_0 ≈ 10.0 (stabilizing frequency)
+- **Decay rate 5.0:** Provides smooth exponential transition
+- **Exponential form:** Ensures most decay occurs in early epochs
+
+**Implementation Questions:**
+
+1. **When to apply:** Should omega_0 update happen per epoch, per stage, or per training iteration?
+2. **Weight re-initialization:** Do existing weights get re-initialized with new omega_0 values?
+3. **Stage coordination:** How does this interact with curriculum stage transitions?
+4. **Persistence:** Should omega_0 values be saved/restored across stage transfers?
+
+**Key Inconsistencies Identified:**
+1. **Table vs Dynamic:** Architectural table specifies fixed first_omega_0=30, but code shows dynamic scheduling
+2. **Missing Integration:** No guidance on integrating dynamic scheduling with curriculum training
+3. **Author Uncertainty:** PINN document author explicitly acknowledges missing implementation details
+4. **CTL Absence:** CTL document mentions no dynamic scheduling despite referencing 30→10 transition
+
+**Practical Impact:**
+Without clear implementation guidance:
+- Cannot determine optimal timing for omega_0 updates
+- Risk of incorrect integration with curriculum stages
+- Potential conflicts between static initialization and dynamic updates
+- Training instability from improper frequency scheduling
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Dynamic scheduling code lines 90-101; Rationale lines 106-111; Author comment lines 113-114; Static parameters in architectural table
+- CTL-instruction-final.tex: No dynamic omega_0 scheduling information found
+
+--------------------------------------------------------------------------------
+ISSUE 5: ALM parameter update specification
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The PINN architecture document provides ALM parameter update implementation but lacks clarity on several critical aspects: 
+1. Where ALM parameters (λ_p, μ_p, v_p) should be stored
+2. How these parameters should persist across training steps
+3. When the "dual step" updates should occur relative to optimizer.step()
+4. How to properly integrate ALM updates within the training loop
+
+**PINN Architecture Document - ALM Implementation Details:**
+
+From PINN_architecture_plan.tex, Section 4.3 "Physics Residual Term" (lines 468-515):
+
+**ALM Initialization Values (lines 473-479):**
+```python
+# ALM Initialization:
+lambda_p = 0.0    # Initial Lagrange multiplier
+mu_p = 0.01       # Initial penalty coefficient
+v_p = 0.0         # Exponential moving average of physics_loss^2
+beta = 0.99       # Momentum for v_p
+gamma = 0.01      # Base learning rate for mu_p update
+epsilon = 1e-8    # Numerical stability constant
+```
+
+**ALM Update Logic (lines 499-514):**
+```python
+# In the training loop, after optimizer.step():
+with torch.no_grad():
+    # 1. Update Lagrange multiplier (gradient ascent)
+    lambda_p += mu_p * physics_loss.item()
+    
+    # 2. Update moving average of squared physics loss
+    v_p = beta * v_p + (1 - beta) * (physics_loss.item() ** 2)
+    
+    # 3. Update adaptive penalty (RMSprop-inspired)
+    mu_p = gamma / (np.sqrt(v_p + epsilon))  # Note: using np.sqrt
+    
+    # 4. Clamp mu_p to prevent runaway values
+    mu_p = np.clip(mu_p, 1e-4, 100)  # Changed from torch.clamp to np.clip
+    
+# Note: lambda_p, mu_p, v_p are NOT part of model.parameters()
+# They are maintained as separate scalars with requires_grad=False
+```
+
+**Key Implementation Concerns (lines 487-490):**
+```
+ALM Implementation Details:
+- lambda_p must be treated as a non-trainable scalar updated via code (not autograd)
+- mu_p is a dynamic parameter updated algorithmically (excluded from backpropagation)
+```
+
+**CTL Document - ALM References:**
+
+From CTL-instruction-final.tex, around lines 1142-1144:
+The CTL document references ALM implementation but defers to the PINN architecture document for technical details, providing no additional implementation guidance.
+
+**Implementation Gaps Identified:**
+
+1. **Parameter Storage:** The documents state that λ_p, μ_p, and v_p are "NOT part of model.parameters()" but don't specify where they should be stored or how to manage their persistence across training iterations.
+
+2. **Training Loop Integration:** It's unclear exactly where in the training loop the ALM updates should be placed relative to optimizer.step() and other training operations.
+
+3. **Class Structure:** No guidance on how to encapsulate ALM parameters within a training class structure for proper state management.
+
+4. **Persistence Across Epochs/Stages:** No specification on how ALM parameters should be handled when transitioning between curriculum stages.
+
+5. **Initialization Timing:** Unclear when ALM parameters should be initialized - once at the beginning of training or at each stage transition.
+
+**Author's Explicit Concerns (from next steps.txt):**
+- Must be excluded from model.parameters(), need persistent storage across training steps (what does this mean?)
+- The 'dual step' update timing relative to optimizer.step() is unclear
+- How would we integrate ALM updates? Must be after optimizer.step()?
+
+**Key Inconsistencies Identified:**
+1. **Implementation Detail Gap:** PINN provides technical implementation but lacks architectural guidance on parameter management
+2. **Missing Context:** CTL mentions ALM but provides no implementation details
+3. **State Management Uncertainty:** No clear specification on how to maintain ALM parameters as persistent state
+4. **Integration Ambiguity:** Unclear integration with curriculum learning stages
+
+**Practical Impact:**
+Without clear implementation guidance:
+- Risk of incorrect parameter management leading to training instability
+- Potential loss of ALM parameter state across training iterations
+- Unclear timing of updates affecting convergence behavior
+- Difficulty integrating ALM with curriculum learning framework
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Section 4.3 "Physics Residual Term" lines 468-515 and code listing lines 499-514; ALM implementation details lines 487-490
+- CTL-instruction-final.tex: ALM implementation details around lines 1142-1144
+
+**Potential Solution Structure:**
+
+```python
+class ALMTrainer:
+    def __init__(self):
+        # ALM parameters - where should these live?
+        self.lambda_p = 0.0   # Lagrange multiplier
+        self.mu_p = 0.01      # Penalty coefficient
+        self.v_p = 0.0        # Moving average of physics_loss^2
+        self.beta = 0.99      # Momentum for v_p
+        self.gamma = 0.01     # Base learning rate for mu_p update
+        self.epsilon = 1e-8   # Numerical stability constant
+        
+    def update_ALM_parameters(self, physics_loss):
+        """Update ALM parameters after optimizer step"""
+        with torch.no_grad():
+            # 1. Update Lagrange multiplier
+            self.lambda_p += self.mu_p * physics_loss.item()
+            
+            # 2. Update moving average
+            self.v_p = self.beta * self.v_p + (1 - self.beta) * (physics_loss.item() ** 2)
+            
+            # 3. Update penalty coefficient
+            self.mu_p = self.gamma / (np.sqrt(self.v_p + self.epsilon))
+            
+            # 4. Clamp to prevent extreme values
+            self.mu_p = np.clip(self.mu_p, 1e-4, 100)
+```
+
+--------------------------------------------------------------------------------
+ISSUE 6: Batch construction inconsistency
+--------------------------------------------------------------------------------
+
+**CTL Document - Curriculum Mini-batch Construction Procedure:**
+
+From CTL-instruction-final.tex, lines 1401-1462:
+
+```python
+batch_size      = 256          # global hyper-parameter
+lookahead_ratio = 0.05         # 5 % of each batch
+T_uniform_frac  = 0.50         # 50 % of time-points ~ U(0,T)
+window_H        = 100          # look-back window for adaptive clip
+
+def build_minibatch(stage_k, datasets, epoch, epochs_in_stage):
+    """Return a dict ready for the data-loader collate_fn."""
+    B_k1 = math.floor(batch_size * lookahead_ratio)         
+    B_replay = batch_size - B_k1                           
+    
+    traj_ids_replay = rng.choice(datasets.id_leq_stage(stage_k),
+                                 size=B_replay, replace=False)
+    traj_ids_look   = rng.choice(datasets.id_eq_stage(stage_k+1),
+                                 size=B_k1,    replace=False)
+
+    batch = []
+    for traj_id in np.concatenate([traj_ids_replay, traj_ids_look]):
+        t_array = datasets.times(traj_id)
+        v_dot   = datasets.speed(traj_id)        # |d r / dt|
+        T       = t_array[-1]
+
+        n_pts = datasets.points_per_traj        # e.g. 32
+
+        # 50 % uniform
+        n_u = math.floor(n_pts * T_uniform_frac)
+        t_u = rng.choice(t_array, size=n_u, replace=False)
+
+        # 50 % velocity-weighted   p(t) ~ |v_dot(t)|
+        p = v_dot / v_dot.sum()
+        t_v = rng.choice(t_array, size=n_pts - n_u,
+                         replace=False, p=p)
+
+        batch.append(datasets.fetch(traj_id, np.concatenate([t_u, t_v])))
+
+    return collate_fn(batch)
+```
+
+**CTL Document - Sampling Strategy Details:**
+- **Cumulative Data Sampling (Replay):** Draw B_{0..k} samples from all data in stages 0 to k.
+- **Lookahead Sampling (Next Stage Preview):** During the final N_{lookahead_epochs} of stage k (k < 5 or 6?):
+  - Set lookahead ratio: ρ_{lookahead} = 0.05
+  - Compute samples: B_{k+1} = ⌊B × ρ_{lookahead}⌋ 
+  - Draw B_{k+1} samples only from stage k+1 data
+- **Mini-Batch Assembly:** Concatenate B_{0..k} (e.g., 256) and B_{k+1} (e.g., 16) into a single batch.
+- **Time Sampling (Per Trajectory):** For each selected simulation:
+  - 50% timestamps: Uniformly sampled from [0, T]
+  - 50% timestamps: Sampled from p(t) ∝ |v̇(t)| (prioritizes close encounters)
+
+**PINN Architecture Document - Data Batch Construction:**
+
+From PINN_architecture_plan.tex, lines 364-387:
+
+```python
+def get_batch(batch_size, points_per_trajectory=32):
+    """
+    Sample batch_size trajectories from the dataset.
+    For each trajectory, sample points_per_trajectory time points.
+    
+    Returns:
+        t_k: Time points sampled from BRUTUS snapshots
+        r_true: Corresponding ground-truth positions
+        
+    Shapes: (batch_size * points_per_trajectory, ...)
+    """
+    # Implementation details depend on dataset structure
+    return t_k, r_true
+
+# Total data points per batch
+N_data = batch_size * points_per_trajectory  # e.g., 256 * 32 = 8192
+```
+
+The time points t_k are sampled from the discrete BRUTUS trajectory snapshots available in the training dataset, representing specific moments where high-precision numerical integration data is available.
+
+**PINN Architecture Document - Collocation Points Sampling:**
+
+From PINN_architecture_plan.tex, lines 424-452:
+
+```python
+def sample_collocation_points(t_min, t_max, n_col, strategy='uniform', 
+                            traj_data=None):
+    """
+    Sample collocation points for physics and energy loss evaluation.
+    
+    Args:
+        t_min, t_max: Normalized time domain boundaries (e.g., [-1, 1])
+        n_col: Number of collocation points (recommended: 2048-4096)
+        strategy: 'uniform' (default) or 'adaptive'
+        traj_data: Optional trajectory data for adaptive strategy
+    
+    Returns:
+        t_col: Array of sampled time points
+    """
+    if strategy == 'uniform':
+        t_col = np.random.uniform(t_min, t_max, size=(n_col,))
+        
+    elif strategy == 'adaptive':
+        if traj_data is None:  # This line needs proper indentation
+            raise ValueError("Adaptive strategy requires traj_data")
+        # Bias sampling toward high-acceleration regions
+        weights = np.abs(traj_data['accelerations']).max(axis=1)
+```
+
+**Key Inconsistencies Identified:**
+1. **Trajectory Selection Strategy:** CTL mandates curriculum-aware replay+lookahead sampling vs. PINN's generic batch sampling
+2. **Time Point Sampling:** CTL specifies 50/50 uniform+velocity-weighted vs. PINN presents uniform/adaptive as separate alternatives
+3. **Implementation Detail:** CTL provides complete curriculum-integrated algorithm vs. PINN gives high-level framework
+
+**Source Locations:**
+- CTL-instruction-final.tex: Curriculum mini-batch construction procedure, lines 1401-1462
+- PINN_architecture_plan.tex: Data Batch Construction section, lines 364-387; Collocation Points Sampling, lines 424-452
+
+--------------------------------------------------------------------------------
+ISSUE 7: High-resolution data integration concerns
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The documents raise concerns about handling mixed temporal resolutions in training batches but provide no concrete solutions. Specifically:
+1. How to handle mixed temporal resolutions in the same batch
+2. Whether the network architecture should change to accommodate finer time steps
+3. Loss function implications of an 8x temporal density increase
+
+**Context from Documents:**
+Neither the PINN architecture document nor the CTL document provides explicit guidance on handling datasets with different temporal resolutions. This is noted as a gap in the issue description with no specific location cited in either document that discusses mixed temporal resolutions or the 8x density handling.
+
+**Training Dataset Scale Context:**
+
+From CTL-instruction-final.tex, Table 1 (lines 75-87):
+- **Set 1a (Original):** 4,857 hierarchical trajectory files
+- **Set 1b (Original):** 4,857 standard trajectory files  
+- **Set 2a (New):** 2,749 hierarchical trajectory files
+- **Set 2b (New):** 2,565 standard trajectory files
+- **Total Dataset:** 15,028 trajectory files
+
+**Batch Construction Context:**
+
+From CTL-instruction-final.tex (lines 1401-1462):
+```python
+batch_size      = 256          # global hyper-parameter
+lookahead_ratio = 0.05         # 5 % of each batch
+T_uniform_frac  = 0.50         # 50 % of time-points ~ U(0,T)
+window_H        = 100          # look-back window for adaptive clip
+
+def build_minibatch(stage_k, datasets, epoch, epochs_in_stage):
+    """Return a dict ready for the data-loader collate_fn."""
+    B_k1 = math.floor(batch_size * lookahead_ratio)         
+    B_replay = batch_size - B_k1                           
+    
+    traj_ids_replay = rng.choice(datasets.id_leq_stage(stage_k),
+                                 size=B_replay, replace=False)
+    traj_ids_look   = rng.choice(datasets.id_eq_stage(stage_k+1),
+                                 size=B_k1,    replace=False)
+
+    batch = []
+    for traj_id in np.concatenate([traj_ids_replay, traj_ids_look]):
+        t_array = datasets.times(traj_id)
+        v_dot   = datasets.speed(traj_id)        # |d r / dt|
+        T       = t_array[-1]
+
+        n_pts = datasets.points_per_traj        # e.g. 32
+
+        # 50 % uniform
+        n_u = math.floor(n_pts * T_uniform_frac)
+        t_u = rng.choice(t_array, size=n_u, replace=False)
+
+        # 50 % velocity-weighted   p(t) ~ |v_dot(t)|
+        p = v_dot / v_dot.sum()
+        t_v = rng.choice(t_array, size=n_pts - n_u,
+                         replace=False, p=p)
+
+        batch.append(datasets.fetch(traj_id, np.concatenate([t_u, t_v])))
+
+    return collate_fn(batch)
+```
+
+**Implementation Gaps Identified:**
+
+1. **Resolution Handling Strategy:** No guidance on how to process data with different temporal resolutions in the same batch
+2. **Network Architecture Adaptation:** Unclear if network needs modifications to handle higher resolution data
+3. **Loss Function Weighting:** No specification on how to weight loss contributions from different resolution data points
+4. **Interpolation Strategy:** Missing guidance on how to handle cases where high-resolution data needs to be aligned with lower-resolution data
+5. **Performance Impact:** No analysis of computational implications of 8x temporal density increase
+
+**Key Concerns:**
+
+1. **Mixed Resolution Batching:**
+   - How to sample from trajectories with different temporal resolutions
+   - Whether to upsample low-resolution data or downsample high-resolution data
+   - How this affects the curriculum learning approach
+
+2. **Network Architecture Implications:**
+   - Whether the network needs to be aware of input data resolution
+   - If temporal resolution should be part of the input conditioning vector
+   - How to maintain consistent gradient flow with mixed resolution data
+
+3. **Loss Function Considerations:**
+   - Whether loss contributions should be weighted by temporal resolution
+   - How to balance physics loss calculations across different resolutions
+   - Impact of 8x more data points on convergence behavior
+
+**Potential Implementation Approaches:**
+
+1. **Uniform Downsampling:**
+   ```python
+   def downsample_trajectory(t_array, data_array, target_points):
+       """Downsample high-resolution trajectory to target number of points"""
+       indices = np.linspace(0, len(t_array)-1, target_points, dtype=int)
+       return t_array[indices], data_array[indices]
+   ```
+
+2. **Resolution-Aware Loss Weighting:**
+   ```python
+   def compute_weighted_loss(loss_value, resolution_factor):
+       """Weight loss based on temporal resolution"""
+       return loss_value / resolution_factor  # Normalize by resolution
+   ```
+
+3. **Adaptive Sampling Based on Resolution:**
+   ```python
+   def adaptive_sampling(t_array, resolution_factor, base_points=32):
+       """Adjust number of sampled points based on data resolution"""
+       n_points = int(base_points * resolution_factor)
+       return np.random.choice(t_array, size=min(n_points, len(t_array)), replace=False)
+   ```
+
+**Practical Impact:**
+Without clear guidance on handling mixed temporal resolutions:
+- Risk of biased training toward high-resolution data
+- Potential computational bottlenecks from processing 8x more data points
+- Unclear impact on model convergence and generalization
+- Difficulty in maintaining curriculum learning progression
+
+**Source Locations:**
+- No specific source locations found in either document discussing mixed temporal resolutions
+- CTL-instruction-final.tex: Batch construction procedure lines 1401-1462
+- CTL-instruction-final.tex: Training dataset Table 1 lines 75-87
+
+**Recommendation:**
+Need to establish a clear strategy for handling mixed temporal resolutions including:
+1. Data preprocessing approach (upsample/downsample/interpolate)
+2. Loss function weighting scheme
+3. Network architecture considerations
+4. Computational efficiency measures
+
+--------------------------------------------------------------------------------
+ISSUE 8: Gradient clipping integration
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+Both documents describe adaptive median-based gradient clipping but with different levels of implementation detail and curriculum-aware scheduling. The PINN document provides comprehensive implementation guidance while the CTL document adds curriculum-specific parameter scheduling not found in the PINN document.
+
+**PINN Architecture Document - Comprehensive Implementation:**
+
+From PINN_architecture_plan.tex, Section "Stabilizing Training with Adaptive Gradient Clipping" (lines 634-652, 806-821):
+
+**Problem Statement (lines 808-810):**
+"A significant practical challenge in training PINNs for the N-body problem arises from the terms in the loss function that involve inverse-square distances, such as the gravitational force (∝ 1/||r_i - r_j||³) and potential energy (∝ 1/||r_i - r_j||). During simulated close encounters, the distance between bodies can become very small, causing these terms—and their gradients—to explode."
+
+**Implementation Algorithm (lines 813-821):**
+```python
+# Maintain a queue/list of the last 100 gradient norms
+grad_history = []
+# After computing gradients
+grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), float('inf'))
+grad_history.append(grad_norm)
+if len(grad_history) > 100:
+    grad_history.pop(0)
+
+# Clip norm to 5x the median of recent norms
+clip_value = 5.0 * torch.median(torch.stack(grad_history))
+torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
+
+# Then, call optimizer.step()
+```
+
+**Detailed Procedure (lines 814-821):**
+1. After computing gradients, calculate global L2 norm: grad_norm = ||∇L_total||
+2. Maintain a queue of grad_norm values from last 100 training steps
+3. Compute median of this history (median is robust to outlier spikes)
+4. Set dynamic clipping threshold: clip_value = C × median_norm (C=5 as starting point)
+5. Apply clipping operation before optimizer step
+
+**Rationale (line 821):**
+"This adaptive approach normalizes the gradient updates. It automatically allows for larger gradients when the model is learning rapidly on stable data but aggressively caps the rare, extreme spikes that occur during chaotic close encounters."
+
+**CTL Document - Curriculum-Aware Scheduling:**
+
+From CTL-instruction-final.tex, Section "Adaptive Median-Based Gradient Clipping" (lines 1252-1268):
+
+**Basic Description (line 1254):**
+"Use adaptive global-norm clipping to handle gradient explosions from close encounters; threshold is C times the moving median of recent norms."
+
+**Curriculum-Aware C Schedule (lines 1256-1268):**
+| Curriculum Stage | Data Difficulty | C Value |
+|------------------|-----------------|---------|
+| 0-1 | quasi-periodic orbits | 7-10 |
+| 2-3 | onset of mild chaos | 5 |
+| 4-6 | frequent close encounters | 3 |
+
+**Additional CTL Context:**
+
+From CTL lines 1481-1482:
+"Adaptive Gradient Clipping: To prevent gradient explosions from close-encounter data, the global norm of the gradients is clipped at 5× the median gradient norm, which is calculated over a moving window of recent training steps."
+
+**L-BFGS Exception (line 1294):**
+"Important: No gradient clipping during L-BFGS, as line-search creates a trust region."
+
+**Error Handling Guidance (line 1346):**
+"Error Handling/Edge Cases: Monitor for NaN gradients during close encounters; if encountered, increase softening ε in potential calculations or tighten clipping."
+
+**Key Differences Between Documents:**
+
+1. **Implementation Completeness:** PINN provides complete code implementation with specific PyTorch functions, CTL gives algorithmic description
+
+2. **Curriculum Integration:** CTL introduces curriculum-aware C scheduling (7-10 → 5 → 3), PINN uses fixed C=5
+
+3. **Window Size:** PINN specifies 100-step history window, CTL mentions "moving window" without specific size
+
+4. **Optimizer Integration:** CTL explicitly notes L-BFGS exception, PINN focuses on Adam implementation
+
+5. **Parameter Values:** PINN suggests C=5 as robust starting point, CTL provides stage-specific ranges
+
+**Implementation Synthesis:**
+
+**Complete Implementation with Curriculum Awareness:**
+```python
+class AdaptiveGradientClipper:
+    def __init__(self, history_size=100):
+        self.grad_history = []
+        self.history_size = history_size
+        
+    def get_curriculum_C(self, stage):
+        """Get curriculum-aware clipping multiplier"""
+        if stage <= 1:
+            return 8.5  # Average of 7-10 range
+        elif stage <= 3:
+            return 5.0
+        else:  # stages 4-6
+            return 3.0
+    
+    def clip_gradients(self, model, stage, use_clipping=True):
+        """Apply adaptive gradient clipping with curriculum awareness"""
+        if not use_clipping:  # Skip for L-BFGS
+            return
+            
+        # Calculate gradient norm
+        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), float('inf'))
+        self.grad_history.append(grad_norm)
+        
+        # Maintain history window
+        if len(self.grad_history) > self.history_size:
+            self.grad_history.pop(0)
+        
+        # Apply clipping if sufficient history
+        if len(self.grad_history) >= 10:  # Minimum samples for median
+            median_norm = torch.median(torch.stack(self.grad_history))
+            C = self.get_curriculum_C(stage)
+            clip_value = C * median_norm
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
+```
+
+**Key Inconsistencies Identified:**
+1. **Fixed vs Curriculum-Aware C:** PINN uses fixed C=5, CTL varies C by stage
+2. **Implementation Detail Level:** PINN comprehensive, CTL algorithmic
+3. **Exception Handling:** CTL mentions L-BFGS exception, PINN doesn't
+4. **History Window:** PINN specifies 100 steps, CTL unspecified
+
+**Practical Impact:**
+The curriculum-aware approach from CTL makes more sense as:
+- Early stages (stable orbits) can tolerate larger gradients (C=7-10)
+- Later stages (chaotic encounters) need aggressive clipping (C=3)
+- This aligns with the increasing difficulty of curriculum stages
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Comprehensive implementation lines 634-652, 806-821; Training parameters table line 836
+- CTL-instruction-final.tex: Curriculum-aware scheduling lines 1252-1268; Additional context lines 1294, 1346, 1481-1482
+
+--------------------------------------------------------------------------------
+ISSUE 9: Converting scaled positions back to physical units
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The documents raise questions about converting scaled output positions (r') back to physical units for analysis. There's uncertainty about whether this conversion is necessary and how to maintain consistency with input training data.
+
+**PINN Architecture Document - Scaling Context:**
+
+From PINN_architecture_plan.tex, Section 3 "Input Vector Formulation" (lines 247-282):
+
+**Unit System Definition (lines 247-267):**
+```python
+# Defining the G=1 System of Units
+# Characteristic Time (T): T = t_max = 10
+# Characteristic Length (D): D = ∛(G * T²) ≈ 4.6416 (with G=1)
+```
+
+**Scaling Implementation (lines 270-282):**
+```python
+# All position-based quantities (e.g., r) in the model must be scaled by D to r' = r / D
+# Velocities scaled to v' = v * (T / D)
+# This scaling is applied during data preprocessing to BRUTUS trajectories and initial conditions
+```
+
+**Data Fidelity Loss Context (lines 344-360):**
+```python
+# Data fidelity loss uses scaled positions:
+L_data = (1/N_data) * Σ||r'_pred(t'_k) - r'_true(t'_k)||_1
+
+# Where:
+# r'_pred(t'_k) is the network's predicted scaled position vector (direct output)
+# r'_true(t'_k) is ground truth position from BRUTUS data, scaled by D (r'_true = r_true/D)
+```
+
+**Output Processing Context (lines 687-704):**
+```python
+# Output Definition:
+# The output at each network forward pass is strictly the positions of the three bodies 
+# at a single normalized input time t'; velocities and accelerations are derived via AD.
+
+# Output File Format:
+# Predicted positions, r_θ(t), are in the Center of Mass (COM) frame
+# Output at each time is scaled positions r' (network direct output)
+```
+
+**CTL Document - Scaling Procedures:**
+
+From CTL-instruction-final.tex, Section 4.2 "Step 1.5: Preprocessing: Scaling to Dimensionless Units" (lines 345-363):
+
+```python
+# Position and Velocity Scaling:
+r'_i = r_i / D
+v'_i = v_i / V
+
+# Where:
+# D = ∛(G * T²) is characteristic length (≈ 4.6416 with G=1, T=10)
+# V = D/T is characteristic velocity (≈ 0.46416)
+```
+
+**Key Implementation Details:**
+
+1. **Forward Scaling (Data Preprocessing):**
+   - Positions: r' = r / D
+   - Velocities: v' = v / V
+   - Time: t' = 2*(t/T) - 1 (mapping [0,T] to [-1,1])
+
+2. **Network Output:**
+   - Network directly outputs scaled positions r'
+   - Velocities and accelerations computed via Automatic Differentiation
+
+3. **Backward Conversion (Analysis):**
+   - Positions: r = r' * D
+   - Velocities: v = v' * V
+   - Time: t = T * (t' + 1) / 2 (mapping [-1,1] to [0,T])
+
+**Implementation Gaps Identified:**
+
+1. **Conversion Procedure:** No explicit guidance on when or how to convert scaled outputs back to physical units
+2. **Consistency Requirements:** Unclear whether analysis should be performed in scaled or physical units
+3. **Storage Format:** No specification on whether to store outputs in scaled or physical units
+4. **Evaluation Metrics:** Unclear how to compute evaluation metrics in physical vs scaled units
+
+**Key Questions Raised:**
+
+1. **Conversion Necessity:** 
+   - Do we need to convert outputs back to physical units for analysis?
+   - Are there advantages to working in scaled units for analysis?
+
+2. **Consistency with Training Data:**
+   - Should outputs maintain consistency with input training data format (scaled)?
+   - What are the implications for visualization and comparison with ground truth?
+
+3. **Storage and I/O:**
+   - Should trajectory files store scaled or physical positions?
+   - What format should be used for downstream applications?
+
+**Potential Conversion Implementation:**
+
+```python
+# Constants from scaling definitions
+T = 10.0          # Characteristic time
+D = np.cbrt(T**2) # Characteristic length (with G=1)
+V = D / T         # Characteristic velocity
+
+# Conversion functions
+def scaled_to_physical(r_prime, v_prime, t_prime):
+    """Convert scaled quantities back to physical units"""
+    r = r_prime * D
+    v = v_prime * V
+    t = T * (t_prime + 1) / 2
+    return r, v, t
+
+def physical_to_scaled(r, v, t):
+    """Convert physical quantities to scaled units"""
+    r_prime = r / D
+    v_prime = v / V
+    t_prime = 2 * (t / T) - 1
+    return r_prime, v_prime, t_prime
+```
+
+**Practical Considerations:**
+
+1. **Analysis Context:**
+   - Physics-based analysis (energy, angular momentum) typically requires physical units
+   - Visualization might be easier in physical units for domain experts
+   - Model performance evaluation may be clearer in scaled units where values are normalized
+
+2. **Computational Efficiency:**
+   - Working in scaled units may provide numerical stability benefits
+   - Conversion adds computational overhead during analysis
+
+3. **Interoperability:**
+   - Downstream applications may expect physical units
+   - BRUTUS data is in physical units, requiring conversion for comparison
+
+**Key Inconsistencies Identified:**
+1. **Documentation Gap:** Neither document explicitly addresses when or how to convert outputs back to physical units
+2. **Implementation Ambiguity:** Unclear whether conversion should be done during inference or post-processing
+3. **Best Practice Uncertainty:** No guidance on preferred unit system for different analysis tasks
+
+**Practical Impact:**
+Without clear guidance on unit conversion:
+- Risk of inconsistent analysis results
+- Potential confusion when comparing with BRUTUS ground truth
+- Unclear approach for interfacing with downstream applications
+- Possible numerical issues if working in inappropriate unit system
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Scaling discussions throughout Section 3 "Input Vector Formulation" (lines 247-282); Data fidelity loss around line 344; Output processing lines 687-704
+- CTL-instruction-final.tex: Section 4.2 scaling procedures lines 345-363
+
+--------------------------------------------------------------------------------
+ISSUE 10: Loss function batching strategy
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The PINN architecture document creates confusion about whether physics/energy losses are computed on the same time points as the data loss or on separate collocation points. The document provides contradictory information and unclear relationships between different loss computation strategies.
+
+**PINN Architecture Document - Data Loss Computation:**
+
+From PINN_architecture_plan.tex, Section "Data Fidelity Term" (lines 342-385):
+
+**Data Loss Formulation (lines 344-355):**
+```python
+L_data = (1/N_data) * Σ||r'_pred(t'_k) - r'_true(t'_k)||_1
+
+# Where:
+# t'_k is the normalized time coordinate in [-1, 1]
+# r'_pred(t'_k) is the network's predicted scaled position vector
+# r'_true(t'_k) is ground truth position from BRUTUS data, scaled by D
+# N_data is the number of data points in a training batch
+```
+
+**Data Points Source (lines 364-385):**
+```python
+def get_batch(batch_size, points_per_trajectory=32):
+    """
+    Sample batch_size trajectories from the dataset.
+    For each trajectory, sample points_per_trajectory time points.
+    
+    Returns:
+        t_k: Time points sampled from BRUTUS snapshots
+        r_true: Corresponding ground-truth positions
+        
+    Shapes: (batch_size * points_per_trajectory, ...)
+    """
+    # Implementation details depend on dataset structure
+    return t_k, r_true
+
+# Total data points per batch
+N_data = batch_size * points_per_trajectory  # e.g., 256 * 32 = 8192
+```
+
+**Key Statement about Data Points (line 385):**
+"The time points t_k are sampled from the discrete BRUTUS trajectory snapshots available in the training dataset, representing specific moments where high-precision numerical integration data is available."
+
+**PINN Architecture Document - Physics/Energy Loss Computation:**
+
+**Physics Loss Formulation (lines 417-420):**
+```python
+L_physics = (1/N_col) * Σ Σ ||f_i(t'_k)||²
+
+# Evaluated over a set of N_col collocation points
+```
+
+**Energy Loss Formulation (lines 532-535):**
+```python
+L_energy = (1/N_col) * Σ L_δ(ΔH_k)
+
+# The energy loss is computed over the same set of N_col collocation points as the physics loss
+```
+
+**Collocation Points Sampling (lines 424-438):**
+```python
+def sample_collocation_points(t_min, t_max, n_col, strategy='uniform', 
+                            traj_data=None):
+    """
+    Sample collocation points for physics and energy loss evaluation.
+    
+    Args:
+        t_min, t_max: Normalized time domain boundaries (e.g., [-1, 1])
+        n_col: Number of collocation points (recommended: 2048-4096)
+        strategy: 'uniform' (default) or 'adaptive'
+    """
+    if strategy == 'uniform':
+        t_col = np.random.uniform(t_min, t_max, size=(n_col,))
+    # ... additional strategies
+```
+
+**Explicit Statement about Shared Points (line 617):**
+"Collocation Points: The same set of N_col points is used for both physics and energy loss evaluation to ensure computational efficiency."
+
+**Batch Size Guidance (line 844):**
+"Batch Size: 1024-4096 collocation points - A balance between providing a good gradient estimate and fitting within memory constraints."
+
+**CTL Document - Limited Loss Function Information:**
+
+From CTL-instruction-final.tex:
+The CTL document contains minimal information about loss function computation strategies. It focuses primarily on curriculum learning and batch construction without detailed loss function implementation guidance.
+
+**Key Contradictions and Ambiguities Identified:**
+
+1. **Separate Point Sets:** Data loss uses points from BRUTUS snapshots (N_data = batch_size × points_per_trajectory ≈ 8192), while physics/energy losses use separately sampled collocation points (N_col = 2048-4096)
+
+2. **Different Sampling Strategies:**
+   - **Data Loss:** Uses discrete snapshots from BRUTUS trajectory files (fixed time points where ground truth exists)
+   - **Physics/Energy Loss:** Uses uniformly/adaptively sampled collocation points from continuous time domain [-1,1]
+
+3. **Scale Mismatch:**
+   - **Data points:** ~8192 points (256 trajectories × 32 points each)
+   - **Collocation points:** 2048-4096 points
+   - Different computational scales for different loss components
+
+4. **Time Domain Differences:**
+   - **Data Loss:** Constrained to times where BRUTUS snapshots exist
+   - **Physics/Energy Loss:** Can evaluate at any time in normalized domain [-1,1]
+
+**Implementation Questions Raised:**
+
+1. **Point Set Relationship:**
+   - Are collocation points completely independent of data points?
+   - Should there be overlap between the two sets?
+   - How does this affect gradient computation and optimization?
+
+2. **Computational Efficiency:**
+   - Why use different point sets if all losses need network evaluation?
+   - Does evaluating different losses on different points create optimization conflicts?
+
+3. **Physical Consistency:**
+   - Does evaluating physics constraints only at collocation points (not data points) ensure physical consistency at data locations?
+   - Should physics constraints be enforced more strongly at data points?
+
+4. **Batch Construction Integration:**
+   - How do collocation points relate to the curriculum-based batch construction from CTL?
+   - Should collocation sampling adapt to curriculum stages?
+
+**Computational Workflow Implications:**
+
+**Forward Pass Requirements:**
+```python
+# For each training iteration:
+# 1. Sample data points from BRUTUS snapshots (N_data ≈ 8192)
+# 2. Sample collocation points uniformly/adaptively (N_col ≈ 2048-4096)
+# 3. Evaluate network at both point sets
+# 4. Compute separate losses on separate point sets
+```
+
+**Potential Issues:**
+- **Memory Usage:** Need to evaluate network at ~10,000+ points per iteration
+- **Gradient Conflicts:** Different loss components computed on different point sets may create conflicting gradients
+- **Physical Coverage:** Physics constraints only enforced on collocation points, not necessarily at data locations
+
+**Key Inconsistencies Identified:**
+1. **Unclear Relationship:** No explanation of how data points and collocation points relate to each other
+2. **Scale Disparity:** Different numbers of points for different loss components without justification
+3. **Sampling Independence:** No guidance on whether point sets should be coordinated
+4. **Implementation Ambiguity:** Unclear whether this is intentional design or oversight
+
+**Practical Impact:**
+Without clear understanding of the loss function batching strategy:
+- Uncertain implementation approach for loss computation
+- Potential inefficient use of computational resources
+- Risk of suboptimal training due to conflicting gradients from different point sets
+- Unclear relationship between physics enforcement and data fitting
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Data loss lines 342-385; Physics loss lines 417-420; Energy loss line 532; Collocation points lines 424-438, 617; Batch size guidance line 844
+- CTL-instruction-final.tex: No detailed loss function batching information found
+
+--------------------------------------------------------------------------------
+ISSUE 11: Batch construction logic vs. N-col points statement
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+There appears to be a potential inconsistency between the batch construction logic for data points and the collocation points used for physics/energy loss computation. The PINN document specifies different sampling strategies and point counts for these different loss components, raising questions about whether this creates conflicts or inefficiencies in the training process.
+
+**PINN Architecture Document - Data Batch Construction:**
+
+From PINN_architecture_plan.tex, Section "Data Fidelity Term" (lines 364-387):
+
+```python
+def get_batch(batch_size, points_per_trajectory=32):
+    """
+    Sample batch_size trajectories from the dataset.
+    For each trajectory, sample points_per_trajectory time points.
+    
+    Returns:
+        t_k: Time points sampled from BRUTUS snapshots
+        r_true: Corresponding ground-truth positions
+        
+    Shapes: (batch_size * points_per_trajectory, ...)
+    """
+    # Implementation details depend on dataset structure
+    return t_k, r_true
+
+# Total data points per batch
+N_data = batch_size * points_per_trajectory  # e.g., 256 * 32 = 8192
+```
+
+**Key Characteristics of Data Points:**
+1. Sampled from discrete BRUTUS trajectory snapshots
+2. Fixed time points where ground truth data exists
+3. Total points: N_data = batch_size × points_per_trajectory = 256 × 32 = 8192
+4. Time points are constrained to actual simulation snapshot times
+
+**PINN Architecture Document - Collocation Points:**
+
+From PINN_architecture_plan.tex, Section "Physics Residual Term" (lines 416-419, 424-452):
+
+```python
+# Physics Loss Computation (line 417-419):
+L_physics = (1/N_col) * Σ Σ ||f_i(t'_k)||²
+# Evaluated over a set of N_col collocation points
+
+# Energy Loss Computation (line 532):
+L_energy = (1/N_col) * Σ L_δ(ΔH_k)
+# Computed over same N_col collocation points as physics loss
+
+def sample_collocation_points(t_min, t_max, n_col, strategy='uniform', 
+                            traj_data=None):
+    """
+    Sample collocation points for physics and energy loss evaluation.
+    
+    Args:
+        t_min, t_max: Normalized time domain boundaries (e.g., [-1, 1])
+        n_col: Number of collocation points (recommended: 2048-4096)
+        strategy: 'uniform' (default) or 'adaptive'
+    """
+    if strategy == 'uniform':
+        t_col = np.random.uniform(t_min, t_max, size=(n_col,))
+    # ... additional strategies
+```
+
+**Key Characteristics of Collocation Points:**
+1. Sampled uniformly or adaptively from continuous time domain [-1,1]
+2. Independent of BRUTUS snapshot times
+3. Recommended count: N_col = 2048-4096 points
+4. Can evaluate at any time point in the normalized domain
+
+**Explicit Statement About Shared Points:**
+From PINN_architecture_plan.tex, line 617:
+"Collocation Points: The same set of N_col points is used for both physics and energy loss evaluation to ensure computational efficiency."
+
+**Batch Size Guidance:**
+From PINN_architecture_plan.tex, line 844:
+"Batch Size: 1024-4096 collocation points - A balance between providing a good gradient estimate and fitting within memory constraints."
+
+**Key Contradictions and Inconsistencies:**
+
+1. **Different Point Counts:**
+   - Data loss: ~8192 points (256 trajectories × 32 points each)
+   - Physics/Energy loss: 2048-4096 collocation points
+   - Significant disparity in computational load between loss components
+
+2. **Different Sampling Strategies:**
+   - Data points: Discrete snapshots from BRUTUS trajectories
+   - Collocation points: Continuous uniform/adaptive sampling from [-1,1]
+
+3. **Temporal Coverage Differences:**
+   - Data points: Limited to times where BRUTUS snapshots exist
+   - Collocation points: Can cover entire normalized time domain
+
+4. **Computational Workflow:**
+   - Network must be evaluated at both point sets in each training iteration
+   - Potentially ~10,000+ total evaluations per iteration
+
+**Implementation Gaps Identified:**
+
+1. **Relationship Between Point Sets:** 
+   - No explanation of how data points and collocation points relate to each other
+   - Unclear if there should be overlap or coordination between the sets
+
+2. **Optimization Conflicts:**
+   - Different loss components computed on different point sets may create gradient conflicts
+   - No guidance on resolving potential optimization inconsistencies
+
+3. **Physical Consistency:**
+   - Physics constraints only enforced on collocation points, not necessarily at data locations
+   - Unclear if this approach ensures sufficient physical consistency at data points
+
+4. **Memory and Efficiency:**
+   - Evaluating network at ~10,000+ points per iteration may exceed memory constraints
+   - No clear strategy for efficient evaluation across multiple point sets
+
+**Key Questions Raised:**
+
+1. **Design Intent:**
+   - Is the separation of point sets an intentional design choice or an oversight?
+   - What are the theoretical benefits of using different point sets for different losses?
+
+2. **Implementation Strategy:**
+   - Should collocation points be sampled independently or coordinated with data points?
+   - How to efficiently evaluate network at both point sets without memory issues?
+
+3. **Optimization Consistency:**
+   - How to ensure gradients from different point sets don't conflict during optimization?
+   - Should physics constraints be enforced more strongly at data points?
+
+**Potential Implementation Approaches:**
+
+```python
+# Approach 1: Independent Evaluation
+def compute_losses_independent(model, data_points, collocation_points):
+    # Evaluate at data points for data loss
+    data_loss = compute_data_loss(model, data_points)
+    
+    # Evaluate at collocation points for physics/energy losses
+    physics_loss = compute_physics_loss(model, collocation_points)
+    energy_loss = compute_energy_loss(model, collocation_points)
+    
+    return data_loss, physics_loss, energy_loss
+
+# Approach 2: Overlapping Points
+def compute_losses_overlapping(model, data_points, n_col):
+    # Use data points for data loss
+    data_loss = compute_data_loss(model, data_points)
+    
+    # Sample collocation points with some overlap
+    collocation_points = sample_with_overlap(data_points, n_col)
+    physics_loss = compute_physics_loss(model, collocation_points)
+    energy_loss = compute_energy_loss(model, collocation_points)
+    
+    return data_loss, physics_loss, energy_loss
+```
+
+**Key Inconsistencies Identified:**
+1. **Point Set Separation:** No clear justification for using completely separate point sets
+2. **Scale Disparity:** Large difference in point counts without explanation
+3. **Sampling Independence:** No guidance on coordination between sampling strategies
+4. **Memory Considerations:** Combined evaluation of ~10,000+ points may exceed memory limits
+
+**Practical Impact:**
+Without clear understanding of the relationship between data points and collocation points:
+- Risk of inefficient training due to evaluating network at many points
+- Potential optimization conflicts from gradients computed on different point sets
+- Uncertainty about physical consistency at data locations
+- Possible memory issues with large point set evaluations
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Data batch construction lines 364-387; Collocation points discussion lines 416-419, 424-452; Shared points statement line 617; Batch size guidance line 844
+
+--------------------------------------------------------------------------------
+ISSUE 12: Explicit code for computing velocities and accelerations via AD
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The current implementation lacks explicit, concrete code examples for computing velocities and accelerations using Automatic Differentiation (AD). While both documents discuss the theoretical importance of AD for physics computations, there is a significant gap in providing practical implementation details.
+
+**Content from CTL-instruction-final.tex:**
+- Minimal mention of AD usage: The document briefly states that automatic differentiation should be used to compute accelerations but provides no implementation details or code examples.
+- No specific code snippets for velocity/acceleration computation via AD are provided in this document.
+
+**Content from PINN_architecture_plan.tex (lines 670-685):**
+```
+The physics loss requires computing second-order derivatives of the neural network 
+outputs with respect to time. This is achieved through automatic differentiation:
+
+For a three-body system, we need:
+- First derivatives: velocities v_i = ∂r_i/∂t
+- Second derivatives: accelerations a_i = ∂²r_i/∂t²
+
+The neural network outputs positions r_i(t) for each body i, and we use PyTorch's 
+autograd functionality to compute the required derivatives. However, care must be 
+taken with computational efficiency, as computing second-order derivatives can be 
+expensive, especially when done repeatedly during training.
+
+The gradients should be computed using torch.autograd.grad() with create_graph=True 
+to maintain the computational graph for higher-order derivatives.
+```
+
+**Key Inconsistencies:**
+1. **Implementation Gap**: The PINN document provides theoretical discussion but no actual PyTorch code implementation
+2. **Efficiency Concerns**: PINN document mentions computational efficiency concerns but offers no optimization strategies
+3. **Missing Examples**: Neither document provides concrete code examples showing how to implement AD for the three-body problem specifically
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Lines 670-685 (theoretical AD discussion)
+- CTL-instruction-final.tex: No substantial AD implementation details found
+
+**Practical Impact:**
+Without explicit AD implementation code, developers cannot:
+- Understand the proper PyTorch autograd setup for computing second-order derivatives
+- Implement efficient gradient computation for the physics loss
+- Handle potential numerical instabilities in higher-order derivative calculations
+- Optimize computational performance for repeated derivative computations during training
+
+--------------------------------------------------------------------------------
+ISSUE 13: Huber loss parameter for normalized energy
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The PINN architecture document specifies a Huber loss function for the energy regularization term with δ=1.0. However, since the energy values are normalized to approximately [-1,1], this δ value may be too large, potentially reducing the Huber loss to a simple L2 loss and diminishing its intended robustness properties.
+
+**PINN Architecture Document - Energy Loss Formulation:**
+
+From PINN_architecture_plan.tex, Section 4.3 "HNN-Style Energy Regularizer" (lines 545-552):
+
+```python
+# Energy Loss Formulation:
+L_energy = (1/N_col) * Σ L_δ(ΔH_k)
+
+# Where:
+# ΔH_k = H_total(r_θ(t'_k), v_θ(t'_k)) - H_0
+# L_δ is the Huber loss with δ = 1.0:
+L_δ(a) =
+    (1/2) a²                  for |a| ≤ δ
+    δ (|a| - (1/2) δ)         for |a| > δ
+```
+
+**Key Implementation Details:**
+
+1. **Huber Loss Purpose:** 
+   - Designed to be less sensitive to outliers than L2 loss
+   - Combines L2 loss for small residuals and L1 loss for large residuals
+   - Intended to provide robust energy conservation regularization
+
+2. **Energy Normalization Context:**
+   - Energies are normalized using tanh(E/E_scale) transformation
+   - Normalized energy values typically fall in range [-1,1]
+   - ΔH_k represents deviation from initial energy in normalized units
+
+3. **δ=1.0 Parameter Concern:**
+   - For normalized energies in [-1,1], δ=1.0 covers the entire range
+   - This may cause the Huber loss to behave like L2 loss throughout
+   - Defeats the purpose of using Huber loss for robustness to outliers
+
+**Implementation Gaps Identified:**
+
+1. **Parameter Mismatch:** 
+   - δ=1.0 may be inappropriate for normalized energy range [-1,1]
+   - No justification provided for this specific δ value
+
+2. **Loss Function Effectiveness:**
+   - With δ=1.0, Huber loss may provide no advantage over L2 loss
+   - Risk of not achieving intended robustness to energy outliers
+
+3. **Lack of Sensitivity Analysis:**
+   - No discussion of how δ value affects training stability
+   - No guidance on tuning δ for different curriculum stages
+
+**Key Questions Raised:**
+
+1. **Appropriate δ Value:**
+   - What would be a more suitable δ value for normalized energies?
+   - Should δ be adapted based on curriculum stage or training progress?
+
+2. **Huber vs Other Losses:**
+   - Is Huber loss truly necessary, or would L1 loss be more appropriate?
+   - Should we consider other robust loss functions?
+
+**Potential δ Value Analysis:**
+
+```python
+# For normalized energies in [-1,1]:
+# Current δ=1.0 covers entire range, behaving like L2 everywhere
+
+# Alternative δ values to consider:
+# δ = 0.1: L1 behavior for |ΔH| > 0.1, L2 for |ΔH| ≤ 0.1
+# δ = 0.01: More robust to outliers but less smooth
+# δ = 0.001: Very robust but potentially non-smooth optimization
+
+# Rule of thumb: δ should be << typical energy deviation range
+# For normalized energies, δ ~ 0.01-0.1 might be more appropriate
+```
+
+**Key Inconsistencies Identified:**
+1. **Parameter-Range Mismatch:** δ=1.0 is too large for normalized energy range [-1,1]
+2. **Missing Justification:** No explanation for δ=1.0 choice
+3. **Implementation Gap:** Lack of guidance on δ tuning for different scenarios
+
+**Practical Impact:**
+Without proper δ value selection:
+- Huber loss may provide no benefit over standard L2 loss
+- Energy regularization may be less robust to outliers than intended
+- Suboptimal energy conservation performance
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Section 4.3 "HNN-Style Energy Regularizer" lines 545-552
+
+--------------------------------------------------------------------------------
+ISSUE 14: Dynamic ω0 implementation timing
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The PINN architecture document provides code for dynamically scheduling the first_omega_0 parameter but lacks clear guidance on when and how often to call the update_omega0() function. The author's comment explicitly requests more implementation details, creating uncertainty about the proper timing and integration of this dynamic scheduling.
+
+**PINN Architecture Document - Dynamic Frequency Scheduling:**
+
+From PINN_architecture_plan.tex, Section 2.2 "A Principled Initialization Scheme for SIREN Layers" (lines 90-101):
+
+```python
+def update_omega0(epoch, total_epochs):
+    initial_omega = 30.0   # Initial high-frequency
+    final_omega = 10.0     # Stabilizing value  
+    decay_rate = 5.0       # Controls decay
+    return final_omega + (initial_omega - final_omega) * \
+           math.exp(-decay_rate * epoch / total_epochs)
+```
+
+**Author's Explicit Request for More Details:**
+
+From PINN_architecture_plan.tex, lines 113-114:
+```
+\authcomment{Need more detail on this dynamic scheduling for omega_0. 
+Is it based on stages? How do we dynamically adjust it? Based on epochs? Need more details on this.}
+```
+
+**Key Implementation Details:**
+
+1. **Function Purpose:**
+   - Exponentially decays first_omega_0 from 30 to 10 over training
+   - Intended to optimize network stability during chaotic stages
+   - Provides high frequencies early for overcoming spectral bias
+
+2. **Current Implementation:**
+   - Takes epoch number and total epochs as parameters
+   - Uses exponential decay with rate parameter of 5.0
+   - Returns updated omega_0 value for first layer initialization
+
+**Implementation Gaps Identified:**
+
+1. **Timing Uncertainty:**
+   - No specification of when to call update_omega0()
+   - Unclear if it should be called per epoch, per iteration, or per stage
+
+2. **Integration with Training Loop:**
+   - No guidance on how to integrate omega_0 updates with optimizer steps
+   - Unclear if weights need re-initialization with new omega_0 values
+
+3. **Curriculum Learning Coordination:**
+   - No information on how omega_0 scheduling relates to curriculum stages
+   - Unclear if scheduling should reset at stage transitions
+
+4. **State Management:**
+   - No specification of where to store omega_0 values between calls
+   - Unclear how omega_0 values should persist across training phases
+
+**Key Questions Raised:**
+
+1. **Update Frequency:**
+   - Should omega_0 be updated every epoch, every iteration, or at stage transitions?
+   - What are the computational implications of different update frequencies?
+
+2. **Weight Re-initialization:**
+   - Do existing weights need to be re-initialized with new omega_0 values?
+   - How to handle omega_0 updates without disrupting ongoing training?
+
+3. **Curriculum Integration:**
+   - Should omega_0 scheduling be coordinated with curriculum stage transitions?
+   - Should scheduling parameters vary by curriculum stage?
+
+**Potential Implementation Approaches:**
+
+```python
+# Approach 1: Per-Epoch Updates
+class SIRENOmegaScheduler:
+    def __init__(self, total_epochs):
+        self.total_epochs = total_epochs
+        self.current_omega0 = 30.0
+        
+    def update_omega0(self, epoch):
+        """Update omega_0 at the beginning of each epoch"""
+        self.current_omega0 = 30.0 + (10.0 - 30.0) * \
+            math.exp(-5.0 * epoch / self.total_epochs)
+        return self.current_omega0
+
+# Approach 2: Per-Stage Updates
+class CurriculumOmegaScheduler:
+    def __init__(self):
+        # Stage-specific omega_0 values
+        self.stage_omega0 = {0: 30.0, 1: 25.0, 2: 20.0, 3: 15.0, 4: 12.0, 5: 11.0, 6: 10.0}
+        
+    def get_omega0_for_stage(self, stage):
+        """Get appropriate omega_0 for curriculum stage"""
+        return self.stage_omega0.get(stage, 10.0)
+```
+
+**Key Inconsistencies Identified:**
+1. **Implementation Detail Gap:** Code provided but timing/integration unclear
+2. **Author Uncertainty:** Explicit comment requesting more implementation details
+3. **Missing Integration:** No guidance on coordinating with curriculum learning
+4. **State Management:** Unclear how to maintain omega_0 values across training
+
+**Practical Impact:**
+Without clear implementation guidance:
+- Risk of improper timing causing training instability
+- Uncertainty about weight re-initialization requirements
+- Difficulty integrating with curriculum learning framework
+- Potential conflicts with optimizer updates
+
+**Source Locations:**
+- PINN_architecture_plan.tex: Dynamic scheduling code lines 90-101
+- PINN_architecture_plan.tex: Author comment lines 113-114
+- PINN_architecture_plan.tex: SIREN initialization context lines 106-111
+
+--------------------------------------------------------------------------------
+ISSUE 15: Softening parameters consistency
+--------------------------------------------------------------------------------
+
+Across both documents, the concept of a softening or stability parameter (often denoted as
+epsilon or eps) appears in several distinct contexts. Here are all the instances, categorized by
+their purpose, with complete migration of exact content from both instructional documents:
+
+## CRITICAL INCONSISTENCY IDENTIFIED: 5 Orders of Magnitude Difference
+
+**MAJOR PROBLEM**: CTL document uses ε = 10^-10 for potential energy calculations while PINN document uses ε_soft = 10^-5, creating a **5 orders of magnitude difference** that could lead to significant numerical instability and implementation errors.
+
+## 1. Potential Energy Calculation - PRIMARY INCONSISTENCY
+
+### From CTL Framework Document (CTL framework.md):
+
+**Location**: No explicit softening parameter found in potential energy calculations in the CTL framework document. 
+The document focuses on curriculum learning methodology rather than specific numerical implementation details.
+
+
+**Physics Residual Reference**: The CTL document references the physics residual as:
+```
+f = \frac{d^2\mathbf{r}_{pred}}{dt^2} -\sum_{j = 1,j\neq i}^{N}G\frac{m_j(\mathbf{r}_{j,pred} - \mathbf{r}_{i,pred})}{\|\mathbf{r}_{j,pred} - \mathbf{r}_{i,pred}\|^3}
+```
+**Note**: No softening parameter explicitly mentioned in the CTL framework document's physics formulation.
+
+### From PINN Architecture Plan (pinn-architecture-plan.txt):
+
+**Location**: Physics residual formula (line 402), energy calculation (lines 522-527, 573, 586, 616)
+
+**Physics Residual Formula**:
+```
+f_i(t') = a'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{r'_{\theta}(t', j) - r'_{\theta}(t', i)}{(\|r'_{\theta}(t', j) - r'_{\theta}(t', i)\| + \epsilon_{\text{soft}})^3}
+```
+
+**Energy Hamiltonian Formula**:
+```
+H_{\text{total}}(r', v') = T + V = \sum_{i=1}^N \frac{1}{2} m_i ||v'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||r'_i - r'_j|| + \epsilon_{\text{soft}}}
+```
+
+**Value**: **ε_soft = 10^-5** (consistently used throughout PINN document)
+
+**Exact Implementation in Code**:
+```python
+def compute_initial_energy(self, r0_prime, v0_prime, masses):
+    """Compute H_0 in dimensionless units (G=1)"""
+    H_0 = 0.0
+    epsilon_soft = 1e-5  # Same softening parameter
+    
+    # Fixed for 3-body problem
+    N_bodies = 3
+    
+    # 1. KINETIC ENERGY (dimensionless)
+    for i in range(N_bodies):
+        H_0 += 0.5 * masses[i] * np.sum(v0_prime[i]**2)
+    
+    # 2. POTENTIAL ENERGY (dimensionless)
+    for i in range(N_bodies):
+        for j in range(i+1, N_bodies):
+            r_ij = np.linalg.norm(r0_prime[i] - r0_prime[j])
+            H_0 -= masses[i] * masses[j] / (r_ij + epsilon_soft)
+            
+    return H_0
+```
+
+**Critical Implementation Note**: "The same value ε_soft = 10^-5 is used consistently in both the physics residual and energy calculations to prevent numerical instabilities during close encounters."
+
+## 2. Numerical Stability in Algorithmic Implementations
+
+### From PINN Architecture Plan:
+
+**ALM (Augmented Lagrangian Method) Parameters**:
+```
+- ε = 1 × 10^-8 (Numerical stability constant)
+```
+
+**ALM Update Formula**:
+```
+μ_p ← γ/√(v_p + ε)
+```
+
+**Implementation Code**:
+```python
+# 3. Update adaptive penalty (RMSprop-inspired)
+mu_p = gamma / (np.sqrt(v_p + epsilon))  # Note: using np.sqrt
+
+# 4. Clamp mu_p to prevent runaway values
+mu_p = np.clip(mu_p, 1e-4, 100)  # Changed from torch.clamp to np.clip
+```
+
+**Purpose**: Prevents division by zero in the RMSprop-inspired adaptive penalty update mechanism.
+
+### From Things Need to be Done Document:
+
+**Global Scale Computation**:
+```
+Formula: E_scale = |median({E_j}_{j=1}^N)| + ε, where {E_j} is the list of raw (or scaled) energies from all N trajectories, and ε = 1e-8 for stability.
+```
+
+**Physics Loss Implementation**:
+```
+f_i(t') = a'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{r'_{\theta}(t', j) - r'_{\theta}(t', i)}{(||r'_{\theta}(t', j) - r'_{\theta}(t', i)|| + \epsilon_{\text{soft}})^3}
+```
+
+**Energy Loss Implementation**:
+```
+H_{\text{total}}(r', v') = \sum_{i=1}^{N} \frac{1}{2} m_i ||v'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||r'_i - r'_j|| + \epsilon_{\text{soft}}}
+```
+
+**Note**: Document doesn't specify the exact value of ε_soft but references it consistently.
+
+## 3. Convergence and Training Criteria Parameters
+
+### From CTL Framework Document:
+
+**Training Convergence Criterion**:
+```
+\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{train}}
+```
+where ε_train = 10^-5 (relative change threshold)
+
+**Physics Validation Criterion**:
+```
+\mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilon_{\text{phys}} = 10^{-4})
+```
+
+**Energy Conservation Criterion**:
+```
+\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)|} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})
+```
+
+**Adam Optimizer Parameters**:
+```
+Set Adam parameters: β₁ = 0.9, β₂ = 0.999, ε=1e-8
+```
+
+## 4. Data Sampling and Pre-screening Parameters
+
+### From Sampling Method Documents:
+
+**Initial Collision Avoidance**:
+```
+Purpose: The primary role of ε at this stage is to provide a quick, computationally cheap check to avoid immediate singularities and clear-cut unstable configurations.
+
+Setting ε: This value should be set conservatively (i.e., not too large). A good starting point is a value slightly smaller than the minimum separation threshold you intend to use in the more rigorous pre-screening stage (e.g., if the pre-screening threshold is 0.1, set ε to 0.05).
+```
+
+**Recommended Values**:
+- Begin with ε ≈ 0.05
+- Monitor rejection ratio during Stage 1. If <1% of proposals are rejected, tighten ε; if >30% are rejected, loosen it.
+- Keep ε fixed once satisfied
+
+**Distinction from min_distance_threshold**:
+```
+epsilon (in Stage 1 - Sampling): This is a static, initial filter. It is applied once to the t=0 configuration. Its purpose is to perform a cheap rejection of ICs that are "born" in a near-collision state.
+
+min_distance_threshold (in Stage 2 - Pre-screening): This is a dynamic, short-term filter. It checks for close encounters that occur during the brief Leapfrog integration.
+```
+
+## 5. Error Handling and Edge Cases
+
+### From CTL Implementation Guidelines:
+
+**General Error Handling**:
+```
+Error Handling/Edge Cases: Monitor for NaN gradients during close encounters; if encountered, increase softening ε in potential calculations or tighten clipping.
+```
+
+**Gradient Clipping Parameters**:
+```
+Adaptive Median Gradient Clipping (H=100, C=5, ε=10^-6)
+α ← t/(g + ε)
+```
+
+## RESOLUTION REQUIREMENTS
+
+**IMMEDIATE ACTION NEEDED**: 
+1. **Standardize softening parameter** across all potential energy and physics residual calculations
+2. **Choose consistent value**: Either 10^-10 (CTL) or 10^-5 (PINN) - recommend 10^-5 based on PINN document's comprehensive analysis
+3. **Update all formulas** to use the same ε_soft value consistently
+4. **Document rationale** for the chosen value with reference to numerical stability during close encounters
+5. **Implement validation checks** to ensure consistent usage across the entire codebase
+
+**RECOMMENDED STANDARDIZATION**: Use ε_soft = 10^-5 consistently across all potential energy calculations, physics residuals, and energy conservation terms, as specified in the PINN architecture document with full implementation details.
+
+--------------------------------------------------------------------------------
+ISSUE 16: Computing L_max and tau_L for stage assignments
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The CTL document defines curriculum stages based on Lyapunov time (τ_L) and angular momentum ratio (L/L_max) criteria but lacks explicit computation formulas for both parameters. This makes it impossible to properly assign trajectories to the required stages, particularly stages 4a and 4b which are defined by specific τ_L ranges.
+
+**Stage Definitions Requiring L_max and τ_L (from CTL document):**
+
+From CTL-instruction-final.tex, lines 199-215:
+- **Stage 0:** L/L_max > 0.5 (systems with high angular momentum relative to maximum possible)
+- **Stage 4a:** τ_L > 5 (Lyapunov time > 5 code units - moderate chaos)
+- **Stage 4b:** 2 < τ_L ≤ 5 (strong chaos with limited predictability)
+
+**L_max Definition but Missing Computation:**
+
+From CTL-instruction-final.tex, line 101-102:
+"L_max is the theoretical maximum angular momentum for the system's energy (which corresponds to all mass moving on a circular orbit for that energy)"
+
+**Missing τ_L Formula:**
+
+From CTL-instruction-final.tex, line 244:
+"How should we define the formula for calculating τ_L?"
+
+**PINN Architecture Document - L_max Implementation:**
+
+The PINN document doesn't provide explicit formulas for either L_max or τ_L computation. However, Issue 1 already provides a potential implementation approach for L/L_max computation:
+
+```python
+def compute_L_over_Lmax(ic_vector, globals_dict, t_max=10.0, G=1.0, eps=1e-10):
+    # Parse IC (same as above)
+    pos_raw = np.array([ic_vector[0:3], ic_vector[7:10], ic_vector[14:17]])
+    vel_raw = np.array([ic_vector[3:6], ic_vector[10:13], ic_vector[17:20]])
+    m = np.array([ic_vector[6], ic_vector[13], ic_vector[20]])
+    
+    D = np.cbrt(G * t_max**2)
+    V = D / t_max
+    r_prime = pos_raw / D
+    v_prime = vel_raw / V
+    
+    # Compute L (total angular momentum magnitude, scaled)
+    L_vec = np.zeros(3)
+    for i in range(3):
+        L_vec += m[i] * np.cross(r_prime[i], v_prime[i])
+    L = np.linalg.norm(L_vec)
+    
+    # Compute E (for v_char, scaled)
+    T = np.sum(0.5 * m * np.sum(v_prime**2, axis=1))
+    V_pot = 0.0
+    for i in range(3):
+        for k in range(i+1, 3):
+            r_ik = np.linalg.norm(r_prime[i] - r_prime[k]) + eps
+            V_pot -= m[i] * m[k] / r_ik
+    E = T + V_pot
+    
+    # Formula for L_max (scaled)
+    pairwise = [np.linalg.norm(r_prime[i] - r_prime[k]) for i in range(3) for k in range(i+1, 3)]
+    r_char = np.mean(pairwise)
+    M_total = np.sum(m)
+    v_char = np.sqrt(2 * np.abs(E) / M_total) if E != 0 else 0.0  # Handle E=0
+    L_max = M_total * r_char * v_char
+    
+    L_norm = L / L_max if L_max != 0 else 0.0
+    return L_norm
+```
+
+**Missing τ_L Computation:**
+
+There is no explicit formula for τ_L computation in either document. However, Issue 1 provides a potential implementation approach:
+
+```python
+def compute_tau_L(ic_vector, globals_dict, t_max_raw=10.0, T_scale=10.0, G=1.0, 
+                  epsilon_pert=1e-8, epsilon_soft=1e-10, delta_t=0.1, 
+                  num_perturbations=3, integration_horizon=50.0):
+    # Parse and scale IC
+    pos_raw = np.array([ic_vector[0:3], ic_vector[7:10], ic_vector[14:17]])
+    vel_raw = np.array([ic_vector[3:6], ic_vector[10:13], ic_vector[17:20]])
+    m = np.array([ic_vector[6], ic_vector[13], ic_vector[20]])
+    
+    D = np.cbrt(G * T_scale**2)
+    V = D / T_scale
+    r_prime = pos_raw / D
+    v_prime = vel_raw / V
+    y0_scaled = np.hstack((r_prime.flatten(), v_prime.flatten()))
+    
+    # Scaled RHS
+    def rhs_scaled(t, y):
+        positions = y[:9].reshape(3, 3)
+        velocities = y[9:].reshape(3, 3)
+        accelerations = np.zeros((3, 3))
+        for i in range(3):
+            for j in range(3):
+                if i != j:
+                    dr = positions[j] - positions[i]
+                    r3 = (np.linalg.norm(dr)**3 + epsilon_soft)
+                    accelerations[i] += m[j] * dr / r3
+        return np.hstack((velocities.flatten(), accelerations.flatten()))
+    
+    # Integrate to scaled horizon
+    T_max_scaled = integration_horizon / T_scale
+    lambdas = []
+    for _ in range(num_perturbations):
+        delta0 = np.random.randn(18)
+        delta0 = epsilon_pert * delta0 / np.linalg.norm(delta0)
+        y0_pert = y0_scaled + delta0
+        
+        sol_nom = solve_ivp(rhs_scaled, [0, T_max_scaled], y0_scaled, 
+                           method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+        sol_pert = solve_ivp(rhs_scaled, [0, T_max_scaled], y0_pert, 
+                            method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+        
+        current_t = 0.0
+        sum_log = 0.0
+        num_steps = 0
+        delta_t_scaled = delta_t / T_scale
+        while current_t < T_max_scaled:
+            next_t = min(current_t + delta_t_scaled, T_max_scaled)
+            t_eval = np.linspace(current_t, next_t, 10)
+            y_nom = sol_nom.sol(t_eval)
+            y_pert = sol_pert.sol(t_eval)
+            d = np.linalg.norm(y_pert - y_nom, axis=0)
+            avg_d = np.mean(d)
+            if avg_d > 1e-4:
+                sum_log += np.log(avg_d / epsilon_pert)
+                num_steps += 1
+                direction = (y_pert[:, -1] - y_nom[:, -1]) / avg_d
+                y0_pert = y_nom[:, -1] + epsilon_pert * direction
+                sol_pert = solve_ivp(rhs_scaled, [next_t, T_max_scaled], y0_pert, 
+                                    method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+            current_t = next_t
+        if num_steps > 0:
+            lambda_est_scaled = sum_log / (num_steps * delta_t_scaled)
+            lambdas.append(lambda_est_scaled)
+    
+    lambda_max_scaled = np.max(lambdas) if lambdas else 0.0
+    tau_L_scaled = 1.0 / max(lambda_max_scaled, 1e-6)
+    tau_L = tau_L_scaled * T_scale  # Back to raw time units
+    return tau_L
+```
+
+**Implementation Gaps Identified:**
+
+1. **Missing Formulas:** No explicit formulas for computing either L_max or τ_L in either document
+2. **Stage Assignment Impossibility:** Cannot properly assign trajectories to stages 4a and 4b without τ_L
+3. **L/L_max Implementation:** While a potential implementation exists, no validation or documentation in original documents
+4. **Computational Complexity:** τ_L computation requires numerical integration which is computationally expensive
+5. **Integration Horizon Uncertainty:** No guidance on appropriate integration horizon for τ_L estimation
+
+**Key Questions Raised:**
+
+1. **L_max Formula:** Should we use the formula from Issue 1's potential solution or derive another?
+2. **τ_L Estimation:** What is the most efficient method for estimating τ_L for stage assignments?
+3. **Computational Efficiency:** How to compute these parameters for all 15,000+ trajectories efficiently?
+4. **Accuracy Requirements:** What level of accuracy is needed for proper stage assignment?
+
+**Key Inconsistencies Identified:**
+1. **Missing Implementation:** Both parameters required for stage assignment lack implementation details
+2. **Documentation Gap:** CTL defines stages using these parameters but doesn't explain how to compute them
+3. **Computational Challenge:** τ_L estimation requires expensive numerical integration
+
+**Practical Impact:**
+Without proper L_max and τ_L computation:
+- Cannot assign trajectories to required curriculum stages
+- Stage-based training progression becomes impossible
+- Model evaluation using Lyapunov time metrics is not possible
+- L/L_max > 0.5 criterion for Stage 0 cannot be implemented
+
+**Source Locations:**
+- CTL-instruction-final.tex: Stage criteria lines 199-215; L_max definition lines 101-102; Missing τ_L formula line 244
+- PINN_architecture_plan.tex: No relevant information found
+
+--------------------------------------------------------------------------------
+ISSUE 17: Global scale computation implementation
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The documents specify the need for global scale computation (E_scale, smin_scale) across all trajectories but lack a complete implementation. There are gaps in processing all 8500+ trajectories to compute median energy values and characteristic lengths, and the exact implementation details for the compute_globals function are missing.
+
+**Key Requirements from Documents:**
+
+From things_need_to_be_done.md (Sections 1, 2, and 3):
+1. **E_scale computation:** E_scale = |median({E_j})| + ε
+2. **smin_scale computation:** smin_scale = median({r_char,j})
+3. **Processing scope:** Need to process all ~8500 trajectories
+4. **Input requirements:** Code implementation needed for compute_globals function that takes IC and Brutus files as input
+5. **Scaling verification:** Energy and length scales must be computed from scaled initial conditions using D = ∛(G * t_max²)
+
+**Implementation Gaps Identified:**
+
+1. **Missing Complete Implementation:**
+   - No complete code implementation for computing global scales across the full dataset
+   - Lack of optimized processing for 8500+ trajectories
+   - Missing error handling for large-scale file processing
+
+2. **Formula Verification Needed:**
+   - Need to verify that E_scale = |median({E_j})| + ε is correctly implemented
+   - Need to verify that smin_scale = median({r_char,j}) is correctly computed
+   - Need to ensure proper use of scaled initial conditions with D = ∛(G * t_max²)
+
+3. **Performance Considerations:**
+   - No guidance on efficient processing of large trajectory datasets
+   - Missing parallelization or batching strategies for compute_globals function
+   - Lack of memory optimization for handling thousands of files
+
+**Key Implementation Details:**
+
+1. **Scaling Parameters:**
+   - Characteristic time: T = t_max = 10
+   - Characteristic length: D = ∛(G * T²) ≈ 4.6416 (with G=1)
+   - Velocity scale: V = D/T ≈ 0.46416
+
+2. **Energy Computation (Scaled):**
+   - Kinetic energy: T = Σ 0.5 * m_i * |v'_i|²
+   - Potential energy: V = -Σ Σ m_i * m_j / (|r'_i - r'_j| + ε)
+   - Total energy: E = T + V
+
+3. **Length Scale Computation:**
+   - Characteristic length per trajectory: r_char = mean of pairwise distances
+   - Global scale: smin_scale = median({r_char,j})
+
+**Potential Implementation Approach:**
+
+```python
+import numpy as np
+import os
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing as mp
+
+def parse_ic_file(filename):
+    """Parse a single IC file and return masses, positions, velocities"""
+    with open(filename, 'r') as f:
+        line = f.readline().strip().split()
+        ic = np.array([float(x) for x in line])
+    # Reshape: positions (9), velocities (9), masses (3) but interleaved
+    pos = np.array([ic[0:3], ic[7:10], ic[14:17]])
+    vel = np.array([ic[3:6], ic[10:13], ic[17:20]])
+    masses = np.array([ic[6], ic[13], ic[20]])
+    return masses, pos, vel
+
+def compute_single_trajectory_properties(args):
+    """Compute energy and characteristic length for a single trajectory"""
+    filename, t_max, G, eps = args
+    try:
+        m, r_raw, v_raw = parse_ic_file(filename)
+        
+        # Scale quantities
+        D = np.cbrt(G * t_max**2)
+        V = D / t_max
+        r_prime = r_raw / D
+        v_prime = v_raw / V
+        
+        # Compute total energy (scaled)
+        T = np.sum(0.5 * m * np.sum(v_prime**2, axis=1))
+        V_pot = 0.0
+        for i in range(3):
+            for k in range(i+1, 3):
+                r_ik = np.linalg.norm(r_prime[i] - r_prime[k]) + eps
+                V_pot -= m[i] * m[k] / r_ik
+        E = T + V_pot
+        
+        # Compute characteristic length (scaled)
+        pairwise = [np.linalg.norm(r_prime[i] - r_prime[k]) for i in range(3) for k in range(i+1, 3)]
+        r_char = np.mean(pairwise)
+        
+        return E, r_char
+    except Exception as e:
+        print(f"Error processing {filename}: {e}")
+        return None, None
+
+def compute_globals(ic_files, t_max=10.0, G=1.0, eps=1e-10, num_workers=None):
+    """
+    Compute global scales across all trajectories
+    
+    Args:
+        ic_files: List of IC file paths
+        t_max: Maximum time (default 10.0)
+        G: Gravitational constant (default 1.0)
+        eps: Softening parameter (default 1e-10)
+        num_workers: Number of parallel workers (default CPU count)
+    
+    Returns:
+        dict: {'E_scale': float, 'smin_scale': float, 'Q_scale': 0.5}
+    """
+    if num_workers is None:
+        num_workers = mp.cpu_count()
+    
+    # Prepare arguments for parallel processing
+    args = [(filename, t_max, G, eps) for filename in ic_files]
+    
+    # Process trajectories in parallel
+    all_E = []
+    all_r_char = []
+    
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        results = executor.map(compute_single_trajectory_properties, args)
+        
+        for E, r_char in results:
+            if E is not None and r_char is not None:
+                all_E.append(E)
+                all_r_char.append(r_char)
+    
+    # Convert to numpy arrays
+    all_E = np.array(all_E)
+    all_r_char = np.array(all_r_char)
+    
+    # Compute global scales
+    E_scale = np.abs(np.median(all_E)) + eps
+    smin_scale = np.median(all_r_char)
+    
+    return {'E_scale': E_scale, 'smin_scale': smin_scale, 'Q_scale': 0.5}
+
+# Usage example:
+# ic_files = ['path/to/ic_0000.txt', 'path/to/ic_0001.txt', ...]  # All 8500+ files
+# globals_dict = compute_globals(ic_files)
+# print("Computed globals:", globals_dict)
+```
+
+**Key Inconsistencies Identified:**
+1. **Missing Implementation:** No complete implementation for processing all trajectories
+2. **Performance Gaps:** Lack of optimization for large-scale processing
+3. **Verification Needs:** Need to confirm correct scaling and formula implementation
+
+**Practical Impact:**
+Without a complete global scale computation implementation:
+- Cannot properly normalize energy and length values
+- Risk of inconsistent scaling across different parts of the pipeline
+- Potential numerical instabilities in normalized quantities
+- Inability to process the full dataset efficiently
+
+**Source Locations:**
+- things_need_to_be_done.md: Sections 1, 2, and 3
+- PINN_architecture_plan.tex: Scaling discussions throughout Section 3
+- CTL-instruction-final.tex: Section 4.2 scaling procedures
+
+--------------------------------------------------------------------------------
+ISSUE 18: Loss function components clarification
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The multi-component loss function implementation requires precise specification of how scaled quantities are used across all three loss terms (L_data, L_physics, L_energy) to ensure dimensional consistency and proper training dynamics. Current documentation lacks explicit clarification on the exact scaling requirements for each loss component.
+
+## COMPREHENSIVE CONTENT MIGRATION FROM INSTRUCTIONAL DOCUMENTS:
+
+### 1. Multi-Component Loss Function Architecture
+
+### From PINN Architecture Plan (pinn-architecture-plan.txt):
+
+**Overall Loss Function Structure**:
+```
+The training of the PINN is guided by a composite loss function that simultaneously optimizes for three distinct yet complementary objectives: 
+fidelity to observed data, adherence to the governing laws of physics, and conservation of total system energy.
+
+Specifically, the total loss function combines the data fidelity term $\mathcal{L}_{\text{data}}$ and the physics adherence term $\mathcal{L}_{\text{physics}}$ 
+through the ALM framework, which introduces a Lagrange multiplier $\lambda_p$ and a quadratic penalty term with coefficient $\mu_p$.
+Additionally, a separate energy conservation term $\mathcal{L}_{\text{energy}}$ is included with a weight $\lambda_E(k)$ that is dynamically 
+adjusted based on the curriculum stage.
+
+The complete total loss is thus expressed as:
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda_p \mathcal{L}_{\text{physics}} + \frac{\mu_p}{2} \mathcal{L}_{\text{physics}}^2 + \lambda_E(k) \mathcal{L}_{\text{energy}}
+```
+
+### 2. Data Fidelity Term ($\mathcal{L}_{\text{data}}$) - SCALED POSITIONS REQUIREMENT
+
+### From PINN Architecture Plan:
+
+**Explicit Scaled Position Specification**:
+```
+The purpose of the data fidelity term is to ensure that the network's predictions align with the high-precision trajectory data generated by a trusted numerical integrator. This term grounds the general, physically-plausible solution learned by the PINN to the specific trajectory defined by a given set of initial conditions. While Mean Squared Error (MSE) is a common choice, Mean Absolute Error (MAE) is often more robust to the occasional large deviations or outliers that can occur in chaotic simulations. For this reason, the data fidelity loss is defined using the L1 norm.
+
+The data fidelity loss is defined using the L1 norm on the **scaled positions**:
+
+\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} ||r'_{\text{pred}}(t'_k) - r'_{\text{true}}(t'_k)||_1
+
+where:
+- $t'_k$ is the normalized time coordinate in $[-1, 1]$
+- $r'_{\text{pred}}(t'_k)$ is the network's predicted **scaled position** vector (the direct output of the network)
+- $r'_{\text{true}}(t'_k)$ is the ground truth position from the BRUTUS data, **scaled by the characteristic length $D$** (i.e., $r'_{\text{true}} = r_{\text{true}}/D$)
+- $N_{\text{data}}$ is the number of data points in a training batch
+- $|| \cdot ||_1$ denotes the L1 norm
+```
+
+**Data Batch Construction Implementation**:
+```python
+def get_batch(batch_size, points_per_trajectory=32):
+    """
+    Sample batch_size trajectories from the dataset.
+    For each trajectory, sample points_per_trajectory time points.
+    
+    Returns:
+        t_k: Time points sampled from BRUTUS snapshots
+        r_true: Corresponding ground-truth positions
+        
+    Shapes: (batch_size * points_per_trajectory, ...)
+    """
+    # Implementation details depend on dataset structure
+    return t_k, r_true
+
+# Total data points per batch
+N_data = batch_size * points_per_trajectory  # e.g., 256 * 32 = 8192
+```
+
+**Critical ALM Integration Note**: 
+```
+The data term is no longer weighted by a fixed parameter. Instead, its influence is automatically balanced against the physics constraint through the ALM framework. The effective weight of the physics term becomes $(\lambda_p + \mu_p \mathcal{L}_{\text{physics}})$, which adapts during training:
+- When physics loss is high → ALM increases $\lambda_p$ → physics term gets more weight
+- When physics loss is low → ALM stabilizes $\lambda_p$ → balanced optimization
+- The adaptive $\mu_p$ prevents oscillations by adjusting based on the variance of physics loss
+```
+
+### 3. Physics Residual Term ($\mathcal{L}_{\text{physics}}$) - SCALED QUANTITIES VERIFICATION
+
+### From PINN Architecture Plan:
+
+**Physics Residual Formula with Scaled Quantities**:
+```
+This term is the heart of the "physics-informed" paradigm. It enforces the governing laws of physics—in this case, Newton's law of universal gravitation—across the entire solution domain, not just at the discrete points where training data is available. This is what endows the network with the ability to generalize and make physically consistent predictions at any point in time.
+
+The physics residual, $f_i(t')$, for each body $\mathrm{i}$ is defined as the discrepancy between the acceleration predicted by the neural network (via automatic differentiation) and the acceleration dictated by the gravitational forces from all other bodies $\mathrm{j}$:
+
+f_i(t') = a'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{r'_{\theta}(t', j) - r'_{\theta}(t', i)}{(\|r'_{\theta}(t', j) - r'_{\theta}(t', i)\| + \epsilon_{\text{soft}})^3}
+
+where:
+- $t'$ : Normalized time in $[-1, 1]$
+- $r'$ : Positions scaled by $D$ (characteristic length)
+- $a'$ : Accelerations scaled by $D/T^2$
+- $m_j$ : Masses (unchanged, as $G=1$ in the dimensionless system)
+- $\epsilon_{\text{soft}} = 10^{-5}$ : Softening parameter to prevent division by zero during close encounters
+```
+
+**Physics Loss Formulation**:
+```
+The physics loss is then formulated as the mean squared norm of this residual vector, summed over all bodies and evaluated over a set of $N_{\text{col}}$ collocation points:
+
+\mathcal{L}_{\text{physics}} = \frac{1}{N_{\text{col}}} \sum_{k=1}^{N_{\text{col}}} \sum_{i=1}^{N} || f_i(t'_k) ||^2
+```
+
+**Collocation Point Sampling Implementation**:
+```python
+import numpy as np
+
+def sample_collocation_points(t_min, t_max, n_col, strategy='uniform', 
+                            traj_data=None):
+    """
+    Sample collocation points for physics and energy loss evaluation.
+    
+    Args:
+        t_min, t_max: Normalized time domain boundaries (e.g., [-1, 1])
+        n_col: Number of collocation points (recommended: 2048-4096)
+        strategy: 'uniform' (default) or 'adaptive'
+        traj_data: Optional trajectory data for adaptive strategy
+    
+    Returns:
+        t_col: Array of sampled time points
+    """
+    if strategy == 'uniform':
+        t_col = np.random.uniform(t_min, t_max, size=(n_col,))
+        
+    elif strategy == 'adaptive':
+        if traj_data is None:  # This line needs proper indentation
+            raise ValueError("Adaptive strategy requires traj_data")
+        # Bias sampling toward high-acceleration regions
+        weights = np.abs(traj_data['accelerations']).max(axis=1)
+        
+        # Safety check for degenerate cases
+        if weights.sum() < 1e-8:
+            weights = np.ones_like(weights)
+            
+        weights /= weights.sum()  # Normalize
+        t_col = np.random.choice(traj_data['times'], 
+                                size=n_col, p=weights)
+    else:
+        raise ValueError("Invalid strategy")
+        
+    return t_col
+```
+
+### 4. HNN-Style Energy Regularizer ($\mathcal{L}_{\text{energy}}$) - SCALED OUTPUTS CONFIRMATION
+
+### From PINN Architecture Plan:
+
+**Energy Loss Conceptual Framework**:
+```
+While the physics residual enforces the local, instantaneous laws of motion, it does not explicitly guarantee the conservation of global quantities over long time horizons. For an isolated mechanical system like the $\mathrm{N}$-body problem, the total energy is one such conserved quantity. The energy loss term is designed to combat the long-term energy drift that can plague standard PINN models by explicitly penalizing deviations from this fundamental conservation law.
+```
+
+**Hamiltonian Formula with Scaled Quantities**:
+```
+The total energy of the $\mathrm{N}$-body system, its Hamiltonian $H_{\text{total}}$, is the sum of the total kinetic energy $(T)$ and the total potential energy $(V)$:
+
+H_{\text{total}}(r', v') = T + V = \sum_{i=1}^N \frac{1}{2} m_i ||v'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||r'_i - r'_j|| + \epsilon_{\text{soft}}}
+
+This represents the total energy in the non-dimensional unit system. The positions ($r'$) and velocities ($v'$) are the scaled outputs from the network. 
+The initial energy, $H_0$, must also be computed in these same dimensionless units for the loss term to be consistent.
+```
+
+**Energy Loss Implementation**:
+```
+The energy loss term penalizes any deviation of the predicted total energy from its initial total energy, $H_0$, which is a constant calculated from the known initial conditions. The loss is computed over the same set of $N_{\text{col}}$ collocation points as the physics loss:
+
+\mathcal{L}_{\text{energy}} = \frac{1}{N_{\text{col}}} \sum_{k=1}^{N_{\text{col}}} L_\delta(\Delta H_k)
+
+where:
+1. $\Delta H_k = H_{\text{total}}(r_\theta(t'_k), v_\theta(t'_k)) - H_0$
+2. $H_0$ is the precomputed initial energy for each trajectory (See the code below for the exact calculation.)
+3. $L_\delta$ is the Huber loss with $\delta = 1.0$:
+
+L_\delta(a) = {
+    \frac{1}{2} a^2 & \text{for } |a| \leq \delta \\
+    \delta (|a| - \frac{1}{2} \delta) & \text{for } |a| > \delta
+}
+```
+
+**Initial Energy Calculation in Dimensionless Units**:
+```python
+class TrajectoryDataset:
+def __init__(self, trajectory_data):
+    # ... other initialization ...
+    
+    # Precompute H_0 for each trajectory
+    self.H_0_values = {}
+    for traj_id, traj in trajectory_data.items():
+        self.H_0_values[traj_id] = self.compute_initial_energy(
+            r0_prime=traj['r0_scaled'],  # Already scaled by D
+            v0_prime=traj['v0_scaled'],  # Already scaled by D/T
+            masses=traj['masses']
+        )
+
+def compute_initial_energy(self, r0_prime, v0_prime, masses):
+    """Compute H_0 in dimensionless units (G=1)"""
+    H_0 = 0.0
+    epsilon_soft = 1e-5  # Same softening parameter
+    
+    # Fixed for 3-body problem
+    N_bodies = 3
+    
+    # 1. KINETIC ENERGY (dimensionless)
+    for i in range(N_bodies):
+        H_0 += 0.5 * masses[i] * np.sum(v0_prime[i]**2)
+    
+    # 2. POTENTIAL ENERGY (dimensionless)
+    for i in range(N_bodies):
+        for j in range(i+1, N_bodies):
+            r_ij = np.linalg.norm(r0_prime[i] - r0_prime[j])
+            H_0 -= masses[i] * masses[j] / (r_ij + epsilon_soft)
+            
+    return H_0
+```
+
+**Energy Regularization Schedule**:
+```
+The weight of the energy loss term is scheduled according to the curriculum stage:
+
+\lambda_E(k) = 10^{k-3} \quad \text{for } k \in \{0, 1, \ldots, 6\}
+
+This results in the following stage-specific values:
+- Stage 0: $\lambda_E = 10^{-3} = 0.001$
+- Stage 1: $\lambda_E = 10^{-2} = 0.01$
+- Stage 2: $\lambda_E = 10^{-1} = 0.1$
+- Stage 3: $\lambda_E = 10^{0} = 1$
+- Stage 4: $\lambda_E = 10^{1} = 10$
+- Stage 5: $\lambda_E = 10^{2} = 100$
+- Stage 6: $\lambda_E = 10^{3} = 1000$
+```
+
+### 5. Dimensional Consistency Requirements
+
+### From PINN Architecture Plan:
+
+**Unit System Specification**:
+```
+To simplify the physical equations and improve numerical stability, we adopt a non-dimensional system of units where the gravitational constant is 1. This is achieved by carefully choosing our characteristic time, T, and characteristic length, D.
+
+1. **Characteristic Time (T):** We define the characteristic time from the data. Let T = t_{max} = 10, where t_{max} is the maximum time value across the entire simulation dataset. The input time t is then normalized to a dimensionless time t' in [0, 1] using the formula:
+   t' = t/T
+
+2. **Characteristic Length (D):** By setting the new gravitational constant G^{prime} to 1, our characteristic length D is determined by our choice of T. It is calculated using the physical value of G as follows (but since BRUTUS uses G=1, D = \sqrt[3]{T^2} ≈ 4.6416):
+   D = \sqrt[3]{G T^2}
+```
+
+**Scaling Application**:
+```
+All position-based quantities (e.g., \mathbf{r}) in the model must be scaled by this D to \mathbf{r}' = \mathbf{r} / D, velocities to \mathbf{v}' = \mathbf{v} \cdot (T / D), and accelerations (from AD) are automatically scaled. This scaling is applied during data preprocessing (see CTL document Phase 1) to BRUTUS trajectories and initial conditions before computing the IC vector or feeding to the network.
+
+The scaled data ensures consistency in loss functions (e.g., no explicit G). For length-derived IC components (e.g., s_{min}), compute from scaled data before [-1,1] normalization (cross-reference CTL Section 4.2).
+```
+
+### 6. Key Implementation Requirements
+
+**Critical Implementation Notes**:
+```
+- **Unit System Consistency:** All quantities (positions $r'$, velocities $v'$, and initial energy $H_0$) must be expressed in the same non-dimensional ($G = 1$) system of units.
+- **Softening Parameter:** The same value $\epsilon_{\text{soft}} = 10^{-5}$ is used consistently in both the physics residual and energy calculations to prevent numerical instabilities during close encounters.
+- **Collocation Points:** The same set of $N_{\text{col}}$ points is used for both physics and energy loss evaluation to ensure computational efficiency.
+```
+
+### From Things Need to be Done Document:
+
+**Section 4 Loss Function Requirements**:
+```
+- Data fidelity term L_data should explicitly use scaled positions for both prediction and ground truth
+- Verify that physics residual term L_physics correctly uses scaled quantities (t', r', a')
+- Confirm that HNN-style energy regularizer L_energy uses scaled outputs from the network
+- Ensure that initial energy H_0 is computed in the same dimensionless units for consistency
+```
+
+## DIMENSIONAL CONSISTENCY VALIDATION CHECKLIST:
+
+**Data Fidelity Term Requirements**:
+1. ✓ Network output: $r'_{\text{pred}}(t'_k)$ (scaled positions, direct network output)
+2. ✓ Ground truth: $r'_{\text{true}}(t'_k) = r_{\text{true}}/D$ (scaled by characteristic length)
+3. ✓ Time input: $t'_k$ (normalized to [-1,1])
+4. ✓ Loss computation: L1 norm on scaled position differences
+
+**Physics Residual Term Requirements**:
+1. ✓ Time: $t'$ (normalized to [-1,1])
+2. ✓ Positions: $r'_{\theta}(t', j)$ (scaled by D)
+3. ✓ Accelerations: $a'_{\theta}(t', i)$ (automatically scaled by D/T²)
+4. ✓ Masses: $m_j$ (unchanged in G=1 system)
+5. ✓ Softening: $\epsilon_{\text{soft}} = 10^{-5}$ (consistent value)
+
+**Energy Regularizer Term Requirements**:
+1. ✓ Positions: $r'$ (scaled network outputs)
+2. ✓ Velocities: $v'$ (derived from scaled positions via AD)
+3. ✓ Initial energy: $H_0$ (precomputed in dimensionless G=1 units)
+4. ✓ Softening: Same $\epsilon_{\text{soft}} = 10^{-5}$ value
+5. ✓ Hamiltonian: Computed entirely in dimensionless units
+
+**Cross-Component Consistency**:
+1. ✓ All three loss terms use the same scaled coordinate system
+2. ✓ Same softening parameter across physics and energy terms
+3. ✓ Same collocation points for physics and energy evaluation
+4. ✓ Consistent G=1 dimensionless unit system throughout
+
+--------------------------------------------------------------------------------
+ISSUE 19: Normalization formulas verification
+--------------------------------------------------------------------------------
+
+**Issue Details:**
+The normalization formulas for various input vector components require verification to ensure consistent implementation across the codebase. Current documentation provides partial information but needs comprehensive consolidation of all normalization approaches, particularly for energy, minimum separation, masses, and virial ratio components.
+
+## COMPREHENSIVE CONTENT MIGRATION FROM INSTRUCTIONAL DOCUMENTS:
+
+### 1. Energy Normalization (E_norm) - TANH FORMULA CONFIRMATION
+
+### From Things Need to be Done Document:
+
+**E_scale Computation and Usage**:
+```
+*   **E_scale**: For normalizing total mechanical energy \(E\).
+    *   **Formula**: \(E_{\text{scale}} = |\text{median}(\{E_j\}_{j=1}^N)| + \epsilon\), where \(\{E_j\}\) is the list of raw (or scaled) energies from all \(N\) trajectories, and \(\epsilon = 1e-8\) for stability.
+    *   **Usage**: \(E^{\text{norm}} = \tanh(E/E_{\text{scale}})\).
+    *   **Why?** Energy can span orders of magnitude; median captures typical scale without outlier bias.
+```
+
+**Implementation in Global Scale Computation**:
+```python
+return {'E_scale': E_scale, 'smin_scale': smin_scale, 'Q_scale': 0.5}  # Q fixed
+
+# Save to YAML/JSON for later use in normalization
+```
+
+### From CTL Instruction Document:
+
+**Global Normalization Scales Specification**:
+```
+Global normalization scales (computed after scaling all trajectories):
+\begin{itemize}
+    \item \(E_{\text{scale}} = |\median(\{E_j\}_{j=1}^N)| + 10^{-8}\)
+```
+
+**E_norm Implementation in Code**:
+```python
+# Global scales (precomputed from scaled dataset in Step 1.5)
+E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
+
+# Per-system normalization (using invariants from scaled data)
+E_norm = np.tanh(E / E_scale)
+```
+
+**Duplicate Implementation Confirmation**:
+```python
+# Global scales (compute once from dataset)
+E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
+
+# Per-system normalization
+E_norm = np.tanh(E / E_scale)
+```
+
+### 2. Minimum Separation Normalization (s_min_norm) - TANH FORMULA VERIFICATION
+
+### From Things Need to be Done Document:
+
+**smin_scale Computation and Usage**:
+```
+*   **smin_scale**: For normalizing minimum initial separation \(s_{\text{min}}\).
+    *   **Formula**: \(s_{\text{min\_scale}} = \text{median}(\{r_{\text{char},j}\}_{j=1}^N)\), where \(r_{\text{char},j} = \frac{1}{3} \sum_{i<k} ||\mathbf{r}_{i,j} - \mathbf{r}_{k,j}||\) is the characteristic length for trajectory \(j\) (average pairwise distance at t=0).
+    *   **Usage**: \(s_{\text{min}}^{\text{norm}} = \tanh(s_{\text{min}}/s_{\text{min\_scale}})\).
+    *   **Why?** \(s_{\text{min}}\) is dimensional (length); median of \(r_{\text{char}}\) provides a natural dataset-wide length scale.
+```
+
+**Implementation Detail**:
+```python
+# Example usage (hypothetical file lists)
+all_ic_files = ['IC_file1.txt', 'IC_file2.txt', ...]  # All 8500+ files
+all_brutus_files = ['brutus_file1.txt', 'brutus_file2.txt', ...]  # Corresponding outputs
+
+globals_dict = compute_globals(all_ic_files, all_brutus_files, t_max=10.0, G=1.0)
+
+print("Computed globals:", globals_dict)
+# Save to YAML/JSON for later use in normalization
+```
+
+### From CTL Instruction Document:
+
+**smin_scale Implementation in Normalization Code**:
+```python
+Q_scale = 0.5     # Fixed
+smin_scale = np.median(all_r_char)  # Characteristic length from scaled data
+
+smin_norm = np.tanh(s_min / smin_scale)
+```
+
+**Alternative Implementation Confirmation**:
+```python
+Q_scale = 0.5
+smin_scale = np.median(all_r_char)  # Characteristic length
+
+smin_norm = np.tanh(s_min / smin_scale)
+```
+
+### 3. Mass Normalization (m_i_norm) - PER-SYSTEM FORMULA DOCUMENTATION
+
+### From Things Need to be Done Document:
+
+**Mass Normalization Specification**:
+```
+*   **Other Implicit Globals**:
+    *   **For masses**: No explicit global scale; per-system \(m_{\text{total},j} = \sum m_{i,j}\), then \(m_i^{\text{norm}} = 2(m_i/m_{\text{total},j}) - 1\). (Local, not global.)
+```
+
+### From CTL Instruction Document:
+
+**Mass Normalization Implementation**:
+```python
+# Mass fractions
+m_total = np.sum(m) + 1e-8
+m_norm = 2 * (m / m_total) - 1  # Array for all 3 masses
+```
+
+**Duplicate Implementation Confirmation**:
+```python
+# Mass fractions
+m_total = np.sum(m) + 1e-8
+m_norm = 2 * (m / m_total) - 1  # Array for all 3 masses
+```
+
+**Key Implementation Notes**:
+- Uses per-system normalization (not global)
+- Includes numerical stability term (1e-8) to avoid division by zero
+- Maps to [-1, 1] range using linear transformation: 2(m_i/m_total) - 1
+- Applied to all 3 masses as an array operation
+
+### 4. Virial Ratio Normalization (Q_scale) - FIXED VALUE CONFIRMATION
+
+### From Things Need to be Done Document:
+
+**Q_scale Fixed Value Specification**:
+```
+*   **Q_scale** = 0.5 (fixed, not computed globally).
+```
+
+**Implementation Context**:
+```python
+return {'E_scale': E_scale, 'smin_scale': smin_scale, 'Q_scale': 0.5}  # Q fixed
+```
+
+### From CTL Instruction Document:
+
+**Q_scale Implementation Details**:
+```
+\(Q_{\text{scale}}\) remains fixed at 0.5.
+```
+
+**Code Implementation**:
+```python
+# Global scales (precomputed from scaled dataset in Step 1.5)
+E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
+Q_scale = 0.5     # Fixed
+smin_scale = np.median(all_r_char)  # Characteristic length from scaled data
+
+Q_norm = np.tanh((Q - 1) / Q_scale)
+```
+
+**Alternative Implementation**:
+```python
+# Global scales (compute once from dataset)
+E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
+Q_scale = 0.5
+smin_scale = np.median(all_r_char)  # Characteristic length
+
+Q_norm = np.tanh((Q - 1) / Q_scale)
+```
+
+**Key Implementation Notes**:
+- Q_scale = 0.5 is hardcoded (not computed from data)
+- Uses (Q - 1) offset before scaling, centering around virial equilibrium
+- Applied with tanh activation to bound to [-1, 1] range
+
+### 5. Additional Normalization Components
+
+### From CTL Instruction Document:
+
+**Shape Invariant Normalization (Moment of Inertia)**:
+```python
+def compute_moment_of_inertia_normalized(pos, m, r_char, eps=1e-10):
+    # Compute moment of inertia tensor (3x3 matrix)
+    I_tensor = np.zeros((3, 3))
+    for i in range(3):
+        for j in range(3):
+            for k in range(3):  # body index
+                r_k = pos[k]
+                if i == j:
+                    I_tensor[i, j] += m[k] * (np.sum(r_k**2) - r_k[i]**2)
+                else:
+                    I_tensor[i, j] -= m[k] * r_k[i] * r_k[j]
+    
+    I_trace = np.trace(I_tensor)
+    denom = m.sum() * max(r_char**2, eps)
+    I_norm = np.tanh(I_trace / denom)  # Bounds to [-1,1]
+    
+    return I_norm
+```
+
+**Dataset-Wide Consistency Requirements**:
+```
+\item Use dataset-wide statistics for normalization scales to ensure consistency
+```
+
+### 6. Time Normalization Specification
+
+### From CTL Framework Document:
+
+**Time Scaling Approach**:
+```
+Step 3: Normalization Before any data is fed into the neural network, it is critical to normalize it. Neural network optimizers perform best when inputs and outputs are scaled to a standard range, such as $[- 1,1]$ . A single, consistent normalization scheme should be developed and applied to all data. For example, compute the global maximum absolute value for all position components across all datasets and divide all position data by this value. Do the same for velocity components. Time should also be scaled, for instance, by dividing by the maximum simulation time, $T_{max}$ . The normalization factors must be saved so they can be applied to new data and used to de- normalize the network's output for analysis.
+```
+
+### From PINN Architecture Document:
+
+**Time Normalization Formula**:
+```
+1. **Characteristic Time (T):** We define the characteristic time from the data. Let T = t_{max} = 10, where t_{max} is the maximum time value across the entire simulation dataset. The input time t is then normalized to a dimensionless time t' in [0, 1] using the formula:
+   t' = t/T
+```
+
+**Note on Time Range**: The PINN document shows normalization to [0,1] while other components use [-1,1]. This potential inconsistency requires verification.
+
+### 7. Implementation Validation Requirements
+
+### From CTL Instruction Document:
+
+**Normalization Parameter Computation Process**:
+```
+\item \textbf{Compute Normalization Parameters:} Iterate through the entire dataset of computed invariants to find the global minimum and maximum values for each component that requires normalization (i.e., masses, energy, minimum separation, and the shape metric). Store these `min` and `max` values in a persistent configuration file (e.g., \texttt{normalization.yaml}) for consistent use during training and inference.
+
+\item \textbf{Apply Normalization:} Apply the Min-Max normalization formula $c' = 2 \frac{c - c_{min}}{c_{max} - c_{min}} - 1$ to the relevant components of the computed `IC` vector for each simulation. The trigonometric angle components are not transformed, as they are already in the range $[-1, 1]$.
+```
+
+**Note**: This shows an alternative Min-Max normalization approach (not tanh-based), indicating potential inconsistency in the documentation.
+
+## NORMALIZATION FORMULA VERIFICATION SUMMARY:
+
+### CONFIRMED FORMULAS:
+
+**Energy Normalization**:
+- ✓ **Formula**: E_norm = tanh(E/E_scale)
+- ✓ **E_scale**: |median({E_j}_{j=1}^N)| + 1e-8
+- ✓ **Implementation**: Consistently documented across multiple locations
+
+**Minimum Separation Normalization**:
+- ✓ **Formula**: s_min_norm = tanh(s_min/smin_scale)
+- ✓ **smin_scale**: median({r_char,j}_{j=1}^N)
+- ✓ **Implementation**: Consistently documented with characteristic length derivation
+
+**Mass Normalization**:
+- ✓ **Formula**: m_i_norm = 2(m_i/m_total) - 1
+- ✓ **Scope**: Per-system normalization (not global)
+- ✓ **Implementation**: Applied to all 3 masses as array operation
+
+**Virial Ratio Scale**:
+- ✓ **Q_scale**: Fixed value of 0.5 (not computed globally)
+- ✓ **Formula**: Q_norm = tanh((Q - 1) / Q_scale)
+- ✓ **Implementation**: Hardcoded constant across all implementations
+
+### POTENTIAL INCONSISTENCIES IDENTIFIED:
+
+**Time Normalization Range**:
+- PINN document: t' ∈ [0, 1] (t' = t/T)
+- Other components: normalized to [-1, 1]
+- **Requires clarification**: Should time also be in [-1, 1]?
+
+**Alternative Normalization Methods**:
+- Primary approach: tanh-based normalization
+- Alternative mentioned: Min-Max normalization (c' = 2(c-c_min)/(c_max-c_min) - 1)
+- **Requires verification**: Which method should be used consistently?
+
+**Other Components Not Explicitly Addressed**:
+- L_norm (angular momentum): Implementation details needed
+- Shape invariants (I1, I2, I3): Formulas require verification
+- Velocity angles (θ1, θ2): Normalization approach unclear
+
+### IMPLEMENTATION VALIDATION CHECKLIST:
+
+1. ✓ E_norm = tanh(E/E_scale) with median-based E_scale
+2. ✓ s_min_norm = tanh(s_min/smin_scale) with characteristic length scale
+3. ✓ m_i_norm = 2(m_i/m_total) - 1 per-system normalization
+4. ✓ Q_scale = 0.5 fixed value, Q_norm = tanh((Q-1)/Q_scale)
+5. ? Time normalization: t' = t/T to [0,1] vs [-1,1] range
+6. ? Consistent use of tanh vs Min-Max normalization methods
+7. ? Implementation details for remaining IC vector components
