@@ -102,8 +102,10 @@ def extract_latex_code_blocks(content: str) -> List[str]:
     # algorithm environments - extract full environment for comparison
     alg_matches = re.findall(r'\\begin\{algorithm\}(.*?)\\end\{algorithm\}', content, flags=re.DOTALL)
     code_blocks.extend([m.strip() for m in alg_matches])
-    # tikzpicture environments - extract for comparison with fenced latex blocks
-    tikz_matches = re.findall(r'\\begin\{tikzpicture\}(.*?)\\end\{tikzpicture\}', content, flags=re.DOTALL)
+    # tikzpicture environments - extract FULL environment including options
+    # This matches the MD which has the full \begin{tikzpicture}[options]...\end{tikzpicture}
+    tikz_pattern = r'\\begin\{tikzpicture\}.*?\\end\{tikzpicture\}'
+    tikz_matches = re.findall(tikz_pattern, content, flags=re.DOTALL)
     code_blocks.extend([m.strip() for m in tikz_matches])
     # Filter out empty blocks
     return [b for b in code_blocks if b]
@@ -430,8 +432,20 @@ def normalize_whitespace(text: str) -> str:
     return ' '.join(text.split())
 
 def canonicalize_math(text: str) -> str:
-    """Canonicalize math content: whitespace normalization only."""
-    return normalize_whitespace(text)
+    """Canonicalize math content: normalize whitespace and handle conversion artifacts."""
+    # Normalize whitespace
+    text = normalize_whitespace(text)
+    # Remove all ** markers (from bold conversion anywhere in the text)
+    text = text.replace('**', '')
+    # Remove all * markers (from italic conversion)
+    text = text.replace('*', '')
+    # Normalize \text{e-} to e- (LaTeX to MD conversion)
+    text = re.sub(r'\\text\{e-\}', 'e-', text)
+    # Normalize \text{e+} to e+
+    text = re.sub(r'\\text\{e\+\}', 'e+', text)
+    # Normalize \median to median (custom command that may have been converted)
+    text = re.sub(r'\\median\{([^}]+)\}', r'median(\1)', text)
+    return text.strip()
 
 def canonicalize_code(text: str) -> str:
     """Canonicalize code block: normalize line endings to \n, strip surrounding whitespace."""
