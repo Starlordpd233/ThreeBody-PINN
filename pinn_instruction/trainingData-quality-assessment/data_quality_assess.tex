@@ -1,0 +1,408 @@
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\documentclass[11pt, a4paper]{article}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage[english]{babel}
+
+% --- PACKAGES ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs} % For professional tables
+\usepackage{hyperref} % For hyperlinks and citations
+\usepackage{enumitem} % For list formatting
+\usepackage{xcolor}   % For links coloring
+
+% --- HYPERREF SETUP ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=red,
+}
+
+% --- MACROS FOR MATH ---
+\newcommand{\vect}[1]{\mathbf{#1}} % Vector notation
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert} % Norm notation
+
+% --- METADATA ---
+\title{\textbf{Optimization of Data Validation Protocols for Causal Physics-Informed Learning in Chaotic N-Body Regimes}}
+\author{Research Report}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction: The Intersection of Arbitrary-Precision Numerics and Causal Deep Learning}
+
+The integration of high-fidelity numerical analysis with deep learning represents a paradigm shift in the study of chaotic dynamical systems. The specific research stack under analysis—comprising the Brutus arbitrary-precision integrator written in C++, a Python-based data processing pipeline, and a Causal Training Labeled Physics-Informed Neural Network (CTL-PINN)—targets one of the most enduring challenges in classical mechanics: the Three-Body Problem. This system is characterized by non-linear interactions, extreme sensitivity to initial conditions, and phase space structures defined by the coexistence of stable invariant tori and chaotic seas. The successful modeling of such a system using neural networks requires a rigorous reassessment of what constitutes ``high-quality'' training data. Unlike traditional supervised learning tasks where data quality is often synonymous with label accuracy or noise reduction, the chaotic N-body problem imposes strict geometric and dynamical constraints—specifically symplectic conservation and phase space continuity—that must be preserved to ensure the learned model is physically viable.
+
+The primary objective of this report is to define a comprehensive strategy for assessing training data quality prior to full model training. The analysis is driven by the unique requirements of the CTL-PINN architecture, which enforces temporal causality in the learning process, thereby making the model highly sensitive to the temporal coherence and physical consistency of the input data. We evaluate the comparative efficacy of static pre-training validation versus dynamic trial training, ultimately proposing a hybrid ``Staged Gate'' protocol. Furthermore, we develop a set of mathematically grounded metrics tailored to the arbitrary-precision nature of the Brutus dataset, ensuring that the inductive biases of the neural network align with the symplectic geometry of the underlying Hamiltonian physics.
+
+\subsection{The Computational Landscape: Brutus and the Bulirsch-Stoer Algorithm}
+
+To understand the data quality requirements, one must first analyze the source of the data. The Brutus code differs fundamentally from the symplectic integrators (such as Leapfrog or Wisdom-Holman) typically used in large-scale N-body simulations. Symplectic integrators preserve the geometric properties of the Hamiltonian flow (such as phase space volume) over long time scales but do so at the cost of local accuracy, often introducing a bounded energy error that oscillates but does not grow secularly~\cite{ref1}. In contrast, Brutus utilizes the Bulirsch-Stoer algorithm combined with arbitrary-precision arithmetic to generate ``converged'' solutions~\cite{ref3}.
+
+The Bulirsch-Stoer method is an extrapolation scheme. It computes the solution at a future time $t + H$ by subdividing the interval $H$ into substeps, performing the integration with a modified midpoint method, and then extrapolating the results to zero step size using rational functions~\cite{ref3}. Brutus iteratively increases the precision (word length $L$) and decreases the tolerance parameter $\epsilon$ until the solution converges to a specified number of significant digits~\cite{ref3}. This implies that a Brutus-generated trajectory is not merely an approximation; within the specified precision, it is a ``true'' numerical solution that shadows the exact mathematical trajectory of the system~\cite{ref3}.
+
+However, this high fidelity comes with a specific data characteristic: non-uniform temporal sampling. The adaptive step-size controller in Brutus shrinks the time step $\Delta t$ dramatically during close encounters (pericenter passages) to maintain accuracy as the gravitational forces $F \propto 1/r^2$ diverge~\cite{ref6}. Conversely, during excursive phases where bodies are widely separated, $\Delta t$ increases. While this is efficient for integration, it presents a ``spectral bias'' challenge for neural networks, which typically assume uniform sampling or at least sampling densities that correlate with the local Lipschitz constant of the target function in a way that is compatible with gradient descent dynamics~\cite{ref8}. Consequently, ``good'' data for Brutus—defined by convergence—is not necessarily ``good'' data for a CTL-PINN without rigorous validation of its sampling density and local stiffness properties.
+
+\subsection{The Learning Architecture: Causal Training Labeled PINN (CTL-PINN)}
+
+The target model is a CTL-PINN. This architecture represents a refinement of the standard PINN formulation designed specifically for time-dependent evolution equations. Standard PINNs often suffer from ``temporal causality violation,'' where the optimizer attempts to minimize the residual at a late time $t=T$ before having adequately resolved the solution at $t=0$~\cite{ref10}. In chaotic systems, this is catastrophic because the solution at $t=T$ is exponentially sensitive to the trajectory at $t < T$. If the early trajectory is not learned correctly, the physics loss at later times provides incorrect gradient information, leading to convergence to unphysical local minima~\cite{ref10}.
+
+Causal training addresses this by introducing a weighting mechanism $w(t)$ into the loss function:
+\begin{equation}
+    \mathcal{L}(\theta) = \sum_{i=1}^{N_t} w_i \mathcal{L}_i(\theta)
+\end{equation}
+where the weights $w_i$ are dynamically adjusted based on the cumulative loss at previous time steps. Typically, $w_i \propto \exp(-\lambda \sum_{j < i} \mathcal{L}_j)$~\cite{ref10}. This forces the network to learn the trajectory sequentially, respecting the arrow of time.
+
+This architectural choice imposes strict requirements on the training data. The data must be \textit{causally continuous}. A gap in the data, a region of unphysical noise, or a ``stiffness spike'' (an under-resolved close encounter) at $t_{early}$ will result in a high residual $\mathcal{L}_{early}$. The causal weighting mechanism will then suppress the weights for all $t > t_{early}$ to zero, effectively halting the training process~\cite{ref10}. Thus, for CTL-PINNs, data quality is not just about global accuracy; it is about the \textit{continuity of learnability} along the temporal axis. A single ``bad'' segment renders the entire subsequent trajectory useless for training.
+
+\section{Assessment Strategy: Trade-offs Between Pre-Training Validation and Trial Training}
+
+The central strategic question is how to validate this complex data. The research identifies two primary methodologies: Static Pre-Training Validation (analyzing the dataset $\mathcal{D}$ itself) and Dynamic Trial Training (analyzing the interaction between $\mathcal{D}$ and the model $M$). Relying solely on one introduces significant risks.
+
+\subsection{Static Pre-Training Validation}
+
+This approach involves calculating physical and statistical metrics on the raw Brutus output (CSV/HDF5 files) before any tensor operations are initiated.
+
+\paragraph{Advantages:}
+\begin{itemize}
+    \item \textbf{Computational Scalability:} Static checks are typically $O(N)$ or $O(N \log N)$ operations performed on CPUs. This is orders of magnitude cheaper than the iterative backpropagation required for training~\cite{ref12}.
+    \item \textbf{Physical Interpretability:} Errors detected here are directly mapped to physical concepts. If the angular momentum vector $\vect{L}$ precesses in a supposedly isolated system, the integration error is undeniable. This provides a clear ``reject'' criterion.
+    \item \textbf{Sanitization:} It prevents ``poisoning'' the batch normalization statistics of a neural network. If a dataset contains outliers (e.g., numerical singularities where position $x \to \infty$ or $NaN$), these can skew the mean and variance statistics of the input layers, destabilizing the initialization of the entire network~\cite{ref13}.
+\end{itemize}
+
+\paragraph{Limitations:}
+\begin{itemize}
+    \item \textbf{Invisibility of Optimization Landscapes:} A trajectory may be physically valid (conserves energy, continuous) but possess extremely high frequency components that are difficult for a Multi-Layer Perceptron (MLP) to resolve due to spectral bias~\cite{ref8}. Static analysis cannot easily measure ``spectral learnability'' without performing Fourier transforms that may themselves suffer from sampling artifacts.
+    \item \textbf{Interpolation Blindness:} PINNs evaluate residuals at \textit{collocation points} which may not coincide with data points. Static analysis of discrete data points $t_i$ does not guarantee that the implicit interpolant between $t_i$ and $t_{i+1}$ is physical. If the Brutus time-step was too large, the ``straight line'' or ``spline'' connecting the points might violate conservation laws, even if the points themselves do not~\cite{ref16}.
+\end{itemize}
+
+\subsection{Dynamic Trial Training}
+
+This strategy involves training the specific CTL-PINN architecture on a small subset of the data (e.g., a single trajectory or a few batches) for a limited number of epochs.
+
+\paragraph{Advantages:}
+\begin{itemize}
+    \item \textbf{Gradient Pathology Detection:} This is the only way to detect ``exploding'' or ``vanishing'' gradients caused by the specific interplay of the data's dynamic range and the network's activation functions~\cite{ref14}. For N-body problems, where forces can scale by orders of magnitude during collisions, this is a critical check.
+    \item \textbf{Causal Weight Verification:} It validates that the causal propagation mechanism is functioning. If the weights $w(t)$ do not advance past $t=0$ after 1000 epochs, it indicates that the initial conditions or the first few steps are ``too stiff'' for the current learning rate/architecture configuration~\cite{ref10}.
+    \item \textbf{Hyperparameter Sensitivity Check:} It helps distinguish between ``bad data'' and ``bad hyperparameters.''
+\end{itemize}
+
+\paragraph{Limitations:}
+\begin{itemize}
+    \item \textbf{Cost:} Requires GPU resources and significant time overhead per dataset if not strictly capped.
+    \item \textbf{False Negatives:} A successful trial training on an ``easy'' segment of the orbit does not guarantee success on a ``chaotic scattering'' segment. The trial set must be carefully selected to be representative of the hardest physics.
+    \item \textbf{Overfitting Ambiguity:} A model might easily overfit a single trajectory (memorization) without learning the underlying physics laws, providing a false sense of data quality~\cite{ref18}. ``Success'' in trial training (low loss) might just mean the network is large enough to memorize noise.
+\end{itemize}
+
+\subsection{The Optimal Strategy: The ``Staged Gate'' Protocol}
+
+The research suggests that the optimal strategy is a hybrid \textbf{Staged Gate Protocol}. This prioritizes the low-cost elimination of obviously bad data (Static Validation) before incurring the cost of probing subtle learnability issues (Trial Training).
+
+\begin{description}
+    \item[Phase 1: The Physics Gate (Static)] \hfill \\
+    \textbf{Input:} Raw Brutus Trajectories. \\
+    \textbf{Action:} Rigorous checking of conservation laws (Energy, Momentum) and symplectic consistency. \\
+    \textbf{Outcome:} Binary Pass/Fail. Trajectories with drift $> \delta_{tol}$ are discarded immediately. This filters out integration failures.
+    
+    \item[Phase 2: The Stiffness Gate (Static)] \hfill \\
+    \textbf{Input:} Physically valid trajectories. \\
+    \textbf{Action:} Analysis of Sampling Density vs. Local Curvature (using the SASD metric defined below). \\
+    \textbf{Outcome:} Flagging. Trajectories are not discarded but marked as ``High Stiffness.'' These require either resampling (running Brutus again with tighter tolerance) or specific ``Curriculum Learning'' schedules (introducing them later in training).
+    
+    \item[Phase 3: The Learnability Gate (Dynamic)] \hfill \\
+    \textbf{Input:} A stratified sample of Phase 2 survivors (specifically including High Stiffness cases). \\
+    \textbf{Action:} ``Overfit Challenge.'' Train the CTL-PINN on this single trajectory to machine precision. \\
+    \textbf{Outcome:} Architectural Validation. If the model cannot overfit a single valid trajectory, the \textit{architecture} (not the data) is insufficient (e.g., too shallow, wrong activation function)~\cite{ref17}.
+\end{description}
+
+\begin{table}[htbp]
+\centering
+\caption{Comparative Analysis of Assessment Strategies}
+\label{tab:assessment_strategies}
+\begin{tabular}{@{}p{0.2\textwidth}p{0.25\textwidth}p{0.2\textwidth}p{0.25\textwidth}@{}}
+\toprule
+\textbf{Feature} & \textbf{Pre-Training Validation (Static)} & \textbf{Trial Training (Dynamic)} & \textbf{Staged Gate Protocol (Hybrid)} \\ \midrule
+\textbf{Primary Metric} & Physical Conservation, Continuity & Convergence Rate, Loss Value & Composite Score \\
+\textbf{Computational Cost} & Low (CPU) & High (GPU) & Optimized (CPU first, GPU second) \\
+\textbf{Detects} & Integration Errors, Outliers & Gradient Issues, Hyperparams & Both + Architecture Mismatch \\
+\textbf{Risk Addressed} & Garbage In, Garbage Out & Model Divergence & Systemic Failure \\
+\textbf{Blind Spot} & Neural Network Inductive Bias & Physical Validity of Minima & None \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\section{Mathematically Grounded Metrics for Data Quality}
+
+To operationalize the Staged Gate Protocol, we must define specific metrics. These metrics extend beyond simple error checking; they quantify the \textit{fitness} of the data for the specific task of causal physics-informed learning.
+
+\subsection{Symplectic Conservation Score (SCS)}
+
+While Brutus is an arbitrary-precision integrator, it is not inherently symplectic (it does not strictly preserve phase space volume by construction, unlike Leapfrog). However, for the data to be valid training material for a physics-informed model, it must exhibit the properties of a conservative Hamiltonian system $H(\vect{q}, \vect{p})$~\cite{ref12}.
+
+\paragraph{Derivation:}
+The Hamiltonian for the N-body problem is:
+\begin{equation}
+    H = \sum_{i} \frac{\vect{p}_i^2}{2m_i} - \sum_{i < j} \frac{G m_i m_j}{|\vect{q}_i - \vect{q}_j|}
+\end{equation}
+For a physically valid solution, $\frac{dH}{dt} = 0$. In numerical data, errors manifest as energy drift.
+
+\paragraph{Metric Definition:}
+We define the Symplectic Conservation Score ($SCS$) as the maximum normalized deviation of the Hamiltonian over the trajectory duration $T$:
+\begin{equation}
+    SCS = \log_{10} \left( \max_{t \in [0, T]} \left| \frac{H(t) - H(0)}{H(0)} \right| \right)
+\end{equation}
+
+\paragraph{Thresholds for CTL-PINN:}
+\begin{itemize}
+    \item \textbf{$SCS < -10$:} Excellent. Brutus has converged to high precision. Ideal for training.
+    \item \textbf{$-10 < SCS < -6$:} Acceptable. The drift is likely below the noise floor of the neural network's float32/float64 arithmetic.
+    \item \textbf{$SCS > -4$:} Reject. The trajectory exhibits significant physical violation. A PINN trained on this will face conflicting gradients: the data loss (trying to fit the drift) and the physics loss (trying to enforce $\dot{H}=0$) will fight, leading to convergence failure~\cite{ref21}.
+\end{itemize}
+
+\textbf{Insight:} In chaotic systems, energy error often grows linearly or quadratically with time in non-symplectic integrators. A high SCS suggests the integrator step size was too large for the chaotic amplification factor of the specific orbit~\cite{ref1}.
+
+\subsection{Stiffness-Aware Sampling Density (SASD)}
+
+Stiffness is the primary cause of failure for neural ODE solvers and PINNs. It occurs when the timescales of the system's components vary by orders of magnitude—common in N-body problems during close encounters where the dynamical time $\tau \sim \sqrt{r^3/GM}$ shrinks rapidly~\cite{ref23}. Brutus handles this adaptively, but if the output data is saved at fixed intervals (or if the adaptive steps are too coarse for the \textit{network's} capacity), the data will be ``aliased'' relative to the physics.
+
+\paragraph{Metric Derivation:}
+We define a local stiffness proxy based on the curvature of the trajectory, which correlates with the acceleration magnitude $\norm{\vect{a}}$. The sampling density is $\rho(t) = 1/\Delta t_i$.
+The metric compares the time step $\Delta t_i$ to the local characteristic timescale $\tau_{char} = \frac{\norm{\vect{v}}}{\norm{\vect{a}}}$ (time to change velocity direction significantly).
+
+\paragraph{Metric Definition:}
+\begin{equation}
+    SASD_i = \frac{\Delta t_i}{\tau_{char}(t_i)} = \Delta t_i \cdot \frac{\norm{\vect{a}(t_i)}}{\norm{\vect{v}(t_i)}}
+\end{equation}
+(To avoid division by zero at turning points, a more robust form uses the radius of curvature $\rho_{curv} = v^2/a_{\perp}$).
+
+\paragraph{Interpretation:}
+\begin{itemize}
+    \item \textbf{$SASD \ll 1$:} The trajectory is over-sampled. The path between points is effectively linear. Safe for training.
+    \item \textbf{$SASD \sim 1$:} The trajectory turns significantly between data points.
+    \item \textbf{$SASD > 1$:} The trajectory is under-sampled. The particle performs a ``sharp turn'' or ``cusp'' between data points.
+\end{itemize}
+
+\textbf{Risk to CTL-PINN:} A high SASD value implies that the ``causal link'' between $t_i$ and $t_{i+1}$ is broken. The physics residual $\mathcal{L}_{physics}$ evaluated at a collocation point \textit{between} these data points (using interpolation) will be massive because the interpolant cannot capture the cusp. This stops the propagation of causal weights~\cite{ref10}. Data with $SASD > 0.5$ should be flagged for resampling.
+
+\subsection{Interpolation Physics Residual (IPR)}
+
+This is a critical ``second-order'' metric. PINNs do not just learn the data points; they learn a continuous manifold. Therefore, the \textit{interpolant} implied by the data must satisfy the physics. If we use Cubic Hermite Splines (which preserve positions and velocities) to interpolate the Brutus data, does this spline satisfy Newton's laws?~\cite{ref16}
+
+\paragraph{Protocol:}
+\begin{enumerate}
+    \item Construct a piecewise Cubic Hermite Interpolating Polynomial (PCHIP) $\vect{q}_{spline}(t)$ using the data $\{(\vect{q}_i, \vect{v}_i)\}$.
+    \item Sample $M$ synthetic ``collocation points'' $\tau_k$ uniformly distributed \textit{between} the data points.
+    \item Calculate the physics residual at these synthetic points:
+    \begin{equation}
+        IPR = \frac{1}{M} \sum_{k=1}^{M} \left\| \frac{d^2 \vect{q}_{spline}}{dt^2}(\tau_k) - \vect{F}_{gravity}(\vect{q}_{spline}(\tau_k)) \right\|^2
+    \end{equation}
+\end{enumerate}
+
+\paragraph{Relevance:}
+If $IPR$ is high, it means that even though the data points are correct, the ``shape'' of the trajectory between them (as defined by standard interpolation) is unphysical. This indicates that the data density is insufficient to constrain the continuous solution space of the PINN. The network will struggle to find a function that fits both the data points and the physics equation between them, leading to ``wobbling'' or high-frequency artifacts~\cite{ref16}. This metric directly predicts the ``Physics Loss'' component of the PINN training.
+
+\subsection{Phase Space Coverage Entropy (PSC)}
+
+Chaotic systems are ergodic (or have ergodic components). For a model to generalize, the training data must cover the relevant phase space structures—both the stable regions (quasi-periodic orbits) and the unstable regions (close encounters, scattering). A dataset biased towards one will fail on the other~\cite{ref28}.
+
+\paragraph{Metric Definition:}
+We discretize the phase space of interest (e.g., the $r_{12}, r_{23}$ distance plane or the Poincaré section) into a grid of $K$ bins. Let $p_k$ be the probability of a data point falling into bin $k$. The Shannon Entropy is:
+\begin{equation}
+    H_{data} = - \sum_{k=1}^{K} p_k \log p_k
+\end{equation}
+
+\paragraph{Application:}
+\begin{itemize}
+    \item \textbf{Low Entropy:} The data is clustered in a small region (e.g., all particles far apart). The model will fail to learn close-encounter dynamics.
+    \item \textbf{High Entropy:} The data explores diverse configurations.
+    \item \textbf{Stiffness Coverage Ratio:} Specifically check the bin corresponding to $r_{min} \to 0$. If this bin is empty, the dataset lacks the ``hard'' physics examples necessary to train the network to handle singularities. The report recommends ``Importance Sampling'' to enrich the dataset with these high-stiffness events~\cite{ref9}.
+\end{itemize}
+
+\section{Risks to Model Parameters and Causal Training Dynamics}
+
+The user query specifically asks to address ``risks to model parameters.'' In the context of CTL-PINNs and chaotic data, these risks are non-trivial and often structural.
+
+\subsection{The Causal ``Firewall'' Effect}
+
+The causal loss weighting is defined as $w_i = f(\sum_{j<i} \mathcal{L}_j)$.
+\begin{description}
+    \item[Risk:] If the data contains a single ``bad'' point (high IPR or SASD) at time $t_{bad}$, the residual $\mathcal{L}(t_{bad})$ remains high. Consequently, the weights for all $t > t_{bad}$ vanish ($w_t \to 0$).
+    \item[Parameter Consequence:] The gradients $\frac{\partial \mathcal{L}}{\partial \theta}$ for parameters governing the late-time behavior become zero. These parameters effectively ``die'' or drift randomly. The model learns the trajectory perfectly up to $t_{bad}$ and then flatlines. This is a specific failure mode of causal training that does not exist in standard PINNs (which would just average the error globally)~\cite{ref10}.
+    \item[Mitigation:] The SASD metric acts as a pre-training filter to prevent these ``causal firewalls.''
+\end{description}
+
+\subsection{The Dead Neuron Problem in N-Body Scaling}
+
+N-body data is scale-invariant but numerically vast. Distances can range from $10^{-3}$ (close encounter) to $10^2$ (ejection).
+\begin{description}
+    \item[Risk:] If the data is fed raw into the network, the inputs will push the neurons into the saturation regions of their activation functions (e.g., $\tanh(100) \approx 1$, gradient $\approx 0$).
+    \item[Parameter Consequence:] Vanishing gradients in the first layer. In a deep network, this prevents feature extraction.
+    \item[Mitigation:] The validation pipeline must include a Normalization Check. Calculate the Kullback-Leibler (KL) divergence between the input data distribution and a standard normal distribution $\mathcal{N}(0, 1)$. If $D_{KL}$ is high, the data requires log-scaling or robust standardization (e.g., using median and IQR instead of mean/std to handle outliers) before training~\cite{ref13}.
+\end{description}
+
+\subsection{Spectral Bias and High-Frequency Oscillations}
+
+Neural networks satisfy a ``Spectral Bias'' principle—they learn low-frequency functions quickly and high-frequency functions slowly~\cite{ref8}.
+\begin{description}
+    \item[Risk:] Chaotic trajectories often possess a broad frequency spectrum. If the data contains high-frequency oscillations (e.g., a tight binary subsystem orbiting a third body), the PINN will smooth over them, effectively learning a ``mean field'' approximation rather than the true dynamics.
+    \item[Parameter Consequence:] The weights responsible for high-frequency features will not converge within standard training times.
+    \item[Mitigation:] Use the IPR metric to detect high-frequency content. If detected, the architecture should be augmented with Fourier Feature mappings (positional encoding) to shift the spectral bias of the network~\cite{ref8}.
+\end{description}
+
+\section{Detailed Implementation Protocol: The ``Staged Gate'' Workflow}
+
+This section synthesizes the research into a coherent, actionable workflow for the research team.
+
+\subsection{Phase 1: Data Ingestion and Static Auditing (CPU)}
+This phase runs on the entire generated dataset.
+
+\begin{enumerate}
+    \item \textbf{Load and Normalize:}
+    \begin{itemize}
+        \item Load $(\vect{q}, \vect{p}, t)$ from Brutus output.
+        \item Check for NaN or Inf.
+        \item Compute $SCS$ (Energy Drift). \textbf{Gate:} Reject if $|SCS| > 10^{-5}$.
+    \end{itemize}
+    \item \textbf{Stiffness Analysis:}
+    \begin{itemize}
+        \item Compute accelerations $\vect{a}_i$ and velocities $\vect{v}_i$.
+        \item Compute $SASD$ profile.
+        \item \textbf{Gate:} If $\max(SASD) > 0.5$, flag for ``Resampling.'' Do not train on this trajectory yet. It requires finer Brutus output steps.
+    \end{itemize}
+    \item \textbf{Manifold Check (IPR):}
+    \begin{itemize}
+        \item Fit Cubic Hermite Spline.
+        \item Sample 10 synthetic points per interval.
+        \item Compute $IPR$.
+        \item \textbf{Gate:} If $IPR > 10^{-3}$, the data is aliased. Reject or Resample.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Phase 2: The ``Overfit Challenge'' (GPU)}
+This phase runs on a randomly selected \textit{subset} (e.g., 1\%) of the passing data to validate the configuration.
+
+\begin{enumerate}
+    \item \textbf{Setup:} Initialize the exact CTL-PINN architecture intended for full training.
+    \item \textbf{Challenge:} Attempt to overfit a \textit{single} stiff trajectory (one that passed Phase 1 but had high SASD).
+    \item \textbf{Monitoring:}
+    \begin{itemize}
+        \item Track Loss $\mathcal{L}_{train}$.
+        \item Track Causal Weights $w(t)$ evolution.
+        \item Track Gradient Norms $\norm{\nabla_\theta \mathcal{L}}$.
+    \end{itemize}
+    \item \textbf{Success Criteria:}
+    \begin{itemize}
+        \item $\mathcal{L}_{train}$ converges to machine precision ($< 10^{-6}$).
+        \item Causal weights propagate to $t=T$ (i.e., the ``firewall'' is breached).
+    \end{itemize}
+    \item \textbf{Diagnostic:}
+    \begin{itemize}
+        \item If loss plateaus: Architecture is too small (under-parameterized).
+        \item If weights don't propagate: Causal parameter $\lambda$ is too high (too strict).
+        \item If gradients explode: Normalization is incorrect.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Phase 3: Dataset Composition and Augmentation}
+
+\begin{enumerate}
+    \item \textbf{Diversity Check:} Compute Phase Space Entropy ($H_{data}$) on the accepted dataset.
+    \item \textbf{Balancing:} If the dataset is dominated by stable orbits (low entropy), use \textbf{Importance Resampling}. Run Brutus specifically initialized in ``chaotic'' regions (e.g., using the figure-8 or Pythagorean 3-body initial conditions) to generate more high-entropy examples~\cite{ref31}.
+    \item \textbf{Symmetry Augmentation:} Apply $SO(3)$ rotations and translations to valid trajectories to increase dataset size without computational cost, ensuring the PINN learns rotational invariance~\cite{ref6}.
+\end{enumerate}
+
+\section{Synthesis and Conclusion}
+
+The development of a robust CTL-PINN for the Three-Body Problem requires moving beyond the notion of data ``accuracy'' to the more complex notion of data ``fitness for causal learning.'' The analysis reveals that the primary risks—spectral bias, causal firewalls, and dead gradients—stem from the mismatch between the continuous nature of the PINN and the discrete, variable-density nature of the Brutus data.
+
+By implementing the \textbf{Staged Gate Protocol}, the research team can decouple these risks. Phase 1 (Static) ensures the physics is sound and the sampling density is sufficient to support a continuous manifold (low IPR). Phase 2 (Dynamic) ensures the network architecture has the capacity to resolve the specific stiffness profile of the data without gradient pathologies.
+
+This rigorous, multi-layered approach ensures that the computational investment in arbitrary-precision data generation yields a dataset that is not just numerically correct, but algorithmically effective for training the next generation of physics-informed neural solvers.
+
+\subsection{Recommendations for Future Work}
+
+\begin{itemize}
+    \item \textbf{Curriculum Learning:} Implement a curriculum where the model is trained first on ``easy'' (low SASD) trajectories and progressively introduced to ``hard'' (chaotic, high SASD) trajectories. This stabilizes the causal weights~\cite{ref10}.
+    \item \textbf{Adaptive Activation Functions:} Investigate using adaptive activation functions (like Rowdy or locally adaptive sine) to handle the varying frequency content of the N-body problem better than fixed Tanh/ReLU~\cite{ref8}.
+    \item \textbf{Symplectic Neural Networks:} Consider modifying the architecture to be inherently symplectic (HNN), moving conservation from a soft loss term to a hard architectural constraint, which reduces the data quality burden regarding energy drift~\cite{ref33}.
+\end{itemize}
+
+% --- BIBLIOGRAPHY ---
+\begin{thebibliography}{99}
+
+\bibitem{ref1} On the statistical convergence of N-body simulations of the Solar System. \textit{The Open Journal of Astrophysics}. \url{https://astro.theoj.org/article/154745}
+
+\bibitem{ref2} On the Reliability of N-body Simulations. arXiv:1411.6671. \url{https://arxiv.org/abs/1411.6671}
+
+\bibitem{ref3} On the Reliability of N-Body Simulations. ResearchGate. \url{https://www.researchgate.net/publication/268820199}
+
+\bibitem{ref4} Solving the chaotic three-body problem using deep neural networks. Leiden University. \url{https://scholarlypublications.universiteitleiden.nl/access/item%3A3142083/download}
+
+\bibitem{ref5} Fundamental limits from chaos on instability time predictions. \textit{MNRAS}. \url{https://academic.oup.com/mnras/article/491/4/5258/5679904}
+
+\bibitem{ref6} Newton versus the machine: solving the chaotic three-body problem. \textit{MNRAS}. \url{https://academic.oup.com/mnras/article-pdf/494/2/2465/33113691/staa713.pdf}
+
+\bibitem{ref7} Solving the three-body problem with neural networks. mediaTUM. \url{https://mediatum.ub.tum.de/doc/1764550/8etrnidcyv7ngein4k7n42yng.pdf}
+
+\bibitem{ref8} An Expert's Guide to Training Physics-informed Neural Networks. alphaXiv. \url{https://www.alphaxiv.org/overview/2308.08468v1}
+
+\bibitem{ref9} Adaptive Collocation Point Strategies For Physics Informed Neural Networks. arXiv. \url{https://arxiv.org/html/2501.07700v4}
+
+\bibitem{ref10} Causality-enhanced Discrete Physics-informed Neural Networks. IJCAI. \url{https://www.ijcai.org/proceedings/2024/0497.pdf}
+
+\bibitem{ref11} Self-adaptive weighting and sampling for physics-informed neural networks. arXiv. \url{https://arxiv.org/html/2511.05452v1}
+
+\bibitem{ref12} Comparison of the Validity and Generalizability of Machine Learning Algorithms. \textit{JMIR mHealth and uHealth}. \url{https://mhealth.jmir.org/2021/8/e23938}
+
+\bibitem{ref13} Training and Validation Loss in Deep Learning. GeeksforGeeks. \url{https://www.geeksforgeeks.org/deep-learning/training-and-validation-loss-in-deep-learning/}
+
+\bibitem{ref14} Checklist for Debugging Neural Networks. MLconf. \url{https://mlconf.com/blog/checklist-for-debugging-neural-networks/}
+
+\bibitem{ref15} Physics-Informed Neuro-Evolution (PINE): A Survey and Prospects. arXiv. \url{https://arxiv.org/html/2501.06572v1}
+
+\bibitem{ref16} Cubic Hermite Spline Interpolation. \url{https://pages.cs.wisc.edu/~amos/412/lecture-notes/lecture13.pdf}
+
+\bibitem{ref17} Overfitting my model over my training data of a single sample. Stack Overflow. \url{https://stackoverflow.com/questions/42447036}
+
+\bibitem{ref18} Overfitting. Google for Developers. \url{https://developers.google.com/machine-learning/crash-course/overfitting/overfitting}
+
+\bibitem{ref19} Overfitting. Wikipedia. \url{https://en.wikipedia.org/wiki/Overfitting}
+
+\bibitem{ref20} Overfitting a neural network to a single batch as a sanity check. Stats StackExchange. \url{https://stats.stackexchange.com/questions/555135}
+
+\bibitem{ref21} Machine learning of accurate energy-conserving molecular force fields. PMC NIH. \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC5419702/}
+
+\bibitem{ref22} Revising the N-body Problem as a Benchmark for Geometric Deep Learning. \url{https://www.researchgate.net/publication/386552469}
+
+\bibitem{ref23} Stiff-PINN: Physics-Informed Neural Network for Stiff Chemical Kinetics. DSpace@MIT. \url{https://dspace.mit.edu/bitstream/handle/1721.1/138718}
+
+\bibitem{ref24} Stiff neural ordinary differential equations. DSpace@MIT. \url{https://dspace.mit.edu/bitstream/handle/1721.1/138719}
+
+\bibitem{ref25} Stiff-PINN GitHub. \url{https://github.com/DENG-MIT/Stiff-PINN}
+
+\bibitem{ref26} Cubic Hermite spline. Wikipedia. \url{https://en.wikipedia.org/wiki/Cubic_Hermite_spline}
+
+\bibitem{ref27} A Comparative Study of Spline-Based Trajectory Reconstruction Methods. arXiv. \url{https://www.arxiv.org/pdf/2509.00119}
+
+\bibitem{ref28} The three body problem. Form and Formula. \url{https://blbadger.github.io/3-body-problem.html}
+
+\bibitem{ref29} Causality-guided adaptive sampling method for PINNs. \url{https://faculty.ecnu.edu.cn/_upload/article/files/f8/11/825fbc4f4cb6a3576eb041312ebf/ab33abe7-6e1f-4e53-a72e-ed561d1b410d.pdf}
+
+\bibitem{ref30} Improving Neural ODE Training with Temporal Adaptive Batch Normalization. NIPS. \url{https://proceedings.neurips.cc/paper_files/paper/2024/file/adf7fa39d65e2983d724ff7da57f00ac-Paper-Conference.pdf}
+
+\bibitem{ref31} Three-body problem. Wikipedia. \url{https://en.wikipedia.org/wiki/Three-body_problem}
+
+\bibitem{ref32} Stability and Bifurcations of the Figure-8 Solution. \url{https://www.researchgate.net/publication/11315542}
+
+\bibitem{ref33} STIFFNESS-AWARE NEURAL NETWORK FOR LEARNING HAMILTONIAN SYSTEMS. OpenReview. \url{https://openreview.net/pdf/862118c84d67ec76a2491e8bff7f7d288934bc92.pdf}
+
+\end{thebibliography}
+
+\end{document}
