@@ -36,7 +36,10 @@ class Validator:
                 validate_ic_physics,
                 validate_parameters,
                 validate_metrics,
-                validate_against_blacklist
+                validate_against_blacklist,
+                validate_coverage,
+                validate_curriculum,
+                validate_temporal
             )
 
             self.modules = {
@@ -50,7 +53,10 @@ class Validator:
                 'physics': validate_ic_physics,
                 'parameters': validate_parameters,
                 'metrics': validate_metrics,
-                'blacklist': validate_against_blacklist
+                'blacklist': validate_against_blacklist,
+                'coverage': validate_coverage,
+                'curriculum': validate_curriculum,
+                'temporal': validate_temporal
             }
 
         except ImportError as e:
@@ -173,6 +179,16 @@ class Validator:
             issues = self.modules['blacklist'](filepath, variant, file_number)
             for issue in issues:
                 result.add_issue(issue)
+                
+        if 'coverage' in self.config.enabled_modules:
+            issues = self.modules['coverage'](filepath, variant)
+            for issue in issues:
+                result.add_issue(issue)
+                
+        if 'curriculum' in self.config.enabled_modules:
+            issues = self.modules['curriculum'](filepath, variant)
+            for issue in issues:
+                result.add_issue(issue)
 
         return result
 
@@ -220,6 +236,11 @@ class Validator:
                     message=f"Metrics file not found: {metrics_file.name}",
                     file_path=str(filepath)
                 ))
+                
+        if 'temporal' in self.config.enabled_modules:
+            issues = self.modules['temporal'](filepath, variant)
+            for issue in issues:
+                result.add_issue(issue)
 
         return result
 
@@ -236,8 +257,6 @@ class Validator:
         for file_result in result.brutus_results.values():
             status = file_result.overall_status()
             brutus_status_counts[status.value] += 1
-
-
 
         # Count issues by severity
         issue_counts = {status.value: 0 for status in ValidationStatus}

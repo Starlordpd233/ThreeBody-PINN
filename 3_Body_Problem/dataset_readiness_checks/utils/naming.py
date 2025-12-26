@@ -32,9 +32,14 @@ def extract_file_numbers(directory: Path, variant: str, file_type: str = 'both')
         pattern = config.get_ic_pattern(variant)
         prefix = pattern.split('{')[0]  # Get part before placeholder
         suffix = pattern.split('}')[-1] if '}' in pattern else ''
-
-        # Create glob pattern: prefix_*.suffix
-        glob_pattern = f"{prefix}_*{suffix}"
+        
+        # FIX: Ensure we don't accidentally double-underscore if prefix ends in _
+        # If prefix ends with _, we don't need to add another _ in the glob
+        # But actually, simpler is to just append * to the prefix directly.
+        # Original bug: f"{prefix}_*{suffix}" -> "ic_hierarchical__*.txt"
+        # Correct: f"{prefix}*{suffix}" -> "ic_hierarchical_*.txt"
+        
+        glob_pattern = f"{prefix}*{suffix}"
         full_pattern = directory / glob_pattern
 
         for filepath in glob.glob(str(full_pattern)):
@@ -52,7 +57,7 @@ def extract_file_numbers(directory: Path, variant: str, file_type: str = 'both')
         prefix = pattern.split('{')[0]
         suffix = pattern.split('}')[-1] if '}' in pattern else ''
 
-        glob_pattern = f"{prefix}_*{suffix}"
+        glob_pattern = f"{prefix}*{suffix}"
         full_pattern = directory / glob_pattern
 
         for filepath in glob.glob(str(full_pattern)):
@@ -70,14 +75,6 @@ def extract_file_numbers(directory: Path, variant: str, file_type: str = 'both')
 def get_filename_pattern(variant: str, file_type: str) -> str:
     """
     Get the filename pattern for a given variant and file type.
-
-    Handles naming inconsistencies:
-    - Directory: brutus_hierarchical_gold_standard
-    - Filename: brutus_hierarchical_gold_xxxx.txt (missing "_standard")
-    - Directory: brutus_standard_quasi_random
-    - Filename: brutus_standard_xxxx.txt (missing "_quasi_random")
-    - Directory: brutus_standard_quasi_random_gold_standard
-    - Filename: brutus_standard_gold_xxxx.txt (missing "_quasi_random")
 
     Returns:
         Filename pattern string
@@ -152,7 +149,7 @@ def list_matching_files(directory: Path, variant: str, file_type: str) -> List[P
     prefix = pattern.split('{')[0]
     suffix = pattern.split('}')[-1] if '}' in pattern else ''
 
-    glob_pattern = f"{prefix}_*{suffix}"
+    glob_pattern = f"{prefix}*{suffix}"
     full_pattern = directory / glob_pattern
 
     matching_files = []
@@ -168,12 +165,6 @@ def list_matching_files(directory: Path, variant: str, file_type: str) -> List[P
 def map_directory_to_variant(directory_name: str) -> Optional[str]:
     """
     Map a directory name to a standardized variant name.
-
-    Args:
-        directory_name: Directory name (e.g., 'brutus_hierarchical_gold_standard')
-
-    Returns:
-        Standardized variant name or None if not recognized
     """
     # Map directory names to variant names
     directory_mapping = {

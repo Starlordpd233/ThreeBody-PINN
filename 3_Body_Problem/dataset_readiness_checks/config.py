@@ -12,8 +12,8 @@ from typing import Dict, List, Optional, Any
 class ValidationConfig:
     """Central configuration for validation."""
 
-    # Base paths
-    base_dir: Path = Path("<home>/Desktop/cursor/3_Body_Problem")
+    # Base paths - derived relative to this file
+    base_dir: Path = Path(__file__).resolve().parent.parent
 
     # Dataset mappings - these define the 4-to-4 correspondence
     dataset_variants: Dict[str, Dict[str, str]] = None
@@ -61,17 +61,17 @@ class ValidationConfig:
         if self.ic_patterns is None:
             self.ic_patterns = {
                 "hierarchical": "ic_hierarchical_{num:04d}.txt",
-                "hierarchical_gold": "ic_hierarchical_{num:04d}.txt",
-                "standard": "ic_standard_{num:04d}.txt",
-                "standard_gold": "ic_standard_{num:04d}.txt"
+                "hierarchical_gold": "ic_hierarchical_gold_{num:04d}.txt",
+                "standard": "ic_standard_quasi_random_{num:04d}.txt",
+                "standard_gold": "ic_standard_quasi_random_gold_{num:04d}.txt"
             }
 
         if self.brutus_patterns is None:
             self.brutus_patterns = {
                 "hierarchical": "brutus_hierarchical_{num:04d}.txt",
-                "hierarchical_gold": "brutus_hierarchical_gold_{num:04d}.txt",  # Note: gold not gold_standard
-                "standard": "brutus_standard_{num:04d}.txt",  # Note: missing _quasi_random
-                "standard_gold": "brutus_standard_gold_{num:04d}.txt"  # Note: missing _quasi_random
+                "hierarchical_gold": "brutus_hierarchical_gold_{num:04d}.txt",
+                "standard": "brutus_standard_quasi_random_{num:04d}.txt",
+                "standard_gold": "brutus_standard_quasi_random_gold_{num:04d}.txt"
             }
 
         if self.enabled_modules is None:
@@ -83,11 +83,15 @@ class ValidationConfig:
                 "physics",
                 "parameters",
                 "metrics",
-                "blacklist"
+                "blacklist",
+                "coverage",      # New
+                "curriculum",    # New
+                "duplicates",    # New
+                "temporal"       # New
             ]
 
         if self.output_dir is None:
-            self.output_dir = self.base_dir / "validation_system" / "reports"
+            self.output_dir = self.base_dir / "dataset_readiness_checks" / "reports"
 
         if self.report_formats is None:
             self.report_formats = ["json", "markdown", "csv"]

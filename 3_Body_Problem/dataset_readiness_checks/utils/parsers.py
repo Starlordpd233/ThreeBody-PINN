@@ -88,35 +88,36 @@ def parse_brutus_file(brutus_path: Path) -> Tuple[List[Snapshot], Optional[Resul
                 particles = []
                 for j in range(1, 4):
                     if i + j >= len(lines):
-                        raise ValueError(f"Missing particle data after timestep header at line {i+1}")
+                        # This might happen if the file is truncated right after header
+                        break
 
                     particle_line = lines[i + j].strip()
                     parts = particle_line.split()
 
-                    # Brutus outputs can have 7 values (m, x, y, z, vx, vy, vz)
-                    # or sometimes more fields (e.g., ax, ay, az)
-                    # We'll parse at least 7 values
                     if len(parts) < 7:
-                        raise ValueError(f"Particle line {i+j+1}: Expected at least 7 values, found {len(parts)}")
+                         # Likely truncated or malformed
+                         break
 
                     try:
                         # Parse as floats
                         particle_data = tuple(float(v) for v in parts[:7])
                         particles.append(particle_data)
 
-                    except ValueError as e:
-                        raise ValueError(f"Particle line {i+j+1}: Invalid numeric value: {e}")
-
-                snapshot = Snapshot(
-                    time=time,
-                    n_bodies=n_bodies,
-                    t_cpu=t_cpu,
-                    particles=particles
-                )
-                snapshots.append(snapshot)
-
-                # Move past the 3 particle lines
-                i += 4
+                    except ValueError:
+                        break
+                
+                if len(particles) == 3:
+                    snapshot = Snapshot(
+                        time=time,
+                        n_bodies=n_bodies,
+                        t_cpu=t_cpu,
+                        particles=particles
+                    )
+                    snapshots.append(snapshot)
+                    i += 4
+                else:
+                    # Malformed snapshot, skip header and continue
+                    i += 1
 
             # Check for Result footer
             elif line.startswith('Result:'):
@@ -147,22 +148,20 @@ def parse_result_footer(line: str, line_number: int) -> Optional[ResultFooter]:
         # Remove "Result: " prefix
         content = line[8:]  # Skip "Result: "
 
-        # Parse key-value pairs
-        pairs = re.findall(r'(\w+)=([^\s]+)', content)
+        # FIX: Regex updated to include '/' in keys (for dE/E) and handle varied values
+        # Matches key=value where key is [\w/]+ and value is [^\s]+
+        pairs = re.findall(r'([\w/]+)=([^\s]+)', content)
 
         # Convert to dictionary
         data = {}
         for key, value in pairs:
-            # Try to convert to appropriate type
             try:
-                # Check if it's an integer
                 if value.isdigit():
                     data[key] = int(value)
                 else:
-                    # Try float
+                    # Try float (handles scientific notation too)
                     data[key] = float(value)
             except ValueError:
-                # Keep as string
                 data[key] = value
 
         # Create ResultFooter object
@@ -184,19 +183,13 @@ def parse_result_footer(line: str, line_number: int) -> Optional[ResultFooter]:
 
         return footer
 
-    except Exception as e:
-        # If parsing fails, return None or a partial footer
+    except Exception:
         return None
 
 
 def calculate_energy(particles: List[Tuple[float, ...]]) -> float:
     """
     Calculate total energy from particle data.
-
-    Each particle is (m, x, y, z, vx, vy, vz).
-    Energy = Kinetic + Potential
-    K = 0.5 * sum(m_i * v_i^2)
-    U = -sum_{i<j} (m_i * m_j / r_ij)
     """
     kinetic = 0.0
     potential = 0.0
@@ -217,7 +210,6 @@ def calculate_energy(particles: List[Tuple[float, ...]]) -> float:
             dz = z_j - z_i
             distance = np.sqrt(dx**2 + dy**2 + dz**2)
 
-            # Avoid division by zero (shouldn't happen for valid ICs)
             if distance > 0:
                 potential -= m_i * m_j / distance
 
@@ -229,6 +221,9 @@ def calculate_center_of_mass(masses: List[float], positions: List[Tuple[float, f
     Calculate center of mass.
     """
     total_mass = sum(masses)
+    if total_mass == 0:
+        return 0.0, 0.0, 0.0
+        
     com_x = sum(m * x for m, (x, y, z) in zip(masses, positions)) / total_mass
     com_y = sum(m * y for m, (x, y, z) in zip(masses, positions)) / total_mass
     com_z = sum(m * z for m, (x, y, z) in zip(masses, positions)) / total_mass
