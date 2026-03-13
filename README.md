@@ -1,250 +1,168 @@
-# Three-Body Problem Simulation and CTL-PINN Training Stack
+# Three-Body Problem + CTL-PINN Training Stack
 
-A complete software stack for simulating three-body gravitational systems and training Curriculum-Trained Physics-Informed Neural Networks (CTL-PINNs) to predict their trajectories.
+## Project Overview
 
-## Overview
+This repository contains the complete simulation pipeline, metrics analysis, and Neural Network training stack for a three-body physics problem. The ultimate goal is to produce high-precision N-body simulation data (using the Brutus C++ integrator) and use Curriculum-Trained Physics-Informed Neural Networks (CTL-PINN) to learn and predict system dynamics.
 
-This repository implements a full pipeline from initial condition generation through high-precision N-body integration to neural network training:
+### Current Status Snapshot
 
-- **Brutus**: A C++ N-body integrator with arbitrary-precision arithmetic (GMP/MPFR)
-- **Python Pipeline**: IC generation, dynamic prescreening, batch simulation, and metrics extraction
-- **CTL-PINN**: A SQR-SkipResNet-SIREN architecture trained with curriculum learning
+The repository currently holds massive datasets generated from two main sampling variants, which then go through integration and validation pipelines.
 
-The system produces and processes ~15,000 high-fidelity three-body trajectories suitable for training machine learning models.
+**Current Dataset Scale:**
+- **Hierarchical Variant**: ~4,857 Initial Conditions (ICs) and their corresponding Brutus integration outputs, including a "Gold Standard" high-precision subset of equal size (derived separately with stricter parameters).
+- **Standard Quasi-Random Variant**: ~2,749 ICs and corresponding Brutus outputs, plus a "Gold Standard" subset of ~2,565 pairs.
 
-## Repository Layout
+**Key Outputs**:
+- Generating Sobol-based and Hierarchical Initial Conditions.
+- Prescreening unstable ICs via short leapfrog integration.
+- Full high-precision integrations using arbitrary-precision math.
+- Deep metric profiling (energy conservation, momentum drift, phase space).
 
-```
-<home>/Desktop/cursor/
-├── 3_Body_Problem/              # Simulation pipeline, datasets, and utilities
-│   ├── final_stage_ic_datasets/ # Prescreened initial conditions
-│   ├── brutus_output/           # High-precision trajectory outputs
-│   ├── prescreen_stage2/        # Dynamic stability filtering
-│   ├── brutus_metrics/          # Energy/momentum conservation analysis
-│   └── data_documentation/      # Dataset specifications
-├── brutus_Newton-main/          # C++ N-body integrator (Bulirsch-Stoer)
-├── pinn/                        # PINN architecture and data processing
-├── pinn_instruction/            # Architecture plans and CTL methodology docs
-├── paper_templates/             # LaTeX templates (MDPI)
-├── reference-code/              # Lyapunov analysis and NN baselines
-└── brutus_simulation_documentation/  # Additional documentation
-```
+---
 
-## Pipeline Summary
+## Architecture & Repository Map
 
-The data processing pipeline consists of five stages:
+### Core Systems
 
-```
-Stage 1: IC Generation → Stage 2: Prescreening → Stage 3: Brutus Integration → Stage 4: Metrics → Stage 5: PINN Preprocessing
-```
+- **`3_Body_Problem/`**: The main data pipeline. Contains IC generation (`FINAL_ic_generator_enhanced.py`, `generate_enhanced_ics.py`), Stage 2 prescreening (`prescreen_stage2/`), batch running scripts (`run_brutus_both_type_simple.py`), and metrics generation (`brutus_metrics/`). Houses the massive generated datasets in `final_stage_ic_datasets` and `brutus_output`.
+- **`pinn/`**: Code for Physics-Informed Neural Networks. Includes architecture definition (`basic_architecture.py`) and data pre-processing (`data-processing-pipeline-full.py`) that bridges raw Brutus outputs to ML tensors.
+- **`brutus_Newton-main/`**: The C++ arbitrary-precision N-body integrator "Brutus" source code. This is the integration engine.
 
-### Stage 1: Initial Condition Generation
+### Ancillary Systems
 
-- **Scripts**: `FINAL_ic_generator_enhanced.py`, `generate_enhanced_ics.py`
-- **Hierarchical**: Stable configurations (inner binary + outer third body)
-- **Standard**: Sobol quasi-random sampling across configuration space
+- **`pinn_instruction/`**: Markdown conversions and reference documents describing sampling methodology, CTL routines, and PINN architecture plans.
+- **`paper_templates/`**: Latex and typst templates for documentation or papers.
+- **`reference-code/`**: Reference Python implementations of N-body integrators, lyapunov analysis, and other baselines.
 
-### Stage 2: Dynamic Prescreening
+---
 
-- **Script**: `prescreen_stage2/stage2_prescreening_revised_auto.py`
-- Rejects unstable ICs using short leapfrog integration
-- Filters by: energy error < 1%, minimum separation > 0.01, virial ratio [0.001, 2.0]
+## Prerequisites & Environment Setup
 
-### Stage 3: Brutus Integration
+### 1. C++ Dependencies (For Brutus)
+Brutus is a high-precision arbitrary math integrator. To build and run it, ensure you have:
+- `g++` or another C++11 compliant compiler.
+- `make` utility.
+- [GMP (GNU Multiple Precision Arithmetic Library)](https://gmplib.org/)
+- [MPFR (GNU Multiple Precision Floating-Point Reliable Library)](https://www.mpfr.org/)
 
-- **Scripts**: `run_brutus_both_type_simple.py`, `run_brutus_hierarchical_only_mac_gold_standard.py`
-- Produces high-precision trajectory snapshots (30-40 significant digits)
-
-### Stage 4: Metrics Extraction
-
-- **Script**: `brutus_metrics/calculate_metrics.py`
-- Computes energy conservation, momentum drift, angular momentum
-
-### Stage 5: PINN Preprocessing
-
-- **Script**: `pinn/data-processing-pipeline-full.py`
-- Computes physical invariants, normalizes data, assigns curriculum stages
-
-## Brutus Simulator (C++)
-
-Brutus implements a Bulirsch-Stoer integrator with arbitrary-precision arithmetic.
-
-### Dependencies
-
-- GMP: https://gmplib.org/
-- MPFR: http://www.mpfr.org/
-- MPFR C++: http://www.holoborodko.com/pavel/mpfr/
-- MPREAL: https://github.com/advanpix/mpreal/
-
-### Build
-
+To compile Brutus, run:
 ```bash
-cd brutus_Newton-main
+cd "$REPO_ROOT/brutus_Newton-main"
 make clean
 make
 ```
 
-### Run
-
+### 2. Python Dependencies
+The data generation and PINN processing scripts are built with Python 3. Standard data-science and ML libraries are required. At a minimum, ensure you have installed:
 ```bash
-./brutus tolerance word_length t_begin t_end dt_out N ic_file > output.txt
+pip install numpy pandas scipy h5py torch
 ```
 
-Example: `./brutus 1e-15 130 0 10 0.08 3 ic.txt > trajectory.txt`
+*Note:* Use `python3` explicitly when executing pipeline scripts.
 
-## PINN System
+---
 
-### Architecture: SQR-SkipResNet-SIREN
+## Quickstart Runbook
 
-A physics-informed network designed for chaotic N-body dynamics:
+The typical data pipeline flows from Stage 1 (Generation) to Stage 5 (PINN Pre-processing).
 
-| Hyperparameter | Value |
-|----------------|-------|
-| Input dimension | 14 (t + 13-component IC vector) |
-| Output dimension | 9 (3D positions for 3 bodies) |
-| Hidden layers | 12 |
-| Hidden dimension | 256 |
-| Activation | SIREN (sinusoidal) |
-| Skip connections | Power-enhanced (p=2), LayerNorm on odd layers |
-| first_omega_0 | 30.0 |
-| hidden_omega_0 | 1.0 |
+*(Note: Ensure `$REPO_ROOT` is exported and you run these from the root directory).*
 
-### IC Vector (13 components)
-
-The network conditions on a normalized 13-dimensional initial condition vector:
-- Masses (m1, m2, m3) - normalized mass fractions
-- Total energy (E) - normalized
-- Angular momentum (L_norm) - normalized
-- Virial ratio (Q) - normalized
-- Minimum separation (s_min) - normalized
-- Shape invariants (I1, I2, I3)
-- Velocity angles (theta1, theta2)
-- Moment of inertia (I_norm) - normalized
-
-### Curriculum Training (CTL)
-
-Trains progressively through difficulty stages:
-
-- **Stage 0-1**: Stable hierarchical systems (high binding energy, high angular momentum)
-- **Stage 2**: High-resolution stable orbits
-- **Stage 3-4**: Chaotic quasi-random systems (progressively harder)
-- **Stage 5**: High-resolution chaotic trajectories
-- **Stage 6**: Near-collision and extreme cases
-
-Each stage includes replay of all previous stages.
-
-## Datasets and Formats
-
-### Initial Condition Format
-
-```
-m1 x1 y1 z1 vx1 vy1 vz1
-m2 x2 y2 z2 vx2 vy2 vz2
-m3 x3 y3 z3 vx3 vy3 vz3
-```
-
-### Brutus Output Format
-
-```
-t N t_cpu
-m1 x1 y1 z1 vx1 vy1 vz1
-m2 x2 y2 z2 vx2 vy2 vz2
-m3 x3 y3 z3 vx3 vy3 vz3
-
-[t_next N t_cpu_next]
-...
-
-[optional] Result: filename=... N=... t_begin=... t_end=... dt=... tol=... Lw=... t_cpu=... E_initial=... E_final=... dE/E=...
-```
-
-### Dataset Variants
-
-| Folder | Type | Files |
-|--------|------|-------|
-| `ic_hierarchical/` | IC | 4,857 |
-| `ic_hierarchical_for_gold_standard/` | IC | 4,857 |
-| `ic_standard_quasi_random/` | IC | 2,749 |
-| `ic_standard_quasi_random_for_gold_standard/` | IC | 2,565 |
-| `brutus_hierarchical/` | Trajectory | 4,857 |
-| `brutus_hierarchical_gold_standard/` | Trajectory | 4,857 |
-| `brutus_standard_quasi_random/` | Trajectory | 2,749 |
-| `brutus_standard_quasi_random_gold_standard/` | Trajectory | 2,565 |
-
-**Note**: The folder determines the dataset variant (gold vs. standard). File names do not encode "gold".
-
-### Brutus Parameters by Variant
-
-| Variant | Tolerance | Word Length | dt_out |
-|---------|-----------|-------------|--------|
-| Hierarchical | 1e-15 | 130 | 0.08 |
-| Standard quasi-random | 1e-13 | 118 | 0.17 |
-| Hierarchical gold | 1e-13 | 130 | 0.01 |
-| Standard gold | 1e-13 / 1e-14 | 130 | 0.01 |
-
-## Physical Conventions
-
-- **Units**: Natural units with G = 1, total mass ≈ 3
-- **Time range**: 0 to 10 code units
-- **Dimensionality**: Full 3D (not planar)
-- **Standard ICs**: Masses = 1.0 each, COM = 0, momentum = 0
-- **Hierarchical ICs**: Varying masses, COM/momentum perturbed (σ=0.01)
-
-## Running the Pipeline
-
+**1. Generate Initial Conditions (Stage 1)**  
+Generates `.txt` IC files into `3_Body_Problem/final_stage_ic_datasets/`.
 ```bash
-# Generate initial conditions
-python 3_Body_Problem/generate_enhanced_ics.py
-
-# Stage 2 prescreening
-python 3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py
-
-# Batch simulations (both types)
-python 3_Body_Problem/run_brutus_both_type_simple.py
-
-# Gold-standard hierarchical runs
-python 3_Body_Problem/run_brutus_hierarchical_only_mac_gold_standard.py
-
-# Extract metrics
-python 3_Body_Problem/brutus_metrics/calculate_metrics.py
-
-# Preprocess for PINN training
-python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --output_dir /path/to/stage_data
-
-# Verify architecture
-python pinn/basic_architecture.py
+cd "$REPO_ROOT"
+python3 3_Body_Problem/generate_enhanced_ics.py
 ```
 
-## Key Files
+**2. Prescreen Unstable ICs (Stage 2)**  
+Uses a fast leapfrog integration to filter out colliding/escaping systems early.
+```bash
+python3 3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py
+```
 
-| Purpose | Location |
-|---------|----------|
-| IC Generator | `3_Body_Problem/FINAL_ic_generator_enhanced.py` |
-| Prescreening | `3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py` |
-| Brutus Runner | `3_Body_Problem/run_brutus_both_type_simple.py` |
-| Gold Runner | `3_Body_Problem/run_brutus_hierarchical_only_mac_gold_standard.py` |
-| Metrics | `3_Body_Problem/brutus_metrics/calculate_metrics.py` |
-| Architecture | `pinn/basic_architecture.py` |
-| Data Pipeline | `pinn/data-processing-pipeline-full.py` |
-| Dataset Docs | `3_Body_Problem/data_documentation/DATASET_DOCUMENTATION.md` |
+**3. Run High-Precision Integration (Stage 3)**  
+Feeds valid ICs into compiled Brutus. *(Warning: Make sure you compile Brutus first!)*
+```bash
+python3 3_Body_Problem/run_brutus_both_type_simple.py
+```
 
-## Known Caveats
+*(For Gold Standard Hierarchical data only)*:
+```bash
+python3 3_Body_Problem/run_brutus_hierarchical_only_mac_gold_standard.py
+```
 
-1. **Result footers are optional**: ~32% of files lack the `Result:` footer. Use final timestep ≥ 9.5 for completeness checks.
+**4. Calculate Run Metrics (Stage 4)**  
+Evaluates output quality, calculating energy/momentum drift and collision flags.
+```bash
+python3 3_Body_Problem/brutus_metrics/calculate_metrics.py
+```
 
-2. **ID gaps exist**: Caused by prescreen rejection, generation continuation, and failed simulations.
+**5. PINN Pre-processing (Stage 5)**  
+Consolidates and normalizes outputs for NN training.
+```bash
+python3 pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --output_dir /path/to/stage_data
+```
 
-3. **Parameter heterogeneity**: Multiple tolerance/word-length combinations exist within folders.
+---
 
-4. **OS path variance**: Result footers may contain macOS or Windows paths—do not use for mapping.
+## Dataset Layout and Naming Conventions
 
-5. **Hierarchical COM offset**: Post-perturbation COM/momentum are not exactly zero; recenter if needed.
+All datasets exist locally inside the pipeline directory, split between `final_stage_ic_datasets` (inputs) and `brutus_output` (outputs). The **folder name** rigidly defines the variant—files inside do *not* contain special text strings delineating "gold standard".
 
-## References
+### Valid Output Folders (Inside `brutus_output/`)
+- `brutus_hierarchical/`
+- `brutus_hierarchical_gold_standard/`
+- `brutus_standard_quasi_random/`
+- `brutus_standard_quasi_random_gold_standard/`
 
-- **Brutus**: PhD thesis by Tjarda Boekholt (Leiden Observatory)
-- **SIREN**: [Sinusoidal Representation Networks](https://arxiv.org/abs/2008.02265)
-- **CTL-PINN**: Curriculum training methodology documented in `pinn_instruction/`
+**ID Mapping Rules:**  
+- The filename has a numeric ID (e.g., `85.txt`).
+- The numeric ID maps perfectly between `ic_<variant>/X.txt` and `brutus_<variant>/X.txt`.  
+- Gaps in ID sequencing are entirely normal and expected. They result from IC generation restarts, prescreen rejections, and occasional Brutus timeout failures (limit: 3000 sec).
 
-## License
+---
 
-See individual components for their respective licenses.
+## Data Quality and Readiness Checks
+
+Due to integration complexity, a successful return code does not guarantee a scientifically valid result. Apply the following checks rigorously:
+
+1. **Completeness Rule:** Ensure the final recorded timestep is `>= 9.5` before depending on a `brutus_output` file. Do not rely heavily on the file's footer note starting with `Result:`, as many valid outputs omit it.
+2. **Metrics Audit:** Output folders are automatically processed by the `brutus_metrics` script, which calculates metrics on structural integrity and accuracy. Any severe deviation should disqualify a run.
+3. **Provenance Validation:** Check JSON logs within `prescreen_stage2/` for index mapping and logic trails, as well as `problematic_ics_blacklist.json` for specific failed IDs.
+
+---
+
+## Script Status Matrix
+
+| Entrypoint / Module                                   | Category       | Status          | Note                                                                                           |
+|-------------------------------------------------------|----------------|-----------------|------------------------------------------------------------------------------------------------|
+| `brutus` (C++ Makefile)                               | Integration    | Working         | Requires GMP/MPFR.                                                                             |
+| `generate_enhanced_ics.py`                            | Stage 1        | Config-driven   | Requires manual adjustment of target quantities limits before running.                         |
+| `stage2_prescreening_revised_auto.py`                 | Stage 2        | Working         | Scans IC datasets directly.                                                                    |
+| `run_brutus_both_type_simple.py`                      | Stage 3        | Working         | Typical timeout ~3000s per simulation instance.                                                |
+| `calculate_metrics.py`                                | Stage 4        | Working         | Generates `.json` metric counterparts across outputs.                                          |
+| **`dataset_readiness_checks` (Various scripts)**      | Validation     | **Known-Broken**| Currently fails fast due to `ValidationConfig` NameError and pattern logic issues.             |
+| **`pinn/data-processing-pipeline-full.py`**           | Stage 5 / PINN | **Known-Broken**| Imports currently fail as structured; absolute path or `PYTHONPATH` fixes actively required.     |
+
+---
+
+## Known Limitations and Workarounds
+
+Because this repository aggregates many rapidly evolving research scripts, expect some tooling inconsistencies.
+
+- **`dataset_readiness_checks` Failure:** Scripts actively checking validation or readiness metrics may crash with `NameError: name 'ValidationConfig' is not defined`. This file is known-broken in its current state. Rely instead on Stage 4 `brutus_metrics`.
+- **Naming Mismatches:** Inside legacy readiness check scripts, standard variant names are hardcoded with varying string literals that mismatch the actual folder schemas on disk (e.g. `brutus_standard_quasi_random`).
+- **PINN Script Imports:** The `pinn/data-processing-pipeline-full.py` module throws import errors due to internal module cross-referencing. **Workaround:** Modify the script's `sys.path` to root or run as `python3 -m pinn.data-processing-pipeline-full`.
+- **Missing "Gold Standard" Standard-Random Runner:** There is no exact runnable script to natively reproduce `ic_standard_quasi_random_for_gold_standard`. These were generated partly from previous pipeline versions. Furthermore, naming documentation in older guides regarding what constitutes "gold" conflicts with the on-disk directory split.
+- **Hierarchical Center of Mass (COM):** Hierarchical setups enforce a ~0 total momentum but perturb it by `sigma=0.01` noise immediately after. Consequently, COM runs slightly adrift. Re-center manually prior to running translationally-invariant networks.
+
+---
+
+## Further Reading
+
+- [Dataset Specifications & Anomalies](3_Body_Problem/data_documentation/DATASET_DOCUMENTATION.md)
+- [Sampling Methodology Instruction](pinn_instruction/markdown_conversions/sampling_method_instruction.md)
+- [CTL Curriculum Instruction](pinn_instruction/markdown_conversions/CTL-instruction-final.md)
+- [PINN Architecture Plan](pinn_instruction/markdown_conversions/PINN_architecture_plan.md)
+- See `brutus_Newton-main/README.md` for Brutus usage arguments.
