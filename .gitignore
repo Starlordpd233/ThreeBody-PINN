@@ -132,40 +132,6 @@ brutus_Newton-main/brutus
 makefile.original
 
 # -----------------------------------------------------------------------------
-# Three-Body Problem Data Directories
-# -----------------------------------------------------------------------------
-# These directories contain large simulation data files that should not be versioned
-
-# Initial condition datasets (raw and processed)
-3_Body_Problem/ic_raw_datasets/
-3_Body_Problem/final_stage_ic_datasets/
-
-# Simulation outputs
-3_Body_Problem/brutus_output/
-
-# Metrics and analysis results
-3_Body_Problem/brutus_metrics/
-
-# Failed/problematic initial conditions
-3_Body_Problem/problematic_ics/
-3_Body_Problem/problematic_ics_blacklist.json
-
-# Runtime state files (obsolete progress tracking)
-3_Body_Problem/*_progress.json
-
-# Prescreening analysis outputs
-3_Body_Problem/prescreen_stage2/analysis_output/
-3_Body_Problem/prescreen_stage2/prescreen_run_results/
-3_Body_Problem/prescreen_stage2/processing_index_*.json
-
-# Generated figures and plots
-3_Body_Problem/analyze_data_generation/figures/
-
-# Temporary and debug outputs
-3_Body_Problem/debug_scripts/*.txt
-3_Body_Problem/debug_scripts/*.png
-
-# NOTE: Keep Python scripts, configs, and documentation in these directories
 
 # -----------------------------------------------------------------------------
 # PINN Training Data and Model Checkpoints
@@ -235,7 +201,6 @@ paper_templates/pinn_instruction/*.pdf
 *.webm
 
 # Large interactive visualizations (but keep template HTML)
-3_Body_Problem/**/figures/**/*.html
 paper_templates/**/figures/**/*.html
 
 # Keep source HTML templates and documentation
@@ -305,7 +270,6 @@ docs/_templates/
 # -----------------------------------------------------------------------------
 # Large simulation-specific text files (IC files and trajectories)
 # IMPORTANT: This is very specific to avoid ignoring README.txt or documentation
-3_Body_Problem/**/*.txt
 brutus_Newton-main/output/*.txt
 
 # Keep important documentation and config files
@@ -337,6 +301,24 @@ brutus_Newton-main/output/*.txt
 
 # Jupyter temporary files
 .virtual_documents/
+
+# -----------------------------------------------------------------------------
+# Simulation Data Directories (new layout)
+# -----------------------------------------------------------------------------
+simulation_data/Data/ic_raw/
+simulation_data/Data/ic_final/
+simulation_data/Data/brutus_output/
+simulation_data/Data/metrics/
+simulation_data/Data/testing_data/
+simulation_data/Documentation/problematic_ics/
+simulation_data/Documentation/problematic_ics_blacklist.json
+simulation_data/Validation/prescreening/prescreening_data/
+simulation_data/Validation/analysis/figures/
+simulation_data/Scripts/debug/*.txt
+simulation_data/Scripts/debug/*.png
+simulation_data/**/figures/**/*.html
+simulation_data/**/*.txt
+!simulation_data/**/README.txt
 
 # -----------------------------------------------------------------------------
 # END OF .gitignore

@@ -38,8 +38,8 @@ DEFAULT_MAX_FILES_FOR_TESTING = 3
 # ============================================================================
 # Set these paths to your actual data directories for easy execution
 # Change these to match your local file structure
-DEFAULT_IC_DIR = Path("../../../3_Body_Problem/final_stage_ic_datasets/ic_hierarchical")
-DEFAULT_BRUTUS_DIR = Path("../../../3_Body_Problem/brutus_output/brutus_hierarchical")
+DEFAULT_IC_DIR = Path("../../../simulation_data/Data/ic_final/ic_hierarchical")
+DEFAULT_BRUTUS_DIR = Path("../../../simulation_data/Data/brutus_output/brutus_hierarchical")
 DEFAULT_OUTPUT_DIR = Path("preprocessed-data/parsed-data")
 
 # Note: These paths are relative to the parsing.py script location
@@ -58,7 +58,7 @@ def detect_simulation_metadata(ic_path: Path, brutus_path: Path) -> SimulationMe
     # Extract dataset type ('hierarchical' or 'quasi-random')
     if 'hierarchical' in ic_name:
         dataset_type = 'hierarchical'
-    elif 'quasirandom' in ic_name or 'quasi-random' in ic_name:
+    elif 'standard' in ic_name:
         dataset_type = 'quasi-random'
     else:
         raise ValueError(f"Cannot determine dataset type from IC file name: {ic_name}")
