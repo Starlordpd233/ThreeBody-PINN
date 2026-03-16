@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 
 from .datastructures import ValidationReport, DatasetValidationResult, FileValidationResult, create_issue, ValidationStatus
-from .config import config
+from .config import config, ValidationConfig
 from .utils.logging import setup_logging, get_logger
 
 
@@ -223,7 +223,7 @@ class Validator:
                 result.add_issue(issue)
 
         if 'metrics' in self.config.enabled_modules:
-            metrics_file = self.config.get_metrics_dir(variant) / f"{variant}_{file_number:04d}.json"
+            metrics_file = self.config.get_metrics_dir(variant) / f"metrics_{variant}_{file_number:04d}.json"
             if metrics_file.exists():
                 issues = self.modules['metrics'](filepath, metrics_file, variant)
                 for issue in issues:
@@ -330,7 +330,8 @@ class Validator:
 # Convenience function for quick validation
 def run_validation(variants: Optional[List[str]] = None,
                   output_dir: Optional[Path] = None,
-                  threshold: Optional[float] = None) -> ValidationReport:
+                  threshold: Optional[float] = None,
+                  modules: Optional[List[str]] = None) -> ValidationReport:
     """
     Convenience function to run validation with minimal configuration.
 
@@ -338,12 +339,16 @@ def run_validation(variants: Optional[List[str]] = None,
         variants: List of dataset variants to validate (default: all)
         output_dir: Directory for output reports (default: config default)
         threshold: Completeness threshold (default: config default)
+        modules: Specific validation modules to run (default: all)
 
     Returns:
         ValidationReport with results
     """
     # Set up configuration
     validation_config = ValidationConfig()
+
+    if modules:
+        validation_config.enabled_modules = modules
 
     if threshold is not None:
         validation_config.completeness_threshold = threshold

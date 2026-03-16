@@ -18,23 +18,29 @@ def validate_metrics(brutus_path: Path, metrics_path: Path, variant: str) -> Lis
         with open(metrics_path, 'r') as f:
             data = json.load(f)
             
-        # Check required keys
-        required_keys = ['final_energy_error', 'energy_drift', 'momentum_drift']
-        for key in required_keys:
-            if key not in data:
+        # Check required nested keys
+        conservation = data.get('conservation', {})
+        energy = conservation.get('energy', {})
+        momentum = conservation.get('linear_momentum', {})
+
+        if not energy:
+            issues.append(create_issue(
+                "missing_metric_key", ValidationStatus.WARNING, "metrics",
+                "Missing conservation.energy section", str(metrics_path)
+            ))
+        if not momentum:
+            issues.append(create_issue(
+                "missing_metric_key", ValidationStatus.WARNING, "metrics",
+                "Missing conservation.linear_momentum section", str(metrics_path)
+            ))
+
+        # Basic sanity check on energy conservation
+        if 'relative_error' in energy:
+            rel_err = abs(energy['relative_error'])
+            if rel_err > 1.0:
                 issues.append(create_issue(
-                    "missing_metric_key", ValidationStatus.WARNING, "metrics",
-                    f"Missing metric key: {key}", str(metrics_path)
-                ))
-                
-        # Basic sanity check on values
-        # Energy error shouldn't be massive (unless it's a failed run, which is interesting to know)
-        if 'energy_drift' in data:
-            drift = abs(data['energy_drift'])
-            if drift > 1.0: # 100% error
-                 issues.append(create_issue(
                     "extreme_energy_drift", ValidationStatus.WARNING, "metrics",
-                    f"Extreme energy drift: {drift:.4f}", str(metrics_path)
+                    f"Extreme energy relative error: {rel_err:.4e}", str(metrics_path)
                 ))
                 
     except json.JSONDecodeError:

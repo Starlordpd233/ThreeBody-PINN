@@ -44,7 +44,7 @@ def main():
     print(f"Output directory: {output_dir}")
     
     # Run validation
-    report = run_validation(variants=args.variants, output_dir=output_dir, threshold=args.threshold)
+    report = run_validation(variants=args.variants, output_dir=output_dir, threshold=args.threshold, modules=config.enabled_modules if args.modules else None)
     
     # Generate reports
     print("Generating reports...")

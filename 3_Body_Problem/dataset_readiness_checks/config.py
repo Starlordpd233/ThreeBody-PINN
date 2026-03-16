@@ -62,16 +62,16 @@ class ValidationConfig:
             self.ic_patterns = {
                 "hierarchical": "ic_hierarchical_{num:04d}.txt",
                 "hierarchical_gold": "ic_hierarchical_gold_{num:04d}.txt",
-                "standard": "ic_standard_quasi_random_{num:04d}.txt",
-                "standard_gold": "ic_standard_quasi_random_gold_{num:04d}.txt"
+                "standard": "ic_standard_{num:04d}.txt",
+                "standard_gold": "ic_standard_gold_{num:04d}.txt"
             }
 
         if self.brutus_patterns is None:
             self.brutus_patterns = {
                 "hierarchical": "brutus_hierarchical_{num:04d}.txt",
                 "hierarchical_gold": "brutus_hierarchical_gold_{num:04d}.txt",
-                "standard": "brutus_standard_quasi_random_{num:04d}.txt",
-                "standard_gold": "brutus_standard_quasi_random_gold_{num:04d}.txt"
+                "standard": "brutus_standard_{num:04d}.txt",
+                "standard_gold": "brutus_standard_gold_{num:04d}.txt"
             }
 
         if self.enabled_modules is None:

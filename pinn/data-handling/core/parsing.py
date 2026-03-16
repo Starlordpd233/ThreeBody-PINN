@@ -56,7 +56,7 @@ def detect_simulation_metadata(ic_path: Path, brutus_path: Path) -> SimulationMe
     # Extract dataset type ('hierarchical' or 'quasi-random')
     if 'hierarchical' in ic_name:
         dataset_type = 'hierarchical'
-    elif 'quasirandom' in ic_name or 'quasi-random' in ic_name:
+    elif 'standard' in ic_name:
         dataset_type = 'quasi-random'
     else:
         raise ValueError(f"Cannot determine dataset type from IC file name: {ic_name}")

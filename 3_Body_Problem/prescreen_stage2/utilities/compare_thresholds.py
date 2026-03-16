@@ -4,10 +4,15 @@ Compare original vs revised prescreening thresholds
 """
 
 import json
+import sys
+import os
 import numpy as np
 
 # Load the failed results
-json_file = "<home>/Desktop/cursor/3_Body_Problem/run_results_2025-06-16T21-27-29.065044.json"
+json_file = sys.argv[1] if len(sys.argv) > 1 else None
+if not json_file or not os.path.exists(json_file):
+    print("Usage: python compare_thresholds.py <path_to_run_results.json>")
+    sys.exit(1)
 with open(json_file, 'r') as f:
     data = json.load(f)
 

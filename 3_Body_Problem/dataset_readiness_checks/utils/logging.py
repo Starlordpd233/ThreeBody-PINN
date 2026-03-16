@@ -26,9 +26,7 @@ class ValidationLogger:
 
         self.log_dir = log_dir
         if self.log_dir is None:
-            # Default to validation_system/logs/
-            base_dir = Path(__file__).parent.parent.parent
-            self.log_dir = base_dir / "validation_system" / "logs"
+            self.log_dir = Path(__file__).resolve().parent.parent / "logs"
 
         self.log_dir.mkdir(parents=True, exist_ok=True)
 

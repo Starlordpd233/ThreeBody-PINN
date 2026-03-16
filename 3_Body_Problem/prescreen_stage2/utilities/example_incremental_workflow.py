@@ -81,8 +81,8 @@ def main():
     print("=" * 60)
     
     # Paths
-    utils_script = "<home>/Desktop/cursor/3_Body_Problem/prescreening_utils.py"
-    prescreening_script = "<home>/Desktop/cursor/3_Body_Problem/stage2_prescreening_incremental.py"
+    utils_script = "<home>/Desktop/cursor/3_Body_Problem/prescreen_stage2/prescreening_utils.py"
+    prescreening_script = "<home>/Desktop/cursor/3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py"
     
     print("\nThis example demonstrates a typical workflow where new IC batches")
     print("are continuously added and processed efficiently.\n")
