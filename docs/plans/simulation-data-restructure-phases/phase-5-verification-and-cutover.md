@@ -6,14 +6,19 @@ Verify functional correctness across all variants, ensure no stale path refs rem
 ## 5.1 Search for stale `3_Body_Problem` references
 ```bash
 cd <home>/Desktop/cursor
-rg "3_Body_Problem" --type py --type tex --type md -l \
+rg "3_Body_Problem" --type py --type tex --type md --type txt -l \
   --glob '!brutus_simulation_documentation/*' \
+  --glob '!docs/plans/*' \
   --glob '!.git/*'
 ```
 
 Expected: no actionable references in active code/docs.
 
+**Note:** `docs/plans/` is excluded because the phase plan documents intentionally contain `3_Body_Problem` references as part of their old→new change tables. `brutus_simulation_documentation/` is excluded because it contains historical terminal logs.
+
 ## 5.2 Validate dataset checks for all 4 variants
+
+**Prerequisite:** Phase 1 Steps 8-10 must be applied first — they fix the `--modules` propagation bug, metrics filename pattern, and metrics JSON key schema. Without those fixes, `--modules correspondence` would silently run all modules, and metrics validation would fail on filename/key mismatches.
 
 ```bash
 cd <home>/Desktop/cursor

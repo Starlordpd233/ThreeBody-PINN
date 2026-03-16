@@ -53,6 +53,7 @@ Hardcodes `run_results_2025-06-16T21-27-29.065044.json` which does not exist on 
 Replace with CLI argument:
 ```python
 import sys
+import os
 json_file = sys.argv[1] if len(sys.argv) > 1 else None
 if not json_file or not os.path.exists(json_file):
     print("Usage: python compare_thresholds.py <path_to_run_results.json>")
@@ -67,6 +68,81 @@ Scripts are referenced at the repo root, but they live inside `prescreen_stage2/
 |------|-------------|---------------------------|
 | ~84 | `".../3_Body_Problem/prescreening_utils.py"` | `".../3_Body_Problem/prescreen_stage2/prescreening_utils.py"` |
 | ~85 | `".../3_Body_Problem/stage2_prescreening_incremental.py"` | `".../3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py"` |
+
+### 8. `3_Body_Problem/dataset_readiness_checks/validator.py` — `run_validation()` ignores `--modules`
+
+`run_validation()` creates a fresh `ValidationConfig()` at line 346, discarding any `enabled_modules` set via CLI. Add a `modules` parameter and propagate it.
+
+**Changes to `run_validation()` signature (line ~331):**
+
+| Change | Details |
+|--------|---------|
+| Add parameter | `modules: Optional[List[str]] = None` |
+| After `validation_config = ValidationConfig()` | Add: `if modules: validation_config.enabled_modules = modules` |
+
+**Changes to `__main__.py` (line 47):**
+
+| Line | Old | New |
+|------|-----|-----|
+| 47 | `run_validation(variants=args.variants, output_dir=output_dir, threshold=args.threshold)` | `run_validation(variants=args.variants, output_dir=output_dir, threshold=args.threshold, modules=config.enabled_modules if args.modules else None)` |
+
+### 9. `3_Body_Problem/dataset_readiness_checks/validator.py` — metrics filename pattern (line 226)
+
+| Line | Old | New |
+|------|-----|-----|
+| 226 | `metrics_file = self.config.get_metrics_dir(variant) / f"{variant}_{file_number:04d}.json"` | `metrics_file = self.config.get_metrics_dir(variant) / f"metrics_{variant}_{file_number:04d}.json"` |
+
+### 10. `3_Body_Problem/dataset_readiness_checks/modules/metrics.py` — key schema mismatch (lines 22-38)
+
+The actual metrics JSON has this structure (verified from `metrics_standard_0000.json`):
+```json
+{
+  "conservation": {
+    "energy": {
+      "initial": ..., "final": ...,
+      "absolute_error": ..., "relative_error": ...,
+      "conservation_quality": "excellent"
+    },
+    "linear_momentum": {
+      "initial_magnitude": ..., "final_magnitude": ...,
+      "absolute_error": ..., "relative_error": ...,
+      "conservation_quality": "excellent"
+    },
+    "angular_momentum": { "...same pattern..." }
+  },
+  "timing": { "simulation_time": ..., "cpu_time_seconds": ..., "..." },
+  "detection": { "possible_escape": ..., "possible_collision": ..., "..." },
+  "..."
+}
+```
+
+Replace the flat key checks (lines 22-38) with:
+```python
+# Check required nested keys
+conservation = data.get('conservation', {})
+energy = conservation.get('energy', {})
+momentum = conservation.get('linear_momentum', {})
+
+if not energy:
+    issues.append(create_issue(
+        "missing_metric_key", ValidationStatus.WARNING, "metrics",
+        "Missing conservation.energy section", str(metrics_path)
+    ))
+if not momentum:
+    issues.append(create_issue(
+        "missing_metric_key", ValidationStatus.WARNING, "metrics",
+        "Missing conservation.linear_momentum section", str(metrics_path)
+    ))
+
+# Basic sanity check on energy conservation
+if 'relative_error' in energy:
+    rel_err = abs(energy['relative_error'])
+    if rel_err > 1.0:
+        issues.append(create_issue(
+            "extreme_energy_drift", ValidationStatus.WARNING, "metrics",
+            f"Extreme energy relative error: {rel_err:.4e}", str(metrics_path)
+        ))
+```
 
 ## Commit
 ```bash

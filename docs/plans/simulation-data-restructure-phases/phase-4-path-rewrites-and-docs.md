@@ -334,9 +334,10 @@ Same fix as above. Add `base_dir` and update glob patterns.
 After all edits, run a quick scan to catch any missed references:
 ```bash
 cd <home>/Desktop/cursor
-rg "3_Body_Problem" --type py -l \
+rg "3_Body_Problem" --type py --type md --type tex --type txt -l \
   --glob '!.git/*' \
-  --glob '!brutus_simulation_documentation/*'
+  --glob '!brutus_simulation_documentation/*' \
+  --glob '!docs/plans/*'
 ```
 
 If any files appear, update them before committing.

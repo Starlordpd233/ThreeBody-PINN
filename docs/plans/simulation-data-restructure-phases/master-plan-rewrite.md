@@ -82,6 +82,30 @@ which is valid before and after migration.
 14. **`Validation/__init__.py` created reactively in verification**
 - Moved to proactive creation in Phase 3.1.
 
+15. **`--modules` CLI argument silently discarded**
+- `run_validation()` in `validator.py` created a fresh `ValidationConfig()`, ignoring `enabled_modules` set via CLI.
+- Fixed by adding `modules` parameter to `run_validation()` in Phase 1 Step 8.
+
+16. **Metrics filename pattern mismatch (`standard_0000.json` vs `metrics_standard_0000.json`)**
+- `validator.py:226` constructed filenames without the `metrics_` prefix.
+- Fixed in Phase 1 Step 9.
+
+17. **Metrics JSON key schema mismatch**
+- `modules/metrics.py` expected flat keys (`final_energy_error`, `momentum_drift`) but actual JSON uses nested structure (`conservation.energy.relative_error`, etc.).
+- Fixed in Phase 1 Step 10 to match actual schema.
+
+18. **Phase 5.1 grep false positives from plan files**
+- The stale-reference scan had no `--glob '!docs/plans/*'` exclusion, causing 172 false positives from plan documents that intentionally contain `3_Body_Problem` references.
+- Fixed by adding `--glob '!docs/plans/*'` exclusion to Phase 5.1 and Phase 4.12.
+
+19. **Phase 1 Step 6 missing `import os`**
+- The proposed fix for `compare_thresholds.py` used `os.path.exists()` without importing `os`.
+- Fixed by adding `import os` to the proposed code snippet.
+
+20. **Completeness scans miss `.txt` files**
+- Phase 4.12 scanned `--type py` only; Phase 5.1 scanned `--type py --type tex --type md`. Neither covered `.txt` files like `parsing.txt` which Phase 4 explicitly rewrites.
+- Fixed by adding `--type txt` to Phase 4.12 and Phase 5.1 scan scope.
+
 ---
 
 ## Execution Guardrails
