@@ -30,7 +30,7 @@
 ## Part 2: Source of Truth and Repository Map
 
 ### 2.1 Source of Truth Files (Use these first)
-- **Dataset spec and anomalies**: `3_Body_Problem/data_documentation/DATASET_DOCUMENTATION.md`
+- **Dataset spec and anomalies**: `simulation_data/Documentation/DATASET_DOCUMENTATION.md`
 - **PINN input vector and staging logic**: `pinn/data-processing-pipeline-full.py`
 - **PINN architecture implementation**: `pinn/basic_architecture.py`
 - **Sampling and CTL methodology (reference docs)**:
@@ -49,7 +49,7 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 ```
 <home>/Desktop/cursor/
 ├── brutus_Newton-main/          # C++ N-body integrator
-├── 3_Body_Problem/              # Simulation pipeline and datasets
+├── simulation_data/             # Simulation pipeline and datasets
 ├── pinn/                        # PINN system and data processing
 ├── pinn_instruction/            # Instruction and methodology docs
 ├── paper_templates/             # Documentation templates
@@ -64,33 +64,33 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 ### 3.1 Pipeline Stages
 1. **Stage 1 IC generation**
    - Standard quasi-random (Sobol) and hierarchical ICs.
-   - Scripts: `3_Body_Problem/FINAL_ic_generator_enhanced.py`, `3_Body_Problem/generate_enhanced_ics.py`.
+   - Scripts: `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py`, `simulation_data/Scripts/ic_generation/generate_enhanced_ics.py`.
    - Defaults: epsilon=0.05, velocity_scale=0.1, Sobol scrambling enabled.
 2. **Stage 2 prescreening**
    - Short leapfrog integration to reject unstable ICs.
-   - Script: `3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py`.
+   - Script: `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py`.
    - Defaults: TMAX=1.0, DT=0.0001, ENERGY_ERROR_THRESHOLD=0.01, MIN_DISTANCE_THRESHOLD=0.01.
 3. **Stage 3 Brutus integration**
-   - Main runner: `3_Body_Problem/run_brutus_both_type_simple.py`.
-   - Gold-standard hierarchical runner: `3_Body_Problem/run_brutus_hierarchical_only_mac_gold_standard.py`.
+   - Main runner: `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py`.
+   - Gold-standard hierarchical runner: `simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py`.
    - No in-repo runner for standard quasi-random gold outputs.
    - Timeout: 3000 seconds per simulation in batch scripts.
 4. **Metrics**
-   - Script: `3_Body_Problem/brutus_metrics/calculate_metrics.py`.
+   - Script: `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`.
 5. **PINN preprocessing and stage batching**
    - Script: `pinn/data-processing-pipeline-full.py`.
 
 ### 3.2 Dataset Variants (Folder Defines Variant)
 - ICs:
-  - `3_Body_Problem/final_stage_ic_datasets/ic_hierarchical/`
-  - `3_Body_Problem/final_stage_ic_datasets/ic_hierarchical_for_gold_standard/`
-  - `3_Body_Problem/final_stage_ic_datasets/ic_standard_quasi_random/`
-  - `3_Body_Problem/final_stage_ic_datasets/ic_standard_quasi_random_for_gold_standard/`
+  - `simulation_data/Data/ic_final/ic_hierarchical/`
+  - `simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard/`
+  - `simulation_data/Data/ic_final/ic_standard_quasi_random/`
+  - `simulation_data/Data/ic_final/ic_standard_quasi_random_for_gold_standard/`
 - Brutus outputs:
-  - `3_Body_Problem/brutus_output/brutus_hierarchical/`
-  - `3_Body_Problem/brutus_output/brutus_hierarchical_gold_standard/`
-  - `3_Body_Problem/brutus_output/brutus_standard_quasi_random/`
-  - `3_Body_Problem/brutus_output/brutus_standard_quasi_random_gold_standard/`
+  - `simulation_data/Data/brutus_output/brutus_hierarchical/`
+  - `simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/`
+  - `simulation_data/Data/brutus_output/brutus_standard_quasi_random/`
+  - `simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/`
 
 **Mapping rule**: The numeric ID maps IC to Brutus output. File names do **not** encode "gold"; the folder defines the variant.
 
@@ -204,19 +204,19 @@ make
 ### 7.2 Pipeline Execution
 ```bash
 # Generate ICs
-python 3_Body_Problem/generate_enhanced_ics.py
+python simulation_data/Scripts/ic_generation/generate_enhanced_ics.py
 
 # Stage 2 prescreening
-python 3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py
+python simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py
 
 # Batch simulations (hierarchical + standard)
-python 3_Body_Problem/run_brutus_both_type_simple.py
+python simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py
 
 # Gold-standard hierarchical runs
-python 3_Body_Problem/run_brutus_hierarchical_only_mac_gold_standard.py
+python simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py
 
 # Metrics extraction
-python 3_Body_Problem/brutus_metrics/calculate_metrics.py
+python simulation_data/Scripts/metrics_calculation/calculate_metrics.py
 ```
 
 ### 7.3 PINN Development
@@ -237,18 +237,18 @@ python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --
 - Use this before processing any Brutus output.
 
 ### 8.2 Conservation Metrics
-- `brutus_metrics/` contains energy, momentum, and angular momentum drift.
+- `simulation_data/Data/metrics/` contains energy, momentum, and angular momentum drift.
 - Escape: max separation > 100.
 - Collision: min separation < 0.01.
 
 ### 8.3 Provenance and Audit Files
 - Prescreening logs:
-  - `3_Body_Problem/prescreen_stage2/processing_index_ic_hierarchical.json`
-  - `3_Body_Problem/prescreen_stage2/processing_index_ic_standard_quasi_random.json`
+  - `simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json`
+  - `simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json`
 - Missing footer audits:
-  - `3_Body_Problem/brutus_output/check missing results line/`
+  - `simulation_data/Data/brutus_output/check missing results line/`
 - Failed ICs:
-  - `3_Body_Problem/problematic_ics_blacklist.json`
+  - `simulation_data/Documentation/problematic_ics_blacklist.json`
 
 ---
 
@@ -265,9 +265,9 @@ python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --
 ## Part 10: Quick Reference
 
 ### Key Files
-- IC Generator: `3_Body_Problem/FINAL_ic_generator_enhanced.py`
-- Prescreening: `3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py`
-- Metrics: `3_Body_Problem/brutus_metrics/calculate_metrics.py`
+- IC Generator: `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py`
+- Prescreening: `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py`
+- Metrics: `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`
 - Architecture: `pinn/basic_architecture.py`
 - Data Pipeline: `pinn/data-processing-pipeline-full.py`
 

@@ -24,7 +24,7 @@ The repository currently holds massive datasets generated from two main sampling
 
 ### Core Systems
 
-- **`3_Body_Problem/`**: The main data pipeline. Contains IC generation (`FINAL_ic_generator_enhanced.py`, `generate_enhanced_ics.py`), Stage 2 prescreening (`prescreen_stage2/`), batch running scripts (`run_brutus_both_type_simple.py`), and metrics generation (`brutus_metrics/`). Houses the massive generated datasets in `final_stage_ic_datasets` and `brutus_output`.
+- **`simulation_data/`**: The main data pipeline. Contains IC generation (`Scripts/ic_generation/`), Stage 2 prescreening (`Validation/prescreening/`), batch running scripts (`Scripts/brutus_runners/`), and metrics generation (`Scripts/metrics_calculation/`). Houses the massive generated datasets in `Data/ic_final/` and `Data/brutus_output/`.
 - **`pinn/`**: Code for Physics-Informed Neural Networks. Includes architecture definition (`basic_architecture.py`) and data pre-processing (`data-processing-pipeline-full.py`) that bridges raw Brutus outputs to ML tensors.
 - **`brutus_Newton-main/`**: The C++ arbitrary-precision N-body integrator "Brutus" source code. This is the integration engine.
 
@@ -69,33 +69,33 @@ The typical data pipeline flows from Stage 1 (Generation) to Stage 5 (PINN Pre-p
 *(Note: Ensure `$REPO_ROOT` is exported and you run these from the root directory).*
 
 **1. Generate Initial Conditions (Stage 1)**  
-Generates `.txt` IC files into `3_Body_Problem/final_stage_ic_datasets/`.
+Generates `.txt` IC files into `simulation_data/Data/ic_final/`.
 ```bash
 cd "$REPO_ROOT"
-python3 3_Body_Problem/generate_enhanced_ics.py
+python3 simulation_data/Scripts/ic_generation/generate_enhanced_ics.py
 ```
 
 **2. Prescreen Unstable ICs (Stage 2)**  
 Uses a fast leapfrog integration to filter out colliding/escaping systems early.
 ```bash
-python3 3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py
+python3 simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py
 ```
 
 **3. Run High-Precision Integration (Stage 3)**  
 Feeds valid ICs into compiled Brutus. *(Warning: Make sure you compile Brutus first!)*
 ```bash
-python3 3_Body_Problem/run_brutus_both_type_simple.py
+python3 simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py
 ```
 
 *(For Gold Standard Hierarchical data only)*:
 ```bash
-python3 3_Body_Problem/run_brutus_hierarchical_only_mac_gold_standard.py
+python3 simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py
 ```
 
 **4. Calculate Run Metrics (Stage 4)**  
 Evaluates output quality, calculating energy/momentum drift and collision flags.
 ```bash
-python3 3_Body_Problem/brutus_metrics/calculate_metrics.py
+python3 simulation_data/Scripts/metrics_calculation/calculate_metrics.py
 ```
 
 **5. PINN Pre-processing (Stage 5)**  
@@ -161,7 +161,7 @@ Because this repository aggregates many rapidly evolving research scripts, expec
 
 ## Further Reading
 
-- [Dataset Specifications & Anomalies](3_Body_Problem/data_documentation/DATASET_DOCUMENTATION.md)
+- [Dataset Specifications & Anomalies](simulation_data/Documentation/DATASET_DOCUMENTATION.md)
 - [Sampling Methodology Instruction](pinn_instruction/markdown_conversions/sampling_method_instruction.md)
 - [CTL Curriculum Instruction](pinn_instruction/markdown_conversions/CTL-instruction-final.md)
 - [PINN Architecture Plan](pinn_instruction/markdown_conversions/PINN_architecture_plan.md)
