@@ -1,4 +1,4 @@
-# 3_Body_Problem: Data Pipeline
+# simulation_data: Data Pipeline
 
 ## Overview
 
@@ -19,10 +19,10 @@ The pipeline produces training data for the PINN (Physics-Informed Neural Networ
 **Purpose:** Generate initial conditions for three-body systems.
 
 **Key Scripts:**
-- `generate_enhanced_ics.py` - Main entry point for IC generation
-- `FINAL_ic_generator_enhanced.py` - Core IC generation logic
+- `Scripts/ic_generation/generate_enhanced_ics.py` - Main entry point for IC generation
+- `Scripts/ic_generation/FINAL_ic_generator_enhanced.py` - Core IC generation logic
 
-**Configuration (in generate_enhanced_ics.py):**
+**Configuration (in Scripts/ic_generation/generate_enhanced_ics.py):**
 ```python
 GENERATE_STANDARD = True      # Standard quasi-random ICs
 GENERATE_HIERARCHICAL = True  # Hierarchical triple systems
@@ -33,7 +33,7 @@ velocity_scale = 0.1          # Velocity magnitude
 scale_range = (0.8, 1.2)      # Global scaling factor
 ```
 
-**Output:** `ic_raw_datasets/`
+**Output:** `Data/ic_raw/`
 - `ic_hierarchical/` - Hierarchical triple systems
 - `ic_standard_quasi_random/` - Standard quasi-random configurations
 
@@ -52,7 +52,7 @@ m3 x3 y3 z3 vx3 vy3 vz3
 
 **Purpose:** Filter unstable ICs using short-term leapfrog integration.
 
-**Key Script:** `prescreen_stage2/stage2_prescreening_revised_auto.py`
+**Key Script:** `Validation/prescreening/stage2_prescreening_revised_auto.py`
 
 **Parameters:**
 ```python
@@ -64,16 +64,16 @@ VIRIAL_RATIO_MIN = 0.001
 VIRIAL_RATIO_MAX = 2.0
 ```
 
-**Input:** `ic_raw_datasets/`
+**Input:** `Data/ic_raw/`
 
 **Output:**
-- `final_stage_ic_datasets/` - Prescreened ICs
+- `Data/ic_final/` - Prescreened ICs
   - `ic_hierarchical/`
   - `ic_hierarchical_for_gold_standard/`
   - `ic_standard_quasi_random/`
   - `ic_standard_quasi_random_for_gold_standard/`
-- `processing_index_ic_hierarchical.json` - Tracking metadata
-- `processing_index_ic_standard_quasi_random.json` - Tracking metadata
+- `Validation/prescreening/processing_index_ic_hierarchical.json` - Tracking metadata
+- `Validation/prescreening/processing_index_ic_standard_quasi_random.json` - Tracking metadata
 
 **Logic:** Uses JIT-compiled leapfrog integrator to reject ICs that:
 - Have energy error > 1%
@@ -93,8 +93,8 @@ VIRIAL_RATIO_MAX = 2.0
 - **Adaptive stepping:** `dt = eta * (r/a)^0.25` where eta is tolerance-derived step-size controller
 
 **Key Scripts:**
-- `run_brutus_both_type_simple.py` - Main batch runner
-- `run_brutus_hierarchical_only_mac_gold_standard.py` - Gold standard hierarchical
+- `Scripts/brutus_runners/run_brutus_both_type_simple.py` - Main batch runner
+- `Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py` - Gold standard hierarchical
 
 **CLI Contract:**
 ```bash
@@ -133,12 +133,12 @@ Example:
 - **Parallel execution:** `ProcessPoolExecutor` with `max(1, cpu_count - 1)` workers
 - **Failure handling:**
   - Validates final timestep ≥ 9.5
-  - Moves failed IC to `problematic_ics/{variant}/`
+  - Moves failed IC to `Documentation/problematic_ics/{variant}/`
   - Deletes partial output file
 
-**Input:** `final_stage_ic_datasets/`
+**Input:** `Data/ic_final/`
 
-**Output:** `brutus_output/`
+**Output:** `Data/brutus_output/`
 - `brutus_hierarchical/`
 - `brutus_hierarchical_gold_standard/`
 - `brutus_standard_quasi_random/`
@@ -188,7 +188,7 @@ All files contain a `Result:` footer, but schema varies by Brutus build:
 
 **Purpose:** Calculate conservation metrics and quality indicators.
 
-**Key Script:** `brutus_metrics/calculate_metrics.py`
+**Key Script:** `Scripts/metrics_calculation/calculate_metrics.py`
 
 **Metrics Calculated:**
 - Energy conservation (relative drift)
@@ -197,16 +197,16 @@ All files contain a `Result:` footer, but schema varies by Brutus build:
 - Escape detection (max separation > 100)
 - Collision detection (min separation < 0.01)
 
-**Input:** `brutus_output/`
+**Input:** `Data/brutus_output/`
 
-**Output:** `brutus_metrics/sim_result_metric_*/`
+**Output:** `Data/metrics/sim_result_metric_*/`
 - JSON files with metrics for each simulation ID
 
 ---
 
 ## Dataset Inventory
 
-### IC Datasets (final_stage_ic_datasets/)
+### IC Datasets (Data/ic_final/)
 
 | Folder | Type | Files | ID Range |
 |--------|------|-------|----------|
@@ -215,7 +215,7 @@ All files contain a `Result:` footer, but schema varies by Brutus build:
 | `ic_standard_quasi_random/` | IC | ~2,749 | 0000-3998 |
 | `ic_standard_quasi_random_for_gold_standard/` | IC | ~2,565 | 0000-3998 |
 
-### Brutus Output Datasets (brutus_output/)
+### Brutus Output Datasets (Data/brutus_output/)
 
 | Folder | Type | Files | Disk Usage |
 |--------|------|-------|------------|
@@ -252,12 +252,12 @@ All files contain a `Result:` footer, but schema varies by Brutus build:
 
 ## Problematic ICs
 
-**Tracking:** `problematic_ics_blacklist.json`
+**Tracking:** `Documentation/problematic_ics_blacklist.json`
 
 Failed ICs are moved to:
-- `problematic_ics/hierarchical/`
-- `problematic_ics/hierarchical_for_gold_standard/`
-- `problematic_ics/standard/`
+- `Documentation/problematic_ics/hierarchical/`
+- `Documentation/problematic_ics/hierarchical_for_gold_standard/`
+- `Documentation/problematic_ics/standard/`
 
 **Known failed IDs:**
 - Hierarchical: 123, 253 (partial list)
@@ -268,28 +268,28 @@ Failed ICs are moved to:
 ## Interaction Diagram
 
 ```
-ic_raw_datasets/           [Stage 1 output - raw generated ICs]
+Data/ic_raw/                   [Stage 1 output - raw generated ICs]
     |
     v
-prescreen_stage2/  -->  final_stage_ic_datasets/   [Stage 2 - prescreened ICs]
-    |                           |
-    |                           v
-    |                   run_brutus_*.py  -->  brutus_output/   [Stage 3 - trajectories]
+Validation/prescreening/  -->  Data/ic_final/       [Stage 2 - prescreened ICs]
     |                               |
     |                               v
-    +--------------------->  brutus_metrics/     [Stage 4 - metrics]
+    |                   Scripts/brutus_runners/  -->  Data/brutus_output/   [Stage 3]
+    |                                       |
+    |                                       v
+    +------------------------------>  Data/metrics/     [Stage 4 - metrics]
 ```
 
 ---
 
 ## Known Issues
 
-1. **dataset_readiness_checks/ is broken**
+1. **Validation/dataset_readiness_checks/ is broken**
    - Throws `NameError: name 'ValidationConfig' is not defined`
-   - Use `brutus_metrics/` instead for validation
+   - Use `Scripts/metrics_calculation/` instead for validation
 
 2. **Gold standard standard-quasi-random has no runner**
-   - Cannot natively reproduce `ic_standard_quasi_random_for_gold_standard` outputs
+   - Cannot natively reproduce `Data/ic_final/ic_standard_quasi_random_for_gold_standard` outputs
 
 3. **Hierarchical COM offset**
    - COM and momentum are perturbed with sigma=0.01 after construction
@@ -304,23 +304,23 @@ prescreen_stage2/  -->  final_stage_ic_datasets/   [Stage 2 - prescreened ICs]
 
 ```bash
 # Stage 1: Generate ICs
-python3 3_Body_Problem/generate_enhanced_ics.py
+python3 simulation_data/Scripts/ic_generation/generate_enhanced_ics.py
 
 # Stage 2: Prescreen
-python3 3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py
+python3 simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py
 
 # Stage 3: Run Brutus (requires compiled brutus binary)
-python3 3_Body_Problem/run_brutus_both_type_simple.py
+python3 simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py
 
 # Stage 4: Calculate metrics
-python3 3_Body_Problem/brutus_metrics/calculate_metrics.py
+python3 simulation_data/Scripts/metrics_calculation/calculate_metrics.py
 ```
 
 ---
 
 ## Related Documentation
 
-- [Dataset Documentation](./data_documentation/DATASET_DOCUMENTATION.md) - Detailed specs and anomalies
+- [Dataset Documentation](./DATASET_DOCUMENTATION.md) - Detailed specs and anomalies
 - [Root README](../README.md) - Project overview and architecture
 - [PINN Pipeline](../pinn/data-processing-pipeline-full.py) - ML data preprocessing
 
@@ -329,39 +329,50 @@ python3 3_Body_Problem/brutus_metrics/calculate_metrics.py
 ## Folder Structure
 
 ```
-3_Body_Problem/
-├── FINAL_ic_generator_enhanced.py    # Core IC generator
-├── generate_enhanced_ics.py           # Stage 1 entry point
-├── run_brutus_both_type_simple.py     # Stage 3 main runner
-├── run_brutus_hierarchical_only_mac_gold_standard.py  # Gold runner
-├── brutus_progress.json               # Run tracking
-├── ic_raw_datasets/                   # Raw ICs (Stage 1 output)
-│   ├── ic_hierarchical/
-│   └── ic_standard_quasi_random/
-├── final_stage_ic_datasets/           # Prescreened ICs (Stage 2 output)
-│   ├── ic_hierarchical/
-│   ├── ic_hierarchical_for_gold_standard/
-│   ├── ic_standard_quasi_random/
-│   └── ic_standard_quasi_random_for_gold_standard/
-├── brutus_output/                      # Integrated trajectories (Stage 3 output)
-│   ├── brutus_hierarchical/
-│   ├── brutus_hierarchical_gold_standard/
-│   ├── brutus_standard_quasi_random/
-│   └── brutus_standard_quasi_random_gold_standard/
-├── prescreen_stage2/                   # Stage 2 scripts
-│   ├── stage2_prescreening_revised_auto.py
-│   ├── processing_index_*.json
-│   └── prescreening_utils.py
-├── brutus_metrics/                      # Stage 4 scripts
-│   ├── calculate_metrics.py
-│   └── sim_result_metric_*/
-├── dataset_readiness_checks/           # Validation (broken)
-├── data_documentation/                 # Dataset docs
-│   └── DATASET_DOCUMENTATION.md
-├── problematic_ics/                     # Failed ICs
-│   ├── hierarchical/
-│   ├── hierarchical_for_gold_standard/
-│   └── standard/
-├── problematic_ics_blacklist.json       # Failed ID list
-└── testing_data/                        # Test ICs/outputs
+simulation_data/
+├── Data/
+│   ├── ic_raw/                        # Raw ICs (Stage 1 output)
+│   │   ├── ic_hierarchical/
+│   │   └── ic_standard_quasi_random/
+│   ├── ic_final/                      # Prescreened ICs (Stage 2 output)
+│   │   ├── ic_hierarchical/
+│   │   ├── ic_hierarchical_for_gold_standard/
+│   │   ├── ic_standard_quasi_random/
+│   │   └── ic_standard_quasi_random_for_gold_standard/
+│   ├── brutus_output/                 # Integrated trajectories (Stage 3 output)
+│   │   ├── brutus_hierarchical/
+│   │   ├── brutus_hierarchical_gold_standard/
+│   │   ├── brutus_standard_quasi_random/
+│   │   └── brutus_standard_quasi_random_gold_standard/
+│   ├── metrics/                       # Stage 4 metrics
+│   │   └── sim_result_metric_*/
+│   └── testing_data/                  # Test ICs/outputs
+├── Scripts/
+│   ├── ic_generation/                 # Stage 1 scripts
+│   │   ├── FINAL_ic_generator_enhanced.py
+│   │   └── generate_enhanced_ics.py
+│   ├── brutus_runners/                # Stage 3 scripts
+│   │   ├── run_brutus_both_type_simple.py
+│   │   └── run_brutus_hierarchical_only_mac_gold_standard.py
+│   ├── metrics_calculation/           # Stage 4 scripts
+│   │   ├── calculate_metrics.py
+│   │   └── calculate_brutus_metrics.py
+│   ├── debug/                         # Debug utilities
+│   └── archived/                      # Deprecated scripts
+├── Validation/
+│   ├── dataset_readiness_checks/      # Validation framework
+│   ├── prescreening/                  # Stage 2 scripts
+│   │   ├── stage2_prescreening_revised_auto.py
+│   │   ├── prescreening_utils.py
+│   │   └── processing_index_*.json
+│   ├── analysis/                      # Data analysis scripts
+│   └── audit_reports/                 # Historical audits
+├── Documentation/
+│   ├── DATASET_DOCUMENTATION.md       # Detailed dataset docs
+│   ├── README.md                      # This file
+│   ├── problematic_ics/               # Failed ICs
+│   │   ├── hierarchical/
+│   │   ├── hierarchical_for_gold_standard/
+│   │   └── standard/
+│   └── problematic_ics_blacklist.json # Failed ID list
 ```

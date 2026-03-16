@@ -1,8 +1,8 @@
 # Three-Body Problem IC + Brutus Output Dataset Documentation
 
 **Generated:** 2025-12-23 | **Last Updated:** 2026-03-09
-**Dataset Location:** `<home>/Desktop/cursor/3_Body_Problem/`
-**Path Convention:** Unless otherwise specified, paths in this document are relative to the repo root (e.g., start with `3_Body_Problem/`).
+**Dataset Location:** `<home>/Desktop/cursor/simulation_data/`
+**Path Convention:** Unless otherwise specified, paths in this document are relative to the repo root (e.g., start with `simulation_data/`).
 
 ---
 
@@ -50,25 +50,25 @@ The dataset is organized into two main categories:
 
 | Folder | Type | File Count | ID Range | Gaps | Disk Usage |
 |--------|------|------------|----------|------|------------|
-| `3_Body_Problem/final_stage_ic_datasets/ic_hierarchical/` | IC | 4,857 | 0000-4999 | 143 gaps | ~19 MB |
-| `3_Body_Problem/final_stage_ic_datasets/ic_hierarchical_for_gold_standard/` | IC | 4,857 | 0000-4999 | 143 gaps | ~19 MB |
-| `3_Body_Problem/final_stage_ic_datasets/ic_standard_quasi_random/` | IC | 2,749 | 0000-3998 | 1,250 gaps | ~11 MB |
-| `3_Body_Problem/final_stage_ic_datasets/ic_standard_quasi_random_for_gold_standard/` | IC | 2,565 | 0000-3998 | 1,434 gaps | ~10 MB |
-| `3_Body_Problem/brutus_output/brutus_hierarchical/` | Trajectory | 4,857 | 0000-4999 | 143 gaps | ~531 MB |
-| `3_Body_Problem/brutus_output/brutus_hierarchical_gold_standard/` | Trajectory | 4,857 | 0000-4999 | 143 gaps | ~2.4 GB |
-| `3_Body_Problem/brutus_output/brutus_standard_quasi_random/` | Trajectory | 2,749 | 0000-3998 | 1,250 gaps | ~122 MB |
-| `3_Body_Problem/brutus_output/brutus_standard_quasi_random_gold_standard/` | Trajectory | 2,565 | 0000-3998 | 1,434 gaps | ~1.7 GB |
+| `simulation_data/Data/ic_final/ic_hierarchical/` | IC | 4,857 | 0000-4999 | 143 gaps | ~19 MB |
+| `simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard/` | IC | 4,857 | 0000-4999 | 143 gaps | ~19 MB |
+| `simulation_data/Data/ic_final/ic_standard_quasi_random/` | IC | 2,749 | 0000-3998 | 1,250 gaps | ~11 MB |
+| `simulation_data/Data/ic_final/ic_standard_quasi_random_for_gold_standard/` | IC | 2,565 | 0000-3998 | 1,434 gaps | ~10 MB |
+| `simulation_data/Data/brutus_output/brutus_hierarchical/` | Trajectory | 4,857 | 0000-4999 | 143 gaps | ~531 MB |
+| `simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/` | Trajectory | 4,857 | 0000-4999 | 143 gaps | ~2.4 GB |
+| `simulation_data/Data/brutus_output/brutus_standard_quasi_random/` | Trajectory | 2,749 | 0000-3998 | 1,250 gaps | ~122 MB |
+| `simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/` | Trajectory | 2,565 | 0000-3998 | 1,434 gaps | ~1.7 GB |
 
 ### Dataset Relationships
 
 ```
-3_Body_Problem/ic_raw_datasets/           [Stage 1 output - raw generated ICs]
+simulation_data/Data/ic_raw/           [Stage 1 output - raw generated ICs]
     |                      [Prescreened by Stage 2]
     v
-3_Body_Problem/final_stage_ic_datasets/   [Stage 2 output - prescreened ICs]
+simulation_data/Data/ic_final/   [Stage 2 output - prescreened ICs]
     |                      [Input to Brutus]
     v
-3_Body_Problem/brutus_output/             [Stage 3 output - integrated trajectories]
+simulation_data/Data/brutus_output/             [Stage 3 output - integrated trajectories]
 ```
 
 **IC-to-Brutus Mapping:**
@@ -115,10 +115,10 @@ Where `XXXX` is a 4-digit zero-padded integer (e.g., `0000`, `0427`, `3998`).
 Non-gold and gold-standard folders use **different filename prefixes**:
 
 ```
-3_Body_Problem/brutus_output/brutus_hierarchical/brutus_hierarchical_XXXX.txt
-3_Body_Problem/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_gold_XXXX.txt
-3_Body_Problem/brutus_output/brutus_standard_quasi_random/brutus_standard_XXXX.txt
-3_Body_Problem/brutus_output/brutus_standard_quasi_random_gold_standard/brutus_standard_gold_XXXX.txt
+simulation_data/Data/brutus_output/brutus_hierarchical/brutus_hierarchical_XXXX.txt
+simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_gold_XXXX.txt
+simulation_data/Data/brutus_output/brutus_standard_quasi_random/brutus_standard_XXXX.txt
+simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/brutus_standard_gold_XXXX.txt
 ```
 
 Gold-standard status is encoded in **both** the folder name and the filename. When parsing, either signal is sufficient; the folder is the authoritative variant identifier.
@@ -253,7 +253,7 @@ This configuration promotes stability and well-defined orbital motion.
 
 ### Standard Quasi-Random (Sobol) System Characteristics
 
-Standard quasi-random IC generation in `3_Body_Problem/FINAL_ic_generator_enhanced.py` uses a symmetry-reduced canonicalization:
+Standard quasi-random IC generation in `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py` uses a symmetry-reduced canonicalization:
 - Particle 1 is fixed at `p1 = (1, 0, 0)` (then optionally globally scaled).
 - Particle 2 is sampled by a Sobol sequence mapped to a uniform direction on the sphere and a radius `r = u^(1/3)`.
 - A mirror constraint enforces `x ≤ 0` for the sampled direction (by shifting `phi` by π when needed).
@@ -264,7 +264,7 @@ Velocities for standard ICs:
 - For equal masses, total momentum is enforced by setting `v1 = v3 = -v2/2`.
 
 Global scaling:
-- In the standard generator, `scale_range=(0.8, 1.2)` is enabled (see `3_Body_Problem/generate_enhanced_ics.py`), and the implementation scales **both positions and velocities** by the same factor `s`.
+- In the standard generator, `scale_range=(0.8, 1.2)` is enabled (see `simulation_data/Scripts/ic_generation/generate_enhanced_ics.py`), and the implementation scales **both positions and velocities** by the same factor `s`.
 - This changes the virial ratio by approximately `Q ∝ s^3` (because `T ∝ s^2` and `|U| ∝ 1/s`).
 
 ### Virial Ratio
@@ -295,7 +295,7 @@ Global scaling:
 - Inner binary + outer third body configuration
 - Enforces COM/P≈0 via a COM shift and velocity boost, then applies a small Gaussian perturbation (σ=0.01) to all positions/velocities
 
-**Output:** `3_Body_Problem/ic_raw_datasets/ic_hierarchical/` and `3_Body_Problem/ic_raw_datasets/ic_standard_quasi_random/`
+**Output:** `simulation_data/Data/ic_raw/ic_hierarchical/` and `simulation_data/Data/ic_raw/ic_standard_quasi_random/`
 
 ### Stage 2: Prescreening
 
@@ -328,9 +328,9 @@ VIRIAL_PERCENTILE_MAX = 99.5  # Remove top 0.5% outliers
 When adaptive thresholds are enabled, the fixed virial range above serves only as a fallback. The actual virial cutoffs are computed per-batch from the data-derived percentiles.
 
 **Provenance Tracking:**
-- `3_Body_Problem/prescreen_stage2/processing_index_ic_hierarchical.json` - hierarchical pass/fail records (cumulative: 5,000 entries, 4,860 passed, 140 failed)
-- `3_Body_Problem/prescreen_stage2/processing_index_ic_standard_quasi_random.json` - standard pass/fail records (cumulative: 4,000 entries, 3,007 passed, 993 failed)
-- `3_Body_Problem/prescreen_stage2/prescreen_run_results/` - per-run summary JSON outputs (15 files; 10 older schema with `run_info`/`detailed_results`, 5 newer schema with `datasets`/aggregates)
+- `simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json` - hierarchical pass/fail records (cumulative: 5,000 entries, 4,860 passed, 140 failed)
+- `simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json` - standard pass/fail records (cumulative: 4,000 entries, 3,007 passed, 993 failed)
+- `simulation_data/Validation/prescreening/prescreen_run_results/` - per-run summary JSON outputs (15 files; 10 older schema with `run_info`/`detailed_results`, 5 newer schema with `datasets`/aggregates)
 
 **Note:** The processing indices are **cumulative history** across all prescreen runs, not exact manifests of the current `final_stage_ic_datasets/` folders. The on-disk IC counts may differ from the index "passed" counts because the final-stage folders also include ICs that were promoted before the index existed or that were manually added.
 
@@ -360,7 +360,7 @@ When adaptive thresholds are enabled, the fixed virial range above serves only a
 }
 ```
 
-**Output:** `3_Body_Problem/final_stage_ic_datasets/` (passed ICs only)
+**Output:** `simulation_data/Data/ic_final/` (passed ICs only)
 
 ### Stage 3: Brutus Integration
 
@@ -382,7 +382,7 @@ When adaptive thresholds are enabled, the fixed virial range above serves only a
 - Final timestep must reach ≥ 9.5
 - Failed ICs moved to `problematic_ics/` directories
 
-**Output:** `3_Body_Problem/brutus_output/`
+**Output:** `simulation_data/Data/brutus_output/`
 
 ---
 
@@ -397,7 +397,7 @@ All Brutus output files contain a `Result:` footer, but the footer schema varies
 
 Each entry below is `(tol, Lw, dt_out, t_end, eta) → count`. Files with a partial footer (no `eta`) are listed separately.
 
-#### `3_Body_Problem/brutus_output/brutus_hierarchical/` (4,857 files; 3,307 full-schema, 1,550 partial)
+#### `simulation_data/Data/brutus_output/brutus_hierarchical/` (4,857 files; 3,307 full-schema, 1,550 partial)
 
 Full-schema footers (with `eta`):
 - `(1e-15, 130, 0.08, 10, 0.263027) → 3,307`
@@ -405,7 +405,7 @@ Full-schema footers (with `eta`):
 Partial footers (no `eta`; tol/Lw/dt still parseable):
 - `(1e-15, 130, 0.08, ~10) → 1,550` (same parameters, different Brutus build omitted `eta`)
 
-#### `3_Body_Problem/brutus_output/brutus_hierarchical_gold_standard/` (4,857 files; all full-schema)
+#### `simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/` (4,857 files; all full-schema)
 
 - `(1e-13, 130, 0.01, 10.01, 0.277971) → 4,146`
 - `(1e-13, 124, 0.01, 10.01, 0.277971) → 649`
@@ -413,7 +413,7 @@ Partial footers (no `eta`; tol/Lw/dt still parseable):
 - `(1e-14, 112, 0.01, 10.01, 0.270396) → 27`
 - `(1e-14, 124, 0.01, 10.01, 0.270396) → 1`
 
-#### `3_Body_Problem/brutus_output/brutus_standard_quasi_random/` (2,749 files; 2,048 full-schema, 701 partial)
+#### `simulation_data/Data/brutus_output/brutus_standard_quasi_random/` (2,749 files; 2,048 full-schema, 701 partial)
 
 Full-schema footers (with `eta`):
 - `(1e-13, 118, 0.17, 10.03, 0.277971) → 1,126`
@@ -422,7 +422,7 @@ Full-schema footers (with `eta`):
 Partial footers (no `eta`; tol/Lw/dt still parseable):
 - `(1e-13, 118, 0.17, ~10.03) → 701` (assume default Lw=118 unless footer shows otherwise)
 
-#### `3_Body_Problem/brutus_output/brutus_standard_quasi_random_gold_standard/` (2,565 files; 2,346 full-schema, 219 minimal)
+#### `simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/` (2,565 files; 2,346 full-schema, 219 minimal)
 
 Full-schema footers (with `eta` and `tol`):
 - `(1e-13, 130, 0.01, 10.01, 0.277971) → 1,754`
@@ -585,7 +585,7 @@ def read_ic_file(filepath):
     return masses, positions, velocities
 
 # Example usage
-masses, pos, vel = read_ic_file('3_Body_Problem/final_stage_ic_datasets/ic_hierarchical/ic_hierarchical_0000.txt')
+masses, pos, vel = read_ic_file('simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0000.txt')
 ```
 
 ### Reading a Brutus Output File (Robust)
@@ -690,7 +690,7 @@ def parse_result_footer(line):
 
 # Example usage
 times, trajectories, metadata = read_brutus_output(
-    '3_Body_Problem/brutus_output/brutus_hierarchical/brutus_hierarchical_0000.txt'
+    'simulation_data/Data/brutus_output/brutus_hierarchical/brutus_hierarchical_0000.txt'
 )
 print(f"Read {len(times)} snapshots from t={times[0]:.3f} to t={times[-1]:.3f}")
 if metadata:
@@ -736,7 +736,7 @@ def validate_brutus_output(filepath, time_threshold=9.5):
 
 # Example usage
 is_valid, msg = validate_brutus_output(
-    '3_Body_Problem/brutus_output/brutus_hierarchical/brutus_hierarchical_0000.txt'
+    'simulation_data/Data/brutus_output/brutus_hierarchical/brutus_hierarchical_0000.txt'
 )
 print(f"Validation: {msg}")
 ```
@@ -775,7 +775,7 @@ def recenter_to_com_frame(masses, positions, velocities):
     return positions_centered, velocities_centered
 
 # Example usage
-masses, pos, vel = read_ic_file('3_Body_Problem/final_stage_ic_datasets/ic_hierarchical/ic_hierarchical_0000.txt')
+masses, pos, vel = read_ic_file('simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0000.txt')
 com = compute_com(masses, pos)
 print(f"COM offset magnitude: {np.linalg.norm(com):.6e}")
 pos_centered, vel_centered = recenter_to_com_frame(masses, pos, vel)
@@ -789,24 +789,24 @@ pos_centered, vel_centered = recenter_to_com_frame(masses, pos, vel)
 
 | Component | Location |
 |-----------|----------|
-| IC Generator (core) | `3_Body_Problem/FINAL_ic_generator_enhanced.py` |
-| IC Generator (entrypoint) | `3_Body_Problem/generate_enhanced_ics.py` |
-| Stage 2 Prescreening | `3_Body_Problem/prescreen_stage2/stage2_prescreening_revised_auto.py` |
-| Brutus Runner (Main) | `3_Body_Problem/run_brutus_both_type_simple.py` |
-| Brutus Runner (Gold) | `3_Body_Problem/run_brutus_hierarchical_only_mac_gold_standard.py` |
-| Metrics Calculator | `3_Body_Problem/brutus_metrics/calculate_metrics.py` |
+| IC Generator (core) | `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py` |
+| IC Generator (entrypoint) | `simulation_data/Scripts/ic_generation/generate_enhanced_ics.py` |
+| Stage 2 Prescreening | `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` |
+| Brutus Runner (Main) | `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py` |
+| Brutus Runner (Gold) | `simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py` |
+| Metrics Calculator | `simulation_data/Data/metrics/calculate_metrics.py` |
 | Brutus Simulator | `brutus_Newton-main/` (C++ with GMP/MPFR) |
 
 ### Provenance Files
 
 | File | Content |
 |------|---------|
-| `3_Body_Problem/prescreen_stage2/processing_index_ic_hierarchical.json` | Hierarchical prescreen pass/fail records (cumulative history) |
-| `3_Body_Problem/prescreen_stage2/processing_index_ic_standard_quasi_random.json` | Standard prescreen pass/fail records (cumulative history) |
-| `3_Body_Problem/prescreen_stage2/prescreen_run_results/` | Per-run prescreen result summaries (`run_results_*.json`; two JSON schemas) |
-| `3_Body_Problem/brutus_output/check missing results line/` | Historical audit of footer schemas (now outdated; all files have footers) |
-| `3_Body_Problem/problematic_ics/` | Directories of ICs moved during Brutus execution (hierarchical: 3, hierarchical_for_gold_standard: 3, standard: 695) |
-| `3_Body_Problem/problematic_ics_blacklist.json` | Legacy blacklist (2 hierarchical, 64 standard IDs); **not** used by current runners |
+| `simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json` | Hierarchical prescreen pass/fail records (cumulative history) |
+| `simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json` | Standard prescreen pass/fail records (cumulative history) |
+| `simulation_data/Validation/prescreening/prescreen_run_results/` | Per-run prescreen result summaries (`run_results_*.json`; two JSON schemas) |
+| `simulation_data/Data/brutus_output/check missing results line/` | Historical audit of footer schemas (now outdated; all files have footers) |
+| `simulation_data/Documentation/problematic_ics/` | Directories of ICs moved during Brutus execution (hierarchical: 3, hierarchical_for_gold_standard: 3, standard: 695) |
+| `simulation_data/Documentation/problematic_ics_blacklist.json` | Legacy blacklist (2 hierarchical, 64 standard IDs); **not** used by current runners |
 
 ### Additional Documentation
 
