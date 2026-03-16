@@ -35,8 +35,8 @@ DEFAULT_MAX_BRUTUS_FILES_FOR_TESTING = 3
 # ============================================================================
 # DEFAULT PATHS - MODIFY THESE FOR ONE-CLICK EXECUTION
 # ============================================================================
-DEFAULT_IC_DIR = Path("<home>/Desktop/cursor/3_Body_Problem/final_stage_ic_datasets/ic_hierarchical")
-DEFAULT_BRUTUS_DIR = Path("<home>/Desktop/cursor/3_Body_Problem/brutus_output/brutus_hierarchical")
+DEFAULT_IC_DIR = Path("<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_hierarchical")
+DEFAULT_BRUTUS_DIR = Path("<home>/Desktop/cursor/simulation_data/Data/brutus_output/brutus_hierarchical")
 DEFAULT_IC_OUTPUT_DIR = Path("<home>/Desktop/cursor/pinn/data-handling/core/preprocessed-data/parsed-data/ic")
 DEFAULT_BRUTUS_OUTPUT_DIR = Path("<home>/Desktop/cursor/pinn/data-handling/core/preprocessed-data/parsed-data/brutus")
 

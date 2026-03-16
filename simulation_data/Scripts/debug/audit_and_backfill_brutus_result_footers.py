@@ -244,7 +244,7 @@ def infer_ic_path(output_filepath: str, folder_type: str) -> Optional[str]:
 
     folder_type: 'hierarchical', 'hierarchical_gold', 'standard', 'standard_gold'
     """
-    base_dir = Path('<home>/Desktop/cursor/3_Body_Problem/final_stage_ic_datasets')
+    base_dir = Path('<home>/Desktop/cursor/simulation_data/Data/ic_final')
 
     # Extract file number from brutus output filename
     basename = os.path.basename(output_filepath)
@@ -664,7 +664,7 @@ def main():
     args = parser.parse_args()
 
     # Find all Brutus output files
-    base_dir = '<home>/Desktop/cursor/3_Body_Problem/brutus_output'
+    base_dir = '<home>/Desktop/cursor/simulation_data/Data/brutus_output'
     patterns = [
         f'{base_dir}/brutus_hierarchical/brutus_*.txt',
         f'{base_dir}/brutus_hierarchical_gold_standard/brutus_*.txt',

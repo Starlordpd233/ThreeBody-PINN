@@ -29,23 +29,23 @@ STANDARD_ICS_PER_RUN = 0    # Max standard ICs to process per run
 TIMEOUT_SECONDS = 3000          # Timeout for each simulation (50 minutes)
 
 # Base directory
-BASE_DIR = Path("<home>/Desktop/cursor/3_Body_Problem")
+BASE_DIR = Path("<home>/Desktop/cursor/simulation_data")
 BRUTUS_EXEC = Path("<home>/Desktop/cursor/brutus_Newton-main/brutus")
 
 # Input/output directories
 IC_DIRS = {
-    "hierarchical": BASE_DIR / "final_stage_ic_datasets" / "ic_hierarchical",
-    "standard": BASE_DIR / "final_stage_ic_datasets" / "ic_standard_quasi_random"
+    "hierarchical": BASE_DIR / "Data" / "ic_final" / "ic_hierarchical",
+    "standard": BASE_DIR / "Data" / "ic_final" / "ic_standard_quasi_random"
 }
 OUTPUT_DIRS = {
-    "hierarchical": BASE_DIR / "brutus_output" / "brutus_hierarchical",
-    "standard": BASE_DIR / "brutus_output" / "brutus_standard_quasi_random"
+    "hierarchical": BASE_DIR / "Data" / "brutus_output" / "brutus_hierarchical",
+    "standard": BASE_DIR / "Data" / "brutus_output" / "brutus_standard_quasi_random"
 }
 
 # Problematic IC directories
 PROBLEMATIC_DIRS = {
-    "hierarchical": BASE_DIR / "problematic_ics" / "hierarchical",
-    "standard": BASE_DIR / "problematic_ics" / "standard"
+    "hierarchical": BASE_DIR / "Documentation" / "problematic_ics" / "hierarchical",
+    "standard": BASE_DIR / "Documentation" / "problematic_ics" / "standard"
 }
 
 # Brutus parameters

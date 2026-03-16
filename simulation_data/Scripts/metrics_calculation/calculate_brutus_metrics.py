@@ -15,17 +15,17 @@ import time
 
 # Paths
 BASE_DIR = Path("<home>/Desktop/cursor")
-PROBLEM_DIR = BASE_DIR / "3_Body_Problem"
+PROBLEM_DIR = BASE_DIR / "simulation_data"
 
 # Output and metrics directories
 OUTPUT_DIRS = {
-    "hierarchical": PROBLEM_DIR / "brutus_output" / "brutus_hierarchical",
-    "standard": PROBLEM_DIR / "brutus_output" / "brutus_standard_quasi_random"
+    "hierarchical": PROBLEM_DIR / "Data" / "brutus_output" / "brutus_hierarchical",
+    "standard": PROBLEM_DIR / "Data" / "brutus_output" / "brutus_standard_quasi_random"
 }
 
 METRICS_DIRS = {
-    "hierarchical": PROBLEM_DIR / "sim_result_metric_hierarchical",
-    "standard": PROBLEM_DIR / "sim_result_metric_standard"
+    "hierarchical": PROBLEM_DIR / "Data" / "metrics" / "sim_result_metric_hierarchical",
+    "standard": PROBLEM_DIR / "Data" / "metrics" / "sim_result_metric_standard"
 }
 
 # Brutus parameters for reference

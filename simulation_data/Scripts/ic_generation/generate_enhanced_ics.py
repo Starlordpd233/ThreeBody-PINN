@@ -5,7 +5,7 @@ Run this to generate new initial conditions
 """
 
 import sys
-sys.path.append('<home>/Desktop/cursor/3_Body_Problem')
+sys.path.append('<home>/Desktop/cursor/simulation_data/Scripts/ic_generation')
 
 from FINAL_ic_generator_enhanced import continuation_enhanced_ic_generation
 

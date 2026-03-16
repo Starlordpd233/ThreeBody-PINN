@@ -14,21 +14,21 @@ import time
 
 # Paths
 BASE_DIR = Path("<home>/Desktop/cursor")
-PROBLEM_DIR = BASE_DIR / "3_Body_Problem"
+PROBLEM_DIR = BASE_DIR / "simulation_data"
 
 # Input and metrics directories
 INPUT_DIRS = {
-    "hierarchical": PROBLEM_DIR / "brutus_output" / "brutus_hierarchical",
-    "hierarchical_gold_standard": PROBLEM_DIR / "brutus_output" / "brutus_hierarchical_gold_standard",
-    "standard": PROBLEM_DIR / "brutus_output" / "brutus_standard_quasi_random",
-    "standard_gold_standard": PROBLEM_DIR / "brutus_output" / "brutus_standard_quasi_random_gold_standard"
+    "hierarchical": PROBLEM_DIR / "Data" / "brutus_output" / "brutus_hierarchical",
+    "hierarchical_gold_standard": PROBLEM_DIR / "Data" / "brutus_output" / "brutus_hierarchical_gold_standard",
+    "standard": PROBLEM_DIR / "Data" / "brutus_output" / "brutus_standard_quasi_random",
+    "standard_gold_standard": PROBLEM_DIR / "Data" / "brutus_output" / "brutus_standard_quasi_random_gold_standard"
 }
 
 METRICS_DIRS = {
-    "hierarchical": PROBLEM_DIR / "brutus_metrics" / "sim_result_metric_hierarchical",
-    "hierarchical_gold_standard": PROBLEM_DIR / "brutus_metrics" / "sim_result_metric_hierarchical_gold_standard",
-    "standard": PROBLEM_DIR / "brutus_metrics" / "sim_result_metric_standard",
-    "standard_gold_standard": PROBLEM_DIR / "brutus_metrics" / "sim_result_metric_standard_gold_standard"
+    "hierarchical": PROBLEM_DIR / "Data" / "metrics" / "sim_result_metric_hierarchical",
+    "hierarchical_gold_standard": PROBLEM_DIR / "Data" / "metrics" / "sim_result_metric_hierarchical_gold_standard",
+    "standard": PROBLEM_DIR / "Data" / "metrics" / "sim_result_metric_standard",
+    "standard_gold_standard": PROBLEM_DIR / "Data" / "metrics" / "sim_result_metric_standard_gold_standard"
 }
 
 # Metrics file name prefixes (to ensure consistent naming without gold_standard in filename)

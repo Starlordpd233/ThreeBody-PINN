@@ -28,12 +28,12 @@ import re
 # Paths
 BASE_DIR = Path("<home>/Desktop/cursor")
 BRUTUS_EXEC = BASE_DIR / "brutus_Newton-main" / "brutus"
-PROBLEM_DIR = BASE_DIR / "3_Body_Problem"
+PROBLEM_DIR = BASE_DIR / "simulation_data"
 
 # Input and output directories
-IC_DIR = PROBLEM_DIR / "final_stage_ic_datasets" / "ic_hierarchical_for_gold_standard"
-OUTPUT_DIR = PROBLEM_DIR / "brutus_output" / "brutus_hierarchical_gold_standard"
-PROBLEMATIC_DIR = PROBLEM_DIR / "problematic_ics" / "hierarchical_for_gold_standard"
+IC_DIR = PROBLEM_DIR / "Data" / "ic_final" / "ic_hierarchical_for_gold_standard"
+OUTPUT_DIR = PROBLEM_DIR / "Data" / "brutus_output" / "brutus_hierarchical_gold_standard"
+PROBLEMATIC_DIR = PROBLEM_DIR / "Documentation" / "problematic_ics" / "hierarchical_for_gold_standard"
 
 # Brutus parameters for hierarchical simulations
 BRUTUS_PARAMS = {

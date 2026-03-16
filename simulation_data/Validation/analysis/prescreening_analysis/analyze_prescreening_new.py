@@ -339,8 +339,8 @@ def print_summary_statistics(results: Dict) -> None:
 
 # ---------- Main ----------
 def main():
-    results_dir = "3_Body_Problem/prescreen_stage2/prescreen_run_results"
-    output_dir = "3_Body_Problem/prescreen_stage2/analysis_output"
+    results_dir = "simulation_data/Validation/prescreening/prescreen_run_results"
+    output_dir = "simulation_data/Validation/prescreening/analysis_output"
     os.makedirs(output_dir, exist_ok=True)
 
     # Debug: Optionally limit to first N files (set to None to process all)

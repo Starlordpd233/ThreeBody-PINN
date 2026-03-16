@@ -12,7 +12,7 @@ def migrate_processing_index():
     """Migrate from single to dual processing indices."""
     
     # Load existing index
-    existing_index_path = "<home>/Desktop/cursor/3_Body_Problem/prescreen_stage2/processing_index.json"
+    existing_index_path = "<home>/Desktop/cursor/simulation_data/Validation/prescreening/processing_index.json"
     
     if not os.path.exists(existing_index_path):
         print("No existing processing_index.json found. Migration not needed.")
@@ -48,8 +48,8 @@ def migrate_processing_index():
     
     # Since we can't determine which files belong to which dataset from the old format,
     # we'll check the actual files in the output directories
-    hierarchical_output = "<home>/Desktop/cursor/3_Body_Problem/final_stage_ic_datasets/ic_hierarchical"
-    standard_output = "<home>/Desktop/cursor/3_Body_Problem/final_stage_ic_datasets/ic_standard_quasi_random"
+    hierarchical_output = "<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_hierarchical"
+    standard_output = "<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_standard_quasi_random"
     
     hierarchical_files = set()
     standard_files = set()
@@ -89,8 +89,8 @@ def migrate_processing_index():
     standard_index['processing_runs'].append(migration_run)
     
     # Save new indices
-    hierarchical_path = "<home>/Desktop/cursor/3_Body_Problem/prescreen_stage2/processing_index_ic_hierarchical.json"
-    standard_path = "<home>/Desktop/cursor/3_Body_Problem/prescreen_stage2/processing_index_ic_standard_quasi_random.json"
+    hierarchical_path = "<home>/Desktop/cursor/simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json"
+    standard_path = "<home>/Desktop/cursor/simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json"
     
     print(f"Saving hierarchical index with {len(hierarchical_index['processed_files'])} files...")
     with open(hierarchical_path, 'w') as f:

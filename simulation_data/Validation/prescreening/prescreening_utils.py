@@ -206,9 +206,9 @@ def main():
     parser = argparse.ArgumentParser(description="Prescreening Index Utilities")
     
     # Paths
-    default_output_dir = "<home>/Desktop/cursor/3_Body_Problem/ic_prescreened"
+    default_output_dir = "<home>/Desktop/cursor/simulation_data/Data/ic_final"
     default_index = os.path.join(default_output_dir, "processing_index.json")
-    default_input_dir = "<home>/Desktop/cursor/3_Body_Problem/ic_raw_datasets/ic_standard_quasi_random"
+    default_input_dir = "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_standard_quasi_random"
     
     parser.add_argument("--index", default=default_index, help="Path to processing index")
     

@@ -8,10 +8,10 @@ Command for running simulation:
 (after testing these are the parameters that worked)
 
 for hierarchical:
-./brutus 1e-15 130 0 10 0.15 3 <home>/Desktop/cursor/3_Body_Problem/testing_data/single_ic.txt > <home>/Desktop/cursor/3_Body_Problem/testing_data/test_output.txt
+./brutus 1e-15 130 0 10 0.15 3 <home>/Desktop/cursor/simulation_data/Data/testing_data/single_ic.txt > <home>/Desktop/cursor/simulation_data/Data/testing_data/test_output.txt
 
 for quasi-random:
-./brutus 1e-14 122 0 10 0.18 3 <home>/Desktop/cursor/3_Body_Problem/testing_data/single_ic.txt > <home>/Desktop/cursor/3_Body_Problem/testing_data/test_output.txt
+./brutus 1e-14 122 0 10 0.18 3 <home>/Desktop/cursor/simulation_data/Data/testing_data/single_ic.txt > <home>/Desktop/cursor/simulation_data/Data/testing_data/test_output.txt
 
 
 ./brutus 1e-11 84  0   10   0.01    3   my_IC.txt  > output.txt
@@ -287,7 +287,7 @@ class EnhancedThreeBodySampler:
                 f.write(f'{mass} {x} {y} {z} {vx} {vy} {vz}\n')
 
 
-def generate_stable_hierarchical_systems(n_systems: int = 1000, output_dir: str = "3_Body_Problem/ic_raw_datasets/ic_hierarchical",
+def generate_stable_hierarchical_systems(n_systems: int = 1000, output_dir: str = "simulation_data/Data/ic_raw/ic_hierarchical",
                                        mass_range: Tuple[float, float] = (0.5, 1.5),
                                        save_files: bool = True) -> np.ndarray:
     """
@@ -593,10 +593,10 @@ def continuation_enhanced_ic_generation(
     # Set directory based on IC type
     if directory is None:
         if ic_type == "hierarchical":
-            directory = "<home>/Desktop/cursor/3_Body_Problem/ic_raw_datasets/ic_hierarchical"
+            directory = "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_hierarchical"
             base_filename = "ic_hierarchical_"
         else:
-            directory = "<home>/Desktop/cursor/3_Body_Problem/ic_raw_datasets/ic_standard_quasi_random"
+            directory = "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_standard_quasi_random"
             base_filename = "ic_standard_"
     
     os.makedirs(directory, exist_ok=True)

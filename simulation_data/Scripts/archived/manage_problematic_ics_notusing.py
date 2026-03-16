@@ -17,10 +17,10 @@ from datetime import datetime
 import json
 
 # Directories
-BASE_DIR = Path("<home>/Desktop/cursor/3_Body_Problem")
+BASE_DIR = Path("<home>/Desktop/cursor/simulation_data")
 IC_DIRS = {
-    "hierarchical": BASE_DIR / "final_stage_ic_datasets" / "ic_hierarchical",
-    "standard": BASE_DIR / "final_stage_ic_datasets" / "ic_standard_quasi_random"
+    "hierarchical": BASE_DIR / "Data" / "ic_final" / "ic_hierarchical",
+    "standard": BASE_DIR / "Data" / "ic_final" / "ic_standard_quasi_random"
 }
 BRUTUS_DIRS = {
     "hierarchical": BASE_DIR / "brutus_output" / "brutus_hierarchical",

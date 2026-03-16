@@ -13,7 +13,7 @@ class ValidationConfig:
     """Central configuration for validation."""
 
     # Base paths - derived relative to this file
-    base_dir: Path = Path(__file__).resolve().parent.parent
+    base_dir: Path = Path(__file__).resolve().parent.parent.parent
 
     # Dataset mappings - these define the 4-to-4 correspondence
     dataset_variants: Dict[str, Dict[str, str]] = None
@@ -41,20 +41,20 @@ class ValidationConfig:
         if self.dataset_variants is None:
             self.dataset_variants = {
                 "hierarchical": {
-                    "ic_dir": "final_stage_ic_datasets/ic_hierarchical",
-                    "brutus_dir": "brutus_output/brutus_hierarchical"
+                    "ic_dir": "Data/ic_final/ic_hierarchical",
+                    "brutus_dir": "Data/brutus_output/brutus_hierarchical"
                 },
                 "hierarchical_gold": {
-                    "ic_dir": "final_stage_ic_datasets/ic_hierarchical_for_gold_standard",
-                    "brutus_dir": "brutus_output/brutus_hierarchical_gold_standard"
+                    "ic_dir": "Data/ic_final/ic_hierarchical_for_gold_standard",
+                    "brutus_dir": "Data/brutus_output/brutus_hierarchical_gold_standard"
                 },
                 "standard": {
-                    "ic_dir": "final_stage_ic_datasets/ic_standard_quasi_random",
-                    "brutus_dir": "brutus_output/brutus_standard_quasi_random"
+                    "ic_dir": "Data/ic_final/ic_standard_quasi_random",
+                    "brutus_dir": "Data/brutus_output/brutus_standard_quasi_random"
                 },
                 "standard_gold": {
-                    "ic_dir": "final_stage_ic_datasets/ic_standard_quasi_random_for_gold_standard",
-                    "brutus_dir": "brutus_output/brutus_standard_quasi_random_gold_standard"
+                    "ic_dir": "Data/ic_final/ic_standard_quasi_random_for_gold_standard",
+                    "brutus_dir": "Data/brutus_output/brutus_standard_quasi_random_gold_standard"
                 }
             }
 
@@ -91,7 +91,7 @@ class ValidationConfig:
             ]
 
         if self.output_dir is None:
-            self.output_dir = self.base_dir / "dataset_readiness_checks" / "reports"
+            self.output_dir = self.base_dir / "Validation" / "dataset_readiness_checks" / "reports"
 
         if self.report_formats is None:
             self.report_formats = ["json", "markdown", "csv"]
@@ -131,12 +131,12 @@ class ValidationConfig:
         }
         if variant not in variant_to_metrics:
             raise ValueError(f"No metrics directory mapping for variant: {variant}")
-        return self.base_dir / "brutus_metrics" / variant_to_metrics[variant]
+        return self.base_dir / "Data" / "metrics" / variant_to_metrics[variant]
 
     def get_blacklist_ids(self) -> Dict[str, List[int]]:
         """Load blacklisted IC IDs from the problematic_ics_blacklist.json file."""
         import json
-        blacklist_file = self.base_dir / "problematic_ics_blacklist.json"
+        blacklist_file = self.base_dir / "Documentation" / "problematic_ics_blacklist.json"
         if blacklist_file.exists():
             with open(blacklist_file, 'r') as f:
                 return json.load(f)

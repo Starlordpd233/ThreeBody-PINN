@@ -139,8 +139,8 @@ def compare_folders(folder1, folder2):
     return are_identical
 
 def main():
-    folder1 = "<home>/Desktop/cursor/3_Body_Problem/problematic_ics/hierarchical"
-    folder2 = "<home>/Desktop/cursor/3_Body_Problem/problematic_ics/hierarchical_for_gold_standard"
+    folder1 = "<home>/Desktop/cursor/simulation_data/Documentation/problematic_ics/hierarchical"
+    folder2 = "<home>/Desktop/cursor/simulation_data/Documentation/problematic_ics/hierarchical_for_gold_standard"
     
     compare_folders(folder1, folder2)
 

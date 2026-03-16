@@ -2,7 +2,7 @@ import os
 import re
 
 # Define the folder path
-folder_path = "<home>/Desktop/cursor/3_Body_Problem/final_stage_ic_datasets/ic_hierarchical_for_gold_standard"
+folder_path = "<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard"
 
 # Get all files in the folder
 files = os.listdir(folder_path)
