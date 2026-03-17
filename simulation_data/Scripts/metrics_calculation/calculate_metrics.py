@@ -13,7 +13,7 @@ from datetime import datetime
 import time
 
 # Paths
-BASE_DIR = Path("<home>/Desktop/cursor")
+BASE_DIR = Path("<home>/Desktop/3_body_problem")
 PROBLEM_DIR = BASE_DIR / "simulation_data"
 
 # Input and metrics directories

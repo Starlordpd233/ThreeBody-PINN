@@ -253,7 +253,7 @@ def compare_file(tex_path: Path, md_path: Path):
     # Not implemented
 
 def main():
-    base_dir = Path("<home>/Desktop/cursor/paper_templates/pinn_instruction")
+    base_dir = Path("<home>/Desktop/3_body_problem/paper_templates/pinn_instruction")
     md_dir = base_dir / "markdown_conversions"
     pairs = [
         ("CTL-instruction-final.tex", "CTL-instruction-final.md"),

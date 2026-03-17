@@ -35,10 +35,10 @@ DEFAULT_MAX_BRUTUS_FILES_FOR_TESTING = 3
 # ============================================================================
 # DEFAULT PATHS - MODIFY THESE FOR ONE-CLICK EXECUTION
 # ============================================================================
-DEFAULT_IC_DIR = Path("<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_hierarchical")
-DEFAULT_BRUTUS_DIR = Path("<home>/Desktop/cursor/simulation_data/Data/brutus_output/brutus_hierarchical")
-DEFAULT_IC_OUTPUT_DIR = Path("<home>/Desktop/cursor/pinn/data-handling/core/preprocessed-data/parsed-data/ic")
-DEFAULT_BRUTUS_OUTPUT_DIR = Path("<home>/Desktop/cursor/pinn/data-handling/core/preprocessed-data/parsed-data/brutus")
+DEFAULT_IC_DIR = Path("<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical")
+DEFAULT_BRUTUS_DIR = Path("<home>/Desktop/3_body_problem/simulation_data/Data/brutus_output/brutus_hierarchical")
+DEFAULT_IC_OUTPUT_DIR = Path("<home>/Desktop/3_body_problem/pinn/data-handling/core/preprocessed-data/parsed-data/ic")
+DEFAULT_BRUTUS_OUTPUT_DIR = Path("<home>/Desktop/3_body_problem/pinn/data-handling/core/preprocessed-data/parsed-data/brutus")
 
 # Note: These paths are relative to the parsing.py script location
 # Adjust them based on your actual directory structure

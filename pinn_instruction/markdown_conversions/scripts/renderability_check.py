@@ -223,7 +223,7 @@ def check_file(md_path: Path):
         print("\n✓ All renderability checks passed!")
 
 def main():
-    md_dir = Path("<home>/Desktop/cursor/paper_templates/pinn_instruction/markdown_conversions")
+    md_dir = Path("<home>/Desktop/3_body_problem/paper_templates/pinn_instruction/markdown_conversions")
     files = [
         "CTL-instruction-final.md",
         "sampling_method_instruction.md",

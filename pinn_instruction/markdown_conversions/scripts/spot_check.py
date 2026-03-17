@@ -167,7 +167,7 @@ def spot_check_file(tex_file: Path, md_file: Path):
 
 def main():
     """Run spot-checks on all converted files."""
-    base_dir = Path("<home>/Desktop/cursor/paper_templates/pinn_instruction")
+    base_dir = Path("<home>/Desktop/3_body_problem/paper_templates/pinn_instruction")
     md_dir = base_dir / "markdown_conversions"
 
     files = [

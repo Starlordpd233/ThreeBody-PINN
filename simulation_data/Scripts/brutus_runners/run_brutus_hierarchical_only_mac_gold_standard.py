@@ -11,7 +11,7 @@ too long, and so lowering the tolerance can help with that
 For new runs, remember to fix the bug first and then run rhe script again. You can first check if those
 moved-backed ICs from the blacklist will successfully run. Then continue with the rest.
 
-<home>/Desktop/cursor/brutus_Newton-main/Brutus.cpp
+<home>/Desktop/3_body_problem/brutus_Newton-main/Brutus.cpp
 
 Later this file can be modified to run for the coarser ICs with dt=0.08. Same with the window's script
 
@@ -26,7 +26,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import re
 
 # Paths
-BASE_DIR = Path("<home>/Desktop/cursor")
+BASE_DIR = Path("<home>/Desktop/3_body_problem")
 BRUTUS_EXEC = BASE_DIR / "brutus_Newton-main" / "brutus"
 PROBLEM_DIR = BASE_DIR / "simulation_data"
 

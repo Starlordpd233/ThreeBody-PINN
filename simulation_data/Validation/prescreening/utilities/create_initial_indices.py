@@ -11,7 +11,7 @@ from datetime import datetime
 def create_initial_indices():
     """Create initial processing index files if they don't exist."""
     
-    base_dir = "<home>/Desktop/cursor/simulation_data/Validation/prescreening"
+    base_dir = "<home>/Desktop/3_body_problem/simulation_data/Validation/prescreening"
     
     # Define index files
     indices = {

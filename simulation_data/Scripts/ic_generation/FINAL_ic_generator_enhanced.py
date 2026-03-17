@@ -1,17 +1,17 @@
 '''
 to navigate to the brutus folder to generate data, run the following command in terminal 
 (cursor's integrated terminal or Mac's terminal):
-cd ~/Desktop/cursor/brutus_Newton-main
+cd ~/Desktop/3_body_problem/brutus_Newton-main
 
 
 Command for running simulation:
 (after testing these are the parameters that worked)
 
 for hierarchical:
-./brutus 1e-15 130 0 10 0.15 3 <home>/Desktop/cursor/simulation_data/Data/testing_data/single_ic.txt > <home>/Desktop/cursor/simulation_data/Data/testing_data/test_output.txt
+./brutus 1e-15 130 0 10 0.15 3 <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/single_ic.txt > <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/test_output.txt
 
 for quasi-random:
-./brutus 1e-14 122 0 10 0.18 3 <home>/Desktop/cursor/simulation_data/Data/testing_data/single_ic.txt > <home>/Desktop/cursor/simulation_data/Data/testing_data/test_output.txt
+./brutus 1e-14 122 0 10 0.18 3 <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/single_ic.txt > <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/test_output.txt
 
 
 ./brutus 1e-11 84  0   10   0.01    3   my_IC.txt  > output.txt
@@ -593,10 +593,10 @@ def continuation_enhanced_ic_generation(
     # Set directory based on IC type
     if directory is None:
         if ic_type == "hierarchical":
-            directory = "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_hierarchical"
+            directory = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_hierarchical"
             base_filename = "ic_hierarchical_"
         else:
-            directory = "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_standard_quasi_random"
+            directory = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random"
             base_filename = "ic_standard_"
     
     os.makedirs(directory, exist_ok=True)

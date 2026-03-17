@@ -364,8 +364,8 @@ def create_configuration_space_plot(data, output_dir):
 
 def main():
     # Paths
-    ic_dir = "<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_hierarchical"
-    output_dir = "<home>/Desktop/cursor/simulation_data/Validation/analysis/figures/hierarchical_positions"
+    ic_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical"
+    output_dir = "<home>/Desktop/3_body_problem/simulation_data/Validation/analysis/figures/hierarchical_positions"
     
     print("Starting comprehensive analysis of hierarchical systems...")
     

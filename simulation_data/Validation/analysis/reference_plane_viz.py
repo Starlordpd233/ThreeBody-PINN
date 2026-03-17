@@ -451,7 +451,7 @@ def create_constraint_visualization(output_dir):
 
 
 def main():
-    output_dir = "<home>/Desktop/cursor/simulation_data/Validation/analysis/figures/reference_plane"
+    output_dir = "<home>/Desktop/3_body_problem/simulation_data/Validation/analysis/figures/reference_plane"
     
     print("Creating reference plane visualizations...")
     

@@ -2,10 +2,10 @@
 
 """
 To run:
-python <home>/Desktop/cursor/simulation_data/Validation/analysis/metrics_analysis.py hist      
-python <home>/Desktop/cursor/simulation_data/Validation/analysis/metrics_analysis.py heatmap   
-python <home>/Desktop/cursor/simulation_data/Validation/analysis/metrics_analysis.py scatter   
-python <home>/Desktop/cursor/simulation_data/Validation/analysis/metrics_analysis.py xyz       
+python <home>/Desktop/3_body_problem/simulation_data/Validation/analysis/metrics_analysis.py hist      
+python <home>/Desktop/3_body_problem/simulation_data/Validation/analysis/metrics_analysis.py heatmap   
+python <home>/Desktop/3_body_problem/simulation_data/Validation/analysis/metrics_analysis.py scatter   
+python <home>/Desktop/3_body_problem/simulation_data/Validation/analysis/metrics_analysis.py xyz       
 
 """
 
@@ -37,7 +37,7 @@ def histogram_simulation_times(folder, show_plot=False):
     plt.xlabel('Duration')
     plt.ylabel('Count')
     
-    output_path = '<home>/Desktop/cursor/simulation_data/Validation/analysis/figures/metrics_analysis/simulation_times_histogram.png'
+    output_path = '<home>/Desktop/3_body_problem/simulation_data/Validation/analysis/figures/metrics_analysis/simulation_times_histogram.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Histogram saved to: {output_path}")
     
@@ -71,7 +71,7 @@ def heatmap_pos2_vs_duration(folder, show_plot=False):
     plt.title('Position 2 vs Duration')
     plt.colorbar(label='Count')
     
-    output_path = '<home>/Desktop/cursor/simulation_data/Validation/analysis/figures/metrics_analysis/pos2_vs_duration_heatmap.png'
+    output_path = '<home>/Desktop/3_body_problem/simulation_data/Validation/analysis/figures/metrics_analysis/pos2_vs_duration_heatmap.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Heatmap saved to: {output_path}")
     
@@ -103,7 +103,7 @@ def scatter_ic_vs_energy(folder, show_plot=False):
     plt.ylabel('Max Energy Error')
     plt.title('IC vs Energy Conservation')
     
-    output_path = '<home>/Desktop/cursor/simulation_data/Validation/analysis/figures/metrics_analysis/ic_vs_energy_scatter.png'
+    output_path = '<home>/Desktop/3_body_problem/simulation_data/Validation/analysis/figures/metrics_analysis/ic_vs_energy_scatter.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Scatter plot saved to: {output_path}")
     
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     
     
     mode = sys.argv[1] if len(sys.argv)>1 else 'hist'
-    folder = sys.argv[2] if len(sys.argv)>2 else '<home>/Desktop/cursor/simulation_data/Data/metrics/sim_result_metric_hierarchical'
+    folder = sys.argv[2] if len(sys.argv)>2 else '<home>/Desktop/3_body_problem/simulation_data/Data/metrics/sim_result_metric_hierarchical'
     show_plots = '--show' in sys.argv  # Add --show flag to display plots
     
     print(f"Running metrics analysis with mode: {mode}, folder: {folder}")

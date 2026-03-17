@@ -148,7 +148,7 @@ def validate_file_pair(tex_file: Path, md_file: Path) -> Tuple[bool, str]:
 
 def main():
     """Validate all three conversions."""
-    base_dir = Path("<home>/Desktop/cursor/paper_templates/pinn_instruction")
+    base_dir = Path("<home>/Desktop/3_body_problem/paper_templates/pinn_instruction")
     md_dir = base_dir / "markdown_conversions"
 
     files_to_check = [

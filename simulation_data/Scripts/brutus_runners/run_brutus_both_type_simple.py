@@ -29,8 +29,8 @@ STANDARD_ICS_PER_RUN = 0    # Max standard ICs to process per run
 TIMEOUT_SECONDS = 3000          # Timeout for each simulation (50 minutes)
 
 # Base directory
-BASE_DIR = Path("<home>/Desktop/cursor/simulation_data")
-BRUTUS_EXEC = Path("<home>/Desktop/cursor/brutus_Newton-main/brutus")
+BASE_DIR = Path("<home>/Desktop/3_body_problem/simulation_data")
+BRUTUS_EXEC = Path("<home>/Desktop/3_body_problem/brutus_Newton-main/brutus")
 
 # Input/output directories
 IC_DIRS = {

@@ -1,7 +1,7 @@
 # Three-Body Problem IC + Brutus Output Dataset Documentation
 
 **Generated:** 2025-12-23 | **Last Updated:** 2026-03-09
-**Dataset Location:** `<home>/Desktop/cursor/simulation_data/`
+**Dataset Location:** `<home>/Desktop/3_body_problem/simulation_data/`
 **Path Convention:** Unless otherwise specified, paths in this document are relative to the repo root (e.g., start with `simulation_data/`).
 
 ---
@@ -504,7 +504,7 @@ All Brutus output files contain a `Result:` footer line, but the **field set var
 
 ### 2. `Result: filename=` Path and IC-Folder Ambiguity
 
-All current `Result: filename=` paths use macOS-style absolute paths (`<home>/Desktop/cursor/...`).
+All current `Result: filename=` paths use macOS-style absolute paths (`<home>/Desktop/3_body_problem/...`).
 
 **Implication:** Treat `Result: filename=` as an informational hint only, not an authoritative IC-to-output mapping.
 

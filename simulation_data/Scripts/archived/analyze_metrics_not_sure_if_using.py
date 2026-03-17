@@ -4,7 +4,7 @@ Metrics Analysis Tool for Brutus Simulations
 Analyzes the JSON metrics files to generate summary statistics and plots
 
 Usage:
-python3 <home>/Desktop/cursor/simulation_data/analyze_metrics.py
+python3 <home>/Desktop/3_body_problem/simulation_data/analyze_metrics.py
 """
 
 import json
@@ -15,7 +15,7 @@ import pandas as pd
 from datetime import datetime
 
 # Paths
-BASE_DIR = Path("<home>/Desktop/cursor/simulation_data")
+BASE_DIR = Path("<home>/Desktop/3_body_problem/simulation_data")
 METRICS_DIRS = {
     "hierarchical": BASE_DIR / "Data" / "metrics" / "sim_result_metric_hierarchical",
     "standard": BASE_DIR / "Data" / "metrics" / "sim_result_metric_standard"

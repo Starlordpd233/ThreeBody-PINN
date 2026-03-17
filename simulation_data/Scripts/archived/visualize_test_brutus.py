@@ -307,7 +307,7 @@ def plot_energy_analysis(snapshots):
 # Main execution
 if __name__ == "__main__":
     # Parse the output file
-    filename = '<home>/Desktop/cursor/simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_4951.txt'  # Change this to your output file name
+    filename = '<home>/Desktop/3_body_problem/simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_4951.txt'  # Change this to your output file name
     snapshots = parse_brutus_output(filename)
     
     print(f"Loaded {len(snapshots)} snapshots")

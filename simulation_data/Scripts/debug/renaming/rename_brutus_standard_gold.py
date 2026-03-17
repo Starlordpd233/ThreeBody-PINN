@@ -2,7 +2,7 @@ import os
 import re
 
 # Define the folder path
-folder_path = "<home>/Desktop/cursor/simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard"
+folder_path = "<home>/Desktop/3_body_problem/simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard"
 
 # Get all files in the folder
 files = os.listdir(folder_path)

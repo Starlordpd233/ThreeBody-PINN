@@ -601,7 +601,7 @@ def verify_file_pair(tex_path: Path, md_path: Path) -> Tuple[bool, List[str]]:
     return all_pass, messages
 
 def main():
-    base_dir = Path("<home>/Desktop/cursor/pinn_instruction")
+    base_dir = Path("<home>/Desktop/3_body_problem/pinn_instruction")
     md_dir = base_dir / "markdown_conversions"
     pairs = [
         ("CTL-instruction-final.tex", "CTL-instruction-final.md"),

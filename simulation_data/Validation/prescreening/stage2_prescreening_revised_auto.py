@@ -39,13 +39,13 @@ G = 1.0  # Gravitational constant (natural units)
 DATASET_CONFIGS = [
     {
         'name': 'ic_hierarchical',
-        'input_dir': "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_hierarchical",
-        'output_dir': "<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_hierarchical",
+        'input_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_hierarchical",
+        'output_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical",
     },
     {
         'name': 'ic_standard_quasi_random',
-        'input_dir': "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_standard_quasi_random",
-        'output_dir': "<home>/Desktop/cursor/simulation_data/Data/ic_final/ic_standard_quasi_random",
+        'input_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random",
+        'output_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_standard_quasi_random",
     }
 ]
 
@@ -419,7 +419,7 @@ def process_dataset(config: Dict, run_id: str) -> Dict:
     os.makedirs(output_dir, exist_ok=True)
     
     # Load processing index for this dataset
-    index_file = os.path.join("<home>/Desktop/cursor/simulation_data/Validation/prescreening",
+    index_file = os.path.join("<home>/Desktop/3_body_problem/simulation_data/Validation/prescreening",
                               f"processing_index_{dataset_name}.json")
     index_data = load_processing_index(index_file)
     
@@ -646,7 +646,7 @@ def main():
     
     # Save combined results to the new results directory
     run_results_file = os.path.join(
-        "<home>/Desktop/cursor/simulation_data/Validation/prescreening/prescreen_run_results",
+        "<home>/Desktop/3_body_problem/simulation_data/Validation/prescreening/prescreen_run_results",
         f"run_results_{run_id.replace(':', '-')}.json"
     )
     

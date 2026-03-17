@@ -10,7 +10,7 @@ import numpy as np
 
 def simulate_new_batch_arrival():
     """Simulate adding new IC files to the raw dataset directory."""
-    raw_dir = "<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_standard_quasi_random"
+    raw_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random"
     
     # Generate a small batch of new ICs
     print("Generating new batch of ICs...")
@@ -81,8 +81,8 @@ def main():
     print("=" * 60)
     
     # Paths
-    utils_script = "<home>/Desktop/cursor/simulation_data/Validation/prescreening/prescreening_utils.py"
-    prescreening_script = "<home>/Desktop/cursor/simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py"
+    utils_script = "<home>/Desktop/3_body_problem/simulation_data/Validation/prescreening/prescreening_utils.py"
+    prescreening_script = "<home>/Desktop/3_body_problem/simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py"
     
     print("\nThis example demonstrates a typical workflow where new IC batches")
     print("are continuously added and processed efficiently.\n")

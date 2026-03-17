@@ -905,7 +905,7 @@ class LaTeXToMarkdownConverter:
 
 def main():
     """Convert all three instruction files."""
-    base_dir = Path("<home>/Desktop/cursor/pinn_instruction")
+    base_dir = Path("<home>/Desktop/3_body_problem/pinn_instruction")
     output_dir = base_dir / "markdown_conversions"
 
     files_to_convert = [

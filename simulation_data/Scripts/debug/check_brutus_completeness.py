@@ -91,7 +91,7 @@ def check_brutus_completeness(directory_path, file_type="hierarchical", time_thr
 
 def main():
     # Configuration: Set your directory here
-    BRUTUS_OUTPUT_DIR = "<home>/Desktop/cursor/simulation_data/Data/brutus_output/brutus_standard_quasi_random"
+    BRUTUS_OUTPUT_DIR = "<home>/Desktop/3_body_problem/simulation_data/Data/brutus_output/brutus_standard_quasi_random"
     
     # Detect file_type from directory name (or set manually)
     if "hierarchical" in BRUTUS_OUTPUT_DIR.lower():

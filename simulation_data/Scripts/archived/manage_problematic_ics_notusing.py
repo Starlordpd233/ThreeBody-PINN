@@ -17,7 +17,7 @@ from datetime import datetime
 import json
 
 # Directories
-BASE_DIR = Path("<home>/Desktop/cursor/simulation_data")
+BASE_DIR = Path("<home>/Desktop/3_body_problem/simulation_data")
 IC_DIRS = {
     "hierarchical": BASE_DIR / "Data" / "ic_final" / "ic_hierarchical",
     "standard": BASE_DIR / "Data" / "ic_final" / "ic_standard_quasi_random"

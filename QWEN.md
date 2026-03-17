@@ -55,7 +55,7 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 
 ### 2.3 Key Directories
 ```
-<home>/Desktop/cursor/
+<home>/Desktop/3_body_problem/
 ├── brutus_Newton-main/          # C++ N-body integrator
 ├── simulation_data/             # Simulation pipeline and datasets
 ├── pinn/                        # PINN system and data processing

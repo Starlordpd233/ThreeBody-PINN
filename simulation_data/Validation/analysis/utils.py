@@ -498,7 +498,7 @@ def load_metrics_with_positions(filepath: str, ic_base_dir: str = None) -> Dict:
     return data
 
 
-def load_metrics(filepath: str, ic_base_dir: str = '<home>/Desktop/cursor/simulation_data/Data/ic_raw/ic_hierarchical/') -> Dict:
+def load_metrics(filepath: str, ic_base_dir: str = '<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_hierarchical/') -> Dict:
     
     Load simulation metrics from JSON or text file.
     Handles the actual Brutus metrics format and provides expected keys for metrics_analysis.py.
