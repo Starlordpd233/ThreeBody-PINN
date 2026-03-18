@@ -1,68 +1,77 @@
-# 3-Body Problem Codebase Cleanup
+# Three-Body Physics-Informed LLM
 
 ## What This Is
 
-A cleanup and consolidation of the three-body simulation + CTL-PINN training repository. The project has accumulated duplicate IC datasets, transient pipeline data, and legacy build artifacts that inflate the 13 GB codebase. This work removes confirmed redundancies, updates all code paths and documentation, and leaves the repository with a clean, minimal data layout.
+A research project that generates high-precision three-body gravitational simulation data using the Brutus N-body integrator, and uses that data to fine-tune a language model (Qwen 3.5 2B) that can predict three-body trajectories numerically given initial conditions. The project spans the full pipeline from simulation data generation through to LLM training.
 
 ## Core Value
 
-Every active script, validation tool, and documentation file must correctly resolve IC paths after consolidation — no broken references, no silent failures.
+The simulation dataset and data pipeline must be clean, well-validated, and correctly processed — everything downstream (PINN or LLM training) depends on data integrity.
 
 ## Requirements
 
 ### Validated
 
-- Hierarchical gold ICs are byte-identical to base hierarchical ICs (4857 files, verified)
-- Standard gold ICs are a strict byte-identical subset of standard ICs (2565 of 2749 files, 184 IDs excluded)
-- `simulation_data/Data/**` is git-ignored — filesystem backup required before data deletion
-- Numeric ID extraction (`split('_')[-1]`) works identically with either naming convention
+<!-- Shipped and confirmed valuable. -->
+
+- ✓ Brutus N-body integrator compiles and runs on macOS (C++, GMP/MPFR) — existing
+- ✓ IC generation for standard quasi-random and hierarchical configurations (Sobol + orbital elements) — existing
+- ✓ Stage 2 prescreening rejects unstable ICs via short leapfrog integration — existing
+- ✓ Batch Brutus runners for both IC types with timeout handling — existing
+- ✓ Conservation metrics extraction (energy, momentum, angular momentum) — existing
+- ✓ Dataset documentation with completeness checks and provenance tracking — existing
+- ✓ PINN architecture defined (SQR-SkipResNet-SIREN, 14→256×12→9) — existing
+- ✓ Data processing pipeline computes 13-component IC vector with normalization — existing
 
 ### Active
 
-- [ ] Consolidate duplicate hierarchical gold IC folder into base `ic_hierarchical/`
-- [ ] Consolidate standard gold IC subset into base `ic_standard_quasi_random/`
-- [ ] Update all scripts referencing gold IC directories to use base IC folders
-- [ ] Externalize `ic_raw/` paths in Stage 1/2 scripts via configurable env var
-- [ ] Add subset-aware standard_gold validation (184-ID gap handling)
-- [ ] Update all documentation to reflect 2-IC-folder layout
-- [ ] Delete `ic_raw/`, both `_for_gold_standard/` IC folders
-- [ ] Delete `paper_templates/old_templates/`, `brutus_simulation_documentation/`
-- [ ] Clean `__pycache__/` and LaTeX build artifacts
+<!-- Current scope. Building toward these. -->
+
+- [ ] Codebase cleanup: consolidate duplicate IC folders (gold → non-gold)
+- [ ] Codebase cleanup: remove in-repo raw ICs, externalize raw IC paths
+- [ ] Codebase cleanup: add subset-aware standard-gold validation (184-ID gap)
+- [ ] Codebase cleanup: update all documentation to reflect post-cleanup layout
+- [ ] Codebase cleanup: delete legacy folders and build artifacts
+- [ ] Data pipeline: get PINN training loop working end-to-end (architecture exists, training does not)
+- [ ] LLM fine-tuning: prepare simulation data for language model training format
+- [ ] LLM fine-tuning: fine-tune Qwen 3.5 2B on three-body trajectory prediction
 
 ### Out of Scope
 
-- `.git/` pruning or `git gc` — risky for shared history
-- Brutus C++ code changes — integrator is stable
-- Archived/debug scripts — user chose to keep
-- `pinn_instruction/` format consolidation — user chose to keep all formats
-- `Qwen3.5-2B-4bit/` model — actively used
-- `reference-code/` repos — actively referenced
+<!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
+
+- Modifying Brutus C++ integrator — it works, no changes needed
+- `.git/lfs/` pruning or repository size reduction — separate concern
+- Real-time prediction API or web interface — research project, not a product
+- Qualitative reasoning by the LLM — focus is on numerical trajectory prediction first
 
 ## Context
 
-- The repository implements a three-body simulation pipeline (Brutus integrator) and CTL-PINN training stack
-- Gold-standard runs use identical ICs as normal runs but with tighter Brutus parameters (tol, dt_out)
-- The `ic_hierarchical_for_gold_standard/` folder was created by renaming files with a `gold` prefix — content is identical
-- The `ic_standard_quasi_random_for_gold_standard/` folder is a 2565-file subset of the 2749-file standard folder
-- There is no runner script for standard quasi-random gold standard — provenance is mixed
-- `ic_raw/` is the Stage 1 output consumed by Stage 2 prescreening — a transient pipeline artifact
-- Detailed cleanup spec exists at `docs/plans/cleaning-3-body.md`
+- Brutus generates trajectories with 30-40 significant digit precision, G=1 natural units
+- Two IC types: standard quasi-random (equal masses, Sobol sampling) and hierarchical (variable masses, orbital elements)
+- Four dataset variants per type: standard and gold-standard (higher-resolution output)
+- Gold IC folders are byte-identical duplicates/subsets of standard IC folders → cleanup target
+- Existing PINN approach (SQR-SkipResNet-SIREN) relationship to new LLM direction is TBD
+- Qwen 3.5 2B 4-bit model already downloaded at `Qwen3.5-2B-4bit/`
+- Revised cleanup plan exists at `docs/plans/cleaning-3-body.md`
 
 ## Constraints
 
-- **Data safety**: `simulation_data/Data/**` is git-ignored. Filesystem backup mandatory before any data deletion.
-- **Code-first**: All path rewrites must be complete and verified before any folder deletion.
-- **Subset awareness**: Standard gold validation must handle the 184-ID gap explicitly (not conflate with blacklist).
-- **No Brutus changes**: `brutus_Newton-main/` is not modified.
+- **Hardware**: M2 Mac development machine — limits model size and training speed
+- **Model**: Qwen 3.5 2B 4-bit — chosen for local training feasibility on M2
+- **Data format**: Brutus outputs are high-precision text files, not natively LLM-friendly
+- **Dependencies**: No `requirements.txt` exists — environment management needed
 
 ## Key Decisions
 
+<!-- Decisions that constrain future work. Add throughout project lifecycle. -->
+
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Keep 2 IC folders, delete 4 | Gold ICs are duplicates/subsets of base ICs | — Pending |
-| Externalize ic_raw via env var | Scripts need configurable raw IC path after in-repo deletion | — Pending |
-| Create 184-ID exclusion list | Standard gold is a known subset; validation must be subset-aware | — Pending |
-| Backup before delete | Git-ignored data cannot be recovered from git history | — Pending |
+| Fine-tune Qwen 3.5 2B for trajectory prediction | Small enough to train locally on M2 Mac | — Pending |
+| Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | — Pending |
+| PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
+| Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
 
 ---
 *Last updated: 2026-03-18 after initialization*
