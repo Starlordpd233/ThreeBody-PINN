@@ -27,11 +27,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Running `grep -r` for `ic_hierarchical_gold_` and `ic_standard_gold_` filename patterns across active scripts returns zero matches
   3. Stage 1/2 scripts accept an `IC_RAW_DIR` environment variable and do not contain hardcoded `simulation_data/Data/ic_raw/` paths
   4. Correspondence validation for standard_gold correctly excludes the 184 known IDs without false failures, and the 184-ID exclusion list exists at `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [x] 01-01: Update config.py and naming.py gold IC paths to base folders (Wave 1)
+- [x] 01-02: Update debug scripts and add IC_RAW_DIR to Stage 1/2 scripts (Wave 2)
+- [x] 01-03: Add 184-ID exclusion loading to correspondence.py (Wave 2)
 
 ### Phase 2: Documentation Updates
 **Goal**: All documentation accurately describes the consolidated 2-IC-folder layout, externalized ic_raw, and the 184-ID subset relationship
@@ -67,6 +68,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Code Rewrites and Validation | 0/? | Not started | - |
+| 1. Code Rewrites and Validation | 0/3 | Planning complete | - |
 | 2. Documentation Updates | 0/? | Not started | - |
 | 3. Data Deletion and Legacy Cleanup | 0/? | Not started | - |
