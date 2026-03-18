@@ -68,19 +68,19 @@
 | PATH-04 | Phase 1 | Pending |
 | PATH-05 | Phase 1 | Pending |
 | PATH-06 | Phase 1 | Pending |
-| VALD-01 | Phase 2 | Pending |
-| VALD-02 | Phase 2 | Pending |
-| DOCS-01 | Phase 3 | Pending |
-| DOCS-02 | Phase 3 | Pending |
-| DOCS-03 | Phase 3 | Pending |
-| DOCS-04 | Phase 3 | Pending |
-| DEL-01 | Phase 4 | Pending |
-| DEL-02 | Phase 4 | Pending |
-| DEL-03 | Phase 4 | Pending |
-| CLN-01 | Phase 5 | Pending |
-| CLN-02 | Phase 5 | Pending |
-| CLN-03 | Phase 5 | Pending |
-| CLN-04 | Phase 5 | Pending |
+| VALD-01 | Phase 1 | Pending |
+| VALD-02 | Phase 1 | Pending |
+| DOCS-01 | Phase 2 | Pending |
+| DOCS-02 | Phase 2 | Pending |
+| DOCS-03 | Phase 2 | Pending |
+| DOCS-04 | Phase 2 | Pending |
+| DEL-01 | Phase 3 | Pending |
+| DEL-02 | Phase 3 | Pending |
+| DEL-03 | Phase 3 | Pending |
+| CLN-01 | Phase 3 | Pending |
+| CLN-02 | Phase 3 | Pending |
+| CLN-03 | Phase 3 | Pending |
+| CLN-04 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 19 total
@@ -89,4 +89,4 @@
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after initial definition*
+*Last updated: 2026-03-18 after roadmap creation (compressed from 5 phases to 3 for coarse granularity)*
