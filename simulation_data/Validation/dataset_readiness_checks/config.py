@@ -61,7 +61,7 @@ class ValidationConfig:
         if self.ic_patterns is None:
             self.ic_patterns = {
                 "hierarchical": "ic_hierarchical_{num:04d}.txt",
-                "hierarchical_gold": "ic_hierarchical_gold_{num:04d}.txt",
+                "hierarchical_gold": "ic_hierarchical_{num:04d}.txt",  # Files are named ic_hierarchical_*.txt, not ic_hierarchical_gold_*.txt
                 "standard": "ic_standard_{num:04d}.txt",
                 "standard_gold": "ic_standard_{num:04d}.txt"  # Files are named ic_standard_*.txt, not ic_standard_gold_*.txt
             }
