@@ -12,7 +12,7 @@ This cleanup consolidates duplicate IC datasets, updates all code paths and docu
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Code Rewrites and Validation** - Rewrite all gold IC paths to base folders, externalize ic_raw references, and make correspondence validation subset-aware
+- [x] **Phase 1: Code Rewrites and Validation** - Rewrite all gold IC paths to base folders, externalize ic_raw references, and make correspondence validation subset-aware (completed 2026-03-18)
 - [ ] **Phase 2: Documentation Updates** - Update all documentation to reflect the consolidated 2-IC-folder layout and externalized ic_raw behavior
 - [ ] **Phase 3: Data Deletion and Legacy Cleanup** - Remove redundant IC folders, ic_raw, legacy directories, and build artifacts
 
@@ -68,6 +68,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Code Rewrites and Validation | 1/3 | In progress | 01-01 |
+| 1. Code Rewrites and Validation | 3/3 | Complete   | 2026-03-18 |
 | 2. Documentation Updates | 0/? | Not started | - |
 | 3. Data Deletion and Legacy Cleanup | 0/? | Not started | - |
