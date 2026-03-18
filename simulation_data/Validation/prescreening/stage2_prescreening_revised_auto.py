@@ -35,16 +35,25 @@ ANGULAR_PERCENTILE_MIN = 0  # No angular momentum filtering for now
 # Constants
 G = 1.0  # Gravitational constant (natural units)
 
+# IC_RAW_DIR environment variable for external ic_raw directory
+IC_RAW_DIR = os.environ.get('IC_RAW_DIR')
+if IC_RAW_DIR is None:
+    raise RuntimeError(
+        "IC_RAW_DIR environment variable not set. "
+        "Export the path to your ic_raw directory: "
+        "export IC_RAW_DIR=/path/to/ic_raw"
+    )
+
 # Dataset configurations
 DATASET_CONFIGS = [
     {
         'name': 'ic_hierarchical',
-        'input_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_hierarchical",
+        'input_dir': os.path.join(IC_RAW_DIR, 'ic_hierarchical'),
         'output_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical",
     },
     {
         'name': 'ic_standard_quasi_random',
-        'input_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random",
+        'input_dir': os.path.join(IC_RAW_DIR, 'ic_standard_quasi_random'),
         'output_dir': "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_standard_quasi_random",
     }
 ]

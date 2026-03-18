@@ -10,7 +10,14 @@ import numpy as np
 
 def simulate_new_batch_arrival():
     """Simulate adding new IC files to the raw dataset directory."""
-    raw_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random"
+    # Use IC_RAW_DIR environment variable
+    IC_RAW_DIR = os.environ.get('IC_RAW_DIR')
+    if IC_RAW_DIR is None:
+        raise RuntimeError(
+            "IC_RAW_DIR environment variable not set. "
+            "Export: export IC_RAW_DIR=/path/to/ic_raw"
+        )
+    raw_dir = os.path.join(IC_RAW_DIR, 'ic_standard_quasi_random')
     
     # Generate a small batch of new ICs
     print("Generating new batch of ICs...")

@@ -208,7 +208,13 @@ def main():
     # Paths
     default_output_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final"
     default_index = os.path.join(default_output_dir, "processing_index.json")
-    default_input_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random"
+
+    # Use IC_RAW_DIR environment variable for default input directory
+    IC_RAW_DIR = os.environ.get('IC_RAW_DIR')
+    if IC_RAW_DIR is None:
+        default_input_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random"
+    else:
+        default_input_dir = os.path.join(IC_RAW_DIR, 'ic_standard_quasi_random')
     
     parser.add_argument("--index", default=default_index, help="Path to processing index")
     
