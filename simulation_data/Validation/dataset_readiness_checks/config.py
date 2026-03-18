@@ -63,7 +63,7 @@ class ValidationConfig:
                 "hierarchical": "ic_hierarchical_{num:04d}.txt",
                 "hierarchical_gold": "ic_hierarchical_gold_{num:04d}.txt",
                 "standard": "ic_standard_{num:04d}.txt",
-                "standard_gold": "ic_standard_gold_{num:04d}.txt"
+                "standard_gold": "ic_standard_{num:04d}.txt"  # Files are named ic_standard_*.txt, not ic_standard_gold_*.txt
             }
 
         if self.brutus_patterns is None:

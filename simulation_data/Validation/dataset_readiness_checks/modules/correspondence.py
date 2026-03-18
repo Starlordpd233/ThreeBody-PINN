@@ -121,6 +121,12 @@ def is_blacklisted(file_number: int, variant: str) -> bool:
     Returns:
         True if blacklisted, False otherwise
     """
+    # Check standard_gold exclusions first (184 IDs not selected for gold-standard re-simulation)
+    if variant == 'standard_gold':
+        excluded_ids = load_standard_gold_exclusions()
+        if file_number in excluded_ids:
+            return True
+
     blacklist = config.get_blacklist_ids()
 
     # Map variant names to blacklist keys
@@ -134,11 +140,6 @@ def is_blacklisted(file_number: int, variant: str) -> bool:
     key = variant_to_key.get(variant)
     if key and key in blacklist:
         return file_number in blacklist[key]
-
-    # Check standard_gold exclusions (184 IDs not selected for gold-standard re-simulation)
-    if variant == 'standard_gold':
-        excluded_ids = load_standard_gold_exclusions()
-        return file_number in excluded_ids
 
     return False
 
@@ -239,7 +240,10 @@ def log_summary(variant: str, ic_numbers: Set[int], brutus_numbers: Set[int],
     logger.info(f"  Brutus outputs: {len(brutus_numbers)}")
     logger.info(f"  Missing Brutus outputs: {actual_missing} (excluding {blacklisted_missing} blacklisted)")
     logger.info(f"  Missing IC files: {len(missing_ic)}")
-    logger.info(f"  Completion: {len(brutus_numbers)}/{len(ic_numbers)} ({len(brutus_numbers)/len(ic_numbers)*100:.1f}%)")
+    if len(ic_numbers) > 0:
+        logger.info(f"  Completion: {len(brutus_numbers)}/{len(ic_numbers)} ({len(brutus_numbers)/len(ic_numbers)*100:.1f}%)")
+    else:
+        logger.info(f"  Completion: N/A (no IC files found)")
 
     # Report standard_gold exclusion list (184 IDs not selected for gold-standard re-simulation)
     if variant == 'standard_gold':
