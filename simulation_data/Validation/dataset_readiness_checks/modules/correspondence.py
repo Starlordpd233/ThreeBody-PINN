@@ -6,7 +6,7 @@ Checks 1:1 correspondence between IC files and Brutus output files.
 """
 
 from pathlib import Path
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict, Set, Tuple, Any
 import logging
 
 from ..datastructures import ValidationIssue, ValidationStatus, create_issue
@@ -135,7 +135,46 @@ def is_blacklisted(file_number: int, variant: str) -> bool:
     if key and key in blacklist:
         return file_number in blacklist[key]
 
+    # Check standard_gold exclusions (184 IDs not selected for gold-standard re-simulation)
+    if variant == 'standard_gold':
+        excluded_ids = load_standard_gold_exclusions()
+        return file_number in excluded_ids
+
     return False
+
+
+def load_standard_gold_exclusions() -> Set[int]:
+    """
+    Load 184 excluded IDs from standard_quasi_random_ids_not_in_gold.md.
+
+    These are ICs that exist in ic_standard_quasi_random/ but were never
+    selected for gold-standard re-simulation (dt_out=0.01).
+
+    Returns:
+        Set of excluded numeric IDs
+    """
+    excluded: Set[int] = set()
+    md_path = Path(__file__).parent.parent.parent.parent / "Documentation" / "standard_quasi_random_ids_not_in_gold.md"
+    if not md_path.exists():
+        logging.warning(f"Exclusion list not found: {md_path}")
+        return excluded
+
+    with open(md_path) as f:
+        in_list = False
+        for line in f:
+            line = line.strip()
+            if line.startswith('```') and line.endswith('```'):
+                in_list = not in_list
+                continue
+            if in_list:
+                for token in line.split():
+                    if token.isdigit():
+                        excluded.add(int(token))
+
+    if len(excluded) != 184:
+        logging.warning(f"Expected 184 excluded IDs, found {len(excluded)}. Exclusion list may be outdated.")
+
+    return excluded
 
 
 def check_for_duplicates(directory: Path, variant: str, file_type: str) -> List[ValidationIssue]:
@@ -201,6 +240,11 @@ def log_summary(variant: str, ic_numbers: Set[int], brutus_numbers: Set[int],
     logger.info(f"  Missing Brutus outputs: {actual_missing} (excluding {blacklisted_missing} blacklisted)")
     logger.info(f"  Missing IC files: {len(missing_ic)}")
     logger.info(f"  Completion: {len(brutus_numbers)}/{len(ic_numbers)} ({len(brutus_numbers)/len(ic_numbers)*100:.1f}%)")
+
+    # Report standard_gold exclusion list (184 IDs not selected for gold-standard re-simulation)
+    if variant == 'standard_gold':
+        excluded_ids = load_standard_gold_exclusions()
+        logger.info(f"  {len(excluded_ids)} IDs excluded per standard_quasi_random_ids_not_in_gold.md (expected subset gap)")
 
     if actual_missing == 0 and len(missing_ic) == 0:
         logger.info(f"  ✅ Perfect 1:1 correspondence!")
