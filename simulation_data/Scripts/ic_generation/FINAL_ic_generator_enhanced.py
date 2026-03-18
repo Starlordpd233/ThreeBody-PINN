@@ -592,11 +592,19 @@ def continuation_enhanced_ic_generation(
     """
     # Set directory based on IC type
     if directory is None:
+        IC_RAW_DIR = os.environ.get('IC_RAW_DIR')
+        if IC_RAW_DIR is None:
+            raise RuntimeError(
+                "IC_RAW_DIR environment variable not set. "
+                "This script requires an external ic_raw directory with "
+                "ic_hierarchical/ and ic_standard_quasi_random/ subdirectories.\n"
+                "Example: export IC_RAW_DIR=/path/to/ic_raw"
+            )
         if ic_type == "hierarchical":
-            directory = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_hierarchical"
+            directory = os.path.join(IC_RAW_DIR, 'ic_hierarchical')
             base_filename = "ic_hierarchical_"
         else:
-            directory = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_standard_quasi_random"
+            directory = os.path.join(IC_RAW_DIR, 'ic_standard_quasi_random')
             base_filename = "ic_standard_"
     
     os.makedirs(directory, exist_ok=True)
