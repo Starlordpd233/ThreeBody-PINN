@@ -45,7 +45,7 @@ class ValidationConfig:
                     "brutus_dir": "Data/brutus_output/brutus_hierarchical"
                 },
                 "hierarchical_gold": {
-                    "ic_dir": "Data/ic_final/ic_hierarchical_for_gold_standard",
+                    "ic_dir": "Data/ic_final/ic_hierarchical",
                     "brutus_dir": "Data/brutus_output/brutus_hierarchical_gold_standard"
                 },
                 "standard": {
@@ -53,7 +53,7 @@ class ValidationConfig:
                     "brutus_dir": "Data/brutus_output/brutus_standard_quasi_random"
                 },
                 "standard_gold": {
-                    "ic_dir": "Data/ic_final/ic_standard_quasi_random_for_gold_standard",
+                    "ic_dir": "Data/ic_final/ic_standard_quasi_random",
                     "brutus_dir": "Data/brutus_output/brutus_standard_quasi_random_gold_standard"
                 }
             }
