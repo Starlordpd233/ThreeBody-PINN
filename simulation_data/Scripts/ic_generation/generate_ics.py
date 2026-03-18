@@ -7,7 +7,7 @@ Run this to generate new initial conditions
 import sys
 sys.path.append('<home>/Desktop/3_body_problem/simulation_data/Scripts/ic_generation')
 
-from FINAL_ic_generator_enhanced import continuation_enhanced_ic_generation
+from ic_generation_utils import continuation_enhanced_ic_generation
 
 # Configuration
 GENERATE_STANDARD = True  # Set to True to generate standard ICs
