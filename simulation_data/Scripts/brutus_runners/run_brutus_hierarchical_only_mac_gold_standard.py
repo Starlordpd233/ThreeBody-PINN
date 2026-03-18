@@ -31,9 +31,9 @@ BRUTUS_EXEC = BASE_DIR / "brutus_Newton-main" / "brutus"
 PROBLEM_DIR = BASE_DIR / "simulation_data"
 
 # Input and output directories
-IC_DIR = PROBLEM_DIR / "Data" / "ic_final" / "ic_hierarchical_for_gold_standard"
+IC_DIR = PROBLEM_DIR / "Data" / "ic_final" / "ic_hierarchical"
 OUTPUT_DIR = PROBLEM_DIR / "Data" / "brutus_output" / "brutus_hierarchical_gold_standard"
-PROBLEMATIC_DIR = PROBLEM_DIR / "Documentation" / "problematic_ics" / "hierarchical_for_gold_standard"
+PROBLEMATIC_DIR = PROBLEM_DIR / "Documentation" / "problematic_ics" / "hierarchical"
 
 # Brutus parameters for hierarchical simulations
 BRUTUS_PARAMS = {
