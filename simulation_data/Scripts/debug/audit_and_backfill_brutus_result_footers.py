@@ -257,7 +257,7 @@ def infer_ic_path(output_filepath: str, folder_type: str) -> Optional[str]:
     # Map folder type to IC directory
     ic_dir_map = {
         'hierarchical': 'ic_hierarchical',
-        'hierarchical_gold': 'ic_hierarchical_for_gold_standard',
+        'hierarchical_gold': 'ic_hierarchical',
         'standard': 'ic_standard_quasi_random',
         'standard_gold': 'ic_standard_quasi_random'  # Try both standard and standard_gold
     }
@@ -271,7 +271,7 @@ def infer_ic_path(output_filepath: str, folder_type: str) -> Optional[str]:
 
     # For standard_gold, also try the gold-standard specific directory
     if folder_type == 'standard_gold':
-        ic_dir_gold = base_dir / 'ic_standard_quasi_random_for_gold_standard'
+        ic_dir_gold = base_dir / 'ic_standard_quasi_random'
         ic_path_gold = ic_dir_gold / ic_filename
         if ic_path_gold.exists():
             return str(ic_path_gold)

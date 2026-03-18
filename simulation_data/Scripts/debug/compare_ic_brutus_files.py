@@ -29,7 +29,7 @@ def get_file_numbers(directory, prefix, suffix):
 
 def main():
     # Define paths
-    ic_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard"
+    ic_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical"
     brutus_dir = "<home>/Desktop/3_body_problem/simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard"
     
     # Get file numbers

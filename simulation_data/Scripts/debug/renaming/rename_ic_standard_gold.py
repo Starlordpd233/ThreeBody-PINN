@@ -2,7 +2,7 @@ import os
 import re
 
 # Define the folder path
-folder_path = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_standard_quasi_random_for_gold_standard"
+folder_path = "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_standard_quasi_random"
 
 # Get all files in the folder
 files = os.listdir(folder_path)
@@ -26,4 +26,4 @@ for file in files:
             os.rename(old_path, new_path)
             print(f"Renamed: {file} -> {new_filename}")
 
-print("Renaming completed for ic_standard_quasi_random_for_gold_standard folder!")
+print("Renaming completed for ic_standard_quasi_random folder!")

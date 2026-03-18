@@ -140,7 +140,7 @@ def compare_folders(folder1, folder2):
 
 def main():
     folder1 = "<home>/Desktop/3_body_problem/simulation_data/Documentation/problematic_ics/hierarchical"
-    folder2 = "<home>/Desktop/3_body_problem/simulation_data/Documentation/problematic_ics/hierarchical_for_gold_standard"
+    folder2 = "<home>/Desktop/3_body_problem/simulation_data/Documentation/problematic_ics/hierarchical"
     
     compare_folders(folder1, folder2)
 
