@@ -1,6 +1,6 @@
 # Three-Body Problem IC + Brutus Output Dataset Documentation
 
-**Generated:** 2025-12-23 | **Last Updated:** 2026-03-09
+**Generated:** 2025-12-23 | **Last Updated:** 2026-03-19
 **Dataset Location:** `<home>/Desktop/3_body_problem/simulation_data/`
 **Path Convention:** Unless otherwise specified, paths in this document are relative to the repo root (e.g., start with `simulation_data/`).
 
@@ -51,13 +51,13 @@ The dataset is organized into two main categories:
 | Folder | Type | File Count | ID Range | Gaps | Disk Usage |
 |--------|------|------------|----------|------|------------|
 | `simulation_data/Data/ic_final/ic_hierarchical/` | IC | 4,857 | 0000-4999 | 143 gaps | ~19 MB |
-| `simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard/` | IC | 4,857 | 0000-4999 | 143 gaps | ~19 MB |
 | `simulation_data/Data/ic_final/ic_standard_quasi_random/` | IC | 2,749 | 0000-3998 | 1,250 gaps | ~11 MB |
-| `simulation_data/Data/ic_final/ic_standard_quasi_random_for_gold_standard/` | IC | 2,565 | 0000-3998 | 1,434 gaps | ~10 MB |
 | `simulation_data/Data/brutus_output/brutus_hierarchical/` | Trajectory | 4,857 | 0000-4999 | 143 gaps | ~531 MB |
 | `simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/` | Trajectory | 4,857 | 0000-4999 | 143 gaps | ~2.4 GB |
 | `simulation_data/Data/brutus_output/brutus_standard_quasi_random/` | Trajectory | 2,749 | 0000-3998 | 1,250 gaps | ~122 MB |
 | `simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/` | Trajectory | 2,565 | 0000-3998 | 1,434 gaps | ~1.7 GB |
+
+**Note:** Gold-standard Brutus output folders (`brutus_hierarchical_gold_standard/`, `brutus_standard_quasi_random_gold_standard/`) still exist. Only the gold IC input folders (`ic_hierarchical_for_gold_standard/`, `ic_standard_quasi_random_for_gold_standard/`) were duplicates and have been removed. Gold runs now read from the base IC folders.
 
 ### Dataset Relationships
 
@@ -79,10 +79,10 @@ simulation_data/Data/brutus_output/             [Stage 3 output - integrated tra
 - Gold standard: `ic_standard_gold_XXXX.txt` ↔ `brutus_standard_gold_XXXX.txt`
 
 **Gold Standard Subsets:**
-- `*_for_gold_standard` IC folders and `*_gold_standard` Brutus folders contain higher-resolution outputs
+- `*_gold_standard` Brutus output folders contain higher-resolution outputs (dt_out=0.01)
 - For hierarchical ICs: gold standard is a complete copy (same 4,857 files)
-- For standard quasi-random: gold standard excludes 184 IDs (2,749 → 2,565 files)
-- Gold standard uses finer timestep (dt_out=0.01) for higher temporal resolution
+- For standard quasi-random: gold standard excludes 184 IDs (2,749 base → 2,565 gold)
+- The `*_for_gold_standard` IC folders were duplicates of the base IC folders and have been removed; gold runs now read from `ic_hierarchical/` and `ic_standard_quasi_random/`
 
 **ID Gaps:**
 - Gaps exist due to:
