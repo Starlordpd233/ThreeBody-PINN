@@ -42,10 +42,12 @@ Plans:
   1. `DATASET_DOCUMENTATION.md` describes exactly 2 IC folders under `ic_final/`, explains ic_raw removal, and documents the 184-ID subset relationship
   2. Root `README.md` and `simulation_data/Documentation/README.md` reference only `ic_hierarchical/` and `ic_standard_quasi_random/` as IC folders
   3. All agent instruction files (`CLAUDE.md`, `GEMINI.md`, `QWEN.md`, `ANTIGRAVITY.md`) dataset inventory sections list only 2 IC folders and note externalized ic_raw
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01: Update DATASET_DOCUMENTATION.md for 2-folder layout, ic_raw externalization, 184-ID reference (Wave 1)
+- [ ] 02-02: Update README.md files for consolidated IC layout (Wave 2)
+- [ ] 02-03: Update all 4 agent instruction files with identical Section 3.2 (Wave 2)
 
 ### Phase 3: Data Deletion and Legacy Cleanup
 **Goal**: All redundant IC folders, ic_raw, legacy directories, and build artifacts are removed from the filesystem
@@ -69,5 +71,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Code Rewrites and Validation | 3/3 | Complete   | 2026-03-18 |
-| 2. Documentation Updates | 0/? | Not started | - |
+| 2. Documentation Updates | 0/3 | Not started | - |
 | 3. Data Deletion and Legacy Cleanup | 0/? | Not started | - |
