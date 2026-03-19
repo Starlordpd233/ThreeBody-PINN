@@ -28,9 +28,9 @@
 
 ### Data Deletion
 
-- [ ] **DEL-01**: `simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard/` deleted after code rewrites verified
-- [ ] **DEL-02**: `simulation_data/Data/ic_final/ic_standard_quasi_random_for_gold_standard/` deleted after code rewrites verified
-- [ ] **DEL-03**: `simulation_data/Data/ic_raw/` deleted after code rewrites verified
+- [x] **DEL-01**: `simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard/` deleted after code rewrites verified
+- [x] **DEL-02**: `simulation_data/Data/ic_final/ic_standard_quasi_random_for_gold_standard/` deleted after code rewrites verified
+- [x] **DEL-03**: `simulation_data/Data/ic_raw/` deleted after code rewrites verified
 
 ### Legacy Cleanup
 
@@ -74,9 +74,9 @@
 | DOCS-02 | Phase 2 | Complete |
 | DOCS-03 | Phase 2 | Complete |
 | DOCS-04 | Phase 2 | Complete |
-| DEL-01 | Phase 3 | Pending |
-| DEL-02 | Phase 3 | Pending |
-| DEL-03 | Phase 3 | Pending |
+| DEL-01 | Phase 3 | Complete |
+| DEL-02 | Phase 3 | Complete |
+| DEL-03 | Phase 3 | Complete |
 | CLN-01 | Phase 3 | Pending |
 | CLN-02 | Phase 3 | Pending |
 | CLN-03 | Phase 3 | Pending |
