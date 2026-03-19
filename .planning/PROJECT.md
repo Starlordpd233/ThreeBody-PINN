@@ -26,12 +26,12 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Codebase cleanup: externalized raw ICs via IC_RAW_DIR environment variable — Phase 1
 - ✓ Codebase cleanup: 184-ID gold subset validation via exclusion file — Phase 1
 - ✓ Documentation: all files updated for post-consolidation layout — Phase 2
+- ✓ Codebase cleanup: deleted legacy folders and build artifacts — Phase 3
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Codebase cleanup: delete legacy folders and build artifacts — Phase 3
 - [ ] Data pipeline: get PINN training loop working end-to-end (architecture exists, training does not)
 - [ ] LLM fine-tuning: prepare simulation data for language model training format
 - [ ] LLM fine-tuning: fine-tune Qwen 3.5 2B on three-body trajectory prediction
@@ -70,9 +70,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Fine-tune Qwen 3.5 2B for trajectory prediction | Small enough to train locally on M2 Mac | — Pending |
-| Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | ✓ Phases 1-2 complete |
+| Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | ✓ Phases 1-3 complete |
 | PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
 
 ---
-*Last updated: 2026-03-19 after Phase 2 documentation updates*
+*Last updated: 2026-03-19 after Phase 3 data deletion and legacy cleanup*
