@@ -77,10 +77,11 @@ Plans:
   4. `AGENTS.md` Section 3.2 matches CLAUDE.md/GEMINI.md/ANTIGRAVITY.md (2 IC folders, IC_RAW_DIR, no `_for_gold_standard`)
   5. All agent instruction files and root README.md reference `ic_generation_utils.py` and `generate_ics.py` (renamed filenames)
   6. REQUIREMENTS.md checkboxes for PATH-04, PATH-05, PATH-06, VALD-01, VALD-02 are marked `[x]`
-**Plans**: TBD
+**Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 04-01: TBD (pending `/gsd:plan-phase 4`)
+- [ ] 04-01-PLAN.md — Fix stale code references and documentation filenames (PATH-06, DOCS-02)
+- [ ] 04-02-PLAN.md — Update agent instruction files and REQUIREMENTS.md bookkeeping (DOCS-04)
 
 ## Progress
 
@@ -92,4 +93,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Code Rewrites and Validation | 3/3 | Complete   | 2026-03-18 |
 | 2. Documentation Updates | 3/3 | Complete | 2026-03-19 |
 | 3. Data Deletion and Legacy Cleanup | 2/2 | Complete | 2026-03-19 |
-| 4. Stale Reference Fixes | 0/? | Pending | — |
+| 4. Stale Reference Fixes | 0/2 | Planned | — |
