@@ -834,6 +834,7 @@ pos_centered, vel_centered = recenter_to_com_frame(masses, pos, vel)
 |------|--------|
 | 2025-12-23 | Initial documentation creation |
 | 2026-03-09 | Audit update: corrected gap counts (143/1250/1434), documented gold `_gold_` filename infix, rewrote Result footer section (all files have footers; schema varies by eta/tol presence), updated OS-path and IC-folder reference counts, added adaptive-threshold and runner-default notes, replaced stale blacklist/missing-footer claims with current provenance |
+| 2026-03-19 | Consolidated IC layout: removed gold IC folders (ic_hierarchical_for_gold_standard/, ic_standard_quasi_random_for_gold_standard/), externalized ic_raw via IC_RAW_DIR environment variable, documented 184-ID standard quasi-random gold subset exclusion |
 
 ---
 
