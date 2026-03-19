@@ -34,10 +34,10 @@
 
 ### Legacy Cleanup
 
-- [ ] **CLN-01**: `paper_templates/old_templates/` directory deleted
-- [ ] **CLN-02**: `brutus_simulation_documentation/` directory deleted
-- [ ] **CLN-03**: All project `__pycache__/` directories removed (outside `.venv/`, `.git/`, `reference-code/`)
-- [ ] **CLN-04**: LaTeX build artifacts (`.synctex.gz`, `.aux`, `.fls`, `.fdb_latexmk`, `.out`) removed from project
+- [x] **CLN-01**: `paper_templates/old_templates/` directory deleted
+- [x] **CLN-02**: `brutus_simulation_documentation/` directory deleted
+- [x] **CLN-03**: All project `__pycache__/` directories removed (outside `.venv/`, `.git/`, `reference-code/`)
+- [x] **CLN-04**: LaTeX build artifacts (`.synctex.gz`, `.aux`, `.fls`, `.fdb_latexmk`, `.out`) removed from project
 
 ## v2 Requirements
 
@@ -77,10 +77,10 @@
 | DEL-01 | Phase 3 | Complete |
 | DEL-02 | Phase 3 | Complete |
 | DEL-03 | Phase 3 | Complete |
-| CLN-01 | Phase 3 | Pending |
-| CLN-02 | Phase 3 | Pending |
-| CLN-03 | Phase 3 | Pending |
-| CLN-04 | Phase 3 | Pending |
+| CLN-01 | Phase 3 | Complete |
+| CLN-02 | Phase 3 | Complete |
+| CLN-03 | Phase 3 | Complete |
+| CLN-04 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 19 total

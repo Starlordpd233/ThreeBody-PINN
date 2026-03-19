@@ -13,8 +13,8 @@ This cleanup consolidates duplicate IC datasets, updates all code paths and docu
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Code Rewrites and Validation** - Rewrite all gold IC paths to base folders, externalize ic_raw references, and make correspondence validation subset-aware (completed 2026-03-18)
-- [ ] **Phase 2: Documentation Updates** - Update all documentation to reflect the consolidated 2-IC-folder layout and externalized ic_raw behavior
-- [ ] **Phase 3: Data Deletion and Legacy Cleanup** - Remove redundant IC folders, ic_raw, legacy directories, and build artifacts
+- [x] **Phase 2: Documentation Updates** - Update all documentation to reflect the consolidated 2-IC-folder layout and externalized ic_raw behavior (completed 2026-03-19)
+- [x] **Phase 3: Data Deletion and Legacy Cleanup** - Remove redundant IC folders, ic_raw, legacy directories, and build artifacts (completed 2026-03-19)
 
 ## Phase Details
 
@@ -45,9 +45,9 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 02-01: Update DATASET_DOCUMENTATION.md for 2-folder layout, ic_raw externalization, 184-ID reference (Wave 1)
-- [ ] 02-02: Update README.md files for consolidated IC layout (Wave 2)
-- [ ] 02-03: Update all 4 agent instruction files with identical Section 3.2 (Wave 2)
+- [x] 02-01: Update DATASET_DOCUMENTATION.md for 2-folder layout, ic_raw externalization, 184-ID reference (Wave 1)
+- [x] 02-02: Update README.md files for consolidated IC layout (Wave 2)
+- [x] 02-03: Update all 4 agent instruction files with identical Section 3.2 (Wave 2)
 
 ### Phase 3: Data Deletion and Legacy Cleanup
 **Goal**: All redundant IC folders, ic_raw, legacy directories, and build artifacts are removed from the filesystem
@@ -61,8 +61,8 @@ Plans:
 **Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 03-01: Clean code references and delete redundant IC/ic_raw data directories (Wave 1)
-- [ ] 03-02: Remove legacy directories, purge build artifacts, update STRUCTURE.md (Wave 1)
+- [x] 03-01: Clean code references and delete redundant IC/ic_raw data directories (Wave 1)
+- [x] 03-02: Remove legacy directories, purge build artifacts, update STRUCTURE.md (Wave 1)
 
 ## Progress
 
@@ -72,5 +72,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Code Rewrites and Validation | 3/3 | Complete   | 2026-03-18 |
-| 2. Documentation Updates | 0/3 | Not started | - |
-| 3. Data Deletion and Legacy Cleanup | 0/2 | Not started | - |
+| 2. Documentation Updates | 3/3 | Complete | 2026-03-19 |
+| 3. Data Deletion and Legacy Cleanup | 2/2 | Complete | 2026-03-19 |
