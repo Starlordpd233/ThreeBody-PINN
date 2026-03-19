@@ -556,14 +556,13 @@ Parsing `Result:` lines shows multiple parameter sets within the same folder. Th
 
 ### 5. Gold Standard Subset is Not Simply a Filter
 
-**For hierarchical ICs:** Gold standard = complete copy (same 4,857 files)
+**For hierarchical ICs:** Gold standard = complete copy (same 4,857 files). The `ic_hierarchical_for_gold_standard/` folder was a duplicate of `ic_hierarchical/` and has been removed.
 
-**For standard quasi-random:** Gold standard excludes 184 IDs
-- The exclusion happens **after** Stage 2 (because both are already "final_stage" IC folders), so it is not "prescreening failure".
-- The precise selection criteria are not captured in this repo (no standard-gold runner script here). Treat it as an externally-chosen subset for higher-resolution Brutus runs unless provenance is recovered.
+**For standard quasi-random:** Gold standard excludes 184 IDs (2,749 base → 2,565 gold). The `ic_standard_quasi_random_for_gold_standard/` folder contained only the subset and has been removed. Gold runs now read from the base `ic_standard_quasi_random/` folder.
 
-**Input-path ambiguity in `Result:` footers:**
-- Standard gold outputs reference both `ic_standard_quasi_random/` (2,086 files) and `ic_standard_quasi_random_for_gold_standard/` (479 files) as `filename=` targets; do not use `Result: filename=` as a unique source of truth for which IC folder was used. See also Gotcha #2 above.
+**184-ID exclusion list:** The complete list of standard quasi-random IDs that have no gold-standard counterpart is documented at `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`. This file is used by `correspondence.py` to skip validation for these IDs when checking standard gold outputs.
+
+**Note:** Gold-standard Brutus outputs (`brutus_hierarchical_gold_standard/`, `brutus_standard_quasi_random_gold_standard/`) still exist with higher temporal resolution (dt_out=0.01). Only the gold IC input folders were duplicates and have been removed.
 
 ### 6. ID Gaps Have Multiple Causes
 
