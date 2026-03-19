@@ -332,14 +332,10 @@ python3 simulation_data/Scripts/metrics_calculation/calculate_metrics.py
 ```
 simulation_data/
 ├── Data/
-│   ├── ic_raw/                        # Raw ICs (Stage 1 output)
+│   ├── ic_raw/                        # Raw ICs (EXTERNALIZED - set IC_RAW_DIR env var)
+│   ├── ic_final/                      # Prescreened ICs (Stage 2 output, 2 folders)
 │   │   ├── ic_hierarchical/
 │   │   └── ic_standard_quasi_random/
-│   ├── ic_final/                      # Prescreened ICs (Stage 2 output)
-│   │   ├── ic_hierarchical/
-│   │   ├── ic_hierarchical_for_gold_standard/
-│   │   ├── ic_standard_quasi_random/
-│   │   └── ic_standard_quasi_random_for_gold_standard/
 │   ├── brutus_output/                 # Integrated trajectories (Stage 3 output)
 │   │   ├── brutus_hierarchical/
 │   │   ├── brutus_hierarchical_gold_standard/
