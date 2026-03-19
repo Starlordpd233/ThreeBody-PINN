@@ -23,8 +23,7 @@
 │   │   ├── archived/              # Old/unused scripts
 │   │   └── debug/                  # Debug utilities
 │   ├── Data/
-│   │   ├── ic_final/               # Final ICs (4 variant folders)
-│   │   ├── ic_raw/                 # Raw generated ICs
+│   │   ├── ic_final/               # Final ICs (2 variant folders)
 │   │   ├── brutus_output/          # Simulation results (4 variant folders)
 │   │   ├── metrics/                # Computed conservation metrics
 │   │   └── testing_data/           # Test datasets
@@ -55,7 +54,6 @@
 │
 ├── paper_templates/                # Paper/documentation templates
 ├── docs/                           # Additional docs and plans
-├── brutus_simulation_documentation/ # Simulation run documentation
 ├── Qwen3.5-2B-4bit/               # Downloaded ML model (separate)
 │
 ├── AGENTS.md                       # Agent instructions
@@ -80,18 +78,16 @@
 | Folder | IC Type | Quality |
 |--------|---------|---------|
 | `ic_hierarchical/` | Hierarchical | Standard |
-| `ic_hierarchical_for_gold_standard/` | Hierarchical | Gold-standard |
 | `ic_standard_quasi_random/` | Standard quasi-random | Standard |
-| `ic_standard_quasi_random_for_gold_standard/` | Standard quasi-random | Gold-standard |
 
-Same structure mirrors in `brutus_output/`.
+Gold-standard distinction lives only in the Brutus output folders (`brutus_output/brutus_hierarchical_gold_standard/` and `brutus_output/brutus_standard_quasi_random_gold_standard/`), not in the IC folders.
 
 ## Key Locations
 
 | What | Where |
 |------|-------|
 | Brutus binary | `brutus_Newton-main/brutus` |
-| IC generator core | `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py` |
+| IC generator core | `simulation_data/Scripts/ic_generation/ic_generation_utils.py` |
 | Prescreener | `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` |
 | Dataset documentation | `simulation_data/Documentation/DATASET_DOCUMENTATION.md` |
 | PINN architecture | `pinn/basic_architecture.py` |
