@@ -9,8 +9,10 @@ This repository contains the complete simulation pipeline, metrics analysis, and
 The repository currently holds massive datasets generated from two main sampling variants, which then go through integration and validation pipelines.
 
 **Current Dataset Scale:**
-- **Hierarchical Variant**: ~4,857 Initial Conditions (ICs) and their corresponding Brutus integration outputs, including a "Gold Standard" high-precision subset of equal size (derived separately with stricter parameters).
-- **Standard Quasi-Random Variant**: ~2,749 ICs and corresponding Brutus outputs, plus a "Gold Standard" subset of ~2,565 pairs.
+- **Hierarchical Variant**: ~4,857 Initial Conditions (ICs) and their corresponding Brutus integration outputs, plus a "Gold Standard" high-precision subset (same 4,857 files, higher resolution).
+- **Standard Quasi-Random Variant**: ~2,749 ICs and corresponding Brutus outputs, plus a "Gold Standard" subset of ~2,565 files (184 IDs excluded from gold re-simulation).
+
+**Note:** Gold-standard Brutus outputs exist. Gold IC input folders have been removed (they were duplicates of the base IC folders).
 
 **Key Outputs**:
 - Generating Sobol-based and Hierarchical Initial Conditions.
@@ -116,10 +118,16 @@ All datasets exist locally inside the pipeline directory, split between `final_s
 - `brutus_standard_quasi_random/`
 - `brutus_standard_quasi_random_gold_standard/`
 
-**ID Mapping Rules:**  
+**ID Mapping Rules:**
 - The filename has a numeric ID (e.g., `85.txt`).
-- The numeric ID maps perfectly between `ic_<variant>/X.txt` and `brutus_<variant>/X.txt`.  
+- The numeric ID maps perfectly between `ic_<variant>/X.txt` and `brutus_<variant>/X.txt`.
 - Gaps in ID sequencing are entirely normal and expected. They result from IC generation restarts, prescreen rejections, and occasional Brutus timeout failures (limit: 3000 sec).
+
+**IC Folders (2 folders):**
+- `ic_hierarchical/`
+- `ic_standard_quasi_random/`
+
+The `*_for_gold_standard` IC folders have been removed (they were duplicates). Gold-standard Brutus runs now read from the base IC folders.
 
 ---
 
@@ -154,7 +162,7 @@ Because this repository aggregates many rapidly evolving research scripts, expec
 - **`dataset_readiness_checks` Failure:** Scripts actively checking validation or readiness metrics may crash with `NameError: name 'ValidationConfig' is not defined`. This file is known-broken in its current state. Rely instead on Stage 4 `brutus_metrics`.
 - **Naming Mismatches:** Inside legacy readiness check scripts, standard variant names are hardcoded with varying string literals that mismatch the actual folder schemas on disk (e.g. `brutus_standard_quasi_random`).
 - **PINN Script Imports:** The `pinn/data-processing-pipeline-full.py` module throws import errors due to internal module cross-referencing. **Workaround:** Modify the script's `sys.path` to root or run as `python3 -m pinn.data-processing-pipeline-full`.
-- **Missing "Gold Standard" Standard-Random Runner:** There is no exact runnable script to natively reproduce `ic_standard_quasi_random_for_gold_standard`. These were generated partly from previous pipeline versions. Furthermore, naming documentation in older guides regarding what constitutes "gold" conflicts with the on-disk directory split.
+- **Missing "Gold Standard" Standard-Random Runner:** There is no exact runnable script to natively reproduce `brutus_standard_quasi_random_gold_standard/` outputs. These were generated partly from previous pipeline versions. Furthermore, naming documentation in older guides regarding what constitutes "gold" conflicts with the on-disk directory split.
 - **Hierarchical Center of Mass (COM):** Hierarchical setups enforce a ~0 total momentum but perturb it by `sigma=0.01` noise immediately after. Consequently, COM runs slightly adrift. Re-center manually prior to running translationally-invariant networks.
 
 ---
