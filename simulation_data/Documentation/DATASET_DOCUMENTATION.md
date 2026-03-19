@@ -295,7 +295,21 @@ Global scaling:
 - Inner binary + outer third body configuration
 - Enforces COM/P≈0 via a COM shift and velocity boost, then applies a small Gaussian perturbation (σ=0.01) to all positions/velocities
 
-**Output:** `simulation_data/Data/ic_raw/ic_hierarchical/` and `simulation_data/Data/ic_raw/ic_standard_quasi_random/`
+**Output:** Raw IC storage has been externalized from the repository. Set the `IC_RAW_DIR` environment variable before running Stage 1 or Stage 2 scripts:
+
+```bash
+export IC_RAW_DIR=/path/to/ic_raw  # Expected subdirs: ic_hierarchical/, ic_standard_quasi_random/
+```
+
+The directory pointed to by `IC_RAW_DIR` must contain:
+- `ic_hierarchical/` - Raw hierarchical IC files
+- `ic_standard_quasi_random/` - Raw standard quasi-random IC files
+
+**Why externalized:** Raw IC files are large (multi-GB) and user-managed. Externalizing allows users to store raw ICs separately from the tracked repository while maintaining the same script interfaces.
+
+**Error handling:** Stage 1/2 scripts raise a clear `RuntimeError` if `IC_RAW_DIR` is not set, including the expected export command and directory structure.
+
+After prescreening, valid ICs are copied to `simulation_data/Data/ic_final/` which remains in the repository.
 
 ### Stage 2: Prescreening
 
