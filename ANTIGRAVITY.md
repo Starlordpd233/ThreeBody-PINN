@@ -81,20 +81,25 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
    - Script: `pinn/data-processing-pipeline-full.py`.
 
 ### 3.2 Dataset Variants (Folder Defines Variant)
-- ICs:
+- ICs (2 base folders):
   - `simulation_data/Data/ic_final/ic_hierarchical/`
-  - `simulation_data/Data/ic_final/ic_hierarchical_for_gold_standard/`
   - `simulation_data/Data/ic_final/ic_standard_quasi_random/`
-  - `simulation_data/Data/ic_final/ic_standard_quasi_random_for_gold_standard/`
 - Brutus outputs:
   - `simulation_data/Data/brutus_output/brutus_hierarchical/`
   - `simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/`
   - `simulation_data/Data/brutus_output/brutus_standard_quasi_random/`
   - `simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/`
 
+**Note:** Gold-standard Brutus output folders exist, but gold IC input folders have been removed. Gold runs read from the base IC folders. The `*_for_gold_standard` IC folders were duplicates and have been deleted.
+
+**ic_raw externalization:** Raw IC storage is external to the repository. Set `IC_RAW_DIR` environment variable before running Stage 1/2 scripts:
+```bash
+export IC_RAW_DIR=/path/to/ic_raw  # Expected subdirs: ic_hierarchical/, ic_standard_quasi_random/
+```
+
 **Mapping rule**: The numeric ID maps IC to Brutus output. File names do **not** encode "gold"; the folder defines the variant.
 
-**Gold-standard note**: Standard quasi-random gold is a subset (fewer IDs) and has mixed provenance. Do not assume it is a simple filter of standard outputs.
+**Gold-standard subset note**: Standard quasi-random gold Brutus outputs contain 2,565 files while the base IC folder contains 2,749. 184 IDs were not selected for gold-standard re-simulation - see `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md` for the complete list.
 
 **ID gaps**: Intentional and caused by generation continuation, prescreen rejection, and failed Brutus runs.
 
