@@ -58,10 +58,11 @@ Plans:
   2. `simulation_data/Data/ic_raw/` does not exist
   3. `paper_templates/old_templates/` and `brutus_simulation_documentation/` do not exist
   4. No `__pycache__/` directories exist in project scope (outside `.venv/`, `.git/`, `reference-code/`), and no stray LaTeX build artifacts (`.synctex.gz`, `.aux`, `.fls`, `.fdb_latexmk`, `.out`) remain
-**Plans**: TBD
+**Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01: Clean code references and delete redundant IC/ic_raw data directories (Wave 1)
+- [ ] 03-02: Remove legacy directories, purge build artifacts, update STRUCTURE.md (Wave 1)
 
 ## Progress
 
@@ -72,4 +73,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Code Rewrites and Validation | 3/3 | Complete   | 2026-03-18 |
 | 2. Documentation Updates | 0/3 | Not started | - |
-| 3. Data Deletion and Legacy Cleanup | 0/? | Not started | - |
+| 3. Data Deletion and Legacy Cleanup | 0/2 | Not started | - |
