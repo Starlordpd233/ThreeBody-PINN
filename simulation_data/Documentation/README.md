@@ -214,9 +214,7 @@ All files contain a `Result:` footer, but schema varies by Brutus build:
 | Folder | Type | Files | ID Range |
 |--------|------|-------|----------|
 | `ic_hierarchical/` | IC | ~4,857 | 0000-4999 |
-| `ic_hierarchical_for_gold_standard/` | IC | ~4,857 | 0000-4999 |
 | `ic_standard_quasi_random/` | IC | ~2,749 | 0000-3998 |
-| `ic_standard_quasi_random_for_gold_standard/` | IC | ~2,565 | 0000-3998 |
 
 ### Brutus Output Datasets (Data/brutus_output/)
 
@@ -292,7 +290,7 @@ Validation/prescreening/  -->  Data/ic_final/       [Stage 2 - prescreened ICs]
    - Use `Scripts/metrics_calculation/` instead for validation
 
 2. **Gold standard standard-quasi-random has no runner**
-   - Cannot natively reproduce `Data/ic_final/ic_standard_quasi_random_for_gold_standard` outputs
+   - Cannot natively reproduce `brutus_standard_quasi_random_gold_standard/` outputs (gold Brutus outputs exist, but no in-repo runner script)
 
 3. **Hierarchical COM offset**
    - COM and momentum are perturbed with sigma=0.01 after construction
