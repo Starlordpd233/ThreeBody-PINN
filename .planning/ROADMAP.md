@@ -15,6 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Code Rewrites and Validation** - Rewrite all gold IC paths to base folders, externalize ic_raw references, and make correspondence validation subset-aware (completed 2026-03-18)
 - [x] **Phase 2: Documentation Updates** - Update all documentation to reflect the consolidated 2-IC-folder layout and externalized ic_raw behavior (completed 2026-03-19)
 - [x] **Phase 3: Data Deletion and Legacy Cleanup** - Remove redundant IC folders, ic_raw, legacy directories, and build artifacts (completed 2026-03-19)
+- [ ] **Phase 4: Stale Reference Fixes** - Fix stale code imports, documentation references, and agent file drift missed by phase-level verifiers (gap closure)
 
 ## Phase Details
 
@@ -64,13 +65,31 @@ Plans:
 - [x] 03-01: Clean code references and delete redundant IC/ic_raw data directories (Wave 1)
 - [x] 03-02: Remove legacy directories, purge build artifacts, update STRUCTURE.md (Wave 1)
 
+### Phase 4: Stale Reference Fixes
+**Goal**: All stale code imports, documentation filename references, and agent instruction file drift from Phase 1 renames and Phase 3 deletions are resolved
+**Depends on**: Phase 1, Phase 2, Phase 3
+**Requirements**: PATH-06, DOCS-02, DOCS-04
+**Gap Closure**: Closes gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `test_pipeline.py` imports `ic_generation_utils` (not `FINAL_ic_generator_enhanced`) and runs without `ModuleNotFoundError`
+  2. `generate_ics.py` print statements reference `$IC_RAW_DIR` path, not `ic_raw_datasets/`
+  3. `simulation_data/Documentation/README.md` has zero references to `FINAL_ic_generator_enhanced.py`, `generate_enhanced_ics.py`, or unqualified `Data/ic_raw/`
+  4. `AGENTS.md` Section 3.2 matches CLAUDE.md/GEMINI.md/ANTIGRAVITY.md (2 IC folders, IC_RAW_DIR, no `_for_gold_standard`)
+  5. All agent instruction files and root README.md reference `ic_generation_utils.py` and `generate_ics.py` (renamed filenames)
+  6. REQUIREMENTS.md checkboxes for PATH-04, PATH-05, PATH-06, VALD-01, VALD-02 are marked `[x]`
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD (pending `/gsd:plan-phase 4`)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Code Rewrites and Validation | 3/3 | Complete   | 2026-03-18 |
 | 2. Documentation Updates | 3/3 | Complete | 2026-03-19 |
 | 3. Data Deletion and Legacy Cleanup | 2/2 | Complete | 2026-03-19 |
+| 4. Stale Reference Fixes | 0/? | Pending | — |

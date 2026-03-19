@@ -10,21 +10,21 @@
 - [x] **PATH-01**: `run_brutus_hierarchical_only_mac_gold_standard.py` IC_DIR points to `ic_hierarchical/` instead of `ic_hierarchical_for_gold_standard/`
 - [x] **PATH-02**: `config.py` ic_dir entries for both hierarchical_gold and standard_gold point to base IC folders
 - [x] **PATH-03**: `naming.py` folder-to-name mappings updated with legacy comments for backwards compatibility
-- [ ] **PATH-04**: Debug scripts (`audit_and_backfill_brutus_result_footers.py`, `compare_ic_brutus_files.py`) reference base IC paths instead of gold IC paths
-- [ ] **PATH-05**: All gold IC filename assumptions changed from `ic_*_gold_XXXX.txt` pattern to `ic_*_XXXX.txt` pattern
-- [ ] **PATH-06**: Stage 1/2 scripts (`stage2_prescreening_revised_auto.py`, `FINAL_ic_generator_enhanced.py`, `prescreening_utils.py`, `analysis/utils.py`, `example_incremental_workflow.py`) use configurable `IC_RAW_DIR` env var instead of hardcoded `simulation_data/Data/ic_raw/` paths
+- [x] **PATH-04**: Debug scripts (`audit_and_backfill_brutus_result_footers.py`, `compare_ic_brutus_files.py`) reference base IC paths instead of gold IC paths
+- [x] **PATH-05**: All gold IC filename assumptions changed from `ic_*_gold_XXXX.txt` pattern to `ic_*_XXXX.txt` pattern
+- [ ] **PATH-06**: Stage 1/2 scripts (`stage2_prescreening_revised_auto.py`, `ic_generation_utils.py`, `prescreening_utils.py`, `analysis/utils.py`, `example_incremental_workflow.py`) use configurable `IC_RAW_DIR` env var instead of hardcoded `simulation_data/Data/ic_raw/` paths — **gap: stale references in `test_pipeline.py` and `generate_ics.py`**
 
 ### Validation
 
-- [ ] **VALD-01**: `correspondence.py` handles 184-ID standard_gold subset gap without false failures
-- [ ] **VALD-02**: Exclusion list of 184 IDs documented at `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`
+- [x] **VALD-01**: `correspondence.py` handles 184-ID standard_gold subset gap without false failures
+- [x] **VALD-02**: Exclusion list of 184 IDs documented at `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`
 
 ### Documentation
 
 - [x] **DOCS-01**: `DATASET_DOCUMENTATION.md` describes exactly 2 IC folders, explains `ic_raw/` removal, and documents 184-ID subset relationship
-- [x] **DOCS-02**: `simulation_data/Documentation/README.md` directory tree and tables reflect new 2-folder layout
+- [ ] **DOCS-02**: `simulation_data/Documentation/README.md` directory tree and tables reflect new 2-folder layout — **gap: stale filenames and `ic_raw/` in Interaction Diagram**
 - [x] **DOCS-03**: Root `README.md` updated to reference only 2 IC folders
-- [x] **DOCS-04**: Agent instruction files (`CLAUDE.md`, `GEMINI.md`, `QWEN.md`, `ANTIGRAVITY.md`) dataset inventory sections updated
+- [ ] **DOCS-04**: Agent instruction files (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `ANTIGRAVITY.md`) dataset inventory sections updated — **gap: AGENTS.md Section 3.2 not updated, stale filenames in non-3.2 sections**
 
 ### Data Deletion
 
@@ -65,15 +65,15 @@
 | PATH-01 | Phase 1 | Complete |
 | PATH-02 | Phase 1 | Complete |
 | PATH-03 | Phase 1 | Complete |
-| PATH-04 | Phase 1 | Pending |
-| PATH-05 | Phase 1 | Pending |
-| PATH-06 | Phase 1 | Pending |
-| VALD-01 | Phase 1 | Pending |
-| VALD-02 | Phase 1 | Pending |
+| PATH-04 | Phase 1 | Complete |
+| PATH-05 | Phase 1 | Complete |
+| PATH-06 | Phase 1 → Phase 4 (gap) | Pending |
+| VALD-01 | Phase 1 | Complete |
+| VALD-02 | Phase 1 | Complete |
 | DOCS-01 | Phase 2 | Complete |
-| DOCS-02 | Phase 2 | Complete |
+| DOCS-02 | Phase 2 → Phase 4 (gap) | Pending |
 | DOCS-03 | Phase 2 | Complete |
-| DOCS-04 | Phase 2 | Complete |
+| DOCS-04 | Phase 2 → Phase 4 (gap) | Pending |
 | DEL-01 | Phase 3 | Complete |
 | DEL-02 | Phase 3 | Complete |
 | DEL-03 | Phase 3 | Complete |
@@ -89,4 +89,4 @@
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after roadmap creation (compressed from 5 phases to 3 for coarse granularity)*
+*Last updated: 2026-03-19 after milestone audit — Phase 4 gap closure added, stale checkboxes fixed*
