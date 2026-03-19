@@ -21,7 +21,7 @@
 
 ### Documentation
 
-- [ ] **DOCS-01**: `DATASET_DOCUMENTATION.md` describes exactly 2 IC folders, explains `ic_raw/` removal, and documents 184-ID subset relationship
+- [x] **DOCS-01**: `DATASET_DOCUMENTATION.md` describes exactly 2 IC folders, explains `ic_raw/` removal, and documents 184-ID subset relationship
 - [ ] **DOCS-02**: `simulation_data/Documentation/README.md` directory tree and tables reflect new 2-folder layout
 - [ ] **DOCS-03**: Root `README.md` updated to reference only 2 IC folders
 - [ ] **DOCS-04**: Agent instruction files (`CLAUDE.md`, `GEMINI.md`, `QWEN.md`, `ANTIGRAVITY.md`) dataset inventory sections updated
@@ -70,7 +70,7 @@
 | PATH-06 | Phase 1 | Pending |
 | VALD-01 | Phase 1 | Pending |
 | VALD-02 | Phase 1 | Pending |
-| DOCS-01 | Phase 2 | Pending |
+| DOCS-01 | Phase 2 | Complete |
 | DOCS-02 | Phase 2 | Pending |
 | DOCS-03 | Phase 2 | Pending |
 | DOCS-04 | Phase 2 | Pending |
