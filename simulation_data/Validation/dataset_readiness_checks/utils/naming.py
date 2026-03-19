@@ -169,9 +169,7 @@ def map_directory_to_variant(directory_name: str) -> Optional[str]:
     # Map directory names to variant names
     directory_mapping = {
         'ic_hierarchical': 'hierarchical',
-        'ic_hierarchical_for_gold_standard': 'hierarchical_gold',  # Legacy path - Phase 3 deletion
         'ic_standard_quasi_random': 'standard',
-        'ic_standard_quasi_random_for_gold_standard': 'standard_gold',  # Legacy path - Phase 3 deletion
         'brutus_hierarchical': 'hierarchical',
         'brutus_hierarchical_gold_standard': 'hierarchical_gold',
         'brutus_standard_quasi_random': 'standard',

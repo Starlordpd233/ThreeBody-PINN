@@ -4,7 +4,7 @@ Utility functions for parsing IC and metric files from Brutus simulations
 import numpy as np
 import os
 import json
-from typing import List, Tuple, Dict
+from typing import List, Optional, Tuple, Dict
 
 
 def parse_ic_file(filepath: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -155,7 +155,7 @@ def load_metrics(filepath: str) -> Dict:
                     sim_type = 'hierarchical'
                     
                 # Construct the correct IC file path from the metric file path
-                # Assumes a structure like: .../simulation_data/Data/{metrics/sim_result_metric_..., ic_raw/}/
+                # Assumes a structure like: .../simulation_data/Data/{metrics/sim_result_metric_...}/
                 base_project_path = os.path.dirname(os.path.dirname(filepath))
                 
                 # Fix: The directories are already named ic_hierarchical and ic_standard_quasi_random
@@ -166,7 +166,7 @@ def load_metrics(filepath: str) -> Dict:
                     
                 ic_filepath = os.path.join(
                     base_project_path, 
-                    'ic_raw_datasets', 
+                    'ic_final',
                     ic_dir, 
                     ic_filename
                 )
@@ -498,7 +498,7 @@ def load_metrics_with_positions(filepath: str, ic_base_dir: str = None) -> Dict:
     return data
 
 
-def load_metrics(filepath: str, ic_base_dir: str = '<home>/Desktop/3_body_problem/simulation_data/Data/ic_raw/ic_hierarchical/') -> Dict:
+def load_metrics(filepath: str, ic_base_dir: Optional[str] = None) -> Dict:
     
     Load simulation metrics from JSON or text file.
     Handles the actual Brutus metrics format and provides expected keys for metrics_analysis.py.
