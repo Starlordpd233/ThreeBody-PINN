@@ -33,9 +33,12 @@ velocity_scale = 0.1          # Velocity magnitude
 scale_range = (0.8, 1.2)      # Global scaling factor
 ```
 
-**Output:** `Data/ic_raw/`
-- `ic_hierarchical/` - Hierarchical triple systems
-- `ic_standard_quasi_random/` - Standard quasi-random configurations
+**Output:** Raw IC storage is externalized. Set `IC_RAW_DIR` environment variable before running:
+```bash
+export IC_RAW_DIR=/path/to/ic_raw  # Expected subdirs: ic_hierarchical/, ic_standard_quasi_random/
+```
+
+See DATASET_DOCUMENTATION.md for details.
 
 **IC File Format:**
 ```
@@ -67,13 +70,13 @@ VIRIAL_RATIO_MAX = 2.0
 **Input:** `Data/ic_raw/`
 
 **Output:**
-- `Data/ic_final/` - Prescreened ICs
+- `Data/ic_final/` - Prescreened ICs (2 folders)
   - `ic_hierarchical/`
-  - `ic_hierarchical_for_gold_standard/`
   - `ic_standard_quasi_random/`
-  - `ic_standard_quasi_random_for_gold_standard/`
 - `Validation/prescreening/processing_index_ic_hierarchical.json` - Tracking metadata
 - `Validation/prescreening/processing_index_ic_standard_quasi_random.json` - Tracking metadata
+
+**Note:** Gold-standard Brutus output folders (brutus_hierarchical_gold_standard/, brutus_standard_quasi_random_gold_standard/) still exist. Only the gold IC input folders were duplicates and have been removed.
 
 **Logic:** Uses JIT-compiled leapfrog integrator to reject ICs that:
 - Have energy error > 1%
