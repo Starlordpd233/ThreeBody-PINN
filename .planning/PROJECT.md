@@ -22,16 +22,16 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Dataset documentation with completeness checks and provenance tracking — existing
 - ✓ PINN architecture defined (SQR-SkipResNet-SIREN, 14→256×12→9) — existing
 - ✓ Data processing pipeline computes 13-component IC vector with normalization — existing
+- ✓ Codebase cleanup: consolidated IC folders (removed gold IC duplicates) — Phase 1
+- ✓ Codebase cleanup: externalized raw ICs via IC_RAW_DIR environment variable — Phase 1
+- ✓ Codebase cleanup: 184-ID gold subset validation via exclusion file — Phase 1
+- ✓ Documentation: all files updated for post-consolidation layout — Phase 2
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Codebase cleanup: consolidate duplicate IC folders (gold → non-gold)
-- [ ] Codebase cleanup: remove in-repo raw ICs, externalize raw IC paths
-- [ ] Codebase cleanup: add subset-aware standard-gold validation (184-ID gap)
-- [ ] Codebase cleanup: update all documentation to reflect post-cleanup layout
-- [ ] Codebase cleanup: delete legacy folders and build artifacts
+- [ ] Codebase cleanup: delete legacy folders and build artifacts — Phase 3
 - [ ] Data pipeline: get PINN training loop working end-to-end (architecture exists, training does not)
 - [ ] LLM fine-tuning: prepare simulation data for language model training format
 - [ ] LLM fine-tuning: fine-tune Qwen 3.5 2B on three-body trajectory prediction
@@ -50,10 +50,11 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Brutus generates trajectories with 30-40 significant digit precision, G=1 natural units
 - Two IC types: standard quasi-random (equal masses, Sobol sampling) and hierarchical (variable masses, orbital elements)
 - Four dataset variants per type: standard and gold-standard (higher-resolution output)
-- Gold IC folders are byte-identical duplicates/subsets of standard IC folders → cleanup target
+- Gold IC folders were removed (duplicates) — gold Brutus outputs remain
+- Raw ICs externalized via IC_RAW_DIR environment variable
+- Standard quasi-random gold subset excludes 184 IDs (see `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`)
 - Existing PINN approach (SQR-SkipResNet-SIREN) relationship to new LLM direction is TBD
 - Qwen 3.5 2B 4-bit model already downloaded at `Qwen3.5-2B-4bit/`
-- Revised cleanup plan exists at `docs/plans/cleaning-3-body.md`
 
 ## Constraints
 
@@ -69,9 +70,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Fine-tune Qwen 3.5 2B for trajectory prediction | Small enough to train locally on M2 Mac | — Pending |
-| Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | — Pending |
+| Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | ✓ Phases 1-2 complete |
 | PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
 
 ---
-*Last updated: 2026-03-18 after initialization*
+*Last updated: 2026-03-19 after Phase 2 documentation updates*
