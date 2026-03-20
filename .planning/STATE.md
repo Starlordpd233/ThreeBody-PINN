@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-19T15:45:15.347Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-03-20T02:36:07.533Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Plan: 2 of 2 (all plans complete)
 | Phase 02 P02 | 15 | 4 tasks | 2 files |
 | Phase 03 P01 | 3 | 2 tasks | 2 files |
 | Phase 03 P02 | 5 | 2 tasks | 1 files |
+| Phase 04-stale-reference-fixes P02 | 15 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Used Optional[str] = None for load_metrics ic_base_dir default instead of IC_RAW_DIR env var
 - [03-02]: Git-tracked deletions of old_templates and brutus_simulation_documentation were already handled by Plan 03-01; this plan only purged gitignored orphan artifacts
 - [03-02]: Used Python shutil for filesystem deletions (sandbox compatibility)
+- [Phase 04-stale-reference-fixes]: Updated AGENTS.md Section 3.2 to match canonical content from CLAUDE.md, reducing inconsistency across agent instruction files
+- [Phase 04-stale-reference-fixes]: Replaced all stale filenames in agent files: FINAL_ic_generator_enhanced.py -> ic_generation_utils.py, generate_enhanced_ics.py -> generate_ics.py
+- [Phase 04-stale-reference-fixes]: Marked PATH-06, DOCS-02, DOCS-04 as complete in REQUIREMENTS.md, closing all remaining gaps from previous phases
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T15:45:15.340Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-stale-reference-fixes/04-CONTEXT.md
+Last session: 2026-03-20T02:36:07.531Z
+Stopped at: Completed 04-02-PLAN.md
+Resume file: None
