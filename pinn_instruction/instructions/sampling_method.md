@@ -86,7 +86,7 @@ Add $\mathbf{v}_{\text{COM}}$ to each of $\mathbf{v}_{1}, \mathbf{v}_{2}$.
 
 8. Gaussian perturbation: Add a small random perturbation drawn from $\mathcal{N}(0, 0.01)$ to each component of $\mathbf{x}_{i}$ and $\mathbf{v}_{i}$.
 
-This procedure mirrors exactly the logic and parameter choices in `FINAL_ic_generator_enhanced.py`.
+This procedure mirrors exactly the logic and parameter choices in `ic_generation_utils.py`.
 
 ## Stage 2: Enhanced Quasi-Random Sampling
 

@@ -19,10 +19,10 @@ The pipeline produces training data for the PINN (Physics-Informed Neural Networ
 **Purpose:** Generate initial conditions for three-body systems.
 
 **Key Scripts:**
-- `Scripts/ic_generation/generate_enhanced_ics.py` - Main entry point for IC generation
-- `Scripts/ic_generation/FINAL_ic_generator_enhanced.py` - Core IC generation logic
+- `Scripts/ic_generation/generate_ics.py` - Main entry point for IC generation
+- `Scripts/ic_generation/ic_generation_utils.py` - Core IC generation logic
 
-**Configuration (in Scripts/ic_generation/generate_enhanced_ics.py):**
+**Configuration (in Scripts/ic_generation/generate_ics.py):**
 ```python
 GENERATE_STANDARD = True      # Standard quasi-random ICs
 GENERATE_HIERARCHICAL = True  # Hierarchical triple systems
@@ -67,7 +67,7 @@ VIRIAL_RATIO_MIN = 0.001
 VIRIAL_RATIO_MAX = 2.0
 ```
 
-**Input:** `Data/ic_raw/`
+**Input:** Raw ICs from `$IC_RAW_DIR` (set environment variable)
 
 **Output:**
 - `Data/ic_final/` - Prescreened ICs (2 folders)
@@ -269,7 +269,7 @@ Failed ICs are moved to:
 ## Interaction Diagram
 
 ```
-Data/ic_raw/                   [Stage 1 output - raw generated ICs]
+$IC_RAW_DIR                   [Stage 1 output - raw generated ICs, externalized]
     |
     v
 Validation/prescreening/  -->  Data/ic_final/       [Stage 2 - prescreened ICs]
@@ -305,7 +305,7 @@ Validation/prescreening/  -->  Data/ic_final/       [Stage 2 - prescreened ICs]
 
 ```bash
 # Stage 1: Generate ICs
-python3 simulation_data/Scripts/ic_generation/generate_enhanced_ics.py
+python3 simulation_data/Scripts/ic_generation/generate_ics.py
 
 # Stage 2: Prescreen
 python3 simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py
@@ -346,8 +346,8 @@ simulation_data/
 │   └── testing_data/                  # Test ICs/outputs
 ├── Scripts/
 │   ├── ic_generation/                 # Stage 1 scripts
-│   │   ├── FINAL_ic_generator_enhanced.py
-│   │   └── generate_enhanced_ics.py
+│   │   ├── ic_generation_utils.py
+│   │   └── generate_ics.py
 │   ├── brutus_runners/                # Stage 3 scripts
 │   │   ├── run_brutus_both_type_simple.py
 │   │   └── run_brutus_hierarchical_only_mac_gold_standard.py

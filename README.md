@@ -74,7 +74,7 @@ The typical data pipeline flows from Stage 1 (Generation) to Stage 5 (PINN Pre-p
 Generates `.txt` IC files into `simulation_data/Data/ic_final/`.
 ```bash
 cd "$REPO_ROOT"
-python3 simulation_data/Scripts/ic_generation/generate_enhanced_ics.py
+python3 simulation_data/Scripts/ic_generation/generate_ics.py
 ```
 
 **2. Prescreen Unstable ICs (Stage 2)**  
@@ -146,7 +146,7 @@ Due to integration complexity, a successful return code does not guarantee a sci
 | Entrypoint / Module                                   | Category       | Status          | Note                                                                                           |
 |-------------------------------------------------------|----------------|-----------------|------------------------------------------------------------------------------------------------|
 | `brutus` (C++ Makefile)                               | Integration    | Working         | Requires GMP/MPFR.                                                                             |
-| `generate_enhanced_ics.py`                            | Stage 1        | Config-driven   | Requires manual adjustment of target quantities limits before running.                         |
+| `generate_ics.py`                            | Stage 1        | Config-driven   | Requires manual adjustment of target quantities limits before running.                         |
 | `stage2_prescreening_revised_auto.py`                 | Stage 2        | Working         | Scans IC datasets directly.                                                                    |
 | `run_brutus_both_type_simple.py`                      | Stage 3        | Working         | Typical timeout ~3000s per simulation instance.                                                |
 | `calculate_metrics.py`                                | Stage 4        | Working         | Generates `.json` metric counterparts across outputs.                                          |

@@ -253,7 +253,7 @@ This configuration promotes stability and well-defined orbital motion.
 
 ### Standard Quasi-Random (Sobol) System Characteristics
 
-Standard quasi-random IC generation in `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py` uses a symmetry-reduced canonicalization:
+Standard quasi-random IC generation in `simulation_data/Scripts/ic_generation/ic_generation_utils.py` uses a symmetry-reduced canonicalization:
 - Particle 1 is fixed at `p1 = (1, 0, 0)` (then optionally globally scaled).
 - Particle 2 is sampled by a Sobol sequence mapped to a uniform direction on the sphere and a radius `r = u^(1/3)`.
 - A mirror constraint enforces `x ≤ 0` for the sampled direction (by shifting `phi` by π when needed).
@@ -264,7 +264,7 @@ Velocities for standard ICs:
 - For equal masses, total momentum is enforced by setting `v1 = v3 = -v2/2`.
 
 Global scaling:
-- In the standard generator, `scale_range=(0.8, 1.2)` is enabled (see `simulation_data/Scripts/ic_generation/generate_enhanced_ics.py`), and the implementation scales **both positions and velocities** by the same factor `s`.
+- In the standard generator, `scale_range=(0.8, 1.2)` is enabled (see `simulation_data/Scripts/ic_generation/generate_ics.py`), and the implementation scales **both positions and velocities** by the same factor `s`.
 - This changes the virial ratio by approximately `Q ∝ s^3` (because `T ∝ s^2` and `|U| ∝ 1/s`).
 
 ### Virial Ratio
@@ -279,7 +279,7 @@ Global scaling:
 
 ### Stage 1: IC Generation
 
-**Script:** `FINAL_ic_generator_enhanced.py`
+**Script:** `ic_generation_utils.py`
 
 **Method:** Sobol-based quasi-random sampling with scrambling
 
@@ -288,7 +288,7 @@ Global scaling:
 - `velocity_scale` (velocity std): 0.1
 - Sobol dimension: 7 (3 position + 3 velocity + 1 scaling)
 - Scramble: enabled
-- Standard generator scaling (enabled in `generate_enhanced_ics.py`): `scale_range=(0.8, 1.2)`
+- Standard generator scaling (enabled in `generate_ics.py`): `scale_range=(0.8, 1.2)`
 
 **Specialized Generation for Hierarchical Systems:**
 - Enforces hierarchical mass/separation structure
@@ -802,8 +802,8 @@ pos_centered, vel_centered = recenter_to_com_frame(masses, pos, vel)
 
 | Component | Location |
 |-----------|----------|
-| IC Generator (core) | `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py` |
-| IC Generator (entrypoint) | `simulation_data/Scripts/ic_generation/generate_enhanced_ics.py` |
+| IC Generator (core) | `simulation_data/Scripts/ic_generation/ic_generation_utils.py` |
+| IC Generator (entrypoint) | `simulation_data/Scripts/ic_generation/generate_ics.py` |
 | Stage 2 Prescreening | `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` |
 | Brutus Runner (Main) | `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py` |
 | Brutus Runner (Gold) | `simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py` |
