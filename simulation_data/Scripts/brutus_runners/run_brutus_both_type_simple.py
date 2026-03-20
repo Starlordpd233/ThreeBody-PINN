@@ -7,7 +7,7 @@ with separate Brutus parameters. Validates output completeness and moves
 problematic ICs to dedicated folders.
 
 Workflow:
-1. Generate ICs using generate_enhanced_ics.py
+1. Generate ICs using generate_ics.py
 2. Run stage2_prescreening_revised_auto.py to prescreen ICs
 3. Run this script to execute Brutus simulations
 4. Use calculate_brutus_metrics.py to extract metrics

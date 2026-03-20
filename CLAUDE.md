@@ -72,7 +72,7 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 ### 3.1 Pipeline Stages
 1. **Stage 1 IC generation**
    - Standard quasi-random (Sobol) and hierarchical ICs.
-   - Scripts: `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py`, `simulation_data/Scripts/ic_generation/generate_enhanced_ics.py`.
+   - Scripts: `simulation_data/Scripts/ic_generation/ic_generation_utils.py`, `simulation_data/Scripts/ic_generation/generate_ics.py`.
    - Defaults: epsilon=0.05, velocity_scale=0.1, Sobol scrambling enabled.
 2. **Stage 2 prescreening**
    - Short leapfrog integration to reject unstable ICs.
@@ -166,7 +166,7 @@ Body lines can contain 30-40 significant digits. Parse as strings or Decimal whe
 ### 5.3 Sampling Notes (Standard Quasi-Random)
 - p1 fixed at (1, 0, 0); p2 sampled on hemisphere with x <= 0; p3 = -(p1 + p2).
 - Velocity components sampled from Normal(0, velocity_scale) via Sobol inverse CDF.
-- Global scaling is enabled in `generate_enhanced_ics.py` with `scale_range=(0.8, 1.2)`.
+- Global scaling is enabled in `generate_ics.py` with `scale_range=(0.8, 1.2)`.
   - Both positions and velocities scale by s.
   - Virial ratio scales as Q ~ s^3.
 
@@ -217,7 +217,7 @@ make
 ### 7.2 Pipeline Execution
 ```bash
 # Generate ICs
-python simulation_data/Scripts/ic_generation/generate_enhanced_ics.py
+python simulation_data/Scripts/ic_generation/generate_ics.py
 
 # Stage 2 prescreening
 python simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py
@@ -278,7 +278,7 @@ python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --
 ## Part 10: Quick Reference
 
 ### Key Files
-- IC Generator: `simulation_data/Scripts/ic_generation/FINAL_ic_generator_enhanced.py`
+- IC Generator: `simulation_data/Scripts/ic_generation/ic_generation_utils.py`
 - Prescreening: `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py`
 - Metrics: `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`
 - Architecture: `pinn/basic_architecture.py`

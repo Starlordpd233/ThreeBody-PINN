@@ -53,7 +53,7 @@ if __name__ == "__main__":
         print("- Inner binary: a ~ 0.1-0.3")
         print("- Outer body: 3-10× inner separation")
         print("- Kozai-Lidov stability enforced")
-        print("- Saves to ic_raw_datasets/ic_hierarchical/ folder")
+        print("- Saves to $IC_RAW_DIR/ic_hierarchical/ folder")
         
         continuation_enhanced_ic_generation(
             n_samples=N_SAMPLES_HIERARCHICAL,
