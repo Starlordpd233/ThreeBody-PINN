@@ -1,0 +1,100 @@
+\section{Unifying Data Scaling and Normalization Protocols}
+A prerequisite for stable and effective neural network training is the transformation of raw, physical data into a consistent, dimensionless, and well-behaved numerical format. The source documents contain several critical ambiguities and contradictions in this domain. This section resolves these issues by establishing a single, definitive standard for all spatiotemporal scaling, numerical softening, and input vector normalization, thereby creating a reliable data contract between the preprocessing and training stages of the workflow.
+
+\subsection{Standardization of Spatiotemporal Normalization and Unit Conversion}
+\textbf{Issues Resolved: 3, 9}
+\paragraph{Context and Validation}
+A significant contradiction exists regarding the normalization of the time coordinate. The \texttt{PINN\_architecture\_plan.tex} document presents a formula, $t' = t/T$, which maps the physical time $t \in [0, T]$ to a normalized range of $[0, 1]$. However, this is directly contradicted by an author comment within the same document questioning this formula and suggesting a [-1, 1] range, a suggestion supported by multiple other textual references to a [-1, 1] domain throughout the document. The \texttt{CTL-instruction-final.tex} document also implies a [-1, 1] range for all network inputs but fails to provide an explicit formula for time.
+
+Furthermore, Issue 9 highlights a corresponding gap: the lack of a clearly defined procedure for converting the network's scaled outputs back into physical units for analysis, visualization, and comparison with ground truth data. These ambiguities create a high risk of implementation errors that would compromise the entire framework.
+
+\paragraph{Proposed Solution and Implementation}
+To resolve these inconsistencies, a definitive and unified normalization scheme is established for all spatiotemporal variables.
+
+
+- \textbf{Time Normalization:} The physical time $t$, which resides in the interval $[0, T]$ (where the characteristic time $T = t_{\max} = 10$ time units), will be normalized to the range [-1, 1]. The correct formula for this transformation is:
+    \begin{equation}
+        t' = 2 \left( \frac{t}{T} \right) - 1
+    \end{equation}
+    This choice aligns with the dominant convention across both documents and is considered best practice for networks employing periodic activation functions like SIREN. These functions are naturally centered around zero, and mapping the input domain to [-1, 1] can improve training dynamics and representation quality.
+
+
+- \textbf{Spatial and Velocity Scaling:} The scaling of positions and velocities will adhere strictly to the definitions provided in the \texttt{CTL-instruction-final.tex} document. In this $G=1$ system of units:
+
+
+- The characteristic length is $D = \sqrt[3]{G T^2} \approx 4.6416$.
+
+- The characteristic velocity is $V = D / T \approx 0.46416$.
+
+- Physical positions $\mathbf{r}_i$ are scaled to dimensionless positions $\mathbf{r}'_i = \mathbf{r}_i / D$.
+
+- Physical velocities $\mathbf{v}_i$ are scaled to dimensionless velocities $\mathbf{v}'_i = \mathbf{v}_i / V$.
+
+
+
+- \textbf{Inverse Transformation for Analysis:} To resolve Issue 9, explicit inverse transformation formulas are provided. These are essential for converting the network's dimensionless outputs back into physical units for meaningful analysis and visualization.
+    \begin{align}
+        t &= \frac{T(t' + 1)}{2} \\
+        \mathbf{r} &= \mathbf{r}' \cdot D \\
+        \mathbf{v} &= \mathbf{v}' \cdot V
+    \end{align}
+
+A set of utility functions, \texttt{physical\_to\_scaled} and \texttt{scaled\_to\_physical}, encapsulating these transformations should be implemented and used consistently throughout the codebase to prevent errors. This unified scheme resolves all spatiotemporal ambiguities and establishes a clear, consistent data representation that is a prerequisite for all subsequent steps.
+
+\subsection{Consistent Application of Numerical Softening Parameters}
+\textbf{Issue Resolved: 15}
+\paragraph{Context and Validation}
+Issue 15 identifies a severe inconsistency of critical importance: a five-order-of-magnitude discrepancy in the value of the gravitational softening parameter, $\epsilon$, used to prevent numerical singularities during close encounters. The \texttt{CTL-instruction-final.tex} document specifies $\epsilon = 10^{-10}$ in the context of calculating potential energy, while the \texttt{PINN\_\allowbreak architecture\_\allowbreak plan.tex} document consistently uses and justifies a value of $\epsilon_{\text{soft}} = 10^{-5}$ for both the physics residual and energy loss calculations. This is not a minor discrepancy; the choice of softening parameter directly impacts the computed forces and energies, and such a large difference would lead to fundamentally different physical behavior being enforced by the loss function.
+
+\paragraph{Proposed Solution and Implementation}
+The softening parameter will be standardized to the value $\boldsymbol{\epsilon_{\text{soft}} = 10^{-5}}$ for all relevant calculations across the entire framework. This value will be used in the denominator of all gravitational force and potential energy terms. Specifically, any term of the form $1/||\mathbf{r}_i - \mathbf{r}_j||$ will be implemented as $1/(||\mathbf{r}_i - \mathbf{r}_j|| + \epsilon_{\text{soft}})$, and any term of the form $1/||\mathbf{r}_i - \mathbf{r}_j||^3$ will be implemented as $1/(||\mathbf{r}_i - \mathbf{r}_j|| + \epsilon_{\text{soft}})^3$.
+
+\paragraph{Justification}
+The practice of force softening in N-body simulations is a well-established numerical technique designed to prevent the infinite forces and energies that arise when two point masses approach an infinitesimally small separation. The parameter's value represents a trade-off: too large a value will inaccurately bias the dynamics by "smearing out" the gravitational interaction, while too small a value will fail to prevent numerical overflow and gradient explosions during simulated close encounters.
+
+In the context of this project, where positions are scaled to be of order unity, a value of $\epsilon = 10^{-10}$ is numerically indistinguishable from zero for standard double-precision floating-point arithmetic. It would provide virtually no protection against the divergences it is intended to prevent. The value $\epsilon_{\text{soft}} = 10^{-5}$, as specified in the more detailed architectural document, represents a much more physically and numerically sensible choice. It is small enough to have a negligible effect on the dynamics when bodies are well-separated but large enough to cap the forces and prevent floating-point overflow during the critical, high-gradient events of close encounters. Standardizing on this value resolves the dangerous inconsistency and ensures a more stable training process.
+
+\subsection{Finalized Normalization Schema for the Input Vector}
+\textbf{Issue Resolved: 19}
+\paragraph{Context and Validation}
+The construction of the 14-dimensional input vector [t, IC] is a cornerstone of the model, yet the specifications for normalizing its 13 initial condition components are scattered and inconsistent across the documentation. Issue 19 correctly identifies the need for a single, consolidated specification to serve as a definitive guide for implementation. An ambiguity also exists between the use of \texttt{tanh}-based scaling and linear Min-Max scaling.
+
+\paragraph{Proposed Solution and Imple\-mentation}
+A definitive, component-wise normalization schema is established to map all 14 input features to the range [-1, 1]. The \texttt{tanh} function is adopted as the standard for normalizing continuous variables that may have long-tailed distributions (like energy and separation), as it is less sensitive to extreme outliers than Min-Max scaling and smoothly compresses the entire real number line into [-1, 1].
+
+The following table provides the single source of truth for constructing the final input vector. All physical invariants must first be computed using the scaled, dimensionless quantities ($\mathbf{r}'$, $\mathbf{v}'$) as detailed in Section 2.1.
+
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{p{0.15\linewidth} p{0.06\linewidth} p{0.29\linewidth} p{0.29\linewidth} p{0.09\linewidth}}
+\caption{Definitive Input Vector Specification} \label{tab:input_vector} \\
+\toprule
+\textbf{Component Name} & \textbf{Symbol} & \textbf{Calculation Formula (using scaled $\mathbf{r}'$, $\mathbf{v}'$)} & \textbf{Normalization Formula} & \textbf{Final Range} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{c}{{\bfseries \tablename\ \thetable{} -- continued from previous page}} \\
+\toprule
+\textbf{Component Name} & \textbf{Symbol} & \textbf{Calculation Formula (using scaled $\mathbf{r}'$, $\mathbf{v}'$)} & \textbf{Normalization Formula} & \textbf{Final Range} \\
+\midrule
+\endhead
+\midrule \multicolumn{5}{r}{{Continued on next page}} \\ \bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+Time & $t'$ & $t_{\text{phys}} \in [0, 10]$ & $2 \cdot (t_{\text{phys}} / 10) - 1$ & [-1, 1] \\
+Normalized Mass 1 & $m_1^{\text{norm}}$ & Mass fraction of body 1 & $2 \cdot (m_1 / M_{\text{total}}) - 1$ & [-1, 1] \\
+Normalized Mass 2 & $m_2^{\text{norm}}$ & Mass fraction of body 2 & $2 \cdot (m_2 / M_{\text{total}}) - 1$ & [-1, 1] \\
+Normalized Mass 3 & $m_3^{\text{norm}}$ & Mass fraction of body 3 & $2 \cdot (m_3 / M_{\text{total}}) - 1$ & [-1, 1] \\
+Normalized Energy & $E^{\text{norm}}$ & Total mechanical energy $E=T+V$ & $\tanh(E/E_{\text{scale}})$ & [-1, 1] \\
+Normalized Ang. Mom. & $L_{\text{norm}}$ & $L = ||\sum m_i (\mathbf{r}'_i \times \mathbf{v}'_i)||$ & $L / L_{\max}$ & [0, 1] \\
+Normalized Virial Ratio & $Q^{\text{norm}}$ & $Q = 2T / |V|$ & $\tanh((Q - 1) / Q_{\text{scale}})$ & [-1, 1] \\
+Normalized Min. Sep. & $s_{\min}^{\text{norm}}$ & $s_{\min} = \min_{i<j} ||\mathbf{r}'_i - \mathbf{r}'_j||$ & $\tanh(s_{\min} / s_{\min\_\text{scale}})$ & [-1, 1] \\
+Shape Invariant 1 & $I_1^{\text{norm}}$ & $d_{\text{short}} / d_{\text{long}}$ & $2 \cdot I_1 - 1$ & [-1, 1] \\
+Shape Invariant 2 & $I_2^{\text{norm}}$ & $d_{\text{mid}} / d_{\text{long}}$ & $2 \cdot I_2 - 1$ & [-1, 1] \\
+Shape Invariant 3 & $I_3$ & $(d_{\text{sh}}+d_{\text{mid}}-d_{\text{lg}})/(d_{\text{sh}}+d_{\text{mid}}+d_{\text{lg}})$ & $I_3$ (already in range) & [-1, 1] \\
+Velocity Angle 1 & $\theta_1^{\text{norm}}$ & $\text{angle}(\mathbf{r}'_1, \mathbf{v}'_1) / \pi$ & $2 \cdot \theta_1 - 1$ & [-1, 1] \\
+Velocity Angle 2 & $\theta_2^{\text{norm}}$ & $\text{angle}(\mathbf{r}'_2, \mathbf{v}'_2) / \pi$ & $2 \cdot \theta_2 - 1$ & [-1, 1] \\
+Normalized Inertia & $I^{\text{norm}}$ & Trace of moment of inertia tensor & $\tanh(I_{\text{trace}} / (M_{\text{total}} \cdot r_{\text{char}}^2))$ & [-1, 1] \\
+\end{longtable}
+\renewcommand{\arraystretch}{1.0}
+
+This table serves as an unambiguous API contract between the data preprocessing and model training phases. It ensures that every input feature is correctly calculated and scaled, eliminating a common and pernicious source of bugs in complex machine learning pipelines.

@@ -1,0 +1,116 @@
+\section{A Rigorous Framework for the Multi-Component Loss Function}
+The composite loss function is the heart of the PINN, guiding the network to solutions that are both accurate to data and consistent with physical law. This section provides definitive specifications for its implementation, resolving ambiguities in the use of scaled units, the state management of ALM parameters, the practical application of automatic differentiation, and the selection of a key hyperparameter in the energy regularization term.
+
+\subsection{Clarifying the Use of Scaled Quantities in All Loss Components}
+\textbf{Issue Resolved: 18}
+\paragraph{Context and Validation}
+Issue 18 correctly identifies the need for an explicit, unified confirmation that all three loss terms\textemdash$\mathcal{L}_{\text{data}}$, $\mathcal{L}_{\text{physics}}$, and $\mathcal{L}_{\text{energy}}$\textemdash are computed using the same dimensionless, scaled quantities. While the \texttt{PINN\_architecture\_plan.tex} document implies this consistency, the absence of a consolidated, emphatic statement creates a risk of subtle but critical implementation errors. Dimensional inconsistency between loss terms would lead to an improperly balanced optimization problem, where gradients from different terms are not on comparable scales, likely causing training to fail or converge to a physically incorrect solution.
+
+\paragraph{Proposed Solution and Imple\-mentation}
+It is established as a definitive and non-negotiable requirement that all loss components be computed entirely within the non-dimensional, $G=1$ system of units defined in Section 2. The following checklist must be used to validate the implementation:
+
+
+- \textbf{$\mathcal{L}_{\text{data}}$ (Data Fidelity Loss):} This term must be computed as the L1 norm of the difference between the network's direct output (the scaled position vector, $\mathbf{r}'_{\text{pred}}$) and the ground-truth positions from the BRUTUS simulation after they have been scaled by the characteristic length $D$ (i.e., $\mathbf{r}'_{\text{true}} = \mathbf{r}_{\text{true}} / D$).
+    \begin{equation}
+        \mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} ||\mathbf{r}'_{\text{pred}}(t'_k) - \mathbf{r}'_{\text{true}}(t'_k)||_1
+    \end{equation}
+
+- \textbf{$\mathcal{L}_{\text{physics}}$ (Physics Residual Loss):} The physics residual, $f_i(t')$, must be calculated using scaled positions ($\mathbf{r}'$), scaled accelerations ($\mathbf{a}'$), and unscaled masses ($m_j$), consistent with the $G=1$ unit system where mass is dimensionless. The accelerations $\mathbf{a}'$ are derived via automatic differentiation from $\mathbf{r}'$ with respect to the normalized time $t'$.
+    \begin{equation}
+        f_i(t') = \mathbf{a}'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)}{(||\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)|| + \epsilon_{\text{soft}})^3}
+    \end{equation}
+
+- \textbf{$\mathcal{L}_{\text{energy}}$ (Energy Conservation Loss):} The total energy (Hamiltonian) must be computed using the network's scaled position outputs ($\mathbf{r}'$) and the scaled velocities ($\mathbf{v}'$) derived from them via automatic differentiation. The reference initial energy, $H_0$, must also be pre-computed using the same dimensionless units for consistency.
+    \begin{equation}
+        H_{\text{total}}(\mathbf{r}', \mathbf{v}') = \sum_{i=1}^{N} \frac{1}{2} m_i ||\mathbf{v}'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||\mathbf{r}'_i - \mathbf{r}'_j|| + \epsilon_{\text{soft}}}
+    \end{equation}
+
+Enforcing this strict dimensional consistency is paramount. It ensures that the magnitudes of the different loss components are physically comparable, allowing the Augmented Lagrangian Method (ALM) and the optimizer to balance their respective gradients effectively.
+
+\subsection{State Management and Integration of ALM Parameters}
+\textbf{Issue Resolved: 5}
+\paragraph{Context and Validation}
+The \texttt{PINN\_architecture\_plan.tex} document provides the mathematical update equations for the Augmented Lagrangian Method (ALM) parameters ($\lambda_p$, $\mu_p$, $v_p$). However, as correctly identified in Issue 5, it fails to specify the practical details of how these stateful variables should be managed within the training loop. The directive that they are "NOT part of model.parameters()" is technically correct but operationally ambiguous, leaving their storage, persistence, and update timing unclear.
+
+\paragraph{Proposed Solution and Implementation}
+A clear and robust implementation pattern for managing the ALM state is specified as follows:
+\begin{enumerate}
+    \item \textbf{Storage and Scope:} The ALM parameters ($\lambda_p$, $\mu_p$, and $v_p$) should be implemented as persistent attributes of the primary training class or "trainer" object. They should be initialized as scalar tensors (e.g., in PyTorch, \texttt{self.lambda\_p = torch.tensor(0.0)}). Critically, these tensors must not be included in the list of parameters passed to the optimizer, ensuring they are not updated by the standard backpropagation mechanism.
+    \item \textbf{Update Timing:} The ALM update logic, or "dual step," must be executed in a specific sequence within each training iteration:
+    \begin{enumerate}
+        \item Forward pass and loss computation.
+        \item \texttt{loss.backward()} to compute gradients.
+        \item \texttt{optimizer.step()} to update model weights (the primal step).
+        \item Perform ALM parameter updates (the dual step).
+        \item \texttt{optimizer.zero\_grad()} to clear gradients for the next iteration.
+    \end{enumerate}
+    This sequence ensures that the primal step (weight update) based on the current ALM state is completed before the dual variables are adjusted for the subsequent iteration.
+    \item \textbf{Persistence Across Curriculum Stages:} The state of the ALM is tuned to the specific statistical properties of the physics loss on a given dataset. When transitioning to a new curriculum stage, the data distribution and the typical magnitude of the physics residual change significantly. Therefore, to allow the ALM to adapt correctly to the new data regime, its state must be reset. It is mandated that $\lambda_p$, $\mu_p$, and $v_p$ be reset to their initial values at the beginning of each new curriculum stage. This prevents the carry-over of outdated statistics from simpler stages and allows the adaptive mechanism to recalibrate effectively.
+\end{enumerate}
+
+\subsection{Reference Implementation for Automatic Differentiation (AD) of Kinematics}
+\textbf{Issue Resolved: 12}
+\paragraph{Context and Validation}
+A core principle of the proposed PINN is that the network predicts only positions ($\mathbf{r}'$), while velocities ($\mathbf{v}'$) and accelerations ($\mathbf{a}'$) are derived via Automatic Differentiation (AD) with respect to time. This enforces kinematic consistency by construction. However, as noted in Issue 12, neither document provides a concrete code example for performing this higher-order differentiation, a non-trivial task that is a common source of error for practitioners.
+
+\paragraph{Proposed Solution and Implementation}
+To eliminate this ambiguity, a definitive reference implementation using the PyTorch framework is provided. The key to computing second-order derivatives is the correct use of the \texttt{create\_graph=True} argument in the first \texttt{torch.autograd.grad} call. This tells PyTorch to retain the computational graph of the first derivative, making it possible to then differentiate a second time.
+
+\begin{lstlisting}
+import torch
+
+def compute_kinematics(network_output_r, time_input_t):
+    """
+    Computes velocities and accelerations from position outputs via AD.
+
+    Args:
+        network_output_r (torch.Tensor): The network's position predictions.
+                                         Shape: (N_points, 9).
+        time_input_t (torch.Tensor): The time inputs for which predictions were made.
+                                     Shape: (N_points, 1).
+
+    Returns:
+        tuple:
+            - velocities_v (torch.Tensor): Shape (N_points, 9).
+            - accelerations_a (torch.Tensor): Shape (N_points, 9).
+    """
+    # Ensure time_input_t requires gradients for differentiation
+    if not time_input_t.requires_grad:
+        time_input_t.requires_grad_(True)
+
+    # Compute first derivative (velocities)
+    # The grad_outputs tensor must be the same size as the output of the function
+    # we are differentiating (network_output_r).
+    grad_outputs_v = torch.ones_like(network_output_r)
+
+    velocities_v, = torch.autograd.grad(
+        outputs=network_output_r,
+        inputs=time_input_t,
+        grad_outputs=grad_outputs_v,
+        create_graph=True  # CRITICAL: Retain graph for second derivative
+    )
+
+    # Compute second derivative (accelerations)
+    grad_outputs_a = torch.ones_like(velocities_v)
+
+    accelerations_a, = torch.autograd.grad(
+        outputs=velocities_v,
+        inputs=time_input_t,
+        grad_outputs=grad_outputs_a,
+        create_graph=False  # Not needed for second derivative
+    )
+
+    return velocities_v, accelerations_a
+\end{lstlisting}
+This code snippet serves as a direct, correct, and reusable implementation for deriving the kinematic quantities required by the physics and energy loss terms.
+
+\subsection{Selecting an Appropriate Huber Loss Delta (\texorpdfstring{$\delta$}{delta}) for Normalized Energy}
+\textbf{Issue Resolved: 13}
+\paragraph{Context and Validation}
+Issue 13 raises a valid and subtle point regarding the HNN-Style Energy Regularizer. The \texttt{PINN\_architecture\_plan.tex} document specifies the use of a Huber loss function with a delta parameter of $\delta = 1.0$. The Huber loss is designed to be quadratic (like L2 loss) for small errors and linear (like L1 loss) for large errors, making it less sensitive to outliers. However, the energy deviation, $\Delta H_k$, is computed from normalized quantities and is expected to be small for a well-behaving model. With $\delta = 1.0$, it is highly likely that $|\Delta H_k|$ will almost always be less than $\delta$, causing the Huber loss to behave identically to a standard L2 (squared) loss and thus negating its intended purpose of providing robustness.
+
+\paragraph{Proposed Solution and Implementation}
+The delta parameter of the Huber loss function must be chosen relative to the expected scale of the residuals. To restore the intended functionality of the loss, the parameter will be set to a value significantly smaller than 1. The definitive value is set to $\boldsymbol{\delta = 0.1}$.
+
+\paragraph{Justification}
+The primary goal of the energy loss term is to penalize deviations from the initial energy $H_0$, keeping the predicted energy on the correct constant-energy manifold. A value of $\delta = 0.1$ establishes a meaningful transition point. For normalized energy deviations less than 10\% ($|\Delta H_k| \leq 0.1$), the loss will be quadratic, providing a strong incentive for the model to reduce small errors precisely. For larger deviations ($|\Delta H_k| > 0.1$), which may occur during transient chaotic events or early in training, the loss becomes linear. This prevents single outlier points from generating excessively large gradients that could destabilize the optimizer. This choice of $\delta$ restores the intended robustness of the Huber loss function, leading to a more stable and effective regularization of the system's global energy conservation.

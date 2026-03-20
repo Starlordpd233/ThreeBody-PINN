@@ -1,0 +1,98 @@
+\section{A Coherent Training and Data Sampling Strategy}
+The final set of resolutions addresses the core training loop, reconciling conflicting instructions on how data is sampled and batched, how advanced techniques are integrated, and how to handle the multi-resolution nature of the dataset. This section establishes a single, unified strategy that is computationally efficient, physically motivated, and fully integrated with the curriculum learning paradigm.
+
+\subsection{Unifying Data and Collocation Point Sampling}
+\textbf{Issues Resolved: 2, 10, 11}
+\paragraph{Context and Validation}
+A major conceptual and practical contradiction, highlighted across Issues 2, 10, and 11, exists between the two documents regarding data sampling for the loss function. The \texttt{CTL-instruction-final.tex} document describes a process of sampling time points for the data loss, $\mathcal{L}_{\text{data}}$, from the discrete, available time steps within the BRUTUS simulation files. In contrast, the \texttt{PINN\_architecture\_plan.tex} document describes a separate process of sampling thousands of "collocation points" for the physics and energy losses, $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$, from the continuous time domain [-1, 1].
+
+This creates two distinct sets of points for evaluation in each training step. This approach is not only computationally inefficient, as it may require two separate forward passes or a single pass on a very large, concatenated set of points, but it is also conceptually confusing and deviates from standard PINN practices.
+
+\paragraph{Proposed Solution and Implementation}
+The sampling strategies will be clarified and unified into a single, efficient workflow that aligns with established PINN methodologies. The distinction between "data points" and "collocation points" is crucial and will be formally defined:
+
+
+- \textbf{Data Points:} These are points where ground-truth data is available. They are used exclusively to compute the data fidelity loss, $\mathcal{L}_{\text{data}}$.
+
+- \textbf{Collocation Points:} These are points sampled from the problem's domain (in this case, continuous time) where no ground-truth data is necessarily available. They are used to enforce the governing physical laws via the physics and energy loss terms, $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$.
+
+The definitive training step will involve a single, combined forward pass for computational efficiency:
+\begin{enumerate}
+    \item \textbf{Batch Sampling:} For each training step, two sets of time points are sampled for each trajectory in the batch:
+
+
+- \textbf{Data Time Points ($t_{\text{data}}'$):} A set of $N_{\text{data\_pts}}$ (e.g., 32) time points are sampled from the discrete BRUTUS snapshot times available for that trajectory.
+
+- \textbf{Collocation Time Points ($t_{\text{col}}'$):} A set of $N_{\text{col\_pts}}$ (e.g., 256) time points are sampled from the continuous domain [-1, 1], using a uniform or adaptive strategy.
+
+    \item \textbf{Unified Forward Pass:} The network is evaluated on the union of these two sets of points, $t_{\text{union}}' = t_{\text{data}}' \cup t_{\text{col}}'$, in a single forward pass to get all required position predictions and their derivatives.
+    \item \textbf{Loss Computation:} The loss components are then calculated on their respective subsets of the predictions:
+
+
+- $\mathcal{L}_{\text{data}}$ is computed using the predictions corresponding to $t_{\text{data}}'$.
+
+- $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$ are computed using the predictions corresponding to $t_{\text{col}}'$.
+
+\end{enumerate}
+This approach resolves the ambiguity by clearly defining the roles of each point set. It is computationally efficient and allows the model to be anchored to real data while enforcing physical laws across the entire continuous solution domain, which is the core philosophy of PINNs.
+
+\subsection{Finalizing the Curriculum-Aware Batch Construction Protocol}
+\textbf{Issue Resolved: 6}
+\paragraph{Context and Validation}
+Issue 6 correctly identifies an inconsistency where the \texttt{CTL-instruction-\allowbreak final.tex} document provides a detailed, sophisticated, and curriculum-aware algorithm for constructing mini-batches, while the \texttt{PINN\_\allowbreak architecture\_\allowbreak plan.tex} document offers only a vague, generic description. The CTL document's approach is clearly superior and tailored to the specific challenges of the problem.
+
+\paragraph{Proposed Solution and Implementation}
+The detailed batch construction algorithm from \texttt{CTL-instruction-\allowbreak final.tex} is formally adopted as the definitive method. This protocol is essential for the success of the curriculum learning strategy and includes two key features:
+\begin{enumerate}
+    \item \textbf{Replay and Lookahead Sampling:} Each mini-batch is intelligently composed to facilitate stable learning and smooth transitions between stages.
+
+
+- \textbf{Replay (\textasciitilde 95\% of batch):} The majority of trajectories in a batch are sampled from the cumulative set of all data from the current stage and all previous stages. This prevents "catastrophic forgetting" by ensuring the model continually rehearses previously learned concepts.
+
+- \textbf{Lookahead (\textasciitilde 5\% of batch):} A small fraction of trajectories are sampled from the next curriculum stage. This "previews" more difficult examples, effectively warming up the network for the upcoming stage transition and smoothing the loss landscape.
+
+    \item \textbf{Hybrid Time Point Sampling (Importance Sampling):} For each trajectory selected for the batch, the collocation points ($t_{\text{col}}'$) are sampled using a hybrid strategy to focus computational effort on dynamically significant regions:
+
+
+- \textbf{50\% Uniform Sampling:} Half of the points are sampled uniformly from the continuous time domain [-1, 1], ensuring broad coverage.
+
+- \textbf{50\% Acceleration-Weighted Sampling:} The other half are sampled from a probability distribution proportional to the magnitude of the system's acceleration, $|\mathbf{a}(t)|$. This naturally concentrates collocation points in regions of high dynamic activity, such as close encounters, where enforcing the physics is most critical.
+
+\end{enumerate}
+This comprehensive batching strategy is a cornerstone of the CTL framework, ensuring stable learning, efficient use of data, and robust progression through the curriculum.
+
+\subsection{Strategy for Integrating Mixed-Resolution Trajectory Data}
+\textbf{Issue Resolved: 7}
+\paragraph{Context and Validation}
+The introduction of new, high-resolution datasets (Set 2a and 2b in Table 1 of \texttt{CTL-instruction-\allowbreak final.tex}) presents a challenge identified in Issue 7: how to handle training batches that may contain a mix of low-resolution and high-resolution trajectories. Neither document provides a strategy for this, raising concerns about potential training bias or the need for complex data resampling procedures.
+
+\paragraph{Proposed Solution and Implementation}
+The unified sampling strategy established in Section 5.1 provides an elegant and effective solution to this problem without requiring any modification.
+
+
+- \textbf{For Physics and Energy Losses:} Since the collocation points are sampled from the continuous time domain [-1, 1], the underlying temporal resolution of the ground-truth BRUTUS data is irrelevant. The network's adherence to physical laws is tested on a consistent distribution of points, regardless of the source trajectory's data density.
+
+- \textbf{For the Data Fidelity Loss:} The data points are sampled from the discrete BRUTUS snapshots. The high-resolution datasets simply provide a richer, denser set of available points from which to sample. This is a direct benefit, as it allows the random sampling process to select from a more diverse set of ground-truth data points, potentially improving the accuracy of the data loss term without introducing any bias.
+
+Therefore, no special handling, such as up-sampling low-resolution data or down-sampling high-resolution data, is necessary. The proposed sampling framework inherently and gracefully accommodates the mixed-resolution dataset.
+
+\subsection{Definitive Implementation of Curriculum-Aware Gradient Clipping}
+\textbf{Issue Resolved: 8}
+\paragraph{Context and Validation}
+Issue 8 notes that while both documents describe adaptive median-based gradient clip\-ping to prevent numerical instability from close encounters, the \texttt{CTL-instruction-\allowbreak final.tex} document specifies a more sophisticated, curriculum-aware schedule for the clipping multiplier $C$, which is absent in the \texttt{PINN\_\allowbreak architecture\_\allowbreak plan.tex} document.
+
+\paragraph{Proposed Solution and Implementation}
+A definitive implementation is created by synthesizing the strengths of both documents. The core algorithm will follow the clear description in the PINN document, while the clipping multiplier $C$ will follow the physically motivated, curriculum-aware schedule from the CTL document.
+\begin{enumerate}
+    \item \textbf{Algorithm:} After \texttt{loss.backward()} but before \texttt{optimizer.step()}, the global L2 norm of the model's gradients is computed. This norm is added to a moving history (a queue of the last 100 norms). The clipping threshold is then set to $C$ times the median of this history. The gradients are then clipped to this threshold.
+    \item \textbf{Curriculum-Aware $C$ Schedule:} The multiplier $C$ is not fixed but is adjusted at the start of each curriculum stage to reflect the nature of the training data:
+
+
+- \textbf{Stages 0-1 (Stable Orbits):} $C = 8.5$. The data is smooth, and larger gradient steps can be tolerated to accelerate convergence.
+
+- \textbf{Stages 2-3 (Mild Chaos):} $C = 5.0$. As chaotic behavior is introduced, the clipping becomes more conservative.
+
+- \textbf{Stages 4-6 (Frequent Close Encounters):} $C = 3.0$. With highly chaotic data prone to producing extreme gradients, aggressive clipping is necessary to maintain training stability.
+
+\end{enumerate}
+This synthesized approach ensures that the training process is both stable and efficient. It allows for rapid learning on simpler data while robustly protecting the optimizer from the instabilities inherent in the more challenging, chaotic stages of the curriculum. It is also explicitly noted that gradient clipping is applied only during the Adam optimization phase and is disabled during L-BFGS refinement, as the line-search mechanism of L-BFGS provides its own form of step control.

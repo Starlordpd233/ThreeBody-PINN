@@ -1,0 +1,27 @@
+\section*{Conclusion and Consolidated Recommendations}
+\addcontentsline{toc}{section}{Conclusion and Consolidated Recommendations}
+This report has systematically analyzed and resolved 19 critical issues spanning the entire workflow for training a Curriculum-Transfer Learning Physics-Informed Neural Network (CTL-PINN) for the three-body problem. By establishing definitive, physically-grounded, and computationally robust solutions, this document transforms a set of inconsistent and incomplete instructions into a single, coherent, and actionable implementation blueprint.
+
+The key resolutions have unified the project's approach to foundational physics, data normalization, network architecture, loss function design, and training strategy. The proposed framework now rests on a solid foundation, with clear specifications for computing curriculum metrics like Lyapunov time, a consistent $G=1$ dimensionless unit system, a curriculum-aware schedule for the SIREN $\omega_0$ parameter, a rigorous state management protocol for the ALM, and an efficient, unified data sampling strategy that gracefully handles mixed-resolution data.
+
+For successful implementation, adherence to the consolidated specifications is paramount. The following table provides a final, master summary of all key dynamic hyperparameters, serving as a single source of truth for configuring the training process across all curriculum stages. By following this blueprint, the project is well-positioned to develop a state-of-the-art model capable of learning the complex, chaotic dynamics of the three-body problem with high fidelity and long-term physical plausibility.
+
+\begin{table}[H]
+\centering
+\caption{Consolidated Hyperparameter Schedule for CTL-PINN Training}
+\label{tab:hyperparameter_schedule}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{p{0.18\linewidth} p{0.14\linewidth} p{0.14\linewidth} p{0.14\linewidth} p{0.3\linewidth}}
+\toprule
+\textbf{Parameter} & \textbf{Stage 0-1 (Stable)} & \textbf{Stage 2-3 (Mild Chaos)} & \textbf{Stage 4-6 (Chaotic)} & \textbf{Rationale} \\
+\midrule
+SIREN first\_omega\_0 & 30.0 & 20.0 & 10.0 & Matches network frequency resolution to data complexity. \\
+Energy Weight $\lambda_E$ & $10^{-3}$ - $10^{-2}$ & $10^{-1}$ - $1$ & $10^{1}$ - $10^{3}$ & Increases energy conservation constraint as chaos increases. \\
+Adam Initial LR & $10^{-3}$ - $7\text{e-}4$ & $4.9\text{e-}4$ - $3.4\text{e-}4$ & $2.4\text{e-}4$ - $1.2\text{e-}4$ & Gradually reduces initial learning rate for more difficult stages. \\
+Gradient Clip $C$ & 8.5 & 5.0 & 3.0 & Allows larger gradients for stable data; clips aggressively for chaotic data. \\
+L-BFGS Type & Full-Batch & Full-Batch / sL-BFGS & sL-BFGS & Switches to stochastic variant as cumulative dataset size grows. \\
+ALM State & Reset & Reset & Reset & Resets ALM statistics to adapt to new data distribution at each stage. \\
+\bottomrule
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}

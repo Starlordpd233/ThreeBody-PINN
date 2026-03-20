@@ -98,10 +98,11 @@ None — all Phase 1-4 blockers resolved. Next milestone not yet defined.
 |---------|-------------|--------|-------|
 | 260320-rca | Modularize PINN_architecture_plan.tex | 12 files created, 13-page PDF compiles cleanly (0 errors, 0 warnings, 0 undefined refs), parity confirmed with original | main.tex, preamble.tex, 6 active sections, 3 inactive sections, blueprint_summary.tex, bibliography.tex |
 | 260320-rxu | Split CTL-instruction-final.tex into modular structure | 12 files created, 22-page PDF compiles cleanly (0 errors), all content preserved including lstlisting/comment/TikZ blocks | main_CTL.tex, preamble_CTL.tex, 8 section files, figures/, listings/ |
+| 260320-sh3 | Modularize review_of_ctl-pinn_framework.tex | 9 files created, 16-page PDF compiles cleanly (0 errors, 0 warnings, 0 undefined refs), all fragile constructs (longtable, lstlisting, table[H]) preserved, original untouched | main.tex, preamble.tex, 7 section files |
 
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Quick task 260320-rxu complete — CTL instruction LaTeX modularized
+Stopped at: Quick task 260320-sh3 complete — review framework LaTeX modularized
 Resume file: None
 Next action: `/gsd:new-milestone` or next quick task

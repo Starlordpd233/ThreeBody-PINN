@@ -1,0 +1,27 @@
+\section{Architectural and Initialization Refinements for the SIREN Backbone}
+The performance of a neural network, particularly one with periodic activations like SIREN, is critically dependent on its initialization. The frequency parameter, $\omega_0$, directly controls the model's ability to represent fine details in the solution. This section resolves a key ambiguity in how this parameter is managed, proposing a novel scheduling strategy that is fully integrated with the curriculum learning framework.
+
+\subsection{A Curriculum-Integrated Schedule for SIREN Frequency (\texorpdfstring{$\omega_0$}{omega\_0})}
+\textbf{Issues Resolved: 4, 14}
+\paragraph{Context and Validation}
+The \texttt{PINN\_architecture\_plan.tex} document presents a significant conflict regarding the initialization of the first SIREN layer. The hyperparameter table specifies a static value, \texttt{first\_omega\_0 = 30}, while the main text introduces a Python function, \texttt{update\_omega0}, designed to dynamically schedule this parameter via an exponential decay from 30 down to 10. This decay is dependent on the current epoch and a \texttt{total\_epochs} variable. As highlighted by an author comment and detailed in Issues 4 and 14, there is no guidance on how to integrate this dynamic schedule into the training loop.
+
+This ambiguity is critical because the \texttt{first\_omega\_0} parameter acts as a frequency multiplier, fundamentally shaping the network's capacity to resolve high-frequency features in the input data. The original exponential decay function is also logically incompatible with the CTL framework, as the training is divided into stages of indeterminate length, making a global \texttt{total\_epochs} variable meaningless.
+
+\paragraph{Proposed Solution and Implementation}
+The underlying principle of dynamically adjusting $\omega_0$ is sound, but its implementation must be adapted to be curriculum-aware. A continuous decay based on a global epoch count is ill-suited for a staged training process. Instead, a stage-based discrete schedule for \texttt{first\_omega\_0} is proposed. This strategy aligns the network's representational capacity directly with the complexity of the data presented at each curriculum stage.
+
+The rationale is physically and computationally motivated. In the early stages (0-1), the data consists of smooth, stable, quasi-periodic orbits. A high \texttt{first\_omega\_0} is beneficial here, as it provides the network with a rich basis of high-frequency sinusoids, helping it to overcome its intrinsic spectral bias and quickly learn the fine details of these regular trajectories. In the later stages (4-6), the data is dominated by chaotic behavior with sharp transitions during close encounters. In this regime, an excessively high $\omega_0$ can lead to oscillatory artifacts, numerical instability, and overfitting to noise. A lower $\omega_0$ encourages a smoother, more stable solution manifold, promoting better generalization.
+
+The definitive schedule is as follows:
+
+
+- \textbf{Stages 0-1 (Stable \& Hierarchical):} \texttt{first\_omega\_0 = 30.0}
+
+- \textbf{Stages 2-3 (High-Res Stable \& Mild Chaos):} \texttt{first\_omega\_0 = 20.0}
+
+- \textbf{Stages 4-6 (Fully Chaotic \& Extreme Cases):} \texttt{first\_omega\_0 = 10.0}
+
+
+\paragraph{Implementation Action:}
+At the beginning of each new curriculum stage, a targeted re-initialization will occur. While the weights of all hidden layers and the output layer are transferred from the converged model of the previous stage, the weights of the first SIREN layer will be re-initialized using the uniform distribution $U[-1/\sqrt{n_{\text{in}}}, 1/\sqrt{n_{\text{in}}}]$ and the new \texttt{first\_omega\_0} value specified by the schedule above. This procedure allows the model to adapt its "input lens" to the new data regime\textemdash adjusting its frequency sensitivity\textemdash without inducing catastrophic forgetting in the deeper layers of the network. This approach resolves the implementation ambiguity while preserving the original intent of adapting the network's frequency bias to the complexity of the learning task.

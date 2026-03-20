@@ -1,0 +1,129 @@
+% Main Content
+\section{Foundational Physical Metrics for Curriculum Design}
+The efficacy of the Curriculum-Transfer Learning (CTL) framework is predicated on the ability to quantitatively stratify simulation data by its intrinsic physical difficulty. Without robust and computable metrics to distinguish stable, quasi-periodic systems from highly chaotic ones, the concept of a "curriculum" remains ill-defined. This section resolves critical omissions in the source documents by providing definitive, physically-grounded formulas and scalable implementation plans for the key metrics required for stage assignment: Lyapunov time ($\tau_L$), maximum angular momentum ($L_{\max}$), and global normalization scales.
+
+\subsection{Defining and Implementing Lyapunov Time (\texorpdfstring{$\tau_L$}{tau\_L}) and Maximum Angular Momentum (\texorpdfstring{$L/L_{\max}$}{L/L\_max}) Computations}
+\textbf{Issues Resolved: 1, 16}
+\paragraph{Context and Validation}
+The \texttt{CTL-instruction-final.tex} document defines curriculum stages using specific physical criteria. Stage 0, representing the most stable systems, requires the normalized angular momentum ratio $L/L_{\max} > 0.5$. Stages 4a and 4b, which introduce chaotic dynamics, are defined by thresholds on the Lyapunov time ($\tau_L > 5$ and $2 < \tau_L \leq 5$, respectively). However, as identified in Issues 1 and 16, the documents explicitly omit the computational formulas for both $L_{\max}$ and $\tau_L$, with an author comment directly acknowledging the gap for the latter. This omission constitutes a critical implementation blocker, as it makes the assignment of trajectories to these key curriculum stages impossible.
+
+The Lyapunov time is a fundamental characteristic of a chaotic dynamical system, representing the e-folding time for the exponential divergence of initially nearby trajectories. It serves as a direct measure of the system's predictability horizon. The maximum angular momentum, $L_{\max}$, for a given energy, corresponds to the angular momentum of a system where all mass is in a circular orbit, providing a crucial benchmark for orbital stability and regularity.
+
+\paragraph{Proposed Solution and Implementation}
+To resolve this gap, we provide definitive, physically sound, and computationally tractable methods for both quantities.
+
+\begin{enumerate}
+    \item \textbf{Maximum Angular Momentum ($L_{\max}$)}
+    The formula for the normalized angular momentum, $L_{\text{norm}} = L/L_{\max}$, is derived from fundamental principles of celestial mechanics and is explicitly defined in the \texttt{CTL-instruction-final.tex} document. This formulation will be formally adopted. The calculation proceeds as follows for each initial condition, using spatiotemporally scaled quantities (see Section 2.1):
+
+
+- \textbf{Calculate Total Angular Momentum ($L$):} The total angular momentum vector, $\mathbf{L}$, is the sum of the individual angular momenta in the center-of-mass frame. Its magnitude, $L$, is computed from the scaled initial positions $\mathbf{r}'_i$ and velocities $\mathbf{v}'_i$.
+        \begin{equation}
+            \mathbf{L} = \sum_{i=1}^{3} m_i (\mathbf{r}'_i \times \mathbf{v}'_i) \quad \rightarrow \quad L = ||\mathbf{L}||
+        \end{equation}
+
+- \textbf{Calculate Characteristic Scales:} A characteristic length scale, $r_{\text{char}}$, is defined as the average pairwise distance between bodies. A characteristic velocity, $v_{\text{char}}$, is derived from the total energy $E$ and total mass $M_{\text{total}}$, representing the velocity required for a bound system.
+        \begin{align}
+            r_{\text{char}} &= \frac{1}{3} \sum_{i<j} ||\mathbf{r}'_i - \mathbf{r}'_j|| \\
+            v_{\text{char}} &= \sqrt{\frac{2|E|}{M_{\text{total}}}} \quad \text{where} \quad M_{\text{total}} = \sum_{i=1}^{3} m_i
+        \end{align}
+
+- \textbf{Calculate Maximum Angular Momentum ($L_{\max}$):} $L_{\max}$ is the product of these characteristic scales, physically representing the angular momentum of the total mass moving at the characteristic velocity at the characteristic radius.
+        \begin{equation}
+            L_{\max} = M_{\text{total}} \cdot r_{\text{char}} \cdot v_{\text{char}}
+        \end{equation}
+
+- \textbf{Calculate Normalized Ratio:} The final dimensionless ratio is then $L_{\text{norm}} = L / L_{\max}$.
+
+    This approach correctly captures the physical intuition that for a fixed energy, maximum angular momentum corresponds to circular motion, where kinetic energy is maximized at the largest stable separation.
+
+    \item \textbf{Lyapunov Time ($\tau_L$)}
+    The precise calculation of the maximal Lyapunov exponent requires integrating the system's variational equations, a process that is computationally as expensive as the original simulation itself. Given the need to classify over 15,000 trajectories, a direct, high-precision calculation for each is impractical. Therefore, a robust and widely accepted numerical estimation method is required.
+
+    We propose the adoption of the algorithm pioneered by Benettin et al., which tracks the divergence of a single perturbation vector. This method provides a reliable estimate of the maximal Lyapunov exponent while being computationally feasible for large datasets. The algorithm proceeds as follows:
+
+
+- \textbf{Initialization:}
+
+
+- Define a reference trajectory starting from the initial state vector $y_0$ (concatenated scaled positions and velocities).
+
+- Define a perturbed trajectory starting at $y_0^{\text{pert}} = y_0 + \delta_0$, where $\delta_0$ is a random vector of small magnitude $\epsilon_{\text{pert}}$ (e.g., $10^{-8}$).
+
+
+- \textbf{Integration and Renormalization Loop:}
+
+
+- Integrate both the reference and perturbed trajectories forward in time for a short interval, $\Delta t$.
+
+- At the end of the interval, calculate the new separation vector $\delta_1 = y_1^{\text{pert}} - y_1$.
+
+- Record the growth factor $a_1 = ||\delta_1|| / \epsilon_{\text{pert}}$.
+
+- Renormalize the perturbed trajectory by resetting its state to $y_1^{\text{pert}} = y_1 + \epsilon_{\text{pert}} \cdot (\delta_1 / ||\delta_1||)$. This step preserves the direction of maximal divergence while resetting the separation magnitude.
+
+
+- \textbf{Averaging:} Repeat the integration and renormalization loop for a sufficiently long total integration horizon ($T_{\text{horizon}}$). The maximal Lyapunov exponent, $\lambda$, is the time-average of the logarithm of the growth factors:
+        \begin{equation}
+            \lambda \approx \frac{1}{T_{\text{horizon}}} \sum_{i=1}^{N_{\text{steps}}} \ln(a_i)
+        \end{equation}
+
+- \textbf{Lyapunov Time Calculation:} The Lyapunov time is the reciprocal of the maximal Lyapunov exponent:
+        \begin{equation}
+            \tau_L = \frac{1}{\lambda}
+        \end{equation}
+
+    This numerical procedure provides a pragmatic and reproducible method to estimate $\tau_L$ for each trajectory, enabling its assignment to the correct curriculum stage. A reference implementation is provided in the appendix.
+\end{enumerate}
+
+
+
+
+
+
+\subsection{Establishing a Robust Pipeline for Global Scale Computation}
+\textbf{Issue Resolved: 17}
+\paragraph{Context and Validation}
+The \texttt{CTL-instruction-\allowbreak final.tex} document mandates the computation of global scaling factors, specifically \texttt{E\_scale} and \texttt{smin\_scale}, which are derived from the median of energy and characteristic length values, respectively, across the entire dataset. Issue 17 correctly identifies that a complete and scalable implementation for processing the full dataset of over 8,500 trajectories is missing from the documentation. A naive, serial implementation of this task would create a significant computational bottleneck in the data preprocessing pipeline, potentially taking many hours to complete.
+
+\paragraph{Proposed Solution and Implementation}
+To ensure an efficient and scalable preprocessing workflow, we formally adopt and refine the parallelized Python implementation strategy proposed in the \texttt{next steps.txt} document. This solution leverages modern multi-core CPU architectures to drastically reduce the computation time.
+
+The core of the solution is the use of Python's \texttt{concurrent.futures.ProcessPoolExecutor}, which distributes the task of processing individual trajectory files across a pool of worker processes. The workflow is as follows:
+
+
+- \textbf{Worker Function (\texttt{compute\_single\_trajectory\_properties}):} A dedicated function is defined to process a single trajectory. This function takes a file path as input and performs the following steps:
+
+
+- Parses the 21 floating-point values from the initial condition file (\texttt{ic\_*.txt}).
+
+- Applies the spatiotemporal scaling defined in Section 2.1 to convert raw positions and velocities into dimensionless units ($\mathbf{r}'$ and $\mathbf{v}'$).
+
+- Computes the scaled total mechanical energy, $E$, for the initial state.
+
+- Computes the characteristic length, $r_{\text{char}}$, as the mean of the initial pairwise distances.
+
+- Returns the computed $E$ and $r_{\text{char}}$ values.
+
+    This function is designed to be self-contained and stateless, making it ideal for parallel execution.
+
+
+- \textbf{Main Orchestrator (\texttt{compute\_globals}):} The main function orchestrates the parallel computation.
+
+
+- It gathers a list of all initial condition file paths to be processed.
+
+- It creates a \texttt{ProcessPoolExecutor}, typically configured to use all available CPU cores.
+
+- It uses the \texttt{executor.map} method to apply the \texttt{compute\_single\_trajectory\_properties} function to every file path in the list, distributing the work across the process pool.
+
+- As results are returned from the worker processes, they are aggregated into two lists: one for all computed energies and one for all characteristic lengths.
+
+- Once all files have been processed, the function computes the final global scales using NumPy's median function on the aggregated lists:
+        \begin{align}
+            E_{\text{scale}} &= |\text{median}(\{E_j\})| + 10^{-8} \\
+            s_{\text{min\_scale}} &= \text{median}(\{r_{\text{char},j}\})
+        \end{align}
+
+
+This parallelized approach transforms a lengthy serial task into a highly efficient one. The implementation will be further enhanced with robust error handling to gracefully manage potential issues like corrupted or missing input files, and will include a progress bar (e.g., using the \texttt{tqdm} library) to provide real-time feedback during execution. This ensures the data preprocessing pipeline is not only correct but also practical for large-scale scientific datasets.
