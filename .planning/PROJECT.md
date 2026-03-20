@@ -71,9 +71,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Fine-tune Qwen 3.5 2B for trajectory prediction | Small enough to train locally on M2 Mac | — Pending |
-| Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | ✓ Phases 1-3 complete |
+| Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | ✓ v1.0 shipped (Phases 1-4) |
 | PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
 
 ---
-*Last updated: 2026-03-19 after Phase 3 data deletion and legacy cleanup*
+*Last updated: 2026-03-20 after v1.0 Codebase Cleanup milestone (4 phases, 10 plans)*

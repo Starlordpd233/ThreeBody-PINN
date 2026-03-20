@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-stopped_at: Completed 04-01-SUMMARY.md
-last_updated: "2026-03-20T02:47:17.047Z"
+status: milestone_complete
+stopped_at: Milestone v1.0 archived
+last_updated: "2026-03-20T21:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -16,15 +16,15 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-18)
+See: .planning/PROJECT.md (updated 2026-03-20)
 
-**Core value:** Every active script, validation tool, and documentation file must correctly resolve IC paths after consolidation
-**Current focus:** Phase 03 — data-deletion-and-legacy-cleanup
+**Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed — ready for PINN training / LLM fine-tuning
+**Current focus:** v1.0 milestone complete — awaiting next milestone definition
 
 ## Current Position
 
-Phase: 04 (stale-reference-fixes) — COMPLETE
-Plan: 1 of 2 (04-01 completed, 04-02 in progress)
+Phase: All 4 phases complete (v1.0 Codebase Cleanup — shipped 2026-03-20)
+Plan: 10/10 plans complete
 
 ## Performance Metrics
 
@@ -90,10 +90,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Filesystem backup of git-ignored data folders must be confirmed before Phase 3 execution (user responsibility per out-of-scope decision).
+None — all Phase 1-4 blockers resolved. Next milestone not yet defined.
 
 ## Session Continuity
 
-Last session: 2026-03-20T02:46:35.134Z
-Stopped at: Completed 04-01-SUMMARY.md
+Last session: 2026-03-20
+Stopped at: v1.0 milestone archived
 Resume file: None
+Next action: `/gsd:new-milestone` to start PINN training / LLM fine-tuning cycle
