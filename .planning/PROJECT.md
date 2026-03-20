@@ -27,6 +27,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Codebase cleanup: 184-ID gold subset validation via exclusion file — Phase 1
 - ✓ Documentation: all files updated for post-consolidation layout — Phase 2
 - ✓ Codebase cleanup: deleted legacy folders and build artifacts — Phase 3
+- ✓ Codebase cleanup: fixed all stale code imports and documentation filename references — Phase 4
 
 ### Active
 
