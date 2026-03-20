@@ -1,0 +1,12 @@
+\part{Conclusions and Recommendations}
+
+The analysis presented in this report confirms that the initial fixed-threshold curriculum framework is ill-suited to the empirical realities of the generated dataset. The proposed solution is a complete overhaul of the stage assignment methodology, replacing the static framework with a robust, adaptive, and data-driven workflow.
+
+\textbf{The core recommendations are as follows:}
+\begin{enumerate}
+    \item \textbf{Adopt a Hybrid, Data-Driven Stratification Strategy:} Use quantile-based binning for the stable subset and a PCA-plus-clustering approach for the complex subset.
+    \item \textbf{Implement the Four-Phase Algorithmic Workflow:} Follow the systematic process from invariant computation to final stage assignment and balancing.
+    \item \textbf{Prioritize Physical Interpretability:} Maintain the link to physics by using meaningful invariants and analyzing the physical characteristics of discovered clusters.
+    \item \textbf{Embrace Iterative Validation:} Empirically validate the curriculum's effectiveness by monitoring the PINN's training dynamics and be prepared to refine the curriculum based on this feedback.
+\end{enumerate}
+By implementing this comprehensive framework, the CTL-PINN project can overcome the critical bottleneck of stage assignment, ensuring a smoother learning progression and ultimately providing a much stronger foundation for training a PINN to accurately model the complex and chaotic dynamics of the three-body problem.

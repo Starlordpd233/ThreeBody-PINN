@@ -1,0 +1,138 @@
+\part{Implementation and Validation Protocol}
+
+This part provides the practical tools and procedures required to execute the proposed workflow and validate its effectiveness.
+
+\section{Reference Implementation in Python}
+
+The following Python code provides a reference implementation for the core functions of the stratification workflow.
+
+\begin{lstlisting}
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def compute_invariants(raw_data_path: str, simulation_files: list) -> pd.DataFrame:
+    """
+    Parses raw data, computes all physical invariants, and returns a master DataFrame.
+    This function is a placeholder for the user's existing pipeline for steps 2.1.1-2.1.4.
+    """
+    # For demonstration, we'll create a dummy DataFrame.
+    num_samples = 15000
+    data = {
+        'sim_id': range(num_samples),
+        'ic_type': np.random.choice(['hierarchical', 'quasi-random'], num_samples, p=[0.4, 0.6]),
+        'E': np.random.randn(num_samples) * 2 - 1,
+        'Q_norm': np.random.randn(num_samples) * 0.2 + 1,
+        'L_norm': np.random.rand(num_samples),
+        's_min': np.random.rand(num_samples) * 5,
+        'tau_L': np.random.exponential(scale=10, size=num_samples)
+    }
+    df = pd.DataFrame(data)
+    # Make hierarchical more stable for realism
+    hier_mask = df['ic_type'] == 'hierarchical'
+    df.loc[hier_mask, 'tau_L'] = np.random.exponential(scale=500, size=hier_mask.sum()) + 100
+    df.loc[hier_mask, 'L_norm'] = np.random.uniform(0.7, 1.0, size=hier_mask.sum())
+    df.loc[hier_mask, 'E'] = np.random.uniform(-5, -1, size=hier_mask.sum())
+    return df
+
+def perform_eda(invariant_df: pd.DataFrame):
+    """
+    Generates and saves key EDA plots for landscape mapping.
+    """
+    print("--- Performing Exploratory Data Analysis ---")
+    #... (Plotting code as in original report)...
+    print("EDA plots saved.")
+
+def derive_adaptive_criteria(quasi_random_df: pd.DataFrame, k: int = 5) -> dict:
+    """
+    Implements the PCA -> Cluster -> Sort pipeline for the quasi-random dataset.
+    """
+    print(f"--- Deriving Adaptive Criteria for Quasi-Random Data (k={k}) ---")
+    features = ['E', 'Q_norm', 'L_norm', 's_min', 'tau_L']
+    df_for_clustering = quasi_random_df[features].copy()
+    df_for_clustering['lambda_max'] = 1.0 / df_for_clustering['tau_L']
+    df_for_clustering.replace([np.inf, -np.inf], 0, inplace=True)
+
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(df_for_clustering[['E', 'Q_norm', 'L_norm', 's_min', 'lambda_max']])
+
+    pca = PCA(n_components=0.9)
+    pcs = pca.fit_transform(scaled_features)
+
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    cluster_labels = kmeans.fit_predict(pcs)
+
+    temp_df = quasi_random_df.copy()
+    temp_df['cluster'] = cluster_labels
+    cluster_median_tau_L = temp_df.groupby('cluster')['tau_L'].median()
+    sorted_clusters = cluster_median_tau_L.sort_values(ascending=False).index.tolist()
+
+    return {
+        'kmeans_model': kmeans, 'pca_model': pca, 'scaler': scaler,
+        'sorted_cluster_labels': sorted_clusters, 'cluster_assignments': cluster_labels
+    }
+
+def assign_stages(invariant_df: pd.DataFrame, k_clusters: int = 5, min_stage_pop_frac: float = 0.05) -> pd.DataFrame:
+    """
+    Assigns a final stage label to each simulation based on the hybrid strategy.
+    """
+    df = invariant_df.copy()
+    df['stage'] = -1
+
+    # Stratify Hierarchical Data (Stages 0, 1)
+    hier_mask = df['ic_type'] == 'hierarchical'
+    hier_df = df[hier_mask]
+    e_q25 = hier_df['E'].quantile(0.25)
+    l_q75 = hier_df['L_norm'].quantile(0.75)
+    stage0_mask = hier_mask & (df['E'] <= e_q25) & (df['L_norm'] >= l_q75)
+    df.loc[stage0_mask, 'stage'] = 0
+    df.loc[hier_mask & (df['stage'] == -1), 'stage'] = 1
+
+    # Stratify Quasi-Random Data (Stages 2-6)
+    qr_mask = df['ic_type'] == 'quasi-random'
+    qr_df = df[qr_mask]
+    criteria = derive_adaptive_criteria(qr_df, k=k_clusters)
+    sorted_labels = criteria['sorted_cluster_labels']
+    cluster_map = {label: i for i, label in enumerate(sorted_labels)}
+
+    for original_label, stage_offset in cluster_map.items():
+        cluster_mask = qr_df.index[criteria['cluster_assignments'] == original_label]
+        df.loc[cluster_mask, 'stage'] = stage_offset + 2
+
+    # Add extreme outliers to Stage 6
+    s_min_q1 = df['s_min'].quantile(0.01)
+    extreme_outlier_mask = qr_mask & ((df['s_min'] <= s_min_q1) | (df['E'] > 0))
+    df.loc[extreme_outlier_mask, 'stage'] = 6
+
+    # Population Balancing
+    #... (Merging logic as in original report)...
+
+    # Re-label stages to be contiguous
+    unique_stages = sorted(df['stage'].unique())
+    stage_relabel_map = {old_label: new_label for new_label, old_label in enumerate(unique_stages)}
+    df['stage'] = df['stage'].map(stage_relabel_map)
+
+    print("\n--- Final Stage Populations ---")
+    print(df['stage'].value_counts().sort_index())
+    return df
+\end{lstlisting}
+
+\section{Advanced Architectural Considerations and Refinements}
+
+While the proposed workflow is robust, several refinements can enhance its performance and interpretability, such as using Gaussian Mixture Models (GMM) for more flexible clustering, performing feature selection to reduce noise, and using shape invariants for secondary analysis to improve physical interpretation.
+
+\section{A Protocol for Curriculum Validation}
+
+The development of the curriculum does not end with the assignment of stage labels. Its effectiveness must be empirically validated.[5] The ultimate goal is to ensure a smooth difficulty gradient for the PINN, leading to stable and efficient training.
+\begin{enumerate}
+    \item \textbf{Implement the New Curriculum:} Generate and save stage labels for the dataset.
+    \item \textbf{Create a Hold-out Validation Set:} Partition the data, ensuring the validation set is stratified across all curriculum stages.
+    \item \textbf{Prototype Training Run:} Train a prototype of the CTL-PINN model following the full curriculum protocol.
+    \item \textbf{Monitor Stage-wise Performance:} At the end of training for each stage $k$, evaluate the model's loss (e.g., $\mathcal{L}_{\text{data}}$) on the validation samples belonging to each stage.
+    \item \textbf{Analyze the Transition Dynamics:} Plot the validation loss for each stage's data as a function of the training epochs.
+    \item \textbf{Success Criterion:} The curriculum is successful if training proceeds without catastrophic spikes in validation loss upon stage transitions. A manageable increase in loss on newly introduced data, followed by a steady decrease, indicates a well-paced difficulty jump.
+\end{enumerate}
