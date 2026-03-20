@@ -1,0 +1,115 @@
+\begin{comment}
+
+\section{Advanced Training Dynamics and Optimization}
+
+The successful training of the proposed hybrid PINN is a non-trivial task. The composite loss function creates a highly complex, non-convex optimization landscape, and naive training approaches are almost certain to fail. They may converge to poor local minima, suffer from numerical instability, or fail to properly balance the competing objectives of data fidelity and physics enforcement. This section details a suite of advanced, essential techniques for engineering the training dynamics to navigate this landscape effectively and achieve a robust, physically accurate solution.
+
+
+
+
+\subsection{Adaptive Loss Balancing via the Augmented Lagrangian Method (ALM)}
+
+The single most sensitive and critical aspect of training a PINN is balancing the influence of the data fidelity term ($\mathcal{L}_{\text{data}}$) and the physics residual term ($\mathcal{L}_{\text{physics}}$). These two terms often have vastly different magnitudes and generate conflicting gradients, pulling the network parameters in opposing directions. A fixed weighting factor, $\alpha$, is insufficient, as the optimal balance changes throughout the training process.
+
+A naive scheduling strategy, such as a ``warmup'' where $\alpha$ is sharply increased from zero to a large value, has been shown to fail catastrophically. This occurs because the optimizer first settles into a local minimum of the $\mathcal{L}_{\text{data}}$ landscape. The sudden introduction of a large $\mathcal{L}_{\text{physics}}$ term violently reshapes the total loss landscape, potentially placing the optimizer on a steep ``cliff'' from which it cannot recover, leading to training divergence.$^1$
+
+A more robust and principled solution is to move beyond pre-defined schedules and adopt an adaptive method that automates the balancing act. This report recommends the Adaptive Augmented Lagrangian Method (ALM), which reframes the multi-objective optimization problem into a more physically intuitive constrained optimization problem: minimize $\mathcal{L}_{\text{data}}$ subject to the constraint that $\mathcal{L}_{\text{physics}} \approx 0$.$^1$ The implementation, based on the framework proposed in the literature, proceeds as follows:
+
+\begin{enumerate}
+    \item \textbf{Lagrangian Formulation:} The loss is reformulated as an augmented Lagrangian, which includes both a Lagrange multiplier $\lambda_p$ and a quadratic penalty term with coefficient $\mu_p$:
+    \[
+    \mathcal{L}(\theta, \lambda_p) = \mathcal{L}_{\text{data}} + \lambda_p \mathcal{L}_{\text{physics}} + \frac{\mu_p}{2} \mathcal{L}_{\text{physics}}^2
+    \]
+    \item \textbf{Primal-Dual Updates:} The training involves alternating between a ``primal'' step, where the network weights $\theta$ are updated via gradient descent on $\mathcal{L}(\theta, \lambda_p)$, and a ``dual'' step, where the Lagrange multiplier $\lambda_p$ is updated via gradient ascent. The dual update rule is:
+    \[
+    \lambda_p \leftarrow \lambda_p + \mu_p \mathcal{L}_{\text{physics}}
+    \]
+    This update naturally increases the penalty on the physics term when its residual is large and decreases it when the constraint is satisfied.
+    \item \textbf{Adaptive Penalty Parameter $\mu_p$:} The key innovation of the adaptive ALM is that the penalty parameter $\mu_p$, which acts as the learning rate for the dual update, is not fixed. It is dynamically adjusted based on the history of the constraint violation, using a rule inspired by the RMSprop optimizer$^1$:
+    \begin{itemize}
+        \item First, a moving average of the squared physics loss is maintained: $\mathrm{v}_p \leftarrow \beta \mathrm{v}_p + (1 - \beta) \mathcal{L}_{\text{physics}}^2$
+        \item Then, the penalty parameter is updated as: $\mu_p \leftarrow \frac{\gamma}{\mathrm{v}_p + \epsilon}$ where $\beta$ is a momentum term (e.g., 0.99), $\gamma$ is a base learning rate (e.g., $10^{-2}$), and $\epsilon$ is a small constant for numerical stability.
+    \end{itemize}
+\end{enumerate}
+
+This dual-level adaptive mechanism is exceptionally robust. The Lagrange multiplier $\lambda_p$ automatically balances the data and physics terms, while the adaptive penalty $\mu_p$ stabilizes the update of $\lambda_p$, preventing the oscillations or runaway growth that can plague simpler ALM implementations. This automates what is arguably the most difficult hyperparameter tuning task in PINN training, leading to significantly more stable and reliable convergence.$^1$
+
+
+
+
+\subsection{Curriculum-Aware Energy Regularization Scheduling}
+
+Just as the balance between data and physics must be dynamic, the strength of the energy conservation regularizer should also adapt to the context of the training data. The Curriculum-Transfer Learning (CTL) framework provides a natural structure for this adaptation, as the training data is stratified into stages of increasing complexity, from highly stable, predictable systems to wildly chaotic ones. The energy conservation constraint is most critical for the latter.
+
+Therefore, the weight of the energy loss term, $\lambda_{\mathrm{E}}$, is scheduled to increase in lockstep with the curriculum stages. This strategy avoids over-constraining the model when it is learning simple dynamics, where energy is naturally well-conserved, but applies a strong physical regularization precisely when it is needed most---when the model is faced with chaotic trajectories that are prone to energy drift. The recommended definitive schedule, based on the five-stage curriculum, is (needs revision here based on the new 7-stage CTL plan):
+\[
+\lambda_{\mathrm{E}}(\mathrm{k}) = 10^{\mathrm{k}-3} \text{ for curriculum stage } \mathrm{k} \in \{0,1,\ldots,5\}
+\]
+
+This results in a progression from a very weak penalty ($\lambda_{\mathrm{E}} = 0.01$ for Stage 0) to a very strong penalty ($\lambda_{\mathrm{E}} = 1000$ for Stage 5), aligning the strength of the physical constraint with the inherent stability of the training examples for a more efficient and stable learning process.
+
+
+
+\subsection{Two-Phase Optimization Strategy}
+
+To achieve both efficient exploration of the complex loss landscape and high-precision convergence, a two-phase optimization strategy is employed. This approach combines a first-order stochastic optimizer with a quasi-second-order deterministic optimizer, leveraging the distinct strengths of both.$^1$
+
+\begin{enumerate}
+    \item \textbf{Phase 1 (Exploration and Initial Convergence):} The initial training phase utilizes the Adam optimizer. With its adaptive learning rates and momentum-based updates, Adam is a robust choice for stochastic optimization. It is well-suited for navigating the highly non-convex loss landscape of the PINN in the early stages of training, efficiently finding a good basin of attraction.
+    \item \textbf{Phase 2 (Fine-tuning and Polishing:)}
+    Once the Adam optimizer has converged, the optimization process is switched to a quasi-Newton method to ``polish''
+    the solution and minimize the residuals to a high precision. However, standard L-BFGS requires the full training
+    batch, which is computationally infeasible on consumer hardware for the large datasets in later curriculum stages.
+    Therefore, we will adopt a more memory-efficient approach:
+
+    Stochastic L-BFGS (L-BFGS-M): This is a variant of L-BFGS designed to work with mini-batches, just like Adam.
+    It uses historical gradient information to approximate the Hessian curvature while processing only a small
+    batch of data at a time. This provides the high-precision convergence benefits of a second-order method without
+    the prohibitive memory cost of full-batch optimization, making it ideal for our use case. (Consider searching for an
+    open-source algorithm for reference here.)
+\end{enumerate}
+
+\subsection{Stabilizing Training with Adaptive Gradient Clipping}
+
+A significant practical challenge in training PINNs for the $\mathrm{N}$-body problem arises from the terms in the loss function that involve inverse-square distances, such as the gravitational force $(\propto 1 / || \mathrm{r}_i - \mathrm{r}_j ||^3)$ and potential energy $(\propto 1 / || \mathrm{r}_i - \mathrm{r}_j ||)$. During simulated close encounters, the distance between bodies can become very small, causing these terms---and their gradients---to explode. A single such event can send an enormous gradient to the network weights, completely destabilizing the optimizer and destroying training progress.$^1$
+
+Gradient clipping is an essential technique to prevent this. However, using a fixed, constant clipping threshold is suboptimal. A more robust and adaptive strategy is to clip the global norm of the gradients relative to their recent typical magnitude. The recommended implementation is to clip the gradient norm to a multiple of the median gradient norm, calculated over a moving window of recent training steps.$^1$ The procedure is as follows:
+
+\begin{enumerate}
+    \item After computing the gradients for a training batch, calculate their global L2 norm: $\text{grad\_norm} = || \nabla \mathcal{L}_{\text{total}} ||$.
+    \item Maintain a queue of the $\text{grad\_norm}$ values from the last, e.g., 100, training steps.
+    \item Compute the median of this history, $\text{median\_norm}$. The median is used because it is a robust statistic, insensitive to the very outlier spikes we aim to control.
+    \item Set the dynamic clipping threshold: $\text{clip\_value} = C \times \text{median\_norm}$, where $C$ is a hyperparameter (a value of 5 is a robust starting point).
+    \item Apply the clipping operation to the network's parameters before the optimizer step.
+\end{enumerate}
+
+This adaptive approach normalizes the gradient updates. It automatically allows for larger gradients when the model is learning rapidly on stable data but aggressively caps the rare, extreme spikes that occur during chaotic close encounters, providing stability without unnecessarily throttling the optimizer.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Training hyperparameters and optimizer settings}\label{tab:training_hyperparameters}
+    \begin{tabularx}{\textwidth}{|l|l|X|}
+        \hline
+        \textbf{Hyperparameter} & \textbf{Recommended Value} & \textbf{Rationale \& Justification} \\
+        \hline
+        Optimizer (Initial) & Adam, $\beta = (0.9, 0.999)$ & Standard, robust choice for stochastic optimization of the non-convex PINN loss landscape.$^1$ \\
+        \hline
+        Learning Rate (Adam) & Cosine decay: $10^{-3} \rightarrow 10^{-4}$ & Starts with a reasonably high LR for fast exploration and decays to a smaller value for fine-tuning near a minimum, preventing overshoot. \\
+        \hline
+        Optimizer (Fine-tune) & Stochastic L-BFGS & A quasi-Newton method that uses mini-batches, enabling high-precision polishing of the solution without the prohibitive memory cost of full-batch L-BFGS \\
+        \hline
+        Gradient Clipping & Global norm clipping at $5 \times$ median norm & Adaptive threshold prevents explosions from close encounters without suppressing learning during stable phases. The median provides a robust reference. \\
+        \hline
+        Physics Loss Weight & Adaptive ALM $(\gamma = 10^{-2}, \beta = 0.99)$ & Automates the difficult task of loss balancing for superior stability and convergence, treating the physics as a constraint to be satisfied. \\
+        \hline
+        Energy Loss Weight & Curriculum-scheduled: $\lambda_E(k) = 10^{k-3}$ & Aligns the strength of the energy constraint with the difficulty of the curriculum stage $k$, applying regularization only as strongly as needed.\\
+        \hline
+        Weight Decay & $10^{-6}$ (Range: $0 - 10^{-5}$) & Light L2 regularization to prevent network parameters from growing excessively large, which can lead to numerical instability.\\
+        \hline
+        Batch Size & 1024-4096 collocation points & A balance between providing a good gradient estimate and fitting within memory constraints. Should be scaled based on available GPU memory. \\
+        \hline
+    \end{tabularx}
+\end{table}
+\FloatBarrier
+
+\end{comment}

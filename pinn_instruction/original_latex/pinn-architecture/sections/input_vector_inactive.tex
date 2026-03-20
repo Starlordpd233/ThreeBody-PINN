@@ -1,0 +1,68 @@
+\begin{comment}
+
+
+\section{Input Vector Formulation and Output Processing}
+
+The model's ability to learn and generalize across a vast space of possible $\mathrm{N}$-body trajectories depends critically on how information is presented to it. This section details the definitive formulation for the network's input vector and the processing of its output, resolving a critical discrepancy in the planning documents.
+
+\subsection{An Injective, Physically-Grounded Conditional Input}
+
+
+A non-autoregressive PINN must be conditioned on the specific trajectory it is meant to predict. A naive approach might be to feed the raw initial state vector (positions and velocities) as input. However, this is high-dimensional and fails to leverage the underlying physics of the problem. A more robust and principled approach is to condition the network on a compact, physically meaningful representation of the system.
+
+A critical flaw was identified in the initial plan: the proposed 7-dimensional vector of physical invariants$^1$ is non-injective. This means that multiple, physically distinct initial conditions—for example, systems that are simply rotations of each other or are at different phases of the same orbit—could map to the identical input vector. This ambiguity creates an impossible learning target for a conditional network, as it would be asked to produce different outputs for the exact same input, leading to training failure.
+
+To resolve this, this report formally adopts the 14-dimensional injective input vector specified in the more refined CTL instruction plan.$^1$ This vector ensures that every unique initial state maps to a unique input representation. The network input is a concatenation of the time coordinate $t$ and a 13-component initial condition vector, $\mathrm{IC}$:
+
+\[
+\text{Input} = [t, \mathrm{IC}]
+\]
+
+
+The $\mathrm{IC}$ vector is constructed from three distinct groups of physically meaningful quantities detailed as follows:
+
+
+\begin{equation}
+    \text{IC} = \begin{pmatrix}
+    m_1^{\text{norm}}, m_2^{\text{norm}}, m_3^{\text{norm}} & \text{(normalized masses)} \\
+    E^{\text{norm}} & \text{(normalized total energy)} \\
+    L_{\text{norm}} & \text{(normalized angular momentum)} \\
+    Q^{\text{norm}} & \text{(normalized virial ratio)} \\
+    s_{\min}^{\text{norm}} & \text{(normalized min separation)} \\
+    I_1^{\text{norm}}, I_2^{\text{norm}}, I_3 & \text{(shape invariants)} \\
+    \theta_1^{\text{norm}}, \theta_2^{\text{norm}} & \text{(normalized velocity angles)} \\
+    I^{\text{norm}} & \text{(normalized moment of inertia)}
+    \end{pmatrix}
+\end{equation}
+
+
+
+For more information on the input vector formulation, refer to the CTL instruction plan. When computing each component in the above vector,
+we need to use the scaled parameters that are dimensionless and then using the code snippet in the CTL instruction plan to
+compute the invariants and ensure that all components are normalized them to [-1,1].
+
+
+\subsubsection{Scaling the Training Data: Defining the G=1 System of Units}
+
+To simplify the physical equations and improve numerical stability, we adopt a non-dimensional system of units where the gravitational constant is 1. This is achieved by carefully choosing our characteristic time, \(T\), and characteristic length, \(D\).
+
+\begin{enumerate}
+    \item \textbf{Characteristic Time (T):} We define the characteristic time from the data. Let \(T = t_{max} = 10\), where \(t_{max}\) is the maximum time value across the entire simulation dataset. The input time \(t\) is then normalized to a dimensionless time \(t'\) in \([0, 1]\) using the formula:
+    \[
+        t' = \frac{t}{T}
+    \]
+
+    \authcomment{I believe this formula is incorrect for the normalization of time. Shouldn't we normalize the time to [-1,1]?}
+
+
+    \item \textbf{Characteristic Length (D):} By setting the new gravitational constant \(G^{\text{prime}}\) to 1, our characteristic length \(D\) is determined by our choice of \(T\). It is calculated using the physical value of \(G\) as follows (but since BRUTUS uses G=1, $D = \sqrt[3]{T^2} \approx 4.6416$):
+    \[
+        D = \sqrt[3]{G T^2}
+    \]
+\end{enumerate}
+
+All position-based quantities (e.g., \(\mathbf{r}\)) in the model must be scaled by this D to \(\mathbf{r}' = \mathbf{r} / D\), velocities to \(\mathbf{v}' = \mathbf{v} \cdot (T / D)\), and accelerations (from AD) are automatically scaled. This scaling is applied during data preprocessing (see CTL document Phase 1) to BRUTUS trajectories and initial conditions before computing the IC vector or feeding to the network.
+
+The scaled data ensures consistency in loss functions (e.g., no explicit G). For length-derived IC components (e.g., \(s_{\min}\)), compute from scaled data before [-1,1] normalization (cross-reference CTL Section 4.2).
+
+\end{comment}

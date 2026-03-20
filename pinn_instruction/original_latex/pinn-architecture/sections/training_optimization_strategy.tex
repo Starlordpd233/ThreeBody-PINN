@@ -1,0 +1,33 @@
+\section{Advanced Training and Optimization Strategy}
+
+Successfully training the network requires a sophisticated approach to navigate the complex, non-convex loss landscape and handle numerical instabilities.
+
+\subsection{Adaptive Loss Balancing via ALM}
+The balance between the data fidelity term ($\mathcal{L}_{\text{data}}$) and the physics residual term ($\mathcal{L}_{\text{physics}}$) is handled automatically by the Adaptive Augmented Lagrangian Method (ALM). The influence of the physics term is controlled adaptively through the Lagrange multiplier $\lambda_p$ and the penalty coefficient $\mu_p$. These parameters are updated algorithmically after each optimization step, outside of the standard backpropagation graph.
+
+\subsection{Two-Phase Optimization}
+To achieve both efficient exploration and high-precision convergence, a two-phase optimization strategy is employed.
+\begin{enumerate}
+    \item \textbf{Phase 1 (Exploration):} The initial training phase utilizes the \textbf{Adam optimizer}. Its adaptive learning rates and momentum-based updates are well-suited for navigating the highly non-convex loss landscape in the early stages of training, efficiently finding a good basin of attraction.
+    \item \textbf{Phase 2 (Fine-Tuning):} Once the Adam optimizer has converged, the process can be switched to a quasi-Newton method like \textbf{L-BFGS} to "polish" the solution. Because full-batch L-BFGS is memory-intensive, a mini-batch variant (Stochastic L-BFGS) is recommended for larger datasets.
+\end{enumerate}
+
+\subsection{Adaptive Gradient Clipping}
+A significant challenge arises from the inverse-square distance terms in the loss function, which can explode during simulated close encounters. To prevent a single event from destabilizing the optimizer, adaptive gradient clipping is essential. A robust strategy is to clip the global L2 norm of the gradients relative to their recent typical magnitude.
+
+\begin{lstlisting}[language=Python, caption={Adaptive Gradient Clipping Logic}]
+# Maintain a queue/list of the last 100 gradient norms
+grad_history = []
+
+# In training loop, after loss.backward():
+total_norm = torch.norm(torch.stack([torch.norm(p.grad.detach()) for p in model.parameters()]))
+grad_history.append(total_norm)
+if len(grad_history) > 100:
+    grad_history.pop(0)
+
+# Clip norm to 5x the median of recent norms
+clip_value = 5.0 * torch.median(torch.stack(grad_history))
+torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
+
+# Then, call optimizer.step()
+\end{lstlisting}

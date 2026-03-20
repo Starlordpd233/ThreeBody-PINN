@@ -1,0 +1,34 @@
+\begin{small}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.18\textwidth}|>{\raggedright\arraybackslash}p{0.4\textwidth}|>{\raggedright\arraybackslash}p{0.4\textwidth}|}
+\caption{Consolidated Implementation Blueprint Summary}\label{tab:blueprint_summary} \\
+\hline
+\multicolumn{3}{|c|}{\textbf{Consolidated Implementation Blueprint Summary}} \\
+\hline
+\textbf{Component} & \textbf{Definitive Specification} & \textbf{Justification} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Component} & \textbf{Definitive Specification} & \textbf{Justification} \\
+\hline
+\endhead
+% Table rows start here
+\textbf{Unit System} & A non-dimensional system is used where the gravitational constant $G=1$. \newline \textbullet{} \textbf{Characteristic Time:} $T=t_{max}$ (max time in dataset). \newline \textbullet{} \textbf{Characteristic Length:} $D=\sqrt[3]{GT^{2}}$. & Simplifies the governing physical equations and improves the numerical stability of the model during training. \\
+\hline
+\textbf{Backbone} & \textbf{SQR-SkipResNet} with \textbf{12 hidden layers} and a \textbf{width of 256 neurons}. \newline \textbullet{} \textbf{Odd Layers:} $\mathbf{x}^{(l)} = f_{\text{sr}}^{(l)}(\mathbf{x}^{(l-1)}) + (\mathrm{LayerNorm}(\mathbf{x}^{(l-1)}))^2$. \newline \textbullet{} \textbf{Even Layers:} Plain block, $\mathbf{x}^{(l)} = f_{\text{pn}}^{(l)}(\mathbf{x}^{(l-1)})$. \newline \textbullet{} \textbf{Layer Norm:} Applied to skip path on odd layers only, with \texttt{elementwise\_affine=True} and \texttt{eps=1e-5}. & The deep architecture provides the expressive power needed for chaotic dynamics. The SQR-SkipResNet variant with LayerNorm provides superior gradient stability for non-smooth dynamics, which is ideal for modeling close encounters. \\
+\hline
+\textbf{Activation} & \textbf{SIREN ($\sin(x)$)} for all hidden layers. & The sine function is infinitely differentiable ($C^{\infty}$), which is a mathematical necessity for accurately computing the second-order derivatives ($\frac{d^{2}r}{dt^{2}}$) required in the physics loss term. \\
+\hline
+\textbf{Initialization} & A principled, two-part SIREN initialization scheme: \newline \textbullet{} \textbf{First Layer:} \texttt{first\_omega\_0 = 30}. Weights from $U[-\frac{1}{n_{in}}, \frac{1}{n_{in}}]$. \newline \textbullet{} \textbf{Hidden Layers:} \texttt{hidden\_omega\_0 = 1}. Weights from $U[-\frac{\sqrt{6/n_{in}}}{1}, \frac{\sqrt{6/n_{in}}}{1}]$. & A high initial frequency (\texttt{first\_omega\_0}) helps overcome spectral bias. The specific scaling for hidden layers ensures a stable distribution of activations, making the deep network trainable. \\
+\hline
+\textbf{Input Vector} & A \textbf{14-dimensional vector} \texttt{[t, IC]}, where \texttt{t} is time normalized to $[-1,1]$ and \texttt{IC} is a 13-component vector of initial conditions. The IC vector contains: \newline \textbullet{} 3 masses. \newline \textbullet{} 5 physical invariants. \newline \textbullet{} 5 values for 3 trigonometrically encoded angles. & This formulation provides a physically-grounded and injective (unambiguous) representation of the initial state, which is critical for a conditional network to learn correctly. \\
+\hline
+\textbf{Output} & A \textbf{9-dimensional position vector} \texttt{[r1(t), r2(t), r3(t)]} with a linear (no activation) final layer. Velocities ($v=\frac{dr}{dt}$) and accelerations ($a=\frac{d^{2}r}{dt^{2}}$) are derived via \textbf{Automatic Differentiation (AD)}. & Predicting only positions simplifies the network architecture. Deriving kinematics via AD hard-codes their fundamental physical relationship, ensuring they are satisfied by construction to machine precision. \\
+\hline
+\textbf{Data Loss ($\mathcal{L}_{data}$)} & \textbf{Mean Absolute Error (MAE / L1 Norm)} of the predicted positions against the ground truth data. & MAE is more robust to the occasional large deviations and outliers that are common in chaotic N-body simulations compared to MSE. \\
+\hline
+\textbf{Physics Loss ($\mathcal{L}_{physics}$)} & \textbf{Mean Squared Error (MSE)} of the physics residual. The residual is the difference between the network's AD-computed acceleration and the acceleration calculated from Newton's law of gravitation (in $G=1$ units). & This loss enforces the governing ordinary differential equations across the entire solution domain, not just at data points, allowing the model to generalize and make physically consistent predictions. \\
+\hline
+\textbf{Energy Loss ($\mathcal{L}_{energy}$)} & \textbf{Huber Loss ($\delta=1.0$)} on the deviation between the network's predicted total energy (Hamiltonian) and the pre-computed, constant initial energy ($H_0$), all in $G=1$ units. & Enforces the global conservation of energy, which combats long-term numerical drift and improves the physical plausibility of the simulation over long time horizons. \\
+\hline
+\end{longtable}
+\end{small}
