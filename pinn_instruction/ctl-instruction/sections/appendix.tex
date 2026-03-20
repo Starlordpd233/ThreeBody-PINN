@@ -1,0 +1,69 @@
+\appendix
+\section{Supplementary Figures}
+
+% Workflow figure originally located in Step 4; now archived here.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=2cm, auto,
+        block/.style={rectangle, draw, fill=blue!20, text width=8em, text centered, rounded corners, minimum height=4em},
+        decision/.style={diamond, draw, fill=green!20, text width=6em, text centered, minimum height=4em},
+        line/.style={draw, -Latex},
+        cloud/.style={ellipse, draw, fill=red!20, text width=6em, text centered, minimum height=4em}]
+        
+        \node [cloud] (start) {Sampled ICs};
+        \node [decision, below=of start] (com_check) {COM Frame?};
+        \node [block, left=of com_check, xshift=-2cm] (transform) {Transform to COM};
+        \node [block, right=of com_check, xshift=2cm] (verify) {Verify $\sum m_i v_i = 0$};
+        \node [block, below=of com_check, yshift=-1cm] (compute) {Compute Physics Invariants};
+        \node [block, below=of compute] (build) {Build 14D PINN Input};
+        
+        \path [line] (start) -- (com_check);
+        \path [line] (com_check) -- node[near start] {No} (transform);
+        \path [line] (com_check) -- node[near start] {Yes} (verify);
+        \path [line] (transform) |- (compute);
+        \path [line] (verify) |- (compute);
+        \path [line] (compute) -- (build);
+    \end{tikzpicture}
+    \begin{sloppypar}
+    \caption{Workflow diagram for COM-frame verification and input construction. This figure belongs to the \emph{end of Step~2} (Preprocessing) and is reproduced here in the Appendix for reference.}
+    \end{sloppypar}
+    \label{fig:step2_data_workflow}
+\end{figure}
+
+
+
+% ===== APPEND new Step 2→5 workflow diagram in Appendix =====
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=2.8cm, auto,
+        stage/.style={rectangle, draw, fill=orange!15, text width=8.5em, text centered, rounded corners, minimum height=2.8em},
+        compute/.style={rectangle, draw, fill=blue!10, text width=7.5em, text centered, rounded corners, minimum height=2.8em},
+        line/.style={draw, -Latex, thick}]
+        
+        % Sequential arrangement: Step 2 → Step 3, then parallel Step 4 & 5
+        \node[stage] (step2) {Step 2:\\Preprocessing};
+        \node[stage, below=of step2, yshift=-0.3cm] (step3) {Step 3:\\Invariant\\Calculation};
+        
+        % Step 4 and 5 are parallel, both stemming from Step 3
+        \node[stage, below left=of step3, xshift=-1.2cm, yshift=-1.5cm] (step4) {Step 4:\\Input Vector\\Construction};
+        \node[stage, below right=of step3, xshift=1.2cm, yshift=-1.5cm] (step5) {Step 5:\\Stage\\Assignment};
+        
+        % Additional computation node positioned to the right of step4
+        \node[compute, right=of step4, xshift=0.5cm] (compute) {Compute\\additional\\features};
+        
+        % Main flow arrows
+        \path[line] (step2) -- node[right, font=\small]{Scaled ICs} (step3);
+        
+        % Parallel branches from Step 3
+        \path[line] (step3) -- node[left, font=\small, text width=5em, align=center]{Use stored\\invariants} (step4);
+        \path[line] (step3) -- node[right, font=\small, text width=5em, align=center]{Use stored\\invariants} (step5);
+        
+        % Side computation flow from step4
+        \path[line] (step4) -- node[above, font=\small, text width=4.5em, align=center]{Reuse\\invariants} (compute);
+        
+    \end{tikzpicture}
+    \caption{End-to-end data-processing flow from Step~2 (Preprocessing) through Step~5 (Stage Assignment). After Step~3 computes and stores invariants ($E,Q,s_{\min},L_{\text{norm}},I_{\text{norm}},\tau_L$), Steps~4 and~5 run in parallel, both using these stored invariants. This complements Figure~\ref{fig:step2_data_workflow}.}
+    \label{fig:step2to5_workflow}
+\end{figure}
+% ===== END APPEND =====
+

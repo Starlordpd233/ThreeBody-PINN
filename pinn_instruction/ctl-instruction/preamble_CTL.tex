@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{hyperref}
+\usepackage{comment}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\lstset{
+    showstringspaces=false,
+}
+\usepackage{float}
+\usepackage{makecell}
+\renewcommand\theadfont{\bfseries}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta,
+  positioning}
+
+\DeclareMathOperator{\median}{median}
+
+% Defines a command for author comments.
+% Usage: \authcomment{This is my comment.}
+\newcommand{\authcomment}[1]{\textcolor{Red}{\textbf{[#1]}}}
+
+% Defines an environment for author comments that can contain listings and other complex content
+% Usage: \begin{authcommentenv} ... \end{authcommentenv}
+\newenvironment{authcommentenv}
+  {\par\begingroup\color{Red}\bfseries[}% Begin code: red bold and opening bracket
+  {]\endgroup\par}% End code: closing bracket and end group
+
+\title{Final CTL Instruction on Training PINNs for the Three-Body Problem}
+\author{Starlordpd233}
+\date{June 2025}

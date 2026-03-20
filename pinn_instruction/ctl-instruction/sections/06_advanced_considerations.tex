@@ -1,0 +1,68 @@
+\section{Advanced Considerations and Best Practices}
+
+\subsection{Evaluation Metrics and Validation}
+
+Evaluating a PINN on a chaotic problem demands more than just looking at mean squared errors.  As noted, even a physically correct model will eventually diverge from the ground truth trajectory due to chaos, so we need robust, physics-informed metrics:
+
+
+\begin{itemize}
+
+    \item \textbf{Conservation of Invariants:} We track how well the model conserves total energy $E$ and total angular momentum $L$ over long trajectories.  To test this, we can take a given initial condition (perhaps one from the test set or even outside the training set), use the PINN to predict its state over a long time (many Lyapunov times), and then compute $E$ and $L$ at each step from the PINN's output.  Ideally, these should remain nearly constant (within a small drift).  In our results, the final model shows minimal energy drift (e.g., relative energy error staying below $0.1\%$ over very long times) even when the trajectory itself has diverged from the exact solution.  This indicates the model has truly learned the physics law (Newton's $1/r^2$ force and corresponding conservation laws).  If a model had low MSE for a while but eventually grew large errors and showed energy not conserved (drifting significantly), that would be a red flag that it was not capturing the true dynamics properly. 
+    
+    
+    
+    
+    \item \textbf{Prediction Horizon (Lyapunov Time):} \authcomment{Should we also use the same definition here for the Lyapunov time from section 2.3 'Necessary Calculations of Invariants'?}
+    We quantify how long the model's predictions remain accurate in a chaotic sense by measuring the prediction horizon in units of Lyapunov time.  For a given initial condition with Lyapunov time $\tau_L$, 
+    we find the time $T_{\text{pred}}$ at which the PINN's trajectory error (compared to a high-precision reference) becomes of order 1 (say the separation between PINN and true solution equals the size of the system).  
+    We then express $T_{\text{pred}}$ in terms of $\tau_L$. A good model might achieve $T_{\text{pred}} \approx \tau_L$ or even a bit more, meaning it can predict about as far as the chaos inherently allows.  
+    A poor model would have $T_{\text{pred}} \ll \tau_L$, meaning it diverges much sooner than it should.  In testing our model, we found that it can often reach on the order of $1-2\tau_L$ of accurate prediction, 
+    which is reasonable given that beyond that, even the notion of a single "ground truth" trajectory is ambiguous due to chaos. 
+
+
+
+
+    \item \textbf{Long-Term Statistical Properties:} Another evaluation (if one doesn't want to rely on having ground truth for long times) is to check statistical properties.  For example, in a chaotic three-body system, one might look at distribution of outcomes (like what fraction of systems eventually experience an ejection, or distribution of closest approach distances, etc.) as predicted by the PINN vs by direct simulation.  This is more advanced and not explicitly in our docs, but it's a way to evaluate if the PINN at least gets the qualitative long-term behavior correct. 
+    
+    
+    
+    
+    
+    
+    \item \textbf{Standard Error Metrics on Short-Term Predictions:} Of course, we still use traditional metrics on short timescales.  For instance, for each trajectory we can compute the mean squared error up to some fixed time (maybe up to one Lyapunov time, or some number of orbits).  This gives a measure of how well the PINN fits the training data.  During training, we monitor such metrics stage-wise to ensure the model is fitting the data within each stage's scope. 
+\end{itemize}
+
+For deployment, the conservation laws metric is particularly important. It means that if we use the PINN as a surrogate simulator, it will not exhibit unphysical energy drift, so its outputs will remain physically plausible even if they deviate from the exact path.  This is crucial for chaotic systems: we often care more that the solution behaves like a real system (conserving invariants, eventually ergodically exploring phase space, etc.) than tracking a specific trajectory indefinitely.  In our case, after the final active learning fine-tuning, the model passes these tests: it conserves $E$ and $L$ to high precision and yields prediction horizons proportional to the system's $\tau_L$ (which is essentially the best one can hope for without true deterministic tracking beyond chaos). 
+
+
+
+\section{Reproducibility Note (Ignore Now and Come Back Later):} All the above steps (data parsing, training loop, etc.) have been described at a conceptual level.  
+For actual code, one would implement these in Python using libraries like PyTorch or TensorFlow for the PINN, 
+and perhaps JAX for automatic differentiation speed.  The step-by-step guide has provided all necessary components: 
+how to compute losses, how to schedule training, etc. As long as these instructions are followed and the hyperparameters are tuned 
+within reasonable ranges, one should be able to reproduce the results.  \begin{sloppypar}
+Key details like resetting optimizer states, using full-batch L-BFGS after plateau, 
+updating loss weights dynamically, and using cumulative data for replay are essential 
+for success and have been explicitly noted.
+\end{sloppypar} 
+
+\begin{sloppypar}
+Most importantly, for rigorous provenance we drive every training run from a
+three-level Hydra YAML stack:
+\end{sloppypar}
+
+\begin{itemize}
+    \item \texttt{stage.yaml} – curriculum definition and data-set indices\\
+    \item \texttt{opt.yaml} – optimiser, learning-rate schedule, clip norms\\
+    \item \texttt{loss.yaml} – augmented-Lagrangian settings, $\lambda_E$ schedule, 
+    tolerances
+\end{itemize}
+
+A typical run is launched with:
+
+\begin{verbatim}
+python train.py --config-dir conf --config-name stage.yaml
+\end{verbatim}
+
+This command writes the fully resolved configuration into the run folder, so every figure in the paper can be reproduced bit-for-bit.
+

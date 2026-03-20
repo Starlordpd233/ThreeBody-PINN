@@ -1,0 +1,653 @@
+\section{Phase 2 - The Definitive CTL-PINN Training Loop}
+
+\authcomment{My biggest question now for this training loop is that: 
+how are we feeding the exact input vector and brutus simulation data into the network? We need a very specific description that clearly tells me
+what the input format is going to be. For example, right now I know that our input vector is a 14th-dimentional input vector; but my question is that
+since the brutus simulation data has a bunch of time series and time snapshots, at each which there is a set of 3-body positions and velocities,
+how are we handing the Brutus simulation data to
+this neural network? Like how do we use the Brutus simulation data in this workflow? and how do we input it together with the input vector?
+In which step? After the network
+output a predicted trajectory do we just give it the brutus ground-truth data and let it optimize based on that?
+This ties to my bigger question that what is the network ultimately doing? Looking at the PINN docment section 5.2 on 
+"5.2 Output Layer and Kinematic Consistency via Automatic Differentiation", is the ouptut file going to be something similar to a brutus output file, 
+sort of acting as a replacement for the brutus algorithm?}
+
+The CTL framework breaks the cycle of needing complex data to learn physics while requiring basic physics to handle complex data by progressing through stages of increasing difficulty. This section provides a complete specification for the Phase 2 training loop, detailing the optimization strategy within each curriculum stage. The loop involves macro-level curriculum progression, meso-level two-phase optimization per stage, and micro-level techniques like lookahead sampling for smooth transitions.
+
+\subsection{Overview: The Two-Phase Optimization Strategy}
+
+Within each curriculum stage, a two-phase strategy leverages a stochastic optimizer for exploration and a quasi-Newton method for refinement:
+
+\begin{itemize}
+    \item \textbf{Phase 2a: Adam-driven Exploration} - Uses Adam to explore the loss landscape and find a good basin.
+    \item \textbf{Phase 2b: L-BFGS Refinement} - Approximates the Hessian to drive down residuals precisely.
+\end{itemize}
+
+\subsubsection{Data Flow During Training}
+The data flow for each training step is as follows:
+\begin{enumerate}
+    \item \textbf{Input}: The model receives a 12-dimensional input vector, which is a combination of the scalar time $t$ and the 11-component initial condition (IC) vector.
+    \item \textbf{Network Prediction}: The network outputs the predicted positions $\mathbf{r}_i(t)$ and velocities $\mathbf{v}_i(t)$ for all three bodies at time $t$. The network is conditioned solely on [t, IC] to predict the full state at t, without recurrent stepping.
+    \item \textbf{Loss Computation}: Three distinct loss terms are computed:
+    \begin{itemize}
+        \item $\mathcal{L}_{\text{data}}$: Compares the network's predicted positions with the ground-truth trajectories from the Brutus simulations.
+        \item $\mathcal{L}_{\text{physics}}$: Calculates the residual of Newton's equations of motion by using automatic differentiation to get the second derivative of the network's position output ($\frac{d^2\mathbf{r}}{dt^2}$).
+        \item $\mathcal{L}_{\text{energy}}$: Penalizes deviations from the system's known initial energy, enforcing a global conservation law.
+    \end{itemize}
+    \item \textbf{Backpropagation}: The gradients of the total loss function flow back through the network to update the model's weights; gradients are computed by comparing predictions directly to Brutus ground-truth snapshots at sampled t values.
+\end{enumerate}
+
+\subsection{Loss Function Formulation}
+
+The total loss enforces data fidelity, local physics, and global conservation, balanced via the Augmented Lagrangian Method (ALM).
+
+\subsubsection*{Total Loss}
+The total loss is defined as:
+\begin{equation}
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda_{p}\mathcal{L}_{\text{physics}} + \frac{\mu_{p}}{2}\mathcal{L}_{\text{physics}}^{2} + \lambda_{E}(k)\mathcal{L}_{\text{energy}}
+\end{equation}
+where $k$ is the current curriculum stage.
+
+\begin{comment}
+\subsubsection*{Energy Regularizer ($\mathcal{L}_{\text{energy}}$)}
+To prevent unphysical energy drift, the energy loss uses the robust Huber function ($L_{\delta}$), less sensitive to outliers during close encounters than L2 loss.
+\begin{equation}
+\mathcal{L}_{\text{energy}} = L_{\delta}(H_{\text{pred}} - H_{0})
+\end{equation}
+where $H_{\text{pred}}$ is the predicted Hamiltonian, $H_0$ is the initial energy, and $\delta=1.0$. The weight $\lambda_E(k)$ increases with curriculum complexity as defined in the hyperparameter table.
+\end{comment}
+
+
+
+
+
+
+\subsubsection*{Augmented Lagrangian Method (ALM) Updates}
+ALM parameters are updated algorithmically after each optimization step.
+\begin{enumerate}
+    \item \textbf{Update Lagrange Multiplier ($\lambda_p$)}: Updated via gradient ascent on the constraint:
+    \begin{equation}
+    \lambda_{p} \leftarrow \lambda_{p} + \mu_{p}\mathcal{L}_{\text{physics}}
+    \end{equation}
+    \item \textbf{Update Adaptive Penalty ($\mu_p$)}: Stabilized via RMSprop-like update:
+    \begin{equation}
+    v_{p} \leftarrow \beta v_{p} + (1-\beta)\mathcal{L}_{\text{physics}}^{2}
+    \end{equation}
+    \begin{equation}
+    \mu_{p} \leftarrow \frac{\gamma}{\sqrt{v_{p}+\epsilon}}
+    \end{equation}
+    where $\beta=0.99$, $\gamma=0.01$, and $\epsilon=1e-8$.
+\end{enumerate}
+
+For more information on updating the various parameters of the loss function, please refer to the PINN architecture plan.
+
+\subsection{Phase 2a: Adam-driven Exploration}
+
+The initial phase uses Adam for robust navigation of non-convex loss landscapes.
+
+\subsubsection{Initialization}
+At the beginning of a new stage $k$:
+\begin{itemize}
+    \item Load network weights from the converged model of stage $k-1$ (if $k > 0$).
+    \item \textbf{Critical}: Completely reset Adam's internal state (momentum buffers) to prevent biased gradient statistics from prior data.
+    \item Set initial learning rate: $\text{LR}_k = 10^{-3} \times (0.7)^k$.
+    \item Initialize a cosine annealing scheduler to decay the learning rate over the phase.
+    \item Set Adam parameters: $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\epsilon=1e-8$.
+\end{itemize}
+
+\subsubsection{Mini-Batch Construction with Lookahead Sampling}
+
+For batch size B (e.g., 256), reserve $\rho_{\text{lookahead}}$ (e.g., 5\%) for lookahead sampling to smooth stage transitions. 
+Sample $n_{\text{pts}}$ (e.g., 32) time points per trajectory: 50\% uniform from $[0, T]$, 50\% weighted by acceleration norm 
+(prioritizes close encounters).
+
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{2.5cm}|p{4.5cm}|c|c|}
+    \hline
+    \textbf{Portion} & \textbf{Purpose} & \textbf{Symbol} & \textbf{Size} \\
+    \hline
+    Replay set & Prevent forgetting of material from stages $0 \ldots k$ (ensures curriculum replay) & $B_{\leq k}$ & 240 \\
+    Look-ahead set & ``Preview'' data from the next stage $k+1$ & $B_{k+1}$ & 16 \\
+    \hline
+    \end{tabular}
+    \caption{Mini-batch composition for batch size = 256.}
+\end{table}
+
+
+
+\subsubsection{Adaptive Median-Based Gradient Clipping}
+
+Use adaptive global-norm clipping to handle gradient explosions from close encounters; threshold is $C$ times the moving median of recent norms.
+
+\textbf{Curriculum-aware $C$ schedule:}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|c|}
+    \hline
+    \textbf{Curriculum stage} & \textbf{Data difficulty} & \textbf{C} \\
+    \hline
+    0--1 & quasi-periodic orbits & 7--10 \\
+    2--3 & onset of mild chaos & 5 \\
+    4--6 & frequent close encounters & 3 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+\subsubsection{Termination Criterion}
+Hand off to L-BFGS when the physics loss plateaus:
+\begin{equation}
+\frac{d(\log_{10} \mathcal{L}_{\text{phys}})}{d(\text{epoch})} > -5 \times 10^{-3} \quad \text{for 50 consecutive epochs}
+\end{equation}
+
+\subsection{Phase 2b: High-Precision L-BFGS Refinement}
+
+Hand off to L-BFGS to polish the solution and minimize residuals.
+
+\subsubsection{Optimizer Selection by Dataset Size}
+The L-BFGS variant depends on cumulative dataset size.
+
+\textbf{Early Stages (0-2): Full-Batch L-BFGS}
+\begin{itemize}
+    \item Use standard full-batch on the entire dataset.
+    \item Parameters: history size: 10, line search: ``Wolfe'', max iterations: 20-50.
+\end{itemize}
+
+\textbf{Later Stages (3-6): Stochastic L-BFGS (sL-BFGS)}
+\begin{itemize}
+    \item Switch to mini-batch variant for memory efficiency.
+    \item Parameters: batch size: 32, curvature interval: update every 10 iterations.
+\end{itemize}
+\textbf{Important}: No gradient clipping during L-BFGS, as line-search creates a trust region.
+
+\subsection{Stage Transition Criteria}
+
+\authcomment{Now, for this, we will need to look at how the first stage goes when the actual process starts. All of this
+transition creteria is theoretical now, and it will heavily depend on what the actual situation is like. Because I only have
+a limited amount of training data, maybe not even enough, I would not expect the network to perform extraodinarily well.
+All I have to see is that the network has the potential to do something similar to a 3-body integrator and that it has the
+potential to become better with more training data and optimization. Based on this, how should we handle the stage transition
+criteria depending on the actual situations that might happen? Should we first test train stage 0 and see how it goes and then
+go from there?}
+
+Advance to the next stage only when all four criteria are met on the validation set (hold-out 10-20\% of cumulative data per stage).
+
+\subsubsection{1. Training Loss Plateau}
+Relative change in smoothed total loss below threshold:
+\begin{equation}
+\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{train}}
+\end{equation}
+where $\mathcal{L}_{\text{smooth}}(i) = \beta \cdot \mathcal{L}_{\text{smooth}}(i-1) + (1-\beta) \cdot \mathcal{L}_{\text{train,total}}(i)$, $\beta = 0.98$, patience = 200, $\epsilon_{\text{train}} = 10^{-5}$. Initialize $\mathcal{L}_{\text{smooth}}(0)$ as the first computed loss.
+
+\subsubsection{2. Validation Loss Stability}
+Current validation loss $\leq$ minimum seen in stage:
+\begin{equation}
+\mathcal{L}_{\text{val}}(i) \leq \min_{j \leq i} \mathcal{L}_{\text{val}}(j)
+\end{equation}
+
+\subsubsection{3. Physics Residual Threshold}
+Validation physics loss below threshold:
+\begin{equation}
+\mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilon_{\text{phys}} = 10^{-4})
+\end{equation}
+
+\subsubsection{4. Energy Conservation Check}
+Average relative energy drift below threshold:
+\begin{equation}
+\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)|} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})
+\end{equation}
+
+\subsection{Consolidated Hyperparameter Schedule}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Stage} & \textbf{Adam LR (Initial)} & \textbf{Clip `C'} & \textbf{$\lambda_E$ (Energy Wt.)} & \textbf{L-BFGS Type} \\
+\hline
+0-1 & $10^{-3} \times (0.7)^k$ & 7-10 & $10^{k-3}$ & Full-Batch \\
+2-3 & $10^{-3} \times (0.7)^k$ & 5 & $10^{k-3}$ & Full-Batch / sL-BFGS \\
+4-6 & $10^{-3} \times (0.7)^k$ & 3 & $10^{k-3}$ & sL-BFGS \\
+\hline
+\end{tabular}
+\caption{Stage-by-stage guide for key dynamic hyperparameters.}
+\end{table}
+
+\subsection{Implementation Notes}
+
+\begin{itemize}
+    \item \textbf{Monitoring}: Use TensorBoard to log loss components ($\mathcal{L}_{\text{data}}, \mathcal{L}_{\text{physics}}, \mathcal{L}_{\text{energy}}$), ALM parameters ($\lambda_p, \mu_p$), gradient statistics, and metrics like energy drift.
+    \item \textbf{Checkpointing}: Save model checkpoints after each stage completion.
+    \item \textbf{Error Handling/Edge Cases}: Monitor for NaN gradients during close encounters; if encountered, increase softening $\epsilon$ in potential calculations or tighten clipping.
+    \item \textbf{Reproducibility}: Drive runs from a three-level Hydra YAML configuration:
+    \begin{itemize}
+        \item \texttt{stage.yaml} -- curriculum definition and dataset indices.
+        \item \texttt{opt.yaml} -- optimizer settings, learning-rate schedule, clip norms.
+        \item \texttt{loss.yaml} -- augmented-Lagrangian settings, $\lambda_E$ schedule, tolerances.
+    \end{itemize}
+\end{itemize}
+
+
+
+
+
+
+
+\begin{comment}
+\section{Phase 2 - CTL-PINN Training Loop (Nees major revision based on the CTL revision document; also, I don't understand what the workflow of this phase is because I am not familiar with the various processed and the concepts)}
+
+\authcomment{My comment here is that how exactly are we handing the input data to the network? Are we just giving it the initial conditions and then let it spit out the output and then
+give it the brutus output for gradient descent? I'm not sure not this work because I'm not familar with machine learning.}
+
+
+This phase comprises the core training algorithm, which will loop over curriculum stages, training the network on progressively larger datasets.  We outline the procedure with key hyperparameters and techniques:
+
+
+\begin{enumerate}
+
+    \item \textbf{Mini-Batch Construction with Lookahead Sampling:}
+    
+    \begin{enumerate}
+
+        \item
+        % Curriculum mini-batch blend table (from screenshot)
+        \begin{footnotesize}
+        \begin{tabular}{|l|p{0.28\linewidth}|c|c|}
+        \hline
+        \textbf{Portion} & \textbf{Purpose} & \textbf{Symbol} & \textbf{Size} \\
+        \hline
+        Replay set & Prevent forgetting of all material mastered so far (stages 0 $\ldots$ $k$) & $B_{\leq k}$ & 240 \\
+        \hline
+        Look-ahead set & "Preview" data from the next stage $k+1$ to warm-start the network & $B_{k+1}$ & 16 \\
+        \hline
+        \end{tabular}
+        \end{footnotesize}
+
+        Sizes shown for $\texttt{batch\_size} = 256$.
+
+    
+
+
+
+
+        \item
+
+        Core Algorithm: \\
+        \begin{lstlisting}[
+            language=Python,
+            caption={Curriculum mini-batch construction procedure},
+            label={lst:curriculum_batch},
+            frame=single,
+            backgroundcolor=\color{lightgray},
+            basicstyle=\ttfamily\small,
+            breaklines=true,
+            columns=flexible,
+            xleftmargin=0.5cm,
+            xrightmargin=0.5cm,
+            aboveskip=0.5cm,
+            belowskip=0.5cm,
+            numbers=left,
+            numberstyle=\tiny\color{gray}
+        ]
+
+batch_size      = 256          # global hyper-parameter
+lookahead_ratio = 0.05         # 5 % of each batch
+T_uniform_frac  = 0.50         # 50 % of time-points ~ U(0,T)
+window_H        = 100          # look-back window for adaptive clip
+
+
+def build_minibatch(stage_k, datasets, epoch, epochs_in_stage):
+    """Return a dict ready for the data-loader collate_fn."""
+    B_k1 = math.floor(batch_size * lookahead_ratio)         
+    B_replay = batch_size - B_k1                           
+    
+    traj_ids_replay = rng.choice(datasets.id_leq_stage(stage_k),
+                                 size=B_replay, replace=False)
+    traj_ids_look   = rng.choice(datasets.id_eq_stage(stage_k+1),
+                                 size=B_k1,    replace=False)
+
+    batch = []
+    for traj_id in np.concatenate([traj_ids_replay, traj_ids_look]):
+        t_array = datasets.times(traj_id)
+        v_dot   = datasets.speed(traj_id)        # |d r / dt|
+        T       = t_array[-1]
+
+        n_pts = datasets.points_per_traj        # e.g. 32
+
+        # 50 % uniform
+        n_u = math.floor(n_pts * T_uniform_frac)
+        t_u = rng.choice(t_array, size=n_u, replace=False)
+
+        # 50 % velocity-weighted   p(t) ~ |v_dot(t)|
+        p = v_dot / v_dot.sum()
+        t_v = rng.choice(t_array, size=n_pts - n_u,
+                         replace=False, p=p)
+
+        batch.append(datasets.fetch(traj_id, np.concatenate([t_u, t_v])))
+
+    return collate_fn(batch)
+        \end{lstlisting}
+
+    \end{enumerate}
+
+    
+    \begin{itemize}
+        \item \textbf{Cumulative Data Sampling (Replay):} 
+            Draw $B_{0..k}$ samples from all data in stages $0$ to $k$.
+        \item \textbf{Lookahead Sampling (Next Stage Preview):} 
+            During the final $N_{\text{lookahead\_epochs}}$ of stage $k$ ($k < 5$ or 6?):
+            \begin{itemize}
+                \item Set lookahead ratio: $\rho_{\text{lookahead}} = 0.05$
+                \item Compute samples: $B_{k+1} = \lfloor B \times \rho_{\text{lookahead}} \rfloor$ 
+                \item Draw $B_{k+1}$ samples only from stage $k+1$ data
+            \end{itemize}
+        \item \textbf{Mini-Batch Assembly:} 
+            Concatenate $B_{0..k}$ (e.g., 256) and $B_{k+1}$ (e.g., 16) into a single batch.
+        \item \textbf{Time Sampling (Per Trajectory): -- (No idea what this is)} 
+            For each selected simulation:
+            \begin{itemize}
+                \item 50\% timestamps: Uniformly sampled from $[0, T]$ (What is T?)
+                \item 50\% timestamps: Sampled from $p(t) \propto |\dot{\mathbf{v}}(t)|$ (prioritizes close encounters)
+            \end{itemize}
+    \end{itemize}
+    \vspace{-0.5em}
+
+
+
+    \item \textbf{Phase 1: Adam-driven Exploration}
+
+        The initial phase uses the Adam optimizer to broadly explore the complex loss landscape and find a good basin of attraction.
+
+        \begin{itemize}
+            \item \textbf{Optimizer \& Parameters}:
+            \begin{itemize}
+                \item \textbf{Optimizer}: Adam.
+                \item \textbf{Betas}: $\beta_1=0.9$, $\beta_2=0.999$.
+                \item \textbf{Learning Rate}: A stage-dependent initial learning rate, $LR_k$, is used with a cosine decay scheduler that reduces it over the phase (e.g., from $10^{-3}$ to $10^{-4}$).
+            \end{itemize}
+
+            \item \textbf{Stabilization Technique}:
+            \begin{itemize}
+                \item \textbf{Adaptive Gradient Clipping}: To prevent gradient explosions from close-encounter data, the global norm of the gradients is clipped at $5\times$ the median gradient norm, which is calculated over a moving window of recent training steps.
+            \end{itemize}
+
+            \item \textbf{Convergence Criterion (Hand-off to Phase 2)}:
+            \begin{itemize}
+                \item The Adam phase is considered converged and ready for hand-off to the second-phase optimizer when the physics loss, $\mathcal{L}_{phys}$, has stopped decreasing significantly.
+                \item Specifically, the switch is triggered when the slope of the logarithmic physics loss remains above a threshold for a set number of iterations:
+                $$
+                \frac{d(\log_{10}\mathcal{L}_{phys})}{d(\text{epoch})} > -5 \times 10^{-3} \quad \text{for 50 consecutive iterations}
+                $$
+            \end{itemize}
+        \end{itemize}
+
+
+
+
+
+
+    \item \textbf{Adaptive Median‐Based Gradient Clipping (Applied only during the Adam (Phase 1) passes)}
+        
+        Training a PINN on the $N$–body problem can suffer from catastrophic gradient spikes during close encounters, 
+        because force and potential terms scale as $\mathcal{O}(\lVert r_i-r_j \rVert^{-3})$ and 
+        $\mathcal{O}(\lVert r_i-r_j \rVert^{-1})$, respectively.
+        We stabilise optimisation with an \\emph{adaptive, median‐based global‐norm clip}.  
+        The method rescales gradients to a dynamic threshold $t=C\,\tilde g$, where $\tilde g$ is the moving median 
+        of recent gradient norms.
+        
+        
+        \begin{itemize}
+            \item \textbf{Algorithm.}
+            \begin{algorithm}[H]
+            \caption{Adaptive Median Gradient Clipping ($H{=}100$, $C{=}5$, $\varepsilon{=}10^{-6}$)}
+            \begin{algorithmic}[1]
+                \Require Model parameters $\theta$; history deque $\mathcal{H}$ with capacity $H$.
+                \State $g \leftarrow \lVert \nabla_\theta \mathcal{L} \rVert_2$        \Comment{Current global gradient norm}
+                \State push $g$ into $\mathcal{H}$, pop oldest if $|\mathcal{H}|>H$
+                \State $\tilde g \leftarrow \operatorname{median}(\mathcal{H})$
+                \State $t \leftarrow C\,\tilde g$                                 \Comment{Dynamic threshold}
+                \If{$g > t$}  \Comment{Only rescale when necessary}
+                    \State $\alpha \leftarrow \dfrac{t}{g + \varepsilon}$
+                    \ForAll{$p\in\theta$ \textbf{with} $p.\text{grad}\neq\text{None}$}
+                        \State $p.\text{grad} \gets \alpha\,p.\text{grad}$
+                    \EndFor
+                \EndIf
+            \end{algorithmic}
+            \end{algorithm}
+            
+            \item \textbf{Integration into the training loop.}
+            \begin{lstlisting}[
+                language=Python,
+                caption={Integration into training loop},
+                label={lst:training_integration},
+                frame=single,
+                backgroundcolor=\color{lightgray},
+                basicstyle=\ttfamily\small,
+                breaklines=true,
+                columns=flexible,
+                xleftmargin=0.5cm,
+                xrightmargin=0.5cm,
+                aboveskip=0.5cm,
+                belowskip=0.5cm,
+                numbers=left,
+                numberstyle=\tiny\color{gray}
+            ]
+            loss.backward()          # 1. back-prop
+            adaptive_clip(model)     # 2. Algorithm 1 (above)
+            optimizer.step()         # 3. parameter update
+            \end{lstlisting}
+            
+            L‑BFGS phases are \emph{not} clipped, as their line‐search creates its own trust region.
+            
+            \item \textbf{Curriculum‐aware $C$ schedule.}
+            
+            \begin{table}[H]
+            \centering
+            \caption{Recommended multiplier $C$ throughout CTL stages}
+            \label{tab:C_schedule}
+            \begin{tabular}{@{}lll@{}}
+                \toprule
+                Curriculum stage & Data difficulty            & $C$ \\ \midrule
+                0–1              & quasi‑periodic orbits       & 7–10 \\
+                2–3              & onset of mild chaos         & 5    \\
+                4–6              & frequent close encounters   & 3    \\ \bottomrule
+            \end{tabular}
+            \end{table}
+            
+            A rule of thumb: if more than $\,1\%\,$ of steps in an epoch hit the ceiling, reduce $C$ by $20\%$; if fewer than $0.1\%$ ever clip, increase $C$ by $10\%$.
+            
+            \item \textbf{Logging.}  Log the raw norm $g$, threshold $t$, and scaling factor $\min(1,\alpha)$ to TensorBoard for real‑time diagnostics.
+            
+        \end{itemize}
+    
+    
+
+
+    
+        \item \textbf{Phase 2: High-Precision L-BFGS Refinement}
+
+            Once Adam has converged, the model is handed off to a quasi-Newton optimizer to "polish" the solution, rapidly driving down the final physics and energy residuals to a high degree of precision. The specific optimizer depends on the dataset size of the current stage.
+
+            \paragraph{Early Stages (0-2): Full-Batch L-BFGS}
+            \begin{itemize}
+                \item \textbf{Workflow}: For the initial stages where the cumulative dataset is relatively small, the standard full-batch L-BFGS optimizer is used on the entire dataset for the current stage.
+                \item \textbf{Parameters}:
+                \begin{itemize}
+                    \item \texttt{history\_size}: 10.
+                    \item \texttt{line\_search}: "Wolfe".
+                    \item \texttt{iterations}: Limited to a set number (e.g., 20-50 iterations) to achieve refinement without overfitting.
+                \end{itemize}
+            \end{itemize}
+
+            \paragraph{Later Stages (3-6): Stochastic L-BFGS (sL-BFGS)}
+            \begin{itemize}
+                \item \textbf{Workflow}: For later stages, the dataset becomes too large for full-batch methods on typical hardware. The strategy switches to a memory-efficient, mini-batch capable variant, sL-BFGS.
+                \item \textbf{Parameters}:
+                \begin{itemize}
+                    \item \texttt{batch\_size}: 32.
+                    \item \texttt{curvature\_interval}: Curvature information is updated every 10 iterations.
+                \end{itemize}
+            \end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+    
+    \item \textbf{Convergence/Stage Transition Criteria}
+        Training progresses to the next stage only when \textbf{all four conditions} are simultaneously satisfied:
+
+        \begin{itemize}
+            \item{Training Loss Plateau}
+            $$
+            \frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{train}}
+            $$  
+            \textbf{Variables}:
+
+                
+            - $\mathcal{L}_{\text{smooth}}(i) = \beta \cdot \mathcal{L}_{\text{smooth}}(i-1) + (1 - \beta) \cdot \mathcal{L}_{\text{train, total}}(i)$
+                
+            - $\beta = 0.98$ (smoothing factor – but where is this used?)
+                
+            - $\text{patience} = 200$ (iterations)
+                
+            - $\epsilon_{\text{train}} = 10^{-5}$ (relative change threshold)
+
+
+            \item{Validation Loss Stability}
+            $$
+            \mathcal{L}_{\text{val}}(i) \leq \min_{j \leq i} \mathcal{L}_{\text{val}}(j)
+            $$  
+            \textbf{Implementation}: Track the minimum validation loss seen so far and compare at each iteration.
+
+            \item{Physics Residual Threshold}
+            $$
+            \mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilon_{\text{phys}} = 10^{-4}) 
+            $$  
+            \textbf{Note}: This enforces Newtonian dynamics via the physics residual loss. 
+
+            \item{Energy Conservation Check}
+            $$
+            \frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)|} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})
+            $$  
+            \textbf{Implementation}: Compute $H_j(t)$ using normalized positions/velocities and the energy formula. 
+        \end{itemize}
+    
+    \item \textbf{Curriculum Progression Loop Summary}
+
+        For stages $k = 1, \ldots, 5$:
+
+        \begin{center}
+        \begin{tabular}{|c|p{0.75\linewidth}|}
+        \hline
+        \textbf{Step} & \textbf{Action} \\
+        \hline
+        1 & 
+        \begin{minipage}[t]{0.85\linewidth}
+            \begin{enumerate}
+                \item \textbf{Expand} the data set: include all simulations from Stage $k$ as well as all previous stages (cumulative replay).
+                \item If $k > 0$, initialize network weights using the converged model from Stage $k-1$. \\
+            \end{enumerate}
+        \end{minipage} \\
+        \hline
+        2 & \textbf{Reset} ADAM's moment terms; initialise weights from the converged Stage $k-1$ model. (Needs Revision maybe?) \\
+        \hline
+        3 & 
+        \begin{minipage}[t]{0.85\linewidth}
+        
+            \begin{itemize}
+                \item \textbf{Reset Adam's internal state} (momentum buffers) while retaining weights (only optimizer states reset)
+                \item \textbf{Learning Rate:} $\mathrm{LR}_k = \mathrm{LR}_0 \times (0.7)^k$ (e.g., $\mathrm{LR}_0=10^{-3}$)
+                \item \textbf{Mini-Batch Composition:}
+                \begin{itemize}
+                    \item $B_{0\ldots k} = 95\%$ from cumulative data (stages 0 to k)
+                    \item $B_{k+1} = 5\%$ lookahead samples from stage $k+1$ (only during final 10\% of epochs)
+                \end{itemize}
+                \item \textbf{Time Sampling per Trajectory:}
+                \begin{itemize}
+                    \item 50\% uniform temporal sampling
+                    \item 50\% weighted by acceleration norm $||d\mathbf{v}/dt||$ (prioritizes close encounters)
+                \end{itemize}
+
+                \item \textbf{Train with ADAM + cosine decay} until $L_{\mathrm{phys}}$ plateaus \\
+                
+                \item \textbf{Termination Condition:}
+                \begin{itemize}
+                    \item $|d(\log_{10}\mathcal{L}_{\text{phys}})/d(\text{epoch})| < 5\times10^{-3}$ for 50 consecutive epochs
+                \end{itemize}
+
+                \item \textbf{Hand off to L-BFGS for fine-tuning} \\
+            \end{itemize}
+
+
+        \end{minipage} \\ 
+        \hline
+        4 & 
+        
+        \begin{minipage}[t]{0.85\linewidth}
+            \begin{itemize}
+                \item Run a brief full-batch L-BFGS polish, until Stage $k$ reaches the convergence criteria defined above \\
+                \item During L-BFGS phase, flag simulations where $\mathcal{L}_{\text{phys}} > 10^{-3}$ \textbf{OR} energy drift $> 5\times10^{-4}$, and export problematic ICs for BRUTUS re-simulation \\
+            \end{itemize}
+        \end{minipage} \\
+        \hline
+
+        5 &
+        \begin{minipage}[t]{0.85\linewidth}
+        \vspace{0.5em}
+        \textbf{4. Diagnostic Monitoring:}
+        \begin{lstlisting}[
+            language=Python,
+            caption={Diagnostic monitoring per stage},
+            label={lst:diagnostic_monitoring},
+            frame=single,
+            backgroundcolor=\color{lightgray},
+            basicstyle=\ttfamily\small,
+            breaklines=true,
+            columns=flexible,
+            xleftmargin=0.5cm,
+            xrightmargin=0.5cm,
+            aboveskip=0.5cm,
+            belowskip=0.5cm,
+            numbers=left,
+            numberstyle=\tiny\color{gray},
+            escapeinside={(*@}{@*)}
+        ]
+# Track per-stage performance
+log_metrics({
+    'stage': k,
+    '(*@$\mathcal{L}_{data}$@*)': MAE(pred, truth),
+    '(*@$\mathcal{L}_{phys}$@*)': PDE_residual,
+    'energy_drift': max(|(*@$\Delta E/E_0$@*)|),
+    'gradient_norm': median(|(*@$\nabla W$@*)|)
+})
+        \end{lstlisting}
+        \end{minipage} \\
+        \hline
+
+        6 & Proceed to Stage $k+1$. \\
+        \hline
+        \end{tabular}
+        \end{center}
+
+
+\end{enumerate}
+
+\end{comment}
+
+
+
+
+
+
+
+With the training complete, we next discuss some additional considerations: potential architectural 
+tweaks to further improve performance (especially on modest hardware), evaluation metrics to quantify success, and overall recommendations. 
+

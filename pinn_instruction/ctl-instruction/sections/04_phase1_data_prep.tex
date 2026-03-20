@@ -1,0 +1,634 @@
+\section{Phase 1 - Data Preparation and Stratification}
+
+\textcolor{blue}{Note: All code for this section is in the code folder for pinn.}
+
+\subsection{Step 1: Parse Raw Simulation Data}
+
+\begin{enumerate}
+    \item Read the corresponding \texttt{ic\_.txt} and \texttt{brutus\_.txt} files.
+    
+    \item From the \texttt{ic\_.txt} file, parse the initial state variables. This file may be a single line with 21 space-delimited 
+    floating-point values or three lines (one per body) with 7 values each: \texttt{[m, x, y, z, vx, vy, vz]}. Store these as NumPy arrays: 
+    masses as (3,), initial positions as (3,3), and initial velocities as (3,3). Use a dedicated parsing function to handle both formats robustly.
+    
+    
+    \item From the \texttt{brutus\_.txt} file, parse the time-series data. The file consists of repetitive blocks, each starting with a header line 
+    (\texttt{t, N=3, t\_cpu}) followed by three lines of body states (\texttt{m, x, y, z, vx, vy, vz}). 
+    Iterate through blocks, skipping empty lines and handling an optional trailing 'Result:' line 
+    (which may contain energies like E\_initial, E\_final, dE/E—extract these into metadata). Store times as (T,), positions as (T,3,3), 
+    velocities as (T,3,3), and any metadata (e.g., cpu\_times, energies). 
+    Gracefully handle short/incomplete files (e.g., fewer than 2 snapshots) by returning empty arrays and logging warnings.
+
+
+    \item Infer metadata (e.g., dataset\_type: 'hierarchical' or 'quasi-random'; fidelity: 'high' or 'low'; dt\_out: inferred from timestamps or 
+    defaults like 0.08/0.17) from filenames and Brutus content. This supports stratification and scaling for both data types.
+
+
+    \item Combine parsed data into a structured object (e.g., a dataclass like RawTrajectoryData) that includes metadata, masses, 
+    initials, and time-series. For efficiency in global scaling (Step 2), parse IC files independently when possible (globals only need initials, 
+    not full Brutus time-series).
+
+
+
+    \item Save parsed objects for all simulations into an efficient format like HDF5 or NumPy (.npy) files. 
+    This avoids repeated text parsing and accelerates loading during training. Use parallel processing if parsing large batches 
+    (e.g., via concurrent.futures for IC-only globals).
+\end{enumerate}
+    
+This parsing ensures consistency across all training data, preparing it for dimensionless scaling in Step 2.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\subsection{Step 2: Preprocessing: Scaling to Dimensionless Units}
+
+Before computing the invariants, scale the raw initial positions and velocities to dimensionless units using the characteristic scales. This ensures consistency with the G=1 system and numerical stability.
+
+Define global scales once across the entire dataset (all trajectories):
+\begin{itemize}
+    \item Characteristic time: \(T = t_{\max} = 10\) (maximum time in BRUTUS files).
+    \item Characteristic length: \(D = \sqrt[3]{G T^2}\) (with \(G=1\), \(D \approx 4.6416\)).
+    \item Velocity scale: \(V = D / T\).
+\end{itemize}
+
+For each trajectory's initial state:
+\begin{equation*}
+\mathbf{r}'_i = \mathbf{r}_i / D, \quad \mathbf{v}'_i = \mathbf{v}_i / V
+\end{equation*}
+Compute all subsequent invariants (E, \(s_{\min}\), etc.) using \(\mathbf{r}'\) and \(\mathbf{v}'\).
+
+Global normalization scales (computed after scaling all trajectories):
+\begin{itemize}
+    \item \(E_{\text{scale}} = |\median(\{E_j\}_{j=1}^N)| + 10^{-10}\)
+    \item \(s_{\min\text{scale}} = \median(\{r_{\text{char},j}\}_{j=1}^N)\), where \(r_{\text{char},j} = \frac{1}{3} \sum_{i<k} ||\mathbf{r}'_{i,j} - \mathbf{r}'_{k,j}||\)
+\end{itemize}
+\(Q_{\text{scale}}\) remains fixed at 0.5.
+
+
+
+\subsection{Step 2.5: Verify Center-of-Mass (COM) Frame} 
+\authcomment{Note: Critical Update: Hierachical ICs are NOT in COM frame and not 0 total momentum. Quasi-random ICs are in COM frame and 0 total momentum.
+Have not verified Brutus corresponding outputs yet. Refer tot he next step of data processing pipelinedocument.}
+we perform a transformation to the COM frame for the hierarchical IC files and hierarchical Brutus outputs. Two scripts are responsible for handling
+each seperately. A verification check is also performed after the transformation. For quasi-random ICs and Brutus, we will not perform a transformation
+unless the verification check fails. 
+(scaling preserves the COM property), but for consistency, use the scaled \(\mathbf{r}'\) and \(\mathbf{v}'\) from Step 1.5:
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\subsection{Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation)}
+\label{sec:ctl:step3}
+
+\paragraph{Scope and preconditions.}
+All quantities in this section are computed from the \emph{scaled} initial conditions
+$\{(\mathbf r'_i,\mathbf v'_i)\}_{i=1}^3$ and from the BRUTUS trajectory output.
+Verification that the ICs are in the center-of-mass (COM) frame with zero total momentum
+is a \emph{precondition} that is checked already in step 2.5 before any calculations proceed.
+
+
+\paragraph{Outputs of this step.}
+Given one IC (plus its associated trajectory), Step~3 deterministically returns the tuple
+\[
+\mathcal{I} = \big(E,\;Q,\;s_{\min},\;L_{\mathrm{norm}},\;I_{\mathrm{norm}},\; \tau_L,\; m_1, m_2, m_3,\; I_1, I_2, I_3 \big),
+\]
+which is then consumed by the stage-assignment rules in \S4.4 and the input vector assembly in Step 4. 
+By default, stage gating uses $(E,Q,s_{\min},L_{\mathrm{norm}},\tau_L)$; $I_{\mathrm{norm}}$ is available for additional heuristics; 
+shape invariants ($I_1, I_2, I_3$) are computed for input vector universality.
+
+\begin{enumerate}
+    \item \textbf{Total energy $E$, virial ratio $Q$, and minimal separation $s_{\min}$.}
+    \label{item:eqs}
+    \begin{align}
+    T &= \tfrac12 \sum_{i=1}^{3} m_i \,\lVert \mathbf v'_i \rVert^2, \\
+    V &= - \sum_{1\le i<j\le 3} \frac{m_i m_j}{\lVert \mathbf r'_i - \mathbf r'_j \rVert + \varepsilon}, \\
+    E &= T + V, \qquad
+    Q \;=\; \frac{2\,T}{\lvert V \rvert}, \qquad
+    s_{\min} \;=\; \min_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert.
+    \end{align}
+    We use a small softening $\varepsilon = 10^{-10}$ (in scaled units) \emph{only in $V$} to
+    prevent singularities. The geometric quantity $s_{\min}$ is computed from true pairwise
+    separations (no softening).
+
+    \item \textbf{Normalized angular momentum $L_{\mathrm{norm}}$.}
+    \label{item:lnorm}
+    \begin{align}
+    \mathbf L &= \sum_{i=1}^3 m_i \,(\mathbf r'_i \times \mathbf v'_i), \qquad
+    L = \lVert \mathbf L \rVert, \\
+    r_{\mathrm{char}} &= \frac{1}{3} \sum_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert, \qquad
+    v_{\mathrm{char}} = \sqrt{\frac{2\,\lvert E \rvert}{M_{\mathrm{tot}}}}, \\
+    L_{\max} &= M_{\mathrm{tot}} \, r_{\mathrm{char}} \, v_{\mathrm{char}}, \qquad
+    L_{\mathrm{norm}} = \frac{L}{L_{\max}}.
+    \end{align}
+    This $L_{\max}$ is \emph{canonical} in CTL and represents the characteristic circular‐orbit
+    scale at energy $E$. All other historical variants are deprecated.
+
+    \begin{lstlisting}[
+    language=Python,
+    caption={Sample Code for Normalized Angular Momentum Calculation},
+    label={lst:lnorm_calculation},
+    frame=single,
+    backgroundcolor=\color{lightgray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    columns=flexible,
+    xleftmargin=0.5cm,
+    xrightmargin=0.5cm,
+    aboveskip=0.5cm,
+    belowskip=0.5cm,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+    ]
+    def compute_L_norm(m, r_prime, v_prime, E, eps=1e-10):
+    L_vec = np.sum([m[i] * np.cross(r_prime[i], v_prime[i]) for i in range(3)], axis=0)
+    L = np.linalg.norm(L_vec)
+    pairwise = [np.linalg.norm(r_prime[i] - r_prime[j]) for i in range(3) for j in range(i+1, 3)]
+    r_char = np.mean(pairwise)
+    M_total = np.sum(m)
+    v_char = np.sqrt(2 * np.abs(E) / M_total + eps)
+    L_max = M_total * r_char * v_char
+    return L / (L_max + eps)
+    \end{lstlisting}
+
+
+    \item \textbf{Normalized moment of inertia $I_{\mathrm{norm}}$.}
+    \label{item:inorm}
+    Let $I(\mathbf r')$ be the inertia tensor about COM:
+    \begin{equation}
+    \mathbf I \;=\; \sum_{i=1}^{3} m_i \Big( \lVert \mathbf r'_i \rVert^2 \,\mathbf I_{3\times 3}
+                                        - \mathbf r'_i (\mathbf r'_i)^{\!\top} \Big).
+    \end{equation}
+    We use its trace as a rotationally invariant scalar and normalize by the characteristic
+    scale of Item~\ref{item:lnorm}:
+    \begin{equation}
+    I_{\mathrm{norm}} \;=\; \frac{\mathrm{tr}(\mathbf I)}{M_{\mathrm{tot}}\, r_{\mathrm{char}}^{\,2}}.
+    \end{equation}
+    (This quantity is not required for default stage gating but is retained as a robust,
+    scale‑consistent descriptor of spatial extent.)
+
+    \begin{lstlisting}[
+    language=Python,
+    caption={Normalized Moment of Inertia Calculation},
+    label={lst:inertia_calculation},
+    frame=single,
+    backgroundcolor=\color{lightgray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    columns=flexible,
+    showstringspaces=false,
+    xleftmargin=0.5cm,
+    xrightmargin=0.5cm,
+    aboveskip=0.5cm,
+    belowskip=0.5cm,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+    ]
+    import numpy as np
+
+    def compute_normalized_inertia(m, r_prime, r_char, eps=1e-10):
+        """Compute raw normalized moment of inertia per text definition (using scaled data from Step 2).
+        No bounding here; normalization to [-1,1] deferred to input prep.
+        """
+        I_tensor = np.zeros((3,3))
+        for i in range(3):
+            ri = r_prime[i]  # Already in COM frame
+            ri_norm_sq = np.dot(ri, ri)
+            outer = np.outer(ri, ri)
+            I_tensor += m[i] * (ri_norm_sq * np.eye(3) - outer)
+        
+        I_trace = np.trace(I_tensor)
+        M_total = np.sum(m)
+        denom = M_total * max(r_char**2, eps)
+        I_norm_raw = I_trace / denom  # Raw value, potentially >1 or <0 (though typically positive)
+        
+        if not np.isfinite(I_norm_raw):
+            raise ValueError("Non-finite I_norm computed; check inputs.")
+        
+        return I_norm_raw
+    \end{lstlisting}
+
+    \item \textbf{Universal Shape Invariants ($I_1, I_2, I_3$).}
+    Let $d_{12} = ||\mathbf{r}'_1 - \mathbf{r}'_2||$, $d_{13} = ||\mathbf{r}'_1 - \mathbf{r}'_3||$, and $d_{23} = ||\mathbf{r}'_2 - \mathbf{r}'_3||$ be the three mutual distances. Sort these as $d_{\text{short}} \leq d_{\text{mid}} \leq d_{\text{long}}$.
+
+    \begin{align}
+    I_1 &= \frac{d_{\text{short}}}{d_{\text{long}}} \in [0, 1] \\
+    I_2 &= \frac{d_{\text{mid}}}{d_{\text{long}}} \in [I_1, 1] \\
+    I_3 &= \frac{d_{\text{short}} + d_{\text{mid}} - d_{\text{long}}}{d_{\text{short}} + d_{\text{mid}} + d_{\text{long}}} \in [-1, 1]
+    \end{align}
+
+
+
+
+
+
+
+
+\begin{comment}
+    \item \textbf{Velocity–position angles.}
+    \label{item:angles}
+    If your input vector or ablation study requires these, define for each body
+    $\theta_i = \angle(\mathbf r'_i, \mathbf v'_i)$ and store the normalized angles
+    $\theta_i/\pi \in [0,1]$. These angles are \emph{not} used in the default stage gates
+    but remain available for feature diagnostics.
+
+    \authcomment{what is this? why is it here?}
+
+    \begin{lstlisting}[
+        language=Python,
+        caption={Velocity-Position Angle Computation},
+        label={lst:velocity_angles_step3},
+        frame=single,
+        backgroundcolor=\color{lightgray},
+        basicstyle=\ttfamily\small,
+        breaklines=true,
+        columns=flexible,
+        xleftmargin=0.5cm,
+        xrightmargin=0.5cm,
+        aboveskip=0.5cm,
+        belowskip=0.5cm,
+        numbers=left,
+        numberstyle=\tiny\color{gray}
+    ]
+    def compute_velocity_angles(r_prime, v_prime, eps=1e-10):
+        """Compute angles between position and velocity vectors (using scaled data from Step 2)"""
+        angles = []
+        for i in range(2):  # Only 2 angles needed
+            r_norm = np.linalg.norm(r_prime[i])
+            v_norm = np.linalg.norm(v_prime[i])
+            
+            if r_norm < eps or v_norm < eps:
+                angle = np.pi / 2  # Default perpendicular
+            else:
+                dot = np.dot(r_prime[i], v_prime[i])
+                cross = np.cross(r_prime[i], v_prime[i])
+                cross_norm = np.linalg.norm(cross)
+                angle = np.arctan2(cross_norm, dot)  # Stable [0, pi]
+            
+            angles.append(angle / np.pi)  # Normalize to [0,1]
+        
+        return angles
+    \end{lstlisting}
+\end{comment}
+
+    \item \textbf{Lyapunov time $\tau_L$ via a Rosenstein-style estimator.}
+    \label{item:lyap}
+    We estimate the largest Lyapunov exponent directly from the BRUTUS trajectory positions using a robust method inspired by Rosenstein et al. and the implementation in `ChaosTools.jl`. This approach is applicable to both hierarchical and quasi-random configurations as it operates directly on the time-series data.
+
+    \begin{enumerate}
+        \item \emph{Uniform Cadence:} The trajectory is first resampled to a uniform time step $\Delta t$ using linear interpolation. This is crucial for consistent analysis, especially if the BRUTUS output has adaptive time steps.
+
+        \item \emph{Delay-Coordinates Embedding:} The 9-dimensional state vector (positions of the three bodies) is embedded in a higher-dimensional space to reconstruct the attractor's geometry. We use a standard embedding dimension (e.g., $d=5$) and a delay $\tau$ determined from the first minimum of the mutual information of the time series.
+
+        \item \emph{Finding Nearest Neighbors:} For each point in the embedded trajectory, we find its nearest neighbor. To avoid spurious correlations, we enforce a Theiler window, excluding neighbors that are too close in time.
+
+        \item \emph{Divergence Curve:} We then calculate the average logarithmic divergence of these neighbor pairs as they evolve in time. This gives us a curve $E(k) \approx \lambda_{\max} \cdot k \cdot \Delta t + E(0)$, where $k$ is the number of time steps.
+
+        \item \emph{Linear Regression:} The largest Lyapunov exponent, $\lambda_{\max}$, is estimated by finding the slope of the linear region of the divergence curve.
+
+        \item \emph{Lyapunov Time:} The Lyapunov time is then calculated as $\tau_L = 1/\lambda_{\max}$. If $\lambda_{\max} \le 0$, we consider the system to be regular and set $\tau_L = \infty$.
+    \end{enumerate}
+
+    \begin{lstlisting}[
+        language=Python,
+        caption={Lyapunov Time Estimation from Trajectory Data},
+        label={lst:lyapunov_time_estimation},
+        frame=single,
+        backgroundcolor=\color{lightgray},
+        basicstyle=\ttfamily\small,
+        breaklines=true,
+        columns=flexible,
+        xleftmargin=0.5cm,
+        xrightmargin=0.5cm,
+    ]
+    import numpy as np
+    from scipy.spatial.distance import pdist, squareform
+
+    def lyapunov_time_from_trajectory(
+        positions,
+        dt=0.01,
+        embedding_dim=5,
+        delay=10,
+        theiler_window=100
+    ):
+        """
+        Estimates the Lyapunov time from trajectory data using a method
+        inspired by Rosenstein et al.
+        """
+        # Ensure positions is a 2D array
+        if positions.ndim == 1:
+            positions = positions[:, np.newaxis]
+
+        # Delay embedding
+        N = len(positions)
+        embedded_trajectory = np.zeros((N - (embedding_dim - 1) * delay, embedding_dim * positions.shape[1]))
+        for i in range(embedded_trajectory.shape[0]):
+            for j in range(embedding_dim):
+                start_idx = i + j * delay
+                end_idx = start_idx + 1
+                embedded_trajectory[i, j*positions.shape[1]:(j+1)*positions.shape[1]] = positions[start_idx]
+
+        # Find nearest neighbors
+        dist_matrix = squareform(pdist(embedded_trajectory, 'euclidean'))
+        np.fill_diagonal(dist_matrix, np.inf)
+
+        # Apply Theiler window
+        for i in range(dist_matrix.shape[0]):
+            for j in range(max(0, i - theiler_window), min(dist_matrix.shape[0], i + theiler_window + 1)):
+                dist_matrix[i, j] = np.inf
+
+        neighbor_indices = np.argmin(dist_matrix, axis=1)
+
+        # Calculate divergence
+        max_iter = N - (embedding_dim - 1) * delay - np.max(neighbor_indices)
+        divergence = []
+        for k in range(max_iter):
+            distances = []
+            for i in range(len(neighbor_indices)):
+                idx1 = i + k
+                idx2 = neighbor_indices[i] + k
+                if idx1 < embedded_trajectory.shape[0] and idx2 < embedded_trajectory.shape[0]:
+                    dist = np.linalg.norm(embedded_trajectory[idx1] - embedded_trajectory[idx2])
+                    if dist > 1e-9: # Avoid log(0)
+                        distances.append(np.log(dist))
+            if distances:
+                divergence.append(np.mean(distances))
+
+        if not divergence:
+            return np.inf # Not enough points to calculate divergence
+
+        # Linear regression to find the Lyapunov exponent
+        time_steps = np.arange(len(divergence)) * dt
+        coeffs = np.polyfit(time_steps, divergence, 1)
+        lambda_max = coeffs[0]
+
+        if lambda_max <= 0:
+            return np.inf
+
+        return 1.0 / lambda_max
+
+    \end{lstlisting}
+
+
+
+
+
+    \item \textbf{Normalized Masses ($m_1, m_2, m_3$).}
+    Extract the masses directly from the scaled ICs (they are dimensionless in G=1 units). These are used for input vector assembly.
+
+    \authcomment{We need the code snippets here for this.}
+\end{enumerate}
+
+
+
+
+
+
+
+\authcomment{The two paragraphs below are suspicious. We need to carefully examine them.}
+\paragraph{Numerical notes and defaults.}
+Unless otherwise specified, use double precision for all invariants. The softening
+$\varepsilon=10^{-10}$ in Item~\ref{item:eqs} is a safe default in scaled units and
+\emph{does not} enter $s_{\min}$ or any denominator besides $V$.
+
+\paragraph{Sanity checks (quick tests).}
+Before large‑scale runs:
+\begin{itemize}
+  \item \emph{Two‑body limit} ($m_3\!\to 0$): expect $Q\!\approx\!1$, large $L_{\mathrm{norm}}$,
+        and $\tau_L\!\to\!\infty$.
+  \item \emph{Equal‑mass symmetric triples}: invariants cluster tightly across random seeds,
+        and $\tau_L$ varies smoothly with small IC perturbations.
+\end{itemize}
+
+\subsection{Step 4: Formulating the Input Vector: Canonical Ordering, Normalization, and Assembly}
+
+\paragraph{Scope.}
+Using the invariants and quantities computed in Step 3 
+(e.g., $E$, $Q$, $s_{\min}$, $L_{\text{norm}}$, $I_{\text{norm}}$, $I_1$, $I_2$, $I_3$, masses), 
+this step applies canonical ordering, normalizes all components to $[-1,1]$, and assembles the final 12D input vector for the PINN.
+
+
+\begin{enumerate}
+    \item \textbf{Apply Canonical Ordering of Bodies for Injectivity}
+    
+    To ensure that different permutations of the same physical system yield identical input vectors, we apply a canonical ordering based on physical properties. Use the scaled \(\mathbf{r}'\) and \(\mathbf{v}'\) from Step 1.5:
+
+    \authcomment{I need more speicific details on which parts of the quantieis computed in Step 3 are used for this canonical ordering.}
+
+    
+\begin{lstlisting}[
+    language=Python,
+    caption={Canonical Ordering Algorithm for Injectivity},
+    label={lst:canonical_ordering},
+    frame=single,
+    backgroundcolor=\color{lightgray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    columns=flexible,
+    xleftmargin=0.5cm,
+    xrightmargin=0.5cm,
+    aboveskip=0.5cm,
+    belowskip=0.5cm,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+]
+def canonical_ordering(m, r_prime, v_prime):
+    """Order bodies by a unique, physically meaningful criterion (using scaled data from Step 1.5)"""
+    # Create sorting keys: primary by mass (descending), 
+    # secondary by distance from origin, tertiary by speed
+    keys = []
+    for i in range(3):
+        key = (-m[i], np.linalg.norm(r_prime[i]), np.linalg.norm(v_prime[i]))
+        keys.append(key)
+    
+    # Get sorting indices
+    idx = sorted(range(3), key=lambda i: keys[i])
+    
+    # Reorder all quantities
+    m_sorted = m[idx]
+    r_prime_sorted = r_prime[idx]
+    v_prime_sorted = v_prime[idx]
+    
+    return m_sorted, r_prime_sorted, v_prime_sorted
+\end{lstlisting}
+
+
+
+    \item \textbf{Apply Normalization to $[-1,1]$.}
+    All components must be normalized to the range $[-1,1]$ for optimal neural network training. Use invariants computed from scaled data (from Step 2) and the global scales precomputed across the dataset in Step 2. The normalization formulas are as follows:
+
+\begin{lstlisting}[
+    language=Python,
+    caption={Component-wise Normalization to {$[-1,1]$} Range},
+    label={lst:normalization_step4},
+    frame=single,
+    backgroundcolor=\color{lightgray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    columns=flexible,
+    xleftmargin=0.5cm,
+    xrightmargin=0.5cm,
+    aboveskip=0.5cm,
+    belowskip=0.5cm,
+    numbers=left,
+    numberstyle=\tiny\color{gray}
+]
+# Global scales (precomputed from scaled dataset in Step 2)
+E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
+Q_scale = 0.5     # Fixed
+smin_scale = np.median(all_r_char)  # Characteristic length from scaled data
+
+# Per-system normalization (using invariants from Step 3)
+E_norm = np.tanh(E / E_scale)
+Q_norm = np.tanh((Q - 1) / Q_scale)
+smin_norm = np.tanh(s_min / smin_scale)
+L_norm_normalized = 2 * L_norm - 1  # Map [0,1] to [-1,1] for consistency
+
+# Mass fractions
+m_total = np.sum(m) + 1e-8
+m_norm = 2 * (m / m_total) - 1  # Array for all 3 masses
+
+# Shape invariants
+I1_norm = 2 * I1 - 1  # Map [0,1] to [-1,1]
+I2_norm = 2 * I2 - 1  # Map [0,1] to [-1,1]
+# I3 already in [-1,1]
+
+
+# Normalized inertia (already computed in Step 3, but confirm bounds)
+I_norm = np.tanh(I_norm)  # Ensure [-1,1] if not already
+\end{lstlisting}
+
+    \authcomment{Confirm that all components in the IC vector are in the range $[-1,1]$ and that it is the final form that will be fed to the PINN.}
+
+    \paragraph{Mathematical Guarantees} This parameterization satisfies several critical requirements:
+
+    \begin{enumerate}
+    \item \textbf{Injectivity}: The canonical ordering ensures that different permutations of the same physical system yield identical input vectors. The 13 constraints for an 8-dimensional reduced phase space ensure over-determination and uniqueness.
+
+    \item \textbf{Continuity}: All components vary continuously with the initial conditions, ensuring smooth neural network training.
+
+    \item \textbf{Universality}: No special cases or singularities for specific configurations (unlike orbital elements).
+
+    \item \textbf{Physical Interpretability}: Each component has clear physical meaning, aiding in model interpretation and debugging.
+    \end{enumerate}
+
+
+    \paragraph{Numerical Implementation Considerations}
+
+
+
+    When implementing this transformation, careful attention must be paid to numerical stability (using scaled data from Step 2):
+    \begin{itemize}
+    \item Use $\epsilon = 10^{-10}$ in potential energy calculations to avoid division by zero
+    \item Check for $||\mathbf{v}'_i|| < \epsilon$ before computing velocity angles
+    \item Verify momentum conservation after canonical ordering: $||\sum m_i \mathbf{v}'_i|| < 10^{-12}$
+    \item Use dataset-wide statistics for normalization scales to ensure consistency
+    \end{itemize}
+
+    This universal parameterization provides a robust foundation for the PINN that works equally well for all types of three-body initial conditions, from highly hierarchical systems to chaotic quasi-random configurations.
+
+
+    \authcomment{Confirm on this mathematcial guarantees' arguments and the 
+    numerical implementation's purpose and validity. If confirmed, how should we integrate and implement this into the
+    existing workflow? Also, we have to add the time t into this vector to achieve the final 14-dimensional input vector ready to be
+    fed to the PINN.}
+
+
+
+    \item \textbf{Assemble the Final 12-Component Input Vector.} 
+    The complete input vector fed to the PINN is formed by concatenating the normalized time component $t'$ with the 13-component initial condition vector $\text{IC}$ (using normalized values from above):
+
+
+
+    \begin{lstlisting}[
+        language=Python,
+        caption={Time Normalization to {$[-1,1]$} Range},
+        label={lst:time_normalization_step4},
+        frame=single,
+        backgroundcolor=\color{lightgray},
+        basicstyle=\ttfamily\small,
+        breaklines=true,
+        columns=flexible,
+        xleftmargin=0.5cm,
+        xrightmargin=0.5cm,
+        aboveskip=0.5cm,
+        belowskip=0.5cm,
+        numbers=left,
+        numberstyle=\tiny\color{gray}
+    ]
+def normalize_time(t, T=10.0):
+    # Normalize physical time t from [0, T] to [-1, 1]
+    return 2 * (t / T) - 1
+    \end{lstlisting}
+
+    The 11-component IC is:
+    \begin{equation}
+    \text{IC} = \begin{pmatrix}
+    m_1^{\text{norm}}, m_2^{\text{norm}}, m_3^{\text{norm}} & \text{(normalized masses)} \\
+    E^{\text{norm}} & \text{(normalized total energy)} \\
+    L_{\text{norm}} & \text{(normalized angular momentum)} \\
+    Q^{\text{norm}} & \text{(normalized virial ratio)} \\
+    s_{\min}^{\text{norm}} & \text{(normalized min separation)} \\
+    I_1^{\text{norm}}, I_2^{\text{norm}}, I_3 & \text{(shape invariants)} \\
+    I^{\text{norm}} & \text{(normalized moment of inertia)}
+    \end{pmatrix}
+    \end{equation}
+\end{enumerate}
+
+    \begin{equation}
+        \text{Input} = [t', \text{IC}] \text{, (12-dimensional input vector)}
+    \end{equation}
+
+    The time component is normalized from the physical time $t \in [0, T]$ (where $T = t_{\max} = 10$ is the characteristic time) to the range $[-1, 1]$ using the formula:
+
+    \begin{equation}
+    t' = 2 \left( \frac{t}{T} \right) - 1
+    \end{equation}
+
+    This centering around zero aligns with the periodic activation functions (e.g., SIREN) and improves training dynamics.
+
+
+
+\subsection{Step 5: Curriculum Stage Assignment}
+Now, assign a curriculum stage label (an integer from 0 to 6) to each simulation. 
+This is achieved by applying the specific threshold criteria defined in this document in section 2.3 on 'Multi-Stage Data Stratification by Difficulty'. 
+This process should be fully automated in a script that reads the table of computed invariants and outputs a mapping from each simulation ID to its assigned stage index.
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
