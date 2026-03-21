@@ -65,7 +65,7 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md - Create verify_structure.py script to extract and verify structural elements (sections, labels, refs, citations, floats) for all 5 structures
-- [ ] 07-02-PLAN.md - Fix structural fidelity gaps (ctl-instruction section ordering, pinn-architecture float content)
+- [x] 07-02-PLAN.md - Fix structural fidelity gaps (ctl-instruction section ordering, pinn-architecture float content)
 
 ### Phase 8: Compilability Verification
 **Goal**: User can confirm that every modular structure compiles to PDF without errors or unexpected warnings
