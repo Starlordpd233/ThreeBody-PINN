@@ -74,10 +74,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. A script compiles all 5 modular structures with pdflatex (or lualatex) and reports pass/fail per structure with 0 errors required for pass
   2. Warning count per structure is reported, and any warnings not present in the original compilation are flagged as new
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 08-01: TBD
+- [ ] 08-01-PLAN.md - Create verify_compile.py script to compile all 5 structures with latexmk and compare warnings against originals
 
 ## Progress
 
@@ -93,5 +93,5 @@ Phases execute in numeric order: 5 -> 6 -> 7 -> 8
 | 4. Stale Reference Fixes | v1.0 | 2/2 | Complete | 2026-03-20 |
 | 5. Content Completeness Verification | v1.1 | 1/1 | Complete | 2026-03-21 |
 | 6. Preamble Parity Verification | v1.1 | 1/1 | Complete | 2026-03-21 |
-| 7. Structure Fidelity Verification | v1.1 | 1/2 | Executing | - |
-| 8. Compilability Verification | v1.1 | 0/? | Not started | - |
+| 7. Structure Fidelity Verification | v1.1 | 2/2 | Complete | 2026-03-21 |
+| 8. Compilability Verification | v1.1 | 0/1 | Not started | - |
