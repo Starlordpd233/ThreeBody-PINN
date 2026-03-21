@@ -642,6 +642,13 @@ def verify_structure(structure: Structure, base_path: Path, verbose: bool = Fals
     modular_content = resolve_includes(modular_content, modular_path.parent)
 
     # 3. Handle inactive sections per D-16
+    inactive_content = ""
+    inactive_sections: List[SectionHeading] = []
+    inactive_labels: Set[str] = set()
+    inactive_refs: Set[str] = set()
+    inactive_cites: Set[str] = set()
+    inactive_floats: List[FloatEnv] = []
+
     if structure.inactive_files:
         # Get inactive content to exclude from comparison
         inactive_content = get_inactive_content(
@@ -650,49 +657,61 @@ def verify_structure(structure: Structure, base_path: Path, verbose: bool = Fals
             structure.inactive_files
         )
         if inactive_content:
-            # Extract labels/refs from inactive content and remove from modular comparison
+            # Extract all structural elements from inactive content
+            inactive_sections = extract_sections(inactive_content)
             inactive_labels = extract_labels(inactive_content)
             inactive_refs = extract_refs(inactive_content)
             inactive_cites = extract_citation_keys(inactive_content)
-            if verbose and (inactive_labels or inactive_refs or inactive_cites):
-                print(f"    Excluding inactive elements: {len(inactive_labels)} labels, "
-                      f"{len(inactive_refs)} refs, {len(inactive_cites)} citations")
+            inactive_floats = extract_floats(inactive_content)
+            if verbose and (inactive_sections or inactive_labels or inactive_refs or inactive_cites or inactive_floats):
+                print(f"    Excluding inactive elements: {len(inactive_sections)} sections, "
+                      f"{len(inactive_labels)} labels, {len(inactive_refs)} refs, "
+                      f"{len(inactive_cites)} citations, {len(inactive_floats)} floats")
 
-    # 4. Extract structural elements
+    # 4. Extract structural elements from original
     orig_sections = extract_sections(original_content)
-    mod_sections = extract_sections(modular_content)
-
     orig_labels = extract_labels(original_content)
-    mod_labels = extract_labels(modular_content)
-
     orig_refs = extract_refs(original_content)
-    mod_refs = extract_refs(modular_content)
-
     orig_cites = extract_citation_keys(original_content)
-    mod_cites = extract_citation_keys(modular_content)
-
     orig_bib = extract_bibliography_decls(original_content)
-    mod_bib = extract_bibliography_decls(modular_content)
-
     orig_floats = extract_floats(original_content)
+
+    # 5. Extract structural elements from modular
+    mod_sections = extract_sections(modular_content)
+    mod_labels = extract_labels(modular_content)
+    mod_refs = extract_refs(modular_content)
+    mod_cites = extract_citation_keys(modular_content)
+    mod_bib = extract_bibliography_decls(modular_content)
     mod_floats = extract_floats(modular_content)
 
-    # 5. Handle inactive sections: remove inactive elements from modular comparison
-    # We want to check: all original elements are in modular (minus inactive)
-    if structure.inactive_files and inactive_content:
-        # Remove inactive elements from what we expect in modular
-        mod_labels = mod_labels - inactive_labels
-        mod_refs = mod_refs - inactive_refs
-        mod_cites = mod_cites - inactive_cites
+    # 6. Handle inactive sections: remove inactive elements from ORIGINAL comparison
+    # Per D-16: Do not report structural elements from inactive files as missing.
+    # The original has all sections (including inactive), modular has only active.
+    # We remove inactive elements from original to compare only active content.
+    if inactive_content:
+        # Remove inactive sections from original by title matching
+        inactive_titles = {s.title for s in inactive_sections}
+        orig_sections = [s for s in orig_sections if s.title not in inactive_titles]
 
-    # 6. Compare each category
+        # Remove inactive labels/refs/cites from original
+        orig_labels = orig_labels - inactive_labels
+        orig_refs = orig_refs - inactive_refs
+        orig_cites = orig_cites - inactive_cites
+
+        # Remove inactive floats from original (by content matching)
+        # This is trickier - we compare float content
+        inactive_float_contents = [normalize_float_content(f.content) for f in inactive_floats]
+        orig_floats = [f for f in orig_floats
+                       if normalize_float_content(f.content) not in inactive_float_contents]
+
+    # 7. Compare each category
     sections_result = compare_sections(orig_sections, mod_sections)
     labels_result = compare_sets(orig_labels, mod_labels, "labels")
     refs_result = compare_sets(orig_refs, mod_refs, "refs")
     citations_result = compare_citations(orig_cites, mod_cites, orig_bib, mod_bib)
     floats_result = compare_floats(orig_floats, mod_floats)
 
-    # 7. Determine overall pass/fail
+    # 8. Determine overall pass/fail
     passed = (
         sections_result['match'] and
         labels_result['match'] and
