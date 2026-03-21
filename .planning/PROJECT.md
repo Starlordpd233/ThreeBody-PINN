@@ -28,15 +28,16 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Documentation: all files updated for post-consolidation layout — Phase 2
 - ✓ Codebase cleanup: deleted legacy folders and build artifacts — Phase 3
 - ✓ Codebase cleanup: fixed all stale code imports and documentation filename references — Phase 4
+- ✓ Verify modular LaTeX content completeness (automated diff script) — Phase 5
+- ✓ Verify preamble parity (packages, macros, commands) across all 5 modular structures — Phase 6
+- ✓ Verify document structure fidelity (sections, labels, refs, citations, floats) — Phase 7
+- ✓ Verify compilability of all 5 modular structures (0 errors, 0 new warnings) — Phase 8
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- ✓ Verify modular LaTeX content completeness (automated diff script) — Phase 5
-- ✓ Verify preamble parity (packages, macros, commands) across all 5 modular structures — Phase 6
-- ✓ Verify document structure fidelity (sections, labels, refs, citations, floats) — Phase 7
-- [ ] Verify compilability of all 5 modular structures (0 errors, 0 warnings)
+- None — v1.1 milestone complete
 
 ### Deferred
 
@@ -53,16 +54,16 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Real-time prediction API or web interface — research project, not a product
 - Qualitative reasoning by the LLM — focus is on numerical trajectory prediction first
 
-## Current Milestone: v1.1 LaTeX Modularization Verification
+## Current Milestone: v1.1 LaTeX Modularization Verification — COMPLETE
 
 **Goal:** Rigorously verify that 5 modular LaTeX structures faithfully preserve the content, style, format, and components of their original monolithic LaTeX files.
 
 **Target features:**
-- Automated Python diffing scripts comparing original vs concatenated modular sections
-- Content completeness verification (no dropped text)
-- Preamble parity checks (packages, macros, commands)
-- Structure fidelity checks (section hierarchy, labels, refs, citations)
-- Compilability verification (0 errors, 0 warnings)
+- ✓ Automated Python diffing scripts comparing original vs concatenated modular sections
+- ✓ Content completeness verification (no dropped text)
+- ✓ Preamble parity checks (packages, macros, commands)
+- ✓ Structure fidelity checks (section hierarchy, labels, refs, citations)
+- ✓ Compilability verification (0 errors, 0 new warnings)
 
 **Scope:** 5 structures in `pinn_instruction/original_latex/`:
 1. Data-quality-assessment (`data_quality_assess.tex` → `data_quality_assess/`)
@@ -72,6 +73,8 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 5. review-of-framework (`stage-strat-revision.tex` → `stage_strat_revision/`)
 
 **Excluded:** `sampling-method/` (no modular structure exists)
+
+**Status:** All 4 phases complete, all 5 plans executed, all 13 requirements satisfied.
 
 ## Context
 
@@ -99,6 +102,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 |----------|-----------|---------|
 | Fine-tune Qwen 3.5 2B for trajectory prediction | Small enough to train locally on M2 Mac | — Pending |
 | Clean up codebase before LLM work | Data integrity is the foundation; cleanup simplifies downstream pipeline | ✓ v1.0 shipped (Phases 1-4) |
+| Verify LaTeX modularization before LLM work | Ensure documentation integrity for future reference | ✓ v1.1 shipped (Phases 5-8) |
 | PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
 
@@ -120,4 +124,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 after Phase 7 (Structure Fidelity Verification) completed*
+*Last updated: 2026-03-22 after Phase 8 (Compilability Verification) completed*

@@ -29,8 +29,8 @@ Requirements for LaTeX modularization verification. Each maps to roadmap phases.
 
 ### Compilability
 
-- [ ] **COMP-01**: Each of the 5 modular structures compiles with `pdflatex` (or `lualatex`) with 0 errors
-- [ ] **COMP-02**: Each of the 5 modular structures compiles with 0 warnings (or only pre-existing warnings from the original)
+- [x] **COMP-01**: Each of the 5 modular structures compiles with `pdflatex` (or `lualatex`) with 0 errors
+- [x] **COMP-02**: Each of the 5 modular structures compiles with 0 warnings (or only pre-existing warnings from the original)
 
 ## Future Requirements
 
@@ -62,14 +62,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRUCT-03 | Phase 7 | Complete |
 | STRUCT-04 | Phase 7 | Complete |
 | STRUCT-05 | Phase 7 | Complete |
-| COMP-01 | Phase 8 | Pending |
-| COMP-02 | Phase 8 | Pending |
+| COMP-01 | Phase 8 | Complete |
+| COMP-02 | Phase 8 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 13 total
 - Mapped to phases: 13
 - Unmapped: 0
+- Completed: 13/13 (100%)
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after roadmap creation*
+*Last updated: 2026-03-22 after Phase 8 completion*
