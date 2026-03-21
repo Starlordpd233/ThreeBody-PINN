@@ -50,10 +50,10 @@ Plans:
   1. Running a script reports all `\usepackage` declarations found in the original and whether each appears in the modular preamble
   2. All custom command definitions (`\newcommand`, `\renewcommand`, `\newenvironment`) from the original are verified present in the modular preamble
   3. Package options (e.g., `[H]` for float, encoding options, font sizes) are compared exactly, with mismatches flagged
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md — Create verify_preamble.py script and run preamble parity verification for all 5 structures
 
 ### Phase 7: Structure Fidelity Verification
 **Goal**: User can confirm that the structural LaTeX elements (section hierarchy, cross-references, citations, and float environments) are faithfully preserved in modular output for all 5 structures
@@ -93,7 +93,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 2. Documentation Updates | v1.0 | 3/3 | Complete | 2026-03-19 |
 | 3. Data Deletion and Legacy Cleanup | v1.0 | 2/2 | Complete | 2026-03-19 |
 | 4. Stale Reference Fixes | v1.0 | 2/2 | Complete | 2026-03-20 |
-| 5. Content Completeness Verification | v1.1 | 0/1 | Ready to execute | - |
-| 6. Preamble Parity Verification | v1.1 | 0/? | Not started | - |
+| 5. Content Completeness Verification | v1.1 | 1/1 | Complete | 2026-03-21 |
+| 6. Preamble Parity Verification | v1.1 | 0/1 | Ready to execute | - |
 | 7. Structure Fidelity Verification | v1.1 | 0/? | Not started | - |
 | 8. Compilability Verification | v1.1 | 0/? | Not started | - |
