@@ -1,0 +1,75 @@
+# Requirements: Three-Body LaTeX Modularization Verification
+
+**Defined:** 2026-03-21
+**Core Value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
+
+## v1.1 Requirements
+
+Requirements for LaTeX modularization verification. Each maps to roadmap phases.
+
+### Content Completeness
+
+- [ ] **CONT-01**: Automated script compares original monolithic .tex against concatenated modular sections with whitespace normalization for all 5 structures
+- [ ] **CONT-02**: Dropped-line report identifies any lines present in original but missing from modular sections, with surrounding context
+- [ ] **CONT-03**: No extraneous content report identifies any lines in modular sections not present in original
+
+### Preamble Parity
+
+- [ ] **PREAMB-01**: All `\usepackage` declarations from original preamble appear in modular preamble for each structure
+- [ ] **PREAMB-02**: All custom `\newcommand`, `\renewcommand`, `\newenvironment` definitions preserved
+- [ ] **PREAMB-03**: Package options (e.g., `[H]` for float, encoding options) match exactly
+
+### Structure Fidelity
+
+- [ ] **STRUCT-01**: Section/subsection hierarchy in modular output matches original for all 5 structures
+- [ ] **STRUCT-02**: All `\label` declarations from original are present in modular sections
+- [ ] **STRUCT-03**: All `\ref`, `\eqref`, `\autoref` references from original are present in modular sections
+- [ ] **STRUCT-04**: All `\cite` and `\bibliography`/`\printbibliography` references preserved
+- [ ] **STRUCT-05**: All figure/table float environments (`\begin{figure}`, `\begin{table}`, `\begin{longtable}`) preserved with their content
+
+### Compilability
+
+- [ ] **COMP-01**: Each of the 5 modular structures compiles with `pdflatex` (or `lualatex`) with 0 errors
+- [ ] **COMP-02**: Each of the 5 modular structures compiles with 0 warnings (or only pre-existing warnings from the original)
+
+## Future Requirements
+
+None — this is a standalone verification milestone.
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| PDF visual diff (pixel-level) | Compilation success + content parity is sufficient |
+| Page count comparison | User explicitly excluded |
+| sampling-method verification | No modular structure exists for it |
+| Fixing any issues found | This milestone only identifies issues; fixes are separate |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CONT-01 | — | Pending |
+| CONT-02 | — | Pending |
+| CONT-03 | — | Pending |
+| PREAMB-01 | — | Pending |
+| PREAMB-02 | — | Pending |
+| PREAMB-03 | — | Pending |
+| STRUCT-01 | — | Pending |
+| STRUCT-02 | — | Pending |
+| STRUCT-03 | — | Pending |
+| STRUCT-04 | — | Pending |
+| STRUCT-05 | — | Pending |
+| COMP-01 | — | Pending |
+| COMP-02 | — | Pending |
+
+**Coverage:**
+- v1.1 requirements: 13 total
+- Mapped to phases: 0
+- Unmapped: 13 ⚠️
+
+---
+*Requirements defined: 2026-03-21*
+*Last updated: 2026-03-21 after initial definition*
