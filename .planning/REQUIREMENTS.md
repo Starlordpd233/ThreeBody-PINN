@@ -9,9 +9,9 @@ Requirements for LaTeX modularization verification. Each maps to roadmap phases.
 
 ### Content Completeness
 
-- [ ] **CONT-01**: Automated script compares original monolithic .tex against concatenated modular sections with whitespace normalization for all 5 structures
-- [ ] **CONT-02**: Dropped-line report identifies any lines present in original but missing from modular sections, with surrounding context
-- [ ] **CONT-03**: No extraneous content report identifies any lines in modular sections not present in original
+- [x] **CONT-01**: Automated script compares original monolithic .tex against concatenated modular sections with whitespace normalization for all 5 structures
+- [x] **CONT-02**: Dropped-line report identifies any lines present in original but missing from modular sections, with surrounding context
+- [x] **CONT-03**: No extraneous content report identifies any lines in modular sections not present in original
 
 ### Preamble Parity
 
@@ -51,9 +51,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONT-01 | Phase 5 | Pending |
-| CONT-02 | Phase 5 | Pending |
-| CONT-03 | Phase 5 | Pending |
+| CONT-01 | Phase 5 | Complete |
+| CONT-02 | Phase 5 | Complete |
+| CONT-03 | Phase 5 | Complete |
 | PREAMB-01 | Phase 6 | Pending |
 | PREAMB-02 | Phase 6 | Pending |
 | PREAMB-03 | Phase 6 | Pending |
