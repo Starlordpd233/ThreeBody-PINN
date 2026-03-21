@@ -51,25 +51,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONT-01 | — | Pending |
-| CONT-02 | — | Pending |
-| CONT-03 | — | Pending |
-| PREAMB-01 | — | Pending |
-| PREAMB-02 | — | Pending |
-| PREAMB-03 | — | Pending |
-| STRUCT-01 | — | Pending |
-| STRUCT-02 | — | Pending |
-| STRUCT-03 | — | Pending |
-| STRUCT-04 | — | Pending |
-| STRUCT-05 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
+| CONT-01 | Phase 5 | Pending |
+| CONT-02 | Phase 5 | Pending |
+| CONT-03 | Phase 5 | Pending |
+| PREAMB-01 | Phase 6 | Pending |
+| PREAMB-02 | Phase 6 | Pending |
+| PREAMB-03 | Phase 6 | Pending |
+| STRUCT-01 | Phase 7 | Pending |
+| STRUCT-02 | Phase 7 | Pending |
+| STRUCT-03 | Phase 7 | Pending |
+| STRUCT-04 | Phase 7 | Pending |
+| STRUCT-05 | Phase 7 | Pending |
+| COMP-01 | Phase 8 | Pending |
+| COMP-02 | Phase 8 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 after roadmap creation*
