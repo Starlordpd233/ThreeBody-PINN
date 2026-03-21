@@ -64,10 +64,10 @@ Plans:
   2. Every `\label` declaration from the original is confirmed present in the modular sections, with missing labels listed
   3. Every `\ref`, `\eqref`, `\autoref`, `\cite`, and bibliography command from the original is confirmed present in the modular sections, with missing references listed
   4. Every float environment (`\begin{figure}`, `\begin{table}`, `\begin{longtable}`) and its content are confirmed preserved, with missing or altered floats listed
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 07-01: TBD
+- [ ] 07-01-PLAN.md — Create verify_structure.py script to extract and verify structural elements (sections, labels, refs, citations, floats) for all 5 structures
 
 ### Phase 8: Compilability Verification
 **Goal**: User can confirm that every modular structure compiles to PDF without errors or unexpected warnings
@@ -94,6 +94,6 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 3. Data Deletion and Legacy Cleanup | v1.0 | 2/2 | Complete | 2026-03-19 |
 | 4. Stale Reference Fixes | v1.0 | 2/2 | Complete | 2026-03-20 |
 | 5. Content Completeness Verification | v1.1 | 1/1 | Complete | 2026-03-21 |
-| 6. Preamble Parity Verification | v1.1 | 0/1 | Complete    | 2026-03-21 |
-| 7. Structure Fidelity Verification | v1.1 | 0/? | Not started | - |
+| 6. Preamble Parity Verification | v1.1 | 1/1 | Complete | 2026-03-21 |
+| 7. Structure Fidelity Verification | v1.1 | 0/1 | Planned | - |
 | 8. Compilability Verification | v1.1 | 0/? | Not started | - |
