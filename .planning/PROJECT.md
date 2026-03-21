@@ -33,6 +33,13 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 <!-- Current scope. Building toward these. -->
 
+- [ ] Verify modular LaTeX structures preserve all content from original monolithic files
+- [ ] Verify preamble parity (packages, macros, commands) across all 5 modular structures
+- [ ] Verify document structure fidelity (sections, labels, refs, citations)
+- [ ] Verify compilability of all 5 modular structures (0 errors, 0 warnings)
+
+### Deferred
+
 - [ ] Data pipeline: get PINN training loop working end-to-end (architecture exists, training does not)
 - [ ] LLM fine-tuning: prepare simulation data for language model training format
 - [ ] LLM fine-tuning: fine-tune Qwen 3.5 2B on three-body trajectory prediction
@@ -45,6 +52,26 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - `.git/lfs/` pruning or repository size reduction — separate concern
 - Real-time prediction API or web interface — research project, not a product
 - Qualitative reasoning by the LLM — focus is on numerical trajectory prediction first
+
+## Current Milestone: v1.1 LaTeX Modularization Verification
+
+**Goal:** Rigorously verify that 5 modular LaTeX structures faithfully preserve the content, style, format, and components of their original monolithic LaTeX files.
+
+**Target features:**
+- Automated Python diffing scripts comparing original vs concatenated modular sections
+- Content completeness verification (no dropped text)
+- Preamble parity checks (packages, macros, commands)
+- Structure fidelity checks (section hierarchy, labels, refs, citations)
+- Compilability verification (0 errors, 0 warnings)
+
+**Scope:** 5 structures in `pinn_instruction/original_latex/`:
+1. Data-quality-assessment (`data_quality_assess.tex` → `data_quality_assess/`)
+2. ctl-instruction (`CTL-instruction-final.tex` → `ctl-instruction/`)
+3. pinn-architecture (`PINN_architecture_plan.tex` → `pinn-architecture/`)
+4. review-of-framework (`review_of_ctl-pinn_framework.tex` → `review_of_framework/`)
+5. review-of-framework (`stage-strat-revision.tex` → `stage_strat_revision/`)
+
+**Excluded:** `sampling-method/` (no modular structure exists)
 
 ## Context
 
@@ -75,5 +102,22 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-20 after v1.0 Codebase Cleanup milestone (4 phases, 10 plans)*
+*Last updated: 2026-03-21 after v1.1 LaTeX Modularization Verification milestone started*
