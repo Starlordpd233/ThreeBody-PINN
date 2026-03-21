@@ -15,9 +15,9 @@ Requirements for LaTeX modularization verification. Each maps to roadmap phases.
 
 ### Preamble Parity
 
-- [ ] **PREAMB-01**: All `\usepackage` declarations from original preamble appear in modular preamble for each structure
-- [ ] **PREAMB-02**: All custom `\newcommand`, `\renewcommand`, `\newenvironment` definitions preserved
-- [ ] **PREAMB-03**: Package options (e.g., `[H]` for float, encoding options) match exactly
+- [x] **PREAMB-01**: All `\usepackage` declarations from original preamble appear in modular preamble for each structure
+- [x] **PREAMB-02**: All custom `\newcommand`, `\renewcommand`, `\newenvironment` definitions preserved
+- [x] **PREAMB-03**: Package options (e.g., `[H]` for float, encoding options) match exactly
 
 ### Structure Fidelity
 
@@ -54,9 +54,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-01 | Phase 5 | Complete |
 | CONT-02 | Phase 5 | Complete |
 | CONT-03 | Phase 5 | Complete |
-| PREAMB-01 | Phase 6 | Pending |
-| PREAMB-02 | Phase 6 | Pending |
-| PREAMB-03 | Phase 6 | Pending |
+| PREAMB-01 | Phase 6 | Complete |
+| PREAMB-02 | Phase 6 | Complete |
+| PREAMB-03 | Phase 6 | Complete |
 | STRUCT-01 | Phase 7 | Pending |
 | STRUCT-02 | Phase 7 | Pending |
 | STRUCT-03 | Phase 7 | Pending |
