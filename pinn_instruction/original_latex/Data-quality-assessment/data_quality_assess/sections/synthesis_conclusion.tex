@@ -1,0 +1,15 @@
+\section{Synthesis and Conclusion}
+
+The development of a robust CTL-PINN for the Three-Body Problem requires moving beyond the notion of data ``accuracy'' to the more complex notion of data ``fitness for causal learning.'' The analysis reveals that the primary risks—spectral bias, causal firewalls, and dead gradients—stem from the mismatch between the continuous nature of the PINN and the discrete, variable-density nature of the Brutus data.
+
+By implementing the \textbf{Staged Gate Protocol}, the research team can decouple these risks. Phase 1 (Static) ensures the physics is sound and the sampling density is sufficient to support a continuous manifold (low IPR). Phase 2 (Dynamic) ensures the network architecture has the capacity to resolve the specific stiffness profile of the data without gradient pathologies.
+
+This rigorous, multi-layered approach ensures that the computational investment in arbitrary-precision data generation yields a dataset that is not just numerically correct, but algorithmically effective for training the next generation of physics-informed neural solvers.
+
+\subsection{Recommendations for Future Work}
+
+\begin{itemize}
+    \item \textbf{Curriculum Learning:} Implement a curriculum where the model is trained first on ``easy'' (low SASD) trajectories and progressively introduced to ``hard'' (chaotic, high SASD) trajectories. This stabilizes the causal weights~\cite{ref10}.
+    \item \textbf{Adaptive Activation Functions:} Investigate using adaptive activation functions (like Rowdy or locally adaptive sine) to handle the varying frequency content of the N-body problem better than fixed Tanh/ReLU~\cite{ref8}.
+    \item \textbf{Symplectic Neural Networks:} Consider modifying the architecture to be inherently symplectic (HNN), moving conservation from a soft loss term to a hard architectural constraint, which reduces the data quality burden regarding energy drift~\cite{ref33}.
+\end{itemize}

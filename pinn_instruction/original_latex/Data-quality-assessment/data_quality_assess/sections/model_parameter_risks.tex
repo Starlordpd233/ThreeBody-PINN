@@ -1,0 +1,30 @@
+\section{Risks to Model Parameters and Causal Training Dynamics}
+
+The user query specifically asks to address ``risks to model parameters.'' In the context of CTL-PINNs and chaotic data, these risks are non-trivial and often structural.
+
+\subsection{The Causal ``Firewall'' Effect}
+
+The causal loss weighting is defined as $w_i = f(\sum_{j<i} \mathcal{L}_j)$.
+\begin{description}
+    \item[Risk:] If the data contains a single ``bad'' point (high IPR or SASD) at time $t_{bad}$, the residual $\mathcal{L}(t_{bad})$ remains high. Consequently, the weights for all $t > t_{bad}$ vanish ($w_t \to 0$).
+    \item[Parameter Consequence:] The gradients $\frac{\partial \mathcal{L}}{\partial \theta}$ for parameters governing the late-time behavior become zero. These parameters effectively ``die'' or drift randomly. The model learns the trajectory perfectly up to $t_{bad}$ and then flatlines. This is a specific failure mode of causal training that does not exist in standard PINNs (which would just average the error globally)~\cite{ref10}.
+    \item[Mitigation:] The SASD metric acts as a pre-training filter to prevent these ``causal firewalls.''
+\end{description}
+
+\subsection{The Dead Neuron Problem in N-Body Scaling}
+
+N-body data is scale-invariant but numerically vast. Distances can range from $10^{-3}$ (close encounter) to $10^2$ (ejection).
+\begin{description}
+    \item[Risk:] If the data is fed raw into the network, the inputs will push the neurons into the saturation regions of their activation functions (e.g., $\tanh(100) \approx 1$, gradient $\approx 0$).
+    \item[Parameter Consequence:] Vanishing gradients in the first layer. In a deep network, this prevents feature extraction.
+    \item[Mitigation:] The validation pipeline must include a Normalization Check. Calculate the Kullback-Leibler (KL) divergence between the input data distribution and a standard normal distribution $\mathcal{N}(0, 1)$. If $D_{KL}$ is high, the data requires log-scaling or robust standardization (e.g., using median and IQR instead of mean/std to handle outliers) before training~\cite{ref13}.
+\end{description}
+
+\subsection{Spectral Bias and High-Frequency Oscillations}
+
+Neural networks satisfy a ``Spectral Bias'' principle—they learn low-frequency functions quickly and high-frequency functions slowly~\cite{ref8}.
+\begin{description}
+    \item[Risk:] Chaotic trajectories often possess a broad frequency spectrum. If the data contains high-frequency oscillations (e.g., a tight binary subsystem orbiting a third body), the PINN will smooth over them, effectively learning a ``mean field'' approximation rather than the true dynamics.
+    \item[Parameter Consequence:] The weights responsible for high-frequency features will not converge within standard training times.
+    \item[Mitigation:] Use the IPR metric to detect high-frequency content. If detected, the architecture should be augmented with Fourier Feature mappings (positional encoding) to shift the spectral bias of the network~\cite{ref8}.
+\end{description}

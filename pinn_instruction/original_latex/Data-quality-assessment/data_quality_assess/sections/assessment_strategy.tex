@@ -1,0 +1,74 @@
+\section{Assessment Strategy: Trade-offs Between Pre-Training Validation and Trial Training}
+
+The central strategic question is how to validate this complex data. The research identifies two primary methodologies: Static Pre-Training Validation (analyzing the dataset $\mathcal{D}$ itself) and Dynamic Trial Training (analyzing the interaction between $\mathcal{D}$ and the model $M$). Relying solely on one introduces significant risks.
+
+\subsection{Static Pre-Training Validation}
+
+This approach involves calculating physical and statistical metrics on the raw Brutus output (CSV/HDF5 files) before any tensor operations are initiated.
+
+\paragraph{Advantages:}
+\begin{itemize}
+    \item \textbf{Computational Scalability:} Static checks are typically $O(N)$ or $O(N \log N)$ operations performed on CPUs. This is orders of magnitude cheaper than the iterative backpropagation required for training~\cite{ref12}.
+    \item \textbf{Physical Interpretability:} Errors detected here are directly mapped to physical concepts. If the angular momentum vector $\vect{L}$ precesses in a supposedly isolated system, the integration error is undeniable. This provides a clear ``reject'' criterion.
+    \item \textbf{Sanitization:} It prevents ``poisoning'' the batch normalization statistics of a neural network. If a dataset contains outliers (e.g., numerical singularities where position $x \to \infty$ or $NaN$), these can skew the mean and variance statistics of the input layers, destabilizing the initialization of the entire network~\cite{ref13}.
+\end{itemize}
+
+\paragraph{Limitations:}
+\begin{itemize}
+    \item \textbf{Invisibility of Optimization Landscapes:} A trajectory may be physically valid (conserves energy, continuous) but possess extremely high frequency components that are difficult for a Multi-Layer Perceptron (MLP) to resolve due to spectral bias~\cite{ref8}. Static analysis cannot easily measure ``spectral learnability'' without performing Fourier transforms that may themselves suffer from sampling artifacts.
+    \item \textbf{Interpolation Blindness:} PINNs evaluate residuals at \textit{collocation points} which may not coincide with data points. Static analysis of discrete data points $t_i$ does not guarantee that the implicit interpolant between $t_i$ and $t_{i+1}$ is physical. If the Brutus time-step was too large, the ``straight line'' or ``spline'' connecting the points might violate conservation laws, even if the points themselves do not~\cite{ref16}.
+\end{itemize}
+
+\subsection{Dynamic Trial Training}
+
+This strategy involves training the specific CTL-PINN architecture on a small subset of the data (e.g., a single trajectory or a few batches) for a limited number of epochs.
+
+\paragraph{Advantages:}
+\begin{itemize}
+    \item \textbf{Gradient Pathology Detection:} This is the only way to detect ``exploding'' or ``vanishing'' gradients caused by the specific interplay of the data's dynamic range and the network's activation functions~\cite{ref14}. For N-body problems, where forces can scale by orders of magnitude during collisions, this is a critical check.
+    \item \textbf{Causal Weight Verification:} It validates that the causal propagation mechanism is functioning. If the weights $w(t)$ do not advance past $t=0$ after 1000 epochs, it indicates that the initial conditions or the first few steps are ``too stiff'' for the current learning rate/architecture configuration~\cite{ref10}.
+    \item \textbf{Hyperparameter Sensitivity Check:} It helps distinguish between ``bad data'' and ``bad hyperparameters.''
+\end{itemize}
+
+\paragraph{Limitations:}
+\begin{itemize}
+    \item \textbf{Cost:} Requires GPU resources and significant time overhead per dataset if not strictly capped.
+    \item \textbf{False Negatives:} A successful trial training on an ``easy'' segment of the orbit does not guarantee success on a ``chaotic scattering'' segment. The trial set must be carefully selected to be representative of the hardest physics.
+    \item \textbf{Overfitting Ambiguity:} A model might easily overfit a single trajectory (memorization) without learning the underlying physics laws, providing a false sense of data quality~\cite{ref18}. ``Success'' in trial training (low loss) might just mean the network is large enough to memorize noise.
+\end{itemize}
+
+\subsection{The Optimal Strategy: The ``Staged Gate'' Protocol}
+
+The research suggests that the optimal strategy is a hybrid \textbf{Staged Gate Protocol}. This prioritizes the low-cost elimination of obviously bad data (Static Validation) before incurring the cost of probing subtle learnability issues (Trial Training).
+
+\begin{description}
+    \item[Phase 1: The Physics Gate (Static)] \hfill \\
+    \textbf{Input:} Raw Brutus Trajectories. \\
+    \textbf{Action:} Rigorous checking of conservation laws (Energy, Momentum) and symplectic consistency. \\
+    \textbf{Outcome:} Binary Pass/Fail. Trajectories with drift $> \delta_{tol}$ are discarded immediately. This filters out integration failures.
+
+    \item[Phase 2: The Stiffness Gate (Static)] \hfill \\
+    \textbf{Input:} Physically valid trajectories. \\
+    \textbf{Action:} Analysis of Sampling Density vs. Local Curvature (using the SASD metric defined below). \\
+    \textbf{Outcome:} Flagging. Trajectories are not discarded but marked as ``High Stiffness.'' These require either resampling (running Brutus again with tighter tolerance) or specific ``Curriculum Learning'' schedules (introducing them later in training).
+
+    \item[Phase 3: The Learnability Gate (Dynamic)] \hfill \\
+    \textbf{Input:} A stratified sample of Phase 2 survivors (specifically including High Stiffness cases). \\
+    \textbf{Action:} ``Overfit Challenge.'' Train the CTL-PINN on this single trajectory to machine precision. \\
+    \textbf{Outcome:} Architectural Validation. If the model cannot overfit a single valid trajectory, the \textit{architecture} (not the data) is insufficient (e.g., too shallow, wrong activation function)~\cite{ref17}.
+\end{description}
+
+\begin{table}[htbp]
+\centering
+\caption{Comparative Analysis of Assessment Strategies}
+\label{tab:assessment_strategies}
+\begin{tabular}{@{}p{0.2\textwidth}p{0.25\textwidth}p{0.2\textwidth}p{0.25\textwidth}@{}}
+\toprule
+\textbf{Feature} & \textbf{Pre-Training Validation (Static)} & \textbf{Trial Training (Dynamic)} & \textbf{Staged Gate Protocol (Hybrid)} \\ \midrule
+\textbf{Primary Metric} & Physical Conservation, Continuity & Convergence Rate, Loss Value & Composite Score \\
+\textbf{Computational Cost} & Low (CPU) & High (GPU) & Optimized (CPU first, GPU second) \\
+\textbf{Detects} & Integration Errors, Outliers & Gradient Issues, Hyperparams & Both + Architecture Mismatch \\
+\textbf{Risk Addressed} & Garbage In, Garbage Out & Model Divergence & Systemic Failure \\
+\textbf{Blind Spot} & Neural Network Inductive Bias & Physical Validity of Minima & None \\ \bottomrule
+\end{tabular}
+\end{table}

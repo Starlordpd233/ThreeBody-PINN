@@ -1,0 +1,61 @@
+\section{Detailed Implementation Protocol: The ``Staged Gate'' Workflow}
+
+This section synthesizes the research into a coherent, actionable workflow for the research team.
+
+\subsection{Phase 1: Data Ingestion and Static Auditing (CPU)}
+This phase runs on the entire generated dataset.
+
+\begin{enumerate}
+    \item \textbf{Load and Normalize:}
+    \begin{itemize}
+        \item Load $(\vect{q}, \vect{p}, t)$ from Brutus output.
+        \item Check for NaN or Inf.
+        \item Compute $SCS$ (Energy Drift). \textbf{Gate:} Reject if $|SCS| > 10^{-5}$.
+    \end{itemize}
+    \item \textbf{Stiffness Analysis:}
+    \begin{itemize}
+        \item Compute accelerations $\vect{a}_i$ and velocities $\vect{v}_i$.
+        \item Compute $SASD$ profile.
+        \item \textbf{Gate:} If $\max(SASD) > 0.5$, flag for ``Resampling.'' Do not train on this trajectory yet. It requires finer Brutus output steps.
+    \end{itemize}
+    \item \textbf{Manifold Check (IPR):}
+    \begin{itemize}
+        \item Fit Cubic Hermite Spline.
+        \item Sample 10 synthetic points per interval.
+        \item Compute $IPR$.
+        \item \textbf{Gate:} If $IPR > 10^{-3}$, the data is aliased. Reject or Resample.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Phase 2: The ``Overfit Challenge'' (GPU)}
+This phase runs on a randomly selected \textit{subset} (e.g., 1\%) of the passing data to validate the configuration.
+
+\begin{enumerate}
+    \item \textbf{Setup:} Initialize the exact CTL-PINN architecture intended for full training.
+    \item \textbf{Challenge:} Attempt to overfit a \textit{single} stiff trajectory (one that passed Phase 1 but had high SASD).
+    \item \textbf{Monitoring:}
+    \begin{itemize}
+        \item Track Loss $\mathcal{L}_{train}$.
+        \item Track Causal Weights $w(t)$ evolution.
+        \item Track Gradient Norms $\norm{\nabla_\theta \mathcal{L}}$.
+    \end{itemize}
+    \item \textbf{Success Criteria:}
+    \begin{itemize}
+        \item $\mathcal{L}_{train}$ converges to machine precision ($< 10^{-6}$).
+        \item Causal weights propagate to $t=T$ (i.e., the ``firewall'' is breached).
+    \end{itemize}
+    \item \textbf{Diagnostic:}
+    \begin{itemize}
+        \item If loss plateaus: Architecture is too small (under-parameterized).
+        \item If weights don't propagate: Causal parameter $\lambda$ is too high (too strict).
+        \item If gradients explode: Normalization is incorrect.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Phase 3: Dataset Composition and Augmentation}
+
+\begin{enumerate}
+    \item \textbf{Diversity Check:} Compute Phase Space Entropy ($H_{data}$) on the accepted dataset.
+    \item \textbf{Balancing:} If the dataset is dominated by stable orbits (low entropy), use \textbf{Importance Resampling}. Run Brutus specifically initialized in ``chaotic'' regions (e.g., using the figure-8 or Pythagorean 3-body initial conditions) to generate more high-entropy examples~\cite{ref31}.
+    \item \textbf{Symmetry Augmentation:} Apply $SO(3)$ rotations and translations to valid trajectories to increase dataset size without computational cost, ensuring the PINN learns rotational invariance~\cite{ref6}.
+\end{enumerate}

@@ -1,0 +1,48 @@
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\documentclass[11pt, a4paper]{article}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage[english]{babel}
+
+% --- PACKAGES ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs} % For professional tables
+\usepackage{hyperref} % For hyperlinks and citations
+\usepackage{enumitem} % For list formatting
+\usepackage{xcolor}   % For links coloring
+
+% --- HYPERREF SETUP ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    citecolor=red,
+}
+
+% --- MACROS FOR MATH ---
+\newcommand{\vect}[1]{\mathbf{#1}} % Vector notation
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert} % Norm notation
+
+% --- METADATA ---
+\title{\textbf{Optimization of Data Validation Protocols for Causal Physics-Informed Learning in Chaotic N-Body Regimes}}
+\author{Research Report}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\input{sections/introduction}
+\input{sections/assessment_strategy}
+\input{sections/data_quality_metrics}
+\input{sections/model_parameter_risks}
+\input{sections/implementation_protocol}
+\input{sections/synthesis_conclusion}
+\input{sections/bibliography}
+
+\end{document}
