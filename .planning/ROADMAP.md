@@ -37,11 +37,10 @@
   2. Any lines present in the original but missing from modular output are identified with file name, line number, and surrounding context
   3. Any lines present in modular output but absent from the original are identified with file name, line number, and surrounding context
   4. When content is fully preserved, the report clearly states "no differences found" per structure
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Create verify_content.py script and run verification for all 5 structures
 
 ### Phase 6: Preamble Parity Verification
 **Goal**: User can confirm that every package, macro, and command definition from the original preamble exists in the modular preamble for all 5 structures
@@ -94,7 +93,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 2. Documentation Updates | v1.0 | 3/3 | Complete | 2026-03-19 |
 | 3. Data Deletion and Legacy Cleanup | v1.0 | 2/2 | Complete | 2026-03-19 |
 | 4. Stale Reference Fixes | v1.0 | 2/2 | Complete | 2026-03-20 |
-| 5. Content Completeness Verification | v1.1 | 0/? | Not started | - |
+| 5. Content Completeness Verification | v1.1 | 0/1 | Ready to execute | - |
 | 6. Preamble Parity Verification | v1.1 | 0/? | Not started | - |
 | 7. Structure Fidelity Verification | v1.1 | 0/? | Not started | - |
 | 8. Compilability Verification | v1.1 | 0/? | Not started | - |
