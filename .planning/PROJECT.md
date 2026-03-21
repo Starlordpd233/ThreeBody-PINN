@@ -35,7 +35,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 - ✓ Verify modular LaTeX content completeness (automated diff script) — Phase 5
 - ✓ Verify preamble parity (packages, macros, commands) across all 5 modular structures — Phase 6
-- [ ] Verify document structure fidelity (sections, labels, refs, citations)
+- ✓ Verify document structure fidelity (sections, labels, refs, citations, floats) — Phase 7
 - [ ] Verify compilability of all 5 modular structures (0 errors, 0 warnings)
 
 ### Deferred
@@ -120,4 +120,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 after Phase 6 (Preamble Parity Verification) completed*
+*Last updated: 2026-03-21 after Phase 7 (Structure Fidelity Verification) completed*
