@@ -1,8 +1,8 @@
 ---
 phase: 07
 slug: structure-fidelity-verification
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-03-21
 ---
@@ -38,13 +38,13 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 07-01-01 | 01 | 1 | STRUCT-01 | functional | `python verify_structure.py -v` | ❌ W0 | ⬜ pending |
-| 07-01-02 | 01 | 1 | STRUCT-02 | functional | `python verify_structure.py -v` | ❌ W0 | ⬜ pending |
-| 07-01-03 | 01 | 1 | STRUCT-03 | functional | `python verify_structure.py -v` | ❌ W0 | ⬜ pending |
-| 07-01-04 | 01 | 1 | STRUCT-04 | functional | `python verify_structure.py -v` | ❌ W0 | ⬜ pending |
-| 07-01-05 | 01 | 1 | STRUCT-05 | functional | `python verify_structure.py -v` | ❌ W0 | ⬜ pending |
+| 07-01-01 | 01 | 1 | STRUCT-01 | functional | `python verify_structure.py -v` | W0 (to create) | pending |
+| 07-01-02 | 01 | 1 | STRUCT-02 | functional | `python verify_structure.py -v` | W0 (to create) | pending |
+| 07-01-03 | 01 | 1 | STRUCT-03 | functional | `python verify_structure.py -v` | W0 (to create) | pending |
+| 07-01-04 | 01 | 1 | STRUCT-04 | functional | `python verify_structure.py -v` | W0 (to create) | pending |
+| 07-01-05 | 01 | 1 | STRUCT-05 | functional | `python verify_structure.py -v` | W0 (to create) | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
@@ -74,6 +74,6 @@ created: 2026-03-21
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** pending execution
