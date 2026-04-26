@@ -250,8 +250,9 @@ python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --
 - Prescreening logs:
   - `simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json`
   - `simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json`
-- Missing footer audits:
-  - `simulation_data/Data/brutus_output/check missing results line/`
+- Footer audit reports:
+  - `simulation_data/Validation/audit_reports/` (most recent: `footer_audit_20251224_170141.md`)
+  - Audit/backfill script: `simulation_data/Scripts/debug/audit_and_backfill_brutus_result_footers.py`
 - Failed ICs:
   - `simulation_data/Documentation/problematic_ics_blacklist.json`
 
@@ -259,7 +260,7 @@ python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --
 
 ## Part 9: Known Issues and Gotchas
 
-- **Result footer inconsistency**: Optional, missing in many files. Treat as metadata only.
+- **Result footer schema variation**: All files contain a `Result:` footer, but the schema varies — some omit `eta`, and a small subset of standard-quasi-random gold files omit both `eta` and `tol`. When `tol` is absent from the footer, fall back to folder defaults. See `simulation_data/Documentation/README.md` "Brutus Parameters by Variant" for per-folder schema counts.
 - **Parameter heterogeneity**: Multiple tol, Lw values exist within the same folder. Prefer actual `Result:` values when present, otherwise fallback to folder defaults.
 - **Standard gold provenance**: No runner script in repo; treat provenance as partial unless recovered from external logs.
 - **OS path variance**: Result footer paths can be macOS or Windows; do not use them as an authoritative mapping.
