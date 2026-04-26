@@ -30,11 +30,12 @@
 
 ## Data Integrity Concerns
 
-### Missing Result Footers
+### Result Footer Schema Variation (resolved as of 2026-04-26)
 
-- Many Brutus output files lack the optional `Result:` footer
-- Must rely on folder defaults for parameter metadata
-- Audit scripts exist at `simulation_data/Data/brutus_output/check missing results line/`
+- **Footer presence**: All 15,028 Brutus output files contain a `Result:` footer (verified 2026-04-26 via `grep -l "^Result:"` and tail-5 check across all 4 output folders).
+- **Schema variance**: The footer schema is not uniform — some files omit `eta`, and a small subset (219 files in `brutus_standard_quasi_random_gold_standard/`) omit both `eta` and `tol`. When `tol` is absent, fall back to folder defaults.
+- **History**: An audit on 2025-12-24 (`simulation_data/Validation/audit_reports/footer_audit_20251224_170141.md`) found 2,470 files missing footers and 3,273 with partial (energy-field-less) footers. These were backfilled by `simulation_data/Scripts/debug/audit_and_backfill_brutus_result_footers.py`.
+- **Reference**: Per-folder schema counts are in `simulation_data/Documentation/README.md` "Brutus Parameters by Variant".
 
 ### Standard Quasi-Random Gold Provenance
 

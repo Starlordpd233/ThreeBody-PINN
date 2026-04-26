@@ -23,7 +23,7 @@ Instead of traditional unit/integration tests, this project uses **data validati
 ### Audit Reports
 
 - `simulation_data/Validation/audit_reports/` — Post-hoc data quality audits
-- Checks for missing Result footers, incomplete simulations
+- Detects Result-footer schema variation (eta/tol presence) and incomplete simulations; current state: all files have footers — see `.planning/codebase/CONCERNS.md` "Result Footer Schema Variation"
 
 ### Analysis Scripts
 
