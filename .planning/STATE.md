@@ -89,6 +89,7 @@ None.
 | 260320-ssi | Modularize stage-strat-revision.tex | 8 files, 17-page PDF, 0 errors/warnings | main.tex, preamble.tex, 6 section files |
 | 260321-g5d | Modularize data_quality_assess.tex | 9 files, 11-page PDF, 0 errors/warnings | main.tex, preamble.tex, 7 section files |
 | 260322-c01 | Create verify_compile.py | All 5 structures compile with 0 errors, 0 new warnings | verify_compile.py, compile_verification_report.md, tmp/.gitkeep |
+| 260426-bfd | Update Brutus footer docs (resolved missing-footer claims) | 6 files updated; historical audit reports preserved | CLAUDE.md, AGENTS.md, GEMINI.md, ANTIGRAVITY.md, .planning/codebase/CONCERNS.md, .planning/codebase/TESTING.md |
 
 ## Session Continuity
 
