@@ -122,7 +122,9 @@ simulation_data/
 │   ├── prescreening/                  # Stage 2 scripts
 │   │   ├── stage2_prescreening_revised_auto.py
 │   │   ├── prescreening_utils.py
-│   │   └── processing_index_*.json
+│   │   └── prescreening_data/         # Prescreen output data
+│   │       ├── processing_index_*.json
+│   │       └── prescreen_run_results/
 │   ├── analysis/                      # Data analysis scripts
 │   └── audit_reports/                 # Historical audits
 ├── Documentation/
@@ -409,7 +411,7 @@ After prescreening, valid ICs are copied to `simulation_data/Data/ic_final/` whi
 
 ### Stage 2: Prescreening
 
-**Script:** `prescreen_stage2/stage2_prescreening_revised_auto.py`
+**Script:** `Validation/prescreening/stage2_prescreening_revised_auto.py`
 
 **Purpose:** Filter out unstable or pathological configurations before expensive Brutus integration
 
@@ -443,9 +445,9 @@ When adaptive thresholds are enabled, the fixed virial range above serves only a
 - Have extreme virial ratios
 
 **Provenance Tracking:**
-- `simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json` - hierarchical pass/fail records (cumulative: 5,000 entries, 4,860 passed, 140 failed)
-- `simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json` - standard pass/fail records (cumulative: 4,000 entries, 3,007 passed, 993 failed)
-- `simulation_data/Validation/prescreening/prescreen_run_results/` - per-run summary JSON outputs (15 files; 10 older schema with `run_info`/`detailed_results`, 5 newer schema with `datasets`/aggregates)
+- `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_hierarchical.json` - hierarchical pass/fail records (cumulative: 5,000 entries, 4,860 passed, 140 failed)
+- `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_standard_quasi_random.json` - standard pass/fail records (cumulative: 4,000 entries, 3,007 passed, 993 failed)
+- `simulation_data/Validation/prescreening/prescreening_data/prescreen_run_results/` - per-run summary JSON outputs (15 files; 10 older schema with `run_info`/`detailed_results`, 5 newer schema with `datasets`/aggregates)
 
 **Note:** The processing indices are **cumulative history** across all prescreen runs, not exact manifests of the current `final_stage_ic_datasets/` folders. The on-disk IC counts may differ from the index "passed" counts because the final-stage folders also include ICs that were promoted before the index existed or that were manually added.
 
@@ -662,7 +664,7 @@ if final_timestep < 9.5:
 
 ### Metrics Location
 
-**Energy, momentum, angular momentum drift:** `brutus_metrics/` directory (four subdirectories, one per variant)
+**Energy, momentum, angular momentum drift:** `Data/metrics/sim_result_metric_*/` directories (four subdirectories, one per variant)
 
 **Collision Detection:**
 - Minimum separation threshold: 0.01
@@ -752,15 +754,11 @@ Gaps in the ID sequence (e.g., hierarchical: 0000-4999 has 143 gaps; standard: 0
 
 **Gaps are intentional** and reflect the filtering process.
 
-### 7. Validation Framework is Broken
-
-`Validation/dataset_readiness_checks/` throws `NameError: name 'ValidationConfig' is not defined`. Use `Scripts/metrics_calculation/` instead for validation.
-
-### 8. No Runner for Standard Quasi-Random Gold Standard
+### 7. No Runner for Standard Quasi-Random Gold Standard
 
 There is no in-repo runner script that reproduces `brutus_standard_quasi_random_gold_standard/` outputs. Gold Brutus outputs exist, but provenance is partially unknown unless recovered from external logs.
 
-### 9. Naming Inconsistencies
+### 8. Naming Inconsistencies
 
 Some legacy scripts use hardcoded variant names that differ from actual folder schemas. Consumers should rely on the folder structure documented above rather than script-internal naming.
 
@@ -998,17 +996,17 @@ pos_centered, vel_centered = recenter_to_com_frame(masses, pos, vel)
 | Stage 2 Prescreening | `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` |
 | Brutus Runner (Main) | `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py` |
 | Brutus Runner (Gold) | `simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py` |
-| Metrics Calculator | `simulation_data/Data/metrics/calculate_metrics.py` |
+| Metrics Calculator | `simulation_data/Scripts/metrics_calculation/calculate_metrics.py` |
 | Brutus Simulator | `brutus_Newton-main/` (C++ with GMP/MPFR) |
 
 ### Provenance Files
 
 | File | Content |
 |------|---------|
-| `simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json` | Hierarchical prescreen pass/fail records (cumulative history) |
-| `simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json` | Standard prescreen pass/fail records (cumulative history) |
-| `simulation_data/Validation/prescreening/prescreen_run_results/` | Per-run prescreen result summaries (`run_results_*.json`; two JSON schemas) |
-| `simulation_data/Data/brutus_output/check missing results line/` | Historical audit of footer schemas (now outdated; all files have footers) |
+| `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_hierarchical.json` | Hierarchical prescreen pass/fail records (cumulative history) |
+| `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_standard_quasi_random.json` | Standard prescreen pass/fail records (cumulative history) |
+| `simulation_data/Validation/prescreening/prescreening_data/prescreen_run_results/` | Per-run prescreen result summaries (`run_results_*.json`; two JSON schemas) |
+| `simulation_data/Validation/audit_reports/` | Historical footer audit scripts and reports (`check_missing_results*.py`, CSV/MD reports) |
 | `simulation_data/Documentation/problematic_ics/` | Directories of ICs moved during Brutus execution (hierarchical: 3, hierarchical_for_gold_standard: 3, standard: 695) |
 | `simulation_data/Documentation/problematic_ics_blacklist.json` | Legacy blacklist (2 hierarchical, 63 standard IDs); **not** used by current runners |
 
@@ -1027,6 +1025,7 @@ pos_centered, vel_centered = recenter_to_com_frame(masses, pos, vel)
 | 2026-03-09 | Audit update: corrected gap counts (143/1250/1434), documented gold `_gold_` filename infix, rewrote Result footer section (all files have footers; schema varies by eta/tol presence), updated OS-path and IC-folder reference counts, added adaptive-threshold and runner-default notes, replaced stale blacklist/missing-footer claims with current provenance |
 | 2026-03-19 | Consolidated IC layout: removed gold IC folders (ic_hierarchical_for_gold_standard/, ic_standard_quasi_random_for_gold_standard/), externalized ic_raw via IC_RAW_DIR environment variable, documented 184-ID standard quasi-random gold subset exclusion |
 | 2026-04-26 | Merged DATASET_DOCUMENTATION.md and README.md into single unified README.md; corrected blacklist standard ID count (63 not 64); added Quick Start, Folder Structure, and additional known anomalies from README.md |
+| 2026-04-26 | Audit fix: corrected 6 stale file paths (Stage 2 script, processing index JSONs, prescreen results, metrics locations, missing-results provenance); removed stale Anomaly #7 (validation framework no longer broken); fixed folder structure tree to reflect prescreening_data/ subdirectory |
 
 ---
 
