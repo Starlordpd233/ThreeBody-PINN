@@ -9,7 +9,7 @@ This rigorous, multi-layered approach ensures that the computational investment 
 \subsection{Recommendations for Future Work}
 
 \begin{itemize}
-    \item \textbf{Curriculum Learning:} Implement a curriculum where the model is trained first on ``easy'' (low SASD) trajectories and progressively introduced to ``hard'' (chaotic, high SASD) trajectories. This stabilizes the causal weights~\cite{ref10}.
-    \item \textbf{Adaptive Activation Functions:} Investigate using adaptive activation functions (like Rowdy or locally adaptive sine) to handle the varying frequency content of the N-body problem better than fixed Tanh/ReLU~\cite{ref8}.
-    \item \textbf{Symplectic Neural Networks:} Consider modifying the architecture to be inherently symplectic (HNN), moving conservation from a soft loss term to a hard architectural constraint, which reduces the data quality burden regarding energy drift~\cite{ref33}.
+    \item \textbf{Curriculum Learning:} Implement a curriculum where the model is trained first on ``easy'' (low SASD) trajectories and progressively introduced to ``hard'' (chaotic, high SASD) trajectories. This stabilizes the causal weights.
+    \item \textbf{Adaptive Activation Functions:} Investigate using adaptive activation functions (like Rowdy or locally adaptive sine) to handle the varying frequency content of the N-body problem better than fixed Tanh/ReLU.
+    \item \textbf{Symplectic Neural Networks:} Consider modifying the architecture to be inherently symplectic (HNN), moving conservation from a soft loss term to a hard architectural constraint, which reduces the data quality burden regarding energy drift.
 \end{itemize}

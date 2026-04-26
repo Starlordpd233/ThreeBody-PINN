@@ -56,6 +56,6 @@ This phase runs on a randomly selected \textit{subset} (e.g., 1\%) of the passin
 
 \begin{enumerate}
     \item \textbf{Diversity Check:} Compute Phase Space Entropy ($H_{data}$) on the accepted dataset.
-    \item \textbf{Balancing:} If the dataset is dominated by stable orbits (low entropy), use \textbf{Importance Resampling}. Run Brutus specifically initialized in ``chaotic'' regions (e.g., using the figure-8 or Pythagorean 3-body initial conditions) to generate more high-entropy examples~\cite{ref31}.
-    \item \textbf{Symmetry Augmentation:} Apply $SO(3)$ rotations and translations to valid trajectories to increase dataset size without computational cost, ensuring the PINN learns rotational invariance~\cite{ref6}.
+    \item \textbf{Balancing:} If the dataset is dominated by stable orbits (low entropy), use \textbf{Importance Resampling}. Run Brutus specifically initialized in ``chaotic'' regions (e.g., using the figure-8 or Pythagorean 3-body initial conditions) to generate more high-entropy examples.
+    \item \textbf{Symmetry Augmentation:} Apply $SO(3)$ rotations and translations to valid trajectories to increase dataset size without computational cost, ensuring the PINN learns rotational invariance.
 \end{enumerate}

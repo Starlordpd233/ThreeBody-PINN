@@ -4,7 +4,7 @@ To operationalize the Staged Gate Protocol, we must define specific metrics. The
 
 \subsection{Symplectic Conservation Score (SCS)}
 
-While Brutus is an arbitrary-precision integrator, it is not inherently symplectic (it does not strictly preserve phase space volume by construction, unlike Leapfrog). However, for the data to be valid training material for a physics-informed model, it must exhibit the properties of a conservative Hamiltonian system $H(\vect{q}, \vect{p})$~\cite{ref12}.
+While Brutus is an arbitrary-precision integrator, it is not inherently symplectic (it does not strictly preserve phase space volume by construction, unlike Leapfrog). However, for the data to be valid training material for a physics-informed model, it must exhibit the properties of a conservative Hamiltonian system $H(\vect{q}, \vect{p})$.
 
 \paragraph{Derivation:}
 The Hamiltonian for the N-body problem is:
@@ -23,14 +23,14 @@ We define the Symplectic Conservation Score ($SCS$) as the maximum normalized de
 \begin{itemize}
     \item \textbf{$SCS < -10$:} Excellent. Brutus has converged to high precision. Ideal for training.
     \item \textbf{$-10 < SCS < -6$:} Acceptable. The drift is likely below the noise floor of the neural network's float32/float64 arithmetic.
-    \item \textbf{$SCS > -4$:} Reject. The trajectory exhibits significant physical violation. A PINN trained on this will face conflicting gradients: the data loss (trying to fit the drift) and the physics loss (trying to enforce $\dot{H}=0$) will fight, leading to convergence failure~\cite{ref21}.
+    \item \textbf{$SCS > -4$:} Reject. The trajectory exhibits significant physical violation. A PINN trained on this will face conflicting gradients: the data loss (trying to fit the drift) and the physics loss (trying to enforce $\dot{H}=0$) will fight, leading to convergence failure.
 \end{itemize}
 
-\textbf{Insight:} In chaotic systems, energy error often grows linearly or quadratically with time in non-symplectic integrators. A high SCS suggests the integrator step size was too large for the chaotic amplification factor of the specific orbit~\cite{ref1}.
+\textbf{Insight:} In chaotic systems, energy error often grows linearly or quadratically with time in non-symplectic integrators. A high SCS suggests the integrator step size was too large for the chaotic amplification factor of the specific orbit.
 
 \subsection{Stiffness-Aware Sampling Density (SASD)}
 
-Stiffness is the primary cause of failure for neural ODE solvers and PINNs. It occurs when the timescales of the system's components vary by orders of magnitude—common in N-body problems during close encounters where the dynamical time $\tau \sim \sqrt{r^3/GM}$ shrinks rapidly~\cite{ref23}. Brutus handles this adaptively, but if the output data is saved at fixed intervals (or if the adaptive steps are too coarse for the \textit{network's} capacity), the data will be ``aliased'' relative to the physics.
+Stiffness is the primary cause of failure for neural ODE solvers and PINNs. It occurs when the timescales of the system's components vary by orders of magnitude—common in N-body problems during close encounters where the dynamical time $\tau \sim \sqrt{r^3/GM}$ shrinks rapidly. Brutus handles this adaptively, but if the output data is saved at fixed intervals (or if the adaptive steps are too coarse for the \textit{network's} capacity), the data will be ``aliased'' relative to the physics.
 
 \paragraph{Metric Derivation:}
 We define a local stiffness proxy based on the curvature of the trajectory, which correlates with the acceleration magnitude $\norm{\vect{a}}$. The sampling density is $\rho(t) = 1/\Delta t_i$.
@@ -49,11 +49,11 @@ The metric compares the time step $\Delta t_i$ to the local characteristic times
     \item \textbf{$SASD > 1$:} The trajectory is under-sampled. The particle performs a ``sharp turn'' or ``cusp'' between data points.
 \end{itemize}
 
-\textbf{Risk to CTL-PINN:} A high SASD value implies that the ``causal link'' between $t_i$ and $t_{i+1}$ is broken. The physics residual $\mathcal{L}_{physics}$ evaluated at a collocation point \textit{between} these data points (using interpolation) will be massive because the interpolant cannot capture the cusp. This stops the propagation of causal weights~\cite{ref10}. Data with $SASD > 0.5$ should be flagged for resampling.
+\textbf{Risk to CTL-PINN:} A high SASD value implies that the ``causal link'' between $t_i$ and $t_{i+1}$ is broken. The physics residual $\mathcal{L}_{physics}$ evaluated at a collocation point \textit{between} these data points (using interpolation) will be massive because the interpolant cannot capture the cusp. This stops the propagation of causal weights. Data with $SASD > 0.5$ should be flagged for resampling.
 
 \subsection{Interpolation Physics Residual (IPR)}
 
-This is a critical ``second-order'' metric. PINNs do not just learn the data points; they learn a continuous manifold. Therefore, the \textit{interpolant} implied by the data must satisfy the physics. If we use Cubic Hermite Splines (which preserve positions and velocities) to interpolate the Brutus data, does this spline satisfy Newton's laws?~\cite{ref16}
+This is a critical ``second-order'' metric. PINNs do not just learn the data points; they learn a continuous manifold. Therefore, the \textit{interpolant} implied by the data must satisfy the physics. If we use Cubic Hermite Splines (which preserve positions and velocities) to interpolate the Brutus data, does this spline satisfy Newton's laws?
 
 \paragraph{Protocol:}
 \begin{enumerate}
@@ -66,11 +66,11 @@ This is a critical ``second-order'' metric. PINNs do not just learn the data poi
 \end{enumerate}
 
 \paragraph{Relevance:}
-If $IPR$ is high, it means that even though the data points are correct, the ``shape'' of the trajectory between them (as defined by standard interpolation) is unphysical. This indicates that the data density is insufficient to constrain the continuous solution space of the PINN. The network will struggle to find a function that fits both the data points and the physics equation between them, leading to ``wobbling'' or high-frequency artifacts~\cite{ref16}. This metric directly predicts the ``Physics Loss'' component of the PINN training.
+If $IPR$ is high, it means that even though the data points are correct, the ``shape'' of the trajectory between them (as defined by standard interpolation) is unphysical. This indicates that the data density is insufficient to constrain the continuous solution space of the PINN. The network will struggle to find a function that fits both the data points and the physics equation between them, leading to ``wobbling'' or high-frequency artifacts. This metric directly predicts the ``Physics Loss'' component of the PINN training.
 
 \subsection{Phase Space Coverage Entropy (PSC)}
 
-Chaotic systems are ergodic (or have ergodic components). For a model to generalize, the training data must cover the relevant phase space structures—both the stable regions (quasi-periodic orbits) and the unstable regions (close encounters, scattering). A dataset biased towards one will fail on the other~\cite{ref28}.
+Chaotic systems are ergodic (or have ergodic components). For a model to generalize, the training data must cover the relevant phase space structures—both the stable regions (quasi-periodic orbits) and the unstable regions (close encounters, scattering). A dataset biased towards one will fail on the other.
 
 \paragraph{Metric Definition:}
 We discretize the phase space of interest (e.g., the $r_{12}, r_{23}$ distance plane or the Poincaré section) into a grid of $K$ bins. Let $p_k$ be the probability of a data point falling into bin $k$. The Shannon Entropy is:
@@ -82,5 +82,5 @@ We discretize the phase space of interest (e.g., the $r_{12}, r_{23}$ distance p
 \begin{itemize}
     \item \textbf{Low Entropy:} The data is clustered in a small region (e.g., all particles far apart). The model will fail to learn close-encounter dynamics.
     \item \textbf{High Entropy:} The data explores diverse configurations.
-    \item \textbf{Stiffness Coverage Ratio:} Specifically check the bin corresponding to $r_{min} \to 0$. If this bin is empty, the dataset lacks the ``hard'' physics examples necessary to train the network to handle singularities. The report recommends ``Importance Sampling'' to enrich the dataset with these high-stiffness events~\cite{ref9}.
+    \item \textbf{Stiffness Coverage Ratio:} Specifically check the bin corresponding to $r_{min} \to 0$. If this bin is empty, the dataset lacks the ``hard'' physics examples necessary to train the network to handle singularities. The report recommends ``Importance Sampling'' to enrich the dataset with these high-stiffness events.
 \end{itemize}
