@@ -30,7 +30,7 @@
 ## Part 2: Source of Truth and Repository Map
 
 ### 2.1 Source of Truth Files (Use these first)
-- **Dataset spec and anomalies**: `simulation_data/Documentation/DATASET_DOCUMENTATION.md`
+- **Dataset spec and anomalies**: `simulation_data/Documentation/README.md`
 - **PINN input vector and staging logic**: `pinn/data-processing-pipeline-full.py`
 - **PINN architecture implementation**: `pinn/basic_architecture.py`
 - **Sampling and CTL methodology (reference docs)**:

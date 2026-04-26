@@ -169,7 +169,7 @@ Because this repository aggregates many rapidly evolving research scripts, expec
 
 ## Further Reading
 
-- [Dataset Specifications & Anomalies](simulation_data/Documentation/DATASET_DOCUMENTATION.md)
+- [Dataset Specifications & Anomalies](simulation_data/Documentation/README.md)
 - [Sampling Methodology Instruction](pinn_instruction/markdown_conversions/sampling_method_instruction.md)
 - [CTL Curriculum Instruction](pinn_instruction/markdown_conversions/CTL-instruction-final.md)
 - [PINN Architecture Plan](pinn_instruction/markdown_conversions/PINN_architecture_plan.md)
