@@ -3,7 +3,8 @@
 ## Milestones
 
 - **v1.0 Codebase Cleanup** - Phases 1-4 (shipped 2026-03-20)
-- **v1.1 LaTeX Modularization Verification** - Phases 5-8 (in progress)
+- **v1.1 LaTeX Modularization Verification** - Phases 5-8 (shipped 2026-03-22)
+- **v1.2 PINN Implementation Readiness** - Phases 9+ (in progress)
 
 ## Phases
 
@@ -22,6 +23,12 @@ v1.0 Codebase Cleanup (Phases 1-4) - SHIPPED 2026-03-20
 - [x] **Phase 6: Preamble Parity Verification** - Package, macro, and command declarations match between original and modular preambles (completed 2026-03-21)
 - [x] **Phase 7: Structure Fidelity Verification** - Section hierarchy, labels, references, citations, and floats preserved across all 5 structures (completed 2026-03-21)
 - [x] **Phase 8: Compilability Verification** - All 5 modular structures compile cleanly with 0 errors and 0 new warnings (completed 2026-03-22)
+
+### v1.2 PINN Implementation Readiness
+
+**Milestone Goal:** Consolidate all pre-implementation audit findings into organized, actionable documents grouped by theme, resolving overlapping reports and establishing a clear path to implementation readiness.
+
+- [ ] **Phase 9: Issues Directory Consolidation** - Reorganize 7 files in `pinn_instruction/original_latex/review-of-framework/issues/` into 2-3 thematic documents
 
 ## Phase Details
 
@@ -79,6 +86,22 @@ Plans:
 Plans:
 - [x] 08-01-PLAN.md - Create verify_compile.py script to compile all 5 structures with latexmk and compare warnings against originals
 
+### Phase 9: Issues Directory Consolidation
+**Goal:** Reorganize 7 scattered issue reports in `pinn_instruction/original_latex/review-of-framework/issues/` into 2-3 thematic documents that eliminate duplication and clarify actionable next steps
+**Depends on**: None
+**Requirements**: CONSOL-01, CONSOL-02, CONSOL-03
+**Success Criteria** (what must be TRUE):
+  1. All 7 existing files have been read and their content merged into 2-3 new thematic files
+  2. No unique findings from the original files are lost in consolidation
+  3. Each thematic document has a clear, distinct purpose with no overlapping coverage
+  4. Original files are archived or deleted after consolidation, with a brief migration note
+**Plans**: 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md - Archive 7 originals with git mv; write 01-architecture-and-physics-foundations.md and 02-data-pipeline-and-validation.md
+- [ ] 09-02-PLAN.md - Write 03-curriculum-and-training-loop.md
+- [ ] 09-03-PLAN.md - Write MIGRATION.md (per-section provenance) and README.md (navigation anchor)
+
 ## Progress
 
 **Execution Order:**
@@ -95,3 +118,4 @@ Phases execute in numeric order: 5 -> 6 -> 7 -> 8
 | 6. Preamble Parity Verification | v1.1 | 1/1 | Complete | 2026-03-21 |
 | 7. Structure Fidelity Verification | v1.1 | 2/2 | Complete | 2026-03-21 |
 | 8. Compilability Verification | v1.1 | 1/1 | Complete | 2026-03-22 |
+| 9. Issues Directory Consolidation | v1.2 | 0/3 | Not Started | — |
