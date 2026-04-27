@@ -6,7 +6,7 @@ This document consolidates all identified findings, critical issues, and open de
 
 The curriculum follows a seven-stage progression (Stages 0-6) from stable hierarchical Keplerian motion through increasingly chaotic quasi-random configurations, culminating in near-collision and extreme scattering events. Each stage builds on the replay buffer of all preceding stages plus a lookahead fraction of the next stage's data, implemented via a Unified Batch Construction specification (audit Section 6, reproduced verbatim below) that mandates two independent point sets (data-fidelity and collocation), 240+16 replay/lookahead trajectory splits, 50/50 uniform/acceleration-weighted time sampling, and a capped hybrid energy loss weight schedule.
 
-**Readiness assessment:** Three critical blockers must be resolved before implementation: batch construction is unimplemented (flat batch vs. replay/lookahead), data-fidelity and collocation points are conflated, and the causal training methodology remains unresolved (per-time-step causal weighting vs. global ALM). An additional open decision on the `s_min` collision-criterion frame must be resolved for consistency between curriculum gating and training loss evaluation.
+**Readiness assessment:** Two critical blockers (B-07 batch construction; B-08 data-fidelity/collocation conflation) plus one unresolved architectural decision (causal training mode: per-time-step causal weighting vs. global ALM) must be addressed before implementation. An additional open decision on the `s_min` collision-criterion frame must be resolved for consistency between curriculum gating and training loss evaluation.
 
 ---
 
@@ -35,7 +35,7 @@ The curriculum follows a seven-stage progression (Stages 0-6) from stable hierar
 
 | ID | Severity | Finding | Resolution |
 |----|----------|---------|------------|
-| M4 | MINOR | Constraint counting error in CTL: "13 constraints for 8-D reduced phase space." Correct: 18 - 3(COM) - 3(P) - 3(SO(3)) = 9 DOF. | Document correction. No code impact — counting error only. |
+| — | MINOR | Constraint counting error (M4): see `01-architecture-and-physics-foundations.md` MAJOR table for canonical documentation. Cross-linked here for CTL awareness — no code impact. | Reference M4 in 01. |
 | — | INFO | ALM mu_p parameter can diverge without clamping. The moving-average variance update has no upper bound. | Add `mu_p = np.clip(mu_p, 1e-4, 100.0)` in ALM update step. |
 
 ---
@@ -491,7 +491,7 @@ The clamping bounds were added in response to the observation that mu_p can dive
 
 - [01-architecture-and-physics-foundations.md](01-architecture-and-physics-foundations.md) — 14-D input vector consumed by training loop; COM frame transform applied before training; D=6.694 drives stage thresholds; dual-epsilon strategy (eps=1e-10 for stage gating, eps_soft=1e-5 for training loss); normalization formulas table (canonical location); omega0 scheduling interacts with stage initialization.
 - [02-data-pipeline-and-validation.md](02-data-pipeline-and-validation.md) — DataLoader must support stage queries (replay/lookahead sampling); SCS/SASD/IPR/PSC feed into training loop as live parameters; stage labels produced by data pipeline; TrajectoryValidator gate must be passed before training data enters loop; temporal resolution bridging feeds into dt_out-aware collocation scaling.
-- [Canonical: CTL Instruction](../../../markdown_conversions/CTL-instruction-final.md) — Original curriculum training framework specification.
+- [Canonical: CTL Instruction](../../../markdown_conversion/pandoc_conversion/CTL-instruction-final.md) — Original curriculum training framework specification.
 - [Canonical: PINN Architecture Plan](../../../markdown_conversion/pandoc_conversion/PINN_architecture_plan.md) — Original architecture specification including training strategy.
 - [Canonical: data-processing-pipeline-full.py](../../../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly, stage assignment logic, and training data preparation.
 - [Canonical: basic_architecture.py](../../../../pinn/basic_architecture.py) — Current SIREN implementation, get_batch(), and training utilities.
@@ -642,7 +642,7 @@ def get_lambda_E(stage, L_energy_current=None):
 
 ---
 
-*End of verabtim audit Section 6.*
+*End of verbatim audit Section 6.*
 
 ---
 

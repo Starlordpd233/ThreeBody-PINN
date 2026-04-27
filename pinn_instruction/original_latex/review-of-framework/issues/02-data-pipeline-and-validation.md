@@ -6,7 +6,7 @@ This document consolidates all identified findings, critical issues, and open de
 
 The pipeline spans four stages: (1) IC generation via Sobol quasi-random and hierarchical sampling, (2) prescreening via short leapfrog integration to reject unstable configurations, (3) Brutus high-precision integration using the Bulirsch-Stoer method with GMP/MPFR arbitrary-precision arithmetic, and (4) metrics extraction for energy, momentum, and angular momentum conservation. The processed data feeds the PINN training loop through a DataLoader that must handle non-contiguous IDs, blacklist filtering, gold-standard subset gaps, snapshot completeness validation, and cross-folder parameter heterogeneity.
 
-**Readiness assessment:** Four critical blockers (B-06, B-11, missing validation gate, ID handling) and several major inconsistencies must be resolved before training can proceed. The pipeline produces correct physics — but the gap between pipeline output and training input is unbridged.
+**Readiness assessment:** Two critical blockers (B-06 missing validation gate, B-11 non-contiguous ID handling) plus several major inconsistencies must be resolved before training can proceed. The pipeline produces correct physics — but the gap between pipeline output and training input is unbridged.
 
 ### Temporal Resolution Bridging
 
@@ -28,16 +28,16 @@ The pipeline produces Brutus outputs at three discrete `dt_out` values: 0.01 (go
 |----|----------|---------|----------|-----|
 | B-06 | **BLOCKING** | No validation gate between Stage 4 (metrics) and Stage 5 (training). `calculate_metrics.py` processes ALL Brutus files including partial/errored runs. The only validity signal (`final_timestep >= 9.5`) runs at Stage 3 runner scripts, never re-validated at DataLoader init. | `README.md` lines 677-678; CTL Stage 4→5 gap | Insert `TrajectoryValidator` at DataLoader init: enforce `snapshot_count >= 200` for Stage 4+, `>= 2` for Stage 0-3, AND `final_timestep >= 9.5`. Log rejections. |
 | B-11 | **BLOCKING** | Non-contiguous IDs break curriculum mapping. Standard dataset: 1,250 gaps out of 4,000 (31.2% gap rate). Hierarchical: 143/5,000 (2.9%). CTL assumes ID == array index. | `README.md` lines 148-153; CTL stage assignment logic | Build `id_to_path` dictionary from actual on-disk filenames at DataLoader init. `TrajectoryIndex` class with `get_by_id(file_id)` method. Never assume ID == index. |
-| M11 | **BLOCKING** | Blacklist (`problematic_ics_blacklist.json`, 65 IDs) not loaded by current runners or DataLoader. Blacklisted ICs can silently enter training. | `README.md` line 1011 | Load blacklist in DataLoader `__init__` and exclude. Log exclusion count. |
-| M12 | **BLOCKING** | Standard trajectories (dt_out=0.17, ~59 snapshots) cannot support 32 points/trajectory (54% sampling ratio). The CTL batch spec assumes 32 points but standard trajectories don't have enough snapshots. | `README.md` dt_out table; CTL Sec 5.3.2 | Adaptive cap: `n_pts = min(32, int(0.5 * n_snapshots))`. For standard: ~29 points. |
-| M13 | **MAJOR** | 184 standard IDs have no gold counterpart — Stage 5 training data is incomplete for these IDs. | `README.md` line 182; CTL Stage 5 | Check gold counterpart existence before Stage 5 assignment. Skip to Stage 6 if no gold data, or use low-fidelity standard fallback with warning flag. |
-
+| M11 | **BLOCKING** | Blacklist (`problematic_ics_blacklist.json`, 65 IDs) not loaded by current runners or DataLoader. Blacklisted ICs can silently enter training. *(Re-classified from audit MAJOR to BLOCKING for this consolidation: the DataLoader cannot ship with silently-corrupted training data.)* | `README.md` line 1011 | Load blacklist in DataLoader `__init__` and exclude. Log exclusion count. |
+| M12 | **BLOCKING** | Standard trajectories (dt_out=0.17, ~59 snapshots) cannot support 32 points/trajectory (54% sampling ratio). The CTL batch spec assumes 32 points but standard trajectories don't have enough snapshots. *(Re-classified from audit MAJOR to BLOCKING for this consolidation: 54% sampling is infeasible and blocks batch construction.)* | `README.md` dt_out table; CTL Sec 5.3.2 | Adaptive cap: `n_pts = min(32, int(0.5 * n_snapshots))`. For standard: ~29 points. |
 ### MAJOR (Degrades correctness)
+
+| M13 | **MAJOR** | 184 standard IDs have no gold counterpart — Stage 5 training data is incomplete for these IDs. *(Placed in MAJOR rather than BLOCKING: gold-standard data is a quality upgrade, not a hard prerequisite for training. Training can proceed with standard-fidelity fallback.)* | `README.md` line 182; CTL Stage 5 | Check gold counterpart existence before Stage 5 assignment. Skip to Stage 6 if no gold data, or use low-fidelity standard fallback with warning flag. |
 
 | ID | Severity | Finding | Resolution Strategy |
 |----|----------|---------|---------------------|
 | D7 | MAJOR | 219 standard gold files have minimal footers (no tol parameter). Folder default is tol=1e-13 but 592 files in the same folder have tol=1e-14. | Use folder-level default 1e-13. Add `tol_confidence` flag: 'direct' (footer has tol) vs 'inferred' (minimal footer). Log count of inferred tolerances. |
-| M16 | MAJOR | `dt_out` varies 17× across datasets (0.01 to 0.17) but collocation density is uniform. Low-resolution trajectories get the same collocation points as high-resolution ones. | Collocation density proportional to temporal resolution: `n_col_per_traj = base_n_col * (dt_base / dt_out)`. |
+| — | MAJOR | `dt_out` heterogeneity (M16): collocation density is uniform across 17× dt_out range. Resolution and canonical ownership live in `03-curriculum-and-training-loop.md` MAJOR table (training loop is the implementer of dt_out-aware collocation scaling). | See M16 in 03. |
 | — | MAJOR | Brutus output files use two different parameter sets within the same folder. Footer schema varies — some files omit `eta`, a small subset of standard-quasi-random gold omit both `eta` and `tol`. | Prefer actual `Result:` values when present. Fall back to folder defaults when absent. Treat footer as metadata only — completeness gate uses final timestamp, not footer presence. |
 
 ### MINOR / INFO

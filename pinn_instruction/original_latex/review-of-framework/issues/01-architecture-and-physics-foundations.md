@@ -6,7 +6,7 @@ This document consolidates all identified findings, critical issues, and open de
 
 The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of 256 neurons with sinusoidal activations, power-enhanced skip connections (p=2), and LayerNorm stabilization on odd layers. The input vector is 14-dimensional — 1 normalized time coordinate plus a 13-component initial-condition descriptor. The network outputs 9-dimensional 3D positions for three gravitationally interacting bodies.
 
-**Readiness assessment: NOT READY FOR IMPLEMENTATION.** Three blocking issues must be resolved before coding begins: the SIREN hidden-layer initialization formula inverts the Sitzmann et al. (2020) specification; the characteristic length D has two contradictory formulas (both wrong — correct value is 6.694); and the input vector composition is unresolved between a trigonometric encoding and a shape-invariants-plus-direction-cosines approach. Seven additional critical blockers are documented below.
+**Readiness assessment: NOT READY FOR IMPLEMENTATION.** Seven blockers documented in the table below; the three highest-priority are: the SIREN hidden-layer initialization formula inverts the Sitzmann et al. (2020) specification; the characteristic length D has two contradictory formulas (both wrong — correct value is 6.694); and the input vector composition is resolved (Option B: shape invariants + direction cosines) but awaits implementation.
 
 ---
 
@@ -19,7 +19,7 @@ The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of
 | B-01 | **BLOCKING** | SIREN hidden-layer init formula **multiplies** by omega0 instead of **dividing**. At hidden_omega0=1 the bug is latent; at omega0=30 variance explodes 810,000x → instant NaN across 12 layers. Contradicts Sitzmann et al. (2020) NeurIPS. | `basic_architecture.py:37`, `main_pinn.pdf` Table 1 | `bound = np.sqrt(6.0 / n_in) / hidden_omega0` (divide, not multiply) |
 | B-02 | **BLOCKING** | Characteristic length D has two contradictory formulas. CTL: `D = cbrt(3GT^2) ≈ 4.64` (wrongly omits M_tot=3). PINN: `D = sqrt(3GT^2)` (dimensionally L^(3/2)/M^(1/2), not L). **Correct:** `D = (G * M_tot * T^2)^(1/3) = (3 * 100)^(1/3) = 6.694` | `main_CTL.pdf` Sec 4.2, `main_pinn.pdf` Table 2 | Adopt D = 6.694 everywhere. Recompute ALL scaled quantities and stage assignments. |
 | B-03 | **BLOCKING** | Input vector dimensionality claimed as 12D, 13D, and 14D simultaneously across documents. No fixed n_in for the first Linear layer. | `main_CTL.pdf` Sec 4.5, `main_pinn.pdf` Table 2 | Adopt **14D** as canonical: t' (1D) + IC (13D). |
-| B-04/B-05 | **BLOCKING** | Input vector composition is unresolved. Audit recommends 5 trig values for 3 angles. Causal_Trainingmismatch argues trig encodings suffer gimbal lock during chaotic scattering and proposes shape invariants + direction cosines. | Audit §5.3 vs Causal_Trainingmismatch §Input Vector | **Resolved:** shape invariants + direction cosines (see Open Decisions below). |
+| B-04 | **BLOCKING** | Input vector composition is unresolved. Audit recommends 5 trig values for 3 angles. Causal_Trainingmismatch argues trig encodings suffer gimbal lock during chaotic scattering and proposes shape invariants + direction cosines. | Audit §5.3 vs Causal_Trainingmismatch §Input Vector | **Resolved:** shape invariants + direction cosines (see Open Decisions and Section 5). |
 | B-05 | **BLOCKING** | COM frame violation in hierarchical ICs. |COM| ~ 9e-3 after Gaussian perturbation. PINN assumes COM-frame outputs but targets are not in COM frame. | `README.md` lines 328-335, `main_CTL.pdf` Sec 4.3 | Unified COM transformer: recenter + reboost FIRST, then scale. Assert mass consistency. |
 | B-09 | **BLOCKING** | Softening parameter mismatch by 10^5×. CTL uses eps=1e-10 for invariant E (stage assignment). PINN uses eps_soft=1e-5 for physics residual and energy loss. Different physics for curriculum vs training. | `main_CTL.pdf` Sec 4.4, `main_pinn.pdf` Sec 3.2-3.3 | Adopt Dual-Context Epsilon Strategy: eps=1e-10 for static invariants (CPU/float64), eps_soft=1e-5 for dynamic loss (GPU/float32). See resolution below. |
 | B-10 | **BLOCKING** | Dynamic omega0 scheduling has no runtime effect. `update_omega0()` decays first_omega0 from 30 to 10 over epochs, but omega0 is used ONLY at weight initialization. Changing it post-init does nothing. | `main_pinn.pdf` Sec 2.2, Listing 1 | **Remove the scheduling function.** Use fixed first_omega0=30, hidden_omega0=1. |
@@ -121,12 +121,12 @@ A five-order-of-magnitude gap between eps=1e-10 and eps_soft=1e-5 produces quali
 | Component | Symbol | Normalization | Domain | Notes |
 |-----------|--------|---------------|--------|-------|
 | Time | t' | `2*t/T_max - 1` | [-1, 1] | T_max = 10 |
-| Mass (×3) | m_norm,i | `2*(m_i/M_tot) - 1` | [-0.93, 0.585] (hier); [-1/3, -1/3] (equal mass) | Asymmetric for hierarchical |
+| Mass (×3) | m_norm,i | `2*(m_i/M_tot) - 1` | [-0.93, 0.585] (hier); {-1/3} (equal mass) | Asymmetric for hierarchical; equal-mass case is degenerate (all 3 components = -1/3) |
 | Energy | E_norm | `tanh(E / E_scale)` | [-1, 0) | E_scale = |median(E)|; positive range unused |
 | Angular momentum | L_norm_norm | `2*clip(L/L_max, 0, 1) - 1` | [-1, 1] | L_max = M_tot * r_char * v_char |
 | Virial ratio | Q_norm | `tanh((Q - 1) / 0.5)` | ~[-0.54, 0.54] | Q_scale = 0.5 fixed |
 | Min separation | s_min_norm | `tanh(s_min / s_min_scale)` | [0, 1) | s_min_scale = median(r_char) |
-| Moment of inertia | I_norm | **See Open Decision below** | [-1, 1] | Text vs code conflict |
+| Moment of inertia | I_norm | `tanh(I_trace / (M_tot * r_char^2))` | [-1, 1] | Resolved — tanh wrapper confirmed (see Section 5.2) |
 | Shape invariants (×3) | I_1, I_2, I_3 | `2*(I_i / I_max) - 1` | [-1, 1] | I_3_norm needs 2*I3 - 1 mapping |
 | Direction cosines (×2) | cos(θ), sin(θ) | Direct use | [-1, 1] | Orientation of invariant plane normal |
 | **Total** | | | **14D** | t'(1) + IC(13) |
@@ -190,17 +190,13 @@ The `update_omega0()` function in the PINN architecture document decays first_om
 >
 > **Resolve before writing the first Linear layer.**
 
-> **[DECISION-NEEDED]** `I_norm` definition — text formula vs code implementation
+> **[RESOLVED]** `I_norm` definition — text formula vs code implementation
 >
-> Two conflicting definitions exist:
+> Two conflicting definitions existed:
 > - **Text:** `I_norm = tr(I) / (M_tot * r_char^2)` — a raw ratio, unbounded
 > - **Code (lst:inertia_calculation):** `I_norm = tanh(tr(I) / (M_tot * r_char^2))` — same ratio passed through tanh to map to [-1, 1]
 >
-> The tanh version is consistent with all other IC vector components being in [-1, 1], but the text never mentions it. A second code listing independently repeats the tanh version, suggesting the text is stale rather than the code.
->
-> **Recommended resolution:** Adopt the `tanh` version — it is consistent with the [-1, 1] normalization contract for all IC vector components. Update the textual description in CTL Sec 4.5 to explicitly state the tanh wrapper.
->
-> **Resolve before finalizing the IC vector composition.**
+> **Resolution:** The `tanh` version is adopted — it is consistent with the [-1, 1] normalization contract for all IC vector components. The normalization table and Section 5.2 both now show the tanh form. The textual description in CTL Sec 4.5 should be updated to explicitly state the tanh wrapper when that document is next revised.
 
 ---
 
@@ -285,8 +281,8 @@ These errors propagate into every normalized IC vector component fed to the netw
 
 - [02-data-pipeline-and-validation.md](02-data-pipeline-and-validation.md) — Data pipeline produces the 13-component IC vector specified here; validation must apply the same COM transform; normalization formulas table lives canonically here.
 - [03-curriculum-and-training-loop.md](03-curriculum-and-training-loop.md) — Training loop consumes the 14D input; omega0 scheduling interacts with stage initialization; D=6.694 drives stage thresholds; dual-epsilon strategy feeds into training loss epsilon_soft.
-- [Canonical: PINN Architecture Plan](../../../markdown_conversions/PINN_architecture_plan.md) — Original architecture specification.
-- [Canonical: CTL Instruction](../../../markdown_conversions/CTL-instruction-final.md) — Curriculum training framework.
+- [Canonical: PINN Architecture Plan](../../../markdown_conversion/pandoc_conversion/PINN_architecture_plan.md) — Original architecture specification.
+- [Canonical: CTL Instruction](../../../markdown_conversion/pandoc_conversion/CTL-instruction-final.md) — Curriculum training framework.
 - [Canonical: basic_architecture.py](../../../../pinn/basic_architecture.py) — Current SIREN implementation.
 - [Canonical: data-processing-pipeline-full.py](../../../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly.
 
@@ -306,19 +302,19 @@ The shape-invariants-plus-direction-cosines approach avoids this pathology entir
 
 ---
 
-## Verbatim Reference Specification — Copied from 2026-04-27 Audit
+## Final Resolved Input Vector Specification
 
-The following section is copied verbatim from the comprehensive technical audit dated 2026-04-27. It serves as the authoritative 14-D input vector specification that downstream implementation phases should quote directly.
+The following section is the authoritative 14-D input vector specification that downstream implementation phases should quote directly. It incorporates the [Option B resolution](#open-decisions) (shape invariants + direction cosines) from the Open Decisions section above — rejecting the audit's Option A trigonometric encoding due to gimbal-lock pathologies during chaotic scattering (see [Considered Alternatives](#considered-alternatives)). The audit's original Option A specification is preserved under Considered Alternatives for reference only and must NOT be used for implementation.
 
 ---
 
-## 5. CORRECTED INPUT VECTOR SPECIFICATION
+## 5. FINAL INPUT VECTOR SPECIFICATION (OPTION B — RESOLVED)
 
 ### 5.1 Final Input Vector: 14 Dimensions
 
 ```
-Input = [t', m_norm(3), E_norm, L_norm_norm, Q_norm, s_min_norm, I_norm, trig_vec(5)]
-        = [1D  + 3D      + 1D    + 1D         + 1D    + 1D         + 1D    + 5D      ]
+Input = [t', m_norm(3), E_norm, L_norm_norm, Q_norm, s_min_norm, I_norm, I_1, I_2, I_3, cos(θ), sin(θ)]
+        = [1D  + 3D      + 1D    + 1D         + 1D    + 1D         + 1D    + 3D               + 2D        ]
         = 14D
 ```
 
@@ -327,39 +323,38 @@ Input = [t', m_norm(3), E_norm, L_norm_norm, Q_norm, s_min_norm, I_norm, trig_ve
 | Component | Dim | Normalization | Formula | Range |
 |-----------|-----|---------------|---------|-------|
 | t' | 1 | `2*t/T_max - 1` | T_max = 10 | [-1, 1] |
-| m_norm | 3 | `2*(m_i/m_total) - 1` | m_total = sum(m_i) | [-0.93, 0.585] (hier); [-1/3, -1/3] (equal) |
+| m_norm | 3 | `2*(m_i/m_total) - 1` | m_total = sum(m_i) | [-0.93, 0.585] (hier); {-1/3} (equal mass) |
 | E_norm | 1 | `tanh(E / E_scale)` | E_scale = |median(E)| | [-1, 0) — **document** |
 | L_norm_norm | 1 | `2*clip(L/L_max, 0, 1) - 1` | L_max = M_tot * r_char * v_char | [-1, 1] |
 | Q_norm | 1 | `tanh((Q - 1) / 0.5)` | Q_scale = 0.5 (fixed) | ~[-0.54, 0.54] |
 | s_min_norm | 1 | `tanh(s_min / s_min_scale)` | s_min_scale = median(r_char) | [0, 1) |
 | I_norm | 1 | `tanh(I_trace / (M_tot * r_char^2))` | I_trace = tr(sum_i m_i * (||r'||^2 * I - r'(r')^T)) | [-1, 1] |
-| trig_vec | 5 | `[sin(tL), cos(tL), sin(pL), cos(pL), sin(gO)]` | tL=theta_L, pL=phi_L, gO=gamma_orb | Each in [-1,1] |
+| I_1, I_2, I_3 | 3 | `2*(I_i / I_max) - 1` | I_i = sorted pairwise separations after canonical ordering | [-1, 1] |
+| cos(θ), sin(θ) | 2 | Direct use | θ = angle between invariant-plane normal L_hat and z-axis | [-1, 1] |
 
-### 5.3 Trigonometric Angle Computation (NEW — missing from CTL)
+### 5.3 Shape Invariant and Direction Cosine Computation
 
 ```python
-# After canonical ordering, compute angular momentum direction
+# After canonical ordering, compute shape invariants (sorted mutual distances)
+r_01 = norm(r_prime[0] - r_prime[1])
+r_12 = norm(r_prime[1] - r_prime[2])
+r_20 = norm(r_prime[2] - r_prime[0])
+I_1, I_2, I_3 = sorted([r_01, r_12, r_20])  # ascending
+
+# Normalize shape invariants to [-1, 1]
+I_max = I_3  # largest mutual distance (after sorting)
+I_1_norm = 2 * (I_1 / I_max) - 1
+I_2_norm = 2 * (I_2 / I_max) - 1
+I_3_norm = 2 * (I_3 / I_max) - 1  # always 1 after max-normalization; use raw I_3 pre-division
+
+# Direction cosines of invariant-plane normal
 L_vec = sum(m[i] * cross(r_prime[i], v_prime[i]) for i in range(3))
 L_hat = L_vec / (norm(L_vec) + 1e-10)
-
-# Polar and azimuthal angles of L_hat
-theta_L = arccos(clip(L_hat[2], -1, 1))   # [0, pi]
-phi_L = arctan2(L_hat[1], L_hat[0])        # [0, 2*pi)
-
-# Orbital phase: project r'_1 (heaviest body) onto orbital plane
-r1 = r_prime[0]  # after canonical ordering
-r1_perp = r1 - dot(r1, L_hat) * L_hat
-# Reference direction in orbital plane
-if abs(L_hat[2]) < 0.99:
-    e_ref = cross(L_hat, [0, 0, 1])
-else:
-    e_ref = cross(L_hat, [1, 0, 0])
-e_ref = e_ref / (norm(e_ref) + 1e-10)
-e_ref_perp = cross(L_hat, e_ref)
-gamma_orb = arctan2(dot(r1_perp, e_ref_perp), dot(r1_perp, e_ref))
-
-trig_vec = [sin(theta_L), cos(theta_L), sin(phi_L), cos(phi_L), sin(gamma_orb)]
+cos_theta = L_hat[2]                    # projection onto z-axis, in [-1, 1]
+sin_theta = sqrt(1 - cos_theta**2)      # positive branch, in [0, 1]; always ≥ 0 by convention
 ```
+
+**Note on I_3 normalization:** Per M5 (line 35), raw I_3 from `I_i/I_max` is 1.0 for the largest distance. The normalization `2*I_3 - 1 = 1` loses the absolute scale information. The implementer must either (a) use the pre-division raw distances for I_3, or (b) use a global I_scale across all trajectories rather than per-trajectory I_max. This is noted here for downstream implementation — the [-1, 1] contract is preserved by construction.
 
 ### 5.4 Canonical Ordering (Corrected — with Quaternary Tie-Breaker)
 
@@ -377,17 +372,17 @@ def canonical_ordering(m, r_prime, v_prime):
         key = (-m[i], norm(r_prime[i]), norm(v_prime[i]),
                r_prime[i][0], r_prime[i][1], r_prime[i][2])
         keys.append(key)
-    
+
     idx = sorted(range(3), key=lambda i: keys[i])
     return m[idx], r_prime[idx], v_prime[idx]
 ```
 
-### 5.5 Removed Components (vs. CTL original)
+### 5.5 Components Added/Removed (vs. CTL original and Audit Option A)
 
-- **I_1, I_2, I_3 (shape invariants)**: Replaced by trig_vec which encodes orientation. Shape information is partially recoverable from (s_min, Q, I_norm) combination.
-- **tau_L (Lyapunov time)**: Excluded by design — derived dynamical property, not IC invariant.
-
----
+- **I_1, I_2, I_3 (shape invariants) — ADDED**: Three sorted mutual distances encode internal triangle geometry. Universally continuous, rotation-invariant, and non-singular even during chaotic scattering events — the exact regime targeted by curriculum stages 4-6. These replace the audit's trig_vec orientation encoding. The shape invariants describe what the triangle looks like regardless of how it is oriented in space.
+- **cos(θ), sin(θ) (direction cosines) — ADDED**: Encode the invariant-plane normal orientation relative to the z-axis. Unlike spherical coordinates (θ_L, φ_L), direction cosines have no coordinate singularity at the poles — when L_hat is near ±z, cos(θ) → ±1 smoothly and sin(θ) → 0 smoothly. No derivatives diverge.
+- **trig_vec [sin(tL), cos(tL), sin(pL), cos(pL), sin(gO)] — REMOVED**: The audit's Option A trigonometric encoding is rejected due to gimbal-lock pathology. When the angular momentum vector L_hat aligns with a coordinate pole (θ_L ≈ 0 or π), the azimuthal angle φ_L becomes undefined and its trigonometric derivatives diverge — injecting NaN gradients during the chaotic scattering regime where the PINN most needs stable gradients. See [Considered Alternatives](#considered-alternatives) for full analysis.
+- **tau_L (Lyapunov time) — EXCLUDED**: Derived dynamical property, not an IC invariant. Used only for stage gating and model evaluation.
 
 ---
 
