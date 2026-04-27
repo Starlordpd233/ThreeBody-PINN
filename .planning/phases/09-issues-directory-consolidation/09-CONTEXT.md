@@ -77,6 +77,7 @@ Reorganize the 7 scattered issue/audit files in `pinn_instruction/original_latex
   2. **File format for processed data:** keep `h5` or migrate to `txt/json`? → `02-data-pipeline-and-validation.md`
   3. **Causal training mode:** Option A (per-time-step causal weighting, validation-PDF style) vs Option B (global sampling + ALM, CTL-doc style). → `03-curriculum-and-training-loop.md`
   4. **`I_norm` definition:** text formula `tr(I) / (M r_char^2)` vs code listing `tanh(...)`. → `01-architecture-and-physics-foundations.md`
+  5. **Frame for `s_min` in collision criterion:** unsoftened raw separation vs `max(s_min, epsilon)` — see D-05. Recommended resolution: use `max(s_min, epsilon)` for training loss computation (numerical stability during gradient-based optimization) but flag the unsoftened value for logging/diagnostic purposes. Document unsoftened approach under "Considered Alternatives." → `03-curriculum-and-training-loop.md`
 
 ### Claude's Discretion
 - Exact section headings within each thematic doc (use audit subsections as a guide)

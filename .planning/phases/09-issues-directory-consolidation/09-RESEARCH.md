@@ -206,22 +206,16 @@ This phase is editorial, not technical implementation. No "old approach vs curre
 | A3 | The 3 thematic docs can be kept under 120 KB combined | Standard Stack | If wrong, deduplication failed; planner should enforce size check |
 | A4 | `git mv` preserves history through the archive move | Runtime State | If wrong, provenance is lost; standard git behavior |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact length of `next steps.txt` unique content**
-   - What we know: 4 items are explicitly flagged as unique (5-OoM softening, global-scale computation, normalization verification, Issue 1 resolution)
-   - What's unclear: Whether any other sections in the 128 KB dump contain genuinely unique analysis not in the audit
-   - Recommendation: During implementation, grep each Issue N title against the audit before deciding to archive-only
+1. **Exact length of `next steps.txt` unique content** — RESOLVED
+   - Resolution: The 4 items flagged in D-06 (5-OoM softening, global-scale computation, normalization verification, tau_L/L_max resolution) are the only unique contributions. All other Issue N sections in the 128 KB dump have been verified against the audit and are superseded. During execution, the executor will grep each candidate section against the audit before extracting; if present in the audit, it will be archived only.
 
-2. **Whether to include the full "Synthesized Curriculum Training Protocol" from Causal_Trainingmismatch**
-   - What we know: It is a 4-phase narrative (Static Pre-Screening -> IPR Bounding -> Causal-ALM Loop -> Refinement)
-   - What's unclear: Whether this narrative duplicates audit Section 6 or extends it
-   - Recommendation: Compare against audit Section 6 (Unified Batch Construction); if the narrative adds the causal-window gating mechanism not in the audit, include it in `03-...`
+2. **Whether to include the full "Synthesized Curriculum Training Protocol" from Causal_Trainingmismatch** — RESOLVED
+   - Resolution: The narrative extends audit Section 6 by adding the causal-window gating mechanism (time-step-level causal weighting) that is not present in the audit's unified batch construction spec. The 4-phase narrative will be included in `03-curriculum-and-training-loop.md` as a "Considered Alternatives" framing alongside the audit's global-sampling approach, with a [DECISION-NEEDED] callout for the final implementation choice.
 
-3. **Cross-doc Interaction Matrix**
-   - What we know: Audit Section 8 has an 8-row interaction matrix
-   - What's unclear: Whether to copy it verbatim into `README.md` or synthesize a smaller version
-   - Recommendation: Per Claude's discretion, include a condensed version in `README.md`
+3. **Cross-doc Interaction Matrix** — RESOLVED
+   - Resolution: A condensed interaction matrix (≤ 8 rows) will be included in `README.md` rather than copying the full audit Section 8 verbatim. The matrix will list only the cross-cutting topics that touch all 3 thematic docs (input vector, COM frame, softening/epsilon, D=6.694) with pointers to canonical homes.
 
 ## Environment Availability
 
@@ -379,8 +373,8 @@ Not applicable. This phase produces documentation only; no executable code, no n
 **Everything else in this file is superseded by the 2026-04-27 audit.** Archive only.
 
 **Thematic mapping:**
-- `01-architecture-and-physics-foundations.md`: 5-OoM softening analysis
-- `02-data-pipeline-and-validation.md`: Global scale computation, normalization formulas
+- `01-architecture-and-physics-foundations.md`: 5-OoM softening analysis, normalization formulas table (canonical owner)
+- `02-data-pipeline-and-validation.md`: Global scale computation (normalization formulas cross-links to `01-...`)
 - `03-curriculum-and-training-loop.md`: tau_L / L_max computation
 
 ---
@@ -404,7 +398,7 @@ Not applicable. This phase produces documentation only; no executable code, no n
 | h5 vs txt/json | — | — | next-step-for-data-processing (unique) | `02-...` [DECISION-NEEDED] |
 | I_norm text-vs-code | — | — | next-step-for-data-processing (unique) | `01-...` |
 | tau_L / L_max formulas | Partial (B-04, M7) | — | next steps (Issue 1, 16) (full code) | `03-...` |
-| Normalization formulas table | Partial (Section 5) | — | next steps (Issue 19) (comprehensive) | `01-...` + `02-...` |
+| Normalization formulas table | Partial (Section 5) | — | next steps (Issue 19) (comprehensive) | `01-...` (canonical); `02-...` cross-links |
 
 ---
 
@@ -413,7 +407,7 @@ Not applicable. This phase produces documentation only; no executable code, no n
 | File | Estimated Size | Rationale |
 |------|---------------|-----------|
 | `01-architecture-and-physics-foundations.md` | 30-40 KB | Audit Section 5 (verbatim) + B-01..B-05, B-09, B-10, M1-M5, M8-M10, D1-D4, D6-D10, review.md chain-rule, Causal_Trainingmismatch input-vector alternative, 5-OoM softening, I_norm resolution |
-| `02-data-pipeline-and-validation.md` | 20-30 KB | B-06, B-11, M11-M13, D7, h5-vs-txt question, global scale computation, normalization formulas, SCS/SASD/IPR/PSC as live params (data side), temporal resolution bridging |
+| `02-data-pipeline-and-validation.md` | 20-30 KB | B-06, B-11, M11-M13, D7, h5-vs-txt question, global scale computation, SCS/SASD/IPR/PSC as live params (data side), temporal resolution bridging (normalization formulas table cross-links to `01-...` rather than duplicating) |
 | `03-curriculum-and-training-loop.md` | 30-40 KB | Audit Section 6 (verbatim) + B-07, B-08, M6-M7, M14-M16, D5, Section 7 P3-P4, causal Option A vs B, Time-Windowed Causal-ALM Hybrid, data-driven stage assignment, tau_L/L_max code |
 | `MIGRATION.md` | 5-8 KB | Per-file, per-section provenance map for 7 originals |
 | `README.md` | 2-3 KB | Navigation anchor (<= 50 lines per D-11) |
@@ -443,4 +437,4 @@ Not applicable. This phase produces documentation only; no executable code, no n
 4. **Size check:** `wc -c` on the 3 new docs must total < 120 KB.
 5. **Archive check:** All 7 originals must be in `issues/archive/` with git history preserved (`git log --follow` on one archived file should show pre-move history).
 6. **No-duplicate check:** A grep for identical paragraphs (>5 lines) across the 3 new docs should return zero hits (synthesis, not concatenation).
-7. **Decision callouts check:** All 4 [DECISION-NEEDED] items from D-12 must appear in the relevant docs.
+7. **Decision callouts check:** All 5 [DECISION-NEEDED] items from D-12 must appear in the relevant docs.

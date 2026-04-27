@@ -99,7 +99,7 @@ Plans:
 
 Plans:
 - [ ] 09-01-PLAN.md - Archive 7 originals with git mv; write 01-architecture-and-physics-foundations.md and 02-data-pipeline-and-validation.md
-- [ ] 09-02-PLAN.md - Write 03-curriculum-and-training-loop.md
+- [ ] 09-02-PLAN.md - Write 03-curriculum-and-training-loop.md (depends on 09-01 archival completing first)
 - [ ] 09-03-PLAN.md - Write MIGRATION.md (per-section provenance) and README.md (navigation anchor)
 
 ## Progress
