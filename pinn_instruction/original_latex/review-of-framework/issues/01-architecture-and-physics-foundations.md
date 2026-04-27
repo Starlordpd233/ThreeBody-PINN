@@ -6,7 +6,7 @@ This document consolidates all identified findings, critical issues, and open de
 
 The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of 256 neurons with sinusoidal activations, power-enhanced skip connections (p=2), and LayerNorm stabilization on odd layers. The input vector is 14-dimensional — 1 normalized time coordinate plus a 13-component initial-condition descriptor. The network outputs 9-dimensional 3D positions for three gravitationally interacting bodies.
 
-**Readiness assessment: NOT READY FOR IMPLEMENTATION.** Seven blockers documented in the table below; the three highest-priority are: the SIREN hidden-layer initialization formula inverts the Sitzmann et al. (2020) specification; the characteristic length D has two contradictory formulas (both wrong — correct value is 6.694); and the input vector composition is resolved (Option B: shape invariants + direction cosines) but awaits implementation.
+**Readiness assessment: NOT READY FOR IMPLEMENTATION.** Seven blockers documented in the table below; the three highest-priority are: the SIREN hidden-layer initialization formula inverts the Sitzmann et al. (2020) specification; the characteristic length D omits M_tot=3 in both documents (correct value is 6.694); and the input vector composition is resolved (Option B: shape invariants + direction cosines) but awaits implementation.
 
 ---
 
@@ -17,7 +17,7 @@ The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of
 | ID | Severity | Finding | Location | Fix |
 |----|----------|---------|----------|-----|
 | B-01 | **BLOCKING** | SIREN hidden-layer init formula **multiplies** by omega0 instead of **dividing**. At hidden_omega0=1 the bug is latent; at omega0=30 variance explodes 810,000x → instant NaN across 12 layers. Contradicts Sitzmann et al. (2020) NeurIPS. | `basic_architecture.py:37`, `main_pinn.pdf` Table 1 | `bound = np.sqrt(6.0 / n_in) / hidden_omega0` (divide, not multiply) |
-| B-02 | **BLOCKING** | Characteristic length D has two contradictory formulas. CTL: `D = cbrt(3GT^2) ≈ 4.64` (wrongly omits M_tot=3). PINN: `D = sqrt(3GT^2)` (dimensionally L^(3/2)/M^(1/2), not L). **Correct:** `D = (G * M_tot * T^2)^(1/3) = (3 * 100)^(1/3) = 6.694` | `main_CTL.pdf` Sec 4.2, `main_pinn.pdf` Table 2 | Adopt D = 6.694 everywhere. Recompute ALL scaled quantities and stage assignments. |
+| B-02 | **BLOCKING** | Characteristic length D has the same wrong formula in both documents: `D = cbrt(G*T^2) ≈ 4.64`, omitting M_tot=3. **Correct:** `D = (G * M_tot * T^2)^(1/3) = (3 * 100)^(1/3) = 6.694` | `main_CTL.pdf` Sec 4.2, `main_pinn.pdf` Table 2 | Adopt D = 6.694 everywhere. Recompute ALL scaled quantities and stage assignments. |
 | B-03 | **BLOCKING** | Input vector dimensionality claimed as 12D, 13D, and 14D simultaneously across documents. No fixed n_in for the first Linear layer. | `main_CTL.pdf` Sec 4.5, `main_pinn.pdf` Table 2 | Adopt **14D** as canonical: t' (1D) + IC (13D). |
 | B-04 | **BLOCKING** | Input vector composition is unresolved. Audit recommends 5 trig values for 3 angles. Causal_Trainingmismatch argues trig encodings suffer gimbal lock during chaotic scattering and proposes shape invariants + direction cosines. | Audit §5.3 vs Causal_Trainingmismatch §Input Vector | **Resolved:** shape invariants + direction cosines (see Open Decisions and Section 5). |
 | B-05 | **BLOCKING** | COM frame violation in hierarchical ICs. |COM| ~ 9e-3 after Gaussian perturbation. PINN assumes COM-frame outputs but targets are not in COM frame. | `README.md` lines 328-335, `main_CTL.pdf` Sec 4.3 | Unified COM transformer: recenter + reboost FIRST, then scale. Assert mass consistency. |
@@ -270,7 +270,7 @@ Using D=4.64 (CTL's wrong formula) instead of D=6.694 (correct):
 | Scaled positions r' = r/D | 44% too large | Correct | 44% overestimate |
 | Scaled velocities v' = v/(D/T) | 44% too large | Correct | 44% overestimate |
 | E_scaled (∝ v'², ∝ 1/r') | 44% too large (KE), 44% too small (PE) | Correct | Net ~75% error in total |
-| L_norm (∝ r'×v') | 97% too large | Correct | 97% overestimate |
+| L_norm (∝ r'×v') | 108% too large | Correct | 108% overestimate |
 | Q (virial, ∝ v'²/r') | Net ~90% error | Correct | 90% error |
 
 These errors propagate into every normalized IC vector component fed to the network and into every stage assignment threshold. Systems near curriculum boundaries get systematically wrong stage labels, destroying the curriculum's progressive-learning design.
