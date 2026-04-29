@@ -28,8 +28,11 @@ The curriculum follows a seven-stage progression (Stages 0-6) from stable hierar
 | M7 | MAJOR | Lyapunov time tau_L computed in CTL Sec 4.4 but dropped from IC vector assembly in Sec 4.5. No decision documented on whether to include it. | **Exclude tau_L from IC vector** by design (it's a derived dynamical property, not an IC invariant). Use only for stage gating and model evaluation. See tau_L/L_max resolution section below. |
 | M14 | MAJOR | Gradient clipping spec divergence: PINN uses median-based adaptive clipping; CTL uses curriculum-aware C schedule. Two different clipping strategies documented independently. | **Merge both:** `clip_value = C_stage * median(grad_norm_history)`, where C_stage from CTL schedule and median from PINN rolling window. |
 | M15 | MAJOR | Energy loss lambda_E=1000 at Stage 6 risks overwhelming physics and data terms by 100-5000×. Single large energy weight can drown dynamics learning. | Implement capped hybrid schedule: `lambda_E(k) = min(10^(k-3), cap[k])` where cap = {0:1, 1:5, 2:20, 3:50, 4:100, 5:200, 6:500}. Add safeguard: if `lambda_E * L_energy > 10 * L_data`, warn and reduce. |
-| M16 | MAJOR | dt_out varies 17× (0.01 to 0.17) but collocation density is uniform. Low-res trajectories get same collocation count as high-res. | Scale collocation inversely to dt_out: `n_col = base * (dt_base/dt_out)`. For dt_base=0.01: gold=1×, hier=8×, standard=17×. |
+| M16 | MAJOR | dt_out varies 17× (0.01 to 0.17) but collocation density is uniform. Low-res trajectories get same collocation count as high-res despite far fewer Brutus snapshots. | Scale supplemental collocation in proportion to `dt_out / dt_base`: `n_col = base * (dt_out/dt_base)`. For dt_base=0.01: gold=1×, hier=8×, standard=17×. |
 | D5 | MAJOR | Stage transition criteria theoretically unattainable. Monotonically-decreasing validation loss with limited data blocks progression. Author: "...theoretical now... limited data, maybe not even enough." | Pilot Stage 0 first. Dual-path: strict (all criteria) + fallback (max-epochs, stagnation, NaN rollback). Calibrate empirically. |
+| NS-12 | MAJOR | `next steps.txt` Issue 12: source documents say velocities/accelerations are derived via AD but provide no concrete three-body PyTorch implementation. | Use the component-wise AD implementation requirement in `01-architecture-and-physics-foundations.md`; do not differentiate the summed 9D output as a proxy for per-coordinate acceleration. |
+| NS-13 | MAJOR | `next steps.txt` Issue 13: Huber energy-loss δ=1.0 may be too large for normalized energy residuals and can behave like plain L2 over the whole expected range. | Tune δ from observed normalized `|ΔH|` quantiles or start with δ≈0.01-0.1; document the chosen value per stage. |
+| NS-18 | MAJOR | `next steps.txt` Issue 18: loss components need an explicit scaling contract across `L_data`, `L_physics`, and `L_energy`. | Adopt the Loss Component Scaling Contract below and cross-link the AD chain-rule factors in 01. |
 
 ### MINOR / INFO (Design refinements and documentation clarifications)
 
@@ -58,7 +61,7 @@ Samples time points globally (uniform or acceleration-weighted), no causal weigh
 
 **Source:** `Causal_Trainingmismatch_resolution_blueprint.md`
 
-The hybrid approach partitions [0,T] into discrete overlapping causal windows with localized ALM and hard causal gating:
+The hybrid approach is the explicit recommendation of the Causal Training Mismatch blueprint. It partitions [0,T] into discrete overlapping causal windows with localized ALM and hard causal gating:
 
 1. **Localized ALM:** Within each active window, ALM parameters update purely locally, giving accurate variance estimates unmasked by future weights
 2. **Hard causal gate:** Adam operates strictly within the current window until ALM-penalized residual falls below tolerance; only then does the temporal horizon expand
@@ -71,6 +74,36 @@ The hybrid approach partitions [0,T] into discrete overlapping causal windows wi
 2. **Stage Initialization + IPR Bounding:** Trajectories stratified into Stages 0-6. IPR computed with eps=1e-5 to establish ALM convergence floor
 3. **Causal-ALM Training (GPU):** PSC entropy-guided mini-batches across current+preceding stages. Adam + ALM within each causal window. SASD-weighted collocation
 4. **Refinement + Stage Transition:** Full time domain converged. Transfer to L-BFGS at IPR noise floor. Stage advance gated by Hamiltonian drift < 1e-4
+
+---
+
+## Loss Component Scaling Contract
+
+**Source:** `next steps.txt` Issue 18, `main_pinn.tex` physics-loss section, and `main_CTL.tex` training-loop section.
+
+Every training loss term must operate in the same dimensionless coordinate system:
+
+| Loss Term | Evaluation Points | Required Units | Contract |
+|-----------|-------------------|----------------|----------|
+| `L_data` | Brutus snapshot times sampled from each trajectory | `t_tau in [-1,1]`, positions `r' = r/D` | Compare network output directly to scaled Brutus positions with L1/MAE. No unscaled positions enter this term. |
+| `L_physics` | Independent collocation points in `[0,T]` mapped to `tau in [-1,1]` | positions `r'`, accelerations `d2r'/du2`, masses unchanged with `G=1` | Compute component-wise AD accelerations, apply `d2r'/du2 = 4*d2r'/dtau2`, then evaluate Newton residual with `epsilon_soft=1e-5`. |
+| `L_energy` | Same collocation point set as `L_physics` | positions `r'`, velocities `dr'/du`, initial energy `H_0` in the same dimensionless units | Compute `dr'/du = 2*dr'/dtau`; use the same `epsilon_soft=1e-5` as the physics residual. |
+
+The AD implementation details and chain-rule factors live canonically in `01-architecture-and-physics-foundations.md`. The batch constructor must keep data-fidelity points and collocation points separate even if they share trajectory IDs.
+
+### Huber Delta for Normalized Energy
+
+**Source:** `next steps.txt` Issue 13 and `main_pinn.tex` energy-regularizer section.
+
+The source architecture document specifies Huber loss with `delta=1.0` for `L_energy`. That value is not automatically wrong, but it is uncalibrated for normalized Hamiltonian residuals. If most normalized `|ΔH|` values remain below 1.0, Huber loss stays in its quadratic branch and behaves like L2, eliminating the intended robustness to outliers during close encounters.
+
+**Implementation requirement:** choose `delta` from empirical normalized `|ΔH|` statistics after corrected scaling. Recommended starting policy:
+
+```python
+delta_energy = np.clip(np.quantile(abs_delta_H_train, 0.75), 0.01, 0.1)
+```
+
+Record the selected `delta_energy` in `loss.yaml`. If a fixed value is required before data statistics are available, use δ in the 0.01-0.1 range and verify that at least some close-encounter residuals enter the linear Huber branch.
 
 ---
 
@@ -216,12 +249,12 @@ tau_L = 1/λ_max where λ_max is the largest Lyapunov exponent. The recommended 
 
 ```python
 def compute_tau_L(masses, r_prime, v_prime, t_max=10.0, T_scale=10.0,
-                  G=1.0, epsilon_pert=1e-8, epsilon_soft=1e-10,
+                  G=1.0, M_tot_ref=3.0, epsilon_pert=1e-8, epsilon_soft=1e-10,
                   delta_t=0.1, num_perturbations=3, integration_horizon=50.0):
     """Compute Lyapunov time via shadow trajectory divergence."""
     from scipy.integrate import solve_ivp
 
-    D = np.cbrt(G * T_scale**2)
+    D = np.cbrt(G * M_tot_ref * T_scale**2)
     V = D / T_scale
     y0 = np.hstack((r_prime.flatten(), v_prime.flatten()))
 
@@ -285,7 +318,7 @@ def compute_tau_L(masses, r_prime, v_prime, t_max=10.0, T_scale=10.0,
 
 **Operational note:** For batch processing ~15K trajectories, use the faster PCA+Rosenstein approximation at `data-processing-pipeline-full.py:799` (`estimate_lyapunov_time()`). Calibrate its thresholds against the integration-based method above on a representative sample.
 
-**Note on D value:** The tau_L and L_max formulas above use D = cbrt(G * T_scale^2), which gives ~4.64 (the CTL formula without M_tot=3). After B-02 resolution (see `01-architecture-and-physics-foundations.md`), replace with D = cbrt(G * M_tot * T_scale^2) = 6.694 throughout. All tau_L and L_norm values must be recomputed after the D fix.
+**D value note:** The `compute_tau_L` code above uses the corrected B-02 formula: D = cbrt(G * M_tot_ref * T_scale^2) = 6.694 for G=1, M_tot_ref=3.0, T_scale=10. This matches the canonical characteristic length from `01-architecture-and-physics-foundations.md` (finding B-02). The original CTL formula D = cbrt(G * T_scale^2) ≈ 4.64 omitted M_tot and is no longer used.
 
 ---
 
@@ -388,7 +421,7 @@ The cap prevents energy loss from dominating the total loss at late stages. At S
 > - Structural state propagation ensures continuity between windows
 > - Most complex to implement but theoretically resolves both failure modes
 >
-> **Recommendation:** Implement **Option B** (global sampling + ALM) first — simplest, best-tested. Add causal-weight field support to DataLoader from the start. Escalate to Time-Windowed Hybrid only if Option B demonstrably fails (unphysical local minima). Do NOT pre-build Option C infrastructure.
+> **Recommendation:** Keep this decision open. The current CTL/PINN LaTeX sources describe Option B (global sampling + ALM), while the Causal Training Mismatch blueprint explicitly recommends Option C (Time-Windowed Causal-ALM Hybrid) as the reconciliation. Phase 9 must preserve that stronger blueprint conclusion rather than silently downgrading it. If implementation simplicity is prioritized, a human reviewer may choose Option B, but that choice should be recorded as an intentional departure from the blueprint.
 >
 > **Resolve before finalizing the training loop implementation.**
 
@@ -408,7 +441,7 @@ The cap prevents energy loss from dominating the total loss at late stages. At S
 
 2. **P3-2 — Separate data-fidelity and collocation points:** Define two independent point sets. Data-fidelity: 8192 points from Brutus snapshots, L1 loss. Collocation: 4096 points from [0,T], physics + energy loss. Both use 50/50 sampling.
 
-3. **P3-3 — Resolve causal training decision:** Implement Option B (global + ALM) first. Add causal-weight support to DataLoader as optional field. Escalate to Time-Windowed Hybrid only if Option B demonstrably fails.
+3. **P3-3 — Resolve causal training decision:** Choose between current CTL/PINN Option B and blueprint Option C before coding. If Option C is chosen, implement time-windowed causal ALM. If Option B is chosen, document the human decision to prioritize current LaTeX simplicity over the blueprint's hybrid recommendation.
 
 4. **P3-4 — Implement merged gradient clipping:** `clip_value = C_stage * median(grad_norm_history)` with rolling window of last 100 gradient norms.
 
@@ -420,9 +453,11 @@ The cap prevents energy loss from dominating the total loss at late stages. At S
 
 8. **P3-8 — Implement tau_L and L_max computation:** Per-trajectory computation using the resolved formulas above. Integrate into `compute_all_invariants()` in the data pipeline.
 
-9. **P3-9 — Add dt_out-aware collocation scaling:** `n_col_per_traj = base_n_col * (dt_base / dt_out)`. For dt_base=0.01, gold gets 1x, hierarchical-base gets 8x, standard-base gets 17x.
+9. **P3-9 — Add dt_out-aware collocation scaling:** `n_col_per_traj = base_n_col * (dt_out / dt_base)`. For dt_base=0.01, gold gets 1x, hierarchical-base gets 8x, standard-base gets 17x.
 
 10. **P3-10 — Resolve s_min frame:** Use `max(s_min, epsilon)` for training loss, log unsoftened value for diagnostics (per Open Decision above).
+
+11. **P3-11 — Calibrate Huber energy δ:** Select `delta_energy` from normalized `|ΔH|` statistics, with an initial recommended range of 0.01-0.1.
 
 ---
 
