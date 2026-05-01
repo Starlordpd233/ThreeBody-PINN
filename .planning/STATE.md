@@ -1,42 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: PINN Implementation Readiness
-status: Ready to execute
-stopped_at: context exhaustion at 81% (2026-04-27)
-last_updated: "2026-04-27T06:10:12.348Z"
+milestone: v1.3
+milestone_name: Markdown Conversion Verification & Correction
+status: planning
+stopped_at: —
+last_updated: "2026-05-01T00:00:00.000Z"
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 5
-  percent: 63
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-22)
+See: .planning/PROJECT.md (updated 2026-04-30)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** v1.2 milestone started — Phase 9: Issues Directory Consolidation
+**Current focus:** v1.3 Markdown Conversion Verification & Correction — roadmap defined, awaiting plan-phase
 
 ## Current Position
 
-Phase: 09
-Plan: 3 plans created, verified, and ready to execute
-
-**Milestone v1.1 Status:** All 4 phases complete, all 5 plans executed, all 13 requirements satisfied.
-**Milestone v1.2 Status:** In progress — Phase 9: Issues Directory Consolidation (planning complete)
+Phase: Roadmap defined — Phases 10-15
+Plan: —
+Status: Roadmap ready. Next: `/gsd-plan-phase 10` to begin CTL-Instruction Verification
+Last activity: 2026-05-01 — ROADMAP.md written with 6 phases for v1.3
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 11 (v1.0: 10, v1.1: 5)
+- Total plans completed: 13 (v1.0: 10, v1.1: 5)
 - Average duration: ~10 minutes per plan (v1.1)
-- Total execution time: ~50 minutes (v1.1)
 
 **By Phase:**
 
@@ -56,14 +54,35 @@ Plan: 3 plans created, verified, and ready to execute
 
 ### Roadmap Evolution
 
-- Phase 9 added: Issues Directory Consolidation — consolidate 7 pre-implementation audit files into 2-3 thematic documents
-- v1.2 milestone created: PINN Implementation Readiness
+- v1.0: Codebase Cleanup (Phases 1-4) — shipped 2026-03-20
+- v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
+- v1.2: PINN Implementation Readiness (Phase 9) — partial; 3 thematic docs + MIGRATION.md + README.md written, pending final verification
+- v1.3: Markdown Conversion Verification & Correction (Phases 10-15) — roadmap defined 2026-05-01
+
+### v1.3 Phase Summary
+
+| Phase | Source | Sections | Candidates | Key Challenge |
+|-------|--------|----------|------------|---------------|
+| 10 | ctl-instruction | 8 | 3 (.md, _v2.md, pandoc) | Heavy math, stage criteria formulas |
+| 11 | Data-quality-assessment | 7 | 2 (.md, pandoc) | Cross-references, HTML table corruption |
+| 12 | pinn-architecture | 7 active + 3 inactive | 3 (.md, _v2.md, pandoc) | Comment block exclusion, inactive sections |
+| 13 | review_of_framework | 7 | 1 (pandoc only) | Sub-document structure |
+| 14 | stage_strat_revision | 6 | 1 (pandoc only) | Table normalization |
+| 15 | sampling-method | monolithic | 2 (.md, pandoc) | Monolithic source (no sections/ dir) |
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- [v1.3]: One phase per LaTeX source (6 phases, Phases 10-15)
+- [v1.3]: Phases ordered hardest-first: CTL (Phase 10) validates the approach before proceeding
+- [v1.3]: Each phase follows: pick best candidate -> audit section-by-section -> fix -> verify -> archive -> report
+- [v1.3]: One-to-one injection fidelity required — markdown must match LaTeX source exactly
+- [v1.3]: Inter-document inconsistencies preserved, not resolved (separate future task)
+- [v1.3]: Commented-out LaTeX sections (\begin{comment}...\end{comment}) excluded from markdown
+- [v1.3]: Best markdown candidate selected per source; unselected duplicates archived to _archive/
+- [v1.3]: Manual comparison only — no automated verification scripts this milestone (deferred to v2)
+- [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
 - [v1.1]: Automated Python diffing approach chosen for verification
 - [v1.1]: 4 verification dimensions: content completeness, preamble parity, structure fidelity, compilability
 - [v1.1]: 5 modular structures across 4 directories (sampling-method excluded — no modular structure exists)
@@ -80,7 +99,12 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None — milestone complete.
+- Complete v1.2 Phase 9 verification
+- Execute v1.3 Phases 10-15
+
+### Prerequisites
+
+**v1.2 Phase 9 completion required** before executing v1.3 phases. Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/original_latex/review-of-framework/issues/`. Remaining: final verification step.
 
 ### Blockers/Concerns
 
@@ -100,7 +124,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T06:10:12.339Z
-Stopped at: context exhaustion at 81% (2026-04-27)
-Resume file: None
-Next action: `/gsd-execute-phase 9` to execute the 3 consolidated plans
+Last session: 2026-05-01
+Stopped at: Roadmap creation for v1.3 milestone
+Resume file: .planning/ROADMAP.md
+Next action: `/gsd-plan-phase 10` to begin CTL-Instruction Verification

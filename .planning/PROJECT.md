@@ -32,12 +32,18 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Verify preamble parity (packages, macros, commands) across all 5 modular structures — Phase 6
 - ✓ Verify document structure fidelity (sections, labels, refs, citations, floats) — Phase 7
 - ✓ Verify compilability of all 5 modular structures (0 errors, 0 new warnings) — Phase 8
+- ✓ Consolidate 7 issue reports into 3 thematic documents with migration tracking — Phase 9
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- None — v1.1 milestone complete
+- [ ] **MD-CONV-01**: Data-quality-assessment markdown matches LaTeX source with one-to-one injection fidelity
+- [ ] **MD-CONV-02**: ctl-instruction markdown matches LaTeX source with one-to-one injection fidelity
+- [ ] **MD-CONV-03**: pinn-architecture markdown matches LaTeX source with one-to-one injection fidelity
+- [ ] **MD-CONV-04**: review_of_framework markdown matches LaTeX source with one-to-one injection fidelity
+- [ ] **MD-CONV-05**: stage_strat_revision markdown matches LaTeX source with one-to-one injection fidelity
+- [ ] **MD-CONV-06**: sampling-method markdown matches LaTeX source with one-to-one injection fidelity
 
 ### Deferred
 
@@ -53,28 +59,42 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - `.git/lfs/` pruning or repository size reduction — separate concern
 - Real-time prediction API or web interface — research project, not a product
 - Qualitative reasoning by the LLM — focus is on numerical trajectory prediction first
+- Resolving inconsistencies between LaTeX instruction documents — this milestone preserves them faithfully; cross-document reconciliation is a separate future task
 
-## Current Milestone: v1.1 LaTeX Modularization Verification — COMPLETE
+## Current Milestone: v1.3 Markdown Conversion Verification & Correction
 
-**Goal:** Rigorously verify that 5 modular LaTeX structures faithfully preserve the content, style, format, and components of their original monolithic LaTeX files.
+**Goal:** Verify every markdown conversion against its LaTeX source section-by-section (leveraging the modular split), fix all errors to achieve one-to-one injection fidelity, and produce one authoritative `.md` file per source document.
 
 **Target features:**
-- ✓ Automated Python diffing scripts comparing original vs concatenated modular sections
-- ✓ Content completeness verification (no dropped text)
-- ✓ Preamble parity checks (packages, macros, commands)
-- ✓ Structure fidelity checks (section hierarchy, labels, refs, citations)
-- ✓ Compilability verification (0 errors, 0 new warnings)
+- 6 authoritative markdown files, one per LaTeX source, with exact content match
+- Mathematical formulas faithfully converted (LaTeX → markdown math notation)
+- All cross-references, citations, figure/table references preserved correctly
+- Commented-out LaTeX sections excluded from markdown
+- Duplicate/unselected markdown files identified and handled
+- Inter-document inconsistencies preserved (not resolved — that's a separate task)
 
-**Scope:** 5 structures in `pinn_instruction/original_latex/`:
-1. Data-quality-assessment (`data_quality_assess.tex` → `data_quality_assess/`)
-2. ctl-instruction (`CTL-instruction-final.tex` → `ctl-instruction/`)
-3. pinn-architecture (`PINN_architecture_plan.tex` → `pinn-architecture/`)
-4. review-of-framework (`review_of_ctl-pinn_framework.tex` → `review_of_framework/`)
-5. review-of-framework (`stage-strat-revision.tex` → `stage_strat_revision/`)
+**Scope:** 6 LaTeX sources in `pinn_instruction/original_latex/`:
+1. `Data-quality-assessment/` (7 sections)
+2. `ctl-instruction/` (8 sections)
+3. `pinn-architecture/` (7 active + 3 inactive sections)
+4. `review-of-framework/review_of_framework/` (7 sections)
+5. `review-of-framework/stage_strat_revision/` (6 sections)
+6. `sampling-method/` (monolithic — 1 file)
 
-**Excluded:** `sampling-method/` (no modular structure exists)
+**Phase structure:** 6 phases (one per source), each doing: pick best candidate → audit section-by-section → fix discrepancies → verify one-to-one match.
 
-**Status:** All 4 phases complete, all 5 plans executed, all 13 requirements satisfied.
+**Prerequisite:** Complete v1.2 Phase 9 (Issues Directory Consolidation) before executing v1.3 phases.
+
+### Previous Milestones
+
+**v1.2 PINN Implementation Readiness** (in progress)
+- Phase 9: Issues Directory Consolidation — 3 thematic docs + MIGRATION.md + README.md written, pending final verification
+
+**v1.1 LaTeX Modularization Verification** (shipped 2026-03-22)
+- Phases 5-8: Content completeness, preamble parity, structure fidelity, compilability — all passed
+
+**v1.0 Codebase Cleanup** (shipped 2026-03-20)
+- Phases 1-4: Code rewrites, documentation, data deletion, stale references
 
 ## Context
 
@@ -86,6 +106,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Standard quasi-random gold subset excludes 184 IDs (see `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`)
 - Existing PINN approach (SQR-SkipResNet-SIREN) relationship to new LLM direction is TBD
 - Qwen 3.5 2B 4-bit model already downloaded at `Qwen3.5-2B-4bit/`
+- 5 of 6 LaTeX sources are modular (split into sections/); sampling-method is monolithic
+- Markdown conversions exist in two locations: `markdown_conversion/` (top-level) and `markdown_conversion/pandoc_conversion/`
+- Some sources have 2-3 competing markdown conversions; the best candidate must be selected before editing
 
 ## Constraints
 
@@ -93,6 +116,8 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - **Model**: Qwen 3.5 2B 4-bit — chosen for local training feasibility on M2
 - **Data format**: Brutus outputs are high-precision text files, not natively LLM-friendly
 - **Dependencies**: No `requirements.txt` exists — environment management needed
+- **One-to-one injection**: Markdown must match LaTeX source exactly; inter-document inconsistencies are preserved, not resolved
+- **Commented-out content**: LaTeX `\begin{comment}...\end{comment}` blocks (not author comments) are excluded from markdown
 
 ## Key Decisions
 
@@ -105,23 +130,25 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | Verify LaTeX modularization before LLM work | Ensure documentation integrity for future reference | ✓ v1.1 shipped (Phases 5-8) |
 | PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
+| Verify markdown conversions before cross-document reconciliation | Must first ensure each markdown is a faithful copy of its LaTeX source; find inconsistencies later | ✓ v1.3 defined |
+| One phase per LaTeX source (6 phases) | Keeps each phase scoped to one document; avoids context-switching across different content | ✓ v1.3 defined |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition** (via `/gsd:transition`):
+**After each phase transition** (via `/gsd-transition`):
 1. Requirements invalidated? → Move to Out of Scope with reason
 2. Requirements validated? → Move to Validated with phase reference
 3. New requirements emerged? → Add to Active
 4. Decisions to log? → Add to Key Decisions
 5. "What This Is" still accurate? → Update if drifted
 
-**After each milestone** (via `/gsd:complete-milestone`):
+**After each milestone** (via `/gsd-complete-milestone`):
 1. Full review of all sections
 2. Core Value check — still the right priority?
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 after Phase 8 (Compilability Verification) completed*
+*Last updated: 2026-04-30 — v1.3 milestone defined*

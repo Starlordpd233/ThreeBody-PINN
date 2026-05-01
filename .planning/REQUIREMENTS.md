@@ -1,76 +1,104 @@
-# Requirements: Three-Body LaTeX Modularization Verification
+# Requirements: Three-Body LaTeX Markdown Conversion Verification
 
-**Defined:** 2026-03-21
+**Defined:** 2026-04-30
 **Core Value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
 
-## v1.1 Requirements
+## v1.3 Requirements
 
-Requirements for LaTeX modularization verification. Each maps to roadmap phases.
+Requirements for markdown conversion verification and correction. Each maps to a roadmap phase.
 
-### Content Completeness
+### Candidate Selection
 
-- [x] **CONT-01**: Automated script compares original monolithic .tex against concatenated modular sections with whitespace normalization for all 5 structures
-- [x] **CONT-02**: Dropped-line report identifies any lines present in original but missing from modular sections, with surrounding context
-- [x] **CONT-03**: No extraneous content report identifies any lines in modular sections not present in original
+- [ ] **CAND-01**: For each LaTeX source with multiple markdown candidates, automated diff-score comparison selects the best starting candidate (fewest diff lines against source)
+- [ ] **CAND-02**: Sources with only one markdown candidate (review-of-framework, stage-strat-revision) skip selection and use the existing file directly
 
-### Preamble Parity
+### Audit & Comparison
 
-- [x] **PREAMB-01**: All `\usepackage` declarations from original preamble appear in modular preamble for each structure
-- [x] **PREAMB-02**: All custom `\newcommand`, `\renewcommand`, `\newenvironment` definitions preserved
-- [x] **PREAMB-03**: Package options (e.g., `[H]` for float, encoding options) match exactly
+- [ ] **AUDIT-01**: Section-by-section manual comparison of LaTeX source against markdown for all 6 source documents
+- [ ] **AUDIT-02**: Every discrepancy found during audit is documented in a per-phase verification report with section location, type (math/text/ref/table/hierarchy/comment), and severity
+- [ ] **AUDIT-03**: Comparison explicitly excludes `\begin{comment}...\end{comment}` blocks from the LaTeX source before comparison
 
-### Structure Fidelity
+### Content Fidelity
 
-- [x] **STRUCT-01**: Section/subsection hierarchy in modular output matches original for all 5 structures
-- [x] **STRUCT-02**: All `\label` declarations from original are present in modular sections
-- [x] **STRUCT-03**: All `\ref`, `\eqref`, `\autoref` references from original are present in modular sections
-- [x] **STRUCT-04**: All `\cite` and `\bibliography`/`\printbibliography` references preserved
-- [x] **STRUCT-05**: All figure/table float environments (`\begin{figure}`, `\begin{table}`, `\begin{longtable}`) preserved with their content
+- [ ] **FIDEL-01**: Every mathematical formula from the LaTeX source appears in the markdown with accurate notation and correct rendering (no missing terms, no altered symbols, no whitespace corruption)
+- [ ] **FIDEL-02**: All prose text, lists, code blocks, and inline formatting match the LaTeX source exactly — no dropped sentences, no added content, no paraphrasing
+- [ ] **FIDEL-03**: All `\ref`, `\cite`, `\label`, and bibliography references from the LaTeX source are preserved in the markdown with correct target identifiers
+- [ ] **FIDEL-04**: All tables are verified cell-by-cell for correct content, structure, and formatting
+- [ ] **FIDEL-05**: Section/subsection/paragraph hierarchy in markdown matches the LaTeX source structure exactly
+- [ ] **FIDEL-06**: Commented-out content (`\begin{comment}...\end{comment}` blocks) is absent from the markdown; intentionally excluded sections (e.g., pinn-architecture `_inactive.tex` files) are confirmed excluded
 
-### Compilability
+### Cleanup & Authority
 
-- [x] **COMP-01**: Each of the 5 modular structures compiles with `pdflatex` (or `lualatex`) with 0 errors
-- [x] **COMP-02**: Each of the 5 modular structures compiles with 0 warnings (or only pre-existing warnings from the original)
+- [ ] **CLEAN-01**: Each of the 6 LaTeX sources has exactly one authoritative markdown file when its phase completes
+- [ ] **CLEAN-02**: Unselected duplicate markdown files are archived to an `_archive/` directory with a README explaining provenance
+- [ ] **CLEAN-03**: Each phase produces a verification report documenting: candidate selected and why, all discrepancies found (with locations), all fixes applied, and final zero-diff confirmation
 
-## Future Requirements
+### Cross-Cutting
 
-None — this is a standalone verification milestone.
+- [ ] **CROSS-01**: Inter-document inconsistencies in the LaTeX sources are preserved in the markdown — do NOT reconcile or resolve differences between source documents
+- [ ] **CROSS-02**: The 6 phases execute sequentially; each phase is independent (different source document) but follows the same audit→fix→verify pattern
+
+## v2 Requirements
+
+Deferred to future release.
+
+### Automation
+
+- **AUTO-01**: Shared `md_verification_utils.py` utility module with section splitting, math extraction, reference extraction, normalization, and diff functions
+- **AUTO-02**: Automated verification scripts for each of the 6 source documents
+- **AUTO-03**: CI-compatible pass/fail exit codes for automated re-verification after future LaTeX edits
+
+### Cross-Document
+
+- **CROSS-03**: Cross-document consistency audit — identify and catalog inconsistencies between the 6 instruction documents
+- **CROSS-04**: Resolve identified inconsistencies across documents (requires domain expert decisions)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| PDF visual diff (pixel-level) | Compilation success + content parity is sufficient |
-| Page count comparison | User explicitly excluded |
-| sampling-method verification | No modular structure exists for it |
-| Fixing any issues found | This milestone only identifies issues; fixes are separate |
+| Automated verification scripts | User chose manual comparison for this milestone; defer to v2 |
+| Pandoc re-conversion of LaTeX sources | Destroys manual corrections already applied; verification is fix-in-place |
+| Cross-document consistency checking | Explicitly excluded — inter-document inconsistencies are preserved |
+| AI/LLM-based discrepancy detection | Non-deterministic; task is mechanical text comparison |
+| PDF visual comparison | Compilation success is already verified (Phase 8); this is about source text fidelity |
+| Modifying LaTeX source documents | LaTeX sources are the ground truth; only markdown gets fixed |
+| Building a new markdown generation pipeline | This is verification and correction of existing files, not regeneration |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements. Phase ranges indicate cross-cutting requirements verified in every phase. Specific phase numbers indicate requirements that apply only to certain phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONT-01 | Phase 5 | Complete |
-| CONT-02 | Phase 5 | Complete |
-| CONT-03 | Phase 5 | Complete |
-| PREAMB-01 | Phase 6 | Complete |
-| PREAMB-02 | Phase 6 | Complete |
-| PREAMB-03 | Phase 6 | Complete |
-| STRUCT-01 | Phase 7 | Complete |
-| STRUCT-02 | Phase 7 | Complete |
-| STRUCT-03 | Phase 7 | Complete |
-| STRUCT-04 | Phase 7 | Complete |
-| STRUCT-05 | Phase 7 | Complete |
-| COMP-01 | Phase 8 | Complete |
-| COMP-02 | Phase 8 | Complete |
+| CAND-01 | 10, 11, 12, 15 | Pending |
+| CAND-02 | 13, 14 | Pending |
+| AUDIT-01 | 10-15 | Pending |
+| AUDIT-02 | 10-15 | Pending |
+| AUDIT-03 | 10-15 | Pending |
+| FIDEL-01 | 10-15 | Pending |
+| FIDEL-02 | 10-15 | Pending |
+| FIDEL-03 | 10-15 | Pending |
+| FIDEL-04 | 10-15 | Pending |
+| FIDEL-05 | 10-15 | Pending |
+| FIDEL-06 | 10-15 | Pending |
+| CLEAN-01 | 10-15 | Pending |
+| CLEAN-02 | 10, 11, 12, 15 | Pending |
+| CLEAN-03 | 10-15 | Pending |
+| CROSS-01 | 10-15 | Pending |
+| CROSS-02 | 10-15 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 13 total
-- Mapped to phases: 13
+- v1.3 requirements: 16 total
+- Mapped to phases: 16/16 (100%)
 - Unmapped: 0
-- Completed: 13/13 (100%)
+
+**Mapping notes:**
+- **CAND-01** (multi-candidate selection): Applies to Phases 10, 11, 12, 15 — documents with 2-3 competing markdown files
+- **CAND-02** (single-candidate skip): Applies to Phases 13, 14 — documents with only pandoc conversions, no selection needed
+- **CLEAN-02** (archive unselected): Applies to Phases 10, 11, 12, 15 — only phases with multiple candidates have files to archive
+- All other requirements apply to every phase (10-15) — each phase performs the full audit→fix→verify→report cycle
 
 ---
-*Requirements defined: 2026-03-21*
-*Last updated: 2026-03-22 after Phase 8 completion*
+*Requirements defined: 2026-04-30*
+*Last updated: 2026-05-01 — traceability filled from ROADMAP.md*
