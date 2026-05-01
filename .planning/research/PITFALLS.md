@@ -1,73 +1,106 @@
-# Pitfalls Research: Physics-Informed LLM for Three-Body Prediction
+# Domain Pitfalls: LaTeX-to-Markdown Verification Stack
+
+**Domain:** LaTeX-to-Markdown conversion verification -- tool and approach pitfalls
+**Researched:** 2026-04-30
 
 ## Critical Pitfalls
 
-### 1. Numerical Tokenization Destroys Precision
+Mistakes that cause rewrites or major issues.
 
-**Warning signs:** Model outputs round numbers, wrong magnitudes, or nonsensical trajectories
-**Why it matters:** BPE tokenizers split "0.98765" into arbitrary sub-tokens like ["0", ".", "98", "76", "5"], losing numerical meaning. Three-body trajectories require at least 4-6 significant digits to be meaningful.
+### Pitfall 1: Regex fails on nested LaTeX braces in math mode
+
+**What goes wrong:** A regex like `r'\$(.+?)\$'` (non-greedy) stops at the first `$` it finds, even if nested. `$\text{if } x > 0$ then $y = 1$` gets extracted as one broken block. More dangerously, `$\frac{a}{b}$` with simple content extracts correctly -- so the bug only manifests on specific formulas, giving false confidence.
+
+**Why it happens:** Regular expressions (even with `re.DOTALL`) cannot correctly track balanced delimiters without a stack.
+
+**Consequences:** Math formulas silently mis-extracted. Diff report says "no discrepancies" but formulas weren't even compared. **False negative** -- worst kind of bug in verification.
+
 **Prevention:**
-- Normalize all values to [-1, 1] before formatting (existing pipeline does this)
-- Use fixed-precision formatting (e.g., `f"{x:.6f}"`)
-- Consider scientific notation for very small/large values
-- Test tokenizer behavior on sample numbers before training
-**Phase:** Training Data Formatting
+1. Use a state-machine parser for math extraction, not regex alone
+2. Cross-validate: count math blocks from regex vs. pylatexenc. If counts differ, regex missed something.
+3. Install pylatexenc only when a concrete extraction mismatch is confirmed
 
-### 2. Chaotic Sensitivity Makes Evaluation Hard
+**Detection:** Compare math block counts from regex extraction vs. pylatexenc AST walk. Any discrepancy = regex bug.
 
-**Warning signs:** Model seems to "work" on some ICs but completely fails on others, even similar ones
-**Why it matters:** Three-body problem is chaotic — tiny IC differences lead to exponentially diverging trajectories. Evaluating prediction quality requires careful metrics that account for this.
-**Prevention:**
-- Use Lyapunov time as a horizon — predictions beyond ~1 Lyapunov time are inherently unreliable
-- Evaluate energy/momentum conservation of predicted trajectories (physics-informed metric)
-- Use the existing metrics pipeline to grade predictions
-- Compare against Brutus ground truth only within meaningful time horizons
-**Phase:** Evaluation Pipeline
+### Pitfall 2: Pandoc-generated artifacts treated as discrepancies
 
-### 3. Data Leakage Between IC Types
+**What goes wrong:** Pandoc adds syntax to markdown: `{#id .class}` heading anchors, `:::` fenced divs, `{style="..."}` color spans. The existing `convert_latex_to_md.py` post-processes to strip these. If verification runs on uncleaned markdown, these artifacts appear as discrepancies when they are expected pandoc behavior.
 
-**Warning signs:** Model performs suspiciously well on hierarchical ICs after training on standard, or vice versa
-**Why it matters:** Standard quasi-random and hierarchical ICs have very different distributions (equal vs variable masses, random vs orbital sampling). Training and test sets must respect these boundaries.
-**Prevention:**
-- Split by IC type AND by ID range, not randomly
-- Keep separate evaluation metrics per IC type
-- Document which IDs are in train/val/test splits
-**Phase:** Training Data Formatting
+**Why it happens:** Different markdown files may have been cleaned to different degrees (top-level .md vs pandoc_conversion/ .md).
 
-### 4. LoRA Rank Too Low for Numerical Tasks
+**Consequences:** Hundreds of trivial diffs (every heading shows `{#id}` vs no anchor). Obscures real discrepancies.
 
-**Warning signs:** Model converges but outputs are noisy or default to mean values
-**Why it matters:** Numerical prediction may require more adapter capacity than typical text tasks. Default LoRA rank (8-16) may be insufficient.
-**Prevention:**
-- Start with rank 16-32, experiment upward
-- Monitor per-token loss on numerical vs text tokens separately
-- Consider QLoRA (quantized base + full-rank adapters) if memory permits
-**Phase:** Fine-Tuning
+**Prevention:** Normalize both LaTeX source and markdown before comparison: strip pandoc artifacts (heading anchors, fenced divs, code block attrs), strip LaTeX boilerplate (preamble, `\begin{document}`).
 
-### 5. Cleanup Breaks Existing Scripts
+**Detection:** If diffs are predominantly `- ## Heading {#id .class}` vs `+ ## Heading` -- pandoc artifacts not normalized.
 
-**Warning signs:** Scripts fail with FileNotFoundError after folder deletion
-**Why it matters:** Gold IC folder paths are hardcoded in multiple scripts. Deleting folders before updating code will break the pipeline.
-**Prevention:**
-- Update ALL code references BEFORE deleting any folders
-- Run scoped grep for removed path patterns after changes
-- Use the cleanup plan's verification gates (Step 6) rigorously
-**Phase:** Codebase Cleanup
+### Pitfall 3: Comment block content flagged as "missing"
+
+**What goes wrong:** LaTeX sources use `\begin{comment}...\end{comment}` to exclude content. If verification treats commented-out blocks as source, it flags valid markdown (which correctly excludes them) as "missing content."
+
+**Consequences:** Hundreds of false-positive discrepancies. Manual review wastes time on intentionally excluded content.
+
+**Prevention:** Strip `\begin{comment}...\end{comment}` blocks from LaTeX source before comparison. For pinn-architecture, explicitly exclude the 3 `*_inactive.tex` files from the section list.
+
+### Pitfall 4: Math delimiter mismatch (`\[...\]` vs `$$...$$`)
+
+**What goes wrong:** LaTeX uses `\[...\]` for display math. Pandoc converts to `$$...$$`. Verification flags every display math formula as different even though content is identical.
+
+**Consequences:** Spam in diff reports; real math discrepancies buried in noise.
+
+**Prevention:** Normalize all math delimiters to canonical form before comparison. `\[...\]` and `$$...$$` are equivalent for comparison purposes.
 
 ## Moderate Pitfalls
 
-### 6. M2 Memory Limits During Training
+### Pitfall 5: Section heading mapping drift
 
-**Prevention:** Use 4-bit quantized base model, LoRA adapters, small batch sizes. Monitor memory with `Activity Monitor`.
+**What goes wrong:** LaTeX sections are `\section{Data Preparation}` with files like `04_phase1_data_prep.tex`. Markdown sections are `## Data Preparation`. The verification script needs a mapping table. Wrong mapping means every line shows as a diff.
 
-### 7. No `requirements.txt` Causes Environment Drift
+**Consequences:** Perfectly correct markdown flagged as "totally wrong" -- trust in verification tool collapses.
 
-**Prevention:** Create `requirements.txt` or `pyproject.toml` as part of cleanup. Pin versions.
+**Prevention:** Build mapping table explicitly per document. Validate by checking that first few lines of each mapped section pair match. Print summary: "Mapped LaTeX section 04_phase1_data_prep -> Markdown ## Data Preparation (first 3 lines match: YES/NO)."
 
-### 8. Monolithic Data Pipeline
+### Pitfall 6: Cross-reference format mismatch
 
-**Prevention:** The 56KB `data-processing-pipeline-full.py` is the source of truth but hard to modify. Use the modular `data-handling/` package for new work, but verify consistency.
+**What goes wrong:** LaTeX has `\ref{fig:workflow}` which pandoc converts to plain `fig:workflow` or `[fig:workflow](#fig:workflow)`. If verification expects LaTeX format, it flags every reference as broken.
 
-### 9. Training Data Scale May Be Insufficient
+**Prevention:** Extract reference IDs only (e.g., `fig:workflow`), not formatting. Check that the ID appears somewhere in the corresponding markdown section.
 
-**Prevention:** ~7,600 ICs total (4,857 hierarchical + 2,749 standard). For LLM fine-tuning, each IC produces multiple timestep samples. Estimate total sample count before training.
+### Pitfall 7: Installing heavy dependencies prematurely
+
+**What goes wrong:** Installing pylatexenc, mistune, pypandoc, and deepdiff before any phase work begins. Most won't be needed. Creates an implicit maintenance burden and makes the verification toolchain appear complex.
+
+**Prevention:** Start with stdlib only. Add a library ONLY when a concrete limitation is hit. Demonstrate the limitation first (e.g., "regex extracted 42 math blocks but pylatexenc found 47").
+
+## What NOT to Use -- With Explicit Reasons
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| **TexSoup** | Dormant since August 2020 (v0.3.1). No updates in 5+ years. | `pylatexenc` (v2.10 stable, actively maintained through Feb 2025) |
+| **SymPy `parse_latex`** | Cannot handle physics notation: `\vec`, `\mathbf`, `\norm`, `\mathcal`, bra-ket. Designed for pure math. | Regex-based extraction + manual review for physics formulas |
+| **Pandoc re-conversion** | Destroys manual corrections. Defeats the purpose of fixing existing files. | Edit existing markdown in place; only fix specific discrepancies |
+| **`deepdiff`** | Deep object comparison library. Overkill for line-by-line text diff -- adds dependency for stdlib capability. | `difflib.SequenceMatcher` (stdlib, designed for text sequences) |
+| **MathJax/KaTeX rendering** | We verify text fidelity, not visual rendering. Adds browser/JS complexity. | Text-level math comparison: extract -> normalize -> diff |
+| **AI/LLM-based comparison** | Adds latency, cost, non-determinism. Hallucination risk on a mechanical task. | Deterministic text diffing |
+| **LaTeXML / plasTeX** | Full document processing frameworks. Massive overkill for text comparison. | `difflib` + `re` (built-in, lightweight) |
+| **Building a new conversion pipeline** | Explicitly out of scope. Task is verification and correction of existing files. | Work with existing pandoc outputs; fix discrepancies in place |
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| CTL-instruction (math-heavy, 8 sections) | Nested math in stage criteria text (Pitfall 1) | Use pylatexenc as cross-check on math extraction |
+| CTL-instruction (3 competing MD files) | Pandoc artifacts in one candidate but not another (Pitfall 2) | Normalize all candidates before comparison |
+| PINN-architecture (10 sections, 3 inactive) | Commented-out sections look like missing (Pitfall 3) | Verify comment stripping covers 3 inactive section files |
+| Review-of-framework (2 sub-documents) | Section mapping across 2 LaTeX dirs to 2 markdown files | Build separate mapping table for each sub-document |
+| Data-quality-assessment (7 sections) | Cross-reference format (Pitfall 6) -- heavy `\ref` and `\cite` use | Compare reference IDs, not formatting |
+| Sampling-method (monolithic) | Section splitting not applicable -- whole-file diff needed | Different approach from modular documents |
+| Stage-strat-revision (6 sections) | Blank line differences in table environments | Normalize blank lines before diff |
+
+## Sources
+
+- `convert_latex_to_md.py` -- Pre/post-processing patterns (comment stripping, macro expansion, pandoc artifact cleaning) -- HIGH confidence
+- Python docs: `re` module -- Known limitation: regular expressions cannot match balanced delimiters -- HIGH confidence
+- [pylatexenc docs](https://pylatexenc.readthedocs.io/) -- LaTeX AST walker that handles nested braces -- HIGH confidence
+- [TexSoup GitHub](https://github.com/alvinwan/TexSoup) -- v0.3.1, last release Aug 2020, dormant -- HIGH confidence
+- `.planning/PROJECT.md` -- Scope: commented-out content excluded, inter-document inconsistencies preserved -- HIGH confidence
