@@ -61,19 +61,19 @@ Samples time points globally (uniform or acceleration-weighted), no causal weigh
 
 **Source:** `Causal_Trainingmismatch_resolution_blueprint.md`
 
-The hybrid approach is the explicit recommendation of the Causal Training Mismatch blueprint. It partitions [0,T] into discrete overlapping causal windows with localized ALM and hard causal gating:
+The hybrid partitions [0,T] into overlapping causal windows with localized ALM and hard gating:
 
-1. **Localized ALM:** Within each active window, ALM parameters update purely locally, giving accurate variance estimates unmasked by future weights
-2. **Hard causal gate:** Adam operates strictly within the current window until ALM-penalized residual falls below tolerance; only then does the temporal horizon expand
-3. **Structural state propagation:** The converged window's final prediction bootstraps the next window's initial condition; ALM multipliers carry forward
-4. **Firewall prevention:** Future time points beyond the active window are structurally EXCLUDED from the batch — late-time chaos cannot trigger early-time gradient death
+1. **Localized ALM:** Within each active window, ALM parameters update locally for accurate variance estimates
+2. **Hard causal gate:** Adam operates within current window until ALM-penalized residual falls below tolerance
+3. **State propagation:** Converged window's prediction bootstraps next window's initial condition; ALM multipliers carry forward
+4. **Firewall prevention:** Future time points beyond active window are EXCLUDED from batch
 
 ### Training Phases
 
-1. **Static Pre-Screening (CPU):** Galilean boost, invariant computation with eps=1e-10, SCS/SASD screening, 14-D input vector assembly
-2. **Stage Initialization + IPR Bounding:** Trajectories stratified into Stages 0-6. IPR computed with eps=1e-5 to establish ALM convergence floor
-3. **Causal-ALM Training (GPU):** PSC entropy-guided mini-batches across current+preceding stages. Adam + ALM within each causal window. SASD-weighted collocation
-4. **Refinement + Stage Transition:** Full time domain converged. Transfer to L-BFGS at IPR noise floor. Stage advance gated by Hamiltonian drift < 1e-4
+1. **Static Pre-Screening (CPU):** Galilean boost, invariant computation (eps=1e-10), SCS/SASD screening, 14-D IC assembly
+2. **Stage Init + IPR Bounding:** Stages 0-6 stratification. IPR (eps=1e-5) for ALM convergence floor
+3. **Causal-ALM Training (GPU):** PSC mini-batches across current+preceding stages. Adam + ALM per causal window
+4. **Refinement + Transition:** Full domain converged. L-BFGS at IPR noise floor. Stage advance gated by Hamiltonian drift < 1e-4
 
 ---
 
@@ -93,17 +93,17 @@ The AD implementation details and chain-rule factors live canonically in `01-arc
 
 ### Huber Delta for Normalized Energy
 
-**Source:** `next steps.txt` Issue 13 and `main_pinn.tex` energy-regularizer section.
+**Source:** `next steps.txt` Issue 13, `main_pinn.tex`.
 
-The source architecture document specifies Huber loss with `delta=1.0` for `L_energy`. That value is not automatically wrong, but it is uncalibrated for normalized Hamiltonian residuals. If most normalized `|ΔH|` values remain below 1.0, Huber loss stays in its quadratic branch and behaves like L2, eliminating the intended robustness to outliers during close encounters.
+The spec'd `delta=1.0` for `L_energy` is uncalibrated for normalized Hamiltonian residuals. If most `|ΔH|` values stay below 1.0, Huber acts like L2, losing robustness to outliers during close encounters.
 
-**Implementation requirement:** choose `delta` from empirical normalized `|ΔH|` statistics after corrected scaling. Recommended starting policy:
+**Recommended:** tune `delta` from empirical `|ΔH|` quantiles:
 
 ```python
 delta_energy = np.clip(np.quantile(abs_delta_H_train, 0.75), 0.01, 0.1)
 ```
 
-Record the selected `delta_energy` in `loss.yaml`. If a fixed value is required before data statistics are available, use δ in the 0.01-0.1 range and verify that at least some close-encounter residuals enter the linear Huber branch.
+Record in `loss.yaml`. Use 0.01–0.1 as starting point; verify some close-encounter residuals enter the linear Huber branch.
 
 ---
 
@@ -113,9 +113,9 @@ Record the selected `delta_energy` in `loss.yaml`. If a fixed value is required 
 
 ### Methodology
 
-The stage assignment methodology transitions from fixed theoretical thresholds to data-adaptive criteria based on empirical distributions of invariants across the entire dataset. This prevents underpopulated stages, mismatched difficulty gradients, and empty stage boundaries that block curriculum progression.
+Transition from fixed theoretical thresholds to data-adaptive criteria based on empirical distributions of invariants. This prevents underpopulated stages and empty stage boundaries that block curriculum progression.
 
-**Core insight:** Fixed thresholds assume idealized distributions. Quasi-random ICs introduce scaling distortions (Q ~ s^3) and correlations between invariants. A data-driven approach tailors criteria to empirical distributions while retaining all physically-grounded metrics (E, Q, L/L_max, s_min, tau_L, I_1/I_2/I_3).
+**Core insight:** Quasi-random ICs introduce scaling distortions (Q ~ s^3) and invariant correlations. Data-driven criteria tailor boundaries to the actual dataset while retaining physically-grounded metrics.
 
 **Step 1 — Dataset Analysis (EDA):**
 1. Parse all IC files and Brutus outputs, compute invariants for every system
@@ -128,64 +128,26 @@ The stage assignment methodology transitions from fixed theoretical thresholds t
 **Step 2 — Adaptive Assignment:**
 
 ```python
-import pandas as pd
-import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-
-# Assume df = pd.DataFrame with invariants computed
-# EDA: Distributions and Correlations
-print(df.describe())
-corr_matrix = df.corr()
-
-# PCA for dimensionality reduction
+# PCA + K-means clustering for stage discovery
 invariants = df[['E', 'Q_normalized', 'L_norm', 's_min', 'tau_L', 'I1', 'I2', 'I3']]
-pca = PCA(n_components=3)
-pcs = pca.fit_transform(invariants)
-df[['PC1', 'PC2', 'PC3']] = pcs
-print(pca.explained_variance_ratio_)
-
-# Clustering for natural stage discovery
-kmeans = KMeans(n_clusters=6, random_state=42)
-df['cluster'] = kmeans.fit_predict(pcs)
+pcs = PCA(n_components=3).fit_transform(invariants)
+clusters = KMeans(n_clusters=6, random_state=42).fit_predict(pcs)
 cluster_means = df.groupby('cluster')[['tau_L', 'E']].mean().sort_values('tau_L')
 
-# Quantile-based thresholds
-thresholds = {
-    'L_norm_high': df['L_norm'].quantile(0.75),
-    'tau_L_mid': df['tau_L'].quantile(0.5),
-}
+# Hierarchical stages (stable → moderate)
+stage_0 = df[(df['type']=='hierarchical') & (df['L_norm'] > df['L_norm'].quantile(0.75))]
+stage_1 = df[(df['type']=='hierarchical') & (df['E'] < df['E'].quantile(0.25)) &
+             (df['Q_normalized'].between(0.9, 1.1))]
+# Quasi-random stages via clusters sorted by mean tau_L
+cluster_order = cluster_means.sort_values('tau_L', ascending=False).index
+stage_3 = df[(df['type']=='quasi-random') & (df['cluster']==cluster_order[0])]
+stage_5 = df[(df['type']=='quasi-random') & (df['cluster'].isin(cluster_order[3:5]))]
+stage_6 = df[(df['type']=='quasi-random') & (df['cluster']==cluster_order[5])]
 ```
 
-**Step 3 — Stage Assignment Functions:**
+**Safeguards:** Ensure >10% per stage (merge underpopulated clusters). Validate with small PINN pilot. Check invariant correlations before clustering — if E and tau_L correlate strongly, use PCA composite as difficulty score.
 
-```python
-def assign_stages(df, thresholds, cluster_means):
-    # Hierarchical: Stable stages
-    hierarchical = df[df['type'] == 'hierarchical']
-    stage_0 = hierarchical[hierarchical['L_norm'] > thresholds['L_norm_high']]
-    stage_1 = hierarchical[
-        (hierarchical['E'] < hierarchical['E'].quantile(0.25)) &
-        (hierarchical['Q_normalized'].between(0.9, 1.1))
-    ]
-    stage_2 = hierarchical[~hierarchical.index.isin(
-        stage_0.index.union(stage_1.index)
-    )]
-
-    # Quasi-random: Chaotic stages via clusters sorted by mean tau_L (descending)
-    quasi = df[df['type'] == 'quasi-random']
-    cluster_order = cluster_means.sort_values('tau_L', ascending=False).index
-    stage_3 = quasi[quasi['cluster'] == cluster_order[0]]   # Least chaotic
-    stage_4 = quasi[quasi['cluster'].isin(cluster_order[1:3])]  # Moderate
-    stage_5 = quasi[quasi['cluster'].isin(cluster_order[3:5])]  # High chaos
-    stage_6 = quasi[quasi['cluster'] == cluster_order[5]]   # Most extreme
-
-    return [stage_0, stage_1, stage_2, stage_3, stage_4, stage_5, stage_6]
-```
-
-**Safeguards:** Ensure >10% per stage (merge underpopulated clusters if needed). Validate by training a small PINN and checking loss drops. Run once pre-training. Check pairwise correlations between invariants before clustering — if E and tau_L correlate strongly, use the first PCA component as a composite difficulty score rather than independent axes.
-
-**Integration:** The adaptive assignment augments (not replaces) `assign_curriculum_stage()` in `data-processing-pipeline-full.py`. Current static thresholds serve as initial anchors; data-driven quantiles refine them for the specific dataset.
+**Integration:** Augments (not replaces) `assign_curriculum_stage()` in `data-processing-pipeline-full.py`. Static thresholds serve as initial anchors; data-driven quantiles refine them.
 
 ---
 
@@ -199,48 +161,19 @@ The CTL document defines stage criteria using Lyapunov time (tau_L) and L/L_max 
 
 ### L_max Computation (Resolved)
 
-L_max = M_total * r_char * v_char, where r_char is the mean pairwise separation and v_char = sqrt(2|E|/M_total) is the circular-orbit velocity for the system's energy:
-
-```
-r_char = mean(pairwise separations)
-v_char = sqrt(2 * |E| / M_total)
-L_max = M_total * r_char * v_char
-L_norm = L / L_max  (clamped to [0, 1])
-```
-
-Python implementation:
+L_max = M_total * r_char * v_char where r_char is mean pairwise separation and v_char = sqrt(2|E|/M_total):
 
 ```python
 def compute_L_norm(masses, r_prime, v_prime, eps=1e-10):
-    """Compute L/L_max ratio for stage assignment."""
-    # Total angular momentum
-    L_vec = np.zeros(3)
-    for i in range(3):
-        L_vec += masses[i] * np.cross(r_prime[i], v_prime[i])
+    L_vec = sum(masses[i] * np.cross(r_prime[i], v_prime[i]) for i in range(3))
     L = np.linalg.norm(L_vec)
-
-    # Characteristic scales
-    pairwise = []
-    for i in range(3):
-        for k in range(i+1, 3):
-            pairwise.append(np.linalg.norm(r_prime[i] - r_prime[k]))
-    r_char = np.mean(pairwise)
-
-    # Energy for v_char
+    r_char = np.mean([np.linalg.norm(r_prime[i]-r_prime[k]) for i in range(3) for k in range(i+1,3)])
     T = np.sum(0.5 * masses * np.sum(v_prime**2, axis=1))
-    V_pot = 0.0
-    for i in range(3):
-        for k in range(i+1, 3):
-            r_ik = np.linalg.norm(r_prime[i] - r_prime[k]) + eps
-            V_pot -= masses[i] * masses[k] / r_ik
-    E = T + V_pot
-
-    M_total = np.sum(masses)
-    v_char = np.sqrt(2 * np.abs(E) / M_total) if abs(E) > eps else 0.0
+    V = -sum(masses[i]*masses[k]/(np.linalg.norm(r_prime[i]-r_prime[k])+eps) for i in range(3) for k in range(i+1,3))
+    E = T + V; M_total = np.sum(masses)
+    v_char = np.sqrt(2*abs(E)/M_total) if abs(E)>eps else 0.0
     L_max = M_total * r_char * v_char
-
-    L_norm = L / (L_max + eps) if L_max > eps else 0.0
-    return np.clip(L_norm, 0, 1)
+    return np.clip(L/(L_max+eps), 0, 1) if L_max>eps else 0.0
 ```
 
 ### tau_L Computation (Resolved)
@@ -248,77 +181,51 @@ def compute_L_norm(masses, r_prime, v_prime, eps=1e-10):
 tau_L = 1/λ_max where λ_max is the largest Lyapunov exponent. The recommended approach uses shadow trajectory divergence: perturb the initial state by epsilon, integrate both trajectories, and track exponential separation growth.
 
 ```python
-def compute_tau_L(masses, r_prime, v_prime, t_max=10.0, T_scale=10.0,
-                  G=1.0, M_tot_ref=3.0, epsilon_pert=1e-8, epsilon_soft=1e-10,
-                  delta_t=0.1, num_perturbations=3, integration_horizon=50.0):
+def compute_tau_L(masses, r_prime, v_prime, T_scale=10.0, G=1.0, M_tot_ref=3.0,
+                  eps=1e-10, delta_t=0.1, n_pert=3, horizon=50.0):
     """Compute Lyapunov time via shadow trajectory divergence."""
     from scipy.integrate import solve_ivp
-
-    D = np.cbrt(G * M_tot_ref * T_scale**2)
+    D = np.cbrt(G * M_tot_ref * T_scale**2)  # = 6.694
     V = D / T_scale
     y0 = np.hstack((r_prime.flatten(), v_prime.flatten()))
 
-    # Scaled RHS (dynamics are invariant under scaling)
     def rhs(t, y):
-        pos = y[:9].reshape(3, 3)
-        vel = y[9:].reshape(3, 3)
-        acc = np.zeros((3, 3))
+        pos, vel = y[:9].reshape(3,3), y[9:].reshape(3,3)
+        acc = np.zeros((3,3))
         for i in range(3):
             for j in range(3):
                 if i != j:
                     dr = pos[j] - pos[i]
-                    r3 = np.linalg.norm(dr)**3 + epsilon_soft
-                    acc[i] += masses[j] * dr / r3
+                    acc[i] += masses[j] * dr / (np.linalg.norm(dr)**3 + eps)
         return np.hstack((vel.flatten(), acc.flatten()))
 
-    T_max_scaled = integration_horizon / T_scale
+    T_max = horizon / T_scale
     lambdas = []
-
-    for _ in range(num_perturbations):
-        delta0 = np.random.randn(18)
-        delta0 = epsilon_pert * delta0 / np.linalg.norm(delta0)
-        y0_pert = y0 + delta0
-
-        sol_nom = solve_ivp(rhs, [0, T_max_scaled], y0,
-                           method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
-        sol_pert = solve_ivp(rhs, [0, T_max_scaled], y0_pert,
-                            method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
-
-        current_t = 0.0
-        sum_log = 0.0
-        num_steps = 0
-        delta_t_scaled = delta_t / T_scale
-
-        while current_t < T_max_scaled:
-            next_t = min(current_t + delta_t_scaled, T_max_scaled)
-            t_eval = np.linspace(current_t, next_t, 10)
-            y_nom = sol_nom.sol(t_eval)
-            y_pert = sol_pert.sol(t_eval)
-            d = np.linalg.norm(y_pert - y_nom, axis=0)
+    for _ in range(n_pert):
+        delta0 = eps * (d := np.random.randn(18)) / np.linalg.norm(d)
+        sol_nom = solve_ivp(rhs, [0, T_max], y0, method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+        sol_pert = solve_ivp(rhs, [0, T_max], y0 + delta0, method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+        current_t, sum_log, num_steps = 0.0, 0.0, 0
+        dt = delta_t / T_scale
+        while current_t < T_max:
+            t_eval = np.linspace(current_t, min(current_t + dt, T_max), 10)
+            d = np.linalg.norm(sol_pert.sol(t_eval) - sol_nom.sol(t_eval), axis=0)
             avg_d = np.mean(d)
-
             if avg_d > 1e-4:
-                sum_log += np.log(avg_d / epsilon_pert)
-                num_steps += 1
-                direction = (y_pert[:, -1] - y_nom[:, -1]) / avg_d
-                y0_pert = y_nom[:, -1] + epsilon_pert * direction
-                sol_pert = solve_ivp(rhs, [next_t, T_max_scaled], y0_pert,
-                                    method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
-            current_t = next_t
+                sum_log += np.log(avg_d / eps); num_steps += 1
+                sol_pert = solve_ivp(rhs, [current_t, T_max],
+                    sol_nom.sol(current_t) + eps * (sol_pert.sol(current_t) - sol_nom.sol(current_t)) / avg_d,
+                    method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
+            current_t += dt
+        if num_steps > 0: lambdas.append(sum_log / (num_steps * dt))
 
-        if num_steps > 0:
-            lambda_est = sum_log / (num_steps * delta_t_scaled)
-            lambdas.append(lambda_est)
-
-    lambda_max = np.max(lambdas) if lambdas else 0.0
-    tau_L_scaled = 1.0 / max(lambda_max, 1e-6)
-    tau_L = tau_L_scaled * T_scale
+    tau_L = T_scale / max(np.max(lambdas) if lambdas else 0.0, 1e-6)
     return tau_L
 ```
 
-**Operational note:** For batch processing ~15K trajectories, use the faster PCA+Rosenstein approximation at `data-processing-pipeline-full.py:799` (`estimate_lyapunov_time()`). Calibrate its thresholds against the integration-based method above on a representative sample.
+**Operational note:** For batch processing ~15K trajectories, use the faster PCA+Rosenstein approximation at `data-processing-pipeline-full.py:799` (`estimate_lyapunov_time()`). Calibrate thresholds against the integration-based method on a representative sample.
 
-**D value note:** The `compute_tau_L` code above uses the corrected B-02 formula: D = cbrt(G * M_tot_ref * T_scale^2) = 6.694 for G=1, M_tot_ref=3.0, T_scale=10. This matches the canonical characteristic length from `01-architecture-and-physics-foundations.md` (finding B-02). The original CTL formula D = cbrt(G * T_scale^2) ≈ 4.64 omitted M_tot and is no longer used.
+**D value:** Uses corrected B-02 formula: D = cbrt(G * M_tot_ref * T_scale^2) = 6.694. Original CTL D = cbrt(G * T_scale^2) ≈ 4.64 omitted M_tot.
 
 ---
 
@@ -437,7 +344,7 @@ The cap prevents energy loss from dominating the total loss at late stages. At S
 
 ## Recommended Resolutions
 
-1. **P3-1 — Implement replay/lookahead batch construction:** Two-phase sampler per the verbatim Section 6 specification below. 240 replay + 16 lookahead, 32 points/trajectory with 50/50 sampling. This is the single highest-priority training loop task — without it, the curriculum does not function.
+1. **P3-1 — Implement replay/lookahead batch construction:** Two-phase sampler per the verbatim Section 6 specification below. 240 replay + 16 lookahead, 32 points/trajectory with 50/50 sampling. Highest-priority task — without it the curriculum does not function.
 
 2. **P3-2 — Separate data-fidelity and collocation points:** Define two independent point sets. Data-fidelity: 8192 points from Brutus snapshots, L1 loss. Collocation: 4096 points from [0,T], physics + energy loss. Both use 50/50 sampling.
 
@@ -677,7 +584,7 @@ def get_lambda_E(stage, L_energy_current=None):
 
 ---
 
-*End of verbatim audit Section 6.*
+*End of verbatim audit Section 6 *
 
 ---
 

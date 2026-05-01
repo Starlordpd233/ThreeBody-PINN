@@ -6,7 +6,7 @@ This document consolidates all identified findings, critical issues, and open de
 
 The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of 256 neurons with sinusoidal activations, power-enhanced skip connections (p=2), and LayerNorm stabilization on odd layers. The input vector is 14-dimensional — 1 normalized time coordinate plus a 13-component initial-condition descriptor. The network outputs 9-dimensional 3D positions for three gravitationally interacting bodies.
 
-**Readiness assessment: NOT READY FOR IMPLEMENTATION.** Seven blockers documented in the table below; the three highest-priority are: the SIREN hidden-layer initialization formula inverts the Sitzmann et al. (2020) specification; the characteristic length D omits M_tot=3 in both documents (correct value is 6.694); and the input vector composition is resolved (Option B: shape invariants + direction cosines) but awaits implementation.
+**Readiness assessment: NOT READY FOR IMPLEMENTATION.** Seven blockers documented in the table below; the three highest-priority are: the SIREN hidden-layer initialization formula in the source architecture document inverts the Sitzmann et al. (2020) specification; the characteristic length D omits M_tot=3 in both documents (correct value is 6.694); and the input vector composition has a recommended path (Option B: shape invariants + direction cosines) but remains an open decision before implementation.
 
 ---
 
@@ -16,10 +16,10 @@ The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of
 
 | ID | Severity | Finding | Location | Fix |
 |----|----------|---------|----------|-----|
-| B-01 | **BLOCKING** | SIREN hidden-layer init formula **multiplies** by omega0 instead of **dividing**. At hidden_omega0=1 the bug is latent; at omega0=30 variance explodes 810,000x → instant NaN across 12 layers. Contradicts Sitzmann et al. (2020) NeurIPS. | `basic_architecture.py:37`, `main_pinn.pdf` Table 1 | `bound = np.sqrt(6.0 / n_in) / hidden_omega0` (divide, not multiply) |
+| B-01 | **BLOCKING** | The source architecture document's hidden-layer init table gives a wrong formula: it scales with omega0 instead of dividing by omega0. At hidden_omega0=1 the bug is latent; at omega0=30 variance would explode 810,000x across 12 layers. The live `pinn/basic_architecture.py` implementation already divides by `self.omega_0`; this is a source-document/specification defect, not a current-code defect. | `main_pinn.tex` Table 1 / `sqr_skipresnet_siren_backbone.tex`; live code check: `pinn/basic_architecture.py:37` | Keep/verify `bound = np.sqrt(6.0 / n_in) / hidden_omega0` in code; update the architecture document when LaTeX is revised. |
 | B-02 | **BLOCKING** | Characteristic length D has the same wrong formula in both documents: `D = cbrt(G*T^2) ≈ 4.64`, omitting M_tot=3. **Correct:** `D = (G * M_tot * T^2)^(1/3) = (3 * 100)^(1/3) = 6.694` | `main_CTL.pdf` Sec 4.2, `main_pinn.pdf` Table 2 | Adopt D = 6.694 everywhere. Recompute ALL scaled quantities and stage assignments. |
 | B-03 | **BLOCKING** | Input vector dimensionality claimed as 12D, 13D, and 14D simultaneously across documents. No fixed n_in for the first Linear layer. | `main_CTL.pdf` Sec 4.5, `main_pinn.pdf` Table 2 | Adopt **14D** as canonical: t' (1D) + IC (13D). |
-| B-04 | **BLOCKING** | Input vector composition is unresolved. Audit recommends 5 trig values for 3 angles. Causal_Trainingmismatch argues trig encodings suffer gimbal lock during chaotic scattering and proposes shape invariants + direction cosines. | Audit §5.3 vs Causal_Trainingmismatch §Input Vector | **Resolved:** shape invariants + direction cosines (see Open Decisions and Section 5). |
+| B-04 | **BLOCKING** | Input vector composition is unresolved. Audit recommends 5 trig values for 3 angles. Causal_Trainingmismatch argues trig encodings suffer gimbal lock during chaotic scattering and proposes shape invariants + direction cosines. | Audit §5.3 vs Causal_Trainingmismatch §Input Vector | **Recommended:** shape invariants + direction cosines (see Open Decisions and Section 5). Human approval still required before coding the first Linear layer. |
 | B-05 | **BLOCKING** | COM frame violation in hierarchical ICs. |COM| ~ 9e-3 after Gaussian perturbation. PINN assumes COM-frame outputs but targets are not in COM frame. | `README.md` lines 328-335, `main_CTL.pdf` Sec 4.3 | Unified COM transformer: recenter + reboost FIRST, then scale. Assert mass consistency. |
 | B-09 | **BLOCKING** | Softening parameter mismatch by 10^5×. CTL uses eps=1e-10 for invariant E (stage assignment). PINN uses eps_soft=1e-5 for physics residual and energy loss. Different physics for curriculum vs training. | `main_CTL.pdf` Sec 4.4, `main_pinn.pdf` Sec 3.2-3.3 | Adopt Dual-Context Epsilon Strategy: eps=1e-10 for static invariants (CPU/float64), eps_soft=1e-5 for dynamic loss (GPU/float32). See resolution below. |
 | B-10 | **BLOCKING** | Dynamic omega0 scheduling has no runtime effect. `update_omega0()` decays first_omega0 from 30 to 10 over epochs, but omega0 is used ONLY at weight initialization. Changing it post-init does nothing. | `main_pinn.pdf` Sec 2.2, Listing 1 | **Remove the scheduling function.** Use fixed first_omega0=30, hidden_omega0=1. |
@@ -46,8 +46,8 @@ The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of
 | D3 | MINOR | LayerNorm affine=True or affine=False? | Default `affine=False` (safer). LayerNorm's purpose is normalization, not feature transformation. |
 | D4 | MINOR | Should quasi-random IC Brutus outputs get COM-corrected? | Experiment: parse 100 trajectories. If COM drift > 1e-12, apply correction. |
 | D6 | MINOR | How to handle Brutus mass drift between snapshots? | Compare m_IC vs m_Brutus_t=0 with np.allclose(rtol=1e-15). |
-| D8 | MINOR | Should s_min use softening for Stage 6 collision criterion? | Keep s_min unsoftened for physical measurement. Use `max(s_min, epsilon)` as floor for criteria. |
-| D9 | MINOR | Is the orientation representational gap fatal? | The direction-cosines encoding resolves this. Verify with small MLP: if MSE < 1e-4, sufficient. |
+| D8 | MINOR | Should s_min use softening for Stage 6 collision criterion? | Canonical split lives in `03-curriculum-and-training-loop.md`: use unsoftened `s_min` for curriculum stage gates and diagnostics; use `max(s_min, epsilon_soft)` only inside training-loss collision criteria. |
+| D9 | MINOR | Is the orientation representational gap fatal? | The recommended direction-cosines encoding addresses this if Option B is accepted. Verify with small MLP: if MSE < 1e-4, sufficient. |
 | D10 | MINOR | Can training start with standard SIREN init while D formula is being fixed? | Yes partially. Use D=6.694 from day one to avoid retraining. Priority P0. |
 
 ---
@@ -84,6 +84,46 @@ With explicit conversion rules:
 
 Every loss function must declare which space it lives in. The physics loss converts AD derivatives in τ back to derivatives in u before computing the residual.
 
+### Explicit AD Implementation Requirement
+
+**Source:** `next steps.txt` Issue 12, plus `main_pinn.tex` derivative discussion.
+
+The source documents state that velocities and accelerations are derived by automatic differentiation, but they do not provide concrete three-body PyTorch code. Downstream implementation must compute component-wise derivatives, not a collapsed gradient of the summed 9D position output. A safe implementation pattern is:
+
+```python
+def time_derivatives(model, t_tau, ic):
+    """Return r', dr'/du, and d2r'/du2 for inputs [tau, IC]."""
+    t_tau = t_tau.detach().clone().requires_grad_(True)
+    positions = model(torch.cat([t_tau, ic], dim=-1))  # [batch, 9]
+
+    velocity_tau_cols = []
+    acceleration_tau_cols = []
+    for component in range(positions.shape[1]):
+        velocity_component = torch.autograd.grad(
+            positions[:, component].sum(),
+            t_tau,
+            create_graph=True,
+            retain_graph=True,
+        )[0]
+        acceleration_component = torch.autograd.grad(
+            velocity_component.sum(),
+            t_tau,
+            create_graph=True,
+            retain_graph=True,
+        )[0]
+        velocity_tau_cols.append(velocity_component)
+        acceleration_tau_cols.append(acceleration_component)
+
+    velocity_tau = torch.cat(velocity_tau_cols, dim=-1)
+    acceleration_tau = torch.cat(acceleration_tau_cols, dim=-1)
+
+    velocity_u = 2.0 * velocity_tau
+    acceleration_u = 4.0 * acceleration_tau
+    return positions, velocity_u, acceleration_u
+```
+
+The current `compute_derivatives()` convenience method in `pinn/basic_architecture.py` uses `grad_outputs=torch.ones_like(positions)`, which differentiates the summed output and is not sufficient when each of the 9 coordinate accelerations must enter the physics residual separately. Implementation phases should replace or wrap it with a component-wise derivative routine and apply the τ→u chain-rule factors above.
+
 ---
 
 ## Dual-Context Epsilon Strategy
@@ -107,8 +147,8 @@ A five-order-of-magnitude gap between eps=1e-10 and eps_soft=1e-5 produces quali
 
 - **At r = 1.0 (wide separation):** Both epsilon values produce identical potentials to within 1e-8 relative error. The softening choice is irrelevant for quiescent phases.
 - **At r = 0.01 (moderate close encounter):** eps=1e-5 softens the potential by ~0.1% relative to unsoftened Newtonian; eps=1e-10 is effectively exact.
-- **At r = 0.001 (extreme close encounter):** eps=1e-5 softens by ~1%; eps=1e-10 softens by ~0.01%. The 1% difference in potential changes the local curvature of the loss landscape — gradient magnitudes differ by ~3% between the two epsilon values.
-- **At r = 1e-4 (near-singularity):** eps=1e-5 is 100× larger than the separation — the softened potential is dominated by the softening kernel, not the 1/r² law. eps=1e-10 produces gradient norms ~10³× larger than eps=1e-5.
+- **At r = 0.001 (extreme close encounter):** eps=1e-5 softens by ~0.99%; eps=1e-10 softens by ~0.00001% for the additive potential form `V=-1/(r+eps)`. The ~1% difference in potential changes the local curvature of the loss landscape.
+- **At r = 1e-4 (near-singularity):** eps=1e-5 is 0.1× the separation and reduces the additive-potential magnitude by ~9.1%; eps=1e-10 changes it by ~0.0001%. This is not yet softening-dominated, but it is large enough to materially alter close-encounter gradients.
 
 **Operational consequence:** Stage assignment (which uses eps=1e-10) correctly identifies systems that WILL experience close encounters at later times. But the training loss (which uses eps_soft=1e-5) evaluates those same encounters with softened dynamics. The curriculum gate and the loss function operate on different physics. For trajectories within ~15% of a stage boundary defined by s_min or E thresholds, this 1% potential difference can flip the stage label — making the network train on Stage-k data that the curriculum assigned to Stage-(k+1), or vice versa.
 
@@ -126,13 +166,13 @@ A five-order-of-magnitude gap between eps=1e-10 and eps_soft=1e-5 produces quali
 | Angular momentum | L_norm_norm | `2*clip(L/L_max, 0, 1) - 1` | [-1, 1] | L_max = M_tot * r_char * v_char |
 | Virial ratio | Q_norm | `tanh((Q - 1) / 0.5)` | ~[-0.54, 0.54] | Q_scale = 0.5 fixed |
 | Min separation | s_min_norm | `tanh(s_min / s_min_scale)` | [0, 1) | s_min_scale = median(r_char) |
-| Moment of inertia | I_norm | `tanh(I_trace / (M_tot * r_char^2))` | [-1, 1] | Resolved — tanh wrapper confirmed (see Section 5.2) |
+| Moment of inertia | I_norm | `tanh(I_trace / (M_tot * r_char^2))` | [-1, 1] | Recommended working formula, but still **unresolved** because CTL text and code listing disagree |
 | Shape invariants (×3) | I_1, I_2, I_3 | `2*(I_i / I_max) - 1` | [-1, 1] | I_3_norm needs 2*I3 - 1 mapping |
 | Direction cosines (×2) | cos(θ), sin(θ) | Direct use | [-1, 1] | Orientation of invariant plane normal |
 | **Total** | | | **14D** | t'(1) + IC(13) |
 
 **Note on I_norm text-vs-code inconsistency (also from `next-step-for-data-processing-pipeline.txt`):**
-The textual description defines `I_norm = tr(I) / (M_tot * r_char^2)`, while the code listing (`lst:inertia_calculation`) applies `tanh()` to that quantity. A later code listing repeats the `tanh` version. The `tanh` wrapper maps the result to [-1, 1] for neural network input but was never documented in the text. This is the canonical location for this table; `02-data-pipeline-and-validation.md` cross-links here.
+The CTL text defines `I_norm = tr(I) / (M_tot * r_char^2)` as a raw ratio, while the later normalization listing applies `tanh()` to that quantity. The `tanh` wrapper maps the result to [-1, 1] for neural network input but is not documented in the earlier text. This remains an open documentation/design decision for the LaTeX revision phase; the table above records the recommended working formula rather than a closed decision.
 
 ---
 
@@ -190,25 +230,27 @@ The `update_omega0()` function in the PINN architecture document decays first_om
 >
 > **Resolve before writing the first Linear layer.**
 
-> **[RESOLVED]** `I_norm` definition — text formula vs code implementation
+> **[DECISION-NEEDED]** `I_norm` definition — text formula vs code implementation
 >
 > Two conflicting definitions existed:
 > - **Text:** `I_norm = tr(I) / (M_tot * r_char^2)` — a raw ratio, unbounded
-> - **Code (lst:inertia_calculation):** `I_norm = tanh(tr(I) / (M_tot * r_char^2))` — same ratio passed through tanh to map to [-1, 1]
+> - **Normalization listing:** `I_norm = tanh(tr(I) / (M_tot * r_char^2))` — same ratio passed through tanh to map to [-1, 1]
 >
-> **Resolution:** The `tanh` version is adopted — it is consistent with the [-1, 1] normalization contract for all IC vector components. The normalization table and Section 5.2 both now show the tanh form. The textual description in CTL Sec 4.5 should be updated to explicitly state the tanh wrapper when that document is next revised.
+> **Recommendation:** Adopt the `tanh` version because it is consistent with the [-1, 1] normalization contract for all IC vector components. Do not mark this closed until the CTL text definition and normalization listing are reconciled in the LaTeX source.
+>
+> **Resolve before finalizing the IC-vector implementation and CTL text revision.**
 
 ---
 
 ## Recommended Resolutions
 
 1. **P0 — Fix D formula:** Replace both D=4.64 and D=10 with D=6.694 everywhere. Recompute all scaled energies, L_norm values, Q values, and stage assignments.
-2. **P0 — Fix SIREN init:** Change `bound = omega0 * sqrt(6/n)` to `bound = sqrt(6/n) / omega0` in `basic_architecture.py:37`.
-3. **P0 — Adopt 14D input vector:** Canonicalize [t', IC_13D] with shape invariants + direction cosines per the recommended resolution above.
+2. **P0 — Verify SIREN init contract:** Keep the live code's divide-by-omega0 implementation and update the source architecture document's table when LaTeX is revised.
+3. **P0 — Decide 14D input vector:** Canonicalize [t', IC_13D] with shape invariants + direction cosines if the recommended Option B is accepted.
 4. **P1 — Implement unified COM transformer:** COM-first ordering, single function for both ICs and Brutus outputs, mass-consistency assertion.
 5. **P1 — Add AD chain-rule conversion:** Explicit `dr'/du = 2 * dr'/dτ` and `d²r'/du² = 4 * d²r'/dτ²` in physics loss and energy loss computations.
 6. **P1 — Remove omega0 scheduling:** Delete `update_omega0()`, use fixed first_omega0=30, hidden_omega0=1.
-7. **P2 — Resolve I_norm definition:** Adopt tanh-wrapped version; update CTL text.
+7. **P2 — Resolve I_norm definition:** Decide whether the tanh-wrapped version is canonical; update CTL text and code listings together.
 8. **P2 — Ablate skip-path LayerNorm:** Train with/without to determine if author modification helps or hurts.
 
 ---
@@ -240,9 +282,9 @@ The target architecture (`SQRSkipResNetSIREN` in `basic_architecture.py`) combin
 
 **Layer dimensions:** 14 → 256 × 12 hidden → 9. Total parameters: approximately 794,000.
 
-**Known code issues in current implementation:**
-- Hidden-layer init in `basic_architecture.py:37` multiplies by omega0 instead of dividing (B-01)
-- `compute_derivatives` method computes derivatives w.r.t. the raw time coordinate, not the normalized τ — the chain-rule conversion factors (2×, 4×) described above are not applied
+**Known code/spec issues:**
+- The source architecture document's hidden-layer init table uses the wrong formula; the live `basic_architecture.py:37` implementation already divides by omega0 and matches the corrected SIREN contract (B-01 source-document issue)
+- `compute_derivatives` collapses the 9D output derivative through `grad_outputs=torch.ones_like(positions)` and does not apply the τ→u chain-rule conversion factors (2×, 4×)
 - Input vector comments in `basic_architecture.py` describe a different IC composition than what `data-processing-pipeline-full.py` produces
 
 ---
@@ -302,13 +344,96 @@ The shape-invariants-plus-direction-cosines approach avoids this pathology entir
 
 ---
 
-## Final Resolved Input Vector Specification
+## Verbatim Reference Specification — Copied from 2026-04-27 Audit
 
-The following section is the authoritative 14-D input vector specification that downstream implementation phases should quote directly. It incorporates the [Option B resolution](#open-decisions) (shape invariants + direction cosines) from the Open Decisions section above — rejecting the audit's Option A trigonometric encoding due to gimbal-lock pathologies during chaotic scattering (see [Considered Alternatives](#considered-alternatives)). The audit's original Option A specification is preserved under Considered Alternatives for reference only and must NOT be used for implementation.
+The following section is copied verbatim from the comprehensive technical audit dated 2026-04-27. It documents the audit's original Option A trigonometric encoding. The consolidated recommendation below (Section 5, Option B) adopts shape invariants + direction cosines; this original is preserved here for traceability.
 
 ---
 
-## 5. FINAL INPUT VECTOR SPECIFICATION (OPTION B — RESOLVED)
+## 5. CORRECTED INPUT VECTOR SPECIFICATION
+
+### 5.1 Final Input Vector: 14 Dimensions
+
+```
+Input = [t', m_norm(3), E_norm, L_norm_norm, Q_norm, s_min_norm, I_norm, trig_vec(5)]
+        = [1D  + 3D      + 1D    + 1D         + 1D    + 1D         + 1D    + 5D      ]
+        = 14D
+```
+
+### 5.2 Component Specifications
+
+| Component | Dim | Normalization | Formula | Range |
+|-----------|-----|---------------|---------|-------|
+| t' | 1 | `2*t/T_max - 1` | T_max = 10 | [-1, 1] |
+| m_norm | 3 | `2*(m_i/m_total) - 1` | m_total = sum(m_i) | [-0.93, 0.585] (hier); [-1/3, -1/3] (equal) |
+| E_norm | 1 | `tanh(E / E_scale)` | E_scale = |median(E)| | [-1, 0) — **document** |
+| L_norm_norm | 1 | `2*clip(L/L_max, 0, 1) - 1` | L_max = M_tot * r_char * v_char | [-1, 1] |
+| Q_norm | 1 | `tanh((Q - 1) / 0.5)` | Q_scale = 0.5 (fixed) | ~[-0.54, 0.54] |
+| s_min_norm | 1 | `tanh(s_min / s_min_scale)` | s_min_scale = median(r_char) | [0, 1) |
+| I_norm | 1 | `tanh(I_trace / (M_tot * r_char^2))` | I_trace = tr(sum_i m_i * (||r'\|^2 * I - r'(r')^T)) | [-1, 1] |
+| trig_vec | 5 | `[sin(tL), cos(tL), sin(pL), cos(pL), sin(gO)]` | tL=theta_L, pL=phi_L, gO=gamma_orb | Each in [-1,1] |
+
+### 5.3 Trigonometric Angle Computation (NEW — missing from CTL)
+
+```python
+# After canonical ordering, compute angular momentum direction
+L_vec = sum(m[i] * cross(r_prime[i], v_prime[i]) for i in range(3))
+L_hat = L_vec / (norm(L_vec) + 1e-10)
+
+# Polar and azimuthal angles of L_hat
+theta_L = arccos(clip(L_hat[2], -1, 1))   # [0, pi]
+phi_L = arctan2(L_hat[1], L_hat[0])        # [0, 2*pi)
+
+# Orbital phase: project r'_1 (heaviest body) onto orbital plane
+r1 = r_prime[0]  # after canonical ordering
+r1_perp = r1 - dot(r1, L_hat) * L_hat
+# Reference direction in orbital plane
+if abs(L_hat[2]) < 0.99:
+    e_ref = cross(L_hat, [0, 0, 1])
+else:
+    e_ref = cross(L_hat, [1, 0, 0])
+e_ref = e_ref / (norm(e_ref) + 1e-10)
+e_ref_perp = cross(L_hat, e_ref)
+gamma_orb = arctan2(dot(r1_perp, e_ref_perp), dot(r1_perp, e_ref))
+
+trig_vec = [sin(theta_L), cos(theta_L), sin(phi_L), cos(phi_L), sin(gamma_orb)]
+```
+
+### 5.4 Canonical Ordering (Corrected — with Quaternary Tie-Breaker)
+
+```python
+def canonical_ordering(m, r_prime, v_prime):
+    """
+    Total ordering with guaranteed determinism.
+    Primary: -mass (descending)
+    Secondary: |r'| (ascending)
+    Tertiary: |v'| (ascending)
+    Quaternary: x, y, z (lexicographic — deterministic tie-breaker)
+    """
+    keys = []
+    for i in range(3):
+        key = (-m[i], norm(r_prime[i]), norm(v_prime[i]),
+               r_prime[i][0], r_prime[i][1], r_prime[i][2])
+        keys.append(key)
+
+    idx = sorted(range(3), key=lambda i: keys[i])
+    return m[idx], r_prime[idx], v_prime[idx]
+```
+
+### 5.5 Removed Components (vs. CTL original)
+
+- **I_1, I_2, I_3 (shape invariants)**: Replaced by trig_vec which encodes orientation. Shape information is partially recoverable from (s_min, Q, I_norm) combination.
+- **tau_L (Lyapunov time)**: Excluded by design — derived dynamical property, not IC invariant.
+
+---
+
+## Recommended Input Vector Specification (Option B)
+
+The following section is the recommended 14-D input vector specification that downstream implementation phases should quote once the [Option B decision](#open-decisions) is accepted. It incorporates shape invariants + direction cosines and preserves the audit's original Option A trigonometric encoding under Considered Alternatives for traceability.
+
+---
+
+## Recommended Option B: Shape Invariants + Direction Cosines
 
 ### 5.1 Final Input Vector: 14 Dimensions
 
@@ -393,12 +518,12 @@ This queue orders all architecture/physics fixes by dependency, not just severit
 | Priority | Item | Blocks | Estimated Effort |
 |----------|------|--------|------------------|
 | **P0-1** | Fix D formula to 6.694; recompute scaled quantities | All stage assignments, all IC vectors | Pipeline re-run (~2 hrs compute) |
-| **P0-2** | Fix SIREN init (divide by omega0) | Weight initialization validity | 1-line code change |
-| **P0-3** | Adopt 14D input vector with shape invariants + dir cosines | First Linear layer allocation | ~50 lines of Python |
+| **P0-2** | Verify SIREN init divide-by-omega0 contract and update LaTeX table | Weight initialization validity | code check + doc edit |
+| **P0-3** | Decide 14D input vector with shape invariants + dir cosines | First Linear layer allocation | decision + ~50 lines of Python |
 | **P0-4** | Implement unified COM transformer (COM-first, then scale) | All hierarchical trajectory targets | ~30 lines of Python |
 | **P0-5** | Add AD chain-rule conversion factors to loss functions | Physics residual correctness | ~10 lines in loss.py |
 | **P0-6** | Remove omega0 scheduling; use fixed values | Simplifies architecture | Delete ~15 lines |
-| **P1-1** | Resolve I_norm definition (adopt tanh version) | IC vector finalization | 1-line change + doc update |
+| **P1-1** | Resolve I_norm definition (raw ratio vs tanh wrapper) | IC vector finalization | decision + doc/code alignment |
 | **P1-2** | Resolve LayerNorm affine question (ablate) | Architecture finalization | 2 training runs to compare |
 | **P2-1** | Re-attribute LayerNorm as author modification in docs | Citation accuracy | Doc edit only |
 

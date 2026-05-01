@@ -16,7 +16,7 @@ The pipeline produces Brutus outputs at three discrete `dt_out` values: 0.01 (go
 2. **SASD floor effect:** Stiffness-Aware Sampling Density is computed on available snapshots. In low-resolution trajectories, rapid close encounters may span only 1-2 sample points, making the SASD metric blind to interior stiffness spikes.
 3. **Stage boundary artifacts:** Curriculum stages are assigned from invariants computed on ICs alone, but the quality `dt_out` variation means a Stage-k trajectory at high resolution contains radically different training information than the same stage at low resolution.
 
-**Resolution approach** (from `Causal_Trainingmismatch_resolution_blueprint.md`): Collocation points per trajectory must scale proportionally to `1/dt_out` — higher-resolution trajectories receive proportionally more collocation points. The DataLoader must expose per-trajectory `dt_out` metadata so the batch constructor can adapt. See also M16 in the findings table below.
+**Resolution approach** (from `Causal_Trainingmismatch_resolution_blueprint.md`, reconciled with the 17x example): supplemental collocation points per trajectory should scale as `dt_out / dt_base`, where `dt_base=0.01` is the high-resolution baseline. Gold trajectories get 1x supplemental collocation, hierarchical base trajectories get 8x, and standard base trajectories get 17x. This compensates for sparse Brutus snapshots in low-resolution trajectories. The DataLoader must expose per-trajectory `dt_out` metadata so the batch constructor can adapt. See also M16 in the findings table below.
 
 ---
 
@@ -32,13 +32,21 @@ The pipeline produces Brutus outputs at three discrete `dt_out` values: 0.01 (go
 | M12 | **BLOCKING** | Standard trajectories (dt_out=0.17, ~59 snapshots) cannot support 32 points/trajectory (54% sampling ratio). The CTL batch spec assumes 32 points but standard trajectories don't have enough snapshots. *(Re-classified from audit MAJOR to BLOCKING for this consolidation: 54% sampling is infeasible and blocks batch construction.)* | `README.md` dt_out table; CTL Sec 5.3.2 | Adaptive cap: `n_pts = min(32, int(0.5 * n_snapshots))`. For standard: ~29 points. |
 ### MAJOR (Degrades correctness)
 
-| M13 | **MAJOR** | 184 standard IDs have no gold counterpart — Stage 5 training data is incomplete for these IDs. *(Placed in MAJOR rather than BLOCKING: gold-standard data is a quality upgrade, not a hard prerequisite for training. Training can proceed with standard-fidelity fallback.)* | `README.md` line 182; CTL Stage 5 | Check gold counterpart existence before Stage 5 assignment. Skip to Stage 6 if no gold data, or use low-fidelity standard fallback with warning flag. |
-
 | ID | Severity | Finding | Resolution Strategy |
 |----|----------|---------|---------------------|
+| M13 | MAJOR | 184 standard IDs have no gold counterpart — Stage 5 training data is incomplete for these IDs. Placed in MAJOR rather than BLOCKING: gold-standard data is a quality upgrade, not a hard prerequisite for training. Training can proceed with standard-fidelity fallback. | Check gold counterpart existence before Stage 5 assignment. Skip to Stage 6 if no gold data, or use low-fidelity standard fallback with warning flag. |
 | D7 | MAJOR | 219 standard gold files have minimal footers (no tol parameter). Folder default is tol=1e-13 but 592 files in the same folder have tol=1e-14. | Use folder-level default 1e-13. Add `tol_confidence` flag: 'direct' (footer has tol) vs 'inferred' (minimal footer). Log count of inferred tolerances. |
 | — | MAJOR | `dt_out` heterogeneity (M16): collocation density is uniform across 17× dt_out range. Resolution and canonical ownership live in `03-curriculum-and-training-loop.md` MAJOR table (training loop is the implementer of dt_out-aware collocation scaling). | See M16 in 03. |
 | — | MAJOR | Brutus output files use two different parameter sets within the same folder. Footer schema varies — some files omit `eta`, a small subset of standard-quasi-random gold omit both `eta` and `tol`. | Prefer actual `Result:` values when present. Fall back to folder defaults when absent. Treat footer as metadata only — completeness gate uses final timestamp, not footer presence. |
+
+### Severity Reclassification Ledger
+
+The 2026-04-27 audit classified M11 and M12 as MAJOR. This consolidation intentionally reclassifies them as BLOCKING for the data-loading phase:
+
+| ID | Audit Severity | Consolidated Severity | Rationale |
+|----|----------------|-----------------------|-----------|
+| M11 | MAJOR | BLOCKING | A DataLoader that can silently admit blacklisted ICs would corrupt training data at ingestion time. |
+| M12 | MAJOR | BLOCKING | The documented 32-points-per-trajectory batch contract is infeasible for standard trajectories with ~59 snapshots unless adaptive capping is implemented. |
 
 ### MINOR / INFO
 
@@ -62,9 +70,23 @@ The pre-agent review of the initial README and validation PDF identified six gap
 | G3 | Blacklist not loaded at training time | **Open** — addressed by M11 fix |
 | G4 | Gold-standard subset gaps not handled (184 missing standard IDs) | **Open** — addressed by M13 fix |
 | G5 | dt_out heterogeneity not accounted for in batch construction | **Open** — addressed by M12/M16 fixes |
-| G6 | Causal training mismatch not resolved — Option A vs Option B framing | **Open** — surfaced as [DECISION-NEEDED] in `03-curriculum-and-training-loop.md` |
+| G6 | Causal training mismatch not resolved — Option A vs Option B framing | **Open** — surfaced as an open decision in `03-curriculum-and-training-loop.md` |
 
 Gaps G1-G5 are pipeline-level issues with clear technical fixes described in the audit. Gap G6 is an architectural decision that spans the data pipeline (DataLoader must support whatever training mode is chosen) and the training loop; it is flagged in `03-curriculum-and-training-loop.md`.
+
+---
+
+## Validation Threshold Clarifications
+
+**Source:** `Issue_on_data_validation_protocol_and_compatbility_with_project_context.md` §5.
+
+Three minor validation-protocol clarifications are preserved here so future agents do not have to recover them from the archive:
+
+| Clarification | Consolidated Guidance |
+|---------------|----------------------|
+| Overfit Challenge precision | Treat `<1e-6` as a diagnostic overfit challenge on a small controlled subset in scaled units, not as the production curriculum advancement threshold. Production stage progression should follow the CTL thresholds in `03-curriculum-and-training-loop.md` (Stage 0 starts at `epsilon_phys = 5e-3`; late stages tighten toward `1e-4`) unless a human reviewer explicitly changes them. |
+| Input vector dimensionality | Use the 14D contract in `01-architecture-and-physics-foundations.md`: normalized time plus a 13-component IC vector. Older 12D/11D statements are superseded documentation defects. |
+| Gold-standard validation thresholds | Gold-standard data (`dt_out=0.01`) is not assumed to pass automatically. Apply the same completeness and conservation gates, then record stricter/variant-specific threshold decisions explicitly. Gold resolution reduces SASD risk, but SCS/IPR still detect integrator drift and interpolation residuals. |
 
 ---
 
@@ -135,7 +157,7 @@ The current pipeline stores processed data in HDF5 (`.h5`) format via `data-proc
 - No HDF5 library dependency
 - Easier to version-control individual trajectories
 
-See Open Decisions below for the [DECISION-NEEDED] callout.
+See Open Decisions below for the callout.
 
 ---
 
@@ -175,7 +197,8 @@ def compute_globals(ic_files, t_max=10.0, G=1.0, eps=1e-10):
     all_E = np.zeros(N)
     all_r_char = np.zeros(N)
     
-    D = np.cbrt(G * t_max**2)  # Correct: D = 6.694 (with M_tot factor applied externally)
+    M_tot_ref = 3.0
+    D = np.cbrt(G * M_tot_ref * t_max**2)  # Corrected B-02 scale: D = 6.694 for G=1, M_tot=3, T=10
     V = D / t_max
     
     for j, filename in enumerate(ic_files):
@@ -202,7 +225,7 @@ def compute_globals(ic_files, t_max=10.0, G=1.0, eps=1e-10):
     return {'E_scale': E_scale, 'smin_scale': smin_scale, 'Q_scale': 0.5}
 ```
 
-**Note:** The code above uses D = cbrt(G * t_max^2) which gives D ≈ 4.64 (the CTL formula without M_tot=3). After B-02 resolution, replace with D = cbrt(G * M_tot * t_max^2) = 6.694. The `compute_globals` function must be re-run with corrected D.
+**Note:** The code above is the corrected B-02 form. Older source snippets used `D = cbrt(G * t_max^2)`, which gives D ≈ 4.64 and omits `M_tot=3`. The `compute_globals` function must be re-run with corrected D = cbrt(G * M_tot * t_max^2) = 6.694.
 
 ---
 
@@ -234,7 +257,7 @@ def compute_globals(ic_files, t_max=10.0, G=1.0, eps=1e-10):
 5. **P1-5 — Gold counterpart check:** Before Stage 5 assignment, verify gold counterpart exists. If missing: skip to Stage 6 or flag for low-fidelity fallback.
 6. **P1-6 — SASD-weighted collocation:** Use stiffness profile to weight collocation point sampling density.
 7. **P1-7 — Recompute global scales with corrected D=6.694:** Rerun `compute_globals` after D fix. Update all E_scale, smin_scale values.
-8. **P1-8 — Add dt_out-aware collocation scaling:** Scale `n_col_per_traj` inversely proportional to `dt_out`: `n_col = base_n_col * (dt_base / dt_out)`. For dt_base=0.01: gold gets 1x, hierarchical base gets 8x, standard base gets 17x. Adjust `base_n_col` to meet total collocation budget (~10,000-50,000 points per batch).
+8. **P1-8 — Add dt_out-aware collocation scaling:** Scale supplemental `n_col_per_traj` proportional to `dt_out / dt_base`: `n_col = base_n_col * (dt_out / dt_base)`. For dt_base=0.01: gold gets 1x, hierarchical base gets 8x, standard base gets 17x. Adjust `base_n_col` to meet total collocation budget (~10,000-50,000 points per batch).
 9. **P2-1 — Add tol_confidence flag:** 'direct' vs 'inferred' for files with minimal footers. Log count of inferred tolerances during DataLoader init so training logs provide full provenance.
 10. **P2-2 — Batch-verify 100 IC-Brutus mass pairs:** Compare `m_IC` vs `m_Brutus_t=0` with `np.allclose(rtol=1e-15)`. If mismatch: use `decimal.Decimal` for mass parsing. If match: document IC masses as canonical.
 
