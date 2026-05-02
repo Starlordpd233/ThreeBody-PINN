@@ -42,7 +42,7 @@
 
 **Milestone Goal:** Verify every markdown conversion against its LaTeX source section-by-section, fix all errors to achieve one-to-one injection fidelity, and produce one authoritative `.md` file per source document.
 
-- [ ] **Phase 10: CTL-Instruction Verification** - 8 sections, 3 markdown candidates, heavy math — hardest first to validate the approach
+- [x] **Phase 10: CTL-Instruction Verification** - 8 sections, 3 markdown candidates, heavy math — completed 2026-05-02
 - [ ] **Phase 11: Data-Quality-Assessment Verification** - 7 sections, 2 markdown candidates, cross-reference heavy
 - [ ] **Phase 12: PINN-Architecture Verification** - 7 active + 3 inactive sections, 3 markdown candidates, comment exclusion
 - [ ] **Phase 13: Review-of-Framework Verification** - 7 sections, 1 pandoc candidate, sub-document structure
@@ -128,7 +128,10 @@
   3. User can compare the corrected markdown against the LaTeX source section-by-section and observe zero meaningful differences (comment blocks excluded)
   4. User can find the 2 unselected markdown files archived in `_archive/` with a README documenting provenance and why they were not chosen
   5. User can read the final verification report confirming zero-diff status with a complete fix log
-**Plans**: TBD
+**Plans**: 3 plans
+- [x] 10-01-PLAN.md
+- [x] 10-02-PLAN.md
+- [x] 10-03-PLAN.md
 **UI hint**: no
 
 ### Phase 11: Data-Quality-Assessment Verification
@@ -213,7 +216,7 @@ Phases 11-15 all depend on Phase 10 (hardest first to validate the approach). Ph
 | 7. Structure Fidelity Verification | v1.1 | 2/2 | Complete | 2026-03-21 |
 | 8. Compilability Verification | v1.1 | 1/1 | Complete | 2026-03-22 |
 | 9. Issues Directory Consolidation | v1.2 | 0/3 | Not Started | — |
-| 10. CTL-Instruction Verification | v1.3 | 3/3 | Complete   | 2026-05-02 |
+| 10. CTL-Instruction Verification | v1.3 | 3/3 | Complete    | 2026-05-02 |
 | 11. Data-Quality-Assessment Verification | v1.3 | 0/TBD | Not Started | — |
 | 12. PINN-Architecture Verification | v1.3 | 0/TBD | Not Started | — |
 | 13. Review-of-Framework Verification | v1.3 | 0/TBD | Not Started | — |
