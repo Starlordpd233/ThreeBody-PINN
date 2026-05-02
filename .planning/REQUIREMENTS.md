@@ -9,14 +9,14 @@ Requirements for markdown conversion verification and correction. Each maps to a
 
 ### Candidate Selection
 
-- [ ] **CAND-01**: For each LaTeX source with multiple markdown candidates, automated diff-score comparison selects the best starting candidate (fewest diff lines against source)
+- [x] **CAND-01**: For each LaTeX source with multiple markdown candidates, automated diff-score comparison selects the best starting candidate (fewest diff lines against source)
 - [ ] **CAND-02**: Sources with only one markdown candidate (review-of-framework, stage-strat-revision) skip selection and use the existing file directly
 
 ### Audit & Comparison
 
 - [ ] **AUDIT-01**: Section-by-section manual comparison of LaTeX source against markdown for all 6 source documents
 - [ ] **AUDIT-02**: Every discrepancy found during audit is documented in a per-phase verification report with section location, type (math/text/ref/table/hierarchy/comment), and severity
-- [ ] **AUDIT-03**: Comparison explicitly excludes `\begin{comment}...\end{comment}` blocks from the LaTeX source before comparison
+- [x] **AUDIT-03**: Comparison explicitly excludes `\begin{comment}...\end{comment}` blocks from the LaTeX source before comparison
 
 ### Content Fidelity
 
@@ -29,7 +29,7 @@ Requirements for markdown conversion verification and correction. Each maps to a
 
 ### Cleanup & Authority
 
-- [ ] **CLEAN-01**: Each of the 6 LaTeX sources has exactly one authoritative markdown file when its phase completes
+- [x] **CLEAN-01**: Each of the 6 LaTeX sources has exactly one authoritative markdown file when its phase completes
 - [ ] **CLEAN-02**: Unselected duplicate markdown files are archived to an `_archive/` directory with a README explaining provenance
 - [ ] **CLEAN-03**: Each phase produces a verification report documenting: candidate selected and why, all discrepancies found (with locations), all fixes applied, and final zero-diff confirmation
 
@@ -71,18 +71,18 @@ Which phases cover which requirements. Phase ranges indicate cross-cutting requi
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CAND-01 | 10, 11, 12, 15 | Pending |
+| CAND-01 | 10, 11, 12, 15 | Complete |
 | CAND-02 | 13, 14 | Pending |
 | AUDIT-01 | 10-15 | Pending |
 | AUDIT-02 | 10-15 | Pending |
-| AUDIT-03 | 10-15 | Pending |
+| AUDIT-03 | 10-15 | Complete |
 | FIDEL-01 | 10-15 | Pending |
 | FIDEL-02 | 10-15 | Pending |
 | FIDEL-03 | 10-15 | Pending |
 | FIDEL-04 | 10-15 | Pending |
 | FIDEL-05 | 10-15 | Pending |
 | FIDEL-06 | 10-15 | Pending |
-| CLEAN-01 | 10-15 | Pending |
+| CLEAN-01 | 10-15 | Complete |
 | CLEAN-02 | 10, 11, 12, 15 | Pending |
 | CLEAN-03 | 10-15 | Pending |
 | CROSS-01 | 10-15 | Pending |
