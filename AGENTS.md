@@ -42,9 +42,9 @@ If the user asks for help or wants to give feedback inform them of the following
 - **PINN input vector and staging logic**: `pinn/data-processing-pipeline-full.py`
 - **PINN architecture implementation**: `pinn/basic_architecture.py`
 - **Sampling and CTL methodology (reference docs)**:
-  - `pinn_instruction/markdown_conversions/sampling_method_instruction.md`
-  - `pinn_instruction/markdown_conversions/CTL-instruction-final.md`
-  - `pinn_instruction/markdown_conversions/PINN_architecture_plan.md`
+  - `pinn_instruction/markdown_conversion/pandoc_conversion/sampling_method_instruction.md`
+  - `pinn_instruction/markdown_conversion/pandoc_conversion/CTL-instruction-final.md`
+  - `pinn_instruction/markdown_conversion/pandoc_conversion/PINN_architecture_plan.md`
 
 ### 2.2 Project Overview
 This repository implements a complete three-body simulation and CTL-PINN training stack:
@@ -256,8 +256,8 @@ python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --
 
 ### 8.3 Provenance and Audit Files
 - Prescreening logs:
-  - `simulation_data/Validation/prescreening/processing_index_ic_hierarchical.json`
-  - `simulation_data/Validation/prescreening/processing_index_ic_standard_quasi_random.json`
+  - `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_hierarchical.json`
+  - `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_standard_quasi_random.json`
 - Footer audit reports:
   - `simulation_data/Validation/audit_reports/` (most recent: `footer_audit_20251224_170141.md`)
   - Audit/backfill script: `simulation_data/Scripts/debug/audit_and_backfill_brutus_result_footers.py`
