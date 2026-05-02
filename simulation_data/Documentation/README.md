@@ -447,7 +447,7 @@ When adaptive thresholds are enabled, the fixed virial range above serves only a
 **Provenance Tracking:**
 - `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_hierarchical.json` - hierarchical pass/fail records (cumulative: 5,000 entries, 4,860 passed, 140 failed)
 - `simulation_data/Validation/prescreening/prescreening_data/processing_index_ic_standard_quasi_random.json` - standard pass/fail records (cumulative: 4,000 entries, 3,007 passed, 993 failed)
-- `simulation_data/Validation/prescreening/prescreening_data/prescreen_run_results/` - per-run summary JSON outputs (15 files; 10 older schema with `run_info`/`detailed_results`, 5 newer schema with `datasets`/aggregates)
+- `simulation_data/Validation/prescreening/prescreening_data/prescreen_run_results/` - per-run summary JSON outputs (15 files; 10 older schema with `run_info`/`detailed_results`, 5 newer schema with `run_id`/`datasets`)
 
 **Note:** The processing indices are **cumulative history** across all prescreen runs, not exact manifests of the current `final_stage_ic_datasets/` folders. The on-disk IC counts may differ from the index "passed" counts because the final-stage folders also include ICs that were promoted before the index existed or that were manually added.
 
