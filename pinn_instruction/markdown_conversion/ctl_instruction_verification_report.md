@@ -95,6 +95,64 @@ Status: PASS
 | Labels and refs | `sec:ctl:step3`, `item:eqs`, `item:lnorm`, `item:inorm`, `item:lyap`, `Item~\ref{item:lnorm}` | `ctl_instruction.md:429,451,463,488,542,495` | PASS | Labels preserved or mapped to markdown anchors/references. |
 | Visible author notes | `04_phase1_data_prep.tex:79,397,406,434,519,549` | `ctl_instruction.md:415,652,654,692,748,791` | PASS | Preserved as plain `> **Author note:** ...` blocks. |
 
+### 05_phase2_training_loop.tex - Phase 2 - The Definitive CTL-PINN Training Loop
+
+Status: PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| CTL-05-001 | comment | MINOR | `05_phase2_training_loop.tex:3-13` | `ctl_instruction.md:840-856` | Visible opening `\authcomment{...}` was rendered as a Pandoc style span rather than a plain visible markdown note. | Fixed |
+| CTL-05-002 | table | MINOR | `05_phase2_training_loop.tex:105-116` | `ctl_instruction.md:971-976` | Mini-batch composition table was preserved but rendered as an alignment table that was hard to scan. | Fixed |
+| CTL-05-003 | table | MINOR | `05_phase2_training_loop.tex:125-135` | `ctl_instruction.md:986-990` | Curriculum-aware clipping table was preserved but rendered as an alignment table that was hard to scan. | Fixed |
+| CTL-05-004 | comment | MINOR | `05_phase2_training_loop.tex:166-174` | `ctl_instruction.md:1024-1034` | Visible stage-transition `\authcomment{...}` was rendered as a Pandoc style span rather than a plain visible markdown note. | Fixed |
+| CTL-05-005 | table | MINOR | `05_phase2_training_loop.tex:203-214` | `ctl_instruction.md:1065-1071` | Consolidated hyperparameter schedule was preserved but rendered as an alignment table that was hard to scan. | Fixed |
+| CTL-05-006 | comment | INFO | `05_phase2_training_loop.tex:51-58`, `05_phase2_training_loop.tex:237-643` | Converted body | Excluded training-loop comment ranges are absent from the converted body. | Verified |
+
+| Formula/Table ID | Source location | Markdown location | Status | Notes |
+|---|---|---|---|---|
+| Total loss | `05_phase2_training_loop.tex:44-49` | `ctl_instruction.md:917-921` | PASS | Total loss formula and stage index `k` preserved. |
+| ALM multiplier update | `05_phase2_training_loop.tex:65-80` | `ctl_instruction.md:923-935` | PASS | `lambda_p`, `v_p`, and `mu_p` updates preserved. |
+| Mini-batch composition | `05_phase2_training_loop.tex:105-116` | `ctl_instruction.md:971-976` | PASS | Replay and lookahead rows preserved in a readable markdown table. |
+| Adaptive clipping schedule | `05_phase2_training_loop.tex:125-135` | `ctl_instruction.md:986-990` | PASS | Stage bands and clipping constants preserved. |
+| Termination criterion | `05_phase2_training_loop.tex:138-141` | `ctl_instruction.md:992-995` | PASS | Plateau derivative formula preserved. |
+| Stage-transition criteria | `05_phase2_training_loop.tex:176-199` | `ctl_instruction.md:1039-1061` | PASS | Training loss, validation loss, physics residual, and energy-drift formulas preserved. |
+| Consolidated hyperparameter schedule | `05_phase2_training_loop.tex:203-214` | `ctl_instruction.md:1065-1071` | PASS | Stage rows, Adam LR, clip `C`, energy weight, and L-BFGS type preserved. `tab:C_schedule` occurs only in the excluded comment range and is documented here rather than added to the converted body. |
+
+### 06_advanced_considerations.tex - Advanced Considerations and Best Practices
+
+Status: PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| CTL-06-001 | comment | MINOR | `06_advanced_considerations.tex:15` | `ctl_instruction.md:1127-1131` | Visible `\authcomment{...}` under Prediction Horizon was rendered inline as a Pandoc style span rather than a plain visible markdown note. | Fixed |
+
+| Check item | Source location | Markdown location | Status | Notes |
+|---|---|---|---|---|
+| Evaluation metrics list | `06_advanced_considerations.tex:5-34` | `ctl_instruction.md:1112-1162` | PASS | Conservation, prediction horizon, long-term statistics, and short-term error metrics preserved. |
+| Prediction-horizon author note | `06_advanced_considerations.tex:15` | `ctl_instruction.md:1127-1131` | PASS | Preserved as `> **Author note:** ...`. |
+| Reproducibility content carried in source file | `06_advanced_considerations.tex:39-68` | `ctl_instruction.md:1177-1209` | PASS | Reproducibility heading, Hydra YAML stack, and launch command preserved. |
+
+### 07_reproducibility.tex - Reproducibility Note
+
+Status: PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| CTL-07-000 | structure | INFO | `07_reproducibility.tex:1` | `ctl_instruction.md:1177-1209` | File is empty in the modular source; the reproducibility section appears in `06_advanced_considerations.tex` and is preserved there. | No fix needed |
+
+### appendix.tex - Supplementary Figures
+
+Status: PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| CTL-A-000 | figure | INFO | `appendix.tex:2-69` | `ctl_instruction.md:1211-1231` | Both figure captions and labels are represented in markdown as HTML figure blocks. | No fix needed |
+
+| Check item | Source location | Markdown location | Status | Notes |
+|---|---|---|---|---|
+| Figure `fig:step2_data_workflow` | `appendix.tex:28-30` | `ctl_instruction.md:1213-1219` | PASS | Caption and label preserved. |
+| Figure `fig:step2to5_workflow` | `appendix.tex:65-66` | `ctl_instruction.md:1221-1231` | PASS | Caption, label, and reference to `fig:step2_data_workflow` preserved. |
+
 ## Fix Log
 
 | ID | Section | Fix summary |
@@ -104,11 +162,22 @@ Status: PASS
 | CTL-02-002 | `02_data_characterization.tex` | Converted visible author note from Pandoc style span to a plain markdown author-note blockquote. |
 | CTL-04-001 | `04_phase1_data_prep.tex` | Converted Step 2.5 author note to a plain markdown blockquote and repaired conversion-only spacing joins in the note text. |
 | CTL-04-002 | `04_phase1_data_prep.tex` | Converted remaining visible section 04 author notes to plain markdown blockquotes. |
+| CTL-05-001 | `05_phase2_training_loop.tex` | Converted opening training-loop author note to a plain markdown blockquote. |
+| CTL-05-002 | `05_phase2_training_loop.tex` | Rebuilt mini-batch composition as a readable markdown table. |
+| CTL-05-003 | `05_phase2_training_loop.tex` | Rebuilt curriculum-aware clipping schedule as a readable markdown table. |
+| CTL-05-004 | `05_phase2_training_loop.tex` | Converted stage-transition author note to a plain markdown blockquote. |
+| CTL-05-005 | `05_phase2_training_loop.tex` | Rebuilt consolidated hyperparameter schedule as a readable markdown table. |
+| CTL-06-001 | `06_advanced_considerations.tex` | Converted Prediction Horizon author note to a plain markdown blockquote inside the list item. |
 
 ## Source Issues / Notes for Future Reconciliation
 
-Pending section audit.
+| ID | Source section | Markdown heading | Note |
+|---|---|---|---|
+| SI-CTL-001 | `04_phase1_data_prep.tex`, `05_phase2_training_loop.tex`, `appendix.tex` | `Step 4: Formulating the Input Vector`, `Data Flow During Training`, `Supplementary Figures` | The source alternates between 11/12-dimensional and 13/14-dimensional input-vector descriptions. The converted body preserves the LaTeX source exactly; the appended note in `ctl_instruction.md` is metadata for future reconciliation. |
 
 ## Final Verification
 
-Pending completion of section audits and archive/index work.
+- Open discrepancies: 0
+- Zero open discrepancies: yes
+- Converted body excludes appended source-issue metadata from fidelity comparison: yes
+- Fix log complete: yes

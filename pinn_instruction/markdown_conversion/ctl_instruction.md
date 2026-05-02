@@ -837,23 +837,23 @@ mapping from each simulation ID to its assigned stage index.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
-[**\[My biggest question now for this training loop is that: how are we
-feeding the exact input vector and brutus simulation data into the
-network? We need a very specific description that clearly tells me what
-the input format is going to be. For example, right now I know that our
-input vector is a 14th-dimentional input vector; but my question is that
-since the brutus simulation data has a bunch of time series and time
-snapshots, at each which there is a set of 3-body positions and
-velocities, how are we handing the Brutus simulation data to this neural
-network? Like how do we use the Brutus simulation data in this workflow?
-and how do we input it together with the input vector? In which step?
-After the network output a predicted trajectory do we just give it the
-brutus ground-truth data and let it optimize based on that? This ties to
-my bigger question that what is the network ultimately doing? Looking at
-the PINN docment section 5.2 on \"5.2 Output Layer and Kinematic
-Consistency via Automatic Differentiation\", is the ouptut file going to
-be something similar to a brutus output file, sort of acting as a
-replacement for the brutus algorithm?\]**]{style="color: Red"}
+> **Author note:** My biggest question now for this training loop is that: how are we
+> feeding the exact input vector and brutus simulation data into the
+> network? We need a very specific description that clearly tells me what
+> the input format is going to be. For example, right now I know that our
+> input vector is a 14th-dimentional input vector; but my question is that
+> since the brutus simulation data has a bunch of time series and time
+> snapshots, at each which there is a set of 3-body positions and
+> velocities, how are we handing the Brutus simulation data to this neural
+> network? Like how do we use the Brutus simulation data in this workflow?
+> and how do we input it together with the input vector? In which step?
+> After the network output a predicted trajectory do we just give it the
+> brutus ground-truth data and let it optimize based on that? This ties to
+> my bigger question that what is the network ultimately doing? Looking at
+> the PINN docment section 5.2 on "5.2 Output Layer and Kinematic
+> Consistency via Automatic Differentiation", is the ouptut file going to
+> be something similar to a brutus output file, sort of acting as a
+> replacement for the brutus algorithm?
 
 The CTL framework breaks the cycle of needing complex data to learn
 physics while requiring basic physics to handle complex data by
@@ -968,12 +968,12 @@ $n_{\text{pts}}$ (e.g., 32) time points per trajectory: 50% uniform from
 $[0, T]$, 50% weighted by acceleration norm (prioritizes close
 encounters).
 
-  **Portion**      **Purpose**                                                                             **Symbol**    **Size**
-  ---------------- ------------------------------------------------------------------------------------- -------------- ----------
-  Replay set       Prevent forgetting of material from stages $0 \ldots k$ (ensures curriculum replay)    $B_{\leq k}$     240
-  Look-ahead set   "Preview" data from the next stage $k+1$                                                $B_{k+1}$        16
+| Portion | Purpose | Symbol | Size |
+|---|---|---|---:|
+| Replay set | Prevent forgetting of material from stages $0 \ldots k$ (ensures curriculum replay) | $B_{\leq k}$ | 240 |
+| Look-ahead set | "Preview" data from the next stage $k+1$ | $B_{k+1}$ | 16 |
 
-  : Mini-batch composition for batch size = 256.
+*Mini-batch composition for batch size = 256.*
 
 ### Adaptive Median-Based Gradient Clipping
 
@@ -983,11 +983,11 @@ norms.
 
 **Curriculum-aware $C$ schedule:**
 
-  **Curriculum stage**   **Data difficulty**          **C**
-  ---------------------- --------------------------- -------
-  0--1                   quasi-periodic orbits        7--10
-  2--3                   onset of mild chaos            5
-  4--6                   frequent close encounters      3
+| Curriculum stage | Data difficulty | C |
+|---|---|---:|
+| 0--1 | quasi-periodic orbits | 7--10 |
+| 2--3 | onset of mild chaos | 5 |
+| 4--6 | frequent close encounters | 3 |
 
 ### Termination Criterion
 
@@ -1021,18 +1021,17 @@ creates a trust region.
 
 ## Stage Transition Criteria
 
-[**\[Now, for this, we will need to look at how the first stage goes
-when the actual process starts. All of this transition creteria is
-theoretical now, and it will heavily depend on what the actual situation
-is like. Because I only have a limited amount of training data, maybe
-not even enough, I would not expect the network to perform
-extraodinarily well. All I have to see is that the network has the
-potential to do something similar to a 3-body integrator and that it has
-the potential to become better with more training data and optimization.
-Based on this, how should we handle the stage transition criteria
-depending on the actual situations that might happen? Should we first
-test train stage 0 and see how it goes and then go from
-there?\]**]{style="color: Red"}
+> **Author note:** Now, for this, we will need to look at how the first stage goes
+> when the actual process starts. All of this transition creteria is
+> theoretical now, and it will heavily depend on what the actual situation
+> is like. Because I only have a limited amount of training data, maybe
+> not even enough, I would not expect the network to perform
+> extraodinarily well. All I have to see is that the network has the
+> potential to do something similar to a 3-body integrator and that it has
+> the potential to become better with more training data and optimization.
+> Based on this, how should we handle the stage transition criteria
+> depending on the actual situations that might happen? Should we first
+> test train stage 0 and see how it goes and then go from there?
 
 Advance to the next stage only when all four criteria are met on the
 validation set (hold-out 10-20% of cumulative data per stage).
@@ -1063,13 +1062,13 @@ $$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{fin
 
 ## Consolidated Hyperparameter Schedule
 
-   **Stage**    **Adam LR (Initial)**     **Clip 'C'**   **$\lambda_E$ (Energy Wt.)**     **L-BFGS Type**
-  ----------- -------------------------- -------------- ------------------------------ ----------------------
-      0-1      $10^{-3} \times (0.7)^k$       7-10                $10^{k-3}$                 Full-Batch
-      2-3      $10^{-3} \times (0.7)^k$        5                  $10^{k-3}$            Full-Batch / sL-BFGS
-      4-6      $10^{-3} \times (0.7)^k$        3                  $10^{k-3}$                  sL-BFGS
+| Stage | Adam LR (Initial) | Clip `C` | $\lambda_E$ (Energy Wt.) | L-BFGS Type |
+|---|---|---:|---|---|
+| 0-1 | $10^{-3} \times (0.7)^k$ | 7-10 | $10^{k-3}$ | Full-Batch |
+| 2-3 | $10^{-3} \times (0.7)^k$ | 5 | $10^{k-3}$ | Full-Batch / sL-BFGS |
+| 4-6 | $10^{-3} \times (0.7)^k$ | 3 | $10^{k-3}$ | sL-BFGS |
 
-  : Stage-by-stage guide for key dynamic hyperparameters.
+*Stage-by-stage guide for key dynamic hyperparameters.*
 
 ## Implementation Notes
 
@@ -1125,9 +1124,11 @@ need robust, physics-informed metrics:
   conserved (drifting significantly), that would be a red flag that it
   was not capturing the true dynamics properly.
 
-- **Prediction Horizon (Lyapunov Time):** [**\[Should we also use the
-  same definition here for the Lyapunov time from section 2.3 'Necessary
-  Calculations of Invariants'?\]**]{style="color: Red"} We quantify how
+- **Prediction Horizon (Lyapunov Time):**
+
+  > **Author note:** Should we also use the same definition here for the Lyapunov time from section 2.3 'Necessary Calculations of Invariants'?
+
+  We quantify how
   long the model's predictions remain accurate in a chaotic sense by
   measuring the prediction horizon in units of Lyapunov time. For a
   given initial condition with Lyapunov time $\tau_L$, we find the time
@@ -1228,3 +1229,13 @@ complements Figure <a href="#fig:step2_data_workflow"
 data-reference-type="ref"
 data-reference="fig:step2_data_workflow">1</a>.</figcaption>
 </figure>
+
+# Source Issues / Notes for Future Reconciliation
+
+These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `ctl_instruction_verification_report.md`.
+
+## SI-CTL-001: Input-vector dimensionality inconsistency
+
+- Source sections: `04_phase1_data_prep.tex`, `05_phase2_training_loop.tex`, `appendix.tex`.
+- Markdown headings: `Step 4: Formulating the Input Vector: Canonical Ordering, Normalization, and Assembly`, `Data Flow During Training`, and `Supplementary Figures`.
+- Note: The converted body preserves the LaTeX source exactly, but the source alternates between describing an 11-component IC plus time as a 12-dimensional input and a 13-component IC plus time as a 14-dimensional input. This should be reconciled against the canonical PINN input-vector definition in a future source-level update.
