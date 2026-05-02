@@ -14,18 +14,18 @@ Requirements for markdown conversion verification and correction. Each maps to a
 
 ### Audit & Comparison
 
-- [ ] **AUDIT-01**: Section-by-section manual comparison of LaTeX source against markdown for all 6 source documents
-- [ ] **AUDIT-02**: Every discrepancy found during audit is documented in a per-phase verification report with section location, type (math/text/ref/table/hierarchy/comment), and severity
+- [x] **AUDIT-01**: Section-by-section manual comparison of LaTeX source against markdown for all 6 source documents
+- [x] **AUDIT-02**: Every discrepancy found during audit is documented in a per-phase verification report with section location, type (math/text/ref/table/hierarchy/comment), and severity
 - [x] **AUDIT-03**: Comparison explicitly excludes `\begin{comment}...\end{comment}` blocks from the LaTeX source before comparison
 
 ### Content Fidelity
 
-- [ ] **FIDEL-01**: Every mathematical formula from the LaTeX source appears in the markdown with accurate notation and correct rendering (no missing terms, no altered symbols, no whitespace corruption)
-- [ ] **FIDEL-02**: All prose text, lists, code blocks, and inline formatting match the LaTeX source exactly — no dropped sentences, no added content, no paraphrasing
-- [ ] **FIDEL-03**: All `\ref`, `\cite`, `\label`, and bibliography references from the LaTeX source are preserved in the markdown with correct target identifiers
-- [ ] **FIDEL-04**: All tables are verified cell-by-cell for correct content, structure, and formatting
-- [ ] **FIDEL-05**: Section/subsection/paragraph hierarchy in markdown matches the LaTeX source structure exactly
-- [ ] **FIDEL-06**: Commented-out content (`\begin{comment}...\end{comment}` blocks) is absent from the markdown; intentionally excluded sections (e.g., pinn-architecture `_inactive.tex` files) are confirmed excluded
+- [x] **FIDEL-01**: Every mathematical formula from the LaTeX source appears in the markdown with accurate notation and correct rendering (no missing terms, no altered symbols, no whitespace corruption)
+- [x] **FIDEL-02**: All prose text, lists, code blocks, and inline formatting match the LaTeX source exactly — no dropped sentences, no added content, no paraphrasing
+- [x] **FIDEL-03**: All `\ref`, `\cite`, `\label`, and bibliography references from the LaTeX source are preserved in the markdown with correct target identifiers
+- [x] **FIDEL-04**: All tables are verified cell-by-cell for correct content, structure, and formatting
+- [x] **FIDEL-05**: Section/subsection/paragraph hierarchy in markdown matches the LaTeX source structure exactly
+- [x] **FIDEL-06**: Commented-out content (`\begin{comment}...\end{comment}` blocks) is absent from the markdown; intentionally excluded sections (e.g., pinn-architecture `_inactive.tex` files) are confirmed excluded
 
 ### Cleanup & Authority
 
@@ -35,7 +35,7 @@ Requirements for markdown conversion verification and correction. Each maps to a
 
 ### Cross-Cutting
 
-- [ ] **CROSS-01**: Inter-document inconsistencies in the LaTeX sources are preserved in the markdown — do NOT reconcile or resolve differences between source documents
+- [x] **CROSS-01**: Inter-document inconsistencies in the LaTeX sources are preserved in the markdown — do NOT reconcile or resolve differences between source documents
 - [ ] **CROSS-02**: The 6 phases execute sequentially; each phase is independent (different source document) but follows the same audit→fix→verify pattern
 
 ## v2 Requirements
@@ -73,19 +73,19 @@ Which phases cover which requirements. Phase ranges indicate cross-cutting requi
 |-------------|-------|--------|
 | CAND-01 | 10, 11, 12, 15 | Complete |
 | CAND-02 | 13, 14 | Pending |
-| AUDIT-01 | 10-15 | Pending |
-| AUDIT-02 | 10-15 | Pending |
+| AUDIT-01 | 10-15 | Complete |
+| AUDIT-02 | 10-15 | Complete |
 | AUDIT-03 | 10-15 | Complete |
-| FIDEL-01 | 10-15 | Pending |
-| FIDEL-02 | 10-15 | Pending |
-| FIDEL-03 | 10-15 | Pending |
-| FIDEL-04 | 10-15 | Pending |
-| FIDEL-05 | 10-15 | Pending |
-| FIDEL-06 | 10-15 | Pending |
+| FIDEL-01 | 10-15 | Complete |
+| FIDEL-02 | 10-15 | Complete |
+| FIDEL-03 | 10-15 | Complete |
+| FIDEL-04 | 10-15 | Complete |
+| FIDEL-05 | 10-15 | Complete |
+| FIDEL-06 | 10-15 | Complete |
 | CLEAN-01 | 10-15 | Complete |
 | CLEAN-02 | 10, 11, 12, 15 | Pending |
 | CLEAN-03 | 10-15 | Pending |
-| CROSS-01 | 10-15 | Pending |
+| CROSS-01 | 10-15 | Complete |
 | CROSS-02 | 10-15 | Pending |
 
 **Coverage:**
