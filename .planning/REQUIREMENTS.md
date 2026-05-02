@@ -30,13 +30,13 @@ Requirements for markdown conversion verification and correction. Each maps to a
 ### Cleanup & Authority
 
 - [x] **CLEAN-01**: Each of the 6 LaTeX sources has exactly one authoritative markdown file when its phase completes
-- [ ] **CLEAN-02**: Unselected duplicate markdown files are archived to an `_archive/` directory with a README explaining provenance
-- [ ] **CLEAN-03**: Each phase produces a verification report documenting: candidate selected and why, all discrepancies found (with locations), all fixes applied, and final zero-diff confirmation
+- [x] **CLEAN-02**: Unselected duplicate markdown files are archived to an `_archive/` directory with a README explaining provenance
+- [x] **CLEAN-03**: Each phase produces a verification report documenting: candidate selected and why, all discrepancies found (with locations), all fixes applied, and final zero-diff confirmation
 
 ### Cross-Cutting
 
 - [x] **CROSS-01**: Inter-document inconsistencies in the LaTeX sources are preserved in the markdown — do NOT reconcile or resolve differences between source documents
-- [ ] **CROSS-02**: The 6 phases execute sequentially; each phase is independent (different source document) but follows the same audit→fix→verify pattern
+- [x] **CROSS-02**: The 6 phases execute sequentially; each phase is independent (different source document) but follows the same audit→fix→verify pattern
 
 ## v2 Requirements
 
@@ -83,10 +83,10 @@ Which phases cover which requirements. Phase ranges indicate cross-cutting requi
 | FIDEL-05 | 10-15 | Complete |
 | FIDEL-06 | 10-15 | Complete |
 | CLEAN-01 | 10-15 | Complete |
-| CLEAN-02 | 10, 11, 12, 15 | Pending |
-| CLEAN-03 | 10-15 | Pending |
+| CLEAN-02 | 10, 11, 12, 15 | Complete |
+| CLEAN-03 | 10-15 | Complete |
 | CROSS-01 | 10-15 | Complete |
-| CROSS-02 | 10-15 | Pending |
+| CROSS-02 | 10-15 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 16 total
