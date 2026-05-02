@@ -33,13 +33,13 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Verify document structure fidelity (sections, labels, refs, citations, floats) — Phase 7
 - ✓ Verify compilability of all 5 modular structures (0 errors, 0 new warnings) — Phase 8
 - ✓ Consolidate 7 issue reports into 3 thematic documents with migration tracking — Phase 9
+- ✓ **MD-CONV-02**: ctl-instruction markdown matches LaTeX source with one-to-one injection fidelity — Phase 10
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
 - [ ] **MD-CONV-01**: Data-quality-assessment markdown matches LaTeX source with one-to-one injection fidelity
-- [ ] **MD-CONV-02**: ctl-instruction markdown matches LaTeX source with one-to-one injection fidelity
 - [ ] **MD-CONV-03**: pinn-architecture markdown matches LaTeX source with one-to-one injection fidelity
 - [ ] **MD-CONV-04**: review_of_framework markdown matches LaTeX source with one-to-one injection fidelity
 - [ ] **MD-CONV-05**: stage_strat_revision markdown matches LaTeX source with one-to-one injection fidelity
@@ -66,7 +66,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 **Goal:** Verify every markdown conversion against its LaTeX source section-by-section (leveraging the modular split), fix all errors to achieve one-to-one injection fidelity, and produce one authoritative `.md` file per source document.
 
 **Target features:**
-- 6 authoritative markdown files, one per LaTeX source, with exact content match
+- 6 authoritative markdown files, one per LaTeX source, with exact content match; CTL is complete as of Phase 10
 - Mathematical formulas faithfully converted (LaTeX → markdown math notation)
 - All cross-references, citations, figure/table references preserved correctly
 - Commented-out LaTeX sections excluded from markdown
@@ -132,6 +132,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
 | Verify markdown conversions before cross-document reconciliation | Must first ensure each markdown is a faithful copy of its LaTeX source; find inconsistencies later | ✓ v1.3 defined |
 | One phase per LaTeX source (6 phases) | Keeps each phase scoped to one document; avoids context-switching across different content | ✓ v1.3 defined |
+| Preserve source-level CTL dimensionality inconsistency as metadata | Phase 10 found source alternates between 11/12D and 13/14D input-vector descriptions; conversion body must remain faithful | ✓ Phase 10 |
 
 ## Evolution
 
@@ -151,4 +152,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 — v1.3 milestone defined*
+*Last updated: 2026-05-02 — Phase 10 CTL markdown verification complete*
