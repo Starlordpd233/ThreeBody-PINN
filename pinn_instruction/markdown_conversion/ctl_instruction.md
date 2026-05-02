@@ -18,23 +18,16 @@ structure of the neural network, please refer to the
 
 ## Existing Training Dataset
 
-::: {#tab:brutus_compare}
-  ----------------- --------------- -------------- ---------------- ----- ---------- ---------------
-                                                                                     
-  Number of Files                                                                    
-  Length                                                                             
-  out                                                                                
-  Increase                                                                           
-  **Original**      Set 1a (4857)   Hierarchical   $1\text{e-}15$   130   0.08       Baseline (1x)
-                    Set 1b (4857)   Standard       $1\text{e-}13$   118   0.17       Baseline (1x)
-  **New**           Set 2a (2749)   Hierarchical   $1\text{e-}13$   130   **0.01**   **8x**
-                    Set 2b (2565)   Standard       $1\text{e-}13$   130   **0.01**   **17x**
-  ----------------- --------------- -------------- ---------------- ----- ---------- ---------------
+<a id="tab:brutus_compare"></a>
 
-  : Comparative Analysis of BRUTUS Training Datasets. The new dataset
-  provides a dramatic 8-fold to 17-fold increase in the temporal
-  resolution of the ground-truth trajectories.
-:::
+| Parameter | Dataset/Number of Files | IC Type | tolerance | Word Length | dt out | Temporal Density Increase |
+|---|---|---|---|---:|---:|---|
+| **Original** | Set 1a (4857) | Hierarchical | $1\text{e-}15$ | 130 | 0.08 | Baseline (1x) |
+|  | Set 1b (4857) | Standard | $1\text{e-}13$ | 118 | 0.17 | Baseline (1x) |
+| **New** | Set 2a (2749) | Hierarchical | $1\text{e-}13$ | 130 | **0.01** | **8x** |
+|  | Set 2b (2565) | Standard | $1\text{e-}13$ | 130 | **0.01** | **17x** |
+
+*Table `tab:brutus_compare`: Comparative Analysis of BRUTUS Training Datasets. The new dataset provides a dramatic 8-fold to 17-fold increase in the temporal resolution of the ground-truth trajectories.*
 
 For **Set 1a Hierarchical**, 5000 raw ICs were generated; **Set 1b
 Standard**, 4000. For both types of ICs, **Set 2a Hierarchical** and
@@ -111,14 +104,14 @@ scales.
 
 ## Multi-Stage Data Stratification by Difficulty (Revised to handle the issue that virial ratio is not preserved for quasi-random IC sampling)
 
-[**\[I have a suggestion: how about we give the entire IC files a scan
-using some algorithms and analyze the gathered data from there, to first
-get an insight on what the data looks like, and then we can decide on
-the criteria for each stage? This will be a good starting point
-considering that simply designing the criteria based on theoretical
-values might not be the best way to go espesically since my IC sampling
-method is complicated -- virial ratio is not preserved for quasi-random
-IC sampling.\]**]{style="color: Red"}
+> **Author note:** I have a suggestion: how about we give the entire IC files a scan
+> using some algorithms and analyze the gathered data from there, to first
+> get an insight on what the data looks like, and then we can decide on
+> the criteria for each stage? This will be a good starting point
+> considering that simply designing the criteria based on theoretical
+> values might not be the best way to go espesically since my IC sampling
+> method is complicated -- virial ratio is not preserved for quasi-random
+> IC sampling.
 
 With these invariants computed for all simulated trajectories, we can
 quantitatively stratify the data from \"easy\" ( stable, regular motion)
@@ -419,11 +412,12 @@ $Q_{\text{scale}}$ remains fixed at 0.5.
 
 ## Step 2.5: Verify Center-of-Mass (COM) Frame
 
-[**\[Note: Critical Update: Hierachical ICs are NOT in COM frame and not
-0 total momentum. Quasi-random ICs are in COM frame and 0 total
-momentum. Have not verified Brutus corresponding outputs yet. Refer tot
-he next step of data processing
-pipelinedocument.\]**]{style="color: Red"} we perform a transformation
+> **Author note:** Note: Critical Update: Hierachical ICs are NOT in COM frame and not
+> 0 total momentum. Quasi-random ICs are in COM frame and 0 total
+> momentum. Have not verified Brutus corresponding outputs yet. Refer to
+> the next step of data processing pipeline document.
+
+we perform a transformation
 to the COM frame for the hierarchical IC files and hierarchical Brutus
 outputs. Two scripts are responsible for handling each seperately. A
 verification check is also performed after the transformation. For
@@ -655,11 +649,10 @@ are computed for input vector universality.
     from the scaled ICs (they are dimensionless in G=1 units). These are
     used for input vector assembly.
 
-    [**\[We need the code snippets here for
-    this.\]**]{style="color: Red"}
+    > **Author note:** We need the code snippets here for this.
 
-[**\[The two paragraphs below are suspicious. We need to carefully
-examine them.\]**]{style="color: Red"}
+> **Author note:** The two paragraphs below are suspicious. We need to carefully
+> examine them.
 
 #### Numerical notes and defaults.
 
@@ -696,9 +689,8 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     on physical properties. Use the scaled $\mathbf{r}'$ and
     $\mathbf{v}'$ from Step 1.5:
 
-    [**\[I need more speicific details on which parts of the quantieis
-    computed in Step 3 are used for this canonical
-    ordering.\]**]{style="color: Red"}
+    > **Author note:** I need more speicific details on which parts of the quantieis
+    > computed in Step 3 are used for this canonical ordering.
 
     ``` {#lst:canonical_ordering .numberLines .python language="Python" caption="Canonical Ordering Algorithm for Injectivity" label="lst:canonical_ordering" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" xleftmargin="0.5cm" xrightmargin="0.5cm" aboveskip="0.5cm" belowskip="0.5cm" numbers="left" numberstyle="\\tiny\\color{gray}"}
     def canonical_ordering(m, r_prime, v_prime):
@@ -753,9 +745,8 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     I_norm = np.tanh(I_norm)  # Ensure [-1,1] if not already
     ```
 
-    [**\[Confirm that all components in the IC vector are in the range
-    $[-1,1]$ and that it is the final form that will be fed to the
-    PINN.\]**]{style="color: Red"}
+    > **Author note:** Confirm that all components in the IC vector are in the range
+    > $[-1,1]$ and that it is the final form that will be fed to the PINN.
 
     #### Mathematical Guarantees
 
@@ -797,12 +788,11 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     conditions, from highly hierarchical systems to chaotic quasi-random
     configurations.
 
-    [**\[Confirm on this mathematcial guarantees' arguments and the
-    numerical implementation's purpose and validity. If confirmed, how
-    should we integrate and implement this into the existing workflow?
-    Also, we have to add the time t into this vector to achieve the
-    final 14-dimensional input vector ready to be fed to the
-    PINN.\]**]{style="color: Red"}
+    > **Author note:** Confirm on this mathematcial guarantees' arguments and the
+    > numerical implementation's purpose and validity. If confirmed, how
+    > should we integrate and implement this into the existing workflow?
+    > Also, we have to add the time t into this vector to achieve the
+    > final 14-dimensional input vector ready to be fed to the PINN.
 
 3.  **Assemble the Final 12-Component Input Vector.** The complete input
     vector fed to the PINN is formed by concatenating the normalized
