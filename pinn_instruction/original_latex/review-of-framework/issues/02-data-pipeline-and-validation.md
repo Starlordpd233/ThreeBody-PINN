@@ -14,9 +14,9 @@ The pipeline produces Brutus outputs at three discrete `dt_out` values: 0.01 (go
 
 1. **Collocation density mismatch:** A uniform collocation point count applied across all trajectories gives low-resolution data effectively 17x fewer points per unit of physical time than high-resolution data — the network gets systematically less constraint in physical regions dominated by low-resolution trajectories.
 2. **SASD floor effect:** Stiffness-Aware Sampling Density is computed on available snapshots. In low-resolution trajectories, rapid close encounters may span only 1-2 sample points, making the SASD metric blind to interior stiffness spikes.
-3. **Stage boundary artifacts:** Curriculum stages are assigned from invariants computed on ICs alone, but the quality `dt_out` variation means a Stage-k trajectory at high resolution contains radically different training information than the same stage at low resolution.
+3. **Stage boundary artifacts:** Curriculum stages are assigned from invariants computed on ICs alone, but the `dt_out` variation means a Stage-k trajectory at high resolution contains radically different training information than the same stage at low resolution.
 
-**Resolution approach** (from `Causal_Trainingmismatch_resolution_blueprint.md`, reconciled with the 17x example): supplemental collocation points per trajectory should scale as `dt_out / dt_base`, where `dt_base=0.01` is the high-resolution baseline. Gold trajectories get 1x supplemental collocation, hierarchical base trajectories get 8x, and standard base trajectories get 17x. This compensates for sparse Brutus snapshots in low-resolution trajectories. The DataLoader must expose per-trajectory `dt_out` metadata so the batch constructor can adapt. See also M16 in the findings table below.
+**Resolution approach** (per audit M16): supplemental collocation points per trajectory should scale as `dt_base / dt_out`, where `dt_base=0.01` is the high-resolution baseline. Gold trajectories get 1× supplemental collocation, hierarchical base trajectories get 0.125×, and standard base trajectories get ~0.059×. This concentrates collocation density on high-resolution trajectories where the underlying dynamics are best resolved. The DataLoader must expose per-trajectory `dt_out` metadata so the batch constructor can adapt. See also M16 in the findings table below. <!-- Reverted to audit M16 line 163 verbatim: n_col_per_traj = base_n_col * (dt_base / dt_out). The earlier inverted form misread the audit's data-aware-density intent. -->
 
 ---
 
@@ -57,11 +57,13 @@ The 2026-04-27 audit classified M11 and M12 as MAJOR. This consolidation intenti
 
 ---
 
-## Data Validation Protocol — 6-Gap Analysis
+## Data Validation Protocol — 6 Pipeline Gaps Synthesized from Audit Findings
 
-**Source:** `Issue_on_data_validation_protocol_and_compatbility_with_project_context.md`
+**Source:** Audit B-06, B-11, M11, M12/M16, M13 (synthesized from `Issue_on_data_validation_protocol_and_compatbility_with_project_context.md` §2 framing, with G6 added for the causal-training architectural decision).
 
-The pre-agent review of the initial README and validation PDF identified six gaps between the documented validation protocol and what the CTL-PINN training framework actually requires:
+The following six gaps between the documented validation protocol and what the CTL-PINN training framework actually requires are synthesized from audit findings (G1–G5) plus the causal-training architectural decision (G6):
+
+<!-- Section retitled and source citation rewritten: G1–G5 are audit findings (B-06, B-11, M11, M12/M16, M13), not items literally enumerated in the validation-protocol issue's §2. -->
 
 | Gap | Description | Resolution Status |
 |-----|-------------|-------------------|
@@ -257,7 +259,7 @@ def compute_globals(ic_files, t_max=10.0, G=1.0, eps=1e-10):
 5. **P1-5 — Gold counterpart check:** Before Stage 5 assignment, verify gold counterpart exists. If missing: skip to Stage 6 or flag for low-fidelity fallback.
 6. **P1-6 — SASD-weighted collocation:** Use stiffness profile to weight collocation point sampling density.
 7. **P1-7 — Recompute global scales with corrected D=6.694:** Rerun `compute_globals` after D fix. Update all E_scale, smin_scale values.
-8. **P1-8 — Add dt_out-aware collocation scaling:** Scale supplemental `n_col_per_traj` proportional to `dt_out / dt_base`: `n_col = base_n_col * (dt_out / dt_base)`. For dt_base=0.01: gold gets 1x, hierarchical base gets 8x, standard base gets 17x. Adjust `base_n_col` to meet total collocation budget (~10,000-50,000 points per batch).
+8. **P1-8 — Add dt_out-aware collocation scaling:** Scale supplemental `n_col_per_traj` proportional to `dt_base / dt_out`: `n_col = base_n_col * (dt_base / dt_out)`. For dt_base=0.01: gold gets 1×, hierarchical base gets 0.125×, standard base gets ~0.059×. Adjust `base_n_col` to meet total collocation budget (~10,000-50,000 points per batch). <!-- Reverted to audit M16 line 163 verbatim form. -->
 9. **P2-1 — Add tol_confidence flag:** 'direct' vs 'inferred' for files with minimal footers. Log count of inferred tolerances during DataLoader init so training logs provide full provenance.
 10. **P2-2 — Batch-verify 100 IC-Brutus mass pairs:** Compare `m_IC` vs `m_Brutus_t=0` with `np.allclose(rtol=1e-15)`. If mismatch: use `decimal.Decimal` for mass parsing. If match: document IC masses as canonical.
 
