@@ -28,7 +28,7 @@ The curriculum follows a seven-stage progression (Stages 0-6) from stable hierar
 | M7 | MAJOR | Lyapunov time tau_L computed in CTL Sec 4.4 but dropped from IC vector assembly in Sec 4.5. No decision documented on whether to include it. | **Exclude tau_L from IC vector** by design (it's a derived dynamical property, not an IC invariant). Use only for stage gating and model evaluation. See tau_L/L_max resolution section below. |
 | M14 | MAJOR | Gradient clipping spec divergence: PINN uses median-based adaptive clipping; CTL uses curriculum-aware C schedule. Two different clipping strategies documented independently. | **Merge both:** `clip_value = C_stage * median(grad_norm_history)`, where C_stage from CTL schedule and median from PINN rolling window. |
 | M15 | MAJOR | Energy loss lambda_E=1000 at Stage 6 risks overwhelming physics and data terms by 100-5000×. Single large energy weight can drown dynamics learning. | Implement capped hybrid schedule: `lambda_E(k) = min(10^(k-3), cap[k])` where cap = {0:1, 1:5, 2:20, 3:50, 4:100, 5:200, 6:500}. Add safeguard: if `lambda_E * L_energy > 10 * L_data`, warn and reduce. |
-| M16 | MAJOR | dt_out varies 17× (0.01 to 0.17) but collocation density is uniform. Low-res trajectories get same collocation count as high-res despite far fewer Brutus snapshots. | Scale supplemental collocation in proportion to `dt_out / dt_base`: `n_col = base * (dt_out/dt_base)`. For dt_base=0.01: gold=1×, hier=8×, standard=17×. |
+| M16 | MAJOR | dt_out varies 17× (0.01 to 0.17) but collocation density is uniform. Low-res trajectories get same collocation count as high-res despite far fewer Brutus snapshots. | Scale supplemental collocation in proportion to `dt_base / dt_out`: `n_col = base * (dt_base/dt_out)`. For dt_base=0.01: gold=1×, hier≈0.125×, standard≈0.059×. <!-- Reverted to audit M16 line 163 verbatim. --> |
 | D5 | MAJOR | Stage transition criteria theoretically unattainable. Monotonically-decreasing validation loss with limited data blocks progression. Author: "...theoretical now... limited data, maybe not even enough." | Pilot Stage 0 first. Dual-path: strict (all criteria) + fallback (max-epochs, stagnation, NaN rollback). Calibrate empirically. |
 | NS-12 | MAJOR | `next steps.txt` Issue 12: source documents say velocities/accelerations are derived via AD but provide no concrete three-body PyTorch implementation. | Use the component-wise AD implementation requirement in `01-architecture-and-physics-foundations.md`; do not differentiate the summed 9D output as a proxy for per-coordinate acceleration. |
 | NS-13 | MAJOR | `next steps.txt` Issue 13: Huber energy-loss δ=1.0 may be too large for normalized energy residuals and can behave like plain L2 over the whole expected range. | Tune δ from observed normalized `|ΔH|` quantiles or start with δ≈0.01-0.1; document the chosen value per stage. |
@@ -178,11 +178,13 @@ def compute_L_norm(masses, r_prime, v_prime, eps=1e-10):
 
 ### tau_L Computation (Resolved)
 
-tau_L = 1/λ_max where λ_max is the largest Lyapunov exponent. The recommended approach uses shadow trajectory divergence: perturb the initial state by epsilon, integrate both trajectories, and track exponential separation growth.
+tau_L = 1/λ_max where λ_max is the largest Lyapunov exponent. The recommended approach uses shadow trajectory divergence: perturb the initial state by epsilon_pert, integrate both trajectories, and track exponential separation growth.
+
+<!-- Reverted: tau_L uses split epsilon_pert=1e-8 (perturbation magnitude) and epsilon_soft=1e-10 (potential softening) per next steps.txt Issue 1 / data-processing-pipeline-full.py line 167. The merged eps=1e-10 form lost the distinction. -->
 
 ```python
 def compute_tau_L(masses, r_prime, v_prime, T_scale=10.0, G=1.0, M_tot_ref=3.0,
-                  eps=1e-10, delta_t=0.1, n_pert=3, horizon=50.0):
+                  epsilon_pert=1e-8, epsilon_soft=1e-10, delta_t=0.1, n_pert=3, horizon=50.0):
     """Compute Lyapunov time via shadow trajectory divergence."""
     from scipy.integrate import solve_ivp
     D = np.cbrt(G * M_tot_ref * T_scale**2)  # = 6.694
@@ -196,13 +198,13 @@ def compute_tau_L(masses, r_prime, v_prime, T_scale=10.0, G=1.0, M_tot_ref=3.0,
             for j in range(3):
                 if i != j:
                     dr = pos[j] - pos[i]
-                    acc[i] += masses[j] * dr / (np.linalg.norm(dr)**3 + eps)
+                    acc[i] += masses[j] * dr / (np.linalg.norm(dr)**3 + epsilon_soft)
         return np.hstack((vel.flatten(), acc.flatten()))
 
     T_max = horizon / T_scale
     lambdas = []
     for _ in range(n_pert):
-        delta0 = eps * (d := np.random.randn(18)) / np.linalg.norm(d)
+        delta0 = epsilon_pert * (d := np.random.randn(18)) / np.linalg.norm(d)
         sol_nom = solve_ivp(rhs, [0, T_max], y0, method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
         sol_pert = solve_ivp(rhs, [0, T_max], y0 + delta0, method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
         current_t, sum_log, num_steps = 0.0, 0.0, 0
@@ -212,9 +214,9 @@ def compute_tau_L(masses, r_prime, v_prime, T_scale=10.0, G=1.0, M_tot_ref=3.0,
             d = np.linalg.norm(sol_pert.sol(t_eval) - sol_nom.sol(t_eval), axis=0)
             avg_d = np.mean(d)
             if avg_d > 1e-4:
-                sum_log += np.log(avg_d / eps); num_steps += 1
+                sum_log += np.log(avg_d / epsilon_pert); num_steps += 1
                 sol_pert = solve_ivp(rhs, [current_t, T_max],
-                    sol_nom.sol(current_t) + eps * (sol_pert.sol(current_t) - sol_nom.sol(current_t)) / avg_d,
+                    sol_nom.sol(current_t) + epsilon_pert * (sol_pert.sol(current_t) - sol_nom.sol(current_t)) / avg_d,
                     method='LSODA', rtol=1e-12, atol=1e-12, dense_output=True)
             current_t += dt
         if num_steps > 0: lambdas.append(sum_log / (num_steps * dt))
@@ -360,7 +362,7 @@ The cap prevents energy loss from dominating the total loss at late stages. At S
 
 8. **P3-8 — Implement tau_L and L_max computation:** Per-trajectory computation using the resolved formulas above. Integrate into `compute_all_invariants()` in the data pipeline.
 
-9. **P3-9 — Add dt_out-aware collocation scaling:** `n_col_per_traj = base_n_col * (dt_out / dt_base)`. For dt_base=0.01, gold gets 1x, hierarchical-base gets 8x, standard-base gets 17x.
+9. **P3-9 — Add dt_out-aware collocation scaling:** `n_col_per_traj = base_n_col * (dt_base / dt_out)`. For dt_base=0.01, gold gets 1×, hierarchical-base gets 0.125×, standard-base gets ~0.059×. <!-- Reverted to audit M16 line 163 verbatim. -->
 
 10. **P3-10 — Resolve s_min frame:** Use `max(s_min, epsilon)` for training loss, log unsoftened value for diagnostics (per Open Decision above).
 
@@ -395,7 +397,7 @@ grad_norm_history = []  # Rolling window, max length 100
 
 def get_clip_value(stage, grad_norms):
     """Merged adaptive + curriculum-aware clipping."""
-    C_table = {0: 0.5, 1: 0.5, 2: 1.0, 3: 1.0, 4: 2.0, 5: 3.0, 6: 5.0}
+    C_table = {0: 8.5, 1: 8.5, 2: 5.0, 3: 5.0, 4: 3.0, 5: 3.0, 6: 3.0}  # CTL schedule from next steps.txt Issue 8: stages 0-1 use 7-10 (midpoint 8.5), 2-3 use 5, 4-6 use 3.
     C_stage = C_table[stage]
     median_grad = np.median(grad_norms[-100:]) if len(grad_norms) >= 10 else 1.0
     return C_stage * max(median_grad, 1e-6)
@@ -405,7 +407,7 @@ clip_value = get_clip_value(stage, grad_norm_history)
 torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
 ```
 
-C_stage increases with stage: Stage 0 (smooth) uses C=0.5; Stage 6 (extreme) uses C=5.0. The median rolling window adapts to current training dynamics.
+C_stage decreases with stage: Stages 0-1 (quasi-periodic) use C=8.5 (midpoint of CTL's 7-10 range); Stages 2-3 use C=5.0; Stages 4-6 (chaotic encounters) use C=3.0. Early stages tolerate larger gradients; later chaotic stages need aggressive clipping. The median rolling window adapts to current training dynamics. <!-- Reverted descriptive prose to match next steps.txt Issue 8: early stages tolerate larger gradients, later chaotic stages need aggressive clipping. -->
 
 ---
 
@@ -613,17 +615,19 @@ def get_lambda_E(stage, L_energy_current=None):
 
 | Priority | Item | Blocks | Estimated Effort |
 |----------|------|--------|------------------|
-| **P3-0** | Resolve causal training mode decision | Batch construction design | Decision only (no code) |
+| **P3-3** | Resolve causal training mode decision | Batch construction design | Decision only (no code) |
 | **P3-1** | Implement replay/lookahead batch construction | All curriculum training | ~100 lines of Python |
 | **P3-2** | Separate data-fidelity and collocation points | Physics loss correctness | ~50 lines in DataLoader + training_step |
-| **P3-3** | Implement s_min frame resolution | Stage 6 collision criterion | Decision + 5 lines of code |
-| **P3-4** | Implement capped hybrid energy weight schedule | Late-stage training stability | ~15 lines of Python |
-| **P3-5** | Implement stage transition criteria with fallback | Curriculum progression | ~50 lines of Python |
-| **P3-6** | Implement merged gradient clipping | Training stability | ~20 lines of Python |
+| **P3-10** | Implement s_min frame resolution | Stage 6 collision criterion | Decision + 5 lines of code |
+| **P3-5** | Implement capped hybrid energy weight schedule | Late-stage training stability | ~15 lines of Python |
+| **P3-6** | Implement stage transition criteria with fallback | Curriculum progression | ~50 lines of Python |
+| **P3-4** | Implement merged gradient clipping | Training stability | ~20 lines of Python |
 | **P3-7** | Implement data-driven adaptive stage assignment | Stage population balance | ~100 lines of Python + EDA run |
 | **P3-8** | Implement tau_L / L_max computation | Stage 0 and 4a/4b assignment | ~80 lines of Python |
 | **P3-9** | Add dt_out-aware collocation scaling | Collocation density correctness | ~10 lines of Python |
-| **P3-10** | Pilot Stage 0; calibrate all thresholds | All stage advancement | ~1 training run (hours) |
+| **P3-11** | Calibrate Huber energy δ | Stage 0 calibration | Tuning step (hours) |
+| **P3-12** | Pilot Stage 0; calibrate all thresholds | All stage advancement | ~1 training run (hours) |
+<!-- Renumbered Decision Priority Queue IDs to match Recommended Resolutions canonical numbering (P3-1..P3-11). Added P3-11 (Huber δ) and P3-12 (Stage 0 pilot) entries to align both lists. -->
 
 ---
 
