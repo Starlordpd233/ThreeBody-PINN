@@ -147,8 +147,13 @@
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 - [ ] 11-01-PLAN.md — Candidate selection (diff-scoring, human sanity-check, report skeleton)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 11-02-PLAN.md — Section-by-section audit + fixes (citation stripping, GFM table rebuild, description-list conversion, formula checklists)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 11-03-PLAN.md — Promotion, archive, index, final verification (Source Issues metadata, git mv archive, README index update)
 
 **UI hint**: no
