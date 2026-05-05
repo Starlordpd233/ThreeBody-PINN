@@ -4,4 +4,4 @@ This index tracks authoritative markdown conversions for the v1.3 verification m
 
 | Source | Authoritative markdown | Verification report | Candidate archive |
 |---|---|---|---|
-| CTL instruction | [`ctl_instruction.md`](ctl_instruction.md) | [`ctl_instruction_verification_report.md`](ctl_instruction_verification_report.md) | [`_archive/ctl-instruction/README.md`](_archive/ctl-instruction/README.md) |
+| CTL instruction | [`ctl_instruction.md`](ctl_instruction.md) | [`verification_reports/ctl_instruction_verification_report.md`](verification_reports/ctl_instruction_verification_report.md) | [`_archive/ctl-instruction/README.md`](_archive/ctl-instruction/README.md) |
