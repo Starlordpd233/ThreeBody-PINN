@@ -73,15 +73,28 @@ Status: PASS
 
 ### model_parameter_risks.tex - Risks to Model Parameters and Causal Training Dynamics
 
-Status: PENDING — populated in Plan 02/03
+Status: PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| DQA-04-000 | text | INFO | `model_parameter_risks.tex:1-30` | `data_quality_assessment.md:178-204` | Section heading hierarchy correct (`#` H1, `##` H2). All three subsections (Causal Firewall, Dead Neuron, Spectral Bias) present with correct prose. | No fix needed |
+| DQA-04-001 | structure | MINOR | `model_parameter_risks.tex:8-12, 17-21, 26-30` (`\begin{description}` blocks) | `data_quality_assessment.md:186-188, 194-196, 202-204` | Pandoc description-list syntax (`:   `) for Risk/Parameter Consequence/Mitigation blocks converted to bold+bulleted plain markdown. Content preserved exactly. | Fixed |
 
 ### implementation_protocol.tex - Detailed Implementation Protocol: The "Staged Gate" Workflow
 
-Status: PENDING — populated in Plan 02/03
+Status: PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| DQA-05-000 | text | INFO | `implementation_protocol.tex:1-61` | `data_quality_assessment.md:206-276` | Section heading hierarchy correct (`#` H1, `##` H2). All three phases (Data Ingestion, Overfit Challenge, Dataset Composition) present with correct prose, ordered lists, and bold gate labels. | No fix needed |
 
 ### synthesis_conclusion.tex - Synthesis and Conclusion
 
-Status: PENDING — populated in Plan 02/03
+Status: PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| DQA-06-000 | text | INFO | `synthesis_conclusion.tex:1-15` | `data_quality_assessment.md:278-292` | Section heading hierarchy correct (`#` H1, `##` H2). All three opening paragraphs present. All three Recommendations bullets preserved. Last line matches source: "reduces the data quality burden regarding energy drift." | No fix needed |
 
 ## Fix Log
 
@@ -91,6 +104,10 @@ Status: PENDING — populated in Plan 02/03
 | DQA-00-001 | Global | Stripped all 32 `[@refN]` injected citations from the pandoc candidate body. Zero citations remain. |
 | DQA-00-002 | Global | Stripped trailing reference list (orphan `99` token + 67 lines of fabricated bibliography entries). File now ends at last `synthesis_conclusion.tex` content line. |
 | DQA-00-003 | Global | Replaced non-breaking space artifacts (0xa0) introduced by citation stripping with regular spaces. |
+| DQA-02-005 | `assessment_strategy.tex` | Rebuilt pandoc multiline table as GFM table with all 5 data rows, 3 strategy columns, HTML anchor, and caption with label. |
+| DQA-02-006 | `assessment_strategy.tex` | Added `<a id="tab:assessment_strategies"></a>` anchor and caption `*Table 1 (tab:assessment_strategies): ...*` to preserve source label. |
+| DQA-02-007 | `assessment_strategy.tex` | Converted Phase 1/2/3 description-list syntax (`:   \`) to bold+bulleted plain markdown (3 blocks). |
+| DQA-04-002 | `model_parameter_risks.tex` | Converted Risk/Parameter Consequence/Mitigation description-list syntax (`:   `) to bold+bulleted plain markdown (3 blocks x 3 subsections). |
 
 ## Source Issues / Notes for Future Reconciliation
 

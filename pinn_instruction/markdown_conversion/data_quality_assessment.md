@@ -66,37 +66,33 @@ This strategy involves training the specific CTL-PINN architecture on a small su
 
 The research suggests that the optimal strategy is a hybrid **Staged Gate Protocol**. This prioritizes the low-cost elimination of obviously bad data (Static Validation) before incurring the cost of probing subtle learnability issues (Trial Training).
 
-Phase 1: The Physics Gate (Static)
+**Phase 1: The Physics Gate (Static)**
+- **Input:** Raw Brutus Trajectories.
+- **Action:** Rigorous checking of conservation laws (Energy, Momentum) and symplectic consistency.
+- **Outcome:** Binary Pass/Fail. Trajectories with drift $> \delta_{tol}$ are discarded immediately. This filters out integration failures.
 
-:   \
-    **Input:** Raw Brutus Trajectories.\
-    **Action:** Rigorous checking of conservation laws (Energy, Momentum) and symplectic consistency.\
-    **Outcome:** Binary Pass/Fail. Trajectories with drift $> \delta_{tol}$ are discarded immediately. This filters out integration failures.
+**Phase 2: The Stiffness Gate (Static)**
+- **Input:** Physically valid trajectories.
+- **Action:** Analysis of Sampling Density vs. Local Curvature (using the SASD metric defined below).
+- **Outcome:** Flagging. Trajectories are not discarded but marked as "High Stiffness." These require either resampling (running Brutus again with tighter tolerance) or specific "Curriculum Learning" schedules (introducing them later in training).
 
-Phase 2: The Stiffness Gate (Static)
-
-:   \
-    **Input:** Physically valid trajectories.\
-    **Action:** Analysis of Sampling Density vs. Local Curvature (using the SASD metric defined below).\
-    **Outcome:** Flagging. Trajectories are not discarded but marked as "High Stiffness." These require either resampling (running Brutus again with tighter tolerance) or specific "Curriculum Learning" schedules (introducing them later in training).
-
-Phase 3: The Learnability Gate (Dynamic)
-
-:   \
-    **Input:** A stratified sample of Phase 2 survivors (specifically including High Stiffness cases).\
-    **Action:** "Overfit Challenge." Train the CTL-PINN on this single trajectory to machine precision.\
-    **Outcome:** Architectural Validation. If the model cannot overfit a single valid trajectory, the *architecture* (not the data) is insufficient (e.g., too shallow, wrong activation function).
+**Phase 3: The Learnability Gate (Dynamic)**
+- **Input:** A stratified sample of Phase 2 survivors (specifically including High Stiffness cases).
+- **Action:** "Overfit Challenge." Train the CTL-PINN on this single trajectory to machine precision.
+- **Outcome:** Architectural Validation. If the model cannot overfit a single valid trajectory, the *architecture* (not the data) is insufficient (e.g., too shallow, wrong activation function).
 
 
-  **Feature**              **Pre-Training Validation (Static)**   **Trial Training (Dynamic)**   **Staged Gate Protocol (Hybrid)**
-  ------------------------ -------------------------------------- ------------------------------ -----------------------------------
-  **Primary Metric**       Physical Conservation, Continuity      Convergence Rate, Loss Value   Composite Score
-  **Computational Cost**   Low (CPU)                              High (GPU)                     Optimized (CPU first, GPU second)
-  **Detects**              Integration Errors, Outliers           Gradient Issues, Hyperparams   Both + Architecture Mismatch
-  **Risk Addressed**       Garbage In, Garbage Out                Model Divergence               Systemic Failure
-  **Blind Spot**           Neural Network Inductive Bias          Physical Validity of Minima    None
+<a id="tab:assessment_strategies"></a>
 
-  : Comparative Analysis of Assessment Strategies
+| Feature              | Pre-Training Validation (Static) | Trial Training (Dynamic) | Staged Gate Protocol (Hybrid) |
+|----------------------|----------------------------------|--------------------------|-------------------------------|
+| **Primary Metric**   | Physical Conservation, Continuity | Convergence Rate, Loss Value | Composite Score |
+| **Computational Cost** | Low (CPU) | High (GPU) | Optimized (CPU first, GPU second) |
+| **Detects**          | Integration Errors, Outliers | Gradient Issues, Hyperparams | Both + Architecture Mismatch |
+| **Risk Addressed**   | Garbage In, Garbage Out | Model Divergence | Systemic Failure |
+| **Blind Spot**       | Neural Network Inductive Bias | Physical Validity of Minima | None |
+
+*Table 1 (`tab:assessment_strategies`): Comparative Analysis of Assessment Strategies.*
 
 
 # Mathematically Grounded Metrics for Data Quality
@@ -187,49 +183,25 @@ The user query specifically asks to address "risks to model parameters." In the 
 
 The causal loss weighting is defined as $w_i = f(\sum_{j<i} \mathcal{L}_j)$.
 
-Risk:
-
-:   If the data contains a single "bad" point (high IPR or SASD) at time $t_{bad}$, the residual $\mathcal{L}(t_{bad})$ remains high. Consequently, the weights for all $t > t_{bad}$ vanish ($w_t \to 0$).
-
-Parameter Consequence:
-
-:   The gradients $\frac{\partial \mathcal{L}}{\partial \theta}$ for parameters governing the late-time behavior become zero. These parameters effectively "die" or drift randomly. The model learns the trajectory perfectly up to $t_{bad}$ and then flatlines. This is a specific failure mode of causal training that does not exist in standard PINNs (which would just average the error globally).
-
-Mitigation:
-
-:   The SASD metric acts as a pre-training filter to prevent these "causal firewalls."
+- **Risk:** If the data contains a single "bad" point (high IPR or SASD) at time $t_{bad}$, the residual $\mathcal{L}(t_{bad})$ remains high. Consequently, the weights for all $t > t_{bad}$ vanish ($w_t \to 0$).
+- **Parameter Consequence:** The gradients $\frac{\partial \mathcal{L}}{\partial \theta}$ for parameters governing the late-time behavior become zero. These parameters effectively "die" or drift randomly. The model learns the trajectory perfectly up to $t_{bad}$ and then flatlines. This is a specific failure mode of causal training that does not exist in standard PINNs (which would just average the error globally).
+- **Mitigation:** The SASD metric acts as a pre-training filter to prevent these "causal firewalls."
 
 ## The Dead Neuron Problem in N-Body Scaling
 
 N-body data is scale-invariant but numerically vast. Distances can range from $10^{-3}$ (close encounter) to $10^2$ (ejection).
 
-Risk:
-
-:   If the data is fed raw into the network, the inputs will push the neurons into the saturation regions of their activation functions (e.g., $\tanh(100) \approx 1$, gradient $\approx 0$).
-
-Parameter Consequence:
-
-:   Vanishing gradients in the first layer. In a deep network, this prevents feature extraction.
-
-Mitigation:
-
-:   The validation pipeline must include a Normalization Check. Calculate the Kullback-Leibler (KL) divergence between the input data distribution and a standard normal distribution $\mathcal{N}(0, 1)$. If $D_{KL}$ is high, the data requires log-scaling or robust standardization (e.g., using median and IQR instead of mean/std to handle outliers) before training.
+- **Risk:** If the data is fed raw into the network, the inputs will push the neurons into the saturation regions of their activation functions (e.g., $\tanh(100) \approx 1$, gradient $\approx 0$).
+- **Parameter Consequence:** Vanishing gradients in the first layer. In a deep network, this prevents feature extraction.
+- **Mitigation:** The validation pipeline must include a Normalization Check. Calculate the Kullback-Leibler (KL) divergence between the input data distribution and a standard normal distribution $\mathcal{N}(0, 1)$. If $D_{KL}$ is high, the data requires log-scaling or robust standardization (e.g., using median and IQR instead of mean/std to handle outliers) before training.
 
 ## Spectral Bias and High-Frequency Oscillations
 
 Neural networks satisfy a "Spectral Bias" principle---they learn low-frequency functions quickly and high-frequency functions slowly.
 
-Risk:
-
-:   Chaotic trajectories often possess a broad frequency spectrum. If the data contains high-frequency oscillations (e.g., a tight binary subsystem orbiting a third body), the PINN will smooth over them, effectively learning a "mean field" approximation rather than the true dynamics.
-
-Parameter Consequence:
-
-:   The weights responsible for high-frequency features will not converge within standard training times.
-
-Mitigation:
-
-:   Use the IPR metric to detect high-frequency content. If detected, the architecture should be augmented with Fourier Feature mappings (positional encoding) to shift the spectral bias of the network.
+- **Risk:** Chaotic trajectories often possess a broad frequency spectrum. If the data contains high-frequency oscillations (e.g., a tight binary subsystem orbiting a third body), the PINN will smooth over them, effectively learning a "mean field" approximation rather than the true dynamics.
+- **Parameter Consequence:** The weights responsible for high-frequency features will not converge within standard training times.
+- **Mitigation:** Use the IPR metric to detect high-frequency content. If detected, the architecture should be augmented with Fourier Feature mappings (positional encoding) to shift the spectral bias of the network.
 
 # Detailed Implementation Protocol: The "Staged Gate" Workflow
 
