@@ -111,8 +111,14 @@ Status: PASS
 
 ## Source Issues / Notes for Future Reconciliation
 
-<populated in Plan 03>
+| ID | Source section | Markdown heading | Note |
+|---|---|---|---|
+| SI-DQA-001 | `bibliography.tex` (orphaned) | N/A (excluded from audit corpus per D-28) | The LaTeX source includes 33 `\bibitem` entries in `bibliography.tex`, but `main-data-quality-assess.tex` never imports it and the body contains zero `\cite{}` commands. Both markdown candidates independently fabricated reference lists which were stripped during Plan 02. The question of reconnecting the references is a LaTeX source edit — outside v1.3 scope. |
+| SI-DQA-002 | All 6 active sections | All corresponding markdown headings | No source-level mathematical, factual, or methodological concerns were identified. The converted body preserves the LaTeX source exactly. All discrepancies were conversion artifacts (injected citations, HTML table corruption, description-list syntax) — all fixed in the markdown without modifying LaTeX source content. |
 
 ## Final Verification
 
-<populated in Plan 03>
+- Open discrepancies: 0
+- Zero open discrepancies: yes
+- Converted body excludes appended source-issue metadata from fidelity comparison: yes
+- Fix log complete: yes
