@@ -290,3 +290,19 @@ This rigorous, multi-layered approach ensures that the computational investment 
 - **Adaptive Activation Functions:** Investigate using adaptive activation functions (like Rowdy or locally adaptive sine) to handle the varying frequency content of the N-body problem better than fixed Tanh/ReLU.
 
 - **Symplectic Neural Networks:** Consider modifying the architecture to be inherently symplectic (HNN), moving conservation from a soft loss term to a hard architectural constraint, which reduces the data quality burden regarding energy drift.
+
+# Source Issues / Notes for Future Reconciliation
+
+These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `verification_reports/data_quality_assessment_verification_report.md`.
+
+## SI-DQA-001: Orphaned bibliography.tex — 33 references never cited in body
+
+- Source section: `bibliography.tex` (orphaned — never imported by `main-data-quality-assess.tex`).
+- Markdown heading: N/A (excluded from conversion — bibliography is not part of the audit corpus per D-28).
+- Note: The LaTeX source includes `sections/bibliography.tex` with 33 `\bibitem` entries, but `main-data-quality-assess.tex` contains zero `\input{sections/bibliography}` lines and the body contains zero `\cite{}` commands. The 33 references are inaccessible in the compiled LaTeX output. Both markdown candidates independently fabricated reference lists (top-level: 32 numbered entries with `## References` heading; pandoc: 32 unnumbered entries with orphan `99` token). These fabricated reference lists were stripped during Phase 11 Plan 02 as they represent content not present in the LaTeX source body. The question of whether the 33 references should be reconnected to the document body with proper `\cite{}` commands is a LaTeX source edit — outside v1.3 scope.
+
+## SI-DQA-002: No source-level mathematical, factual, or methodological concerns identified
+
+- Source sections: All 6 active sections (`introduction.tex`, `assessment_strategy.tex`, `data_quality_metrics.tex`, `model_parameter_risks.tex`, `implementation_protocol.tex`, `synthesis_conclusion.tex`).
+- Markdown headings: All corresponding sections in `data_quality_assessment.md`.
+- Note: No source-level mathematical, factual, or methodological concerns were identified during the Phase 11 section-by-section audit. The converted markdown body preserves the LaTeX source content exactly. Any discrepancies found were conversion artifacts (injected citations, HTML table corruption, description-list syntax) — all of which were fixed in the markdown without modifying any LaTeX source content.
