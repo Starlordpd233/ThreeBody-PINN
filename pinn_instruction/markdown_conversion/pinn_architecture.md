@@ -874,3 +874,35 @@ omniscientoctopus/Physics-Informed-Neural-Networks: Investigating
 PINNs - GitHub, accessed June 25, 2025,
 <https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
 :::
+
+---
+
+## Source Issues / Notes for Future Reconciliation
+
+These notes are metadata for future reconciliation. They are not part of the faithful converted body and are excluded from fidelity comparison per D-19.
+
+### SI-PINN-001: Weight Init. (Hidden) formula discrepancy
+
+- **Section:** Section 2 (sqr_skipresnet_siren_backbone) — hyperparameters table, Weight Init. (Hidden) row
+- **Description:** The LaTeX source specifies $\mathrm{U}[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}]$ while the markdown has $\mathrm{U}[-\frac{\sqrt{6/n_{in}}}{1}, \frac{\sqrt{6/n_{in}}}{1}]$. The markdown version is closer to the original SIREN paper formula ($\mathrm{U}[-\frac{\sqrt{6/n}}{\omega_0}, \frac{\sqrt{6/n}}{\omega_0}]$). Since hidden_omega_0=1, both are numerically identical. No change needed unless hidden_omega_0 is modified.
+- **Status:** Documented for future reconciliation
+
+### SI-PINN-002: Author comments preserved in converted body
+
+- **Section:** Sections 2, 3 (sqr_skipresnet_siren_backbone, physics_constrained_loss)
+- **Description:** 4 author comments (`\authcomment{}` → red-style bracketed text) are preserved in the converted body. These are editorial notes from the original authors, not content discrepancies:
+  1. "Need more detail on this dynamic scheduling for omega_0" (Section 2)
+  2. "Need confirmation on this hidden layer's detail" (Section 2)
+  3. "I believe this formula for initialization is incorrect" (Section 2, hyperparameters table)
+  4. "Comment: This above batch construction is not consistent with the CTL instruction plan" (Section 3)
+- **Status:** Documented for future reconciliation — author should resolve these notes before training implementation
+
+### SI-PINN-003: Batch construction inconsistency with CTL instruction plan
+
+- **Section:** Section 3 (physics_constrained_loss) — Data Batch Construction code block
+- **Description:** The author comment "This above batch construction is not consistent with the CTL instruction plan" flags a methodological inconsistency between the data sampling strategy described here and the CTL curriculum training plan. This should be investigated and resolved during training implementation.
+- **Status:** Documented for future reconciliation
+
+---
+
+*End of faithful converted body. Source Issues section above is metadata excluded from fidelity comparison (D-19).*
