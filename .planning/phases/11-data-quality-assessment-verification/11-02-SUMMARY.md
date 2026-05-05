@@ -100,3 +100,12 @@ None -- plan executed exactly as written.
 - Equations verified: 6 (1 in section 1, 5 in section 3)
 - Discrepancy IDs issued: 17 (including INFO entries and global fixes)
 - Sections audited: 6 (all PASS)
+
+## Self-Check: PASSED
+
+- FOUND: `pinn_instruction/markdown_conversion/data_quality_assessment.md` (292 lines)
+- FOUND: `pinn_instruction/markdown_conversion/verification_reports/data_quality_assessment_verification_report.md` (118 lines)
+- FOUND: `.planning/phases/11-data-quality-assessment-verification/11-02-SUMMARY.md`
+- FOUND: commit `314d956` (Task 1: citation stripping + sections 1-3 audit)
+- FOUND: commit `460cf4b` (Task 2: table rebuild + desclist + sections 4-6 audit)
+- FOUND: commit `db3de39` (SUMMARY.md)
