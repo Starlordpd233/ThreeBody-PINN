@@ -148,13 +148,13 @@
 
 Plans:
 **Wave 1**
-- [ ] 11-01-PLAN.md — Candidate selection (diff-scoring, human sanity-check, report skeleton)
+- [x] 11-01-PLAN.md — Candidate selection (diff-scoring, human sanity-check, report skeleton)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 11-02-PLAN.md — Section-by-section audit + fixes (citation stripping, GFM table rebuild, description-list conversion, formula checklists)
+- [x] 11-02-PLAN.md — Section-by-section audit + fixes (citation stripping, GFM table rebuild, description-list conversion, formula checklists)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 11-03-PLAN.md — Promotion, archive, index, final verification (Source Issues metadata, git mv archive, README index update)
+- [x] 11-03-PLAN.md — Promotion, archive, index, final verification (Source Issues metadata, git mv archive, README index update)
 
 **UI hint**: no
 
@@ -228,7 +228,7 @@ Phases 11-15 all depend on Phase 10 (hardest first to validate the approach). Ph
 | 8. Compilability Verification | v1.1 | 1/1 | Complete | 2026-03-22 |
 | 9. Issues Directory Consolidation | v1.2 | 0/3 | Not Started | — |
 | 10. CTL-Instruction Verification | v1.3 | 3/3 | Complete    | 2026-05-02 |
-| 11. Data-Quality-Assessment Verification | v1.3 | 2/3 | Executing | — |
+| 11. Data-Quality-Assessment Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 12. PINN-Architecture Verification | v1.3 | 0/TBD | Not Started | — |
 | 13. Review-of-Framework Verification | v1.3 | 0/TBD | Not Started | — |
 | 14. Stage-Strategy-Revision Verification | v1.3 | 0/TBD | Not Started | — |
