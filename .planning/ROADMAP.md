@@ -180,7 +180,10 @@ Plans:
   2. User can open the verification report and see every discrepancy found across all 7 sections, categorized by type with exact locations
   3. User can compare the corrected markdown against the LaTeX source section-by-section and observe zero meaningful differences
   4. User can read the final verification report confirming zero-diff status with a complete fix log
-**Plans**: TBD
+**Plans**: 3 plans
+- [x] 13-01-PLAN.md — Provenance, vacuous policy checks, report skeleton
+- [x] 13-02-PLAN.md — Section-by-section audit + fixes (7 sections)
+- [x] 13-03-PLAN.md — Promotion, Source Issues metadata, final report, README index update
 **UI hint**: no
 
 ### Phase 14: Stage-Strategy-Revision Verification
@@ -192,7 +195,18 @@ Plans:
   2. User can open the verification report and see every discrepancy found across all 6 sections, with tables verified cell-by-cell for correct content, structure, and formatting
   3. User can compare the corrected markdown against the LaTeX source section-by-section and observe zero meaningful differences
   4. User can read the final verification report confirming zero-diff status with a complete fix log
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+**Wave 1**
+- [ ] 14-01-PLAN.md — Provenance, policy checks (3 VACUOUS + 3 ACTIVE), report skeleton
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 14-02-PLAN.md — Section-by-section audit + fixes (3 critical defects: Table 2 MISSING, Table 4 MANGLED, Bibliography COLLAPSED; 35 `\[N\]` brackets, 10 `\"` quotes)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 14-03-PLAN.md — Promotion, Source Issues metadata, final report, README index update
+
 **UI hint**: no
 
 ### Phase 15: Sampling-Method Verification
@@ -231,8 +245,8 @@ Phases 11-15 all depend on Phase 10 (hardest first to validate the approach). Ph
 | 11. Data-Quality-Assessment Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 12. PINN-Architecture Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 13. Review-of-Framework Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
-| 14. Stage-Strategy-Revision Verification | v1.3 | 0/TBD | Not Started | — |
+| 14. Stage-Strategy-Revision Verification | v1.3 | 0/3 | Planned     | — |
 | 15. Sampling-Method Verification | v1.3 | 0/TBD | Not Started | — |
 
 ---
-*Last updated: 2026-05-05 — Phase 13 complete*
+*Last updated: 2026-05-05 — Phase 14 plans created*
