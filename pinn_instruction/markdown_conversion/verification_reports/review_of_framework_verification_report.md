@@ -85,21 +85,23 @@ $ grep -cE '\[@ref[0-9]+\]' "$CAND"                            # 0
 
 ## Promotion Action
 
-**Deferred to Wave 3** (NOT executed now — Wave 2 needs the candidate at its
-current `pandoc_conversion/` path so section-scoped edits land in a stable
-location before the move).
+**Status: COMPLETED** (Wave 3, Plan 13-03).
 
-Planned Wave-3 promotion command (D-43):
+The corrected candidate has been promoted to its authoritative path via `git mv`,
+preserving rename history per Pitfall 6 of `13-RESEARCH.md`. The exact command
+executed:
 
 ```bash
 git mv pinn_instruction/markdown_conversion/pandoc_conversion/review_of_ctl-pinn_framework.md \
        pinn_instruction/markdown_conversion/review_of_framework.md
 ```
 
-After this move the candidate's role transitions from "pandoc output" to
-"authoritative markdown" at the canonical lowercase_underscore path that
-matches the source subdirectory name `review_of_framework/`. No `_archive/`
-directory is created in Phase 13 (D-40, CLEAN-02 N/A).
+Pre-move source path: `pinn_instruction/markdown_conversion/pandoc_conversion/review_of_ctl-pinn_framework.md`
+Post-move target path: `pinn_instruction/markdown_conversion/review_of_framework.md` (D-43 — lowercase_underscore matches source subdir name `review_of_framework/`).
+Final line count after Source Issues append: 515 lines (507-line corrected body + 8-line appended Source Issues / Notes for Future Reconciliation block per Step B of Plan 13-03).
+No copy remains at `pandoc_conversion/`; verified by `test -f pinn_instruction/markdown_conversion/pandoc_conversion/review_of_ctl-pinn_framework.md` → false.
+
+Single pandoc candidate; CLEAN-02 N/A (D-40); no `_archive/review-of-framework/` directory created.
 
 ## Section Audit
 
@@ -413,8 +415,20 @@ All 6 data rows match the source LaTeX cell-by-cell after the GFM rebuild. Notes
 
 ## Source Issues / Notes for Future Reconciliation
 
-(Populated in Plan 03 — see CROSS-01 / D-17/D-18 inherited)
+No source-level issues identified during Phase 13 audit. The converted body faithfully reproduces all 7 active LaTeX sections of review_of_framework/ without suspected inconsistencies.
+
+This section mirrors the appended Source Issues / Notes for Future Reconciliation section in the authoritative markdown (`pinn_instruction/markdown_conversion/review_of_framework.md`); both record the same no-issues fallback per CROSS-01 / D-17 / D-18 inherited (Phase 12 12-03-PLAN.md:91 pattern). All 17 fixes applied during Wave 2 were markdown-only pandoc-conversion artifacts (escaped-dash list markers, escaped prose brackets, longtable continuation rows, grid-table → GFM table rebuilds); no LaTeX source content was found to be suspect.
 
 ## Final Verification
 
-(Populated in Plan 03 — see CLEAN-03 / D-47 / D-40)
+**Verification date:** 2026-05-05
+
+| Requirement | Status | Evidence |
+|---|---|---|
+| Zero open discrepancies | PASS | All 7 section audits show **Status:** PASS in `## Section Audit`. |
+| Vacuous Policy Checks (D-47) | PASS | All 5 source-side counts are 0 in `## Vacuous Policy Checks (D-47)`; D-48 candidate-side `[@refN]` count is 0. |
+| Complete fix log | PASS | Every RoF-13-NN-NN discrepancy ID is mapped to an applied fix in `## Fix Log` (1 BASELINE + 17 fix rows = 18 rows). |
+| Single authoritative markdown (D-43) | PASS | File exists at `pinn_instruction/markdown_conversion/review_of_framework.md`; no copy remains at `pinn_instruction/markdown_conversion/pandoc_conversion/review_of_ctl-pinn_framework.md`. |
+| Single pandoc candidate; CLEAN-02 N/A (D-40) | PASS | No `_archive/review-of-framework/` directory created; CAND-02 applies. |
+
+**Overall Status: PASS**
