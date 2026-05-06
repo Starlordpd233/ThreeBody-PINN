@@ -34,16 +34,17 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Verify compilability of all 5 modular structures (0 errors, 0 new warnings) — Phase 8
 - ✓ Consolidate 7 issue reports into 3 thematic documents with migration tracking — Phase 9
 - ✓ **MD-CONV-02**: ctl-instruction markdown matches LaTeX source with one-to-one injection fidelity — Phase 10
+- ✓ **MD-CONV-01**: data-quality-assessment markdown matches LaTeX source with one-to-one injection fidelity — Phase 11
+- ✓ **MD-CONV-03**: pinn-architecture markdown matches LaTeX source with one-to-one injection fidelity — Phase 12
+- ✓ **MD-CONV-04**: review_of_framework markdown matches LaTeX source with one-to-one injection fidelity — Phase 13
+- ✓ **MD-CONV-05**: stage_strat_revision markdown matches LaTeX source with one-to-one injection fidelity — Phase 14
+- ✓ **MD-CONV-06**: sampling-method markdown matches LaTeX source with one-to-one injection fidelity — Phase 15
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] **MD-CONV-01**: Data-quality-assessment markdown matches LaTeX source with one-to-one injection fidelity
-- [ ] **MD-CONV-03**: pinn-architecture markdown matches LaTeX source with one-to-one injection fidelity
-- [ ] **MD-CONV-04**: review_of_framework markdown matches LaTeX source with one-to-one injection fidelity
-- [ ] **MD-CONV-05**: stage_strat_revision markdown matches LaTeX source with one-to-one injection fidelity
-- [ ] **MD-CONV-06**: sampling-method markdown matches LaTeX source with one-to-one injection fidelity
+*(None — milestone v1.3 complete)*
 
 ### Deferred
 
@@ -61,29 +62,31 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Qualitative reasoning by the LLM — focus is on numerical trajectory prediction first
 - Resolving inconsistencies between LaTeX instruction documents — this milestone preserves them faithfully; cross-document reconciliation is a separate future task
 
-## Current Milestone: v1.3 Markdown Conversion Verification & Correction
+## Current Milestone: v1.3 Markdown Conversion Verification & Correction — COMPLETE
 
 **Goal:** Verify every markdown conversion against its LaTeX source section-by-section (leveraging the modular split), fix all errors to achieve one-to-one injection fidelity, and produce one authoritative `.md` file per source document.
 
-**Target features:**
-- 6 authoritative markdown files, one per LaTeX source, with exact content match; CTL (Phase 10) and Data-Quality-Assessment (Phase 11) complete
+**Status:** COMPLETE (shipped 2026-05-06)
+
+**Deliverables (all 6 complete):**
+- 6 authoritative markdown files, one per LaTeX source, with exact content match
+- 6 verification reports in `verification_reports/`
+- 4 candidate archives in `_archive/` (Phases 10, 11, 12, 15 had multiple candidates)
 - Mathematical formulas faithfully converted (LaTeX → markdown math notation)
 - All cross-references, citations, figure/table references preserved correctly
 - Commented-out LaTeX sections excluded from markdown
-- Duplicate/unselected markdown files identified and handled
-- Inter-document inconsistencies preserved (not resolved — that's a separate task)
+- Duplicate/unselected markdown files identified and archived
+- Inter-document inconsistencies preserved (not resolved — separate future task)
 
 **Scope:** 6 LaTeX sources in `pinn_instruction/original_latex/`:
-1. `Data-quality-assessment/` (7 sections)
-2. `ctl-instruction/` (8 sections)
-3. `pinn-architecture/` (7 active + 3 inactive sections)
-4. `review-of-framework/review_of_framework/` (7 sections)
-5. `review-of-framework/stage_strat_revision/` (6 sections)
-6. `sampling-method/` (monolithic — 1 file)
+1. `Data-quality-assessment/` (7 sections) — Phase 11 ✓
+2. `ctl-instruction/` (8 sections) — Phase 10 ✓
+3. `pinn-architecture/` (7 active + 3 inactive sections) — Phase 12 ✓
+4. `review-of-framework/review_of_framework/` (7 sections) — Phase 13 ✓
+5. `review-of-framework/stage_strat_revision/` (6 sections) — Phase 14 ✓
+6. `sampling-method/` (monolithic — 1 file) — Phase 15 ✓
 
 **Phase structure:** 6 phases (one per source), each doing: pick best candidate → audit section-by-section → fix discrepancies → verify one-to-one match.
-
-**Prerequisite:** Complete v1.2 Phase 9 (Issues Directory Consolidation) before executing v1.3 phases.
 
 ### Previous Milestones
 
@@ -108,7 +111,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Qwen 3.5 2B 4-bit model already downloaded at `Qwen3.5-2B-4bit/`
 - 5 of 6 LaTeX sources are modular (split into sections/); sampling-method is monolithic
 - Markdown conversions exist in two locations: `markdown_conversion/` (top-level) and `markdown_conversion/pandoc_conversion/`
-- Some sources have 2-3 competing markdown conversions; the best candidate must be selected before editing
+- Some sources have 2-3 competing markdown conversions; the best candidate was selected per phase during v1.3
 
 ## Constraints
 
@@ -130,9 +133,10 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | Verify LaTeX modularization before LLM work | Ensure documentation integrity for future reference | ✓ v1.1 shipped (Phases 5-8) |
 | PINN vs LLM approach | PINN architecture exists but no training loop; LLM is the new direction | — Pending |
 | Numerical trajectory output (not qualitative) | Core use case is trajectory prediction from ICs | — Pending |
-| Verify markdown conversions before cross-document reconciliation | Must first ensure each markdown is a faithful copy of its LaTeX source; find inconsistencies later | ✓ v1.3 defined |
-| One phase per LaTeX source (6 phases) | Keeps each phase scoped to one document; avoids context-switching across different content | ✓ v1.3 defined |
+| Verify markdown conversions before cross-document reconciliation | Must first ensure each markdown is a faithful copy of its LaTeX source; find inconsistencies later | ✓ v1.3 shipped (Phases 10-15) |
+| One phase per LaTeX source (6 phases) | Keeps each phase scoped to one document; avoids context-switching across different content | ✓ v1.3 shipped |
 | Preserve source-level CTL dimensionality inconsistency as metadata | Phase 10 found source alternates between 11/12D and 13/14D input-vector descriptions; conversion body must remain faithful | ✓ Phase 10 |
+| v1.3 milestone complete | All 6 markdown conversions verified; all audit gaps remediated | ✓ 2026-05-06 |
 
 ## Evolution
 
@@ -152,4 +156,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-05 — Phase 11 Data-Quality-Assessment markdown verification complete*
+*Last updated: 2026-05-06 — Milestone v1.3 complete (all 6 phases verified)*

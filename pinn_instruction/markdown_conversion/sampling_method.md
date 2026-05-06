@@ -36,21 +36,31 @@ $$r_{\rm outer}=a_{\rm outer}\bigl(1-e_{\rm outer}\cos M_{\rm outer}\bigr),\quad
 
 5.  **Inclination perturbation:** Draw a small inclination $\iota\sim U(0,0.1)$ for the inner binary.
 
-6.  **Position vectors:** $$\begin{aligned}
+6.  **Position vectors:**
+
+$$
+\begin{aligned}
           \mathbf{x}_1 &= -\frac{m_2}{m_1+m_2}\,r_{\rm inner}\bigl(\cos\iota\,\hat{\mathbf{x}}+\sin\iota\,\hat{\mathbf{z}}\bigr),\\
           \mathbf{x}_2 &= +\frac{m_1}{m_1+m_2}\,r_{\rm inner}\bigl(\cos\iota\,\hat{\mathbf{x}}+\sin\iota\,\hat{\mathbf{z}}\bigr),\\
           \mathbf{x}_{\rm COM} &= -\frac{m_3}{m_1+m_2+m_3}\,r_{\rm outer}\,\hat{\mathbf{x}},\\
           \mathbf{x}_3 &= +\frac{m_1+m_2}{m_1+m_2+m_3}\,r_{\rm outer}\,\hat{\mathbf{x}}.
+\end{aligned}
+$$
 
-    \end{aligned}$$ Shift $\mathbf{x}_1,\mathbf{x}_2$ by $\mathbf{x}_{\rm COM}$.
+Shift $\mathbf{x}_1,\mathbf{x}_2$ by $\mathbf{x}_{\rm COM}$.
 
-7.  **Velocity vectors:** $$\begin{aligned}
+7.  **Velocity vectors:**
+
+$$
+\begin{aligned}
           \mathbf{v}_1 &= \bigl(0,\,-\tfrac{m_2}{m_1+m_2}v_{\rm inner},\,0\bigr),\quad
           \mathbf{v}_2 = \bigl(0,\,\tfrac{m_1}{m_1+m_2}v_{\rm inner},\,0\bigr),\\
           \mathbf{v}_{\rm COM} &= \bigl(0,\,-\tfrac{m_3}{m_1+m_2+m_3}v_{\rm outer},\,0\bigr),\quad
           \mathbf{v}_3 = \bigl(0,\,\tfrac{m_1+m_2}{m_1+m_2+m_3}v_{\rm outer},\,0\bigr).
+\end{aligned}
+$$
 
-    \end{aligned}$$ Add $\mathbf{v}_{\rm COM}$ to each of $\mathbf{v}_1,\mathbf{v}_2$.
+Add $\mathbf{v}_{\rm COM}$ to each of $\mathbf{v}_1,\mathbf{v}_2$.
 
 8.  **Gaussian perturbation:** Add a small random perturbation drawn from $\mathcal{N}(0,\,0.01)$ to each component of $\mathbf{x}_i$ and $\mathbf{v}_i$.
 

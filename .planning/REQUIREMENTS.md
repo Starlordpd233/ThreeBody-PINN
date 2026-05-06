@@ -10,7 +10,7 @@ Requirements for markdown conversion verification and correction. Each maps to a
 ### Candidate Selection
 
 - [x] **CAND-01**: For each LaTeX source with multiple markdown candidates, automated diff-score comparison selects the best starting candidate (fewest diff lines against source)
-- [ ] **CAND-02**: Sources with only one markdown candidate (review-of-framework, stage-strat-revision) skip selection and use the existing file directly
+- [x] **CAND-02**: Sources with only one markdown candidate (review-of-framework, stage-strat-revision) skip selection and use the existing file directly
 
 ### Audit & Comparison
 
@@ -72,7 +72,7 @@ Which phases cover which requirements. Phase ranges indicate cross-cutting requi
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CAND-01 | 10, 11, 12, 15 | Complete |
-| CAND-02 | 13, 14 | Pending |
+| CAND-02 | 13, 14 | Complete |
 | AUDIT-01 | 10-15 | Complete |
 | AUDIT-02 | 10-15 | Complete |
 | AUDIT-03 | 10-15 | Complete |

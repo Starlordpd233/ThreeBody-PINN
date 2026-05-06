@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.3
-milestone_name: Markdown Conversion Verification & Correction
+milestone_name: milestone
 status: completed
-stopped_at: context exhaustion at 75% (2026-05-06)
-last_updated: "2026-05-06T14:50:51.466Z"
+stopped_at: context exhaustion at 77% (2026-05-06)
+last_updated: "2026-05-06T20:16:06.838Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 15
-  completed_phases: 13
-  total_plans: 33
-  completed_plans: 34
+  completed_phases: 15
+  total_plans: 36
+  completed_plans: 36
   percent: 100
 ---
 
@@ -18,23 +18,23 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-30)
+See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 15 — sampling-method-verification
+**Current focus:** Milestone v1.3 complete — all 6 markdown conversions verified
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
-Status: Milestone complete
+Phase: All complete (1-15)
+Plan: All complete
+Status: Milestone v1.3 complete
 Last activity: 2026-05-06
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 25 (v1.0: 10, v1.1: 5)
+- Total plans completed: 36 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 18)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -56,7 +56,8 @@ Last activity: 2026-05-06
 | Phase 11 P02 | 15min | 2 tasks | 2 files |
 | 11 | 3 | - | - |
 | 12 | 3 | - | - |
-| 14 | 3 | 3 waves | 3 files |
+| 13 | 3 | 3 waves | 17 fixes |
+| 14 | 3 | 3 waves | 14 fixes |
 | 15 | 3 | - | - |
 
 ## Accumulated Context
@@ -66,18 +67,18 @@ Last activity: 2026-05-06
 - v1.0: Codebase Cleanup (Phases 1-4) — shipped 2026-03-20
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — partial; 3 thematic docs + MIGRATION.md + README.md written, pending final verification
-- v1.3: Markdown Conversion Verification & Correction (Phases 10-15) — roadmap defined 2026-05-01
+- v1.3: Markdown Conversion Verification & Correction (Phases 10-15) — shipped 2026-05-06
 
 ### v1.3 Phase Summary
 
-| Phase | Source | Sections | Candidates | Key Challenge |
-|-------|--------|----------|------------|---------------|
-| 10 | ctl-instruction | 8 | 3 (.md, _v2.md, pandoc) | Heavy math, stage criteria formulas |
-| 11 | Data-quality-assessment | 7 | 2 (.md, pandoc) | Cross-references, HTML table corruption |
-| 12 | pinn-architecture | 7 active + 3 inactive | 3 (.md, _v2.md, pandoc) | Comment block exclusion, inactive sections |
-| 13 | review_of_framework | 7 | 1 (pandoc only) | Sub-document structure |
-| 14 | stage_strat_revision | 6 | 1 (pandoc only) | Table normalization |
-| 15 | sampling-method | monolithic | 2 (.md, pandoc) | Monolithic source (no sections/ dir) |
+| Phase | Source | Sections | Candidates | Key Challenge | Status |
+|-------|--------|----------|------------|---------------|--------|
+| 10 | ctl-instruction | 8 | 3 (.md, _v2.md, pandoc) | Heavy math, stage criteria formulas | COMPLETE |
+| 11 | Data-quality-assessment | 7 | 2 (.md, pandoc) | Cross-references, HTML table corruption | COMPLETE |
+| 12 | pinn-architecture | 7 active + 3 inactive | 3 (.md, _v2.md, pandoc) | Comment block exclusion, inactive sections | COMPLETE |
+| 13 | review_of_framework | 7 | 1 (pandoc only) | Sub-document structure | COMPLETE |
+| 14 | stage_strat_revision | 6 | 1 (pandoc only) | Table normalization, bibliography reconstruction | COMPLETE |
+| 15 | sampling-method | monolithic | 2 (.md, pandoc) | Monolithic source (no sections/ dir) | COMPLETE |
 
 ### Decisions
 
@@ -91,6 +92,7 @@ Recent decisions affecting current work:
 - [v1.3]: Commented-out LaTeX sections (\begin{comment}...\end{comment}) excluded from markdown
 - [v1.3]: Best markdown candidate selected per source; unselected duplicates archived to _archive/
 - [v1.3]: Manual comparison only — no automated verification scripts this milestone (deferred to v2)
+- [v1.3]: Milestone complete 2026-05-06 — all 6 markdown conversions verified and archived
 - [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
 - [v1.1]: Automated Python diffing approach chosen for verification
 - [v1.1]: 4 verification dimensions: content completeness, preamble parity, structure fidelity, compilability
@@ -108,12 +110,15 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Complete v1.2 Phase 9 verification
-- Execute v1.3 Phases 11-15
+All v1.3 tasks complete.
+
+- [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
+- [x] Execute v1.3 Phases 11-15 (complete)
+- [x] Fix all audit gaps from MILESTONE-AUDIT-v1.3.md (complete — Task #3)
 
 ### Prerequisites
 
-**v1.2 Phase 9 completion required** before executing v1.3 phases. Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/original_latex/review-of-framework/issues/`. Remaining: final verification step.
+**v1.2 Phase 9 completion** — Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/original_latex/review-of-framework/issues/`. Remaining: final verification step. This is outside v1.3 scope.
 
 ### Blockers/Concerns
 
@@ -133,7 +138,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T14:50:51.459Z
-Stopped at: context exhaustion at 75% (2026-05-06)
+Last session: 2026-05-06T20:16:06.830Z
+Stopped at: context exhaustion at 77% (2026-05-06)
 Resume file: None
-Next action: Phase 15 — sampling-method-verification (3 plans pending)
+Next action: Milestone v1.4 planning or Phase 9 completion (v1.2)
