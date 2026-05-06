@@ -46,7 +46,7 @@
 - [ ] **Phase 11: Data-Quality-Assessment Verification** - 7 sections, 2 markdown candidates, cross-reference heavy
 - [ ] **Phase 12: PINN-Architecture Verification** - 7 active + 3 inactive sections, 3 markdown candidates, comment exclusion
 - [ ] **Phase 13: Review-of-Framework Verification** - 7 sections, 1 pandoc candidate, sub-document structure
-- [ ] **Phase 14: Stage-Strategy-Revision Verification** - 6 sections, 1 pandoc candidate, table normalization
+- [x] **Phase 14: Stage-Strategy-Revision Verification** - 6 sections, 1 pandoc candidate, table normalization — completed 2026-05-05
 - [ ] **Phase 15: Sampling-Method Verification** - Monolithic source, 2 markdown candidates, split-on-section-boundaries
 
 ## Phase Details
@@ -199,13 +199,13 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 14-01-PLAN.md — Provenance, policy checks (3 VACUOUS + 3 ACTIVE), report skeleton
+- [x] 14-01-PLAN.md — Provenance, policy checks (3 VACUOUS + 3 ACTIVE), report skeleton
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 14-02-PLAN.md — Section-by-section audit + fixes (3 critical defects: Table 2 MISSING, Table 4 MANGLED, Bibliography COLLAPSED; 35 `\[N\]` brackets, 10 `\"` quotes)
+- [x] 14-02-PLAN.md — Section-by-section audit + fixes (3 critical defects: Table 2 MISSING, Table 4 MANGLED, Bibliography COLLAPSED; 35 `\[N\]` brackets, 10 `\"` quotes)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 14-03-PLAN.md — Promotion, Source Issues metadata, final report, README index update
+- [x] 14-03-PLAN.md — Promotion, Source Issues metadata, final report, README index update
 
 **UI hint**: no
 
@@ -248,8 +248,8 @@ Phases 11-15 all depend on Phase 10 (hardest first to validate the approach). Ph
 | 11. Data-Quality-Assessment Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 12. PINN-Architecture Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 13. Review-of-Framework Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
-| 14. Stage-Strategy-Revision Verification | v1.3 | 0/3 | Planned     | — |
+| 14. Stage-Strategy-Revision Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 15. Sampling-Method Verification | v1.3 | 1/3 | In Progress|  |
 
 ---
-*Last updated: 2026-05-05 — Phase 14 plans created*
+*Last updated: 2026-05-05 — Phase 14 complete*
