@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-06T21:35:13Z",
+  "phase": "12",
+  "phase_name": "pinn-architecture-verification",
+  "phase_dir": ".planning/phases/12-pinn-architecture-verification",
+  "plan": 3,
+  "task": 8,
+  "total_tasks": 8,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Phase 12 pinn_architecture.md validation", "status": "done", "commit": "1d4b4b1"},
+    {"id": 2, "name": "review_of_framework.md (Phase 13) markdown fixes", "status": "done", "commit": "1d4b4b1"},
+    {"id": 3, "name": "sampling_method.md (Phase 15) markdown fixes", "status": "done", "commit": "1d4b4b1"},
+    {"id": 4, "name": "stage_strat_revision.md (Phase 14) verified clean", "status": "done", "commit": "1d4b4b1"},
+    {"id": 5, "name": "Milestone v1.3 MILESTONE-AUDIT created", "status": "done", "commit": "uncommitted"},
+    {"id": 6, "name": "Phases 13/14/15 VALIDATION and VERIFICATION docs created", "status": "done", "commit": "uncommitted"},
+    {"id": 7, "name": "ROADMAP/STATE/PROJECT.md updated to reflect milestone complete", "status": "done", "commit": "uncommitted"},
+    {"id": 8, "name": "pinn_instruction/markdown_conversion/README.md updated", "status": "done", "commit": "uncommitted"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [
+    {
+      "action": "Commit all uncommitted changes",
+      "context": "All v1.3 work is done; artifacts are staged in the working tree but not committed. Run: git add -A && git commit -m 'docs(v1.3): milestone complete — phase 13/14/15 docs, milestone audit, README updates'",
+      "blocking": false
+    }
+  ],
+  "decisions": [
+    {"decision": "One-to-one injection fidelity required for markdown conversions", "rationale": "Markdown must match LaTeX source exactly", "phase": "v1.3"},
+    {"decision": "Inter-document inconsistencies preserved (not resolved)", "rationale": "Separate future task; out of v1.3 scope", "phase": "v1.3"},
+    {"decision": "Commented-out LaTeX sections excluded from markdown", "rationale": "\\begin{comment}...\\end{comment} blocks are inactive content", "phase": "12"},
+    {"decision": "Block math inside lists should be flush with left margin", "rationale": "Explicit user instruction; indented block math causes rendering failures", "phase": "12"},
+    {"decision": "Section headings use '# Section N: Title' format for all top-level sections", "rationale": "Consistency with rendering environment expectations", "phase": "12"}
+  ],
+  "uncommitted_files": [
+    ".planning/MILESTONE-AUDIT-v1.3.md",
+    ".planning/milestones/v1.3-MILESTONE-AUDIT.md",
+    ".planning/milestones/v1.3-REQUIREMENTS.md",
+    ".planning/milestones/v1.3-ROADMAP.md",
+    ".planning/phases/13-review-of-framework-verification/13-VALIDATION.md",
+    ".planning/phases/14-stage-strategy-revision-verification/14-01-SUMMARY.md",
+    ".planning/phases/14-stage-strategy-revision-verification/14-02-SUMMARY.md",
+    ".planning/phases/14-stage-strategy-revision-verification/14-VALIDATION.md",
+    ".planning/phases/14-stage-strategy-revision-verification/14-VERIFICATION.md",
+    ".planning/phases/15-sampling-method-verification/15-01-PLAN.md",
+    ".planning/phases/15-sampling-method-verification/15-02-PLAN.md",
+    ".planning/phases/15-sampling-method-verification/15-03-PLAN.md",
+    ".planning/REQUIREMENTS.md (modified)",
+    ".planning/ROADMAP.md (modified)",
+    ".planning/STATE.md (modified)",
+    ".planning/PROJECT.md (modified)",
+    ".planning/v1.3-MILESTONE-AUDIT.md (modified)",
+    "pinn_instruction/markdown_conversion/README.md (modified)",
+    "pinn_instruction/markdown_conversion/sampling_method.md (modified)",
+    ".planning/phases/15-sampling-method-verification/15-VALIDATION.md (modified)"
+  ],
+  "next_action": "Commit all uncommitted changes to close out milestone v1.3, then decide: v1.4 planning or complete Phase 9 (v1.2 PINN Implementation Readiness)",
+  "context_notes": "Milestone v1.3 (Markdown Conversion Verification & Correction, Phases 10-15) is 100% complete. All 6 LaTeX->markdown conversions verified: CTL-instruction (10), data-quality-assessment (11), pinn-architecture (12), review_of_framework (13), stage_strat_revision (14), sampling-method (15). All artifacts exist in working tree but need a final commit. No blockers, no blocking constraints."
+}
