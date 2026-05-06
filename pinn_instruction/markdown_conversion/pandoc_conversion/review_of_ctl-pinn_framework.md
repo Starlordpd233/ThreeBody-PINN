@@ -264,11 +264,11 @@ Issue 18 correctly identifies the need for an explicit, unified confirmation tha
 
 It is established as a definitive and non-negotiable requirement that all loss components be computed entirely within the non-dimensional, $G=1$ system of units defined in Section 2. The following checklist must be used to validate the implementation:
 
-\- **$\mathcal{L}_{\text{data}}$ (Data Fidelity Loss):** This term must be computed as the L1 norm of the difference between the network's direct output (the scaled position vector, $\mathbf{r}'_{\text{pred}}$) and the ground-truth positions from the BRUTUS simulation after they have been scaled by the characteristic length $D$ (i.e., $\mathbf{r}'_{\text{true}} = \mathbf{r}_{\text{true}} / D$). $$\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} ||\mathbf{r}'_{\text{pred}}(t'_k) - \mathbf{r}'_{\text{true}}(t'_k)||_1$$
+- **$\mathcal{L}_{\text{data}}$ (Data Fidelity Loss):** This term must be computed as the L1 norm of the difference between the network's direct output (the scaled position vector, $\mathbf{r}'_{\text{pred}}$) and the ground-truth positions from the BRUTUS simulation after they have been scaled by the characteristic length $D$ (i.e., $\mathbf{r}'_{\text{true}} = \mathbf{r}_{\text{true}} / D$). $$\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} ||\mathbf{r}'_{\text{pred}}(t'_k) - \mathbf{r}'_{\text{true}}(t'_k)||_1$$
 
-\- **$\mathcal{L}_{\text{physics}}$ (Physics Residual Loss):** The physics residual, $f_i(t')$, must be calculated using scaled positions ($\mathbf{r}'$), scaled accelerations ($\mathbf{a}'$), and unscaled masses ($m_j$), consistent with the $G=1$ unit system where mass is dimensionless. The accelerations $\mathbf{a}'$ are derived via automatic differentiation from $\mathbf{r}'$ with respect to the normalized time $t'$. $$f_i(t') = \mathbf{a}'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)}{(||\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)|| + \epsilon_{\text{soft}})^3}$$
+- **$\mathcal{L}_{\text{physics}}$ (Physics Residual Loss):** The physics residual, $f_i(t')$, must be calculated using scaled positions ($\mathbf{r}'$), scaled accelerations ($\mathbf{a}'$), and unscaled masses ($m_j$), consistent with the $G=1$ unit system where mass is dimensionless. The accelerations $\mathbf{a}'$ are derived via automatic differentiation from $\mathbf{r}'$ with respect to the normalized time $t'$. $$f_i(t') = \mathbf{a}'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)}{(||\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)|| + \epsilon_{\text{soft}})^3}$$
 
-\- **$\mathcal{L}_{\text{energy}}$ (Energy Conservation Loss):** The total energy (Hamiltonian) must be computed using the network's scaled position outputs ($\mathbf{r}'$) and the scaled velocities ($\mathbf{v}'$) derived from them via automatic differentiation. The reference initial energy, $H_0$, must also be pre-computed using the same dimensionless units for consistency. $$H_{\text{total}}(\mathbf{r}', \mathbf{v}') = \sum_{i=1}^{N} \frac{1}{2} m_i ||\mathbf{v}'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||\mathbf{r}'_i - \mathbf{r}'_j|| + \epsilon_{\text{soft}}}$$
+- **$\mathcal{L}_{\text{energy}}$ (Energy Conservation Loss):** The total energy (Hamiltonian) must be computed using the network's scaled position outputs ($\mathbf{r}'$) and the scaled velocities ($\mathbf{v}'$) derived from them via automatic differentiation. The reference initial energy, $H_0$, must also be pre-computed using the same dimensionless units for consistency. $$H_{\text{total}}(\mathbf{r}', \mathbf{v}') = \sum_{i=1}^{N} \frac{1}{2} m_i ||\mathbf{v}'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||\mathbf{r}'_i - \mathbf{r}'_j|| + \epsilon_{\text{soft}}}$$
 
 Enforcing this strict dimensional consistency is paramount. It ensures that the magnitudes of the different loss components are physically comparable, allowing the Augmented Lagrangian Method (ALM) and the optimizer to balance their respective gradients effectively.
 
@@ -387,7 +387,7 @@ The final set of resolutions addresses the core training loop, reconciling confl
 
 #### Context and Validation
 
-A major conceptual and practical contradiction, highlighted across Issues 2, 10, and 11, exists between the two documents regarding data sampling for the loss function. The `CTL-instruction-final.tex` document describes a process of sampling time points for the data loss, $\mathcal{L}_{\text{data}}$, from the discrete, available time steps within the BRUTUS simulation files. In contrast, the `PINN_architecture_plan.tex` document describes a separate process of sampling thousands of \"collocation points\" for the physics and energy losses, $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$, from the continuous time domain \[-1, 1\].
+A major conceptual and practical contradiction, highlighted across Issues 2, 10, and 11, exists between the two documents regarding data sampling for the loss function. The `CTL-instruction-final.tex` document describes a process of sampling time points for the data loss, $\mathcal{L}_{\text{data}}$, from the discrete, available time steps within the BRUTUS simulation files. In contrast, the `PINN_architecture_plan.tex` document describes a separate process of sampling thousands of \"collocation points\" for the physics and energy losses, $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$, from the continuous time domain [-1, 1].
 
 This creates two distinct sets of points for evaluation in each training step. This approach is not only computationally inefficient, as it may require two separate forward passes or a single pass on a very large, concatenated set of points, but it is also conceptually confusing and deviates from standard PINN practices.
 
@@ -395,25 +395,25 @@ This creates two distinct sets of points for evaluation in each training step. T
 
 The sampling strategies will be clarified and unified into a single, efficient workflow that aligns with established PINN methodologies. The distinction between \"data points\" and \"collocation points\" is crucial and will be formally defined:
 
-\- **Data Points:** These are points where ground-truth data is available. They are used exclusively to compute the data fidelity loss, $\mathcal{L}_{\text{data}}$.
+- **Data Points:** These are points where ground-truth data is available. They are used exclusively to compute the data fidelity loss, $\mathcal{L}_{\text{data}}$.
 
-\- **Collocation Points:** These are points sampled from the problem's domain (in this case, continuous time) where no ground-truth data is necessarily available. They are used to enforce the governing physical laws via the physics and energy loss terms, $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$.
+- **Collocation Points:** These are points sampled from the problem's domain (in this case, continuous time) where no ground-truth data is necessarily available. They are used to enforce the governing physical laws via the physics and energy loss terms, $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$.
 
 The definitive training step will involve a single, combined forward pass for computational efficiency:
 
 1.  **Batch Sampling:** For each training step, two sets of time points are sampled for each trajectory in the batch:
 
-    \- **Data Time Points ($t_{\text{data}}'$):** A set of $N_{\text{data\_pts}}$ (e.g., 32) time points are sampled from the discrete BRUTUS snapshot times available for that trajectory.
+    - **Data Time Points ($t_{\text{data}}'$):** A set of $N_{\text{data\_pts}}$ (e.g., 32) time points are sampled from the discrete BRUTUS snapshot times available for that trajectory.
 
-    \- **Collocation Time Points ($t_{\text{col}}'$):** A set of $N_{\text{col\_pts}}$ (e.g., 256) time points are sampled from the continuous domain \[-1, 1\], using a uniform or adaptive strategy.
+    - **Collocation Time Points ($t_{\text{col}}'$):** A set of $N_{\text{col\_pts}}$ (e.g., 256) time points are sampled from the continuous domain [-1, 1], using a uniform or adaptive strategy.
 
 2.  **Unified Forward Pass:** The network is evaluated on the union of these two sets of points, $t_{\text{union}}' = t_{\text{data}}' \cup t_{\text{col}}'$, in a single forward pass to get all required position predictions and their derivatives.
 
 3.  **Loss Computation:** The loss components are then calculated on their respective subsets of the predictions:
 
-    \- $\mathcal{L}_{\text{data}}$ is computed using the predictions corresponding to $t_{\text{data}}'$.
+    - $\mathcal{L}_{\text{data}}$ is computed using the predictions corresponding to $t_{\text{data}}'$.
 
-    \- $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$ are computed using the predictions corresponding to $t_{\text{col}}'$.
+    - $\mathcal{L}_{\text{physics}}$ and $\mathcal{L}_{\text{energy}}$ are computed using the predictions corresponding to $t_{\text{col}}'$.
 
 This approach resolves the ambiguity by clearly defining the roles of each point set. It is computationally efficient and allows the model to be anchored to real data while enforcing physical laws across the entire continuous solution domain, which is the core philosophy of PINNs.
 
@@ -431,15 +431,15 @@ The detailed batch construction algorithm from `CTL-instruction-final.tex` is fo
 
 1.  **Replay and Lookahead Sampling:** Each mini-batch is intelligently composed to facilitate stable learning and smooth transitions between stages.
 
-    \- **Replay (\~95% of batch):** The majority of trajectories in a batch are sampled from the cumulative set of all data from the current stage and all previous stages. This prevents \"catastrophic forgetting\" by ensuring the model continually rehearses previously learned concepts.
+    - **Replay (\~95% of batch):** The majority of trajectories in a batch are sampled from the cumulative set of all data from the current stage and all previous stages. This prevents \"catastrophic forgetting\" by ensuring the model continually rehearses previously learned concepts.
 
-    \- **Lookahead (\~5% of batch):** A small fraction of trajectories are sampled from the next curriculum stage. This \"previews\" more difficult examples, effectively warming up the network for the upcoming stage transition and smoothing the loss landscape.
+    - **Lookahead (\~5% of batch):** A small fraction of trajectories are sampled from the next curriculum stage. This \"previews\" more difficult examples, effectively warming up the network for the upcoming stage transition and smoothing the loss landscape.
 
 2.  **Hybrid Time Point Sampling (Importance Sampling):** For each trajectory selected for the batch, the collocation points ($t_{\text{col}}'$) are sampled using a hybrid strategy to focus computational effort on dynamically significant regions:
 
-    \- **50% Uniform Sampling:** Half of the points are sampled uniformly from the continuous time domain \[-1, 1\], ensuring broad coverage.
+    - **50% Uniform Sampling:** Half of the points are sampled uniformly from the continuous time domain [-1, 1], ensuring broad coverage.
 
-    \- **50% Acceleration-Weighted Sampling:** The other half are sampled from a probability distribution proportional to the magnitude of the system's acceleration, $|\mathbf{a}(t)|$. This naturally concentrates collocation points in regions of high dynamic activity, such as close encounters, where enforcing the physics is most critical.
+    - **50% Acceleration-Weighted Sampling:** The other half are sampled from a probability distribution proportional to the magnitude of the system's acceleration, $|\mathbf{a}(t)|$. This naturally concentrates collocation points in regions of high dynamic activity, such as close encounters, where enforcing the physics is most critical.
 
 This comprehensive batching strategy is a cornerstone of the CTL framework, ensuring stable learning, efficient use of data, and robust progression through the curriculum.
 
@@ -455,9 +455,9 @@ The introduction of new, high-resolution datasets (Set 2a and 2b in Table 1 of `
 
 The unified sampling strategy established in Section 5.1 provides an elegant and effective solution to this problem without requiring any modification.
 
-\- **For Physics and Energy Losses:** Since the collocation points are sampled from the continuous time domain \[-1, 1\], the underlying temporal resolution of the ground-truth BRUTUS data is irrelevant. The network's adherence to physical laws is tested on a consistent distribution of points, regardless of the source trajectory's data density.
+- **For Physics and Energy Losses:** Since the collocation points are sampled from the continuous time domain [-1, 1], the underlying temporal resolution of the ground-truth BRUTUS data is irrelevant. The network's adherence to physical laws is tested on a consistent distribution of points, regardless of the source trajectory's data density.
 
-\- **For the Data Fidelity Loss:** The data points are sampled from the discrete BRUTUS snapshots. The high-resolution datasets simply provide a richer, denser set of available points from which to sample. This is a direct benefit, as it allows the random sampling process to select from a more diverse set of ground-truth data points, potentially improving the accuracy of the data loss term without introducing any bias.
+- **For the Data Fidelity Loss:** The data points are sampled from the discrete BRUTUS snapshots. The high-resolution datasets simply provide a richer, denser set of available points from which to sample. This is a direct benefit, as it allows the random sampling process to select from a more diverse set of ground-truth data points, potentially improving the accuracy of the data loss term without introducing any bias.
 
 Therefore, no special handling, such as up-sampling low-resolution data or down-sampling high-resolution data, is necessary. The proposed sampling framework inherently and gracefully accommodates the mixed-resolution dataset.
 
@@ -477,11 +477,11 @@ A definitive implementation is created by synthesizing the strengths of both doc
 
 2.  **Curriculum-Aware $C$ Schedule:** The multiplier $C$ is not fixed but is adjusted at the start of each curriculum stage to reflect the nature of the training data:
 
-    \- **Stages 0-1 (Stable Orbits):** $C = 8.5$. The data is smooth, and larger gradient steps can be tolerated to accelerate convergence.
+    - **Stages 0-1 (Stable Orbits):** $C = 8.5$. The data is smooth, and larger gradient steps can be tolerated to accelerate convergence.
 
-    \- **Stages 2-3 (Mild Chaos):** $C = 5.0$. As chaotic behavior is introduced, the clipping becomes more conservative.
+    - **Stages 2-3 (Mild Chaos):** $C = 5.0$. As chaotic behavior is introduced, the clipping becomes more conservative.
 
-    \- **Stages 4-6 (Frequent Close Encounters):** $C = 3.0$. With highly chaotic data prone to producing extreme gradients, aggressive clipping is necessary to maintain training stability.
+    - **Stages 4-6 (Frequent Close Encounters):** $C = 3.0$. With highly chaotic data prone to producing extreme gradients, aggressive clipping is necessary to maintain training stability.
 
 This synthesized approach ensures that the training process is both stable and efficient. It allows for rapid learning on simpler data while robustly protecting the optimizer from the instabilities inherent in the more challenging, chaotic stages of the curriculum. It is also explicitly noted that gradient clipping is applied only during the Adam optimization phase and is disabled during L-BFGS refinement, as the line-search mechanism of L-BFGS provides its own form of step control.
 
@@ -493,21 +493,15 @@ The key resolutions have unified the project's approach to foundational physics,
 For successful implementation, adherence to the consolidated specifications is paramount. The following table provides a final, master summary of all key dynamic hyperparameters, serving as a single source of truth for configuring the training process across all curriculum stages. By following this blueprint, the project is well-positioned to develop a state-of-the-art model capable of learning the complex, chaotic dynamics of the three-body problem with high fidelity and long-term physical plausibility.
 
 
-  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  **Parameter**               **Stage 0-1 (Stable)**      **Stage 2-3 (Mild Chaos)**          **Stage 4-6 (Chaotic)**             **Rationale**
-  --------------------------- --------------------------- ----------------------------------- ----------------------------------- -------------------------------------------------------------------------------
-  SIREN first_omega_0         30.0                        20.0                                10.0                                Matches network frequency resolution to data complexity.
 
-  Energy Weight $\lambda_E$   $10^{-3}$ - $10^{-2}$       $10^{-1}$ - $1$                     $10^{1}$ - $10^{3}$                 Increases energy conservation constraint as chaos increases.
+| **Parameter** | **Stage 0-1 (Stable)** | **Stage 2-3 (Mild Chaos)** | **Stage 4-6 (Chaotic)** | **Rationale** |
+|---|---|---|---|---|
+| SIREN first_omega_0 | 30.0 | 20.0 | 10.0 | Matches network frequency resolution to data complexity. |
+| Energy Weight $\lambda_E$ | $10^{-3}$ - $10^{-2}$ | $10^{-1}$ - $1$ | $10^{1}$ - $10^{3}$ | Increases energy conservation constraint as chaos increases. |
+| Adam Initial LR | $10^{-3}$ - $7\text{e-}4$ | $4.9\text{e-}4$ - $3.4\text{e-}4$ | $2.4\text{e-}4$ - $1.2\text{e-}4$ | Gradually reduces initial learning rate for more difficult stages. |
+| Gradient Clip $C$ | 8.5 | 5.0 | 3.0 | Allows larger gradients for stable data; clips aggressively for chaotic data. |
+| L-BFGS Type | Full-Batch | Full-Batch / sL-BFGS | sL-BFGS | Switches to stochastic variant as cumulative dataset size grows. |
+| ALM State | Reset | Reset | Reset | Resets ALM statistics to adapt to new data distribution at each stage. |
 
-  Adam Initial LR             $10^{-3}$ - $7\text{e-}4$   $4.9\text{e-}4$ - $3.4\text{e-}4$   $2.4\text{e-}4$ - $1.2\text{e-}4$   Gradually reduces initial learning rate for more difficult stages.
-
-  Gradient Clip $C$           8.5                         5.0                                 3.0                                 Allows larger gradients for stable data; clips aggressively for chaotic data.
-
-  L-BFGS Type                 Full-Batch                  Full-Batch / sL-BFGS                sL-BFGS                             Switches to stochastic variant as cumulative dataset size grows.
-
-  ALM State                   Reset                       Reset                               Reset                               Resets ALM statistics to adapt to new data distribution at each stage.
-  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-  : Consolidated Hyperparameter Schedule for CTL-PINN Training
+: Consolidated Hyperparameter Schedule for CTL-PINN Training
 

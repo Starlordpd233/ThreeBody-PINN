@@ -257,24 +257,134 @@ All 14 data rows (the Time row plus the 13 IC components) match the source LaTeX
 
 ### 5. multi_component_loss_framework.tex (math + code)
 
-**Status:** PENDING — FIDEL-01 formula checklist required per D-14, plus
-verbatim verification of the ~40-line `compute_kinematics` PyTorch code
-block (argument names `network_output_r` / `time_input_t`, comment
-"CRITICAL: Retain graph for second derivative", `create_graph=True`/`False`
-values). Source is ~116 lines / 11550 bytes with ~3 display-math equations
-expected (data loss L1, physics residual fi(t'), total Hamiltonian).
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| RoF-13-02-10 | Conversion | MINOR | `multi_component_loss_framework.tex:13, 18, 23` | `review_of_ctl-pinn_framework.md:267, 269, 271` | Pandoc escaped 3 unindented `\- ` list markers (the L_data / L_physics / L_energy validation checklist bullets in subsection 5.1) as `\-`; source uses plain `- `. Replaced 3 occurrences with `- `. | Fixed |
+
+**Content audit:**
+- Heading: `\section{A Rigorous Framework for the Multi-Component Loss Function}` → `# A Rigorous Framework for the Multi-Component Loss Function` (candidate line 251) — MATCH
+- Subsections (4 total): `\subsection{Clarifying the Use of Scaled Quantities in All Loss Components}` → `## Clarifying the Use of Scaled Quantities in All Loss Components` (candidate line 255) — MATCH; `\subsection{State Management and Integration of ALM Parameters}` → `## State Management and Integration of ALM Parameters` (candidate line 275) — MATCH; `\subsection{Reference Implementation for Automatic Differentiation (AD) of Kinematics}` → `## Reference Implementation for Automatic Differentiation (AD) of Kinematics` (candidate line 305) — MATCH; `\subsection{Selecting an Appropriate Huber Loss Delta (\texorpdfstring{$\delta$}{delta}) for Normalized Energy}` → `## Selecting an Appropriate Huber Loss Delta ($\delta$) for Normalized Energy` (candidate line 364) — MATCH; `\texorpdfstring` collapsed to inline math correctly
+- Paragraph headings: 4 `\paragraph{Context and Validation}` → 4 `#### Context and Validation` at candidate lines 259, 279, 309, 368 — MATCH; 4 `\paragraph{Proposed Solution and Implementation}` → 4 `#### Proposed Solution and Implementation` at candidate lines 263, 283, 313, 372 — MATCH; 1 `\paragraph{Justification}` → `#### Justification` at candidate line 376 — MATCH (FIDEL-05 heading map applied; `\paragraph{Proposed Solution and Imple\-mentation}` source line 9 hyphenation hint correctly collapsed to plain `Implementation` in candidate)
+- Lead prose paragraph (source line 2) → candidate line 253 — MATCH
+- 3-item top-level list under "Proposed Solution and Implementation" of subsection 5.1 (`L_data` / `L_physics` / `L_energy` validation bullets): source lines 12-26 → candidate lines 267, 269, 271 — MATCH; bullet rendering preserved as `- **...**` after `\-` artifact removal; pandoc inlined the `\begin{equation}` blocks into the bullet text using inline `$$...$$` form (correct pandoc behavior; semantically equivalent display math)
+- Numbered enumerate list under "Proposed Solution and Implementation" of subsection 5.2 (Storage and Scope; Update Timing with 5-step nested enumerate; Persistence Across Curriculum Stages): source lines 37-49 → candidate lines 287-303 — MATCH; both top-level `1.` `2.` `3.` and nested `1.` through `5.` numbering preserved (note: pandoc rendered the nested enumerate inside item 2 with a 4-space-indented body)
+- LaTeX em-dash directive `\textemdash` (source line 7, twice surrounding `$\mathcal{L}_{\text{data}}$, $\mathcal{L}_{\text{physics}}$, and $\mathcal{L}_{\text{energy}}$`) collapsed to `---` (candidate line 261) — MATCH
+- `\texttt{...}` (`PINN_architecture_plan.tex`, `self.lambda_p = torch.tensor(0.0)`, `loss.backward()`, `optimizer.step()`, `optimizer.zero_grad()`, `create_graph=True`, `torch.autograd.grad`) — backtick-rendered code spans MATCH
+- `\textbf{...}` rendered as `**...**` throughout — MATCH (including `\boldsymbol{\delta = 0.1}` rendered as `$\boldsymbol{\delta = 0.1}$`)
+- `\allowbreak` directive (source line 47, inside `\texttt{PINN\_\allowbreak architecture\_\allowbreak plan.tex}`) — non-rendering hyphenation hint, correctly omitted (candidate renders the texttt as `PINN_architecture_plan.tex` clean)
+- Inline math (`$\mathcal{L}_{\text{data}}$`, `$\mathcal{L}_{\text{physics}}$`, `$\mathcal{L}_{\text{energy}}$`, `$\mathbf{r}'_{\text{pred}}$`, `$\mathbf{r}'_{\text{true}}$`, `$\mathbf{r}_{\text{true}} / D$`, `$\lambda_p$`, `$\mu_p$`, `$v_p$`, `$\delta = 1.0$`, `$\delta = 0.1$`, `$|\Delta H_k|$`) — MATCH throughout
+
+**Formula checklist (FIDEL-01 per D-14):**
+
+| # | Source location | LaTeX form (one-line excerpt) | Candidate location | Markdown form (one-line excerpt) | Status |
+|---|---|---|---|---|---|
+| 1 | `multi_component_loss_framework.tex:14-16` | `\begin{equation} \mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} \|\|\mathbf{r}'_{\text{pred}}(t'_k) - \mathbf{r}'_{\text{true}}(t'_k)\|\|_1 \end{equation}` | `review_of_ctl-pinn_framework.md:267` (inlined into bullet) | `$$\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} \|\|\mathbf{r}'_{\text{pred}}(t'_k) - \mathbf{r}'_{\text{true}}(t'_k)\|\|_1$$` | MATCH |
+| 2 | `multi_component_loss_framework.tex:19-21` | `\begin{equation} f_i(t') = \mathbf{a}'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)}{(\|\|\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)\|\| + \epsilon_{\text{soft}})^3} \end{equation}` | `review_of_ctl-pinn_framework.md:269` (inlined into bullet) | `$$f_i(t') = \mathbf{a}'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)}{(\|\|\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)\|\| + \epsilon_{\text{soft}})^3}$$` | MATCH |
+| 3 | `multi_component_loss_framework.tex:24-26` | `\begin{equation} H_{\text{total}}(\mathbf{r}', \mathbf{v}') = \sum_{i=1}^{N} \frac{1}{2} m_i \|\|\mathbf{v}'_i\|\|^2 - \sum_{i<j} \frac{m_i m_j}{\|\|\mathbf{r}'_i - \mathbf{r}'_j\|\| + \epsilon_{\text{soft}}} \end{equation}` | `review_of_ctl-pinn_framework.md:271` (inlined into bullet) | `$$H_{\text{total}}(\mathbf{r}', \mathbf{v}') = \sum_{i=1}^{N} \frac{1}{2} m_i \|\|\mathbf{v}'_i\|\|^2 - \sum_{i<j} \frac{m_i m_j}{\|\|\mathbf{r}'_i - \mathbf{r}'_j\|\| + \epsilon_{\text{soft}}}$$` | MATCH |
+
+All 3 display-math blocks match source LaTeX exactly. Pandoc inlined the `\begin{equation}` environments at the end of each list-item bullet text using `$$...$$`; this is correct pandoc behavior for equation environments inside list items and preserves both the bullet/equation association and the math content verbatim.
+
+**Code block verbatim verification (subsection 5.3 PyTorch reference implementation):**
+
+| Aspect | Source (`multi_component_loss_framework.tex:59-104`) | Candidate (`review_of_ctl-pinn_framework.md:317-360`) | Status |
+|---|---|---|---|
+| Code block delimiters | `\begin{lstlisting}` / `\end{lstlisting}` | 4-space indented code block (pandoc default rendering for lstlisting) | MATCH (correct pandoc behavior for lstlisting → indented code block) |
+| Function signature | `def compute_kinematics(network_output_r, time_input_t):` | `def compute_kinematics(network_output_r, time_input_t):` | MATCH (argument names verified verbatim) |
+| Docstring opening | `"""` | `"""` | MATCH |
+| Docstring `Args:` block | `network_output_r (torch.Tensor)` / `time_input_t (torch.Tensor)` / `Shape: (N_points, 9)` / `Shape: (N_points, 1)` | identical | MATCH |
+| Docstring `Returns:` block | `velocities_v (torch.Tensor)` / `accelerations_a (torch.Tensor)` / `Shape (N_points, 9)` (twice) | identical | MATCH |
+| Gradient enable check | `if not time_input_t.requires_grad:` / `time_input_t.requires_grad_(True)` | identical | MATCH |
+| First derivative comment | `# Compute first derivative (velocities)` | identical | MATCH |
+| `grad_outputs_v` setup | `grad_outputs_v = torch.ones_like(network_output_r)` | identical | MATCH |
+| First `torch.autograd.grad` call | `velocities_v, = torch.autograd.grad(outputs=network_output_r, inputs=time_input_t, grad_outputs=grad_outputs_v, create_graph=True)` | identical | MATCH |
+| `create_graph=True` comment | `# CRITICAL: Retain graph for second derivative` | `# CRITICAL: Retain graph for second derivative` | MATCH (verbatim, including capitalization "CRITICAL" and the colon) |
+| Second derivative comment | `# Compute second derivative (accelerations)` | identical | MATCH |
+| `grad_outputs_a` setup | `grad_outputs_a = torch.ones_like(velocities_v)` | identical | MATCH |
+| Second `torch.autograd.grad` call | `accelerations_a, = torch.autograd.grad(outputs=velocities_v, inputs=time_input_t, grad_outputs=grad_outputs_a, create_graph=False)` | identical | MATCH |
+| `create_graph=False` comment | `# Not needed for second derivative` | `# Not needed for second derivative` | MATCH |
+| Return statement | `return velocities_v, accelerations_a` | identical | MATCH |
+
+The `compute_kinematics` PyTorch reference implementation is preserved verbatim. All argument names (`network_output_r`, `time_input_t`), the critical `create_graph=True`/`False` keyword arguments, and the explanatory comments (notably `# CRITICAL: Retain graph for second derivative`) are character-for-character identical to the LaTeX source.
+
+**Pandoc artifact sweep (section line range 251-378):**
+- `^\\-` count in section 5 (pre-fix): 3 (all confirmed pandoc artifacts at candidate lines 267, 269, 271; source uses plain `- ` markers); preserved-as-legitimate count: 0
+- `\\[` count in section 5: 0 (no escaped prose brackets; the inline `$...$` math is correctly unescaped)
+- Post-fix `^\\-` count: 0; post-fix `\\[` count: 0
 
 ### 6. training_sampling_strategy.tex
 
-**Status:** PENDING — prose + lists. Source is ~98 lines / 10645 bytes.
-Wave 2 verifies heading map, prose paragraphs, list items, and any inline math.
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| RoF-13-02-11 | Conversion | MINOR | `training_sampling_strategy.tex:7, 26, 57, 73` | `review_of_ctl-pinn_framework.md:390, 408, 440, 458` | Pandoc escaped 4 prose `[-1, 1]` bracket pairs (subsection 6.1 lead, Collocation Time Points definition, 50% Uniform Sampling bullet, For Physics and Energy Losses bullet) as `\[-1, 1\]`; source uses unescaped form. Replaced 4 occurrences with `[-1, 1]`. | Fixed |
+| RoF-13-02-12 | Conversion | MINOR | `training_sampling_strategy.tex:15, 17` | `review_of_ctl-pinn_framework.md:398, 400` | Pandoc escaped 2 unindented `\- ` list markers (Data Points / Collocation Points definition bullets in subsection 6.1) as `\-`; source uses plain `- `. Replaced 2 occurrences with `- `. | Fixed |
+| RoF-13-02-13 | Conversion | MINOR | `training_sampling_strategy.tex:24, 26, 32, 34` | `review_of_ctl-pinn_framework.md:406, 408, 414, 416` | Pandoc escaped 4 indented `    \- ` list markers (Data Time Points / Collocation Time Points / `L_data` / `L_physics-and-energy` bullets nested under enumerate items 1 and 3 in subsection 6.1) as `    \-`; source uses plain `    - `. Replaced 4 occurrences with `    - `. | Fixed |
+| RoF-13-02-14 | Conversion | MINOR | `training_sampling_strategy.tex:50, 52, 57, 59` | `review_of_ctl-pinn_framework.md:434, 436, 440, 442` | Pandoc escaped 4 indented `    \- ` list markers (Replay / Lookahead / 50% Uniform / 50% Acceleration-Weighted bullets nested under enumerate items 1 and 2 in subsection 6.2) as `    \-`; source uses plain `    - `. Replaced 4 occurrences with `    - `. | Fixed |
+| RoF-13-02-15 | Conversion | MINOR | `training_sampling_strategy.tex:73, 75` | `review_of_ctl-pinn_framework.md:458, 460` | Pandoc escaped 2 unindented `\- ` list markers (For Physics and Energy Losses / For the Data Fidelity Loss bullets in subsection 6.3) as `\-`; source uses plain `- `. Replaced 2 occurrences with `- `. | Fixed |
+| RoF-13-02-16 | Conversion | MINOR | `training_sampling_strategy.tex:91, 93, 95` | `review_of_ctl-pinn_framework.md:480, 482, 484` | Pandoc escaped 3 indented `    \- ` list markers (Stages 0-1 / Stages 2-3 / Stages 4-6 clipping multiplier $C$ schedule bullets nested under enumerate item 2 in subsection 6.4) as `    \-`; source uses plain `    - `. Replaced 3 occurrences with `    - `. | Fixed |
+
+**Content audit:**
+- Heading: `\section{A Coherent Training and Data Sampling Strategy}` → `# A Coherent Training and Data Sampling Strategy` (candidate line 380) — MATCH
+- Subsections (4 total): `\subsection{Unifying Data and Collocation Point Sampling}` → `## Unifying Data and Collocation Point Sampling` (candidate line 384) — MATCH; `\subsection{Finalizing the Curriculum-Aware Batch Construction Protocol}` → `## Finalizing the Curriculum-Aware Batch Construction Protocol` (candidate line 420) — MATCH; `\subsection{Strategy for Integrating Mixed-Resolution Trajectory Data}` → `## Strategy for Integrating Mixed-Resolution Trajectory Data` (candidate line 446) — MATCH; `\subsection{Definitive Implementation of Curriculum-Aware Gradient Clipping}` → `## Definitive Implementation of Curriculum-Aware Gradient Clipping` (candidate line 464) — MATCH
+- Paragraph headings: 4 `\paragraph{Context and Validation}` → 4 `#### Context and Validation` at candidate lines 388, 424, 450, 468 — MATCH; 4 `\paragraph{Proposed Solution and Implementation}` → 4 `#### Proposed Solution and Implementation` at candidate lines 394, 428, 454, 472 — MATCH (FIDEL-05 heading map applied)
+- Lead prose paragraph (source line 2) → candidate line 382 — MATCH
+- 2-item top-level list under "Proposed Solution and Implementation" of subsection 6.1 (Data Points / Collocation Points definitional bullets): source lines 14-17 → candidate lines 398, 400 — MATCH after `\-` removal
+- 3-item top-level enumerate under subsection 6.1 (Batch Sampling with 2 indented sub-bullets; Unified Forward Pass; Loss Computation with 2 indented sub-bullets): source lines 20-36 → candidate lines 404-416 — MATCH; both top-level `1.` `2.` `3.` and indented sub-bullets render correctly after `\-` removal
+- 2-item enumerate under subsection 6.2 (Replay and Lookahead Sampling with 2 indented sub-bullets; Hybrid Time Point Sampling with 2 indented sub-bullets): source lines 46-61 → candidate lines 432-442 — MATCH after `\-` removal
+- 2-item top-level list under subsection 6.3 (For Physics and Energy Losses; For the Data Fidelity Loss): source lines 72-75 → candidate lines 458, 460 — MATCH after `\-` removal
+- 2-item enumerate under subsection 6.4 (Algorithm; Curriculum-Aware $C$ Schedule with 3 indented sub-bullets for Stages 0-1, 2-3, 4-6): source lines 86-95 → candidate lines 476-484 — MATCH after `\-` removal
+- LaTeX directives `\textasciitilde` (source lines 50, 52, before "95%" / "5%") collapsed to `\~` (escaped tilde, candidate lines 434, 436) — MATCH (correct pandoc behavior; the tilde is escaped to prevent markdown interpreting it, semantically equivalent)
+- `\allowbreak` directives (source lines 42, 45, 67, 82) inside `\texttt{...}` collapsed correctly: `\texttt{CTL-instruction-\allowbreak final.tex}` → `CTL-instruction-final.tex` and `\texttt{PINN\_\allowbreak architecture\_\allowbreak plan.tex}` → `PINN_architecture_plan.tex` (correct pandoc behavior; non-rendering hyphenation hints)
+- `clip\-ping` hyphenation hint (source line 82) collapsed to plain `clipping` (candidate line 470) — MATCH (correct pandoc behavior)
+- `\texttt{...}` (`CTL-instruction-final.tex`, `PINN_architecture_plan.tex`, `loss.backward()`, `optimizer.step()`) — backtick-rendered code spans MATCH
+- `\textbf{...}` rendered as `**...**` throughout — MATCH
+- Inline math (`$\mathcal{L}_{\text{data}}$`, `$\mathcal{L}_{\text{physics}}$`, `$\mathcal{L}_{\text{energy}}$`, `$N_{\text{data\_pts}}$`, `$N_{\text{col\_pts}}$`, `$t_{\text{data}}'$`, `$t_{\text{col}}'$`, `$t_{\text{union}}' = t_{\text{data}}' \cup t_{\text{col}}'$`, `$|\mathbf{a}(t)|$`, `$C$`, `$C = 8.5$`, `$C = 5.0$`, `$C = 3.0$`) — MATCH throughout
+
+**Pandoc artifact sweep (section line range 380-486):**
+- `^\\-` count in section 6 (pre-fix): 15 (2 unindented in 6.1 + 4 indented in 6.1 + 4 indented in 6.2 + 2 unindented in 6.3 + 3 indented in 6.4 = 15; all confirmed pandoc artifacts; source uses plain `- ` markers); preserved-as-legitimate count: 0
+- `\\[` count in section 6 (pre-fix): 4 (all confirmed pandoc-escaped prose `[-1, 1]` brackets; source uses unescaped form on those exact lines)
+- Post-fix `^\\-` count: 0; post-fix `\\[` count: 0
 
 ### 7. conclusion_and_recommendations.tex (table)
 
-**Status:** PENDING — FIDEL-04 cell-by-cell for the 6-row "Consolidated
-Hyperparameter Schedule" table. Source is ~27 lines / 2954 bytes. Wave 2
-verifies all rows cell-by-cell and applies any markdown-table reformat
-needed for D-29 GFM compliance.
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| RoF-13-02-17 | table | MINOR | `conclusion_and_recommendations.tex:9-27` | `review_of_ctl-pinn_framework.md:496-512` (pre-fix; rebuilt at lines 497-506 post-fix) | Pandoc rendered the 6-row `\begin{tabular}` "Consolidated Hyperparameter Schedule" using pandoc multiline-table format (3 long `-{>=100}` separator lines at original candidate lines 496, 498, 510 plus blank-line row separators). **D-29 applied — converted to GFM pipe-table** (Phase 11 precedent: DQA-02-001 in `data_quality_assessment_verification_report.md` converted a pandoc multiline table to GFM). Removed: 3 long-dash separator lines and inter-row blank lines. Caption preserved as trailing `: Consolidated Hyperparameter Schedule for CTL-PINN Training`. | Fixed |
+
+**Content audit:**
+- Heading: `\section*{Conclusion and Consolidated Recommendations}` → `# Conclusion and Consolidated Recommendations` (candidate line 488) — MATCH (starred form rendered as `#`)
+- Lead prose paragraph (source line 3) → candidate line 489 — MATCH
+- Second paragraph (source line 5) → candidate line 491 — MATCH
+- Third paragraph introducing the master table (source line 7) → candidate line 493 — MATCH
+- `\addcontentsline{toc}{section}{Conclusion and Consolidated Recommendations}` (source line 2) — non-rendering directive, correctly omitted from candidate
+- `\renewcommand{\arraystretch}{1.2}` and `\renewcommand{\arraystretch}{1.0}` (source lines 13, 26) — non-rendering directives, correctly omitted
+- `\begin{table}[H]` / `\centering` / `\label{tab:hyperparameter_schedule}` (source lines 9-12) — non-rendering directives, correctly omitted
+- Caption: `\caption{Consolidated Hyperparameter Schedule for CTL-PINN Training}` (source line 11) → `: Consolidated Hyperparameter Schedule for CTL-PINN Training` (candidate line 506) — MATCH (pandoc trailing-caption convention preserved)
+- Table column header: 5-column header (`Parameter`, `Stage 0-1 (Stable)`, `Stage 2-3 (Mild Chaos)`, `Stage 4-6 (Chaotic)`, `Rationale`) at source line 16 → candidate line 497 — MATCH (all `\textbf{...}` wrappers preserved as `**...**` in the GFM-rebuilt header)
+
+**Table cell-by-cell verification (FIDEL-04 per D-15) — 6 rows × 5 columns of "Consolidated Hyperparameter Schedule for CTL-PINN Training":**
+
+| # | Source row (conclusion_and_recommendations.tex) | Candidate row (review_of_ctl-pinn_framework.md) | Parameter | Stage 0-1 (Stable) | Stage 2-3 (Mild Chaos) | Stage 4-6 (Chaotic) | Rationale | Status |
+|---|---|---|---|---|---|---|---|---|
+| 1 | line 18 | line 499 | SIREN first\_omega\_0 | 30.0 | 20.0 | 10.0 | Matches network frequency resolution to data complexity. | MATCH |
+| 2 | line 19 | line 500 | Energy Weight `$\lambda_E$` | `$10^{-3}$ - $10^{-2}$` | `$10^{-1}$ - $1$` | `$10^{1}$ - $10^{3}$` | Increases energy conservation constraint as chaos increases. | MATCH |
+| 3 | line 20 | line 501 | Adam Initial LR | `$10^{-3}$ - $7\text{e-}4$` | `$4.9\text{e-}4$ - $3.4\text{e-}4$` | `$2.4\text{e-}4$ - $1.2\text{e-}4$` | Gradually reduces initial learning rate for more difficult stages. | MATCH |
+| 4 | line 21 | line 502 | Gradient Clip `$C$` | 8.5 | 5.0 | 3.0 | Allows larger gradients for stable data; clips aggressively for chaotic data. | MATCH |
+| 5 | line 22 | line 503 | L-BFGS Type | Full-Batch | Full-Batch / sL-BFGS | sL-BFGS | Switches to stochastic variant as cumulative dataset size grows. | MATCH |
+| 6 | line 23 | line 504 | ALM State | Reset | Reset | Reset | Resets ALM statistics to adapt to new data distribution at each stage. | MATCH |
+
+All 6 data rows match the source LaTeX cell-by-cell after the GFM rebuild. Notes on cell-level fidelity: (a) source `SIREN first\_omega\_0` LaTeX-escapes the underscore for `\texttt`-free typesetting, but pandoc passed through the raw token in the multiline table without backticks and we preserved `SIREN first_omega_0` (single-token, matches the prose at source line 38 / candidate line 499 where `first_omega_0` is unambiguous); (b) source uses LaTeX `\text{e-}4` for the `7e-4`-style numerals — preserved verbatim in inline math `$7\text{e-}4$` etc.; (c) all `$\lambda_E$`, `$C$` cell tokens preserved as inline math with `$...$` delimiters.
+
+**Pandoc artifact sweep (section line range 488-end):**
+- `^\\-` count in section 7 (pre-fix): 0 (the conclusion section uses no list bullets in source)
+- `\\[` count in section 7 (pre-fix): 0 (no escaped prose brackets)
+- Multiline-table separator (`-{>=20}`) count in section 7 (pre-fix): 3 lines (top, between header and body, and closing); all removed during D-29 GFM conversion
+- Post-fix `^\\-` count: 0; post-fix `\\[` count: 0; post-fix multiline-table separator count: 0; post-fix grid-table separator count: 0; the table is now a GFM pipe-table (1 header + 1 alignment + 6 data rows = 8 pipe-rows) followed by the trailing caption line
 
 <!-- Phase 13 discrepancy IDs: RoF-13-{plan}-{NN}; baseline RoF-13-01-BASELINE; source-issue IDs SI-RoF-NNN; severity values BLOCKING|MAJOR|MINOR|INFO; type values Conversion|text|table|structure|figure (see 13-PATTERNS.md Pattern 2 line 178). -->
 
@@ -292,6 +402,14 @@ needed for D-29 GFM compliance.
 | RoF-13-02-07 | 3. data_scaling_normalization.tex | Converted 13-row "Definitive Input Vector Specification" longtable from pandoc grid-table to GFM pipe-table (D-29 applied; Phase 11 DQA-02-001 precedent). Removed 14 row-separator lines, 1 duplicate header row, and 2 LaTeX `Table -- continued from previous page` / `Continued on next page` continuation marker rows. Caption rendered as trailing `: Definitive Input Vector Specification` per pandoc convention. |
 | RoF-13-02-08 | 3. data_scaling_normalization.tex | Folded into RoF-13-02-07: rebuilt GFM table writes all 14 `[-1, 1]` / `[0, 1]` Final Range cell values unescaped (originally pandoc-escaped as `\[-1, 1\]` / `\[0, 1\]` in 14 grid-table cells). |
 | RoF-13-02-09 | 4. architectural_initialization_refinements.tex | Replaced 3 pandoc-escaped `\- ` list markers (the 3 stage-based `first_omega_0` schedule bullets) with `- ` at candidate lines 241, 243, 245. |
+| RoF-13-02-10 | 5. multi_component_loss_framework.tex | Replaced 3 pandoc-escaped unindented `\- ` list markers (L_data / L_physics / L_energy validation checklist bullets) with `- ` at candidate lines 267, 269, 271. |
+| RoF-13-02-11 | 6. training_sampling_strategy.tex | Replaced 4 pandoc-escaped prose `\[-1, 1\]` bracket pairs (subsection 6.1 lead, Collocation Time Points definition, 50% Uniform Sampling bullet, For Physics and Energy Losses bullet) with unescaped `[-1, 1]` at candidate lines 390, 408, 440, 458. |
+| RoF-13-02-12 | 6. training_sampling_strategy.tex | Replaced 2 pandoc-escaped unindented `\- ` list markers (Data Points / Collocation Points definitional bullets in subsection 6.1) with `- ` at candidate lines 398, 400. |
+| RoF-13-02-13 | 6. training_sampling_strategy.tex | Replaced 4 pandoc-escaped 4-space-indented `    \- ` list markers (Data Time Points / Collocation Time Points / L_data / L_physics-and-energy bullets nested under enumerate items 1 and 3 in subsection 6.1) with `    - ` at candidate lines 406, 408, 414, 416. |
+| RoF-13-02-14 | 6. training_sampling_strategy.tex | Replaced 4 pandoc-escaped 4-space-indented `    \- ` list markers (Replay / Lookahead / 50% Uniform / 50% Acceleration-Weighted bullets nested under enumerate items 1 and 2 in subsection 6.2) with `    - ` at candidate lines 434, 436, 440, 442. |
+| RoF-13-02-15 | 6. training_sampling_strategy.tex | Replaced 2 pandoc-escaped unindented `\- ` list markers (For Physics and Energy Losses / For the Data Fidelity Loss bullets in subsection 6.3) with `- ` at candidate lines 458, 460. |
+| RoF-13-02-16 | 6. training_sampling_strategy.tex | Replaced 3 pandoc-escaped 4-space-indented `    \- ` list markers (Stages 0-1 / Stages 2-3 / Stages 4-6 clipping multiplier $C$ schedule bullets nested under enumerate item 2 in subsection 6.4) with `    - ` at candidate lines 480, 482, 484. |
+| RoF-13-02-17 | 7. conclusion_and_recommendations.tex | Converted 6-row "Consolidated Hyperparameter Schedule for CTL-PINN Training" table from pandoc multiline-table format (3 long-dash separator lines + blank-line row separators) to GFM pipe-table (D-29 applied; Phase 11 DQA-02-001 precedent). Caption preserved as trailing `: Consolidated Hyperparameter Schedule for CTL-PINN Training` per pandoc convention. All 6 data rows verified cell-by-cell against `conclusion_and_recommendations.tex:18-23`. |
 
 ## Source Issues / Notes for Future Reconciliation
 
