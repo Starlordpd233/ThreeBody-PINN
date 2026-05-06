@@ -221,8 +221,8 @@ Plans:
   5. User can read the final verification report confirming zero-diff status with a complete fix log
 **Plans**: 3
 - [x] 15-01-PLAN.md
-- [ ] 15-02-PLAN.md
-- [ ] 15-03-PLAN.md
+- [x] 15-02-PLAN.md
+- [x] 15-03-PLAN.md
 **UI hint**: no
 
 ## Execution Order
@@ -249,7 +249,7 @@ Phases 11-15 all depend on Phase 10 (hardest first to validate the approach). Ph
 | 12. PINN-Architecture Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 13. Review-of-Framework Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 14. Stage-Strategy-Revision Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
-| 15. Sampling-Method Verification | v1.3 | 1/3 | In Progress|  |
+| 15. Sampling-Method Verification | v1.3 | 3/0 | Complete    | 2026-05-06 |
 
 ---
 *Last updated: 2026-05-05 — Phase 14 complete*
