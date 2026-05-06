@@ -230,9 +230,9 @@ Phases 11-15 all depend on Phase 10 (hardest first to validate the approach). Ph
 | 10. CTL-Instruction Verification | v1.3 | 3/3 | Complete    | 2026-05-02 |
 | 11. Data-Quality-Assessment Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 12. PINN-Architecture Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
-| 13. Review-of-Framework Verification | v1.3 | 0/TBD | Not Started | — |
+| 13. Review-of-Framework Verification | v1.3 | 3/3 | Complete    | 2026-05-05 |
 | 14. Stage-Strategy-Revision Verification | v1.3 | 0/TBD | Not Started | — |
 | 15. Sampling-Method Verification | v1.3 | 0/TBD | Not Started | — |
 
 ---
-*Last updated: 2026-05-01 — v1.3 roadmap defined*
+*Last updated: 2026-05-05 — Phase 13 complete*
