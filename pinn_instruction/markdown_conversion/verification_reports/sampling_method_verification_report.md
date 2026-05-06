@@ -68,7 +68,7 @@ The comment block contains a duplicate Global Scaling itemized list that is also
 | Labels (`\label{}`) | 0 | 0 | 0 | VACUOUS PASS |
 | Inactive sections (`*_inactive.tex`) | 0 | N/A | N/A | VACUOUS PASS |
 
-**D-48 evidence:** Both candidates searched for `[@refN]` pandoc citation injection pattern — count: 0 in Candidate A, 0 in Candidate B. No pandoc-3.x noise artifacts detected in either candidate.
+**D-48 evidence:** Both candidates searched for `[@refN]` pandoc citation injection pattern -- count: 0 in Candidate A, 0 in Candidate B. No pandoc-3.x noise artifacts detected in either candidate.
 
 Comment blocks and authcomments are NOT vacuous: source has 1 `\begin{comment}` block (lines 130-134) and 1 `\authcomment{}` (line 26). These are handled in `## Excluded Comment Ranges` and Section 1's FIDEL-06 audit respectively.
 
@@ -208,19 +208,95 @@ Note: Section 3 is a 3-line banner (source lines 84-86) with no subsections, mat
 ---
 
 ### 6. Stage 3: Pre-Screening of Generated ICs for Short-Term Stability
-**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02). 4-line banner section (source lines 170-173).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| -- | -- | -- | -- | -- | No discrepancies found | -- |
+
+**Content audit:**
+- Heading: `\section*{Stage 3: Pre-Screening of Generated ICs for Short-Term Stability}` -> `# Stage 3: Pre-Screening of Generated ICs for Short-Term Stability` -- MATCH (FIDEL-05)
+- Prose (source lines 171-173): 3 sentences matching source exactly -- MATCH
+
+Note: Source heading says "Stage 3" while pipeline list in Section 1 calls pre-screening "Stage 2" -- this is a source inconsistency, not a conversion error. Preserved as-is per D-13.
+
+---
 
 ### 7. The Pre-Screening Rationale
-**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| -- | -- | -- | -- | -- | No discrepancies found | -- |
+
+**Content audit:**
+- Heading: `\section{The Pre-Screening Rationale}` -> `# The Pre-Screening Rationale` -- MATCH
+- `\subsection*{Implementation Details}` -> `## Implementation Details` -- MATCH (FIDEL-05)
+  - 6-item list (source lines 176-183): converted to `-` bullets -- MATCH
+- Prose (source lines 184-188): pre-screening script description + itemized instability signs -- MATCH
+- `\texttt{dt = 0.0001}` / `\texttt{t\_max = 1.0}` / etc. -> backtick code format -- MATCH
+
+---
 
 ### 8. Pre-Screening Criteria
-**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| -- | -- | -- | -- | -- | No discrepancies found | -- |
+
+**Content audit:**
+- Heading: `\section{Pre-Screening Criteria}` -> `# Pre-Screening Criteria` -- MATCH
+- Introductory prose (source line 191) -- MATCH
+- 5-item enumerated list (source lines 193-213) converted to numbered list:
+  - Item 1 (Energy Conservation, source lines 194-195): inline math -- MATCH
+  - Item 2 (Dynamic Minimum Separation, source lines 196-197): inline math -- MATCH
+  - Item 3 (Virial Ratio, source line 198): inline math -- MATCH
+  - Item 4 (Angular Momentum, source line 200): inline math -- MATCH
+  - Item 5 (Adaptive Threshold Computation, source lines 202-212): display math `$$sample_size = ...$$` matches source `$$...$$` -- MATCH; itemized sub-list converted to `-` bullets -- MATCH
+
+---
 
 ### 9. A Coordinated Strategy for Minimum Distance
-**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| -- | -- | -- | -- | -- | No discrepancies found | -- |
+
+**Content audit:**
+- Heading: `\section{A Coordinated Strategy for Minimum Distance}` -> `# A Coordinated Strategy for Minimum Distance` -- MATCH
+- Introductory prose (source lines 216-217) -- MATCH
+- Source `\begin{description}` with 3 items (`\texttt{epsilon}`, `\texttt{min\_distance\_threshold}`, `\texttt{min\_sep}`):
+  - Converted to markdown definition list format (term on one line, `:   ` indented definition on next) -- valid conversion
+  - Each definition's bold labels and inline math preserved -- MATCH
+- Closing prose (source lines 226-227) -- MATCH
+
+---
 
 ### 10. Execution and Final Quality Control
-**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| -- | -- | -- | -- | -- | No discrepancies found | -- |
+
+**Content audit:**
+- Heading: `\section{Execution and Final Quality Control}` -> `# Execution and Final Quality Control` -- MATCH
+- Introductory prose (source lines 231-232) -- MATCH
+- 3-item enumerated list (source lines 232-236) converted to numbered list:
+  - Item 1 (Energy Conservation): inline math `$|\Delta E/E|$` and `$10^{-4}$` -- MATCH
+  - Item 2 (Momentum Conservation): prose -- MATCH
+  - Item 3 (Completion): inline math `$t_{\mathrm{end}}$` -- MATCH
+- Closing sentence (source lines 238-239): "gold standard" data note -- MATCH
+- Content ends at markdown line 199; no extra content beyond source line 241 -- MATCH
+
+---
 
 ## Fix Log
 
