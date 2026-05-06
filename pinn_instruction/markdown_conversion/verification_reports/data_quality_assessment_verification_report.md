@@ -122,3 +122,16 @@ Status: PASS
 - Zero open discrepancies: yes
 - Converted body excludes appended source-issue metadata from fidelity comparison: yes
 - Fix log complete: yes
+
+## Post-Hoc Structural Fixes (2026-05-05)
+
+An independent verification report identified 4 structural gaps in the original markdown conversion. The following fixes were applied to `data_quality_assessment.md`:
+
+| Fix ID | Issue | Severity | Description |
+|---|---|---|---|
+| DQA-STRUCT-01 | Missing title page | Significant | Added title block with document title, subtitle "Research Report", and date "April 27, 2026" before the Introduction section. |
+| DQA-STRUCT-02 | Missing section numbers | Significant | Added PDF-equivalent section numbers (`1`, `1.1`, `2`, `2.1`, etc.) to all 22 numbered headings. Source Issues section remains unnumbered. |
+| DQA-STRUCT-03 | Missing equation numbers | Moderate | Added `\tag{1}` through `\tag{6}` to all 6 display equations, matching the PDF's numbered equation labels. |
+| DQA-STRUCT-04 | Table caption format difference | Minor | Changed caption from `*Table 1 (tab:assessment_strategies): ...*` to `Table 1: Comparative Analysis of Assessment Strategies` to match PDF format exactly. HTML anchor preserved. |
+
+**Validation strategy updated:** New assertions STRUCT-01 through STRUCT-04 added to `11-VALIDATION.md` to prevent regression.

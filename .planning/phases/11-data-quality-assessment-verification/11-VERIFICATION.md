@@ -1,11 +1,28 @@
 ---
 phase: 11-data-quality-assessment-verification
 verified: 2026-05-05T22:00:00Z
+re_verified: 2026-05-05
 status: passed
 score: 5/5 must-haves verified
 overrides_applied: 0
 overrides: []
-gaps: []
+gaps:
+  - id: STRUCT-01
+    description: Missing title page
+    severity: significant
+    status: fixed
+  - id: STRUCT-02
+    description: Missing section numbers in all 22 headings
+    severity: significant
+    status: fixed
+  - id: STRUCT-03
+    description: Missing equation numbers (1)-(6)
+    severity: moderate
+    status: fixed
+  - id: STRUCT-04
+    description: Table caption format did not match PDF
+    severity: minor
+    status: fixed
 ---
 
 # Phase 11: Data-Quality-Assessment Verification Report
@@ -113,7 +130,21 @@ None required. All verification is mechanical (text comparison, grep-based check
 
 No gaps found. All 5 roadmap success criteria are met, all 15 requirement IDs are satisfied, and all verification assertions pass.
 
+## Re-Verification 2026-05-05
+
+An independent verification report identified 4 structural gaps not caught by the original validation strategy:
+
+| Gap ID | Issue | Severity | Fix Applied |
+|--------|-------|----------|-------------|
+| STRUCT-01 | Missing title page (title, subtitle, date) | Significant | Added title page block before Introduction |
+| STRUCT-02 | Missing section numbers in all 22 headings | Significant | Added `1`, `1.1`, `2`, `2.1`, etc. prefixes |
+| STRUCT-03 | Missing equation numbers (1)–(6) | Moderate | Added `\tag{1}` through `\tag{6}` to all display equations |
+| STRUCT-04 | Table caption format differed from PDF | Minor | Removed italics and parenthetical label ID; matched PDF format |
+
+**Validation strategy updated:** 4 new shell assertions added to `11-VALIDATION.md` (STRUCT-01 through STRUCT-04) to prevent regression.
+
 ---
 
 _Verified: 2026-05-05T22:00:00Z_
+_Re-verified: 2026-05-05_
 _Verifier: Claude (gsd-verifier)_
