@@ -5,7 +5,7 @@ The resolutions provided herein are synthesized into a single, coherent, and act
 
 1.  **Foundational Physical Metrics:** The report establishes robust, computable definitions and provides reference implementations for the Lyapunov time ($\tau_L$) and the normalized angular momentum ($L/L_{\max}$), which are essential for the quantitative stratification of training data into curriculum stages. A scalable, parallelized pipeline for computing global normalization constants across the entire dataset is also detailed.
 
-2.  **Data Scaling and Normalization:** A unified protocol for data transformation is established. This includes standardizing spatiotemporal normalization to a consistent \[-1, 1\] range, resolving a critical five-order-of-magnitude discrepancy in the gravitational softening parameter, and providing a definitive, consolidated schema for the construction of the 14-dimensional network input vector.
+2.  **Data Scaling and Normalization:** A unified protocol for data transformation is established. This includes standardizing spatiotemporal normalization to a consistent [-1, 1] range, resolving a critical five-order-of-magnitude discrepancy in the gravitational softening parameter, and providing a definitive, consolidated schema for the construction of the 14-dimensional network input vector.
 
 3.  **Network Architecture and Initialization:** Ambiguities concerning the dynamic scheduling of the SIREN network's frequency parameter ($\omega_0$) are resolved. A novel, curriculum-aware discrete schedule is proposed, directly linking this critical architectural hyperparameter to the complexity of the data at each training stage.
 
@@ -35,17 +35,17 @@ To resolve this gap, we provide definitive, physically sound, and computationall
 
 1.  **Maximum Angular Momentum ($L_{\max}$)** The formula for the normalized angular momentum, $L_{\text{norm}} = L/L_{\max}$, is derived from fundamental principles of celestial mechanics and is explicitly defined in the `CTL-instruction-final.tex` document. This formulation will be formally adopted. The calculation proceeds as follows for each initial condition, using spatiotemporally scaled quantities (see Section 2.1):
 
-    \- **Calculate Total Angular Momentum ($L$):** The total angular momentum vector, $\mathbf{L}$, is the sum of the individual angular momenta in the center-of-mass frame. Its magnitude, $L$, is computed from the scaled initial positions $\mathbf{r}'_i$ and velocities $\mathbf{v}'_i$. $$\mathbf{L} = \sum_{i=1}^{3} m_i (\mathbf{r}'_i \times \mathbf{v}'_i) \quad \rightarrow \quad L = ||\mathbf{L}||$$
+    - **Calculate Total Angular Momentum ($L$):** The total angular momentum vector, $\mathbf{L}$, is the sum of the individual angular momenta in the center-of-mass frame. Its magnitude, $L$, is computed from the scaled initial positions $\mathbf{r}'_i$ and velocities $\mathbf{v}'_i$. $$\mathbf{L} = \sum_{i=1}^{3} m_i (\mathbf{r}'_i \times \mathbf{v}'_i) \quad \rightarrow \quad L = ||\mathbf{L}||$$
 
-    \- **Calculate Characteristic Scales:** A characteristic length scale, $r_{\text{char}}$, is defined as the average pairwise distance between bodies. A characteristic velocity, $v_{\text{char}}$, is derived from the total energy $E$ and total mass $M_{\text{total}}$, representing the velocity required for a bound system. $$\begin{aligned}
+    - **Calculate Characteristic Scales:** A characteristic length scale, $r_{\text{char}}$, is defined as the average pairwise distance between bodies. A characteristic velocity, $v_{\text{char}}$, is derived from the total energy $E$ and total mass $M_{\text{total}}$, representing the velocity required for a bound system. $$\begin{aligned}
                 r_{\text{char}} &= \frac{1}{3} \sum_{i<j} ||\mathbf{r}'_i - \mathbf{r}'_j|| \\
                 v_{\text{char}} &= \sqrt{\frac{2|E|}{M_{\text{total}}}} \quad \text{where} \quad M_{\text{total}} = \sum_{i=1}^{3} m_i
             
     \end{aligned}$$
 
-    \- **Calculate Maximum Angular Momentum ($L_{\max}$):** $L_{\max}$ is the product of these characteristic scales, physically representing the angular momentum of the total mass moving at the characteristic velocity at the characteristic radius. $$L_{\max} = M_{\text{total}} \cdot r_{\text{char}} \cdot v_{\text{char}}$$
+    - **Calculate Maximum Angular Momentum ($L_{\max}$):** $L_{\max}$ is the product of these characteristic scales, physically representing the angular momentum of the total mass moving at the characteristic velocity at the characteristic radius. $$L_{\max} = M_{\text{total}} \cdot r_{\text{char}} \cdot v_{\text{char}}$$
 
-    \- **Calculate Normalized Ratio:** The final dimensionless ratio is then $L_{\text{norm}} = L / L_{\max}$.
+    - **Calculate Normalized Ratio:** The final dimensionless ratio is then $L_{\text{norm}} = L / L_{\max}$.
 
     This approach correctly captures the physical intuition that for a fixed energy, maximum angular momentum corresponds to circular motion, where kinetic energy is maximized at the largest stable separation.
 
@@ -53,25 +53,25 @@ To resolve this gap, we provide definitive, physically sound, and computationall
 
     We propose the adoption of the algorithm pioneered by Benettin et al., which tracks the divergence of a single perturbation vector. This method provides a reliable estimate of the maximal Lyapunov exponent while being computationally feasible for large datasets. The algorithm proceeds as follows:
 
-    \- **Initialization:**
+    - **Initialization:**
 
-    \- Define a reference trajectory starting from the initial state vector $y_0$ (concatenated scaled positions and velocities).
+    - Define a reference trajectory starting from the initial state vector $y_0$ (concatenated scaled positions and velocities).
 
-    \- Define a perturbed trajectory starting at $y_0^{\text{pert}} = y_0 + \delta_0$, where $\delta_0$ is a random vector of small magnitude $\epsilon_{\text{pert}}$ (e.g., $10^{-8}$).
+    - Define a perturbed trajectory starting at $y_0^{\text{pert}} = y_0 + \delta_0$, where $\delta_0$ is a random vector of small magnitude $\epsilon_{\text{pert}}$ (e.g., $10^{-8}$).
 
-    \- **Integration and Renormalization Loop:**
+    - **Integration and Renormalization Loop:**
 
-    \- Integrate both the reference and perturbed trajectories forward in time for a short interval, $\Delta t$.
+    - Integrate both the reference and perturbed trajectories forward in time for a short interval, $\Delta t$.
 
-    \- At the end of the interval, calculate the new separation vector $\delta_1 = y_1^{\text{pert}} - y_1$.
+    - At the end of the interval, calculate the new separation vector $\delta_1 = y_1^{\text{pert}} - y_1$.
 
-    \- Record the growth factor $a_1 = ||\delta_1|| / \epsilon_{\text{pert}}$.
+    - Record the growth factor $a_1 = ||\delta_1|| / \epsilon_{\text{pert}}$.
 
-    \- Renormalize the perturbed trajectory by resetting its state to $y_1^{\text{pert}} = y_1 + \epsilon_{\text{pert}} \cdot (\delta_1 / ||\delta_1||)$. This step preserves the direction of maximal divergence while resetting the separation magnitude.
+    - Renormalize the perturbed trajectory by resetting its state to $y_1^{\text{pert}} = y_1 + \epsilon_{\text{pert}} \cdot (\delta_1 / ||\delta_1||)$. This step preserves the direction of maximal divergence while resetting the separation magnitude.
 
-    \- **Averaging:** Repeat the integration and renormalization loop for a sufficiently long total integration horizon ($T_{\text{horizon}}$). The maximal Lyapunov exponent, $\lambda$, is the time-average of the logarithm of the growth factors: $$\lambda \approx \frac{1}{T_{\text{horizon}}} \sum_{i=1}^{N_{\text{steps}}} \ln(a_i)$$
+    - **Averaging:** Repeat the integration and renormalization loop for a sufficiently long total integration horizon ($T_{\text{horizon}}$). The maximal Lyapunov exponent, $\lambda$, is the time-average of the logarithm of the growth factors: $$\lambda \approx \frac{1}{T_{\text{horizon}}} \sum_{i=1}^{N_{\text{steps}}} \ln(a_i)$$
 
-    \- **Lyapunov Time Calculation:** The Lyapunov time is the reciprocal of the maximal Lyapunov exponent: $$\tau_L = \frac{1}{\lambda}$$
+    - **Lyapunov Time Calculation:** The Lyapunov time is the reciprocal of the maximal Lyapunov exponent: $$\tau_L = \frac{1}{\lambda}$$
 
     This numerical procedure provides a pragmatic and reproducible method to estimate $\tau_L$ for each trajectory, enabling its assignment to the correct curriculum stage. A reference implementation is provided in the appendix.
 
@@ -89,31 +89,31 @@ To ensure an efficient and scalable preprocessing workflow, we formally adopt an
 
 The core of the solution is the use of Python's `concurrent.futures.ProcessPoolExecutor`, which distributes the task of processing individual trajectory files across a pool of worker processes. The workflow is as follows:
 
-\- **Worker Function (`compute_single_trajectory_properties`):** A dedicated function is defined to process a single trajectory. This function takes a file path as input and performs the following steps:
+- **Worker Function (`compute_single_trajectory_properties`):** A dedicated function is defined to process a single trajectory. This function takes a file path as input and performs the following steps:
 
-\- Parses the 21 floating-point values from the initial condition file (`ic_*.txt`).
+- Parses the 21 floating-point values from the initial condition file (`ic_*.txt`).
 
-\- Applies the spatiotemporal scaling defined in Section 2.1 to convert raw positions and velocities into dimensionless units ($\mathbf{r}'$ and $\mathbf{v}'$).
+- Applies the spatiotemporal scaling defined in Section 2.1 to convert raw positions and velocities into dimensionless units ($\mathbf{r}'$ and $\mathbf{v}'$).
 
-\- Computes the scaled total mechanical energy, $E$, for the initial state.
+- Computes the scaled total mechanical energy, $E$, for the initial state.
 
-\- Computes the characteristic length, $r_{\text{char}}$, as the mean of the initial pairwise distances.
+- Computes the characteristic length, $r_{\text{char}}$, as the mean of the initial pairwise distances.
 
-\- Returns the computed $E$ and $r_{\text{char}}$ values.
+- Returns the computed $E$ and $r_{\text{char}}$ values.
 
 This function is designed to be self-contained and stateless, making it ideal for parallel execution.
 
-\- **Main Orchestrator (`compute_globals`):** The main function orchestrates the parallel computation.
+- **Main Orchestrator (`compute_globals`):** The main function orchestrates the parallel computation.
 
-\- It gathers a list of all initial condition file paths to be processed.
+- It gathers a list of all initial condition file paths to be processed.
 
-\- It creates a `ProcessPoolExecutor`, typically configured to use all available CPU cores.
+- It creates a `ProcessPoolExecutor`, typically configured to use all available CPU cores.
 
-\- It uses the `executor.map` method to apply the `compute_single_trajectory_properties` function to every file path in the list, distributing the work across the process pool.
+- It uses the `executor.map` method to apply the `compute_single_trajectory_properties` function to every file path in the list, distributing the work across the process pool.
 
-\- As results are returned from the worker processes, they are aggregated into two lists: one for all computed energies and one for all characteristic lengths.
+- As results are returned from the worker processes, they are aggregated into two lists: one for all computed energies and one for all characteristic lengths.
 
-\- Once all files have been processed, the function computes the final global scales using NumPy's median function on the aggregated lists: $$\begin{aligned}
+- Once all files have been processed, the function computes the final global scales using NumPy's median function on the aggregated lists: $$\begin{aligned}
             E_{\text{scale}} &= |\text{median}(\{E_j\})| + 10^{-8} \\
             s_{\text{min\_scale}} &= \text{median}(\{r_{\text{char},j}\})
         
@@ -131,7 +131,7 @@ A prerequisite for stable and effective neural network training is the transform
 
 #### Context and Validation
 
-A significant contradiction exists regarding the normalization of the time coordinate. The `PINN_architecture_plan.tex` document presents a formula, $t' = t/T$, which maps the physical time $t \in [0, T]$ to a normalized range of $[0, 1]$. However, this is directly contradicted by an author comment within the same document questioning this formula and suggesting a \[-1, 1\] range, a suggestion supported by multiple other textual references to a \[-1, 1\] domain throughout the document. The `CTL-instruction-final.tex` document also implies a \[-1, 1\] range for all network inputs but fails to provide an explicit formula for time.
+A significant contradiction exists regarding the normalization of the time coordinate. The `PINN_architecture_plan.tex` document presents a formula, $t' = t/T$, which maps the physical time $t \in [0, T]$ to a normalized range of $[0, 1]$. However, this is directly contradicted by an author comment within the same document questioning this formula and suggesting a [-1, 1] range, a suggestion supported by multiple other textual references to a [-1, 1] domain throughout the document. The `CTL-instruction-final.tex` document also implies a [-1, 1] range for all network inputs but fails to provide an explicit formula for time.
 
 Furthermore, Issue 9 highlights a corresponding gap: the lack of a clearly defined procedure for converting the network's scaled outputs back into physical units for analysis, visualization, and comparison with ground truth data. These ambiguities create a high risk of implementation errors that would compromise the entire framework.
 
@@ -139,19 +139,20 @@ Furthermore, Issue 9 highlights a corresponding gap: the lack of a clearly defin
 
 To resolve these inconsistencies, a definitive and unified normalization scheme is established for all spatiotemporal variables.
 
-\- **Time Normalization:** The physical time $t$, which resides in the interval $[0, T]$ (where the characteristic time $T = t_{\max} = 10$ time units), will be normalized to the range \[-1, 1\]. The correct formula for this transformation is: $$t' = 2 \left( \frac{t}{T} \right) - 1$$ This choice aligns with the dominant convention across both documents and is considered best practice for networks employing periodic activation functions like SIREN. These functions are naturally centered around zero, and mapping the input domain to \[-1, 1\] can improve training dynamics and representation quality.
+- **Time Normalization:** The physical time $t$, which resides in the interval $[0, T]$ (where the characteristic time $T = t_{\max} = 10$ time units), will be normalized to the range [-1, 1]. The correct formula for this transformation is: $$t' = 2 \left( \frac{t}{T} \right) - 1$$ This choice aligns with the dominant convention across both documents and is considered best practice for networks employing periodic activation functions like SIREN. These functions are naturally centered around zero, and mapping the input domain to [-1, 1] can improve training dynamics and representation quality.
 
-\- **Spatial and Velocity Scaling:** The scaling of positions and velocities will adhere strictly to the definitions provided in the `CTL-instruction-final.tex` document. In this $G=1$ system of units:
+- **Spatial and Velocity Scaling:** The scaling of positions and velocities will adhere strictly to the definitions provided in the `CTL-instruction-final.tex` document. In this $G=1$ system of units:
 
-\- The characteristic length is $D = \sqrt[3]{G T^2} \approx 4.6416$.
 
-\- The characteristic velocity is $V = D / T \approx 0.46416$.
+- The characteristic length is $D = \sqrt[3]{G T^2} \approx 4.6416$.
 
-\- Physical positions $\mathbf{r}_i$ are scaled to dimensionless positions $\mathbf{r}'_i = \mathbf{r}_i / D$.
+- The characteristic velocity is $V = D / T \approx 0.46416$.
 
-\- Physical velocities $\mathbf{v}_i$ are scaled to dimensionless velocities $\mathbf{v}'_i = \mathbf{v}_i / V$.
+- Physical positions $\mathbf{r}_i$ are scaled to dimensionless positions $\mathbf{r}'_i = \mathbf{r}_i / D$.
 
-\- **Inverse Transformation for Analysis:** To resolve Issue 9, explicit inverse transformation formulas are provided. These are essential for converting the network's dimensionless outputs back into physical units for meaningful analysis and visualization. $$\begin{aligned}
+- Physical velocities $\mathbf{v}_i$ are scaled to dimensionless velocities $\mathbf{v}'_i = \mathbf{v}_i / V$.
+
+- **Inverse Transformation for Analysis:** To resolve Issue 9, explicit inverse transformation formulas are provided. These are essential for converting the network's dimensionless outputs back into physical units for meaningful analysis and visualization. $$\begin{aligned}
         t &= \frac{T(t' + 1)}{2} \\
         \mathbf{r} &= \mathbf{r}' \cdot D \\
         \mathbf{v} &= \mathbf{v}' \cdot V
@@ -184,52 +185,31 @@ In the context of this project, where positions are scaled to be of order unity,
 
 #### Context and Validation
 
-The construction of the 14-dimensional input vector \[t, IC\] is a cornerstone of the model, yet the specifications for normalizing its 13 initial condition components are scattered and inconsistent across the documentation. Issue 19 correctly identifies the need for a single, consolidated specification to serve as a definitive guide for implementation. An ambiguity also exists between the use of `tanh`-based scaling and linear Min-Max scaling.
+The construction of the 14-dimensional input vector [t, IC] is a cornerstone of the model, yet the specifications for normalizing its 13 initial condition components are scattered and inconsistent across the documentation. Issue 19 correctly identifies the need for a single, consolidated specification to serve as a definitive guide for implementation. An ambiguity also exists between the use of `tanh`-based scaling and linear Min-Max scaling.
 
 #### Proposed Solution and Implementation
 
-A definitive, component-wise normalization schema is established to map all 14 input features to the range \[-1, 1\]. The `tanh` function is adopted as the standard for normalizing continuous variables that may have long-tailed distributions (like energy and separation), as it is less sensitive to extreme outliers than Min-Max scaling and smoothly compresses the entire real number line into \[-1, 1\].
+A definitive, component-wise normalization schema is established to map all 14 input features to the range [-1, 1]. The `tanh` function is adopted as the standard for normalizing continuous variables that may have long-tailed distributions (like energy and separation), as it is less sensitive to extreme outliers than Min-Max scaling and smoothly compresses the entire real number line into [-1, 1].
 
 The following table provides the single source of truth for constructing the final input vector. All physical invariants must first be computed using the scaled, dimensionless quantities ($\mathbf{r}'$, $\mathbf{v}'$) as detailed in Section 2.1.
 
 
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
 | **Component Name**      | **Symbol**               | **Calculation Formula (using scaled $\mathbf{r}'$, $\mathbf{v}'$)**                         | **Normalization Formula**                                              | **Final Range** |
-+:========================+:=========================+:============================================================================================+:=======================================================================+:================+
-| **Table  -- continued from previous page**                                                                                                                                                                                                  |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| **Component Name**      | **Symbol**               | **Calculation Formula (using scaled $\mathbf{r}'$, $\mathbf{v}'$)**                         | **Normalization Formula**                                              | **Final Range** |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Continued on next page                                                                                                                                                                                                                      |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Time                    | $t'$                     | $t_{\text{phys}} \in [0, 10]$                                                               | $2 \cdot (t_{\text{phys}} / 10) - 1$                                   | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Mass 1       | $m_1^{\text{norm}}$      | Mass fraction of body 1                                                                     | $2 \cdot (m_1 / M_{\text{total}}) - 1$                                 | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Mass 2       | $m_2^{\text{norm}}$      | Mass fraction of body 2                                                                     | $2 \cdot (m_2 / M_{\text{total}}) - 1$                                 | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Mass 3       | $m_3^{\text{norm}}$      | Mass fraction of body 3                                                                     | $2 \cdot (m_3 / M_{\text{total}}) - 1$                                 | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Energy       | $E^{\text{norm}}$        | Total mechanical energy $E=T+V$                                                             | $\tanh(E/E_{\text{scale}})$                                            | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Ang. Mom.    | $L_{\text{norm}}$        | $L = ||\sum m_i (\mathbf{r}'_i \times \mathbf{v}'_i)||$                                     | $L / L_{\max}$                                                         | \[0, 1\]        |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Virial Ratio | $Q^{\text{norm}}$        | $Q = 2T / |V|$                                                                              | $\tanh((Q - 1) / Q_{\text{scale}})$                                    | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Min. Sep.    | $s_{\min}^{\text{norm}}$ | $s_{\min} = \min_{i<j} ||\mathbf{r}'_i - \mathbf{r}'_j||$                                   | $\tanh(s_{\min} / s_{\min\_\text{scale}})$                             | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Shape Invariant 1       | $I_1^{\text{norm}}$      | $d_{\text{short}} / d_{\text{long}}$                                                        | $2 \cdot I_1 - 1$                                                      | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Shape Invariant 2       | $I_2^{\text{norm}}$      | $d_{\text{mid}} / d_{\text{long}}$                                                          | $2 \cdot I_2 - 1$                                                      | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Shape Invariant 3       | $I_3$                    | $(d_{\text{sh}}+d_{\text{mid}}-d_{\text{lg}})/(d_{\text{sh}}+d_{\text{mid}}+d_{\text{lg}})$ | $I_3$ (already in range)                                               | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Velocity Angle 1        | $\theta_1^{\text{norm}}$ | $\text{angle}(\mathbf{r}'_1, \mathbf{v}'_1) / \pi$                                          | $2 \cdot \theta_1 - 1$                                                 | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Velocity Angle 2        | $\theta_2^{\text{norm}}$ | $\text{angle}(\mathbf{r}'_2, \mathbf{v}'_2) / \pi$                                          | $2 \cdot \theta_2 - 1$                                                 | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
-| Normalized Inertia      | $I^{\text{norm}}$        | Trace of moment of inertia tensor                                                           | $\tanh(I_{\text{trace}} / (M_{\text{total}} \cdot r_{\text{char}}^2))$ | \[-1, 1\]       |
-+-------------------------+--------------------------+---------------------------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------+
+|:------------------------|:-------------------------|:--------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------|:----------------|
+| Time                    | $t'$                     | $t_{\text{phys}} \in [0, 10]$                                                               | $2 \cdot (t_{\text{phys}} / 10) - 1$                                   | [-1, 1]         |
+| Normalized Mass 1       | $m_1^{\text{norm}}$      | Mass fraction of body 1                                                                     | $2 \cdot (m_1 / M_{\text{total}}) - 1$                                 | [-1, 1]         |
+| Normalized Mass 2       | $m_2^{\text{norm}}$      | Mass fraction of body 2                                                                     | $2 \cdot (m_2 / M_{\text{total}}) - 1$                                 | [-1, 1]         |
+| Normalized Mass 3       | $m_3^{\text{norm}}$      | Mass fraction of body 3                                                                     | $2 \cdot (m_3 / M_{\text{total}}) - 1$                                 | [-1, 1]         |
+| Normalized Energy       | $E^{\text{norm}}$        | Total mechanical energy $E=T+V$                                                             | $\tanh(E/E_{\text{scale}})$                                            | [-1, 1]         |
+| Normalized Ang. Mom.    | $L_{\text{norm}}$        | $L = \|\|\sum m_i (\mathbf{r}'_i \times \mathbf{v}'_i)\|\|$                                 | $L / L_{\max}$                                                         | [0, 1]          |
+| Normalized Virial Ratio | $Q^{\text{norm}}$        | $Q = 2T / \|V\|$                                                                            | $\tanh((Q - 1) / Q_{\text{scale}})$                                    | [-1, 1]         |
+| Normalized Min. Sep.    | $s_{\min}^{\text{norm}}$ | $s_{\min} = \min_{i<j} \|\|\mathbf{r}'_i - \mathbf{r}'_j\|\|$                               | $\tanh(s_{\min} / s_{\min\_\text{scale}})$                             | [-1, 1]         |
+| Shape Invariant 1       | $I_1^{\text{norm}}$      | $d_{\text{short}} / d_{\text{long}}$                                                        | $2 \cdot I_1 - 1$                                                      | [-1, 1]         |
+| Shape Invariant 2       | $I_2^{\text{norm}}$      | $d_{\text{mid}} / d_{\text{long}}$                                                          | $2 \cdot I_2 - 1$                                                      | [-1, 1]         |
+| Shape Invariant 3       | $I_3$                    | $(d_{\text{sh}}+d_{\text{mid}}-d_{\text{lg}})/(d_{\text{sh}}+d_{\text{mid}}+d_{\text{lg}})$ | $I_3$ (already in range)                                               | [-1, 1]         |
+| Velocity Angle 1        | $\theta_1^{\text{norm}}$ | $\text{angle}(\mathbf{r}'_1, \mathbf{v}'_1) / \pi$                                          | $2 \cdot \theta_1 - 1$                                                 | [-1, 1]         |
+| Velocity Angle 2        | $\theta_2^{\text{norm}}$ | $\text{angle}(\mathbf{r}'_2, \mathbf{v}'_2) / \pi$                                          | $2 \cdot \theta_2 - 1$                                                 | [-1, 1]         |
+| Normalized Inertia      | $I^{\text{norm}}$        | Trace of moment of inertia tensor                                                           | $\tanh(I_{\text{trace}} / (M_{\text{total}} \cdot r_{\text{char}}^2))$ | [-1, 1]         |
 
 : Definitive Input Vector Specification
 
@@ -258,11 +238,11 @@ The rationale is physically and computationally motivated. In the early stages (
 
 The definitive schedule is as follows:
 
-\- **Stages 0-1 (Stable & Hierarchical):** `first_omega_0 = 30.0`
+- **Stages 0-1 (Stable & Hierarchical):** `first_omega_0 = 30.0`
 
-\- **Stages 2-3 (High-Res Stable & Mild Chaos):** `first_omega_0 = 20.0`
+- **Stages 2-3 (High-Res Stable & Mild Chaos):** `first_omega_0 = 20.0`
 
-\- **Stages 4-6 (Fully Chaotic & Extreme Cases):** `first_omega_0 = 10.0`
+- **Stages 4-6 (Fully Chaotic & Extreme Cases):** `first_omega_0 = 10.0`
 
 #### Implementation Action:
 
