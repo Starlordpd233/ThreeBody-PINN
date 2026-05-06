@@ -204,3 +204,9 @@ The provided scripts facilitate the automation of this entire stage, creating a 
 3.  **Confirm Completion:** Check that the simulation ran to the specified $t_{\mathrm{end}}$ without premature termination.
 
 Only the data from simulations that pass this final, rigorous quality control check should be considered "gold standard" data, suitable for training a high-fidelity PINN.
+
+---
+
+## Source Issues / Notes for Future Reconciliation
+
+No source-level issues identified during Phase 15 audit. The converted body faithfully reproduces all 10 sections of the monolithic `sampling_method_instruction.tex` source without suspected inconsistencies. All 10 section audits show `**Status:** PASS`.

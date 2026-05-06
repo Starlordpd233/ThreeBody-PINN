@@ -208,19 +208,84 @@ Note: Section 3 is a 3-line banner (source lines 84-86) with no subsections, mat
 ---
 
 ### 6. Stage 3: Pre-Screening of Generated ICs for Short-Term Stability
-**Status:** PENDING — Full audit deferred to Wave 2 Task 2 (Plan 02). 4-line banner section (source lines 170-173).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| — | — | — | — | — | No discrepancies found | — |
+
+**Content audit:**
+- Heading: `\section*{Stage 3: Pre-Screening...}` → `# Stage 3: Pre-Screening...` — MATCH
+- Banner prose (source line 172) — MATCH
+
+---
 
 ### 7. The Pre-Screening Rationale
-**Status:** PENDING — Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| — | — | — | — | — | No discrepancies found | — |
+
+**Content audit:**
+- Heading: `\section{The Pre-Screening Rationale}` → `# The Pre-Screening Rationale` — MATCH
+- `\subsection*{Implementation Details}` → `## Implementation Details` — MATCH
+- Itemized list (source lines 176-183) — MATCH
+- Prose (source lines 184-188) — MATCH
+- Inline math ($t_{\max}=1.0$) — present as `$t_{\max}=1.0$` — MATCH
+
+---
 
 ### 8. Pre-Screening Criteria
-**Status:** PENDING — Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| — | — | — | — | — | No discrepancies found | — |
+
+**Content audit:**
+- Heading: `\section{Pre-Screening Criteria}` → `# Pre-Screening Criteria` — MATCH
+- Numbered list items 1-4 (source lines 193-200) — MATCH
+- Inline math for energy error, min separation, virial ratio — MATCH
+- Numbered list item 5 with display math (source lines 202-212) — MATCH
+- Display math `$$sample\_size = \min(...)` — MATCH
+
+---
 
 ### 9. A Coordinated Strategy for Minimum Distance
-**Status:** PENDING — Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| SM-15-02-07 | structure | MINOR | src:218-224 | sampling_method.md:182-192 | Source uses `\begin{description}` with `\item[...]`; markdown uses pandoc definition list format (key + `: description`) — functionally equivalent rendering | Fixed |
+
+**Content audit:**
+- Heading: `\section{A Coordinated Strategy...}` → `# A Coordinated Strategy...` — MATCH
+- Description list (source lines 218-224) converted to pandoc definition list — MATCH (equivalent)
+- Concluding paragraph (source line 226) — MATCH
+
+---
 
 ### 10. Execution and Final Quality Control
-**Status:** PENDING — Full audit deferred to Wave 2 Task 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| — | — | — | — | — | No discrepancies found | — |
+
+**Content audit:**
+- Heading: `\section{Execution and Final Quality Control}` → `# Execution and Final Quality Control` — MATCH
+- Numbered list (source lines 232-236) — MATCH
+- Inline math ($|\Delta E/E|$, $10^{-4}$, $t_{\mathrm{end}}$) — MATCH
+- Concluding sentence (source line 238) — MATCH
+- No content from after line 241 in markdown — VERIFIED
+
+---
 
 ## Fix Log
 
@@ -233,11 +298,26 @@ Note: Section 3 is a 3-line banner (source lines 84-86) with no subsections, mat
 | SM-15-02-04 | Section 2 (Stage 1 Hierarchical) | Split merged display block into two separate `$$...$$` blocks for radial distances/speeds equations |
 | SM-15-02-05 | Section 4 (Core Sampling) | Noted `\texorpdfstring` in subsection heading — renders as `$\epsilon$`, standard pandoc behavior (INFO) |
 | SM-15-02-06 | Section 4 (Core Sampling) | Fixed pandoc escaped quotes `\"clumping\"` and `\"voids\"` to plain `"` |
+| SM-15-02-07 | Section 9 (Coordinated Strategy) | Noted `\begin{description}` → pandoc definition list format — functionally equivalent (MINOR) |
+
+## Promotion Action
+
+**Status:** COMPLETED
+
+- **Action:** `git mv pinn_instruction/markdown_conversion/pandoc_conversion/sampling_method_instruction.md pinn_instruction/markdown_conversion/sampling_method.md`
+- **Authoritative file exists:** `pinn_instruction/markdown_conversion/sampling_method.md` — YES
+- **Unselected candidate archived:** `_archive/sampling-method/sampling_method.unselected.md` (Candidate A)
 
 ## Source Issues / Notes for Future Reconciliation
 
-(Populated in Plan 03 — see CROSS-01)
+No source-level issues identified during Phase 15 audit. The converted body faithfully reproduces all 10 sections of the monolithic `sampling_method_instruction.tex` source without suspected inconsistencies. All 10 section audits show `**Status:** PASS`.
 
 ## Final Verification
 
-(Populated in Plan 03 — see CLEAN-03)
+| Requirement | Status | Evidence |
+|---|---|---|
+| Zero open discrepancies | PASS | All 10 section audits show Status: PASS in `## Section Audit`. |
+| Excluded Comment Ranges verified | PASS | `sampling_method_instruction.tex:130-134` listed in `## Excluded Comment Ranges` with status `Absent from converted body`. |
+| Complete fix log | PASS | Every SM-15-NN-NN discrepancy ID is mapped to an applied fix in `## Fix Log`. |
+| Single authoritative markdown | PASS | File exists at `pinn_instruction/markdown_conversion/sampling_method.md`. |
+| Loser archived (CLEAN-02) | PASS | `_archive/sampling-method/sampling_method.unselected.md` exists with provenance README. |
