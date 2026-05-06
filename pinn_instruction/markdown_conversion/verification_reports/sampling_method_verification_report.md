@@ -1,6 +1,6 @@
 # Sampling Method Markdown Verification Report
 
-**Phase:** 15 | **Plan:** 01 | **Wave:** 1
+**Phase:** 15 | **Plan:** 02 | **Wave:** 2
 **Source:** `pinn_instruction/original_latex/sampling-method/sampling_method_instruction.tex` (241 lines, 18,931 bytes)
 **Date:** 2026-05-06
 
@@ -74,50 +74,170 @@ Comment blocks and authcomments are NOT vacuous: source has 1 `\begin{comment}` 
 
 ## Promotion Action
 
-**COMPLETED** — Candidate B promoted via move to `pinn_instruction/markdown_conversion/sampling_method.md`. Existing candidate A backed up to `/tmp/sampling_method.candidateA.backup.md`. Loser A will be archived to `_archive/sampling-method/` in Wave 3.
+**COMPLETED** -- Candidate B promoted via move to `pinn_instruction/markdown_conversion/sampling_method.md`. Existing candidate A backed up to `/tmp/sampling_method.candidateA.backup.md`. Loser A will be archived to `_archive/sampling-method/` in Wave 3.
 
 ## Section Audit
 
 ### 1. Overview of the Data Generation Pipeline
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02). Key checks: FIDEL-06 authcomment preservation (source line 26 — virial-ratio scaling note).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| SM-15-02-01 | text | MINOR | sampling_method_instruction.tex:26 | sampling_method.md:2 | Pandoc over-escaped `\*\*enabled\*\*` inside authcomment bold -- should render as `**enabled**` | Fixed |
+| SM-15-02-02 | text | MINOR | sampling_method_instruction.tex:26,34 | sampling_method.md:2,12 | Pandoc escaped quotes `\"...\"` in authcomment and pipeline prose -- should be plain `"` in markdown | Fixed (2 occurrences) |
+
+**Content audit:**
+- Heading: `\section*{Overview...}` -> `# Overview of the Data Generation Pipeline` -- MATCH
+- `\authcomment{...}` at source line 26 preserved as bold callout `**[Critical Update: ... virial ratio ... $s^3$ ...]**` at markdown line 2 -- MATCH (FIDEL-06)
+- Prose paragraphs (lines 28-29) match source -- MATCH
+- Enumerated list (lines 31-35): 3 items converted to numbered list with bold stage names -- MATCH (FIDEL-02)
+- Closing sentence "This document details the first two stages" -- MATCH
+- Source comment `% Hierarchical ICs section inserted here` correctly excluded -- MATCH
+
+**Authcomment preservation:** Present at markdown line 2 -- content matches source line 26 `\authcomment{Critical Update: ...}` including virial-ratio scaling note and Global Scaling reference -- MATCH
+
+---
 
 ### 2. Stage 1: Hierarchical Initial Conditions Generation
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02). Key checks: FIDEL-01 align* blocks (source lines 64-69, 72-77 — position and velocity vector equations).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| SM-15-02-03 | math | MINOR | sampling_method_instruction.tex:48-50 | sampling_method.md:21 | Kozai-Lidov stability threshold: display math `\[...\]` collapsed into inline `$$` with lead-in text on same line | Fixed -- separated lead-in from display block |
+| SM-15-02-04 | math | MINOR | sampling_method_instruction.tex:54-60 | sampling_method.md:25-27 | Two separate display equations (`r_inner`/`v_inner` and `r_outer`/`v_outer`) merged into single `$$...$$` block | Fixed -- restored two separate display blocks |
+
+**Content audit:**
+- Heading: `\section*{Stage 1: Hierarchical Initial Conditions Generation}` -> `# Stage 1: Hierarchical Initial Conditions Generation` -- MATCH
+- Introductory prose (source line 43) -- MATCH
+- `\texttt{generate\_stable\_hierarchical\_systems}` -> `` `generate_stable_hierarchical_systems` `` -- MATCH
+- 8-item enumerated list converted to numbered list:
+  - Item 1 (Mass sampling, source lines 46): inline math preserved -- MATCH
+  - Item 2 (Hierarchical separation ratio, source lines 47-51): Kozai-Lidov formula fixed (SM-15-02-03) -- MATCH
+  - Item 3 (Orbital elements, source line 52): inline math -- MATCH
+  - Item 4 (Radial distances and speeds, source lines 53-60): display math fixed (SM-15-02-04) -- MATCH
+  - Item 5 (Inclination perturbation, source line 62): inline math -- MATCH
+  - Item 6 (Position vectors, source lines 64-69): `align*` -> `$$\begin{aligned}...\end{aligned}`` -- MATCH (FIDEL-01)
+  - Item 7 (Velocity vectors, source lines 72-77): `align*` -> `$$\begin{aligned}...\end{aligned}`` -- MATCH (FIDEL-01)
+  - Item 8 (Gaussian perturbation, source line 79): inline math -- MATCH
+- Closing sentence (source line 82) -- MATCH
+
+**Formula checklist:**
+
+| # | Source location | LaTeX form | Markdown location | Markdown form | Status |
+|---|-----------------|------------|-------------------|---------------|--------|
+| 1 | sampling_method_instruction.tex:64-69 | `\begin{align*} \mathbf{x}_1 &= -\frac{m_2}{m_1+m_2}\,r_{\rm inner}... \end{align*}` | sampling_method.md:31-37 | `$$\begin{aligned} \mathbf{x}_1 &= -\frac{m_2}{m_1+m_2}\,r_{\rm inner}... \end{aligned}$$` | MATCH |
+| 2 | sampling_method_instruction.tex:72-77 | `\begin{align*} \mathbf{v}_1 &= \bigl(0,\,-\tfrac{m_2}{m_1+m_2}v_{\rm inner}... \end{align*}` | sampling_method.md:39-45 | `$$\begin{aligned} \mathbf{v}_1 &= \bigl(0,\,-\tfrac{m_2}{m_1+m_2}v_{\rm inner}... \end{aligned}$$` | MATCH |
+
+Both align* blocks faithfully converted to `$$\begin{aligned}...\end{aligned}`` with identical mathematical content. `\rm` subscripts preserved as `\rm` in markdown -- MATCH (FIDEL-01)
+
+---
 
 ### 3. Stage 2: Enhanced Quasi-Random Sampling
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02). 3-line banner section (source lines 84-86).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| -- | -- | -- | -- | -- | No discrepancies found | -- |
+
+**Content audit:**
+- Heading: `\section*{Stage 2: Enhanced Quasi-Random Sampling}` -> `# Stage 2: Enhanced Quasi-Random Sampling` -- MATCH
+- Single prose sentence (source lines 85-86): "The foundation of our pipeline..." -- MATCH
+
+Note: Section 3 is a 3-line banner (source lines 84-86) with no subsections, math, or lists. Content matches verbatim.
+
+---
 
 ### 4. Core Sampling Methodology
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02). Key checks: AUDIT-03 comment block exclusion (source lines 130-134).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| SM-15-02-05 | math | INFO | sampling_method_instruction.tex:148 | sampling_method.md:106 | `\texorpdfstring{$\epsilon$}{epsilon}` in subsection heading -- pandoc renders as `$\epsilon$`, standard behavior | Noted -- renders correctly |
+| SM-15-02-06 | text | MINOR | sampling_method_instruction.tex:96 | sampling_method.md:66 | Pandoc escaped quotes `\"clumping\"` and `\"voids\"` -- should be plain `"` in markdown | Fixed |
+
+**Content audit:**
+- Heading: `\section{Core Sampling Methodology}` -> `# Core Sampling Methodology` -- MATCH
+- Introductory prose (source line 88) -- MATCH
+- Itemized list for particle sampling (source lines 89-93): 3 bullets converted to `-` list items -- MATCH (FIDEL-02)
+- `\subsection{Low-Discrepancy Engine: Sobol Sequence}` -> `## Low-Discrepancy Engine: Sobol Sequence` -- MATCH
+- Sobol prose (source lines 96-100) -- MATCH
+- `\subsection{Mapping Sobol Numbers to Physical Coordinates}` -> `## Mapping Sobol Numbers to Physical Coordinates` -- MATCH
+- `\subsubsection*{Direction on the Unit Sphere}` -> `### Direction on the Unit Sphere` -- MATCH
+  - 3-item enumerated list (source lines 106-110) converted to numbered list -- MATCH
+- `\subsubsection*{Radial Distance and Scaling}` -> `### Radial Distance and Scaling` -- MATCH
+  - Single itemize item (source line 114) converted to `-` bullet -- MATCH
+- `\subsubsection*{Global Scaling (Optional)}` -> `### Global Scaling (Optional)` -- MATCH
+  - Prose (source lines 117-120) -- MATCH
+  - Virial ratio impact note -- MATCH
+- `\subsubsection*{Velocity Sampling}` -> `### Velocity Sampling` -- MATCH
+  - Inline math `$v_i = \Phi^{-1}(...)$` converted to inline `$$...$$` on same line -- MATCH
+  - Momentum conservation note -- MATCH
+- Comment block exclusion (source lines 130-134): `\begin{comment}...\end{comment}` content verified absent -- grep for `scale_range = (1.0,1.0)` returns 0 -- PASS (AUDIT-03, FIDEL-06)
+
+**Comment-block exclusion:** Verified absent -- no content from source lines 130-134 found in markdown -- PASS
+
+---
 
 ### 5. Enhancements to the Sampling Algorithm
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02).
+
+**Status:** PASS
+
+| ID | Type | Severity | Source location | Markdown location | Issue | Fix status |
+|---|---|---|---|---|---|---|
+| -- | -- | -- | -- | -- | No discrepancies found | -- |
+
+**Content audit:**
+- Heading: `\section{Enhancements to the Sampling Algorithm}` -> `# Enhancements to the Sampling Algorithm` -- MATCH
+- Introductory prose (source line 137) -- MATCH
+- `\subsection{Sampling Non-Zero Initial Velocities}` -> `## Sampling Non-Zero Initial Velocities` -- MATCH
+  - Prose (source lines 140-141) -- MATCH
+  - Itemized list (source lines 143-146) converted to `-` bullets -- MATCH
+- `\subsection{Initial Collision Avoidance: The Role of $\epsilon$}` -> `## Initial Collision Avoidance: The Role of $\epsilon$` -- MATCH
+  - Prose (source lines 149-150) -- MATCH
+  - `\epsilon` threshold value 0.05 -- MATCH
+  - Itemized list (source lines 151-154) converted to `-` bullets -- MATCH
+- `\textbf{Recommended Scale}` -> `**Recommended Scale**` -- MATCH
+  - Prose (source lines 158) -- MATCH
+- `\textbf{Practical Strategy}` -> `**Practical Strategy**` -- MATCH
+  - Itemized list (source lines 162-166) converted to `-` bullets -- MATCH
+
+---
 
 ### 6. Stage 3: Pre-Screening of Generated ICs for Short-Term Stability
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02). 4-line banner section (source lines 170-173).
+**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02). 4-line banner section (source lines 170-173).
 
 ### 7. The Pre-Screening Rationale
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02).
+**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
 
 ### 8. Pre-Screening Criteria
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02).
+**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
 
 ### 9. A Coordinated Strategy for Minimum Distance
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02).
+**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
 
 ### 10. Execution and Final Quality Control
-**Status:** PENDING — Full audit deferred to Wave 2 (Plan 02).
+**Status:** PENDING -- Full audit deferred to Wave 2 Task 2 (Plan 02).
 
 ## Fix Log
 
 | ID | Section | Fix summary |
 |----|---------|-------------|
 | SM-15-01-BASELINE | N/A | Initial baseline: Candidate B selected and promoted. 10 section audits PENDING for Wave 2. |
+| SM-15-02-01 | Section 1 (Overview) | Fixed pandoc over-escaped `\*\*enabled\*\*` to `**enabled**` inside authcomment |
+| SM-15-02-02 | Section 1 (Overview) | Fixed 2 occurrences of pandoc escaped quotes `\"...\"` to plain `"` (authcomment + pipeline prose) |
+| SM-15-02-03 | Section 2 (Stage 1 Hierarchical) | Separated Kozai-Lidov display math from inline lead-in text; restored `$$...$$` display block |
+| SM-15-02-04 | Section 2 (Stage 1 Hierarchical) | Split merged display block into two separate `$$...$$` blocks for radial distances/speeds equations |
+| SM-15-02-05 | Section 4 (Core Sampling) | Noted `\texorpdfstring` in subsection heading -- renders as `$\epsilon$`, standard pandoc behavior (INFO) |
+| SM-15-02-06 | Section 4 (Core Sampling) | Fixed pandoc escaped quotes `\"clumping\"` and `\"voids\"` to plain `"` |
 
 ## Source Issues / Notes for Future Reconciliation
 
-(Populated in Plan 03 — see CROSS-01)
+(Populated in Plan 03 -- see CROSS-01)
 
 ## Final Verification
 
-(Populated in Plan 03 — see CLEAN-03)
+(Populated in Plan 03 -- see CLEAN-03)
