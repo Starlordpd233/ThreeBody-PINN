@@ -119,7 +119,7 @@ If Stage 2 Leapfrog test flags approaches below 0.10, pick $\epsilon \approx 0.0
 
 - Begin with $\epsilon \approx 0.05$
 
-- Monitor the rejection ratio during Stage 1. if $<1\%$ of proposals are rejected, you can afford to tighten $\epsilon$ a bit; if $>30\%$ are rejected and most would also fail Stage 2 anyway, loosen it.
+- Monitor the rejection ratio during Stage 1. If $<1\%$ of proposals are rejected, you can afford to tighten $\epsilon$ a bit; if $>30\%$ are rejected and most would also fail Stage 2 anyway, loosen it.
 
 - Keep $\epsilon$ fixed once you are satisfied; later tuning has diminishing returns because Stage 2 already provides a dynamic safety net
 
@@ -141,7 +141,7 @@ The ICs generated in Stage 1 are diverse but may still contain many that are dyn
 
 - **Dataset handling:** The script loops over both hierarchical and quasi-random sampling directories and skips already-processed IC files based on recorded hashes.
 
-The pre-screening script uses a fast, low-precision N-body integrator (a JIT-compiled Leapfrog integrator) to simulate each IC for a short period (e.g., $t_{max}=1.0$). Its goal is not to produce an accurate trajectory but to quickly identify ICs that exhibit signs of instability, such as:
+The pre-screening script uses a fast, low-precision N-body integrator (a JIT-compiled Leapfrog integrator) to simulate each IC for a short period (e.g., $t_{\max}=1.0$). Its goal is not to produce an accurate trajectory but to quickly identify ICs that exhibit signs of instability, such as:
 
 - Rapid energy non-conservation.
 

@@ -219,7 +219,10 @@ Plans:
   3. User can compare the corrected markdown against the LaTeX source and observe zero meaningful differences
   4. User can find the unselected markdown file archived in `_archive/` with a README documenting provenance
   5. User can read the final verification report confirming zero-diff status with a complete fix log
-**Plans**: TBD
+**Plans**: 3
+- [ ] 15-01-PLAN.md
+- [ ] 15-02-PLAN.md
+- [ ] 15-03-PLAN.md
 **UI hint**: no
 
 ## Execution Order
