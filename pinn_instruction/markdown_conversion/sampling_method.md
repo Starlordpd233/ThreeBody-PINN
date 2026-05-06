@@ -1,5 +1,5 @@
 # Overview of the Data Generation Pipeline
-**[Critical Update: The script preserves virial ratio in hierarchical ICs (masses normalized consistently with velocities). For quasi-random, scaling is \*\*enabled\*\* in the main block with range (0.8, 1.2), which distorts the virial ratio by $s^3$---see documented warning in \"Global Scaling (Optional)\". The default would preserve it, but scaling is explicitly enabled for variety.]**
+**[Critical Update: The script preserves virial ratio in hierarchical ICs (masses normalized consistently with velocities). For quasi-random, scaling is **enabled** in the main block with range (0.8, 1.2), which distorts the virial ratio by $s^3$---see documented warning in "Global Scaling (Optional)". The default would preserve it, but scaling is explicitly enabled for variety.]**
 
 Generating high-quality training data for a Physics-Informed Neural Network (PINN) tasked with solving the three-body problem is a non-trivial challenge. The chaotic nature of many three-body systems means that a significant fraction of randomly generated initial conditions (ICs) will lead to computationally expensive simulations that are ultimately unusable due to poor energy conservation.
 
@@ -9,7 +9,7 @@ To address this, we adopt a multi-stage pipeline designed to progressively filte
 
 2.  **Stage 2: Pre-screening for Short-Term Stability.** Before committing to a full Brutus simulation, we use a rapid, low-precision Leapfrog integrator to quickly assess the short-term stability of each IC. This step efficiently weeds out configurations that are guaranteed to become unstable.
 
-3.  **Stage 3: Adaptive Brutus Parameterization.** For the ICs that pass the pre-screening, we analyze their intrinsic properties (e.g., timescales, minimum separation) to assign them to different \"regimes\". Each regime is then simulated with a tailored set of Brutus parameters to balance computational cost with the required accuracy.
+3.  **Stage 3: Adaptive Brutus Parameterization.** For the ICs that pass the pre-screening, we analyze their intrinsic properties (e.g., timescales, minimum separation) to assign them to different "regimes". Each regime is then simulated with a tailored set of Brutus parameters to balance computational cost with the required accuracy.
 
 This document details the first two stages of this pipeline.
 
@@ -18,12 +18,20 @@ The hierarchical initial conditions (ICs) are generated using the `generate_stab
 
 1.  **Mass sampling:** Draw the inner mass ratio $q_{\rm inner}\sim U(0.1,1.0)$ and outer mass ratio $q_{\rm outer}\sim U(0.1,2.0)$. Sample a base mass $m_1\sim U(m_{\min},m_{\max})$ (default $m_{\min}=0.5$, $m_{\max}=1.5$). Set $m_2=q_{\rm inner}m_1$, $m_3=q_{\rm outer}(m_1+m_2)$, then normalize $(m_1,m_2,m_3)$ so that $m_1+m_2+m_3=3$.
 
-2.  **Hierarchical separation ratio:** Compute the Kozai--Lidov stability threshold $$\mathrm{min\_ratio} = 2.8\bigl(\tfrac{1+q_{\rm outer}}{1+e_{\rm outer}}\bigr)^{2/5}\quad(\text{with }e_{\rm outer}\le0.5),$$ then draw the hierarchy ratio $\mathcal{R}\sim U(\max(3,\mathrm{min\_ratio}),10)$.
+2.  **Hierarchical separation ratio:** Compute the Kozai--Lidov stability threshold
+
+$$\mathrm{min\_ratio} = 2.8\bigl(\tfrac{1+q_{\rm outer}}{1+e_{\rm outer}}\bigr)^{2/5}\quad(\text{with }e_{\rm outer}\le0.5),$$
+
+then draw the hierarchy ratio $\mathcal{R}\sim U(\max(3,\mathrm{min\_ratio}),10)$.
 
 3.  **Orbital elements:** Sample inner semi-major axis $a_{\rm inner}\sim U(0.1,0.3)$, set $a_{\rm outer}=\mathcal{R}\,a_{\rm inner}$. Sample eccentricities $e_{\rm inner},e_{\rm outer}\sim U(0,0.3)$ and mean anomalies $M_{\rm inner},M_{\rm outer}\sim U(0,2\pi)$.
 
-4.  **Radial distances and speeds:** Compute $$r_{\rm inner}=a_{\rm inner}\bigl(1-e_{\rm inner}\cos M_{\rm inner}\bigr),\quad
-          v_{\rm inner}=\sqrt{\tfrac{m_1+m_2}{r_{\rm inner}}},$$ $$r_{\rm outer}=a_{\rm outer}\bigl(1-e_{\rm outer}\cos M_{\rm outer}\bigr),\quad
+4.  **Radial distances and speeds:** Compute
+
+$$r_{\rm inner}=a_{\rm inner}\bigl(1-e_{\rm inner}\cos M_{\rm inner}\bigr),\quad
+          v_{\rm inner}=\sqrt{\tfrac{m_1+m_2}{r_{\rm inner}}},$$
+
+$$r_{\rm outer}=a_{\rm outer}\bigl(1-e_{\rm outer}\cos M_{\rm outer}\bigr),\quad
           v_{\rm outer}=\sqrt{\tfrac{m_1+m_2+m_3}{r_{\rm outer}}}.$$
 
 5.  **Inclination perturbation:** Draw a small inclination $\iota\sim U(0,0.1)$ for the inner binary.
@@ -33,7 +41,7 @@ The hierarchical initial conditions (ICs) are generated using the `generate_stab
           \mathbf{x}_2 &= +\frac{m_1}{m_1+m_2}\,r_{\rm inner}\bigl(\cos\iota\,\hat{\mathbf{x}}+\sin\iota\,\hat{\mathbf{z}}\bigr),\\
           \mathbf{x}_{\rm COM} &= -\frac{m_3}{m_1+m_2+m_3}\,r_{\rm outer}\,\hat{\mathbf{x}},\\
           \mathbf{x}_3 &= +\frac{m_1+m_2}{m_1+m_2+m_3}\,r_{\rm outer}\,\hat{\mathbf{x}}.
-        
+
     \end{aligned}$$ Shift $\mathbf{x}_1,\mathbf{x}_2$ by $\mathbf{x}_{\rm COM}$.
 
 7.  **Velocity vectors:** $$\begin{aligned}
@@ -41,7 +49,7 @@ The hierarchical initial conditions (ICs) are generated using the `generate_stab
           \mathbf{v}_2 = \bigl(0,\,\tfrac{m_1}{m_1+m_2}v_{\rm inner},\,0\bigr),\\
           \mathbf{v}_{\rm COM} &= \bigl(0,\,-\tfrac{m_3}{m_1+m_2+m_3}v_{\rm outer},\,0\bigr),\quad
           \mathbf{v}_3 = \bigl(0,\,\tfrac{m_1+m_2}{m_1+m_2+m_3}v_{\rm outer},\,0\bigr).
-        
+
     \end{aligned}$$ Add $\mathbf{v}_{\rm COM}$ to each of $\mathbf{v}_1,\mathbf{v}_2$.
 
 8.  **Gaussian perturbation:** Add a small random perturbation drawn from $\mathcal{N}(0,\,0.01)$ to each component of $\mathbf{x}_i$ and $\mathbf{v}_i$.
@@ -63,7 +71,7 @@ The fundamental idea is to fix one particle and sample the second from a well-de
 
 ## Low-Discrepancy Engine: Sobol Sequence
 
-We use a Sobol sequence, a type of low-discrepancy sequence, to ensure that every finite batch of samples covers the parameter space evenly, minimizing both \"clumping\" and \"voids\".
+We use a Sobol sequence, a type of low-discrepancy sequence, to ensure that every finite batch of samples covers the parameter space evenly, minimizing both "clumping" and "voids".
 
 - **Dimension:** A Sobol engine with base 6 dimensions (3 for position + 3 for velocity) is used, plus optional extras (e.g., 1 for global scaling if enabled via `scale_range`).
 
@@ -149,7 +157,7 @@ The pre-screening script uses a fast, low-precision N-body integrator (a JIT-com
 
 # Pre-Screening Criteria
 
-The pre-screening script evaluates each IC against several criteria to determine its stability. An IC must pass all these checks to be considered \"stable\" and move on to Stage 3.
+The pre-screening script evaluates each IC against several criteria to determine its stability. An IC must pass all these checks to be considered "stable" and move on to Stage 3.
 
 1.  **Short-Term Energy Conservation:** The script calculates the relative energy error, $|(E_{current} - E_{init}) / E_{init}|$, during the Leapfrog integration. If this error exceeds a modest threshold (e.g., 1%), the IC is flagged as unstable.
 
@@ -173,15 +181,15 @@ It is crucial to understand the distinct but complementary roles of the minimum 
 
 `epsilon` (in Stage 1 - Sampling):
 
-:   This is a **static, initial filter**. It is applied once to the $t=0$ configuration. Its purpose is to perform a cheap rejection of ICs that are \"born\" in a near-collision state.
+:   This is a **static, initial filter**. It is applied once to the $t=0$ configuration. Its purpose is to perform a cheap rejection of ICs that are "born" in a near-collision state.
 
 `min_distance_threshold` (in Stage 2 - Pre-screening):
 
-:   This is a **dynamic, short-term filter**. It checks for close encounters that occur during the brief Leapfrog integration. An IC might have a perfectly acceptable initial separation but be on an immediate collision course, which this check will catch. It is a more robust filter than the static 'epsilon'.
+:   This is a **dynamic, short-term filter**. It checks for close encounters that occur during the brief Leapfrog integration. An IC might have a perfectly acceptable initial separation but be on an immediate collision course, which this check will catch. It is a more robust filter than the static `epsilon`.
 
 `min_sep` (in Stage 3 - Adaptive Brutus):
 
-:   This is not a filter, but a **diagnostic metric**. For the ICs that have passed the first two stages, this value (calculated from the initial state) is used to categorize the system into a specific regime (e.g., \"standard,\" \"hierarchical,\" \"close_low_L\"). This categorization then determines the precise (and often very stringent) Brutus parameters that will be used for the final, high-fidelity simulation.
+:   This is not a filter, but a **diagnostic metric**. For the ICs that have passed the first two stages, this value (calculated from the initial state) is used to categorize the system into a specific regime (e.g., "standard," "hierarchical," "close_low_L"). This categorization then determines the precise (and often very stringent) Brutus parameters that will be used for the final, high-fidelity simulation.
 
 By using these three parameters in a coordinated fashion, we create an efficient and intelligent pipeline that maximizes the quality of the final dataset while minimizing wasted computational resources.
 
