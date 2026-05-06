@@ -1,4 +1,6 @@
-# Executive Summary
+# Technical Review and Resolution Framework for CTL-PINN Implementation
+
+# Section 1: Executive Summary
 This report presents a definitive technical review and resolution of 19 critical inconsistencies, logical gaps, and implementation ambiguities identified across two foundational documents: `PINN_architecture_plan.tex` and `CTL-instruction-final.tex`. These documents collectively outline a sophisticated framework for training a Physics-Informed Neural Network (PINN) on the chaotic three-body problem using a Curriculum-Transfer Learning (CTL) methodology. The identified issues, if left unaddressed, would preclude a successful, robust, and reproducible implementation of the proposed system.
 
 The resolutions provided herein are synthesized into a single, coherent, and actionable blueprint. The analysis is structured around five core themes, each representing a critical stage of the implementation workflow. The key resolutions are summarized as follows:
@@ -15,7 +17,7 @@ The resolutions provided herein are synthesized into a single, coherent, and act
 
 The solutions presented are rigorously grounded in established principles from celestial mechanics, numerical analysis, and deep learning. The resulting blueprint ensures that the final CTL-PINN framework is not only physically sound and mathematically consistent but also computationally robust and practically implementable.
 
-# Foundational Physical Metrics for Curriculum Design
+# Section 2: Foundational Physical Metrics for Curriculum Design
 
 The efficacy of the Curriculum-Transfer Learning (CTL) framework is predicated on the ability to quantitatively stratify simulation data by its intrinsic physical difficulty. Without robust and computable metrics to distinguish stable, quasi-periodic systems from highly chaotic ones, the concept of a \"curriculum\" remains ill-defined. This section resolves critical omissions in the source documents by providing definitive, physically-grounded formulas and scalable implementation plans for the key metrics required for stage assignment: Lyapunov time ($\tau_L$), maximum angular momentum ($L_{\max}$), and global normalization scales.
 
@@ -35,13 +37,16 @@ To resolve this gap, we provide definitive, physically sound, and computationall
 
 1.  **Maximum Angular Momentum ($L_{\max}$)** The formula for the normalized angular momentum, $L_{\text{norm}} = L/L_{\max}$, is derived from fundamental principles of celestial mechanics and is explicitly defined in the `CTL-instruction-final.tex` document. This formulation will be formally adopted. The calculation proceeds as follows for each initial condition, using spatiotemporally scaled quantities (see Section 2.1):
 
-    - **Calculate Total Angular Momentum ($L$):** The total angular momentum vector, $\mathbf{L}$, is the sum of the individual angular momenta in the center-of-mass frame. Its magnitude, $L$, is computed from the scaled initial positions $\mathbf{r}'_i$ and velocities $\mathbf{v}'_i$. $$\mathbf{L} = \sum_{i=1}^{3} m_i (\mathbf{r}'_i \times \mathbf{v}'_i) \quad \rightarrow \quad L = ||\mathbf{L}||$$
+    - **Calculate Total Angular Momentum ($L$):** The total angular momentum vector, $\mathbf{L}$, is the sum of the individual angular momenta in the center-of-mass frame. Its magnitude, $L$, is computed from the scaled initial positions $\mathbf{r}'_i$ and velocities $\mathbf{v}'_i$. $$\mathbf{L} = \sum_{i=1}^{3} m_i (\mathbf{r}'_i \times \mathbf{v}'_i) \quad \rightarrow \quad L = \|\mathbf{L}\|$$
 
-    - **Calculate Characteristic Scales:** A characteristic length scale, $r_{\text{char}}$, is defined as the average pairwise distance between bodies. A characteristic velocity, $v_{\text{char}}$, is derived from the total energy $E$ and total mass $M_{\text{total}}$, representing the velocity required for a bound system. $$\begin{aligned}
-                r_{\text{char}} &= \frac{1}{3} \sum_{i<j} ||\mathbf{r}'_i - \mathbf{r}'_j|| \\
-                v_{\text{char}} &= \sqrt{\frac{2|E|}{M_{\text{total}}}} \quad \text{where} \quad M_{\text{total}} = \sum_{i=1}^{3} m_i
-            
-    \end{aligned}$$
+    - **Calculate Characteristic Scales:** A characteristic length scale, $r_{\text{char}}$, is defined as the average pairwise distance between bodies. A characteristic velocity, $v_{\text{char}}$, is derived from the total energy $E$ and total mass $M_{\text{total}}$, representing the velocity required for a bound system.
+
+$$
+\begin{aligned}
+r_{\text{char}} &= \frac{1}{3} \sum_{i<j} \lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert \\
+v_{\text{char}} &= \sqrt{\frac{2|E|}{M_{\text{total}}}} \quad \text{where} \quad M_{\text{total}} = \sum_{i=1}^{3} m_i
+\end{aligned}
+$$
 
     - **Calculate Maximum Angular Momentum ($L_{\max}$):** $L_{\max}$ is the product of these characteristic scales, physically representing the angular momentum of the total mass moving at the characteristic velocity at the characteristic radius. $$L_{\max} = M_{\text{total}} \cdot r_{\text{char}} \cdot v_{\text{char}}$$
 
@@ -65,9 +70,9 @@ To resolve this gap, we provide definitive, physically sound, and computationall
 
     - At the end of the interval, calculate the new separation vector $\delta_1 = y_1^{\text{pert}} - y_1$.
 
-    - Record the growth factor $a_1 = ||\delta_1|| / \epsilon_{\text{pert}}$.
+    - Record the growth factor $a_1 = \|\delta_1\| / \epsilon_{\text{pert}}$.
 
-    - Renormalize the perturbed trajectory by resetting its state to $y_1^{\text{pert}} = y_1 + \epsilon_{\text{pert}} \cdot (\delta_1 / ||\delta_1||)$. This step preserves the direction of maximal divergence while resetting the separation magnitude.
+    - Renormalize the perturbed trajectory by resetting its state to $y_1^{\text{pert}} = y_1 + \epsilon_{\text{pert}} \cdot (\delta_1 / \|\delta_1\|)$. This step preserves the direction of maximal divergence while resetting the separation magnitude.
 
     - **Averaging:** Repeat the integration and renormalization loop for a sufficiently long total integration horizon ($T_{\text{horizon}}$). The maximal Lyapunov exponent, $\lambda$, is the time-average of the logarithm of the growth factors: $$\lambda \approx \frac{1}{T_{\text{horizon}}} \sum_{i=1}^{N_{\text{steps}}} \ln(a_i)$$
 
@@ -113,15 +118,18 @@ This function is designed to be self-contained and stateless, making it ideal fo
 
 - As results are returned from the worker processes, they are aggregated into two lists: one for all computed energies and one for all characteristic lengths.
 
-- Once all files have been processed, the function computes the final global scales using NumPy's median function on the aggregated lists: $$\begin{aligned}
+- Once all files have been processed, the function computes the final global scales using NumPy's median function on the aggregated lists.
+
+$$
+\begin{aligned}
             E_{\text{scale}} &= |\text{median}(\{E_j\})| + 10^{-8} \\
             s_{\text{min\_scale}} &= \text{median}(\{r_{\text{char},j}\})
-        
-\end{aligned}$$
+\end{aligned}
+$$
 
 This parallelized approach transforms a lengthy serial task into a highly efficient one. The implementation will be further enhanced with robust error handling to gracefully manage potential issues like corrupted or missing input files, and will include a progress bar (e.g., using the `tqdm` library) to provide real-time feedback during execution. This ensures the data preprocessing pipeline is not only correct but also practical for large-scale scientific datasets.
 
-# Unifying Data Scaling and Normalization Protocols
+# Section 3: Unifying Data Scaling and Normalization Protocols
 
 A prerequisite for stable and effective neural network training is the transformation of raw, physical data into a consistent, dimensionless, and well-behaved numerical format. The source documents contain several critical ambiguities and contradictions in this domain. This section resolves these issues by establishing a single, definitive standard for all spatiotemporal scaling, numerical softening, and input vector normalization, thereby creating a reliable data contract between the preprocessing and training stages of the workflow.
 
@@ -152,12 +160,15 @@ To resolve these inconsistencies, a definitive and unified normalization scheme 
 
 - Physical velocities $\mathbf{v}_i$ are scaled to dimensionless velocities $\mathbf{v}'_i = \mathbf{v}_i / V$.
 
-- **Inverse Transformation for Analysis:** To resolve Issue 9, explicit inverse transformation formulas are provided. These are essential for converting the network's dimensionless outputs back into physical units for meaningful analysis and visualization. $$\begin{aligned}
+- **Inverse Transformation for Analysis:** To resolve Issue 9, explicit inverse transformation formulas are provided. These are essential for converting the network's dimensionless outputs back into physical units for meaningful analysis and visualization.
+
+$$
+\begin{aligned}
         t &= \frac{T(t' + 1)}{2} \\
         \mathbf{r} &= \mathbf{r}' \cdot D \\
         \mathbf{v} &= \mathbf{v}' \cdot V
-    
-\end{aligned}$$
+\end{aligned}
+$$
 
 A set of utility functions, `physical_to_scaled` and `scaled_to_physical`, encapsulating these transformations should be implemented and used consistently throughout the codebase to prevent errors. This unified scheme resolves all spatiotemporal ambiguities and establishes a clear, consistent data representation that is a prerequisite for all subsequent steps.
 
@@ -171,7 +182,7 @@ Issue 15 identifies a severe inconsistency of critical importance: a five-order-
 
 #### Proposed Solution and Implementation
 
-The softening parameter will be standardized to the value $\boldsymbol{\epsilon_{\text{soft}} = 10^{-5}}$ for all relevant calculations across the entire framework. This value will be used in the denominator of all gravitational force and potential energy terms. Specifically, any term of the form $1/||\mathbf{r}_i - \mathbf{r}_j||$ will be implemented as $1/(||\mathbf{r}_i - \mathbf{r}_j|| + \epsilon_{\text{soft}})$, and any term of the form $1/||\mathbf{r}_i - \mathbf{r}_j||^3$ will be implemented as $1/(||\mathbf{r}_i - \mathbf{r}_j|| + \epsilon_{\text{soft}})^3$.
+The softening parameter will be standardized to the value $\boldsymbol{\epsilon_{\text{soft}} = 10^{-5}}$ for all relevant calculations across the entire framework. This value will be used in the denominator of all gravitational force and potential energy terms. Specifically, any term of the form $1/\|\mathbf{r}_i - \mathbf{r}_j\|$ will be implemented as $1/(\|\mathbf{r}_i - \mathbf{r}_j\| + \epsilon_{\text{soft}})$, and any term of the form $1/\|\mathbf{r}_i - \mathbf{r}_j\|^3$ will be implemented as $1/(\|\mathbf{r}_i - \mathbf{r}_j\| + \epsilon_{\text{soft}})^3$.
 
 #### Justification
 
@@ -201,9 +212,9 @@ The following table provides the single source of truth for constructing the fin
 | Normalized Mass 2       | $m_2^{\text{norm}}$      | Mass fraction of body 2                                                                     | $2 \cdot (m_2 / M_{\text{total}}) - 1$                                 | [-1, 1]         |
 | Normalized Mass 3       | $m_3^{\text{norm}}$      | Mass fraction of body 3                                                                     | $2 \cdot (m_3 / M_{\text{total}}) - 1$                                 | [-1, 1]         |
 | Normalized Energy       | $E^{\text{norm}}$        | Total mechanical energy $E=T+V$                                                             | $\tanh(E/E_{\text{scale}})$                                            | [-1, 1]         |
-| Normalized Ang. Mom.    | $L_{\text{norm}}$        | $L = \|\|\sum m_i (\mathbf{r}'_i \times \mathbf{v}'_i)\|\|$                                 | $L / L_{\max}$                                                         | [0, 1]          |
+| Normalized Ang. Mom.    | $L_{\text{norm}}$        | $L = \|\sum m_i (\mathbf{r}'_i \times \mathbf{v}'_i)\|$                                 | $L / L_{\max}$                                                         | [0, 1]          |
 | Normalized Virial Ratio | $Q^{\text{norm}}$        | $Q = 2T / \|V\|$                                                                            | $\tanh((Q - 1) / Q_{\text{scale}})$                                    | [-1, 1]         |
-| Normalized Min. Sep.    | $s_{\min}^{\text{norm}}$ | $s_{\min} = \min_{i<j} \|\|\mathbf{r}'_i - \mathbf{r}'_j\|\|$                               | $\tanh(s_{\min} / s_{\min\_\text{scale}})$                             | [-1, 1]         |
+| Normalized Min. Sep.    | $s_{\min}^{\text{norm}}$ | $s_{\min} = \min_{i<j} \|\mathbf{r}'_i - \mathbf{r}'_j\|$                               | $\tanh(s_{\min} / s_{\min\_\text{scale}})$                             | [-1, 1]         |
 | Shape Invariant 1       | $I_1^{\text{norm}}$      | $d_{\text{short}} / d_{\text{long}}$                                                        | $2 \cdot I_1 - 1$                                                      | [-1, 1]         |
 | Shape Invariant 2       | $I_2^{\text{norm}}$      | $d_{\text{mid}} / d_{\text{long}}$                                                          | $2 \cdot I_2 - 1$                                                      | [-1, 1]         |
 | Shape Invariant 3       | $I_3$                    | $(d_{\text{sh}}+d_{\text{mid}}-d_{\text{lg}})/(d_{\text{sh}}+d_{\text{mid}}+d_{\text{lg}})$ | $I_3$ (already in range)                                               | [-1, 1]         |
@@ -216,7 +227,7 @@ The following table provides the single source of truth for constructing the fin
 
 This table serves as an unambiguous API contract between the data preprocessing and model training phases. It ensures that every input feature is correctly calculated and scaled, eliminating a common and pernicious source of bugs in complex machine learning pipelines.
 
-# Architectural and Initialization Refinements for the SIREN Backbone
+# Section 4: Architectural and Initialization Refinements for the SIREN Backbone
 
 The performance of a neural network, particularly one with periodic activations like SIREN, is critically dependent on its initialization. The frequency parameter, $\omega_0$, directly controls the model's ability to represent fine details in the solution. This section resolves a key ambiguity in how this parameter is managed, proposing a novel scheduling strategy that is fully integrated with the curriculum learning framework.
 
@@ -248,7 +259,7 @@ The definitive schedule is as follows:
 
 At the beginning of each new curriculum stage, a targeted re-initialization will occur. While the weights of all hidden layers and the output layer are transferred from the converged model of the previous stage, the weights of the first SIREN layer will be re-initialized using the uniform distribution $U[-1/\sqrt{n_{\text{in}}}, 1/\sqrt{n_{\text{in}}}]$ and the new `first_omega_0` value specified by the schedule above. This procedure allows the model to adapt its \"input lens\" to the new data regime---adjusting its frequency sensitivity---without inducing catastrophic forgetting in the deeper layers of the network. This approach resolves the implementation ambiguity while preserving the original intent of adapting the network's frequency bias to the complexity of the learning task.
 
-# A Rigorous Framework for the Multi-Component Loss Function
+# Section 5: A Rigorous Framework for the Multi-Component Loss Function
 
 The composite loss function is the heart of the PINN, guiding the network to solutions that are both accurate to data and consistent with physical law. This section provides definitive specifications for its implementation, resolving ambiguities in the use of scaled units, the state management of ALM parameters, the practical application of automatic differentiation, and the selection of a key hyperparameter in the energy regularization term.
 
@@ -264,11 +275,11 @@ Issue 18 correctly identifies the need for an explicit, unified confirmation tha
 
 It is established as a definitive and non-negotiable requirement that all loss components be computed entirely within the non-dimensional, $G=1$ system of units defined in Section 2. The following checklist must be used to validate the implementation:
 
-- **$\mathcal{L}_{\text{data}}$ (Data Fidelity Loss):** This term must be computed as the L1 norm of the difference between the network's direct output (the scaled position vector, $\mathbf{r}'_{\text{pred}}$) and the ground-truth positions from the BRUTUS simulation after they have been scaled by the characteristic length $D$ (i.e., $\mathbf{r}'_{\text{true}} = \mathbf{r}_{\text{true}} / D$). $$\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} ||\mathbf{r}'_{\text{pred}}(t'_k) - \mathbf{r}'_{\text{true}}(t'_k)||_1$$
+- **$\mathcal{L}_{\text{data}}$ (Data Fidelity Loss):** This term must be computed as the L1 norm of the difference between the network's direct output (the scaled position vector, $\mathbf{r}'_{\text{pred}}$) and the ground-truth positions from the BRUTUS simulation after they have been scaled by the characteristic length $D$ (i.e., $\mathbf{r}'_{\text{true}} = \mathbf{r}_{\text{true}} / D$). $$\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} \|\mathbf{r}'_{\text{pred}}(t'_k) - \mathbf{r}'_{\text{true}}(t'_k)\|_1$$
 
-- **$\mathcal{L}_{\text{physics}}$ (Physics Residual Loss):** The physics residual, $f_i(t')$, must be calculated using scaled positions ($\mathbf{r}'$), scaled accelerations ($\mathbf{a}'$), and unscaled masses ($m_j$), consistent with the $G=1$ unit system where mass is dimensionless. The accelerations $\mathbf{a}'$ are derived via automatic differentiation from $\mathbf{r}'$ with respect to the normalized time $t'$. $$f_i(t') = \mathbf{a}'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)}{(||\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)|| + \epsilon_{\text{soft}})^3}$$
+- **$\mathcal{L}_{\text{physics}}$ (Physics Residual Loss):** The physics residual, $f_i(t')$, must be calculated using scaled positions ($\mathbf{r}'$), scaled accelerations ($\mathbf{a}'$), and unscaled masses ($m_j$), consistent with the $G=1$ unit system where mass is dimensionless. The accelerations $\mathbf{a}'$ are derived via automatic differentiation from $\mathbf{r}'$ with respect to the normalized time $t'$. $$f_i(t') = \mathbf{a}'_{\theta}(t', i) - \sum_{j \neq i} m_j \frac{\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)}{(\|\mathbf{r}'_{\theta}(t', j) - \mathbf{r}'_{\theta}(t', i)\| + \epsilon_{\text{soft}})^3}$$
 
-- **$\mathcal{L}_{\text{energy}}$ (Energy Conservation Loss):** The total energy (Hamiltonian) must be computed using the network's scaled position outputs ($\mathbf{r}'$) and the scaled velocities ($\mathbf{v}'$) derived from them via automatic differentiation. The reference initial energy, $H_0$, must also be pre-computed using the same dimensionless units for consistency. $$H_{\text{total}}(\mathbf{r}', \mathbf{v}') = \sum_{i=1}^{N} \frac{1}{2} m_i ||\mathbf{v}'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||\mathbf{r}'_i - \mathbf{r}'_j|| + \epsilon_{\text{soft}}}$$
+- **$\mathcal{L}_{\text{energy}}$ (Energy Conservation Loss):** The total energy (Hamiltonian) must be computed using the network's scaled position outputs ($\mathbf{r}'$) and the scaled velocities ($\mathbf{v}'$) derived from them via automatic differentiation. The reference initial energy, $H_0$, must also be pre-computed using the same dimensionless units for consistency. $$H_{\text{total}}(\mathbf{r}', \mathbf{v}') = \sum_{i=1}^{N} \frac{1}{2} m_i \|\mathbf{v}'_i\|^2 - \sum_{i<j} \frac{m_i m_j}{\|\mathbf{r}'_i - \mathbf{r}'_j\| + \epsilon_{\text{soft}}}$$
 
 Enforcing this strict dimensional consistency is paramount. It ensures that the magnitudes of the different loss components are physically comparable, allowing the Augmented Lagrangian Method (ALM) and the optimizer to balance their respective gradients effectively.
 
@@ -377,7 +388,7 @@ The delta parameter of the Huber loss function must be chosen relative to the ex
 
 The primary goal of the energy loss term is to penalize deviations from the initial energy $H_0$, keeping the predicted energy on the correct constant-energy manifold. A value of $\delta = 0.1$ establishes a meaningful transition point. For normalized energy deviations less than 10% ($|\Delta H_k| \leq 0.1$), the loss will be quadratic, providing a strong incentive for the model to reduce small errors precisely. For larger deviations ($|\Delta H_k| > 0.1$), which may occur during transient chaotic events or early in training, the loss becomes linear. This prevents single outlier points from generating excessively large gradients that could destabilize the optimizer. This choice of $\delta$ restores the intended robustness of the Huber loss function, leading to a more stable and effective regularization of the system's global energy conservation.
 
-# A Coherent Training and Data Sampling Strategy
+# Section 6: A Coherent Training and Data Sampling Strategy
 
 The final set of resolutions addresses the core training loop, reconciling conflicting instructions on how data is sampled and batched, how advanced techniques are integrated, and how to handle the multi-resolution nature of the dataset. This section establishes a single, unified strategy that is computationally efficient, physically motivated, and fully integrated with the curriculum learning paradigm.
 
@@ -485,7 +496,7 @@ A definitive implementation is created by synthesizing the strengths of both doc
 
 This synthesized approach ensures that the training process is both stable and efficient. It allows for rapid learning on simpler data while robustly protecting the optimizer from the instabilities inherent in the more challenging, chaotic stages of the curriculum. It is also explicitly noted that gradient clipping is applied only during the Adam optimization phase and is disabled during L-BFGS refinement, as the line-search mechanism of L-BFGS provides its own form of step control.
 
-# Conclusion and Consolidated Recommendations
+# Section 7: Conclusion and Consolidated Recommendations
 This report has systematically analyzed and resolved 19 critical issues spanning the entire workflow for training a Curriculum-Transfer Learning Physics-Informed Neural Network (CTL-PINN) for the three-body problem. By establishing definitive, physically-grounded, and computationally robust solutions, this document transforms a set of inconsistent and incomplete instructions into a single, coherent, and actionable implementation blueprint.
 
 The key resolutions have unified the project's approach to foundational physics, data normalization, network architecture, loss function design, and training strategy. The proposed framework now rests on a solid foundation, with clear specifications for computing curriculum metrics like Lyapunov time, a consistent $G=1$ dimensionless unit system, a curriculum-aware schedule for the SIREN $\omega_0$ parameter, a rigorous state management protocol for the ALM, and an efficient, unified data sampling strategy that gracefully handles mixed-resolution data.

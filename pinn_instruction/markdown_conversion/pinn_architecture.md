@@ -7,6 +7,8 @@ title: A Definitive Implementation Blueprint for a Hybrid
   $\mathrm{N}$-Body Dynamics
 ---
 
+# A Definitive Implementation Blueprint for a Hybrid SQR-SkipResNet-SIREN PINN with Hamiltonian Regularization for $\mathrm{N}$-Body Dynamics
+
 # Section 1: Foundational Architectural Principles: A Co-Designed Approach for Chaotic Systems
 
 The accurate and long-term simulation of $\mathrm{N}$-body gravitational
@@ -110,7 +112,7 @@ activations provide the derivative fidelity required for physics
 enforcement, and the HNN-style loss term ensures the long-term stability
 essential for physical realism.
 
-# The SQR-SkipResNet-SIREN Backbone: A Deep Dive into the Core Architecture
+# Section 2: The SQR-SkipResNet-SIREN Backbone: A Deep Dive into the Core Architecture
 
 This section provides the definitive, mathematically-grounded
 specifications for each component of the neural network's core
@@ -232,7 +234,9 @@ benefits for chaotic systems.
 The precise mathematical update rules are as follows:
 
 1.  For odd-numbered layers ($l = 1, 3, 5, \ldots$):
-    $$\mathbf{x}^{(l)} = f_{\text{sr}}^{(l)}(\mathbf{x}^{(l-1)}) + \left(\text{LayerNorm}(\mathbf{x}^{(l-1)})\right)^p$$
+
+$$\mathbf{x}^{(l)} = f_{\text{sr}}^{(l)}(\mathbf{x}^{(l-1)}) + \left(\text{LayerNorm}(\mathbf{x}^{(l-1)})\right)^p$$
+
     where:
 
     - $f_{\text{sr}}^{(l)}$: SIREN block (SineLayer)
@@ -243,7 +247,8 @@ The precise mathematical update rules are as follows:
     - $p = 2$: Power term fixed at 2 (element-wise squaring)
 
 2.  For even-numbered layers ($l = 2, 4, 6, \ldots$):
-    $$\mathbf{x}^{(l)} = f_{\text{pn}}^{(l)}(\mathbf{x}^{(l-1)})$$
+
+$$\mathbf{x}^{(l)} = f_{\text{pn}}^{(l)}(\mathbf{x}^{(l-1)})$$
 
 ### Critical Rationale for LayerNorm {#critical-rationale-for-layernorm .unnumbered}
 
@@ -288,7 +293,7 @@ resolve. $\text{LayerNorm}$ ensures this term remains bounded.
   (continued)
 :::
 
-# The Multi-Component, Physics-Constrained Loss Function
+# Section 3: The Multi-Component, Physics-Constrained Loss Function
 
 The training of the PINN is guided by a composite loss function that
 simultaneously optimizes for three distinct yet complementary
@@ -341,7 +346,7 @@ loss is defined using the L1 norm$^1$:
 The data fidelity loss is defined using the L1 norm on the **scaled
 positions**:
 
-$$\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} ||r'_{\text{pred}}(t'_k) - r'_{\text{true}}(t'_k)||_1$$
+$$\mathcal{L}_{\text{data}} = \frac{1}{N_{\text{data}}} \sum_{k=1}^{N_{\text{data}}} \|r'_{\text{pred}}(t'_k) - r'_{\text{true}}(t'_k)\|_1$$
 
 where:
 
@@ -356,7 +361,7 @@ where:
 
 - $N_{\text{data}}$ is the number of data points in a training batch
 
-- $|| \cdot ||_1$ denotes the L1 norm
+- $\| \cdot \|_1$ denotes the L1 norm
 
 **Batch Construction:**
 
@@ -435,7 +440,7 @@ where:
 The physics loss is then formulated as the mean squared norm of this
 residual vector, summed over all bodies and evaluated over a set of
 $N_{\text{col}}$ collocation points:
-$$\mathcal{L}_{\text{physics}} = \frac{1}{N_{\text{col}}} \sum_{k=1}^{N_{\text{col}}} \sum_{i=1}^{N} || f_i(t'_k) ||^2$$
+$$\mathcal{L}_{\text{physics}} = \frac{1}{N_{\text{col}}} \sum_{k=1}^{N_{\text{col}}} \sum_{i=1}^{N} \| f_i(t'_k) \|^2$$
 
 **Collocation Point Sampling:**
 
@@ -495,7 +500,7 @@ in a dual step as follows:
     updated via gradient ascent, which naturally increases the penalty
     when the physics residual is large.
 
-    $$\lambda_p \leftarrow \lambda_p + \mu_p \mathcal{L}_{\text{physics}}$$
+$$\lambda_p \leftarrow \lambda_p + \mu_p \mathcal{L}_{\text{physics}}$$
 
 2.  **Update the Adaptive Penalty ($\mu_p$):** The penalty coefficient
     is updated using a method inspired by the RMSprop optimizer to
@@ -503,12 +508,12 @@ in a dual step as follows:
 
     - First, update a moving average of the squared physics loss, $v_p$:
 
-      $$v_p \leftarrow \beta v_p + (1 - \beta) \mathcal{L}_{\text{physics}}^2$$
+$$v_p \leftarrow \beta v_p + (1 - \beta) \mathcal{L}_{\text{physics}}^2$$
 
     - Next, update the penalty parameter $\mu_p$. Based on the RMSprop
       analogy, the robust update rule is:
 
-      $$\mu_p \leftarrow \frac{\gamma}{\sqrt{v_p + \epsilon}}$$
+$$\mu_p \leftarrow \frac{\gamma}{\sqrt{v_p + \epsilon}}$$
 
 3.  **Gradient Handling:**\
     -- $\lambda_p$ must be treated as a non-trainable scalar updated via
@@ -550,7 +555,7 @@ The total energy of the $\mathrm{N}$-body system, its Hamiltonian
 $H_{\text{total}}$, is the sum of the total kinetic energy $(T)$ and the
 total potential energy $(V)$:
 
-$$H_{\text{total}}(r', v') = T + V = \sum_{i=1}^N \frac{1}{2} m_i ||v'_i||^2 - \sum_{i<j} \frac{m_i m_j}{||r'_i - r'_j|| + \epsilon_{\text{soft}}}$$
+$$H_{\text{total}}(r', v') = T + V = \sum_{i=1}^N \frac{1}{2} m_i \|v'_i\|^2 - \sum_{i<j} \frac{m_i m_j}{\|r'_i - r'_j\| + \epsilon_{\text{soft}}}$$
 
 This represents the total energy in the non-dimensional unit system. The
 positions ($r'$) and velocities ($v'$) are the scaled outputs from the
@@ -570,11 +575,15 @@ where:
 2.  $H_0$ is the precomputed initial energy for each trajectory (See the
     code below for the exact calculation.)
 
-3.  $L_\delta$ is the Huber loss with $\delta = 1.0$: $$L_\delta(a) =
+3.  $L_\delta$ is the Huber loss with $\delta = 1.0$.
+
+    $$
+    L_\delta(a) =
         \begin{cases}
             \frac{1}{2} a^2 & \text{for } |a| \leq \delta \\
             \delta (|a| - \frac{1}{2} \delta) & \text{for } |a| > \delta
-        \end{cases}$$
+        \end{cases}
+    $$
 
 **Initial Energy Calculation:**
 
@@ -653,7 +662,7 @@ This results in the following stage-specific values:
   used for both physics and energy loss evaluation to ensure
   computational efficiency.
 
-# Advanced Training and Optimization Strategy
+# Section 4: Advanced Training and Optimization Strategy
 
 Successfully training the network requires a sophisticated approach to
 navigate the complex, non-convex loss landscape and handle numerical
@@ -711,7 +720,7 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
 # Then, call optimizer.step()
 ```
 
-# Inference and Trajectory Generation
+# Section 5: Inference and Trajectory Generation
 
 Once the model is trained, it can be used as a high-fidelity function
 approximator to generate entire trajectories on demand.
@@ -792,8 +801,8 @@ be clearly defined.
     0.01,-0.97,0.21,0.00,0.48,-0.11,0.00,0.49,-0.10,0.00
     ...
 
-:::: small
-::: {#tab:blueprint_summary}
+# Section 6: Consolidated Implementation Blueprint Summary
+
   -------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   **Component**                                **Definitive Specification**                                                                                                                                                                                                              **Justification**
   **Unit System**                              A non-dimensional system is used where the gravitational constant $G=1$.\                                                                                                                                                                 Simplifies the governing physical equations and improves the numerical stability of the model during training.
@@ -826,10 +835,8 @@ be clearly defined.
   -------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   : Consolidated Implementation Blueprint Summary
-:::
-::::
 
-::: thebibliography
+# Section 7: Bibliography
 17 Power-enhanced ResNet for Function Approximation.pdf PIG:
 PHYSICS-INFORMED GAUSSIANS AS ADAPTIVE PARAMETRIC MESH REPRESENTATIONS -
 OpenReview, accessed June 25, 2025,
