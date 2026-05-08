@@ -749,7 +749,7 @@ network's outputs---the predicted positions---to take on any real value
 required by the physical system. The output is a 9-dimensional vector
 representing the concatenated positions of the three bodies at a given
 time $\mathrm{t}$:
-$$\mathbf{r}_\theta(\mathrm{t}) = [\mathrm{r}_1(\mathrm{t}), \mathrm{r}_2(\mathrm{t}), \mathrm{r}_3(\mathrm{t})]$$
+$$\mathrm{r}_\theta(\mathrm{t}) = [\mathrm{r}_1(\mathrm{t}), \mathrm{r}_2(\mathrm{t}), \mathrm{r}_3(\mathrm{t})]$$
 
 Crucially, the network does not predict velocities or accelerations
 directly. Instead, these kinematic quantities are derived from the
