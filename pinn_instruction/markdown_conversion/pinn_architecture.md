@@ -282,7 +282,6 @@ resolve. $\text{LayerNorm}$ ensures this term remains bounded.
   Output Activation       None (Linear)                                                                                                                                                                                                     The final layer must be linear to allow the predicted positions to take on any real value required by the physical system.
 
   : Table 1: Architectural hyperparameters of the SQR-SkipResNet-SIREN backbone
-  (continued)
 :::
 
 # 3. The Multi-Component, Physics-Constrained Loss Function
