@@ -1204,25 +1204,9 @@ folder, so every figure in the paper can be reproduced bit-for-bit.
 
 # Supplementary Figures
 
-<figure id="fig:step2_data_workflow">
+> **Figure 1 (TikZ diagram not rendered):** Workflow diagram for COM-frame verification and input construction. This figure belongs to the *end of Step 2* (Preprocessing) and is reproduced here in the Appendix for reference. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
 
-<figcaption>Workflow diagram for COM-frame verification and input
-construction. This figure belongs to the <em>end of Step 2</em>
-(Preprocessing) and is reproduced here in the Appendix for
-reference.</figcaption>
-</figure>
-
-<figure id="fig:step2to5_workflow">
-
-<figcaption>End-to-end data-processing flow from Step 2 (Preprocessing)
-through Step 5 (Stage Assignment). After Step 3 computes and stores
-invariants (<span
-class="math inline"><em>E</em>, <em>Q</em>, <em>s</em><sub>min</sub>, <em>L</em><sub>norm</sub>, <em>I</em><sub>norm</sub>, <em>τ</em><sub><em>L</em></sub></span>),
-Steps 4 and 5 run in parallel, both using these stored invariants. This
-complements Figure <a href="#fig:step2_data_workflow"
-data-reference-type="ref"
-data-reference="fig:step2_data_workflow">1</a>.</figcaption>
-</figure>
+> **Figure 2 (TikZ diagram not rendered):** End-to-end data-processing flow from Step 2 (Preprocessing) through Step 5 (Stage Assignment). After Step 3 computes and stores invariants ($E, Q, s_{\min}, L_{\mathrm{norm}}, I_{\mathrm{norm}}, \tau_L$), Steps 4 and 5 run in parallel, both using these stored invariants. This complements Figure 1 above. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
 
 # Source Issues / Notes for Future Reconciliation
 
