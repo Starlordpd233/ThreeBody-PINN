@@ -448,7 +448,7 @@ available for additional heuristics; shape invariants ($I_1, I_2, I_3$)
 are computed for input vector universality.
 
 1.  **Total energy $E$, virial ratio $Q$, and minimal separation
-    $s_{\min}$.** []{#item:eqs label="item:eqs"} $$\begin{aligned}
+    $s_{\min}$.** $$\begin{aligned}
         T &= \tfrac12 \sum_{i=1}^{3} m_i \,\lVert \mathbf v'_i \rVert^2, \\
         V &= - \sum_{1\le i<j\le 3} \frac{m_i m_j}{\lVert \mathbf r'_i - \mathbf r'_j \rVert + \varepsilon}, \\
         E &= T + V, \qquad
@@ -460,8 +460,7 @@ are computed for input vector universality.
     geometric quantity $s_{\min}$ is computed from true pairwise
     separations (no softening).
 
-2.  **Normalized angular momentum $L_{\mathrm{norm}}$.** []{#item:lnorm
-    label="item:lnorm"} $$\begin{aligned}
+2.  **Normalized angular momentum $L_{\mathrm{norm}}$.** $$\begin{aligned}
         \mathbf L &= \sum_{i=1}^3 m_i \,(\mathbf r'_i \times \mathbf v'_i), \qquad
         L = \lVert \mathbf L \rVert, \\
         r_{\mathrm{char}} &= \frac{1}{3} \sum_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert, \qquad
@@ -485,8 +484,7 @@ are computed for input vector universality.
         return L / (L_max + eps)
     ```
 
-3.  **Normalized moment of inertia $I_{\mathrm{norm}}$.** []{#item:inorm
-    label="item:inorm"} Let $I(\mathbf r')$ be the inertia tensor about
+3.  **Normalized moment of inertia $I_{\mathrm{norm}}$.** Let $I(\mathbf r')$ be the inertia tensor about
     COM:
     $$\mathbf I \;=\; \sum_{i=1}^{3} m_i \Big( \lVert \mathbf r'_i \rVert^2 \,\mathbf I_{3\times 3}
                                             - \mathbf r'_i (\mathbf r'_i)^{\!\top} \Big).$$
@@ -539,7 +537,7 @@ are computed for input vector universality.
     \end{aligned}$$
 
 5.  **Lyapunov time $\tau_L$ via a Rosenstein-style estimator.**
-    []{#item:lyap label="item:lyap"} We estimate the largest Lyapunov
+    We estimate the largest Lyapunov
     exponent directly from the BRUTUS trajectory positions using a
     robust method inspired by Rosenstein et al. and the implementation
     in 'ChaosTools.jl'. This approach is applicable to both hierarchical
