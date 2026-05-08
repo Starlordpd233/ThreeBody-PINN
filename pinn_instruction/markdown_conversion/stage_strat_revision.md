@@ -1,5 +1,25 @@
 # A Data-Driven Stage Assignment Framework for Curriculum Transfer Learning in N-Body Dynamics
 
+*An Award-Winning Writer*
+
+## Contents
+
+- [Part I: Foundational Principles of Data-Driven Curriculum Stratification for Physical Systems](#foundational-principles-of-data-driven-curriculum-stratification-for-physical-systems)
+  - [The Rationale for Adaptive Curricula in Physics Simulations](#the-rationale-for-adaptive-curricula-in-physics-simulations)
+  - [A Lexicon of Difficulty Metrics for the Three-Body Problem](#a-lexicon-of-difficulty-metrics-for-the-three-body-problem)
+  - [Core Techniques for Data-Driven Stratification](#core-techniques-for-data-driven-stratification)
+- [Part II: A Revised Algorithmic Workflow for Stage Stratification](#a-revised-algorithmic-workflow-for-stage-stratification)
+  - [Phase I: Invariant Computation and Feature Engineering](#phase-i-invariant-computation-and-feature-engineering)
+  - [Phase II: Exploratory Data Analysis (EDA) and Landscape Mapping](#phase-ii-exploratory-data-analysis-eda-and-landscape-mapping)
+  - [Phase III: Deriving Adaptive Stage Criteria - A Hybrid Strategy](#phase-iii-deriving-adaptive-stage-criteria---a-hybrid-strategy)
+  - [Phase IV: Final Stage Assignment and Population Balancing](#phase-iv-final-stage-assignment-and-population-balancing)
+- [Part III: Implementation and Validation Protocol](#implementation-and-validation-protocol)
+  - [Reference Implementation in Python](#reference-implementation-in-python)
+  - [Advanced Architectural Considerations and Refinements](#advanced-architectural-considerations-and-refinements)
+  - [A Protocol for Curriculum Validation](#a-protocol-for-curriculum-validation)
+- [Part IV: Conclusions and Recommendations](#conclusions-and-recommendations)
+- [References](#references)
+
 ## Abstract
 
 This report presents a comprehensive, revised workflow for a data-driven curriculum stratification framework tailored to a Physics-Informed Neural Network (PINN) project for the three-body problem. The proposed methodology moves beyond static, heuristic-based criteria towards an adaptive system that derives its structure from the empirical properties of the simulation dataset itself. This approach, grounded in machine learning best practices, combines dimensionality reduction (PCA), unsupervised clustering (K-Means/GMM), and quantile-based binning to create a robust, interpretable, and effective curriculum. The report details a multi-phase algorithmic workflow, provides reference implementations, and outlines a protocol for empirical validation, aiming to improve training stability and final model accuracy for complex, chaotic dynamical systems.
@@ -88,11 +108,11 @@ This technique is a well-established best practice in curriculum learning for re
 
 This section details a multi-phase, algorithmic workflow for implementing the data-driven curriculum. The process is designed to be systematic and reproducible, transforming the raw simulation outputs into a final, robust stage assignment for every trajectory in the dataset. The workflow is divided into four phases: (I) Invariant Computation and Feature Engineering, (II) Exploratory Data Analysis, (III) Derivation of Adaptive Stage Criteria, and (IV) Final Stage Assignment and Balancing.
 
-### Phase I: Invariant Computation and Feature Engineering
+## Phase I: Invariant Computation and Feature Engineering
 
 The foundation of the data-driven curriculum is a comprehensive and accurate feature set. This phase focuses on processing the raw simulation data to compute the physical invariants discussed in Part 1 and correcting for any known sampling artifacts.
 
-#### Pre-computation and Data Loading
+### Pre-computation and Data Loading
 
 This initial step leverages the project's existing data processing pipeline. It involves executing the established Python scripts to perform the following actions for every simulation in the dataset:
 
@@ -104,11 +124,11 @@ This initial step leverages the project's existing data processing pipeline. It 
 
 The output of this step is a clean, standardized set of initial conditions (masses, positions, velocities) for every simulation.
 
-#### Invariant Calculation
+### Invariant Calculation
 
 For each standardized initial condition, a dedicated function should compute the full suite of physical invariants defined in Section 1.2. This includes: Total Mechanical Energy ($E$), Raw Virial Ratio ($Q_{\text{raw}}$), Normalized Angular Momentum ($L_{\text{norm}}$), Minimum Initial Separation ($s_{\text{min}}$), Shape Invariants ($I_1, I_2, I_3$), and Lyapunov Time ($\tau_L$), estimated from the corresponding Brutus trajectory data using the Rosenstein-style estimator detailed in the project documentation.[5]
 
-#### Correcting for Sampling Artifacts: The Normalized Virial Ratio
+### Correcting for Sampling Artifacts: The Normalized Virial Ratio
 
 A critical issue identified in the project is the distortion of the virial ratio for quasi-random ICs due to the Sobol sampling scale factor, $s$.[5] To address this, a normalized virial ratio, $Q_{\text{norm}}$, must be computed to place all simulations on a comparable footing.
 
@@ -116,7 +136,7 @@ The transformation is based on the physical scaling of the kinetic and potential
 
 **Contingency Plan:** If the scale factor $s$ is not explicitly stored with each IC, it must be recorded during the IC generation or estimated post-hoc. As suggested in the project analysis, one method is to estimate it by comparing the median momentum of the scaled sample to a baseline unscaled sample.[5] Without this correction, the virial ratio is not a reliable metric for the quasi-random set and should be excluded from the analysis for those simulations.
 
-#### Assembling the Invariant Feature DataFrame
+### Assembling the Invariant Feature DataFrame
 
 The final step of this phase is to consolidate all computed information into a single, master `pandas.DataFrame`. This DataFrame will be the central data structure for all subsequent analysis and serves as a persistent, intermediate representation of the dataset's physical properties.
 
@@ -129,19 +149,21 @@ The final step of this phase is to consolidate all computed information into a s
 
 This DataFrame provides a complete, queryable summary of the entire dataset, enabling the powerful exploratory and algorithmic techniques described in the following phases.
 
-### Phase II: Exploratory Data Analysis (EDA) and Landscape Mapping
+## Phase II: Exploratory Data Analysis (EDA) and Landscape Mapping
 
-#### Stratified Distribution Analysis
+Before defining the final curriculum stages, it is essential to perform a thorough exploratory data analysis (EDA). The goal of this phase is to build a strong intuition for the structure of the data, validate the physical assumptions, and identify the key relationships that will guide the stratification strategy. This process transforms the numerical data in the invariant DataFrame into actionable visual insights.
+
+### Stratified Distribution Analysis
 
 The first step is to understand the distribution of each key difficulty metric. This is achieved by generating histograms and, for a smoother representation, Kernel Density Estimate (KDE) plots for the primary invariants: $E$, $Q_{\text{norm}}$, $L_{\text{norm}}$, and $\tau_L$.
 
 Crucially, these visualizations must be **stratified by `ic_type`**. Plotting the distributions for 'hierarchical' and 'quasi-random' systems separately (or overlaid with different colors) is expected to reveal fundamental differences between the two datasets.[5]
 
-#### Correlation Analysis
+### Correlation Analysis
 
 Next, the relationships *between* the different difficulty metrics must be investigated. A Pearson correlation matrix, visualized as a heatmap, is the standard tool for this analysis. Again, this should be performed separately for the 'hierarchical' and 'quasi-random' subsets.
 
-#### Low-Dimensional Visualization
+### Low-Dimensional Visualization
 
 To gain a more holistic view of the difficulty landscape, it is useful to visualize the data in a low-dimensional space.
 
@@ -151,27 +173,27 @@ To gain a more holistic view of the difficulty landscape, it is useful to visual
 
 This EDA phase is not merely a formality; it is a crucial step that ensures the subsequent algorithmic choices are grounded in the empirical reality of the data, not just in theoretical assumptions.
 
-### Phase III: Deriving Adaptive Stage Criteria - A Hybrid Strategy
+## Phase III: Deriving Adaptive Stage Criteria - A Hybrid Strategy
 
 With a deep understanding of the data's structure from the EDA phase, the next step is to derive the specific rules for stage assignment. The guiding principle of the revised framework is to use a hybrid strategy tailored to the distinct physical nature of the two sub-datasets.
 
 
-  **Aspect**                **Original Fixed-Threshold Framework**                                                                  **Proposed Data-Driven Framework**
-  ------------------------- ------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------------
-  **Thresholds**            Static, hard-coded values based on theory (e.g., $Q<1.3$, $\tau_L>5$).[5]                             Adaptive, derived from data statistics (e.g., quantiles, cluster centroids).[5]
-  **Stage Population**      Prone to severe imbalance or empty stages if data distribution mismatches theory.[5]                  Balanced by design through quantile binning and population checks, ensuring smooth pacing.[5]
-  **Robustness**            Brittle; fails when data generation artifacts (e.g., scaling) violate assumptions.[5]                 Robust; automatically adapts to the dataset's empirical distribution, including skews and artifacts.[5]
-  **Difficulty Ordering**   Assumes a simple, monotonic difficulty gradient that may not hold in multi-dimensional feature space.   Discovers natural difficulty gradients and qualitatively distinct regimes via PCA and clustering.[5, 13]
-  **Interpretability**      High, as criteria are based on physical theory.                                                         High, as data-driven clusters and quantiles are interpreted and labeled by their physical properties (e.g., mean $\tau_L$).
+| Aspect | Original Fixed-Threshold Framework | Proposed Data-Driven Framework |
+|--------|-----------------------------------|-------------------------------|
+| **Thresholds** | Static, hard-coded values based on theory (e.g., $Q<1.3$, $\tau_L>5$).[5] | Adaptive, derived from data statistics (e.g., quantiles, cluster centroids).[5] |
+| **Stage Population** | Prone to severe imbalance or empty stages if data distribution mismatches theory.[5] | Balanced by design through quantile binning and population checks, ensuring smooth pacing.[5] |
+| **Robustness** | Brittle; fails when data generation artifacts (e.g., scaling) violate assumptions.[5] | Robust; automatically adapts to the dataset's empirical distribution, including skews and artifacts.[5] |
+| **Difficulty Ordering** | Assumes a simple, monotonic difficulty gradient that may not hold in multi-dimensional feature space. | Discovers natural difficulty gradients and qualitatively distinct regimes via PCA and clustering.[5, 13] |
+| **Interpretability** | High, as criteria are based on physical theory. | High, as data-driven clusters and quantiles are interpreted and labeled by their physical properties (e.g., mean $\tau_L$). |
 
-  : Comparison of Original vs. Proposed Data-Driven Curriculum Framework
+*Table 3: Comparison of Original vs. Proposed Data-Driven Curriculum Framework*
 
 
-#### Stratifying the Stable Subset (Hierarchical ICs): Stages 0 and 1
+### Stratifying the Stable Subset (Hierarchical ICs): Stages 0 and 1
 
 The 'hierarchical' dataset consists entirely of dynamically stable systems. The goal here is not to separate stable from chaotic, but to rank the systems by their *degree* of stability and regularity. A simple, physically interpretable approach using quantile-based thresholds is most appropriate.
 
-#### Stratifying the Complex Subset (Quasi-Random ICs): Stages 2-6
+### Stratifying the Complex Subset (Quasi-Random ICs): Stages 2-6
 
 The 'quasi-random' dataset is far more heterogeneous. A more powerful, multi-step strategy is required to properly parse this complexity. This involves a pipeline of feature preparation, dimensionality reduction with PCA, and regime discovery with unsupervised clustering. The algorithm involves:
 
@@ -183,15 +205,15 @@ The 'quasi-random' dataset is far more heterogeneous. A more powerful, multi-ste
 
 4.  **Ordering Clusters by a Chaos Proxy:** Sort the discovered clusters by their median $\tau_L$ in descending order. The cluster with the highest median $\tau_L$ is the least chaotic and will form the earliest stage in this block.
 
-### Phase IV: Final Stage Assignment and Population Balancing
+## Phase IV: Final Stage Assignment and Population Balancing
 
 The final phase translates the derived criteria into a definitive assignment of a stage label to every simulation.
 
-#### The Definitive Assignment Algorithm
+### The Definitive Assignment Algorithm
 
 The final stage assignment rules are summarized in Table 4.
 
-#### Population Control and Stage Merging
+### Population Control and Stage Merging
 
 After the initial assignment, it is imperative to check the population of each stage. If any stage falls below a minimum population threshold (e.g., 5% of the total dataset), it should be merged with its most similar adjacent stage to ensure the curriculum has a sensible "pacing".
 
@@ -214,7 +236,7 @@ After the initial assignment, it is imperative to check the population of each s
 
 This part provides the practical tools and procedures required to execute the proposed workflow and validate its effectiveness.
 
-### Reference Implementation in Python
+## Reference Implementation in Python
 
 The following Python code provides a reference implementation for the core functions of the stratification workflow.
 
@@ -333,11 +355,11 @@ def assign_stages(invariant_df: pd.DataFrame, k_clusters: int = 5, min_stage_pop
     return df
 ```
 
-### Advanced Architectural Considerations and Refinements
+## Advanced Architectural Considerations and Refinements
 
 While the proposed workflow is robust, several refinements can enhance its performance and interpretability, such as using Gaussian Mixture Models (GMM) for more flexible clustering, performing feature selection to reduce noise, and using shape invariants for secondary analysis to improve physical interpretation.
 
-### A Protocol for Curriculum Validation
+## A Protocol for Curriculum Validation
 
 The development of the curriculum does not end with the assignment of stage labels. Its effectiveness must be empirically validated.[5] The ultimate goal is to ensure a smooth difficulty gradient for the PINN, leading to stable and efficient training.
 
@@ -369,6 +391,7 @@ The analysis presented in this report confirms that the initial fixed-threshold 
 
 By implementing this comprehensive framework, the CTL-PINN project can overcome the critical bottleneck of stage assignment, ensuring a smoother learning progression and ultimately providing a much stronger foundation for training a PINN to accurately model the complex and chaotic dynamics of the three-body problem.
 
+## References
 
 1. Curriculum learning for data-driven modeling of dynamical systems, accessed August 1, 2025, <https://arxiv.org/pdf/2112.08458>
 2. [2411.00973] Does the Definition of Difficulty Matter? Scoring Functions and their Role for Curriculum Learning - arXiv, accessed August 1, 2025, <https://arxiv.org/abs/2411.00973>

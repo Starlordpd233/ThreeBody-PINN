@@ -1,6 +1,6 @@
 # A Technical Review and Resolution Blueprint for the CTL-PINN Framework for the Three-Body Problem
 
-# Section 1: Executive Summary
+# Executive Summary
 This report presents a definitive technical review and resolution of 19 critical inconsistencies, logical gaps, and implementation ambiguities identified across two foundational documents: `PINN_architecture_plan.tex` and `CTL-instruction-final.tex`. These documents collectively outline a sophisticated framework for training a Physics-Informed Neural Network (PINN) on the chaotic three-body problem using a Curriculum-Transfer Learning (CTL) methodology. The identified issues, if left unaddressed, would preclude a successful, robust, and reproducible implementation of the proposed system.
 
 The resolutions provided herein are synthesized into a single, coherent, and actionable blueprint. The analysis is structured around five core themes, each representing a critical stage of the implementation workflow. The key resolutions are summarized as follows:
@@ -17,11 +17,11 @@ The resolutions provided herein are synthesized into a single, coherent, and act
 
 The solutions presented are rigorously grounded in established principles from celestial mechanics, numerical analysis, and deep learning. The resulting blueprint ensures that the final CTL-PINN framework is not only physically sound and mathematically consistent but also computationally robust and practically implementable.
 
-# Section 2: Foundational Physical Metrics for Curriculum Design
+# 1 Foundational Physical Metrics for Curriculum Design
 
 The efficacy of the Curriculum-Transfer Learning (CTL) framework is predicated on the ability to quantitatively stratify simulation data by its intrinsic physical difficulty. Without robust and computable metrics to distinguish stable, quasi-periodic systems from highly chaotic ones, the concept of a \"curriculum\" remains ill-defined. This section resolves critical omissions in the source documents by providing definitive, physically-grounded formulas and scalable implementation plans for the key metrics required for stage assignment: Lyapunov time ($\tau_L$), maximum angular momentum ($L_{\max}$), and global normalization scales.
 
-## Defining and Implementing Lyapunov Time ($\tau_L$) and Maximum Angular Momentum ($L/L_{\max}$) Computations
+## 1.1 Defining and Implementing Lyapunov Time ($\tau_L$) and Maximum Angular Momentum ($L/L_{\max}$) Computations
 
 **Issues Resolved: 1, 16**
 
@@ -80,7 +80,7 @@ $$
 
     This numerical procedure provides a pragmatic and reproducible method to estimate $\tau_L$ for each trajectory, enabling its assignment to the correct curriculum stage. A reference implementation is provided in the appendix.
 
-## Establishing a Robust Pipeline for Global Scale Computation
+## 1.2 Establishing a Robust Pipeline for Global Scale Computation
 
 **Issue Resolved: 17**
 
@@ -129,11 +129,11 @@ $$
 
 This parallelized approach transforms a lengthy serial task into a highly efficient one. The implementation will be further enhanced with robust error handling to gracefully manage potential issues like corrupted or missing input files, and will include a progress bar (e.g., using the `tqdm` library) to provide real-time feedback during execution. This ensures the data preprocessing pipeline is not only correct but also practical for large-scale scientific datasets.
 
-# Section 3: Unifying Data Scaling and Normalization Protocols
+# 2 Unifying Data Scaling and Normalization Protocols
 
 A prerequisite for stable and effective neural network training is the transformation of raw, physical data into a consistent, dimensionless, and well-behaved numerical format. The source documents contain several critical ambiguities and contradictions in this domain. This section resolves these issues by establishing a single, definitive standard for all spatiotemporal scaling, numerical softening, and input vector normalization, thereby creating a reliable data contract between the preprocessing and training stages of the workflow.
 
-## Standardization of Spatiotemporal Normalization and Unit Conversion
+## 2.1 Standardization of Spatiotemporal Normalization and Unit Conversion
 
 **Issues Resolved: 3, 9**
 
@@ -172,7 +172,7 @@ $$
 
 A set of utility functions, `physical_to_scaled` and `scaled_to_physical`, encapsulating these transformations should be implemented and used consistently throughout the codebase to prevent errors. This unified scheme resolves all spatiotemporal ambiguities and establishes a clear, consistent data representation that is a prerequisite for all subsequent steps.
 
-## Consistent Application of Numerical Softening Parameters
+## 2.2 Consistent Application of Numerical Softening Parameters
 
 **Issue Resolved: 15**
 
@@ -190,7 +190,7 @@ The practice of force softening in N-body simulations is a well-established nume
 
 In the context of this project, where positions are scaled to be of order unity, a value of $\epsilon = 10^{-10}$ is numerically indistinguishable from zero for standard double-precision floating-point arithmetic. It would provide virtually no protection against the divergences it is intended to prevent. The value $\epsilon_{\text{soft}} = 10^{-5}$, as specified in the more detailed architectural document, represents a much more physically and numerically sensible choice. It is small enough to have a negligible effect on the dynamics when bodies are well-separated but large enough to cap the forces and prevent floating-point overflow during the critical, high-gradient events of close encounters. Standardizing on this value resolves the dangerous inconsistency and ensures a more stable training process.
 
-## Finalized Normalization Schema for the Input Vector
+## 2.3 Finalized Normalization Schema for the Input Vector
 
 **Issue Resolved: 19**
 
@@ -227,11 +227,11 @@ The following table provides the single source of truth for constructing the fin
 
 This table serves as an unambiguous API contract between the data preprocessing and model training phases. It ensures that every input feature is correctly calculated and scaled, eliminating a common and pernicious source of bugs in complex machine learning pipelines.
 
-# Section 4: Architectural and Initialization Refinements for the SIREN Backbone
+# 3 Architectural and Initialization Refinements for the SIREN Backbone
 
 The performance of a neural network, particularly one with periodic activations like SIREN, is critically dependent on its initialization. The frequency parameter, $\omega_0$, directly controls the model's ability to represent fine details in the solution. This section resolves a key ambiguity in how this parameter is managed, proposing a novel scheduling strategy that is fully integrated with the curriculum learning framework.
 
-## A Curriculum-Integrated Schedule for SIREN Frequency ($\omega_0$)
+## 3.1 A Curriculum-Integrated Schedule for SIREN Frequency ($\omega_0$)
 
 **Issues Resolved: 4, 14**
 
@@ -259,11 +259,11 @@ The definitive schedule is as follows:
 
 At the beginning of each new curriculum stage, a targeted re-initialization will occur. While the weights of all hidden layers and the output layer are transferred from the converged model of the previous stage, the weights of the first SIREN layer will be re-initialized using the uniform distribution $U[-1/\sqrt{n_{\text{in}}}, 1/\sqrt{n_{\text{in}}}]$ and the new `first_omega_0` value specified by the schedule above. This procedure allows the model to adapt its \"input lens\" to the new data regime---adjusting its frequency sensitivity---without inducing catastrophic forgetting in the deeper layers of the network. This approach resolves the implementation ambiguity while preserving the original intent of adapting the network's frequency bias to the complexity of the learning task.
 
-# Section 5: A Rigorous Framework for the Multi-Component Loss Function
+# 4 A Rigorous Framework for the Multi-Component Loss Function
 
 The composite loss function is the heart of the PINN, guiding the network to solutions that are both accurate to data and consistent with physical law. This section provides definitive specifications for its implementation, resolving ambiguities in the use of scaled units, the state management of ALM parameters, the practical application of automatic differentiation, and the selection of a key hyperparameter in the energy regularization term.
 
-## Clarifying the Use of Scaled Quantities in All Loss Components
+## 4.1 Clarifying the Use of Scaled Quantities in All Loss Components
 
 **Issue Resolved: 18**
 
@@ -283,7 +283,7 @@ It is established as a definitive and non-negotiable requirement that all loss c
 
 Enforcing this strict dimensional consistency is paramount. It ensures that the magnitudes of the different loss components are physically comparable, allowing the Augmented Lagrangian Method (ALM) and the optimizer to balance their respective gradients effectively.
 
-## State Management and Integration of ALM Parameters
+## 4.2 State Management and Integration of ALM Parameters
 
 **Issue Resolved: 5**
 
@@ -313,7 +313,7 @@ A clear and robust implementation pattern for managing the ALM state is specifie
 
 3.  **Persistence Across Curriculum Stages:** The state of the ALM is tuned to the specific statistical properties of the physics loss on a given dataset. When transitioning to a new curriculum stage, the data distribution and the typical magnitude of the physics residual change significantly. Therefore, to allow the ALM to adapt correctly to the new data regime, its state must be reset. It is mandated that $\lambda_p$, $\mu_p$, and $v_p$ be reset to their initial values at the beginning of each new curriculum stage. This prevents the carry-over of outdated statistics from simpler stages and allows the adaptive mechanism to recalibrate effectively.
 
-## Reference Implementation for Automatic Differentiation (AD) of Kinematics
+## 4.3 Reference Implementation for Automatic Differentiation (AD) of Kinematics
 
 **Issue Resolved: 12**
 
@@ -325,54 +325,56 @@ A core principle of the proposed PINN is that the network predicts only position
 
 To eliminate this ambiguity, a definitive reference implementation using the PyTorch framework is provided. The key to computing second-order derivatives is the correct use of the `create_graph=True` argument in the first `torch.autograd.grad` call. This tells PyTorch to retain the computational graph of the first derivative, making it possible to then differentiate a second time.
 
-    import torch
+```python
+import torch
 
-    def compute_kinematics(network_output_r, time_input_t):
-        """
-        Computes velocities and accelerations from position outputs via AD.
+def compute_kinematics(network_output_r, time_input_t):
+    """
+    Computes velocities and accelerations from position outputs via AD.
 
-        Args:
-            network_output_r (torch.Tensor): The network's position predictions.
-                                             Shape: (N_points, 9).
-            time_input_t (torch.Tensor): The time inputs for which predictions were made.
-                                         Shape: (N_points, 1).
+    Args:
+        network_output_r (torch.Tensor): The network's position predictions.
+                                         Shape: (N_points, 9).
+        time_input_t (torch.Tensor): The time inputs for which predictions were made.
+                                     Shape: (N_points, 1).
 
-        Returns:
-            tuple:
-                - velocities_v (torch.Tensor): Shape (N_points, 9).
-                - accelerations_a (torch.Tensor): Shape (N_points, 9).
-        """
-        # Ensure time_input_t requires gradients for differentiation
-        if not time_input_t.requires_grad:
-            time_input_t.requires_grad_(True)
+    Returns:
+        tuple:
+            - velocities_v (torch.Tensor): Shape (N_points, 9).
+            - accelerations_a (torch.Tensor): Shape (N_points, 9).
+    """
+    # Ensure time_input_t requires gradients for differentiation
+    if not time_input_t.requires_grad:
+        time_input_t.requires_grad_(True)
 
-        # Compute first derivative (velocities)
-        # The grad_outputs tensor must be the same size as the output of the function
-        # we are differentiating (network_output_r).
-        grad_outputs_v = torch.ones_like(network_output_r)
+    # Compute first derivative (velocities)
+    # The grad_outputs tensor must be the same size as the output of the function
+    # we are differentiating (network_output_r).
+    grad_outputs_v = torch.ones_like(network_output_r)
 
-        velocities_v, = torch.autograd.grad(
-            outputs=network_output_r,
-            inputs=time_input_t,
-            grad_outputs=grad_outputs_v,
-            create_graph=True  # CRITICAL: Retain graph for second derivative
-        )
+    velocities_v, = torch.autograd.grad(
+        outputs=network_output_r,
+        inputs=time_input_t,
+        grad_outputs=grad_outputs_v,
+        create_graph=True  # CRITICAL: Retain graph for second derivative
+    )
 
-        # Compute second derivative (accelerations)
-        grad_outputs_a = torch.ones_like(velocities_v)
+    # Compute second derivative (accelerations)
+    grad_outputs_a = torch.ones_like(velocities_v)
 
-        accelerations_a, = torch.autograd.grad(
-            outputs=velocities_v,
-            inputs=time_input_t,
-            grad_outputs=grad_outputs_a,
-            create_graph=False  # Not needed for second derivative
-        )
+    accelerations_a, = torch.autograd.grad(
+        outputs=velocities_v,
+        inputs=time_input_t,
+        grad_outputs=grad_outputs_a,
+        create_graph=False  # Not needed for second derivative
+    )
 
-        return velocities_v, accelerations_a
+    return velocities_v, accelerations_a
+```
 
 This code snippet serves as a direct, correct, and reusable implementation for deriving the kinematic quantities required by the physics and energy loss terms.
 
-## Selecting an Appropriate Huber Loss Delta ($\delta$) for Normalized Energy
+## 4.4 Selecting an Appropriate Huber Loss Delta ($\delta$) for Normalized Energy
 
 **Issue Resolved: 13**
 
@@ -388,11 +390,11 @@ The delta parameter of the Huber loss function must be chosen relative to the ex
 
 The primary goal of the energy loss term is to penalize deviations from the initial energy $H_0$, keeping the predicted energy on the correct constant-energy manifold. A value of $\delta = 0.1$ establishes a meaningful transition point. For normalized energy deviations less than 10% ($|\Delta H_k| \leq 0.1$), the loss will be quadratic, providing a strong incentive for the model to reduce small errors precisely. For larger deviations ($|\Delta H_k| > 0.1$), which may occur during transient chaotic events or early in training, the loss becomes linear. This prevents single outlier points from generating excessively large gradients that could destabilize the optimizer. This choice of $\delta$ restores the intended robustness of the Huber loss function, leading to a more stable and effective regularization of the system's global energy conservation.
 
-# Section 6: A Coherent Training and Data Sampling Strategy
+# 5 A Coherent Training and Data Sampling Strategy
 
 The final set of resolutions addresses the core training loop, reconciling conflicting instructions on how data is sampled and batched, how advanced techniques are integrated, and how to handle the multi-resolution nature of the dataset. This section establishes a single, unified strategy that is computationally efficient, physically motivated, and fully integrated with the curriculum learning paradigm.
 
-## Unifying Data and Collocation Point Sampling
+## 5.1 Unifying Data and Collocation Point Sampling
 
 **Issues Resolved: 2, 10, 11**
 
@@ -428,7 +430,7 @@ The definitive training step will involve a single, combined forward pass for co
 
 This approach resolves the ambiguity by clearly defining the roles of each point set. It is computationally efficient and allows the model to be anchored to real data while enforcing physical laws across the entire continuous solution domain, which is the core philosophy of PINNs.
 
-## Finalizing the Curriculum-Aware Batch Construction Protocol
+## 5.2 Finalizing the Curriculum-Aware Batch Construction Protocol
 
 **Issue Resolved: 6**
 
@@ -454,7 +456,7 @@ The detailed batch construction algorithm from `CTL-instruction-final.tex` is fo
 
 This comprehensive batching strategy is a cornerstone of the CTL framework, ensuring stable learning, efficient use of data, and robust progression through the curriculum.
 
-## Strategy for Integrating Mixed-Resolution Trajectory Data
+## 5.3 Strategy for Integrating Mixed-Resolution Trajectory Data
 
 **Issue Resolved: 7**
 
@@ -472,7 +474,7 @@ The unified sampling strategy established in Section 5.1 provides an elegant and
 
 Therefore, no special handling, such as up-sampling low-resolution data or down-sampling high-resolution data, is necessary. The proposed sampling framework inherently and gracefully accommodates the mixed-resolution dataset.
 
-## Definitive Implementation of Curriculum-Aware Gradient Clipping
+## 5.4 Definitive Implementation of Curriculum-Aware Gradient Clipping
 
 **Issue Resolved: 8**
 
@@ -496,7 +498,7 @@ A definitive implementation is created by synthesizing the strengths of both doc
 
 This synthesized approach ensures that the training process is both stable and efficient. It allows for rapid learning on simpler data while robustly protecting the optimizer from the instabilities inherent in the more challenging, chaotic stages of the curriculum. It is also explicitly noted that gradient clipping is applied only during the Adam optimization phase and is disabled during L-BFGS refinement, as the line-search mechanism of L-BFGS provides its own form of step control.
 
-# Section 7: Conclusion and Consolidated Recommendations
+# Conclusion and Consolidated Recommendations
 This report has systematically analyzed and resolved 19 critical issues spanning the entire workflow for training a Curriculum-Transfer Learning Physics-Informed Neural Network (CTL-PINN) for the three-body problem. By establishing definitive, physically-grounded, and computationally robust solutions, this document transforms a set of inconsistent and incomplete instructions into a single, coherent, and actionable implementation blueprint.
 
 The key resolutions have unified the project's approach to foundational physics, data normalization, network architecture, loss function design, and training strategy. The proposed framework now rests on a solid foundation, with clear specifications for computing curriculum metrics like Lyapunov time, a consistent $G=1$ dimensionless unit system, a curriculum-aware schedule for the SIREN $\omega_0$ parameter, a rigorous state management protocol for the ALM, and an efficient, unified data sampling strategy that gracefully handles mixed-resolution data.

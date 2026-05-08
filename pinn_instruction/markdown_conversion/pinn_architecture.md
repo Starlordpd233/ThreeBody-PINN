@@ -43,7 +43,7 @@ While computationally efficient, ReLU produces a piecewise linear
 output, meaning its first derivative is piecewise constant and its
 second derivative is a series of Dirac delta functions (i.e., zero
 almost everywhere). This mathematical property makes it impossible to
-accurately represent the smooth, continuously varying gravitational
+represent the smooth, continuously varying gravitational
 forces that govern celestial motion.$^1$
 
 To overcome these fundamental limitations, a more principled approach is
@@ -198,10 +198,6 @@ layers.
       in chaotic dynamics, reducing numerical instabilities and
       promoting stable training.
 
-    [**\[Need more detail on this dynamic scheduling for omega_0. Is it
-    based on stages? How do we dynamically adjust it? Based on epochs?
-    Need more details on this.\]**]{style="color: red"}
-
 2.  **Subsequent Hidden Layers (for Trainability):** For all other
     hidden layers, the weights $\mathrm{W}$ are initialized from a
     different uniform distribution,
@@ -216,10 +212,6 @@ layers.
     uncontrollably with depth. This careful, layer-dependent
     initialization is what makes deep SIRENs trainable by ensuring
     stable gradient flow.$^1$
-
-    [**\[Need confirmation on this hidden layer's detail. Need to make
-    sure the formula is correct according to the original SIREN
-    paper?\]**]{style="color: red"}
 
 ## 2.3 The Power-Enhanced SkipResNet (SQR-SkipResNet) Formulation
 
@@ -390,8 +382,6 @@ N_data = batch_size * points_per_trajectory  # e.g., 256 * 32 = 8192
 The time points $t_k$ are sampled from the discrete BRUTUS trajectory
 snapshots available in the training dataset, representing specific
 moments where high-precision numerical integration data is available.
-[**\[Comment: This above batch construction is not consistent with the
-CTL instruction plan. Look into this.\]**]{style="color: red"}
 
 **Key ALM Integration Note:**\
 The data term is no longer weighted by a fixed parameter. Instead, its
