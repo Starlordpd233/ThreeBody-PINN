@@ -1,3 +1,9 @@
+# A Data-Driven Stage Assignment Framework for Curriculum Transfer Learning in N-Body Dynamics
+
+## Abstract
+
+This report presents a comprehensive, revised workflow for a data-driven curriculum stratification framework tailored to a Physics-Informed Neural Network (PINN) project for the three-body problem. The proposed methodology moves beyond static, heuristic-based criteria towards an adaptive system that derives its structure from the empirical properties of the simulation dataset itself. This approach, grounded in machine learning best practices, combines dimensionality reduction (PCA), unsupervised clustering (K-Means/GMM), and quantile-based binning to create a robust, interpretable, and effective curriculum. The report details a multi-phase algorithmic workflow, provides reference implementations, and outlines a protocol for empirical validation, aiming to improve training stability and final model accuracy for complex, chaotic dynamical systems.
+
 # Foundational Principles of Data-Driven Curriculum Stratification for Physical Systems
 
 The training of Physics-Informed Neural Networks (PINNs) on complex, chaotic dynamical systems represents a significant challenge at the intersection of scientific computing and machine learning. A key strategy for improving training stability and final model accuracy is Curriculum Learning (CL), where the model is exposed to training examples in a structured sequence, typically from "easy" to "hard".[1, 2] This report presents a comprehensive, revised workflow for a data-driven curriculum stratification framework tailored to a PINN project for the three-body problem. The proposed methodology moves beyond static, heuristic-based criteria, which have proven brittle, towards an adaptive system that derives its structure from the empirical properties of the simulation dataset itself. This approach is grounded in best practices from machine learning and is designed to be robust, interpretable, and directly implementable.
@@ -108,8 +114,6 @@ A critical issue identified in the project is the distortion of the virial ratio
 
 The transformation is based on the physical scaling of the kinetic and potential energies. Since kinetic energy $T \propto v^2$ and potential energy $V \propto 1/r$, and the sampling scales positions as $r \to sr$ and velocities as $v \to sv$, the virial ratio scales as: $$Q \propto \frac{T}{|V|} \propto \frac{(sv)^2}{1/(sr)} = s^3 \frac{v^2}{1/r}$$ Therefore, to recover a scale-invariant measure of virial equilibrium, the raw virial ratio must be divided by $s^3$. The normalized virial ratio is defined as: $$Q_{\text{norm}} = \frac{Q_{\text{raw}}}{s^3}$$ This calculation should be applied to all simulations of type 'quasi-random'. For 'hierarchical' simulations, it can be assumed that $s=1$, so $Q_{\text{norm}} = Q_{\text{raw}}$.
 
-**[I'm not sure what this s is referring to. Should we look for the exact value used in the sampling script?]**
-
 **Contingency Plan:** If the scale factor $s$ is not explicitly stored with each IC, it must be recorded during the IC generation or estimated post-hoc. As suggested in the project analysis, one method is to estimate it by comparing the median momentum of the scaled sample to a baseline unscaled sample.[5] Without this correction, the virial ratio is not a reliable metric for the quasi-random set and should be excluded from the analysis for those simulations.
 
 #### Assembling the Invariant Feature DataFrame
@@ -194,13 +198,13 @@ After the initial assignment, it is imperative to check the population of each s
 
 | Stage | Primary Data Source | Stratification Method | Specific Data-Driven Criteria | Expected Physical Characteristics |
 |---|---|---|---|---|
-| **0** | Hierarchical | Quantile Binning | $E$ in bottom quartile & $L_{	ext{norm}}$ in top quartile. | Deeply bound, near-circular, highly regular orbits. |
+| **0** | Hierarchical | Quantile Binning | $E$ in bottom quartile & $L_{\text{norm}}$ in top quartile. | Deeply bound, near-circular, highly regular orbits. |
 | **1** | Hierarchical | Remainder | All other hierarchical systems. | Stable, bound, regular orbits, but less constrained. |
-| **2** | Quasi-Random | PCA + Clustering | Members of the cluster with the highest median $	au_L$. | Most stable of the chaotic set; long-term regular motion. |
-| **3** | Quasi-Random | PCA + Clustering | Members of the cluster with the 2nd highest median $	au_L$. | Onset of chaos; mildly chaotic systems. |
-| **4** | Quasi-Random | PCA + Clustering | Members of the cluster with the 3rd highest median $	au_L$. | Moderately chaotic systems, possibly resonant. |
-| **5** | Quasi-Random | PCA + Clustering | Members of the cluster with the 4th highest median $	au_L$. | Strongly chaotic systems with short predictability. |
-| **6** | Quasi-Random | PCA + Clustering + Outlier | Most chaotic cluster (lowest median $	au_L$) + outliers. | Violent, unpredictable dynamics; ejections, unbound systems. |
+| **2** | Quasi-Random | PCA + Clustering | Members of the cluster with the highest median $\tau_L$. | Most stable of the chaotic set; long-term regular motion. |
+| **3** | Quasi-Random | PCA + Clustering | Members of the cluster with the 2nd highest median $\tau_L$. | Onset of chaos; mildly chaotic systems. |
+| **4** | Quasi-Random | PCA + Clustering | Members of the cluster with the 3rd highest median $\tau_L$. | Moderately chaotic systems, possibly resonant. |
+| **5** | Quasi-Random | PCA + Clustering | Members of the cluster with the 4th highest median $\tau_L$. | Strongly chaotic systems with short predictability. |
+| **6** | Quasi-Random | PCA + Clustering + Outlier | Most chaotic cluster (lowest median $\tau_L$) + outliers. | Violent, unpredictable dynamics; ejections, unbound systems. |
 
 *Table 4: Final Proposed Stage Definitions and Data-Driven Criteria*
 
@@ -382,10 +386,4 @@ By implementing this comprehensive framework, the CTL-PINN project can overcome 
 14. Feature Selection for Unsupervised Learning, accessed August 1, 2025, <https://www.jmlr.org/papers/volume5/dy04a/dy04a.pdf>
 15. Simulation-Based Inference with Quantile Regression - arXiv, accessed August 1, 2025, <https://arxiv.org/pdf/2401.02413>
 16. Quantile Regression Estimands and Models: Revisiting the Motherhood Wage Penalty Debate - OSF, accessed August 1, 2025, <https://osf.io/9avrp/download>
-
----
-
-## Source Issues / Notes for Future Reconciliation
-
-No source-level issues identified during Phase 14 audit. The converted body faithfully reproduces all 6 active LaTeX sections of `stage_strat_revision/` without suspected inconsistencies. The single `\authcomment{}` at `algorithmic_workflow.tex:34` renders as bold text in the markdown, which is acceptable per D-58 and does not require separate documentation.
 

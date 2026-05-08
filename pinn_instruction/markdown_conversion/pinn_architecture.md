@@ -1,7 +1,7 @@
 ---
 author:
 - Starlordpd233
-date: 2026-03-09
+date: 2026-03-21
 title: A Definitive Implementation Blueprint for a Hybrid
   SQR-SkipResNet-SIREN PINN with Hamiltonian Regularization for
   $\mathrm{N}$-Body Dynamics
@@ -9,7 +9,7 @@ title: A Definitive Implementation Blueprint for a Hybrid
 
 # A Definitive Implementation Blueprint for a Hybrid SQR-SkipResNet-SIREN PINN with Hamiltonian Regularization for $\mathrm{N}$-Body Dynamics
 
-# Section 1: Foundational Architectural Principles: A Co-Designed Approach for Chaotic Systems
+# 1. Foundational Architectural Principles: A Co-Designed Approach for Chaotic Systems
 
 The accurate and long-term simulation of $\mathrm{N}$-body gravitational
 systems, particularly the notoriously chaotic three-body problem,
@@ -112,7 +112,7 @@ activations provide the derivative fidelity required for physics
 enforcement, and the HNN-style loss term ensures the long-term stability
 essential for physical realism.
 
-# Section 2: The SQR-SkipResNet-SIREN Backbone: A Deep Dive into the Core Architecture
+# 2. The SQR-SkipResNet-SIREN Backbone: A Deep Dive into the Core Architecture
 
 This section provides the definitive, mathematically-grounded
 specifications for each component of the neural network's core
@@ -120,7 +120,7 @@ structure. Every choice is justified by its contribution to the model's
 ability to represent complex physical phenomena accurately and to be
 trained stably.
 
-## The Sinusoidal Activation (SIREN): The Key to Derivative Fidelity
+## 2.1 The Sinusoidal Activation (SIREN): The Key to Derivative Fidelity
 
 The foundational element of the network's layers is the Sinusoidal
 Representation Network (SIREN) activation function. This choice is not a
@@ -156,7 +156,7 @@ inherent in chaotic trajectories and their derivatives.$^2$ By using
 SIREN, the network is inherently capable of representing the complex
 natural signals that arise from physical systems.$^8$
 
-## A Principled Initialization Scheme for SIREN Layers
+## 2.2 A Principled Initialization Scheme for SIREN Layers
 
 The successful training of a deep SIREN is critically dependent on a
 specific, principled initialization scheme. Naive initialization will
@@ -178,7 +178,7 @@ layers.
     $\texttt{first\_omega\_0}$, using an exponential decay. This ensures
     stable representation as complexity increases:
 
-    ``` {.python language="Python" caption="Implementation of Dynamic Frequency Scheduling"}
+    ``` {.python language="Python" caption="Listing 1: Implementation of Dynamic Frequency Scheduling"}
     import math
 
     def update_omega0(epoch, total_epochs):
@@ -221,7 +221,7 @@ layers.
     sure the formula is correct according to the original SIREN
     paper?\]**]{style="color: red"}
 
-## The Power-Enhanced SkipResNet (SQR-SkipResNet) Formulation
+## 2.3 The Power-Enhanced SkipResNet (SQR-SkipResNet) Formulation
 
 While the SIREN initialization enables training, pushing to the depths
 required for chaotic dynamics (e.g., 12 layers) requires stabilization
@@ -271,7 +271,7 @@ dynamics. For 3-body systems, close encounters produce
 velocity/acceleration spikes that require quadratic interaction terms to
 resolve. $\text{LayerNorm}$ ensures this term remains bounded.
 
-## Finalized Architectural Hyperparameters
+## 2.4 Finalized Architectural Hyperparameters
 
 ::: {#tab:architectural_hyperparameters}
   **Hyperparameter**      **Recommended Value**                                                                                                                                                                                             **Rationale & Justification**
@@ -284,16 +284,16 @@ resolve. $\text{LayerNorm}$ ensures this term remains bounded.
   first_omega_0           30                                                                                                                                                                                                                A high initial frequency injects a high-frequency basis into the network, helping it overcome spectral bias from the outset.$^1$
   hidden_omega_0          1                                                                                                                                                                                                                 This value is used within the principled weight initialization formula for hidden layers to ensure a stable distribution of activations, enabling deep network training.$^1$
   Weight Init. (First)    $\mathrm{U}\left[-\frac{1}{n_{\text{in}}}, \frac{1}{n_{\text{in}}}\right]$                                                                                                                                        The mathematically-derived initialization for the first SIREN layer to create a random Fourier feature mapping.$^1$
-  Weight Init. (Hidden)   $\mathrm{U}\left[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}\right]$ [**\[I believe this formula for initialization is incorrect\]**]{style="color: red"}   The principled initialization for all subsequent SIREN layers, designed to preserve activation variance and enable stable training of deep sinusoidal networks.$^1$
+  Weight Init. (Hidden)   $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$   The principled initialization for all subsequent SIREN layers, designed to preserve activation variance and enable stable training of deep sinusoidal networks.$^1$
   Skip Cadence            Alternating (per SQR SkipResNet)                                                                                                                                                                                  The alternating pattern of plain and power-enhanced residual layers effectively balances feature transformation and stable gradient flow.$^1$
   Power Term (p)          2 (element-wise square)                                                                                                                                                                                           Empirical results demonstrate that $p=2$ provides significant improvements in stability and accuracy without excessive computational overhead.$^1$
   Output Activation       None (Linear)                                                                                                                                                                                                     The final layer must be linear to allow the predicted positions to take on any real value required by the physical system.
 
-  : Architectural hyperparameters of the SQR-SkipResNet-SIREN backbone
+  : Table 1: Architectural hyperparameters of the SQR-SkipResNet-SIREN backbone
   (continued)
 :::
 
-# Section 3: The Multi-Component, Physics-Constrained Loss Function
+# 3. The Multi-Component, Physics-Constrained Loss Function
 
 The training of the PINN is guided by a composite loss function that
 simultaneously optimizes for three distinct yet complementary
@@ -312,7 +312,7 @@ conservation term $\mathcal{L}_{\text{energy}}$ is included with a
 weight $\lambda_E(k)$ that is dynamically adjusted based on the
 curriculum stage. The complete total loss is thus expressed as:
 
-$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda_p \mathcal{L}_{\text{physics}} + \frac{\mu_p}{2} \mathcal{L}_{\text{physics}}^2 + \lambda_E(k) \mathcal{L}_{\text{energy}}$$
+$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda_p \mathcal{L}_{\text{physics}} + \frac{\mu_p}{2} \mathcal{L}_{\text{physics}}^2 + \lambda_E(k) \mathcal{L}_{\text{energy}} \tag{1}$$
 
 **ALM Initialization:**
 
@@ -331,7 +331,7 @@ The initial values for the ALM parameters are as follows:
 
 - $\epsilon = 1 \times 10^{-8}$ (Numerical stability constant)
 
-## Data Fidelity Term ($\mathcal{L}_{\text{data}}$): Anchoring to Ground Truth
+## 3.1 Data Fidelity Term ($\mathcal{L}_{\text{data}}$): Anchoring to Ground Truth
 
 The purpose of the data fidelity term is to ensure that the network's
 predictions align with the high-precision trajectory data generated by a
@@ -368,7 +368,7 @@ where:
 The data points are sampled from the BRUTUS trajectory snapshots as
 follows:
 
-``` {.python language="Python" caption="Data Batch Construction"}
+``` {.python language="Python" caption="Listing 2: Data Batch Construction"}
 def get_batch(batch_size, points_per_trajectory=32):
     """
     Sample batch_size trajectories from the dataset.
@@ -409,7 +409,7 @@ during training:
 - The adaptive $\mu_p$ prevents oscillations by adjusting based on the
   variance of physics loss
 
-## Physics Residual Term ($\mathcal{L}_{\text{physics}}$): Enforcing Newtonian Dynamics
+## 3.2 Physics Residual Term ($\mathcal{L}_{\text{physics}}$): Enforcing Newtonian Dynamics
 
 This term is the heart of the \"physics-informed\" paradigm. It enforces
 the governing laws of physics---in this case, Newton's law of universal
@@ -446,7 +446,7 @@ $$\mathcal{L}_{\text{physics}} = \frac{1}{N_{\text{col}}} \sum_{k=1}^{N_{\text{c
 
 The collocation points are sampled according to the following strategy:
 
-``` {.python language="Python" caption="Collocation Points Sampling"}
+``` {.python language="Python" caption="Listing 3: Collocation Points Sampling"}
 import numpy as np
 
 def sample_collocation_points(t_min, t_max, n_col, strategy='uniform', 
@@ -521,7 +521,7 @@ $$\mu_p \leftarrow \frac{\gamma}{\sqrt{v_p + \epsilon}}$$
     -- $\mu_p$ is a dynamic parameter updated algorithmically (excluded
     from backpropagation)
 
-``` {.python language="Python" caption="ALM Parameter Updates"}
+``` {.python language="Python" caption="Listing 4: ALM Parameter Updates"}
 # In the training loop, after optimizer.step():
 with torch.no_grad():
     # 1. Update Lagrange multiplier (gradient ascent)
@@ -540,7 +540,7 @@ with torch.no_grad():
 # They are maintained as separate scalars with requires_grad=False
 ```
 
-## HNN-Style Energy Regularizer ($\mathcal{L}_{\text{energy}}$): Enforcing a Global Conservation Law
+## 3.3 HNN-Style Energy Regularizer ($\mathcal{L}_{\text{energy}}$): Enforcing a Global Conservation Law
 
 While the physics residual enforces the local, instantaneous laws of
 motion, it does not explicitly guarantee the conservation of global
@@ -589,7 +589,7 @@ where:
 
 The initial energy $H_0$ is precomputed during dataset preprocessing:
 
-``` {.python language="Python" caption="Initial Energy Calculation in Dataset Preprocessing"}
+``` {.python language="Python" caption="Listing 5: Initial Energy Calculation in Dataset Preprocessing"}
 class TrajectoryDataset:
 def __init__(self, trajectory_data):
     # ... other initialization ...
@@ -662,13 +662,13 @@ This results in the following stage-specific values:
   used for both physics and energy loss evaluation to ensure
   computational efficiency.
 
-# Section 4: Advanced Training and Optimization Strategy
+# 4. Advanced Training and Optimization Strategy
 
 Successfully training the network requires a sophisticated approach to
 navigate the complex, non-convex loss landscape and handle numerical
 instabilities.
 
-## Adaptive Loss Balancing via ALM
+## 4.1 Adaptive Loss Balancing via ALM
 
 The balance between the data fidelity term ($\mathcal{L}_{\text{data}}$)
 and the physics residual term ($\mathcal{L}_{\text{physics}}$) is
@@ -678,7 +678,7 @@ Lagrange multiplier $\lambda_p$ and the penalty coefficient $\mu_p$.
 These parameters are updated algorithmically after each optimization
 step, outside of the standard backpropagation graph.
 
-## Two-Phase Optimization
+## 4.2 Two-Phase Optimization
 
 To achieve both efficient exploration and high-precision convergence, a
 two-phase optimization strategy is employed.
@@ -695,7 +695,7 @@ two-phase optimization strategy is employed.
     memory-intensive, a mini-batch variant (Stochastic L-BFGS) is
     recommended for larger datasets.
 
-## Adaptive Gradient Clipping
+## 4.3 Adaptive Gradient Clipping
 
 A significant challenge arises from the inverse-square distance terms in
 the loss function, which can explode during simulated close encounters.
@@ -703,7 +703,7 @@ To prevent a single event from destabilizing the optimizer, adaptive
 gradient clipping is essential. A robust strategy is to clip the global
 L2 norm of the gradients relative to their recent typical magnitude.
 
-``` {.python language="Python" caption="Adaptive Gradient Clipping Logic"}
+``` {.python language="Python" caption="Listing 6: Adaptive Gradient Clipping Logic"}
 # Maintain a queue/list of the last 100 gradient norms
 grad_history = [] 
 
@@ -720,12 +720,12 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
 # Then, call optimizer.step()
 ```
 
-# Section 5: Inference and Trajectory Generation
+# 5. Inference and Trajectory Generation
 
 Once the model is trained, it can be used as a high-fidelity function
 approximator to generate entire trajectories on demand.
 
-## Generating a Trajectory
+## 5.1 Generating a Trajectory
 
 To predict the evolution of a system from a given initial condition
 ($IC$), the following procedure is used:
@@ -745,7 +745,7 @@ To predict the evolution of a system from a given initial condition
     using automatic differentiation on the network with respect to the
     time input.
 
-## Output Layer and Kinematic Consistency via Automatic Differentiation
+## 5.2 Output Layer and Kinematic Consistency via Automatic Differentiation
 
 The network architecture is simplified and physical consistency is
 hard-coded by predicting only positions and deriving all other kinematic
@@ -759,7 +759,7 @@ network's outputs---the predicted positions---to take on any real value
 required by the physical system. The output is a 9-dimensional vector
 representing the concatenated positions of the three bodies at a given
 time $\mathrm{t}$:
-$$\mathrm cl r_\theta(\mathrm{t}) = [\mathrm{r}_1(\mathrm{t}), \mathrm{r}_2(\mathrm{t}), \mathrm{r}_3(\mathrm{t})]$$
+$$\mathbf{r}_\theta(\mathrm{t}) = [\mathrm{r}_1(\mathrm{t}), \mathrm{r}_2(\mathrm{t}), \mathrm{r}_3(\mathrm{t})]$$
 
 Crucially, the network does not predict velocities or accelerations
 directly. Instead, these kinematic quantities are derived from the
@@ -777,7 +777,7 @@ of the problem's physics into the model, simplifies the network
 architecture (as no extra heads are needed for velocity or
 acceleration), and makes the overall learning task more tractable.
 
-## Output Frame and File Format
+## 5.3 Output Frame and File Format
 
 For consistency and physical correctness, the output of the model must
 be clearly defined.
@@ -800,8 +800,6 @@ be clearly defined.
     0.00,-0.98,0.20,0.00,0.49,-0.10,0.00,0.49,-0.10,0.00
     0.01,-0.97,0.21,0.00,0.48,-0.11,0.00,0.49,-0.10,0.00
     ...
-
-# Section 6: Consolidated Implementation Blueprint Summary
 
   -------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   **Component**                                **Definitive Specification**                                                                                                                                                                                                              **Justification**
@@ -834,53 +832,27 @@ be clearly defined.
   **Energy Loss ($\mathcal{L}_{energy}$)**     **Huber Loss ($\delta=1.0$)** on the deviation between the network's predicted total energy (Hamiltonian) and the pre-computed, constant initial energy ($H_0$), all in $G=1$ units.                                                      Enforces the global conservation of energy, which combats long-term numerical drift and improves the physical plausibility of the simulation over long time horizons.
   -------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  : Consolidated Implementation Blueprint Summary
+  : Table 2: Consolidated Implementation Blueprint Summary
 
-# Section 7: Bibliography
-17 Power-enhanced ResNet for Function Approximation.pdf PIG:
-PHYSICS-INFORMED GAUSSIANS AS ADAPTIVE PARAMETRIC MESH REPRESENTATIONS -
-OpenReview, accessed June 25, 2025,
-<https://openreview.net/pdf/ba580795154cc26f5abe3ab4feab161a5246c2f3.pdf>
-PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh
-Representations, accessed June 25, 2025,
-<https://www.researchgate.net/publication/386575809_PIG_Physics-Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations>
-PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh
-Representations, accessed June 25, 2025,
-<https://openreview.net/forum?id=y5B0ca4mit> Implicit Neural
-Representations with Periodic Activation Functions, accessed June 25,
-2025, <http://arxiv.org/pdf/2006.09661> Implicit Neural Representations
-with Periodic Activation Functions - NIPS, accessed June 25, 2025,
-<https://proceedings.neurips.cc/paper/2020/file/53c04118df112c13a8c34b38343b9c10-Paper.pdf>
-jaeminoh/Siren PINNs: Solving various PDEs by employing Siren, with JAX
-implementation., accessed June 25, 2025,
-<https://github.com/jaeminoh/Siren_PINNs> Implicit Neural
-Representations with Periodic Activation Functions - Vincent Sitzmann,
-accessed June 25, 2025, <https://www.vincentsitzmann.com/siren/>
-Implicit Neural Representations with Periodic Activation Functions \|
-NeurIPS 2020, accessed June 25, 2025,
-<https://www.computationalimaging.org/publications/siren/> Gentle
-Introduction to SIREN - Nail Ibrahimli - TU Delft 3D Geoinformation,
-accessed June 25, 2025, <https://3d.bk.tudelft.nl/nail/siren/>
-Power-Enhanced Residual Network for Function Approximation and
-Physics-Informed Inverse Problems - arXiv, accessed June 25, 2025,
-<https://arxiv.org/html/2310.15690v2> Power-Enhanced Residual Network
-for Function Approximation and Physics-Informed Inverse Problems -
-ResearchGate, accessed June 25, 2025,
-<https://www.researchgate.net/publication/382109760_Power-Enhanced_Residual_Network_for_Function_Approximation_and_Physics-Informed_Inverse_Problems>
-Physics-Informed with Power-Enhanced Residual Network for Interpolation
-and Inverse Problems - ResearchGate, accessed June 25, 2025,
-<https://www.researchgate.net/publication/374946733_Physics-Informed_with_Power-Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems>
-Software \| PNNL, accessed June 25, 2025,
-<https://www.pnnl.gov/projects/philms/software> lululxvi/deepxde: A
-library for scientific machine learning and physics-informed learning -
-GitHub, accessed June 25, 2025, <https://github.com/lululxvi/deepxde>
-DeepXDE: A Deep Learning Library for Solving Differential Equations \|
-SIAM Review - myqcloud.com, accessed June 25, 2025,
-<https://pdf-1307664364.cos.ap-chengdu.myqcloud.com/%E8%AE%BA%E6%96%87%E5%8F%82%E8%80%83/PINN/DeepXDE-%20A%20Deep%20Learning%20Library%20for%20Solving%20Differential%20Equations.pdf>
-omniscientoctopus/Physics-Informed-Neural-Networks: Investigating
-PINNs - GitHub, accessed June 25, 2025,
-<https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
-:::
+# Bibliography
+
+1. Power-enhanced ResNet for Function Approximation.pdf
+2. PIG: PHYSICS-INFORMED GAUSSIANS AS ADAPTIVE PARAMETRIC MESH REPRESENTATIONS - OpenReview, accessed June 25, 2025, <https://openreview.net/pdf/ba580795154cc26f5abe3ab4feab161a5246c2f3.pdf>
+3. PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://www.researchgate.net/publication/386575809_PIG_Physics-Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations>
+4. PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://openreview.net/forum?id=y5B0ca4mit>
+5. Implicit Neural Representations with Periodic Activation Functions, accessed June 25, 2025, <http://arxiv.org/pdf/2006.09661>
+6. Implicit Neural Representations with Periodic Activation Functions - NIPS, accessed June 25, 2025, <https://proceedings.neurips.cc/paper/2020/file/53c04118df112c13a8c34b38343b9c10-Paper.pdf>
+7. jaeminoh/Siren PINNs: Solving various PDEs by employing Siren, with JAX implementation., accessed June 25, 2025, <https://github.com/jaeminoh/Siren_PINNs>
+8. Implicit Neural Representations with Periodic Activation Functions - Vincent Sitzmann, accessed June 25, 2025, <https://www.vincentsitzmann.com/siren/>
+9. Implicit Neural Representations with Periodic Activation Functions | NeurIPS 2020, accessed June 25, 2025, <https://www.computationalimaging.org/publications/siren/>
+10. Gentle Introduction to SIREN - Nail Ibrahimli - TU Delft 3D Geoinformation, accessed June 25, 2025, <https://3d.bk.tudelft.nl/nail/siren/>
+11. Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - arXiv, accessed June 25, 2025, <https://arxiv.org/html/2310.15690v2>
+12. Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/382109760_Power-Enhanced_Residual_Network_for_Function_Approximation_and_Physics-Informed_Inverse_Problems>
+13. Physics-Informed with Power-Enhanced Residual Network for Interpolation and Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/374946733_Physics-Informed_with_Power-Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems>
+14. Software | PNNL, accessed June 25, 2025, <https://www.pnnl.gov/projects/philms/software>
+15. lululxvi/deepxde: A library for scientific machine learning and physics-informed learning - GitHub, accessed June 25, 2025, <https://github.com/lululxvi/deepxde>
+16. DeepXDE: A Deep Learning Library for Solving Differential Equations | SIAM Review - myqcloud.com, accessed June 25, 2025, <https://pdf-1307664364.cos.ap-chengdu.myqcloud.com/%E8%AE%BA%E6%96%87%E5%8F%82%E8%80%83/PINN/DeepXDE-%20A%20Deep%20Learning%20Library%20for%20Solving%20Differential%20Equations.pdf>
+17. omniscientoctopus/Physics-Informed-Neural-Networks: Investigating PINNs - GitHub, accessed June 25, 2025, <https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
 
 ---
 
@@ -891,7 +863,7 @@ These notes are metadata for future reconciliation. They are not part of the fai
 ### SI-PINN-001: Weight Init. (Hidden) formula discrepancy
 
 - **Section:** Section 2 (sqr_skipresnet_siren_backbone) — hyperparameters table, Weight Init. (Hidden) row
-- **Description:** The LaTeX source specifies $\mathrm{U}[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}]$ while the markdown has $\mathrm{U}[-\frac{\sqrt{6/n_{in}}}{1}, \frac{\sqrt{6/n_{in}}}{1}]$. The markdown version is closer to the original SIREN paper formula ($\mathrm{U}[-\frac{\sqrt{6/n}}{\omega_0}, \frac{\sqrt{6/n}}{\omega_0}]$). Since hidden_omega_0=1, both are numerically identical. No change needed unless hidden_omega_0 is modified.
+- **Description:** The LaTeX source specifies $\mathrm{U}[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}]$ while the markdown summary table has $\mathrm{U}[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}]$. Since `hidden_omega_0 = 1`, Formula B evaluates to $\mathrm{U}[-\sqrt{6/n_{\text{in}}}, \sqrt{6/n_{\text{in}}}]$ which is the correct SIREN paper formula. Formula A is a different expression and the two are **not equivalent** (they differ by a factor of ~6·n_in/√(6/n_in)). Formula B (from the summary table) should be used as the canonical initialization.
 - **Status:** Documented for future reconciliation
 
 ### SI-PINN-002: Author comments preserved in converted body
