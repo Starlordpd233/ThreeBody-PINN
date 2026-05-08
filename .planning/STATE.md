@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: completed
-stopped_at: context exhaustion at 77% (2026-05-06)
-last_updated: "2026-05-06T20:16:06.838Z"
-last_activity: 2026-05-06
+stopped_at: Phase 15.1 complete (2026-05-08)
+last_updated: "2026-05-08T00:00:00Z"
+last_activity: 2026-05-08
 progress:
-  total_phases: 15
+  total_phases: 16
   completed_phases: 15
   total_plans: 36
   completed_plans: 36
@@ -25,16 +25,16 @@ See: .planning/PROJECT.md (updated 2026-05-06)
 
 ## Current Position
 
-Phase: All complete (1-15)
-Plan: All complete
-Status: Milestone v1.3 complete
-Last activity: 2026-05-06
+Phase: 15.1 (Markdown Conversion Correction)
+Plan: All 3 plans complete (Wave A/B/C)
+Status: Complete
+Last activity: 2026-05-08
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 36 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 18)
+- Total plans completed: 39 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -68,6 +68,8 @@ Last activity: 2026-05-06
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — partial; 3 thematic docs + MIGRATION.md + README.md written, pending final verification
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15) — shipped 2026-05-06
+- Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
+- Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 
 ### v1.3 Phase Summary
 

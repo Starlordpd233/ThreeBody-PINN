@@ -63,6 +63,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 13: Review-of-Framework Verification** — 7 sections, 1 pandoc candidate, sub-document structure — completed 2026-05-05
 - [x] **Phase 14: Stage-Strategy-Revision Verification** — 6 sections, 1 pandoc candidate, table normalization — completed 2026-05-05
 - [x] **Phase 15: Sampling-Method Verification** — Monolithic source, 2 markdown candidates — completed 2026-05-06
+- [x] **Phase 15.1: Markdown Conversion Correction** (INSERTED) — Resolve critical conversion errors and structural issues from v1.3 review reports (phases 10-15) to produce authoritative markdown files for handoff. New issues discovered after this scope are handled via GSD workflow, not this phase. — completed 2026-05-08
 
 Full details: `.planning/milestones/v1.3-ROADMAP.md`
 
@@ -87,6 +88,7 @@ Full details: `.planning/milestones/v1.3-ROADMAP.md`
 | 13. Review-of-Framework Verification | v1.3 | 3/3 | Complete | 2026-05-05 |
 | 14. Stage-Strategy-Revision Verification | v1.3 | 3/3 | Complete | 2026-05-05 |
 | 15. Sampling-Method Verification | v1.3 | 3/3 | Complete | 2026-05-06 |
+| 15.1 Markdown Conversion Correction | v1.3 | 3/3 | Complete | 2026-05-08 |
 
 ---
-*Last updated: 2026-05-06 — Milestone v1.3 shipped and archived*
+*Last updated: 2026-05-08 — Phase 15.1 complete*
