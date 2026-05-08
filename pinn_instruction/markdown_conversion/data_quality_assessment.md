@@ -8,7 +8,7 @@
 
 # 1 Introduction: The Intersection of Arbitrary-Precision Numerics and Causal Deep Learning
 
-The integration of high-fidelity numerical analysis with deep learning represents a paradigm shift in the study of chaotic dynamical systems. The specific research stack under analysis---comprising the Brutus arbitrary-precision integrator written in C++, a Python-based data processing pipeline, and a Causal Training Labeled Physics-Informed Neural Network (CTL-PINN)---targets one of the most enduring challenges in classical mechanics: the Three-Body Problem. This system is characterized by non-linear interactions, extreme sensitivity to initial conditions, and phase space structures defined by the coexistence of stable invariant tori and chaotic seas. The successful modeling of such a system using neural networks requires a rigorous reassessment of what constitutes "high-quality" training data. Unlike traditional supervised learning tasks where data quality is often synonymous with label accuracy or noise reduction, the chaotic N-body problem imposes strict geometric and dynamical constraints---specifically symplectic conservation and phase space continuity---that must be preserved to ensure the learned model is physically viable.
+The integration of high-fidelity numerical analysis with deep learning represents a paradigm shift in the study of chaotic dynamical systems. The specific research stack under analysis—comprising the Brutus arbitrary-precision integrator written in C++, a Python-based data processing pipeline, and a Causal Training Labeled Physics-Informed Neural Network (CTL-PINN)—targets one of the most enduring challenges in classical mechanics: the Three-Body Problem. This system is characterized by non-linear interactions, extreme sensitivity to initial conditions, and phase space structures defined by the coexistence of stable invariant tori and chaotic seas. The successful modeling of such a system using neural networks requires a rigorous reassessment of what constitutes "high-quality" training data. Unlike traditional supervised learning tasks where data quality is often synonymous with label accuracy or noise reduction, the chaotic N-body problem imposes strict geometric and dynamical constraints—specifically symplectic conservation and phase space continuity—that must be preserved to ensure the learned model is physically viable.
 
 The primary objective of this report is to define a comprehensive strategy for assessing training data quality prior to full model training. The analysis is driven by the unique requirements of the CTL-PINN architecture, which enforces temporal causality in the learning process, thereby making the model highly sensitive to the temporal coherence and physical consistency of the input data. We evaluate the comparative efficacy of static pre-training validation versus dynamic trial training, ultimately proposing a hybrid "Staged Gate" protocol. Furthermore, we develop a set of mathematically grounded metrics tailored to the arbitrary-precision nature of the Brutus dataset, ensuring that the inductive biases of the neural network align with the symplectic geometry of the underlying Hamiltonian physics.
 
@@ -18,7 +18,7 @@ To understand the data quality requirements, one must first analyze the source o
 
 The Bulirsch-Stoer method is an extrapolation scheme. It computes the solution at a future time $t + H$ by subdividing the interval $H$ into substeps, performing the integration with a modified midpoint method, and then extrapolating the results to zero step size using rational functions. Brutus iteratively increases the precision (word length $L$) and decreases the tolerance parameter $\epsilon$ until the solution converges to a specified number of significant digits. This implies that a Brutus-generated trajectory is not merely an approximation; within the specified precision, it is a "true" numerical solution that shadows the exact mathematical trajectory of the system.
 
-However, this high fidelity comes with a specific data characteristic: non-uniform temporal sampling. The adaptive step-size controller in Brutus shrinks the time step $\Delta t$ dramatically during close encounters (pericenter passages) to maintain accuracy as the gravitational forces $F \propto 1/r^2$ diverge. Conversely, during excursive phases where bodies are widely separated, $\Delta t$ increases. While this is efficient for integration, it presents a "spectral bias" challenge for neural networks, which typically assume uniform sampling or at least sampling densities that correlate with the local Lipschitz constant of the target function in a way that is compatible with gradient descent dynamics. Consequently, "good" data for Brutus---defined by convergence---is not necessarily "good" data for a CTL-PINN without rigorous validation of its sampling density and local stiffness properties.
+However, this high fidelity comes with a specific data characteristic: non-uniform temporal sampling. The adaptive step-size controller in Brutus shrinks the time step $\Delta t$ dramatically during close encounters (pericenter passages) to maintain accuracy as the gravitational forces $F \propto 1/r^2$ diverge. Conversely, during excursive phases where bodies are widely separated, $\Delta t$ increases. While this is efficient for integration, it presents a "spectral bias" challenge for neural networks, which typically assume uniform sampling or at least sampling densities that correlate with the local Lipschitz constant of the target function in a way that is compatible with gradient descent dynamics. Consequently, "good" data for Brutus—defined by convergence—is not necessarily "good" data for a CTL-PINN without rigorous validation of its sampling density and local stiffness properties.
 
 ## 1.2 The Learning Architecture: Causal Training Labeled PINN (CTL-PINN)
 
@@ -131,7 +131,7 @@ We define the Symplectic Conservation Score ($SCS$) as the maximum normalized de
 
 ## 3.2 Stiffness-Aware Sampling Density (SASD)
 
-Stiffness is the primary cause of failure for neural ODE solvers and PINNs. It occurs when the timescales of the system's components vary by orders of magnitude---common in N-body problems during close encounters where the dynamical time $\tau \sim \sqrt{r^3/GM}$ shrinks rapidly. Brutus handles this adaptively, but if the output data is saved at fixed intervals (or if the adaptive steps are too coarse for the *network's* capacity), the data will be "aliased" relative to the physics.
+Stiffness is the primary cause of failure for neural ODE solvers and PINNs. It occurs when the timescales of the system's components vary by orders of magnitude—common in N-body problems during close encounters where the dynamical time $\tau \sim \sqrt{r^3/GM}$ shrinks rapidly. Brutus handles this adaptively, but if the output data is saved at fixed intervals (or if the adaptive steps are too coarse for the *network's* capacity), the data will be "aliased" relative to the physics.
 
 #### Metric Derivation:
 
@@ -169,7 +169,7 @@ If $IPR$ is high, it means that even though the data points are correct, the "sh
 
 ## 3.4 Phase Space Coverage Entropy (PSC)
 
-Chaotic systems are ergodic (or have ergodic components). For a model to generalize, the training data must cover the relevant phase space structures---both the stable regions (quasi-periodic orbits) and the unstable regions (close encounters, scattering). A dataset biased towards one will fail on the other.
+Chaotic systems are ergodic (or have ergodic components). For a model to generalize, the training data must cover the relevant phase space structures—both the stable regions (quasi-periodic orbits) and the unstable regions (close encounters, scattering). A dataset biased towards one will fail on the other.
 
 #### Metric Definition:
 
@@ -205,7 +205,7 @@ N-body data is scale-invariant but numerically vast. Distances can range from $1
 
 ## 4.3 Spectral Bias and High-Frequency Oscillations
 
-Neural networks satisfy a "Spectral Bias" principle---they learn low-frequency functions quickly and high-frequency functions slowly.
+Neural networks satisfy a "Spectral Bias" principle—they learn low-frequency functions quickly and high-frequency functions slowly.
 
 - **Risk:** Chaotic trajectories often possess a broad frequency spectrum. If the data contains high-frequency oscillations (e.g., a tight binary subsystem orbiting a third body), the PINN will smooth over them, effectively learning a "mean field" approximation rather than the true dynamics.
 - **Parameter Consequence:** The weights responsible for high-frequency features will not converge within standard training times.
@@ -285,7 +285,7 @@ This phase runs on a randomly selected *subset* (e.g., 1%) of the passing data t
 
 # 6 Synthesis and Conclusion
 
-The development of a robust CTL-PINN for the Three-Body Problem requires moving beyond the notion of data "accuracy" to the more complex notion of data "fitness for causal learning." The analysis reveals that the primary risks---spectral bias, causal firewalls, and dead gradients---stem from the mismatch between the continuous nature of the PINN and the discrete, variable-density nature of the Brutus data.
+The development of a robust CTL-PINN for the Three-Body Problem requires moving beyond the notion of data "accuracy" to the more complex notion of data "fitness for causal learning." The analysis reveals that the primary risks—spectral bias, causal firewalls, and dead gradients—stem from the mismatch between the continuous nature of the PINN and the discrete, variable-density nature of the Brutus data.
 
 By implementing the **Staged Gate Protocol**, the research team can decouple these risks. Phase 1 (Static) ensures the physics is sound and the sampling density is sufficient to support a continuous manifold (low IPR). Phase 2 (Dynamic) ensures the network architecture has the capacity to resolve the specific stiffness profile of the data without gradient pathologies.
 

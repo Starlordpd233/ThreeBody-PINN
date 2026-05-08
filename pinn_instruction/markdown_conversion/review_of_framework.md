@@ -257,7 +257,7 @@ The definitive schedule is as follows:
 
 #### Implementation Action:
 
-At the beginning of each new curriculum stage, a targeted re-initialization will occur. While the weights of all hidden layers and the output layer are transferred from the converged model of the previous stage, the weights of the first SIREN layer will be re-initialized using the uniform distribution $U[-1/\sqrt{n_{\text{in}}}, 1/\sqrt{n_{\text{in}}}]$ and the new `first_omega_0` value specified by the schedule above. This procedure allows the model to adapt its \"input lens\" to the new data regime---adjusting its frequency sensitivity---without inducing catastrophic forgetting in the deeper layers of the network. This approach resolves the implementation ambiguity while preserving the original intent of adapting the network's frequency bias to the complexity of the learning task.
+At the beginning of each new curriculum stage, a targeted re-initialization will occur. While the weights of all hidden layers and the output layer are transferred from the converged model of the previous stage, the weights of the first SIREN layer will be re-initialized using the uniform distribution $U[-1/\sqrt{n_{\text{in}}}, 1/\sqrt{n_{\text{in}}}]$ and the new `first_omega_0` value specified by the schedule above. This procedure allows the model to adapt its \"input lens\" to the new data regime—adjusting its frequency sensitivity—without inducing catastrophic forgetting in the deeper layers of the network. This approach resolves the implementation ambiguity while preserving the original intent of adapting the network's frequency bias to the complexity of the learning task.
 
 # 4 A Rigorous Framework for the Multi-Component Loss Function
 
@@ -269,7 +269,7 @@ The composite loss function is the heart of the PINN, guiding the network to sol
 
 #### Context and Validation
 
-Issue 18 correctly identifies the need for an explicit, unified confirmation that all three loss terms---$\mathcal{L}_{\text{data}}$, $\mathcal{L}_{\text{physics}}$, and $\mathcal{L}_{\text{energy}}$---are computed using the same dimensionless, scaled quantities. While the `PINN_architecture_plan.tex` document implies this consistency, the absence of a consolidated, emphatic statement creates a risk of subtle but critical implementation errors. Dimensional inconsistency between loss terms would lead to an improperly balanced optimization problem, where gradients from different terms are not on comparable scales, likely causing training to fail or converge to a physically incorrect solution.
+Issue 18 correctly identifies the need for an explicit, unified confirmation that all three loss terms—$\mathcal{L}_{\text{data}}$, $\mathcal{L}_{\text{physics}}$, and $\mathcal{L}_{\text{energy}}$—are computed using the same dimensionless, scaled quantities. While the `PINN_architecture_plan.tex` document implies this consistency, the absence of a consolidated, emphatic statement creates a risk of subtle but critical implementation errors. Dimensional inconsistency between loss terms would lead to an improperly balanced optimization problem, where gradients from different terms are not on comparable scales, likely causing training to fail or converge to a physically incorrect solution.
 
 #### Proposed Solution and Implementation
 

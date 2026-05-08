@@ -11,7 +11,7 @@
 - [Part II: A Revised Algorithmic Workflow for Stage Stratification](#a-revised-algorithmic-workflow-for-stage-stratification)
   - [Phase I: Invariant Computation and Feature Engineering](#phase-i-invariant-computation-and-feature-engineering)
   - [Phase II: Exploratory Data Analysis (EDA) and Landscape Mapping](#phase-ii-exploratory-data-analysis-eda-and-landscape-mapping)
-  - [Phase III: Deriving Adaptive Stage Criteria - A Hybrid Strategy](#phase-iii-deriving-adaptive-stage-criteria---a-hybrid-strategy)
+  - [Phase III: Deriving Adaptive Stage Criteria - A Hybrid Strategy](#phase-iii-deriving-adaptive-stage-criteria—a-hybrid-strategy)
   - [Phase IV: Final Stage Assignment and Population Balancing](#phase-iv-final-stage-assignment-and-population-balancing)
 - [Part III: Implementation and Validation Protocol](#implementation-and-validation-protocol)
   - [Reference Implementation in Python](#reference-implementation-in-python)
@@ -78,7 +78,7 @@ In the three-body problem, difficulty is a multi-faceted concept. A system can b
 
 Principal Component Analysis (PCA) offers a principled method to address this. PCA is an orthogonal linear transformation that projects the data onto a new coordinate system, where the axes (principal components, PCs) are ordered by the amount of variance they explain in the original data.[9, 10] The first principal component (PC1) represents the direction of maximum variance in the feature space. In the context of our physical invariants, this component can often be interpreted as a composite "stability" or "difficulty" score.[5]
 
-For instance, if PC1 is found to be a linear combination with positive weights on $L_{\text{norm}}$ and $\tau_L$ and a negative weight on $|E|$, then a high score on PC1 would correspond to a system that is simultaneously regular, predictable, and not excessively bound---a clear signature of stability. By ranking simulations based on their PC1 score, one can create a continuous, one-dimensional difficulty axis that optimally combines the information from multiple correlated invariants. This data-driven approach is superior to manually constructing a composite score (e.g., $-E + L_{\text{norm}}$ [5]), as the weights are derived directly from the dataset's covariance structure, ensuring they are optimally tailored to the specific data distribution.[11, 12]
+For instance, if PC1 is found to be a linear combination with positive weights on $L_{\text{norm}}$ and $\tau_L$ and a negative weight on $|E|$, then a high score on PC1 would correspond to a system that is simultaneously regular, predictable, and not excessively bound—a clear signature of stability. By ranking simulations based on their PC1 score, one can create a continuous, one-dimensional difficulty axis that optimally combines the information from multiple correlated invariants. This data-driven approach is superior to manually constructing a composite score (e.g., $-E + L_{\text{norm}}$ [5]), as the weights are derived directly from the dataset's covariance structure, ensuring they are optimally tailored to the specific data distribution.[11, 12]
 
 ### Unsupervised Clustering for Discovering Dynamical Regimes
 

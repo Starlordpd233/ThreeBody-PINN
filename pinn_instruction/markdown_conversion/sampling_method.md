@@ -3,7 +3,7 @@
 *Methodology Description — June 15, 2025*
 
 ## Overview of the Data Generation Pipeline
-**[Critical Update: The script preserves virial ratio in hierarchical ICs (masses normalized consistently with velocities). For quasi-random, scaling is **enabled** in the main block with range (0.8, 1.2), which distorts the virial ratio by $s^3$---see documented warning in "Global Scaling (Optional)". The default would preserve it, but scaling is explicitly enabled for variety.]**
+**[Critical Update: The script preserves virial ratio in hierarchical ICs (masses normalized consistently with velocities). For quasi-random, scaling is **enabled** in the main block with range (0.8, 1.2), which distorts the virial ratio by $s^3$—see documented warning in "Global Scaling (Optional)". The default would preserve it, but scaling is explicitly enabled for variety.]**
 
 Generating high-quality training data for a Physics-Informed Neural Network (PINN) tasked with solving the three-body problem is a non-trivial challenge. The chaotic nature of many three-body systems means that a significant fraction of randomly generated initial conditions (ICs) will lead to computationally expensive simulations that are ultimately unusable due to poor energy conservation.
 
