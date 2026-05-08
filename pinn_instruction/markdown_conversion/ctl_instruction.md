@@ -279,7 +279,7 @@ be represented as:
 This file is the primary source for calculating the conditional input
 vector for the PINN.
 
-``` {#lst:ic_sample_1b .python language="python" caption="Sample Initial Condition File (\\texttt{ic\\_hierarchical\\_0000.txt})" label="lst:ic_sample_1b" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true"}
+```python
 1.3490330328149076 -0.9689510833073296 0.007710980988132066 -0.015155493143494857 0.003082579960339502 -0.9723812422861391 0.01317780514703599 0.3068019185652623 -0.6619848581497906 -0.005365500630046534 0.0070754473066994734 0.002840479118371817 1.3293141254107488 -0.013692746386640507 1.3441650486198304 1.1354206743022845 -0.0016313630906544987 0.002882937931195984 0.00441920746565285 0.6549777259648452 0.001846566609351255
 ```
 
@@ -309,7 +309,7 @@ contains:
 A raw sample output from a Brutus simulation file is shown below,
 illustrating the data format for a few time steps:
 
-``` {#lst:brutus_output .numberLines caption="Sample Raw Output from Brutus Simulation File" label="lst:brutus_output" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" xleftmargin="0.5cm" xrightmargin="0.5cm" aboveskip="0.5cm" belowskip="0.5cm" numbers="left" numberstyle="\\tiny\\color{gray}"}
+```python
 0 3 0
 1.3490330328149076 -0.9689510833073296 0.0077109809881320658 -0.015155493143494857 0.0030825799603395022 -0.97238124228613909 0.01317780514703599
 0.30680191856526229 -0.66198485814979058 -0.0053655006300465337 0.0070754473066994734 0.002840479118371817 1.3293141254107488 -0.013692746386640507
@@ -472,7 +472,7 @@ are computed for input vector universality.
     the characteristic circular‐orbit scale at energy $E$. All other
     historical variants are deprecated.
 
-    ``` {#lst:lnorm_calculation .numberLines .python language="Python" caption="Sample Code for Normalized Angular Momentum Calculation" label="lst:lnorm_calculation" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" xleftmargin="0.5cm" xrightmargin="0.5cm" aboveskip="0.5cm" belowskip="0.5cm" numbers="left" numberstyle="\\tiny\\color{gray}"}
+    ```python
     def compute_L_norm(m, r_prime, v_prime, E, eps=1e-10):
         L_vec = np.sum([m[i] * np.cross(r_prime[i], v_prime[i]) for i in range(3)], axis=0)
         L = np.linalg.norm(L_vec)
@@ -495,7 +495,7 @@ are computed for input vector universality.
     retained as a robust, scale‑consistent descriptor of spatial
     extent.)
 
-    ``` {#lst:inertia_calculation .numberLines .python language="Python" caption="Normalized Moment of Inertia Calculation" label="lst:inertia_calculation" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" showstringspaces="false" xleftmargin="0.5cm" xrightmargin="0.5cm" aboveskip="0.5cm" belowskip="0.5cm" numbers="left" numberstyle="\\tiny\\color{gray}"}
+    ```python
     import numpy as np
 
         def compute_normalized_inertia(m, r_prime, r_char, eps=1e-10):
@@ -573,7 +573,7 @@ are computed for input vector universality.
         $\tau_L = 1/\lambda_{\max}$. If $\lambda_{\max} \le 0$, we
         consider the system to be regular and set $\tau_L = \infty$.
 
-    ``` {#lst:lyapunov_time_estimation .python language="Python" caption="Lyapunov Time Estimation from Trajectory Data" label="lst:lyapunov_time_estimation" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" xleftmargin="0.5cm" xrightmargin="0.5cm"}
+    ```python
     import numpy as np
         from scipy.spatial.distance import pdist, squareform
 
@@ -686,7 +686,7 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     > **Author note:** I need more speicific details on which parts of the quantieis
     > computed in Step 3 are used for this canonical ordering.
 
-    ``` {#lst:canonical_ordering .numberLines .python language="Python" caption="Canonical Ordering Algorithm for Injectivity" label="lst:canonical_ordering" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" xleftmargin="0.5cm" xrightmargin="0.5cm" aboveskip="0.5cm" belowskip="0.5cm" numbers="left" numberstyle="\\tiny\\color{gray}"}
+    ```python
     def canonical_ordering(m, r_prime, v_prime):
         """Order bodies by a unique, physically meaningful criterion (using scaled data from Step 1.5)"""
         # Create sorting keys: primary by mass (descending), 
@@ -713,7 +713,7 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     the global scales precomputed across the dataset in Step 2. The
     normalization formulas are as follows:
 
-    ``` {#lst:normalization_step4 .numberLines .python language="Python" caption="Component-wise Normalization to {$[-1,1]$} Range" label="lst:normalization_step4" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" xleftmargin="0.5cm" xrightmargin="0.5cm" aboveskip="0.5cm" belowskip="0.5cm" numbers="left" numberstyle="\\tiny\\color{gray}"}
+    ```python
     # Global scales (precomputed from scaled dataset in Step 2)
     E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
     Q_scale = 0.5     # Fixed
@@ -793,7 +793,7 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     time component $t'$ with the 13-component initial condition vector
     $\text{IC}$ (using normalized values from above):
 
-    ``` {#lst:time_normalization_step4 .numberLines .python language="Python" caption="Time Normalization to {$[-1,1]$} Range" label="lst:time_normalization_step4" frame="single" backgroundcolor="\\color{lightgray}" basicstyle="\\ttfamily\\small" breaklines="true" columns="flexible" xleftmargin="0.5cm" xrightmargin="0.5cm" aboveskip="0.5cm" belowskip="0.5cm" numbers="left" numberstyle="\\tiny\\color{gray}"}
+    ```python
     def normalize_time(t, T=10.0):
         # Normalize physical time t from [0, T] to [-1, 1]
         return 2 * (t / T) - 1
