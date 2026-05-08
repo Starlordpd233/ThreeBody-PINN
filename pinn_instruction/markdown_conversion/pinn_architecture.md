@@ -14,14 +14,14 @@ encounters between bodies. A successful predictive model must therefore
 not only capture these multi-scale temporal features with high fidelity
 but also adhere to fundamental global conservation laws, such as the
 conservation of total energy and angular momentum, to ensure its
-long-term physical plausibility.$^1$
+long-term physical plausibility.[^1]
 
 A generic neural network architecture, such as a standard Multi-Layer
 Perceptron (MLP), lacks the specific structural priors necessary to
 handle this confluence of challenges. Such models often suffer from a
 \"spectral bias,\" a tendency to learn low-frequency functions more
 easily, which makes them struggle to represent the high-frequency
-components inherent in chaotic dynamics.$^2$ More critically, enforcing
+components inherent in chaotic dynamics.[^2] More critically, enforcing
 the governing physical laws---in this case, Newton's laws of
 motion---within a Physics-Informed Neural Network (PINN) framework
 requires the computation of high-order derivatives of the network's
@@ -35,7 +35,7 @@ output, meaning its first derivative is piecewise constant and its
 second derivative is a series of Dirac delta functions (i.e., zero
 almost everywhere). This mathematical property makes it impossible to
 represent the smooth, continuously varying gravitational
-forces that govern celestial motion.$^1$
+forces that govern celestial motion.[^1]
 
 To overcome these fundamental limitations, a more principled approach is
 required---one where the architecture itself imparts a strong inductive
@@ -57,7 +57,7 @@ core requirements of the problem:
     for higher-order derivatives. This provides a powerful inductive
     bias towards learning smooth functions whose derivatives are also
     smooth, a property essential for minimizing the physics residual
-    with high fidelity.$^1$
+    with high fidelity.[^1]
 
 2.  **Expressivity and Training Stability:** Capturing the intricate
     complexity of chaotic trajectories requires a network with
@@ -71,7 +71,7 @@ core requirements of the problem:
     particularly effective variant, the Power-Enhanced SkipResNet
     (SQR-SkipResNet), which has been empirically shown to provide more
     stable gradient flow and superior performance on non-smooth
-    functions, making it well-suited for deep architectures.$^1$
+    functions, making it well-suited for deep architectures.[^1]
 
 3.  **Long-Term Physical Plausibility:** Even a PINN that perfectly
     satisfies the local, instantaneous equations of motion can
@@ -82,7 +82,7 @@ core requirements of the problem:
     conservation by construction through a symplectic structure, they
     often impose rigid constraints on the network's form (e.g.,
     requiring the use of canonical coordinates) that can limit its
-    flexibility as a general function approximator.$^1$ The proposed
+    flexibility as a general function approximator.[^1] The proposed
     architecture adopts a more pragmatic and flexible approach by
     incorporating the principle of energy conservation as a \"soft\"
     constraint within the loss function. This HNN-style energy
@@ -92,7 +92,7 @@ core requirements of the problem:
     manifold defined by the initial conditions. This strategy provides
     the primary benefit of an HNN---energy conservation---without its
     restrictive architectural costs, thereby improving the long-term
-    physical plausibility of the model's predictions.$^1$
+    physical plausibility of the model's predictions.[^1]
 
 This philosophy of pragmatic hybridization, which strategically borrows
 the most critical benefits from multiple advanced paradigms while
@@ -118,7 +118,7 @@ Representation Network (SIREN) activation function. This choice is not a
 tunable hyperparameter but a mandatory architectural feature dictated by
 the physics of the $\mathrm{N}$-body problem. A standard neural network
 layer performs an affine transformation followed by a non-linear
-activation. In a SIREN layer, this activation is the sine function$^5$:
+activation. In a SIREN layer, this activation is the sine function[^5]:
 $$\phi_i(\mathrm{x}) = \sin(\mathrm{W}_i \mathrm{x} + \mathrm{b}_i)$$
 where $\mathrm{x}$ is the input to the layer, and $\mathrm{W}_i$ and
 $\mathrm{b}_i$ are the trainable weight matrix and bias vector,
@@ -138,14 +138,14 @@ functions. This is a stark contrast to common activations like ReLU,
 whose second derivatives are ill-defined or zero almost everywhere,
 making them fundamentally unsuited for problems where the loss function
 depends on second-order derivatives, as is the case for the
-$\mathrm{N}$-body problem's physics residual.$^1$ The SIREN architecture
+$\mathrm{N}$-body problem's physics residual.[^1] The SIREN architecture
 thus provides an exceptionally strong inductive bias for representing
 the smooth, continuous solutions and their derivatives required by the
 governing physical laws. This directly overcomes the spectral bias of
 standard MLPs, which struggle to represent the high-frequency details
-inherent in chaotic trajectories and their derivatives.$^2$ By using
+inherent in chaotic trajectories and their derivatives.[^2] By using
 SIREN, the network is inherently capable of representing the complex
-natural signals that arise from physical systems.$^8$
+natural signals that arise from physical systems.[^8]
 
 ## 2.2 A Principled Initialization Scheme for SIREN Layers
 
@@ -157,7 +157,7 @@ confusion between different documents regarding the hyperparameter
 $\omega_0$ is resolved here by adhering to the original,
 mathematically-derived SIREN initialization scheme, which is designed to
 preserve the distribution of activations as they propagate through the
-network.$^5$
+network.[^5]
 
 This scheme is not a heuristic but a carefully designed solution to two
 distinct challenges: representation and trainability. It treats the
@@ -202,7 +202,7 @@ layers.
     range, preventing the frequency of the network's output from growing
     uncontrollably with depth. This careful, layer-dependent
     initialization is what makes deep SIRENs trainable by ensuring
-    stable gradient flow.$^1$
+    stable gradient flow.[^1]
 
 ## 2.3 The Power-Enhanced SkipResNet (SQR-SkipResNet) Formulation
 
@@ -261,15 +261,15 @@ resolve. $\text{LayerNorm}$ ensures this term remains bounded.
   ----------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   Backbone                SQR-SkipResNet with SIREN layers                                                                                                                                                                                  Superior stability and convergence for non-smooth dynamics, ideal for modeling close encounters in chaotic systems.
   Depth                   12 hidden layers (6 SQR-SkipResNet blocks)                                                                                                                                                                        Provides a good balance between the expressive power needed for chaotic dynamics and the trainability on modest hardware.
-  Width                   256 neurons/layer                                                                                                                                                                                                 A strong default that balances model expressivity and computational cost, avoiding the diminishing returns of excessively wide layers.$^1$
-  Activation              $\sin(\mathrm{x})$ (SIREN)                                                                                                                                                                                        The $\mathrm{C}^\infty$-smoothness is mathematically essential for accurately calculating the second-order derivatives required in the physics loss.$^1$
+  Width                   256 neurons/layer                                                                                                                                                                                                 A strong default that balances model expressivity and computational cost, avoiding the diminishing returns of excessively wide layers.[^1]
+  Activation              $\sin(\mathrm{x})$ (SIREN)                                                                                                                                                                                        The $\mathrm{C}^\infty$-smoothness is mathematically essential for accurately calculating the second-order derivatives required in the physics loss.[^1]
   LayerNorm               elementwise_affine=True, eps=1e-5                                                                                                                                                                                 Stabilizes skip path gradients without restricting feature learning. Applied only to odd layers.
-  first_omega_0           30                                                                                                                                                                                                                A high initial frequency injects a high-frequency basis into the network, helping it overcome spectral bias from the outset.$^1$
-  hidden_omega_0          1                                                                                                                                                                                                                 This value is used within the principled weight initialization formula for hidden layers to ensure a stable distribution of activations, enabling deep network training.$^1$
-  Weight Init. (First)    $\mathrm{U}\left[-\frac{1}{n_{\text{in}}}, \frac{1}{n_{\text{in}}}\right]$                                                                                                                                        The mathematically-derived initialization for the first SIREN layer to create a random Fourier feature mapping.$^1$
-  Weight Init. (Hidden)   $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$   The principled initialization for all subsequent SIREN layers, designed to preserve activation variance and enable stable training of deep sinusoidal networks.$^1$
-  Skip Cadence            Alternating (per SQR SkipResNet)                                                                                                                                                                                  The alternating pattern of plain and power-enhanced residual layers effectively balances feature transformation and stable gradient flow.$^1$
-  Power Term (p)          2 (element-wise square)                                                                                                                                                                                           Empirical results demonstrate that $p=2$ provides significant improvements in stability and accuracy without excessive computational overhead.$^1$
+  first_omega_0           30                                                                                                                                                                                                                A high initial frequency injects a high-frequency basis into the network, helping it overcome spectral bias from the outset.[^1]
+  hidden_omega_0          1                                                                                                                                                                                                                 This value is used within the principled weight initialization formula for hidden layers to ensure a stable distribution of activations, enabling deep network training.[^1]
+  Weight Init. (First)    $\mathrm{U}\left[-\frac{1}{n_{\text{in}}}, \frac{1}{n_{\text{in}}}\right]$                                                                                                                                        The mathematically-derived initialization for the first SIREN layer to create a random Fourier feature mapping.[^1]
+  Weight Init. (Hidden)   $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$   The principled initialization for all subsequent SIREN layers, designed to preserve activation variance and enable stable training of deep sinusoidal networks.[^1]
+  Skip Cadence            Alternating (per SQR SkipResNet)                                                                                                                                                                                  The alternating pattern of plain and power-enhanced residual layers effectively balances feature transformation and stable gradient flow.[^1]
+  Power Term (p)          2 (element-wise square)                                                                                                                                                                                           Empirical results demonstrate that $p=2$ provides significant improvements in stability and accuracy without excessive computational overhead.[^1]
   Output Activation       None (Linear)                                                                                                                                                                                                     The final layer must be linear to allow the predicted positions to take on any real value required by the physical system.
 
   : Table 1: Architectural hyperparameters of the SQR-SkipResNet-SIREN backbone
@@ -323,7 +323,7 @@ trajectory defined by a given set of initial conditions. While Mean
 Squared Error (MSE) is a common choice, Mean Absolute Error (MAE) is
 often more robust to the occasional large deviations or outliers that
 can occur in chaotic simulations. For this reason, the data fidelity
-loss is defined using the L1 norm$^1$:
+loss is defined using the L1 norm[^1]:
 
 The data fidelity loss is defined using the L1 norm on the **scaled
 positions**:
@@ -529,7 +529,7 @@ like the $\mathrm{N}$-body problem, the total energy is one such
 conserved quantity. The energy loss term is designed to combat the
 long-term energy drift that can plague standard PINN models by
 explicitly penalizing deviations from this fundamental conservation
-law.$^1$
+law.[^1]
 
 The total energy of the $\mathrm{N}$-body system, its Hamiltonian
 $H_{\text{total}}$, is the sum of the total kinetic energy $(T)$ and the
@@ -731,7 +731,7 @@ The network architecture is simplified and physical consistency is
 hard-coded by predicting only positions and deriving all other kinematic
 quantities via automatic differentiation (AD). This is a core design
 principle of PINNs, supported by established frameworks like
-DeepXDE.$^{14}$
+DeepXDE.[^14]
 
 The final layer of the SQR-SkipResNet-SIREN network is a standard linear
 layer without any activation function. This is crucial as it allows the
@@ -746,7 +746,7 @@ directly. Instead, these kinematic quantities are derived from the
 position outputs using AD with respect to the time input, $t$. The
 velocity vector is computed as the first-order derivative of the
 position vector, and the acceleration vector is computed as the
-second-order derivative$^1$:
+second-order derivative[^1]:
 $$\mathrm{v}_\theta(\mathrm{t}) = \frac{\mathrm{d} \mathrm{r}_\theta(\mathrm{t})}{\mathrm{d} \mathrm{t}} \quad \text{and} \quad \mathrm{a}_\theta(\mathrm{t}) = \frac{\mathrm{d}^2 \mathrm{r}_\theta(\mathrm{t})}{\mathrm{d} \mathrm{t}^2}$$
 
 By computing derivatives via AD, the fundamental kinematic relationships
@@ -814,25 +814,25 @@ be clearly defined.
 
   : Table 2: Consolidated Implementation Blueprint Summary
 
-# Bibliography
+## Footnotes
 
-1. Power-enhanced ResNet for Function Approximation.pdf
-2. PIG: PHYSICS-INFORMED GAUSSIANS AS ADAPTIVE PARAMETRIC MESH REPRESENTATIONS - OpenReview, accessed June 25, 2025, <https://openreview.net/pdf/ba580795154cc26f5abe3ab4feab161a5246c2f3.pdf>
-3. PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://www.researchgate.net/publication/386575809_PIG_Physics-Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations>
-4. PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://openreview.net/forum?id=y5B0ca4mit>
-5. Implicit Neural Representations with Periodic Activation Functions, accessed June 25, 2025, <http://arxiv.org/pdf/2006.09661>
-6. Implicit Neural Representations with Periodic Activation Functions - NIPS, accessed June 25, 2025, <https://proceedings.neurips.cc/paper/2020/file/53c04118df112c13a8c34b38343b9c10-Paper.pdf>
-7. jaeminoh/Siren PINNs: Solving various PDEs by employing Siren, with JAX implementation., accessed June 25, 2025, <https://github.com/jaeminoh/Siren_PINNs>
-8. Implicit Neural Representations with Periodic Activation Functions - Vincent Sitzmann, accessed June 25, 2025, <https://www.vincentsitzmann.com/siren/>
-9. Implicit Neural Representations with Periodic Activation Functions | NeurIPS 2020, accessed June 25, 2025, <https://www.computationalimaging.org/publications/siren/>
-10. Gentle Introduction to SIREN - Nail Ibrahimli - TU Delft 3D Geoinformation, accessed June 25, 2025, <https://3d.bk.tudelft.nl/nail/siren/>
-11. Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - arXiv, accessed June 25, 2025, <https://arxiv.org/html/2310.15690v2>
-12. Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/382109760_Power-Enhanced_Residual_Network_for_Function_Approximation_and_Physics-Informed_Inverse_Problems>
-13. Physics-Informed with Power-Enhanced Residual Network for Interpolation and Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/374946733_Physics-Informed_with_Power-Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems>
-14. Software | PNNL, accessed June 25, 2025, <https://www.pnnl.gov/projects/philms/software>
-15. lululxvi/deepxde: A library for scientific machine learning and physics-informed learning - GitHub, accessed June 25, 2025, <https://github.com/lululxvi/deepxde>
-16. DeepXDE: A Deep Learning Library for Solving Differential Equations | SIAM Review - myqcloud.com, accessed June 25, 2025, <https://pdf-1307664364.cos.ap-chengdu.myqcloud.com/%E8%AE%BA%E6%96%87%E5%8F%82%E8%80%83/PINN/DeepXDE-%20A%20Deep%20Learning%20Library%20for%20Solving%20Differential%20Equations.pdf>
-17. omniscientoctopus/Physics-Informed-Neural-Networks: Investigating PINNs - GitHub, accessed June 25, 2025, <https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
+[^1]: Power-enhanced ResNet for Function Approximation.pdf
+[^2]: PIG: PHYSICS-INFORMED GAUSSIANS AS ADAPTIVE PARAMETRIC MESH REPRESENTATIONS - OpenReview, accessed June 25, 2025, <https://openreview.net/pdf/ba580795154cc26f5abe3ab4feab161a5246c2f3.pdf>
+[^3]: PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://www.researchgate.net/publication/386575809_PIG_Physics-Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations>
+[^4]: PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://openreview.net/forum?id=y5B0ca4mit>
+[^5]: Implicit Neural Representations with Periodic Activation Functions, accessed June 25, 2025, <http://arxiv.org/pdf/2006.09661>
+[^6]: Implicit Neural Representations with Periodic Activation Functions - NIPS, accessed June 25, 2025, <https://proceedings.neurips.cc/paper/2020/file/53c04118df112c13a8c34b38343b9c10-Paper.pdf>
+[^7]: jaeminoh/Siren PINNs: Solving various PDEs by employing Siren, with JAX implementation., accessed June 25, 2025, <https://github.com/jaeminoh/Siren_PINNs>
+[^8]: Implicit Neural Representations with Periodic Activation Functions - Vincent Sitzmann, accessed June 25, 2025, <https://www.vincentsitzmann.com/siren/>
+[^9]: Implicit Neural Representations with Periodic Activation Functions | NeurIPS 2020, accessed June 25, 2025, <https://www.computationalimaging.org/publications/siren/>
+[^10]: Gentle Introduction to SIREN - Nail Ibrahimli - TU Delft 3D Geoinformation, accessed June 25, 2025, <https://3d.bk.tudelft.nl/nail/siren/>
+[^11]: Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - arXiv, accessed June 25, 2025, <https://arxiv.org/html/2310.15690v2>
+[^12]: Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/382109760_Power-Enhanced_Residual_Network_for_Function_Approximation_and_Physics-Informed_Inverse_Problems>
+[^13]: Physics-Informed with Power-Enhanced Residual Network for Interpolation and Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/374946733_Physics-Informed_with_Power-Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems>
+[^14]: Software | PNNL, accessed June 25, 2025, <https://www.pnnl.gov/projects/philms/software>
+[^15]: lululxvi/deepxde: A library for scientific machine learning and physics-informed learning - GitHub, accessed June 25, 2025, <https://github.com/lululxvi/deepxde>
+[^16]: DeepXDE: A Deep Learning Library for Solving Differential Equations | SIAM Review - myqcloud.com, accessed June 25, 2025, <https://pdf-1307664364.cos.ap-chengdu.myqcloud.com/%E8%AE%BA%E6%96%87%E5%8F%82%E8%80%83/PINN/DeepXDE-%20A%20Deep%20Learning%20Library%20for%20Solving%20Differential%20Equations.pdf>
+[^17]: omniscientoctopus/Physics-Informed-Neural-Networks: Investigating PINNs - GitHub, accessed June 25, 2025, <https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
 
 ---
 
