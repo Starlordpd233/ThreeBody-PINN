@@ -1,4 +1,4 @@
-Optimization of Data Validation Protocols for Causal Physics-Informed Learning in Chaotic N-Body Regimes
+**Optimization of Data Validation Protocols for Causal Physics-Informed Learning in Chaotic N-Body Regimes**
 
 **Research Report**
 
