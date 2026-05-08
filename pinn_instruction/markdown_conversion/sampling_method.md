@@ -111,7 +111,12 @@ An optional global scaling factor $s$ can be applied to all positions and veloci
 When enabled, positions scale by $s$ and velocities by $s$. **Impact on Virial Ratio:** This changes $Q = 2T / |U|$ by a factor of $s^3$ (kinetic energy scales as $s^2$, potential as $s^{-1}$). Disable if preserving virial equilibrium is required.
 
 #### Velocity Sampling
-The next three Sobol coordinates $(u_4, u_5, u_6)$ are mapped to a 3D velocity vector $\mathbf{v}$ using inverse transform sampling from a normal distribution with mean 0 and standard deviation $\sigma = \text{velocity\_scale}$ (default 0.1): $$v_i = \Phi^{-1}(u_{3+i};\,\mu=0,\,\sigma=\text{velocity\_scale}),\quad i=1,2,3.$$ The sampler then enforces total momentum conservation by adjusting the velocity of the fixed particle so that $\sum_i m_i \mathbf{v}_i = 0$.
+
+The next three Sobol coordinates $(u_4, u_5, u_6)$ are mapped to a 3D velocity vector $\mathbf{v}$ using inverse transform sampling from a normal distribution with mean 0 and standard deviation $\sigma = \text{velocity\_scale}$ (default 0.1):
+
+$$v_i = \Phi^{-1}(u_{3+i};\,\mu=0,\,\sigma=\text{velocity\_scale}),\quad i=1,2,3.$$
+
+The sampler then enforces total momentum conservation by adjusting the velocity of the fixed particle so that $\sum_i m_i \mathbf{v}_i = 0$.
 
 ## Enhancements to the Sampling Algorithm
 
@@ -181,7 +186,9 @@ The pre-screening script evaluates each IC against several criteria to determine
 
 4.  **Angular Momentum:** Optionally filters for ICs with total angular momentum $|\sum_i m_i\,\mathbf r_i \times \mathbf v_i|$ above `MIN_ANGULAR_MOMENTUM` (default 0.0), or using adaptive percentile thresholds if enabled.
 
-5.  **Adaptive Threshold Computation:** To enhance the robustness and adaptability of the pre-screening filters, adaptive thresholds for Virial Ratio and Angular Momentum are computed based on a representative subset of the dataset. The sample size for adaptive threshold calculation is dynamically set to ensure statistical robustness: $$sample\_size = \min(1000, \max(200, \lvert 0.05 \times total\_files \rvert))$$
+5.  **Adaptive Threshold Computation:** To enhance the robustness and adaptability of the pre-screening filters, adaptive thresholds for Virial Ratio and Angular Momentum are computed based on a representative subset of the dataset. The sample size for adaptive threshold calculation is dynamically set to ensure statistical robustness:
+
+    $$sample\_size = \min(1000, \max(200, \lvert 0.05 \times total\_files \rvert))$$
 
     Thresholds are determined using percentile-based computations from these samples:
 
