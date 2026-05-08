@@ -444,9 +444,9 @@ The detailed batch construction algorithm from `CTL-instruction-final.tex` is fo
 
 1.  **Replay and Lookahead Sampling:** Each mini-batch is intelligently composed to facilitate stable learning and smooth transitions between stages.
 
-    - **Replay (\~95% of batch):** The majority of trajectories in a batch are sampled from the cumulative set of all data from the current stage and all previous stages. This prevents \"catastrophic forgetting\" by ensuring the model continually rehearses previously learned concepts.
+    - **Replay (~95% of batch):** The majority of trajectories in a batch are sampled from the cumulative set of all data from the current stage and all previous stages. This prevents \"catastrophic forgetting\" by ensuring the model continually rehearses previously learned concepts.
 
-    - **Lookahead (\~5% of batch):** A small fraction of trajectories are sampled from the next curriculum stage. This \"previews\" more difficult examples, effectively warming up the network for the upcoming stage transition and smoothing the loss landscape.
+    - **Lookahead (~5% of batch):** A small fraction of trajectories are sampled from the next curriculum stage. This \"previews\" more difficult examples, effectively warming up the network for the upcoming stage transition and smoothing the loss landscape.
 
 2.  **Hybrid Time Point Sampling (Importance Sampling):** For each trajectory selected for the batch, the collocation points ($t_{\text{col}}'$) are sampled using a hybrid strategy to focus computational effort on dynamically significant regions:
 
