@@ -168,7 +168,7 @@ The ICs generated in Stage 1 are diverse but may still contain many that are dyn
 
 - **Dataset handling:** The script loops over both hierarchical and quasi-random sampling directories and skips already-processed IC files based on recorded hashes.
 
-The pre-screening script uses a fast, low-precision N-body integrator (a JIT-compiled Leapfrog integrator) to simulate each IC for a short period (e.g., $t_{\max}=1.0$). Its goal is not to produce an accurate trajectory but to quickly identify ICs that exhibit signs of instability, such as:
+The pre-screening script uses a fast, low-precision N-body integrator (a JIT-compiled Leapfrog integrator) to simulate each IC for a short period (e.g., $t_{max}=1.0$). Its goal is not to produce an accurate trajectory but to quickly identify ICs that exhibit signs of instability, such as:
 
 - Rapid energy non-conservation.
 
