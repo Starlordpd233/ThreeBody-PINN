@@ -92,7 +92,7 @@ The research suggests that the optimal strategy is a hybrid **Staged Gate Protoc
 
 <a id="tab:assessment_strategies"></a>
 
-| Feature              | Pre-Training Validation (Static) | Trial Training (Dynamic) | Staged Gate Protocol (Hybrid) |
+| **Feature**          | **Pre-Training Validation (Static)** | **Trial Training (Dynamic)** | **Staged Gate Protocol (Hybrid)** |
 |----------------------|----------------------------------|--------------------------|-------------------------------|
 | **Primary Metric**   | Physical Conservation, Continuity | Convergence Rate, Loss Value | Composite Score |
 | **Computational Cost** | Low (CPU) | High (GPU) | Optimized (CPU first, GPU second) |
