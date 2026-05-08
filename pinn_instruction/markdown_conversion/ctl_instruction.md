@@ -489,9 +489,7 @@ are computed for input vector universality.
     $$\mathbf I \;=\; \sum_{i=1}^{3} m_i \Big( \lVert \mathbf r'_i \rVert^2 \,\mathbf I_{3\times 3}
                                             - \mathbf r'_i (\mathbf r'_i)^{\!\top} \Big).$$
     We use its trace as a rotationally invariant scalar and normalize by
-    the characteristic scale of
-    Item [\[item:lnorm\]](#item:lnorm){reference-type="ref"
-    reference="item:lnorm"}:
+    the characteristic scale of the normalized angular momentum (see above):
     $$I_{\mathrm{norm}} \;=\; \frac{\mathrm{tr}(\mathbf I)}{M_{\mathrm{tot}}\, r_{\mathrm{char}}^{\,2}}.$$
     (This quantity is not required for default stage gating but is
     retained as a robust, scale‑consistent descriptor of spatial
@@ -656,9 +654,7 @@ are computed for input vector universality.
 
 Unless otherwise specified, use double precision for all invariants. The
 softening $\varepsilon=10^{-10}$ in
-Item [\[item:eqs\]](#item:eqs){reference-type="ref"
-reference="item:eqs"} is a safe default in scaled units and *does not*
-enter $s_{\min}$ or any denominator besides $V$.
+softening $varepsilon=10^{-10}$ in the total energy definition (see above) is a safe default in scaled units and *does not*
 
 #### Sanity checks (quick tests).
 
