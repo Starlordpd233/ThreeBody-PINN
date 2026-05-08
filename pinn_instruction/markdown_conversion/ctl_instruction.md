@@ -267,7 +267,7 @@ The data pipeline begins with two types of raw text files for each
 simulation instance: one specifying the initial conditions and another
 containing the time-series output from the Brutus N-body integrator.
 
-#### Initial Conditions ([ic_hierarchical\_\*.txt](ic_hierarchical_*.txt){.uri})
+#### Initial Conditions (ic_hierarchical_\*.txt)
 
 This is a 3-line text file containing 21 space-delimited,
 double-precision floating-point numbers. These numbers represent the
@@ -283,7 +283,7 @@ vector for the PINN.
 1.3490330328149076 -0.9689510833073296 0.007710980988132066 -0.015155493143494857 0.003082579960339502 -0.9723812422861391 0.01317780514703599 0.3068019185652623 -0.6619848581497906 -0.005365500630046534 0.0070754473066994734 0.002840479118371817 1.3293141254107488 -0.013692746386640507 1.3441650486198304 1.1354206743022845 -0.0016313630906544987 0.002882937931195984 0.00441920746565285 0.6549777259648452 0.001846566609351255
 ```
 
-#### Brutus Simulation Output ([brutus_hierarchical\_\*.txt](brutus_hierarchical_*.txt){.uri})
+#### Brutus Simulation Output (brutus_hierarchical_\*.txt)
 
 This is a time-series data file that provides the ground-truth
 trajectories for the data-fidelity loss term, $\mathcal{L}_{data}$. The
