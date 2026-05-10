@@ -9,6 +9,81 @@ The curriculum follows a seven-stage progression (Stages 0-6) from stable hierar
 **Readiness assessment:** Two critical blockers (B-07 batch construction; B-08 data-fidelity/collocation conflation) plus one unresolved architectural decision (causal training mode: per-time-step causal weighting vs. global ALM) must be addressed before implementation. An additional open decision on the `s_min` collision-criterion frame must be resolved for consistency between curriculum gating and training loss evaluation.
 
 ---
+## Decisions Requiring Human Approval
+
+> These items require explicit human approval before implementation. Items tagged CRITICAL alter the locked framework methodology.
+
+### [CRITICAL] D-04 — Causal training mode
+
+**Status:** Awaiting human approval
+**Source:** issues/03-curriculum-and-training-loop.md, "Open Decisions" section
+**Conflict with current SOT:** Yes for Option A or C; No for Option B
+
+What the SOT says today:
+- `ctl_instruction.md` "Phase 2a: Adam-driven Exploration" (lines 934-968) defines mini-batch construction with 50% uniform sampling from [0,T] and 50% acceleration-weighted sampling — this is global sampling with no causal weighting.
+- `review_of_framework.md` §5.1-5.2 ("Unifying Data and Collocation Point Sampling") describes a single forward pass with global ALM, confirming Option B as the SOT default.
+- The Causal_Trainingmismatch_resolution_blueprint.md proposes Option C (time-windowed causal-ALM hybrid) as a reconciliation, but this has not been adopted into the SOT.
+
+What is being asked:
+- Choose between global sampling + ALM (current SOT), per-time-step causal weighting, or a time-windowed causal-ALM hybrid.
+
+Options on the table:
+- Option A: Per-time-step causal weighting — applies exponential weights w_i ∝ exp(-λ Σ_{j<i} L_j) to enforce strict "arrow of time." Risk: "Causal Firewall" — an early stiffness spike drives all subsequent weights to zero.
+- Option B (current SOT): Global sampling + ALM — samples time points globally from [0,T], no causal weighting. ALM has complete view of constraint violations. Simpler to implement.
+- Option C: Time-Windowed Causal-ALM Hybrid — partitions [0,T] into overlapping causal windows with localized ALM, hard gating, and state propagation. Most complex but theoretically resolves both failure modes.
+
+**Risk disclosure for Option B (SOT default):** the issue doc flags a known risk of global sampling — "temporal causality violation: late-time gradients propagate through unresolved early-time dynamics." The human approving Option B should be aware this risk is being accepted rather than mitigated. Option C requires partitioning [0,T] into causal windows, localized ALM state, hard convergence gates between windows, and state propagation — an end-to-end rewrite of Phase 2 that touches the DataLoader (per-window batches), checkpointing, and stage transition criteria.
+
+Why this needs YOU (the framework owner):
+- This is the most consequential training-loop decision. Option C is an architecture-level rewrite touching the DataLoader, batch constructor, ALM state management, and stage transition criteria. Option B is the current SOT but carries a known temporal-causality risk. The choice determines the fundamental training paradigm.
+
+Cross-link: see [Open Decisions](#open-decisions) for full rationale.
+
+### [ROUTINE] D-05 — s_min frame for collision criterion
+
+**Status:** Awaiting human approval
+**Source:** issues/03-curriculum-and-training-loop.md, "Open Decisions" section
+**Conflict with current SOT:** No — the SOT is already internally consistent on s_min
+
+What the SOT says today:
+- `ctl_instruction.md` Step 3 item 1 (line 456): defines `s_min` from "true pairwise separations (no softening)" — explicitly an unsoftened geometric quantity.
+- `ctl_instruction.md` Stage 6 gate (line 620 in issue doc): uses unsoftened `s_min` for the collision criterion.
+- `review_of_framework.md` §2.2 (lines 185-191): mandates `eps_soft = 10^-5` for ALL loss function calculations (physics residual and energy loss), a separate concern from the geometric `s_min`.
+
+What is being asked:
+- Confirm that the unsoftened `s_min` is used for the curriculum stage gate (geometric criterion) while `eps_soft = 10^-5` is used inside the training-loss collision criterion (numerical regularization). The SOT already makes this split consistently.
+
+Options on the table:
+- Option A (matches SOT): Use unsoftened `s_min` for curriculum stage gate; use `max(s_min, eps_soft=1e-5)` for training loss collision criterion; always log unsoftened value for diagnostics.
+- Option B: Use softened `max(s_min, eps)` everywhere.
+
+Why this needs YOU (the framework owner):
+- Methodology impact: zero. The SOT is already internally consistent — `s_min` is explicitly unsoftened as a geometric quantity while loss potentials use softening. This is documentation cleanup to make the split explicit. The epsilon-strategy contradiction that was previously bundled into D-05 is now a separate first-class decision (D-06).
+
+Cross-link: see [Open Decisions](#open-decisions) for full rationale.
+
+### [MAJOR] D-06 — Epsilon strategy across the framework
+
+**Status:** Awaiting human approval
+**Source:** issues/03-curriculum-and-training-loop.md (extracted from D-05's "bonus disclosure" as a first-class decision)
+**Conflict with current SOT:** Yes — SOT is internally contradictory; one of these three must win
+
+What the SOT says today:
+- `review_of_framework.md` §2.2 (lines 185-191) mandates `eps_soft = 10^-5` for ALL calculations and provides a substantive scientific argument against 1e-10: *"a value of eps = 10^-10 is numerically indistinguishable from zero for standard double-precision floating-point arithmetic. It would provide virtually no protection against the divergences it is intended to prevent."*
+- `ctl_instruction.md` Step 3 item 1 (line 458) uses `eps = 10^-10` in the potential energy calculation for invariant computation. The justification at lines 656-658 is truncated/garbled: *"The softening eps=10^-10 in... softening varepsilon=10^-10 in the total energy definition (see above) is a safe default in scaled units and does not"* — the sentence is incomplete, so the SOT's justification for 1e-10 was never finished.
+
+What is being asked:
+- Resolve the 5-order-of-magnitude contradiction between two SOT documents on the gravitational softening parameter.
+
+Options on the table:
+- Option A: `eps = 1e-5` everywhere (matches review_of_framework.md §2.2 SOT). Argument: numerically sensible for double-precision arithmetic. Trade-off: changes invariant computation (E, Q, stage assignment) to use softened physics.
+- Option B (Dual-Context): `eps = 1e-10` for static invariants (CPU/float64) and `eps_soft = 1e-5` for dynamic loss (GPU/float32). Argument: separates ground-truth physical precision from GPU numerical regularization. Trade-off: curriculum gate and loss function operate on different physics.
+- Option C: Tighten everything to `1e-10`. review_of_framework.md §2.2 argues against this: *"numerically indistinguishable from zero for standard double-precision floating-point arithmetic."*
+
+Why this needs YOU (the framework owner):
+- This contradiction spans multiple framework components: invariant computation (Step 3), stage assignment, physics residual loss, and energy loss. The review_of_framework.md provides a strong scientific argument against Option C, while the ctl_instruction.md's justification for 1e-10 is truncated and incomplete (lines 656-658). You must weigh the scientific argument against the dual-context architectural rationale.
+
+Cross-link: see [Open Decisions](#open-decisions) and the "Dual-Context Epsilon Strategy" section in 01-architecture-and-physics-foundations.md for full rationale.
 
 ## Confirmed Findings
 
