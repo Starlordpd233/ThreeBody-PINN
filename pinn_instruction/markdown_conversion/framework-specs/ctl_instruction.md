@@ -352,7 +352,7 @@ pinn.]{style="color: blue"}
     (`t, N=3, t_cpu`) followed by three lines of body states
     (`m, x, y, z, vx, vy, vz`). Iterate through blocks, skipping empty
     lines and handling an optional trailing 'Result:' line (which may
-    contain energies like E_initial, E_final, dE/E---extract these into
+    contain energies like E_initial, E_final, dE/E—extract these into
     metadata). Store times as (T,), positions as (T,3,3), velocities as
     (T,3,3), and any metadata (e.g., cpu_times, energies). Gracefully
     handle short/incomplete files (e.g., fewer than 2 snapshots) by
