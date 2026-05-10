@@ -20,6 +20,34 @@ The pipeline produces Brutus outputs at three discrete `dt_out` values: 0.01 (go
 
 ---
 
+## Decisions Requiring Human Approval
+
+> These items require explicit human approval before implementation. Items tagged CRITICAL alter the locked framework methodology.
+
+### [ROUTINE] D-03 — Processed training data format (HDF5 vs .npy vs txt/json)
+
+**Status:** Awaiting human approval
+**Source:** issues/02-data-pipeline-and-validation.md, "Open Decisions" section
+**Conflict with current SOT:** No — the SOT already recommends HDF5/.npy
+
+What the SOT says today:
+- `ctl_instruction.md` Step 1 item 6 explicitly recommends HDF5 or .npy for processed training data.
+- `data-processing-pipeline-full.py` already implements HDF5 output.
+- The SOT does not specify txt/json as an alternative — that question was raised only in the issue doc.
+
+What is being asked:
+- Confirm HDF5 as the primary format, with .npy as acceptable alternative per the SOT, and optionally add JSON export for inspection only.
+
+Options on the table:
+- Option A: Keep HDF5 as primary (matches SOT and current implementation).
+- Option B: Add .npy as acceptable alternative (matches SOT's "HDF5 or .npy" recommendation).
+- Option C (supplemental): Add optional JSON export for inspection and debugging only — not for training.
+
+Why this needs YOU (the framework owner):
+- Methodology impact: zero. This is a storage format decision that does not alter any methodology. The SOT already recommends HDF5/.npy. The only new element is the optional JSON export for human inspection, which is additive and non-breaking.
+
+Cross-link: see [Open Decisions](#open-decisions) for full rationale.
+
 ## Confirmed Findings
 
 ### BLOCKING (Must resolve before training)
