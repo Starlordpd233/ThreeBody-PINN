@@ -10,6 +10,58 @@ The architecture baseline is an SQR-SkipResNet-SIREN hybrid: 12 hidden layers of
 
 ---
 
+## Decisions Requiring Human Approval
+
+> These items require explicit human approval before implementation. Items tagged CRITICAL alter the locked framework methodology.
+
+### [CRITICAL] D-01 — 14-D input vector composition
+
+**Status:** Awaiting human approval
+**Source:** issues/01-architecture-and-physics-foundations.md, "Open Decisions" section
+**Conflict with current SOT:** Yes — both Option A and Option B differ from the current SOT
+
+What the SOT says today:
+- `review_of_framework.md` §2.3 table (lines 208-225) definitively specifies a 13-component IC vector with **shape invariants (I_1, I_2, I_3) PLUS velocity angles (theta_1, theta_2)** — the angle between r' and v' for each body. This is neither Option A nor Option B.
+- `ctl_instruction.md` Step 4 (lines 670-818) lists an 11-component IC (missing velocity angles entirely) and labels the total "12-dimensional input vector" — a pre-existing inconsistency documented as SI-CTL-001 below.
+
+What is being asked:
+- Which 5 components occupy the orientation/shape slots in the 13-component IC vector?
+
+Options on the table:
+- Option A: Trigonometric encoding — 5 values [sin(theta_L), cos(theta_L), sin(phi_L), cos(phi_L), sin(gamma_orb)] from spherical coordinates of L_hat and orbital phase. (Audit B-04, §5.3)
+- Option B: Shape invariants + direction cosines — 5 values [I_1, I_2, I_3, cos(theta), sin(theta)] where theta is the angle between L_hat and the z-axis. (Causal_Trainingmismatch blueprint)
+- Option C (current SOT): Shape invariants + velocity angles — 5 values [I_1, I_2, I_3, theta_1, theta_2] where theta_i is the angle between r'_i and v'_i. (review_of_framework.md §2.3 table)
+
+**Cross-reference SI-CTL-001:** `ctl_instruction.md` already documents a dimension-count inconsistency (Source Issue SI-CTL-001). The IC vector listing in Step 4 (line 802) shows 11 components labelled "11-component IC" while the code listing (lines 716-740) and `review_of_framework.md` §2.3 table both specify 13 IC components (14D total with time). The dimension-count bug is a symptom of the same underlying ambiguity about what goes into the IC vector.
+
+Why this needs YOU (the framework owner):
+- Changing the IC vector composition alters the first Linear layer's input contract, the canonical-ordering logic, the normalization formulas, and the SIREN first_omega0=30 spectral tuning. This is the most consequential single decision in the framework. The issue doc frames Option A vs Option B as a 2-way choice, but the SOT already defines a third option (shape invariants + velocity angles) that neither matches. You must decide among three alternatives.
+
+Cross-link: see [Open Decisions](#open-decisions) for full rationale.
+
+### [ROUTINE] D-02 — I_norm: raw ratio vs tanh-wrapped
+
+**Status:** Awaiting human approval
+**Source:** issues/01-architecture-and-physics-foundations.md, "Open Decisions" section
+**Conflict with current SOT:** No — both forms coexist in the SOT with distinct purposes
+
+What the SOT says today:
+- `ctl_instruction.md` Step 3 (line 443): defines `I_norm` as part of the invariants tuple computed from scaled ICs.
+- `ctl_instruction.md` Step 4 normalization code (line 739): applies `I_norm = np.tanh(I_norm)` for the input vector.
+- `review_of_framework.md` §2.3 table (line 223): specifies `tanh(I_trace / (M_total * r_char^2))` as the normalization formula.
+
+What is being asked:
+- Confirm that the tanh-wrapped form is canonical for the input vector, and the raw ratio serves as the intermediate physics descriptor. This is a documentation reconciliation, not a methodology change.
+
+Options on the table:
+- Option A: Adopt the tanh-wrapped form as canonical (matches review_of_framework.md §2.3 and ctl_instruction.md Step 4 normalization listing).
+- Option B: Keep the raw ratio in the CTL text and add a note that the tanh wrapper is applied only for neural network input.
+
+Why this needs YOU (the framework owner):
+- Methodology impact: zero. The SOT is already internally consistent — both forms coexist with distinct purposes (raw ratio for physics descriptor, tanh-wrapped for neural network input). This is documentation cleanup to ensure the CTL text and normalization listing are reconciled in the LaTeX revision phase.
+
+Cross-link: see [Open Decisions](#open-decisions) for full rationale.
+
 ## Confirmed Findings
 
 ### BLOCKING (Must resolve before implementation)
