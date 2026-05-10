@@ -34,9 +34,9 @@
 - **PINN input vector and staging logic**: `pinn/data-processing-pipeline-full.py`
 - **PINN architecture implementation**: `pinn/basic_architecture.py`
 - **Sampling and CTL methodology (reference docs)**:
-  - `pinn_instruction/markdown_conversion/pandoc_conversion/sampling_method_instruction.md`
-  - `pinn_instruction/markdown_conversion/pandoc_conversion/CTL-instruction-final.md`
-  - `pinn_instruction/markdown_conversion/pandoc_conversion/PINN_architecture_plan.md`
+  - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
+  - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
+  - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
 
 ### 2.2 Project Overview
 This repository implements a complete three-body simulation and CTL-PINN training stack:
