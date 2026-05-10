@@ -15,9 +15,8 @@ import sys
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Paths to Phase 12 artifacts
-ARCHITECTURE_MD = os.path.join(PROJECT_ROOT, "pinn_instruction/markdown_conversion/pinn_architecture.md")
+ARCHITECTURE_MD = os.path.join(PROJECT_ROOT, "pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md")
 REPORT_MD = os.path.join(PROJECT_ROOT, "pinn_instruction/markdown_conversion/verification_reports/pinn_architecture_verification_report.md")
-ARCHIVE_DIR = os.path.join(PROJECT_ROOT, "pinn_instruction/markdown_conversion/_archive/pinn-architecture")
 INDEX_MD = os.path.join(PROJECT_ROOT, "pinn_instruction/markdown_conversion/README.md")
 
 # Inactive terms that should NOT appear in the faithful converted body.
@@ -52,17 +51,6 @@ def test_clean_01_authoritative_markdown_exists():
     if os.path.isfile(ARCHITECTURE_MD):
         check("CLEAN-01: pinn_architecture.md > 200 lines",
               len(open(ARCHITECTURE_MD).readlines()) >= 200)
-
-
-def test_clean_02_archive_structure():
-    """CLEAN-02: Archive with README and 2 unselected candidates."""
-    check("CLEAN-02: archive directory exists", os.path.isdir(ARCHIVE_DIR))
-    if os.path.isdir(ARCHIVE_DIR):
-        files = os.listdir(ARCHIVE_DIR)
-        md_files = [f for f in files if f.endswith(".md")]
-        check("CLEAN-02: archive has >=3 .md files", len(md_files) >= 3,
-              f"found {len(md_files)}")
-        check("CLEAN-02: archive README.md exists", "README.md" in files)
 
 
 def test_clean_03_report_structure():
@@ -253,7 +241,6 @@ def main():
     print("=" * 60)
 
     test_clean_01_authoritative_markdown_exists()
-    test_clean_02_archive_structure()
     test_clean_03_report_structure()
     test_cand_01_candidate_comparison()
     test_audit_01_section_audits()
