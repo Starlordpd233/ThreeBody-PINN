@@ -127,7 +127,7 @@ The output of this step is a clean, standardized set of initial conditions (mass
 
 ### Invariant Calculation
 
-For each standardized initial condition, a dedicated function should compute the full suite of physical invariants defined in Section 1.2. This includes: Total Mechanical Energy ($E$), Raw Virial Ratio ($Q_{\text{raw}}$), Normalized Angular Momentum ($L_{\text{norm}}$), Minimum Initial Separation ($s_{\text{min}}$), Shape Invariants ($I_1, I_2, I_3$), and Lyapunov Time ($\tau_L$), estimated from the corresponding Brutus trajectory data using the Rosenstein-style estimator detailed in the project documentation.[5]
+For each standardized initial condition, a dedicated function should compute the full suite of physical invariants defined in "A Lexicon of Difficulty Metrics for the Three-Body Problem" above. This includes: Total Mechanical Energy ($E$), Raw Virial Ratio ($Q_{\text{raw}}$), Normalized Angular Momentum ($L_{\text{norm}}$), Minimum Initial Separation ($s_{\text{min}}$), Shape Invariants ($I_1, I_2, I_3$), and Lyapunov Time ($\tau_L$), estimated from the corresponding Brutus trajectory data using the Rosenstein-style estimator detailed in the project documentation.[5]
 
 ### Correcting for Sampling Artifacts: The Normalized Virial Ratio
 
