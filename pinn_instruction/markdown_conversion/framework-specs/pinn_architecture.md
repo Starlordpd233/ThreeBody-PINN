@@ -851,7 +851,7 @@ These notes are metadata for future reconciliation. They are not part of the fai
 ### SI-PINN-001: Weight Init. (Hidden) formula discrepancy
 
 - **Section:** Section 2 (sqr_skipresnet_siren_backbone) — hyperparameters table, Weight Init. (Hidden) row
-- **Description:** The LaTeX source specifies $\mathrm{U}[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}]$ while the markdown summary table has $\mathrm{U}[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}]$. Since `hidden_omega_0 = 1`, Formula B evaluates to $\mathrm{U}[-\sqrt{6/n_{\text{in}}}, \sqrt{6/n_{\text{in}}}]$ which is the correct SIREN paper formula. Formula A is a different expression and the two are **not equivalent** (they differ by a factor of ~6·n_in/√(6/n_in)). Formula B (from the summary table) should be used as the canonical initialization.
+- **Description:** The LaTeX source table specifies $\mathrm{U}[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}]$ (Formula A) while the LaTeX prose and SIREN paper use $\mathrm{U}[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}]$ (Formula B). The markdown conversion uses Formula B uniformly in both the hyperparameters table and the blueprint summary table. Formula B is the correct SIREN-paper formula; Formula A differs by ~235x for n_in=256, hidden_omega_0=1.
 - **Status:** Documented for future reconciliation
 
 ### SI-PINN-002: Author comments preserved in converted body
