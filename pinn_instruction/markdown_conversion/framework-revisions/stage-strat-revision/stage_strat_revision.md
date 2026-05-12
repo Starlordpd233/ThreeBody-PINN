@@ -5,27 +5,27 @@
 
 ## Contents
 
-- [Part I: Foundational Principles of Data-Driven Curriculum Stratification for Physical Systems](#foundational-principles-of-data-driven-curriculum-stratification-for-physical-systems)
+- [Part I: Foundational Principles of Data-Driven Curriculum Stratification for Physical Systems](#part-i-foundational-principles-of-data-driven-curriculum-stratification-for-physical-systems)
   - [The Rationale for Adaptive Curricula in Physics Simulations](#the-rationale-for-adaptive-curricula-in-physics-simulations)
   - [A Lexicon of Difficulty Metrics for the Three-Body Problem](#a-lexicon-of-difficulty-metrics-for-the-three-body-problem)
   - [Core Techniques for Data-Driven Stratification](#core-techniques-for-data-driven-stratification)
-- [Part II: A Revised Algorithmic Workflow for Stage Stratification](#a-revised-algorithmic-workflow-for-stage-stratification)
+- [Part II: A Revised Algorithmic Workflow for Stage Stratification](#part-ii-a-revised-algorithmic-workflow-for-stage-stratification)
   - [Phase I: Invariant Computation and Feature Engineering](#phase-i-invariant-computation-and-feature-engineering)
   - [Phase II: Exploratory Data Analysis (EDA) and Landscape Mapping](#phase-ii-exploratory-data-analysis-eda-and-landscape-mapping)
   - [Phase III: Deriving Adaptive Stage Criteria - A Hybrid Strategy](#phase-iii-deriving-adaptive-stage-criteria—a-hybrid-strategy)
   - [Phase IV: Final Stage Assignment and Population Balancing](#phase-iv-final-stage-assignment-and-population-balancing)
-- [Part III: Implementation and Validation Protocol](#implementation-and-validation-protocol)
+- [Part III: Implementation and Validation Protocol](#part-iii-implementation-and-validation-protocol)
   - [Reference Implementation in Python](#reference-implementation-in-python)
   - [Advanced Architectural Considerations and Refinements](#advanced-architectural-considerations-and-refinements)
   - [A Protocol for Curriculum Validation](#a-protocol-for-curriculum-validation)
-- [Part IV: Conclusions and Recommendations](#conclusions-and-recommendations)
+- [Part IV: Conclusions and Recommendations](#part-iv-conclusions-and-recommendations)
 - [References](#references)
 
 ## Abstract
 
 This report presents a comprehensive, revised workflow for a data-driven curriculum stratification framework tailored to a Physics-Informed Neural Network (PINN) project for the three-body problem. The proposed methodology moves beyond static, heuristic-based criteria towards an adaptive system that derives its structure from the empirical properties of the simulation dataset itself. This approach, grounded in machine learning best practices, combines dimensionality reduction (PCA), unsupervised clustering (K-Means/GMM), and quantile-based binning to create a robust, interpretable, and effective curriculum. The report details a multi-phase algorithmic workflow, provides reference implementations, and outlines a protocol for empirical validation, aiming to improve training stability and final model accuracy for complex, chaotic dynamical systems.
 
-# Foundational Principles of Data-Driven Curriculum Stratification for Physical Systems
+# Part I. Foundational Principles of Data-Driven Curriculum Stratification for Physical Systems
 
 The training of Physics-Informed Neural Networks (PINNs) on complex, chaotic dynamical systems represents a significant challenge at the intersection of scientific computing and machine learning. A key strategy for improving training stability and final model accuracy is Curriculum Learning (CL), where the model is exposed to training examples in a structured sequence, typically from "easy" to "hard".[1, 2] This report presents a comprehensive, revised workflow for a data-driven curriculum stratification framework tailored to a PINN project for the three-body problem. The proposed methodology moves beyond static, heuristic-based criteria, which have proven brittle, towards an adaptive system that derives its structure from the empirical properties of the simulation dataset itself. This approach is grounded in best practices from machine learning and is designed to be robust, interpretable, and directly implementable.
 
@@ -105,7 +105,7 @@ Using fixed thresholds (e.g., "$\tau_L < 2$") is risky; if the data distribution
 
 This technique is a well-established best practice in curriculum learning for regression and simulation tasks, as it automatically adapts the stage boundaries to the empirical distribution of the data, ensuring a well-proportioned and steadily advancing curriculum.[5]
 
-# A Revised Algorithmic Workflow for Stage Stratification
+# Part II. A Revised Algorithmic Workflow for Stage Stratification
 
 This section details a multi-phase, algorithmic workflow for implementing the data-driven curriculum. The process is designed to be systematic and reproducible, transforming the raw simulation outputs into a final, robust stage assignment for every trajectory in the dataset. The workflow is divided into four phases: (I) Invariant Computation and Feature Engineering, (II) Exploratory Data Analysis, (III) Derivation of Adaptive Stage Criteria, and (IV) Final Stage Assignment and Balancing.
 
@@ -237,7 +237,7 @@ After the initial assignment, it is imperative to check the population of each s
 
 
 
-# Implementation and Validation Protocol
+# Part III. Implementation and Validation Protocol
 
 This part provides the practical tools and procedures required to execute the proposed workflow and validate its effectiveness.
 
@@ -380,7 +380,7 @@ The development of the curriculum does not end with the assignment of stage labe
 
 6.  **Success Criterion:** The curriculum is successful if training proceeds without catastrophic spikes in validation loss upon stage transitions. A manageable increase in loss on newly introduced data, followed by a steady decrease, indicates a well-paced difficulty jump.
 
-# Conclusions and Recommendations
+# Part IV. Conclusions and Recommendations
 
 The analysis presented in this report confirms that the initial fixed-threshold curriculum framework is ill-suited to the empirical realities of the generated dataset. The proposed solution is a complete overhaul of the stage assignment methodology, replacing the static framework with a robust, adaptive, and data-driven workflow.
 
