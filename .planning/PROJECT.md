@@ -156,4 +156,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-09 — Phase 9 complete, v1.2 shipped*
+*Last updated: 2026-05-12 — v1.3 milestone archived and tagged*

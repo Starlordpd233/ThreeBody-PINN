@@ -45,6 +45,10 @@ If the user asks for help or wants to give feedback inform them of the following
   - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
   - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
   - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
+- **Framework revision docs**:
+  - `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md` — Data quality assessment
+  - `pinn_instruction/markdown_conversion/framework-revisions/review-of-framework/review_of_framework.md` — Framework review
+  - `pinn_instruction/markdown_conversion/framework-revisions/stage-strat-revision/stage_strat_revision.md` — Stage strategy revision
 
 ### 2.2 Project Overview
 This repository implements a complete three-body simulation and CTL-PINN training stack:

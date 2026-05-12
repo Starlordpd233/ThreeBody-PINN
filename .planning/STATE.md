@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: completed
-stopped_at: Phase 15.1 complete (2026-05-08)
-last_updated: "2026-05-08T00:00:00Z"
-last_activity: 2026-05-08
+stopped_at: context exhaustion at 76% (2026-05-10)
+last_updated: "2026-05-12T21:05:00.000Z"
+last_activity: 2026-05-12
 progress:
   total_phases: 16
-  completed_phases: 15
-  total_plans: 36
-  completed_plans: 36
+  completed_phases: 16
+  total_plans: 39
+  completed_plans: 39
   percent: 100
 ---
 
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Milestone v1.3 complete — all 6 markdown conversions verified
+**Current focus:** Milestone v1.3 archived — planning next milestone
 
 ## Current Position
 
@@ -66,7 +66,7 @@ Last activity: 2026-05-08
 
 - v1.0: Codebase Cleanup (Phases 1-4) — shipped 2026-03-20
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
-- v1.2: PINN Implementation Readiness (Phase 9) — partial; 3 thematic docs + MIGRATION.md + README.md written, pending final verification
+- v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15) — shipped 2026-05-06
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
@@ -120,7 +120,7 @@ All v1.3 tasks complete.
 
 ### Prerequisites
 
-**v1.2 Phase 9 completion** — Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/original_latex/review-of-framework/issues/`. Remaining: final verification step. This is outside v1.3 scope.
+**v1.2 Phase 9 completion** — Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/`. Verification complete. Markdown conversion reorganization also complete (framework-specs/ vs framework-revisions/ taxonomy).
 
 ### Blockers/Concerns
 
@@ -140,7 +140,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-06T21:35:13Z
-Stopped at: Session resumed, v1.3 artifacts committed, proceeding to Phase 9 discussion
+Last session: 2026-05-10T00:44:37.184Z
+Stopped at: context exhaustion at 76% (2026-05-10)
 Resume file: None
-Next action: Phase 9 (v1.2 PINN Implementation Readiness) — discuss and plan final verification step
+Next action: Plan milestone v1.4 or resume deferred work (PINN training loop, LLM fine-tuning prep)

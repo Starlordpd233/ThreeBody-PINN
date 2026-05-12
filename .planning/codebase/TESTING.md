@@ -16,7 +16,7 @@
 ```bash
 # No standard test commands. The closest equivalents:
 python simulation_data/Data/testing_data/test_pipeline.py        # Integration test
-cd brutus_Newton-main && make && ./test_libs && ./test_lib_data   # Library test
+cd brutus_Newton-main && make && ./test_libs                      # Library test
 ```
 
 ## Test File Inventory
@@ -42,7 +42,7 @@ cd brutus_Newton-main && make && ./test_libs && ./test_lib_data   # Library test
 **Location:**
 - Co-located with source for C++: `test_libs.cpp` in `brutus_Newton-main/`, `test.cpp` in `lib/Data_Handler/`
 - Separate test data directory for Python: `simulation_data/Data/testing_data/test_pipeline.py`
-- No `tests/` directory exists anywhere in the project
+- One project test file: `tests/test_phase12_validation.py` (Phase 12 validation test)
 
 **Naming:**
 - C++: `test_*.cpp` or `test.cpp` (inconsistent)
@@ -135,7 +135,7 @@ pip install pytest pytest-cov
 - All computational functions in `simulation_data/Validation/prescreening/`, `simulation_data/Scripts/metrics_calculation/`, `pinn/data-handling/core/`, etc., are untested.
 
 **Integration Tests:**
-- `simulation_data/Data/testing_data/test_pipeline.py` (408 lines) -- end-to-end pipeline test exercising IC generation, prescreening, Brutus execution, and output validation.
+- `simulation_data/Data/testing_data/test_pipeline.py` (407 lines) -- end-to-end pipeline test exercising IC generation, prescreening, Brutus execution, and output validation.
 - `brutus_Newton-main/test_libs.cpp` (20 lines) -- library linking verification (GMP, MPFR, mpreal).
 
 **E2E Tests:**

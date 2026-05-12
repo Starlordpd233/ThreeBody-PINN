@@ -8,4 +8,17 @@
 
 - (none recorded)
 
+## v1.3 Markdown Conversion Verification & Correction (Shipped: 2026-05-08)
+
+**Phases completed:** 7 phases (10–15, 15.1), 21 plans
+
+**Key accomplishments:**
+
+- Verified all 6 LaTeX→markdown conversions with one-to-one injection fidelity
+- Corrected 7 critical, 19 major, and 17 minor conversion errors in Phase 15.1
+- Archived unselected markdown candidates to `_archive/` directories
+- Produced verification reports documenting all discrepancies and fixes
+- Preserved inter-document inconsistencies faithfully (deferred reconciliation to v2)
+- Cleaned up stale debug sessions and quick-task artifacts from prior milestones
+
 ---

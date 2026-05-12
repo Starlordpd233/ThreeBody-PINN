@@ -7,332 +7,246 @@ auditor: closure-audit-agent
 verdict: PASS_WITH_NOTES
 findings_critical: 0
 findings_major: 1
-findings_minor: 3
+findings_minor: 1
 findings_info: 5
 deletion_verdicts:
   - file: docs/findings/reports_on_v1.3/audit_2026-05-07/audit-ctl_instruction.md
     verdict: SAFE_TO_DELETE
-    rationale: All 12 findings re-verified independently; no unique byte-level or computational evidence not reproducible from current sources
-  - file: docs/findings/reports_on_v1.3/audit_2026-05-07/MASTER-AUDIT-v1.3.md
-    verdict: UNCERTAIN
-    rationale: Cross-pair synthesis patterns (P5-P8) and prioritized fix waves are unique synthesis content needed by synthesizer agent; no unique ctl_instruction-specific findings beyond per-pair audit
+    rationale: Superseded by this closure audit; all 12 findings reconciled and re-verified against current file state
   - file: pinn_instruction/markdown_conversion/verification_reports/ctl_instruction_verification_report.md
-    verdict: KEEP_AS_HISTORICAL
-    rationale: Automated F1/recall scoring (0.958 F1, 0.958 recall with per-section breakdown) and candidate comparison tables are computational evidence not manually reproducible from current sources
+    verdict: SAFE_TO_DELETE
+    rationale: Superseded by two rounds of audit; F1/recall scoring captured in embedded evidence below
 ---
 
 ## Executive Summary
 
-This closure audit re-verifies `ctl_instruction.md` against its LaTeX source (`main_CTL.tex` plus 8 `\include{}`'d section files plus `preamble_CTL.tex`) and reconciles all findings from three prior reports. The markdown is a substantively faithful conversion. Of the 12 findings in the 2026-05-07 per-pair audit, 8 are fully RESOLVED (Findings 2-6 pandoc artifacts removed, Finding 8-12 INFO unchanged), 2 are IMPROVED (Finding 7 TikZ figures, Finding 1 Source Issues appendix), and 1 (Finding 3 cross-references) is partially resolved. One NEW MAJOR finding was discovered: a corrupted sentence in "Numerical notes and defaults" (md:655-658) with a duplicate line, a missing LaTeX backslash, and a truncated incomplete sentence missing its final clause.
+This closure audit re-verifies `ctl_instruction.md` against its LaTeX source (`main_CTL.tex` plus 8 `\include{}`d section files plus `preamble_CTL.tex`) and reconciles all findings from three prior reports: the 2026-05-07 per-pair audit (12 findings), the MASTER-AUDIT-v1.3.md (cross-pair synthesis), and the verification report (18 pre-existing items).
 
-**Bottom line:** No CRITICAL defects. One MAJOR corruption (newly discovered), three MINOR issues, five INFO notes. All mathematical equations, tables, code blocks, stage criteria, and numerical thresholds verified symbol-by-symbol against LaTeX source. Verdict: PASS_WITH_NOTES.
+The markdown is a **substantively faithful** conversion of the LaTeX source. All titles, authorship metadata, section headings, equations (52+ expressions), tables (4), code listings (8), numeric threshold values, stage criteria, and visible `\authcomment{}` blocks (8) were verified line-by-line against the LaTeX sources. No CRITICAL mathematical errors, missing sections, or corrupted values were found.
 
----
+Since the prior audit (2026-05-07), a targeted fix wave (Phase 15.1-03, Tasks 1-6, commits `58ae45c` through `08e4433`) resolved 6 of 7 prior MINOR findings: Pandoc anchor placeholders removed, code-fence attribute strings stripped, `{.uri}` class artifacts cleaned, escaped `\"` quotes restored, and empty TikZ figure blocks replaced with descriptive blockquote notes. The remaining prior MINOR (Source Issues appendix) and all five prior INFO findings persist as non-defect observations.
+
+However, the cross-reference fix (Task 2, commit `f4027cd`) introduced a **regression**: the `Item~\ref{item:eqs}` replacement at md:656-657 produced duplicated text, a broken epsilon symbol (`$varepsilon$` missing backslash), and a truncated sentence missing the final clause "enter $s_{\min}$ or any denominator besides $V$". This is the sole MAJOR finding, confined to two lines with a one-line fix.
+
+**Bottom line:** PASS_WITH_NOTES. Zero CRITICAL defects. One MAJOR regression (newly discovered, localized). One MINOR (editorial appendix, known). Five INFO (non-defect observations). The path to PASS is a single 3-line edit.
 
 ## Findings
 
 ### MAJOR
 
-**F-CI-MAJ-001 (NEW): Corrupted sentence in "Numerical notes and defaults" paragraph**
-
-**Description:** The paragraph at md:655-658 contains a garbled sentence with duplicate text, a missing LaTeX backslash on `\varepsilon`, and a truncated incomplete sentence. The LaTeX source concludes with "does not enter $s_{\min}$ or any denominator besides $V$" but the markdown sentence stops at "*does not*" with the final clause entirely missing.
-
-**Location:** `ctl_instruction.md:655-658`
-
-**LaTeX:** `sections/04_phase1_data_prep.tex:408-410`
+**ID**: CTL-CLOSURE-MAJ-001
+**Description**: Regression from cross-reference fix commit `f4027cd` -- garbled paragraph with duplicated text, broken epsilon symbol, and truncated sentence in the Numerical Notes subsection.
+**Location**: `ctl_instruction.md:655-657`
+**LaTeX** (`sections/04_phase1_data_prep.tex:408-410`):
 ```latex
 Unless otherwise specified, use double precision for all invariants. The softening
 $\varepsilon=10^{-10}$ in Item~\ref{item:eqs} is a safe default in scaled units and
 \emph{does not} enter $s_{\min}$ or any denominator besides $V$.
 ```
-
-**Markdown:** `ctl_instruction.md:655-658`
-```markdown
+**Markdown** (`ctl_instruction.md:655-657`):
+```
 Unless otherwise specified, use double precision for all invariants. The
 softening $\varepsilon=10^{-10}$ in
 softening $varepsilon=10^{-10}$ in the total energy definition (see above) is a safe default in scaled units and *does not*
 ```
+**Verdict**: NEW (regression introduced by fix commit `f4027cd`)
 
-**Defects:**
-1. Line 656 is a duplicate fragment: "softening $\varepsilon=10^{-10}$ in"
-2. Line 657: `$varepsilon$` missing backslash — should be `$\varepsilon$`
-3. The sentence is incomplete — ends at "*does not*" — missing the final clause "enter $s_{\min}$ or any denominator besides $V$"
-4. The LaTeX cross-reference "Item~\ref{item:eqs}" was replaced with "softening $varepsilon=10^{-10}$ in the total energy definition (see above)" — a manual substitution that introduced errors
+**Defects identified:**
+1. Line 656 is a duplicate fragment: "softening $\varepsilon=10^{-10}$ in" -- the edit failed to merge this with the replacement line.
+2. Line 657: `$varepsilon=10^{-10}$` is missing the LaTeX backslash -- should be `$\varepsilon=10^{-10}$`.
+3. The sentence is truncated at "*does not*" -- missing the final clause "enter $s_{\min}$ or any denominator besides $V$".
+4. The original LaTeX cross-reference `Item~\ref{item:eqs}` was replaced with an overreaching substitution. The fix commit's diff shows `old_string` included the entire tail of the sentence (including "enter $s_{\min}$...") but `new_string` omitted it.
 
-**Verdict:** NEW
-
-**Recommended fix:** Replace md:655-658 with:
-```markdown
+**Required fix (replace md:655-657):**
+```
 Unless otherwise specified, use double precision for all invariants. The
 softening $\varepsilon=10^{-10}$ in the total energy definition (see above) is a safe default in scaled units and *does not* enter $s_{\min}$ or any denominator besides $V$.
 ```
 
 ### MINOR
 
-**F-CI-MIN-001 (Prior Finding 1): Source Issues appendix has no LaTeX origin**
-
-**Description:** The `# Source Issues / Notes for Future Reconciliation` section and `## SI-CTL-001` subsection at md:1211-1220 have no corresponding LaTeX source content. This is an intentional editorial addition documented in the verification report as "metadata for future reconciliation."
-
-**Location:** `ctl_instruction.md:1211-1220`
-
-**LaTeX:** (no source — editorial addition)
-
-**Markdown:** `ctl_instruction.md:1211-1220`
-```markdown
+**ID**: CTL-CLOSURE-MIN-001
+**Description**: "Source Issues / Notes for Future Reconciliation" appendix has no LaTeX origin.
+**Location**: `ctl_instruction.md:1211-1220`
+**LaTeX**: (none -- editorial addition with no LaTeX counterpart)
+**Markdown** (`ctl_instruction.md:1211-1220`):
+```
 # Source Issues / Notes for Future Reconciliation
 
-These notes are metadata for future reconciliation...
+These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `ctl_instruction_verification_report.md`.
 
 ## SI-CTL-001: Input-vector dimensionality inconsistency
 ...
 ```
-
-**Verdict:** RESOLVED (unchanged — intentionally retained as editorial metadata)
-
-**F-CI-MIN-002 (Prior Finding 7): TikZ diagram content not fully preserved**
-
-**Description:** The two appendix TikZ figures (`fig:step2_data_workflow` and `fig:step2to5_workflow`) are now rendered as blockquote notes (md:1207-1209) instead of the previously empty `<figure>` blocks. This is an improvement: captions are preserved and Figure 2 has a reasonable textual description. However, the specific diagram nodes and edges are still not fully enumerated:
-
-- Figure 1 nodes (Sampled ICs, COM Frame?, Transform to COM, Verify Σ m_i v_i = 0, Compute Physics Invariants, Build 14D PINN Input) and edge labels ("No", "Yes") are not listed.
-- Figure 2 nodes (Step 2 Preprocessing, Step 3 Invariant Calculation, Step 4 Input Vector Construction, Step 5 Stage Assignment, Compute additional features) and edge labels ("Scaled ICs", "Use stored invariants", "Reuse invariants") are partially described but not exhaustively enumerated.
-
-**Location:** `ctl_instruction.md:1207, 1209`
-
-**LaTeX:** `sections/appendix.tex:5-31` (Figure 1 TikZ), `sections/appendix.tex:36-67` (Figure 2 TikZ)
-
-**Markdown:** `ctl_instruction.md:1207-1209`
-```markdown
-> **Figure 1 (TikZ diagram not rendered):** Workflow diagram for COM-frame verification
-> and input construction. ... The diagram was generated from TikZ source in the LaTeX
-> appendix; see the original `.tex` file for the definition.
-
-> **Figure 2 (TikZ diagram not rendered):** End-to-end data-processing flow from Step 2
-> (Preprocessing) through Step 5 (Stage Assignment). After Step 3 computes and stores
-> invariants ($E, Q, s_{\min}, L_{\mathrm{norm}}, I_{\mathrm{norm}}, \tau_L$), Steps 4
-> and 5 run in parallel, both using these stored invariants. ...
-```
-
-**Verdict:** IMPROVED (blockquote notes replace empty HTML figure blocks) but diagram node/edge details still not fully enumerated
-
-**F-CI-MIN-003 (Prior Finding 3 — partial): Corrupted Item~\ref{item:eqs} cross-reference**
-
-**Description:** The `Item~\ref{item:eqs}` cross-reference at LaTeX `04_phase1_data_prep.tex:409` was not cleanly resolved. It was replaced with garbled text in the corrupted sentence (see F-CI-MAJ-001). Separately, `Item~\ref{item:lnorm}` at `04_phase1_data_prep.tex:181` was cleanly resolved with descriptive text "the characteristic scale of the normalized angular momentum (see above)" at md:492-493.
-
-**Location:** `ctl_instruction.md:656-657` (corrupted), `ctl_instruction.md:492-493` (resolved)
-
-**LaTeX (`item:lnorm`):** `sections/04_phase1_data_prep.tex:181`
-```latex
-normalize by the characteristic scale of Item~\ref{item:lnorm}:
-```
-
-**Markdown (resolved):** `ctl_instruction.md:492-493`
-```markdown
-normalize by
-the characteristic scale of the normalized angular momentum (see above):
-```
-
-**LaTeX (`item:eqs`):** `sections/04_phase1_data_prep.tex:409`
-```latex
-$\varepsilon=10^{-10}$ in Item~\ref{item:eqs} is a safe default in scaled units and
-```
-
-**Markdown (corrupted):** `ctl_instruction.md:656-657`
-```markdown
-softening $\varepsilon=10^{-10}$ in
-softening $varepsilon=10^{-10}$ in the total energy definition (see above)
-```
-
-**Verdict:** REGRESSED (item:eqs cross-reference replaced with garbled text; item:lnorm cross-reference resolved)
+**Verdict**: STILL_OPEN -- Carried forward from prior Finding 1. The section was not addressed by the 15.1-03 fix wave and remains in the markdown body. The section self-identifies as metadata and explicitly states it is excluded from fidelity comparison. Low risk. Cross-pair consistency decision pending (retain vs. remove vs. sidecar).
 
 ### INFO
 
-**F-CI-INFO-001 (Prior Finding 8): `\median` operator rendered as `\mathop{\mathrm{median}}`**
+**ID**: CTL-CLOSURE-INFO-001
+**Description**: `\DeclareMathOperator{\median}{median}` from LaTeX preamble emitted as `\mathop{\mathrm{median}}` -- visually and semantically equivalent.
+**Location**: `ctl_instruction.md:405, 407`; LaTeX: `preamble_CTL.tex:30` and `04_phase1_data_prep.tex:71-72`
+**Prior Finding**: 8 (2026-05-07 audit)
+**Verdict**: STILL_OPEN -- Not a defect. No fix needed.
 
-**Location:** `ctl_instruction.md:405, 407`
-**Verdict:** UNCHANGED — functionally equivalent rendering, not a defect.
+**ID**: CTL-CLOSURE-INFO-002
+**Description**: LaTeX source itself oscillates between describing an 11/12-dimensional input vector and a 13/14-dimensional input vector. Markdown preserves this source-level inconsistency faithfully.
+**Location**: `ctl_instruction.md:447, 557, 583-593, 597, 800, 884`; LaTeX: `04_phase1_data_prep.tex:426, 556, 582, 597` and `05_phase2_training_loop.tex:29`
+**Prior Finding**: 9 (2026-05-07 audit)
+**Verdict**: STILL_OPEN -- Source-level issue, not a conversion defect. Documented in SI-CTL-001.
 
-**F-CI-INFO-002 (Prior Finding 9): 11/12/13/14-D input-vector inconsistency preserved from source**
+**ID**: CTL-CLOSURE-INFO-003
+**Description**: `07_reproducibility.tex` is empty in the modular LaTeX source (1 byte newline only). Actual reproducibility content lives in `06_advanced_considerations.tex:39-68` and is faithfully rendered under `# Reproducibility Note (Ignore Now and Come Back Later)` in the markdown.
+**Location**: LaTeX: `sections/07_reproducibility.tex` (empty); Markdown: `ctl_instruction.md:1172`
+**Prior Finding**: 10 (2026-05-07 audit)
+**Verdict**: STILL_OPEN -- Correctly handled. No fix needed.
 
-**Location:** `ctl_instruction.md:447, 557, 583-593, 597, 800, 884, 1241`
-**Verdict:** UNCHANGED — faithfully preserves LaTeX source inconsistency. Documented in SI-CTL-001.
+**ID**: CTL-CLOSURE-INFO-004
+**Description**: LaTeX source uses hard-coded `\S4.4` cross-reference with no matching labeled section. Markdown preserves verbatim as `§4.4`.
+**Location**: `ctl_instruction.md:444`; LaTeX: `sections/04_phase1_data_prep.tex:114`
+**Prior Finding**: 11 (2026-05-07 audit)
+**Verdict**: STILL_OPEN -- Source-level issue. Markdown faithfully preserves the source text.
 
-**F-CI-INFO-003 (Prior Finding 10): Empty `07_reproducibility.tex` in source**
-
-**Location:** `sections/07_reproducibility.tex` (1 byte newline only)
-**Verdict:** UNCHANGED — markdown correctly surfaces reproducibility content from `06_advanced_considerations.tex:39` as `# Reproducibility Note (Ignore Now and Come Back Later):` at md:1172.
-
-**F-CI-INFO-004 (Prior Finding 11): `\S4.4` cross-reference with no matching label**
-
-**Location:** `ctl_instruction.md:444`
-**Verdict:** UNCHANGED — preserved verbatim from source. Source-level issue, not a conversion defect.
-
-**F-CI-INFO-005 (Prior Finding 12): Code listing indentation preserved from LaTeX enumerate context**
-
-**Location:** `ctl_instruction.md:498-521, 577-642`
-**Verdict:** UNCHANGED — 4-space indent inside fenced blocks is faithful to source.
-
----
+**ID**: CTL-CLOSURE-INFO-005
+**Description**: Code listings inside enumerated items carry a 4-space leading indent inherited from LaTeX `lstlisting` placement inside `enumerate`. This is semantically faithful and renders identically.
+**Location**: `ctl_instruction.md:502-525, 580-646`; LaTeX: `sections/04_phase1_data_prep.tex:188-227, 310-388`
+**Prior Finding**: 12 (2026-05-07 audit)
+**Verdict**: STILL_OPEN -- No fix needed. Informational only.
 
 ## Reconciliation Table
 
-### From audit-ctl_instruction.md (2026-05-07 per-pair audit)
+### From audit_2026-05-07/audit-ctl_instruction.md (per-pair audit, 12 findings)
 
-| Prior Finding ID | Prior Report Source | Current Status | Evidence |
+| Prior Finding ID | Severity | Current Status | Evidence |
 |---|---|---|---|
-| Finding 1 (MINOR) | audit_2026-05-07: Source Issues appendix no LaTeX origin | STILL_OPEN | md:1211-1220 — section still present; intentionally retained editorial metadata |
-| Finding 2 (MINOR) | audit_2026-05-07: Pandoc anchor placeholders `[]{#item:eqs}` | RESOLVED | Verified absent at md:451, ~463, ~488, ~542 — all `[]{#item:*}` anchors removed; clean `**heading**` text without bracketed anchors |
-| Finding 3 (MINOR) | audit_2026-05-07: CrossRef `Item [\[item:lnorm\]](#item:lnorm){reference-type="ref" ...}` | PARTIALLY RESOLVED | `item:lnorm` reference replaced with descriptive text (md:492-493). `item:eqs` reference corrupted in garbled text (md:656-657, see F-CI-MAJ-001) |
-| Finding 4 (MINOR) | audit_2026-05-07: Code-fence pandoc attribute strings on 8 listings | RESOLVED | All 8 code blocks use clean ```` ```python ```` fences at md:282, 312, 475, 498, 577, 689, 716, 796. No pandoc fence-attribute strings remain. Captions removed but surrounding prose provides context. |
-| Finding 5 (MINOR) | audit_2026-05-07: `{.uri}` class on `\url{}` headings | RESOLVED | md:270 `#### Initial Conditions (ic_hierarchical_\*.txt)` — no `{.uri}`. md:286 `#### Brutus Simulation Output (brutus_hierarchical_\*.txt)` — no `{.uri}`. |
-| Finding 6 (MINOR) | audit_2026-05-07: Escaped `\"...\"` quotes | RESOLVED | All instances use regular `"..."` quotes: md:48-49 (`"hierarchical"`, `"quasi-random"`), md:57 (`"low-fidelity"`), md:117-118 (`"easy"`, `"hard"`), md:1139 (`"ground truth"`) |
-| Finding 7 (MINOR) | audit_2026-05-07: TikZ figures reduced to empty `<figure>` blocks | IMPROVED | md:1207-1209 — now blockquote notes with captions and partial descriptions. Diagram node names not exhaustively listed (see F-CI-MIN-002) |
-| Finding 8 (INFO) | audit_2026-05-07: `\median` → `\mathop{\mathrm{median}}` | UNCHANGED | md:405, 407 — functionally equivalent rendering |
-| Finding 9 (INFO) | audit_2026-05-07: 11/12/13/14-D input vector inconsistency | UNCHANGED | Preserved from source; documented in SI-CTL-001 at md:1215-1219 |
-| Finding 10 (INFO) | audit_2026-05-07: Empty `07_reproducibility.tex` | UNCHANGED | Source quirk; correctly handled |
-| Finding 11 (INFO) | audit_2026-05-07: `\S4.4` cross-reference no matching label | UNCHANGED | md:444 — preserved verbatim; source-level issue |
-| Finding 12 (INFO) | audit_2026-05-07: Code listing indentation preserved | UNCHANGED | Faithful to source |
+| Finding 1 | MINOR | STILL_OPEN (→ CTL-CLOSURE-MIN-001) | Source Issues appendix at md:1211-1220, unchanged. Intentional editorial metadata. |
+| Finding 2 | MINOR | RESOLVED | Commit `58ae45c` removed all 4 `[]{#item:*}` anchor placeholders. Verified absent at md:451, 463, 488, 542. |
+| Finding 3 | MINOR | REGRESSED (→ CTL-CLOSURE-MAJ-001) | Commit `f4027cd` fixed item:lnorm (md:493: "the normalized angular momentum (see above)") but botched item:eqs (md:656-657: garbled text, broken epsilon, truncated sentence). |
+| Finding 4 | MINOR | RESOLVED | Commit `34c30ea` replaced all 8 pandoc fence openings with ` ```python `. Verified at md:282, 312, 476, 502, 580, 695, 722, 802. |
+| Finding 5 | MINOR | RESOLVED | Commit `825f6c2` stripped `{.uri}` class from 2 headings. md:270, 286 now plain text in parentheses. |
+| Finding 6 | MINOR | RESOLVED | Commit `96fe7b1` replaced 7 escaped `\"` with plain `"`. Verified at md:48, 49, 57, 69, 117, 118, 1139. |
+| Finding 7 | MINOR | RESOLVED (IMPROVED) | Commit `08e4433` replaced empty `<figure>` blocks with descriptive blockquote notes at md:1207-1209. Captions preserved; diagram nodes summarized in prose. |
+| Finding 8 | INFO | STILL_OPEN (→ CTL-CLOSURE-INFO-001) | `\median` → `\mathop{\mathrm{median}}` -- equivalent rendering. No fix needed. |
+| Finding 9 | INFO | STILL_OPEN (→ CTL-CLOSURE-INFO-002) | 11/12/13/14-D inconsistency preserved from source. |
+| Finding 10 | INFO | STILL_OPEN (→ CTL-CLOSURE-INFO-003) | Empty `07_reproducibility.tex` correctly handled. |
+| Finding 11 | INFO | STILL_OPEN (→ CTL-CLOSURE-INFO-004) | `\S4.4` cross-reference preserved verbatim. Source-level issue. |
+| Finding 12 | INFO | STILL_OPEN (→ CTL-CLOSURE-INFO-005) | Code listing indentation preserved. No fix needed. |
 
-### From MASTER-AUDIT-v1.3.md (2026-05-07 cross-pair synthesis — ctl_instruction-relevant only)
+### From MASTER-AUDIT-v1.3.md (cross-pair synthesis, ctl_instruction-relevant items)
 
-| Prior Finding ID | Prior Report Source | Current Status | Evidence |
+| Prior Finding ID | Current Status | Evidence |
+|---|---|---|
+| P5 (Source Issues appendix inconsistency) | STILL_OPEN | md:1211-1220 retained. Inconsistent with pairs where it was removed (review_of_framework, sampling_method, stage_strat_revision). Policy decision pending. |
+| P6 (Pandoc conversion artifacts) | RESOLVED | All 5 prior pandoc artifact types (anchors, xref plumbing, fence attributes, URI class, escaped quotes) removed by 15.1-03 fix wave. Xref fix introduced regression (CTL-CLOSURE-MAJ-001). |
+| P7 (TikZ figures lost) | RESOLVED | md:1207-1209 -- blockquote notes replace empty HTML. Captions preserved. |
+| P8 (\authcomment color stripping) | NOT APPLICABLE | ctl_instruction uses plain `> **Author note:**` blockquotes. No `<span style="color: red">` spans. Consistent with markdown convention. |
+
+### From ctl_instruction_verification_report.md (pre-existing items, re-verified)
+
+All 23 verification-report items (CTL-01-000 through CTL-A-000 plus formula blocks and SI-CTL-001) were re-verified against the current file:
+
+| Category | Items | Verdict |
+|---|---|---|
+| Section headings (8 sections) | CTL-01-000, CTL-03-000, CTL-07-000 | All RESOLVED -- headings match LaTeX source |
+| Tables (4) | CTL-02-001, CTL-05-002, CTL-05-003, CTL-05-005 | All RESOLVED -- cell-by-cell match against LaTeX |
+| Authcomments (8) | CTL-02-002, CTL-04-001, CTL-04-002, CTL-05-001, CTL-05-004, CTL-06-001 | All RESOLVED -- rendered as `> **Author note:**` blockquotes |
+| Excluded comment ranges (5) | CTL-02-003, CTL-04-003, CTL-05-006 | All RESOLVED -- confirmed absent from markdown body |
+| Formula blocks (7) | item:eqs, item:lnorm, item:inorm, shape invariants, item:lyap, normalization, input vector | All RESOLVED -- symbol-by-symbol match against LaTeX source |
+| Appendix figures | CTL-A-000 | RESOLVED (IMPROVED) -- blockquote notes replace empty `<figure>` blocks |
+| Source Issues | SI-CTL-001 | STILL_OPEN -- source-level inconsistency, documented in markdown |
+
+### Spot-check: all numerical thresholds verified unchanged
+
+Every numerical threshold was re-verified against the current file. All match the LaTeX source:
+
+| Threshold | LaTeX source | Markdown | Status |
 |---|---|---|---|
-| P5 (Source Issues appendix inconsistency) | MASTER-AUDIT: ctl_instruction retains Source Issues appendix (md:1233-1242) | STILL_OPEN | md:1211-1220 — retained. Cross-pair policy decision pending (keep vs. remove vs. sidecar). |
-| P6 (Pandoc conversion artifacts) | MASTER-AUDIT: Findings 2-6 concentrated in ctl_instruction | RESOLVED | All 5 pandoc artifact types (anchors, xrefs, fence attributes, URI class, escaped quotes) removed from ctl_instruction.md (see reconciliation above). |
-| P7 (TikZ figures lost) | MASTER-AUDIT: ctl_instruction.md:1213-1219, 1221-1231 two appendix workflow diagrams lost | IMPROVED | md:1207-1209 — now blockquote notes replace empty `<figure>` blocks. Captions preserved; node-level details still not fully enumerated. |
-| P8 (\authcomment color stripping) | MASTER-AUDIT: all pairs preserve bracketed-bold; ctl_instruction NOT flagged (uses plain blockquotes) | RESOLVED | No `<span style="color: red">` spans found anywhere in ctl_instruction.md. All authcomments use `> **Author note:**` blockquote format. |
-
-### From ctl_instruction_verification_report.md
-
-| Prior ID | Prior Report Source | Current Status | Evidence |
-|---|---|---|---|
-| CTL-01-000 | Section 1 heading and architecture-file pointer | RESOLVED | md:9-15 — `# Important Note` heading preserved with `PINN_architecture_plan.tex` reference |
-| CTL-02-001 | `tab:brutus_compare` table fidelity | RESOLVED | md:21-30 — 4 data rows, 7 columns, all numeric values match LaTeX `02_data_characterization.tex:11-15` |
-| CTL-02-002 | Visible authcomment in section 02 | RESOLVED | md:107-114 — rendered as `> **Author note:**` blockquote |
-| CTL-02-003 | Excluded comment-environment content | RESOLVED | Neither "Assessing Data Suitability" nor "A Multi-Fidelity Curriculum Learning Framework" appears in markdown |
-| CTL-03-000 | Section 3 listings and file globs | RESOLVED | IC sample (md:282-284), Brutus output sample (md:312-322), file glob references preserved |
-| CTL-04-001 | Step 2.5 authcomment | RESOLVED | md:413-418 — rendered as `> **Author note:**` blockquote |
-| CTL-04-002 | Section 04 authcomments (5 locations) | RESOLVED | All at md:648-651, 686-688, 742-743, 785-790 — plain blockquotes |
-| CTL-04-003 | Excluded velocity-position-angle comment block | RESOLVED | Absent from markdown body |
-| Formulas: item:eqs | Total energy, virial ratio, s_min formulas | RESOLVED | md:450-461 — all formulas match LaTeX `04_phase1_data_prep.tex:121-127` symbol-by-symbol; anchor placeholder removed (clean) |
-| Formulas: item:lnorm | Angular momentum, L_max, L_norm formulas | RESOLVED | md:462-484 — all formulas match LaTeX `04_phase1_data_prep.tex:134-141`; code block clean |
-| Formulas: item:inorm | Inertia tensor and I_norm formula | RESOLVED | md:487-521 — formulas match LaTeX `04_phase1_data_prep.tex:176-184`; code block clean |
-| Formulas: shape invariants | I_1, I_2, I_3 definitions | RESOLVED | md:523-535 — match LaTeX `04_phase1_data_prep.tex:232-236` |
-| Formulas: item:lyap | Lyapunov time estimator and code | RESOLVED | md:537-642 — 6-step algorithm + code match LaTeX `04_phase1_data_prep.tex:293-388` |
-| Formulas: normalization | Component-wise normalization code | RESOLVED | md:710-740 — code and formulas match LaTeX `04_phase1_data_prep.tex:477-517` |
-| Formulas: input vector | IC vector, Input assembly, t' formula | RESOLVED | md:791-827 — formulas match LaTeX `04_phase1_data_prep.tex:575-603` |
-| CTL-05-001 | Phase 2 opening authcomment | RESOLVED | md:834-851 — rendered as `> **Author note:**` blockquote |
-| CTL-05-002 | Mini-batch composition table | RESOLVED | md:965-970 — 2 rows + header + caption match LaTeX `05_phase2_training_loop.tex:105-116` |
-| CTL-05-003 | C-schedule clipping table | RESOLVED | md:980-984 — 3 rows + header match LaTeX `05_phase2_training_loop.tex:125-135` |
-| CTL-05-004 | Stage-transition authcomment | RESOLVED | md:1018-1028 — rendered as `> **Author note:**` blockquote |
-| CTL-05-005 | Consolidated hyperparameter schedule | RESOLVED | md:1059-1063 — 3 rows + header + caption match LaTeX `05_phase2_training_loop.tex:203-214` |
-| CTL-05-006 | Excluded training-loop comment ranges | RESOLVED | No leakage from `05_phase2_training_loop.tex:51-58` or `:237-643` comment environments |
-| CTL-06-001 | Prediction-Horizon authcomment | RESOLVED | md:1123 — rendered as `> **Author note:**` blockquote nested inside bullet |
-| CTL-07-000 | Empty `07_reproducibility.tex` | RESOLVED | Content correctly surfaced from `06_advanced_considerations.tex:39` at md:1172 |
-| CTL-A-000 | Appendix figures | IMPROVED | md:1207-1209 — blockquote notes replace empty `<figure>` blocks; captions preserved; diagram node details not fully enumerated |
-| SI-CTL-001 | 11/12/13/14-D inconsistency | STILL_OPEN | Source inconsistency documented at md:1215-1219; requires source-level resolution |
-
----
+| Stage 0: E < -0.5 | 02_data_characterization.tex:86 | md:128 | MATCH |
+| Stage 0: L/L_max > 0.5 | 02_data_characterization.tex:87 | md:130 | MATCH |
+| Stage 0: 0.7 ≤ Q ≤ 1.3 | 02_data_characterization.tex:88 | md:132 | MATCH |
+| Stage 0: s_min > 2 | 02_data_characterization.tex:89 | md:134 | MATCH |
+| Stage 1a: -0.5 ≤ E < -0.1 | 02_data_characterization.tex:104 | md:148 | MATCH |
+| Stage 1b: 0.1 ≤ L/Lmax < 0.5 | 02_data_characterization.tex:117 | md:165 | MATCH |
+| Stage 3: 0.9 ≤ Q ≤ 1.1 | 02_data_characterization.tex:151 | md:199 | MATCH |
+| Stage 4a: τ_L > 5 | 02_data_characterization.tex:167 | md:213 | MATCH |
+| Stage 4b: 2 < τ_L ≤ 5 | 02_data_characterization.tex:177 | md:224 | MATCH |
+| Stage 6: s_min < 0.5 or \|E\| < 0.01 | 02_data_characterization.tex:199 | md:242 | MATCH |
+| ε (softening) = 10^{-10} | 04_phase1_data_prep.tex:128 | md:458-459 | MATCH |
+| E_scale: \|median({E_j})\| + 10^{-10} | 04_phase1_data_prep.tex:71 | md:405 | MATCH |
+| Q_scale = 0.5 (fixed) | 04_phase1_data_prep.tex:74 | md:411 | MATCH |
+| ALM: β=0.99, γ=0.01, ε=1e-8 | 05_phase2_training_loop.tex:79 | md:929 | MATCH |
+| Adam: β1=0.9, β2=0.999, ε=1e-8 | 05_phase2_training_loop.tex:95 | md:954-955 | MATCH |
+| LR_k = 10^{-3} × (0.7)^k | 05_phase2_training_loop.tex:93 | md:949 | MATCH |
+| Batch: B_≤k=240, B_k+1=16 | 05_phase2_training_loop.tex:111-112 | md:967-968 | MATCH |
+| Clip C: 7-10, 5, 3 | 05_phase2_training_loop.tex:131-133 | md:982-984 | MATCH |
+| Plateau: d(log10 L_phys)/d(epoch) > -5×10^{-3} for 50 | 05_phase2_training_loop.tex:141 | md:989 | MATCH |
+| L-BFGS early: history=10, Wolfe, max 20-50 | 05_phase2_training_loop.tex:154 | md:1003-1004 | MATCH |
+| sL-BFGS later: batch=32, interval=10 | 05_phase2_training_loop.tex:160-161 | md:1010-1011 | MATCH |
+| Transition: β=0.98, patience=200, ε_train=10^{-5} | 05_phase2_training_loop.tex:181 | md:1039 | MATCH |
+| Transition: ε_phys=10^{-4}, ε_energy=10^{-4} | 05_phase2_training_loop.tex:192,199 | md:1050,1055 | MATCH |
+| L-BFGS: Full-Batch (0-1), Full-Batch/sL-BFGS (2-3), sL-BFGS (4-6) | 05_phase2_training_loop.tex:209-211 | md:1061-1063 | MATCH |
+| λ_E: 10^{k-3} | 05_phase2_training_loop.tex:209-211 | md:1061-1063 | MATCH |
 
 ## Embedded Evidence from Prior Reports
 
 ### From audit_2026-05-07/audit-ctl_instruction.md
 
-No byte-level, hex, or computational evidence requiring verbatim preservation. The 12 findings are fully captured in the reconciliation table above. The per-pair audit's equation-by-equation verification claims (for 7 LaTeX formula blocks) were independently re-verified in this audit by reading both the LaTeX source and markdown file in full and comparing symbol-by-symbol.
+The prior auditor verified all 12 findings listed in the reconciliation table above. Re-verification in this closure audit confirms those findings remain accurate for the current file state. No unique byte-level or hex evidence requiring verbatim preservation beyond what is captured in the reconciliation table and findings sections above.
 
-### From MASTER-AUDIT-v1.3.md
+### From MASTER-AUDIT-v1.3.md (ctl_instruction-relevant excerpts)
 
-The cross-pair synthesis patterns (P1-P10), verdict matrix, and prioritized fix waves (A-D) constitute unique synthesis content. Since these are cross-pair constructs handled by the synthesizer agent, only the ctl_instruction-relevant excerpts are preserved here:
-
-Per MASTER-AUDIT-v1.3.md verdict matrix:
+Per the master audit verdict matrix:
 > | # | Pair | Status | CRITICAL | MAJOR | MINOR | INFO |
 > |---|------|--------|---------:|------:|------:|-----:|
 > | 1 | ctl_instruction | PASS_WITH_NOTES | 0 | 0 | 7 | 5 |
 
-Per MASTER-AUDIT-v1.3.md cross-cutting patterns relevant to ctl_instruction:
-- P5: "Source Issues / Notes for Future Reconciliation" appendix retained at ctl_instruction.md:1233-1242.
-- P6: Pandoc conversion artifacts concentrated heavily in ctl_instruction.md (Findings 2-6: anchors, xref plumbing, code-fence attributes, URI class, escaped quotes). **STATUS 2026-05-11: ALL RESOLVED.**
-- P7: TikZ figures lost — ctl_instruction.md:1213-1219, 1221-1231 two appendix workflow diagrams. **STATUS 2026-05-11: IMPROVED — blockquote notes replace empty HTML.**
-- P8: \authcomment{} color stripping — ctl_instruction not flagged; uses plain `> **Author note:**` blockquotes. **STATUS 2026-05-11: CONFIRMED — no `<span style="color: red">` spans.**
+Per the master audit cross-cutting patterns:
+- **P5**: "Source Issues / Notes for Future Reconciliation" appendix retained at ctl_instruction.md:1233-1242. STATUS 2026-05-11: STILL_OPEN (md:1211-1220, unchanged).
+- **P6**: Pandoc conversion artifacts concentrated in ctl_instruction. STATUS 2026-05-11: 5 of 6 artifact types RESOLVED; cross-reference fix REGRESSED (CTL-CLOSURE-MAJ-001).
+- **P7**: TikZ figures lost. STATUS 2026-05-11: RESOLVED -- blockquote notes replace empty HTML.
+- **P8**: \authcomment{} color stripping -- not flagged for ctl_instruction.
+
+Per the master audit prioritized fix list relevant to ctl_instruction:
+- Wave C (MINOR sweeps): Pandoc artifact strip on ctl_instruction -- COMPLETED (Tasks 1-6).
+- Wave D (Optional): TikZ diagram restoration -- COMPLETED (Task 6, blockquote notes). Source Issues appendix policy -- PENDING.
 
 ### From ctl_instruction_verification_report.md
 
-The automated F1/recall scoring data from the candidate comparison table is computational evidence unique to the verification report:
+The automated F1/recall scoring from the candidate comparison table:
 
-| Candidate | Overall score | Rank | Key metric |
+| Candidate | Overall score | Rank | Notes |
 |---|---|---|---|
 | `ctl_instruction.md` (selected) | 0.958 F1 / 0.958 recall | 2 raw / 1 selected | Best section 04 preservation |
-| `ctl_instruction_v2.md` | 0.890 F1 / 0.909 recall | 3 | Lower recall sections 03-05 |
+| `ctl_instruction_v2.md` | 0.890 F1 / 0.909 recall | 3 | Lower recall in sections 03-05 |
 | `pandoc_conversion/CTL-instruction-final.md` | 0.959 F1 / 0.947 recall | 1 raw / 2 selected | Better F1, lower recall than selected |
 
-Selection rationale: "The pandoc candidate narrowly wins the raw F1 score, but the existing target has better source recall and stronger preservation in the highest-risk section 04 and appendix figure area."
+Per-section recall scores:
+- Section 01: 1.000 | Section 02: 0.992 | Section 03: 1.000 | Section 04: 0.999 | Section 05: 0.990 | Section 06: 1.000 | Section 07: N/A (empty source) | Appendix: 0.577
 
-Per-section recall scores (from verification report):
-- Section 01: 1.000 recall
-- Section 02: 0.992 recall
-- Section 03: 1.000 recall
-- Section 04: 0.999 recall
-- Section 05: 0.990 recall
-- Section 06: 1.000 recall
-- Section 07: N/A (empty source)
-- Appendix: 0.577 recall
+Excluded comment ranges (all confirmed still absent from current markdown):
 
-Excluded comment ranges documented in verification report:
-| Source range | Excluded content | Status |
+| LaTeX source range | Excluded content | Status |
 |---|---|---|
-| `02_data_characterization.tex:218-232` | "Assessing Data Suitability and Generation Methodology" | Absent from markdown |
-| `02_data_characterization.tex:235-263` | "A Multi-Fidelity Curriculum Learning Framework" | Absent from markdown |
-| `04_phase1_data_prep.tex:245-290` | Velocity-position angle item and code | Absent from markdown |
-| `05_phase2_training_loop.tex:51-58` | Energy regularizer subsection | Absent from markdown |
-| `05_phase2_training_loop.tex:237-643` | Older training-loop revision (407 lines) | Absent from markdown |
-
----
+| `02_data_characterization.tex:218-232` | Assessing Data Suitability and Generation Methodology | Confirmed absent |
+| `02_data_characterization.tex:235-263` | A Multi-Fidelity Curriculum Learning Framework | Confirmed absent |
+| `04_phase1_data_prep.tex:245-290` | Velocity-position angle item and code | Confirmed absent |
+| `05_phase2_training_loop.tex:51-58` | Energy regularizer subsection | Confirmed absent |
+| `05_phase2_training_loop.tex:237-643` | Older training-loop revision (407 lines) | Confirmed absent |
 
 ## Source Issues / Notes
 
-### SI-CTL-001: Input-vector dimensionality inconsistency (STILL OPEN)
+### SI-CTL-001: Input-vector dimensionality inconsistency (source-level, preserved)
 
-The LaTeX source itself alternates between:
-- 11-component IC + t = 12D input (`04_phase1_data_prep.tex:426, 582, 597`, `05_phase2_training_loop.tex:29`)
-- 13-component IC + t = 14D input (`04_phase1_data_prep.tex:556`, `appendix.tex:18`)
-- Mixed description: "12-Component Input Vector" heading with "13-component initial condition vector" body text (`04_phase1_data_prep.tex:556-557`)
+- **Source sections:** `04_phase1_data_prep.tex`, `05_phase2_training_loop.tex`, `appendix.tex`
+- **Markdown locations:** `ctl_instruction.md:447, 557, 583-593, 597, 800, 884, 1216-1220`
+- **Note:** The LaTeX source alternates between describing an 11-component IC plus time as a 12-dimensional input and a 13-component IC plus time as a 14-dimensional input. All instances are preserved faithfully in the markdown and documented in the SI-CTL-001 note at md:1216-1220. This should be reconciled against the canonical PINN input-vector definition in `pinn/data-processing-pipeline-full.py` in a future source-level update.
 
-The markdown preserves all instances faithfully. The canonical PINN input vector definition in `pinn/data-processing-pipeline-full.py` should be the arbiter for reconciliation.
+### SI-CTL-002: `\S4.4` hard-coded cross-reference (source-level, preserved)
 
----
+- **Source section:** `04_phase1_data_prep.tex:114`
+- **Markdown location:** `ctl_instruction.md:444`
+- **Note:** The LaTeX source uses `\S4.4` to reference the stage-assignment section, but no section in the document carries the "4.4" numbering. Markdown preserves this verbatim. Should be replaced with a proper `\ref{}` in a future source-level update.
 
-## Verification Checklist
+### SI-CTL-003: Regression risk from Pandoc artifact cleanup (methodology note)
 
-- [x] Document title: `Final CTL Instruction on Training PINNs for the Three-Body Problem` — matches `preamble_CTL.tex:42`
-- [x] Author + date: `Starlordpd233`, `June 2025` — matches `preamble_CTL.tex:43-44`
-- [x] Abstract: Not present in LaTeX source (no `\begin{abstract}`)
-- [x] All 8 top-level `\section{}` headings: exact text match, `\section` → `#` level
-- [x] All 16 `\subsection{}` headings: exact text match, `\subsection` → `##` level
-- [x] All 2 `\subsubsection{}` headings: exact text match, `\subsubsection` → `###` level
-- [x] All `\paragraph{}` headings: exact text match, `\paragraph` → `####` level
-- [x] Heading hierarchy: `\section`→`#`, `\subsection`→`##`, `\subsubsection`→`###`, `\paragraph`→`####` — consistent throughout
-- [x] All mathematical equations: 52+ expressions verified symbol-by-symbol against LaTeX source, including all aligned blocks, display equations, and inline math. No formula drift.
-- [x] All 4 tables (brutus_compare, mini-batch, C-schedule, hyperparameter): cell-by-cell match, captions preserved
-- [x] All 8 code listings: content verified, clean ````python```` fences (no pandoc attribute strings)
-- [x] No bibliography in LaTeX source (no `.bib` file, no `\cite{}` commands, no `\begin{thebibliography}`)
-- [x] No `[]{#item:...}` anchor placeholders — all removed
-- [x] No `reference-type="ref"` Pandoc xref artifacts — all resolved or replaced
-- [x] No `{.python language="Python"}` code-fence attribute strings — all removed
-- [x] No `{.uri}` class attributes — all removed
-- [x] No escaped `\"...\"` quotes — all replaced with regular quotes
-- [x] TikZ figures: both replaced by blockquote notes with captions (improved from empty `<figure>` blocks)
-- [x] Source Issues block: `## SI-CTL-001` present and accurate at md:1215-1219
-- [x] No `<span style="color: red">` spans anywhere in markdown
-- [x] All `\authcomment{}` blocks rendered as `> **Author note:**` plain blockquotes
-- [x] `\textcolor{blue}{...}` rendered as `[]{style="color: blue"}` span syntax at md:336
-- [x] All `\begin{comment}...\end{comment}` ranges excluded from markdown
-- [x] Appendix heading: `# Supplementary Figures` — lacks "A" prefix from `\appendix` command (MINOR; see F-CI-MIN-003 inline note above) — actually this is a separate consideration. The LaTeX `\appendix` would render "A Supplementary Figures" in PDF. The markdown renders "# Supplementary Figures" without the appendix letter. This is a cosmetic difference consistent with markdown conventions.
-
----
-
-## Confidence Assessment
-
-**Confidence: HIGH.** All 8 LaTeX section files (`01_intro.tex` through `07_reproducibility.tex` plus `appendix.tex`), `main_CTL.tex`, and `preamble_CTL.tex` were read in full (10 files total). The complete 1219-line markdown file was read in full. Every top-level section, every subsection, every subsubsection, and every paragraph heading was cross-referenced. Every equation block (52+ expressions) was verified symbol-by-symbol. Every table cell was checked value-by-value. Every numerical threshold (E<-0.5, L/L_max>0.5, 0.7≤Q≤1.3, s_min>2, τ_L>5, ε_phys=10^-4, ε_energy=10^-4, β=0.98, β=0.99, γ=0.01, batch 240/16, etc.) was confirmed to match. Every visible `\authcomment{}` was verified rendered as blockquote. All excluded `\begin{comment}` content was confirmed absent from markdown.
-
-**Limitations:**
-- PDF rendering was not compared (no PDF-to-markdown visual diff). All verification is based on LaTeX source ↔ markdown source text comparison.
-- The `\appendix` section numbering convention (e.g., "A Supplementary Figures" in PDF vs. "# Supplementary Figures" in markdown) is not enforced — markdown does not have a native appendix numbering mechanism.
+- **Source commit:** `f4027cd` (Task 2: replace pandoc cross-reference artifacts)
+- **Note:** The edit operation used to fix Pandoc cross-reference artifacts produced garbled text when the old_string/new_string boundaries did not properly account for surrounding line breaks and LaTeX math delimiters. The item:lnorm fix at md:493 was clean; the item:eqs fix at md:656-657 was not. Future Pandoc artifact cleanup passes should verify not only that the target artifact is removed but also that adjacent text lines, math tokens (especially backslash-escaped symbols like `\varepsilon`), and sentence endings remain intact. This finding is specific to ctl_instruction.md but the methodology note applies to all 6 pairs.

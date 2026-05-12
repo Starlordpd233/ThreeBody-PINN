@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 Codebase Cleanup** — Phases 1–4 (shipped 2026-03-20)
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
-- 🔄 **v1.2 PINN Implementation Readiness** — Phase 9 (in progress)
+- ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15 (shipped 2026-05-06)
 
 ## Phases
@@ -32,7 +32,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 </details>
 
 <details>
-<summary>🔄 v1.2 PINN Implementation Readiness (Phase 9) — IN PROGRESS</summary>
+<summary>✅ v1.2 PINN Implementation Readiness (Phase 9) — SHIPPED 2026-05-08</summary>
 
 ### Phase 9: Issues Directory Consolidation
 
@@ -46,9 +46,14 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   4. Original files archived or deleted with migration note
 
 **Plans**: 3 plans
-- [ ] 09-01-PLAN.md
-- [ ] 09-02-PLAN.md
-- [ ] 09-03-PLAN.md
+- [x] 09-01-PLAN.md
+- [x] 09-02-PLAN.md
+- [x] 09-03-PLAN.md
+
+**Deliverables:**
+- 3 thematic issue documents in `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/`
+- MIGRATION.md and README.md for migration tracking
+- VERIFICATION-REPORT.md (PASS), VALIDATION.md (all checks PASS)
 
 </details>
 
@@ -81,7 +86,7 @@ Full details: `.planning/milestones/v1.3-ROADMAP.md`
 | 6. Preamble Parity Verification | v1.1 | 1/1 | Complete | 2026-03-21 |
 | 7. Structure Fidelity Verification | v1.1 | 2/2 | Complete | 2026-03-21 |
 | 8. Compilability Verification | v1.1 | 1/1 | Complete | 2026-03-22 |
-| 9. Issues Directory Consolidation | v1.2 | 0/3 | Not Started | — |
+| 9. Issues Directory Consolidation | v1.2 | 3/3 | Complete | 2026-05-08 |
 | 10. CTL-Instruction Verification | v1.3 | 3/3 | Complete | 2026-05-02 |
 | 11. Data-Quality-Assessment Verification | v1.3 | 3/3 | Complete | 2026-05-05 |
 | 12. PINN-Architecture Verification | v1.3 | 3/3 | Complete | 2026-05-05 |

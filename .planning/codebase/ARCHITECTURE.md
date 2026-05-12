@@ -159,8 +159,8 @@ graph TD
 - **Location:** `pinn_instruction/`, `simulation_data/Documentation/`, `paper_templates/`
 - **Contains:**
   - 5 modular LaTeX document sets with section-based structure (`main_*.tex` + `preamble.tex` + `sections/*.tex`)
-  - Markdown conversions for reference (`pinn_instruction/markdown_conversions/`)
-  - Research issues and pre-implementation audits (`pinn_instruction/original_latex/review-of-framework/issues/`)
+  - Markdown conversions for reference (`pinn_instruction/markdown_conversion/framework-specs/` and `framework-revisions/`)
+  - Research issues and pre-implementation audits (`pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/`)
   - Dataset documentation and blacklists (`simulation_data/Documentation/`)
   - MDPI paper templates (`paper_templates/mdpi_template/`)
 - **Depends on:** LaTeX toolchain (pdflatex/latexmk), pandoc (for markdown conversion)

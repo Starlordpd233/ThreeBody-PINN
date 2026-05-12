@@ -80,11 +80,11 @@ $(CO) brutus main.o Brutus.o Bulirsch_Stoer.o Cluster.o Star.o Data_Handler.o Ti
 | **pandoc** | 3.7.0.2 | LaTeX-to-Markdown conversion (at `/opt/homebrew/bin/pandoc`) |
 
 LaTeX documents use a `main_*.tex` + `preamble.tex` structure. Documents found in:
-- `pinn_instruction/original_latex/ctl-instruction/` - CTL methodology
-- `pinn_instruction/original_latex/pinn-architecture/` - PINN architecture spec
-- `pinn_instruction/original_latex/Data-quality-assessment/` - Data quality assessment
-- `pinn_instruction/original_latex/sampling-method/` - Sampling methodology
-- `pinn_instruction/original_latex/review-of-framework/` - Framework review + stage strategy revision
+- `pinn_instruction/original_latex/framework-specs/ctl-instruction/` - CTL methodology
+- `pinn_instruction/original_latex/framework-specs/pinn-architecture/` - PINN architecture spec
+- `pinn_instruction/original_latex/framework-specs/sampling-method/` - Sampling methodology
+- `pinn_instruction/original_latex/framework-revisions/data-quality-assessment/` - Data quality assessment
+- `pinn_instruction/original_latex/framework-revisions/review-of-framework/` - Framework review + stage strategy revision
 
 ### Python Standard Library (Key Modules)
 
@@ -128,7 +128,7 @@ make clean && make
 
 - **Build tool:** `latexmk` with `pdflatex` engine
 - **Source:** `.tex` files with `.pdf` outputs
-- **Conversion:** Custom Python script `pinn_instruction/markdown_conversion/pandoc_conversion/convert_latex_to_md.py` converts 6 LaTeX sources to Markdown using pandoc, with extensive pre-processing (macro expansion, TikZ replacement, algorithm replacement) and post-processing (code block cleaning, heading anchor removal, math artifact fixes).
+- **Conversion:** Authoritative markdown files in `pinn_instruction/markdown_conversion/`, produced during v1.3 (Phases 10-15) and v1.3.1 (Phase 15.1) verification. Each source has one authoritative `.md` file; unselected candidates archived to `_archive/`.
 
 ## Configuration
 
@@ -152,7 +152,12 @@ Most configuration is embedded directly in Python scripts, not externalized:
 - `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py:26-73` - Brutus parameters, directory paths, timeout, line count thresholds
 - `simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py:29-49` - Gold-standard parameters
 - `brutus_Newton-main/makefile:2-4` - Compiler paths, library paths
-- `pinn_instruction/markdown_conversion/pandoc_conversion/convert_latex_to_md.py:22-25` - Pandoc path, source/target directories
+- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` — CTL methodology
+- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` — PINN architecture spec
+- `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md` — Data quality assessment
+- `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — Sampling methodology
+- `pinn_instruction/markdown_conversion/framework-revisions/review-of-framework/review_of_framework.md` — Framework review
+- `pinn_instruction/markdown_conversion/framework-revisions/stage-strat-revision/stage_strat_revision.md` — Stage strategy revision
 
 ### Secret Files
 

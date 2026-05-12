@@ -301,7 +301,7 @@ This rigorous, multi-layered approach ensures that the computational investment 
 
 # Source Issues / Notes for Future Reconciliation
 
-These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `verification_reports/data_quality_assessment_verification_report.md`.
+These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `docs/findings/reports_on_v1.3/closure_audit_2026-05-11/audit-data_quality_assessment.md`.
 
 ## SI-DQA-001: Orphaned bibliography.tex — 33 references never cited in body
 

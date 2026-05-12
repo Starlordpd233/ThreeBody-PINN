@@ -85,11 +85,11 @@ The 2026-04-27 audit classified M11 and M12 as MAJOR. This consolidation intenti
 
 ---
 
-## Data Validation Protocol — 6 Pipeline Gaps Synthesized from Audit Findings
+## Pipeline Validation Gaps (G1-G6) Synthesized from Audit Findings
 
-**Source:** Audit B-06, B-11, M11, M12/M16, M13 (synthesized from `Issue_on_data_validation_protocol_and_compatbility_with_project_context.md` §2 framing, with G6 added for the causal-training architectural decision).
+**Source:** Audit B-06, B-11, M11, M12/M16, M13. This table is audit-derived and uses the archived `Issue_on_data_validation_protocol_and_compatbility_with_project_context.md` §2 only as framing context; it is not a literal restatement of that document's original six pre-agent gaps. G6 is added for the causal-training architectural decision.
 
-The following six gaps between the documented validation protocol and what the CTL-PINN training framework actually requires are synthesized from audit findings (G1–G5) plus the causal-training architectural decision (G6):
+The following six pipeline validation gaps between the documented validation protocol and what the CTL-PINN training framework actually requires are synthesized from audit findings (G1-G5) plus the causal-training architectural decision (G6):
 
 <!-- Section retitled and source citation rewritten: G1–G5 are audit findings (B-06, B-11, M11, M12/M16, M13), not items literally enumerated in the validation-protocol issue's §2. -->
 

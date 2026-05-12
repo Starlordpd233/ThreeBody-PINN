@@ -101,4 +101,4 @@ Which phases cover which requirements. Phase ranges indicate cross-cutting requi
 
 ---
 *Requirements defined: 2026-04-30*
-*Last updated: 2026-05-01 — traceability filled from ROADMAP.md*
+*Last updated: 2026-05-09 — v1.2 shipped, Phase 9 complete*

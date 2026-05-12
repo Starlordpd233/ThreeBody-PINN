@@ -186,11 +186,11 @@ Both contain parsing logic, invariant computation, stage assignment, and batch c
 
 ### M-3: 2,847-Line `next steps.txt` -- Mostly Superseded
 
-**What:** `pinn_instruction/original_latex/review-of-framework/issues/next steps.txt` is a 128KB dump (2,847 lines) containing issues, solutions, and commentary from early development. Per the Phase 9 context (D-06), ~80% is superseded by the 2026-04-27 audit. Only 4 unique sections have value not subsumed by the audit.
+**What:** `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/next steps.txt` is a 128KB dump (2,847 lines) containing issues, solutions, and commentary from early development. Per the Phase 9 context (D-06), ~80% is superseded by the 2026-04-27 audit. Only 4 unique sections have value not subsumed by the audit.
 
 **Impact:** Anyone reading this file wastes time on superseded analysis. Contradicts newer documents.
 
-**Fix:** Phase 9 consolidation (currently unstarted) will extract unique content and archive the original.
+**Fix:** Phase 9 consolidation (complete) extracted unique content into 3 thematic docs and archived the original.
 
 **Severity:** MAJOR
 
@@ -211,7 +211,7 @@ MPRLIB = $(HOME_DIR)/src/mpreal
 
 ### M-5: No Reproducibility -- Missing Seeds and Random State
 
-**What:** IC generation uses Sobol sequences with scrambling enabled (`FINAL_ic_generator_enhanced.py`), but no fixed seed is found in the runner scripts. The Sobol scrambling seed determines the entire dataset distribution.
+**What:** IC generation uses Sobol sequences with scrambling enabled (`ic_generation_utils.py`), but no fixed seed is found in the runner scripts. The Sobol scrambling seed determines the entire dataset distribution.
 
 **Impact:** Regenerating ICs produces different data. Cannot reproduce existing datasets exactly.
 
@@ -376,18 +376,21 @@ Parsing code must handle optional fields. When `tol` is absent, fall back to fol
 
 ## 6. MODERATE: Process & Workflow Issues
 
-### P-1: Phase 9 (Issues Consolidation) Not Started
+### P-1: Phase 9 (Issues Consolidation) Complete
 
-**What:** Phase 9 has 0/3 plans complete. Three untracked issue files exist in `pinn_instruction/original_latex/review-of-framework/issues/`:
-- `three_body_pinn_pre-implementation_audit_2026-04-27.md` (untracked)
-- `Causal_Trainingmismatch_resolution_blueprint.md` (untracked)
-- `Issue_on_data_validation_protocol_and_compatbility_with_project_context.md` (untracked)
+**What:** Phase 9 has 3/3 plans complete. Three consolidated thematic docs exist in `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/`:
+- `01-architecture-and-physics-foundations.md` (39,567 bytes)
+- `02-data-pipeline-and-validation.md` (27,868 bytes)
+- `03-curriculum-and-training-loop.md` (42,083 bytes)
+- `MIGRATION.md` (7,643 bytes)
+- `README.md` (3,218 bytes)
+- `archive/` — 8 original issue files
 
-The 4 original `.txt` files are tracked. Consolidation is the v1.2 milestone's first phase.
+The 4 original `.txt` files and 3 untracked issue files have been consolidated and archived.
 
-**Impact:** 7 scattered, overlapping, partially contradictory documents block implementation planning. New team members must read all 7 to understand the state.
+**Impact:** Resolved. Seven scattered, overlapping documents have been consolidated into 3 thematic docs with distinct purposes.
 
-**Severity:** MODERATE
+**Severity:** INFO (resolved)
 
 ### P-2: Modified But Uncommitted Documentation
 

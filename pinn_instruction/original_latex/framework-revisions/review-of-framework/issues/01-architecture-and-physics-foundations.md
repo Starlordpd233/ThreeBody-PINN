@@ -191,6 +191,12 @@ The softening parameter epsilon serves two fundamentally different roles that re
 
 The dual-epsilon approach cleanly separates ground-truth physical precision from GPU numerical regularization. The network learns exact Hamiltonian dynamics regularized by a microscopic floor calibrated to GPU precision limits — it does NOT learn "softened physics."
 
+### Considered Alternative — Unified `eps = 1e-8`
+
+The 2026-04-27 audit (B-09, P0-6) recommended replacing the two-context split with a single `eps = 1e-8` value across invariant calculation, stage assignment, physics residuals, and energy loss. The rationale was implementation simplicity plus negligible close-encounter distortion: for the additive potential form `V = -1/(r + eps)`, `eps = 1e-8` changes the potential magnitude by `eps / (r + eps)`, which is approximately 0.001% at `r = 0.001` and 0.0001% at `r = 0.01`.
+
+This consolidation overrides that compromise in favor of the dual-context strategy above. Static invariant calculation benefits from `eps = 1e-10` because stage assignment should shadow the unsoftened Hamiltonian as closely as float64 permits. Dynamic loss optimization needs `eps_soft = 1e-5` because float32 training can otherwise produce gradient explosions or NaNs during close encounters. A future implementation phase may choose the unified `1e-8` compromise only if it deliberately accepts less precise static stage assignment in exchange for a simpler single-epsilon contract.
+
 ### 5 Orders of Magnitude Difference — Softening Analysis
 
 **Source:** `next steps.txt` (Issue 15, unique deep-dive analysis)
@@ -357,17 +363,28 @@ The target architecture (`SQRSkipResNetSIREN` in `basic_architecture.py`) combin
 
 ## Quantitative Impact of D Formula Error
 
-Using D=4.64 (CTL's wrong formula) instead of D=6.694 (correct):
+CTL's incorrect formula `D = T^(2/3) ≈ 4.6416` is equivalent to using `M_tot = 1`. The correct scale for this project is `D = (G * M_tot * T^2)^(1/3) ≈ 6.6943` for `G = 1`, `M_tot = 3`, and `T = 10`. Therefore
 
-| Quantity | With D=4.64 | With D=6.694 | Relative Error |
-|----------|-------------|--------------|----------------|
-| Scaled positions r' = r/D | 44% too large | Correct | 44% overestimate |
-| Scaled velocities v' = v/(D/T) | 44% too large | Correct | 44% overestimate |
-| E_scaled (∝ v'², ∝ 1/r') | 44% too large (KE), 44% too small (PE) | Correct | Net ~75% error in total |
-| L_norm (∝ r'×v') | 77% too large | Correct | 77% overestimate <!-- Reverted to audit value: L_norm off by 77% per audit Quantitative Impact line 484. --> |
-| Q (virial, ∝ v'²/r') | Net ~90% error | Correct | 90% error |
+```
+D_correct / D_wrong = (300 / 100)^(1/3) = 3^(1/3) ≈ 1.4422495703
+```
 
-These errors propagate into every normalized IC vector component fed to the network and into every stage assignment threshold. Systems near curriculum boundaries get systematically wrong stage labels, destroying the curriculum's progressive-learning design.
+All wrong-D vs. correct-D relative errors reduce to powers of this exact ratio:
+
+| Quantity | Scaling | Wrong-D vs. Correct-D Factor | Relative Error |
+|----------|---------|------------------------------|----------------|
+| Scaled positions `r' = r/D` | `r' ∝ 1/D` | `3^(1/3) ≈ 1.4422495703` | **+44.22%** |
+| Scaled velocities `v' = vT/D` | `v' ∝ 1/D` | `3^(1/3) ≈ 1.4422495703` | **+44.22%** |
+| Scaled kinetic energy `KE' ∝ v'^2` | `∝ 1/D^2` | `3^(2/3) ≈ 2.0800838231` | **+108.01%** |
+| Scaled potential magnitude `\|PE'\| ∝ 1/r'` | `∝ D` | `3^(-1/3) ≈ 0.6933612744` | **-30.66%** |
+| Raw scaled angular momentum `\|L'\| ∝ r' x v'` | `∝ 1/D^2` | `3^(2/3) ≈ 2.0800838231` | **+108.01%** |
+| Virial ratio `Q ∝ v'^2 * r'` | `∝ 1/D^3` | `3` | **+200.00%** |
+
+The angular-momentum row refers to raw scaled `\|L'\|`, not the clamped IC-vector component `L_norm_norm = 2*clip(L/L_max, 0, 1) - 1`. If `L` and `L_max` are recomputed with the same corrected scaling convention, the normalized ratio must be analyzed separately from the raw `D^-2` factor above.
+
+The total signed scaled energy `E' = KE' + PE'` should not be summarized by a single universal percentage: the kinetic component grows by 108.01%, while the potential magnitude shrinks by 30.66%, so the signed total depends on the system's virial state. Quote the per-component values instead.
+
+These errors propagate into every D-dependent normalized IC-vector component fed to the network and into every stage assignment threshold. Systems near curriculum boundaries get systematically wrong stage labels, destroying the curriculum's progressive-learning design.
 
 ---
 

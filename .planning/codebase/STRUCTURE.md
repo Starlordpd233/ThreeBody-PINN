@@ -206,31 +206,25 @@
 │   │   │   │   ├── preamble.tex
 │   │   │   │   ├── stage_strat_revision.pdf
 │   │   │   │   └── sections/                    # 6 content sections
-│   │   │   └── issues/                          # Research issues and pre-implementation audits
-│   │   │       ├── review.md
-│   │   │       ├── next steps.txt
-│   │   │       ├── next-step-for-data-processing-pipeline.txt
-│   │   │       ├── stage-assignment-issue.txt
-│   │   │       ├── Causal_Trainingmismatch_resolution_blueprint.md
-│   │   │       ├── Issue_on_data_validation_protocol_and_compatbility_with_project_context.md
-│   │   │       └── three_body_pinn_pre-implementation_audit_2026-04-27.md
+│   │   │   └── issues/                          # Consolidated thematic issue docs
+│   │   │       ├── 01-architecture-and-physics-foundations.md
+│   │   │       ├── 02-data-pipeline-and-validation.md
+│   │   │       ├── 03-curriculum-and-training-loop.md
+│   │   │       ├── MIGRATION.md
+│   │   │       ├── README.md
+│   │   │       └── archive/                     # 8 original issue files
 │   │   └── sampling-method/                     # Sampling methodology
 │   │       ├── sampling_method_instruction.tex
 │   │       └── sampling_method_instruction.pdf
 │   │
-│   └── markdown_conversions/                    # LaTeX -> Markdown conversions (for reference)
-│       ├── ctl_instruction.md / ctl_instruction_v2.md
-│       ├── pinn_architecture.md / pinn_architecture_v2.md
-│       ├── sampling_method.md
-│       ├── assess_data_quality.md
-│       ├── pandoc_conversion/                   # Pandoc-generated conversions
-│       │   ├── CTL-instruction-final.md
-│       │   ├── PINN_architecture_plan.md
-│       │   ├── sampling_method_instruction.md
-│       │   ├── review_of_ctl-pinn_framework.md
-│       │   ├── stage-strat-revision.md
-│       │   ├── data_quality_assess.md
-│       │   └── convert_latex_to_md.py           # Conversion script
+│   └── markdown_conversion/                     # LaTeX -> Markdown conversions (for reference)
+│       ├── ctl_instruction.md                   # Authoritative CTL conversion
+│       ├── pinn_architecture.md                 # Authoritative PINN architecture conversion
+│       ├── sampling_method.md                   # Authoritative sampling conversion
+│       ├── assess_data_quality.md               # Authoritative data quality conversion
+│       ├── review_of_framework.md               # Authoritative framework review conversion
+│       ├── stage_strat_revision.md              # Authoritative stage strategy conversion
+│       └── _archive/                            # Unselected candidates from v1.3
 │
 ├── paper_templates/                             # Academic paper templates
 │   └── mdpi_template/
@@ -264,17 +258,15 @@
 │       └── pytorch-main/                        # PyTorch source reference
 │
 ├── docs/                                        # Additional documentation
-│   ├── plans/
-│   │   └── splitting_latex.md                   # Plan for LaTeX modularization
-│   └── superpowers/
-│       └── plans/2026-03-19-remove-qwen-model-and-mlx.md
-│
+│   └── findings/                                # Audit reports and verification findings
+│       └── gsd-documentation-verification-2026-05-09/
+│           └── MASTER-VERIFICATION-REPORT.md
+
 ├── AGENTS.md                                    # Agent instructions (13,607 bytes)
 ├── ANTIGRAVITY.md                               # Agent instructions (12,848 bytes)
 ├── CLAUDE.md                                    # Agent instructions - source of truth for data formats (13,630 bytes)
 ├── GEMINI.md                                    # Agent instructions (13,631 bytes)
-├── README.md                                    # Project README (10,361 bytes)
-└── amp                                          # Unknown artifact (1,782 bytes)
+└── README.md                                    # Project README (10,361 bytes)
 ```
 
 ## .planning/ Directory (GSD Project Management)
@@ -306,7 +298,7 @@
 │   ├── 06-preamble-parity-verification/         # Phase 6: 1 plan, 1 summary + research/validation/verification
 │   ├── 07-structure-fidelity-verification/      # Phase 7: 2 plans, 2 summaries + context/research/validation/verification
 │   ├── 08-compilability-verification/           # Phase 8: 1 plan, 1 summary + context/research/validation/verification
-│   └── 09-issues-directory-consolidation/       # Phase 9: 3 plans + context/research/discussion-log (active)
+│   ├── 09-issues-directory-consolidation/       # Phase 9: 3 plans, 3 summaries + context/research/validation/verification/reviews (complete)
 ├── quick/                                       # Quick tasks (ad-hoc, single-session)
 │   ├── 260320-rca-modularize-pinn-architecture-latex-templ/
 │   ├── 260320-rxu-split-ctl-instruction-final-tex-into-mod/
@@ -379,8 +371,8 @@
   5. `review-of-framework/stage_strat_revision/`: Stage strategy revision (6 sections)
   6. `sampling-method/`: Standalone sampling methodology document
 - **Each document set** follows the pattern: `main_*.tex` + `preamble.tex` + `sections/*.tex` + compiled PDF
-- **Markdown conversions:** Located in `markdown_conversions/` and `markdown_conversions/pandoc_conversion/`, some with version suffixes (v2)
-- **Research issues:** Located in `review-of-framework/issues/` — 2 Markdown + 2 text + 1 combined doc
+- **Markdown conversions:** Located in `markdown_conversion/`, one authoritative file per source from v1.3 verification
+- **Research issues:** Located in `review-of-framework/issues/` — 3 consolidated thematic docs + MIGRATION.md + README.md + archive/
 
 ### `reference-code/`
 - **Purpose:** Vendored reference implementations for research comparison and code reference
@@ -397,15 +389,14 @@
 - **Key files:** `mdpi_template/paper.tex` (working draft), `mdpi_template/mdpi.cls` (document class)
 
 ### `docs/`
-- **Purpose:** Additional documentation (mostly historical)
-- **Contains:** 2 Markdown documents: LaTeX splitting plan and ML model removal plan
-- **Note:** Lightweight; most documentation lives in `pinn_instruction/` and `.planning/`
+- **Purpose:** Audit reports and verification findings
+- **Contains:** gsd-documentation-verification-2026-05-09/ with MASTER-VERIFICATION-REPORT.md
+- **Note:** Previously contained historical plans (`plans/`, `superpowers/`) — those have been removed
 
 ### `.planning/`
 - **Purpose:** GSD (Goal-Structured Development) project management framework
 - **Contains:** ROADMAP.md (milestones), STATE.md (current state), PROJECT.md (overview), REQUIREMENTS.md (spec), RETROSPECTIVE.md (lessons), 9 phases with plans/summaries/research/validation/verification, quick single-session tasks, research storage
-- **Phases 1-8:** Completed (v1.0 and v1.1 milestones)
-- **Phase 9:** Active (issues directory consolidation)
+- **Phases 1-9:** Completed (v1.0, v1.1, and v1.2 milestones)
 - **codebase/:** Codebase mapping documents consumed by GSD orchestrator (ARCHITECTURE.md, STRUCTURE.md, CONVENTIONS.md, TESTING.md, STACK.md, INTEGRATIONS.md, CONCERNS.md)
 
 ## Naming Conventions
@@ -460,8 +451,8 @@
 **Documentation (Source of Truth):**
 - `CLAUDE.md`: Agent instructions with data format specs and pipeline docs
 - `simulation_data/Documentation/README.md`: Dataset specification and anomalies
-- `pinn_instruction/original_latex/ctl-instruction/`: CTL methodology
-- `pinn_instruction/original_latex/pinn-architecture/`: Architecture design blueprint
+- `pinn_instruction/original_latex/framework-specs/ctl-instruction/`: CTL methodology
+- `pinn_instruction/original_latex/framework-specs/pinn-architecture/`: Architecture design blueprint
 
 **Testing:**
 - `pinn/basic_architecture.py`: Self-contained test in `if __name__ == "__main__"` block
@@ -521,11 +512,9 @@
 - `simulation_data/Scripts/archived/`: 3 scripts explicitly archived and unused
 - `simulation_data/Validation/analysis/figures/prescreening_copy_archive/`: Duplicate figure archive
 - `brutus_Newton-main/makefile.original`: Backup of original makefile
-- `docs/plans/splitting_latex.md`: Historical plan, may be obsolete
-- `docs/superpowers/plans/2026-03-19-remove-qwen-model-and-mlx.md`: Completed task, historical
+- `pinn/data-handling/core/parsing.txt`: 13-line text file in code directory — seems to be notes/errata
 
 ### Unrecognized
-- `/amp`: 1,782-byte file at repository root with no clear purpose or extension — likely artifact to investigate
 - `pinn/data-handling/core/parsing.txt`: 13-line text file in code directory — seems to be notes/errata
 
 ### Size Statistics
