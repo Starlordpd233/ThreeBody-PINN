@@ -70,7 +70,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 **Deliverables (all 6 complete):**
 - 6 authoritative markdown files, one per LaTeX source, with exact content match
-- 6 verification reports in `verification_reports/`
+- 6 verification reports in `verification_reports/` (3 kept for historical provenance, 3 superseded by `docs/findings/reports_on_v1.3/closure_audit_2026-05-11/` per DELETION-DECISIONS-2026-05-11)
 - 4 candidate archives in `_archive/` (Phases 10, 11, 12, 15 had multiple candidates)
 - Mathematical formulas faithfully converted (LaTeX → markdown math notation)
 - All cross-references, citations, figure/table references preserved correctly
@@ -90,8 +90,8 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 ### Previous Milestones
 
-**v1.2 PINN Implementation Readiness** (in progress)
-- Phase 9: Issues Directory Consolidation — 3 thematic docs + MIGRATION.md + README.md written, pending final verification
+**v1.2 PINN Implementation Readiness** (complete — shipped 2026-05-08)
+- Phase 9: Issues Directory Consolidation — 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 
 **v1.1 LaTeX Modularization Verification** (shipped 2026-03-22)
 - Phases 5-8: Content completeness, preamble parity, structure fidelity, compilability — all passed
@@ -108,7 +108,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Raw ICs externalized via IC_RAW_DIR environment variable
 - Standard quasi-random gold subset excludes 184 IDs (see `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`)
 - Existing PINN approach (SQR-SkipResNet-SIREN) relationship to new LLM direction is TBD
-- Qwen 3.5 2B 4-bit model already downloaded at `Qwen3.5-2B-4bit/`
+- Qwen 3.5 2B 4-bit model download status needs verification (Qwen3.5-2B-4bit/ directory not found on disk)
 - 5 of 6 LaTeX sources are modular (split into sections/); sampling-method is monolithic
 - Markdown conversions exist in two locations: `markdown_conversion/` (top-level) and `markdown_conversion/pandoc_conversion/`
 - Some sources have 2-3 competing markdown conversions; the best candidate was selected per phase during v1.3
@@ -156,4 +156,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-06 — Milestone v1.3 complete (all 6 phases verified)*
+*Last updated: 2026-05-09 — Phase 9 complete, v1.2 shipped*
