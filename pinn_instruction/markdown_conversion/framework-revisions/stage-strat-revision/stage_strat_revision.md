@@ -420,4 +420,10 @@ By implementing this comprehensive framework, the CTL-PINN project can overcome 
 
 ## Source Issues / Notes for Future Reconciliation
 
-No source-level issues identified during Phase 14 audit. The converted body faithfully reproduces all 6 active LaTeX sections of `stage_strat_revision/` without suspected inconsistencies. The single `\authcomment{}` at `algorithmic_workflow.tex:34` renders as bold text in the markdown, which is acceptable per D-58 and does not require separate documentation.
+The converted body faithfully reproduces all 6 active LaTeX sections of `stage_strat_revision/` without suspected inconsistencies. The single `\authcomment{}` at `algorithmic_workflow.tex:34` renders as bold text in the markdown, which is acceptable per D-58 and does not require separate documentation.
+
+### SI-SSR-001: I3 schema inconsistency
+
+- **Section:** Phase I — Invariant Calculation (body text and Table 2)
+- **Description:** The Phase I body text enumerates Shape Invariants as $I_1, I_2, I_3$, but the DataFrame schema table (Table 2) lists only `I1` and `I2` columns (no `I3`). This omission is present in the original LaTeX source (`algorithmic_workflow.tex:49`). Resolution requires an upstream LaTeX fix.
+- **Status:** Documented for future reconciliation
