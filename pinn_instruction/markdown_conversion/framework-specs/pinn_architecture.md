@@ -1,3 +1,8 @@
+---
+author: Starlordpd233
+date: 2026-03-21
+---
+
 # A Definitive Implementation Blueprint for a Hybrid SQR-SkipResNet-SIREN PINN with Hamiltonian Regularization for $\mathrm{N}$-Body Dynamics
 
 # 1. Foundational Architectural Principles: A Co-Designed Approach for Chaotic Systems
