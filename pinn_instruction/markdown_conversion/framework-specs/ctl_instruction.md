@@ -653,8 +653,7 @@ are computed for input vector universality.
 #### Numerical notes and defaults.
 
 Unless otherwise specified, use double precision for all invariants. The
-softening $\varepsilon=10^{-10}$ in
-softening $varepsilon=10^{-10}$ in the total energy definition (see above) is a safe default in scaled units and *does not*
+softening $\varepsilon=10^{-10}$ in the total energy definition (see above) is a safe default in scaled units and *does not* enter $s_{\min}$ or any denominator besides $V$.
 
 #### Sanity checks (quick tests).
 
@@ -1210,7 +1209,7 @@ folder, so every figure in the paper can be reproduced bit-for-bit.
 
 # Source Issues / Notes for Future Reconciliation
 
-These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `ctl_instruction_verification_report.md`.
+These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `docs/findings/reports_on_v1.3/closure_audit_2026-05-11/audit-ctl_instruction.md`.
 
 ## SI-CTL-001: Input-vector dimensionality inconsistency
 
