@@ -189,6 +189,8 @@ layers.
       in chaotic dynamics, reducing numerical instabilities and
       promoting stable training.
 
+    **[Need more detail on this dynamic scheduling for omega_0. Is it based on stages? How do we dynamically adjust it? Based on epochs? Need more details on this.]**
+
 2.  **Subsequent Hidden Layers (for Trainability):** For all other
     hidden layers, the weights $\mathrm{W}$ are initialized from a
     different uniform distribution,
@@ -203,6 +205,8 @@ layers.
     uncontrollably with depth. This careful, layer-dependent
     initialization is what makes deep SIRENs trainable by ensuring
     stable gradient flow.[^1]
+
+    **[Need confirmation on this hidden layer's detail. Need to make sure the formula is correct according to the original SIREN paper?]**
 
 ## 2.3 The Power-Enhanced SkipResNet (SQR-SkipResNet) Formulation
 
@@ -274,6 +278,8 @@ resolve. $\text{LayerNorm}$ ensures this term remains bounded.
 
   : Table 1: Architectural hyperparameters of the SQR-SkipResNet-SIREN backbone
 :::
+
+  **[I believe this formula for initialization is incorrect]**
 
 # 3. The Multi-Component, Physics-Constrained Loss Function
 
@@ -372,6 +378,8 @@ N_data = batch_size * points_per_trajectory  # e.g., 256 * 32 = 8192
 The time points $t_k$ are sampled from the discrete BRUTUS trajectory
 snapshots available in the training dataset, representing specific
 moments where high-precision numerical integration data is available.
+
+  **[Comment: This above batch construction is not consistent with the CTL instruction plan. Look into this.]**
 
 **Key ALM Integration Note:**\
 The data term is no longer weighted by a fixed parameter. Instead, its
