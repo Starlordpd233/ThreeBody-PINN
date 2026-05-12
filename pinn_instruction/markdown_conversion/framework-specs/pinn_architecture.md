@@ -237,7 +237,7 @@ $$\mathbf{x}^{(l)} = f_{\text{sr}}^{(l)}(\mathbf{x}^{(l-1)}) + \left(\text{Layer
 
 $$\mathbf{x}^{(l)} = f_{\text{pn}}^{(l)}(\mathbf{x}^{(l-1)})$$
 
-### Critical Rationale for LayerNorm {#critical-rationale-for-layernorm .unnumbered}
+### Critical Rationale for LayerNorm
 
 A critical enhancement to the standard SQR-SkipResNet is the application
 of Layer Normalization to the skip path *before* the element-wise
@@ -251,7 +251,7 @@ preserving the expressive power of the non-linear power term, which is
 crucial for modeling the sharp transitions characteristic of close
 encounters.
 
-### Power Term Justification {#power-term-justification .unnumbered}
+### Power Term Justification
 
 The power term $p = 2$ remains critical for modeling non-smooth
 dynamics. For 3-body systems, close encounters produce
