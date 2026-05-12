@@ -135,6 +135,8 @@ A critical issue identified in the project is the distortion of the virial ratio
 
 The transformation is based on the physical scaling of the kinetic and potential energies. Since kinetic energy $T \propto v^2$ and potential energy $V \propto 1/r$, and the sampling scales positions as $r \to sr$ and velocities as $v \to sv$, the virial ratio scales as: $$Q \propto \frac{T}{|V|} \propto \frac{(sv)^2}{1/(sr)} = s^3 \frac{v^2}{1/r}$$ Therefore, to recover a scale-invariant measure of virial equilibrium, the raw virial ratio must be divided by $s^3$. The normalized virial ratio is defined as: $$Q_{\text{norm}} = \frac{Q_{\text{raw}}}{s^3}$$ This calculation should be applied to all simulations of type 'quasi-random'. For 'hierarchical' simulations, it can be assumed that $s=1$, so $Q_{\text{norm}} = Q_{\text{raw}}$.
 
+**[I'm not sure what this s is referring to. Should we look for the exact value used in the sampling script?]**
+
 **Contingency Plan:** If the scale factor $s$ is not explicitly stored with each IC, it must be recorded during the IC generation or estimated post-hoc. As suggested in the project analysis, one method is to estimate it by comparing the median momentum of the scaled sample to a baseline unscaled sample.[5] Without this correction, the virial ratio is not a reliable metric for the quasi-random set and should be excluded from the analysis for those simulations.
 
 ### Assembling the Invariant Feature DataFrame
