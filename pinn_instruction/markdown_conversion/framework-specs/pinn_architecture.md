@@ -857,7 +857,7 @@ These notes are metadata for future reconciliation. They are not part of the fai
 ### SI-PINN-002: Author comments preserved in converted body
 
 - **Section:** Sections 2, 3 (sqr_skipresnet_siren_backbone, physics_constrained_loss)
-- **Description:** 4 author comments (`\authcomment{}` → red-style bracketed text) are preserved in the converted body. These are editorial notes from the original authors, not content discrepancies:
+- **Description:** 4 author comments from the LaTeX source (`\authcomment{}`) are preserved in the converted body as bold bracketed text (`**[...]**`). These are editorial notes from the original authors, not content discrepancies:
   1. "Need more detail on this dynamic scheduling for omega_0" (Section 2)
   2. "Need confirmation on this hidden layer's detail" (Section 2)
   3. "I believe this formula for initialization is incorrect" (Section 2, hyperparameters table)
