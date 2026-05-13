@@ -510,10 +510,10 @@ The clamping bounds were added in response to the observation that mu_p can dive
 
 - [01-architecture-and-physics-foundations.md](01-architecture-and-physics-foundations.md) — 14-D input vector consumed by training loop; COM frame transform applied before training; D=6.694 drives stage thresholds; dual-epsilon strategy (eps=1e-10 for stage gating, eps_soft=1e-5 for training loss); normalization formulas table (canonical location); omega0 scheduling interacts with stage initialization.
 - [02-data-pipeline-and-validation.md](02-data-pipeline-and-validation.md) — DataLoader must support stage queries (replay/lookahead sampling); SCS/SASD/IPR/PSC feed into training loop as live parameters; stage labels produced by data pipeline; TrajectoryValidator gate must be passed before training data enters loop; temporal resolution bridging feeds into dt_out-aware collocation scaling.
-- [Canonical: CTL Instruction](../../../../markdown_conversion/framework-specs/ctl_instruction.md) — Original curriculum training framework specification.
-- [Canonical: PINN Architecture Plan](../../../../markdown_conversion/framework-specs/pinn_architecture.md) — Original architecture specification including training strategy.
-- [Canonical: data-processing-pipeline-full.py](../../../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly, stage assignment logic, and training data preparation.
-- [Canonical: basic_architecture.py](../../../../pinn/basic_architecture.py) — Current SIREN implementation, get_batch(), and training utilities.
+- [Canonical: CTL Instruction](../markdown_conversion/framework-specs/ctl_instruction.md) — Original curriculum training framework specification.
+- [Canonical: PINN Architecture Plan](../markdown_conversion/framework-specs/pinn_architecture.md) — Original architecture specification including training strategy.
+- [Canonical: data-processing-pipeline-full.py](../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly, stage assignment logic, and training data preparation.
+- [Canonical: basic_architecture.py](../../pinn/basic_architecture.py) — Current SIREN implementation, get_batch(), and training utilities.
 
 ---
 

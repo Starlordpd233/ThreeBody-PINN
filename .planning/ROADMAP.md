@@ -51,7 +51,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] 09-03-PLAN.md
 
 **Deliverables:**
-- 3 thematic issue documents in `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/`
+- 3 thematic issue documents in `pinn_instruction/issues/`
 - MIGRATION.md and README.md for migration tracking
 - VERIFICATION-REPORT.md (PASS), VALIDATION.md (all checks PASS)
 

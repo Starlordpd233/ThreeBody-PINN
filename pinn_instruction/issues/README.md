@@ -14,9 +14,9 @@ See **[MIGRATION.md](MIGRATION.md)** for a per-file, per-section provenance map 
 
 ## Canonical References
 
-- [CTL Instruction (Curriculum Training Framework)](../../../../markdown_conversion/framework-specs/ctl_instruction.md)
-- [PINN Architecture Plan (SQR-SkipResNet-SIREN)](../../../../markdown_conversion/framework-specs/pinn_architecture.md)
-- [Dataset Documentation (Simulation Data Pipeline)](../../../../simulation_data/Documentation/README.md)
+- [CTL Instruction (Curriculum Training Framework)](../markdown_conversion/framework-specs/ctl_instruction.md)
+- [PINN Architecture Plan (SQR-SkipResNet-SIREN)](../markdown_conversion/framework-specs/pinn_architecture.md)
+- [Dataset Documentation (Simulation Data Pipeline)](../../simulation_data/Documentation/README.md)
 
 ## Cross-Doc Interaction Matrix
 

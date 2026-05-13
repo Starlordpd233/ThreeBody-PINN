@@ -120,7 +120,7 @@ All v1.3 tasks complete.
 
 ### Prerequisites
 
-**v1.2 Phase 9 completion** — Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/`. Verification complete. Markdown conversion reorganization also complete (framework-specs/ vs framework-revisions/ taxonomy).
+**v1.2 Phase 9 completion** — Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/issues/`. Verification complete. Markdown conversion reorganization also complete (framework-specs/ vs framework-revisions/ taxonomy).
 
 ### Blockers/Concerns
 

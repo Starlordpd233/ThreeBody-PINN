@@ -392,10 +392,10 @@ These errors propagate into every D-dependent normalized IC-vector component fed
 
 - [02-data-pipeline-and-validation.md](02-data-pipeline-and-validation.md) — Data pipeline produces the 13-component IC vector specified here; validation must apply the same COM transform; normalization formulas table lives canonically here.
 - [03-curriculum-and-training-loop.md](03-curriculum-and-training-loop.md) — Training loop consumes the 14D input; omega0 scheduling interacts with stage initialization; D=6.694 drives stage thresholds; dual-epsilon strategy feeds into training loss epsilon_soft.
-- [Canonical: PINN Architecture Plan](../../../../markdown_conversion/framework-specs/pinn_architecture.md) — Original architecture specification.
-- [Canonical: CTL Instruction](../../../../markdown_conversion/framework-specs/ctl_instruction.md) — Curriculum training framework.
-- [Canonical: basic_architecture.py](../../../../pinn/basic_architecture.py) — Current SIREN implementation.
-- [Canonical: data-processing-pipeline-full.py](../../../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly.
+- [Canonical: PINN Architecture Plan](../markdown_conversion/framework-specs/pinn_architecture.md) — Original architecture specification.
+- [Canonical: CTL Instruction](../markdown_conversion/framework-specs/ctl_instruction.md) — Curriculum training framework.
+- [Canonical: basic_architecture.py](../../pinn/basic_architecture.py) — Current SIREN implementation.
+- [Canonical: data-processing-pipeline-full.py](../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly.
 
 ---
 

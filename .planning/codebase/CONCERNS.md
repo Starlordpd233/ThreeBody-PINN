@@ -186,7 +186,7 @@ Both contain parsing logic, invariant computation, stage assignment, and batch c
 
 ### M-3: 2,847-Line `next steps.txt` -- Mostly Superseded
 
-**What:** `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/next steps.txt` is a 128KB dump (2,847 lines) containing issues, solutions, and commentary from early development. Per the Phase 9 context (D-06), ~80% is superseded by the 2026-04-27 audit. Only 4 unique sections have value not subsumed by the audit.
+**What:** `pinn_instruction/issues/archive/next steps.txt` is a 128KB dump (2,847 lines) containing issues, solutions, and commentary from early development. Per the Phase 9 context (D-06), ~80% is superseded by the 2026-04-27 audit. Only 4 unique sections have value not subsumed by the audit.
 
 **Impact:** Anyone reading this file wastes time on superseded analysis. Contradicts newer documents.
 
@@ -378,7 +378,7 @@ Parsing code must handle optional fields. When `tol` is absent, fall back to fol
 
 ### P-1: Phase 9 (Issues Consolidation) Complete
 
-**What:** Phase 9 has 3/3 plans complete. Three consolidated thematic docs exist in `pinn_instruction/original_latex/framework-revisions/review-of-framework/issues/`:
+**What:** Phase 9 has 3/3 plans complete. Three consolidated thematic docs exist in `pinn_instruction/issues/`:
 - `01-architecture-and-physics-foundations.md` (39,567 bytes)
 - `02-data-pipeline-and-validation.md` (27,868 bytes)
 - `03-curriculum-and-training-loop.md` (42,083 bytes)

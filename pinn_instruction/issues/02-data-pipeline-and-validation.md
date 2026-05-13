@@ -353,9 +353,9 @@ The DataLoader is the bridge between the Brutus output filesystem and the PINN t
 
 - [01-architecture-and-physics-foundations.md](01-architecture-and-physics-foundations.md) — 14-D input vector spec (data pipeline must produce this); COM frame transformation (validation must apply same transform); normalization formulas table (canonical location); dual-epsilon strategy (validation uses static eps=1e-10, training uses dynamic eps=1e-5).
 - [03-curriculum-and-training-loop.md](03-curriculum-and-training-loop.md) — Stage assignment criteria (pipeline outputs stage labels); SCS/SASD/IPR/PSC as live training parameters (data side feeds training loop); replay/lookahead batch construction (DataLoader must support stage queries).
-- [Canonical: Dataset Documentation](../../../../simulation_data/Documentation/README.md) — Authoritative dataset spec, anomalies, dt_out per variant, completeness rules. Do NOT duplicate content from here.
-- [Canonical: data-processing-pipeline-full.py](../../../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly and staging logic.
-- [Canonical: calculate_metrics.py](../../../../simulation_data/Scripts/metrics_calculation/calculate_metrics.py) — Conservation metrics extraction.
+- [Canonical: Dataset Documentation](../../simulation_data/Documentation/README.md) — Authoritative dataset spec, anomalies, dt_out per variant, completeness rules. Do NOT duplicate content from here.
+- [Canonical: data-processing-pipeline-full.py](../../pinn/data-processing-pipeline-full.py) — Current IC vector assembly and staging logic.
+- [Canonical: calculate_metrics.py](../../simulation_data/Scripts/metrics_calculation/calculate_metrics.py) — Conservation metrics extraction.
 
 ---
 

@@ -372,7 +372,7 @@
   6. `sampling-method/`: Standalone sampling methodology document
 - **Each document set** follows the pattern: `main_*.tex` + `preamble.tex` + `sections/*.tex` + compiled PDF
 - **Markdown conversions:** Located in `markdown_conversion/`, one authoritative file per source from v1.3 verification
-- **Research issues:** Located in `review-of-framework/issues/` — 3 consolidated thematic docs + MIGRATION.md + README.md + archive/
+- **Research issues:** Located in `pinn_instruction/issues/` — 3 consolidated thematic docs + MIGRATION.md + README.md + archive/
 
 ### `reference-code/`
 - **Purpose:** Vendored reference implementations for research comparison and code reference
