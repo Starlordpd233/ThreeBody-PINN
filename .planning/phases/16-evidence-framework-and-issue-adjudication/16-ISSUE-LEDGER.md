@@ -36,3 +36,249 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 | M8 | LayerNorm attribution and affine default | 20 | PENDING | - | NO | evidence/M8.md | AC-ARCH-02 | pinn_architecture.md | ARCH-02 | 2026-05-16 |
 | M9 | Energy normalization realized support | 20 | PENDING | - | NO | evidence/M9.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-05-16 |
 | M10 | Mass normalization realized support | 20 | PENDING | - | NO | evidence/M10.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-05-16 |
+
+## Notes
+
+30/30 v1.4 requirements mapped exactly once - see REQUIREMENTS.md §Traceability. This ledger records the verification statement only; REQUIREMENTS.md remains the source of truth.
+
+## Lifecycle Rules
+
+The forward status path is exactly `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED`.
+
+`DEFERRED` is an absorbing state and requires a written blocker. `FIX_APPLIED` is not closure. `VERIFIED` requires a passing acceptance check for the finding's AC-ID.
+
+Audit string: FIX_APPLIED is not closure; VERIFIED requires a passing acceptance check.
+
+A batch is one GSD plan (`NN-NN-PLAN.md`). After every batch of spec or code edits in Phases 17-21, the executing agent re-runs each `VERIFIED` finding's acceptance check if that finding appears as a transitive dependent of any finding edited by the batch. Any regression returns the affected finding to `IN_PROGRESS` and blocks phase exit until re-fixed and re-verified.
+
+The phase-exit gate permits only `VERIFIED` or `DEFERRED` for in-scope findings. No phase exits with any in-scope finding at `IN_PROGRESS` or `FIX_APPLIED`.
+
+## Dependency Source Note
+
+Initial Dependents values use the locked D-10 entries. The exact `## Cross-Issue Interactions` heading was verified in `pinn_instruction/issues/01-architecture-and-physics-foundations.md`, while `ctl_pinn_resolution.md` contributes supporting Verified Audit Matrix and dependency-ordered roadmap anchors.
+
+## Per-Finding Notes
+
+Status transition log entries must include date, commit short SHA, status transition, and actor / plan reference.
+
+### B-01: SIREN hidden-layer initialization
+
+Evidence packet: evidence/B-01.md
+
+Acceptance check: AC-ARCH-01
+
+Shared acceptance check: AC-ARCH-01 also covers other IDs B-01 and B-10.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-02: Characteristic length and mass scaling
+
+Evidence packet: evidence/B-02.md
+
+Sources disagree: contested; EVID-05 required; no verdict assigned in Phase 16.
+
+Acceptance check: AC-PHYS-01
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-03: Input dimensionality
+
+Evidence packet: evidence/B-03.md
+
+Acceptance check: AC-IO-01
+
+Shared acceptance check: AC-IO-01 also covers other IDs B-03 and M2.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-04: Input vector composition and orientation slots
+
+Evidence packet: evidence/B-04.md
+
+Sources disagree: contested; EVID-05 required; no verdict assigned in Phase 16.
+
+Acceptance check: AC-IO-02
+
+Shared acceptance check: AC-IO-02 also covers other IDs B-04 and M1.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-05: COM frame consistency
+
+Evidence packet: evidence/B-05.md
+
+B-11 folded into B-05 because both concern COM/mass consistency.
+
+Acceptance check: AC-FRAME-01
+
+Shared acceptance check: AC-FRAME-01 also covers other IDs B-05 and M3.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-06: 3D-vs-planar encoding and output contract
+
+Evidence packet: evidence/B-06.md
+
+Acceptance check: AC-IO-03
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-07: Energy/Hamiltonian regularizer
+
+Evidence packet: evidence/B-07.md
+
+Acceptance check: AC-PHYS-04
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-08: ALM scheduling and loss balancing
+
+Evidence packet: evidence/B-08.md
+
+Acceptance check: AC-PHYS-05
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-09: Softening mismatch
+
+Evidence packet: evidence/B-09.md
+
+Sources disagree: contested; EVID-05 required; no verdict assigned in Phase 16.
+
+Acceptance check: AC-PHYS-03
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### B-10: Dynamic omega0 scheduling
+
+Evidence packet: evidence/B-10.md
+
+Acceptance check: AC-ARCH-01
+
+Shared acceptance check: AC-ARCH-01 also covers other IDs B-01 and B-10.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M1: 11D IC versus 13D IC gap
+
+Evidence packet: evidence/M1.md
+
+Acceptance check: AC-IO-02
+
+Shared acceptance check: AC-IO-02 also covers other IDs B-04 and M1.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M2: Total dimension claims conflict
+
+Evidence packet: evidence/M2.md
+
+Acceptance check: AC-IO-01
+
+Shared acceptance check: AC-IO-01 also covers other IDs B-03 and M2.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M3: Scaling order and COM transform order
+
+Evidence packet: evidence/M3.md
+
+Acceptance check: AC-FRAME-01
+
+Shared acceptance check: AC-FRAME-01 also covers other IDs B-05 and M3.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M4: Constraint counting error
+
+Evidence packet: evidence/M4.md
+
+Acceptance check: AC-PHYS-06
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M5: I_3 normalization map
+
+Evidence packet: evidence/M5.md
+
+Sources disagree: contested; EVID-05 required; no verdict assigned in Phase 16.
+
+Acceptance check: AC-ARCH-03
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M6: Deferred finding M6
+
+Status: DEFERRED
+
+Verdict: defer-with-blocker
+
+Acceptance check: AC-VER-03
+
+Shared acceptance check: AC-VER-03 also covers other IDs M6 and M7.
+
+Blocker: Not adjudicable from supplied files. The accessible consolidation map does not expose standalone M6 or M7 semantic categories (per ctl_pinn_resolution.md §M6 and M7). v1.4 records as explicit deferral; revisit when source material is available.
+
+Status transition log:
+- 2026-05-16 SEED_SHA DEFERRED -> DEFERRED (seeded by Phase 16 P02)
+
+### M7: Deferred finding M7
+
+Status: DEFERRED
+
+Verdict: defer-with-blocker
+
+Acceptance check: AC-VER-03
+
+Shared acceptance check: AC-VER-03 also covers other IDs M6 and M7.
+
+Blocker: Not adjudicable from supplied files. The accessible consolidation map does not expose standalone M6 or M7 semantic categories (per ctl_pinn_resolution.md §M6 and M7). v1.4 records as explicit deferral; revisit when source material is available.
+
+Status transition log:
+- 2026-05-16 SEED_SHA DEFERRED -> DEFERRED (seeded by Phase 16 P02)
+
+### M8: LayerNorm attribution and affine default
+
+Evidence packet: evidence/M8.md
+
+Acceptance check: AC-ARCH-02
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M9: Energy normalization realized support
+
+Evidence packet: evidence/M9.md
+
+Acceptance check: AC-ARCH-05
+
+Shared acceptance check: AC-ARCH-05 also covers other IDs M9 and M10.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+
+### M10: Mass normalization realized support
+
+Evidence packet: evidence/M10.md
+
+Acceptance check: AC-ARCH-05
+
+Shared acceptance check: AC-ARCH-05 also covers other IDs M9 and M10.
+
+Status transition log:
+- 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
