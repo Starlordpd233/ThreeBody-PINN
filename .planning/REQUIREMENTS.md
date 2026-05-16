@@ -69,37 +69,37 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVID-01 | TBD | Pending |
-| EVID-02 | TBD | Pending |
-| EVID-03 | TBD | Pending |
-| EVID-04 | TBD | Pending |
-| IO-01 | TBD | Pending |
-| IO-02 | TBD | Pending |
-| IO-03 | TBD | Pending |
-| IO-04 | TBD | Pending |
-| FRAME-01 | TBD | Pending |
-| FRAME-02 | TBD | Pending |
-| FRAME-03 | TBD | Pending |
-| FRAME-04 | TBD | Pending |
-| PHYS-01 | TBD | Pending |
-| PHYS-02 | TBD | Pending |
-| PHYS-03 | TBD | Pending |
-| PHYS-04 | TBD | Pending |
-| PHYS-05 | TBD | Pending |
-| ARCH-01 | TBD | Pending |
-| ARCH-02 | TBD | Pending |
-| ARCH-03 | TBD | Pending |
-| ARCH-04 | TBD | Pending |
-| ARCH-05 | TBD | Pending |
-| VER-01 | TBD | Pending |
-| VER-02 | TBD | Pending |
-| VER-03 | TBD | Pending |
+| EVID-01 | Phase 16 | Pending |
+| EVID-02 | Phase 16 | Pending |
+| EVID-03 | Phase 16 | Pending |
+| EVID-04 | Phase 16 | Pending |
+| IO-01 | Phase 17 | Pending |
+| IO-02 | Phase 17 | Pending |
+| IO-03 | Phase 17 | Pending |
+| IO-04 | Phase 17 | Pending |
+| FRAME-01 | Phase 18 | Pending |
+| FRAME-02 | Phase 18 | Pending |
+| FRAME-03 | Phase 18 | Pending |
+| FRAME-04 | Phase 18 | Pending |
+| PHYS-01 | Phase 19 | Pending |
+| PHYS-02 | Phase 19 | Pending |
+| PHYS-03 | Phase 19 | Pending |
+| PHYS-04 | Phase 19 | Pending |
+| PHYS-05 | Phase 19 | Pending |
+| ARCH-01 | Phase 20 | Pending |
+| ARCH-02 | Phase 20 | Pending |
+| ARCH-03 | Phase 20 | Pending |
+| ARCH-04 | Phase 20 | Pending |
+| ARCH-05 | Phase 20 | Pending |
+| VER-01 | Phase 21 | Pending |
+| VER-02 | Phase 16 | Pending |
+| VER-03 | Phase 21 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 pending roadmap
+- Mapped to phases: 25
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-05-15 after milestone v1.4 requirements definition*
+*Last updated: 2026-05-15 after milestone v1.4 roadmap creation*

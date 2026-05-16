@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
 status: planning
-last_updated: "2026-05-15T18:53:55.014Z"
+last_updated: "2026-05-15T19:15:24Z"
 last_activity: 2026-05-15
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-15)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Milestone v1.4 requirements and roadmap definition
+**Current focus:** Phase 16 - Evidence Framework and Issue Adjudication
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 16 of 21 (v1.4 phase 1 of 6)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-15 — Milestone v1.4 started
+Status: Roadmap ready; next step is phase planning
+Last activity: 2026-05-15 — Milestone v1.4 roadmap created
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -67,8 +68,20 @@ Last activity: 2026-05-15 — Milestone v1.4 started
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21) — roadmap created; planning ready
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
+
+### v1.4 Phase Summary
+
+| Phase | Focus | Requirements |
+|-------|-------|--------------|
+| 16 | Evidence framework and issue adjudication | EVID-01..04, VER-02 |
+| 17 | Input and output contracts | IO-01..04 |
+| 18 | Frame and gauge contracts | FRAME-01..04 |
+| 19 | Physics and loss contracts | PHYS-01..05 |
+| 20 | Architecture and normalization cleanup | ARCH-01..05 |
+| 21 | Acceptance checks and handoff | VER-01, VER-03 |
 
 ### v1.3 Phase Summary
 
@@ -111,7 +124,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks complete.
+All v1.3 tasks complete. v1.4 is ready to plan from Phase 16.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -142,4 +155,4 @@ None.
 Last session: 2026-05-14T04:52:50.327Z
 Stopped at: context exhaustion at 79% (2026-05-14)
 Resume file: None
-Next action: Plan milestone v1.4 or resume deferred work (PINN training loop, LLM fine-tuning prep)
+Next action: Plan Phase 16 evidence framework and issue adjudication
