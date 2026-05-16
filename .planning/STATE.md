@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: planning
-last_updated: "2026-05-15T19:15:24Z"
-last_activity: 2026-05-15
+status: v1.3 and post-v1.3 SCS correction shipped; next step is phase discussion
+stopped_at: Phase 16 context gathered
+last_updated: "2026-05-16T03:59:57.042Z"
+last_activity: 2026-05-15 — SCS gate correction verified and GSD docs synchronized
 progress:
   total_phases: 6
   completed_phases: 0
@@ -26,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-15)
 
 Phase: 16 of 21 (v1.4 phase 1 of 6)
 Plan: —
-Status: Roadmap ready; next step is phase planning
-Last activity: 2026-05-15 — Milestone v1.4 roadmap created
+Status: v1.3 and post-v1.3 SCS correction shipped; next step is phase discussion
+Last activity: 2026-05-15 — SCS gate correction verified and GSD docs synchronized
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
@@ -67,8 +68,8 @@ Progress: [░░░░░░░░░░] 0%
 - v1.0: Codebase Cleanup (Phases 1-4) — shipped 2026-03-20
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
-- v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21) — roadmap created; planning ready
+- v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21) — initialized; next workflow step is `$gsd-discuss-phase 16`
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 
@@ -76,12 +77,14 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Focus | Requirements |
 |-------|-------|--------------|
-| 16 | Evidence framework and issue adjudication | EVID-01..04, VER-02 |
-| 17 | Input and output contracts | IO-01..04 |
+| 16 | Evidence framework, issue ledger, conflict adjudication | EVID-01..05, VER-02, VER-05 (defined) |
+| 17 | Input and output contracts (incl. COM projection head) | IO-01..04 |
 | 18 | Frame and gauge contracts | FRAME-01..04 |
-| 19 | Physics and loss contracts | PHYS-01..05 |
+| 19 | Physics and loss contracts (incl. M4 constraint counting) | PHYS-01..06 |
 | 20 | Architecture and normalization cleanup | ARCH-01..05 |
-| 21 | Acceptance checks and handoff | VER-01, VER-03 |
+| 21 | Acceptance checks executed, SI-ledger reconciled, handoff | VER-01, VER-03, VER-04, VER-06 |
+
+**Verification protocol (applies to every phase):** adjudicate → fix → verify → re-verify after every batch → close only when the acceptance check passes. Defined in detail in `.planning/ROADMAP.md` under v1.4.
 
 ### v1.3 Phase Summary
 
@@ -107,6 +110,12 @@ Recent decisions affecting current work:
 - [v1.3]: Best markdown candidate selected per source; unselected duplicates archived to _archive/
 - [v1.3]: Manual comparison only — no automated verification scripts this milestone (deferred to v2)
 - [v1.3]: Milestone complete 2026-05-08 — all 6 markdown conversions verified and archived
+- [Post-v1.3]: SCS gate correction shipped — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, and the data-ingestion gate is `\epsilon_H > 10^{-5}` / `SCS > -5`
+- [v1.4-init]: Resolution doc is NOT authoritative; EVID-05 mandates critical examination of both `ctl_pinn_resolution.md` and `01-architecture-and-physics-foundations.md` against current framework specs and first-principles physics for every contested finding (B-02, B-04, B-09, M5)
+- [v1.4-init]: Iterative re-verification loop (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`) codified in VER-05; "fix applied" is not closure — only a passing acceptance check is. Loop expected to iterate; phases do not exit on regressed findings.
+- [v1.4-init]: Validation suite execution is VER-04 (in Phase 21) — not deferred to FUT. Failing checks block milestone close-out.
+- [v1.4-init]: M4 (constraint counting) elevated to PHYS-06 — was missing from initial requirement coverage.
+- [v1.4-init]: `master_consolidation_report.md` demoted from co-equal primary source to supporting evidence.
 - [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
 - [v1.1]: Automated Python diffing approach chosen for verification
 - [v1.1]: 4 verification dimensions: content completeness, preamble parity, structure fidelity, compilability
@@ -124,11 +133,12 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks complete. v1.4 is ready to plan from Phase 16.
+All v1.3 tasks and the post-ship SCS gate correction are complete. v1.4 must begin with Phase 16 discussion/context capture before any plan or execution artifact.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
 - [x] Fix all audit gaps from MILESTONE-AUDIT-v1.3.md (complete — Task #3)
+- [x] Correct and verify SCS/raw-drift gate across LaTeX, PDF, markdown, and closure audit
 
 ### Prerequisites
 
@@ -136,7 +146,10 @@ All v1.3 tasks complete. v1.4 is ready to plan from Phase 16.
 
 ### Blockers/Concerns
 
-None.
+None blocking, but two operational notes for Phase 16 discussion:
+
+- Phase 16 must produce the issue ledger at `.planning/phases/16-evidence-framework/16-ISSUE-LEDGER.md` AND the EVID-05 adjudication template before any spec edit begins in Phase 17.
+- Phases 17–20 each need a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite. Plan budget should anticipate fix-verify-refix cycles, especially for B-02, B-04, B-09, M5.
 
 ## Quick Tasks Completed
 
@@ -152,7 +165,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-14T04:52:50.327Z
-Stopped at: context exhaustion at 79% (2026-05-14)
-Resume file: None
-Next action: Plan Phase 16 evidence framework and issue adjudication
+Last session: 2026-05-16T03:59:57.022Z
+Stopped at: Phase 16 context gathered
+Resume file: .planning/phases/16-evidence-framework-and-issue-adjudication/16-CONTEXT.md
+Next action: Discuss Phase 16 evidence framework and issue adjudication
