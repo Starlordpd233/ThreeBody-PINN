@@ -5,8 +5,8 @@
 - ✅ **v1.0 Codebase Cleanup** — Phases 1–4 (shipped 2026-03-20)
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
-- ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21 (planned)
+- ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
+- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21 (initialized; next: discuss Phase 16)
 
 ## Phases
 
@@ -70,48 +70,69 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 14: Stage-Strategy-Revision Verification** — 6 sections, 1 pandoc candidate, table normalization — completed 2026-05-05
 - [x] **Phase 15: Sampling-Method Verification** — Monolithic source, 2 markdown candidates — completed 2026-05-06
 - [x] **Phase 15.1: Markdown Conversion Correction** (INSERTED) — Resolve critical conversion errors and structural issues from v1.3 review reports (phases 10-15) to produce authoritative markdown files for handoff. New issues discovered after this scope are handled via GSD workflow, not this phase. — completed 2026-05-08
+- [x] **Post-ship SCS Gate Correction** — Corrected data-quality-assessment raw drift/SCS semantics in LaTeX, regenerated PDF, aligned markdown, and closure audit row — verified 2026-05-15
 
 Full details: `.planning/milestones/v1.3-ROADMAP.md`
 
 </details>
 
-### 🚧 v1.4 Resolving 01 Architecture and Physics Foundations (Planned)
+### 🚧 v1.4 Resolving 01 Architecture and Physics Foundations (Initialized)
 
-**Milestone Goal:** Validate `ctl_pinn_resolution.md` issue-by-issue against the current framework specs and thematic issue report, then make evidence-backed framework-spec edits without changing the SQR-SkipResNet-SIREN, CTL, or raw-mass decisions unless evidence requires it.
+**Milestone Goal:** Critically examine each Issue 01 finding against BOTH `ctl_pinn_resolution.md` AND `01-architecture-and-physics-foundations.md` — treating neither as authoritative — to identify the root-cause ambiguity in the current framework specs, lock the right convention, apply evidence-backed edits, and **verify each fix by executing acceptance checks** before closing the issue. Preserve the SQR-SkipResNet-SIREN, CTL, and raw-mass decisions unless evidence requires otherwise.
 
 **Granularity:** standard
-**Coverage:** 25/25 v1.4 requirements mapped
+**Coverage:** 30/30 v1.4 requirements mapped
 
-- [ ] **Phase 16: Evidence Framework and Issue Adjudication** — Establish the evidence packet, verdict, false-positive, and traceability structure that every Issue 01 edit must follow.
-- [ ] **Phase 17: Input and Output Contracts** — Resolve the 14D input, 13-entry IC schema, position-output, and obsolete-dimension wording contracts across framework specs.
+#### Verification Protocol (applies to every phase)
+
+Every issue and every edit in v1.4 follows this loop:
+
+1. **Adjudicate** — for findings where the resolution doc and the issue doc disagree (currently B-02 D formula, B-04 input-vector orientation slots, B-09 softening strategy, M5 `I_3` mapping, plus any further conflicts discovered during the walkthrough), apply EVID-05: read both positions in full, verify each against the current framework specs, the live code (`pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`), and first-principles physics, and record the root-cause ambiguity in the issue evidence packet before editing.
+2. **Fix** — apply the spec edit (and, where VER-04 requires, the narrow code edit named in SCOPE-01).
+3. **Verify** — run the acceptance check defined for that finding (per VER-01; full §10 suite executed in Phase 21 per VER-04; smaller phase-local checks may run earlier).
+4. **Re-verify after every batch** — re-run the acceptance check on every previously `VERIFIED` finding the new batch could have regressed (same spec section, dependent contract, or shared formula). Any regression reverts that finding to `IN_PROGRESS`.
+5. **Ledger discipline** — each finding's status (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` or `DEFERRED`) lives in `.planning/phases/16-evidence-framework/16-ISSUE-LEDGER.md`. No phase exits until every in-scope finding is `VERIFIED` or `DEFERRED` with a written blocker. "I applied the patch" is **not** a closure event; "the acceptance check passed" is.
+
+This loop expects iteration. It is normal for a contested finding to cycle through `FIX_APPLIED → IN_PROGRESS → FIX_APPLIED` multiple times before reaching `VERIFIED` — especially when an initial fix treats the surface symptom rather than the root cause.
+
+- [ ] **Phase 16: Evidence Framework and Issue Adjudication** — Establish the issue ledger schema, evidence-packet template, EVID-05 conflict-adjudication protocol, and VER-05 re-verification cycle that every Issue 01 edit must follow.
+- [ ] **Phase 17: Input and Output Contracts** — Resolve the 14D input, 13-entry IC schema, position-output (with mass-weighted COM projection head), and obsolete-dimension wording contracts across framework specs.
 - [ ] **Phase 18: Frame and Gauge Contracts** — Reconcile COM, momentum, ordering, rotation gauge, scaling order, hierarchical offsets, and 3D Cartesian output guarantees.
-- [ ] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, normalized-time derivatives, matched softening, energy-regularizer wording, and loss-balancing semantics.
+- [ ] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement.
 - [ ] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording.
-- [ ] **Phase 21: Acceptance Checks and Handoff** — Add verification checks and produce the final fixed/non-change/deferred handoff for downstream implementation planning.
+- [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them against the corrected specs and the relevant code paths (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the final fixed/non-change/deferred handoff (VER-03). Failing checks loop back to Phases 17–20.
 
 ## Phase Details
 
 ### Phase 16: Evidence Framework and Issue Adjudication
-**Goal**: Reviewers can trace every Issue 01 decision to direct evidence before any framework-spec edit is accepted.
-**Depends on**: Phase 15.1
-**Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, VER-02
+**Goal**: Reviewers can trace every Issue 01 decision to direct evidence — examined critically against both source documents and the live framework — before any framework-spec edit is accepted, and every fix that follows has a defined re-verification pass.
+**Depends on**: Phase 15.1 + post-ship SCS gate correction (both complete)
+**Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, VER-02, VER-05 (defined here; applied throughout Phases 17–21)
+**Next workflow step**: `$gsd-discuss-phase 16` must capture Phase 16 context before planning.
 **Success Criteria** (what must be TRUE):
-  1. Reviewer can inspect issue-by-issue evidence packets with citations to `ctl_pinn_resolution.md`, `master_consolidation_report.md`, `01-architecture-and-physics-foundations.md`, and current framework specs.
-  2. Reviewer can see an explicit accept, reject, or defer verdict for every selected Issue 01 finding.
-  3. Reviewer can identify false positives and intentional non-changes with the evidence-backed reason each current convention remains valid.
-  4. Reviewer can trace every accepted issue to a before/after spec-section note and the contract that section now enforces.
-  5. Roadmap and requirements traceability show all 25 v1.4 requirements mapped exactly once, beginning at Phase 16.
-**Plans**: TBD
+  1. Reviewer can inspect issue-by-issue evidence packets with line-range citations to `ctl_pinn_resolution.md`, `01-architecture-and-physics-foundations.md`, current framework specs, and (when relevant) the live code in `pinn/`.
+  2. Reviewer can see a verdict from the fixed set — `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, or `defer-with-blocker` — for every selected Issue 01 finding.
+  3. Reviewer can identify false positives in either source document with the evidence-backed reason each current convention remains valid and which source(s) misread it.
+  4. Reviewer can trace every accepted issue to a before/after spec-section note, the contract that section now enforces, and the named verification step that will confirm the fix.
+  5. Reviewer can find an EVID-05 conflict-adjudication record for each contested finding (B-02 D formula, B-04 input-vector orientation slots, B-09 softening strategy, M5 `I_3` mapping, plus any further conflict discovered during the walkthrough) that identifies the root-cause ambiguity in the framework specs and the explicit convention now locked.
+  6. Reviewer can find `.planning/phases/16-evidence-framework/16-ISSUE-LEDGER.md` containing every in-scope finding with a status (`PENDING`/`IN_PROGRESS`/`FIX_APPLIED`/`VERIFIED`/`DEFERRED`), the acceptance check that will close it, and an explicit rule that "fix applied" is not closure.
+  7. Roadmap and requirements traceability show all 30 v1.4 requirements mapped exactly once, beginning at Phase 16.
+**Plans**: 3 plans
+Plans:
+- [ ] 16-01-PLAN.md — Evidence protocol and packet template
+- [ ] 16-02-PLAN.md — Issue ledger and lifecycle controls
+- [ ] 16-03-PLAN.md — Ledger path reconciliation and traceability audit
 
 ### Phase 17: Input and Output Contracts
 **Goal**: Framework specs expose one coherent network input and output contract for downstream implementation.
 **Depends on**: Phase 16
-**Requirements**: IO-01, IO-02, IO-03, IO-04
+**Requirements**: IO-01, IO-02, IO-03, IO-04 (+ VER-05 applied throughout)
 **Success Criteria** (what must be TRUE):
   1. Reader can find one canonical network input contract: `14D = [tau, IC_13]`.
-  2. Reader can inspect one ordered 13-entry IC vector with normalization rules for masses, energy, angular momentum, virial ratio, minimum separation, inertia, shape invariants, and velocity-orientation scalars.
-  3. Reader can distinguish 9D position predictions from velocities and accelerations derived by automatic differentiation.
+  2. Reader can inspect one ordered 13-entry IC vector with normalization rules for masses, energy, angular momentum, virial ratio, minimum separation, inertia, shape invariants, and the chosen orientation slots (Option B direction cosines vs. resolution-doc velocity scalars c_1/c_2, locked by EVID-05 adjudication on B-04).
+  3. Reader can distinguish 9D position predictions from velocities and accelerations derived by automatic differentiation, and can locate the mass-weighted COM projection head requirement on the raw output.
   4. Reader no longer encounters unqualified 11D, 12D, or ambiguous 13D/14D wording except where it is explicitly labeled as historical source-issue metadata.
+  5. Every B-/M- finding in scope has its issue-ledger status updated, and any code touched under SCOPE-01 (e.g., IC vector assembly) is consistent with the spec.
 **Plans**: TBD
 
 ### Phase 18: Frame and Gauge Contracts
@@ -126,15 +147,16 @@ Full details: `.planning/milestones/v1.3-ROADMAP.md`
 **Plans**: TBD
 
 ### Phase 19: Physics and Loss Contracts
-**Goal**: Framework specs state physically consistent scaling, derivative, softening, energy, and loss-balancing contracts.
+**Goal**: Framework specs state physically consistent scaling, derivative, softening, energy, and loss-balancing contracts — each one adjudicated against both source documents and locked at the root cause.
 **Depends on**: Phase 18
-**Requirements**: PHYS-01, PHYS-02, PHYS-03, PHYS-04, PHYS-05
+**Requirements**: PHYS-01, PHYS-02, PHYS-03, PHYS-04, PHYS-05, PHYS-06 (+ VER-05 applied throughout)
 **Success Criteria** (what must be TRUE):
-  1. Reader can identify the raw-mass nondimensionalization convention and retained `D=(G*T^2)^(1/3)` scale, with the mass-fraction alternative documented as a future rewrite only.
-  2. Reader can trace the normalized-time derivative contract, including whether training differentiates with respect to `u=t/T` or applies `tau` chain-rule factors.
-  3. Reader can verify the physics residual and energy regularizer use a matched softened force/potential pair while offline invariant epsilon remains separate.
+  1. Reader can identify the raw-mass nondimensionalization convention and retained `D=(G*T^2)^(1/3)` scale, with the mass-fraction alternative documented as a future rewrite only and the EVID-05 adjudication of B-02 recorded.
+  2. Reader can trace the normalized-time derivative contract, finding the autograd leaf named explicitly, the chain-rule factors stated when the leaf is `tau`, the requirement for componentwise derivatives (no `grad_outputs=torch.ones_like` aggregate), and the synthetic-trajectory test `r'(u) = [sin(2πu), cos(2πu), u²]` documented as a worked AD example.
+  3. Reader can verify the physics residual and energy regularizer use a matched softened force/potential pair, with the chosen softening value (single matched `r_safe` vs. dual-context `eps_inv`/`eps_soft`) locked only after EVID-05 adjudication of B-09 against current epsilon usage in `simulation_data` and the close-encounter analysis in `01-architecture-and-physics-foundations.md`.
   4. Reader sees the energy term described as a soft conservation regularizer, not an HNN.
-  5. Reader can confirm ALM is limited to scalar conservation constraints and dense ODE residuals use a causal or otherwise justified weighting contract.
+  5. Reader can confirm ALM is limited to scalar conservation constraints (default: E, L_x, L_y, L_z) and dense ODE residuals use a causal or otherwise justified weighting contract, with dual-variable update rules naming the optimizer phase that updates or freezes them.
+  6. Reader can find the M4 constraint-counting replacement: the stale "13 constraints overdetermine an 8D reduced phase space" passage is removed and replaced with an evidence-backed statement of how many constraints v1.4 actually enforces and over what reduced phase space, after EVID-05 adjudication.
 **Plans**: TBD
 
 ### Phase 20: Architecture and Normalization Cleanup
@@ -149,14 +171,16 @@ Full details: `.planning/milestones/v1.3-ROADMAP.md`
   5. Reader can see energy and mass normalization support ranges documented as realized dataset support rather than correctness failures.
 **Plans**: TBD
 
-### Phase 21: Acceptance Checks and Handoff
-**Goal**: Downstream planning has acceptance checks and a clear fixed/non-change/deferred issue ledger.
-**Depends on**: Phase 20
-**Requirements**: VER-01, VER-03
+### Phase 21: Acceptance Checks, Validation Execution, and Handoff
+**Goal**: Acceptance checks are not only defined but **executed** against the corrected specs and the relevant code paths; the source-issue ledger is reconciled; and the final handoff records what shipped, what was deferred, and why.
+**Depends on**: Phase 20 (or whichever phase last touched a contested finding)
+**Requirements**: VER-01, VER-03, VER-04, VER-06 (+ VER-05 closing loop)
 **Success Criteria** (what must be TRUE):
-  1. Reader can inspect acceptance checks for scaling consistency, COM invariance, derivative correctness, force-energy consistency, and loss stability.
-  2. Reader can identify which Issue 01 findings were fixed, intentionally left unchanged, or deferred for future empirical validation.
-  3. `$gsd-plan-phase` can derive implementation plans from evidence packets, changed spec sections, and verification checks without redoing the conceptual audit.
+  1. Reader can inspect numerically-defined acceptance checks for scaling consistency, COM invariance, componentwise AD correctness, force-energy consistency, and loss stability — each named with its pass criterion, data, and executing command.
+  2. The acceptance checks have **executed**, with pass/fail evidence recorded for each. Failing checks routed the work back to Phases 17–20 (no v1.4 ships with a failing test); the iterative loop is visible in the ledger history.
+  3. Reader can identify which Issue 01 findings were fixed, which are intentionally unchanged (including the M6/M7 "not adjudicable" deferral and any "accept-issue-doc" or "reject-both" verdicts from EVID-02), and which require future empirical validation.
+  4. Reader can find the reconciled `SI-*` ledger entries in the framework specs: every v1.4-resolved finding retires its corresponding `SI-*` with a back-reference; entries outside Issue 01 (e.g., `SI-DQA-002`, `SI-DQA-003`, `SI-PINN-002`) are preserved untouched.
+  5. `$gsd-plan-phase` for any downstream milestone can derive implementation plans from evidence packets, changed spec sections, and verification artifacts without redoing the conceptual audit.
 **Plans**: TBD
 
 ## Progress
@@ -187,4 +211,4 @@ Full details: `.planning/milestones/v1.3-ROADMAP.md`
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-05-15 — v1.4 roadmap created*
+*Last updated: 2026-05-15 — SCS correction shipped; milestone hardened with EVID-05 (conflict adjudication), PHYS-06 (M4), VER-04/05/06 (execute, re-verify, reconcile); next step is Phase 16 discussion*
