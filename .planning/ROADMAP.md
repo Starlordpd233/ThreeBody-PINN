@@ -94,7 +94,7 @@ Every issue and every edit in v1.4 follows this loop:
 2. **Fix** — apply the spec edit (and, where VER-04 requires, the narrow code edit named in SCOPE-01).
 3. **Verify** — run the acceptance check defined for that finding (per VER-01; full §10 suite executed in Phase 21 per VER-04; smaller phase-local checks may run earlier).
 4. **Re-verify after every batch** — re-run the acceptance check on every previously `VERIFIED` finding the new batch could have regressed (same spec section, dependent contract, or shared formula). Any regression reverts that finding to `IN_PROGRESS`.
-5. **Ledger discipline** — each finding's status (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` or `DEFERRED`) lives in `.planning/phases/16-evidence-framework/16-ISSUE-LEDGER.md`. No phase exits until every in-scope finding is `VERIFIED` or `DEFERRED` with a written blocker. "I applied the patch" is **not** a closure event; "the acceptance check passed" is.
+5. **Ledger discipline** — each finding's status (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` or `DEFERRED`) lives in `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`. No phase exits until every in-scope finding is `VERIFIED` or `DEFERRED` with a written blocker. "I applied the patch" is **not** a closure event; "the acceptance check passed" is.
 
 This loop expects iteration. It is normal for a contested finding to cycle through `FIX_APPLIED → IN_PROGRESS → FIX_APPLIED` multiple times before reaching `VERIFIED` — especially when an initial fix treats the surface symptom rather than the root cause.
 
@@ -120,7 +120,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
   3. Reviewer can identify false positives in either source document with the evidence-backed reason each current convention remains valid and which source(s) misread it.
   4. Reviewer can trace every accepted issue to a before/after spec-section note, the contract that section now enforces, and the named verification step that will confirm the fix.
   5. Reviewer can find an EVID-05 conflict-adjudication record for each contested finding (B-02 D formula, B-04 input-vector orientation slots, B-09 softening strategy, M5 `I_3` mapping, plus any further conflict discovered during the walkthrough) that identifies the root-cause ambiguity in the framework specs and the explicit convention now locked.
-  6. Reviewer can find `.planning/phases/16-evidence-framework/16-ISSUE-LEDGER.md` containing every in-scope finding with a status (`PENDING`/`IN_PROGRESS`/`FIX_APPLIED`/`VERIFIED`/`DEFERRED`), the acceptance check that will close it, and an explicit rule that "fix applied" is not closure.
+  6. Reviewer can find `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` containing every in-scope finding with a status (`PENDING`/`IN_PROGRESS`/`FIX_APPLIED`/`VERIFIED`/`DEFERRED`), the acceptance check that will close it, and an explicit rule that "fix applied" is not closure.
   7. Roadmap and requirements traceability show all 30 v1.4 requirements mapped exactly once, beginning at Phase 16.
 
 **Plans**: 3 plans
