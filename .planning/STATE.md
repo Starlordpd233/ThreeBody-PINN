@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: executing
-stopped_at: Phase 16 context gathered
-last_updated: "2026-05-16T05:37:01.035Z"
-last_activity: 2026-05-16 -- Phase 16 execution started
+status: ready_to_plan
+stopped_at: Phase 16 complete (3/3) — ready to discuss Phase 17
+last_updated: 2026-05-16T05:59:22.327Z
+last_activity: 2026-05-16 -- Phase 16 completed and verified
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 17
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-15)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 16 — Evidence Framework and Issue Adjudication
+**Current focus:** Phase 17 — input and output contracts
 
 ## Current Position
 
-Phase: 16 (Evidence Framework and Issue Adjudication) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 16
-Last activity: 2026-05-16 -- Phase 16 execution started
-Progress: [░░░░░░░░░░] 0%
+Phase: 17
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-16 -- Phase 16 completed and verified
+Progress: [██░░░░░░░░] 17%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 39 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
+- Total plans completed: 42 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | 13 | 3 | 3 waves | 17 fixes |
 | 14 | 3 | 3 waves | 14 fixes |
 | 15 | 3 | - | - |
+| 16 | 3 | - | - |
 
 ## Accumulated Context
 
@@ -146,9 +147,9 @@ All v1.3 tasks and the post-ship SCS gate correction are complete. v1.4 must beg
 
 ### Blockers/Concerns
 
-None blocking, but two operational notes for Phase 16 discussion:
+None blocking, but two operational notes for v1.4 execution:
 
-- Phase 16 must produce the issue ledger at `.planning/phases/16-evidence-framework/16-ISSUE-LEDGER.md` AND the EVID-05 adjudication template before any spec edit begins in Phase 17.
+- Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template before any spec edit begins in Phase 17.
 - Phases 17–20 each need a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite. Plan budget should anticipate fix-verify-refix cycles, especially for B-02, B-04, B-09, M5.
 
 ## Quick Tasks Completed
@@ -165,7 +166,7 @@ None blocking, but two operational notes for Phase 16 discussion:
 
 ## Session Continuity
 
-Last session: 2026-05-16T03:59:57.022Z
-Stopped at: Phase 16 context gathered
-Resume file: .planning/phases/16-evidence-framework-and-issue-adjudication/16-CONTEXT.md
-Next action: Discuss Phase 16 evidence framework and issue adjudication
+Last session: 2026-05-16
+Stopped at: Phase 16 complete and verified
+Resume file: .planning/phases/16-evidence-framework-and-issue-adjudication/16-VERIFICATION.md
+Next action: Discuss Phase 17 input and output contracts

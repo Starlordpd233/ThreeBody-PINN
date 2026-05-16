@@ -6,7 +6,7 @@
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21 (initialized; next: discuss Phase 16)
+- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21 (Phase 16 complete; next: discuss Phase 17)
 
 ## Phases
 
@@ -112,7 +112,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 **Goal**: Reviewers can trace every Issue 01 decision to direct evidence — examined critically against both source documents and the live framework — before any framework-spec edit is accepted, and every fix that follows has a defined re-verification pass.
 **Depends on**: Phase 15.1 + post-ship SCS gate correction (both complete)
 **Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, VER-02, VER-05 (defined here; applied throughout Phases 17–21)
-**Next workflow step**: `$gsd-discuss-phase 16` must capture Phase 16 context before planning.
+**Completion**: Phase 16 completed 2026-05-16; next milestone workflow step is `$gsd-discuss-phase 17`.
 **Success Criteria** (what must be TRUE):
 
   1. Reviewer can inspect issue-by-issue evidence packets with line-range citations to `ctl_pinn_resolution.md`, `01-architecture-and-physics-foundations.md`, current framework specs, and (when relevant) the live code in `pinn/`.
@@ -229,7 +229,7 @@ Plans:
 | 14. Stage-Strategy-Revision Verification | v1.3 | 3/3 | Complete | 2026-05-05 |
 | 15. Sampling-Method Verification | v1.3 | 3/3 | Complete | 2026-05-06 |
 | 15.1 Markdown Conversion Correction | v1.3 | 3/3 | Complete | 2026-05-08 |
-| 16. Evidence Framework and Issue Adjudication | v1.4 | 3/3 | Complete   | 2026-05-16 |
+| 16. Evidence Framework and Issue Adjudication | v1.4 | 3/3 | Complete    | 2026-05-16 |
 | 17. Input and Output Contracts | v1.4 | 0/TBD | Not started | - |
 | 18. Frame and Gauge Contracts | v1.4 | 0/TBD | Not started | - |
 | 19. Physics and Loss Contracts | v1.4 | 0/TBD | Not started | - |
@@ -237,4 +237,4 @@ Plans:
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-05-15 — SCS correction shipped; milestone hardened with EVID-05 (conflict adjudication), PHYS-06 (M4), VER-04/05/06 (execute, re-verify, reconcile); next step is Phase 16 discussion*
+*Last updated: 2026-05-16 — Phase 16 completed; next step is Phase 17 discussion.*

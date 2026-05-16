@@ -80,7 +80,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Executed acceptance checks for scaling consistency, COM invariance, componentwise AD on the synthetic trajectory, force-energy consistency, and loss stability — failing checks loop back to the originating phase.
 - Iterative re-verification: each finding moves through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` in `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`; nothing closes on "fix applied," only on a passing acceptance check.
 - Reconciled `SI-*` ledger: every v1.4-resolved finding retires its corresponding spec source-issue entry; `SI-DQA-002`/`SI-DQA-003`/`SI-PINN-002` are preserved untouched.
-- Requirements and roadmap begin at Phase 16, after v1.3 ended at Phase 15.1 and the post-ship SCS gate correction shipped 2026-05-15. The next logical workflow step is `$gsd-discuss-phase 16`.
+- Requirements and roadmap begin at Phase 16, after v1.3 ended at Phase 15.1 and the post-ship SCS gate correction shipped 2026-05-15. Phase 16 is complete; the next logical workflow step is `$gsd-discuss-phase 17`.
 
 **Primary sources:**
 - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md` — most recent candidate adjudication; not treated as authoritative
@@ -172,4 +172,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-15 — SCS correction shipped; v1.4 hardened with EVID-05 conflict adjudication, PHYS-06 (M4), VER-04 validation execution, VER-05 iterative re-verification loop, VER-06 SI-ledger reconciliation. Next step: `$gsd-discuss-phase 16`.*
+*Last updated: 2026-05-16 — Phase 16 completed the evidence framework, issue ledger, EVID-05 adjudication protocol, and VER-05 re-verification loop. Next step: `$gsd-discuss-phase 17`.*
