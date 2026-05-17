@@ -32,12 +32,13 @@ expected: |
 result: pass
 auto_verified: 100 lines; cites ctl_pinn_resolution.md (L23) and 01-architecture-and-physics-foundations.md (L24)
 
-### 3. Issue Ledger contains exactly 20 finding rows with correct lifecycle states
+### 3. Issue Ledger contains the post-prep 26/24/2 finding counts with correct lifecycle states
 expected: |
-  `16-ISSUE-LEDGER.md` table contains exactly 20 finding rows (B-01..B-10 and M1..M10).
+  `16-ISSUE-LEDGER.md` table contains the post-prep ledger count:
+  26 total findings, 24 in-scope findings, and 2 deferred placeholder findings (`M6`, `M7`).
   Active rows are `PENDING` with verdict `-`; M6 and M7 are `DEFERRED` with `defer-with-blocker`.
 result: pass
-auto_verified: 20 finding rows present; B-* and M* IDs match the seeded set
+auto_verified: post-prep ledger count is 26 total findings, 24 in-scope findings, and 2 deferred placeholder findings (`M6`, `M7`). This supersedes earlier Phase 16 verification wording that counted 20 rows before Tier-1 prep expanded traceability.
 
 ### 4. EVID-05 contested findings flagged for B-02, B-04, B-09, M5 only
 expected: |
@@ -83,7 +84,7 @@ expected: |
   defined re-verification pass."
 
   Given that all 7 deliverable checks above pass, confirm the documentation suite
-  (Evidence Protocol README + 12-section Template + 20-row Ledger + EVID-05 flags +
+  (Evidence Protocol README + 12-section Template + 26-row Ledger + EVID-05 flags +
   VER-05 lifecycle + canonical path reconciliation + 30/30 traceability) is
   sufficient for Phases 17-21 reviewers to fulfill this goal before producing
   filled adjudication packets in downstream phases.

@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: ready_to_plan
-stopped_at: Phase 16 complete (3/3) — ready to discuss Phase 17
+status: executing
+stopped_at: Phase 16 is complete and verified; the next workflow step is Phase 17 input and output contracts.
 last_updated: 2026-05-16T05:59:22.327Z
 last_activity: 2026-05-16 -- Phase 16 completed and verified
 progress:
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-15)
 
 Phase: 17
 Plan: Not started
-Status: Ready to plan
+Status: Executing Phase 17 plan
 Last activity: 2026-05-16 -- Phase 16 completed and verified
 Progress: [██░░░░░░░░] 17%
 
@@ -70,7 +70,7 @@ Progress: [██░░░░░░░░] 17%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21) — initialized; next workflow step is `$gsd-discuss-phase 16`
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21) — Phase 16 is complete and verified; the next workflow step is Phase 17 input and output contracts.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 
@@ -134,7 +134,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks and the post-ship SCS gate correction are complete. v1.4 must begin with Phase 16 discussion/context capture before any plan or execution artifact.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phase 16 are complete. Phase 16 is complete and verified; the next workflow step is Phase 17 input and output contracts.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -169,4 +169,4 @@ None blocking, but two operational notes for v1.4 execution:
 Last session: 2026-05-16
 Stopped at: Phase 16 complete and verified
 Resume file: .planning/phases/16-evidence-framework-and-issue-adjudication/16-VERIFICATION.md
-Next action: Discuss Phase 17 input and output contracts
+Next action: Phase 17 input and output contracts

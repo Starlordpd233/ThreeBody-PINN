@@ -26,7 +26,7 @@ Phase 16 achieves the documentation-governance goal. The actual repository conta
 | 3 | Reviewer can identify false-positive/non-change handling. | VERIFIED | `_TEMPLATE.md` requires false positives and intentional non-changes to state `current convention remains valid` and `accept-resolution as no-change` at lines 80-84. |
 | 4 | Reviewer can trace accepted issues to before/after notes and named verification steps. | VERIFIED | `_TEMPLATE.md` has `Before / After Spec Note` and `Named Acceptance Check` sections at lines 80-90; README reserves `AC-{REQ-ID}[-{NN}]` at lines 86-93. |
 | 5 | EVID-05 contested findings require root-cause ambiguity and locked-convention fields before later edits. | VERIFIED | README pre-flags B-02, B-04, B-09, and M5 at lines 60-67; `_TEMPLATE.md` marks `First-Principles Physics Check`, `Root-Cause Framework Ambiguity`, `Locked Convention`, and `Which Source Was Correct / Wrong` as required for EVID-05 at lines 44-76. |
-| 6 | Canonical ledger contains every in-scope finding, lifecycle statuses, closure checks, and "fix applied is not closure" rule. | VERIFIED | `16-ISSUE-LEDGER.md` has 20 finding rows at lines 19-38, four EVID-05 flags at B-02/B-04/B-09/M5, M6/M7 deferrals at lines 34-35, lifecycle rules at lines 46-54, and per-finding notes through line 284. |
+| 6 | Canonical ledger contains every in-scope finding, lifecycle statuses, closure checks, and "fix applied is not closure" rule. | VERIFIED | Post-prep ledger count: 26 total findings, 24 in-scope findings, and 2 deferred placeholder findings (`M6`, `M7`). This supersedes earlier Phase 16 verification wording that counted 20 rows before Tier-1 prep expanded traceability. |
 | 7 | Roadmap and requirements traceability show all 30 v1.4 requirements mapped exactly once beginning at Phase 16. | VERIFIED | `REQUIREMENTS.md` traceability extraction returned 30 rows, zero duplicates, and no out-of-range phases; ledger records `30/30 v1.4 requirements mapped exactly once` at lines 9-10 and 42. |
 
 **Score:** 7/7 truths verified
@@ -37,7 +37,7 @@ Phase 16 achieves the documentation-governance goal. The actual repository conta
 |---|---|---|---|
 | `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md` | Evidence protocol, verdict enum, EVID-05 triggers, VER-05 lifecycle, AC-ID policy | VERIFIED | Exists and substantive; documents artifact roles, neither-authoritative rule, status lifecycle, regression policy, phase-exit gate, and explicit non-goals. |
 | `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | Fixed 12-section evidence packet template | VERIFIED | All 12 required headings occur exactly once; includes both primary sources, three framework specs, live-code evidence rule, false-positive handling, EVID-05 required sections, and transition-log format. |
-| `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` | Seed issue ledger and VER-05 lifecycle gate | VERIFIED | Frontmatter counts are present; table has exactly 20 finding rows; active findings are `PENDING` with verdict `-`; M6/M7 are `DEFERRED` with `defer-with-blocker`; no filled adjudication packets were created. |
+| `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` | Seed issue ledger and VER-05 lifecycle gate | VERIFIED | Frontmatter counts are present. Post-prep ledger count: 26 total findings, 24 in-scope findings, and 2 deferred placeholder findings (`M6`, `M7`). This supersedes earlier Phase 16 verification wording that counted 20 rows before Tier-1 prep expanded traceability. Active findings are `PENDING` with verdict `-`; M6/M7 are `DEFERRED` with `defer-with-blocker`; no filled adjudication packets were created. |
 | `.planning/ROADMAP.md` | Canonical ledger path and Phase 16 success criteria | VERIFIED | Canonical path appears in the v1.4 ledger discipline and Phase 16 success criterion; stale path is absent from ROADMAP. |
 | `.planning/REQUIREMENTS.md` | Requirement definitions, VER-05 canonical path, 30-row traceability table | VERIFIED | Plan-declared IDs EVID-01 through EVID-05, VER-02, and VER-05 are defined; traceability has 30 unique rows and allowed Phase 16-21 mappings. |
 | `.planning/PROJECT.md` | Active milestone target features with canonical ledger path | VERIFIED | Canonical path appears in the iterative re-verification target feature; stale path is absent from PROJECT. |
@@ -65,7 +65,7 @@ The SDK key-link checker returned false negatives for escaped regex patterns; di
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Ledger has exactly 20 finding rows | `awk '/^\| (B-[0-9][0-9]\|M[0-9]+) \|/ {print}' 16-ISSUE-LEDGER.md \| wc -l` | `20` | PASS |
+| Ledger has updated post-prep finding counts | `rg -n "total_findings: 26|in_scope_findings: 24|deferred_findings: 2" 16-ISSUE-LEDGER.md` | `26 total, 24 in-scope, 2 deferred` | PASS |
 | EVID-05 flags are exactly four | `rg "YES - EVID-05 required" 16-ISSUE-LEDGER.md \| wc -l` | `4`, on B-02, B-04, B-09, M5 | PASS |
 | Traceability has 30 unique rows | `awk ... .planning/REQUIREMENTS.md \| wc -l` and duplicate extraction | `30`, no duplicates | PASS |
 | Phase range limited to 16-21 | phase-range extraction from REQUIREMENTS traceability | no out-of-range rows | PASS |

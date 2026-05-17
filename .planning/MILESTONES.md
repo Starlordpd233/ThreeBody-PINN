@@ -21,4 +21,12 @@
 - Preserved inter-document inconsistencies faithfully (deferred reconciliation to v2)
 - Cleaned up stale debug sessions and quick-task artifacts from prior milestones
 
+## v1.4 Resolving 01 Architecture and Physics Foundations (In Progress)
+
+**Phases planned:** 6 phases (16–21), Phase 16 complete and verified
+
+**Next workflow step:**
+
+- Phase 16 is complete and verified; the next workflow step is Phase 17 input and output contracts.
+
 ---
