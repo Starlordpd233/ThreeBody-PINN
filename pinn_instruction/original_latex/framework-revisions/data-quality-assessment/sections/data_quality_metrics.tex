@@ -14,17 +14,26 @@ The Hamiltonian for the N-body problem is:
 For a physically valid solution, $\frac{dH}{dt} = 0$. In numerical data, errors manifest as energy drift.
 
 \paragraph{Metric Definition:}
-We define the Symplectic Conservation Score ($SCS$) as the maximum normalized deviation of the Hamiltonian over the trajectory duration $T$:
+We distinguish the raw trajectory-level Hamiltonian drift from its logarithmic score. The raw drift over the trajectory duration $T$ is:
 \begin{equation}
-    SCS = \log_{10} \left( \max_{t \in [0, T]} \left| \frac{H(t) - H(0)}{H(0)} \right| \right)
+    \epsilon_H = \max_{t \in [0, T]} \left| \frac{H(t) - H(0)}{H(0)} \right|
 \end{equation}
+The Symplectic Conservation Score ($SCS$) is the base-10 logarithm of this raw drift:
+\begin{equation}
+    SCS = \log_{10}(\epsilon_H)
+\end{equation}
+Throughout this document, $\epsilon_H$ denotes the raw Hamiltonian drift; $SCS$ denotes its base-10 logarithm. If $H(0)$ is zero or numerically near zero, $SCS$ is undefined; flag the trajectory for manual review or resimulation rather than forcing it through the logarithmic gate.
 
 \paragraph{Thresholds for CTL-PINN:}
 \begin{itemize}
-    \item \textbf{$SCS < -10$:} Excellent. Brutus has converged to high precision. Ideal for training.
-    \item \textbf{$-10 < SCS < -6$:} Acceptable. The drift is likely below the noise floor of the neural network's float32/float64 arithmetic.
-    \item \textbf{$SCS > -4$:} Reject. The trajectory exhibits significant physical violation. A PINN trained on this will face conflicting gradients: the data loss (trying to fit the drift) and the physics loss (trying to enforce $\dot{H}=0$) will fight, leading to convergence failure.
+    \item \textbf{$SCS \leq -10$ ($\epsilon_H \leq 10^{-10}$):} Excellent. Brutus has converged to high precision; ideal for training.
+    \item \textbf{$-10 < SCS \leq -6$ ($10^{-10} < \epsilon_H \leq 10^{-6}$):} Acceptable. The drift is small enough that the trajectory data and Hamiltonian-conservation loss should remain mutually consistent during training.
+    \item \textbf{$-6 < SCS \leq -5$ ($10^{-6} < \epsilon_H \leq 10^{-5}$):} Marginal. Keep only for review, diagnostics, or resampling decisions; do not use as clean training data without explicit justification.
+    \item \textbf{$SCS > -5$ ($\epsilon_H > 10^{-5}$):} Reject. The trajectory exhibits significant Hamiltonian drift. A PINN trained on this will face conflicting gradients: the data loss tries to fit the drifting trajectory while the physics loss tries to enforce $\dot{H}=0$, leading to convergence failure.
 \end{itemize}
+
+\paragraph{Boundary Behavior:}
+The original thresholds used strict excellent, acceptable, and reject bands around $-10$, $-6$, and $-4$, leaving $SCS = -10$, $SCS = -6$, and the interval $[-6, -4]$ underdefined. The corrected thresholds close these gaps with non-strict boundaries and introduce a Marginal band for $-6 < SCS \leq -5$.
 
 \textbf{Insight:} In chaotic systems, energy error often grows linearly or quadratically with time in non-symplectic integrators. A high SCS suggests the integrator step size was too large for the chaotic amplification factor of the specific orbit.
 

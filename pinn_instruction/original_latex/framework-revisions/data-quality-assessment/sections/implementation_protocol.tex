@@ -10,7 +10,7 @@ This phase runs on the entire generated dataset.
     \begin{itemize}
         \item Load $(\vect{q}, \vect{p}, t)$ from Brutus output.
         \item Check for NaN or Inf.
-        \item Compute $SCS$ (Energy Drift). \textbf{Gate:} Reject if $|SCS| > 10^{-5}$.
+        \item Compute trajectory-level $\epsilon_H$ (raw Hamiltonian drift) and $SCS = \log_{10}(\epsilon_H)$. \textbf{Gate:} Reject if $\epsilon_H > 10^{-5}$, equivalently if $SCS > -5$.
     \end{itemize}
     \item \textbf{Stiffness Analysis:}
     \begin{itemize}

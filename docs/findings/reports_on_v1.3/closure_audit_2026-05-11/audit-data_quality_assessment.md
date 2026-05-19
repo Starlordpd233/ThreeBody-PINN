@@ -170,16 +170,17 @@ All 11 Phase-11 fixes (DQA-00-001 through DQA-04-002) and 4 Post-Hoc Structural 
 
 **7. Body paragraphs** -- Spot-checked across all 6 sections. All prose is byte-identical in content between LaTeX source and markdown, with expected macro expansions (`\vect{}` to `\mathbf{}`, `\norm{}` to `\|...\|`, `\textit{}` to `*...*`, `\textbf{}` to `**...**`).
 
-**8. Mathematical equations** -- All 6 display equations verified:
+**8. Mathematical equations** -- All 7 display equations verified. The SCS/raw-drift rows supersede the original Phase 11 closure-audit row that treated SCS as a single logarithmic equation; see `SI-DQA-003` in `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md`.
 
 | Eq | LaTeX source | Markdown | Status |
 |---|---|---|---|
 | (1) | intro.tex:20-22 -- `\mathcal{L}(\theta) = \sum_{i=1}^{N_t} w_i \mathcal{L}_i(\theta)` | md:27 -- `\tag{1}` | MATCH |
 | (2) | data_quality_metrics.tex:11-13 -- `H = \sum_{i} \frac{\vect{p}_i^2}{2m_i} - \sum_{i < j} \frac{G m_i m_j}{|\vect{q}_i - \vect{q}_j|}` | md:116 -- `\tag{2}`, `\vect{}` expanded to `\mathbf{}`, `|...|` preserved as single bars | MATCH |
-| (3) | data_quality_metrics.tex:18-20 -- `SCS = \log_{10} \left( \max_{t \in [0, T]} \left| \frac{H(t) - H(0)}{H(0)} \right| \right)` | md:120 -- `\tag{3}`, `\left|...\right|` preserved | MATCH |
-| (4) | data_quality_metrics.tex:40-42 -- `SASD_i = \frac{\Delta t_i}{\tau_{char}(t_i)} = \Delta t_i \cdot \frac{\norm{\vect{a}(t_i)}}{\norm{\vect{v}(t_i)}}` | md:142 -- `\tag{4}`, `\norm{}` expanded to `\|...\|`, `\vect{}` to `\mathbf{}` | MATCH |
-| (5) | data_quality_metrics.tex:63-65 -- `IPR = \frac{1}{M} \sum_{k=1}^{M} \left\| \frac{d^2 \vect{q}_{spline}}{dt^2}(\tau_k) - \vect{F}_{gravity}(\vect{q}_{spline}(\tau_k)) \right\|^2` | md:164 -- `\tag{5}`, `\left\|...\right\|` preserved, `\vect{}` to `\mathbf{}` | MATCH |
-| (6) | data_quality_metrics.tex:77-79 -- `H_{data} = - \sum_{k=1}^{K} p_k \log p_k` | md:176 -- `\tag{6}` | MATCH |
+| (3) | data_quality_metrics.tex:18-20 -- `\epsilon_H = \max_{t \in [0, T]} \left| \frac{H(t) - H(0)}{H(0)} \right|` | md:120 -- `\tag{3}`, `\left|...\right|` preserved | MATCH |
+| (4) | data_quality_metrics.tex:22-24 -- `SCS = \log_{10}(\epsilon_H)` | md:120 -- `\tag{4}` | MATCH |
+| (5) | data_quality_metrics.tex:49-51 -- `SASD_i = \frac{\Delta t_i}{\tau_{char}(t_i)} = \Delta t_i \cdot \frac{\norm{\vect{a}(t_i)}}{\norm{\vect{v}(t_i)}}` | md:148 -- `\tag{5}`, `\norm{}` expanded to `\|...\|`, `\vect{}` to `\mathbf{}` | MATCH |
+| (6) | data_quality_metrics.tex:72-74 -- `IPR = \frac{1}{M} \sum_{k=1}^{M} \left\| \frac{d^2 \vect{q}_{spline}}{dt^2}(\tau_k) - \vect{F}_{gravity}(\vect{q}_{spline}(\tau_k)) \right\|^2` | md:167 -- `\tag{6}`, `\left\|...\right\|` preserved, `\vect{}` to `\mathbf{}` | MATCH |
+| (7) | data_quality_metrics.tex:86-88 -- `H_{data} = - \sum_{k=1}^{K} p_k \log p_k` | md:180 -- `\tag{7}` | MATCH |
 
 All inline math (~80 snippets) verified by spot-check across sections. `\vect{}` uniformly expanded to `\mathbf{}`. `\norm{}` uniformly expanded to `\|...\|`. No mathematical errors found.
 

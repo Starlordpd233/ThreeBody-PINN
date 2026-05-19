@@ -117,15 +117,21 @@ The Hamiltonian for the N-body problem is: $$H = \sum_{i} \frac{\mathbf{p}_i^2}{
 
 #### Metric Definition:
 
-We define the Symplectic Conservation Score ($SCS$) as the maximum normalized deviation of the Hamiltonian over the trajectory duration $T$: $$SCS = \log_{10} \left( \max_{t \in [0, T]} \left| \frac{H(t) - H(0)}{H(0)} \right| \right) \tag{3}$$
+We distinguish the raw trajectory-level Hamiltonian drift from its logarithmic score. The raw drift over the trajectory duration $T$ is: $$\epsilon_H = \max_{t \in [0, T]} \left| \frac{H(t) - H(0)}{H(0)} \right| \tag{3}$$ The Symplectic Conservation Score ($SCS$) is the base-10 logarithm of this raw drift: $$SCS = \log_{10}(\epsilon_H) \tag{4}$$ Throughout this document, $\epsilon_H$ denotes the raw Hamiltonian drift; $SCS$ denotes its base-10 logarithm. If $H(0)$ is zero or numerically near zero, $SCS$ is undefined; flag the trajectory for manual review or resimulation rather than forcing it through the logarithmic gate.
 
 #### Thresholds for CTL-PINN:
 
-- **$SCS < -10$:** Excellent. Brutus has converged to high precision. Ideal for training.
+- **$SCS \leq -10$ ($\epsilon_H \leq 10^{-10}$):** Excellent. Brutus has converged to high precision; ideal for training.
 
-- **$-10 < SCS < -6$:** Acceptable. The drift is likely below the noise floor of the neural network's float32/float64 arithmetic.
+- **$-10 < SCS \leq -6$ ($10^{-10} < \epsilon_H \leq 10^{-6}$):** Acceptable. The drift is small enough that the trajectory data and Hamiltonian-conservation loss should remain mutually consistent during training.
 
-- **$SCS > -4$:** Reject. The trajectory exhibits significant physical violation. A PINN trained on this will face conflicting gradients: the data loss (trying to fit the drift) and the physics loss (trying to enforce $\dot{H}=0$) will fight, leading to convergence failure.
+- **$-6 < SCS \leq -5$ ($10^{-6} < \epsilon_H \leq 10^{-5}$):** Marginal. Keep only for review, diagnostics, or resampling decisions; do not use as clean training data without explicit justification.
+
+- **$SCS > -5$ ($\epsilon_H > 10^{-5}$):** Reject. The trajectory exhibits significant Hamiltonian drift. A PINN trained on this will face conflicting gradients: the data loss tries to fit the drifting trajectory while the physics loss tries to enforce $\dot{H}=0$, leading to convergence failure.
+
+#### Boundary Behavior:
+
+The original thresholds used strict excellent, acceptable, and reject bands around $-10$, $-6$, and $-4$, leaving $SCS = -10$, $SCS = -6$, and the interval $[-6, -4]$ underdefined. The corrected thresholds close these gaps with non-strict boundaries and introduce a Marginal band for $-6 < SCS \leq -5$.
 
 **Insight:** In chaotic systems, energy error often grows linearly or quadratically with time in non-symplectic integrators. A high SCS suggests the integrator step size was too large for the chaotic amplification factor of the specific orbit.
 
@@ -139,7 +145,7 @@ We define a local stiffness proxy based on the curvature of the trajectory, whic
 
 #### Metric Definition:
 
-$$SASD_i = \frac{\Delta t_i}{\tau_{char}(t_i)} = \Delta t_i \cdot \frac{\|\mathbf{a}(t_i)\|}{\|\mathbf{v}(t_i)\|} \tag{4}$$ (To avoid division by zero at turning points, a more robust form uses the radius of curvature $\rho_{curv} = v^2/a_{\perp}$).
+$$SASD_i = \frac{\Delta t_i}{\tau_{char}(t_i)} = \Delta t_i \cdot \frac{\|\mathbf{a}(t_i)\|}{\|\mathbf{v}(t_i)\|} \tag{5}$$ (To avoid division by zero at turning points, a more robust form uses the radius of curvature $\rho_{curv} = v^2/a_{\perp}$).
 
 #### Interpretation:
 
@@ -161,7 +167,7 @@ This is a critical "second-order" metric. PINNs do not just learn the data point
 
 2.  Sample $M$ synthetic "collocation points" $\tau_k$ uniformly distributed *between* the data points.
 
-3.  Calculate the physics residual at these synthetic points: $$IPR = \frac{1}{M} \sum_{k=1}^{M} \left\| \frac{d^2 \mathbf{q}_{spline}}{dt^2}(\tau_k) - \mathbf{F}_{gravity}(\mathbf{q}_{spline}(\tau_k)) \right\|^2 \tag{5}$$
+3.  Calculate the physics residual at these synthetic points: $$IPR = \frac{1}{M} \sum_{k=1}^{M} \left\| \frac{d^2 \mathbf{q}_{spline}}{dt^2}(\tau_k) - \mathbf{F}_{gravity}(\mathbf{q}_{spline}(\tau_k)) \right\|^2 \tag{6}$$
 
 #### Relevance:
 
@@ -173,7 +179,7 @@ Chaotic systems are ergodic (or have ergodic components). For a model to general
 
 #### Metric Definition:
 
-We discretize the phase space of interest (e.g., the $r_{12}, r_{23}$ distance plane or the Poincaré section) into a grid of $K$ bins. Let $p_k$ be the probability of a data point falling into bin $k$. The Shannon Entropy is: $$H_{data} = - \sum_{k=1}^{K} p_k \log p_k \tag{6}$$
+We discretize the phase space of interest (e.g., the $r_{12}, r_{23}$ distance plane or the Poincaré section) into a grid of $K$ bins. Let $p_k$ be the probability of a data point falling into bin $k$. The Shannon Entropy is: $$H_{data} = - \sum_{k=1}^{K} p_k \log p_k \tag{7}$$
 
 #### Application:
 
@@ -225,7 +231,7 @@ This phase runs on the entire generated dataset.
 
     - Check for NaN or Inf.
 
-    - Compute $SCS$ (Energy Drift). **Gate:** Reject if $|SCS| > 10^{-5}$.
+    - Compute trajectory-level $\epsilon_H$ (raw Hamiltonian drift) and $SCS = \log_{10}(\epsilon_H)$. **Gate:** Reject if $\epsilon_H > 10^{-5}$, equivalently if $SCS > -5$.
 
 2.  **Stiffness Analysis:**
 
@@ -309,8 +315,14 @@ These notes are metadata for future reconciliation. They are not part of the con
 - Markdown heading: N/A (excluded from conversion — bibliography is not part of the audit corpus per D-28).
 - Note: The LaTeX source includes `sections/bibliography.tex` with 33 `\bibitem` entries, but `main-data-quality-assess.tex` contains zero `\input{sections/bibliography}` lines and the body contains zero `\cite{}` commands. The 33 references are inaccessible in the compiled LaTeX output. Both markdown candidates independently fabricated reference lists (top-level: 32 numbered entries with `## References` heading; pandoc: 32 unnumbered entries with orphan `99` token). These fabricated reference lists were stripped during Phase 11 Plan 02 as they represent content not present in the LaTeX source body. The question of whether the 33 references should be reconnected to the document body with proper `\cite{}` commands is a LaTeX source edit — outside v1.3 scope.
 
-## SI-DQA-002: No source-level mathematical, factual, or methodological concerns identified
+## SI-DQA-002: Superseded — initial audit missed SCS gate inconsistency
 
-- Source sections: All 6 active sections (`introduction.tex`, `assessment_strategy.tex`, `data_quality_metrics.tex`, `model_parameter_risks.tex`, `implementation_protocol.tex`, `synthesis_conclusion.tex`).
-- Markdown headings: All corresponding sections in `data_quality_assessment.md`.
-- Note: No source-level mathematical, factual, or methodological concerns were identified during the Phase 11 section-by-section audit. The converted markdown body preserves the LaTeX source content exactly. Any discrepancies found were conversion artifacts (injected citations, HTML table corruption, description-list syntax) — all of which were fixed in the markdown without modifying any LaTeX source content.
+- Source sections: `data_quality_metrics.tex` and `implementation_protocol.tex`.
+- Markdown headings: `3.1 Symplectic Conservation Score (SCS)` and `5.1 Phase 1: Data Ingestion and Static Auditing (CPU)`.
+- Note: The Phase 11 section-by-section audit recorded "no source-level concerns" here. That finding was incorrect: a logarithmic-vs-raw-drift category error in the Phase 1 SCS gate was missed. See **SI-DQA-003** for the correction.
+
+## SI-DQA-003: Source-level SCS gate inconsistency corrected
+
+- Source sections: `data_quality_metrics.tex` and `implementation_protocol.tex`.
+- Markdown headings: `3.1 Symplectic Conservation Score (SCS)` and `5.1 Phase 1: Data Ingestion and Static Auditing (CPU)`.
+- Note: The original LaTeX source defined $SCS$ as a logarithmic value but used the raw-drift threshold syntax `|SCS| > 10^{-5}` in the Phase 1 gate. The source has been corrected to distinguish raw Hamiltonian drift $\epsilon_H$ from logarithmic score $SCS = \log_{10}(\epsilon_H)$, and the gate now reads $\epsilon_H > 10^{-5}$, equivalently $SCS > -5$. The Reject threshold was tightened from `SCS > -4` to `SCS > -5` under the ratified gate-led policy.
