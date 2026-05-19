@@ -8,12 +8,14 @@
 
 > ⚠️ **GOVERNANCE NOTICE** — This context document was audited 2026-05-19 under the `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` **CRITICAL GOVERNANCE** rule (strengthened 2026-05-19 with STOP protocol + math/engineering grounding requirement).
 >
+> **Live-code directive 2026-05-19:** Live code in `pinn/` is **NOT** a grounding source, evidence source, or source-of-truth for any v1.4 decision. The v1.3-era code is artifact, rebuilt in FUT-01 from v1.4 specs. Live-code references are permitted ONLY in forward-pointing FUT-01 hand-off documents (`17-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`). This applies retroactively to every reference in this file.
+>
 > Of 16 implementation decisions (D-01 through D-16):
 > - **6 are LOCKED** (user-approved + resolution-doc-grounded): D-01, D-02, D-03, D-12, D-15, D-16
-> - **1 is PARTIAL** (form locked, statistics gated): D-06
-> - **9 are OPEN** with associated gap entries in [`17-GAPS.md`](17-GAPS.md): D-04, D-05, D-07, D-08, D-09, D-10, D-11, D-13, D-14
+> - **10 are RESOLVED-WITH-INSTRUCTION** (user auto-advance instruction 2026-05-19): D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-13, D-14
+> - **0 are OPEN**
 >
-> **Mandate for plan-phase and execute-phase agents:** Do NOT act on any OPEN decision's content until its corresponding `GAP-17-NN` entry has `Status: RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`. If new gaps are discovered during plan-phase or execute-phase work, append them to `17-GAPS.md` per the STOP Protocol (see CRITICAL GOVERNANCE block in `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
+> **Mandate for plan-phase and execute-phase agents:** The formerly open decisions are actionable because their linked `GAP-17-NN` entries now have `Status: RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`. If new gaps are discovered during plan-phase or execute-phase work, append them to `17-GAPS.md` per the STOP Protocol (see CRITICAL GOVERNANCE block in `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
 
 ---
 
@@ -46,34 +48,34 @@ Phase 17 does NOT:
 
 ### Decision Status Summary (audit 2026-05-19)
 
-Per CRITICAL GOVERNANCE rule (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The plan-phase and execute-phase agents MUST consult this table before acting on any decision below. A decision marked `⚠️ OPEN` MUST NOT be acted on until the linked gap is `RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`.
+Per CRITICAL GOVERNANCE rule (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The plan-phase and execute-phase agents MUST consult this table before acting on any decision below. A decision marked `⚠️ OPEN` MUST NOT be acted on until the linked gap is `RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`; as of 2026-05-19, no Phase 17 decisions remain open.
 
 | Decision | Status | Linked gap(s) | Plan-phase / execute-phase action |
 |----------|--------|---------------|-----------------------------------|
 | **D-01** B-04 verdict = Option C (Jacobi-state IC₁₃) | ✅ LOCKED | — | Actionable. User-approved (Tier A1) + resolution-doc-grounded (`ctl_pinn_resolution.md:71–72, 459–465, 517–524`). |
 | **D-02** IO-03 = hard COM projection head | ✅ LOCKED | — | Actionable. User-approved (Tier A2) + resolution-doc-grounded (`:687–720`). |
 | **D-03** τ semantics fully locked: leaf=u, τ=2u−1 | ✅ LOCKED | — | Actionable. User-approved (Tier A3) + resolution-doc-grounded (`:209–250`). |
-| **D-04** IC composition primary in `ctl_instruction.md` | ⚠️ OPEN | GAP-17-06 | Do not act until resolved. Topical split was user-approved abstractly; specific topic→file assignment is gated. |
-| **D-05** Network I/O width primary in `pinn_architecture.md` | ⚠️ OPEN | GAP-17-06 | Do not act until resolved (same gap as D-04). |
-| **D-06** Per-slot tanh normalization form + symbolic μ/σ | ⚠️ PARTIAL | GAP-17-07 | Formula form is grounded (act on it). Numerical μ/σ statistics are gated — leave symbolic until GAP-17-07 resolves. |
-| **D-07** Mass slots: ordered, raw, pre-normalization | ⚠️ OPEN | GAP-17-01 | Do not act until resolved. **HIGH-impact semantic gap** (raw vs fraction). |
-| **D-08** Forward-ref to Phase 18 FRAME-01 | ⚠️ OPEN | GAP-17-08 | Coordination point is real; specific wording in framework specs is gated. |
-| **D-09** Forward-ref to Phase 19 PHYS-02 | ⚠️ OPEN | GAP-17-09 | Same as D-08. |
-| **D-10** M5 reframed to metadata-only under Jacobi IC | ⚠️ OPEN | GAP-17-05 | Do not act until resolved. **HIGH-impact cross-phase reframing** (changes Phase 20 scope). |
-| **D-11** Forward-ref to Phase 21 VER-04 | ⚠️ OPEN | GAP-17-10 | Same as D-08/D-09. |
+| **D-04** IC composition primary in `ctl_instruction.md` | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-06 | Actionable. User auto-advance instruction confirmed the proposed topical split. |
+| **D-05** Network I/O width primary in `pinn_architecture.md` | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-06 | Actionable. User auto-advance instruction confirmed the proposed topical split. |
+| **D-06** Per-slot tanh normalization form + symbolic μ/σ | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-07 | Actionable. Formula form is grounded; μ/σ values remain symbolic in Phase 17 and concrete values are deferred downstream. |
+| **D-07** Mass slots: ordered, raw, pre-normalization | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-01 | Actionable. User auto-advance instruction selected raw ordered masses. |
+| **D-08** Forward-ref to Phase 18 FRAME-01 | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-08 | Actionable. Use "Phase 18 (FRAME-01)" inline in planning artifacts and framework spec text. |
+| **D-09** Forward-ref to Phase 19 PHYS-02 | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-09 | Actionable. Use "Phase 19 (PHYS-02)" inline in planning artifacts and framework spec text. |
+| **D-10** M5 reframed to metadata-only under Jacobi IC | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-05 | Actionable. Phase 20 M5 scope is metadata-only under the Jacobi-state IC contract. |
+| **D-11** Forward-ref to Phase 21 VER-04 | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-10 | Actionable. Mention VER-04 only in planning artifacts, not framework spec edits. |
 | **D-12** 3-plan decomposition: P01 input / P02 output / P03 cleanup | ✅ LOCKED | — | Actionable. User-approved. |
-| **D-13** AC-IO-01/02/03 pass criteria + AC-IO-04 invention | ⚠️ OPEN | GAP-17-02, GAP-17-03 | AC name reservations from Phase 16 are grounded. AC-IO-04 invention is gated (GAP-17-02). Pass-criteria wording is gated (GAP-17-03). |
-| **D-14** `17-CODE-DIVERGENCE.md` schema | ⚠️ OPEN | GAP-17-04 | Mechanism is user-approved; specific schema fields are gated. Do not create the file with the proposed schema until GAP-17-04 resolves. |
+| **D-13** AC-IO-01/02/03 pass criteria + AC-IO-04 invention | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-02, GAP-17-03 | Actionable. Use proposed text/structural criteria and approve `AC-IO-04` as Phase 17-local. |
+| **D-14** `17-CODE-DIVERGENCE.md` schema | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-04 | Actionable. Use the proposed 5-column Markdown schema. |
 | **D-15** `pinn/STATUS.md` deferred to v1.4 ship; no physical move | ✅ LOCKED | — | Actionable. User-approved. |
 | **D-16** Phase 16 amendment 2026-05-18 acknowledgement | ✅ LOCKED | — | Actionable. User-approved (amendment itself approved earlier). |
 
-**Summary:** 6 LOCKED (D-01, D-02, D-03, D-12, D-15, D-16) + 1 PARTIAL (D-06 formula form only) + 9 OPEN. Until the OPEN gaps are resolved in `17-GAPS.md`, the executable surface of Phase 17 is restricted to the 6 LOCKED decisions plus the formula-form portion of D-06. Plans P01/P02/P03 may be drafted but **cannot be executed** while any prerequisite gap is OPEN.
+**Summary:** 6 LOCKED (D-01, D-02, D-03, D-12, D-15, D-16) + 10 RESOLVED-WITH-INSTRUCTION (D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-13, D-14) + 0 OPEN. Plans P01/P02/P03 may now be drafted and executed, subject to the standard STOP protocol if new source-silent decisions appear.
 
 The decision content below (D-01..D-16) preserves the full audit trail — the agent's tempted-to reasoning is retained alongside the LOCKED items so the user can see the difference between grounded content and gated proposals.
 
 ### Tier A — Verdicts locked to the resolution doc (per user directive, 2026-05-18)
 
-The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candidate set of fixes** for every Phase 17 finding. EVID-05 still applies: each verdict is justified against the issue doc AND a first-principles physics check AND the live code, but the working presumption is `accept-resolution`. Overrides require explicit EVID-05 evidence that the resolution-doc position fails one of those checks.
+The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candidate set of fixes** for every Phase 17 finding. EVID-05 still applies: each verdict is justified against the issue doc AND a first-principles physics check, but the working presumption is `accept-resolution`. Overrides require explicit EVID-05 evidence that the resolution-doc position fails one of those checks. (Per directive 2026-05-19, live code in `pinn/` is NOT part of the verification basis.)
 
 - **D-01 (B-04 verdict — Jacobi-state IC₁₃):** Accept the resolution doc. Lock
   ```
@@ -123,7 +125,7 @@ The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candid
 
   - **Phase 17 does NOT lock μ, σ numerical values** — only the *form* of the normalization formula. The dataset statistics depend on FRAME-01 preprocessing order (Phase 18) being finalized first. Phase 17 leaves μ, σ as named symbols.
 
-- **D-07:** **Mass slots: ordered, raw, before normalization.** The resolution doc treats `m₁, m₂, m₃` as **ordered masses** (canonical-ordering per Phase 18 FRAME-01 puts mass-descending body 1 first), not mass fractions. PHYS-01 in Phase 19 confirms raw-mass nondimensionalization. The `tanh((m_i − μ_{m,i}) / σ_{m,i})` map produces a `[-1, 1]` slot value driven by where this trajectory's body-i mass falls in the dataset distribution — encoding *which* body this is, not its fraction of total mass. The live code's `2 * (m_i / m_total) − 1` (mass-fraction) is a v1.3-era artifact that does NOT survive into v1.4; recorded in `17-CODE-DIVERGENCE.md`.
+- **D-07:** **Mass slots: ordered, raw, before normalization.** RESOLVED-WITH-INSTRUCTION 2026-05-19 (option (a) per GAP-17-01). The resolution doc treats `m₁, m₂, m₃` as **ordered masses** (canonical-ordering per Phase 18 FRAME-01 puts mass-descending body 1 first), not mass fractions. PHYS-01 in Phase 19 confirms raw-mass nondimensionalization. The `tanh((m_i − μ_{m,i}) / σ_{m,i})` map produces a `[-1, 1]` slot value driven by where this trajectory's body-i mass falls in the dataset distribution — encoding *which* body this is, not its fraction of total mass. The mass-fraction encoding present in v1.3-era code is recorded in `17-CODE-DIVERGENCE.md` as a forward-pointing FUT-01 hand-off note only (per directive 2026-05-19) — it is NOT cited as evidence here.
 
 ### Forward references (Phase 17 does not over-lock)
 
@@ -150,7 +152,7 @@ The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candid
 
 ### Code-divergence handling (SCOPE-01 compliance)
 
-- **D-14:** **No edits to `pinn/*.py` in Phase 17.** All v1.3-era code in `pinn/` remains in place; Phase 17 cites it as evidence per EVID-04 but does not modify it. The known divergences are:
+- **D-14:** **No edits to `pinn/*.py` in Phase 17.** All v1.3-era code in `pinn/` remains in place. Per directive 2026-05-19, Phase 17 does NOT cite live code as evidence — the `17-CODE-DIVERGENCE.md` table below is a forward-pointing FUT-01 hand-off only. The known divergences are:
 
   | Surface | Live code (`pinn/`) | Spec target (Phase 17) | FUT-01 item |
   |---------|----------------------|------------------------|-------------|
@@ -189,9 +191,10 @@ The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candid
 - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md` — Sections §3.3 (τ semantics, lines 209–250), §5.2–5.4 (IC₁₃ composition and normalization, lines 459–572), §5.5–5.6 (metadata/staging features, lines 576–636), §6.3 (output contract + COM head, lines 687–720), §1 decision matrix (lines 117–118).
 - `pinn_instruction/issues/01-architecture-and-physics-foundations.md` — §5.3 / lines 270–289 + 422–468 (Option A trig encoding); lines 499–579 ("Recommended Option B": shape invariants + direction cosines).
 
-### Live code (read-only evidence under SCOPE-01)
-- `pinn/data-processing-pipeline-full.py` — Lines 1036–1059 (shape invariants), 1062–1085 (velocity angles `θ₁, θ₂`), 1114–1116 (mass fractions), 1119–1142 (IC vector assembly), 1149–1184 (canonical ordering wrapper).
-- `pinn/basic_architecture.py` — Lines 98–99 (input/output dims `(14, 9)`), 154–159 (drifted docstring), 185–192 (forward pass — no COM head), 213–214 (raw time input).
+### v1.3-era live code (NOT v1.4 evidence; FUT-01 hand-off reference only, per directive 2026-05-19)
+- `pinn/data-processing-pipeline-full.py` — v1.3-era IC pipeline. NOT cited as evidence in v1.4 spec decisions. The following line ranges are recorded here only to seed the `17-CODE-DIVERGENCE.md` FUT-01 hand-off: lines 1036–1059 (shape invariants), 1062–1085 (velocity angles `θ₁, θ₂`), 1114–1116 (mass fractions), 1119–1142 (IC vector assembly), 1149–1184 (canonical ordering wrapper).
+- `pinn/basic_architecture.py` — v1.3-era architecture. NOT cited as evidence. FUT-01 hand-off line ranges: 98–99 (input/output dims `(14, 9)`), 154–159 (drifted docstring), 185–192 (forward pass without COM head), 213–214 (raw time input).
+- These line ranges are FUT-01 reference only — they document where the v1.3 code currently sits so the rewrite knows what to touch. They are **not** evidence for any v1.4 verdict.
 
 ### Current framework specs (the target of Phase 17 edits)
 - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` — Step 4 (lines 790–809; current 11-component IC definition to be rewritten), §"Phase 2" (lines 876–880; wrong velocity-output claim to be replaced), §"Source Issues" (line 1218; SI-CTL-001 to be retired or back-referenced under VER-06 in Phase 21).
@@ -207,7 +210,7 @@ The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candid
 - `.planning/PROJECT.md` — Resolution-doc policy ("not authoritative"; v1.4 directive 2026-05-18 layered: default to it, override only on EVID-05 evidence).
 - `.planning/REQUIREMENTS.md` — IO-01, IO-02, IO-03, IO-04 acceptance language; VER-05 (applied throughout Phase 17); §Traceability (source of truth).
 - `.planning/ROADMAP.md` §"Phase 17: Input and Output Contracts" — Success criteria 1–5.
-- `CLAUDE.md` Part 6 — Pinned constraint: PINN input-vector logic in `pinn/data-processing-pipeline-full.py` overrides comments in `pinn/basic_architecture.py` (matters for EVID-04 code citation; the v1.4 specs supersede both).
+- `CLAUDE.md` Part 6 — Updated 2026-05-19: framework specs (`ctl_instruction.md`, `pinn_architecture.md`) are authoritative during v1.4. The v1.3-era `pinn/` code is NOT authoritative; pre-2026-05-19 pinning about input-vector logic overriding comments is obsolete. v1.4 specs supersede the entire v1.3 codebase.
 
 </canonical_refs>
 
@@ -225,7 +228,7 @@ The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candid
 - **Commit message convention** — `docs(17): <subject>` for phase-wide edits; `docs(17-01): <subject>` for sub-plan commits; `docs(17): amend evidence/B-04.md verdict` style for ledger transitions. Use imperative mood, lowercase, no trailing period (matches `.planning/codebase/CONVENTIONS.md`).
 
 ### Integration points
-- **`gsd-plan-phase` consumes `17-CONTEXT.md`** to generate `17-RESEARCH.md` (if research stage on) and the three `17-NN-PLAN.md` files. Each plan must include the evidence-packet write step before any spec edit (so EVID-04 has the live-code citation captured before the spec changes).
+- **`gsd-plan-phase` consumes `17-CONTEXT.md`** to generate `17-RESEARCH.md` (if research stage on) and the three `17-NN-PLAN.md` files. Each plan must include the evidence-packet write step before any spec edit (so EVID-01's source-position and spec-evidence sections are captured before the spec changes). Per directive 2026-05-19, evidence packets do NOT cite live code — the §4 "FUT-01 Hand-off Note" carries forward-pointing references only.
 - **`gsd-execute-phase` consumes the plans wave-by-wave.** Wave 1 = P01; Wave 2 = P02 then P03 sequential (per D-12).
 - **Phase 18 inherits `17-CONTEXT.md` D-08** (forward reference to FRAME-01). Phase 18 must lock the preprocessing order before any data pipeline rebuild (FUT-01) can begin.
 - **Phase 21 VER-04 consumes** `evidence/B-04.md`, `17-CODE-DIVERGENCE.md`, and the AC-IO-* names; layers disposable probes on top during execution.
