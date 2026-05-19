@@ -12,6 +12,73 @@ If the user asks for help or wants to give feedback inform them of the following
 
 ---
 
+## CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones
+
+**For every phase in v1.4 (Phases 17, 18, 19, 20, 21) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
+
+### Grounded vs. silent: the test
+
+A decision is "grounded" only if it is explicitly answered by one of:
+
+- The resolution doc — `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md`
+- The issue doc — `pinn_instruction/issues/01-architecture-and-physics-foundations.md`
+- Read-only live code under SCOPE-01 (`pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`)
+- A prior user decision or explicit roadmap / requirements entry
+
+If the decision is not grounded, classify it:
+
+- **Mechanical / presentation-only** (Markdown table vs code fence, heading capitalization within an already-decided file): OK to choose; note the choice in the artifact.
+- **Operational coordination** (forward-reference wording when the coordination point is itself established): OK if minimal and factual; **must** log in the phase's gap register.
+- **Semantic** (mass encoding raw vs fraction, physics derivations the source hedged on, permutation-invariance handling, any sub-flavor the source punted on): **MUST surface**, never invent.
+- **Process-artifact schemas** (acceptance-check pass criteria, divergence-file structure, new AC names beyond Phase 16 reservations, gap-register format itself): **MUST surface**, never invent.
+- **Cross-phase reframing** (e.g., "M5 reframed as metadata-only under Jacobi IC"): **MUST surface** — changes downstream phase scope.
+
+### STOP Protocol — when a gap is detected
+
+When the agent reaches a non-grounded decision in any MUST-surface or operational-coordination category:
+
+1. **STOP the affected work immediately.** Do not continue editing files, generating plans, or executing tasks that depend on the gap's resolution. Independent work (work that does not depend on this decision) may continue. **There is no exception to this stop. "I'll make a reasonable choice and note it" is not allowed.**
+
+2. **Verify the agent understands the decision space.** Before recording a gap, satisfy this self-check:
+   - Can the agent articulate the mathematics / physics / engineering principles at stake?
+   - Can the agent explain why each candidate resolution would have different downstream consequences?
+   - Can the agent identify which source materials it consulted and why they did not answer the question?
+
+   If the answer to ANY of these is "no", the agent does NOT record a gap. Instead it surfaces to the user:
+   > "I do not understand X well enough to assess whether this is a gap. Please explain Y before I proceed."
+
+   Gaps recorded out of ignorance are worse than no gap — they mislead the user about what the agent is actually capable of and waste user attention.
+
+3. **Record the gap** in the phase-local gap register (`.planning/phases/NN-*/NN-GAPS.md`) using all required fields:
+   - **Decision point** — what is being decided, in one or two sentences.
+   - **Where in artifact** — file and section/line where the gap surfaced.
+   - **Task context** — the specific task the agent was performing when it hit the gap (e.g., "Writing 17-02-PLAN.md task 4: spec edit for `ctl_instruction.md:879–880` to replace the velocity-output line").
+   - **Classification** — one of: semantic / operational coordination / process-artifact schema / cross-phase reframing.
+   - **Source silence** — citations to each consulted source and why it did not answer the question (file:line).
+   - **Mathematical / engineering grounding** — the agent's articulation of the math, physics, or engineering principles at stake. **Must demonstrate understanding of why this gap is consequential**, not just that the source is silent. If the agent cannot produce this, it must NOT record the gap — return to step 2 and surface an understanding-question instead.
+   - **Agent was tempted to** — what the agent would have decided + rationale.
+   - **What the user needs to decide** — the question, framed as concrete options (A/B/C/...).
+   - **Confidence of impact** — HIGH / MEDIUM / LOW with one-sentence reason.
+   - **Status** — `OPEN` initially.
+   - **Resolution note** — empty until user provides instruction.
+
+4. **Update the milestone-wide index** at `.planning/milestones/v1.4-GAPS.md` with the new gap.
+
+5. **Surface to the user** via the active workflow channel (current message, checkpoint, end-of-task batch). Halted work stays halted until the user provides instruction. Once instruction arrives, update Status to `RESOLVED-WITH-INSTRUCTION` (or `DEFERRED`), fill `Resolution note`, and resume.
+
+### Scope boundary
+
+- A gap encountered during Phase NN work that is *actually about* a different phase's content goes into **that phase's** `MM-GAPS.md` (or into `v1.4-GAPS.md` if it spans multiple phases).
+- Subagents do not write to gap registers directly — they return findings to the parent agent, which decides whether the finding is a gap and logs it.
+
+### Why
+
+User does not trust the agent to make spec-engineering or physics-adjudication calls without explicit grounding. The designated "candidate verdict source" (here `ctl_pinn_resolution.md` for v1.4) is the *candidate*, not authority — agent transcribes what is explicit, never fills white space. Cost of asking is small; cost of silently inventing is irreparable spec drift across phases.
+
+**Issued by user 2026-05-18; strengthened with STOP protocol + math/engineering grounding requirement 2026-05-19.** Overrides any default behavior to "make a reasonable assumption and proceed." Scope: v1.4 (Phases 17–21) and similar future adjudication milestones unless explicitly waived per milestone.
+
+---
+
 ## Part 1: Core AI Assistant Guidelines
 
 ### 1.1 Core Behavior and Response Principles
