@@ -32,7 +32,9 @@ Thumbs.db
 # -----------------------------------------------------------------------------
 # AI Assistant Directories (local configs and temp files)
 # -----------------------------------------------------------------------------
-.claude/
+.claude/settings.local.json
+.claude/scheduled_tasks.json
+.claude/worktrees/
 .gemini/
 .tmp/
 
