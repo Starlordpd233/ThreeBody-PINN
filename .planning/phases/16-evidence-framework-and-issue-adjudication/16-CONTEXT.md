@@ -148,9 +148,9 @@ Phase 16 produces **no spec edits, no code edits, and no adjudications**. Those 
 - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` — PINN architecture spec. Phases 17, 19, 20 edit sections governing input width, COM projection head, AD contract, energy regularizer, LayerNorm attribution, omega0 schedule.
 - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — Sampling spec. Phase 18 edits the narrow FRAME-03 section per SCOPE-02 only.
 
-### Load-bearing live code (for VER-04 acceptance-check evidence; do NOT edit in Phase 16)
-- `pinn/basic_architecture.py` — SQR-SkipResNet-SIREN model. Phase 16 cites for B-01 init formula; Phase 19/20 may edit narrowly under SCOPE-01 if VER-04 requires it.
-- `pinn/data-processing-pipeline-full.py` — Full data pipeline. Phase 16 cites for B-04 input vector composition and M5 `I3_norm` map; Phase 17 may edit narrowly under SCOPE-01.
+### Load-bearing live code (read-only evidence for VER-04; do NOT edit in v1.4)
+- `pinn/basic_architecture.py` — SQR-SkipResNet-SIREN model. Phase 16 cites for B-01 init formula; later phases may inspect it as evidence but must not edit it during v1.4.
+- `pinn/data-processing-pipeline-full.py` — Full data pipeline. Phase 16 cites for B-04 input vector composition and M5 `I3_norm` map; later phases may inspect it as evidence but must not edit it during v1.4.
 
 ### Project planning context (read once at phase start)
 - `.planning/PROJECT.md` — Project overview, v1.4 milestone goal, key decisions including "Resolution doc is NOT authoritative in v1.4" and the iterative re-verification protocol.
@@ -180,7 +180,7 @@ Phase 16 produces **no spec edits, no code edits, and no adjudications**. Those 
 
 ### Integration Points
 - **Downstream phases (17–21) consume the ledger** as their entry/exit checklist. Phase 16 must produce a ledger that those phases can edit in-place without restructuring.
-- **VER-04 in Phase 21** consumes the AC-ID name index from the ledger to know what acceptance-check scripts to build. Phase 16 must reserve names that Phase 21 can implement.
+- **VER-04 in Phase 21** consumes the AC-ID name index from the ledger to know what disposable validation probes or commands to run. Phase 16 must reserve names that Phase 21 can execute without turning the probes into production framework code.
 - **`gsd-discuss-phase` → `gsd-plan-phase` → `gsd-execute-phase` chain** — `--auto` triggers auto-advance after this context is committed.
 - **No code path or build system is touched by Phase 16.** No Python imports change; no Makefile change; no env vars.
 
@@ -203,7 +203,7 @@ Phase 16 produces **no spec edits, no code edits, and no adjudications**. Those 
 - **Auto-generated traceability table from REQUIREMENTS.md** — would prevent manual drift but adds a build step. Defer until traceability drift is shown to be a real problem.
 - **Cross-issue dependency graph visualization** — the table-based `Dependents:` field is enough for VER-05. A graphviz output is nice-to-have, not required.
 - **Migration of `master_consolidation_report.md` into the supporting-evidence directory structure** — currently lives at the same level as the resolution doc; demoting it physically would match its demoted authoritative status. Out of Phase 16 scope (no spec/file moves except the ledger path reconciliation).
-- **Acceptance check executable suite (Phase 21 territory)** — Phase 16 reserves names; Phase 21 writes the scripts.
+- **Acceptance check executable suite (Phase 21 territory)** — Phase 16 reserves names; Phase 21 writes or records disposable probes only, with reusable packaging deferred until after v1.4.
 - **Re-opening M6/M7 with new source material** — explicitly deferred per VER-03. If new material surfaces during v1.4, the executing phase adds an addendum to the M6/M7 ledger subsection but does NOT change the `DEFERRED` status without explicit milestone-level approval.
 
 </deferred>
@@ -213,3 +213,48 @@ Phase 16 produces **no spec edits, no code edits, and no adjudications**. Those 
 *Phase: 16-Evidence Framework and Issue Adjudication*
 *Context gathered: 2026-05-15*
 *Mode: --all --auto (single-pass, recommended option per gray area)*
+
+---
+
+## Amendment — 2026-05-18 (correction-of-record; no status change)
+
+**Trigger:** Phase 17 discussion-phase research (`gsd-discuss-phase 17`) surfaced a mischaracterization in D-08's description of the B-04 EVID-05 conflict. Phase 16's verdicts and status assignments are unaffected; only the framing of *what the conflict is* is corrected here, before Phase 17 inherits the ledger.
+
+**Mischaracterization in original D-08:**
+> *B-04 (input-vector orientation slots) — resolution doc's Option B (shape invariants + direction cosines / velocity scalars c_1/c_2 — exact form locked during adjudication); issue doc's Option A (trig encoding for 3 angles).*
+
+This sentence assigns "Option B = shape invariants + direction cosines / velocity scalars c_1/c_2" to the resolution doc. A full read of `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md` shows the resolution doc does **not** propose Option B. It rejects the invariant-only IC vector outright:
+
+- `ctl_pinn_resolution.md:71–72` — "The original invariant-only 13D IC vector is rejected as the final model input. It may be kept only as metadata or as a later ablation."
+- `ctl_pinn_resolution.md:459–465` — "The invariant-only vector `[masses, E, L_norm, Q, s_min, I_norm, I1, I2, I3, c1, c2]` is useful as metadata but not a mathematically safe final conditioning state."
+- `ctl_pinn_resolution.md:517–524` — boxed final IC₁₃:
+  `[m₁, m₂, m₃, ρ_x, λ_x, λ_y, ρ̇_x, ρ̇_y, ρ̇_z, λ̇_x, λ̇_y, λ̇_z, E]`
+  (reconstructive Jacobi state — no shape invariants, no direction cosines, no orientation angles).
+
+"Shape invariants + direction cosines" is actually the **issue doc's** Option B (`pinn_instruction/issues/01-architecture-and-physics-foundations.md:499–579`).
+
+**Corrected framing of the B-04 EVID-05 conflict (4 candidates):**
+
+| Tag | Candidate | Source | Form |
+|-----|-----------|--------|------|
+| Option A | Trig encoding for 3 angles | Issue doc (§5.3, lines 270–289 / 422–468) | `[sin θ_L, cos θ_L, sin φ_L, cos φ_L, sin γ_orb]` over the L̂-direction angles plus orbital phase of the heaviest body |
+| Option B | Shape invariants + direction cosines | Issue doc (§"Recommended Option B", lines 499–579) | `[I₁, I₂, I₃, …, c₁, c₂]` style — shape invariants plus direction-cosine orientation slots |
+| Option C | Reconstructive Jacobi state | Resolution doc (§5.2–5.4, lines 459–572) | `[m₁, m₂, m₃, ρ_x, λ_x, λ_y, ρ̇_x, ρ̇_y, ρ̇_z, λ̇_x, λ̇_y, λ̇_z, E]` — orientation implicit in the 6D velocity vector |
+| Option D | Status quo (codify live code) | `pinn/data-processing-pipeline-full.py:1129–1146` (canonical per CLAUDE.md) | `(m₁_frac, m₂_frac, m₃_frac, E_norm, L_norm, Q_norm, s_min_norm, I₁_norm, I₂_norm, I₃, θ₁_norm, θ₂_norm, I_norm)` — hybrid: shape invariants + position-velocity angles for bodies 1, 2 |
+
+**Important nuance:** The live code's `θ₁, θ₂` are NOT the orbital angles of issue-doc Option A and NOT direction cosines of issue-doc Option B. They are the angles between r and v for bodies 1 and 2 (`pinn/data-processing-pipeline-full.py:1062–1085`). This is a fifth shape that doesn't cleanly match any of the candidates above — Option D treats it as its own candidate.
+
+**Source of correction:** Phase 17 discussion-phase parallel research:
+- Resolution-doc deep read (`ctl_pinn_resolution.md` §3.3, §5.2–5.4, §6.3).
+- Issue-doc deep read (`01-architecture-and-physics-foundations.md` §5.3 + "Recommended Option B").
+- Live-code audit (`pinn/data-processing-pipeline-full.py` IC formulation lines 1062–1146; `pinn/basic_architecture.py` input/output dims and absent COM head).
+
+**Implication for Phase 17:**
+- The EVID-05 record for B-04 (`evidence/B-04.md`) must include all four candidates above and the live-code position, not the original two-option framing.
+- The B-04 verdict drawn from the EVID-02 enum (`accept-resolution` / `accept-issue-doc` / `accept-third-position` / `reject-both-as-unsupported` / `defer-with-blocker`) now has a richer candidate set: `accept-resolution` = Option C; `accept-issue-doc` = Option A or Option B (whichever the adjudication selects from the issue doc's two proposals); `accept-third-position` would cover Option D (codify status quo) or any other novel construction.
+
+**Ledger effect:** No status change. B-04 remains `PENDING` with `Sources Disagree? = YES — EVID-05 required`. The 4-candidate framing is mirrored into the B-04 per-finding subsection in `16-ISSUE-LEDGER.md` so Phase 17's adjudication has the corrected starting set.
+
+**Same correction does NOT affect** B-02, B-09, or M5. Their D-08 descriptions remain accurate per the resolution doc.
+
+*Amendment recorded: 2026-05-18, Phase 17 discussion-phase research.*

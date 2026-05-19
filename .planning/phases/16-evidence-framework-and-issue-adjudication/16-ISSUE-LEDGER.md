@@ -104,8 +104,15 @@ Acceptance check: AC-IO-02
 
 Shared acceptance check: AC-IO-02 also covers other IDs B-04 and M1.
 
+EVID-05 candidate set (corrected 2026-05-18; see 16-CONTEXT.md Amendment 2026-05-18):
+- Option A: trig encoding for 3 angles (issue doc §5.3 / recommended-A path)
+- Option B: shape invariants + direction cosines (issue doc "Recommended Option B")
+- Option C: reconstructive Jacobi-state IC₁₃ (resolution doc §5.2–5.4; rejects A and B)
+- Option D: codify status quo — live code's `I₁, I₂, I₃ + θ₁, θ₂` hybrid (pinn/data-processing-pipeline-full.py:1062–1146)
+
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+- 2026-05-18 AMEND_REC PENDING -> PENDING (candidate set corrected from 2-option to 4-option framing; no status change; recorded in 16-CONTEXT.md Amendment)
 
 ### B-05: COM frame consistency
 
