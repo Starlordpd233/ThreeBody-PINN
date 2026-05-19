@@ -19,7 +19,7 @@ Every finding packet must cite both primary Issue 01 sources side by side before
 - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md`
 - `pinn_instruction/issues/01-architecture-and-physics-foundations.md`
 
-Neither source is authoritative. A verdict is allowed only after both positions are cited with line ranges and checked against the current framework specs, live code when applicable, and first-principles physics where EVID-05 applies.
+Neither source is authoritative. A verdict is allowed only after both positions are cited with line ranges and checked against the current framework specs and first-principles physics where EVID-05 applies. **Live code in `pinn/` is NOT in the examination basis** (user directive 2026-05-19) — the v1.3-era code is artifact, not authority, and will be rebuilt from v1.4 specs in FUT-01.
 
 `master_consolidation_report.md` is supporting evidence only. It may help explain provenance or prior consensus, but it never substitutes for either primary source and must not be used as a verdict source.
 
@@ -97,7 +97,7 @@ Phase 16 reserves names only. Runnable pass criteria, commands, and fixtures rem
 1. Copy `_TEMPLATE.md` to `evidence/{finding-id}.md`.
 2. Fill the header with finding ID, status, phase, AC-ID, touched spec sections, and touched code paths.
 3. Add side-by-side line-range citations from both primary sources before selecting a verdict.
-4. Add current-spec evidence and live-code evidence where applicable.
+4. Add current-spec evidence. (Live-code evidence is NOT permitted in v1.4 packets per directive 2026-05-19; the renamed "FUT-01 Hand-off Note" section captures forward-pointing live-code references only.)
 5. For EVID-05 findings, complete the required conflict-adjudication sections before editing specs or code.
 6. Record the verdict enum, before/after spec note, named acceptance check, and status transition log.
 7. Update `16-ISSUE-LEDGER.md` in the same commit as the packet or fix that changes status.

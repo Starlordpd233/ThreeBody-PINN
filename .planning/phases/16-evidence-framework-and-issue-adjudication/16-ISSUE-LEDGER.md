@@ -30,7 +30,7 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 | M2 | Total dimension claims conflict | 17 | PENDING | - | NO | evidence/M2.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | - | 2026-05-16 |
 | M3 | Scaling order and COM transform order | 18 | PENDING | - | NO | evidence/M3.md | AC-FRAME-01 | ctl_instruction.md | - | 2026-05-16 |
 | M4 | Constraint counting error | 19 | PENDING | - | NO | evidence/M4.md | AC-PHYS-06 | ctl_instruction.md | - | 2026-05-16 |
-| M5 | I_3 normalization map | 20 | PENDING | - | YES - EVID-05 required | evidence/M5.md | AC-ARCH-03 | ctl_instruction.md; data-processing-pipeline-full.py | - | 2026-05-16 |
+| M5 | I_3 normalization map | 20 | PENDING | - | YES - EVID-05 required | evidence/M5.md | AC-ARCH-03 | ctl_instruction.md; data-processing-pipeline-full.py *(pre-2026-05-19; now v1.3-era artifact, not spec)* | - | 2026-05-16 |
 | M6 | Deferred finding M6 | 21 | DEFERRED | defer-with-blocker | NO | - | AC-VER-03 | - | - | 2026-05-16 |
 | M7 | Deferred finding M7 | 21 | DEFERRED | defer-with-blocker | NO | - | AC-VER-03 | - | - | 2026-05-16 |
 | M8 | LayerNorm attribution and affine default | 20 | PENDING | - | NO | evidence/M8.md | AC-ARCH-02 | pinn_architecture.md | ARCH-02 | 2026-05-16 |
@@ -108,7 +108,7 @@ EVID-05 candidate set (corrected 2026-05-18; see 16-CONTEXT.md Amendment 2026-05
 - Option A: trig encoding for 3 angles (issue doc §5.3 / recommended-A path)
 - Option B: shape invariants + direction cosines (issue doc "Recommended Option B")
 - Option C: reconstructive Jacobi-state IC₁₃ (resolution doc §5.2–5.4; rejects A and B)
-- Option D: codify status quo — live code's `I₁, I₂, I₃ + θ₁, θ₂` hybrid (pinn/data-processing-pipeline-full.py:1062–1146)
+- Option D: codify status quo — live code's `I₁, I₂, I₃ + θ₁, θ₂` hybrid (pinn/data-processing-pipeline-full.py:1062–1146) *(pre-2026-05-19; now v1.3-era artifact only, not a v1.4 candidate)*
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)

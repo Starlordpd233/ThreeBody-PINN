@@ -59,6 +59,8 @@ Use the same compact Markdown table style for the ledger status table, with the 
 | B-01 | **BLOCKING** | The source architecture document's hidden-layer init table gives a wrong formula... | `main_pinn.tex` Table 1 / `sqr_skipresnet_siren_backbone.tex`; live code check: `pinn/basic_architecture.py:37` | Keep/verify `bound = np.sqrt(6.0 / n_in) / hidden_omega0` in code; update the architecture document when LaTeX is revised. |
 ```
 
+> *Note:* The "live code check" and "Keep/verify ... in code" wording above is from the original issue doc (pre-2026-05-19). Superseded by no-live-code directive: `pinn/` files are v1.3-era artifact, not v1.4 evidence.
+
 Use this as the closest existing finding-table shape, but do not copy verdicts from the issue doc. Seed rows from Phase 16 decisions: B-01..B-10, M1..M5, M8..M10 as active, and M6/M7 as `DEFERRED` with `defer-with-blocker`.
 
 **Traceability statement pattern** (`.planning/REQUIREMENTS.md` lines 86-125):

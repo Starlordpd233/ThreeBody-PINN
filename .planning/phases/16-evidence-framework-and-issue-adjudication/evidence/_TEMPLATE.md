@@ -33,13 +33,15 @@ Add line-range citations from the current framework specs that define the conven
 - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
 - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
 
-## Code Evidence
+## FUT-01 Hand-off Note (formerly "Code Evidence")
 
-Add live-code citations only when the finding can be checked against code. Use exact paths and line ranges.
+> **Note (v1.4 update 2026-05-19):** Live code in `pinn/` is NOT a v1.4 evidence source per user directive 2026-05-19. This section is repurposed for forward-pointing FUT-01 hand-off documentation only. Do NOT cite live code as a basis for a v1.4 verdict.
 
-- `pinn/basic_architecture.py`
-- `pinn/data-processing-pipeline-full.py`
-- `Not code-applicable` when no live-code check applies.
+If this finding's new framework-spec contract diverges from the v1.3-era code and FUT-01 will need to rewrite something, note the relevant v1.3-era code paths with line ranges so `NN-CODE-DIVERGENCE.md` (or the eventual `pinn/STATUS.md`) can index it. Forward-pointing reference only.
+
+- `pinn/basic_architecture.py:Lx-Ly` — v1.3-era position (FUT-01 hand-off reference only, NOT v1.4 evidence)
+- `pinn/data-processing-pipeline-full.py:Lx-Ly` — same
+- `Not FUT-01-applicable` when this finding creates no code-rewrite gap (e.g., process-artifact decisions).
 
 ## First-Principles Physics Check
 

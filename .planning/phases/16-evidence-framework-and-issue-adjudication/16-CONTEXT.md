@@ -48,7 +48,7 @@ Phase 16 produces **no spec edits, no code edits, and no adjudications**. Those 
   1. **Header** — `ID`, `title`, `severity` (BLOCKING/MAJOR/MINOR/INFO), `current status`, `current verdict`, `phase` (17/18/19/20/21), `acceptance check ID`, `spec sections touched`, `code paths touched (if any)`.
   2. **Source positions** — verbatim quote with line-range citation from `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md` AND from `pinn_instruction/issues/01-architecture-and-physics-foundations.md`. Both are required even when the verdict will be `accept-resolution` or `accept-issue-doc` — proving the disagreement (or lack thereof) is part of the audit.
   3. **Spec evidence** — line-range citations from the current framework specs (`pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`, `pinn_architecture.md`, `sampling_method.md`) showing the convention being changed (or kept).
-  4. **Code evidence** — line-range citations from `pinn/basic_architecture.py` and/or `pinn/data-processing-pipeline-full.py` ONLY when the finding's verdict can be checked against live code (e.g., B-01 SIREN init, M5 `I3_norm` mapping, IO-03 COM projection head). Skip with explicit "Not code-applicable" otherwise.
+  4. **FUT-01 Hand-off Note** (formerly "Code evidence"; renamed 2026-05-19 per user directive — live code is NOT v1.4 evidence) — if the finding's new framework-spec contract diverges from v1.3-era code and FUT-01 will need to rewrite something, note the relevant `pinn/` paths with line ranges so `NN-CODE-DIVERGENCE.md` (or the eventual `pinn/STATUS.md`) can index them. Forward-pointing reference only; NOT a basis for the v1.4 verdict. Use `Not FUT-01-applicable` when this finding creates no code-rewrite gap (e.g., process-artifact decisions like AC naming).
   5. **First-principles physics check** — REQUIRED for EVID-05 contested findings (B-02 D formula, B-04 orientation slots, B-09 softening, M5 `I3` mapping, plus any further conflict discovered). The check names the physical law or dimensional argument applied (Newtonian N-body equations, dimensional analysis, SIREN initialization variance, ALM constraint theory) and shows the worked argument or numerical comparison.
   6. **Verdict** — one of `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, `defer-with-blocker`. EVID-02 enum is enforced.
   7. **Root-cause framework ambiguity** — REQUIRED for EVID-05; a one-paragraph statement naming the specific spec passage or contract whose ambiguity allowed the two sources to disagree.
@@ -148,16 +148,17 @@ Phase 16 produces **no spec edits, no code edits, and no adjudications**. Those 
 - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` — PINN architecture spec. Phases 17, 19, 20 edit sections governing input width, COM projection head, AD contract, energy regularizer, LayerNorm attribution, omega0 schedule.
 - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — Sampling spec. Phase 18 edits the narrow FRAME-03 section per SCOPE-02 only.
 
-### Load-bearing live code (read-only evidence for VER-04; do NOT edit in v1.4)
-- `pinn/basic_architecture.py` — SQR-SkipResNet-SIREN model. Phase 16 cites for B-01 init formula; later phases may inspect it as evidence but must not edit it during v1.4.
-- `pinn/data-processing-pipeline-full.py` — Full data pipeline. Phase 16 cites for B-04 input vector composition and M5 `I3_norm` map; later phases may inspect it as evidence but must not edit it during v1.4.
+### v1.3-era live code (NOT v1.4 evidence; FUT-01 hand-off reference only, per directive 2026-05-19)
+- `pinn/basic_architecture.py` — v1.3-era SQR-SkipResNet-SIREN model. **NOT** authoritative or evidence during v1.4. Referenced only in forward-pointing FUT-01 hand-off documents (`NN-CODE-DIVERGENCE.md`).
+- `pinn/data-processing-pipeline-full.py` — v1.3-era data pipeline. Same — NOT authoritative or evidence; FUT-01 hand-off reference only.
+- FUT-01 will rebuild both files from the v1.4 framework specs after v1.4 ships.
 
 ### Project planning context (read once at phase start)
 - `.planning/PROJECT.md` — Project overview, v1.4 milestone goal, key decisions including "Resolution doc is NOT authoritative in v1.4" and the iterative re-verification protocol.
 - `.planning/REQUIREMENTS.md` — All 30 v1.4 requirements (EVID-01..05, IO-01..04, FRAME-01..04, PHYS-01..06, ARCH-01..05, VER-01..06). §Traceability is the source of truth for VER-02 verification.
 - `.planning/ROADMAP.md` §"v1.4 Resolving 01 Architecture and Physics Foundations" — Phase definitions, dependencies, success criteria, verification protocol.
 - `.planning/STATE.md` — Current milestone state, post-v1.3 SCS gate correction shipped 2026-05-15.
-- `CLAUDE.md` — Source-of-truth file paths for data formats, pipeline stages, PINN architecture specifics. Pinned constraint: PINN input-vector logic in `pinn/data-processing-pipeline-full.py` overrides comments in `pinn/basic_architecture.py`.
+- `CLAUDE.md` — Source-of-truth file paths for data formats, pipeline stages, PINN architecture specifics. Pinned constraint: PINN input-vector logic in `pinn/data-processing-pipeline-full.py` overrides comments in `pinn/basic_architecture.py`. *(Pre-2026-05-19; superseded by no-live-code directive. Both files are v1.3-era artifact, not v1.4 evidence.)*
 
 ### Auxiliary context (cite when relevant)
 - `simulation_data/Documentation/README.md` — Dataset spec including hierarchical COM offset (relevant to FRAME-03 and B-05).
@@ -240,14 +241,14 @@ This sentence assigns "Option B = shape invariants + direction cosines / velocit
 | Option A | Trig encoding for 3 angles | Issue doc (§5.3, lines 270–289 / 422–468) | `[sin θ_L, cos θ_L, sin φ_L, cos φ_L, sin γ_orb]` over the L̂-direction angles plus orbital phase of the heaviest body |
 | Option B | Shape invariants + direction cosines | Issue doc (§"Recommended Option B", lines 499–579) | `[I₁, I₂, I₃, …, c₁, c₂]` style — shape invariants plus direction-cosine orientation slots |
 | Option C | Reconstructive Jacobi state | Resolution doc (§5.2–5.4, lines 459–572) | `[m₁, m₂, m₃, ρ_x, λ_x, λ_y, ρ̇_x, ρ̇_y, ρ̇_z, λ̇_x, λ̇_y, λ̇_z, E]` — orientation implicit in the 6D velocity vector |
-| Option D | Status quo (codify live code) | `pinn/data-processing-pipeline-full.py:1129–1146` (canonical per CLAUDE.md) | `(m₁_frac, m₂_frac, m₃_frac, E_norm, L_norm, Q_norm, s_min_norm, I₁_norm, I₂_norm, I₃, θ₁_norm, θ₂_norm, I_norm)` — hybrid: shape invariants + position-velocity angles for bodies 1, 2 |
+| Option D | Status quo (codify live code) | `pinn/data-processing-pipeline-full.py:1129–1146` *(pre-2026-05-19; now v1.3-era artifact only, not canonical)* | `(m₁_frac, m₂_frac, m₃_frac, E_norm, L_norm, Q_norm, s_min_norm, I₁_norm, I₂_norm, I₃, θ₁_norm, θ₂_norm, I_norm)` — hybrid: shape invariants + position-velocity angles for bodies 1, 2 |
 
 **Important nuance:** The live code's `θ₁, θ₂` are NOT the orbital angles of issue-doc Option A and NOT direction cosines of issue-doc Option B. They are the angles between r and v for bodies 1 and 2 (`pinn/data-processing-pipeline-full.py:1062–1085`). This is a fifth shape that doesn't cleanly match any of the candidates above — Option D treats it as its own candidate.
 
 **Source of correction:** Phase 17 discussion-phase parallel research:
 - Resolution-doc deep read (`ctl_pinn_resolution.md` §3.3, §5.2–5.4, §6.3).
 - Issue-doc deep read (`01-architecture-and-physics-foundations.md` §5.3 + "Recommended Option B").
-- Live-code audit (`pinn/data-processing-pipeline-full.py` IC formulation lines 1062–1146; `pinn/basic_architecture.py` input/output dims and absent COM head).
+- Live-code audit (`pinn/data-processing-pipeline-full.py` IC formulation lines 1062–1146; `pinn/basic_architecture.py` input/output dims and absent COM head). *(Pre-2026-05-19; superseded by no-live-code directive.)*
 
 **Implication for Phase 17:**
 - The EVID-05 record for B-04 (`evidence/B-04.md`) must include all four candidates above and the live-code position, not the original two-option framing.
@@ -258,3 +259,33 @@ This sentence assigns "Option B = shape invariants + direction cosines / velocit
 **Same correction does NOT affect** B-02, B-09, or M5. Their D-08 descriptions remain accurate per the resolution doc.
 
 *Amendment recorded: 2026-05-18, Phase 17 discussion-phase research.*
+
+---
+
+## Amendment — 2026-05-19 (no-live-code directive)
+
+**Trigger:** User directive 2026-05-19 issued during Phase 17 discussion-phase work: *"do not rely on any live code because that code will be updated as we build out and update the framework specs, which are the core documentation that I'm going to use to build the live code later, not during this stage."* Applies to every phase in v1.4 (Phases 17–21).
+
+**Changes applied to this phase's artifacts:**
+
+1. **D-06 (Evidence packet template — fixed schema)** — §4 ("Code evidence") renamed to "FUT-01 Hand-off Note" and repurposed for forward-pointing hand-off documentation only. Live code in `pinn/` is NOT v1.4 evidence. The reframed §4 instructs the agent to record v1.3-era code paths only when a FUT-01 code-rewrite gap exists, with explicit "NOT v1.4 evidence" framing. All other sections (1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12) are unchanged.
+
+2. **"Load-bearing live code" subsection (Canonical References)** — renamed to "v1.3-era live code (NOT v1.4 evidence)" and reframed as FUT-01 hand-off reference only. The previous "Phase 16 cites for B-01 init formula" and "Phase 16 cites for B-04 input vector composition and M5 I3_norm map" framings are obsolete — Phase 16's verified status remains, but downstream phases (17–21) do NOT cite live code as evidence.
+
+3. **Companion edits applied in same change-set:**
+   - `evidence/_TEMPLATE.md` §"Code Evidence" → renamed to "FUT-01 Hand-off Note" with reframed content.
+   - `evidence/README.md` — removed "live code when applicable" from the verdict-allowance clause and the packet-start procedure.
+   - `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` CRITICAL GOVERNANCE block — live code removed from grounding sources.
+   - `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` Part 2.1 (Source of Truth) and Part 6 (PINN architecture pinned constraint) — updated.
+   - `.planning/PROJECT.md` v1.4 Target features / Supporting evidence / Key Decisions — updated.
+   - `.planning/REQUIREMENTS.md` Resolution-doc treatment policy, EVID-01, EVID-05, VER-04, SCOPE-01 — updated.
+
+**Implication for Phase 17+ evidence packets:**
+- `evidence/{finding-id}.md` §4 (formerly Code evidence, now FUT-01 Hand-off Note) cannot supply evidence for a verdict. It supplies forward-pointing hand-off only.
+- EVID-05 contested findings (B-02, B-04, B-09, M5) still require §5 (First-principles physics), §7 (Root-cause framework ambiguity), §8 (Locked convention), §9 (Which source was correct/wrong); these draw on framework specs + physics, NOT live code.
+
+**Implication for Phase 16's prior verdicts:** Phase 16's `VERIFIED` status is unaffected. Phase 16 established the evidence framework; it did not actually USE live code as evidence for any finding's verdict (Phase 16 ships no verdicts — verdicts begin in Phase 17). The directive applies going forward.
+
+**Source:** User chat instruction 2026-05-19; mirrored across all governance artifacts on the same date.
+
+*Amendment recorded: 2026-05-19, Phase 17 discussion-phase governance update.*
