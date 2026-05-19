@@ -259,8 +259,6 @@
 │
 ├── docs/                                        # Additional documentation
 │   └── findings/                                # Audit reports and verification findings
-│       └── gsd-documentation-verification-2026-05-09/
-│           └── MASTER-VERIFICATION-REPORT.md
 
 ├── AGENTS.md                                    # Agent instructions (13,607 bytes)
 ├── ANTIGRAVITY.md                               # Agent instructions (12,848 bytes)
@@ -390,7 +388,7 @@
 
 ### `docs/`
 - **Purpose:** Audit reports and verification findings
-- **Contains:** gsd-documentation-verification-2026-05-09/ with MASTER-VERIFICATION-REPORT.md
+- **Contains:** findings/fixing_gaps/ and other current verification findings
 - **Note:** Previously contained historical plans (`plans/`, `superpowers/`) — those have been removed
 
 ### `.planning/`
