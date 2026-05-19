@@ -1,12 +1,12 @@
 ---
 phase: 17
 slug: input-and-output-contracts
-total_gaps: 10
+total_gaps: 11
 open_gaps: 0
-resolved_gaps: 10
+resolved_gaps: 11
 deferred_gaps: 0
 last_updated: 2026-05-19
-governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block (strengthened 2026-05-19 with STOP protocol + math/engineering grounding requirement + no-live-code directive). All 10 Phase 17 gaps are RESOLVED-WITH-INSTRUCTION per user auto-advance authorization 2026-05-19."
+governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block (strengthened 2026-05-19 with STOP protocol + math/engineering grounding requirement + no-live-code directive). GAP-17-01 through GAP-17-10 are RESOLVED-WITH-INSTRUCTION per user auto-advance authorization 2026-05-19. GAP-17-11 is RESOLVED-WITH-INSTRUCTION per user instruction 2026-05-19."
 ---
 
 # Phase 17 Gap Register
@@ -15,7 +15,7 @@ This file records every Phase 17 decision where source materials (resolution doc
 
 **Live-code directive (2026-05-19):** Live code in `pinn/` is **NOT** a grounding source, evidence source, or source-of-truth for any v1.4 decision. The "Documents to review" sections below do NOT include `pinn/` files. Live-code references are permitted only in forward-pointing FUT-01 hand-off documents (`17-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`).
 
-**Resolution batch:** On 2026-05-19, after the gaps were surfaced, the user instructed: *"auto advance now yourself without having to ask for my user input."* This register treats that as authorization to apply each entry's agent-recommended / "Agent was tempted to" option and continue Phase 17 planning without further gap prompts. Each entry's `Status` is therefore `RESOLVED-WITH-INSTRUCTION` and `Resolution note` records the applied option.
+**Resolution batch:** On 2026-05-19, after the first ten gaps were surfaced, the user instructed: *"auto advance now yourself without having to ask for my user input."* This register treats that as authorization to apply GAP-17-01 through GAP-17-10's agent-recommended / "Agent was tempted to" option and continue Phase 17 planning without further prompts for those entries. GAP-17-11 was discovered later by ce-doc-review and resolved by direct user instruction on 2026-05-19.
 
 **Required fields per entry (per governance rule):**
 
@@ -160,7 +160,7 @@ This file records every Phase 17 decision where source materials (resolution doc
   - **Verification protocol context:**
     - `.planning/phases/16-evidence-framework-and-issue-adjudication/16-CONTEXT.md` D-09 (`VERIFIED` status requires named AC) and D-12 (phase-exit gate).
 - **Status**: **RESOLVED-WITH-INSTRUCTION**
-- **Resolution note**: Auto-advance authorized 2026-05-19. Applied option (a): **`AC-IO-04` is reserved as a Phase 17-local AC** (no Phase 16 ledger row). Pass criterion: "no unqualified 11D / 12D / ambiguous 13D mentions remain except where labeled historical; `17-CODE-DIVERGENCE.md` exists and enumerates Phase 17's spec↔code gaps". Naming convention extension noted for future phases that may have similar requirement-level cleanups.
+- **Resolution note**: Auto-advance authorized 2026-05-19. Applied option (a): **`AC-IO-04` is reserved as a Phase 17-local AC** (no Phase 16 ledger row). Pass criterion, clarified by ce-doc-review 2026-05-19: "no unqualified 11D / 12D / ambiguous 13D mentions remain in normative framework-spec prose before Source Issues metadata except where labeled historical; `17-CODE-DIVERGENCE.md` exists and enumerates known Phase 17 spec↔code gaps from D-14". Naming convention extension noted for future phases that may have similar requirement-level cleanups.
 
 ### GAP-17-03: AC-IO-01 / AC-IO-02 / AC-IO-03 pass-criteria wording
 
@@ -353,6 +353,49 @@ This file records every Phase 17 decision where source materials (resolution doc
 
 ---
 
+## Plan-review gaps
+
+### GAP-17-11: Row-level FUT-01 priority values in `17-CODE-DIVERGENCE.md`
+
+- **Decision point**: The 5-column divergence schema is resolved, including a `FUT-01 priority` column, but the exact HIGH/MEDIUM/LOW values assigned to each row of `17-CODE-DIVERGENCE.md` are not fully grounded. Should Phase 17 assign row-level priorities now, and if so, are they binding or non-binding hand-off hints?
+- **Where in artifact**: `.planning/phases/17-input-and-output-contracts/17-03-PLAN.md` Task 2 exact table for `17-CODE-DIVERGENCE.md`, rows `Orientation slots`, `Time input`, `COM projection head`, `Direct velocity output wording`, and `Metadata-only invariants`.
+- **Task context**: Running `compound-engineering:ce-doc-review` over the Phase 17 plan bundle on 2026-05-19. The adversarial reviewer noticed the plan hard-codes all eight priority values, while the resolved schema decision only approved the priority column and the context explicitly grounds only some row values.
+- **Classification**: operational coordination
+- **Source silence**:
+  - `.planning/phases/17-input-and-output-contracts/17-GAPS.md` GAP-17-04 — resolves the 5-column schema and states that `FUT-01 priority (HIGH/MEDIUM/LOW)` belongs in the divergence file, but does not assign the value for each row.
+  - `.planning/phases/17-input-and-output-contracts/17-CONTEXT.md` D-14 — lists known divergence surfaces and FUT-01 items, but does not include row-level priority values.
+  - `.planning/phases/17-input-and-output-contracts/17-PATTERNS.md` — suggests some priority intuition (IC composition and mass encoding HIGH; docstring drift LOW), but this is a pattern artifact, not one of the governance-approved grounding sources for a cross-phase scheduling decision.
+  - `.planning/REQUIREMENTS.md` FUT-01 — states that existing `pinn/` implementation code is updated after framework-spec reconciliation, but does not sequence the individual divergence rows.
+- **Mathematical / engineering grounding**:
+
+  This is not a physics derivation; it is a future-work coordination decision. Priority values influence how FUT-01 readers sequence the eventual code rewrite. Some rows are dependency-heavy:
+
+  - `IC vector composition` and `Mass encoding` affect every preprocessed sample and therefore appear naturally HIGH.
+  - `Time input` and `COM projection head` affect model forward/AD behavior and can invalidate loss or residual interpretation if skipped, so they plausibly deserve HIGH.
+  - `Direct velocity output wording`, `Metadata-only invariants`, and `Docstring drift` are less directly blocking, but could still mislead implementation if left stale.
+
+  The issue is not that the proposed values are obviously wrong; it is that assigning exact HIGH/MEDIUM/LOW values is cross-phase scheduling guidance. Under the STOP protocol, the agent should not silently convert engineering intuition into FUT-01 priority commitments unless the values are explicitly grounded or labeled non-binding.
+
+- **Agent was tempted to**: Keep the existing table values as non-binding initial hand-off hints and add a sentence that FUT-01 planning may revise them.
+- **What the user needs to decide**:
+  - (a) Keep the current row-level values as **non-binding FUT-01 hand-off hints**; FUT-01 can re-prioritize.
+  - (b) Keep the current row-level values as **binding Phase 17 priority guidance** for FUT-01.
+  - (c) Replace ungrounded priority values with `TBD by FUT-01` while keeping the priority column.
+  - (d) User supplies exact HIGH/MEDIUM/LOW values for all eight rows.
+- **Confidence of impact**: **MEDIUM** — affects FUT-01 sequencing and reader expectations, but not the Phase 17 input/output spec contracts themselves.
+- **Documents to review** (Option C — grouped by purpose):
+  - **Schema decision already resolved:**
+    - `.planning/phases/17-input-and-output-contracts/17-GAPS.md` GAP-17-04 — approved the 5-column schema with `FUT-01 priority`.
+  - **Known divergence surfaces:**
+    - `.planning/phases/17-input-and-output-contracts/17-CONTEXT.md` D-14 — lists the known Phase 17 spec-vs-code divergence surfaces.
+    - `.planning/phases/17-input-and-output-contracts/17-03-PLAN.md` Task 2 — contains the proposed exact table values.
+  - **Future implementation scope:**
+    - `.planning/REQUIREMENTS.md` FUT-01 and SCOPE-01 — define post-v1.4 implementation alignment and live-code hand-off boundaries.
+- **Status**: **RESOLVED-WITH-INSTRUCTION**
+- **Resolution note**: User-authorized 2026-05-19 after `compound-engineering:ce-ideate` / `compound-engineering:ce-brainstorm` review. Applied option (a): keep the current row-level `FUT-01 priority` values as **non-binding FUT-01 hand-off hints**. The values may remain in `17-CODE-DIVERGENCE.md`, but FUT-01 planning may revise them after reading the accumulated Phase 17/18/19/20 divergence files and `pinn/STATUS.md`.
+
+---
+
 ## Operational choices NOT promoted to gaps (recorded here for audit)
 
 The following are mechanical / presentation-only choices the agent is authorized to make without surfacing per the CRITICAL GOVERNANCE rule. They are recorded here for completeness:
@@ -361,7 +404,7 @@ The following are mechanical / presentation-only choices the agent is authorized
 |--------|------------------------------|-------------------|
 | Section-break placement of IC₁₃ definition inside `ctl_instruction.md` Step 4 | Preserve existing section flow; IC₁₃ as natural sub-step | `17-CONTEXT.md` Claude's Discretion |
 | Table vs enumerated list for per-slot normalization formula | Markdown table (matches `17-CONTEXT.md` D-06 style) | Future `ctl_instruction.md` edit |
-| Evidence-packet subsection ordering for non-EVID-05 findings (B-03, B-06, M1, M2) | Per Phase 16 D-06 template; section 5/7/8/9 marked "Not contested"; section 4 (FUT-01 Hand-off Note, formerly Code Evidence) populated only if FUT-01 rewrite gap exists | `evidence/B-03.md` etc. |
+| Evidence-packet subsection ordering for non-EVID-05 findings (B-03, B-06, M1, M2) | Per Phase 16 D-06 template; section 5/7/8/9 marked "Not contested"; section 4 (FUT-01 Hand-off Note, formerly Code Evidence) summarizes divergence class only and points to `17-CODE-DIVERGENCE.md` for exact live-code file:line references | `evidence/B-03.md` etc. |
 | COM-projection-head placement in `pinn_architecture.md` §5.3 | Immediately after existing "Output Frame" subsection (lines 777–779) | Future `pinn_architecture.md` edit |
 
 If any of these is actually a more substantial decision than I've classified it, promote it to a gap entry.
@@ -370,4 +413,4 @@ If any of these is actually a more substantial decision than I've classified it,
 
 *Audit performed: 2026-05-19. Audit basis: `17-CONTEXT.md` decisions D-01 through D-16 classified against the CRITICAL GOVERNANCE rule (strengthened 2026-05-19 with STOP protocol + math/engineering grounding requirement + no-live-code directive).*
 *Schema strengthened: 2026-05-19 — added `Task context`, `Mathematical / engineering grounding`, and `Documents to review` fields. Live-code citations removed from `Source silence` and `Mathematical / engineering grounding` per the 2026-05-19 no-live-code directive.*
-*Resolution batch: 2026-05-19 — user auto-advance authorization applied all 10 gaps to their `Agent was tempted to` option; statuses updated to `RESOLVED-WITH-INSTRUCTION`.*
+*Resolution batch: 2026-05-19 — user auto-advance authorization applied GAP-17-01 through GAP-17-10 to their `Agent was tempted to` option; statuses updated to `RESOLVED-WITH-INSTRUCTION`. GAP-17-11 was opened later by ce-doc-review and resolved by user instruction as non-binding FUT-01 hand-off hints.*

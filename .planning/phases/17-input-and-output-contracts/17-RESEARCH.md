@@ -2,9 +2,9 @@
 
 **Researched:** 2026-05-19 [VERIFIED: local date context]
 **Domain:** CTL-PINN framework-spec input/output contract adjudication [VERIFIED: .planning/ROADMAP.md:137-148]
-**Confidence:** HIGH for plan readiness after the 2026-05-19 gap-resolution batch; HIGH for locked D-01/D-02/D-03 facts. This file was originally researched while ten Phase 17 gaps were OPEN, but `17-GAPS.md` now records all ten as `RESOLVED-WITH-INSTRUCTION`. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70; .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-10]
+**Confidence:** HIGH for P01/P02 plan readiness after the 2026-05-19 gap-resolution batch; HIGH for locked D-01/D-02/D-03 facts; HIGH for P03 divergence-priority hand-off now that GAP-17-11 resolves row-level priorities as non-binding FUT-01 hints. This file was originally researched while ten Phase 17 gaps were unresolved, then updated after ce-doc-review opened and user instruction resolved GAP-17-11. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70; .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-10]
 
-> **Post-research update (2026-05-19):** The user instructed the agent to auto-advance without further user prompts. Phase 17 recorded that instruction by resolving GAP-17-01 through GAP-17-10 with each entry's agent-recommended option. Planner/executor agents should treat D-04 through D-14 as actionable unless they discover a new source-silent decision that triggers the STOP protocol.
+> **Post-research update (2026-05-19):** The user instructed the agent to auto-advance without further user prompts. Phase 17 recorded that instruction by resolving GAP-17-01 through GAP-17-10 with each entry's agent-recommended option. A later ce-doc-review pass opened GAP-17-11 for row-level `FUT-01 priority` values in `17-CODE-DIVERGENCE.md`; user instruction resolved it by keeping the current values as non-binding FUT-01 hand-off hints that FUT-01 planning may revise.
 
 <user_constraints>
 ## User Constraints (from CONTEXT.md)
@@ -22,20 +22,20 @@ All rows and bullets in this section are copied verbatim from `17-CONTEXT.md`; t
 | **D-15** `pinn/STATUS.md` deferred to v1.4 ship; no physical move | ✅ LOCKED | — | Actionable. User-approved. |
 | **D-16** Phase 16 amendment 2026-05-18 acknowledgement | ✅ LOCKED | — | Actionable. User-approved (amendment itself approved earlier). |
 
-### Gated Decisions
+### Resolved / Remaining Gated Decisions
 
 | Decision | Status | Linked gap(s) | Plan-phase / execute-phase action |
 |----------|--------|---------------|-----------------------------------|
-| **D-04** IC composition primary in `ctl_instruction.md` | ⚠️ OPEN | GAP-17-06 | Do not act until resolved. Topical split was user-approved abstractly; specific topic→file assignment is gated. |
-| **D-05** Network I/O width primary in `pinn_architecture.md` | ⚠️ OPEN | GAP-17-06 | Do not act until resolved (same gap as D-04). |
-| **D-06** Per-slot tanh normalization form + symbolic μ/σ | ⚠️ PARTIAL | GAP-17-07 | Formula form is grounded (act on it). Numerical μ/σ statistics are gated — leave symbolic until GAP-17-07 resolves. |
-| **D-07** Mass slots: ordered, raw, pre-normalization | ⚠️ OPEN | GAP-17-01 | Do not act until resolved. **HIGH-impact semantic gap** (raw vs fraction). |
-| **D-08** Forward-ref to Phase 18 FRAME-01 | ⚠️ OPEN | GAP-17-08 | Coordination point is real; specific wording in framework specs is gated. |
-| **D-09** Forward-ref to Phase 19 PHYS-02 | ⚠️ OPEN | GAP-17-09 | Same as D-08. |
-| **D-10** M5 reframed to metadata-only under Jacobi IC | ⚠️ OPEN | GAP-17-05 | Do not act until resolved. **HIGH-impact cross-phase reframing** (changes Phase 20 scope). |
-| **D-11** Forward-ref to Phase 21 VER-04 | ⚠️ OPEN | GAP-17-10 | Same as D-08/D-09. |
-| **D-13** AC-IO-01/02/03 pass criteria + AC-IO-04 invention | ⚠️ OPEN | GAP-17-02, GAP-17-03 | AC name reservations from Phase 16 are grounded. AC-IO-04 invention is gated (GAP-17-02). Pass-criteria wording is gated (GAP-17-03). |
-| **D-14** `17-CODE-DIVERGENCE.md` schema | ⚠️ OPEN | GAP-17-04 | Mechanism is user-approved; specific schema fields are gated. Do not create the file with the proposed schema until GAP-17-04 resolves. |
+| **D-04** IC composition primary in `ctl_instruction.md` | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-06 | Actionable. User auto-advance confirmed the topical split. |
+| **D-05** Network I/O width primary in `pinn_architecture.md` | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-06 | Actionable. Same topical split as D-04. |
+| **D-06** Per-slot tanh normalization form + symbolic μ/σ | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-07 | Formula form is grounded; μ/σ values remain symbolic in Phase 17. |
+| **D-07** Mass slots: ordered, raw, pre-normalization | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-01 | Actionable. Use raw ordered masses. |
+| **D-08** Forward-ref to Phase 18 FRAME-01 | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-08 | Actionable. Use "Phase 18 (FRAME-01)" inline. |
+| **D-09** Forward-ref to Phase 19 PHYS-02 | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-09 | Actionable. Use "Phase 19 (PHYS-02)" inline. |
+| **D-10** M5 reframed to metadata-only under Jacobi IC | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-05 | Actionable. Phase 20 M5 scope is metadata-only. |
+| **D-11** Forward-ref to Phase 21 VER-04 | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-10 | Actionable. Planning artifacts name VER-04; framework specs do not. |
+| **D-13** AC-IO-01/02/03 pass criteria + AC-IO-04 invention | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-02, GAP-17-03 | Actionable. Use approved text/structural criteria and Phase 17-local AC-IO-04. |
+| **D-14** `17-CODE-DIVERGENCE.md` schema | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-04, GAP-17-11 | Schema is actionable. Row-level `FUT-01 priority` values are non-binding FUT-01 hand-off hints that FUT-01 may revise. |
 
 ### the agent's Discretion
 
@@ -69,22 +69,22 @@ All rows and bullets in this section are copied verbatim from `17-CONTEXT.md`; t
 
 ## Summary
 
-Phase 17 is a documentation-adjudication phase, not an implementation phase: it edits framework specs and evidence/planning artifacts while treating `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` as read-only live-code evidence. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:23-40; .planning/REQUIREMENTS.md:67-74]
+Phase 17 is a documentation-adjudication phase, not an implementation phase: it edits framework specs and evidence/planning artifacts while treating `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` as v1.3-era FUT-01 hand-off coordinates only, not v1.4 evidence. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:23-40; .planning/REQUIREMENTS.md:67-74]
 
 The highest-confidence contract facts are: input width remains `14D = [tau, IC_13]`; `IC_13` is the reconstructive gauge-fixed Jacobi state; network output is 9D positions only; a hard mass-weighted COM projection is applied before losses/metrics; velocities and accelerations are AD-derived after projection; and autograd leaf semantics use `u=t/T` with `tau=2u-1` inside the wrapper. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:209-249; pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:514-530; pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:687-719]
 
-Planning is now unblocked because `17-GAPS.md` records GAP-17-01 through GAP-17-10 as `RESOLVED-WITH-INSTRUCTION`; if any new source-silent decisions appear, the STOP protocol still applies. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:14-16; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:49-70; .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-10]
+Planning is unblocked for P01/P02 and for P03 cleanup. `17-GAPS.md` records GAP-17-11 as `RESOLVED-WITH-INSTRUCTION`; P03 may keep row-level `FUT-01 priority` values in `17-CODE-DIVERGENCE.md` as non-binding hand-off hints that FUT-01 planning may revise. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:14-18; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:49-72; .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-10]
 
-**Primary recommendation:** Draft the locked three-plan shape P01 input / P02 output / P03 cleanup. Do not add a Wave 0 gap-resolution gate for GAP-17-01 through GAP-17-10 because the user has resolved them; instead, include acceptance criteria that confirm the resolved choices are reflected in the plans and artifacts. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:137-143; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70]
+**Primary recommendation:** Draft the locked three-plan shape P01 input / P02 output / P03 cleanup. Do not add a Wave 0 gap-resolution gate for GAP-17-01 through GAP-17-11 because the user has resolved them; treat `FUT-01 priority` values as non-binding hand-off hints. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:137-143; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70]
 
 ## Project Constraints (from AGENTS.md)
 
 - Phase 17 is governed by the v1.4 STOP protocol: do not invent content where source materials are silent or ambiguous, and stop affected work on non-grounded MUST-surface decisions. [VERIFIED: AGENTS.md:15-18]
-- A decision is grounded only when explicitly answered by the resolution doc, issue doc, read-only SCOPE-01 live code, prior user decision, roadmap, or requirements entry. [VERIFIED: AGENTS.md:21-27]
+- A decision is grounded only when explicitly answered by the resolution doc, issue doc, prior user decision, roadmap, requirements entry, a v1.4-revised framework spec section, or short first-principles physics; live `pinn/` code is not a grounding source during v1.4. [VERIFIED: AGENTS.md:21-27]
 - Semantic, process-artifact-schema, and cross-phase-reframing decisions must be surfaced rather than invented. [VERIFIED: AGENTS.md:28-35]
 - Gap entries require decision point, artifact location, task context, classification, source silence, mathematical/engineering grounding, tempted choice, user decision options, confidence of impact, status, and resolution note. [VERIFIED: AGENTS.md:52-63]
 - Subagents do not write gap registers directly; they return findings to the parent agent. [VERIFIED: AGENTS.md:69-72]
-- Existing PINN implementation files are source-of-truth evidence for current v1.3 behavior, but v1.4 Phase 17 must not edit `pinn/` implementation files. [VERIFIED: AGENTS.md:107-114; .planning/REQUIREMENTS.md:71]
+- Existing PINN implementation files are v1.3-era artifacts for FUT-01 hand-off coordinates only; v1.4 Phase 17 must not edit them or use them as evidence/grounding. [VERIFIED: .planning/REQUIREMENTS.md:71]
 
 ## Architectural Responsibility Map
 
@@ -92,8 +92,8 @@ Planning is now unblocked because `17-GAPS.md` records GAP-17-01 through GAP-17-
 |------------|-------------|----------------|-----------|
 | Evidence packet creation for B-03/B-04/B-06/M1/M2 | Planning evidence layer | Framework specs | Phase 16 established one packet per finding under `evidence/{finding-id}.md`, and Phase 17 context requires evidence packets before spec edits. [VERIFIED: .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md:95-103; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:217-220] |
 | Canonical input contract | Framework spec layer | Planning ledger | Resolution doc defines `x=[tau,IC_13] in R^14`, while ledger rows B-03/M2 use `AC-IO-01` for dimensionality closure. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:527-530; .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md:21; .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md:29-30] |
-| IC_13 composition and normalization | Framework spec layer | Read-only code evidence | Resolution doc defines the Jacobi-state IC and normalization formula, while live code documents the old mass-fraction/invariant/angle implementation as divergence evidence. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:514-572; pinn/data-processing-pipeline-full.py:1088-1146] |
-| Output contract and COM projection | Framework spec layer | Read-only architecture evidence | Resolution doc requires COM projection before output consumption; live architecture currently emits final-layer outputs and only optionally transforms them. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:687-719; pinn/basic_architecture.py:185-192] |
+| IC_13 composition and normalization | Framework spec layer | FUT-01 hand-off layer | Resolution doc defines the Jacobi-state IC and normalization formula; old mass-fraction/invariant/angle implementation details are recorded only in `17-CODE-DIVERGENCE.md` as FUT-01 coordinates. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:514-572; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:153-166] |
+| Output contract and COM projection | Framework spec layer | FUT-01 hand-off layer | Resolution doc requires COM projection before output consumption; any v1.3 architecture divergence is recorded only in `17-CODE-DIVERGENCE.md` as FUT-01 coordinates. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:687-719; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:153-166] |
 | Obsolete-dimension cleanup | Framework spec layer | Planning validation layer | Target specs contain stale 11D/12D/ambiguous 14D passages, and IO-04 requires removal or historical labeling. [VERIFIED: pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:676; pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:801-811; pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:876-883; .planning/REQUIREMENTS.md:25] |
 | Code-divergence handoff | Planning handoff layer | Future implementation layer | Phase 17 records spec-vs-live-code gaps for FUT-01 and must not patch `pinn/` during v1.4. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:151-164; .planning/REQUIREMENTS.md:60-64; .planning/REQUIREMENTS.md:71] |
 
@@ -174,7 +174,7 @@ This data flow matches the locked P01/P02/P03 decomposition and Phase 16 require
 
 ### Pattern 1: Evidence Packet Before Spec Edit
 
-**What:** Create or update the finding evidence packet, cite both primary sources, capture current-spec and live-code evidence, record verdict and AC-ID, then edit framework specs. [VERIFIED: .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md:95-103]
+**What:** Create or update the finding evidence packet, cite both primary sources and current framework-spec evidence, record verdict and AC-ID, then edit framework specs. Exact live-code file:line references are centralized in `17-CODE-DIVERGENCE.md` as FUT-01 hand-off coordinates. [VERIFIED: .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md:95-103]
 
 **When to use:** Use for P01 B-03/B-04/M1/M2 and P02 B-06 before any `ctl_instruction.md` or `pinn_architecture.md` edit. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:137-143; .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md:21-30]
 
@@ -192,7 +192,7 @@ Source: Phase 16 packet start procedure and template source-position requirement
 
 ### Pattern 2: Locked Fact vs Gated Decision
 
-**What:** Treat D-01/D-02/D-03/D-12/D-15/D-16 as actionable, D-06 formula-only as partially actionable, and D-04/D-05/D-07/D-08/D-09/D-10/D-11/D-13/D-14 as blocked until linked gaps are resolved. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70]
+**What:** Treat D-01 through D-16 as actionable where their linked gaps are `RESOLVED-WITH-INSTRUCTION`; D-14 row-level `FUT-01 priority` values are non-binding hand-off hints, not binding scheduling commitments. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70]
 
 **When to use:** Use in every plan task precondition so the planner does not accidentally execute a source-silent semantic or process decision. [VERIFIED: AGENTS.md:28-40; .planning/phases/17-input-and-output-contracts/17-GAPS.md:15-24]
 
@@ -236,11 +236,11 @@ Source: Current stale passages and Phase 16 validation style. [VERIFIED: pinn_in
 |---------|-------------|-------------|-----|
 | Evidence schema | Custom packet headings | Phase 16 `_TEMPLATE.md` | The template already encodes both-source citation, EVID-05 sections, verdict enum, before/after note, AC-ID, and status log. [VERIFIED: .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md:1-100] |
 | Finding lifecycle | New Phase 17 status table | `16-ISSUE-LEDGER.md` | Ledger rows already exist for B-03, B-04, B-06, M1, and M2 with AC-IDs and dependents. [VERIFIED: .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md:21-30] |
-| Gap handling | Informal TODOs | `17-GAPS.md` and STOP protocol | Gap entries already carry source silence, grounding, user options, and OPEN status. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:15-24; AGENTS.md:52-72] |
+| Gap handling | Informal TODOs | `17-GAPS.md` and STOP protocol | Gap entries already carry source silence, grounding, user options, status, and resolution notes. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:15-24; AGENTS.md:52-72] |
 | Input vector semantics | Custom invariant/angle hybrid | Resolution-doc Jacobi-state IC_13, subject to locked/gated context | Resolution doc rejects invariant-only IC as final input and defines the network-facing Jacobi-state IC_13. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:459-465; pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:514-530] |
 | COM enforcement | Soft loss-only COM correction | Hard mass-weighted COM projection head | Resolution doc projects raw 9D positions before all losses/metrics and gets position, velocity, and acceleration COM constraints by construction/AD. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:695-719] |
 
-**Key insight:** The hard work is not inventing a clever representation; the hard work is preserving the already-adjudicated contract while refusing to fill the open gaps silently. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:70-76; AGENTS.md:15-18]
+**Key insight:** The hard work is not inventing a clever representation; the hard work is preserving the already-adjudicated contract while refusing to fill any newly discovered gaps silently. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:70-76; AGENTS.md:15-18]
 
 ## Runtime State Inventory
 
@@ -256,13 +256,13 @@ Source: Current stale passages and Phase 16 validation style. [VERIFIED: pinn_in
 
 ### Pitfall 1: Acting on OPEN Decisions
 
-**What goes wrong:** A plan writes spec text for mass encoding, topic-to-file ownership, AC pass criteria, forward references, or divergence schema before the linked gap is resolved. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:56-66]
+**What goes wrong:** A plan writes spec text for mass encoding, topic-to-file ownership, AC pass criteria, forward references, divergence schema, or row-level FUT-01 priorities before the linked gap is resolved. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:56-68]
 
 **Why it happens:** The context preserves proposed decision content below the status table, so it is easy to copy a tempting proposal while missing the OPEN gate. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:70-72]
 
-**How to avoid:** Put explicit preconditions on each task for GAP-17-01 through GAP-17-10 as applicable. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-24]
+**How to avoid:** Put explicit preconditions on each task for GAP-17-01 through GAP-17-11 as applicable. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-24]
 
-**Warning signs:** Plan text says "D-07 raw masses" or "AC-IO-04" as executable work while the linked gap remains OPEN. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:59; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:65]
+**Warning signs:** Plan text treats a future `OPEN` gap as executable work, or treats non-binding `FUT-01 priority` hints as binding scheduling commitments. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:59; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:65]
 
 ### Pitfall 2: Letting Old IO-02 Wording Override D-01
 
@@ -274,13 +274,13 @@ Source: Current stale passages and Phase 16 validation style. [VERIFIED: pinn_in
 
 **Warning signs:** Evidence or spec text describes "5 values for 3 trigonometrically encoded angles" or "shape invariants + direction cosines" as the final model input. [VERIFIED: pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md:812-815; pinn_instruction/issues/01-architecture-and-physics-foundations.md:499-527]
 
-### Pitfall 3: Using Live Code as the Target Instead of Evidence
+### Pitfall 3: Using Live Code as Evidence or Target
 
 **What goes wrong:** The plan aligns specs to the v1.3 live code's mass fractions, shape invariants, and velocity angles. [VERIFIED: pinn/data-processing-pipeline-full.py:1114-1146]
 
-**Why it happens:** AGENTS says PINN input-vector logic in live code overrides comments for current-code evidence, but Phase 17 context says v1.4 specs supersede both live files for future implementation. [VERIFIED: AGENTS.md:107-114; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:153-164]
+**Why it happens:** Older artifacts treated PINN live code as current-code evidence, but the 2026-05-19 directive says v1.4 specs supersede the v1.3-era `pinn/` files for future implementation. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:153-164]
 
-**How to avoid:** Cite live code in evidence packets and divergence records, but write framework specs to the locked/gated Phase 17 target. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:151-164]
+**How to avoid:** Keep live-code file:line references centralized in `17-CODE-DIVERGENCE.md` as FUT-01 hand-off coordinates. Evidence packets should summarize the divergence class only and write framework specs to the locked Phase 17 target. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:151-164]
 
 **Warning signs:** A proposed spec edit keeps `compute_velocity_angles` or `m_norm = 2 * (masses / m_total) - 1` as the future network input convention. [VERIFIED: pinn/data-processing-pipeline-full.py:1062-1085; pinn/data-processing-pipeline-full.py:1114-1116]
 
@@ -363,7 +363,7 @@ Source: source-position fields required by Phase 16 template. [VERIFIED: .planni
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| - | No `[ASSUMED]` claims are used in this research; all substantive claims are tagged with verified local sources or command evidence. [VERIFIED: this RESEARCH.md] | All | Low; remaining uncertainty is represented as OPEN gaps rather than assumptions. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-24] |
+| - | No `[ASSUMED]` claims are used in this research; all substantive claims are tagged with verified local sources or command evidence. [VERIFIED: this RESEARCH.md] | All | Low; unresolved uncertainty should be represented as gap entries rather than assumptions. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-24] |
 
 ## Open Questions (RESOLVED)
 
@@ -377,6 +377,7 @@ Source: source-position fields required by Phase 16 template. [VERIFIED: .planni
 | GAP-17-06 | RESOLVED-WITH-INSTRUCTION: the proposed topical split is confirmed. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:233-234] | No unresolved question remains for Phase 17 planning. | Plans may make `ctl_instruction.md` primary for IC composition/normalization and `pinn_architecture.md` primary for network I/O. |
 | GAP-17-07 | RESOLVED-WITH-INSTRUCTION: mu/sigma values remain symbolic in Phase 17. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:262-263] | No unresolved question remains for Phase 17 planning. | Plans must not compute current-dataset numeric statistics in Phase 17. |
 | GAP-17-08/09/10 | RESOLVED-WITH-INSTRUCTION: Phase 18 and Phase 19 names may appear inline; VER-04 appears only in planning artifacts. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:289-324] | No unresolved question remains for Phase 17 planning. | Plans may include the resolved forward-reference wording. |
+| GAP-17-11 | RESOLVED-WITH-INSTRUCTION: row-level `FUT-01 priority` values are non-binding FUT-01 hand-off hints. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:358-395] | No unresolved question remains for Phase 17 planning. | P03 may keep the current priority values in `17-CODE-DIVERGENCE.md`; FUT-01 may revise them. |
 | Requirements/roadmap wording drift | `REQUIREMENTS.md` IO-02 and `ROADMAP.md` Phase 17 success criterion 2 still describe old invariant/orientation-slot content. [VERIFIED: .planning/REQUIREMENTS.md:23; .planning/ROADMAP.md:144-146] | Whether Phase 17 should amend planning docs to align with D-01 is not listed in D-12's plan decomposition. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:137-143] | Planner should not add planning-doc amendment tasks without surfacing this as a process-scope question. [VERIFIED: AGENTS.md:28-40] |
 
 ## Environment Availability
@@ -476,8 +477,8 @@ Source: source-position fields required by Phase 16 template. [VERIFIED: .planni
 **Confidence breakdown:**
 
 - Standard stack: HIGH - Phase 16 artifacts and local tool availability are verified directly. [VERIFIED: .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md:1-107; local command 2026-05-19]
-- Architecture: HIGH for locked contract facts; MEDIUM for executable task sequencing because open gaps gate where and how edits land. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:514-530; pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:687-719; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70]
+- Architecture: HIGH for locked contract facts and executable task sequencing; GAP-17-11 resolves divergence priorities as non-binding hand-off hints. [VERIFIED: pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:514-530; pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md:687-719; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:51-70]
 - Pitfalls: HIGH - pitfalls are directly visible in current target specs, Phase 17 gaps, and Phase 16 governance artifacts. [VERIFIED: pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:676; pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:801-811; pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:876-883; .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-24]
 
 **Research date:** 2026-05-19 [VERIFIED: local date context]
-**Valid until:** 2026-06-02 or until any GAP-17 entry is resolved, whichever comes first. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-10]
+**Valid until:** 2026-06-02 or until any later GAP-17 entry is opened or resolved, whichever comes first. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-GAPS.md:1-10]

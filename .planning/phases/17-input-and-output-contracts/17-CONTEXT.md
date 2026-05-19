@@ -12,10 +12,10 @@
 >
 > Of 16 implementation decisions (D-01 through D-16):
 > - **6 are LOCKED** (user-approved + resolution-doc-grounded): D-01, D-02, D-03, D-12, D-15, D-16
-> - **10 are RESOLVED-WITH-INSTRUCTION** (user auto-advance instruction 2026-05-19): D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-13, D-14
+> - **11 are RESOLVED-WITH-INSTRUCTION** (user instruction 2026-05-19): D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-13, D-14 schema, D-14 row-level priorities
 > - **0 are OPEN**
 >
-> **Mandate for plan-phase and execute-phase agents:** The formerly open decisions are actionable because their linked `GAP-17-NN` entries now have `Status: RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`. If new gaps are discovered during plan-phase or execute-phase work, append them to `17-GAPS.md` per the STOP Protocol (see CRITICAL GOVERNANCE block in `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
+> **Mandate for plan-phase and execute-phase agents:** GAP-17-01 through GAP-17-11 are actionable because their linked entries now have `Status: RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`. For GAP-17-11 specifically, row-level `FUT-01 priority` values in `17-CODE-DIVERGENCE.md` are **non-binding FUT-01 hand-off hints**; FUT-01 planning may revise them after reading the accumulated Phase 17/18/19/20 divergence files and `pinn/STATUS.md`. If new gaps are discovered during plan-phase or execute-phase work, append them to `17-GAPS.md` per the STOP Protocol (see CRITICAL GOVERNANCE block in `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
 
 ---
 
@@ -48,7 +48,7 @@ Phase 17 does NOT:
 
 ### Decision Status Summary (audit 2026-05-19)
 
-Per CRITICAL GOVERNANCE rule (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The plan-phase and execute-phase agents MUST consult this table before acting on any decision below. A decision marked `⚠️ OPEN` MUST NOT be acted on until the linked gap is `RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`; as of 2026-05-19, no Phase 17 decisions remain open.
+Per CRITICAL GOVERNANCE rule (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The plan-phase and execute-phase agents MUST consult this table before acting on any decision below. A decision marked `⚠️ OPEN` MUST NOT be acted on until the linked gap is `RESOLVED-WITH-INSTRUCTION` in `17-GAPS.md`; as of the 2026-05-19 GAP-17-11 resolution, no Phase 17 gap remains open.
 
 | Decision | Status | Linked gap(s) | Plan-phase / execute-phase action |
 |----------|--------|---------------|-----------------------------------|
@@ -65,11 +65,11 @@ Per CRITICAL GOVERNANCE rule (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`). The plan
 | **D-11** Forward-ref to Phase 21 VER-04 | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-10 | Actionable. Mention VER-04 only in planning artifacts, not framework spec edits. |
 | **D-12** 3-plan decomposition: P01 input / P02 output / P03 cleanup | ✅ LOCKED | — | Actionable. User-approved. |
 | **D-13** AC-IO-01/02/03 pass criteria + AC-IO-04 invention | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-02, GAP-17-03 | Actionable. Use proposed text/structural criteria and approve `AC-IO-04` as Phase 17-local. |
-| **D-14** `17-CODE-DIVERGENCE.md` schema | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-04 | Actionable. Use the proposed 5-column Markdown schema. |
+| **D-14** `17-CODE-DIVERGENCE.md` schema | ✅ RESOLVED-WITH-INSTRUCTION | GAP-17-04, GAP-17-11 | Schema is actionable. Row-level `FUT-01 priority` values are non-binding FUT-01 hand-off hints; FUT-01 may revise. |
 | **D-15** `pinn/STATUS.md` deferred to v1.4 ship; no physical move | ✅ LOCKED | — | Actionable. User-approved. |
 | **D-16** Phase 16 amendment 2026-05-18 acknowledgement | ✅ LOCKED | — | Actionable. User-approved (amendment itself approved earlier). |
 
-**Summary:** 6 LOCKED (D-01, D-02, D-03, D-12, D-15, D-16) + 10 RESOLVED-WITH-INSTRUCTION (D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-13, D-14) + 0 OPEN. Plans P01/P02/P03 may now be drafted and executed, subject to the standard STOP protocol if new source-silent decisions appear.
+**Summary:** 6 LOCKED (D-01, D-02, D-03, D-12, D-15, D-16) + 11 RESOLVED-WITH-INSTRUCTION (D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-13, D-14 schema, D-14 row-level priorities). Plans P01/P02 and P03 cleanup may proceed; P03 may keep the current `FUT-01 priority` values in `17-CODE-DIVERGENCE.md` as non-binding hand-off hints.
 
 The decision content below (D-01..D-16) preserves the full audit trail — the agent's tempted-to reasoning is retained alongside the LOCKED items so the user can see the difference between grounded content and gated proposals.
 
@@ -148,7 +148,7 @@ The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candid
   - `AC-IO-01`: exactly one canonical input-contract definition in each spec; no contradiction between the two; total width is 14 in both. Covers B-03, M2.
   - `AC-IO-02`: IC₁₃ ordering and slot definitions match across both spec files; per-slot normalization formula is named (μ, σ may be symbolic); the four candidates from B-04 EVID-05 are all addressed in `evidence/B-04.md`. Covers B-04, M1.
   - `AC-IO-03`: output is 9D positions; COM projection head defined with formula in `pinn_architecture.md`; AD-derived velocities and accelerations defined; `ctl_instruction.md:879–880` no longer claims direct velocity output. Covers B-06.
-  - `AC-IO-04` (Phase 17-local): no unqualified 11D / 12D / ambiguous 13D mentions remain except where labeled historical; `17-CODE-DIVERGENCE.md` exists and enumerates all P01/P02 spec↔code gaps. Covers IO-04.
+  - `AC-IO-04` (Phase 17-local): no unqualified 11D / 12D / ambiguous 13D mentions remain in normative framework-spec prose before Source Issues metadata except where labeled historical; `17-CODE-DIVERGENCE.md` exists and enumerates all known P01/P02 spec↔code gaps from D-14. Covers IO-04.
 
 ### Code-divergence handling (SCOPE-01 compliance)
 
@@ -244,7 +244,7 @@ The resolution doc (`ctl_pinn_resolution.md`) is treated as the **default candid
 - **The pinn_architecture.md §5.3 COM-projection-head addition** is one paragraph plus a formula block. Place it immediately after the existing "Output Frame" subsection (current lines 777–779), since it operationalizes the COM-frame guarantee that subsection currently states as an *assumption*.
 - **The `ctl_instruction.md:879–880` velocity-output line** has been wrong for at least one milestone (Agent B's audit caught it). P02's edit just replaces it with the correct position-only + AD-derived wording — short, but high-value because it removes a direct contradiction with `pinn_architecture.md`.
 - **For P03 cleanup**, the audit candidates Agent B already located: `ctl_instruction.md` lines 676 ("12D input vector"), 790–809 (the 11-component IC block to be replaced wholesale), 811 ("12-dimensional input vector"), 876 ("12-dimensional input vector"), 879–880 (velocity-output line). P03 runs after P01/P02 lands the new contract, so the audit confirms the cleanup is correct end-to-end.
-- **The `17-CODE-DIVERGENCE.md` schema** mirrors the D-14 table above but adds a column for "FUT-01 priority" (high / medium / low) so the eventual code rewrite has a sequencing hint. Mass-encoding and IC composition are HIGH (they cascade through training); docstring drift is LOW (cosmetic).
+- **The `17-CODE-DIVERGENCE.md` schema** mirrors the D-14 table above but adds a column for "FUT-01 priority" (high / medium / low) so the eventual code rewrite has a sequencing hint. Per GAP-17-11, these row-level values are **non-binding FUT-01 hand-off hints**; FUT-01 planning may revise them after reading the full Phase 17/18/19/20 divergence picture. Mass-encoding and IC composition are HIGH (they cascade through training); docstring drift is LOW (cosmetic).
 
 </specifics>
 

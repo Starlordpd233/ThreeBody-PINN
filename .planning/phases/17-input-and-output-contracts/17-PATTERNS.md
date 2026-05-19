@@ -68,7 +68,7 @@ Do not add a primary-source field. Neither source is authoritative before adjudi
 
 > **Note (v1.4 update 2026-05-19):** Live code in `pinn/` is NOT a v1.4 evidence source per user directive 2026-05-19. This section is repurposed for forward-pointing FUT-01 hand-off documentation only. Do NOT cite live code as a basis for a v1.4 verdict.
 
-If this finding's new framework-spec contract diverges from the v1.3-era code and FUT-01 will need to rewrite something, note the relevant v1.3-era code paths with line ranges so `NN-CODE-DIVERGENCE.md` (or the eventual `pinn/STATUS.md`) can index it. Forward-pointing reference only.
+If this finding's new framework-spec contract diverges from the v1.3-era code and FUT-01 will need to rewrite something, summarize the divergence class and point readers to `17-CODE-DIVERGENCE.md` for exact `pinn/` file:line references. Do not duplicate live-code line references inside evidence packets.
 ```
 
 **Non-contested section handling** (`17-GAPS.md` lines 336-338):
