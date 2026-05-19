@@ -49,7 +49,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - [ ] Patch framework specs only after each issue has an evidence-backed verdict and a named acceptance check
 - [ ] Preserve the SQR-SkipResNet-SIREN, CTL, and raw-mass framework decisions unless the evidence disproves them
 - [ ] Record traceable evidence for every architecture and physics foundation correction
-- [ ] Execute (not just document) acceptance checks: scaling consistency, COM invariance, componentwise AD correctness, force-energy consistency, loss-stability dry run — failing tests block milestone close-out
+- [ ] Execute (not just document) acceptance checks via disposable validation probes: scaling consistency, COM invariance, componentwise AD correctness, force-energy consistency, loss-stability dry run — failing checks block milestone close-out, but do not authorize production framework implementation
 - [ ] Close each finding through an iterative re-verification loop (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`); "fix applied" is not closure, only a passing acceptance check is
 
 ### Deferred
@@ -67,17 +67,18 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Real-time prediction API or web interface — research project, not a product
 - Qualitative reasoning by the LLM — focus is on numerical trajectory prediction first
 - Broad cross-document reconciliation beyond the shipped SCS gate correction and active v1.4 Issue 01 scope
+- Editing existing `pinn/` implementation files to match the revised framework specs — code alignment happens after v1.4
 
 ## Current Milestone: v1.4 Resolving 01 Architecture and Physics Foundations
 
-**Goal:** Critically examine each Issue 01 finding against BOTH `ctl_pinn_resolution.md` AND `01-architecture-and-physics-foundations.md` — treating neither as authoritative — to identify the root-cause ambiguity in the current framework specs, lock the right convention, apply evidence-backed edits, and **verify each fix by executing acceptance checks** before closing the issue.
+**Goal:** Critically examine each Issue 01 finding against BOTH `ctl_pinn_resolution.md` AND `01-architecture-and-physics-foundations.md` — treating neither as authoritative — to identify the root-cause ambiguity in the current framework specs, lock the right convention, apply evidence-backed framework-spec edits, and **verify each fix with disposable acceptance checks** before closing the issue. v1.4 settles the framework documentation; it does not implement or update the production PINN/training code.
 
 **Target features:**
 - Evidence packets for each issue before edits: spec evidence, issue-report evidence, resolution-doc verdict, live-code evidence (when relevant), and an explicit verdict from `{accept-resolution, accept-issue-doc, accept-third-position, reject-both-as-unsupported, defer-with-blocker}`.
 - For every contested finding (B-02, B-04, B-09, M5, and any further conflict discovered during the walkthrough), an EVID-05 record that names the underlying spec ambiguity and the convention now locked.
 - Framework-spec revisions in `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`, `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`, and the narrow `sampling_method.md` sections needed for FRAME-03.
-- A narrow code edit window in `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` only where VER-04 acceptance checks require it (e.g., componentwise AD, COM projection head, IC vector assembly). Broader code work belongs to FUT-01.
-- Executed acceptance checks for scaling consistency, COM invariance, componentwise AD on the synthetic trajectory, force-energy consistency, and loss stability — failing checks loop back to the originating phase.
+- Read-only live-code evidence from `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` when needed to understand current drift; existing implementation files are not edited during v1.4.
+- Disposable validation probes for scaling consistency, COM invariance, componentwise AD on the synthetic trajectory, force-energy consistency, and loss stability — failing probes loop back to the originating spec phase.
 - Iterative re-verification: each finding moves through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` in `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`; nothing closes on "fix applied," only on a passing acceptance check.
 - Reconciled `SI-*` ledger: every v1.4-resolved finding retires its corresponding spec source-issue entry; `SI-DQA-002`/`SI-DQA-003`/`SI-PINN-002` are preserved untouched.
 - Requirements and roadmap begin at Phase 16, after v1.3 ended at Phase 15.1 and the post-ship SCS gate correction shipped 2026-05-15. Phase 16 is complete; the next logical workflow step is `$gsd-discuss-phase 17`.
@@ -89,9 +90,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 **Supporting evidence:**
 - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/master_consolidation_report.md` — earlier multi-AI consolidation already consumed by the resolution doc; read for traceability and verification, not as a primary verdict source
 - Individual model reports (`chatgpt_research_report.md`, `claude_research_report.md`, `claude_research_report_2.md`, `gemini_research_report.md`) — consult only when adjudicating a finding the consolidation map records as ambiguous (e.g., M6/M7)
-- Live code: `pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`, the C++ Brutus integrator, the IC generation and prescreening scripts — load-bearing for first-principles physics checks
+- Live code: `pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`, the C++ Brutus integrator, the IC generation and prescreening scripts — read-only evidence for first-principles physics checks
 
-**Scope:** Architecture and physics foundation corrections only. Data-pipeline, curriculum-stage, and LLM fine-tuning work remain deferred unless directly required to validate or patch Issue 01. The SCS gate work that previously sat under data-quality-assessment is complete and out of v1.4 scope.
+**Scope:** Architecture and physics foundation corrections only. Data-pipeline, curriculum-stage, PINN implementation, and LLM fine-tuning work remain deferred. v1.4 may create or record disposable validation probes only to test risky framework contracts before the specs are locked. The SCS gate work that previously sat under data-quality-assessment is complete and out of v1.4 scope.
 
 **Phase structure:** 6 phases in `.planning/ROADMAP.md` (Phases 16–21). 30 requirements mapped 1:1 to phases. No additional phases are needed; the verification protocol and iterative re-verification loop are encoded as requirements (VER-04/05/06) and roadmap protocol rather than separate phases.
 
@@ -151,8 +152,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | v1.3 milestone complete | All 6 markdown conversions verified; all audit gaps remediated | ✓ 2026-05-08 |
 | Correct SCS/raw-drift gate after v1.3 | User ratified the gate-led policy: keep SCS as a base-10 log score, introduce raw drift `\epsilon_H`, and reject at `\epsilon_H > 10^{-5}` / `SCS > -5` | ✓ 2026-05-15 |
 | Resolution doc is NOT authoritative in v1.4 | The consolidated multi-AI resolution may contain errors that were never checked against current framework specs or live code; treating it as truth would silently bake in those errors. EVID-05 mandates critical examination of BOTH the resolution doc and the thematic issue doc, identifying the root-cause framework ambiguity behind each contested finding. | — Active (v1.4) |
-| Iterative re-verification protocol for v1.4 | Architecture/physics fixes will routinely need multiple attempts before a finding actually resolves. The ledger pattern (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` with regression revert) prevents "fix applied" being mistaken for "issue closed." VER-04/VER-05 codify execute-then-re-verify; the loop is expected, not a failure mode. | — Active (v1.4) |
+| Iterative re-verification protocol for v1.4 | Architecture/physics fixes will routinely need multiple attempts before a finding actually resolves. The ledger pattern (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` with regression revert) prevents "fix applied" being mistaken for "issue closed." VER-04/VER-05 codify execute-then-re-verify using disposable validation probes, not production code edits; the loop is expected, not a failure mode. | — Active (v1.4) |
 | `master_consolidation_report.md` demoted to supporting evidence | The resolution doc already consumed it; treating both as co-equal primary sources triples re-adjudication work without adding signal. | — Active (v1.4) |
+| Agent must surface gaps, not invent (v1.4 and similar adjudication milestones) | User does not trust the executing agent to make decisions where source materials are silent or ambiguous; cost of asking is small, cost of silent invention is irreparable spec drift across phases. | — Active (v1.4) and standing rule for future adjudication milestones; see `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` "CRITICAL GOVERNANCE" block and per-phase `NN-GAPS.md` mechanism |
 
 ## Evolution
 

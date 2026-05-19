@@ -53,24 +53,25 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 - [ ] **VER-01**: The revised specs include numerically-defined acceptance checks for scaling consistency, COM invariance, derivative correctness, force-energy consistency, and loss stability. Each check names its pass criterion (e.g., `relative_error < 1e-10`), the data it runs on, and the command or function that executes it — not just prose descriptions.
 - [x] **VER-02**: The roadmap maps every v1.4 requirement to exactly one phase beginning at Phase 16.
 - [ ] **VER-03**: The final milestone handoff identifies which issues were fixed, which were intentionally left unchanged (with the M6/M7 "not adjudicable from supplied files" deferral made explicit), and which require future empirical validation.
-- [ ] **VER-04**: The acceptance checks defined in VER-01 are **executed** during Phase 21 — not just documented — against the corrected framework specs and the relevant code paths in `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py`. Each test (§10.1 scaling, §10.2 COM, §10.3 componentwise AD on the synthetic trajectory, §10.4 force-energy consistency, §10.5 loss stability dry run) produces a recorded pass/fail with numerical evidence. A failing test blocks phase completion and routes back to the originating phase (17–20) for re-fix; v1.4 does not ship while any required test fails.
+- [ ] **VER-04**: The acceptance checks defined in VER-01 are **executed** during Phase 21 — not just documented — using disposable validation probes and read-only evidence from the relevant code paths in `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py`. Each test (§10.1 scaling, §10.2 COM, §10.3 componentwise AD on the synthetic trajectory, §10.4 force-energy consistency, §10.5 loss stability dry run) produces a recorded pass/fail with numerical evidence. A failing test blocks phase completion and routes back to the originating phase (17–20) for spec re-fix; v1.4 does not ship while any required test fails. Passing or failing VER-04 does **not** authorize edits to existing `pinn/` implementation files.
 - [x] **VER-05**: Every fix is closed through an iterative re-verification loop. The issue ledger tracks each finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`. A finding only advances to `VERIFIED` after the corresponding acceptance check passes; an applied edit that fails re-verification stays at `IN_PROGRESS` and is re-fixed before any phase exits. After each batch of edits the agent re-runs verification on every previously `VERIFIED` finding the batch could have regressed (same spec section, dependent contract, or shared formula) and reverts the status to `IN_PROGRESS` on any regression. The ledger lives at a stable path (recommended: `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`) and every phase appends to it; nothing in v1.4 closes until all in-scope findings are `VERIFIED` or explicitly `DEFERRED` with a written blocker.
 - [ ] **VER-06**: The framework-spec Source-Issue (`SI-*`) ledger is reconciled: every v1.4-resolved finding retires its corresponding `SI-*` entry with a back-reference to the resolving phase/commit (candidates: `SI-CTL-001` ↔ B-03, `SI-PINN-001` ↔ B-04, `SI-SSR-001` ↔ M5). Entries unrelated to Issue 01 are preserved untouched (`SI-PINN-002`, `SI-DQA-002`, `SI-DQA-003`).
 
 ## Future Requirements
 
-- **FUT-01**: Broader PINN training-loop implementation in code after spec reconciliation is complete. (Note: v1.4 may already touch `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` under VER-04/SCOPE-02; FUT-01 covers everything beyond that.)
+- **FUT-01**: Update existing `pinn/` implementation code and build the broader PINN training loop after framework-spec reconciliation is complete.
 - **FUT-02**: Recompute curriculum statistics and stage thresholds after preprocessing and physics contracts are finalized.
-- **FUT-03**: Repurposed — package the VER-04 acceptance checks into reusable executable scripts under `pinn/validation/` once v1.4 ships, so CI or later milestones can re-run them.
+- **FUT-03**: Repurposed — package any useful VER-04 disposable validation probes into reusable executable scripts under `pinn/validation/` once v1.4 ships, so CI or later milestones can re-run them.
 - **FUT-04**: Resume PINN training-loop implementation after the framework specs are coherent.
 
 ## Scope Boundaries
 
 | Scope | Status |
 |-------|--------|
-| **SCOPE-01** Code changes (`pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`) | **In scope, narrowly** — v1.4 may edit these files only where VER-04 acceptance checks require it (e.g., componentwise AD for PHYS-02, COM projection head for IO-03, IC vector assembly for IO-02). Broader refactors belong to FUT-01. |
+| **SCOPE-01** Existing `pinn/` implementation changes (`pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`) | **Out of scope** — v1.4 may inspect these files as evidence and compare them against disposable validation probes, but it must not edit them. Code alignment belongs to FUT-01 after the framework specs are settled. |
 | **SCOPE-02** `sampling_method.md` revisions | **In scope, limited to FRAME-03** — hierarchical post-perturbation COM offset wording and any cross-reference needed for the unified preprocessing contract. No sampling-method content unrelated to Issue 01 is rewritten. |
 | **SCOPE-03** Data-quality-assessment and SCS gate work | **Out of scope — already completed** on branch `codex/scs-gate-correction`. v1.4 does not re-open `SI-DQA-002`/`SI-DQA-003`. |
+| **SCOPE-04** Disposable validation probes | **In scope, limited** — probes may be created, recorded, or run only to test risky framework contracts and produce evidence for VER-04. They are not production framework code and are not packaged as reusable `pinn/` validation infrastructure during v1.4. |
 
 ## Out of Scope
 
@@ -122,7 +123,7 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 - v1.4 requirements: 30 total (5 EVID + 4 IO + 4 FRAME + 6 PHYS + 5 ARCH + 6 VER)
 - Mapped to phases: 30
 - Unmapped: 0
-- SCOPE-01/02/03 are scope-boundary annotations (see "Scope Boundaries" table above), not numbered requirements.
+- SCOPE-01/02/03/04 are scope-boundary annotations (see "Scope Boundaries" table above), not numbered requirements.
 
 ---
 *Requirements defined: 2026-05-15*
