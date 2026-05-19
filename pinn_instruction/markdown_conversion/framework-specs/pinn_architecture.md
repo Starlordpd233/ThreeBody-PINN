@@ -284,8 +284,6 @@ resolve. $\text{LayerNorm}$ ensures this term remains bounded.
   : Table 1: Architectural hyperparameters of the SQR-SkipResNet-SIREN backbone
 :::
 
-  **[I believe this formula for initialization is incorrect]**
-
 # 3. The Multi-Component, Physics-Constrained Loss Function
 
 The training of the PINN is guided by a composite loss function that
@@ -853,20 +851,13 @@ be clearly defined.
 
 These notes are metadata for future reconciliation. They are not part of the faithful converted body and are excluded from fidelity comparison per D-19.
 
-### SI-PINN-001: Weight Init. (Hidden) formula discrepancy
-
-- **Section:** Section 2 (sqr_skipresnet_siren_backbone) — hyperparameters table, Weight Init. (Hidden) row
-- **Description:** The LaTeX source table specifies $\mathrm{U}[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}]$ (Formula A) while the LaTeX prose and SIREN paper use $\mathrm{U}[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}]$ (Formula B). The markdown conversion uses Formula B uniformly in both the hyperparameters table and the blueprint summary table. Formula B is the correct SIREN-paper formula; Formula A differs by ~235x for n_in=256, hidden_omega_0=1.
-- **Status:** Documented for future reconciliation
-
 ### SI-PINN-002: Author comments preserved in converted body
 
 - **Section:** Sections 2, 3 (sqr_skipresnet_siren_backbone, physics_constrained_loss)
-- **Description:** 4 author comments from the LaTeX source (`\authcomment{}`) are preserved in the converted body as bold bracketed text (`**[...]**`). These are editorial notes from the original authors, not content discrepancies:
+- **Description:** 3 author comments from the LaTeX source (`\authcomment{}`) are preserved in the converted body as bold bracketed text (`**[...]**`). These are editorial notes from the original authors, not content discrepancies:
   1. "Need more detail on this dynamic scheduling for omega_0" (Section 2)
   2. "Need confirmation on this hidden layer's detail" (Section 2)
-  3. "I believe this formula for initialization is incorrect" (Section 2, hyperparameters table)
-  4. "Comment: This above batch construction is not consistent with the CTL instruction plan" (Section 3)
+  3. "Comment: This above batch construction is not consistent with the CTL instruction plan" (Section 3)
 - **Status:** Documented for future reconciliation — author should resolve these notes before training implementation
 
 ### SI-PINN-003: Batch construction inconsistency with CTL instruction plan

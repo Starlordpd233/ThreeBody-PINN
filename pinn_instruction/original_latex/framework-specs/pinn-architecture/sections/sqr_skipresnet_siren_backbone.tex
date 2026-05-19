@@ -136,9 +136,7 @@ hidden\_omega\_0 & 1 & This value is used within the principled weight initializ
 \hline
 Weight Init. (First) & $\mathrm{U}\left[-\frac{1}{n_{\text{in}}}, \frac{1}{n_{\text{in}}}\right]$ & The mathematically-derived initialization for the first SIREN layer to create a random Fourier feature mapping.$^1$ \\
 \hline
-Weight Init. (Hidden) & $\mathrm{U}\left[-\frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}, \frac{\text{hidden\_omega\_0}}{6 n_{\text{in}}}\right]$
-\authcomment{I believe this formula for initialization is incorrect}
-& The principled initialization for all subsequent SIREN layers, designed to preserve activation variance and enable stable training of deep sinusoidal networks.$^1$ \\
+Weight Init. (Hidden) & $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$ & The principled initialization for all subsequent SIREN layers, designed to preserve activation variance and enable stable training of deep sinusoidal networks.$^1$ \\
 \hline
 Skip Cadence & Alternating (per SQR SkipResNet) & The alternating pattern of plain and power-enhanced residual layers effectively balances feature transformation and stable gradient flow.$^1$ \\
 \hline
