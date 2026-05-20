@@ -142,8 +142,8 @@ Acceptance check: AC-IO-03
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-19 a052e35 PENDING -> IN_PROGRESS (Phase 17 P02 Task 1)
-- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P02 Task 3; output spec edits applied)
-- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P02 Task 3; AC-IO-03 passed)
+- 2026-05-19 55c1805 IN_PROGRESS -> FIX_APPLIED (Phase 17 P02 Task 3; output spec edits applied)
+- 2026-05-19 55c1805 FIX_APPLIED -> VERIFIED (Phase 17 P02 Task 3; AC-IO-03 passed)
 
 ### B-07: Energy/Hamiltonian regularizer
 
