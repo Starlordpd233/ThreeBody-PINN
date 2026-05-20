@@ -441,11 +441,12 @@ already in step 2.5 before any calculations proceed.
 Given one IC (plus its associated trajectory), Step 3 deterministically
 returns the tuple
 $$\mathcal{I} = \big(E,\;Q,\;s_{\min},\;L_{\mathrm{norm}},\;I_{\mathrm{norm}},\; \tau_L,\; m_1, m_2, m_3,\; I_1, I_2, I_3 \big),$$
-which is then consumed by the stage-assignment rules in §4.4 and the
-input vector assembly in Step 4. By default, stage gating uses
-$(E,Q,s_{\min},L_{\mathrm{norm}},\tau_L)$; $I_{\mathrm{norm}}$ is
-available for additional heuristics; shape invariants ($I_1, I_2, I_3$)
-are computed for input vector universality.
+which is then consumed by the stage-assignment rules in §4.4 and retained
+as metadata alongside the Step 4 network input assembly. By default, stage
+gating uses $(E,Q,s_{\min},L_{\mathrm{norm}},\tau_L)$;
+$I_{\mathrm{norm}}$ is available for additional heuristics; shape
+invariants ($I_1, I_2, I_3$) are metadata diagnostics only and are not
+final network IC slots under the Phase 17 input contract.
 
 1.  **Total energy $E$, virial ratio $Q$, and minimal separation
     $s_{\min}$.** $$\begin{aligned}
@@ -710,40 +711,17 @@ and reporting only; they are no longer final network IC slots.
         return m_sorted, r_prime_sorted, v_prime_sorted
     ```
 
-2.  **Apply Normalization to $[-1,1]$.** All components must be
-    normalized to the range $[-1,1]$ for optimal neural network
-    training. Use invariants computed from scaled data (from Step 2) and
-    the global scales precomputed across the dataset in Step 2. The
-    normalization formulas are as follows:
+2.  **Apply Normalization to $[-1,1]$.** The final network IC slots are
+    normalized only after the Phase 18 (FRAME-01) preprocessing contract
+    has produced the ordered raw masses and Jacobi-state scalars. The
+    legacy invariant-heavy quantities computed above are retained as
+    metadata for staging, diagnostics, loss scaling, and reports; they are
+    not concatenated into the final `IC_{13}` vector.
 
-    ```python
-    # Global scales (precomputed from scaled dataset in Step 2)
-    E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
-    Q_scale = 0.5     # Fixed
-    smin_scale = np.median(all_r_char)  # Characteristic length from scaled data
-
-    # Per-system normalization (using invariants from Step 3)
-    E_norm = np.tanh(E / E_scale)
-    Q_norm = np.tanh((Q - 1) / Q_scale)
-    smin_norm = np.tanh(s_min / smin_scale)
-    L_norm_normalized = 2 * L_norm - 1  # Map [0,1] to [-1,1] for consistency
-
-    # Mass fractions
-    m_total = np.sum(m) + 1e-8
-    m_norm = 2 * (m / m_total) - 1  # Array for all 3 masses
-
-    # Shape invariants
-    I1_norm = 2 * I1 - 1  # Map [0,1] to [-1,1]
-    I2_norm = 2 * I2 - 1  # Map [0,1] to [-1,1]
-    # I3 already in [-1,1]
-
-
-    # Normalized inertia (already computed in Step 3, but confirm bounds)
-    I_norm = np.tanh(I_norm)  # Ensure [-1,1] if not already
-    ```
-
-    > **Author note:** Confirm that all components in the IC vector are in the range
-    > $[-1,1]$ and that it is the final form that will be fed to the PINN.
+    > **Historical author note (pre-Phase 17; retained as a non-normative
+    > question):** Confirm that all components in the IC vector are in the
+    > range $[-1,1]$ and that it is the final form that will be fed to the
+    > PINN.
 
     #### Mathematical Guarantees
 
@@ -754,8 +732,9 @@ and reporting only; they are no longer final network IC slots.
         vectors. The 13 constraints for an 8-dimensional reduced phase
         space ensure over-determination and uniqueness.
 
-    2.  **Continuity**: All components vary continuously with the
-        initial conditions, ensuring smooth neural network training.
+    2.  **Continuity**: All network IC slots vary continuously with the
+        preprocessed initial conditions, ensuring smooth neural network
+        training.
 
     3.  **Universality**: No special cases or singularities for specific
         configurations (unlike orbital elements).
@@ -765,14 +744,12 @@ and reporting only; they are no longer final network IC slots.
 
     #### Numerical Implementation Considerations
 
-    When implementing this transformation, careful attention must be
-    paid to numerical stability (using scaled data from Step 2):
+    When implementing this transformation, careful attention must be paid
+    to numerical stability in the metadata calculations and the final
+    Jacobi-state slot assembly:
 
     - Use $\epsilon = 10^{-10}$ in potential energy calculations to
       avoid division by zero
-
-    - Check for $||\mathbf{v}'_i|| < \epsilon$ before computing velocity
-      angles
 
     - Verify momentum conservation after canonical ordering:
       $||\sum m_i \mathbf{v}'_i|| < 10^{-12}$
@@ -785,7 +762,8 @@ and reporting only; they are no longer final network IC slots.
     conditions, from highly hierarchical systems to chaotic quasi-random
     configurations.
 
-    > **Author note:** Confirm on this mathematcial guarantees' arguments and the
+    > **Historical author note (pre-Phase 17; retained as a non-normative
+    > question):** Confirm on this mathematcial guarantees' arguments and the
     > numerical implementation's purpose and validity. If confirmed, how
     > should we integrate and implement this into the existing workflow?
     > Also, we have to add the time t into this vector to achieve the
@@ -856,7 +834,8 @@ mapping from each simulation ID to its assigned stage index.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
-> **Author note:** My biggest question now for this training loop is that: how are we
+> **Historical author note (pre-Phase 17; retained as a non-normative
+> question):** My biggest question now for this training loop is that: how are we
 > feeding the exact input vector and brutus simulation data into the
 > network? We need a very specific description that clearly tells me what
 > the input format is going to be. For example, right now I know that our
