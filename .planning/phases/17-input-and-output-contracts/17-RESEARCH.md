@@ -266,11 +266,11 @@ Source: Current stale passages and Phase 16 validation style. [VERIFIED: pinn_in
 
 ### Pitfall 2: Letting Old IO-02 Wording Override D-01
 
-**What goes wrong:** The planner reintroduces angular momentum, virial ratio, minimum separation, inertia, shape invariants, or velocity-orientation scalars as network IC slots because `REQUIREMENTS.md` and `ROADMAP.md` still mention that older framing. [VERIFIED: .planning/REQUIREMENTS.md:23; .planning/ROADMAP.md:144-146]
+**What goes wrong:** The planner reintroduces pre-Phase-17 metadata descriptors as network IC slots by following old review notes instead of the cleaned top-level IO-02 contract. [VERIFIED: .planning/REQUIREMENTS.md:23; .planning/ROADMAP.md:144-146]
 
-**Why it happens:** `17-CONTEXT.md` is newer than `REQUIREMENTS.md` and locks the Jacobi-state IC_13, but the older requirement wording was not amended. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:3-5; .planning/REQUIREMENTS.md:129-130; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:78-82]
+**Why it happens:** `17-CONTEXT.md` locks the Jacobi-state IC_13, and Phase 17 closeout cleanup now aligns the top-level planning docs; older notes may still reflect the pre-closeout review state. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:3-5; .planning/REQUIREMENTS.md:129-130; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:78-82]
 
-**How to avoid:** Treat D-01 as the Phase 17 contract and treat the old IO-02/roadmap slot list as stale planning-context drift unless the user explicitly asks to amend requirements. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:53; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:78-82]
+**How to avoid:** Treat D-01 and the cleaned IO-02/roadmap wording as the Phase 17 contract: Jacobi-state IC_13 is the network input; old descriptor summaries are metadata only. [VERIFIED: .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:53; .planning/phases/17-input-and-output-contracts/17-CONTEXT.md:78-82]
 
 **Warning signs:** Evidence or spec text describes "5 values for 3 trigonometrically encoded angles" or "shape invariants + direction cosines" as the final model input. [VERIFIED: pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md:812-815; pinn_instruction/issues/01-architecture-and-physics-foundations.md:499-527]
 
