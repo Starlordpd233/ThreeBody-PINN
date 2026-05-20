@@ -19,10 +19,10 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 
 ### Input and Output Contracts
 
-- [ ] **IO-01**: Framework specs state one canonical network input contract: `14D = [tau, IC_13]`.
-- [ ] **IO-02**: Framework specs define the 13-component IC vector in one consistent order with normalization rules for masses, energy, angular momentum, virial ratio, minimum separation, inertia, shape invariants, and velocity-orientation scalars.
-- [ ] **IO-03**: Framework specs distinguish position outputs from velocities and accelerations derived by automatic differentiation, and require a mass-weighted COM projection on the raw 9D position head before any output is consumed by a loss term.
-- [ ] **IO-04**: Any obsolete 11D, 12D, or ambiguous 13D/14D wording is removed or explicitly labeled as historical source-issue metadata.
+- [x] **IO-01**: Framework specs state one canonical network input contract: `14D = [tau, IC_13]`.
+- [x] **IO-02**: Framework specs define the 13-component IC vector in one consistent order with normalization rules for masses, energy, angular momentum, virial ratio, minimum separation, inertia, shape invariants, and velocity-orientation scalars.
+- [x] **IO-03**: Framework specs distinguish position outputs from velocities and accelerations derived by automatic differentiation, and require a mass-weighted COM projection on the raw 9D position head before any output is consumed by a loss term.
+- [x] **IO-04**: Any obsolete 11D, 12D, or ambiguous 13D/14D wording is removed or explicitly labeled as historical source-issue metadata.
 
 ### Frame and Gauge Contracts
 
@@ -93,10 +93,10 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 | EVID-03 | Phase 16 | Complete |
 | EVID-04 | Phase 16 | Complete |
 | EVID-05 | Phase 16 | Complete |
-| IO-01 | Phase 17 | Pending |
-| IO-02 | Phase 17 | Pending |
-| IO-03 | Phase 17 | Pending |
-| IO-04 | Phase 17 | Pending |
+| IO-01 | Phase 17 | Complete |
+| IO-02 | Phase 17 | Complete |
+| IO-03 | Phase 17 | Complete |
+| IO-04 | Phase 17 | Complete |
 | FRAME-01 | Phase 18 | Pending |
 | FRAME-02 | Phase 18 | Pending |
 | FRAME-03 | Phase 18 | Pending |

@@ -99,7 +99,7 @@ Every issue and every edit in v1.4 follows this loop:
 This loop expects iteration. It is normal for a contested finding to cycle through `FIX_APPLIED → IN_PROGRESS → FIX_APPLIED` multiple times before reaching `VERIFIED` — especially when an initial fix treats the surface symptom rather than the root cause.
 
 - [x] **Phase 16: Evidence Framework and Issue Adjudication** — Establish the issue ledger schema, evidence-packet template, EVID-05 conflict-adjudication protocol, and VER-05 re-verification cycle that every Issue 01 edit must follow. (completed 2026-05-16)
-- [ ] **Phase 17: Input and Output Contracts** — Resolve the 14D input, 13-entry IC schema, position-output (with mass-weighted COM projection head), and obsolete-dimension wording contracts across framework specs.
+- [x] **Phase 17: Input and Output Contracts** — Resolve the 14D input, 13-entry IC schema, position-output (with mass-weighted COM projection head), and obsolete-dimension wording contracts across framework specs. (completed 2026-05-20)
 - [ ] **Phase 18: Frame and Gauge Contracts** — Reconcile COM, momentum, ordering, rotation gauge, scaling order, hierarchical offsets, and 3D Cartesian output guarantees.
 - [ ] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement.
 - [ ] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording.
@@ -230,7 +230,7 @@ Plans:
 | 15. Sampling-Method Verification | v1.3 | 3/3 | Complete | 2026-05-06 |
 | 15.1 Markdown Conversion Correction | v1.3 | 3/3 | Complete | 2026-05-08 |
 | 16. Evidence Framework and Issue Adjudication | v1.4 | 3/3 | Complete    | 2026-05-16 |
-| 17. Input and Output Contracts | v1.4 | 0/TBD | Not started | - |
+| 17. Input and Output Contracts | v1.4 | 3/3 | Complete    | 2026-05-20 |
 | 18. Frame and Gauge Contracts | v1.4 | 0/TBD | Not started | - |
 | 19. Physics and Loss Contracts | v1.4 | 0/TBD | Not started | - |
 | 20. Architecture and Normalization Cleanup | v1.4 | 0/TBD | Not started | - |
