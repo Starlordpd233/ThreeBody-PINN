@@ -18,16 +18,16 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 |----|-------|-------|--------|---------|-------------------|-----------------|------------------|--------------|------------|--------------|
 | B-01 | SIREN hidden-layer initialization | 20 | PENDING | - | NO | evidence/B-01.md | AC-ARCH-01 | pinn_architecture.md | B-10 | 2026-05-16 |
 | B-02 | Characteristic length and mass scaling | 19 | PENDING | - | YES - EVID-05 required | evidence/B-02.md | AC-PHYS-01 | ctl_instruction.md; pinn_architecture.md | B-09, M3 | 2026-05-16 |
-| B-03 | Input dimensionality | 17 | IN_PROGRESS | accept-resolution | NO | evidence/B-03.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | B-04, M1, M2 | 2026-05-19 |
-| B-04 | Input vector composition and orientation slots | 17 | IN_PROGRESS | accept-resolution | YES - EVID-05 required | evidence/B-04.md | AC-IO-02 | ctl_instruction.md; pinn_architecture.md | B-03, M1, M2 | 2026-05-19 |
+| B-03 | Input dimensionality | 17 | VERIFIED | accept-resolution | NO | evidence/B-03.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | B-04, M1, M2 | 2026-05-19 |
+| B-04 | Input vector composition and orientation slots | 17 | VERIFIED | accept-resolution | YES - EVID-05 required | evidence/B-04.md | AC-IO-02 | ctl_instruction.md; pinn_architecture.md | B-03, M1, M2 | 2026-05-19 |
 | B-05 | COM frame consistency | 18 | PENDING | - | NO | evidence/B-05.md | AC-FRAME-01 | ctl_instruction.md; pinn_architecture.md; sampling_method.md | M3, B-11-folded-into-B-05 | 2026-05-16 |
 | B-06 | 3D-vs-planar encoding and output contract | 17 | PENDING | - | NO | evidence/B-06.md | AC-IO-03 | pinn_architecture.md | - | 2026-05-16 |
 | B-07 | Energy/Hamiltonian regularizer | 19 | PENDING | - | NO | evidence/B-07.md | AC-PHYS-04 | pinn_architecture.md | - | 2026-05-16 |
 | B-08 | ALM scheduling and loss balancing | 19 | PENDING | - | NO | evidence/B-08.md | AC-PHYS-05 | pinn_architecture.md | - | 2026-05-16 |
 | B-09 | Softening mismatch | 19 | PENDING | - | YES - EVID-05 required | evidence/B-09.md | AC-PHYS-03 | ctl_instruction.md; pinn_architecture.md | B-02, PHYS-04, PHYS-05 | 2026-05-16 |
 | B-10 | Dynamic omega0 scheduling | 20 | PENDING | - | NO | evidence/B-10.md | AC-ARCH-01 | pinn_architecture.md | - | 2026-05-16 |
-| M1 | 11D IC versus 13D IC gap | 17 | IN_PROGRESS | accept-resolution | NO | evidence/M1.md | AC-IO-02 | ctl_instruction.md; pinn_architecture.md | - | 2026-05-19 |
-| M2 | Total dimension claims conflict | 17 | IN_PROGRESS | accept-resolution | NO | evidence/M2.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | - | 2026-05-19 |
+| M1 | 11D IC versus 13D IC gap | 17 | VERIFIED | accept-resolution | NO | evidence/M1.md | AC-IO-02 | ctl_instruction.md; pinn_architecture.md | - | 2026-05-19 |
+| M2 | Total dimension claims conflict | 17 | VERIFIED | accept-resolution | NO | evidence/M2.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | - | 2026-05-19 |
 | M3 | Scaling order and COM transform order | 18 | PENDING | - | NO | evidence/M3.md | AC-FRAME-01 | ctl_instruction.md | - | 2026-05-16 |
 | M4 | Constraint counting error | 19 | PENDING | - | NO | evidence/M4.md | AC-PHYS-06 | ctl_instruction.md | - | 2026-05-16 |
 | M5 | I_3 normalization map | 20 | PENDING | - | YES - EVID-05 required | evidence/M5.md | AC-ARCH-03 | ctl_instruction.md; data-processing-pipeline-full.py *(pre-2026-05-19; now v1.3-era artifact, not spec)* | - | 2026-05-16 |
@@ -94,6 +94,8 @@ Shared acceptance check: AC-IO-01 also covers other IDs B-03 and M2.
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
+- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### B-04: Input vector composition and orientation slots
 
@@ -115,6 +117,8 @@ Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-18 AMEND_REC PENDING -> PENDING (candidate set corrected from 2-option to 4-option framing; no status change; recorded in 16-CONTEXT.md Amendment)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
+- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### B-05: COM frame consistency
 
@@ -189,6 +193,8 @@ Shared acceptance check: AC-IO-02 also covers other IDs B-04 and M1.
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
+- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### M2: Total dimension claims conflict
 
@@ -201,6 +207,8 @@ Shared acceptance check: AC-IO-01 also covers other IDs B-03 and M2.
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
+- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### M3: Scaling order and COM transform order
 

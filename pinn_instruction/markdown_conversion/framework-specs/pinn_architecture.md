@@ -738,6 +738,20 @@ To predict the evolution of a system from a given initial condition
 
 ## 5.2 Output Layer and Kinematic Consistency via Automatic Differentiation
 
+### Network Input Contract
+
+**Input Vector** A **14-dimensional vector** `[\tau, IC_{13}]`, where `u=t/T` is the autograd leaf and `\tau=2u-1` is the bounded network time coordinate. `IC_{13}` is the ordered Jacobi-state initial-condition vector defined canonically in `ctl_instruction.md` Step 4:
+
+$$
+IC_{13} = [m_1, m_2, m_3, \rho_x, \lambda_x, \lambda_y,
+\dot{\rho}_x, \dot{\rho}_y, \dot{\rho}_z,
+\dot{\lambda}_x, \dot{\lambda}_y, \dot{\lambda}_z, E].
+$$
+
+Mass, Jacobi-position, and Jacobi-velocity slots are independently normalized with `tanh((z - mu_z)/(sigma_z + 10^-8))` after the Phase 18 (FRAME-01) preprocessing contract. The energy slot uses `tanh(E / E_scale)` with `E_scale = |median_traj(E)| + 10^-8`. Componentwise derivative tests for the `u -> tau -> r` chain are specified in Phase 19 (PHYS-02).
+
+### Output Layer
+
 The network architecture is simplified and physical consistency is
 hard-coded by predicting only positions and deriving all other kinematic
 quantities via automatic differentiation (AD). This is a core design
@@ -809,10 +823,7 @@ be clearly defined.
                                                • **First Layer:** `first_omega_0 = 30`. Weights from $U[-\frac{1}{n_{in}}, \frac{1}{n_{in}}]$.\                                                                                                                                          
                                                • **Hidden Layers:** `hidden_omega_0 = 1`. Weights from $U[-\frac{\sqrt{6/n_{in}}}{1}, \frac{\sqrt{6/n_{in}}}{1}]$.                                                                                                                       
 
-  **Input Vector**                             A **14-dimensional vector** `[t, IC]`, where `t` is time normalized to $[-1,1]$ and `IC` is a 13-component vector of initial conditions. The IC vector contains:\                                                                         This formulation provides a physically-grounded and injective (unambiguous) representation of the initial state, which is critical for a conditional network to learn correctly.
-                                               • 3 masses.\                                                                                                                                                                                                                              
-                                               • 5 physical invariants.\                                                                                                                                                                                                                 
-                                               • 5 values for 3 trigonometrically encoded angles.                                                                                                                                                                                        
+  **Input Vector**                             A **14-dimensional vector** built from the bounded network time coordinate and the ordered Jacobi-state initial-condition vector; see Section 5.2 "Network Input Contract" for the canonical formula and back-reference to `ctl_instruction.md` Step 4.                                                                                                                                                                                                                                                                                                                                                                                                                            This formulation provides a physically-grounded and injective (unambiguous) representation of the initial state, which is critical for a conditional network to learn correctly.
 
   **Output**                                   A **9-dimensional position vector** `[r1(t), r2(t), r3(t)]` with a linear (no activation) final layer. Velocities ($v=\frac{dr}{dt}$) and accelerations ($a=\frac{d^{2}r}{dt^{2}}$) are derived via **Automatic Differentiation (AD)**.   Predicting only positions simplifies the network architecture. Deriving kinematics via AD hard-codes their fundamental physical relationship, ensuring they are satisfied by construction to machine precision.
 
