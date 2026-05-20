@@ -901,10 +901,7 @@ The data flow for each training step is as follows:
 
 1. **Input**: The model receives the 14-dimensional network input `[\tau, IC_{13}]`, where `u=t/T` is the autograd leaf and `\tau=2u-1`.
 
-2.  **Network Prediction**: The network outputs the predicted positions
-    $\mathbf{r}_i(t)$ and velocities $\mathbf{v}_i(t)$ for all three
-    bodies at time $t$. The network is conditioned solely on \[t, IC\]
-    to predict the full state at t, without recurrent stepping.
+2. **Network Prediction**: The network emits a raw 9D position head for the three bodies. The architecture applies the hard mass-weighted COM projection defined in `pinn_architecture.md` before any loss, residual, diagnostic, or evaluation metric consumes the output. The projection weights are ordered raw pre-tanh mass metadata supplied by the Phase 18 (FRAME-01) preprocessing output, not the normalized `IC_{13}` mass slots. Velocities and accelerations are AD-derived from the projected positions; the network does not directly output velocities.
 
 3.  **Loss Computation**: Three distinct loss terms are computed:
 
