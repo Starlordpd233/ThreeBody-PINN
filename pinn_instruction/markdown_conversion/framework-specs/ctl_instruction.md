@@ -672,8 +672,12 @@ Before large‑scale runs:
 
 Using the invariants and quantities computed in Step 3 (e.g., $E$, $Q$,
 $s_{\min}$, $L_{\text{norm}}$, $I_{\text{norm}}$, $I_1$, $I_2$, $I_3$,
-masses), this step applies canonical ordering, normalizes all components
-to $[-1,1]$, and assembles the final 12D input vector for the PINN.
+masses), this step applies canonical ordering, computes the scaled
+Jacobi-state variables, normalizes each network IC slot, and assembles
+the final 14D network input vector $[\tau, IC_{13}]$ for the PINN per
+the Phase 17 input contract. The invariant-heavy descriptors above are
+retained as metadata for curriculum staging, diagnostics, loss scaling,
+and reporting only; they are no longer final network IC slots.
 
 1.  **Apply Canonical Ordering of Bodies for Injectivity**
 
@@ -787,37 +791,59 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     > Also, we have to add the time t into this vector to achieve the
     > final 14-dimensional input vector ready to be fed to the PINN.
 
-3.  **Assemble the Final 12-Component Input Vector.** The complete input
-    vector fed to the PINN is formed by concatenating the normalized
-    time component $t'$ with the 13-component initial condition vector
-    $\text{IC}$ (using normalized values from above):
+#### Network input contract
 
-    ```python
-    def normalize_time(t, T=10.0):
-        # Normalize physical time t from [0, T] to [-1, 1]
-        return 2 * (t / T) - 1
-    ```
+The network input is exactly
 
-    The 11-component IC is: $$\text{IC} = \begin{pmatrix}
-        m_1^{\text{norm}}, m_2^{\text{norm}}, m_3^{\text{norm}} & \text{(normalized masses)} \\
-        E^{\text{norm}} & \text{(normalized total energy)} \\
-        L_{\text{norm}} & \text{(normalized angular momentum)} \\
-        Q^{\text{norm}} & \text{(normalized virial ratio)} \\
-        s_{\min}^{\text{norm}} & \text{(normalized min separation)} \\
-        I_1^{\text{norm}}, I_2^{\text{norm}}, I_3 & \text{(shape invariants)} \\
-        I^{\text{norm}} & \text{(normalized moment of inertia)}
-        \end{pmatrix}$$
+$$
+x_{\mathrm{net}} = [\tau, IC_{13}], \qquad \tau = 2u - 1,\qquad u=t/T.
+$$
 
-$$\text{Input} = [t', \text{IC}] \text{, (12-dimensional input vector)}$$
+The scalar `u` is the autograd leaf. The bounded coordinate `tau` is the network time input. Componentwise chain-rule details for velocities, accelerations, and force residuals are specified in Phase 19 (PHYS-02).
 
-The time component is normalized from the physical time $t \in [0, T]$
-(where $T = t_{\max} = 10$ is the characteristic time) to the range
-$[-1, 1]$ using the formula:
+The primary initial-condition vector is the 13-component Jacobi-state contract
 
-$$t' = 2 \left( \frac{t}{T} \right) - 1$$
+$$
+IC_{13} = [m_1, m_2, m_3, \rho_x, \lambda_x, \lambda_y,
+\dot{\rho}_x, \dot{\rho}_y, \dot{\rho}_z,
+\dot{\lambda}_x, \dot{\lambda}_y, \dot{\lambda}_z, E].
+$$
 
-This centering around zero aligns with the periodic activation functions
-(e.g., SIREN) and improves training dynamics.
+The mass entries are ordered raw masses before normalization. Canonical body ordering, frame recentering, momentum boost, rotation gauge, and scaling order are defined in Phase 18 (FRAME-01); this section only states the network-facing IC vector after that preprocessing contract is applied.
+
+After preprocessing, define scaled Jacobi state variables:
+
+$$
+\rho' = r_2'(0)-r_1'(0),
+$$
+
+$$
+\lambda' = r_3'(0)-\frac{m_1r_1'(0)+m_2r_2'(0)}{m_1+m_2}.
+$$
+
+The position slots retained in `IC_{13}` are $\rho_x$, $\lambda_x$, and $\lambda_y$ after the Phase 18 (FRAME-01) gauge. The velocity slots remain fully 3D:
+
+$$
+\dot{\rho}'=(\dot{\rho}_x,\dot{\rho}_y,\dot{\rho}_z), \qquad
+\dot{\lambda}'=(\dot{\lambda}_x,\dot{\lambda}_y,\dot{\lambda}_z).
+$$
+
+Mass, Jacobi-position, and Jacobi-velocity slots are normalized independently with dataset-wide statistics computed after preprocessing:
+
+$$
+z^{in} = \tanh\left(\frac{z-\mu_z}{\sigma_z + 10^{-8}}\right).
+$$
+
+| Slot group | Pre-tanh scalar `z` | Network value |
+|---|---|---|
+| Ordered raw masses | `m_i` for `i in {1,2,3}` | `tanh((m_i - mu_{m_i}) / (sigma_{m_i} + 10^-8))` |
+| Jacobi position slots | `rho_x`, `lambda_x`, `lambda_y` | `tanh((z - mu_z) / (sigma_z + 10^-8))` |
+| Jacobi velocity slots | `rho_dot_x`, `rho_dot_y`, `rho_dot_z`, `lambda_dot_x`, `lambda_dot_y`, `lambda_dot_z` | `tanh((z - mu_z) / (sigma_z + 10^-8))` |
+| Energy slot | `E` | `tanh(E / E_scale)`, where `E_scale = |median_traj(E)| + 10^-8` |
+
+The old invariant-heavy descriptors (`Q`, `s_min`, `L_vec`, `L_norm`, `I_norm_raw`, `I1`, `I2`, `I3`, `tau_L`, and orientation summaries) remain available as curriculum, diagnostics, loss-scaling, and reporting metadata. They are not final network IC slots under the Phase 17 input contract.
+
+The network time coordinate is centered around zero by the linear map $\tau = 2u - 1$ with $u = t/T$ (where $T = t_{\max}$ is the characteristic time), which aligns with the periodic activation functions (e.g., SIREN) and improves training dynamics. The autograd leaf is `u`; the model wrapper computes `tau` internally.
 
 ## Step 5: Curriculum Stage Assignment
 
@@ -873,9 +899,7 @@ refinement:
 
 The data flow for each training step is as follows:
 
-1.  **Input**: The model receives a 12-dimensional input vector, which
-    is a combination of the scalar time $t$ and the 11-component initial
-    condition (IC) vector.
+1. **Input**: The model receives the 14-dimensional network input `[\tau, IC_{13}]`, where `u=t/T` is the autograd leaf and `\tau=2u-1`.
 
 2.  **Network Prediction**: The network outputs the predicted positions
     $\mathbf{r}_i(t)$ and velocities $\mathbf{v}_i(t)$ for all three
