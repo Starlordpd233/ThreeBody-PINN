@@ -791,6 +791,32 @@ be clearly defined.
   the **Center of Mass (COM) frame**. This is consistent with the use of
   translation-invariant quantities in the input vector.
 
+The raw network head emits unconstrained positions
+
+$$
+\tilde r_\theta(u, IC_{13}) = [\tilde r_1, \tilde r_2, \tilde r_3] \in \mathbb{R}^9.
+$$
+
+Before any downstream consumer sees this output, the model applies a hard mass-weighted COM projection:
+
+$$
+R_{\mathrm{COM}} = \frac{\sum_{j=1}^3 m_j \tilde r_j}{\sum_{j=1}^3 m_j},
+\qquad
+r_i = \tilde r_i - R_{\mathrm{COM}}, \qquad i \in \{1,2,3\}.
+$$
+
+Here `m_j` denotes the ordered raw pre-tanh mass metadata supplied by the Phase 18 (FRAME-01) preprocessing output; it is not the normalized mass slot inside `IC_{13}`.
+
+The projected positions
+
+$$
+r_\theta = [r_1, r_2, r_3]
+$$
+
+are the only positions consumed by data loss, physics residuals, IC loss, conservation loss, diagnostics, and evaluation metrics. The projection is architectural, not a soft penalty.
+
+Velocities and accelerations are derived by automatic differentiation from the projected position output. The autograd leaf is `u=t/T`; the network coordinate is `tau=2u-1`. Phase 19 (PHYS-02) specifies the componentwise derivative test and the chain-rule scaling from derivatives with respect to `u` to physical-time velocities and accelerations.
+
 - **Output File Format:** The final generated trajectory should be saved
   in a structured format, such as a CSV file, for easy analysis and
   visualization. Each row should represent a single time step.
