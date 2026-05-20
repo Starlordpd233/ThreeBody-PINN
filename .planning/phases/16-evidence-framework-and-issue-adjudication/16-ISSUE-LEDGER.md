@@ -94,8 +94,8 @@ Shared acceptance check: AC-IO-01 also covers other IDs B-03 and M2.
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
-- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
-- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
+- 2026-05-19 50650a3 IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 50650a3 FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### B-04: Input vector composition and orientation slots
 
@@ -117,8 +117,8 @@ Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-18 AMEND_REC PENDING -> PENDING (candidate set corrected from 2-option to 4-option framing; no status change; recorded in 16-CONTEXT.md Amendment)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
-- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
-- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
+- 2026-05-19 50650a3 IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 50650a3 FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### B-05: COM frame consistency
 
@@ -193,8 +193,8 @@ Shared acceptance check: AC-IO-02 also covers other IDs B-04 and M1.
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
-- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
-- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
+- 2026-05-19 50650a3 IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 50650a3 FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### M2: Total dimension claims conflict
 
@@ -207,8 +207,8 @@ Shared acceptance check: AC-IO-01 also covers other IDs B-03 and M2.
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
-- 2026-05-19 ${EDIT_SHA} IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
-- 2026-05-19 ${EDIT_SHA} FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
+- 2026-05-19 50650a3 IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
+- 2026-05-19 50650a3 FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
 
 ### M3: Scaling order and COM transform order
 
