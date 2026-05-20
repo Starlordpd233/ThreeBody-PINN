@@ -7,11 +7,11 @@ stopped_at: Phase 17 complete (3/3) — ready to discuss Phase 18
 last_updated: 2026-05-20T02:48:24.533Z
 last_activity: 2026-05-20 -- Phase 17 complete; ready to discuss Phase 18
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 2
   total_plans: 6
   completed_plans: 6
-  percent: 33
+  percent: 29
 ---
 
 # Project State
@@ -29,7 +29,7 @@ Phase: 18
 Plan: Not started
 Status: Ready to plan
 Last activity: 2026-05-20
-Progress: [███░░░░░░░] 33%
+Progress: [███░░░░░░░] 29%
 
 ## Performance Metrics
 
@@ -71,10 +71,10 @@ Progress: [███░░░░░░░] 33%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21) — Phase 16 is complete and verified; the next workflow step is Phase 17 input and output contracts.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16 and 17 are complete and verified; the next workflow step is Phase 18 frame and gauge contracts.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
-- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-19, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — SCOPE-05 propagation to CLAUDE.md / PROJECT.md happens in plan Task 8 after Task 2 lands it in `REQUIREMENTS.md`.
+- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-19, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
 
 ### v1.4 Phase Summary
 
@@ -116,7 +116,7 @@ Recent decisions affecting current work:
 - [Post-v1.3]: SCS gate correction shipped — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, and the data-ingestion gate is `\epsilon_H > 10^{-5}` / `SCS > -5`
 - [v1.4-init]: Resolution doc is NOT authoritative; EVID-05 mandates critical examination of both `ctl_pinn_resolution.md` and `01-architecture-and-physics-foundations.md` against current framework specs and first-principles physics for every contested finding (B-02, B-04, B-09, M5)
 - [v1.4-init]: Iterative re-verification loop (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`) codified in VER-05; "fix applied" is not closure — only a passing acceptance check is. Loop expected to iterate; phases do not exit on regressed findings.
-- [v1.4-scope]: Validation suite execution is VER-04 (in Phase 21) — not deferred to FUT — but execution uses disposable validation probes and read-only code evidence. Existing `pinn/` implementation edits are deferred until after the framework specs are settled.
+- [v1.4-scope]: Validation suite execution is VER-04 (in Phase 21) — not deferred to FUT — but execution uses disposable validation probes against the v1.4 framework specs. Existing `pinn/` implementation edits are deferred until after the framework specs are settled and live PINN-side code is not v1.4 evidence.
 - [v1.4-init]: M4 (constraint counting) elevated to PHYS-06 — was missing from initial requirement coverage.
 - [v1.4-init]: `master_consolidation_report.md` demoted from co-equal primary source to supporting evidence.
 - [v1.4-workflow]: All Phases 17–21 spec work happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
@@ -137,7 +137,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phase 16 are complete. Phase 16 is complete and verified; the next workflow step is Phase 17 input and output contracts.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16 and 17 are complete. Phase 17 is complete and verified; the next workflow step is Phase 18 frame and gauge contracts.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -153,7 +153,7 @@ All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phase 16 are complet
 None blocking, but three operational notes for v1.4 execution:
 
 - **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
-- Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template before any spec edit begins in Phase 17.
+- Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
 - Phases 17–20 each need a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-02, B-04, B-09, M5.
 
 ## Quick Tasks Completed
@@ -173,4 +173,4 @@ None blocking, but three operational notes for v1.4 execution:
 Last session: 2026-05-19T14:21:50.328Z
 Stopped at: context exhaustion at 81% (2026-05-19)
 Resume file: None
-Next action: Phase 17 input and output contracts
+Next action: Phase 18 frame and gauge contracts

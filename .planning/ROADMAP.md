@@ -6,7 +6,7 @@
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21 (Phase 16 complete; next: discuss Phase 17)
+- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–17 complete; next: discuss Phase 18)
 
 ## Phases
 
@@ -90,8 +90,8 @@ Full details: `.planning/milestones/v1.3-ROADMAP.md`
 
 Every issue and every edit in v1.4 follows this loop:
 
-1. **Adjudicate** — for findings where the resolution doc and the issue doc disagree (currently B-02 D formula, B-04 input-vector orientation slots, B-09 softening strategy, M5 `I_3` mapping, plus any further conflicts discovered during the walkthrough), apply EVID-05: read both positions in full, verify each against the current framework specs, the live code (`pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`), and first-principles physics, and record the root-cause ambiguity in the issue evidence packet before editing.
-2. **Fix** — apply the framework-spec edit. Existing `pinn/` implementation files are read-only evidence during v1.4; code alignment belongs after this milestone.
+1. **Adjudicate** — for findings where the resolution doc and the issue doc disagree (currently B-02 D formula, B-04 input-vector orientation slots, B-09 softening strategy, M5 `I_3` mapping, plus any further conflicts discovered during the walkthrough), apply EVID-05: read both positions in full, verify each against the current framework specs and first-principles physics, and record the root-cause ambiguity in the issue evidence packet before editing. Per the 2026-05-19 directive, live PINN-side code is not v1.4 evidence or grounding.
+2. **Fix** — apply the framework-spec edit. Existing `pinn/` implementation files are v1.3-era artifacts; code alignment belongs after this milestone and may be referenced only in forward-pointing FUT-01 hand-off documents.
 3. **Verify** — run the acceptance check defined for that finding using disposable validation probes where execution is needed (per VER-01; full §10 suite executed in Phase 21 per VER-04; smaller phase-local checks may run earlier).
 4. **Re-verify after every batch** — re-run the acceptance check on every previously `VERIFIED` finding the new batch could have regressed (same spec section, dependent contract, or shared formula). Any regression reverts that finding to `IN_PROGRESS`.
 5. **Ledger discipline** — each finding's status (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` or `DEFERRED`) lives in `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`. No phase exits until every in-scope finding is `VERIFIED` or `DEFERRED` with a written blocker. "I applied the patch" is **not** a closure event; "the acceptance check passed" is.
@@ -103,19 +103,19 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 - [ ] **Phase 18: Frame and Gauge Contracts** — Reconcile COM, momentum, ordering, rotation gauge, scaling order, hierarchical offsets, and 3D Cartesian output guarantees.
 - [ ] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement.
 - [ ] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording.
-- [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes and read-only code evidence (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the final fixed/non-change/deferred handoff (VER-03). Failing checks loop back to Phases 17–20 for spec correction.
+- [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the final fixed/non-change/deferred handoff (VER-03). Failing checks loop back to Phases 17–20 for spec correction.
 
 ## Phase Details
 
 ### Phase 16: Evidence Framework and Issue Adjudication
 
-**Goal**: Reviewers can trace every Issue 01 decision to direct evidence — examined critically against both source documents and the live framework — before any framework-spec edit is accepted, and every fix that follows has a defined re-verification pass.
+**Goal**: Reviewers can trace every Issue 01 decision to direct evidence — examined critically against both source documents, current framework specs, and first-principles physics — before any framework-spec edit is accepted, and every fix that follows has a defined re-verification pass.
 **Depends on**: Phase 15.1 + post-ship SCS gate correction (both complete)
 **Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, VER-02, VER-05 (defined here; applied throughout Phases 17–21)
-**Completion**: Phase 16 completed 2026-05-16; next milestone workflow step is `$gsd-discuss-phase 17`.
+**Completion**: Phase 16 completed 2026-05-16; Phase 17 completed 2026-05-20. Next milestone workflow step is `$gsd-discuss-phase 18`.
 **Success Criteria** (what must be TRUE):
 
-  1. Reviewer can inspect issue-by-issue evidence packets with line-range citations to `ctl_pinn_resolution.md`, `01-architecture-and-physics-foundations.md`, current framework specs, and (when relevant) the live code in `pinn/`.
+  1. Reviewer can inspect issue-by-issue evidence packets with line-range citations to `ctl_pinn_resolution.md`, `01-architecture-and-physics-foundations.md`, and current framework specs. Live `pinn/` references, when present, are FUT-01 hand-off context only.
   2. Reviewer can see a verdict from the fixed set — `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, or `defer-with-blocker` — for every selected Issue 01 finding.
   3. Reviewer can identify false positives in either source document with the evidence-backed reason each current convention remains valid and which source(s) misread it.
   4. Reviewer can trace every accepted issue to a before/after spec-section note, the contract that section now enforces, and the named verification step that will confirm the fix.
@@ -142,12 +142,12 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Reader can find one canonical network input contract: `14D = [tau, IC_13]`.
-  2. Reader can inspect one ordered 13-entry IC vector with normalization rules for masses, energy, angular momentum, virial ratio, minimum separation, inertia, shape invariants, and the chosen orientation slots (Option B direction cosines vs. resolution-doc velocity scalars c_1/c_2, locked by EVID-05 adjudication on B-04).
+  2. Reader can inspect one ordered 13-entry Jacobi-state IC vector with normalization rules for ordered raw masses, retained Jacobi position slots (`rho_x`, `lambda_x`, `lambda_y`), full Jacobi velocity slots, and energy. Shape invariants and orientation summaries are metadata only, not final network IC slots.
   3. Reader can distinguish 9D position predictions from velocities and accelerations derived by automatic differentiation, and can locate the mass-weighted COM projection head requirement on the raw output.
   4. Reader no longer encounters unqualified 11D, 12D, or ambiguous 13D/14D wording except where it is explicitly labeled as historical source-issue metadata.
   5. Every B-/M- finding in scope has its issue-ledger status updated, and any discovered mismatch with existing `pinn/` implementation files is recorded as downstream code-alignment work rather than patched in v1.4.
 
-**Plans**: TBD
+**Plans**: 3/3 complete (`17-01-PLAN.md`, `17-02-PLAN.md`, `17-03-PLAN.md`)
 
 ### Phase 18: Frame and Gauge Contracts
 
@@ -196,7 +196,7 @@ Plans:
 
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 
-**Goal**: Acceptance checks are not only defined but **executed** with disposable validation probes and read-only code evidence; the source-issue ledger is reconciled; and the final handoff records what shipped, what was deferred, and why.
+**Goal**: Acceptance checks are not only defined but **executed** with disposable validation probes against the v1.4 framework specs; the source-issue ledger is reconciled; and the final handoff records what shipped, what was deferred, and why.
 **Depends on**: Phase 20 (or whichever phase last touched a contested finding)
 **Requirements**: VER-01, VER-03, VER-04, VER-06 (+ VER-05 closing loop)
 **Success Criteria** (what must be TRUE):
@@ -237,4 +237,4 @@ Plans:
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-05-16 — Phase 16 completed; next step is Phase 17 discussion.*
+*Last updated: 2026-05-20 — Phase 17 closeout cleanup completed; next step is Phase 18 discussion.*

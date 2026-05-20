@@ -3,7 +3,7 @@
 **Defined:** 2026-05-15
 **Core Value:** The simulation dataset and data pipeline must be clean, well-validated, and correctly processed; framework specs must be physically coherent before implementation work depends on them.
 
-**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phase 16 are complete. The next logical workflow step is `$gsd-discuss-phase 17`.
+**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 and 17 are complete. The next logical workflow step is `$gsd-discuss-phase 18`.
 
 ## v1.4 Requirements
 
@@ -20,7 +20,7 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 ### Input and Output Contracts
 
 - [x] **IO-01**: Framework specs state one canonical network input contract: `14D = [tau, IC_13]`.
-- [x] **IO-02**: Framework specs define the 13-component IC vector in one consistent order with normalization rules for masses, energy, angular momentum, virial ratio, minimum separation, inertia, shape invariants, and velocity-orientation scalars.
+- [x] **IO-02**: Framework specs define the 13-component Jacobi-state IC vector in one consistent order, with ordered raw mass slots, retained Jacobi position slots, full Jacobi velocity slots, energy, and per-slot normalization rules. Shape invariants and orientation summaries are metadata only, not final network IC slots.
 - [x] **IO-03**: Framework specs distinguish position outputs from velocities and accelerations derived by automatic differentiation, and require a mass-weighted COM projection on the raw 9D position head before any output is consumed by a loss term.
 - [x] **IO-04**: Any obsolete 11D, 12D, or ambiguous 13D/14D wording is removed or explicitly labeled as historical source-issue metadata.
 
@@ -127,4 +127,4 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-05-16 after Phase 16 completion — EVID-01 through EVID-05, VER-02, and VER-05 are defined and complete; Phase 17 is next.*
+*Last updated: 2026-05-20 after Phase 17 closeout cleanup — IO-01 through IO-04 are complete; Phase 18 is next.*

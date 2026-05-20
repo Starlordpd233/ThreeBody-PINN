@@ -23,11 +23,11 @@
 
 ## v1.4 Resolving 01 Architecture and Physics Foundations (In Progress)
 
-**Phases planned:** 6 phases (16–21), Phase 16 complete and verified. Phase 20.5 (Sampling Coordinate Allocation) inserted 2026-05-19 between Phase 20 and Phase 21; design and plan locked (commit b727b15), execution pending.
+**Phases planned:** 6 core phases (16–21), plus inserted Phase 20.5 before Phase 21. Phases 16 and 17 are complete and verified. Phase 20.5 (Sampling Coordinate Allocation) design and plan locked 2026-05-19 (commit b727b15), execution pending.
 
 **Next workflow step:**
 
-- Phase 16 is complete and verified; the next workflow step is Phase 17 input and output contracts.
+- Phase 17 is complete and verified; the next workflow step is Phase 18 frame and gauge contracts.
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked 2026-05-19 (commit b727b15) — resolves the `u_4` Sobol double-booking flagged in `docs/findings/addressing_sobol_sequence_suggestion.md`; locks Option A from `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduces SCOPE-05 for data-spec alignment. Plan execution pending; will run after Phase 20 completes and before Phase 21 (acceptance checks).
 
 ---
