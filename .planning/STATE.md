@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: planning
-stopped_at: Phase 18 planned
-last_updated: "2026-05-20T18:41:57.000Z"
-last_activity: 2026-05-20
+status: executing
+stopped_at: Phase 18 Plan 1 complete; Plan 2 ready
+last_updated: "2026-05-21T05:20:27.191Z"
+last_activity: 2026-05-21
 progress:
   total_phases: 6
   completed_phases: 2
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-15)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 18 — frame and gauge contracts
+**Current focus:** Phase 18 — frame-and-gauge-contracts
 
 ## Current Position
 
-Phase: 18
-Plan: 3 plans ready
-Status: Ready to execute
-Last activity: 2026-05-20
-Progress: [███░░░░░░░] 29%
+Phase: 18 (frame-and-gauge-contracts) — EXECUTING
+Plan: 2 of 3
+Status: Plan 1 complete; Plan 2 ready
+Last activity: 2026-05-21
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
