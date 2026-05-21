@@ -815,6 +815,14 @@ $$
 
 are the only positions consumed by data loss, physics residuals, IC loss, conservation loss, diagnostics, and evaluation metrics. The projection is architectural, not a soft penalty.
 
+This projection is the model-output side of the Phase 18 FRAME-02
+assertion: for every projected output, the mass-weighted position COM
+is zero by construction. Since velocities and accelerations are
+automatic derivatives of the projected positions, their mass-weighted
+COM derivatives are zero by the same projection identity. Phase 21
+executes the numerical acceptance checks; this section only states the
+architectural guarantee.
+
 Velocities and accelerations are derived by automatic differentiation from the projected position output. The autograd leaf is `u=t/T`; the network coordinate is `tau=2u-1`. Phase 19 (PHYS-02) specifies the componentwise derivative test and the chain-rule scaling from derivatives with respect to `u` to physical-time velocities and accelerations.
 
 - **Output File Format:** The final generated trajectory should be saved
