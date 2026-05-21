@@ -126,7 +126,9 @@ The next three Sobol coordinates $(u_4, u_5, u_6)$ are mapped to a 3D velocity v
 
 $$v_i = \Phi^{-1}(u_{3+i};\,\mu=0,\,\sigma=\text{velocity\_scale}),\quad i=1,2,3.$$
 
-The sampler then enforces total momentum conservation by adjusting the velocity of the fixed particle so that $\sum_i m_i \mathbf{v}_i = 0$.
+The sampler then enforces total momentum conservation for the equal-mass case
+by setting `v1 = -v2/2` and `v3 = -v2/2`, so
+$\sum_i m_i \mathbf{v}_i = 0$.
 
 **FRAME-03 frame note:** For standard quasi-random ICs, equal-mass
 positions set `p3 = -(p1 + p2)`, so position COM is zero by
