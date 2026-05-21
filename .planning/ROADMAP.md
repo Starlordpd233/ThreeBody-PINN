@@ -161,7 +161,21 @@ Plans:
   3. Reader can see how hierarchical post-perturbation COM offsets and standard quasi-random COM behavior are reconciled with the sampling spec.
   4. Reader can verify the output contract remains 3D Cartesian trajectories and is not replaced by planar or invariant-only predictions.
 
-**Plans**: TBD
+**Plans**: 3 planned (`18-01-PLAN.md`, `18-02-PLAN.md`, `18-03-PLAN.md`)
+
+**Wave 1**
+- `18-01-PLAN.md` — Create B-05/M3 evidence packets and define the unified CTL preprocessing, ordering, rotation-gauge, COM/momentum assertion, and FRAME-04 3D guard contract.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- `18-02-PLAN.md` — Reconcile hierarchical and standard quasi-random sampling-frame behavior in `sampling_method.md` using `simulation_data/` as the FRAME-03 source of truth.
+
+**Wave 3** *(blocked on Waves 1-2 completion)*
+- `18-03-PLAN.md` — Record FUT-01 frame/gauge code divergence and run full Phase 18 verification before closing B-05/M3 ledger state.
+
+**Cross-cutting constraints:**
+- No `pinn/` implementation files are edited during Phase 18.
+- `ctl_instruction.md` Step 4 M4 constraint-counting prose remains untouched for Phase 19.
+- `sampling_method.md` Sobol coordinate-allocation prose remains untouched for Phase 20.5.
 
 ### Phase 19: Physics and Loss Contracts
 

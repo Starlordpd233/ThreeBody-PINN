@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
 status: planning
-stopped_at: Phase 18 context gathered
-last_updated: "2026-05-20T18:08:26.938Z"
+stopped_at: Phase 18 planned
+last_updated: "2026-05-20T18:41:57.000Z"
 last_activity: 2026-05-20
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 6
+  total_plans: 9
   completed_plans: 6
   percent: 33
 ---
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-15)
 ## Current Position
 
 Phase: 18
-Plan: Not started
-Status: Ready to plan
+Plan: 3 plans ready
+Status: Ready to execute
 Last activity: 2026-05-20
 Progress: [███░░░░░░░] 29%
 
@@ -71,7 +71,7 @@ Progress: [███░░░░░░░] 29%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16 and 17 are complete and verified; the next workflow step is Phase 18 frame and gauge contracts.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16 and 17 are complete and verified; Phase 18 is planned and ready to execute.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-19, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
@@ -137,7 +137,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16 and 17 are complete. Phase 17 is complete and verified; the next workflow step is Phase 18 frame and gauge contracts.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16 and 17 are complete. Phase 18 is planned and ready to execute.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -171,6 +171,6 @@ None blocking, but three operational notes for v1.4 execution:
 ## Session Continuity
 
 Last session: 2026-05-20T18:08:26.925Z
-Stopped at: Phase 18 context gathered
+Stopped at: Phase 18 planned
 Resume file: .planning/phases/18-frame-and-gauge-contracts/18-CONTEXT.md
-Next action: Phase 18 frame and gauge contracts
+Next action: Execute Phase 18 frame and gauge contracts
