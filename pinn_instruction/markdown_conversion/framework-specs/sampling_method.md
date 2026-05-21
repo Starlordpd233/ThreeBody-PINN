@@ -68,6 +68,16 @@ Add $\mathbf{v}_{\rm COM}$ to each of $\mathbf{v}_1,\mathbf{v}_2$.
 
 8.  **Gaussian perturbation:** Add a small random perturbation drawn from $\mathcal{N}(0,\,0.01)$ to each component of $\mathbf{x}_i$ and $\mathbf{v}_i$.
 
+**FRAME-03 frame note:** Hierarchical generation enforces center of
+mass and zero total momentum before this perturbation step. The later
+Gaussian perturbation `N(0, 0.01)` is applied to all position and
+velocity vectors, so the stored ICs can move out of the exact COM/P
+frame. In a 500-file sample, observed offsets are `|COM|` median
+approximately `9e-3` (95th approximately `1.8e-2`) and `|P|` median
+approximately `3e-2` (95th approximately `5.5e-2`). The Phase 18
+FRAME-01 unified preprocessing pipeline deterministically recenters and
+reboosts these trajectories before training use.
+
 This procedure mirrors exactly the logic and parameter choices in `FINAL_ic_generator_enhanced.py`.
 
 ## Stage 2: Enhanced Quasi-Random Sampling
@@ -117,6 +127,13 @@ The next three Sobol coordinates $(u_4, u_5, u_6)$ are mapped to a 3D velocity v
 $$v_i = \Phi^{-1}(u_{3+i};\,\mu=0,\,\sigma=\text{velocity\_scale}),\quad i=1,2,3.$$
 
 The sampler then enforces total momentum conservation by adjusting the velocity of the fixed particle so that $\sum_i m_i \mathbf{v}_i = 0$.
+
+**FRAME-03 frame note:** For standard quasi-random ICs, equal-mass
+positions set `p3 = -(p1 + p2)`, so position COM is zero by
+construction. Velocities use `v1 = -v2/2` and `v3 = -v2/2`, so total
+momentum is zero by construction for equal masses. The universal
+FRAME-01 preprocessing pipeline still applies to standard quasi-random
+ICs for consistency and assertion checks.
 
 ## 2. Enhancements to the Sampling Algorithm
 
