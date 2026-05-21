@@ -379,52 +379,261 @@ pinn.]{style="color: blue"}
 This parsing ensures consistency across all training data, preparing it
 for dimensionless scaling in Step 2.
 
-## Step 2: Preprocessing: Scaling to Dimensionless Units
+## Step 2: Unified Preprocessing Pipeline
 
-Before computing the invariants, scale the raw initial positions and
-velocities to dimensionless units using the characteristic scales. This
-ensures consistency with the G=1 system and numerical stability.
+Every IC/BRUTUS pair passes through one deterministic preprocessing transform
+before any invariant calculation, stage assignment, or network input assembly.
+The pipeline order is fixed:
 
-Define global scales once across the entire dataset (all trajectories):
+parse -> mass-invariance check -> COM recenter -> zero-momentum boost ->
+canonical ordering -> canonical rotation gauge -> global scaling ->
+assertions and stored metadata.
 
-- Characteristic time: $T = t_{\max} = 10$ (maximum time in BRUTUS
-  files).
+The same transform is applied to hierarchical and quasi-random data and to
+every BRUTUS snapshot, producing one frame, gauge, and scale convention shared
+by initial conditions, BRUTUS targets, and model-output references.
 
-- Characteristic length: $D = \sqrt[3]{G T^2}$ (with $G=1$,
-  $D \approx 4.6416$).
+### 2.1 Parser contract and mass-invariance check
 
-- Velocity scale: $V = D / T$.
+Step 1 parses masses, positions, and velocities in float64 from the `ic_.txt`
+and `brutus_.txt` files. Step 2.1 supplements Step 1 with the Phase 18
+preprocessing contract and mass-invariance gate; it does not move Step 1
+content or renumber the document. Before any training use, verify mass
+invariance across the trajectory:
 
-For each trajectory's initial state:
-$$\mathbf{r}'_i = \mathbf{r}_i / D, \quad \mathbf{v}'_i = \mathbf{v}_i / V$$
-Compute all subsequent invariants (E, $s_{\min}$, etc.) using
-$\mathbf{r}'$ and $\mathbf{v}'$.
+```text
+max_t,i |m_i(t) - m_i(0)| < 1e-15
+```
+
+in float64 parse space. If this check fails, reject the trajectory or
+quarantine it for parser debugging. This mass-invariance gate also carries the
+folded-in B-11 (COM <-> mass consistency) assertion: the COM transform in 2.2
+and every BRUTUS-snapshot correction require consistent masses between the IC
+and the BRUTUS output.
+
+### 2.2 COM recenter and zero-momentum boost
+
+Apply a universal center-of-mass recenter and zero-momentum (Galilean) boost to
+**all** datasets -- hierarchical and quasi-random -- regardless of whether they
+are believed to already be in the COM frame.
+
+For each trajectory, define
+
+```text
+M        = sum_i m_i
+R_COM(0) = (1/M) sum_i m_i r_i(0)
+V_COM    = (1/M) sum_i m_i v_i(0)
+```
+
+For every snapshot time `t_n`,
+
+```text
+bar r_i(t_n) = r_i(t_n) - R_COM(0) - V_COM t_n
+bar v_i(t_n) = v_i(t_n) - V_COM
+```
+
+For the initial condition this gives `sum_i m_i bar r_i(0) = 0` and
+`sum_i m_i bar v_i(0) = 0`. For an isolated Newtonian system the transformed
+trajectory remains a valid solution in the COM frame.
+
+### 2.3 Canonical ordering
+
+After the COM recenter and zero-momentum boost, sort body labels
+deterministically so that different permutations of the same physical system
+yield identical input vectors. Order the three bodies by:
+
+1. descending raw mass `m_i`;
+2. tie-break by descending `||bar r_i(0)||` (COM-corrected initial-position norm);
+3. tie-break by descending `||bar v_i(0)||` (COM-corrected initial-velocity norm);
+4. final tie-break by original file order.
+
+Canonical ordering operates on the raw masses and the COM-corrected `bar r` /
+`bar v` from 2.2 -- not on scaled coordinates. The same permutation is applied
+to the masses, every initial-condition quantity, every BRUTUS target snapshot,
+and every residual, Hamiltonian, COM projection, and evaluation output. This
+removes permutation ambiguity without requiring a permutation-equivariant
+architecture.
+
+### 2.4 Canonical rotation gauge
+
+After canonical ordering, fix the initial orientation with a canonical rotation
+gauge. Define the Jacobi position vectors
+
+```text
+rho    = bar r_2(0) - bar r_1(0)
+lambda = bar r_3(0) - (m_1 bar r_1(0) + m_2 bar r_2(0)) / (m_1 + m_2)
+```
+
+#### Degeneracy thresholds
+
+The rotation-gauge degeneracy thresholds are dimensionless relative thresholds,
+not raw-coordinate constants. Let
+
+```text
+eta_gauge = 1e-8
+```
+
+Because the rotation gauge is applied after COM recentering, the zero-momentum
+boost, and canonical ordering but **before** global scaling (2.5), define the
+raw-space thresholds from the global Phase 18 scale constants `D`, `T`, `V`
+(defined in 2.5):
+
+```text
+epsilon_rho    = eta_gauge * D
+epsilon_lambda = eta_gauge * D
+epsilon_v      = eta_gauge * V,   V = D / T
+```
+
+Equivalently, the implementation may compare the dimensionless ratios
+`||rho||/D`, `||lambda_perp||/D`, and `||c_perp||/V` against `eta_gauge`.
+`eta_gauge` is a numerical geometry guard for stable rotation-matrix
+construction; it is **not** a physics softening parameter and is **not** tied to
+`epsilon_train` or `epsilon_inv`. Numeric acceptance-check pass criteria for
+`AC-FRAME-*` remain Phase 21 (VER-01/VER-04) scope.
+
+#### Basis construction
+
+The primary Jacobi vector is admissible only if `||rho|| > epsilon_rho`
+(equivalently `||rho||/D > eta_gauge`). If this condition fails, classify the
+trajectory as `gauge_degenerate_rho` and reject or quarantine it for
+near-collision review, consistent with the 2.1 mass-invariance failure pattern;
+the executor must **not** invent an arbitrary `e_x` axis. Otherwise set
+
+```text
+e_x = rho / ||rho||
+```
+
+Remove the `e_x` component from `lambda`:
+
+```text
+lambda_perp = lambda - (lambda dot e_x) e_x
+```
+
+If `||lambda_perp|| > epsilon_lambda` (equivalently `||lambda_perp||/D > eta_gauge`),
+set
+
+```text
+e_y = lambda_perp / ||lambda_perp||
+```
+
+Otherwise the initial geometry is collinear; use the collinear fallback. For
+each velocity-like candidate in the ordered list
+
+```text
+c in { rho_dot, lambda_dot, bar v_1(0), bar v_2(0), bar v_3(0) }
+rho_dot    = bar v_2(0) - bar v_1(0)
+lambda_dot = bar v_3(0) - (m_1 bar v_1(0) + m_2 bar v_2(0)) / (m_1 + m_2)
+```
+
+compute `c_perp = c - (c dot e_x) e_x` and pick the first candidate satisfying
+`||c_perp||/V > eta_gauge` (equivalently `||c_perp|| > epsilon_v`). Set
+`e_y = c_perp / ||c_perp||`. If no candidate passes, choose the fixed coordinate
+basis vector least aligned with `e_x`, project it perpendicular to `e_x`, and
+normalize.
+
+After selecting `e_y` from the first admissible velocity-candidate projection in
+the collinear fallback branch, orient its sign deterministically: if
+`lambda_perp dot e_y < 0`, replace `e_y` with `-e_y`. This keeps
+`lambda_y >= 0` whenever the sign is numerically meaningful; for exact collinear
+geometries `lambda_y = 0` and the fallback candidate order supplies the
+deterministic sign.
+
+Set
+
+```text
+e_z = e_x x e_y
+R_0 = [e_x^T; e_y^T; e_z^T]
+```
+
+Apply the same rotation to every snapshot:
+
+```text
+r_i^g(t_n) = R_0 bar r_i(t_n)
+v_i^g(t_n) = R_0 bar v_i(t_n)
+```
+
+The canonical gauge ensures that, at `t = 0`,
+
+```text
+rho^g    = (rho_x, 0, 0)
+lambda^g = (lambda_x, lambda_y, 0),   lambda_y >= 0
+```
+
+up to numerical tolerance.
+
+#### FRAME-04 3D-Cartesian output guard
+
+The rotation gauge fixes only the **initial** orientation of the Jacobi
+positions. The Jacobi velocities remain fully 3D, the trajectory evolves in
+full 3D, and the model output remains 9D Cartesian positions for the three
+bodies. The output is **not planar** and **not invariant-only** -- the gauge
+constrains only the initial Jacobi-position orientation, not the dimensionality
+of the dynamics.
+
+### 2.5 Global scaling
+
+After the frame and gauge transforms, scale by the global constants. Define
+these once across the entire dataset (all trajectories):
+
+```markdown
+T = t_max = 10
+D = (G*T**2)^(1/3)
+r_i' = r_i^g / D
+v_i' = v_i^g / V
+V = D / T
+```
+
+With `G = 1`, `D ~ 4.6416`. Although global scaling commutes algebraically with
+COM subtraction, the documented order -- COM/boost first, scaling last -- is
+required for auditability and to avoid mixed-frame intermediate files. Compute
+all subsequent invariants (`E`, `s_min`, etc.) from the scaled `r'` and `v'`.
 
 Global normalization scales (computed after scaling all trajectories):
 
-- $E_{\text{scale}} = |\mathop{\mathrm{median}}(\{E_j\}_{j=1}^N)| + 10^{-10}$
+- `E_scale = |median({E_j})| + 1e-10`
+- `s_min_scale = median({r_char,j})`, where
+  `r_char,j = (1/3) sum_{i<k} ||r'_{i,j} - r'_{k,j}||`
+- `Q_scale` remains fixed at `0.5`.
 
-- $s_{\min\text{scale}} = \mathop{\mathrm{median}}(\{r_{\text{char},j}\}_{j=1}^N)$,
-  where
-  $r_{\text{char},j} = \frac{1}{3} \sum_{i<k} ||\mathbf{r}'_{i,j} - \mathbf{r}'_{k,j}||$
+### 2.6 Assertions and stored metadata
 
-$Q_{\text{scale}}$ remains fixed at 0.5.
+After preprocessing, assert the center-of-mass and total-momentum conditions on
+every preprocessed sample:
 
-## Step 2.5: Verify Center-of-Mass (COM) Frame
+```markdown
+||sum_i m_i r_i'|| < 1e-12
+||sum_i m_i v_i'|| < 1e-12
+```
 
-> **Author note:** Note: Critical Update: Hierachical ICs are NOT in COM frame and not
-> 0 total momentum. Quasi-random ICs are in COM frame and 0 total
-> momentum. Have not verified Brutus corresponding outputs yet. Refer to
-> the next step of data processing pipeline document.
+A trajectory failing either assertion is rejected or quarantined, consistent
+with the 2.1 mass-invariance failure pattern.
 
-we perform a transformation
-to the COM frame for the hierarchical IC files and hierarchical Brutus
-outputs. Two scripts are responsible for handling each seperately. A
-verification check is also performed after the transformation. For
-quasi-random ICs and Brutus, we will not perform a transformation unless
-the verification check fails. (scaling preserves the COM property), but
-for consistency, use the scaled $\mathbf{r}'$ and $\mathbf{v}'$ from
-Step 1.5:
+Each trajectory record stores the following metadata:
+
+```text
+traj_id
+raw_file_paths
+ordered_raw_masses: (3,)
+permutation: (3,)
+R0: (3,3)
+R_COM0: (3,)
+V_COM: (3,)
+D, T, V
+r0_prime_ordered_gauge: (3,3)
+v0_prime_ordered_gauge: (3,3)
+times_raw: (Nt,)
+u: (Nt,)
+tau: (Nt,)
+r_true_prime_ordered_gauge: (Nt,3,3)
+v_true_prime_ordered_gauge: (Nt,3,3)  # optional but recommended
+IC13: (13,)
+invariants: E, Q, s_min, L_vec, L_norm, I_norm_raw, I1, I2, I3, tau_L
+brutus_tolerance, word_length, dt_out, trustworthy_horizon
+```
+
+Raw masses are always available separately from the network-facing mass
+channels. Step 3 consumes the COM-corrected, canonically ordered, gauge-fixed,
+scaled state and the metadata produced here.
 
 ## Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation) {#sec:ctl:step3}
 
@@ -433,8 +642,9 @@ Step 1.5:
 All quantities in this section are computed from the *scaled* initial
 conditions $\{(\mathbf r'_i,\mathbf v'_i)\}_{i=1}^3$ and from the BRUTUS
 trajectory output. Verification that the ICs are in the center-of-mass
-(COM) frame with zero total momentum is a *precondition* that is checked
-already in step 2.5 before any calculations proceed.
+(COM) frame with zero total momentum is a *precondition* established by the
+Step 2 Unified Preprocessing Pipeline and asserted in Step 2.6 before any
+calculations proceed.
 
 #### Outputs of this step.
 
@@ -680,36 +890,8 @@ the Phase 17 input contract. The invariant-heavy descriptors above are
 retained as metadata for curriculum staging, diagnostics, loss scaling,
 and reporting only; they are no longer final network IC slots.
 
-1.  **Apply Canonical Ordering of Bodies for Injectivity**
-
-    To ensure that different permutations of the same physical system
-    yield identical input vectors, we apply a canonical ordering based
-    on physical properties. Use the scaled $\mathbf{r}'$ and
-    $\mathbf{v}'$ from Step 1.5:
-
-    > **Author note:** I need more speicific details on which parts of the quantieis
-    > computed in Step 3 are used for this canonical ordering.
-
-    ```python
-    def canonical_ordering(m, r_prime, v_prime):
-        """Order bodies by a unique, physically meaningful criterion (using scaled data from Step 1.5)"""
-        # Create sorting keys: primary by mass (descending), 
-        # secondary by distance from origin, tertiary by speed
-        keys = []
-        for i in range(3):
-            key = (-m[i], np.linalg.norm(r_prime[i]), np.linalg.norm(v_prime[i]))
-            keys.append(key)
-        
-        # Get sorting indices
-        idx = sorted(range(3), key=lambda i: keys[i])
-        
-        # Reorder all quantities
-        m_sorted = m[idx]
-        r_prime_sorted = r_prime[idx]
-        v_prime_sorted = v_prime[idx]
-        
-        return m_sorted, r_prime_sorted, v_prime_sorted
-    ```
+1.  **Canonical ordering.** Canonical ordering is already applied in
+    Step 2.3; Step 4 consumes the ordered, gauge-fixed, scaled state.
 
 2.  **Apply Normalization to $[-1,1]$.** The final network IC slots are
     normalized only after the Phase 18 (FRAME-01) preprocessing contract
