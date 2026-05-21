@@ -26,10 +26,10 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 
 ### Frame and Gauge Contracts
 
-- [ ] **FRAME-01**: Framework specs define one preprocessing order for all ICs and Brutus snapshots: COM recentering, zero-momentum boost, canonical ordering, canonical rotation gauge, then scaling.
-- [ ] **FRAME-02**: Framework specs state COM and total-momentum assertions for preprocessed samples and model outputs.
-- [ ] **FRAME-03**: Hierarchical and standard quasi-random IC frame behavior is reconciled with the sampling spec, including the hierarchical post-perturbation COM offset.
-- [ ] **FRAME-04**: The output contract preserves 3D Cartesian trajectories and does not collapse the framework into planar or invariant-only predictions.
+- [x] **FRAME-01**: Framework specs define one preprocessing order for all ICs and Brutus snapshots: COM recentering, zero-momentum boost, canonical ordering, canonical rotation gauge, then scaling.
+- [x] **FRAME-02**: Framework specs state COM and total-momentum assertions for preprocessed samples and model outputs.
+- [x] **FRAME-03**: Hierarchical and standard quasi-random IC frame behavior is reconciled with the sampling spec, including the hierarchical post-perturbation COM offset.
+- [x] **FRAME-04**: The output contract preserves 3D Cartesian trajectories and does not collapse the framework into planar or invariant-only predictions.
 
 ### Physics and Loss Contracts
 
@@ -97,10 +97,10 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 | IO-02 | Phase 17 | Complete |
 | IO-03 | Phase 17 | Complete |
 | IO-04 | Phase 17 | Complete |
-| FRAME-01 | Phase 18 | Pending |
-| FRAME-02 | Phase 18 | Pending |
-| FRAME-03 | Phase 18 | Pending |
-| FRAME-04 | Phase 18 | Pending |
+| FRAME-01 | Phase 18 | Complete |
+| FRAME-02 | Phase 18 | Complete |
+| FRAME-03 | Phase 18 | Complete |
+| FRAME-04 | Phase 18 | Complete |
 | PHYS-01 | Phase 19 | Pending |
 | PHYS-02 | Phase 19 | Pending |
 | PHYS-03 | Phase 19 | Pending |
@@ -127,4 +127,4 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-05-20 after Phase 17 closeout cleanup — IO-01 through IO-04 are complete; Phase 18 is next.*
+*Last updated: 2026-05-21 after Phase 18 completion — FRAME-01 through FRAME-04 are complete; Phase 19 is next.*

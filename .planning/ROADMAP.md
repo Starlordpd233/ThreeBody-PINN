@@ -6,7 +6,7 @@
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–17 complete; next: discuss Phase 18)
+- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–18 complete; next: discuss Phase 19)
 
 ## Phases
 
@@ -100,7 +100,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 
 - [x] **Phase 16: Evidence Framework and Issue Adjudication** — Establish the issue ledger schema, evidence-packet template, EVID-05 conflict-adjudication protocol, and VER-05 re-verification cycle that every Issue 01 edit must follow. (completed 2026-05-16)
 - [x] **Phase 17: Input and Output Contracts** — Resolve the 14D input, 13-entry IC schema, position-output (with mass-weighted COM projection head), and obsolete-dimension wording contracts across framework specs. (completed 2026-05-20)
-- [ ] **Phase 18: Frame and Gauge Contracts** — Reconcile COM, momentum, ordering, rotation gauge, scaling order, hierarchical offsets, and 3D Cartesian output guarantees.
+- [x] **Phase 18: Frame and Gauge Contracts** — Reconcile COM, momentum, ordering, rotation gauge, scaling order, hierarchical offsets, and 3D Cartesian output guarantees. (completed 2026-05-21)
 - [ ] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement.
 - [ ] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording.
 - [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the final fixed/non-change/deferred handoff (VER-03). Failing checks loop back to Phases 17–20 for spec correction.
@@ -161,16 +161,18 @@ Plans:
   3. Reader can see how hierarchical post-perturbation COM offsets and standard quasi-random COM behavior are reconciled with the sampling spec.
   4. Reader can verify the output contract remains 3D Cartesian trajectories and is not replaced by planar or invariant-only predictions.
 
-**Plans**: 3 planned (`18-01-PLAN.md`, `18-02-PLAN.md`, `18-03-PLAN.md`)
+**Completion**: Phase 18 completed 2026-05-21; Phase 19 is next.
+
+**Plans**: 3/3 complete (`18-01-PLAN.md`, `18-02-PLAN.md`, `18-03-PLAN.md`)
 
 **Wave 1**
-- `18-01-PLAN.md` — Create B-05/M3 evidence packets and define the unified CTL preprocessing, ordering, rotation-gauge, COM/momentum assertion, and FRAME-04 3D guard contract.
+- [x] `18-01-PLAN.md` — Create B-05/M3 evidence packets and define the unified CTL preprocessing, ordering, rotation-gauge, COM/momentum assertion, and FRAME-04 3D guard contract.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- `18-02-PLAN.md` — Reconcile hierarchical and standard quasi-random sampling-frame behavior in `sampling_method.md` using `simulation_data/` as the FRAME-03 source of truth.
+- [x] `18-02-PLAN.md` — Reconcile hierarchical and standard quasi-random sampling-frame behavior in `sampling_method.md` using `simulation_data/` as the FRAME-03 source of truth.
 
 **Wave 3** *(blocked on Waves 1-2 completion)*
-- `18-03-PLAN.md` — Record FUT-01 frame/gauge code divergence and run full Phase 18 verification before closing B-05/M3 ledger state.
+- [x] `18-03-PLAN.md` — Record FUT-01 frame/gauge code divergence and run full Phase 18 verification before closing B-05/M3 ledger state.
 
 **Cross-cutting constraints:**
 - No `pinn/` implementation files are edited during Phase 18.
@@ -245,10 +247,10 @@ Plans:
 | 15.1 Markdown Conversion Correction | v1.3 | 3/3 | Complete | 2026-05-08 |
 | 16. Evidence Framework and Issue Adjudication | v1.4 | 3/3 | Complete    | 2026-05-16 |
 | 17. Input and Output Contracts | v1.4 | 3/3 | Complete    | 2026-05-20 |
-| 18. Frame and Gauge Contracts | v1.4 | 0/TBD | Not started | - |
+| 18. Frame and Gauge Contracts | v1.4 | 3/3 | Complete    | 2026-05-21 |
 | 19. Physics and Loss Contracts | v1.4 | 0/TBD | Not started | - |
 | 20. Architecture and Normalization Cleanup | v1.4 | 0/TBD | Not started | - |
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-05-20 — Phase 17 closeout cleanup completed; next step is Phase 18 discussion.*
+*Last updated: 2026-05-21 — Phase 18 complete; next step is Phase 19 discussion.*

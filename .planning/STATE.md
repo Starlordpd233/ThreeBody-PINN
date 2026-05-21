@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: executing
-stopped_at: Phase 18 Plan 2 complete; Plan 3 ready
-last_updated: "2026-05-21T05:23:56.715Z"
+status: ready_to_plan
+stopped_at: Phase 18 complete (3/3) — ready to discuss Phase 19
+last_updated: 2026-05-21T05:34:14.781Z
 last_activity: 2026-05-21
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 9
+  percent: 50
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-15)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 18 — frame-and-gauge-contracts
+**Current focus:** Phase 19 — physics and loss contracts
 
 ## Current Position
 
-Phase: 18 (frame-and-gauge-contracts) — EXECUTING
-Plan: 3 of 3
-Status: Plan 2 complete; Plan 3 ready
+Phase: 19
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-05-21
-Progress: [████████░░] 78%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 45 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
+- Total plans completed: 48 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -62,6 +62,7 @@ Progress: [████████░░] 78%
 | 15 | 3 | - | - |
 | 16 | 3 | - | - |
 | 17 | 3 | - | - |
+| 18 | 3 | - | - |
 
 ## Accumulated Context
 
@@ -71,7 +72,7 @@ Progress: [████████░░] 78%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16 and 17 are complete and verified; Phase 18 is planned and ready to execute.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16, 17, and 18 are complete and verified; Phase 19 is ready to discuss/plan.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-19, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
@@ -137,7 +138,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16 and 17 are complete. Phase 18 is planned and ready to execute.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-18 are complete. Phase 19 is ready to discuss/plan.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -170,7 +171,7 @@ None blocking, but three operational notes for v1.4 execution:
 
 ## Session Continuity
 
-Last session: 2026-05-20T18:08:26.925Z
-Stopped at: Phase 18 planned
-Resume file: .planning/phases/18-frame-and-gauge-contracts/18-CONTEXT.md
-Next action: Execute Phase 18 frame and gauge contracts
+Last session: 2026-05-21T05:34:14.781Z
+Stopped at: Phase 18 complete
+Resume file: .planning/phases/18-frame-and-gauge-contracts/18-VERIFICATION.md
+Next action: Discuss or plan Phase 19 physics and loss contracts
