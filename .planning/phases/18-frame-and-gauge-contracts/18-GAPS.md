@@ -2,11 +2,11 @@
 phase: 18
 slug: frame-and-gauge-contracts
 total_gaps: 5
-open_gaps: 1
-resolved_gaps: 4
+open_gaps: 0
+resolved_gaps: 5
 deferred_gaps: 0
 last_updated: 2026-05-21
-governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block (STOP protocol + math/engineering grounding requirement + no-live-code directive). GAP-18-01 and GAP-18-02 are RESOLVED-WITH-INSTRUCTION per the user's answers in the gsd-discuss-phase 18 discussion on 2026-05-20. GAP-18-03 is RESOLVED-WITH-INSTRUCTION per the user's 2026-05-21 approval of Phase 18-local structural closure criteria for AC-FRAME-01 only. GAP-18-04 is RESOLVED-WITH-INSTRUCTION (2026-05-21) per user approval of the dimensionless rotation-gauge threshold contract η_gauge=1e-8 documented in docs/findings/fixing_gaps/closing_18-04_gap.md. GAP-18-05 is OPEN — surfaced 2026-05-21 during plan 18-01 execution: the plan's single-line M4-preservation verify regex cannot match the line-wrapped M4 sentence in ctl_instruction.md, and the naive repair would edit D-06-protected text reserved for Phase 19."
+governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block (STOP protocol + math/engineering grounding requirement + no-live-code directive). GAP-18-01 and GAP-18-02 are RESOLVED-WITH-INSTRUCTION per the user's answers in the gsd-discuss-phase 18 discussion on 2026-05-20. GAP-18-03 is RESOLVED-WITH-INSTRUCTION per the user's 2026-05-21 approval of Phase 18-local structural closure criteria for AC-FRAME-01 only. GAP-18-04 is RESOLVED-WITH-INSTRUCTION (2026-05-21) per user approval of the dimensionless rotation-gauge threshold contract η_gauge=1e-8 documented in docs/findings/fixing_gaps/closing_18-04_gap.md. GAP-18-05 is RESOLVED-WITH-INSTRUCTION (2026-05-21): the single-line M4-preservation verify regex was replaced with a multiline-tolerant rg -nU equivalent; M4 content is untouched and D-06 is fully satisfied."
 ---
 
 # Phase 18 Gap Register
@@ -143,11 +143,11 @@ This file records every Phase 18 decision where source materials (resolution doc
   - (c) Authorize a one-time, content-preserving rewrap of just the M4 sentence onto a single line so the existing regex matches. NOTE: this edits the D-06-protected M4 block; it would require an explicit, narrow D-06 carve-out and would change bytes in text reserved for Phase 19.
   - (d) User specifies the exact verification approach directly.
 - **Confidence of impact:** **MEDIUM** — no framework-spec physics content is at risk (M4 is correct and untouched); the impact is on whether Phase 18's plan verification commands can pass as literally written, and on the integrity of the M4-preservation check carried into `18-03-PLAN.md` and `18-VALIDATION.md`.
-- **Status:** **OPEN**
-- **Resolution note:** *(empty until user instruction)*
+- **Status:** **RESOLVED-WITH-INSTRUCTION**
+- **Resolution note:** User approved option (a) on 2026-05-21: replaced the single-line M4-preservation verify regex `rg -n "13 constraints for an 8-dimensional reduced phase space"` with the multiline-tolerant `rg -nU "The 13 constraints for an 8-dimensional reduced phase[[:space:]]+space ensure over-determination and uniqueness[.]"` in all four occurrences across three process-artifact files (`18-01-PLAN.md` ×2, `18-03-PLAN.md`, `18-VALIDATION.md`). The M4 content in `ctl_instruction.md` is untouched (zero git diff on the Mathematical Guarantees block). D-06 is fully satisfied. The fix is mechanical — correcting a verification regex that could not structurally match the line-wrapped target text — and does not alter any spec content, governance constraint, or Phase 19 scope boundary.
 
 ---
 
 ## Notes
 
-GAP-18-01 and GAP-18-02 were surfaced and resolved inside the discuss-phase discussion. GAP-18-03 was missed during plan generation, surfaced by post-planning audit before execution, and resolved by user instruction on 2026-05-21. GAP-18-04 was missed during plan generation, surfaced by plan optimization, and resolved by user instruction on 2026-05-21. GAP-18-05 was surfaced during plan 18-01 Task 2 execution on 2026-05-21 when the M4-preservation verify regex failed against the (correctly preserved, line-wrapped) M4 sentence; it is `OPEN` and halts the Task 2 commit and all dependent Phase 18 work pending user instruction. Two Area-1/Area-2 decisions in `18-CONTEXT.md` (D-03 consolidated preprocessing structure; D-06 leaving the M4 sentence untouched) were evaluated against the governance grounding test and found NOT to require gap entries: D-03 is grounded by resolution doc §10.2; D-06 deliberately produces zero cross-phase reframing (Phase 19's M4 scope is unchanged). The verdicts D-01 (B-05) and D-02 (M3) are uncontested (`Sources Disagree? = NO`) and required no EVID-05 adjudication.
+GAP-18-01 and GAP-18-02 were surfaced and resolved inside the discuss-phase discussion. GAP-18-03 was missed during plan generation, surfaced by post-planning audit before execution, and resolved by user instruction on 2026-05-21. GAP-18-04 was missed during plan generation, surfaced by plan optimization, and resolved by user instruction on 2026-05-21. GAP-18-05 was surfaced during plan 18-01 Task 2 execution on 2026-05-21 when the M4-preservation verify regex failed against the (correctly preserved, line-wrapped) M4 sentence; it was resolved on 2026-05-21 by user instruction (option a: replace the single-line regex with a multiline-tolerant rg -nU equivalent; M4 content untouched). Two Area-1/Area-2 decisions in `18-CONTEXT.md` (D-03 consolidated preprocessing structure; D-06 leaving the M4 sentence untouched) were evaluated against the governance grounding test and found NOT to require gap entries: D-03 is grounded by resolution doc §10.2; D-06 deliberately produces zero cross-phase reframing (Phase 19's M4 scope is unchanged). The verdicts D-01 (B-05) and D-02 (M3) are uncontested (`Sources Disagree? = NO`) and required no EVID-05 adjudication.

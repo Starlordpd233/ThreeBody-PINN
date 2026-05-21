@@ -28,17 +28,17 @@ created: 2026-05-20
 ## Strict Full Suite Command
 
 ```bash
-bash -lc 'test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md && test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md && test -f .planning/phases/18-frame-and-gauge-contracts/18-CODE-DIVERGENCE.md && rg -n "Unified Preprocessing Pipeline|mass invariance|COM recenter|zero-momentum boost|canonical ordering|canonical rotation gauge|global scaling|sum_i m_i|1e-12|stored per-trajectory metadata|AC-FRAME-01|AC-FRAME-02|AC-FRAME-03|AC-FRAME-04" pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md && rg -n "Gaussian perturbation|FRAME-01 unified preprocessing|p3 = -\\(p1 \\+ p2\\)|v1 = -v2/2|v3 = -v2/2|Center of Mass|total momentum" pinn_instruction/markdown_conversion/framework-specs/sampling_method.md && rg -n "3D Cartesian|velocities remain fully 3D|9D position|not planar|not invariant-only" pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md && rg -n "^\\| B-05 \\|.*VERIFIED.*AC-FRAME-01|^\\| M3 \\|.*VERIFIED.*AC-FRAME-01" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md && rg -n "Phase 18|FRAME-01|FRAME-02|FRAME-03|FRAME-04|FUT-01" .planning/phases/18-frame-and-gauge-contracts/18-CODE-DIVERGENCE.md && rg -n "Phase 20.5.*section anchor|sampling_method.md" .planning/milestones/v1.4-GAPS.md && rg -n "13 constraints for an 8-dimensional reduced phase space" pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md && test -z "$(git diff --name-only --cached -- pinn)" && test -z "$(git diff --name-only -- pinn)"'
+bash -lc 'test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md && test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md && test -f .planning/phases/18-frame-and-gauge-contracts/18-CODE-DIVERGENCE.md && rg -n "Unified Preprocessing Pipeline|mass invariance|COM recenter|zero-momentum boost|canonical ordering|canonical rotation gauge|global scaling|sum_i m_i|1e-12|stored per-trajectory metadata|AC-FRAME-01|AC-FRAME-02|AC-FRAME-03|AC-FRAME-04" pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md && rg -n "epsilon_rho|epsilon_lambda|lambda_perp|collinear|Apply the same rotation|traj_id|raw_file_paths|brutus_tolerance|trustworthy_horizon" pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md && rg -n "Gaussian perturbation|FRAME-01 unified preprocessing|p3 = -\\(p1 \\+ p2\\)|v1 = -v2/2|v3 = -v2/2|Center of Mass|total momentum" pinn_instruction/markdown_conversion/framework-specs/sampling_method.md && rg -n "velocities remain fully 3D|9D Cartesian|not planar|not invariant-only" pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md && rg -n "^\\| B-05 \\|.*VERIFIED.*AC-FRAME-01|^\\| M3 \\|.*VERIFIED.*AC-FRAME-01" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md && rg -n "Phase 18|FRAME-01|FRAME-02|FRAME-03|FRAME-04|FUT-01" .planning/phases/18-frame-and-gauge-contracts/18-CODE-DIVERGENCE.md && rg -n "Phase 20.5.*section anchor|sampling_method.md" .planning/milestones/v1.4-GAPS.md && rg -nU "The 13 constraints for an 8-dimensional reduced phase[[:space:]]+space ensure over-determination and uniqueness[.]" pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md && test -z "$(git diff --name-only --cached -- pinn)" && test -z "$(git diff --name-only -- pinn)"'
 ```
 
-This command proves required evidence/divergence files exist, frame/gauge contract markers are present, sampling-frame text exists, 3D Cartesian output is preserved, B-05/M3 are verified, the Phase 20.5 heads-up remains present, M4 text remains untouched for Phase 19, and no staged or unstaged `pinn/` diff exists.
+This command proves required evidence/divergence files exist, frame/gauge contract markers and high-risk transcription markers are present, sampling-frame text exists, 3D Cartesian output is preserved, B-05/M3 are verified after authorized structural closure, the Phase 20.5 heads-up remains present, M4 text remains untouched for Phase 19, and no staged or unstaged `pinn/` diff exists.
 
 ---
 
 ## Sampling Rate
 
 - **After every task commit:** Run the task-owned verification command plus the quick run command.
-- **After every plan wave:** Run the strict full suite command.
+- **After every plan wave:** Run the wave-owned verification command. The strict full suite command is a Phase 18 final gate and only runs after `18-CODE-DIVERGENCE.md` exists and GAP-18-03 authorizes B-05/M3 closure.
 - **Before `$gsd-verify-work`:** Full suite must be green and issue-ledger rows for B-05 and M3 must be `VERIFIED` or explicitly deferred with a resolved gap note.
 - **Max feedback latency:** 10 seconds.
 
@@ -61,7 +61,7 @@ This command proves required evidence/divergence files exist, frame/gauge contra
 Existing infrastructure covers all Phase 18 validation requirements:
 
 - [x] `rg` exists for structural searches.
-- [x] `18-GAPS.md` records GAP-18-01 and GAP-18-02 as `RESOLVED-WITH-INSTRUCTION`.
+- [x] `18-GAPS.md` records GAP-18-01 and GAP-18-02 as `RESOLVED-WITH-INSTRUCTION`, and records GAP-18-03/GAP-18-04 as `OPEN` STOP guards.
 - [x] No new test framework or package install is required.
 - [x] No runtime service, database, or schema push is in scope.
 
