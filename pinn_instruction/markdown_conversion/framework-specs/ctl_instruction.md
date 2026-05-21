@@ -1209,7 +1209,7 @@ folder, so every figure in the paper can be reproduced bit-for-bit.
 
 # Source Issues / Notes for Future Reconciliation
 
-These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `docs/findings/reports_on_v1.3/closure_audit_2026-05-11/audit-ctl_instruction.md`.
+These notes are metadata for future reconciliation. They are not part of the converted source body and were excluded from v1.3 fidelity comparisons.
 
 ## SI-CTL-001: Input-vector dimensionality inconsistency
 
