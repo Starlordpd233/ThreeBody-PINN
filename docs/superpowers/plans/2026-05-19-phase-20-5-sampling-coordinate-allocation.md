@@ -8,9 +8,10 @@ resolving the `u_4` double-booking between scaling and velocity sampling.
 
 **Architecture:** This plan implements GSD Phase 20.5 (inserted between Phase 20 and
 Phase 21 of v1.4). It is authored via `superpowers:writing-plans` per user directive
-2026-05-19. Tasks 1–3 are GSD scaffolding (ROADMAP, REQUIREMENTS, gap registers); Task 4
-applies the five spec edits; Task 5 runs a disposable verification probe; Tasks 6–7 create
-the hand-off and findings artifacts; Task 8 propagates the new governance rule. The locked
+2026-05-19. Tasks 1–2 establish ROADMAP and REQUIREMENTS; Task 3 propagates the
+SCOPE-05 governance rule after it exists in REQUIREMENTS and before risk-elevated spec
+edits; Task 4 creates the gap registers; Task 5 applies the five spec edits; Task 6 runs a
+disposable verification probe; Tasks 7–8 create the hand-off and findings artifacts. The locked
 convention is "Option A" — the conditional `(δ_s, δ_v)` allocation that the existing
 standard quasi-random dataset was generated under. Full rationale:
 `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md`.
@@ -46,8 +47,10 @@ verification probe (`numpy`, `scipy.stats`).
 - `.planning/ROADMAP.md` — insert Phase 20.5; bump coverage 30→32.
 - `.planning/REQUIREMENTS.md` — add SAMP-01/02; amend SCOPE-02; add SCOPE-05; traceability.
 - `.planning/milestones/v1.4-GAPS.md` — add Phase 20.5 section; frontmatter 11→14.
-- `PROJECT.md` and/or `CLAUDE.md` — SCOPE-05 governance propagation (Task 8, via
-  `gsd-docs-update`).
+- Root agent instructions (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / `ANTIGRAVITY.md`, as
+  appropriate) — SCOPE-05 governance propagation (Task 3, via `gsd-docs-update`). Commit
+  `a9ecd51` already recorded Phase 20.5 status in `.planning/PROJECT.md`,
+  `.planning/STATE.md`, and `.planning/MILESTONES.md`; do not duplicate those status updates.
 
 **Responsibility boundaries:** the spec file holds the convention; the gap register holds
 the decision audit trail; the data-alignment doc holds the FUT-01 hand-off and acceptance
@@ -241,7 +244,61 @@ git commit -m "docs(20-5): add SAMP-01/02 requirements and SCOPE-05 data-alignme
 
 ---
 
-## Task 3: Create the phase gap register and update the milestone gap index
+## Task 3: Propagate the SCOPE-05 governance principle after REQUIREMENTS.md
+
+**Files:**
+- Modify (via skill): root agent instructions as appropriate (`CLAUDE.md`, `AGENTS.md`,
+  `GEMINI.md`, `ANTIGRAVITY.md`). The `gsd-docs-update` skill determines the precise
+  targets and edits.
+
+This task runs immediately after Task 2 because SCOPE-05 must exist in
+`.planning/REQUIREMENTS.md` before root governance docs can cite it, and before Task 5
+commits risk-elevated `sampling_method.md` edits that rely on the SCOPE-05 carveout. Commit
+`a9ecd51` already records Phase 20.5 status in `.planning/PROJECT.md`, `.planning/STATE.md`,
+and `.planning/MILESTONES.md`; this task should not restate those status updates.
+
+- [ ] **Step 1: Invoke `gsd-docs-update`**
+
+Invoke the `gsd-docs-update` skill with the following instruction:
+
+> Propagate the new v1.4 governance rule **SCOPE-05** (data-spec alignment for
+> sampling-method edits) into the project's root agent instructions. The rule, already added
+> to `.planning/REQUIREMENTS.md` in Phase 20.5, states:
+>
+> *"When v1.4 framework-spec edits describe the data-generation pipeline, they MUST match
+> the actual behavior of `simulation_data/Scripts/ic_generation/`. The no-live-code
+> directive (2026-05-19) targets `pinn/` only; `simulation_data/Scripts/ic_generation/` is a
+> permitted grounding source for data-generation specs because the existing dataset is fixed
+> and the framework must remain compatible with it. Spec divergences from data must be (i)
+> reconciled to match data, (ii) flagged in `docs/findings/` for separate handling, or
+> (iii) explicitly authorized by the user as a data-regeneration directive for FUT-01."*
+>
+> Update root agent instructions so future agents treat
+> `simulation_data/Scripts/ic_generation/` as a permitted grounding source distinct from the
+> `pinn/` no-live-code directive. Link to `.planning/REQUIREMENTS.md` SCOPE-05 as the
+> canonical source rather than duplicating the full rule text. Verify all claims against the
+> codebase. Do not duplicate the Phase 20.5 status updates already committed in `a9ecd51` to
+> `.planning/PROJECT.md`, `.planning/STATE.md`, and `.planning/MILESTONES.md`.
+
+- [ ] **Step 2: Review and commit**
+
+Review the `gsd-docs-update` output. Confirm it (a) adds the SCOPE-05 cross-reference after
+Task 2 has landed the canonical rule in `REQUIREMENTS.md`, (b) does not contradict the
+existing `pinn/` no-live-code directive (SCOPE-01), (c) does not broaden the carveout beyond
+`simulation_data/Scripts/ic_generation/`, and (d) does not duplicate the `a9ecd51` status
+updates.
+
+Run `git status --short`, compare the modified-file list against the skill's reported
+manifest, then stage each verified path explicitly by name. Example command shape:
+`git add CLAUDE.md AGENTS.md GEMINI.md ANTIGRAVITY.md` with only the files actually modified
+and reviewed. Commit with:
+```bash
+git commit -m "docs(governance): propagate SCOPE-05 data-spec alignment rule"
+```
+
+---
+
+## Task 4: Create the phase gap register and update the milestone gap index
 
 **Files:**
 - Create: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md`
@@ -253,15 +310,21 @@ Create `.planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md` with 
 ```markdown
 ---
 phase: "20.5"
+slug: sampling-coordinate-allocation
 milestone: v1.4
 total_gaps: 3
 open_gaps: 0
 resolved_gaps: 3
 deferred_gaps: 0
 last_updated: 2026-05-19
+governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block and .planning/REQUIREMENTS.md SCOPE-05. GAP-20-5-01/02/03 are RESOLVED-WITH-INSTRUCTION per user approval of the Phase 20.5 design on 2026-05-19."
 ---
 
 # Phase 20.5 Gap Register — Sampling Coordinate Allocation
+
+This file records Phase 20.5 decisions where source materials were silent or ambiguous. It
+follows the Phase 17 gap-register precedent, including curated **Documents to review** lists
+for future re-verification.
 
 ## GAP-20-5-01 — Sobol coordinate allocation convention
 
@@ -294,6 +357,15 @@ last_updated: 2026-05-19
   alternative; C — decoupled scale stream.
 - **Confidence of impact:** HIGH — the wrong choice creates a framework-data mismatch
   between the v1.4 spec and the existing standard quasi-random dataset.
+- **Documents to review** (Option C — grouped by purpose):
+  - **Design and execution contract:**
+    - `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` §3 — locked Option A convention.
+    - `docs/superpowers/plans/2026-05-19-phase-20-5-sampling-coordinate-allocation.md` Task 5 — spec edits.
+  - **Data-generation grounding:**
+    - `simulation_data/Scripts/ic_generation/ic_generation_utils.py` — Sobol dimension and allocation order.
+    - `simulation_data/Scripts/ic_generation/generate_ics.py` — standard config enabling scaling and velocity sampling.
+  - **Governance:**
+    - `.planning/REQUIREMENTS.md` SCOPE-05 — permits `simulation_data/Scripts/ic_generation/` as data-generation grounding.
 - **Status:** `RESOLVED-WITH-INSTRUCTION`
 - **Resolution note:** User instruction 2026-05-19 — lock Option A, matching
   `simulation_data/Scripts/ic_generation/ic_generation_utils.py` (verified: `u_1`–`u_3`
@@ -312,11 +384,17 @@ last_updated: 2026-05-19
   `CLAUDE.md` governance.
 - **Source silence:** Phase 16 reserved `AC-IO-*` names; no reservation covers a
   sampling-allocation check. Precedent: `GAP-17-02` introduced `AC-IO-04` the same way.
-- **Mathematical / engineering grounding:** n/a — naming/schema decision, not a physics
-  decision.
+- **Mathematical / engineering grounding:** Verification-protocol naming decision, not a
+  physics/math question. AC names form a stable namespace used by Phase 21's verification
+  suite; introducing a new prefix without surfacing it risks namespace collision or an
+  orphaned check that future agents cannot connect to requirements.
 - **Agent was tempted to:** name it `AC-SAMP-01` and proceed.
 - **What the user needed to decide:** approve the new AC name, or choose another.
 - **Confidence of impact:** LOW — naming only; no behavioral consequence.
+- **Documents to review** (Option A):
+  - `.planning/phases/17-input-and-output-contracts/17-GAPS.md` GAP-17-02 — precedent for a phase-local AC name.
+  - `.planning/REQUIREMENTS.md` SAMP-01/SAMP-02 and VER-04/VER-05 — requirement and verification context.
+  - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md` — eventual AC-SAMP-01 stub.
 - **Status:** `RESOLVED-WITH-INSTRUCTION`
 - **Resolution note:** User approved the Phase 20.5 design (containing `AC-SAMP-01`) on
   2026-05-19. Consistent with the `GAP-17-02` precedent for `AC-IO-04`.
@@ -336,12 +414,19 @@ last_updated: 2026-05-19
   code. No `pinn/` code performs Sobol IC-sampling allocation — the relevant code is the
   `simulation_data/` data-generation pipeline, which the v1.4 spec now *matches*. There is
   no divergence to document; there is alignment.
-- **Mathematical / engineering grounding:** n/a — naming and coordination decision.
+- **Mathematical / engineering grounding:** FUT-01 hand-off records need stable names and
+  clear semantics. Calling this a divergence file would falsely signal a code/spec conflict;
+  calling it a data-alignment file tells future agents that the spec is intended to match the
+  documented generator behavior while still carrying provenance caveats.
 - **Agent was tempted to:** name the file `20-5-DATA-ALIGNMENT.md` and frame it as an
   alignment record rather than a divergence record.
 - **What the user needed to decide:** approve the renamed/repurposed hand-off file, or
   require the `NN-CODE-DIVERGENCE.md` pattern.
 - **Confidence of impact:** LOW — documentation naming only.
+- **Documents to review** (Option A):
+  - `.planning/phases/17-input-and-output-contracts/17-GAPS.md` GAP-17-04 — precedent for hand-off file schema decisions.
+  - `.planning/PROJECT.md` Key Decision "Live code in `pinn/` is NOT a grounding source during v1.4" — FUT-01 hand-off carveout.
+  - `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` §5.6 — data-alignment hand-off purpose.
 - **Status:** `RESOLVED-WITH-INSTRUCTION`
 - **Resolution note:** User approved the Phase 20.5 design (containing
   `20-5-DATA-ALIGNMENT.md`) on 2026-05-19. The file documents spec↔`simulation_data`
@@ -397,8 +482,11 @@ Run:
 grep -cF "GAP-20-5-0" .planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md
 grep -cF "GAP-20-5-0" .planning/milestones/v1.4-GAPS.md
 grep -cF "total_gaps: 14" .planning/milestones/v1.4-GAPS.md
+grep -cF "slug: sampling-coordinate-allocation" .planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md
+grep -cF "Documents to review" .planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md
 ```
-Expected: first = 3 (the three gap headings), second = 3 (the three index rows), third = 1.
+Expected: first = 3 (the three gap headings), second = 3 (the three index rows), third = 1,
+fourth = 1, fifth ≥ 3.
 
 - [ ] **Step 5: Commit**
 
@@ -409,7 +497,7 @@ git commit -m "docs(20-5): add gap register with GAP-20-5-01/02/03"
 
 ---
 
-## Task 4: Apply the five Sobol-allocation edits to sampling_method.md
+## Task 5: Apply the five Sobol-allocation edits to sampling_method.md
 
 **Files:**
 - Modify: `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
@@ -556,7 +644,7 @@ git commit -m "docs(20-5): lock Sobol coordinate allocation convention in sampli
 
 ---
 
-## Task 5: Create and run the verification probe
+## Task 6: Create and run the verification probe
 
 **Files:**
 - Create: `.planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py`
@@ -678,7 +766,7 @@ git commit -m "docs(20-5): add Sobol allocation verification probe"
 
 ---
 
-## Task 6: Create the data-alignment hand-off document
+## Task 7: Create the data-alignment hand-off document
 
 **Files:**
 - Create: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md`
@@ -711,10 +799,14 @@ It is an *alignment* record, not a `NN-CODE-DIVERGENCE.md` — see GAP-20-5-03.
 | `u_{4+δ_s}`–`u_{6+δ_s}` → velocity (when `δ_v = 1`) | lines 162–165 (`u_vel = sobol_batch[:, idx:idx+3]`) | ALIGNED |
 | Standard config `d = 7` | `generate_ics.py` lines 41–42 (`scale_range=(0.8,1.2)`, `velocity_scale=0.1`) | ALIGNED |
 
-The existing standard quasi-random dataset in
-`simulation_data/Data/ic_final/ic_standard_quasi_random/` was generated under this
-convention. The v1.4 spec therefore describes the data that already exists — no
-framework-data mismatch.
+**Provenance assumption:** repository documentation identifies
+`simulation_data/Scripts/ic_generation/ic_generation_utils.py` and `generate_ics.py` as the
+standard quasi-random generator and records the same scale/velocity configuration used here.
+However, no in-repo generation manifest or commit hash independently proves that every file
+in `simulation_data/Data/ic_final/ic_standard_quasi_random/` was produced by this exact
+script revision. The Phase 20.5 claim is therefore: the v1.4 spec matches the documented and
+current generator behavior; if external logs later contradict that provenance, surface the
+conflict before FUT-01 relies on the alignment record.
 
 ## FUT-01 hand-off
 
@@ -750,9 +842,10 @@ Run:
 ```bash
 grep -cF "AC-SAMP-01" .planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
 grep -cF "ALIGNED" .planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+grep -cF "Provenance assumption" .planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
 ```
 Expected: first ≥ 2 (the AC-SAMP-01 section heading and the **Name:** line), second = 5
-(the five rows of the alignment table).
+(the five rows of the alignment table), third = 1.
 
 - [ ] **Step 3: Commit**
 
@@ -763,7 +856,7 @@ git commit -m "docs(20-5): add data-alignment hand-off and AC-SAMP-01 stub"
 
 ---
 
-## Task 7: Record sub-conflict #1 as a separate finding
+## Task 8: Record sub-conflict #1 as a separate finding
 
 **Files:**
 - Create: `docs/findings/velocity_momentum_sampling_discrepancy.md`
@@ -846,51 +939,6 @@ git add docs/findings/velocity_momentum_sampling_discrepancy.md
 git commit -m "docs(findings): record velocity-momentum sampling discrepancy"
 ```
 
----
-
-## Task 8: Propagate the SCOPE-05 governance principle via gsd-docs-update
-
-**Files:**
-- Modify (via skill): `PROJECT.md`, `CLAUDE.md` (the `gsd-docs-update` skill determines
-  the precise targets and edits).
-
-This task is performed by invoking the `gsd-docs-update` skill, per user directive
-2026-05-19. It is the final, post-phase step.
-
-- [ ] **Step 1: Invoke `gsd-docs-update`**
-
-Invoke the `gsd-docs-update` skill with the following instruction:
-
-> Propagate the new v1.4 governance rule **SCOPE-05** (data-spec alignment for
-> sampling-method edits) into the project's core documentation. The rule, already added to
-> `.planning/REQUIREMENTS.md` in Phase 20.5, states:
->
-> *"When v1.4 framework-spec edits describe the data-generation pipeline, they MUST match
-> the actual behavior of `simulation_data/Scripts/ic_generation/`. The no-live-code
-> directive (2026-05-19) targets `pinn/` only; `simulation_data/Scripts/ic_generation/` is a permitted
-> grounding source for data-generation specs because the existing dataset is fixed and the
-> framework must remain compatible with it. Spec divergences from data must be (i)
-> reconciled to match data, (ii) flagged in `docs/findings/` for separate handling, or
-> (iii) explicitly authorized by the user as a data-regeneration directive for FUT-01."*
->
-> Update `PROJECT.md` (Key Decisions / governance context) and, if appropriate, the
-> "Source of Truth" / governance section of `CLAUDE.md`, so a future agent treats
-> `simulation_data/Scripts/ic_generation/` as a permitted grounding source distinct from the `pinn/`
-> no-live-code directive. Verify all claims against the codebase. Do not restate the full
-> rule text in multiple files — link to `REQUIREMENTS.md` SCOPE-05 as the canonical source.
-
-- [ ] **Step 2: Review and commit**
-
-Review the `gsd-docs-update` output. Confirm it (a) adds the SCOPE-05 cross-reference, (b)
-does not contradict the existing `pinn/` no-live-code directive (SCOPE-01), and (c) changes
-nothing else. Then commit with the file paths the skill actually modified:
-```bash
-git add <files-modified-by-gsd-docs-update>
-git commit -m "docs(governance): propagate SCOPE-05 data-spec alignment rule"
-```
-
----
-
 ## Post-Completion Follow-ups
 
 Items to revisit after Phase 20.5 and its sibling phases complete — not part of the
@@ -910,22 +958,23 @@ Task 1–8 execution.
 Run after all tasks are written — checklist, not a subagent dispatch.
 
 **1. Spec coverage** — every section of the design doc maps to a task:
-- Design §4 Edits 1–5 → Task 4. ✓
+- Design §4 Edits 1–5 → Task 5. ✓
 - Design §5.1 ROADMAP → Task 1. ✓
 - Design §5.2 SAMP-01/02 + §5.3 SCOPE-02/SCOPE-05 → Task 2. ✓
-- Design §5.4 v1.4-GAPS + §5.5 GAP record → Task 3. ✓
-- Design §5.6 DATA-ALIGNMENT + §6 AC-SAMP-01 → Task 6. ✓
-- Design §6 verification probe → Task 5. ✓
-- Design §8 sub-conflict #1 → Task 7. ✓
-- Design §5.3 SCOPE-05 propagation → Task 8. ✓
-- Refinements beyond the design doc: `SCOPE-D`→`SCOPE-05` (numbering consistency);
-  `GAP-20-5-02`/`GAP-20-5-03` added (Phase 17 precedent for recording process-artifact
-  schema decisions). Both folded into Tasks 2 and 3.
+- Design §5.3 SCOPE-05 propagation → Task 3. ✓
+- Design §5.4 v1.4-GAPS + §5.5 GAP records → Task 4. ✓
+- Design §5.6 DATA-ALIGNMENT + §6 AC-SAMP-01 → Task 7. ✓
+- Design §6 verification probe → Task 6. ✓
+- Design §8 sub-conflict #1 → Task 8. ✓
+- Refinements beyond the original design doc: the data-alignment rule uses the canonical
+  `SCOPE-05` identifier, and `GAP-20-5-02`/`GAP-20-5-03` are added per the Phase 17
+  precedent for recording process-artifact schema decisions. These are folded into Tasks 2
+  and 4.
 
 **2. Placeholder scan** — no "TBD/TODO/implement later". Every edit shows verbatim
-FROM/TO text; every new file shows full content; the probe is complete code. Task 8
-delegates to `gsd-docs-update` by design (user directive) and supplies the exact rule text
-and target files — not a placeholder.
+FROM/TO text; every new file shows full content; the probe is complete code. Task 3
+delegates to `gsd-docs-update` by design (user directive), supplies the exact rule text, and
+requires manifest review plus explicit path staging — not a placeholder.
 
 **3. Type/identifier consistency** — `δ_s`, `δ_v`, `d = 3 + δ_s + 3δ_v` are identical
 across Edits 2, 3, 4, 5, the gap register, the data-alignment doc, and the probe.
