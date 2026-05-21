@@ -20,7 +20,7 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 | B-02 | Characteristic length and mass scaling | 19 | PENDING | - | YES - EVID-05 required | evidence/B-02.md | AC-PHYS-01 | ctl_instruction.md; pinn_architecture.md | B-09, M3 | 2026-05-16 |
 | B-03 | Input dimensionality | 17 | VERIFIED | accept-resolution | NO | evidence/B-03.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | B-04, M1, M2 | 2026-05-19 |
 | B-04 | Input vector composition and orientation slots | 17 | VERIFIED | accept-resolution | YES - EVID-05 required | evidence/B-04.md | AC-IO-02 | ctl_instruction.md; pinn_architecture.md | B-03, M1, M2 | 2026-05-19 |
-| B-05 | COM frame consistency | 18 | IN_PROGRESS | accept-resolution | NO | evidence/B-05.md | AC-FRAME-01 | ctl_instruction.md; pinn_architecture.md; sampling_method.md | M3, B-11-folded-into-B-05 | 2026-05-21 |
+| B-05 | COM frame consistency | 18 | FIX_APPLIED | accept-resolution | NO | evidence/B-05.md | AC-FRAME-01 | ctl_instruction.md; pinn_architecture.md; sampling_method.md | M3, B-11-folded-into-B-05 | 2026-05-21 |
 | B-06 | 3D-vs-planar encoding and output contract | 17 | VERIFIED | accept-resolution | NO | evidence/B-06.md | AC-IO-03 | pinn_architecture.md; ctl_instruction.md | - | 2026-05-19 |
 | B-07 | Energy/Hamiltonian regularizer | 19 | PENDING | - | NO | evidence/B-07.md | AC-PHYS-04 | pinn_architecture.md | - | 2026-05-16 |
 | B-08 | ALM scheduling and loss balancing | 19 | PENDING | - | NO | evidence/B-08.md | AC-PHYS-05 | pinn_architecture.md | - | 2026-05-16 |
@@ -133,6 +133,7 @@ Shared acceptance check: AC-FRAME-01 also covers other IDs B-05 and M3.
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-21 EDIT_SHA_18_01_T1 PENDING -> IN_PROGRESS (Phase 18 P01 Task 1)
+- 2026-05-21 a940474 IN_PROGRESS -> FIX_APPLIED (Phase 18 P02 Task 3; sampling-frame spec edit applied)
 
 ### B-06: 3D-vs-planar encoding and output contract
 
