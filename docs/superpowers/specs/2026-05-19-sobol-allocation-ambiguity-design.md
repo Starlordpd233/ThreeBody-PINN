@@ -1,7 +1,18 @@
 # Design: Phase 20.5 — Sampling Coordinate Allocation
 
+> **DEPRECATED (2026-05-22):** This design document is a historical artifact. The
+> authoritative GSD planning documents are now at:
+> `.planning/phases/20-5-sampling-coordinate-allocation/`
+> - `20-5-PLAN.md` — implementation plan (authoritative)
+> - `20-5-RESEARCH.md` — extracted research findings and decision rationale
+> - `20-5-GAPS.md` — gap register (GAP-20-5-01/02/03)
+>
+> This file is kept for provenance. Known cross-document inconsistencies with the plan
+> (SCOPE-D→SCOPE-05 naming, success criteria count, AC-SAMP-01 timing) are resolved in the
+> GSD document set. Refer to the GSD documents for execution.
+
 **Date:** 2026-05-19
-**Status:** Design — awaiting user review
+**Status:** Design — approved and relocated to GSD phase directory
 **Milestone:** v1.4 (Resolving 01 Architecture and Physics Foundations)
 **Origin:** `docs/findings/addressing_sobol_sequence_suggestion.md`
 **Brainstorming session:** Claude + user, 2026-05-19

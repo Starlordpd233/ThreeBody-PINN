@@ -1,5 +1,11 @@
 # Phase 20.5: Sobol Coordinate Allocation — Implementation Plan
 
+> **DEPRECATED (2026-05-22):** This file has been relocated to the GSD phase directory.
+> The authoritative copy is now at:
+> `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md`
+> Companion documents: `20-5-RESEARCH.md`, `20-5-GAPS.md` (same directory).
+> This file is kept for historical reference only. Do not edit here.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Lock the Sobol coordinate allocation convention in `sampling_method.md` so it is
