@@ -1,0 +1,54 @@
+{
+  "status": "partial",
+  "findings": [
+    {
+      "gap_id": "GAP-18-01",
+      "check": "Status is RESOLVED-WITH-INSTRUCTION; resolution note present; cross-referenced in 18-03-SUMMARY.md and v1.4-GAPS.md",
+      "result": "pass",
+      "detail": "Status: RESOLVED-WITH-INSTRUCTION. Resolution note: user selected option (a) on 2026-05-20 — reserve AC-FRAME-01..04, one per FRAME requirement. Cross-references: 18-03-SUMMARY.md key-decisions (Applied GAP-18-01: AC-FRAME-02/03/04 are reserved sibling names), v1.4-GAPS.md Phase 18 table, 18-CONTEXT.md D-08. All required fields present in the register entry."
+    },
+    {
+      "gap_id": "GAP-18-02",
+      "check": "Status is RESOLVED-WITH-INSTRUCTION; resolution note present; cross-referenced in 18-02-SUMMARY.md and v1.4-GAPS.md; Phase 20.5 heads-up exists",
+      "result": "pass",
+      "detail": "Status: RESOLVED-WITH-INSTRUCTION. Resolution note: user selected option (a) on 2026-05-20 — confine Phase 18 FRAME-03 edit to hierarchical and quasi-random frame sections, log coordination, add milestone-index heads-up. Cross-references: 18-02-SUMMARY.md key-decisions (Applied D-11/GAP-18-02: the Phase 20.5 Sobol coordinate-allocation target remains untouched), v1.4-GAPS.md Phase 18 table, 18-CONTEXT.md D-11. Phase 20.5 heads-up paragraph present at end of v1.4-GAPS.md Phase 18 section. All required fields present."
+    },
+    {
+      "gap_id": "GAP-18-03",
+      "check": "Status is RESOLVED-WITH-INSTRUCTION; resolution note present; cross-referenced in 18-01-SUMMARY.md and 18-03-SUMMARY.md",
+      "result": "pass",
+      "detail": "Status: RESOLVED-WITH-INSTRUCTION. Resolution note: user approved option (a) on 2026-05-21 — Phase 18-local structural closure criteria for AC-FRAME-01 only; B-05/M3 may move to VERIFIED; AC-FRAME-02..04 remain names-only until Phase 21. Cross-references: 18-01-SUMMARY.md key-decisions (Applied GAP-18-03: M3 may close against Phase 18-local AC-FRAME-01 structural criteria), 18-03-SUMMARY.md key-decisions (Applied GAP-18-03: B-05 can move to VERIFIED after the full Phase 18-local structural gate passes), v1.4-GAPS.md Phase 18 table, 18-CONTEXT.md governance notice. All required fields present."
+    },
+    {
+      "gap_id": "GAP-18-04",
+      "check": "Status is RESOLVED-WITH-INSTRUCTION; resolution note present; closing document exists; cross-referenced in 18-01-SUMMARY.md and 18-CONTEXT.md D-14",
+      "result": "pass",
+      "detail": "Status: RESOLVED-WITH-INSTRUCTION. Resolution note: user approved option (c) on 2026-05-21 — eta_gauge = 1e-8 dimensionless rotation-gauge degeneracy tolerance, with epsilon_rho = eta_gauge*D, epsilon_lambda = eta_gauge*D, epsilon_v = eta_gauge*V. Supporting document confirmed at docs/findings/fixing_gaps/closing_18-04_gap.md. Cross-references: 18-01-SUMMARY.md key-decisions (Applied D-05/D-14: the rotation gauge uses eta_gauge = 1e-8), 18-CONTEXT.md D-14 (full LOCKED binding), v1.4-GAPS.md Phase 18 table. All required fields present."
+    },
+    {
+      "gap_id": "GAP-18-05",
+      "check": "Status is RESOLVED-WITH-INSTRUCTION; resolution note present; cross-referenced in 18-01-SUMMARY.md and 18-03-SUMMARY.md; multiline rg -nU regex confirmed in 18-VALIDATION.md",
+      "result": "pass",
+      "detail": "Status: RESOLVED-WITH-INSTRUCTION. Resolution note: user approved option (a) on 2026-05-21 — replaced single-line rg regex with multiline-tolerant rg -nU across all four occurrences in three process-artifact files (18-01-PLAN.md x2, 18-03-PLAN.md, 18-VALIDATION.md). M4 content in ctl_instruction.md untouched. Cross-references: 18-01-SUMMARY.md Issues Encountered (GAP-18-05 was already surfaced during Task 2... The user resolved it by authorizing the multiline rg -nU check), 18-03-SUMMARY.md verification (M4 preservation check passed with the multiline rg -nU command), 18-VALIDATION.md Strict Full Suite Command contains the rg -nU multiline pattern. All required fields present."
+    },
+    {
+      "gap_id": "MILESTONE-INDEX",
+      "check": "All Phase 18 gaps indexed in v1.4-GAPS.md; no Phase 18 gaps remain OPEN; Phase 20.5 coordination heads-up exists",
+      "result": "pass",
+      "detail": "v1.4-GAPS.md Phase 18 section lists all five gaps (GAP-18-01 through GAP-18-05) with RESOLVED-WITH-INSTRUCTION status. Phase 20.5 heads-up paragraph present after the table. Metadata header shows open_gaps: 0, resolved_gaps: 16 (11 Phase 17 + 5 Phase 18), total_gaps: 16. No Phase 18 gaps remain OPEN."
+    },
+    {
+      "gap_id": "GAP-COUNT",
+      "check": "Five expected gaps (GAP-18-01 through GAP-18-05) all present in the register with no extras or omissions",
+      "result": "pass",
+      "detail": "Register contains exactly GAP-18-01, GAP-18-02, GAP-18-03, GAP-18-04, and GAP-18-05. Frontmatter confirms total_gaps: 5, resolved_gaps: 5, open_gaps: 0. No gaps missing and no unexpected gaps exist."
+    },
+    {
+      "gap_id": "CONTEXT-GOVERNANCE-NOTICE",
+      "check": "18-CONTEXT.md governance notice accurately reflects all five resolved gaps",
+      "result": "fail",
+      "detail": "The governance notice at 18-CONTEXT.md line 9 says Four decisions hit governance triggers and explicitly names only GAP-18-01 through GAP-18-04. GAP-18-05 (the M4-preservation regex fix, surfaced during execution on 2026-05-21) is not mentioned in the governance notice, though it IS recorded in the 18-GAPS.md register, the v1.4-GAPS.md index, and 18-01-SUMMARY.md. The frontmatter correctly says total_gaps: 5. This is a stale governance notice — the CONTEXT doc was written during planning and GAP-18-05 was surfaced during execution, but the notice was not back-ported. The gap itself is properly resolved and documented in the authoritative register (18-GAPS.md)."
+    }
+  ],
+  "summary": "All five Phase 18 gaps (GAP-18-01 through GAP-18-05) are properly documented in the gap register with status RESOLVED-WITH-INSTRUCTION and complete resolution notes. Each gap has all required governance fields (decision point, source silence, mathematical grounding, user decision, resolution note). The milestone-wide index at v1.4-GAPS.md correctly lists all five Phase 18 gaps as resolved with no OPEN entries, and includes the Phase 20.5 coordination heads-up. Cross-references in all three plan summaries (18-01, 18-02, 18-03) consistently cite the relevant gaps. The one deficiency found is a stale governance notice in 18-CONTEXT.md (line 9) which says Four decisions hit governance triggers and names only GAP-18-01 through GAP-18-04, omitting GAP-18-05 that was surfaced during execution. The frontmatter correctly records total_gaps: 5. This is a documentation inconsistency in the CONTEXT doc, not a gap-resolution failure — the authoritative register (18-GAPS.md) and the milestone index are correct and complete."
+}

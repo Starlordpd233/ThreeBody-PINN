@@ -1,0 +1,27 @@
+{
+  "status": "pass",
+  "findings": [
+    {
+      "boundary": "Phase 19 (M4)",
+      "check": "M4 constraint-counting sentence in ctl_instruction.md must be untouched by Phase 18",
+      "result": "pass",
+      "detail": "The M4 sentence at lines 912-915 of ctl_instruction.md is intact. The git diff (HEAD~15..HEAD) for this file shows three hunks: (1) Step 2 replacement (old lines 379-430, new lines 379-639), (2) Step 3 precondition update (old lines 433-440, new lines 642-650), and (3) Step 4 canonical ordering replacement (old lines 680-715, new lines 890-897). The M4 sentence at new line 914 is well after the last hunk (which ends at new line ~897). No diff hunk touches the M4 content. The sentence is in the Mathematical Guarantees subsection of Step 4, which Phase 18 did not modify.",
+      "exact_text_found": "The 13 constraints for an 8-dimensional reduced phase space ensure over-determination and uniqueness."
+    },
+    {
+      "boundary": "Phase 20.5 (Sobol)",
+      "check": "Sobol coordinate-allocation formula in sampling_method.md must be untouched by Phase 18",
+      "result": "pass",
+      "detail": "The Sobol velocity-sampling formula at lines 123-127 of sampling_method.md is intact. The git diff (HEAD~15..HEAD) shows two hunks: (1) Added FRAME-03 frame note after Gaussian perturbation step (around old line 68), and (2) Changed momentum conservation text at old line 120 and added FRAME-03 frame note. The protected text (u_4, u_5, u_6) appears as a context line in hunk 2 (not a changed line). The actual change is to the momentum conservation description AFTER the formula, not to the formula itself. The formula is unchanged.",
+      "exact_text_found": "The next three Sobol coordinates $(u_4, u_5, u_6)$ are mapped to a 3D velocity vector using inverse transform sampling from a normal distribution with mean 0 and standard deviation sigma = velocity_scale (default 0.1)"
+    },
+    {
+      "boundary": "pinn/ code",
+      "check": "No files under pinn/ modified by Phase 18 commits",
+      "result": "pass",
+      "detail": "git diff HEAD~15..HEAD --name-only | grep pinn/ returned no results. The 21 files changed in Phase 18 are all under .planning/ and pinn_instruction/markdown_conversion/framework-specs/. The only pinn/ reference is in 18-CODE-DIVERGENCE.md, which is explicitly a forward-pointing FUT-01 handoff artifact that records where v1.3-era pinn/ implementation files are expected to diverge from Phase 18 contracts. The file states: This inventory is not a request to edit pinn/ during v1.4.",
+      "exact_text_found": null
+    }
+  ],
+  "summary": "Phase 18 respected all three cross-phase boundaries. The M4 constraint-counting sentence (13 constraints for an 8-dimensional reduced phase space) in ctl_instruction.md is intact at lines 912-915, untouched by any of the three diff hunks. The Sobol coordinate-allocation formula (u_4, u_5, u_6) in sampling_method.md is intact at lines 123-127; Phase 18 only added FRAME-03 frame notes and clarified momentum conservation text around the formula without modifying the formula itself. No pinn/ files were modified; the only pinn/ references are in 18-CODE-DIVERGENCE.md as FUT-01 handoff coordinates. All boundary checks pass."
+}
