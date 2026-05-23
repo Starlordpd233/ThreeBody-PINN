@@ -388,8 +388,8 @@
 
 ### `docs/`
 - **Purpose:** Audit reports and verification findings
-- **Contains:** findings/fixing_gaps/ and other current verification findings
-- **Note:** Previously contained historical plans (`plans/`, `superpowers/`) — those have been removed
+- **Contains:** `findings/milestone_v1.4/` (current v1.4 milestone reviews and gap-closure documents) and other current verification findings
+- **Note:** Previously contained historical plans (`plans/`, `superpowers/`) — those have been removed. The earlier `findings/fixing_gaps/` directory was renamed to `findings/milestone_v1.4/`.
 
 ### `.planning/`
 - **Purpose:** GSD (Goal-Structured Development) project management framework
