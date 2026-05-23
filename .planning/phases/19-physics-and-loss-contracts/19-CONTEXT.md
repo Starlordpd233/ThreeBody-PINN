@@ -6,7 +6,7 @@
 
 ---
 
-> **GOVERNANCE NOTICE** — Produced under `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` **CRITICAL GOVERNANCE** rule (STOP protocol + math/engineering grounding requirement). No new `19-GAPS.md` entries are created at context-gathering time: every semantic and process-artifact decision below was either (a) directly answered by the user in the 2026-05-22 discussion, or (b) grounded in locked Phase 16/17/18 precedent. The Phase 16 ledger inconsistency on M4's `Sources Disagree?` flag was surfaced and corrected in the same discussion (D-16) rather than being recorded as a gap, because the user provided the corrective instruction inline. New gaps encountered during plan-phase or execute-phase MUST be appended to `19-GAPS.md` per the STOP protocol; the Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
+> **GOVERNANCE NOTICE** — Produced under `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` **CRITICAL GOVERNANCE** rule (STOP protocol + math/engineering grounding requirement). No new `19-GAPS.md` entries were created at context-gathering time: every semantic and process-artifact decision below was either (a) directly answered by the user in the 2026-05-22 discussion, or (b) grounded in locked Phase 16/17/18 precedent. During the 2026-05-22 plan-repair pass, `GAP-19-01` was opened for the ungrounded numeric default `epsilon_H = 10^-8`; dependent P02 work must not choose a numeric `epsilon_H` default until the user resolves it. The Phase 16 ledger inconsistency on M4's `Sources Disagree?` flag was surfaced and corrected in the same discussion (D-16) rather than being recorded as a gap, because the user provided the corrective instruction inline. New gaps encountered during plan-phase or execute-phase MUST be appended to `19-GAPS.md` per the STOP protocol; the Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
 >
 > **Live-code directive (2026-05-19):** Live code in `pinn/` is NOT a grounding source for any v1.4 decision; v1.3-era artifact rebuilt by FUT-01. References allowed only in forward-pointing `19-CODE-DIVERGENCE.md`.
 >
@@ -75,7 +75,7 @@ Per CRITICAL GOVERNANCE rule. Plan-phase and execute-phase agents MUST consult t
 | **D-18** Symbol renames: `epsilon_soft → epsilon_train`; introduce `epsilon_inv`; matches resolution-doc convention | ✅ LOCKED | User 2026-05-22 | Actionable. Mechanical cleanup; reduces ambiguity. `η_gauge` (Phase 18 D-14) remains numerical-geometry guard — clean separation preserved. |
 | **D-19** `19-CODE-DIVERGENCE.md` mirrors `17/18-CODE-DIVERGENCE.md` schema; row-level FUT-01 priority hints non-binding | ✅ LOCKED | Phase 17 D-14 / Phase 18 D-13 precedent | Actionable. Schema identical; content scope = Phase 19's divergences (see Specific Ideas). |
 
-**Summary:** 19 decisions LOCKED. No OPEN gaps at context-gathering time. Plans P01/P02 (Wave 1, parallel), P03 (Wave 2), P04 (Wave 3) may proceed.
+**Summary:** 19 context-gathering decisions are LOCKED. No OPEN gaps existed at context-gathering time; `GAP-19-01` was opened during the 2026-05-22 plan-repair pass for the ungrounded numeric `epsilon_H` default. Plans P01/P02 may proceed only on disjoint spec-file edits and must serialize shared lifecycle artifacts; any P02 step requiring a concrete `epsilon_H` value is blocked until user instruction resolves `GAP-19-01`.
 
 ---
 
@@ -158,10 +158,10 @@ Replaces the current pseudo-ALM formulation `L_data + λ_p L_phys + (μ_p/2) L_p
 
 | Term | Definition source | Mandatory additions vs current spec |
 |---|---|---|
-| `L_data` | Resolution §8.2 | Huber, `δ_r = 1` default (current spec uses MSE — change to Huber). |
+| `L_data` | Resolution §8.2 | Huber, `δ_r = 1` default (current `pinn_architecture.md` data-loss prose uses MAE/L1 — change to Huber). |
 | `L_IC` | Resolution §8.3 | **NEW.** Position anchor `L_IC,r` + velocity anchor `L_IC,v` at `u = 0`; `L_IC = L_IC,r + β_v · L_IC,v`, `β_v = 1`. `λ_IC = 1` default, ablation range `[0.1, 10]`. |
 | `L_phys^causal` | Resolution §8.4 | Causal weights `w_n = exp(-η_c · Σ_{m<n} stopgrad(R̄_m))`, `w_1 = 1`, `η_c = 1` default. **stopgrad in weights by default** to prevent the weight mechanism from becoming an adversarial term. |
-| `L_E` | Resolution §8.5 + D-04 reframing | Huber on relative drift `ΔH_n = (H_ε(r_θ', v_θ') − H_ε(r_0', v_0')) / (|H_ε(r_0', v_0')| + ε_H)`, `δ = 1.0`. Soft conservation regularizer (NOT HNN). |
+| `L_E` | Resolution §8.5 + D-04 reframing | Huber on relative drift `ΔH_n = (H_ε(r_θ', v_θ') − H_ε(r_0', v_0')) / (|H_ε(r_0', v_0')| + ε_H)`, `δ = 1.0`. Soft conservation regularizer (NOT HNN). `ε_H` is symbolic until `GAP-19-01` is resolved; do not assign a numeric default in Phase 19 execution plans. |
 | `L_L` | Resolution §8.6 | **NEW.** Componentwise Huber on relative angular-momentum drift, `L_scale = ‖L_0'‖ + ε_L`, `ε_L = 10⁻⁸` numerical-stability scale (distinct from softening — see D-06). |
 
 **Warmup schedule** (resolution §8.7) replaces the legacy `λ_E(k) = 10^(k-3)`-only schedule:
@@ -222,25 +222,25 @@ The replacement prose for `ctl_instruction.md:914-915` (per D-03) uses resolutio
 
 Phase 19 uses 4 plans for review safety. Treated as execution-plan decomposition, not a semantic physics decision. The accepted contract is still the unified Option 1 contract from the discussion; AC-PHYS-04/05 do not pass until the final coherent rewrite is in place across both `ctl_instruction.md` and `pinn_architecture.md` (P03 closure).
 
-- **P01 (Wave 1, can parallel with P02 — different file): `ctl_instruction.md` edits + EVID-05 ctl-side adjudications.**
+- **P01 (Wave 1, can parallel with P02 only for disjoint spec-file edits): `ctl_instruction.md` edits + EVID-05 ctl-side adjudications.**
   - Add raw-mass governing-convention prose to Step 2.5 (D-01, resolution §10.1 patch).
   - Static-invariant `V` (line 664) additive → Plummer with `ε_inv = 10⁻¹⁰` (D-02 / D-06).
   - Replace M4 constraint-counting sentence (line 914-915) with resolution §10.4 reconstructive-gauge-fixed-encoding prose, with Phase 17/18 cross-reference (D-03 / D-11).
   - Replace total-loss block (lines 1095, 1098-1113) with the new contract per D-07 — coordinate with P02 so both files land the same total-loss equation.
   - Evidence packets `evidence/B-02.md`, `evidence/M4.md` (both EVID-05 — full §5/§7/§8/§9 treatment).
-  - Issue Doc annotations for B-02 and M4 per D-14.
-  - Phase 16 ledger M4-row reclassification per D-16 (`Sources Disagree? NO → YES — EVID-05 required`) + per-finding subsection audit note.
-  - Ledger transitions: B-02 PENDING→IN_PROGRESS→FIX_APPLIED; M4 PENDING→IN_PROGRESS→FIX_APPLIED.
+  - Issue Doc annotations for B-02 and M4 per D-14, serialized with other Issue Doc annotations.
+  - Phase 16 ledger M4-row reclassification per D-16 (`Sources Disagree? NO → YES — EVID-05 required`) + per-finding subsection audit note, serialized with all other ledger writes.
+  - Ledger transitions: B-02 PENDING→IN_PROGRESS→FIX_APPLIED; M4 PENDING→IN_PROGRESS→FIX_APPLIED. Shared `16-ISSUE-LEDGER.md` and Issue Doc writes must be handled by a single coordination task or explicit serial order; P01/P02 parallelism applies only to disjoint spec-file edits.
 
-- **P02 (Wave 1, parallel with P01): `pinn_architecture.md` formula / contract changes.**
+- **P02 (Wave 1, parallel with P01 only for disjoint spec-file edits): `pinn_architecture.md` formula / contract changes.**
   - PHYS-02 AD contract + worked synthetic-trajectory test (D-08).
   - PHYS-03 Plummer-form change in residual (line 416), Hamiltonian (line 549), Python Listings (lines 583-616) — `ε_train = 10⁻⁵` (D-06).
   - PHYS-04 `L_E` formula reframed as soft conservation regularizer using matched-Plummer `H_ε`.
   - PHYS-05 total-loss replacement per D-07.
   - §8.7 warmup schedule (replaces legacy `λ_E`-only schedule).
   - Evidence packets `evidence/B-07.md`, `evidence/B-08.md` (`Not contested` markers), `evidence/B-09.md` (EVID-05 — full §5/§7/§8/§9 + structured `simulation_data` verification subsection per D-17).
-  - Issue Doc annotations for B-07, B-08, B-09 per D-14.
-  - Ledger transitions: B-07, B-08, B-09 PENDING→IN_PROGRESS→FIX_APPLIED.
+  - Issue Doc annotations for B-07, B-08, B-09 per D-14, serialized with other Issue Doc annotations.
+  - Ledger transitions: B-07, B-08, B-09 PENDING→IN_PROGRESS→FIX_APPLIED. Shared `16-ISSUE-LEDGER.md` and Issue Doc writes must be handled by a single coordination task or explicit serial order; P01/P02 parallelism applies only to disjoint spec-file edits.
 
 - **P03 (Wave 2, blocked on P02): `pinn_architecture.md` prose cleanup + cross-reference validation.**
   - HNN reframing throughout (`§1.x` intro, `§3.3` title + body, `§4.1` prose, summary table) per D-09.
@@ -273,13 +273,13 @@ Phase 19 reserves the name; pass criteria are Phase 21 VER-01 scope per Phase 16
 
 #### D-14 (Issue Doc adjudication annotation convention — NEW milestone-wide pattern)
 
-The agent does NOT rewrite Issue Doc content; Issue Docs are historical audit records. For each Phase 19 finding, append exactly ONE line to the relevant table row in `pinn_instruction/issues/01-architecture-and-physics-foundations.md`:
+The agent does NOT rewrite Issue Doc content; Issue Docs are historical audit records. For each Phase 19 finding, append exactly ONE annotation inside the relevant existing GFM table row/cell in `pinn_instruction/issues/01-architecture-and-physics-foundations.md`:
 
 ```
 **Adjudicated Phase 19:** `<verdict>`. See `evidence/<id>.md`.
 ```
 
-Original row text stays verbatim. The evidence packet plus the resolution doc are the correction mechanism. This convention is established by user instruction 2026-05-22 and supersedes any prior pattern that may have rewritten issue-doc content. (Resolution doc remains the default verdict source per directive 2026-05-18; agent transcribes its positions into spec edits unless EVID-05 surfaces concrete evidence it fails.)
+Original row text stays verbatim and the table row's column count must remain unchanged; do not add a free-standing line that breaks the table. The evidence packet plus the resolution doc are the correction mechanism. This convention is established by user instruction 2026-05-22 and supersedes any prior pattern that may have rewritten issue-doc content. (Resolution doc remains the default verdict source per directive 2026-05-18; agent transcribes its positions into spec edits unless EVID-05 surfaces concrete evidence it fails.)
 
 #### D-15 (D-14 annotation scope — forward-only for Phase 19, no back-fill)
 
@@ -346,24 +346,24 @@ Treat cited line numbers in P01/P02 as anchors, NOT the full edit set. The execu
 
 #### D-19 (`19-CODE-DIVERGENCE.md` schema — mirrors Phase 17 D-14 / Phase 18 D-13)
 
-5-column Markdown table: `Surface | Live code (pinn/) | Spec target (Phase 19) | FUT-01 priority (non-binding hint) | Notes`. Row-level `FUT-01 priority` values are non-binding FUT-01 hand-off hints; FUT-01 planning may revise after reading the accumulated Phase 17/18/19/20 divergence files and `pinn/STATUS.md` (added Phase 21).
+5-column Markdown table: `Surface | Live code (file:line) | Spec target (Phase 19 decision) | FUT-01 item | FUT-01 priority`. Row-level `FUT-01 priority` values are non-binding FUT-01 hand-off hints; FUT-01 planning may revise after reading the accumulated Phase 17/18/19/20 divergence files and `pinn/STATUS.md` (added Phase 21). Live `pinn/` references in this artifact are FUT-01 hand-off coordinates only; they are not v1.4 grounding sources.
 
 Phase 19's divergence rows (initial list; planner finalizes):
 
-| Surface | Live code | Phase 19 spec | FUT-01 priority hint |
-|---|---|---|---|
-| Force softening form (residual) | additive `1/(||r||+eps_soft)³` (`pinn/data-processing-pipeline-full.py`, `pinn/basic_architecture.py` if any) | Plummer `1/r_safe³` with `r_safe = sqrt(||r||²+ε_train²)` | high |
-| Energy softening form | additive `1/(||r||+eps_soft)` (`pinn/data-processing-pipeline-full.py:H_0` calc) | Plummer `1/r_safe` with same `ε_train` | high |
-| Static-invariant V form | additive (if present in metrics-generation code; verify) | Plummer with `ε_inv = 10⁻¹⁰` (offline only) | medium |
-| AD method | `grad_outputs=torch.ones_like(positions)` (`pinn/basic_architecture.py` `compute_derivatives`) | componentwise (jacrev+vmap or explicit per-component loop) | high |
-| Loss composition | `L_data + λ_p L_phys + (μ_p/2) L_phys² + λ_E(k) L_energy` | `L_data + λ_IC L_IC + λ_phys L_phys^causal + λ_E L_E + λ_L L_L` | high |
-| L_IC anchor | absent | mandatory at `u=0` for both position and velocity | high |
-| L_L angular-momentum loss | absent | componentwise Huber with `ε_L = 10⁻⁸` | high |
-| Causal weighting | absent | `w_n = exp(-η_c · Σ stopgrad(R̄_m))` with stopgrad | medium |
-| ALM machinery | `λ_p`, `μ_p` updates per step with RMSprop-stabilized `μ_p ← γ/sqrt(v_p+ε)` | removed from default; P2 ablation only, scalar conservation, no L-BFGS dual updates | medium |
-| Symbol naming | `epsilon_soft = 1e-5` everywhere | `ε_train = 10⁻⁵` (training matched pair); `ε_inv = 10⁻¹⁰` (static) | low (rename only) |
-| HNN-branded names | if any (`hnn_*` variable/method names) | renamed to soft-conservation-regularizer-aligned (`energy_*`, `conservation_*`) | low |
-| Time input | raw `t` or `tau` as autograd leaf | `u = t/T` canonical leaf, model wrapper computes `τ = 2u−1` | high (already noted in `17-CODE-DIVERGENCE.md` row) |
+| Surface | Live code (file:line) | Spec target (Phase 19 decision) | FUT-01 item | FUT-01 priority |
+|---|---|---|---|---|
+| Force softening form (residual) | additive `1/(||r||+eps_soft)³` (`pinn/data-processing-pipeline-full.py`, `pinn/basic_architecture.py` if any; exact lines verified in FUT-01) | Plummer `1/r_safe³` with `r_safe = sqrt(||r||²+ε_train²)` | Replace training residual denominator with matched Plummer form. | high |
+| Energy softening form | additive `1/(||r||+eps_soft)` (`pinn/data-processing-pipeline-full.py:H_0` calc; exact lines verified in FUT-01) | Plummer `1/r_safe` with same `ε_train` | Replace analytic energy denominator with matched Plummer potential. | high |
+| Static-invariant V form | additive if present in metrics-generation code; exact lines verified in FUT-01 | Plummer with `ε_inv = 10⁻¹⁰` (offline only) | Align offline invariant computation with PHYS-03 static-invariant contract. | medium |
+| AD method | `grad_outputs=torch.ones_like(positions)` (`pinn/basic_architecture.py` `compute_derivatives`; exact lines verified in FUT-01) | componentwise (jacrev+vmap or explicit per-component loop) | Replace all-ones VJP derivative shortcut with componentwise derivative contract. | high |
+| Loss composition | `L_data + λ_p L_phys + (μ_p/2) L_phys² + λ_E(k) L_energy` | `L_data + λ_IC L_IC + λ_phys L_phys^causal + λ_E L_E + λ_L L_L` | Rewrite default loss composition and remove pseudo-ALM default. | high |
+| L_IC anchor | absent | mandatory at `u=0` for both position and velocity | Add initial-condition anchor loss. | high |
+| L_L angular-momentum loss | absent | componentwise Huber with `ε_L = 10⁻⁸` | Add angular-momentum conservation loss. | high |
+| Causal weighting | absent | `w_n = exp(-η_c · Σ stopgrad(R̄_m))` with stopgrad | Add causal residual weighting. | medium |
+| ALM machinery | `λ_p`, `μ_p` updates per step with RMSprop-stabilized `μ_p ← γ/sqrt(v_p+ε)` | removed from default; P2 ablation only, scalar conservation, no L-BFGS dual updates | Move any ALM logic out of baseline training and into optional ablation scope. | medium |
+| Symbol naming | `epsilon_soft = 1e-5` everywhere | `ε_train = 10⁻⁵` (training matched pair); `ε_inv = 10⁻¹⁰` (static) | Rename softening symbols by context. | low |
+| HNN-branded names | if any (`hnn_*` variable/method names) | renamed to soft-conservation-regularizer-aligned (`energy_*`, `conservation_*`) | Rename HNN-branded implementation identifiers where they survive. | low |
+| Time input | raw `t` or `tau` as autograd leaf | `u = t/T` canonical leaf, model wrapper computes `τ = 2u−1` | Align time leaf and wrapper with PHYS-02. | high |
 
 Lines/exact paths are non-binding — verified by FUT-01 against the post-rewrite codebase. Phase 19 records the divergence structure, not exact LOC counts.
 
@@ -455,7 +455,7 @@ Distinct role from Phase 18 D-10's FRAME-03 grounding usage (see D-17 in this do
 
 ### Governance / gap registers
 
-- `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` — Phase 19 gap register. Empty at context-gathering time; created by P01 if any gap surfaces during planning. New gaps from plan-phase or execute-phase appended per STOP protocol.
+- `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` — Phase 19 gap register. Created during plan repair with `GAP-19-01` for the ungrounded numeric `epsilon_H` default. New gaps from plan-phase or execute-phase appended per STOP protocol.
 - `.planning/milestones/v1.4-GAPS.md` — Milestone-wide gap index.
 
 </canonical_refs>
