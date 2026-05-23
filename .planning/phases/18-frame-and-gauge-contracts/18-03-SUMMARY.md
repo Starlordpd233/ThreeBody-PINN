@@ -50,7 +50,7 @@ requirements-completed:
 
 # Metrics
 duration: ~2min
-completed: 2026-05-21T05:27:17Z
+completed: 2026-05-21T05:28:07Z
 ---
 
 # Phase 18 P03: Divergence Inventory And Verification Summary
@@ -61,7 +61,7 @@ completed: 2026-05-21T05:27:17Z
 
 - **Duration:** ~2 min
 - **Started:** 2026-05-21T05:25:41Z
-- **Completed:** 2026-05-21T05:27:17Z
+- **Completed:** 2026-05-21T05:28:07Z
 - **Tasks:** 3 plan tasks
 - **Files modified:** 4 plus this summary
 
@@ -78,6 +78,7 @@ completed: 2026-05-21T05:27:17Z
 1. **Task 1: Create 18-CODE-DIVERGENCE.md for FUT-01** - `0e569ba` (docs: record frame gauge code divergence)
 2. **Task 2: Verify FRAME-01..04 and close B-05/M3 lifecycle** - `98bc955` (docs: verify frame gauge contracts)
 3. **Task 3: Write final Phase 18 summary** - this summary commit
+4. **Post-review correction (inherited from 18-02 review gate)** - `34cd746` (docs(18-02): align quasi-random momentum prose). Committed after the 18-03 summary commit; substantive fix landed in `sampling_method.md` per D-10's authoritative `simulation_data/` generator behavior. See `18-VERIFICATION.md` Notes.
 
 ## Files Created/Modified
 

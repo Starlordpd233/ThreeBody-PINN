@@ -99,7 +99,7 @@ The key facts to preserve are:
 | FRAME-01 | Unified order is present and old Step 2.5 mixed-frame wording is gone. | doc-structure + negative grep | Check `Unified Preprocessing Pipeline`, ordered terms, and absence of `Step 2.5: Verify Center-of-Mass`. |
 | FRAME-02 | Preprocessed sample assertions and model-output COM projection reference exist. | doc-structure | Check `1e-12`, `sum_i m_i*r_i`, `sum_i m_i*v_i`, and architecture projection text. |
 | FRAME-03 | Sampling spec documents hierarchical offsets and quasi-random COM/P behavior without touching Sobol allocation formula. | doc-structure | Check `Gaussian perturbation`, `FRAME-01`, `p3 = -(p1 + p2)`, `v1 = -v2/2`, and Phase 20.5 heads-up. |
-| FRAME-04 | 3D Cartesian output is explicitly preserved. | doc-structure | Check `velocities remain fully 3D`, `9D position`, and `not planar` / `not invariant-only`. |
+| FRAME-04 | 3D Cartesian output is explicitly preserved. | doc-structure | Check `velocities remain fully 3D`, `9D Cartesian`, and `not planar` / `not invariant-only`. |
 | VER-05 | B-05 and M3 lifecycle reaches VERIFIED only after checks pass. | ledger-structure | Check B-05/M3 rows and transition logs in `16-ISSUE-LEDGER.md`. |
 
 ### Security/Governance Threats

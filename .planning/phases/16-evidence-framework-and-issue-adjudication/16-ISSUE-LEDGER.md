@@ -139,9 +139,9 @@ Phase 21 defines numeric pass criteria and executes disposable probes; Phase 18 
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
-- 2026-05-21 EDIT_SHA_18_01_T1 PENDING -> IN_PROGRESS (Phase 18 P01 Task 1)
+- 2026-05-21 d31e82c PENDING -> IN_PROGRESS (Phase 18 P01 Task 1)
 - 2026-05-21 a940474 IN_PROGRESS -> FIX_APPLIED (Phase 18 P02 Task 3; sampling-frame spec edit applied)
-- 2026-05-21 EDIT_SHA_18_03_T2 FIX_APPLIED -> VERIFIED (Phase 18 P03 Task 2; AC-FRAME-01/02/03/04 structural checks passed)
+- 2026-05-21 98bc955 FIX_APPLIED -> VERIFIED (Phase 18 P03 Task 2; AC-FRAME-01/02/03/04 structural checks passed)
 
 ### B-06: 3D-vs-planar encoding and output contract
 
@@ -233,9 +233,9 @@ Shared acceptance check: AC-FRAME-01 also covers other IDs B-05 and M3.
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
-- 2026-05-21 EDIT_SHA_18_01_T1 PENDING -> IN_PROGRESS (Phase 18 P01 Task 1)
+- 2026-05-21 d31e82c PENDING -> IN_PROGRESS (Phase 18 P01 Task 1)
 - 2026-05-21 83d6a0a IN_PROGRESS -> FIX_APPLIED (Phase 18 P01 Task 2; scaling-order spec edit applied)
-- 2026-05-21 EDIT_SHA_18_01_T3 FIX_APPLIED -> VERIFIED (Phase 18 P01 Task 3; AC-FRAME-01 scaling-order checks passed)
+- 2026-05-21 26d9627 FIX_APPLIED -> VERIFIED (Phase 18 P01 Task 3; AC-FRAME-01 scaling-order checks passed)
 
 ### M4: Constraint counting error
 

@@ -46,11 +46,13 @@ This command proves required evidence/divergence files exist, frame/gauge contra
 
 ## Per-Task Verification Map
 
+> **Note (2026-05-22 post-execution correction):** The `File Exists` and `Status` columns below are the **post-execution** state recorded against the strict full suite run captured in `18-VERIFICATION.md` (verified_at `2026-05-21T05:33:17Z`, all PASS). `18-VERIFICATION.md` is the post-execution authority for the per-task evidence; this map is retained for traceability.
+
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| 18-01-01 | 01 | 1 | FRAME-01, FRAME-02, FRAME-04, VER-05 | T-18-01 / T-18-02 | B-05/M3 evidence exists before spec closure, CTL owns one unified preprocessing pipeline, model-output COM projection is referenced without re-locking Phase 17. | doc-structure | `bash -lc 'test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md && test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md && rg -n "Unified Preprocessing Pipeline|COM recenter|zero-momentum boost|canonical ordering|canonical rotation gauge|global scaling|1e-12|AC-FRAME-01|AC-FRAME-02|AC-FRAME-04|velocities remain fully 3D" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md'` | pending | pending |
-| 18-02-01 | 02 | 2 | FRAME-03, VER-05 | T-18-03 | Sampling prose is verified against `simulation_data/` and confined to frame behavior, leaving the Phase 20.5 Sobol coordinate target alone. | doc-structure | `bash -lc 'rg -n "Gaussian perturbation|FRAME-01 unified preprocessing|p3 = -\\(p1 \\+ p2\\)|v1 = -v2/2|v3 = -v2/2|Center of Mass|total momentum" pinn_instruction/markdown_conversion/framework-specs/sampling_method.md && rg -n "scale_range=\\(0.8, 1.2\\)|velocity_scale=0.1" simulation_data/Scripts/ic_generation/generate_ics.py simulation_data/Scripts/ic_generation/ic_generation_utils.py'` | pending | pending |
-| 18-03-01 | 03 | 3 | FRAME-01, FRAME-02, FRAME-03, FRAME-04, VER-05 | T-18-01 / T-18-04 | FUT-01 divergence is recorded without `pinn/` edits, B-05/M3 are verified only after checks pass, and Phase 19/20.5 boundaries remain intact. | full-suite | Use the strict full suite command above. | pending | pending |
+| 18-01-01 | 01 | 1 | FRAME-01, FRAME-02, FRAME-04, VER-05 | T-18-01 / T-18-02 | B-05/M3 evidence exists before spec closure, CTL owns one unified preprocessing pipeline, model-output COM projection is referenced without re-locking Phase 17. | doc-structure | `bash -lc 'test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md && test -f .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md && rg -n "Unified Preprocessing Pipeline|COM recenter|zero-momentum boost|canonical ordering|canonical rotation gauge|global scaling|1e-12|AC-FRAME-01|AC-FRAME-02|AC-FRAME-04|velocities remain fully 3D" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-05.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M3.md pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md'` | yes | green |
+| 18-02-01 | 02 | 2 | FRAME-03, VER-05 | T-18-03 | Sampling prose is verified against `simulation_data/` and confined to frame behavior, leaving the Phase 20.5 Sobol coordinate target alone. | doc-structure | `bash -lc 'rg -n "Gaussian perturbation|FRAME-01 unified preprocessing|p3 = -\\(p1 \\+ p2\\)|v1 = -v2/2|v3 = -v2/2|Center of Mass|total momentum" pinn_instruction/markdown_conversion/framework-specs/sampling_method.md && rg -n "scale_range=\\(0.8, 1.2\\)|velocity_scale=0.1" simulation_data/Scripts/ic_generation/generate_ics.py simulation_data/Scripts/ic_generation/ic_generation_utils.py'` | yes | green |
+| 18-03-01 | 03 | 3 | FRAME-01, FRAME-02, FRAME-03, FRAME-04, VER-05 | T-18-01 / T-18-04 | FUT-01 divergence is recorded without `pinn/` edits, B-05/M3 are verified only after checks pass, and Phase 19/20.5 boundaries remain intact. | full-suite | Use the strict full suite command above. | yes | green |
 
 *Status: pending / green / red / flaky*
 
@@ -61,7 +63,7 @@ This command proves required evidence/divergence files exist, frame/gauge contra
 Existing infrastructure covers all Phase 18 validation requirements:
 
 - [x] `rg` exists for structural searches.
-- [x] `18-GAPS.md` records GAP-18-01 and GAP-18-02 as `RESOLVED-WITH-INSTRUCTION`, and records GAP-18-03/GAP-18-04 as `OPEN` STOP guards.
+- [x] `18-GAPS.md` records all five Phase 18 gaps (GAP-18-01 through GAP-18-05) as `RESOLVED-WITH-INSTRUCTION`. GAP-18-03/GAP-18-04 were recorded as `OPEN` STOP guards during planning and were resolved by user instruction on 2026-05-21; GAP-18-05 was surfaced and resolved during plan 18-01 Task 2 execution on 2026-05-21.
 - [x] No new test framework or package install is required.
 - [x] No runtime service, database, or schema push is in scope.
 
@@ -85,4 +87,4 @@ Existing infrastructure covers all Phase 18 validation requirements:
 - [x] Feedback latency < 10s.
 - [x] `nyquist_compliant: true` set in frontmatter.
 
-**Approval:** pending execution verification.
+**Approval:** approved 2026-05-21 — strict full suite passed (see `18-VERIFICATION.md`, verified_at `2026-05-21T05:33:17Z`).
