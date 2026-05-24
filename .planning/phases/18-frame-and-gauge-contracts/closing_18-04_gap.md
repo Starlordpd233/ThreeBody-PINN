@@ -1,3 +1,7 @@
+> [!NOTE]
+> **STATUS: EXECUTED & RETAINED FOR REFERENCE**
+> The instructions in this document have been fully executed. This file is retained as a permanent architectural decision record (ADR) because other Phase 18 planning documents contain explicit cross-references to it, and because it contains critical mathematical rationale and validation guidance for Phase 21 numerical tests.
+
 # Response and Final Recommendation on Closing 18-04 Gap
 
 **Status:** ACCEPTED 2026-05-21 — user-approved closure of GAP-18-04. The binding in this document is now the canonical Phase 18 rotation-gauge degeneracy contract; recorded in `.planning/phases/18-frame-and-gauge-contracts/18-CONTEXT.md` D-14 and `.planning/phases/18-frame-and-gauge-contracts/18-GAPS.md` GAP-18-04 Resolution note. The "Important validation note" section is informational guidance for Phase 21 VER-01/VER-04 — it is NOT a Phase 18 spec edit or `AC-FRAME-*` criterion.

@@ -7,6 +7,16 @@
 
 ---
 
+> **Errata (added 2026-05-24):** Two factual claims in this review were corrected by the 2026-05-23 meta-plan completeness audit and confirmed wrong by six other independent reviews. Future readers should NOT act on these specific claims:
+>
+> 1. **Wave-1 parallelism "no conflict" claim is incorrect.** The Structural Assessment ("P01 + P02 (Wave 1, parallel): Different files (ctl vs pinn_arch), no conflict. Correct.") missed that both P01 and P02 plans write to the shared `16-ISSUE-LEDGER.md` and `pinn_instruction/issues/01-architecture-and-physics-foundations.md`. R3 (synthesis), R4 (claude-ce-doc-review), R5 (codex), R6 (GLM), R8 (ultrathink), and R1's B2 finding all independently flagged this shared-write conflict. The meta-plan (`2026-05-22-phase19-plan-repair-meta-plan.md` Units 1–3) repaired the parallelism rule by requiring serialized or single-coordination-task handling for shared-artifact writes.
+>
+> 2. **M1's "current spec uses MSE" premise is incorrect.** The current `pinn_architecture.md` §3.1 data loss uses MAE/L1 (`L_data = (1/N_data) Σ ||r_pred − r_true||_1`), not MSE. The meta-plan's Unit 1 corrected this transcription. The substantive M1 recommendation — rewrite `L_data` to Huber per resolution §8.2 — remains correct and is implemented in the repaired plans; only the "current state" framing was wrong.
+>
+> See `2026-05-23-phase19-meta-plan-completeness-audit.md` §2.3, §6.1, and §6.2 for the cross-review evidence.
+
+---
+
 ## Executive Summary
 
 Phase 19 plans are structurally well-organized and correctly decompose the work into 4 parallel-blocked plans. All 19 decisions from 19-CONTEXT.md are faithfully propagated. However, **5 findings** are identified across physics verification, factual accuracy, and structural verification quality. None are blockers to execution, but several should be addressed before plan execution begins.
