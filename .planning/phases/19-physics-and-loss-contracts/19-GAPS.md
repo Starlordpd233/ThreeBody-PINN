@@ -32,6 +32,7 @@ This file records every Phase 19 decision where source materials (resolution doc
   - `.planning/phases/19-physics-and-loss-contracts/19-CONTEXT.md:164` transcribes the `L_E` denominator with symbolic `epsilon_H`, but does not record a user decision assigning a numeric value.
 - **Mathematical / engineering grounding:** `epsilon_H` stabilizes division by the initial matched-Plummer Hamiltonian magnitude when computing relative drift. Its value controls how strongly trajectories with small `|H_0|` are penalized: a smaller value preserves a stricter relative normalization but risks exploding `Delta H_n` near zero-energy cases, while a larger value floors the denominator and changes the effective weighting of low-energy trajectories. This is distinct from `epsilon_train` and `epsilon_inv` softening, and distinct from `epsilon_L`, because it normalizes a scalar conservation-drift term rather than regularizing a force/potential denominator or angular-momentum scale. Reusing `10^-8` may be reasonable by analogy to other numerical-stability floors, but that analogy is not a grounding source under the v1.4 STOP protocol.
 - **Agent was tempted to:** Set `epsilon_H = 10^-8`, matching the draft plan and common numerical-floor convention, while labeling it as a stability scale distinct from softening.
+- **Research support:** `EDL-19-01` at `.planning/research/edl/EDL-19-01-epsilon-H.md`. This central brief packages the context for user-led external research; it does not resolve the gap by itself.
 - **What the user needs to decide:**
   - (a) Leave `epsilon_H` symbolic in Phase 19 and require FUT-01 or Phase 21 to bind it with explicit validation.
   - (b) Bind `epsilon_H = 10^-8` now as a Phase 19 loss-contract default.
@@ -46,6 +47,8 @@ This file records every Phase 19 decision where source materials (resolution doc
 ## Notes
 
 GAP-19-01 was surfaced during Phase 19 plan repair before Phase 19 execution. Until resolved, plan text must not preserve or rely on a numeric `epsilon_H` default; dependent P02 work is blocked at the point where a concrete default would be required.
+
+**Dependency map:** numeric `epsilon_H` defaults, concrete `L_E` denominator-default wording, and Phase 21 loss-stability probe design are blocked. Independent Phase 19 work may continue if it preserves symbolic `epsilon_H`. Phase 19 completion requires either user resolution or an explicit deferral that states where and when `epsilon_H` will be bound.
 
 ---
 

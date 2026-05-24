@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
 status: executing
-stopped_at: context exhaustion at 83% (2026-05-22)
-last_updated: "2026-05-22T21:06:15.458Z"
-last_activity: 2026-05-22 -- Phase 19 planning complete
+stopped_at: context exhaustion at 75% (2026-05-24)
+last_updated: "2026-05-24T04:01:05-04:00"
+last_activity: 2026-05-24 -- EDL support workflow documented
 progress:
   total_phases: 6
   completed_phases: 3
@@ -18,7 +18,7 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-15)
+See: .planning/PROJECT.md (updated 2026-05-24)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
 **Current focus:** Phase 19 — physics and loss contracts
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-15)
 Phase: 19
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-05-22 -- Phase 19 planning complete
+Last activity: 2026-05-24 -- EDL support workflow documented
 Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
@@ -72,7 +72,7 @@ Progress: [█████░░░░░] 50%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16, 17, and 18 are complete and verified; Phase 19 is ready to discuss/plan.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16, 17, and 18 are complete and verified; Phase 19 is ready to discuss/plan. EDL support is now documented as a non-canonical support workflow under `.planning/research/edl/`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-19, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
@@ -121,6 +121,7 @@ Recent decisions affecting current work:
 - [v1.4-init]: M4 (constraint counting) elevated to PHYS-06 — was missing from initial requirement coverage.
 - [v1.4-init]: `master_consolidation_report.md` demoted from co-equal primary source to supporting evidence.
 - [v1.4-workflow]: All Phases 17–21 spec work happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
+- [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative, the user performs external research, and EDL artifacts do not resolve gaps or authorize probes/defaults/spec edits without user instruction. `GAP-19-01` has central brief `EDL-19-01`.
 - [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
 - [v1.1]: Automated Python diffing approach chosen for verification
 - [v1.1]: 4 verification dimensions: content completeness, preamble parity, structure fidelity, compilability
@@ -151,8 +152,9 @@ All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-18 are com
 
 ### Blockers/Concerns
 
-None blocking, but three operational notes for v1.4 execution:
+One dependency-scoped blocker plus three operational notes apply to v1.4 execution:
 
+- `GAP-19-01` / `EDL-19-01` blocks a numeric `epsilon_H` default and dependent `L_E` / loss-stability probe design. Independent Phase 19 work may continue if symbolic `epsilon_H` is preserved; Phase 19 cannot close until the user resolves or explicitly defers the gap.
 - **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
 - Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
 - Phases 17–20 each need a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-02, B-04, B-09, M5.
@@ -171,7 +173,7 @@ None blocking, but three operational notes for v1.4 execution:
 
 ## Session Continuity
 
-Last session: 2026-05-22T21:06:15.450Z
-Stopped at: context exhaustion at 83% (2026-05-22)
+Last session: 2026-05-24T06:26:00.537Z
+Stopped at: context exhaustion at 75% (2026-05-24)
 Resume file: None
 Next action: Discuss or plan Phase 19 physics and loss contracts
