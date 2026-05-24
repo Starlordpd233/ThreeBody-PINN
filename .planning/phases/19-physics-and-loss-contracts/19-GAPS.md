@@ -5,7 +5,7 @@ total_gaps: 1
 open_gaps: 1
 resolved_gaps: 0
 deferred_gaps: 0
-last_updated: 2026-05-22
+last_updated: 2026-05-24
 governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block (STOP protocol + math/engineering grounding requirement + no-live-code directive). GAP-19-01 is OPEN; dependent Phase 19 P02 work must not assign a numeric epsilon_H default until user instruction resolves it."
 ---
 
@@ -46,3 +46,17 @@ This file records every Phase 19 decision where source materials (resolution doc
 ## Notes
 
 GAP-19-01 was surfaced during Phase 19 plan repair before Phase 19 execution. Until resolved, plan text must not preserve or rely on a numeric `epsilon_H` default; dependent P02 work is blocked at the point where a concrete default would be required.
+
+---
+
+## Known Symmetric Edge Cases (non-blocking)
+
+This section documents edge cases that are mathematically symmetric between two loss terms and share a single mitigation. They are not STOP-protocol gaps — they do not require user instruction — but they are recorded here so future audits and Phase 21 numeric-validation planners do not treat them as missed.
+
+### KSE-19-01: `L_E` and `L_L` denominator-collapse symmetry near zero conserved quantity
+
+- **Loss terms:** `L_E` uses `H_scale = |H_0'| + ε_H`; `L_L` uses `L_scale = ||L_0'|| + ε_L` (see `19-CONTEXT.md` decisions D-06 and the L_E formula context).
+- **Edge case:** For marginally-bound trajectories with `|H_0'| → 0`, the `L_E` denominator collapses to `ε_H`, amplifying relative-drift magnitudes. The mathematically symmetric `L_L` case occurs for IC samples with near-coplanar / near-collinear configurations where `||L_0'|| → 0`.
+- **Shared mitigation:** Both losses apply Huber (δ=1.0) around the per-sample relative-drift term. The Huber cap bounds per-sample contribution to linear growth past `δ`, so denominator-driven amplification cannot drive unbounded loss for either term.
+- **Phase 21 follow-up:** Phase 21 numeric validation (AC-PHYS-04 for `L_E`, AC-PHYS-05/06 for `L_L`) should include low-`|H_0|` and low-`||L_0||` IC subsets in the disposable probes so the Huber-cap mitigation is exercised, not assumed. Surface a NEW gap only if either Phase 21 probe reveals the Huber cap is insufficient and prescreening, formula changes, or a denominator floor change become necessary.
+- **Why not a STOP-protocol gap:** No user instruction is needed; the contract is grounded (resolution §8.5 for `L_E`, §8.6 for `L_L`); the mitigation is symmetric; the residual risk is empirical and properly belongs in Phase 21 numeric validation, not Phase 19 structural specification.
