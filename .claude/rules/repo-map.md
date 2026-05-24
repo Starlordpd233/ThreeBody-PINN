@@ -15,6 +15,7 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 - `paper_templates/` — Documentation templates
 - `reference-code/` — Reference implementations
 - `.planning/` — GSD planning artifacts and phases
+- `.planning/research/edl/` — Non-canonical EDL research-support briefs for empirically consequential source-silent gaps
 
 ## Key Scripts
 
