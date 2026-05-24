@@ -62,6 +62,16 @@ If the decision is not grounded, classify it:
 
 5. **Surface to the user** via the active workflow channel. Halted work stays halted until the user provides instruction. Once instruction arrives, update Status to `RESOLVED-WITH-INSTRUCTION` (or `DEFERRED`), fill `Resolution note`, and resume.
 
+### Empirical Decision Loop support
+
+For source-silent gaps that are empirically consequential, the non-canonical Empirical Decision Loop draft at `.planning/research/edl/README.md` may be used to prepare research support. This workflow does **not** replace the STOP protocol.
+
+- The phase-local gap register remains the authoritative blocking and resolution record.
+- Central EDL briefs under `.planning/research/edl/` package context for user-led external research; the agent does not perform that research or infer the final answer from the brief.
+- EDL briefs are support artifacts, not grounding sources. They do not authorize a probe, a numeric default, or a framework-spec edit without user instruction.
+- Use dependency-scoped blocking: stop only the work that depends on the unresolved decision, while independent work may continue if the gap entry says it is safe.
+- A phase may not close with an unresolved EDL-supported gap unless the user explicitly resolves or defers it.
+
 ### Scope boundary
 
 - A gap encountered during Phase NN work that is *actually about* a different phase's content goes into **that phase's** `MM-GAPS.md` (or into `v1.4-GAPS.md` if it spans multiple phases).

@@ -3,13 +3,15 @@
 **Defined:** 2026-05-15
 **Core Value:** The simulation dataset and data pipeline must be clean, well-validated, and correctly processed; framework specs must be physically coherent before implementation work depends on them.
 
-**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 and 17 are complete. The next logical workflow step is `$gsd-discuss-phase 18`.
+**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 18 are complete. Phase 19 physics and loss contracts are next.
 
 ## v1.4 Requirements
 
 ### Evidence and Resolution Validation
 
 Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adjudication of Issue 01 and is the candidate set of fixes for v1.4. Per user directive 2026-05-18, it is adopted as the **default verdict source** — the agent transcribes its positions into framework-spec edits unless EVID-05 surfaces concrete evidence that the position fails. Every claim in it must survive critical examination against `01-architecture-and-physics-foundations.md`, the current framework specs (`ctl_instruction.md`, `pinn_architecture.md`, `sampling_method.md`), and first-principles physics before any spec edit is applied. `master_consolidation_report.md` is supporting evidence consumed by the resolution doc, not a co-equal primary source. **Live code in `pinn/` is NOT part of the examination basis** (directive 2026-05-19) — the v1.3-era code is artifact, not authority, and will be rebuilt from the v1.4 specs in FUT-01. Live-code references are permitted only in forward-pointing FUT-01 hand-off documents.
+
+Empirical Decision Loop support: when a source-silent decision is empirically consequential and the agent cannot decide whether theory/source material is enough, the agent records the decision in the phase-local gap register and may attach a central EDL research brief under `.planning/research/edl/`. The brief packages context for user-led external research; it is not itself grounding, does not resolve the gap, and does not authorize probe execution without user instruction. Phase-local gap registers remain the canonical blocking and resolution records.
 
 - [x] **EVID-01**: For each Issue 01 finding selected for remediation, the agent records direct evidence from `ctl_pinn_resolution.md`, `01-architecture-and-physics-foundations.md`, and the current framework specs before editing. Evidence packets cite line ranges, not whole files. (Live code in `pinn/` is NOT a source of evidence per the 2026-05-19 directive — the v1.3-era code is non-authoritative artifact, rebuilt in FUT-01 from v1.4 specs.)
 - [x] **EVID-02**: Each issue receives an explicit verdict drawn from a fixed set — `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, or `defer-with-blocker` — with the reasoning recorded in the evidence packet.
@@ -72,6 +74,7 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 | **SCOPE-02** `sampling_method.md` revisions | **In scope, limited to FRAME-03** — hierarchical post-perturbation COM offset wording and any cross-reference needed for the unified preprocessing contract. No sampling-method content unrelated to Issue 01 is rewritten. |
 | **SCOPE-03** Data-quality-assessment and SCS gate work | **Out of scope — already completed** on branch `codex/scs-gate-correction`. v1.4 does not re-open `SI-DQA-002`/`SI-DQA-003`. |
 | **SCOPE-04** Disposable validation probes | **In scope, limited** — probes may be created, recorded, or run only to test risky framework contracts and produce evidence for VER-04. They are not production framework code and are not packaged as reusable `pinn/` validation infrastructure during v1.4. |
+| **EDL support artifacts** | **Non-canonical support workflow** — `.planning/research/edl/README.md`, `.planning/research/edl/INDEX.md`, and central EDL briefs prepare user research for empirically consequential source-silent decisions. They support, but do not replace, phase gap registers and milestone requirements. |
 
 ## Out of Scope
 
@@ -127,4 +130,4 @@ Resolution-doc treatment policy: `ctl_pinn_resolution.md` is the most recent adj
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-05-21 after Phase 18 completion — FRAME-01 through FRAME-04 are complete; Phase 19 is next.*
+*Last updated: 2026-05-24 after EDL support-workflow recognition — FRAME-01 through FRAME-04 are complete; Phase 19 is next.*

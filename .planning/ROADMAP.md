@@ -96,6 +96,8 @@ Every issue and every edit in v1.4 follows this loop:
 4. **Re-verify after every batch** — re-run the acceptance check on every previously `VERIFIED` finding the new batch could have regressed (same spec section, dependent contract, or shared formula). Any regression reverts that finding to `IN_PROGRESS`.
 5. **Ledger discipline** — each finding's status (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` or `DEFERRED`) lives in `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`. No phase exits until every in-scope finding is `VERIFIED` or `DEFERRED` with a written blocker. "I applied the patch" is **not** a closure event; "the acceptance check passed" is.
 
+**EDL research support:** If a source-silent decision is empirically consequential and cannot be settled from sources or short first-principles reasoning, record it in the phase-local gap register first. When useful, attach a central EDL research brief under `.planning/research/edl/` so the user can research the decision externally. EDL artifacts are non-canonical support unless promoted; the phase gap register owns blocking, deferral, and resolution.
+
 This loop expects iteration. It is normal for a contested finding to cycle through `FIX_APPLIED → IN_PROGRESS → FIX_APPLIED` multiple times before reaching `VERIFIED` — especially when an initial fix treats the surface symptom rather than the root cause.
 
 - [x] **Phase 16: Evidence Framework and Issue Adjudication** — Establish the issue ledger schema, evidence-packet template, EVID-05 conflict-adjudication protocol, and VER-05 re-verification cycle that every Issue 01 edit must follow. (completed 2026-05-16)
