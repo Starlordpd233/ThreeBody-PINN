@@ -49,7 +49,7 @@ for future re-verification.
   between the v1.4 spec and the existing standard quasi-random dataset.
 - **Documents to review** (Option C — grouped by purpose):
   - **Design and execution contract:**
-    - `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` §3 — locked Option A convention.
+    - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` §3 — locked Option A convention.
     - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` Task 5 — spec edits.
     - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` — mathematical grounding and decision analysis.
   - **Data-generation grounding:**
@@ -117,7 +117,7 @@ for future re-verification.
 - **Documents to review** (Option A):
   - `.planning/phases/17-input-and-output-contracts/17-GAPS.md` GAP-17-04 — precedent for hand-off file schema decisions.
   - `.planning/PROJECT.md` Key Decision "Live code in `pinn/` is NOT a grounding source during v1.4" — FUT-01 hand-off carveout.
-  - `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` §5.6 — data-alignment hand-off purpose.
+  - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` §5.6 — data-alignment hand-off purpose.
 - **Status:** `RESOLVED-WITH-INSTRUCTION`
 - **Resolution note:** User approved the Phase 20.5 design (containing
   `20-5-DATA-ALIGNMENT.md`) on 2026-05-19. The file documents spec↔`simulation_data`

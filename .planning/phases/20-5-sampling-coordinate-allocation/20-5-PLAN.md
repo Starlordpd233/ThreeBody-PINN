@@ -14,7 +14,7 @@ edits; Task 4 creates the gap registers; Task 5 applies the five spec edits; Tas
 disposable verification probe; Tasks 7–8 create the hand-off and findings artifacts. The locked
 convention is "Option A" — the conditional `(δ_s, δ_v)` allocation that the existing
 standard quasi-random dataset was generated under. Full rationale:
-`docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` (historical).
+`.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md`.
 Research extraction: `20-5-RESEARCH.md` (GSD-native, authoritative for execution).
 Gap register: `20-5-GAPS.md`.
 
@@ -116,7 +116,7 @@ Insert immediately BEFORE it (note the blank line after the block):
   3. The phase-local gap register records GAP-20-5-01/02/03 at `RESOLVED-WITH-INSTRUCTION`.
   4. `20-5-DATA-ALIGNMENT.md` records the alignment with `ic_generation_utils.py` and the FUT-01 hand-off, and defines `AC-SAMP-01` for Phase 21 execution.
 
-**Plans**: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` (authoritative GSD copy). Historical: `docs/superpowers/plans/2026-05-19-phase-20-5-sampling-coordinate-allocation.md` (deprecated).
+**Plans**: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` (authoritative GSD copy).
 
 ```
 
@@ -361,8 +361,8 @@ for future re-verification.
   between the v1.4 spec and the existing standard quasi-random dataset.
 - **Documents to review** (Option C — grouped by purpose):
   - **Design and execution contract:**
-    - `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` §3 — locked Option A convention.
-    - `docs/superpowers/plans/2026-05-19-phase-20-5-sampling-coordinate-allocation.md` Task 5 — spec edits.
+    - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` §3 — locked Option A convention.
+    - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` Task 5 — spec edits.
   - **Data-generation grounding:**
     - `simulation_data/Scripts/ic_generation/ic_generation_utils.py` — Sobol dimension and allocation order.
     - `simulation_data/Scripts/ic_generation/generate_ics.py` — standard config enabling scaling and velocity sampling.
@@ -428,7 +428,7 @@ for future re-verification.
 - **Documents to review** (Option A):
   - `.planning/phases/17-input-and-output-contracts/17-GAPS.md` GAP-17-04 — precedent for hand-off file schema decisions.
   - `.planning/PROJECT.md` Key Decision "Live code in `pinn/` is NOT a grounding source during v1.4" — FUT-01 hand-off carveout.
-  - `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` §5.6 — data-alignment hand-off purpose.
+  - `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` §5.6 — data-alignment hand-off purpose.
 - **Status:** `RESOLVED-WITH-INSTRUCTION`
 - **Resolution note:** User approved the Phase 20.5 design (containing
   `20-5-DATA-ALIGNMENT.md`) on 2026-05-19. The file documents spec↔`simulation_data`

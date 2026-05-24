@@ -3,7 +3,7 @@ phase: "20.5"
 slug: sampling-coordinate-allocation
 milestone: v1.4
 type: research
-origin: "docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md"
+origin: ".planning/phases/20-5-sampling-coordinate-allocation/"
 date: 2026-05-19
 status: complete
 ---
@@ -12,12 +12,12 @@ status: complete
 
 This document records the research findings that inform Phase 20.5 (Sampling Coordinate
 Allocation). It is the GSD-native extraction of the design rationale originally authored at
-`docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md` (571 lines).
+`.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md`.
 The design doc is the historical artifact; this file is the authoritative research reference
 for Phase 20.5 execution.
 
 **Companion documents:**
-- Design rationale (historical): `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md`
+- Design rationale (this file): `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md`
 - Implementation plan: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md`
 - Gap register: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md`
 - Origin finding: `docs/findings/addressing_sobol_sequence_suggestion.md`
