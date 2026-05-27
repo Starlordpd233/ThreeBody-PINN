@@ -1,7 +1,7 @@
 ---
 edl_id: EDL-19-01
 linked_gap: GAP-19-01
-status: OPEN-RESEARCH-NEEDED
+status: RESOLVED-WITH-INSTRUCTION
 phase: 19-physics-and-loss-contracts
 topic: epsilon_H energy-drift denominator floor
 created: 2026-05-24
@@ -11,9 +11,11 @@ canonical: false
 
 # EDL-19-01: `epsilon_H` Energy-Drift Denominator Floor
 
+> Resolution pointer: `GAP-19-01` was resolved by user instruction on 2026-05-26. The canonical resolution is recorded in `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` and locked as `D-20` in `19-CONTEXT.md`. This EDL brief remains a non-canonical research-support artifact.
+
 ## Short Answer Needed
 
-Determine how Phase 19 should handle the numerical default for `epsilon_H` in the energy-drift denominator:
+This support brief originally framed how Phase 19 should handle the numerical default for `epsilon_H` in the energy-drift denominator:
 
 - leave `epsilon_H` symbolic for now;
 - bind a numeric default now;
@@ -21,7 +23,7 @@ Determine how Phase 19 should handle the numerical default for `epsilon_H` in th
 - run an EDL probe before binding it;
 - defer binding to Phase 21 or FUT-01 with explicit conditions.
 
-The agent should not choose this on its own.
+The agent did not choose this on its own; the linked canonical gap was resolved by user instruction on 2026-05-26.
 
 ## Current Project State
 

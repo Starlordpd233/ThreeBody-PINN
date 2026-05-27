@@ -121,7 +121,7 @@ Recent decisions affecting current work:
 - [v1.4-init]: M4 (constraint counting) elevated to PHYS-06 — was missing from initial requirement coverage.
 - [v1.4-init]: `master_consolidation_report.md` demoted from co-equal primary source to supporting evidence.
 - [v1.4-workflow]: All Phases 17–21 spec work happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
-- [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative, the user performs external research, and EDL artifacts do not resolve gaps or authorize probes/defaults/spec edits without user instruction. `GAP-19-01` has central brief `EDL-19-01`.
+- [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative, the user performs external research, and EDL artifacts do not resolve gaps or authorize probes/defaults/spec edits without user instruction. GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
 - [v1.1]: Automated Python diffing approach chosen for verification
 - [v1.1]: 4 verification dimensions: content completeness, preamble parity, structure fidelity, compilability
@@ -154,7 +154,7 @@ All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-18 are com
 
 One dependency-scoped blocker plus three operational notes apply to v1.4 execution:
 
-- `GAP-19-01` / `EDL-19-01` blocks a numeric `epsilon_H` default and dependent `L_E` / loss-stability probe design. Independent Phase 19 work may continue if symbolic `epsilon_H` is preserved; Phase 19 cannot close until the user resolves or explicitly defers the gap.
+- GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
 - Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
 - Phases 17–20 each need a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-02, B-04, B-09, M5.

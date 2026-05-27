@@ -296,7 +296,7 @@ A possible EDL probe direction, if the user approves EDL execution, could test t
 - measure denominator activation rate, normalized drift quantiles, outlier blowups, ranking stability, and gradient-scale proxy;
 - identify whether a candidate is mostly inactive for ordinary samples while still preventing unstable blowups near low-energy cases.
 
-Until this EDL result exists or the user resolves the gap another way, the framework should keep `epsilon_H` symbolic or explicitly gap-blocked.
+EDL-19-01 is no longer an open research dependency; see the canonical `GAP-19-01` resolution in `19-GAPS.md`.
 
 The first detailed research brief for this decision is `.planning/research/edl/EDL-19-01-epsilon-H.md`.
 

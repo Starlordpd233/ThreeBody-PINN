@@ -181,4 +181,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-24 — EDL draft support workflow recognized as non-canonical; Phase 19 `GAP-19-01` has central research brief `EDL-19-01`. Phase 18 remains complete; Phase 19 physics/loss contracts are next. Phase 20.5 execution remains pending before Phase 21.*
+*Last updated: 2026-05-26 — EDL-19-01 no longer blocks Phase 19 loss-contract closure; the canonical resolution is recorded in 19-GAPS.md and D-20 of 19-CONTEXT.md. Phase 18 remains complete; Phase 19 physics/loss contracts are next. Phase 20.5 execution remains pending before Phase 21.*

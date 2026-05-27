@@ -6,7 +6,7 @@
 
 ---
 
-> **GOVERNANCE NOTICE** — Produced under `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` **CRITICAL GOVERNANCE** rule (STOP protocol + math/engineering grounding requirement). No new `19-GAPS.md` entries were created at context-gathering time: every semantic and process-artifact decision below was either (a) directly answered by the user in the 2026-05-22 discussion, or (b) grounded in locked Phase 16/17/18 precedent. During the 2026-05-22 plan-repair pass, `GAP-19-01` was opened for the ungrounded numeric default `epsilon_H = 10^-8`; dependent P02 work must not choose a numeric `epsilon_H` default until the user resolves it. The Phase 16 ledger inconsistency on M4's `Sources Disagree?` flag was surfaced and corrected in the same discussion (D-16) rather than being recorded as a gap, because the user provided the corrective instruction inline. New gaps encountered during plan-phase or execute-phase MUST be appended to `19-GAPS.md` per the STOP protocol; the Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
+> **GOVERNANCE NOTICE** — Produced under `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` **CRITICAL GOVERNANCE** rule (STOP protocol + math/engineering grounding requirement). No new `19-GAPS.md` entries were created at context-gathering time: every semantic and process-artifact decision below was either (a) directly answered by the user in the 2026-05-22 discussion, or (b) grounded in locked Phase 16/17/18 precedent. During the 2026-05-22 plan-repair pass, `GAP-19-01` was opened for the ungrounded numeric default `epsilon_H = 10^-8`; it is now RESOLVED-WITH-INSTRUCTION by user instruction 2026-05-26 as D-20. The Phase 16 ledger inconsistency on M4's `Sources Disagree?` flag was surfaced and corrected in the same discussion (D-16) rather than being recorded as a gap, because the user provided the corrective instruction inline. New gaps encountered during plan-phase or execute-phase MUST be appended to `19-GAPS.md` per the STOP protocol; the Decision Status Summary at the top of §"Implementation Decisions" below is the authoritative gate.
 >
 > **Live-code directive (2026-05-19):** Live code in `pinn/` is NOT a grounding source for any v1.4 decision; v1.3-era artifact rebuilt by FUT-01. References allowed only in forward-pointing `19-CODE-DIVERGENCE.md`.
 >
@@ -74,8 +74,9 @@ Per CRITICAL GOVERNANCE rule. Plan-phase and execute-phase agents MUST consult t
 | **D-17** `simulation_data/` role in `evidence/B-09.md` §5 = supporting evidence, NOT grounding for new spec decisions | ✅ LOCKED | User 2026-05-22 | Actionable. Cite inspected generation/Brutus/metrics files + finding (no upstream force-softening quantity; IC generator's `epsilon = 0.05` is a rejection threshold) + implication (no quantity to mismatch). Add caveat that `simulation_data/Validation/dataset_readiness_checks/` is excluded from this supporting-evidence surface because it contains `pinn/`-adapted static-invariant helpers. Differs from Phase 18 D-10 FRAME-03 grounding role. |
 | **D-18** Symbol renames: `epsilon_soft → epsilon_train`; introduce `epsilon_inv`; matches resolution-doc convention | ✅ LOCKED | User 2026-05-22 | Actionable. Mechanical cleanup; reduces ambiguity. `η_gauge` (Phase 18 D-14) remains numerical-geometry guard — clean separation preserved. |
 | **D-19** `19-CODE-DIVERGENCE.md` mirrors `17/18-CODE-DIVERGENCE.md` schema; row-level FUT-01 priority hints non-binding | ✅ LOCKED | Phase 17 D-14 / Phase 18 D-13 precedent | Actionable. Schema identical; content scope = Phase 19's divergences (see Specific Ideas). |
+| **D-20** `epsilon_H` energy-drift denominator floor for `L_E` | ✅ LOCKED | User 2026-05-26 | Actionable. `epsilon_H = 1e-4 * S_H`; `S_H = median_train(K0 + Uabs0)` computed once in `float64` after final preprocessing over the training split. Invalid `S_H` fails validation; Phase 21 reports activation behavior only. |
 
-**Summary:** 19 context-gathering decisions are LOCKED. No OPEN gaps existed at context-gathering time; `GAP-19-01` was opened during the 2026-05-22 plan-repair pass for the ungrounded numeric `epsilon_H` default. Plans P01/P02 may proceed only on disjoint spec-file edits and must serialize shared lifecycle artifacts; any P02 step requiring a concrete `epsilon_H` value is blocked until user instruction resolves `GAP-19-01`.
+**Summary:** 20 context-gathering and follow-up decisions are LOCKED. No OPEN gaps existed at context-gathering time; `GAP-19-01` was opened during the 2026-05-22 plan-repair pass for the ungrounded numeric `epsilon_H` default and resolved by user instruction on 2026-05-26. Plans P01/P02 may proceed only on disjoint spec-file edits and must serialize shared lifecycle artifacts; P02 must use the D-20 `epsilon_H = 1e-4 * S_H` contract.
 
 ---
 
@@ -162,7 +163,7 @@ Replaces the current pseudo-ALM formulation `L_data + λ_p L_phys + (μ_p/2) L_p
 | `L_data` | Resolution §8.2 | Huber, `δ_r = 1` default (current `pinn_architecture.md` data-loss prose uses MAE/L1 — change to Huber). |
 | `L_IC` | Resolution §8.3 | **NEW.** Position anchor `L_IC,r` + velocity anchor `L_IC,v` at `u = 0`; `L_IC = L_IC,r + β_v · L_IC,v`, `β_v = 1`. `λ_IC = 1` default, ablation range `[0.1, 10]`. |
 | `L_phys^causal` | Resolution §8.4 | Causal weights `w_n = exp(-η_c · Σ_{m<n} stopgrad(R̄_m))`, `w_1 = 1`, `η_c = 1` default. **stopgrad in weights by default** to prevent the weight mechanism from becoming an adversarial term. |
-| `L_E` | Resolution §8.5 + D-04 reframing | Huber on relative drift `ΔH_n = (H_ε(r_θ', v_θ') − H_ε(r_0', v_0')) / (|H_ε(r_0', v_0')| + ε_H)`, `δ = 1.0`. Soft conservation regularizer (NOT HNN). `ε_H` is symbolic until `GAP-19-01` is resolved; do not assign a numeric default in Phase 19 execution plans. |
+| `L_E` | Resolution §8.5 + D-04/D-20 reframing | Huber on relative drift `ΔH_n = (H_ε(r_θ', v_θ') − H_ε(r_0', v_0')) / (|H_ε(r_0', v_0')| + ε_H)`, `δ = 1.0`. Soft conservation regularizer (NOT HNN). `epsilon_H = 1e-4 * S_H`, where `S_H = median_train(K0 + Uabs0)` is computed once in `float64` after final preprocessing over the training split. Invalid `S_H` fails preprocessing/metadata validation; no fallback numeric floor is used. See D-20. |
 | `L_L` | Resolution §8.6 | **NEW.** Componentwise Huber on relative angular-momentum drift, `L_scale = ‖L_0'‖ + ε_L`, `ε_L = 10⁻⁸` numerical-stability scale (distinct from softening — see D-06). |
 
 **Warmup schedule** (resolution §8.7) replaces the legacy `λ_E(k) = 10^(k-3)`-only schedule:
@@ -374,6 +375,62 @@ Phase 19's divergence rows (initial list; planner finalizes):
 
 Lines/exact paths are non-binding — verified by FUT-01 against the post-rewrite codebase. Phase 19 records the divergence structure, not exact LOC counts.
 
+#### D-20 (`epsilon_H` energy-drift denominator floor for `L_E`)
+
+**Status:** LOCKED
+
+**Authority:** User instruction resolving `GAP-19-01` / `EDL-19-01`
+
+**Date:** 2026-05-26
+
+**Decision:** Use a dataset-scale Hamiltonian floor:
+
+```text
+epsilon_H = 1e-4 * S_H
+```
+
+where:
+
+```text
+S_H = median_train(K0 + Uabs0)
+```
+
+computed once in `float64` after final COM/zero-momentum/gauge/scaling preprocessing over the training split.
+
+The components are:
+
+```text
+K0 = 0.5 * sum_i m_i ||v0_i'||^2
+
+Uabs0 = sum_{i<k} m_i m_k /
+        sqrt(||r0_i' - r0_k'||^2 + epsilon_train^2)
+```
+
+with `epsilon_train = 1e-5` and the same matched-Plummer Hamiltonian convention used by the training loss.
+
+`S_H` must be finite and strictly positive. If `S_H <= 0` or is non-finite, preprocessing or metadata validation must fail rather than applying a fallback numeric floor.
+
+Use `epsilon_H` only in the energy-drift denominator:
+
+```text
+|H0| + epsilon_H
+```
+
+Persist both `S_H` and `epsilon_H` in training metadata. Do not tie `epsilon_H` to `epsilon_train`, `epsilon_inv`, or `epsilon_L`.
+
+Phase 21 validates activation behavior only by reporting:
+
+```text
+Pr(|H0| < epsilon_H)
+quantiles of |H0| / S_H
+```
+
+Phase 21 must not reselect `epsilon_H` unless a new user instruction opens a replacement gap.
+
+**Rationale:** Near-zero `H0` is physically meaningful for marginally bound trajectories, but strict relative normalization is ill-conditioned near zero. The dataset-scale floor preserves relative drift for typical bound systems while converting near-zero-`H0` samples to a controlled absolute Hamiltonian scale. `Huber(delta=1)` caps loss values but does not remove denominator-driven gradient/sample weighting.
+
+**Amendment provenance:** `epsilon_H = 1e-4 * S_H` is a deliberate amendment to `EDL-19-01-resolution.md`, which included a `1e-12` backstop on the scale-relative candidate. The `1e-12` backstop is dropped per user instruction 2026-05-26: it is numerically inert at float32 (machine eps ~1.2e-7), and a near-zero/non-finite `S_H` must fail validation rather than be masked. The resolution doc remains non-canonical research support.
+
 ### Claude's Discretion
 
 - Exact section-break placement of the new "Governing Mathematical Convention" anchor in `ctl_instruction.md` Step 2.5 (per resolution §10.1).
@@ -462,7 +519,7 @@ Distinct role from Phase 18 D-10's FRAME-03 grounding usage (see D-17 in this do
 
 ### Governance / gap registers
 
-- `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` — Phase 19 gap register. Created during plan repair with `GAP-19-01` for the ungrounded numeric `epsilon_H` default. New gaps from plan-phase or execute-phase appended per STOP protocol.
+- `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` — Phase 19 gap register. Created during plan repair with `GAP-19-01` for the ungrounded numeric `epsilon_H` default; resolved by user instruction 2026-05-26 as D-20. New gaps from plan-phase or execute-phase appended per STOP protocol.
 - `.planning/milestones/v1.4-GAPS.md` — Milestone-wide gap index.
 
 </canonical_refs>

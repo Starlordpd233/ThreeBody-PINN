@@ -2,11 +2,11 @@
 phase: 19
 slug: physics-and-loss-contracts
 total_gaps: 1
-open_gaps: 1
-resolved_gaps: 0
+open_gaps: 0
+resolved_gaps: 1
 deferred_gaps: 0
-last_updated: 2026-05-24
-governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block (STOP protocol + math/engineering grounding requirement + no-live-code directive). GAP-19-01 is OPEN; dependent Phase 19 P02 work must not assign a numeric epsilon_H default until user instruction resolves it."
+last_updated: 2026-05-26
+governance: "Governed by CLAUDE.md/AGENTS.md/GEMINI.md 'CRITICAL GOVERNANCE' block (STOP protocol + math/engineering grounding requirement + no-live-code directive). GAP-19-01 is RESOLVED-WITH-INSTRUCTION; epsilon_H = 1e-4 * S_H per user instruction 2026-05-26. See D-20 in 19-CONTEXT.md."
 ---
 
 # Phase 19 Gap Register
@@ -33,22 +33,29 @@ This file records every Phase 19 decision where source materials (resolution doc
 - **Mathematical / engineering grounding:** `epsilon_H` stabilizes division by the initial matched-Plummer Hamiltonian magnitude when computing relative drift. Its value controls how strongly trajectories with small `|H_0|` are penalized: a smaller value preserves a stricter relative normalization but risks exploding `Delta H_n` near zero-energy cases, while a larger value floors the denominator and changes the effective weighting of low-energy trajectories. This is distinct from `epsilon_train` and `epsilon_inv` softening, and distinct from `epsilon_L`, because it normalizes a scalar conservation-drift term rather than regularizing a force/potential denominator or angular-momentum scale. Reusing `10^-8` may be reasonable by analogy to other numerical-stability floors, but that analogy is not a grounding source under the v1.4 STOP protocol.
 - **Agent was tempted to:** Set `epsilon_H = 10^-8`, matching the draft plan and common numerical-floor convention, while labeling it as a stability scale distinct from softening.
 - **Research support:** `EDL-19-01` at `.planning/research/edl/EDL-19-01-epsilon-H.md`. This central brief packages the context for user-led external research; it does not resolve the gap by itself.
-- **What the user needs to decide:**
-  - (a) Leave `epsilon_H` symbolic in Phase 19 and require FUT-01 or Phase 21 to bind it with explicit validation.
+- **What the user needs to decide:** **RESOLVED** — User selected a variant of option (c): scale-relative rule. See resolution note above.
+  - (a) Leave the Phase 19 denominator floor symbolic and require FUT-01 or Phase 21 to bind `epsilon_H` with explicit validation.
   - (b) Bind `epsilon_H = 10^-8` now as a Phase 19 loss-contract default.
   - (c) Provide a different numeric value and explain whether it is absolute, dimensionless, or tied to an energy scale.
   - (d) User writes the exact `epsilon_H` contract directly.
 - **Confidence of impact:** **HIGH** - affects the default energy-drift loss weighting and may change both Phase 19 spec text and Phase 21 loss-stability validation design.
-- **Status:** **OPEN**
+- **Status:** **RESOLVED-WITH-INSTRUCTION**
 - **Resolution note:**
+  - Resolution date: 2026-05-26
+  - Resolution authority: User instruction for GAP-19-01 / EDL-19-01
+  - Decision: Adopt Option C, scale-relative denominator floor.
+  - Contract: `epsilon_H = 1e-4 * S_H`, where `S_H = median_train(K0 + Uabs0)`, computed once in `float64` after final preprocessing over the training split using the matched-Plummer Hamiltonian components with `epsilon_train = 1e-5`.
+  - Validation: `S_H` must be finite and strictly positive; invalid `S_H` fails preprocessing/metadata validation. No fallback absolute floor is used.
+  - Scope: `epsilon_H` is used only in the `L_E` denominator `|H0| + epsilon_H`. Persist `S_H` and `epsilon_H` in training metadata. Phase 21 reports activation behavior only and does not choose `epsilon_H` from scratch.
+  - Amendment provenance: `epsilon_H = 1e-4 * S_H` is a deliberate amendment to `EDL-19-01-resolution.md`, which included a `1e-12` backstop on the scale-relative candidate. The `1e-12` backstop is dropped per user instruction 2026-05-26: it is numerically inert at float32 (machine eps ~1.2e-7), and a near-zero/non-finite `S_H` must fail validation rather than be masked. The resolution doc remains non-canonical research support.
 
 ---
 
 ## Notes
 
-GAP-19-01 was surfaced during Phase 19 plan repair before Phase 19 execution. Until resolved, plan text must not preserve or rely on a numeric `epsilon_H` default; dependent P02 work is blocked at the point where a concrete default would be required.
+GAP-19-01 was surfaced during Phase 19 plan repair before Phase 19 execution. **RESOLVED** — `epsilon_H` is now bound as `1e-4 * S_H`; plan text must preserve that contract rather than relying on the former unresolved blocker.
 
-**Dependency map:** numeric `epsilon_H` defaults, concrete `L_E` denominator-default wording, and Phase 21 loss-stability probe design are blocked. Independent Phase 19 work may continue if it preserves symbolic `epsilon_H`. Phase 19 completion requires either user resolution or an explicit deferral that states where and when `epsilon_H` will be bound.
+**Dependency map:** numeric `epsilon_H` defaults, concrete `L_E` denominator-default wording, and Phase 21 loss-stability probe design were blocked while the gap was open. **RESOLVED** — user instruction received 2026-05-26. Phase 19 may close once the canonical resolution is reflected in the Phase 19 planning artifacts, and Phase 21 validates activation behavior only.
 
 ---
 

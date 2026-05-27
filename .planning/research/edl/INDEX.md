@@ -24,7 +24,7 @@ This registry tracks central Empirical Decision Loop research-support artifacts.
 
 | EDL ID | Linked gap | Topic | Status | Brief | Blocking summary |
 |--------|------------|-------|--------|-------|------------------|
-| EDL-19-01 | `GAP-19-01` | `epsilon_H` energy-drift denominator floor | OPEN-RESEARCH-NEEDED | `.planning/research/edl/EDL-19-01-epsilon-H.md` | Blocks numeric `epsilon_H` default and dependent `L_E` / loss-stability probe design; unrelated Phase 19 work may continue. |
+| EDL-19-01 | `GAP-19-01` | `epsilon_H` energy-drift denominator floor | RESOLVED-WITH-INSTRUCTION | `.planning/research/edl/EDL-19-01-epsilon-H.md` | Resolved per canonical `19-GAPS.md`; support brief retained for research provenance. Contract: epsilon_H = 1e-4 * S_H, S_H = median_train(K0 + Uabs0). |
 
 ## Notes
 
