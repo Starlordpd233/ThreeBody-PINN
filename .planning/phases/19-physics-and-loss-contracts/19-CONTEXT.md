@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-05-22
 **Status:** Ready for planning
-**Mode:** `gsd-discuss-phase 19 --all ultrathink` (all 5 gray areas auto-selected; full interactive discussion per default mode). Resolution doc remains the default verdict source per milestone directive (2026-05-18); EVID-05 triggered for B-02, B-09, and M4 (M4 reclassified — see D-16). Issue Doc adjudication-annotation convention established this phase (see D-14).
+**Mode:** `gsd-discuss-phase 19 --all ultrathink` (all 5 gray areas auto-selected; full interactive discussion per default mode). Resolution doc remains the default verdict source per milestone directive (2026-05-18); EVID-05 triggered for B-02, B-09, and M4 (M4 reclassified — see D-16). Issue Doc adjudication-annotation convention established this phase for existing Issue 01 rows (see D-14/D-15).
 
 ---
 
@@ -10,7 +10,7 @@
 >
 > **Live-code directive (2026-05-19):** Live code in `pinn/` is NOT a grounding source for any v1.4 decision; v1.3-era artifact rebuilt by FUT-01. References allowed only in forward-pointing `19-CODE-DIVERGENCE.md`.
 >
-> **simulation_data role (Phase 19 specific — see D-17):** Phase 18 D-10 made `simulation_data/` authoritative grounding for `sampling_method.md` / FRAME-03 (the spec describes data the code generated; code wins on conflict). Phase 19 uses `simulation_data/` differently: as **supporting evidence** in `evidence/B-09.md` §5 to verify a negative claim (no force-softening epsilon exists in simulation_data to "mismatch" against). The Phase 19 spec contract is grounded in resolution doc §7.1-7.2, not in `simulation_data/`. Both roles compose with pending SCOPE-05.
+> **simulation_data role (Phase 19 specific — see D-17):** Phase 18 D-10 made `simulation_data/` authoritative grounding for `sampling_method.md` / FRAME-03 (the spec describes data the code generated; code wins on conflict). Phase 19 uses `simulation_data/` differently: as **supporting evidence** in `evidence/B-09.md` §5 to verify a negative claim: the inspected generation, Brutus, and metrics surfaces contain no upstream force-softening quantity that can create a `simulation_data/`↔PINN mismatch. The Phase 19 spec contract is grounded in resolution doc §7.1-7.2, not in `simulation_data/`. Both roles compose with pending SCOPE-05.
 
 ---
 
@@ -23,14 +23,14 @@ Phase 19 ships:
 
 1. **PHYS-01** — Raw-mass nondimensionalization locked: `D = (G·T²)^(1/3)` retained; mass-fraction alternative `D = (G·M_tot·T²)^(1/3)` documented as a future rewrite only. EVID-05 packet `evidence/B-02.md` records the dimensional-analysis proof and assigns the issue doc's 6.694 claim as "correct only under an unstated mass-fraction framework rewrite the issue doc did not also propose."
 2. **PHYS-02** — Componentwise normalized-time derivative contract: autograd leaf is `u = t/T` (canonical, no chain-rule factors); chain-rule factors `v' = 2·dr'/dτ`, `a' = 4·d²r'/dτ²` apply ONLY to a code path that differentiates directly w.r.t. `τ = 2u-1`. Anti-pattern named: `torch.autograd.grad(r.sum(), u, create_graph=True)` is forbidden as a substitute for componentwise derivatives. Worked synthetic-trajectory test `r'(u) = [sin(2πu), cos(2πu), u²]` documented with symbolic derivatives. Canonical home: `pinn_architecture.md` §5.x; `ctl_instruction.md:962` retargets to a cross-reference (no duplicate math).
-3. **PHYS-03** — One softening functional form across the framework: Plummer everywhere (`r_safe = sqrt(||r||² + ε²)`); `ε_train = 10⁻⁵` for training-time matched residual + Hamiltonian pair (`pinn_architecture.md` §3.2-3.3); `ε_inv = 10⁻¹⁰` for offline static invariants (`ctl_instruction.md` Step 3); `s_min` unsoftened. Anti-pattern named: do NOT mix additive vs Plummer; do NOT mix unmatched `(||r||+ε)⁻³` force with `(||r||+ε)⁻¹` potential. EVID-05 packet `evidence/B-09.md` records the issue doc's "5 orders of magnitude mismatch" as a category error (compared PINN-internal static vs training ε; no `simulation_data/` quantity to mismatch against). `simulation_data/` is inspected as supporting evidence (no force-softening; only IC-rejection threshold 0.05); not grounding for the spec contract.
+3. **PHYS-03** — One softening functional form across the framework: Plummer everywhere (`r_safe = sqrt(||r||² + ε²)`); `ε_train = 10⁻⁵` for training-time matched residual + Hamiltonian pair (`pinn_architecture.md` §3.2-3.3); `ε_inv = 10⁻¹⁰` for offline static invariants (`ctl_instruction.md` Step 3); `s_min` unsoftened. Anti-pattern named: do NOT mix additive vs Plummer; do NOT mix unmatched `(||r||+ε)⁻³` force with `(||r||+ε)⁻¹` potential. EVID-05 packet `evidence/B-09.md` records the issue doc's "5 orders of magnitude mismatch" as a category error (compared PINN-internal static vs training ε; no upstream `simulation_data/` force-softening quantity to mismatch against in the inspected generation, Brutus, and metrics surfaces). `simulation_data/` is inspected only as supporting evidence for that negative claim; PHYS-03 remains grounded in resolution doc §7.1-7.2.
 4. **PHYS-04** — Energy term is a **soft conservation regularizer** using the analytic matched-Plummer Hamiltonian `H_ε`. The model predicts positions; it does NOT parameterize a Hamiltonian, so it is NOT an HNN. All "HNN-style" framing in `pinn_architecture.md` is replaced; the term "Hamiltonian" is retained where it means the analytic energy function `H_ε`.
 5. **PHYS-05** — ALM restructured: removed from default training (the current pseudo-ALM-on-physics-MSE `+λ_p L_phys + (μ_p/2) L_phys²` formulation is rejected because squaring a nonnegative MSE is not a standard equality-constrained augmented Lagrangian). Optional ALM is **P2 only**, **scalar conservation constraints only** (`c_E`, `c_{L,α}`), **never** on dense ODE residual, **never** dual updates during L-BFGS, updates only between Adam epochs or deterministic refinement passes.
 6. **PHYS-06** — M4 constraint-counting replacement: `ctl_instruction.md:914-915` "13 constraints for an 8-dimensional reduced phase space ensure over-determination and uniqueness" is replaced with resolution §10.4 reconstructive-gauge-fixed-encoding prose. EVID-05 packet `evidence/M4.md` credits the issue doc's arithmetic correction (`18 − 3 COM − 3 P − 3 SO(3) = 9`) in §5/§9 while making the resolution doc's reframing the locked spec contract.
 7. **Total-loss replacement** (PHYS-04/05 coupled): `L_total = L_data + λ_IC L_IC + λ_phys L_phys^causal + λ_E L_E + λ_L L_L`. Adds **L_IC** (resolution §8.3, mandatory IC anchor at `u=0` for position AND velocity, `β_v = 1`). Adds **L_L** (resolution §8.6, componentwise Huber on relative angular-momentum drift, numerical-stability scale `ε_L = 10⁻⁸` distinct from softening). Causal weighting for L_phys per resolution §8.4 (`w_n = exp(-η_c·Σ stopgrad(R_m))`, `η_c = 1` default, stopgrad in weights by default). §8.7 warmup schedule replaces the legacy `λ_E`-only schedule.
 8. EVID evidence packets for all five findings, following Phase 16 D-06 12-section template. §5/§7/§8/§9 mandatory for EVID-05 contested (B-02, B-09, M4); `Not contested` markers for B-07/B-08.
 9. **`19-CODE-DIVERGENCE.md`** — FUT-01 hand-off inventory mirroring `17-CODE-DIVERGENCE.md` / `18-CODE-DIVERGENCE.md` schema (D-13 from Phase 18). Documents where `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` diverge from the new Phase 19 contracts (additive softening, pseudo-ALM, `grad_outputs=torch.ones_like` AD, HNN-branded language).
-10. **Issue Doc adjudication annotations** for all five Phase 19 findings — one line each appended to `pinn_instruction/issues/01-architecture-and-physics-foundations.md` per D-14.
+10. **Adjudication annotations split by source surface** — B-02, B-09, and M4 receive one-line annotations in existing Issue 01 rows per D-14; B-07/B-08 verdicts are recorded in the Phase 16 ledger plus `evidence/B-07.md` / `evidence/B-08.md` only because Issue 01 has no B-07/B-08 rows.
 11. **Phase 16 ledger M4-row reclassification** (D-16) — `Sources Disagree? NO → YES — EVID-05 required` with audit-note.
 12. **Acceptance-check names** `AC-PHYS-01..06` reserved (AC-PHYS-02 is the Phase 19 invention; AC-PHYS-01/03/04/05/06 were pre-reserved by Phase 16). Pass criteria are Phase 21 VER-01 scope.
 
@@ -68,10 +68,10 @@ Per CRITICAL GOVERNANCE rule. Plan-phase and execute-phase agents MUST consult t
 | **D-11** M4 spec replacement prose includes cross-ref to Phase 17 IO-02 + Phase 18 FRAME-01 | ✅ LOCKED | Claude's discretion per user-approved precedent | Actionable. Resolution §10.4 prose + explicit "as locked by Phase 17 (IO-02) and Phase 18 (FRAME-01)" anchor. |
 | **D-12** 4-plan decomposition (P01 ctl_instruction / P02 pinn_architecture formulas / P03 pinn_architecture prose / P04 evidence + ledger + divergence) | ✅ LOCKED | User 2026-05-22 | Actionable. P01 + P02 parallel (different files); P03 blocked on P02; P04 blocked on Waves 1–2. |
 | **D-13** AC-PHYS-02 invented; pass criteria are Phase 21 VER-01 scope | ✅ LOCKED | User 2026-05-22 | Actionable. Phase 19 reserves the name; do NOT invent pass criteria. |
-| **D-14** Issue Doc adjudication annotation convention (one-line, verdict-agnostic) | ✅ LOCKED | User 2026-05-22 | Actionable. Format: `**Adjudicated Phase 19:** `<verdict>`. See `evidence/<id>.md`.` — append to the relevant table row; original row text stays verbatim. |
-| **D-15** D-14 annotation scope: forward-apply to all five Phase 19 findings (incl. uncontested); NO back-fill of Phase 17/18 | ✅ LOCKED | User 2026-05-22 | Actionable. B-07/B-08 get `Not contested` markers. Back-fill of earlier phases requires separate user instruction. |
+| **D-14** Issue Doc adjudication annotation convention for existing Issue 01 rows (one-line, verdict-agnostic) | ✅ LOCKED | User 2026-05-22; corrected 2026-05-26 | Actionable. Format: `**Adjudicated Phase 19:** `<verdict>`. See `evidence/<id>.md`.` — append only to existing `01-architecture-and-physics-foundations.md` rows; original row text stays verbatim. |
+| **D-15** D-14 annotation scope split: Issue 01 rows for B-02/B-09/M4; ledger/evidence only for B-07/B-08; NO back-fill of Phase 17/18 | ✅ LOCKED | User 2026-05-22; corrected 2026-05-26 | Actionable. Do not synthesize Issue 01 B-07/B-08 rows and do not annotate Issue 03's unrelated B-07/B-08 rows. B-07/B-08 get `Not contested` markers in evidence packets. |
 | **D-16** Phase 16 ledger M4-row reclassification `NO → YES — EVID-05 required` with audit-note | ✅ LOCKED | User 2026-05-22 | Actionable. Single-row factual correction + per-finding subsection note. NOT a new-schema invention. |
-| **D-17** `simulation_data/` role in `evidence/B-09.md` §5 = supporting evidence, NOT grounding for new spec decisions | ✅ LOCKED | User 2026-05-22 | Actionable. Cite inspected files + finding (no force-softening; only IC-rejection threshold 0.05) + implication (no quantity to mismatch). Differs from Phase 18 D-10 FRAME-03 grounding role. |
+| **D-17** `simulation_data/` role in `evidence/B-09.md` §5 = supporting evidence, NOT grounding for new spec decisions | ✅ LOCKED | User 2026-05-22 | Actionable. Cite inspected generation/Brutus/metrics files + finding (no upstream force-softening quantity; IC generator's `epsilon = 0.05` is a rejection threshold) + implication (no quantity to mismatch). Add caveat that `simulation_data/Validation/dataset_readiness_checks/` is excluded from this supporting-evidence surface because it contains `pinn/`-adapted static-invariant helpers. Differs from Phase 18 D-10 FRAME-03 grounding role. |
 | **D-18** Symbol renames: `epsilon_soft → epsilon_train`; introduce `epsilon_inv`; matches resolution-doc convention | ✅ LOCKED | User 2026-05-22 | Actionable. Mechanical cleanup; reduces ambiguity. `η_gauge` (Phase 18 D-14) remains numerical-geometry guard — clean separation preserved. |
 | **D-19** `19-CODE-DIVERGENCE.md` mirrors `17/18-CODE-DIVERGENCE.md` schema; row-level FUT-01 priority hints non-binding | ✅ LOCKED | Phase 17 D-14 / Phase 18 D-13 precedent | Actionable. Schema identical; content scope = Phase 19's divergences (see Specific Ideas). |
 
@@ -98,7 +98,7 @@ The resolution doc (`ctl_pinn_resolution.md`) is the **default verdict source** 
 - `ε_inv = 10⁻¹⁰` (offline static invariants — `V` in `ctl_instruction.md` Step 3).
 - `s_min` **unsoftened** (resolution §7.2: "Softening never enters curriculum collision gates").
 
-The issue doc's "5 orders of magnitude mismatch" framing is a category error — it compared PINN-internal static-invariant ε (1e-10) against PINN-internal training ε (1e-5), both PINN-side. There is no `simulation_data/` quantity to mismatch against (`simulation_data/` uses no force-softening; its `epsilon = 0.05` is an IC minimum-separation rejection threshold; Brutus is arbitrary-precision; metrics use unsoftened separations — see D-17).
+The issue doc's "5 orders of magnitude mismatch" framing is a category error — it compared PINN-internal static-invariant ε (1e-10) against PINN-internal training ε (1e-5), both PINN-side. In the inspected `simulation_data/` generation, Brutus, and metrics surfaces, there is no upstream force-softening quantity to mismatch against (`epsilon = 0.05` is an IC minimum-separation rejection threshold; Brutus is arbitrary-precision; metrics use unsoftened separations — see D-17).
 
 - **Why:** Resolution doc §7.1–7.2 (lines 743–824) gives matched Plummer pairs for both training and static contexts. The two contexts (training vs static-invariant) are conceptually separate by purpose, not by hardware (issue doc's CPU/float64 vs GPU/float32 framing is a contingent justification, not the contract).
 - **How to apply (P02):** Evidence packet `evidence/B-09.md` records the matched-pair structure + simulation_data verification subsection (D-17). §9: issue doc partly correct on separating static-invariant ε from training-time softening; wrong/overstated on the mismatch framing; incomplete on functional form. Resolution doc correct on the final contract.
@@ -240,14 +240,14 @@ Phase 19 uses 4 plans for review safety. Treated as execution-plan decomposition
   - PHYS-05 total-loss replacement per D-07.
   - §8.7 warmup schedule (replaces legacy `λ_E`-only schedule).
   - Evidence packets `evidence/B-07.md`, `evidence/B-08.md` (`Not contested` markers), `evidence/B-09.md` (EVID-05 — full §5/§7/§8/§9 + structured `simulation_data` verification subsection per D-17).
-  - Issue Doc annotations for B-07, B-08, B-09 per D-14, serialized with other Issue Doc annotations.
+  - Issue Doc annotation for B-09 per D-14, serialized with other Issue Doc annotations. B-07/B-08 have no matching Issue 01 rows; record their adjudication in the Phase 16 ledger and evidence packets only.
   - Ledger transitions: B-07, B-08, B-09 PENDING→IN_PROGRESS→FIX_APPLIED. Shared `16-ISSUE-LEDGER.md` and Issue Doc writes must be handled by a single coordination task or explicit serial order; P01/P02 parallelism applies only to disjoint spec-file edits.
 
 - **P03 (Wave 2, blocked on P02): `pinn_architecture.md` prose cleanup + cross-reference validation.**
   - HNN reframing throughout (`§1.x` intro, `§3.3` title + body, `§4.1` prose, summary table) per D-09.
   - Optional ALM P2-ablation appendix per D-05.
   - Cross-references between `pinn_architecture.md` and `ctl_instruction.md` validated (forward-refs to Phase 19 satisfied; total-loss text matches across files).
-  - `ctl_instruction.md:879-880` velocity-output legacy fragments swept (if any survive after Phase 17/18 cleanup — verify).
+  - Run an `rg` sweep for velocity-output legacy fragments (for example `velocity-output|velocity output|output.*veloc|outputs.*veloc|network outputs.*veloc|output.*acceler`). Current `ctl_instruction.md:879-880` is the Step 4 heading, not a velocity-output target.
   - No new ledger transitions; this is prose cleanup that closes out PHYS-04/05 coherence.
 
 - **P04 (Wave 3, blocked on Waves 1–2): `19-CODE-DIVERGENCE.md` + evidence-packet closure + ledger finalization + AC structural checks.**
@@ -272,24 +272,24 @@ Phase 19 reserves the name; pass criteria are Phase 21 VER-01 scope per Phase 16
 | AC-PHYS-05 | B-08 | Phase 21 VER-01 (numeric loss-stability dry run); Phase 19 structural = pseudo-ALM removed from default, P2-ablation appendix present with scalar-conservation-only scope, optimizer-phase semantics named. |
 | AC-PHYS-06 | M4 | Phase 21 VER-01 (numeric — if any; M4 is largely prose); Phase 19 structural = `ctl_instruction.md:914-915` replaced with reconstructive-gauge-fixed-encoding prose with Phase 17/18 cross-references. |
 
-#### D-14 (Issue Doc adjudication annotation convention — NEW milestone-wide pattern)
+#### D-14 (Issue Doc adjudication annotation convention — existing Issue 01 rows only)
 
-The agent does NOT rewrite Issue Doc content; Issue Docs are historical audit records. For each Phase 19 finding, append exactly ONE annotation inside the relevant existing GFM table row/cell in `pinn_instruction/issues/01-architecture-and-physics-foundations.md`:
+The agent does NOT rewrite Issue Doc content; Issue Docs are historical audit records. For each Phase 19 finding that has a relevant existing GFM table row/cell in `pinn_instruction/issues/01-architecture-and-physics-foundations.md`, append exactly ONE annotation inside that row/cell:
 
 ```
 **Adjudicated Phase 19:** `<verdict>`. See `evidence/<id>.md`.
 ```
 
-Original row text stays verbatim and the table row's column count must remain unchanged; do not add a free-standing line that breaks the table. The evidence packet plus the resolution doc are the correction mechanism. This convention is established by user instruction 2026-05-22 and supersedes any prior pattern that may have rewritten issue-doc content. (Resolution doc remains the default verdict source per directive 2026-05-18; agent transcribes its positions into spec edits unless EVID-05 surfaces concrete evidence it fails.)
+Original row text stays verbatim and the table row's column count must remain unchanged; do not add a free-standing line that breaks the table. Do not create synthetic Issue 01 rows for ledger findings that are not present in the Issue Doc. The evidence packet plus the resolution doc are the correction mechanism. This convention is established by user instruction 2026-05-22, corrected by user instruction 2026-05-26 for B-07/B-08, and supersedes any prior pattern that may have rewritten issue-doc content. (Resolution doc remains the default verdict source per directive 2026-05-18; agent transcribes its positions into spec edits unless EVID-05 surfaces concrete evidence it fails.)
 
-#### D-15 (D-14 annotation scope — forward-only for Phase 19, no back-fill)
+#### D-15 (D-14 annotation scope split — forward-only for Issue 01 rows, no back-fill)
 
-Apply D-14 annotations forward to **all** five Phase 19 findings:
+Apply D-14 annotations forward to the **three Phase 19 findings with existing Issue 01 rows**:
 - B-02 → `**Adjudicated Phase 19:** \`accept-resolution\`. See \`evidence/B-02.md\`.`
-- B-07 → same format, `accept-resolution`, with `Not contested` recorded in the evidence packet.
-- B-08 → same format, `accept-resolution`, `Not contested` in packet.
 - B-09 → same format, `accept-resolution`, EVID-05 packet.
 - M4 → same format, `accept-resolution`, EVID-05 packet.
+
+Do **not** annotate B-07/B-08 in `pinn_instruction/issues/01-architecture-and-physics-foundations.md`; that file has no B-07/B-08 rows. Their Phase 19 adjudication lives in `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and `evidence/B-07.md` / `evidence/B-08.md`, with `Not contested` recorded in the evidence packets. Do **not** annotate `pinn_instruction/issues/03-curriculum-and-training-loop.md` B-07/B-08 rows: those IDs mean batch construction and data-fidelity/collocation conflation, not Phase 19 energy/Hamiltonian regularizer and ALM loss-balancing findings.
 
 Do **NOT** retroactively back-fill Phase 17 (B-03, B-04, B-06, M1, M2) or Phase 18 (B-05, M3) issue-doc rows. Back-fill requires separate user instruction.
 
@@ -318,17 +318,22 @@ Inspected files:
 - `simulation_data/Scripts/metrics_calculation/calculate_metrics.py:193-207, 266-284`
 - `simulation_data/Documentation/README.md:385`
 
-Finding: simulation_data uses NO force-softening epsilon anywhere.
-- Only "epsilon": `epsilon = 0.05` as an IC minimum-separation rejection threshold during
-  sampling (rejects IC triangles with any pairwise distance ≤ 0.05 in G=1 natural units).
+Finding: the inspected generation, Brutus, and metrics surfaces contain no force-softening
+quantity that can form an upstream `simulation_data/`↔PINN mismatch.
+- `epsilon = 0.05` in IC generation is a minimum-separation rejection threshold during
+  sampling (rejects IC triangles with any pairwise distance ≤ 0.05 in G=1 natural units),
+  not force softening.
 - Brutus integrator: arbitrary-precision GMP/MPFR with extrapolation; no Plummer or additive
   softening.
 - Metrics calculation: pure `sqrt(dx²+dy²+dz²)` with no softening.
+- Caveat: `simulation_data/Validation/dataset_readiness_checks/` includes a `pinn/`-adapted
+  static-invariant helper. It is validation/readiness code, not part of this Phase 19 B-09
+  supporting-evidence surface and not a grounding source for the PHYS-03 contract.
 
 Implication: the issue doc's "5 orders of magnitude mismatch" framing compared PINN-internal
 static-invariant ε (1e-10) against PINN-internal training ε (1e-5), both PINN-side. No
-simulation_data quantity exists to "mismatch" against. The matched Plummer contract is
-purely PINN-internal.
+inspected generation/Brutus/metrics quantity exists to "mismatch" against. The matched Plummer
+contract remains a Phase 19 framework-spec decision.
 
 Role of this check: supporting evidence (verifying a negative claim), NOT grounding for new
 v1.4 spec decisions. The PHYS-03 spec contract is grounded in resolution doc §7.1-7.2.
@@ -399,14 +404,13 @@ Lines/exact paths are non-binding — verified by FUT-01 against the post-rewrit
 
 - `pinn_instruction/issues/01-architecture-and-physics-foundations.md` —
   - B-02 row (line 72: D formula claim).
-  - B-07 row (energy/HNN; line 89 area, plus §"HNN-Style Energy Regularizer" cross-section).
-  - B-08 row (ALM scheduling and loss balancing; line 90 area).
   - B-09 row (line 76: softening mismatch).
   - M4 row (line 86: constraint-counting error).
   - "Dual-Context Epsilon Strategy" section (lines 181–211).
   - "AD Chain-Rule Factor — Missing Derivative Conversion" section (lines 107–135).
   - "Explicit AD Implementation Requirement" section (lines 139–177; `grad_outputs=torch.ones_like` anti-pattern).
   - "Cross-Issue Interactions" (lines 316–328: D + ε + COM, D + stage assignment).
+  - This file has no B-07/B-08 rows for Phase 19. Do not synthesize rows here. Do not use `pinn_instruction/issues/03-curriculum-and-training-loop.md` B-07/B-08 rows for Phase 19; those IDs refer to batch construction and data-fidelity/collocation conflation.
 
 ### Current framework specs (the target of Phase 19 edits)
 
@@ -420,12 +424,12 @@ Lines/exact paths are non-binding — verified by FUT-01 against the post-rewrit
 
 - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` —
   - Title and §1.x overview (lines 6, 86-108: HNN-style framing — full rewrite per D-09).
-  - §3 loss overview (lines 285-323: ALM Initialization + ε_soft references).
+  - §3 loss overview (lines 287-323: current pseudo-ALM total-loss formula plus ALM initialization parameters — replace per D-07/D-09).
   - §3.2 Physics Residual (lines 405-532: residual formula at line 416 with additive `(||r||+ε_soft)³` — change to Plummer; ALM Implementation Details — remove from default per D-05; Listings 3, 4 retained/relocated/removed per planner discretion).
   - §3.3 HNN-Style Energy Regularizer (lines 534-655: title + body — wholesale rewrite per D-09; Hamiltonian formula at line 549 with additive `1/(||r||+ε_soft)` — change to Plummer; Listing 5 `compute_initial_energy` — Plummer + symbol rename).
-  - §4.1 Adaptive Loss Balancing via ALM (lines 662-666: rename/restructure per D-09).
+  - §4.1 Adaptive Loss Balancing via ALM (lines 662-670: rename/restructure per D-09).
   - §5.3 AD prose (lines 815-826: Phase 17 D-09 forward-reference to Phase 19 PHYS-02 — Phase 19 lands the canonical AD contract here per D-08).
-  - Summary table (lines 866-870: HNN-style language and ALM mentions — update per D-09).
+  - Summary table Energy Loss row (lines 866-868: current Hamiltonian-deviation / conservation wording — update to soft conservation regularizer language per D-09).
 
 ### `simulation_data/` — supporting evidence for `evidence/B-09.md` §5 (NOT grounding for Phase 19 spec)
 
@@ -436,10 +440,11 @@ Distinct role from Phase 18 D-10's FRAME-03 grounding usage (see D-17 in this do
 - `simulation_data/Scripts/metrics_calculation/calculate_metrics.py:193-207, 266-284` — pure unsoftened separations.
 - `simulation_data/Documentation/README.md:385, 488` — `epsilon (minimum separation): 0.05`; Brutus extrapolation sequence.
 - Brutus C++ integrator (`brutus_Newton-main/`) — arbitrary-precision; no softening.
+- `simulation_data/Validation/dataset_readiness_checks/` — excluded from this B-09 supporting-evidence surface; contains `pinn/`-adapted static-invariant validation helpers, not upstream force-softening in generation/Brutus/metrics.
 
 ### Phase 16 / 17 / 18 inheritance (read before planning)
 
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` — Status table (B-02, B-07, B-08, B-09, M4 rows — all currently PENDING); lifecycle rules (D-04, D-09 through D-12); phase-exit gate. **Phase 19 amends the M4 row per D-16.**
+- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` — Status table (B-02, B-07, B-08, B-09, M4 rows — all currently PENDING); B-07 row at line 25 maps to Phase 19 energy/Hamiltonian regularizer and B-08 row at line 26 maps to Phase 19 ALM scheduling/loss balancing; lifecycle rules (D-04, D-09 through D-12); phase-exit gate. **Phase 19 amends the M4 row per D-16.**
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/16-CONTEXT.md` — D-06 12-section evidence-packet schema; D-08 pre-flagged EVID-05 findings (B-02, B-09); D-13 AC naming policy; D-14 shared-AC annotation rule.
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` — Mandatory packet schema. Phase 19 fills 5 packets here.
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md` — Protocol, EVID-05 trigger conditions, VER-05 lifecycle.
@@ -476,7 +481,7 @@ Distinct role from Phase 18 D-10's FRAME-03 grounding usage (see D-17 in this do
 
 - **Source of truth + verification, not duplication** — `REQUIREMENTS.md` §Traceability is the VER-02 source; the issue ledger is the per-finding source. Phase 19 emits status transitions and packet content, not copies.
 - **Resolution doc as default verdict source** (2026-05-18 milestone directive) — transcribe positions into spec edits unless EVID-05 surfaces concrete evidence the position fails. Three Phase 19 findings (B-02, B-09, M4) triggered EVID-05; all three resolved to `accept-resolution` after the adjudication.
-- **Issue Doc adjudication-annotation convention** (D-14, NEW this phase) — one-line annotation per row; Issue Doc content is historical audit, not source-of-truth for solutions.
+- **Issue Doc adjudication-annotation convention** (D-14/D-15, NEW this phase) — one-line annotation per existing Issue 01 row; Issue Doc content is historical audit, not source-of-truth for solutions. B-07/B-08 have no Issue 01 rows and are ledger/evidence-only adjudications.
 - **Phase artifact naming** — `19-{ARTIFACT}.md` and `19-NN-{ARTIFACT}.md` (`19-CONTEXT.md`, `19-DISCUSSION-LOG.md`, `19-01-PLAN.md`, `19-CODE-DIVERGENCE.md`, etc.).
 - **Commit convention** — `docs(19): <subject>` for phase-wide edits; `docs(19-NN): <subject>` for sub-plan commits; imperative mood, lowercase, no trailing period (`.planning/codebase/CONVENTIONS.md`).
 - **Grounding-source asymmetry** — `pinn/` is NOT grounding (v1.4 directive); `simulation_data/` IS grounding for sampling/data-generation specs (Phase 18 D-10) but only supporting evidence for Phase 19 B-09 (D-17). Researcher and planner must apply the correct rule per artifact.
@@ -490,7 +495,7 @@ Distinct role from Phase 18 D-10's FRAME-03 grounding usage (see D-17 in this do
 - **Phase 21 VER-04 consumes** `AC-PHYS-01..06` names (D-13) and all five evidence packets; layers disposable numeric probes on top during VER-04 execution.
 - **`19-CODE-DIVERGENCE.md` is FUT-01 input** alongside `17/18/20-CODE-DIVERGENCE.md` and the eventual `pinn/STATUS.md` (added Phase 21).
 - **Phase 16 ledger receives an amendment** (D-16) — M4 row reclassified; per-finding subsection note appended. No other ledger structural changes.
-- **Issue Doc receives 5 forward annotations** (D-14, D-15) — one line each for B-02, B-07, B-08, B-09, M4. Original row text preserved verbatim.
+- **Issue Doc receives 3 forward annotations** (D-14, D-15) — one line each for B-02, B-09, and M4. B-07/B-08 verdicts remain in the Phase 16 ledger and their evidence packets because Issue 01 has no matching rows. Original row text preserved verbatim.
 
 </code_context>
 
@@ -503,8 +508,8 @@ Distinct role from Phase 18 D-10's FRAME-03 grounding usage (see D-17 in this do
 - **The Phase 16 ledger M4-row reclassification (D-16) is a factual ledger correction, NOT a new-schema invention.** The audit-note format mirrors the precedent set by Phase 17/18 status-transition log entries. It is the only ledger row Phase 19 modifies structurally; status-transition logs for B-02/B-07/B-08/B-09/M4 are appended normally per Phase 16 D-04.
 - **The L_IC and L_L additions (D-07) are structural new content** — they don't exist in the current spec. The planner must locate where they fit naturally in `pinn_architecture.md` (likely a new subsection between §3.2 Physics Residual and §3.3 Energy Regularizer for `L_IC`, and after §3.3 for `L_L` — or restructure §3 entirely into a "Loss term catalog" subsection per resolution §8.x organization).
 - **The optional ALM P2-ablation appendix (D-05)** lives at the end of `pinn_architecture.md` §4 (after the default-contract sections). Planner picks exact placement.
-- **The `simulation_data` verification subsection in `evidence/B-09.md` §5 (D-17) is structured prose** — inspected files cited with line ranges, finding stated, implication derived, role explicitly named as "supporting evidence, NOT grounding." This is distinct from Phase 18 D-10's grounding usage; the distinction is recorded in the packet so future readers don't conflate them.
-- **The 4-plan decomposition (D-12) lets P01 and P02 run in parallel only for disjoint spec-file edits** (`ctl_instruction.md` vs `pinn_architecture.md`). Shared artifacts (`16-ISSUE-LEDGER.md`, Issue Doc annotations, and evidence lifecycle transitions) are serialized by a single coordinator or explicit task order. The total-loss replacement (D-07) is the cross-spec coordination point: both files have a total-loss block (the `ctl_instruction.md:1095` `L_total` formula and the `pinn_architecture.md` §4.1 Adaptive Loss Balancing prose). Planner coordinates P01 and P02 to land the same final equation in both files. P03 then validates the cross-references in Wave 2.
+- **The `simulation_data` verification subsection in `evidence/B-09.md` §5 (D-17) is structured prose** — inspected files cited with line ranges, scoped finding stated, validation-readiness caveat included, implication derived, role explicitly named as "supporting evidence, NOT grounding." This is distinct from Phase 18 D-10's grounding usage; the distinction is recorded in the packet so future readers don't conflate them.
+- **The 4-plan decomposition (D-12) lets P01 and P02 run in parallel only for disjoint spec-file edits** (`ctl_instruction.md` vs `pinn_architecture.md`). Shared artifacts (`16-ISSUE-LEDGER.md`, the three Issue Doc annotations, and evidence lifecycle transitions) are serialized by a single coordinator or explicit task order. The total-loss replacement (D-07) is the cross-spec coordination point: both files have a total-loss block (the `ctl_instruction.md:1095` `L_total` formula and the `pinn_architecture.md` §4.1 Adaptive Loss Balancing prose). Planner coordinates P01 and P02 to land the same final equation in both files. P03 then validates the cross-references in Wave 2.
 
 </specifics>
 
@@ -531,5 +536,5 @@ None — discussion stayed within phase scope. (Scope creep redirected once duri
 *Context gathered: 2026-05-22*
 *Mode: gsd-discuss-phase 19 --all ultrathink — default-mode interactive discussion across 5 auto-selected gray areas*
 *Inherits: Phase 16 evidence framework + ledger (with D-16 amendment); Phase 17 D-01 (Jacobi-state IC13), D-03 (τ semantics), D-09 (PHYS-02 forward-ref); Phase 18 D-06 (M4 sentence left untouched), D-10 (simulation_data grounding for FRAME-03 — differentiated by D-17 here), D-13 (CODE-DIVERGENCE schema), D-14 (η_gauge — distinct from PHYS softening symbols)*
-*Establishes: D-14 (Issue Doc adjudication-annotation convention — milestone-wide pattern going forward)*
+*Establishes: D-14/D-15 (Issue Doc adjudication-annotation convention for existing rows; ledger/evidence-only handling when no matching Issue Doc row exists)*
 *Next: gsd-plan-phase 19 (4-plan decomposition: P01 ctl_instruction / P02 pinn_architecture formulas / P03 pinn_architecture prose / P04 evidence + ledger + divergence)*

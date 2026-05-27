@@ -141,7 +141,7 @@ Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-21 d31e82c PENDING -> IN_PROGRESS (Phase 18 P01 Task 1)
 - 2026-05-21 a940474 IN_PROGRESS -> FIX_APPLIED (Phase 18 P02 Task 3; sampling-frame spec edit applied)
-- 2026-05-21 98bc955 FIX_APPLIED -> VERIFIED (Phase 18 P03 Task 2; AC-FRAME-01/02/03/04 structural checks passed)
+- 2026-05-21 98bc955 FIX_APPLIED -> VERIFIED (Phase 18 P03 Task 2; AC-FRAME-01 structural closure passed; FRAME-02/03/04 markers verified with numeric criteria deferred to Phase 21)
 
 ### B-06: 3D-vs-planar encoding and output contract
 
