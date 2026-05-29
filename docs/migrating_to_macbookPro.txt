@@ -1,0 +1,223 @@
+Agent Review findings:
+
+Document Review — PLAN.md (Exact-State Mac Migration)
+
+  Verdict: This is a strong, unusually well-grounded runbook — I independently
+  verified its repo-state claims and nearly all are exactly right (HEAD
+  12d2062, 6 stashes, 9 tags, 5 branches by name, the 5 default exclude paths
+  all gitignored, testing_data tracked, requirements.txt whitelisted at
+  .gitignore:283). The bsdtar exclude mechanism, the slash-tag handling, and
+  the offline-computable [ahead 3] parity were all dry-run-confirmed by the
+  feasibility pass. So the bones are solid.
+
+  But the review surfaced 1 critical doc defect, a cluster of high-severity
+  gaps centered on what the verification gate actually proves, and several
+  should-fix items — plus two reviewer claims I had to correct downward after
+  verification.
+
+  I did not edit PLAN.md — you asked me to review and surface, and it's a
+  runbook you'll hand-execute, so you should see each change in context first.
+  I can apply any subset on your go-ahead.
+
+  Coverage
+
+  ┌────────────────┬─────────────────────────┬────────────────────────────┐
+  │    Reviewer    │          Focus          │       Findings kept        │
+  ├────────────────┼─────────────────────────┼────────────────────────────┤
+  │ coherence      │ internal consistency,   │ 2                          │
+  │                │ count drift             │                            │
+  ├────────────────┼─────────────────────────┼────────────────────────────┤
+  │ feasibility    │ will commands work;     │ 3 (verified the headline   │
+  │                │ "Expected" accuracy     │ tar concern is SAFE)       │
+  ├────────────────┼─────────────────────────┼────────────────────────────┤
+  │ security-lens  │ encryption, transport,  │ 5                          │
+  │                │ secrets                 │                            │
+  ├────────────────┼─────────────────────────┼────────────────────────────┤
+  │ scope-guardian │ exclusion correctness   │ 6 (incl. the P0)           │
+  │                │ vs. "exact state"       │                            │
+  ├────────────────┼─────────────────────────┼────────────────────────────┤
+  │ adversarial    │ failure scenarios the   │ 6 → consolidated           │
+  │                │ gates miss              │                            │
+  └────────────────┴─────────────────────────┴────────────────────────────┘
+
+  Dropped: 0 · Same-persona collapse: adversarial's content/symlink/untracked
+  trio merged into one finding.
+
+  ---
+  🔴 Critical (P0) — must fix
+
+  C1 · Appendix C tells you a tracked directory is "safe to exclude" — the
+  exact failure the plan's own Core Principle forbids.
+  Appendix C says its paths are "all gitignored — safe to add to exclude.txt,"
+  and lists simulation_data/Validation/analysis/figures. Verified false: git
+  check-ignore returns not-ignored, and the path holds 12 tracked PNGs. If you
+  opt into that slimming and trust the "safe" label, those 12 files restore
+  as  D (deleted) on the new Mac — breaking exact-state parity, which is
+  precisely what the Core correctness principle (lines 34–36) exists to
+  prevent. The A5 Step 2 gate would print DANGER not-ignored, but the false
+  "safe" label invites skipping it.
+  Fix (needs sign-off): remove that path from Appendix C, or annotate it NOT
+  gitignored — 12 tracked files — DO NOT exclude. (scope-guardian, confidence
+  100, verified)
+
+  ---
+  🟠 High (P1) — should fix before executing
+
+  H1 · The verification gate proves git metadata parity, not working-tree
+  content parity — yet prints "exact state reproduced."
+  Both gates (A7, B6) only diff a manifest of HEAD / counts / stash list /
+  status --short. The manifest hashes nothing. git status --short reports that
+  a file is modified, never its bytes. git fsck verifies committed objects —
+  but the migration's whole point is the uncommitted dirty deltas (8 M files)
+  and untracked bytes (6 files + requirements.txt), and those are exactly what
+  neither gate checks. tar is byte-faithful so the happy path holds, but the
+  success string overclaims. (Symlinks CLAUDE.md/GEMINI.md→AGENTS.md and
+  untracked-file contents are the same blind spot.)
+  Proposed fix: append a content digest to the manifest (e.g. hash of git diff
+  HEAD + a sorted hash of untracked files), so the B6 diff actually catches
+  content drift — or soften "exact state reproduced" to "git metadata parity
+  confirmed." (adversarial, 75, verified)
+
+  H2 · No "quiesce" step — and that's the one realistic way H1 bites you.
+  Nothing tells you to stop editors/agents/Spotlight/Time-Machine before
+  A4→A7. This repo is under active multi-agent work (there's a live locked
+  worktree-agent). A content-only write between A4 (manifest) and A6 (archive)
+  silently desyncs them, and because it's content-only it sails past the
+  metadata gate (H1).
+  Proposed fix: add an A0/A4 quiesce step (close editors, stop
+  agents/background jobs, mdutil -i off "$REPO", pause Time Machine;
+  optionally re-capture the manifest immediately before A6 and abort on
+  drift). (adversarial, 75)
+
+  H3 · The "no secret files were found" claim is unverified for the files that
+  actually ride in the archive.
+  Line 446 calls encryption "precautionary," but Scope (line 18) deliberately
+  includes gitignored local config — .claude/settings.local.json (11.5 KB),
+  .claude/scheduled_tasks.json, .context/ — the exact files that hold
+  MCP/agent auth state. Nothing scans them before upload.
+  Proposed fix: add a mandatory secret-scan of those included paths between A5
+  and A6, gating the archive build on a clean result. (security-lens, 75)
+
+  H4 · MANIFEST.txt is uploaded to the GitHub release unencrypted.
+  A8 uploads MANIFEST.txt alongside the .age file. It contains your branch
+  names, stash descriptions ("pre-delete-v13-closure-audit",
+  "scs-gate-correction"), and the full dirty/untracked file-path list —
+  readable in plaintext by anyone with repo read access (collaborators,
+  repo-scoped tokens), no passphrase needed.
+  Proposed fix: encrypt the manifest too (age -p -o MANIFEST.txt.age …,
+  decrypt before the B6 diff), or add an explicit "this metadata is exposed"
+  accept-decision. (security-lens, 100)
+
+  ---
+  🟡 Medium (P2) — fixes & proposed fixes
+
+  #: M1
+  Issue: "5 ?? files" is now stale — there are 6 (Scope L18, A4 L135, B6
+  L392).
+     Doesn't block the migration (the manifest diff is self-validating), but
+    the "Expected" lines will mislead the executor.
+  Fix: mechanical: 5 → 6
+  Source: coherence + feasibility (100)
+  ────────────────────────────────────────
+  #: M2
+  Issue: Scope wrongly lists .claude/rules/ as "gitignored local config" —
+  it's
+     tracked (3 .md files).
+  Fix: mechanical: move it to the tracked-files clause
+  Source: adversarial (100, verified)
+  ────────────────────────────────────────
+  #: M3
+  Issue: Appendix C lists a non-existent path …/PINA-master/examples/dataset
+    (verified absent).
+  Fix: mechanical: remove the line
+  Source: scope-guardian (100, verified)
+  ────────────────────────────────────────
+  #: M4
+  Issue: Intro says "Phases B1–B7" but a B8 exists.
+  Fix: mechanical: B1–B8
+  Source: coherence (75)
+  ────────────────────────────────────────
+  #: M5
+  Issue: COPYFILE_DISABLE=1 is a no-op in bsdtar 3.5.3 (verified) — the stated
+
+    rationale is wrong (bounded impact: xattrs don't affect git status).
+  Fix: use tar --no-xattrs --no-mac-metadata, or correct the note
+  Source: feasibility (100)
+  ────────────────────────────────────────
+  #: M6
+  Issue: git-lfs gap (CORRECTED — see note): B1 doesn't install git-lfs; the
+    repo's active pre-push hook does exit 2 when git-lfs is absent → pushes
+    blocked on the new Mac. No content-loss risk (no .gitattributes uses lfs,
+  0
+     objects).
+  Fix: add git-lfs to B1 + A1 check
+  Source: scope-guardian (corrected)
+  ────────────────────────────────────────
+  #: M7
+  Issue: Active .git/hooks/ (post-checkout/commit/merge, pre-push) aren't in
+    Scope or success criteria and tar can reset their exec bit.
+  Fix: mention hooks in Scope; add an exec-bit check to B6
+  Source: scope-guardian (75)
+  ────────────────────────────────────────
+  #: M8
+  Issue: pip freeze silently drops editable/local/VCS installs; A2 Step 2 only
+
+    advises fixing them, so an incomplete venv still passes B6.
+  Fix: make A2S2 blocking; add a Validation criterion
+  Source: scope-guardian (75)
+  ────────────────────────────────────────
+  #: M9
+  Issue: age reads the passphrase from /dev/tty — the piped decrypt (A7/B3)
+    fails/hangs under non-interactive automation (agent, CI, ssh without -t).
+  Fix: note the TTY requirement + offer age -d -o file …
+  Source: feasibility (75)
+  ────────────────────────────────────────
+  #: M10
+  Issue: Passphrase strength unspecified — a weak passphrase on a
+  GitHub-hosted
+     ciphertext is offline-brute-forceable.
+  Fix: require a generated/long passphrase
+  Source: security-lens (75)
+  ────────────────────────────────────────
+  #: M11
+  Issue: OpenSSL appendix pins brew-openssl only on the decrypt side — if you
+    encrypt with macOS LibreSSL the archive may be unrecoverable.
+  Fix: brew-pin + version-check the OLD-Mac encrypt step too
+  Source: security-lens (75)
+
+  ---
+  ⚪ Grey areas & FYI (no fix forced)
+
+  - D1 (decision) · SHA256SUMS = corruption detection, not tamper detection —
+  it sits in the same release as the artifact, so an attacker with release
+  write-access defeats it. Fine for your private repo / your credentials, but
+  the plan should state that threat model explicitly rather than imply
+  integrity guarantees. (security, 75)
+  - FYI · B8 ("Restore payloads — Later") is understated — the ~6 GB payloads
+  are required to run the pipeline; consider transfer guidance + a stronger
+  "required before any simulation run" signal. (scope, 50)
+  - FYI · settings.local.json carries broad agent-permission grants
+  (Bash(rm:*), write_file, start_process) and absolute
+  Read(/<home>/**) paths that activate on restore — worth a "review
+  before first session" note. (security, 50)
+  - FYI · stale worktree (CORRECTED — see note): not a P1. It's already broken
+  on the OLD Mac (working dir deleted), so reproducing the inert entry is
+  exact-state-faithful; the plan already acknowledges it (line 445) and B7's
+  optional cleanup is appropriate. (adversarial, down-rated)
+
+  ---
+  Where I corrected the reviewers (transparency)
+
+  Two findings came back hotter than reality, and I down-rated them after
+  verifying:
+  1. LFS was framed as content-loss needing git lfs pull. Verified: no
+  .gitattributes uses the lfs filter and 0 objects exist → no content at risk.
+  The real (smaller) issue is just install git-lfs on the new Mac or the
+  pre-push hook blocks pushes (M6).
+  2. Broken worktree was rated P1. It's faithfully-reproduced existing cruft
+  the plan already documents — down-rated to FYI.
+
+  I also confirmed the feasibility pass's good news: the bsdtar bare-directory
+  excludes work (dry-run: 0 survivors — the 6 GB does not ride along), the
+  slash tag is valid and server-side-only, and B6 parity reproduces offline
+  (no false diff from the [ahead 3] line)

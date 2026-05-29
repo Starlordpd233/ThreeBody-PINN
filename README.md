@@ -4,6 +4,10 @@
 
 This repository contains the complete simulation pipeline, metrics analysis, and Neural Network training stack for a three-body physics problem. The ultimate goal is to produce high-precision N-body simulation data (using the Brutus C++ integrator) and use Curriculum-Trained Physics-Informed Neural Networks (CTL-PINN) to learn and predict system dynamics.
 
+## Migration Handoff
+
+If you are opening this repository on the new Mac as part of the workstation migration, start with [`docs/migration/exact-state-mac-migration.md`](docs/migration/exact-state-mac-migration.md). It is the canonical restore runbook for recreating the old Mac's local repo state; the bulky simulation payloads are intentionally restored separately outside Git.
+
 ### Current Status Snapshot
 
 The repository currently holds massive datasets generated from two main sampling variants, which then go through integration and validation pipelines.

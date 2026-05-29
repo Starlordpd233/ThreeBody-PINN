@@ -7,6 +7,10 @@
 
 **Tooling:** Always use the MCP server Sequentialthinking for any task involving more than one step. When in doubt, use it.
 
+## New Mac Migration Handoff
+
+If this repository is being opened on the new Mac during the workstation migration, read `docs/migration/exact-state-mac-migration.md` before doing any setup, cleanup, Git operations, or restore work. That document is the canonical restore runbook for recreating the old Mac's local repo state while excluding only the bulky simulation payloads that will be copied separately.
+
 ---
 
 ## CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones

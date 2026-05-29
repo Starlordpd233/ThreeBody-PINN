@@ -1,7 +1,7 @@
 ---
 phase: 18
 slug: frame-and-gauge-contracts
-status: draft
+status: passed
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-20
