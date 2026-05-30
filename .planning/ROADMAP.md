@@ -250,7 +250,7 @@ Plans:
 | 16. Evidence Framework and Issue Adjudication | v1.4 | 3/3 | Complete    | 2026-05-16 |
 | 17. Input and Output Contracts | v1.4 | 3/3 | Complete    | 2026-05-20 |
 | 18. Frame and Gauge Contracts | v1.4 | 3/3 | Complete    | 2026-05-21 |
-| 19. Physics and Loss Contracts | v1.4 | 2/4 | In Progress|  |
+| 19. Physics and Loss Contracts | v1.4 | 3/4 | In Progress|  |
 | 20. Architecture and Normalization Cleanup | v1.4 | 0/TBD | Not started | - |
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
