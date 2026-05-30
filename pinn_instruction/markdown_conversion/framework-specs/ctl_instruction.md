@@ -692,8 +692,7 @@ final network IC slots under the Phase 17 input contract.
     chosen pair must appear identically in residual and Hamiltonian. The
     static-invariant softening `epsilon_inv = 10^-10` is context-specific for
     offline invariant computation and is distinct from the training-time
-    softening `epsilon_train = 10^-5` used in the `pinn_architecture.md`
-    PHYS-03 residual and energy contracts.
+    softening `epsilon_train = 10^-5` used in the `pinn_architecture.md` PHYS-03 residual and energy contracts.
 
 2.  **Normalized angular momentum $L_{\mathrm{norm}}$.** $$\begin{aligned}
         \mathbf L &= \sum_{i=1}^3 m_i \,(\mathbf r'_i \times \mathbf v'_i), \qquad
@@ -987,8 +986,7 @@ x_{\mathrm{net}} = [\tau, IC_{13}], \qquad \tau = 2u - 1,\qquad u=t/T.
 $$
 
 For the normalized-time derivative contract (autograd leaf, chain-rule factors,
-componentwise derivatives, and synthetic-trajectory test), see the
-`pinn_architecture.md` PHYS-02 contract.
+componentwise derivatives, and synthetic-trajectory test), see pinn_architecture.md PHYS-02 contract.
 
 The primary initial-condition vector is the 13-component Jacobi-state contract
 
