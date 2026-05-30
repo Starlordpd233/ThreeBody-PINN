@@ -91,6 +91,8 @@ completed: 2026-05-30T00:00:00-04:00
 
 Task 2 initially blocked because the CTL PHYS-02 and PHYS-03 cross-references were semantically correct but split across lines in a way the verifier could not match. The plan explicitly blocks unresolved CTL cross-reference defects, so a targeted mechanical repair commit aligned those anchors before closure.
 
+**Post-execution metadata note:** The `19-03-PLAN.md` `files_modified` frontmatter remains the original planned scope. This summary's "Files Created/Modified" section records the actual executed scope, including the targeted `ctl_instruction.md` anchor repair.
+
 ## Issues Encountered
 
 None beyond the mechanical cross-reference anchor mismatch.

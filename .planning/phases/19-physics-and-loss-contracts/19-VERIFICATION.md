@@ -148,4 +148,18 @@ After the Phase 19 code review, the structural verifier was rerun with additiona
 | PHYS-05 reproducibility wording | Both `loss.yaml` bullets refer to default weights, PHYS-05 warmup, causal residual settings, and conservation regularizer scales. | `ctl_instruction.md:1301` and `ctl_instruction.md:1408` match. | PASS |
 | Edited Python listing structure | `TrajectoryDataset.__init__` and `compute_initial_energy` are indented under `class TrajectoryDataset`. | `pinn_architecture.md:554` through `pinn_architecture.md:588` have valid class-level indentation. | PASS |
 
+## Minor Observation Cleanup Revalidation
+
+After independent UAT recorded non-blocking observations, a bounded cleanup pass
+was revalidated without reopening Phase 19 acceptance criteria.
+
+| Cleanup guard | Expected result | Actual result | Result |
+|---|---|---|---|
+| Residual normalization | `pinn_architecture.md` defines `\bar R_n` with the resolution-grounded `1/3` factor. | Targeted guard found `\bar R_n = \frac{1}{3}\sum_i ||f_i(u_n)||^2`; this is a grounded spec correction, not a new decision. | PASS |
+| Plateau-threshold notation | The stage-transition plateau block uses `\epsilon_{\text{plateau}}` and no longer uses `\epsilon_{\text{train}}`; Plummer `epsilon_train` remains valid elsewhere. | Scoped block check passed, and Plummer `epsilon_train` anchors remain in the PHYS-03 softening contexts. | PASS |
+| Evidence citation hygiene | Active spec citations use repo-root Phase 16 B-02 and M4 evidence packet paths; Phase 16 ledger-local paths are not rewritten. | Targeted guards found both repo-root citations in `ctl_instruction.md`; no ledger-wide rewrite was performed. | PASS |
+| D-20 / GAP-19-01 traceability | Active `epsilon_H` references expose the GAP-19-01 alias without relabeling historical source artifacts. | Targeted guards found D-20 / GAP-19-01 alias text in active specs; the historical resolution doc was untouched. | PASS |
+| Phase 20 boundary | The stale `update_omega0()` listing remains unchanged for Phase 20 ARCH-01 cleanup. | Targeted guard found `def update_omega0(epoch, total_epochs)` still present in `pinn_architecture.md`. | PASS |
+| Structural state | GSD state, Phase 19 plan index, and schema drift checks remain valid after the cleanup. | `gsd-sdk query state validate`, `gsd-sdk query phase-plan-index 19`, and `gsd-sdk query verify.schema-drift 19` all passed. | PASS |
+
 Additional guards: `git diff --check` passed, and no staged or unstaged `pinn/` diff exists.

@@ -116,6 +116,8 @@ Followed the locked Phase 19 decisions from `19-CONTEXT.md`: D-13 reserves AC-PH
 
 The initial plan closed cleanly. A subsequent code review found stale framework-spec prose and one broken listing in files already edited by Phase 19, so those grounded fixes were applied before final phase closure. No governance gap was opened.
 
+**Post-execution metadata note:** The `19-04-PLAN.md` `files_modified` frontmatter remains the original planned scope. This summary's "Files Created/Modified" section records the actual executed scope, including `19-REVIEW.md`, `19-04-SUMMARY.md`, and the post-review spec edits.
+
 ## Issues Encountered
 
 Two preflight `rg` probes used ASCII-only notation while the settled specs use Unicode math notation (`T²`, `2πu`). The verification record documents notation-compatible structural checks; the required Task 2 automated verifier passed.

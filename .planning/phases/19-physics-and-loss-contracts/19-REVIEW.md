@@ -45,3 +45,25 @@ The initial review found three blocking spec inconsistencies and three warnings.
 - Reran targeted review guards for causal physics loss, canonical `u`-domain collocation/inference, `epsilon_H` stage gate, `loss.yaml` wording, and stale-string negative checks: PASS.
 - Ran `git diff --check`: PASS.
 - Confirmed no staged or unstaged `pinn/` diff exists: PASS.
+
+## Minor Observation Cleanup
+
+After independent UAT recorded non-blocking cleanup observations, a bounded
+post-completion pass resolved the items that were mechanical or grounded:
+
+- `pinn_architecture.md` now carries the resolution-grounded
+  `\bar R_n = (1/3) sum_i ||f_i(u_n)||^2` residual normalization.
+- `ctl_instruction.md` now names the stage-transition loss-plateau threshold
+  `\epsilon_{\text{plateau}} = 10^{-5}`, leaving Plummer `epsilon_train`
+  unchanged.
+- Active CTL spec citations now point to the repo-root Phase 16 B-02 and M4
+  evidence packet paths; ledger-local evidence paths were not rewritten.
+- Active `epsilon_H` references now carry the D-20 / GAP-19-01 alias.
+- `19-03-SUMMARY.md` and `19-04-SUMMARY.md` document that plan frontmatter
+  preserves original planned scope while summary file lists disclose actual
+  execution deviations.
+- `update_omega0()` remains untouched as Phase 20 / ARCH-01 scope.
+
+Post-cleanup targeted guards, `gsd-sdk query state validate`,
+`gsd-sdk query phase-plan-index 19`, and
+`gsd-sdk query verify.schema-drift 19` all passed.

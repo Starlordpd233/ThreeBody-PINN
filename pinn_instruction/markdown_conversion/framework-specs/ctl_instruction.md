@@ -598,8 +598,9 @@ Newton's equation and demanding the dimensionless residual
 convention rewrite (`m_i' = m_i/M_tot`) that would require touching every
 residual, Hamiltonian, angular-momentum, COM, and invariant formula in the
 framework. The mass-fraction alternative is documented as a future rewrite
-only and is not adopted in v1.4. See `evidence/B-02.md` for the full EVID-05
-adjudication.
+only and is not adopted in v1.4. See
+`.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
+for the full EVID-05 adjudication.
 
 Global normalization scales (computed after scaling all trajectories):
 
@@ -938,7 +939,7 @@ and reporting only; they are no longer final network IC slots.
         permutations of the same physical system yield identical input
         vectors.
 
-        **IC13 Validity (locked Phase 19, PHYS-06):** The final IC13 is a redundant but reconstructive fixed-gauge initial-state encoding. It is not justified by constraint counting against a reduced phase space. Its validity comes from COM removal, zero-momentum boost, canonical ordering, canonical rotation, and retention of the independent Jacobi position/velocity degrees of freedom -- as locked by Phase 17 (IO-02) and Phase 18 (FRAME-01). The canonical preprocessing pipeline (Step 2) deterministically produces a gauge-fixed IC encoding that uniquely represents the trajectory up to the symmetries already removed. See `evidence/M4.md` for the full EVID-05 adjudication.
+        **IC13 Validity (locked Phase 19, PHYS-06):** The final IC13 is a redundant but reconstructive fixed-gauge initial-state encoding. It is not justified by constraint counting against a reduced phase space. Its validity comes from COM removal, zero-momentum boost, canonical ordering, canonical rotation, and retention of the independent Jacobi position/velocity degrees of freedom -- as locked by Phase 17 (IO-02) and Phase 18 (FRAME-01). The canonical preprocessing pipeline (Step 2) deterministically produces a gauge-fixed IC encoding that uniquely represents the trajectory up to the symmetries already removed. See `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M4.md` for the full EVID-05 adjudication.
 
     2.  **Continuity**: All network IC slots vary continuously with the
         preprocessed initial conditions, ensuring smooth neural network
@@ -1245,10 +1246,10 @@ validation set (hold-out 10-20% of cumulative data per stage).
 ### 1. Training Loss Plateau
 
 Relative change in smoothed total loss below threshold:
-$$\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{train}}$$
+$$\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{plateau}}$$
 where
 $\mathcal{L}_{\text{smooth}}(i) = \beta \cdot \mathcal{L}_{\text{smooth}}(i-1) + (1-\beta) \cdot \mathcal{L}_{\text{train,total}}(i)$,
-$\beta = 0.98$, patience = 200, $\epsilon_{\text{train}} = 10^{-5}$.
+$\beta = 0.98$, patience = 200, $\epsilon_{\text{plateau}} = 10^{-5}$.
 Initialize $\mathcal{L}_{\text{smooth}}(0)$ as the first computed loss.
 
 ### 2. Validation Loss Stability
@@ -1264,7 +1265,7 @@ $$\mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilo
 ### 4. Energy Conservation Check
 
 Average relative energy drift below threshold, using the persisted
-PHYS-04/D-20 energy denominator floor `epsilon_H = 1e-4 * S_H`:
+PHYS-04/D-20 (GAP-19-01) energy denominator floor `epsilon_H = 1e-4 * S_H`:
 $$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)| + \epsilon_H} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})$$
 
 ## Consolidated Hyperparameter Schedule

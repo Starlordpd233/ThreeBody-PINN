@@ -72,20 +72,46 @@ pending: 0
 skipped: 0
 blocked: 0
 
-## Minor Observations (non-blocking — not criterion failures, not governance gaps)
+## Minor Observations Cleanup (non-blocking — not criterion failures, not governance gaps)
 
-These do NOT fail any Phase 19 success criterion and do NOT require user instruction under the v1.4 STOP protocol (no ungrounded semantic invention). Recorded for awareness; candidates for Phase 20/21 cleanup at the user's discretion. No spec edit was made by this verification.
+These observations did not fail any Phase 19 success criterion and did not require
+new user instruction under the v1.4 STOP protocol. A bounded cleanup pass resolved
+the items that were mechanical or source-grounded and left Phase 20-owned work
+deferred.
 
 1. **Token collision: `epsilon_train` used for two unrelated quantities in `ctl_instruction.md`.**
-   - PHYS-03 Plummer softening parameter `epsilon_train = 10^-5` (ctl_instruction.md:695; defined in pinn_architecture.md).
-   - Loss-plateau stage-transition convergence threshold `\epsilon_{\text{train}} = 10^{-5}` (ctl_instruction.md:1248, 1251).
-   - Same symbol AND same value, different physics. No numeric contradiction, but an ambiguity/readability hazard. Pre-existing stage-transition machinery; Phase 19 introduced the softening name. Suggested home: Phase 20 (Architecture and Normalization Cleanup) rename.
+   - **Resolved:** the stage-transition loss-plateau threshold now uses
+     `\epsilon_{\text{plateau}} = 10^{-5}`. The PHYS-03 Plummer softening
+     remains `epsilon_train = 10^-5`.
+   - This was a presentation-only rename; the threshold value and criterion did
+     not change.
 
-2. **Broken relative evidence-link paths in specs.** Specs cite `evidence/B-02.md` (ctl_instruction.md:601) and `evidence/M4.md` (ctl_instruction.md:941); the packets actually live at `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/`. Labels are unambiguous but the relative paths don't resolve from the spec's own location. Citation hygiene.
+2. **Broken relative evidence-link paths in specs.**
+   - **Resolved for active specs:** `ctl_instruction.md` now cites the repo-root
+     Phase 16 evidence packet paths for B-02 and M4.
+   - Phase 16 ledger-local `evidence/*.md` conventions were intentionally left
+     unchanged.
 
-3. **Plan `files_modified` header metadata incompleteness.** 19-03-PLAN.md header lists only pinn_architecture.md but execution also touched ctl_instruction.md (commit 656fce4, mechanical anchor repair); 19-04-PLAN.md header omits 19-REVIEW.md, 19-04-SUMMARY.md, and the post-review spec re-edits. All are disclosed in the corresponding SUMMARY "Deviations" sections; the plan headers were simply not retroactively updated.
+3. **Plan `files_modified` header metadata incompleteness.**
+   - **Intentionally not backpatched:** plan frontmatter remains the original
+     planned scope to preserve execution provenance.
+   - `19-03-SUMMARY.md` and `19-04-SUMMARY.md` now carry explicit
+     post-execution metadata notes pointing readers to the actual
+     Files Created/Modified sections.
 
-4. **`D-20` vs `GAP-19-01` label drift.** Specs label the energy-floor decision "PHYS-04/D-20"; planning artifacts call it "GAP-19-01" / decision "n". Identical, grounded content; only the internal decision label differs. Traceability cosmetic.
+4. **`D-20` vs `GAP-19-01` label drift.**
+   - **Resolved for active specs:** targeted aliases now identify D-20 as the
+     GAP-19-01 resolution where the `epsilon_H` floor is referenced.
+   - Historical planning records and the resolution doc were not relabeled.
+
+5. **Causal residual notation factor.**
+   - **Resolved:** `pinn_architecture.md` now defines
+     `\bar R_n = (1/3) \sum_i ||f_i(u_n)||^2`, matching the resolution doc's
+     residual normalization.
+
+6. **`update_omega0()` listing still present.**
+   - **Deferred to Phase 20:** ARCH-01 owns SIREN initialization and frequency
+     cleanup, including removal of the stale epochwise scheduler.
 
 ## Gaps
 

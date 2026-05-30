@@ -406,7 +406,7 @@ where:
 
 Define the per-time residual energy as:
 
-$$\bar R_n = \sum_{i=1}^{3} \| f_i(u_n) \|^2.$$
+$$\bar R_n = \frac{1}{3}\sum_{i=1}^{3} \| f_i(u_n) \|^2.$$
 
 For sorted collocation times $u_1 < \cdots < u_{N_t}$, the default
 causal weights are:
@@ -610,7 +610,7 @@ $$L_L = (1/(3N_t)) \sum_n \sum_\alpha \operatorname{Huber}\left(\frac{L_{\theta,
 where $\alpha \in \{x, y, z\}$, $L_{scale} = ||L_0'|| + \epsilon_L$,
 and $\epsilon_L = 10^{-8}$ (`10^-8`) is a numerical-stability scale grounded in
 resolution §8.6 and distinct from softening $\epsilon_{train}$ /
-$\epsilon_{inv}$ and from $\epsilon_H$ (resolved by D-20 as a
+$\epsilon_{inv}$ and from $\epsilon_H$ (resolved by D-20 / GAP-19-01 as a
 dataset-scale Hamiltonian floor, not a softening parameter).
 Componentwise angular momentum Huber loss on relative angular-momentum
 drift follows resolution §8.6. The velocity $v_\theta'(u_n)$ used to
