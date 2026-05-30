@@ -1,3 +1,111 @@
+---
+phase: 19-physics-and-loss-contracts
+verified: 2026-05-30T18:56:22Z
+status: passed
+score: 6/6 must-haves verified
+overrides_applied: 0
+---
+
+# Phase 19: Physics and Loss Contracts Verification Report
+
+**Phase Goal:** Framework specs state physically consistent scaling, derivative,
+softening, energy, and loss-balancing contracts, each adjudicated against both
+source documents and locked at the root cause.
+**Verified:** 2026-05-30T18:56:22Z
+**Status:** passed
+**Re-verification:** No - initial phase-goal verification added over the existing
+structural AC-PHYS record.
+
+## Goal Achievement
+
+### Observable Truths
+
+| # | Truth | Status | Evidence |
+|---|---|---|---|
+| 1 | Raw-mass nondimensionalization is locked and `D=(G*T^2)^(1/3)` is retained, with the mass-fraction alternative future-only and B-02 adjudicated. | VERIFIED | `ctl_instruction.md:591` locks PHYS-01, `ctl_instruction.md:597` confines `D=(G*M_tot*T²)^(1/3)` to the future mass-fraction rewrite, `evidence/B-02.md:10` is `VERIFIED`, and the issue row is annotated at `01-architecture-and-physics-foundations.md:72`. |
+| 2 | Normalized-time derivative contract is traceable, including canonical `u`, conditional `tau` chain factors, componentwise derivatives, anti-pattern warning, and synthetic trajectory. | VERIFIED | `pinn_architecture.md:843` through `pinn_architecture.md:881` define PHYS-02, and `ctl_instruction.md:988` cross-references the architecture contract without duplicating math. |
+| 3 | Physics residual and energy regularizer use a matched Plummer force/potential pair, with `epsilon_train`, `epsilon_inv`, and unsoftened `s_min` separated after B-09 adjudication. | VERIFIED | `pinn_architecture.md:377` through `pinn_architecture.md:420` define the Plummer residual and causal loss; `pinn_architecture.md:511` through `pinn_architecture.md:539` define matched-Plummer energy and D-20 metadata; `ctl_instruction.md:675` through `ctl_instruction.md:695` define static Plummer `epsilon_inv` and unsoftened `s_min`; `evidence/B-09.md:10` is `VERIFIED`. |
+| 4 | Energy term is a soft conservation regularizer, not HNN framing. | VERIFIED | `pinn_architecture.md:496` through `pinn_architecture.md:520` and `pinn_architecture.md:956` describe `L_E` as a soft conservation regularizer using analytic `H_ε`; negative checks for `HNN-style`, `HNN architecture`, and `Hamiltonian Neural Network` returned no active-prose matches. |
+| 5 | ALM is not in the default loss; scalar-conservation-only ALM is optional P2, while dense residuals use causal weighting and optimizer phase semantics are named. | VERIFIED | `pinn_architecture.md:407` through `pinn_architecture.md:420` make causal `L_phys` the default, `pinn_architecture.md:626` through `pinn_architecture.md:685` define the total loss, warmup, optimizer semantics, and optional P2 ALM only; pseudo-ALM default negative checks passed. |
+| 6 | M4 constraint-counting passage is replaced with evidence-backed reconstructive gauge-fixed IC13 validity prose after EVID-05 adjudication. | VERIFIED | `ctl_instruction.md:941` replaces the stale passage with PHYS-06 reconstructive fixed-gauge prose and Phase 17/18 cross-references; stale `13 constraints for an 8-dimensional reduced phase` check returned no matches; `evidence/M4.md:10` is `VERIFIED`. |
+
+**Score:** 6/6 truths verified
+
+### Required Artifacts
+
+| Artifact | Expected | Status | Details |
+|---|---|---|---|
+| `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` | PHYS-01, PHYS-03 static invariant, PHYS-06, cross-references, and CTL-side loss contract | VERIFIED | Substantive spec sections verified at lines 591, 675, 941, 988, 1266, and 1301. |
+| `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` | PHYS-02/03/04/05 architecture-side contracts | VERIFIED | Substantive spec sections verified at lines 377, 496, 626, 675, 843, and 948. |
+| `evidence/B-02.md`, `evidence/B-07.md`, `evidence/B-08.md`, `evidence/B-09.md`, `evidence/M4.md` | EVID-05 or uncontested evidence packets with final lifecycle status | VERIFIED | All five packets show `Current Status` = `VERIFIED` and `Current Verdict` = `accept-resolution`. |
+| `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` | VER-05 lifecycle closure and AC-PHYS reservations | VERIFIED | B-02, B-07, B-08, B-09, and M4 rows are `VERIFIED`; no in-scope Phase 19 finding remains `IN_PROGRESS` or `FIX_APPLIED`. |
+| `.planning/phases/19-physics-and-loss-contracts/19-CODE-DIVERGENCE.md` | FUT-01 handoff only, not v1.4 grounding evidence | VERIFIED | Contains the required five-column schema and explicitly says live `pinn/` code is not v1.4 evidence. |
+
+### Key Link Verification
+
+| From | To | Via | Status | Details |
+|---|---|---|---|---|
+| `ctl_instruction.md` | `pinn_architecture.md` | Total-loss and PHYS cross-references | WIRED | SDK key-link checks for plans 19-01 and 19-03 passed; CTL links PHYS-02 at `ctl_instruction.md:988` and loss schedule at `ctl_instruction.md:1274`. |
+| `pinn_architecture.md` | `ctl_instruction.md` | Coordinated total-loss and IC contracts | WIRED | SDK key-link checks for plans 19-02 and 19-03 passed; architecture links the default total loss and shared framework contracts. |
+| `19-CODE-DIVERGENCE.md` | `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` | FUT-01 handoff references only | WIRED | Manual check verified `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` are present only as FUT-01 handoff coordinates; SDK false-negative was caused by an escaped-pattern mismatch. |
+
+### Data-Flow Trace
+
+| Artifact | Data Variable | Source | Produces Real Data | Status |
+|---|---|---|---|---|
+| Framework specs and planning artifacts | N/A | Documentation/spec contracts | N/A | Not applicable: Phase 19 delivers Markdown framework contracts, not runtime data flow. |
+
+### Behavioral Spot-Checks
+
+| Behavior | Command | Result | Status |
+|---|---|---|---|
+| AC-PHYS structural suite remains present | `rg "PASS: AC-PHYS-01"... "PASS: AC-PHYS-06" 19-VERIFICATION.md` | All six markers present; no failure marker. | PASS |
+| No `pinn/` files modified | `git diff --name-only -- pinn` and `git diff --name-only --cached -- pinn` | Both returned empty output. | PASS |
+| Markdown whitespace sanity | `git diff --check` | Passed. | PASS |
+
+### Requirements Coverage
+
+| Requirement | Source Plan | Description | Status | Evidence |
+|---|---|---|---|---|
+| PHYS-01 | `19-01`, `19-04` | Raw-mass scaling convention and B-02 adjudication | SATISFIED | `ctl_instruction.md:591`; `evidence/B-02.md:10`; ledger B-02 row `VERIFIED`. |
+| PHYS-02 | `19-02`, `19-04` | Normalized-time derivative contract | SATISFIED | `pinn_architecture.md:843`; `ctl_instruction.md:988`; AC-PHYS-02 reserved in ledger. |
+| PHYS-03 | `19-01`, `19-02`, `19-04` | Matched Plummer softening and epsilon split | SATISFIED | `pinn_architecture.md:377`; `ctl_instruction.md:675`; `evidence/B-09.md:10`. |
+| PHYS-04 | `19-02`, `19-03`, `19-04` | Energy as soft conservation regularizer | SATISFIED | `pinn_architecture.md:496`; `evidence/B-07.md:10`; HNN negative checks passed. |
+| PHYS-05 | `19-02`, `19-03`, `19-04` | Default loss, causal residual, P2-only ALM, optimizer semantics | SATISFIED | `pinn_architecture.md:626`; `pinn_architecture.md:675`; `evidence/B-08.md:10`. |
+| PHYS-06 | `19-01`, `19-04` | M4 constraint-counting replacement | SATISFIED | `ctl_instruction.md:941`; `evidence/M4.md:10`; ledger M4 row `VERIFIED`. |
+| VER-05 | All Phase 19 plans | Iterative lifecycle closure through `VERIFIED` | SATISFIED | Ledger rows for B-02, B-07, B-08, B-09, and M4 are `VERIFIED`; all five packet logs have `FIX_APPLIED -> VERIFIED`. |
+
+Lifecycle note: `.planning/REQUIREMENTS.md` still shows PHYS rows unchecked and
+`.planning/ROADMAP.md` progress metadata still shows Phase 19 as in progress. The
+actual files and ledger satisfy the requirements; checkbox/progress updates are a
+phase-completion lifecycle step, not a Phase 19 spec-contract blocker.
+
+### Anti-Patterns Found
+
+| File | Line | Pattern | Severity | Impact |
+|---|---:|---|---|---|
+| `ctl_instruction.md` | 690 | Additive softening text appears only inside an explicit PHYS-03 anti-pattern warning. | INFO | Not an active formula; no blocker. |
+| `19-CODE-DIVERGENCE.md` | 14-26 | Live `pinn/` paths referenced. | INFO | Correct FUT-01 handoff usage; file explicitly says live code is not v1.4 evidence. |
+
+### Human Verification Required
+
+None. This phase is a documentation/specification contract phase; all must-haves
+are verifiable through repository text, evidence packets, ledger status, and
+structural grep checks. Numeric acceptance probes are explicitly Phase 21 scope.
+
+### Gaps Summary
+
+No blocking gaps found. `GAP-19-01` is resolved in `19-GAPS.md`, the milestone
+gap index, and `19-CONTEXT.md` as `epsilon_H = 1e-4 * S_H`; Phase 21 is limited
+to denominator activation reporting unless a new user-instruction gap is opened.
+
+---
+
+_Verified: 2026-05-30T18:56:22Z_
+_Verifier: the agent (gsd-verifier)_
+
+---
+
 # Phase 19 Structural Verification
 
 This file records the Phase 19 structural acceptance checks for `AC-PHYS-01` through
