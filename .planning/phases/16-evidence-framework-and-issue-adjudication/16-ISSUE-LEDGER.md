@@ -17,19 +17,19 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 | ID | Title | Phase | Status | Verdict | Sources Disagree? | Evidence Packet | Acceptance Check | Spec Section | Dependents | Last Updated |
 |----|-------|-------|--------|---------|-------------------|-----------------|------------------|--------------|------------|--------------|
 | B-01 | SIREN hidden-layer initialization | 20 | PENDING | - | NO | evidence/B-01.md | AC-ARCH-01 | pinn_architecture.md | B-10 | 2026-05-16 |
-| B-02 | Characteristic length and mass scaling | 19 | FIX_APPLIED | accept-resolution | YES - EVID-05 required | evidence/B-02.md | AC-PHYS-01 | ctl_instruction.md; pinn_architecture.md | B-09, M3 | 2026-05-22 |
+| B-02 | Characteristic length and mass scaling | 19 | VERIFIED | accept-resolution | YES - EVID-05 required | evidence/B-02.md | AC-PHYS-01 | ctl_instruction.md; pinn_architecture.md | B-09, M3 | 2026-05-30 |
 | B-03 | Input dimensionality | 17 | VERIFIED | accept-resolution | NO | evidence/B-03.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | B-04, M1, M2 | 2026-05-19 |
 | B-04 | Input vector composition and orientation slots | 17 | VERIFIED | accept-resolution | YES - EVID-05 required | evidence/B-04.md | AC-IO-02 | ctl_instruction.md; pinn_architecture.md | B-03, M1, M2 | 2026-05-19 |
 | B-05 | COM frame consistency | 18 | VERIFIED | accept-resolution | NO | evidence/B-05.md | AC-FRAME-01 | ctl_instruction.md; pinn_architecture.md; sampling_method.md | M3, B-11-folded-into-B-05 | 2026-05-21 |
 | B-06 | 3D-vs-planar encoding and output contract | 17 | VERIFIED | accept-resolution | NO | evidence/B-06.md | AC-IO-03 | pinn_architecture.md; ctl_instruction.md | - | 2026-05-19 |
-| B-07 | Energy/Hamiltonian regularizer | 19 | FIX_APPLIED | accept-resolution | NO | evidence/B-07.md | AC-PHYS-04 | pinn_architecture.md | - | 2026-05-22 |
-| B-08 | ALM scheduling and loss balancing | 19 | FIX_APPLIED | accept-resolution | NO | evidence/B-08.md | AC-PHYS-05 | pinn_architecture.md | - | 2026-05-22 |
-| B-09 | Softening mismatch | 19 | FIX_APPLIED | accept-resolution | YES - EVID-05 required | evidence/B-09.md | AC-PHYS-03 | ctl_instruction.md; pinn_architecture.md | B-02, PHYS-04, PHYS-05 | 2026-05-22 |
+| B-07 | Energy/Hamiltonian regularizer | 19 | VERIFIED | accept-resolution | NO | evidence/B-07.md | AC-PHYS-04 | pinn_architecture.md | - | 2026-05-30 |
+| B-08 | ALM scheduling and loss balancing | 19 | VERIFIED | accept-resolution | NO | evidence/B-08.md | AC-PHYS-05 | pinn_architecture.md | - | 2026-05-30 |
+| B-09 | Softening mismatch | 19 | VERIFIED | accept-resolution | YES - EVID-05 required | evidence/B-09.md | AC-PHYS-03 | ctl_instruction.md; pinn_architecture.md | B-02, PHYS-04, PHYS-05 | 2026-05-30 |
 | B-10 | Dynamic omega0 scheduling | 20 | PENDING | - | NO | evidence/B-10.md | AC-ARCH-01 | pinn_architecture.md | - | 2026-05-16 |
 | M1 | 11D IC versus 13D IC gap | 17 | VERIFIED | accept-resolution | NO | evidence/M1.md | AC-IO-02 | ctl_instruction.md; pinn_architecture.md | - | 2026-05-19 |
 | M2 | Total dimension claims conflict | 17 | VERIFIED | accept-resolution | NO | evidence/M2.md | AC-IO-01 | ctl_instruction.md; pinn_architecture.md | - | 2026-05-19 |
 | M3 | Scaling order and COM transform order | 18 | VERIFIED | accept-resolution | NO | evidence/M3.md | AC-FRAME-01 | ctl_instruction.md | - | 2026-05-21 |
-| M4 | Constraint counting error | 19 | FIX_APPLIED | accept-resolution | YES - EVID-05 required | evidence/M4.md | AC-PHYS-06 | ctl_instruction.md | - | 2026-05-22 |
+| M4 | Constraint counting error | 19 | VERIFIED | accept-resolution | YES - EVID-05 required | evidence/M4.md | AC-PHYS-06 | ctl_instruction.md | - | 2026-05-30 |
 | M5 | I_3 normalization map | 20 | PENDING | - | YES - EVID-05 required | evidence/M5.md | AC-ARCH-03 | ctl_instruction.md; data-processing-pipeline-full.py *(pre-2026-05-19; now v1.3-era artifact, not spec)* | - | 2026-05-16 |
 | M6 | Deferred finding M6 | 21 | DEFERRED | defer-with-blocker | NO | - | AC-VER-03 | - | - | 2026-05-16 |
 | M7 | Deferred finding M7 | 21 | DEFERRED | defer-with-blocker | NO | - | AC-VER-03 | - | - | 2026-05-16 |
@@ -80,10 +80,22 @@ Sources disagree: contested; EVID-05 required; no verdict assigned in Phase 16.
 
 Acceptance check: AC-PHYS-01
 
+Phase 19 reserved acceptance-check names for Phase 21:
+- AC-PHYS-01 (B-02): D-formula prose present; mass-fraction alternative documented as future-rewrite-only.
+- AC-PHYS-02 (PHYS-02): AD contract in pinn_architecture.md; canonical leaf u named; chain-rule factors; anti-pattern warning.
+- AC-PHYS-03 (B-09): Plummer in both files; ε_train=10⁻⁵/ε_inv=10⁻¹⁰ named; s_min unsoftened.
+- AC-PHYS-04 (B-07): HNN-style framing removed; L_E reframed as soft conservation regularizer.
+- AC-PHYS-05 (B-08): Pseudo-ALM removed; P2-ablation appendix present.
+- AC-PHYS-06 (M4): ctl_instruction.md constraint-counting passage replaced.
+
+Phase 21 defines numeric pass criteria and executes disposable probes; Phase 19 reserves
+structural criteria only.
+
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-22 ff7a309 PENDING -> IN_PROGRESS (Phase 19 P01 Task 1)
 - 2026-05-22 b470f9b IN_PROGRESS -> FIX_APPLIED (Phase 19 P01 Task 3; ctl_instruction spec edits applied)
+- 2026-05-30 19-04-T2 FIX_APPLIED -> VERIFIED (Phase 19 P04 Task 2; AC-PHYS-01 structural checks passed)
 
 ### B-03: Input dimensionality
 
@@ -167,6 +179,7 @@ Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-22 08140c4 PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
 - 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
+- 2026-05-30 19-04-T2 FIX_APPLIED -> VERIFIED (Phase 19 P04 Task 2; AC-PHYS-04 structural checks passed)
 
 ### B-08: ALM scheduling and loss balancing
 
@@ -178,6 +191,7 @@ Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-22 08140c4 PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
 - 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
+- 2026-05-30 19-04-T2 FIX_APPLIED -> VERIFIED (Phase 19 P04 Task 2; AC-PHYS-05 structural checks passed)
 
 ### B-09: Softening mismatch
 
@@ -191,6 +205,7 @@ Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-22 08140c4 PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
 - 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
+- 2026-05-30 19-04-T2 FIX_APPLIED -> VERIFIED (Phase 19 P04 Task 2; AC-PHYS-03 structural checks passed)
 
 ### B-10: Dynamic omega0 scheduling
 
@@ -259,6 +274,7 @@ Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
 - 2026-05-22 ff7a309 PENDING -> IN_PROGRESS (Phase 19 P01 Task 1)
 - 2026-05-22 b470f9b IN_PROGRESS -> FIX_APPLIED (Phase 19 P01 Task 3; ctl_instruction spec edits applied)
+- 2026-05-30 19-04-T2 FIX_APPLIED -> VERIFIED (Phase 19 P04 Task 2; AC-PHYS-06 structural checks passed)
 
 ### M5: I_3 normalization map
 
