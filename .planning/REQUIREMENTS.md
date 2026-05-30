@@ -3,7 +3,7 @@
 **Defined:** 2026-05-15
 **Core Value:** The simulation dataset and data pipeline must be clean, well-validated, and correctly processed; framework specs must be physically coherent before implementation work depends on them.
 
-**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 18 are complete. Phase 19 physics and loss contracts are next.
+**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 19 are complete. Phase 20 architecture and normalization cleanup is next.
 
 ## v1.4 Requirements
 
@@ -35,12 +35,12 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ### Physics and Loss Contracts
 
-- [ ] **PHYS-01**: Framework specs lock the raw-mass nondimensionalization convention and retain `D=(G*T^2)^(1/3)` unless a full mass-fraction rewrite is explicitly chosen later.
-- [ ] **PHYS-02**: Framework specs define the normalized-time derivative contract, naming the autograd leaf explicitly (`u=t/T` or `tau=2u-1`) and specifying the chain-rule factors when the leaf differs from `u`. The contract requires componentwise derivatives per output coordinate — not a `grad_outputs=torch.ones_like(...)` aggregate — and includes the synthetic-trajectory test `r'(u) = [sin(2πu), cos(2πu), u²]` as a worked example whose AD outputs must match symbolic derivatives.
-- [ ] **PHYS-03**: Framework specs use a matched softened force/potential pair for physics residuals and energy regularization, with any offline invariant epsilon kept separate from training-time numerical softening. The chosen softening value (single matched `r_safe` vs. dual-context `eps_inv`/`eps_soft`) is locked only after EVID-05 adjudication against the current `simulation_data` epsilon usage and the close-encounter analysis in `01-architecture-and-physics-foundations.md`.
-- [ ] **PHYS-04**: The energy term is described as a soft conservation regularizer rather than an HNN unless the model actually parameterizes a Hamiltonian.
-- [ ] **PHYS-05**: ALM is specified only for scalar conservation constraints (E, L_x, L_y, L_z by default), while dense ODE residuals use a causal or otherwise justified residual weighting contract. Dual-variable update rules name which optimizer phase (Adam/L-BFGS) updates or freezes them.
-- [ ] **PHYS-06**: The constraint-counting passage in `ctl_instruction.md` ("13 constraints overdetermine an 8D reduced phase space") is replaced with an evidence-backed statement of how many constraints v1.4 actually enforces and over what reduced phase space. The replacement text is locked only after EVID-05 adjudication of M4 against the gauge-fixing logic in the resolution doc and the dimension accounting in `01-architecture-and-physics-foundations.md`.
+- [x] **PHYS-01**: Framework specs lock the raw-mass nondimensionalization convention and retain `D=(G*T^2)^(1/3)` unless a full mass-fraction rewrite is explicitly chosen later.
+- [x] **PHYS-02**: Framework specs define the normalized-time derivative contract, naming the autograd leaf explicitly (`u=t/T` or `tau=2u-1`) and specifying the chain-rule factors when the leaf differs from `u`. The contract requires componentwise derivatives per output coordinate — not a `grad_outputs=torch.ones_like(...)` aggregate — and includes the synthetic-trajectory test `r'(u) = [sin(2πu), cos(2πu), u²]` as a worked example whose AD outputs must match symbolic derivatives.
+- [x] **PHYS-03**: Framework specs use a matched softened force/potential pair for physics residuals and energy regularization, with any offline invariant epsilon kept separate from training-time numerical softening. The chosen softening value (single matched `r_safe` vs. dual-context `eps_inv`/`eps_soft`) is locked only after EVID-05 adjudication against the current `simulation_data` epsilon usage and the close-encounter analysis in `01-architecture-and-physics-foundations.md`.
+- [x] **PHYS-04**: The energy term is described as a soft conservation regularizer rather than an HNN unless the model actually parameterizes a Hamiltonian.
+- [x] **PHYS-05**: ALM is specified only for scalar conservation constraints (E, L_x, L_y, L_z by default), while dense ODE residuals use a causal or otherwise justified residual weighting contract. Dual-variable update rules name which optimizer phase (Adam/L-BFGS) updates or freezes them.
+- [x] **PHYS-06**: The constraint-counting passage in `ctl_instruction.md` ("13 constraints overdetermine an 8D reduced phase space") is replaced with an evidence-backed statement of how many constraints v1.4 actually enforces and over what reduced phase space. The replacement text is locked only after EVID-05 adjudication of M4 against the gauge-fixing logic in the resolution doc and the dimension accounting in `01-architecture-and-physics-foundations.md`.
 
 ### Architecture and Normalization Cleanup
 
@@ -104,12 +104,12 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | FRAME-02 | Phase 18 | Complete |
 | FRAME-03 | Phase 18 | Complete |
 | FRAME-04 | Phase 18 | Complete |
-| PHYS-01 | Phase 19 | Pending |
-| PHYS-02 | Phase 19 | Pending |
-| PHYS-03 | Phase 19 | Pending |
-| PHYS-04 | Phase 19 | Pending |
-| PHYS-05 | Phase 19 | Pending |
-| PHYS-06 | Phase 19 | Pending |
+| PHYS-01 | Phase 19 | Complete |
+| PHYS-02 | Phase 19 | Complete |
+| PHYS-03 | Phase 19 | Complete |
+| PHYS-04 | Phase 19 | Complete |
+| PHYS-05 | Phase 19 | Complete |
+| PHYS-06 | Phase 19 | Complete |
 | ARCH-01 | Phase 20 | Pending |
 | ARCH-02 | Phase 20 | Pending |
 | ARCH-03 | Phase 20 | Pending |
@@ -130,4 +130,4 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-05-24 after EDL support-workflow recognition — FRAME-01 through FRAME-04 are complete; Phase 19 is next.*
+*Last updated: 2026-05-30 after Phase 19 completion — PHYS-01 through PHYS-06 are complete; Phase 20 is next.*

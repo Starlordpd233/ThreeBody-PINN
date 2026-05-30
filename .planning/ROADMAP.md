@@ -6,7 +6,7 @@
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–18 complete; next: discuss Phase 19)
+- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–19 complete; next: discuss Phase 20)
 
 ## Phases
 
@@ -103,7 +103,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 - [x] **Phase 16: Evidence Framework and Issue Adjudication** — Establish the issue ledger schema, evidence-packet template, EVID-05 conflict-adjudication protocol, and VER-05 re-verification cycle that every Issue 01 edit must follow. (completed 2026-05-16)
 - [x] **Phase 17: Input and Output Contracts** — Resolve the 14D input, 13-entry IC schema, position-output (with mass-weighted COM projection head), and obsolete-dimension wording contracts across framework specs. (completed 2026-05-20)
 - [x] **Phase 18: Frame and Gauge Contracts** — Reconcile COM, momentum, ordering, rotation gauge, scaling order, hierarchical offsets, and 3D Cartesian output guarantees. (completed 2026-05-21)
-- [ ] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement.
+- [x] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement. (completed 2026-05-30)
 - [ ] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording.
 - [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the final fixed/non-change/deferred handoff (VER-03). Failing checks loop back to Phases 17–20 for spec correction.
 
@@ -163,7 +163,7 @@ Plans:
   3. Reader can see how hierarchical post-perturbation COM offsets and standard quasi-random COM behavior are reconciled with the sampling spec.
   4. Reader can verify the output contract remains 3D Cartesian trajectories and is not replaced by planar or invariant-only predictions.
 
-**Completion**: Phase 18 completed 2026-05-21; Phase 19 is next.
+**Completion**: Phase 18 completed 2026-05-21; Phase 19 followed.
 
 **Plans**: 3/3 complete (`18-01-PLAN.md`, `18-02-PLAN.md`, `18-03-PLAN.md`)
 
@@ -195,7 +195,9 @@ Plans:
   5. Reader can confirm ALM is limited to scalar conservation constraints (default: E, L_x, L_y, L_z) and dense ODE residuals use a causal or otherwise justified weighting contract, with dual-variable update rules naming the optimizer phase that updates or freezes them.
   6. Reader can find the M4 constraint-counting replacement: the stale "13 constraints overdetermine an 8D reduced phase space" passage is removed and replaced with an evidence-backed statement of how many constraints v1.4 actually enforces and over what reduced phase space, after EVID-05 adjudication.
 
-**Plans**: 4 plans (`19-01-PLAN.md`, `19-02-PLAN.md`, `19-03-PLAN.md`, `19-04-PLAN.md`)
+**Completion**: Phase 19 completed 2026-05-30; Phase 20 is next.
+
+**Plans**: 4/4 complete (`19-01-PLAN.md`, `19-02-PLAN.md`, `19-03-PLAN.md`, `19-04-PLAN.md`)
 
 ### Phase 20: Architecture and Normalization Cleanup
 
@@ -250,9 +252,9 @@ Plans:
 | 16. Evidence Framework and Issue Adjudication | v1.4 | 3/3 | Complete    | 2026-05-16 |
 | 17. Input and Output Contracts | v1.4 | 3/3 | Complete    | 2026-05-20 |
 | 18. Frame and Gauge Contracts | v1.4 | 3/3 | Complete    | 2026-05-21 |
-| 19. Physics and Loss Contracts | v1.4 | 3/4 | In Progress|  |
+| 19. Physics and Loss Contracts | v1.4 | 4/4 | Complete    | 2026-05-30 |
 | 20. Architecture and Normalization Cleanup | v1.4 | 0/TBD | Not started | - |
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-05-21 — Phase 18 complete; next step is Phase 19 discussion.*
+*Last updated: 2026-05-30 — Phase 19 complete; next step is Phase 20 discussion.*

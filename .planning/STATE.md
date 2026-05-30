@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: executing
-stopped_at: context exhaustion at 100% (2026-05-29)
-last_updated: "2026-05-30T17:15:53.196Z"
-last_activity: 2026-05-30 -- Phase 19 execution started
+status: ready_to_plan
+stopped_at: Phase 19 complete (4/4) — ready to discuss Phase 20
+last_updated: 2026-05-30T18:58:46.171Z
+last_activity: 2026-05-30 -- Phase 19 completed; Phase 20 ready to plan
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 9
-  percent: 50
+  completed_plans: 13
+  percent: 67
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-24)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 19 — physics-and-loss-contracts
+**Current focus:** Phase 20 — Architecture and Normalization Cleanup
 
 ## Current Position
 
-Phase: 19 (physics-and-loss-contracts) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 19
-Last activity: 2026-05-30 -- Phase 19 execution started
-Progress: [█████░░░░░] 50%
+Phase: 20
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-30
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 48 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
+- Total plans completed: 52 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -63,6 +63,7 @@ Progress: [█████░░░░░] 50%
 | 16 | 3 | - | - |
 | 17 | 3 | - | - |
 | 18 | 3 | - | - |
+| 19 | 4 | - | - |
 
 ## Accumulated Context
 
@@ -72,7 +73,7 @@ Progress: [█████░░░░░] 50%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16, 17, and 18 are complete and verified; Phase 19 is ready to discuss/plan. EDL support is now documented as a non-canonical support workflow under `.planning/research/edl/`.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16, 17, 18, and 19 are complete and verified; Phase 20 is ready to discuss/plan. EDL support is now documented as a non-canonical support workflow under `.planning/research/edl/`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-19, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
@@ -139,7 +140,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-18 are complete. Phase 19 is ready to discuss/plan.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-19 are complete. Phase 20 is ready to discuss/plan.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -157,7 +158,7 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 - GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
 - Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
-- Phases 17–20 each need a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-02, B-04, B-09, M5.
+- Remaining Phase 20 needs a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-04 and M5.
 
 ## Quick Tasks Completed
 
@@ -176,4 +177,4 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 Last session: 2026-05-29T02:57:17.570Z
 Stopped at: context exhaustion at 100% (2026-05-29)
 Resume file: None
-Next action: Discuss or plan Phase 19 physics and loss contracts
+Next action: Discuss or plan Phase 20 architecture and normalization cleanup
