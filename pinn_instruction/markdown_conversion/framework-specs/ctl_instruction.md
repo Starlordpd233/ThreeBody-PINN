@@ -1263,8 +1263,9 @@ $$\mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilo
 
 ### 4. Energy Conservation Check
 
-Average relative energy drift below threshold:
-$$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)|} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})$$
+Average relative energy drift below threshold, using the persisted
+PHYS-04/D-20 energy denominator floor `epsilon_H = 1e-4 * S_H`:
+$$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)| + \epsilon_H} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})$$
 
 ## Consolidated Hyperparameter Schedule
 
@@ -1404,8 +1405,8 @@ from a three-level Hydra YAML stack:
 
 - `opt.yaml` -- optimiser, learning-rate schedule, clip norms\
 
-- `loss.yaml` -- augmented-Lagrangian settings, $\lambda_E$ schedule,
-  tolerances
+- `loss.yaml` -- default loss weights, PHYS-05 warmup schedule, causal
+  residual settings, conservation regularizer scales, and tolerances
 
 A typical run is launched with:
 

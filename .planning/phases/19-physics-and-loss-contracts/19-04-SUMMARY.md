@@ -2,7 +2,7 @@
 phase: 19-physics-and-loss-contracts
 plan: 04
 subsystem: pinn-framework-spec
-tags: [physics-contract, loss-contract, structural-verification, evidence-ledger, fut-01-handoff]
+tags: [physics-contract, loss-contract, structural-verification, evidence-ledger, fut-01-handoff, code-review]
 
 # Dependency graph
 requires:
@@ -13,6 +13,7 @@ requires:
 provides:
   - "19-CODE-DIVERGENCE.md FUT-01 physics/loss handoff inventory"
   - "19-VERIFICATION.md structural verification record for AC-PHYS-01..06"
+  - "19-REVIEW.md post-review resolution log"
   - "B-02, B-07, B-08, B-09, and M4 closed to VERIFIED after structural checks"
   - "AC-PHYS-01..06 reservation block in the Phase 16 issue ledger"
 affects: [21, FUT-01]
@@ -28,8 +29,11 @@ key-files:
   created:
     - ".planning/phases/19-physics-and-loss-contracts/19-CODE-DIVERGENCE.md"
     - ".planning/phases/19-physics-and-loss-contracts/19-VERIFICATION.md"
+    - ".planning/phases/19-physics-and-loss-contracts/19-REVIEW.md"
     - ".planning/phases/19-physics-and-loss-contracts/19-04-SUMMARY.md"
   modified:
+    - "pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md"
+    - "pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md"
     - ".planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md"
     - ".planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-07.md"
     - ".planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-08.md"
@@ -41,6 +45,7 @@ key-decisions:
   - "Preserved Phase 19 as structural verification only; Phase 21 owns numeric pass criteria and disposable probes."
   - "Closed the five Phase 19 findings only after AC-PHYS-01..06 structural checks passed."
   - "Kept live pinn/ references limited to FUT-01 handoff coordinates in 19-CODE-DIVERGENCE.md."
+  - "Applied post-review fixes only where grounded by locked Phase 19 decisions."
 
 patterns-established:
   - "Phase verification files may record notation-compatible structural checks when the specs use Unicode math notation already locked by prior plans."
@@ -78,6 +83,7 @@ completed: 2026-05-30T18:32:42Z
 - Created `19-VERIFICATION.md` with Structural Verification results for `AC-PHYS-01` through `AC-PHYS-06`.
 - Advanced B-02, B-07, B-08, B-09, and M4 to `VERIFIED` in evidence packets and `16-ISSUE-LEDGER.md`.
 - Reserved `AC-PHYS-01..06` in the ledger without inventing Phase 21 numeric pass criteria.
+- Added `19-REVIEW.md` and resolved the post-review findings before final phase closure.
 
 ## Task Commits
 
@@ -85,12 +91,16 @@ Each task was committed atomically:
 
 1. **Task 1: Create 19-CODE-DIVERGENCE.md for FUT-01** - `b20652b` (docs)
 2. **Task 2: Verify AC-PHYS-01..06 and close findings** - `c9c0803` (docs)
-3. **Task 3: Write final Phase 19 summary** - this commit (docs)
+3. **Task 3: Write final Phase 19 summary** - `2959f00` (docs)
+4. **Post-review: Resolve Phase 19 review findings** - follow-up commit (docs)
 
 ## Files Created/Modified
 
 - `.planning/phases/19-physics-and-loss-contracts/19-CODE-DIVERGENCE.md` - FUT-01 handoff inventory for Phase 19 physics/loss divergences.
 - `.planning/phases/19-physics-and-loss-contracts/19-VERIFICATION.md` - Structural Verification record with all six `PASS: AC-PHYS-NN` markers.
+- `.planning/phases/19-physics-and-loss-contracts/19-REVIEW.md` - Review finding and resolution log.
+- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` - Post-review causal-loss, `u`-domain sampling/inference, and listing indentation fixes.
+- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` - Post-review `epsilon_H` stage-gate and `loss.yaml` wording fixes.
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md` - B-02 status moved to `VERIFIED`.
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-07.md` - B-07 status moved to `VERIFIED`.
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-08.md` - B-08 status moved to `VERIFIED`.
@@ -104,11 +114,13 @@ Followed the locked Phase 19 decisions from `19-CONTEXT.md`: D-13 reserves AC-PH
 
 ## Deviations from Plan
 
-None - no governance gap was opened and the planned file set was not changed.
+The initial plan closed cleanly. A subsequent code review found stale framework-spec prose and one broken listing in files already edited by Phase 19, so those grounded fixes were applied before final phase closure. No governance gap was opened.
 
 ## Issues Encountered
 
 Two preflight `rg` probes used ASCII-only notation while the settled specs use Unicode math notation (`T²`, `2πu`). The verification record documents notation-compatible structural checks; the required Task 2 automated verifier passed.
+
+Post-review, six spec/documentation findings were fixed: causal weighting is now the default physics-loss formula, stale `tau`-domain sampling/inference prose was replaced with the canonical `u` contract, adaptive collocation reads the canonical `traj_data['u']` field, the CTL energy gate uses `epsilon_H`, the late `loss.yaml` bullet no longer points at ALM defaults, and the edited Python listing is indented correctly.
 
 ## Known Stubs
 
@@ -125,6 +137,7 @@ Phase 21 can consume the reserved `AC-PHYS-01..06` names and add numeric pass cr
 ## Self-Check: PASSED
 
 - Structural Verification passed for `AC-PHYS-01..06`; `19-VERIFICATION.md` contains all six exact `PASS: AC-PHYS-NN` markers.
+- Post-review revalidation passed for the causal-loss, normalized-time, `epsilon_H`, `loss.yaml`, and listing-indentation guards.
 - B-02, B-07, B-08, B-09, and M4 are `VERIFIED` in the ledger and evidence packets.
 - No unresolved CTL-side cross-reference or total-loss defects remain from 19-03 Task 2; `19-03-SUMMARY.md` records the targeted CTL anchor repair and Task 2 verifier passed here.
 - No pinn/ diff.

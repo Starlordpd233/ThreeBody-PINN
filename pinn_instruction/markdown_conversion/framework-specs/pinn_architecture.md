@@ -404,10 +404,23 @@ where:
 - $\epsilon_{train} = 10^{-5}$ (`10^-5`) : Training-time Plummer softening parameter to prevent
   division by zero during close encounters
 
-The physics loss is then formulated as the mean squared norm of this
-residual vector, summed over all bodies and evaluated over a set of
-$N_{\text{col}}$ collocation points:
-$$L_{phys} = \frac{1}{N_{\text{col}}} \sum_{k=1}^{N_{\text{col}}} \sum_{i=1}^{N} \| f_i(u_k) \|^2$$
+Define the per-time residual energy as:
+
+$$\bar R_n = \sum_{i=1}^{3} \| f_i(u_n) \|^2.$$
+
+For sorted collocation times $u_1 < \cdots < u_{N_t}$, the default
+causal weights are:
+
+$$w_1 = 1,\qquad
+w_n = \exp\left(-\eta_c \sum_{m=1}^{n-1} \operatorname{stopgrad}(\bar R_m)\right),
+\quad n>1.$$
+
+The default physics loss consumed by $L_{total}$ is therefore:
+
+$$L_{phys}^{causal} = \frac{1}{N_t} \sum_{n=1}^{N_t} w_n \bar R_n.$$
+
+The unweighted mean $\frac{1}{N_t}\sum_n \bar R_n$ may be logged as a
+diagnostic, but it is not the default training loss.
 
 **Collocation Point Sampling:**
 
@@ -416,25 +429,25 @@ The collocation points are sampled according to the following strategy:
 ``` {.python language="Python" caption="Listing 3: Collocation Points Sampling"}
 import numpy as np
 
-def sample_collocation_points(t_min, t_max, n_col, strategy='uniform', 
+def sample_collocation_points(u_min=0.0, u_max=1.0, n_col=4096, strategy='uniform',
                             traj_data=None):
     """
-    Sample collocation points for physics and energy loss evaluation.
+    Sample normalized physics-time collocation points u in [0, 1].
     
     Args:
-        t_min, t_max: Normalized time domain boundaries (e.g., [-1, 1])
+        u_min, u_max: Normalized physics-time boundaries (default: [0, 1])
         n_col: Number of collocation points (recommended: 2048-4096)
         strategy: 'uniform' (default) or 'adaptive'
         traj_data: Optional trajectory data for adaptive strategy
     
     Returns:
-        t_col: Array of sampled time points
+        u_col: Array of sampled normalized physics-time points
     """
     if strategy == 'uniform':
-        t_col = np.random.uniform(t_min, t_max, size=(n_col,))
+        u_col = np.random.uniform(u_min, u_max, size=(n_col,))
         
     elif strategy == 'adaptive':
-        if traj_data is None:  # This line needs proper indentation
+        if traj_data is None:
             raise ValueError("Adaptive strategy requires traj_data")
         # Bias sampling toward high-acceleration regions
         weights = np.abs(traj_data['accelerations']).max(axis=1)
@@ -444,17 +457,17 @@ def sample_collocation_points(t_min, t_max, n_col, strategy='uniform',
             weights = np.ones_like(weights)
             
         weights /= weights.sum()  # Normalize
-        t_col = np.random.choice(traj_data['times'], 
+        u_col = np.random.choice(traj_data['u'],
                                 size=n_col, p=weights)
     else:
         raise ValueError("Invalid strategy")
         
-    return t_col
+    return u_col
 ```
 
 Minimizing this term forces the network to learn a function
-$\mathrm{r}_\theta(t')$ that is also a solution to the governing
-ordinary differential equations (ODEs).
+$\mathrm{r}_\theta(u)$ that is also a solution to the governing ordinary
+differential equations (ODEs) in the normalized physics-time coordinate.
 
 ## 3.3 Initial Condition Anchor Loss ($L_IC$)
 
@@ -540,39 +553,39 @@ The initial energy $H_0$ is precomputed during dataset preprocessing:
 
 ``` {.python language="Python" caption="Listing 5: Initial Energy Calculation in Dataset Preprocessing"}
 class TrajectoryDataset:
-def __init__(self, trajectory_data):
-    # ... other initialization ...
-    
-    # Precompute H_0 for each trajectory
-    self.H_0_values = {}
-    for traj_id, traj in trajectory_data.items():
-        self.H_0_values[traj_id] = self.compute_initial_energy(
-            r0_prime=traj['r0_scaled'],  # Already scaled by D
-            v0_prime=traj['v0_scaled'],  # Already scaled by D/T
-            masses=traj['masses']
-        )
+    def __init__(self, trajectory_data):
+        # ... other initialization ...
 
-def compute_initial_energy(self, r0_prime, v0_prime, masses):
-    """Compute H_0 in dimensionless units (G=1)"""
-    H_0 = 0.0
-    epsilon_train = 1e-5  # Training-time Plummer softening parameter
-    
-    # Fixed for 3-body problem
-    N_bodies = 3
-    
-    # 1. KINETIC ENERGY (dimensionless)
-    for i in range(N_bodies):
-        H_0 += 0.5 * masses[i] * np.sum(v0_prime[i]**2)
-    
-    # 2. POTENTIAL ENERGY (dimensionless)
-    for i in range(N_bodies):
-        for j in range(i+1, N_bodies):
-            r_vec = r0_prime[i] - r0_prime[j]
-            r_sq = np.sum(r_vec**2)
-            r_safe = np.sqrt(r_sq + epsilon_train**2)
-            H_0 -= masses[i] * masses[j] / r_safe
-            
-    return H_0
+        # Precompute H_0 for each trajectory
+        self.H_0_values = {}
+        for traj_id, traj in trajectory_data.items():
+            self.H_0_values[traj_id] = self.compute_initial_energy(
+                r0_prime=traj['r0_scaled'],  # Already scaled by D
+                v0_prime=traj['v0_scaled'],  # Already scaled by D/T
+                masses=traj['masses']
+            )
+
+    def compute_initial_energy(self, r0_prime, v0_prime, masses):
+        """Compute H_0 in dimensionless units (G=1)"""
+        H_0 = 0.0
+        epsilon_train = 1e-5  # Training-time Plummer softening parameter
+
+        # Fixed for 3-body problem
+        N_bodies = 3
+
+        # 1. KINETIC ENERGY (dimensionless)
+        for i in range(N_bodies):
+            H_0 += 0.5 * masses[i] * np.sum(v0_prime[i]**2)
+
+        # 2. POTENTIAL ENERGY (dimensionless)
+        for i in range(N_bodies):
+            for j in range(i+1, N_bodies):
+                r_vec = r0_prime[i] - r0_prime[j]
+                r_sq = np.sum(r_vec**2)
+                r_safe = np.sqrt(r_sq + epsilon_train**2)
+                H_0 -= masses[i] * masses[j] / r_safe
+
+        return H_0
 ```
 
 **Key Implementation Notes:**
@@ -723,20 +736,22 @@ approximator to generate entire trajectories on demand.
 To predict the evolution of a system from a given initial condition
 ($IC$), the following procedure is used:
 
-1.  **Define Evaluation Times:** Create a fine-grained array of time
-    points, $t_{eval}$, over the desired simulation interval (e.g.,
-    10,000 points from $t=0$ to $t_{max}$). Normalize these time points
-    to the model's input range of $[-1, 1]$.
+1.  **Define Evaluation Times:** Create a fine-grained array of physical
+    evaluation times, $t_{eval}$, over the desired simulation interval
+    (e.g., 10,000 points from $t=0$ to $t_{max}$). Convert them to
+    normalized physics time $u_{eval}=t_{eval}/T$. The model wrapper
+    computes the bounded network coordinate $\tau = 2u - 1$ internally.
 
-2.  **Predict Positions:** For each normalized time point in $t_{eval}$,
-    feed it concatenated with the constant $IC$ vector into the trained
-    network. This will produce a continuous trajectory of the system's
-    positions, $r_{\theta}(t_{eval})$.
+2.  **Predict Positions:** For each normalized physics-time point in
+    $u_{eval}$, let the model wrapper concatenate $\tau = 2u-1$ with the
+    constant $IC$ vector before calling the trained network. This produces
+    a continuous trajectory of the system's positions, $r_{\theta}(u_{eval})$.
 
 3.  **Derive Kinematics (Optional):** If velocities or accelerations are
-    needed for analysis, they can be derived at any evaluation point by
-    using automatic differentiation on the network with respect to the
-    time input.
+    needed for analysis, derive them by differentiating with respect to
+    the canonical autograd leaf $u$. The $2\times$ and $4\times$ chain-rule
+    factors apply only to an implementation path that differentiates
+    directly with respect to $\tau$.
 
 ## 5.2 Output Layer and Kinematic Consistency via Automatic Differentiation
 
