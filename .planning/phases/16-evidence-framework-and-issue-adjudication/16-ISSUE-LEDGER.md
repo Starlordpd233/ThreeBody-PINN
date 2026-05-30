@@ -71,10 +71,6 @@ Shared acceptance check: AC-ARCH-01 also covers other IDs B-01 and B-10.
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
-- 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
-- 2026-05-22 EDIT_SHA PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
-- 2026-05-22 EDIT_SHA IN_PROGRESS -> FIX_APPLIED (Phase 19 P01 Task 3; ctl_instruction spec edits applied)
-- 2026-05-22 EDIT_SHA PENDING -> IN_PROGRESS (Phase 19 P01 Task 1)
 
 ### B-02: Characteristic length and mass scaling
 
@@ -86,8 +82,8 @@ Acceptance check: AC-PHYS-01
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
-- 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
-- 2026-05-22 EDIT_SHA PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
+- 2026-05-22 ff7a309 PENDING -> IN_PROGRESS (Phase 19 P01 Task 1)
+- 2026-05-22 b470f9b IN_PROGRESS -> FIX_APPLIED (Phase 19 P01 Task 3; ctl_instruction spec edits applied)
 
 ### B-03: Input dimensionality
 
@@ -99,8 +95,6 @@ Shared acceptance check: AC-IO-01 also covers other IDs B-03 and M2.
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
-- 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
-- 2026-05-22 EDIT_SHA PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
 - 2026-05-19 884efd3 PENDING -> IN_PROGRESS (Phase 17 P01 Task 1)
 - 2026-05-19 50650a3 IN_PROGRESS -> FIX_APPLIED (Phase 17 P01 Task 3; input spec edits applied)
 - 2026-05-19 50650a3 FIX_APPLIED -> VERIFIED (Phase 17 P01 Task 3; AC-IO-01/AC-IO-02 passed)
@@ -171,6 +165,8 @@ Acceptance check: AC-PHYS-04
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+- 2026-05-22 08140c4 PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
+- 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
 
 ### B-08: ALM scheduling and loss balancing
 
@@ -180,6 +176,8 @@ Acceptance check: AC-PHYS-05
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+- 2026-05-22 08140c4 PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
+- 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
 
 ### B-09: Softening mismatch
 
@@ -191,6 +189,8 @@ Acceptance check: AC-PHYS-03
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+- 2026-05-22 08140c4 PENDING -> IN_PROGRESS (Phase 19 P02 Task 1)
+- 2026-05-22 84fe183 IN_PROGRESS -> FIX_APPLIED (Phase 19 P02 Task 3; pinn_architecture spec edits applied)
 
 ### B-10: Dynamic omega0 scheduling
 
@@ -257,8 +257,8 @@ Acceptance check: AC-PHYS-06
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
-- 2026-05-22 EDIT_SHA PENDING -> IN_PROGRESS (Phase 19 P01 Task 1)
-- 2026-05-22 EDIT_SHA IN_PROGRESS -> FIX_APPLIED (Phase 19 P01 Task 3; ctl_instruction spec edits applied)
+- 2026-05-22 ff7a309 PENDING -> IN_PROGRESS (Phase 19 P01 Task 1)
+- 2026-05-22 b470f9b IN_PROGRESS -> FIX_APPLIED (Phase 19 P01 Task 3; ctl_instruction spec edits applied)
 
 ### M5: I_3 normalization map
 
