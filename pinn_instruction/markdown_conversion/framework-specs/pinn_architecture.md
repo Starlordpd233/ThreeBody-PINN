@@ -3,7 +3,7 @@ author: Starlordpd233
 date: 2026-03-21
 ---
 
-# A Definitive Implementation Blueprint for a Hybrid SQR-SkipResNet-SIREN PINN with Hamiltonian Regularization for $\mathrm{N}$-Body Dynamics
+# A Definitive Implementation Blueprint for a Hybrid SQR-SkipResNet-SIREN PINN with Soft Conservation Regularization for $\mathrm{N}$-Body Dynamics
 
 # 1. Foundational Architectural Principles: A Co-Designed Approach for Chaotic Systems
 
@@ -82,31 +82,23 @@ core requirements of the problem:
     satisfies the local, instantaneous equations of motion can
     accumulate numerical drift over long time horizons, leading to
     unphysical outcomes such as a gradual increase or decrease in the
-    total energy of an isolated system. While specialized architectures
-    like Hamiltonian Neural Networks (HNNs) can enforce energy
-    conservation by construction through a symplectic structure, they
-    often impose rigid constraints on the network's form (e.g.,
-    requiring the use of canonical coordinates) that can limit its
-    flexibility as a general function approximator.[^1] The proposed
-    architecture adopts a more pragmatic and flexible approach by
-    incorporating the principle of energy conservation as a \"soft\"
-    constraint within the loss function. This HNN-style energy
-    regularizer penalizes the network for any deviation of the predicted
-    total energy from its known initial value, guiding the optimization
-    process toward solutions that lie on or near the constant-energy
-    manifold defined by the initial conditions. This strategy provides
-    the primary benefit of an HNN---energy conservation---without its
-    restrictive architectural costs, thereby improving the long-term
-    physical plausibility of the model's predictions.[^1]
+    total energy of an isolated system. The proposed architecture keeps
+    the model as a position-prediction network and incorporates global
+    conservation behavior as soft penalty terms in the loss. The energy
+    term evaluates the analytic matched-Plummer Hamiltonian $H_\epsilon$
+    from predicted positions and AD-derived velocities, then penalizes
+    drift from the initial value. The angular-momentum term similarly
+    penalizes componentwise drift from the initial angular momentum.
+    These are soft conservation regularizers, not hard conservation laws
+    and not architecture-level conservation constraints.
 
-This philosophy of pragmatic hybridization, which strategically borrows
-the most critical benefits from multiple advanced paradigms while
-avoiding their most restrictive drawbacks, is a central theme of the
-proposed design. The resulting model is a synergistic whole, where the
-SQR-SkipResNet enables the necessary depth for expressivity, the SIREN
-activations provide the derivative fidelity required for physics
-enforcement, and the HNN-style loss term ensures the long-term stability
-essential for physical realism.
+This philosophy of pragmatic hybridization, which combines
+architecture-level derivative fidelity with loss-level physics
+constraints, is a central theme of the proposed design. The resulting
+model is a synergistic whole, where the SQR-SkipResNet enables the
+necessary depth for expressivity, the SIREN activations provide the
+derivative fidelity required for physics enforcement, and the soft
+conservation regularizers improve long-term physical plausibility.
 
 # 2. The SQR-SkipResNet-SIREN Backbone: A Deep Dive into the Core Architecture
 
@@ -296,12 +288,13 @@ generalizable beyond the specific training data points.
 
 The default Phase 19 training objective is:
 
-$$L_total = L_data + \lambda_{IC} L_IC + \lambda_{phys} L_phys^causal + \lambda_E L_E + \lambda_L L_L$$
+$$L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causal + \lambda_E \cdot L_E + \lambda_L \cdot L_L$$
 
-Canonical text form: `L_total = L_data + λ_IC L_IC + λ_phys L_phys^causal + λ_E L_E + λ_L L_L`.
+Canonical text form: `L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L`.
 
-This replaces the previous pseudo-ALM-on-physics-MSE objective. No ALM
-dual variables are part of the default training loss.
+This is the baseline penalty-term formulation. No dual variables are
+part of the default training loss; the scalar-conservation augmented
+Lagrangian option is documented only as a P2 ablation in §4.2.
 
 ## 3.1 Data Fidelity Term ($\mathcal{L}_{\text{data}}$): Anchoring to Ground Truth
 
@@ -487,16 +480,20 @@ Huber (resolution §8.2) because data targets along the
 curriculum-sampled trajectory are noisier and benefit from
 outlier-robust loss.
 
-## 3.4 Energy Conservation Regularizer ($L_E$): Enforcing a Global Conservation Law
+## 3.4 Soft Energy Conservation Regularizer ($L_E$): Enforcing a Global Conservation Law
 
 While the physics residual enforces the local, instantaneous laws of
 motion, it does not explicitly guarantee the conservation of global
 quantities over long time horizons. For an isolated mechanical system
 like the $\mathrm{N}$-body problem, the total energy is one such
-conserved quantity. The energy loss is a soft conservation regularizer,
-not an HNN term. The network predicts positions; it does not
-parameterize a Hamiltonian. The loss penalizes drift of the analytic
-matched-Plummer Hamiltonian $H_\epsilon$ (`H_ε`).
+conserved quantity. The energy loss is a soft conservation regularizer:
+the network predicts positions at each time step, velocities and
+accelerations are computed via componentwise automatic differentiation,
+and the analytic matched-Plummer Hamiltonian $H_\epsilon$ (`H_ε`) is
+evaluated from the predicted positions and AD-derived velocities. This
+penalty term discourages drift from the initial energy value; it is a
+soft constraint, not a hard conservation law. The network does not
+parameterize a Hamiltonian.
 
 The matched-Plummer potential energy is:
 
@@ -526,12 +523,13 @@ and $\delta = 1.0$ is the Huber transition.
 $S_H$ is computed once in float64 after final
 COM/zero-momentum/gauge/scaling preprocessing over the training split
 using the matched-Plummer Hamiltonian components with
-$\epsilon_{train} = 10^{-5}$ (`10^-5`). Persist both $S_H$ and `epsilon_H` in training metadata. $S_H$ must be finite and strictly positive; $S_H <=
-0$ or non-finite $S_H$ is a preprocessing/metadata validation failure.
-Do not apply a fallback numeric floor. Use `epsilon_H` only in $|H_0| +
-epsilon_H$. Phase 21 reports activation behavior only and must not
-reselect `epsilon_H` unless a new user instruction opens a replacement
-gap.
+$\epsilon_{train} = 10^{-5}$ (`10^-5`). Persist both $S_H$ and `epsilon_H` in training metadata. $S_H$ must be finite and strictly positive; $S_H <= 0$ or non-finite $S_H$ is a preprocessing/metadata validation failure. Do not apply a fallback numeric floor. Use `epsilon_H` only in $|H_0| + epsilon_H$. Phase 21 reports activation behavior only and must not reselect `epsilon_H` unless a new user instruction opens a replacement gap.
+
+The FUT-01 divergence handoff must flag executable training metadata as
+divergent if it omits $S_H$ or `epsilon_H`, computes $S_H$ from a
+different split or preprocessing stage, computes $S_H$ per minibatch,
+uses a fixed numeric `epsilon_H`, or applies a max/fallback floor that is
+not present in this canonical contract.
 
 The term "Hamiltonian" here refers to the analytic energy function
 $H_\epsilon$, not to a neural-network-parameterized Hamiltonian.
@@ -612,11 +610,11 @@ Successfully training the network requires a sophisticated approach to
 navigate the complex, non-convex loss landscape and handle numerical
 instabilities.
 
-## 4.1 Total Training Loss (PHYS-05)
+## 4.1 Loss Balancing via Warmup Schedule (PHYS-05)
 
-$$L_total = L_data + \lambda_{IC} L_IC + \lambda_{phys} L_phys^causal + \lambda_E L_E + \lambda_L L_L$$
+$$L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causal + \lambda_E \cdot L_E + \lambda_L \cdot L_L$$
 
-Canonical text form: `L_total = L_data + λ_IC L_IC + λ_phys L_phys^causal + λ_E L_E + λ_L L_L`.
+Canonical text form: `L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L`.
 
 where:
 
@@ -630,7 +628,7 @@ where:
   causal exponent to avoid underflow, but do not choose a numeric
   clipping bound in Phase 19; surface a gap if one is needed.
   The causal exponent clip is required only to avoid underflow.
-- $L_E$: Energy conservation regularizer (soft conservation, not HNN),
+- $L_E$: Soft energy conservation regularizer,
   see §3.4.
 - $L_L$: Angular momentum conservation loss, see §3.5.
 - No dedicated L_P term: linear momentum is enforced structurally by
@@ -657,12 +655,23 @@ Optimizer-phase semantics:
 - Stage-boundary transitions: re-warmup applies per the new stage's
   $\lambda^{max}$ values.
 
-The previous pseudo-ALM formulation is rejected
-($+\lambda_p L_{phys} + (\mu_p/2) L_{phys}^2$): squaring a nonnegative MSE
-is not a standard equality-constrained augmented Lagrangian (resolution
-§8.8).
+The default loss is the penalty-term formulation above. Scalar
+conservation augmented-Lagrangian machinery is not part of the baseline
+training contract and is documented separately as the P2 ablation below.
 
-## 4.2 Two-Phase Optimization
+## 4.2 Optional ALM Ablation (P2)
+
+As a P2 ablation, an augmented Lagrangian method may be applied to scalar conservation constraints only:
+
+- **Constraints:** c_E = RMS_n(ΔH_n) (energy drift), c_{L,α} = RMS_n((L'_θ,α(u_n) - L_0,α') / L_scale) (angular momentum drift per component).
+- **Never apply ALM to the dense ODE residual.**
+- **Dual-variable updates:** Only between Adam epochs or between deterministic refinement passes. Never update dual variables during L-BFGS or inside a line search.
+- **Logging:** Log constraint values before and after each dual-variable update.
+- **Default:** ALM is OFF. The default loss is the penalty-term formulation in §3-§4 above.
+
+This P2 ablation is not part of the baseline training contract. It is documented for completeness and for future experimentation.
+
+## 4.3 Two-Phase Optimization
 
 To achieve both efficient exploration and high-precision convergence, a
 two-phase optimization strategy is employed.
@@ -679,7 +688,7 @@ two-phase optimization strategy is employed.
     memory-intensive, a mini-batch variant (Stochastic L-BFGS) is
     recommended for larger datasets.
 
-## 4.3 Adaptive Gradient Clipping
+## 4.4 Adaptive Gradient Clipping
 
 A significant challenge arises from the inverse-square distance terms in
 the loss function, which can explode during simulated close encounters.
@@ -923,13 +932,17 @@ drdu_batch = vmap(lambda u_b, ic_b: jacrev(model_single, argnums=0)(u_b, ic_b))(
 
   **Data Loss ($L_data$)**                     **Huber loss** on scaled projected positions with default $\delta_r=1$.                                                                                                                                                                      Huber is the default data contract because it is smoother than pure L1 and less brittle than L2 for chaotic trajectory samples.
 
-  **Physics Loss ($L_phys$)**                  **Mean Squared Error (MSE)** of the physics residual using the matched Plummer force denominator $r_{safe,ij}=\sqrt{||r_j'-r_i'||^2+\epsilon_{train}^2}$ with $\epsilon_{train}=10^{-5}$.                             This loss enforces the governing ordinary differential equations across the entire solution domain, not just at data points, allowing the model to generalize and make physically consistent predictions.
+  **IC Loss ($L_IC$)**                         **IC anchor** on predicted position and AD-derived velocity at `u=0`, with $\beta_v=1$ and $\lambda_{IC}=1$ default.                                                                                              Anchors the learned trajectory to the Phase 18 preprocessed initial state before later collocation points are optimized.
 
-  **Total Loss ($L_total$)**                   $L_total = L_data + \lambda_{IC} L_IC + \lambda_{phys} L_phys^causal + \lambda_E L_E + \lambda_L L_L$.                                                                                                                        Removes the default pseudo-ALM-on-physics-MSE objective and adds IC, causal physics, energy, and angular-momentum terms.
+  **Physics Loss ($L_phys$)**                  **Causal-weighted residual** using the matched Plummer force denominator $r_{safe,ij}=\sqrt{||r_j'-r_i'||^2+\epsilon_{train}^2}$ with $\epsilon_{train}=10^{-5}$.                             This loss enforces the governing ordinary differential equations across the entire solution domain, not just at data points, allowing the model to generalize and make physically consistent predictions.
 
-  **Energy Loss ($L_E$)**                      **Huber Loss ($\delta=1.0$)** on relative drift of the analytic matched-Plummer Hamiltonian $H_\epsilon$ (`H_ε`) using `epsilon_H = 1e-4 * S_H`.                                                      Soft conservation regularizer; the network does not parameterize a Hamiltonian and this term is not an HNN.
+  **Total Loss ($L_total$)**                   $L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causal + \lambda_E \cdot L_E + \lambda_L \cdot L_L$.                                                                                                                        Combines data fidelity, IC anchoring, causal physics residual, energy drift, and angular-momentum drift terms in the default penalty-term formulation.
+
+  **Energy Loss ($L_E$)**                      **Huber Loss ($\delta=1.0$)** on relative drift of the analytic matched-Plummer Hamiltonian $H_\epsilon$ (`H_ε`) using `epsilon_H = 1e-4 * S_H`.                                                      soft conservation regularizer; the network predicts positions and does not parameterize a Hamiltonian.
 
   **Angular Momentum Loss ($L_L$)**            **Componentwise Huber loss** on relative angular-momentum drift with $L_{scale}=||L_0'||+\epsilon_L$ and $\epsilon_L=10^{-8}$.                                                                                                      Enforces angular-momentum conservation as a soft penalty distinct from physics softening and from the energy denominator floor.
+
+  **Optional ALM P2 Ablation**                 Optional P2 ablation for scalar conservation constraints only; never part of the default loss and never applied to the dense ODE residual.                                                                                                      Documents future experimentation boundaries without changing the baseline training contract.
   -------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   : Table 2: Consolidated Implementation Blueprint Summary
