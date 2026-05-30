@@ -83,7 +83,7 @@ Cross-link: see [Open Decisions](#open-decisions) for full rationale.
 | M1 | MAJOR | CTL assembles 11D IC (masses + 5 invariants + 3 shape invariants); PINN expects 13D IC. Dimension gap of 2 components. | Adopt PINN's 13D IC as architecture contract. |
 | M2 | MAJOR | Total dimension claims: 12D (CTL title), 13D (CTL "13-component IC"), 14D (CTL closing note, PINN). No consistent count. | Adopt **14D** as canonical: [t', IC_13D]. |
 | M3 | MAJOR | Scaling order: CTL scales in Step 2, COM-transforms in Step 2.5. For hierarchical ICs, scaled COM offset survives. | **COM transform FIRST, then scale.** |
-| M4 | MAJOR | Constraint counting error: "13 constraints for 8-D reduced phase space" — but 18 - 3(COM) - 3(P) - 3(SO(3)) = 9 DOF, not 8. | Correct to: "9 constraints reduce 18-DOF to 9 dimensions."<br><br>**Adjudicated Phase 19:** `accept-resolution`. See `evidence/M4.md`. <!-- verifier-padding: \| --> |
+| M4 | MAJOR | Constraint counting error: "13 constraints for 8-D reduced phase space" — but 18 - 3(COM) - 3(P) - 3(SO(3)) = 9 DOF, not 8. | Correct to: "9 constraints reduce 18-DOF to 9 dimensions."<br><br>**Adjudicated Phase 19:** `accept-resolution`. See `evidence/M4.md`. |
 | M5 | MAJOR | I_3 claimed "already in [-1,1]" but formula gives I_3 in [0,1]. | Apply `I3_norm = 2*I3 - 1` to map [0,1] → [-1,1]. |
 | M8 | MAJOR | LayerNorm on skip path attributed to SQR-SkipResNet paper, but the original paper (arXiv:2310.15690v2) has NO LayerNorm anywhere. | Re-attribute as author modification. |
 | M9 | MAJOR | E_norm only uses [-1, 0) — positive input range never used since E < 0 for bound systems. | Acceptable for SIREN. Document that positive range is unused. |
