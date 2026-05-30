@@ -588,6 +588,19 @@ COM subtraction, the documented order -- COM/boost first, scaling last -- is
 required for auditability and to avoid mixed-frame intermediate files. Compute
 all subsequent invariants (`E`, `s_min`, etc.) from the scaled `r'` and `v'`.
 
+**Governing Mathematical Convention (locked Phase 19, PHYS-01):** The
+characteristic length scale D = (G*T**2)^(1/3) ~ 4.6416 is derived from
+raw-mass nondimensionalization. Substituting `r = D*r'`, `t = T*u` into
+Newton's equation and demanding the dimensionless residual
+`d²r'/du² = Σ m_j (r_j' - r_i') / ||r_j' - r_i'||³` (with raw masses
+`m_i`, not mass fractions) forces `D³ = G*T²`. The alternative
+`D = (G*M_tot*T²)^(1/3) ~ 6.694` is correct only under a mass-fraction
+convention rewrite (`m_i' = m_i/M_tot`) that would require touching every
+residual, Hamiltonian, angular-momentum, COM, and invariant formula in the
+framework. The mass-fraction alternative is documented as a future rewrite
+only and is not adopted in v1.4. See `evidence/B-02.md` for the full EVID-05
+adjudication.
+
 Global normalization scales (computed after scaling all trajectories):
 
 - `E_scale = |median({E_j})| + 1e-10`
@@ -661,15 +674,26 @@ final network IC slots under the Phase 17 input contract.
 1.  **Total energy $E$, virial ratio $Q$, and minimal separation
     $s_{\min}$.** $$\begin{aligned}
         T &= \tfrac12 \sum_{i=1}^{3} m_i \,\lVert \mathbf v'_i \rVert^2, \\
-        V &= - \sum_{1\le i<j\le 3} \frac{m_i m_j}{\lVert \mathbf r'_i - \mathbf r'_j \rVert + \varepsilon}, \\
+        \varepsilon_{\mathrm{inv}} &= 10^{-10}, \\
+        r_{\mathrm{safe},ij} &= \sqrt{\lVert \mathbf r'_i - \mathbf r'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}, \\
+        V &= - \sum_{1\le i<j\le 3} \frac{m_i m_j}{r_{\mathrm{safe},ij}}, \\
         E &= T + V, \qquad
         Q \;=\; \frac{2\,T}{\lvert V \rvert}, \qquad
         s_{\min} \;=\; \min_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert.
         
-    \end{aligned}$$ We use a small softening $\varepsilon = 10^{-10}$
+    \end{aligned}$$ We use the Plummer form `r_safe = sqrt(||r_i' - r_j'||^2 + epsilon_inv^2)` with
+    static-invariant softening $\varepsilon_{\mathrm{inv}} = 10^{-10}$
     (in scaled units) *only in $V$* to prevent singularities. The
     geometric quantity $s_{\min}$ is computed from true pairwise
     separations (no softening).
+
+    **anti-pattern (PHYS-03):** Do not mix additive `(||r|| + epsilon)` with Plummer `sqrt(||r||^2 + epsilon^2)` forms. Do not mix
+    `(||r|| + epsilon)^-3` force with `(||r|| + epsilon)^-1` potential. The
+    chosen pair must appear identically in residual and Hamiltonian. The
+    static-invariant softening `epsilon_inv = 10^-10` is context-specific for
+    offline invariant computation and is distinct from the training-time
+    softening `epsilon_train = 10^-5` used in the `pinn_architecture.md`
+    PHYS-03 residual and energy contracts.
 
 2.  **Normalized angular momentum $L_{\mathrm{norm}}$.** $$\begin{aligned}
         \mathbf L &= \sum_{i=1}^3 m_i \,(\mathbf r'_i \times \mathbf v'_i), \qquad
@@ -864,7 +888,9 @@ final network IC slots under the Phase 17 input contract.
 #### Numerical notes and defaults.
 
 Unless otherwise specified, use double precision for all invariants. The
-softening $\varepsilon=10^{-10}$ in the total energy definition (see above) is a safe default in scaled units and *does not* enter $s_{\min}$ or any denominator besides $V$.
+static-invariant Plummer softening $\varepsilon_{\mathrm{inv}}=10^{-10}$
+in the total energy definition (see above) is a safe default in scaled units
+and *does not* enter $s_{\min}$ or any denominator besides $V$.
 
 #### Sanity checks (quick tests).
 
@@ -909,10 +935,11 @@ and reporting only; they are no longer final network IC slots.
 
     This parameterization satisfies several critical requirements:
 
-    1.  **Injectivity**: The canonical ordering ensures that different
+    1.  **Deterministic gauge-fixed representation**: The canonical ordering ensures that different
         permutations of the same physical system yield identical input
-        vectors. The 13 constraints for an 8-dimensional reduced phase
-        space ensure over-determination and uniqueness.
+        vectors.
+
+        **IC13 Validity (locked Phase 19, PHYS-06):** The final IC13 is a redundant but reconstructive fixed-gauge initial-state encoding. It is not justified by constraint counting against a reduced phase space. Its validity comes from COM removal, zero-momentum boost, canonical ordering, canonical rotation, and retention of the independent Jacobi position/velocity degrees of freedom -- as locked by Phase 17 (IO-02) and Phase 18 (FRAME-01). The canonical preprocessing pipeline (Step 2) deterministically produces a gauge-fixed IC encoding that uniquely represents the trajectory up to the symmetries already removed. See `evidence/M4.md` for the full EVID-05 adjudication.
 
     2.  **Continuity**: All network IC slots vary continuously with the
         preprocessed initial conditions, ensuring smooth neural network
@@ -930,8 +957,8 @@ and reporting only; they are no longer final network IC slots.
     to numerical stability in the metadata calculations and the final
     Jacobi-state slot assembly:
 
-    - Use $\epsilon = 10^{-10}$ in potential energy calculations to
-      avoid division by zero
+    - Use the static-invariant Plummer form with $\varepsilon_{\mathrm{inv}} = 10^{-10}$
+      in potential energy calculations to avoid division by zero
 
     - Verify momentum conservation after canonical ordering:
       $||\sum m_i \mathbf{v}'_i|| < 10^{-12}$
@@ -959,7 +986,9 @@ $$
 x_{\mathrm{net}} = [\tau, IC_{13}], \qquad \tau = 2u - 1,\qquad u=t/T.
 $$
 
-The scalar `u` is the autograd leaf. The bounded coordinate `tau` is the network time input. Componentwise chain-rule details for velocities, accelerations, and force residuals are specified in Phase 19 (PHYS-02).
+For the normalized-time derivative contract (autograd leaf, chain-rule factors,
+componentwise derivatives, and synthetic-trajectory test), see the
+`pinn_architecture.md` PHYS-02 contract.
 
 The primary initial-condition vector is the 13-component Jacobi-state contract
 
@@ -1064,20 +1093,25 @@ The data flow for each training step is as follows:
 
 2. **Network Prediction**: The network emits a raw 9D position head for the three bodies. The architecture applies the hard mass-weighted COM projection defined in `pinn_architecture.md` before any loss, residual, diagnostic, or evaluation metric consumes the output. The projection weights are ordered raw pre-tanh mass metadata supplied by the Phase 18 (FRAME-01) preprocessing output, not the normalized `IC_{13}` mass slots. Velocities and accelerations are AD-derived from the projected positions; the network does not directly output velocities.
 
-3.  **Loss Computation**: Three distinct loss terms are computed:
+3.  **Loss Computation**: The default Phase 19 loss terms are computed:
 
     - $\mathcal{L}_{\text{data}}$: Compares the network's predicted
       positions with the ground-truth trajectories from the Brutus
       simulations.
 
-    - $\mathcal{L}_{\text{physics}}$: Calculates the residual of
-      Newton's equations of motion by using automatic differentiation to
-      get the second derivative of the network's position output
-      ($\frac{d^2\mathbf{r}}{dt^2}$).
+    - $\mathcal{L}_{\text{IC}}$: Anchors predicted position and velocity at
+      `u = 0`.
 
-    - $\mathcal{L}_{\text{energy}}$: Penalizes deviations from the
-      system's known initial energy, enforcing a global conservation
-      law.
+    - $\mathcal{L}_{\text{phys}}^{\text{causal}}$: Calculates the causally
+      weighted residual of Newton's equations of motion by using automatic
+      differentiation to get the second derivative of the network's position
+      output.
+
+    - $\mathcal{L}_{E}$: Penalizes relative drift from the system's known
+      initial energy as a soft conservation regularizer.
+
+    - $\mathcal{L}_{L}$: Penalizes componentwise relative angular-momentum
+      drift.
 
 4.  **Backpropagation**: The gradients of the total loss function flow
     back through the network to update the model's weights; gradients
@@ -1086,31 +1120,30 @@ The data flow for each training step is as follows:
 
 ## Loss Function Formulation
 
-The total loss enforces data fidelity, local physics, and global
-conservation, balanced via the Augmented Lagrangian Method (ALM).
+### Phase 2: Total Training Loss
 
-### Total Loss {#total-loss .unnumbered}
+The default training loss is:
 
-The total loss is defined as:
-$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda_{p}\mathcal{L}_{\text{physics}} + \frac{\mu_{p}}{2}\mathcal{L}_{\text{physics}}^{2} + \lambda_{E}(k)\mathcal{L}_{\text{energy}}$$
-where $k$ is the current curriculum stage.
+L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L
 
-### Augmented Lagrangian Method (ALM) Updates {#augmented-lagrangian-method-alm-updates .unnumbered}
+where each term is defined by name in the PHYS-05 loss-term catalog in
+`pinn_architecture.md` (`L_data`, `L_IC`, `L_phys^causal`, `L_E`, and `L_L`).
+The loss-balancing contract, warmup schedule, and optimizer-phase semantics
+are defined in the PHYS-05 training-loss contract in `pinn_architecture.md`.
 
-ALM parameters are updated algorithmically after each optimization step.
+**Optimizer-phase semantics (PHYS-05):** During Adam epochs, hyperparameters
+(`λ` values) may be scheduled per the warmup schedule. During L-BFGS, `λ`
+values are frozen and no dual updates occur inside a line search.
+Stage-boundary transitions apply re-warmup per the new stage's
+`λ_phys^max` / `λ_E^max` / `λ_L^max`.
 
-1.  **Update Lagrange Multiplier ($\lambda_p$)**: Updated via gradient
-    ascent on the constraint:
-    $$\lambda_{p} \leftarrow \lambda_{p} + \mu_{p}\mathcal{L}_{\text{physics}}$$
+**Causal weighting (PHYS-05 default):** Dense ODE residuals use causal weighting `w_n = exp(-η_c · Σ_{m<n} stopgrad(R̄_m))`, `w_1 = 1`, `η_c = 1`
+default, with stopgrad in weights by default to prevent the weight mechanism
+from becoming an adversarial term. The exponent must be clipped to avoid
+underflow, but Phase 19 does not choose a numeric clipping bound; surface a
+gap if execution requires one.
 
-2.  **Update Adaptive Penalty ($\mu_p$)**: Stabilized via RMSprop-like
-    update:
-    $$v_{p} \leftarrow \beta v_{p} + (1-\beta)\mathcal{L}_{\text{physics}}^{2}$$
-    $$\mu_{p} \leftarrow \frac{\gamma}{\sqrt{v_{p}+\epsilon}}$$ where
-    $\beta=0.99$, $\gamma=0.01$, and $\epsilon=1e-8$.
-
-For more information on updating the various parameters of the loss
-function, please refer to the PINN architecture plan.
+The previous pseudo-ALM formulation (`L_data + λ_p·L_phys + (μ_p/2)·L_phys² + λ_E(k)·L_energy`) is rejected because squaring a nonnegative MSE produces a quartic residual that does not represent a standard equality-constrained augmented Lagrangian. Optional ALM for scalar conservation constraints only is documented as a P2 ablation in the PHYS-05 ablation section of `pinn_architecture.md`.
 
 ## Phase 2a: Adam-driven Exploration
 
@@ -1237,26 +1270,26 @@ $$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{fin
 
 ## Consolidated Hyperparameter Schedule
 
-| Stage | Adam LR (Initial) | Clip `C` | $\lambda_E$ (Energy Wt.) | L-BFGS Type |
+| Stage | Adam LR (Initial) | Clip `C` | Loss-weight schedule | L-BFGS Type |
 |---|---|---:|---|---|
-| 0-1 | $10^{-3} \times (0.7)^k$ | 7-10 | $10^{k-3}$ | Full-Batch |
-| 2-3 | $10^{-3} \times (0.7)^k$ | 5 | $10^{k-3}$ | Full-Batch / sL-BFGS |
-| 4-6 | $10^{-3} \times (0.7)^k$ | 3 | $10^{k-3}$ | sL-BFGS |
+| 0-1 | $10^{-3} \times (0.7)^k$ | 7-10 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch |
+| 2-3 | $10^{-3} \times (0.7)^k$ | 5 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch / sL-BFGS |
+| 4-6 | $10^{-3} \times (0.7)^k$ | 3 | See PHYS-05 warmup schedule in `pinn_architecture.md` | sL-BFGS |
 
 *Stage-by-stage guide for key dynamic hyperparameters.*
 
 ## Implementation Notes
 
 - **Monitoring**: Use TensorBoard to log loss components
-  ($\mathcal{L}_{\text{data}}, \mathcal{L}_{\text{physics}}, \mathcal{L}_{\text{energy}}$),
-  ALM parameters ($\lambda_p, \mu_p$), gradient statistics, and metrics
-  like energy drift.
+  ($\mathcal{L}_{\text{data}}, \mathcal{L}_{\text{IC}}, \mathcal{L}_{\text{phys}}^{\text{causal}}, \mathcal{L}_{E}, \mathcal{L}_{L}$),
+  scheduled loss weights, gradient statistics, and conservation metrics.
 
 - **Checkpointing**: Save model checkpoints after each stage completion.
 
 - **Error Handling/Edge Cases**: Monitor for NaN gradients during close
-  encounters; if encountered, increase softening $\epsilon$ in potential
-  calculations or tighten clipping.
+  encounters; if encountered, follow the PHYS-03 training-softening ablation
+  contract in `pinn_architecture.md` or tighten clipping. Do not ad hoc alter
+  the static-invariant `epsilon_inv` used for offline invariant computation.
 
 - **Reproducibility**: Drive runs from a three-level Hydra YAML
   configuration:
@@ -1266,8 +1299,8 @@ $$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{fin
   - `opt.yaml` -- optimizer settings, learning-rate schedule, clip
     norms.
 
-  - `loss.yaml` -- augmented-Lagrangian settings, $\lambda_E$ schedule,
-    tolerances.
+  - `loss.yaml` -- default loss weights, PHYS-05 warmup schedule, causal
+    residual settings, conservation regularizer scales, and tolerances.
 
 With the training complete, we next discuss some additional
 considerations: potential architectural tweaks to further improve
