@@ -313,6 +313,7 @@ simulation_data/Data/ic_final/
 simulation_data/Data/brutus_output/
 simulation_data/Data/metrics/
 simulation_data/Data/testing_data/
+simulation_data/Data/prescreening_data/
 simulation_data/Documentation/problematic_ics/
 simulation_data/Documentation/problematic_ics_blacklist.json
 simulation_data/Validation/prescreening/prescreening_data/
