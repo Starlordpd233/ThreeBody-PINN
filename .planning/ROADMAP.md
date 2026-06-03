@@ -206,13 +206,13 @@ Plans:
 **Requirements**: ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05
 **Success Criteria** (what must be TRUE):
 
-  1. Reader can find consistent SIREN initialization and frequency settings, with no epochwise `omega0` scheduler unless a reparameterized runtime mechanism is specified.
+  1. Reader can find consistent SIREN initialization and frequency settings, with no epochwise or optimizer-step `omega0` scheduler; any `omega0` retuning is framed only as a stage-boundary ablation with fresh initialization.
   2. Reader can see LayerNorm documented as a project-specific stabilizer with one consistent affine/non-affine default.
   3. Reader can verify `I_3` maps the documented triangle-shape range to `[-1, 1]`.
   4. Reader can distinguish the raw inertia descriptor from the tanh-squashed network input value.
-  5. Reader can see energy and mass normalization support ranges documented as realized dataset support rather than correctness failures.
+  5. Reader can see energy and mass normalization support ranges documented as realized dataset support rather than normalizer defects.
 
-**Plans**: TBD
+**Plans**: 5 planned (4 executable + 1 blocked) — `20-01-PLAN.md` (ARCH-01 SIREN/omega0, B-01/B-10), `20-02-PLAN.md` (ARCH-02 LayerNorm, M8), `20-03-PLAN.md` (ARCH-03 I_3/M5, EVID-05 STOP-gated), `20-04-PLAN.md` (ARCH-05 energy/mass support, M9/M10), `20-05-PLAN.md` (ARCH-04 I_norm naming — BLOCKED by GAP-20-01)
 
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 

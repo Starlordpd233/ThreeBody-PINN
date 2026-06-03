@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-24)
 ## Current Position
 
 Phase: 20
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-30
+Plan: Planned — 20-01..20-05 (4 executable + 1 blocked)
+Status: Planned; ready to execute. 20-05 (ARCH-04) BLOCKED by GAP-20-01; 20-03 (ARCH-03/M5) is an EVID-05 STOP-gated adjudication.
+Last activity: 2026-06-03
 Progress: [███████░░░] 67%
 
 ## Performance Metrics
