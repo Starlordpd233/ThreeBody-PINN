@@ -105,6 +105,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 - [x] **Phase 18: Frame and Gauge Contracts** — Reconcile COM, momentum, ordering, rotation gauge, scaling order, hierarchical offsets, and 3D Cartesian output guarantees. (completed 2026-05-21)
 - [x] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement. (completed 2026-05-30)
 - [ ] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording.
+- [ ] **Phase 20.5: Sampling Coordinate Allocation (INSERTED)** — Resolve the `u_4` Sobol coordinate double-booking in `sampling_method.md`; lock Option A (`u_4` scale, `u_5`–`u_7` velocity for the standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduce SCOPE-05. Design+plan locked 2026-05-20 (commit b727b15); execution pending. Runs after Phase 20, before Phase 21.
 - [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the final fixed/non-change/deferred handoff (VER-03). Failing checks loop back to Phases 17–20 for spec correction.
 
 ## Phase Details
@@ -253,8 +254,9 @@ Plans:
 | 17. Input and Output Contracts | v1.4 | 3/3 | Complete    | 2026-05-20 |
 | 18. Frame and Gauge Contracts | v1.4 | 3/3 | Complete    | 2026-05-21 |
 | 19. Physics and Loss Contracts | v1.4 | 4/4 | Complete    | 2026-05-30 |
-| 20. Architecture and Normalization Cleanup | v1.4 | 0/TBD | Not started | - |
+| 20. Architecture and Normalization Cleanup | v1.4 | 0/5 | Planned (4 executable + 1 blocked) | - |
+| 20.5 Sampling Coordinate Allocation (INSERTED) | v1.4 | 0/1 | Planned (design+plan locked) | - |
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-05-30 — Phase 19 complete; next step is Phase 20 discussion.*
+*Last updated: 2026-06-03 — Phases 16–19 complete; Phase 20 planned (5 plans; 20-05 blocked by GAP-20-01) and ready to execute; Phase 20.5 locked (design+plan, commit b727b15), execution pending before Phase 21.*
