@@ -52,7 +52,7 @@ Checked 2026-06-03:
 ### Source Anchors
 
 - Resolution: `ctl_pinn_resolution.md:106` fixes `first_omega_0=30`, `hidden_omega_0=1`, standard SIREN initialization, and removal of epochwise scheduling.
-- Resolution: `ctl_pinn_resolution.md:126`, `:659-660`, `:685`, and `:1227-1234` reiterate fixed settings and scheduler deletion / stage-boundary ablation framing.
+- Resolution: `ctl_pinn_resolution.md:126` is the consolidation-table summary row; `:659-660` are the hyperparameter table entries; `:685` and `:1227-1234` are the authoritative directive texts for scheduler deletion and stage-boundary ablation framing.
 - Issue doc: `01-architecture-and-physics-foundations.md:71` flags B-01; `:77` / `:257-263` are the known B-10 dynamic-scheduling anchors from prior research and should be re-located by the executor.
 
 ### Target Spec Surfaces
