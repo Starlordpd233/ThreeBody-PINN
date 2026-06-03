@@ -186,7 +186,7 @@ layers.
       in chaotic dynamics, reducing numerical instabilities and
       promoting stable training.
 
-    **[Need more detail on this dynamic scheduling for omega_0. Is it based on stages? How do we dynamically adjust it? Based on epochs? Need more details on this.]**
+    **[Need more detail on this dynamic scheduling for omega_0. Is it based on stages? How do we dynamically adjust it? Based on epochs? Need more specific information on this to indicate a clear solution and architecture path.]**
 
 2.  **Subsequent Hidden Layers (for Trainability):** For all other
     hidden layers, the weights $\mathrm{W}$ are initialized from a
@@ -256,6 +256,7 @@ velocity/acceleration spikes that require quadratic interaction terms to
 resolve. $\text{LayerNorm}$ ensures this term remains bounded.
 
 ## 2.4 Finalized Architectural Hyperparameters
+Author Comment: I'm not sure why this section is formatted like this. It looks like broken syntax to me and it displays in the preview simply as a paragraph. Look into this.
 
 ::: {#tab:architectural_hyperparameters}
   **Hyperparameter**      **Recommended Value**                                                                                                                                                                                             **Rationale & Justification**
@@ -290,6 +291,8 @@ The default Phase 19 training objective is:
 
 $$L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causal + \lambda_E \cdot L_E + \lambda_L \cdot L_L$$
 
+Author Comment: the above formula is not written in the correct syntax. We need to fix it so that it will be rendered correctly in markdown preview in Cursor.
+
 Canonical text form: `L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L`.
 
 This is the baseline penalty-term formulation. No dual variables are
@@ -308,6 +311,8 @@ The data fidelity loss uses a Huber contract on scaled projected
 positions:
 
 $$L_data = \frac{1}{N_t} \sum_n \sum_i \operatorname{Huber}_{\delta_r}(r_{\theta,i}'(u_n) - r_i'(u_n))$$
+
+Author Comment: again, the syntax is broken
 
 where $\delta_r = 1$ is the default Huber transition. The previous
 MAE/L1 data-loss prose is replaced by this Huber contract.
@@ -353,7 +358,7 @@ The time points $t_k$ are sampled from the discrete BRUTUS trajectory
 snapshots available in the training dataset, representing specific
 moments where high-precision numerical integration data is available.
 
-  **[Comment: This above batch construction is not consistent with the CTL instruction plan. Look into this.]**
+  **[Author Comment: This above batch construction is not consistent with the CTL instruction plan. Look into this.]**
 
 **Loss Integration Note:**\
 The data term is unweighted in the default objective. Physics and
