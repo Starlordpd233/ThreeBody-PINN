@@ -17,7 +17,7 @@
 | Direct cleanup | Use `ARCH-01`/roadmap directly with source citations in the task. | |
 | Preserve with warning | Keep scheduler as non-runtime/stale historical context. | |
 
-**User's choice:** Evidence-first removal.
+**Recorded choice:** Evidence-first removal.
 **Notes:** Active wording should lock `first_omega_0=30`, `hidden_omega_0=1`, standard SIREN initialization, hidden-layer bounds divided by `hidden_omega_0`, no epochwise/optimizer-step scheduler, and stage-boundary ablation only with fresh initialization. Cleanup covers all active/normative SIREN/init/frequency surfaces in `pinn_architecture.md`. `AC-ARCH-01` closure requires B-01/B-10 packets plus post-edit surface and negative scheduler audits.
 
 ---
@@ -30,7 +30,7 @@
 | Direct cleanup from ARCH-02 | Use roadmap/requirement with source citations in the task. | |
 | Minimal wording only | Avoid deciding affine/non-affine default. | |
 
-**User's choice:** Ledger/evidence-gated.
+**Recorded choice:** Ledger/evidence-gated.
 **Notes:** Target wording, if M8 confirms it, is project-specific/author skip-path stabilizer, not original SQR-SkipResNet content, default `elementwise_affine=False`, and affine/removal only as optional future ablations. Cleanup covers all active LayerNorm surfaces. `AC-ARCH-02` closure requires M8 plus source/surface audit and negative contradictory-text audit.
 
 ---
@@ -43,7 +43,7 @@
 | Use resolution as default | Adopt resolution unless issue doc disproves it. | |
 | Surface now as blocker | Stop all planning before artifacts. | |
 
-**User's choice:** STOP-protocol adjudication task.
+**Recorded choice:** STOP-protocol adjudication task.
 **Notes:** M5 must use the full Phase 16 verdict enum. Downstream `I_3` edits are gated by the selected verdict. Raw-vs-tanh `I_norm` naming is `ARCH-04`, separate from M5 / `ARCH-03`. If no evidence/proof vehicle exists for `ARCH-04`, record a process gap instead of inventing one or attaching it to M5. Split proof trails: M5 / `AC-ARCH-03` only closes `I_3`; `ARCH-04` needs its own vehicle.
 
 ---
@@ -56,7 +56,7 @@
 | Direct cleanup from ARCH-05 | Use the requirement directly. | |
 | Defer to Phase 21 | Leave proof to final acceptance/handoff. | |
 
-**User's choice:** Evidence/proof-gated.
+**Recorded choice:** Evidence/proof-gated.
 **Notes:** Target framing is realized dataset support, not universal physics bounds and not a normalizer defect. Cleanup covers every active support-range surface. M9 and M10 remain separate evidence/verdict records, while a combined support-range audit may prove shared `AC-ARCH-05` closure after both verdicts.
 
 ---
@@ -69,7 +69,7 @@
 | Reuse `20-5` directory | Put actual Phase 20 artifacts in Phase 20.5 directory. | |
 | Stop as tooling blocker | Wait for GSD tooling fix before context/research. | |
 
-**User's choice:** Separate actual Phase 20 artifacts.
+**Recorded choice:** Separate actual Phase 20 artifacts.
 **Notes:** Treat the GSD `20 -> 20-5` mis-resolution as an operational tooling hazard, not a Phase 20 blocker. Use explicit paths. Missing proof vehicles are process-artifact schema gaps, not opportunities to invent packet names. EDL is only for source-silent empirical questions after a STOP gap.
 
 ---
@@ -85,7 +85,7 @@ Three decisions made during plan review to correct anchoring bias, source-ground
 | Use issue-doc language in spec prose | Spec says "E_norm occupies [-1, 0) for bound systems; positive range unused; acceptable for SIREN" and "hierarchical m_norm asymmetry carries mass hierarchy information" | yes |
 | Keep "realized support" as spec term | Introduce the statistical-learning vocabulary formally into framework specs | |
 
-**User's choice:** Use issue-doc language as canonical spec wording; "realized support" remains planning/acceptance shorthand only (labels the ARCH-05 objective in D-06, Phase 16 ledger, roadmap success criterion, but is NOT a new technical term in the framework spec).
+**Recorded choice:** Use issue-doc language as canonical spec wording; "realized support" remains planning/acceptance shorthand only (labels the ARCH-05 objective in D-06, Phase 16 ledger, roadmap success criterion, but is NOT a new technical term in the framework spec).
 
 ### D-10: I₃ Derivation Moved to Research to Protect Adjudication Neutrality
 
@@ -95,7 +95,7 @@ Three decisions made during plan review to correct anchoring bias, source-ground
 | Keep in plan with guardrail | Keep in Step 5 but add explicit instruction about ratio-form-only applicability | |
 | Keep as-is | Rely on existing safeguards (Step 4, STOP conditions, autonomous:false) | |
 
-**User's choice:** Move to research. The executor must compare source definitions before seeing any derivation, to avoid anchoring bias toward accept-resolution.
+**Recorded choice:** Move to research. The executor must compare source definitions before seeing any derivation, to avoid anchoring bias toward accept-resolution.
 
 ### D-11: 20-04 Remains autonomous:true
 
@@ -104,7 +104,7 @@ Three decisions made during plan review to correct anchoring bias, source-ground
 | Keep autonomous:true | M9/M10 are not EVID-05 contested; D-06 is a locked decision; STOP conditions have deterministic safe defaults | yes |
 | Set to autonomous:false | The framing choice is potentially semantic | |
 
-**User's choice:** Keep autonomous:true. Unlike M5, M9/M10 are not flagged Sources-Disagree/EVID-05, and the only judgment ("can this be grounded?") has a deterministic safe default (record a 20-GAPS entry, halt Task 2, surface to user).
+**Recorded choice:** Keep autonomous:true. Unlike M5, M9/M10 are not flagged Sources-Disagree/EVID-05, and the only judgment ("can this be grounded?") has a deterministic safe default (record a 20-GAPS entry, halt Task 2, surface to user).
 
 ---
 

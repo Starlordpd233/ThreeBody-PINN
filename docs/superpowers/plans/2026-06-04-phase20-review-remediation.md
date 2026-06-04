@@ -22,6 +22,11 @@
 | M5/I3 pre-written verdict concern | Already mitigated in current dirty tree. The derivation has been moved to `20-RESEARCH.md` as a conditional lemma, and `20-03-PLAN.md` gates it behind source-definition comparison. | Verify the process-first wording remains; do not adjudicate M5 here. |
 | 20-01/20-02 accept-resolution wording | Already addressed in current plans. Both plans include verdict preconditions and fallback language. | Verify with `rg`; no edit unless gates are missing. |
 | LayerNorm attribution source | Already addressed in current 20-02 plan. Source Positions require the issue doc attribution finding and resolution doc affine/default anchors. | Verify with `rg`; no edit unless citation instructions are missing. |
+| `20-DISCUSSION-LOG.md` uncited `User's choice` attribution | Valid. The decisions are useful audit notes, but the log does not cite direct user instructions for every selected option. | Replace `User's choice` labels with `Recorded choice`, preserving the selected alternatives without overclaiming authorship. |
+| Severity-rationale and source-summary templates | Source-silent process-schema suggestion. Adding new evidence-packet schema/templates requires user authorization or a grounded schema source. | No schema invention in this pass; existing plan wording remains citation-bound and escalation-gated. |
+| Alternative M5 locked conventions | Source-silent semantic/process suggestion. Pre-writing conventions for non-`accept-resolution` verdicts would risk adjudicating unsupported outcomes. | Keep 20-03 process-first: the evidence packet records the locked convention after the grounded verdict, with `defer-with-blocker` if sources remain divergent. |
+| 20-04 autonomy / conservative dependency advisories | No direct edit. 20-04 depends on 20-02 and 20-03, keeps M9/M10 separate, and records deterministic blocker handling if grounding fails. | Preserve the guarded structure; do not loosen dependencies or change autonomy without a new user decision. |
+| ARCH-04 / AC-ARCH-04 advisories | Already addressed as blocked. `20-05-PLAN.md` explicitly says `DO NOT EXECUTE`, identifies GAP-20-01, and requires phase exit to account for ARCH-04 as blocked/deferred. | No edit beyond verified D-02 qualification. |
 
 ## Tasks
 
