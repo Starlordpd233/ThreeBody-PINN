@@ -151,6 +151,32 @@ Audit all active `I_3` range/mapping surfaces in `ctl_instruction.md` and any cr
 - Allowed verdicts are `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, or `defer-with-blocker`.
 - If source review plus short first-principles range checking cannot ground a verdict without semantic judgment, record a gap and stop dependent `I_3` edits.
 
+### Conditional Lemma — Ratio-Form I₃ Range Derivation
+
+The following derivation applies ONLY if the executor's Step 4 source-definition comparison establishes that the relevant source(s) use the ratio-form quantity `I_3 = (d_short+d_mid-d_long)/(d_short+d_mid+d_long)`. If the issue doc uses a genuinely different `I_3` definition (e.g., sorted mutual distances), this lemma is irrelevant to the dispute and must not be cited as verdict evidence.
+
+```text
+Let the three mutual distances be sorted d_short ≤ d_mid ≤ d_long.
+By the triangle inequality (points in Euclidean space), d_long ≤ d_short + d_mid,
+with equality only for the degenerate collinear configuration.
+  Numerator  N = d_short + d_mid − d_long ≥ 0  (≥ 0 always; = 0 collinear).
+  Denominator P = d_short + d_mid + d_long > 0.
+  I_3 = N / P.
+Minimum: N = 0 (collinear) ⇒ I_3 = 0.
+Maximum: maximize N/P with d_short ≤ d_mid ≤ d_long and d_long ≥ d_mid;
+  N/P increases as d_long decreases; min d_long = d_mid; then with d_short ≤ d_mid,
+  N/P = d_short/(d_short + 2 d_mid).
+  For fixed d_mid, d/d(d_short)[ d_short/(d_short+2·d_mid) ] = 2·d_mid/(d_short+2·d_mid)² > 0,
+  so N/P increases monotonically in d_short; the max is at the upper bound d_short = d_mid,
+  giving N/P = d_mid/(3·d_mid) = 1/3 (equilateral) ⇒ I_3 = 1/3.
+For the ratio-form raw quantity only, this establishes I_3 ∈ [0, 1/3]
+(0 = collinear/degenerate, 1/3 = equilateral). A linear map to [-1, 1]
+with f(0) = -1 and f(1/3) = +1 is f(x) = 6x − 1, i.e.
+I_3^{in} = 6·I_3 − 1.
+```
+
+**Known source-definition discrepancy (2026-06-03 review):** The issue doc defines `I_3` in two ways — (a) as sorted mutual distances (`I₁, I₂, I₃ = sorted([r₀₁, r₁₂, r₂₀])`, issue doc line 536) with normalization `2·(Iᵢ/I_max)−1` where `I_max = I₃` (trivially degenerate since `I₃/I_max = 1` always), and (b) references a range `[0, 1]` in the M5 finding (line 87). The resolution doc and current spec use the ratio form with range `[0, 1/3]`. The executor must resolve which definition the dispute is actually about before applying this lemma.
+
 ### Closure Proof
 
 Phase 20 must leave:
@@ -173,7 +199,7 @@ No clear Phase 16 ledger row, evidence packet, or AC/proof vehicle was found for
 
 - The Phase 16 ledger reserves B-01/B-10/M5/M8/M9/M10 for Phase 20, but no issue-doc D-02 or `ARCH-04` row.
 - `ctl_pinn_resolution.md:626-627` and `:1435-1443` contain the expected raw/bounded naming anchors.
-- `pinn_instruction/issues/01-architecture-and-physics-foundations.md:42-62` documents D-02 as routine documentation cleanup.
+- `pinn_instruction/issues/01-architecture-and-physics-foundations.md:42-62` documents issue-doc D-02 as routine documentation cleanup.
 - `ctl_instruction.md:644`, `:667`, `:738-755`, and `:1000-1032` contain active metadata/input-normalization surfaces that should be audited once the proof vehicle is resolved.
 
 ### STOP / Gap Triggers

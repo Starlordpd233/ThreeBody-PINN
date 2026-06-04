@@ -74,6 +74,40 @@
 
 ---
 
+## Deep Review Decisions (2026-06-03)
+
+Three decisions made during plan review to correct anchoring bias, source-grounding gaps, and vocabulary scope.
+
+### D-09: "Realized Support" Is Planning Shorthand, Not Spec Vocabulary
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Use issue-doc language in spec prose | Spec says "E_norm occupies [-1, 0) for bound systems; positive range unused; acceptable for SIREN" and "hierarchical m_norm asymmetry carries mass hierarchy information" | yes |
+| Keep "realized support" as spec term | Introduce the statistical-learning vocabulary formally into framework specs | |
+
+**User's choice:** Use issue-doc language as canonical spec wording; "realized support" remains planning/acceptance shorthand only (labels the ARCH-05 objective in D-06, Phase 16 ledger, roadmap success criterion, but is NOT a new technical term in the framework spec).
+
+### D-10: I₃ Derivation Moved to Research to Protect Adjudication Neutrality
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Move derivation to 20-RESEARCH.md | Store as conditional lemma; executor consults only after Step 4 source-definition comparison | yes |
+| Keep in plan with guardrail | Keep in Step 5 but add explicit instruction about ratio-form-only applicability | |
+| Keep as-is | Rely on existing safeguards (Step 4, STOP conditions, autonomous:false) | |
+
+**User's choice:** Move to research. The executor must compare source definitions before seeing any derivation, to avoid anchoring bias toward accept-resolution.
+
+### D-11: 20-04 Remains autonomous:true
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Keep autonomous:true | M9/M10 are not EVID-05 contested; D-06 is a locked decision; STOP conditions have deterministic safe defaults | yes |
+| Set to autonomous:false | The framing choice is potentially semantic | |
+
+**User's choice:** Keep autonomous:true. Unlike M5, M9/M10 are not flagged Sources-Disagree/EVID-05, and the only judgment ("can this be grounded?") has a deterministic safe default (record a 20-GAPS entry, halt Task 2, surface to user).
+
+---
+
 ## the agent's Discretion
 
 - Research artifact organization may use tables and route maps as long as it stays implementation-ready and avoids redesign/ablation exploration.

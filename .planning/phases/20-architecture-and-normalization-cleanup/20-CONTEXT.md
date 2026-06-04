@@ -82,7 +82,12 @@ Support-range cleanup is evidence-gated through two separate Phase 16 rows:
 - M9 / `evidence/M9.md`: energy normalization realized support
 - M10 / `evidence/M10.md`: mass normalization realized support
 
-After M9 and M10 record grounded verdicts, wording should frame documented energy and mass normalization ranges as realized support of the current dataset/data-generation regimes only if those verdicts support that framing. The spec should distinguish network input range available by formula from range actually occupied by this dataset, without treating one-sided or asymmetric realized support as universal physics bounds or normalizer defects.
+After M9 and M10 record grounded verdicts, wording should frame documented energy and mass normalization ranges as dataset/domain occupancy facts rather than normalizer defects, only if those verdicts support that framing. The spec should distinguish network input range available by formula from range actually occupied by this dataset, without treating one-sided or asymmetric realized support as universal physics bounds or normalizer defects.
+
+**Vocabulary clarification (user decision 2026-06-03):** "Realized support" is planning/acceptance shorthand — it labels the ARCH-05 objective in this context, the Phase 16 ledger, and the Phase 20 roadmap success criterion. It is NOT a new technical term for the framework spec itself. Spec prose should use the issue doc's language or plain descriptive wording:
+- **M9:** `E_norm` occupies `[-1, 0)` for the documented bound-system dataset; the positive side of the tanh input range is unused; this is acceptable for SIREN and not a normalizer correctness failure.
+- **M10:** The hierarchical-mass `m_norm` range is asymmetric; that asymmetry carries mass hierarchy information and is not a centering/correctness failure.
+- If extra clarification is needed, use plain prose like "dataset-occupied range under the documented data-generation regimes," not a formal new vocabulary label.
 
 The executor must reconcile every active support-range surface that could imply an invalid normalizer: CTL/spec normalization tables, nearby prose explaining `E_norm` / `m_norm`, Phase 20 proof summaries, M9/M10 before/after notes, and ledger/handoff annotations if they summarize closure evidence. Cite issue docs as sources, but do not rewrite primary source issue docs unless the workflow explicitly treats a planning/proof annotation as editable.
 
