@@ -161,39 +161,19 @@ distinct challenges: representation and trainability. It treats the
 first layer of the network differently from all subsequent hidden
 layers.
 
-1.  To optimize network stability during chaotic stages, we dynamically
-    schedule the initial frequency parameter,
-    $\texttt{first\_omega\_0}$, using an exponential decay. This ensures
-    stable representation as complexity increases:
-
-    ``` {.python language="Python" caption="Listing 1: Implementation of Dynamic Frequency Scheduling"}
-    import math
-
-    def update_omega0(epoch, total_epochs):
-        initial_omega = 30.0   # Initial high-frequency
-        final_omega = 10.0     # Stabilizing value  
-        decay_rate = 5.0       # Controls decay
-        return final_omega + (initial_omega - final_omega) * \
-               math.exp(-decay_rate * epoch / total_epochs)
-    ```
-
-    **Rationale**:
-
-    - **Initial high-frequency (30)**: Essential for early stages to
-      overcome spectral bias.
-
-    - **Exponential reduction to 10**: Ensures smoother representation
-      in chaotic dynamics, reducing numerical instabilities and
-      promoting stable training.
-
-    **[Need more detail on this dynamic scheduling for omega_0. Is it based on stages? How do we dynamically adjust it? Based on epochs? Need more specific information on this to indicate a clear solution and architecture path.]**
+1.  **First Layer (for representation):** The initial frequency parameter
+    `first_omega_0` is fixed at `30` and is not scheduled during training.
+    A high initial frequency injects a high-frequency Fourier basis that
+    helps the network overcome spectral bias from the outset. There is no
+    epochwise or optimizer-step `omega0` scheduler. If `first_omega_0` is
+    ever retuned, it is changed only as a stage-boundary ablation with a
+    fresh re-initialization between runs — never mutated inside a run.
 
 2.  **Subsequent Hidden Layers (for Trainability):** For all other
     hidden layers, the weights $\mathrm{W}$ are initialized from a
     different uniform distribution,
     $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$.\
-    The hidden_omega_0 parameter is also set to 1. The crucial
-    difference is the scaling of the initialization range by $\omega_0$.
+    The crucial difference is that the initialization range is **divided by** `hidden_omega_0` (here `hidden_omega_0 = 1`), following the standard SIREN initialization.
     This specific scaling is mathematically derived to ensure that the
     pre-activations (the inputs to the sine function) maintain a
     standard normal distribution throughout the network's depth. This,
@@ -202,8 +182,6 @@ layers.
     uncontrollably with depth. This careful, layer-dependent
     initialization is what makes deep SIRENs trainable by ensuring
     stable gradient flow.[^1]
-
-    **[Need confirmation on this hidden layer's detail. Need to make sure the formula is correct according to the original SIREN paper?]**
 
 ## 2.3 The Power-Enhanced SkipResNet (SQR-SkipResNet) Formulation
 
