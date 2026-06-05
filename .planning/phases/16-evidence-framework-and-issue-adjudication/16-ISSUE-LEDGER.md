@@ -33,7 +33,7 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 | M5 | I_3 normalization map | 20 | PENDING | - | YES - EVID-05 required | evidence/M5.md | AC-ARCH-03 | ctl_instruction.md; data-processing-pipeline-full.py *(pre-2026-05-19; now v1.3-era artifact, not spec)* | - | 2026-05-16 |
 | M6 | Deferred finding M6 | 21 | DEFERRED | defer-with-blocker | NO | - | AC-VER-03 | - | - | 2026-05-16 |
 | M7 | Deferred finding M7 | 21 | DEFERRED | defer-with-blocker | NO | - | AC-VER-03 | - | - | 2026-05-16 |
-| M8 | LayerNorm attribution and affine default | 20 | PENDING | - | NO | evidence/M8.md | AC-ARCH-02 | pinn_architecture.md | ARCH-02 | 2026-05-16 |
+| M8 | LayerNorm attribution and affine default | 20 | IN_PROGRESS | accept-resolution | NO | evidence/M8.md | AC-ARCH-02 | pinn_architecture.md | ARCH-02 | 2026-06-05 |
 | M9 | Energy normalization realized support | 20 | PENDING | - | NO | evidence/M9.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-05-16 |
 | M10 | Mass normalization realized support | 20 | PENDING | - | NO | evidence/M10.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-05-16 |
 | D-02-NORM | Raw-vs-bounded I_norm naming (issue-doc D-02) | 20 | PENDING | - | NO | evidence/D-02-NORM.md | AC-ARCH-04 | ctl_instruction.md | - | 2026-06-05 |
@@ -332,6 +332,7 @@ Acceptance check: AC-ARCH-02
 
 Status transition log:
 - 2026-05-16 SEED_SHA PENDING -> PENDING (seeded by Phase 16 P02)
+- 2026-06-05 <pending-commit> PENDING -> IN_PROGRESS (Phase 20 P02 Task 1 by Phase 20 executor)
 
 ### M9: Energy normalization realized support
 
