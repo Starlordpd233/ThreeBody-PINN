@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
 status: executing
-stopped_at: context exhaustion at 75% (2026-06-04)
-last_updated: "2026-06-04T15:01:20.805Z"
-last_activity: 2026-06-03
+last_updated: "2026-06-05T14:49:00.000Z"
+last_activity: 2026-06-05
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 13
-  percent: 67
+  completed_phases: 5
+  total_plans: 19
+  completed_plans: 18
+  percent: 95
 ---
 
 # Project State
@@ -25,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-24)
 
 ## Current Position
 
-Phase: 20
-Plan: Planned — 20-01..20-05 (all executable)
-Status: Planned; ready to execute. 20-05 (ARCH-04) unblocked — GAP-20-01 RESOLVED-WITH-INSTRUCTION (option a); D-02-NORM/AC-ARCH-04; runs after 20-03/20-04. 20-03 (ARCH-03/M5) is an EVID-05 STOP-gated adjudication.
-Last activity: 2026-06-03
-Progress: [███████░░░] 67%
+Phase: 20.5
+Plan: Next — Phase 20.5 execution pending
+Status: Phase 20 complete (5/5 plans executed). Phase 20.5 (Sampling Coordinate Allocation) design+plan locked, execution pending. Phase 21 (Acceptance Checks and Handoff) is next after 20.5.
+Last activity: 2026-06-05
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
@@ -140,7 +139,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-19 are complete. Phase 20 is ready to discuss/plan.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-20 are complete. Phase 20.5 execution is next.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -158,7 +157,7 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 - GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
 - Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
-- Remaining Phase 20 needs a phase-local re-verification pass before exit, and Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-04 and M5.
+- Phase 20 execution complete (2026-06-05). Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-04 and M5.
 
 ## Quick Tasks Completed
 
@@ -174,7 +173,5 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 
 ## Session Continuity
 
-Last session: 2026-06-04T15:01:20.802Z
-Stopped at: context exhaustion at 75% (2026-06-04)
-Resume file: None
-Next action: Discuss or plan Phase 20 architecture and normalization cleanup
+Last session: 2026-06-05
+Next action: Execute Phase 20.5 (Sampling Coordinate Allocation)

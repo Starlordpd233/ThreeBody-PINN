@@ -6,7 +6,7 @@
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–19 complete; next: discuss Phase 20)
+- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–20 complete; next: execute Phase 20.5)
 
 ## Phases
 
@@ -196,7 +196,7 @@ Plans:
   5. Reader can confirm ALM is limited to scalar conservation constraints (default: E, L_x, L_y, L_z) and dense ODE residuals use a causal or otherwise justified weighting contract, with dual-variable update rules naming the optimizer phase that updates or freezes them.
   6. Reader can find the M4 constraint-counting replacement: the stale "13 constraints overdetermine an 8D reduced phase space" passage is removed and replaced with an evidence-backed statement of how many constraints v1.4 actually enforces and over what reduced phase space, after EVID-05 adjudication.
 
-**Completion**: Phase 19 completed 2026-05-30; Phase 20 is next.
+**Completion**: Phase 19 completed 2026-05-30; Phase 20 completed 2026-06-05; Phase 20.5 is next.
 
 **Plans**: 4/4 complete (`19-01-PLAN.md`, `19-02-PLAN.md`, `19-03-PLAN.md`, `19-04-PLAN.md`)
 
@@ -213,7 +213,9 @@ Plans:
   4. Reader can distinguish the raw inertia descriptor from the tanh-squashed network input value.
   5. Reader can see energy and mass normalization support ranges documented as realized dataset support rather than normalizer defects.
 
-**Plans**: 5 planned (all executable) — `20-01-PLAN.md` (ARCH-01 SIREN/omega0, B-01/B-10), `20-02-PLAN.md` (ARCH-02 LayerNorm, M8), `20-03-PLAN.md` (ARCH-03 I_3/M5, EVID-05 STOP-gated), `20-04-PLAN.md` (ARCH-05 energy/mass support, M9/M10), `20-05-PLAN.md` (ARCH-04 I_norm naming — D-02-NORM/AC-ARCH-04; runs after 20-03/20-04)
+**Plans**: 5/5 complete — `20-01-PLAN.md` (ARCH-01 SIREN/omega0, B-01/B-10), `20-02-PLAN.md` (ARCH-02 LayerNorm, M8), `20-03-PLAN.md` (ARCH-03 I_3/M5, EVID-05 STOP-gated), `20-04-PLAN.md` (ARCH-05 energy/mass support, M9/M10), `20-05-PLAN.md` (ARCH-04 I_norm naming — D-02-NORM/AC-ARCH-04)
+
+**Completion**: Phase 20 completed 2026-06-05.
 
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 
@@ -254,9 +256,9 @@ Plans:
 | 17. Input and Output Contracts | v1.4 | 3/3 | Complete    | 2026-05-20 |
 | 18. Frame and Gauge Contracts | v1.4 | 3/3 | Complete    | 2026-05-21 |
 | 19. Physics and Loss Contracts | v1.4 | 4/4 | Complete    | 2026-05-30 |
-| 20. Architecture and Normalization Cleanup | v1.4 | 0/5 | Planned (4 executable + 1 blocked) | - |
+| 20. Architecture and Normalization Cleanup | v1.4 | 5/5 | Complete    | 2026-06-05 |
 | 20.5 Sampling Coordinate Allocation (INSERTED) | v1.4 | 0/1 | Planned (design+plan locked) | - |
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-06-03 — Phases 16–19 complete; Phase 20 planned (5 plans; 20-05 blocked by GAP-20-01) and ready to execute; Phase 20.5 locked (design+plan, commit b727b15), execution pending before Phase 21.*
+*Last updated: 2026-06-05 — Phases 16–20 complete; Phase 20.5 locked (design+plan, commit b727b15), execution pending before Phase 21.*
