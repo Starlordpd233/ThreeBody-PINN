@@ -175,7 +175,7 @@ Downstream agents MUST read these before planning or implementing.
 
 ### Tooling Hazard
 
-Current GSD `find-phase 20` / `init.phase-op 20` resolves to `.planning/phases/20-5-sampling-coordinate-allocation`, which is Phase 20.5. Phase 20 planning must use explicit paths under `.planning/phases/20-architecture-and-normalization-cleanup/` until the routing hazard is fixed.
+Current GSD `find-phase 20` / `init.phase-op 20` resolves to `.planning/phases/20-5-sampling-coordinate-allocation`, which is Phase 20.5. Fix **deferred** per user instruction (2026-06-05). Phase 20 closure was performed with explicit paths to `.planning/phases/20-architecture-and-normalization-cleanup/`. Recommend renaming the Phase 20.5 directory or fixing `gsd-tools` phase resolution before Phase 20.5/21 validation. This is a tooling defect, not a STOP-protocol source/process-artifact gap.
 
 </code_context>
 

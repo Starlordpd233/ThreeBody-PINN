@@ -44,11 +44,11 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ### Architecture and Normalization Cleanup
 
-- [ ] **ARCH-01**: SIREN initialization and frequency settings are stated consistently, with no epochwise `omega0` scheduler unless a reparameterized runtime mechanism is specified.
-- [ ] **ARCH-02**: LayerNorm is documented as a project-specific stabilizer, and the affine/non-affine default is stated consistently.
-- [ ] **ARCH-03**: `I_3` normalization maps the documented triangle-shape range to `[-1, 1]`.
-- [ ] **ARCH-04**: `I_norm` uses separate names for the raw inertia descriptor and the tanh-squashed network input.
-- [ ] **ARCH-05**: Energy and mass normalization support ranges are documented as realized dataset support, not treated as correctness failures when asymmetric or mostly negative.
+- [x] **ARCH-01**: SIREN initialization and frequency settings are stated consistently, with no epochwise `omega0` scheduler unless a reparameterized runtime mechanism is specified.
+- [x] **ARCH-02**: LayerNorm is documented as a project-specific stabilizer, and the affine/non-affine default is stated consistently.
+- [x] **ARCH-03**: `I_3` normalization maps the documented triangle-shape range to `[-1, 1]`.
+- [x] **ARCH-04**: `I_norm` uses separate names for the raw inertia descriptor and the tanh-squashed network input.
+- [x] **ARCH-05**: Energy and mass normalization support ranges are documented as realized dataset support, not treated as correctness failures when asymmetric or mostly negative.
 
 ### Verification and Handoff
 
@@ -110,11 +110,11 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | PHYS-04 | Phase 19 | Complete |
 | PHYS-05 | Phase 19 | Complete |
 | PHYS-06 | Phase 19 | Complete |
-| ARCH-01 | Phase 20 | Pending |
-| ARCH-02 | Phase 20 | Pending |
-| ARCH-03 | Phase 20 | Pending |
-| ARCH-04 | Phase 20 | Pending |
-| ARCH-05 | Phase 20 | Pending |
+| ARCH-01 | Phase 20 | Complete |
+| ARCH-02 | Phase 20 | Complete |
+| ARCH-03 | Phase 20 | Complete |
+| ARCH-04 | Phase 20 | Complete |
+| ARCH-05 | Phase 20 | Complete |
 | VER-01 | Phase 21 | Pending |
 | VER-02 | Phase 16 | Complete |
 | VER-03 | Phase 21 | Pending |
@@ -130,4 +130,4 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-05-30 after Phase 19 completion — PHYS-01 through PHYS-06 are complete; Phase 20 is next.*
+*Last updated: 2026-06-05 after Phase 20 closure — ARCH-01 through ARCH-05 are complete; Phase 20.5 is next.*
