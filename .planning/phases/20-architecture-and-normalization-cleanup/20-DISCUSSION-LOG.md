@@ -108,6 +108,17 @@ Three decisions made during plan review to correct anchoring bias, source-ground
 
 ---
 
+---
+
+## Review Remediation Decisions (2026-06-05)
+
+The review reports in `docs/findings/milestone_v1.4/reviewing_phase20_plans/` disagree on several severities. The remediation rule is to prefer the stricter safe path where disagreement affects grounding:
+
+- M5 / `I_3`: Task and closure wording must reference the M5 Locked Convention, not hardcoded accept-resolution values.
+- M10 / mass support: no hardcoded numeric range enters plan prose unless the future M10 packet grounds that range under the v1.4 formula; otherwise use qualitative wording.
+- 20-04 autonomy: keep the plan autonomous only with a mechanical grounding gate and a STOP fallback.
+- Wave coordination: serialize shared `16-ISSUE-LEDGER.md` writes by execution rule rather than redefining evidence semantics.
+
 ## the agent's Discretion
 
 - Research artifact organization may use tables and route maps as long as it stays implementation-ready and avoids redesign/ablation exploration.

@@ -101,7 +101,27 @@ EDL is only for source-silent empirical questions after a STOP-protocol gap is f
 
 `20-RESEARCH.md` should be an implementation-ready evidence map. It must map `ARCH-01` through `ARCH-05` to requirements, acceptance criteria, ledger rows, evidence packet paths, source anchors, target spec surfaces, STOP/gap triggers, EVID-05 applicability, and proof/audit requirements. It must not become a broad architecture redesign or empirical ablation study unless a logged STOP/EDL gap requires support.
 
+### D-09: "Realized Support" Is Planning Shorthand, Not Spec Vocabulary
+
+Named restatement of the existing D-06 vocabulary clarification, recorded as a labeled decision for traceability (review reports referenced it by label). "Realized support" remains planning/acceptance shorthand only: it labels the ARCH-05 objective in Phase 20 context, the Phase 16 ledger, and the roadmap success criterion, but it is not a new technical term for the framework specs; spec prose uses issue-doc language or plain descriptive wording. Source of record: 20-CONTEXT D-06 "Vocabulary clarification (user decision 2026-06-03)"; see also `20-DISCUSSION-LOG.md` Deep Review Decision D-09.
+
+### D-10: I_3 Derivation Lives in Research Until Source Definitions Match
+
+The ratio-form `I_3` derivation belongs in `20-RESEARCH.md` as a conditional lemma. A Phase 20 executor may consult it only after comparing the source definitions, ranges, and mappings in M5. If the issue doc uses a genuinely different `I_3` object, the ratio-form lemma must not be treated as verdict evidence for that object. Source: `20-DISCUSSION-LOG.md` Deep Review Decision D-10.
+
+### D-11: 20-04 Autonomy Requires a Mechanical Grounding Gate
+
+Plan 20-04 may remain `autonomous: true` because M9/M10 are not EVID-05 contested and D-11 records a deterministic safe default for ungrounded numeric ranges: record a `20-GAPS.md` entry, halt the affected Task 2 work, and surface the decision to the user. D-06 is the source for spec-safe plain descriptive wording when numeric support ranges are not explicitly grounded; if even qualitative/plain-language framing cannot be grounded, use the D-11 STOP path before editing. Sources: `20-DISCUSSION-LOG.md` Deep Review Decision D-11 for autonomy/safe-default handling; `20-CONTEXT.md` D-06 for issue-doc/plain-language support wording.
+
 </decisions>
+
+<execution_coordination>
+## Execution Coordination Rules
+
+- `20-02` and `20-03` both write `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`. If the plans are implemented with parallel workers, their ledger-write tasks must be serialized: one worker must complete and commit its ledger update before the other begins its ledger update.
+- `20-04` depends on both `20-02` and `20-03`; treat it as wave 3 for execution ordering even if older review notes describe it as wave 2.
+- Phase 20 may execute the non-ARCH-04 plans while `GAP-20-01` is open, but the milestone must not be marked fully complete while `ARCH-04` remains OPEN. Full closure requires `GAP-20-01` to be `RESOLVED-WITH-INSTRUCTION` or `DEFERRED` by user instruction. Phase 20 may report ARCH-01/02/03/05 closed with ARCH-04 blocked; a downstream phase that "Depends on Phase 20" may proceed on the four closed ACs but must treat ARCH-04 as an explicit open carry-forward, not silently satisfied.
+</execution_coordination>
 
 <canonical_refs>
 ## Canonical References
