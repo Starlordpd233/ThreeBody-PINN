@@ -36,7 +36,7 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 | M8 | LayerNorm attribution and affine default | 20 | VERIFIED | accept-resolution | NO | evidence/M8.md | AC-ARCH-02 | pinn_architecture.md | ARCH-02 | 2026-06-05 |
 | M9 | Energy normalization realized support | 20 | VERIFIED | accept-resolution | NO | evidence/M9.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-06-05 |
 | M10 | Mass normalization realized support | 20 | VERIFIED | accept-resolution | NO | evidence/M10.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-06-05 |
-| D-02-NORM | Raw-vs-bounded I_norm naming (issue-doc D-02) | 20 | IN_PROGRESS | accept-resolution | NO | evidence/D-02-NORM.md | AC-ARCH-04 | ctl_instruction.md | - | 2026-06-05 |
+| D-02-NORM | Raw-vs-bounded I_norm naming (issue-doc D-02) | 20 | VERIFIED | accept-resolution | NO | evidence/D-02-NORM.md | AC-ARCH-04 | ctl_instruction.md | - | 2026-06-05 |
 
 ## Notes
 
@@ -380,4 +380,6 @@ Provenance: Added 2026-06-05 by GAP-20-01 resolution (option a, user instruction
 
 Status transition log:
 - 2026-06-05 <pending-commit> PENDING -> PENDING (seeded by GAP-20-01 resolution, option a, by user instruction)
-- 2026-06-05 <pending-commit> PENDING -> IN_PROGRESS (Phase 20 P05 Task 1 by Phase 20 executor)
+- 2026-06-05 f80326a PENDING -> IN_PROGRESS (Phase 20 P05 Task 1 by Phase 20 executor)
+- 2026-06-05 774778b IN_PROGRESS -> FIX_APPLIED (Phase 20 P05 Task 2 by Phase 20 executor)
+- 2026-06-05 <pending-commit> FIX_APPLIED -> VERIFIED (Phase 20 P05 Task 3 by Phase 20 executor)

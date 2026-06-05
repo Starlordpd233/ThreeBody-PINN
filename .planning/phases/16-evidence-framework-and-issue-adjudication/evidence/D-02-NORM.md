@@ -8,7 +8,7 @@
 | Title | `Raw-vs-bounded I_norm naming (issue-doc D-02)` |
 | Severity | `MINOR` |
 | Severity Rationale | Routine documentation cleanup — naming reconciliation, not a methodology change. |
-| Current Status | `IN_PROGRESS` |
+| Current Status | `VERIFIED` |
 | Current Verdict | `accept-resolution` |
 | Phase | `Phase 20` |
 | Acceptance Check ID | `AC-ARCH-04` |
@@ -64,16 +64,51 @@ Both sources are correct and consistent. The resolution doc provides the explici
 | Surface | Before | After |
 |---|---|---|
 | Step 2 outputs list (line 644) | `I_norm_raw` | `I_norm_raw` (no change needed) |
-| Step 3 outputs tuple (line 667) | `I_{\mathrm{norm}}` (bare, ambiguous) | `I_{\mathrm{norm,raw}}` (aligned with Locked Convention) |
-| Step 3.3 compute_normalized_inertia (lines 736-755) | `I_norm_raw` throughout | `I_norm_raw` (no change needed) |
+| Step 3 outputs tuple (line 667) | `I_{\mathrm{norm}}` (bare, ambiguous) | `I_{\mathrm{norm,raw}}` (aligned) |
+| Step 3 heuristic prose (line 671) | `$I_{\mathrm{norm}}$` (bare, ambiguous) | `$I_{\mathrm{norm,raw}}$` (aligned) |
+| Step 3.3 section heading (line 722) | `$I_{\mathrm{norm}}$` (bare, ambiguous) | `$I_{\mathrm{norm,raw}}$` (aligned) |
+| Step 3.3 formula (line 728) | `$I_{\mathrm{norm}}$` (bare, ambiguous) | `$I_{\mathrm{norm,raw}}$` (aligned) |
+| Step 3.3 error message (line 753) | `"Non-finite I_norm computed"` (bare) | `"Non-finite I_norm_raw computed"` (aligned) |
+| Step 3.3 compute_normalized_inertia variables (lines 750, 752, 755) | `I_norm_raw` | `I_norm_raw` (no change needed) |
 | Step 4 metadata-descriptor list (line 1042) | `I_norm_raw` | `I_norm_raw` (no change needed) |
+| Appendix Figure 2 caption (line 1433) | `I_{\mathrm{norm}}` (bare, ambiguous) | `I_{\mathrm{norm,raw}}` (aligned) |
 
 ## Named Acceptance Check
 
 `AC-ARCH-04`: `I_norm` uses separate names for the raw inertia descriptor and the tanh-squashed network input.
 
+## Closure Proof Audit
+
+**Positive audit (all active I_norm surfaces):**
+
+| Line | Surface | Name Used | Status |
+|---|---|---|---|
+| 644 | Step 2 invariants list | `I_norm_raw` | PASS |
+| 667 | Step 3 outputs tuple (LaTeX) | `I_{\mathrm{norm,raw}}` | PASS |
+| 671 | Step 3 heuristic prose (LaTeX) | `I_{\mathrm{norm,raw}}` | PASS |
+| 722 | Step 3.3 section heading (LaTeX) | `I_{\mathrm{norm,raw}}` | PASS |
+| 728 | Step 3.3 formula (LaTeX) | `I_{\mathrm{norm,raw}}` | PASS |
+| 750 | Step 3.3 variable assignment | `I_norm_raw` | PASS |
+| 752 | Step 3.3 isfinite check | `I_norm_raw` | PASS |
+| 753 | Step 3.3 error message | `I_norm_raw` | PASS |
+| 755 | Step 3.3 return value | `I_norm_raw` | PASS |
+| 1042 | Step 4 metadata-descriptor list | `I_norm_raw` | PASS |
+| 1433 | Appendix Figure 2 caption (LaTeX) | `I_{\mathrm{norm,raw}}` | PASS |
+
+**Negative audit:**
+
+- `rg 'I_\{\\mathrm\{norm\}\}'` (bare LaTeX `I_{\mathrm{norm}}` without `_raw`/`_in`): **0 matches** — PASS
+- `rg 'I_norm[^_]'` (bare code-style `I_norm` without suffix): **0 matches** (line 753 now uses `I_norm_raw`) — PASS
+- No conflated raw-vs-bounded `I_norm` naming remains.
+
+**I_3 / M5 surfaces untouched:** Confirmed. This plan edited only `I_norm` naming surfaces. No `I_3`, `I_1`, `I_2`, or M5 surfaces were modified.
+
+**Regression check:** Per the ledger Regression Policy, D-02-NORM has no Dependents, so no transitive re-verification is required. No other VERIFIED finding depends on the edited `I_norm` surfaces.
+
 ## Status Transition Log
 
 ```text
-2026-06-05 <pending-commit> PENDING -> IN_PROGRESS (Phase 20 P05 Task 1 by Phase 20 executor)
+2026-06-05 f80326a PENDING -> IN_PROGRESS (Phase 20 P05 Task 1 by Phase 20 executor)
+2026-06-05 774778b IN_PROGRESS -> FIX_APPLIED (Phase 20 P05 Task 2 by Phase 20 executor)
+2026-06-05 <pending-commit> FIX_APPLIED -> VERIFIED (Phase 20 P05 Task 3 by Phase 20 executor)
 ```

@@ -750,7 +750,7 @@ final network IC slots under the Phase 17 input contract.
             I_norm_raw = I_trace / denom  # Raw value, potentially >1 or <0 (though typically positive)
             
             if not np.isfinite(I_norm_raw):
-                raise ValueError("Non-finite I_norm computed; check inputs.")
+                raise ValueError("Non-finite I_norm_raw computed; check inputs.")
             
             return I_norm_raw
     ```
