@@ -187,11 +187,14 @@ layers.
 
 While the SIREN initialization enables training, pushing to the depths
 required for chaotic dynamics (e.g., 12 layers) requires stabilization
-of the residual connections. This report recommends adopting an advanced
-ResNet variant with a critical modification: **Layer Normalization
-(LayerNorm)** applied to the skip path before the power term. This
-resolves gradient instability while preserving the architecture's
-benefits for chaotic systems.
+of the residual connections. This report adopts an advanced ResNet
+variant with a project-specific (author) modification: **Layer
+Normalization (LayerNorm)** applied to the skip path before the power
+term. This LayerNorm stabilizer is an author addition for this project —
+it is **not** part of the original SQR-SkipResNet formulation — and it
+is applied on the skip/power branch only. This resolves gradient
+instability while preserving the architecture's benefits for chaotic
+systems.
 
 The precise mathematical update rules are as follows:
 
@@ -226,6 +229,11 @@ preserving the expressive power of the non-linear power term, which is
 crucial for modeling the sharp transitions characteristic of close
 encounters.
 
+The default contract uses `elementwise_affine=False` (no learnable
+affine parameters on the normalizer). Enabling affine parameters
+(`elementwise_affine=True`) or removing LayerNorm entirely are optional
+future ablations, not the Phase 20 default.
+
 ### Power Term Justification
 
 The power term $p = 2$ remains critical for modeling non-smooth
@@ -243,7 +251,7 @@ Author Comment: I'm not sure why this section is formatted like this. It looks l
   Depth                   12 hidden layers (6 SQR-SkipResNet blocks)                                                                                                                                                                        Provides a good balance between the expressive power needed for chaotic dynamics and the trainability on modest hardware.
   Width                   256 neurons/layer                                                                                                                                                                                                 A strong default that balances model expressivity and computational cost, avoiding the diminishing returns of excessively wide layers.[^1]
   Activation              $\sin(\mathrm{x})$ (SIREN)                                                                                                                                                                                        The $\mathrm{C}^\infty$-smoothness is mathematically essential for accurately calculating the second-order derivatives required in the physics loss.[^1]
-  LayerNorm               elementwise_affine=True, eps=1e-5                                                                                                                                                                                 Stabilizes skip path gradients without restricting feature learning. Applied only to odd layers.
+  LayerNorm               elementwise_affine=False, eps=1e-5                                                                                                                                                                                Stabilizes skip path gradients without restricting feature learning. Applied only to odd layers.
   first_omega_0           30                                                                                                                                                                                                                A high initial frequency injects a high-frequency basis into the network, helping it overcome spectral bias from the outset.[^1]
   hidden_omega_0          1                                                                                                                                                                                                                 This value is used within the principled weight initialization formula for hidden layers to ensure a stable distribution of activations, enabling deep network training.[^1]
   Weight Init. (First)    $\mathrm{U}\left[-\frac{1}{n_{\text{in}}}, \frac{1}{n_{\text{in}}}\right]$                                                                                                                                        The mathematically-derived initialization for the first SIREN layer to create a random Fourier feature mapping.[^1]
@@ -916,7 +924,7 @@ drdu_batch = vmap(lambda u_b, ic_b: jacrev(model_single, argnums=0)(u_b, ic_b))(
   **Backbone**                                 **SQR-SkipResNet** with **12 hidden layers** and a **width of 256 neurons**.\                                                                                                                                                             The deep architecture provides the expressive power needed for chaotic dynamics. The SQR-SkipResNet variant with LayerNorm provides superior gradient stability for non-smooth dynamics, which is ideal for modeling close encounters.
                                                • **Odd Layers:** $\mathbf{x}^{(l)} = f_{\text{sr}}^{(l)}(\mathbf{x}^{(l-1)}) + (\mathrm{LayerNorm}(\mathbf{x}^{(l-1)}))^2$.\                                                                                                             
                                                • **Even Layers:** Plain block, $\mathbf{x}^{(l)} = f_{\text{pn}}^{(l)}(\mathbf{x}^{(l-1)})$.\                                                                                                                                            
-                                               • **Layer Norm:** Applied to skip path on odd layers only, with `elementwise_affine=True` and `eps=1e-5`.                                                                                                                                 
+                                               • **Layer Norm:** Applied to skip path on odd layers only, with `elementwise_affine=False` and `eps=1e-5`.                                                                                                                                 
 
   **Activation**                               **SIREN ($\sin(x)$)** for all hidden layers.                                                                                                                                                                                              The sine function is infinitely differentiable ($C^{\infty}$), which is a mathematical necessity for accurately computing the second-order derivatives ($\frac{d^{2}r}{dt^{2}}$) required in the physics loss term.
 
