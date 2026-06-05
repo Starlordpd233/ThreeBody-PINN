@@ -765,9 +765,15 @@ final network IC slots under the Phase 17 input contract.
     $$\begin{aligned}
         I_1 &= \frac{d_{\text{short}}}{d_{\text{long}}} \in [0, 1] \\
         I_2 &= \frac{d_{\text{mid}}}{d_{\text{long}}} \in [I_1, 1] \\
-        I_3 &= \frac{d_{\text{short}} + d_{\text{mid}} - d_{\text{long}}}{d_{\text{short}} + d_{\text{mid}} + d_{\text{long}}} \in [-1, 1]
+        I_3 &= \frac{d_{\text{short}} + d_{\text{mid}} - d_{\text{long}}}{d_{\text{short}} + d_{\text{mid}} + d_{\text{long}}} \in [0, 1/3]
         
     \end{aligned}$$
+
+    The raw shape invariant $I_3 \in [0, 1/3]$ (0 for the degenerate collinear
+    configuration, $1/3$ for the equilateral configuration). For staging/metadata
+    use it is linearly mapped to $[-1, 1]$ via $I_3^{\mathrm{in}} = 6\,I_3 - 1$.
+    $I_3$ is a metadata diagnostic and is not a network IC slot under the Phase 17
+    input contract.
 
 5.  **Lyapunov time $\tau_L$ via a Rosenstein-style estimator.**
     We estimate the largest Lyapunov
