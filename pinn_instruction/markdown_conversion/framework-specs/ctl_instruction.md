@@ -1035,6 +1035,10 @@ $$
 | Jacobi velocity slots | `rho_dot_x`, `rho_dot_y`, `rho_dot_z`, `lambda_dot_x`, `lambda_dot_y`, `lambda_dot_z` | `tanh((z - mu_z) / (sigma_z + 10^-8))` |
 | Energy slot | `E` | `tanh(E / E_scale)`, where `E_scale = |median_traj(E)| + 10^-8` |
 
+The energy normalization maps any real `E` into the network range `(-1, 1)` via `tanh(E / E_scale)`. For the documented bound-system dataset, `E_norm` occupies `[-1, 0)` — the positive side of the tanh input range is unused because bound systems have `E < 0`. This is acceptable for SIREN and is not a normalizer correctness failure (see `simulation_data/Documentation/README.md` for data-generation regimes).
+
+The mass slots are normalized per slot with dataset-wide statistics. For hierarchical ICs, the dataset-occupied `m_norm` range is asymmetric; this asymmetry carries mass hierarchy information and is not a centering or correctness failure.
+
 The old invariant-heavy descriptors (`Q`, `s_min`, `L_vec`, `L_norm`, `I_norm_raw`, `I1`, `I2`, `I3`, `tau_L`, and orientation summaries) remain available as curriculum, diagnostics, loss-scaling, and reporting metadata. They are not final network IC slots under the Phase 17 input contract.
 
 The network time coordinate is centered around zero by the linear map $\tau = 2u - 1$ with $u = t/T$ (where $T = t_{\max}$ is the characteristic time), which aligns with the periodic activation functions (e.g., SIREN) and improves training dynamics. The autograd leaf is `u`; the model wrapper computes `tau` internally.
