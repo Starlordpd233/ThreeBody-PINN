@@ -2,10 +2,10 @@
 phase: 20
 slug: architecture-and-normalization-cleanup
 total_gaps: 1
-open_gaps: 1
-resolved_gaps: 0
+open_gaps: 0
+resolved_gaps: 1
 deferred_gaps: 0
-last_updated: 2026-06-03
+last_updated: 2026-06-05
 governance: "Governed by AGENTS.md CRITICAL GOVERNANCE block: STOP protocol, source-grounding rules, and no-live-code directive for v1.4 spec decisions."
 ---
 
@@ -38,5 +38,5 @@ Live code in `pinn/` is not a grounding source for v1.4 framework-spec decisions
   - (c) Approve a Phase 20-local proof vehicle for `ARCH-04` that is not a Phase 16 evidence packet.
   - (d) Defer `ARCH-04` and record that Phase 20 cannot close it.
 - **Confidence of impact:** HIGH - `ARCH-04` is an explicit Phase 20 requirement, and without a valid proof vehicle Phase 20 cannot close the raw-vs-bounded `I_norm` contract without inventing process structure.
-- **Status:** OPEN
-- **Resolution note:**
+- **Status:** RESOLVED-WITH-INSTRUCTION
+- **Resolution note:** User selected **option (a)** on 2026-06-05. A narrow Phase 16 ledger row `D-02-NORM` was added for issue-doc D-02 / `ARCH-04` raw-vs-bounded `I_norm`, with evidence packet `evidence/D-02-NORM.md`, acceptance check `AC-ARCH-04`, spec section `ctl_instruction.md`, status `PENDING`, verdict `-`, and Sources Disagree `NO` (the 20-05 executor confirms this during packet review and escalates to EVID-05 only if a concrete source conflict is found). Ledger finding counts were updated (`total_findings` 20→21, `in_scope_findings` 18→19); the requirement→phase traceability statement is unchanged because `ARCH-04` already maps to Phase 20. Plan `20-05` is unblocked to create/fill `evidence/D-02-NORM.md` and audit `ARCH-04` only, executed after `20-03` and `20-04` (both edit `ctl_instruction.md`). Guardrails preserved: do **not** expand M5 or treat `AC-ARCH-03` as covering `I_norm`; do **not** use live `pinn/` code as grounding; the verdict and the `I_norm` naming edits are owned by 20-05 execution, not this resolution.

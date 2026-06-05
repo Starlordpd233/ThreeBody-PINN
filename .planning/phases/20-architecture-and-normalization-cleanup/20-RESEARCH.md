@@ -8,7 +8,7 @@
 Phase 20 should execute as evidence-first spec cleanup:
 
 - Reserved Phase 16 evidence packets for `ARCH-01`, `ARCH-02`, `ARCH-03`, and `ARCH-05` are missing on disk and should be created/filled from the Phase 16 template during execution.
-- `ARCH-04` has no clear Phase 16 evidence/proof vehicle; `GAP-20-01` is open and blocks only `ARCH-04` dependent edits/proof.
+- `ARCH-04` is governed by ledger row `D-02-NORM` / `AC-ARCH-04` / `evidence/D-02-NORM.md` (authorized 2026-06-05 by `GAP-20-01` resolution, option a); plan `20-05` creates/fills the packet and audits `ARCH-04`, after `20-03`/`20-04`.
 - Phase 20 should not edit live `pinn/` implementation code.
 - Phase 20 should leave closure proof for `AC-ARCH-01`, `AC-ARCH-02`, `AC-ARCH-03`, and `AC-ARCH-05`; Phase 21 may re-check that evidence, but should not be the first proof point.
 
@@ -24,7 +24,7 @@ Checked 2026-06-03:
 | `evidence/M8.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before LayerNorm edits. |
 | `evidence/M9.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before energy support edits. |
 | `evidence/M10.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before mass support edits. |
-| `evidence/D-02.md` / `evidence/ARCH-04.md` | Not found in ledger | missing | Example names only; no authorized packet exists. Do not create without user instruction; see `GAP-20-01`. |
+| `evidence/D-02-NORM.md` | Reserved, Phase 20 PENDING (added 2026-06-05) | missing | Authorized by `GAP-20-01` (option a). Create/fill from `_TEMPLATE.md` during `20-05` before `I_norm` naming edits. Do NOT create `evidence/D-02.md` or `evidence/ARCH-04.md` (superseded example names). |
 
 ## Route Map by Requirement
 
@@ -33,7 +33,7 @@ Checked 2026-06-03:
 | `ARCH-01` SIREN init/frequency | `AC-ARCH-01` | B-01, B-10 | `evidence/B-01.md`, `evidence/B-10.md` | No | Ready to plan packet creation and edits. |
 | `ARCH-02` LayerNorm attribution/default | `AC-ARCH-02` | M8 | `evidence/M8.md` | No | Ready to plan packet creation and edits. |
 | `ARCH-03` `I_3` range/mapping | `AC-ARCH-03` | M5 | `evidence/M5.md` | Yes | Ready to plan adjudication-gated task; edits blocked until verdict. |
-| `ARCH-04` raw vs bounded `I_norm` naming | Missing / unresolved | none found | none found | Unknown | Blocked by `GAP-20-01`. |
+| `ARCH-04` raw vs bounded `I_norm` naming | `AC-ARCH-04` | D-02-NORM | `evidence/D-02-NORM.md` | No (baseline; escalates only on a concrete source conflict) | Ready to plan packet creation and edits via `20-05`, after `20-03`/`20-04`. |
 | `ARCH-05` energy/mass realized support | `AC-ARCH-05` | M9, M10 | `evidence/M9.md`, `evidence/M10.md` | No | Ready to plan packet creation and edits. |
 
 ## ARCH-01 - SIREN Initialization and Frequency
@@ -195,20 +195,20 @@ Phase 20 must leave:
 
 ### Current State
 
-No clear Phase 16 ledger row, evidence packet, or AC/proof vehicle was found for the `I_norm` naming issue (issue-doc D-02, distinct from 20-CONTEXT D-02 SIREN) / `ARCH-04`.
+`ARCH-04` is governed by Phase 16 ledger row `D-02-NORM` (`AC-ARCH-04`, `evidence/D-02-NORM.md`, spec `ctl_instruction.md`), authorized 2026-06-05 by `GAP-20-01` resolution (option a). Plan `20-05` creates/fills the packet and audits `ARCH-04`.
 
-- The Phase 16 ledger reserves B-01/B-10/M5/M8/M9/M10 for Phase 20, but no issue-doc D-02 or `ARCH-04` row.
-- `ctl_pinn_resolution.md:626-627` and `:1435-1443` contain the expected raw/bounded naming anchors.
+- The Phase 16 ledger reserves B-01/B-10/M5/M8/M9/M10 plus `D-02-NORM` (issue-doc D-02, distinct from 20-CONTEXT D-02 SIREN) for Phase 20.
+- `ctl_pinn_resolution.md:626-627` and `:1435-1443` contain the expected raw/bounded naming anchors (re-confirm by text search).
 - `pinn_instruction/issues/01-architecture-and-physics-foundations.md:42-62` documents issue-doc D-02 as routine documentation cleanup.
-- `ctl_instruction.md:644`, `:667`, `:738-755`, and `:1000-1032` contain active metadata/input-normalization surfaces that should be audited once the proof vehicle is resolved.
+- `ctl_instruction.md` Step 2/3/3.3/4 contain the active `I_norm` metadata/input-normalization surfaces to audit (pre-edit near `:644`, `:667`, `:738-755`, `:1000-1032`; re-locate by anchor/`rg` because `20-03`/`20-04` shift this file).
 
 ### STOP / Gap Triggers
 
-`GAP-20-01` is open. Do not edit `ARCH-04` surfaces or close `ARCH-04` until the user chooses the evidence/proof vehicle.
+`GAP-20-01` is RESOLVED-WITH-INSTRUCTION (option a). `D-02-NORM` is seeded `Sources Disagree: NO` (routine documentation cleanup). The `20-05` executor must still cite both primary sources and confirm agreement; if a concrete source conflict is discovered or the convention cannot be grounded, escalate `D-02-NORM` to EVID-05, record a `20-GAPS.md` entry, surface to the user, and do not edit. Do not conflate `ARCH-04` with M5 / `AC-ARCH-03`; do not use live `pinn/` code as grounding.
 
 ### Closure Proof
 
-Blocked. Once resolved, proof should show active text consistently distinguishes `I_norm_raw` from `I_norm_in`, confirms `I_norm_in = tanh(I_norm_raw)` only if supported, and negatively audits for raw/bounded conflation.
+Proof should show active text consistently distinguishes `I_norm_raw` from `I_norm_in`, confirms `I_norm_in = tanh(I_norm_raw)` only if supported, and negatively audits for raw/bounded conflation. Delivered by `20-05` (`evidence/D-02-NORM.md` verdict + Locked Convention, ledger `D-02-NORM` → VERIFIED, positive + negative `I_norm` surface audits, `AC-ARCH-04` closed).
 
 ## ARCH-05 - Energy and Mass Realized Support
 
@@ -258,9 +258,9 @@ Phase 20 must leave:
 
 Recommended plan structure:
 
-1. Evidence packet setup: create missing B-01, B-10, M5, M8, M9, M10 packets from `_TEMPLATE.md`; do not create an `ARCH-04` packet without user instruction.
+1. Evidence packet setup: create missing B-01, B-10, M5, M8, M9, M10, and `D-02-NORM` packets from `_TEMPLATE.md` during their owning plans.
 2. SIREN edits and audits in `pinn_architecture.md` after B-01/B-10 verdicts.
 3. LayerNorm edits and audits in `pinn_architecture.md` after 20-01 and the M8 verdict.
 4. M5 adjudication and `I_3` edits only after a grounded EVID-05 verdict.
 5. Support-range edits and combined audit in `ctl_instruction.md` after M9/M10 verdicts. Treat `pinn_architecture.md` as a read-only consistency audit surface unless a separate plan explicitly owns that edit.
-6. `ARCH-04` stays blocked by `GAP-20-01` unless the user resolves the proof vehicle before planning/execution.
+6. `ARCH-04` is unblocked (`GAP-20-01` RESOLVED, option a): plan `20-05` creates/fills `evidence/D-02-NORM.md`, records the verdict + Locked Convention, and aligns the `I_norm` surfaces in `ctl_instruction.md`, executed after `20-03`/`20-04`.

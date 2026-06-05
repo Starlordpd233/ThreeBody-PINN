@@ -213,7 +213,7 @@ Plans:
   4. Reader can distinguish the raw inertia descriptor from the tanh-squashed network input value.
   5. Reader can see energy and mass normalization support ranges documented as realized dataset support rather than normalizer defects.
 
-**Plans**: 5 planned (4 executable + 1 blocked) — `20-01-PLAN.md` (ARCH-01 SIREN/omega0, B-01/B-10), `20-02-PLAN.md` (ARCH-02 LayerNorm, M8), `20-03-PLAN.md` (ARCH-03 I_3/M5, EVID-05 STOP-gated), `20-04-PLAN.md` (ARCH-05 energy/mass support, M9/M10), `20-05-PLAN.md` (ARCH-04 I_norm naming — BLOCKED by GAP-20-01)
+**Plans**: 5 planned (all executable) — `20-01-PLAN.md` (ARCH-01 SIREN/omega0, B-01/B-10), `20-02-PLAN.md` (ARCH-02 LayerNorm, M8), `20-03-PLAN.md` (ARCH-03 I_3/M5, EVID-05 STOP-gated), `20-04-PLAN.md` (ARCH-05 energy/mass support, M9/M10), `20-05-PLAN.md` (ARCH-04 I_norm naming — D-02-NORM/AC-ARCH-04; runs after 20-03/20-04)
 
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 

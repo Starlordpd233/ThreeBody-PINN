@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: planning
-stopped_at: context exhaustion at 80% (2026-05-30)
-last_updated: "2026-05-30T19:36:34.472Z"
+status: executing
+stopped_at: context exhaustion at 75% (2026-06-04)
+last_updated: "2026-06-04T15:01:20.805Z"
 last_activity: 2026-06-03
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 14
+  total_plans: 18
   completed_plans: 13
   percent: 67
 ---
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-24)
 ## Current Position
 
 Phase: 20
-Plan: Planned — 20-01..20-05 (4 executable + 1 blocked)
-Status: Planned; ready to execute. 20-05 (ARCH-04) BLOCKED by GAP-20-01; 20-03 (ARCH-03/M5) is an EVID-05 STOP-gated adjudication.
+Plan: Planned — 20-01..20-05 (all executable)
+Status: Planned; ready to execute. 20-05 (ARCH-04) unblocked — GAP-20-01 RESOLVED-WITH-INSTRUCTION (option a); D-02-NORM/AC-ARCH-04; runs after 20-03/20-04. 20-03 (ARCH-03/M5) is an EVID-05 STOP-gated adjudication.
 Last activity: 2026-06-03
 Progress: [███████░░░] 67%
 
@@ -174,7 +174,7 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 
 ## Session Continuity
 
-Last session: 2026-05-30T19:36:34.464Z
-Stopped at: context exhaustion at 80% (2026-05-30)
+Last session: 2026-06-04T15:01:20.802Z
+Stopped at: context exhaustion at 75% (2026-06-04)
 Resume file: None
 Next action: Discuss or plan Phase 20 architecture and normalization cleanup

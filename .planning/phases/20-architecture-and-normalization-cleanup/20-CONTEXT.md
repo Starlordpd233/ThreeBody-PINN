@@ -1,7 +1,7 @@
 # Phase 20: Architecture and Normalization Cleanup - Context
 
 **Gathered:** 2026-06-03
-**Status:** Ready for research and planning, except `ARCH-04` dependent edits/proof are blocked by `GAP-20-01`.
+**Status:** Ready for research and planning. `ARCH-04` is unblocked as of 2026-06-05: `GAP-20-01` is RESOLVED-WITH-INSTRUCTION (option a) and plan `20-05` now owns ARCH-04 closure (after `20-03`/`20-04`).
 
 <domain>
 ## Phase Boundary
@@ -75,6 +75,8 @@ If the gap is resolved and source support is confirmed, the intended naming cont
 - `I_norm_raw` for the raw physics/metadata descriptor
 - `I_norm_in = tanh(I_norm_raw)` for the bounded network-facing value
 
+**Update (2026-06-05): `GAP-20-01` RESOLVED-WITH-INSTRUCTION (option a).** A Phase 16 ledger row `D-02-NORM` (`AC-ARCH-04`, `evidence/D-02-NORM.md`, spec `ctl_instruction.md`) now authorizes ARCH-04. Plan `20-05` is the executable vehicle: it creates/fills the packet, records a verdict + Locked Convention, and aligns the `I_norm` surfaces, executed after `20-03`/`20-04`. The M5-separation guardrail still holds — ARCH-04 is NOT closed by the M5 / `AC-ARCH-03` verdict, and `pinn/` live code is not a grounding source.
+
 ### D-06: Energy/Mass Support Ranges (`ARCH-05`, `AC-ARCH-05`)
 
 Support-range cleanup is evidence-gated through two separate Phase 16 rows:
@@ -120,7 +122,8 @@ Plan 20-04 may remain `autonomous: true` because M9/M10 are not EVID-05 conteste
 
 - `20-02` and `20-03` both write `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`. If the plans are implemented with parallel workers, their ledger-write tasks must be serialized: one worker must complete and commit its ledger update before the other begins its ledger update.
 - `20-04` depends on both `20-02` and `20-03`; treat it as wave 3 for execution ordering even if older review notes describe it as wave 2.
-- Phase 20 may execute the non-ARCH-04 plans while `GAP-20-01` is open, but the milestone must not be marked fully complete while `ARCH-04` remains OPEN. Full closure requires `GAP-20-01` to be `RESOLVED-WITH-INSTRUCTION` or `DEFERRED` by user instruction. Phase 20 may report ARCH-01/02/03/05 closed with ARCH-04 blocked; a downstream phase that "Depends on Phase 20" may proceed on the four closed ACs but must treat ARCH-04 as an explicit open carry-forward, not silently satisfied.
+- `20-05` (ARCH-04) depends on both `20-03` and `20-04` because both edit `ctl_instruction.md` and shift the `I_norm` surfaces; treat it as wave 4 and re-locate `I_norm` surfaces by anchor/`rg` after those plans land.
+- `GAP-20-01` is RESOLVED-WITH-INSTRUCTION (option a, 2026-06-05), so all five Phase 20 plans (ARCH-01..05) are now executable. ARCH-04 closes via `20-05` / `AC-ARCH-04` / `D-02-NORM`. Phase 20 still must not report full closure until ARCH-04 reaches VERIFIED (or is re-deferred by user instruction).
 </execution_coordination>
 
 <canonical_refs>
