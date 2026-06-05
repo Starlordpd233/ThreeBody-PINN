@@ -123,6 +123,39 @@ On 2026-05-13, an agent checked out to a feature branch and worked there for fiv
 
 ---
 
+## CRITICAL GOVERNANCE: Git Commit Protocol
+
+Follow this protocol whenever a task may require a later Git commit, even if the commit is not created in the current session. The full policy lives in `docs/git-guidelines.md`.
+
+### Mandatory start and pre-commit checks
+
+- At session start and before committing, run `git status --short --branch` and surface branch, ahead/behind state, and existing worktree changes.
+- Treat existing changes as user-owned unless you created them in the current task.
+- Before committing, inspect `git diff --cached`, check unstaged changes for touched files, and run relevant verification plus `git diff --check`.
+- Stage only intended files. Do not include unrelated user changes.
+
+### Hook and bypass policy
+
+- Run `scripts/setup-git-hooks.sh` if `git config --get core.hooksPath` is not `.githooks`.
+- Agents must use `scripts/agent-commit`; do not run raw `git commit`.
+- Do not use `--no-verify`, `core.hooksPath=/dev/null`, or equivalent bypasses without explicit user approval.
+
+### Commit message policy
+
+Use `<type>(<scope>): <lowercase imperative subject>`.
+
+Allowed types: `spec`, `evidence`, `verify`, `plan`, `docs`, `feat`, `fix`, `refactor`, `test`, `chore`.
+
+Allowed scopes: two-digit phase scopes such as `20`, task scopes such as `20-05`, and fixed domain scopes `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`.
+
+The subject starts lowercase, uses imperative voice, is 80 characters or fewer, has no trailing period, and contains no markdown ticks, quotes, or semicolon-chained changes.
+
+A body is required for `spec`, `evidence`, `verify`, and `plan` commits; commits touching multiple files; commits touching `pinn_instruction/`, `.planning/`, framework specs, or governance instructions.
+
+Agent-authored or materially agent-assisted commits must include `Agent-Assisted-By: <agent/tool/model>` or a valid `Co-Authored-By:` trailer.
+
+---
+
 ## Source of Truth
 
 **Dataset spec and anomalies**: `simulation_data/Documentation/README.md`
