@@ -110,5 +110,9 @@ Both sources are correct and consistent. The resolution doc provides the explici
 ```text
 2026-06-05 f80326a PENDING -> IN_PROGRESS (Phase 20 P05 Task 1 by Phase 20 executor)
 2026-06-05 774778b IN_PROGRESS -> FIX_APPLIED (Phase 20 P05 Task 2 by Phase 20 executor)
-2026-06-05 <pending-commit> FIX_APPLIED -> VERIFIED (Phase 20 P05 Task 3 by Phase 20 executor)
+2026-06-05 03a6220 FIX_APPLIED -> VERIFIED (Phase 20 P05 Task 3 by Phase 20 executor)
 ```
+
+## Surface-Scope Note (2026-06-05)
+
+**Why no `I_norm_in` framework-spec surface exists:** Under the Phase 17 Jacobi-state input contract, the network IC vector `IC₁₃` excludes `I_norm` — it is metadata-only, not a network IC slot. `I_norm_raw` is the only required spec surface. `I_norm_in = tanh(I_norm_raw)` stays defined in this D-02-NORM convention for the conditional widened-input ablation only. AC-ARCH-04 is satisfied by the *named* raw-vs-bounded distinction (`I_norm_raw` in the spec, `I_norm_in` defined here), not by a live network-input surface. The resolution doc (`ctl_pinn_resolution.md:1446`, D-02 "Closed") states `I_norm_raw` / `I_norm_in = tanh(I_norm_raw)` "as metadata only unless a widened-input ablation is run." No framework-spec edit was needed (per user instruction, option a: accept raw-only + document). This note prevents the exact flag that triggered the Phase 20 closure review from recurring.
