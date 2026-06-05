@@ -664,11 +664,11 @@ calculations proceed.
 
 Given one IC (plus its associated trajectory), Step 3 deterministically
 returns the tuple
-$$\mathcal{I} = \big(E,\;Q,\;s_{\min},\;L_{\mathrm{norm}},\;I_{\mathrm{norm}},\; \tau_L,\; m_1, m_2, m_3,\; I_1, I_2, I_3 \big),$$
+$$\mathcal{I} = \big(E,\;Q,\;s_{\min},\;L_{\mathrm{norm}},\;I_{\mathrm{norm,raw}},\; \tau_L,\; m_1, m_2, m_3,\; I_1, I_2, I_3 \big),$$
 which is then consumed by the stage-assignment rules in §4.4 and retained
 as metadata alongside the Step 4 network input assembly. By default, stage
 gating uses $(E,Q,s_{\min},L_{\mathrm{norm}},\tau_L)$;
-$I_{\mathrm{norm}}$ is available for additional heuristics; shape
+$I_{\mathrm{norm,raw}}$ is available for additional heuristics; shape
 invariants ($I_1, I_2, I_3$) are metadata diagnostics only and are not
 final network IC slots under the Phase 17 input contract.
 
@@ -719,13 +719,13 @@ final network IC slots under the Phase 17 input contract.
         return L / (L_max + eps)
     ```
 
-3.  **Normalized moment of inertia $I_{\mathrm{norm}}$.** Let $I(\mathbf r')$ be the inertia tensor about
+3.  **Normalized moment of inertia $I_{\mathrm{norm,raw}}$.** Let $I(\mathbf r')$ be the inertia tensor about
     COM:
     $$\mathbf I \;=\; \sum_{i=1}^{3} m_i \Big( \lVert \mathbf r'_i \rVert^2 \,\mathbf I_{3\times 3}
                                             - \mathbf r'_i (\mathbf r'_i)^{\!\top} \Big).$$
     We use its trace as a rotationally invariant scalar and normalize by
     the characteristic scale of the normalized angular momentum (see above):
-    $$I_{\mathrm{norm}} \;=\; \frac{\mathrm{tr}(\mathbf I)}{M_{\mathrm{tot}}\, r_{\mathrm{char}}^{\,2}}.$$
+    $$I_{\mathrm{norm,raw}} \;=\; \frac{\mathrm{tr}(\mathbf I)}{M_{\mathrm{tot}}\, r_{\mathrm{char}}^{\,2}}.$$
     (This quantity is not required for default stage gating but is
     retained as a robust, scale‑consistent descriptor of spatial
     extent.)
@@ -1430,7 +1430,7 @@ folder, so every figure in the paper can be reproduced bit-for-bit.
 
 > **Figure 1 (TikZ diagram not rendered):** Workflow diagram for COM-frame verification and input construction. This figure belongs to the *end of Step 2* (Preprocessing) and is reproduced here in the Appendix for reference. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
 
-> **Figure 2 (TikZ diagram not rendered):** End-to-end data-processing flow from Step 2 (Preprocessing) through Step 5 (Stage Assignment). After Step 3 computes and stores invariants ($E, Q, s_{\min}, L_{\mathrm{norm}}, I_{\mathrm{norm}}, \tau_L$), Steps 4 and 5 run in parallel, both using these stored invariants. This complements Figure 1 above. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
+> **Figure 2 (TikZ diagram not rendered):** End-to-end data-processing flow from Step 2 (Preprocessing) through Step 5 (Stage Assignment). After Step 3 computes and stores invariants ($E, Q, s_{\min}, L_{\mathrm{norm}}, I_{\mathrm{norm,raw}}, \tau_L$), Steps 4 and 5 run in parallel, both using these stored invariants. This complements Figure 1 above. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
 
 # Source Issues / Notes for Future Reconciliation
 
