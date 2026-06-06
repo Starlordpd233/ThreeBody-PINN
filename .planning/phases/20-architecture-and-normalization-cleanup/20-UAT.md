@@ -55,9 +55,9 @@ blocked: 0
 ## Audit Notes
 
 - Parallel audit of all five plan summaries, four closure artifacts, and seven evidence packets confirmed Phase 20 documentation/reconciliation is complete and source-grounded.
-- The ARCH-04 raw-only convention (`I_norm_raw` as only required spec surface; `I_norm_in` defined in D-02-NORM convention for conditional ablation) is grounded in the Phase 17 input contract (`IC₁₃` excludes I_norm) and `ctl_pinn_resolution.md:1435-1446`. No framework-spec edit was performed; the D-02-NORM Surface-Scope Note records the rationale.
+- The ARCH-04 raw-only convention (`I_norm_raw` as only required live spec surface; `I_norm_in` defined in D-02-NORM convention for conditional ablation) is grounded in the Phase 17 input contract (`IC₁₃` excludes I_norm) and `ctl_pinn_resolution.md:1435-1446`. No live `I_norm_in` framework-spec surface was added; the D-02-NORM Surface-Scope Note records the rationale.
 - `20-CODE-DIVERGENCE.md` is expectedly sparse — most Phase 20 packets (B-10, M9, M10, D-02-NORM) are naming/documentation cleanup with no formula or code change.
-- All `<pending-commit>` placeholders are backfilled with verified commit SHAs; the SHA policy is satisfied.
+- All commit-placeholder status-log entries are backfilled with verified commit SHAs; the SHA policy is satisfied.
 - `REQUIREMENTS.md`, `ROADMAP.md`, and `STATE.md` trackers are reconciled; no tracker says both complete and pending.
 
 ## Gaps

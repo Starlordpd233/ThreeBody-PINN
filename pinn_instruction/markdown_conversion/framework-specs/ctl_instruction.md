@@ -914,7 +914,7 @@ Before large‑scale runs:
 #### Scope.
 
 Using the invariants and quantities computed in Step 3 (e.g., $E$, $Q$,
-$s_{\min}$, $L_{\text{norm}}$, $I_{\text{norm}}$, $I_1$, $I_2$, $I_3$,
+$s_{\min}$, $L_{\text{norm}}$, $I_{\text{norm,raw}}$, $I_1$, $I_2$, $I_3$,
 masses), this step applies canonical ordering, computes the scaled
 Jacobi-state variables, normalizes each network IC slot, and assembles
 the final 14D network input vector $[\tau, IC_{13}]$ for the PINN per

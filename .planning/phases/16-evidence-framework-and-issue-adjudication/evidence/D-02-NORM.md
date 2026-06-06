@@ -31,6 +31,7 @@ Current `ctl_instruction.md` `I_norm` surfaces (re-located by `rg` after plans 2
 - `ctl_instruction.md:644` (Step 2 outputs list): Uses `I_norm_raw` in the invariants list — already aligned.
 - `ctl_instruction.md:667` (Step 3 outputs tuple): Uses bare `I_{\mathrm{norm}}` in the LaTeX tuple — needs `_raw` suffix.
 - `ctl_instruction.md:736-755` (Step 3.3 compute_normalized_inertia block): Uses `I_norm_raw` throughout — already aligned.
+- `ctl_instruction.md:917` (Step 4 scope descriptor list): Uses bare `I_{\text{norm}}` in the LaTeX descriptor list — needs `_raw` suffix.
 - `ctl_instruction.md:1042` (Step 4 metadata-descriptor list): Uses `I_norm_raw` among old invariant-heavy descriptors — already aligned.
 
 **Source agreement confirmed:** Both primary sources agree on the raw-vs-bounded distinction. The resolution doc provides the explicit naming convention (`I_norm_raw` / `I_norm_in = tanh(I_norm_raw)`); the issue doc confirms the distinction is routine documentation cleanup with zero methodology impact. No source conflict exists.
@@ -70,6 +71,7 @@ Both sources are correct and consistent. The resolution doc provides the explici
 | Step 3.3 formula (line 728) | `$I_{\mathrm{norm}}$` (bare, ambiguous) | `$I_{\mathrm{norm,raw}}$` (aligned) |
 | Step 3.3 error message (line 753) | `"Non-finite I_norm computed"` (bare) | `"Non-finite I_norm_raw computed"` (aligned) |
 | Step 3.3 compute_normalized_inertia variables (lines 750, 752, 755) | `I_norm_raw` | `I_norm_raw` (no change needed) |
+| Step 4 scope descriptor list (line 917) | `I_{\text{norm}}` (bare, ambiguous) | `I_{\text{norm,raw}}` (aligned) |
 | Step 4 metadata-descriptor list (line 1042) | `I_norm_raw` | `I_norm_raw` (no change needed) |
 | Appendix Figure 2 caption (line 1433) | `I_{\mathrm{norm}}` (bare, ambiguous) | `I_{\mathrm{norm,raw}}` (aligned) |
 
@@ -92,13 +94,14 @@ Both sources are correct and consistent. The resolution doc provides the explici
 | 752 | Step 3.3 isfinite check | `I_norm_raw` | PASS |
 | 753 | Step 3.3 error message | `I_norm_raw` | PASS |
 | 755 | Step 3.3 return value | `I_norm_raw` | PASS |
+| 917 | Step 4 scope descriptor list (LaTeX) | `I_{\text{norm,raw}}` | PASS |
 | 1042 | Step 4 metadata-descriptor list | `I_norm_raw` | PASS |
 | 1433 | Appendix Figure 2 caption (LaTeX) | `I_{\mathrm{norm,raw}}` | PASS |
 
 **Negative audit:**
 
-- `rg 'I_\{\\mathrm\{norm\}\}'` (bare LaTeX `I_{\mathrm{norm}}` without `_raw`/`_in`): **0 matches** — PASS
-- `rg 'I_norm[^_]'` (bare code-style `I_norm` without suffix): **0 matches** (line 753 now uses `I_norm_raw`) — PASS
+- `rg 'I_\{\\(text|mathrm)\{norm\}\}'` (bare LaTeX `I_{\text{norm}}` / `I_{\mathrm{norm}}` without `_raw`/`_in`): **0 matches** — PASS
+- `rg '\bI_norm\b' ... | rg -v 'I_norm_raw|I_norm_in'` (bare code-style `I_norm` without suffix): **0 matches** — PASS
 - No conflated raw-vs-bounded `I_norm` naming remains.
 
 **I_3 / M5 surfaces untouched:** Confirmed. This plan edited only `I_norm` naming surfaces. No `I_3`, `I_1`, `I_2`, or M5 surfaces were modified.
@@ -111,8 +114,9 @@ Both sources are correct and consistent. The resolution doc provides the explici
 2026-06-05 f80326a PENDING -> IN_PROGRESS (Phase 20 P05 Task 1 by Phase 20 executor)
 2026-06-05 774778b IN_PROGRESS -> FIX_APPLIED (Phase 20 P05 Task 2 by Phase 20 executor)
 2026-06-05 03a6220 FIX_APPLIED -> VERIFIED (Phase 20 P05 Task 3 by Phase 20 executor)
+2026-06-06 remediation-audit VERIFIED -> VERIFIED (post-review remediation: added missed Step 4 scope descriptor surface and strengthened ASCII/LaTeX bare I_norm audits)
 ```
 
 ## Surface-Scope Note (2026-06-05)
 
-**Why no `I_norm_in` framework-spec surface exists:** Under the Phase 17 Jacobi-state input contract, the network IC vector `IC₁₃` excludes `I_norm` — it is metadata-only, not a network IC slot. `I_norm_raw` is the only required spec surface. `I_norm_in = tanh(I_norm_raw)` stays defined in this D-02-NORM convention for the conditional widened-input ablation only. AC-ARCH-04 is satisfied by the *named* raw-vs-bounded distinction (`I_norm_raw` in the spec, `I_norm_in` defined here), not by a live network-input surface. The resolution doc (`ctl_pinn_resolution.md:1446`, D-02 "Closed") states `I_norm_raw` / `I_norm_in = tanh(I_norm_raw)` "as metadata only unless a widened-input ablation is run." No framework-spec edit was needed (per user instruction, option a: accept raw-only + document). This note prevents the exact flag that triggered the Phase 20 closure review from recurring.
+**Why no `I_norm_in` framework-spec surface exists:** Under the Phase 17 Jacobi-state input contract, the network IC vector `IC₁₃` excludes `I_norm` — it is metadata-only, not a network IC slot. `I_norm_raw` is the only required spec surface. `I_norm_in = tanh(I_norm_raw)` stays defined in this D-02-NORM convention for the conditional widened-input ablation only. AC-ARCH-04 is satisfied by the *named* raw-vs-bounded distinction (`I_norm_raw` in the spec, `I_norm_in` defined here), not by a live network-input surface. The resolution doc (`ctl_pinn_resolution.md:1446`, D-02 "Closed") states `I_norm_raw` / `I_norm_in = tanh(I_norm_raw)` "as metadata only unless a widened-input ablation is run." No live `I_norm_in` framework-spec edit was needed (per user instruction, option a: accept raw-only + document). This note prevents the exact flag that triggered the Phase 20 closure review from recurring.

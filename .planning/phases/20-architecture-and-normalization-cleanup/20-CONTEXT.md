@@ -1,7 +1,7 @@
 # Phase 20: Architecture and Normalization Cleanup - Context
 
 **Gathered:** 2026-06-03
-**Status:** Ready for research and planning. `ARCH-04` is unblocked as of 2026-06-05: `GAP-20-01` is RESOLVED-WITH-INSTRUCTION (option a) and plan `20-05` now owns ARCH-04 closure (after `20-03`/`20-04`).
+**Status:** Phase 20 executed. `ARCH-04` is governed by `GAP-20-01` option (a), `D-02-NORM`, and plan `20-05`; post-review remediation on 2026-06-06 repairs the missed Step 4 scope descriptor surface and strengthens the raw-only audit.
 
 <domain>
 ## Phase Boundary
@@ -123,7 +123,7 @@ Plan 20-04 may remain `autonomous: true` because M9/M10 are not EVID-05 conteste
 - `20-02` and `20-03` both write `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`. If the plans are implemented with parallel workers, their ledger-write tasks must be serialized: one worker must complete and commit its ledger update before the other begins its ledger update.
 - `20-04` depends on both `20-02` and `20-03`; treat it as wave 3 for execution ordering even if older review notes describe it as wave 2.
 - `20-05` (ARCH-04) depends on both `20-03` and `20-04` because both edit `ctl_instruction.md` and shift the `I_norm` surfaces; treat it as wave 4 and re-locate `I_norm` surfaces by anchor/`rg` after those plans land.
-- `GAP-20-01` is RESOLVED-WITH-INSTRUCTION (option a, 2026-06-05), so all five Phase 20 plans (ARCH-01..05) are now executable. ARCH-04 closes via `20-05` / `AC-ARCH-04` / `D-02-NORM`. Phase 20 still must not report full closure until ARCH-04 reaches VERIFIED (or is re-deferred by user instruction).
+- `GAP-20-01` is RESOLVED-WITH-INSTRUCTION (option a, 2026-06-05), so all five Phase 20 plans (ARCH-01..05) were executable. ARCH-04 closes via `20-05` / `AC-ARCH-04` / `D-02-NORM`; post-review remediation requires the strengthened ASCII/LaTeX bare-`I_norm` audit to pass before closure is re-affirmed.
 </execution_coordination>
 
 <canonical_refs>
@@ -135,7 +135,7 @@ Downstream agents MUST read these before planning or implementing.
 
 - `.planning/ROADMAP.md:202-216` - Phase 20 goal, dependencies, requirements, and success criteria.
 - `.planning/REQUIREMENTS.md:45-51` - `ARCH-01` through `ARCH-05`.
-- `.planning/phases/20-architecture-and-normalization-cleanup/20-GAPS.md` - open process-artifact schema gap for `ARCH-04`.
+- `.planning/phases/20-architecture-and-normalization-cleanup/20-GAPS.md` - `GAP-20-01` resolved process-artifact schema gap for `ARCH-04`.
 
 ### Evidence Workflow
 
@@ -183,7 +183,7 @@ Current GSD `find-phase 20` / `init.phase-op 20` resolves to `.planning/phases/2
 ## Specific Ideas
 
 - Evidence packets for B-01, B-10, M5, M8, M9, and M10 are expected to be created/fillable by Phase 20 because the ledger reserves them even if the files are currently absent.
-- Do not create an `ARCH-04` evidence vehicle without user instruction; use `GAP-20-01`.
+- Do not create any alternate `ARCH-04` evidence vehicle. `GAP-20-01` resolved option (a): use `D-02-NORM` / `AC-ARCH-04` only.
 - Phase 21 may consume or re-check Phase 20 proof artifacts, but Phase 20 owns closure proof for `AC-ARCH-01`, `AC-ARCH-02`, `AC-ARCH-03`, and `AC-ARCH-05`.
 
 </specifics>

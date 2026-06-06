@@ -36,7 +36,7 @@ last_verified_traceability: "30/30 v1.4 requirements mapped exactly once - verif
 | M8 | LayerNorm attribution and affine default | 20 | VERIFIED | accept-resolution | NO | evidence/M8.md | AC-ARCH-02 | pinn_architecture.md | ARCH-02 | 2026-06-05 |
 | M9 | Energy normalization realized support | 20 | VERIFIED | accept-resolution | NO | evidence/M9.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-06-05 |
 | M10 | Mass normalization realized support | 20 | VERIFIED | accept-resolution | NO | evidence/M10.md | AC-ARCH-05 | ctl_instruction.md | - | 2026-06-05 |
-| D-02-NORM | Raw-vs-bounded I_norm naming (issue-doc D-02) | 20 | VERIFIED | accept-resolution | NO | evidence/D-02-NORM.md | AC-ARCH-04 | ctl_instruction.md | - | 2026-06-05 |
+| D-02-NORM | Raw-vs-bounded I_norm naming (issue-doc D-02) | 20 | VERIFIED | accept-resolution | NO | evidence/D-02-NORM.md | AC-ARCH-04 | ctl_instruction.md | - | 2026-06-06 |
 
 ## Notes
 
@@ -376,10 +376,11 @@ Evidence packet: evidence/D-02-NORM.md
 
 Acceptance check: AC-ARCH-04
 
-Provenance: Added 2026-06-05 by GAP-20-01 resolution (option a, user instruction). Covers issue-doc D-02 / ARCH-04 raw-vs-bounded `I_norm` naming (`I_norm_raw` raw physics/metadata descriptor vs `I_norm_in = tanh(I_norm_raw)` bounded network-facing value). Distinct from M5 / AC-ARCH-03, which adjudicates the `I_3` range/mapping only — do not conflate, and do not treat AC-ARCH-03 as covering `I_norm`. Sources Disagree seeded NO; the Phase 20 executor (plan 20-05) confirms this during packet review and escalates to EVID-05 only if a concrete source conflict is found. No `pinn/` live code is a grounding source. Verdict and `I_norm` naming edits are deferred to 20-05 execution.
+Provenance: Added 2026-06-05 by GAP-20-01 resolution (option a, user instruction). Covers issue-doc D-02 / ARCH-04 raw-vs-bounded `I_norm` naming (`I_norm_raw` raw physics/metadata descriptor vs `I_norm_in = tanh(I_norm_raw)` bounded network-facing value). Distinct from M5 / AC-ARCH-03, which adjudicates the `I_3` range/mapping only — do not conflate, and do not treat AC-ARCH-03 as covering `I_norm`. Sources Disagree seeded NO; the Phase 20 executor (plan 20-05) confirmed this during packet review and would escalate to EVID-05 only if a concrete source conflict were found. No `pinn/` live code is a grounding source. Post-review remediation on 2026-06-06 added the missed Step 4 scope descriptor surface and strengthened the ASCII/LaTeX bare `I_norm` audit; D-02-NORM remains VERIFIED.
 
 Status transition log:
 - 2026-06-05 0c265ee PENDING -> PENDING (seeded by GAP-20-01 resolution, option a, by user instruction)
 - 2026-06-05 f80326a PENDING -> IN_PROGRESS (Phase 20 P05 Task 1 by Phase 20 executor)
 - 2026-06-05 774778b IN_PROGRESS -> FIX_APPLIED (Phase 20 P05 Task 2 by Phase 20 executor)
 - 2026-06-05 03a6220 FIX_APPLIED -> VERIFIED (Phase 20 P05 Task 3 by Phase 20 executor)
+- 2026-06-06 remediation-audit VERIFIED -> VERIFIED (post-review remediation: fixed missed Step 4 scope descriptor surface and strengthened bare I_norm audit)

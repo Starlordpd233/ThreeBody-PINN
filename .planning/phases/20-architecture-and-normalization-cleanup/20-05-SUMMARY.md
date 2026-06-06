@@ -12,7 +12,7 @@ requires:
     provides: energy/mass support edits landed before I_norm naming work
 provides:
   - D-02-NORM evidence packet with verdict and Locked Convention for I_norm naming
-  - ctl_instruction.md with consistent I_norm_raw vs I_norm_in naming across all surfaces
+  - ctl_instruction.md with all live I_norm framework-spec surfaces raw-qualified as I_norm_raw
   - AC-ARCH-04 closure proof with positive and negative audits
 affects: []
 
@@ -21,7 +21,7 @@ tech-stack:
   added: []
   patterns:
     - "I_norm_raw for raw physics/metadata inertia descriptor"
-    - "I_norm_in = tanh(I_norm_raw) for bounded network-facing value"
+    - "I_norm_in = tanh(I_norm_raw) for the conditional widened-input ablation convention"
     - "I_norm (bare) is metadata only, not a final network IC slot"
 
 key-files:
@@ -38,7 +38,7 @@ key-decisions:
 
 patterns-established:
   - "I_norm_raw: raw descriptor = trace(I_tensor) / (M_total * r_char^2 + eps)"
-  - "I_norm_in: bounded network value = tanh(I_norm_raw)"
+  - "I_norm_in: conditional widened-input ablation convention = tanh(I_norm_raw)"
 
 requirements-completed:
   - ARCH-04
@@ -50,7 +50,7 @@ completed: 2026-06-05
 
 # Phase 20 Plan 05: Raw-vs-Bounded I_norm Naming Summary
 
-**ARCH-04 closed: D-02-NORM evidence packet records accept-resolution verdict with I_norm_raw / I_norm_in = tanh(I_norm_raw) Locked Convention; all 11 ctl_instruction.md I_norm surfaces consistently named**
+**ARCH-04 closed: D-02-NORM evidence packet records accept-resolution verdict with I_norm_raw / I_norm_in = tanh(I_norm_raw) Locked Convention; post-review remediation verifies all 12 ctl_instruction.md I_norm surfaces are consistently named**
 
 ## Performance
 
@@ -63,8 +63,8 @@ completed: 2026-06-05
 ## Accomplishments
 
 - Created evidence/D-02-NORM.md with both primary sources cited side by side, source agreement confirmed, verdict accept-resolution, and Locked Convention
-- Aligned 6 ctl_instruction.md surfaces (5 LaTeX + 1 error message) to use I_norm_raw consistently; 5 other surfaces already correct
-- Completed positive audit (11 surfaces all pass) and negative audit (0 bare I_norm naming surfaces remain)
+- Aligned 7 ctl_instruction.md surfaces (6 LaTeX + 1 error message) to use I_norm_raw consistently; 5 other surfaces already correct
+- Completed positive audit (12 surfaces all pass) and strengthened negative audit (0 ASCII or LaTeX bare I_norm naming surfaces remain)
 
 ## Task Commits
 
@@ -78,13 +78,18 @@ Each task was committed atomically:
 
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/D-02-NORM.md` - Raw-vs-bounded I_norm adjudication packet with verdict, Locked Convention, closure proof audit
 - `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` - D-02-NORM row advanced PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED
-- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` - 6 I_norm surfaces updated to I_norm_raw (5 LaTeX + 1 error message)
+- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` - 7 I_norm surfaces updated to I_norm_raw (6 LaTeX + 1 error message), with `I_norm_in = tanh(I_norm_raw)` retained in D-02-NORM as the conditional ablation convention rather than a live framework-spec input surface
 
 ## Decisions Made
 
 - **Sources agree:** Both `ctl_pinn_resolution.md` (lines 623-628, 1435-1443) and `01-architecture-and-physics-foundations.md` (lines 42-62) explicitly agree on the raw-vs-bounded distinction. No EVID-05 escalation needed.
-- **Additional LaTeX surfaces found via rg:** The plan's initial enumeration listed 4 surfaces; rg found 5 additional LaTeX surfaces (lines 667, 671, 722, 728, 1433) plus 1 error message string (line 753) that needed alignment. All within the same spec sections and within scope.
-- **Locked Convention:** I_norm_raw for the raw physics/metadata descriptor; I_norm_in = tanh(I_norm_raw) for the bounded network-facing value; I_norm (bare) is metadata only.
+- **Additional LaTeX surfaces found via rg:** The plan's initial enumeration listed 4 surfaces; post-review remediation found 6 LaTeX surfaces (lines 667, 671, 722, 728, 917, 1433) plus 1 error message string (line 753) that needed alignment. All are within the same spec sections and within scope.
+- **Locked Convention:** I_norm_raw for the raw physics/metadata descriptor; I_norm_in = tanh(I_norm_raw) for the conditional widened-input ablation convention; I_norm (bare) is metadata only and not a live framework-spec input surface.
+
+## Post-Review Remediation
+
+- 2026-06-06: Corrected the missed Step 4 scope descriptor list surface from `I_{\text{norm}}` to `I_{\text{norm,raw}}`.
+- Strengthened the negative audit to check both ASCII bare `I_norm` and LaTeX bare `I_{\text{norm}}` / `I_{\mathrm{norm}}`.
 
 ## Deviations from Plan
 

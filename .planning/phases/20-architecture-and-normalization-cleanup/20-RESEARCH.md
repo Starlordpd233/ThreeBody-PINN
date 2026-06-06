@@ -5,36 +5,36 @@
 
 ## Executive Summary
 
-Phase 20 should execute as evidence-first spec cleanup:
+Phase 20 executed as evidence-first spec cleanup:
 
-- Reserved Phase 16 evidence packets for `ARCH-01`, `ARCH-02`, `ARCH-03`, and `ARCH-05` are missing on disk and should be created/filled from the Phase 16 template during execution.
-- `ARCH-04` is governed by ledger row `D-02-NORM` / `AC-ARCH-04` / `evidence/D-02-NORM.md` (authorized 2026-06-05 by `GAP-20-01` resolution, option a); plan `20-05` creates/fills the packet and audits `ARCH-04`, after `20-03`/`20-04`.
+- Reserved Phase 16 evidence packets for `ARCH-01`, `ARCH-02`, `ARCH-03`, `ARCH-04`, and `ARCH-05` now exist and are VERIFIED after Phase 20 execution.
+- `ARCH-04` is governed by ledger row `D-02-NORM` / `AC-ARCH-04` / `evidence/D-02-NORM.md` (authorized 2026-06-05 by `GAP-20-01` resolution, option a); plan `20-05` created/filled the packet and audited `ARCH-04`, after `20-03`/`20-04`. Post-review remediation on 2026-06-06 adds the missed Step 4 scope descriptor surface to that audit.
 - Phase 20 should not edit live `pinn/` implementation code.
 - Phase 20 should leave closure proof for `AC-ARCH-01`, `AC-ARCH-02`, `AC-ARCH-03`, and `AC-ARCH-05`; Phase 21 may re-check that evidence, but should not be the first proof point.
 
 ## Current Packet State
 
-Checked 2026-06-03:
+Checked 2026-06-06 after Phase 20 execution and post-review remediation:
 
 | Packet | Ledger status | File state | Handling |
 |--------|---------------|------------|----------|
-| `evidence/B-01.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before SIREN edits. |
-| `evidence/B-10.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before SIREN edits. |
-| `evidence/M5.md` | Reserved, Phase 20 PENDING, EVID-05 required | missing | Create/fill from `_TEMPLATE.md`; contested adjudication before `I_3` edits. |
-| `evidence/M8.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before LayerNorm edits. |
-| `evidence/M9.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before energy support edits. |
-| `evidence/M10.md` | Reserved, Phase 20 PENDING | missing | Create/fill from `_TEMPLATE.md` before mass support edits. |
-| `evidence/D-02-NORM.md` | Reserved, Phase 20 PENDING (added 2026-06-05) | missing | Authorized by `GAP-20-01` (option a). Create/fill from `_TEMPLATE.md` during `20-05` before `I_norm` naming edits. Do NOT create `evidence/D-02.md` or `evidence/ARCH-04.md` (superseded example names). |
+| `evidence/B-01.md` | VERIFIED | exists | Filled and verified by Phase 20 before SIREN edits. |
+| `evidence/B-10.md` | VERIFIED | exists | Filled and verified by Phase 20 before SIREN edits. |
+| `evidence/M5.md` | VERIFIED, EVID-05 required | exists | Filled and verified by Phase 20 before `I_3` edits. |
+| `evidence/M8.md` | VERIFIED | exists | Filled and verified by Phase 20 before LayerNorm edits. |
+| `evidence/M9.md` | VERIFIED | exists | Filled and verified by Phase 20 before energy support edits. |
+| `evidence/M10.md` | VERIFIED | exists | Filled and verified by Phase 20 before mass support edits. |
+| `evidence/D-02-NORM.md` | VERIFIED | exists | Authorized by `GAP-20-01` (option a), filled by `20-05`, and strengthened on 2026-06-06 to cover the Step 4 scope descriptor surface. Do NOT create `evidence/D-02.md` or `evidence/ARCH-04.md` (superseded example names). |
 
 ## Route Map by Requirement
 
 | Requirement | Acceptance / proof vehicle | Ledger row(s) | Evidence packet(s) | EVID-05? | Status |
 |-------------|----------------------------|---------------|--------------------|----------|--------|
-| `ARCH-01` SIREN init/frequency | `AC-ARCH-01` | B-01, B-10 | `evidence/B-01.md`, `evidence/B-10.md` | No | Ready to plan packet creation and edits. |
-| `ARCH-02` LayerNorm attribution/default | `AC-ARCH-02` | M8 | `evidence/M8.md` | No | Ready to plan packet creation and edits. |
-| `ARCH-03` `I_3` range/mapping | `AC-ARCH-03` | M5 | `evidence/M5.md` | Yes | Ready to plan adjudication-gated task; edits blocked until verdict. |
-| `ARCH-04` raw vs bounded `I_norm` naming | `AC-ARCH-04` | D-02-NORM | `evidence/D-02-NORM.md` | No (baseline; escalates only on a concrete source conflict) | Ready to plan packet creation and edits via `20-05`, after `20-03`/`20-04`. |
-| `ARCH-05` energy/mass realized support | `AC-ARCH-05` | M9, M10 | `evidence/M9.md`, `evidence/M10.md` | No | Ready to plan packet creation and edits. |
+| `ARCH-01` SIREN init/frequency | `AC-ARCH-01` | B-01, B-10 | `evidence/B-01.md`, `evidence/B-10.md` | No | Closed / VERIFIED. |
+| `ARCH-02` LayerNorm attribution/default | `AC-ARCH-02` | M8 | `evidence/M8.md` | No | Closed / VERIFIED. |
+| `ARCH-03` `I_3` range/mapping | `AC-ARCH-03` | M5 | `evidence/M5.md` | Yes | Closed / VERIFIED. |
+| `ARCH-04` raw vs bounded `I_norm` naming | `AC-ARCH-04` | D-02-NORM | `evidence/D-02-NORM.md` | No (baseline; escalates only on a concrete source conflict) | Closed / VERIFIED after post-review remediation. |
+| `ARCH-05` energy/mass realized support | `AC-ARCH-05` | M9, M10 | `evidence/M9.md`, `evidence/M10.md` | No | Closed / VERIFIED. |
 
 ## ARCH-01 - SIREN Initialization and Frequency
 
@@ -208,7 +208,7 @@ Phase 20 must leave:
 
 ### Closure Proof
 
-Proof should show active text consistently distinguishes `I_norm_raw` from `I_norm_in`, confirms `I_norm_in = tanh(I_norm_raw)` only if supported, and negatively audits for raw/bounded conflation. Delivered by `20-05` (`evidence/D-02-NORM.md` verdict + Locked Convention, ledger `D-02-NORM` → VERIFIED, positive + negative `I_norm` surface audits, `AC-ARCH-04` closed).
+Proof should show active text consistently uses `I_norm_raw` for the framework-spec raw descriptor, keeps `I_norm_in = tanh(I_norm_raw)` in the D-02-NORM convention for the conditional widened-input ablation only, and negatively audits for ASCII and LaTeX bare `I_norm` conflation. Delivered by `20-05` plus 2026-06-06 post-review remediation (`evidence/D-02-NORM.md` verdict + Locked Convention, ledger `D-02-NORM` → VERIFIED, positive + negative `I_norm` surface audits, `AC-ARCH-04` closed).
 
 ## ARCH-05 - Energy and Mass Realized Support
 
@@ -256,11 +256,11 @@ Phase 20 must leave:
 
 ## Planning Implications
 
-Recommended plan structure:
+Recommended plan structure was executed by the five Phase 20 plans:
 
-1. Evidence packet setup: create missing B-01, B-10, M5, M8, M9, M10, and `D-02-NORM` packets from `_TEMPLATE.md` during their owning plans.
-2. SIREN edits and audits in `pinn_architecture.md` after B-01/B-10 verdicts.
-3. LayerNorm edits and audits in `pinn_architecture.md` after 20-01 and the M8 verdict.
-4. M5 adjudication and `I_3` edits only after a grounded EVID-05 verdict.
-5. Support-range edits and combined audit in `ctl_instruction.md` after M9/M10 verdicts. Treat `pinn_architecture.md` as a read-only consistency audit surface unless a separate plan explicitly owns that edit.
-6. `ARCH-04` is unblocked (`GAP-20-01` RESOLVED, option a): plan `20-05` creates/fills `evidence/D-02-NORM.md`, records the verdict + Locked Convention, and aligns the `I_norm` surfaces in `ctl_instruction.md`, executed after `20-03`/`20-04`.
+1. Evidence packet setup filled B-01, B-10, M5, M8, M9, M10, and `D-02-NORM`.
+2. SIREN edits and audits landed in `pinn_architecture.md` after B-01/B-10 verdicts.
+3. LayerNorm edits and audits landed in `pinn_architecture.md` after the M8 verdict.
+4. M5 adjudication and `I_3` edits landed only after the grounded EVID-05 verdict.
+5. Support-range edits and combined audit landed in `ctl_instruction.md` after M9/M10 verdicts.
+6. `ARCH-04` closed through `20-05` (`GAP-20-01` option a) and 2026-06-06 post-review remediation, with `I_norm_raw` as the only required framework-spec surface and `I_norm_in = tanh(I_norm_raw)` retained in D-02-NORM as the conditional ablation convention.
