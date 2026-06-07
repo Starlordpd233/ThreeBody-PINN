@@ -218,6 +218,20 @@ Plans:
 
 **Completion**: Phase 20 completed 2026-06-05.
 
+### Phase 20.5: Sampling Coordinate Allocation
+
+**Goal**: `sampling_method.md` exposes one explicit, fixed, non-overlapping mapping from Sobol coordinates to physical sampling quantities; the §1.1 dimension claim, the "Sampling-Time Size Variability" section, and the "Velocity Sampling" section are mutually consistent and match `simulation_data/Scripts/ic_generation/ic_generation_utils.py`.
+**Depends on**: Phase 16 (evidence framework); Phase 18 (FRAME contract — the unified preprocessing/scaling order locked by FRAME-01, and the momentum-conservation prose reconciled by FRAME-03); Phase 19 (preprocessing-scaling contract — the `D = (G T^2)^{1/3}` characteristic-length convention locked by PHYS-01). Sequenced before Phase 21 so acceptance checks can cover it.
+**Requirements**: SAMP-01, SAMP-02 (+ VER-05 applied throughout)
+**Success Criteria** (what must be TRUE):
+
+  1. Reader finds a "Sobol Coordinate Allocation Convention" subsection in `sampling_method.md` mapping `(u_1, …, u_7)` to physical quantities with no double-booking.
+  2. Reader can verify the §1.1 dimension claim, "Sampling-Time Size Variability", and the Sobol coordinate allocation within "Velocity Sampling" are mutually consistent and agree with the locked `d = 3 + δ_s + 3δ_v` allocation. (The momentum-conservation procedure in "Velocity Sampling" was already reconciled to the code by Phase 18 (FRAME-03) — it states the symmetric `v1 = v3 = -v2/2` split that matches `ic_generation_utils.py` — so it is not an open discrepancy; Task 8 verifies this.)
+  3. The phase-local gap register records GAP-20-5-01/02/03 at `RESOLVED-WITH-INSTRUCTION`.
+  4. `20-5-DATA-ALIGNMENT.md` records the alignment with `ic_generation_utils.py` and the FUT-01 hand-off, and defines `AC-SAMP-01` for Phase 21 execution.
+
+**Plans**: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` (authoritative GSD copy).
+
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 
 **Goal**: Acceptance checks are not only defined but **executed** with disposable validation probes against the v1.4 framework specs; the source-issue ledger is reconciled; and the validation handoff records what shipped, what was deferred, and why before Phase 22 performs final presentation cleanup.
