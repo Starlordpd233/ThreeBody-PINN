@@ -335,6 +335,7 @@ enhancement.
 
 [Note: All code for this section is in the code folder for
 pinn.]{style="color: blue"}
+Author Comment: I believe this is another case for broken syntax or stale code from conversion. Also, this not estatement itself is outdated since all the code in the code folder is already outdated and unusuable.
 
 ## Step 1: Parse Raw Simulation Data
 
@@ -609,6 +610,8 @@ Global normalization scales (computed after scaling all trajectories):
   `r_char,j = (1/3) sum_{i<k} ||r'_{i,j} - r'_{k,j}||`
 - `Q_scale` remains fixed at `0.5`.
 
+Author Comment: so far all the inline math notations that have this format `xxxx` are rendered as literal text strings in the preview and are not readable. Consider changing this syntax in a way that is machine-reading friendly and also renders correctly and nicely for human reader reading in preview.
+
 ### 2.6 Assertions and stored metadata
 
 After preprocessing, assert the center-of-mass and total-momentum conditions on
@@ -694,6 +697,8 @@ final network IC slots under the Phase 17 input contract.
     static-invariant softening `epsilon_inv = 10^-10` is context-specific for
     offline invariant computation and is distinct from the training-time
     softening `epsilon_train = 10^-5` used in the `pinn_architecture.md` PHYS-03 residual and energy contracts.
+
+    Author Comment: this section is a syntax disaster. ALl the raw latex syntax are broken in rendered preview, and they show up as literal text strings. The other syntax are also incorrect for proper markdown file. Carefully look into this and think about how to fix it. Maintaining the exact, identifical math equation and expressions is of the utmost importance here. The following sections after this and below this should also be carefully examined.
 
 2.  **Normalized angular momentum $L_{\mathrm{norm}}$.** $$\begin{aligned}
         \mathbf L &= \sum_{i=1}^3 m_i \,(\mathbf r'_i \times \mathbf v'_i), \qquad
@@ -1042,6 +1047,8 @@ The mass slots are normalized per slot with dataset-wide statistics. For hierarc
 The old invariant-heavy descriptors (`Q`, `s_min`, `L_vec`, `L_norm`, `I_norm_raw`, `I1`, `I2`, `I3`, `tau_L`, and orientation summaries) remain available as curriculum, diagnostics, loss-scaling, and reporting metadata. They are not final network IC slots under the Phase 17 input contract.
 
 The network time coordinate is centered around zero by the linear map $\tau = 2u - 1$ with $u = t/T$ (where $T = t_{\max}$ is the characteristic time), which aligns with the periodic activation functions (e.g., SIREN) and improves training dynamics. The autograd leaf is `u`; the model wrapper computes `tau` internally.
+
+Author Comment: again the syntax issues here above in the `` format are all broken and need fixing. 
 
 ## Step 5: Curriculum Stage Assignment
 
@@ -1412,7 +1419,7 @@ noted.
 Most importantly, for rigorous provenance we drive every training run
 from a three-level Hydra YAML stack:
 
-- `stage.yaml` -- curriculum definition and data-set indices\
+- `stage.yaml` -- curriculum definition and data-set indices\ (Author Comment: why is there a "\" sign here and in the next line?)
 
 - `opt.yaml` -- optimiser, learning-rate schedule, clip norms\
 
@@ -1438,6 +1445,4 @@ These notes are metadata for future reconciliation. They are not part of the con
 
 ## SI-CTL-001: Input-vector dimensionality inconsistency
 
-- Source sections: `04_phase1_data_prep.tex`, `05_phase2_training_loop.tex`, `appendix.tex`.
-- Markdown headings: `Step 4: Formulating the Input Vector: Canonical Ordering, Normalization, and Assembly`, `Data Flow During Training`, and `Supplementary Figures`.
-- Note: The converted body preserves the LaTeX source exactly, but the source alternates between describing an 11-component IC plus time as a 12-dimensional input and a 13-component IC plus time as a 14-dimensional input. This should be reconciled against the canonical PINN input-vector definition in a future source-level update.
+Resolved by v1.4 finding B-03. See Phase 17 input contract.

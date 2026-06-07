@@ -100,6 +100,8 @@ necessary depth for expressivity, the SIREN activations provide the
 derivative fidelity required for physics enforcement, and the soft
 conservation regularizers improve long-term physical plausibility.
 
+Author Comment: Again, all the superscript instances are rendered as raw literal strings in the preview. Fix this carefully.
+
 # 2. The SQR-SkipResNet-SIREN Backbone: A Deep Dive into the Core Architecture
 
 This section provides the definitive, mathematically-grounded
@@ -182,6 +184,8 @@ layers.
     uncontrollably with depth. This careful, layer-dependent
     initialization is what makes deep SIRENs trainable by ensuring
     stable gradient flow.[^1]
+
+    Author Comment: All of these fields with `\text{xxx}` are not rnedered correctly and show up in the preview as raw literal text strings. The examples are the hidden omega 0, and first omega, etc. 
 
 ## 2.3 The Power-Enhanced SkipResNet (SQR-SkipResNet) Formulation
 
@@ -280,6 +284,8 @@ $$L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causa
 Author Comment: the above formula is not written in the correct syntax. We need to fix it so that it will be rendered correctly in markdown preview in Cursor.
 
 Canonical text form: `L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L`.
+
+Author Comment: the above canonical text form is also rendered in raw text strings in preview.
 
 This is the baseline penalty-term formulation. No dual variables are
 part of the default training loss; the scalar-conservation augmented
@@ -527,7 +533,7 @@ and $\delta = 1.0$ is the Huber transition.
 $S_H$ is computed once in float64 after final
 COM/zero-momentum/gauge/scaling preprocessing over the training split
 using the matched-Plummer Hamiltonian components with
-$\epsilon_{train} = 10^{-5}$ (`10^-5`). Persist both $S_H$ and `epsilon_H` in training metadata. $S_H$ must be finite and strictly positive; $S_H <= 0$ or non-finite $S_H$ is a preprocessing/metadata validation failure. Do not apply a fallback numeric floor. Use `epsilon_H` only in $|H_0| + epsilon_H$. Phase 21 reports activation behavior only and must not reselect `epsilon_H` unless a new user instruction opens a replacement gap.
+$\epsilon_{train} = 10^{-5}$ (`10^-5`). (Author Comment: I am not sure why there is a duplicate 10^-5 here)Persist both $S_H$ and `epsilon_H` in training metadata. $S_H$ must be finite and strictly positive; $S_H <= 0$ or non-finite $S_H$ is a preprocessing/metadata validation failure. Do not apply a fallback numeric floor. Use `epsilon_H` only in $|H_0| + epsilon_H$. Phase 21 reports activation behavior only and must not reselect `epsilon_H` unless a new user instruction opens a replacement gap.
 
 The FUT-01 divergence handoff must flag executable training metadata as
 divergent if it omits $S_H$ or `epsilon_H`, computes $S_H$ from a
@@ -585,7 +591,7 @@ class TrajectoryDataset:
   velocities $v'$, and initial energy $H_0$) must be expressed in the
   same non-dimensional ($G = 1$) system of units.
 
-- **Softening Parameter:** The same value $\epsilon_{train} = 10^{-5}$ (`10^-5`)
+- **Softening Parameter:** The same value $\epsilon_{train} = 10^{-5}$ (`10^-5`) (author comment: again duplicate number)
   is used consistently in both the physics residual and energy
   calculations to prevent numerical instabilities during close
   encounters.
@@ -667,7 +673,7 @@ training contract and is documented separately as the P2 ablation below.
 
 As a P2 ablation, an augmented Lagrangian method may be applied to scalar conservation constraints only:
 
-- **Constraints:** c_E = RMS_n(ΔH_n) (energy drift), c_{L,α} = RMS_n((L'_θ,α(u_n) - L_0,α') / L_scale) (angular momentum drift per component).
+- **Constraints:** c_E = RMS_n(ΔH_n) (energy drift), c_{L,α} = RMS_n((L'_θ,α(u_n) - L_0,α') / L_scale) (angular momentum drift per component). (Author Comment: this syntax is not ideal since it invovles math equations/formula; it should properly use correct markdown render-friendly syntax)
 - **Never apply ALM to the dense ODE residual.**
 - **Dual-variable updates:** Only between Adam epochs or between deterministic refinement passes. Never update dual variables during L-BFGS or inside a line search.
 - **Logging:** Log constraint values before and after each dual-variable update.
@@ -916,6 +922,8 @@ drdu_batch = vmap(lambda u_b, ic_b: jacrev(model_single, argnums=0)(u_b, ic_b))(
     ...
 
   -------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  The section below is weirdly formatted and written out even in the original markdown file. However, it seems to render correctly render in the preview, so I'm not sure how to best approach this syntax fix here. 
   **Component**                                **Definitive Specification**                                                                                                                                                                                                              **Justification**
   **Unit System**                              A non-dimensional system is used where the gravitational constant $G=1$.\                                                                                                                                                                 Simplifies the governing physical equations and improves the numerical stability of the model during training.
                                                • **Characteristic Time:** $T=t_{max}$ (max time in dataset).\                                                                                                                                                                            
@@ -972,6 +980,33 @@ drdu_batch = vmap(lambda u_b, ic_b: jacrev(model_single, argnums=0)(u_b, ic_b))(
 [^15]: lululxvi/deepxde: A library for scientific machine learning and physics-informed learning - GitHub, accessed June 25, 2025, <https://github.com/lululxvi/deepxde>
 [^16]: DeepXDE: A Deep Learning Library for Solving Differential Equations | SIAM Review - myqcloud.com, accessed June 25, 2025, <https://pdf-1307664364.cos.ap-chengdu.myqcloud.com/%E8%AE%BA%E6%96%87%E5%8F%82%E8%80%83/PINN/DeepXDE-%20A%20Deep%20Learning%20Library%20for%20Solving%20Differential%20Equations.pdf>
 [^17]: omniscientoctopus/Physics-Informed-Neural-Networks: Investigating PINNs - GitHub, accessed June 25, 2025, <https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
+
+# 10. Numerical Acceptance Checks
+
+### 10.1 Scaling Consistency
+- **Pass Criterion**: Output variables computed via the length scaling $D = (G T^2)^{1/3}$ must match physical dimensions with `relative_error < 1e-10`.
+- **Input Data**: Preprocessed network inputs.
+- **Execution**: `python3 .planning/phases/21-acceptance-checks-and-handoff/probes/probe_scaling.py`
+
+### 10.2 COM Invariance
+- **Pass Criterion**: Mass-weighted position projection head yields a net center of mass of exactly 0 (`abs(COM) < 1e-10`).
+- **Input Data**: Forward pass position output tensor.
+- **Execution**: `python3 .planning/phases/21-acceptance-checks-and-handoff/probes/probe_com.py`
+
+### 10.3 Componentwise AD on Synthetic Trajectory
+- **Pass Criterion**: Network Jacobian matches analytical derivatives $r'(u)$ for the synthetic trajectory $r(u) = [\sin(2\pi u), \cos(2\pi u), u^2]$ with `relative_error < 1e-6`.
+- **Input Data**: Synthetic 1D domain input $u \in [0, 1]$.
+- **Execution**: `python3 .planning/phases/21-acceptance-checks-and-handoff/probes/probe_ad.py`
+
+### 10.4 Force-Energy Consistency
+- **Pass Criterion**: Hamiltonian is conserved and derived accelerations match the physical force residual with single matched Plummer softening. `relative_error < 1e-5`.
+- **Input Data**: Network trajectory output.
+- **Execution**: `python3 .planning/phases/21-acceptance-checks-and-handoff/probes/probe_force_energy.py`
+
+### 10.5 Loss Stability Dry Run
+- **Pass Criterion**: Forward pass and loss computation (physics + IC + energy + angular momentum) yield finite scalars (no NaN/Inf).
+- **Input Data**: Random uniform input tensors matching network architecture dimensions.
+- **Execution**: `python3 .planning/phases/21-acceptance-checks-and-handoff/probes/probe_loss_stability.py`
 
 ---
 
