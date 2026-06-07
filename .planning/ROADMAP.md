@@ -260,5 +260,16 @@ Plans:
 | 20.5 Sampling Coordinate Allocation (INSERTED) | v1.4 | 0/1 | Planned (design+plan locked) | - |
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
 
+### Phase 22: Framework-Spec Cleanup
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 21
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 22 to break down)
+
 ---
 *Last updated: 2026-06-05 — Phases 16–20 complete; Phase 20.5 locked (design+plan, commit b727b15), execution pending before Phase 21.*

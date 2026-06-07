@@ -76,6 +76,7 @@ Progress: [█████████░] 95%
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
+- Phase 22 added: Framework-Spec Cleanup
 
 ### v1.4 Phase Summary
 
