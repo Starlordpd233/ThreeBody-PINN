@@ -2,13 +2,25 @@
 
 ### Precondition
 
-Do not execute until Task 0 in `20-5-PLAN.md` has passed in this session. The Non-Execution
-Guard and Git context in `20-5-PLAN.md` apply to every task here.
+Do not execute until **both** of the following hold:
+
+1. Task 0 in `20-5-PLAN.md` has passed in this session.
+2. The **Part 2 completion gate** in `20-5-PLAN-part2.md` has passed: the spec edit is
+   applied, the full three-surface probe exits 0, the data-alignment handoff is in place with
+   the scoped provenance claim, Task 8 verification passed, the three expected commits
+   (Tasks 5, 6, 7) are on `HEAD` in order, and the staged index is empty. Re-check the
+   gate's nine items before starting Task 9. If any Part 2 gate item fails, STOP and return
+   to Part 2 — do not begin Part 3.
+
+The Non-Execution Guard and Git context in `20-5-PLAN.md` apply to every task here.
+`GIT_AGENT_ID` must already be exported with the executing agent's actual identity.
 
 ### Guardrails
 
-- Commit via `scripts/agent-commit` with `GIT_AGENT_ID` set. Never raw `git commit`, never
-  `--no-verify`.
+- Commit via `scripts/agent-commit` with `GIT_AGENT_ID` already exported in the environment.
+  Never raw `git commit`, never `--no-verify`. Never hardcode `GIT_AGENT_ID` to any fixed
+  value — always read the environment variable.
+- Apply the **mandatory per-commit gate** from the index to Task 9.
 - Stage only explicitly named files. Never `git add -A` or `git add .`.
 - Exclude any pre-existing unrelated working-tree edits from staging.
 - No destructive operations (no resets, rebases, force-pushes, branch deletions).
@@ -32,13 +44,41 @@ Guard and Git context in `20-5-PLAN.md` apply to every task here.
 - Modify: `.planning/MILESTONES.md`
 - Modify: `.planning/PROJECT.md`
 
-This task runs only after Tasks 1–8 have completed successfully. It performs mechanical status
-bookkeeping: SAMP-01/02 move from `Pending` to `Complete`, the Phase 20.5 ROADMAP entry moves
-from planned to complete, and active planning docs point to Phase 21 as the next phase. Do not
-change the SCOPE-05 rule text, the Sobol convention, the gap resolutions, or any physics/spec
-content in this task.
+This task runs only after Tasks 1–8 have completed successfully and the Part 2 completion
+gate has passed. It performs mechanical status bookkeeping: SAMP-01/02 move from `Pending`
+to `Complete`, the Phase 20.5 ROADMAP entry moves from planned to complete, and active
+planning docs point to Phase 21 as the next phase. Do not change the SCOPE-05 rule text,
+the Sobol convention, the gap resolutions, or any physics/spec content in this task.
 
-- [ ] **Step 1: Verify closure prerequisites**
+- [ ] **Step 1: Rerun the expanded AC-SAMP-01 probe (all three surfaces)**
+
+Before any status bookkeeping, confirm the three-surface probe still passes end-to-end. This
+re-runs the full AC-SAMP-01 probe from Task 6 — covering static spec, entrypoint AST, and
+sampler behavior including the synthetic position test:
+```bash
+cd "$(git rev-parse --show-toplevel)"
+.venv/bin/python3 .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
+```
+The probe must exit 0 and print `All three surfaces (SPEC, ENTRYPOINT, SAMPLER) passed.` If
+any surface now fails, STOP — do not mark Phase 20.5 complete; return to the owning task.
+
+- [ ] **Step 2: Verify the handoff contains both scoped-provenance limbs**
+
+Confirm the data-alignment handoff contains both the scoped no-regeneration conclusion and
+the historical-provenance caveat — neither may be absent or rephrased away:
+```bash
+DA=.planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+grep -cF "Scoped provenance claim" "$DA"                                                          # expect 1
+grep -cF "What is claimed" "$DA"                                                                  # expect 1
+grep -cF "What is not claimed" "$DA"                                                              # expect 1
+grep -cF "No data regeneration is required to resolve this coordinate-allocation mismatch" "$DA"  # expect 1
+grep -cF "not a blanket historical-provenance certification" "$DA"                                # expect 1
+```
+All five counts must match. If any count is wrong, the handoff has drifted from the scoped
+provenance claim agreed in Task 7 — STOP, do not mark Phase 20.5 complete, and re-derive the
+handoff's provenance section.
+
+- [ ] **Step 3: Verify remaining closure prerequisites**
 
 Run from the repository root:
 ```bash
@@ -56,12 +96,11 @@ grep -cF 'u_{4+\delta_s}' "$SPEC"                                               
 test -f "$DA"
 grep -cF "AC-SAMP-01" "$DA"                                                          # expect >= 2
 test -f "$PROBE"
-.venv/bin/python3 "$PROBE"
 ```
 If any prerequisite fails, STOP and return to the task that owns that artifact. Do not mark
 Phase 20.5 complete until the prerequisite artifact is present and verified.
 
-- [ ] **Step 2: Mark SAMP traceability complete**
+- [ ] **Step 4: Mark SAMP traceability complete**
 
 In `.planning/REQUIREMENTS.md`, replace:
 ```markdown
@@ -77,7 +116,7 @@ With:
 Update the final `Last updated` note so it records Phase 20.5 completion and Phase 21 as next.
 Do not change the Phase 21 VER rows, which remain `Pending`.
 
-- [ ] **Step 3: Mark ROADMAP Phase 20.5 complete**
+- [ ] **Step 5: Mark ROADMAP Phase 20.5 complete**
 
 In `.planning/ROADMAP.md`, update only the Phase 20.5 top-level list item and progress row:
 - Change the Phase 20.5 checkbox from `- [ ]` to `- [x]`.
@@ -89,7 +128,7 @@ In `.planning/ROADMAP.md`, update only the Phase 20.5 top-level list item and pr
 
 Do not alter Phase 21 scope or success criteria here.
 
-- [ ] **Step 4: Update active state docs narrowly**
+- [ ] **Step 6: Update active state docs narrowly**
 
 In `.planning/STATE.md`, `.planning/MILESTONES.md`, and `.planning/PROJECT.md`, update only
 active-status text that says Phase 20.5 execution is pending. The new state should say Phase
@@ -101,7 +140,7 @@ If a status sentence is ambiguous or appears to encode a new project decision ra
 bookkeeping, leave it unchanged and surface it separately. This task is not authority for a
 new milestone-scope decision.
 
-- [ ] **Step 5: Verify final status synchronization**
+- [ ] **Step 7: Verify final status synchronization**
 
 Run:
 ```bash
@@ -117,13 +156,137 @@ The final `rg` should return no active pending/execute-next status lines. If it 
 historical note that should be preserved, document why before committing; otherwise update the
 stale active status text and re-run the check.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 8: Mandatory per-commit gate + commit**
 
-Stage only the five status files and commit with `scripts/agent-commit` (body required —
-multi-file `.planning/` commit):
+Apply the full mandatory per-commit gate from the index. The gate's staged-file and
+`git diff --cached --check` whitespace checks apply to the five closure files:
+
 ```bash
-git add .planning/REQUIREMENTS.md .planning/ROADMAP.md .planning/STATE.md .planning/MILESTONES.md .planning/PROJECT.md
-GIT_AGENT_ID="codex-gpt-5" scripts/agent-commit \
+# 1. pre-stage index must be empty
+git diff --cached --name-only
+
+# 2. unstaged diff review for the five task-owned files
+git diff -- \
+  .planning/REQUIREMENTS.md \
+  .planning/ROADMAP.md \
+  .planning/STATE.md \
+  .planning/MILESTONES.md \
+  .planning/PROJECT.md
+
+# 3. stage only the declared files (five paths, no directory, no .)
+git add \
+  .planning/REQUIREMENTS.md \
+  .planning/ROADMAP.md \
+  .planning/STATE.md \
+  .planning/MILESTONES.md \
+  .planning/PROJECT.md
+
+# 4. staged-list confirmation
+git diff --cached --name-only
+# Must be exactly these five files — no more, no fewer.
+
+# 5. cached-diff inspection + whitespace check
+git diff --cached
+git diff --cached --check
+# No whitespace errors may be introduced.
+
+# 6. rerun Step 7 verification (and re-run the Step 1 probe and Step 2 handoff checks to
+#    confirm nothing regressed during the closure edits)
+.venv/bin/python3 .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
+DA=.planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+grep -cF "Scoped provenance claim" "$DA"                                                          # expect 1
+grep -cF "No data regeneration is required to resolve this coordinate-allocation mismatch" "$DA"  # expect 1
+grep -cF "not a blanket historical-provenance certification" "$DA"                                # expect 1
+
+# 7. commit (body required — multi-file .planning/ commit)
+GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit \
   -m "docs(planning): close Phase 20.5 execution state" \
-  -m "Mark SAMP-01 and SAMP-02 complete after the Phase 20.5 spec, probe, and data-alignment hand-off pass. Update ROADMAP progress and active planning status so Phase 20.5 is complete and Phase 21 is next, without changing the Sobol convention or SCOPE-05 rule text."
+  -m "Mark SAMP-01 and SAMP-02 complete after the Phase 20.5 spec, three-surface probe, and scoped-provenance data-alignment hand-off pass. Update ROADMAP progress and active planning status so Phase 20.5 is complete and Phase 21 is next, without changing the Sobol convention, the SCOPE-05 rule text, or the scoped provenance claim."
+
+# 8. post-commit confirmation
+git diff --cached --name-only     # must be empty
+git show --stat HEAD --name-only  # must list exactly the five closure files
 ```
+
+---
+
+## Part 3 completion gate
+
+All nine items below must pass before reporting successful Phase 20.5 completion. The last
+item routes back to the index.
+
+- [ ] **Gate-1: Task 9 passed** — all Step 7 counts match their expected values, the
+  expanded AC-SAMP-01 probe reran cleanly (Step 1), and the handoff still contains both
+  scoped-provenance limbs (Step 2).
+- [ ] **Gate-2: Task 9 commit landed** — `git log -1 --oneline` shows `docs(planning):
+  close Phase 20.5 execution state`.
+- [ ] **Gate-3: Total commit count for the plan is 7** — the plan defines exactly seven
+  mutating tasks (Tasks 1, 2, 3, 5, 6, 7, 9). Running
+  ```bash
+  git log --oneline HEAD~7..HEAD
+  ```
+  lists the seven commits in reverse-chronological order: Task 9 (most recent), Task 7, Task
+  6, Task 5, Task 3, Task 2, Task 1 (oldest). Task 0, Task 4, and Task 8 are
+  verification-only and produce no commit.
+- [ ] **Gate-4: Required artifacts exist** —
+  ```bash
+  test -f pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
+  test -f .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
+  test -f .planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+  test -f .planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md
+  test -f .planning/milestones/v1.4-GAPS.md
+  test -f .planning/REQUIREMENTS.md
+  test -f .planning/ROADMAP.md
+  test -f .planning/STATE.md
+  test -f .planning/MILESTONES.md
+  test -f .planning/PROJECT.md
+  test -f AGENTS.md
+  test -f ANTIGRAVITY.md
+  ```
+  all succeed.
+- [ ] **Gate-5: Scoped provenance claim intact** — re-verify both limbs one final time:
+  ```bash
+  DA=.planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+  grep -cF "No data regeneration is required to resolve this coordinate-allocation mismatch" "$DA"  # expect 1
+  grep -cF "not a blanket historical-provenance certification" "$DA"                                # expect 1
+  ```
+- [ ] **Gate-6: Empty staged index** — `git diff --cached --name-only` prints nothing.
+- [ ] **Gate-7: Working tree clean with respect to Phase 20.5 targets** — running
+  ```bash
+  git status --short --branch
+  ```
+  shows no modifications to any Phase 20.5 target file (only pre-existing unrelated
+  user-owned changes may remain).
+- [ ] **Gate-8: Positive assertions across the four plan files** — verify the plan files
+  assert the correct forms (no forbidden literal strings appear anywhere):
+  ```bash
+  PLAN_DIR=.planning/phases/20-5-sampling-coordinate-allocation
+  # 1. GIT_AGENT_ID is always referenced via the env var, never assigned a quoted literal.
+  #    Allowed form: GIT_AGENT_ID="$GIT_AGENT_ID". Forbidden: GIT_AGENT_ID="<any-quoted-literal>".
+  #    Match the forbidden pattern (a literal quote after GIT_AGENT_ID= that is NOT $).
+  bad_agent=$(grep -nE 'GIT_AGENT_ID="[^$]' \
+    "$PLAN_DIR/20-5-PLAN.md" \
+    "$PLAN_DIR/20-5-PLAN-part1.md" \
+    "$PLAN_DIR/20-5-PLAN-part2.md" \
+    "$PLAN_DIR/20-5-PLAN-part3.md" 2>/dev/null | wc -l)
+  echo "hardcoded GIT_AGENT_ID assignments: $bad_agent (expect 0)"
+  # 2. The index requires subagent-driven-development:
+  grep -cF "superpowers:subagent-driven-development" "$PLAN_DIR/20-5-PLAN.md"   # expect >= 1
+  # 3. ROADMAP details block in part1 correctly cites Phase 18 and Phase 19 contracts:
+  grep -cF "Phase 18 (FRAME contract" "$PLAN_DIR/20-5-PLAN-part1.md"            # expect >= 1
+  grep -cF "Phase 19 (preprocessing-scaling contract" "$PLAN_DIR/20-5-PLAN-part1.md"  # expect >= 1
+  # 4. The data-alignment template in part2 carries the scoped provenance claim, not the
+  #    blanket provenance claim:
+  grep -cF "Scoped provenance claim" "$PLAN_DIR/20-5-PLAN-part2.md"             # expect 1
+  grep -cF "What is claimed" "$PLAN_DIR/20-5-PLAN-part2.md"                     # expect 1
+  grep -cF "What is not claimed" "$PLAN_DIR/20-5-PLAN-part2.md"                 # expect 1
+  grep -cF "not a blanket historical-provenance certification" "$PLAN_DIR/20-5-PLAN-part2.md"  # expect 1
+  ```
+  Every count must match its stated expectation. If any check fails, STOP and re-derive the
+  affected plan section.
+
+- [ ] **Gate-9: Route back to index** — return to `20-5-PLAN.md` and execute the
+  **Post-Completion Follow-ups** section (currently: none remaining; FLAG-10 was promoted
+  into Task 5 Step 7), then execute the **Self-Review** checklist. Self-Review item `1b`
+  (Chained part-completion gates) is the final gate of this plan — it passes if and only if
+  Gates 1–8 above all pass.

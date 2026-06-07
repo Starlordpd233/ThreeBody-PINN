@@ -1,6 +1,6 @@
 # Phase 20.5: Sobol Coordinate Allocation — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. No other plan-execution skill (in particular, the worktree-based alternative) is supported for this plan.
 
 ## Plan Parts and Execution Order
 
@@ -18,6 +18,11 @@ This plan is split across four files. Execute them in order; each part file is d
 order. All four files are required to complete Phase 20.5. After Task 9, return to this index
 for Post-Completion Follow-ups and the Self-Review.
 
+**Plan-files-committed precondition:** all four plan files (`20-5-PLAN.md`,
+`20-5-PLAN-part1.md`, `20-5-PLAN-part2.md`, `20-5-PLAN-part3.md`) must be committed and the
+working tree clean with respect to them before Task 0 begins. Execution must never start from
+an uncommitted or stale plan revision. Task 0 verifies this as its first step.
+
 **Goal:** Lock the Sobol coordinate allocation convention in `sampling_method.md` so it is
 explicit, non-overlapping, and matches `simulation_data/Scripts/ic_generation/ic_generation_utils.py`,
 resolving the `u_4` double-booking between scaling and velocity sampling.
@@ -27,17 +32,28 @@ Phase 21 of v1.4). It is authored via `superpowers:writing-plans` per user direc
 2026-05-19, made state-aware on 2026-06-06 after Phases 17–20 executed, and hardened
 on 2026-06-07 after Phase 20.5 plan-review reports were verified against live repository
 state. Task 0 runs a plan-level preflight that verifies live repository state before any
-mutation. Tasks 1–2
-make ROADMAP and REQUIREMENTS state-aware (the Phase 20.5 list item and progress row already
-exist from prior status work; only the details block and coverage/requirements content are
-new). Task 3 propagates the SCOPE-05 governance rule after it exists in REQUIREMENTS and
-before risk-elevated spec edits. Task 4 verifies the already-existing gap registers
-(verification-only — they were created and resolved on 2026-05-19). Task 5 applies the five
-spec edits and runs the FLAG-10 cross-reference check now that Phases 18–19 are complete.
-Task 6 runs a disposable verification probe. Task 7 creates the data-alignment hand-off.
-Task 8 verifies that no separate velocity-momentum finding is needed (Phase 18 already
-reconciled the spec prose to the code). Task 9 performs final closure/status synchronization
-after all Phase 20.5 deliverables pass. The locked
+mutation. Tasks 1–2 make REQUIREMENTS and ROADMAP state-aware in dependency order: Task 1
+creates SAMP-01, SAMP-02, and SCOPE-05 in `REQUIREMENTS.md` and bumps the coverage totals in
+both `REQUIREMENTS.md` and `ROADMAP.md` (the Phase 20.5 list item and progress row already
+exist from prior status work; only the requirements, scope rule, and coverage content are
+new). Task 2 inserts the ROADMAP details block **after** those requirements exist, and
+correctly declares dependencies on Phase 18's FRAME contract and Phase 19's
+preprocessing-scaling contract. Task 3 propagates the SCOPE-05 governance rule after it
+exists in REQUIREMENTS and before risk-elevated spec edits. Task 4 verifies the
+already-existing gap registers (verification-only — they were created and resolved on
+2026-05-19). Task 5 applies the five spec edits and runs the FLAG-10 cross-reference check
+now that Phases 18–19 are complete. Task 6 runs a three-surface disposable verification
+probe (static spec, entrypoint AST, sampler behavior). Task 7 creates the data-alignment
+hand-off with an expanded AC-SAMP-01 that mirrors the three-surface probe and a scoped
+provenance claim (alignment of spec, documented generator configuration, and current sampler
+behavior — no in-repository manifest proves the exact script revision for every stored data
+file; no regeneration is required to resolve this coordinate-allocation mismatch; this is
+not a blanket historical-provenance certification). Task 8 verifies that no separate
+velocity-momentum finding is needed (Phase 18 already reconciled the spec prose to the
+code). Task 9 reruns the expanded AC-SAMP-01 probe, verifies the handoff contains both the
+scoped no-regeneration conclusion and the historical-provenance caveat, and performs final
+closure/status synchronization after all Phase 20.5 deliverables pass. Each part file ends
+with a completion gate that the next part's precondition requires before it may start. The locked
 convention is "Option A" — the conditional `(δ_s, δ_v)` allocation that the existing
 standard quasi-random dataset was generated under. Full rationale:
 `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md`.
@@ -83,14 +99,47 @@ rules before touching any file:
   Tasks 0, 4, and 8 are verification-only and produce **no commit**. `.planning/` and
   `pinn_instruction/` are risk-elevated paths (per `CLAUDE.md`) — each mutating task commits
   its full change set at task end with a body.
-- **Commit tool:** use `scripts/agent-commit` with `GIT_AGENT_ID` set to a concrete agent
-  identifier such as `codex-gpt-5` (it adds the `Agent-Assisted-By` trailer). Never raw
+- **Commit tool:** use `scripts/agent-commit` with the environment variable `GIT_AGENT_ID`
+  set to the **executing agent's actual identity** (for example `claude-opus-4-5`,
+  `codex-gpt-5`, `gemini-2.5-pro`, etc. — whatever tool is actually performing the commit).
+  The commit script adds the `Agent-Assisted-By` trailer from this value. Never raw
   `git commit`, never `--no-verify`. Run
   `scripts/setup-git-hooks.sh` first if `git config --get core.hooksPath` is not `.githooks`.
 - **Staging:** `git add` with explicit file paths only — never `git add -A` or `git add .`.
   Surface any pre-existing unrelated working-tree changes and exclude them from staging.
 - **No destructive operations** anywhere in this plan. No resets, rebases, force-pushes,
   branch deletions, or history rewrites. If any task appears to need one, STOP and surface.
+
+### Mandatory per-commit gate
+
+Every mutating task (Tasks 1, 2, 3, 5, 6, 7, 9) must run this gate around each commit. The
+gate is part of the task; skipping any sub-step invalidates the commit:
+
+1. **Pre-stage index check:** `git diff --cached --name-only` must print nothing. If the
+   staged index is non-empty, STOP — an earlier step left a stray staged file; resolve it
+   without altering any pre-existing user staging.
+2. **Unstaged diff review:** `git diff -- <file1> <file2> ...` for exactly the files this
+   task owns. Confirm the changes match the task's declared edits. If unrelated changes
+   appear in these files, STOP — they are user-owned and must not be bundled.
+3. **Stage only the declared files:** `git add <file1> <file2> ...` using the exact paths
+   listed in the task's commit step. Never use a directory path or `.`.
+4. **Staged-list confirmation:** `git diff --cached --name-only` must equal the task's
+   expected file set exactly — no more, no fewer.
+5. **Cached-diff inspection and whitespace check:**
+   `git diff --cached` must match the task's expected diff; `git diff --cached --check`
+   must print no whitespace errors.
+6. **Rerun task verification:** rerun the task's own verification checks (the bash blocks
+   earlier in the task) against the staged content. They must still pass.
+7. **Commit:** `GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit -m "<type>(<scope>): <subject>" -m "<body>"`.
+   Never use `--no-verify`.
+8. **Post-commit confirmation:** `git diff --cached --name-only` must again print nothing
+   (the commit drained the index); `git show --stat HEAD --name-only` must list exactly the
+   expected file set. If a pre-commit hook rejected the commit, surface the rejection and
+   do not proceed.
+
+The gate's purpose is to guarantee that every Phase 20.5 commit contains only the files it
+declares, that no pre-existing user staging is silently captured, and that every commit is
+immediately verifiable against its task's checks.
 
 ## File Structure
 
@@ -119,11 +168,12 @@ rules before touching any file:
 - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — Edits 1–5
   (Task 5). Edits 1–4 FROM text still matches live; Edit 5's FROM/TO were re-grounded to the
   current Phase 18 momentum wording.
-- `.planning/ROADMAP.md` — Phase 20.5 list item and progress row already exist (Task 1
-  verifies them); **insert** the absent Phase 20.5 details block (Task 1); the coverage bump
-  30/30→32/32 is made in Task 2 together with the SAMP-01/02 additions that justify it.
+- `.planning/ROADMAP.md` — Phase 20.5 list item and progress row already exist (Task 2
+  verifies them); **insert** the absent Phase 20.5 details block (Task 2) **after** SAMP-01/02
+  and SCOPE-05 have been added to REQUIREMENTS by Task 1; the coverage bump 30/30→32/32 is
+  made in Task 1 together with the SAMP-01/02 additions that justify it.
 - `.planning/REQUIREMENTS.md` — add SAMP-01/02; amend SCOPE-02; add SCOPE-05; traceability
-  rows; coverage 30→32 in both REQUIREMENTS.md and ROADMAP.md (Task 2), then final
+  rows; coverage 30→32 in both REQUIREMENTS.md and ROADMAP.md (Task 1), then final
   SAMP-01/02 traceability closure to `Complete` after the Phase 20.5 deliverables pass (Task 9).
 - `.planning/STATE.md`, `.planning/MILESTONES.md`, and `.planning/PROJECT.md` — narrow
   execution-complete status synchronization only after Phase 20.5 passes (Task 9). Do not
@@ -151,6 +201,37 @@ Run every check below from the repository root. If any check has drifted from th
 plan assumes, **stop and update the affected task instructions before proceeding** — do not
 execute a downstream task against drifted state.
 
+- [ ] **Step 0a: Plan-files-committed precondition**
+
+Confirm all four plan files are committed and the working tree is clean with respect to them:
+```bash
+for f in \
+  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md \
+  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN-part1.md \
+  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN-part2.md \
+  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN-part3.md
+do
+  git diff --name-only HEAD -- "$f"
+  git diff --cached --name-only -- "$f"
+done
+```
+Both loops must print nothing. If any plan file has uncommitted or staged-but-not-committed
+changes, STOP — execution must not start from an uncommitted or stale plan revision.
+
+- [ ] **Step 0b: Export `GIT_AGENT_ID`**
+
+The commit gate in every mutating task requires `GIT_AGENT_ID` to contain the executing
+agent's actual identity (for example `claude-opus-4-5`, `codex-gpt-5`, `gemini-2.5-pro` —
+whatever tool is performing the commit). Set and export it for the shell session before any
+Task 1 work begins:
+```bash
+export GIT_AGENT_ID="<actual-agent-identity>"   # e.g. claude-opus-4-5
+echo "GIT_AGENT_ID=$GIT_AGENT_ID"
+```
+If `GIT_AGENT_ID` is unset or empty at Task 1 entry, STOP. Every `scripts/agent-commit`
+invocation in this plan reads this environment variable; no task may substitute a hardcoded
+value.
+
 - [ ] **Step 1: Working tree and branch**
 
 ```bash
@@ -159,6 +240,38 @@ git status --short --branch
 Confirm the branch is `milestone/v1.4`. Note any pre-existing unrelated changes (the working
 tree may already carry user-owned edits) — these MUST be excluded from every Phase 20.5
 commit; each task stages only its own named files.
+
+Two additional constraints at this step:
+
+1. **The staged index must be globally empty.** Run:
+   ```bash
+   git diff --cached --name-only
+   ```
+   Expected: no output. If anything is staged, STOP and surface the staged files to the user.
+   Do not reset, unstage, or otherwise alter any pre-existing user staging — the Phase 20.5
+   execution halts until the user clears the index or authorizes a path forward. The
+   per-commit gate in every mutating task re-checks this invariant before staging.
+
+2. **Every Phase 20.5 target file must have no staged or unstaged diff.** Run:
+   ```bash
+   for f in \
+     .planning/ROADMAP.md \
+     .planning/REQUIREMENTS.md \
+     AGENTS.md \
+     ANTIGRAVITY.md \
+     pinn_instruction/markdown_conversion/framework-specs/sampling_method.md \
+     .planning/STATE.md \
+     .planning/MILESTONES.md \
+     .planning/PROJECT.md
+   do
+     git diff --cached --name-only -- "$f"
+     git diff         --name-only -- "$f"
+   done
+   ```
+   Expected: no output on either loop. If any target file has a staged or unstaged diff, STOP
+   and surface it as pre-existing user-owned work; update the affected task instructions or get
+   user guidance rather than silently bundling pre-existing edits into a Phase 20.5 commit. Do
+   not reset or alter the pre-existing change.
 
 As of the 2026-06-07 plan-review pass, these risk-elevated files had user-owned edits outside
 Phase 20.5:
@@ -287,16 +400,28 @@ into the flow as Task 5 Step 7.
 
 **1. Spec coverage** — every section of the design doc maps to a task:
 - Design §4 Edits 1–5 → Task 5 (Edit 5 FROM/TO re-grounded to the Phase 18 wording). ✓
-- Design §5.1 ROADMAP → Task 1 (verify existing list item/progress row; insert details block; coverage bump moved to Task 2). ✓
-- Design §5.2 SAMP-01/02 + §5.3 SCOPE-02/SCOPE-05 → Task 2 (also bumps both REQUIREMENTS and ROADMAP coverage 30→32). ✓
-- Design §5.3 SCOPE-05 propagation → Task 3 (symlink-aware; manual fallback). ✓
-- Design §5.4 v1.4-GAPS + §5.5 GAP records → Task 4 (verification-only; registers already exist; count stays 21). ✓
-- Design §5.6 DATA-ALIGNMENT + §6 AC-SAMP-01 → Task 7 (stable anchors, no line numbers). ✓
-- Design §6 verification probe → Task 6 (repo-root + `.venv` dependency preflight; standard
-  and no-scale allocation checks; rotate=False boundary; 7-value assertion). ✓
+- Design §5.2 SAMP-01/02 + §5.3 SCOPE-02/SCOPE-05 → Task 1 (also bumps both REQUIREMENTS and ROADMAP coverage 30→32). ✓
+- Design §5.1 ROADMAP → Task 2 (verify existing list item/progress row; insert details block after SAMP-01/02/SCOPE-05 exist; declares dependencies on Phase 18 FRAME and Phase 19 preprocessing-scaling contracts; the false "no content dependency on Phases 17–20" statement is removed). ✓
+- Design §5.3 SCOPE-05 propagation → Task 3 (symlink-aware; manual fallback; path-scoped `AGENTS.md`/`ANTIGRAVITY.md`/symlink-topology checks). ✓
+- Design §5.4 v1.4-GAPS + §5.5 GAP Records → Task 4 (verification-only; registers already exist; count stays 21). ✓
+- Design §5.6 DATA-ALIGNMENT + §6 AC-SAMP-01 → Task 7 (stable anchors, no line numbers; expanded AC-SAMP-01 mirrors the three-surface probe; scoped provenance claim — alignment of spec, documented generator configuration, and current sampler behavior; no in-repo manifest proves the exact script revision for every stored file; no regeneration required; not a blanket historical-provenance certification). ✓
+- Design §6 verification probe → Task 6 (three-surface probe: static spec, entrypoint AST parse of `generate_ics.py`, sampler behavior including a synthetic position test; each surface exits nonzero on missing source anchor, malformed configuration, or allocation mismatch). ✓
 - Design §8 sub-conflict #1 → Task 8 (verification-only; Phase 18 already reconciled it; no finding created). ✓
-- Phase 20.5 closure/status synchronization → Task 9. ✓
+- Phase 20.5 closure/status synchronization → Task 9 (reruns expanded AC-SAMP-01 probe; verifies handoff contains both scoped no-regeneration conclusion and historical-provenance caveat). ✓
 - Live-state preflight → Task 0; FLAG-10 cross-reference check → Task 5 Step 7.
+
+**1b. Chained part-completion gates** — each part file ends with a completion gate that the
+next part's precondition requires:
+- Part 1 completion gate → verifies Tasks 1–4, their expected commits (Tasks 1, 2, 3 only;
+  Task 4 is verification-only), required artifacts, and empty staged index. Required by Part
+  2 precondition before Task 5 starts.
+- Part 2 completion gate → verifies spec edit, full probe, data-alignment handoff, Task 8
+  verification, expected commits (Tasks 5, 6, 7), and empty staged index. Required by Part
+  3 precondition before Task 9 starts.
+- Part 3 completion gate → verifies Task 9 reran the expanded AC-SAMP-01 probe, the
+  handoff contains both the scoped no-regeneration conclusion and the historical-provenance
+  caveat, expected commit (Task 9), and empty staged index. Routes back to this index's
+  Post-Completion and Self-Review.
 
 **2. Placeholder scan** — no "TBD/TODO/implement later". Every applied edit shows verbatim
 FROM/TO text; the data-alignment doc and probe show full content; the verification-only tasks

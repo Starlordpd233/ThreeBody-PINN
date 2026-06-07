@@ -3,12 +3,16 @@
 ### Precondition
 
 Do not execute until Task 0 in `20-5-PLAN.md` has passed in this session. The Non-Execution
-Guard and Git context in `20-5-PLAN.md` apply to every task here.
+Guard and Git context in `20-5-PLAN.md` apply to every task here. In particular, `GIT_AGENT_ID`
+must already be exported with the executing agent's actual identity before any task in this
+part begins.
 
 ### Guardrails
 
-- Commit via `scripts/agent-commit` with `GIT_AGENT_ID` set. Never raw `git commit`, never
-  `--no-verify`.
+- Commit via `scripts/agent-commit` with `GIT_AGENT_ID` already exported in the environment.
+  Never raw `git commit`, never `--no-verify`. Never hardcode `GIT_AGENT_ID` to any fixed
+  value — always read the environment variable.
+- Apply the **mandatory per-commit gate** from the index to every mutating task (Tasks 1, 2, 3).
 - Stage only explicitly named files. Never `git add -A` or `git add .`.
 - Exclude any pre-existing unrelated working-tree edits from staging.
 - No destructive operations (no resets, rebases, force-pushes, branch deletions).
@@ -23,105 +27,26 @@ Guard and Git context in `20-5-PLAN.md` apply to every task here.
 
 ---
 
-## Task 1: Verify and complete the ROADMAP.md Phase 20.5 entries
+## Task 1: Add SAMP requirements, SCOPE-05, and coverage totals to REQUIREMENTS.md (+ ROADMAP coverage)
 
 **Files:**
-- Modify: `.planning/ROADMAP.md` (details block only — the list item and progress row already
-  exist; the coverage bump 30/30→32/32 is made in Task 2 with the SAMP-01/02 additions)
+- Modify: `.planning/REQUIREMENTS.md`
+- Modify: `.planning/ROADMAP.md` (coverage figure only — the list item and progress row already
+  exist; the details block is added in Task 2, after these requirements exist to cite)
 
-The phase directory `.planning/phases/20-5-sampling-coordinate-allocation/` already exists.
+This task runs first so SAMP-01, SAMP-02, and SCOPE-05 exist in REQUIREMENTS before Task 2
+adds the ROADMAP details block that references them, and before Task 3 propagates SCOPE-05
+into the root agent instructions. The coverage bump `30/30` → `32/32` lands here together
+with the SAMP additions that justify it, so every commit stays internally truthful.
 
-- [ ] **Step 1: Ensure the probes subdirectory exists (idempotent)**
+- [ ] **Step 0: Ensure the probes subdirectory exists (idempotent)**
 
 The `probes/` subdirectory is created lazily for Task 6. Creating it now is harmless and
 idempotent (it stays untracked until Task 6 adds a file):
 ```bash
 mkdir -p ".planning/phases/20-5-sampling-coordinate-allocation/probes"
 ```
-
-- [ ] **Step 2: Verify the Phase 20.5 list item already exists (do NOT re-insert)**
-
-The Phase 20.5 top-level list item is already present in `.planning/ROADMAP.md` (added by
-prior status work). Verify it — do not duplicate it:
-```bash
-grep -cF "**Phase 20.5: Sampling Coordinate Allocation (INSERTED)**" .planning/ROADMAP.md
-```
-Expected: exactly `1`. If `0`, the list item is missing and the live state has drifted — STOP
-and re-derive before editing. If `>1`, a duplicate exists — STOP and surface.
-
-- [ ] **Step 3: (Coverage bump deferred to Task 2 — no ROADMAP coverage edit here)**
-
-The v1.4 coverage figure (`30/30` → `32/32`) is **not** changed in this task. It is bumped in
-Task 2, together with the `SAMP-01`/`SAMP-02` additions to `.planning/REQUIREMENTS.md` that
-justify it, so every commit stays internally consistent (`30/30` remains truthful until
-SAMP-01/02 exist). Acknowledge and continue to Step 4.
-
-- [ ] **Step 4: Add the Phase 20.5 details block**
-
-In `.planning/ROADMAP.md`, find the line that begins the Phase 21 details section:
-```
-### Phase 21: Acceptance Checks, Validation Execution, and Handoff
-```
-Insert immediately BEFORE it (note the blank line after the block):
-```
-### Phase 20.5: Sampling Coordinate Allocation
-
-**Goal**: `sampling_method.md` exposes one explicit, fixed, non-overlapping mapping from Sobol coordinates to physical sampling quantities; the §1.1 dimension claim, the "Sampling-Time Size Variability" section, and the "Velocity Sampling" section are mutually consistent and match `simulation_data/Scripts/ic_generation/ic_generation_utils.py`.
-**Depends on**: Phase 16 (evidence framework). No content dependency on Phases 17–20; sequenced before Phase 21 so acceptance checks can cover it.
-**Requirements**: SAMP-01, SAMP-02 (+ VER-05 applied throughout)
-**Success Criteria** (what must be TRUE):
-
-  1. Reader finds a "Sobol Coordinate Allocation Convention" subsection in `sampling_method.md` mapping `(u_1, …, u_7)` to physical quantities with no double-booking.
-  2. Reader can verify the §1.1 dimension claim, "Sampling-Time Size Variability", and the Sobol coordinate allocation within "Velocity Sampling" are mutually consistent and agree with the locked `d = 3 + δ_s + 3δ_v` allocation. (The momentum-conservation procedure in "Velocity Sampling" was already reconciled to the code by Phase 18 (FRAME-03) — it states the symmetric `v1 = v3 = -v2/2` split that matches `ic_generation_utils.py` — so it is not an open discrepancy; Task 8 verifies this.)
-  3. The phase-local gap register records GAP-20-5-01/02/03 at `RESOLVED-WITH-INSTRUCTION`.
-  4. `20-5-DATA-ALIGNMENT.md` records the alignment with `ic_generation_utils.py` and the FUT-01 hand-off, and defines `AC-SAMP-01` for Phase 21 execution.
-
-**Plans**: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` (authoritative GSD copy).
-
-```
-
-- [ ] **Step 5: Verify the progress-table row already exists (do NOT re-insert)**
-
-The Phase 20.5 progress-table row is already present in `.planning/ROADMAP.md`. Verify it —
-do not duplicate it:
-```bash
-grep -cF "| 20.5 Sampling Coordinate Allocation (INSERTED) |" .planning/ROADMAP.md
-```
-Expected: exactly `1`. If `0`, the row is missing and live state has drifted — STOP. If `>1`,
-a duplicate exists — STOP and surface.
-
-- [ ] **Step 6: Verify the ROADMAP structural edits (exact-row checks)**
-
-Run:
-```bash
-grep -cF "**Phase 20.5: Sampling Coordinate Allocation (INSERTED)**" .planning/ROADMAP.md   # list item
-grep -cF "### Phase 20.5: Sampling Coordinate Allocation" .planning/ROADMAP.md              # details heading
-grep -cF "| 20.5 Sampling Coordinate Allocation (INSERTED) |" .planning/ROADMAP.md          # progress row
-```
-Expected: each returns exactly `1` — one list item, one details heading, one progress row. A
-`0` means a required edit did not apply; a value `>1` means a duplicate was introduced. In
-either case STOP, do not commit, and re-check. (The coverage line stays `30/30` here; Task 2
-bumps it to `32/32` with the SAMP-01/02 additions and verifies it.)
-
-- [ ] **Step 7: Commit**
-
-Stage only the ROADMAP and commit with `scripts/agent-commit` (body required — `.planning/`
-is a risk-elevated path):
-```bash
-git add .planning/ROADMAP.md
-GIT_AGENT_ID="codex-gpt-5" scripts/agent-commit \
-  -m "docs(planning): insert Phase 20.5 roadmap details block" \
-  -m "Insert the absent Phase 20.5 details block between the Phase 20 and Phase 21 details sections. The Phase 20.5 list item and progress row already existed and were only verified. The coverage bump 30/30 to 32/32 is made in Task 2 with the SAMP-01/02 additions that justify it."
-```
-Note: the empty `probes/` directory is not tracked by git until it has a file (added in
-Task 6); this is expected.
-
----
-
-## Task 2: Add SAMP requirements and the SCOPE-05 data-alignment rule to REQUIREMENTS.md
-
-**Files:**
-- Modify: `.planning/REQUIREMENTS.md`
+Note: the empty directory is not tracked by git until it has a file (added in Task 6).
 
 - [ ] **Step 1: Add the Sampling Coordinate Allocation requirement section**
 
@@ -134,7 +59,7 @@ Insert immediately BEFORE it:
 ### Sampling Coordinate Allocation
 
 - [ ] **SAMP-01**: `sampling_method.md` documents an explicit Sobol coordinate allocation convention with no coordinate reused for two independent physical quantities. Allocation order: position → optional scale → optional velocity. Dimension formula `d = 3 + δ_s + 3δ_v`, where `δ_s = 1` iff sampling-time scaling is enabled and `δ_v = 1` iff velocity sampling is enabled.
-- [ ] **SAMP-02**: The §1.1 dimension claim, the "Sampling-Time Size Variability" prose, and the "Velocity Sampling" prose/formula in `sampling_method.md` are mutually consistent and agree with the locked allocation, matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py` (the implementation that generated the existing standard quasi-random dataset).
+- [ ] **SAMP-02**: The §1.1 dimension claim, the "Sampling-Time Size Variability" prose, and the "Velocity Sampling" prose/formula in `sampling_method.md` are mutually consistent and agree with the locked allocation and with the documented and current behavior of `simulation_data/Scripts/ic_generation/` under its standard configuration (`scale_range=(0.8, 1.2)`, `velocity_scale=0.1`, `rotate=False`). The Phase 20.5 spec/code alignment does not depend on asserting an exact script revision for every stored file; it depends on the documented generator identity and its current, observable behavior under the standard configuration.
 
 ```
 
@@ -225,16 +150,141 @@ Each line must return its stated count. A `0` means an edit did not apply; a val
 expected count means a duplicate was introduced. In either case STOP, do not commit, and
 re-check the specific edit.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Mandatory per-commit gate + commit**
 
-Stage the requirements file **and the ROADMAP** (both coverage blocks moved together) and
-commit with `scripts/agent-commit` (body required — `.planning/` is a risk-elevated path and
-this is a multi-file commit):
+Apply the full mandatory per-commit gate from the index (pre-stage index empty, unstaged diff
+review for `.planning/REQUIREMENTS.md` and `.planning/ROADMAP.md`, stage only these two files,
+staged-list confirmation, cached-diff inspection + `git diff --cached --check`, rerun Step 6
+verification against the staged content, then commit):
 ```bash
+# 1. pre-stage index must be empty
+git diff --cached --name-only
+# 2. unstaged diff review for task-owned files
+git diff -- .planning/REQUIREMENTS.md .planning/ROADMAP.md
+# 3. stage only the declared files
 git add .planning/REQUIREMENTS.md .planning/ROADMAP.md
-GIT_AGENT_ID="codex-gpt-5" scripts/agent-commit \
+# 4. staged-list confirmation
+git diff --cached --name-only     # must be exactly these two files
+# 5. cached-diff inspection + whitespace check
+git diff --cached
+git diff --cached --check
+# 6. rerun Step 6 verification (already passes against the working tree; staged content is identical)
+# 7. commit
+GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit \
   -m "docs(planning): add SAMP requirements and SCOPE-05" \
   -m "Add the Phase 20.5 sampling requirements SAMP-01 and SAMP-02, the SCOPE-05 data-generation grounding carveout, the SCOPE-02 amendment for SAMP-01/SAMP-02, the SAMP traceability rows, and the 30 to 32 coverage totals in both REQUIREMENTS.md and ROADMAP.md."
+# 8. post-commit confirmation
+git diff --cached --name-only     # must be empty
+git show --stat HEAD --name-only  # must list exactly these two files
+```
+
+---
+
+## Task 2: Insert the ROADMAP.md Phase 20.5 details block
+
+**Files:**
+- Modify: `.planning/ROADMAP.md` (details block only — the list item and progress row already
+  exist)
+
+This task runs **after** Task 1, so `SAMP-01`, `SAMP-02`, and `SCOPE-05` already exist in
+`.planning/REQUIREMENTS.md` and can be cited accurately by the details block's `Requirements`
+field. The Phase 20.5 top-level list item and progress row already exist from prior status
+work; this task inserts only the absent details block.
+
+- [ ] **Step 1: Verify the Phase 20.5 list item already exists (do NOT re-insert)**
+
+The Phase 20.5 top-level list item is already present in `.planning/ROADMAP.md` (added by
+prior status work). Verify it — do not duplicate it:
+```bash
+grep -cF "**Phase 20.5: Sampling Coordinate Allocation (INSERTED)**" .planning/ROADMAP.md
+```
+Expected: exactly `1`. If `0`, the list item is missing and the live state has drifted — STOP
+and re-derive before editing. If `>1`, a duplicate exists — STOP and surface.
+
+- [ ] **Step 2: Verify the progress-table row already exists (do NOT re-insert)**
+
+The Phase 20.5 progress-table row is already present in `.planning/ROADMAP.md`. Verify it —
+do not duplicate it:
+```bash
+grep -cF "| 20.5 Sampling Coordinate Allocation (INSERTED) |" .planning/ROADMAP.md
+```
+Expected: exactly `1`. If `0`, the row is missing and live state has drifted — STOP. If `>1`,
+a duplicate exists — STOP and surface.
+
+- [ ] **Step 3: Verify coverage is already 32/32 (Task 1 landed it)**
+
+```bash
+grep -cF "32/32 v1.4 requirements" .planning/ROADMAP.md   # expect 1
+```
+Expected: `1`. If `0`, Task 1's coverage edit did not land — do not proceed; return to Task 1.
+
+- [ ] **Step 4: Add the Phase 20.5 details block**
+
+In `.planning/ROADMAP.md`, find the line that begins the Phase 21 details section:
+```
+### Phase 21: Acceptance Checks, Validation Execution, and Handoff
+```
+Insert immediately BEFORE it (note the blank line after the block):
+```
+### Phase 20.5: Sampling Coordinate Allocation
+
+**Goal**: `sampling_method.md` exposes one explicit, fixed, non-overlapping mapping from Sobol coordinates to physical sampling quantities; the §1.1 dimension claim, the "Sampling-Time Size Variability" section, and the "Velocity Sampling" section are mutually consistent and match `simulation_data/Scripts/ic_generation/ic_generation_utils.py`.
+**Depends on**: Phase 16 (evidence framework); Phase 18 (FRAME contract — the unified preprocessing/scaling order locked by FRAME-01, and the momentum-conservation prose reconciled by FRAME-03); Phase 19 (preprocessing-scaling contract — the `D = (G T^2)^{1/3}` characteristic-length convention locked by PHYS-01). Sequenced before Phase 21 so acceptance checks can cover it.
+**Requirements**: SAMP-01, SAMP-02 (+ VER-05 applied throughout)
+**Success Criteria** (what must be TRUE):
+
+  1. Reader finds a "Sobol Coordinate Allocation Convention" subsection in `sampling_method.md` mapping `(u_1, …, u_7)` to physical quantities with no double-booking.
+  2. Reader can verify the §1.1 dimension claim, "Sampling-Time Size Variability", and the Sobol coordinate allocation within "Velocity Sampling" are mutually consistent and agree with the locked `d = 3 + δ_s + 3δ_v` allocation. (The momentum-conservation procedure in "Velocity Sampling" was already reconciled to the code by Phase 18 (FRAME-03) — it states the symmetric `v1 = v3 = -v2/2` split that matches `ic_generation_utils.py` — so it is not an open discrepancy; Task 8 verifies this.)
+  3. The phase-local gap register records GAP-20-5-01/02/03 at `RESOLVED-WITH-INSTRUCTION`.
+  4. `20-5-DATA-ALIGNMENT.md` records the alignment with `ic_generation_utils.py` and the FUT-01 hand-off, and defines `AC-SAMP-01` for Phase 21 execution.
+
+**Plans**: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` (authoritative GSD copy).
+
+```
+
+- [ ] **Step 5: Verify the ROADMAP structural edits (exact-row checks)**
+
+Run:
+```bash
+grep -cF "**Phase 20.5: Sampling Coordinate Allocation (INSERTED)**" .planning/ROADMAP.md   # list item
+grep -cF "### Phase 20.5: Sampling Coordinate Allocation" .planning/ROADMAP.md              # details heading
+grep -cF "| 20.5 Sampling Coordinate Allocation (INSERTED) |" .planning/ROADMAP.md          # progress row
+# Dependency declaration correctness — the details block must cite the actual Phase 18 and
+# Phase 19 contracts. Presence of both phrases is the positive check; the historical false
+# phrase is absent by construction of the edit.
+grep -cF "Phase 18 (FRAME contract" .planning/ROADMAP.md                                    # expect >= 1
+grep -cF "Phase 19 (preprocessing-scaling contract" .planning/ROADMAP.md                    # expect >= 1
+```
+Expected: list item `1`, details heading `1`, progress row `1`, and both dependency phrases
+present (Phase 18 FRAME contract and Phase 19 preprocessing-scaling contract). A mismatch on
+any count means an edit did not apply or a duplicate was introduced — STOP, do not commit,
+and re-check.
+
+- [ ] **Step 6: Mandatory per-commit gate + commit**
+
+Apply the full mandatory per-commit gate from the index (pre-stage index empty, unstaged diff
+review for `.planning/ROADMAP.md`, stage only this file, staged-list confirmation,
+cached-diff inspection + `git diff --cached --check`, rerun Step 5 verification, then commit):
+```bash
+# 1. pre-stage index must be empty
+git diff --cached --name-only
+# 2. unstaged diff review for task-owned file
+git diff -- .planning/ROADMAP.md
+# 3. stage only the declared file
+git add .planning/ROADMAP.md
+# 4. staged-list confirmation
+git diff --cached --name-only     # must be exactly .planning/ROADMAP.md
+# 5. cached-diff inspection + whitespace check
+git diff --cached
+git diff --cached --check
+# 6. rerun Step 5 verification
+# 7. commit (body required — .planning/ is risk-elevated)
+GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit \
+  -m "docs(planning): insert Phase 20.5 roadmap details block" \
+  -m "Insert the absent Phase 20.5 details block between the Phase 20 and Phase 21 details sections after Task 1 added SAMP-01, SAMP-02, and SCOPE-05 to REQUIREMENTS. The Phase 20.5 list item and progress row already existed and were only verified. The details block declares dependencies on Phase 18 (FRAME contract) and Phase 19 (preprocessing-scaling contract), replacing the prior dependency wording."
+# 8. post-commit confirmation
+git diff --cached --name-only     # must be empty
+git show --stat HEAD --name-only  # must list exactly .planning/ROADMAP.md
 ```
 
 ---
@@ -253,14 +303,25 @@ commits risk-elevated `sampling_method.md` edits that rely on the SCOPE-05 carve
 `a9ecd51` already records Phase 20.5 status in `.planning/PROJECT.md`, `.planning/STATE.md`,
 and `.planning/MILESTONES.md`; this task should not restate those status updates.
 
-- [ ] **Step 0: Verify symlink topology**
+- [ ] **Step 0: Path-scoped pre-flight — verify symlink topology and target-file cleanliness**
 
 ```bash
+# Symlink topology (must match the documented structure):
 ls -l AGENTS.md CLAUDE.md GEMINI.md ANTIGRAVITY.md
+# Confirm: CLAUDE.md -> AGENTS.md, GEMINI.md -> AGENTS.md, ANTIGRAVITY.md a separate regular file.
+
+# Path-scoped target-file checks — only AGENTS.md and ANTIGRAVITY.md may carry a diff going
+# into this task. The symlinks must not appear as separate modified paths.
+for f in AGENTS.md ANTIGRAVITY.md CLAUDE.md GEMINI.md; do
+  echo "--- $f ---"
+  git diff --cached --name-only -- "$f"     # must be empty
+  git diff         --name-only -- "$f"      # must be empty for CLAUDE.md/GEMINI.md;
+                                            # AGENTS.md/ANTIGRAVITY.md will change only via this task's edit
+done
 ```
-Confirm `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md`, and that `ANTIGRAVITY.md` is a
-separate regular file. If the topology differs, STOP and re-derive the edit targets before
-proceeding.
+If `CLAUDE.md` or `GEMINI.md` appears as a separate modified path (not merely as a symlink
+target reflecting `AGENTS.md`'s change), STOP and re-derive the edit targets. If the symlink
+topology differs from expected, STOP and re-derive before proceeding.
 
 - [ ] **Step 1: Apply the SCOPE-05 note with anchored edit targets**
 
@@ -292,7 +353,7 @@ Do not restate the full SCOPE-05 row text; link to the canonical source. Do not 
 
 If `gsd-docs-update` was used as a drafting aid, review its output. Confirm it (a) adds the
 SCOPE-05 cross-reference after
-Task 2 has landed the canonical rule in `REQUIREMENTS.md`, (b) does not contradict the
+Task 1 has landed the canonical rule in `REQUIREMENTS.md`, (b) does not contradict the
 existing `pinn/` no-live-code directive (SCOPE-01), (c) does not broaden the carveout beyond
 `simulation_data/Scripts/ic_generation/`, (d) does not duplicate the `a9ecd51` status
 updates, and (e) edited `AGENTS.md`/`ANTIGRAVITY.md` only — **not** `CLAUDE.md`/`GEMINI.md`
@@ -304,20 +365,52 @@ If a tool wrote to files outside `AGENTS.md` and `ANTIGRAVITY.md`, stop immediat
 only the attempted SCOPE-05 edit with a targeted patch and return to the manual anchored path.
 Do not use broad reset/restore commands.
 
-- [ ] **Step 4: Stage explicitly and commit**
+- [ ] **Step 4: Path-scoped post-edit verification + mandatory per-commit gate + commit**
 
 Run `git status --short`, confirm only `AGENTS.md` and `ANTIGRAVITY.md` changed (the symlinks
-`CLAUDE.md`/`GEMINI.md` should NOT appear as separate modifications). If `CLAUDE.md` or
-`GEMINI.md` appear as separate modified paths, STOP; a tool likely followed or replaced a
-symlink. Remove only the attempted Task 3 edit with a targeted patch and retry against
-`AGENTS.md` and `ANTIGRAVITY.md` explicitly.
+`CLAUDE.md`/`GEMINI.md` should NOT appear as separate modifications). Then apply the mandatory
+per-commit gate from the index:
 
-Then:
 ```bash
+# Path-scoped verification: confirm only the two real targets are modified, and the symlinks
+# do not appear as separate modified paths.
+modified=$(git diff --name-only)
+echo "modified files: $modified"
+case "$modified" in
+  AGENTS.md$'\n'ANTIGRAVITY.md|ANTIGRAVITY.md$'\n'AGENTS.md)
+    echo "OK: exactly the two expected files";;
+  *)
+    echo "STOP: unexpected modified files (see above). Do not commit."
+    exit 1;;
+esac
+
+# Confirm symlinks do NOT appear as separate modifications:
+for f in CLAUDE.md GEMINI.md; do
+  if git diff --name-only -- "$f" | grep -qF "$f"; then
+    echo "STOP: $f appears as a separate modification (symlink topology broken). Do not commit."
+    exit 1
+  fi
+done
+
+# 1. pre-stage index must be empty
+git diff --cached --name-only
+# 2. unstaged diff review for task-owned files
+git diff -- AGENTS.md ANTIGRAVITY.md
+# 3. stage only the declared files
 git add AGENTS.md ANTIGRAVITY.md
-GIT_AGENT_ID="codex-gpt-5" scripts/agent-commit \
+# 4. staged-list confirmation
+git diff --cached --name-only     # must be exactly AGENTS.md and ANTIGRAVITY.md
+# 5. cached-diff inspection + whitespace check
+git diff --cached
+git diff --cached --check
+# 6. rerun path-scoped verification (same checks as above; must still pass against staged content)
+# 7. commit (body required — root governance docs are risk-elevated)
+GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit \
   -m "docs(governance): propagate SCOPE-05 data-spec alignment rule" \
   -m "Cross-reference the canonical SCOPE-05 data-generation grounding carveout from the root agent instructions so future agents treat simulation_data/Scripts/ic_generation/ as a permitted grounding source distinct from the pinn/ no-live-code directive. Edits AGENTS.md and ANTIGRAVITY.md only; CLAUDE.md and GEMINI.md inherit via symlink."
+# 8. post-commit confirmation
+git diff --cached --name-only     # must be empty
+git show --stat HEAD --name-only  # must list exactly AGENTS.md and ANTIGRAVITY.md
 ```
 
 ---
@@ -387,3 +480,41 @@ surfaced under the STOP protocol, not guessed.
 This task makes no file changes and therefore has **no commit**.
 
 ---
+
+## Part 1 completion gate
+
+Do not proceed to `20-5-PLAN-part2.md` until every item below passes. The Part 2 precondition
+re-checks this gate's outcome before Task 5 may start.
+
+- [ ] **Gate-1: Task 1 passed** — all Step 6 counts match their expected values, and the
+  Task 1 commit landed (`git log -1 --oneline` shows `docs(planning): add SAMP requirements
+  and SCOPE-05`).
+- [ ] **Gate-2: Task 2 passed** — all Step 5 counts match their expected values, the
+  details block is present, and the Task 2 commit landed (`git log -1 --oneline` shows
+  `docs(planning): insert Phase 20.5 roadmap details block`).
+- [ ] **Gate-3: Task 3 passed** — SCOPE-05 note is present in both `AGENTS.md` and
+  `ANTIGRAVITY.md`; `CLAUDE.md`/`GEMINI.md` do NOT appear as separate modified paths; and
+  the Task 3 commit landed (`git log -1 --oneline` shows `docs(governance): propagate SCOPE-05
+  data-spec alignment rule`).
+- [ ] **Gate-4: Task 4 passed** — all gap-register counts verified; no file changes.
+- [ ] **Gate-5: Exactly three commits expected** — running
+  ```bash
+  git log --oneline HEAD~3..HEAD
+  ```
+  lists the three commits above, in order: Task 3 most recent, then Task 2, then Task 1.
+- [ ] **Gate-6: Required artifacts exist** —
+  ```bash
+  test -d .planning/phases/20-5-sampling-coordinate-allocation/probes    # idempotent mkdir in Task 1
+  test -f .planning/REQUIREMENTS.md
+  test -f .planning/ROADMAP.md
+  test -f AGENTS.md
+  test -f ANTIGRAVITY.md
+  ```
+  all succeed. (`20-5-DATA-ALIGNMENT.md` and the probe file itself do not yet exist — they
+  are Part 2 deliverables.)
+- [ ] **Gate-7: Empty staged index** — `git diff --cached --name-only` prints nothing.
+- [ ] **Gate-8: No leftover untracked plan files** — the only untracked files under
+  `.planning/phases/20-5-sampling-coordinate-allocation/` are the empty `probes/` directory
+  (not tracked by git until Task 6 adds a file). No stray editor or probe scratch files.
+
+If any gate fails, STOP and return to the owning task. Do not start Part 2.

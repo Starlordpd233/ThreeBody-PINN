@@ -2,13 +2,23 @@
 
 ### Precondition
 
-Do not execute until Task 0 in `20-5-PLAN.md` has passed in this session. The Non-Execution
-Guard and Git context in `20-5-PLAN.md` apply to every task here.
+Do not execute until **both** of the following hold:
+
+1. Task 0 in `20-5-PLAN.md` has passed in this session.
+2. The **Part 1 completion gate** in `20-5-PLAN-part1.md` has passed: Tasks 1–4 are complete,
+   the three expected commits (Tasks 1, 2, 3) are on `HEAD` in order, required artifacts
+   exist, and the staged index is empty. Re-check the gate's eight items before starting
+   Task 5. If any Part 1 gate item fails, STOP and return to Part 1 — do not begin Part 2.
+
+The Non-Execution Guard and Git context in `20-5-PLAN.md` apply to every task here.
+`GIT_AGENT_ID` must already be exported with the executing agent's actual identity.
 
 ### Guardrails
 
-- Commit via `scripts/agent-commit` with `GIT_AGENT_ID` set. Never raw `git commit`, never
-  `--no-verify`.
+- Commit via `scripts/agent-commit` with `GIT_AGENT_ID` already exported in the environment.
+  Never raw `git commit`, never `--no-verify`. Never hardcode `GIT_AGENT_ID` to any fixed
+  value — always read the environment variable.
+- Apply the **mandatory per-commit gate** from the index to every mutating task (Tasks 5, 6, 7).
 - Stage only explicitly named files. Never `git add -A` or `git add .`.
 - Exclude any pre-existing unrelated working-tree edits from staging.
 - No destructive operations (no resets, rebases, force-pushes, branch deletions).
@@ -214,6 +224,8 @@ grep -cF 'when $\delta_s = 0$, they are $(u_4, u_5, u_6)$' "$SPEC"  # expect >= 
 # These phrases should each appear exactly once in the current file.
 grep -cF "The sampler then enforces total momentum conservation for the equal-mass case" "$SPEC"  # expect 1
 grep -cF "**FRAME-03 frame note:** For standard quasi-random ICs" "$SPEC"                         # expect 1
+# The obsolete double-booked velocity statement is gone:
+grep -cF 'The next three Sobol coordinates $(u_4, u_5, u_6)$ are mapped to a 3D velocity vector' "$SPEC"  # expect 0
 ```
 Expected: the two new headings each return 1; the old "Global Scaling (Optional)" heading
 returns 0; `delta_s` appears on 3+ lines; the dimension formula and `u_{4+\delta_s}` velocity
@@ -221,7 +233,8 @@ prose are present, the old `u_4, u_5, u_6` velocity sentence is gone, and both t
 configuration and no-scale velocity-coordinate cases are stated — i.e. the §1.1 dimension
 claim, the "Sampling-Time Size Variability" section, and the "Velocity Sampling" section now
 agree on `d = 3 + δ_s + 3δ_v` and the Option A allocation; and the Phase 18 momentum sentence
-and FRAME-03 frame note are still present (Edit 5 left them untouched). The momentum-sentence
+and FRAME-03 frame note are still present (Edit 5 left them untouched). The obsolete
+double-booked velocity statement is absent. The momentum-sentence
 check alone cannot prove Edit 5 applied because that sentence is intentionally preserved; the
 allocation checks above are the Edit 5 guards. If any count is wrong, an edit mis-applied —
 STOP, do
@@ -253,24 +266,45 @@ was renamed or revised, update the Edit 3/4 cross-reference wording in `sampling
 match. If the correct wording is ambiguous, follow the STOP protocol rather than guessing. If
 the cross-references are already accurate, record that no change was needed.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 8: Mandatory per-commit gate + commit**
 
-Stage only the spec file and commit with `scripts/agent-commit` (body required — `spec` type
-and a framework-spec path both require a body). This commit includes Edits 1–5 **and** any
-FLAG-10 cross-reference correction from Step 7:
+Apply the full mandatory per-commit gate from the index (pre-stage index empty, unstaged diff
+review for `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`, stage
+only this file, staged-list confirmation, cached-diff inspection + `git diff --cached --check`,
+rerun Step 6 verification against the staged content, then commit). This commit includes Edits
+1–5 **and** any FLAG-10 cross-reference correction from Step 7:
 ```bash
+# 1. pre-stage index must be empty
+git diff --cached --name-only
+# 2. unstaged diff review for task-owned file
+git diff -- pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
+# 3. stage only the declared file
 git add pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
-GIT_AGENT_ID="codex-gpt-5" scripts/agent-commit \
+# 4. staged-list confirmation
+git diff --cached --name-only     # must be exactly this one file
+# 5. cached-diff inspection + whitespace check
+git diff --cached
+git diff --cached --check
+# 6. rerun Step 6 verification
+# 7. commit (body required — spec type and framework-spec path both require a body)
+GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit \
   -m "spec(spec): lock Sobol coordinate allocation convention" \
   -m "Apply the five Phase 20.5 sampling-method edits after the Step 0 preflight, then run the Step 7 FLAG-10 cross-reference check and include any correction here. Edit 5 fixes the u_4 velocity/scale double-booking while preserving the Phase 18 momentum-conservation sentence and FRAME-03 frame note verbatim."
+# 8. post-commit confirmation
+git diff --cached --name-only     # must be empty
+git show --stat HEAD --name-only  # must list exactly sampling_method.md
 ```
 
 ---
 
-## Task 6: Create and run the verification probe
+## Task 6: Create and run the three-surface verification probe
 
 **Files:**
 - Create: `.planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py`
+
+The probe spans three evidence surfaces — static spec, entrypoint AST, sampler behavior — and
+each surface must produce at least one explicit `PASS` line and exit nonzero on any failure
+(missing source anchor, malformed configuration, or allocation mismatch).
 
 - [ ] **Step 1: Write the probe**
 
@@ -286,116 +320,303 @@ with exactly:
 """
 Phase 20.5 disposable verification probe — Sobol dimension and allocation order.
 
-Confirms three properties of EnhancedThreeBodySampler against
-simulation_data/Scripts/ic_generation/ic_generation_utils.py — the implementation
-that generated the existing standard quasi-random dataset:
+Three evidence surfaces, each exiting nonzero on failure:
 
-  1. The Sobol dimension formula d = 3 + delta_s + 3*delta_v (rotate=False; the
-     rotate flag is a disabled, non-functional stub).
-  2. The Sobol coordinate ALLOCATION ORDER for both velocity branches:
-     - standard config (delta_s = delta_v = 1): column 3 -> scale, columns 4-6 -> velocity.
-     - no-scale config (delta_s = 0, delta_v = 1): columns 3-5 -> velocity.
-  3. The rotate flag is not part of the standard data-generation contract: rotate=False gives
-     the standard d=7 case, while rotate=True only adds three future-rotation dimensions.
+  Surface 1 — SPEC: static assertions over sampling_method.md (dimension formula,
+      fixed allocation order, standard and no-scale branches, absence of the obsolete
+      double-booked velocity statement).
+  Surface 2 — ENTRYPOINT: AST parse of generate_ics.py confirming the standard-generation
+      call uses ic_type="standard", scale_range=(0.8, 1.2), velocity_scale=0.1.
+  Surface 3 — SAMPLER: behavioral tests of EnhancedThreeBodySampler against
+      simulation_data/Scripts/ic_generation/ic_generation_utils.py —
+      the dimension matrix, the standard-config scale/velocity allocation, a synthetic
+      position test proving columns 0-2 drive the expected spherical mapping, the
+      no-scale velocity allocation, and the rotate=False boundary.
 
 Run from the repository root:
     .venv/bin/python3 .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
 """
+import ast
 import sys
+from pathlib import Path
 
 import numpy as np
 from scipy.stats import norm
 
-sys.path.append("simulation_data/Scripts/ic_generation")
-from ic_generation_utils import EnhancedThreeBodySampler  # noqa: E402
+REPO_ROOT = Path(__file__).resolve().parents[4]  # probes/ -> 20-5-* -> phases/ -> .planning/ -> repo
+SPEC_PATH = REPO_ROOT / "pinn_instruction/markdown_conversion/framework-specs/sampling_method.md"
+ENTRYPOINT_PATH = REPO_ROOT / "simulation_data/Scripts/ic_generation/generate_ics.py"
 
-# --- Test 1: dimension formula d = 3 + delta_s + 3*delta_v (rotate=False) ---
-# (scale_range, velocity_scale, expected_d, label)
-cases = [
-    ((0.8, 1.2), 0.1, 7, "delta_s=1, delta_v=1 (standard config)"),
-    ((1.0, 1.0), 0.1, 6, "delta_s=0, delta_v=1"),
-    ((0.8, 1.2), 0.0, 4, "delta_s=1, delta_v=0"),
-    ((1.0, 1.0), 0.0, 3, "delta_s=0, delta_v=0"),
-]
+failures = []
 
-for scale_range, velocity_scale, expected_d, label in cases:
-    s = EnhancedThreeBodySampler(
-        scale_range=scale_range, velocity_scale=velocity_scale, seed=42
+
+def record(surface, label, ok, detail=""):
+    tag = "PASS" if ok else "FAIL"
+    print(f"{tag}  {surface}: {label}" + (f" — {detail}" if detail and not ok else ""))
+    if not ok:
+        failures.append(f"{surface}/{label}: {detail}")
+
+
+# ===========================================================================
+# Surface 1 — SPEC
+# ===========================================================================
+spec_text = SPEC_PATH.read_text()
+
+record("SPEC", "sobol-convention subsection present",
+       "#### Sobol Coordinate Allocation Convention" in spec_text,
+       "missing Sobol Coordinate Allocation Convention subsection")
+
+record("SPEC", "global-scaling heading removed",
+       "#### Global Scaling (Optional)" not in spec_text,
+       "'#### Global Scaling (Optional)' heading still present — rename did not apply")
+
+record("SPEC", "sampling-time-size heading present",
+       "#### Sampling-Time Size Variability" in spec_text,
+       "'#### Sampling-Time Size Variability' heading missing")
+
+record("SPEC", "dimension formula d = 3 + δ_s + 3δ_v",
+       "d = 3 + \\delta_s + 3\\delta_v" in spec_text,
+       "dimension formula not found in spec")
+
+record("SPEC", "fixed allocation order stated",
+       "allocation order is **fixed**" in spec_text
+       or "allocation order is fixed" in spec_text,
+       "fixed allocation-order statement missing")
+
+record("SPEC", "standard branch (δ_s = δ_v = 1) stated",
+       "δ_s = δ_v = 1" in spec_text
+       or "\\delta_s = \\delta_v = 1" in spec_text
+       or "$\\delta_s = \\delta_v = 1$" in spec_text,
+       "standard-configuration branch statement missing")
+
+record("SPEC", "no-scale branch (δ_s = 0) stated",
+       "δ_s = 0" in spec_text
+       or "\\delta_s = 0" in spec_text,
+       "no-scale branch statement missing")
+
+record("SPEC", "obsolete double-booked velocity statement absent",
+       "The next three Sobol coordinates $(u_4, u_5, u_6)$ are mapped to a 3D velocity vector"
+       not in spec_text,
+       "obsolete double-booked velocity statement still present in spec")
+
+record("SPEC", "velocity prose uses u_{4+δ_s} indexing",
+       "u_{4+\\delta_s}" in spec_text,
+       "velocity-coordinate prose does not use u_{4+δ_s} indexing")
+
+record("SPEC", "Phase 18 momentum sentence intact",
+       "The sampler then enforces total momentum conservation for the equal-mass case"
+       in spec_text,
+       "Phase 18 momentum sentence missing — Edit 5 altered it")
+
+# ===========================================================================
+# Surface 2 — ENTRYPOINT (AST parse of generate_ics.py)
+# ===========================================================================
+try:
+    entrypoint_src = ENTRYPOINT_PATH.read_text()
+    tree = ast.parse(entrypoint_src)
+except Exception as e:
+    record("ENTRYPOINT", "parse generate_ics.py", False, f"could not parse: {e}")
+    entrypoint_src, tree = "", None
+
+if tree is not None:
+    record("ENTRYPOINT", "parse generate_ics.py", True)
+
+    # Find every Call node whose func is the Name 'generate_ics' (or any call carrying the
+    # standard-config kwargs we need to verify). The canonical standard-generation call in
+    # the main block uses these kwargs by name.
+    standard_calls = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        kw = {k.arg: k.value for k in node.keywords if k.arg is not None}
+        has_ic_type_std = (
+            "ic_type" in kw
+            and isinstance(kw["ic_type"], ast.Constant)
+            and kw["ic_type"].value == "standard"
+        )
+        if has_ic_type_std:
+            standard_calls.append(kw)
+
+    record("ENTRYPOINT", "at least one ic_type='standard' call",
+           len(standard_calls) >= 1,
+           "no generate_ics(... ic_type='standard' ...) call found")
+
+    if standard_calls:
+        kw = standard_calls[0]
+
+        def _const_tuple(node):
+            if isinstance(node, ast.Tuple) and all(
+                isinstance(e, ast.Constant) for e in node.elts
+            ):
+                return tuple(e.value for e in node.elts)
+            return None
+
+        scale_range = _const_tuple(kw.get("scale_range")) if "scale_range" in kw else None
+        record("ENTRYPOINT", "scale_range=(0.8, 1.2)",
+               scale_range == (0.8, 1.2),
+               f"got scale_range={scale_range}")
+
+        vs = kw.get("velocity_scale")
+        vs_val = vs.value if isinstance(vs, ast.Constant) else None
+        record("ENTRYPOINT", "velocity_scale=0.1",
+               vs_val == 0.1,
+               f"got velocity_scale={vs_val}")
+
+# ===========================================================================
+# Surface 3 — SAMPLER
+# ===========================================================================
+sys.path.append(str(REPO_ROOT / "simulation_data/Scripts/ic_generation"))
+try:
+    from ic_generation_utils import EnhancedThreeBodySampler
+    record("SAMPLER", "import EnhancedThreeBodySampler", True)
+except Exception as e:
+    record("SAMPLER", "import EnhancedThreeBodySampler", False, str(e))
+    EnhancedThreeBodySampler = None
+
+if EnhancedThreeBodySampler is not None:
+    # --- 3a. Dimension matrix (rotate=False) ---
+    cases = [
+        ((0.8, 1.2), 0.1, 7, "delta_s=1, delta_v=1 (standard config)"),
+        ((1.0, 1.0), 0.1, 6, "delta_s=0, delta_v=1"),
+        ((0.8, 1.2), 0.0, 4, "delta_s=1, delta_v=0"),
+        ((1.0, 1.0), 0.0, 3, "delta_s=0, delta_v=0"),
+    ]
+    for scale_range, velocity_scale, expected_d, label in cases:
+        s = EnhancedThreeBodySampler(
+            scale_range=scale_range, velocity_scale=velocity_scale, seed=42
+        )
+        record("SAMPLER", f"dimension {label}",
+               s.sobol_dim == expected_d,
+               f"expected d={expected_d}, got {s.sobol_dim}")
+
+    # --- 3b. Standard-config allocation (columns 3 -> scale, 4-6 -> velocity) ---
+    s = EnhancedThreeBodySampler(scale_range=(0.8, 1.2), velocity_scale=0.1, seed=42)
+    if s.sobol_dim != 7:
+        record("SAMPLER", "standard-config sobol_dim=7", False,
+               f"got {s.sobol_dim}")
+    else:
+        record("SAMPLER", "standard-config sobol_dim=7", True)
+        n_rows = 5
+        # column j carries the constant 0.1*(j+1) -> 0.1, 0.2, ..., 0.7
+        synthetic = np.tile(0.1 * (np.arange(7) + 1.0), (n_rows, 1))
+        p1 = np.array([1.0, 0.0, 0.0])
+        # _process_sobol_batch is PRIVATE — used here only for this disposable probe.
+        result = s._process_sobol_batch(synthetic, p1)
+        if len(result) != 7:
+            record("SAMPLER", "standard-config _process_sobol_batch arity", False,
+                   f"expected 7 returns, got {len(result)}")
+        else:
+            record("SAMPLER", "standard-config _process_sobol_batch arity", True)
+            p1_scaled, _p2, _p3, _v1, v2_batch, _v3, _ = result
+
+            # Scale is drawn from column 3: s = lo + (hi - lo) * u_4, and p1_scaled = p1 * s.
+            expected_scale = 0.8 + (1.2 - 0.8) * synthetic[:, 3]
+            record("SAMPLER", "scale factor s drawn from column 3 (u_4)",
+                   np.allclose(p1_scaled[:, 0], expected_scale),
+                   f"p1_scaled[:,0]={p1_scaled[:, 0]}, expected {expected_scale}")
+
+            # Velocity is drawn from columns 4-6 via inverse-CDF, then scaled by s.
+            expected_v2 = norm.ppf(synthetic[:, 4:7], loc=0, scale=0.1) * expected_scale[:, None]
+            record("SAMPLER", "free-particle velocity drawn from columns 4-6 (u_5-u_7)",
+                   np.allclose(v2_batch, expected_v2),
+                   f"v2_batch={v2_batch}, expected {expected_v2}")
+
+            # --- 3c. Synthetic position test: columns 0-2 drive the spherical mapping ---
+            # The position mapping reads columns 0, 1, 2 (θ, φ, r) to produce a 3D position.
+            # Isolation test: vary column 0 (θ) while holding columns 1-6 fixed; some output
+            # component must change. Then vary column 3 (scale) while holding columns 0-2
+            # fixed; the DIRECTION of the position must stay constant (scale only changes
+            # magnitude), while magnitude changes. This proves columns 0-2 drive the angular
+            # spherical mapping, not the scale coordinate.
+            base = np.tile([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], (n_rows, 1))
+            var_theta = base.copy(); var_theta[:, 0] = 0.1  # different θ
+            var_scale = base.copy(); var_scale[:, 3] = 0.9  # different scale
+            out_base = s._process_sobol_batch(base, p1)
+            out_theta = s._process_sobol_batch(var_theta, p1)
+            out_scale = s._process_sobol_batch(var_scale, p1)
+            # Changing column 0 must change some output (the free-particle position p2 or p3
+            # depends on θ, since p1 is the fixed reference point):
+            theta_affects_output = any(
+                not np.allclose(out_base[i], out_theta[i]) for i in range(7)
+            )
+            record("SAMPLER", "synthetic position: column 0 (θ) affects position output",
+                   theta_affects_output,
+                   "changing column 0 had no effect on any output component")
+            # Changing column 3 (scale) must NOT change the DIRECTION of position outputs
+            # (only their magnitude). p1 is fixed at [1,0,0] so p1_scaled = p1 * s; the
+            # direction is invariant. For p2/p3, direction depends on θ, φ (columns 0, 1),
+            # which are held fixed here, so direction is invariant.
+            def same_direction(a, b, tol=1e-9):
+                na = np.linalg.norm(a, axis=1)
+                nb = np.linalg.norm(b, axis=1)
+                # Skip rows where either norm is near zero (direction undefined).
+                mask = (na > tol) & (nb > tol)
+                if not mask.any():
+                    return True
+                ua = a[mask] / na[mask, None]
+                ub = b[mask] / nb[mask, None]
+                return np.allclose(ua, ub, atol=1e-6)
+            # Check p1_scaled, p2, p3 directions are invariant to scale.
+            scale_direction_invariant = (
+                same_direction(out_base[0], out_scale[0])  # p1_scaled
+                and same_direction(out_base[1], out_scale[1])  # p2
+                and same_direction(out_base[2], out_scale[2])  # p3
+            )
+            record("SAMPLER", "synthetic position: column 3 (scale) preserves position direction",
+                   scale_direction_invariant,
+                   "changing column 3 altered position direction — columns 0-2 are not driving the angular mapping")
+
+    # --- 3d. No-scale allocation (columns 3-5 -> velocity) ---
+    s_no_scale = EnhancedThreeBodySampler(
+        scale_range=(1.0, 1.0), velocity_scale=0.1, seed=42
     )
-    assert s.sobol_dim == expected_d, (
-        f"{label}: expected d={expected_d}, got {s.sobol_dim}"
+    if s_no_scale.sobol_dim != 6:
+        record("SAMPLER", "no-scale sobol_dim=6", False, f"got {s_no_scale.sobol_dim}")
+    else:
+        record("SAMPLER", "no-scale sobol_dim=6", True)
+        n_rows = 5
+        synthetic_no_scale = np.tile(0.1 * (np.arange(6) + 1.0), (n_rows, 1))
+        p1 = np.array([1.0, 0.0, 0.0])
+        result = s_no_scale._process_sobol_batch(synthetic_no_scale, p1)
+        if len(result) != 7:
+            record("SAMPLER", "no-scale _process_sobol_batch arity", False,
+                   f"expected 7 returns, got {len(result)}")
+        else:
+            record("SAMPLER", "no-scale _process_sobol_batch arity", True)
+            _p1_scaled, _p2, _p3, _v1, v2_no_scale, _v3, _ = result
+            expected_v2_no_scale = norm.ppf(synthetic_no_scale[:, 3:6], loc=0, scale=0.1)
+            record("SAMPLER", "no-scale velocity drawn from columns 3-5 (u_4-u_6)",
+                   np.allclose(v2_no_scale, expected_v2_no_scale),
+                   f"v2_batch={v2_no_scale}, expected {expected_v2_no_scale}")
+
+    # --- 3e. rotate=False boundary ---
+    s_rf = EnhancedThreeBodySampler(
+        scale_range=(0.8, 1.2), velocity_scale=0.1, rotate=False, seed=42
     )
-    print(f"PASS  dimension: {label}: sobol_dim = {s.sobol_dim}")
+    s_rt = EnhancedThreeBodySampler(
+        scale_range=(0.8, 1.2), velocity_scale=0.1, rotate=True, seed=42
+    )
+    record("SAMPLER", "rotate=False -> d=7",
+           s_rf.sobol_dim == 7,
+           f"got {s_rf.sobol_dim}")
+    record("SAMPLER", "rotate=True -> d=10 (three unused future-rotation dims)",
+           s_rt.sobol_dim == 10,
+           f"got {s_rt.sobol_dim}")
 
-# --- Test 2: allocation order for the standard config (delta_s = delta_v = 1) ---
-# A synthetic Sobol batch with a distinct constant per column lets us prove which
-# column each physical quantity is drawn from: if scale read any column other than
-# 3, or velocity any columns other than 4-6, the assertions below would fail
-# because every column carries a different value.
-s = EnhancedThreeBodySampler(scale_range=(0.8, 1.2), velocity_scale=0.1, seed=42)
-assert s.sobol_dim == 7, f"standard config: expected d=7, got {s.sobol_dim}"
-
-n_rows = 5
-# column j carries the constant 0.1*(j+1) -> 0.1, 0.2, ..., 0.7 (all strictly in (0,1))
-synthetic = np.tile(0.1 * (np.arange(7) + 1.0), (n_rows, 1))
-p1 = np.array([1.0, 0.0, 0.0])
-
-# _process_sobol_batch is a PRIVATE method used here only for this disposable
-# verification probe (not part of any public contract). It returns 7 arrays
-# (its type hint understates this): p1_scaled, p2, p3, v1, v2, v3, sobol_batch.
-result = s._process_sobol_batch(synthetic, p1)
-assert len(result) == 7, (
-    f"_process_sobol_batch returned {len(result)} values, expected 7"
-)
-p1_scaled, _p2, _p3, _v1, v2_batch, _v3, _ = result
-
-# Scale is drawn from column 3: s = lo + (hi - lo) * u_4, and p1_scaled = p1 * s.
-expected_scale = 0.8 + (1.2 - 0.8) * synthetic[:, 3]
-assert np.allclose(p1_scaled[:, 0], expected_scale), (
-    f"scale not from column 3: p1_scaled[:,0]={p1_scaled[:, 0]}, "
-    f"expected {expected_scale}"
-)
-print("PASS  allocation: scale factor s is drawn from Sobol column 3 (u_4)")
-
-# Velocity is drawn from columns 4-6 via inverse-CDF, then scaled by s. This scaling-order
-# assumption is part of the existing data-generator behavior being checked here.
-expected_v2 = norm.ppf(synthetic[:, 4:7], loc=0, scale=0.1) * expected_scale[:, None]
-assert np.allclose(v2_batch, expected_v2), (
-    f"velocity not from columns 4-6: v2_batch={v2_batch}, expected {expected_v2}"
-)
-print("PASS  allocation: free-particle velocity is drawn from Sobol columns 4-6 (u_5-u_7)")
-
-# --- Test 3: allocation order when scaling is disabled (delta_s = 0, delta_v = 1) ---
-s_no_scale = EnhancedThreeBodySampler(scale_range=(1.0, 1.0), velocity_scale=0.1, seed=42)
-assert s_no_scale.sobol_dim == 6, f"no-scale config: expected d=6, got {s_no_scale.sobol_dim}"
-synthetic_no_scale = np.tile(0.1 * (np.arange(6) + 1.0), (n_rows, 1))
-result = s_no_scale._process_sobol_batch(synthetic_no_scale, p1)
-assert len(result) == 7, (
-    f"no-scale _process_sobol_batch returned {len(result)} values, expected 7"
-)
-_p1_scaled, _p2, _p3, _v1, v2_no_scale, _v3, _ = result
-expected_v2_no_scale = norm.ppf(synthetic_no_scale[:, 3:6], loc=0, scale=0.1)
-assert np.allclose(v2_no_scale, expected_v2_no_scale), (
-    f"no-scale velocity not from columns 3-5: v2_batch={v2_no_scale}, "
-    f"expected {expected_v2_no_scale}"
-)
-print("PASS  allocation: no-scale free-particle velocity is drawn from Sobol columns 3-5 (u_4-u_6)")
-
-# --- Test 4: rotate flag is outside the standard rotate=False contract ---
-s_rotate_false = EnhancedThreeBodySampler(scale_range=(0.8, 1.2), velocity_scale=0.1, rotate=False, seed=42)
-s_rotate_true = EnhancedThreeBodySampler(scale_range=(0.8, 1.2), velocity_scale=0.1, rotate=True, seed=42)
-assert s_rotate_false.sobol_dim == 7, (
-    f"rotate=False standard config: expected d=7, got {s_rotate_false.sobol_dim}"
-)
-assert s_rotate_true.sobol_dim == 10, (
-    f"rotate=True should add three future-rotation dimensions, got d={s_rotate_true.sobol_dim}"
-)
-print("PASS  rotate: standard contract uses rotate=False; rotate=True adds three unused future-rotation dimensions")
-
+# ===========================================================================
+# Summary
+# ===========================================================================
 print()
-print("Sobol dimension formula d = 3 + delta_s + 3*delta_v (rotate=False) and the")
-print("allocation order (position, optional scale, optional velocity) are verified")
-print("against simulation_data/Scripts/ic_generation/ic_generation_utils.py.")
+if failures:
+    print(f"FAILED: {len(failures)} assertion(s) did not pass:")
+    for f in failures:
+        print(f"  - {f}")
+    sys.exit(1)
+else:
+    print("All three surfaces (SPEC, ENTRYPOINT, SAMPLER) passed.")
+    print("Sobol dimension formula d = 3 + delta_s + 3*delta_v (rotate=False) and the")
+    print("allocation order (position, optional scale, optional velocity) are verified.")
+    sys.exit(0)
 ```
 
 - [ ] **Step 2: Run the probe (with a dependency preflight)**
@@ -416,32 +637,43 @@ Do not weaken the acceptance standard if dependencies are missing. Repair the pr
 virtual environment and re-run; do not install packages into a system Python just for this
 probe.
 
-Expected output:
-```
-PASS  dimension: delta_s=1, delta_v=1 (standard config): sobol_dim = 7
-PASS  dimension: delta_s=0, delta_v=1: sobol_dim = 6
-PASS  dimension: delta_s=1, delta_v=0: sobol_dim = 4
-PASS  dimension: delta_s=0, delta_v=0: sobol_dim = 3
-PASS  allocation: scale factor s is drawn from Sobol column 3 (u_4)
-PASS  allocation: free-particle velocity is drawn from Sobol columns 4-6 (u_5-u_7)
-PASS  allocation: no-scale free-particle velocity is drawn from Sobol columns 3-5 (u_4-u_6)
-PASS  rotate: standard contract uses rotate=False; rotate=True adds three unused future-rotation dimensions
+Expected outcome:
+- **Exit 0.** The probe prints `PASS` lines for each assertion across all three surfaces
+  (`SPEC`, `ENTRYPOINT`, `SAMPLER`) and ends with the summary block:
+  ```
+  All three surfaces (SPEC, ENTRYPOINT, SAMPLER) passed.
+  Sobol dimension formula d = 3 + delta_s + 3*delta_v (rotate=False) and the
+  allocation order (position, optional scale, optional velocity) are verified.
+  ```
+- **Exit nonzero.** Any missing source anchor, malformed configuration, or allocation
+  mismatch causes the probe to print a `FAIL` line for the failing assertion and exit 1. If
+  this happens, STOP, do not commit, and surface the mismatch — this would be a Phase 20.5
+  regression.
 
-Sobol dimension formula d = 3 + delta_s + 3*delta_v (rotate=False) and the
-allocation order (position, optional scale, optional velocity) are verified
-against simulation_data/Scripts/ic_generation/ic_generation_utils.py.
-```
-If the probe raises `AssertionError`, the spec's `d = 3 + δ_s + 3δ_v` dimension formula or
-its column allocation does not match the code — STOP, do not commit, and surface the
-mismatch (this would be a GAP-20-5-01 regression).
+- [ ] **Step 3: Mandatory per-commit gate + commit**
 
-- [ ] **Step 3: Commit**
-
+Apply the full mandatory per-commit gate from the index:
 ```bash
+# 1. pre-stage index must be empty
+git diff --cached --name-only
+# 2. unstaged diff review for task-owned file
+git diff -- .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
+# 3. stage only the declared file
 git add .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
-GIT_AGENT_ID="codex-gpt-5" scripts/agent-commit \
+# 4. staged-list confirmation
+git diff --cached --name-only     # must be exactly this one file
+# 5. cached-diff inspection + whitespace check
+git diff --cached
+git diff --cached --check
+# 6. rerun the probe against the staged content (path-identical to the working-tree copy)
+.venv/bin/python3 .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
+# 7. commit
+GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit \
   -m "test(planning): add disposable Sobol allocation verification probe" \
-  -m "Add the VER-01-style probe that checks the Sobol dimension formula d = 3 + delta_s + 3*delta_v, the standard and no-scale position/scale/velocity column allocation branches, and the rotate=False standard-contract boundary against simulation_data/Scripts/ic_generation/ic_generation_utils.py. Disposable; kept under the Phase 20.5 probes/ directory."
+  -m "Add the three-surface VER-01-style probe: (1) static assertions over sampling_method.md for the dimension formula, allocation order, standard and no-scale branches, and absence of the obsolete double-booked velocity statement; (2) an AST parse of generate_ics.py confirming ic_type='standard', scale_range=(0.8, 1.2), velocity_scale=0.1; (3) behavioral tests of EnhancedThreeBodySampler including the dimension matrix, a synthetic position test proving columns 0-2 drive the spherical mapping, the standard and no-scale allocation branches, and the rotate=False boundary. Disposable; kept under the Phase 20.5 probes/ directory."
+# 8. post-commit confirmation
+git diff --cached --name-only     # must be empty
+git show --stat HEAD --name-only  # must list exactly the probe file
 ```
 
 ---
@@ -489,14 +721,31 @@ not line numbers, so this record survives line drift.
 | `u_{4+δ_s}`–`u_{6+δ_s}` → velocity (when `δ_v = 1`) | `_process_sobol_batch` velocity block (`u_vel = sobol_batch[:, idx:idx+3]`) | ALIGNED |
 | Standard config `d = 7` | `generate_ics.py` standard config (`scale_range=(0.8, 1.2)`, `velocity_scale=0.1`) | ALIGNED |
 
-**Provenance assumption:** repository documentation identifies
-`simulation_data/Scripts/ic_generation/ic_generation_utils.py` and `generate_ics.py` as the
-standard quasi-random generator and records the same scale/velocity configuration used here.
-However, no in-repo generation manifest or commit hash independently proves that every file
-in `simulation_data/Data/ic_final/ic_standard_quasi_random/` was produced by this exact
-script revision. The Phase 20.5 claim is therefore: the v1.4 spec matches the documented and
-current generator behavior; if external logs later contradict that provenance, surface the
-conflict before FUT-01 relies on the alignment record.
+## Scoped provenance claim
+
+The Phase 20.5 provenance claim is scoped precisely — no more, no less:
+
+1. **What is claimed.** The current v1.4 `sampling_method.md` spec, the documented and
+   current configuration of the `simulation_data/Scripts/ic_generation/` generator under its
+   standard configuration (`ic_type="standard"`, `scale_range=(0.8, 1.2)`,
+   `velocity_scale=0.1`, `rotate=False`), and the current observable behavior of
+   `EnhancedThreeBodySampler` are **aligned** on the Sobol dimension formula and the
+   position/scale/velocity allocation order.
+
+2. **What is not claimed.** No in-repository generation manifest, commit hash, or other
+   persistent record independently proves that every file in
+   `simulation_data/Data/ic_final/ic_standard_quasi_random/` was produced by this exact
+   script revision. Repository documentation identifies `generate_ics.py` /
+   `ic_generation_utils.py` as the standard quasi-random generator, but that identification
+   is a documentation assertion, not a cryptographic provenance chain. If external logs
+   later contradict that provenance, surface the conflict before FUT-01 relies on the
+   alignment record.
+
+3. **Regeneration.** No data regeneration is required to resolve this coordinate-allocation
+   mismatch, because there is no mismatch to resolve — the spec and the data-generator
+   behavior agree. This statement is not a blanket historical-provenance certification of
+   the stored dataset; it is scoped to the Sobol-allocation alignment that Phase 20.5
+   locked.
 
 ## FUT-01 hand-off
 
@@ -512,18 +761,30 @@ conflict before FUT-01 relies on the alignment record.
 ## AC-SAMP-01 (acceptance check, for Phase 21 execution under VER-04)
 
 - **Name:** `AC-SAMP-01` — Sobol coordinate allocation alignment.
-- **What it checks:** the `sampling_method.md` dimension formula `d = 3 + δ_s + 3δ_v` and
-  the position/scale/velocity column allocation match
-  `simulation_data/Scripts/ic_generation/ic_generation_utils.py`.
+- **What it checks:** three evidence surfaces, all of which must pass:
+  1. **SPEC:** the `sampling_method.md` "Sobol Coordinate Allocation Convention" subsection
+     is present; the dimension formula `d = 3 + δ_s + 3δ_v`, the fixed allocation order
+     (position → optional scale → optional velocity), the standard-configuration branch
+     (`δ_s = δ_v = 1`), and the no-scale branch (`δ_s = 0`) are all stated; the obsolete
+     double-booked velocity statement (`The next three Sobol coordinates (u_4, u_5, u_6)
+     are mapped to a 3D velocity vector`) is absent; the Phase 18 momentum sentence is
+     intact.
+  2. **ENTRYPOINT:** `simulation_data/Scripts/ic_generation/generate_ics.py` AST-parses
+     cleanly and contains at least one `ic_type="standard"` call whose kwargs are
+     `scale_range=(0.8, 1.2)` and `velocity_scale=0.1`.
+  3. **SAMPLER:** `EnhancedThreeBodySampler` from
+     `simulation_data/Scripts/ic_generation/ic_generation_utils.py` passes the dimension
+     matrix (`sobol_dim` ∈ {7, 6, 4, 3} for `(δ_s, δ_v)` ∈ {(1,1), (0,1), (1,0), (0,0)}),
+     the standard-config scale and velocity allocation (scale ← Sobol column 3; velocity
+     ← columns 4–6), the synthetic position test (columns 0–2 drive the expected spherical
+     mapping), the no-scale velocity allocation (columns 3–5), and the rotate=False
+     boundary.
 - **Data:** none required — instantiates `EnhancedThreeBodySampler` directly.
 - **Probe:**
   `.planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py`.
-- **Pass criterion:** the probe exits 0 with all eight `PASS` lines — the four `dimension`
-  lines (`sobol_dim` ∈ {7, 6, 4, 3} for `(δ_s, δ_v)` ∈ {(1,1), (0,1), (1,0), (0,0)}) and
-  the three `allocation` lines (scale ← Sobol column 3; standard-config velocity ← columns
-  4–6; no-scale velocity ← columns 3–5, verified by processing synthetic batches through
-  `_process_sobol_batch`), plus the rotate-boundary line confirming the standard contract uses
-  `rotate=False`.
+- **Pass criterion:** the probe exits 0 with `PASS` lines across all three surfaces and the
+  summary `All three surfaces (SPEC, ENTRYPOINT, SAMPLER) passed.` Any `FAIL` line or
+  nonzero exit is an AC-SAMP-01 failure.
 - **On failure:** routes back to Phase 20.5 for spec correction per VER-04 / VER-05; v1.4
   does not ship while `AC-SAMP-01` fails.
 ```
@@ -535,22 +796,41 @@ Run:
 DA=.planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
 grep -cF "AC-SAMP-01" "$DA"              # expect >= 2 (section heading + Name line)
 grep -cF "ALIGNED" "$DA"                 # expect 5 (five alignment rows)
-grep -cF "Provenance assumption" "$DA"   # expect 1
+grep -cF "Scoped provenance claim" "$DA" # expect 1 (scoped provenance section heading)
+grep -cF "What is claimed" "$DA"         # expect 1 (claim limb)
+grep -cF "What is not claimed" "$DA"     # expect 1 (non-claim limb)
+grep -cF "No data regeneration is required to resolve this coordinate-allocation mismatch" "$DA"  # expect 1
+grep -cF "not a blanket historical-provenance certification" "$DA"                                # expect 1
 grep -cF "FUT-01" "$DA"                  # expect >= 1 (hand-off section)
 grep -cF "d = 3 + δ_s + 3δ_v" "$DA"      # expect >= 1 (Option A allocation)
 ```
-The hand-off must reference `AC-SAMP-01`, the Option A allocation (`d = 3 + δ_s + 3δ_v`), and
-the FUT-01 hand-off — verified by stable text anchors, not line numbers.
+The hand-off must reference `AC-SAMP-01`, the Option A allocation (`d = 3 + δ_s + 3δ_v`), the
+FUT-01 hand-off, and the scoped provenance claim with all three limbs (what is claimed, what
+is not claimed, no-regeneration + not-a-blanket-certification).
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Mandatory per-commit gate + commit**
 
-Stage only the hand-off and commit with `scripts/agent-commit` (body required — `.planning/`
-is a risk-elevated path):
+Apply the full mandatory per-commit gate from the index:
 ```bash
+# 1. pre-stage index must be empty
+git diff --cached --name-only
+# 2. unstaged diff review for task-owned file
+git diff -- .planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+# 3. stage only the declared file
 git add .planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
-GIT_AGENT_ID="codex-gpt-5" scripts/agent-commit \
+# 4. staged-list confirmation
+git diff --cached --name-only     # must be exactly this one file
+# 5. cached-diff inspection + whitespace check
+git diff --cached
+git diff --cached --check
+# 6. rerun Step 2 verification
+# 7. commit (body required — .planning/ is risk-elevated)
+GIT_AGENT_ID="$GIT_AGENT_ID" scripts/agent-commit \
   -m "docs(planning): add data-alignment hand-off and AC-SAMP-01 stub" \
-  -m "Record the Phase 20.5 spec-to-simulation_data Sobol-allocation alignment, the provenance caveat for simulation_data/Scripts/ic_generation/, the FUT-01 hand-off, and the AC-SAMP-01 acceptance-check stub. Code anchors cite stable symbols, not line numbers."
+  -m "Record the Phase 20.5 spec-to-simulation_data Sobol-allocation alignment, the scoped provenance claim (what is claimed, what is not claimed, no-regeneration + not-a-blanket-certification), the FUT-01 hand-off, and the AC-SAMP-01 acceptance-check stub covering the three-surface probe. Code anchors cite stable symbols, not line numbers."
+# 8. post-commit confirmation
+git diff --cached --name-only     # must be empty
+git show --stat HEAD --name-only  # must list exactly this one file
 ```
 
 ---
@@ -599,3 +879,49 @@ they are silent, record a proper gap only if the gap criteria are met, and surfa
 instruction. Otherwise this task makes no file changes and has **no commit**.
 
 ---
+
+## Part 2 completion gate
+
+Do not proceed to `20-5-PLAN-part3.md` until every item below passes. The Part 3 precondition
+re-checks this gate's outcome before Task 9 may start.
+
+- [ ] **Gate-1: Task 5 passed** — all Step 6 spec counts match their expected values,
+  FLAG-10 cross-references are verified, and the Task 5 commit landed (`git log -1 --oneline`
+  shows `spec(spec): lock Sobol coordinate allocation convention`).
+- [ ] **Gate-2: Task 6 passed** — the probe exits 0 with `PASS` lines across all three
+  surfaces (`SPEC`, `ENTRYPOINT`, `SAMPLER`) and the summary block
+  `All three surfaces (SPEC, ENTRYPOINT, SAMPLER) passed.`, and the Task 6 commit landed
+  (`git log -1 --oneline` shows `test(planning): add disposable Sobol allocation verification
+  probe`).
+- [ ] **Gate-3: Task 7 passed** — `20-5-DATA-ALIGNMENT.md` exists, all Step 2 stable-anchor
+  counts match, the scoped provenance claim is present with all three limbs, AC-SAMP-01 is
+  defined in terms of the three-surface probe, and the Task 7 commit landed (`git log -1
+  --oneline` shows `docs(planning): add data-alignment hand-off and AC-SAMP-01 stub`).
+- [ ] **Gate-4: Task 8 passed** — spec momentum sentence and FRAME-03 frame note are present
+  and match the code; no stale finding file exists; no file changes; no commit.
+- [ ] **Gate-5: Data-alignment handoff is scoped precisely** — re-verify the three limbs of
+  the scoped provenance claim from Task 7:
+  ```bash
+  DA=.planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+  grep -cF "What is claimed" "$DA"                              # expect 1
+  grep -cF "What is not claimed" "$DA"                          # expect 1
+  grep -cF "No data regeneration is required to resolve this coordinate-allocation mismatch" "$DA"  # expect 1
+  grep -cF "not a blanket historical-provenance certification" "$DA"                                # expect 1
+  ```
+- [ ] **Gate-6: Exactly three commits expected for Part 2** — running
+  ```bash
+  git log --oneline HEAD~3..HEAD
+  ```
+  lists the three commits above, in order: Task 7 most recent, then Task 6, then Task 5.
+- [ ] **Gate-7: Required artifacts exist** —
+  ```bash
+  test -f pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
+  test -f .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py
+  test -f .planning/phases/20-5-sampling-coordinate-allocation/20-5-DATA-ALIGNMENT.md
+  ```
+  all succeed.
+- [ ] **Gate-8: Probe re-runs cleanly** — `.venv/bin/python3 .planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py`
+  exits 0.
+- [ ] **Gate-9: Empty staged index** — `git diff --cached --name-only` prints nothing.
+
+If any gate fails, STOP and return to the owning task. Do not start Part 3.
