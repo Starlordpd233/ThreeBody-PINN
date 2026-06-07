@@ -50,6 +50,11 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 - [x] **ARCH-04**: `I_norm` uses separate names for the raw inertia descriptor and the tanh-squashed network input.
 - [x] **ARCH-05**: Energy and mass normalization support ranges are documented as realized dataset support, not treated as correctness failures when asymmetric or mostly negative.
 
+### Sampling Coordinate Allocation
+
+- [ ] **SAMP-01**: `sampling_method.md` documents an explicit Sobol coordinate allocation convention with no coordinate reused for two independent physical quantities. Allocation order: position → optional scale → optional velocity. Dimension formula `d = 3 + δ_s + 3δ_v`, where `δ_s = 1` iff sampling-time scaling is enabled and `δ_v = 1` iff velocity sampling is enabled.
+- [ ] **SAMP-02**: The §1.1 dimension claim, the "Sampling-Time Size Variability" prose, and the "Velocity Sampling" prose/formula in `sampling_method.md` are mutually consistent and agree with the locked allocation and with the documented and current behavior of `simulation_data/Scripts/ic_generation/` under its standard configuration (`scale_range=(0.8, 1.2)`, `velocity_scale=0.1`, `rotate=False`). The Phase 20.5 spec/code alignment does not depend on asserting an exact script revision for every stored file; it depends on the documented generator identity and its current, observable behavior under the standard configuration.
+
 ### Verification and Handoff
 
 - [ ] **VER-01**: The revised specs include numerically-defined acceptance checks for scaling consistency, COM invariance, derivative correctness, force-energy consistency, and loss stability. Each check names its pass criterion (e.g., `relative_error < 1e-10`), the data it runs on, and the command or function that executes it — not just prose descriptions.
@@ -71,9 +76,10 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | Scope | Status |
 |-------|--------|
 | **SCOPE-01** Existing `pinn/` implementation files (`pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`) | **Out of scope and NOT used as evidence** — per directive 2026-05-19, v1.4 does NOT inspect these files as evidence, grounding source, or source-of-truth for any spec decision. They are v1.3-era artifact, rebuilt in FUT-01 from v1.4 specs. Live-code references are permitted only in forward-pointing FUT-01 hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`). |
-| **SCOPE-02** `sampling_method.md` revisions | **In scope, limited to FRAME-03** — hierarchical post-perturbation COM offset wording and any cross-reference needed for the unified preprocessing contract. No sampling-method content unrelated to Issue 01 is rewritten. |
+| **SCOPE-02** `sampling_method.md` revisions | **In scope, limited to (a) FRAME-03** — hierarchical post-perturbation COM offset wording and any cross-reference needed for the unified preprocessing contract — **AND (b) SAMP-01/SAMP-02** — the Sobol coordinate allocation convention (Phase 20.5). No sampling-method content unrelated to (a) or (b) is rewritten. Any other sampling-method discrepancy noticed during Phase 20.5 (for example, the §2.1 enhancement framing) is out of Phase 20.5 scope and handled separately if needed, not silently fixed. |
 | **SCOPE-03** Data-quality-assessment and SCS gate work | **Out of scope — already completed** on branch `codex/scs-gate-correction`. v1.4 does not re-open `SI-DQA-002`/`SI-DQA-003`. |
 | **SCOPE-04** Disposable validation probes | **In scope, limited** — probes may be created, recorded, or run only to test risky framework contracts and produce evidence for VER-04. They are not production framework code and are not packaged as reusable `pinn/` validation infrastructure during v1.4. |
+| **SCOPE-05** Data-spec alignment for sampling-method edits | When v1.4 framework-spec edits describe the data-generation pipeline, they MUST match the actual behavior of `simulation_data/Scripts/ic_generation/`. The no-live-code directive (2026-05-19) targets `pinn/` only; `simulation_data/Scripts/ic_generation/` is a permitted grounding source for data-generation specs because the existing dataset is fixed and the framework must remain compatible with it. Spec divergences from data must be (i) reconciled to match data, (ii) flagged in `docs/findings/` for separate handling, or (iii) explicitly authorized by the user as a data-regeneration directive for FUT-01. |
 | **EDL support artifacts** | **Non-canonical support workflow** — `.planning/research/edl/README.md`, `.planning/research/edl/INDEX.md`, and central EDL briefs prepare user research for empirically consequential source-silent decisions. They support, but do not replace, phase gap registers and milestone requirements. |
 
 ## Out of Scope
@@ -115,6 +121,8 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | ARCH-03 | Phase 20 | Complete |
 | ARCH-04 | Phase 20 | Complete |
 | ARCH-05 | Phase 20 | Complete |
+| SAMP-01 | Phase 20.5 | Pending |
+| SAMP-02 | Phase 20.5 | Pending |
 | VER-01 | Phase 21 | Pending |
 | VER-02 | Phase 16 | Complete |
 | VER-03 | Phase 21 | Pending |
@@ -123,10 +131,10 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | VER-06 | Phase 21 | Pending |
 
 **Coverage:**
-- v1.4 requirements: 30 total (5 EVID + 4 IO + 4 FRAME + 6 PHYS + 5 ARCH + 6 VER)
-- Mapped to phases: 30
+- v1.4 requirements: 32 total (5 EVID + 4 IO + 4 FRAME + 6 PHYS + 5 ARCH + 2 SAMP + 6 VER)
+- Mapped to phases: 32
 - Unmapped: 0
-- SCOPE-01/02/03/04 are scope-boundary annotations (see "Scope Boundaries" table above), not numbered requirements.
+- SCOPE-01 through SCOPE-05 are scope-boundary annotations (see "Scope Boundaries" table above), not numbered requirements.
 - Phase 22 is added as the final presentation-preserving framework-spec cleanup; Phase 22-specific requirement mapping remains TBD pending phase planning, while existing cross-cutting VER-05 governance applies.
 
 ---

@@ -84,7 +84,7 @@ Full details: `.planning/milestones/v1.3-ROADMAP.md`
 **Milestone Goal:** Critically examine each Issue 01 finding against BOTH `ctl_pinn_resolution.md` AND `01-architecture-and-physics-foundations.md` — treating neither as authoritative — to identify the root-cause ambiguity in the current framework specs, lock the right convention, apply evidence-backed framework-spec edits, and **verify each fix by executing disposable acceptance checks** before closing the issue. Preserve the SQR-SkipResNet-SIREN, CTL, and raw-mass decisions unless evidence requires otherwise. v1.4 settles documentation and validation evidence; it does not implement or update production PINN/training code.
 
 **Granularity:** standard
-**Coverage:** 30/30 v1.4 requirements mapped
+**Coverage:** 32/32 v1.4 requirements mapped
 
 #### Verification Protocol (applies to every phase)
 
