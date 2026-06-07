@@ -15,7 +15,7 @@ If this repository is being opened on the new Mac during the workstation migrati
 
 ## CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones
 
-**For every phase in v1.4 (Phases 17, 18, 19, 20, 21) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
+**For every phase in v1.4 (Phases 17, 18, 19, 20, 21, 22) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
 
 ### Grounded vs. silent: the test
 
@@ -85,7 +85,7 @@ For source-silent gaps that are empirically consequential, the non-canonical Emp
 
 User does not trust the agent to make spec-engineering or physics-adjudication calls without explicit grounding. The designated "candidate verdict source" (`ctl_pinn_resolution.md` for v1.4) is the *candidate*, not authority — agent transcribes what is explicit, never fills white space. Cost of asking is small; cost of silently inventing is irreparable spec drift across phases.
 
-**Issued by user 2026-05-18; strengthened with STOP protocol + math/engineering grounding requirement 2026-05-19.** Overrides any default behavior to "make a reasonable assumption and proceed." Scope: v1.4 (Phases 17–21) and similar future adjudication milestones unless explicitly waived per milestone.
+**Issued by user 2026-05-18; strengthened with STOP protocol + math/engineering grounding requirement 2026-05-19.** Overrides any default behavior to "make a reasonable assumption and proceed." Scope: v1.4 (Phases 17–22) and similar future adjudication milestones unless explicitly waived per milestone.
 
 ---
 

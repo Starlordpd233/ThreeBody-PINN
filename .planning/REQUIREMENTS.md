@@ -119,7 +119,7 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | VER-02 | Phase 16 | Complete |
 | VER-03 | Phase 21 | Pending |
 | VER-04 | Phase 21 | Pending |
-| VER-05 | Phase 16 (defined) / Phases 17–21 (applied) | Complete |
+| VER-05 | Phase 16 (defined) / Phases 17–22 (applied) | Complete |
 | VER-06 | Phase 21 | Pending |
 
 **Coverage:**
@@ -127,7 +127,8 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 - Mapped to phases: 30
 - Unmapped: 0
 - SCOPE-01/02/03/04 are scope-boundary annotations (see "Scope Boundaries" table above), not numbered requirements.
+- Phase 22 is added as the final presentation-preserving framework-spec cleanup; Phase 22-specific requirement mapping remains TBD pending phase planning, while existing cross-cutting VER-05 governance applies.
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-06-05 after Phase 20 closure — ARCH-01 through ARCH-05 are complete; Phase 20.5 is next.*
+*Last updated: 2026-06-07 after Phase 22 addition — the original 30 requirements remain fully mapped; Phase 20.5 is next and Phase 22-specific requirements are TBD.*

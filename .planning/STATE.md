@@ -17,7 +17,7 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-24)
+See: .planning/PROJECT.md (updated 2026-06-07)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
 **Current focus:** Phase 20.5 — Sampling Coordinate Allocation (Phase 20 formally closed with all closure artifacts)
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-24)
 
 Phase: 20.5
 Plan: Next — Phase 20.5 execution pending
-Status: Phase 20 complete (5/5 plans executed). Phase 20.5 (Sampling Coordinate Allocation) design+plan locked, execution pending. Phase 21 (Acceptance Checks and Handoff) is next after 20.5.
-Last activity: 2026-06-05
+Status: Phase 20 complete (5/5 plans executed). Phase 20.5 (Sampling Coordinate Allocation) design+plan locked, execution pending. Phase 21 validation/handoff follows 20.5; Phase 22 framework-spec cleanup is the final v1.4 phase.
+Last activity: 2026-06-07
 Progress: [█████████░] 95%
 
 ## Performance Metrics
@@ -72,7 +72,7 @@ Progress: [█████████░] 95%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-21, plus inserted Phase 20.5) — Phases 16, 17, 18, and 19 are complete and verified; Phase 20 is ready to discuss/plan. EDL support is now documented as a non-canonical support workflow under `.planning/research/edl/`.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — Phases 16–20 are complete and verified; Phase 20.5 execution is next, followed by Phase 21 validation/handoff and final Phase 22 framework-spec cleanup. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
@@ -87,7 +87,9 @@ Progress: [█████████░] 95%
 | 18 | Frame and gauge contracts | FRAME-01..04 |
 | 19 | Physics and loss contracts (incl. M4 constraint counting) | PHYS-01..06 |
 | 20 | Architecture and normalization cleanup | ARCH-01..05 |
+| 20.5 | Sampling coordinate allocation | SCOPE-05 boundary; plan pending execution |
 | 21 | Acceptance checks executed, SI-ledger reconciled, handoff | VER-01, VER-03, VER-04, VER-06 |
+| 22 | Presentation-preserving framework-spec cleanup | TBD pending phase planning; VER-05 applies |
 
 **Verification protocol (applies to every phase):** adjudicate → fix → verify → re-verify after every batch → close only when the acceptance check passes. Defined in detail in `.planning/ROADMAP.md` under v1.4.
 
@@ -121,7 +123,7 @@ Recent decisions affecting current work:
 - [v1.4-scope]: Validation suite execution is VER-04 (in Phase 21) — not deferred to FUT — but execution uses disposable validation probes against the v1.4 framework specs. Existing `pinn/` implementation edits are deferred until after the framework specs are settled and live PINN-side code is not v1.4 evidence.
 - [v1.4-init]: M4 (constraint counting) elevated to PHYS-06 — was missing from initial requirement coverage.
 - [v1.4-init]: `master_consolidation_report.md` demoted from co-equal primary source to supporting evidence.
-- [v1.4-workflow]: All Phases 17–21 spec work happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
+- [v1.4-workflow]: All Phases 17–22 spec work happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
 - [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative, the user performs external research, and EDL artifacts do not resolve gaps or authorize probes/defaults/spec edits without user instruction. GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
 - [v1.1]: Automated Python diffing approach chosen for verification

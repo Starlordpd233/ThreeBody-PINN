@@ -6,7 +6,7 @@
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–21, with Phase 20.5 inserted before Phase 21 (Phases 16–20 complete; next: execute Phase 20.5)
+- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–22, with Phase 20.5 inserted before Phase 21 and Phase 22 as the final cleanup (Phases 16–20 complete; next: execute Phase 20.5)
 
 ## Phases
 
@@ -106,7 +106,8 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 - [x] **Phase 19: Physics and Loss Contracts** — Lock raw-mass scaling, componentwise normalized-time derivatives, matched softening (after dual-eps vs single-eps adjudication), energy-regularizer wording, loss-balancing semantics, and the M4 constraint-counting replacement. (completed 2026-05-30)
 - [x] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording. (completed 2026-06-05)
 - [ ] **Phase 20.5: Sampling Coordinate Allocation (INSERTED)** — Resolve the `u_4` Sobol coordinate double-booking in `sampling_method.md`; lock Option A (`u_4` scale, `u_5`–`u_7` velocity for the standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduce SCOPE-05. Design+plan locked 2026-05-20 (commit b727b15); execution pending. Runs after Phase 20, before Phase 21.
-- [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the final fixed/non-change/deferred handoff (VER-03). Failing checks loop back to Phases 17–20 for spec correction.
+- [ ] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the fixed/non-change/deferred validation handoff consumed by Phase 22 (VER-03). Failing checks loop back to Phases 17–20.5 for spec correction.
+- [ ] **Phase 22: Framework-Spec Cleanup** — Repair rendering-breaking Markdown/LaTeX, normalize math representation, and disposition author comments under human adjudication without changing mathematical or prose meaning. Runs after Phase 21 and is the final phase of v1.4.
 
 ## Phase Details
 
@@ -114,7 +115,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 
 **Goal**: Reviewers can trace every Issue 01 decision to direct evidence — examined critically against both source documents, current framework specs, and first-principles physics — before any framework-spec edit is accepted, and every fix that follows has a defined re-verification pass.
 **Depends on**: Phase 15.1 + post-ship SCS gate correction (both complete)
-**Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, VER-02, VER-05 (defined here; applied throughout Phases 17–21)
+**Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, VER-02, VER-05 (defined here; applied throughout Phases 17–22)
 **Completion**: Phase 16 completed 2026-05-16; Phase 17 completed 2026-05-20. Next milestone workflow step is `$gsd-discuss-phase 18`.
 **Success Criteria** (what must be TRUE):
 
@@ -219,13 +220,13 @@ Plans:
 
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 
-**Goal**: Acceptance checks are not only defined but **executed** with disposable validation probes against the v1.4 framework specs; the source-issue ledger is reconciled; and the final handoff records what shipped, what was deferred, and why.
-**Depends on**: Phase 20 (or whichever phase last touched a contested finding)
+**Goal**: Acceptance checks are not only defined but **executed** with disposable validation probes against the v1.4 framework specs; the source-issue ledger is reconciled; and the validation handoff records what shipped, what was deferred, and why before Phase 22 performs final presentation cleanup.
+**Depends on**: Phase 20.5 (or whichever phase last touched a contested finding)
 **Requirements**: VER-01, VER-03, VER-04, VER-06 (+ VER-05 closing loop)
 **Success Criteria** (what must be TRUE):
 
   1. Reader can inspect numerically-defined acceptance checks for scaling consistency, COM invariance, componentwise AD correctness, force-energy consistency, and loss stability — each named with its pass criterion, data, and executing command or disposable probe.
-  2. The acceptance checks have **executed**, with pass/fail evidence recorded for each. Failing checks routed the work back to Phases 17–20 for spec correction (no v1.4 ships with a failing test); the iterative loop is visible in the ledger history.
+  2. The acceptance checks have **executed**, with pass/fail evidence recorded for each. Failing checks routed the work back to Phases 17–20.5 for spec correction (no v1.4 ships with a failing test); the iterative loop is visible in the ledger history.
   3. Reader can identify which Issue 01 findings were fixed, which are intentionally unchanged (including the M6/M7 "not adjudicable" deferral and any "accept-issue-doc" or "reject-both" verdicts from EVID-02), and which require future empirical validation.
   4. Reader can find the reconciled `SI-*` ledger entries in the framework specs: every v1.4-resolved finding retires its corresponding `SI-*` with a back-reference; entries outside Issue 01 (e.g., `SI-DQA-002`, `SI-DQA-003`, `SI-PINN-002`) are preserved untouched.
   5. `$gsd-plan-phase` for any downstream milestone can derive implementation plans from evidence packets, changed spec sections, and verification artifacts without redoing the conceptual audit.
@@ -259,11 +260,12 @@ Plans:
 | 20. Architecture and Normalization Cleanup | v1.4 | 5/5 | Complete    | 2026-06-05 |
 | 20.5 Sampling Coordinate Allocation (INSERTED) | v1.4 | 0/1 | Planned (design+plan locked) | - |
 | 21. Acceptance Checks and Handoff | v1.4 | 0/TBD | Not started | - |
+| 22. Framework-Spec Cleanup | v1.4 | 0/TBD | Not planned | - |
 
 ### Phase 22: Framework-Spec Cleanup
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** All three framework specs render correctly in Cursor preview, with math normalized to LaTeX and stale or obsolete author comments dispositioned without changing mathematical or prose meaning or allowing autonomous semantic deletion.
+**Requirements**: TBD (existing cross-cutting VER-05 applies)
 **Depends on:** Phase 21
 **Plans:** 0 plans
 
@@ -272,4 +274,4 @@ Plans:
 - [ ] TBD (run /gsd-plan-phase 22 to break down)
 
 ---
-*Last updated: 2026-06-05 — Phases 16–20 complete; Phase 20.5 locked (design+plan, commit b727b15), execution pending before Phase 21.*
+*Last updated: 2026-06-07 — Phases 16–20 complete; Phase 20.5 execution is next, followed by Phase 21 validation/handoff and final Phase 22 framework-spec cleanup.*
