@@ -1,5 +1,7 @@
 # Phase 20.5 GSD Workflow Repair Implementation Plan
 
+> **SUPERSEDED / NOT ACTIVE (2026-06-07).** This dot-decimal "GSD workflow repair" proposal is not the chosen path for Phase 20.5. The team elected to keep the hyphenated `.planning/phases/20-5-sampling-coordinate-allocation/` directory and reorganize `20-5-PLAN.md` in place into a thin index plus `20-5-PLAN-part1/2/3.md`. Do NOT execute this plan: do not migrate to a `20.5-` directory, do not rename or retire the monolith, and do not create `20.5-0N-PLAN.md` or the GSD artifact set. It is also stale (assumes `v1.4-GAPS` 17/17 and a 30-requirement baseline; live state is 21 and SAMP/SCOPE-05 are already registered). Retained in place as historical context / audit trail only.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Repair Phase 20.5 so the official GSD workflow recognizes it as Phase `20.5`, with complete pre-execution artifacts and canonical split plans, without executing Phase 20.5.
