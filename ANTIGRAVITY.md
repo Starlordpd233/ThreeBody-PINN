@@ -34,6 +34,12 @@
 - **Use dependency-scoped blocking**: Stop work that depends on the unresolved decision, while independent work may continue only when the gap entry says that is safe. A phase cannot close with an unresolved EDL-supported gap unless the user explicitly resolves or defers it.
 - **Live PINN code is not v1.4 grounding**: `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` are v1.3-era references only during v1.4. Use them only in forward-looking FUT-01 handoffs unless the governing docs explicitly carve out a narrower exception.
 
+**SCOPE-05 data-generation carveout:** `simulation_data/Scripts/ic_generation/` is a permitted
+grounding source for data-generation specs in
+`pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`. This is a narrow
+carveout from the `pinn/` no-live-code directive, not a general live-code exception. The
+canonical rule lives in `.planning/REQUIREMENTS.md` SCOPE-05.
+
 ---
 
 ## Part 2: Source of Truth and Repository Map

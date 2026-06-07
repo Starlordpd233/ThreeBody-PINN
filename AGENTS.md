@@ -167,4 +167,10 @@ Agent-authored or materially agent-assisted commits must include `Agent-Assisted
 
 **v1.3-era live code is NOT a grounding source** (user directive 2026-05-19): `pinn/data-processing-pipeline-full.py`, `pinn/basic_architecture.py`. These files are NOT evidence, NOT source-of-truth for any v1.4 spec decision. They may be referenced ONLY in forward-pointing FUT-01 hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`).
 
+**SCOPE-05 data-generation carveout:** `simulation_data/Scripts/ic_generation/` is a permitted
+grounding source for data-generation specs in
+`pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`. This is a narrow
+carveout from the `pinn/` no-live-code directive, not a general live-code exception. The
+canonical rule lives in `.planning/REQUIREMENTS.md` SCOPE-05.
+
 For repo layout, command reference, dataset internals, and PINN architecture details: see `.claude/rules/` (path-scoped rules loaded by Claude Code when working in relevant directories; also readable directly by any agent).
