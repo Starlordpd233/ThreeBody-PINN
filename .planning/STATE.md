@@ -7,10 +7,10 @@ last_updated: "2026-06-07"
 last_activity: 2026-06-07
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 19
-  completed_plans: 18
-  percent: 63
+  completed_plans: 19
+  percent: 75
 ---
 
 # Project State
@@ -20,21 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-07)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 20.5 — Sampling Coordinate Allocation (Phase 20 formally closed with all closure artifacts)
+**Current focus:** Phase 21 — Acceptance Checks, Validation Execution, and Handoff (Phase 20.5 complete)
 
 ## Current Position
 
-Phase: 20.5
-Plan: Next — Phase 20.5 execution pending
-Status: Phase 20 complete (5/5 plans executed). Phase 20.5 (Sampling Coordinate Allocation) design+plan locked, execution pending. Phase 21 validation/handoff follows 20.5; Phase 22 framework-spec cleanup is the final v1.4 phase.
+Phase: 21
+Plan: Next — Phase 21 acceptance checks and v1.4 final verification
+Status: Phase 20.5 complete (1/1 plan executed). Phase 21 acceptance checks and v1.4 final verification are next; Phase 22 framework-spec cleanup remains the final v1.4 phase.
 Last activity: 2026-06-07
-Progress: [██████░░░░] 63%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 57 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 18)
+- Total plans completed: 58 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 19)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -63,6 +63,8 @@ Progress: [██████░░░░] 63%
 | 17 | 3 | - | - |
 | 18 | 3 | - | - |
 | 19 | 4 | - | - |
+| 20 | 5 | - | - |
+| 20.5 | 1 | - | - |
 
 ## Accumulated Context
 
@@ -72,10 +74,10 @@ Progress: [██████░░░░] 63%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — Phases 16–20 are complete and verified; Phase 20.5 execution is next, followed by Phase 21 validation/handoff and final Phase 22 framework-spec cleanup. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — Phases 16–20.5 are complete and verified; Phase 21 validation/handoff is next, followed by final Phase 22 framework-spec cleanup. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
-- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15) and survived adversarial review (3 BLOCK + 7 FLAG fixes applied); plan execution pending. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and plan Task 3 propagates missing root agent-instruction cross-references after Task 2 lands SCOPE-05 in `REQUIREMENTS.md`.
+- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15), survived adversarial review (3 BLOCK + 7 FLAG fixes applied), and completed execution 2026-06-07. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and completion artifacts now live under `.planning/phases/20-5-sampling-coordinate-allocation/`.
 - Phase 22 added: Framework-Spec Cleanup
 
 ### v1.4 Phase Summary
@@ -87,7 +89,7 @@ Progress: [██████░░░░] 63%
 | 18 | Frame and gauge contracts | FRAME-01..04 |
 | 19 | Physics and loss contracts (incl. M4 constraint counting) | PHYS-01..06 |
 | 20 | Architecture and normalization cleanup | ARCH-01..05 |
-| 20.5 | Sampling coordinate allocation | SCOPE-05 boundary; plan pending execution |
+| 20.5 | Sampling coordinate allocation | SAMP-01, SAMP-02; SCOPE-05 boundary; complete |
 | 21 | Acceptance checks executed, SI-ledger reconciled, handoff | VER-01, VER-03, VER-04, VER-06 |
 | 22 | Presentation-preserving framework-spec cleanup | TBD pending phase planning; VER-05 applies |
 
@@ -142,7 +144,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-20 are complete. Phase 20.5 execution is next.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-20.5 are complete. Phase 21 acceptance checks and v1.4 final verification are next.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -160,7 +162,7 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 - GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
 - Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
-- Phase 20 execution complete (2026-06-05). Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-04 and M5.
+- Phase 20.5 execution complete (2026-06-07). Phase 21 re-runs the full §10 acceptance suite using disposable validation probes. Plan budget should anticipate fix-verify-refix cycles in the framework specs, especially for B-04, M5, and the Phase 20.5 SAMP checks.
 
 ## Quick Tasks Completed
 
@@ -176,5 +178,5 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 
 ## Session Continuity
 
-Last session: 2026-06-05T10:39:48.827Z
-Next action: Execute Phase 20.5 (Sampling Coordinate Allocation)
+Last session: 2026-06-07
+Next action: Execute Phase 21 (Acceptance Checks & v1.4 Final Verification)

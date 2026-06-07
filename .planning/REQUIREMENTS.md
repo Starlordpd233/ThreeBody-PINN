@@ -3,7 +3,7 @@
 **Defined:** 2026-05-15
 **Core Value:** The simulation dataset and data pipeline must be clean, well-validated, and correctly processed; framework specs must be physically coherent before implementation work depends on them.
 
-**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 20 are complete. Phase 20.5 execution is next, followed by Phase 21 validation/handoff and final Phase 22 framework-spec cleanup.
+**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 20.5 are complete. Phase 21 validation/handoff is next, followed by final Phase 22 framework-spec cleanup.
 
 ## v1.4 Requirements
 
@@ -52,8 +52,8 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ### Sampling Coordinate Allocation
 
-- [ ] **SAMP-01**: `sampling_method.md` documents an explicit Sobol coordinate allocation convention with no coordinate reused for two independent physical quantities. Allocation order: position → optional scale → optional velocity. Dimension formula `d = 3 + δ_s + 3δ_v`, where `δ_s = 1` iff sampling-time scaling is enabled and `δ_v = 1` iff velocity sampling is enabled.
-- [ ] **SAMP-02**: The §1.1 dimension claim, the "Sampling-Time Size Variability" prose, and the "Velocity Sampling" prose/formula in `sampling_method.md` are mutually consistent and agree with the locked allocation and with the documented and current behavior of `simulation_data/Scripts/ic_generation/` under its standard configuration (`scale_range=(0.8, 1.2)`, `velocity_scale=0.1`, `rotate=False`). The Phase 20.5 spec/code alignment does not depend on asserting an exact script revision for every stored file; it depends on the documented generator identity and its current, observable behavior under the standard configuration.
+- [x] **SAMP-01**: `sampling_method.md` documents an explicit Sobol coordinate allocation convention with no coordinate reused for two independent physical quantities. Allocation order: position → optional scale → optional velocity. Dimension formula `d = 3 + δ_s + 3δ_v`, where `δ_s = 1` iff sampling-time scaling is enabled and `δ_v = 1` iff velocity sampling is enabled.
+- [x] **SAMP-02**: The §1.1 dimension claim, the "Sampling-Time Size Variability" prose, and the "Velocity Sampling" prose/formula in `sampling_method.md` are mutually consistent and agree with the locked allocation and with the documented and current behavior of `simulation_data/Scripts/ic_generation/` under its standard configuration (`scale_range=(0.8, 1.2)`, `velocity_scale=0.1`, `rotate=False`). The Phase 20.5 spec/code alignment does not depend on asserting an exact script revision for every stored file; it depends on the documented generator identity and its current, observable behavior under the standard configuration.
 
 ### Verification and Handoff
 
@@ -121,8 +121,8 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | ARCH-03 | Phase 20 | Complete |
 | ARCH-04 | Phase 20 | Complete |
 | ARCH-05 | Phase 20 | Complete |
-| SAMP-01 | Phase 20.5 | Pending |
-| SAMP-02 | Phase 20.5 | Pending |
+| SAMP-01 | Phase 20.5 | Complete |
+| SAMP-02 | Phase 20.5 | Complete |
 | VER-01 | Phase 21 | Pending |
 | VER-02 | Phase 16 | Complete |
 | VER-03 | Phase 21 | Pending |
@@ -139,4 +139,4 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-06-07 after Phase 22 addition — the original 30 requirements remain fully mapped; Phase 20.5 is next and Phase 22-specific requirements are TBD.*
+*Last updated: 2026-06-07 after Phase 20.5 completion — all 32 v1.4 requirements are mapped; SAMP-01/SAMP-02 are complete; Phase 21 validation/handoff is next and Phase 22-specific requirements remain TBD.*

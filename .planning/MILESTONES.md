@@ -44,12 +44,12 @@
 
 ## v1.4 Resolving 01 Architecture and Physics Foundations (In Progress)
 
-**Phases planned:** 7 core phases (16–22), plus inserted Phase 20.5 before Phase 21. Phases 16–20 are complete and verified. Phase 20.5 (Sampling Coordinate Allocation) design and plan locked 2026-05-20 (commit b727b15), execution pending; Phase 22 is the final framework-spec cleanup after Phase 21.
+**Phases planned:** 7 core phases (16–22), plus inserted Phase 20.5 before Phase 21. Phases 16–20.5 are complete and verified. Phase 20.5 (Sampling Coordinate Allocation) design and plan locked 2026-05-20 (commit b727b15), then executed 2026-06-07; Phase 22 is the final framework-spec cleanup after Phase 21.
 
 **Next workflow step:**
 
-- Phases 16–20 are complete and verified; the next workflow step is Phase 20.5 execution.
-- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked 2026-05-20 (commit b727b15) — resolves the `u_4` Sobol double-booking flagged in `docs/findings/addressing_sobol_sequence_suggestion.md`; locks Option A from `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduces SCOPE-05 for data-spec alignment. It runs before Phase 21 acceptance checks.
+- Phases 16–20.5 are complete and verified; the next workflow step is Phase 21 validation/handoff.
+- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked 2026-05-20 (commit b727b15) and execution completed 2026-06-07 — resolves the `u_4` Sobol double-booking flagged in `docs/findings/addressing_sobol_sequence_suggestion.md`; locks Option A from `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduces SCOPE-05 for data-spec alignment. It is complete before Phase 21 acceptance checks.
 - Phase 22 (Framework-Spec Cleanup) was added 2026-06-07 as the final phase after Phase 21; planning is pending.
 
 ---
