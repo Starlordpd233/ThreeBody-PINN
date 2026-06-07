@@ -154,6 +154,19 @@ A body is required for `spec`, `evidence`, `verify`, and `plan` commits; commits
 
 Agent-authored or materially agent-assisted commits must include `Agent-Assisted-By: <agent/tool/model>` or a valid `Co-Authored-By:` trailer.
 
+### Transformation and verification integrity
+
+- Before a bulk transformation of a file that already has uncommitted changes (split, reformat, large find-replace), commit or stash those pre-existing changes first as their own atomic unit; never fold them into the transformation commit.
+- When a commit asserts a verifiable invariant (byte-for-byte preservation, hash match, counts), record the supporting hashes or counts in committed state — not in `/tmp` — so the claim is re-derivable.
+
+### Docs plan-review-fix lifecycle
+
+Rules attach to the action, not the agent; file retention, naming, and archive follow `docs/README.md`.
+
+- Executing a `docs/` plan: record execution provenance in the plan frontmatter (`execution_status`, `executed_at` with date and time, `review_status`) per `docs/README.md`; close each pass with a dedicated commit carrying `Plan-Execution:` and `Plan-Source:` trailers, separate from the work commits. Re-runs use `remediation-pass-N`.
+- Review reports: commit as `verify(<scope>)`, date-named, kept; supersede by setting frontmatter `status: superseded` (never delete-and-recreate); commit the report separately from any fixes it motivates.
+- Fix or remediation plans: own `plan(<scope>)` commit, separate from execution and report.
+
 ---
 
 ## Source of Truth

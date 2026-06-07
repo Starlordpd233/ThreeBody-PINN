@@ -40,6 +40,16 @@ grounding source for data-generation specs in
 carveout from the `pinn/` no-live-code directive, not a general live-code exception. The
 canonical rule lives in `.planning/REQUIREMENTS.md` SCOPE-05.
 
+### 1.5 Git Commit Protocol
+Follow this whenever a task may require a later Git commit, even if the commit is not created in the current session. The full policy is `docs/git-guidelines.md` (canonical).
+
+- **Start and pre-commit checks**: At session start and before committing, run `git status --short --branch` and surface branch, ahead/behind, and existing worktree changes. Treat existing changes as user-owned unless you created them in the current task. Before committing, inspect `git diff --cached`, check unstaged changes for touched files, and run relevant verification plus `git diff --check`. Stage only intended files.
+- **Hooks and bypass**: Run `scripts/setup-git-hooks.sh` if `git config --get core.hooksPath` is not `.githooks`. Use `scripts/agent-commit`; do not run raw `git commit`. Do not use `--no-verify`, `core.hooksPath=/dev/null`, or equivalent bypasses without explicit user approval.
+- **Message format**: `<type>(<scope>): <lowercase imperative subject>`. Types: `spec`, `evidence`, `verify`, `plan`, `docs`, `feat`, `fix`, `refactor`, `test`, `chore`. Scopes: two-digit phase (`20`), task (`20-05`), or fixed domains `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`. Subject lowercase, imperative, 80 characters or fewer, no trailing period, no markdown ticks or quotes, no semicolon-chained changes. A body is required for `spec`, `evidence`, `verify`, `plan`; commits touching multiple files; and commits touching `pinn_instruction/`, `.planning/`, framework specs, or governance instructions.
+- **Attribution**: Agent-authored or materially agent-assisted commits must include `Agent-Assisted-By:` or a valid `Co-Authored-By:` trailer.
+- **Transformation and verification integrity**: Before a bulk transformation of a file that already has uncommitted changes (split, reformat, large find-replace), commit or stash those pre-existing changes first as their own atomic unit; never fold them into the transformation commit. When a commit asserts a verifiable invariant (byte-for-byte preservation, hash match, counts), record the supporting hashes or counts in committed state — not in `/tmp` — so the claim is re-derivable.
+- **Docs plan-review-fix lifecycle**: Rules attach to the action, not the agent; retention, naming, and archive follow `docs/README.md`. Record execution provenance in the plan frontmatter (`execution_status`, `executed_at`, `review_status`) and close each pass with a dedicated commit carrying `Plan-Execution:`/`Plan-Source:` trailers, separate from the work commits (re-runs use `remediation-pass-N`); commit review reports as `verify(<scope>)`, kept and superseded via frontmatter `status: superseded` rather than delete-and-recreate, separate from any fixes; author fix or remediation plans as their own `plan(<scope>)` commit.
+
 ---
 
 ## Part 2: Source of Truth and Repository Map
