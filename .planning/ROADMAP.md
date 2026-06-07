@@ -115,8 +115,8 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 
 **Goal**: Reviewers can trace every Issue 01 decision to direct evidence — examined critically against both source documents, current framework specs, and first-principles physics — before any framework-spec edit is accepted, and every fix that follows has a defined re-verification pass.
 **Depends on**: Phase 15.1 + post-ship SCS gate correction (both complete)
-**Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, VER-02, VER-05 (defined here; applied throughout Phases 17–22)
-**Completion**: Phase 16 completed 2026-05-16; Phase 17 completed 2026-05-20. Next milestone workflow step is `$gsd-discuss-phase 18`.
+**Requirements**: EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, VER-02, VER-05 (defined here; applied throughout Phases 17–22, including Phase 20.5)
+**Completion**: Phase 16 completed 2026-05-16; Phase 17 completed 2026-05-20.
 **Success Criteria** (what must be TRUE):
 
   1. Reviewer can inspect issue-by-issue evidence packets with line-range citations to `ctl_pinn_resolution.md`, `01-architecture-and-physics-foundations.md`, and current framework specs. Live `pinn/` references, when present, are FUT-01 hand-off context only.
@@ -221,7 +221,7 @@ Plans:
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 
 **Goal**: Acceptance checks are not only defined but **executed** with disposable validation probes against the v1.4 framework specs; the source-issue ledger is reconciled; and the validation handoff records what shipped, what was deferred, and why before Phase 22 performs final presentation cleanup.
-**Depends on**: Phase 20.5 (or whichever phase last touched a contested finding)
+**Depends on**: Phase 20.5
 **Requirements**: VER-01, VER-03, VER-04, VER-06 (+ VER-05 closing loop)
 **Success Criteria** (what must be TRUE):
 
@@ -264,9 +264,19 @@ Plans:
 
 ### Phase 22: Framework-Spec Cleanup
 
-**Goal:** All three framework specs render correctly in Cursor preview, with math normalized to LaTeX and stale or obsolete author comments dispositioned without changing mathematical or prose meaning or allowing autonomous semantic deletion.
+**Goal:** All three framework specs render correctly in Cursor preview, with math normalized to LaTeX and every author comment dispositioned without changing mathematical or prose meaning or allowing autonomous semantic deletion.
 **Requirements**: TBD (existing cross-cutting VER-05 applies)
 **Depends on:** Phase 21
+**Success Criteria** (what must be TRUE):
+
+  1. The detector passes the author-flag regression set and the negative control remains clean.
+  2. Every author-flagged region is resolved.
+  3. Detector and Cursor render review find zero residual rendering defects across all three framework specs.
+  4. All math is normalized to LaTeX `$…$`/`$$`, with every conversion equivalence-verified.
+  5. The content-preservation audit passes: no math or prose meaning changes without grounding and confirmation.
+  6. Every author comment has a recorded disposition basis and human adjudication; redundant plaintext fallbacks and conversion-noise hard breaks are confirmed per instance.
+  7. No semantic change or deletion occurs without grounding or human confirmation; unresolved items are logged as STOP gaps, and the phase does not close on an `OPEN` gap unless the user defers it.
+
 **Plans:** 0 plans
 
 Plans:

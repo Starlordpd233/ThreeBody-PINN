@@ -68,7 +68,7 @@ Any further conflict discovered between `ctl_pinn_resolution.md` and `01-archite
 
 ## Regression Policy
 
-Every ledger row has a `Dependents` field. After each batch of spec or code edits in Phases 17-21, the executing agent must identify every previously `VERIFIED` finding that is a transitive dependent of the edited finding or shared contract. The agent re-runs those findings' named acceptance checks.
+Every ledger row has a `Dependents` field. After each batch of spec or code edits in Phases 17-22, including Phase 20.5, the executing agent must identify every previously `VERIFIED` finding that is a transitive dependent of the edited finding or shared contract. The agent re-runs those findings' named acceptance checks.
 
 If a regression is found, the affected finding returns to `IN_PROGRESS`, the phase records the regression in the ledger and packet transition log, and phase-exit is blocked until the finding reaches `VERIFIED` or `DEFERRED`.
 
@@ -76,7 +76,7 @@ A batch is the set of edits committed by one GSD plan.
 
 ## Phase-Exit Rule
 
-No Phase 17-21 plan may exit with an in-scope finding at `IN_PROGRESS` or `FIX_APPLIED`. Allowed phase-exit states are only `VERIFIED` and `DEFERRED`.
+No plan in Phases 17-22, including Phase 20.5, may exit with an in-scope finding at `IN_PROGRESS` or `FIX_APPLIED`. Allowed phase-exit states are only `VERIFIED` and `DEFERRED`.
 
 The ledger status and packet transition logs are part of the exit gate. Missing evidence, missing status transitions, or a "fix applied" row without a passing acceptance check blocks exit.
 

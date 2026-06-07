@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: completed
-last_updated: "2026-06-05T10:39:48.831Z"
-last_activity: 2026-06-05
+status: in_progress
+last_updated: "2026-06-07"
+last_activity: 2026-06-07
 progress:
-  total_phases: 6
+  total_phases: 8
   completed_phases: 5
-  total_plans: 18
+  total_plans: 19
   completed_plans: 18
-  percent: 83
+  percent: 63
 ---
 
 # Project State
@@ -28,13 +28,13 @@ Phase: 20.5
 Plan: Next — Phase 20.5 execution pending
 Status: Phase 20 complete (5/5 plans executed). Phase 20.5 (Sampling Coordinate Allocation) design+plan locked, execution pending. Phase 21 validation/handoff follows 20.5; Phase 22 framework-spec cleanup is the final v1.4 phase.
 Last activity: 2026-06-07
-Progress: [█████████░] 95%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 52 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21)
+- Total plans completed: 57 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 18)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -123,7 +123,7 @@ Recent decisions affecting current work:
 - [v1.4-scope]: Validation suite execution is VER-04 (in Phase 21) — not deferred to FUT — but execution uses disposable validation probes against the v1.4 framework specs. Existing `pinn/` implementation edits are deferred until after the framework specs are settled and live PINN-side code is not v1.4 evidence.
 - [v1.4-init]: M4 (constraint counting) elevated to PHYS-06 — was missing from initial requirement coverage.
 - [v1.4-init]: `master_consolidation_report.md` demoted from co-equal primary source to supporting evidence.
-- [v1.4-workflow]: All Phases 17–22 spec work happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
+- [v1.4-workflow]: All Phases 17–22 spec work, including Phase 20.5, happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
 - [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative, the user performs external research, and EDL artifacts do not resolve gaps or authorize probes/defaults/spec edits without user instruction. GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
 - [v1.1]: Automated Python diffing approach chosen for verification

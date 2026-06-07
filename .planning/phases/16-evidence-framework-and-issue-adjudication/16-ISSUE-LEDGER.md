@@ -50,7 +50,7 @@ The forward status path is exactly `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VER
 
 Audit string: FIX_APPLIED is not closure; VERIFIED requires a passing acceptance check.
 
-A batch is one GSD plan (`NN-NN-PLAN.md`). After every batch of spec or code edits in Phases 17-21, the executing agent re-runs each `VERIFIED` finding's acceptance check if that finding appears as a transitive dependent of any finding edited by the batch. Any regression returns the affected finding to `IN_PROGRESS` and blocks phase exit until re-fixed and re-verified.
+A batch is one GSD plan (`NN-NN-PLAN.md`). After every batch of spec or code edits in Phases 17-22, including Phase 20.5, the executing agent re-runs each `VERIFIED` finding's acceptance check if that finding appears as a transitive dependent of any finding edited by the batch. Any regression returns the affected finding to `IN_PROGRESS` and blocks phase exit until re-fixed and re-verified.
 
 The phase-exit gate permits only `VERIFIED` or `DEFERRED` for in-scope findings. No phase exits with any in-scope finding at `IN_PROGRESS` or `FIX_APPLIED`.
 

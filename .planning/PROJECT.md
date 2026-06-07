@@ -183,4 +183,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-03 — factual-sync pass: Phases 16–19 are complete and verified; Phase 20 (architecture and normalization cleanup) is next, with Phase 20.5 execution pending before Phase 21. Project-identity reframing (PINN as north star), resolution-doc verdict-source wording, and Core Value scope are pending user-confirmed edits. (Earlier context: EDL-19-01 no longer blocks Phase 19 loss-contract closure; canonical resolution recorded in 19-GAPS.md and D-20 of 19-CONTEXT.md.)*
+*Last updated: 2026-06-07 — Phases 16–20 are complete and verified; Phase 20.5 execution is next, followed by Phase 21 validation/handoff and final Phase 22 framework-spec cleanup. Project-identity reframing (PINN as north star), resolution-doc verdict-source wording, and Core Value scope remain pending user-confirmed edits. (Earlier context: EDL-19-01 no longer blocks Phase 19 loss-contract closure; canonical resolution recorded in 19-GAPS.md and D-20 of 19-CONTEXT.md.)*

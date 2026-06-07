@@ -43,7 +43,7 @@ This is the finishing phase: it runs **after** Phases 20.5 and 21 so it catches 
 | D7 | Math representation standard | **LaTeX `$…$`/`$$`** everywhere; convert backtick/prose ASCII-math with verified equivalence; **remove redundant plaintext fallbacks per-instance on confirmation** |
 | D8 | Trailing-`\` Pandoc hard-breaks | **Remove where they are conversion noise, confirm each** (renders as `<br>`, so removal is a minor layout change) |
 
-All semantic / process decisions above were surfaced under the v1.4 STOP-protocol governance rather than chosen by the agent.
+The preserved design records D1-D8 as user-approved locked decisions rather than agent-chosen defaults. It does not preserve the per-decision source-silence citations and option history required to reconstruct compliant retrospective gap entries; any new Phase 22 gap must be recorded prospectively under the v1.4 STOP protocol.
 
 ## 4. Defect taxonomy
 
