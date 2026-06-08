@@ -3,7 +3,7 @@
 **Defined:** 2026-05-15
 **Core Value:** The simulation dataset and data pipeline must be clean, well-validated, and correctly processed; framework specs must be physically coherent before implementation work depends on them.
 
-**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 20.5 are complete. Phase 21 validation/handoff is next, followed by final Phase 22 framework-spec cleanup.
+**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 21 are complete. Phase 22 framework-spec cleanup is next and is the final v1.4 phase.
 
 ## v1.4 Requirements
 
@@ -57,12 +57,12 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ### Verification and Handoff
 
-- [ ] **VER-01**: The revised specs include numerically-defined acceptance checks for scaling consistency, COM invariance, derivative correctness, force-energy consistency, and loss stability. Each check names its pass criterion (e.g., `relative_error < 1e-10`), the data it runs on, and the command or function that executes it — not just prose descriptions.
+- [x] **VER-01**: The revised specs include numerically-defined acceptance checks for scaling consistency, COM invariance, derivative correctness, force-energy consistency, and loss stability. Each check names its pass criterion (e.g., `relative_error < 1e-10`), the data it runs on, and the command or function that executes it — not just prose descriptions.
 - [x] **VER-02**: The roadmap maps every v1.4 requirement to exactly one phase beginning at Phase 16.
-- [ ] **VER-03**: The Phase 21 validation handoff identifies which issues were fixed, which were intentionally left unchanged (with the M6/M7 "not adjudicable from supplied files" deferral made explicit), and which require future empirical validation; Phase 22 consumes this handoff while performing final presentation cleanup.
-- [ ] **VER-04**: The acceptance checks defined in VER-01 are **executed** during Phase 21 — not just documented — using disposable validation probes that **implement what the v1.4 framework specs say** (directive 2026-05-19; the probes test the specs, not the v1.3-era code). Each test (§10.1 scaling, §10.2 COM, §10.3 componentwise AD on the synthetic trajectory, §10.4 force-energy consistency, §10.5 loss stability dry run) produces a recorded pass/fail with numerical evidence. A failing test blocks phase completion and routes back to the originating phase (17–20.5) for spec re-fix; v1.4 does not ship while any required test fails. The validation probes are disposable: their job is to confirm the framework specs are self-consistent and implementable. Passing or failing VER-04 does NOT touch the v1.3-era `pinn/` implementation — code alignment is FUT-01.
+- [x] **VER-03**: The Phase 21 validation handoff identifies which issues were fixed, which were intentionally left unchanged (with the M6/M7 "not adjudicable from supplied files" deferral made explicit), and which require future empirical validation; Phase 22 consumes this handoff while performing final presentation cleanup.
+- [x] **VER-04**: The acceptance checks defined in VER-01 are **executed** during Phase 21 — not just documented — using disposable validation probes that **implement what the v1.4 framework specs say** (directive 2026-05-19; the probes test the specs, not the v1.3-era code). Each test (§10.1 scaling, §10.2 COM, §10.3 componentwise AD on the synthetic trajectory, §10.4 force-energy consistency, §10.5 loss stability dry run) produces a recorded pass/fail with numerical evidence. A failing test blocks phase completion and routes back to the originating phase (17–20.5) for spec re-fix; v1.4 does not ship while any required test fails. The validation probes are disposable: their job is to confirm the framework specs are self-consistent and implementable. Passing or failing VER-04 does NOT touch the v1.3-era `pinn/` implementation — code alignment is FUT-01.
 - [x] **VER-05**: Every fix is closed through an iterative re-verification loop. The issue ledger tracks each finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`. A finding only advances to `VERIFIED` after the corresponding acceptance check passes; an applied edit that fails re-verification stays at `IN_PROGRESS` and is re-fixed before any phase exits. After each batch of edits the agent re-runs verification on every previously `VERIFIED` finding the batch could have regressed (same spec section, dependent contract, or shared formula) and reverts the status to `IN_PROGRESS` on any regression. The ledger lives at a stable path (recommended: `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`) and every phase appends to it; nothing in v1.4 closes until all in-scope findings are `VERIFIED` or explicitly `DEFERRED` with a written blocker.
-- [ ] **VER-06**: The framework-spec Source-Issue (`SI-*`) ledger is reconciled: every v1.4-resolved finding retires its corresponding `SI-*` entry with a back-reference to the resolving phase/commit (candidates: `SI-CTL-001` ↔ B-03, `SI-PINN-001` ↔ B-04, `SI-SSR-001` ↔ M5). Entries unrelated to Issue 01 are preserved untouched (`SI-PINN-002`, `SI-DQA-002`, `SI-DQA-003`).
+- [x] **VER-06**: The framework-spec Source-Issue (`SI-*`) ledger is reconciled: every v1.4-resolved finding retires its corresponding `SI-*` entry with a back-reference to the resolving phase/commit (candidates: `SI-CTL-001` ↔ B-03, `SI-PINN-001` ↔ B-04, `SI-SSR-001` ↔ M5). Entries unrelated to Issue 01 are preserved untouched (`SI-PINN-002`, `SI-DQA-002`, `SI-DQA-003`).
 
 ## Future Requirements
 
@@ -139,4 +139,4 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-06-07 after Phase 20.5 completion — all 32 v1.4 requirements are mapped; SAMP-01/SAMP-02 are complete; Phase 21 validation/handoff is next and Phase 22-specific requirements remain TBD.*
+*Last updated: 2026-06-08 after Phase 21 repair completion — all 32 v1.4 requirements are mapped; SAMP-01/SAMP-02 and VER-01/03/04/06 are complete; Phase 22-specific requirements remain TBD.*

@@ -1,9 +1,18 @@
 # Phase 21: Validation Handoff
 
-This document provides a definitive list of spec changes to clean up in Phase 22, based on the reconciliation of Issue 01 findings.
+This handoff is the Phase 22 input for final framework-spec cleanup. It is grounded in the Phase 16 issue ledger, the current framework-spec SI metadata sections, and the repaired Phase 21 probe evidence.
+
+## Evidence Used
+
+- `21-PROBE-RESULTS.md` - hash-backed summary of fresh 2026-06-08 probe execution.
+- `evidence/*.stdout.txt` - raw stdout for Python environment and all five probes.
+- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` - stable v1.4 issue ledger.
+- `pinn_architecture.md:984-1009` - Section 10 acceptance checks.
+- `ctl_instruction.md:1446-1448` and `stage_strat_revision.md:425-427` - retired SI entries.
 
 ## 1. Fixed
-The following findings resulted in an explicit spec change and are marked as `VERIFIED` in the issue ledger:
+
+The following in-scope Issue 01 findings are `VERIFIED` in the Phase 16 issue ledger and are covered by prior phase evidence packets plus Phase 21 acceptance evidence where applicable:
 
 - **B-01**: SIREN hidden-layer initialization
 - **B-02**: Characteristic length and mass scaling
@@ -26,14 +35,31 @@ The following findings resulted in an explicit spec change and are marked as `VE
 - **D-02-NORM**: Raw-vs-bounded I_norm naming
 
 ## 2. Intentionally Unchanged
-Findings that were false positives or valid existing conventions:
-- *None identified during v1.4 resolution that were kept in scope.*
+
+No in-scope Issue 01 finding is currently classified by the Phase 16 ledger as an intentionally unchanged valid existing convention. The ledger's non-fixed terminal state is `DEFERRED` for M6/M7 only.
 
 ## 3. Deferred
-Findings that require future empirical validation or were not adjudicable from supplied files:
 
-- **M6**: Not adjudicable from supplied files. The accessible consolidation map does not expose standalone M6 or M7 semantic categories. Revisit when source material is available.
-- **M7**: Not adjudicable from supplied files. The accessible consolidation map does not expose standalone M6 or M7 semantic categories. Revisit when source material is available.
+The following findings remain explicitly deferred:
 
----
-*Next Step: Phase 22 consumes this handoff while performing final presentation cleanup.*
+- **M6**: Not adjudicable from supplied files. The accessible consolidation map does not expose standalone M6 or M7 semantic categories. Revisit only when source material is available.
+- **M7**: Not adjudicable from supplied files. The accessible consolidation map does not expose standalone M6 or M7 semantic categories. Revisit only when source material is available.
+
+## 4. SI Metadata Reconciliation
+
+| Entry | Status | Evidence |
+|---|---|---|
+| `SI-CTL-001` | Retired with B-03 back-reference | `ctl_instruction.md:1446-1448` |
+| `SI-SSR-001` | Retired with M5 back-reference | `stage_strat_revision.md:425-427` |
+| `SI-PINN-001` | Not present in framework-spec SI sections; not synthesized | `git grep` at `v1.4-pre-phase-21` and current tree found planning references only |
+| `SI-PINN-002` | Preserved untouched | `pinn_architecture.md:1017-1024` |
+| `SI-PINN-003` | Preserved untouched | `pinn_architecture.md:1026-1030` |
+| `SI-DQA-002` | Preserved untouched | `data_quality_assessment.md:318-322` |
+| `SI-DQA-003` | Preserved untouched | `data_quality_assessment.md:324-327` |
+
+## 5. Phase 22 Consumption Notes
+
+- Phase 22 may clean presentation, rendering, author-comment disposition, and markdown/LaTeX formatting.
+- Phase 22 must not reinterpret the v1.4 semantic decisions above unless it opens a new STOP-protocol gap and gets user instruction.
+- Phase 22 should preserve the `.venv/bin/python` probe commands in Section 10 unless it also updates the evidence and validation artifacts.
+- FUT-01 implementation work remains out of v1.4 scope; use `21-CODE-DIVERGENCE.md` for forward-pointing code-alignment hints.

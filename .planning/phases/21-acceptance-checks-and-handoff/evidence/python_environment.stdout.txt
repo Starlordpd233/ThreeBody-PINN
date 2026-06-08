@@ -1,0 +1,6 @@
+$ .venv/bin/python - <<PY
+python=<home>/Desktop/3_body_problem/.venv/bin/python
+python_version=3.12.13
+numpy=2.2.0
+torch=2.12.0
+exit_code=0

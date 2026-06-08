@@ -384,3 +384,26 @@ Status transition log:
 - 2026-06-05 774778b IN_PROGRESS -> FIX_APPLIED (Phase 20 P05 Task 2 by Phase 20 executor)
 - 2026-06-05 03a6220 FIX_APPLIED -> VERIFIED (Phase 20 P05 Task 3 by Phase 20 executor)
 - 2026-06-06 remediation-audit VERIFIED -> VERIFIED (post-review remediation: fixed missed Step 4 scope descriptor surface and strengthened bare I_norm audit)
+
+## Phase 21 Acceptance Evidence Addendum
+
+Added 2026-06-08 during Phase 21 recovery after the prior execution claim was found structurally incomplete. This addendum does not change existing terminal statuses; it records the VER-04 numerical acceptance evidence that supports Phase 21 closure.
+
+| Probe | Related contracts/findings | Evidence | Result |
+|---|---|---|---|
+| 10.1 Scaling Consistency | B-02 / AC-PHYS-01; M3 scaling order context | `.planning/phases/21-acceptance-checks-and-handoff/evidence/probe_scaling.stdout.txt` | PASS: `max_relative_error = 2.22e-16` |
+| 10.2 COM Invariance | B-05 / AC-FRAME-01 sibling numeric check; output projection contract | `.planning/phases/21-acceptance-checks-and-handoff/evidence/probe_com.stdout.txt` | PASS: `COM magnitude: 7.90e-17` |
+| 10.3 Componentwise AD | PHYS-02 derivative contract; B-07/B-09 downstream force/loss dependence | `.planning/phases/21-acceptance-checks-and-handoff/evidence/probe_ad.stdout.txt` | PASS: `relative_error: 0.00e+00` |
+| 10.4 Force-Energy Consistency | B-07 / AC-PHYS-04; B-09 / AC-PHYS-03 | `.planning/phases/21-acceptance-checks-and-handoff/evidence/probe_force_energy.stdout.txt` | PASS: `relative_error: 1.62e-16`, finite `H_epsilon` |
+| 10.5 Loss Stability Dry Run | B-01/B-10/M8 architecture contracts; B-07/B-08/B-09 loss contracts | `.planning/phases/21-acceptance-checks-and-handoff/evidence/probe_loss_stability.stdout.txt` | PASS: finite total/data/IC/physics/energy/angular losses |
+
+Environment evidence: `.planning/phases/21-acceptance-checks-and-handoff/evidence/python_environment.stdout.txt` records `.venv/bin/python`, Python 3.12.13, NumPy 2.2.0, and Torch 2.12.0.
+
+## Phase 21 SI-Ledger Reconciliation Addendum
+
+Recorded 2026-06-08 for VER-06:
+
+- `SI-CTL-001` is retired in `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` with "Resolved by v1.4 finding B-03. See Phase 17 input contract."
+- `SI-SSR-001` is retired in `pinn_instruction/markdown_conversion/framework-revisions/stage-strat-revision/stage_strat_revision.md` with "Resolved by v1.4 finding M5. See Phase 20 architecture and normalization cleanup."
+- `SI-PINN-001` is not present in the current framework-spec SI metadata sections and was not present there at `v1.4-pre-phase-21`; it appears only in planning references. No synthetic retired entry was created.
+- `SI-PINN-002`, `SI-PINN-003`, `SI-DQA-002`, and `SI-DQA-003` are preserved untouched because they are unrelated to Issue 01 retirement candidates.

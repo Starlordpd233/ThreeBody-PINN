@@ -1,13 +1,20 @@
 import torch
 
 def test_com():
-    # M_i are the actual masses, we use arbitrary positive values
+    # M_i are the ordered raw masses supplied to the projection head.
     masses = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float64)
     total_mass = masses.sum()
-    
-    # Raw network outputs for positions: shape (3, 3) representing 3 bodies in 3D
-    raw_pos = torch.randn(3, 3, dtype=torch.float64)
-    
+
+    # Raw network outputs for positions: shape (3, 3) representing 3 bodies in 3D.
+    raw_pos = torch.tensor(
+        [
+            [1.25, -0.50, 0.75],
+            [-0.25, 1.75, -1.00],
+            [0.40, -1.20, 0.30],
+        ],
+        dtype=torch.float64,
+    )
+
     # Projection head logic from pinn_architecture.md
     # x'_i = x_i - sum_j(M_j x_j)/total_mass
     raw_com = (masses.unsqueeze(1) * raw_pos).sum(dim=0) / total_mass
