@@ -471,16 +471,16 @@ definition-list bodies; assert sampling stays 0-findings.
 
 **Note:** A2 is the one assumption that materially changes the defect count — resolve it in Wave 0/Stage-0 before classifying the 37 footnote refs.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Footnote rendering in Cursor (`[^n]`, 37 refs in pinn_architecture.md)**
+1. **Footnote rendering in Cursor (`[^n]`, 37 refs in pinn_architecture.md) — RESOLVED AS EXECUTION-TIME GATE**
    - What we know: markdown-it has no built-in footnote support; design §10 lists this as a mitigation requiring a Stage-0 probe.
    - What's unclear: whether Cursor/VS Code's preview enables a footnote plugin.
-   - Recommendation: Stage-0 probe before classifying; do NOT assume defect.
+   - Resolution path: blocking Wave-0 `22-STAGE0-FOOTNOTE-PROBE.md` before any WS-A repair runs. The detector's D4 footnote handling branches at runtime via `--footnote-policy auto|supported|unsupported`; `auto` reads the recorded probe and blocks if the probe is missing while target files contain `[^n]`. No research claim is made about the actual Cursor result.
 
-2. **Detector location convention**
+2. **Detector location convention — RESOLVED**
    - What we know: design says "formalize the detector as a committed script"; doesn't pin a path.
-   - Recommendation: `tools/spec-render-check/` with committed `package.json` + lockfile (keeps Node toolchain out of repo root). Planner confirms.
+   - Resolution path: `tools/spec-render-check/` with committed `package.json` + lockfile (keeps Node toolchain out of repo root). This is the planner-selected detector location used by the Phase 22 plans.
 
 ## Environment Availability
 
