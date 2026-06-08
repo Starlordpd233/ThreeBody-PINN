@@ -6,6 +6,7 @@ requirements:
   - VER-01
   - VER-03
   - VER-04
+  - VER-05
   - VER-06
 source_plans:
   - 21-01-PLAN.md
@@ -30,6 +31,7 @@ Phase 21 now has numerically defined acceptance checks, real captured probe exec
 | `VER-01` | `pinn_architecture.md:984-1009` defines all five Section 10 checks with pass criteria, input data, and `.venv/bin/python` commands. | PASS |
 | `VER-03` | `21-HANDOFF.md` classifies fixed findings, records no intentionally unchanged Issue 01 findings found in the ledger, and explicitly preserves M6/M7 as not-adjudicable deferrals. | PASS |
 | `VER-04` | `21-PROBE-RESULTS.md` summarizes fresh 2026-06-08 executions and points to per-probe raw stdout evidence files with SHA-256 hashes. | PASS |
+| `VER-05` | `16-ISSUE-LEDGER.md` records the phase-exit gate: no phase exits until all in-scope findings are `VERIFIED` or `DEFERRED` with a written blocker. Phase 21 preserves that terminal state and adds the acceptance evidence addendum. | PASS |
 | `VER-06` | `SI-CTL-001` and `SI-SSR-001` are retired with back-references; `SI-PINN-001` is absent from framework-spec SI sections and not synthesized; unrelated SI entries are preserved. | PASS |
 
 ## Probe Execution Results
