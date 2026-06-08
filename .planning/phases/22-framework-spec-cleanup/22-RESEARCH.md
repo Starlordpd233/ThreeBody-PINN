@@ -41,7 +41,7 @@ cross-cutting and future requirements are addressable and MUST be kept so:
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| VER-05 | Iterative re-verification ledger: each finding tracked PENDING→IN_PROGRESS→FIX_APPLIED→VERIFIED; re-run on regression candidates after each batch; nothing closes until all in-scope findings VERIFIED or DEFERRED | The detector (G2 zero-residual) IS the re-verification mechanism for WS-A: after each fix batch, re-run `detect.mjs` over all 3 files; any new/regressed finding reverts the affected item to IN_PROGRESS. Ledger lives at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` (stable path); Phase 22 appends. |
+| VER-05 | Iterative re-verification ledger: each finding tracked PENDING→IN_PROGRESS→FIX_APPLIED→VERIFIED; re-run on regression candidates after each batch; nothing closes until all in-scope findings VERIFIED or DEFERRED | The detector (G2 zero-residual) IS the re-verification mechanism for WS-A: after each fix batch, re-run `detect.mjs` over all 3 files; any new/regressed finding reverts the affected item to IN_PROGRESS. Ledger lives at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` (stable path); Phase 22 appends using the **existing Phase 16 ledger columns and per-finding transition-log format**. WS-A plans (22-02, 22-03) record per-plan summaries during Wave 1 parallel execution; plan 22-05 (Wave 3) reconciles the shared ledger once. Do not define new VER-05 fields unless a STOP-surfaced process-schema decision resolves them. |
 | FUT-05 | Adjudicate the author comments Phase 22 preserves; consumes `22-COMMENT-HANDOFF.md`; per-comment basis classification + disposition under human adjudication per design §6 | Phase 22 produces the census + verbatim-preservation + `22-COMMENT-HANDOFF.md` handoff that FUT-05 consumes. Phase 22 performs NONE of the §6 adjudication. |
 </phase_requirements>
 
@@ -324,13 +324,16 @@ to census. (The "28 `\authcomment`" figure is retired.)
 ### Census method (deterministic)
 1. A census pass (can share `detect.mjs` or be a sibling script) scans each file, fence-excluded for
    prose markers, for the marker set; emits `{form, file, section/anchor, matched-snippet, verbatim-text}`.
-2. Treat `**[...]**` bracketed bold notes as author comments **only when** they carry/derive-from an
+2. Each census record also carries a per-comment `text_hash = SHA-256(verbatim-text)` and a machine-readable
+   `COMMENT_HASH <stable-comment-id> <text_hash>` line; the stable comment id must be reproducible across
+   PRE and POST census runs for the same comment so the automated verifier can prove 0 lost / 0 semantically changed.
+3. Treat `**[...]**` bracketed bold notes as author comments **only when** they carry/derive-from an
    author marker (design §6.1 step 1) — e.g. the 3 SI-PINN-002 notes.
-3. Emit `22-COMMENT-HANDOFF.md`.
+4. Emit `22-COMMENT-HANDOFF.md`.
 
 ### Preservation check (G3 input)
-- Snapshot every enumerated comment's verbatim text **before** any WS-A edit.
-- After all edits, re-census and diff: assert **0 lost, 0 semantically changed**. The only permitted
+- Snapshot every enumerated comment's verbatim text **before** any WS-A edit (created by 22-01 Wave 0 Task 4 as `22-COMMENT-CENSUS-PRE.md`).
+- After all edits, re-census and diff: assert **0 lost, 0 semantically changed** using per-comment `COMMENT_HASH <stable-comment-id> <text_hash>` comparison between PRE and POST census artifacts. The only permitted
   edit to a comment is a mechanical wrapper repair (D-05) where the wrapper itself breaks Markdown
   rendering, preserving text/meaning/location. (Live state shows no comment wrapper currently breaks
   rendering — `\authcomment` appears only in the meta-doc as inline code — so wrapper repairs are
@@ -396,10 +399,12 @@ KEEP), git temporal grounding, any deletion/revision/resurfacing, the design §6
 ### Phase Requirements → Test/Gate Map
 | Gate | Behavior | Automated? | Command / Method |
 |------|----------|-----------|------------------|
-| **G1** | Detector reproduces the author-flag regression set; both negative controls stay clean | yes | `node …/detect.mjs` over all 3 files; assert author-flagged regions reproduced, SI-PINN-002 + sampling clean |
-| **G2** | Zero residual findings across all 3 files under ALL layers (D1–D6) | yes | `node …/detect.mjs` exits 0 |
-| **G3** | Content-preservation audit passes (every changed line: delimiters/structure/whitespace/representation only) + comment preservation (0 lost / 0 semantically changed) | yes (diff + before/after census) | committed before/after census diff + per-comment text-hash compare |
+| **G1** | Detector reproduces the author-flag regression set; both negative controls stay clean | yes | `node …/detect.mjs --selftest` over all 3 files; assert author-flagged regions reproduced, SI-PINN-002 + sampling clean |
+| **G2** | Zero residual findings across all 3 files under ALL layers (D1–D6) | yes | `node …/detect.mjs --all` exits 0 |
+| **G3** | Content-preservation audit passes (every changed hunk classified into allowed categories with per-hunk evidence) + comment preservation (0 lost / 0 semantically changed per committed PRE/POST census diff) | yes (diff + before/after census) | committed before/after census diff + per-comment `COMMENT_HASH` compare + per-hunk allowed-delta classification against recorded pre-WS-A baseline |
 | **G4** | Full HTML render + manual Cursor eyeball (no raw LaTeX, clipped math, broken layout, accidental code formatting, missing content) | manual (D-09) | open all 3 specs in Cursor/VS Code preview; per-file checklist recorded (D-10) |
+
+**Exit-code semantics (planning-level contract):** Exit 0 = clean; exit 1 = DEFINITE rendering findings; exit 2 = sanity gate failure (plugin load); exit 3 = missing prerequisite; other non-zero = detector/tool failure. Rendering findings are non-zero and **cannot be masked as success**. STOP-halted findings block the owning plan — they are not "green with exceptions."
 
 ### Sampling Rate (VER-05 loop)
 - **Per fix batch (commit):** re-run `detect.mjs` over the edited file(s) → must not introduce new findings; update ledger.
@@ -408,9 +413,11 @@ KEEP), git temporal grounding, any deletion/revision/resurfacing, the design §6
 
 ### Wave 0 Gaps (build before repair)
 - [ ] `tools/spec-render-check/package.json` + `package-lock.json` — install + pin `markdown-it`, `@vscode/markdown-it-katex`, `katex` (gate the install behind a verify checkpoint).
-- [ ] `tools/spec-render-check/detect.mjs` — sanity gate + D1–D6 + census pass + deterministic CI report + exit codes.
+- [ ] `tools/spec-render-check/detect.mjs` — sanity gate (inline + block math) + D1–D6 + census pass (with `text_hash` and `COMMENT_HASH` lines) + deterministic CI report + exit codes (0=clean, 1=findings, 2=sanity gate failure, 3=missing prerequisite).
 - [ ] Stage-0 footnote probe: confirm how Cursor renders `[^n]` (37 in pinn) before classifying.
-- [ ] `.gitignore` entry for `tools/spec-render-check/node_modules/`.
+- [ ] Pre-WS-A baseline ref: tag `v1.4-pre-phase-22` or named commit in `22-01-SUMMARY.md`.
+- [ ] `22-COMMENT-CENSUS-PRE.md` — pre-WS-A author-comment census (all forms) with per-comment `text_hash` and `COMMENT_HASH` lines, committed before any WS-A edits.
+- [ ] `.gitignore` entry for `tools/spec-render-check/node_modules/` (verify with `git check-ignore -v`).
 - [ ] README capturing the exact detector command + interpretation (feeds D-10).
 
 ## Common Pitfalls

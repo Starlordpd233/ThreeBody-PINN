@@ -276,7 +276,7 @@ Plans:
 | 20. Architecture and Normalization Cleanup | v1.4 | 5/5 | Complete    | 2026-06-05 |
 | 20.5 Sampling Coordinate Allocation (INSERTED) | v1.4 | 1/1 | Complete | 2026-06-07 |
 | 21. Acceptance Checks and Handoff | v1.4 | 2/2 | Complete | 2026-06-08 |
-| 22. Framework-Spec Cleanup | v1.4 | 0/TBD | Not planned | - |
+| 22. Framework-Spec Cleanup | v1.4 | 5/5 planned | Planned | - |
 
 ### Phase 22: Framework-Spec Cleanup
 
@@ -293,11 +293,26 @@ Plans:
   6. Every author comment (any form/format) is censused and preserved verbatim — only render-breaking wrappers mechanically repaired, meaning and location intact — and the complete set is carried forward to a dedicated adjudication phase (FUT-05) via a handoff artifact. Redundant plaintext fallbacks and conversion-noise hard breaks remain WS-A presentation fixes, confirmed per instance.
   7. No semantic change or deletion occurs without grounding or human confirmation; unresolved items are logged as STOP gaps, and the phase does not close on an `OPEN` gap unless the user defers it.
 
-**Plans:** 0 plans
+**Plans:** 5/5 planned
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 22 to break down)
+**Wave 0 (build detector + baseline evidence)**
+
+- [ ] 22-01-PLAN.md — Build committed render detector (D1–D6 + sanity gate + census + regression/selftest) + Stage-0 footnote probe + pre-WS-A baseline ref + `22-COMMENT-CENSUS-PRE.md`
+
+**Wave 1 (WS-A repair, parallel — different files)**
+
+- [ ] 22-02-PLAN.md — Repair `pinn_architecture.md` (Pandoc tables/divs/captions → GFM, bare subscripts, backtick/prose math, footnotes per probe)
+- [ ] 22-03-PLAN.md — Repair `ctl_instruction.md` (mid-list `$$\begin{aligned}` leakage, bare subscripts, backtick/prose math, redundant fallbacks surfaced for human disposition)
+
+**Wave 2 (WS-B census + preservation)**
+
+- [ ] 22-04-PLAN.md — Census all author comments, verify 0 lost/changed (consume PRE from Wave 0, produce POST + HANDOFF for FUT-05)
+
+**Wave 3 (closure + VER-05 reconciliation)**
+
+- [ ] 22-05-PLAN.md — Run full detector suite (G1+G2), content-preservation audit (G3), manual Cursor render review (G4), reconcile VER-05 ledger
 
 ---
-*Last updated: 2026-06-08 — Phases 16–21 complete; Phase 22 framework-spec cleanup is next and is the final v1.4 phase.*
+*Last updated: 2026-06-08 — Phases 16–21 complete; Phase 22 has 5 amended plans ready for execution (Wave 0 → Wave 3) and is the final v1.4 phase.*
