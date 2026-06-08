@@ -16,7 +16,7 @@
 
 This plan lives at:
 
-`<home>/Desktop/3_body_problem/docs/plans/Phase 20.5 GSD Workflow Repair Implementation Plan.md`
+`docs/work/plans/milestone_v1.4/20.5-gsd-workflow-repair/phase-20.5-gsd-workflow-repair-implementation-plan.md`
 
 The file already exists at this canonical path. Do **not** create a second dated/hyphenated copy (`2026-05-22-phase-20-5-gsd-workflow-repair-plan.md`) — that would (a) introduce a hyphenated `20-5` artifact into a dot-decimal migration and (b) duplicate the canonical plan.
 
@@ -33,7 +33,7 @@ Allowed in this repair:
 Forbidden in this repair:
 - Do not run `gsd-sdk query init.execute-phase 20.5` except as read-only validation.
 - Do not invoke `$gsd-execute-phase 20.5`.
-- Do not edit `<home>/Desktop/3_body_problem/pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`.
+- Do not edit `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`.
 - Do not create `20.5-SUMMARY.md`, `20.5-VERIFICATION.md`, probes, or `20.5-DATA-ALIGNMENT.md`.
 - Do not mark SAMP requirements complete.
 - Do not change current milestone focus away from Phase 19 unless the user explicitly authorizes sequencing changes.
@@ -41,36 +41,36 @@ Forbidden in this repair:
 ## File Structure
 
 Create:
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-SPEC.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-CONTEXT.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-DISCUSSION-LOG.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-PATTERNS.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-VALIDATION.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-01-PLAN.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-02-PLAN.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-03-PLAN.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-SPEC.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-CONTEXT.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-DISCUSSION-LOG.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-PATTERNS.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-VALIDATION.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-01-PLAN.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-02-PLAN.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-03-PLAN.md`
 
 Move (`git mv` — the source directory is **git-tracked**, not untracked; see Task 3):
-- `<home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md` → `20.5-GAPS.md` in the new dir
-- `<home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` → `20.5-RESEARCH.md` in the new dir
-- `<home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` → `20.5-MONOLITHIC-SOURCE-PLAN.md` in the new dir (renamed; this is the historical source plan, NOT executed)
+- `.planning/phases/20-5-sampling-coordinate-allocation/20-5-GAPS.md` → `20.5-GAPS.md` in the new dir
+- `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` → `20.5-RESEARCH.md` in the new dir
+- `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` → `20.5-MONOLITHIC-SOURCE-PLAN.md` in the new dir (renamed; this is the historical source plan, NOT executed)
 
 After the moves, the old `20-5-sampling-coordinate-allocation/` directory is empty and is removed with `rmdir`. Git's rename detection preserves history; no separate `.planning/archives/` copy is required.
 
 Modify (these are **partially already done** by commit a9ecd51 from 2026-05-20 — verify presence, supplement where missing, never duplicate):
-- `<home>/Desktop/3_body_problem/.planning/ROADMAP.md` (Phase 20.5 already inserted in `:9`; verify only)
-- `<home>/Desktop/3_body_problem/.planning/REQUIREMENTS.md` (SAMP-01/02, SCOPE-05, SCOPE-02 amendment, ARCH-05 traceability rows, count bump 30 → 32 — **all still missing**)
-- `<home>/Desktop/3_body_problem/.planning/STATE.md` (Phase 20.5 note already present at `:78`; verify only)
-- `<home>/Desktop/3_body_problem/.planning/MILESTONES.md` (Phase 20.5 already present at `:26`, `:31`; verify only — no further edit required in this repair)
-- `<home>/Desktop/3_body_problem/.planning/PROJECT.md` (Phase 20.5 row already present; only edit if stale `20-5-*` *paths* (not gap IDs) remain — see Task 4 Step 4)
-- `<home>/Desktop/3_body_problem/.planning/milestones/v1.4-GAPS.md` (no Phase 20.5 section; counts 17/17 — **must be added** with the three RESOLVED-WITH-INSTRUCTION gaps, counts bumped to 20/20)
-- `<home>/Desktop/3_body_problem/AGENTS.md` (SCOPE-05 cross-reference missing — **must be added** per DG-1; covers `CLAUDE.md`/`GEMINI.md` automatically since both are symlinks to `AGENTS.md`)
-- `<home>/Desktop/3_body_problem/ANTIGRAVITY.md` (SCOPE-05 cross-reference missing — **must be added** per DG-1; this is a separate 15 KB file, not a symlink)
+- `.planning/ROADMAP.md` (Phase 20.5 already inserted in `:9`; verify only)
+- `.planning/REQUIREMENTS.md` (SAMP-01/02, SCOPE-05, SCOPE-02 amendment, ARCH-05 traceability rows, count bump 30 → 32 — **all still missing**)
+- `.planning/STATE.md` (Phase 20.5 note already present at `:78`; verify only)
+- `.planning/MILESTONES.md` (Phase 20.5 already present at `:26`, `:31`; verify only — no further edit required in this repair)
+- `.planning/PROJECT.md` (Phase 20.5 row already present; only edit if stale `20-5-*` *paths* (not gap IDs) remain — see Task 4 Step 4)
+- `.planning/milestones/v1.4-GAPS.md` (no Phase 20.5 section; counts 17/17 — **must be added** with the three RESOLVED-WITH-INSTRUCTION gaps, counts bumped to 20/20)
+- `AGENTS.md` (SCOPE-05 cross-reference missing — **must be added** per DG-1; covers `CLAUDE.md`/`GEMINI.md` automatically since both are symlinks to `AGENTS.md`)
+- `ANTIGRAVITY.md` (SCOPE-05 cross-reference missing — **must be added** per DG-1; this is a separate 15 KB file, not a symlink)
 
 Do not modify:
-- `<home>/Desktop/3_body_problem/pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-SUMMARY.md`
-- `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-VERIFICATION.md`
+- `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-SUMMARY.md`
+- `.planning/phases/20.5-sampling-coordinate-allocation/20.5-VERIFICATION.md`
 
 ---
 
@@ -123,7 +123,7 @@ Expected before repair:
 Run:
 
 ```bash
-git diff -- <home>/Desktop/3_body_problem/pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
+git diff -- pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
 ```
 
 Expected: no diff for `sampling_method.md`.
@@ -142,7 +142,7 @@ The plan already lives at the canonical path (see "Save Target" above). This tas
 Run:
 
 ```bash
-test -f "<home>/Desktop/3_body_problem/docs/plans/Phase 20.5 GSD Workflow Repair Implementation Plan.md"
+test -f "docs/work/plans/milestone_v1.4/20.5-gsd-workflow-repair/phase-20.5-gsd-workflow-repair-implementation-plan.md"
 ```
 
 Expected: exit `0`.
@@ -152,7 +152,7 @@ Expected: exit `0`.
 Run:
 
 ```bash
-rg -n "Non-Execution Guard|Do not edit .*sampling_method.md|Validate GSD Recognition" "<home>/Desktop/3_body_problem/docs/plans/Phase 20.5 GSD Workflow Repair Implementation Plan.md"
+rg -n "Non-Execution Guard|Do not edit .*sampling_method.md|Validate GSD Recognition" "docs/work/plans/milestone_v1.4/20.5-gsd-workflow-repair/phase-20.5-gsd-workflow-repair-implementation-plan.md"
 ```
 
 Expected: command exits `0` and prints matches for all three patterns. Grep the stable phrase `"Validate GSD Recognition"` (used by Task 7) rather than a task-number-prefixed string, so the check is robust to task renumbers.
@@ -162,7 +162,7 @@ Expected: command exits `0` and prints matches for all three patterns. Grep the 
 Run:
 
 ```bash
-test ! -f <home>/Desktop/3_body_problem/docs/plans/2026-05-22-phase-20-5-gsd-workflow-repair-plan.md
+test ! -f docs/plans/2026-05-22-phase-20-5-gsd-workflow-repair-plan.md
 ```
 
 Expected: exit `0` (the stale-naming duplicate must not be created).
@@ -172,8 +172,8 @@ Expected: exit `0` (the stale-naming duplicate must not be created).
 ### Task 3: Repair Phase Directory Identity
 
 **Files:**
-- Create: `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/`
-- `git mv` from: `<home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation/`
+- Create: `.planning/phases/20.5-sampling-coordinate-allocation/`
+- `git mv` from: `.planning/phases/20-5-sampling-coordinate-allocation/`
 
 **Rationale for `git mv` (not `cp` + filesystem `mv`):** the source directory is git-tracked (see Task 1 Step 1). Using `cp` would leave the deletions of the tracked old paths *unstaged*, breaking Task 8 Step 1's "status shows only repair docs" check and producing a dirty post-commit tree. `git mv` stages both rename sides atomically; git's rename detection preserves history without requiring a separate `.planning/archives/` copy.
 
@@ -182,7 +182,7 @@ Expected: exit `0` (the stale-naming duplicate must not be created).
 Run:
 
 ```bash
-mkdir -p <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation
+mkdir -p .planning/phases/20.5-sampling-coordinate-allocation
 ```
 
 - [ ] **Step 2: `git mv` each tracked artifact into the dot-decimal directory with renames**
@@ -218,7 +218,7 @@ Edit the moved files in place:
 Run:
 
 ```bash
-rmdir <home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation
+rmdir .planning/phases/20-5-sampling-coordinate-allocation
 ```
 
 Expected: `rmdir` succeeds (the directory contains only the three files that were just `git mv`'d out). If `rmdir` fails because an untracked file remains, investigate before proceeding — do not `rm -rf`.
@@ -226,8 +226,8 @@ Expected: `rmdir` succeeds (the directory contains only the three files that wer
 Verify no `20-5` directory remains under `.planning/phases/`:
 
 ```bash
-test ! -d <home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation
-ls -d <home>/Desktop/3_body_problem/.planning/phases/20-5-* 2>/dev/null && echo "FAIL: hyphenated dir still present" || echo "OK"
+test ! -d .planning/phases/20-5-sampling-coordinate-allocation
+ls -d .planning/phases/20-5-* 2>/dev/null && echo "FAIL: hyphenated dir still present" || echo "OK"
 ```
 
 ---
@@ -235,11 +235,11 @@ ls -d <home>/Desktop/3_body_problem/.planning/phases/20-5-* 2>/dev/null && echo 
 ### Task 4: Register Phase 20.5 Without Executing It
 
 **Files:**
-- Modify: `<home>/Desktop/3_body_problem/.planning/REQUIREMENTS.md` — add SAMP-01/02; **amend SCOPE-02**; add SCOPE-05; add **ARCH-05 traceability rows** for SAMP-01/02; **bump count 30 → 32**; update SCOPE-01–04 enumeration to SCOPE-01–05.
-- Modify: `<home>/Desktop/3_body_problem/.planning/milestones/v1.4-GAPS.md` — append `## Phase 20.5` section with the three `RESOLVED-WITH-INSTRUCTION` gaps; bump `total_gaps` 17 → 20, `resolved_gaps` 17 → 20, `last_updated`.
-- Modify: `<home>/Desktop/3_body_problem/AGENTS.md` — add the SCOPE-05 cross-reference after the existing `pinn/` no-live-code directive (covers `CLAUDE.md`/`GEMINI.md` automatically since both are symlinks → `AGENTS.md`).
-- Modify: `<home>/Desktop/3_body_problem/ANTIGRAVITY.md` — add the SCOPE-05 cross-reference in §1.4 governance after the `Live PINN code is not v1.4 grounding` bullet.
-- Verify-only (no edit unless missing/stale): `<home>/Desktop/3_body_problem/.planning/ROADMAP.md`, `<home>/Desktop/3_body_problem/.planning/STATE.md`, `<home>/Desktop/3_body_problem/.planning/MILESTONES.md`, `<home>/Desktop/3_body_problem/.planning/PROJECT.md`. Commit `a9ecd51` (2026-05-20) already inserted Phase 20.5 status into all four. Steps 1 and 3 are verification gates, not edits, and exist only to catch regressions.
+- Modify: `.planning/REQUIREMENTS.md` — add SAMP-01/02; **amend SCOPE-02**; add SCOPE-05; add **ARCH-05 traceability rows** for SAMP-01/02; **bump count 30 → 32**; update SCOPE-01–04 enumeration to SCOPE-01–05.
+- Modify: `.planning/milestones/v1.4-GAPS.md` — append `## Phase 20.5` section with the three `RESOLVED-WITH-INSTRUCTION` gaps; bump `total_gaps` 17 → 20, `resolved_gaps` 17 → 20, `last_updated`.
+- Modify: `AGENTS.md` — add the SCOPE-05 cross-reference after the existing `pinn/` no-live-code directive (covers `CLAUDE.md`/`GEMINI.md` automatically since both are symlinks → `AGENTS.md`).
+- Modify: `ANTIGRAVITY.md` — add the SCOPE-05 cross-reference in §1.4 governance after the `Live PINN code is not v1.4 grounding` bullet.
+- Verify-only (no edit unless missing/stale): `.planning/ROADMAP.md`, `.planning/STATE.md`, `.planning/MILESTONES.md`, `.planning/PROJECT.md`. Commit `a9ecd51` (2026-05-20) already inserted Phase 20.5 status into all four. Steps 1 and 3 are verification gates, not edits, and exist only to catch regressions.
 
 **Governance decision record (resolves DG-1/2/3 from the critique review).** This repair applies these resolutions:
 - **DG-1:** SCOPE-05 propagation to root agent-instruction files happens **during repair** (Steps 5 below), alongside the REQUIREMENTS.md SCOPE-05 row in Step 2. Splitting the two — REQUIREMENTS now, propagation later in `20.5-01` — would create a transient window in which the rule exists in `REQUIREMENTS.md` but not in agent instructions; doing both together is the consistent option already taken for the REQUIREMENTS.md edit.
@@ -251,7 +251,7 @@ ls -d <home>/Desktop/3_body_problem/.planning/phases/20-5-* 2>/dev/null && echo 
 Run:
 
 ```bash
-rg -n "Phase 20\.5|20\.5-sampling-coordinate-allocation" <home>/Desktop/3_body_problem/.planning/ROADMAP.md
+rg -n "Phase 20\.5|20\.5-sampling-coordinate-allocation" .planning/ROADMAP.md
 ```
 
 Expected: at least one match describing Phase 20.5 as inserted before Phase 21 (commit `a9ecd51` placed it at `ROADMAP.md:9`). If missing, add this line near the v1.4 milestone block:
@@ -345,7 +345,7 @@ Expected: first ≥ 4 (SAMP-01/02 definitions, 2 traceability rows, SCOPE-02 ame
 Run:
 
 ```bash
-rg -n "Phase 20\.5|20\.5-sampling-coordinate-allocation" <home>/Desktop/3_body_problem/.planning/STATE.md
+rg -n "Phase 20\.5|20\.5-sampling-coordinate-allocation" .planning/STATE.md
 ```
 
 Expected: at least one match (commit `a9ecd51` placed the Phase 20.5 status note at `STATE.md:78`). If missing, append this note to the v1.4 status block (do not change current Phase 19 focus):
@@ -361,13 +361,13 @@ Per DG-2, **path identity** is normalized; **gap IDs** (`GAP-20-5-0X`) and **com
 Run:
 
 ```bash
-rg -n "20-5-sampling-coordinate-allocation|20-5-PLAN|20-5-RESEARCH|20-5-GAPS" <home>/Desktop/3_body_problem/.planning <home>/Desktop/3_body_problem/docs/superpowers 2>/dev/null
+rg -n "20-5-sampling-coordinate-allocation|20-5-PLAN|20-5-RESEARCH|20-5-GAPS" .planning docs/superpowers 2>/dev/null
 ```
 
 Replace stale executable-path references with the appropriate dot-decimal path, applying the context-aware rule from Task 3 Step 3:
 - Forward-pointing path references to the (current) phase content → `20.5-sampling-coordinate-allocation/20.5-{GAPS,RESEARCH,0X-PLAN}.md`.
 - Historical/source references to the (now-archived) monolithic plan → `20.5-MONOLITHIC-SOURCE-PLAN.md`.
-- **Explicit scope:** `.planning/**` IS in scope. `docs/superpowers/specs/2026-05-24-latex-markdown-sync-strategy-design.md` (the third file currently still carrying `20-5-*` refs) — include only if its references are forward-pointing path mentions; leave them alone if they are historical context. `docs/findings/**` and `docs/plans/Phase 20.5 GSD Workflow Repair Implementation Plan.md` are OUT of scope (this plan and its critique review are *themselves* the audit trail; rewriting them would corrupt their own historical citations).
+- **Explicit scope:** `.planning/**` IS in scope. `docs/work/designs/cross_cutting/latex-sync/2026-05-24-latex-markdown-sync-strategy-design.md` (the third file currently still carrying `20-5-*` refs) — include only if its references are forward-pointing path mentions; leave them alone if they are historical context. `docs/findings/**` and `docs/work/plans/milestone_v1.4/20.5-gsd-workflow-repair/phase-20.5-gsd-workflow-repair-implementation-plan.md` are OUT of scope (this plan and its critique review are *themselves* the audit trail; rewriting them would corrupt their own historical citations).
 
 Quotes inside frontmatter (`origin: "..."`), commit-message bodies, and quoted historical evidence MUST remain as-is. Historical references to the original gap IDs (e.g., "GAP-20-5-01" in the 2026-05-19 audit trail in `20.5-GAPS.md`) MUST remain as-is — see DG-2.
 
@@ -378,12 +378,12 @@ This step lands the monolithic Task 3 propagation that the earlier draft dropped
 **(5a) Verify the symlink topology** before editing (defensive check — fails loud if the topology changed):
 
 ```bash
-test -L <home>/Desktop/3_body_problem/CLAUDE.md
-test -L <home>/Desktop/3_body_problem/GEMINI.md
-test ! -L <home>/Desktop/3_body_problem/AGENTS.md
-test ! -L <home>/Desktop/3_body_problem/ANTIGRAVITY.md
-readlink <home>/Desktop/3_body_problem/CLAUDE.md | grep -qx AGENTS.md
-readlink <home>/Desktop/3_body_problem/GEMINI.md | grep -qx AGENTS.md
+test -L CLAUDE.md
+test -L GEMINI.md
+test ! -L AGENTS.md
+test ! -L ANTIGRAVITY.md
+readlink CLAUDE.md | grep -qx AGENTS.md
+readlink GEMINI.md | grep -qx AGENTS.md
 ```
 
 Expected: all six exit `0`. If any fail, **stop** and surface — the propagation strategy depends on the symlink topology and must be re-confirmed before editing.
@@ -417,7 +417,7 @@ Expected: each ≥ 1. Confirm the AGENTS.md addition does not contradict the exi
 
 This step lands Gap 1.2 from the critique. The three Phase 20.5 gaps are **already** `RESOLVED-WITH-INSTRUCTION` (per user approval 2026-05-19, recorded in `20.5-GAPS.md` line 10 governance frontmatter and `:60`, `:89`, `:121` Status fields). They are not new/open gaps — they are pre-existing resolved entries that simply have not yet been mirrored to the milestone-wide index.
 
-**(6a) Append a new `## Phase 20.5` section** to `<home>/Desktop/3_body_problem/.planning/milestones/v1.4-GAPS.md` after the existing `## Phase 19` block, mirroring the format used for Phases 17/18/19:
+**(6a) Append a new `## Phase 20.5` section** to `.planning/milestones/v1.4-GAPS.md` after the existing `## Phase 19` block, mirroring the format used for Phases 17/18/19:
 
 ```markdown
 ## Phase 20.5: Sampling Coordinate Allocation
@@ -475,7 +475,7 @@ The split-plan `20.5-01-PLAN.md` and `20.5-03-PLAN.md` files (created in Task 6)
 Run:
 
 ```bash
-rg -n "Phase 20\.5|20\.5-sampling-coordinate-allocation" <home>/Desktop/3_body_problem/.planning/MILESTONES.md <home>/Desktop/3_body_problem/.planning/PROJECT.md
+rg -n "Phase 20\.5|20\.5-sampling-coordinate-allocation" .planning/MILESTONES.md .planning/PROJECT.md
 ```
 
 Expected: matches in both files (commit `a9ecd51` placed Phase 20.5 entries at `MILESTONES.md:26`, `:31`, and `PROJECT.md:99`, `:163`). If `PROJECT.md` still references the hyphenated `20-5-sampling-coordinate-allocation/` directory path, replace those *path* references with `20.5-sampling-coordinate-allocation/` (DG-2 path-normalization rule). Do not edit otherwise.
@@ -493,7 +493,7 @@ Expected: matches in both files (commit `a9ecd51` placed Phase 20.5 entries at `
 
 - [ ] **Step 1: Write `20.5-SPEC.md`**
 
-Create `<home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-SPEC.md` with:
+Create `.planning/phases/20.5-sampling-coordinate-allocation/20.5-SPEC.md` with:
 - Phase goal: lock Sobol coordinate allocation only.
 - Explicit non-goals: do not solve velocity-momentum discrepancy, do not update `pinn/`, do not execute acceptance probes during workflow repair.
 - Acceptance criteria: GSD recognizes Phase 20.5; SAMP-01/SAMP-02 pending; canonical plans exist; execution remains blocked.
@@ -709,11 +709,11 @@ Expected:
 Run:
 
 ```bash
-test ! -f <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-SUMMARY.md
-test ! -f <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-VERIFICATION.md
-test ! -f <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-DATA-ALIGNMENT.md
-test ! -d <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/probes
-git diff -- <home>/Desktop/3_body_problem/pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
+test ! -f .planning/phases/20.5-sampling-coordinate-allocation/20.5-SUMMARY.md
+test ! -f .planning/phases/20.5-sampling-coordinate-allocation/20.5-VERIFICATION.md
+test ! -f .planning/phases/20.5-sampling-coordinate-allocation/20.5-DATA-ALIGNMENT.md
+test ! -d .planning/phases/20.5-sampling-coordinate-allocation/probes
+git diff -- pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
 ```
 
 Expected:
@@ -741,10 +741,10 @@ Expected: first ≥ 2 (SAMP-01 and SAMP-02 definitions); rows 2–7 each return 
 Run:
 
 ```bash
-rg -nF "SCOPE-05" <home>/Desktop/3_body_problem/AGENTS.md
-rg -nF "SCOPE-05" <home>/Desktop/3_body_problem/ANTIGRAVITY.md
-rg -nF "simulation_data/Scripts/ic_generation/" <home>/Desktop/3_body_problem/AGENTS.md
-rg -nF "simulation_data/Scripts/ic_generation/" <home>/Desktop/3_body_problem/ANTIGRAVITY.md
+rg -nF "SCOPE-05" AGENTS.md
+rg -nF "SCOPE-05" ANTIGRAVITY.md
+rg -nF "simulation_data/Scripts/ic_generation/" AGENTS.md
+rg -nF "simulation_data/Scripts/ic_generation/" ANTIGRAVITY.md
 ```
 
 Expected: each ≥ 1 match.
@@ -773,7 +773,7 @@ Expected: each returns exactly 1.
 
 **Tracked-vs-untracked notes for this commit:**
 - The Task 3 `git mv` operations have already staged both the *deletions* of `.planning/phases/20-5-sampling-coordinate-allocation/20-5-{GAPS,PLAN,RESEARCH}.md` and the *additions* of the moved/renamed files in `.planning/phases/20.5-sampling-coordinate-allocation/`. The Task 8 staging below MUST cover the new directory; the old-path deletions are already staged by `git mv`.
-- The `docs/plans/Phase 20.5 GSD Workflow Repair Implementation Plan.md` file (this plan) is already at its canonical path and was committed in an earlier change (b77358a); only stage it here if Task 2 had to repair its anchors. Do **not** create a dated/hyphenated duplicate.
+- The `docs/work/plans/milestone_v1.4/20.5-gsd-workflow-repair/phase-20.5-gsd-workflow-repair-implementation-plan.md` file (this plan) is already at its canonical path and was committed in an earlier change (b77358a); only stage it here if Task 2 had to repair its anchors. Do **not** create a dated/hyphenated duplicate.
 - This repair commit must **not** contain unrelated Phase 19 work (`.planning/phases/18-frame-and-gauge-contracts/18-03-PLAN.md`, `18-VALIDATION.md`, `18-UAT.md`, EDL 19-01 resolution docs, ADOPT plans, the critique-review findings doc). The repair leaves those for their own commits.
 
 - [ ] **Step 1: Check diff and inventory**
@@ -799,33 +799,33 @@ Run:
 # Phase directory: covers the git-mv renames + new artifact files in 20.5-…/.
 # Use -A so both the rename-side deletions in the old dir (if any remain) and
 # the additions in the new dir are staged.
-git add -A <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation
-git add -A <home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation 2>/dev/null || true
+git add -A .planning/phases/20.5-sampling-coordinate-allocation
+git add -A .planning/phases/20-5-sampling-coordinate-allocation 2>/dev/null || true
 
 # Planning / milestone registry edits
-git add <home>/Desktop/3_body_problem/.planning/REQUIREMENTS.md
-git add <home>/Desktop/3_body_problem/.planning/milestones/v1.4-GAPS.md
+git add .planning/REQUIREMENTS.md
+git add .planning/milestones/v1.4-GAPS.md
 
 # Optional: stage these only if Task 4 verification found them missing/stale
 # and a step in this repair edited them. Otherwise, leave them out so the
 # diff is empty for these paths.
 [ -n "$(git diff --cached --name-only .planning/ROADMAP.md)" ] || \
   git diff --quiet .planning/ROADMAP.md || \
-  git add <home>/Desktop/3_body_problem/.planning/ROADMAP.md
+  git add .planning/ROADMAP.md
 [ -n "$(git diff --cached --name-only .planning/STATE.md)" ] || \
   git diff --quiet .planning/STATE.md || \
-  git add <home>/Desktop/3_body_problem/.planning/STATE.md
+  git add .planning/STATE.md
 [ -n "$(git diff --cached --name-only .planning/MILESTONES.md)" ] || \
   git diff --quiet .planning/MILESTONES.md || \
-  git add <home>/Desktop/3_body_problem/.planning/MILESTONES.md
+  git add .planning/MILESTONES.md
 [ -n "$(git diff --cached --name-only .planning/PROJECT.md)" ] || \
   git diff --quiet .planning/PROJECT.md || \
-  git add <home>/Desktop/3_body_problem/.planning/PROJECT.md
+  git add .planning/PROJECT.md
 
 # Root agent-instruction propagation (DG-1, DG-3). AGENTS.md covers CLAUDE.md
 # and GEMINI.md via symlink; do NOT stage CLAUDE.md or GEMINI.md.
-git add <home>/Desktop/3_body_problem/AGENTS.md
-git add <home>/Desktop/3_body_problem/ANTIGRAVITY.md
+git add AGENTS.md
+git add ANTIGRAVITY.md
 ```
 
 After staging, confirm the staged set:
@@ -879,12 +879,12 @@ gsd-sdk query init.plan-phase 20
 gsd-sdk query phase-plan-index 20.5
 
 # Non-execution invariants
-test ! -f <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-SUMMARY.md
-test ! -f <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-VERIFICATION.md
-test ! -f <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/20.5-DATA-ALIGNMENT.md
-test ! -d <home>/Desktop/3_body_problem/.planning/phases/20.5-sampling-coordinate-allocation/probes
-git diff HEAD~1..HEAD -- <home>/Desktop/3_body_problem/pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
-test ! -d <home>/Desktop/3_body_problem/.planning/phases/20-5-sampling-coordinate-allocation
+test ! -f .planning/phases/20.5-sampling-coordinate-allocation/20.5-SUMMARY.md
+test ! -f .planning/phases/20.5-sampling-coordinate-allocation/20.5-VERIFICATION.md
+test ! -f .planning/phases/20.5-sampling-coordinate-allocation/20.5-DATA-ALIGNMENT.md
+test ! -d .planning/phases/20.5-sampling-coordinate-allocation/probes
+git diff HEAD~1..HEAD -- pinn_instruction/markdown_conversion/framework-specs/sampling_method.md
+test ! -d .planning/phases/20-5-sampling-coordinate-allocation
 
 # REQUIREMENTS.md internal consistency (M-1 / M-3 coverage)
 grep -cF "32 total" .planning/REQUIREMENTS.md           # expect 1

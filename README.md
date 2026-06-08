@@ -6,7 +6,7 @@ This repository contains the complete simulation pipeline, metrics analysis, and
 
 ## Migration Handoff
 
-If you are opening this repository on the new Mac as part of the workstation migration, start with [`docs/migration/exact-state-mac-migration.md`](docs/migration/exact-state-mac-migration.md). It is the canonical restore runbook for recreating the old Mac's local repo state; the bulky simulation payloads are intentionally restored separately outside Git.
+If you are opening this repository on the new Mac as part of the workstation migration, start with [`docs/runbooks/migration/exact-state-mac-migration.md`](docs/runbooks/migration/exact-state-mac-migration.md). It is the canonical restore runbook for recreating the old Mac's local repo state; the bulky simulation payloads are intentionally restored separately outside Git.
 
 ### Current Status Snapshot
 

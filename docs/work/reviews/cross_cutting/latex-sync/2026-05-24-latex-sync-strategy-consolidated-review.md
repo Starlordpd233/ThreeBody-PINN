@@ -1,7 +1,7 @@
 # Consolidated Code Review: LaTeX-Markdown Sync Strategy Design
 
 **Date**: 2026-05-24
-**Document**: docs/superpowers/specs/2026-05-24-latex-markdown-sync-strategy-design.md
+**Document**: docs/work/designs/cross_cutting/latex-sync/2026-05-24-latex-markdown-sync-strategy-design.md
 **Review Team**: repo-verifier, internal-logic, feasibility, historical-audit (4 specialized agents)
 **Overall Assessment**: GO WITH CRITICAL FIXES
 **Total findings**: 8 Critical, 11 Important, 14 Minor (33 total across 4 agents)

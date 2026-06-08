@@ -65,7 +65,7 @@
 
 ## Report Output
 
-**Path**: `<home>/Desktop/3_body_problem/docs/findings/milestone_v1.4/reviewing_phase20_plans/phase20_review.md` (absolute; directory already exists)
+**Path**: `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/phase20-review.md` (absolute; directory already exists)
 
 **Structure**:
 1. Executive Summary

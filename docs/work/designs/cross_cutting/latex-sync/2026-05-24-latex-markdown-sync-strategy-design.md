@@ -303,6 +303,6 @@ These were surfaced for explicit user confirmation in the brainstorming review; 
 - LaTeX-no-longer-authoritative statement: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` (historically at `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md`, deleted 2026-05-24) row F
 - Hotfix precedent: commit `0708a56`
 - Cross-cutting commit example: commit `d3fcff9`
-- Consolidated review that drove this revision: `docs/superpowers/specs/2026-05-24-latex-sync-strategy-consolidated-review.md`
+- Consolidated review that drove this revision: `docs/work/reviews/cross_cutting/latex-sync/2026-05-24-latex-sync-strategy-consolidated-review.md`
 - Active v1.4 governance block (sibling of this design's discipline block): `AGENTS.md` "CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones"
 - v1.4 phase summaries and git history for retro-row backfill source material: `.planning/phases/17-input-and-output-contracts/`, `.planning/phases/18-frame-and-gauge-contracts/`, and the actual `BACKFILL_START..BACKFILL_END` commit range at Genesis time
