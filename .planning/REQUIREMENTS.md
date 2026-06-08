@@ -70,6 +70,7 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 - **FUT-02**: Recompute curriculum statistics and stage thresholds after preprocessing and physics contracts are finalized.
 - **FUT-03**: Repurposed — package any useful VER-04 disposable validation probes into reusable executable scripts under `pinn/validation/` once v1.4 ships, so CI or later milestones can re-run them.
 - **FUT-04**: Resume PINN training-loop implementation after the framework specs are coherent.
+- **FUT-05**: Adjudicate the author comments preserved by Phase 22. Phase 22 censuses and preserves every author-flagged comment (any form/format) verbatim and hands them off via `.planning/phases/22-framework-spec-cleanup/22-COMMENT-HANDOFF.md`. A dedicated post-v1.4 phase performs the per-comment basis classification and disposition (keep / remove / revise / resurface) under human adjudication, per the WS-B disposition engine in `docs/work/designs/milestone_v1.4/framework-spec-cleanup/2026-06-07-framework-spec-cleanup-design.md` §6. Origin: GAP-22-01 (user decision 2026-06-08 to defer adjudication out of Phase 22).
 
 ## Scope Boundaries
 

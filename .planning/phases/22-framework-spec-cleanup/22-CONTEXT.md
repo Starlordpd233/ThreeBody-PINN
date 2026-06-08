@@ -27,13 +27,13 @@ Phase 22 is the final presentation-preserving framework-spec cleanup. It normali
 - **D-03:** Equivalence-check each conversion and surface ambiguous cases under the STOP protocol.
 
 ### Author Comments Disposition
-- **D-04:** Preserve and defer all 28 `\authcomment` items. Keep every comment's substantive text in place; do not delete, extract, resolve, rewrite as ordinary prose, or reclassify all comments as warnings or TODOs during Phase 22.
+- **D-04:** Preserve and defer **all author-flagged comments in any form or format** — `Author Comment:` / `Author note:` / `Historical author note:` prose markers, the `\authcomment` macro, and any other author-comment form discovered in the three specs — carefully enumerated at execution. (The earlier "28 `\authcomment` items" figure was a mis-census: the live corpus has ~26 author-marker lines across `ctl_instruction.md` and `pinn_architecture.md`, only one of which is a `\authcomment` macro; `sampling_method.md` is clean. See GAP-22-02, resolved 2026-06-08.) Keep every comment's substantive text in place; do not delete, extract, resolve, rewrite as ordinary prose, or reclassify any comment as a warning or TODO during Phase 22.
 - **D-05:** If an `\authcomment` wrapper itself prevents correct Markdown rendering, convert only the wrapper mechanically into a render-safe author-comment format while preserving the comment text, meaning, and location. Do not assess or alter the substance of the comment.
-- **D-06:** Verify that all 28 comments remain present and that none were lost or semantically changed. Create an explicit future-phase or backlog handoff for reviewing and adjudicating the comments individually. (This was a user-directed scope decision removing individual author-comment adjudication from Phase 22's required work).
+- **D-06:** Verify that **every** carefully-enumerated author-flagged comment remains present and that none were lost or semantically changed. Produce the handoff artifact `.planning/phases/22-framework-spec-cleanup/22-COMMENT-HANDOFF.md` (each comment: form, file, location, verbatim text, preservation-verified flag) and register the individual review/adjudication of those comments under **FUT-05** in `.planning/REQUIREMENTS.md`, to be performed in a dedicated post-v1.4 phase. (This was a user-directed scope decision removing individual author-comment adjudication from Phase 22's required work; GAP-22-01, resolved 2026-06-08.)
 
 ### Render Verification Method
 - **D-07:** Use both automated validation and manual visual review. Do not rely on only one method.
-- **D-08:** Automated validation: Create and commit a Node-based detector using `markdown-it`, `@vscode/markdown-it-katex`, and `katex`. The detector must match the KaTeX engine used by the Cursor or VS Code Markdown Preview. It must report parse errors (throwOnError), strict-mode warnings, detect unbalanced delimiters, raw LaTeX, math-like backtick fragments, and broken Markdown structures. It must pass known author-flagged regression fixtures and keep a known-clean negative control free of findings. It must finish with zero unresolved rendering findings across `ctl_instruction.md`, `pinn_architecture.md`, and `sampling_method.md`, and verify all 28 comments remain present.
+- **D-08:** Automated validation: Create and commit a Node-based detector using `markdown-it`, `@vscode/markdown-it-katex`, and `katex`. The detector must match the KaTeX engine used by the Cursor or VS Code Markdown Preview. It must report parse errors (throwOnError), strict-mode warnings, detect unbalanced delimiters, raw LaTeX, math-like backtick fragments, and broken Markdown structures. It must pass known author-flagged regression fixtures and keep a known-clean negative control free of findings. It must finish with zero unresolved rendering findings across `ctl_instruction.md`, `pinn_architecture.md`, and `sampling_method.md`, and verify all carefully-enumerated author-flagged comments (any form/format) remain present.
 - **D-09:** Manual visual review: Open all three complete framework specs in the actual Cursor or VS Code Markdown Preview and inspect the full rendered documents. Check every edited equation and its surroundings. Confirm no raw LaTeX, clipped math, broken layouts, accidental code formatting, or missing content.
 - **D-10:** Record the exact detector command and output plus a per-file visual-review checklist. Render correctness is established only when both automated detector and manual review pass.
 
@@ -49,7 +49,7 @@ None — all presentation and verification decisions strictly defined.
 
 ### Phase Scope and Requirements
 - `.planning/ROADMAP.md` — Phase 22 goal and success criteria (final presentation-preserving framework-spec cleanup).
-- `docs/superpowers/specs/2026-06-07-framework-spec-cleanup-design.md` — Phase 22 design approval (referenced in PROJECT.md).
+- `docs/work/designs/milestone_v1.4/framework-spec-cleanup/2026-06-07-framework-spec-cleanup-design.md` — Phase 22 design approval (WS-A detector + WS-B disposition engine; note WS-B per-comment adjudication is deferred to FUT-05 per GAP-22-01).
 
 ### Active Framework Specs
 - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
@@ -77,14 +77,14 @@ None — all presentation and verification decisions strictly defined.
 ## Specific Ideas
 
 - The automated detector must use `markdown-it`, `@vscode/markdown-it-katex`, and `katex` to ensure parity with Cursor/VS Code.
-- A future-phase or backlog handoff document must be created to track the 28 deferred author comments.
+- A handoff document (`22-COMMENT-HANDOFF.md`) must be created to track all deferred author comments (any form/format), owned by FUT-05.
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
-- **Adjudication of `\authcomment` items** — Individual review and resolution of the 28 author comments is explicitly deferred to a future phase or backlog item. Phase 22 only mechanically repairs their wrappers if they break Markdown rendering.
+- **Adjudication of author comments** — Individual review and resolution of all author-flagged comments (any form/format) is explicitly deferred to **FUT-05** (a dedicated post-v1.4 phase), consuming `22-COMMENT-HANDOFF.md`. Phase 22 only mechanically repairs their wrappers if they break Markdown rendering.
 
 </deferred>
 

@@ -107,7 +107,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 - [x] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording. (completed 2026-06-05)
 - [x] **Phase 20.5: Sampling Coordinate Allocation (INSERTED)** — Resolved the `u_4` Sobol coordinate double-booking in `sampling_method.md`; locked Option A (`u_4` scale, `u_5`–`u_7` velocity for the standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduced SCOPE-05. Design+plan locked 2026-05-20 (commit b727b15); completed 2026-06-07 with AC-SAMP-01 hand-off/probe recorded. Runs after Phase 20, before Phase 21.
 - [x] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the fixed/non-change/deferred validation handoff consumed by Phase 22 (VER-03). Completed 2026-06-08 after repair pass with raw stdout evidence captured for all five probes.
-- [ ] **Phase 22: Framework-Spec Cleanup** — Repair rendering-breaking Markdown/LaTeX, normalize math representation, and disposition author comments under human adjudication without changing mathematical or prose meaning. Runs after Phase 21 and is the final phase of v1.4.
+- [ ] **Phase 22: Framework-Spec Cleanup** — Repair rendering-breaking Markdown/LaTeX, normalize math representation, and census + preserve + defer all author comments (adjudication moved to FUT-05 via a handoff artifact) without changing mathematical or prose meaning. Runs after Phase 21 and is the final phase of v1.4.
 
 ## Phase Details
 
@@ -280,17 +280,17 @@ Plans:
 
 ### Phase 22: Framework-Spec Cleanup
 
-**Goal:** All three framework specs render correctly in Cursor preview, with math normalized to LaTeX and every author comment dispositioned without changing mathematical or prose meaning or allowing autonomous semantic deletion.
+**Goal:** All three framework specs render correctly in Cursor preview, with math normalized to LaTeX and every author comment (any form/format) preserved and deferred — carried forward to a dedicated adjudication phase (FUT-05) via a handoff artifact — without changing mathematical or prose meaning or allowing autonomous semantic deletion. *(Author-comment adjudication was removed from Phase 22 scope by user decision 2026-06-08; see GAP-22-01.)*
 **Requirements**: TBD (existing cross-cutting VER-05 applies)
 **Depends on:** Phase 21
 **Success Criteria** (what must be TRUE):
 
   1. The detector passes the author-flag regression set and the negative control remains clean.
-  2. Every author-flagged region is resolved.
+  2. Every author-flagged *rendering* region renders correctly after WS-A repair. Author-comment *substance* is preserved and deferred, not adjudicated, in this phase.
   3. Detector and Cursor render review find zero residual rendering defects across all three framework specs.
   4. All math is normalized to LaTeX `$…$`/`$$`, with every conversion equivalence-verified.
   5. The content-preservation audit passes: no math or prose meaning changes without grounding and confirmation.
-  6. Every author comment has a recorded disposition basis and human adjudication; redundant plaintext fallbacks and conversion-noise hard breaks are confirmed per instance.
+  6. Every author comment (any form/format) is censused and preserved verbatim — only render-breaking wrappers mechanically repaired, meaning and location intact — and the complete set is carried forward to a dedicated adjudication phase (FUT-05) via a handoff artifact. Redundant plaintext fallbacks and conversion-noise hard breaks remain WS-A presentation fixes, confirmed per instance.
   7. No semantic change or deletion occurs without grounding or human confirmation; unresolved items are logged as STOP gaps, and the phase does not close on an `OPEN` gap unless the user defers it.
 
 **Plans:** 0 plans
