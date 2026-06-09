@@ -1,0 +1,84 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+#
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+#
+
+# --- Excluded directories ---
+
+reference-code/
+pinn/
+paper_templates/
+.claude/
+docs_temp/
+.venv/
+.tmp/
+
+# --- Excluded file types ---
+
+*.h5
+*.hdf5
+*.mat
+*.npz
+*.npy
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.pickle
+*.ptl
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.pdf
+*.zip
+*.tar
+*.gz
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+*.o
+*.obj
+*.a
+*.lib
+*.exe
+*.dylib
+*.dll
+*.so
+*.DS_Store
+*.pyc
+*.pyo
+*.orig
+*.tmp
+*.cache
+
+# --- Negations (force-include) ---
+
+!*.py
+!*.cpp
+!*.h
+!*.hpp
+!*.md
+!*.txt
+!*.json
+!*.yaml
+!*.yml
+!*.sh
+!*.py
+!Makefile
+!Dockerfile
+!*.cfg
+!*.toml
