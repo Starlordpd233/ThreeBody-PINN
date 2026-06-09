@@ -1,0 +1,48 @@
+
+=== pinn_architecture.md ===
+  [ADJUDICATED/D5] §2-2-a-principled-initialization-scheme-for-siren-layers (line 170): backtick-wrapped ASCII math near author flag: `first_omega_0`
+      | epochwise or optimizer-step `omega0` scheduler. If `first_omega_0` is
+      | verdict: code-identifier-kept — SIREN initialization parameter name (PyTorch code identifier in backtick code span, not math)
+  [ADJUDICATED/D5] §2-2-a-principled-initialization-scheme-for-siren-layers (line 188): backtick-wrapped ASCII math near author flag: `\text{xxx}`
+      | Author Comment: All of these fields with `\text{xxx}` are not rnedered correctly and show …
+      | verdict: code-identifier-kept — Placeholder literal inside Author Comment text (not math to render)
+  [ADJUDICATED/D5] §critical-rationale-for-layernorm (line 236): backtick-wrapped ASCII math near author flag: `elementwise_affine=False`
+      | The default contract uses `elementwise_affine=False` (no learnable
+      | verdict: code-identifier-kept — torch.nn.LayerNorm keyword argument (Python code identifier, not math expression)
+  [ADJUDICATED/D5] §critical-rationale-for-layernorm (line 238): backtick-wrapped ASCII math near author flag: `elementwise_affine=True`
+      | (`elementwise_affine=True`) or removing LayerNorm entirely are optional
+      | verdict: code-identifier-kept — torch.nn.LayerNorm keyword argument (Python code identifier, not math expression)
+  [ADJUDICATED/D6] §2-4-finalized-architectural-hyperparameters (line 259): prose ASCII math near author flag: …| LayerNorm | elementwise_affine=False, eps=1e-5 | Stabilizes skip pat…
+      | | LayerNorm | elementwise_affine=False, eps=1e-5 | Stabilizes skip path gradients without …
+      | verdict: code-identifier-kept — PyTorch LayerNorm parameter name in hyperparameter table cell (code identifier in prose)
+  [ADJUDICATED/D6] §2-4-finalized-architectural-hyperparameters (line 260): prose ASCII math near author flag: …| first_omega_0 | 30 | A high initial frequency injects a high-frequen…
+      | | first_omega_0 | 30 | A high initial frequency injects a high-frequency basis into the ne…
+      | verdict: code-identifier-kept — SIREN parameter name in hyperparameter table cell (code identifier in prose)
+  [ADJUDICATED/D6] §2-4-finalized-architectural-hyperparameters (line 261): prose ASCII math near author flag: …| hidden_omega_0 | 1 | This value is used within the principled weight…
+      | | hidden_omega_0 | 1 | This value is used within the principled weight initialization form…
+      | verdict: code-identifier-kept — SIREN parameter name in hyperparameter table cell (code identifier in prose)
+  [SUPPRESSED/D3] §2-4-finalized-architectural-hyperparameters (line 259): identifier-shape sub/sup excluded (surfaced for review): elementwise_affine
+  [SUPPRESSED/D3] §2-4-finalized-architectural-hyperparameters (line 260): identifier-shape sub/sup excluded (surfaced for review): first_omega_0
+  [SUPPRESSED/D3] §2-4-finalized-architectural-hyperparameters (line 261): identifier-shape sub/sup excluded (surfaced for review): hidden_omega_0
+  [SUPPRESSED/D3] §3-4-soft-energy-conservation-regularizer-le-enforcing-a-global-conservation-law (line 527): identifier-shape sub/sup excluded (surfaced for review): median_train
+  [SUPPRESSED/D3] §references (line 944): identifier-shape sub/sup excluded (surfaced for review): PIG_Physics
+  [SUPPRESSED/D3] §references (line 944): identifier-shape sub/sup excluded (surfaced for review): Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations
+  [SUPPRESSED/D3] §references (line 948): identifier-shape sub/sup excluded (surfaced for review): Siren_PINNs
+  [SUPPRESSED/D3] §references (line 953): identifier-shape sub/sup excluded (surfaced for review): Enhanced_Residual_Network_for_Function_Approximation_and_Physics
+  [SUPPRESSED/D3] §references (line 953): identifier-shape sub/sup excluded (surfaced for review): Informed_Inverse_Problems
+  [SUPPRESSED/D3] §references (line 954): identifier-shape sub/sup excluded (surfaced for review): Informed_with_Power
+  [SUPPRESSED/D3] §references (line 954): identifier-shape sub/sup excluded (surfaced for review): Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems
+  [SUPPRESSED/D3] §si-pinn-002-author-comments-preserved-in-converted-body (line 995): identifier-shape sub/sup excluded (surfaced for review): sqr_skipresnet_siren_backbone
+  [SUPPRESSED/D3] §si-pinn-002-author-comments-preserved-in-converted-body (line 995): identifier-shape sub/sup excluded (surfaced for review): physics_constrained_loss
+  [SUPPRESSED/D3] §si-pinn-003-batch-construction-inconsistency-with-ctl-instruction-plan (line 1004): identifier-shape sub/sup excluded (surfaced for review): physics_constrained_loss
+
+-- adjudicated (cleared): 7 --
+  pinn_architecture.md:170 [D5] first_omega_0 → code-identifier-kept
+  pinn_architecture.md:188 [D5] \text{xxx} → code-identifier-kept
+  pinn_architecture.md:236 [D5] elementwise_affine=False → code-identifier-kept
+  pinn_architecture.md:238 [D5] elementwise_affine=True → code-identifier-kept
+  pinn_architecture.md:259 [D6] elementwise_affine → code-identifier-kept
+  pinn_architecture.md:260 [D6] first_omega_0 → code-identifier-kept
+  pinn_architecture.md:261 [D6] hidden_omega_0 → code-identifier-kept
+
+-- totals: 0 DEFINITE, 0 REVIEW, 7 ADJUDICATED, 14 SUPPRESSED (surfaced for review) --

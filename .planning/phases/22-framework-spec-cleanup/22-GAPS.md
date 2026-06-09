@@ -1,9 +1,9 @@
 ---
 phase: 22
 slug: framework-spec-cleanup
-total_gaps: 2
+total_gaps: 3
 open_gaps: 0
-resolved_gaps: 2
+resolved_gaps: 3
 deferred_gaps: 0
 last_updated: 2026-06-08
 governance: "Governed by CLAUDE.md / AGENTS.md CRITICAL GOVERNANCE block: STOP protocol, source-grounding rules, no-live-code directive for v1.4 spec decisions."
@@ -93,5 +93,5 @@ Both gaps below were surfaced on 2026-06-08 during `/gsd-plan-phase 22`, **befor
   - **(B) NARROW the detector's oracle window** to exclude code spans (backtick content) from D5/D6 scans. The detector already excludes code spans from D3/D4 (design §5.2 Pitfall 2); extend that exclusion to D5/D6. This aligns the detector with the plan's D-02/D-07 rule.
   - **(C) CONVERT the 7 to LaTeX** despite the plan's exclusion, accepting the semantic change (code → math) to reach G2. Document the conversion in `22-02-SUMMARY.md` as a D-02/D-07 override.
 - **Confidence of impact:** **MEDIUM** — it determines whether G2 is "0 DEFINITE" (currently satisfied) or "0 findings total" (requires conversion or detector narrowing). The 7 findings are REVIEW tier, not DEFINITE; they're all code identifiers, not math; converting them would be a semantic change the plan excludes.
-- **Status:** OPEN
-- **Resolution note:** _empty until user provides instruction_
+- **Status:** RESOLVED-WITH-INSTRUCTION
+- **Resolution note:** User instructed on 2026-06-09: *"Resolve GAP-22-03 with Option A. Do not modify D5's code-span scan (Option B would delete the detector's only backtick-math layer — it's what found the 94d8e79 conversions, and snake_case vs. subscript is mechanically inseparable, which is precisely why these are REVIEW). Do not convert (Option C)."* All 7 tokens kept as code (presentation-preservation, D-02/D-07). Adjudication allowlist mechanism added to `detect.mjs` (`--adjudications <path>` flag); 7-item allowlist created at `tools/spec-render-check/adjudications/22-02-pinn-architecture.json`. G2 redefined as **0 DEFINITE + every REVIEW adjudicated or absent** (exit 0). D5's code-span scan stays intact (Option B rejected). Baseline regenerated at `22-02-DETECTOR-BASELINE.txt` (exit 0, 7 ADJUDICATED). The same adjudication pattern is expected (correctly) to apply in plan 22-03 (`ctl_instruction.md`), which likely contains the same PyTorch parameter names within oracle windows.
