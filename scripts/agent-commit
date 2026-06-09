@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ -z "${GIT_AGENT_ID:-}" ]; then
+  echo "git policy: set GIT_AGENT_ID to the active agent, tool, and model before committing" >&2
+  exit 1
+fi
+
+export GIT_AGENT_COMMIT=1
+
+for arg in "$@"; do
+  case "$arg" in
+    Agent-Assisted-By:*|Co-Authored-By:*)
+      exec git commit "$@"
+      ;;
+  esac
+done
+
+exec git commit "$@" -m "Agent-Assisted-By: $GIT_AGENT_ID"

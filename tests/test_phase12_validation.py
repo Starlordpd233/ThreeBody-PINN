@@ -16,9 +16,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Paths to Phase 12 artifacts
 ARCHITECTURE_MD = os.path.join(PROJECT_ROOT, "pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md")
-# REPORT_MD was pinn_instruction/markdown_conversion/verification_reports/pinn_architecture_verification_report.md
-# Superseded by v1.3 closure audit (2026-05-11); report deleted per DELETION-DECISIONS-2026-05-11.
-# See: docs/findings/reports_on_v1.3/closure_audit_2026-05-11/audit-pinn_architecture.md
+# REPORT_MD was pinn_instruction/markdown_conversion/verification_reports/pinn_architecture_verification_report.md.
+# The report artifact was retired after v1.3 closure; report-only checks remain skipped.
 INDEX_MD = os.path.join(PROJECT_ROOT, "pinn_instruction/markdown_conversion/README.md")
 
 # Inactive terms that should NOT appear in the faithful converted body.
@@ -56,8 +55,8 @@ def test_clean_01_authoritative_markdown_exists():
 
 
 def test_clean_03_report_structure():
-    """CLEAN-03: Verification report has all required sections. (SKIPPED: superseded by v1.3 closure audit 2026-05-11)"""
-    print("  SKIP: CLEAN-03 — verification report deleted; superseded by closure_audit_2026-05-11/audit-pinn_architecture.md")
+    """CLEAN-03: Verification report has all required sections. (SKIPPED: report artifact retired after v1.3 closure)"""
+    print("  SKIP: CLEAN-03 — verification report artifact retired after v1.3 closure")
     return
     if not os.path.isfile(REPORT_MD):
         check("CLEAN-03: report exists", False)
@@ -85,8 +84,8 @@ def test_clean_03_report_structure():
 
 
 def test_cand_01_candidate_comparison():
-    """CAND-01: Candidate comparison with F1/recall scores. (SKIPPED: superseded by v1.3 closure audit 2026-05-11)"""
-    print("  SKIP: CAND-01 — verification report deleted; superseded by closure_audit_2026-05-11/audit-pinn_architecture.md")
+    """CAND-01: Candidate comparison with F1/recall scores. (SKIPPED: report artifact retired after v1.3 closure)"""
+    print("  SKIP: CAND-01 — verification report artifact retired after v1.3 closure")
     return
     if not os.path.isfile(REPORT_MD):
         check("CAND-01: report exists", False)
@@ -101,8 +100,8 @@ def test_cand_01_candidate_comparison():
 
 
 def test_audit_01_section_audits():
-    """AUDIT-01: 7 section audit subsections in report. (SKIPPED: superseded by v1.3 closure audit 2026-05-11)"""
-    print("  SKIP: AUDIT-01 — verification report deleted; superseded by closure_audit_2026-05-11/audit-pinn_architecture.md")
+    """AUDIT-01: 7 section audit subsections in report. (SKIPPED: report artifact retired after v1.3 closure)"""
+    print("  SKIP: AUDIT-01 — verification report artifact retired after v1.3 closure")
     return
     if not os.path.isfile(REPORT_MD):
         check("AUDIT-01: report exists", False)
@@ -123,8 +122,8 @@ def test_audit_01_section_audits():
 
 
 def test_audit_02_fix_log():
-    """AUDIT-02: Fix log has discrepancy entries. (SKIPPED: superseded by v1.3 closure audit 2026-05-11)"""
-    print("  SKIP: AUDIT-02 — verification report deleted; superseded by closure_audit_2026-05-11/audit-pinn_architecture.md")
+    """AUDIT-02: Fix log has discrepancy entries. (SKIPPED: report artifact retired after v1.3 closure)"""
+    print("  SKIP: AUDIT-02 — verification report artifact retired after v1.3 closure")
     return
     if not os.path.isfile(REPORT_MD):
         check("AUDIT-02: report exists", False)
@@ -138,8 +137,8 @@ def test_audit_02_fix_log():
 
 
 def test_audit_03_inactive_exclusion():
-    """AUDIT-03: Inactive section exclusion documented. (SKIPPED: superseded by v1.3 closure audit 2026-05-11)"""
-    print("  SKIP: AUDIT-03 — verification report deleted; superseded by closure_audit_2026-05-11/audit-pinn_architecture.md")
+    """AUDIT-03: Inactive section exclusion documented. (SKIPPED: report artifact retired after v1.3 closure)"""
+    print("  SKIP: AUDIT-03 — verification report artifact retired after v1.3 closure")
     return
     if not os.path.isfile(REPORT_MD):
         check("AUDIT-03: report exists", False)

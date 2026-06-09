@@ -11,7 +11,7 @@ paths:
 
 ### Architecture (SQR-SkipResNet-SIREN backbone)
 
-Locked v1.4 architecture decisions (see `.planning/phases/17-input-and-output-contracts/17-CONTEXT.md` Tier A):
+Locked v1.4 architecture decisions (see `.planning/milestones/v1.4-phases/17-input-and-output-contracts/17-CONTEXT.md` Tier A):
 - **Input**: 14 dims = `[τ, IC₁₃]` where `τ = 2u − 1`, autograd leaf `u = t/T` (D-03 LOCKED 2026-05-18)
 - **Output**: 9 dims (3D positions for 3 bodies) with a hard mass-weighted COM projection head applied before any loss/metric (D-02 LOCKED 2026-05-18)
 
@@ -22,7 +22,7 @@ Preserved from v1.3, still subject to Phase 20 review (ARCH-01/02):
 
 ### IC Vector (13 components — v1.4 contract under construction)
 
-The v1.4 milestone replaces the v1.3-era IC vector with Jacobi-state IC₁₃ per resolution doc §5.3 — see `.planning/phases/17-input-and-output-contracts/17-CONTEXT.md` D-01 (LOCKED 2026-05-18):
+The v1.4 milestone replaces the v1.3-era IC vector with Jacobi-state IC₁₃ per resolution doc §5.3 — see `.planning/milestones/v1.4-phases/17-input-and-output-contracts/17-CONTEXT.md` D-01 (LOCKED 2026-05-18):
 
 ```
 IC₁₃ = [m₁, m₂, m₃, ρ_x, λ_x, λ_y, ρ̇_x, ρ̇_y, ρ̇_z, λ̇_x, λ̇_y, λ̇_z, E]

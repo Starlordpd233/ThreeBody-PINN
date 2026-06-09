@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+stdin_file="$(mktemp)"
+trap 'rm -f "$stdin_file"' EXIT
+cat > "$stdin_file"
+
+while read -r local_ref _local_sha remote_ref _remote_sha; do
+  case "$remote_ref" in
+    refs/heads/master|refs/heads/main|refs/heads/milestone/*)
+      echo "git policy: direct pushes to protected ref '$remote_ref' are blocked" >&2
+      exit 1
+      ;;
+  esac
+done < "$stdin_file"
+
+if git lfs version >/dev/null 2>&1; then
+  git lfs pre-push "$@" < "$stdin_file"
+fi

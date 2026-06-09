@@ -335,6 +335,7 @@ enhancement.
 
 [Note: All code for this section is in the code folder for
 pinn.]{style="color: blue"}
+Author Comment: I believe this is another case for broken syntax or stale code from conversion. Also, this not estatement itself is outdated since all the code in the code folder is already outdated and unusuable.
 
 ## Step 1: Parse Raw Simulation Data
 
@@ -379,96 +380,343 @@ pinn.]{style="color: blue"}
 This parsing ensures consistency across all training data, preparing it
 for dimensionless scaling in Step 2.
 
-## Step 2: Preprocessing: Scaling to Dimensionless Units
+## Step 2: Unified Preprocessing Pipeline
 
-Before computing the invariants, scale the raw initial positions and
-velocities to dimensionless units using the characteristic scales. This
-ensures consistency with the G=1 system and numerical stability.
+Every IC/BRUTUS pair passes through one deterministic preprocessing transform
+before any invariant calculation, stage assignment, or network input assembly.
+The pipeline order is fixed:
 
-Define global scales once across the entire dataset (all trajectories):
+parse -> mass-invariance check -> COM recenter -> zero-momentum boost ->
+canonical ordering -> canonical rotation gauge -> global scaling ->
+assertions and stored metadata.
 
-- Characteristic time: $T = t_{\max} = 10$ (maximum time in BRUTUS
-  files).
+The same transform is applied to hierarchical and quasi-random data and to
+every BRUTUS snapshot, producing one frame, gauge, and scale convention shared
+by initial conditions, BRUTUS targets, and model-output references.
 
-- Characteristic length: $D = \sqrt[3]{G T^2}$ (with $G=1$,
-  $D \approx 4.6416$).
+### 2.1 Parser contract and mass-invariance check
 
-- Velocity scale: $V = D / T$.
+Step 1 parses masses, positions, and velocities in float64 from the `ic_.txt`
+and `brutus_.txt` files. Step 2.1 supplements Step 1 with the Phase 18
+preprocessing contract and mass-invariance gate; it does not move Step 1
+content or renumber the document. Before any training use, verify mass
+invariance across the trajectory:
 
-For each trajectory's initial state:
-$$\mathbf{r}'_i = \mathbf{r}_i / D, \quad \mathbf{v}'_i = \mathbf{v}_i / V$$
-Compute all subsequent invariants (E, $s_{\min}$, etc.) using
-$\mathbf{r}'$ and $\mathbf{v}'$.
+```text
+max_t,i |m_i(t) - m_i(0)| < 1e-15
+```
+
+in float64 parse space. If this check fails, reject the trajectory or
+quarantine it for parser debugging. This mass-invariance gate also carries the
+folded-in B-11 (COM <-> mass consistency) assertion: the COM transform in 2.2
+and every BRUTUS-snapshot correction require consistent masses between the IC
+and the BRUTUS output.
+
+### 2.2 COM recenter and zero-momentum boost
+
+Apply a universal center-of-mass recenter and zero-momentum (Galilean) boost to
+**all** datasets -- hierarchical and quasi-random -- regardless of whether they
+are believed to already be in the COM frame.
+
+For each trajectory, define
+
+```text
+M        = sum_i m_i
+R_COM(0) = (1/M) sum_i m_i r_i(0)
+V_COM    = (1/M) sum_i m_i v_i(0)
+```
+
+For every snapshot time `t_n`,
+
+```text
+bar r_i(t_n) = r_i(t_n) - R_COM(0) - V_COM t_n
+bar v_i(t_n) = v_i(t_n) - V_COM
+```
+
+For the initial condition this gives `sum_i m_i bar r_i(0) = 0` and
+`sum_i m_i bar v_i(0) = 0`. For an isolated Newtonian system the transformed
+trajectory remains a valid solution in the COM frame.
+
+### 2.3 Canonical ordering
+
+After the COM recenter and zero-momentum boost, sort body labels
+deterministically so that different permutations of the same physical system
+yield identical input vectors. Order the three bodies by:
+
+1. descending raw mass `m_i`;
+2. tie-break by descending `||bar r_i(0)||` (COM-corrected initial-position norm);
+3. tie-break by descending `||bar v_i(0)||` (COM-corrected initial-velocity norm);
+4. final tie-break by original file order.
+
+Canonical ordering operates on the raw masses and the COM-corrected `bar r` /
+`bar v` from 2.2 -- not on scaled coordinates. The same permutation is applied
+to the masses, every initial-condition quantity, every BRUTUS target snapshot,
+and every residual, Hamiltonian, COM projection, and evaluation output. This
+removes permutation ambiguity without requiring a permutation-equivariant
+architecture.
+
+### 2.4 Canonical rotation gauge
+
+After canonical ordering, fix the initial orientation with a canonical rotation
+gauge. Define the Jacobi position vectors
+
+```text
+rho    = bar r_2(0) - bar r_1(0)
+lambda = bar r_3(0) - (m_1 bar r_1(0) + m_2 bar r_2(0)) / (m_1 + m_2)
+```
+
+#### Degeneracy thresholds
+
+The rotation-gauge degeneracy thresholds are dimensionless relative thresholds,
+not raw-coordinate constants. Let
+
+```text
+eta_gauge = 1e-8
+```
+
+Because the rotation gauge is applied after COM recentering, the zero-momentum
+boost, and canonical ordering but **before** global scaling (2.5), define the
+raw-space thresholds from the global Phase 18 scale constants `D`, `T`, `V`
+(defined in 2.5):
+
+```text
+epsilon_rho    = eta_gauge * D
+epsilon_lambda = eta_gauge * D
+epsilon_v      = eta_gauge * V,   V = D / T
+```
+
+Equivalently, the implementation may compare the dimensionless ratios
+`||rho||/D`, `||lambda_perp||/D`, and `||c_perp||/V` against `eta_gauge`.
+`eta_gauge` is a numerical geometry guard for stable rotation-matrix
+construction; it is **not** a physics softening parameter and is **not** tied to
+`epsilon_train` or `epsilon_inv`. Numeric acceptance-check pass criteria for
+`AC-FRAME-*` remain Phase 21 (VER-01/VER-04) scope.
+
+#### Basis construction
+
+The primary Jacobi vector is admissible only if `||rho|| > epsilon_rho`
+(equivalently `||rho||/D > eta_gauge`). If this condition fails, classify the
+trajectory as `gauge_degenerate_rho` and reject or quarantine it for
+near-collision review, consistent with the 2.1 mass-invariance failure pattern;
+the executor must **not** invent an arbitrary `e_x` axis. Otherwise set
+
+```text
+e_x = rho / ||rho||
+```
+
+Remove the `e_x` component from `lambda`:
+
+```text
+lambda_perp = lambda - (lambda dot e_x) e_x
+```
+
+If `||lambda_perp|| > epsilon_lambda` (equivalently `||lambda_perp||/D > eta_gauge`),
+set
+
+```text
+e_y = lambda_perp / ||lambda_perp||
+```
+
+Otherwise the initial geometry is collinear; use the collinear fallback. For
+each velocity-like candidate in the ordered list
+
+```text
+c in { rho_dot, lambda_dot, bar v_1(0), bar v_2(0), bar v_3(0) }
+rho_dot    = bar v_2(0) - bar v_1(0)
+lambda_dot = bar v_3(0) - (m_1 bar v_1(0) + m_2 bar v_2(0)) / (m_1 + m_2)
+```
+
+compute `c_perp = c - (c dot e_x) e_x` and pick the first candidate satisfying
+`||c_perp||/V > eta_gauge` (equivalently `||c_perp|| > epsilon_v`). Set
+`e_y = c_perp / ||c_perp||`. If no candidate passes, choose the fixed coordinate
+basis vector least aligned with `e_x`, project it perpendicular to `e_x`, and
+normalize.
+
+After selecting `e_y` from the first admissible velocity-candidate projection in
+the collinear fallback branch, orient its sign deterministically: if
+`lambda_perp dot e_y < 0`, replace `e_y` with `-e_y`. This keeps
+`lambda_y >= 0` whenever the sign is numerically meaningful; for exact collinear
+geometries `lambda_y = 0` and the fallback candidate order supplies the
+deterministic sign.
+
+Set
+
+```text
+e_z = e_x x e_y
+R_0 = [e_x^T; e_y^T; e_z^T]
+```
+
+Apply the same rotation to every snapshot:
+
+```text
+r_i^g(t_n) = R_0 bar r_i(t_n)
+v_i^g(t_n) = R_0 bar v_i(t_n)
+```
+
+The canonical gauge ensures that, at `t = 0`,
+
+```text
+rho^g    = (rho_x, 0, 0)
+lambda^g = (lambda_x, lambda_y, 0),   lambda_y >= 0
+```
+
+up to numerical tolerance.
+
+#### FRAME-04 3D-Cartesian output guard
+
+The rotation gauge fixes only the **initial** orientation of the Jacobi
+positions. The Jacobi velocities remain fully 3D, the trajectory evolves in
+full 3D, and the model output remains 9D Cartesian positions for the three
+bodies. The output is **not planar** and **not invariant-only** -- the gauge
+constrains only the initial Jacobi-position orientation, not the dimensionality
+of the dynamics.
+
+### 2.5 Global scaling
+
+After the frame and gauge transforms, scale by the global constants. Define
+these once across the entire dataset (all trajectories):
+
+```markdown
+T = t_max = 10
+D = (G*T**2)^(1/3)
+r_i' = r_i^g / D
+v_i' = v_i^g / V
+V = D / T
+```
+
+With `G = 1`, `D ~ 4.6416`. Although global scaling commutes algebraically with
+COM subtraction, the documented order -- COM/boost first, scaling last -- is
+required for auditability and to avoid mixed-frame intermediate files. Compute
+all subsequent invariants (`E`, `s_min`, etc.) from the scaled `r'` and `v'`.
+
+**Governing Mathematical Convention (locked Phase 19, PHYS-01):** The
+characteristic length scale $D = (G T^2)^{1/3} \approx 4.6416$ is derived from
+raw-mass nondimensionalization. Substituting $r = D r'$, $t = T u$ into
+Newton's equation and demanding the dimensionless residual
+$\frac{d^2 \mathbf{r}'_i}{du^2} = \sum_j m_j \frac{\mathbf{r}'_j - \mathbf{r}'_i}{\lVert \mathbf{r}'_j - \mathbf{r}'_i \rVert^3}$ (with raw masses
+$m_i$, not mass fractions) forces $D^3 = G T^2$. The alternative
+$D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ is correct only under a mass-fraction
+convention rewrite ($m_i' = m_i / M_{\mathrm{tot}}$) that would require touching every
+residual, Hamiltonian, angular-momentum, COM, and invariant formula in the
+framework. The mass-fraction alternative is documented as a future rewrite
+only and is not adopted in v1.4. See
+`.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
+for the full EVID-05 adjudication.
 
 Global normalization scales (computed after scaling all trajectories):
 
-- $E_{\text{scale}} = |\mathop{\mathrm{median}}(\{E_j\}_{j=1}^N)| + 10^{-10}$
+- $E_{\mathrm{scale}} = \lvert \mathrm{median}(\{E_j\}) \rvert + 10^{-10}$
+- $s_{\min,\mathrm{scale}} = \mathrm{median}(\{r_{\mathrm{char},j}\})$, where
+  $r_{\mathrm{char},j} = \frac{1}{3} \sum_{i<k} \lVert \mathbf{r}'_{i,j} - \mathbf{r}'_{k,j} \rVert$
+- $Q_{\mathrm{scale}}$ remains fixed at $0.5$.
 
-- $s_{\min\text{scale}} = \mathop{\mathrm{median}}(\{r_{\text{char},j}\}_{j=1}^N)$,
-  where
-  $r_{\text{char},j} = \frac{1}{3} \sum_{i<k} ||\mathbf{r}'_{i,j} - \mathbf{r}'_{k,j}||$
+Author Comment: so far all the inline math notations that have this format `xxxx` are rendered as literal text strings in the preview and are not readable. Consider changing this syntax in a way that is machine-reading friendly and also renders correctly and nicely for human reader reading in preview.
 
-$Q_{\text{scale}}$ remains fixed at 0.5.
+### 2.6 Assertions and stored metadata
 
-## Step 2.5: Verify Center-of-Mass (COM) Frame
+After preprocessing, assert the center-of-mass and total-momentum conditions on
+every preprocessed sample:
 
-> **Author note:** Note: Critical Update: Hierachical ICs are NOT in COM frame and not
-> 0 total momentum. Quasi-random ICs are in COM frame and 0 total
-> momentum. Have not verified Brutus corresponding outputs yet. Refer to
-> the next step of data processing pipeline document.
+```markdown
+||sum_i m_i r_i'|| < 1e-12
+||sum_i m_i v_i'|| < 1e-12
+```
 
-we perform a transformation
-to the COM frame for the hierarchical IC files and hierarchical Brutus
-outputs. Two scripts are responsible for handling each seperately. A
-verification check is also performed after the transformation. For
-quasi-random ICs and Brutus, we will not perform a transformation unless
-the verification check fails. (scaling preserves the COM property), but
-for consistency, use the scaled $\mathbf{r}'$ and $\mathbf{v}'$ from
-Step 1.5:
+A trajectory failing either assertion is rejected or quarantined, consistent
+with the 2.1 mass-invariance failure pattern.
 
-## Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation) {#sec:ctl:step3}
+Each trajectory record stores the following metadata:
+
+```text
+traj_id
+raw_file_paths
+ordered_raw_masses: (3,)
+permutation: (3,)
+R0: (3,3)
+R_COM0: (3,)
+V_COM: (3,)
+D, T, V
+r0_prime_ordered_gauge: (3,3)
+v0_prime_ordered_gauge: (3,3)
+times_raw: (Nt,)
+u: (Nt,)
+tau: (Nt,)
+r_true_prime_ordered_gauge: (Nt,3,3)
+v_true_prime_ordered_gauge: (Nt,3,3)  # optional but recommended
+IC13: (13,)
+invariants: E, Q, s_min, L_vec, L_norm, I_norm_raw, I1, I2, I3, tau_L
+brutus_tolerance, word_length, dt_out, trustworthy_horizon
+```
+
+Raw masses are always available separately from the network-facing mass
+channels. Step 3 consumes the COM-corrected, canonically ordered, gauge-fixed,
+scaled state and the metadata produced here.
+
+## Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation)
 
 #### Scope and preconditions.
 
 All quantities in this section are computed from the *scaled* initial
 conditions $\{(\mathbf r'_i,\mathbf v'_i)\}_{i=1}^3$ and from the BRUTUS
 trajectory output. Verification that the ICs are in the center-of-mass
-(COM) frame with zero total momentum is a *precondition* that is checked
-already in step 2.5 before any calculations proceed.
+(COM) frame with zero total momentum is a *precondition* established by the
+Step 2 Unified Preprocessing Pipeline and asserted in Step 2.6 before any
+calculations proceed.
 
 #### Outputs of this step.
 
 Given one IC (plus its associated trajectory), Step 3 deterministically
 returns the tuple
-$$\mathcal{I} = \big(E,\;Q,\;s_{\min},\;L_{\mathrm{norm}},\;I_{\mathrm{norm}},\; \tau_L,\; m_1, m_2, m_3,\; I_1, I_2, I_3 \big),$$
-which is then consumed by the stage-assignment rules in §4.4 and the
-input vector assembly in Step 4. By default, stage gating uses
-$(E,Q,s_{\min},L_{\mathrm{norm}},\tau_L)$; $I_{\mathrm{norm}}$ is
-available for additional heuristics; shape invariants ($I_1, I_2, I_3$)
-are computed for input vector universality.
+$$\mathcal{I} = \big(E,\;Q,\;s_{\min},\;L_{\mathrm{norm}},\;I_{\mathrm{norm,raw}},\; \tau_L,\; m_1, m_2, m_3,\; I_1, I_2, I_3 \big),$$
+which is then consumed by the stage-assignment rules in §4.4 and retained
+as metadata alongside the Step 4 network input assembly. By default, stage
+gating uses $(E,Q,s_{\min},L_{\mathrm{norm}},\tau_L)$;
+$I_{\mathrm{norm,raw}}$ is available for additional heuristics; shape
+invariants ($I_1, I_2, I_3$) are metadata diagnostics only and are not
+final network IC slots under the Phase 17 input contract.
 
 1.  **Total energy $E$, virial ratio $Q$, and minimal separation
-    $s_{\min}$.** $$\begin{aligned}
+    $s_{\min}$.**
+
+    $$\begin{aligned}
         T &= \tfrac12 \sum_{i=1}^{3} m_i \,\lVert \mathbf v'_i \rVert^2, \\
-        V &= - \sum_{1\le i<j\le 3} \frac{m_i m_j}{\lVert \mathbf r'_i - \mathbf r'_j \rVert + \varepsilon}, \\
+        \varepsilon_{\mathrm{inv}} &= 10^{-10}, \\
+        r_{\mathrm{safe},ij} &= \sqrt{\lVert \mathbf r'_i - \mathbf r'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}, \\
+        V &= - \sum_{1\le i<j\le 3} \frac{m_i m_j}{r_{\mathrm{safe},ij}}, \\
         E &= T + V, \qquad
         Q \;=\; \frac{2\,T}{\lvert V \rvert}, \qquad
         s_{\min} \;=\; \min_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert.
-        
-    \end{aligned}$$ We use a small softening $\varepsilon = 10^{-10}$
+
+    \end{aligned}$$
+
+    We use the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with
+    static-invariant softening $\varepsilon_{\mathrm{inv}} = 10^{-10}$
     (in scaled units) *only in $V$* to prevent singularities. The
     geometric quantity $s_{\min}$ is computed from true pairwise
     separations (no softening).
 
-2.  **Normalized angular momentum $L_{\mathrm{norm}}$.** $$\begin{aligned}
+    **anti-pattern (PHYS-03):** Do not mix additive $(\lVert \mathbf{r} \rVert + \epsilon)$ with Plummer $\sqrt{\lVert \mathbf{r} \rVert^2 + \epsilon^2}$ forms. Do not mix
+    $(\lVert \mathbf{r} \rVert + \epsilon)^{-3}$ force with $(\lVert \mathbf{r} \rVert + \epsilon)^{-1}$ potential. The
+    chosen pair must appear identically in residual and Hamiltonian. The
+    static-invariant softening $\varepsilon_{\mathrm{inv}} = 10^{-10}$ is context-specific for
+    offline invariant computation and is distinct from the training-time
+    softening $\varepsilon_{\mathrm{train}} = 10^{-5}$ used in the `pinn_architecture.md` PHYS-03 residual and energy contracts.
+
+    Author Comment: this section is a syntax disaster. ALl the raw latex syntax are broken in rendered preview, and they show up as literal text strings. The other syntax are also incorrect for proper markdown file. Carefully look into this and think about how to fix it. Maintaining the exact, identifical math equation and expressions is of the utmost importance here. The following sections after this and below this should also be carefully examined.
+
+2.  **Normalized angular momentum $L_{\mathrm{norm}}$.**
+
+    $$\begin{aligned}
         \mathbf L &= \sum_{i=1}^3 m_i \,(\mathbf r'_i \times \mathbf v'_i), \qquad
         L = \lVert \mathbf L \rVert, \\
         r_{\mathrm{char}} &= \frac{1}{3} \sum_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert, \qquad
         v_{\mathrm{char}} = \sqrt{\frac{2\,\lvert E \rvert}{M_{\mathrm{tot}}}}, \\
         L_{\max} &= M_{\mathrm{tot}} \, r_{\mathrm{char}} \, v_{\mathrm{char}}, \qquad
         L_{\mathrm{norm}} = \frac{L}{L_{\max}}.
-        
-    \end{aligned}$$ This $L_{\max}$ is *canonical* in CTL and represents
+
+    \end{aligned}$$
+
+    This $L_{\max}$ is *canonical* in CTL and represents
     the characteristic circular‐orbit scale at energy $E$. All other
     historical variants are deprecated.
 
@@ -484,13 +732,13 @@ are computed for input vector universality.
         return L / (L_max + eps)
     ```
 
-3.  **Normalized moment of inertia $I_{\mathrm{norm}}$.** Let $I(\mathbf r')$ be the inertia tensor about
+3.  **Normalized moment of inertia $I_{\mathrm{norm,raw}}$.** Let $I(\mathbf r')$ be the inertia tensor about
     COM:
     $$\mathbf I \;=\; \sum_{i=1}^{3} m_i \Big( \lVert \mathbf r'_i \rVert^2 \,\mathbf I_{3\times 3}
                                             - \mathbf r'_i (\mathbf r'_i)^{\!\top} \Big).$$
     We use its trace as a rotationally invariant scalar and normalize by
     the characteristic scale of the normalized angular momentum (see above):
-    $$I_{\mathrm{norm}} \;=\; \frac{\mathrm{tr}(\mathbf I)}{M_{\mathrm{tot}}\, r_{\mathrm{char}}^{\,2}}.$$
+    $$I_{\mathrm{norm,raw}} \;=\; \frac{\mathrm{tr}(\mathbf I)}{M_{\mathrm{tot}}\, r_{\mathrm{char}}^{\,2}}.$$
     (This quantity is not required for default stage gating but is
     retained as a robust, scale‑consistent descriptor of spatial
     extent.)
@@ -515,7 +763,7 @@ are computed for input vector universality.
             I_norm_raw = I_trace / denom  # Raw value, potentially >1 or <0 (though typically positive)
             
             if not np.isfinite(I_norm_raw):
-                raise ValueError("Non-finite I_norm computed; check inputs.")
+                raise ValueError("Non-finite I_norm_raw computed; check inputs.")
             
             return I_norm_raw
     ```
@@ -530,9 +778,15 @@ are computed for input vector universality.
     $$\begin{aligned}
         I_1 &= \frac{d_{\text{short}}}{d_{\text{long}}} \in [0, 1] \\
         I_2 &= \frac{d_{\text{mid}}}{d_{\text{long}}} \in [I_1, 1] \\
-        I_3 &= \frac{d_{\text{short}} + d_{\text{mid}} - d_{\text{long}}}{d_{\text{short}} + d_{\text{mid}} + d_{\text{long}}} \in [-1, 1]
+        I_3 &= \frac{d_{\text{short}} + d_{\text{mid}} - d_{\text{long}}}{d_{\text{short}} + d_{\text{mid}} + d_{\text{long}}} \in [0, 1/3]
         
     \end{aligned}$$
+
+    The raw shape invariant $I_3 \in [0, 1/3]$ (0 for the degenerate collinear
+    configuration, $1/3$ for the equilateral configuration). For staging/metadata
+    use it is linearly mapped to $[-1, 1]$ via $I_3^{\mathrm{in}} = 6\,I_3 - 1$.
+    $I_3$ is a metadata diagnostic and is not a network IC slot under the Phase 17
+    input contract.
 
 5.  **Lyapunov time $\tau_L$ via a Rosenstein-style estimator.**
     We estimate the largest Lyapunov
@@ -653,7 +907,9 @@ are computed for input vector universality.
 #### Numerical notes and defaults.
 
 Unless otherwise specified, use double precision for all invariants. The
-softening $\varepsilon=10^{-10}$ in the total energy definition (see above) is a safe default in scaled units and *does not* enter $s_{\min}$ or any denominator besides $V$.
+static-invariant Plummer softening $\varepsilon_{\mathrm{inv}}=10^{-10}$
+in the total energy definition (see above) is a safe default in scaled units
+and *does not* enter $s_{\min}$ or any denominator besides $V$.
 
 #### Sanity checks (quick tests).
 
@@ -671,87 +927,42 @@ Before large‑scale runs:
 #### Scope.
 
 Using the invariants and quantities computed in Step 3 (e.g., $E$, $Q$,
-$s_{\min}$, $L_{\text{norm}}$, $I_{\text{norm}}$, $I_1$, $I_2$, $I_3$,
-masses), this step applies canonical ordering, normalizes all components
-to $[-1,1]$, and assembles the final 12D input vector for the PINN.
+$s_{\min}$, $L_{\text{norm}}$, $I_{\text{norm,raw}}$, $I_1$, $I_2$, $I_3$,
+masses), this step applies canonical ordering, computes the scaled
+Jacobi-state variables, normalizes each network IC slot, and assembles
+the final 14D network input vector $[\tau, IC_{13}]$ for the PINN per
+the Phase 17 input contract. The invariant-heavy descriptors above are
+retained as metadata for curriculum staging, diagnostics, loss scaling,
+and reporting only; they are no longer final network IC slots.
 
-1.  **Apply Canonical Ordering of Bodies for Injectivity**
+1.  **Canonical ordering.** Canonical ordering is already applied in
+    Step 2.3; Step 4 consumes the ordered, gauge-fixed, scaled state.
 
-    To ensure that different permutations of the same physical system
-    yield identical input vectors, we apply a canonical ordering based
-    on physical properties. Use the scaled $\mathbf{r}'$ and
-    $\mathbf{v}'$ from Step 1.5:
+2.  **Apply Normalization to $[-1,1]$.** The final network IC slots are
+    normalized only after the Phase 18 (FRAME-01) preprocessing contract
+    has produced the ordered raw masses and Jacobi-state scalars. The
+    legacy invariant-heavy quantities computed above are retained as
+    metadata for staging, diagnostics, loss scaling, and reports; they are
+    not concatenated into the final `IC_{13}` vector.
 
-    > **Author note:** I need more speicific details on which parts of the quantieis
-    > computed in Step 3 are used for this canonical ordering.
-
-    ```python
-    def canonical_ordering(m, r_prime, v_prime):
-        """Order bodies by a unique, physically meaningful criterion (using scaled data from Step 1.5)"""
-        # Create sorting keys: primary by mass (descending), 
-        # secondary by distance from origin, tertiary by speed
-        keys = []
-        for i in range(3):
-            key = (-m[i], np.linalg.norm(r_prime[i]), np.linalg.norm(v_prime[i]))
-            keys.append(key)
-        
-        # Get sorting indices
-        idx = sorted(range(3), key=lambda i: keys[i])
-        
-        # Reorder all quantities
-        m_sorted = m[idx]
-        r_prime_sorted = r_prime[idx]
-        v_prime_sorted = v_prime[idx]
-        
-        return m_sorted, r_prime_sorted, v_prime_sorted
-    ```
-
-2.  **Apply Normalization to $[-1,1]$.** All components must be
-    normalized to the range $[-1,1]$ for optimal neural network
-    training. Use invariants computed from scaled data (from Step 2) and
-    the global scales precomputed across the dataset in Step 2. The
-    normalization formulas are as follows:
-
-    ```python
-    # Global scales (precomputed from scaled dataset in Step 2)
-    E_scale = np.abs(np.median(all_E)) + 1e-8  # Avoid zero
-    Q_scale = 0.5     # Fixed
-    smin_scale = np.median(all_r_char)  # Characteristic length from scaled data
-
-    # Per-system normalization (using invariants from Step 3)
-    E_norm = np.tanh(E / E_scale)
-    Q_norm = np.tanh((Q - 1) / Q_scale)
-    smin_norm = np.tanh(s_min / smin_scale)
-    L_norm_normalized = 2 * L_norm - 1  # Map [0,1] to [-1,1] for consistency
-
-    # Mass fractions
-    m_total = np.sum(m) + 1e-8
-    m_norm = 2 * (m / m_total) - 1  # Array for all 3 masses
-
-    # Shape invariants
-    I1_norm = 2 * I1 - 1  # Map [0,1] to [-1,1]
-    I2_norm = 2 * I2 - 1  # Map [0,1] to [-1,1]
-    # I3 already in [-1,1]
-
-
-    # Normalized inertia (already computed in Step 3, but confirm bounds)
-    I_norm = np.tanh(I_norm)  # Ensure [-1,1] if not already
-    ```
-
-    > **Author note:** Confirm that all components in the IC vector are in the range
-    > $[-1,1]$ and that it is the final form that will be fed to the PINN.
+    > **Historical author note (pre-Phase 17; retained as a non-normative
+    > question):** Confirm that all components in the IC vector are in the
+    > range $[-1,1]$ and that it is the final form that will be fed to the
+    > PINN.
 
     #### Mathematical Guarantees
 
     This parameterization satisfies several critical requirements:
 
-    1.  **Injectivity**: The canonical ordering ensures that different
+    1.  **Deterministic gauge-fixed representation**: The canonical ordering ensures that different
         permutations of the same physical system yield identical input
-        vectors. The 13 constraints for an 8-dimensional reduced phase
-        space ensure over-determination and uniqueness.
+        vectors.
 
-    2.  **Continuity**: All components vary continuously with the
-        initial conditions, ensuring smooth neural network training.
+        **IC13 Validity (locked Phase 19, PHYS-06):** The final IC13 is a redundant but reconstructive fixed-gauge initial-state encoding. It is not justified by constraint counting against a reduced phase space. Its validity comes from COM removal, zero-momentum boost, canonical ordering, canonical rotation, and retention of the independent Jacobi position/velocity degrees of freedom -- as locked by Phase 17 (IO-02) and Phase 18 (FRAME-01). The canonical preprocessing pipeline (Step 2) deterministically produces a gauge-fixed IC encoding that uniquely represents the trajectory up to the symmetries already removed. See `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/M4.md` for the full EVID-05 adjudication.
+
+    2.  **Continuity**: All network IC slots vary continuously with the
+        preprocessed initial conditions, ensuring smooth neural network
+        training.
 
     3.  **Universality**: No special cases or singularities for specific
         configurations (unlike orbital elements).
@@ -761,14 +972,12 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
 
     #### Numerical Implementation Considerations
 
-    When implementing this transformation, careful attention must be
-    paid to numerical stability (using scaled data from Step 2):
+    When implementing this transformation, careful attention must be paid
+    to numerical stability in the metadata calculations and the final
+    Jacobi-state slot assembly:
 
-    - Use $\epsilon = 10^{-10}$ in potential energy calculations to
-      avoid division by zero
-
-    - Check for $||\mathbf{v}'_i|| < \epsilon$ before computing velocity
-      angles
+    - Use the static-invariant Plummer form with $\varepsilon_{\mathrm{inv}} = 10^{-10}$
+      in potential energy calculations to avoid division by zero
 
     - Verify momentum conservation after canonical ordering:
       $||\sum m_i \mathbf{v}'_i|| < 10^{-12}$
@@ -781,43 +990,73 @@ to $[-1,1]$, and assembles the final 12D input vector for the PINN.
     conditions, from highly hierarchical systems to chaotic quasi-random
     configurations.
 
-    > **Author note:** Confirm on this mathematcial guarantees' arguments and the
+    > **Historical author note (pre-Phase 17; retained as a non-normative
+    > question):** Confirm on this mathematcial guarantees' arguments and the
     > numerical implementation's purpose and validity. If confirmed, how
     > should we integrate and implement this into the existing workflow?
     > Also, we have to add the time t into this vector to achieve the
     > final 14-dimensional input vector ready to be fed to the PINN.
 
-3.  **Assemble the Final 12-Component Input Vector.** The complete input
-    vector fed to the PINN is formed by concatenating the normalized
-    time component $t'$ with the 13-component initial condition vector
-    $\text{IC}$ (using normalized values from above):
+#### Network input contract
 
-    ```python
-    def normalize_time(t, T=10.0):
-        # Normalize physical time t from [0, T] to [-1, 1]
-        return 2 * (t / T) - 1
-    ```
+The network input is exactly
 
-    The 11-component IC is: $$\text{IC} = \begin{pmatrix}
-        m_1^{\text{norm}}, m_2^{\text{norm}}, m_3^{\text{norm}} & \text{(normalized masses)} \\
-        E^{\text{norm}} & \text{(normalized total energy)} \\
-        L_{\text{norm}} & \text{(normalized angular momentum)} \\
-        Q^{\text{norm}} & \text{(normalized virial ratio)} \\
-        s_{\min}^{\text{norm}} & \text{(normalized min separation)} \\
-        I_1^{\text{norm}}, I_2^{\text{norm}}, I_3 & \text{(shape invariants)} \\
-        I^{\text{norm}} & \text{(normalized moment of inertia)}
-        \end{pmatrix}$$
+$$
+x_{\mathrm{net}} = [\tau, IC_{13}], \qquad \tau = 2u - 1,\qquad u=t/T.
+$$
 
-$$\text{Input} = [t', \text{IC}] \text{, (12-dimensional input vector)}$$
+For the normalized-time derivative contract (autograd leaf, chain-rule factors,
+componentwise derivatives, and synthetic-trajectory test), see pinn_architecture.md PHYS-02 contract.
 
-The time component is normalized from the physical time $t \in [0, T]$
-(where $T = t_{\max} = 10$ is the characteristic time) to the range
-$[-1, 1]$ using the formula:
+The primary initial-condition vector is the 13-component Jacobi-state contract
 
-$$t' = 2 \left( \frac{t}{T} \right) - 1$$
+$$
+IC_{13} = [m_1, m_2, m_3, \rho_x, \lambda_x, \lambda_y,
+\dot{\rho}_x, \dot{\rho}_y, \dot{\rho}_z,
+\dot{\lambda}_x, \dot{\lambda}_y, \dot{\lambda}_z, E].
+$$
 
-This centering around zero aligns with the periodic activation functions
-(e.g., SIREN) and improves training dynamics.
+The mass entries are ordered raw masses before normalization. Canonical body ordering, frame recentering, momentum boost, rotation gauge, and scaling order are defined in Phase 18 (FRAME-01); this section only states the network-facing IC vector after that preprocessing contract is applied.
+
+After preprocessing, define scaled Jacobi state variables:
+
+$$
+\rho' = r_2'(0)-r_1'(0),
+$$
+
+$$
+\lambda' = r_3'(0)-\frac{m_1r_1'(0)+m_2r_2'(0)}{m_1+m_2}.
+$$
+
+The position slots retained in `IC_{13}` are $\rho_x$, $\lambda_x$, and $\lambda_y$ after the Phase 18 (FRAME-01) gauge. The velocity slots remain fully 3D:
+
+$$
+\dot{\rho}'=(\dot{\rho}_x,\dot{\rho}_y,\dot{\rho}_z), \qquad
+\dot{\lambda}'=(\dot{\lambda}_x,\dot{\lambda}_y,\dot{\lambda}_z).
+$$
+
+Mass, Jacobi-position, and Jacobi-velocity slots are normalized independently with dataset-wide statistics computed after preprocessing:
+
+$$
+z^{in} = \tanh\left(\frac{z-\mu_z}{\sigma_z + 10^{-8}}\right).
+$$
+
+| Slot group | Pre-tanh scalar $z$ | Network value |
+|---|---|---|
+| Ordered raw masses | $m_i$ for $i \in \{1,2,3\}$ | $\tanh\!\left(\frac{m_i - \mu_{m_i}}{\sigma_{m_i} + 10^{-8}}\right)$ |
+| Jacobi position slots | $\rho_x$, $\lambda_x$, $\lambda_y$ | $\tanh\!\left(\frac{z - \mu_z}{\sigma_z + 10^{-8}}\right)$ |
+| Jacobi velocity slots | $\dot{\rho}_x$, $\dot{\rho}_y$, $\dot{\rho}_z$, $\dot{\lambda}_x$, $\dot{\lambda}_y$, $\dot{\lambda}_z$ | $\tanh\!\left(\frac{z - \mu_z}{\sigma_z + 10^{-8}}\right)$ |
+| Energy slot | $E$ | $\tanh\!\left(\frac{E}{E_{\mathrm{scale}}}\right)$, where $E_{\mathrm{scale}} = \lvert \mathrm{median}_{\mathrm{traj}}(E) \rvert + 10^{-8}$ |
+
+The energy normalization maps any real $E$ into the network range $(-1, 1)$ via $\tanh(E / E_{\mathrm{scale}})$. For the documented bound-system dataset, $E_{\mathrm{norm}}$ occupies $[-1, 0)$ — the positive side of the tanh input range is unused because bound systems have $E < 0$. This is acceptable for SIREN and is not a normalizer correctness failure (see `simulation_data/Documentation/README.md` for data-generation regimes).
+
+The mass slots are normalized per slot with dataset-wide statistics. For hierarchical ICs, the dataset-occupied $m_{\mathrm{norm}}$ range is asymmetric; this asymmetry carries mass hierarchy information and is not a centering or correctness failure.
+
+The old invariant-heavy descriptors ($Q$, $s_{\min}$, $\mathbf{L}_{\mathrm{vec}}$, $L_{\mathrm{norm}}$, $I_{\mathrm{norm,raw}}$, $I_1$, $I_2$, $I_3$, $\tau_L$, and orientation summaries) remain available as curriculum, diagnostics, loss-scaling, and reporting metadata. They are not final network IC slots under the Phase 17 input contract.
+
+The network time coordinate is centered around zero by the linear map $\tau = 2u - 1$ with $u = t/T$ (where $T = t_{\max}$ is the characteristic time), which aligns with the periodic activation functions (e.g., SIREN) and improves training dynamics. The autograd leaf is `u`; the model wrapper computes `tau` internally.
+
+Author Comment: again the syntax issues here above in the `` format are all broken and need fixing. 
 
 ## Step 5: Curriculum Stage Assignment
 
@@ -830,7 +1069,8 @@ mapping from each simulation ID to its assigned stage index.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
-> **Author note:** My biggest question now for this training loop is that: how are we
+> **Historical author note (pre-Phase 17; retained as a non-normative
+> question):** My biggest question now for this training loop is that: how are we
 > feeding the exact input vector and brutus simulation data into the
 > network? We need a very specific description that clearly tells me what
 > the input format is going to be. For example, right now I know that our
@@ -873,29 +1113,29 @@ refinement:
 
 The data flow for each training step is as follows:
 
-1.  **Input**: The model receives a 12-dimensional input vector, which
-    is a combination of the scalar time $t$ and the 11-component initial
-    condition (IC) vector.
+1. **Input**: The model receives the 14-dimensional network input `[\tau, IC_{13}]`, where `u=t/T` is the autograd leaf and `\tau=2u-1`.
 
-2.  **Network Prediction**: The network outputs the predicted positions
-    $\mathbf{r}_i(t)$ and velocities $\mathbf{v}_i(t)$ for all three
-    bodies at time $t$. The network is conditioned solely on \[t, IC\]
-    to predict the full state at t, without recurrent stepping.
+2. **Network Prediction**: The network emits a raw 9D position head for the three bodies. The architecture applies the hard mass-weighted COM projection defined in `pinn_architecture.md` before any loss, residual, diagnostic, or evaluation metric consumes the output. The projection weights are ordered raw pre-tanh mass metadata supplied by the Phase 18 (FRAME-01) preprocessing output, not the normalized `IC_{13}` mass slots. Velocities and accelerations are AD-derived from the projected positions; the network does not directly output velocities.
 
-3.  **Loss Computation**: Three distinct loss terms are computed:
+3.  **Loss Computation**: The default Phase 19 loss terms are computed:
 
     - $\mathcal{L}_{\text{data}}$: Compares the network's predicted
       positions with the ground-truth trajectories from the Brutus
       simulations.
 
-    - $\mathcal{L}_{\text{physics}}$: Calculates the residual of
-      Newton's equations of motion by using automatic differentiation to
-      get the second derivative of the network's position output
-      ($\frac{d^2\mathbf{r}}{dt^2}$).
+    - $\mathcal{L}_{\text{IC}}$: Anchors predicted position and velocity at
+      `u = 0`.
 
-    - $\mathcal{L}_{\text{energy}}$: Penalizes deviations from the
-      system's known initial energy, enforcing a global conservation
-      law.
+    - $\mathcal{L}_{\text{phys}}^{\text{causal}}$: Calculates the causally
+      weighted residual of Newton's equations of motion by using automatic
+      differentiation to get the second derivative of the network's position
+      output.
+
+    - $\mathcal{L}_{E}$: Penalizes relative drift from the system's known
+      initial energy as a soft conservation regularizer.
+
+    - $\mathcal{L}_{L}$: Penalizes componentwise relative angular-momentum
+      drift.
 
 4.  **Backpropagation**: The gradients of the total loss function flow
     back through the network to update the model's weights; gradients
@@ -904,31 +1144,32 @@ The data flow for each training step is as follows:
 
 ## Loss Function Formulation
 
-The total loss enforces data fidelity, local physics, and global
-conservation, balanced via the Augmented Lagrangian Method (ALM).
+### Phase 2: Total Training Loss
 
-### Total Loss {#total-loss .unnumbered}
+The default training loss is:
 
-The total loss is defined as:
-$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda_{p}\mathcal{L}_{\text{physics}} + \frac{\mu_{p}}{2}\mathcal{L}_{\text{physics}}^{2} + \lambda_{E}(k)\mathcal{L}_{\text{energy}}$$
-where $k$ is the current curriculum stage.
+$$
+\mathcal{L}_{\mathrm{total}} = \mathcal{L}_{\mathrm{data}} + \lambda_{\mathrm{IC}} \, \mathcal{L}_{\mathrm{IC}} + \lambda_{\mathrm{phys}} \, \mathcal{L}_{\mathrm{phys}}^{\mathrm{causal}} + \lambda_E \, \mathcal{L}_E + \lambda_L \, \mathcal{L}_L
+$$
 
-### Augmented Lagrangian Method (ALM) Updates {#augmented-lagrangian-method-alm-updates .unnumbered}
+where each term is defined by name in the PHYS-05 loss-term catalog in
+`pinn_architecture.md` ($\mathcal{L}_{\mathrm{data}}$, $\mathcal{L}_{\mathrm{IC}}$, $\mathcal{L}_{\mathrm{phys}}^{\mathrm{causal}}$, $\mathcal{L}_E$, and $\mathcal{L}_L$).
+The loss-balancing contract, warmup schedule, and optimizer-phase semantics
+are defined in the PHYS-05 training-loss contract in `pinn_architecture.md`.
 
-ALM parameters are updated algorithmically after each optimization step.
+**Optimizer-phase semantics (PHYS-05):** During Adam epochs, hyperparameters
+(`λ` values) may be scheduled per the warmup schedule. During L-BFGS, `λ`
+values are frozen and no dual updates occur inside a line search.
+Stage-boundary transitions apply re-warmup per the new stage's
+`λ_phys^max` / `λ_E^max` / `λ_L^max`.
 
-1.  **Update Lagrange Multiplier ($\lambda_p$)**: Updated via gradient
-    ascent on the constraint:
-    $$\lambda_{p} \leftarrow \lambda_{p} + \mu_{p}\mathcal{L}_{\text{physics}}$$
+**Causal weighting (PHYS-05 default):** Dense ODE residuals use causal weighting `w_n = exp(-η_c · Σ_{m<n} stopgrad(R̄_m))`, `w_1 = 1`, `η_c = 1`
+default, with stopgrad in weights by default to prevent the weight mechanism
+from becoming an adversarial term. The exponent must be clipped to avoid
+underflow, but Phase 19 does not choose a numeric clipping bound; surface a
+gap if execution requires one.
 
-2.  **Update Adaptive Penalty ($\mu_p$)**: Stabilized via RMSprop-like
-    update:
-    $$v_{p} \leftarrow \beta v_{p} + (1-\beta)\mathcal{L}_{\text{physics}}^{2}$$
-    $$\mu_{p} \leftarrow \frac{\gamma}{\sqrt{v_{p}+\epsilon}}$$ where
-    $\beta=0.99$, $\gamma=0.01$, and $\epsilon=1e-8$.
-
-For more information on updating the various parameters of the loss
-function, please refer to the PINN architecture plan.
+The previous pseudo-ALM formulation (`L_data + λ_p·L_phys + (μ_p/2)·L_phys² + λ_E(k)·L_energy`) is rejected because squaring a nonnegative MSE produces a quartic residual that does not represent a standard equality-constrained augmented Lagrangian. Optional ALM for scalar conservation constraints only is documented as a P2 ablation in the PHYS-05 ablation section of `pinn_architecture.md`.
 
 ## Phase 2a: Adam-driven Exploration
 
@@ -1032,10 +1273,10 @@ validation set (hold-out 10-20% of cumulative data per stage).
 ### 1. Training Loss Plateau
 
 Relative change in smoothed total loss below threshold:
-$$\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{train}}$$
+$$\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{plateau}}$$
 where
 $\mathcal{L}_{\text{smooth}}(i) = \beta \cdot \mathcal{L}_{\text{smooth}}(i-1) + (1-\beta) \cdot \mathcal{L}_{\text{train,total}}(i)$,
-$\beta = 0.98$, patience = 200, $\epsilon_{\text{train}} = 10^{-5}$.
+$\beta = 0.98$, patience = 200, $\epsilon_{\text{plateau}} = 10^{-5}$.
 Initialize $\mathcal{L}_{\text{smooth}}(0)$ as the first computed loss.
 
 ### 2. Validation Loss Stability
@@ -1050,31 +1291,32 @@ $$\mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilo
 
 ### 4. Energy Conservation Check
 
-Average relative energy drift below threshold:
-$$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)|} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})$$
+Average relative energy drift below threshold, using the persisted
+PHYS-04/D-20 (GAP-19-01) energy denominator floor `epsilon_H = 1e-4 * S_H`:
+$$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)| + \epsilon_H} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})$$
 
 ## Consolidated Hyperparameter Schedule
 
-| Stage | Adam LR (Initial) | Clip `C` | $\lambda_E$ (Energy Wt.) | L-BFGS Type |
+| Stage | Adam LR (Initial) | Clip `C` | Loss-weight schedule | L-BFGS Type |
 |---|---|---:|---|---|
-| 0-1 | $10^{-3} \times (0.7)^k$ | 7-10 | $10^{k-3}$ | Full-Batch |
-| 2-3 | $10^{-3} \times (0.7)^k$ | 5 | $10^{k-3}$ | Full-Batch / sL-BFGS |
-| 4-6 | $10^{-3} \times (0.7)^k$ | 3 | $10^{k-3}$ | sL-BFGS |
+| 0-1 | $10^{-3} \times (0.7)^k$ | 7-10 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch |
+| 2-3 | $10^{-3} \times (0.7)^k$ | 5 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch / sL-BFGS |
+| 4-6 | $10^{-3} \times (0.7)^k$ | 3 | See PHYS-05 warmup schedule in `pinn_architecture.md` | sL-BFGS |
 
 *Stage-by-stage guide for key dynamic hyperparameters.*
 
 ## Implementation Notes
 
 - **Monitoring**: Use TensorBoard to log loss components
-  ($\mathcal{L}_{\text{data}}, \mathcal{L}_{\text{physics}}, \mathcal{L}_{\text{energy}}$),
-  ALM parameters ($\lambda_p, \mu_p$), gradient statistics, and metrics
-  like energy drift.
+  ($\mathcal{L}_{\text{data}}, \mathcal{L}_{\text{IC}}, \mathcal{L}_{\text{phys}}^{\text{causal}}, \mathcal{L}_{E}, \mathcal{L}_{L}$),
+  scheduled loss weights, gradient statistics, and conservation metrics.
 
 - **Checkpointing**: Save model checkpoints after each stage completion.
 
 - **Error Handling/Edge Cases**: Monitor for NaN gradients during close
-  encounters; if encountered, increase softening $\epsilon$ in potential
-  calculations or tighten clipping.
+  encounters; if encountered, follow the PHYS-03 training-softening ablation
+  contract in `pinn_architecture.md` or tighten clipping. Do not ad hoc alter
+  the static-invariant `epsilon_inv` used for offline invariant computation.
 
 - **Reproducibility**: Drive runs from a three-level Hydra YAML
   configuration:
@@ -1084,8 +1326,8 @@ $$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{fin
   - `opt.yaml` -- optimizer settings, learning-rate schedule, clip
     norms.
 
-  - `loss.yaml` -- augmented-Lagrangian settings, $\lambda_E$ schedule,
-    tolerances.
+  - `loss.yaml` -- default loss weights, PHYS-05 warmup schedule, causal
+    residual settings, conservation regularizer scales, and tolerances.
 
 With the training complete, we next discuss some additional
 considerations: potential architectural tweaks to further improve
@@ -1187,12 +1429,12 @@ noted.
 Most importantly, for rigorous provenance we drive every training run
 from a three-level Hydra YAML stack:
 
-- `stage.yaml` -- curriculum definition and data-set indices\
+- `stage.yaml` -- curriculum definition and data-set indices\ (Author Comment: why is there a "\" sign here and in the next line?)
 
-- `opt.yaml` -- optimiser, learning-rate schedule, clip norms\
+- `opt.yaml` -- optimiser, learning-rate schedule, clip norms
 
-- `loss.yaml` -- augmented-Lagrangian settings, $\lambda_E$ schedule,
-  tolerances
+- `loss.yaml` -- default loss weights, PHYS-05 warmup schedule, causal
+  residual settings, conservation regularizer scales, and tolerances
 
 A typical run is launched with:
 
@@ -1205,14 +1447,12 @@ folder, so every figure in the paper can be reproduced bit-for-bit.
 
 > **Figure 1 (TikZ diagram not rendered):** Workflow diagram for COM-frame verification and input construction. This figure belongs to the *end of Step 2* (Preprocessing) and is reproduced here in the Appendix for reference. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
 
-> **Figure 2 (TikZ diagram not rendered):** End-to-end data-processing flow from Step 2 (Preprocessing) through Step 5 (Stage Assignment). After Step 3 computes and stores invariants ($E, Q, s_{\min}, L_{\mathrm{norm}}, I_{\mathrm{norm}}, \tau_L$), Steps 4 and 5 run in parallel, both using these stored invariants. This complements Figure 1 above. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
+> **Figure 2 (TikZ diagram not rendered):** End-to-end data-processing flow from Step 2 (Preprocessing) through Step 5 (Stage Assignment). After Step 3 computes and stores invariants ($E, Q, s_{\min}, L_{\mathrm{norm}}, I_{\mathrm{norm,raw}}, \tau_L$), Steps 4 and 5 run in parallel, both using these stored invariants. This complements Figure 1 above. The diagram was generated from TikZ source in the LaTeX appendix; see the original `.tex` file for the definition.
 
 # Source Issues / Notes for Future Reconciliation
 
-These notes are metadata for future reconciliation. They are not part of the converted source body and are excluded from fidelity comparison in `docs/findings/reports_on_v1.3/closure_audit_2026-05-11/audit-ctl_instruction.md`.
+These notes are metadata for future reconciliation. They are not part of the converted source body and were excluded from v1.3 fidelity comparisons.
 
 ## SI-CTL-001: Input-vector dimensionality inconsistency
 
-- Source sections: `04_phase1_data_prep.tex`, `05_phase2_training_loop.tex`, `appendix.tex`.
-- Markdown headings: `Step 4: Formulating the Input Vector: Canonical Ordering, Normalization, and Assembly`, `Data Flow During Training`, and `Supplementary Figures`.
-- Note: The converted body preserves the LaTeX source exactly, but the source alternates between describing an 11-component IC plus time as a 12-dimensional input and a 13-component IC plus time as a 14-dimensional input. This should be reconciled against the canonical PINN input-vector definition in a future source-level update.
+Resolved by v1.4 finding B-03. See Phase 17 input contract.

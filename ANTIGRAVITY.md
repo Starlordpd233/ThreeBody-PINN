@@ -2,6 +2,8 @@
 
 **Identity**: Antigravity, DeepMind-style agent specializing in N-body simulations and Physics-Informed Neural Networks.
 
+**Governance note**: `AGENTS.md` is the canonical repository-wide instruction file. This file is supplementary for Antigravity-specific context; if it conflicts with `AGENTS.md`, direct user instruction, or system/developer instructions, follow the higher-priority instruction.
+
 ---
 
 ## Part 1: Agent Persona and Core Guidelines
@@ -25,18 +27,45 @@
 - **Testing**: Use test-driven development when it improves safety or clarity.
 - **Course correction**: Re-plan quickly if assumptions prove wrong.
 
+### 1.4 v1.4 Governance and EDL Support
+- **Do not invent source-silent decisions**: During v1.4 and future adjudication milestones, follow the `AGENTS.md` STOP protocol for source-silent or ambiguous semantic/process decisions.
+- **Gap registers stay authoritative**: Phase-local `NN-GAPS.md` files own blocking status, deferral, and final resolution.
+- **EDL is support only**: The non-canonical Empirical Decision Loop lives at `.planning/research/edl/README.md`. Central EDL briefs package context for user-led external research; they do not resolve gaps, create grounding, or authorize numeric defaults, probes, or framework-spec edits without user instruction.
+- **Use dependency-scoped blocking**: Stop work that depends on the unresolved decision, while independent work may continue only when the gap entry says that is safe. A phase cannot close with an unresolved EDL-supported gap unless the user explicitly resolves or defers it.
+- **Live PINN code is not v1.4 grounding**: `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` are v1.3-era references only during v1.4. Use them only in forward-looking FUT-01 handoffs unless the governing docs explicitly carve out a narrower exception.
+
+**SCOPE-05 data-generation carveout:** `simulation_data/Scripts/ic_generation/` is a permitted
+grounding source for data-generation specs in
+`pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`. This is a narrow
+carveout from the `pinn/` no-live-code directive, not a general live-code exception. The
+canonical rule lives in `.planning/REQUIREMENTS.md` SCOPE-05.
+
+### 1.5 Git Commit Protocol
+Follow this whenever a task may require a later Git commit, even if the commit is not created in the current session. The full policy is `docs/git-guidelines.md` (canonical).
+
+- **Start and pre-commit checks**: At session start and before committing, run `git status --short --branch` and surface branch, ahead/behind, and existing worktree changes. Treat existing changes as user-owned unless you created them in the current task. Before committing, inspect `git diff --cached`, check unstaged changes for touched files, and run relevant verification plus `git diff --check`. Stage only intended files.
+- **Hooks and bypass**: Run `scripts/setup-git-hooks.sh` if `git config --get core.hooksPath` is not `.githooks`. Use `scripts/agent-commit`; do not run raw `git commit`. Do not use `--no-verify`, `core.hooksPath=/dev/null`, or equivalent bypasses without explicit user approval.
+- **Message format**: `<type>(<scope>): <lowercase imperative subject>`. Types: `spec`, `evidence`, `verify`, `plan`, `docs`, `feat`, `fix`, `refactor`, `test`, `chore`. Scopes: two-digit phase (`20`), task (`20-05`), or fixed domains `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`. Subject lowercase, imperative, 80 characters or fewer, no trailing period, no markdown ticks or quotes, no semicolon-chained changes. A body is required for `spec`, `evidence`, `verify`, `plan`; commits touching multiple files; and commits touching `pinn_instruction/`, `.planning/`, framework specs, or governance instructions.
+- **Attribution**: Agent-authored or materially agent-assisted commits must include `Agent-Assisted-By:` or a valid `Co-Authored-By:` trailer.
+- **Transformation and verification integrity**: Before a bulk transformation of a file that already has uncommitted changes (split, reformat, large find-replace), commit or stash those pre-existing changes first as their own atomic unit; never fold them into the transformation commit. When a commit asserts a verifiable invariant (byte-for-byte preservation, hash match, counts), record the supporting hashes or counts in committed state — not in `/tmp` — so the claim is re-derivable.
+- **Docs plan-review-fix lifecycle**: Rules attach to the action, not the agent; retention, naming, and archive follow `docs/README.md`. Record execution provenance in the plan frontmatter (`execution_status`, `executed_at`, `review_status`) and close each pass with a dedicated commit carrying `Plan-Execution:`/`Plan-Source:` trailers, separate from the work commits (re-runs use `remediation-pass-N`); commit review reports as `verify(<scope>)`, kept and superseded via frontmatter `status: superseded` rather than delete-and-recreate, separate from any fixes; author fix or remediation plans as their own `plan(<scope>)` commit.
+
 ---
 
 ## Part 2: Source of Truth and Repository Map
 
 ### 2.1 Source of Truth Files (Use these first)
 - **Dataset spec and anomalies**: `simulation_data/Documentation/README.md`
-- **PINN input vector and staging logic**: `pinn/data-processing-pipeline-full.py`
-- **PINN architecture implementation**: `pinn/basic_architecture.py`
-- **Sampling and CTL methodology (reference docs)**:
+- **PINN framework specs (authoritative during v1.4 and beyond)**:
   - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
   - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
   - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
+- **v1.4 adjudication sources**:
+  - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md`
+  - `pinn_instruction/issues/01-architecture-and-physics-foundations.md`
+- **PINN implementation files, reference-only during v1.4**:
+  - `pinn/data-processing-pipeline-full.py`
+  - `pinn/basic_architecture.py`
 
 ### 2.2 Project Overview
 This repository implements a complete three-body simulation and CTL-PINN training stack:
@@ -52,6 +81,7 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 ├── simulation_data/             # Simulation pipeline and datasets
 ├── pinn/                        # PINN system and data processing
 ├── pinn_instruction/            # Instruction and methodology docs
+├── .planning/                   # GSD planning artifacts, phases, and EDL support
 ├── paper_templates/             # Documentation templates
 ├── reference-code/              # Reference implementations
 └── ANTIGRAVITY.md               # This file - agent instructions
@@ -179,7 +209,7 @@ Body lines can contain 30-40 significant digits. Parse as strings or Decimal whe
 - **Skip**: power p=2, LayerNorm on odd layers (eps=1e-5, elementwise_affine=True).
 
 ### 6.2 IC Vector (13 components)
-Defined in `pinn/data-processing-pipeline-full.py` as the canonical source of truth:
+The following is the v1.3-era live-code vector from `pinn/data-processing-pipeline-full.py`; during v1.4 it is reference-only, not a grounding source for framework-spec decisions:
 - m1, m2, m3 (mass fractions, normalized)
 - E (normalized)
 - L_norm (mapped to [-1, 1])
@@ -191,7 +221,7 @@ Defined in `pinn/data-processing-pipeline-full.py` as the canonical source of tr
 
 All components are normalized to [-1, 1] prior to training.
 
-**Note**: If comments in `pinn/basic_architecture.py` differ, follow the input-vector logic in `pinn/data-processing-pipeline-full.py`.
+**Note**: For v1.4 spec decisions, follow the framework specs, planning requirements, and gap/EDL workflow rather than live-code comments or implementation behavior.
 
 ---
 
@@ -274,8 +304,10 @@ python pinn/data-processing-pipeline-full.py --input /path/to/preprocessed.h5 --
 - IC Generator: `simulation_data/Scripts/ic_generation/ic_generation_utils.py`
 - Prescreening: `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py`
 - Metrics: `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`
-- Architecture: `pinn/basic_architecture.py`
-- Data Pipeline: `pinn/data-processing-pipeline-full.py`
+- Framework Specs: `pinn_instruction/markdown_conversion/framework-specs/`
+- EDL Support: `.planning/research/edl/README.md`
+- Architecture Reference: `pinn/basic_architecture.py`
+- Data Pipeline Reference: `pinn/data-processing-pipeline-full.py`
 
 ### Validation Checklist
 - [ ] Final timestep >= 9.5

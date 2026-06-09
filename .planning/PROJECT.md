@@ -40,17 +40,18 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ **MD-CONV-05**: stage_strat_revision markdown matches LaTeX source with one-to-one injection fidelity — Phase 14
 - ✓ **MD-CONV-06**: sampling-method markdown matches LaTeX source with one-to-one injection fidelity — Phase 15
 - ✓ Post-v1.3 SCS gate correction: data-quality-assessment now distinguishes raw Hamiltonian drift `\epsilon_H` from logarithmic `SCS`, and the gate is `\epsilon_H > 10^{-5}` / `SCS > -5`
+- ✓ Evidence-backed Issue 01 adjudication with explicit STOP-gap handling and re-verification — v1.4
+- ✓ Coherent 14D input, 13-component IC, raw 9D output, COM projection, frame, gauge, and sampling contracts — v1.4
+- ✓ Physically consistent scaling, AD, softening, conservation, and loss contracts — v1.4
+- ✓ Settled architecture and normalization contracts with downstream implementation divergences recorded — v1.4
+- ✓ Executed five numerical acceptance probes and closed 32/32 requirements across 8/8 verified phases — v1.4
+- ✓ Presentation-preserving framework-spec cleanup with complete author-comment preservation and FUT-05 handoff — v1.4
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Critically examine each Issue 01 finding against BOTH `ctl_pinn_resolution.md` AND `01-architecture-and-physics-foundations.md` (neither treated as authoritative); for every conflict, identify the root-cause ambiguity in the framework specs and lock the convention explicitly before any spec edit
-- [ ] Patch framework specs only after each issue has an evidence-backed verdict and a named acceptance check
-- [ ] Preserve the SQR-SkipResNet-SIREN, CTL, and raw-mass framework decisions unless the evidence disproves them
-- [ ] Record traceable evidence for every architecture and physics foundation correction
-- [ ] Execute (not just document) acceptance checks via disposable validation probes: scaling consistency, COM invariance, componentwise AD correctness, force-energy consistency, loss-stability dry run — failing checks block milestone close-out, but do not authorize production framework implementation
-- [ ] Close each finding through an iterative re-verification loop (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`); "fix applied" is not closure, only a passing acceptance check is
+- No active requirements. The next milestone will define a fresh requirement set through `$gsd-new-milestone`.
 
 ### Deferred
 
@@ -69,32 +70,52 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - Broad cross-document reconciliation beyond the shipped SCS gate correction and active v1.4 Issue 01 scope
 - Editing existing `pinn/` implementation files to match the revised framework specs — code alignment happens after v1.4
 
-## Current Milestone: v1.4 Resolving 01 Architecture and Physics Foundations
+## Current State
+
+**Shipped:** v1.4 Resolving 01 Architecture and Physics Foundations on 2026-06-09.
+
+The milestone closed 32/32 requirements across eight verified phases and 26 plans. Its roadmap, requirements, audit, and phase execution history are archived under `.planning/milestones/`; production PINN alignment and author-comment adjudication remain documented future candidates rather than assumed next-milestone scope.
+
+<details>
+<summary>Archived v1.4 planning context</summary>
+
+### v1.4 Resolving 01 Architecture and Physics Foundations
 
 **Goal:** Critically examine each Issue 01 finding against BOTH `ctl_pinn_resolution.md` AND `01-architecture-and-physics-foundations.md` — treating neither as authoritative — to identify the root-cause ambiguity in the current framework specs, lock the right convention, apply evidence-backed framework-spec edits, and **verify each fix with disposable acceptance checks** before closing the issue. v1.4 settles the framework documentation; it does not implement or update the production PINN/training code.
 
 **Target features:**
-- Evidence packets for each issue before edits: spec evidence, issue-report evidence, resolution-doc verdict, live-code evidence (when relevant), and an explicit verdict from `{accept-resolution, accept-issue-doc, accept-third-position, reject-both-as-unsupported, defer-with-blocker}`.
+- Evidence packets for each issue before edits: spec evidence, issue-report evidence, resolution-doc verdict, first-principles checks where required, and an explicit verdict from `{accept-resolution, accept-issue-doc, accept-third-position, reject-both-as-unsupported, defer-with-blocker}`. Live PINN-side code is not v1.4 evidence or grounding.
 - For every contested finding (B-02, B-04, B-09, M5, and any further conflict discovered during the walkthrough), an EVID-05 record that names the underlying spec ambiguity and the convention now locked.
 - Framework-spec revisions in `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`, `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`, and the narrow `sampling_method.md` sections needed for FRAME-03.
 - Live code in `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` is **NOT** used as evidence or grounding source for any v1.4 decision (directive 2026-05-19). It is v1.3-era artifact; FUT-01 will rebuild from the v1.4 specs. Live-code references are permitted only in forward-pointing FUT-01 hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`).
 - Disposable validation probes for scaling consistency, COM invariance, componentwise AD on the synthetic trajectory, force-energy consistency, and loss stability — failing probes loop back to the originating spec phase.
-- Iterative re-verification: each finding moves through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` in `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`; nothing closes on "fix applied," only on a passing acceptance check.
+- Iterative re-verification: each finding moves through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` in `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`; nothing closes on "fix applied," only on a passing acceptance check.
 - Reconciled `SI-*` ledger: every v1.4-resolved finding retires its corresponding spec source-issue entry; `SI-DQA-002`/`SI-DQA-003`/`SI-PINN-002` are preserved untouched.
-- Requirements and roadmap begin at Phase 16, after v1.3 ended at Phase 15.1 and the post-ship SCS gate correction shipped 2026-05-15. Phase 16 is complete; the next logical workflow step is `$gsd-discuss-phase 17`.
+- Final presentation-preserving cleanup in Phase 22: repair rendering-breaking Markdown/LaTeX, normalize math representation, and defer author-comment adjudication to FUT-05 via a preserved handoff across the three framework specs.
+- Requirements and roadmap begin at Phase 16, after v1.3 ended at Phase 15.1 and the post-ship SCS gate correction shipped 2026-05-15. Phases 16 through 22 are complete and verified 2026-06-09; v1.4 is ready for `--no-ff` merge to master.
 
 **Primary sources:**
 - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md` — most recent candidate adjudication; not treated as authoritative
 - `pinn_instruction/issues/01-architecture-and-physics-foundations.md` — thematic issue consolidation; not treated as authoritative
 
 **Supporting evidence:**
-- `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/master_consolidation_report.md` — earlier multi-AI consolidation already consumed by the resolution doc; read for traceability and verification, not as a primary verdict source
+- `pinn_instruction/markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/master_consolidation_report.md` — earlier multi-AI consolidation already consumed by the resolution doc; **removed as obsolete (commit `a64c018`)**, so traceability now runs through `ctl_pinn_resolution.md` and the four individual model reports rather than this (now-deleted) file
 - Individual model reports (`chatgpt_research_report.md`, `claude_research_report.md`, `claude_research_report_2.md`, `gemini_research_report.md`) — consult only when adjudicating a finding the consolidation map records as ambiguous (e.g., M6/M7)
 - Brutus C++ integrator + IC generation / prescreening scripts: read-only reference for dataset / simulation-side first-principles checks. **The PINN-side live code (`pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py`) is NOT in this supporting-evidence set** — per directive 2026-05-19 it is v1.3-era artifact, not used as evidence during v1.4.
 
 **Scope:** Architecture and physics foundation corrections only. Data-pipeline, curriculum-stage, PINN implementation, and LLM fine-tuning work remain deferred. v1.4 may create or record disposable validation probes only to test risky framework contracts before the specs are locked. The SCS gate work that previously sat under data-quality-assessment is complete and out of v1.4 scope.
 
-**Phase structure:** 6 phases in `.planning/ROADMAP.md` (Phases 16–21). 30 requirements mapped 1:1 to phases. No additional phases are needed; the verification protocol and iterative re-verification loop are encoded as requirements (VER-04/05/06) and roadmap protocol rather than separate phases.
+**EDL support:** Empirically consequential, source-silent decisions may use the non-canonical Empirical Decision Loop draft at `.planning/research/edl/README.md` for research support. Phase-local gap registers remain the authoritative blocking and resolution records; central EDL briefs package context for user-led external research and do not resolve gaps by themselves.
+
+**Phase structure:** 7 core phases in `.planning/ROADMAP.md` (Phases 16–22), plus inserted Phase 20.5 for Sampling Coordinate Allocation before Phase 21. Phase 22 is the final presentation-preserving framework-spec cleanup after Phase 21. The 30 original v1.4 requirements retain their existing owning mappings in Phases 16–21; Phase 20.5 carries its own design/plan handoff; Phase 22 applies the existing cross-cutting VER-05 governance and is complete. The verification protocol and iterative re-verification loop are encoded as requirements (VER-04/05/06) and roadmap protocol rather than separate phases.
+
+</details>
+
+## Next Milestone Goals
+
+- Select the next milestone through `$gsd-new-milestone`.
+- Create a fresh `.planning/REQUIREMENTS.md` from user-approved scope.
+- Evaluate documented candidates such as FUT-01 implementation alignment and FUT-05 author-comment adjudication without promoting either automatically.
 
 ### Previous Milestones
 
@@ -131,7 +152,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - **Model**: Qwen 3.5 2B 4-bit — chosen for local training feasibility on M2
 - **Data format**: Brutus outputs are high-precision text files, not natively LLM-friendly
 - **Dependencies**: No `requirements.txt` exists — environment management needed
-- **One-to-one injection**: Markdown must match LaTeX source exactly; non-architecture inter-document inconsistencies remain preserved unless a v1.4 fix directly requires touching them
+- **One-to-one injection** (historical v1.3 policy; superseded 2026-06-09): During v1.3, markdown was required to match LaTeX source exactly with one-to-one injection fidelity, and non-architecture inter-document inconsistencies remained preserved. Under the current v1.4+ policy, markdown framework specs (`pinn_instruction/markdown_conversion/framework-specs/*.md`) are the authoritative framework design documents during active revision, implementation, training, and research-result iteration; LaTeX sources are publication/archive derivatives refreshed only at the final publication/archive stage.
 - **Commented-out content**: LaTeX `\begin{comment}...\end{comment}` blocks (not author comments) are excluded from markdown
 - **Source critique mandatory for v1.4**: Neither `ctl_pinn_resolution.md` nor `01-architecture-and-physics-foundations.md` is treated as authoritative; every contested finding requires EVID-05 adjudication against the live framework specs and first-principles physics
 
@@ -151,12 +172,17 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 | Preserve source-level CTL dimensionality inconsistency as metadata | Phase 10 found source alternates between 11/12D and 13/14D input-vector descriptions; conversion body must remain faithful | ✓ Phase 10 |
 | v1.3 milestone complete | All 6 markdown conversions verified; all audit gaps remediated | ✓ 2026-05-08 |
 | Correct SCS/raw-drift gate after v1.3 | User ratified the gate-led policy: keep SCS as a base-10 log score, introduce raw drift `\epsilon_H`, and reject at `\epsilon_H > 10^{-5}` / `SCS > -5` | ✓ 2026-05-15 |
-| Resolution doc is NOT authoritative in v1.4 | The consolidated multi-AI resolution may contain errors that were never checked against current framework specs or live code; treating it as truth would silently bake in those errors. EVID-05 mandates critical examination of BOTH the resolution doc and the thematic issue doc, identifying the root-cause framework ambiguity behind each contested finding. | — Active (v1.4) |
-| Iterative re-verification protocol for v1.4 | Architecture/physics fixes will routinely need multiple attempts before a finding actually resolves. The ledger pattern (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` with regression revert) prevents "fix applied" being mistaken for "issue closed." VER-04/VER-05 codify execute-then-re-verify using disposable validation probes, not production code edits; the loop is expected, not a failure mode. | — Active (v1.4) |
-| `master_consolidation_report.md` demoted to supporting evidence | The resolution doc already consumed it; treating both as co-equal primary sources triples re-adjudication work without adding signal. | — Active (v1.4) |
-| Agent must surface gaps, not invent (v1.4 and similar adjudication milestones) | User does not trust the executing agent to make decisions where source materials are silent or ambiguous; cost of asking is small, cost of silent invention is irreparable spec drift across phases. | — Active (v1.4) and standing rule for future adjudication milestones; see `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` "CRITICAL GOVERNANCE" block and per-phase `NN-GAPS.md` mechanism |
-| Live code in `pinn/` is NOT a grounding source during v1.4 (directive 2026-05-19) | The v1.3-era code reflects a previous framework version; relying on it as evidence would silently propagate v1.3-era assumptions into v1.4 spec edits. The framework specs are the source of truth being constructed; the code will be rebuilt from them in FUT-01. | — Active (v1.4); see `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` "CRITICAL GOVERNANCE" block. Live-code references permitted only in forward-pointing FUT-01 hand-off documents. |
+| Resolution doc is NOT authoritative in v1.4 | The consolidated multi-AI resolution may contain errors that were never checked against current framework specs and first-principles physics; treating it as truth would silently bake in those errors. EVID-05 mandates critical examination of BOTH the resolution doc and the thematic issue doc, identifying the root-cause framework ambiguity behind each contested finding. Live PINN-side code is not v1.4 grounding or evidence. | ✓ v1.4 shipped; retained as standing adjudication guidance |
+| Iterative re-verification protocol for v1.4 | Architecture/physics fixes will routinely need multiple attempts before a finding actually resolves. The ledger pattern (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` with regression revert) prevents "fix applied" being mistaken for "issue closed." VER-04/VER-05 codify execute-then-re-verify using disposable validation probes, not production code edits; the loop is expected, not a failure mode. | ✓ v1.4 shipped; all acceptance gates passed |
+| `master_consolidation_report.md` demoted to supporting evidence | The resolution doc already consumed it; treating both as co-equal primary sources triples re-adjudication work without adding signal. | ✓ v1.4 shipped |
+| Agent must surface gaps, not invent (v1.4 and similar adjudication milestones) | User does not trust the executing agent to make decisions where source materials are silent or ambiguous; cost of asking is small, cost of silent invention is irreparable spec drift across phases. | — Active (v1.4) and standing rule for future adjudication milestones; see `AGENTS.md` plus symlinks `CLAUDE.md` / `GEMINI.md`, supplemental `ANTIGRAVITY.md`, and per-phase `NN-GAPS.md` mechanism |
+| Empirical Decision Loop support remains non-canonical until promoted (2026-05-24) | Some source-silent decisions are empirically consequential: theory can identify the formula shape but not the practical value, threshold, or stability default. The EDL draft provides a research-support workflow so agents package the context for user-led research and later EDL probes without inventing conclusions. Phase gap registers remain the authoritative blocking records. | — Draft support workflow at `.planning/research/edl/README.md`; first central brief is `EDL-19-01` for `GAP-19-01` `epsilon_H`. |
+| Live code in `pinn/` is NOT a grounding source during v1.4 (directive 2026-05-19) | The v1.3-era code reflects a previous framework version; relying on it as evidence would silently propagate v1.3-era assumptions into v1.4 spec edits. The framework specs are the source of truth being constructed; the code will be rebuilt from them in FUT-01. | — Active (v1.4); see `AGENTS.md` plus symlinks `CLAUDE.md` / `GEMINI.md` and supplemental `ANTIGRAVITY.md` governance notes. Live-code references permitted only in forward-pointing FUT-01 hand-off documents. |
 | v1.4 spec work isolated on `milestone/v1.4` branch (2026-05-19) | Master must remain a known-good checkpoint untouched by in-progress v1.4 spec edits, so it can serve as the pre-milestone baseline for selective or full revert. Per-phase atomic commits on the branch preserve selective revertibility (`git revert <phase-commit>` after merge); pre-phase checkpoint tags (`v1.4-pre-phase-NN`) provide named recovery points without log spelunking; `--no-ff` merge at milestone end preserves per-phase commits on master for post-merge granular revert. Worktree isolation rejected (no parallel-work need; interacts badly with non-primary-path STOP protocol). Squash-merge rejected (collapses per-phase commit boundaries, defeats selective-revert goal). | — Active (v1.4); branch cut from master HEAD 2026-05-19 with `v1.4-pre-phase-17` tag at the same point. Standard branch-awareness governance (CLAUDE.md / AGENTS.md) applies — every session must surface the working branch before any file mutation. |
+| Phase 20.5 (Sampling Coordinate Allocation) design and plan locked (2026-05-20, commit b727b15) | `sampling_method.md` double-booked Sobol coordinate `u_4` between the sampling-time scale factor and the first velocity component — flagged in `docs/findings/addressing_sobol_sequence_suggestion.md`. User locked **Option A**: when scaling is enabled, velocity coordinates shift to `u_5, u_6, u_7`; dimension formula `d = 3 + δ_s + 3δ_v` (rotate=False). Option A matches `simulation_data/Scripts/ic_generation/ic_generation_utils.py` — the code that generated the existing standard quasi-random dataset — so the v1.4 spec describes the data that already exists, with no framework-data mismatch. SCOPE-05 is introduced to carve out `simulation_data/Scripts/ic_generation/` as a permitted grounding source for data-generation specs, distinct from the `pinn/` no-live-code directive. Phase 20.5 is inserted between Phase 20 and Phase 21 (precedent: v1.3 "Phase 15.1"). | ✓ Phase 20.5 execution complete (2026-06-07); design/plan lock remains anchored at commit b727b15 and the initial status anchor remains commit a9ecd51. See `.planning/milestones/v1.4-phases/20.5-sampling-coordinate-allocation/` for GSD planning artifacts, probe evidence, and data-alignment hand-off. |
+| Phase 22 is the final framework-spec cleanup (2026-06-07) | Phase 22 runs after Phase 21 so it can catch rendering defects introduced by the remaining spec work. Its scope is presentation-preserving: normalize math rendering and preserve/defer author comments without autonomous semantic changes or deletions. | ✓ Phase 22 complete 2026-06-09; G1/G2/G3/VER-05 green; G4 user visual backstop approved; F1 corruption fixed in `bf841f6`; F2–F6 accepted as authorized cleanup; all 4 STOP-protocol gaps RESOLVED-WITH-INSTRUCTION. |
+| Phase 18 frame and gauge contracts complete (2026-05-21, verification `18aacde`) | The framework specs now define the unified preprocessing order, COM/momentum frame assertions, canonical ordering, canonical rotation gauge, global scaling order, FRAME-03 sampling-frame reconciliation, and 3D Cartesian output guard. B-05 and M3 are `VERIFIED`; FUT-01 code divergence is recorded without editing `pinn/`. | ✓ Phase 18 complete; Phase 19 physics/loss contracts are next. |
+| Markdown framework specs authoritative; LaTeX source refresh is final-stage only (2026-06-09) | Markdown framework specs (`pinn_instruction/markdown_conversion/framework-specs/*.md`) will continue changing during implementation, training, and research-result iteration; syncing LaTeX sources earlier creates churn and false stability. LaTeX sources (`pinn_instruction/original_latex/framework-specs/**/*.tex`) are publication/archive derivatives, not active design sources. | — Active (cross-project); LaTeX is deferred until final publication/archive stage. Supersedes the draft v1.6.5 timing from `docs/work/designs/cross_cutting/latex-sync/2026-05-24-latex-markdown-sync-strategy-design.md`. |
 
 ## Evolution
 
@@ -176,4 +202,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-19 — Phase 17 planning complete. v1.4 spec work isolated on `milestone/v1.4` branch with `v1.4-pre-phase-17` tag at branch root; master frozen at branch-root commit until milestone merge. Next step: switch to `milestone/v1.4` and begin Phase 17 execution.*
+*Last updated: 2026-06-09 after v1.4 milestone archival.*

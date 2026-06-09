@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|shell_command|exec_command|functions\\.exec_command)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/git_policy/guard_agent_git_command.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking Git command policy"
+          }
+        ]
+      }
+    ]
+  }
+}

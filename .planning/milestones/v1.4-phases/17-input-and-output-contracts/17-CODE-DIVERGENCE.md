@@ -1,0 +1,16 @@
+# Phase 17 Code Divergence Inventory
+
+This file is a forward-pointing FUT-01 hand-off artifact. It records where v1.3-era `pinn/` implementation files are expected to diverge from the Phase 17 framework-spec contracts. Per the 2026-05-19 user directive, live `pinn/` code is not v1.4 evidence and is not used as grounding for the spec decisions below.
+
+This inventory is the Phase 17 `AC-IO-04` hand-off artifact for known P01/P02 spec-vs-code divergences from D-14. Row-level `FUT-01 priority` values are non-binding FUT-01 hand-off hints per `GAP-17-11`; FUT-01 planning may revise them.
+
+| Surface | Live code (file:line) | Spec target (Phase 17 decision) | FUT-01 item | FUT-01 priority |
+|---|---|---|---|---|
+| IC vector composition | `pinn/data-processing-pipeline-full.py:1062-1146` | Jacobi-state `IC_13 = [m1, m2, m3, rho_x, lambda_x, lambda_y, rho_dot_x, rho_dot_y, rho_dot_z, lambda_dot_x, lambda_dot_y, lambda_dot_z, E]` per D-01/D-06 | Rewrite the IC-formulation block from invariant-heavy metadata slots to the Jacobi-state contract. | HIGH |
+| Mass encoding | `pinn/data-processing-pipeline-full.py:1062-1146` | Ordered raw masses before `tanh((z - mu_z)/(sigma_z + 10^-8))` per D-07 | Replace mass-fraction input encoding with raw ordered mass slots and dataset-wide per-slot statistics. | HIGH |
+| Orientation slots | `pinn/data-processing-pipeline-full.py:1062-1085`; `pinn/data-processing-pipeline-full.py:1119-1146` | Orientation is implicit in Jacobi velocities, not explicit `theta_1` / `theta_2` network IC slots, per D-01/D-10 | Remove `compute_velocity_angles` from the network-input path; retain orientation summaries only as diagnostics if FUT-01 still needs them. | HIGH |
+| Time input | `pinn/basic_architecture.py:97-104`; `pinn/basic_architecture.py:209-220` | Model wrapper computes `tau = 2u - 1` from autograd leaf `u=t/T` per D-03 | Add a wrapper/input transform so training and AD calls use `u` as leaf and feed `tau` to the network. | HIGH |
+| COM projection head | `pinn/basic_architecture.py:185-192` | Hard mass-weighted COM projection applied to raw 9D position head before any loss or metric per D-02 | Add COM-subtraction step and thread ordered raw masses into the forward/output-transform path. | HIGH |
+| Direct velocity output wording | `pinn/basic_architecture.py:185-192` | Network output is projected 9D positions only; velocities and accelerations are AD-derived per D-02/D-03 | Keep architecture output signatures position-only and ensure training code computes derivatives from projected positions. | MEDIUM |
+| Metadata-only invariants | `pinn/data-processing-pipeline-full.py:1114-1146` | `Q`, `s_min`, `L_vec`, `L_norm`, `I_norm_raw`, `I1`, `I2`, `I3`, `tau_L`, and orientation summaries are metadata, not final network IC slots, per D-10 | Retain these quantities for staging, diagnostics, loss scaling, and reports without feeding them as Phase 17 IC slots. | MEDIUM |
+| Docstring drift | `pinn/basic_architecture.py:154-159` | Architecture documentation should describe the Jacobi-state `IC_13`, not Keplerian elements or the v1.3-era placeholder wording, per D-01/D-03 | Rewrite the architecture docstring during FUT-01 code alignment after the v1.4 specs are finalized. | LOW |
