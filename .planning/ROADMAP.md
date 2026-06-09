@@ -6,7 +6,24 @@
 - ✅ **v1.1 LaTeX Modularization Verification** — Phases 5–8 (shipped 2026-03-22)
 - ✅ **v1.2 PINN Implementation Readiness** — Phase 9 (shipped 2026-05-08)
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; SCS gate correction verified 2026-05-15)
-- 🚧 **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–22, with Phase 20.5 inserted before Phase 21 and Phase 22 as the final cleanup (Phases 16–21 complete; next: Phase 22 cleanup)
+- ✅ **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–22 complete; G4 user visual backstop approved 2026-06-09; milestone ready for `--no-ff` merge to master
+- 🔮 **Final Publication LaTeX Sync** — deferred until after implementation, network/training design, training execution, and research-result interpretation are complete
+
+## Deferred: Final Publication LaTeX Sync
+
+**Goal:** Refresh LaTeX/PDF publication sources from the final authoritative markdown framework specs.
+
+**Preconditions:**
+- Implementation complete (FUT-01 or successor milestone)
+- Network design stable
+- Training and research results complete
+- No active framework-spec iteration expected
+
+**Non-goal:** Maintaining `.tex` parity during active development milestones.
+
+**Source of truth:** Markdown framework specs (`pinn_instruction/markdown_conversion/framework-specs/*.md`) at final sync start.
+
+**Historical note:** This entry supersedes the earlier draft `v1.6.5-latex-sync` timing from the May 24, 2026 design document (`docs/work/designs/cross_cutting/latex-sync/2026-05-24-latex-markdown-sync-strategy-design.md`). The new policy reflects that markdown specs will continue changing during implementation and training work, making earlier LaTeX sync churn-prone and misleading.
 
 ## Phases
 
@@ -107,7 +124,7 @@ This loop expects iteration. It is normal for a contested finding to cycle throu
 - [x] **Phase 20: Architecture and Normalization Cleanup** — Clean up SIREN frequency/init, LayerNorm attribution/defaults, inertia normalization, and realized dataset-support wording. (completed 2026-06-05)
 - [x] **Phase 20.5: Sampling Coordinate Allocation (INSERTED)** — Resolved the `u_4` Sobol coordinate double-booking in `sampling_method.md`; locked Option A (`u_4` scale, `u_5`–`u_7` velocity for the standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduced SCOPE-05. Design+plan locked 2026-05-20 (commit b727b15); completed 2026-06-07 with AC-SAMP-01 hand-off/probe recorded. Runs after Phase 20, before Phase 21.
 - [x] **Phase 21: Acceptance Checks, Validation Execution, and Handoff** — Define the §10 acceptance checks (VER-01), **execute** them with disposable validation probes that test the v1.4 framework specs (VER-04), reconcile the `SI-*` ledger (VER-06), and produce the fixed/non-change/deferred validation handoff consumed by Phase 22 (VER-03). Completed 2026-06-08 after repair pass with raw stdout evidence captured for all five probes.
-- [ ] **Phase 22: Framework-Spec Cleanup** — Repair rendering-breaking Markdown/LaTeX, normalize math representation, and census + preserve + defer all author comments (adjudication moved to FUT-05 via a handoff artifact) without changing mathematical or prose meaning. Runs after Phase 21 and is the final phase of v1.4.
+- [x] **Phase 22: Framework-Spec Cleanup** — Repair rendering-breaking Markdown/LaTeX, normalize math representation, and census + preserve + defer all author comments (adjudication moved to FUT-05 via a handoff artifact) without changing mathematical or prose meaning. Completed 2026-06-09 — G1/G2/G3/VER-05 green; G4 user visual backstop approved; F1 corruption fixed in bf841f6; F2-F6 accepted; all 4 STOP-protocol gaps RESOLVED-WITH-INSTRUCTION.
 
 ## Phase Details
 
@@ -231,7 +248,7 @@ Plans:
   3. The phase-local gap register records GAP-20-5-01/02/03 at `RESOLVED-WITH-INSTRUCTION`.
   4. `20-5-DATA-ALIGNMENT.md` records the alignment with `ic_generation_utils.py` and the FUT-01 hand-off, and defines `AC-SAMP-01` for Phase 21 execution.
 
-**Plans**: 1/1 complete — `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` (authoritative GSD copy).
+**Plans**: 1/1 complete — `.planning/phases/20.5-sampling-coordinate-allocation/20-5-PLAN.md` (authoritative GSD copy).
 
 ### Phase 21: Acceptance Checks, Validation Execution, and Handoff
 
@@ -276,7 +293,7 @@ Plans:
 | 20. Architecture and Normalization Cleanup | v1.4 | 5/5 | Complete    | 2026-06-05 |
 | 20.5 Sampling Coordinate Allocation (INSERTED) | v1.4 | 1/1 | Complete | 2026-06-07 |
 | 21. Acceptance Checks and Handoff | v1.4 | 2/2 | Complete | 2026-06-08 |
-| 22. Framework-Spec Cleanup | v1.4 | 5/5 planned | Planned | - |
+| 22. Framework-Spec Cleanup | v1.4 | 5/5 | Complete | 2026-06-09 |
 
 ### Phase 22: Framework-Spec Cleanup
 
@@ -293,26 +310,26 @@ Plans:
   6. Every author comment (any form/format) is censused and preserved verbatim — only render-breaking wrappers mechanically repaired, meaning and location intact — and the complete set is carried forward to a dedicated adjudication phase (FUT-05) via a handoff artifact. Redundant plaintext fallbacks and conversion-noise hard breaks remain WS-A presentation fixes, confirmed per instance.
   7. No semantic change or deletion occurs without grounding or human confirmation; unresolved items are logged as STOP gaps, and the phase does not close on an `OPEN` gap unless the user defers it.
 
-**Plans:** 5/5 planned
+**Plans:** 5/5 complete (automated gates complete; G4 visual backstop approved 2026-06-09)
 
 Plans:
 
 **Wave 0 (build detector + baseline evidence)**
 
-- [ ] 22-01-PLAN.md — Build committed render detector (D1–D6 + sanity gate + census + regression/selftest) + Stage-0 footnote probe + pre-WS-A baseline ref + `22-COMMENT-CENSUS-PRE.md`
+- [x] 22-01-PLAN.md — Build committed render detector (D1–D6 + sanity gate + census + regression/selftest) + Stage-0 footnote probe + pre-WS-A baseline ref + `22-COMMENT-CENSUS-PRE.md`
 
 **Wave 1 (WS-A repair, parallel — different files)**
 
-- [ ] 22-02-PLAN.md — Repair `pinn_architecture.md` (Pandoc tables/divs/captions → GFM, bare subscripts, backtick/prose math, footnotes per probe)
-- [ ] 22-03-PLAN.md — Repair `ctl_instruction.md` (mid-list `$$\begin{aligned}` leakage, bare subscripts, backtick/prose math, redundant fallbacks surfaced for human disposition)
+- [x] 22-02-PLAN.md — Repair `pinn_architecture.md` (Pandoc tables/divs/captions → GFM, bare subscripts, backtick/prose math, footnotes per probe)
+- [x] 22-03-PLAN.md — Repair `ctl_instruction.md` (mid-list `$$\begin{aligned}` leakage, bare subscripts, backtick/prose math, redundant fallbacks surfaced for human disposition)
 
 **Wave 2 (WS-B census + preservation)**
 
-- [ ] 22-04-PLAN.md — Census all author comments, verify 0 lost/changed (consume PRE from Wave 0, produce POST + HANDOFF for FUT-05)
+- [x] 22-04-PLAN.md — Census all author comments, verify 0 lost/changed (consume PRE from Wave 0, produce POST + HANDOFF for FUT-05)
 
 **Wave 3 (closure + VER-05 reconciliation)**
 
-- [ ] 22-05-PLAN.md — Run full detector suite (G1+G2), content-preservation audit (G3), manual Cursor render review (G4), reconcile VER-05 ledger
+- [x] 22-05-PLAN.md — Run full detector suite (G1+G2), content-preservation audit (G3), manual Cursor render review (G4), reconcile VER-05 ledger. Completed 2026-06-09 — all gates pass; G4 approved.
 
 ---
-*Last updated: 2026-06-08 — Phases 16–21 complete; Phase 22 has 5 amended plans ready for execution (Wave 0 → Wave 3) and is the final v1.4 phase.*
+*Last updated: 2026-06-09 — v1.4 complete and verified; all phases closed; milestone ready for `--no-ff` merge to master. Added deferred Final Publication LaTeX Sync milestone (supersedes draft v1.6.5 timing).*

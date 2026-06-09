@@ -3,7 +3,7 @@
 **Defined:** 2026-05-15
 **Core Value:** The simulation dataset and data pipeline must be clean, well-validated, and correctly processed; framework specs must be physically coherent before implementation work depends on them.
 
-**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 21 are complete. Phase 22 framework-spec cleanup is next and is the final v1.4 phase.
+**Current workflow state:** v1.3, Phase 15.1, the post-ship SCS gate correction, and v1.4 Phases 16 through 22 are complete. v1.4 is verified 2026-06-09 and ready for `--no-ff` merge to master.
 
 ## v1.4 Requirements
 
@@ -72,6 +72,12 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 - **FUT-04**: Resume PINN training-loop implementation after the framework specs are coherent.
 - **FUT-05**: Adjudicate the author comments preserved by Phase 22. Phase 22 censuses and preserves every author-flagged comment (any form/format) verbatim and hands them off via `.planning/phases/22-framework-spec-cleanup/22-COMMENT-HANDOFF.md`. A dedicated post-v1.4 phase performs the per-comment basis classification and disposition (keep / remove / revise / resurface) under human adjudication, per the WS-B disposition engine in `docs/work/designs/milestone_v1.4/framework-spec-cleanup/2026-06-07-framework-spec-cleanup-design.md` §6. Origin: GAP-22-01 (user decision 2026-06-08 to defer adjudication out of Phase 22).
 
+## Cross-Project Documentation Requirements
+
+These requirements apply across all milestones and are not owned by any single phase.
+
+- **REQ-DOC-01** (cross-project; not owned by v1.4 Phase 22): Markdown framework specifications (`pinn_instruction/markdown_conversion/framework-specs/*.md`) are the authoritative framework design documents during active project work — including framework revision, implementation, training, debugging, and research-result iteration. LaTeX framework sources (`pinn_instruction/original_latex/framework-specs/**/*.tex`) are publication and archive derivatives, not active design sources. No milestone before the final publication/archive stage is expected to make `.tex` files current with markdown, except an explicitly authorized hotfix. Any future LaTeX sync plan must treat current markdown as the semantic source and preserve LaTeX-specific presentation and build syntax. This requirement supersedes the draft v1.6.5 timing from `docs/work/designs/cross_cutting/latex-sync/2026-05-24-latex-markdown-sync-strategy-design.md`.
+
 ## Scope Boundaries
 
 | Scope | Status |
@@ -127,17 +133,18 @@ Empirical Decision Loop support: when a source-silent decision is empirically co
 | VER-01 | Phase 21 | Pending |
 | VER-02 | Phase 16 | Complete |
 | VER-03 | Phase 21 | Pending |
-| VER-04 | Phase 21 | Pending |
+| VER-04 | Phase 21 | Complete |
 | VER-05 | Phase 16 (defined) / Phases 17–22, including Phase 20.5 (applied) | Complete |
-| VER-06 | Phase 21 | Pending |
+| VER-06 | Phase 21 | Complete |
 
 **Coverage:**
 - v1.4 requirements: 32 total (5 EVID + 4 IO + 4 FRAME + 6 PHYS + 5 ARCH + 2 SAMP + 6 VER)
 - Mapped to phases: 32
 - Unmapped: 0
+- Cross-project requirements: REQ-DOC-01 (not counted in v1.4 total; applies across all milestones)
 - SCOPE-01 through SCOPE-05 are scope-boundary annotations (see "Scope Boundaries" table above), not numbered requirements.
-- Phase 22 is added as the final presentation-preserving framework-spec cleanup; Phase 22-specific requirement mapping remains TBD pending phase planning, while existing cross-cutting VER-05 governance applies.
+- Phase 22 is the final presentation-preserving framework-spec cleanup; **complete 2026-06-09** with G1/G2/G3/VER-05 green, G4 user visual backstop approved, F1 corruption fixed in `bf841f6`, and F2–F6 accepted as authorized cleanup. See `.planning/phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md` and `22-VERIFICATION.md`.
 
 ---
 *Requirements defined: 2026-05-15*
-*Last updated: 2026-06-08 after Phase 21 repair completion — all 32 v1.4 requirements are mapped; SAMP-01/SAMP-02 and VER-01/03/04/06 are complete; Phase 22-specific requirements remain TBD.*
+*Last updated: 2026-06-09 — v1.4 verified and complete; Phase 22 closed (G1/G2/G3/VER-05 green, G4 approved, F1 fixed in `bf841f6`); added REQ-DOC-01 cross-project documentation requirement (markdown-authoritative/final-LaTeX-sync policy); all 32 v1.4 requirements remain mapped and complete.*

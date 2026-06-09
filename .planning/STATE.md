@@ -3,32 +3,32 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
 status: completed
-last_updated: "2026-06-08T08:07:38.837Z"
-last_activity: 2026-06-08
+last_updated: "2026-06-09T21:45:00+0800"
+last_activity: 2026-06-09
 progress:
   total_phases: 8
-  completed_phases: 5
-  total_plans: 19
-  completed_plans: 15
-  percent: 63
+  completed_phases: 8
+  total_plans: 26
+  completed_plans: 26
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-07)
+See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 22 — Framework-Spec Cleanup (Phase 21 complete)
+**Current focus:** v1.4 complete — Phase 22 closed; milestone ready for `--no-ff` merge to master
 
 ## Current Position
 
 Phase: 22
-Plan: Next — Phase 22 framework-spec cleanup
-Status: Phase 21 complete after repair pass (2/2 plans closed, all five acceptance probes executed with raw stdout evidence). Phase 22 framework-spec cleanup remains the final v1.4 phase.
-Last activity: 2026-06-08
-Progress: [█████████░] 88%
+Plan: 22-05 — G4 visual backstop
+Status: Phase 22 closed — G1/G2/G3/VER-05 green; G4 user visual backstop approved 2026-06-09; F1 corruption fixed in bf841f6; F2-F6 accepted; all 4 STOP-protocol gaps RESOLVED-WITH-INSTRUCTION. Milestone ready for `--no-ff` merge to master.
+Last activity: 2026-06-09
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -75,10 +75,10 @@ Progress: [█████████░] 88%
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — Phases 16–21 are complete and verified; final Phase 22 framework-spec cleanup is next. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — complete and verified 2026-06-09. All phases closed; milestone ready for `--no-ff` merge to master. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
-- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15), survived adversarial review (3 BLOCK + 7 FLAG fixes applied), and completed execution 2026-06-07. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and completion artifacts now live under `.planning/phases/20-5-sampling-coordinate-allocation/`.
+- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15), survived adversarial review (3 BLOCK + 7 FLAG fixes applied), and completed execution 2026-06-07. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and completion artifacts now live under `.planning/phases/20.5-sampling-coordinate-allocation/`.
 - Phase 21 (Acceptance Checks, Validation Execution, and Handoff) repaired and completed 2026-06-08. All five Section 10 probes execute under `.venv/bin/python` with raw stdout evidence and SHA-256 hashes in `.planning/phases/21-acceptance-checks-and-handoff/21-PROBE-RESULTS.md`; SI metadata reconciliation and handoff are recorded in `21-HANDOFF.md` and the Phase 16 ledger addendum.
 - Phase 22 added: Framework-Spec Cleanup
 
@@ -146,7 +146,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-21 are complete. Phase 22 framework-spec cleanup is next.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-22 are complete. Milestone ready for `--no-ff` merge to master.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -180,5 +180,5 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 
 ## Session Continuity
 
-Last session: 2026-06-08T08:07:38.833Z
-Next action: Execute Phase 22 (Framework-Spec Cleanup)
+Last session: 2026-06-09T21:45:00+0800
+Next action: Merge milestone/v1.4 to master with `git checkout master && git merge --no-ff milestone/v1.4`.
