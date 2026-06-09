@@ -1,7 +1,8 @@
 ---
 title: "docs: Remediate Phase 22 planning artifacts from plan audits"
 type: docs
-status: consumed
+status: archived
+archived_at: 2026-06-09
 date: 2026-06-08
 purpose: implementation-plan
 created: 2026-06-08

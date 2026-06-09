@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Scope:** Finding-by-finding closeout of two adversarial plan audits conducted 2026-06-08
-**Remediation plan:** `docs/work/plans/milestone_v1.4/22-framework-spec-cleanup/2026-06-08-phase-22-plan-review-remediation-plan.md` (commit `9b0d62c`)
+**Remediation plan:** `docs/archive/work/plans/milestone_v1.4/22-framework-spec-cleanup/2026-06-08-phase-22-plan-review-remediation-plan.md` (commit `9b0d62c`; archived 2026-06-09)
 
 ---
 
@@ -464,7 +464,7 @@ Due to the volume of findings (50+ items across three dimensions), I provide a s
 
 ## References
 
-- Remediation plan: `docs/work/plans/milestone_v1.4/22-framework-spec-cleanup/2026-06-08-phase-22-plan-review-remediation-plan.md`
+- Remediation plan: `docs/archive/work/plans/milestone_v1.4/22-framework-spec-cleanup/2026-06-08-phase-22-plan-review-remediation-plan.md`
 - Remediation commit: `9b0d62c` ("docs(22): remediate phase 22 planning artifacts from plan audits")
 - Review report 1: `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md`
 - Review report 2: `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md`
