@@ -1,11 +1,11 @@
 ---
 phase: 22
 slug: framework-spec-cleanup
-total_gaps: 3
-open_gaps: 0
+total_gaps: 4
+open_gaps: 1
 resolved_gaps: 3
 deferred_gaps: 0
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 governance: "Governed by CLAUDE.md / AGENTS.md CRITICAL GOVERNANCE block: STOP protocol, source-grounding rules, no-live-code directive for v1.4 spec decisions."
 ---
 
@@ -95,3 +95,24 @@ Both gaps below were surfaced on 2026-06-08 during `/gsd-plan-phase 22`, **befor
 - **Confidence of impact:** **MEDIUM** — it determines whether G2 is "0 DEFINITE" (currently satisfied) or "0 findings total" (requires conversion or detector narrowing). The 7 findings are REVIEW tier, not DEFINITE; they're all code identifiers, not math; converting them would be a semantic change the plan excludes.
 - **Status:** RESOLVED-WITH-INSTRUCTION
 - **Resolution note:** User instructed on 2026-06-09: *"Resolve GAP-22-03 with Option A. Do not modify D5's code-span scan (Option B would delete the detector's only backtick-math layer — it's what found the 94d8e79 conversions, and snake_case vs. subscript is mechanically inseparable, which is precisely why these are REVIEW). Do not convert (Option C)."* All 7 tokens kept as code (presentation-preservation, D-02/D-07). Adjudication allowlist mechanism added to `detect.mjs` (`--adjudications <path>` flag); 7-item allowlist created at `tools/spec-render-check/adjudications/22-02-pinn-architecture.json`. G2 redefined as **0 DEFINITE + every REVIEW adjudicated or absent** (exit 0). D5's code-span scan stays intact (Option B rejected). Baseline regenerated at `22-02-DETECTOR-BASELINE.txt` (exit 0, 7 ADJUDICATED). The same adjudication pattern is expected (correctly) to apply in plan 22-03 (`ctl_instruction.md`), which likely contains the same PyTorch parameter names within oracle windows.
+
+---
+
+## GAP-22-04: Content-preservation audit — confirmed cell corruption at `pinn_architecture.md:263` (+ 5 flagged content changes) requires a remediation decision
+
+- **Decision point:** An independent, mechanical content-equivalence audit (`22-06-content-audit.mjs`, full report `22-CONTENT-EQUIVALENCE-AUDIT.md`) confirmed that the Phase 22 syntax cleanup **accidentally corrupted** Table 1 of `pinn_architecture.md` and surfaced five lower-risk content changes. Under the **audit-only** decision the agent fixed nothing; the user must instruct on remediation. The phase cannot close until F1 (the corruption) is dispositioned.
+- **Where in artifact:**
+  - **F1 (corruption, HIGH):** `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md:263` — Table 1 "Weight Init. (Hidden)" row. Baseline (`v1.4-pre-phase-22`): rationale cell = `…all subsequent SIREN layers, **designed** to preserve activation variance…`; value cell = the `$\mathrm{U}[…]$` math only. HEAD: the math is **fused** with the rationale prefix `…all subsequent SIREN layers, **designe**` into col1 (dropped the "d"), a stray `|` sits at `designe | to`, and col2 holds only `to preserve…`. The Value↔Rationale cell boundary was lost and a word was mangled.
+  - **F2–F6 (flagged, LOW–MEDIUM):** `pinn_architecture.md:534,592,606` (3 author-flagged duplicate literals removed, value preserved); `ctl_instruction.md:596` (residual-equation indices `\sum_j`, `r'_i` made explicit); `ctl_instruction.md:609` (`s_min_scale`→`s_{min,scale}`); `ctl_instruction.md:1055` (`I1/I2/I3`→`I_1/I_2/I_3`, `I_norm_raw`→`I_{norm,raw}`); `pinn_architecture.md:672` (`L'_θ,α`→`L'_{θ,α}`, `L_0,α'`→`L'_{0,α}` broken-subscript repair). Full per-finding detail in `22-CONTENT-EQUIVALENCE-AUDIT.md` § FINDINGS.
+- **Task context:** Executing the content-preservation audit plan (`~/.claude-alt/plans/the-final-phase-22-recursive-ember.md`) after the Phase 22 render check was approved — verifying that the syntax cleanup did not alter content.
+- **Classification:** **semantic** (F1 is a meaning-altering corruption of committed spec content; F3/F6 touch governing physics-equation notation — MUST-surface per v1.4 governance).
+- **Source silence / grounding:** This is a verification finding, not a source-silent invention. The baseline (`v1.4-pre-phase-22`) states the correct content explicitly (`designed`; the math and rationale as separate cells), so the *fix* for F1 is grounded. What is NOT grounded is the **disposition decision** — whether to remediate now, how (restore baseline cell structure vs. re-author the row), and whether F2–F6 are accepted as authorized cleanup or remediated — which is the user's call under the audit-only decision.
+- **Mathematical / engineering grounding:** F1 fuses a mathematical initialization formula (`$\mathrm{U}[-\sqrt{6/n_\text{in}}/\text{hidden\_omega\_0}, …]$`) with rationale prose in a single GFM cell and drops a letter from "designed", because the malformed baseline table placed the rationale text at column ~181 while the declared Pandoc rationale column began at position 236; the Pandoc→GFM conversion split by column position, landing mid-word. A pipe-count check passes (the row retains the right number of pipes); only a cell **boundary/content** comparison detects it — which is why the committed G3 audit (`22-RENDER-REVIEW.md`) mis-asserted "cell content preserved." F3/F6 add/restructure subscript indices on governing equations; under the only physically-coherent reading they preserve meaning, but index changes on physics equations are a MUST-surface category and the user should confirm.
+- **Agent was tempted to:** Restore `designed` and reconstruct the Value/Rationale cell boundary at line 263 (grounded by baseline), and accept F2–F6 as authorized cleanup. **Rejected** — the audit-only decision forbids any fix; all findings are surfaced and the user decides remediation in a later pass.
+- **What the user needs to decide:**
+  - **F1 remediation:** **(A, recommended)** restore the baseline cell structure — split the Value cell (math) from the Rationale cell and restore `designed` — in a user-directed remediation pass; **(B)** re-author the row from scratch; **(C)** defer with the corruption tracked. F1 must be resolved before the phase closes.
+  - **F2–F6 disposition:** **(A, recommended)** accept as authorized Phase 22 cleanup (author-requested syntax repair + value-preserving duplicate removal), recording the acceptance; **(B)** remediate specific items (e.g., re-confirm the F3/F6 physics-equation notation, or restore the F2 duplicates).
+  - **G3 audit correction:** whether to annotate/supersede the `22-RENDER-REVIEW.md` "cell content preserved" assertion for the line-263 row now shown to be false.
+- **Confidence of impact:** **HIGH** for F1 (a confirmed meaning-altering corruption in an authoritative spec that FUT-01 will build code from); **LOW–MEDIUM** for F2–F6 (value/meaning preserved under coherent reading).
+- **Status:** OPEN
+- **Resolution note:** _(empty — awaiting user instruction on remediation. Phase 22 stays OPEN.)_
