@@ -10,16 +10,16 @@ This plan is split across four files. Execute them in order; each part file is d
 | Tasks | File |
 | --- | --- |
 | Task 0 (preflight), Post-Completion Follow-ups, Self-Review | This index (`20-5-PLAN.md`) |
-| Tasks 1–4 (Planning & Governance Scaffolding) | `20-5-PLAN-part1.md` |
-| Tasks 5–8 (Spec Edits & Verification) | `20-5-PLAN-part2.md` |
-| Task 9 (Closure & Status Synchronization) | `20-5-PLAN-part3.md` |
+| Tasks 1–4 (Planning & Governance Scaffolding) | `20-5-PART1.md` |
+| Tasks 5–8 (Spec Edits & Verification) | `20-5-PART2.md` |
+| Task 9 (Closure & Status Synchronization) | `20-5-PART3.md` |
 
 **Execution order:** run Task 0 to green first, then execute `part1` → `part2` → `part3` in
 order. All four files are required to complete Phase 20.5. After Task 9, return to this index
 for Post-Completion Follow-ups and the Self-Review.
 
 **Plan-files-committed precondition:** all four plan files (`20-5-PLAN.md`,
-`20-5-PLAN-part1.md`, `20-5-PLAN-part2.md`, `20-5-PLAN-part3.md`) must be committed and the
+`20-5-PART1.md`, `20-5-PART2.md`, `20-5-PART3.md`) must be committed and the
 working tree clean with respect to them before Task 0 begins. Execution must never start from
 an uncommitted or stale plan revision. Task 0 verifies this as its first step.
 
@@ -207,9 +207,9 @@ Confirm all four plan files are committed and the working tree is clean with res
 ```bash
 for f in \
   .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md \
-  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN-part1.md \
-  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN-part2.md \
-  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN-part3.md
+  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PART1.md \
+  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PART2.md \
+  .planning/phases/20-5-sampling-coordinate-allocation/20-5-PART3.md
 do
   git diff --name-only HEAD -- "$f"
   git diff --cached --name-only -- "$f"
