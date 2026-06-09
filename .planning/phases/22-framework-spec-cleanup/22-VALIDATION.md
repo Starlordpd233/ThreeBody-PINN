@@ -44,13 +44,13 @@ created: 2026-06-08
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 22-01-* | 01 | 0 | VER-05 | T-22-01 (npm supply-chain) | pinned deps + committed lockfile; plugin double-wrap sanity gate aborts on load failure (inline + block math) | infra | `node tools/spec-render-check/detect.mjs --selftest` (sanity gate + regression fixtures pass, negative controls clean) | ❌ W0 | ⬜ pending |
 | 22-01-Task4 (pre-WS-A baseline + census) | 01 | 0 | VER-05 | — | N/A | census | `test -f 22-COMMENT-CENSUS-PRE.md && git ls-files --error-unmatch 22-COMMENT-CENSUS-PRE.md` | ❌ W0 | ⬜ pending |
-| 22-0?-* (Stage-0 footnote probe) | 01 | 0/1 | VER-05 | — | N/A | manual+auto | probe `[^n]` rendering in the Cursor target; record supported/unsupported | ❌ W0 | ⬜ pending |
+| 22-01-Task3 (Stage-0 footnote probe) | 01 | 0/1 | VER-05 | — | N/A | manual+auto | probe `[^n]` rendering in the Cursor target; record supported/unsupported | ❌ W0 | ⬜ pending |
 | 22-02-* (WS-A repair, pinn_architecture) | 02 | 1 | VER-05 | — | N/A | render | `node tools/spec-render-check/detect.mjs pinn_architecture.md` → 0 residual findings (G2) | ❌ W0 | ⬜ pending |
 | 22-03-* (WS-A repair, ctl_instruction) | 03 | 1 | VER-05 | — | N/A | render | `node tools/spec-render-check/detect.mjs ctl_instruction.md` → 0 residual findings (G2) | ❌ W0 | ⬜ pending |
-| 22-??-* (math normalization) | 02/03 | 1 | VER-05 | — | N/A | equivalence | content-preservation audit (G3): each changed hunk classified into allowed categories with per-hunk evidence | ❌ W0 | ⬜ pending |
+| 22-02/03-Task2 (math normalization) | 02/03 | 1 | VER-05 | — | N/A | equivalence | content-preservation audit (G3): each changed hunk classified into allowed categories with per-hunk evidence | ❌ W0 | ⬜ pending |
 | 22-04-* (WS-B census + preservation) | 04 | 2 | VER-05 | — | N/A | census | PRE/POST `--census` diff (using committed `22-COMMENT-CENSUS-PRE.md` and `22-COMMENT-CENSUS-POST.md`): 0 author comments lost, 0 semantically changed; `22-COMMENT-HANDOFF.md` enumerates all | ❌ W0 | ⬜ pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky. Task IDs are placeholders until the planner finalizes plan/wave numbering; re-derive against live state, no hardcoded line numbers.*
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky. Task IDs are plan-aware (plan/wave numbering finalized); re-derive against live state at execution — no hardcoded line numbers.*
 
 **STOP-halt semantics:** A STOP-halted detector finding (e.g., an ambiguous transcription surfaced under the STOP protocol) is **not** a passing zero-finding run. The detector exits non-zero, and the owning plan is blocked until the user resolves or explicitly defers the halted item. Do not treat non-zero findings tied to unresolved STOP items as "green with exceptions."
 
