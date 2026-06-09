@@ -1,7 +1,7 @@
 ---
 title: "docs: Remediate Phase 22 planning artifacts from plan audits"
 type: docs
-status: active
+status: consumed
 date: 2026-06-08
 purpose: implementation-plan
 created: 2026-06-08
@@ -12,6 +12,8 @@ execution_status: first-pass-complete
 executed_at: 2026-06-09T10:23:17+0800
 review_status: reviewed
 retirement_trigger: "Phase 22 planning artifacts are revised, review findings are closed out, and reference audit passes"
+retirement_trigger_met: 2026-06-09
+closeout_evidence: docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-09-phase22-review-closeout-matrix.md
 ---
 
 # docs: Remediate Phase 22 planning artifacts from plan audits
