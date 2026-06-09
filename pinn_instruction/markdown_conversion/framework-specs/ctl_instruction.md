@@ -590,13 +590,13 @@ required for auditability and to avoid mixed-frame intermediate files. Compute
 all subsequent invariants (`E`, `s_min`, etc.) from the scaled `r'` and `v'`.
 
 **Governing Mathematical Convention (locked Phase 19, PHYS-01):** The
-characteristic length scale D = (G*T**2)^(1/3) ~ 4.6416 is derived from
-raw-mass nondimensionalization. Substituting `r = D*r'`, `t = T*u` into
+characteristic length scale $D = (G T^2)^{1/3} \approx 4.6416$ is derived from
+raw-mass nondimensionalization. Substituting $r = D r'$, $t = T u$ into
 Newton's equation and demanding the dimensionless residual
-`d²r'/du² = Σ m_j (r_j' - r_i') / ||r_j' - r_i'||³` (with raw masses
-`m_i`, not mass fractions) forces `D³ = G*T²`. The alternative
-`D = (G*M_tot*T²)^(1/3) ~ 6.694` is correct only under a mass-fraction
-convention rewrite (`m_i' = m_i/M_tot`) that would require touching every
+$\frac{d^2 \mathbf{r}'_i}{du^2} = \sum_j m_j \frac{\mathbf{r}'_j - \mathbf{r}'_i}{\lVert \mathbf{r}'_j - \mathbf{r}'_i \rVert^3}$ (with raw masses
+$m_i$, not mass fractions) forces $D^3 = G T^2$. The alternative
+$D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ is correct only under a mass-fraction
+convention rewrite ($m_i' = m_i / M_{\mathrm{tot}}$) that would require touching every
 residual, Hamiltonian, angular-momentum, COM, and invariant formula in the
 framework. The mass-fraction alternative is documented as a future rewrite
 only and is not adopted in v1.4. See
@@ -605,10 +605,10 @@ for the full EVID-05 adjudication.
 
 Global normalization scales (computed after scaling all trajectories):
 
-- `E_scale = |median({E_j})| + 1e-10`
-- `s_min_scale = median({r_char,j})`, where
-  `r_char,j = (1/3) sum_{i<k} ||r'_{i,j} - r'_{k,j}||`
-- `Q_scale` remains fixed at `0.5`.
+- $E_{\mathrm{scale}} = \lvert \mathrm{median}(\{E_j\}) \rvert + 10^{-10}$
+- $s_{\min,\mathrm{scale}} = \mathrm{median}(\{r_{\mathrm{char},j}\})$, where
+  $r_{\mathrm{char},j} = \frac{1}{3} \sum_{i<k} \lVert \mathbf{r}'_{i,j} - \mathbf{r}'_{k,j} \rVert$
+- $Q_{\mathrm{scale}}$ remains fixed at $0.5$.
 
 Author Comment: so far all the inline math notations that have this format `xxxx` are rendered as literal text strings in the preview and are not readable. Consider changing this syntax in a way that is machine-reading friendly and also renders correctly and nicely for human reader reading in preview.
 
@@ -689,18 +689,18 @@ final network IC slots under the Phase 17 input contract.
 
     \end{aligned}$$
 
-    We use the Plummer form `r_safe = sqrt(||r_i' - r_j'||^2 + epsilon_inv^2)` with
+    We use the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with
     static-invariant softening $\varepsilon_{\mathrm{inv}} = 10^{-10}$
     (in scaled units) *only in $V$* to prevent singularities. The
     geometric quantity $s_{\min}$ is computed from true pairwise
     separations (no softening).
 
-    **anti-pattern (PHYS-03):** Do not mix additive `(||r|| + epsilon)` with Plummer `sqrt(||r||^2 + epsilon^2)` forms. Do not mix
-    `(||r|| + epsilon)^-3` force with `(||r|| + epsilon)^-1` potential. The
+    **anti-pattern (PHYS-03):** Do not mix additive $(\lVert \mathbf{r} \rVert + \epsilon)$ with Plummer $\sqrt{\lVert \mathbf{r} \rVert^2 + \epsilon^2}$ forms. Do not mix
+    $(\lVert \mathbf{r} \rVert + \epsilon)^{-3}$ force with $(\lVert \mathbf{r} \rVert + \epsilon)^{-1}$ potential. The
     chosen pair must appear identically in residual and Hamiltonian. The
-    static-invariant softening `epsilon_inv = 10^-10` is context-specific for
+    static-invariant softening $\varepsilon_{\mathrm{inv}} = 10^{-10}$ is context-specific for
     offline invariant computation and is distinct from the training-time
-    softening `epsilon_train = 10^-5` used in the `pinn_architecture.md` PHYS-03 residual and energy contracts.
+    softening $\varepsilon_{\mathrm{train}} = 10^{-5}$ used in the `pinn_architecture.md` PHYS-03 residual and energy contracts.
 
     Author Comment: this section is a syntax disaster. ALl the raw latex syntax are broken in rendered preview, and they show up as literal text strings. The other syntax are also incorrect for proper markdown file. Carefully look into this and think about how to fix it. Maintaining the exact, identifical math equation and expressions is of the utmost importance here. The following sections after this and below this should also be carefully examined.
 
@@ -1041,18 +1041,18 @@ $$
 z^{in} = \tanh\left(\frac{z-\mu_z}{\sigma_z + 10^{-8}}\right).
 $$
 
-| Slot group | Pre-tanh scalar `z` | Network value |
+| Slot group | Pre-tanh scalar $z$ | Network value |
 |---|---|---|
-| Ordered raw masses | `m_i` for `i in {1,2,3}` | `tanh((m_i - mu_{m_i}) / (sigma_{m_i} + 10^-8))` |
-| Jacobi position slots | `rho_x`, `lambda_x`, `lambda_y` | `tanh((z - mu_z) / (sigma_z + 10^-8))` |
-| Jacobi velocity slots | `rho_dot_x`, `rho_dot_y`, `rho_dot_z`, `lambda_dot_x`, `lambda_dot_y`, `lambda_dot_z` | `tanh((z - mu_z) / (sigma_z + 10^-8))` |
-| Energy slot | `E` | `tanh(E / E_scale)`, where `E_scale = |median_traj(E)| + 10^-8` |
+| Ordered raw masses | $m_i$ for $i \in \{1,2,3\}$ | $\tanh\!\left(\frac{m_i - \mu_{m_i}}{\sigma_{m_i} + 10^{-8}}\right)$ |
+| Jacobi position slots | $\rho_x$, $\lambda_x$, $\lambda_y$ | $\tanh\!\left(\frac{z - \mu_z}{\sigma_z + 10^{-8}}\right)$ |
+| Jacobi velocity slots | $\dot{\rho}_x$, $\dot{\rho}_y$, $\dot{\rho}_z$, $\dot{\lambda}_x$, $\dot{\lambda}_y$, $\dot{\lambda}_z$ | $\tanh\!\left(\frac{z - \mu_z}{\sigma_z + 10^{-8}}\right)$ |
+| Energy slot | $E$ | $\tanh\!\left(\frac{E}{E_{\mathrm{scale}}}\right)$, where $E_{\mathrm{scale}} = \lvert \mathrm{median}_{\mathrm{traj}}(E) \rvert + 10^{-8}$ |
 
-The energy normalization maps any real `E` into the network range `(-1, 1)` via `tanh(E / E_scale)`. For the documented bound-system dataset, `E_norm` occupies `[-1, 0)` — the positive side of the tanh input range is unused because bound systems have `E < 0`. This is acceptable for SIREN and is not a normalizer correctness failure (see `simulation_data/Documentation/README.md` for data-generation regimes).
+The energy normalization maps any real $E$ into the network range $(-1, 1)$ via $\tanh(E / E_{\mathrm{scale}})$. For the documented bound-system dataset, $E_{\mathrm{norm}}$ occupies $[-1, 0)$ — the positive side of the tanh input range is unused because bound systems have $E < 0$. This is acceptable for SIREN and is not a normalizer correctness failure (see `simulation_data/Documentation/README.md` for data-generation regimes).
 
-The mass slots are normalized per slot with dataset-wide statistics. For hierarchical ICs, the dataset-occupied `m_norm` range is asymmetric; this asymmetry carries mass hierarchy information and is not a centering or correctness failure.
+The mass slots are normalized per slot with dataset-wide statistics. For hierarchical ICs, the dataset-occupied $m_{\mathrm{norm}}$ range is asymmetric; this asymmetry carries mass hierarchy information and is not a centering or correctness failure.
 
-The old invariant-heavy descriptors (`Q`, `s_min`, `L_vec`, `L_norm`, `I_norm_raw`, `I1`, `I2`, `I3`, `tau_L`, and orientation summaries) remain available as curriculum, diagnostics, loss-scaling, and reporting metadata. They are not final network IC slots under the Phase 17 input contract.
+The old invariant-heavy descriptors ($Q$, $s_{\min}$, $\mathbf{L}_{\mathrm{vec}}$, $L_{\mathrm{norm}}$, $I_{\mathrm{norm,raw}}$, $I_1$, $I_2$, $I_3$, $\tau_L$, and orientation summaries) remain available as curriculum, diagnostics, loss-scaling, and reporting metadata. They are not final network IC slots under the Phase 17 input contract.
 
 The network time coordinate is centered around zero by the linear map $\tau = 2u - 1$ with $u = t/T$ (where $T = t_{\max}$ is the characteristic time), which aligns with the periodic activation functions (e.g., SIREN) and improves training dynamics. The autograd leaf is `u`; the model wrapper computes `tau` internally.
 
@@ -1148,10 +1148,12 @@ The data flow for each training step is as follows:
 
 The default training loss is:
 
-L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L
+$$
+\mathcal{L}_{\mathrm{total}} = \mathcal{L}_{\mathrm{data}} + \lambda_{\mathrm{IC}} \, \mathcal{L}_{\mathrm{IC}} + \lambda_{\mathrm{phys}} \, \mathcal{L}_{\mathrm{phys}}^{\mathrm{causal}} + \lambda_E \, \mathcal{L}_E + \lambda_L \, \mathcal{L}_L
+$$
 
 where each term is defined by name in the PHYS-05 loss-term catalog in
-`pinn_architecture.md` (`L_data`, `L_IC`, `L_phys^causal`, `L_E`, and `L_L`).
+`pinn_architecture.md` ($\mathcal{L}_{\mathrm{data}}$, $\mathcal{L}_{\mathrm{IC}}$, $\mathcal{L}_{\mathrm{phys}}^{\mathrm{causal}}$, $\mathcal{L}_E$, and $\mathcal{L}_L$).
 The loss-balancing contract, warmup schedule, and optimizer-phase semantics
 are defined in the PHYS-05 training-loss contract in `pinn_architecture.md`.
 
@@ -1429,7 +1431,7 @@ from a three-level Hydra YAML stack:
 
 - `stage.yaml` -- curriculum definition and data-set indices\ (Author Comment: why is there a "\" sign here and in the next line?)
 
-- `opt.yaml` -- optimiser, learning-rate schedule, clip norms\
+- `opt.yaml` -- optimiser, learning-rate schedule, clip norms
 
 - `loss.yaml` -- default loss weights, PHYS-05 warmup schedule, causal
   residual settings, conservation regularizer scales, and tolerances

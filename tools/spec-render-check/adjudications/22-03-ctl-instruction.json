@@ -1,0 +1,79 @@
+[
+  {
+    "file": "ctl_instruction.md",
+    "line": 270,
+    "token": "ic_hierarchical",
+    "verdict": "code-identifier-kept",
+    "rationale": "Filename pattern in section heading (code identifier, not math expression)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 353,
+    "token": "t, N=3, t_cpu",
+    "verdict": "code-identifier-kept",
+    "rationale": "Brutus output header field names in backticks (Python/numpy variable names, not math)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 356,
+    "token": "E_initial",
+    "verdict": "code-identifier-kept",
+    "rationale": "Python dataclass field name for initial energy extraction from Brutus Result line (code identifier)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 356,
+    "token": "E_final",
+    "verdict": "code-identifier-kept",
+    "rationale": "Python dataclass field name for final energy extraction from Brutus Result line (code identifier)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 356,
+    "token": "dE/E",
+    "verdict": "code-identifier-kept",
+    "rationale": "Metadata label for relative energy error in Brutus Result line extraction (code identifier in context)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 358,
+    "token": "(T,3,3)",
+    "verdict": "code-identifier-kept",
+    "rationale": "NumPy array shape tuple (3D tensor shape, not math expression)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 358,
+    "token": "cpu_times",
+    "verdict": "code-identifier-kept",
+    "rationale": "Python metadata field name (code identifier)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 363,
+    "token": "dt_out",
+    "verdict": "code-identifier-kept",
+    "rationale": "Python parameter name for output timestep (code identifier)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 703,
+    "token": "pinn_architecture.md",
+    "verdict": "code-identifier-kept",
+    "rationale": "Cross-reference to sibling framework spec file (filename, not math)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 1009,
+    "token": "see pinn_ar",
+    "verdict": "code-identifier-kept",
+    "rationale": "Cross-reference to sibling framework spec file `pinn_architecture.md` (filename truncated in D6 preview; code identifier, not math)"
+  },
+  {
+    "file": "ctl_instruction.md",
+    "line": 1051,
+    "token": "simulation_data/Documentation/README.md",
+    "verdict": "code-identifier-kept",
+    "rationale": "File path to dataset documentation (filename path, not math)"
+  }
+]

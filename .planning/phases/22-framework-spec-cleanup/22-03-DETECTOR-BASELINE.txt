@@ -1,0 +1,51 @@
+
+=== ctl_instruction.md ===
+  [ADJUDICATED/D3] §initial-conditions-ichierarchical-txt (line 270): bare multi-char sub/superscript outside math: ic_hierarchical
+      | #### Initial Conditions (ic_hierarchical_\*.txt)
+      | verdict: code-identifier-kept — Filename pattern in section heading (code identifier, not math expression)
+  [ADJUDICATED/D5] §step-1-parse-raw-simulation-data (line 353): backtick-wrapped ASCII math near author flag: `t, N=3, t_cpu`
+      | (`t, N=3, t_cpu`) followed by three lines of body states
+      | verdict: code-identifier-kept — Brutus output header field names in backticks (Python/numpy variable names, not math)
+  [ADJUDICATED/D3] §step-1-parse-raw-simulation-data (line 356): bare multi-char sub/superscript outside math: E_initial
+      | contain energies like E_initial, E_final, dE/E—extract these into
+      | verdict: code-identifier-kept — Python dataclass field name for initial energy extraction from Brutus Result line (code identifier)
+  [ADJUDICATED/D3] §step-1-parse-raw-simulation-data (line 356): bare multi-char sub/superscript outside math: E_final
+      | contain energies like E_initial, E_final, dE/E—extract these into
+      | verdict: code-identifier-kept — Python dataclass field name for final energy extraction from Brutus Result line (code identifier)
+  [ADJUDICATED/D6] §step-1-parse-raw-simulation-data (line 356): prose ASCII math near author flag: …contain energies like E_initial, E_final, dE/E—extract these into…
+      | contain energies like E_initial, E_final, dE/E—extract these into
+      | verdict: code-identifier-kept — Python dataclass field name for initial energy extraction from Brutus Result line (code identifier)
+  [ADJUDICATED/D6] §step-1-parse-raw-simulation-data (line 358): prose ASCII math near author flag: …(T,3,3), and any metadata (e.g., cpu_times, energies). Gracefully…
+      | (T,3,3), and any metadata (e.g., cpu_times, energies). Gracefully
+      | verdict: code-identifier-kept — NumPy array shape tuple (3D tensor shape, not math expression)
+  [ADJUDICATED/D3] §step-1-parse-raw-simulation-data (line 363): bare multi-char sub/superscript outside math: dt_out
+      | 'quasi-random'; fidelity: 'high' or 'low'; dt_out: inferred from
+      | verdict: code-identifier-kept — Python parameter name for output timestep (code identifier)
+  [ADJUDICATED/D5] §outputs-of-this-step (line 703): backtick-wrapped ASCII math near author flag: `pinn_architecture.md`
+      | softening $\varepsilon_{\mathrm{train}} = 10^{-5}$ used in the `pinn_architecture.md` PHYS…
+      | verdict: code-identifier-kept — Cross-reference to sibling framework spec file (filename, not math)
+  [ADJUDICATED/D6] §network-input-contract (line 1009): prose ASCII math near author flag: …componentwise derivatives, and synthetic-trajectory test), see pinn_ar…
+      | componentwise derivatives, and synthetic-trajectory test), see pinn_architecture.md PHYS-0…
+      | verdict: code-identifier-kept — Cross-reference to sibling framework spec file `pinn_architecture.md` (filename truncated in D6 preview; code identifier, not math)
+  [ADJUDICATED/D5] §network-input-contract (line 1051): backtick-wrapped ASCII math near author flag: `simulation_data/Documentation/README.md`
+      | The energy normalization maps any real $E$ into the network range $(-1, 1)$ via $\tanh(E /…
+      | verdict: code-identifier-kept — File path to dataset documentation (filename path, not math)
+  [SUPPRESSED/D3] §existing-training-dataset (line 21): identifier-shape sub/sup excluded (surfaced for review): brutus_compare
+  [SUPPRESSED/D3] §brutus-simulation-output-brutushierarchical-txt (line 286): identifier-shape sub/sup excluded (surfaced for review): brutus_hierarchical
+  [SUPPRESSED/D3] §step-1-parse-raw-simulation-data (line 358): identifier-shape sub/sup excluded (surfaced for review): cpu_times
+  [SUPPRESSED/D3] §step-1-parse-raw-simulation-data (line 362): identifier-shape sub/sup excluded (surfaced for review): dataset_type
+  [SUPPRESSED/D3] §network-input-contract (line 1009): identifier-shape sub/sup excluded (surfaced for review): pinn_architecture
+
+-- adjudicated (cleared): 10 --
+  ctl_instruction.md:270 [D3] ic_hierarchical → code-identifier-kept
+  ctl_instruction.md:353 [D5] t, N=3, t_cpu → code-identifier-kept
+  ctl_instruction.md:356 [D3] E_initial → code-identifier-kept
+  ctl_instruction.md:356 [D3] E_final → code-identifier-kept
+  ctl_instruction.md:356 [D6] E_initial → code-identifier-kept
+  ctl_instruction.md:358 [D6] (T,3,3) → code-identifier-kept
+  ctl_instruction.md:363 [D3] dt_out → code-identifier-kept
+  ctl_instruction.md:703 [D5] pinn_architecture.md → code-identifier-kept
+  ctl_instruction.md:1009 [D6] see pinn_ar → code-identifier-kept
+  ctl_instruction.md:1051 [D5] simulation_data/Documentation/README.md → code-identifier-kept
+
+-- totals: 0 DEFINITE, 0 REVIEW, 10 ADJUDICATED, 5 SUPPRESSED (surfaced for review) --
