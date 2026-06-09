@@ -174,8 +174,7 @@ docs/work/designs/milestone_v1.4/20.5-sampling-coordinate-allocation/
 Do not use dash-encoded decimal phase numbers:
 
 ```text
-20-5-sampling-coordinate-allocation/   # wrong for new docs
-20.5-sampling-coordinate-allocation/   # correct
+20.5-sampling-coordinate-allocation/   # correct (dot notation, not dash)
 ```
 
 For integer phases, use the integer phase number:

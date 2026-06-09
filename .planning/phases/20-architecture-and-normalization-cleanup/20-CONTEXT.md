@@ -8,7 +8,7 @@
 
 Phase 20 removes architecture and normalization ambiguity from the v1.4 framework specs without changing the preserved SQR-SkipResNet-SIREN backbone unnecessarily. Work is limited to framework-spec and planning/proof artifacts. Live `pinn/` implementation files are not grounding sources and are not edit targets.
 
-Actual Phase 20 artifacts live in `.planning/phases/20-architecture-and-normalization-cleanup/`. The existing `.planning/phases/20-5-sampling-coordinate-allocation/` directory is Phase 20.5 and must remain untouched by actual Phase 20 work.
+Actual Phase 20 artifacts live in `.planning/phases/20-architecture-and-normalization-cleanup/`. The existing `.planning/phases/20.5-sampling-coordinate-allocation/` directory is Phase 20.5 and must remain untouched by actual Phase 20 work.
 
 </domain>
 
@@ -173,9 +173,9 @@ Downstream agents MUST read these before planning or implementing.
 - `ctl_instruction.md:1000-1032` contains active network-facing normalization prose/table surfaces.
 - `pinn_architecture.md:773` repeats final network input normalization details and should be checked for support-range consistency if touched.
 
-### Tooling Hazard
+### Tooling Hazard (RESOLVED 2026-06-09)
 
-Current GSD `find-phase 20` / `init.phase-op 20` resolves to `.planning/phases/20-5-sampling-coordinate-allocation`, which is Phase 20.5. Fix **deferred** per user instruction (2026-06-05). Phase 20 closure was performed with explicit paths to `.planning/phases/20-architecture-and-normalization-cleanup/`. Recommend renaming the Phase 20.5 directory or fixing `gsd-tools` phase resolution before Phase 20.5/21 validation. This is a tooling defect, not a STOP-protocol source/process-artifact gap.
+The `cmdInitProgress` path in GSD (`init.cjs:1262-1328`) used a simplified regex that extracted only `"20"` from `20-5-sampling-coordinate-allocation`, creating a duplicate phase number with the actual Phase 20 directory. This affected `init.progress` / the progress bar only — `find-phase 20` was never affected (`extractPhaseToken` correctly returned `"20-5"`, so `phaseTokenMatches` did not confuse it with `"20"`). Fix applied by renaming the directory to `20.5-sampling-coordinate-allocation` (dot notation), which the regex captures as a single unambiguous token.
 
 </code_context>
 
