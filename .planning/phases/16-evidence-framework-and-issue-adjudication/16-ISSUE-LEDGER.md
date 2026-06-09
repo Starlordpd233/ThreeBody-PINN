@@ -407,3 +407,106 @@ Recorded 2026-06-08 for VER-06:
 - `SI-SSR-001` is retired in `pinn_instruction/markdown_conversion/framework-revisions/stage-strat-revision/stage_strat_revision.md` with "Resolved by v1.4 finding M5. See Phase 20 architecture and normalization cleanup."
 - `SI-PINN-001` is not present in the current framework-spec SI metadata sections and was not present there at `v1.4-pre-phase-21`; it appears only in planning references. No synthetic retired entry was created.
 - `SI-PINN-002`, `SI-PINN-003`, `SI-DQA-002`, and `SI-DQA-003` are preserved untouched because they are unrelated to Issue 01 retirement candidates.
+
+## Phase 22 Acceptance & VER-05 Reconciliation Addendum
+
+Recorded 2026-06-09 by plan 22-05 (Wave 3 — phase gate). Phase 22 is the
+framework-spec-cleanup phase; its findings are render-defect findings (Pandoc/multiline
+tables, raw/backtick ASCII-math, fenced-div/caption/attribute survivors) in the three
+framework specs, not Issue-01 content findings. The existing Phase 16 lifecycle columns
+(`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`, with `DEFERRED` for written blockers)
+are reused.
+
+**Baseline ref:** git tag `v1.4-pre-phase-22` (commit `faa73d0`).
+**Detector:** `tools/spec-render-check/detect.mjs` (commit faa73d0 baseline + 22-02/22-03
+adjudication layer). Adjudication allowlists: `tools/spec-render-check/adjudications/22-02-pinn-architecture.json`
+(7 entries) and `tools/spec-render-check/adjudications/22-03-ctl-instruction.json` (10 entries).
+
+### Phase 22 render findings
+
+| ID | Title | Spec | Status | Verdict | Evidence | Acceptor plan | Last Updated |
+|----|-------|------|--------|---------|----------|---------------|--------------|
+| P22-R1 | Pandoc multiline tables (pinn hyperparameter + architecture blueprint) | pinn_architecture.md | VERIFIED | accept-resolution | 22-02-SUMMARY.md §Task 1; 22-02-DETECTOR-BASELINE.txt | 22-02 | 2026-06-09 |
+| P22-R2 | Raw / backtick ASCII-math in prose and tables (both specs) | pinn_architecture.md, ctl_instruction.md | VERIFIED | accept-resolution | 22-02-SUMMARY.md §Task 2; 22-03-SUMMARY.md §Task 2; 22-02-DETECTOR-BASELINE.txt; 22-03-DETECTOR-BASELINE.txt | 22-02, 22-03 | 2026-06-09 |
+| P22-R3 | Pandoc fenced-div, caption, section-attribute survivors | pinn_architecture.md, ctl_instruction.md | VERIFIED | accept-resolution | 22-02-SUMMARY.md §Task 1 (table divs); 22-03-SUMMARY.md §Task 2 (Pandoc attribute); adjudication allowlists | 22-02, 22-03 | 2026-06-09 |
+
+### Phase 22 status transition log
+
+| Date | Plan | Finding | Transition | Notes |
+|------|------|---------|------------|-------|
+| 2026-06-09 | 22-01 | P22-R1, P22-R2, P22-R3 | PENDING (seeded) | Detector + census + footnote probe completed; defect inventory captured from design §4. |
+| 2026-06-09 | 22-02 | P22-R1, P22-R2, P22-R3 (pinn half) | PENDING → IN_PROGRESS → FIX_APPLIED | Pandoc multiline tables → GFM; math normalization; footnote form `[^n]` → `[n]` (Stage-0 probe confirmed `unsupported`). |
+| 2026-06-09 | 22-02 | P22-R1, P22-R2 (pinn half) | FIX_APPLIED → VERIFIED | Post-adjudication detector: 0 DEFINITE + 0 REVIEW, 7 ADJUDICATED (GAP-22-03 RESOLVED-WITH-INSTRUCTION). |
+| 2026-06-09 | 22-03 | P22-R2, P22-R3 (ctl half) | PENDING → IN_PROGRESS → FIX_APPLIED | Mid-list `$$\begin{aligned}` moved to own lines; raw ASCII-math → LaTeX `$…$`; Pandoc attribute removed. |
+| 2026-06-09 | 22-03 | P22-R2, P22-R3 (ctl half) | FIX_APPLIED → VERIFIED | Post-adjudication detector: 0 DEFINITE + 0 REVIEW, 10 ADJUDICATED. |
+| 2026-06-09 | 22-04 | (author-comment preservation) | — | PRE/POST census + diff + FUT-05 handoff. 26 PRE = 26 POST; 0 lost, 0 semantically changed; 3 D-05 wrapper repairs documented in 22-COMMENT-DIFF.md. |
+| 2026-06-09 | 22-05 | (phase gate) | — | Full detector suite re-run: exit 0 per file. 0 DEFINITE + 0 REVIEW across all 3 specs. `sampling_method.md` negative control unchanged (0 findings + 1 SUPPRESSED). |
+
+### Phase 22 re-verification of previously-VERIFIED Phase 16/20/21 findings
+
+The Phase 22 edits touched `pinn_architecture.md` and `ctl_instruction.md`, which are the
+primary Spec Section for many earlier findings. Per the ledger's Lifecycle Rules
+("After every batch of spec edits in Phases 17-22, the executing agent re-runs each VERIFIED
+finding's acceptance check if that finding appears as a transitive dependent of any finding
+edited by the batch"), plan 22-05 re-ran the full detector suite after WS-A completed. The
+Phase 22 edits are **presentation-only** (math delimiter/brace normalization, Pandoc table →
+GFM preserving cell content, whitespace for block rendering, footnote form conversion, D-05
+wrapper repairs). No mathematical content was changed (G3 content-preservation audit). The
+re-run shows 0 DEFINITE + 0 REVIEW per file, so no Phase 16/20/21 finding's acceptance check
+regresses. Specifically:
+
+- **B-02 (AC-PHYS-01):** Governing Mathematical Convention block in `ctl_instruction.md` was
+  ASCII-math → LaTeX-normalized (P22-R2). The D-form prose and mass-fraction alternative
+  documentation remain present; the conversion is equivalence-verified per 22-03 Task 2.
+  No regression.
+- **B-09 (AC-PHYS-03):** Plummer softening forms in both files were math-normalized
+  (P22-R2). `ε_train=10⁻⁵` and `ε_inv=10⁻¹⁰` naming is preserved in the LaTeX-normalized
+  forms. No regression.
+- **B-01 / B-10 / M8 (AC-ARCH-01/02):** SIREN `ω_0` forms and LayerNorm references in
+  `pinn_architecture.md` were math-normalized (P22-R2). `first_omega_0` / `hidden_omega_0` /
+  `elementwise_affine` PyTorch identifiers were correctly preserved as code (GAP-22-03
+  adjudication). No regression.
+- **M5 / M9 / M10 / D-02-NORM (AC-ARCH-03/04/05):** `ctl_instruction.md` normalization did
+  not touch the I_3 normalization, energy normalization, or mass normalization passages.
+  No regression.
+- **B-03 / B-04 / B-05 / B-06 / M1 / M2 / M3 / M4 / B-07 / B-08:** These findings' content
+  was not edited by Phase 22. No regression.
+
+All Phase 16/20/21 VERIFIED findings remain VERIFIED. No finding reverted to IN_PROGRESS.
+
+### Phase 22 gaps
+
+| Gap ID | Classification | Status | Resolution note |
+|--------|----------------|--------|-----------------|
+| GAP-22-01 | semantic (author-comment adjudication scope) | RESOLVED-WITH-INSTRUCTION | User instruction: Phase 22 preserves; FUT-05 adjudicates. Recorded in 22-GAPS.md; implemented by 22-04. |
+| GAP-22-02 | semantic (28 vs. 26 author-comment census) | RESOLVED-WITH-INSTRUCTION | User instruction: use live corpus count (26). Recorded in 22-GAPS.md; 22-01 captured the 26-comment PRE census. |
+| GAP-22-03 | semantic (detector oracle conflicts with D-02/D-07 code-identifier exclusion) | RESOLVED-WITH-INSTRUCTION | User instruction (Option A): accept REVIEW findings on code identifiers as false positives; G2 redefined as 0 DEFINITE + every REVIEW adjudicated or absent. Adjudication allowlists committed. |
+
+No OPEN STOP gaps remain. No finding blocks closure.
+
+### Phase 22 deferred findings (design §12 — OUT of scope)
+
+The following are recorded content inconsistencies that the design doc explicitly defers
+to their owning tracks / FUT-01. They are **not Phase 22 render findings** and are not
+entered in the Phase 22 findings table; they are recorded here for traceability only:
+
+- **SI-PINN-002** (batch-construction inconsistency between `pinn_architecture.md` and
+  `ctl_instruction.md`) — content issue; deferred to owning track (not Phase 22 scope).
+- **IC-dimension reconciliation note** — content issue; deferred to FUT-01.
+- **Outdated code-folder references in `ctl_instruction.md`** — content issue; deferred to
+  owning track.
+
+### Phase 22 acceptance verdict
+
+**PASS.** All gates satisfied:
+
+- G1 (selftest): exit 0, regression reproduced, negative controls clean.
+- G2 (all 3 specs 0-residual): exit 0 per file with `--adjudications` where applicable;
+  `sampling_method.md` negative control unchanged (0 findings + 1 SUPPRESSED).
+- G3 (content preservation): every changed hunk classified into allowed categories with
+  per-hunk evidence; 0 comments lost, 0 semantically changed.
+- G4 (automated proxy): PASS. Visual backstop: PENDING-USER-REVIEW
+  (see `22-RENDER-REVIEW.md` for the user-facing checklist).
+- VER-05 (ledger): PASS. All Phase-22 findings VERIFIED; 0 OPEN STOP gaps; no
+  user-deferred Phase-22 findings (the 3 deferred items are design-§12 content issues,
+  explicitly OUT of Phase 22 scope).
