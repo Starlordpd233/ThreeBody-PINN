@@ -3,6 +3,7 @@ phase: 21
 slug: acceptance-checks-and-handoff
 status: passed
 nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-08
 ---
 
@@ -144,3 +145,13 @@ BASH
 - [x] The weak-probe regression checks are included in the strict suite.
 - [x] The SI reconciliation check preserves unrelated SI entries.
 - [x] No live `pinn/` implementation file is used as v1.4 grounding evidence.
+
+**Approval:** approved 2026-06-09 after the five probes, captured evidence, and handoff checks passed.
+
+## Validation Audit 2026-06-09
+
+| Metric | Count |
+|---|---|
+| Gaps found | 1 missing `wave_0_complete` field |
+| Resolved | 1 |
+| Escalated | 0 |

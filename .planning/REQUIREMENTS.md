@@ -130,9 +130,9 @@ These requirements apply across all milestones and are not owned by any single p
 | ARCH-05 | Phase 20 | Complete |
 | SAMP-01 | Phase 20.5 | Complete |
 | SAMP-02 | Phase 20.5 | Complete |
-| VER-01 | Phase 21 | Pending |
+| VER-01 | Phase 21 | Complete |
 | VER-02 | Phase 16 | Complete |
-| VER-03 | Phase 21 | Pending |
+| VER-03 | Phase 21 | Complete |
 | VER-04 | Phase 21 | Complete |
 | VER-05 | Phase 16 (defined) / Phases 17–22, including Phase 20.5 (applied) | Complete |
 | VER-06 | Phase 21 | Complete |

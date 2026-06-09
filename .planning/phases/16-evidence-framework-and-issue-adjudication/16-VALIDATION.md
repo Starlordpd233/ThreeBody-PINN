@@ -1,9 +1,9 @@
 ---
 phase: 16
 slug: evidence-framework-and-issue-adjudication
-status: draft
+status: passed
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-16
 ---
 
@@ -38,13 +38,13 @@ created: 2026-05-16
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 16-01-01 | 01 | 1 | EVID-01 | T-16-01 | Template cannot omit required evidence sections | doc-structure | `rg -n "ctl_pinn_resolution.md|01-architecture-and-physics-foundations.md|Spec evidence|Code evidence" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | W0 | pending |
-| 16-01-02 | 01 | 1 | EVID-02 | T-16-02 | Verdict enum is fixed and greppable | doc-structure | `rg -n "accept-resolution|accept-issue-doc|accept-third-position|reject-both-as-unsupported|defer-with-blocker" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | W0 | pending |
-| 16-01-03 | 01 | 1 | EVID-03 | T-16-03 | False positives are recorded as evidence-backed non-changes | doc-structure | `rg -n "False Positive|intentional non-change|accept-resolution.*no-change|current convention remains valid" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | W0 | pending |
-| 16-01-04 | 01 | 1 | EVID-04 | T-16-04 | Accepted issues link to before/after notes and AC-IDs | doc-structure | `rg -n "Before / After Spec Note|Named Acceptance Check|AC-" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | W0 | pending |
-| 16-01-05 | 01 | 1 | EVID-05 | T-16-05 | Contested findings cannot skip adjudication sections | doc-structure | `rg -n "First-Principles Physics Check|Root-Cause Framework Ambiguity|Locked Convention|Which Source Was Correct|YES - EVID-05 required|B-02|B-04|B-09|M5" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | W0 | pending |
-| 16-01-06 | 01 | 1 | VER-02 | T-16-06 | Traceability count has no duplicate requirement IDs | shell-audit | `awk 'BEGIN{in_trace=0} /^## Traceability/{in_trace=1; next} in_trace && /^---/{in_trace=0} in_trace && /^\\| [A-Z]+-[0-9][0-9]/{gsub(/^\\| /,""); gsub(/ \\|.*/,""); print}' .planning/REQUIREMENTS.md | sort | uniq -d` | yes | pending |
-| 16-01-07 | 01 | 1 | VER-05 | T-16-07 | Ledger records status lifecycle, dependents, transition logs, and regression policy | doc-structure | `rg -n "PENDING|IN_PROGRESS|FIX_APPLIED|VERIFIED|DEFERRED|Dependents|regression|phase-exit|fix applied" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md` | W0 | pending |
+| 16-01-01 | 01 | 1 | EVID-01 | T-16-01 | Template cannot omit required evidence sections | doc-structure | `rg -n "ctl_pinn_resolution.md|01-architecture-and-physics-foundations.md|Spec evidence|Code evidence" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | yes | green |
+| 16-01-02 | 01 | 1 | EVID-02 | T-16-02 | Verdict enum is fixed and greppable | doc-structure | `rg -n "accept-resolution|accept-issue-doc|accept-third-position|reject-both-as-unsupported|defer-with-blocker" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | yes | green |
+| 16-01-03 | 01 | 1 | EVID-03 | False positives are recorded as evidence-backed non-changes | doc-structure | `rg -n "False Positive|intentional non-change|accept-resolution.*no-change|current convention remains valid" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | yes | green |
+| 16-01-04 | 01 | 1 | EVID-04 | Accepted issues link to before/after notes and AC-IDs | doc-structure | `rg -n "Before / After Spec Note|Named Acceptance Check|AC-" .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | yes | green |
+| 16-01-05 | 01 | 1 | EVID-05 | Contested findings cannot skip adjudication sections | doc-structure | `rg -n "First-Principles Physics Check|Root-Cause Framework Ambiguity|Locked Convention|Which Source Was Correct|YES - EVID-05 required|B-02|B-04|B-09|M5" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` | yes | green |
+| 16-01-06 | 01 | 1 | VER-02 | T-16-06 | Traceability count has no duplicate requirement IDs | shell-audit | `awk 'BEGIN{in_trace=0} /^## Traceability/{in_trace=1; next} in_trace && /^---/{in_trace=0} in_trace && /^\\| [A-Z]+-[0-9][0-9]/{gsub(/^\\| /,""); gsub(/ \\|.*/,""); print}' .planning/REQUIREMENTS.md | sort | uniq -d` | yes | green |
+| 16-01-07 | 01 | 1 | VER-05 | T-16-07 | Ledger records status lifecycle, dependents, transition logs, and regression policy | doc-structure | `rg -n "PENDING|IN_PROGRESS|FIX_APPLIED|VERIFIED|DEFERRED|Dependents|regression|phase-exit|fix applied" .planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md .planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md` | yes | green |
 
 *Status: pending / green / red / flaky*
 
@@ -52,10 +52,10 @@ created: 2026-05-16
 
 ## Wave 0 Requirements
 
-- [ ] `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` - covers EVID-02, VER-02, and VER-05.
-- [ ] `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md` - covers EVID-05 and VER-05 protocol.
-- [ ] `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` - covers EVID-01 through EVID-05.
-- [ ] Framework install: none required.
+- [x] `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` - covers EVID-02, VER-02, and VER-05.
+- [x] `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/README.md` - covers EVID-05 and VER-05 protocol.
+- [x] `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` - covers EVID-01 through EVID-05.
+- [x] Framework install: none required.
 
 ---
 
@@ -76,4 +76,12 @@ created: 2026-05-16
 - [x] Feedback latency < 30s.
 - [x] `nyquist_compliant: true` set in frontmatter.
 
-**Approval:** pending
+**Approval:** approved 2026-06-09 after retroactive execution of all seven checks.
+
+## Validation Audit 2026-06-09
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 7 pending task rows + incomplete Wave 0 metadata |
+| Resolved | 7 task rows + 4 Wave 0 items |
+| Escalated | 0 |

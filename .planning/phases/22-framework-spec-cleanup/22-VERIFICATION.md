@@ -50,15 +50,31 @@ The execution-review findings were triaged and the valid non-semantic issues wer
 - `22-02-SUMMARY.md` now records footnote conversion from `[^n]`/`[^n]:` to render-safe bracket-number/reference-list form.
 - `22-03-SUMMARY.md` now records the Task 1 aligned-block work and distinguishes 9 JSON allowlist records from 10 adjudicated detector findings.
 - `tools/spec-render-check/detect.mjs --all` now auto-loads committed Phase 22 adjudication allowlists and exits 0 for the full suite.
-- `22-VALIDATION.md`, `ROADMAP.md`, `STATE.md`, `PROJECT.md`, and `REQUIREMENTS.md` now describe the conditional G4-pending state instead of stale "Phase 22 next" text.
-- `16-ISSUE-LEDGER.md` now records a conditional automated pass pending G4 rather than an unconditional "all gates satisfied" verdict.
+- `22-VALIDATION.md`, `ROADMAP.md`, `STATE.md`, `PROJECT.md`, and `REQUIREMENTS.md` were synchronized during the pre-G4 remediation and finalized after user approval.
+- `16-ISSUE-LEDGER.md` records the automated gate result and the completed G4 approval.
 
-## Remaining Human Gate
+## Phase 21 Handoff Consumption
 
-The user must open all three framework specs in Cursor/VS Code Markdown Preview and complete the checklist in `22-RENDER-REVIEW.md`:
+Phase 22 explicitly consumed
+`.planning/phases/21-acceptance-checks-and-handoff/21-HANDOFF.md` before final
+closeout:
 
-- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
-- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
-- `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
+- The Phase 21 **Fixed** set remains represented by the verified framework-spec
+  contracts; Phase 22's G3 audit found only authorized presentation-preserving
+  changes plus the separately surfaced and user-resolved GAP-22-04 correction.
+- The **Intentionally Unchanged** set remains empty.
+- Deferred findings **M6** and **M7** remain deferred; Phase 22 did not synthesize
+  semantics for either finding.
+- `SI-CTL-001` and `SI-SSR-001` remain retired with their Phase 21
+  back-references; `SI-PINN-001` remains absent; `SI-PINN-002`,
+  `SI-PINN-003`, `SI-DQA-002`, and `SI-DQA-003` remain preserved.
+- Phase 22 did not alter the Section 10 `.venv/bin/python` probe commands or
+  reopen FUT-01 implementation scope.
 
-If the user reports `approved`, Phase 22 can be marked fully closed. If the user reports defects, route them back to the owning WS-A plan before closure.
+This closes the Phase 21 -> Phase 22 artifact-trail gap for VER-03/VER-06.
+
+## Completed Human Gate
+
+The user completed the Cursor/VS Code Markdown Preview checklist in
+`22-RENDER-REVIEW.md` and approved G4 on 2026-06-09. No visual defects remain
+open.

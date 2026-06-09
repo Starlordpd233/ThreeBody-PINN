@@ -80,7 +80,7 @@ The Phase 20.5 provenance claim is scoped precisely — no more, no less:
      boundary.
 - **Data:** none required — instantiates `EnhancedThreeBodySampler` directly.
 - **Probe:**
-  `.planning/phases/20-5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py`.
+  `.planning/phases/20.5-sampling-coordinate-allocation/probes/verify_sobol_allocation.py`.
 - **Pass criterion:** the probe exits 0 with `PASS` lines across all three surfaces and the
   summary `All three surfaces (SPEC, ENTRYPOINT, SAMPLER) passed.` Any `FAIL` line or
   nonzero exit is an AC-SAMP-01 failure.
