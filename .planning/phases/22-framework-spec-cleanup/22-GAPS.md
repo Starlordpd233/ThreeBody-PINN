@@ -2,8 +2,8 @@
 phase: 22
 slug: framework-spec-cleanup
 total_gaps: 4
-open_gaps: 1
-resolved_gaps: 3
+open_gaps: 0
+resolved_gaps: 4
 deferred_gaps: 0
 last_updated: 2026-06-09
 governance: "Governed by CLAUDE.md / AGENTS.md CRITICAL GOVERNANCE block: STOP protocol, source-grounding rules, no-live-code directive for v1.4 spec decisions."
@@ -114,5 +114,10 @@ Both gaps below were surfaced on 2026-06-08 during `/gsd-plan-phase 22`, **befor
   - **F2–F6 disposition:** **(A, recommended)** accept as authorized Phase 22 cleanup (author-requested syntax repair + value-preserving duplicate removal), recording the acceptance; **(B)** remediate specific items (e.g., re-confirm the F3/F6 physics-equation notation, or restore the F2 duplicates).
   - **G3 audit correction:** whether to annotate/supersede the `22-RENDER-REVIEW.md` "cell content preserved" assertion for the line-263 row now shown to be false.
 - **Confidence of impact:** **HIGH** for F1 (a confirmed meaning-altering corruption in an authoritative spec that FUT-01 will build code from); **LOW–MEDIUM** for F2–F6 (value/meaning preserved under coherent reading).
-- **Status:** OPEN
-- **Resolution note:** _(empty — awaiting user instruction on remediation. Phase 22 stays OPEN.)_
+- **Status:** RESOLVED-WITH-INSTRUCTION
+- **Resolution note:** User instructed on 2026-06-09 (post-audit remediation), confirming the recommended dispositions:
+  - **F1 — FIXED (option A).** Restored the baseline-grounded cell structure at `pinn_architecture.md:263`: `designe`→`designed` and the lost Value↔Rationale column separator reinstated so the `$\mathrm{U}[…]$` formula and the full rationale sentence occupy separate GFM cells, matching the sibling "Weight Init. (First)" row. Commit `bf841f6` (`fix(22): restore corrupted weight-init table cell in pinn_architecture spec`). The row now reconciles to baseline content with the declared `[^1]`→`[1]` footnote form.
+  - **F2–F6 — ACCEPTED (option A)** as authorized Phase 22 cleanup, after independent baseline re-verification by this agent: F2 removed only literal duplicate restatements (`(`10^-5`)`, `(`10^-8`)`) with the canonical `$10^{-5}$`/`$10^{-8}$` retained in-sentence; **F3** left the PHYS-01 residual RHS byte-identical and only made implicit indices explicit (`_i` on the LHS acceleration, `Σ`→`\sum_j`) — user elected to **KEEP** the explicit indices (more precise, meaning identical to baseline, consistent with the author-authorized math-syntax repair); F6 repositioned the angular-momentum prime (`L_0,α'`→`L'_{0,α}`) to match the sibling `L'_{θ,α}` per the author's own repair request; F4/F5 are identifier subscripting with no value change. **No number value, operator, or equation term was altered anywhere in either spec.**
+  - **G3 correction — DONE.** The false "cell content preserved" assertion for the line-263 row in `22-RENDER-REVIEW.md` §G3 is annotated/superseded with a back-reference to this gap (GAP-22-04) and `22-CONTENT-EQUIVALENCE-AUDIT.md`.
+  - **Anchor re-verification:** the Phase 22 anchor removals (`{#sec:ctl:step3}`, `{#tab:architectural_hyperparameters}`) leave **no dangling references** anywhere in the repo outside planning/review/fixture docs — the audit's "no references" classification holds.
+  Phase 22 is unblocked for closure; the content-equivalence audit verdict updates from FINDINGS to RESOLVED.

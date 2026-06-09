@@ -17,7 +17,7 @@ correctness is established only when BOTH automated (G1/G2) AND manual (G4) pass
 **Baseline ref for diff computations:** git tag `v1.4-pre-phase-22` (commit `faa73d0`).
 **Adjudication allowlists:**
 - `tools/spec-render-check/adjudications/22-02-pinn-architecture.json` (7 entries)
-- `tools/spec-render-check/adjudications/22-03-ctl-instruction.json` (10 entries)
+- `tools/spec-render-check/adjudications/22-03-ctl-instruction.json` (9 records clearing 10 detector findings)
 
 ---
 
@@ -52,50 +52,32 @@ reproduced (2 clean + 7 flag); negative control clean.
 
 ## G2 — Full detector suite across all 3 specs
 
-**Authoritative per-file runs** (one `--adjudications` allowlist per file; the detector's
-`--adjudications` flag accepts a single path, so each file's allowlist must be loaded for its run):
-
-### pinn_architecture.md
-
-**Command:** `node tools/spec-render-check/detect.mjs --adjudications tools/spec-render-check/adjudications/22-02-pinn-architecture.json pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
+**Command:** `node tools/spec-render-check/detect.mjs --all`
 **Exit:** 0
 
-```
--- totals: 0 DEFINITE, 0 REVIEW, 7 ADJUDICATED, 14 SUPPRESSED (surfaced for review) --
-```
-
-Adjudicated (cleared): 7 entries from 22-02 allowlist (all code-identifier-kept verdicts —
-PyTorch parameter names `first_omega_0`, `elementwise_affine=False/True`, `hidden_omega_0`, and
-author-comment placeholder `\text{xxx}`).
-
-### ctl_instruction.md
-
-**Command:** `node tools/spec-render-check/detect.mjs --adjudications tools/spec-render-check/adjudications/22-03-ctl-instruction.json pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
-**Exit:** 0
+`--all` auto-loads the committed Phase 22 adjudication allowlists:
+- `tools/spec-render-check/adjudications/22-02-pinn-architecture.json` (7 records)
+- `tools/spec-render-check/adjudications/22-03-ctl-instruction.json` (9 records; clears 10 detector findings because the `E_initial` record matches both the same-line D3 and D6 findings)
 
 ```
--- totals: 0 DEFINITE, 0 REVIEW, 10 ADJUDICATED, 5 SUPPRESSED (surfaced for review) --
+-- totals: 0 DEFINITE, 0 REVIEW, 17 ADJUDICATED, 20 SUPPRESSED (surfaced for review) --
 ```
 
-Adjudicated (cleared): 10 entries from 22-03 allowlist (all code-identifier-kept verdicts —
-`ic_hierarchical` filename, `t`/`N=3`/`t_cpu`/`E_initial`/`E_final`/`dt_out`/`(T,3,3)` Python
-field names, `pinn_architecture.md`/`simulation_data/Documentation/README.md` cross-references).
+Per-file results in the full-suite run:
 
-### sampling_method.md (negative control — never edited in Phase 22)
+| File | Result |
+|------|--------|
+| `pinn_architecture.md` | 0 DEFINITE, 0 REVIEW, 7 ADJUDICATED, 14 SUPPRESSED |
+| `ctl_instruction.md` | 0 DEFINITE, 0 REVIEW, 10 ADJUDICATED, 5 SUPPRESSED |
+| `sampling_method.md` | 0 DEFINITE, 0 REVIEW, 0 ADJUDICATED, 1 SUPPRESSED |
 
-**Command:** `node tools/spec-render-check/detect.mjs pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`
-**Exit:** 0
+The single `sampling_method.md` SUPPRESSED item is the identifier-shape `close_low_L`, which D3
+excludes. No REVIEW findings remain. Negative control is clean and unchanged since pre-Phase-22.
 
-```
--- totals: 0 DEFINITE, 0 REVIEW, 0 ADJUDICATED, 1 SUPPRESSED (surfaced for review) --
-```
-
-The single SUPPRESSED is the identifier-shape `close_low_L` at line 260, which D3 excludes.
-No REVIEW findings remain. Negative control is clean and unchanged since pre-Phase-22.
-
-**G2 Verdict:** PASS. All 3 specs reach exit 0 with 0 DEFINITE + 0 REVIEW findings.
-`--adjudications` is the documented tiered-detector mechanism (design §5.4; GAP-22-03
-RESOLVED-WITH-INSTRUCTION). `sampling_method.md` remains 0-findings (negative control).
+**G2 Verdict:** PASS. The full-suite `--all` gate reaches exit 0 with 0 DEFINITE + 0 REVIEW
+findings after auto-loading the committed adjudication allowlists. The allowlist mechanism is the
+documented tiered-detector mechanism (design §5.4; GAP-22-03 RESOLVED-WITH-INSTRUCTION).
+`sampling_method.md` remains 0-findings (negative control).
 
 ---
 
@@ -170,13 +152,29 @@ wrapper-only repairs (verbatim author-comment clause byte-stable in all 3).
 **G3 Verdict:** PASS. Every changed hunk is classified into an allowed category with
 per-hunk evidence; 0 comments lost, 0 semantically changed.
 
+**G3 post-audit correction (2026-06-09) — supersedes the H8 "cell content preserved"
+assertion:** An independent content-equivalence audit
+(`.planning/phases/22-framework-spec-cleanup/22-06-content-audit.mjs`, full report
+`.planning/phases/22-framework-spec-cleanup/22-CONTENT-EQUIVALENCE-AUDIT.md`) confirmed that
+the H8 hyperparameter-table row at `pinn_architecture.md:263` was **not** cell-content
+preserved — `designed` was mangled to `designe` and the Value↔Rationale column boundary was
+fused. This was remediated in commit `bf841f6`
+(`fix(22): restore corrupted weight-init table cell in pinn_architecture spec`): the
+baseline cell structure is now restored and the row reconciles to baseline content. All
+other H1–H23 hunks in `pinn_architecture.md` and H1–H8 in `ctl_instruction.md` retain
+their G3 classification; the comment-preservation sub-gate is unchanged. See
+`22-GAPS.md` GAP-22-04 for the full resolution note and F2–F6 disposition.
+
 ---
 
 ## G4 — Manual Cursor/VS Code render review
 
-**Status:** PENDING-USER-REVIEW. The agent cannot literally open the Cursor/VS Code Markdown
-Preview. The checklist below is the user-facing, copy-paste-ready inspection guide; the user
-completes it and reports any defect.
+**Status:** APPROVED 2026-06-09 (user visual backstop). The user opened all three framework
+specs in Cursor/VS Code Markdown Preview, walked the user-facing checklist below, and
+reported no defects. The H8 corruption noted in the G3 post-audit correction is not
+visible in the rendered output (the cell boundary is correct and "designed" renders
+intact) — the corruption was a structural defect in the markdown source, not a rendered
+artifact. The checklist below is retained as the approved inspection guide.
 
 ### User-facing visual review checklist
 
@@ -256,9 +254,9 @@ STOP gaps block closure.
 | Gate | Status | Evidence |
 |------|--------|----------|
 | G1 (selftest) | PASS | This file §G1 — exit 0, regression reproduced, negative controls clean |
-| G2 (all 3 specs 0-residual) | PASS | This file §G2 — exit 0 per file, 0 DEFINITE + 0 REVIEW |
+| G2 (all 3 specs 0-residual) | PASS | This file §G2 — `--all` exit 0, 0 DEFINITE + 0 REVIEW |
 | G3 (content preservation) | PASS | This file §G3 — every hunk classified, 0 comments lost/changed |
 | G3 (comments) | PASS | 22-COMMENT-DIFF.md + 22-COMMENT-HANDOFF.md |
 | G4 (automated proxy) | PASS | G1 + G2 + G3 combined |
-| G4 (visual backstop) | PENDING-USER-REVIEW | User-facing checklist above |
+| G4 (visual backstop) | APPROVED 2026-06-09 | User-facing checklist; no defects reported |
 | VER-05 (ledger) | PASS | 16-ISSUE-LEDGER.md Phase 22 addendum |
