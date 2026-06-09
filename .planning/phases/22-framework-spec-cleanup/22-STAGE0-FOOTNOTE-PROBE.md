@@ -2,8 +2,10 @@
 phase: 22
 slug: framework-spec-cleanup
 artifact: stage-0-footnote-probe
-status: DRAFT — awaiting human Cursor/VS Code Markdown Preview confirmation
+status: CONFIRMED
 created: 2026-06-09
+confirmed: 2026-06-09
+confirmer: user (Cursor Markdown Preview observation)
 decides: detector D4 footnote policy + 22-02 footnote-repair scope (37 refs / 17 defs in pinn_architecture.md)
 ---
 
@@ -22,7 +24,7 @@ VS Code Markdown Preview renders Pandoc-style footnotes `[^n]`. The answer decid
 ## Machine-readable policy (read by `detect.mjs --footnote-policy auto`)
 
 ```
-FOOTNOTE_POLICY: UNCONFIRMED
+FOOTNOTE_POLICY: unsupported
 ```
 
 While this value is `UNCONFIRMED`, `detect.mjs --footnote-policy auto` exits **3** ("Stage-0
@@ -66,10 +68,10 @@ If both render as footnotes → **supported**. If either survives as literal `[^
 
 ## Human confirmation (fill at the Task-3 checkpoint — leave blank until observed)
 
-- **Observed in Cursor/VS Code preview:** _____________________  (supported / unsupported)
-- **Observed behavior (one line):** _________________________________________________
-- **Editor + version:** _____________________________
-- **Date / confirmer:** _____________________________
+- **Observed in Cursor/VS Code preview:** unsupported
+- **Observed behavior (one line):** `[^probe1]` and `[^probe2]` render as literal text in prose; definitions render as inline text, not as a footnotes list
+- **Editor + version:** Cursor (version unspecified by user)
+- **Date / confirmer:** 2026-06-09 / user screenshot
 
 ## Decision this controls
 
