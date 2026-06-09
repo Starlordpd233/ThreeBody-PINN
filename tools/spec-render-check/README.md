@@ -44,6 +44,7 @@ time with `cd tools/spec-render-check && npm ci && npm ls katex`.
 | `node tools/spec-render-check/detect.mjs --regression` | Reproduce the author-flag fixtures and assert both negative controls clean. |
 | `node tools/spec-render-check/detect.mjs --selftest` | Sanity gate + regression fixtures + real `sampling_method.md` control (the G1 gate). |
 | `node tools/spec-render-check/detect.mjs --footnote-policy auto\|supported\|unsupported` | Branch the D4 footnote class (default `auto` reads `22-STAGE0-FOOTNOTE-PROBE.md`). |
+| `node tools/spec-render-check/detect.mjs --adjudications <path>` | Load a REVIEW adjudication allowlist (JSON array of `{file, line, token, verdict, rationale}`). Matched REVIEWs are reported as ADJUDICATED (cleared); exit 0 when 0 DEFINITE + all REVIEWs adjudicated or absent. |
 | `node tools/spec-render-check/detect.mjs --prove-sanity-gate` | Pitfall-1 proof: force a non-callable plugin; must abort with exit 2. |
 
 ## Layers
@@ -82,6 +83,36 @@ live bytes (Pattern 3) — the line number is a run-time convenience, never a ha
 REVIEW) · `2` sanity-gate failure (plugin load) · `3` missing prerequisite (Stage-0 footnote probe
 unconfirmed while a target contains `[^n]`) · other non-zero = tool failure. Rendering findings are
 non-zero and cannot be masked as success.
+
+With `--adjudications <path>`: exit `0` when 0 DEFINITE + every REVIEW is either adjudicated
+(matched in the allowlist) or absent. Non-zero only when unadjudicated REVIEWs or any DEFINITE
+remain. The allowlist is opt-in and per-plan; it does NOT change D1–D7 core logic.
+
+## Adjudication allowlist
+
+The `--adjudications` flag loads a JSON array of REVIEW findings that have been human-adjudicated
+and cleared. Each entry:
+
+```json
+{
+  "file": "pinn_architecture.md",
+  "line": 170,
+  "token": "first_omega_0",
+  "verdict": "code-identifier-kept",
+  "rationale": "SIREN initialization parameter name (PyTorch code identifier, not math)"
+}
+```
+
+Matching: a REVIEW finding is adjudicated when all three match — file basename equals `file`,
+1-based line number equals `line`, and `token` appears as a substring of the finding's message.
+Adjudicated findings are printed as `[ADJUDICATED/<layer>]` with verdict and rationale, and are
+excluded from the exit-code calculation. The allowlist does not affect DEFINITE findings (which
+always cause exit 1) or SUPPRESSED items (which are never findings).
+
+Typical use: when D5/D6 flag code identifiers (PyTorch parameter names, filenames) that the plan's
+D-02/D-07 code-identifier exclusion says to keep as code, the allowlist records the adjudication
+so the detector can honestly exit 0. The same pattern is expected to apply across plans (e.g.,
+22-02 and 22-03 both encounter `first_omega_0`, `elementwise_affine`, etc.).
 
 ## Footnote policy (Stage-0 gate)
 

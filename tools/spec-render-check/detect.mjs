@@ -481,6 +481,54 @@ function resolveFootnotePolicy(requested, modelsWithFootnotes) {
 }
 
 // ---------------------------------------------------------------------------
+// Adjudication allowlist (opt-in, per-plan)
+// ---------------------------------------------------------------------------
+// Loads a JSON allowlist of REVIEW findings that have been human-adjudicated and cleared.
+// Each entry: {file, line, token, verdict, rationale}.
+// When a REVIEW finding matches (file basename + line + token substring in message), it is
+// reported as ADJUDICATED (cleared) rather than REVIEW. Exit code: 0 when 0 DEFINITE + all
+// REVIEWs are either adjudicated or absent. Does NOT change D1-D7 core logic.
+function loadAdjudications(adjudicationsPath) {
+  if (!adjudicationsPath) return null;
+  if (!fs.existsSync(adjudicationsPath)) {
+    abort(9, `adjudications file not found: ${adjudicationsPath}`);
+  }
+  try {
+    const raw = JSON.parse(fs.readFileSync(adjudicationsPath, 'utf8'));
+    if (!Array.isArray(raw)) {
+      abort(9, `adjudications file must contain a JSON array: ${adjudicationsPath}`);
+    }
+    return raw.map((entry, idx) => {
+      if (!entry.file || !entry.line || !entry.token) {
+        abort(9, `adjudications[${idx}] missing required field (file, line, token): ${JSON.stringify(entry)}`);
+      }
+      return {
+        file: path.basename(entry.file), // normalize to basename for matching
+        line: Number(entry.line),
+        token: String(entry.token),
+        verdict: entry.verdict || 'adjudicated',
+        rationale: entry.rationale || '',
+      };
+    });
+  } catch (e) {
+    abort(9, `adjudications file parse error: ${e.message}`);
+  }
+  return null; // unreachable
+}
+
+function findAdjudication(allowlist, finding) {
+  if (!allowlist) return null;
+  for (const entry of allowlist) {
+    if (entry.file === finding.file
+        && entry.line === finding.line
+        && finding.message.includes(entry.token)) {
+      return entry;
+    }
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Per-file run
 // ---------------------------------------------------------------------------
 function fileHasFootnotes(model) {
@@ -567,24 +615,40 @@ function printCensus(census) {
 // ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
-function printReport(results) {
-  let definite = 0; let review = 0; let suppressed = 0;
+function printReport(results, adjudications) {
+  let definite = 0; let review = 0; let suppressed = 0; let adjudicated = 0;
+  const adjudicatedItems = [];
   for (const r of results) {
     const all = [...r.findings].sort((a, b) => a.line - b.line);
     process.stdout.write(`\n=== ${path.basename(r.file)} ===\n`);
     if (!all.length && !r.suppressed.length) { process.stdout.write('  (clean — 0 findings)\n'); continue; }
     for (const f of all) {
-      process.stdout.write(`  [${f.tier}/${f.layer}] §${f.anchor} (line ${f.line}): ${f.message}\n`);
-      process.stdout.write(`      | ${f.snippet}\n`);
-      if (f.tier === 'DEFINITE') definite += 1; else review += 1;
+      const adj = findAdjudication(adjudications, f);
+      if (adj) {
+        process.stdout.write(`  [ADJUDICATED/${f.layer}] §${f.anchor} (line ${f.line}): ${f.message}\n`);
+        process.stdout.write(`      | ${f.snippet}\n`);
+        process.stdout.write(`      | verdict: ${adj.verdict} — ${adj.rationale}\n`);
+        adjudicated += 1;
+        adjudicatedItems.push({ file: f.file, line: f.line, layer: f.layer, ...adj });
+      } else {
+        process.stdout.write(`  [${f.tier}/${f.layer}] §${f.anchor} (line ${f.line}): ${f.message}\n`);
+        process.stdout.write(`      | ${f.snippet}\n`);
+        if (f.tier === 'DEFINITE') definite += 1; else review += 1;
+      }
     }
     for (const s of r.suppressed) {
       process.stdout.write(`  [SUPPRESSED/${s.layer}] §${s.anchor} (line ${s.line}): ${s.message}\n`);
       suppressed += 1;
     }
   }
-  process.stdout.write(`\n-- totals: ${definite} DEFINITE, ${review} REVIEW, ${suppressed} SUPPRESSED (surfaced for review) --\n`);
-  return { definite, review, suppressed };
+  if (adjudicatedItems.length) {
+    process.stdout.write(`\n-- adjudicated (cleared): ${adjudicatedItems.length} --\n`);
+    for (const a of adjudicatedItems) {
+      process.stdout.write(`  ${a.file}:${a.line} [${a.layer}] ${a.token} → ${a.verdict}\n`);
+    }
+  }
+  process.stdout.write(`\n-- totals: ${definite} DEFINITE, ${review} REVIEW, ${adjudicated} ADJUDICATED, ${suppressed} SUPPRESSED (surfaced for review) --\n`);
+  return { definite, review, suppressed, adjudicated };
 }
 
 // ---------------------------------------------------------------------------
@@ -666,8 +730,10 @@ Usage:
   node tools/spec-render-check/detect.mjs --regression        reproduce author-flag fixtures + controls
   node tools/spec-render-check/detect.mjs --selftest          sanity gate + regression + controls (G1)
   node tools/spec-render-check/detect.mjs --footnote-policy auto|supported|unsupported   (default auto)
+  node tools/spec-render-check/detect.mjs --adjudications <path>   load REVIEW adjudication allowlist
 
 Exit: 0 clean · 1 findings · 2 sanity-gate failure · 3 missing prerequisite (footnote probe).
+With --adjudications: exit 0 when 0 DEFINITE + every REVIEW is adjudicated or absent.
 `);
 }
 
@@ -678,6 +744,10 @@ function main() {
   let footnotePolicy = 'auto';
   const fpIdx = argv.indexOf('--footnote-policy');
   if (fpIdx !== -1) footnotePolicy = (argv[fpIdx + 1] || 'auto').toLowerCase();
+
+  let adjudicationsPath = null;
+  const adjIdx = argv.indexOf('--adjudications');
+  if (adjIdx !== -1) adjudicationsPath = argv[adjIdx + 1] || null;
 
   // Pitfall-1 proof: force a non-callable plugin; the sanity gate must abort with exit 2
   // (never run a layer on an unloaded engine). Exits 2 on success of the proof.
@@ -709,7 +779,8 @@ function main() {
     const rootIdx = argv.indexOf('--root');
     const positionals = argv.filter((a, i) => !a.startsWith('--')
       && !(rootIdx !== -1 && i === rootIdx + 1)
-      && !(fpIdx !== -1 && i === fpIdx + 1));
+      && !(fpIdx !== -1 && i === fpIdx + 1)
+      && !(adjIdx !== -1 && i === adjIdx + 1));
     if (rootIdx !== -1) {
       const root = argv[rootIdx + 1];
       files = fs.readdirSync(root).filter((f) => f.endsWith('.md')).map((f) => path.join(root, f));
@@ -728,7 +799,9 @@ function main() {
   if (argv.includes('--all')) {
     files = SPECS;
   } else {
-    const positionals = argv.filter((a, i) => !a.startsWith('--') && !(fpIdx !== -1 && i === fpIdx + 1));
+    const positionals = argv.filter((a, i) => !a.startsWith('--')
+      && !(fpIdx !== -1 && i === fpIdx + 1)
+      && !(adjIdx !== -1 && i === adjIdx + 1));
     if (!positionals.length) { usage(); process.exit(0); }
     files = positionals.map((f) => path.resolve(f));
   }
@@ -740,8 +813,9 @@ function main() {
   const anyFootnotes = sources.some(({ src }) => fileHasFootnotes(modelOf(src)));
   const policy = resolveFootnotePolicy(footnotePolicy, anyFootnotes);
 
+  const adjudications = loadAdjudications(adjudicationsPath);
   const results = sources.map(({ file, src }) => runFile(file, src, policy));
-  const totals = printReport(results);
+  const totals = printReport(results, adjudications);
   process.exit(totals.definite + totals.review > 0 ? 1 : 0);
 }
 
