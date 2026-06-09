@@ -20,9 +20,9 @@ Drive `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` 
 
 ## Task 1 — mid-list `$$\begin{aligned}` and raw `\begin{`
 
-**Status:** No action required.
+**Status:** Completed in commit `5bfbd20`.
 
-The Wave-0 detector's D4 survivor scan reports 0 DEFINITE mid-list `$$` findings and 0 raw `\begin{` outside math. The three `$$\begin{aligned}` blocks flagged in the research map (lines 681, 709, 737) were already in own-line positions in the committed file. No edits were needed for Task 1.
+The three mid-list `$$\begin{aligned}` regions flagged in the research map were moved to own-line positions in `ctl_instruction.md` so D4 no longer reports survivor findings. The final detector state is 0 DEFINITE findings for mid-list `$$` and raw `\begin{` outside math.
 
 ## Task 2 — Math normalization (D3/D5/D6)
 
@@ -42,7 +42,7 @@ The Wave-0 detector's D4 survivor scan reports 0 DEFINITE mid-list `$$` findings
 
 ### Adjudicated code identifiers (GAP-22-03 pattern)
 
-10 findings adjudicated as `code-identifier-kept` per GAP-22-03 resolution (user instruction 2026-06-09: same adjudication pattern expected in 22-03). See adjudication allowlist at `tools/spec-render-check/adjudications/22-03-ctl-instruction.json`.
+10 detector findings adjudicated as `code-identifier-kept` per GAP-22-03 resolution (user instruction 2026-06-09: same adjudication pattern expected in 22-03). The JSON allowlist at `tools/spec-render-check/adjudications/22-03-ctl-instruction.json` contains 9 records; the `E_initial` record clears both the D3 token and the same-line D6 prose finding.
 
 | Line | Layer | Token | Verdict | Rationale |
 |------|-------|-------|---------|-----------|
@@ -98,11 +98,11 @@ No ambiguous transcription, process-artifact schema, cross-phase reframing, or s
 
 ## Commits
 
-_(to be filled in after commit)_
+- `7fe572e` spec(22-03): normalize ctl_instruction.md math and adjudicate code identifiers
 
 ## Handoff artifacts for Wave 2/3
 
 - `22-03-DETECTOR-BASELINE.txt`: post-adjudication detector output.
-- `tools/spec-render-check/adjudications/22-03-ctl-instruction.json`: 10-entry allowlist.
+- `tools/spec-render-check/adjudications/22-03-ctl-instruction.json`: 9-record allowlist clearing 10 detector findings.
 - HB-01 candidate: line 1430 hard-break for human disposition (logged above).
 - No entries to append to `16-ISSUE-LEDGER.md` (plan 22-05 is the reconciler).

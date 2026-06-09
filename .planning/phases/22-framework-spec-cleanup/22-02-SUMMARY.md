@@ -19,8 +19,8 @@ Convert all Pandoc multiline tables in `pinn_architecture.md` to GFM format and 
   - Architectural hyperparameters (12 data rows, 12 columns, 3 footnote references)
   - Consolidated implementation blueprint (13 data rows, 3 columns, 1 footnote reference)
 - **Method:** Programmatic extraction using column separator detection and cell-boundary parsing
-- **Verification:** All cell content preserved byte-for-byte, footnote references maintained as `[^n]`
-- **Commit:** `ac601e9` "fix(22-02): convert Pandoc multiline tables to GFM in pinn_architecture.md"
+- **Verification:** All cell content preserved byte-for-byte; Pandoc footnote markers in the converted tables were changed from `[^n]` to render-safe `[n]` form per the Stage-0 `unsupported` probe.
+- **Commit:** `acb8aa8` "fix(22-02): convert Pandoc structures in pinn_architecture.md to GFM"
 
 ### Task 2: Math Normalization ✓
 - **D3 bare subscripts fixed:** 23 instances → 0 instances
@@ -33,7 +33,7 @@ Convert all Pandoc multiline tables in `pinn_architecture.md` to GFM format and 
   - `` `epsilon_H` `` → `$\epsilon_H$` (multiple instances)
 - **Other fixes:**
   - Line 651-653: Collapsed multi-line math block to single line
-  - All 39 Pandoc footnote references `[^n]` and definitions `[^n]:` preserved (not converted to `[n]`)
+  - All 39 Pandoc footnote references/definitions converted from `[^n]`/`[^n]:` syntax to render-safe bracket-number/reference-list form (`[n]` plus `n.` references) per the Stage-0 probe
   - Heading `## Footnotes` renamed to `## References`
 
 ## GAP-22-03 Incident
@@ -111,5 +111,5 @@ Exit code: 0
 - Detector output: `22-02-DETECTOR-BASELINE.txt` (post-adjudication, exit 0)
 - Adjudication allowlist: `tools/spec-render-check/adjudications/22-02-pinn-architecture.json`
 - Selftest: PASS (G1) — regression fixtures reproduced, negative controls clean
-- Table conversion script: `/tmp/convert-both-tables.mjs`
-- Per-construct checkpoint hashes: recorded in commit `ac601e9`
+- Table conversion script: `.planning/phases/22-framework-spec-cleanup/22-02-transform.mjs`
+- Per-construct checkpoint evidence: table conversion captured in commit `acb8aa8`; reproducibility script retained at `.planning/phases/22-framework-spec-cleanup/22-02-transform.mjs`

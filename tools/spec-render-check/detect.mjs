@@ -38,6 +38,7 @@ const SPECS = ['ctl_instruction.md', 'pinn_architecture.md', 'sampling_method.md
   .map((f) => path.join(SPEC_DIR, f));
 const SAMPLING_SPEC = path.join(SPEC_DIR, 'sampling_method.md');
 const FIXTURES = path.join(SCRIPT_DIR, 'fixtures', 'regression.md');
+const ADJUDICATION_DIR = path.join(SCRIPT_DIR, 'adjudications');
 const PROBE_FILE = path.join(
   REPO_ROOT, '.planning', 'phases', '22-framework-spec-cleanup', '22-STAGE0-FOOTNOTE-PROBE.md',
 );
@@ -488,32 +489,52 @@ function resolveFootnotePolicy(requested, modelsWithFootnotes) {
 // When a REVIEW finding matches (file basename + line + token substring in message), it is
 // reported as ADJUDICATED (cleared) rather than REVIEW. Exit code: 0 when 0 DEFINITE + all
 // REVIEWs are either adjudicated or absent. Does NOT change D1-D7 core logic.
-function loadAdjudications(adjudicationsPath) {
-  if (!adjudicationsPath) return null;
-  if (!fs.existsSync(adjudicationsPath)) {
-    abort(9, `adjudications file not found: ${adjudicationsPath}`);
-  }
-  try {
-    const raw = JSON.parse(fs.readFileSync(adjudicationsPath, 'utf8'));
-    if (!Array.isArray(raw)) {
-      abort(9, `adjudications file must contain a JSON array: ${adjudicationsPath}`);
+function loadAdjudications(adjudicationPaths) {
+  if (!adjudicationPaths) return null;
+  const paths = Array.isArray(adjudicationPaths) ? adjudicationPaths : [adjudicationPaths];
+  const entries = [];
+  for (const adjudicationsPath of paths) {
+    if (!fs.existsSync(adjudicationsPath)) {
+      abort(9, `adjudications file not found: ${adjudicationsPath}`);
     }
-    return raw.map((entry, idx) => {
-      if (!entry.file || !entry.line || !entry.token) {
-        abort(9, `adjudications[${idx}] missing required field (file, line, token): ${JSON.stringify(entry)}`);
+    try {
+      const raw = JSON.parse(fs.readFileSync(adjudicationsPath, 'utf8'));
+      if (!Array.isArray(raw)) {
+        abort(9, `adjudications file must contain a JSON array: ${adjudicationsPath}`);
       }
-      return {
-        file: path.basename(entry.file), // normalize to basename for matching
-        line: Number(entry.line),
-        token: String(entry.token),
-        verdict: entry.verdict || 'adjudicated',
-        rationale: entry.rationale || '',
-      };
-    });
-  } catch (e) {
-    abort(9, `adjudications file parse error: ${e.message}`);
+      raw.forEach((entry, idx) => {
+        if (!entry.file || !entry.line || !entry.token) {
+          abort(9, `adjudications[${idx}] missing required field (file, line, token): ${JSON.stringify(entry)}`);
+        }
+        entries.push({
+          file: path.basename(entry.file), // normalize to basename for matching
+          line: Number(entry.line),
+          token: String(entry.token),
+          verdict: entry.verdict || 'adjudicated',
+          rationale: entry.rationale || '',
+        });
+      });
+    } catch (e) {
+      abort(9, `adjudications file parse error: ${e.message}`);
+    }
   }
-  return null; // unreachable
+  return entries;
+}
+
+function defaultAdjudicationPathsForAll() {
+  if (!fs.existsSync(ADJUDICATION_DIR)) return [];
+  return fs.readdirSync(ADJUDICATION_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .sort()
+    .map((f) => path.join(ADJUDICATION_DIR, f));
+}
+
+function printLoadedAdjudications(paths, explicit) {
+  if (!paths || !paths.length) return;
+  const label = explicit ? 'loaded adjudication allowlist' : 'auto-loaded Phase 22 adjudication allowlists';
+  process.stdout.write(`${label}:\n`);
+  for (const p of paths) process.stdout.write(`  - ${path.relative(REPO_ROOT, p)}\n`);
+  process.stdout.write('\n');
 }
 
 function findAdjudication(allowlist, finding) {
@@ -725,7 +746,7 @@ function usage() {
 
 Usage:
   node tools/spec-render-check/detect.mjs <file> [file ...]   quick single-file run
-  node tools/spec-render-check/detect.mjs --all               all 3 framework specs
+  node tools/spec-render-check/detect.mjs --all               all 3 framework specs; auto-load Phase 22 adjudications
   node tools/spec-render-check/detect.mjs --census [--root D] [file ...]
   node tools/spec-render-check/detect.mjs --regression        reproduce author-flag fixtures + controls
   node tools/spec-render-check/detect.mjs --selftest          sanity gate + regression + controls (G1)
@@ -733,7 +754,7 @@ Usage:
   node tools/spec-render-check/detect.mjs --adjudications <path>   load REVIEW adjudication allowlist
 
 Exit: 0 clean · 1 findings · 2 sanity-gate failure · 3 missing prerequisite (footnote probe).
-With --adjudications: exit 0 when 0 DEFINITE + every REVIEW is adjudicated or absent.
+With --all or --adjudications: exit 0 when 0 DEFINITE + every REVIEW is adjudicated or absent.
 `);
 }
 
@@ -813,7 +834,11 @@ function main() {
   const anyFootnotes = sources.some(({ src }) => fileHasFootnotes(modelOf(src)));
   const policy = resolveFootnotePolicy(footnotePolicy, anyFootnotes);
 
-  const adjudications = loadAdjudications(adjudicationsPath);
+  const adjudicationPaths = adjudicationsPath
+    ? [path.resolve(adjudicationsPath)]
+    : (argv.includes('--all') ? defaultAdjudicationPathsForAll() : null);
+  printLoadedAdjudications(adjudicationPaths, Boolean(adjudicationsPath));
+  const adjudications = loadAdjudications(adjudicationPaths);
   const results = sources.map(({ file, src }) => runFile(file, src, policy));
   const totals = printReport(results, adjudications);
   process.exit(totals.definite + totals.review > 0 ? 1 : 0);

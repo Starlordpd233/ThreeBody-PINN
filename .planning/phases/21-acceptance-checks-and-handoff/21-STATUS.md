@@ -40,4 +40,6 @@ Phase 21 is complete. GSD `init.execute-phase 21` reports both summaries present
 
 ## Remaining Scope
 
-No Phase 21 work remains. Phase 22 framework-spec cleanup is next.
+No Phase 21 work remains. Phase 22 framework-spec cleanup consumed the Phase 21
+handoff and completed on 2026-06-09, including the G4 Cursor/VS Code visual
+backstop.

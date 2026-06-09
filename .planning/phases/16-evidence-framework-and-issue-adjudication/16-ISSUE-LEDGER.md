@@ -498,7 +498,7 @@ entered in the Phase 22 findings table; they are recorded here for traceability 
 
 ### Phase 22 acceptance verdict
 
-**PASS.** All gates satisfied:
+**PASS.** All automated gates and the G4 visual backstop are complete.
 
 - G1 (selftest): exit 0, regression reproduced, negative controls clean.
 - G2 (all 3 specs 0-residual): exit 0 per file with `--adjudications` where applicable;
@@ -510,3 +510,5 @@ entered in the Phase 22 findings table; they are recorded here for traceability 
 - VER-05 (ledger): PASS. All Phase-22 findings VERIFIED; 0 OPEN STOP gaps; no
   user-deferred Phase-22 findings (the 3 deferred items are design-§12 content issues,
   explicitly OUT of Phase 22 scope).
+- G4 (visual backstop): PASS. User approved the checklist in `22-RENDER-REVIEW.md`
+  on 2026-06-09.

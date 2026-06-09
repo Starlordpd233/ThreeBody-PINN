@@ -39,7 +39,7 @@ time with `cd tools/spec-render-check && npm ci && npm ls katex`.
 | Command | Purpose |
 | --- | --- |
 | `node tools/spec-render-check/detect.mjs <file>` | Quick single-file run, all layers. |
-| `node tools/spec-render-check/detect.mjs --all` | Run all three framework specs (the G2 full-suite gate). |
+| `node tools/spec-render-check/detect.mjs --all` | Run all three framework specs (the G2 full-suite gate) and auto-load committed Phase 22 adjudication allowlists. |
 | `node tools/spec-render-check/detect.mjs --census [--root <dir>] [file ...]` | All-forms author-comment census (path-based input only; never stdin). |
 | `node tools/spec-render-check/detect.mjs --regression` | Reproduce the author-flag fixtures and assert both negative controls clean. |
 | `node tools/spec-render-check/detect.mjs --selftest` | Sanity gate + regression fixtures + real `sampling_method.md` control (the G1 gate). |
@@ -84,9 +84,12 @@ REVIEW) · `2` sanity-gate failure (plugin load) · `3` missing prerequisite (St
 unconfirmed while a target contains `[^n]`) · other non-zero = tool failure. Rendering findings are
 non-zero and cannot be masked as success.
 
-With `--adjudications <path>`: exit `0` when 0 DEFINITE + every REVIEW is either adjudicated
-(matched in the allowlist) or absent. Non-zero only when unadjudicated REVIEWs or any DEFINITE
-remain. The allowlist is opt-in and per-plan; it does NOT change D1–D7 core logic.
+With `--all`, the detector auto-loads every committed JSON allowlist in
+`tools/spec-render-check/adjudications/` before computing the full-suite exit code. With
+`--adjudications <path>`, a single explicit allowlist is loaded for targeted per-file runs. In both
+cases, exit `0` means 0 DEFINITE + every REVIEW is either adjudicated (matched in the allowlist) or
+absent. Non-zero only when unadjudicated REVIEWs or any DEFINITE remain. The allowlists do NOT
+change D1–D7 core logic.
 
 ## Adjudication allowlist
 

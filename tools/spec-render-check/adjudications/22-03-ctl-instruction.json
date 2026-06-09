@@ -29,24 +29,10 @@
   },
   {
     "file": "ctl_instruction.md",
-    "line": 356,
-    "token": "dE/E",
-    "verdict": "code-identifier-kept",
-    "rationale": "Metadata label for relative energy error in Brutus Result line extraction (code identifier in context)"
-  },
-  {
-    "file": "ctl_instruction.md",
     "line": 358,
     "token": "(T,3,3)",
     "verdict": "code-identifier-kept",
     "rationale": "NumPy array shape tuple (3D tensor shape, not math expression)"
-  },
-  {
-    "file": "ctl_instruction.md",
-    "line": 358,
-    "token": "cpu_times",
-    "verdict": "code-identifier-kept",
-    "rationale": "Python metadata field name (code identifier)"
   },
   {
     "file": "ctl_instruction.md",

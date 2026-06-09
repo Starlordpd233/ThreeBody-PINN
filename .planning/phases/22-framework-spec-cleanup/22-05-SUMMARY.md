@@ -36,13 +36,11 @@ backstop checklist), and VER-05 (Phase-22 entries reconciled in the shared ledge
 - **G1 (selftest):** `node tools/spec-render-check/detect.mjs --selftest` → exit 0. Sanity
   gate PASS, 9 regression fixtures reproduced (2 clean + 7 flag), `sampling_method.md`
   negative control clean (0 findings, 1 SUPPRESSED).
-- **G2 (per-file, authoritative):**
-  - `pinn_architecture.md` with `22-02-pinn-architecture.json` → exit 0 (0 DEFINITE, 0
-    REVIEW, 7 ADJUDICATED, 14 SUPPRESSED).
-  - `ctl_instruction.md` with `22-03-ctl-instruction.json` → exit 0 (0 DEFINITE, 0 REVIEW,
-    10 ADJUDICATED, 5 SUPPRESSED).
-  - `sampling_method.md` (no adjudication needed; negative control) → exit 0 (0 DEFINITE,
-    0 REVIEW, 0 ADJUDICATED, 1 SUPPRESSED).
+- **G2 (full suite):** `node tools/spec-render-check/detect.mjs --all` → exit 0. The detector
+  auto-loaded the committed Phase 22 adjudication allowlists and reported 0 DEFINITE, 0 REVIEW,
+  17 ADJUDICATED, 20 SUPPRESSED across all three specs. Per-file totals remain:
+  `pinn_architecture.md` 0/0/7/14, `ctl_instruction.md` 0/0/10/5, and `sampling_method.md`
+  0/0/0/1.
 - **G3 (content preservation):** Computed diffs against git tag `v1.4-pre-phase-22`
   (commit `faa73d0`). 23 hunks in `pinn_architecture.md` + 8 hunks in `ctl_instruction.md`
   + 0 in `sampling_method.md`. Every hunk classified into an allowed category
