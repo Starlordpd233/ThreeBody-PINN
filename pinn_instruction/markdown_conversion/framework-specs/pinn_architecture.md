@@ -19,14 +19,14 @@ encounters between bodies. A successful predictive model must therefore
 not only capture these multi-scale temporal features with high fidelity
 but also adhere to fundamental global conservation laws, such as the
 conservation of total energy and angular momentum, to ensure its
-long-term physical plausibility.[^1]
+long-term physical plausibility.[1]
 
 A generic neural network architecture, such as a standard Multi-Layer
 Perceptron (MLP), lacks the specific structural priors necessary to
 handle this confluence of challenges. Such models often suffer from a
 \"spectral bias,\" a tendency to learn low-frequency functions more
 easily, which makes them struggle to represent the high-frequency
-components inherent in chaotic dynamics.[^2] More critically, enforcing
+components inherent in chaotic dynamics.[2] More critically, enforcing
 the governing physical laws---in this case, Newton's laws of
 motion---within a Physics-Informed Neural Network (PINN) framework
 requires the computation of high-order derivatives of the network's
@@ -40,7 +40,7 @@ output, meaning its first derivative is piecewise constant and its
 second derivative is a series of Dirac delta functions (i.e., zero
 almost everywhere). This mathematical property makes it impossible to
 represent the smooth, continuously varying gravitational
-forces that govern celestial motion.[^1]
+forces that govern celestial motion.[1]
 
 To overcome these fundamental limitations, a more principled approach is
 required---one where the architecture itself imparts a strong inductive
@@ -62,7 +62,7 @@ core requirements of the problem:
     for higher-order derivatives. This provides a powerful inductive
     bias towards learning smooth functions whose derivatives are also
     smooth, a property essential for minimizing the physics residual
-    with high fidelity.[^1]
+    with high fidelity.[1]
 
 2.  **Expressivity and Training Stability:** Capturing the intricate
     complexity of chaotic trajectories requires a network with
@@ -76,7 +76,7 @@ core requirements of the problem:
     particularly effective variant, the Power-Enhanced SkipResNet
     (SQR-SkipResNet), which has been empirically shown to provide more
     stable gradient flow and superior performance on non-smooth
-    functions, making it well-suited for deep architectures.[^1]
+    functions, making it well-suited for deep architectures.[1]
 
 3.  **Long-Term Physical Plausibility:** Even a PINN that perfectly
     satisfies the local, instantaneous equations of motion can
@@ -117,7 +117,7 @@ Representation Network (SIREN) activation function. This choice is not a
 tunable hyperparameter but a mandatory architectural feature dictated by
 the physics of the $\mathrm{N}$-body problem. A standard neural network
 layer performs an affine transformation followed by a non-linear
-activation. In a SIREN layer, this activation is the sine function[^5]:
+activation. In a SIREN layer, this activation is the sine function[5]:
 $$\phi_i(\mathrm{x}) = \sin(\mathrm{W}_i \mathrm{x} + \mathrm{b}_i)$$
 where $\mathrm{x}$ is the input to the layer, and $\mathrm{W}_i$ and
 $\mathrm{b}_i$ are the trainable weight matrix and bias vector,
@@ -137,14 +137,14 @@ functions. This is a stark contrast to common activations like ReLU,
 whose second derivatives are ill-defined or zero almost everywhere,
 making them fundamentally unsuited for problems where the loss function
 depends on second-order derivatives, as is the case for the
-$\mathrm{N}$-body problem's physics residual.[^1] The SIREN architecture
+$\mathrm{N}$-body problem's physics residual.[1] The SIREN architecture
 thus provides an exceptionally strong inductive bias for representing
 the smooth, continuous solutions and their derivatives required by the
 governing physical laws. This directly overcomes the spectral bias of
 standard MLPs, which struggle to represent the high-frequency details
-inherent in chaotic trajectories and their derivatives.[^2] By using
+inherent in chaotic trajectories and their derivatives.[2] By using
 SIREN, the network is inherently capable of representing the complex
-natural signals that arise from physical systems.[^8]
+natural signals that arise from physical systems.[8]
 
 ## 2.2 A Principled Initialization Scheme for SIREN Layers
 
@@ -156,7 +156,7 @@ confusion between different documents regarding the hyperparameter
 $\omega_0$ is resolved here by adhering to the original,
 mathematically-derived SIREN initialization scheme, which is designed to
 preserve the distribution of activations as they propagate through the
-network.[^5]
+network.[5]
 
 This scheme is not a heuristic but a carefully designed solution to two
 distinct challenges: representation and trainability. It treats the
@@ -175,7 +175,7 @@ layers.
     hidden layers, the weights $\mathrm{W}$ are initialized from a
     different uniform distribution,
     $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$.\
-    The crucial difference is that the initialization range is **divided by** `hidden_omega_0` (here `hidden_omega_0 = 1`), following the standard SIREN initialization.
+    The crucial difference is that the initialization range is **divided by** $\text{hidden\_omega\_0}$ (here $\text{hidden\_omega\_0} = 1$), following the standard SIREN initialization.
     This specific scaling is mathematically derived to ensure that the
     pre-activations (the inputs to the sine function) maintain a
     standard normal distribution throughout the network's depth. This,
@@ -183,7 +183,7 @@ layers.
     range, preventing the frequency of the network's output from growing
     uncontrollably with depth. This careful, layer-dependent
     initialization is what makes deep SIRENs trainable by ensuring
-    stable gradient flow.[^1]
+    stable gradient flow.[1]
 
     Author Comment: All of these fields with `\text{xxx}` are not rnedered correctly and show up in the preview as raw literal text strings. The examples are the hidden omega 0, and first omega, etc. 
 
@@ -254,15 +254,15 @@ Author Comment: I'm not sure why this section is formatted like this. It looks l
 | --- | --- | --- |
 | Backbone | SQR-SkipResNet with SIREN layers | Superior stability and convergence for non-smooth dynamics, ideal for modeling close encounters in chaotic systems. |
 | Depth | 12 hidden layers (6 SQR-SkipResNet blocks) | Provides a good balance between the expressive power needed for chaotic dynamics and the trainability on modest hardware. |
-| Width | 256 neurons/layer | A strong default that balances model expressivity and computational cost, avoiding the diminishing returns of excessively wide layers.[^1] |
-| Activation | $\sin(\mathrm{x})$ (SIREN) | The $\mathrm{C}^\infty$-smoothness is mathematically essential for accurately calculating the second-order derivatives required in the physics loss.[^1] |
+| Width | 256 neurons/layer | A strong default that balances model expressivity and computational cost, avoiding the diminishing returns of excessively wide layers.[1] |
+| Activation | $\sin(\mathrm{x})$ (SIREN) | The $\mathrm{C}^\infty$-smoothness is mathematically essential for accurately calculating the second-order derivatives required in the physics loss.[1] |
 | LayerNorm | elementwise_affine=False, eps=1e-5 | Stabilizes skip path gradients without restricting feature learning. Applied only to odd layers. |
-| first_omega_0 | 30 | A high initial frequency injects a high-frequency basis into the network, helping it overcome spectral bias from the outset.[^1] |
-| hidden_omega_0 | 1 | This value is used within the principled weight initialization formula for hidden layers to ensure a stable distribution of activations, enabling deep network training.[^1] |
-| Weight Init. (First) | $\mathrm{U}\left[-\frac{1}{n_{\text{in}}}, \frac{1}{n_{\text{in}}}\right]$ | The mathematically-derived initialization for the first SIREN layer to create a random Fourier feature mapping.[^1] |
-| Weight Init. (Hidden) | $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$   The principled initialization for all subsequent SIREN layers, designe | to preserve activation variance and enable stable training of deep sinusoidal networks.[^1] |
-| Skip Cadence | Alternating (per SQR SkipResNet) | The alternating pattern of plain and power-enhanced residual layers effectively balances feature transformation and stable gradient flow.[^1] |
-| Power Term (p) | 2 (element-wise square) | Empirical results demonstrate that $p=2$ provides significant improvements in stability and accuracy without excessive computational overhead.[^1] |
+| first_omega_0 | 30 | A high initial frequency injects a high-frequency basis into the network, helping it overcome spectral bias from the outset.[1] |
+| hidden_omega_0 | 1 | This value is used within the principled weight initialization formula for hidden layers to ensure a stable distribution of activations, enabling deep network training.[1] |
+| Weight Init. (First) | $\mathrm{U}\left[-\frac{1}{n_{\text{in}}}, \frac{1}{n_{\text{in}}}\right]$ | The mathematically-derived initialization for the first SIREN layer to create a random Fourier feature mapping.[1] |
+| Weight Init. (Hidden) | $\mathrm{U}\left[-\frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}, \frac{\sqrt{6/n_{\text{in}}}}{\text{hidden\_omega\_0}}\right]$   The principled initialization for all subsequent SIREN layers, designe | to preserve activation variance and enable stable training of deep sinusoidal networks.[1] |
+| Skip Cadence | Alternating (per SQR SkipResNet) | The alternating pattern of plain and power-enhanced residual layers effectively balances feature transformation and stable gradient flow.[1] |
+| Power Term (p) | 2 (element-wise square) | Empirical results demonstrate that $p=2$ provides significant improvements in stability and accuracy without excessive computational overhead.[1] |
 | Output Activation | None (Linear) | The final layer must be linear to allow the predicted positions to take on any real value required by the physical system. |
 
 # 3. The Multi-Component, Physics-Constrained Loss Function
@@ -277,11 +277,11 @@ generalizable beyond the specific training data points.
 
 The default Phase 19 training objective is:
 
-$$L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causal + \lambda_E \cdot L_E + \lambda_L \cdot L_L$$
+$$L_{total} = L_{data} + \lambda_{IC} \cdot L_{IC} + \lambda_{phys} \cdot L_{phys}^{causal} + \lambda_E \cdot L_E + \lambda_L \cdot L_L$$
 
 Author Comment: the above formula is not written in the correct syntax. We need to fix it so that it will be rendered correctly in markdown preview in Cursor.
 
-Canonical text form: `L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L`.
+Canonical text form: $L_{total} = L_{data} + \lambda_{IC} \cdot L_{IC} + \lambda_{phys} \cdot L_{phys}^{causal} + \lambda_E \cdot L_E + \lambda_L \cdot L_L$.
 
 Author Comment: the above canonical text form is also rendered in raw text strings in preview.
 
@@ -300,7 +300,7 @@ trajectory defined by a given set of initial conditions.
 The data fidelity loss uses a Huber contract on scaled projected
 positions:
 
-$$L_data = \frac{1}{N_t} \sum_n \sum_i \operatorname{Huber}_{\delta_r}(r_{\theta,i}'(u_n) - r_i'(u_n))$$
+$$L_{data} = \frac{1}{N_t} \sum_n \sum_i \operatorname{Huber}_{\delta_r}(r_{\theta,i}'(u_n) - r_i'(u_n))$$
 
 Author Comment: again, the syntax is broken
 
@@ -464,7 +464,7 @@ Minimizing this term forces the network to learn a function
 $\mathrm{r}_\theta(u)$ that is also a solution to the governing ordinary
 differential equations (ODEs) in the normalized physics-time coordinate.
 
-## 3.3 Initial Condition Anchor Loss ($L_IC$)
+## 3.3 Initial Condition Anchor Loss ($L_{IC}$)
 
 $$L_{IC} = L_{IC,r} + \beta_v L_{IC,v}$$
 
@@ -483,12 +483,12 @@ corresponding network-time input is `τ=-1`.
 
 $L_{IC}$ uses squared error (not Huber): IC values come from
 deterministic Phase 18 FRAME-01 preprocessing and are not outliers, so a
-quadratic penalty enforces hard IC anchoring at `u=0`. $L_data$ uses
+quadratic penalty enforces hard IC anchoring at `u=0`. $L_{data}$ uses
 Huber (resolution §8.2) because data targets along the
 curriculum-sampled trajectory are noisier and benefit from
 outlier-robust loss.
 
-## 3.4 Soft Energy Conservation Regularizer ($L_E$): Enforcing a Global Conservation Law
+## 3.4 Soft Energy Conservation Regularizer ($L_{E}$): Enforcing a Global Conservation Law
 
 While the physics residual enforces the local, instantaneous laws of
 motion, it does not explicitly guarantee the conservation of global
@@ -514,13 +514,13 @@ energy.
 
 **Energy Conservation Regularizer (PHYS-04):**
 
-$$L_E = \frac{1}{N} \sum_n \operatorname{Huber}(\Delta H_n, \delta=1.0)$$
+$$L_{E} = \frac{1}{N} \sum_n \operatorname{Huber}(\Delta H_n, \delta=1.0)$$
 
 where
 
 $$\Delta H_n = \frac{H_\epsilon(r_\theta'(u_n), v_\theta'(u_n)) - H_\epsilon(r_0', v_0')}{|H_\epsilon(r_0', v_0')| + \epsilon_H}$$
 
-The relative drift symbol is `ΔH_n`.
+The relative drift symbol is $\Delta H_n$.
 
 $$epsilon_H = 1e-4 * S_H$$
 
@@ -531,12 +531,12 @@ and $\delta = 1.0$ is the Huber transition.
 $S_H$ is computed once in float64 after final
 COM/zero-momentum/gauge/scaling preprocessing over the training split
 using the matched-Plummer Hamiltonian components with
-$\epsilon_{train} = 10^{-5}$ (`10^-5`). (Author Comment: I am not sure why there is a duplicate 10^-5 here)Persist both $S_H$ and `epsilon_H` in training metadata. $S_H$ must be finite and strictly positive; $S_H <= 0$ or non-finite $S_H$ is a preprocessing/metadata validation failure. Do not apply a fallback numeric floor. Use `epsilon_H` only in $|H_0| + epsilon_H$. Phase 21 reports activation behavior only and must not reselect `epsilon_H` unless a new user instruction opens a replacement gap.
+$\epsilon_{train} = 10^{-5}$. (Author Comment: I am not sure why there is a duplicate 10^-5 here)Persist both $S_H$ and $\epsilon_H$ in training metadata. $S_H$ must be finite and strictly positive; $S_H \leq 0$ or non-finite $S_H$ is a preprocessing/metadata validation failure. Do not apply a fallback numeric floor. Use $\epsilon_H$ only in $|H_0| + \epsilon_H$. Phase 21 reports activation behavior only and must not reselect $\epsilon_H$ unless a new user instruction opens a replacement gap.
 
 The FUT-01 divergence handoff must flag executable training metadata as
-divergent if it omits $S_H$ or `epsilon_H`, computes $S_H$ from a
+divergent if it omits $S_H$ or $\epsilon_H$, computes $S_H$ from a
 different split or preprocessing stage, computes $S_H$ per minibatch,
-uses a fixed numeric `epsilon_H`, or applies a max/fallback floor that is
+uses a fixed numeric $\epsilon_H$, or applies a max/fallback floor that is
 not present in this canonical contract.
 
 The term "Hamiltonian" here refers to the analytic energy function
@@ -589,7 +589,7 @@ class TrajectoryDataset:
   velocities $v'$, and initial energy $H_0$) must be expressed in the
   same non-dimensional ($G = 1$) system of units.
 
-- **Softening Parameter:** The same value $\epsilon_{train} = 10^{-5}$ (`10^-5`) (author comment: again duplicate number)
+- **Softening Parameter:** The same value $\epsilon_{train} = 10^{-5}$ (author comment: again duplicate number)
   is used consistently in both the physics residual and energy
   calculations to prevent numerical instabilities during close
   encounters.
@@ -598,12 +598,12 @@ class TrajectoryDataset:
   used for both physics and energy loss evaluation to ensure
   computational efficiency.
 
-## 3.5 Angular Momentum Conservation Loss ($L_L$)
+## 3.5 Angular Momentum Conservation Loss ($L_{L}$)
 
-$$L_L = (1/(3N_t)) \sum_n \sum_\alpha \operatorname{Huber}\left(\frac{L_{\theta,\alpha}'(u_n) - L_{0,\alpha}'}{L_{scale}}, \delta=1.0\right)$$
+$$L_{L} = \frac{1}{3N_t} \sum_n \sum_\alpha \operatorname{Huber}\left(\frac{L_{\theta,\alpha}'(u_n) - L_{0,\alpha}'}{L_{scale}}, \delta=1.0\right)$$
 
 where $\alpha \in \{x, y, z\}$, $L_{scale} = ||L_0'|| + \epsilon_L$,
-and $\epsilon_L = 10^{-8}$ (`10^-8`) is a numerical-stability scale grounded in
+and $\epsilon_L = 10^{-8}$ is a numerical-stability scale grounded in
 resolution §8.6 and distinct from softening $\epsilon_{train}$ /
 $\epsilon_{inv}$ and from $\epsilon_H$ (resolved by D-20 / GAP-19-01 as a
 dataset-scale Hamiltonian floor, not a softening parameter).
@@ -620,25 +620,25 @@ instabilities.
 
 ## 4.1 Loss Balancing via Warmup Schedule (PHYS-05)
 
-$$L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causal + \lambda_E \cdot L_E + \lambda_L \cdot L_L$$
+$$L_{total} = L_{data} + \lambda_{IC} \cdot L_{IC} + \lambda_{phys} \cdot L_{phys}^{causal} + \lambda_E \cdot L_E + \lambda_L \cdot L_L$$
 
-Canonical text form: `L_total = L_data + λ_IC · L_IC + λ_phys · L_phys^causal + λ_E · L_E + λ_L · L_L`.
+Canonical text form: $L_{total} = L_{data} + \lambda_{IC} \cdot L_{IC} + \lambda_{phys} \cdot L_{phys}^{causal} + \lambda_E \cdot L_E + \lambda_L \cdot L_L$.
 
 where:
 
-- $L_data$: Huber loss on position predictions, $\delta_r = 1$ default
+- $L_{data}$: Huber loss on position predictions, $\delta_r = 1$ default
   (resolution §8.2).
-- $L_IC$: Initial condition anchor (position + velocity at `u=0`),
+- $L_{IC}$: Initial condition anchor (position + velocity at `u=0`),
   $\lambda_{IC} = 1$ default.
-- $L_phys^causal$: Physics residual with causal weighting
+- $L_{phys}^{causal}$: Physics residual with causal weighting
   $w_n = exp(-\eta_c \sum_{m<n} stopgrad(\bar R_m))$, $w_1 = 1$,
   $\eta_c = 1$ default. Use `stopgrad` in weights by default. Clip the
   causal exponent to avoid underflow, but do not choose a numeric
   clipping bound in Phase 19; surface a gap if one is needed.
   The causal exponent clip is required only to avoid underflow.
-- $L_E$: Soft energy conservation regularizer,
+- $L_{E}$: Soft energy conservation regularizer,
   see §3.4.
-- $L_L$: Angular momentum conservation loss, see §3.5.
+- $L_{L}$: Angular momentum conservation loss, see §3.5.
 - No dedicated L_P term: linear momentum is enforced structurally by
   the Phase 17 COM projection head / zero-momentum output contract, so a
   separate linear-momentum loss would be redundant.
@@ -648,9 +648,7 @@ The warmup schedule is:
 - $I_{warm} = min(2000, 0.1 \cdot N_{Adam,k})$
 - $\lambda_{phys}(k, i) = \lambda_{phys}^{max}(k) \cdot min(1, i/I_{warm})$,
   default $\lambda_{phys}^{max}(k) = 1$
-- $\lambda_E^{max}(k) = \lambda_L^{max}(k) = \{0 \text{ for } k \in
-  \{0,1\}; 10^{k-4} \text{ for } k \in \{2,3,4\}; 1 \text{ for } k \in
-  \{5,6\}\}$
+- $\lambda_E^{max}(k) = \lambda_L^{max}(k) = \{0 \text{ for } k \in \{0,1\}; 10^{k-4} \text{ for } k \in \{2,3,4\}; 1 \text{ for } k \in \{5,6\}\}$
 - $\lambda_E(k, i)$ and $\lambda_L(k, i)$ warm up linearly with
   $i/I_{warm}$
 
@@ -671,7 +669,7 @@ training contract and is documented separately as the P2 ablation below.
 
 As a P2 ablation, an augmented Lagrangian method may be applied to scalar conservation constraints only:
 
-- **Constraints:** c_E = RMS_n(ΔH_n) (energy drift), c_{L,α} = RMS_n((L'_θ,α(u_n) - L_0,α') / L_scale) (angular momentum drift per component). (Author Comment: this syntax is not ideal since it invovles math equations/formula; it should properly use correct markdown render-friendly syntax)
+- **Constraints:** $c_E = \mathrm{RMS}_n(\Delta H_n)$ (energy drift), $c_{L,\alpha} = \mathrm{RMS}_n((L'_{\theta,\alpha}(u_n) - L'_{0,\alpha}) / L_{scale})$ (angular momentum drift per component). (Author Comment: this syntax is not ideal since it invovles math equations/formula; it should properly use correct markdown render-friendly syntax)
 - **Never apply ALM to the dense ODE residual.**
 - **Dual-variable updates:** Only between Adam epochs or between deterministic refinement passes. Never update dual variables during L-BFGS or inside a line search.
 - **Logging:** Log constraint values before and after each dual-variable update.
@@ -768,7 +766,7 @@ The network architecture is simplified and physical consistency is
 hard-coded by predicting only positions and deriving all other kinematic
 quantities via automatic differentiation (AD). This is a core design
 principle of PINNs, supported by established frameworks like
-DeepXDE.[^14]
+DeepXDE.[14]
 
 The final layer of the SQR-SkipResNet-SIREN network is a standard linear
 layer without any activation function. This is crucial as it allows the
@@ -931,33 +929,33 @@ The section below is weirdly formatted and written out even in the original mark
 | **Initialization** | A principled, two-part SIREN initialization scheme:<br>• **First Layer:** `first_omega_0 = 30`. Weights from $U[-\frac{1}{n_{in}}, \frac{1}{n_{in}}]$.<br>• **Hidden Layers:** `hidden_omega_0 = 1`. Weights from $U[-\frac{\sqrt{6/n_{in}}}{1}, \frac{\sqrt{6/n_{in}}}{1}]$. | A high initial frequency (`first_omega_0`) helps overcome spectral bias. The specific scaling for hidden layers ensures a stable distribution of activations, making the deep network trainable. |
 | **Input Vector** | A **14-dimensional vector** built from the bounded network time coordinate and the ordered Jacobi-state initial-condition vector; see Section 5.2 "Network Input Contract" for the canonical formula and back-reference to `ctl_instruction.md` Step 4. | This formulation provides a physically-grounded and injective (unambiguous) representation of the initial state, which is critical for a conditional network to learn correctly. |
 | **Output** | A **9-dimensional position vector** `[r1(u), r2(u), r3(u)]` with a linear (no activation) final layer. Velocities ($v'=\frac{dr'}{du}$) and accelerations ($a'=\frac{d^{2}r'}{du^{2}}$) are derived via componentwise **Automatic Differentiation (AD)** from the projected positions. | Predicting only positions simplifies the network architecture. Deriving kinematics via AD hard-codes their fundamental physical relationship, ensuring they are satisfied by construction to machine precision. |
-| **Data Loss ($L_data$)** | **Huber loss** on scaled projected positions with default $\delta_r=1$. | Huber is the default data contract because it is smoother than pure L1 and less brittle than L2 for chaotic trajectory samples. |
-| **IC Loss ($L_IC$)** | **IC anchor** on predicted position and AD-derived velocity at `u=0`, with $\beta_v=1$ and $\lambda_{IC}=1$ default. | Anchors the learned trajectory to the Phase 18 preprocessed initial state before later collocation points are optimized. |
-| **Physics Loss ($L_phys$)** | **Causal-weighted residual** using the matched Plummer force denominator $r_{safe,ij}=\sqrt{\|\|r_j'-r_i'\|\|^2+\epsilon_{train}^2}$ with $\epsilon_{train}=10^{-5}$. | This loss enforces the governing ordinary differential equations across the entire solution domain, not just at data points, allowing the model to generalize and make physically consistent predictions. |
-| **Total Loss ($L_total$)** | $L_total = L_data + \lambda_{IC} \cdot L_IC + \lambda_{phys} \cdot L_phys^causal + \lambda_E \cdot L_E + \lambda_L \cdot L_L$. | Combines data fidelity, IC anchoring, causal physics residual, energy drift, and angular-momentum drift terms in the default penalty-term formulation. |
-| **Energy Loss ($L_E$)** | **Huber Loss ($\delta=1.0$)** on relative drift of the analytic matched-Plummer Hamiltonian $H_\epsilon$ (`H_ε`) using `epsilon_H = 1e-4 * S_H`. | soft conservation regularizer; the network predicts positions and does not parameterize a Hamiltonian. |
+| **Data Loss ($L_{data}$)** | **Huber loss** on scaled projected positions with default $\delta_r=1$. | Huber is the default data contract because it is smoother than pure L1 and less brittle than L2 for chaotic trajectory samples. |
+| **IC Loss ($L_{IC}$)** | **IC anchor** on predicted position and AD-derived velocity at `u=0`, with $\beta_v=1$ and $\lambda_{IC}=1$ default. | Anchors the learned trajectory to the Phase 18 preprocessed initial state before later collocation points are optimized. |
+| **Physics Loss ($L_{phys}$)** | **Causal-weighted residual** using the matched Plummer force denominator $r_{safe,ij}=\sqrt{\|\|r_j'-r_i'\|\|^2+\epsilon_{train}^2}$ with $\epsilon_{train}=10^{-5}$. | This loss enforces the governing ordinary differential equations across the entire solution domain, not just at data points, allowing the model to generalize and make physically consistent predictions. |
+| **Total Loss ($L_{total}$)** | $L_{total} = L_{data} + \lambda_{IC} \cdot L_{IC} + \lambda_{phys} \cdot L_{phys}^{causal} + \lambda_E \cdot L_E + \lambda_L \cdot L_L$. | Combines data fidelity, IC anchoring, causal physics residual, energy drift, and angular-momentum drift terms in the default penalty-term formulation. |
+| **Energy Loss ($L_{E}$)** | **Huber Loss ($\delta=1.0$)** on relative drift of the analytic matched-Plummer Hamiltonian $H_\epsilon$ (`H_ε`) using `epsilon_H = 1e-4 * S_H`. | soft conservation regularizer; the network predicts positions and does not parameterize a Hamiltonian. |
 | **Angular Momentum Loss ($L_L$)** | **Componentwise Huber loss** on relative angular-momentum drift with $L_{scale}=\|\|L_0'\|\|+\epsilon_L$ and $\epsilon_L=10^{-8}$. | Enforces angular-momentum conservation as a soft penalty distinct from physics softening and from the energy denominator floor. |
 | **Optional ALM P2 Ablation** | Optional P2 ablation for scalar conservation constraints only; never part of the default loss and never applied to the dense ODE residual. | Documents future experimentation boundaries without changing the baseline training contract. |
 
-## Footnotes
+## References
 
-[^1]: Power-enhanced ResNet for Function Approximation.pdf
-[^2]: PIG: PHYSICS-INFORMED GAUSSIANS AS ADAPTIVE PARAMETRIC MESH REPRESENTATIONS - OpenReview, accessed June 25, 2025, <https://openreview.net/pdf/ba580795154cc26f5abe3ab4feab161a5246c2f3.pdf>
-[^3]: PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://www.researchgate.net/publication/386575809_PIG_Physics-Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations>
-[^4]: PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://openreview.net/forum?id=y5B0ca4mit>
-[^5]: Implicit Neural Representations with Periodic Activation Functions, accessed June 25, 2025, <http://arxiv.org/pdf/2006.09661>
-[^6]: Implicit Neural Representations with Periodic Activation Functions - NIPS, accessed June 25, 2025, <https://proceedings.neurips.cc/paper/2020/file/53c04118df112c13a8c34b38343b9c10-Paper.pdf>
-[^7]: jaeminoh/Siren PINNs: Solving various PDEs by employing Siren, with JAX implementation., accessed June 25, 2025, <https://github.com/jaeminoh/Siren_PINNs>
-[^8]: Implicit Neural Representations with Periodic Activation Functions - Vincent Sitzmann, accessed June 25, 2025, <https://www.vincentsitzmann.com/siren/>
-[^9]: Implicit Neural Representations with Periodic Activation Functions | NeurIPS 2020, accessed June 25, 2025, <https://www.computationalimaging.org/publications/siren/>
-[^10]: Gentle Introduction to SIREN - Nail Ibrahimli - TU Delft 3D Geoinformation, accessed June 25, 2025, <https://3d.bk.tudelft.nl/nail/siren/>
-[^11]: Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - arXiv, accessed June 25, 2025, <https://arxiv.org/html/2310.15690v2>
-[^12]: Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/382109760_Power-Enhanced_Residual_Network_for_Function_Approximation_and_Physics-Informed_Inverse_Problems>
-[^13]: Physics-Informed with Power-Enhanced Residual Network for Interpolation and Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/374946733_Physics-Informed_with_Power-Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems>
-[^14]: Software | PNNL, accessed June 25, 2025, <https://www.pnnl.gov/projects/philms/software>
-[^15]: lululxvi/deepxde: A library for scientific machine learning and physics-informed learning - GitHub, accessed June 25, 2025, <https://github.com/lululxvi/deepxde>
-[^16]: DeepXDE: A Deep Learning Library for Solving Differential Equations | SIAM Review - myqcloud.com, accessed June 25, 2025, <https://pdf-1307664364.cos.ap-chengdu.myqcloud.com/%E8%AE%BA%E6%96%87%E5%8F%82%E8%80%83/PINN/DeepXDE-%20A%20Deep%20Learning%20Library%20for%20Solving%20Differential%20Equations.pdf>
-[^17]: omniscientoctopus/Physics-Informed-Neural-Networks: Investigating PINNs - GitHub, accessed June 25, 2025, <https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
+[1] Power-enhanced ResNet for Function Approximation.pdf
+[2] PIG: PHYSICS-INFORMED GAUSSIANS AS ADAPTIVE PARAMETRIC MESH REPRESENTATIONS - OpenReview, accessed June 25, 2025, <https://openreview.net/pdf/ba580795154cc26f5abe3ab4feab161a5246c2f3.pdf>
+[3] PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://www.researchgate.net/publication/386575809_PIG_Physics-Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations>
+[4] PIG: Physics-Informed Gaussians as Adaptive Parametric Mesh Representations, accessed June 25, 2025, <https://openreview.net/forum?id=y5B0ca4mit>
+[5] Implicit Neural Representations with Periodic Activation Functions, accessed June 25, 2025, <http://arxiv.org/pdf/2006.09661>
+[6] Implicit Neural Representations with Periodic Activation Functions - NIPS, accessed June 25, 2025, <https://proceedings.neurips.cc/paper/2020/file/53c04118df112c13a8c34b38343b9c10-Paper.pdf>
+[7] jaeminoh/Siren PINNs: Solving various PDEs by employing Siren, with JAX implementation., accessed June 25, 2025, <https://github.com/jaeminoh/Siren_PINNs>
+[8] Implicit Neural Representations with Periodic Activation Functions - Vincent Sitzmann, accessed June 25, 2025, <https://www.vincentsitzmann.com/siren/>
+[9] Implicit Neural Representations with Periodic Activation Functions | NeurIPS 2020, accessed June 25, 2025, <https://www.computationalimaging.org/publications/siren/>
+[10] Gentle Introduction to SIREN - Nail Ibrahimli - TU Delft 3D Geoinformation, accessed June 25, 2025, <https://3d.bk.tudelft.nl/nail/siren/>
+[11] Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - arXiv, accessed June 25, 2025, <https://arxiv.org/html/2310.15690v2>
+[12] Power-Enhanced Residual Network for Function Approximation and Physics-Informed Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/382109760_Power-Enhanced_Residual_Network_for_Function_Approximation_and_Physics-Informed_Inverse_Problems>
+[13] Physics-Informed with Power-Enhanced Residual Network for Interpolation and Inverse Problems - ResearchGate, accessed June 25, 2025, <https://www.researchgate.net/publication/374946733_Physics-Informed_with_Power-Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems>
+[14] Software | PNNL, accessed June 25, 2025, <https://www.pnnl.gov/projects/philms/software>
+[15] lululxvi/deepxde: A library for scientific machine learning and physics-informed learning - GitHub, accessed June 25, 2025, <https://github.com/lululxvi/deepxde>
+[16] DeepXDE: A Deep Learning Library for Solving Differential Equations | SIAM Review - myqcloud.com, accessed June 25, 2025, <https://pdf-1307664364.cos.ap-chengdu.myqcloud.com/%E8%AE%BA%E6%96%87%E5%8F%82%E8%80%83/PINN/DeepXDE-%20A%20Deep%20Learning%20Library%20for%20Solving%20Differential%20Equations.pdf>
+[17] omniscientoctopus/Physics-Informed-Neural-Networks: Investigating PINNs - GitHub, accessed June 25, 2025, <https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks>
 
 # 10. Numerical Acceptance Checks
 
