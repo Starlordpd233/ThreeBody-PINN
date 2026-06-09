@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-04
 **Reviewer:** Multi-agent parallel review (4 dimensions: Correctness, Governance, Dependencies, Completeness)
-**Scope:** All 9 Phase 20 planning artifacts at `.planning/phases/20-architecture-and-normalization-cleanup/`
+**Scope:** All 9 Phase 20 planning artifacts at `.planning/milestones/v1.4-phases/20-architecture-and-normalization-cleanup/`
 
 ## 1. Executive Summary
 

@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-04
 **Reviewer:** Claude (kimi-for-coding), 6-dimension parallel review
-**Scope:** `.planning/phases/20-architecture-and-normalization-cleanup/` (9 files, 1,626 lines)
+**Scope:** `.planning/milestones/v1.4-phases/20-architecture-and-normalization-cleanup/` (9 files, 1,626 lines)
 **Framework:** 7-phase adversarial review with 6 parallel dimensional agents
 **Classification:** ERROR / GAP / SOURCE_CONFLICT / SUSPECTED / IMPROVEMENT
 
@@ -142,7 +142,7 @@ All claims verified against resolution doc and issue doc. See FIND-20-11 for a m
 - **Dimension:** Structural Integrity
 - **Evidence:** The evidence packet creation workflow is duplicated identically across all 4 executable plans: copy template → set header → fill source positions → fill spec evidence → record verdict → fill FUT-01 → fill Before/After → fill AC → status log → update ledger → commit. This is ~7–13 steps repeated 4 times with only packet IDs and section names changed. There is no shared protocol document that each plan could reference. Similarly, the ledger update procedure and the closure audit pattern (positive + negative audit) are duplicated.
 - **Impact:** LOW. If the evidence protocol changes (e.g., a new required section is added), 4 plans must be updated independently. This is a maintenance risk, not an execution blocker.
-- **Resolution:** Create a shared "Evidence Packet Creation Protocol" document under `.planning/phases/16-evidence-framework-and-issue-adjudication/` and have each Phase 20 plan reference it rather than inline the full procedure. Mark as non-blocking.
+- **Resolution:** Create a shared "Evidence Packet Creation Protocol" document under `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/` and have each Phase 20 plan reference it rather than inline the full procedure. Mark as non-blocking.
 
 #### FIND-20-10: "Realized Support" Terminology Leak into Audit Commands
 
@@ -205,7 +205,7 @@ No findings. All decisions (D-09, D-10, D-11) correctly reflected in plans.
 - **Dimension:** Structural Integrity
 - **Evidence:** All 4 executable plans (20-01, 20-02, 20-03, 20-04) independently specify the same evidence packet creation workflow: copy template → fill header → fill source positions → fill spec evidence → record verdict → fill FUT-01 → fill Before/After → fill AC → status log → update ledger → commit.
 - **Impact:** LOW. Duplication increases maintenance burden if the template changes.
-- **Resolution:** Consider creating a shared "Evidence Packet Creation Protocol" document under `.planning/phases/16-evidence-framework-and-issue-adjudication/` that all plans reference, rather than repeating the pattern 4 times.
+- **Resolution:** Consider creating a shared "Evidence Packet Creation Protocol" document under `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/` that all plans reference, rather than repeating the pattern 4 times.
 
 ### CROSS-02: Ledger Commit Coordination in Wave 2
 

@@ -1,7 +1,7 @@
 ---
 date: 2026-06-04
 reviewer: Claude Code + 3 Explore subagents
-scope: "Phase 20 planning artifacts (.planning/phases/20-architecture-and-normalization-cleanup/)"
+scope: "Phase 20 planning artifacts (.planning/milestones/v1.4-phases/20-architecture-and-normalization-cleanup/)"
 method: "6-dimension structural review + source-file ground-truth verification"
 ---
 

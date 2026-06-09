@@ -79,13 +79,13 @@ Out of scope:
 
 ## Remaining Human Gate
 
-Phase 22 is not fully closeable until the user completes the checklist in `.planning/phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md` and reports approval or defects. If approved, the final closeout pass can mark G4 complete, update the Phase 22 row to complete, and set the milestone state to complete.
+Phase 22 is not fully closeable until the user completes the checklist in `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md` and reports approval or defects. If approved, the final closeout pass can mark G4 complete, update the Phase 22 row to complete, and set the milestone state to complete.
 
 ## Sources
 
 - `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_execution/`
-- `.planning/phases/22-framework-spec-cleanup/22-05-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`
 - `docs/README.md`

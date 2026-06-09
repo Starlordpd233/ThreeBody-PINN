@@ -468,7 +468,7 @@ Due to the volume of findings (50+ items across three dimensions), I provide a s
 - Remediation commit: `9b0d62c` ("docs(22): remediate phase 22 planning artifacts from plan audits")
 - Review report 1: `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md`
 - Review report 2: `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md`
-- Amended plans: `.planning/phases/22-framework-spec-cleanup/22-01-PLAN.md` through `22-05-PLAN.md`
+- Amended plans: `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md` through `22-05-PLAN.md`
 
 ---
 

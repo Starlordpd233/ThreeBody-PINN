@@ -11,7 +11,7 @@ canonical: false
 
 # EDL-19-01: `epsilon_H` Energy-Drift Denominator Floor
 
-> Resolution pointer: `GAP-19-01` was resolved by user instruction on 2026-05-26. The canonical resolution is recorded in `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` and locked as `D-20` in `19-CONTEXT.md`. This EDL brief remains a non-canonical research-support artifact.
+> Resolution pointer: `GAP-19-01` was resolved by user instruction on 2026-05-26. The canonical resolution is recorded in `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-GAPS.md` and locked as `D-20` in `19-CONTEXT.md`. This EDL brief remains a non-canonical research-support artifact.
 
 ## Short Answer Needed
 
@@ -29,7 +29,7 @@ The agent did not choose this on its own; the linked canonical gap was resolved 
 
 Phase 19 is revising physics and loss contracts. The total-loss replacement includes an energy conservation regularizer `L_E`, framed as a soft conservation regularizer rather than an HNN. The Phase 19 context locks the formula shape from the resolution document, but keeps `epsilon_H` symbolic because the source materials name the denominator floor without assigning a numeric value.
 
-The existing phase gap is `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` `GAP-19-01`. That gap is the canonical blocking record. This EDL brief exists to help the user research the decision externally and return an instruction.
+The existing phase gap is `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-GAPS.md` `GAP-19-01`. That gap is the canonical blocking record. This EDL brief exists to help the user research the decision externally and return an instruction.
 
 ## Why This Is A Gap
 
@@ -116,15 +116,15 @@ Impact: preserves Phase 19 progress if the symbolic contract is acceptable, but 
 
 ## Core Files To Audit
 
-1. `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md`
+1. `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-GAPS.md`
    - Why: canonical blocking record for `GAP-19-01`.
    - Check: whether the decision point, source silence, and dependency impact are accurate.
 
-2. `.planning/phases/19-physics-and-loss-contracts/19-CONTEXT.md`
+2. `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-CONTEXT.md`
    - Why: locked Phase 19 decision context.
    - Check: D-07 total-loss replacement and the `L_E` row that keeps `epsilon_H` symbolic.
 
-3. `.planning/phases/19-physics-and-loss-contracts/19-02-PLAN.md`
+3. `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-02-PLAN.md`
    - Why: execution plan that edits the `pinn_architecture.md` formula-bearing loss section.
    - Check: whether any task still depends on or implies a numeric `epsilon_H` default.
 

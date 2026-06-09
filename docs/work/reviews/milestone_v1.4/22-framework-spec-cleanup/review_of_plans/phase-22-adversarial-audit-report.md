@@ -12,7 +12,7 @@ closeout_verdict: ALL-MATERIAL-FINDINGS-RESOLVED
 
 **Audit Date:** 2026-06-08
 **Auditor:** Multi-Dimensional Adversarial Review Panel (Logical Integrity + Execution Clarity + Operational Resilience)
-**Scope:** Phase 22 planning artifacts (`.planning/phases/22-framework-spec-cleanup/22-0[1-5]-PLAN.md`, plus `22-RESEARCH.md`, `22-CONTEXT.md`, `22-VALIDATION.md`)
+**Scope:** Phase 22 planning artifacts (`.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-0[1-5]-PLAN.md`, plus `22-RESEARCH.md`, `22-CONTEXT.md`, `22-VALIDATION.md`)
 **Execution Risk Score:** 8 / 10
 **Confidence:** HIGH
 

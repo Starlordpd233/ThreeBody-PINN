@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Resolving 01 Architecture and Physics Foundations
-status: completed
-last_updated: "2026-06-09T21:45:00+0800"
-last_activity: 2026-06-09
+status: Awaiting next milestone
+last_updated: "2026-06-09T14:55:06.084Z"
+last_activity: 2026-06-09 — Milestone v1.4 completed and archived
 progress:
   total_phases: 8
   completed_phases: 8
@@ -20,21 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** v1.4 complete — Phase 22 closed; milestone ready for `--no-ff` merge to master
+**Current focus:** Planning the next milestone; no scope has been selected
 
 ## Current Position
 
-Phase: 22
-Plan: 22-05 — G4 visual backstop
-Status: Phase 22 closed — G1/G2/G3/VER-05 green; G4 user visual backstop approved 2026-06-09; F1 corruption fixed in bf841f6; F2-F6 accepted; all 4 STOP-protocol gaps RESOLVED-WITH-INSTRUCTION. Milestone ready for `--no-ff` merge to master.
-Last activity: 2026-06-09
-Progress: [██████████] 100%
+Phase: Milestone v1.4 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-09 — Milestone v1.4 completed and archived
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 60 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 21)
+- Total plans completed: 65 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -78,9 +77,9 @@ Progress: [██████████] 100%
 - v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — complete and verified 2026-06-09. All phases closed; milestone ready for `--no-ff` merge to master. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
-- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15), survived adversarial review (3 BLOCK + 7 FLAG fixes applied), and completed execution 2026-06-07. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout) — `.planning/PROJECT.md` already records the high-level status in commit a9ecd51, and completion artifacts now live under `.planning/phases/20.5-sampling-coordinate-allocation/`.
-- Phase 21 (Acceptance Checks, Validation Execution, and Handoff) repaired and completed 2026-06-08. All five Section 10 probes execute under `.venv/bin/python` with raw stdout evidence and SHA-256 hashes in `.planning/phases/21-acceptance-checks-and-handoff/21-PROBE-RESULTS.md`; SI metadata reconciliation and handoff are recorded in `21-HANDOFF.md` and the Phase 16 ledger addendum.
-- Phase 22 added: Framework-Spec Cleanup
+- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15), survived adversarial review (3 BLOCK + 7 FLAG fixes applied), and completed execution 2026-06-07. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout); completion artifacts are archived under `.planning/milestones/v1.4-phases/20.5-sampling-coordinate-allocation/`.
+- Phase 21 (Acceptance Checks, Validation Execution, and Handoff) repaired and completed 2026-06-08. All five Section 10 probes execute under `.venv/bin/python` with raw stdout evidence and SHA-256 hashes archived in `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/21-PROBE-RESULTS.md`; SI metadata reconciliation and handoff are recorded in `21-HANDOFF.md` and the Phase 16 ledger addendum.
+- Phase 22 completed 2026-06-09: presentation-preserving framework-spec cleanup passed G1-G4 and VER-05.
 
 ### v1.4 Phase Summary
 
@@ -93,9 +92,9 @@ Progress: [██████████] 100%
 | 20 | Architecture and normalization cleanup | ARCH-01..05 |
 | 20.5 | Sampling coordinate allocation | SAMP-01, SAMP-02; SCOPE-05 boundary; complete |
 | 21 | Acceptance checks executed, SI-ledger reconciled, handoff | VER-01, VER-03, VER-04, VER-06 — complete |
-| 22 | Presentation-preserving framework-spec cleanup | TBD pending phase planning; VER-05 applies |
+| 22 | Presentation-preserving framework-spec cleanup | Complete; G1-G4 and VER-05 passed |
 
-**Verification protocol (applies to every phase):** adjudicate → fix → verify → re-verify after every batch → close only when the acceptance check passes. Defined in detail in `.planning/ROADMAP.md` under v1.4.
+**Verification protocol (applies to every adjudication phase):** adjudicate → fix → verify → re-verify after every batch → close only when the acceptance check passes. The v1.4 record is archived in `.planning/milestones/v1.4-ROADMAP.md`.
 
 ### v1.3 Phase Summary
 
@@ -146,7 +145,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-22 are complete. Milestone ready for `--no-ff` merge to master.
+All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-22 are complete. No next milestone is active.
 
 - [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
 - [x] Execute v1.3 Phases 11-15 (complete)
@@ -163,7 +162,7 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 
 - GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
 - **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
-- Phase 16 produced the issue ledger at `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
+- Phase 16 produced the issue ledger at `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
 - Phase 21 execution complete (2026-06-08). The full Section 10 acceptance suite has captured stdout evidence; Phase 22 is presentation cleanup only unless it opens a new grounded gap.
 
 ## Quick Tasks Completed
@@ -180,5 +179,9 @@ One dependency-scoped blocker plus three operational notes apply to v1.4 executi
 
 ## Session Continuity
 
-Last session: 2026-06-09T21:45:00+0800
-Next action: Merge milestone/v1.4 to master with `git checkout master && git merge --no-ff milestone/v1.4`.
+Last session: 2026-06-09T22:55:00+0800
+Next action: Define the next milestone with `$gsd-new-milestone`; branch integration remains a separate manual decision.
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

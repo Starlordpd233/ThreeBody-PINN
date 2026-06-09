@@ -1,3 +1,0 @@
-$ .venv/bin/python .planning/phases/21-acceptance-checks-and-handoff/probes/probe_ad.py
-AD check passed! relative_error: 0.00e+00
-exit_code=0

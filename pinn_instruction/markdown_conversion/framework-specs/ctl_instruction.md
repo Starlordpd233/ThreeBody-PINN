@@ -600,7 +600,7 @@ convention rewrite ($m_i' = m_i / M_{\mathrm{tot}}$) that would require touching
 residual, Hamiltonian, angular-momentum, COM, and invariant formula in the
 framework. The mass-fraction alternative is documented as a future rewrite
 only and is not adopted in v1.4. See
-`.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
+`.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
 for the full EVID-05 adjudication.
 
 Global normalization scales (computed after scaling all trajectories):
@@ -958,7 +958,7 @@ and reporting only; they are no longer final network IC slots.
         permutations of the same physical system yield identical input
         vectors.
 
-        **IC13 Validity (locked Phase 19, PHYS-06):** The final IC13 is a redundant but reconstructive fixed-gauge initial-state encoding. It is not justified by constraint counting against a reduced phase space. Its validity comes from COM removal, zero-momentum boost, canonical ordering, canonical rotation, and retention of the independent Jacobi position/velocity degrees of freedom -- as locked by Phase 17 (IO-02) and Phase 18 (FRAME-01). The canonical preprocessing pipeline (Step 2) deterministically produces a gauge-fixed IC encoding that uniquely represents the trajectory up to the symmetries already removed. See `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/M4.md` for the full EVID-05 adjudication.
+        **IC13 Validity (locked Phase 19, PHYS-06):** The final IC13 is a redundant but reconstructive fixed-gauge initial-state encoding. It is not justified by constraint counting against a reduced phase space. Its validity comes from COM removal, zero-momentum boost, canonical ordering, canonical rotation, and retention of the independent Jacobi position/velocity degrees of freedom -- as locked by Phase 17 (IO-02) and Phase 18 (FRAME-01). The canonical preprocessing pipeline (Step 2) deterministically produces a gauge-fixed IC encoding that uniquely represents the trajectory up to the symmetries already removed. See `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/M4.md` for the full EVID-05 adjudication.
 
     2.  **Continuity**: All network IC slots vary continuously with the
         preprocessed initial conditions, ensuring smooth neural network

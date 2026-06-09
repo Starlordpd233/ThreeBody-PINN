@@ -240,11 +240,11 @@ Every research brief must include a curated `Core Files To Audit` section. This 
 
 For `EDL-19-01`, the core audit set is:
 
-1. `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md`
+1. `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-GAPS.md`
    - Why: canonical blocking record for `GAP-19-01`.
    - Check: whether the gap framing and dependency block are accurate.
 
-2. `.planning/phases/19-physics-and-loss-contracts/19-CONTEXT.md`
+2. `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-CONTEXT.md`
    - Why: locked Phase 19 decision context.
    - Check: D-07 `L_E` formula and symbolic `epsilon_H` handling.
 

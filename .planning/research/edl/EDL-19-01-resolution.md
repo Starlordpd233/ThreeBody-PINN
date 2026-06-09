@@ -6,11 +6,11 @@ phase: 19-physics-and-loss-contracts
 topic: epsilon_H energy-drift denominator floor — Option C resolution (amended)
 created: 2026-05-26
 amended: 2026-05-26
-amended_by: D-20 in .planning/phases/19-physics-and-loss-contracts/19-CONTEXT.md
+amended_by: D-20 in .planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-CONTEXT.md
 canonical: false
 ---
 
-> **AMENDED 2026-05-26.** The formula in the prose below, `epsilon_H = max(1e-4 * S_H, 1e-12)`, was amended later the same day by user instruction. The canonical contract is `epsilon_H = 1e-4 * S_H` with **no fallback floor**; `S_H` must be finite and strictly positive or preprocessing/metadata validation MUST fail. Canonical records: `.planning/phases/19-physics-and-loss-contracts/19-GAPS.md` (GAP-19-01 resolution note) and `.planning/phases/19-physics-and-loss-contracts/19-CONTEXT.md` D-20. This EDL support brief is non-canonical and is preserved as a historical record of the user's original Option C selection.
+> **AMENDED 2026-05-26.** The formula in the prose below, `epsilon_H = max(1e-4 * S_H, 1e-12)`, was amended later the same day by user instruction. The canonical contract is `epsilon_H = 1e-4 * S_H` with **no fallback floor**; `S_H` must be finite and strictly positive or preprocessing/metadata validation MUST fail. Canonical records: `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-GAPS.md` (GAP-19-01 resolution note) and `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/19-CONTEXT.md` D-20. This EDL support brief is non-canonical and is preserved as a historical record of the user's original Option C selection.
 
 According to a document from 2026-05-26, the current resolved framework keeps the raw-mass nondimensionalization (D=(GT^2)^{1/3}), uses ordered raw masses in the residual/Hamiltonian formulas, and rejects switching to the (GM_{\rm tot})-scaled convention unless the whole framework is rewritten in mass fractions. The same resolution defines the matched-Plummer Hamiltonian and the energy drift formula, but leaves (\epsilon_H) unbound; the attached EDL confirms this is the open `GAP-19-01` decision.
 

@@ -1,3 +1,0 @@
-$ .venv/bin/python .planning/phases/21-acceptance-checks-and-handoff/probes/probe_loss_stability.py
-Loss Stability Dry Run passed! total_loss=2.004441042593e+08; data=6.372e-02; ic=7.712e+01; physics=2.004e+08; energy=1.692e-01; angular=1.483e-01
-exit_code=0

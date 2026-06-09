@@ -73,8 +73,8 @@ Because Phase 22 is part of v1.4, remediation must preserve the STOP protocol. W
 ## Scope Boundaries
 
 In scope:
-- Edit `.planning/phases/22-framework-spec-cleanup/22-01-PLAN.md` through `22-05-PLAN.md`.
-- Edit `.planning/phases/22-framework-spec-cleanup/22-CONTEXT.md`, `22-RESEARCH.md`, `22-VALIDATION.md`, and, only if a new STOP gap is discovered during amendment, `22-GAPS.md` plus `.planning/milestones/v1.4-GAPS.md`.
+- Edit `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md` through `22-05-PLAN.md`.
+- Edit `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-CONTEXT.md`, `22-RESEARCH.md`, `22-VALIDATION.md`, and, only if a new STOP gap is discovered during amendment, `22-GAPS.md` plus `.planning/milestones/v1.4-GAPS.md`.
 - Edit `.planning/ROADMAP.md` Phase 22 plan count/list and status.
 
 Out of scope:
@@ -106,11 +106,11 @@ Out of scope:
 **Dependencies:** None
 
 **Files:**
-- `.planning/phases/22-framework-spec-cleanup/22-01-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-04-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-05-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-CONTEXT.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-04-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-CONTEXT.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
 
 **Approach:**
 - Add `22-COMMENT-CENSUS-PRE.md` and the pre-WS-A baseline ref to the 22-01 produced-artifacts list and Wave 0 task flow.
@@ -120,8 +120,8 @@ Out of scope:
 - Keep the census count as re-derived execution evidence. Do not replace the current all-forms 26-marker baseline with the older 22-count finding.
 
 **Patterns to follow:**
-- `.planning/phases/22-framework-spec-cleanup/22-RESEARCH.md` WS-B census basis and `COMMENT_HASH` preservation requirements.
-- `.planning/phases/22-framework-spec-cleanup/22-CONTEXT.md` D-04 through D-06.
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RESEARCH.md` WS-B census basis and `COMMENT_HASH` preservation requirements.
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-CONTEXT.md` D-04 through D-06.
 
 **Test scenarios:**
 - Search `22-04-PLAN.md` after the edit and confirm it no longer instructs the executor to reconstruct PRE from a missing tag or unstated WS-A base.
@@ -139,9 +139,9 @@ Out of scope:
 **Dependencies:** U1
 
 **Files:**
-- `.planning/phases/22-framework-spec-cleanup/22-01-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-RESEARCH.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RESEARCH.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
 
 **Approach:**
 - Add a repo-root CWD note for all `node tools/spec-render-check/detect.mjs ...` commands.
@@ -157,7 +157,7 @@ Out of scope:
 **Patterns to follow:**
 - Existing 22-01 CLI mode list.
 - Existing 22-04 `COMMENT_HASH` verification command.
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` status lifecycle.
+- `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` status lifecycle.
 
 **Test scenarios:**
 - Confirm 22-01 no longer contains `min_lines: 200`.
@@ -176,10 +176,10 @@ Out of scope:
 **Dependencies:** U2
 
 **Files:**
-- `.planning/phases/22-framework-spec-cleanup/22-02-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-03-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
-- `.planning/phases/22-framework-spec-cleanup/22-GAPS.md` only if the amendment reveals a new unresolved gap
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-02-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-03-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-GAPS.md` only if the amendment reveals a new unresolved gap
 - `.planning/milestones/v1.4-GAPS.md` only if `22-GAPS.md` is updated
 
 **Approach:**
@@ -212,10 +212,10 @@ Out of scope:
 **Dependencies:** U3
 
 **Files:**
-- `.planning/phases/22-framework-spec-cleanup/22-02-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-03-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-05-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-02-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-03-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
 
 **Approach:**
 - Remove instructions for 22-02 and 22-03 to append directly to `16-ISSUE-LEDGER.md` during parallel Wave 1 execution.
@@ -244,10 +244,10 @@ Out of scope:
 **Dependencies:** U2, U4
 
 **Files:**
-- `.planning/phases/22-framework-spec-cleanup/22-01-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-02-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-03-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-02-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-03-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
 
 **Approach:**
 - Split 22-01 Task 3 into two readiness signals in the plan text:
@@ -278,9 +278,9 @@ Out of scope:
 **Dependencies:** U1, U3, U4, U5
 
 **Files:**
-- `.planning/phases/22-framework-spec-cleanup/22-05-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
-- `.planning/phases/22-framework-spec-cleanup/22-RESEARCH.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RESEARCH.md`
 
 **Approach:**
 - Replace broad "every changed line differs only..." language with an audit protocol:
@@ -292,7 +292,7 @@ Out of scope:
 - Reuse the existing Phase 16 ledger columns and per-finding transition-log format. Do not define new VER-05 fields unless a STOP-surfaced process-schema decision resolves them.
 
 **Patterns to follow:**
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` status table and transition log.
+- `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` status table and transition log.
 - Current 22-04 census hash verification command.
 
 **Test scenarios:**
@@ -312,8 +312,8 @@ Out of scope:
 
 **Files:**
 - `.planning/ROADMAP.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
-- `.planning/phases/22-framework-spec-cleanup/22-04-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-04-PLAN.md`
 - `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md` read-only
 - `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md` read-only
 
@@ -349,8 +349,8 @@ Before committing, run `git status --short --branch`, inspect staged and unstage
 ## Verification Plan
 
 - Run `git diff --check` after the amendments.
-- Run `rg -n "0/TBD|0 plans|TBD \\(run /gsd-plan-phase 22|v1\\.4-pre-phase-22 tag or the WS-A base commit|min_lines: 200|remove a duplicate plaintext/backtick fallback in this auto task" .planning/ROADMAP.md .planning/phases/22-framework-spec-cleanup` and confirm every hit is either gone or intentionally retained with new context.
-- Run `rg -n "22-COMMENT-CENSUS-PRE|COMMENT_HASH|text_hash|Stage-0 footnote|scripts/agent-commit|STOP" .planning/phases/22-framework-spec-cleanup` and confirm the expected amended plan paths are covered.
+- Run `rg -n "0/TBD|0 plans|TBD \\(run /gsd-plan-phase 22|v1\\.4-pre-phase-22 tag or the WS-A base commit|min_lines: 200|remove a duplicate plaintext/backtick fallback in this auto task" .planning/ROADMAP.md .planning/milestones/v1.4-phases/22-framework-spec-cleanup` and confirm every hit is either gone or intentionally retained with new context.
+- Run `rg -n "22-COMMENT-CENSUS-PRE|COMMENT_HASH|text_hash|Stage-0 footnote|scripts/agent-commit|STOP" .planning/milestones/v1.4-phases/22-framework-spec-cleanup` and confirm the expected amended plan paths are covered.
 - Run a read-only review closeout matrix against the two review reports and mark findings as addressed/superseded/not applicable/open in a follow-up review-closeout artifact before proposing report retirement.
 
 ---
@@ -359,16 +359,16 @@ Before committing, run `git status --short --branch`, inspect staged and unstage
 
 - `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md`
 - `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md`
-- `.planning/phases/22-framework-spec-cleanup/22-01-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-02-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-03-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-04-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-05-PLAN.md`
-- `.planning/phases/22-framework-spec-cleanup/22-CONTEXT.md`
-- `.planning/phases/22-framework-spec-cleanup/22-RESEARCH.md`
-- `.planning/phases/22-framework-spec-cleanup/22-VALIDATION.md`
-- `.planning/phases/22-framework-spec-cleanup/22-GAPS.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-02-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-03-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-04-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-CONTEXT.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RESEARCH.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-GAPS.md`
 - `.planning/milestones/v1.4-GAPS.md`
 - `.planning/ROADMAP.md`
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`
+- `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`
 - `docs/README.md`

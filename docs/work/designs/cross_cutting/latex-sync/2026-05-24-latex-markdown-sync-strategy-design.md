@@ -19,7 +19,7 @@ Establish a sustainable workflow for keeping `pinn_instruction/original_latex/fr
 Repo-visible evidence supporting this direction:
 
 - `.planning/milestones/v1.3-ROADMAP.md` (Phases 10–15.1): established each markdown spec as the "authoritative, one-to-one faithful reproduction of its LaTeX source." Multiple phase goal statements use this or closely equivalent phrasing.
-- `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` (historically at `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md`, deleted 2026-05-24) row F: states the LaTeX is "no longer authoritative for v1.4."
+- `.planning/milestones/v1.4-phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` (historically at `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md`, deleted 2026-05-24) row F: states the LaTeX is "no longer authoritative for v1.4."
 
 This design (its Genesis commit, below) formalizes the operational regime that follows: markdown authoring + deferred LaTeX sync.
 
@@ -300,9 +300,9 @@ These were surfaced for explicit user confirmation in the brainstorming review; 
 ## Cross-references
 
 - v1.3-ROADMAP authority claim: `.planning/milestones/v1.3-ROADMAP.md` Phases 10–15.1
-- LaTeX-no-longer-authoritative statement: `.planning/phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` (historically at `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md`, deleted 2026-05-24) row F
+- LaTeX-no-longer-authoritative statement: `.planning/milestones/v1.4-phases/20-5-sampling-coordinate-allocation/20-5-RESEARCH.md` (historically at `docs/superpowers/specs/2026-05-19-sobol-allocation-ambiguity-design.md`, deleted 2026-05-24) row F
 - Hotfix precedent: commit `0708a56`
 - Cross-cutting commit example: commit `d3fcff9`
 - Consolidated review that drove this revision: `docs/work/reviews/cross_cutting/latex-sync/2026-05-24-latex-sync-strategy-consolidated-review.md`
 - Active v1.4 governance block (sibling of this design's discipline block): `AGENTS.md` "CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones"
-- v1.4 phase summaries and git history for retro-row backfill source material: `.planning/phases/17-input-and-output-contracts/`, `.planning/phases/18-frame-and-gauge-contracts/`, and the actual `BACKFILL_START..BACKFILL_END` commit range at Genesis time
+- v1.4 phase summaries and git history for retro-row backfill source material: `.planning/milestones/v1.4-phases/17-input-and-output-contracts/`, `.planning/milestones/v1.4-phases/18-frame-and-gauge-contracts/`, and the actual `BACKFILL_START..BACKFILL_END` commit range at Genesis time

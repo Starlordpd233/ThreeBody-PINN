@@ -1,5 +1,33 @@
 # Milestones
 
+## v1.4 Resolving 01 Architecture and Physics Foundations (Shipped: 2026-06-09)
+
+**Delivered:** Evidence-backed, physically coherent framework specifications with executable acceptance checks and a complete downstream implementation handoff.
+
+**Phases completed:** 8 phases, 26 plans, 65 tasks
+
+**Key accomplishments:**
+
+- Established the evidence-packet, EVID-05 adjudication, STOP-gap, and re-verification protocols used across all eight phases.
+- Locked coherent 14D input, 13-component IC, raw 9D position-output, COM projection, frame, gauge, and sampling-coordinate contracts.
+- Defined physically consistent scaling, componentwise AD, matched softening, conservation regularizers, and loss-balancing semantics.
+- Settled SIREN, LayerNorm, inertia, energy, mass, and normalization contracts while preserving explicit FUT-01 implementation divergences.
+- Executed all five numerical acceptance probes and closed 32/32 requirements, 8/8 phase verifications, and all 23 STOP-protocol gaps.
+- Completed presentation-preserving cleanup and archived the full phase history, including the FUT-05 author-comment handoff.
+
+**Stats:**
+
+- 258 files changed across the milestone branch range
+- 40,357 additions and 5,177 deletions
+- 8 phases, 26 plans, 65 tasks
+- 22 days from branch baseline to ship
+
+**Git range:** `dffc7a5` → `833930f`
+
+**What's next:** Define the next milestone and fresh requirements; production PINN alignment remains a documented candidate rather than an assumed scope.
+
+---
+
 ## v1.0 Codebase Cleanup (Shipped: 2026-03-20)
 
 **Phases completed:** 4 phases, 10 plans, 9 tasks
@@ -41,15 +69,3 @@
 - Produced verification reports documenting all discrepancies and fixes
 - Preserved inter-document inconsistencies faithfully (deferred reconciliation to v2)
 - Cleaned up stale debug sessions and quick-task artifacts from prior milestones
-
-## v1.4 Resolving 01 Architecture and Physics Foundations (In Progress)
-
-**Phases planned:** 7 core phases (16–22), plus inserted Phase 20.5 before Phase 21. Phases 16–20.5 are complete and verified. Phase 20.5 (Sampling Coordinate Allocation) design and plan locked 2026-05-20 (commit b727b15), then executed 2026-06-07; Phase 22 is the final framework-spec cleanup after Phase 21.
-
-**Next workflow step:**
-
-- Phases 16–20.5 are complete and verified; the next workflow step is Phase 21 validation/handoff.
-- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked 2026-05-20 (commit b727b15) and execution completed 2026-06-07 — resolves the `u_4` Sobol double-booking flagged in `docs/findings/addressing_sobol_sequence_suggestion.md`; locks Option A from `simulation_data/Scripts/ic_generation/ic_generation_utils.py`; introduces SCOPE-05 for data-spec alignment. It is complete before Phase 21 acceptance checks.
-- Phase 22 (Framework-Spec Cleanup) was added 2026-06-07 as the final phase after Phase 21; planning is pending.
-
----

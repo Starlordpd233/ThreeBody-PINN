@@ -3,7 +3,7 @@
 **Review Date:** 2026-06-04  
 **Reviewer:** Multi-agent review using 7-lens framework  
 **Scope:** All Phase 20 planning artifacts (9 files, 1,626 lines)  
-**Location:** `.planning/phases/20-architecture-and-normalization-cleanup/`
+**Location:** `.planning/milestones/v1.4-phases/20-architecture-and-normalization-cleanup/`
 
 ---
 

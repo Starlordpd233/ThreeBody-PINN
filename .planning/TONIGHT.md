@@ -9,7 +9,7 @@
 
 <!-- Describe what you want done. Be specific: which phase, which plan, which files.
      Example:
-       Execute Phase 20.5 plan at `.planning/phases/20.5-sampling-coordinate-allocation/20-5-PLAN.md`.
+       Execute Phase 20.5 plan at `.planning/milestones/v1.4-phases/20.5-sampling-coordinate-allocation/20-5-PLAN.md`.
        Tasks 0–8 in order. Follow STOP protocol from CLAUDE.md if any gap is detected.
 -->
 

@@ -4,16 +4,16 @@ review_type: adversarial-plan-audit
 status: consumed
 superseded_by: docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-09-phase22-review-closeout-matrix.md
 reviewed_artifacts:
-  - .planning/phases/22-framework-spec-cleanup/22-01-PLAN.md
-  - .planning/phases/22-framework-spec-cleanup/22-02-PLAN.md
-  - .planning/phases/22-framework-spec-cleanup/22-03-PLAN.md
-  - .planning/phases/22-framework-spec-cleanup/22-04-PLAN.md
-  - .planning/phases/22-framework-spec-cleanup/22-05-PLAN.md
-  - .planning/phases/22-framework-spec-cleanup/22-CONTEXT.md
-  - .planning/phases/22-framework-spec-cleanup/22-RESEARCH.md
-  - .planning/phases/22-framework-spec-cleanup/22-VALIDATION.md
-  - .planning/phases/22-framework-spec-cleanup/22-GAPS.md
-  - .planning/phases/22-framework-spec-cleanup/22-DISCUSSION-LOG.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-02-PLAN.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-03-PLAN.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-04-PLAN.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-CONTEXT.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RESEARCH.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-GAPS.md
+  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-DISCUSSION-LOG.md
 reviewer: Claude (adversarial document reviewer)
 date: 2026-06-08
 closed_out: 2026-06-09

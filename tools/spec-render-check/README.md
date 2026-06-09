@@ -3,7 +3,7 @@
 A committed Node ESM detector that renders the three framework specs with the **same KaTeX
 engine the Cursor / VS Code Markdown Preview uses** (`markdown-it` + `@vscode/markdown-it-katex`
 + `katex`) and exits non-zero on any rendering finding. It is the Wave-0 source-of-truth oracle
-for Phase 22 (D-08 / G1 / G2). See `.planning/phases/22-framework-spec-cleanup/22-01-PLAN.md`.
+for Phase 22 (D-08 / G1 / G2). See `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md`.
 
 > All commands are invoked **from the repository root**, not from this directory.
 
@@ -121,7 +121,7 @@ so the detector can honestly exit 0. The same pattern is expected to apply acros
 
 `@vscode/markdown-it-katex` + markdown-it core do **not** render `[^n]` footnotes; the detector
 engine leaves them as literal text. Whether that is a *defect* depends on the real Cursor / VS Code
-preview, recorded in `.planning/phases/22-framework-spec-cleanup/22-STAGE0-FOOTNOTE-PROBE.md`:
+preview, recorded in `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-STAGE0-FOOTNOTE-PROBE.md`:
 
 - `--footnote-policy supported` (or probe `FOOTNOTE_POLICY: supported`) → D4 suppresses footnote
   survivors so `--all` can reach zero.

@@ -962,27 +962,27 @@ The section below is weirdly formatted and written out even in the original mark
 ### 10.1 Scaling Consistency
 - **Pass Criterion**: Output variables computed via the length scaling $D = (G T^2)^{1/3}$ must match physical dimensions with `relative_error < 1e-10`.
 - **Input Data**: Preprocessed network inputs.
-- **Execution**: `.venv/bin/python .planning/phases/21-acceptance-checks-and-handoff/probes/probe_scaling.py`
+- **Execution**: `.venv/bin/python .planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/probe_scaling.py`
 
 ### 10.2 COM Invariance
 - **Pass Criterion**: Mass-weighted position projection head yields a net center of mass of exactly 0 (`abs(COM) < 1e-10`).
 - **Input Data**: Forward pass position output tensor.
-- **Execution**: `.venv/bin/python .planning/phases/21-acceptance-checks-and-handoff/probes/probe_com.py`
+- **Execution**: `.venv/bin/python .planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/probe_com.py`
 
 ### 10.3 Componentwise AD on Synthetic Trajectory
 - **Pass Criterion**: Network Jacobian matches analytical derivatives $r'(u)$ for the synthetic trajectory $r(u) = [\sin(2\pi u), \cos(2\pi u), u^2]$ with `relative_error < 1e-6`.
 - **Input Data**: Synthetic 1D domain input $u \in [0, 1]$.
-- **Execution**: `.venv/bin/python .planning/phases/21-acceptance-checks-and-handoff/probes/probe_ad.py`
+- **Execution**: `.venv/bin/python .planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/probe_ad.py`
 
 ### 10.4 Force-Energy Consistency
 - **Pass Criterion**: The analytic matched-Plummer Hamiltonian is finite, and its negative position gradient yields accelerations matching the physical force residual with the same training-time Plummer softening. `relative_error < 1e-5`.
 - **Input Data**: Network trajectory output.
-- **Execution**: `.venv/bin/python .planning/phases/21-acceptance-checks-and-handoff/probes/probe_force_energy.py`
+- **Execution**: `.venv/bin/python .planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/probe_force_energy.py`
 
 ### 10.5 Loss Stability Dry Run
 - **Pass Criterion**: Forward pass and loss computation (physics + IC + energy + angular momentum) yield finite scalars (no NaN/Inf).
 - **Input Data**: Random uniform input tensors matching network architecture dimensions.
-- **Execution**: `.venv/bin/python .planning/phases/21-acceptance-checks-and-handoff/probes/probe_loss_stability.py`
+- **Execution**: `.venv/bin/python .planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/probe_loss_stability.py`
 
 ---
 

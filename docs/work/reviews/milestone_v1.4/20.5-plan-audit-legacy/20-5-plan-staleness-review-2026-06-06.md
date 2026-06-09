@@ -2,7 +2,7 @@
 
 **Review conducted:** 2026-06-06
 **Plan authored:** 2026-05-19
-**Plan path:** `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md`
+**Plan path:** `.planning/milestones/v1.4-phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md`
 **Phases executed since plan was written:** 17 (completed), 18 (completed), 19 (completed), 20 (completed 2026-06-05)
 
 ---
@@ -98,8 +98,8 @@ And Edit 4 references preprocessing-time scaling. These references must be verif
 ### 🟡 MEDIUM: Two "Phase 20.5" plans create naming ambiguity
 
 The repository has:
-- `.planning/phases/20-architecture-and-normalization-cleanup/20-05-PLAN.md` — ARCH-04 I_norm naming (EXECUTED)
-- `.planning/phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` — Sobol allocation (PENDING)
+- `.planning/milestones/v1.4-phases/20-architecture-and-normalization-cleanup/20-05-PLAN.md` — ARCH-04 I_norm naming (EXECUTED)
+- `.planning/milestones/v1.4-phases/20-5-sampling-coordinate-allocation/20-5-PLAN.md` — Sobol allocation (PENDING)
 
 The `v1.4-GAPS.md` heads-up note (line 78) warns about this: "GSD find-phase 20 / init.phase-op 20 resolves to the Phase 20.5 directory." An autonomous agent could execute the wrong plan.
 

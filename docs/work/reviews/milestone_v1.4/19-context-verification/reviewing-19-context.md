@@ -14,7 +14,7 @@ Reality (pinn_instruction/issues/01-architecture-and-physics-fo
 - Lines 89-90 contain M9 (Energy normalization realized support) and M10 (Mass normalization realized support) — different findings, scoped to Phase 20.
 - B-07 and B-08 do not appear as table rows anywhere in this fi-architecture-and-physics-foundations.md returns zero hits.
 - B-07/B-08 with the Phase 19 semantic (energy regularizer, ALM) live only in
-.planning/phases/16-evidence-framework-and-issue-adjudication/1he archivedarchive/three_body_pinn_pre-implementation_audit_2026-04-27.md.
+.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/1he archivedarchive/three_body_pinn_pre-implementation_audit_2026-04-27.md.
 - Worse: a different 03-curriculum-and-training-loop.md uses thferent meanings (batch construction, data-fidelity vs.collocation) — an ID collision the context never flags.
 
 Downstream consequence: D-14/D-15 (lines 277-294) instruct the executor to "append exactly ONE annotation inside the relevant existing GFM table row/cell in
