@@ -652,7 +652,7 @@ Raw masses are always available separately from the network-facing mass
 channels. Step 3 consumes the COM-corrected, canonically ordered, gauge-fixed,
 scaled state and the metadata produced here.
 
-## Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation) {#sec:ctl:step3}
+## Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation)
 
 #### Scope and preconditions.
 
@@ -676,7 +676,9 @@ invariants ($I_1, I_2, I_3$) are metadata diagnostics only and are not
 final network IC slots under the Phase 17 input contract.
 
 1.  **Total energy $E$, virial ratio $Q$, and minimal separation
-    $s_{\min}$.** $$\begin{aligned}
+    $s_{\min}$.**
+
+    $$\begin{aligned}
         T &= \tfrac12 \sum_{i=1}^{3} m_i \,\lVert \mathbf v'_i \rVert^2, \\
         \varepsilon_{\mathrm{inv}} &= 10^{-10}, \\
         r_{\mathrm{safe},ij} &= \sqrt{\lVert \mathbf r'_i - \mathbf r'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}, \\
@@ -684,8 +686,10 @@ final network IC slots under the Phase 17 input contract.
         E &= T + V, \qquad
         Q \;=\; \frac{2\,T}{\lvert V \rvert}, \qquad
         s_{\min} \;=\; \min_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert.
-        
-    \end{aligned}$$ We use the Plummer form `r_safe = sqrt(||r_i' - r_j'||^2 + epsilon_inv^2)` with
+
+    \end{aligned}$$
+
+    We use the Plummer form `r_safe = sqrt(||r_i' - r_j'||^2 + epsilon_inv^2)` with
     static-invariant softening $\varepsilon_{\mathrm{inv}} = 10^{-10}$
     (in scaled units) *only in $V$* to prevent singularities. The
     geometric quantity $s_{\min}$ is computed from true pairwise
@@ -700,15 +704,19 @@ final network IC slots under the Phase 17 input contract.
 
     Author Comment: this section is a syntax disaster. ALl the raw latex syntax are broken in rendered preview, and they show up as literal text strings. The other syntax are also incorrect for proper markdown file. Carefully look into this and think about how to fix it. Maintaining the exact, identifical math equation and expressions is of the utmost importance here. The following sections after this and below this should also be carefully examined.
 
-2.  **Normalized angular momentum $L_{\mathrm{norm}}$.** $$\begin{aligned}
+2.  **Normalized angular momentum $L_{\mathrm{norm}}$.**
+
+    $$\begin{aligned}
         \mathbf L &= \sum_{i=1}^3 m_i \,(\mathbf r'_i \times \mathbf v'_i), \qquad
         L = \lVert \mathbf L \rVert, \\
         r_{\mathrm{char}} &= \frac{1}{3} \sum_{1\le i<j\le 3} \lVert \mathbf r'_i - \mathbf r'_j \rVert, \qquad
         v_{\mathrm{char}} = \sqrt{\frac{2\,\lvert E \rvert}{M_{\mathrm{tot}}}}, \\
         L_{\max} &= M_{\mathrm{tot}} \, r_{\mathrm{char}} \, v_{\mathrm{char}}, \qquad
         L_{\mathrm{norm}} = \frac{L}{L_{\max}}.
-        
-    \end{aligned}$$ This $L_{\max}$ is *canonical* in CTL and represents
+
+    \end{aligned}$$
+
+    This $L_{\max}$ is *canonical* in CTL and represents
     the characteristic circular‐orbit scale at energy $E$. All other
     historical variants are deprecated.
 
