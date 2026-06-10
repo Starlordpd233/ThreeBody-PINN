@@ -108,9 +108,9 @@ Minimal footers (no `eta` or `tol`; only `dt`, `Lw`, `t_cpu`, and energy fields)
 
 | Variant | Default tol | Default dt_out |
 |---------|------------|----------------|
-| Standard quasi-random | 0.17 | 1e-13 |
-| Hierarchical base | 0.08 | 1e-15 |
-| Gold standard (both) | 0.01 | 1e-13 |
+| Standard quasi-random | 1e-13 | 0.17 |
+| Hierarchical base | 1e-15 | 0.08 |
+| Gold standard (both) | 1e-13 | 0.01 |
 
 ### Snapshot count warning (CLM-10)
 
