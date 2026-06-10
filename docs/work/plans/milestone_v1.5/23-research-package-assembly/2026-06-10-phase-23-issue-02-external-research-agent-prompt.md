@@ -27,9 +27,16 @@ retirement_trigger: resolution doc delivered under research_reports/02-data-pipe
 - **Where the output goes:** save the agent's final document under
   `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`.
   Its arrival, together with Phase 24 completion, opens adjudication Phases 25–29.
-- **Reuse:** the prompt works verbatim for one agent or for several run in parallel (v1.4 ran
-  four models and consolidated afterward). Whatever lands in the repo is the **candidate verdict
-  source** — never authoritative; every recommendation is re-verified during adjudication.
+- **Two-stage process (recorded 2026-06-10):** this prompt is **Stage 1** of the v1.5 external
+  research pipeline, mirroring how the v1.4 resolution doc was produced. Stage 1: send this
+  prompt verbatim to multiple independent research agents in parallel; each produces its own
+  individual research report. Stage 2: send all individual reports, together with the same
+  package, to one final consolidation agent using the companion prompt
+  `2026-06-10-phase-23-issue-02-consolidation-agent-prompt.md` (same folder); that agent
+  produces the final resolution doc. **Only the Stage-2 output is the candidate verdict
+  source** — never authoritative; every recommendation is re-verified during adjudication. The
+  Stage-1 individual reports are retained beside it as supporting evidence (v1.4 precedent:
+  consulted when the final doc's consolidation provenance records ambiguity).
 
 ---
 
