@@ -301,7 +301,7 @@ Full gap register: `.planning/milestones/v1.4-GAPS.md`
 **Evidence and Adjudication:**
 - `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` — Issue ledger with all 21 findings and verdicts
 - `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` — Evidence packet template
-- `.planning/milestones/v1.4-GAPS.md` — All 23 gaps with resolutions
+- `.planning/milestones/v1.4-GAPS.md` — All 25 gaps with resolutions
 
 **Acceptance Probes:**
 - `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/` — Five disposable validation probes
@@ -344,7 +344,7 @@ Completed on 2026-06-09 via merge commit `376adcc`.
 - `.planning/REQUIREMENTS.md` — 30 v1.4 requirements with traceability
 - `.planning/PROJECT.md` — Project overview and current milestone context
 - `.planning/STATE.md` — Current state and progress metrics
-- `.planning/milestones/v1.4-GAPS.md` — All 23 gaps with resolutions
+- `.planning/milestones/v1.4-GAPS.md` — All 25 gaps with resolutions
 
 **Phase Directories:**
 - `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/` — Evidence framework
@@ -379,7 +379,7 @@ Completed on 2026-06-09 via merge commit `376adcc`.
 | Phases executed | 8 (16, 17, 18, 19, 20, 20.5, 21, 22) |
 | Plans executed | 26/26 complete |
 | Requirements fulfilled | 30/30 |
-| Gaps surfaced and resolved | 23/23 |
+| Gaps surfaced and resolved | 25/25 |
 | Issue ledger findings | 21 total (19 in-scope, 2 deferred) |
 | Framework spec lines | 2749 (across 3 files) |
 | Acceptance probes | 5/5 PASS |

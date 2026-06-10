@@ -12,7 +12,7 @@
 - Locked coherent 14D input, 13-component IC, raw 9D position-output, COM projection, frame, gauge, and sampling-coordinate contracts.
 - Defined physically consistent scaling, componentwise AD, matched softening, conservation regularizers, and loss-balancing semantics.
 - Settled SIREN, LayerNorm, inertia, energy, mass, and normalization contracts while preserving explicit FUT-01 implementation divergences.
-- Executed all five numerical acceptance probes and closed 32/32 requirements, 8/8 phase verifications, and all 23 STOP-protocol gaps.
+- Executed all five numerical acceptance probes and closed 32/32 requirements, 8/8 phase verifications, and all 25 STOP-protocol gaps.
 - Completed presentation-preserving cleanup and archived the full phase history, including the FUT-05 author-comment handoff.
 
 **Stats:**

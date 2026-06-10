@@ -79,7 +79,7 @@
 ### Cost Observations
 - Model mix: not captured reliably
 - Sessions: not captured reliably
-- Notable: 198 branch commits produced 32/32 satisfied requirements, 8/8 verified phases, and 23/23 resolved STOP gaps.
+- Notable: 198 branch commits produced 32/32 satisfied requirements, 8/8 verified phases, and 25/25 resolved STOP gaps.
 
 ---
 

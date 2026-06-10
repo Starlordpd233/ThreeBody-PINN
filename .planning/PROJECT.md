@@ -183,6 +183,7 @@ The milestone closed 32/32 requirements across eight verified phases and 26 plan
 | Phase 22 is the final framework-spec cleanup (2026-06-07) | Phase 22 runs after Phase 21 so it can catch rendering defects introduced by the remaining spec work. Its scope is presentation-preserving: normalize math rendering and preserve/defer author comments without autonomous semantic changes or deletions. | ✓ Phase 22 complete 2026-06-09; G1/G2/G3/VER-05 green; G4 user visual backstop approved; F1 corruption fixed in `bf841f6`; F2–F6 accepted as authorized cleanup; all 4 STOP-protocol gaps RESOLVED-WITH-INSTRUCTION. |
 | Phase 18 frame and gauge contracts complete (2026-05-21, verification `18aacde`) | The framework specs now define the unified preprocessing order, COM/momentum frame assertions, canonical ordering, canonical rotation gauge, global scaling order, FRAME-03 sampling-frame reconciliation, and 3D Cartesian output guard. B-05 and M3 are `VERIFIED`; FUT-01 code divergence is recorded without editing `pinn/`. | ✓ Phase 18 complete; Phase 19 physics/loss contracts are next. |
 | Markdown framework specs authoritative; LaTeX source refresh is final-stage only (2026-06-09) | Markdown framework specs (`pinn_instruction/markdown_conversion/framework-specs/*.md`) will continue changing during implementation, training, and research-result iteration; syncing LaTeX sources earlier creates churn and false stability. LaTeX sources (`pinn_instruction/original_latex/framework-specs/**/*.tex`) are publication/archive derivatives, not active design sources. | — Active (cross-project); LaTeX is deferred until final publication/archive stage. Supersedes the draft v1.6.5 timing from `docs/work/designs/cross_cutting/latex-sync/2026-05-24-latex-markdown-sync-strategy-design.md`. |
+| `master` is a personal working line on a private repo (2026-06-10) | The GitHub remote (`github.com/Starlordpd233/ThreeBodyProblem`) is **private** (verified via `gh repo view` 2026-06-10); no public audience exists for this history. User directive: master is for the owner's personal use and may freely contain scratch and personal artifacts (e.g., `docs_temp/` chat transcripts, agent context bundles, workspace captures). | — Active (cross-project). Any future public release must be a separately sanitized export — never a direct push of this repository's history, which contains personal chat transcripts. |
 
 ## Evolution
 
@@ -202,4 +203,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-09 after v1.4 milestone archival.*
+*Last updated: 2026-06-10 after v1.4 milestone close-out (gap-count reconciliation and master branch policy).*
