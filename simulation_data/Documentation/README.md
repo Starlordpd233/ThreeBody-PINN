@@ -173,8 +173,8 @@ Validation/prescreening/  -->  Data/ic_final/       [Stage 2 - prescreened ICs]
 - Each IC file has a corresponding Brutus output file with the same numeric ID
 - Non-gold: `ic_hierarchical_XXXX.txt` ↔ `brutus_hierarchical_XXXX.txt`
 - Non-gold: `ic_standard_XXXX.txt` ↔ `brutus_standard_XXXX.txt`
-- Gold hierarchical: `ic_hierarchical_gold_XXXX.txt` ↔ `brutus_hierarchical_gold_XXXX.txt`
-- Gold standard: `ic_standard_gold_XXXX.txt` ↔ `brutus_standard_gold_XXXX.txt`
+- Gold hierarchical (in `brutus_hierarchical_gold_standard/`): `ic_hierarchical_XXXX.txt` ↔ `brutus_hierarchical_XXXX.txt`
+- Gold standard (in `brutus_standard_quasi_random_gold_standard/`): `ic_standard_XXXX.txt` ↔ `brutus_standard_XXXX.txt`
 
 **Gold Standard Subsets:**
 - `*_gold_standard` Brutus output folders contain higher-resolution outputs (dt_out=0.01)
