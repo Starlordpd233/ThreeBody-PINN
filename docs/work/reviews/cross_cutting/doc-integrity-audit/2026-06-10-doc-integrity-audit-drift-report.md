@@ -302,3 +302,34 @@ adjudication-lifecycle artifacts are out of audit edit scope; the package belong
 - **U6 (gated, Class 3):** F-08, F-09 (evidence-settled proposed edits), F-10 (question), F-11
   (proposed edit), F-12 (note only) — no edit without per-finding user sign-off. Plus the R10
   package flag above.
+
+---
+
+## Resolution Status (post-U6 closeout, 2026-06-10)
+
+| Finding | Status | Resolution |
+|---|---|---|
+| F-01 | addressed | `2333f30` — tools/ added to root README repository map |
+| F-02 | addressed | `8dccb23` — docs/ and tools/ added to repo-map Key Directories |
+| F-03 | addressed | `b5a34a1` — footer claim corrected in dataset-reference rule |
+| F-04 | addressed | `90dbf39` — GAP-17-01 transcribed as RESOLVED-WITH-INSTRUCTION |
+| F-05 | addressed | `90dbf39` — Phase 20 ARCH-01/02 locked outcomes transcribed |
+| F-06 | addressed | `181b1b2` — adjudication status note added to issues README |
+| F-07 | addressed | `e26f502` — post-v1.3 status note added to markdown conversion index |
+| F-08 | addressed | user-approved full fix 2026-06-10; `d18f676` + supplemental instance `31b2cff` |
+| F-09 | addressed | user-approved 2026-06-10; `ae609f3` (incl. the Known Anomalies §1 instance) |
+| F-10 | addressed | user instructed: unverifiable provenance claim dropped (within `ae609f3`) |
+| F-11 | addressed | user-approved 2026-06-10; `f0fe027` — repo-relative paths |
+| F-12 | addressed | cosmetic note recorded by design; user did not request an edit |
+| R10 flag | addressed | user instruction 2026-06-10: erratum option — `2fa2202` adds `ERRATUM-2026-06-10.md` beside the Phase 23 package (zero byte changes to delivered files); authoritative correction defers to the Phase 24 DATA-07 CLM-keyed addendum |
+
+Post-fix scans during U5/U6 found two additional instances of already-approved findings — the
+F-08 `_gold_` mapping block in the pipeline-overview section and the F-09 Known Anomalies §1
+entry — both fixed under the same sign-offs and noted in the respective commit bodies.
+
+**New observation (OPEN, minor, no action taken):** surfaced after this report was committed
+and is not part of any approved finding. The dataset README's Known Anomalies §2 illustrates
+`Result: filename=` paths as `<home>/Desktop/3_body_problem/...`, while sampled
+footers record `<home>/Desktop/cursor/3_Body_Problem/...` (an older machine-era
+path). The section's operative guidance — treat `Result: filename=` as informational only,
+never as an authoritative mapping — is unaffected. Left for a future pass or user direction.
