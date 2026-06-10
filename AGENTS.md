@@ -178,6 +178,17 @@ Rules attach to the action, not the agent; file retention, naming, and archive f
 - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` — network architecture, AD contract, output head
 - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — IC sampling
 
+**`sampling_method.md` status (user directive 2026-06-10):** This file is the completed
+instruction document that generated the now-finished `simulation_data/` dataset. The generation
+work is done and will not be re-run, so `sampling_method.md` is **frozen by default** — it is NOT
+an active design-revision target for v1.5 or later milestones. It remains authoritative as the
+historical record of how the existing training data was produced. It may be revised ONLY on
+explicit user instruction, triggered by verified data-feasibility issues (dataset ↔ framework
+incompatibilities that must be fixed to make the existing data trainable). Note that no dedicated
+phase or milestone has yet verified dataset ↔ framework compatibility; `data_quality_assessment.md`
+(in `framework-revisions/`, a research report — not an authoritative spec) may cover parts of that
+ground and is to be characterized, not edited, during v1.5.
+
 **v1.3-era live code is NOT a grounding source** (user directive 2026-05-19): `pinn/data-processing-pipeline-full.py`, `pinn/basic_architecture.py`. These files are NOT evidence, NOT source-of-truth for any v1.4 spec decision. They may be referenced ONLY in forward-pointing FUT-01 hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`).
 
 **SCOPE-05 data-generation carveout:** `simulation_data/Scripts/ic_generation/` is a permitted
