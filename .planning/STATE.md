@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-10T08:31:50.349Z"
+last_updated: "2026-06-10T08:41:42.840Z"
 last_activity: 2026-06-10 -- Phase 23 execution started
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 23 (research-package-assembly) — EXECUTING
-Plan: 2 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-06-10 -- Phase 23 execution started
 
@@ -68,6 +68,7 @@ Last activity: 2026-06-10 -- Phase 23 execution started
 | 20.5 | 1 | - | - |
 | 21 | 2 | complete | 2026-06-08 |
 | Phase 23 P04 | 12min | 2 tasks | 1 files |
+| Phase 23 P05 | 15min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,7 @@ Recent decisions affecting current work:
 - [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative.
 - [Post-v1.3]: SCS gate — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, gate is `\epsilon_H > 10^{-5}` / `SCS > -5`. Known v1.5 tension: issue-02 ratio-based SCS thresholds (`> 1e-6` / `< 1e-8`) conflict with this gate — adjudicated via EVID-10 in Phase 25, edited in Phase 28 (VAL-01).
 - [Phase ?]: [23-04 PKG-02] Framed-research-questions.md authored: six locked v1.4 conventions as verbatim hard constraints (SCS gate cited only to read-only DQA, never editable spec); every in-scope finding posed as a neutral CLM-referenced question in three clusters; both known conflicts (SCS thresholds, D=6.694) and M13 fallback posed without settling; doc-03 items deferred. No STOP gap surfaced.
+- [Phase 23]: Phase 23 research package delivered; external resolution-doc gate OPEN (user multi-AI research starts). Resolution doc lands at research_reports/02-data-pipeline-and-validation/.
 
 ### Pending Todos
 
@@ -158,10 +160,11 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 - **Working branch is `milestone/v1.5`** (cut from master HEAD `b8b39a4`, 2026-06-10). Do NOT commit v1.5 work to master. Tag `v1.5-pre-phase-NN` before each phase; `--no-ff` merge at milestone end. Every session must surface `git status --short --branch` before any file mutation.
 - **External gate:** opens on Phase 23 (research package) delivery. Phases 25–29 cannot start until BOTH the user delivers the resolution doc to `framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completes. Phase 23 is unblocked; Phase 24 is unblocked and runs in parallel with the gate window (gates on nothing external).
 - **STOP protocol active:** v1.5 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
+- Phases 25-29 blocked until the resolution doc lands at research_reports/02-data-pipeline-and-validation/ AND Phase 24 completes (Phase 24 runs in parallel, gates on nothing external).
 
 ## Session Continuity
 
-Last session: 2026-06-10T08:31:34.892Z
+Last session: 2026-06-10T08:38:06.448Z
 Next action: Plan Phase 23 with `/gsd-plan-phase 23` (no gate); ensure `v1.5-pre-phase-23` tag is cut from `milestone/v1.5` HEAD first.
 
 ## Operator Next Steps
