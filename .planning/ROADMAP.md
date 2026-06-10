@@ -85,7 +85,12 @@ Every selected finding follows the v1.4-style loop:
   3. Every dataset figure stated in the package is explicitly marked "claimed, unverified" (the issue-doc value), unless a prior grounded source already verified it (then stated as verified with its citation); no unverified figure is presented as fact. The Phase 24 verification and its DATA-07 correction addendum follow up after the package ships (PKG-03).
   4. `data_quality_assessment.md` is characterized read-only (provenance, content map, and its relation to the not-yet-performed dataset↔framework compatibility verification), reported to the user with zero edits to the file, and the characterization informs the document-list decision (PKG-04).
   5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user research starts) and that adjudication Phases 25–29 gate on BOTH the resolution doc landing under `framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completion.
-**Plans**: TBD
+**Plans**: 5 plans (Wave 1: 23-01 analysis; Wave 2: 23-02 D-07 consolidation checkpoint [user gate]; Wave 3: 23-03 package snapshots + claims table + consolidated context; Wave 4: 23-04 framed questions; Wave 5: 23-05 manifest + delivery + gate-open)
+  - [ ] 23-01-PLAN.md — DQA characterization (PKG-04) + CLM claims register (PKG-03) + consolidation plan
+  - [ ] 23-02-PLAN.md — D-07 consolidation & inclusion checkpoint (PKG-01; user gate, autonomous: false)
+  - [ ] 23-03-PLAN.md — package dir + byte-for-byte snapshots + claims table + consolidated context (PKG-01)
+  - [ ] 23-04-PLAN.md — framed research questions (PKG-02)
+  - [ ] 23-05-PLAN.md — manifest + delivery note + STATE.md gate-open (PKG-01)
 
 ### Phase 24: Empirical Dataset Verification and Correction Addendum
 **Goal**: Establish verified, re-derivable dataset facts by checking every package-stated ("claimed, unverified") issue-02 figure against the on-disk dataset, and compile a correction addendum for any contradicted claim — delivered to the user for forwarding to the in-flight external research. Seeds the issue ledger that downstream adjudication consumes.
@@ -163,7 +168,7 @@ Every selected finding follows the v1.4-style loop:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 23. Research Package Assembly | v1.5 | 0/TBD | Not started | - |
+| 23. Research Package Assembly | v1.5 | 0/5 | Not started | - |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 0/TBD | Not started (runs in parallel with gate; gates on nothing external) | - |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
