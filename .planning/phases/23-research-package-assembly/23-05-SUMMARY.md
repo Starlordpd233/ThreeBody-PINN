@@ -92,6 +92,10 @@ semantic decision was encountered, so no STOP gap was raised.
 - No edits to any `specs/*.md` snapshot, `data_quality_assessment.md` (SCOPE-09),
   `sampling_method.md` (SCOPE-08), or `pinn/` (SCOPE-10).
 
-## Self-Check
+## Self-Check: PASSED
 
-(verified below after commit)
+- `research_package/README.md` — FOUND
+- `research_package/DELIVERY-NOTE.md` — FOUND
+- `23-05-SUMMARY.md` — FOUND
+- Commit `c91772b` — FOUND
+- Post-commit deletion check — clean (no files deleted)
