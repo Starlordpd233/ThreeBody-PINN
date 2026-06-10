@@ -96,3 +96,29 @@ Surfacing this consolidation plan to the user before assembly is a PKG-01 requir
 ---
 
 *This document is surfaced at the D-07 user checkpoint (Plan 02). The user's decision on the two inclusion calls locks the final package contents for assembly.*
+
+---
+
+## D-07 APPROVED Record
+
+**Date:** 2026-06-10
+**Decision authority:** User (Starlordpd233)
+**Status:** APPROVED
+
+### Approved Document List (6 files)
+
+| # | Document | Role annotation | Treatment |
+|---|----------|-----------------|-----------|
+| 1 | `02-data-pipeline-and-validation.md` | NON-authoritative; adjudication subject | Intact copy |
+| 2 | `ctl_instruction.md` | Spec-edit target; D-03 byte-for-byte | Intact snapshot |
+| 3 | `pinn_architecture.md` | Spec-edit target; D-03 byte-for-byte | Intact snapshot |
+| 4 | `sampling_method.md` | FROZEN (SCOPE-08); historical record | Intact snapshot |
+| 5 | `data_quality_assessment.md` | Research report (SCOPE-09); non-authoritative | Intact copy |
+| 6 | Consolidated context file | Scattered dataset fragments, source-labeled | Consolidation (D-05) |
+
+### Inclusion Decisions
+
+- **Inclusion Call 1 (sampling_method.md):** APPROVED — YES, include with FROZEN annotation
+- **Inclusion Call 2 (data_quality_assessment.md):** APPROVED — YES, include with research-report annotation
+
+**Total deliverable files: 6.** Plan 03 may proceed with snapshot assembly.
