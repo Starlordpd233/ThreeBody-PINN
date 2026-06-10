@@ -2,6 +2,8 @@
 
 Consolidated 2026-04-27 from 7 scattered audit/issue files (~246 KB) into 3 thematic documents grouped by system layer, with full per-section provenance tracking.
 
+> **Status (2026-06-10):** These issue docs are adjudication inputs, not authoritative specs. Issue 01 was adjudicated during milestone v1.4 (Phases 17–22) — see the resolution report at [`ctl_pinn_resolution.md`](../markdown_conversion/framework-revisions/research_reports/01-architecture-and-physics-foundations/ctl_pinn_resolution.md) and the revised framework specs. Issue 02 is under active v1.5 adjudication (Phases 23–29).
+
 ## Thematic Documents
 
 - **[01-architecture-and-physics-foundations.md](01-architecture-and-physics-foundations.md)** — Network architecture (SIREN init, omega0 scheduling, LayerNorm), input vector design (14-D specification, normalization formulas), characteristic length D=6.694, softening dual-context strategy, COM frame convention, AD chain-rule factor correction.
