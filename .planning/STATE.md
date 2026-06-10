@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-10T11:08:34.798Z"
+last_updated: "2026-06-10T13:39:36.194Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 7
@@ -140,6 +140,7 @@ Recent decisions affecting current work:
 - [Post-v1.3]: SCS gate — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, gate is `\epsilon_H > 10^{-5}` / `SCS > -5`. Known v1.5 tension: issue-02 ratio-based SCS thresholds (`> 1e-6` / `< 1e-8`) conflict with this gate — adjudicated via EVID-10 in Phase 25, edited in Phase 28 (VAL-01).
 - [Phase ?]: [23-04 PKG-02] Framed-research-questions.md authored: six locked v1.4 conventions as verbatim hard constraints (SCS gate cited only to read-only DQA, never editable spec); every in-scope finding posed as a neutral CLM-referenced question in three clusters; both known conflicts (SCS thresholds, D=6.694) and M13 fallback posed without settling; doc-03 items deferred. No STOP gap surfaced.
 - [Phase 23]: Phase 23 research package delivered; external resolution-doc gate OPEN (user multi-AI research starts). Resolution doc lands at research_reports/02-data-pipeline-and-validation/.
+- [Phase 23]: Doc-integrity audit F-08/F-09 contradict two claims carried in the delivered Phase 23 package: gold output filenames carry no gold token (folder-only), and ~2,470 files (1,550+701+219) have NO Result: footer rather than partial footers. CLM-07 claim text affected; CLM-09 values re-verified correct. Package stays byte-stable - audit workstream issues an erratum beside the package; Phase 24 DATA-07 CLM-keyed correction addendum is the authoritative follow-up and must fold these in.
 
 ### Pending Todos
 

@@ -44,3 +44,36 @@
 ---
 
 *This register is the source of truth for the PKG-03 claims list. Plan 03 copies it into the research package as `claims-table.md`. Phase 24 consumes it as its verification checklist (D-12).*
+
+---
+
+## Post-delivery correction note (2026-06-10, doc-integrity audit findings F-08/F-09)
+
+The repo-wide documentation-integrity audit (separate workstream) checked
+`simulation_data/Documentation/README.md` against the on-disk dataset AFTER this register and
+the package `claims-table.md` were delivered, and found two README claims false. The register
+rows transcribed the README faithfully — the source itself was wrong. Original rows are left
+as recorded (re-derivable against the snapshot pin); this note supersedes their claim text.
+
+- **F-08 — gold filename token.** README claimed gold-standard simulation files carry a gold
+  token in their filenames. On disk (re-verified 2026-06-10 by direct listing), gold output
+  folders contain `brutus_hierarchical_XXXX.txt` / `brutus_standard_XXXX.txt` — gold status is
+  indicated ONLY by parent folder. Affects the naming narrative copied into the package
+  `consolidated-context.md` (folder/file-naming section, lines ~31-56). No CLM row carries
+  this claim directly.
+- **F-09 — absent `Result:` footers.** README claimed all Brutus output files end with a
+  `Result:` footer and that ~2,470 files have a "partial" footer with still-parseable
+  parameters. On disk, those 2,470 files (1,550 `brutus_hierarchical` + 701
+  `brutus_standard_quasi_random` + 219 standard-gold) have NO footer at all; parameters for
+  them come only from folder defaults. Footers that are present carry the full schema (see
+  `.claude/rules/dataset-reference.md` dataset-anomalies note, corrected 2026-06-10).
+  Affects: **CLM-07** (claim text "219 files with minimal footers" — the 219 are footer-less;
+  count itself stands) and the partial/minimal-footer parameter attributions copied into the
+  package `consolidated-context.md` (lines ~67-105, 138). **CLM-09 numeric values are NOT
+  affected** (folder-default tol/dt_out re-verified correct); only its "parse footer
+  parameters" verification plan narrows to full-schema files plus folder defaults elsewhere.
+
+Correction routing: the delivered package stays byte-stable; the audit workstream issues a
+dated erratum note beside the package, and the Phase 24 DATA-07 CLM-keyed correction addendum
+is the authoritative follow-up that supersedes both this note and the erratum. The README
+fixes (F-08/F-09) are user-approved and land in the audit workstream.
