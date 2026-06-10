@@ -301,19 +301,25 @@ The only security-adjacent concerns are **governance/provenance integrity**, cov
 
 **Note:** No assumption here is a *semantic adjudication* of any finding — that is forbidden in Phase 23 (Deferred; Phase 25 territory). All assumptions are about packaging mechanics and grounding status, which Phase 24 independently re-verifies.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does citing the SCS gate to a read-only, non-authoritative research report satisfy "locked convention as hard constraint" (PKG-02/D-10)?**
+> Plan-checker reconciliation 2026-06-10: all three questions below are resolved by the
+> committed 23-0N plans — Q1 by Plan 04 Task 1 (cite STATE.md decision + SI-DQA-003 as
+> authority, DQA lines as location), Q2 by Plan 04 Task 2 (both M13 options posed neutrally
+> with the Phase-26 STOP-gap annotation), Q3 by Plan 02 (the D-07 user checkpoint locks the
+> final document count at execution).
+
+1. **RESOLVED (Plan 04 Task 1)** — **Does citing the SCS gate to a read-only, non-authoritative research report satisfy "locked convention as hard constraint" (PKG-02/D-10)?**
    - What we know: The gate is ratified post-v1.3 (STATE.md decision; SI-DQA-003) but its only written home is `data_quality_assessment.md` (read-only, SCOPE-09).
    - What's unclear: Whether the package should cite DQA directly, or cite the STATE.md decision / SI-DQA-003 as the authority and DQA as the location.
    - Recommendation: Cite both — STATE.md decision + SI-DQA-003 as the ratifying authority, DQA lines 120/130/234 as the location. This is a presentation choice (mechanical), not a semantic gap — proceed; note the choice in the manifest. If the executor judges it forces a semantic call, STOP and log to `23-GAPS.md`.
 
-2. **M13 fallback policy framing (skip-to-Stage-6 vs flagged low-fidelity) — is posing both options "neutral framing" or does it pre-shape the research?**
+2. **RESOLVED (Plan 04 Task 2)** — **M13 fallback policy framing (skip-to-Stage-6 vs flagged low-fidelity) — is posing both options "neutral framing" or does it pre-shape the research?**
    - What we know: Issue-02 line 65/287 names two options; PIPE-05 (Phase 26) says "if sources are silent/conflicting on the fallback, surface as a STOP gap, not invent."
    - What's unclear: Whether Phase 23 should pose the question with both options or flag it as a known STOP candidate for Phase 26.
    - Recommendation: Pose neutrally with both options listed as the issue-doc's candidates; annotate that the choice is a Phase-26 STOP-gap candidate. Do not assert a fallback.
 
-3. **Final document count and consolidation boundary** — locked only at execution after the D-07 user checkpoint and the PKG-04 outcome. Not resolvable in research; the plan must model the D-07 gate as a hard user checkpoint before assembly.
+3. **RESOLVED (Plan 02, D-07 gate)** — **Final document count and consolidation boundary** — locked only at execution after the D-07 user checkpoint and the PKG-04 outcome. Not resolvable in research; Plan 02 models the D-07 gate as a hard user checkpoint (`autonomous: false`) before assembly.
 
 ## Sources
 
