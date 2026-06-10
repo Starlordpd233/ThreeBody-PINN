@@ -21,7 +21,7 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 
 - [ ] **PKG-01**: The research package delivers a complete annotated document list for the user's external research agent — every document needed to adjudicate the issue-02 findings, each with a role annotation. If the list would exceed ~5 files or the necessary context is scattered across fragments, the fragments are consolidated into a single context file (framework specs are passed intact, never consolidated) and the consolidation is surfaced to the user before assembly.
 - [ ] **PKG-02**: The package frames the research questions: each contested or unverified finding is posed as an explicit question, with locked v1.4 conventions listed as hard constraints the research must respect (14D input contract, Jacobi IC₁₃, mass-weighted COM projection head, the PHYS-03 softening outcome, the post-v1.3 SCS gate `\epsilon_H > 10^{-5}` / `SCS > -5`, the PHYS-01 D convention) and the doc-03 scope boundary stated.
-- [ ] **PKG-03**: The package states verified dataset facts drawn from the DATA requirements, never unverified issue-doc claims; any claim that could not be verified before package assembly is explicitly marked unverified.
+- [ ] **PKG-03**: The package presents dataset figures as explicitly-marked **"claimed, unverified"** issue-doc values wherever empirical verification has not yet run — the package phase precedes verification by user decision 2026-06-10 (urgency of starting the external research, which gates everything downstream). A figure already verified by a prior grounded source may be stated as verified with its citation. No unverified figure is presented as fact. The post-verification correction addendum is DATA-07.
 - [ ] **PKG-04**: `data_quality_assessment.md` is characterized read-only — its provenance, content map, and relation to the (not-yet-performed) dataset ↔ framework compatibility verification — and the characterization is reported to the user. No edits to the file.
 
 ### Empirical Dataset Verification
@@ -32,6 +32,7 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 - [ ] **DATA-04**: Footer-schema variance is verified — minimal footers (claimed 219 standard gold files), `eta`/`tol` omissions, folder-default tolerance values, OS-dependent footer paths.
 - [ ] **DATA-05**: The mass-drift probe is executed — `m_IC` vs `m_Brutus(t=0)` compared with `np.allclose(rtol=1e-15)` on a documented sample; the verdict (IC masses canonical vs `decimal.Decimal` parsing required) is recorded and feeds PIPE-07.
 - [ ] **DATA-06**: Snapshot-count and `dt_out` distributions are verified per dataset variant (claimed ~59 / ~125 / ~1000 snapshots; `final_timestep >= 9.5` prevalence) — recorded as distributions, not single examples; feeds PIPE-04.
+- [ ] **DATA-07**: After the DATA-01..06 probes complete, every package-stated dataset claim that verification contradicted is compiled into a correction addendum delivered to the user for forwarding to the in-flight external research; if no claim is contradicted, a nil addendum records that all package-stated claims were confirmed. Verification runs in parallel with the user's external research — the addendum ships as soon as the probes finish, not after the resolution doc lands.
 
 ### Adjudication (continuing v1.4 EVID numbering)
 
@@ -66,7 +67,7 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 - [ ] **VER-07**: Every v1.5 contract has a numerically-defined acceptance check naming its pass criterion, the data it runs on, and the command or function that executes it — not just prose.
 - [ ] **VER-08**: The roadmap maps every v1.5 requirement to exactly one phase, beginning at Phase 23.
 - [ ] **VER-09**: The acceptance checks are **executed** using disposable probes (dataset probes and spec-consistency probes), each producing recorded pass/fail evidence. A failing check blocks phase completion and routes back to the originating phase; v1.5 does not ship while any required check fails. Probes test the specs and the dataset — they never touch `pinn/` production code.
-- [ ] **VER-10**: Every fix closes through the iterative re-verification loop: the issue ledger tracks each finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`; after each batch of edits, previously `VERIFIED` findings that the batch could have regressed are re-verified and demoted on regression. The ledger lives at a stable path under the first v1.5 phase directory; nothing closes until all in-scope findings are `VERIFIED` or explicitly `DEFERRED` with a written blocker.
+- [ ] **VER-10**: Every fix closes through the iterative re-verification loop: the issue ledger tracks each finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`; after each batch of edits, previously `VERIFIED` findings that the batch could have regressed are re-verified and demoted on regression. The ledger lives at a stable path under the empirical-dataset-verification phase directory; nothing closes until all in-scope findings are `VERIFIED` or explicitly `DEFERRED` with a written blocker.
 - [ ] **VER-11**: The milestone handoff identifies which findings were fixed, which were intentionally left unchanged, and which were deferred; FUT-01 divergence records are updated for every DataLoader-implementation-shaped finding.
 - [ ] **VER-12**: The remaining framework-spec Source-Issue entries (`SI-DQA-002`, `SI-DQA-003`, `SI-PINN-002`) are reviewed for issue-02 relevance — each retired with a back-reference to the resolving phase/commit or preserved with a written reason. None is assumed resolved or assumed irrelevant.
 
@@ -108,18 +109,53 @@ Unchanged from v1.4 (see `.planning/milestones/v1.4-REQUIREMENTS.md` for full te
 
 ## Traceability
 
-<!-- Filled by roadmap creation. -->
+Filled by roadmap creation (`.planning/ROADMAP.md`, 2026-06-10). Every v1.5 requirement maps to exactly one phase (satisfies VER-08). Phases 25–29 gate on the user-delivered resolution doc.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pending roadmap) | | |
+| DATA-01 | Phase 23 | Pending |
+| DATA-02 | Phase 23 | Pending |
+| DATA-03 | Phase 23 | Pending |
+| DATA-04 | Phase 23 | Pending |
+| DATA-05 | Phase 23 | Pending |
+| DATA-06 | Phase 23 | Pending |
+| PKG-04 | Phase 23 | Pending |
+| PKG-01 | Phase 24 | Pending |
+| PKG-02 | Phase 24 | Pending |
+| PKG-03 | Phase 24 | Pending |
+| EVID-06 | Phase 25 | Pending (gated on resolution doc) |
+| EVID-07 | Phase 25 | Pending (gated on resolution doc) |
+| EVID-08 | Phase 25 | Pending (gated on resolution doc) |
+| EVID-09 | Phase 25 | Pending (gated on resolution doc) |
+| EVID-10 | Phase 25 | Pending (gated on resolution doc) |
+| VER-10 | Phase 25 | Pending (gated on resolution doc) |
+| PIPE-01 | Phase 26 | Pending (gated on resolution doc) |
+| PIPE-02 | Phase 26 | Pending (gated on resolution doc) |
+| PIPE-03 | Phase 26 | Pending (gated on resolution doc) |
+| PIPE-05 | Phase 26 | Pending (gated on resolution doc) |
+| PIPE-06 | Phase 26 | Pending (gated on resolution doc) |
+| PIPE-10 | Phase 26 | Pending (gated on resolution doc) |
+| PIPE-04 | Phase 27 | Pending (gated on resolution doc) |
+| PIPE-07 | Phase 27 | Pending (gated on resolution doc) |
+| PIPE-08 | Phase 27 | Pending (gated on resolution doc) |
+| PIPE-09 | Phase 27 | Pending (gated on resolution doc) |
+| VAL-01 | Phase 28 | Pending (gated on resolution doc) |
+| VAL-02 | Phase 28 | Pending (gated on resolution doc) |
+| VAL-03 | Phase 28 | Pending (gated on resolution doc) |
+| VAL-04 | Phase 28 | Pending (gated on resolution doc) |
+| VER-07 | Phase 29 | Pending (gated on resolution doc) |
+| VER-08 | Phase 29 | Satisfied by roadmap creation; confirmed at closure |
+| VER-09 | Phase 29 | Pending (gated on resolution doc) |
+| VER-11 | Phase 29 | Pending (gated on resolution doc) |
+| VER-12 | Phase 29 | Pending (gated on resolution doc) |
 
 **Coverage:**
 
-- v1.5 requirements: 35 total (4 PKG + 6 DATA + 5 EVID + 10 PIPE + 4 VAL + 6 VER)
-- Mapped to phases: pending roadmap
+- v1.5 requirements: 36 total (4 PKG + 7 DATA + 5 EVID + 10 PIPE + 4 VAL + 6 VER)
+- Mapped to phases: pending roadmap revision (phase order swap 2026-06-10: research package first, verification second)
+- Phase distribution: pending roadmap revision
 - Cross-project requirements: REQ-DOC-01 (not counted in v1.5 total)
 - SCOPE-06 through SCOPE-11 are scope-boundary annotations, not numbered requirements.
 
 ---
-*Requirements defined: 2026-06-10*
+*Requirements defined: 2026-06-10; traceability filled 2026-06-10 by roadmap creation.*
