@@ -1,6 +1,6 @@
 # Technology Stack
 
-**Analysis Date:** 2026-04-27
+**Analysis Date:** 2026-06-10
 
 ## Languages
 
@@ -9,7 +9,8 @@
 - **C++11** (`-std=c++11`) - Brutus high-precision N-body integrator with arbitrary-precision arithmetic
 
 **Secondary:**
-- **Bash / Zsh** - Shell scripts for quick testing (`simulation_data/Data/testing_data/quick_test.sh`), build automation
+- **Bash / Zsh** - Shell scripts for quick testing (`simulation_data/Data/testing_data/quick_test.sh`), build automation, git hook implementations (`.githooks/`)
+- **JavaScript (ESM)** - Spec render-check tool (`tools/spec-render-check/detect.mjs`), Node.js 18+ runtime
 - **LaTeX** (TeX Live 2025, pdflatex engine) - Research methodology documents, architecture plans, instruction papers
 - **Markdown** - Converted documentation from LaTeX via pandoc, project documentation
 
@@ -19,14 +20,16 @@
 - Python 3.12.2 system install at `/Library/Frameworks/Python.framework/Versions/3.12/bin/python3.12`
 - Virtual environment located at `.venv/` (linked to system Python 3.12.2)
 - Apple Clang 16.0.0 (`g++` symlink) for C++ compilation
+- Node.js (version unspecified; required by `tools/spec-render-check/`) for spec render checking
 
 **Package Manager:**
-- pip (no dependency manifest found for project's own code)
+- pip (no dependency manifest found for project's own Python code)
+- npm — lockfile present at `tools/spec-render-check/package-lock.json`; `node_modules/` present
 - No `requirements.txt`, `pyproject.toml`, `setup.py`, `Pipfile`, or `environment.yml` exists in the project root
-- Dependencies must be installed ad-hoc: `pip install numpy scipy torch h5py matplotlib pandas numba scikit-learn tqdm plotly seaborn`
+- Python dependencies must be installed ad-hoc: `pip install numpy scipy torch h5py matplotlib pandas numba scikit-learn tqdm plotly seaborn`
 - C++ dependencies (GMP, MPFR, pandoc) installed via Homebrew at `/opt/homebrew/`
 
-**Dependency Gap:** The project has no declared Python dependencies. Dependency manifests only exist inside reference-code subdirectories (e.g., `reference-code/reference_NNs/pytorch-main/requirements.txt`, `reference-code/reference_NNs/deepxde-master/requirements.txt`), which are for third-party reference code, not the project itself.
+**Dependency Gap:** The project has no declared Python dependencies. Dependency manifests only exist inside reference-code subdirectories (e.g., `reference-code/reference_NNs/pytorch-main/requirements.txt`, `reference-code/reference_NNs/deepxde-master/requirements.txt`), which are for third-party reference code, not the project itself. The one declared JS manifest is scoped to the render-check tool.
 
 ## Frameworks and Libraries
 
@@ -34,7 +37,7 @@
 
 | Library | Version | Purpose | Key Usage |
 |---------|---------|---------|-----------|
-| **PyTorch** (`torch`, `torch.nn`) | Not pinned | Neural network framework | `pinn/basic_architecture.py` - SQR-SkipResNet-SIREN architecture |
+| **PyTorch** (`torch`, `torch.nn`) | Not pinned | Neural network framework | `pinn/basic_architecture.py` - SQR-SkipResNet-SIREN architecture (v1.3-era, pending FUT-01 rewrite, not spec-authoritative) |
 | **NumPy** (`numpy`) | Not pinned | Array computation | Throughout entire pipeline; IC generation, scaling, invariants |
 | **SciPy** (`scipy.stats`, `scipy.interpolate`, `scipy.signal`, `scipy.spatial`) | Not pinned | Sobol sequences, interpolation, signal processing, KDTree | `scipy.stats.qmc` for IC generation; `scipy.interpolate.interp1d` for trajectory resampling; `scipy.signal.correlate` for Lyapunov ACF |
 | **scikit-learn** (`sklearn.decomposition.PCA`) | Not pinned | Dimensionality reduction | PCA(1) for Rosenstein Lyapunov exponent estimation in `pinn/data-processing-pipeline-full.py` |
@@ -71,6 +74,18 @@ Brutus linker command (from `brutus_Newton-main/makefile:36`):
 ```makefile
 $(CO) brutus main.o Brutus.o Bulirsch_Stoer.o Cluster.o Star.o Data_Handler.o Timer.o $(LIB_DIRS) -lgmpxx -lgmp -lmpfr
 ```
+
+### JavaScript / Spec-Render Tool (tools/spec-render-check/)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| **@vscode/markdown-it-katex** | 1.1.2 | KaTeX rendering via markdown-it (mirrors VS Code/Cursor engine) |
+| **katex** | 0.16.47 | TeX math rendering |
+| **markdown-it** | 14.2.0 | Markdown parsing |
+
+Entry point: `tools/spec-render-check/detect.mjs`
+Self-test: `npm run selftest` (from `tools/spec-render-check/`)
+Purpose: Detects KaTeX rendering defects in framework spec Markdown files (Phase 22 deliverable).
 
 ### LaTeX / Documentation
 
@@ -137,10 +152,12 @@ make clean && make
 | Variable | Required | Used By | Purpose |
 |----------|----------|---------|---------|
 | `IC_RAW_DIR` | Yes (for Stages 1-2) | `ic_generation_utils.py`, `stage2_prescreening_revised_auto.py`, `prescreening_utils.py` | External directory for raw IC storage. Scripts exit with error if unset. |
+| `GIT_AGENT_ID` | Yes (for agent commits) | `scripts/agent-commit` | Identifies the agent/tool/model making a commit. Required by commit wrapper; causes exit if unset. |
 
 Set with:
 ```bash
 export IC_RAW_DIR=/path/to/ic_raw
+export GIT_AGENT_ID="claude-sonnet-4-6"  # or appropriate agent name
 ```
 
 Expected subdirectories under `IC_RAW_DIR`: `ic_hierarchical/`, `ic_standard_quasi_random/`
@@ -152,10 +169,10 @@ Most configuration is embedded directly in Python scripts, not externalized:
 - `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py:26-73` - Brutus parameters, directory paths, timeout, line count thresholds
 - `simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py:29-49` - Gold-standard parameters
 - `brutus_Newton-main/makefile:2-4` - Compiler paths, library paths
-- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` — CTL methodology
-- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` — PINN architecture spec
-- `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md` — Data quality assessment
-- `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — Sampling methodology
+- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` — CTL methodology (authoritative spec)
+- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` — PINN architecture spec (authoritative)
+- `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md` — Data quality assessment (read-only, SCOPE-09)
+- `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — Sampling methodology (frozen historical record, SCOPE-08)
 - `pinn_instruction/markdown_conversion/framework-revisions/review-of-framework/review_of_framework.md` — Framework review
 - `pinn_instruction/markdown_conversion/framework-revisions/stage-strat-revision/stage_strat_revision.md` — Stage strategy revision
 
@@ -202,15 +219,40 @@ Most configuration is embedded directly in Python scripts, not externalized:
 
 ### Editor/IDE
 - `.vscode/` directories present in `simulation_data/` and `pinn/` (excluded from git via `.gitignore`)
+- `.cursor/` directory present (empty, tracked)
+- `.codex/hooks.json` - Codex agent hook configuration
+
+### Agent Instruction Files
+- `AGENTS.md` - Canonical agent-instruction file (main governance + behavioral rules)
+- `CLAUDE.md` - Separate Claude-specific project instructions (not a symlink; distinct content as of 2026-06-10)
+- `GEMINI.md` → symlink to `AGENTS.md`
+- `ANTIGRAVITY.md` - Additional agent constraints/context document
 
 ### Version Control
 - Git (repository root at `<home>/Desktop/3_body_problem/`)
-- Branch: `master`
+- Active branch: `milestone/v1.5` (main branch: `master`)
 - No submodules
+- Git hooks installed at `.githooks/` (configured via `scripts/setup-git-hooks.sh`):
+  - `pre-commit` — runs `scripts/git_policy/validate_staged_paths.py`
+  - `commit-msg` — runs `scripts/git_policy/validate_commit_msg.py`
+  - `pre-push`, `pre-rebase`, `post-checkout`, `post-commit`, `post-merge`
+
+### Commit Tooling
+- `scripts/agent-commit` — Bash wrapper around `git commit` that enforces `GIT_AGENT_ID` env var and injects `Agent-Assisted-By:` trailer. Agents must use this script, not raw `git commit`.
+- `scripts/setup-git-hooks.sh` — Installs `.githooks/` as the active hooks path via `git config core.hooksPath`
+- `scripts/git_policy/` — Python validation scripts for staged path and commit message policies
 
 ### Linting / Formatting
-- **None detected.** No `.eslintrc`, `.prettierrc`, `.flake8`, `pyproject.toml`, `ruff.toml`, `.editorconfig`, or pre-commit hooks exist in the project root.
-- No Python type checker configuration (no `mypy.ini`, `pyproject.toml [tool.mypy]`)
+- **Python:** No `.flake8`, `pyproject.toml`, `ruff.toml`, `.editorconfig`, or Python type-checker config. No linting enforced.
+- **JavaScript:** No `.eslintrc` or `.prettierrc` in `tools/spec-render-check/`; no formatter configuration.
+- **Git commit messages:** Enforced at commit time via `.githooks/commit-msg` → `scripts/git_policy/validate_commit_msg.py`. Format: `<type>(<scope>): <lowercase imperative subject>`.
+
+### Testing
+- `tests/` directory exists with:
+  - `tests/test_phase12_validation.py` - Phase 12 validation test
+  - `tests/git_policy/` - Git policy tests
+- No pytest configuration (`pytest.ini`, `pyproject.toml [tool.pytest]`) detected
+- `tools/spec-render-check/` has self-test: `npm run selftest` (runs `detect.mjs --selftest`)
 
 ### CI/CD
 - **GitHub Actions** used only for Gemini AI assistant integration:
@@ -244,4 +286,4 @@ These are reference materials, not project dependencies. The project's own PINN 
 
 ---
 
-*Stack analysis: 2026-04-27*
+*Stack analysis: 2026-06-10*

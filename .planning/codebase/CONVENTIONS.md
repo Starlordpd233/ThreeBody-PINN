@@ -1,6 +1,6 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-04-27
+**Analysis Date:** 2026-06-10
 
 ## Naming Patterns
 
@@ -89,6 +89,8 @@ Observed patterns by file:
 - `pinn/basic_architecture.py` -- standard + third-party only (no project-local imports)
 - `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` -- mixed: standard lib first, then numpy, then numba, then stdlib typing imports (unusual order: `from typing import ...` placed after `import time` at line 13)
 - `simulation_data/Data/testing_data/test_pipeline.py` -- standard lib first, then sys.path manipulation for local imports
+- `tests/test_phase12_validation.py` -- standard lib only (`os`, `re`, `sys`), no third-party imports
+- `tests/git_policy/test_git_policy.py` -- standard lib only (`json`, `os`, `pathlib`, `subprocess`, `sys`, `tempfile`, `unittest`)
 
 **Path Aliases:**
 - No path aliases configured in `pyproject.toml` or any import mapping.
@@ -157,6 +159,7 @@ Observed patterns by file:
 
 **Python Exports:**
 - `__init__.py` files exist in subpackages: `pinn/data-handling/__init__.py`, `pinn/data-handling/core/__init__.py`, `simulation_data/Validation/__init__.py`
+- `tests/git_policy/__init__.py` exists (empty), making it a proper Python package
 - No explicit `__all__` definitions found
 - The `data-processing-pipeline-full.py` inlines all module code rather than importing (self-described as a "modular pipeline" but all in one file, `data-processing-pipeline-full.py:1-15`)
 
@@ -262,54 +265,93 @@ Observed patterns by file:
 - `os.path.join()`, `os.path.basename()`, `os.path.exists()` used in prescreening and most older scripts
 - `pathlib.Path` used in newer code: `pinn/data-handling/core/`, `simulation_data/Validation/dataset_readiness_checks/`, `simulation_data/Data/testing_data/test_pipeline.py`
 - Both `os.path` and `pathlib` sometimes used in the same file (e.g., `test_pipeline.py` uses `Path` for dirs but `os.path` not imported)
+- Tests at `tests/test_phase12_validation.py` use `os.path` (older stdlib style), `tests/git_policy/test_git_policy.py` uses `pathlib.Path` (newer style)
 
 ## Commit Message Conventions
 
-**Format:** Conventional Commits style with scopes:
+**Canonical policy:** `docs/git-guidelines.md` (adopted 2026-06-05, enforced by hooks)
 
+**Format:**
 ```
-type(scope): description
+type(scope): lowercase imperative subject
 ```
 
-**Types observed (last 50 commits):**
-- `docs` -- documentation changes (dominant, ~75% of commits)
-- `feat` -- new features/scripts added
+**Allowed types (enforced by `scripts/git_policy/validate_commit_msg.py`):**
+- `spec` -- framework specification changes
+- `evidence` -- empirical data, dataset artifacts
+- `verify` -- verification reports and checks
+- `plan` -- planning artifacts
+- `docs` -- documentation changes
+- `feat` -- new features or scripts
 - `fix` -- bug fixes
 - `refactor` -- code restructuring
+- `test` -- test additions or changes
 - `chore` -- maintenance tasks
 
-**Scope patterns:**
-- Phase numbers: `08-01`, `07-02`, `06-01`, `05-01` (sub-phase identifiers)
-- Phase groups: `phase-05`, `phase-07`, `phase-08`, `phase-09`
-- Component: `planning`, `latex`, `quick-YYYYMMDD`
-- No scope on general commits: `docs:`, `refactor:`
+**Allowed scopes (enforced by validator):**
+- Two-digit phase scopes: `20`, `21`, `22`, `23` (etc.)
+- Task scopes: `20-05`, `22-01` (two-digit phase hyphen two-digit task)
+- Fixed domain scopes: `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`
 
-**Example commit messages:**
+**Subject rules:**
+- Starts lowercase (imperative voice)
+- 80 characters or fewer
+- No trailing period
+- No markdown ticks, quotes, or semicolon-chained changes
+- Throwaway subjects rejected: `wip`, `update`, `updates`, `misc`, `changes`, `work`, `checkpoint`
+
+**Body requirements (enforced):**
+- Required for types: `spec`, `evidence`, `verify`, `plan`
+- Required for commits touching multiple files
+- Required for commits touching `pinn_instruction/`, `.planning/`, framework specs, or governance instructions
+
+**Agent attribution (required):**
+- All agent-authored or materially agent-assisted commits must include one of:
+  - `Agent-Assisted-By: <agent/tool/model>`
+  - `Co-Authored-By: Name <email>`
+- Agents MUST use `scripts/agent-commit` instead of raw `git commit`
+
+**Example valid commit messages:**
 ```
 docs(planning): create Phase 9 issues directory consolidation plans
-feat(08-01): add verify_compile.py for LaTeX compilation verification
-fix(07-02): correct pinn-architecture longtable formatting for float fidelity
-refactor(latex): flatten nested LaTeX directories and remove obsolete files
-chore(08-01): add tmp directory placeholder for compilation outputs
+feat(22): add verify_compile.py for LaTeX compilation verification
+fix(pinn): correct pinn-architecture longtable formatting
+refactor(pipeline): flatten nested LaTeX directories
+spec(23): record sampling parameter resolution for v1.5 phase
 ```
-
-**Commit description style:**
-- Imperative mood ("create", "add", "correct", "flatten")
-- Lowercase first word after colon
-- No period at end
-- 50-80 character subjects
 
 ## Git Hooks
 
-- Installed hooks (all git-lfs related): `post-checkout`, `post-commit`, `post-merge`, `pre-push`
-- All four hooks simply invoke `git lfs` commands; no linting or testing hooks
-- Not installed: `pre-commit`, `commit-msg`, `prepare-commit-msg`
+**Hook directory:** `.githooks/` (configured via `scripts/setup-git-hooks.sh`)
+
+**Installed hooks:**
+- `commit-msg` -- invokes `scripts/git_policy/validate_commit_msg.py` to enforce commit message format (allowed types, scopes, subject rules, body requirements, agent attribution)
+- `pre-commit` -- invokes `scripts/git_policy/validate_staged_paths.py` to check staged file paths
+- `pre-rebase` -- present (purpose: branch protection guardrails)
+- `post-checkout`, `post-commit`, `post-merge`, `pre-push` -- git-lfs + lifecycle hooks
+
+**Agent commit wrapper (`scripts/agent-commit`):**
+- Requires `GIT_AGENT_ID` environment variable to be set before committing
+- Sets `GIT_AGENT_COMMIT=1` (used by `validate_commit_msg.py` to enforce attribution trailer)
+- Auto-appends `Agent-Assisted-By: $GIT_AGENT_ID` if not already present
+- Agents must NOT bypass via `--no-verify` or `core.hooksPath=/dev/null` without explicit user approval
+
+**Git policy scripts (`scripts/git_policy/`):**
+- `validate_commit_msg.py` -- parses and enforces commit message format
+- `validate_staged_paths.py` -- validates staged file paths
+- `guard_agent_git_command.py` -- guards against raw agent git commands
+- `setup-git-hooks.sh` -- installs hooks; run after clone or hook changes
 
 ## CI/CD Configuration
 
-- `.github/workflows/` contains Gemini AI agent dispatch workflows only:
-  - `gemini-dispatch.yml`, `gemini-invoke.yml`, `gemini-review.yml`, `gemini-triage.yml`, `gemini-scheduled-triage.yml`
-- No build verification, test execution, linting, or deployment workflows
+**Status:** No build/test CI. `.github/workflows/` contains Gemini AI agent dispatch workflows only:
+- `gemini-dispatch.yml` -- route issues to Gemini
+- `gemini-invoke.yml` -- invoke Gemini agent
+- `gemini-review.yml` -- Gemini PR review
+- `gemini-triage.yml` -- issue triage
+- `gemini-scheduled-triage.yml` -- periodic triage
+
+None of these execute tests, build code, or run validation scripts.
 
 ## Anti-Patterns to Avoid (New Code)
 
@@ -325,6 +367,10 @@ chore(08-01): add tmp directory placeholder for compilation outputs
 
 6. **Use `logging` module** for new code that needs structured output, following the `ValidationLogger` pattern in `simulation_data/Validation/dataset_readiness_checks/utils/logging.py`.
 
+7. **Do not use raw `git commit` as an agent.** Always use `scripts/agent-commit` with `GIT_AGENT_ID` set. The `commit-msg` hook enforces attribution trailers for agent commits.
+
+8. **Do not bypass git hooks** (`--no-verify`, `core.hooksPath=/dev/null`) without explicit user approval.
+
 ---
 
-*Convention analysis: 2026-04-27*
+*Convention analysis: 2026-06-10*

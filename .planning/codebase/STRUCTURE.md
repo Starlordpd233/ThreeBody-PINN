@@ -1,17 +1,25 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-04-27
+**Analysis Date:** 2026-06-10
 
 ## Directory Layout
 
 ```
 3_body_problem/                                 # Repository root
-├── .claude/                                     # Claude Code agent config (skills, instructions)
-│   └── skills/                                  # Project-specific skill definitions
+├── .claude/                                     # Claude Code agent config
+│   ├── rules/                                   # Path-scoped rules (repo-map.md, dataset-reference.md, pinn-reference.md)
+│   ├── settings.json / settings.local.json     # Claude Code settings
+│   └── scheduled_tasks.json                     # Scheduled-task config
+├── .codex/                                      # Codex agent config (hooks.json)
+├── .context/                                    # Compound-engineering agent context
+│   └── compound-engineering/
+├── .cursor/                                     # Cursor agent config
 ├── .github/                                     # GitHub workflows and custom slash commands
 │   ├── commands/                                # Custom slash command definitions
 │   └── workflows/                               # CI/CD workflow YAML files
+├── .githooks/                                   # Git hooks (commit-msg, pre-commit, pre-push, post-commit, post-merge, post-checkout, pre-rebase)
 ├── .planning/                                   # GSD project management (detailed below)
+├── .understand-anything/                        # Code-understanding tool cache (fingerprints.json, knowledge-graph.json, intermediate/)
 ├── .tmp/                                        # Temporary files (not committed)
 ├── .venv/                                       # Python virtual environment (not committed)
 │
@@ -106,16 +114,8 @@
 │   │       │   ├── parameters.py                # Parameter validation
 │   │       │   ├── physics.py                   # Physics consistency checks
 │   │       │   └── temporal.py                  # Temporal validation
-│   │       ├── reports/                         # Generated reports
-│   │       │   ├── csv/
-│   │       │   ├── json/
-│   │       │   └── markdown/
-│   │       └── utils/                           # Shared utilities
-│   │           ├── __init__.py
-│   │           ├── logging.py
-│   │           ├── naming.py
-│   │           ├── parsers.py
-│   │           └── physics_core.py
+│   │       ├── reports/                         # Generated reports (csv/, json/, markdown/)
+│   │       └── utils/                           # Shared utilities (logging, naming, parsers, physics_core)
 │   │
 │   ├── Data/                                    # All simulation data (input + output)
 │   │   ├── ic_final/                            # Final validated initial conditions
@@ -149,8 +149,8 @@
 │           ├── hierarchical_for_gold_standard/
 │           └── standard/
 │
-├── pinn/                                        # CTL-PINN system (Physics-Informed Neural Network)
-│   ├── basic_architecture.py                    # SQR-SkipResNet-SIREN model definition (308 lines)
+├── pinn/                                        # CTL-PINN system — v1.3-era code, NOT spec-authoritative, pending FUT-01 rewrite
+│   ├── basic_architecture.py                    # SQR-SkipResNet-SIREN model (308 lines); design authority = pinn_architecture.md spec
 │   ├── data-processing-pipeline-full.py          # Monolithic data pipeline (1,650 lines)
 │   └── data-handling/                           # Modular pipeline refactor (10 Python files, 2,550 lines)
 │       ├── __init__.py
@@ -170,7 +170,7 @@
 │       ├── processing/                          # Physical quantity computation
 │       │   ├── __init__.py
 │       │   ├── invariants.py                    # E, Q, s_min, L_norm, I_norm computation (267 lines)
-│       │   ├── input_vector.py                  # 13-component IC vector formulation (155 lines)
+│       │   ├── input_vector.py                  # IC vector formulation (155 lines)
 │       │   ├── stage_assignment.py              # Curriculum stage assignment (138 lines)
 │       │   └── rosenstein_lyapunov.py           # Lyapunov exponent estimation (225 lines)
 │       └── scripts/                             # Entry point scripts
@@ -178,53 +178,41 @@
 │           ├── preprocess_dataset.py            # Raw-to-HDF5 preprocessing (198 lines)
 │           └── prepare_training_data.py         # HDF5-to-training-batches (258 lines)
 │
-├── pinn_instruction/                            # Research methodology documentation
-│   ├── original_latex/                          # LaTeX source documents (5 document sets)
-│   │   ├── ctl-instruction/                     # CTL methodology instruction
-│   │   │   ├── main_CTL.tex                     # Main document
-│   │   │   ├── preamble_CTL.tex                 # LaTeX preamble
-│   │   │   ├── main_CTL.pdf                     # Compiled PDF
-│   │   │   └── sections/                        # 7 content sections + appendix
-│   │   ├── Data-quality-assessment/             # Data quality assessment methodology
-│   │   │   ├── main-data-quality-assess.tex
-│   │   │   ├── preamble.tex
-│   │   │   ├── main-data-quality-assess.pdf
-│   │   │   └── sections/                        # 7 content sections
-│   │   ├── pinn-architecture/                   # PINN architecture design document
-│   │   │   ├── main_pinn.tex
-│   │   │   ├── preamble.tex
-│   │   │   ├── main_pinn.pdf
-│   │   │   └── sections/                        # 9 sections (3 marked inactive)
-│   │   ├── review-of-framework/                 # CTL-PINN framework review (2 sub-documents)
-│   │   │   ├── review_of_framework/
-│   │   │   │   ├── review_of_framework.tex
-│   │   │   │   ├── preamble.tex
-│   │   │   │   ├── review_of_framework.pdf
-│   │   │   │   └── sections/                    # 7 content sections
-│   │   │   ├── stage_strat_revision/
-│   │   │   │   ├── stage_strat_revision.tex
-│   │   │   │   ├── preamble.tex
-│   │   │   │   ├── stage_strat_revision.pdf
-│   │   │   │   └── sections/                    # 6 content sections
-│   │   │   └── issues/                          # Consolidated thematic issue docs
-│   │   │       ├── 01-architecture-and-physics-foundations.md
-│   │   │       ├── 02-data-pipeline-and-validation.md
-│   │   │       ├── 03-curriculum-and-training-loop.md
-│   │   │       ├── MIGRATION.md
-│   │   │       ├── README.md
-│   │   │       └── archive/                     # 8 original issue files
-│   │   └── sampling-method/                     # Sampling methodology
-│   │       ├── sampling_method_instruction.tex
-│   │       └── sampling_method_instruction.pdf
+├── pinn_instruction/                            # Research methodology + AUTHORITATIVE framework specs (restructured 2026)
+│   ├── markdown_conversion/                     # Markdown form of specs (AUTHORITATIVE specs live here)
+│   │   ├── framework-specs/                     # ── AUTHORITATIVE framework specs ──
+│   │   │   ├── ctl_instruction.md               # CTL methodology, input-vector, curriculum (spec-edit target)
+│   │   │   ├── pinn_architecture.md             # Network architecture, AD contract, output head (spec-edit target)
+│   │   │   └── sampling_method.md               # IC sampling (FROZEN historical record; SCOPE-08)
+│   │   ├── framework-revisions/                 # Research reports (non-authoritative)
+│   │   │   ├── data_quality_assessment.md       # Data-quality research report (read-only; SCOPE-09)
+│   │   │   ├── review-of-framework/             # Framework review conversion
+│   │   │   ├── stage-strat-revision/            # Stage-strategy revision conversion
+│   │   │   └── research_reports/                # Per-issue external research + resolution docs
+│   │   │       └── 01-architecture-and-physics-foundations/
+│   │   │           ├── ctl_pinn_resolution.md   # v1.4 candidate verdict source (resolution doc)
+│   │   │           ├── chatgpt_research_report.md
+│   │   │           ├── claude_research_report.md
+│   │   │           ├── claude_research_report_2.md
+│   │   │           └── gemini_research_report.md
+│   │   └── README.md
 │   │
-│   └── markdown_conversion/                     # LaTeX -> Markdown conversions (for reference)
-│       ├── ctl_instruction.md                   # Authoritative CTL conversion
-│       ├── pinn_architecture.md                 # Authoritative PINN architecture conversion
-│       ├── sampling_method.md                   # Authoritative sampling conversion
-│       ├── assess_data_quality.md               # Authoritative data quality conversion
-│       ├── review_of_framework.md               # Authoritative framework review conversion
-│       ├── stage_strat_revision.md              # Authoritative stage strategy conversion
-│       └── _archive/                            # Unselected candidates from v1.3
+│   ├── original_latex/                          # LaTeX sources (mirrors the markdown split)
+│   │   ├── framework-specs/                     # LaTeX sources for the authoritative specs
+│   │   │   ├── ctl-instruction/                 # main_CTL.tex + preamble_CTL.tex + sections/
+│   │   │   ├── pinn-architecture/               # main_pinn.tex + preamble + sections/
+│   │   │   └── sampling-method/                 # sampling methodology LaTeX
+│   │   └── framework-revisions/                 # LaTeX sources for revisions/research
+│   │       ├── data-quality-assessment/
+│   │       └── review-of-framework/             # review_of_framework/ + stage_strat_revision/
+│   │
+│   └── issues/                                  # Consolidated thematic issue docs (top-level)
+│       ├── 01-architecture-and-physics-foundations.md  # v1.4 target (resolved)
+│       ├── 02-data-pipeline-and-validation.md   # v1.5 target (non-authoritative; under adjudication)
+│       ├── 03-curriculum-and-training-loop.md
+│       ├── MIGRATION.md
+│       ├── README.md
+│       └── archive/                             # Original pre-consolidation issue files
 │
 ├── paper_templates/                             # Academic paper templates
 │   └── mdpi_template/
@@ -233,79 +221,99 @@
 │       ├── paper.tex                            # Working paper draft
 │       ├── paper.pdf                            # Compiled draft
 │       ├── refs.bib                             # Bibliography
-│       └── Definitions/                         # MDPI journal definitions
-│           ├── mdpi.cls                         # MDPI document class
-│           ├── mdpi.bst / mdpi_apacite.bst / mdpi_chicago.bst  # Bibliography styles
-│           ├── mdpi_apacite.sty                 # APA citation style
-│           ├── journalnames.tex                 # Journal name definitions
-│           └── logo-*.{eps,pdf}                 # MDPI branding logos
+│       └── Definitions/                         # MDPI journal definitions (mdpi.cls, .bst, logos)
 │
-├── reference-code/                              # Vendored reference implementations
-│   ├── lyapunov/                                # Julia-based Lyapunov analysis
-│   │   ├── 3. Quantifying Chaos (Lyapunov Exponents).jl
-│   │   ├── 3. Quantifying Chaos (Lyapunov Exponents).ipynb
-│   │   ├── 6. Miscellaneous Algorithms.jl
-│   │   └── lyapunovs.md
-│   └── reference_NNs/                           # Reference NN implementations (~63,000 files)
-│       ├── deepxde-master/                      # DeepXDE library (28 MB, ~multiple thousand files)
-│       ├── PINA-master/                         # PINA (Physics-Informed Neural networks for Applications)
-│       ├── siren/                               # SIREN (Sinusoidal Representation Networks)
-│       ├── GravNN-master/                       # Gravity-field Neural Networks
-│       ├── hamiltonian-nn-master/               # Hamiltonian Neural Networks
-│       ├── neural-symplectic-integrator-main/   # Neural symplectic integrator
-│       ├── [removed-vendored-example]/                         # Another PINN reference
-│       ├── PyTorch-LBFGS-master/                # LBFGS optimizer for PyTorch
-│       └── pytorch-main/                        # PyTorch source reference
+├── reference-code/                              # Vendored reference implementations (NOT dependencies)
+│   ├── lyapunov/                                # Julia-based Lyapunov analysis (3 files)
+│   └── reference_NNs/                           # 9 cloned NN repos (deepxde, PINA, siren, GravNN, HNN, etc.)
 │
-├── docs/                                        # Additional documentation
-│   └── findings/                                # Audit reports and verification findings
-
-├── AGENTS.md                                    # Agent instructions (13,607 bytes)
-├── ANTIGRAVITY.md                               # Agent instructions (12,848 bytes)
-├── CLAUDE.md                                    # Agent instructions - source of truth for data formats (13,630 bytes)
-├── GEMINI.md                                    # Agent instructions (13,631 bytes)
-└── README.md                                    # Project README (10,361 bytes)
+├── tools/                                       # Standalone tooling
+│   └── spec-render-check/                       # Node spec-render/adjudication detector (v1.4 acceptance tooling)
+│       ├── detect.mjs                           # Detector entry point
+│       ├── adjudications/                       # Adjudication fixtures (22-02-pinn-architecture.json, 22-03-ctl-instruction.json)
+│       ├── fixtures/                            # Test fixtures
+│       ├── node_modules/                        # Node deps (not committed)
+│       ├── package.json / package-lock.json
+│       └── README.md
+│
+├── scripts/                                     # Git-policy + setup tooling
+│   ├── agent-commit                             # Mandated agent commit wrapper (hooks enforced)
+│   ├── setup-git-hooks.sh                       # Installs .githooks as core.hooksPath
+│   └── git_policy/                              # Commit/staged-path validation
+│       ├── __init__.py
+│       ├── guard_agent_git_command.py
+│       ├── validate_commit_msg.py
+│       └── validate_staged_paths.py
+│
+├── tests/                                       # Pytest suites (governance + phase validation)
+│   ├── test_phase12_validation.py               # Phase validation tests
+│   └── git_policy/test_git_policy.py            # Git-policy guard tests
+│
+├── docs/                                        # Project documentation + governance
+│   ├── README.md                                # Docs lifecycle policy
+│   ├── git-guidelines.md                        # Full git commit policy
+│   ├── findings/                                # Audit reports and verification findings (milestone_v1.4/)
+│   ├── runbooks/                                # Operational runbooks
+│   │   ├── migration/                           # exact-state-mac-migration.md (restore runbook)
+│   │   └── EDL/                                 # Empirical Decision Loop runbooks
+│   ├── user_plans/                              # User-authored plans
+│   ├── work/                                    # designs/, plans/, reviews/ (docs plan lifecycle)
+│   └── archive/                                 # Archived docs (work/)
+│
+├── docs_temp/                                   # Scratch/handoff docs (chat_history, agent-context bundle, phase verification notes)
+│
+├── AGENTS.md                                    # CANONICAL agent instructions (CLAUDE.md, GEMINI.md symlink here)
+├── ANTIGRAVITY.md                               # Antigravity agent instructions (separate file)
+├── CLAUDE.md -> AGENTS.md                        # Symlink to canonical instructions
+├── GEMINI.md -> AGENTS.md                        # Symlink to canonical instructions
+└── README.md                                    # Project README
 ```
 
 ## .planning/ Directory (GSD Project Management)
 
 ```
 .planning/
-├── config.json                                  # Project configuration (282 bytes)
-├── ROADMAP.md                                   # Milestone tracking (7,803 bytes)
-├── STATE.md                                     # Current project state snapshot (4,697 bytes)
-├── MILESTONES.md                                # Milestone definitions (162 bytes)
-├── PROJECT.md                                   # Project overview and scope (6,927 bytes)
-├── REQUIREMENTS.md                              # Requirements specification (3,134 bytes)
-├── RETROSPECTIVE.md                             # Retrospective notes (3,094 bytes)
-├── codebase/                                    # Codebase mapping documents
-│   ├── ARCHITECTURE.md                          # Architecture analysis
-│   ├── STRUCTURE.md                             # Directory structure analysis
-│   ├── CONCERNS.md                              # Technical debt and issues
-│   ├── CONVENTIONS.md                           # Coding conventions
-│   ├── TESTING.md                               # Testing patterns
-│   ├── STACK.md                                 # Technology stack
-│   └── INTEGRATIONS.md                          # External integrations
-├── milestones/                                  # Milestone state files
-├── phases/                                      # Phase execution records
-│   ├── 01-code-rewrites-and-validation/         # Phase 1: 3 plans, 3 summaries + context/research/validation/verification
-│   ├── 02-documentation-updates/                # Phase 2: 3 plans, 3 summaries + context/research/validation/verification
-│   ├── 03-data-deletion-and-legacy-cleanup/     # Phase 3: 2 plans, 2 summaries + research/validation/verification
-│   ├── 04-stale-reference-fixes/                # Phase 4: 2 plans, 2 summaries + context/research/validation/verification
-│   ├── 05-content-completeness-verification/    # Phase 5: 1 plan, 1 summary + context/research/validation/verification
-│   ├── 06-preamble-parity-verification/         # Phase 6: 1 plan, 1 summary + research/validation/verification
-│   ├── 07-structure-fidelity-verification/      # Phase 7: 2 plans, 2 summaries + context/research/validation/verification
-│   ├── 08-compilability-verification/           # Phase 8: 1 plan, 1 summary + context/research/validation/verification
-│   ├── 09-issues-directory-consolidation/       # Phase 9: 3 plans, 3 summaries + context/research/validation/verification/reviews (complete)
-├── quick/                                       # Quick tasks (ad-hoc, single-session)
-│   ├── 260320-rca-modularize-pinn-architecture-latex-templ/
-│   ├── 260320-rxu-split-ctl-instruction-final-tex-into-mod/
-│   ├── 260320-sh3-modularize-review-of-ctl-pinn-framework-/
-│   ├── 260320-ssi-modularize-stage-strat-revision-tex-into/
-│   ├── 20260426-merge-sim-docs/
-│   └── 20260426-update-brutus-footer-docs/
-└── research/                                    # Research storage
+├── config.json                                  # Project configuration
+├── ROADMAP.md                                   # Milestone tracking (v1.0–v1.5 + deferred LaTeX sync)
+├── STATE.md                                     # Current project state snapshot
+├── MILESTONES.md                                # Milestone definitions
+├── PROJECT.md                                   # Project overview and scope
+├── REQUIREMENTS.md                              # Active (v1.5) requirements + SCOPE rules
+├── RETROSPECTIVE.md                             # Retrospective notes
+├── TONIGHT.md                                   # Session working notes
+├── codebase/                                    # Codebase mapping documents (this file's home)
+│   ├── ARCHITECTURE.md  STRUCTURE.md  CONCERNS.md
+│   ├── CONVENTIONS.md   TESTING.md
+│   └── STACK.md         INTEGRATIONS.md
+├── milestones/                                  # Per-milestone archives (requirements, roadmap, audit, gaps)
+│   ├── v1.0-* v1.3-* v1.4-*                      # Shipped-milestone archives
+│   ├── v1.4-GAPS.md                             # v1.4 milestone-wide gap index
+│   └── v1.4-phases/                             # Archived v1.4 phase folders (16–22, incl. 20.5)
+│       ├── 16-evidence-framework-and-issue-adjudication/
+│       ├── 17-input-and-output-contracts/
+│       ├── 18-frame-and-gauge-contracts/
+│       ├── 19-physics-and-loss-contracts/
+│       ├── 20-architecture-and-normalization-cleanup/
+│       ├── 20.5-sampling-coordinate-allocation/
+│       ├── 21-acceptance-checks-and-handoff/
+│       └── 22-framework-spec-cleanup/
+├── phases/                                      # ACTIVE phase folders (current milestone)
+│   └── 23-research-package-assembly/            # v1.5 Phase 23 (CONTEXT, RESEARCH, PATTERNS, VALIDATION, DISCUSSION-LOG)
+├── research/                                    # Cross-cutting research storage
+│   ├── ARCHITECTURE.md FEATURES.md PITFALLS.md STACK.md SUMMARY.md  # Research notes
+│   └── edl/                                     # Non-canonical Empirical Decision Loop briefs
+│       ├── README.md INDEX.md
+│       ├── EDL-19-01-epsilon-H.md               # EDL brief (Phase 19 epsilon_H)
+│       └── EDL-19-01-resolution.md              # User-resolved EDL outcome
+├── reports/                                     # Milestone summary reports (MILESTONE_SUMMARY-v1.4.md)
+├── forensics/                                   # Forensic incident reports (report-YYYYMMDD-HHMMSS.md)
+└── tmp/                                         # Planning scratch
 ```
+
+> **Note:** v1.0–v1.4 phase folders (Phases 1–22) are archived under
+> `.planning/milestones/<version>-phases/` or their milestone archives. `.planning/phases/`
+> now holds only the active milestone's phases (currently v1.5 Phase 23). The milestone-wide
+> gap index for v1.5 will be `.planning/milestones/v1.5-GAPS.md` once it lands.
 
 ## Directory Purposes
 
@@ -313,109 +321,89 @@
 - **Purpose:** High-precision N-body numerical integrator using the Bulirsch-Stoer extrapolation method
 - **Contains:** C++ source files (.cpp, .h), compiled binary, utility libraries, test inputs, build system
 - **Key files:** `main.cpp` (CLI entry point), `Brutus.cpp` (orchestrator), `Bulirsch_Stoer.cpp` (ODE integrator), `Cluster.cpp` (N-body container), `Star.cpp` (body state), `makefile` (build config)
-- **Source lines:** ~11 .cpp files, ~7 .h files, ~2,000 lines of C++ total (estimated)
-- **Build output:** Single `brutus` binary
-- **Note:** Contains Mac-specific hardcoded Homebrew paths in `makefile`. Also contains `makefile.original` as a backup.
+- **Note:** Contains Mac-specific hardcoded Homebrew paths in `makefile`; `makefile.original` is a backup.
 
 ### `simulation_data/Scripts/`
 - **Purpose:** Active Python pipeline scripts for IC generation, Brutus execution, and metrics
-- **Contains:** 10 active Python files across 3 functional subdirectories, plus 3 archived and 7 debug scripts
+- **Contains:** 10 active Python files across 3 functional subdirectories, plus 3 archived and debug scripts
 - **Key files:** `ic_generation/generate_ics.py`, `brutus_runners/run_brutus_both_type_simple.py`, `metrics_calculation/calculate_metrics.py`
-- **Archived:** `Scripts/archived/` contains 3 deprecated scripts clearly marked as unused
+- **SCOPE-05:** `ic_generation/` is a permitted grounding source for `sampling_method.md`.
 
 ### `simulation_data/Validation/`
 - **Purpose:** Quality assurance: prescreening, analysis, audit, and dataset readiness validation
-- **Contains:** 27 Python files across 5 subdirectories, plus generated figures and reports
-- **Key subsystems:**
-  - Prescreening: Leapfrog short-run filtering of unstable ICs
-  - Analysis: Statistical analysis and visualization of simulation results
-  - Audit reports: Data quality audit scripts and Markdown reports
-  - Dataset readiness checks: 11-module automated validation suite with multiformat reporting
+- **Contains:** ~27 Python files across 5 subdirectories, plus generated figures and reports
+- **Key subsystems:** prescreening (leapfrog short-run filtering), analysis (stats + viz), audit reports, dataset readiness checks (11-module suite, multiformat reporting)
 
 ### `simulation_data/Data/`
 - **Purpose:** All simulation input and output data
-- **Contains:** ~38,399 text files (IC + Brutus output), ~15,047 JSON files (metrics), organized by dataset variant
-- **Variant organization:** Folder name defines the variant ("gold" is in folder name, not file name)
-- **File counts by variant:**
-  - `ic_hierarchical/`: 4,857 files
-  - `ic_standard_quasi_random/`: 2,749 files
-  - `brutus_hierarchical/`: 4,857 files
-  - `brutus_hierarchical_gold_standard/`: 4,857 files
-  - `brutus_standard_quasi_random/`: 2,749 files
-  - `brutus_standard_quasi_random_gold_standard/`: 2,565 files (184 fewer — documented in `standard_quasi_random_ids_not_in_gold.md`)
-- **Testing data:** Small subsets for development (in `testing_data/`)
+- **Variant organization:** Folder name defines the variant ("gold" is in the folder name, not the file name)
+- **File counts by variant:** `ic_hierarchical/` 4,857; `ic_standard_quasi_random/` 2,749; `brutus_hierarchical/` 4,857; `brutus_hierarchical_gold_standard/` 4,857; `brutus_standard_quasi_random/` 2,749; `brutus_standard_quasi_random_gold_standard/` 2,565 (184 fewer — see `standard_quasi_random_ids_not_in_gold.md`)
 - **External:** IC raw storage is external to repo (set via `IC_RAW_DIR` env var)
+- **SCOPE-06/07:** This on-disk dataset and `simulation_data/Scripts/` are v1.5 empirical grounding sources.
 
 ### `simulation_data/Documentation/`
-- **Purpose:** Dataset-level documentation, blacklists, and known issues
-- **Contains:** README.md (source of truth for dataset specification), blacklist JSON, gold subset notes, problematic IC backups
-- **Key files:** `README.md` (authoritative dataset docs), `problematic_ics_blacklist.json`, `standard_quasi_random_ids_not_in_gold.md`
+- **Purpose:** Dataset-level documentation, blacklists, known issues
+- **Key files:** `README.md` (authoritative dataset spec), `problematic_ics_blacklist.json`, `standard_quasi_random_ids_not_in_gold.md`
 
 ### `pinn/`
 - **Purpose:** CTL-PINN implementation: model architecture + data processing pipeline
-- **Contains:** 2 main scripts + 1 modular package with 10 Python files, 6 sample HDF5 files
-- **Key files:** `basic_architecture.py` (308 lines, model definition), `data-processing-pipeline-full.py` (1,650 lines, monolithic pipeline)
-- **Modular refactor:** `data-handling/` (2,550 lines across 10 files: core/, processing/, scripts/)
-- **Status:** Both monolithic and modular versions coexist (refactoring in progress)
+- **Status:** **v1.3-era code, NOT spec-authoritative; slated for FUT-01 rewrite from the framework specs.** Both monolithic (`data-processing-pipeline-full.py`) and modular (`data-handling/`) versions coexist (duplicate code, refactoring in progress).
+- **Design authority:** `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` and `ctl_instruction.md` — read design from there, not from this code.
 
 ### `pinn_instruction/`
-- **Purpose:** Research methodology documentation: CTL methodology, PINN architecture, sampling methods, data quality assessment, framework reviews
-- **Contains:** 49 LaTeX files across 5 document sets, 16 Markdown conversion files, research issues
-- **Document sets:**
-  1. `ctl-instruction/`: CTL curriculum training methodology (7 sections + appendix)
-  2. `Data-quality-assessment/`: Data quality metrics and assessment protocol (7 sections)
-  3. `pinn-architecture/`: PINN architecture design blueprint (9 sections, 3 inactive)
-  4. `review-of-framework/review_of_framework/`: CTL-PINN framework review (7 sections)
-  5. `review-of-framework/stage_strat_revision/`: Stage strategy revision (6 sections)
-  6. `sampling-method/`: Standalone sampling methodology document
-- **Each document set** follows the pattern: `main_*.tex` + `preamble.tex` + `sections/*.tex` + compiled PDF
-- **Markdown conversions:** Located in `markdown_conversion/`, one authoritative file per source from v1.3 verification
-- **Research issues:** Located in `pinn_instruction/issues/` — 3 consolidated thematic docs + MIGRATION.md + README.md + archive/
+- **Purpose:** AUTHORITATIVE framework specs + research methodology + issue adjudication.
+- **Restructured (2026):** `original_latex/` and `markdown_conversion/` are each split into `framework-specs/` (authoritative) and `framework-revisions/` (non-authoritative research reports). The earlier flat list of LaTeX doc sets (ctl-instruction, Data-quality-assessment, pinn-architecture, review-of-framework, sampling-method directly under `original_latex/`) no longer applies — those now live under `framework-specs/` and `framework-revisions/`.
+- **AUTHORITATIVE specs:** `markdown_conversion/framework-specs/{ctl_instruction,pinn_architecture,sampling_method}.md`. `ctl_instruction.md` and `pinn_architecture.md` are the only spec-edit targets in active milestones; `sampling_method.md` is frozen (SCOPE-08).
+- **Issues:** `pinn_instruction/issues/` (TOP-LEVEL, not nested) — `01`/`02`/`03` thematic docs + MIGRATION.md + README.md + archive/. `02-data-pipeline-and-validation.md` is the v1.5 (non-authoritative) target.
+- **Research reports:** `markdown_conversion/framework-revisions/research_reports/01-.../ctl_pinn_resolution.md` is the v1.4 candidate verdict source plus external research reports.
 
 ### `reference-code/`
-- **Purpose:** Vendored reference implementations for research comparison and code reference
-- **Contains:** ~63,000+ files (nearly the entire repo)
-- **Subdirectories:**
-  - `lyapunov/`: Julia scripts for Lyapunov analysis (3 files)
-  - `reference_NNs/`: 9 cloned repositories (DeepXDE, SIREN, PINA, GravNN, HNN, Neural Symplectic Integrator, PINN-1, PyTorch-LBFGS, PyTorch source)
-- **Size:** Dominated by `deepxde-master/` (28 MB), `pytorch-main/`, and other full cloned repos
-- **Note:** These are NOT dependencies; they are reference implementations for comparison. The project's own PINN does not import from them.
+- **Purpose:** Vendored reference implementations for comparison; NOT dependencies, NOT imported by project code.
+- **Subdirectories:** `lyapunov/` (Julia, 3 files), `reference_NNs/` (9 cloned repos incl. deepxde, PINA, siren, GravNN, HNN, neural-symplectic-integrator, PINN-1, PyTorch-LBFGS, pytorch).
 
-### `paper_templates/`
-- **Purpose:** Academic paper writing templates and working paper draft
-- **Contains:** MDPI journal LaTeX template with definitions, bibliography, and working paper draft
-- **Key files:** `mdpi_template/paper.tex` (working draft), `mdpi_template/mdpi.cls` (document class)
+### `tools/`
+- **Purpose:** Standalone tooling. Currently `spec-render-check/` — a Node detector (`detect.mjs`) that validates spec rendering/adjudication using fixtures in `adjudications/` and `fixtures/` (v1.4 acceptance tooling).
+
+### `scripts/`
+- **Purpose:** Git-policy enforcement and hook setup. `agent-commit` is the mandated commit path for agents; `setup-git-hooks.sh` installs `.githooks`; `git_policy/` holds commit-message / staged-path validators.
+
+### `tests/`
+- **Purpose:** Pytest suites for governance and phase-artifact validation (`test_phase12_validation.py`, `git_policy/test_git_policy.py`). The cached `__pycache__/test_v1_4_acceptance.cpython-312.pyc` indicates a v1.4 acceptance test ran here.
+
+### `.githooks/`
+- **Purpose:** Git hooks (commit-msg, pre-commit, pre-push, post-commit, post-merge, post-checkout, pre-rebase) enforcing the commit protocol. Activated via `scripts/setup-git-hooks.sh` (sets `core.hooksPath=.githooks`).
 
 ### `docs/`
-- **Purpose:** Audit reports and verification findings
-- **Contains:** `findings/milestone_v1.4/` (current v1.4 milestone reviews and gap-closure documents) and other current verification findings
-- **Note:** Previously contained historical plans (`plans/`, `superpowers/`) — those have been removed. The earlier `findings/fixing_gaps/` directory was renamed to `findings/milestone_v1.4/`.
+- **Purpose:** Project documentation + governance policy. Key files: `README.md` (docs lifecycle), `git-guidelines.md` (commit policy). Subdirs: `findings/` (verification findings, `milestone_v1.4/`), `runbooks/` (`migration/exact-state-mac-migration.md`, `EDL/`), `user_plans/`, `work/` (designs/plans/reviews — docs plan lifecycle), `archive/`.
+
+### `docs_temp/`
+- **Purpose:** Scratch / handoff material (chat history, external-agent context bundle, phase verification notes, `work/`). Not part of the canonical docs lifecycle.
 
 ### `.planning/`
-- **Purpose:** GSD (Goal-Structured Development) project management framework
-- **Contains:** ROADMAP.md (milestones), STATE.md (current state), PROJECT.md (overview), REQUIREMENTS.md (spec), RETROSPECTIVE.md (lessons), 9 phases with plans/summaries/research/validation/verification, quick single-session tasks, research storage
-- **Phases 1-9:** Completed (v1.0, v1.1, and v1.2 milestones)
-- **codebase/:** Codebase mapping documents consumed by GSD orchestrator (ARCHITECTURE.md, STRUCTURE.md, CONVENTIONS.md, TESTING.md, STACK.md, INTEGRATIONS.md, CONCERNS.md)
+- **Purpose:** GSD (Goal-Structured Development) project management framework.
+- **Milestone state:** v1.0–v1.4 shipped (Phases 1–22, incl. 20.5); v1.5 (Phases 23–29) in progress on branch `milestone/v1.5`, currently Phase 23. Active phase folders live in `phases/`; shipped phases are archived under `milestones/<version>-phases/`.
+- **codebase/:** Codebase mapping documents consumed by GSD orchestrator (ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, STACK, INTEGRATIONS, CONCERNS).
 
 ## Naming Conventions
 
 **Files:**
 - **IC files:** `ic_<type>_<id>.txt` — e.g., `ic_hierarchical_0001.txt`, `ic_standard_quasi_random_0423.txt`
-- **Brutus output:** `brutus_<type>_<id>.txt` — e.g., `brutus_hierarchical_0001.txt`, `brutus_standard_quasi_random_0423.txt`
+- **Brutus output:** `brutus_<type>_<id>.txt`
 - **Metrics JSON:** `sim_result_metric_<variant>_<id>.json`
 - **Pipeline scripts:** snake_case with descriptive prefixes — `generate_ics.py`, `run_brutus_both_type_simple.py`, `calculate_metrics.py`
-- **LaTeX sections:** numbered `NN_descriptive_name.tex` — e.g., `01_intro.tex`, `02_data_characterization.tex`
-- **LaTeX mains:** `main_<document>.tex` with matching `preamble.tex`
-- **GSD plans:** `NN-NN-PLAN.md` (phase-plan) — e.g., `01-01-PLAN.md`
-- **GSD summaries:** `NN-NN-SUMMARY.md`
-- **GSD context:** `NN-CONTEXT.md`, `NN-RESEARCH.md`, `NN-VALIDATION.md`, `NN-VERIFICATION.md`
+- **Framework specs (markdown):** snake_case — `ctl_instruction.md`, `pinn_architecture.md`, `sampling_method.md`
+- **LaTeX sections:** numbered `NN_descriptive_name.tex`; mains `main_<document>.tex` with matching `preamble.tex`
+- **GSD plans/summaries/context:** `NN-NN-PLAN.md`, `NN-NN-SUMMARY.md`, `NN-CONTEXT.md`, `NN-RESEARCH.md`, `NN-VALIDATION.md`, `NN-VERIFICATION.md`, `NN-GAPS.md`, `NN-PATTERNS.md`, `NN-DISCUSSION-LOG.md`
+- **Adjudication fixtures:** `NN-NN-<spec-name>.json` (e.g., `22-02-pinn-architecture.json`)
+- **EDL briefs:** `EDL-NN-NN-<slug>.md` (+ `-resolution.md`)
+- **Forensics:** `report-YYYYMMDD-HHMMSS.md`
 
 **Directories:**
-- **Functional grouping:** `ic_generation/`, `brutus_runners/`, `metrics_calculation/` (verb-first)
+- **Functional grouping:** `ic_generation/`, `brutus_runners/`, `metrics_calculation/` (verb/noun-first)
 - **Data variant folders:** `brutus_hierarchical/`, `brutus_hierarchical_gold_standard/` (type_quality)
-- **GSD phases:** `NN-short-description/` — e.g., `01-code-rewrites-and-validation/`
-- **GSD quick tasks:** `YYMMDD-short-slug/` — e.g., `260320-rca-modularize-pinn-architecture-latex-templ/`
-- **LaTeX documents:** kebab-case with hyphens — `ctl-instruction/`, `Data-quality-assessment/`, `review-of-framework/`
+- **GSD phases:** `NN-short-description/` — e.g., `23-research-package-assembly/`
+- **Milestone archives:** `vX.Y-phases/`, `vX.Y-<artifact>.md`
+- **LaTeX / spec doc dirs:** kebab-case — `ctl-instruction/`, `pinn-architecture/`, `data-quality-assessment/`, `review-of-framework/`
 
 ## Key File Locations
 
@@ -425,38 +413,41 @@
 - `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py`: Prescreening entry point
 - `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py`: Batch simulation entry point
 - `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`: Metrics extraction entry point
-- `pinn/data-processing-pipeline-full.py`: PINN data preprocessing entry point (monolithic)
-- `pinn/data-handling/scripts/preprocess_dataset.py`: PINN preprocessing entry point (modular)
-- `pinn/data-handling/scripts/prepare_training_data.py`: Training batch preparation entry point
-- `pinn/basic_architecture.py`: PINN architecture definition + sanity check
+- `pinn/data-processing-pipeline-full.py` (v1.3): PINN data preprocessing entry point (monolithic)
+- `pinn/data-handling/scripts/preprocess_dataset.py` (v1.3): PINN preprocessing entry point (modular)
+- `pinn/data-handling/scripts/prepare_training_data.py` (v1.3): Training batch preparation entry point
+- `pinn/basic_architecture.py` (v1.3): PINN architecture definition + sanity check
 - `simulation_data/Validation/dataset_readiness_checks/__main__.py`: Data validation suite entry point
+- `tools/spec-render-check/detect.mjs`: Spec-render detector
+- `scripts/agent-commit`: Mandated agent commit path
 
 **Configuration:**
 - `brutus_Newton-main/makefile`: C++ build configuration (macOS-specific paths)
-- `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py`: Brutus parameters (lines 52-69)
-- `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`: Metrics parameters (lines 52-80)
+- `simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py`: Brutus parameters
+- `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`: Metrics parameters
 - `simulation_data/Validation/dataset_readiness_checks/config.py`: Validation suite config
 - `.planning/config.json`: Project configuration
+- `.claude/settings.json`, `.codex/hooks.json`, `.githooks/`: Agent/git tooling config
 
 **Core Logic:**
 - `simulation_data/Scripts/ic_generation/ic_generation_utils.py`: IC sampling algorithms
-- `brutus_Newton-main/Bulirsch_Stoer.cpp`: BS extrapolation ODE integrator
-- `brutus_Newton-main/Brutus.cpp`: Integration orchestrator
-- `pinn/basic_architecture.py`: SQRSkipResNetSIREN model
-- `pinn/data-processing-pipeline-full.py`: Full data pipeline (source of truth per CLAUDE.md)
+- `brutus_Newton-main/Bulirsch_Stoer.cpp`, `Brutus.cpp`: BS extrapolation integrator + orchestrator
+- `pinn/basic_architecture.py` (v1.3): SQRSkipResNetSIREN model (design authority = spec)
 - `pinn/data-handling/core/parsing.py`: File parsing (699 lines, largest PINN module)
 
 **Documentation (Source of Truth):**
-- `CLAUDE.md`: Agent instructions with data format specs and pipeline docs
+- `AGENTS.md`: Canonical agent instructions with data-format specs (CLAUDE.md/GEMINI.md symlink here)
 - `simulation_data/Documentation/README.md`: Dataset specification and anomalies
-- `pinn_instruction/original_latex/framework-specs/ctl-instruction/`: CTL methodology
-- `pinn_instruction/original_latex/framework-specs/pinn-architecture/`: Architecture design blueprint
+- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`: CTL methodology (AUTHORITATIVE)
+- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`: Architecture/AD contract (AUTHORITATIVE)
+- `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md`: IC sampling (AUTHORITATIVE, frozen)
 
 **Testing:**
-- `pinn/basic_architecture.py`: Self-contained test in `if __name__ == "__main__"` block
+- `tests/test_phase12_validation.py`, `tests/git_policy/test_git_policy.py`: Pytest suites
+- `pinn/basic_architecture.py`: Self-contained test in `if __name__ == "__main__"` block (v1.3)
 - `brutus_Newton-main/test_libs.cpp`: C++ library test driver
+- `tools/spec-render-check/`: Node detector with fixtures
 - `simulation_data/Data/testing_data/`: Small test datasets
-- No dedicated test directory or test framework exists in this codebase
 
 ## Where to Add New Code
 
@@ -465,79 +456,62 @@
 - Follow pattern: self-contained script with hardcoded config, CLI entry point
 
 **New PINN Component (neural network variant):**
-- Model definition: `pinn/<new_architecture>.py`
-- Follow pattern: inherit from NN base class, implement forward(), add `if __name__` block for sanity check
-
-**New PINN Data Processing Feature:**
-- Core logic: `pinn/data-handling/core/<module_name>.py` or `pinn/data-handling/processing/<module_name>.py`
-- Entry point: `pinn/data-handling/scripts/<script_name>.py`
-- Use `@dataclass` for data structures, follow existing module patterns
+- NOTE: Do not extend `pinn/` as if it were the design — it is v1.3 code pending FUT-01. New PINN code is generated from the framework specs during FUT-01, not added ad hoc here.
 
 **New Validation Module:**
 - Module: `simulation_data/Validation/dataset_readiness_checks/modules/<module_name>.py`
 - Follow pattern: implement `check()` function, register in `__main__.py`
 
-**New LaTeX Document:**
-- Structure: `pinn_instruction/original_latex/<doc-name>/main_<doc>.tex` + `preamble.tex` + `sections/*.tex`
-- Follow pattern: modular sections, matching preamble structure
+**New Framework-Spec Edit (active milestones):**
+- Edit ONLY `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` or `pinn_architecture.md`. `sampling_method.md` is frozen (SCOPE-08); `framework-revisions/` is read-only research material. Surface source-silent semantic decisions per the STOP protocol in `AGENTS.md`.
+
+**New Test:**
+- Add to `tests/` (pytest). Git-policy tests live in `tests/git_policy/`.
+
+**New Governance/Tooling:**
+- Git-policy helpers: `scripts/git_policy/`. Hooks: `.githooks/`. Detectors: `tools/<tool-name>/`.
 
 **New GSD Phase:**
-- Create: `.planning/phases/NN-description/NN-01-PLAN.md`
-- Follow pattern: phase-CONTEXT.md, phase-RESEARCH.md, PLAN.md with checklist, SUMMARY.md after completion
+- Create: `.planning/phases/NN-description/` with `NN-CONTEXT.md`, `NN-RESEARCH.md`, `NN-NN-PLAN.md`, `NN-GAPS.md`; `NN-NN-SUMMARY.md` after completion.
 
 **Utilities / Helpers:**
 - Shared simulation utils: `simulation_data/Validation/analysis/utils.py`
-- Shared PINN utils: `pinn/data-handling/core/` (core) or `pinn/data-handling/processing/` (domain-specific)
 - Shared validation utils: `simulation_data/Validation/dataset_readiness_checks/utils/`
 
 **Do NOT add new code to:**
 - `simulation_data/Scripts/archived/` (deprecated scripts only)
 - `reference-code/` (vendored references, not project code)
-- `pinn_instruction/` (documentation, not code)
+- `pinn/` as a design target (v1.3 code, pending FUT-01 rewrite from specs)
+- `pinn_instruction/` framework-revisions or `sampling_method.md` (read-only / frozen)
 
 ## Special Directories
 
 ### Generated Files (Not Committed)
-- `brutus_Newton-main/*.o`: C++ object files (build artifacts)
-- `brutus_Newton-main/brutus`: Compiled binary (build artifact)
-- `pinn_instruction/original_latex/**/*.aux, *.log, *.out, *.fls, *.fdb_latexmk, *.toc`: LaTeX compilation artifacts
-- `.tmp/`: Temporary files
-- `.venv/`: Python virtual environment
-- `simulation_data/Scripts/ic_generation/__pycache__/`: Python bytecode cache
-- `simulation_data/Validation/dataset_readiness_checks/__pycache__/`: Python bytecode cache
+- `brutus_Newton-main/*.o`, `brutus_Newton-main/brutus`: C++ build artifacts
+- `pinn_instruction/original_latex/**/*.{aux,log,out,fls,fdb_latexmk,toc}`: LaTeX artifacts
+- `tools/spec-render-check/node_modules/`: Node deps
+- `.tmp/`, `.venv/`, `**/__pycache__/`, `.understand-anything/intermediate/`: caches/temp
 
-### Stale / Deprecated
-- `simulation_data/Scripts/archived/`: 3 scripts explicitly archived and unused
+### Stale / Deprecated / Scratch
+- `simulation_data/Scripts/archived/`: 3 archived, unused scripts
 - `simulation_data/Validation/analysis/figures/prescreening_copy_archive/`: Duplicate figure archive
 - `brutus_Newton-main/makefile.original`: Backup of original makefile
-- `pinn/data-handling/core/parsing.txt`: 13-line text file in code directory — seems to be notes/errata
+- `pinn/data-handling/core/parsing.txt`: 13-line notes/errata file in a code directory
+- `docs_temp/`: Scratch handoff docs (not canonical)
+- `pinn_instruction/issues/archive/`, `pinn_instruction/markdown_conversion/framework-revisions/...`: archived/research material
 
-### Unrecognized
-- `pinn/data-handling/core/parsing.txt`: 13-line text file in code directory — seems to be notes/errata
-
-### Size Statistics
+### Size Statistics (approximate; reference-code dominates raw counts)
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| Total tracked files | ~63,689 | Excluding .git, node_modules, __pycache__ |
-| Brutus output (.txt) | ~23,354 | Dominates file count |
-| Metrics (.json) | ~15,081 | One per Brutus output |
-| Python (.py) | ~7,670 | Mostly in reference-code/ (vendored repos) |
+| Total tracked files | ~63,000+ | Excluding .git, node_modules, __pycache__ |
+| Brutus output (.txt) | ~15,028 | Across 4 variant folders |
+| Metrics (.json) | ~15,047 | Roughly one per Brutus output |
 | Project Python (.py) | ~130 | Excluding reference-code/ |
-| C++ headers (.h) | ~2,183 | Mostly in reference-code/ |
-| C++ source (.cpp) | ~1,950 | Mostly in reference-code/ |
-| Brutus C++ | ~11 .cpp, ~7 .h | Core integrator |
-| Project C++ | ~25 .cpp/.h | Including library utilities |
-| Markdown (.md) | ~429 | Across all directories |
-| LaTeX (.tex) | ~52 | PINN instruction documents |
-| HDF5 (.h5) | ~6 | Sample preprocessed data |
-
-**Project code (excluding reference-code/):**
-- Python: ~130 files (~15,000-20,000 lines estimated)
-- C++: ~25 files (~2,500-3,000 lines estimated)
-- LaTeX: ~52 files across 6 document sets
-- Data: ~38,000+ text files + ~15,000+ JSON files
+| Project C++ | ~25 .cpp/.h | Brutus core + library utilities |
+| Markdown (.md) | hundreds | Specs, planning, docs |
+| LaTeX (.tex) | ~50+ | Framework-spec + revision sources |
 
 ---
 
-*Structure analysis: 2026-04-27*
+*Structure analysis: 2026-06-10*

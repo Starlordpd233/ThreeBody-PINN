@@ -1,150 +1,124 @@
 # Codebase Concerns & Risks Audit
 
-**Analysis Date:** 2026-04-27
+**Original Analysis Date:** 2026-04-27
+**Last Refreshed:** 2026-06-10
 **Scope:** Full repository audit for technical debt, architecture risks, security, data quality, and process issues.
 **Severity Scale:** BLOCKER > CRITICAL > MAJOR > MINOR > INFO
+
+> **How to read the status annotations (2026-06-10 refresh).**
+> This audit is a hand-curated base with stable finding IDs (B-#, C-#, M-#, D-#, Q-#, P-#, S-#). The 2026-06-10 refresh did **not** regenerate findings or drop any. It updated each finding's **status line** against planning artifacts and framework specs.
+>
+> **Governance rule applied (STOP protocol):** A physics/spec finding is marked "spec-resolved" **only** where a planning artifact or framework spec **explicitly** says so — citing the artifact. The agent did **not** re-derive any physics or judge correctness on its own. Where v1.4 locked a convention that differs from this audit's originally-proposed fix, the status records that the convention was *adjudicated and locked* (see the cited evidence packet) — **not** that this audit's proposed number was "right." The live `pinn/` code is v1.3-era, **not** spec-authoritative, and slated for the FUT-01 rewrite; a code↔spec divergence is itself a tracked concern, never a resolution.
+>
+> **Milestone context:** v1.4 ("Resolving 01 Architecture and Physics Foundations," Phases 16–22) **shipped 2026-06-09** and merged to master — it constructed/repaired the framework specs and closed 32/32 requirements and 25/25 STOP gaps (`.planning/MILESTONES.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-GAPS.md`). v1.5 ("Resolving 02 Data Pipeline and Validation," Phases 23–29) is **IN PROGRESS** on branch `milestone/v1.5`, currently at Phase 23 (research-package assembly); **no resolution doc exists yet** and adjudication phases have not started (`.planning/REQUIREMENTS.md`).
 
 ---
 
 ## Executive Summary
 
-This is a research codebase in **pre-implementation state**. The simulation data pipeline functions and produces valid Brutus outputs. However, the PINN/ML layer has **not been built** -- there is no training loop, no LLM integration, and no end-to-end pipeline connecting simulation data to model training. A comprehensive pre-implementation audit (2026-04-27) identified **11 critical blockers** in the PINN architecture and curriculum documents. Those blockers have not yet been addressed in code or documentation.
+This is a research / spec-engineering codebase. The simulation data pipeline functions and produces valid Brutus outputs. The PINN/ML layer has **not been built** — there is no training loop, no LLM integration, and no end-to-end pipeline connecting simulation data to model training (`PROJECT.md`: "architecture exists, training does not").
 
-**Overall Readiness:** NOT READY FOR IMPLEMENTATION. The pre-implementation audit issues must be resolved in LaTeX documents and pipeline code before any training code is written.
+The 2026-04-27 pre-implementation audit identified **11 critical blockers** plus supporting findings. The v1.4 milestone addressed the **architecture & physics foundations** (Issue 01) by **constructing authoritative framework specifications** at `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` and `pinn_architecture.md`, locking the contested conventions through the EVID-05 adjudication and STOP-gap protocols. The **data-pipeline and curriculum findings** (Issues 02 and 03) are **not yet resolved**: Issue 02 is the subject of the in-progress v1.5 milestone (no resolution doc yet), and Issue 03 (curriculum/training-loop) has no dedicated milestone.
+
+**Crucial nuance for every spec finding below:** v1.4 resolved the **spec/documentation** side. It did **not** touch the live `pinn/` implementation (FUT-01 owns that). So the original "code is wrong" half of each blocker generally **remains open as a code↔spec divergence** until FUT-01.
+
+**Overall Readiness:** Framework specs for Issue 01 are locked and verified. Data-pipeline contracts (Issue 02) are mid-verification. No training code may be written until the data contracts land and FUT-01 aligns the code.
 
 ---
 
 ## 1. BLOCKER: Critical Technical Issues
 
-### B-1: Characteristic Length D is Wrong -- Corrupts All Scaled Quantities
+### B-1: Characteristic Length D — Convention Adjudicated in Spec; Code Divergence Remains
 
-**What:** `pinn/data-processing-pipeline-full.py:142` computes:
-```python
-self.D = np.cbrt(self.G * self.T_max**2)  # = cbrt(100) ≈ 4.64
-```
-This omits total mass `M_tot = 3`. The correct formula is:
-```
-D = (G * M_tot * T^2)^(1/3) = cbrt(3 * 100) = 6.694
-```
-**Impact:** All scaled positions (r' = r/D), velocities (v' = v/V where V = D/T), and every normalized dimensionless quantity (E, L_norm, Q, smin) computed with D = 4.64 are silently corrupted. Stage assignment thresholds use these scaled quantities -- wrong D means wrong curriculum stages for every trajectory.
+**What (original):** `pinn/data-processing-pipeline-full.py:142` computes `self.D = np.cbrt(self.G * self.T_max**2)` (≈4.64); this audit originally argued the correct value must include `M_tot=3` → 6.694.
 
-**Fix:** Change line 142 to `self.D = np.cbrt(self.G * 3.0 * self.T_max**2)`. Recompute ALL stage assignments after the fix. Any training done with current D must be restarted.
+**Status as of 2026-06-10:** Spec side **adjudicated and locked** by v1.4. The D formula was an explicit EVID-05 conflict ("B-02 D formula", `.planning/milestones/v1.4-REQUIREMENTS.md` EVID-05), resolved under **PHYS-01** (Phase 19, Complete): the framework specs "lock the raw-mass nondimensionalization convention and retain `D=(G*T^2)^(1/3)` unless a full mass-fraction rewrite is explicitly chosen later." The adjudication record lives in the Phase 16 evidence packet / issue ledger (`.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`).
+**Governance note:** the locked convention is **not** necessarily this audit's originally-proposed 6.694 fix — consult the evidence packet for the adjudicated definition; do not assume this finding's original number was endorsed. The **live-code value remains a code↔spec divergence** for FUT-01.
 
-**Severity:** BLOCKER
+**Severity:** BLOCKER (spec contract locked; code alignment deferred to FUT-01)
 
-### B-2: AD Chain-Rule Factor Missing -- Physics Residual Wrong by 4x
+### B-2: AD Chain-Rule Factor — Derivative Contract Locked in Spec; Code Divergence Remains
 
-**What:** The time normalization τ = 2t/T - 1 (used for network input) requires chain-rule conversion of AD derivatives back to physical time. `review.md` identifies this precisely:
-```
-v' = dr'/du = 2 * dr'/dτ     (factor of 2)
-a' = d²r'/du² = 4 * d²r'/dτ²  (factor of 4)
-```
-The current `pinn/basic_architecture.py` does not implement these conversion factors. As a result:
-- Kinetic energy in the loss function is wrong by a factor of 4
-- Physics residual accelerations are wrong by a factor of 4
-- The network optimizes the wrong ODE
+**What (original):** Time normalization (τ = 2t/T − 1) requires chain-rule conversion of AD derivatives (factor 2 for velocity, 4 for acceleration); `pinn/basic_architecture.py` did not implement them, so kinetic energy and residual accelerations were wrong by 4×.
 
-**Impact:** Even if all other parameters are correct, the PINN learns incorrect physics. This is the most subtle and dangerous bug because the network will still converge (to the wrong solution).
+**Status as of 2026-06-10:** Spec side **resolved** by **PHYS-02** (Phase 19, Complete, `.planning/milestones/v1.4-REQUIREMENTS.md`): framework specs "define the normalized-time derivative contract, naming the autograd leaf explicitly (`u=t/T` or `tau=2u-1`) and specifying the chain-rule factors when the leaf differs from `u`," require **componentwise** derivatives (not `grad_outputs=torch.ones_like(...)`), and include the synthetic-trajectory worked example `r'(u)=[sin(2πu),cos(2πu),u²]`. This contract was **executed** as acceptance probe §10.3 under VER-04 (Phase 21, Complete). The **live-code 4× bug remains a code↔spec divergence** for FUT-01.
 
-**Fix:** Add explicit derivative conversion in the loss function. Document the three-layer scaling: raw → physics-scaled (u, r', v') → network input (τ, IC_norm). Make every loss function declare which space it operates in.
-
-**Severity:** BLOCKER
+**Severity:** BLOCKER (spec contract locked; code alignment deferred to FUT-01)
 
 ### B-3: No Training Loop Exists
 
-**What:** `pinn/basic_architecture.py` (307 lines) defines the SQR-SkipResNet-SIREN model architecture but contains **no training loop, no loss function implementation, no data loading, no optimizer setup, and no evaluation logic**. This is purely an architecture definition.
+**What:** `pinn/basic_architecture.py` defines the SQR-SkipResNet-SIREN model only — no training loop, loss implementation, data loading, optimizer, or evaluation. `pinn/data-processing-pipeline-full.py` has stage assignment and batch construction but no training loop.
 
-**Impact:** The core PINN capability (training on simulation data) does not exist. This is the largest operational gap in the project.
-
-**Files:** `pinn/basic_architecture.py`, `pinn/data-processing-pipeline-full.py` (has stage assignment and batch construction but no training loop)
+**Status as of 2026-06-10:** **Still open.** Confirmed by `PROJECT.md` ("Data pipeline: get PINN training loop working end-to-end (architecture exists, training does not)") and explicitly deferred to **FUT-01** ("Update existing `pinn/` implementation code and build the broader PINN training loop after framework-spec reconciliation is complete," `.planning/milestones/v1.4-REQUIREMENTS.md`). v1.4 deliberately built no code.
 
 **Severity:** BLOCKER
 
-### B-4: Wrong SIREN Init Formula in Documentation (Code is Correct)
+### B-4: SIREN Init Formula — Spec Stated Consistently in v1.4; Doc Corruption Fixed
 
-**What:** The audit (B-01) identifies that `main_pinn.pdf` Table 1 specifies the hidden-layer init as `U[-ω₀√(6/n), ω₀√(6/n)]` (multiplies by ω₀), which would cause 810,000x variance explosion at ω₀=30. However, the actual code at `pinn/basic_architecture.py:37` is **correct**:
-```python
-bound = np.sqrt(6 / self.in_features) / self.omega_0  # DIVIDES
-```
-**Impact:** If anyone implements from the LaTeX document instead of the Python code, the network will produce instant NaN. The documentation is the authoritative architecture spec -- code divergence from docs is a risk.
+**What (original):** The PINN doc (`main_pinn.pdf` Table 1) specified hidden-layer init `U[-ω₀√(6/n), ω₀√(6/n)]` (multiplies by ω₀ → variance explosion), while code at `pinn/basic_architecture.py:37` correctly divides by ω₀.
 
-**Fix:** Correct `main_pinn.pdf` Table 1 and Section 2.2. The LaTeX documents are the current source of truth for planning (Phase 9 is about them).
+**Status as of 2026-06-10:** Spec side **resolved** by **ARCH-01** (Phase 20, Complete): "SIREN initialization and frequency settings are stated consistently, with no epochwise `omega0` scheduler unless a reparameterized runtime mechanism is specified" (`.planning/milestones/v1.4-REQUIREMENTS.md`). A residual corruption in the very same weight-init table (`pinn_architecture.md:263`, `designe`→`designed` + fused Value/Rationale cell) was caught by the Phase 22 content-equivalence audit and **fixed in commit `bf841f6`** (GAP-22-04, `.planning/milestones/v1.4-GAPS.md`). Authoritative spec is now `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` (no longer `main_pinn.pdf`).
 
-**Severity:** BLOCKER (documentation)
+**Severity:** BLOCKER → spec-resolved (documentation); historical, retained for traceability.
 
-### B-5: Input Vector Dimensionality Is Three Different Numbers
+### B-5: Input Vector Dimensionality — Canonical 14D Locked in Spec
 
-**What:** Across the LaTeX documents, the input vector is claimed as 12D, 13D, and 14D simultaneously. The actual code at `pinn/data-processing-pipeline-full.py` produces a 13-component IC vector (plus time = 14D total). The CTL document's pipeline description produces 11D IC. No single authoritative count exists.
+**What (original):** LaTeX docs claimed 12D/13D/14D simultaneously; code produces a 13-component IC (+ time = 14D); CTL described 11D. No authoritative count existed.
 
-**Impact:** The first Linear layer requires a fixed `n_in`. Cannot initialize the network without knowing the dimension. Training code cannot be written.
+**Status as of 2026-06-10:** Spec side **resolved** by **IO-01/IO-02/IO-04** (Phase 17, Complete, `.planning/milestones/v1.4-REQUIREMENTS.md`): framework specs state one canonical input contract `14D = [tau, IC_13]`; define the 13-component Jacobi-state IC vector in one consistent order (ordered raw mass slots, Jacobi positions/velocities, energy, per-slot normalization); and remove or label-as-historical any obsolete 11D/12D/ambiguous wording. The **live-code IC composition remains a code↔spec divergence** for FUT-01 (the spec's Jacobi IC₁₃ differs from the v1.3 code's vector).
 
-**Fix:** Adopt 14D canonical: [t'(1D), IC_vector(13D)]. Standardize across ALL documents and code. Resolve the trig-encodings vs shape-invariants conflict (see D-1 below).
-
-**Severity:** BLOCKER
+**Severity:** BLOCKER (spec contract locked; code alignment deferred to FUT-01)
 
 ---
 
 ## 2. CRITICAL: Architecture & Physics Issues
 
-### C-1: Softening Parameter Mismatch by 10^5x Across Documents
+### C-1: Softening Parameter Mismatch — Strategy Adjudicated in Spec
 
-**What:** CTL document uses ε = 1e-10 for static invariant calculation (stage assignment). PINN document uses ε_soft = 1e-5 for dynamic loss computation. Pipeline code at `pinn/data-processing-pipeline-full.py:594` uses ε = 1e-10 (following CTL). The network would train with different physics than the curriculum sorts by.
+**What (original):** CTL used ε = 1e-10 for static invariants; PINN used ε_soft = 1e-5 for dynamic loss; pipeline code at `pinn/data-processing-pipeline-full.py:594` used 1e-10. Curriculum sorting and training physics disagreed.
 
-**Impact:** For close encounters (r ~ 0.001), the potential differs by ~1%. Stage assignments (using ε_invariant) and training physics (using ε_loss) disagree on which systems are "close."
+**Status as of 2026-06-10:** Spec side **resolved** by **PHYS-03** (Phase 19, Complete): framework specs "use a matched softened force/potential pair for physics residuals and energy regularization, with any offline invariant epsilon kept separate from training-time numerical softening," with the value "locked only after EVID-05 adjudication" — and "B-09 softening strategy" is one of the named EVID-05 conflicts (`.planning/milestones/v1.4-REQUIREMENTS.md` EVID-05/PHYS-03). The matched force/energy pair was exercised by acceptance probe §10.4 (VER-04, Phase 21).
+**Governance note:** the locked value/strategy is whatever the evidence packet recorded — not necessarily this audit's originally-suggested ε = 1e-8. The **live-code ε remains a code↔spec divergence** for FUT-01.
 
-**Fix:** Unify at ε = 1e-8 as recommended by audit B-09. Update all three locations: CTL doc, PINN doc, pipeline code. Recompute all stage assignments.
+**Severity:** CRITICAL (spec contract locked; code alignment deferred to FUT-01)
 
-**Severity:** CRITICAL
+### C-2: COM Frame Inconsistency — Preprocessing Order Locked in Spec
 
-### C-2: COM Frame Inconsistency Across Dataset Types
+**What (original):** Standard ICs have exact COM=0; hierarchical ICs carry a Gaussian-perturbation COM offset (median |COM|≈9e-3). Pipeline `verify_com_frame()` (`pinn/data-processing-pipeline-full.py:534-551`) only warns; no mass-consistency check between IC and Brutus COM scripts.
 
-**What:** Standard quasi-random ICs have exact COM = 0 by construction. Hierarchical ICs have median |COM| ≈ 9e-3, |P| ≈ 3e-2 (from Gaussian perturbation σ=0.01). The PINN assumes COM-frame outputs.
+**Status as of 2026-06-10:** Spec side **resolved** by **FRAME-01/FRAME-02/FRAME-03** and **IO-03** (Phases 17–18, Complete, `.planning/milestones/v1.4-REQUIREMENTS.md`): one preprocessing order is locked (COM recentering → zero-momentum boost → canonical ordering → canonical rotation gauge → scaling); COM/total-momentum assertions are stated for preprocessed samples and model outputs; the hierarchical post-perturbation COM offset is reconciled with the sampling spec; and a **mass-weighted COM projection on the raw 9D position head** is required before any loss consumes the output. COM invariance was exercised by acceptance probe §10.2 (VER-04, Phase 21). The **live-code "warn-only" behavior remains a code↔spec divergence** for FUT-01.
 
-Pipeline code at `pinn/data-processing-pipeline-full.py:534-551` has `verify_com_frame()` but only warns -- it does not transform. Separate COM scripts exist for ICs vs Brutus outputs with no mass-consistency check.
-
-**Impact:** Network trained on non-COM-frame hierarchical targets learns wrong reference frame. COM offset ~0.01 is 5-20% of inner binary separation (a ~ 0.1-0.3) -- not negligible.
-
-**Fix:** Implement unified COM transformer: recenter + reboost on RAW positions/velocities FIRST, THEN scale by D. Verify `np.allclose(m_ic, m_brutus)` at t=0.
-
-**Severity:** CRITICAL
+**Severity:** CRITICAL (spec contract locked; code alignment deferred to FUT-01)
 
 ### C-3: Non-Contiguous IDs Break Curriculum Mapping
 
-**What:** Standard dataset: 1,250 gaps out of 4,000 (31.2% gap rate). Hierarchical: 143/5,000 (2.9%). The stage assignment in `pinn/data-processing-pipeline-full.py:991-1020` iterates over a list of trajectories and assigns stages in-place. It does NOT build an `id_to_path` dictionary. If the trajectory list is built from sorted file listing (with gaps), index-based access will map incorrect IDs.
+**What:** Standard dataset has ~31% ID gaps, hierarchical ~2.9%. Stage assignment in `pinn/data-processing-pipeline-full.py:991-1020` iterates a trajectory list and assigns in-place without an `id_to_path` map; list-index access can map wrong IDs.
 
-**Impact:** Stage assignment via list-index access produces up to 45% wrong mappings in the standard dataset. Network trains on Stage-k data labeled as Stage-j.
-
-**Fix:** Build an explicit `id_to_path` dictionary from on-disk filenames at DataLoader init. Never assume ID == array index. Add `TrajectoryIndex` class with `get_by_id(file_id)` method.
+**Status as of 2026-06-10:** **Tracked; not resolved.** This is a data-pipeline (Issue 02) concern. v1.5 is verifying the underlying ID-gap claims empirically (**DATA-01**: "ID-gap claims are verified against the on-disk dataset … with recorded counts and the counting method," `.planning/REQUIREMENTS.md`) but the milestone is at Phase 23 (research-package assembly) with **no resolution doc and no adjudication yet**. The pipeline fix itself (build `id_to_path` / `TrajectoryIndex`) belongs to FUT-01 code work, not yet performed.
 
 **Severity:** CRITICAL
 
 ### C-4: Missing Stage 4-to-5 Validation Gate
 
-**What:** `calculate_metrics.py` generates metrics for ALL Brutus files including partial/errored runs. The only validity signal (final_timestep >= 9.5) runs at Stage 3, never re-validated at training time. No snapshot-count minimum is enforced.
+**What:** `calculate_metrics.py` emits metrics for all Brutus files including partial/errored runs; the only validity signal (`final_timestep >= 9.5`) runs once at Stage 3; no snapshot-count minimum is enforced for Lyapunov-dependent stages.
 
-**Impact:** 10-snapshot trajectories (failed early) can enter training if t_final happens to be >= 9.5. Lyapunov time calculation needs 200+ snapshots -- 10-snapshot trajectories break Stage 4+ assignment.
-
-**Fix:** Insert `TrajectoryValidator` at DataLoader init: enforce `snapshot_count >= 200` for Stage 4+, `>= 2` for Stage 0-3, AND `final_timestep >= 9.5`.
+**Status as of 2026-06-10:** **Tracked; not resolved.** Data-pipeline/validation (Issue 02) territory under in-progress v1.5; no resolution doc yet (`.planning/REQUIREMENTS.md`). The `TrajectoryValidator` gate is unbuilt (FUT-01).
 
 **Severity:** CRITICAL
 
 ### C-5: Stage Transition Criteria Theoretically Unattainable
 
-**What:** The CTL document requires monotonically-decreasing validation loss for stage advancement. With limited data (~7,600 ICs total) and Adam optimizer, stochastic fluctuations make monotonic decrease physically impossible over long training runs.
+**What:** CTL requires monotonically-decreasing validation loss for stage advancement; with ~7,600 ICs and Adam, strict monotonicity is unattainable, blocking curriculum progression.
 
-**Impact:** Curriculum progression will block indefinitely. Training cannot advance beyond early stages.
-
-**Fix:** Use relaxed criteria: validation loss < threshold for N consecutive epochs (not strictly monotonic). Pilot Stage 0 first to calibrate thresholds empirically.
+**Status as of 2026-06-10:** **Tracked; not resolved.** This is a curriculum/training-loop concern (Issue 03, `pinn_instruction/issues/03-curriculum-and-training-loop.md`). **No milestone has been opened for Issue 03**; v1.4 covered Issue 01 and v1.5 covers Issue 02 only. The planning artifacts are silent on a fix.
 
 **Severity:** CRITICAL
 
 ### C-6: Energy Loss Weight Schedule Risks Late-Stage Destabilization
 
-**What:** CTL Table 3 specifies λ_E = 1000 at Stage 6. This could make the energy term 100-5000x larger than the physics residual, drowning dynamics learning entirely. The loss becomes a pure energy conservation optimizer that ignores trajectory accuracy.
+**What:** CTL Table 3 specifies λ_E = 1000 at Stage 6, potentially drowning the physics residual and turning the loss into a pure energy-conservation optimizer.
 
-**Impact:** Network at Stage 6 learns to conserve energy perfectly while producing physically wrong trajectories.
-
-**Fix:** Implement hybrid capped schedule: `λ_E(k) = min(10^(k-3), cap[k])`. Add safeguard: if `λ_E * L_energy > 10 * L_data`, warn and reduce.
+**Status as of 2026-06-10:** **Tracked; not resolved.** Curriculum/training-loop (Issue 03) — no milestone opened. Note: v1.4 PHYS-04/05/06 and the §10.5 loss-stability dry-run touched loss-balancing *semantics* at the spec level, but the **stage-wise λ_E schedule magnitude** is curriculum content not adjudicated in v1.4; planning artifacts do not record a fix.
 
 **Severity:** CRITICAL
 
@@ -154,108 +128,75 @@ Pipeline code at `pinn/data-processing-pipeline-full.py:534-551` has `verify_com
 
 ### M-1: No Dependency Management
 
-**What:** Zero dependency files exist:
-- No `requirements.txt`
-- No `pyproject.toml`
-- No `setup.py`
-- No `Pipfile`
-- No `environment.yml`
-- No `poetry.lock`
+**What:** No `requirements.txt`, `pyproject.toml`, `setup.py`, `Pipfile`, or `environment.yml`. A `.venv/` exists (Python 3.12.2) with no reproducibility manifest. `.gitignore` excludes `.venv/`.
 
-A `.venv/` exists (216MB, Python 3.12.2) but no way to reproduce it. The `.gitignore` excludes `.venv/` (good).
+**Status as of 2026-06-10:** **Still open — re-verified.** A repo scan on 2026-06-10 found none of the manifest files; `.venv/` is present. No planning artifact has addressed dependency pinning (FUT-01 territory).
 
-**Impact:** Impossible to reproduce the environment. Hidden dependency conflicts. Onboarding friction is extreme.
-
-**Fix:** Create `requirements.txt` with pinned versions, generated from current `.venv/` via `pip freeze`.
+**Fix:** Generate a pinned `requirements.txt` from the active `.venv/`.
 
 **Severity:** MAJOR
 
-### M-2: Dual Data Pipeline -- Two Competing Implementations
+### M-2: Dual Data Pipeline — Two Competing Implementations
 
-**What:**
-1. `pinn/data-processing-pipeline-full.py` (1,650 lines) -- monolithic, source of truth, used by CLAUDE.md references
-2. `pinn/data-handling/` -- modular package with `core/`, `processing/`, `scripts/` subdirectories, partial implementation
+**What:** `pinn/data-processing-pipeline-full.py` (monolithic, ~1,650 lines) vs. `pinn/data-handling/` (modular, partial). Both contain parsing, invariants, stage assignment, batch construction; the modular package copies rather than shares logic.
 
-Both contain parsing logic, invariant computation, stage assignment, and batch construction. The modular package imports from `pinn/data-processing-pipeline-full.py` (copy-paste style) rather than sharing a common library.
-
-**Impact:** Potential divergence. Unclear which to use for training. Any fix applied to one must be manually propagated to the other.
-
-**Fix:** Deprecate `data-processing-pipeline-full.py` after extracting its unique functions into `data-handling/`. Run parity checks to confirm identical outputs.
+**Status as of 2026-06-10:** **Tracked; not resolved.** Both are v1.3-era live code, frozen as non-grounding for v1.4/v1.5; consolidation is FUT-01 scope. No planning artifact has reconciled them.
 
 **Severity:** MAJOR
 
-### M-3: 2,847-Line `next steps.txt` -- Mostly Superseded
+### M-3: 2,847-Line `next steps.txt` — Mostly Superseded
 
-**What:** `pinn_instruction/issues/archive/next steps.txt` is a 128KB dump (2,847 lines) containing issues, solutions, and commentary from early development. Per the Phase 9 context (D-06), ~80% is superseded by the 2026-04-27 audit. Only 4 unique sections have value not subsumed by the audit.
+**What:** `pinn_instruction/issues/archive/next steps.txt` (128KB) is ~80% superseded by the 2026-04-27 audit.
 
-**Impact:** Anyone reading this file wastes time on superseded analysis. Contradicts newer documents.
+**Status as of 2026-06-10:** **Resolved/archived** — consolidated under the v1.2 Phase 9 issues-consolidation work (`.planning/MILESTONES.md` v1.2) and the v1.4 Phase 22 author-comment census; the file lives in `archive/` and is retained for provenance only.
 
-**Fix:** Phase 9 consolidation (complete) extracted unique content into 3 thematic docs and archived the original.
-
-**Severity:** MAJOR
+**Severity:** MAJOR → INFO (archived)
 
 ### M-4: Hardcoded Machine-Specific Paths in Brutus Makefile
 
-**What:** `brutus_Newton-main/makefile` contains:
-```makefile
-BREW_PREFIX = /opt/homebrew
-HOME_DIR = <home>
-MPRLIB = $(HOME_DIR)/src/mpreal
-```
+**What:** `brutus_Newton-main/makefile` hardcodes `BREW_PREFIX = /opt/homebrew`, `HOME_DIR = <home>`, `MPRLIB = $(HOME_DIR)/src/mpreal`.
 
-**Impact:** Cannot build Brutus on any machine except the author's M2 Mac. Requires manual path edits for other users.
-
-**Fix:** Replace with environment variables or auto-detection: `BREW_PREFIX ?= $(shell brew --prefix)`, `MPRLIB ?= $(HOME)/src/mpreal`.
+**Status as of 2026-06-10:** **Still open.** Outside v1.4/v1.5 scope; no planning artifact addresses it.
 
 **Severity:** MAJOR
 
-### M-5: No Reproducibility -- Missing Seeds and Random State
+### M-5: No Reproducibility — Missing Seeds and Random State
 
-**What:** IC generation uses Sobol sequences with scrambling enabled (`ic_generation_utils.py`), but no fixed seed is found in the runner scripts. The Sobol scrambling seed determines the entire dataset distribution.
+**What:** IC generation uses scrambled Sobol sequences (`simulation_data/Scripts/ic_generation/ic_generation_utils.py`) with no fixed seed in the runner scripts.
 
-**Impact:** Regenerating ICs produces different data. Cannot reproduce existing datasets exactly.
-
-**Fix:** Add `--seed` parameter to `generate_ics.py` with a documented default value. Store the seed in dataset metadata.
+**Status as of 2026-06-10:** **Tracked.** v1.5's empirical-verification scope (e.g. SAMP/DATA requirements, `.planning/REQUIREMENTS.md`) characterizes the existing dataset but treats `sampling_method.md` and the generated data as **frozen** (the dataset will not be regenerated, per the 2026-06-10 `sampling_method.md` freeze directive). The seed gap remains a documented reproducibility limit of the historical dataset rather than an active fix target.
 
 **Severity:** MAJOR
 
 ### M-6: Blacklist Not Enforced in PINN Pipeline
 
-**What:** `simulation_data/Documentation/problematic_ics_blacklist.json` contains 65 blacklisted IDs (2 hierarchical + 63 standard). The Brutus runner scripts (`run_brutus_both_type_simple.py`, `run_brutus_hierarchical_only_mac_gold_standard.py`) DO load and enforce the blacklist by reading the `problematic_ics/` directory. However, the PINN data pipeline (`pinn/data-processing-pipeline-full.py`) does NOT load or enforce the blacklist.
+**What:** `simulation_data/Documentation/problematic_ics_blacklist.json` (65 IDs) is enforced by the Brutus runners but NOT loaded by `pinn/data-processing-pipeline-full.py`.
 
-**Impact:** Blacklisted ICs that somehow have Brutus outputs could enter PINN training, producing corrupted training data.
-
-**Fix:** Load `problematic_ics_blacklist.json` at DataLoader init. Log and exclude blacklisted IDs.
+**Status as of 2026-06-10:** **Tracked; under empirical re-verification in v1.5.** **DATA-02** verifies the blacklist — locates `problematic_ics_blacklist.json`, confirms/corrects the 65-ID claim, and records consumption status "within grounding limits: `simulation_data/Scripts/` runners are grounding; `pinn/` is not" (`.planning/REQUIREMENTS.md`). The pipeline enforcement fix is FUT-01.
 
 **Severity:** MAJOR
 
 ### M-7: Pickle Used for Batch Serialization
 
-**What:** `pinn/data-processing-pipeline-full.py:1585-1586` and `pinn/data-handling/scripts/prepare_training_data.py:193-194` use `pickle.dump()` for batch files. `pinn/data-handling/core/parsing.py:407,442` loads pickle files.
+**What:** `pinn/data-processing-pipeline-full.py:1585-1586`, `pinn/data-handling/scripts/prepare_training_data.py:193-194`, and `pinn/data-handling/core/parsing.py:407,442` use pickle for batch files.
 
-**Impact:** Pickle is unsafe for data exchange (arbitrary code execution on load), not portable across Python versions, and the format is opaque (cannot inspect without Python). For large tensor data, HDF5 or NPZ would be more appropriate.
-
-**Fix:** Replace pickle with HDF5 for batch storage. Keep `.pkl` loading for backward compatibility only.
+**Status as of 2026-06-10:** **Still open.** Live-code serialization choice; FUT-01 territory. No planning artifact addresses it.
 
 **Severity:** MAJOR
 
-### M-8: No Test Coverage
+### M-8: Thin Test Coverage (governance/phase tests now exist; pipeline tests do not)
 
-**What:** The only test file in project-owned code is `simulation_data/Data/testing_data/test_pipeline.py` (407 lines). No tests exist for `pinn/` code, IC generation, parsing, invariant computation, or stage assignment.
+**What (original):** Only `simulation_data/Data/testing_data/test_pipeline.py` existed; no tests for `pinn/`, IC generation, parsing, invariants, or stage assignment.
 
-**Impact:** Any refactoring of the data pipeline risks silent regressions. The D formula bug (B-1) would have been caught by a unit test comparing D to the known correct value.
-
-**Fix:** Add unit tests for: characteristic length D computation, energy conservation on known ICs, COM frame verification, stage assignment, input vector normalization. Minimum: test `GlobalScales.__post_init__` produces D = 6.694.
+**Status as of 2026-06-10:** **Partially changed — keep open for pipeline code.** A top-level `tests/` directory now exists, but it holds **governance/process and phase-acceptance** tests, not data-pipeline unit tests: `tests/git_policy/test_git_policy.py`, `tests/test_phase12_validation.py`, and a compiled `tests/__pycache__/test_v1_4_acceptance.cpython-312.pyc` (v1.4 acceptance probes). v1.4's VER-04 disposable probes validated the **specs**, explicitly **not** the v1.3-era code. So there is **still no unit-test coverage for `pinn/` data-pipeline logic** (D computation, COM verification, invariants, stage assignment). The regression-catching gap that would have flagged the D bug remains.
 
 **Severity:** MAJOR
 
 ### M-9: 1650-Line Monolithic Data Pipeline
 
-**What:** `pinn/data-processing-pipeline-full.py` is 1,650 lines with ~30 functions/classes in a single file. It covers parsing, scaling, invariant computation, stage assignment, batch construction, and HDF5 I/O -- multiple separable concerns.
+**What:** `pinn/data-processing-pipeline-full.py` (~1,650 lines, ~30 functions/classes) mixes parsing, scaling, invariants, stage assignment, batch construction, and I/O.
 
-**Impact:** Hard to modify, hard to test, hard to understand. The D bug at line 142 is a one-line fix but its blast radius is the entire file.
-
-**Fix:** Continue the modularization started in `data-handling/`. Extract each concern into its own module. Run parity tests between monolith and modular output.
+**Status as of 2026-06-10:** **Still open.** Live-code structure; FUT-01 modularization target. No planning artifact addresses it.
 
 **Severity:** MAJOR
 
@@ -263,112 +204,89 @@ MPRLIB = $(HOME_DIR)/src/mpreal
 
 ## 4. MAJOR: Documentation Gaps & Inconsistencies
 
-### D-1: Input Vector Orientation Encoding -- Live Conflict
+### D-1: Input Vector Orientation Encoding — Adjudicated/Reframed in Spec
 
-**What:** Two competing proposals for the 13-component IC vector:
-- **2026-04-27 Audit (B-04):** Recommends 5 trig values: `[sin(θ_L), cos(θ_L), sin(φ_L), cos(φ_L), sin(γ_orb)]`
-- **Causal_Trainingmismatch Blueprint:** Argues trig encodings are physically flawed (gimbal lock during chaotic scattering) and proposes 3 shape invariants `(I_1, I_2, I_3)` + 2 direction cosines `(cos θ, sin θ)`
+**What (original):** Two competing proposals for the 13-component IC: 2026-04-27 audit's 5 trig values vs. Causal_Trainingmismatch's 3 shape invariants + 2 direction cosines. Both 14D total but different IC composition.
 
-Both produce 14D total (t + 13 ICs) but with completely different IC composition. The Phase 9 context (D-05) flags this as a conflict that must be resolved by physical reasoning, not silently merged.
+**Status as of 2026-06-10:** Spec side **resolved/reframed** by **IO-02** (Phase 17, Complete): the framework specs define the IC vector as a **Jacobi-state** vector and declare that "**shape invariants and orientation summaries are metadata only, not final network IC slots**" (`.planning/milestones/v1.4-REQUIREMENTS.md` IO-02). The orientation conflict was an EVID-05 item ("B-04 input-vector orientation slots") and its Source-Issue entry was retired under VER-06 (`SI-PINN-001 ↔ B-04`). The adjudication record is in the Phase 16/17 evidence packet.
 
-**Impact:** Cannot finalize the input vector specification. Training code blocked until resolved.
+**Severity:** MAJOR → spec-resolved (reframed); retained for traceability.
 
-**Fix:** Resolve in Phase 9 `01-architecture-and-physics-foundations.md`. Phase 9 context recommends shape invariants + direction cosines (Causal_Trainingmismatch position) based on gimbal-lock avoidance and rotation invariance.
+### D-2: I_norm Definition — Raw vs. Bounded Names Separated in Spec
 
-**Severity:** MAJOR
+**What (original):** CTL text defines I_norm = tr(I)/(M·r_char²); some old code listings applied `tanh()`, risking double-normalization. Current pipeline does not apply `tanh`.
 
-### D-2: I_norm Definition -- Text vs Code Inconsistency
+**Status as of 2026-06-10:** Spec side **resolved** by **ARCH-04** (Phase 20, Complete): "`I_norm` uses separate names for the raw inertia descriptor and the tanh-squashed network input" (`.planning/milestones/v1.4-REQUIREMENTS.md`). The evidence/proof vehicle was added via GAP-20-01 (Phase 16 ledger row `D-02-NORM`, `AC-ARCH-04`, `evidence/D-02-NORM.md`, `ctl_instruction.md`; `.planning/milestones/v1.4-GAPS.md`).
 
-**What:** CTL document text defines I_norm = tr(I) / (M * r_char^2). Pipeline code at `pinn/data-processing-pipeline-full.py:679-691` uses the same formula. However, `next-step-for-data-processing-pipeline.txt` reports that some code listings apply `tanh()` to this value, binding it to [-1,1] while the text does not mention `tanh`. The current pipeline code does NOT apply `tanh`.
-
-**Impact:** If old code listings with `tanh` are used as reference, I_norm will be double-normalized (already in a bounded range, then tanh-compressed).
-
-**Fix:** Document the definitive formula. No `tanh` -- the value is already naturally bounded. Standardize across all docs.
-
-**Severity:** MAJOR
+**Severity:** MAJOR → spec-resolved; retained for traceability.
 
 ### D-3: Standard Gold Standard Provenance Unknown
 
-**What:** No runner script in the repository targets `brutus_output/brutus_standard_quasi_random_gold_standard/`. The 2,565 files in this folder were produced by an external process. File counts show 184 fewer files than the base standard IC folder (2,749 base -> 2,565 gold).
+**What:** No runner targets `brutus_output/brutus_standard_quasi_random_gold_standard/`; its 2,565 files were produced externally (184 fewer than the base standard IC folder).
 
-**Impact:** Cannot reproduce this dataset. Parameters are inferred from Result footers only. If this data is needed for Stage 5+ curriculum, the gap must be understood.
-
-**Fix:** Document provenance as "partial / external machine." Do not use as sole source for Stage 5 without confirming parameter consistency.
+**Status as of 2026-06-10:** **Tracked; under empirical scope in v1.5.** Gold-standard provenance/coverage is part of the dataset characterization v1.5 performs against the on-disk data (SCOPE-06/07; DATA-series requirements, `.planning/REQUIREMENTS.md`). Not yet adjudicated.
 
 **Severity:** MAJOR
 
-### D-4: Gold Standard Deployment Requires Specific GPU/NN Architecture(?)
+### D-4: PINN vs. LLM Direction — Clarified in PROJECT.md
 
-**What:** The project README references fine-tuning Qwen 3.5 2B 4-bit, but research documents also reference PINN training. The relationship between PINN and LLM approaches is unresolved. `PROJECT.md` states: "Existing PINN approach (SQR-SkipResNet-SIREN) relationship to new LLM direction is TBD."
+**What (original):** Unclear whether the project targets PINN or LLM; `PROJECT.md` stated the relationship was TBD.
 
-**Impact:** Unclear which architecture to build toward. Both paths require different infrastructure, data formats, and evaluation.
+**Status as of 2026-06-10:** **Largely clarified.** `PROJECT.md` now frames the project as a **Physics-Informed LLM**: it generates Brutus data and "uses that data to fine-tune a language model (Qwen 3.5 2B)," with the SQR-SkipResNet-SIREN PINN architecture as an existing component and data integrity feeding "everything downstream (PINN or LLM training)." The near-term roadmap is data pipeline → PINN training loop → LLM fine-tuning. The **PINN→LLM bridge mechanics remain future work**, but the strategic direction is no longer "TBD."
 
-**Fix:** Decision needed: PINN-first (train PINN, then optionally distill to LLM) or LLM-direct (format data as text, train LLM). The Phase 9 consolidation should surface this as `[DECISION-NEEDED]`.
+**Severity:** MAJOR → MINOR (direction clarified; bridge still future).
 
-**Severity:** MAJOR
+### D-5: Author-Flagged Uncertainties in Framework Specs — Census Deferred to FUT-05
 
-### D-5: 28 Author-Flagged Uncertainties in LaTeX Docs
+**What (original):** CTL/PINN docs contained author-flagged uncertainties (originally mis-counted as "28 `\authcomment`").
 
-**What:** The CTL and PINN LaTeX documents contain 28 `\authcomment` items where the author explicitly flagged uncertainty. `next-step-for-data-processing-pipeline.txt` lists 12 specific line-numbered comments. Examples include: "Confirm that all components in the IC vector are in the range [-1,1]," "Double check this softening parameter's accuracy/validity," "The two paragraphs below are suspicious."
+**Status as of 2026-06-10:** **Tracked; adjudication deferred by explicit user decision.** v1.4 Phase 22 **censused and preserved verbatim** every author-flagged comment (any form/format), retiring the "28 `\authcomment`" mis-census (GAP-22-02), and **deferred per-comment disposition** to new requirement **FUT-05** via `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-COMMENT-HANDOFF.md` (GAP-22-01; `.planning/milestones/v1.4-GAPS.md`, `.planning/milestones/v1.4-REQUIREMENTS.md` FUT-05). The comments are catalogued, not yet resolved.
 
-**Impact:** These represent the author's own acknowledgment of unresolved questions. If a developer implements from these docs without resolving the comments, they will encounter the exact same uncertainties.
-
-**Fix:** Resolve each `\authcomment` with a definitive answer. This is scope for a future LaTeX-revision phase (not Phase 9 consolidation).
-
-**Severity:** MAJOR
+**Severity:** MAJOR → tracked under FUT-05.
 
 ---
 
 ## 5. MODERATE: Data Quality Risks
 
+> All Q-# findings concern the on-disk dataset (`simulation_data/`), which is **frozen** and is **grounding** for v1.5 (SCOPE-06/07). v1.5 empirically re-verifies several of these claims; until those verifications complete and a resolution doc lands, they remain **tracked**.
+
 ### Q-1: 184 Standard IDs Missing Gold Counterpart
 
-**What:** 184 standard quasi-random IDs have no gold-standard Brutus output. Documented in `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`. Stage 5 of the curriculum requires gold-standard data (dt_out=0.01).
+**What:** 184 standard quasi-random IDs lack a gold-standard Brutus output (`simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`); Stage 5 needs gold data.
 
-**Impact:** 184 trajectories cannot participate in Stage 5 training. The data pipeline must handle this gap or fall back to low-fidelity standard data.
-
-**Fix:** Check gold counterpart existence before Stage 5 assignment. Skip to Stage 6 or use standard fallback with warning.
+**Status as of 2026-06-10:** **Tracked.** Part of v1.5 dataset characterization; Stage-5 fallback handling is FUT-01.
 
 **Severity:** MODERATE
 
 ### Q-2: Brutus Footer Schema Heterogeneity
 
-**What:** Result footers come in 3 schemas:
-- **Full:** filename, N, t_begin, t_end, dt, eta, tol, Lw, t_cpu, E_initial, E_final, dE/E
-- **Partial (no eta):** Same minus `eta=`
-- **Minimal (no eta, no tol):** 219 files in `brutus_standard_quasi_random_gold_standard/`
+**What:** Result footers come in 3 schemas (full / no-eta / minimal); 219 minimal-footer files in the standard gold folder. Parsers must handle optional fields with folder-default fallback (`simulation_data/Documentation/README.md`).
 
-Parsing code must handle optional fields. When `tol` is absent, fall back to folder defaults (documented in `simulation_data/Documentation/README.md` "Brutus Parameters by Variant").
-
-**Impact:** Parsers that assume all fields are present will crash on minimal-footers files. Tolerance-aware logic needs fallback logic.
+**Status as of 2026-06-10:** **Tracked.** Empirical-verification scope in v1.5.
 
 **Severity:** MODERATE
 
 ### Q-3: 31.2% Gap Rate in Standard Dataset
 
-**What:** Standard quasi-random dataset has 1,250 gaps in 4,000 IDs (31.2% gap rate). Gap causes: generation continuation, prescreen rejection (993 failed), problematic IC moves.
+**What:** ~1,250 gaps in 4,000 standard IDs.
 
-**Impact:** Code that assumes dense ID ranges will fail. Linear indexing silently maps wrong data. This is already partially handled by Brutus runners but the PINN pipeline needs explicit gap-aware logic.
+**Status as of 2026-06-10:** **Under direct empirical verification in v1.5** — **DATA-01** verifies the exact claim "1,250 gaps / 4,000 standard quasi-random; 143 / 5,000 hierarchical" against the on-disk dataset with recorded counts and method (`.planning/REQUIREMENTS.md`). Counting not yet executed (Phase 23 precedes verification per PKG-03). Linked to C-3 (pipeline handling, FUT-01).
 
 **Severity:** MODERATE
 
 ### Q-4: Brutus Timeout Produces Orphaned Partial Outputs
 
-**What:** Batch runners use 3000-second timeout. Failed simulations have their partial output deleted and IC moved to `problematic_ics/`. However, there is no resume mechanism -- an IC that timed out at 2900s cannot be continued.
+**What:** 3000s timeout; failed sims have partial output deleted and IC moved to `problematic_ics/`; no resume mechanism.
 
-**Impact:** Some ICs in chaotic regimes may be fundamentally untestable within the 50-minute budget. These ICs are permanently lost from the dataset.
-
-**Fix:** Consider increasing timeout or implementing checkpoint/resume for long-running simulations.
+**Status as of 2026-06-10:** **Tracked; historical.** Pertains to the frozen data-generation pipeline; no active fix (dataset is frozen).
 
 **Severity:** MODERATE
 
 ### Q-5: Parameter Heterogeneity Within Dataset Folders
 
-**What:** Multiple tolerance and word-length values exist within the same output folder (e.g., `brutus_hierarchical/` has files with tol=1e-15 AND tol=1e-13). This is documented in `simulation_data/Documentation/README.md`.
+**What:** Mixed tolerance/word-length values within a single output folder (`simulation_data/Documentation/README.md`).
 
-**Impact:** Training data from the same "variant" has different numerical precision characteristics. The PINN may learn different noise floors from different parameter subsets.
-
-**Fix:** Track per-file tolerance in metadata. Consider parameter-homogeneous subsets for training.
+**Status as of 2026-06-10:** **Tracked.** Part of v1.5 dataset characterization (per-file parameter tracking).
 
 **Severity:** MODERATE
 
@@ -376,45 +294,38 @@ Parsing code must handle optional fields. When `tol` is absent, fall back to fol
 
 ## 6. MODERATE: Process & Workflow Issues
 
-### P-1: Phase 9 (Issues Consolidation) Complete
+### P-1: Issues Consolidation Complete; v1.4 Shipped, v1.5 In Progress
 
-**What:** Phase 9 has 3/3 plans complete. Three consolidated thematic docs exist in `pinn_instruction/issues/`:
-- `01-architecture-and-physics-foundations.md` (39,567 bytes)
-- `02-data-pipeline-and-validation.md` (27,868 bytes)
-- `03-curriculum-and-training-loop.md` (42,083 bytes)
-- `MIGRATION.md` (7,643 bytes)
-- `README.md` (3,218 bytes)
-- `archive/` — 8 original issue files
+**What (original):** Tracked Phase 9 (issues consolidation) status.
 
-The 4 original `.txt` files and 3 untracked issue files have been consolidated and archived.
+**Status as of 2026-06-10 (updated phase state):**
+- v1.2 Phase 9 consolidated 7 issue reports into 3 thematic docs (`pinn_instruction/issues/01..03-*.md`) — Complete.
+- **v1.4 (Phases 16–22) SHIPPED 2026-06-09** and merged to master: 8 phases, 26 plans, 65 tasks; 32/32 requirements and 25/25 STOP gaps closed (`.planning/MILESTONES.md`, `.planning/milestones/v1.4-MILESTONE-AUDIT.md`).
+- **v1.5 (Phases 23–29) IN PROGRESS** on branch `milestone/v1.5`, currently Phase 23 (research-package assembly); resolution doc not yet produced (`.planning/REQUIREMENTS.md`).
 
-**Impact:** Resolved. Seven scattered, overlapping documents have been consolidated into 3 thematic docs with distinct purposes.
-
-**Severity:** INFO (resolved)
+**Severity:** INFO
 
 ### P-2: Modified But Uncommitted Documentation
 
-**What:** `simulation_data/Documentation/README.md` is modified in the working tree (git status: `M`). The changes are unstaged.
+**What (original):** `simulation_data/Documentation/README.md` was modified-but-unstaged in the working tree.
 
-**Impact:** Documentation drift between committed and actual state. If someone checks out the repo, they get stale docs.
+**Status as of 2026-06-10:** **Stale — original instance cleared.** `git status` on 2026-06-10 shows the working tree carries only `.planning/config.json` (modified) and `.planning/phases/23-research-package-assembly/23-PATTERNS.md` (untracked) — both active v1.5 planning artifacts, not the README. The README drift this finding flagged is no longer present.
 
-**Severity:** MINOR
+**Severity:** MINOR → resolved (this instance).
 
-### P-3: No CI/CD Pipeline
+### P-3: No Test/Build CI (AI-triage workflows now exist; local hooks enforced)
 
-**What:** No GitHub Actions, no test automation, no linting enforcement, no automated build verification.
+**What (original):** No GitHub Actions, no test automation, linting, or build verification.
 
-**Impact:** All quality checks are manual. A broken commit would not be caught until someone runs the pipeline manually.
+**Status as of 2026-06-10:** **Partially changed — keep open for test/build CI.** GitHub Actions now exist but are **AI bot workflows only**: `.github/workflows/` contains `gemini-dispatch.yml`, `gemini-invoke.yml`, `gemini-review.yml`, `gemini-scheduled-triage.yml`, `gemini-triage.yml` (Gemini review/triage automation). There is still **no test-execution, lint, or build-verification CI**. Local commit governance is enforced via `.githooks/` (`commit-msg`, `pre-commit`, `pre-push`, `pre-rebase`, `post-checkout`, `post-commit`, `post-merge`) per the Git Commit Protocol. So: governance automation strong; quality/test CI absent.
 
 **Severity:** MINOR
 
 ### P-4: Reference Code is Loaded with TODOs
 
-**What:** `reference-code/` directory (387MB) contains external NN reference implementations with 30+ TODO/FIXME/HACK comments. These are external codebases (GravNN, PINA, PyTorch source) and not project-owned.
+**What:** `reference-code/` (~387MB) holds external NN reference implementations (GravNN, PINA, PyTorch source) with 30+ TODO/FIXME/HACK comments — not project-owned.
 
-**Impact:** Minimal -- these are reference code, not active dependencies. However, the directory is large (387MB) and contains code that could be confused with project code.
-
-**Fix:** Consider moving reference-code to a submodule or separate repository to reduce repo size.
+**Status as of 2026-06-10:** **Still open (low impact).** No planning artifact addresses extraction to a submodule.
 
 **Severity:** MINOR
 
@@ -424,27 +335,25 @@ The 4 original `.txt` files and 3 untracked issue files have been consolidated a
 
 ### S-1: Brutus Build Depends on System-Specific Libraries
 
-**What:** Brutus requires GMP (libgmp, libgmpxx), MPFR (libmpfr), and the `mpreal` header library installed at specific paths. These are not vendored and not documented with version requirements.
+**What:** Brutus needs GMP, MPFR, and the `mpreal` header at specific paths, unvendored and unversioned.
 
-**Impact:** Building Brutus requires installing system packages via Homebrew (macOS) or apt (Linux). Version incompatibilities could cause silent precision differences.
+**Status as of 2026-06-10:** **Still open.** Unchanged.
 
 **Severity:** MINOR
 
 ### S-2: Large Data Directories Excluded from Git But Not Documented
 
-**What:** `.gitignore` excludes `simulation_data/Data/` entirely (6.2GB). The `IC_RAW_DIR` environment variable pattern externalizes raw ICs. New users must understand which data comes from git and which must be generated or obtained externally.
+**What:** `.gitignore` excludes `simulation_data/Data/` (~6.2GB); raw ICs externalized via `IC_RAW_DIR`. A fresh clone has no simulation data.
 
-**Impact:** A fresh clone has no simulation data. The pipeline must be run from scratch or data must be shared via external means.
-
-**Fix:** Document data acquisition steps in a SETUP.md or expand the Quick Start section of the dataset README.
+**Status as of 2026-06-10:** **Still open.** Note the new-Mac migration runbook (`docs/runbooks/migration/exact-state-mac-migration.md`) now documents restoring local state excluding bulky payloads, partially mitigating onboarding confusion. A dedicated SETUP.md is still absent.
 
 **Severity:** MINOR
 
 ### S-3: Single M2 Mac Development Constraint
 
-**What:** All development happens on one M2 Mac (Apple Silicon). The Brutus makefile assumes ARM64 + Homebrew at `/opt/homebrew`. No testing on x86_64 Linux.
+**What:** All development on one Apple-Silicon Mac; Brutus makefile assumes ARM64 + Homebrew at `/opt/homebrew`; no x86_64 Linux testing.
 
-**Impact:** Brutus may not compile on Linux without makefile modifications. GPU training would require different infrastructure than what's available on M2.
+**Status as of 2026-06-10:** **Still open.** Unchanged.
 
 **Severity:** MINOR
 
@@ -454,45 +363,41 @@ The 4 original `.txt` files and 3 untracked issue files have been consolidated a
 
 ### No Secrets Detected
 
-- No `.env` files found
-- No API keys, tokens, or credentials in codebase
-- `.gitignore` covers `.venv/`, `gha-creds-*.json`, and data directories
-- No cloud service credentials, no database passwords
-- Project is entirely offline (no external API calls in pipeline code)
+- No `.env` files; no API keys, tokens, or credentials in tracked code.
+- `.gitignore` covers `.venv/`, `gha-creds-*.json`, and data directories.
+- No cloud credentials or database passwords. Pipeline is offline.
+
+**Status as of 2026-06-10:** Unchanged. (Note: `.github/workflows/gemini-*.yml` invoke an external AI service via GitHub Actions; verify any associated secrets are stored in GitHub Actions secrets, not committed — not audited here.)
 
 ### Unsafe Deserialization
 
-- `pickle.dump/load` used in `pinn/data-processing-pipeline-full.py` and `pinn/data-handling/core/parsing.py` (see M-7)
-- `np.load(allow_pickle=True)` used in `pinn/data-handling/core/parsing.py:411,468`
-- Risk is low for this project (data comes from own pipeline, not external sources) but violates security best practice
+- `pickle.dump/load` in `pinn/data-processing-pipeline-full.py` and `pinn/data-handling/core/parsing.py` (see M-7); `np.load(allow_pickle=True)` in `pinn/data-handling/core/parsing.py:411,468`. Low risk (self-produced data) but violates best practice. Unchanged.
 
 ### Path Traversal
 
-- File paths are constructed from numeric IDs and predefined directory structures
-- No user-supplied path components found in file I/O operations
-- Risk is low but not formally validated
+- File paths built from numeric IDs and predefined directories; no user-supplied path components found. Low risk, not formally validated. Unchanged.
 
 ---
 
-## 9. Pre-Implementation Audit: 11 Blockers Status
+## 9. Pre-Implementation Audit: 11 Blockers Status (Refreshed 2026-06-10)
 
-From the 2026-04-27 comprehensive audit (`three_body_pinn_pre-implementation_audit_2026-04-27.md`):
+From the 2026-04-27 audit (`three_body_pinn_pre-implementation_audit_2026-04-27.md`). The table now distinguishes **Spec** status (resolved by v1.4 framework-spec construction) from **Code** status (v1.3-era live `pinn/` code, untouched — FUT-01). **Spec status changes below are grounded in `.planning/milestones/v1.4-REQUIREMENTS.md` and `.planning/milestones/v1.4-GAPS.md`; no physics was re-derived to assign them.**
 
-| # | Blocker | Code Status | Doc Status |
-|---|---------|-------------|------------|
-| B-01 | SIREN hidden-layer init wrong formula | Code CORRECT (divides by ω₀) | Doc WRONG (multiplies) |
-| B-02 | D = 6.694 (currently 4.64 in code) | Code WRONG | Doc WRONG |
-| B-03 | Input vector 12/13/14D conflicting | Code uses 14D | Doc inconsistent |
-| B-04 | Trig angle encodings missing from CTL | Code not implemented | Doc missing |
-| B-05 | COM frame violation in hierarchical | Code warns only | Doc inconsistent |
-| B-06 | Missing Stage 4→5 validation gate | NOT in code | NOT in docs |
-| B-07 | No replay/lookahead batch split | Basic replay exists | Doc inconsistent |
-| B-08 | Data-fidelity vs collocation conflated | NOT in code | Doc conflated |
-| B-09 | Softening mismatch ε=1e-10 vs 1e-5 | Code uses 1e-10 | Docs disagree |
-| B-10 | Dynamic omega0 scheduling is no-op | Not in code | Doc proposes it |
-| B-11 | Non-contiguous IDs not handled | NOT in code | Doc assumes linear |
+| # | Blocker | Spec status (v1.4) | Code status (FUT-01) | Grounding |
+|---|---------|--------------------|----------------------|-----------|
+| B-01 | SIREN hidden-layer init formula | RESOLVED | already correct in code | ARCH-01; GAP-22-04 (`bf841f6`) |
+| B-02 | Characteristic length D convention | ADJUDICATED & LOCKED | divergent | PHYS-01; EVID-05 |
+| B-03 | Input vector 12/13/14D conflict | RESOLVED (14D=[τ,IC₁₃]) | divergent | IO-01/02/04 |
+| B-04 | Orientation/trig encodings in CTL | RESOLVED (metadata-only) | divergent | IO-02; VER-06 (SI-PINN-001) |
+| B-05 | COM frame violation (hierarchical) | RESOLVED | warn-only in code | FRAME-01/02/03, IO-03 |
+| B-06 | Missing Stage 4→5 validation gate | NOT in v1.4 scope (Issue 02/03) | not built | tracked (C-4) |
+| B-07 | Replay/lookahead batch split | NOT in v1.4 scope (Issue 03) | basic replay only | tracked |
+| B-08 | Data-fidelity vs collocation conflated | NOT in v1.4 scope (Issue 03) | not built | tracked |
+| B-09 | Softening mismatch ε strategy | ADJUDICATED & LOCKED | divergent | PHYS-03; EVID-05 |
+| B-10 | Dynamic ω₀ scheduling no-op | RESOLVED (no scheduler unless reparameterized) | n/a | ARCH-01 |
+| B-11 | Non-contiguous IDs not handled | under empirical verify (v1.5) | not built | DATA-01 (C-3) |
 
-**Resolution status:** 0 of 11 blockers resolved in code. 0 of 11 blockers resolved in documentation. **All 11 remain open.**
+**Resolution status (2026-06-10):** **Spec side:** 7 of 11 resolved or adjudicated-and-locked by v1.4 (B-01, B-02, B-03, B-04, B-05, B-09, B-10); B-11 under empirical verification in v1.5; B-06/B-07/B-08 belong to the not-yet-opened Issue-03 (curriculum/training-loop) work. **Code side:** 0 of 11 aligned — the live `pinn/` implementation was deliberately untouched and is owned by FUT-01.
 
 ---
 
@@ -500,43 +405,33 @@ From the 2026-04-27 comprehensive audit (`three_body_pinn_pre-implementation_aud
 
 ### No Pinned Dependencies
 
-Current environment (inferred from `.venv/`):
-- Python 3.12.2
-- PyTorch (imported in `basic_architecture.py`)
-- NumPy, SciPy, pandas (used throughout pipeline)
-- No version information recorded anywhere
+Inferred from `.venv/` (no manifest exists as of 2026-06-10): Python 3.12.2; PyTorch (`pinn/basic_architecture.py`); NumPy/SciPy/pandas across the pipeline. No version information recorded anywhere. See M-1.
 
 ### External Library Risk
 
-- `mpreal` (C++ header for MPFR) -- maintained, stable, but must be installed separately
-- GMP and MPFR -- system libraries, version-dependent
-- Brutus uses C++11 standard (not C++17/20) -- compiler compatibility risk as g++ defaults evolve
+- `mpreal` (MPFR C++ header), GMP, MPFR — system libraries, version-dependent, installed separately.
+- Brutus uses C++11 — compiler-default-evolution compatibility risk.
+
+Unchanged from prior audit.
 
 ---
 
 ## 11. Summary: What Blocks Implementation
 
-### Must Fix Before Writing Training Code:
+### Resolved at the spec level by v1.4 (code alignment still owed to FUT-01)
 
-1. **Fix D (B-1):** Change `pinn/data-processing-pipeline-full.py:142` to `D = cbrt(G * 3.0 * T_max^2) = 6.694`. Recompute all stages.
-2. **Fix AD chain rule (B-2):** Add derivative conversion factors (2x for v, 4x for a) in loss computation.
-3. **Resolve input vector (B-3, D-1):** Adopt 14D canonical, pick trig vs shape-invariants, update all docs.
-4. **Fix COM frame (C-2):** Implement unified COM transformer; apply before scaling.
-5. **Build TrajectoryIndex (C-3):** Non-contiguous ID handling at DataLoader init.
-6. **Unify softening (C-1):** Set ε = 1e-8 everywhere; recompute stages.
-7. **Add validation gate (C-4):** Snapshot-count + t_final >= 9.5 check at DataLoader init.
-8. **Create `requirements.txt` (M-1):** Pin all dependencies.
+- D convention (B-1/B-02 → PHYS-01), AD derivative contract (B-2/B-02 → PHYS-02), input vector 14D (B-5/B-03 → IO-01/02/04), orientation encoding (D-1/B-04 → IO-02), COM frame (C-2/B-05 → FRAME-01/02/03, IO-03), softening strategy (C-1/B-09 → PHYS-03), SIREN init doc (B-4/B-01 → ARCH-01), I_norm naming (D-2 → ARCH-04). All verified by the §10.1–§10.5 acceptance probes under VER-04/VER-05 (Phase 21).
 
-### Should Fix Before Writing Training Code:
+### Still blocking (in priority order)
 
-9. **Add training loop skeleton (B-3):** DataLoader, loss function, optimizer, evaluation.
-10. **Resolve batch construction (B-07, B-08):** Replay/lookahead split, collocation point sampling.
-11. **Fix SIREN doc (B-4):** Correct LaTeX document to match correct code.
-12. **Add tests for D, COM, invariants (M-8):** Catch regressions.
-13. **Load blacklist in PINN pipeline (M-6):** Exclude problematic ICs.
-14. **Replace pickle with HDF5 (M-7):** Safer serialization.
+1. **Land the Issue-02 resolution doc + adjudicate (v1.5).** Data-pipeline/validation contracts (C-3, C-4, M-6, Q-1..Q-5) gate on it. Currently at Phase 23; no resolution doc yet.
+2. **Open and resolve Issue-03 (curriculum/training-loop).** C-5 (stage transition criteria), C-6 (λ_E schedule), B-07, B-08 — no milestone exists.
+3. **FUT-01 code rewrite/alignment.** Build the training loop (B-3) and align the live `pinn/` code to the v1.4 specs: D value, AD chain-rule factors, COM transform, Jacobi IC₁₃, softening ε, `TrajectoryIndex`/`TrajectoryValidator`, blacklist enforcement (M-6), pickle→HDF5 (M-7), modularization (M-2/M-9).
+4. **FUT-02.** Recompute curriculum statistics/stage thresholds after preprocessing+physics contracts finalize.
+5. **FUT-05.** Adjudicate the preserved author comments (`22-COMMENT-HANDOFF.md`).
+6. **Infra debt (parallelizable).** `requirements.txt` (M-1), pipeline unit tests (M-8), test/build CI (P-3), Brutus makefile portability (M-4), data-acquisition docs (S-2).
 
 ---
 
-*Concerns audit: 2026-04-27*
-*Next review: After Phase 9 completion (issues consolidation)*
+*Concerns audit base: 2026-04-27. Refreshed: 2026-06-10 (status-only update against v1.4 completion records and v1.5 in-progress artifacts; no findings dropped; no physics re-adjudicated).*
+*Next review: After the Issue-02 resolution doc lands and v1.5 adjudication phases (25–29) execute.*
