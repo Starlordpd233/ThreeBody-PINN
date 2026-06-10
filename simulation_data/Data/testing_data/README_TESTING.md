@@ -9,7 +9,7 @@ This directory contains everything needed to test the IC generation and Brutus e
 Run the complete test pipeline with a single command:
 
 ```bash
-cd <home>/Desktop/3_body_problem/simulation_data/Data/testing_data
+cd simulation_data/Data/testing_data
 python test_pipeline.py
 ```
 
@@ -24,14 +24,14 @@ This will:
 #### Step 1: Build Brutus (if not already built)
 
 ```bash
-cd <home>/Desktop/3_body_problem/brutus_Newton-main
+cd brutus_Newton-main
 make clean
 make
 ```
 
 Verify the executable exists:
 ```bash
-ls -la <home>/Desktop/3_body_problem/brutus_Newton-main/brutus
+ls -la brutus_Newton-main/brutus
 ```
 
 #### Step 2: Generate Test ICs
@@ -39,10 +39,10 @@ ls -la <home>/Desktop/3_body_problem/brutus_Newton-main/brutus
 **Generate a single test IC manually:**
 
 ```bash
-cd <home>/Desktop/3_body_problem/simulation_data/Scripts/ic_generation
+cd simulation_data/Scripts/ic_generation
 python3 -c "
 import sys
-sys.path.insert(0, '<home>/Desktop/3_body_problem/simulation_data/Scripts/ic_generation')
+sys.path.insert(0, '.')
 from ic_generation_utils import EnhancedThreeBodySampler
 
 # Create sampler
@@ -52,7 +52,7 @@ sampler = EnhancedThreeBodySampler(epsilon=0.05, velocity_scale=0.1, seed=42)
 positions, velocities, _ = sampler.generate_batch(1)
 
 # Save to testing directory
-output_dir = '<home>/Desktop/3_body_problem/simulation_data/Data/testing_data/ic_raw/ic_standard_quasi_random'
+output_dir = '../../Data/testing_data/ic_raw/ic_standard_quasi_random'
 import os
 os.makedirs(output_dir, exist_ok=True)
 sampler.save_brutus_format_single(
@@ -67,7 +67,7 @@ print('IC saved to ic_standard_0000.txt')
 **Or use the generator script directly:**
 
 ```bash
-cd <home>/Desktop/3_body_problem/simulation_data/Scripts/ic_generation
+cd simulation_data/Scripts/ic_generation
 python3 -c "
 import sys
 sys.path.insert(0, '.')
@@ -78,7 +78,7 @@ continuation_enhanced_ic_generation(
     n_samples=3,
     ic_type='standard',
     start_from_last=False,
-    directory='<home>/Desktop/3_body_problem/simulation_data/Data/testing_data/ic_raw/ic_standard_quasi_random',
+    directory='../../Data/testing_data/ic_raw/ic_standard_quasi_random',
     base_filename='ic_standard_',
     epsilon=0.05,
     velocity_scale=0.1,
@@ -92,7 +92,7 @@ continuation_enhanced_ic_generation(
     n_samples=3,
     ic_type='hierarchical',
     start_from_last=False,
-    directory='<home>/Desktop/3_body_problem/simulation_data/Data/testing_data/ic_raw/ic_hierarchical',
+    directory='../../Data/testing_data/ic_raw/ic_hierarchical',
     base_filename='ic_hierarchical_',
     seed=43,
     mass=1.0
@@ -103,7 +103,7 @@ continuation_enhanced_ic_generation(
 #### Step 3: Copy ICs to Final Directory (Skip Prescreening for Quick Test)
 
 ```bash
-cd <home>/Desktop/3_body_problem/simulation_data/Data/testing_data
+cd simulation_data/Data/testing_data
 
 # Copy standard ICs
 cp ic_raw/ic_standard_quasi_random/*.txt ic_final/ic_standard_quasi_random/
@@ -120,20 +120,20 @@ ls -la ic_final/ic_hierarchical/
 
 **For hierarchical ICs:**
 ```bash
-cd <home>/Desktop/3_body_problem/brutus_Newton-main
+cd brutus_Newton-main
 
 ./brutus 1e-15 130 0 10 0.15 3 \
-  <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/ic_final/ic_hierarchical/ic_hierarchical_0000.txt \
-  > <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/brutus_output/brutus_hierarchical_0000.txt
+  ../simulation_data/Data/testing_data/ic_final/ic_hierarchical/ic_hierarchical_0000.txt \
+  > ../simulation_data/Data/testing_data/brutus_output/brutus_hierarchical_0000.txt
 ```
 
 **For standard ICs:**
 ```bash
-cd <home>/Desktop/3_body_problem/brutus_Newton-main
+cd brutus_Newton-main
 
 ./brutus 1e-14 122 0 10 0.18 3 \
-  <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/ic_final/ic_standard_quasi_random/ic_standard_0000.txt \
-  > <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/brutus_output/brutus_standard_0000.txt
+  ../simulation_data/Data/testing_data/ic_final/ic_standard_quasi_random/ic_standard_0000.txt \
+  > ../simulation_data/Data/testing_data/brutus_output/brutus_standard_0000.txt
 ```
 
 **Brutus parameter explanation:**
@@ -154,13 +154,13 @@ cd <home>/Desktop/3_body_problem/brutus_Newton-main
 
 ```bash
 # Check output exists
-ls -la <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/brutus_output/
+ls -la simulation_data/Data/testing_data/brutus_output/
 
 # View first 30 lines
-head -30 <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/brutus_output/brutus_hierarchical_0000.txt
+head -30 simulation_data/Data/testing_data/brutus_output/brutus_hierarchical_0000.txt
 
 # Check final timestamp (should be >= 9.5)
-tail -20 <home>/Desktop/3_body_problem/simulation_data/Data/testing_data/brutus_output/brutus_hierarchical_0000.txt
+tail -20 simulation_data/Data/testing_data/brutus_output/brutus_hierarchical_0000.txt
 ```
 
 ## Directory Structure
@@ -213,7 +213,7 @@ Brutus output contains snapshots at each timestep:
 To run the full prescreening pipeline:
 
 ```bash
-cd <home>/Desktop/3_body_problem/simulation_data/Validation/prescreening
+cd simulation_data/Validation/prescreening
 python stage2_prescreening_revised_auto.py
 ```
 
@@ -225,7 +225,7 @@ python stage2_prescreening_revised_auto.py
 
 ### Brutus Not Found
 ```bash
-cd <home>/Desktop/3_body_problem/brutus_Newton-main
+cd brutus_Newton-main
 make clean && make
 ```
 
@@ -236,7 +236,7 @@ pip install numpy scipy numba
 
 ### Permission Denied
 ```bash
-chmod +x <home>/Desktop/3_body_problem/brutus_Newton-main/brutus
+chmod +x brutus_Newton-main/brutus
 ```
 
 ### Incomplete Simulation Output
@@ -250,7 +250,7 @@ If the final timestamp is < 9.5, the simulation failed. Check:
 For production batch runs, use the runner scripts:
 
 ```bash
-cd <home>/Desktop/3_body_problem/simulation_data/Scripts/brutus_runners
+cd simulation_data/Scripts/brutus_runners
 python run_brutus_both_type_simple.py
 ```
 
