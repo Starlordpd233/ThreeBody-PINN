@@ -87,6 +87,26 @@ class CommitMessagePolicyTests(unittest.TestCase):
 
 
 class StagedPathPolicyTests(unittest.TestCase):
+    def test_allows_approved_planning_tmp_metadata(self):
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={
+                "GIT_POLICY_STAGED_FILES": (
+                    ".planning/tmp/docs-work-manifest.json\n"
+                    ".planning/tmp/verify-Phase-9-consistency.json\n"
+                )
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_unapproved_planning_tmp_artifact(self):
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={"GIT_POLICY_STAGED_FILES": ".planning/tmp/unapproved.json\n"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("generated", result.stderr)
+
     def test_rejects_generated_artifacts(self):
         result = run_python(
             STAGED_VALIDATOR,
