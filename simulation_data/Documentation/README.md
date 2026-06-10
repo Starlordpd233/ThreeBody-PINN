@@ -200,32 +200,26 @@ ic_hierarchical_XXXX.txt
 ic_standard_XXXX.txt
 ```
 
-Gold-standard folders use a `_gold_` infix:
-```
-ic_hierarchical_gold_XXXX.txt
-ic_standard_gold_XXXX.txt
-```
+**Historical note (2026-06-10):** the gold-standard IC folders were documented as using a `_gold_` infix (`ic_hierarchical_gold_XXXX.txt`, `ic_standard_gold_XXXX.txt`). Those folders have since been removed, so this naming is no longer verifiable on disk; no current IC file uses a `_gold_` infix.
 
 Where `XXXX` is a 4-digit zero-padded integer (e.g., `0000`, `0427`, `3998`).
 
 ### Brutus Output Files
 
-Non-gold and gold-standard folders use **different filename prefixes**:
+All four folders use the **base filename prefixes**; gold-standard folders do **not** add a `_gold_` infix (verified against the on-disk tree 2026-06-10):
 
 ```
 simulation_data/Data/brutus_output/brutus_hierarchical/brutus_hierarchical_XXXX.txt
-simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_gold_XXXX.txt
+simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_XXXX.txt
 simulation_data/Data/brutus_output/brutus_standard_quasi_random/brutus_standard_XXXX.txt
-simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/brutus_standard_gold_XXXX.txt
+simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/brutus_standard_XXXX.txt
 ```
 
-Gold-standard status is encoded in **both** the folder name and the filename. When parsing, either signal is sufficient; the folder is the authoritative variant identifier.
+Gold-standard status is encoded **only** in the folder name; filenames do not encode it. When parsing, the folder is the authoritative (and only) variant identifier.
 
-**Note:** The mapping between IC and Brutus files is always by numeric ID:
-- `ic_hierarchical_0427.txt` → `brutus_hierarchical_0427.txt`
-- `ic_hierarchical_gold_0427.txt` → `brutus_hierarchical_gold_0427.txt`
-- `ic_standard_0427.txt` → `brutus_standard_0427.txt`
-- `ic_standard_gold_0427.txt` → `brutus_standard_gold_0427.txt`
+**Note:** The mapping between IC and Brutus files is always by numeric ID, within the corresponding folder pair:
+- `ic_hierarchical_0427.txt` → `brutus_hierarchical_0427.txt` (same filename in the base and gold-standard Brutus folders)
+- `ic_standard_0427.txt` → `brutus_standard_0427.txt` (same filename in the base and gold-standard Brutus folders)
 
 ---
 
