@@ -14,6 +14,8 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 - `pinn_instruction/` — Instruction and methodology docs
 - `paper_templates/` — Documentation templates
 - `reference-code/` — Reference implementations
+- `docs/` — Lifecycle-managed project docs: conventions (`docs/README.md`), runbooks, work artifacts
+- `tools/` — Verification tooling (`tools/spec-render-check/` render detector suite)
 - `.planning/` — GSD planning artifacts and phases
 - `.planning/research/edl/` — Non-canonical EDL research-support briefs for empirically consequential source-silent gaps
 
