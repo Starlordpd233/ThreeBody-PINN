@@ -57,7 +57,7 @@ completed: 2026-06-10
 
 ## Accomplishments
 - Characterized `data_quality_assessment.md` read-only with full git provenance (12 commits), section map, compatibility-verification relation, and INCLUDE recommendation — zero edits to the source file (SCOPE-09 verified)
-- Built the canonical CLM claims register with 13 stable rows (CLM-01 through CLM-13): 7 verified (grounded by Documentation/), 6 claimed-unverified (including the contested D=6.694 convention conflict), per the D-13 conservative rule
+- Built the canonical CLM claims register with 13 stable rows (CLM-01 through CLM-13): 6 verified (grounded by Documentation/), 7 claimed-unverified (including the contested D=6.694 convention conflict), per the D-13 conservative rule
 - Drafted the consolidation plan enumerating 6 candidate deliverables, the standalone-vs-consolidated split, and the two open inclusion calls (sampling_method.md, data_quality_assessment.md) for the D-07 user checkpoint
 
 ## Task Commits
