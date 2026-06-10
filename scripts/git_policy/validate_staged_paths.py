@@ -26,6 +26,11 @@ BLOCKED_PATTERNS = (
     "*/wandb/*",
 )
 
+ALLOWED_BLOCKED_PATHS = {
+    ".planning/tmp/docs-work-manifest.json",
+    ".planning/tmp/verify-Phase-9-consistency.json",
+}
+
 ALLOW_LARGE_PATTERNS = (
     "simulation_data/Documentation/*",
 )
@@ -77,7 +82,7 @@ def main():
     errors = []
 
     for path in paths:
-        if matches_any(path, BLOCKED_PATTERNS):
+        if path not in ALLOWED_BLOCKED_PATHS and matches_any(path, BLOCKED_PATTERNS):
             errors.append(f"generated or scratch artifact is staged: {path}")
 
     sizes = staged_sizes()

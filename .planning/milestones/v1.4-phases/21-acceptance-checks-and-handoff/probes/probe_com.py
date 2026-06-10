@@ -19,11 +19,11 @@ def test_com():
     # x'_i = x_i - sum_j(M_j x_j)/total_mass
     raw_com = (masses.unsqueeze(1) * raw_pos).sum(dim=0) / total_mass
     projected_pos = raw_pos - raw_com
-    
+
     # Check COM invariance of projected pos
     final_com = (masses.unsqueeze(1) * projected_pos).sum(dim=0) / total_mass
     com_magnitude = torch.norm(final_com).item()
-    
+
     assert com_magnitude < 1e-10, f"COM invariance failed: {com_magnitude}"
     print(f"COM Invariance check passed! COM magnitude: {com_magnitude:.2e}")
 
