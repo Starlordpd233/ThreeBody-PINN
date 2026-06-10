@@ -91,15 +91,15 @@ Every selected finding follows the v1.4-style loop:
 
 **Wave 1**
 
-  - [ ] 23-01-PLAN.md — DQA characterization (PKG-04) + CLM claims register (PKG-03) + consolidation plan
+  - [x] 23-01-PLAN.md — DQA characterization (PKG-04) + CLM claims register (PKG-03) + consolidation plan
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-  - [ ] 23-02-PLAN.md — D-07 consolidation & inclusion checkpoint (PKG-01; user gate, autonomous: false)
+  - [x] 23-02-PLAN.md — D-07 consolidation & inclusion checkpoint (PKG-01; user gate, autonomous: false)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-  - [ ] 23-03-PLAN.md — package dir + byte-for-byte snapshots + claims table + consolidated context (PKG-01)
+  - [x] 23-03-PLAN.md — package dir + byte-for-byte snapshots + claims table + consolidated context (PKG-01)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -203,7 +203,7 @@ Every selected finding follows the v1.4-style loop:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 23. Research Package Assembly | v1.5 | 0/5 | Not started | - |
+| 23. Research Package Assembly | v1.5 | 3/6 | In Progress|  |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 0/TBD | Not started (runs in parallel with gate; gates on nothing external) | - |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
