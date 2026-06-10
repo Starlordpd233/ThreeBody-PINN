@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-10T07:32:22.843Z"
+last_updated: "2026-06-10T08:31:50.349Z"
 last_activity: 2026-06-10 -- Phase 23 execution started
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 5
-  completed_plans: 0
+  total_plans: 6
+  completed_plans: 4
   percent: 0
 ---
 
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 23 (research-package-assembly) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 23
+Plan: 2 of 5
+Status: Ready to execute
 Last activity: 2026-06-10 -- Phase 23 execution started
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) runs first with no gate; its delivery opens the external resolution-doc gate (user research starts). Phase 24 (empirical dataset verification + DATA-07 correction addendum) runs **in parallel** during the gate window — it depends on Phase 23's delivered claim list but gates on nothing external. Phases 25–29 (all adjudication / spec-edit work) gate on BOTH the resolution doc landing at `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completion.
@@ -67,6 +67,7 @@ Last activity: 2026-06-10 -- Phase 23 execution started
 | 20 | 5 | - | - |
 | 20.5 | 1 | - | - |
 | 21 | 2 | complete | 2026-06-08 |
+| Phase 23 P04 | 12min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -135,6 +136,7 @@ Recent decisions affecting current work:
 - [v1.5-workflow]: All v1.5 work on `milestone/v1.5` branch (cut from master HEAD `b8b39a4`). Tag `v1.5-pre-phase-NN` before each phase; one atomic commit per plan via `scripts/agent-commit`; `--no-ff` merge to master at milestone end.
 - [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative.
 - [Post-v1.3]: SCS gate — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, gate is `\epsilon_H > 10^{-5}` / `SCS > -5`. Known v1.5 tension: issue-02 ratio-based SCS thresholds (`> 1e-6` / `< 1e-8`) conflict with this gate — adjudicated via EVID-10 in Phase 25, edited in Phase 28 (VAL-01).
+- [Phase ?]: [23-04 PKG-02] Framed-research-questions.md authored: six locked v1.4 conventions as verbatim hard constraints (SCS gate cited only to read-only DQA, never editable spec); every in-scope finding posed as a neutral CLM-referenced question in three clusters; both known conflicts (SCS thresholds, D=6.694) and M13 fallback posed without settling; doc-03 items deferred. No STOP gap surfaced.
 
 ### Pending Todos
 
@@ -159,7 +161,7 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 
 ## Session Continuity
 
-Last session: 2026-06-10T06:09:37.375Z
+Last session: 2026-06-10T08:31:34.892Z
 Next action: Plan Phase 23 with `/gsd-plan-phase 23` (no gate); ensure `v1.5-pre-phase-23` tag is cut from `milestone/v1.5` HEAD first.
 
 ## Operator Next Steps

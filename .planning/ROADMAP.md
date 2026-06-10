@@ -103,7 +103,7 @@ Every selected finding follows the v1.4-style loop:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-  - [ ] 23-04-PLAN.md — framed research questions (PKG-02)
+  - [x] 23-04-PLAN.md — framed research questions (PKG-02)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -203,7 +203,7 @@ Every selected finding follows the v1.4-style loop:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 23. Research Package Assembly | v1.5 | 3/6 | In Progress|  |
+| 23. Research Package Assembly | v1.5 | 4/6 | In Progress|  |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 0/TBD | Not started (runs in parallel with gate; gates on nothing external) | - |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |

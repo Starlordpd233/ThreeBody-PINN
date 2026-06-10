@@ -20,7 +20,7 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 ### Research Package and External Resolution
 
 - [ ] **PKG-01**: The research package delivers a complete annotated document list for the user's external research agent — every document needed to adjudicate the issue-02 findings, each with a role annotation. If the list would exceed ~5 files or the necessary context is scattered across fragments, the fragments are consolidated into a single context file (framework specs are passed intact, never consolidated) and the consolidation is surfaced to the user before assembly.
-- [ ] **PKG-02**: The package frames the research questions: each contested or unverified finding is posed as an explicit question, with locked v1.4 conventions listed as hard constraints the research must respect (14D input contract, Jacobi IC₁₃, mass-weighted COM projection head, the PHYS-03 softening outcome, the post-v1.3 SCS gate `\epsilon_H > 10^{-5}` / `SCS > -5`, the PHYS-01 D convention) and the doc-03 scope boundary stated.
+- [x] **PKG-02**: The package frames the research questions: each contested or unverified finding is posed as an explicit question, with locked v1.4 conventions listed as hard constraints the research must respect (14D input contract, Jacobi IC₁₃, mass-weighted COM projection head, the PHYS-03 softening outcome, the post-v1.3 SCS gate `\epsilon_H > 10^{-5}` / `SCS > -5`, the PHYS-01 D convention) and the doc-03 scope boundary stated.
 - [ ] **PKG-03**: The package presents dataset figures as explicitly-marked **"claimed, unverified"** issue-doc values wherever empirical verification has not yet run — the package phase precedes verification by user decision 2026-06-10 (urgency of starting the external research, which gates everything downstream). A figure already verified by a prior grounded source may be stated as verified with its citation. No unverified figure is presented as fact. The post-verification correction addendum is DATA-07.
 - [ ] **PKG-04**: `data_quality_assessment.md` is characterized read-only — its provenance, content map, and relation to the (not-yet-performed) dataset ↔ framework compatibility verification — and the characterization is reported to the user. No edits to the file.
 
@@ -114,7 +114,7 @@ Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`,
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PKG-01 | Phase 23 | Pending |
-| PKG-02 | Phase 23 | Pending |
+| PKG-02 | Phase 23 | Complete |
 | PKG-03 | Phase 23 | Pending |
 | PKG-04 | Phase 23 | Pending |
 | DATA-01 | Phase 24 | Pending (runs in parallel with gate) |
