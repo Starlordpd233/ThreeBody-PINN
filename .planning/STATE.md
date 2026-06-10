@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-10T15:13:11.206Z"
+last_updated: "2026-06-10T23:21:00.000Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 7
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 23 — research-package-assembly
+**Current focus:** Phase 24 — empirical-dataset-verification-and-correction-addendum
 
 ## Current Position
 
@@ -141,14 +141,15 @@ Recent decisions affecting current work:
 - [Phase ?]: [23-04 PKG-02] Framed-research-questions.md authored: six locked v1.4 conventions as verbatim hard constraints (SCS gate cited only to read-only DQA, never editable spec); every in-scope finding posed as a neutral CLM-referenced question in three clusters; both known conflicts (SCS thresholds, D=6.694) and M13 fallback posed without settling; doc-03 items deferred. No STOP gap surfaced.
 - [Phase 23]: Phase 23 research package delivered; external resolution-doc gate OPEN (user multi-AI research starts). Resolution doc lands at research_reports/02-data-pipeline-and-validation/.
 - [Phase 23]: Doc-integrity audit F-08/F-09 contradict two claims carried in the delivered Phase 23 package: gold output filenames carry no gold token (folder-only), and ~2,470 files (1,550+701+219) have NO Result: footer rather than partial footers. CLM-07 claim text affected; CLM-09 values re-verified correct. Package stays byte-stable - audit workstream issues an erratum beside the package; Phase 24 DATA-07 CLM-keyed correction addendum is the authoritative follow-up and must fold these in.
+- [Phase 23→24]: Phase 23 review (`23-REVIEW.md:115-173`) identified four non-blocking warnings (WR-01..04) routed to Phase 24's DATA-07 correction pass: WR-01 (Q-B2 sample-size conflict 1000 vs 100), WR-02 (Hard Constraint 3 wrong line cite 972→967), WR-03 (Q-B1 dangling "§5.3.2" cite, spec says example not contract), WR-04 (CLM-05 dual-observable ambiguity — IC vs Brutus folder counts). Two schema questions (CLM-05 split, new CLM row for WR-01) and one channel question (WR-02/03 citation-fix channel) are surfaced as open decisions in `24-DISCUSSION-LOG.md` — NOT pre-decided. WR-04 shapes DATA-03/04 probe design (count both observables separately). All corrections travel through the correction channel; package byte-stability preserved.
 
 ### Pending Todos
 
 v1.5 roadmap is revised (phase-order swap); phases not yet started.
 
-- [ ] Plan Phase 23 (Research Package Assembly + DQA Characterization) with `/gsd-plan-phase 23`
-- [ ] Tag `v1.5-pre-phase-23` from `milestone/v1.5` HEAD before Phase 23 begins
-- [ ] Create `.planning/milestones/v1.5-GAPS.md` index when the first phase opens a gap
+- [x] Plan Phase 23 (Research Package Assembly + DQA Characterization) with `/gsd-plan-phase 23`
+- [x] Tag `v1.5-pre-phase-23` from `milestone/v1.5` HEAD before Phase 23 begins
+- [ ] **[Standing trigger]** Create `.planning/milestones/v1.5-GAPS.md` index when the first v1.5 phase opens a gap (no gap raised yet; file does not exist)
 - [x] Define v1.5 requirements (36 requirements committed 2026-06-10, incl. DATA-07)
 - [x] Create v1.5 roadmap (Phases 23–29; 36/36 mapped)
 - [x] Revise v1.5 roadmap — phase-order swap, research package first (2026-06-10)
