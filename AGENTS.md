@@ -15,7 +15,18 @@ If this repository is being opened on the new Mac during the workstation migrati
 
 ## CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones
 
-**For every phase in v1.4 (Phases 17, 18, 19, 20, 20.5, 21, 22) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
+**For every phase in v1.4 (Phases 17, 18, 19, 20, 20.5, 21, 22), every phase in v1.5 (Phases 23–29) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
+
+### v1.5 applicability (2026-06-10)
+
+v1.5 "Resolving 02 Data Pipeline and Validation" (Phases 23–29, branch `milestone/v1.5`) runs under this protocol. Read the grounding test below with these substitutions and extensions for v1.5 work:
+
+- The issue doc is `pinn_instruction/issues/02-data-pipeline-and-validation.md` (non-authoritative; known to contain at least one suspect claim — the ratio-based SCS thresholds).
+- The candidate verdict source is the **user-produced resolution doc** expected under `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`. It does not exist until the user's external research delivers it; adjudication Phases 25–29 cannot start until it lands AND Phase 24 completes.
+- Additional grounding (SCOPE-06/07 in `.planning/REQUIREMENTS.md`): the on-disk `simulation_data/` dataset (empirical facts verified by direct observation, recorded re-derivably) and `simulation_data/Scripts/` (`ic_generation/`, `metrics_calculation/`, `Validation/prescreening/`, `brutus_runners/`).
+- Framework-spec sections revised during v1.4 or v1.5 are grounding; the `pinn/` live-code ban persists unchanged.
+- Spec-edit targets are `ctl_instruction.md` and `pinn_architecture.md` ONLY; `sampling_method.md` is frozen by default (SCOPE-08); `data_quality_assessment.md` is read-only (SCOPE-09).
+- The milestone-wide gap index for v1.5 phases is `.planning/milestones/v1.5-GAPS.md` (read step 4 of the STOP protocol accordingly).
 
 ### Grounded vs. silent: the test
 
