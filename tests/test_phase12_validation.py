@@ -153,7 +153,7 @@ def test_audit_03_inactive_exclusion():
 
 
 def test_fidel_05_section_hierarchy():
-    """FIDEL-05: 7 section headings in markdown in source order."""
+    """FIDEL-05: Numbered framework sections appear in source order."""
     if not os.path.isfile(ARCHITECTURE_MD):
         check("FIDEL-05: markdown exists", False)
         return
@@ -169,17 +169,16 @@ def test_fidel_05_section_hierarchy():
         if not in_code and line.startswith("# "):
             headings.append((i, line.rstrip()))
 
-    # Skip document title (first heading), check next 7 are numbered sections
-    section_headings = [h for h in headings if "Section " in h[1]]
-    check("FIDEL-05: 7 numbered section headings", len(section_headings) == 7,
+    section_headings = [h for h in headings if re.match(r"# \d+\.", h[1])]
+    expected = ["# 1.", "# 2.", "# 3.", "# 4.", "# 5.", "# 10."]
+    check("FIDEL-05: current numbered section headings",
+          len(section_headings) == len(expected),
           f"found {len(section_headings)}")
 
-    expected = ["Section 1", "Section 2", "Section 3", "Section 4",
-                "Section 5", "Section 6", "Section 7"]
     for i, exp in enumerate(expected):
         if i < len(section_headings):
             check(f"FIDEL-05: {exp} present",
-                  exp in section_headings[i][1],
+                  section_headings[i][1].startswith(exp),
                   f"got: {section_headings[i][1]}")
 
 
@@ -212,7 +211,7 @@ def test_cross_01_source_issues():
 
 
 def test_fidel_03_bibliography():
-    """FIDEL-03: Bibliography section present with entries."""
+    """FIDEL-03: References section present with entries."""
     if not os.path.isfile(ARCHITECTURE_MD):
         check("FIDEL-03: markdown exists", False)
         return
@@ -225,14 +224,14 @@ def test_fidel_03_bibliography():
         if stripped.startswith("```") or stripped.startswith("~~~"):
             in_code = not in_code
             continue
-        if not in_code and line.startswith("# Section 7: Bibliography"):
+        if not in_code and line.startswith("## References"):
             in_bib = True
             continue
-        if in_bib and stripped and not stripped.startswith("#"):
+        if in_bib and re.match(r"^\[\d+\]\s", stripped):
             bib_entries += 1
 
-    check("FIDEL-03: Bibliography section present", in_bib)
-    check("FIDEL-03: Bibliography has entries", bib_entries > 0,
+    check("FIDEL-03: References section present", in_bib)
+    check("FIDEL-03: References has entries", bib_entries > 0,
           f"found {bib_entries} lines")
 
 

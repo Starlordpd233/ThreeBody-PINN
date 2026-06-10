@@ -1,7 +1,7 @@
 # v1.4 Milestone Summary: Resolving 01 Architecture and Physics Foundations
 
 **Milestone:** v1.4  
-**Status:** Conditional (Phase 22 G4 visual backstop pending user review)  
+**Status:** Complete  
 **Duration:** 2026-05-19 to 2026-06-09 (22 days)  
 **Branch:** `milestone/v1.4` (cut from master 2026-05-19)  
 **Commits:** 189 on milestone branch  
@@ -65,8 +65,8 @@ v1.4 resolved all adjudicable findings from Issue 01 (Architecture and Physics F
 ### 2.3 Evidence and Adjudication Infrastructure
 
 **Phase 16 Deliverables:**
-- Issue ledger: `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` (21 findings: 19 in-scope, 2 deferred).
-- Evidence packet template: `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md`.
+- Issue ledger: `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` (21 findings: 19 in-scope, 2 deferred).
+- Evidence packet template: `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md`.
 - Verdict enum: `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, `defer-with-blocker`.
 - Status lifecycle: `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED` (with regression revert policy).
 - EVID-05 conflict-adjudication protocol for contested findings (B-02 D formula, B-04 input-vector orientation slots, B-09 softening strategy, M5 I_3 mapping).
@@ -85,8 +85,8 @@ v1.4 resolved all adjudicable findings from Issue 01 (Architecture and Physics F
 | 10.4 Force-Energy Consistency | finite forward pass + finite loss scalars | all finite, no NaN/Inf | `probe_force_energy.stdout.txt` |
 | 10.5 Loss Stability Dry Run | finite data/IC/physics/energy/angular losses | all finite | `probe_loss_stability.stdout.txt` |
 
-**Probe Scripts:** `.planning/phases/21-acceptance-checks-and-handoff/probes/`  
-**Raw Evidence:** `.planning/phases/21-acceptance-checks-and-handoff/evidence/` (SHA-256 hashes recorded)
+**Probe Scripts:** `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/`  
+**Raw Evidence:** `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/evidence/` (SHA-256 hashes recorded)
 
 ### 2.5 Render Cleanup (Phase 22)
 
@@ -99,7 +99,7 @@ v1.4 resolved all adjudicable findings from Issue 01 (Architecture and Physics F
 - VER-05 (ledger): PASS (Phase 22 addendum records P22-R1/R2/R3 as VERIFIED, 0 OPEN STOP gaps)
 
 **Manual Gate:**
-- G4 (visual backstop): **PENDING-USER-REVIEW** (checklist in `22-RENDER-REVIEW.md`)
+- G4 (visual backstop): **APPROVED 2026-06-09** (checklist in `22-RENDER-REVIEW.md`)
 
 **Detector Tool:** `tools/spec-render-check/detect.mjs` (Node.js, committed with adjudication allowlists)
 
@@ -122,9 +122,9 @@ v1.4 resolved all adjudicable findings from Issue 01 (Architecture and Physics F
 | 20 | Architecture and normalization cleanup | 5/5 | ✅ Complete | 2026-06-05 |
 | 20.5 | Sampling coordinate allocation (Sobol) | 1/1 | ✅ Complete | 2026-06-07 |
 | 21 | Acceptance checks executed, SI-ledger reconciled, handoff | 2/2 | ✅ Complete | 2026-06-08 |
-| 22 | Framework-spec render cleanup | 5/5 | ⚠️ Conditional | G4 pending |
+| 22 | Framework-spec render cleanup | 5/5 | ✅ Complete | 2026-06-09 |
 
-**Total Plans:** 26 executed (25 fully complete, 1 awaiting G4 visual backstop)
+**Total Plans:** 26 executed and complete
 
 ### Phase Dependencies
 
@@ -234,7 +234,7 @@ Full gap register: `.planning/milestones/v1.4-GAPS.md`
 
 **Phase 21 Acceptance Suite:**
 - Defined in `pinn_architecture.md` §10 (five subsections)
-- Executed via disposable probes in `.planning/phases/21-acceptance-checks-and-handoff/probes/`
+- Executed via disposable probes in `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/`
 - Raw stdout evidence with SHA-256 hashes in `evidence/`
 - All five probes PASS
 
@@ -249,7 +249,7 @@ Full gap register: `.planning/milestones/v1.4-GAPS.md`
 - M6/M7: explicitly deferred (resolution doc declares "not adjudicable from supplied files")
 - SI-ledger entries reconciled: every v1.4-resolved finding retires its corresponding `SI-*` with back-reference; entries outside Issue 01 preserved untouched
 
-**Ledger Location:** `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`
+**Ledger Location:** `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md`
 
 ---
 
@@ -279,7 +279,7 @@ Full gap register: `.planning/milestones/v1.4-GAPS.md`
 
 **Working Branch:** `milestone/v1.4` (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before merge: `git merge --no-ff milestone/v1.4` to master.
 
-**Phase 22 Conditional Status:** Automated gates (G1/G2/G3/VER-05) complete and PASS. Manual G4 visual backstop pending user review. Checklist in `.planning/phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md`.
+**Phase 22 Completion Status:** Automated gates G1/G2/G3/VER-05 passed, and the user approved the manual G4 visual backstop on 2026-06-09. Checklist and approval record: `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md`.
 
 ---
 
@@ -299,18 +299,18 @@ Full gap register: `.planning/milestones/v1.4-GAPS.md`
 - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — IC generation, Sobol allocation
 
 **Evidence and Adjudication:**
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` — Issue ledger with all 21 findings and verdicts
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` — Evidence packet template
+- `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` — Issue ledger with all 21 findings and verdicts
+- `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` — Evidence packet template
 - `.planning/milestones/v1.4-GAPS.md` — All 23 gaps with resolutions
 
 **Acceptance Probes:**
-- `.planning/phases/21-acceptance-checks-and-handoff/probes/` — Five disposable validation probes
-- `.planning/phases/21-acceptance-checks-and-handoff/21-PROBE-RESULTS.md` — Probe execution summary
-- `.planning/phases/21-acceptance-checks-and-handoff/evidence/` — Raw stdout with SHA-256 hashes
+- `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/` — Five disposable validation probes
+- `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/21-PROBE-RESULTS.md` — Probe execution summary
+- `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/evidence/` — Raw stdout with SHA-256 hashes
 
 **Render Cleanup:**
-- `.planning/phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md` — Gate status and G4 visual backstop checklist
-- `.planning/phases/22-framework-spec-cleanup/22-COMMENT-HANDOFF.md` — FUT-05 author-comment adjudication brief
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md` — Gate status and G4 visual backstop checklist
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-COMMENT-HANDOFF.md` — FUT-05 author-comment adjudication brief
 - `tools/spec-render-check/detect.mjs` — Committed render detector (Node.js)
 
 ### 7.2 For Future Milestones
@@ -322,10 +322,10 @@ Rewrite `pinn/` implementation from v1.4 framework specs. Start from `NN-CODE-DI
 Adjudicate author comments preserved in Phase 22. Start from `22-COMMENT-HANDOFF.md` for full inventory and context.
 
 **Phase 22 G4 Visual Backstop**  
-Complete manual visual review checklist in `22-RENDER-REVIEW.md`. Once approved, Phase 22 closes and v1.4 reaches full completion.
+Approved by the user on 2026-06-09 after completing the manual visual review checklist in `22-RENDER-REVIEW.md`.
 
 **Merge to Master**  
-When all v1.4 work is complete (including G4 approval): `git checkout master && git merge --no-ff milestone/v1.4`
+Completed on 2026-06-09 via merge commit `376adcc`.
 
 ### 7.3 Key Governance Rules
 
@@ -347,14 +347,14 @@ When all v1.4 work is complete (including G4 approval): `git checkout master && 
 - `.planning/milestones/v1.4-GAPS.md` — All 23 gaps with resolutions
 
 **Phase Directories:**
-- `.planning/phases/16-evidence-framework-and-issue-adjudication/` — Evidence framework
-- `.planning/phases/17-input-and-output-contracts/` — Input/output contracts
-- `.planning/phases/18-frame-and-gauge-contracts/` — Frame/gauge contracts
-- `.planning/phases/19-physics-and-loss-contracts/` — Physics/loss contracts
-- `.planning/phases/20-architecture-and-normalization-cleanup/` — Architecture cleanup
-- `.planning/phases/20.5-sampling-coordinate-allocation/` — Sobol allocation
-- `.planning/phases/21-acceptance-checks-and-handoff/` — Acceptance probes and handoff
-- `.planning/phases/22-framework-spec-cleanup/` — Render cleanup
+- `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/` — Evidence framework
+- `.planning/milestones/v1.4-phases/17-input-and-output-contracts/` — Input/output contracts
+- `.planning/milestones/v1.4-phases/18-frame-and-gauge-contracts/` — Frame/gauge contracts
+- `.planning/milestones/v1.4-phases/19-physics-and-loss-contracts/` — Physics/loss contracts
+- `.planning/milestones/v1.4-phases/20-architecture-and-normalization-cleanup/` — Architecture cleanup
+- `.planning/milestones/v1.4-phases/20.5-sampling-coordinate-allocation/` — Sobol allocation
+- `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/` — Acceptance probes and handoff
+- `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/` — Render cleanup
 
 **Framework Specs:**
 - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` (1458 lines)
@@ -377,16 +377,16 @@ When all v1.4 work is complete (including G4 approval): `git checkout master && 
 | Milestone duration | 22 days (2026-05-19 to 2026-06-09) |
 | Commits on milestone branch | 189 |
 | Phases executed | 8 (16, 17, 18, 19, 20, 20.5, 21, 22) |
-| Plans executed | 26 (25 complete, 1 conditional) |
+| Plans executed | 26/26 complete |
 | Requirements fulfilled | 30/30 |
 | Gaps surfaced and resolved | 23/23 |
 | Issue ledger findings | 21 total (19 in-scope, 2 deferred) |
 | Framework spec lines | 2749 (across 3 files) |
 | Acceptance probes | 5/5 PASS |
-| Phase 22 automated gates | G1/G2/G3/VER-05 PASS; G4 pending |
+| Phase 22 gates | G1/G2/G3/VER-05 PASS; G4 approved |
 
 ---
 
 **Generated:** 2026-06-09  
-**Milestone Status:** Conditional (Phase 22 G4 visual backstop pending)  
-**Next Actions:** Complete G4 visual review → merge `milestone/v1.4` to master → begin FUT-01 code rewrite
+**Milestone Status:** Complete  
+**Next Action:** Begin FUT-01 code rewrite

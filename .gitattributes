@@ -1,0 +1,5 @@
+# Markdown trailing spaces can encode hard line breaks.
+*.md whitespace=-trailing-space
+
+# Committed diff snapshots preserve source whitespace verbatim.
+*.diff whitespace=-trailing-space
