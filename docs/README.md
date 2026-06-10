@@ -25,6 +25,8 @@ docs/
   git-guidelines.md
 
   runbooks/
+    EDL/
+    maintenance/
     migration/
 
   work/
