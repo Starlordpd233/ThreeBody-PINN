@@ -141,6 +141,23 @@ Establish verified, re-derivable dataset facts by probing every package-stated (
 - The `final_timestep >= 9.5` RULE is grounded in README Completeness Checks; only its PREVALENCE is unverified (CLM-11 row note) — the probe quantifies prevalence, it does not re-adjudicate the rule.
 - Footer probes must treat "minimal/partial footer" language as superseded: the corrected disk fact is NO footer at all in the 1,550/701/219 populations; "footers that are present carry the full schema, including `eta` and `tol`" (erratum Correction 2).
 
+### Deferred Phase-23 review items (WR-01..04)
+
+The Phase 23 verifier (`23-REVIEW.md:115-173`) classified four package warnings as non-blocking but routed them to "a Phase 24 DATA-07 correction pass." They are not yet in Phase 24's discuss artifacts; this subsection carries them in so the plan incorporates them. All corrections are grounded (no invention needed); two schema questions and one channel question are surfaced as open decisions in `24-DISCUSSION-LOG.md` (not pre-decided).
+
+| ID | What | Where | Grounded disposition | Open decision (surfaced) |
+|----|------|-------|----------------------|--------------------------|
+| WR-01 | Q-B2 attributes "1000 IC–Brutus pairs" to both citations; issue doc says 1000 at line 204 but P2-2 (line 292) says **100** — conflict unsurfaced | `framed-research-questions.md:304-309` | Report both figures neutrally; surface the issue-doc-internal conflict (the package's stated job) | Register sample-size as a new CLM row? (**schema → surfaced**) |
+| WR-02 | Hard Constraint 3 cites COM-Invariance check at line **972**; it's at **967** (972 is §10.3) | `framed-research-questions.md:92-94` | Correct to "§10.2 'COM Invariance' (lines 967–971)" — verifiable against `pinn_architecture.md` snapshot | Channel: citation fix is not a dataset/CLM claim (see WR-02/03 channel decision below) |
+| WR-03 | Q-B1 cites nonexistent ctl "§5.3.2"; actual text is Step 5 / "(e.g., 32)" at line ~1201 — an example, not a hard 32-pt contract (affects how contested M12 is) | `framed-research-questions.md:292-293` | Replace with Step 5 "Mini-Batch Construction…" line ~1201 wording — verifiable against `ctl_instruction.md` snapshot | Channel: same as WR-02 (see below) |
+| WR-04 | CLM-05 used for two observables: IC folder counts vs Brutus output file counts (coincide today, can diverge) | `claims-table.md:25`, `consolidated-context.md:89,98` | DATA-03/04 probe must count IC folders **and** Brutus output folders separately and report both | Split CLM-05 → CLM-05a/05b vs amend CLM-05 text (**schema → surfaced**) |
+
+**Downstream mapping:**
+- **WR-04 → DATA-03/04 probe design:** count IC and Brutus folders separately; this is the one with direct probe impact. Whichever schema choice the user makes, the probe must report both observables independently.
+- **WR-01/02/03 → DATA-07 addendum scope:** these are correction candidates that must reach the in-flight external research. WR-01 also raises a schema question (new CLM row). WR-02/03 are spec-citation typos in the framed-questions doc — not dataset claims — so their channel inside the addendum is an open decision.
+
+**Byte-stability preserved:** all corrections travel through the correction channel (sibling files), never as in-place edits to delivered package files.
+
 </specifics>
 
 <deferred>

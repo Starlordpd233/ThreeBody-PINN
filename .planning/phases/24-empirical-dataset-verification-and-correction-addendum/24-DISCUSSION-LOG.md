@@ -85,3 +85,37 @@
 - README/dataset-doc corrections — proposed for user sign-off only; edits not Phase 24 work.
 - Reusable probe packaging — FUT-03.
 - M16 / G6 / training-loop metric usage — doc-03 milestone (SCOPE-11).
+
+---
+
+## Open Decisions — WR-01..04 Carry-In (surfaced, NOT decided)
+
+> These four decisions were carried forward from Phase 23's review (`23-REVIEW.md:115-173`). The Phase 24 discuss step does not resolve them — they require user input per v1.5 STOP governance. If any is decided during planning without a grounding source, it becomes a `24-GAPS.md` entry.
+
+### (a) WR-04: CLM-05 schema — split vs amend
+
+**Decision point:** CLM-05 currently covers two distinct observables (IC folder counts and Brutus output file counts) that happen to coincide today but can diverge. Should the claims register split CLM-05 into CLM-05a (IC folders) / CLM-05b (Brutus output folders), or amend CLM-05's text to name both observables and require separate counts?
+
+**Classification:** process-artifact schema → MUST-surface.
+**Status:** OPEN
+
+### (b) WR-01: Register sample-size figure as a new CLM row?
+
+**Decision point:** The issue doc is internally inconsistent on sample size (line 204: 1000 pairs; P2-2 line 292: 100 pairs). The framed question's correction will report both figures neutrally. Should the sample-size figure be registered as a new CLM row to formally track this conflict, or is the neutral report in the framed-questions correction sufficient?
+
+**Classification:** process-artifact schema → surface.
+**Status:** OPEN
+
+### (c) WR-02/WR-03: Correction channel for spec-citation fixes
+
+**Decision point:** WR-02 and WR-03 are spec-citation typos in `framed-research-questions.md` — not dataset claims, so they do not fit the CLM-keyed DATA-07 addendum cleanly. Channel options: (A) a non-CLM appendix in the DATA-07 addendum, or (B) an interim extension to `ERRATUM-2026-06-10.md` so in-flight researchers get corrected pointers sooner.
+
+**Classification:** operational coordination → surface.
+**Status:** OPEN
+
+### (d) Interim erratum extension vs consolidated addendum
+
+**Decision point:** Should the corrected citations (WR-02/03) and conflict surfacing (WR-01) be issued as an interim erratum extension now, or held for the consolidated DATA-07 addendum after probes complete? The trade-off is timeliness for in-flight researchers vs a single canonical correction document.
+
+**Classification:** operational coordination → surface.
+**Status:** OPEN
