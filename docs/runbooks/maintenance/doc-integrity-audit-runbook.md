@@ -29,19 +29,19 @@ and `GEMINI.md` are symlinks to `AGENTS.md`, so 15 paths resolve to 13 real file
 
 | Doc | Class | Treatment | Last verified |
 |---|---|---|---|
-| `README.md` | 1 — root entry | direct fix | |
-| `AGENTS.md` (targets of `CLAUDE.md`, `GEMINI.md` symlinks) | 1 — root entry | direct fix | |
-| `ANTIGRAVITY.md` | 1 — root entry | direct fix | |
-| `.claude/rules/repo-map.md` | 1 — agent rules | direct fix | |
-| `.claude/rules/dataset-reference.md` | 1 — agent rules | direct fix | |
-| `.claude/rules/pinn-reference.md` | 1 — agent rules | direct fix | |
-| `docs/README.md` | 2 — process | direct fix | |
-| `docs/git-guidelines.md` | 2 — process | direct fix | |
-| `pinn_instruction/issues/README.md` | 2 — sub-area | direct fix | |
-| `pinn_instruction/markdown_conversion/README.md` | 2 — sub-area | direct fix | |
-| `tools/spec-render-check/README.md` | 2 — sub-area | direct fix | |
-| `simulation_data/Documentation/README.md` | 3 — grounding | report-only, gated | |
-| `simulation_data/Data/testing_data/README_TESTING.md` | 3 — grounding | report-only, gated | |
+| `README.md` | 1 — root entry | direct fix | 2026-06-10 |
+| `AGENTS.md` (targets of `CLAUDE.md`, `GEMINI.md` symlinks) | 1 — root entry | direct fix | 2026-06-10 |
+| `ANTIGRAVITY.md` | 1 — root entry | direct fix | 2026-06-10 |
+| `.claude/rules/repo-map.md` | 1 — agent rules | direct fix | 2026-06-10 |
+| `.claude/rules/dataset-reference.md` | 1 — agent rules | direct fix | 2026-06-10 |
+| `.claude/rules/pinn-reference.md` | 1 — agent rules | direct fix | 2026-06-10 |
+| `docs/README.md` | 2 — process | direct fix | 2026-06-10 |
+| `docs/git-guidelines.md` | 2 — process | direct fix | 2026-06-10 |
+| `pinn_instruction/issues/README.md` | 2 — sub-area | direct fix | 2026-06-10 |
+| `pinn_instruction/markdown_conversion/README.md` | 2 — sub-area | direct fix | 2026-06-10 |
+| `tools/spec-render-check/README.md` | 2 — sub-area | direct fix | 2026-06-10 |
+| `simulation_data/Documentation/README.md` | 3 — grounding | report-only, gated | 2026-06-10 |
+| `simulation_data/Data/testing_data/README_TESTING.md` | 3 — grounding | report-only, gated | 2026-06-10 |
 
 ### Class definitions
 
