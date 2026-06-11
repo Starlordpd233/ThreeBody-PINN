@@ -1,7 +1,7 @@
 ---
 phase: 24-empirical-dataset-verification-and-correction-addendum
 topic: DATA-05 base-hierarchical rerun remediation
-status: decision-recorded-not-yet-executed
+status: executed-and-validated-2026-06-11
 created: 2026-06-11
 source_gap: GAP-24-01
 ---
@@ -89,3 +89,44 @@ Until remediation passes, downstream training and metrics must treat the 70 old 
 ## Phase 24 Boundary
 
 Phase 24 may continue because the semantic decision is now resolved: the current ICs are canonical and the old base-hierarchical artifacts require rerun. Phase 24 must not claim the data files are fixed until the rerun gates above have been executed and recorded.
+
+## Execution Evidence (2026-06-11)
+
+The rerun was executed and validated on 2026-06-11 on the M5 Pro MacBook (Brutus rebuilt
+from source against Homebrew GMP/MPFR + advanpix mpreal; rebuild smoke-tested by
+reproducing known-good ID `0100` numerically identically, t_cpu fields excluded).
+All 70 reruns used the contract above verbatim; run provenance is in
+`24-DATA05-RERUN-MANIFEST.json` (70/70 subprocess success, median 11.6 s/run).
+
+Gate-by-gate results:
+
+1. **Preserve + manifest:** SHA-256 manifest of the 70 old files recorded pre-swap in
+   `24-DATA05-OLD70-SHA256.txt` (committed). Old files moved (not deleted) to
+   `simulation_data/Data/forensic/data05_gap24-01_old_outputs/`; post-move hashes
+   re-verified 70/70 against the manifest.
+2. **Staging first:** replacements generated in `simulation_data/Data/rerun_staging/data05_gap24-01/`
+   (outside `brutus_output/` so variant-folder probes were never affected); staging
+   removed after the swap.
+3. **Mass equality:** 70/70 staged files satisfy `m_IC == m_Brutus(t=0)` at float64
+   (DATA-05 comparator). Full t=0 state (positions and velocities) also matches the IC
+   at float64. Evidence: `24-DATA05-RERUN-VALIDATION.{md,json}`.
+4. **Final time:** 70/70 reach final t = 10.000000000000007 with 126 snapshots.
+5. **Schema:** 70/70 valid (`t 3 t_cpu` headers, 3×7-field body lines, `Result:` footer
+   present in all 70).
+6. **Swap:** executed after user approval of the validation report; live folder back at
+   4,857 files.
+7. **Metrics:** the derived metrics for the 70 affected IDs at
+   `simulation_data/Data/metrics/sim_result_metric_hierarchical/metrics_hierarchical_XXXX.json`
+   are **INVALIDATED** (computed from the old artifacts). Regeneration deferred per user
+   decision 2026-06-11; training and PIPE-07 must not consume them until regenerated.
+8. **Probe re-runs (post-swap):** DATA-05 probe: `brutus_hierarchical` now **0/4857**
+   mismatches (was 70/4857); 0 mismatches across all 15,028 pairs. DATA-04: observed
+   footer-less count in `brutus_hierarchical` is now **1,480** (was 1,550) — all 70 old
+   files were footer-less, all 70 replacements carry footers; documented counts citing
+   1,550 (e.g. dataset README §known-issues, audit cross-check) are stale as of this
+   remediation and the DATA-04 cross-check note already flags the framing. DATA-06:
+   footer-bearing cohort 3,307 → 3,377, footer-less 1,550 → 1,480, final-time
+   prevalence ≥ 9.5 remains 1.0; no anomalies.
+
+Old-artifact quarantine is lifted for the **trajectory files** (replacements are live);
+the **metrics quarantine** for the 70 IDs remains until gate 7 regeneration.

@@ -1,0 +1,1192 @@
+{
+  "0014": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0014.txt"
+    ],
+    "start": 1781172232.034697,
+    "end": 1781172238.521191,
+    "duration": 6.486493825912476,
+    "status": "success",
+    "reason": ""
+  },
+  "0012": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0012.txt"
+    ],
+    "start": 1781172232.0322611,
+    "end": 1781172238.694466,
+    "duration": 6.66220498085022,
+    "status": "success",
+    "reason": ""
+  },
+  "0008": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0008.txt"
+    ],
+    "start": 1781172232.0264509,
+    "end": 1781172239.1063738,
+    "duration": 7.079922914505005,
+    "status": "success",
+    "reason": ""
+  },
+  "0018": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0018.txt"
+    ],
+    "start": 1781172232.0396988,
+    "end": 1781172241.673005,
+    "duration": 9.63330626487732,
+    "status": "success",
+    "reason": ""
+  },
+  "0007": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0007.txt"
+    ],
+    "start": 1781172232.025378,
+    "end": 1781172241.890636,
+    "duration": 9.865257978439331,
+    "status": "success",
+    "reason": ""
+  },
+  "0013": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0013.txt"
+    ],
+    "start": 1781172232.0325031,
+    "end": 1781172241.996171,
+    "duration": 9.963667869567871,
+    "status": "success",
+    "reason": ""
+  },
+  "0011": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0011.txt"
+    ],
+    "start": 1781172232.03041,
+    "end": 1781172243.607452,
+    "duration": 11.577041864395142,
+    "status": "success",
+    "reason": ""
+  },
+  "0006": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0006.txt"
+    ],
+    "start": 1781172232.025236,
+    "end": 1781172243.661372,
+    "duration": 11.636136054992676,
+    "status": "success",
+    "reason": ""
+  },
+  "0005": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0005.txt"
+    ],
+    "start": 1781172232.02512,
+    "end": 1781172243.8968918,
+    "duration": 11.871771812438965,
+    "status": "success",
+    "reason": ""
+  },
+  "0010": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0010.txt"
+    ],
+    "start": 1781172232.0303411,
+    "end": 1781172244.2069278,
+    "duration": 12.176586627960205,
+    "status": "success",
+    "reason": ""
+  },
+  "0009": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0009.txt"
+    ],
+    "start": 1781172232.0290391,
+    "end": 1781172244.256313,
+    "duration": 12.227273941040039,
+    "status": "success",
+    "reason": ""
+  },
+  "0017": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0017.txt"
+    ],
+    "start": 1781172232.037455,
+    "end": 1781172245.4664052,
+    "duration": 13.428950071334839,
+    "status": "success",
+    "reason": ""
+  },
+  "0015": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0015.txt"
+    ],
+    "start": 1781172232.034826,
+    "end": 1781172245.7012942,
+    "duration": 13.666468143463135,
+    "status": "success",
+    "reason": ""
+  },
+  "0016": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0016.txt"
+    ],
+    "start": 1781172232.034922,
+    "end": 1781172246.576597,
+    "duration": 14.541675090789795,
+    "status": "success",
+    "reason": ""
+  },
+  "0021": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0021.txt"
+    ],
+    "start": 1781172239.1064599,
+    "end": 1781172247.000486,
+    "duration": 7.894026041030884,
+    "status": "success",
+    "reason": ""
+  },
+  "0022": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0022.txt"
+    ],
+    "start": 1781172241.6730912,
+    "end": 1781172249.6198568,
+    "duration": 7.946765661239624,
+    "status": "success",
+    "reason": ""
+  },
+  "0019": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0019.txt"
+    ],
+    "start": 1781172238.5212889,
+    "end": 1781172250.057569,
+    "duration": 11.536280155181885,
+    "status": "success",
+    "reason": ""
+  },
+  "0020": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0020.txt"
+    ],
+    "start": 1781172238.694572,
+    "end": 1781172250.69908,
+    "duration": 12.004508018493652,
+    "status": "success",
+    "reason": ""
+  },
+  "0031": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0031.txt"
+    ],
+    "start": 1781172245.701385,
+    "end": 1781172251.9672089,
+    "duration": 6.265823841094971,
+    "status": "success",
+    "reason": ""
+  },
+  "0025": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0025.txt"
+    ],
+    "start": 1781172243.607597,
+    "end": 1781172252.182011,
+    "duration": 8.574413776397705,
+    "status": "success",
+    "reason": ""
+  },
+  "0024": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0024.txt"
+    ],
+    "start": 1781172241.996341,
+    "end": 1781172253.324706,
+    "duration": 11.328365087509155,
+    "status": "success",
+    "reason": ""
+  },
+  "0023": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0023.txt"
+    ],
+    "start": 1781172241.8907678,
+    "end": 1781172253.476206,
+    "duration": 11.585438251495361,
+    "status": "success",
+    "reason": ""
+  },
+  "0032": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0032.txt"
+    ],
+    "start": 1781172246.57675,
+    "end": 1781172255.387279,
+    "duration": 8.810528993606567,
+    "status": "success",
+    "reason": ""
+  },
+  "0029": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0029.txt"
+    ],
+    "start": 1781172244.256459,
+    "end": 1781172256.477691,
+    "duration": 12.221231937408447,
+    "status": "success",
+    "reason": ""
+  },
+  "0026": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0026.txt"
+    ],
+    "start": 1781172243.6614451,
+    "end": 1781172256.641402,
+    "duration": 12.979956865310669,
+    "status": "success",
+    "reason": ""
+  },
+  "0027": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0027.txt"
+    ],
+    "start": 1781172243.897033,
+    "end": 1781172257.758153,
+    "duration": 13.861119985580444,
+    "status": "success",
+    "reason": ""
+  },
+  "0035": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0035.txt"
+    ],
+    "start": 1781172250.057653,
+    "end": 1781172259.8890839,
+    "duration": 9.831430912017822,
+    "status": "success",
+    "reason": ""
+  },
+  "0028": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0028.txt"
+    ],
+    "start": 1781172244.207011,
+    "end": 1781172260.9562821,
+    "duration": 16.749271154403687,
+    "status": "success",
+    "reason": ""
+  },
+  "0037": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0037.txt"
+    ],
+    "start": 1781172251.9673119,
+    "end": 1781172261.616639,
+    "duration": 9.649327039718628,
+    "status": "success",
+    "reason": ""
+  },
+  "0033": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0033.txt"
+    ],
+    "start": 1781172247.000587,
+    "end": 1781172263.130219,
+    "duration": 16.129631996154785,
+    "status": "success",
+    "reason": ""
+  },
+  "0030": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0030.txt"
+    ],
+    "start": 1781172245.466493,
+    "end": 1781172263.25045,
+    "duration": 17.78395700454712,
+    "status": "success",
+    "reason": ""
+  },
+  "0043": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0043.txt"
+    ],
+    "start": 1781172256.641568,
+    "end": 1781172263.337483,
+    "duration": 6.69591498374939,
+    "status": "success",
+    "reason": ""
+  },
+  "0041": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0041.txt"
+    ],
+    "start": 1781172255.3874948,
+    "end": 1781172263.75743,
+    "duration": 8.369935274124146,
+    "status": "success",
+    "reason": ""
+  },
+  "0036": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0036.txt"
+    ],
+    "start": 1781172250.699171,
+    "end": 1781172263.98145,
+    "duration": 13.282279014587402,
+    "status": "success",
+    "reason": ""
+  },
+  "0040": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0040.txt"
+    ],
+    "start": 1781172253.476361,
+    "end": 1781172264.02429,
+    "duration": 10.547929048538208,
+    "status": "success",
+    "reason": ""
+  },
+  "0034": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0034.txt"
+    ],
+    "start": 1781172249.619989,
+    "end": 1781172264.289702,
+    "duration": 14.669713020324707,
+    "status": "success",
+    "reason": ""
+  },
+  "0039": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0039.txt"
+    ],
+    "start": 1781172253.324805,
+    "end": 1781172264.3427908,
+    "duration": 11.017985820770264,
+    "status": "success",
+    "reason": ""
+  },
+  "0042": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0042.txt"
+    ],
+    "start": 1781172256.477785,
+    "end": 1781172264.46646,
+    "duration": 7.988674879074097,
+    "status": "success",
+    "reason": ""
+  },
+  "0038": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0038.txt"
+    ],
+    "start": 1781172252.182177,
+    "end": 1781172265.058094,
+    "duration": 12.875916957855225,
+    "status": "success",
+    "reason": ""
+  },
+  "0055": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0055.txt"
+    ],
+    "start": 1781172264.342897,
+    "end": 1781172269.165119,
+    "duration": 4.822221994400024,
+    "status": "success",
+    "reason": ""
+  },
+  "0045": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0045.txt"
+    ],
+    "start": 1781172259.889172,
+    "end": 1781172269.55295,
+    "duration": 9.663777828216553,
+    "status": "success",
+    "reason": ""
+  },
+  "0046": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0046.txt"
+    ],
+    "start": 1781172260.9563808,
+    "end": 1781172269.762208,
+    "duration": 8.805827140808105,
+    "status": "success",
+    "reason": ""
+  },
+  "0049": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0049.txt"
+    ],
+    "start": 1781172263.250614,
+    "end": 1781172270.13473,
+    "duration": 6.884116172790527,
+    "status": "success",
+    "reason": ""
+  },
+  "0044": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0044.txt"
+    ],
+    "start": 1781172257.758261,
+    "end": 1781172270.548788,
+    "duration": 12.790527105331421,
+    "status": "success",
+    "reason": ""
+  },
+  "0056": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0056.txt"
+    ],
+    "start": 1781172264.466592,
+    "end": 1781172272.3304598,
+    "duration": 7.86386775970459,
+    "status": "success",
+    "reason": ""
+  },
+  "0048": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0048.txt"
+    ],
+    "start": 1781172263.1304011,
+    "end": 1781172272.348732,
+    "duration": 9.21833086013794,
+    "status": "success",
+    "reason": ""
+  },
+  "0050": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0050.txt"
+    ],
+    "start": 1781172263.337591,
+    "end": 1781172273.8232162,
+    "duration": 10.485625267028809,
+    "status": "success",
+    "reason": ""
+  },
+  "0047": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0047.txt"
+    ],
+    "start": 1781172261.616739,
+    "end": 1781172275.987335,
+    "duration": 14.370595932006836,
+    "status": "success",
+    "reason": ""
+  },
+  "0053": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0053.txt"
+    ],
+    "start": 1781172264.024443,
+    "end": 1781172278.107146,
+    "duration": 14.082703113555908,
+    "status": "success",
+    "reason": ""
+  },
+  "0057": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0057.txt"
+    ],
+    "start": 1781172265.058191,
+    "end": 1781172278.209474,
+    "duration": 13.151283025741577,
+    "status": "success",
+    "reason": ""
+  },
+  "0061": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0061.txt"
+    ],
+    "start": 1781172269.762346,
+    "end": 1781172278.69229,
+    "duration": 8.929944038391113,
+    "status": "success",
+    "reason": ""
+  },
+  "0059": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0059.txt"
+    ],
+    "start": 1781172269.553042,
+    "end": 1781172278.921212,
+    "duration": 9.368170022964478,
+    "status": "success",
+    "reason": ""
+  },
+  "0051": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0051.txt"
+    ],
+    "start": 1781172263.7575738,
+    "end": 1781172279.310323,
+    "duration": 15.552749156951904,
+    "status": "success",
+    "reason": ""
+  },
+  "0052": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0052.txt"
+    ],
+    "start": 1781172263.9815638,
+    "end": 1781172279.913694,
+    "duration": 15.932130098342896,
+    "status": "success",
+    "reason": ""
+  },
+  "0065": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0065.txt"
+    ],
+    "start": 1781172272.34899,
+    "end": 1781172280.667829,
+    "duration": 8.318839073181152,
+    "status": "success",
+    "reason": ""
+  },
+  "0054": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0054.txt"
+    ],
+    "start": 1781172264.289855,
+    "end": 1781172281.388993,
+    "duration": 17.099138021469116,
+    "status": "success",
+    "reason": ""
+  },
+  "0064": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0064.txt"
+    ],
+    "start": 1781172272.331049,
+    "end": 1781172283.053392,
+    "duration": 10.72234296798706,
+    "status": "success",
+    "reason": ""
+  },
+  "0062": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0062.txt"
+    ],
+    "start": 1781172270.1348228,
+    "end": 1781172283.6649542,
+    "duration": 13.530131340026855,
+    "status": "success",
+    "reason": ""
+  },
+  "0063": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0063.txt"
+    ],
+    "start": 1781172270.5488799,
+    "end": 1781172284.1783428,
+    "duration": 13.629462957382202,
+    "status": "success",
+    "reason": ""
+  },
+  "0070": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0070.txt"
+    ],
+    "start": 1781172278.692394,
+    "end": 1781172284.547562,
+    "duration": 5.855167865753174,
+    "status": "success",
+    "reason": ""
+  },
+  "0058": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0058.txt"
+    ],
+    "start": 1781172269.165206,
+    "end": 1781172284.595114,
+    "duration": 15.429908037185669,
+    "status": "success",
+    "reason": ""
+  },
+  "0072": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0072.txt"
+    ],
+    "start": 1781172279.310412,
+    "end": 1781172285.267664,
+    "duration": 5.957252025604248,
+    "status": "success",
+    "reason": ""
+  },
+  "0066": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0066.txt"
+    ],
+    "start": 1781172273.8233118,
+    "end": 1781172287.6177542,
+    "duration": 13.794442415237427,
+    "status": "success",
+    "reason": ""
+  },
+  "0073": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0073.txt"
+    ],
+    "start": 1781172279.9137821,
+    "end": 1781172290.2256482,
+    "duration": 10.311866044998169,
+    "status": "success",
+    "reason": ""
+  },
+  "0067": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0067.txt"
+    ],
+    "start": 1781172275.987458,
+    "end": 1781172292.2225769,
+    "duration": 16.235118865966797,
+    "status": "success",
+    "reason": ""
+  },
+  "0074": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0074.txt"
+    ],
+    "start": 1781172280.667944,
+    "end": 1781172292.332454,
+    "duration": 11.664510011672974,
+    "status": "success",
+    "reason": ""
+  },
+  "0071": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0071.txt"
+    ],
+    "start": 1781172278.921382,
+    "end": 1781172292.7832801,
+    "duration": 13.861898183822632,
+    "status": "success",
+    "reason": ""
+  },
+  "0069": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0069.txt"
+    ],
+    "start": 1781172278.209613,
+    "end": 1781172293.252819,
+    "duration": 15.043205976486206,
+    "status": "success",
+    "reason": ""
+  },
+  "0068": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0068.txt"
+    ],
+    "start": 1781172278.107263,
+    "end": 1781172293.4029891,
+    "duration": 15.29572606086731,
+    "status": "success",
+    "reason": ""
+  },
+  "0075": {
+    "command": [
+      "<home>/Desktop/3_body_problem/brutus_Newton-main/brutus",
+      "1e-15",
+      "130",
+      "0",
+      "10",
+      "0.08",
+      "3",
+      "<home>/Desktop/3_body_problem/simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_0075.txt"
+    ],
+    "start": 1781172281.3890922,
+    "end": 1781172294.171627,
+    "duration": 12.782534837722778,
+    "status": "success",
+    "reason": ""
+  }
+}

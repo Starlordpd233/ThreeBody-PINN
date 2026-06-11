@@ -37,8 +37,8 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | PSC | Phase Space Coverage Entropy (data-side; Q-C4) | 28 (VAL-04) | PENDING | — | NO | — | AC-VAL-04 | ctl_instruction.md; pinn_architecture.md | Q-C4 | 2026-06-11 |
 | D-03 | Processed training-data format (HDF5 vs .npy vs txt/json) | 26 (PIPE-10) | PENDING | — | NO | — | AC-PIPE-10 | ctl_instruction.md | Q-A6 | 2026-06-11 |
 | D=6.694 | compute_globals / D=6.694 convention conflict (CLM-13) — NOT probed by Phase 24; routed to Phase 25 EVID-10 / Phase 27 PIPE-09 | 25 (EVID-10) / 27 (PIPE-09) | PENDING | — | YES — EVID-10 required (PHYS-01 raw-mass D ~ 4.6416 vs mass-fraction 6.694) | — | AC-PIPE-09 / EVID-10 verdict | ctl_instruction.md §2.5 line 598 explicitly rejects 6.694 form | Q-B4 | 2026-06-11 |
-| footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | PENDING | — | NO — GAP-24-01 resolved by user instruction; 70 base-hier artifacts require rerun, not Decimal fallback | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
-| mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | NO — DATA-05 resolved as invalid/stale base-hier artifacts; old 70 quarantined until rerun passes | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
+| footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | PENDING | — | NO — GAP-24-01 resolved by user instruction; 70 base-hier artifacts required rerun, not Decimal fallback (rerun executed+validated 2026-06-11) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
+| mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | NO — DATA-05 resolved as invalid/stale base-hier artifacts; rerun passed 2026-06-11, replacements live; metrics for the 70 IDs still invalidated pending regeneration | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
 
 ## Notes
 
@@ -60,6 +60,13 @@ current ICs are canonical; the 70 old base-hier outputs are invalid/stale artifa
 must be rerun, not skipped and not explained by `decimal.Decimal` precision. The rows
 remain PENDING because Phases 26/27 still own the PIPE-06/07 contracts, but those phases
 consume the resolved remediation boundary rather than an open gap.
+
+**Remediation execution update (2026-06-11):** the 70-file rerun was executed and
+validated the same day (70/70 gates passed; post-swap DATA-05 probe 0/4857; old
+artifacts archived under `simulation_data/Data/forensic/data05_gap24-01_old_outputs/`).
+The trajectory-file quarantine is lifted; the **metrics** for the 70 IDs remain
+invalidated until regenerated (gate 7, deferred by user). Evidence:
+`24-DATA05-RERUN-REMEDIATION.md` "Execution Evidence".
 
 ## Lifecycle Rules
 

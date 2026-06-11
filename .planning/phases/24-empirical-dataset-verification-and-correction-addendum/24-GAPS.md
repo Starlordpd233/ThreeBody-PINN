@@ -34,6 +34,16 @@
 - **Invalid artifacts:** `simulation_data/Data/brutus_output/brutus_hierarchical/brutus_hierarchical_XXXX.txt` for the affected IDs until rerun/replacement passes validation.
 - **Decision boundary:** This resolves the semantic baseline decision. It does **not** claim the files have already been regenerated.
 
+### Remediation executed (2026-06-11)
+
+The rerun was executed and validated the same day: 70/70 staged replacements passed all
+remediation gates (mass equality at float64, 126 snapshots to t=10, schema), the swap was
+performed after user approval, and the post-swap DATA-05 probe re-run reports **0/4857**
+base-hier mismatches (0/15,028 overall). Old artifacts are archived at
+`simulation_data/Data/forensic/data05_gap24-01_old_outputs/` with a committed SHA-256
+manifest. Derived metrics for the 70 IDs remain invalidated pending regeneration (gate 7,
+deferred by user). Full evidence: `24-DATA05-RERUN-REMEDIATION.md` "Execution Evidence".
+
 ## Milestone-wide index
 
 Mirrored at `.planning/milestones/v1.5-GAPS.md` (created 2026-06-11 with this entry).
