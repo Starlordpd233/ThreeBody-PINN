@@ -4,7 +4,9 @@ purpose: other
 created: 2026-06-11
 milestone: v1.5
 phase: 23-research-package-assembly
-execution_status: pending
+execution_status: executed
+executed_at: 2026-06-11T19:30:00+08:00
+review_status: pending
 retirement_trigger: all tasks executed and committed; consolidation_input/ delivered and prompt revision applied
 ---
 
@@ -54,6 +56,14 @@ retirement_trigger: all tasks executed and committed; consolidation_input/ deliv
 | R8 | kimi-resolution.md | 58,087 |
 
 R5 is the known matrix-only-heavy report: full resolution sections exist only for Q-A1..Q-A5; Q-A6..Q-C4 appear in its decision matrix only.
+
+R6's decision matrix is keyed by issue IDs only (B-06, B-11, M11, M12, M13, D7, M16, "Seed
+Conflict") — it never received the framed-questions catalog, and Q-IDs appear nowhere in the
+report. The six alias-backed rows map mechanically via the crosswalk's own parentheticals:
+B-06→Q-A1, B-11→Q-A2, M11→Q-A3, M13→Q-A4, D7→Q-A5, M12→Q-B1. The remaining mappings are NOT
+pre-decided: whether "Seed Conflict (SCS Thresholds)" §3.8 fills Q-C1, whether M16 §3.7 maps
+to any crosswalk row, and Q-B2..Q-B4 coverage — for these, STOP and surface to the user per
+the governance note above; do not infer.
 
 ---
 
@@ -277,6 +287,9 @@ def real_build(build_date: str) -> None:
         "Self-ID scan: case-insensitive word-boundary counts of model/vendor name tokens",
         "(" + ", ".join(SELF_ID_TOKENS) + ") inside each verbatim report body.",
         "Anonymization is best-effort at the packaging layer; bodies are not scrubbed.",
+        "Note: exact byte sizes also appear in the uploaded bundle header and are themselves",
+        "distinguishing (R4 notably so); the prompt's Independence ground rule is the",
+        "mitigation.",
         "",
         "## Specs (`specs-bundle.md`)",
         "",
@@ -325,6 +338,8 @@ selftest passed
 - [ ] **Step 3: Commit**
 
 ```bash
+cd <home>/Desktop/3_body_problem && \
+git add "pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/consolidation_input/make_bundles.py"
 GIT_AGENT_ID="Claude Code (claude-fable-5)" scripts/agent-commit -m "feat(23): add consolidation bundle builder with self-verification
 
 Deterministic builder for the Issue-02 Stage-2 upload bundles: byte-verbatim
@@ -361,7 +376,7 @@ head -20 research-results-bundle.md && \
 git status --short -- ../research_results ../research_package
 ```
 
-Expected: `8`, then `5`, then the bundle header (title, derived-artifact notice, Contents table with R1–R8 and byte counts, no filenames or model names), then **empty git status** for the two source directories (originals untouched). Also open `BUNDLE-MANIFEST.md` (it is small) and confirm the R-tag mapping matches the table in this plan's header.
+Expected: `8`, then `5`, then the bundle header (title, derived-artifact notice, Contents table with R1–R8 and byte counts, no filenames or model names), then **no `M`/`D`/`A` entries** for the two source directories (originals untouched; a pre-existing `?? …/research_results/` line is expected — the Stage-1 reports are not yet committed — and counts as pass). Also open `BUNDLE-MANIFEST.md` (it is small) and confirm the R-tag mapping matches the table in this plan's header.
 
 - [ ] **Step 3: Commit bundles + manifest**
 
@@ -453,7 +468,9 @@ with:
 - **Anonymization:** the R-tag → report-file mapping lives only in
   `consolidation_input/BUNDLE-MANIFEST.md`, which is deliberately NOT uploaded; de-reference
   report provenance there after the output lands. (Repo-side note: report bodies are verbatim
-  and may self-identify — see the manifest's self-ID scan column.)
+  and may self-identify — see the manifest's self-ID scan column; byte sizes in the uploaded
+  bundle header are also distinguishing, R4 notably so — the prompt's Independence ground rule
+  is the mitigation.)
 - **Revision note (2026-06-11):** attach list rebundled to 4 files; reports anonymized R1–R8;
   crosswalk section added. Design:
   `docs/superpowers/specs/2026-06-11-issue02-research-results-consolidation-packaging-design.md`.
@@ -661,7 +678,7 @@ Expected: all four paths print (the 4-file upload set named in the prompt exists
 git status --short -- "pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/research_results" "pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/research_package"
 ```
 
-Expected: empty (originals byte-identical to before).
+Expected: no `M`/`D`/`A` entries (originals byte-identical to before; a pre-existing `?? …/research_results/` line is expected — the Stage-1 reports are not yet committed — and counts as pass).
 
 - [ ] **Step 3: Review the full prompt diff**
 
