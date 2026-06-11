@@ -74,7 +74,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 **Shipped:** v1.4 Resolving 01 Architecture and Physics Foundations on 2026-06-09.
 
-**In progress:** v1.5 Phase 23 (Research Package Assembly) complete and verified 2026-06-10 (research context consolidated to single master file on 2026-06-11). The issue-02 research package is delivered under `framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/` and the external resolution-doc gate is OPEN (user multi-AI research starts). Phase 24 (empirical dataset verification + DATA-07 correction addendum) runs in parallel next; Phases 25–29 gate on BOTH the resolution doc landing AND Phase 24 completion.
+**In progress:** v1.5 Phase 23 (Research Package Assembly) complete and verified 2026-06-10 (research context consolidated to single master file on 2026-06-11). The issue-02 research package is delivered under `framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/`. Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11; the consolidated resolution doc landed the same day, closing the external gate. Phase 24.5 (resolution doc readiness verification) completed 2026-06-11 with gate verdict READY-WITH-CAVEATS (verification passed 5/5): 19/19 ledger findings covered, zero DATA-xx contradictions, zero locked-convention violations; caveats are deferred-by-design open items (OI-3/6/7/8/11/12), none blocking. Phase 25 evidence-packet construction is unblocked and may start from `24.5-RESOLUTION-MAP.md`.
 
 The milestone closed 32/32 requirements across eight verified phases and 26 plans. Its roadmap, requirements, audit, and phase execution history are archived under `.planning/milestones/`; production PINN alignment and author-comment adjudication remain documented future candidates rather than assumed next-milestone scope.
 
@@ -224,4 +224,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-10 after v1.5 Phase 23 completion (research package delivered; external resolution-doc gate open).*
+*Last updated: 2026-06-11 after v1.5 Phase 24.5 completion (resolution doc verified READY-WITH-CAVEATS; Phase 25 unblocked).*
