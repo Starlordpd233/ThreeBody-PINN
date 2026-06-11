@@ -57,7 +57,7 @@ fully specified recommendations.
 
 1. Read `RESEARCH-CONTEXT-MASTER.md` in its section order: "Package Orientation And Manifest"
    (it defines every file's role and authority level), then "Framed Research Questions" (the
-   complete question set), then "CLM Claims Register", then the files under `specs/` and the
+   complete question set), then "CLM Claims Register", then the files about framework designs and the
    master's "Consolidated Dataset Context" and "Correction Provenance And Verification
    Boundaries" sections as the questions require.
 2. Investigate and answer **every** question in the master's "Framed Research Questions"
@@ -65,6 +65,9 @@ fully specified recommendations.
    covers — nothing in this prompt adds to it or narrows it.
 3. Produce a single, self-contained resolution document in markdown, per the output
    specification below.
+4. I also attached the original thematic issue doc 02 for your reference. If you find it helpful to 
+refer to the information in this original issue doc, feel free to do so. However, do not treat the findings and information
+in there as ground-truth. 
 
 ## Ground rules
 
