@@ -68,7 +68,7 @@ Every selected finding follows the v1.4-style loop:
 
 - [x] **Phase 24: Empirical Dataset Verification and Correction Addendum** — Verify every empirical issue-02 claim against the on-disk dataset and compile the DATA-07 correction addendum for the in-flight external research; runs in parallel with the user's research (gates on nothing external) and seeds the issue ledger. (completed 2026-06-11)
 
-- [ ] **Phase 24.5: Resolution Doc Readiness Verification** (INSERTED) — Quick verification that the consolidated resolution doc is structurally sound, covers all issue-02 findings, is consistent with Phase 24 verified facts, and respects v1.4-locked conventions. Produces a readiness report and a resolution-doc quick-reference map for Phases 25–29. If gaps are found, routes fix instructions to the external consolidation agent. Gates Phases 25–29.
+- [x] **Phase 24.5: Resolution Doc Readiness Verification** (INSERTED) — COMPLETE 2026-06-11, READY-WITH-CAVEATS. Verified the consolidated resolution doc is structurally sound, covers all 19 issue-02 findings (0 silent), is consistent with Phase 24 verified facts (0 contradictions), and respects v1.4-locked conventions (0 violations). Produced `24.5-READINESS-REPORT.md` and `24.5-RESOLUTION-MAP.md`. No fix package routed (no blocking gap; optional OI-12 addendum erratum noted). Phases 25–29 unblocked.
 
 - [ ] **Phase 25: Evidence Framework and Issue Ledger** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes, root-cause conflict adjudication) and the re-verification ledger before any spec edit.
 - [ ] **Phase 26: DataLoader Ingestion and Selection Contracts** — Lock the ingestion gate, ID-resolution, blacklist-exclusion, gold-counterpart, footer-heterogeneity, and training-data-format contracts.
@@ -156,9 +156,9 @@ Every selected finding follows the v1.4-style loop:
 
 **Plans**: 1 plan (24.5-01 readiness verification; single wave, lightweight)
 
-  - [ ] 24.5-01-PLAN.md — presence/structure check + finding-coverage crosswalk + DATA-xx consistency + v1.4-locked convention compliance + resolution-doc map + readiness report + gate decision
+  - [x] 24.5-01-PLAN.md — presence/structure check + finding-coverage crosswalk + DATA-xx consistency + v1.4-locked convention compliance + resolution-doc map + readiness report + gate decision (executed 2026-06-11; all 7 tasks complete)
 
-**Phase 24.5 status**: PLANNED — gated on consolidated resolution doc arrival.
+**Phase 24.5 status**: COMPLETE (2026-06-11) — 1/1 plan summarized; gate verdict READY-WITH-CAVEATS (all 4 checks pass, 0 blocking gaps; caveats OI-3/6/7/8/11/12 deferred by design). Phases 25–29 unblocked.
 
 ### Phase 25: Evidence Framework and Issue Ledger
 
@@ -241,12 +241,12 @@ Every selected finding follows the v1.4-style loop:
 |-------|-----------|----------------|--------|-----------|
 | 23. Research Package Assembly | v1.5 | 5/5 | Complete (consolidated) | 2026-06-10 |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
-| 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 0/1 | Planned (gated on consolidated resolution doc) | - |
-| 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete (READY-WITH-CAVEATS) | 2026-06-11 |
+| 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (unblocked — Phase 24.5 passed) | - |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 
 ---
-*Last updated: 2026-06-11 after Phase 24.5 insertion (resolution doc readiness verification; 1 plan, lightweight; gates Phases 25–29).*
+*Last updated: 2026-06-11 after Phase 24.5 completion (resolution doc readiness verification; READY-WITH-CAVEATS; Phases 25–29 unblocked).*
