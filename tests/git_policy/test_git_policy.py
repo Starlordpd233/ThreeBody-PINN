@@ -47,9 +47,28 @@ class CommitMessagePolicyTests(unittest.TestCase):
             "Explain the behavioral change and why the parser drift occurred.\n"
             "\n"
             "Agent-Assisted-By: Codex GPT-5\n",
-            env={"GIT_AGENT_COMMIT": "1", "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n"},
+            env={
+                "GIT_AGENT_COMMIT": "1",
+                "GIT_AGENT_OWNED_PATHS": "pinn/",
+                "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n",
+            },
         )
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_accepts_phase_task_scope(self):
+        result = validate_message(
+            "docs(20-05): record phase plan summary\n",
+            env={"GIT_POLICY_STAGED_FILES": "docs/summary.md\n"},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_dot_decimal_phase_scope(self):
+        result = validate_message(
+            "docs(20.5): record phase plan summary\n",
+            env={"GIT_POLICY_STAGED_FILES": "docs/summary.md\n"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("header", result.stderr)
 
     def test_rejects_uppercase_subject_start(self):
         result = validate_message(
@@ -80,10 +99,76 @@ class CommitMessagePolicyTests(unittest.TestCase):
             "fix(pinn): repair parser drift\n"
             "\n"
             "Explain the behavioral change and why the parser drift occurred.\n",
-            env={"GIT_AGENT_COMMIT": "1", "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n"},
+            env={
+                "GIT_AGENT_COMMIT": "1",
+                "GIT_AGENT_OWNED_PATHS": "pinn/",
+                "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n",
+            },
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Agent-Assisted-By", result.stderr)
+
+    def test_requires_owned_paths_for_agent_commit(self):
+        result = validate_message(
+            "fix(pinn): repair parser drift\n"
+            "\n"
+            "Explain the behavioral change and why the parser drift occurred.\n"
+            "\n"
+            "Agent-Assisted-By: Codex GPT-5\n",
+            env={"GIT_AGENT_COMMIT": "1", "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("GIT_AGENT_OWNED_PATHS", result.stderr)
+
+    def test_rejects_agent_commit_outside_owned_paths(self):
+        result = validate_message(
+            "fix(pinn): repair parser drift\n"
+            "\n"
+            "Explain the behavioral change and why the parser drift occurred.\n"
+            "\n"
+            "Agent-Assisted-By: Codex GPT-5\n",
+            env={
+                "GIT_AGENT_COMMIT": "1",
+                "GIT_AGENT_OWNED_PATHS": "docs/",
+                "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n",
+            },
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("outside declared owned paths", result.stderr)
+
+    def test_accepts_colon_and_newline_separated_owned_paths(self):
+        result = validate_message(
+            "fix(pinn): repair parser drift\n"
+            "\n"
+            "Explain the behavioral change and why the parser drift occurred.\n"
+            "\n"
+            "Agent-Assisted-By: Codex GPT-5\n",
+            env={
+                "GIT_AGENT_COMMIT": "1",
+                "GIT_AGENT_OWNED_PATHS": "docs:\npinn/",
+                "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n",
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_unsafe_owned_paths(self):
+        unsafe_values = ["/tmp/work", ".", "..", "docs/../pinn", ""]
+        for value in unsafe_values:
+            with self.subTest(value=value):
+                result = validate_message(
+                    "fix(pinn): repair parser drift\n"
+                    "\n"
+                    "Explain the behavioral change and why the parser drift occurred.\n"
+                    "\n"
+                    "Agent-Assisted-By: Codex GPT-5\n",
+                    env={
+                        "GIT_AGENT_COMMIT": "1",
+                        "GIT_AGENT_OWNED_PATHS": value,
+                        "GIT_POLICY_STAGED_FILES": "pinn/parser.py\n",
+                    },
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("GIT_AGENT_OWNED_PATHS", result.stderr)
 
 
 class StagedPathPolicyTests(unittest.TestCase):
@@ -165,13 +250,34 @@ class AgentCommandGuardTests(unittest.TestCase):
         result = self.guard("git config --get core.hooksPath")
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_rejects_broad_git_add(self):
+        for command in ("git add .", "git add -A", "git add --all", "git add -u"):
+            with self.subTest(command=command):
+                result = self.guard(command)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("broad staging", result.stderr)
+
+    def test_allows_explicit_path_git_add(self):
+        result = self.guard("git add docs/git-guidelines.md scripts/agent-commit")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_rejects_destructive_git_without_bypass_marker(self):
         result = self.guard("git reset --hard HEAD")
         self.assertEqual(result.returncode, 2)
         self.assertIn("destructive", result.stderr)
 
-    def test_allows_destructive_git_with_bypass_marker(self):
+    def test_rejects_destructive_git_with_only_bypass_marker(self):
         result = self.guard("ALLOW_DESTRUCTIVE_GIT=1 git reset --hard HEAD")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("GIT_DESTRUCTIVE_APPROVAL", result.stderr)
+
+    def test_allows_destructive_git_with_all_required_markers(self):
+        result = self.guard(
+            "ALLOW_DESTRUCTIVE_GIT=1 "
+            "GIT_DESTRUCTIVE_APPROVAL='user approved git reset --hard HEAD' "
+            "GIT_RECOVERY_CHECKPOINT='backup/git-policy-20260611' "
+            "git reset --hard HEAD"
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
 
 

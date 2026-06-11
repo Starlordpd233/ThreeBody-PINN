@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "${ALLOW_DESTRUCTIVE_GIT:-}" != "1" ]; then
-  echo "git policy: rebase is blocked unless the user explicitly approved it and ALLOW_DESTRUCTIVE_GIT=1 is set" >&2
+if [ "${ALLOW_DESTRUCTIVE_GIT:-}" != "1" ] || \
+   [ -z "${GIT_DESTRUCTIVE_APPROVAL:-}" ] || \
+   [ -z "${GIT_RECOVERY_CHECKPOINT:-}" ]; then
+  echo "git policy: rebase is blocked unless the user approved the exact operation, a recovery checkpoint exists, and ALLOW_DESTRUCTIVE_GIT=1, GIT_DESTRUCTIVE_APPROVAL, and GIT_RECOVERY_CHECKPOINT are set" >&2
   exit 1
 fi
