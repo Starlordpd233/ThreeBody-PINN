@@ -582,17 +582,24 @@ Important distinction:
 
 ### Observed Parameter Sets (from `Result:` footers)
 
-Most Brutus output files end with a `Result:` footer; a subset has no footer at all (counts below; verified 2026-06-10, matching the missing-footer counts in `Validation/audit_reports/footer_audit_20251224_170141.md`). Footers that are present carry the full schema, including `eta` and `tol`. Files without a footer cannot be assigned a parameter set from the file alone; for those, assume the folder-level defaults.
+Most Brutus output files end with a `Result:` footer; a subset has no footer at all (counts below; verified 2026-06-10, matching the missing-footer counts in `Validation/audit_reports/footer_audit_20251224_170141.md`, except `brutus_hierarchical`, re-verified 2026-06-11 after the DATA-05 remediation rerun of 70 files — see note under that folder). Footers that are present carry the full schema, including `eta` and `tol`. Files without a footer cannot be assigned a parameter set from the file alone; for those, assume the folder-level defaults.
 
 Each entry below is `(tol, Lw, dt_out, t_end, eta) → count`. Files with no footer are listed separately.
 
-#### `simulation_data/Data/brutus_output/brutus_hierarchical/` (4,857 files; 3,307 with footer, 1,550 without)
+#### `simulation_data/Data/brutus_output/brutus_hierarchical/` (4,857 files; 3,377 with footer, 1,480 without)
 
 Footers (full schema, with `eta`):
-- `(1e-15, 130, 0.08, 10, 0.263027) → 3,307`
+- `(1e-15, 130, 0.08, 10, 0.263027) → 3,377`
 
 No `Result:` footer:
-- `→ 1,550` (no parameters recorded in-file; assume folder defaults: tol=1e-15, Lw=130, dt_out=0.08)
+- `→ 1,480` (no parameters recorded in-file; assume folder defaults: tol=1e-15, Lw=130, dt_out=0.08)
+
+> Counts updated 2026-06-11 (previously 3,307 / 1,550): the GAP-24-01 DATA-05 remediation
+> rerun replaced 70 stale base-hierarchical files (IDs `0005`-`0059`, `0061`-`0075`); all
+> 70 old files were footer-less, all 70 replacements carry full-schema footers with the
+> same parameter tuple. This folder now intentionally differs from
+> `footer_audit_20251224_170141.md` by −70 missing footers. Evidence:
+> `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-DATA05-RERUN-REMEDIATION.md`.
 
 #### `simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/` (4,857 files; all full-schema)
 
@@ -676,11 +683,11 @@ if final_timestep < 9.5:
 
 ### 1. Missing `Result:` Footers
 
-Most Brutus output files end with a `Result:` footer line, but a subset has none at all (verified 2026-06-10; matches the missing-footer counts in `Validation/audit_reports/footer_audit_20251224_170141.md`). Footers that are present carry the full field set, including `eta` and `tol`:
+Most Brutus output files end with a `Result:` footer line, but a subset has none at all (verified 2026-06-10; matches the missing-footer counts in `Validation/audit_reports/footer_audit_20251224_170141.md`, except `brutus_hierarchical`, re-verified 2026-06-11 after the DATA-05 remediation rerun — see Section "Observed Parameter Sets"). Footers that are present carry the full field set, including `eta` and `tol`:
 
 | Folder | Total Files | With Footer (full schema) | No Footer |
 |--------|-------------|---------------------------|-----------|
-| brutus_hierarchical | 4,857 | 3,307 | 1,550 |
+| brutus_hierarchical | 4,857 | 3,377 | 1,480 |
 | brutus_hierarchical_gold_standard | 4,857 | 4,857 | 0 |
 | brutus_standard_quasi_random | 2,749 | 2,048 | 701 |
 | brutus_standard_quasi_random_gold_standard | 2,565 | 2,346 | 219 |

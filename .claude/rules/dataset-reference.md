@@ -140,7 +140,7 @@ Provenance files:
 
 ## Known Issues and Gotchas
 
-- **Result footer presence variation**: Many files have no `Result:` footer at all — 1,550 in `brutus_hierarchical`, 701 in `brutus_standard_quasi_random`, 219 in `brutus_standard_quasi_random_gold_standard` (verified 2026-06-10; matches the missing-footer counts in `footer_audit_20251224_170141.md`). Footers that are present carry the full schema including `eta` and `tol`. Fall back to folder defaults when the footer is absent.
+- **Result footer presence variation**: Many files have no `Result:` footer at all — 1,480 in `brutus_hierarchical` (re-verified 2026-06-11 after the GAP-24-01 DATA-05 remediation rerun; intentionally differs from `footer_audit_20251224_170141.md` by −70 because the 70 replaced files all carry footers), 701 in `brutus_standard_quasi_random`, 219 in `brutus_standard_quasi_random_gold_standard` (verified 2026-06-10; match the audit). Footers that are present carry the full schema including `eta` and `tol`. Fall back to folder defaults when the footer is absent.
 - **Parameter heterogeneity**: Multiple tol, Lw values exist within the same folder. Prefer actual `Result:` values when present.
 - **Standard gold provenance**: No runner script in repo; treat provenance as partial.
 - **OS path variance**: Result footer paths can be macOS or Windows; do not use them as an authoritative mapping.
