@@ -41,8 +41,9 @@ remediation gates (mass equality at float64, 126 snapshots to t=10, schema), the
 performed after user approval, and the post-swap DATA-05 probe re-run reports **0/4857**
 base-hier mismatches (0/15,028 overall). Old artifacts are archived at
 `simulation_data/Data/forensic/data05_gap24-01_old_outputs/` with a committed SHA-256
-manifest. Derived metrics for the 70 IDs remain invalidated pending regeneration (gate 7,
-deferred by user). Full evidence: `24-DATA05-RERUN-REMEDIATION.md` "Execution Evidence".
+manifest. Derived metrics for the 70 IDs were regenerated and validated 2026-06-11
+(gate 7 closed; old metrics archived with committed hash manifest). All eight remediation
+gates are closed. Full evidence: `24-DATA05-RERUN-REMEDIATION.md` "Execution Evidence".
 
 ## Milestone-wide index
 

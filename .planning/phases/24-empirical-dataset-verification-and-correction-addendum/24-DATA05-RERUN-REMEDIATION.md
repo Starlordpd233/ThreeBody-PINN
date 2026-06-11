@@ -115,10 +115,16 @@ Gate-by-gate results:
    present in all 70).
 6. **Swap:** executed after user approval of the validation report; live folder back at
    4,857 files.
-7. **Metrics:** the derived metrics for the 70 affected IDs at
-   `simulation_data/Data/metrics/sim_result_metric_hierarchical/metrics_hierarchical_XXXX.json`
-   are **INVALIDATED** (computed from the old artifacts). Regeneration deferred per user
-   decision 2026-06-11; training and PIPE-07 must not consume them until regenerated.
+7. **Metrics:** regenerated and validated 2026-06-11 (user reversed the same-day
+   deferral). The 70 stale metrics JSONs (computed from the old artifacts) were
+   hash-manifested in `24-DATA05-OLD70-METRICS-SHA256.txt` (committed) and archived to
+   `simulation_data/Data/forensic/data05_gap24-01_old_metrics/`, then regenerated via
+   `calculate_metrics.py` `process_simulation_type('hierarchical')` (70 processed,
+   70 generated, 0 errors; the script's skip-if-valid-JSON behavior left the other
+   4,787 untouched). Validation 70/70: no error field, schema parity with existing
+   metrics, 126 snapshots to t=10, `total_mass` equals the IC mass sum exactly at
+   float64, energy conservation quality "excellent" for all 70 (relative error
+   2.2e-16 .. 5.1e-14).
 8. **Probe re-runs (post-swap):** DATA-05 probe: `brutus_hierarchical` now **0/4857**
    mismatches (was 70/4857); 0 mismatches across all 15,028 pairs. DATA-04: observed
    footer-less count in `brutus_hierarchical` is now **1,480** (was 1,550) — all 70 old
@@ -128,5 +134,5 @@ Gate-by-gate results:
    footer-bearing cohort 3,307 → 3,377, footer-less 1,550 → 1,480, final-time
    prevalence ≥ 9.5 remains 1.0; no anomalies.
 
-Old-artifact quarantine is lifted for the **trajectory files** (replacements are live);
-the **metrics quarantine** for the 70 IDs remains until gate 7 regeneration.
+All quarantines are lifted as of 2026-06-11: trajectory replacements are live and the
+70 metrics files are regenerated and validated. All eight remediation gates are closed.
