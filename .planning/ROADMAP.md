@@ -241,7 +241,7 @@ Every selected finding follows the v1.4-style loop:
 |-------|-----------|----------------|--------|-----------|
 | 23. Research Package Assembly | v1.5 | 5/5 | Complete (consolidated) | 2026-06-10 |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
-| 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete (READY-WITH-CAVEATS) | 2026-06-11 |
+| 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (unblocked — Phase 24.5 passed) | - |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
