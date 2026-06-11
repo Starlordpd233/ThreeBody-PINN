@@ -210,6 +210,8 @@ renumbering of other CLM IDs.**
 | **CLM-10** | **corrected** (see Correction 3 above) | medians: 61 / 127 / 1003 (standard / hier / gold) | `24-VERIFIED-FACTS.md` row 23 / `probes/data06_snapshots.py` |
 | **DATA-05** | **corrected / RESOLVED-WITH-INSTRUCTION** (see Correction 4 above) | 70/4,857 base-hier mismatches; current ICs canonical; affected old base outputs quarantined pending rerun | `24-VERIFIED-FACTS.md` row 31 / `probes/data05_mass_drift.py` / `24-DATA05-RERUN-REMEDIATION.md` |
 
+> **Note on the "Register row" column:** the row numbers above are indicative locators against `24-VERIFIED-FACTS.md` as authored; the authoritative, drift-stable locators are the **CLM ID** and the **probe script** named in each row. Register line numbers shifted on 2026-06-11 when CLM-05 was rendered as the CLM-05a / CLM-05b split (WR-04 user decision) during Phase 24 closure — the CLM IDs and probe scripts are unchanged, only the line offsets moved.
+
 ### PENDING — CLM-13 (D-05; not probed, routed)
 
 | CLM ID | Verdict | Status | Routing |
