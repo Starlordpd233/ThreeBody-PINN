@@ -33,8 +33,8 @@ last_verified_traceability: "19/19 issue-02 findings seeded; verified against 23
 | PSC | Phase Space Coverage Entropy (data-side; Q-C4) | 28 (VAL-04) | PENDING | — | NO | — | AC-VAL-04 | ctl_instruction.md; pinn_architecture.md | Q-C4 | 2026-06-11 |
 | D-03 | Processed training-data format (HDF5 vs .npy vs txt/json) | 26 (PIPE-10) | PENDING | — | NO | — | AC-PIPE-10 | ctl_instruction.md | Q-A6 | 2026-06-11 |
 | D=6.694 | compute_globals / D=6.694 convention conflict (CLM-13) — NOT probed by Phase 24; routed to Phase 25 EVID-10 / Phase 27 PIPE-09 | 25 (EVID-10) / 27 (PIPE-09) | PENDING | — | YES — EVID-10 required (PHYS-01 raw-mass D ~ 4.6416 vs mass-fraction 6.694) | — | AC-PIPE-09 / EVID-10 verdict | ctl_instruction.md §2.5 line 598 explicitly rejects 6.694 form | Q-B4 | 2026-06-11 |
-| footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | PENDING | — | YES — DATA-05 HELD behind GAP-24-01; verdict not recorded | — | AC-PIPE-06 / AC-PIPE-07 (gated on GAP-24-01) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly | 2026-06-11 |
-| mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | YES — DATA-05 HELD behind GAP-24-01; verdict not recorded | — | AC-PIPE-07 (gated on GAP-24-01) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly | 2026-06-11 |
+| footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | PENDING | — | NO — GAP-24-01 resolved by user instruction; 70 base-hier artifacts require rerun, not Decimal fallback | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
+| mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | NO — DATA-05 resolved as invalid/stale base-hier artifacts; old 70 quarantined until rerun passes | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
 
 ## Notes
 
@@ -50,11 +50,12 @@ Acceptance Check is the corresponding PIPE-0X acceptance check (synthesis view, 
 duplicate contract). **CLM-13 / `D=6.694` is PENDING** and routed Phase 25 EVID-10 /
 Phase 27 PIPE-09 — it was NOT probed by Phase 24 (D-05).
 
-The **footer** and **mass-drift** rows share a single HELD verdict gate: the DATA-05
-finding (70/4,857 base-hier mass mismatches) is held behind GAP-24-01 (D-16 STOP gap,
-semantic, **OPEN**). Their acceptance checks (`AC-PIPE-06` / `AC-PIPE-07`) cannot be
-defined structurally until GAP-24-01 is resolved. Both rows are marked `Sources Disagree? =
-YES` to reflect that the resolution-doc adjudication is the gating decision.
+The **footer** and **mass-drift** rows no longer have an OPEN DATA-05 STOP gate. The
+DATA-05 finding (70/4,857 base-hier mass mismatches) is resolved by user instruction:
+current ICs are canonical; the 70 old base-hier outputs are invalid/stale artifacts that
+must be rerun, not skipped and not explained by `decimal.Decimal` precision. The rows
+remain PENDING because Phases 26/27 still own the PIPE-06/07 contracts, but those phases
+consume the resolved remediation boundary rather than an open gap.
 
 ## Lifecycle Rules
 
@@ -267,31 +268,30 @@ Status transition log:
 
 ### footer: Footer/mass-drift protocol (Phase 26/27 PIPE-06/07)
 
-Acceptance check: AC-PIPE-06 / AC-PIPE-07 (gated on GAP-24-01)
+Acceptance check: AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state)
 
 Owning requirement: PIPE-06 (footer-heterogeneity) / PIPE-07 (precision contract).
 
-Sources disagree: YES — DATA-05 verdict is **HELD behind GAP-24-01** (D-16 STOP gap,
-semantic, OPEN). The protocol question (tolerance, sample size, Decimal-for-masses
-fallback) cannot be answered structurally until the user adjudicates GAP-24-01. Phase 24
-recorded the protocol as an **anomaly** (D-12) per the verified-facts register; the PIPE-07
-verdict is gated.
+Sources disagree: NO for the DATA-05 baseline decision. GAP-24-01 is
+`RESOLVED-WITH-INSTRUCTION`: current ICs are canonical; the 70 affected base-hier outputs
+are invalid/stale artifacts requiring targeted rerun; this is not a Decimal-for-masses
+fallback. Phase 24 records the protocol as an **anomaly** (D-12) plus a remediation
+boundary; PIPE-06/07 must not consume the old 70 outputs until rerun validation passes.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 
 ### mass-drift: Precision handling (Phase 27 PIPE-07)
 
-Acceptance check: AC-PIPE-07 (gated on GAP-24-01)
+Acceptance check: AC-PIPE-07 (consume remediated/quarantined DATA-05 state)
 
 Owning requirement: PIPE-07 (precision contract — float64 sufficiency; Decimal-for-masses).
 
-Sources disagree: YES — DATA-05 (HELD behind GAP-24-01). The verdict on whether float64
-is sufficient for validation metrics or `decimal.Decimal` is required for mass consistency
-cannot be assigned until GAP-24-01 is resolved. The agent was tempted to record
-"decimal.Decimal parsing required" as a verdict (this would have been the wrong framing —
-the 70 base-hier differences are 0.1-1.0 in mass units, not 1e-15; precision does not
-explain them); instead the row is HELD, not invented (D-16).
+Sources disagree: NO for the DATA-05 precision decision. DATA-05 is
+`RESOLVED-WITH-INSTRUCTION`: the 70 base-hier differences are 0.1-1.0 in mass units, not
+1e-15; precision does not explain them. The current IC files are canonical, and the old
+70 base-hier outputs are invalid/stale artifacts that must be rerun from current ICs
+before training, metrics, or PIPE-07 consume them.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
@@ -304,19 +304,21 @@ Linked: `24-VERIFIED-FACTS.md` (stable path:
 The verified-facts register is the dataset-evidence annex for every CLM- and DATA-keyed
 finding above. Each row carries the exact repo-root probe command, the dataset path it
 ran against, the observed value, the verdict (`confirmed` / `corrected` / `unverified`), and
-the run date (D-02 re-derivability). The DATA-05 row (held behind GAP-24-01) and the
-CLM-13 row (PENDING, not probed) are recorded in the register's dedicated sections.
+the run date (D-02 re-derivability). The DATA-05 row is resolved-with-instruction and
+points to `24-DATA05-RERUN-REMEDIATION.md`; the CLM-13 row (PENDING, not probed) is
+recorded in the register's dedicated section.
 
 ## Anomalies (D-12)
 
 - **DATA-05 / base-hier mass-drift**: 70/4,857 files in `brutus_hierarchical` show
-  m_Brutus(t=0) ≠ m_IC at `np.allclose(rtol=1e-15)`. Standard deviation 0.1-1.0 mass
+  m_Brutus(t=0) != m_IC at `np.allclose(rtol=1e-15)`. Differences are 0.1-1.0 mass
   units. Not explained by float64 round-trip or perturbation. Gold-hier matches perfectly
-  (0/4,857 mismatches). Provenance ambiguous — base vs gold runner reads the same IC
-  file but produces different t=0 masses for the same 70 IDs. **HELD behind GAP-24-01**
-  (D-16 STOP gap, semantic, OPEN). See `.planning/milestones/v1.5-GAPS.md` and
-  `24-GAPS.md`. **Blocks Phase 24 closure AND PIPE-07 (Phase 27) consumption per P0-2**
-  until the user adjudicates GAP-24-01.
+  (0/4,857 mismatches). User instruction 2026-06-11 resolves GAP-24-01: current ICs are
+  canonical; the 70 affected base-hier outputs (`0005`-`0059`, `0061`-`0075`) are
+  invalid/stale artifacts requiring targeted rerun from current ICs. The old artifacts
+  are quarantined from training, metrics, and PIPE-07 until rerun validation passes. See
+  `.planning/milestones/v1.5-GAPS.md`, `24-GAPS.md`, and
+  `24-DATA05-RERUN-REMEDIATION.md`.
 
 - **Standard 2,749-vs-2,750 arithmetic wrinkle**: 1,250 gaps from `gaps[0..max]` per the
   README's ID Range convention (`simulation_data/Documentation/README.md:146-153` declares

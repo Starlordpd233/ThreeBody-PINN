@@ -92,7 +92,7 @@ Per the user's P1-4 governance decision (2026-06-11): "any OPEN WR answer blocks
 
 **24-03 Task 1 (DATA-07 addendum assembly):** `UNBLOCKED`. No OPEN WR answers. Plan 24-03 executor may proceed.
 
-**Separately blocking Phase 24 closure (not WR-related):** `GAP-24-01` (D-16 STOP, semantic, OPEN) — 70/4,857 base-hier files show `m_Brutus(t=0) ≠ m_IC` at `np.allclose(rtol=1e-15)`; gold-hier and both standard variants match. Base-runner / backfill provenance is undocumented. User adjudication required (24-02 gap-surfaced). This blocks Phase 24 closure AND PIPE-07 (Phase 27) consumption regardless of WR status. See `.planning/milestones/v1.5-GAPS.md` and `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-GAPS.md`.
+**Separately tracked Phase 24 remediation (not WR-related):** `GAP-24-01` (D-16 STOP, semantic) is now `RESOLVED-WITH-INSTRUCTION` as of 2026-06-11. User instruction: current ICs are canonical; the 70 affected base-hier outputs (`0005`-`0059`, `0061`-`0075`) are invalid/stale artifacts requiring targeted rerun from current ICs; the old artifacts are quarantined from training, metrics, and PIPE-07 until rerun validation passes. This no longer blocks Phase 24 on an open decision, but it remains a data-remediation boundary. See `.planning/milestones/v1.5-GAPS.md`, `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-GAPS.md`, and `24-DATA05-RERUN-REMEDIATION.md`.
 
 ---
 

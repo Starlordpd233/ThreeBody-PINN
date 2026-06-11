@@ -145,19 +145,20 @@ refined (D-11).
 
 ---
 
-## DATA-05 (HELD — unverified, not corrected) — base-hierarchical mass-drift
+## DATA-05 (resolved with remediation required) — base-hierarchical mass-drift
 
 **Affects:** DATA-05 mass-drift verdict (PIPE-07-feeding). No package-stated claim asserts
-that m_IC = m_Brutus(t=0) at all 4,857 IDs, so this is **HELD** behind **GAP-24-01** (D-16
-STOP gap, semantic, **OPEN**). The verdict is not recorded; the row is surfaced as
-unverified, not corrected.
+that m_IC = m_Brutus(t=0) at all 4,857 IDs, so this is not a package-claim correction. It
+is a D-12 anomaly plus a resolved D-16 decision: **GAP-24-01 is
+RESOLVED-WITH-INSTRUCTION** as of 2026-06-11.
 
 **Package states:** no package-stated claim — this is a discrepancy Phase 24 detected, not
-a package claim. Surfaced per D-12 (anomaly) and recorded as an OPEN STOP gap (GAP-24-01).
+a package claim. Surfaced per D-12 (anomaly) and recorded as a STOP gap (GAP-24-01), then
+resolved by user instruction on 2026-06-11.
 
 **Observed disk fact:** 70 / 4,857 files in `brutus_hierarchical` show
-m_Brutus(t=0) ≠ m_IC at `np.allclose(rtol=1e-15)` (differences 0.1-1.0 in mass units; e.g.,
-id 5: m_IC = 0.9056088426088029, m_Brutus_t0 = 1.2569378670807108, abs_diff ≈ 0.351 — too
+m_Brutus(t=0) != m_IC at `np.allclose(rtol=1e-15)` (differences 0.1-1.0 in mass units; e.g.,
+id 5: m_IC = 0.9056088426088029, m_Brutus_t0 = 1.2569378670807108, abs_diff approx 0.351 - too
 large for float64 round-trip and not explainable by perturbation which does not touch
 masses per `ic_generation_utils.py:417-420`). **Crucially**, the gold-hier variant for the
 same 70 IDs matches the IC perfectly (0/4,857 mismatches), ruling out a generation-side error
@@ -169,13 +170,15 @@ run 2026-06-11 over the full population (D-15: default full population, 15,028 t
 pairs). Per-variant mismatch counts: base-hier 70/4,857; gold-hier 0/4,857; base-std 0/2,749;
 gold-std 0/2,565.
 
-**Verdict:** **`unverified` — HELD behind GAP-24-01** (D-16 STOP gap, semantic, **OPEN**).
-**Phase 24 closure and PIPE-07 (Phase 27) consumption are blocked until the user
-adjudicates GAP-24-01.** See `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-GAPS.md`
-and `.planning/milestones/v1.5-GAPS.md`. The base-runner / backfill provenance is ambiguous
-(base and gold runners read the same IC file but produce different t=0 masses for the same
-70 IDs); per D-16, ambiguity is a STOP gap, not a baseline choice. No correction is recorded
-in this addendum because the gap is open.
+**Verdict:** **corrected / RESOLVED-WITH-INSTRUCTION** for the DATA-05 decision. User
+instruction 2026-06-11: current IC files are canonical; the 70 affected base-hier outputs
+(`0005`-`0059`, `0061`-`0075`) are invalid/stale artifacts requiring targeted rerun from
+current ICs; they are not a `decimal.Decimal` precision problem and should not be skipped
+permanently. Until rerun validation passes, the old 70 base-hier artifacts are quarantined
+from training, metrics, and PIPE-07. See
+`.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-GAPS.md`,
+`.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-DATA05-RERUN-REMEDIATION.md`,
+and `.planning/milestones/v1.5-GAPS.md`.
 
 ---
 
@@ -205,7 +208,7 @@ renumbering of other CLM IDs.**
 | CLM-11 | **confirmed** (prevalence 100% across the probe-applicable population) | `final_timestep >= 9.5` prevalence: 1.000 across probe-applicable files | `24-VERIFIED-FACTS.md` row 24 / `probes/data06_snapshots.py` |
 | CLM-12 | **confirmed** | Standard observed max_id=3,998 (→~4,000); hierarchical max_id=4,999 (→~5,000) | `24-VERIFIED-FACTS.md` row 25 / `probes/data01_id_gaps.py` |
 | **CLM-10** | **corrected** (see Correction 3 above) | medians: 61 / 127 / 1003 (standard / hier / gold) | `24-VERIFIED-FACTS.md` row 23 / `probes/data06_snapshots.py` |
-| **DATA-05** | **unverified — HELD behind GAP-24-01** (see Correction 4 above) | 70/4,857 base-hier mismatches; gold-hier 0/4,857; both std 0 | `24-VERIFIED-FACTS.md` row 31 / `probes/data05_mass_drift.py` |
+| **DATA-05** | **corrected / RESOLVED-WITH-INSTRUCTION** (see Correction 4 above) | 70/4,857 base-hier mismatches; current ICs canonical; affected old base outputs quarantined pending rerun | `24-VERIFIED-FACTS.md` row 31 / `probes/data05_mass_drift.py` / `24-DATA05-RERUN-REMEDIATION.md` |
 
 ### PENDING — CLM-13 (D-05; not probed, routed)
 
@@ -304,18 +307,19 @@ No other package content is touched by these corrections.
 
 Phase 24 verified 11 of 13 CLM rows via the on-disk dataset; CLM-10 was corrected
 (snapshot-count medians: 61 / 127 / 1003); CLM-13 is PENDING (contested convention, not a
-dataset count; routed Phase 25 EVID-10 / Phase 27 PIPE-09 per D-05); **DATA-05 is HELD
-behind GAP-24-01** (D-16 STOP gap, semantic, OPEN). Two 2026-06-10 erratum corrections are
+dataset count; routed Phase 25 EVID-10 / Phase 27 PIPE-09 per D-05); **DATA-05 is resolved
+with remediation required** (current ICs canonical; 70 old base-hier outputs quarantined
+pending targeted rerun). Two 2026-06-10 erratum corrections are
 folded (no-`_gold_`-infix filenames; 1,550 / 701 / 219 no-footer populations — counts
 unchanged, characterizations corrected per D-07). WR-01 / WR-02 / WR-03 are folded in the
-non-CLM appendix per the user-chosen channel (24-WR-DECISIONS.md). **Phase 24 closure is
-contingent on user adjudication of GAP-24-01** — see `24-GAPS.md` and
-`.planning/milestones/v1.5-GAPS.md`.
+non-CLM appendix per the user-chosen channel (24-WR-DECISIONS.md). The DATA-05 decision is
+no longer open; the data-remediation boundary is recorded in `24-GAPS.md`,
+`24-DATA05-RERUN-REMEDIATION.md`, and `.planning/milestones/v1.5-GAPS.md`.
 
-The addendum does **not** claim that "all package-stated claims are confirmed" — the DATA-05
-row is held `unverified` behind the OPEN gap (24-03:122-128 forbids this phrasing). The
-master file `RESEARCH-CONTEXT-MASTER.md` is unchanged (D-18); this addendum is a sibling
-file and is intentionally not in the master's Per-File Manifest.
+The addendum does **not** claim that "all package-stated claims are confirmed" because
+CLM-10 is corrected, CLM-13 is pending, and DATA-05 still requires data remediation before
+training/PIPE-07 use. The master file `RESEARCH-CONTEXT-MASTER.md` is unchanged (D-18);
+this addendum is a sibling file and is intentionally not in the master's Per-File Manifest.
 
 ---
 

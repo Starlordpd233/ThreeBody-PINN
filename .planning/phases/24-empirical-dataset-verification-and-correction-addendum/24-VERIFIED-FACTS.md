@@ -2,7 +2,7 @@
 
 **Phase:** 24 — Empirical Dataset Verification and Correction Addendum
 **Plan:** 24-01 (Wave 1) + 24-02 (Wave 2)
-**Created:** 2026-06-11 (Wave 1); Wave 2 rows added 2026-06-11
+**Created:** 2026-06-11 (Wave 1); Wave 2 rows added 2026-06-11; DATA-05 gap resolution recorded 2026-06-11
 **Re-derivability standard (D-02):** every fact below carries the exact repo-root probe command, the dataset path it ran against, the observed value, and the run date. Any later agent or the user can reproduce every count without this session's context.
 **Verdict vocabulary (D-08):** `confirmed` (observed matches claim) | `corrected` (observed differs; both recorded) | `unverified` (probe could not run within grounding limits, reason recorded — never a shortcut for "didn't get to it").
 **Read-only fences (D-01):** all probes are read-only over `simulation_data/`. `git status --short simulation_data/` was clean after every probe run (verified 2026-06-11).
@@ -28,7 +28,7 @@
 
 | Row | Owning DATA | Claimed value | Observed value | Probe command | Dataset path | Run date (UTC) | Verdict |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| DATA-05 verdict (PIPE-07-feeding) | DATA-05 | IC masses canonical at float64 vs `decimal.Decimal` parsing required | **70/4,857 base-hier mismatches** (m_IC ≠ m_Brutus(t=0) at `np.allclose(rtol=1e-15)`); **0/4,857 gold-hier** matches; **0/2,749 base-std** matches; **0/2,565 gold-std** matches. Total compared: 15,028; total mismatch: 70. D-16 trigger fires: mismatches CLUSTER in base-hier (70/70) and provenance is ambiguous (perturbation only touches positions/velocities, not masses — `ic_generation_utils.py:417-420`; gold-hier rules out a generation-side error; the base runner's hot-fix / backfill history is not documented). | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data05_mass_drift.py` | `simulation_data/Data/ic_final/{ic_hierarchical,ic_standard_quasi_random}` + `simulation_data/Data/brutus_output/{4 variants}` | 2026-06-11 | **unverified** — HELD behind GAP-24-01 (D-16 STOP gap, semantic). PIPE-07 (Phase 27) cannot consume the canonical-vs-Decimal verdict until the gap is resolved. |
+| DATA-05 verdict (PIPE-07-feeding) | DATA-05 | IC masses canonical at float64 vs `decimal.Decimal` parsing required | **70/4,857 base-hier mismatches** (m_IC != m_Brutus(t=0) at `np.allclose(rtol=1e-15)`); **0/4,857 gold-hier** mismatches; **0/2,749 base-std** mismatches; **0/2,565 gold-std** mismatches. Total compared: 15,028; total mismatch: 70. User resolution 2026-06-11: current IC files are canonical; the 70 affected base-hier outputs are invalid/stale artifacts requiring targeted rerun from current ICs; this is not a `decimal.Decimal` precision problem. Affected IDs: `0005`-`0059`, `0061`-`0075`. | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data05_mass_drift.py` | `simulation_data/Data/ic_final/{ic_hierarchical,ic_standard_quasi_random}` + `simulation_data/Data/brutus_output/{4 variants}` | 2026-06-11 | **corrected / RESOLVED-WITH-INSTRUCTION** — old 70 base-hier artifacts are quarantined from training, metrics, and PIPE-07 until rerun passes validation. See `24-GAPS.md` and `24-DATA05-RERUN-REMEDIATION.md`. |
 
 ## CLM-13 Row (D-05 — not probed, routed to Phase 25/27)
 
@@ -73,7 +73,7 @@ Per D-10 (SCOPE-07 grounding only):
 
 **CLM-10 (corrected):** the per-variant medians depart from the `~59 / ~125 / ~1000` claims at the integer-rounded-MEDIAN level (61 / 127 / 1003). The `~` prefix signals approximation; the empirical median is the authoritative D-09 statistic. The `~` claim is best read as `~` = "rounded order of magnitude" or "block-count rule of thumb" rather than a precise integer; the corrected values (61 / 127 / 1003) are recorded for the register. **No README correction is proposed at this time** — the `~` prefix is preserved and the empirical medians are recorded here as the authoritative fact (D-11: empirical observation outranks doc text; the package claim is not contradicted, only refined).
 
-**DATA-05 (HELD, GAP-24-01):** the 70 base-hier mismatches are an anomaly that contradicts no package-stated claim directly (no package claim asserts that m_IC = m_Brutus(t=0) at all 4,857 IDs); it is recorded as an Anomaly (D-12) and as a STOP gap (GAP-24-01). No README correction is proposed at this time.
+**DATA-05 (GAP-24-01 resolved with remediation required):** the 70 base-hier mismatches are an anomaly that contradicts no package-stated claim directly (no package claim asserts that m_IC = m_Brutus(t=0) at all 4,857 IDs); it is recorded as an Anomaly (D-12) and as a resolved STOP-gap decision. User instruction 2026-06-11: current ICs are canonical, the 70 base-hier outputs are invalid/stale artifacts, and those 70 outputs must be rerun rather than skipped or treated as a precision/Decimal issue. No README correction is proposed at this time.
 
 ## DATA-04/05/06 Rows (plan 24-02 — completed)
 
@@ -87,7 +87,11 @@ This section's placeholder from plan 24-01 has been completed by plan 24-02 with
 
 ## Anomalies (D-12)
 
-1. **D-12 / DATA-05 base-hier mass-drift (anomaly + STOP gap):** 70 / 4,857 files in `brutus_hierarchical` show m_Brutus(t=0) ≠ m_IC at `np.allclose(rtol=1e-15)`. The differences are 0.1-1.0 in mass units (e.g., id 5: m_IC = 0.9056088426088029, m_Brutus_t0 = 1.2569378670807108, abs_diff ≈ 0.351) — too large for float64 round-trip (rtol=1e-15 would catch only ~1e-15 relative error) and not explainable by perturbation (which does not touch masses per `ic_generation_utils.py:417-420`). Crucially, the gold-hier variant for the same 70 IDs matches the IC perfectly (0/4,857 mismatches), ruling out a generation-side error in the IC files. The provenance of the base-hier drift is therefore AMBIGUOUS: the base and gold runners read the same IC file but produce different t=0 masses for the same 70 IDs. This is recorded as **GAP-24-01** (D-16 STOP gap, semantic) and is **OPEN**; see `24-GAPS.md` and `.planning/milestones/v1.5-GAPS.md`. The standard 2,749-vs-2,750 arithmetic wrinkle flagged in RESEARCH Open Q1 reconciled as: 1,250 gaps from `gaps[0..max]` per the README's ID Range convention. There is no off-by-one.
+1. **D-12 / DATA-05 base-hier mass-drift (anomaly + resolved remediation decision):** 70 / 4,857 files in `brutus_hierarchical` show m_Brutus(t=0) != m_IC at `np.allclose(rtol=1e-15)`. The differences are 0.1-1.0 in mass units (e.g., id 5: m_IC = 0.9056088426088029, m_Brutus_t0 = 1.2569378670807108, abs_diff approx 0.351) - too large for float64 round-trip (rtol=1e-15 would catch only ~1e-15 relative error) and not explainable by perturbation (which does not touch masses per `ic_generation_utils.py:417-420`). Crucially, the gold-hier variant for the same 70 IDs matches the IC perfectly (0/4,857 mismatches), ruling out a generation-side error in the IC files. User instruction 2026-06-11 resolves **GAP-24-01**: current ICs are canonical; the 70 affected base-hier outputs (`0005`-`0059`, `0061`-`0075`) are invalid/stale artifacts requiring targeted rerun from current ICs; the old artifacts are quarantined from training, metrics, and PIPE-07 until rerun validation passes. See `24-GAPS.md`, `.planning/milestones/v1.5-GAPS.md`, and `24-DATA05-RERUN-REMEDIATION.md`. The standard 2,749-vs-2,750 arithmetic wrinkle flagged in RESEARCH Open Q1 reconciled as: 1,250 gaps from `gaps[0..max]` per the README's ID Range convention. There is no off-by-one.
+
+## DATA-05 Rerun Remediation Reference
+
+The rerun decision is recorded in `24-DATA05-RERUN-REMEDIATION.md`. Until that remediation is executed and verified, the 70 old base-hierarchical outputs remain invalid for training, metrics, and PIPE-07. This register may continue to serve Phase 24 because the semantic decision is resolved; it must not be read as claiming the affected files have already been regenerated.
 
 ## Deviation from Plan
 

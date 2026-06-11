@@ -50,6 +50,10 @@
 
 **Choice rationale:** Only the sample was open (method/tolerance fixed by DATA-05 text). The hierarchical-IC-perturbation contingency is written into CONTEXT as a STOP-gap trigger, not silently resolved. (`[auto]` selected.)
 
+### DATA-05 resolution update (2026-06-11)
+
+The full-population probe surfaced `GAP-24-01`: 70 base-hierarchical files had m_Brutus(t=0) != m_IC while gold-hierarchical and both standard variants were clean. The user resolved the gap on 2026-06-11: current IC files are canonical; the 70 affected base-hier outputs (`0005`-`0059`, `0061`-`0075`) are invalid/stale artifacts requiring targeted rerun from current ICs; the old artifacts are quarantined from training, metrics, and PIPE-07 until rerun validation passes. See `24-GAPS.md` and `24-DATA05-RERUN-REMEDIATION.md`.
+
 ## DATA-07 addendum form & delivery
 
 | Option | Description | Selected |
@@ -88,30 +92,30 @@
 
 ---
 
-## Open Decisions — WR-01..04 Carry-In (surfaced, NOT decided)
+## Carry-In Decisions — WR-01..04 (surfaced here, later resolved)
 
-> These four decisions were carried forward from Phase 23's review (`23-REVIEW.md:115-173`). The Phase 24 discuss step does not resolve them — they require user input per v1.5 STOP governance. If any is decided during planning without a grounding source, it becomes a `24-GAPS.md` entry.
+> These four decisions were carried forward from Phase 23's review (`23-REVIEW.md:115-173`). The Phase 24 discuss step did not resolve them; they required user input per v1.5 STOP governance. They were later answered and recorded in `24-WR-DECISIONS.md` as `RESOLVED-WITH-INSTRUCTION`.
 
 ### (a) WR-04: CLM-05 schema — split vs amend
 
 **Decision point:** CLM-05 currently covers two distinct observables (IC folder counts and Brutus output file counts) that happen to coincide today but can diverge. Should the claims register split CLM-05 into CLM-05a (IC folders) / CLM-05b (Brutus output folders), or amend CLM-05's text to name both observables and require separate counts?
 
 **Classification:** process-artifact schema → MUST-surface.
-**Status:** OPEN
+**Status:** RESOLVED-WITH-INSTRUCTION (see `24-WR-DECISIONS.md`)
 
 ### (b) WR-01: Register sample-size figure as a new CLM row?
 
 **Decision point:** The issue doc is internally inconsistent on sample size (line 204: 1000 pairs; P2-2 line 292: 100 pairs). The framed question's correction will report both figures neutrally. Should the sample-size figure be registered as a new CLM row to formally track this conflict, or is the neutral report in the framed-questions correction sufficient?
 
 **Classification:** process-artifact schema → surface.
-**Status:** OPEN
+**Status:** RESOLVED-WITH-INSTRUCTION (see `24-WR-DECISIONS.md`)
 
 ### (c) WR-02/WR-03: Correction channel for spec-citation fixes
 
 **Decision point:** WR-02 and WR-03 are spec-citation typos in `framed-research-questions.md` — not dataset claims, so they do not fit the CLM-keyed DATA-07 addendum cleanly. Within the current Phase 24 plan set, the live channel option is a non-CLM appendix in the DATA-07 addendum; the user may also explicitly defer the channel decision.
 
 **Classification:** operational coordination → surface.
-**Status:** OPEN
+**Status:** RESOLVED-WITH-INSTRUCTION (see `24-WR-DECISIONS.md`)
 
 **UPDATE 2026-06-11:** The Phase 23 research-context master consolidation retired `ERRATUM-2026-06-10.md` and integrated its two corrections into `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries". Option (B) "interim extension to ERRATUM-2026-06-10.md" is therefore removed. Direct correction in `RESEARCH-CONTEXT-MASTER.md` would waive D-18/byte-stability and is not executable by the current Phase 24 plan set unless the user separately authorizes a replan with that waiver and a concrete master-edit task. See plan 24-04 (updated 2026-06-11) for the revised option framing.
 
@@ -120,6 +124,6 @@
 **Decision point:** Should the corrected citations (WR-02/03) and conflict surfacing (WR-01) be issued in the consolidated DATA-07 addendum after probes complete, or explicitly deferred until a separate user-authorized D-18-waiver/replan exists? The trade-off is timeliness for in-flight researchers vs preserving the current phase's byte-stability invariant.
 
 **Classification:** operational coordination → surface.
-**Status:** OPEN
+**Status:** RESOLVED-WITH-INSTRUCTION (see `24-WR-DECISIONS.md`)
 
 **UPDATE 2026-06-11:** The "interim erratum extension" vehicle is removed by the 2026-06-11 master consolidation (ERRATUM-2026-06-10.md retired; corrections integrated into RESEARCH-CONTEXT-MASTER.md). "Interim fix NOW" as a direct master edit is also removed from the current Phase 24 gate because no plan can execute it without a D-18 waiver. The current executable path is the consolidated DATA-07 addendum after probes complete, or explicit deferral. See plan 24-04 (updated 2026-06-11).

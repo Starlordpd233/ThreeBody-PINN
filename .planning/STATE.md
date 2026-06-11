@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-11T03:09:00.894Z"
-last_activity: 2026-06-10 -- Phase 24 planning complete
+last_updated: "2026-06-11T08:28:05Z"
+last_activity: 2026-06-11 -- Phase 24 DATA-05 gap resolved; rerun remediation recorded
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 24
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-10 -- Phase 24 planning complete
+Plan: Phase 24 continuation
+Status: Continue Phase 24; DATA-05 decision resolved with remediation boundary
+Last activity: 2026-06-11 -- GAP-24-01 resolved; 70 base-hier outputs quarantined pending rerun
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) runs first with no gate; its delivery opens the external resolution-doc gate (user research starts). Phase 24 (empirical dataset verification + DATA-07 correction addendum) runs **in parallel** during the gate window — it depends on Phase 23's delivered claim list but gates on nothing external. Phases 25–29 (all adjudication / spec-edit work) gate on BOTH the resolution doc landing at `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completion.
 
@@ -142,6 +142,7 @@ Recent decisions affecting current work:
 - [Phase 23]: Phase 23 research package delivered; external resolution-doc gate OPEN (user multi-AI research starts). Resolution doc lands at research_reports/02-data-pipeline-and-validation/.
 - [Phase 23]: Doc-integrity audit F-08/F-09 contradict two claims carried in the delivered Phase 23 package: gold output filenames carry no gold token (folder-only), and ~2,470 files (1,550+701+219) have NO Result: footer rather than partial footers. CLM-07 claim text affected; CLM-09 values re-verified correct. Package stays byte-stable - audit workstream issues an erratum beside the package; Phase 24 DATA-07 CLM-keyed correction addendum is the authoritative follow-up and must fold these in.
 - [Phase 23→24]: Phase 23 review (`23-REVIEW.md:115-173`) identified four non-blocking warnings (WR-01..04) routed to Phase 24's DATA-07 correction pass: WR-01 (Q-B2 sample-size conflict 1000 vs 100), WR-02 (Hard Constraint 3 wrong line cite 972→967), WR-03 (Q-B1 dangling "§5.3.2" cite, spec says example not contract), WR-04 (CLM-05 dual-observable ambiguity — IC vs Brutus folder counts). Two schema questions (CLM-05 split, new CLM row for WR-01) and one channel question (WR-02/03 citation-fix channel) are surfaced as open decisions in `24-DISCUSSION-LOG.md` — NOT pre-decided. WR-04 shapes DATA-03/04 probe design (count both observables separately). All corrections travel through the correction channel; package byte-stability preserved.
+- [Phase 24 2026-06-11]: GAP-24-01 (DATA-05 base-hier mass mismatch) resolved with user instruction. Current IC files are canonical; the 70 affected base-hier outputs (`0005`-`0059`, `0061`-`0075`) are invalid/stale artifacts requiring targeted rerun from current ICs; old artifacts are quarantined from training, metrics, and PIPE-07 until rerun validation passes. Remediation boundary recorded in `24-DATA05-RERUN-REMEDIATION.md`; the milestone gap index now has 0 open gaps.
 
 ### Pending Todos
 
@@ -149,7 +150,8 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 
 - [x] Plan Phase 23 (Research Package Assembly + DQA Characterization) with `/gsd-plan-phase 23`
 - [x] Tag `v1.5-pre-phase-23` from `milestone/v1.5` HEAD before Phase 23 begins
-- [ ] **[Standing trigger]** Create `.planning/milestones/v1.5-GAPS.md` index when the first v1.5 phase opens a gap (no gap raised yet; file does not exist)
+- [x] **[Standing trigger]** Create `.planning/milestones/v1.5-GAPS.md` index when the first v1.5 phase opens a gap (created 2026-06-11; GAP-24-01 now RESOLVED-WITH-INSTRUCTION)
+- [ ] Continue Phase 24 DATA-07 addendum assembly and ledger/facts cleanup with `GAP-24-01` resolved; do not claim the 70 files are fixed until the rerun remediation gates pass.
 - [x] Define v1.5 requirements (36 requirements committed 2026-06-10, incl. DATA-07)
 - [x] Create v1.5 roadmap (Phases 23–29; 36/36 mapped)
 - [x] Revise v1.5 roadmap — phase-order swap, research package first (2026-06-10)
@@ -162,16 +164,17 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 
 - **Working branch is `milestone/v1.5`** (cut from master HEAD `b8b39a4`, 2026-06-10). Do NOT commit v1.5 work to master. Tag `v1.5-pre-phase-NN` before each phase; `--no-ff` merge at milestone end. Every session must surface `git status --short --branch` before any file mutation.
 - **External gate:** opens on Phase 23 (research package) delivery. Phases 25–29 cannot start until BOTH the user delivers the resolution doc to `framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completes. Phase 23 is unblocked; Phase 24 is unblocked and runs in parallel with the gate window (gates on nothing external).
+- **DATA-05 remediation boundary:** GAP-24-01 is resolved as a decision, not as completed data repair. The old 70 base-hier outputs (`0005`-`0059`, `0061`-`0075`) are quarantined from training, metrics, and PIPE-07 until targeted rerun from current ICs passes validation (`24-DATA05-RERUN-REMEDIATION.md`).
 - **STOP protocol active:** v1.5 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
 - Phases 25-29 blocked until the resolution doc lands at research_reports/02-data-pipeline-and-validation/ AND Phase 24 completes (Phase 24 runs in parallel, gates on nothing external).
 
 ## Session Continuity
 
-Last session: 2026-06-11T03:09:00.889Z
-Next action: Plan Phase 23 with `/gsd-plan-phase 23` (no gate); ensure `v1.5-pre-phase-23` tag is cut from `milestone/v1.5` HEAD first.
+Last session: 2026-06-11T08:28:05Z
+Next action: Continue Phase 24 DATA-07 addendum / facts-ledger cleanup with GAP-24-01 resolved; keep DATA-05 rerun remediation separate until explicitly executed.
 
 ## Operator Next Steps
 
-- Plan Phase 23 with `/gsd-plan-phase 23` (Research Package Assembly + DQA Characterization) — first phase, no gate; its delivery opens the external resolution-doc gate.
-- After Phase 23 delivers the research package, run external multi-AI research and place the resolution doc under `framework-revisions/research_reports/02-data-pipeline-and-validation/`. Phase 24 (Empirical Dataset Verification + DATA-07 correction addendum) runs in parallel during that gate window; its DATA-07 addendum is forwarded to the in-flight research.
+- Continue Phase 24 DATA-07 correction addendum / facts-ledger cleanup using the resolved DATA-05 boundary.
+- Keep the DATA-05 70-file rerun as a separate remediation operation: preserve old artifacts, rerun from current ICs, validate in staging, then replace and regenerate dependent metrics.
 - Phases 25–29 unblock once BOTH the resolution doc lands AND Phase 24 completes.

@@ -206,12 +206,13 @@ def main():
         "perturbation_in_ic_utils": ic_utils_grep,
         "grounded_fact": "ic_generation_utils.py:417-420 perturbs POSITION and VELOCITY vectors (x1..x3, v1..v3) with Gaussian noise sigma=0.01. Masses (m1, m2, m3) are NOT perturbed.",
         "factual_observation": "70 base-hier mismatches (m_IC=0.9056... vs m_Brutus_t0=1.2569... for id 5) — but gold-hier matches IC perfectly (0/4857 mismatches). The mismatch is NOT a perturbation artifact (perturbation doesn't touch masses, and gold proves this).",
-        "verdict_path": "STOP — D-16 trigger fires. Hierarchical mismatches cluster (70/4857 base; 0/4857 gold) and provenance is ambiguous about what produced the drift. Verdict HELD; semantic gap recorded.",
+        "verdict_path": "D-16 STOP gap triggered and was resolved by user instruction on 2026-06-11. Current ICs are canonical; the 70 base-hier outputs are invalid/stale artifacts requiring targeted rerun from current ICs; this is not a decimal.Decimal precision problem.",
         "stop_gap_fired": True,
+        "gap_resolution": "RESOLVED-WITH-INSTRUCTION — see 24-GAPS.md and 24-DATA05-RERUN-REMEDIATION.md",
     }
 
-    out["verdict"] = "HELD — D-16 STOP gap fired (semantic, 70/4857 base-hier mismatches; gold-hier matches IC perfectly, ruling out perturbation provenance; provenance of base-hier drift is AMBIGUOUS). See 24-GAPS.md and .planning/milestones/v1.5-GAPS.md."
-    out["feeds_pipe_07_note"] = "DATA-05 verdict is HELD behind a semantic STOP gap. Phase 27 PIPE-07 cannot consume the canonical-vs-Decimal verdict until the user resolves the gap. Probe stdout records the per-variant mismatch counts and grounded facts verbatim so the user can adjudicate."
+    out["verdict"] = "RESOLVED-WITH-INSTRUCTION — D-16 STOP gap fired and was resolved on 2026-06-11. Current ICs are canonical; the 70 old base-hier outputs are invalid/stale artifacts requiring targeted rerun from current ICs; old artifacts are quarantined until rerun validation passes."
+    out["feeds_pipe_07_note"] = "DATA-05 decision is resolved, but PIPE-07 must not consume the old 70 base-hier artifacts until the targeted rerun passes validation. Probe stdout records the per-variant mismatch counts and grounded facts verbatim; remediation boundary lives in 24-DATA05-RERUN-REMEDIATION.md."
 
     print(json.dumps(out, indent=2, sort_keys=True))
 

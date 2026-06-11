@@ -22,10 +22,17 @@
 - **What the user must decide:**
   - **A.** Record "70 base-hier files show genuine mass drift; gold variant is canonical; base variant should be regenerated or backfilled from gold for these 70 IDs." Routes the verdict to a Phase 25/27 follow-up; PIPE-07 must read masses from gold only.
   - **B.** Record "70 base-hier files have IC-vs-Brutus mass drift of unknown provenance; user is investigating; DATA-05 verdict is unverified for the base variant and confirmed for gold+standard." Both downstream consumers gate on the gold variant; PIPE-07 proceeds.
-  - **C.** Defer the gap entirely (D-22 / DEFERRED) and leave the row as `unverified — held behind GAP-24-01`.
+  - **C.** Defer the gap entirely (D-22 / DEFERRED) and leave the row as `unverified — deferred pending GAP-24-01`.
 - **Confidence of impact:** HIGH — DATA-05's verdict feeds PIPE-07 (Phase 27 precision contract); a wrong baseline choice would silently corrupt every downstream precision assertion.
-- **Status:** **OPEN**
-- **Resolution note:** _empty — awaiting user instruction._
+- **Status:** **RESOLVED-WITH-INSTRUCTION**
+- **Resolution note:** User instruction recorded 2026-06-11: adopt a narrowed form of option A. The current IC files are canonical; the 70 affected base-hierarchical Brutus outputs are invalid/stale trajectory artifacts, not valid physical mass drift and not a `decimal.Decimal` precision problem. Do **not** skip these 70 systems permanently and do **not** backfill from gold as a silent substitute for the base variant. Rerun exactly the affected base-hierarchical outputs from the current canonical IC files, using the base-hierarchical Brutus contract, with originals preserved as forensic evidence until replacement is validated. Phase 24 may proceed with DATA-05 recorded as resolved-with-remediation-required; downstream training, metrics, and PIPE-07 consumption must not use the old 70 base-hier artifacts. See `24-DATA05-RERUN-REMEDIATION.md`.
+
+### Post-resolution remediation scope (2026-06-11)
+
+- **Affected IDs:** `0005`-`0059`, `0061`-`0075` (70 total).
+- **Canonical source:** `simulation_data/Data/ic_final/ic_hierarchical/ic_hierarchical_XXXX.txt`.
+- **Invalid artifacts:** `simulation_data/Data/brutus_output/brutus_hierarchical/brutus_hierarchical_XXXX.txt` for the affected IDs until rerun/replacement passes validation.
+- **Decision boundary:** This resolves the semantic baseline decision. It does **not** claim the files have already been regenerated.
 
 ## Milestone-wide index
 
