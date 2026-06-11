@@ -109,7 +109,7 @@ Unchanged from v1.4 (see `.planning/milestones/v1.4-REQUIREMENTS.md` for full te
 
 ## Traceability
 
-Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`, 2026-06-10 phase-order swap). Every v1.5 requirement maps to exactly one phase (satisfies VER-08). Phase 23 (research package) is first and ungated; Phase 24 (verification + DATA-07 addendum) runs in parallel with the external-research gate window and gates on nothing external. Phases 25–29 gate on BOTH the user-delivered resolution doc AND Phase 24 completion.
+Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`, 2026-06-10 phase-order swap; 2026-06-11 Phase 24.5 insertion). Every v1.5 requirement maps to exactly one phase (satisfies VER-08). Phase 23 (research package) is first and ungated; Phase 24 (verification + DATA-07 addendum) runs in parallel with the external-research gate window and gates on nothing external. Phase 24.5 (INSERTED, resolution doc readiness verification) gates on the consolidated resolution doc landing and Phase 24 completion. Phases 25–29 gate on Phase 24.5 passing.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -117,47 +117,47 @@ Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`,
 | PKG-02 | Phase 23 | Complete |
 | PKG-03 | Phase 23 | Complete |
 | PKG-04 | Phase 23 | Complete |
-| DATA-01 | Phase 24 | Pending (runs in parallel with gate) |
-| DATA-02 | Phase 24 | Pending (runs in parallel with gate) |
-| DATA-03 | Phase 24 | Pending (runs in parallel with gate) |
-| DATA-04 | Phase 24 | Pending (runs in parallel with gate) |
-| DATA-05 | Phase 24 | Pending (runs in parallel with gate) |
-| DATA-06 | Phase 24 | Pending (runs in parallel with gate) |
-| DATA-07 | Phase 24 | Pending (runs in parallel with gate) |
-| EVID-06 | Phase 25 | Pending (gated on resolution doc + Phase 24) |
-| EVID-07 | Phase 25 | Pending (gated on resolution doc + Phase 24) |
-| EVID-08 | Phase 25 | Pending (gated on resolution doc + Phase 24) |
-| EVID-09 | Phase 25 | Pending (gated on resolution doc + Phase 24) |
-| EVID-10 | Phase 25 | Pending (gated on resolution doc + Phase 24) |
-| VER-10 | Phase 25 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-01 | Phase 26 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-02 | Phase 26 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-03 | Phase 26 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-05 | Phase 26 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-06 | Phase 26 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-10 | Phase 26 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-04 | Phase 27 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-07 | Phase 27 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-08 | Phase 27 | Pending (gated on resolution doc + Phase 24) |
-| PIPE-09 | Phase 27 | Pending (gated on resolution doc + Phase 24) |
-| VAL-01 | Phase 28 | Pending (gated on resolution doc + Phase 24) |
-| VAL-02 | Phase 28 | Pending (gated on resolution doc + Phase 24) |
-| VAL-03 | Phase 28 | Pending (gated on resolution doc + Phase 24) |
-| VAL-04 | Phase 28 | Pending (gated on resolution doc + Phase 24) |
-| VER-07 | Phase 29 | Pending (gated on resolution doc + Phase 24) |
+| DATA-01 | Phase 24 | Complete (2026-06-11) |
+| DATA-02 | Phase 24 | Complete (2026-06-11) |
+| DATA-03 | Phase 24 | Complete (2026-06-11) |
+| DATA-04 | Phase 24 | Complete (2026-06-11) |
+| DATA-05 | Phase 24 | Complete (2026-06-11; GAP-24-01 RESOLVED-WITH-INSTRUCTION) |
+| DATA-06 | Phase 24 | Complete (2026-06-11) |
+| DATA-07 | Phase 24 | Complete (2026-06-11) |
+| EVID-06 | Phase 25 | Pending (gated on Phase 24.5) |
+| EVID-07 | Phase 25 | Pending (gated on Phase 24.5) |
+| EVID-08 | Phase 25 | Pending (gated on Phase 24.5) |
+| EVID-09 | Phase 25 | Pending (gated on Phase 24.5) |
+| EVID-10 | Phase 25 | Pending (gated on Phase 24.5) |
+| VER-10 | Phase 25 | Pending (gated on Phase 24.5) |
+| PIPE-01 | Phase 26 | Pending (gated on Phase 24.5) |
+| PIPE-02 | Phase 26 | Pending (gated on Phase 24.5) |
+| PIPE-03 | Phase 26 | Pending (gated on Phase 24.5) |
+| PIPE-05 | Phase 26 | Pending (gated on Phase 24.5) |
+| PIPE-06 | Phase 26 | Pending (gated on Phase 24.5) |
+| PIPE-10 | Phase 26 | Pending (gated on Phase 24.5) |
+| PIPE-04 | Phase 27 | Pending (gated on Phase 24.5) |
+| PIPE-07 | Phase 27 | Pending (gated on Phase 24.5) |
+| PIPE-08 | Phase 27 | Pending (gated on Phase 24.5) |
+| PIPE-09 | Phase 27 | Pending (gated on Phase 24.5) |
+| VAL-01 | Phase 28 | Pending (gated on Phase 24.5) |
+| VAL-02 | Phase 28 | Pending (gated on Phase 24.5) |
+| VAL-03 | Phase 28 | Pending (gated on Phase 24.5) |
+| VAL-04 | Phase 28 | Pending (gated on Phase 24.5) |
+| VER-07 | Phase 29 | Pending (gated on Phase 24.5) |
 | VER-08 | Phase 29 | Satisfied by roadmap creation; confirmed at closure |
-| VER-09 | Phase 29 | Pending (gated on resolution doc + Phase 24) |
-| VER-11 | Phase 29 | Pending (gated on resolution doc + Phase 24) |
-| VER-12 | Phase 29 | Pending (gated on resolution doc + Phase 24) |
+| VER-09 | Phase 29 | Pending (gated on Phase 24.5) |
+| VER-11 | Phase 29 | Pending (gated on Phase 24.5) |
+| VER-12 | Phase 29 | Pending (gated on Phase 24.5) |
 
 **Coverage:**
 
 - v1.5 requirements: 36 total (4 PKG + 7 DATA + 5 EVID + 10 PIPE + 4 VAL + 6 VER)
 - Mapped to phases: 36/36 (phase-order swap 2026-06-10: research package first (Phase 23, PKG-01..04), verification + DATA-07 correction addendum second (Phase 24, DATA-01..07, runs in parallel with the external-research gate window))
-- Phase distribution: Phase 23 = 4 (PKG-01..04); Phase 24 = 7 (DATA-01..07); Phase 25 = 6 (EVID-06..10, VER-10); Phase 26 = 6 (PIPE-01, 02, 03, 05, 06, 10); Phase 27 = 4 (PIPE-04, 07, 08, 09); Phase 28 = 4 (VAL-01..04); Phase 29 = 5 (VER-07, 08, 09, 11, 12)
+- Phase distribution: Phase 23 = 4 (PKG-01..04); Phase 24 = 7 (DATA-01..07); Phase 24.5 = 0 (operational readiness check, no requirement IDs); Phase 25 = 6 (EVID-06..10, VER-10); Phase 26 = 6 (PIPE-01, 02, 03, 05, 06, 10); Phase 27 = 4 (PIPE-04, 07, 08, 09); Phase 28 = 4 (VAL-01..04); Phase 29 = 5 (VER-07, 08, 09, 11, 12)
 - No orphans, no duplicates: every requirement appears in exactly one phase.
 - Cross-project requirements: REQ-DOC-01 (not counted in v1.5 total)
 - SCOPE-06 through SCOPE-11 are scope-boundary annotations, not numbered requirements.
 
 ---
-*Requirements defined: 2026-06-10; traceability filled 2026-06-10 by roadmap creation; revised 2026-06-10 (phase-order swap, DATA-07 mapped).*
+*Requirements defined: 2026-06-10; traceability filled 2026-06-10 by roadmap creation; revised 2026-06-10 (phase-order swap, DATA-07 mapped); revised 2026-06-11 (Phase 24.5 insertion — gating updated from "resolution doc + Phase 24" to "Phase 24.5").*

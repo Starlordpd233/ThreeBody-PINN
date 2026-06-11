@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: executing
-last_updated: "2026-06-11T11:50:00Z"
-last_activity: "2026-06-11 -- Phase 24 closed: 11/13 CLM rows confirmed, CLM-10 corrected, CLM-13 routed, DATA-05 resolved (current ICs canonical; 70 base-hier rerun remediation executed and validated)"
+status: in_progress
+last_updated: "2026-06-11T20:59:00+08:00"
+last_activity: "2026-06-11 -- Phase 24.5 inserted into roadmap (resolution doc readiness verification); gates Phases 25-29 on consolidated resolution doc arrival and readiness check"
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 2
-  total_plans: 10
-  completed_plans: 6
-  percent: 29
+  total_plans: 11
+  completed_plans: 9
+  percent: 25
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Gate window — Phases 23 and 24 complete; Phases 25–29 await the external resolution doc
+**Current focus:** Gate window — Phases 23 and 24 complete; consolidated resolution doc awaited; Phase 24.5 (INSERTED) will verify readiness before Phases 25–29
 
 ## Current Position
 
-Phase: 24 → 25 (next, gated on resolution doc)
-Plan: Phase 24 closed
-Status: Phase 24 complete; DATA-05 decision resolved with remediation boundary; Phases 25–29 unblock when BOTH the resolution doc lands AND Phase 24 completes (now met on the Phase-24 side)
-Last activity: 2026-06-11 -- Phase 24 closed: 11/13 CLM rows confirmed, CLM-10 corrected, CLM-13 routed, DATA-05 resolved (current ICs canonical; 70 base-hier outputs quarantined pending rerun)
+Phase: 24 → 24.5 (next, gated on consolidated resolution doc) → 25
+Plan: Phase 24 closed; Phase 24.5 planned (24.5-01)
+Status: Phases 23 and 24 complete; 8 individual research results landed in research_results/; consolidation input bundles prepared; awaiting consolidated resolution doc from external consolidation agent; Phase 24.5 will verify the consolidated doc before Phases 25–29 unblock
+Last activity: 2026-06-11 -- Phase 24.5 inserted into roadmap; gated on consolidated resolution doc arrival
 
-**Gate awareness:** Phase 23 (research package assembly + DQA characterization) runs first with no gate; its delivery opens the external resolution-doc gate (user research starts). Phase 24 (empirical dataset verification + DATA-07 correction addendum) runs **in parallel** during the gate window — it depends on Phase 23's delivered claim list but gates on nothing external. Phases 25–29 (all adjudication / spec-edit work) gate on BOTH the resolution doc landing at `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completion.
+**Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
 ## Performance Metrics
 
@@ -90,13 +90,14 @@ Last activity: 2026-06-11 -- Phase 24 closed: 11/13 CLM rows confirmed, CLM-10 c
 |-------|-------|--------------|------|
 | 23 | Research package assembly (annotated doc list + framed questions, figures "claimed, unverified") + DQA characterization | PKG-01..04 | None (first phase); delivery opens external gate |
 | 24 | Empirical dataset verification + DATA-07 correction addendum (seeds the issue ledger) | DATA-01..07 | None external; runs in parallel with gate window; depends on Phase 23 |
-| 25 | Evidence framework, verdicts, root-cause conflict adjudication, re-verification ledger | EVID-06..10, VER-10 | Resolution doc + Phase 24 |
-| 26 | DataLoader ingestion & selection contracts | PIPE-01, 02, 03, 05, 06, 10 | Resolution doc + Phase 24 |
-| 27 | Sampling, precision, dt_out/stage-query, global-scale contracts | PIPE-04, 07, 08, 09 | Resolution doc + Phase 24 |
-| 28 | Validation-metrics contracts (SCS, SASD, IPR, PSC) | VAL-01..04 | Resolution doc + Phase 24 |
-| 29 | Acceptance checks executed, ledger close, SI-ledger reconcile, handoff | VER-07, 08, 09, 11, 12 | Resolution doc + Phase 24 |
+| 24.5 | Resolution doc readiness verification (INSERTED) | Operational (no new IDs) | Consolidated resolution doc + Phase 24 |
+| 25 | Evidence framework, verdicts, root-cause conflict adjudication, re-verification ledger | EVID-06..10, VER-10 | Phase 24.5 |
+| 26 | DataLoader ingestion & selection contracts | PIPE-01, 02, 03, 05, 06, 10 | Phase 24.5 |
+| 27 | Sampling, precision, dt_out/stage-query, global-scale contracts | PIPE-04, 07, 08, 09 | Phase 24.5 |
+| 28 | Validation-metrics contracts (SCS, SASD, IPR, PSC) | VAL-01..04 | Phase 24.5 |
+| 29 | Acceptance checks executed, ledger close, SI-ledger reconcile, handoff | VER-07, 08, 09, 11, 12 | Phase 24.5 |
 
-**Execution order:** 23 → ⛔gate opens (user research starts) ‖ 24 runs in parallel → 25 → 26 → 27 → 28 → 29.
+**Execution order:** 23 → ⛔gate opens (user research starts) ‖ 24 runs in parallel → 24.5 readiness check → 25 → 26 → 27 → 28 → 29.
 
 **Verification protocol (applies to every adjudication phase 25–29):** adjudicate → fix → verify → re-verify after every batch → close only when the acceptance check passes. The issue ledger lives at a stable path under the Phase 24 (empirical-dataset-verification) directory, seeded by Phase 24 and operated through the protocol established in Phase 25. Spec edits limited to `ctl_instruction.md` / `pinn_architecture.md`; probes never touch `pinn/`. STOP protocol in full; phase-local `NN-GAPS.md` + milestone index `.planning/milestones/v1.5-GAPS.md`.
 
@@ -146,7 +147,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-v1.5 roadmap is revised (phase-order swap); phases not yet started.
+v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 gated on Phase 24.5 (consolidated resolution doc + readiness check).
 
 - [x] Plan Phase 23 (Research Package Assembly + DQA Characterization) with `/gsd-plan-phase 23`
 - [x] Tag `v1.5-pre-phase-23` from `milestone/v1.5` HEAD before Phase 23 begins
@@ -164,18 +165,18 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 ### Blockers/Concerns
 
 - **Working branch is `milestone/v1.5`** (cut from master HEAD `b8b39a4`, 2026-06-10). Do NOT commit v1.5 work to master. Tag `v1.5-pre-phase-NN` before each phase; `--no-ff` merge at milestone end. Every session must surface `git status --short --branch` before any file mutation.
-- **External gate:** opens on Phase 23 (research package) delivery. Phases 25–29 cannot start until BOTH the user delivers the resolution doc to `framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completes. Phase 23 is unblocked; Phase 24 is unblocked and runs in parallel with the gate window (gates on nothing external).
+- **External gate:** opens on Phase 23 (research package) delivery. Phase 24.5 verifies the consolidated resolution doc before adjudication begins. Phases 25–29 cannot start until Phase 24.5 passes (which requires BOTH the consolidated resolution doc landing AND Phase 24 completion). Phase 23 is unblocked; Phase 24 is unblocked and runs in parallel with the gate window (gates on nothing external).
 - **DATA-05 remediation boundary:** GAP-24-01 is resolved as a decision, not as completed data repair. The old 70 base-hier outputs (`0005`-`0059`, `0061`-`0075`) are quarantined from training, metrics, and PIPE-07 until targeted rerun from current ICs passes validation (`24-DATA05-RERUN-REMEDIATION.md`).
 - **STOP protocol active:** v1.5 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
-- Phases 25-29 blocked until the resolution doc lands at research_reports/02-data-pipeline-and-validation/ AND Phase 24 completes (Phase 24 runs in parallel, gates on nothing external).
+- Phases 25–29 blocked until Phase 24.5 passes (which requires the consolidated resolution doc landing at `research_reports/02-data-pipeline-and-validation/` AND Phase 24 completion). Phase 24 runs in parallel, gates on nothing external.
 
 ## Session Continuity
 
-Last session: 2026-06-11T11:14:43.473Z
-Next action: Gate window — await the user resolution doc at `research_reports/02-data-pipeline-and-validation/` to unblock Phases 25–29 (Phase 24 side of the gate is met).
+Last session: 2026-06-11T21:08:00+08:00
+Next action: Await consolidated resolution doc at `research_reports/02-data-pipeline-and-validation/`; once landed, run Phase 24.5 readiness verification; Phases 25–29 unblock after Phase 24.5 passes.
 
 ## Operator Next Steps
 
 - Phases 23 and 24 are closed; the issue-02 consolidation input package (bundles + manifest + originals) is committed and hash-verified.
 - DATA-05 70-file rerun remediation executed and validated 2026-06-11 (all eight gates closed); old artifacts archived under `simulation_data/Data/forensic/data05_gap24-01_old_outputs/`.
-- Phases 25–29 unblock once the resolution doc lands at `research_reports/02-data-pipeline-and-validation/` (the Phase 24 completion side of the gate is already met).
+- Phases 25–29 unblock once the consolidated resolution doc lands and Phase 24.5 readiness verification passes (Phase 24 completion side of the gate is already met).

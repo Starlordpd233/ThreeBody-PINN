@@ -60,13 +60,15 @@ Every selected finding follows the v1.4-style loop:
 **Phase Numbering:**
 
 - Integer phases (23, 24, …): planned v1.5 work, continuing from v1.4's Phase 22.
-- Decimal phases (e.g., 25.1): urgent insertions (marked INSERTED), placed between their surrounding integers.
+- Decimal phases (e.g., 24.5): inserted checkpoints or urgent insertions (marked INSERTED), placed between their surrounding integers.
 
 - [x] **Phase 23: Research Package Assembly** — Assemble the annotated document list and framed research questions (dataset figures marked "claimed, unverified"), plus a read-only DQA characterization, then hand off for the user's external multi-AI research. First v1.5 phase; its delivery opens the external gate. (completed 2026-06-10; research context consolidated to single master file on 2026-06-11)
 
-> ⛔ **External gate — resolution doc.** On Phase 23 delivery, the **USER** begins external multi-AI research and delivers the resolution doc to `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`. The gate opens here, when package delivery starts the user's research. **Phase 24 runs in parallel during the gate window** (it gates on nothing external). Phases 25–29 (all adjudication and spec-edit work) **cannot start** until BOTH that doc lands AND Phase 24 completes. The doc is the candidate verdict source, not authoritative.
+> ⛔ **External gate — resolution doc.** On Phase 23 delivery, the **USER** begins external multi-AI research and delivers the resolution doc to `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`. The gate opens here, when package delivery starts the user's research. **Phase 24 runs in parallel during the gate window** (it gates on nothing external). **Phase 24.5** (INSERTED) verifies the consolidated resolution doc is ready before adjudication begins. Phases 25–29 (all adjudication and spec-edit work) **cannot start** until Phase 24.5 passes (which requires BOTH the consolidated doc landing AND Phase 24 completion). The doc is the candidate verdict source, not authoritative.
 
-- [ ] **Phase 24: Empirical Dataset Verification and Correction Addendum** — Verify every empirical issue-02 claim against the on-disk dataset and compile the DATA-07 correction addendum for the in-flight external research; runs in parallel with the user's research (gates on nothing external) and seeds the issue ledger.
+- [x] **Phase 24: Empirical Dataset Verification and Correction Addendum** — Verify every empirical issue-02 claim against the on-disk dataset and compile the DATA-07 correction addendum for the in-flight external research; runs in parallel with the user's research (gates on nothing external) and seeds the issue ledger. (completed 2026-06-11)
+
+- [ ] **Phase 24.5: Resolution Doc Readiness Verification** (INSERTED) — Quick verification that the consolidated resolution doc is structurally sound, covers all issue-02 findings, is consistent with Phase 24 verified facts, and respects v1.4-locked conventions. Produces a readiness report and a resolution-doc quick-reference map for Phases 25–29. If gaps are found, routes fix instructions to the external consolidation agent. Gates Phases 25–29.
 
 - [ ] **Phase 25: Evidence Framework and Issue Ledger** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes, root-cause conflict adjudication) and the re-verification ledger before any spec edit.
 - [ ] **Phase 26: DataLoader Ingestion and Selection Contracts** — Lock the ingestion gate, ID-resolution, blacklist-exclusion, gold-counterpart, footer-heterogeneity, and training-data-format contracts.
@@ -137,12 +139,31 @@ Every selected finding follows the v1.4-style loop:
 
   - [x] 24-03-PLAN.md — DATA-07 correction addendum (byte-stable sibling; supersedes erratum) + 24-ISSUE-LEDGER.md seed (full inventory PENDING; v1.4 schema) — `4b9143b5`, 24-03-SUMMARY.md
 
-**Phase 24 status**: COMPLETE (2026-06-11) — 4/4 plans summarized; 24-UAT.md passed 12/12; GAP-24-01 RESOLVED-WITH-INSTRUCTION (DATA-05 rerun remediation executed + validated separately). Gates nothing external; Phases 25–29 still await the resolution doc.
+**Phase 24 status**: COMPLETE (2026-06-11) — 4/4 plans summarized; 24-UAT.md passed 12/12; GAP-24-01 RESOLVED-WITH-INSTRUCTION (DATA-05 rerun remediation executed + validated separately). Gates nothing external; Phases 25–29 gate on Phase 24.5 (which verifies the consolidated resolution doc).
+
+### Phase 24.5: Resolution Doc Readiness Verification (INSERTED)
+
+**Goal**: Verify the consolidated resolution doc (from the user's external research) is ready for use as the candidate verdict source in Phases 25–29. Produce a readiness report with pass/fail per check and fix instructions for any gaps, plus a quick-reference map so downstream phases know where the resolution doc is, what each section covers, and how to cite it.
+**Depends on**: Phase 24 (verified dataset facts + seeded issue ledger) **and the consolidated resolution doc landing** (external gate). Cannot start until BOTH are present.
+**Requirements**: Operational (supports EVID-06..10, PIPE-01..10, VAL-01..04, VER-07..12); no new requirement IDs.
+**Success Criteria** (what must be TRUE):
+
+  1. Every finding in the 19-row issue ledger (`24-ISSUE-LEDGER.md`) maps to a resolution doc section (covered or partial; silent entries are flagged as gaps).
+  2. The verified-facts register (`24-VERIFIED-FACTS.md`) shows no unexplained contradictions between the resolution doc and verified dataset facts.
+  3. The v1.4-locked convention check identifies zero violations (scope observations — recommendations to change a locked convention — are recorded but are not failures).
+  4. A resolution-doc quick-reference map exists providing enough information for Phase 25 to start evidence-packet construction without reading the full resolution doc first.
+  5. If any check fails, specific fix instructions are routed to the external consolidation agent via the readiness report, and Phase 25 remains blocked until the fix lands and re-check passes.
+
+**Plans**: 1 plan (24.5-01 readiness verification; single wave, lightweight)
+
+  - [ ] 24.5-01-PLAN.md — presence/structure check + finding-coverage crosswalk + DATA-xx consistency + v1.4-locked convention compliance + resolution-doc map + readiness report + gate decision
+
+**Phase 24.5 status**: PLANNED — gated on consolidated resolution doc arrival.
 
 ### Phase 25: Evidence Framework and Issue Ledger
 
 **Goal**: The adjudication machinery — evidence packets, verdict set, false-positive and before/after notes, root-cause conflict adjudication, and the re-verification ledger — is established, and the known cross-source conflicts are adjudicated at root cause before any spec edit lands.
-**Depends on**: Phase 24 (verified dataset facts) **and the user-delivered resolution doc landing** (external gate). Cannot start until BOTH Phase 24 completes and the resolution doc is present.
+**Depends on**: Phase 24.5 (resolution doc readiness verification). Phase 24.5 gates on BOTH the consolidated resolution doc landing AND Phase 24 completion; Phase 25 cannot start until Phase 24.5 passes.
 **Requirements**: EVID-06, EVID-07, EVID-08, EVID-09, EVID-10, VER-10
 **Success Criteria** (what must be TRUE):
 
@@ -157,7 +178,7 @@ Every selected finding follows the v1.4-style loop:
 ### Phase 26: DataLoader Ingestion and Selection Contracts
 
 **Goal**: `ctl_instruction.md` / `pinn_architecture.md` state one coherent DataLoader ingestion-and-selection contract — which trajectories load, how they are addressed, validated, excluded, and what storage format they take — each grounded in verified dataset facts.
-**Depends on**: Phase 25 (gated on the resolution doc; consumes the evidence framework and seeded ledger).
+**Depends on**: Phase 25 (consumes the evidence framework and seeded ledger; Phase 25 is gated on Phase 24.5).
 **Requirements**: PIPE-01, PIPE-02, PIPE-03, PIPE-05, PIPE-06, PIPE-10
 **Success Criteria** (what must be TRUE):
 
@@ -214,17 +235,18 @@ Every selected finding follows the v1.4-style loop:
 
 ## Progress
 
-**Execution Order:** 23 → ⛔gate opens (user research starts) ‖ 24 runs in parallel → 25 → 26 → 27 → 28 → 29.
+**Execution Order:** 23 → ⛔gate opens (user research starts) ‖ 24 runs in parallel → 24.5 readiness check → 25 → 26 → 27 → 28 → 29.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 23. Research Package Assembly | v1.5 | 5/6 | Complete (consolidated) | 2026-06-10 |
-| 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 0/4 | Planned (runs in parallel with gate; gates on nothing external) | - |
-| 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
-| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
-| 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
-| 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
-| 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
+| 23. Research Package Assembly | v1.5 | 5/5 | Complete (consolidated) | 2026-06-10 |
+| 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
+| 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 0/1 | Planned (gated on consolidated resolution doc) | - |
+| 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 
 ---
-*Last updated: 2026-06-10 after Phase 24 planning (4 plans, 3 waves; DATA-01..07 + WR-01..04 user gate).*
+*Last updated: 2026-06-11 after Phase 24.5 insertion (resolution doc readiness verification; 1 plan, lightweight; gates Phases 25–29).*
