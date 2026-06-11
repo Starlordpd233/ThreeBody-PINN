@@ -24,10 +24,10 @@ Establish verified, re-derivable dataset facts by probing every package-stated (
 - **D-03:** Probes stay v1.5-disposable: no packaging into reusable validation tooling (that is FUT-03), no edits to `simulation_data/Scripts/` or `simulation_data/Validation/`. Existing audit artifacts (e.g., `footer_audit_20251224_170141.md`, `check_missing_results*.py`) may be READ as cross-checks/reference, but Phase 24 executes its own probes so the ledger evidence is self-contained — it never cites the doc-integrity audit workstream as a substitute for a probe run.
 
 ### Verification checklist scope
-- **D-04:** The primary checklist is `research_package/claims-table.md` rows **CLM-01..CLM-12**, each verified via the action in its "Phase-24 check" column and mapped to its owning DATA requirement (CLM-01/02/12→DATA-01, CLM-03→DATA-02, CLM-04→DATA-03, CLM-05/06→DATA-03/04 folder counts, CLM-07/08/09→DATA-04 (footer/parameter probes; the table's column labels these DATA-05 — the requirement mapping in REQUIREMENTS.md governs), CLM-10/11→DATA-06.
+- **D-04:** The primary checklist is `research_package/RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" rows **CLM-01..CLM-12**, each verified via the action in its "Phase-24 check" column and mapped to its owning DATA requirement (CLM-01/02/12→DATA-01, CLM-03→DATA-02, CLM-04→DATA-03, CLM-05/06→DATA-03/04 folder counts, CLM-07/08/09→DATA-04 (footer/parameter probes; the table's column labels these DATA-05 — the requirement mapping in REQUIREMENTS.md governs), CLM-10/11→DATA-06.
 - **D-05:** **CLM-13 (`D = 6.694`) is NOT empirically probed.** The claims table's own row note classifies it as a convention conflict routed to Phase 25 (EVID-10) / Phase 27 (PIPE-09). The ledger seed records it as `PENDING` with that routing; Phase 24 takes no position.
-- **D-06:** **Bounded prose sweep** beyond the table: `consolidated-context.md`, `framed-research-questions.md`, the package `README.md` (manifest), and `DELIVERY-NOTE.md` are swept for empirical dataset figures that have no CLM row (precedent: the gold-`_gold_`-infix claim escaped the register and surfaced only via the erratum). DATA-07's scope is "every package-stated dataset claim", which is broader than the 13 registered rows. Newly found figures get extension IDs (`CLM-14`, `CLM-15`, …) recorded in the Phase 24 verified-facts register — the delivered `claims-table.md` stays byte-stable — so the addendum remains CLM-keyed (Phase 23 D-12).
-- **D-07:** The two **ERRATUM-2026-06-10 corrections fold into the DATA-07 addendum** regardless of re-probe outcomes (STATE.md decision 2026-06-10): (1) gold filenames carry no `_gold_` infix — gold status is folder-encoded only; (2) the 1,550/701/219 "partial/minimal footer" populations have **no `Result:` footer at all** (no `eta`/`tol`/`Lw`/energy fields anywhere). Phase 24 re-executes both probes itself (per D-03) and the addendum supersedes the erratum.
+- **D-06:** **Bounded prose sweep** beyond the table: `RESEARCH-CONTEXT-MASTER.md` (all sections) and `DELIVERY-NOTE.md` are swept for empirical dataset figures that have no CLM row (precedent: the gold-`_gold_`-infix claim escaped the register and surfaced only via the erratum). DATA-07's scope is "every package-stated dataset claim", which is broader than the 13 registered rows. Newly found figures get extension IDs (`CLM-14`, `CLM-15`, …) recorded in the Phase 24 verified-facts register — the delivered `RESEARCH-CONTEXT-MASTER.md` stays byte-stable against its 2026-06-11 post-consolidation baseline — so the addendum remains CLM-keyed (Phase 23 D-12).
+- **D-07:** The two **2026-06-10 erratum corrections (now integrated in the master's "Correction Provenance And Verification Boundaries" section) fold into the DATA-07 addendum** regardless of re-probe outcomes (STATE.md decision 2026-06-10): (1) gold filenames carry no `_gold_` infix — gold status is folder-encoded only; (2) the 1,550/701/219 "partial/minimal footer" populations have **no `Result:` footer at all** (no `eta`/`tol`/`Lw`/energy fields anywhere). Phase 24 re-executes both probes itself (per D-03) and the addendum supersedes that correction record from self-contained evidence.
 
 ### Verdict semantics
 - **D-08:** Per-claim verdict vocabulary is fixed by roadmap success criterion 1: **`confirmed` / `corrected` / `unverified`**. `corrected` rows enter the addendum with claimed value, observed value, and probe method. `unverified` is used ONLY when a probe cannot run within grounding limits, with the reason recorded — it is never a shortcut for "didn't get to it".
@@ -47,7 +47,7 @@ Establish verified, re-derivable dataset facts by probing every package-stated (
 
 ### DATA-07 addendum form & delivery
 - **D-18:** One canonical addendum file placed **beside the package files inside `research_package/`** (erratum precedent: sibling file, NOT added to the manifest, all originally-delivered package files byte-stable). Self-describing name, e.g. `DATA-07-CORRECTION-ADDENDUM.md` (exact name = Claude's discretion).
-- **D-19:** Addendum structure: CLM-keyed rows — claimed value, observed value, probe command/path, verdict — plus an explicit supersession statement over `ERRATUM-2026-06-10.md` folding in its two corrections (D-07). A confirmed-claims summary section records what verification upheld, so the external researcher can also stop discounting confirmed figures.
+- **D-19:** Addendum structure: CLM-keyed rows — claimed value, observed value, probe command/path, verdict — plus an explicit supersession statement over the master's "Correction Provenance And Verification Boundaries" section folding in its two corrections (D-07). A confirmed-claims summary section records what verification upheld, so the external researcher can also stop discounting confirmed figures.
 - **D-20:** Nil-addendum case (grounded in DATA-07): if no package-stated claim is contradicted, the same file records that all package-stated claims were confirmed, with the probe index.
 - **D-21:** Delivery semantics: the addendum ships **as soon as the probes finish** — never waiting on the resolution doc — as a commit plus a notification to the user, who forwards it to the in-flight external research. The agent sends nothing externally itself.
 
@@ -77,11 +77,7 @@ Establish verified, re-derivable dataset facts by probing every package-stated (
 - `AGENTS.md` / `CLAUDE.md` §"CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones" — STOP protocol with v1.5 substitutions (gap registers: `24-GAPS.md` phase-local, `.planning/milestones/v1.5-GAPS.md` milestone index — neither exists yet; create on first gap).
 
 ### Verification checklist (the package under test)
-- `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/claims-table.md` — THE checklist: CLM-01..13 with per-row Phase-24 check actions (CLM-13 excluded from probing per its row note).
-- `.../research_package/ERRATUM-2026-06-10.md` — two interim corrections the DATA-07 addendum must fold in and supersede; also lists what the audit re-verified as correct (CLM-05/06/07-count/08/09).
-- `.../research_package/consolidated-context.md` — prose-sweep subject (D-06); carries the corrected-by-erratum naming and footer narratives.
-- `.../research_package/framed-research-questions.md` — prose-sweep subject; uses CLM references that must stay consistent with verification outcomes.
-- `.../research_package/README.md` — package manifest with per-file source hashes (byte-stability reference; addendum stays out of it).
+- `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/RESEARCH-CONTEXT-MASTER.md` — THE checklist: CLM-01..13 with per-row Phase-24 check actions in §"CLM Claims Register" (CLM-13 excluded from probing per its row note); §"Correction Provenance And Verification Boundaries" carries the two erratum corrections the DATA-07 addendum must fold in and supersede, plus the audit's "Not affected" list (CLM-05/06/07-count/08/09); §"Consolidated Dataset Context And Source Excerpts" and §"Framed Research Questions And Locked Constraints" are the prose-sweep subjects (D-06); §"Package Orientation And Manifest" records the package layout with per-file source hashes (byte-stability reference; addendum stays out of it).
 - `.../research_package/DELIVERY-NOTE.md` — announced the DATA-07 addendum channel to the user; addendum delivery must match what was promised.
 - `.planning/phases/23-research-package-assembly/23-CLAIMS-INVENTORY.md` — claims provenance and finding-inventory source for the ledger seed (D-23).
 
@@ -104,7 +100,7 @@ Establish verified, re-derivable dataset facts by probing every package-stated (
 
 ### Precedents
 - `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` — ledger schema precedent (D-24).
-- `research_package/ERRATUM-2026-06-10.md` sibling-file pattern — addendum placement precedent (D-18).
+- `research_package/ERRATUM-2026-06-10.md` sibling-file pattern — addendum placement precedent (D-18); now retired, with corrections integrated into `RESEARCH-CONTEXT-MASTER.md`.
 
 </canonical_refs>
 
@@ -112,7 +108,7 @@ Establish verified, re-derivable dataset facts by probing every package-stated (
 ## Existing Code Insights
 
 ### Reusable Assets
-- `claims-table.md` CLM rows with per-row "Phase-24 check" actions — the probe checklist arrives pre-specified; plans can map probes 1:1 onto rows.
+- `RESEARCH-CONTEXT-MASTER.md` CLM rows with per-row "Phase-24 check" actions — the probe checklist arrives pre-specified; plans can map probes 1:1 onto rows.
 - Existing audit scripts/reports under `simulation_data/Validation/` (`check_missing_results*.py`, footer audits) — readable cross-checks and method reference; Phase 24 still runs its own probes (D-03).
 - `scripts/agent-commit` — mandatory commit path; one atomic commit per plan.
 - v1.4 ledger format (`16-ISSUE-LEDGER.md`) — schema to instantiate, not redesign.
@@ -147,10 +143,10 @@ The Phase 23 verifier (`23-REVIEW.md:115-173`) classified four package warnings 
 
 | ID | What | Where | Grounded disposition | Open decision (surfaced) |
 |----|------|-------|----------------------|--------------------------|
-| WR-01 | Q-B2 attributes "1000 IC–Brutus pairs" to both citations; issue doc says 1000 at line 204 but P2-2 (line 292) says **100** — conflict unsurfaced | `framed-research-questions.md:304-309` | Report both figures neutrally; surface the issue-doc-internal conflict (the package's stated job) | Register sample-size as a new CLM row? (**schema → surfaced**) |
-| WR-02 | Hard Constraint 3 cites COM-Invariance check at line **972**; it's at **967** (972 is §10.3) | `framed-research-questions.md:92-94` | Correct to "§10.2 'COM Invariance' (lines 967–971)" — verifiable against `pinn_architecture.md` snapshot | Channel: citation fix is not a dataset/CLM claim (see WR-02/03 channel decision below) |
-| WR-03 | Q-B1 cites nonexistent ctl "§5.3.2"; actual text is Step 5 / "(e.g., 32)" at line ~1201 — an example, not a hard 32-pt contract (affects how contested M12 is) | `framed-research-questions.md:292-293` | Replace with Step 5 "Mini-Batch Construction…" line ~1201 wording — verifiable against `ctl_instruction.md` snapshot | Channel: same as WR-02 (see below) |
-| WR-04 | CLM-05 used for two observables: IC folder counts vs Brutus output file counts (coincide today, can diverge) | `claims-table.md:25`, `consolidated-context.md:89,98` | DATA-03/04 probe must count IC folders **and** Brutus output folders separately and report both | Split CLM-05 → CLM-05a/05b vs amend CLM-05 text (**schema → surfaced**) |
+| WR-01 | Q-B2 attributes "1000 IC–Brutus pairs" to both citations; issue doc says 1000 at line 204 but P2-2 (line 292) says **100** — conflict unsurfaced | `RESEARCH-CONTEXT-MASTER.md` §"Framed Research Questions And Locked Constraints" (Q-B2) | Report both figures neutrally; surface the issue-doc-internal conflict (the package's stated job) | Register sample-size as a new CLM row? (**schema → surfaced**) |
+| WR-02 | Hard Constraint 3 cites COM-Invariance check at line **972**; it's at **967** (972 is §10.3) | `RESEARCH-CONTEXT-MASTER.md` §"Framed Research Questions And Locked Constraints" (Hard Constraint 3) | Correct to "§10.2 'COM Invariance' (lines 967–971)" — verifiable against `pinn_architecture.md` snapshot | Channel: citation fix is not a dataset/CLM claim (see WR-02/03 channel decision below) |
+| WR-03 | Q-B1 cites nonexistent ctl "§5.3.2"; actual text is Step 5 / "(e.g., 32)" at line ~1201 — an example, not a hard 32-pt contract (affects how contested M12 is) | `RESEARCH-CONTEXT-MASTER.md` §"Framed Research Questions And Locked Constraints" (Q-B1) | Replace with Step 5 "Mini-Batch Construction…" line ~1201 wording — verifiable against `ctl_instruction.md` snapshot | Channel: same as WR-02 (see below) |
+| WR-04 | CLM-05 used for two observables: IC folder counts vs Brutus output file counts (coincide today, can diverge) | `RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" (CLM-05), §"Consolidated Dataset Context And Source Excerpts" | DATA-03/04 probe must count IC folders **and** Brutus output folders separately and report both | Split CLM-05 → CLM-05a/05b vs amend CLM-05 text (**schema → surfaced**) |
 
 **Downstream mapping:**
 - **WR-04 → DATA-03/04 probe design:** count IC and Brutus folders separately; this is the one with direct probe impact. Whichever schema choice the user makes, the probe must report both observables independently.

@@ -57,7 +57,7 @@ split-interpreter footgun.
 | 24-02-03 | 02 | 2 | DATA-06 | T-24-DS | Distribution recorded (min/median/mode/max + modal counts), not a single example (D-09) | probe | `.venv/bin/python probes/data06_snapshots.py` | ❌ W0 | ⬜ pending |
 | 24-02-04 | 02 | 2 | DATA-04, DATA-05, DATA-06 | T-24-FACT | Every register row has a verdict + probe citation; prose-sweep CLM-14+ rows added | register | `grep -c 'CLM-' 24-VERIFIED-FACTS.md` ≥ 12 | ❌ W0 | ⬜ pending |
 | 24-03-01 | 04 | 1 | DATA-07 | T-24-GATE | Four OPEN WR decisions presented verbatim; NOT decided by the agent | checkpoint | human-check (AskUserQuestion gate) | n/a | ⬜ pending |
-| 24-04-01 | 03 | 3 | DATA-07 | T-24-PKG | Addendum is a NEW sibling file; delivered package files byte-stable | addendum | `git diff --quiet -- '<research_package>/claims-table.md'` exits 0 | ❌ W0 | ⬜ pending |
+| 24-04-01 | 03 | 3 | DATA-07 | T-24-PKG | Addendum is a NEW sibling file; delivered package files byte-stable | addendum | `git diff --quiet -- '<research_package>/RESEARCH-CONTEXT-MASTER.md'` exits 0 | ❌ W0 | ⬜ pending |
 | 24-04-02 | 03 | 3 | DATA-07 | T-24-FACT | Ledger seed has full inventory at PENDING; verified-facts annex linked at stable path | ledger | `grep -c 'PENDING' 24-ISSUE-LEDGER.md` ≥ 18 | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*

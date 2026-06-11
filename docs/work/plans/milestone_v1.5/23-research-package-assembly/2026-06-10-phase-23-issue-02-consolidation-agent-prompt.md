@@ -18,10 +18,11 @@ retirement_trigger: final resolution doc delivered under research_reports/02-dat
   report. Stage 2 — this prompt — is sent to one final consolidation agent together with all
   Stage-1 reports. Its output is the final resolution doc.
 - **What to attach:**
-  1. The full `research_package/` (same set as Stage 1: `README.md`,
-     `framed-research-questions.md`, `claims-table.md`, `consolidated-context.md`, all of
-     `specs/`). The consolidator must be able to verify report positions against the primary
-     materials, not consolidate hearsay.
+  1. The full `research_package/` (same set as Stage 1: `RESEARCH-CONTEXT-MASTER.md` — the
+     consolidated research-context master holding the manifest, framed questions, CLM claims
+     register, dataset context, and correction provenance — plus all of `specs/`). The
+     consolidator must be able to verify report positions against the primary materials, not
+     consolidate hearsay.
   2. Every Stage-1 individual research report.
   3. The Phase 24 DATA-07 correction addendum, if it has shipped by then. If it has not, forward
      it mid-task the moment it does — the prompt tells the agent how to treat it.
@@ -52,16 +53,19 @@ them into the single, final resolution document the project will act on.
 
 ## Inputs
 
-1. **The research package** — `README.md` (the manifest; it defines every file's role and
-   authority level), `framed-research-questions.md` (the complete question set),
-   `claims-table.md`, `consolidated-context.md`, and the files under `specs/`.
+1. **The research package** — `RESEARCH-CONTEXT-MASTER.md` (its "Package Orientation And
+   Manifest" section defines every file's role and authority level; its "Framed Research
+   Questions" section is the complete question set; its "CLM Claims Register" and
+   "Consolidated Dataset Context" sections carry the factual baseline) and the files under
+   `specs/`.
 2. **The independent research reports** — one per agent. Treat them as argued candidate
    positions, nothing more.
 3. **Possibly a correction addendum** — empirically verified values for figures the package
    marked `claimed-unverified`. It may be provided up front or forwarded mid-task.
 
-Read in this order: package manifest → question set → every report in full → then
-`claims-table.md`, `specs/`, and `consolidated-context.md` as adjudication requires.
+Read in this order: the master's manifest section → its question set → every report in full →
+then the master's "CLM Claims Register" and "Consolidated Dataset Context" sections and
+`specs/` as adjudication requires.
 
 ## What consolidation means here
 
@@ -90,8 +94,8 @@ Read in this order: package manifest → question set → every report in full �
 2. **Authority levels:** the package manifest's authority levels bind. The issue consolidation
    material in the package is NOT authoritative, and **neither are the research reports** — a
    statement is not correct because a report asserts it, however confidently.
-3. **Claims discipline:** figures marked `claimed-unverified` in `claims-table.md` remain
-   unconfirmed unless the correction addendum verifies them. Where the addendum contradicts a
+3. **Claims discipline:** figures marked `claimed-unverified` in the master's "CLM Claims
+   Register" section remain unconfirmed unless the correction addendum verifies them. Where the addendum contradicts a
    figure any report relied on, the addendum wins — re-evaluate every report position that
    depended on the contradicted figure. Where no addendum value exists, keep verdicts that turn
    on such a figure in explicit conditional form ("if the verified value is X, then …;
@@ -107,7 +111,7 @@ Read in this order: package manifest → question set → every report in full �
 
 ## Method
 
-For each question in `framed-research-questions.md`:
+For each question in the master's "Framed Research Questions" section:
 
 1. **Collect** each report's position on the question (including "not addressed").
 2. **Classify agreement** — unanimous / majority–minority / fully split / single-report-only /
@@ -139,7 +143,7 @@ Produce **one** self-contained markdown document — the final resolution docume
 - **§2 Decision matrix:** one row per question — question ID, one-line final verdict,
   confidence, and agreement classification across the input reports.
 - **§3+ Resolutions:** per-question sections following the grouping and identifiers used in
-  `framed-research-questions.md`. Each contains:
+  the master's "Framed Research Questions" section. Each contains:
   1. **Final verdict / recommendation** — specified to the level that a specification author
      could transcribe it without further interpretation: exact definitions, formulas, threshold
      values, procedures, and edge-case behavior where applicable.

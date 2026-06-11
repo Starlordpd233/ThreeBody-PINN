@@ -16,20 +16,26 @@ dataset verification) starts in parallel.
 The package is self-contained — every file an external researcher needs is a sibling in this
 directory. Read it in this order:
 
-1. **`README.md`** — the manifest. It indexes every file with its role annotation, provenance,
-   and source-treatment conventions. Read it first so you know which files are authoritative
-   (the framework specs) and which are not (the issue doc, the DQA report).
-2. **`framed-research-questions.md`** — the task list. Every contested or unverified in-scope
-   finding is posed as an explicit, neutral question. This is what the research must answer.
-3. **`claims-table.md`** — the factual baseline. Every dataset figure carries a stable CLM ID
-   and a `claimed-unverified` / `verified` status. Treat figures as claims, not facts, unless
-   the CLM row is marked `verified`.
-4. **`specs/*.md`** — the source-of-truth conventions. `ctl_instruction.md` and
+1. **`RESEARCH-CONTEXT-MASTER.md`** — the research-context master and single entry point
+   (consolidated 2026-06-11 from the package's former `README.md`,
+   `framed-research-questions.md`, `claims-table.md`, `consolidated-context.md`, and
+   `ERRATUM-2026-06-10.md`). Its sections, in reading order:
+   - **Package Orientation And Manifest** — file roles, provenance, and source-treatment
+     conventions. Read it first so you know which files are authoritative (the framework
+     specs) and which are not (the issue doc, the DQA report).
+   - **Framed Research Questions** — the task list. Every contested or unverified in-scope
+     finding is posed as an explicit, neutral question. This is what the research must answer.
+   - **CLM Claims Register** — the factual baseline. Every dataset figure carries a stable CLM
+     ID and a `claimed-unverified` / `verified` status. Treat figures as claims, not facts,
+     unless the CLM row is marked `verified`.
+   - **Consolidated Dataset Context** — scattered dataset facts gathered into one place, each
+     fragment labeled with its source path.
+   - **Correction Provenance And Verification Boundaries** — the package's correction history
+     and what remains unverified.
+2. **`specs/*.md`** — the source-of-truth conventions. `ctl_instruction.md` and
    `pinn_architecture.md` carry the locked v1.4 contracts the research must respect as hard
    constraints; `sampling_method.md` and `data_quality_assessment.md` are context (FROZEN and
-   non-authoritative respectively — see the manifest).
-5. **`consolidated-context.md`** — scattered dataset facts gathered into one place, each
-   fragment labeled with its source path.
+   non-authoritative respectively — see the master's manifest).
 
 The issue doc and its "Recommended Resolutions" are non-authoritative and may contain errors;
 do not treat them as settled. The `pinn/` "Canonical" citation in the issue doc is overridden
@@ -55,8 +61,11 @@ format precedent is there to inspire, not to constrain.
 
 Phase 24 (empirical dataset verification) starts immediately and runs **in parallel** with this
 external-research gate window. It gates on nothing external. Phase 24 verifies every CLM row in
-`claims-table.md` against the on-disk dataset and forwards a **DATA-07 correction addendum**,
-keyed by CLM ID, for any package-stated claim that verification contradicts. If nothing is
+the master's **CLM Claims Register** section against the on-disk dataset and forwards a
+**DATA-07 correction addendum**, keyed by CLM ID, for any package-stated claim that
+verification contradicts. The addendum is a standalone sibling file; it supersedes the
+master's **Correction Provenance And Verification Boundaries** section for any claim it
+covers. If nothing is
 contradicted, the addendum is nil. The addendum is forwarded to the in-flight external research
 so the researchers can correct any figure the package got wrong.
 

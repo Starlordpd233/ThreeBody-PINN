@@ -6,7 +6,7 @@
 
 ## Summary
 
-Phase 24 is a verification-and-bookkeeping phase, not a design or spec-edit phase. It runs a fixed checklist of read-only probes (DATA-01..06) against the on-disk `simulation_data/` dataset to confirm/correct/mark-unverified every package-stated dataset figure, then compiles a CLM-keyed DATA-07 correction addendum (or nil addendum) beside the Phase 23 package and seeds the `24-ISSUE-LEDGER.md` at the stable path Phase 25 consumes. The "stack" is the repository's dataset files, the existing `simulation_data/Scripts/` provenance (SCOPE-07 grounding), the Phase 23 `claims-table.md` checklist (CLM-01..13), and the v1.4 `16-ISSUE-LEDGER.md` schema precedent. No web research and no external libraries — consistent with the Phase 23 precedent (`23-RESEARCH.md`: "No web sources; no external libraries").
+Phase 24 is a verification-and-bookkeeping phase, not a design or spec-edit phase. It runs a fixed checklist of read-only probes (DATA-01..06) against the on-disk `simulation_data/` dataset to confirm/correct/mark-unverified every package-stated dataset figure, then compiles a CLM-keyed DATA-07 correction addendum (or nil addendum) beside the Phase 23 package and seeds the `24-ISSUE-LEDGER.md` at the stable path Phase 25 consumes. The "stack" is the repository's dataset files, the existing `simulation_data/Scripts/` provenance (SCOPE-07 grounding), the Phase 23 CLM claims register (CLM-01..13, now in `RESEARCH-CONTEXT-MASTER.md`), and the v1.4 `16-ISSUE-LEDGER.md` schema precedent. No web research and no external libraries — consistent with the Phase 23 precedent (`23-RESEARCH.md`: "No web sources; no external libraries").
 
 The single most important runtime fact for the planner: **probes that call `np.allclose` (DATA-05, D-14) MUST run under `.venv/bin/python` (numpy 2.2.0); the system `python3` (3.14.5, homebrew) has NO numpy.** [VERIFIED: `.venv/bin/python -c "import numpy"` → 2.2.0; `python3 -c "import numpy"` → ModuleNotFoundError]. Several probes (DATA-01 gap-set arithmetic, DATA-03 ID-set diff, DATA-06 snapshot-count via block split) need only the standard library and can run under either interpreter, but standardizing on `.venv/bin/python` for all probes removes the failure mode.
 
@@ -25,10 +25,10 @@ Most probes have a strong `confirmed` prior already established by pilot runs in
 - **D-03:** Probes stay v1.5-disposable: no packaging into reusable validation tooling (FUT-03), no edits to `simulation_data/Scripts/` or `simulation_data/Validation/`. Existing audit artifacts (`footer_audit_20251224_170141.md`, `check_missing_results*.py`) may be READ as cross-checks; Phase 24 executes its own probes so ledger evidence is self-contained — it never cites the doc-integrity audit workstream as a substitute for a probe run.
 
 **Verification checklist scope**
-- **D-04:** Primary checklist is `research_package/claims-table.md` rows CLM-01..CLM-12, each verified via its "Phase-24 check" column, mapped to its owning DATA requirement (CLM-01/02/12→DATA-01, CLM-03→DATA-02, CLM-04→DATA-03, CLM-05/06→DATA-03/04 folder counts, CLM-07/08/09→DATA-04 footer/parameter probes (table column labels say DATA-05; REQUIREMENTS.md mapping governs), CLM-10/11→DATA-06).
+- **D-04:** Primary checklist is `research_package/RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" rows CLM-01..CLM-12, each verified via its "Phase-24 check" column, mapped to its owning DATA requirement (CLM-01/02/12→DATA-01, CLM-03→DATA-02, CLM-04→DATA-03, CLM-05/06→DATA-03/04 folder counts, CLM-07/08/09→DATA-04 footer/parameter probes (table column labels say DATA-05; REQUIREMENTS.md mapping governs), CLM-10/11→DATA-06).
 - **D-05:** CLM-13 (`D = 6.694`) is NOT empirically probed — convention conflict routed to Phase 25 (EVID-10) / Phase 27 (PIPE-09). Ledger records it `PENDING` with that routing; Phase 24 takes no position.
-- **D-06:** **Bounded prose sweep** beyond the table: `consolidated-context.md`, `framed-research-questions.md`, package `README.md`, `DELIVERY-NOTE.md` swept for empirical dataset figures with no CLM row. DATA-07 scope is "every package-stated dataset claim", broader than the 13 rows. Newly found figures get extension IDs (`CLM-14`, `CLM-15`, …) recorded in the Phase 24 verified-facts register — the delivered `claims-table.md` stays byte-stable — so the addendum stays CLM-keyed.
-- **D-07:** The two **ERRATUM-2026-06-10 corrections fold into the DATA-07 addendum** regardless of re-probe outcomes: (1) gold filenames carry no `_gold_` infix — gold status is folder-encoded only; (2) the 1,550/701/219 populations have **no `Result:` footer at all**. Phase 24 re-executes both probes itself; the addendum supersedes the erratum.
+- **D-06:** **Bounded prose sweep** beyond the table: `RESEARCH-CONTEXT-MASTER.md` (all sections) and `DELIVERY-NOTE.md` swept for empirical dataset figures with no CLM row. DATA-07 scope is "every package-stated dataset claim", broader than the 13 rows. Newly found figures get extension IDs (`CLM-14`, `CLM-15`, …) recorded in the Phase 24 verified-facts register — the delivered `RESEARCH-CONTEXT-MASTER.md` stays byte-stable against its 2026-06-11 post-consolidation baseline — so the addendum stays CLM-keyed.
+- **D-07:** The two **2026-06-10 erratum corrections (now integrated in the master's "Correction Provenance And Verification Boundaries" section) fold into the DATA-07 addendum** regardless of re-probe outcomes: (1) gold filenames carry no `_gold_` infix — gold status is folder-encoded only; (2) the 1,550/701/219 populations have **no `Result:` footer at all**. Phase 24 re-executes both probes itself; the addendum supersedes that correction record from self-contained evidence.
 
 **Verdict semantics**
 - **D-08:** Verdict vocabulary fixed by roadmap criterion 1: **`confirmed` / `corrected` / `unverified`**. `corrected` rows enter the addendum with claimed value, observed value, probe method. `unverified` is used ONLY when a probe cannot run within grounding limits, with reason recorded — never a shortcut for "didn't get to it".
@@ -48,7 +48,7 @@ Most probes have a strong `confirmed` prior already established by pilot runs in
 
 **DATA-07 addendum form & delivery**
 - **D-18:** One canonical addendum file placed **beside the package files inside `research_package/`** (erratum precedent: sibling file, NOT added to the manifest, all originally-delivered files byte-stable). Self-describing name, e.g. `DATA-07-CORRECTION-ADDENDUM.md` (exact name = Claude's discretion).
-- **D-19:** Addendum structure: CLM-keyed rows — claimed value, observed value, probe command/path, verdict — plus an explicit supersession statement over `ERRATUM-2026-06-10.md` folding in its two corrections (D-07). A confirmed-claims summary section records what verification upheld.
+- **D-19:** Addendum structure: CLM-keyed rows — claimed value, observed value, probe command/path, verdict — plus an explicit supersession statement over the master's "Correction Provenance And Verification Boundaries" section folding in its two corrections (D-07). A confirmed-claims summary section records what verification upheld.
 - **D-20:** Nil-addendum case: if no package-stated claim is contradicted, the same file records that all package-stated claims were confirmed, with the probe index.
 - **D-21:** Delivery: addendum ships **as soon as the probes finish** — never waiting on the resolution doc — as a commit plus a notification to the user, who forwards it to the in-flight external research. The agent sends nothing externally itself.
 
@@ -132,11 +132,10 @@ Not applicable — Phase 24 installs no external packages. All probes use the re
 ### System Data Flow
 
 ```
-Phase 23 claims-table.md (CLM-01..13)  ──┐
-ERRATUM-2026-06-10.md (2 corrections)   ──┤
-prose sweep (consolidated-context.md,   ──┤
-  framed-research-questions.md, README, ──┤
-  DELIVERY-NOTE)  → CLM-14+ extension IDs ─┤
+Phase 23 RESEARCH-CONTEXT-MASTER.md       ──┐
+  (CLM-01..13 + corrections integrated)  ──┤
+prose sweep (RESEARCH-CONTEXT-MASTER.md  ──┤
+  all sections, DELIVERY-NOTE)  → CLM-14+ ──┤
                                           ▼
                         ┌─────────────────────────────────┐
                         │  probes/ (one per DATA-01..06)   │
@@ -278,7 +277,7 @@ Not a rename/refactor/migration phase — section omitted. Phase 24 writes only 
 
 ### Pitfall 3: Stale footer narrative
 **What goes wrong:** The addendum repeats "minimal/partial footers" language the erratum already retired.
-**Why it happens:** `consolidated-context.md` still carries pre-correction "partial footer" prose (lines 73–105).
+**Why it happens:** The pre-consolidation `consolidated-context.md` (now retired; content merged into `RESEARCH-CONTEXT-MASTER.md`) carried pre-correction "partial footer" prose — the master's current text integrates both erratum corrections directly.
 **How to avoid:** Apply D-07 — the 1,550/701/219 populations have NO `Result:` footer; footers present carry the full schema. Fold both erratum corrections in unconditionally.
 **Warning signs:** Addendum text mentioning "partial footer" or `_gold_` infix as a live fact.
 
@@ -323,7 +322,7 @@ Not applicable — no fast-moving external technology. The relevant "state" is t
 | json blacklist used by runners | json is legacy; runners use `problematic_ics/{type}/` dirs | README line 1005 (current) | DATA-02 consumption nuance |
 
 **Deprecated/outdated (do not rely on as live facts):**
-- `consolidated-context.md` "partial footer" prose (lines 73–105) — superseded by erratum.
+- `consolidated-context.md` "partial footer" prose (lines 73–105) — superseded by erratum; now retired, corrections integrated into `RESEARCH-CONTEXT-MASTER.md`.
 - `pinn/data-processing-pipeline-full.py`, `pinn/basic_architecture.py` — NOT grounding (SCOPE-10).
 
 ## Assumptions Log

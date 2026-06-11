@@ -17,8 +17,9 @@ retirement_trigger: resolution doc delivered under research_reports/02-data-pipe
   live in the package files.
 - **What to attach:** every file in
   `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/`
-  — `README.md` (manifest), `framed-research-questions.md`, `claims-table.md`,
-  `consolidated-context.md`, and all files under `specs/`. (`DELIVERY-NOTE.md` is
+  — `RESEARCH-CONTEXT-MASTER.md` (the consolidated research-context master: manifest, framed
+  questions, CLM claims register, dataset context, and correction provenance in one file;
+  consolidated 2026-06-11) and all files under `specs/`. (`DELIVERY-NOTE.md` is
   operator-facing; attaching it is harmless but not required.)
 - **Mid-task addendum:** Phase 24 runs in parallel and produces the DATA-07 correction addendum
   for any package-stated claim that empirical verification contradicts (or a nil addendum if none
@@ -54,13 +55,14 @@ fully specified recommendations.
 
 ## Task
 
-1. Read the package in this order: `README.md` (the manifest — it defines every file's role and
-   authority level), then `framed-research-questions.md` (the complete question set), then
-   `claims-table.md`, then the files under `specs/` and `consolidated-context.md` as the
-   questions require.
-2. Investigate and answer **every** question in `framed-research-questions.md`. The question set
-   is the complete and authoritative statement of what this task covers — nothing in this prompt
-   adds to it or narrows it.
+1. Read `RESEARCH-CONTEXT-MASTER.md` in its section order: "Package Orientation And Manifest"
+   (it defines every file's role and authority level), then "Framed Research Questions" (the
+   complete question set), then "CLM Claims Register", then the files under `specs/` and the
+   master's "Consolidated Dataset Context" and "Correction Provenance And Verification
+   Boundaries" sections as the questions require.
+2. Investigate and answer **every** question in the master's "Framed Research Questions"
+   section. The question set is the complete and authoritative statement of what this task
+   covers — nothing in this prompt adds to it or narrows it.
 3. Produce a single, self-contained resolution document in markdown, per the output
    specification below.
 
@@ -74,8 +76,8 @@ fully specified recommendations.
    consolidation material included in the package is NOT authoritative: it may contain errors,
    and any recommendations embedded in it are candidate positions to be evaluated, not defaults
    to be transcribed. Nothing in the package is correct merely because it is written down.
-3. **Claims discipline.** Figures marked `claimed-unverified` in `claims-table.md` are
-   unconfirmed reports. Do not present them as established facts, and do not let a
+3. **Claims discipline.** Figures marked `claimed-unverified` in the master's "CLM Claims
+   Register" section are unconfirmed reports. Do not present them as established facts, and do not let a
    recommendation silently depend on one. Where a verdict turns on such a figure, state the
    dependency explicitly and give the conditional form ("if the verified value is X, then …;
    otherwise …"). A correction addendum with empirically verified values may be forwarded to you
@@ -131,8 +133,8 @@ Produce **one** self-contained markdown document:
 - **§1 Executive decision summary:** the complete set of recommendations, in brief.
 - **§2 Decision matrix:** one row per question — question ID, one-line verdict, confidence.
 - **§3+ Resolutions:** per-question sections following the grouping and identifiers used in
-  `framed-research-questions.md`, each containing the five elements listed under Method
-  expectations (plus proposed specification text where applicable).
+  the master's "Framed Research Questions" section, each containing the five elements listed
+  under Method expectations (plus proposed specification text where applicable).
 - **Open items register:** every "insufficient evidence" and "Additional Input Needed" item
   collected in one place.
 - **References:** full citations for all external sources used.

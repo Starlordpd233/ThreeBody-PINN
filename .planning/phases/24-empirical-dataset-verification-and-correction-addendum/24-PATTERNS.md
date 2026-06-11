@@ -17,8 +17,8 @@
 | `probes/data05_mass_drift.py` | probe-script | transform / numerical compare (numpy) | RESEARCH §Pattern 2 + dataset-reference IC/Brutus format | role-match (numpy-gated) |
 | `probes/data06_snapshots.py` | probe-script | file-I/O (block-split distribution) | RESEARCH §Pattern 3 | role-match |
 | `probes/outputs/*` | evidence-capture | captured stdout | v1.4 disposable-probe evidence (`21-*/evidence/*.stdout.txt`) | role-match |
-| `24-VERIFIED-FACTS.md` | evidence-register | bookkeeping (CLM/DATA-keyed rows) | `claims-table.md` (table schema) + ERRATUM (verdict prose) | role-match |
-| `research_package/DATA-07-CORRECTION-ADDENDUM.md` | correction-doc | sibling correction file | `research_package/ERRATUM-2026-06-10.md` | exact (sibling-file precedent, D-18) |
+| `24-VERIFIED-FACTS.md` | evidence-register | bookkeeping (CLM/DATA-keyed rows) | `RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" (table schema) + ERRATUM (verdict prose) | role-match |
+| `research_package/DATA-07-CORRECTION-ADDENDUM.md` | correction-doc | sibling correction file | `research_package/ERRATUM-2026-06-10.md` (retired 2026-06-11; corrections now in `RESEARCH-CONTEXT-MASTER.md`) | exact (sibling-file precedent, D-18) |
 | `24-ISSUE-LEDGER.md` | ledger | state-machine seed | `16-ISSUE-LEDGER.md` | exact (D-22/D-24 mandate this schema) |
 | `24-GAPS.md` (only if a STOP gap fires) | gap-register | governance log | `22-GAPS.md` table in `16-ISSUE-LEDGER.md:479-485` + CLAUDE.md STOP-protocol field list | role-match |
 
@@ -71,7 +71,7 @@ Every probe MUST be invoked as `.venv/bin/python` (numpy 2.2.0; system `python3`
 
 ### `research_package/DATA-07-CORRECTION-ADDENDUM.md` (correction-doc, sibling file)
 
-**Analog:** `research_package/ERRATUM-2026-06-10.md` — the canonical sibling-correction precedent (D-18). Copy its structure; the addendum SUPERSEDES it.
+**Analog:** `research_package/ERRATUM-2026-06-10.md` (retired 2026-06-11; its two corrections are now integrated in `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries") — the canonical sibling-correction precedent (D-18). Copy its structure; the addendum SUPERSEDES the master's correction-provenance section.
 
 **Header / byte-stability statement** (`ERRATUM-2026-06-10.md:1-11`):
 ```markdown
@@ -79,7 +79,7 @@ Every probe MUST be invoked as `.venv/bin/python` (numpy 2.2.0; system `python3`
 **Scope:** CLM-keyed corrections to package-stated dataset claims, established by Phase 24
 read-only probes. Added sibling file only: no delivered package file modified; per-file
 source hashes in README.md remain valid; this addendum is intentionally not in that manifest.
-**Supersession:** supersedes ERRATUM-2026-06-10.md, folding in its two corrections (D-07).
+**Supersession:** supersedes the master's "Correction Provenance And Verification Boundaries" section, folding in its two corrections (D-07).
 ```
 
 **Per-correction block** (`ERRATUM-2026-06-10.md:15-42`, Correction 1 shape) — reuse: `## Correction N — <title>` / **Affects:** (CLM row + file:section) / **Package states:** (quoted claim) / **Corrected disk fact:** / **Evidence:** (probe command + path + run date — D-02). CLM-keyed rows carry claimed value, observed value, probe command/path, verdict (`confirmed`/`corrected`/`unverified`) (D-08/D-19).
@@ -114,7 +114,7 @@ Seed scope (D-23): B-06, B-11, M11, M12, M13, D7, G1-G5, D-03 training-data form
 
 ### `24-VERIFIED-FACTS.md` (evidence-register)
 
-**Analog:** `claims-table.md` (table schema) + `ERRATUM-2026-06-10.md` (verdict-prose + evidence-citation style). Per-row: CLM/DATA ID · claimed value · observed value · probe command · dataset path · run date · verdict (D-02/D-08). Prose-sweep figures with no CLM row get extension IDs `CLM-14+` here (D-06) — the delivered `claims-table.md` stays byte-stable. Probe-checklist maps 1:1 onto `claims-table.md` CLM-01..12 rows via each row's "Phase-24 check" column (D-04); CLM-13 is `PENDING`, not probed (D-05).
+**Analog:** `RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" (table schema) + `ERRATUM-2026-06-10.md` (verdict-prose + evidence-citation style). Per-row: CLM/DATA ID · claimed value · observed value · probe command · dataset path · run date · verdict (D-02/D-08). Prose-sweep figures with no CLM row get extension IDs `CLM-14+` here (D-06) — the delivered `RESEARCH-CONTEXT-MASTER.md` stays byte-stable against its 2026-06-11 post-consolidation baseline. Probe-checklist maps 1:1 onto the master's CLM-01..12 rows via each row's "Phase-24 check" column (D-04); CLM-13 is `PENDING`, not probed (D-05).
 
 ---
 
@@ -129,7 +129,7 @@ Seed scope (D-23): B-06, B-11, M11, M12, M13, D7, G1-G5, D-03 training-data form
 **Apply to:** every probe + every register row. Each recorded fact carries probe command + dataset path + observed value + run date so any later probe reproduces it without this session's context.
 
 ### Read-only / byte-stability (VER-09 / D-18)
-**Source:** `ERRATUM-2026-06-10.md:3-7` (sibling-file, no delivered file modified, manifest hashes valid).
+**Source:** `ERRATUM-2026-06-10.md:3-7` (retired; sibling-file pattern, no delivered file modified, manifest hashes valid).
 **Apply to:** all probes (never write inside `simulation_data/`, never touch `pinn/`); the addendum (sibling in `research_package/`, not added to manifest).
 
 ### Interpreter standardization (RESEARCH Pitfall 1)
@@ -137,7 +137,7 @@ Seed scope (D-23): B-06, B-11, M11, M12, M13, D7, G1-G5, D-03 training-data form
 **Apply to:** all six probe invocation strings; record `.venv/bin/python ...` in the register, never bare `python3`.
 
 ### Dataset format constants
-**Source:** `.claude/rules/dataset-reference.md` (IC/Brutus formats, four-variant folder list, mapping rule, footer optionality, final_timestep>=9.5 gate) + `ERRATUM-2026-06-10.md` (corrected footer/gold facts).
+**Source:** `.claude/rules/dataset-reference.md` (IC/Brutus formats, four-variant folder list, mapping rule, footer optionality, final_timestep>=9.5 gate) + `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries" (corrected footer/gold facts).
 **Apply to:** DATA-01/03 (filename ID parse), DATA-04 (footer schema), DATA-05 (mass col 0), DATA-06 (block split + final-time gate).
 
 ### Mandatory commit path (D-25)
@@ -151,5 +151,5 @@ None. Every Phase 24 artifact has a strong in-repo precedent. The closest thing 
 ## Metadata
 
 **Analog search scope:** `.planning/milestones/v1.4-phases/16-*/`, `.planning/phases/23-*/`, `pinn_instruction/.../research_package/`, `simulation_data/Validation/audit_reports/`, `.claude/rules/`.
-**Files scanned:** 6 (16-ISSUE-LEDGER.md, ERRATUM-2026-06-10.md, claims-table.md, check_missing_results.py, plus CONTEXT/RESEARCH and dataset-reference rule).
+**Files scanned:** 7 (16-ISSUE-LEDGER.md, ERRATUM-2026-06-10.md (retired), claims-table.md (retired), RESEARCH-CONTEXT-MASTER.md, check_missing_results.py, plus CONTEXT/RESEARCH and dataset-reference rule).
 **Pattern extraction date:** 2026-06-10

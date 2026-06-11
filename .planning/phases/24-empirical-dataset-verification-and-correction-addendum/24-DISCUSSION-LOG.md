@@ -113,9 +113,13 @@
 **Classification:** operational coordination → surface.
 **Status:** OPEN
 
+**UPDATE 2026-06-11:** The Phase 23 research-context master consolidation retired `ERRATUM-2026-06-10.md` and integrated its two corrections into `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries". Option (B) "interim extension to ERRATUM-2026-06-10.md" is therefore removed. The remaining grounded citation corrections route through the master's current text or the DATA-07 addendum appendix. See plan 24-04 (updated 2026-06-11) for the revised option framing.
+
 ### (d) Interim erratum extension vs consolidated addendum
 
 **Decision point:** Should the corrected citations (WR-02/03) and conflict surfacing (WR-01) be issued as an interim erratum extension now, or held for the consolidated DATA-07 addendum after probes complete? The trade-off is timeliness for in-flight researchers vs a single canonical correction document.
 
 **Classification:** operational coordination → surface.
 **Status:** OPEN
+
+**UPDATE 2026-06-11:** The "interim erratum extension" vehicle is removed by the 2026-06-11 master consolidation (ERRATUM-2026-06-10.md retired; corrections integrated into RESEARCH-CONTEXT-MASTER.md). The timing trade-off remains: "interim fix NOW" means direct correction in RESEARCH-CONTEXT-MASTER.md; "hold" means the consolidated DATA-07 addendum after probes complete. See plan 24-04 (updated 2026-06-11).
