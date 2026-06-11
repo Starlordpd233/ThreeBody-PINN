@@ -330,7 +330,7 @@ graphify-out/
 .planning/graphs/
 
 # -----------------------------------------------------------------------------
-# Scratch outputs and knowledge-graph intermediates
+# Scratch outputs, knowledge-graph intermediates, and probe regeneration
 # -----------------------------------------------------------------------------
 # Throwaway smoke-test outputs
 scratch/
@@ -338,6 +338,8 @@ scratch/
 .understand-anything/intermediate/*
 !.understand-anything/intermediate/scan-result.json
 .understand-anything/tmp/
+# Phase probe regeneration outputs (regeneratable from tracked scripts)
+.planning/phases/*/probes/outputs/
 
 # -----------------------------------------------------------------------------
 # END OF .gitignore
