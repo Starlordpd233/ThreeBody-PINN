@@ -38,7 +38,7 @@ retirement_trigger: final resolution doc delivered under research_reports/02-dat
   bundle header are also distinguishing, R4 notably so — the prompt's Independence ground rule
   is the mitigation.)
 - **Revision note (2026-06-11):** attach list rebundled to 4 files; reports anonymized R1–R8;
-  crosswalk section added. Design:
+  crosswalk section added; Output-contract conformance pass added to Method. Design:
   `docs/superpowers/specs/2026-06-11-issue02-research-results-consolidation-packaging-design.md`.
 - **Where the output goes:** save the final document under
   `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`
@@ -195,12 +195,18 @@ For each question in the master's "Framed Research Questions" section:
 5. **Record provenance** — which positions were adopted, rejected, or merged, and why; preserve
    dissenting positions in summary rather than erasing them.
 
-Before finalizing, run two passes:
+Before finalizing, run three passes:
 
 - **Consistency pass:** check the final answers against one another and against the hard
   constraints; resolve or explicitly flag any conflict.
 - **Completeness audit:** every question answered; every claim-dependent verdict conditional or
   addendum-grounded; every citation resolvable to an input you were actually given.
+- **Output-contract conformance pass:** check the document against the Output specification
+  below before returning — every specified section present, every per-question resolution
+  carrying all seven required parts, and every final verdict specified to the transcription
+  level a specification author could apply without further interpretation. This document is the
+  candidate verdict source the project will act on; record any required part you cannot supply
+  as an explicit Open items / Additional Input Needed entry rather than omitting it silently.
 
 ## Output specification
 
