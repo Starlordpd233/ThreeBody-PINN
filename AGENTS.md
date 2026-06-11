@@ -102,15 +102,15 @@ User does not trust the agent to make spec-engineering or physics-adjudication c
 
 ## CRITICAL GOVERNANCE: Git Branch Awareness & Destructive Operations
 
-Always surface the current Git state at session start and before any operation that could discard work. Be cautious on non-master branches or branches with red-flag names (`backup`, `recovery`, `wip`, `experiment`, `tmp`, etc.).
+Always surface the current Git state at session start, before committing, and before any operation that could discard work. Run `git status --short --branch`, report the branch plus ahead/behind state, and summarize existing modified/deleted/untracked files. Treat existing changes as user-owned unless you created them in the current task.
 
 ### Destructive-operation awareness
 
-Before running any operation that can permanently discard commits, working-tree changes, branch refs, stashes, tags, or history, confirm with the user and explain what will be affected. Accept any clear confirmation.
+Before running any operation that can permanently discard commits, working-tree changes, branch refs, stashes, tags, or history, explain what will be affected and obtain exact user approval for the command or effect. Vague approval is not enough.
 
 Common destructive operations include: `git reset --hard`, `git clean -f`, `git branch -D`, `git rebase`, `git push --force`, `git stash drop`, `rm -rf` on tracked paths, and similar.
 
-Consider creating a recovery checkpoint (`git branch backup/<context>-<date>`, `git tag recovery/<context>-<date>`, or `git stash`) before destructive operations.
+Create or verify a recovery checkpoint before destructive operations. The command must include all three markers: `ALLOW_DESTRUCTIVE_GIT=1`, `GIT_DESTRUCTIVE_APPROVAL='<exact approved command or effect>'`, and `GIT_RECOVERY_CHECKPOINT='<backup branch, tag, stash, or commit ref>'`.
 
 ### Recovery from suspected loss
 
@@ -118,15 +118,26 @@ If the user reports lost work, perform read-only forensics first (`git reflog`, 
 
 ### Commit cadence
 
-Commit at logical task boundaries. When touching files under `pinn_instruction/`, `.planning/`, or LaTeX framework specs, commit the task's changes as one atomic commit at task end.
+Agents may commit approved task work at logical boundaries unless the user explicitly says not to commit. Keep commits atomic, reversible, and reviewable. When touching files under `pinn_instruction/`, `.planning/`, or LaTeX framework specs, commit the task's changes as one atomic commit at task end.
+
+Use the layered capture ladder: commits for completed logical work, backup branches or tags before risky history operations, and stashes or durable patch snapshots for dirty unfinished work.
+
+### Concurrent agents
+
+For Claude Code CCP or other multi-agent setups, prefer separate worktrees and branches for independent agents. If agents share one worktree, they still must declare disjoint owned paths and serialize commits through `scripts/agent-commit`.
+
+Every agent commit must set `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS`. `GIT_AGENT_OWNED_PATHS` is a colon- or newline-separated list of repo-relative file or directory prefixes owned by the committing agent. Do not use broad staging (`git add .`, `git add -A`, `git add --all`, `git add -u`); stage explicit owned paths only. Re-check `git status --short --branch`, `git diff --cached`, and touched unstaged diffs immediately before committing.
+
+Archived plans or old snippets that omit current Git-policy env vars are stale for execution purposes; adapt them to this policy instead of replaying them literally.
 
 ### Pause and ask
 
 Pause and ask the user when:
 - On a red-flag branch or non-primary worktree
-- About to run a destructive operation without clear user confirmation
+- About to run a destructive operation without exact user confirmation and a recovery checkpoint
 - The user reports lost work
 - You cannot fully enumerate what an operation will affect
+- Required Git policy markers or owned-path declarations are missing
 
 ### Why
 
@@ -143,12 +154,12 @@ Follow this protocol whenever a task may require a later Git commit, even if the
 - At session start and before committing, run `git status --short --branch` and surface branch, ahead/behind state, and existing worktree changes.
 - Treat existing changes as user-owned unless you created them in the current task.
 - Before committing, inspect `git diff --cached`, check unstaged changes for touched files, and run relevant verification plus `git diff --check`.
-- Stage only intended files. Do not include unrelated user changes.
+- Stage only explicit files covered by `GIT_AGENT_OWNED_PATHS`. Do not include unrelated user changes.
 
 ### Hook and bypass policy
 
 - Run `scripts/setup-git-hooks.sh` if `git config --get core.hooksPath` is not `.githooks`.
-- Agents must use `scripts/agent-commit`; do not run raw `git commit`.
+- Agents must use `scripts/agent-commit`; do not run raw `git commit`. Set both `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS`.
 - Do not use `--no-verify`, `core.hooksPath=/dev/null`, or equivalent bypasses without explicit user approval.
 
 ### Commit message policy
@@ -157,13 +168,15 @@ Use `<type>(<scope>): <lowercase imperative subject>`.
 
 Allowed types: `spec`, `evidence`, `verify`, `plan`, `docs`, `feat`, `fix`, `refactor`, `test`, `chore`.
 
-Allowed scopes: two-digit phase scopes such as `20`, task scopes such as `20-05`, and fixed domain scopes `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`.
+Allowed scopes: two-digit phase scopes such as `20`, task scopes such as `20-05`, and fixed domain scopes `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`. Inserted phases use task-style scope (`20-05`), not `20.5`, `20-5`, or `20_5`.
 
 The subject starts lowercase, uses imperative voice, is 80 characters or fewer, has no trailing period, and contains no markdown ticks, quotes, or semicolon-chained changes.
 
 A body is required for `spec`, `evidence`, `verify`, and `plan` commits; commits touching multiple files; commits touching `pinn_instruction/`, `.planning/`, framework specs, or governance instructions.
 
 Agent-authored or materially agent-assisted commits must include `Agent-Assisted-By: <agent/tool/model>` or a valid `Co-Authored-By:` trailer.
+
+Do not push directly from protected branches `master`, `main`, or `milestone/*`. Milestone branches are local integration branches; publish through feature/review branches or explicit user-controlled integration.
 
 ### Transformation and verification integrity
 

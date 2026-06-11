@@ -1,78 +1,311 @@
 # Git Guidelines
 
 Date adopted: 2026-06-05
+Last revised: 2026-06-11
 Status: Canonical project Git policy
 
 ## Purpose
 
-This guideline prevents hidden branch drift, destructive Git loss, low-signal commits, and agent bypass of project commit policy.
+This guideline prevents hidden branch drift, destructive Git loss, low-signal
+commits, mixed concurrent-agent commits, and agent bypass of project commit
+policy. It is written for both humans and agents; when archived plans or older
+snippets conflict with this document, this document wins.
+
+## Plain-Language Git Vocabulary
+
+- **Working tree**: the project files currently on disk.
+- **Staged files**: the exact files selected for the next commit.
+- **Commit**: a durable saved checkpoint in project history.
+- **Branch**: a named timeline of commits, such as `milestone/v1.5`.
+- **Tag or backup branch**: a named pointer to a known commit.
+- **Stash**: a temporary shelf for unfinished file changes.
+- **Worktree**: a separate checkout of the same repository, useful when multiple
+  agents work at the same time.
 
 ## Trigger
 
-Follow this guideline whenever a task may require a later Git commit, even if the commit is not created in the current session.
+Follow this guideline whenever a task may require a later Git commit, even if
+the commit is not created in the current session.
 
 ## Session Start And Branch Awareness
 
-At session start and before committing, run `git status --short --branch` and surface the branch, ahead/behind state, and existing worktree changes. Treat existing changes as user-owned unless you created them in the current task.
+At session start and before committing, run `git status --short --branch` and
+surface the branch, ahead/behind state, and existing worktree changes. Treat
+existing changes as user-owned unless you created them in the current task.
 
-## Destructive Operations
+Pause and ask before proceeding when:
 
-Do not run destructive Git operations without explicit user confirmation after explaining what will be affected. This includes `git reset --hard`, `git clean -f`, `git branch -D`, `git rebase`, `git push --force`, `git stash drop`, and disabling hooks.
+- You are on a red-flag branch such as `backup/*`, `recovery/*`, `wip/*`,
+  `experiment/*`, or `tmp/*`.
+- You are in a non-primary or unfamiliar worktree.
+- You cannot fully enumerate what a Git operation will affect.
+- The user reports lost work.
+
+## Autonomy Matrix
+
+Agents may do these without asking:
+
+- Run read-only Git inspection commands.
+- Stage explicit owned paths.
+- Commit approved task work at logical boundaries.
+- Create non-destructive recovery tags or backup branches.
+- Push non-protected feature or backup branches when the task calls for it.
+
+Agents must ask first:
+
+- Any destructive operation.
+- Any protected-branch push.
+- Any history rewrite.
+- Any operation affecting user-owned or unknown changes.
+- Any hook bypass.
+
+Agents must stop instead of guessing:
+
+- The desired branch, remote, or affected files are ambiguous.
+- Git reports conflicts or missing work.
+- A required approval, owned-path declaration, or checkpoint marker is missing.
 
 ## Commit Cadence
 
-Commit at logical task boundaries. Keep commits atomic, reversible, and reviewable. Avoid mixed commits that combine planning, implementation, verification, and unrelated cleanup.
+Agents may auto-commit approved task work at logical boundaries unless the user
+explicitly says not to commit. Keep commits atomic, reversible, and reviewable.
+Avoid mixed commits that combine planning, implementation, verification, and
+unrelated cleanup.
+
+Good commit boundaries:
+
+- One script or hook behavior change plus its tests.
+- One documentation policy revision.
+- One phase task or evidence packet.
+
+Poor commit boundaries:
+
+- A broad `wip` snapshot.
+- A commit mixing generated outputs, policy text, and unrelated planning files.
+- A commit that stages files outside the agent's declared ownership.
+
+## Agent-Owned Paths
+
+Every agent commit must use `scripts/agent-commit` and set:
+
+- `GIT_AGENT_ID`: the active agent, tool, and model.
+- `GIT_AGENT_OWNED_PATHS`: colon- or newline-separated repo-relative file or
+  directory prefixes the agent is responsible for.
+
+Example:
+
+```bash
+GIT_AGENT_ID="Codex GPT-5" \
+GIT_AGENT_OWNED_PATHS='AGENTS.md:docs/git-guidelines.md:scripts/git_policy:tests/git_policy' \
+scripts/agent-commit -m "docs(governance): clarify git autonomy policy" \
+  -m "Explain the revised autonomy, checkpoint, and concurrent-agent rules."
+```
+
+Owned paths must be repo-relative. Do not use absolute paths, `.`, `..`, root,
+or paths containing parent traversal. The commit validator rejects staged files
+outside `GIT_AGENT_OWNED_PATHS`.
+
+Use explicit staging only. Do not use broad staging commands such as
+`git add .`, `git add -A`, `git add --all`, or `git add -u`.
+
+## Concurrent Agent Work
+
+For Claude Code CCP or any multi-agent setup, prefer separate worktrees and
+branches for independent agents. If agents share one worktree, they must still
+declare disjoint owned paths and commit through `scripts/agent-commit`.
+
+Rules for concurrent agents:
+
+- Prefer one agent per worktree/branch for independent work.
+- Declare owned paths before editing and before committing.
+- Stage only owned paths.
+- Re-run `git status --short --branch`, `git diff --cached`, and relevant
+  unstaged diffs immediately before commit.
+- If another agent commits first, re-check the branch and staged diff before
+  committing.
+- Never alter another agent's staged or unstaged work unless explicitly assigned.
+
+`scripts/agent-commit` serializes commits with a repository-local lock. If the
+lock is held, wait or retry after the other commit finishes.
+
+## Capture And Recovery Ladder
+
+Use the lightest recovery mechanism that preserves the right state:
+
+1. Completed logical work: commit it.
+2. Risky history or branch operations: create a backup branch or tag first.
+3. Dirty unfinished work: use a stash or durable patch snapshot when a commit is
+   not appropriate.
+4. Suspected lost work: perform read-only forensics before changing state.
+
+Do not rely on `/tmp` for evidence or recovery material that must survive the
+task.
+
+## Destructive Operations
+
+Do not run destructive Git operations without exact user approval after
+explaining what will be affected. Approval must name either the exact command or
+the exact effect. Vague approval is not enough.
+
+Destructive operations include `git reset --hard`, `git clean -f`,
+`git branch -D`, `git rebase`, `git push --force`, `git stash drop`, disabling
+hooks, and `rm -rf` on tracked paths.
+
+Before a destructive operation, create or verify a recovery checkpoint. The
+command must include all three markers:
+
+```bash
+ALLOW_DESTRUCTIVE_GIT=1
+GIT_DESTRUCTIVE_APPROVAL='<exact approved command or effect>'
+GIT_RECOVERY_CHECKPOINT='<backup branch, tag, stash, or commit ref>'
+```
+
+`ALLOW_DESTRUCTIVE_GIT=1` is a machine-readable marker; it does not replace the
+chat approval requirement.
 
 ## Baseline Before Transformation
 
-Before performing a bulk or mechanical transformation on a file that already carries uncommitted changes — splitting one file into several, reformatting, or large find-and-replace — first commit or stash the pre-existing changes as their own atomic unit. Do not fold unrelated prior edits into the transformation commit: conflating two logically distinct changes destroys the clean pre-transformation baseline that later content-preservation checks depend on.
+Before performing a bulk or mechanical transformation on a file that already
+carries uncommitted changes, first commit or stash the pre-existing changes as
+their own atomic unit. Examples include splitting one file into several,
+reformatting, or large find-and-replace. Do not fold unrelated prior edits into
+the transformation commit.
 
 ## Pre-Commit Review Protocol
 
-Before committing, inspect `git status --short`, `git diff --cached`, and the unstaged diff for touched files. Stage only intended files. Run relevant verification and `git diff --check`.
+Before committing:
+
+1. Run `git status --short --branch`.
+2. Inspect `git diff --cached`.
+3. Inspect the unstaged diff for touched files.
+4. Stage only explicit paths covered by `GIT_AGENT_OWNED_PATHS`.
+5. Run relevant verification and `git diff --check`.
+6. Confirm `git config --get core.hooksPath` is `.githooks`.
 
 ## Commit Message Format
 
-Use `<type>(<scope>): <lowercase imperative subject>`.
+Use:
 
-Allowed types: `spec`, `evidence`, `verify`, `plan`, `docs`, `feat`, `fix`, `refactor`, `test`, `chore`.
+```text
+<type>(<scope>): <lowercase imperative subject>
+```
 
-Allowed scopes: two-digit phase scopes such as `20`, task scopes such as `20-05`, and fixed domain scopes `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`.
+Allowed types: `spec`, `evidence`, `verify`, `plan`, `docs`, `feat`, `fix`,
+`refactor`, `test`, `chore`.
 
-The subject starts lowercase, uses imperative voice, is 80 characters or fewer, has no trailing period, and does not contain markdown ticks, quotes, or semicolon-chained changes.
+Allowed scopes:
+
+- Two-digit phase scopes such as `20`.
+- Task scopes such as `20-05`.
+- Fixed domain scopes: `governance`, `planning`, `pinn`, `brutus`, `pipeline`,
+  `spec`, `docs`, `ref`.
+
+Inserted phases use task-style scope, for example `20-05`. Do not use `20.5`,
+`20-5`, or `20_5` in commit scopes.
+
+The subject starts lowercase, uses imperative voice, is 80 characters or fewer,
+has no trailing period, and does not contain markdown ticks, quotes, or
+semicolon-chained changes.
 
 ## Required Bodies
 
-A body is required for `spec`, `evidence`, `verify`, and `plan` commits; commits touching multiple files; commits touching `pinn_instruction/`, `.planning/`, framework specs, or governance instructions.
+A body is required for `spec`, `evidence`, `verify`, and `plan` commits;
+commits touching multiple files; commits touching `pinn_instruction/`,
+`.planning/`, framework specs, or governance instructions.
+
+For spec or adjudication work, the body must cite grounding sources or user
+decisions when relevant. The body should explain why the commit exists, not
+repeat the diff.
 
 ## Auditable Verification Claims
 
-When a commit asserts a verifiable invariant — byte-for-byte preservation, hash match, line or unit counts — record the supporting evidence durably, not in ephemeral locations such as `/tmp`. Commit the per-unit hashes or counts alongside the change, or reference them from a committed path, so a later reviewer can re-derive the claim from committed state instead of trusting the commit message alone.
+When a commit asserts a verifiable invariant, record the supporting evidence
+durably. Examples include byte-for-byte preservation, hash matches, line counts,
+or unit counts. Commit the per-unit hashes or counts alongside the change, or
+reference them from a committed path, so later reviewers can re-derive the
+claim.
 
 ## Agent Attribution
 
-Agent-authored or materially agent-assisted commits must include `Agent-Assisted-By: <agent/tool/model>` or a valid `Co-Authored-By:` trailer. Agents must use `scripts/agent-commit`; raw agent `git commit` commands are blocked by lifecycle hooks.
+Agent-authored or materially agent-assisted commits must include
+`Agent-Assisted-By: <agent/tool/model>` or a valid `Co-Authored-By:` trailer.
+Agents must use `scripts/agent-commit`; raw agent `git commit` commands are
+blocked by lifecycle hooks.
 
 ## Hook Enforcement
 
-Run `scripts/setup-git-hooks.sh` after cloning or after changing hook files. Do not use `--no-verify`, `core.hooksPath=/dev/null`, or equivalent bypasses without explicit user approval.
+Run `scripts/setup-git-hooks.sh` after cloning or after changing hook files.
+Do not use `--no-verify`, `core.hooksPath=/dev/null`, or equivalent bypasses
+without explicit user approval.
+
+Current enforcement includes:
+
+- `.githooks/commit-msg`: validates message format, body requirements, agent
+  attribution, and agent-owned staged paths.
+- `.githooks/pre-commit`: blocks generated, scratch, and oversized staged
+  artifacts.
+- `.githooks/pre-push`: blocks direct pushes to protected branches and preserves
+  Git LFS pre-push behavior.
+- `.githooks/pre-rebase`: requires destructive-operation approval markers.
+- Agent lifecycle hooks: block raw commits, hook bypasses, broad staging, and
+  unapproved destructive commands before shell execution.
 
 ## Branches, Tags, And PRs
 
-Do not push directly from protected branches `master`, `main`, or `milestone/*`. Prefer feature branches for PR work. Create recovery branches or tags before destructive operations when loss is possible.
+Do not push directly from protected branches `master`, `main`, or
+`milestone/*`. Milestone branches are local integration branches. Agents may
+commit locally on a milestone branch when authorized by the task, but remote
+publication should use feature/review branches or explicit user-controlled
+integration.
+
+Prefer feature branches for PR work. Create recovery branches or tags before
+destructive operations when loss is possible.
 
 ## Recovery
 
-If work appears lost, perform read-only forensics first: `git reflog`, `git fsck`, `git stash list`, and `git worktree list`. Present recovery options before changing state.
+If work appears lost, perform read-only forensics first:
+
+- `git reflog`
+- `git fsck`
+- `git stash list`
+- `git worktree list`
+
+Present recovery options before changing state.
 
 ## Docs Plan-Review-Fix Lifecycle
 
-These rules govern Git commit behavior for the iterative loop run on implementation plans and review reports under `docs/`: plan execution, independent review, fix-plan, remediation. Rules attach to the action performed, not to which agent performs it; one agent may perform several actions, but each follows its own rule and gets its own commit. File retention, naming, archive, and review closeout are governed by `docs/README.md`; this section governs only commit behavior and defers to `docs/README.md` wherever the two meet.
+These rules govern Git commit behavior for the iterative loop run on
+implementation plans and review reports under `docs/`: plan execution,
+independent review, fix-plan, and remediation. Rules attach to the action
+performed, not to which agent performs it. One agent may perform several
+actions, but each follows its own rule and gets its own commit.
 
-**Executing a plan.** Commit the executed work as normal typed commits by domain. Record execution provenance in the plan file's frontmatter per `docs/README.md` (`execution_status`, `executed_at` with date, time, and timezone, and `review_status`); legacy plans without frontmatter use the short top-note `docs/README.md` permits. Close each pass with a dedicated commit that updates those keys and carries the trailers `Plan-Execution: first-pass` and `Plan-Source: <plan path>` alongside the mandatory attribution trailer; keep this commit separate from the work commits. Re-executing after remediation uses `remediation-pass-N` in both the status and the trailer. Do not fold pre-existing uncommitted changes into execution commits.
+File retention, naming, archive, and review closeout are governed by
+`docs/README.md`; this section governs only commit behavior and defers to
+`docs/README.md` wherever the two meet.
 
-**Reviewing an execution.** Commit a review report as `verify(<scope>)`, or `docs(<scope>)` for non-finding narrative; a body is required for `verify`. Naming and location follow `docs/README.md`. A report is kept, never deleted-and-recreated: superseding an older report sets its frontmatter `status: superseded` in an atomic commit, and the new report is its own commit. Archive or deletion follows the approval-gated lifecycle in `docs/README.md`. If the reviewing agent also finishes or fixes work, commit the report separately from the fixes — findings in one commit, changes in their own atomic commits. After review, update the reviewed plan's `review_status`.
+**Executing a plan.** Commit the executed work as normal typed commits by
+domain. Record execution provenance in the plan file's frontmatter per
+`docs/README.md` (`execution_status`, `executed_at` with date, time, and
+timezone, and `review_status`). Close each pass with a dedicated commit that
+updates those keys and carries the trailers `Plan-Execution: first-pass` and
+`Plan-Source: <plan path>` alongside the mandatory attribution trailer. Keep
+this commit separate from the work commits. Re-executing after remediation uses
+`remediation-pass-N` in both the status and the trailer. Do not fold
+pre-existing uncommitted changes into execution commits.
 
-**Authoring a fix or remediation plan.** Commit it as its own `plan(<scope>)` commit, separate from any execution or report commit. When later executed, it follows the Executing a plan rules with a `remediation-pass-N` marker.
+**Reviewing an execution.** Commit a review report as `verify(<scope>)`, or
+`docs(<scope>)` for non-finding narrative. A body is required for `verify`.
+Naming and location follow `docs/README.md`. A report is kept, never
+deleted-and-recreated: superseding an older report sets its frontmatter
+`status: superseded` in an atomic commit, and the new report is its own commit.
+Archive or deletion follows the approval-gated lifecycle in `docs/README.md`.
+If the reviewing agent also finishes or fixes work, commit the report separately
+from the fixes. After review, update the reviewed plan's `review_status`.
 
-**Applying fixes.** Commit fixes as normal typed commits by domain, separate from the report that identified them and the plan that scheduled them.
+**Authoring a fix or remediation plan.** Commit it as its own `plan(<scope>)`
+commit, separate from any execution or report commit. When later executed, it
+follows the Executing a plan rules with a `remediation-pass-N` marker.
+
+**Applying fixes.** Commit fixes as normal typed commits by domain, separate
+from the report that identified them and the plan that scheduled them.
