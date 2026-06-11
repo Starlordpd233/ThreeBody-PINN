@@ -126,16 +126,18 @@ Every selected finding follows the v1.4-style loop:
 
 **Wave 1**
 
-  - [ ] 24-01-PLAN.md — DATA-01 ID-gap / DATA-02 blacklist / DATA-03 gold-gap probes + verified-facts register init (read-only; D-13 nominal-range STOP-gap branch)
-  - [ ] 24-04-PLAN.md — WR-01..04 carry-in user gate (DATA-07; surfaces the four OPEN decisions, autonomous: false; never decides them)
+  - [x] 24-01-PLAN.md — DATA-01 ID-gap / DATA-02 blacklist / DATA-03 gold-gap probes + verified-facts register init (read-only; D-13 nominal-range STOP-gap branch) — `0ca0e2d6`, 24-01-SUMMARY.md
+  - [x] 24-04-PLAN.md — WR-01..04 carry-in user gate (DATA-07; surfaces the four OPEN decisions, autonomous: false; never decides them) — `d260701a`, 24-04-SUMMARY.md (all four RESOLVED-WITH-INSTRUCTION)
 
 **Wave 2** *(blocked on Wave 1 — 24-02 shares the verified-facts register with 24-01)*
 
-  - [ ] 24-02-PLAN.md — DATA-04 footers / DATA-05 mass-drift (np.allclose rtol=1e-15, .venv) / DATA-06 snapshot distributions + register completion (D-16 mass-baseline STOP-gap branch; D-06 prose sweep CLM-14+)
+  - [x] 24-02-PLAN.md — DATA-04 footers / DATA-05 mass-drift (np.allclose rtol=1e-15, .venv) / DATA-06 snapshot distributions + register completion (D-16 mass-baseline STOP-gap branch; D-06 prose sweep CLM-14+) — `b1c948ee`, 24-02-SUMMARY.md (GAP-24-01 fired then RESOLVED-WITH-INSTRUCTION)
 
 **Wave 3** *(blocked on Wave 2 register completion AND Wave 1 24-04 WR answers)*
 
-  - [ ] 24-03-PLAN.md — DATA-07 correction addendum (byte-stable sibling; supersedes erratum) + 24-ISSUE-LEDGER.md seed (full inventory PENDING; v1.4 schema)
+  - [x] 24-03-PLAN.md — DATA-07 correction addendum (byte-stable sibling; supersedes erratum) + 24-ISSUE-LEDGER.md seed (full inventory PENDING; v1.4 schema) — `4b9143b5`, 24-03-SUMMARY.md
+
+**Phase 24 status**: COMPLETE (2026-06-11) — 4/4 plans summarized; 24-UAT.md passed 12/12; GAP-24-01 RESOLVED-WITH-INSTRUCTION (DATA-05 rerun remediation executed + validated separately). Gates nothing external; Phases 25–29 still await the resolution doc.
 
 ### Phase 25: Evidence Framework and Issue Ledger
 
