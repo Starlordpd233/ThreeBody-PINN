@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-11T16:55:00Z"
-last_activity: 2026-06-11 -- Phase 24 close-out: gap resolved, ledger seed complete, rerun remediation recorded as separate follow-up
+last_updated: "2026-06-11T11:50:00Z"
+last_activity: "2026-06-11 -- Phase 24 closed: 11/13 CLM rows confirmed, CLM-10 corrected, CLM-13 routed, DATA-05 resolved (current ICs canonical; 70 base-hier rerun remediation executed and validated)"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
   completed_plans: 6
-  percent: 14
+  percent: 29
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 24 — empirical-dataset-verification-and-correction-addendum
+**Current focus:** Gate window — Phases 23 and 24 complete; Phases 25–29 await the external resolution doc
 
 ## Current Position
 
@@ -152,7 +152,7 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 - [x] Tag `v1.5-pre-phase-23` from `milestone/v1.5` HEAD before Phase 23 begins
 - [x] **[Standing trigger]** Create `.planning/milestones/v1.5-GAPS.md` index when the first v1.5 phase opens a gap (created 2026-06-11; GAP-24-01 now RESOLVED-WITH-INSTRUCTION)
 - [x] Continue Phase 24 DATA-07 addendum assembly and ledger/facts cleanup with `GAP-24-01` resolved (Phase 24 closed 2026-06-11; do not claim the 70 files are fixed until the rerun remediation gates pass — tracked under `24-DATA05-RERUN-REMEDIATION.md` as a separate operation).
-- [ ] (Separate remediation) DATA-05 70-file base-hier rerun from current canonical ICs: preserve old artifacts, run in staging, validate against DATA-05 gates, then replace and regenerate dependent metrics. Recorded under `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-DATA05-RERUN-REMEDIATION.md`. Not a Phase 24 closure prerequisite.
+- [x] (Separate remediation) DATA-05 70-file base-hier rerun from current canonical ICs: preserve old artifacts, run in staging, validate against DATA-05 gates, then replace and regenerate dependent metrics. Recorded under `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-DATA05-RERUN-REMEDIATION.md`. Not a Phase 24 closure prerequisite. (Executed and validated 2026-06-11: 70/70 reruns passed all gates, swap approved, old artifacts archived under `simulation_data/Data/forensic/data05_gap24-01_old_outputs/`; see GAP-24-01 in `.planning/milestones/v1.5-GAPS.md`.)
 - [x] Define v1.5 requirements (36 requirements committed 2026-06-10, incl. DATA-07)
 - [x] Create v1.5 roadmap (Phases 23–29; 36/36 mapped)
 - [x] Revise v1.5 roadmap — phase-order swap, research package first (2026-06-10)
@@ -171,11 +171,11 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 
 ## Session Continuity
 
-Last session: 2026-06-11T08:28:05Z
-Next action: Continue Phase 24 DATA-07 addendum / facts-ledger cleanup with GAP-24-01 resolved; keep DATA-05 rerun remediation separate until explicitly executed.
+Last session: 2026-06-11T11:14:43.473Z
+Next action: Gate window — await the user resolution doc at `research_reports/02-data-pipeline-and-validation/` to unblock Phases 25–29 (Phase 24 side of the gate is met).
 
 ## Operator Next Steps
 
-- Continue Phase 24 DATA-07 correction addendum / facts-ledger cleanup using the resolved DATA-05 boundary.
-- Keep the DATA-05 70-file rerun as a separate remediation operation: preserve old artifacts, rerun from current ICs, validate in staging, then replace and regenerate dependent metrics.
-- Phases 25–29 unblock once BOTH the resolution doc lands AND Phase 24 completes.
+- Phases 23 and 24 are closed; the issue-02 consolidation input package (bundles + manifest + originals) is committed and hash-verified.
+- DATA-05 70-file rerun remediation executed and validated 2026-06-11 (all eight gates closed); old artifacts archived under `simulation_data/Data/forensic/data05_gap24-01_old_outputs/`.
+- Phases 25–29 unblock once the resolution doc lands at `research_reports/02-data-pipeline-and-validation/` (the Phase 24 completion side of the gate is already met).
