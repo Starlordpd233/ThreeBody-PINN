@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-11T08:28:05Z"
-last_activity: 2026-06-11 -- Phase 24 DATA-05 gap resolved; rerun remediation recorded
+last_updated: "2026-06-11T16:55:00Z"
+last_activity: 2026-06-11 -- Phase 24 close-out: gap resolved, ledger seed complete, rerun remediation recorded as separate follow-up
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 10
   completed_plans: 6
-  percent: 0
+  percent: 14
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 ## Current Position
 
-Phase: 24
-Plan: Phase 24 continuation
-Status: Continue Phase 24; DATA-05 decision resolved with remediation boundary
-Last activity: 2026-06-11 -- GAP-24-01 resolved; 70 base-hier outputs quarantined pending rerun
+Phase: 24 → 25 (next, gated on resolution doc)
+Plan: Phase 24 closed
+Status: Phase 24 complete; DATA-05 decision resolved with remediation boundary; Phases 25–29 unblock when BOTH the resolution doc lands AND Phase 24 completes (now met on the Phase-24 side)
+Last activity: 2026-06-11 -- Phase 24 closed: 11/13 CLM rows confirmed, CLM-10 corrected, CLM-13 routed, DATA-05 resolved (current ICs canonical; 70 base-hier outputs quarantined pending rerun)
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) runs first with no gate; its delivery opens the external resolution-doc gate (user research starts). Phase 24 (empirical dataset verification + DATA-07 correction addendum) runs **in parallel** during the gate window — it depends on Phase 23's delivered claim list but gates on nothing external. Phases 25–29 (all adjudication / spec-edit work) gate on BOTH the resolution doc landing at `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/` AND Phase 24 completion.
 
@@ -151,7 +151,8 @@ v1.5 roadmap is revised (phase-order swap); phases not yet started.
 - [x] Plan Phase 23 (Research Package Assembly + DQA Characterization) with `/gsd-plan-phase 23`
 - [x] Tag `v1.5-pre-phase-23` from `milestone/v1.5` HEAD before Phase 23 begins
 - [x] **[Standing trigger]** Create `.planning/milestones/v1.5-GAPS.md` index when the first v1.5 phase opens a gap (created 2026-06-11; GAP-24-01 now RESOLVED-WITH-INSTRUCTION)
-- [ ] Continue Phase 24 DATA-07 addendum assembly and ledger/facts cleanup with `GAP-24-01` resolved; do not claim the 70 files are fixed until the rerun remediation gates pass.
+- [x] Continue Phase 24 DATA-07 addendum assembly and ledger/facts cleanup with `GAP-24-01` resolved (Phase 24 closed 2026-06-11; do not claim the 70 files are fixed until the rerun remediation gates pass — tracked under `24-DATA05-RERUN-REMEDIATION.md` as a separate operation).
+- [ ] (Separate remediation) DATA-05 70-file base-hier rerun from current canonical ICs: preserve old artifacts, run in staging, validate against DATA-05 gates, then replace and regenerate dependent metrics. Recorded under `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-DATA05-RERUN-REMEDIATION.md`. Not a Phase 24 closure prerequisite.
 - [x] Define v1.5 requirements (36 requirements committed 2026-06-10, incl. DATA-07)
 - [x] Create v1.5 roadmap (Phases 23–29; 36/36 mapped)
 - [x] Revise v1.5 roadmap — phase-order swap, research package first (2026-06-10)

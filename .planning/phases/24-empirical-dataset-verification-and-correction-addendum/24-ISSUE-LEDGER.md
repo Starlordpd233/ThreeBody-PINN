@@ -1,13 +1,17 @@
 ---
 phase: 24-empirical-dataset-verification-and-correction-addendum
 slug: dataset-verification-and-correction-addendum
-status: draft
+status: seeded-complete
 created: 2026-06-11
+last_updated: 2026-06-11
 total_findings: 19
 in_scope_findings: 19
 deferred_findings: 0
 traceability_verified: true
-last_verified_traceability: "19/19 issue-02 findings seeded; verified against 23-CLAIMS-INVENTORY.md and REQUIREMENTS.md traceability"
+data05_resolution: RESOLVED-WITH-INSTRUCTION
+data05_resolution_doc: 24-DATA05-RERUN-REMEDIATION.md
+last_verified_traceability: "19/19 issue-02 findings seeded; verified against 23-CLAIMS-INVENTORY.md and REQUIREMENTS.md traceability; DATA-05 row resolved 2026-06-11 (current ICs canonical; 70 base-hier outputs quarantined pending rerun; remediation contract in 24-DATA05-RERUN-REMEDIATION.md)"
+phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating protocol (evidence-packet format, verdict recording, re-verification rules per the Lifecycle Rules block below). 70-file DATA-05 rerun is a separate remediation operation, not a Phase 24 closure prerequisite."
 ---
 
 # Phase 24 Issue Ledger
