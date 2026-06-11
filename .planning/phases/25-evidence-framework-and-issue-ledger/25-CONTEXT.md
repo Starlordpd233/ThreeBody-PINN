@@ -1,8 +1,8 @@
 # Phase 25: Evidence Framework and Issue Ledger - Context
 
 **Gathered:** 2026-06-11
-**Status:** Ready for planning (execution gated on Phase 24.5 passing)
-**Mode:** `--all --auto` — all gray areas auto-selected; recommended options chosen by Claude per explicit user instruction (auto-advance through discussion, stop before planning) and logged in `25-DISCUSSION-LOG.md`. Decisions are grounded in REQUIREMENTS.md / ROADMAP.md / PROJECT.md / committed Phase 16, 23, 24, 24.5 artifacts wherever possible and marked Claude's discretion otherwise. ⚠ D-01 encodes a roadmap-interpretation call the user should review (flagged inline).
+**Status:** Ready for planning; execution blocked on Phase 24.5 passing and open Phase 25 gaps resolving
+**Mode:** `--all --auto` — all gray areas auto-selected; recommended options chosen by Claude per explicit user instruction (auto-advance through discussion, stop before planning) and logged in `25-DISCUSSION-LOG.md`. Decisions are grounded in REQUIREMENTS.md / ROADMAP.md / PROJECT.md / committed Phase 16, 23, 24, 24.5 artifacts wherever possible and marked Claude's discretion otherwise. D-01 is now a formal user-decision gate (`GAP-25-01`), not an execution-time assumption.
 
 <domain>
 ## Phase Boundary
@@ -13,7 +13,7 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
 
 **Hard gate:** Phase 25 execution cannot start until Phase 24.5 passes (READY or READY-WITH-CAVEATS per `24.5-PLAN.md` Task 7). As of 2026-06-11 the consolidated resolution doc has landed (`02-resolution-doc.md`, commit `0e691a45`) but Phase 24.5 has NOT yet executed. Planning artifacts may be prepared; the executor must confirm the gate (readiness-report verdict + STATE.md) before any adjudication work.
 
-**Governance:** v1.5 runs under the full STOP protocol (AGENTS.md/CLAUDE.md "CRITICAL GOVERNANCE", v1.5 applicability section). Source-silent semantic / process-schema / cross-phase decisions are surfaced as gaps in `25-GAPS.md` (phase-local, create on first gap) + `.planning/milestones/v1.5-GAPS.md` (milestone index, exists with 0 open gaps), never invented. Subagents return findings to the parent; only the parent writes gap registers.
+**Governance:** v1.5 runs under the full STOP protocol (AGENTS.md/CLAUDE.md "CRITICAL GOVERNANCE", v1.5 applicability section). Source-silent semantic / process-schema / cross-phase decisions are surfaced as gaps in `25-GAPS.md` (phase-local, create if absent, append if present) + `.planning/milestones/v1.5-GAPS.md` (milestone index, currently 2 open Phase 25 gaps), never invented. Subagents return findings to the parent; only the parent writes gap registers.
 
 </domain>
 
@@ -22,12 +22,12 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
 
 ### Phase-scope split (what Phase 25 adjudicates vs. what it only enables)
 - **D-01:** Phase 25 delivers the **machinery plus the three known EVID-10 conflict adjudications only**. Per-finding evidence packets and verdicts for the remaining findings are authored by their owning phases (26–28) using this machinery, immediately before their spec edits ("evidence before editing", EVID-06). Basis: the roadmap's Verification protocol assigns the adjudicate→fix→verify loop to every phase 25–29 (step 1 would be vacuous in 26–28 if Phase 25 pre-assigned all verdicts); Phase 27 criterion 4 and Phase 28 criterion 1 say the D=6.694 and SCS edits are applied "per the EVID-10 record" (a Phase 25 product); the Phase 25 goal sentence says the machinery "is established" and "the known cross-source conflicts are adjudicated"; v1.4 precedent (Phase 16 shipped no verdicts; EVID-01..05 mapped to Phase 16 as "defined", operated in 17–21).
-  ⚠ **Flag for user review:** Phase 25 success criteria 1–3 restate EVID-06..09 verbatim and admit a literal reading as Phase-25-exit conditions over ALL findings (i.e., Phase 25 authors all 19 packets + verdicts, Phases 26–28 only fix and verify). D-01 rejects that reading on the grounds above, satisfying criteria 1–3 via D-03's enforcement encoding. If the user prefers the literal reading, Phase 25 must be replanned as a full-adjudication phase before planning proceeds.
+  **Execution gate:** `GAP-25-01` records that this is a cross-phase scope decision requiring user confirmation. Do not execute Phase 25 mutations until the user resolves `GAP-25-01` (confirm split reading, choose literal all-19 reading, or define a hybrid).
 - **D-02:** Phase 25 makes **zero framework-spec edits**. EVID-10 records stop at "locked convention" stated in spec-edit-ready prose; Phases 27 (PIPE-09) and 28 (VAL-01) land the corresponding edits (roadmap Phase 25 criterion 4 parenthetical). The M11/M12 record informs Phase 26 prioritization.
 - **D-03:** The protocol README (D-05) explicitly encodes the downstream enforcement of EVID-06..09: no spec edit in Phases 26–28 without a completed packet + verdict for the finding; phase-exit gate permits only `VERIFIED` or `DEFERRED` for in-scope findings; ledger status edits travel in the same commit as the underlying change. Downstream planners inherit these as plan-level constraints.
 
 ### Evidence-packet machinery (template, location, linkage)
-- **D-04:** The v1.5 packet template instantiates the v1.4 12-section schema (`16-CONTEXT.md` D-06, as amended 2026-05-19) with these substitutions — no structural redesign:
+- **D-04:** The v1.5 packet template instantiates the v1.4 12-section schema (`16-CONTEXT.md` D-06, as amended 2026-05-19) with these substitutions — no structural redesign. Canonical count: 12 `##` sections plus the `#` title; the new `### Dataset evidence (§3b)` is a sub-block under `## Spec Evidence` and does not add a new `##` section.
   - §2 Source positions: verbatim quotes + line ranges from `pinn_instruction/issues/02-data-pipeline-and-validation.md` AND `research_reports/02-data-pipeline-and-validation/02-resolution-doc.md` (both required even for uncontested verdicts).
   - §3 Spec evidence: line-range citations from current `ctl_instruction.md` / `pinn_architecture.md` (and read-only `data_quality_assessment.md` where it is the sole written home of a convention — see SCS note in specifics).
   - **New §3b Dataset evidence:** DATA-xx citations from `24-VERIFIED-FACTS.md` rows and probe outputs, line-cited — this is EVID-06's fourth source, which v1.4 packets did not have.
@@ -36,7 +36,7 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
   - §6 Verdict: the EVID-07 enum exactly — `accept-resolution | accept-issue-doc | accept-third-position | reject-both-as-unsupported | defer-with-blocker`.
   - §10 Before/after note doubles as the EVID-08 false-positive record: for intentional non-changes it names the spec section, confirms no edit, states why the current convention stands and which source misread it.
 - **D-05:** Packets live at `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/{finding-id}.md`, with `evidence/_TEMPLATE.md` and `evidence/README.md` (protocol doc), mirroring the v1.4 layout (`16-.../evidence/`). Phases 26–28 write into this directory.
-- **D-06:** The ledger stays at its stable path (`24-ISSUE-LEDGER.md` under the Phase 24 directory — locked by roadmap and Phase 24 D-22). Its `Evidence Packet` column is filled with relative links as packets are created; status transitions are explicit ledger edits in the same commit as the underlying change, logged with date + short SHA in the per-finding subsection (v1.4 D-04 discipline).
+- **D-06:** The ledger stays at its stable path (`24-ISSUE-LEDGER.md` under the Phase 24 directory — locked by roadmap and Phase 24 D-22). Its `Evidence Packet` column is filled with relative links as packets are created; status transitions are explicit ledger edits in the same commit as the underlying change, logged with date + commit-audit label in the per-finding subsection (v1.4 D-04 discipline). The adjudicated-but-unfixed status convention is blocked on `GAP-25-02`; do not apply `PENDING + Verdict` / `PENDING -> PENDING` semantics until the user resolves it.
 - **D-07:** Resolution-doc citations follow the citation guide in `24.5-RESOLUTION-MAP.md` (Phase 24.5 deliverable). Packets cite section + line ranges, never whole files (EVID-06).
 
 ### EVID-10 root-cause adjudications (the three known conflicts)
@@ -51,10 +51,10 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
 - **D-14:** Phase 25 may extend `Dependents:` fields when adjudication reveals shared contracts (e.g., SCS ↔ `compute_globals` D, if the EVID-10 work shows the drift normalization couples them); every addition is annotated in the per-finding subsection (v1.4 D-10 pattern).
 
 ### Gate compliance and sequencing
-- **D-15:** Phase 25 **execution** starts only after Phase 24.5 passes. READY-WITH-CAVEATS is a pass: each caveat is propagated into the affected finding's packet before that finding is adjudicated. NOT-READY keeps Phase 25 blocked while fix instructions round-trip to the external consolidation agent.
+- **D-15:** Phase 25 **execution** starts only after Phase 24.5 passes. READY-WITH-CAVEATS is a pass: each caveat whose affected finding is among the three Phase 25 EVID-10 conflicts is propagated into that finding's record before adjudication; caveats for findings outside those three are explicitly noted as carried forward to the owning Phase 26-28 packet. NOT-READY keeps Phase 25 blocked while fix instructions round-trip to the external consolidation agent.
 - **D-16:** Phase 25 consumes both Phase 24.5 deliverables: `24.5-RESOLUTION-MAP.md` (section index, finding-to-section mapping, citation guide, verdict-direction preview — the entry point before any full-doc read) and `24.5-READINESS-REPORT.md` (caveat list). Phase 25's planner should treat the map as the navigation contract for the 820-line resolution doc.
 - **D-17:** Tag `v1.5-pre-phase-25` is cut from `milestone/v1.5` HEAD at Phase 25 **execution start, after 24.5 passes** — not during this discuss session (deviation from Phase 24's D-25 timing, justified: Phase 24.5 commits will land between now and Phase 25 start, and the tag must capture the true pre-phase state).
-- **D-18:** One atomic commit per plan via `scripts/agent-commit` (requires `GIT_AGENT_ID`); STATE.md mutations only via gsd-tools handlers; commit scopes `25` / `25-NN`.
+- **D-18:** One atomic commit per plan via `scripts/agent-commit` (requires `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS`); STATE.md mutations only via gsd-tools handlers; commit scopes `25` / `25-NN`. Each plan preflights that `scripts/agent-commit` is executable and the required env vars are set before file mutation.
 
 ### Claude's Discretion
 - Packet filenames for findings whose ledger IDs are not simple letter-number codes (`SCS`, `SASD`, `IPR`, `PSC`, `D-03`, `D=6.694`, `footer`, `mass-drift`) — sanitize to filesystem-safe, self-describing names (e.g., `evidence/compute-globals-D.md` for `D=6.694`) and record the ID→filename mapping in `evidence/README.md`.
@@ -71,7 +71,7 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
 ### Phase requirements & protocol (read first)
 - `.planning/REQUIREMENTS.md` — EVID-06..10 and VER-10 (this phase's six requirements, verbatim), source-treatment policy, SCOPE-06..11 boundaries.
 - `.planning/ROADMAP.md` §"Phase 25: Evidence Framework and Issue Ledger" — goal, five success criteria; §"Source treatment & STOP protocol"; §"Verification protocol (applies to every adjudication phase, 25–29)".
-- `CLAUDE.md` / `AGENTS.md` §"CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones" — STOP protocol with v1.5 substitutions (gap registers: `25-GAPS.md` phase-local — does not exist yet, create on first gap; `.planning/milestones/v1.5-GAPS.md` milestone index — exists, 0 open gaps).
+- `CLAUDE.md` / `AGENTS.md` §"CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones" — STOP protocol with v1.5 substitutions (gap registers: `25-GAPS.md` phase-local — exists with open Phase 25 gaps, append future gaps; `.planning/milestones/v1.5-GAPS.md` milestone index — mirrors the open/resolved status).
 
 ### Candidate verdict source and research inputs
 - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/02-resolution-doc.md` — the consolidated resolution doc (820 lines; landed 2026-06-11, commit `0e691a45`). Candidate verdict source, NOT authoritative. Structure: §0 scope/evidence standard, §1 executive summary, §2 decision matrix, §3 Cluster A (Q-A1..A6 → Phase 26), §4 Cluster B (Q-B1..B4 → Phase 27; §4.4 = D=6.694 KNOWN CONFLICT), §5 Cluster C (Q-C1..C4 → Phase 28; §5.1 = SCS KNOWN CONFLICT), §6 cross-cutting findings, Open Items register, References.
@@ -108,7 +108,7 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
 ## Existing Code Insights
 
 ### Reusable Assets
-- v1.4 `evidence/_TEMPLATE.md` + `evidence/README.md` — adapt per D-04/D-05; the 12-section schema and EVID-05→EVID-10 section mapping carry over nearly verbatim.
+- v1.4 `evidence/_TEMPLATE.md` + `evidence/README.md` — adapt per D-04/D-05; the 12 `##` section headings and EVID-05→EVID-10 section mapping carry over exactly except for the enumerated v1.5 substitutions.
 - `24-ISSUE-LEDGER.md` — arrives pre-seeded with 19 rows, AC-ID assignments, Q-reference dependents, and per-finding notes; Phase 25 operates it, never rebuilds it.
 - `24-VERIFIED-FACTS.md` — pre-packaged dataset evidence with per-row probe citations; packets cite rows, never re-derive.
 - `scripts/agent-commit` — mandatory commit path (`GIT_AGENT_ID` required); one atomic commit per plan.
@@ -117,7 +117,7 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
 - Phase artifacts named `25-*.md` in `.planning/phases/25-evidence-framework-and-issue-ledger/`.
 - One evidence file per finding under `evidence/`, greppable by finding ID (v1.4).
 - Line-range citations, never whole-file citations (EVID-06; v1.4 packet discipline).
-- Ledger status edits in the same commit as the underlying change; transition log entries `date SHA status→status (actor/plan)`.
+- Ledger status edits in the same commit as the underlying change; transition log entries use `date commit-audit-label status→status (actor/plan)`.
 - STATE.md mutations only via gsd-tools handlers (universal anti-pattern 15).
 
 ### Integration Points
@@ -149,7 +149,7 @@ Stand up the v1.5 adjudication machinery — the evidence-packet template and pr
 - M16 collocation-scaling, G6 causal-training, training-loop metric usage — doc-03 milestone (SCOPE-11).
 
 ### Reviewed Todos (not folded)
-- **"Review and hand off the PH-1 ML-framework research package"** (`.planning/todos/pending/ph1-framework-research-handoff.md`, matched at score 0.6 on the keyword "framework") — NOT folded. It belongs to the parallel training-execution stream (PH-1 ML-framework research package, user-action items), not the issue-02 adjudication; folding it would breach the formalized training-execution parallel-work boundary. Deliberate deviation from the auto-fold rule (score ≥ 0.4), logged here for audit.
+- **"Review and hand off the trainex-r1 foundational research package"** (`.planning/todos/pending/trainex-r1-research-handoff.md`; at fold time titled "Review and hand off the PH-1 ML-framework research package" at `ph1-framework-research-handoff.md`, renamed 2026-06-11; matched at score 0.6 on the keyword "framework") — NOT folded. It belongs to the parallel training-execution (trainex) stream, not the issue-02 adjudication; folding it would breach the formalized training-execution parallel-work boundary. Deliberate deviation from the auto-fold rule (score ≥ 0.4), logged here for audit.
 
 </deferred>
 

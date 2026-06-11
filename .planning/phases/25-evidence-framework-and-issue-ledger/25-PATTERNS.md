@@ -17,13 +17,15 @@
 | `evidence/m11-m12-severity.md` | model (EVID-10 record) | transform (adjudication) | `16-.../evidence/M5.md` / B-02 structure | role-match |
 | `24-ISSUE-LEDGER.md` (Lifecycle Rules block) | config (state index) | event-driven (status machine) | same file, v1.4 README §Regression/§Phase-Exit | exact (in-place re-issue) |
 
-**ID→filename map (Claude's discretion, D-60):** record in `evidence/README.md`. Recommended: `scs-thresholds.md` (ledger ID `SCS`), `compute-globals-D.md` (ledger ID `D=6.694`), `m11-m12-severity.md` (ledger IDs `M11`+`M12`). Filesystem-safe, greppable, one-file-per-conflict consistent with v1.4.
+**ID→filename map (Claude's discretion, CONTEXT "Claude's Discretion" ID→filename note):** record in `evidence/README.md`. Recommended: `scs-thresholds.md` (ledger ID `SCS`), `compute-globals-D.md` (ledger ID `D=6.694`), `m11-m12-severity.md` (ledger IDs `M11`+`M12`). Filesystem-safe, greppable, one-file-per-conflict consistent with v1.4.
 
 ## Pattern Assignments
 
 ### `evidence/_TEMPLATE.md` (config schema, transform)
 
-**Analog:** `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` — copy the 12-section schema near-verbatim; apply only the D-04 substitutions.
+**Analog:** `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/_TEMPLATE.md` — copy the markdown structure and prose exactly; apply only the D-04 substitutions.
+
+**Canonical section count:** 12 `##` section headings plus the `#` title. The list below includes the title as item 1 and the 12 `##` headings as items 2-13. The new `### Dataset Evidence (§3b)` is a sub-block under `## Spec Evidence`; it does not add a new `##` section.
 
 **Section structure to copy (analog lines 1-103), in order:**
 1. Title `# Evidence Packet: <ID> - <Title>`
@@ -59,8 +61,8 @@ Keep the analog's closing line verbatim: "Do not add a primary-source field. Nei
 <!-- REQUIRED for EVID-10: any finding whose ledger row says `Sources Disagree? = YES`. Optional otherwise. -->
 ```
 
-**D-04 mandatory ADDITIONS (no v1.4 analog — the one genuinely new section):**
-- **New `## Spec Evidence` sub-block or new `### Dataset Evidence (§3b)`** — DATA-xx / CLM-row citations from `24-VERIFIED-FACTS.md`, line-cited. This is EVID-06's fourth source; v1.4 packets had only three. Place it adjacent to `## Spec Evidence`.
+**D-04 mandatory ADDITIONS (no v1.4 analog — the one genuinely new sub-block):**
+- **New `### Dataset Evidence (§3b)` under `## Spec Evidence`** — DATA-xx / CLM-row citations from `24-VERIFIED-FACTS.md`, line-cited. This is EVID-06's fourth source; v1.4 packets had only three. Do not create a new `##` section for it.
 - §10 `## Before / After Spec Note` doubles as the EVID-08 false-positive record: for intentional non-changes, name the spec section, confirm no edit, state why the current convention stands and which source misread it (analog line 86 already has the `accept-resolution as no-change` idiom — extend it).
 
 ---
@@ -113,10 +115,10 @@ Keep the analog's closing line verbatim: "Do not add a primary-source field. Nei
 
 ### `evidence/compute-globals-D.md` (model EVID-10 record, transform)
 
-**Analog:** `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md` — **near-exact analog.** Same conflict family: raw-mass `D = (G·T²)^(1/3) ≈ 4.6416` (PHYS-01/HC-6, locked) vs mass-fraction `D = (G·M_tot·T²)^(1/3) = 6.694` (issue-doc). The v1.5 record transcribes the v1.4 verdict structure with issue-02/resolution-02 citations.
+**Analog:** `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md` — **close analog.** Same conflict family: raw-mass `D = (G·T²)^(1/3) ≈ 4.6416` (PHYS-01/HC-6, locked) vs mass-fraction `D = (G·M_tot·T²)^(1/3) = 6.694` (issue-doc). The v1.5 record transcribes the v1.4 verdict structure with issue-02/resolution-02 citations.
 
-**Completed-conflict-packet structure to mirror (analog B-02.md, all 14 sections present):**
-- Header with `Current Verdict | accept-resolution` and `Current Status | VERIFIED` (analog lines 9-15) — for Phase 25 the D=6.694 record lands the verdict but status stays per the ledger (record is Phase 25; the PIPE-09 edit is Phase 27).
+**Completed-conflict-packet structure to mirror (analog B-02.md, same 12 `##` headings plus title present):**
+- Header with `Current Verdict | accept-resolution` and the status selected by the `GAP-25-02` user resolution (analog lines 9-15) — for Phase 25 the D=6.694 record lands the verdict but the fix remains owned by Phase 27 PIPE-09.
 - Source Positions table with full path + line range in BOTH cells (analog lines 19-22) — the citation format is `path:Lx-Ly` for issue, `path §N Q-XX:Lx-Ly` for resolution.
 - First-Principles Physics Check derives `G·T²/D³ = 1 ⇒ D³ = G·T²` (analog lines 63-97). For v1.5 this is a *confirmation* of the resolution doc's check, not original derivation (RESEARCH: transcribe-with-grounding).
 - Verdict `accept-resolution` with reasoning linked to cited evidence (analog lines 99-106).
@@ -139,7 +141,7 @@ For v1.5: cite `02-data-pipeline-and-validation.md:235-275,289,306,317` (issue) 
 
 **Analog:** `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-09.md` (closest conflict packet by shape — a threshold/strategy conflict upholding a locked convention). Use B-02.md's section completeness as the structural template.
 
-**Structure:** same 14-section completed-conflict layout as B-02.md.
+**Structure:** same completed-conflict layout as B-02.md: the 12 `##` headings plus title, with `### Dataset Evidence (§3b)` nested under `## Spec Evidence`.
 
 **v1.5-specific content (RESEARCH Conflict 1):**
 - Issue-doc position: ratio `SCS > 1e-6` reject / `< 1e-8` Stage 5 — `02-data-pipeline-and-validation.md:129-141`.
@@ -178,7 +180,7 @@ For v1.5: cite `02-data-pipeline-and-validation.md:235-275,289,306,317` (issue) 
 ```
 Occurs in the §Regression sentence (line 79). Note the change in the ledger's Notes section. Nothing else in the block changes.
 
-**Operating edits (D-06) — pattern for status transitions during 26-28:** per-finding log entry format `date SHA status->status (actor/plan)` (B-02.md analog lines 146-150; ledger lines 100-101). Ledger status edit travels in the SAME commit as the underlying change (Pitfall 5).
+**Operating edits (D-06) — pattern for status transitions during 26-28:** per-finding log entry format `date commit-audit-label status->status (actor/plan)` (B-02.md analog lines 146-150; ledger lines 100-101). Ledger status edit travels in the same commit as the underlying change (Pitfall 5). For Phase 25 verdict-only records, status wording is blocked on `GAP-25-02`.
 
 ## Shared Patterns
 
@@ -199,7 +201,7 @@ Occurs in the §Regression sentence (line 79). Note the change in the ledger's N
 ### Status-edit-in-commit + transition-log format
 **Source:** v1.4 README §Status Lifecycle (lines 52-54); B-02.md §Status Transition Log (lines 144-150).
 **Apply to:** ledger + every record that changes status.
-**Pattern:** `2026-MM-DD <SHA> STATUS -> STATUS (Phase NN PXX by actor)`; mirror in ledger in the same commit.
+**Pattern:** `YYYY-MM-DD <pending-commit-sha> STATUS -> STATUS (Phase NN PXX by actor)` or an already-known durable audit label such as the existing ledger's `SEED_SHA`; mirror in ledger in the same commit. Do not claim the final commit's own SHA inside the commit contents, because amending a file to contain that SHA changes the SHA. Record the final short SHA in the plan summary / git history after commit.
 
 ### Candidate-source-is-not-the-verdict grounding
 **Source:** CONTEXT D-09; RESEARCH Pitfall 2.

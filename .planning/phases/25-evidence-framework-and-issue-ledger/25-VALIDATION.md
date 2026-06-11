@@ -23,7 +23,7 @@ created: 2026-06-11
 |----------|-------|
 | **Framework** | None — non-code phase. Verification is doc-completeness review + git invariants. |
 | **Config file** | n/a |
-| **Quick run command** | `git diff --check` (whitespace/conflict-marker invariant); `scripts/agent-commit` precondition (`GIT_AGENT_ID` set) |
+| **Quick run command** | `git diff --check` (whitespace/conflict-marker invariant); `test -x scripts/agent-commit`; `test -n "$GIT_AGENT_ID"` and `test -n "$GIT_AGENT_OWNED_PATHS"` before file mutation |
 | **Full suite command** | n/a — acceptance-check execution is Phase 29 (VER-09) |
 | **Estimated runtime** | ~5 seconds |
 
@@ -31,8 +31,8 @@ created: 2026-06-11
 
 ## Sampling Rate
 
-- **After every task commit:** Run `git diff --check`; confirm the task's artifact exists on disk with required sections (grep assertions from the task's acceptance criteria).
-- **After every plan wave:** Re-read each artifact produced in the wave against its requirement row in the map below.
+- **After every task commit:** Run `git diff --check`; confirm the task's artifact exists on disk with required sections (grep assertions plus structural checks below).
+- **After every plan wave:** Re-read each artifact produced in the wave against its requirement row in the map below; verify the `##` heading set matches the v1.4 template plus the required `### Dataset Evidence (§3b)` sub-block.
 - **Before `/gsd-verify-work`:** Every row in the Per-Requirement Verification Map must be ✅.
 - **Max feedback latency:** 60 seconds (doc review, no build step).
 
@@ -53,11 +53,25 @@ created: 2026-06-11
 
 ---
 
+## Structural Checks
+
+- [ ] `_TEMPLATE.md` has exactly the v1.4 title plus 12 `##` headings; `### Dataset Evidence (§3b)` exists under `## Spec Evidence` and is not a new `##` heading.
+- [ ] Each EVID-10 record has the same 12 `##` heading names as `_TEMPLATE.md`; M11/M12 sub-parts are nested under existing sections.
+- [ ] `evidence/README.md` places `### D-03 Downstream Enforcement` under `## Phase-Exit Rule`, after the copied v1.4 phase-exit language.
+- [ ] Ledger relative links are computed from `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/` to `../25-evidence-framework-and-issue-ledger/evidence/{filename}`.
+- [ ] D-14 negative path: if no shared contract is found, `git diff -- .planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-ISSUE-LEDGER.md` shows no `Dependents:` changes for that row.
+- [ ] Post-commit boundary: `git show --stat HEAD` lists every record file, `25-02-SUMMARY.md`, and `24-ISSUE-LEDGER.md` in the same commit for Plan 25-02.
+
+---
+
 ## Wave 0 Requirements
 
-- [ ] `evidence/_TEMPLATE.md` — does not exist yet; create from v1.4 precedent (CONTEXT D-04)
-- [ ] `evidence/README.md` — does not exist yet; create from v1.4 precedent (CONTEXT D-03/D-05)
-- [ ] `25-GAPS.md` — create only on first STOP gap (do not pre-create)
+- [ ] `GAP-25-01` resolved before Phase 25 execution starts; split vs literal/hybrid scope is user-confirmed.
+- [ ] `24.5-READINESS-REPORT.md` exists and records READY or READY-WITH-CAVEATS; NOT-READY or missing report blocks execution.
+- [ ] v1.4 precedent files exist: Phase 16 `_TEMPLATE.md`, `README.md`, and completed conflict packet `B-02.md`.
+- [ ] `scripts/agent-commit` executable and `GIT_AGENT_ID` / `GIT_AGENT_OWNED_PATHS` set before any file mutation.
+- [ ] `evidence/` directory is explicitly created with `mkdir -p` before writing `_TEMPLATE.md`.
+- [ ] `25-GAPS.md` exists with open gaps; append future STOP gaps, do not overwrite.
 
 *No test-framework install needed — non-code phase.*
 
@@ -69,6 +83,8 @@ created: 2026-06-11
 |----------|-------------|------------|-------------------|
 | Citation line-range accuracy | EVID-06 | Line ranges reference prose in four source docs; correctness requires reading the cited spans | Open each cited file at the cited range; confirm the quoted/paraphrased claim appears within it |
 | Verdict grounding faithfulness | EVID-07/10 | Whether a verdict transcribes vs invents requires comparing record text against the resolution doc's position | Diff each record's verdict + reasoning against the resolution-doc section mapped in `24.5-RESOLUTION-MAP.md` |
+| Line-range drift repair | EVID-06/10 | Some cited line numbers came from resolution-doc self-cites and may shift | Search for the quoted claim text, not only the expected line number; update to the actual line range if found; if the claim cannot be found, fire a STOP gap |
+| Readiness-caveat routing | D-15/D-16 | 24.5 caveats may affect only some records | Enumerate every readiness-report caveat; propagate those touching SCS/D=6.694/M11/M12 into the record, and explicitly carry unrelated caveats to the owning Phase 26-28 packet |
 
 ---
 
@@ -76,7 +92,7 @@ created: 2026-06-11
 
 - [ ] All tasks have doc-review verification or Wave 0 dependencies
 - [ ] Sampling continuity: no 3 consecutive tasks without an artifact-existence/grep check
-- [ ] Wave 0 covers all MISSING references
+- [ ] Wave 0 covers all MISSING references and open Phase 25 gap gates
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 60s
 - [x] `nyquist_compliant: true` set in frontmatter
