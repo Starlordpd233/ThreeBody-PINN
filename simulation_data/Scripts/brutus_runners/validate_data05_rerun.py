@@ -7,7 +7,9 @@ import pathlib
 IDS = [f"{i:04d}" for i in range(5, 60)] + [f"{i:04d}" for i in range(61, 76)]
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent.parent
-PROBES_OUT_DIR = REPO_ROOT / ".planning" / "phases" / "24-empirical-dataset-verification-and-correction-addendum" / "probes" / "outputs"
+# Phase root, not probes/outputs/: git policy blocks */outputs/* as scratch;
+# durable evidence lives in committed phase-root files per phase 24 convention.
+PROBES_OUT_DIR = REPO_ROOT / ".planning" / "phases" / "24-empirical-dataset-verification-and-correction-addendum"
 OLD_OUTPUT_DIR = REPO_ROOT / "simulation_data" / "Data" / "brutus_output" / "brutus_hierarchical"
 STAGING_DIR = REPO_ROOT / "simulation_data" / "Data" / "rerun_staging" / "data05_gap24-01"
 IC_DIR = REPO_ROOT / "simulation_data" / "Data" / "ic_final" / "ic_hierarchical"
@@ -23,7 +25,7 @@ def main():
     PROBES_OUT_DIR.mkdir(parents=True, exist_ok=True)
     
     # Gate 1: SHA256 of 70 old files
-    hash_manifest_path = PROBES_OUT_DIR / "data05_old70_sha256.txt"
+    hash_manifest_path = PROBES_OUT_DIR / "24-DATA05-OLD70-SHA256.txt"
     with open(hash_manifest_path, 'w') as f:
         for id_str in IDS:
             old_file = OLD_OUTPUT_DIR / f"brutus_hierarchical_{id_str}.txt"
@@ -143,8 +145,8 @@ def main():
             
         report['details'][id_str] = detail
         
-    md_path = PROBES_OUT_DIR / "data05_rerun_validation.md"
-    json_path = PROBES_OUT_DIR / "data05_rerun_validation.json"
+    md_path = PROBES_OUT_DIR / "24-DATA05-RERUN-VALIDATION.md"
+    json_path = PROBES_OUT_DIR / "24-DATA05-RERUN-VALIDATION.json"
     
     with open(json_path, 'w') as f:
         json.dump(report, f, indent=2)
