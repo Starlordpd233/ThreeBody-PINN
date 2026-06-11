@@ -173,7 +173,15 @@ Every selected finding follows the v1.4-style loop:
   4. The known conflicts are adjudicated at root cause — ratio-based SCS thresholds (`SCS > 1e-6` / `< 1e-8`) vs the locked log-based gate, `compute_globals` `D = 6.694` vs the v1.4 PHYS-01 D convention, and the M11/M12 severity reclassifications — each naming the root-cause ambiguity, which source was right and which wrong, and the convention now locked (the corresponding spec edits land in Phases 27–28).
   5. The issue ledger exists at its stable path under the Phase 24 (empirical-dataset-verification) directory, tracking every in-scope finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`, with the explicit rule that "fix applied" is not closure and that each edit batch re-verifies previously `VERIFIED` findings it could have regressed.
 
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 25-01 machinery — packet template + protocol README + ledger Lifecycle-Rules re-issue; Wave 2: 25-02 the three EVID-10 root-cause records [SCS, D=6.694, M11/M12] + same-commit ledger wiring)
+
+**Wave 1**
+
+  - [ ] 25-01-PLAN.md — Evidence-packet template (`_TEMPLATE.md`) + protocol README (D-03 enforcement, EVID-10 trigger table) + `24-ISSUE-LEDGER.md` Lifecycle-Rules re-issue to v1.5 phases
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+  - [ ] 25-02-PLAN.md — Three EVID-10 root-cause records (SCS thresholds, `D=6.694`, M11/M12 severity) with the four-source citation, verdicts, and same-commit ledger Evidence-Packet links + verdict notes (D-06)
 
 ### Phase 26: DataLoader Ingestion and Selection Contracts
 
@@ -242,7 +250,7 @@ Every selected finding follows the v1.4-style loop:
 | 23. Research Package Assembly | v1.5 | 5/5 | Complete (consolidated) | 2026-06-10 |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
 | 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
-| 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (unblocked — Phase 24.5 passed) | - |
+| 25. Evidence Framework and Issue Ledger | v1.5 | 0/2 | Not started (unblocked — Phase 24.5 passed) | - |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |

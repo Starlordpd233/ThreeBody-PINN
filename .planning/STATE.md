@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: Phase 24.5 passed; Phases 25-29 unblocked
-last_updated: "2026-06-11T14:47:34.616Z"
-last_activity: 2026-06-11
+last_updated: "2026-06-11T15:46:19.308Z"
+last_activity: 2026-06-11 -- Phase 25 planning complete
 progress:
   total_phases: 8
   completed_phases: 2
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 Phase: 25
 Plan: Not started
 Status: Phase 24.5 passed; Phases 25-29 unblocked
-Last activity: 2026-06-11
+Last activity: 2026-06-11 -- Phase 25 planning complete
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
