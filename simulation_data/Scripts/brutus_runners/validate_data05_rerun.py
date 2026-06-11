@@ -81,7 +81,7 @@ def main():
                 i += 1
                 continue
             parts = line.split()
-            if len(parts) == 3 and '.' in parts[0] and '.' in parts[2]: # Header: t N t_cpu
+            if len(parts) == 3 and parts[1] == '3': # Header: t N t_cpu (t=0 prints without decimal point)
                 current_snap = {'t': float(parts[0]), 'N': int(parts[1]), 't_cpu': float(parts[2]), 'bodies': []}
                 for j in range(3):
                     i += 1
@@ -120,8 +120,10 @@ def main():
             detail['errors'].append(f'Snapshot count {len(snapshots)} != 126')
         
         final_t = snapshots[-1]['t']
-        if final_t != 10.0 and final_t < 9.5:
+        if final_t < 9.5 or abs(final_t - 10.0) > 0.08:
             detail['errors'].append(f'Final t {final_t} out of bounds')
+        detail['final_t'] = final_t
+        detail['footer_found'] = footer_found
             
         # Informational: masses constant
         masses = [b[0] for b in snap0['bodies']]
