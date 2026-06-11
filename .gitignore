@@ -330,6 +330,16 @@ graphify-out/
 .planning/graphs/
 
 # -----------------------------------------------------------------------------
+# Scratch outputs and knowledge-graph intermediates
+# -----------------------------------------------------------------------------
+# Throwaway smoke-test outputs
+scratch/
+# understand-anything regenerable intermediates (scan-result.json stays tracked)
+.understand-anything/intermediate/*
+!.understand-anything/intermediate/scan-result.json
+.understand-anything/tmp/
+
+# -----------------------------------------------------------------------------
 # END OF .gitignore
 # -----------------------------------------------------------------------------
 
