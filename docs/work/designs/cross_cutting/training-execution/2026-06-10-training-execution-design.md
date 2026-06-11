@@ -14,6 +14,19 @@ retirement_trigger: v1.5 milestone work; active until superseded
 **Scope:** How a non-expert user will run, monitor, and assess CTL-PINN training on a single M5 Pro MacBook.
 **Out of scope:** On-disk dataset format (owned by v1.5 PIPE-XX), curriculum stage design (owned by `ctl_instruction.md`), network architecture (owned by `pinn_architecture.md`), IC sampling (owned by `sampling_method.md`).
 
+> **Standing note (user directive, 2026-06-11):** This document is the artifact of a
+> brief, quick brainstorm session (2026-06-10) and should be read as a **simplified
+> baseline / starting point** for the trainex (training-execution) development — NOT as
+> the fundamental or final structure of the pipeline. The brainstorming agent may not
+> have broken the pipeline down optimally: the subsystem decomposition and the
+> PH-1..PH-10 placeholder inventory are good starting considerations but may be further
+> enhanced and revised by later research (trainex-r1 and beyond). Where Section 10 calls
+> this a "frozen reference design," that freeze marks the end of the brainstorm session,
+> not design authority — evidence-based challenges to any part of this design are
+> expected and welcome in the trainex research rounds. Hard constraints that survive
+> regardless of any revision: single M5 Pro machine, no cloud / no distributed training,
+> non-expert operator, and framework-spec authority over the science.
+
 ---
 
 ## 1. Purpose
