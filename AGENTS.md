@@ -172,7 +172,44 @@ Agent-authored or materially agent-assisted commits must include `Agent-Assisted
 
 ### Docs plan-review-fix lifecycle
 
-Rules attach to the action, not the agent; file retention, naming, and archive follow `docs/README.md`.
+Rules attach to the action, not the agent; file retention, naming, and archive follow `docs/README.md`. **Read `docs/README.md` in full before creating, moving, or deleting any file in `docs/`.**
+
+#### Docs/ placement rules (mandatory)
+
+**Where new files go** — purpose-based folders only:
+- `docs/work/plans/milestone_v<m#>/<phase>/` or `cross_cutting/<topic>/` — implementation, remediation, execution plans
+- `docs/work/reviews/milestone_v<m#>/<phase>/` or `cross_cutting/<topic>/` — reviews, audits, verification reports, findings
+- `docs/work/designs/milestone_v<m#>/<phase>/` or `cross_cutting/<topic>/` — design docs, strategy alternatives, pre-implementation artifacts
+- `docs/runbooks/<category>/` — operational procedures
+- `docs/archive/` — only after explicit user approval
+
+**Do NOT write to these legacy paths** (no new files unless completing already-started work in that exact path):
+- `docs/superpowers/` · `docs/user_plans/` · `docs/plans/` · `docs/findings/` · `docs/migration/` · `docs/brainstorms/`
+
+**Do NOT:**
+- Nest plans inside designs (no `docs/work/designs/plans/`) or vice versa.
+- Create folders named after an agent, skill, workflow, or tool.
+- Use dash-encoded phase numbers — use `20.5`, not `20-5`.
+- Use bare filenames like `review1.md`, `final.md`, `notes.md`, or filenames with spaces.
+
+#### Frontmatter rules
+
+All new files under `docs/work/` must have this frontmatter block:
+
+```yaml
+---
+status: active | consumed | retirement-proposed | archived | retained
+purpose: implementation-plan | review-findings | verification-report | design | runbook | governance | migration | other
+created: YYYY-MM-DD
+milestone: v#.# (or "untracked")
+phase: <phase-topic-slug> (or "cross-cutting")
+retirement_trigger: <free text describing when this file is no longer needed>
+---
+```
+
+Allowed `status` values: `active`, `consumed`, `retirement-proposed`, `archived`, `retained`. Do NOT use: `complete`, `completed`, `draft`, `superseded`, or any qualified string.
+
+#### Execution, review, and commit rules
 
 - Executing a `docs/` plan: record execution provenance in the plan frontmatter (`execution_status`, `executed_at` with date and time, `review_status`) per `docs/README.md`; close each pass with a dedicated commit carrying `Plan-Execution:` and `Plan-Source:` trailers, separate from the work commits. Re-runs use `remediation-pass-N`.
 - Review reports: commit as `verify(<scope>)`, date-named, kept; supersede by setting frontmatter `status: superseded` (never delete-and-recreate); commit the report separately from any fixes it motivates.
