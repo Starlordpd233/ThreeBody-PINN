@@ -17,8 +17,8 @@
 | `probes/data05_mass_drift.py` | probe-script | transform / numerical compare (numpy) | RESEARCH §Pattern 2 + dataset-reference IC/Brutus format | role-match (numpy-gated) |
 | `probes/data06_snapshots.py` | probe-script | file-I/O (block-split distribution) | RESEARCH §Pattern 3 | role-match |
 | `probes/outputs/*` | evidence-capture | captured stdout | v1.4 disposable-probe evidence (`21-*/evidence/*.stdout.txt`) | role-match |
-| `24-VERIFIED-FACTS.md` | evidence-register | bookkeeping (CLM/DATA-keyed rows) | `RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" (table schema) + ERRATUM (verdict prose) | role-match |
-| `research_package/DATA-07-CORRECTION-ADDENDUM.md` | correction-doc | sibling correction file | `research_package/ERRATUM-2026-06-10.md` (retired 2026-06-11; corrections now in `RESEARCH-CONTEXT-MASTER.md`) | exact (sibling-file precedent, D-18) |
+| `24-VERIFIED-FACTS.md` | evidence-register | bookkeeping (CLM/DATA-keyed rows) | `RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" (table schema) + the inline verdict/evidence prose pattern below | role-match |
+| `research_package/DATA-07-CORRECTION-ADDENDUM.md` | correction-doc | sibling correction file | Inline sibling-correction structure below, preserving the retired erratum precedent without requiring a now-retired file read | exact (sibling-file precedent, D-18) |
 | `24-ISSUE-LEDGER.md` | ledger | state-machine seed | `16-ISSUE-LEDGER.md` | exact (D-22/D-24 mandate this schema) |
 | `24-GAPS.md` (only if a STOP gap fires) | gap-register | governance log | `22-GAPS.md` table in `16-ISSUE-LEDGER.md:479-485` + CLAUDE.md STOP-protocol field list | role-match |
 
@@ -55,7 +55,7 @@ DATA-04 extends this: a `Result:` line present ⇒ parse the full schema (`eta`/
 **Re-derivability header** (D-02; required on every probe — not present in the analog, this is the Phase 24 addition):
 ```python
 # probes/data01_id_gaps.py
-# Run: .venv/bin/python probes/data01_id_gaps.py
+# Run from repo root: .venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data01_id_gaps.py
 # Reads (read-only): simulation_data/Data/brutus_output/{4 variants}
 # Records: value + command + dataset path + run date into 24-VERIFIED-FACTS.md
 ```
@@ -71,22 +71,22 @@ Every probe MUST be invoked as `.venv/bin/python` (numpy 2.2.0; system `python3`
 
 ### `research_package/DATA-07-CORRECTION-ADDENDUM.md` (correction-doc, sibling file)
 
-**Analog:** `research_package/ERRATUM-2026-06-10.md` (retired 2026-06-11; its two corrections are now integrated in `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries") — the canonical sibling-correction precedent (D-18). Copy its structure; the addendum SUPERSEDES the master's correction-provenance section.
+**Analog:** the retired `research_package/ERRATUM-2026-06-10.md` sibling-correction precedent (retired 2026-06-11; its two corrections are now integrated in `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries"). Do not require the executor to read the retired file from the package; use the inline structure below and the current master section. The addendum SUPERSEDES the master's correction-provenance section.
 
-**Header / byte-stability statement** (`ERRATUM-2026-06-10.md:1-11`):
+**Header / byte-stability statement** (retired erratum pattern, now described inline):
 ```markdown
-# DATA-07 Correction Addendum — 2026-06-10
+# DATA-07 Correction Addendum — <actual execution date>
 **Scope:** CLM-keyed corrections to package-stated dataset claims, established by Phase 24
 read-only probes. Added sibling file only: no delivered package file modified; per-file
-source hashes in README.md remain valid; this addendum is intentionally not in that manifest.
+source hashes in the master's Per-File Manifest remain valid; this addendum is intentionally not in that manifest.
 **Supersession:** supersedes the master's "Correction Provenance And Verification Boundaries" section, folding in its two corrections (D-07).
 ```
 
-**Per-correction block** (`ERRATUM-2026-06-10.md:15-42`, Correction 1 shape) — reuse: `## Correction N — <title>` / **Affects:** (CLM row + file:section) / **Package states:** (quoted claim) / **Corrected disk fact:** / **Evidence:** (probe command + path + run date — D-02). CLM-keyed rows carry claimed value, observed value, probe command/path, verdict (`confirmed`/`corrected`/`unverified`) (D-08/D-19).
+**Per-correction block** (retired erratum pattern, now described inline) — reuse: `## Correction N — <title>` / **Affects:** (CLM row + file:section) / **Package states:** (quoted claim) / **Corrected disk fact:** / **Evidence:** (repo-root probe command + path + actual run date — D-02). CLM-keyed rows carry claimed value, observed value, probe command/path, verdict (`confirmed`/`corrected`/`unverified`) (D-08/D-19).
 
-**Two mandatory folded corrections** (D-07; copy from ERRATUM verbatim, re-probed by Phase 24): (1) gold filenames carry NO `_gold_` infix — folder-encoded only (`ERRATUM:15-42`); (2) the 1,550/701/219 populations have NO `Result:` footer at all (`ERRATUM:46-72`); CLM-07 count 219 stands, characterization corrected.
+**Two mandatory folded corrections** (D-07; restated from the current master correction-provenance section and re-probed by Phase 24): (1) gold filenames carry NO `_gold_` infix — folder-encoded only; (2) the 1,550/701/219 populations have NO `Result:` footer at all; CLM-07 count 219 stands, characterization corrected.
 
-**Confirmed-claims summary + "Not affected" list** (`ERRATUM-2026-06-10.md:76-86`) — replicate so the external researcher stops over-discounting confirmed figures (D-19). **Nil-addendum case** (D-20): same file records all package claims confirmed + the probe index.
+**Confirmed-claims summary + "Not affected" list** (retired erratum pattern, now described inline) — replicate so the external researcher stops over-discounting confirmed figures (D-19). **Nil-addendum case** (D-20): same file records all package claims confirmed + the probe index only when no package-stated claim is contradicted and no register row is held `unverified` behind an OPEN gap.
 
 WR-01/02/03 (CONTEXT specifics) are correction candidates that route here; WR-02/03 are spec-citation typos (not dataset claims) — their channel inside the addendum is an open decision the planner surfaces, not resolves.
 
@@ -102,7 +102,7 @@ WR-01/02/03 (CONTEXT specifics) are correction candidates that route here; WR-02
 ```markdown
 | ID | Title | Phase | Status | Verdict | Sources Disagree? | Evidence Packet | Acceptance Check | Spec Section | Dependents | Last Updated |
 ```
-Seed scope (D-23): B-06, B-11, M11, M12, M13, D7, G1-G5, D-03 training-data format, SCS/SASD/IPR/PSC metric claims, `compute_globals` `D=6.694` (PENDING, routed Phase 25 EVID-10 / Phase 27 PIPE-09 — D-05, not probed), footer/mass-drift protocol, precision handling — each with owning requirement + adjudication phase noted.
+Seed scope (D-23): B-06, B-11, M11, M12, M13, D7, G1, G2, G3, G4, G5 as separate rows, D-03 training-data format, SCS, SASD, IPR, and PSC metric claims as separate rows, `compute_globals` `D=6.694` (PENDING, routed Phase 25 EVID-10 / Phase 27 PIPE-09 — D-05, not probed), footer/mass-drift protocol, precision handling — each with owning requirement + adjudication phase noted.
 
 **Lifecycle Rules block** (`16-ISSUE-LEDGER.md:45-55`) — copy the exact state machine: `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED`; `DEFERRED` absorbing + written blocker; "FIX_APPLIED is not closure; VERIFIED requires a passing acceptance check." Phase 24 does NOT over-specify Phase 25-owned columns.
 
@@ -114,7 +114,7 @@ Seed scope (D-23): B-06, B-11, M11, M12, M13, D7, G1-G5, D-03 training-data form
 
 ### `24-VERIFIED-FACTS.md` (evidence-register)
 
-**Analog:** `RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" (table schema) + `ERRATUM-2026-06-10.md` (verdict-prose + evidence-citation style). Per-row: CLM/DATA ID · claimed value · observed value · probe command · dataset path · run date · verdict (D-02/D-08). Prose-sweep figures with no CLM row get extension IDs `CLM-14+` here (D-06) — the delivered `RESEARCH-CONTEXT-MASTER.md` stays byte-stable against its 2026-06-11 post-consolidation baseline. Probe-checklist maps 1:1 onto the master's CLM-01..12 rows via each row's "Phase-24 check" column (D-04); CLM-13 is `PENDING`, not probed (D-05).
+**Analog:** `RESEARCH-CONTEXT-MASTER.md` §"CLM Claims Register" (table schema) + the inline retired-erratum verdict/evidence-citation style above. Per-row: CLM/DATA ID · claimed value · observed value · executable repo-root probe command · dataset path · actual run date · verdict (D-02/D-08). Prose-sweep figures with no CLM row get extension IDs `CLM-14+` here (D-06) — the delivered `RESEARCH-CONTEXT-MASTER.md` stays byte-stable against its 2026-06-11 post-consolidation baseline. Probe-checklist maps 1:1 onto the master's CLM-01..12 rows via each row's "Phase-24 check" column (D-04); CLM-13 is `PENDING`, not probed (D-05).
 
 ---
 
@@ -129,7 +129,7 @@ Seed scope (D-23): B-06, B-11, M11, M12, M13, D7, G1-G5, D-03 training-data form
 **Apply to:** every probe + every register row. Each recorded fact carries probe command + dataset path + observed value + run date so any later probe reproduces it without this session's context.
 
 ### Read-only / byte-stability (VER-09 / D-18)
-**Source:** `ERRATUM-2026-06-10.md:3-7` (retired; sibling-file pattern, no delivered file modified, manifest hashes valid).
+**Source:** retired erratum sibling-file pattern (described inline above), with the current master carrying the manifest and correction-provenance sections.
 **Apply to:** all probes (never write inside `simulation_data/`, never touch `pinn/`); the addendum (sibling in `research_package/`, not added to manifest).
 
 ### Interpreter standardization (RESEARCH Pitfall 1)
@@ -151,5 +151,5 @@ None. Every Phase 24 artifact has a strong in-repo precedent. The closest thing 
 ## Metadata
 
 **Analog search scope:** `.planning/milestones/v1.4-phases/16-*/`, `.planning/phases/23-*/`, `pinn_instruction/.../research_package/`, `simulation_data/Validation/audit_reports/`, `.claude/rules/`.
-**Files scanned:** 7 (16-ISSUE-LEDGER.md, ERRATUM-2026-06-10.md (retired), claims-table.md (retired), RESEARCH-CONTEXT-MASTER.md, check_missing_results.py, plus CONTEXT/RESEARCH and dataset-reference rule).
+**Files scanned:** 7 (16-ISSUE-LEDGER.md, retired erratum/claims-table history as context only, RESEARCH-CONTEXT-MASTER.md, check_missing_results.py, plus CONTEXT/RESEARCH and dataset-reference rule).
 **Pattern extraction date:** 2026-06-10

@@ -62,7 +62,7 @@ Every selected finding follows the v1.4-style loop:
 - Integer phases (23, 24, …): planned v1.5 work, continuing from v1.4's Phase 22.
 - Decimal phases (e.g., 25.1): urgent insertions (marked INSERTED), placed between their surrounding integers.
 
-- [x] **Phase 23: Research Package Assembly** — Assemble the annotated document list and framed research questions (dataset figures marked "claimed, unverified"), plus a read-only DQA characterization, then hand off for the user's external multi-AI research. First v1.5 phase; its delivery opens the external gate. (completed 2026-06-10)
+- [x] **Phase 23: Research Package Assembly** — Assemble the annotated document list and framed research questions (dataset figures marked "claimed, unverified"), plus a read-only DQA characterization, then hand off for the user's external multi-AI research. First v1.5 phase; its delivery opens the external gate. (completed 2026-06-10; research context consolidated to single master file on 2026-06-11)
 
 > ⛔ **External gate — resolution doc.** On Phase 23 delivery, the **USER** begins external multi-AI research and delivers the resolution doc to `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`. The gate opens here, when package delivery starts the user's research. **Phase 24 runs in parallel during the gate window** (it gates on nothing external). Phases 25–29 (all adjudication and spec-edit work) **cannot start** until BOTH that doc lands AND Phase 24 completes. The doc is the candidate verdict source, not authoritative.
 
@@ -216,7 +216,7 @@ Every selected finding follows the v1.4-style loop:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 23. Research Package Assembly | v1.5 | 5/6 | Complete    | 2026-06-10 |
+| 23. Research Package Assembly | v1.5 | 5/6 | Complete (consolidated) | 2026-06-10 |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 0/4 | Planned (runs in parallel with gate; gates on nothing external) | - |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on resolution doc + Phase 24) | - |

@@ -108,18 +108,18 @@
 
 ### (c) WR-02/WR-03: Correction channel for spec-citation fixes
 
-**Decision point:** WR-02 and WR-03 are spec-citation typos in `framed-research-questions.md` — not dataset claims, so they do not fit the CLM-keyed DATA-07 addendum cleanly. Channel options: (A) a non-CLM appendix in the DATA-07 addendum, or (B) an interim extension to `ERRATUM-2026-06-10.md` so in-flight researchers get corrected pointers sooner.
+**Decision point:** WR-02 and WR-03 are spec-citation typos in `framed-research-questions.md` — not dataset claims, so they do not fit the CLM-keyed DATA-07 addendum cleanly. Within the current Phase 24 plan set, the live channel option is a non-CLM appendix in the DATA-07 addendum; the user may also explicitly defer the channel decision.
 
 **Classification:** operational coordination → surface.
 **Status:** OPEN
 
-**UPDATE 2026-06-11:** The Phase 23 research-context master consolidation retired `ERRATUM-2026-06-10.md` and integrated its two corrections into `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries". Option (B) "interim extension to ERRATUM-2026-06-10.md" is therefore removed. The remaining grounded citation corrections route through the master's current text or the DATA-07 addendum appendix. See plan 24-04 (updated 2026-06-11) for the revised option framing.
+**UPDATE 2026-06-11:** The Phase 23 research-context master consolidation retired `ERRATUM-2026-06-10.md` and integrated its two corrections into `RESEARCH-CONTEXT-MASTER.md` §"Correction Provenance And Verification Boundaries". Option (B) "interim extension to ERRATUM-2026-06-10.md" is therefore removed. Direct correction in `RESEARCH-CONTEXT-MASTER.md` would waive D-18/byte-stability and is not executable by the current Phase 24 plan set unless the user separately authorizes a replan with that waiver and a concrete master-edit task. See plan 24-04 (updated 2026-06-11) for the revised option framing.
 
 ### (d) Interim erratum extension vs consolidated addendum
 
-**Decision point:** Should the corrected citations (WR-02/03) and conflict surfacing (WR-01) be issued as an interim erratum extension now, or held for the consolidated DATA-07 addendum after probes complete? The trade-off is timeliness for in-flight researchers vs a single canonical correction document.
+**Decision point:** Should the corrected citations (WR-02/03) and conflict surfacing (WR-01) be issued in the consolidated DATA-07 addendum after probes complete, or explicitly deferred until a separate user-authorized D-18-waiver/replan exists? The trade-off is timeliness for in-flight researchers vs preserving the current phase's byte-stability invariant.
 
 **Classification:** operational coordination → surface.
 **Status:** OPEN
 
-**UPDATE 2026-06-11:** The "interim erratum extension" vehicle is removed by the 2026-06-11 master consolidation (ERRATUM-2026-06-10.md retired; corrections integrated into RESEARCH-CONTEXT-MASTER.md). The timing trade-off remains: "interim fix NOW" means direct correction in RESEARCH-CONTEXT-MASTER.md; "hold" means the consolidated DATA-07 addendum after probes complete. See plan 24-04 (updated 2026-06-11).
+**UPDATE 2026-06-11:** The "interim erratum extension" vehicle is removed by the 2026-06-11 master consolidation (ERRATUM-2026-06-10.md retired; corrections integrated into RESEARCH-CONTEXT-MASTER.md). "Interim fix NOW" as a direct master edit is also removed from the current Phase 24 gate because no plan can execute it without a D-18 waiver. The current executable path is the consolidated DATA-07 addendum after probes complete, or explicit deferral. See plan 24-04 (updated 2026-06-11).

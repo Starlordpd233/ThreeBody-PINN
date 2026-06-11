@@ -32,7 +32,7 @@ Most probes have a strong `confirmed` prior already established by pilot runs in
 
 **Verdict semantics**
 - **D-08:** Verdict vocabulary fixed by roadmap criterion 1: **`confirmed` / `corrected` / `unverified`**. `corrected` rows enter the addendum with claimed value, observed value, probe method. `unverified` is used ONLY when a probe cannot run within grounding limits, with reason recorded — never a shortcut for "didn't get to it".
-- **D-09:** Approximate claims (`~59`/`~125`/`~1000` snapshots, `~4,000`/`~5,000` ICs): probe records the **full distribution** (DATA-06 mandates distributions — per-variant min/median/mode/max plus counts at modal values); verdict judged at the claim's stated precision. Exact observed values always recorded; if an approximation is materially off, row is `corrected` with exact figures.
+- **D-09:** Approximate claims (`~59`/`~125`/`~1000` snapshots, `~4,000`/`~5,000` ICs): probe records the **full distribution** (DATA-06 mandates distributions — per-variant min/median/mode/max plus counts at modal values), including both median and mode. If median and mode imply different `confirmed`/`corrected` verdicts at the claim's stated precision, surface a semantic STOP gap instead of choosing an ungrounded "central value." Exact observed values always recorded; if the verdict is grounded and an approximation is materially off, row is `corrected` with exact figures.
 - **D-10:** DATA-02 blacklist **consumption status** checked across `simulation_data/Scripts/` only (SCOPE-07 — grep runners/prescreening/metrics for blacklist loading). The M11 claim "not loaded at training time" concerns `pinn/` (outside grounding, SCOPE-10): recorded `unverified — outside grounding limits, deferred to Phase 25 adjudication and the FUT-01 handoff`.
 - **D-11:** If a probe contradicts `simulation_data/Documentation/`: empirical observation outranks documentation (SCOPE-06), contradiction recorded, README correction **proposed to user for sign-off** — never applied autonomously. If the contradicted figure is package-stated, it also enters the addendum.
 - **D-12:** Discrepancies contradicting **no** package-stated claim are recorded in the ledger's anomalies section + surfaced in the phase summary — NOT in the DATA-07 addendum (whose scope is package-stated claims only).
@@ -191,7 +191,8 @@ prose sweep (RESEARCH-CONTEXT-MASTER.md  ──┤
 **When to use:** Every DATA-01..06 fact that isn't a trivial inline one-liner.
 **Example:**
 ```python
-# probes/data01_id_gaps.py — run: .venv/bin/python probes/data01_id_gaps.py
+# probes/data01_id_gaps.py — run from repo root:
+# .venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data01_id_gaps.py
 import os, re
 DATA = "simulation_data/Data/brutus_output"
 def ids(folder, pat):
@@ -214,7 +215,8 @@ for label, arr, nominal_end in [("standard", std, 3999), ("hierarchical", hier, 
 **When to use:** DATA-05 only.
 **Example:**
 ```python
-# probes/data05_mass_drift.py — run: .venv/bin/python probes/data05_mass_drift.py
+# probes/data05_mass_drift.py — run from repo root:
+# .venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data05_mass_drift.py
 import os, re, numpy as np
 def ic_masses(p):
     rows = [l.split() for l in open(p).read().strip().splitlines() if l.strip()]
@@ -267,7 +269,7 @@ Not a rename/refactor/migration phase — section omitted. Phase 24 writes only 
 **What goes wrong:** DATA-05 probe aborts with `ModuleNotFoundError: No module named 'numpy'`.
 **Why it happens:** System `python3` is homebrew 3.14.5 without numpy; only `.venv/bin/python` has numpy 2.2.0.
 **How to avoid:** Run ALL probes with `.venv/bin/python`; document the interpreter in the probe header (D-02 re-derivability).
-**Warning signs:** A probe command recorded as `python3 ...` instead of `.venv/bin/python ...`.
+**Warning signs:** A probe command recorded as `python3 ...`, a bare `probes/...` path, or any non-executable CWD-dependent path instead of a repo-root `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/...` command.
 
 ### Pitfall 2: Nominal-range off-by-one decided silently
 **What goes wrong:** CLM-01 is marked `confirmed` (1,250) or `corrected` (1,251) depending on an unstated `[0..3999]`-vs-`[0..3998]` choice — and that choice is not obviously grounded.
@@ -381,18 +383,18 @@ Phase 24 IS the validation phase — its probes ARE the acceptance checks (VER-0
 |----------|-------|
 | Framework | Disposable probe scripts under `probes/` (no pytest/unittest harness) |
 | Config file | none — each probe is self-contained (D-01) |
-| Quick run command | `.venv/bin/python probes/dataNN_*.py` |
+| Quick run command | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/dataNN_*.py` from repo root |
 | Full suite command | run all six probes; capture outputs under `probes/outputs/` |
 
 ### Requirements → Probe Map
 | Req ID | Behavior | Probe | Command | Exists? |
 |--------|----------|-------|---------|---------|
-| DATA-01 | ID-gap counts + method | `data01_id_gaps.py` | `.venv/bin/python probes/data01_id_gaps.py` | ❌ Wave 0 (pilot logic verified) |
+| DATA-01 | ID-gap counts + method | `data01_id_gaps.py` | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data01_id_gaps.py` | ❌ Wave 0 (pilot logic verified) |
 | DATA-02 | blacklist 65 + consumption | `data02_blacklist.py` + grep | inline + grep | ❌ Wave 0 (pilot verified) |
-| DATA-03 | 184 gold-gap + folder counts | `data03_gold_gap.py` | `.venv/bin/python probes/data03_gold_gap.py` | ❌ Wave 0 |
-| DATA-04 | footer schema + counts | `data04_footers.py` | `.venv/bin/python probes/data04_footers.py` | ❌ Wave 0 |
-| DATA-05 | mass-drift allclose | `data05_mass_drift.py` | `.venv/bin/python probes/data05_mass_drift.py` | ❌ Wave 0 (pilot n=50 verified) |
-| DATA-06 | snapshot + final-time dist | `data06_snapshots.py` | `.venv/bin/python probes/data06_snapshots.py` | ❌ Wave 0 |
+| DATA-03 | 184 gold-gap + folder counts | `data03_gold_gap.py` | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data03_gold_gap.py` | ❌ Wave 0 |
+| DATA-04 | footer schema + counts | `data04_footers.py` | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data04_footers.py` | ❌ Wave 0 |
+| DATA-05 | mass-drift allclose | `data05_mass_drift.py` | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data05_mass_drift.py` | ❌ Wave 0 (pilot n=50 verified) |
+| DATA-06 | snapshot + final-time dist | `data06_snapshots.py` | `.venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data06_snapshots.py` | ❌ Wave 0 |
 | DATA-07 | addendum compiled + shipped | manual compile from register | n/a (bookkeeping) | ❌ Wave 0 |
 
 ### Sampling Rate
@@ -420,8 +422,8 @@ Phase 24 IS the validation phase — its probes ARE the acceptance checks (VER-0
 - `simulation_data/Scripts/brutus_runners/*` blacklist consumption (dir-based) — grep [VERIFIED]
 - `Validation/dataset_readiness_checks/config.py:139` — json blacklist loaded by readiness checks [VERIFIED]
 - Pilot probes: DATA-01 (gaps 1250/1251/143), DATA-05 (n=50, 0 mismatches), DATA-06 (61 snapshots) [VERIFIED]
-- `claims-table.md` CLM-01..13 — the checklist [CITED]
-- `ERRATUM-2026-06-10.md` — two corrections to fold in [CITED]
+- `claims-table.md` (retired 2026-06-11) CLM-01..13 — the checklist [CITED]
+- `ERRATUM-2026-06-10.md` (retired 2026-06-11) — two corrections to fold in [CITED]
 - `23-CLAIMS-INVENTORY.md` — finding-inventory seed source [CITED]
 - `16-ISSUE-LEDGER.md` — ledger schema precedent [CITED]
 - `DELIVERY-NOTE.md` — addendum delivery channel [CITED]
@@ -429,7 +431,7 @@ Phase 24 IS the validation phase — its probes ARE the acceptance checks (VER-0
 - `24-CONTEXT.md` D-01..D-25 [CITED]
 
 ### Secondary (MEDIUM confidence)
-- `consolidated-context.md` prose figures (3,307 / 2,048 full-schema, etc.) — non-CLM figures candidate for CLM-14+ (D-06); some superseded by erratum [CITED]
+- `consolidated-context.md` (retired 2026-06-11) prose figures (3,307 / 2,048 full-schema, etc.) — non-CLM figures candidate for CLM-14+ (D-06); some superseded by erratum [CITED]
 
 ### Tertiary (LOW confidence)
 - None. No web sources, no external libraries (per the milestone internal-only directive and Phase 23 precedent).

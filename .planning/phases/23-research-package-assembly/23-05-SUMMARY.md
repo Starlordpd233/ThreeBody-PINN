@@ -94,8 +94,12 @@ semantic decision was encountered, so no STOP gap was raised.
 
 ## Self-Check: PASSED
 
-- `research_package/README.md` — FOUND
+- `research_package/README.md` — FOUND (retired in the 2026-06-11 consolidation)
 - `research_package/DELIVERY-NOTE.md` — FOUND
 - `23-05-SUMMARY.md` — FOUND
 - Commit `c91772b` — FOUND
 - Post-commit deletion check — clean (no files deleted)
+
+## Post-Delivery Remediation (2026-06-11)
+
+A post-delivery accuracy and consolidation pass occurred on 2026-06-11. The core deliverable was consolidated into a single `RESEARCH-CONTEXT-MASTER.md` file replacing five source files, making the context easier for external agents to consume. Phase 23 remains marked complete.

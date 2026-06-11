@@ -74,7 +74,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 **Shipped:** v1.4 Resolving 01 Architecture and Physics Foundations on 2026-06-09.
 
-**In progress:** v1.5 Phase 23 (Research Package Assembly) complete and verified 2026-06-10. The issue-02 research package is delivered under `framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/` and the external resolution-doc gate is OPEN (user multi-AI research starts). Phase 24 (empirical dataset verification + DATA-07 correction addendum) runs in parallel next; Phases 25–29 gate on BOTH the resolution doc landing AND Phase 24 completion.
+**In progress:** v1.5 Phase 23 (Research Package Assembly) complete and verified 2026-06-10 (research context consolidated to single master file on 2026-06-11). The issue-02 research package is delivered under `framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/` and the external resolution-doc gate is OPEN (user multi-AI research starts). Phase 24 (empirical dataset verification + DATA-07 correction addendum) runs in parallel next; Phases 25–29 gate on BOTH the resolution doc landing AND Phase 24 completion.
 
 The milestone closed 32/32 requirements across eight verified phases and 26 plans. Its roadmap, requirements, audit, and phase execution history are archived under `.planning/milestones/`; production PINN alignment and author-comment adjudication remain documented future candidates rather than assumed next-milestone scope.
 

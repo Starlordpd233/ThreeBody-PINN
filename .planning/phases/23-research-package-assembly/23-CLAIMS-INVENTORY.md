@@ -21,7 +21,7 @@
 | CLM-04 | Standard IDs without gold counterpart | 184 | `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md` | `verified` | DATA-03: re-verify 184-ID list against gold Brutus outputs |
 | CLM-05 | Standard folder counts | 2,749 base vs 2,565 gold | `simulation_data/Documentation/standard_quasi_random_ids_not_in_gold.md`; `simulation_data/Documentation/README.md` | `verified` | DATA-04: count base and gold folders independently |
 | CLM-06 | Hierarchical Brutus output | ~4,857 files | `simulation_data/Documentation/README.md` Brutus Parameters by Variant (line ~607) | `verified` | DATA-04: count hierarchical Brutus output files |
-| CLM-07 | Minimal standard-gold footers | 219 files with minimal footers | `simulation_data/Documentation/README.md` Brutus Parameters by Variant (line ~627) | `verified` | DATA-05: parse footer schema across standard-gold files; count minimal-footers subset |
+| CLM-07 | Standard-gold files with no Result: footer | 219 files (count unchanged; "minimal footer" characterization corrected — these files have no footer at all) | `simulation_data/Documentation/README.md` Brutus Parameters by Variant (line ~627) | `verified` | DATA-05: parse footer schema across standard-gold files; count minimal-footers subset |
 | CLM-08 | tol=1e-14 standard-gold files | 592 files | `simulation_data/Documentation/README.md` Brutus Parameters by Variant | `verified` | DATA-05: parse tolerance field across standard-gold files; count tol=1e-14 subset |
 | CLM-09 | Folder-default tol / dt_out values | std: tol=1e-13, dt_out=0.17; hier base: tol=1e-15, dt_out=0.08; gold: tol=1e-13, dt_out=0.01 | `simulation_data/Documentation/README.md` Brutus Parameters by Variant (lines ~584-628) | `verified` | DATA-05: parse footer parameters; verify default values per variant |
 | CLM-10 | Snapshot counts per trajectory | ~59 (standard) / ~125 (hierarchical) / ~1000 (gold) | Issue doc lines 13, 60, 311-312 | `claimed-unverified` | DATA-06: count output rows per trajectory file; README warns against hard-coding snapshot counts (lines ~629-637) |
@@ -51,7 +51,7 @@
 
 The repo-wide documentation-integrity audit (separate workstream) checked
 `simulation_data/Documentation/README.md` against the on-disk dataset AFTER this register and
-the package `claims-table.md` were delivered, and found two README claims false. The register
+the package `claims-table.md` (retired 2026-06-11; content now in `RESEARCH-CONTEXT-MASTER.md`) were delivered, and found two README claims false. The register
 rows transcribed the README faithfully — the source itself was wrong. Original rows are left
 as recorded (re-derivable against the snapshot pin); this note supersedes their claim text.
 
@@ -59,7 +59,7 @@ as recorded (re-derivable against the snapshot pin); this note supersedes their 
   token in their filenames. On disk (re-verified 2026-06-10 by direct listing), gold output
   folders contain `brutus_hierarchical_XXXX.txt` / `brutus_standard_XXXX.txt` — gold status is
   indicated ONLY by parent folder. Affects the naming narrative copied into the package
-  `consolidated-context.md` (folder/file-naming section, lines ~31-56). No CLM row carries
+  `consolidated-context.md` (retired 2026-06-11; content now in `RESEARCH-CONTEXT-MASTER.md`) (folder/file-naming section, lines ~31-56). No CLM row carries
   this claim directly.
 - **F-09 — absent `Result:` footers.** README claimed all Brutus output files end with a
   `Result:` footer and that ~2,470 files have a "partial" footer with still-parseable
@@ -77,3 +77,9 @@ Correction routing: the delivered package stays byte-stable; the audit workstrea
 dated erratum note beside the package, and the Phase 24 DATA-07 CLM-keyed correction addendum
 is the authoritative follow-up that supersedes both this note and the erratum. The README
 fixes (F-08/F-09) are user-approved and land in the audit workstream.
+
+---
+
+## Post-Delivery Remediation (2026-06-11)
+
+On 2026-06-11, the research context was consolidated into a single master file (`RESEARCH-CONTEXT-MASTER.md`). The previously delivered source files (`claims-table.md`, `consolidated-context.md`, `framed-research-questions.md`, `README.md`, `ERRATUM-2026-06-10.md`) were retired. No CLM statuses were changed during this consolidation. The master file is now the source of truth for the PKG-03 claims list.
