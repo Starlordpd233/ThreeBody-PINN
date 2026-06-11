@@ -1,13 +1,14 @@
 ---
-title: Documentation Integrity Audit Plan
-type: docs
 status: consumed
-date: 2026-06-10
-origin: docs/brainstorms/2026-06-10-doc-integrity-audit-requirements.md
 purpose: implementation-plan
 created: 2026-06-10
 milestone: v1.5
+phase: doc-integrity-audit
 retirement_trigger: audit execution complete, report committed, runbook committed
+title: Documentation Integrity Audit Plan
+type: docs
+date: 2026-06-10
+origin: docs/brainstorms/2026-06-10-doc-integrity-audit-requirements.md
 execution_status: first-pass-complete
 executed_at: 2026-06-10 21:52 CST (UTC+8)
 review_status: none

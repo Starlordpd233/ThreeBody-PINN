@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: unknown
+milestone: v1.4
+phase: 19-edl-adoption
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Adopt GAP-19-01 / EDL-19-01 Resolution — Updated Execution Plan
 
 > **Skill expectation:** Use `superpowers:executing-plans` task-by-task. This is a documentation/planning update only; do not edit runtime code unless a referenced plan already authorizes that edit.

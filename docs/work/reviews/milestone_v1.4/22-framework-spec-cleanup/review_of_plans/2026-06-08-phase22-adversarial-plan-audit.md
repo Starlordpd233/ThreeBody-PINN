@@ -1,27 +1,19 @@
 ---
-phase: 22
-review_type: adversarial-plan-audit
 status: consumed
+purpose: other
+created: 2026-06-08
+milestone: v1.4
+phase: 22
+retirement_trigger: milestone complete; superseded by subsequent work
+review_type: adversarial-plan-audit
 superseded_by: docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-09-phase22-review-closeout-matrix.md
-reviewed_artifacts:
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-02-PLAN.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-03-PLAN.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-04-PLAN.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-CONTEXT.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RESEARCH.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-GAPS.md
-  - .planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-DISCUSSION-LOG.md
 reviewer: Claude (adversarial document reviewer)
 date: 2026-06-08
 closed_out: 2026-06-09
-severity_summary:
-  critical: 1
-  high: 5
-  medium: 7
-  low: 6
+critical: 1
+high: 5
+medium: 7
+low: 6
 overall_verdict: PLANS-NEED-AMENDMENTS
 closeout_verdict: ALL-19-FINDINGS-RESOLVED
 ---

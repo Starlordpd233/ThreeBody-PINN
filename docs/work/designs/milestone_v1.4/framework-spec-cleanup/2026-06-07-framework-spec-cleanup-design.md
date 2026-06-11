@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-07
+milestone: v1.4
+phase: framework-spec-cleanup
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Framework-Spec Cleanup — Design Spec
 
 - **Phase:** 22 — final phase of milestone v1.4

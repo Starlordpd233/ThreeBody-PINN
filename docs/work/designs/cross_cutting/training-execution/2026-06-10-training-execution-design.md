@@ -1,3 +1,12 @@
+---
+status: active
+purpose: design
+created: 2026-06-10
+milestone: untracked
+phase: training-execution
+retirement_trigger: v1.5 milestone work; active until superseded
+---
+
 # CTL-PINN Training Execution Design
 
 **Status:** Design intent — framework-agnostic, mechanical surface committed, scientific/technical internals deferred to research.

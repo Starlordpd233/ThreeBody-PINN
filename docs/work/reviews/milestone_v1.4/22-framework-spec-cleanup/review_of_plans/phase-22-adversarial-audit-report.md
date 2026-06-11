@@ -1,7 +1,11 @@
 ---
-phase: 22
-review_type: adversarial-plan-audit
 status: consumed
+purpose: other
+created: unknown
+milestone: v1.4
+phase: 22
+retirement_trigger: milestone complete; superseded by subsequent work
+review_type: adversarial-plan-audit
 superseded_by: docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-09-phase22-review-closeout-matrix.md
 date: 2026-06-08
 closed_out: 2026-06-09

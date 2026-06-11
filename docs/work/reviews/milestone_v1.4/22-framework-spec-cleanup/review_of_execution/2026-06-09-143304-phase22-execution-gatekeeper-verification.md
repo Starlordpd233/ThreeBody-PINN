@@ -1,13 +1,15 @@
 ---
-title: "Phase 22 Execution — Gatekeeper Verification Review"
-phase: 22
-slug: framework-spec-cleanup
-type: execution-verification
 status: active
 purpose: review-findings
+created: 2026-06-09T14:33:04+08:00
+milestone: v1.4
+phase: 22
+retirement_trigger: milestone complete; superseded by subsequent work
+title: "Phase 22 Execution — Gatekeeper Verification Review"
+slug: framework-spec-cleanup
+type: execution-verification
 role: verification-gatekeeper
 reviewer: Claude (verification-before-completion)
-created: 2026-06-09T14:33:04+08:00
 scope: "Plans 22-01 → 22-05 (Wave 0 → Wave 3)"
 verdict: "WORK CORRECT / RECORD DEFECTIVE — automated gates G1–G3 verified green with fresh evidence; G4 visual backstop genuinely PENDING-USER-REVIEW (phase not yet closeable). Several false/contradictory statements in commit messages and plan summaries must be corrected."
 baseline_tag: v1.4-pre-phase-22 (faa73d0)

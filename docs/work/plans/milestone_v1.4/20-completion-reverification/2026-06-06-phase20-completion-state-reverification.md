@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-06
+milestone: v1.4
+phase: 20-completion-reverification
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Phase 20 Completion State Reverification Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -1,4 +1,10 @@
 ---
+status: consumed
+purpose: other
+created: unknown
+milestone: v1.4
+phase: 20-plan-audit-legacy
+retirement_trigger: milestone complete; superseded by subsequent work
 date: 2026-06-04
 reviewer: Claude Code + 3 Explore subagents
 scope: "Phase 20 planning artifacts (.planning/milestones/v1.4-phases/20-architecture-and-normalization-cleanup/)"

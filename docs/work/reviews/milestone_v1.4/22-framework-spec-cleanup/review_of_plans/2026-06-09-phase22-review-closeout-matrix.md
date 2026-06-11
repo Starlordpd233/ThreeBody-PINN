@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-09
+milestone: v1.4
+phase: 22-framework-spec-cleanup
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Phase 22 Review Closeout Matrix
 
 **Date:** 2026-06-09

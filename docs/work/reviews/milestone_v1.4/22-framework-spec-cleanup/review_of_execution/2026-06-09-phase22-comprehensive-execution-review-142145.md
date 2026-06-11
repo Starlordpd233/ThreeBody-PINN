@@ -1,11 +1,14 @@
 ---
-title: "Phase 22 Execution Verification — Comprehensive Review"
+status: active
+purpose: review-findings
+created: 2026-06-09
+milestone: v1.4
 phase: 22
+retirement_trigger: milestone complete; superseded by subsequent work
+title: "Phase 22 Execution Verification — Comprehensive Review"
 slug: framework-spec-cleanup
 date: 2026-06-09
 reviewer: verification-gatekeeper
-status: active
-purpose: review-findings
 ---
 
 # Phase 22 Execution Verification — Comprehensive Review

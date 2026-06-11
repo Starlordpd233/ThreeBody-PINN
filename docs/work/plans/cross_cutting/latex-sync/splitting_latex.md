@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: unknown
+milestone: untracked
+phase: latex-sync
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 For this **data_quality_assess.pdf** document, the same modular LaTeX structure applies. It has a well‑defined structure with sections, subsections, equations, and a bibliography. Splitting it will make it easier to maintain and update, especially as you refine the data validation protocols.
 
 ---

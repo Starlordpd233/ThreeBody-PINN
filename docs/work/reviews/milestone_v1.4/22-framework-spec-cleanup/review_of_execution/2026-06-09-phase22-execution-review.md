@@ -1,17 +1,15 @@
 ---
-review_type: execution-review
+status: active
+purpose: review-findings
+created: 2026-06-09
+milestone: v1.4
 phase: 22
+retirement_trigger: milestone complete; superseded by subsequent work
+review_type: execution-review
 slug: framework-spec-cleanup
 review_date: 2026-06-09
 reviewer: claude-opus-4.8
-status: active
-purpose: review-findings
 plans_reviewed: ["22-01", "22-02", "22-03", "22-04", "22-05"]
-evidence_sources:
-  - git log + diff
-  - live detector runs
-  - file content inspection
-  - commit message cross-reference
 ---
 
 # Phase 22 Execution Review — Framework Spec Cleanup

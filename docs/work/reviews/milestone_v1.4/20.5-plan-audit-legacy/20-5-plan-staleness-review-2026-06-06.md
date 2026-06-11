@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: unknown
+milestone: v1.4
+phase: 20.5-plan-audit-legacy
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Phase 20.5 Plan Staleness Review — 2026-06-06
 
 **Review conducted:** 2026-06-06

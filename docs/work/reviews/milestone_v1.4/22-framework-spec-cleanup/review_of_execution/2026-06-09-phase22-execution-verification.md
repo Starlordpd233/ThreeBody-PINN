@@ -1,25 +1,21 @@
 ---
+status: active
+purpose: review-findings
+created: 2026-06-09
+milestone: v1.4
+phase: 22-framework-spec-cleanup
+retirement_trigger: milestone complete; superseded by subsequent work
 title: "Phase 22 Execution — Review of Execution"
 scope: Phase 22 (Framework-Spec Cleanup), milestone v1.4
 artifact_type: review_of_execution
-status: active
-purpose: review-findings
 review_date: 2026-06-09
 reviewer: Claude Code (verification gatekeeper)
 method: live reproduction of all automated gates + independent reconciliation of all claims
-plans_reviewed:
-  - 22-01-PLAN.md (Wave 0: Detector + Census + Footnote Probe)
-  - 22-02-PLAN.md (Wave 1a: pinn_architecture.md repair)
-  - 22-03-PLAN.md (Wave 1b: ctl_instruction.md repair)
-  - 22-04-PLAN.md (Wave 2: Author-Comment Preservation + FUT-05 Handoff)
-  - 22-05-PLAN.md (Wave 3: Phase Gate)
-gate_results:
-  G1: PASS
-  G2: PASS
-  G3_content: PASS
-  G3_comments: PASS
-  G4_visual: PENDING-USER-REVIEW (by design)
-  VER-05_ledger: PASS
+G1: PASS
+G2: PASS
+G3_content: PASS
+G3_comments: PASS
+G4_visual: PENDING-USER-REVIEW (by design)
 verdict: CONDITIONAL PASS — technical execution correct and complete; governance closure gap remains
 ---
 

@@ -3,6 +3,7 @@ status: active
 purpose: review-findings
 created: 2026-06-10
 milestone: v1.5
+phase: doc-integrity-audit
 retirement_trigger: finding-by-finding closeout complete and reference audit passes
 ---
 

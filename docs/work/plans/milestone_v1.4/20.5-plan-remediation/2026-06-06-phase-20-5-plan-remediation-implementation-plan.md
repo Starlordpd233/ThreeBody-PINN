@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-06
+milestone: v1.4
+phase: 20.5-plan-remediation
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Phase 20.5 Plan Remediation Implementation Plan
 Created: 2026-06-06
 

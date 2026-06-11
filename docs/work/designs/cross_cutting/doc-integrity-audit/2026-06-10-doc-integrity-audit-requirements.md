@@ -1,4 +1,10 @@
 ---
+status: active
+purpose: design
+created: 2026-06-10
+milestone: untracked
+phase: doc-integrity-audit
+retirement_trigger: v1.5 milestone work; active until superseded
 date: 2026-06-10
 topic: doc-integrity-audit
 ---

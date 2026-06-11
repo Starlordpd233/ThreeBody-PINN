@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: unknown
+milestone: untracked
+phase: document-migration
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
      Verification Prompts — Thematic Document Audit
      #for kimi's agent swarm
 

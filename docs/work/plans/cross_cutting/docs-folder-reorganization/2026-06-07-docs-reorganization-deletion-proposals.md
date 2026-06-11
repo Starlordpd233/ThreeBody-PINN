@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-07
+milestone: untracked
+phase: docs-folder-reorganization
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Docs Deletion Proposals
 
 > Generated: 2026-06-07

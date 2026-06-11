@@ -1,5 +1,10 @@
 ---
-status: completed
+status: consumed
+purpose: other
+created: unknown
+milestone: v1.5
+phase: 23-research-package-assembly
+retirement_trigger: milestone complete; superseded by subsequent work
 review_type: post-execution verification
 target_plan: docs/work/plans/milestone_v1.5/23-research-package-assembly/2026-06-11-phase-23-research-context-master-consolidation-plan.md
 target_commit: 605c0227

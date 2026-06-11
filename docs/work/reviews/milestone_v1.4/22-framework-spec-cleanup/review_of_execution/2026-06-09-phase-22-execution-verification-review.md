@@ -1,12 +1,14 @@
 ---
-title: "Phase 22 Execution Verification Review"
-artifact: review-of-execution
-phase: 22
-slug: framework-spec-cleanup
-reviewer: independent-verification-agent
-created: 2026-06-09
 status: active
 purpose: review-findings
+created: 2026-06-09
+milestone: v1.4
+phase: 22
+retirement_trigger: milestone complete; superseded by subsequent work
+title: "Phase 22 Execution Verification Review"
+artifact: review-of-execution
+slug: framework-spec-cleanup
+reviewer: independent-verification-agent
 method: evidence-based verification (detector re-execution, artifact inspection, git forensics, cross-reference audit)
 scope: All 5 sub-plans (22-01 through 22-05), all gates (G1–G4, VER-05), and all Phase 22 artifacts
 ---

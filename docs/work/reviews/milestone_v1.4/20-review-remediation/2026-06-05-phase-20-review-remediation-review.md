@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-05
+milestone: v1.4
+phase: 20-review-remediation
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 Verdict: The remediation is directionally sound and unusually governance-aware — its STOP-protocol fidelity is its strongest feature. But it is not safe to execute verbatim: roughly six of its concrete edit/verify instructions are mis-anchored or self-contradicting against the real files, so a literal executor will either fail to find the anchor or fail its own verification gate. It also under-claims its coverage — the Self-Review Checklist asserts "every high-risk review finding has a task," which is false.
 
 ---

@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-04
+milestone: v1.4
+phase: 20-review-framework
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Phase 20 Plan Review Framework — Design
 
 **Date:** 2026-06-04

@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-04
+milestone: v1.4
+phase: 20-plan-audit-legacy
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Phase 20 Comprehensive Plan Review — 2026-06-04
 
 **Review scope:** All 9 Phase 20 planning artifacts (5 plans + 4 context files)
