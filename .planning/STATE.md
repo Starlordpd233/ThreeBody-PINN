@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: Phase 24.5 passed; Phases 25-29 unblocked
-last_updated: "2026-06-11T15:46:19.308Z"
-last_activity: 2026-06-11 -- Phase 25 planning complete
+status: executing
+last_updated: "2026-06-12T13:04:04.722Z"
+last_activity: 2026-06-12 -- Phase 25 execution started
 progress:
   total_phases: 8
-  completed_phases: 2
-  total_plans: 11
-  completed_plans: 10
-  percent: 25
+  completed_phases: 3
+  total_plans: 13
+  completed_plans: 12
+  percent: 38
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 25 — evidence framework and issue ledger (unblocked by Phase 24.5)
+**Current focus:** Phase 25 — evidence-framework-and-issue-ledger
 
 ## Current Position
 
-Phase: 25
-Plan: Not started
-Status: Phase 24.5 passed; Phases 25-29 unblocked
-Last activity: 2026-06-11 -- Phase 25 planning complete
+Phase: 25 (evidence-framework-and-issue-ledger) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 25
+Last activity: 2026-06-12 -- Phase 25 execution started
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
@@ -174,7 +174,7 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-11T14:20:00.000Z
+Last session: 2026-06-12T04:53:24.660Z
 Next action: Plan and execute Phase 25 (evidence framework, verdicts, root-cause adjudication, re-verification ledger). Consume `24.5-RESOLUTION-MAP.md` for evidence-packet construction; carry the §4 caveats (OI-3/6/7/8/11/12) forward; CLM-13 ratification is the EVID-10 work item.
 
 ## Operator Next Steps

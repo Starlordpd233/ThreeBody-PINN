@@ -70,7 +70,7 @@ Every selected finding follows the v1.4-style loop:
 
 - [x] **Phase 24.5: Resolution Doc Readiness Verification** (INSERTED) — COMPLETE 2026-06-11, READY-WITH-CAVEATS. Verified the consolidated resolution doc is structurally sound, covers all 19 issue-02 findings (0 silent), is consistent with Phase 24 verified facts (0 contradictions), and respects v1.4-locked conventions (0 violations). Produced `24.5-READINESS-REPORT.md` and `24.5-RESOLUTION-MAP.md`. No fix package routed (no blocking gap; optional OI-12 addendum erratum noted). Phases 25–29 unblocked.
 
-- [ ] **Phase 25: Evidence Framework and Issue Ledger** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes, root-cause conflict adjudication) and the re-verification ledger before any spec edit.
+- [x] **Phase 25: Evidence Framework and Issue Ledger** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes, root-cause conflict adjudication) and the re-verification ledger before any spec edit. (completed 2026-06-12)
 - [ ] **Phase 26: DataLoader Ingestion and Selection Contracts** — Lock the ingestion gate, ID-resolution, blacklist-exclusion, gold-counterpart, footer-heterogeneity, and training-data-format contracts.
 - [ ] **Phase 27: Sampling, Precision, and Global-Scale Contracts** — Lock the points-per-trajectory, precision/Decimal, dt_out/stage-query metadata, and `compute_globals` global-scale contracts.
 - [ ] **Phase 28: Validation-Metrics Contracts** — Define one canonical data-side contract each for SCS, SASD, IPR, and PSC, threshold-aligned to the locked gate and v1.4 physics outcomes.
@@ -177,11 +177,11 @@ Every selected finding follows the v1.4-style loop:
 
 **Wave 1**
 
-  - [ ] 25-01-PLAN.md — Evidence-packet template (`_TEMPLATE.md`) + protocol README (D-03 enforcement, EVID-10 trigger table) + `24-ISSUE-LEDGER.md` Lifecycle-Rules re-issue to v1.5 phases
+  - [x] 25-01-PLAN.md — Evidence-packet template (`_TEMPLATE.md`) + protocol README (D-03 enforcement, EVID-10 trigger table) + `24-ISSUE-LEDGER.md` Lifecycle-Rules re-issue to v1.5 phases
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-  - [ ] 25-02-PLAN.md — Three EVID-10 root-cause records (SCS thresholds, `D=6.694`, M11/M12 severity) with the four-source citation, verdicts, and same-commit ledger Evidence-Packet links + verdict notes (D-06)
+  - [x] 25-02-PLAN.md — Three EVID-10 root-cause records (SCS thresholds, `D=6.694`, M11/M12 severity) with the four-source citation, verdicts, and same-commit ledger Evidence-Packet links + verdict notes (D-06)
 
 ### Phase 26: DataLoader Ingestion and Selection Contracts
 
@@ -250,7 +250,7 @@ Every selected finding follows the v1.4-style loop:
 | 23. Research Package Assembly | v1.5 | 5/5 | Complete (consolidated) | 2026-06-10 |
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
 | 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
-| 25. Evidence Framework and Issue Ledger | v1.5 | 0/2 | Not started (unblocked — Phase 24.5 passed) | - |
+| 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete   | 2026-06-12 |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
