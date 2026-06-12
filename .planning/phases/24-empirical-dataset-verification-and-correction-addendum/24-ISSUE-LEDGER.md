@@ -137,7 +137,7 @@ CLM-03 confirmed). Prioritization owned by Phase 26 PIPE-03.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M11 explicit severity ruling **BLOCKING STANDS**; OI-8 carried forward; D-12 G3->M11 close-with-parent; prioritization owned by Phase 26 PIPE-03)
+- 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M11 explicit severity ruling **BLOCKING STANDS**; OI-8 carried forward; D-12 G3->M11 close-with-parent; prioritization owned by Phase 26 PIPE-03)
 
 ### M12: Points-per-trajectory infeasibility (Phase 27 PIPE-04)
 
@@ -160,7 +160,7 @@ with M12 — no separate evidence packet. Fix owned by Phase 27 PIPE-04.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 `accept-third-position` verdict; fix owned by Phase 27 PIPE-04; D-12 G5->M12 close-with-parent)
+- 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 `accept-third-position` verdict; fix owned by Phase 27 PIPE-04; D-12 G5->M12 close-with-parent)
 
 ### M13: 184 standard IDs without gold counterpart (Phase 26 PIPE-05)
 
@@ -256,7 +256,7 @@ read-only per SCOPE-09).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict assigned; fix owned by Phase 28 VAL-01)
+- 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict assigned; fix owned by Phase 28 VAL-01)
 
 ### SASD: Stiffness-Aware Sampling Density (Phase 28 VAL-02)
 
@@ -321,7 +321,7 @@ canonicalization as a 2-of-3 editable-spec choice).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict + CLM-13 ratified `convention-rejected`; fix owned by Phase 27 PIPE-09; OI-11 propagated)
+- 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict + CLM-13 ratified `convention-rejected`; fix owned by Phase 27 PIPE-09; OI-11 propagated)
 
 ### footer: Footer/mass-drift protocol (Phase 26/27 PIPE-06/07)
 

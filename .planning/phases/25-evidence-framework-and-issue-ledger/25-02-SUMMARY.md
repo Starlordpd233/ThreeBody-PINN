@@ -101,7 +101,7 @@ Each task was committed atomically:
 3. **Task 3: Write 25-02-SUMMARY.md** — this file; final short SHA filled into all 4 per-finding status-transition log entries post-commit
 4. **Task 4: ONE atomic commit via scripts/agent-commit** — `evidence(25-02): adjudicate SCS / D=6.694 / M11+M12 root causes; wire ledger`
 
-**Plan metadata:** `<pending-commit-sha>` (this final SHA fills into the 4 status-transition log entries in 24-ISSUE-LEDGER.md as a follow-up edit, per D-06 same-commit discipline — the audit label travels in the ledger's per-finding subsections)
+**Plan metadata:** `e05b4b1a` (this final SHA fills into the 4 status-transition log entries in 24-ISSUE-LEDGER.md as a follow-up edit, per D-06 same-commit discipline — the audit label travels in the ledger's per-finding subsections)
 
 ## Files Created/Modified
 
