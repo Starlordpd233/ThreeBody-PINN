@@ -22,8 +22,8 @@
   - **B.** Use the literal reading: Phase 25 authors packets/verdicts for all 19 issue-02 findings before Phases 26-28 proceed.
   - **C.** Define a hybrid scope, naming exactly which additional non-conflict findings Phase 25 must adjudicate now.
 - **Confidence of impact:** HIGH - the answer changes Phase 25 deliverable count, downstream phase responsibilities, and whether the current two-plan structure is sufficient.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-12)
+- **Resolution note:** User selected **Option A** (split reading) on 2026-06-12: Phase 25 delivers the machinery plus the three known EVID-10 conflict records (SCS thresholds, `D=6.694`, M11/M12); Phases 26-28 author the remaining packets/verdicts immediately before their spec edits, using the Phase 25 machinery (evidence-before-edit, EVID-06). The user additionally instructed a clarifying parenthetical on ROADMAP Phase 25 success criteria 1-3 so the goal-backward verifier reads them as milestone-wide guarantees enforced by the Phase 25 machinery rather than as Phase 25 deliverables (applied in the same commit as this resolution). Decision basis presented to the user: the literal all-19 reading would make step 1 of the adjudicate->fix->verify loop vacuous in Phases 26-28, and pre-authored packets citing spec line ranges would drift as Phase 26/27 edits land before Phase 28 consumes its packets; v1.4 precedent (Phase 16) shipped machinery with zero verdicts.
 
 ## GAP-25-02 - Ledger status for adjudicated-but-unfixed findings
 
@@ -45,8 +45,8 @@
   - **C.** Use another existing state and define exactly how downstream phases distinguish verdict-only work from fix work.
   - **D.** Do not update ledger verdict/status fields in Phase 25; leave the verdict solely inside evidence records until the owning spec-edit phase starts.
 - **Confidence of impact:** HIGH - downstream Phases 26-28 will use the ledger to decide what has been adjudicated, what still needs work, and what blocks phase exit.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-12)
+- **Resolution note:** User selected **Option A** (`PENDING` convention) on 2026-06-12: Phase 25 fills the verdict and Evidence-Packet fields while leaving Status `PENDING`; each such row gets a `PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + verdict assigned)` audit entry with date + commit-audit label in the per-finding subsection; the protocol README documents the legend that `PENDING + Verdict` means adjudicated-but-unfixed (this legend requirement was added to 25-01-PLAN.md Task 2 in the same commit as this resolution). The state machine `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED` is preserved verbatim — no new state is introduced (consistent with ROADMAP Phase 25 criterion 5 and 25-CONTEXT D-11 keep-verbatim). 25-02-PLAN.md already encodes this convention conditionally in its objective ledger-status note; no further plan edit is required.
 
 ## Milestone-wide index
 
