@@ -141,10 +141,10 @@ Phase 25 mints no new AC-IDs (D-13); AC-PIPE-03 and AC-PIPE-04 are the seeded as
 ## Status Transition Log
 
 ```text
-2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 accept-third-position verdict + M11 explicit severity ruling BLOCKING STANDS; M12 fix owned by Phase 27 PIPE-04, M11 prioritization owned by Phase 26 PIPE-03; OI-8 carried forward; D-12 G3->M11, G5->M12 close with parent)
+2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 accept-third-position verdict + M11 explicit severity ruling BLOCKING STANDS; M12 fix owned by Phase 27 PIPE-04, M11 prioritization owned by Phase 26 PIPE-03; OI-8 carried forward; D-12 G3->M11, G5->M12 close with parent)
 ```
 
-The final short SHA replaces `<pending-commit-sha>` after the atomic 25-02 commit; the audit label travels in the ledger's per-finding subsections (D-06 same-commit discipline; D-12 close-with-parent annotations in the M11 and M12 per-finding notes).
+The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsections (D-06 same-commit discipline; D-12 close-with-parent annotations in the M11 and M12 per-finding notes).
 
 **D-14 conditional Dependents:** no shared contract discovered. M11 (blacklist consumption, IC-level exclusion) and M12 (data-loss sample count) are distinct findings on distinct code paths. The `M11` and `M12` rows' `Dependents:` fields are unchanged.
 

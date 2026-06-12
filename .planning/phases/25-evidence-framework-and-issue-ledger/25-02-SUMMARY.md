@@ -120,7 +120,7 @@ Each task was committed atomically:
 - **D-14 Dependents unchanged for all three records:** each record's "D-14 conditional Dependents" section explicitly states "no shared contract discovered." The Dependents cells in the Status Table are preserved as Phase 25 seeded them.
 - **Phase 25 makes zero framework-spec edits (D-02):** each EVID-10 record carries spec-edit-ready prose under "Locked Convention" or "Locked Convention / Ruling" so Phase 26/27/28 can transcribe verbatim. The transcription targets cite the EVID-10 record by path.
 - **D-06 same-commit discipline:** the 3 evidence records + ledger wiring + per-finding notes land in one atomic commit. The final short SHA fills into the 4 per-finding status-transition log entries as a follow-up edit, not in the same commit (which would be self-referential). The audit label travels in the ledger's per-finding subsections per the contract.
-- **The work list is exactly 3 EVID-10 records (D-08):** SCS, D=6.694, M11/M12 (M11 and M12 share a record per the EVID-10 template's "one record can adjudicate multiple findings" allowance). No additional records authorized at this wave; future waves (Plan 25-03+) cover the remaining 15 in-scope findings (B-06, B-11, M13, D7, G1, G2, G4, SASD, IPR, PSC, D-03, footer, mass-drift) and any Phase 25-discovered gaps.
+- **The work list is exactly 3 EVID-10 records (D-08):** SCS, D=6.694, M11/M12 (M11 and M12 share a record per the EVID-10 template's "one record can adjudicate multiple findings" allowance). No additional records authorized in Phase 25 (the phase has exactly two plans — there is no Plan 25-03; 25-02-PLAN.md governance note). The remaining 15 in-scope findings (B-06, B-11, M13, D7, G1, G2, G4, SASD, IPR, PSC, D-03, footer, mass-drift) have their evidence packets and verdicts authored by the owning phase (26-28) immediately before its spec edits, per GAP-25-01 Option A (split reading).
 
 ## Deviations from Plan
 
@@ -138,9 +138,9 @@ None — no external service configuration required. The evidence records are lo
 
 ## Next Phase Readiness
 
-- **Phase 26 (PIPE-01..06, PIPE-10) ready:** consumes M11 prioritization (BLOCKING reclassification upheld) and the G1/G2/G3/G4 synthesis-view rows (which close with their parents). B-06, B-11, M13, D7, D-03 remain at PENDING in the ledger (their EVID-10 records land in Plan 25-03+ per D-08 work-list discipline).
+- **Phase 26 (PIPE-01..06, PIPE-10) ready:** consumes M11 prioritization (BLOCKING reclassification upheld) and the G1/G2/G3/G4 synthesis-view rows (which close with their parents). B-06, B-11, M13, D7, D-03 remain at PENDING in the ledger (their evidence packets are authored by the owning phase immediately before its spec edits, per GAP-25-01 split reading; D-08 confined this plan's work list to the three EVID-10 records).
 - **Phase 27 (PIPE-04, PIPE-07, PIPE-09) ready:** consumes M12 (`n_pts = min(n_pts_cap, n_snapshots(traj))` without replacement — locked data-side contract) and D=6.694 (raw-mass D ≈ 4.6416; E_scale = |median(E)| + 1e-8 canonicalization; M_tot_ref prohibited; admitted-set scope). The mass-drift PIPE-07 row consumes the remediated DATA-05 state, not this plan's EVID-10 work.
-- **Phase 28 (VAL-01..04) ready:** consumes SCS transcription spec (locked gate, band table, tie rule, near-zero-H(0) quarantine, ε=1e-10 Plummer evaluation, dual-ε_H disambiguation). SASD / IPR / PSC rows remain at PENDING (their EVID-10 records are future-wave).
+- **Phase 28 (VAL-01..04) ready:** consumes SCS transcription spec (locked gate, band table, tie rule, near-zero-H(0) quarantine, ε=1e-10 Plummer evaluation, dual-ε_H disambiguation). SASD / IPR / PSC rows remain at PENDING (their evidence packets are authored by Phase 28 immediately before its spec edits, per GAP-25-01 split reading).
 - **Phase 29 (acceptance) ready:** will re-run AC-PIPE-03 (M11), AC-PIPE-04 (M12), AC-PIPE-09 (D=6.694), AC-VAL-01 (SCS) per the Lifecycle Rules regression policy.
 
 The v1.5-pre-phase-25 recovery tag remains at `16f78284` after this commit; the `evidence(25-02)` commit is layered on top of `da5a8203` (milestone/v1.5 HEAD at resumption) without rebasing or rewriting history.

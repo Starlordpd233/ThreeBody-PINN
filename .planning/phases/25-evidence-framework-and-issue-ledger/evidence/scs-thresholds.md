@@ -105,9 +105,9 @@ Phase 28 VAL-01 owns the runnable pass criteria for AC-VAL-01 (verification sugg
 ## Status Transition Log
 
 ```text
-2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + accept-resolution verdict assigned; fix owned by Phase 28 VAL-01)
+2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + accept-resolution verdict assigned; fix owned by Phase 28 VAL-01)
 ```
 
-The final short SHA replaces `<pending-commit-sha>` after the atomic 25-02 commit; the audit label travels in the ledger's per-finding subsection (D-06 same-commit discipline).
+The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsection (D-06 same-commit discipline).
 
 **D-14 conditional Dependents:** no shared contract discovered. The SCS gate and the `compute_globals` D convention (D=6.694) both live in ctl but operate on different quantities (Hamiltonian drift diagnostic vs global length scale); no coupling. The `SCS` row's `Dependents:` field is unchanged.

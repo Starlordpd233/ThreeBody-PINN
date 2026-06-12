@@ -131,9 +131,9 @@ Phase 27 PIPE-09 owns the runnable pass criteria for AC-PIPE-09 (verification su
 ## Status Transition Log
 
 ```text
-2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + accept-resolution verdict assigned; CLM-13 ratified convention-rejected; fix owned by Phase 27 PIPE-09)
+2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + accept-resolution verdict assigned; CLM-13 ratified convention-rejected; fix owned by Phase 27 PIPE-09)
 ```
 
-The final short SHA replaces `<pending-commit-sha>` after the atomic 25-02 commit; the audit label travels in the ledger's per-finding subsection (D-06 same-commit discipline). The CLM-13 ratification note (OI-11) is the formal disposition of the `24-VERIFIED-FACTS.md` CLM-13 row (carry-forward to the addendum maintainer).
+The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsection (D-06 same-commit discipline). The CLM-13 ratification note (OI-11) is the formal disposition of the `24-VERIFIED-FACTS.md` CLM-13 row (carry-forward to the addendum maintainer).
 
 **D-14 conditional Dependents:** no shared contract discovered. The D=6.694 conflict concerns the global length scale; the SCS gate concerns Hamiltonian drift diagnostics. Both live in ctl §2.5 / ctl Mini-Batch Construction, but operate on different quantities (length vs diagnostic) with no shared coupling. The `D=6.694` row's `Dependents:` field is unchanged.
