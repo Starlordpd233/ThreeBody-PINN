@@ -23,12 +23,12 @@ retirement_trigger: milestone complete; superseded by subsequent work
 
 Read these review reports before editing:
 
-- `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/20-plan-review-comprehensive.md`
-- `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/phase20-deep-adversarial-review-v2-2026-06-04.md`
-- `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/2026-06-04-phase20-comprehensive-review.md`
-- `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/20-plan-review-findings.md`
-- `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/20-plan-deep-adversarial-review-2026-06-04.md`
-- `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/phase20-review.md`
+- `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/20-plan-review-comprehensive.md`
+- `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/phase20-deep-adversarial-review-v2-2026-06-04.md`
+- `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/2026-06-04-phase20-comprehensive-review.md`
+- `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/20-plan-review-findings.md`
+- `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/20-plan-deep-adversarial-review-2026-06-04.md`
+- `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/phase20-review.md`
 
 The reports disagree on severity. Treat the following as mandatory remediation:
 
@@ -71,7 +71,7 @@ The reports disagree on severity. Treat the following as mandatory remediation:
 
 **Files:**
 
-- Read: `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/*.md`
+- Read: `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/*.md`
 - Read: `.planning/phases/20-architecture-and-normalization-cleanup/*.md`
 
 - [ ] **Step 1: Confirm git state before edits**
@@ -91,7 +91,7 @@ Run:
 
 ```bash
 cd <home>/Desktop/3_body_problem
-rg --files docs/work/reviews/milestone_v1.4/20-plan-audit-legacy | sort
+rg --files docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy | sort
 ```
 
 Expected: the six review reports listed in `Source Review Inputs` are present.
@@ -167,7 +167,7 @@ Append this section before `## the agent's Discretion`:
 
 ## Review Remediation Decisions (2026-06-05)
 
-The review reports in `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/` disagree on several severities. The remediation rule is to prefer the stricter safe path where disagreement affects grounding:
+The review reports in `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/` disagree on several severities. The remediation rule is to prefer the stricter safe path where disagreement affects grounding:
 
 - M5 / `I_3`: Task and closure wording must reference the M5 Locked Convention, not hardcoded accept-resolution values.
 - M10 / mass support: no hardcoded numeric range enters plan prose unless the future M10 packet grounds that range under the v1.4 formula; otherwise use qualitative wording.

@@ -67,7 +67,7 @@ Use the same section shape for `Artifact Auditor`, `Spec Auditor`, and `Ledger A
 
 **Create:**
 
-- `docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md` - final audit report with evidence matrix, command outputs summarized, findings, and final verdict.
+- `docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md` - final audit report with evidence matrix, command outputs summarized, findings, and final verdict.
 
 **Read:**
 
@@ -128,7 +128,7 @@ Use the same section shape for `Artifact Auditor`, `Spec Auditor`, and `Ledger A
 
 **Files:**
 
-- Create: `docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md`
+- Create: `docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md`
 - Read: `AGENTS.md`
 
 - [ ] **Step 1: Confirm git state and branch context**
@@ -168,7 +168,7 @@ Expected: matching lines identify the v1.4 STOP protocol, source-grounding hiera
 
 - [ ] **Step 4: Create the audit report scaffold**
 
-Create `docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md` with this structure:
+Create `docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md` with this structure:
 
 ```markdown
 # Phase 20 Completion Reverification Report - 2026-06-06
@@ -798,7 +798,7 @@ Run:
 ```bash
 cd <home>/Desktop/3_body_problem
 git diff --check -- \
-  docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md \
+  docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md \
   .planning/phases/20-architecture-and-normalization-cleanup/20-GAPS.md \
   .planning/milestones/v1.4-GAPS.md
 ```
@@ -809,9 +809,9 @@ Expected: no whitespace errors.
 
 **Files:**
 
-- Modify: `docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md`
-- Read after independent synthesis only: `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/*.md`
-- Read after independent synthesis only: `docs/work/reviews/milestone_v1.4/20.5-plan-audit/*.md AND docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/*.md AND docs/work/reviews/milestone_v1.4/20.5-plan-audit-legacy/*.md (split across three destinations during reorg)`
+- Modify: `docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md`
+- Read after independent synthesis only: `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/*.md`
+- Read after independent synthesis only: `docs/archive/work/reviews/milestone_v1.4/20.5-plan-audit/*.md AND docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/*.md AND docs/archive/work/reviews/milestone_v1.4/20.5-plan-audit-legacy/*.md (split across three destinations during reorg)`
 
 - [ ] **Step 1: Fill the evidence matrix**
 
@@ -861,8 +861,8 @@ Run:
 ```bash
 cd <home>/Desktop/3_body_problem
 rg -n "ARCH-0[1-5]|GAP-20|I_norm|I_3|LayerNorm|omega|mass|energy|Phase 20\\.5|BLOCKER|HIGH|FAIL" \
-  docs/work/reviews/milestone_v1.4/20-plan-audit-legacy \
-  docs/work/reviews/milestone_v1.4/20.5-plan-audit + legacy dirs \
+  docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy \
+  docs/archive/work/reviews/milestone_v1.4/20.5-plan-audit + legacy dirs \
   docs/findings/milestone_v1.4/phase_20.5_plan_critique_review.md 2>/dev/null || true
 ```
 
@@ -875,7 +875,7 @@ Run:
 ```bash
 cd <home>/Desktop/3_body_problem
 rg -n "TB[D]|TO[D]O|f[i]ll in|implement late[r]|appropriate error handlin[g]|similar to Tas[k]" \
-  docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md \
+  docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md \
   docs/work/plans/milestone_v1.4/20-completion-reverification/2026-06-06-phase20-completion-state-reverification.md || true
 ```
 
@@ -885,7 +885,7 @@ Expected: no matches. If any match appears, replace it with concrete text before
 
 **Files:**
 
-- Stage only: `docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md`
+- Stage only: `docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md`
 - Stage only if STOP protocol required changes: `.planning/phases/20-architecture-and-normalization-cleanup/20-GAPS.md`
 - Stage only if STOP protocol required changes: `.planning/milestones/v1.4-GAPS.md`
 
@@ -922,7 +922,7 @@ Run:
 
 ```bash
 cd <home>/Desktop/3_body_problem
-git add docs/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md
+git add docs/archive/work/reviews/milestone_v1.4/20-completion-reverification/phase20-completion-reverification-2026-06-06.md
 ```
 
 If STOP protocol required gap-register updates, also run:

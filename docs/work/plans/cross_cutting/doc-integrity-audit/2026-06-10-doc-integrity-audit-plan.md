@@ -185,7 +185,7 @@ flowchart TB
 
 Commit per `docs/git-guidelines.md`: `docs(cross_cutting): commit doc integrity audit drift report` with a body summarizing verdict counts (N verified-current, M drift-found, K not-verifiable) and scope. The report commit is separate from any fix commits (R13).
 
-**Patterns to follow:** Review report format from existing reviews in `docs/work/reviews/milestone_v1.4/`.
+**Patterns to follow:** Review report format from existing reviews in `docs/archive/work/reviews/milestone_v1.4/`.
 
 **Test scenarios:**
 - Each Class 1–2 finding includes a traceable ID for U5 to reference. Covers AE1 (report-to-fix traceability).

@@ -83,7 +83,7 @@ Phase 22 is not fully closeable until the user completes the checklist in `.plan
 
 ## Sources
 
-- `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_execution/`
+- `docs/archive/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_execution/`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-05-PLAN.md`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-RENDER-REVIEW.md`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
