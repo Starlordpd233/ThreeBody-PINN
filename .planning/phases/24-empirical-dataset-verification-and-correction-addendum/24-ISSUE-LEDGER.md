@@ -22,8 +22,8 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 |----|-------|-------|--------|---------|-------------------|-----------------|------------------|--------------|------------|--------------|
 | B-06 | Stage 4→5 validation gate (trajectory-validator at DataLoader init) | 26 (PIPE-01) | PENDING | — | NO | — | AC-PIPE-01 | ctl_instruction.md; pinn_architecture.md | Q-A1 | 2026-06-11 |
 | B-11 | Non-contiguous IDs (ID ≠ array index; id_to_path / TrajectoryIndex contract) | 26 (PIPE-02) | PENDING | — | NO | — | AC-PIPE-02 | ctl_instruction.md; pinn_architecture.md | Q-A2 | 2026-06-11 |
-| M11 | Blacklist not loaded at training time (consumption contract) | 26 (PIPE-03) | PENDING | — | NO | — | AC-PIPE-03 | ctl_instruction.md; pinn_architecture.md | Q-A3 | 2026-06-11 |
-| M12 | Points-per-trajectory infeasibility (32 vs observed snapshot distribution) | 27 (PIPE-04) | PENDING | — | NO | — | AC-PIPE-04 | ctl_instruction.md | Q-B1 | 2026-06-11 |
+| M11 | Blacklist not loaded at training time (consumption contract) | 26 (PIPE-03) | PENDING | **BLOCKING STANDS** (M11 explicit severity ruling; data-integrity grounds; OI-8 carried forward) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-03 | ctl_instruction.md; pinn_architecture.md | Q-A3 | 2026-06-12 |
+| M12 | Points-per-trajectory infeasibility (32 vs observed snapshot distribution) | 27 (PIPE-04) | PENDING | `accept-third-position` (BLOCKING-infeasibility claim rejected; P1-4 `0.5×` factor rejected) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-04 | ctl_instruction.md | Q-B1 | 2026-06-12 |
 | M13 | 184 standard IDs without gold counterpart (fallback policy) | 26 (PIPE-05) | PENDING | — | NO | — | AC-PIPE-05 | ctl_instruction.md; pinn_architecture.md | Q-A4 | 2026-06-11 |
 | D7 | Footer / parameter heterogeneity (folder-default fallback, tol_confidence) | 26 (PIPE-06) | PENDING | — | NO | — | AC-PIPE-06 | ctl_instruction.md; pinn_architecture.md | Q-A5 | 2026-06-11 |
 | G1 | Pipeline validation gap — synthesis view (B-06) | 26 (PIPE-01) | PENDING | — | NO | — | AC-PIPE-01 (synthesis view over B-06) | ctl_instruction.md; pinn_architecture.md | B-06 | 2026-06-11 |
@@ -31,12 +31,12 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | G3 | Pipeline validation gap — synthesis view (M11) | 26 (PIPE-03) | PENDING | — | NO | — | AC-PIPE-03 (synthesis view over M11) | ctl_instruction.md; pinn_architecture.md | M11 | 2026-06-11 |
 | G4 | Pipeline validation gap — synthesis view (M13) | 26 (PIPE-05) | PENDING | — | NO | — | AC-PIPE-05 (synthesis view over M13) | ctl_instruction.md; pinn_architecture.md | M13 | 2026-06-11 |
 | G5 | dt_out heterogeneity (data-side; Q-B1 facet; collocation-scaling facet M16 deferred to doc-03) | 27 (PIPE-04) | PENDING | — | NO | — | AC-PIPE-04 (data-side facet; M16 training-side deferred) | ctl_instruction.md; pinn_architecture.md | M12; M16-deferred | 2026-06-11 |
-| SCS | Symplectic Conservation Score definition + thresholds (data-side; Q-C1) | 28 (VAL-01) | PENDING | — | YES — EVID-10 required (ratio-SCS vs locked log-drift gate) | — | AC-VAL-01 | data_quality_assessment.md (read-only; sole written home of locked gate) | Q-C1 | 2026-06-11 |
+| SCS | Symplectic Conservation Score definition + thresholds (data-side; Q-C1) | 28 (VAL-01) | PENDING | `accept-resolution` | YES — EVID-10 required (ratio-SCS vs locked log-drift gate) | [scs-thresholds.md](../25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md) | AC-VAL-01 | data_quality_assessment.md (read-only; sole written home of locked gate) | Q-C1 | 2026-06-12 |
 | SASD | Stiffness-Aware Sampling Density (data-side; Q-C2) | 28 (VAL-02) | PENDING | — | NO | — | AC-VAL-02 | ctl_instruction.md; pinn_architecture.md | Q-C2 | 2026-06-11 |
 | IPR | Interpolation Physics Residual (data-side, dual-epsilon; Q-C3) | 28 (VAL-03) | PENDING | — | NO | — | AC-VAL-03 | ctl_instruction.md; pinn_architecture.md | Q-C3 | 2026-06-11 |
 | PSC | Phase Space Coverage Entropy (data-side; Q-C4) | 28 (VAL-04) | PENDING | — | NO | — | AC-VAL-04 | ctl_instruction.md; pinn_architecture.md | Q-C4 | 2026-06-11 |
 | D-03 | Processed training-data format (HDF5 vs .npy vs txt/json) | 26 (PIPE-10) | PENDING | — | NO | — | AC-PIPE-10 | ctl_instruction.md | Q-A6 | 2026-06-11 |
-| D=6.694 | compute_globals / D=6.694 convention conflict (CLM-13) — NOT probed by Phase 24; routed to Phase 25 EVID-10 / Phase 27 PIPE-09 | 25 (EVID-10) / 27 (PIPE-09) | PENDING | — | YES — EVID-10 required (PHYS-01 raw-mass D ~ 4.6416 vs mass-fraction 6.694) | — | AC-PIPE-09 / EVID-10 verdict | ctl_instruction.md §2.5 line 598 explicitly rejects 6.694 form | Q-B4 | 2026-06-11 |
+| D=6.694 | compute_globals / D=6.694 convention conflict (CLM-13) — NOT probed by Phase 24; routed to Phase 25 EVID-10 / Phase 27 PIPE-09 | 25 (EVID-10) / 27 (PIPE-09) | PENDING | `accept-resolution` (CLM-13 ratified `convention-rejected`) | YES — EVID-10 required (PHYS-01 raw-mass D ~ 4.6416 vs mass-fraction 6.694) | [compute-globals-D.md](../25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md) | AC-PIPE-09 / EVID-10 verdict | ctl_instruction.md §2.5 line 598 explicitly rejects 6.694 form | Q-B4 | 2026-06-12 |
 | footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | PENDING | — | NO — GAP-24-01 resolved by user instruction; 70 base-hier artifacts required rerun, not Decimal fallback (rerun executed+validated 2026-06-11) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
 | mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | NO — DATA-05 resolved as invalid/stale base-hier artifacts; rerun passed 2026-06-11, replacements live; metrics for the 70 IDs regenerated and validated 2026-06-11 (gate 7 closed) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
 
@@ -121,8 +121,23 @@ Note: the CLM-03 count (65 IDs) is **confirmed** by Phase 24 (DATA-02 verdict
 recorded the blacklist-load map under SCOPE-07 only; `pinn/` is outside grounding limits
 (SCOPE-10) and the consumption contract is the PIPE-03 question.
 
+Verdict: **M11 explicit severity ruling — MAJOR → BLOCKING reclassification
+STANDS** (Phase 25 P02 EVID-10 record `evidence/m11-m12-severity.md`; grounded
+on the data-integrity argument: IC-level exclusion via byte-identical-subset,
+before-statistics ordering prevents normalizer contamination, fail-closed follows
+from the exclusion guarantee). The M11 *consumption* question (does the live
+loader enforce the blacklist?) is **OI-8, carried forward** to Phase 26 PIPE-03
+/ FUT-01 per SCOPE-10; not resolved here, not blocking the severity ruling.
+**D-12 (synthesis-view close-with-parent):** G3 closes with M11 — no separate
+evidence packet. **M11 GUARD (D-10) not triggered:** all four objective guard
+triggers checked at authoring time — none fired (resolution doc routes M11 to
+determinate data-integrity argument, not Open Items; §3.3 part 2 grounding
+present; OI-8 is a carry-forward caveat, not a severity-decision blocker;
+CLM-03 confirmed). Prioritization owned by Phase 26 PIPE-03.
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M11 explicit severity ruling **BLOCKING STANDS**; OI-8 carried forward; D-12 G3->M11 close-with-parent; prioritization owned by Phase 26 PIPE-03)
 
 ### M12: Points-per-trajectory infeasibility (Phase 27 PIPE-04)
 
@@ -134,8 +149,18 @@ Note: Phase 24's CLM-10 row (snapshot-count distributions) is **corrected** (med
 127 / 1003); the PIPE-04 contract is the adjudicated sampling-feasibility rule that
 consumes those distributions.
 
+Verdict: `accept-third-position` (Phase 25 P02 EVID-10 record
+`evidence/m11-m12-severity.md`; BLOCKING-infeasibility claim is falsified on the
+corrected CLM-10 medians — `32 ≤ 59` is trivially feasible; the P1-4
+`n_pts = min(32, int(0.5·n_snapshots))` factor is rejected as unevidenced and
+internally inconsistent with the issue doc's own verification checklist).
+Locked data-side contract: `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))`
+without replacement. **D-12 (synthesis-view close-with-parent):** G5 closes
+with M12 — no separate evidence packet. Fix owned by Phase 27 PIPE-04.
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 `accept-third-position` verdict; fix owned by Phase 27 PIPE-04; D-12 G5->M12 close-with-parent)
 
 ### M13: 184 standard IDs without gold counterpart (Phase 26 PIPE-05)
 
@@ -222,8 +247,16 @@ conflict with the locked post-v1.3 gate (`epsilon_H > 1e-5` / `SCS > -5`). EVID-
 required. The locked gate's sole written home is the read-only,
 non-authoritative `data_quality_assessment.md` (SI-DQA-003).
 
+Verdict: `accept-resolution` (Phase 25 P02 EVID-10 record
+`evidence/scs-thresholds.md`; locked post-v1.3 gate `SCS > -5` (≡ `ε_H > 1e-5`) is
+constraint-entailed; the issue-doc `1e-6` is the Acceptable/Marginal band boundary
+mis-promoted to a gate, `1e-8` is an unsourced proposal). Fix owned by Phase 28
+VAL-01 (transcription of the locked gate into `ctl_instruction.md`; DQA remains
+read-only per SCOPE-09).
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict assigned; fix owned by Phase 28 VAL-01)
 
 ### SASD: Stiffness-Aware Sampling Density (Phase 28 VAL-02)
 
@@ -275,8 +308,20 @@ v1.4 PHYS-01 fixes raw-mass `D = (G * T^2)^(1/3) ~ 4.6416` and `ctl_instruction.
 line 598 **explicitly rejects** the 6.694 form. NOT probed by Phase 24 (D-05; not a dataset
 count, a contested convention). EVID-10 required. Routed Phase 25 EVID-10 / Phase 27 PIPE-09.
 
+Verdict: `accept-resolution` (Phase 25 P02 EVID-10 record
+`evidence/compute-globals-D.md`; raw-mass `D = (G·T²)^(1/3) ≈ 4.6416` is
+constraint-entailed; the issue-doc listing has three verified defects — mixed
+convention, additive-ε anti-pattern, `E_scale` outlier). **OI-11 (CLM-13
+ratification, D-15/D-16):** the `24-VERIFIED-FACTS.md` CLM-13 row is formally
+ratified by this EVID-10 record with disposition `convention-rejected` (no
+dataset probe required; the finding is a convention adjudication, not a count).
+Fix owned by Phase 27 PIPE-09 (transcription of the locked convention into
+`ctl_instruction.md §2.5`, including the `E_scale = |median(E)| + 1e-8`
+canonicalization as a 2-of-3 editable-spec choice).
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-12 <pending-commit-sha> PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict + CLM-13 ratified `convention-rejected`; fix owned by Phase 27 PIPE-09; OI-11 propagated)
 
 ### footer: Footer/mass-drift protocol (Phase 26/27 PIPE-06/07)
 
