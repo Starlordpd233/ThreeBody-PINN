@@ -196,7 +196,27 @@ Every selected finding follows the v1.4-style loop:
   4. The gold-counterpart contract (M13) is defined: a Stage-5 gold-existence check plus the fallback policy; if the sources are silent or conflicting on the fallback choice, it is surfaced as a STOP gap for user decision, not invented.
   5. The footer/parameter-heterogeneity contract (D7) is defined — `Result:` footer precedence, folder-default fallback, `tol_confidence` (`direct` vs `inferred`), and footer-as-metadata-only so the completeness gate never depends on footer presence — and the training-data format decision (D-03: HDF5 vs `.npy` vs txt/json) is presented to the user with verified evidence and the user-locked choice recorded in the specs.
 
-**Plans**: TBD
+**Plans**: 5 plans (sequential waves — ledger + evidence/README.md are shared write targets and D-08 mandates one atomic commit per plan, so no two plans run concurrently; D-09 ordering: autonomous chain B-06/B-11 → M11 → D7, then isolated M13 STOP-gap candidate and the D-03 user gate)
+
+**Wave 1**
+
+  - [ ] 26-01-PLAN.md — B-06 admission gate (PIPE-01) + B-11 ID-resolution (PIPE-02), interlinked Step-1 contracts; includes the v1.5-pre-phase-26 tag + commit-wrapper preflight
+
+**Wave 2** *(blocked on Wave 1)*
+
+  - [ ] 26-02-PLAN.md — M11 blacklist-exclusion contract (PIPE-03); extends the existing m11-m12-severity.md packet (verdict locked), co-located with the Step-1A gate
+
+**Wave 3** *(blocked on Wave 2)*
+
+  - [ ] 26-03-PLAN.md — D7 footer/parameter-heterogeneity contract (PIPE-06); Step-1-item-3 replacement + §2.6 amendment; completes the autonomous chain
+
+**Wave 4** *(blocked on Wave 3)*
+
+  - [ ] 26-04-PLAN.md — M13 gold-counterpart contract (PIPE-05); pre-registered STOP-gap candidate (D-12 adopt-or-defer); isolated from the autonomous chain
+
+**Wave 5** *(blocked on Wave 4)*
+
+  - [ ] 26-05-PLAN.md — D-03 training-data format (PIPE-10); mandatory USER gate (autonomous: false); user selects, no auto-selection
 
 ### Phase 27: Sampling, Precision, and Global-Scale Contracts
 
@@ -251,7 +271,7 @@ Every selected finding follows the v1.4-style loop:
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
 | 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete    | 2026-06-12 |
-| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 0/5 | Planned | - |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
