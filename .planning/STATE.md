@@ -3,31 +3,31 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-last_updated: "2026-06-12T13:04:04.722Z"
-last_activity: 2026-06-12 -- Phase 25 execution started
+last_updated: "2026-06-12T13:37:52.920Z"
+last_activity: 2026-06-12 -- Phase 25 complete (UAT 9/9 passed)
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
   completed_plans: 12
-  percent: 38
+  percent: 50
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-10)
+See: .planning/PROJECT.md (updated 2026-06-12)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 25 — evidence-framework-and-issue-ledger
+**Current focus:** Phase 26 — dataloader-ingestion-and-selection-contracts
 
 ## Current Position
 
-Phase: 25 (evidence-framework-and-issue-ledger) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 25
-Last activity: 2026-06-12 -- Phase 25 execution started
+Phase: 26 (dataloader-ingestion-and-selection-contracts)
+Plan: Not started
+Status: Phase 25 complete (UAT 9/9 passed) — ready to plan Phase 26
+Last activity: 2026-06-12 -- Phase 25 UAT passed; two minor doc findings remediated at closure (9d2d86eb); phase marked complete
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
@@ -35,7 +35,7 @@ Last activity: 2026-06-12 -- Phase 25 execution started
 
 **Velocity:**
 
-- Total plans completed: 71 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 73 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -71,6 +71,7 @@ Last activity: 2026-06-12 -- Phase 25 execution started
 | Phase 23 P05 | 15min | 2 tasks | 2 files |
 | 23 | 5 | - | - |
 | 24.5 | 1 | - | - |
+| 25 | 2 | - | - |
 
 ## Accumulated Context
 
@@ -146,6 +147,7 @@ Recent decisions affecting current work:
 - [Phase 23→24]: Phase 23 review (`23-REVIEW.md:115-173`) identified four non-blocking warnings (WR-01..04) routed to Phase 24's DATA-07 correction pass: WR-01 (Q-B2 sample-size conflict 1000 vs 100), WR-02 (Hard Constraint 3 wrong line cite 972→967), WR-03 (Q-B1 dangling "§5.3.2" cite, spec says example not contract), WR-04 (CLM-05 dual-observable ambiguity — IC vs Brutus folder counts). Two schema questions (CLM-05 split, new CLM row for WR-01) and one channel question (WR-02/03 citation-fix channel) are surfaced as open decisions in `24-DISCUSSION-LOG.md` — NOT pre-decided. WR-04 shapes DATA-03/04 probe design (count both observables separately). All corrections travel through the correction channel; package byte-stability preserved.
 - [Phase 24.5 2026-06-11]: Resolution-doc readiness verification complete. Gate verdict **READY-WITH-CAVEATS**. All four checks pass: structure citable; 19/19 issue-02 findings covered (0 silent, 0 partial); 0 DATA-xx contradictions across CLM-01..13 + DATA-05; 0 locked-convention violations (HC-1..HC-6 upheld; issue-doc SCS ratio thresholds and D=6.694 rejected). Caveats are deferred-by-design open items the resolution doc registers (OI-3 calibration constants, OI-6 no-footer probe gap, OI-7 Q-A4 label-semantics STOP-gap defeater + gold-rerun residue, OI-8 M11 live-loader outside grounding, OI-11 CLM-13 → EVID-10/PIPE-09, OI-12 optional addendum erratum). Phases 25-29 unblocked. Deliverables: `24.5-READINESS-REPORT.md`, `24.5-RESOLUTION-MAP.md`. No STOP-gap opened.
 - [Phase 24 2026-06-11]: GAP-24-01 (DATA-05 base-hier mass mismatch) resolved with user instruction. Current IC files are canonical; the 70 affected base-hier outputs (`0005`-`0059`, `0061`-`0075`) are invalid/stale artifacts requiring targeted rerun from current ICs; old artifacts are quarantined from training, metrics, and PIPE-07 until rerun validation passes. Remediation boundary recorded in `24-DATA05-RERUN-REMEDIATION.md`; the milestone gap index now has 0 open gaps.
+- [Phase 25 2026-06-12]: Adjudication machinery stood up (`evidence/_TEMPLATE.md` 12-section + §3b Dataset Evidence; protocol README with EVID-10 trigger table, D-03 downstream enforcement, GAP-25-02 adjudicated-but-unfixed legend; `24-ISSUE-LEDGER.md` Lifecycle Rules re-issued to Phases 26–28). Four EVID-10 verdicts locked: SCS `accept-resolution` (locked log-based gate `SCS > -5` stands; ratio thresholds rejected); D=6.694 `accept-resolution` (raw-mass D ≈ 4.6416 stands; CLM-13 ratified `convention-rejected`, OI-11); M12 `accept-third-position` (`n_pts = min(n_pts_cap, n_snapshots)` locked; 0.5× factor rejected); M11 MAJOR→BLOCKING reclassification STANDS (data-integrity grounds; OI-8 carried to Phase 26 PIPE-03/FUT-01). G3/G5 close with parents (D-12). Remaining packets authored by owning phases 26–28 immediately before their spec edits (GAP-25-01 split reading); ledger rows stay PENDING (adjudicated-but-unfixed) until fixes verify.
 
 ### Pending Todos
 
@@ -170,12 +172,13 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 - **External gate:** opens on Phase 23 (research package) delivery. Phase 24.5 verifies the consolidated resolution doc before adjudication begins. Phases 25–29 cannot start until Phase 24.5 passes (which requires BOTH the consolidated resolution doc landing AND Phase 24 completion). Phase 23 is unblocked; Phase 24 is unblocked and runs in parallel with the gate window (gates on nothing external).
 - **DATA-05 remediation boundary:** GAP-24-01 is resolved as a decision, not as completed data repair. The old 70 base-hier outputs (`0005`-`0059`, `0061`-`0075`) are quarantined from training, metrics, and PIPE-07 until targeted rerun from current ICs passes validation (`24-DATA05-RERUN-REMEDIATION.md`).
 - **STOP protocol active:** v1.5 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
-- Phases 25–29 blocked until Phase 24.5 passes (which requires the consolidated resolution doc landing at `research_reports/02-data-pipeline-and-validation/` AND Phase 24 completion). Phase 24 runs in parallel, gates on nothing external.
+- Phase 24.5 passed 2026-06-11 (READY-WITH-CAVEATS) and Phase 25 closed 2026-06-12 — Phases 26–28 proceed under the Phase 25 machinery: evidence packet before any spec edit (EVID-06), same-commit ledger wiring (D-06), phase-exit only at VERIFIED/DEFERRED; carry the resolution-doc OI caveats (OI-3/6/7/8/11/12) forward.
 
 ## Session Continuity
 
-Last session: 2026-06-12T04:53:24.660Z
-Next action: Plan and execute Phase 25 (evidence framework, verdicts, root-cause adjudication, re-verification ledger). Consume `24.5-RESOLUTION-MAP.md` for evidence-packet construction; carry the §4 caveats (OI-3/6/7/8/11/12) forward; CLM-13 ratification is the EVID-10 work item.
+Last session: 2026-06-12T21:45:00+08:00
+Stopped at: Phase 25 complete (UAT 9/9 passed; findings remediated in 9d2d86eb), ready to plan Phase 26
+Next action: Plan Phase 26 (DataLoader ingestion and selection contracts — PIPE-01, 02, 03, 05, 06, 10). Author evidence packets immediately before each spec edit using the Phase 25 machinery (GAP-25-01 split reading; README packet-before-edit rule); consume the M11 ruling (BLOCKING STANDS; OI-8 carry-forward) from `evidence/m11-m12-severity.md`.
 
 ## Operator Next Steps
 
