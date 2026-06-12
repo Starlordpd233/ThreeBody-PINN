@@ -41,6 +41,7 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | NO — DATA-05 resolved as invalid/stale base-hier artifacts; rerun passed 2026-06-11, replacements live; metrics for the 70 IDs regenerated and validated 2026-06-11 (gate 7 closed) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
 
 ## Notes
+- **2026-06-12:** D-11 re-issue: the Lifecycle Rules block's stale v1.4 applicability text (the v1.4-era phase range that named the old spec-edit phases and the inserted phase) was mechanically updated to the v1.5 spec-edit phases (now 26-28 with Phase 29 as the acceptance phase). State machine, batch definition, regression policy, and phase-exit gate preserved verbatim per D-11 KEEP-VERBATIM list. Only the stale applicability token changed; the per-finding rows, Status Table, and Anomalies section are untouched (Plan 25-02 fills the three EVID-10 rows' Evidence-Packet links and per-finding verdict notes in its own commit, per D-06).
 
 19/19 issue-02 findings seeded at PENDING; full inventory per D-23 (the user's resolution
 doc is the candidate verdict source; adjudication verdicts are Phase 25's to assign via
@@ -76,7 +77,7 @@ The forward status path is exactly `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VER
 
 Audit string: FIX_APPLIED is not closure; VERIFIED requires a passing acceptance check.
 
-A batch is one GSD plan (`NN-NN-PLAN.md`). After every batch of spec or code edits in Phases 17-22, including Phase 20.5, the executing agent re-runs each `VERIFIED` finding's acceptance check if that finding appears as a transitive dependent of any finding edited by the batch. Any regression returns the affected finding to `IN_PROGRESS` and blocks phase exit until re-fixed and re-verified.
+A batch is one GSD plan (`NN-NN-PLAN.md`). After every batch of spec or code edits in Phases 26-28 (spec-edit phases; Phase 29 is the acceptance phase), the executing agent re-runs each `VERIFIED` finding's acceptance check if that finding appears as a transitive dependent of any finding edited by the batch. Any regression returns the affected finding to `IN_PROGRESS` and blocks phase exit until re-fixed and re-verified.
 
 The phase-exit gate permits only `VERIFIED` or `DEFERRED` for in-scope findings. No phase exits with any in-scope finding at `IN_PROGRESS` or `FIX_APPLIED`.
 
