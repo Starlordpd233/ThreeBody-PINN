@@ -661,7 +661,7 @@ low-risk and explicitly re-confirmable at edit time. The genuinely open *decisio
 semantics, M13 gold-rerun, D-03 format) are USER/framework-owner calls documented in "Source-Silence
 and Cross-Source Findings", not assumptions this research makes.
 
-## Open Questions
+## Open Questions (delegated to execution-time user gates — not unresolved research gaps)
 
 1. **M13 Step-5 label semantics (simulations vs IDs) — THE phase pivot.**
    - What we know: the resolution doc reaches a no-fallback-by-entailment direction at Medium confidence
