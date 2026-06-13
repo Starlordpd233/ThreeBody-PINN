@@ -124,11 +124,11 @@ The footer evidence base is shared with Phase 27 Q-B2/Q-B3 (footer/mass-drift + 
 ## Status Transition Log
 
 ```text
-2026-06-13 SHA_26-03 PENDING -> IN_PROGRESS (Phase 26 P03 by gsd-executor; D7 packet authored, accept-resolution verdict, AC-PIPE-06 defined)
-2026-06-13 SHA_26-03 IN_PROGRESS -> FIX_APPLIED (Phase 26 P03; Step 1 item 3 replacement + §2.6 param_provenance amendment transcribed into ctl_instruction.md from 02-resolution-doc.md:315-341)
-2026-06-13 SHA_26-03 FIX_APPLIED -> VERIFIED (Phase 26 P03; AC-PIPE-06 footer-presence + tol-decomposition probe PASS; OI-9 hier-base supersession recorded; AC-PIPE-01 regression re-check PASS)
+2026-06-13 50076e38 PENDING -> IN_PROGRESS (Phase 26 P03 by gsd-executor; D7 packet authored, accept-resolution verdict, AC-PIPE-06 defined)
+2026-06-13 50076e38 IN_PROGRESS -> FIX_APPLIED (Phase 26 P03; Step 1 item 3 replacement + §2.6 param_provenance amendment transcribed into ctl_instruction.md from 02-resolution-doc.md:315-341)
+2026-06-13 50076e38 FIX_APPLIED -> VERIFIED (Phase 26 P03; AC-PIPE-06 footer-presence + tol-decomposition probe PASS; OI-9 hier-base supersession recorded; AC-PIPE-01 regression re-check PASS)
 ```
 
-The Plan 26-03 commit SHA travels with all three transitions, the spec edit, and the ledger edits in one commit (D-08); `SHA_26-03` is backfilled to the real short SHA in the immediately following provenance commit (a commit cannot reference its own hash inline — pre-approved pattern, Phase 25 e05b4b1a / 26-01 fc6554b2 / 26-02 b42fbdaa).
+The Plan 26-03 commit SHA travels with all three transitions, the spec edit, and the ledger edits in one commit (D-08); the substantive commit SHA is `50076e38`, backfilled here in the immediately following provenance commit (a commit cannot reference its own hash inline — pre-approved pattern, Phase 25 e05b4b1a / 26-01 fc6554b2 / 26-02 b42fbdaa).
 
 **Dependents / regression (D-08):** D7 and B-06 both touch the footer/completeness boundary. The AC-PIPE-01 regression re-check confirms Step-1A clause 4 still states completeness is computed from parsed block times with footer presence forbidden as a completeness signal — consistent with D7's footer-as-metadata-only clause. B-06 remains VERIFIED. B-11's Step-1 item-7 mapping clause ("`Result:` footer paths are never used for mapping") is unchanged and D7 defers to it. No regression.

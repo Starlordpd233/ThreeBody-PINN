@@ -234,9 +234,9 @@ carried as the single named overturning factor — footer carries no completenes
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 SHA_26-03 PENDING -> IN_PROGRESS (Phase 26 P03; D7 packet authored, accept-resolution verdict, AC-PIPE-06 defined)
-- 2026-06-13 SHA_26-03 IN_PROGRESS -> FIX_APPLIED (Phase 26 P03; Step 1 item 3 replacement + §2.6 param_provenance amendment in ctl_instruction.md from 02-resolution-doc.md:315-341)
-- 2026-06-13 SHA_26-03 FIX_APPLIED -> VERIFIED (Phase 26 P03; AC-PIPE-06 footer-presence + tol-decomposition probe PASS; OI-9 hier-base supersession recorded; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED)
+- 2026-06-13 50076e38 PENDING -> IN_PROGRESS (Phase 26 P03; D7 packet authored, accept-resolution verdict, AC-PIPE-06 defined)
+- 2026-06-13 50076e38 IN_PROGRESS -> FIX_APPLIED (Phase 26 P03; Step 1 item 3 replacement + §2.6 param_provenance amendment in ctl_instruction.md from 02-resolution-doc.md:315-341)
+- 2026-06-13 50076e38 FIX_APPLIED -> VERIFIED (Phase 26 P03; AC-PIPE-06 footer-presence + tol-decomposition probe PASS; OI-9 hier-base supersession recorded; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED)
 
 ### G1: Pipeline validation gap — synthesis view (B-06)
 
