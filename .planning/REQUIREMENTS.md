@@ -130,12 +130,12 @@ Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`,
 | EVID-09 | Phase 25 | Pending (gated on Phase 24.5) |
 | EVID-10 | Phase 25 | Pending (gated on Phase 24.5) |
 | VER-10 | Phase 25 | Pending (gated on Phase 24.5) |
-| PIPE-01 | Phase 26 | Pending (gated on Phase 24.5) |
-| PIPE-02 | Phase 26 | Pending (gated on Phase 24.5) |
-| PIPE-03 | Phase 26 | Pending (gated on Phase 24.5) |
-| PIPE-05 | Phase 26 | Pending (gated on Phase 24.5) |
-| PIPE-06 | Phase 26 | Pending (gated on Phase 24.5) |
-| PIPE-10 | Phase 26 | Pending (gated on Phase 24.5) |
+| PIPE-01 | Phase 26 | Complete (2026-06-13) |
+| PIPE-02 | Phase 26 | Complete (2026-06-13) |
+| PIPE-03 | Phase 26 | Complete (2026-06-13) |
+| PIPE-05 | Phase 26 | Complete (2026-06-13; GAP-26-01 RESOLVED-WITH-INSTRUCTION) |
+| PIPE-06 | Phase 26 | Complete (2026-06-13) |
+| PIPE-10 | Phase 26 | Complete (2026-06-13; user-locked HDF5 canonical) |
 | PIPE-04 | Phase 27 | Pending (gated on Phase 24.5) |
 | PIPE-07 | Phase 27 | Pending (gated on Phase 24.5) |
 | PIPE-08 | Phase 27 | Pending (gated on Phase 24.5) |
@@ -160,4 +160,4 @@ Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`,
 - SCOPE-06 through SCOPE-11 are scope-boundary annotations, not numbered requirements.
 
 ---
-*Requirements defined: 2026-06-10; traceability filled 2026-06-10 by roadmap creation; revised 2026-06-10 (phase-order swap, DATA-07 mapped); revised 2026-06-11 (Phase 24.5 insertion — gating updated from "resolution doc + Phase 24" to "Phase 24.5").*
+*Requirements defined: 2026-06-10; traceability filled 2026-06-10 by roadmap creation; revised 2026-06-10 (phase-order swap, DATA-07 mapped); revised 2026-06-11 (Phase 24.5 insertion — gating updated from "resolution doc + Phase 24" to "Phase 24.5"); revised 2026-06-13 (Phase 26 complete — PIPE-01/02/03/05/06/10 traceability rows advanced from Pending to Complete to match the checklist and VERIFIED ledger rows).*
