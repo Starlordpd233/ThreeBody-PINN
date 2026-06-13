@@ -61,3 +61,10 @@ No other deviations. No Rule 1-4 auto-fixes were needed; the format choice was a
 ## D-04 / perimeter compliance
 
 `git diff --name-only` for the `26-05` commit shows only `ctl_instruction.md` + `.planning/` paths: specifically NO `pinn_architecture.md` (D-03 names ctl alone, T-26-21), no frozen specs (`sampling_method.md`, `data_quality_assessment.md`), no `pinn/`. One atomic commit via `scripts/agent-commit` (scope `26-05`, type `spec`, body required) carrying spec + packet + README + ledger together (D-11/D-08).
+
+## Self-Check: PASSED
+
+- Files exist: `ctl_instruction.md`, `d-03-training-data-format.md`, `26-05-SUMMARY.md`, `24-ISSUE-LEDGER.md` — all FOUND.
+- Commits exist: `8369e275` (atomic spec+packet+ledger commit), `8ef4dfd7` (SHA backfill) — both in `git log`.
+- Task-3 automated verify gate: round-trip clause OK; ctl edited OK; no forbidden paths (no `pinn_architecture.md` / frozen specs / `pinn/`); D-03 VERIFIED in ledger OK.
+- AC-PIPE-10 PASS; AC-PIPE-01/02/06 regression re-checks PASS. Working tree clean.
