@@ -82,3 +82,44 @@ The orchestrator's CRITICAL_GOVERNANCE_OVERRIDE supersedes the plan's Task-3 wor
 - M13 ledger row IN_PROGRESS + defer-with-blocker + packet link — FOUND
 - AC-PIPE-05 PASS (184/184) + AC-PIPE-02 regression PASS — captured in packet
 - No `26-GAPS.md` / `v1.5-GAPS.md` in this executor's changes — CONFIRMED (perimeter clean)
+
+## Resolution (2026-06-13, GAP-26-01 = Option B)
+
+The framework owner resolved the pre-registered STOP gap **GAP-26-01** (OI-7a) on
+2026-06-13 = **Option B: Stage-5 curriculum stage labels attach to IDs** (not to
+simulations) — every Stage-4-admitted ID owes a Stage-5 gold sample. The owner directed the
+remediation: re-simulate the missing gold counterparts for the 184 standard IDs to restore
+a 1:1 base:gold correspondence. This continuation of Plan 26-04 transcribes the grounded
+ruling (it does not re-open or infer it).
+
+Changes landed in ONE atomic commit (scope 26-04):
+
+1. **`ctl_instruction.md` Step 5** — the neutral "UNRESOLVED — fallback policy pending
+   framework-owner ruling" note is **replaced** with a **resolved note**: Stage-5 labels
+   attach to IDs (GAP-26-01 RESOLVED, OI-7a); the 184 gold-less standard IDs are genuine
+   Stage-5 holes resolved by re-simulating their gold counterparts to 1:1 (OI-7b, a
+   data-generation remediation — not a loader fallback — ACTIVATED, not yet executed); no
+   base→gold substitution (the mandatory contract bullets above are unchanged and stay in
+   force); pending re-simulation each affected ID carries `gold_counterpart = absent` and
+   contributes no gold Stage-5 sample; the gold-missing set is the remediation backlog
+   expected empty post-rerun. A one-line **per-ID stage-label clarification** is added on the
+   Step-5 hinge. Edit confined to `ctl_instruction.md` (D-04; no `pinn_architecture.md` edit).
+2. **M13 packet** (`evidence/m13-gold-counterpart.md`) — Verdict `defer-with-blocker` →
+   **`accept-third-position`** (the per-ID premise is accepted, the resolution-doc
+   no-fallback entailment is rejected, and the directed re-simulation remediation is neither
+   source's option). Full user-decision provenance recorded. OI-7a → RESOLVED; OI-7b →
+   ACTIVATED (forward reference). AC-PIPE-05 re-confirmed PASS (184/184, run
+   2026-06-13T08:12:11Z, unchanged by the ruling).
+3. **24-ISSUE-LEDGER.md** — M13 DEFERRED → **VERIFIED** (verdict `accept-third-position`
+   (user-ruled B; re-simulation remediation)); G4 DEFERRED → **VERIFIED** (closes with M13).
+   Per-finding transition logs added (M13: DEFERRED → FIX_APPLIED → VERIFIED; G4: DEFERRED →
+   VERIFIED close-with-parent) and narratives updated from "blocked on GAP-26-01" to
+   "GAP-26-01 RESOLVED 2026-06-13 = Option B".
+
+**Forward dependency (not done):** the 184 gold re-simulations (OI-7b) are a data-generation
+prerequisite for a complete gold Stage-5 stratum; the owner stated intent to do this
+"shortly". Recorded as a forward reference only.
+
+**Governance:** the ruling is a grounded user decision, transcribed faithfully; nothing
+beyond it was invented. Gap registers (`26-GAPS.md`, `v1.5-GAPS.md`) are PARENT-owned and
+were **NOT touched** by this executor.

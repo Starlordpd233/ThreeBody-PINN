@@ -1243,7 +1243,10 @@ a script that reads the table of computed invariants and outputs a
 mapping from each simulation ID to its assigned stage index. The stage
 mapping is keyed by `record_key`, never by positional index, per the
 Step-1 ID-resolution contract (Step 1 item 7); only trajectories admitted
-by the Step 1A gate appear in this mapping.
+by the Step 1A gate appear in this mapping. (Stage-label obligation is
+per-ID, not per-simulation: every Stage-4-admitted ID owes a Stage-5 gold
+sample — GAP-26-01 resolved 2026-06-13, OI-7a; see the resolved
+gold-counterpart note below.)
 
 **Gold-counterpart contract (data-side, mandatory).** A standard
 `physical_key` may lack a gold-resolution realization (verified: 184
@@ -1262,16 +1265,26 @@ data-side invariant, independently of any Stage-5 fallback policy:
 - A base-fidelity record is never silently substituted into a
   gold-resolution slot.
 
-> **UNRESOLVED — fallback policy pending framework-owner ruling.** Whether
-> a fallback applies to the 184 gold-less standard IDs at Stage 5 depends
-> on a label-semantics ruling that is not yet settled: do Stage-5 stage
-> labels attach to *simulations* (`record_key`), or to *IDs* (such that
-> every Stage-4-admitted ID must yield a Stage-5 sample)? The two readings
-> produce different Stage-5 stratum composition. This question is recorded
-> as open STOP gap **GAP-26-01**
-> (`.planning/phases/26-dataloader-ingestion-and-selection-contracts/26-GAPS.md`)
-> and routed to the framework owner; until it is resolved, no fallback policy
-> is asserted here. See
+> **RESOLVED — Stage-5 labels attach to IDs (GAP-26-01, framework-owner
+> ruling 2026-06-13, OI-7a).** The label-semantics question — do Stage-5
+> stage labels attach to *simulations* (`record_key`) or to *IDs* — is
+> ruled in favor of **IDs**: every Stage-4-admitted ID owes a Stage-5
+> gold sample. Under this ruling the 184 standard IDs without a gold
+> counterpart are **genuine Stage-5 gold holes** (the per-simulation
+> no-fallback entailment is rejected, because it presupposed the
+> simulations reading). The resolution is a **data-generation
+> remediation, not a loader fallback**: the framework owner directed that
+> the missing gold counterparts for the 184 standard IDs be **re-simulated
+> to restore a 1:1 base:gold correspondence** (OI-7b, activated 2026-06-13).
+> No base→gold substitution is introduced (the mandatory data-side
+> contract above already forbids it and stays in force), and no silent
+> skip. **Pending re-simulation**, each affected ID carries
+> `gold_counterpart = absent` and contributes no gold Stage-5 sample; the
+> loader's gold-missing set (the set-difference machinery in the contract
+> above) is the **remediation backlog**, expected to be empty once the
+> re-simulated gold trajectories land and validate. **Forward dependency
+> (not yet executed):** the 184 gold re-simulations are a data-generation
+> prerequisite for a complete gold Stage-5 stratum (OI-7b). See
 > `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
