@@ -223,7 +223,7 @@ contract applied + verified; fallback policy pending the STOP gap), not `DEFERRE
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 <THIS_SHA> PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored, defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5 from 02-resolution-doc.md:262; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner ruling, surfaced as parent-recorded STOP gap; ruling NOT invented)
+- 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored, defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5 from 02-resolution-doc.md:262; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner ruling, surfaced as parent-recorded STOP gap; ruling NOT invented)
 
 ### D7: Footer / parameter heterogeneity (Phase 26 PIPE-06)
 
@@ -306,7 +306,7 @@ closes with M13's final disposition once the ruling lands.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 <THIS_SHA> PENDING -> IN_PROGRESS (Phase 26 P04; D-07 close-with-parent G4->M13; no separate packet; inherits M13 IN_PROGRESS — mandatory data-side contract applied + AC-PIPE-05 verified, fallback policy pending OI-7a STOP gap)
+- 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; D-07 close-with-parent G4->M13; no separate packet; inherits M13 IN_PROGRESS — mandatory data-side contract applied + AC-PIPE-05 verified, fallback policy pending OI-7a STOP gap)
 
 ### G5: dt_out heterogeneity (Phase 27 PIPE-04, data-side facet)
 

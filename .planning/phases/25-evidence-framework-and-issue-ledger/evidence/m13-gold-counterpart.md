@@ -120,7 +120,7 @@ Per-claim:
 
 ```text
 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-2026-06-13 <THIS_SHA> PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored; defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner label-semantics ruling, surfaced as parent-recorded GAP-26-NN STOP gap; label-semantics ruling NOT invented)
+2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored; defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner label-semantics ruling, surfaced as parent-recorded GAP-26-NN STOP gap; label-semantics ruling NOT invented)
 ```
 
 **Note:** M13 remains `IN_PROGRESS` (not `DEFERRED`) by orchestrator directive: the mandatory data-side contract is FIX_APPLIED and AC-PIPE-05 verified, but the fallback policy is pending the parent-recorded STOP gap. G4 (synthesis over M13) is left unclosed pending the same ruling. Final disposition (VERIFIED-with-conditional-note via path a, or DEFERRED via formal gap resolution) is set when the OI-7a ruling lands.
