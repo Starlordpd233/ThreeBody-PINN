@@ -126,6 +126,7 @@ Evidence packet filenames under `evidence/` use the sanitization rule: filesyste
 | `D7` | `evidence/d7-footer-heterogeneity.md` |
 | `M13` | `evidence/m13-gold-counterpart.md` |
 | `D-03` | `evidence/d-03-training-data-format.md` |
+| `mass-drift` / `DATA-05` (PIPE-07 precision facet) | `evidence/data05-precision.md` |
 
 Sanitization rule: replace any character not in `[A-Za-z0-9_-]` with `-` and trim repeated `-`; lower-case the result unless the ID mixes cases the ledger preserves. Each filename must be unique within `evidence/`.
 
