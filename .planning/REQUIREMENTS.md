@@ -46,7 +46,7 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 
 - [ ] **PIPE-01**: Framework specs define the Stage 4→5 trajectory-validation gate contract (B-06): final-timestamp threshold, stage-dependent snapshot minimums, and rejection logging — as a DataLoader design contract.
 - [ ] **PIPE-02**: Framework specs define the ID-resolution contract (B-11): `id_to_path` mapping built from the filesystem scan, with the explicit invariant that trajectory ID is never assumed equal to array index.
-- [ ] **PIPE-03**: Framework specs define the blacklist-exclusion contract (M11): load at DataLoader init, exclude, log the exclusion count, fail loudly if a blacklisted ID reaches a batch.
+- [x] **PIPE-03**: Framework specs define the blacklist-exclusion contract (M11): load at DataLoader init, exclude, log the exclusion count, fail loudly if a blacklisted ID reaches a batch.
 - [ ] **PIPE-04**: Framework specs define the points-per-trajectory contract (M12): an adjudicated sampling-feasibility rule (candidate: `n_pts = min(32, int(0.5 * n_snapshots))`) consistent with the verified snapshot distributions from DATA-06.
 - [ ] **PIPE-05**: Framework specs define the gold-counterpart contract (M13): Stage-5 gold-existence check plus the fallback policy (skip to Stage 6 vs flagged low-fidelity fallback). If the sources are silent or conflicting on the fallback choice, it is surfaced as a gap for user decision, not invented.
 - [ ] **PIPE-06**: Framework specs define the footer/parameter-heterogeneity contract (D7): `Result:` footer precedence, folder-default fallback, `tol_confidence` flag (`direct` vs `inferred`), and footer-as-metadata-only (completeness gate never depends on footer presence).

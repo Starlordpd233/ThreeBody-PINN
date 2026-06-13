@@ -451,6 +451,50 @@ M12 rule `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` (locked M12 rule, see
 Phase 27 PIPE-04; transcribed in `m11-m12-severity.md`), not by any admission
 floor.
 
+### Blacklist-exclusion contract (clause 1 detail; M11 / PIPE-03)
+
+The blacklist exclusion named in Step-1A clause 1 is a blocking-grade, fail-closed
+DataLoader precondition. It is specified as follows:
+
+1. Load. `problematic_ics_blacklist.json` is loaded at DataLoader init, before
+   stage assignment (Step 5) and before any dataset-wide statistic
+   (`compute_globals`, §2.5) — the before-statistics ordering is load-bearing: a
+   blacklisted record left in the population contaminates the normalizers.
+2. Schema validation. The file is a top-level JSON object with exactly the keys
+   `hierarchical` and `standard`, each a list of integer-like IDs. Any other shape
+   (a missing key, a third top-level key, non-integer IDs) is a hard configuration
+   error. IDs normalize to `int` (the `%04d` filename boundary, Step 1 item 7) and
+   deduplicate within family.
+3. IC-level exclusion. Blacklist semantics attach to `physical_key = (variant, id)`
+   and exclude every `record_key` beneath it — both the base and gold realizations
+   of that variant (gold ICs are a byte-identical subset of base ICs, so a
+   problematic IC is problematic at every fidelity).
+4. Fail-closed. A missing, unreadable, or schema-invalid blacklist file is a hard
+   init failure; absence is a configuration error, never an empty blacklist. Any
+   override must be an explicit, logged, development-only flag.
+5. Logging. Per family, the loader logs `n_blacklist_entries`, `n_present_on_disk`
+   per fidelity, and `n_excluded`. A listed ID absent from disk is logged, not
+   fatal. Expected exclusion counts are asserted against the parsed file content of
+   the run, never against a hard-coded constant. (As a verified reference point, the
+   current blacklist holds 65 IDs — 2 hierarchical + 63 standard — per DATA-02 /
+   CLM-03; this count is a dataset fact for cross-checking, not a contract constant.)
+6. Defense in depth. A set-membership assertion at batch assembly re-checks every
+   emitted sample; a blacklisted sample reaching an emitted batch raises a hard
+   error, because it indicates a bypass path — exactly the M11 failure mode.
+
+Equivalently, the contract reads:
+
+> Blacklist semantics attach to `physical_key` and exclude every `record_key`
+> beneath it. A missing or malformed `problematic_ics_blacklist.json` is a fatal
+> configuration error unless an explicit, logged development-only override is set.
+> Exclusion executes before stage assignment and before any dataset-wide statistic.
+> Exclusion counts are logged per family and fidelity; expected counts are asserted
+> against the parsed file content of the run, never hard-coded.
+
+The live-loader's actual blacklist enforcement at training time is a FUT-01
+hand-off question (OI-8 / SCOPE-10), outside the grounding of this contract; the
+data-side contract above is stated regardless.
+
 ## Step 2: Unified Preprocessing Pipeline
 
 Every IC/BRUTUS pair passes through one deterministic preprocessing transform

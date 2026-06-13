@@ -127,7 +127,15 @@ Phase 25 makes **zero framework-spec edits** (D-02); the M12 spec transcription 
 
 **M11 — Before:** the M11 severity was MAJOR (audit) and the issue doc's Severity Reclassification Ledger reclassified it to BLOCKING; the M11 *consumption* question is unverified (SCOPE-10); the data-side contract is grounded in CLM-03 (65 IDs, confirmed).
 
-**M11 — After (this EVID-10 record + Phase 26 PIPE-03 prioritization):** the BLOCKING reclassification is **upheld by Phase 25** on data-integrity grounds (this record). The M11 contract is blocking-grade, fail-closed; the live-loader consumption verification is a Phase 26 PIPE-03 / FUT-01 hand-off item, not a Phase 25 verdict. No framework-spec edit (D-02).
+**M11 — After (this EVID-10 record + Phase 26 PIPE-03 prioritization):** the BLOCKING reclassification is **upheld by Phase 25** on data-integrity grounds (this record). The M11 contract is blocking-grade, fail-closed; the live-loader consumption verification is a Phase 26 PIPE-03 / FUT-01 hand-off item, not a Phase 25 verdict. No framework-spec edit (D-02 — Phase 25 makes the severity ruling only).
+
+### M11 PIPE-03 Before / After Spec Note (Phase 26 — the actual spec landing)
+
+This sub-note records the PIPE-03 spec edit that the Phase 25 record above explicitly deferred to Phase 26. It extends (does not supersede) the M11 — Before/After lines above; the M12 sub-part of this packet is untouched (Phase 27 owns M12).
+
+**M11 PIPE-03 — Before (post-25, pre-26-02):** `ctl_instruction.md` carried no blacklist-exclusion contract; the M11 severity ruling stood with `Spec Sections Touched: None (D-02)`. Plan 26-01 (B-06, `b1852b0f`) introduced `## Step 1A — Trajectory Admission Gate` whose clause 1 (Identity & blacklist) named blacklist exclusion thinly: `(variant, id)` pairs in `problematic_ics_blacklist.json` excluded from both base and gold folders before stage assignment and `compute_globals`, missing file = hard init failure, batch-time assertion. The 6-clause detail (schema validation, fail-closed override semantics, per-family logging with the count re-keyed to parsed content, defense-in-depth batch assertion wording) was not yet stated.
+
+**M11 PIPE-03 — After (Plan 26-02):** `ctl_instruction.md` gains a `### Blacklist-exclusion contract (clause 1 detail; M11 / PIPE-03)` sub-section co-located with the Step-1A gate (after the Step-1A clause list, before `## Step 2`). It transcribes the candidate text from `02-resolution-doc.md §3.3 Q-A3:223-251` (6-clause contract + proposed-spec-text block `:244-251`): (1) init-load before stage assignment and `compute_globals`; (2) strict two-key schema validation, hard config error otherwise, `int` normalization + within-family dedup; (3) IC-level exclusion attaching to `physical_key`, excluding base and gold via the byte-identical-subset relationship; (4) fail-closed — missing/unreadable/invalid file = hard init failure, override only via explicit logged dev-only flag; (5) per-family logging (`n_blacklist_entries`, `n_present_on_disk` per fidelity, `n_excluded`), listed-but-absent ID logged not fatal, expected counts asserted against parsed file content with the 65-ID figure (2 hierarchical + 63 standard) cited as a DATA-02/CLM-03 dataset fact, NOT hard-coded as a contract constant; (6) defense-in-depth batch-assembly set-membership assertion raising a hard error on any blacklisted emitted sample. The note closes by routing the live-loader consumption question to FUT-01 (OI-8 / SCOPE-10). `pinn_architecture.md` is NOT edited (D-04 — the contract is data-side). Placement/heading is presentation-level discretion (D-03). The 65-ID count is grounded in `24-VERIFIED-FACTS.md:17` (CLM-03 confirmed) and the DATA-02 consumption map (`24-VERIFIED-FACTS.md:60-72`), re-confirmed by the AC-PIPE-03 probe below.
 
 **D-12 (close-with-parent annotations):** the synthesis rows G3 (→M11) and G5 (→M12) close with their parent findings — no separate evidence packet. See Status Transition Log and the ledger's per-finding subsections.
 
@@ -138,11 +146,40 @@ Phase 25 makes **zero framework-spec edits** (D-02); the M12 spec transcription 
 
 Phase 25 mints no new AC-IDs (D-13); AC-PIPE-03 and AC-PIPE-04 are the seeded assignments from `24-ISSUE-LEDGER.md`.
 
+### AC-PIPE-03 executed pass criteria + probe capture (Phase 26 P02, D-14/D-15)
+
+**AC-PIPE-03** (reserved in `24-ISSUE-LEDGER.md:25`; no new AC-ID minted — VER-07).
+
+- **Pass criterion:** (a) the blacklist-exclusion contract in `ctl_instruction.md` names init-load of `problematic_ics_blacklist.json` before stage assignment and `compute_globals`, a hard-init-failure (fail-closed) clause, per-family exclusion logging, and a defense-in-depth batch-assembly assertion; (b) the 65-ID figure appears as a cited DATA-02/CLM-03 dataset fact, not as a hard-coded contract constant; (c) the verified blacklist composition is `{hierarchical: 2, standard: 63}` total 65 (CLM-03), re-derived by the Phase 24 `data02_blacklist.py` probe.
+- **Data it runs on:** the edited `ctl_instruction.md` (spec-consistency grep) and `simulation_data/Documentation/problematic_ics_blacklist.json` via the Phase 24 probe (dataset fact; `24-VERIFIED-FACTS.md:17`, CLM-03 confirmed).
+- **Exact command + captured output (re-derivable, D-15):**
+
+```text
+$ .venv/bin/python .planning/phases/24-empirical-dataset-verification-and-correction-addendum/probes/data02_blacklist.py
+  ... "composition": {"hierarchical": 2, "standard": 63}, ... "total": 65
+  (run_date_utc 2026-06-13T06:13:31Z; blacklist_path .../problematic_ics_blacklist.json)
+
+$ grep -nE 'problematic_ics_blacklist\.json|before stage assignment|before any dataset-wide statistic|hard init failure|per family|batch assembly|hard-coded' \
+    pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md
+  -> Step-1A clause 1 (init-load, before stage assignment / compute_globals, missing file = hard init failure, batch-time assertion)
+  -> ### Blacklist-exclusion contract sub-section: clauses 1-6 (load / schema / IC-level / fail-closed / per-family logging with 65 as cited DATA-02 fact / defense-in-depth batch assertion)
+  -> proposed-spec-text quote block (physical_key attach; fatal config error; before stage assignment; counts vs parsed file content, never hard-coded)
+```
+
+- **Result:** PASS. Contract names init-load + fail-closed + per-family logging + batch assertion; 65 cited as a DATA-02/CLM-03 fact (re-keyed to parsed content), not a contract constant; CLM-03 composition `{2, 63}` total 65 re-derived. AC-PIPE-03 is a spec-consistency + dataset-fact probe touching no `pinn/` path; Phase 29 (VER-09) builds and re-executes the full runnable suite (live-loader exhaustive-iteration test + unit tests per resolution doc §3.3 part 5) from this AC-ID.
+
+**AC-PIPE-01 regression re-check (D-08; B-06 shares the Step-1A region):** the M11 blacklist sub-section sits after the Step-1A clause list, leaving B-06's gate clauses byte-stable. Re-ran the AC-PIPE-01 spec-consistency grep — `## Step 1A — Trajectory Admission Gate`, `final_timestep >= 9.5`, `SCS > -5` present; no `>= 200` floor introduced; the rejected-floor note intact. B-06 stays VERIFIED; no regression.
+
 ## Status Transition Log
 
 ```text
 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 accept-third-position verdict + M11 explicit severity ruling BLOCKING STANDS; M12 fix owned by Phase 27 PIPE-04, M11 prioritization owned by Phase 26 PIPE-03; OI-8 carried forward; D-12 G3->M11, G5->M12 close with parent)
+2026-06-13 <pending-26-02-sha> M11 PENDING -> IN_PROGRESS (Phase 26 P02 by gsd-executor; M11 PIPE-03 before/after note added, AC-PIPE-03 defined; M12 sub-part untouched)
+2026-06-13 <pending-26-02-sha> M11 IN_PROGRESS -> FIX_APPLIED (Phase 26 P02; blacklist-exclusion contract transcribed into ctl_instruction.md from 02-resolution-doc.md:223-251, co-located with Step-1A clause 1)
+2026-06-13 <pending-26-02-sha> M11 FIX_APPLIED -> VERIFIED (Phase 26 P02; AC-PIPE-03 spec-consistency + CLM-03 dataset probe PASS; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED; G3 closes with M11)
 ```
+
+The `<pending-26-02-sha>` placeholders for the three M11 transitions are backfilled to the substantive Plan 26-02 commit SHA in the immediately following provenance commit (a commit cannot reference its own hash inline; backfill is the accepted Phase 25 / 26-01 pattern). The M12 transition above (`e05b4b1a`) is unchanged.
 
 The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsections (D-06 same-commit discipline; D-12 close-with-parent annotations in the M11 and M12 per-finding notes).
 

@@ -204,7 +204,7 @@ Every selected finding follows the v1.4-style loop:
 
 **Wave 2** *(blocked on Wave 1)*
 
-  - [ ] 26-02-PLAN.md — M11 blacklist-exclusion contract (PIPE-03); extends the existing m11-m12-severity.md packet (verdict locked), co-located with the Step-1A gate
+  - [x] 26-02-PLAN.md — M11 blacklist-exclusion contract (PIPE-03); extends the existing m11-m12-severity.md packet (verdict locked), co-located with the Step-1A gate
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -271,7 +271,7 @@ Every selected finding follows the v1.4-style loop:
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
 | 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete    | 2026-06-12 |
-| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 1/5 | In Progress|  |
+| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 2/5 | In Progress|  |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
