@@ -116,8 +116,8 @@ Each entry: `date`, `commit short SHA`, `status transition`, `actor / plan refer
 
 ```text
 2026-06-13 (uncommitted — awaiting user gate) PENDING -> IN_PROGRESS (Phase 26 P26-05 Task 1 by agent; D-03 packet authored, candidate + verified evidence presented, NO verdict selected)
-2026-06-13 <26-05-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P26-05 Task 3; user selected hdf5-canonical at the PIPE-10 gate (D-11); ctl_instruction.md Step 1 item 6 replaced to name HDF5 canonical + round-trip acceptance clause)
-2026-06-13 <26-05-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P26-05 Task 3; AC-PIPE-10 PASS — item 6 names HDF5 + round-trip clause; AC-PIPE-01/02/06 regression re-checks PASS, no regression)
+2026-06-13 8369e275 IN_PROGRESS -> FIX_APPLIED (Phase 26 P26-05 Task 3; user selected hdf5-canonical at the PIPE-10 gate (D-11); ctl_instruction.md Step 1 item 6 replaced to name HDF5 canonical + round-trip acceptance clause)
+2026-06-13 8369e275 FIX_APPLIED -> VERIFIED (Phase 26 P26-05 Task 3; AC-PIPE-10 PASS — item 6 names HDF5 + round-trip clause; AC-PIPE-01/02/06 regression re-checks PASS, no regression)
 ```
 
-> The three transitions above share the single atomic `26-05` commit SHA (`<26-05-SHA>` to be backfilled). Per D-11/D-08 the packet + `ctl_instruction.md` Step-1-item-6 edit + ledger transition to VERIFIED + README map row all travel in that one commit. D-03 has NO synthesis (G) row to close.
+> The three transitions above share the single atomic `26-05` commit SHA (`8369e275`). Per D-11/D-08 the packet + `ctl_instruction.md` Step-1-item-6 edit + ledger transition to VERIFIED + README map row all travel in that one commit. D-03 has NO synthesis (G) row to close.

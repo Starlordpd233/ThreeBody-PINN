@@ -390,8 +390,8 @@ Packet: [d-03-training-data-format.md](../25-evidence-framework-and-issue-ledger
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 (uncommitted) PENDING -> IN_PROGRESS (Phase 26 P26-05 Task 1; D-03 packet authored, candidate + verified evidence presented, no verdict selected)
-- 2026-06-13 <26-05-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P26-05 Task 3; user selected hdf5-canonical; ctl_instruction.md Step 1 item 6 replaced to name HDF5 canonical + round-trip acceptance clause)
-- 2026-06-13 <26-05-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P26-05 Task 3; AC-PIPE-10 PASS; AC-PIPE-01/02/06 regression re-checks PASS)
+- 2026-06-13 8369e275 IN_PROGRESS -> FIX_APPLIED (Phase 26 P26-05 Task 3; user selected hdf5-canonical; ctl_instruction.md Step 1 item 6 replaced to name HDF5 canonical + round-trip acceptance clause)
+- 2026-06-13 8369e275 FIX_APPLIED -> VERIFIED (Phase 26 P26-05 Task 3; AC-PIPE-10 PASS; AC-PIPE-01/02/06 regression re-checks PASS)
 
 ### D=6.694: compute_globals / D=6.694 convention conflict (Phase 25 EVID-10 / Phase 27 PIPE-09)
 
