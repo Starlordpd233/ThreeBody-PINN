@@ -237,8 +237,8 @@ Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored, defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5 from 02-resolution-doc.md:262; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner ruling, surfaced as parent-recorded STOP gap; ruling NOT invented)
 - 2026-06-13 683ef0fc IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; GAP-26-01 recorded in 26-GAPS.md + v1.5-GAPS.md; fallback policy blocked on OI-7a label-semantics ruling pending user decision; mandatory data-side contract remains FIX_APPLIED + AC-PIPE-05-verified; DEFERRED is the allowed phase-exit state per D-08)
-- 2026-06-13 RESOLVE_SHA DEFERRED -> FIX_APPLIED (Phase 26 P04 resolve; GAP-26-01 RESOLVED = Option B, Stage-5 labels attach to IDs, OI-7a; verdict accept-third-position; resolved gold-counterpart note + per-ID stage-label clarification landed in ctl_instruction.md Step 5 replacing the UNRESOLVED note; re-simulate 184 gold counterparts to 1:1 OI-7b ACTIVATED data-generation remediation not yet executed; no base->gold substitution; ruling transcribed NOT invented)
-- 2026-06-13 RESOLVE_SHA FIX_APPLIED -> VERIFIED (Phase 26 P04 resolve; AC-PIPE-05 set-difference probe re-confirmed PASS 184/184; mandatory data-side contract unchanged and verified; deferral lifted by framework-owner ruling)
+- 2026-06-13 ab5f7f06 DEFERRED -> FIX_APPLIED (Phase 26 P04 resolve; GAP-26-01 RESOLVED = Option B, Stage-5 labels attach to IDs, OI-7a; verdict accept-third-position; resolved gold-counterpart note + per-ID stage-label clarification landed in ctl_instruction.md Step 5 replacing the UNRESOLVED note; re-simulate 184 gold counterparts to 1:1 OI-7b ACTIVATED data-generation remediation not yet executed; no base->gold substitution; ruling transcribed NOT invented)
+- 2026-06-13 ab5f7f06 FIX_APPLIED -> VERIFIED (Phase 26 P04 resolve; AC-PIPE-05 set-difference probe re-confirmed PASS 184/184; mandatory data-side contract unchanged and verified; deferral lifted by framework-owner ruling)
 
 ### D7: Footer / parameter heterogeneity (Phase 26 PIPE-06)
 
@@ -324,7 +324,7 @@ Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; D-07 close-with-parent G4->M13; no separate packet; inherits M13 IN_PROGRESS — mandatory data-side contract applied + AC-PIPE-05 verified, fallback policy pending OI-7a STOP gap)
 - 2026-06-13 683ef0fc IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; D-07 close-with-parent G4->M13; inherits M13 DEFERRED disposition; blocked on GAP-26-01 OI-7a ruling pending user decision)
-- 2026-06-13 RESOLVE_SHA DEFERRED -> VERIFIED (Phase 26 P04 resolve; D-07 close-with-parent G4->M13; inherits M13 VERIFIED disposition after GAP-26-01 RESOLVED = Option B; no separate packet; AC-PIPE-05 re-confirmed 184/184)
+- 2026-06-13 ab5f7f06 DEFERRED -> VERIFIED (Phase 26 P04 resolve; D-07 close-with-parent G4->M13; inherits M13 VERIFIED disposition after GAP-26-01 RESOLVED = Option B; no separate packet; AC-PIPE-05 re-confirmed 184/184)
 
 ### G5: dt_out heterogeneity (Phase 27 PIPE-04, data-side facet)
 
