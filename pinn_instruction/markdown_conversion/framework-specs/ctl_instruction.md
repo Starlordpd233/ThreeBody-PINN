@@ -1229,6 +1229,33 @@ mapping is keyed by `record_key`, never by positional index, per the
 Step-1 ID-resolution contract (Step 1 item 7); only trajectories admitted
 by the Step 1A gate appear in this mapping.
 
+**Gold-counterpart contract (data-side, mandatory).** A standard
+`physical_key` may lack a gold-resolution realization (verified: 184
+standard IDs have no gold counterpart). The loader MUST handle this as a
+data-side invariant, independently of any Stage-5 fallback policy:
+
+- The gold-missing set is computed at init as the set difference of the
+  scanned base and gold ID sets, cross-checked against the verified 184-ID
+  list in `standard_quasi_random_ids_not_in_gold.md` (discrepancies
+  logged). The set is never hard-coded.
+- Each `physical_key` carries metadata `gold_counterpart ∈ {present,
+  absent}`.
+- The Stage-5 stratum (Set 2b, gold standard) is built by iterating the
+  gold folder's actual files, never by base-ID lookup into the gold index
+  (which would manufacture 184 spurious misses by construction).
+- A base-fidelity record is never silently substituted into a
+  gold-resolution slot.
+
+> **UNRESOLVED — fallback policy pending framework-owner ruling.** Whether
+> a fallback applies to the 184 gold-less standard IDs at Stage 5 depends
+> on a label-semantics ruling that is not yet settled: do Stage-5 stage
+> labels attach to *simulations* (`record_key`), or to *IDs* (such that
+> every Stage-4-admitted ID must yield a Stage-5 sample)? The two readings
+> produce different Stage-5 stratum composition. This question is recorded
+> as an open STOP gap (phase 26 gap register) and routed to the framework
+> owner; until it is resolved, no fallback policy is asserted here. See
+> `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
+
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
 > **Historical author note (pre-Phase 17; retained as a non-normative
