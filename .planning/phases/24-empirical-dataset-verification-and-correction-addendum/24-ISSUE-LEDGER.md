@@ -20,14 +20,14 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 
 | ID | Title | Phase | Status | Verdict | Sources Disagree? | Evidence Packet | Acceptance Check | Spec Section | Dependents | Last Updated |
 |----|-------|-------|--------|---------|-------------------|-----------------|------------------|--------------|------------|--------------|
-| B-06 | Stage 4→5 validation gate (trajectory-validator at DataLoader init) | 26 (PIPE-01) | PENDING | — | NO | — | AC-PIPE-01 | ctl_instruction.md; pinn_architecture.md | Q-A1 | 2026-06-11 |
-| B-11 | Non-contiguous IDs (ID ≠ array index; id_to_path / TrajectoryIndex contract) | 26 (PIPE-02) | PENDING | — | NO | — | AC-PIPE-02 | ctl_instruction.md; pinn_architecture.md | Q-A2 | 2026-06-11 |
+| B-06 | Stage 4→5 validation gate (trajectory-validator at DataLoader init) | 26 (PIPE-01) | VERIFIED | `accept-resolution` | NO | [b-06-admission-gate.md](../25-evidence-framework-and-issue-ledger/evidence/b-06-admission-gate.md) | AC-PIPE-01 | ctl_instruction.md Step 1A (admission gate); pinn_architecture.md None (D-04 data-side) | Q-A1; B-11 | 2026-06-13 |
+| B-11 | Non-contiguous IDs (ID ≠ array index; id_to_path / TrajectoryIndex contract) | 26 (PIPE-02) | VERIFIED | `accept-resolution` | NO | [b-11-id-resolution.md](../25-evidence-framework-and-issue-ledger/evidence/b-11-id-resolution.md) | AC-PIPE-02 | ctl_instruction.md Step 1 item 7 (ID resolution); pinn_architecture.md None (D-04 data-side) | Q-A2; B-06 | 2026-06-13 |
 | M11 | Blacklist not loaded at training time (consumption contract) | 26 (PIPE-03) | PENDING | **BLOCKING STANDS** (M11 explicit severity ruling; data-integrity grounds; OI-8 carried forward) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-03 | ctl_instruction.md; pinn_architecture.md | Q-A3 | 2026-06-12 |
 | M12 | Points-per-trajectory infeasibility (32 vs observed snapshot distribution) | 27 (PIPE-04) | PENDING | `accept-third-position` (BLOCKING-infeasibility claim rejected; P1-4 `0.5×` factor rejected) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-04 | ctl_instruction.md | Q-B1 | 2026-06-12 |
 | M13 | 184 standard IDs without gold counterpart (fallback policy) | 26 (PIPE-05) | PENDING | — | NO | — | AC-PIPE-05 | ctl_instruction.md; pinn_architecture.md | Q-A4 | 2026-06-11 |
 | D7 | Footer / parameter heterogeneity (folder-default fallback, tol_confidence) | 26 (PIPE-06) | PENDING | — | NO | — | AC-PIPE-06 | ctl_instruction.md; pinn_architecture.md | Q-A5 | 2026-06-11 |
-| G1 | Pipeline validation gap — synthesis view (B-06) | 26 (PIPE-01) | PENDING | — | NO | — | AC-PIPE-01 (synthesis view over B-06) | ctl_instruction.md; pinn_architecture.md | B-06 | 2026-06-11 |
-| G2 | Pipeline validation gap — synthesis view (B-11) | 26 (PIPE-02) | PENDING | — | NO | — | AC-PIPE-02 (synthesis view over B-11) | ctl_instruction.md; pinn_architecture.md | B-11 | 2026-06-11 |
+| G1 | Pipeline validation gap — synthesis view (B-06) | 26 (PIPE-01) | VERIFIED | `accept-resolution` (closes with B-06) | NO | (closes with B-06; no separate packet — D-07) | AC-PIPE-01 (synthesis view over B-06) | ctl_instruction.md Step 1A | B-06 | 2026-06-13 |
+| G2 | Pipeline validation gap — synthesis view (B-11) | 26 (PIPE-02) | VERIFIED | `accept-resolution` (closes with B-11) | NO | (closes with B-11; no separate packet — D-07) | AC-PIPE-02 (synthesis view over B-11) | ctl_instruction.md Step 1 item 7 | B-11 | 2026-06-13 |
 | G3 | Pipeline validation gap — synthesis view (M11) | 26 (PIPE-03) | PENDING | — | NO | — | AC-PIPE-03 (synthesis view over M11) | ctl_instruction.md; pinn_architecture.md | M11 | 2026-06-11 |
 | G4 | Pipeline validation gap — synthesis view (M13) | 26 (PIPE-05) | PENDING | — | NO | — | AC-PIPE-05 (synthesis view over M13) | ctl_instruction.md; pinn_architecture.md | M13 | 2026-06-11 |
 | G5 | dt_out heterogeneity (data-side; Q-B1 facet; collocation-scaling facet M16 deferred to doc-03) | 27 (PIPE-04) | PENDING | — | NO | — | AC-PIPE-04 (data-side facet; M16 training-side deferred) | ctl_instruction.md; pinn_architecture.md | M12; M16-deferred | 2026-06-11 |
@@ -98,8 +98,24 @@ Acceptance check: AC-PIPE-01
 
 Owning requirement: PIPE-01 (Stage 4→5 trajectory-validation gate contract).
 
+Verdict: `accept-resolution` (Phase 26 P01 evidence packet
+`evidence/b-06-admission-gate.md`). The resolution doc's 7-clause Step-1A
+admission gate (`02-resolution-doc.md §3.1 Q-A1:105-174`) is adopted; the
+issue-doc `snapshot_count >= 200` floor (P1-1) is rejected on verified facts
+(CLM-10 medians 61/127 reject 100% of both base populations). Snapshot minimums
+are stated by **citing** the locked M12 rule (`evidence/m11-m12-severity.md:105-113`,
+D-02) — Phase 26 does not re-decide sampling feasibility (M12 spec edit is Phase 27
+PIPE-04). Spec edit: new `## Step 1A — Trajectory Admission Gate` in
+`ctl_instruction.md`. AC-PIPE-01 spec-consistency + CLM-10 dataset probe PASS.
+**D-12 (synthesis-view close-with-parent):** G1 closes with B-06 — no separate
+evidence packet. Carried caveats (D-13): OI-6 (no-footer probe-coverage gap;
+clause 7 held at WARN), OI-9 (DATA-05 70-ID rerun validated 2026-06-11).
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-13 <PLAN-26-01-SHA> PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-06 packet authored, accept-resolution verdict, AC-PIPE-01 defined)
+- 2026-06-13 <PLAN-26-01-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1A admission gate transcribed into ctl_instruction.md from 02-resolution-doc.md:127-174)
+- 2026-06-13 <PLAN-26-01-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-01 spec-consistency + CLM-10 dataset probe PASS; G1 closes with B-06)
 
 ### B-11: Non-contiguous IDs (Phase 26 PIPE-02)
 
@@ -107,8 +123,23 @@ Acceptance check: AC-PIPE-02
 
 Owning requirement: PIPE-02 (ID-resolution contract).
 
+Verdict: `accept-resolution` (Phase 26 P01 evidence packet
+`evidence/b-11-id-resolution.md`). The resolution doc's 7-clause scan-built
+`id_to_path` contract (`02-resolution-doc.md §3.2 Q-A2:178-217`) is adopted: dual
+`physical_key`/`record_key`, anchored regex, no positional fallback, sorted-key
+iteration, and the explicit `ID ≠ array index` invariant — grounded by the
+verified non-density (CLM-01 max_id 3,998 / 1,250 gaps against 2,749 files;
+CLM-04 list holds ID 3958). Spec edit: appended Step 1 item 7 in
+`ctl_instruction.md`, cross-referenced from Step 5. AC-PIPE-02 spec-consistency +
+CLM-01/04 dataset probe PASS. **D-12 (synthesis-view close-with-parent):** G2
+closes with B-11 — no separate evidence packet. The B-06↔B-11 coupling (B-06
+admission clause 1 depends on this item) was reconciled in one before/after pass.
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-13 <PLAN-26-01-SHA> PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-11 packet authored, accept-resolution verdict, AC-PIPE-02 defined)
+- 2026-06-13 <PLAN-26-01-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1 item-7 ID-resolution contract transcribed into ctl_instruction.md from 02-resolution-doc.md:202-216)
+- 2026-06-13 <PLAN-26-01-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-02 spec-consistency + CLM-01/04 dataset probe PASS; G2 closes with B-11)
 
 ### M11: Blacklist not loaded at training time (Phase 26 PIPE-03)
 
@@ -196,8 +227,14 @@ Acceptance check: AC-PIPE-01 (synthesis view over B-06; not a duplicate contract
 
 Owning requirement: PIPE-01 (synthesis view).
 
+Verdict: `accept-resolution` (closes with parent B-06). **D-07 (synthesis-view
+close-with-parent):** G1 closes with B-06 — no separate evidence packet; the
+synthesis view is satisfied by the B-06 admission-gate contract and its passing
+AC-PIPE-01 probe.
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-13 <PLAN-26-01-SHA> PENDING -> VERIFIED (Phase 26 P01; D-07 close-with-parent G1->B-06; no separate packet; B-06 VERIFIED via AC-PIPE-01)
 
 ### G2: Pipeline validation gap — synthesis view (B-11)
 
@@ -205,8 +242,14 @@ Acceptance check: AC-PIPE-02 (synthesis view over B-11; not a duplicate contract
 
 Owning requirement: PIPE-02 (synthesis view).
 
+Verdict: `accept-resolution` (closes with parent B-11). **D-07 (synthesis-view
+close-with-parent):** G2 closes with B-11 — no separate evidence packet; the
+synthesis view is satisfied by the B-11 ID-resolution contract and its passing
+AC-PIPE-02 probe.
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-13 <PLAN-26-01-SHA> PENDING -> VERIFIED (Phase 26 P01; D-07 close-with-parent G2->B-11; no separate packet; B-11 VERIFIED via AC-PIPE-02)
 
 ### G3: Pipeline validation gap — synthesis view (M11)
 

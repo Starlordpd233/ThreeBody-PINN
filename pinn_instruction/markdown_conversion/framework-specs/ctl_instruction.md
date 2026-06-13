@@ -377,8 +377,79 @@ Author Comment: I believe this is another case for broken syntax or stale code f
     parsing large batches (e.g., via concurrent.futures for IC-only
     globals).
 
+7.  ID resolution (no dense-index assumption). Trajectory identity is
+    `record_key = (variant, fidelity, id)`; the physical IC is
+    `physical_key = (variant, id)`; `id` is the 4-digit zero-padded
+    integer in the filename. At DataLoader init, build `id_to_path` by
+    SCANNING each of the four Brutus output folders; accept only
+    filenames matching `^brutus_(hierarchical|standard)_(\d{4})\.txt$`
+    (folder name alone encodes gold status — filenames carry no `_gold_`
+    infix; non-matching files are logged and ignored). Two files mapping
+    to the same `record_key` is a hard init error. Lookup of an absent
+    key raises an explicit error; NO code path may compute a path
+    arithmetically from an `id` or assume IDs are contiguous, dense,
+    zero-based, or equal to an array index. All deterministic iteration
+    is over sorted `record_key`s, never `range(n_files)`. Stage labels
+    (Step 5) are keyed by `record_key`, never by positional index.
+    Blacklist and gold-availability semantics attach to `physical_key`
+    and apply to every `record_key` beneath it. `Result:` footer paths
+    are never used for mapping. Init logs, per folder: files found, IDs
+    parsed, duplicates (must be 0), and min/max ID span vs file count
+    (gap visibility). The ID space is non-dense (verified: standard-base
+    holds ID 3958 against 2,749 files), so dense indexing is prohibited.
+
 This parsing ensures consistency across all training data, preparing it
 for dimensionless scaling in Step 2.
+
+## Step 1A — Trajectory Admission Gate (data-side; runs at DataLoader init)
+
+Every `(variant, fidelity, id)` trajectory must pass ALL conditions below before
+it may enter stage assignment (Step 5), global-statistics computation
+(`compute_globals`, §2.5), or any training batch. Failures are recorded
+per-trajectory with a reason code; the loader logs admitted/rejected/quarantined
+counts per folder at init.
+
+1. Identity & blacklist. The `id` resolves via the Step-1 ID-resolution contract
+   (item 7). `(variant, id)` pairs present in `problematic_ics_blacklist.json` are
+   excluded from BOTH the base and gold folders of that variant, before stage
+   assignment and before `compute_globals`. Missing blacklist file = hard init
+   failure. A batch-time assertion re-checks emitted samples.
+2. Data-remediation quarantine. The 70 `brutus_hierarchical` base outputs flagged
+   by DATA-05 (IDs 0005-0059, 0061-0075) are quarantined from training, metrics,
+   and PIPE-07 use until rerun validation from the current canonical ICs passes.
+   The quarantine list is configuration, not code.
+3. Structural integrity. `>= 2` parsed snapshots; exactly 3 body rows per
+   snapshot; all values finite; timestamps strictly monotone increasing.
+4. Completeness. `final_timestep >= 9.5`, computed from parsed snapshot block
+   times. Footer presence, line counts, and snapshot-count constants MUST NOT be
+   used as completeness signals.
+5. Conservation gate (locked post-v1.3; SI-DQA-003). With H evaluated in float64
+   using Plummer softening `eps = 1e-10` in V:
+   `eps_H = max_t |(H(t) - H(0)) / H(0)|`, `SCS = log10(eps_H)`.
+   REJECT if `SCS > -5` (equivalently `eps_H > 1e-5`). `SCS = -5` exactly is
+   Marginal: admitted, flagged for review. If `|H(0)|` is numerically near zero,
+   SCS is undefined: QUARANTINE for manual review. Store per-trajectory `eps_H`,
+   `SCS`, and band label (Excellent <= -10; Acceptable (-10,-6]; Marginal (-6,-5];
+   Reject > -5). This clause TRANSCRIBES the locked gate into an editable spec; it
+   implements, and does not re-open, Hard Constraint 5.
+6. Physical invariant gates. The Step-2/§2.1 gates apply as admission criteria:
+   mass invariance `max_{t,i}|m_i(t) - m_i(0)| < 1e-15` (float64, absolute); the
+   IC<->Brutus `t=0` mass gate (§2.1 as amended per Q-B2); the COM/momentum
+   assertions with their existing reject/quarantine semantics.
+7. Grid-consistency checks (WARN level, not reject). With `dt_out` the record's
+   resolved output interval: warn if `max_i (t_{i+1} - t_i) > 1.5 * dt_out`, or if
+   `n_snapshots < 0.9 * (final_timestep / dt_out + 1)`. Escalation to reject is
+   conditional on characterizing the no-footer populations' snapshot
+   distributions.
+
+No fixed snapshot-count floor is imposed beyond condition 3. The issue doc's
+`>= 200` floor is rejected: verified base medians are 61 standard-base / 127
+hierarchical-base / 1003 gold, so floors such as `>= 200` are arithmetically
+incompatible with the base populations the locked stratification assigns to
+Stages 3-4. The per-trajectory *sampling* point count is governed by the locked
+M12 rule `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` (locked M12 rule, see
+Phase 27 PIPE-04; transcribed in `m11-m12-severity.md`), not by any admission
+floor.
 
 ## Step 2: Unified Preprocessing Pipeline
 
@@ -1065,7 +1136,10 @@ simulation. This is achieved by applying the specific threshold criteria
 defined in this document in section 2.3 on 'Multi-Stage Data
 Stratification by Difficulty'. This process should be fully automated in
 a script that reads the table of computed invariants and outputs a
-mapping from each simulation ID to its assigned stage index.
+mapping from each simulation ID to its assigned stage index. The stage
+mapping is keyed by `record_key`, never by positional index, per the
+Step-1 ID-resolution contract (Step 1 item 7); only trajectories admitted
+by the Step 1A gate appear in this mapping.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
