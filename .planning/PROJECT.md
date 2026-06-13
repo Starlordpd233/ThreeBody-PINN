@@ -225,4 +225,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-12 after v1.5 Phase 25 completion (adjudication machinery + four EVID-10 verdicts locked; UAT 9/9 passed; Phases 26–28 operate under packet-before-edit).*
+*Last updated: 2026-06-13 after v1.5 Phase 26 completion (DataLoader ingestion/selection contracts locked in ctl_instruction.md — B-06 admission gate, B-11 ID-resolution, M11 blacklist, D7 footer, M13 gold-counterpart, D-03 format; 5/5 success criteria verified. M13 STOP gap GAP-26-01 resolved by user ruling B (Stage-5 labels attach to IDs); the 184 gold-less standard IDs are to be closed by re-simulating their gold counterparts to 1:1 — OI-7b, a forward data-generation dependency. D-03 user-locked HDF5 canonical. Phases 27–28 next.).*
