@@ -1252,8 +1252,10 @@ data-side invariant, independently of any Stage-5 fallback policy:
 > labels attach to *simulations* (`record_key`), or to *IDs* (such that
 > every Stage-4-admitted ID must yield a Stage-5 sample)? The two readings
 > produce different Stage-5 stratum composition. This question is recorded
-> as an open STOP gap (phase 26 gap register) and routed to the framework
-> owner; until it is resolved, no fallback policy is asserted here. See
+> as open STOP gap **GAP-26-01**
+> (`.planning/phases/26-dataloader-ingestion-and-selection-contracts/26-GAPS.md`)
+> and routed to the framework owner; until it is resolved, no fallback policy
+> is asserted here. See
 > `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop

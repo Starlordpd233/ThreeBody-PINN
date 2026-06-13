@@ -24,12 +24,12 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | B-11 | Non-contiguous IDs (ID ≠ array index; id_to_path / TrajectoryIndex contract) | 26 (PIPE-02) | VERIFIED | `accept-resolution` | NO | [b-11-id-resolution.md](../25-evidence-framework-and-issue-ledger/evidence/b-11-id-resolution.md) | AC-PIPE-02 | ctl_instruction.md Step 1 item 7 (ID resolution); pinn_architecture.md None (D-04 data-side) | Q-A2; B-06 | 2026-06-13 |
 | M11 | Blacklist not loaded at training time (consumption contract) | 26 (PIPE-03) | VERIFIED | **BLOCKING STANDS** (M11 explicit severity ruling; data-integrity grounds; PIPE-03 blacklist-exclusion contract landed in ctl_instruction.md; OI-8 carried forward to FUT-01) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-03 | ctl_instruction.md Step 1A blacklist-exclusion contract; pinn_architecture.md None (D-04 data-side) | Q-A3 | 2026-06-13 |
 | M12 | Points-per-trajectory infeasibility (32 vs observed snapshot distribution) | 27 (PIPE-04) | PENDING | `accept-third-position` (BLOCKING-infeasibility claim rejected; P1-4 `0.5×` factor rejected) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-04 | ctl_instruction.md | Q-B1 | 2026-06-12 |
-| M13 | 184 standard IDs without gold counterpart (fallback policy) | 26 (PIPE-05) | IN_PROGRESS | defer-with-blocker | NO | evidence/m13-gold-counterpart.md | AC-PIPE-05 | ctl_instruction.md; pinn_architecture.md | Q-A4 | 2026-06-13 |
+| M13 | 184 standard IDs without gold counterpart (fallback policy) | 26 (PIPE-05) | DEFERRED | defer-with-blocker | NO | evidence/m13-gold-counterpart.md | AC-PIPE-05 | ctl_instruction.md; pinn_architecture.md | Q-A4 | 2026-06-13 |
 | D7 | Footer / parameter heterogeneity (folder-default fallback, tol_confidence) | 26 (PIPE-06) | VERIFIED | `accept-resolution` | NO | [d7-footer-heterogeneity.md](../25-evidence-framework-and-issue-ledger/evidence/d7-footer-heterogeneity.md) | AC-PIPE-06 | ctl_instruction.md Step 1 item 3 (footer contract) + §2.6 (param_provenance); pinn_architecture.md None (D-04 data-side) | Q-A5 | 2026-06-13 |
 | G1 | Pipeline validation gap — synthesis view (B-06) | 26 (PIPE-01) | VERIFIED | `accept-resolution` (closes with B-06) | NO | (closes with B-06; no separate packet — D-07) | AC-PIPE-01 (synthesis view over B-06) | ctl_instruction.md Step 1A | B-06 | 2026-06-13 |
 | G2 | Pipeline validation gap — synthesis view (B-11) | 26 (PIPE-02) | VERIFIED | `accept-resolution` (closes with B-11) | NO | (closes with B-11; no separate packet — D-07) | AC-PIPE-02 (synthesis view over B-11) | ctl_instruction.md Step 1 item 7 | B-11 | 2026-06-13 |
 | G3 | Pipeline validation gap — synthesis view (M11) | 26 (PIPE-03) | VERIFIED | **BLOCKING STANDS** (closes with M11; data-integrity grounds) | NO | (closes with M11; no separate packet — D-07) | AC-PIPE-03 (synthesis view over M11) | ctl_instruction.md Step 1A blacklist-exclusion contract | M11 | 2026-06-13 |
-| G4 | Pipeline validation gap — synthesis view (M13) | 26 (PIPE-05) | IN_PROGRESS | — | NO | — | AC-PIPE-05 (synthesis view over M13) | ctl_instruction.md; pinn_architecture.md | M13 | 2026-06-13 |
+| G4 | Pipeline validation gap — synthesis view (M13) | 26 (PIPE-05) | DEFERRED | defer-with-blocker (closes with M13) | NO | — | AC-PIPE-05 (synthesis view over M13) | ctl_instruction.md; pinn_architecture.md | M13 | 2026-06-13 |
 | G5 | dt_out heterogeneity (data-side; Q-B1 facet; collocation-scaling facet M16 deferred to doc-03) | 27 (PIPE-04) | PENDING | — | NO | — | AC-PIPE-04 (data-side facet; M16 training-side deferred) | ctl_instruction.md; pinn_architecture.md | M12; M16-deferred | 2026-06-11 |
 | SCS | Symplectic Conservation Score definition + thresholds (data-side; Q-C1) | 28 (VAL-01) | PENDING | `accept-resolution` | YES — EVID-10 required (ratio-SCS vs locked log-drift gate) | [scs-thresholds.md](../25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md) | AC-VAL-01 | data_quality_assessment.md (read-only; sole written home of locked gate) | Q-C1 | 2026-06-12 |
 | SASD | Stiffness-Aware Sampling Density (data-side; Q-C2) | 28 (VAL-02) | PENDING | — | NO | — | AC-VAL-02 | ctl_instruction.md; pinn_architecture.md | Q-C2 | 2026-06-11 |
@@ -218,12 +218,15 @@ OI-7a label-semantics ruling (Step-5 labels attach to *simulations* (`record_key
 split, `02-resolution-doc.md:263,270,292,777`) and routes to the framework owner
 (`OI-7:768`). Per ROADMAP Phase 26 success criterion 4 (`.planning/ROADMAP.md:196`), the
 source-conflicting fallback choice is surfaced as a parent-recorded STOP gap (phase 26 gap
-register); the label-semantics ruling is **not invented**. M13 stays `IN_PROGRESS` (data-side
-contract applied + verified; fallback policy pending the STOP gap), not `DEFERRED`.
+register); the label-semantics ruling is **not invented**. M13 is `DEFERRED` (data-side
+contract applied + verified; fallback policy blocked on open STOP gap GAP-26-01 — OI-7a
+label-semantics ruling pending user decision). `DEFERRED` with a written blocker is the
+allowed phase-exit state (D-08).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored, defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5 from 02-resolution-doc.md:262; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner ruling, surfaced as parent-recorded STOP gap; ruling NOT invented)
+- 2026-06-13 <gap-26-01-sha> IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; GAP-26-01 recorded in 26-GAPS.md + v1.5-GAPS.md; fallback policy blocked on OI-7a label-semantics ruling pending user decision; mandatory data-side contract remains FIX_APPLIED + AC-PIPE-05-verified; DEFERRED is the allowed phase-exit state per D-08)
 
 ### D7: Footer / parameter heterogeneity (Phase 26 PIPE-06)
 
@@ -301,12 +304,13 @@ Owning requirement: PIPE-05 (synthesis view).
 Verdict: closes with parent M13 (D-07 close-with-parent). G4 inherits M13's disposition:
 the mandatory data-side gold-counterpart contract is FIX_APPLIED + AC-PIPE-05-verified, but
 the synthesis view is **not yet closed** because M13's fallback policy is UNRESOLVED pending
-the OI-7a framework-owner ruling (parent-recorded STOP gap). G4 stays `IN_PROGRESS` and
-closes with M13's final disposition once the ruling lands.
+the OI-7a framework-owner ruling (parent-recorded STOP gap GAP-26-01). G4 is `DEFERRED`,
+inheriting M13's blocker, and closes with M13's final disposition once the ruling lands.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; D-07 close-with-parent G4->M13; no separate packet; inherits M13 IN_PROGRESS — mandatory data-side contract applied + AC-PIPE-05 verified, fallback policy pending OI-7a STOP gap)
+- 2026-06-13 <gap-26-01-sha> IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; D-07 close-with-parent G4->M13; inherits M13 DEFERRED disposition; blocked on GAP-26-01 OI-7a ruling pending user decision)
 
 ### G5: dt_out heterogeneity (Phase 27 PIPE-04, data-side facet)
 

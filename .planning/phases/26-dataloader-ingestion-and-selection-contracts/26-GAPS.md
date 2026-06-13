@@ -1,0 +1,38 @@
+# 26-GAPS.md - Phase 26 STOP-Protocol Gap Register
+
+**Phase:** 26 - DataLoader Ingestion and Selection Contracts
+**Created:** 2026-06-13
+**STOP-protocol authority:** `AGENTS.md` / `CLAUDE.md` "v1.5 applicability" + STOP-protocol field list.
+
+## GAP-26-01 - M13 gold-counterpart fallback: Stage-5 label-semantics ruling (OI-7a)
+
+- **Decision point:** Do Step-5 curriculum stage labels attach to *simulations* (`record_key = (variant, fidelity, id)`), or to *IDs* (such that every Stage-4-admitted ID must yield a Stage-5 sample)? This ruling determines whether the no-fallback entailment for the 184 gold-less standard IDs holds (per-simulation reading) or fails — requiring a fallback policy the spec does not derive (per-ID reading).
+- **Where in artifact:** `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:1227` (the "mapping from each simulation ID to its assigned stage index" hinge, Step 5). The mandatory data-side gold-counterpart contract + the UNRESOLVED fallback note land at `ctl_instruction.md:1232-1257`. (Research/plan cited line 1068; Waves 1-3 edits shifted the hinge to 1227.)
+- **Task context:** Plan 26-04, Task 2 — authoring the M13 evidence packet (`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`) from a full read of resolution-doc §3.4 Q-A4 + OI-7 and applying the D-12 adopt-or-defer rule; PIPE-05 gold-counterpart contract. Surfaced by the gsd-executor (subagent) and recorded here by the orchestrator (parent), per the "only the parent writes gap registers" governance rule.
+- **Classification:** **semantic** — the label-semantics ruling changes downstream Stage-5 stratum composition (2,565 vs 2,565+184), whether base records are substituted into gold-resolution slots, and whether Stage 6 becomes a missing-gold fallback bucket. Pre-registered in 26-CONTEXT D-12 as the phase's most-likely STOP gap; ROADMAP Phase 26 success criterion 4 (`.planning/ROADMAP.md:196`) controls.
+- **Source silence / conflict:**
+  - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/02-resolution-doc.md:263` — preserves the defeater verbatim ("If Phase-26 adjudication rules that labels attach to *IDs* ... Q-A4 must surface as the Phase-26 STOP gap — not be resolved by invention"); does not itself rule.
+  - `02-resolution-doc.md:270` — Medium confidence, explicitly attributed to "the single named defeater."
+  - `02-resolution-doc.md:292, :777` — genuine three-way upstream split (entailment / STOP-gap / fallback); names Q-A4 the #1 question warranting the unavailable R1-R8 reports.
+  - `02-resolution-doc.md:768` (OI-7a) — routes the ruling to the framework owner ("Framework owner ... ratifies the §3.4 spec text or activates the Phase-26 STOP gap").
+  - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:1227` — the phrase "each simulation ID" is itself ambiguous (couples both readings).
+  - `ctl_instruction.md:1228` (the B-11 edit, Plan 26-01) — settles only the key-TYPE axis (`record_key` vs positional index), NOT the obligation-granularity axis; does not dispose of the defeater.
+  - `pinn_instruction/issues/02-data-pipeline-and-validation.md:65, :287, :316` — presupposes the per-ID reading ("cannot enter Stage 5 training") without arguing it; one side of the conflict.
+  - `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-VERIFIED-FACTS.md` CLM-04:18 / CLM-05b:20 — size the issue (184; base 2,749 / gold 2,565) but are equally consistent with both readings.
+- **Mathematical / engineering grounding:** The disputed element is the *domain* of the Step-5 stage-assignment map — simulations-that-exist-on-disk (per-`record_key`) vs the abstract ID space (per-ID obligation). Under "simulations," a gold-less standard ID has one base simulation that carries its own label and reaches Stage 5/6 training sets via cumulative replay (`ctl_instruction.md:247-249`); "no Stage-5 sample for that ID" is simply the spec applied. Under "IDs," the 184 are genuine Stage-5 holes requiring a fallback (base→gold substitution or skip-to-Stage-6). The two readings differ in Stage-5 stratum membership, substitution behavior, and Stage-6 semantics — a semantic, not presentation, decision. No first-principles argument settles a spec-domain convention; the AC-PIPE-05 set difference is well-defined (184/184) but neutral between the readings.
+- **Agent was tempted to:** read the landed B-11 `record_key` annotation (`ctl_instruction.md:1228`) as settling the question for the per-simulation reading and adopt path (a). Rejected — B-11 adjudicated key TYPE (content key vs positional index), not obligation granularity; treating it as also disposing of the M13 defeater is invention by side-effect (threat T-26-14).
+- **What the user needs to decide:**
+  - **A.** Stage-5 labels attach to **simulations** (`record_key`). Ratifies the no-fallback entailment; the 184 gold-less standard IDs keep their base record in its assigned stage lineage, are marked `gold_counterpart=absent`, and reach later stages via replay; no fallback. (Resolution: land the conditional fallback note from `02-resolution-doc.md:274-290`; M13/G4 → VERIFIED.)
+  - **B.** Stage-5 labels attach to **IDs** (every Stage-4-admitted ID owes a Stage-5 sample). The no-fallback reading fails; a fallback policy must be chosen for the 184 — and neither issue-doc option (skip-to-Stage-6 / low-fidelity substitute) is currently spec-derivable, so the policy itself becomes a further decision.
+  - **C.** Other / amend the Step-5 stratification text to make the map's domain explicit in a way neither A nor B captures.
+- **Confidence of impact:** HIGH — the ruling changes Stage-5 training-data composition and the FUT-01 DataLoader stratum builder; it is the resolution doc's #1 flagged question.
+- **Status:** **OPEN**
+- **Resolution note:** _(empty — awaiting user instruction; M13 and synthesis row G4 held at `DEFERRED` in `24-ISSUE-LEDGER.md` until the ruling lands. Per dependency-scoped blocking, only M13-dependent work is halted; Plans 26-01..26-03 and 26-05 are independent and unaffected.)_
+
+### Related: OI-7b (forward reference, not part of this gap)
+
+Whether to commission gold re-simulation for any of the 184 ICs is a separate user-gate resourcing question (recommended selection input = intersection of the gold-missing set with the Q-C2 SASD resample queue, Phase 28). Forward reference only; not blocking and not part of GAP-26-01's required decision.
+
+## Milestone-wide index
+
+Mirrored at `.planning/milestones/v1.5-GAPS.md` (Phase 26 section).
