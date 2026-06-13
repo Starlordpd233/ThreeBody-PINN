@@ -208,7 +208,7 @@ Every selected finding follows the v1.4-style loop:
 
 **Wave 3** *(blocked on Wave 2)*
 
-  - [ ] 26-03-PLAN.md — D7 footer/parameter-heterogeneity contract (PIPE-06); Step-1-item-3 replacement + §2.6 amendment; completes the autonomous chain
+  - [x] 26-03-PLAN.md — D7 footer/parameter-heterogeneity contract (PIPE-06); Step-1-item-3 replacement + §2.6 amendment; completes the autonomous chain
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -271,7 +271,7 @@ Every selected finding follows the v1.4-style loop:
 | 24. Empirical Dataset Verification and Correction Addendum | v1.5 | 4/4 | Complete | 2026-06-11 |
 | 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete    | 2026-06-12 |
-| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 2/5 | In Progress|  |
+| 26. DataLoader Ingestion and Selection Contracts | v1.5 | 3/5 | In Progress|  |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |

@@ -25,7 +25,7 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | M11 | Blacklist not loaded at training time (consumption contract) | 26 (PIPE-03) | VERIFIED | **BLOCKING STANDS** (M11 explicit severity ruling; data-integrity grounds; PIPE-03 blacklist-exclusion contract landed in ctl_instruction.md; OI-8 carried forward to FUT-01) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-03 | ctl_instruction.md Step 1A blacklist-exclusion contract; pinn_architecture.md None (D-04 data-side) | Q-A3 | 2026-06-13 |
 | M12 | Points-per-trajectory infeasibility (32 vs observed snapshot distribution) | 27 (PIPE-04) | PENDING | `accept-third-position` (BLOCKING-infeasibility claim rejected; P1-4 `0.5×` factor rejected) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-04 | ctl_instruction.md | Q-B1 | 2026-06-12 |
 | M13 | 184 standard IDs without gold counterpart (fallback policy) | 26 (PIPE-05) | PENDING | — | NO | — | AC-PIPE-05 | ctl_instruction.md; pinn_architecture.md | Q-A4 | 2026-06-11 |
-| D7 | Footer / parameter heterogeneity (folder-default fallback, tol_confidence) | 26 (PIPE-06) | PENDING | — | NO | — | AC-PIPE-06 | ctl_instruction.md; pinn_architecture.md | Q-A5 | 2026-06-11 |
+| D7 | Footer / parameter heterogeneity (folder-default fallback, tol_confidence) | 26 (PIPE-06) | VERIFIED | `accept-resolution` | NO | [d7-footer-heterogeneity.md](../25-evidence-framework-and-issue-ledger/evidence/d7-footer-heterogeneity.md) | AC-PIPE-06 | ctl_instruction.md Step 1 item 3 (footer contract) + §2.6 (param_provenance); pinn_architecture.md None (D-04 data-side) | Q-A5 | 2026-06-13 |
 | G1 | Pipeline validation gap — synthesis view (B-06) | 26 (PIPE-01) | VERIFIED | `accept-resolution` (closes with B-06) | NO | (closes with B-06; no separate packet — D-07) | AC-PIPE-01 (synthesis view over B-06) | ctl_instruction.md Step 1A | B-06 | 2026-06-13 |
 | G2 | Pipeline validation gap — synthesis view (B-11) | 26 (PIPE-02) | VERIFIED | `accept-resolution` (closes with B-11) | NO | (closes with B-11; no separate packet — D-07) | AC-PIPE-02 (synthesis view over B-11) | ctl_instruction.md Step 1 item 7 | B-11 | 2026-06-13 |
 | G3 | Pipeline validation gap — synthesis view (M11) | 26 (PIPE-03) | VERIFIED | **BLOCKING STANDS** (closes with M11; data-integrity grounds) | NO | (closes with M11; no separate packet — D-07) | AC-PIPE-03 (synthesis view over M11) | ctl_instruction.md Step 1A blacklist-exclusion contract | M11 | 2026-06-13 |
@@ -217,12 +217,26 @@ Acceptance check: AC-PIPE-06
 
 Owning requirement: PIPE-06 (footer/parameter-heterogeneity contract).
 
+Verdict: `accept-resolution`. The all-or-nothing footer contract (footer present →
+full schema, provenance `direct`; absent → folder defaults, provenance `inferred`;
+`eta` null/absent; partial-schema → `footer_anomalous`; per-field `param_provenance`;
+`dt_out` measured-median cross-check at >1%; footer-as-metadata-only) is transcribed
+from `02-resolution-doc.md §3.5 Q-A5:315-341` into `ctl_instruction.md` Step 1 item 3
+(replacement) + §2.6 (`param_provenance` amendment; `trustworthy_horizon` RESERVED, OI-4).
+
 Note: CLM-07 count 219 confirmed; CLM-07 characterization corrected (no `Result:` footer
-at all). CLM-08 (592 tol=1e-14) confirmed. CLM-09 (folder-defaults) confirmed. The
-PIPE-06 contract consumes these confirmed facts.
+at all). CLM-08 (592 tol=1e-14) confirmed; the OI-12 "2,346 @ 1e-13" slip is NOT used —
+the corrected decomposition 1,754@1e-13 + 592@1e-14 = 2,346 with-footer is cited. CLM-09
+(folder-defaults) confirmed. OI-9: the DATA-05 70-file base-hier rerun (validated
+2026-06-11) shifted hier-base no-footer 1,550→1,480 / footer-bearing 3,307→3,377; AC-PIPE-06
+reproduces the current post-rerun partition. OI-6 (no-footer populations uncharacterized)
+carried as the single named overturning factor — footer carries no completeness authority.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-13 SHA_26-03 PENDING -> IN_PROGRESS (Phase 26 P03; D7 packet authored, accept-resolution verdict, AC-PIPE-06 defined)
+- 2026-06-13 SHA_26-03 IN_PROGRESS -> FIX_APPLIED (Phase 26 P03; Step 1 item 3 replacement + §2.6 param_provenance amendment in ctl_instruction.md from 02-resolution-doc.md:315-341)
+- 2026-06-13 SHA_26-03 FIX_APPLIED -> VERIFIED (Phase 26 P03; AC-PIPE-06 footer-presence + tol-decomposition probe PASS; OI-9 hier-base supersession recorded; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED)
 
 ### G1: Pipeline validation gap — synthesis view (B-06)
 

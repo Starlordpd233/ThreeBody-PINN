@@ -348,16 +348,48 @@ Author Comment: I believe this is another case for broken syntax or stale code f
     (3,), initial positions as (3,3), and initial velocities as (3,3).
     Use a dedicated parsing function to handle both formats robustly.
 
-3.  From the `brutus_.txt` file, parse the time-series data. The file
-    consists of repetitive blocks, each starting with a header line
-    (`t, N=3, t_cpu`) followed by three lines of body states
-    (`m, x, y, z, vx, vy, vz`). Iterate through blocks, skipping empty
-    lines and handling an optional trailing 'Result:' line (which may
-    contain energies like E_initial, E_final, dE/E—extract these into
-    metadata). Store times as (T,), positions as (T,3,3), velocities as
-    (T,3,3), and any metadata (e.g., cpu_times, energies). Gracefully
-    handle short/incomplete files (e.g., fewer than 2 snapshots) by
-    returning empty arrays and logging warnings.
+3.  From the `brutus_.txt` file, parse the time-series data and apply the
+    footer-handling contract (PIPE-06 / D7). The file consists of repetitive
+    blocks, each starting with a header line (`t, N=3, t_cpu`) followed by
+    three lines of body states (`m, x, y, z, vx, vy, vz`). Iterate through
+    blocks, skipping empty lines. Store times as (T,), positions as (T,3,3),
+    velocities as (T,3,3). Gracefully handle short/incomplete files (e.g.,
+    fewer than 2 snapshots) by returning empty arrays and logging warnings.
+
+    A trailing `Result:` footer is OPTIONAL and is treated as metadata only
+    (footers are all-or-nothing — present footers carry the FULL parameter
+    schema; absent footers carry no parameter fields at all). Apply:
+
+    - **Footer present →** parse the full schema
+      `(tol, Lw, dt_out, t_end, eta, energies)` and mark each
+      `{param}_provenance = 'direct'`.
+    - **Footer absent →** assign the verified folder-level defaults and mark
+      each `{param}_provenance = 'inferred'`:
+        - standard base: `tol = 1e-13, Lw = 118, dt_out = 0.17`
+        - hierarchical base: `tol = 1e-15, Lw = 130, dt_out = 0.08`
+        - gold (both): `tol = 1e-13, Lw = 130, dt_out = 0.01`
+      `eta` has NO folder default: store `null` with provenance `'absent'`
+      (fabricating an `eta` is prohibited). Verified no-footer populations
+      (DATA-04 / CLM-07): 701 standard-base, 219 standard-gold, and (post
+      DATA-05 rerun, OI-9) 1,480 hierarchical-base — note the
+      `24-DATA05-RERUN-REMEDIATION.md` rerun replaced 70 stale footer-less
+      base-hier files with footer-bearing reruns, so the 1,550 figure in the
+      pre-rerun resolution doc is stale.
+    - **Footer present but partial-schema →** an anomaly: set
+      `footer_anomalous = true`, log `(variant, id, missing_fields)`, fall
+      back to defaults (`'inferred'`) for the missing fields, and surface the
+      population in the init log (it should be empty; any member is new
+      information).
+
+    Independently of the footer, MEASURE `dt_out` as the median inter-snapshot
+    timestamp spacing, store it with provenance `'measured'`, and WARN if it
+    disagrees with the footer/default value by more than 1% (relative).
+
+    Footers MUST NOT be used as completeness signals — completeness is decided
+    by the Step-1A admission gate from parsed snapshot block times, never from
+    footer presence (Step 1A clause 4) — and footers are NEVER a mapping
+    source (ID→path mapping uses the filesystem scan of Step 1 item 7, never
+    `Result:` footer paths). Footer fields are metadata only.
 
 4.  Infer metadata (e.g., dataset_type: 'hierarchical' or
     'quasi-random'; fidelity: 'high' or 'low'; dt_out: inferred from
@@ -762,6 +794,18 @@ IC13: (13,)
 invariants: E, Q, s_min, L_vec, L_norm, I_norm_raw, I1, I2, I3, tau_L
 brutus_tolerance, word_length, dt_out, trustworthy_horizon
 ```
+
+Each processed record additionally carries `param_provenance` (PIPE-06 / D7): a
+map over `{brutus_tolerance, word_length, dt_out, eta}` with values in
+`{'direct', 'inferred', 'absent', 'measured'}`, assigned by the Step-1 item-3
+footer-handling contract — `'direct'` when read from a present footer,
+`'inferred'` when taken from the folder-level default for a footer-absent file,
+`'absent'` for `eta` when no footer and no default exist (stored `null`), and
+`'measured'` for the `dt_out` value derived from the median inter-snapshot
+timestamp spacing (which also drives the >1% footer/default cross-check warning).
+The `trustworthy_horizon` field is RESERVED — its definition is pending (Open
+Item OI-4); writers emit `null` and readers MUST NOT consume it until it is
+defined.
 
 Raw masses are always available separately from the network-facing mass
 channels. Step 3 consumes the COM-corrected, canonically ordered, gauge-fixed,

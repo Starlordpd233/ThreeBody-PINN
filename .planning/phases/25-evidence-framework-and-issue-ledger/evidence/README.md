@@ -123,6 +123,7 @@ Evidence packet filenames under `evidence/` use the sanitization rule: filesyste
 | `M11`, `M12` | `evidence/m11-m12-severity.md` |
 | `B-06` | `evidence/b-06-admission-gate.md` |
 | `B-11` | `evidence/b-11-id-resolution.md` |
+| `D7` | `evidence/d7-footer-heterogeneity.md` |
 
 Sanitization rule: replace any character not in `[A-Za-z0-9_-]` with `-` and trim repeated `-`; lower-case the result unless the ID mixes cases the ledger preserves. Each filename must be unique within `evidence/`.
 
