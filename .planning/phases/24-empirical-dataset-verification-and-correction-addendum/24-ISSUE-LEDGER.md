@@ -113,9 +113,9 @@ clause 7 held at WARN), OI-9 (DATA-05 70-ID rerun validated 2026-06-11).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 <PLAN-26-01-SHA> PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-06 packet authored, accept-resolution verdict, AC-PIPE-01 defined)
-- 2026-06-13 <PLAN-26-01-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1A admission gate transcribed into ctl_instruction.md from 02-resolution-doc.md:127-174)
-- 2026-06-13 <PLAN-26-01-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-01 spec-consistency + CLM-10 dataset probe PASS; G1 closes with B-06)
+- 2026-06-13 b1852b0f PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-06 packet authored, accept-resolution verdict, AC-PIPE-01 defined)
+- 2026-06-13 b1852b0f IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1A admission gate transcribed into ctl_instruction.md from 02-resolution-doc.md:127-174)
+- 2026-06-13 b1852b0f FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-01 spec-consistency + CLM-10 dataset probe PASS; G1 closes with B-06)
 
 ### B-11: Non-contiguous IDs (Phase 26 PIPE-02)
 
@@ -137,9 +137,9 @@ admission clause 1 depends on this item) was reconciled in one before/after pass
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 <PLAN-26-01-SHA> PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-11 packet authored, accept-resolution verdict, AC-PIPE-02 defined)
-- 2026-06-13 <PLAN-26-01-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1 item-7 ID-resolution contract transcribed into ctl_instruction.md from 02-resolution-doc.md:202-216)
-- 2026-06-13 <PLAN-26-01-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-02 spec-consistency + CLM-01/04 dataset probe PASS; G2 closes with B-11)
+- 2026-06-13 b1852b0f PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-11 packet authored, accept-resolution verdict, AC-PIPE-02 defined)
+- 2026-06-13 b1852b0f IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1 item-7 ID-resolution contract transcribed into ctl_instruction.md from 02-resolution-doc.md:202-216)
+- 2026-06-13 b1852b0f FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-02 spec-consistency + CLM-01/04 dataset probe PASS; G2 closes with B-11)
 
 ### M11: Blacklist not loaded at training time (Phase 26 PIPE-03)
 
@@ -234,7 +234,7 @@ AC-PIPE-01 probe.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 <PLAN-26-01-SHA> PENDING -> VERIFIED (Phase 26 P01; D-07 close-with-parent G1->B-06; no separate packet; B-06 VERIFIED via AC-PIPE-01)
+- 2026-06-13 b1852b0f PENDING -> VERIFIED (Phase 26 P01; D-07 close-with-parent G1->B-06; no separate packet; B-06 VERIFIED via AC-PIPE-01)
 
 ### G2: Pipeline validation gap — synthesis view (B-11)
 
@@ -249,7 +249,7 @@ AC-PIPE-02 probe.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 <PLAN-26-01-SHA> PENDING -> VERIFIED (Phase 26 P01; D-07 close-with-parent G2->B-11; no separate packet; B-11 VERIFIED via AC-PIPE-02)
+- 2026-06-13 b1852b0f PENDING -> VERIFIED (Phase 26 P01; D-07 close-with-parent G2->B-11; no separate packet; B-11 VERIFIED via AC-PIPE-02)
 
 ### G3: Pipeline validation gap — synthesis view (M11)
 

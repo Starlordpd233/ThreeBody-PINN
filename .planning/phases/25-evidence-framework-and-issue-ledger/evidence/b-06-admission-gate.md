@@ -119,12 +119,12 @@ AC-PIPE-01 is a spec-consistency + dataset-fact probe; it touches no `pinn/` pat
 ## Status Transition Log
 
 ```text
-2026-06-13 <PLAN-26-01-SHA> PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-06 packet authored, accept-resolution verdict, AC-PIPE-01 defined)
-2026-06-13 <PLAN-26-01-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1A admission gate transcribed into ctl_instruction.md from 02-resolution-doc.md:127-174)
-2026-06-13 <PLAN-26-01-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-01 spec-consistency + CLM-10 dataset probe PASS; G1 closes with B-06)
+2026-06-13 b1852b0f PENDING -> IN_PROGRESS (Phase 26 P01 by gsd-executor; B-06 packet authored, accept-resolution verdict, AC-PIPE-01 defined)
+2026-06-13 b1852b0f IN_PROGRESS -> FIX_APPLIED (Phase 26 P01; Step 1A admission gate transcribed into ctl_instruction.md from 02-resolution-doc.md:127-174)
+2026-06-13 b1852b0f FIX_APPLIED -> VERIFIED (Phase 26 P01; AC-PIPE-01 spec-consistency + CLM-10 dataset probe PASS; G1 closes with B-06)
 ```
 
-The `<PLAN-26-01-SHA>` token is the single atomic Plan 26-01 commit SHA (all three transitions, the spec edit, and the ledger edits travel in one commit per D-08); it is backfilled into the ledger's per-finding subsection within that same commit.
+The Plan 26-01 commit SHA is `b1852b0f` — all three transitions, the spec edit, and the ledger edits travelled in that one commit (D-08); this SHA was backfilled into the packets and the ledger per-finding subsections in the immediately following provenance commit (a commit cannot reference its own hash inline).
 
 **Carried caveats (D-13):**
 - **OI-6** (`02-resolution-doc.md:767`) — the no-footer populations' snapshot distributions are uncharacterized; clause 7 (grid-consistency) is held at WARN, and escalation to a hard cadence reject is conditional on closing OI-6. Carried, not resolved.

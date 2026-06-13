@@ -62,7 +62,7 @@ None — plan executed as written. Task 1 preflight tag `v1.5-pre-phase-26` alre
 
 ## Notes
 
-- The `<PLAN-26-01-SHA>` token in the two packets' Status Transition Logs and the ledger per-finding subsections is the single atomic Plan 26-01 commit SHA; per the D-08 same-commit discipline it is backfilled into these files within the plan commit (a commit cannot reference its own hash inline, so the token-then-backfill convention from the b-06 draft is used; the SHA is recorded in this SUMMARY below once committed).
+- The single atomic Plan 26-01 commit is `b1852b0f` (8 files, via `scripts/agent-commit`, scope `26-01`). The `<PLAN-26-01-SHA>` placeholder tokens in the two packets' Status Transition Logs and the ledger per-finding subsections were backfilled to `b1852b0f` in the immediately following provenance commit, per the Phase 25 precedent (a commit cannot reference its own hash inline; D-08 same-commit discipline holds for the work itself, the SHA backfill is the one unavoidable follow-up).
 - Carried caveats (D-13): OI-6 (no-footer probe-coverage gap; B-06 clause 7 held at WARN) and OI-9 (DATA-05 70-ID rerun validated 2026-06-11) propagated into the B-06 packet.
 
 ## STOP-Protocol Gap Findings
