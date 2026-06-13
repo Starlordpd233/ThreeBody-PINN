@@ -44,11 +44,11 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 
 ### Pipeline and DataLoader Contracts (spec-side; FUT-01 implements)
 
-- [ ] **PIPE-01**: Framework specs define the Stage 4→5 trajectory-validation gate contract (B-06): final-timestamp threshold, stage-dependent snapshot minimums, and rejection logging — as a DataLoader design contract.
-- [ ] **PIPE-02**: Framework specs define the ID-resolution contract (B-11): `id_to_path` mapping built from the filesystem scan, with the explicit invariant that trajectory ID is never assumed equal to array index.
+- [x] **PIPE-01**: Framework specs define the Stage 4→5 trajectory-validation gate contract (B-06): final-timestamp threshold, stage-dependent snapshot minimums, and rejection logging — as a DataLoader design contract.
+- [x] **PIPE-02**: Framework specs define the ID-resolution contract (B-11): `id_to_path` mapping built from the filesystem scan, with the explicit invariant that trajectory ID is never assumed equal to array index.
 - [x] **PIPE-03**: Framework specs define the blacklist-exclusion contract (M11): load at DataLoader init, exclude, log the exclusion count, fail loudly if a blacklisted ID reaches a batch.
 - [ ] **PIPE-04**: Framework specs define the points-per-trajectory contract (M12): an adjudicated sampling-feasibility rule (candidate: `n_pts = min(32, int(0.5 * n_snapshots))`) consistent with the verified snapshot distributions from DATA-06.
-- [ ] **PIPE-05**: Framework specs define the gold-counterpart contract (M13): Stage-5 gold-existence check plus the fallback policy (skip to Stage 6 vs flagged low-fidelity fallback). If the sources are silent or conflicting on the fallback choice, it is surfaced as a gap for user decision, not invented.
+- [x] **PIPE-05**: Framework specs define the gold-counterpart contract (M13): Stage-5 gold-existence check plus the fallback policy (skip to Stage 6 vs flagged low-fidelity fallback). If the sources are silent or conflicting on the fallback choice, it is surfaced as a gap for user decision, not invented.
 - [x] **PIPE-06**: Framework specs define the footer/parameter-heterogeneity contract (D7): `Result:` footer precedence, folder-default fallback, `tol_confidence` flag (`direct` vs `inferred`), and footer-as-metadata-only (completeness gate never depends on footer presence).
 - [ ] **PIPE-07**: Framework specs define the precision contract: float64 sufficiency rationale for validation metrics and the Decimal-for-masses policy, grounded in the DATA-05 verdict.
 - [ ] **PIPE-08**: Framework specs define the data-side dt_out and stage-query contract: the DataLoader exposes per-trajectory `dt_out` metadata and the `sample_replay(n, max_stage)` / `sample_lookahead(n, stage)` interface. The collocation-scaling policy that consumes this metadata (M16) stays with the doc-03 milestone.
