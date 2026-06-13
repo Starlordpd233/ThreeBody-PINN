@@ -226,7 +226,7 @@ allowed phase-exit state (D-08).
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored, defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5 from 02-resolution-doc.md:262; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner ruling, surfaced as parent-recorded STOP gap; ruling NOT invented)
-- 2026-06-13 <gap-26-01-sha> IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; GAP-26-01 recorded in 26-GAPS.md + v1.5-GAPS.md; fallback policy blocked on OI-7a label-semantics ruling pending user decision; mandatory data-side contract remains FIX_APPLIED + AC-PIPE-05-verified; DEFERRED is the allowed phase-exit state per D-08)
+- 2026-06-13 683ef0fc IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; GAP-26-01 recorded in 26-GAPS.md + v1.5-GAPS.md; fallback policy blocked on OI-7a label-semantics ruling pending user decision; mandatory data-side contract remains FIX_APPLIED + AC-PIPE-05-verified; DEFERRED is the allowed phase-exit state per D-08)
 
 ### D7: Footer / parameter heterogeneity (Phase 26 PIPE-06)
 
@@ -310,7 +310,7 @@ inheriting M13's blocker, and closes with M13's final disposition once the rulin
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; D-07 close-with-parent G4->M13; no separate packet; inherits M13 IN_PROGRESS — mandatory data-side contract applied + AC-PIPE-05 verified, fallback policy pending OI-7a STOP gap)
-- 2026-06-13 <gap-26-01-sha> IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; D-07 close-with-parent G4->M13; inherits M13 DEFERRED disposition; blocked on GAP-26-01 OI-7a ruling pending user decision)
+- 2026-06-13 683ef0fc IN_PROGRESS -> DEFERRED (Phase 26 P04 parent/orchestrator; D-07 close-with-parent G4->M13; inherits M13 DEFERRED disposition; blocked on GAP-26-01 OI-7a ruling pending user decision)
 
 ### G5: dt_out heterogeneity (Phase 27 PIPE-04, data-side facet)
 
