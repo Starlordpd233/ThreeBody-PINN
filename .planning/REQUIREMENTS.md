@@ -53,7 +53,7 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 - [ ] **PIPE-07**: Framework specs define the precision contract: float64 sufficiency rationale for validation metrics and the Decimal-for-masses policy, grounded in the DATA-05 verdict.
 - [ ] **PIPE-08**: Framework specs define the data-side dt_out and stage-query contract: the DataLoader exposes per-trajectory `dt_out` metadata and the `sample_replay(n, max_stage)` / `sample_lookahead(n, stage)` interface. The collocation-scaling policy that consumes this metadata (M16) stays with the doc-03 milestone.
 - [ ] **PIPE-09**: Framework specs define the global-scale computation contract (`compute_globals`): consistent with the v1.4-locked PHYS-01 D convention; the issue-02 claim that scales must be recomputed with `D = 6.694` is adjudicated (verified, corrected, or rejected) rather than transcribed.
-- [ ] **PIPE-10**: The training-data format decision (D-03: HDF5 vs .npy vs txt/json) is presented to the user with verified evidence; the user decides; the locked choice is recorded in the framework specs.
+- [x] **PIPE-10**: The training-data format decision (D-03: HDF5 vs .npy vs txt/json) is presented to the user with verified evidence; the user decides; the locked choice is recorded in the framework specs.
 
 ### Validation-Metrics Contracts
 

@@ -403,11 +403,27 @@ Author Comment: I believe this is another case for broken syntax or stale code f
     files independently when possible (globals only need initials, not
     full Brutus time-series).
 
-6.  Save parsed objects for all simulations into an efficient format
-    like HDF5 or NumPy (.npy) files. This avoids repeated text parsing
-    and accelerates loading during training. Use parallel processing if
-    parsing large batches (e.g., via concurrent.futures for IC-only
-    globals).
+6.  Processed training data is stored in HDF5 (the canonical, single
+    source of truth — user-locked 2026-06-13): groups
+    `/{variant}/{fidelity}/{id}`; float64 datasets (`times`, `positions`,
+    `velocities`, masses, and the §2.6 derived arrays); per-group
+    attributes carrying the full §2.6 metadata record (including
+    `param_provenance`), raw-file SHA-256 hashes, a top-level
+    `schema_version`, and the build's transform metadata (`D`, `T`, `V`,
+    `E_scale` and scale provenance) so raw values are exactly
+    re-derivable. Chunked + compressed storage is recommended; partial
+    reads by group are supported. `.npy`/`.npz` is an ACCEPTABLE
+    derived cache/export alternative preserving the identical schema, but
+    the HDF5 file is the single source of truth. JSON/text exports are
+    inspection- and debugging-only and MUST NEVER be a training input
+    path. This avoids repeated text parsing and accelerates loading
+    during training; use parallel processing if parsing large batches
+    (e.g., via `concurrent.futures` for IC-only globals).
+
+    Acceptance test (round-trip): raw → HDF5 → arrays round-trips
+    bit-identically in float64 against direct parsing for a sample of
+    trajectories, including times. (The data round-trip implementation is
+    FUT-01; this clause is the spec-side acceptance contract.)
 
 7.  ID resolution (no dense-index assumption). Trajectory identity is
     `record_key = (variant, fidelity, id)`; the physical IC is

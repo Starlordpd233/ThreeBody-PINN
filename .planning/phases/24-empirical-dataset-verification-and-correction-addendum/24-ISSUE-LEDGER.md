@@ -35,7 +35,7 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | SASD | Stiffness-Aware Sampling Density (data-side; Q-C2) | 28 (VAL-02) | PENDING | — | NO | — | AC-VAL-02 | ctl_instruction.md; pinn_architecture.md | Q-C2 | 2026-06-11 |
 | IPR | Interpolation Physics Residual (data-side, dual-epsilon; Q-C3) | 28 (VAL-03) | PENDING | — | NO | — | AC-VAL-03 | ctl_instruction.md; pinn_architecture.md | Q-C3 | 2026-06-11 |
 | PSC | Phase Space Coverage Entropy (data-side; Q-C4) | 28 (VAL-04) | PENDING | — | NO | — | AC-VAL-04 | ctl_instruction.md; pinn_architecture.md | Q-C4 | 2026-06-11 |
-| D-03 | Processed training-data format (HDF5 vs .npy vs txt/json) | 26 (PIPE-10) | PENDING | — | NO | — | AC-PIPE-10 | ctl_instruction.md | Q-A6 | 2026-06-11 |
+| D-03 | Processed training-data format (HDF5 vs .npy vs txt/json) | 26 (PIPE-10) | VERIFIED | `accept-resolution` (user-locked 2026-06-13: HDF5 canonical) | NO | [d-03-training-data-format.md](../25-evidence-framework-and-issue-ledger/evidence/d-03-training-data-format.md) | AC-PIPE-10 | ctl_instruction.md Step 1 item 6 | Q-A6 | 2026-06-13 |
 | D=6.694 | compute_globals / D=6.694 convention conflict (CLM-13) — NOT probed by Phase 24; routed to Phase 25 EVID-10 / Phase 27 PIPE-09 | 25 (EVID-10) / 27 (PIPE-09) | PENDING | `accept-resolution` (CLM-13 ratified `convention-rejected`) | YES — EVID-10 required (PHYS-01 raw-mass D ~ 4.6416 vs mass-fraction 6.694) | [compute-globals-D.md](../25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md) | AC-PIPE-09 / EVID-10 verdict | ctl_instruction.md §2.5 line 598 explicitly rejects 6.694 form | Q-B4 | 2026-06-12 |
 | footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | PENDING | — | NO — GAP-24-01 resolved by user instruction; 70 base-hier artifacts required rerun, not Decimal fallback (rerun executed+validated 2026-06-11) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
 | mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | NO — DATA-05 resolved as invalid/stale base-hier artifacts; rerun passed 2026-06-11, replacements live; metrics for the 70 IDs regenerated and validated 2026-06-11 (gate 7 closed) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
@@ -380,8 +380,18 @@ Acceptance check: AC-PIPE-10
 
 Owning requirement: PIPE-10 (training-data format decision).
 
+Verdict: `accept-resolution` (USER-LOCKED 2026-06-13 via the PIPE-10 mandatory
+gate, D-11). The user selected `hdf5-canonical` (the §3.6 Q-A6 candidate); the
+choice was NOT auto-selected under any execution mode. Spec target is
+`ctl_instruction.md` Step 1 item 6 ALONE (no architecture-side component;
+no `pinn_architecture.md` edit). D-03 has NO synthesis (G) row. Evidence
+Packet: [d-03-training-data-format.md](../25-evidence-framework-and-issue-ledger/evidence/d-03-training-data-format.md).
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-13 (uncommitted) PENDING -> IN_PROGRESS (Phase 26 P26-05 Task 1; D-03 packet authored, candidate + verified evidence presented, no verdict selected)
+- 2026-06-13 <26-05-SHA> IN_PROGRESS -> FIX_APPLIED (Phase 26 P26-05 Task 3; user selected hdf5-canonical; ctl_instruction.md Step 1 item 6 replaced to name HDF5 canonical + round-trip acceptance clause)
+- 2026-06-13 <26-05-SHA> FIX_APPLIED -> VERIFIED (Phase 26 P26-05 Task 3; AC-PIPE-10 PASS; AC-PIPE-01/02/06 regression re-checks PASS)
 
 ### D=6.694: compute_globals / D=6.694 convention conflict (Phase 25 EVID-10 / Phase 27 PIPE-09)
 
