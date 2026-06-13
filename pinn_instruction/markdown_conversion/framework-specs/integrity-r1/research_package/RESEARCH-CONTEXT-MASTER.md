@@ -4,7 +4,7 @@ package_for: integrity-r1 (disruption-first audit of the three framework specs)
 role: research-context entry point (orientation, source tiers, review dimensions RD-1..RD-8, output contract)
 status: active
 created: 2026-06-12
-source_baseline: 32a9aa76d41511cf95a8f717a4a672bd1c02ff35
+source_baseline: 55ab6e4bfba0ada4f8ab48539d2385905d594e8a
 self_contained: true
 ---
 
@@ -127,13 +127,19 @@ You MAY challenge a Tier-2 locked decision, but only under all three of:
 ## In-flight work — timing and the `against-in-flight-edit` tag
 
 The project is mid-milestone: an adjudication of data-pipeline-and-validation issues is
-in flight and will edit `ctl_instruction.md` and `pinn_architecture.md` after this audit
-is commissioned (the bundle's in-flight register enumerates the topics by phase). This
-audit is deliberately commissioned *anyway*: disruption surfaced now is more useful than
+in flight. Its first tranche (DataLoader ingestion and selection contracts) has **already
+landed in the attached `ctl_instruction.md`** and is part of what you are auditing; the
+remaining tranches (sampling/precision/global-scale, then validation-metric data-side
+definitions) will edit the specs after this audit is commissioned (the bundle's in-flight
+register enumerates every topic by phase and marks which have landed). This audit is
+deliberately commissioned *anyway*: disruption surfaced now is more useful than
 disruption serialized until after those edits. Your obligations are only:
 
-- Tag any finding overlapping an in-flight topic as `novelty: against-in-flight-edit`.
-  Such findings are still fully wanted — the tag routes them to the owning workstream.
+- Tag any finding overlapping a still-pending in-flight topic (the register marks which
+  are pending vs already-landed) as `novelty: against-in-flight-edit`. Findings on
+  already-landed contracts are ordinary audit findings against the attached spec text.
+  Such findings are still fully wanted — the tag routes pending-topic findings to the
+  owning workstream.
 - Audit the specs **as attached** (the pinned snapshots), not as you guess they might
   look after in-flight edits.
 - Do not answer the training-execution round's questions (the bundle register lists

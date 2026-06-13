@@ -22,7 +22,7 @@ moved" table in `DATASET-CONTEXT.md` is the substitution list.
 | Embedded doc | Bare path | sha256 (first 16 hex) | Authority banner ID | Status |
 |---|---|---|---|---|
 | EMBEDDED DOCUMENT 1 | `data_quality_assessment.md` | `90ad2df142ec90c6` | BANNER-1 | Non-authoritative research report (read-only in the project); sole written home of the locked post-v1.3 screening gate and the SCS/SASD/IPR/PSC metric definitions |
-| EMBEDDED DOCUMENT 2 | `02-resolution-doc.md` | `b8cfab704bdc66e7` | BANNER-2 | Candidate verdicts under adjudication, not adopted; the project's Phases 25–28 are adjudicating it now (see in-flight register) |
+| EMBEDDED DOCUMENT 2 | `02-resolution-doc.md` | `b8cfab704bdc66e7` | BANNER-2 | Candidate verdicts under adjudication; the project's Phases 25–28 adjudicate it (25–26 complete — the Phase-26 contracts have landed in the attached `ctl_instruction.md`; 27–28 pending; see in-flight register) |
 | EMBEDDED DOCUMENT 3 | `03-curriculum-and-training-loop.md` | `94c3c03b1323847e` | BANNER-3 | Unadjudicated critiques; open issue doc for a future milestone |
 
 Checksums are SHA-256 over each embedded document's exact content between its opening
@@ -31,16 +31,20 @@ project source the snapshot was taken from.
 
 ## In-flight register
 
-Findings that overlap a topic below must be tagged `novelty: against-in-flight-edit`
-(they are still wanted — overlap does not lower their value; the tag routes them to the
-owning workstream). Phase numbers are the project's internal sequencing vocabulary.
+Findings that overlap a **still-pending** topic below must be tagged `novelty:
+against-in-flight-edit` (they are still wanted — overlap does not lower their value; the
+tag routes them to the owning workstream). **Phase 26 has already landed** — its contracts
+are present in the attached `ctl_instruction.md` and are audited as live spec text;
+findings on them are ordinary (not `against-in-flight-edit`), and where the
+candidate-verdict form in EMBEDDED DOCUMENT 2 differs from the landed text, the attached
+spec governs. Phase numbers are the project's internal sequencing vocabulary.
 
 ### v1.5 spec-edit topics (issue-02 adjudication; edits target `ctl_instruction.md` and `pinn_architecture.md` only)
 
-| Phase | State (2026-06-12) | Topics being adjudicated / edited |
+| Phase | State (updated 2026-06-13) | Topics being adjudicated / edited |
 |---|---|---|
 | Phase 25 | COMPLETE | Adjudication machinery only (evidence packets, verdict vocabulary, re-verification ledger); three root-cause conflict records authored: the SCS threshold conflict (ratio-based thresholds vs the locked log-drift gate), the global-scale conflict (`D = 6.694` claim vs the locked raw-mass `D ≈ 4.6416`), and the M11/M12 severity reclassification. No spec edits in this phase. |
-| Phase 26 | Planned; spec edits imminent | DataLoader ingestion & selection contracts: trajectory admission gate between metrics and training (B-06); ID-resolution contract with the explicit ID ≠ array-index invariant (B-11); blacklist-exclusion contract at DataLoader init (M11); footer/parameter-heterogeneity contract — footer precedence, folder-default fallback, tolerance-provenance flag (D7); gold-counterpart fallback policy for the 184 standard IDs without gold (M13; pre-registered as a possible STOP gap); processed training-data format decision, HDF5 vs alternatives (D-03; user gate). |
+| Phase 26 | **COMPLETE — landed in the attached `ctl_instruction.md` (2026-06-13); audit as live spec text** | DataLoader ingestion & selection contracts, now present in the attached spec: trajectory admission gate between metrics and training (B-06; the "Step 1A" section); ID-resolution contract with the explicit ID ≠ array-index invariant (B-11); blacklist-exclusion contract at DataLoader init (M11); footer/parameter-heterogeneity contract — footer precedence, folder-default fallback, tolerance-provenance flag (D7); gold-counterpart contract for the 184 standard IDs without gold (M13); processed training-data format, locked to HDF5 (D-03). EMBEDDED DOCUMENT 2 §3 Cluster A is the pre-landing candidate-verdict form; where it differs from the landed text, the attached `ctl_instruction.md` governs. |
 | Phase 27 | Not started | Sampling, precision, and global-scale contracts: points-per-trajectory feasibility rule vs the verified snapshot distributions (M12); float64-sufficiency and Decimal-for-masses precision contract; per-trajectory `dt_out` metadata exposure and stage-query interface; `compute_globals` global-scale contract consistent with the locked D convention (adjudicates the `6.694` claim). |
 | Phase 28 | Not started | Validation-metrics data-side contracts: one canonical definition each for SCS (threshold-aligned to the locked gate), SASD, IPR (dual-epsilon consistent), and PSC. Training-loop *usage* of all four metrics is deferred to a separate future milestone ("doc-03"). |
 | Phase 29 | Not started | Acceptance checks executed for every v1.5 contract; issue-ledger closure; source-issue reconciliation; forward handoff records. |

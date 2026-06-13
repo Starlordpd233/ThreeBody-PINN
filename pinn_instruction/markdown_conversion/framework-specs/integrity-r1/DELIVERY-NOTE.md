@@ -4,7 +4,7 @@ package_for: integrity-r1 (framework integrity audit round)
 role: user-facing handoff and routing instructions — NOT part of any upload to external agents
 status: active
 created: 2026-06-12
-source_baseline: 32a9aa76d41511cf95a8f717a4a672bd1c02ff35
+source_baseline: 55ab6e4bfba0ada4f8ab48539d2385905d594e8a
 ---
 
 # Integrity R1 Delivery Note
@@ -42,10 +42,13 @@ file's horizontal rule:
 6. `research_package/KNOWN-ISSUES-AND-IN-FLIGHT-BUNDLE.md`
 
 The `specs/` snapshots are stored once at this round root (ERW storage rule) and are
-byte-identical copies of the three live framework specs at commit `32a9aa76` (the
-`source_baseline` in the master's frontmatter). Snapshot SHA-256:
+byte-identical copies of the three live framework specs at commit `55ab6e4b` (the
+`source_baseline` in the master's frontmatter). The `ctl_instruction.md` snapshot was
+**refreshed 2026-06-13 to HEAD** after Phase 26 landed its DataLoader ingestion/selection
+contracts (snapshot-refresh note below); `pinn_architecture.md` and `sampling_method.md`
+are unchanged since the original pin (0 commits since `32a9aa76`). Snapshot SHA-256:
 
-- `ctl_instruction.md` — `97cac25e2283229d2aa3e77e36aaa61ec94c97e2ffd901b0da0248f5c6266c99`
+- `ctl_instruction.md` — `3e3d1955aba2b2721ec59ae4da2ed201e4e942d7b295170f768583f4f74d7dff`
 - `pinn_architecture.md` — `ae29753dc10a61c1bfa47a0683ebbd991b8ee9b4b86ef09c28d6463adc712507`
 - `sampling_method.md` — `750e625efa51767eed0371dc4d6ee73d598fbd77c98592cef18bce5fc84f6f07`
 
@@ -54,18 +57,23 @@ byte-identical copies of the three live framework specs at commit `32a9aa76` (th
 **Findings register — NOT a candidate verdict source, NOT a grounding source.** No
 finding edits a spec on the report's authority. Findings feed user triage into future
 milestones (the issue-03 round, post-v1.5 spec work); `against-in-flight-edit` findings
-route to the owning v1.5 phase (26/27/28) for consideration there. This keeps the
+route to the still-pending owning v1.5 phase (27/28) for consideration there; findings on already-landed Phase-26 contracts route to Phase 29 acceptance or a Phase-26 reopen. This keeps the
 CLAUDE.md adjudication governance unambiguous: the v1.5 candidate verdict source remains
 the issue-02 resolution doc, not this audit.
 
-## Timing acknowledgment (user-confirmed 2026-06-12)
+## Timing acknowledgment (user-confirmed 2026-06-12; ctl snapshot refreshed 2026-06-13)
 
-v1.5 Phases 26–28 will edit `ctl_instruction.md` and `pinn_architecture.md` as issue-02
-adjudication applies fixes. The audit is sent now anyway — the in-flight register inside
-the bundle plus the mandatory novelty classification absorb the overlap; disruption
-surfaced now is more useful than serialized-later disruption. The agents audit the
-pinned snapshots as attached; any finding overlapping an in-flight topic arrives tagged
-`against-in-flight-edit`.
+v1.5 Phases 26–28 edit `ctl_instruction.md` and `pinn_architecture.md` as issue-02
+adjudication applies fixes. **Phase 26 landed on 2026-06-13** (DataLoader
+ingestion/selection contracts: B-06 admission gate, B-11 id-resolution, M11 blacklist
+exclusion, D7 footer/parameter heterogeneity, M13 gold-counterpart, D-03 HDF5 format);
+its edits are now part of the refreshed `ctl_instruction.md` snapshot and are audited as
+live spec text. Phases 27–28 (sampling/precision/global-scale; validation-metric
+data-side definitions) remain pending. The audit is sent now anyway — the in-flight
+register inside the bundle plus the mandatory novelty classification absorb the remaining
+overlap; disruption surfaced now is more useful than serialized-later disruption. The
+agents audit the pinned snapshots as attached; any finding overlapping a still-pending
+in-flight topic arrives tagged `against-in-flight-edit`.
 
 ## Scope notes
 
@@ -125,13 +133,16 @@ Per the round's mandatory Bundle Assembly Procedure:
 - **V2 authority-banner presence — PASS.** All three banners present with the exact
   wording templates (BANNER-1 NON-AUTHORITATIVE / BANNER-2 CANDIDATE VERDICTS UNDER
   ADJUDICATION / BANNER-3 UNADJUDICATED CRITIQUES), one per embedded doc.
-- **V3 in-flight register recency — PASS.** Checked 2026-06-12 against
-  `.planning/ROADMAP.md` (v1.5 section), `.planning/milestones/v1.5-GAPS.md`
-  (last_updated 2026-06-12; 0 open gaps), and the phase-25/26 artifacts: Phase 25
-  complete (machinery + three EVID-10 conflict records: `scs-thresholds.md`,
-  `compute-globals-D.md`, `m11-m12-severity.md`); Phase 26 planned (5 plans authored,
-  none executed — no spec edits have landed); Phases 27–29 not started. The register
-  lists exactly these states and topics; no closed topic is listed as open.
+- **V3 in-flight register recency — PASS (re-checked 2026-06-13 after Phase 26 landed).**
+  Originally checked 2026-06-12 against `.planning/ROADMAP.md` (v1.5 section),
+  `.planning/milestones/v1.5-GAPS.md`, and the phase-25/26 artifacts. Re-checked
+  2026-06-13: Phase 25 complete (machinery + three EVID-10 conflict records:
+  `scs-thresholds.md`, `compute-globals-D.md`, `m11-m12-severity.md`); **Phase 26 now
+  complete** — its 7 spec commits (`b1852b0f`..`ab5f7f06`) landed the DataLoader
+  ingestion/selection contracts in `ctl_instruction.md`, the snapshot was refreshed to
+  HEAD `55ab6e4b`, and the register's Phase-26 row was updated from "planned" to
+  "landed"; Phases 27–29 not started. The register lists exactly these states and topics;
+  no closed topic is listed as open and no landed topic is listed as pending.
 - **V4 trainex-r1 register recency — PASS.** Checked against both trainex-r1 masters
   and `.planning/research/questions.md`: D1–D7 (package a) + K1–K5 (package b),
   PACKAGE-READY awaiting handoff, no decisions adopted. Register matches.
