@@ -169,9 +169,9 @@ CLM-03 confirmed). Prioritization owned by Phase 26 PIPE-03.
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M11 explicit severity ruling **BLOCKING STANDS**; OI-8 carried forward; D-12 G3->M11 close-with-parent; prioritization owned by Phase 26 PIPE-03)
-- 2026-06-13 <pending-26-02-sha> PENDING -> IN_PROGRESS (Phase 26 P02 by gsd-executor; M11 PIPE-03 before/after note added to `m11-m12-severity.md`, AC-PIPE-03 defined; M12 sub-part untouched)
-- 2026-06-13 <pending-26-02-sha> IN_PROGRESS -> FIX_APPLIED (Phase 26 P02; blacklist-exclusion contract transcribed into ctl_instruction.md from 02-resolution-doc.md:223-251, co-located with the Step-1A clause-1 gate)
-- 2026-06-13 <pending-26-02-sha> FIX_APPLIED -> VERIFIED (Phase 26 P02; AC-PIPE-03 spec-consistency + CLM-03 dataset probe PASS; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED; G3 closes with M11)
+- 2026-06-13 a187e20f PENDING -> IN_PROGRESS (Phase 26 P02 by gsd-executor; M11 PIPE-03 before/after note added to `m11-m12-severity.md`, AC-PIPE-03 defined; M12 sub-part untouched)
+- 2026-06-13 a187e20f IN_PROGRESS -> FIX_APPLIED (Phase 26 P02; blacklist-exclusion contract transcribed into ctl_instruction.md from 02-resolution-doc.md:223-251, co-located with the Step-1A clause-1 gate)
+- 2026-06-13 a187e20f FIX_APPLIED -> VERIFIED (Phase 26 P02; AC-PIPE-03 spec-consistency + CLM-03 dataset probe PASS; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED; G3 closes with M11)
 
 ### M12: Points-per-trajectory infeasibility (Phase 27 PIPE-04)
 
@@ -262,7 +262,7 @@ Owning requirement: PIPE-03 (synthesis view).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-13 <pending-26-02-sha> PENDING -> VERIFIED (Phase 26 P02; D-07 close-with-parent G3->M11; no separate packet; M11 VERIFIED via AC-PIPE-03)
+- 2026-06-13 a187e20f PENDING -> VERIFIED (Phase 26 P02; D-07 close-with-parent G3->M11; no separate packet; M11 VERIFIED via AC-PIPE-03)
 
 ### G4: Pipeline validation gap — synthesis view (M13)
 

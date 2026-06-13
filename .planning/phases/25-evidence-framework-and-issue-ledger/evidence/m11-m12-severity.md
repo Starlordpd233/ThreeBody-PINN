@@ -174,12 +174,12 @@ $ grep -nE 'problematic_ics_blacklist\.json|before stage assignment|before any d
 
 ```text
 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 accept-third-position verdict + M11 explicit severity ruling BLOCKING STANDS; M12 fix owned by Phase 27 PIPE-04, M11 prioritization owned by Phase 26 PIPE-03; OI-8 carried forward; D-12 G3->M11, G5->M12 close with parent)
-2026-06-13 <pending-26-02-sha> M11 PENDING -> IN_PROGRESS (Phase 26 P02 by gsd-executor; M11 PIPE-03 before/after note added, AC-PIPE-03 defined; M12 sub-part untouched)
-2026-06-13 <pending-26-02-sha> M11 IN_PROGRESS -> FIX_APPLIED (Phase 26 P02; blacklist-exclusion contract transcribed into ctl_instruction.md from 02-resolution-doc.md:223-251, co-located with Step-1A clause 1)
-2026-06-13 <pending-26-02-sha> M11 FIX_APPLIED -> VERIFIED (Phase 26 P02; AC-PIPE-03 spec-consistency + CLM-03 dataset probe PASS; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED; G3 closes with M11)
+2026-06-13 a187e20f M11 PENDING -> IN_PROGRESS (Phase 26 P02 by gsd-executor; M11 PIPE-03 before/after note added, AC-PIPE-03 defined; M12 sub-part untouched)
+2026-06-13 a187e20f M11 IN_PROGRESS -> FIX_APPLIED (Phase 26 P02; blacklist-exclusion contract transcribed into ctl_instruction.md from 02-resolution-doc.md:223-251, co-located with Step-1A clause 1)
+2026-06-13 a187e20f M11 FIX_APPLIED -> VERIFIED (Phase 26 P02; AC-PIPE-03 spec-consistency + CLM-03 dataset probe PASS; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED; G3 closes with M11)
 ```
 
-The `<pending-26-02-sha>` placeholders for the three M11 transitions are backfilled to the substantive Plan 26-02 commit SHA in the immediately following provenance commit (a commit cannot reference its own hash inline; backfill is the accepted Phase 25 / 26-01 pattern). The M12 transition above (`e05b4b1a`) is unchanged.
+The three M11 transitions reference the substantive Plan 26-02 commit `a187e20f`; the short SHA was backfilled in the immediately following provenance commit (a commit cannot reference its own hash inline; backfill is the accepted Phase 25 / 26-01 pattern). The M12 transition above (`e05b4b1a`) is unchanged.
 
 The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsections (D-06 same-commit discipline; D-12 close-with-parent annotations in the M11 and M12 per-finding notes).
 
