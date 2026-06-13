@@ -230,7 +230,25 @@ Every selected finding follows the v1.4-style loop:
   3. The data-side `dt_out` and stage-query contract is defined: the DataLoader exposes per-trajectory `dt_out` metadata and the `sample_replay(n, max_stage)` / `sample_lookahead(n, stage)` interface, with the M16 collocation-scaling policy that consumes it explicitly deferred to the doc-03 milestone via a recorded forward-reference.
   4. The global-scale computation contract (`compute_globals`) is consistent with the v1.4-locked PHYS-01 D convention, and the issue-02 `D = 6.694` claim is adjudicated (verified, corrected, or rejected per the EVID-10 record) rather than transcribed.
 
-**Plans**: TBD
+**Plans**: 4 plans (CONTEXT D-13 order; each plan = one same-commit-discipline finding close; all serialize on `ctl_instruction.md`)
+
+> Note: Success-criterion 1 above still names the STALE candidate `n_pts = min(32, int(0.5 * n_snapshots))`. This is SUPERSEDED by the Phase 25 M12 verdict (`accept-third-position`, `evidence/m11-m12-severity.md`): the operative rule is `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` without replacement, default cap 32, NO `0.5` factor. Plan 27-01 lands the M12 verdict, not the stale candidate.
+
+**Wave 1**
+
+  - [ ] 27-01-PLAN.md — PIPE-04 (M12) points-per-trajectory + G5 close-with-M12; ctl Mini-Batch contract; AC-PIPE-04; AC-PIPE-01 regression
+
+**Wave 2** *(blocked on 27-01)*
+
+  - [ ] 27-02-PLAN.md — PIPE-07 precision (float64 sufficiency / Decimal-as-classifier); confirm+link existing `data05-precision.md` pointer packet (GAP-27-01 Option C) BEFORE the §2.1 note; AC-PIPE-07; AC-PIPE-06 regression
+
+**Wave 3** *(blocked on 27-02; serializes on ctl_instruction.md)*
+
+  - [ ] 27-03-PLAN.md — PIPE-08 data-side `dt_out`/stage-query interface (`sample_replay`/`sample_lookahead`, net-new); A1 grounding-depth guard; doc-03/M16 deferral; AC-PIPE-08; AC-PIPE-06 regression
+
+**Wave 4** *(blocked on 27-03; serializes on ctl_instruction.md)*
+
+  - [ ] 27-04-PLAN.md — PIPE-09 normative `compute_globals` §2.5 contract (raw-mass D; `6.694`/`M_tot_ref` rejected by name; `E_scale +1e-10 → +1e-8`); AC-PIPE-09; phase-exit gate confirm
 
 ### Phase 28: Validation-Metrics Contracts
 
@@ -272,9 +290,9 @@ Every selected finding follows the v1.4-style loop:
 | 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete    | 2026-06-12 |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 5/5 | Complete    | 2026-06-13 |
-| 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/4 | Planned (ready to execute) | - |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 
 ---
-*Last updated: 2026-06-11 after Phase 24.5 completion (resolution doc readiness verification; READY-WITH-CAVEATS; Phases 25–29 unblocked).*
+*Last updated: 2026-06-13 after Phase 27 planning (4 plans, PIPE-04/07/08/09; Waves 1-4 serialized on ctl_instruction.md).*
