@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-stopped_at: "GAP-26-01 resolved (= Option B, Stage-5 labels attach to IDs, OI-7a); M13 + G4 ledger rows moved DEFERRED -> VERIFIED; M13 packet verdict accept-third-position; ctl_instruction.md resolved gold-counterpart note landed; OI-7b (re-simulate 184 gold counterparts to 1:1) ACTIVATED, not yet executed"
-last_updated: "2026-06-13T08:27:47.370Z"
+stopped_at: Phase 27 context gathered; stopped before planning phase starts
+last_updated: "2026-06-13T10:48:31.353Z"
 last_activity: 2026-06-13
 progress:
   total_phases: 8
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-12)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 26 — dataloader-ingestion-and-selection-contracts
+**Current focus:** Phase 27 - sampling-precision-and-global-scale-contracts
 
 ## Current Position
 
@@ -180,9 +180,9 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-13T08:16:00Z
-Stopped at: GAP-26-01 resolved (= Option B, Stage-5 labels attach to IDs, OI-7a); M13 + G4 ledger rows moved DEFERRED -> VERIFIED; M13 packet verdict accept-third-position; ctl_instruction.md resolved gold-counterpart note landed; OI-7b (re-simulate 184 gold counterparts to 1:1) ACTIVATED, not yet executed
-Next action: Plan Phase 26 (DataLoader ingestion and selection contracts — PIPE-01, 02, 03, 05, 06, 10). Author evidence packets immediately before each spec edit using the Phase 25 machinery (GAP-25-01 split reading; README packet-before-edit rule); consume the M11 ruling (BLOCKING STANDS; OI-8 carry-forward) from `evidence/m11-m12-severity.md`.
+Last session: 2026-06-13T10:47:17.382Z
+Stopped at: Phase 27 context gathered; stopped before planning phase starts
+Next action: Plan Phase 27 with `$gsd-plan-phase 27 --auto` when ready; start from .planning/phases/27-sampling-precision-and-global-scale-contracts/27-CONTEXT.md and 27-SPEC.md.
 
 ## Operator Next Steps
 
