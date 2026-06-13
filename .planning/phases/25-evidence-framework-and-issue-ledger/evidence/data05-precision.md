@@ -87,7 +87,7 @@ float64 is the data-side precision contract for all validation metrics and invar
 Each entry: `date`, `commit short SHA`, `status transition`, `actor / plan reference`.
 
 ```text
-2026-06-13 <commit-pending; backfill> PENDING -> PENDING (Phase 27 /gsd-plan-phase; data05-precision pointer packet authored + accept-resolution verdict assigned via pointer to Phase 24 DATA-05 artifacts; GAP-27-01 Option C, user instruction)
+2026-06-13 09e37f8 PENDING -> PENDING (Phase 27 /gsd-plan-phase; data05-precision pointer packet authored + accept-resolution verdict assigned via pointer to Phase 24 DATA-05 artifacts; GAP-27-01 Option C, user instruction)
 ```
 
 > Forward transitions `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED` are applied by the **Phase 27 PIPE-07 plan execution**, in the same commit as the `ctl_instruction.md` §2.1 precision-note edit, the `24-ISSUE-LEDGER.md` mass-drift/footer-row Evidence-Packet link + status edit, and the passing `AC-PIPE-07` check (same-commit discipline, evidence/README.md `:101`). The `<commit-pending>` SHA above is backfilled with this packet's authoring commit short SHA.
