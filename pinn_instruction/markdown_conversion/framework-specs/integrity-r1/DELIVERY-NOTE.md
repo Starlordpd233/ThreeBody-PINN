@@ -4,7 +4,7 @@ package_for: integrity-r1 (framework integrity audit round)
 role: user-facing handoff and routing instructions — NOT part of any upload to external agents
 status: active
 created: 2026-06-12
-source_baseline: 55ab6e4bfba0ada4f8ab48539d2385905d594e8a
+source_baseline: 14bd96e19d30dd8c25e5045ad1c40567f871644e
 ---
 
 # Integrity R1 Delivery Note
@@ -42,7 +42,7 @@ file's horizontal rule:
 6. `research_package/KNOWN-ISSUES-AND-IN-FLIGHT-BUNDLE.md`
 
 The `specs/` snapshots are stored once at this round root (ERW storage rule) and are
-byte-identical copies of the three live framework specs at commit `55ab6e4b` (the
+byte-identical copies of the three live framework specs at commit `14bd96e1` (the
 `source_baseline` in the master's frontmatter). The `ctl_instruction.md` snapshot was
 **refreshed 2026-06-13 to HEAD** after Phase 26 landed its DataLoader ingestion/selection
 contracts (snapshot-refresh note below); `pinn_architecture.md` and `sampling_method.md`
@@ -68,12 +68,13 @@ adjudication applies fixes. **Phase 26 landed on 2026-06-13** (DataLoader
 ingestion/selection contracts: B-06 admission gate, B-11 id-resolution, M11 blacklist
 exclusion, D7 footer/parameter heterogeneity, M13 gold-counterpart, D-03 HDF5 format);
 its edits are now part of the refreshed `ctl_instruction.md` snapshot and are audited as
-live spec text. Phases 27–28 (sampling/precision/global-scale; validation-metric
-data-side definitions) remain pending. The audit is sent now anyway — the in-flight
-register inside the bundle plus the mandatory novelty classification absorb the remaining
-overlap; disruption surfaced now is more useful than serialized-later disruption. The
-agents audit the pinned snapshots as attached; any finding overlapping a still-pending
-in-flight topic arrives tagged `against-in-flight-edit`.
+live spec text. Phase 27 (sampling/precision/global-scale) is now in planning / research
+with GAP-27-01 open and no adopted spec edits yet; Phase 28 (validation-metric
+data-side definitions) remains pending. The audit is sent now anyway — the in-flight
+register inside the bundle plus the mandatory novelty classification absorb the
+remaining overlap; disruption surfaced now is more useful than serialized-later
+disruption. The agents audit the pinned snapshots as attached; any finding overlapping a
+still-pending in-flight topic arrives tagged `against-in-flight-edit`.
 
 ## Scope notes
 
@@ -94,6 +95,11 @@ in-flight topic arrives tagged `against-in-flight-edit`.
   the package records the full resolved lifecycle rather than an open quarantine; the
   "Figures that moved" table in `DATASET-CONTEXT.md` maps the stale figures that still
   appear inside the bundle's embedded docs to current values.
+- **Missing-184 standard-gold rerun:** user-authorized rerun work is now staged in
+  progress under `simulation_data/Data/rerun_staging/standard_gold_missing_184/`; the
+  live standard-gold folder still has 2,565 files until validated outputs are promoted.
+  `DATASET-CONTEXT.md` is the single upload file carrying this status so no extra
+  dataset documentation has to be attached.
 
 ## Result delivery conventions
 
@@ -140,9 +146,11 @@ Per the round's mandatory Bundle Assembly Procedure:
   `scs-thresholds.md`, `compute-globals-D.md`, `m11-m12-severity.md`); **Phase 26 now
   complete** — its 7 spec commits (`b1852b0f`..`ab5f7f06`) landed the DataLoader
   ingestion/selection contracts in `ctl_instruction.md`, the snapshot was refreshed to
-  HEAD `55ab6e4b`, and the register's Phase-26 row was updated from "planned" to
-  "landed"; Phases 27–29 not started. The register lists exactly these states and topics;
-  no closed topic is listed as open and no landed topic is listed as pending.
+  package HEAD `14bd96e1`, and the register's Phase-26 row was updated from "planned" to
+  "landed"; Phase 27 planning / research is in progress with GAP-27-01 open and no
+  adopted spec edits yet; Phases 28–29 not started. The register lists exactly these
+  states and topics; no closed topic is listed as open and no landed topic is listed as
+  pending.
 - **V4 trainex-r1 register recency — PASS.** Checked against both trainex-r1 masters
   and `.planning/research/questions.md`: D1–D7 (package a) + K1–K5 (package b),
   PACKAGE-READY awaiting handoff, no decisions adopted. Register matches.

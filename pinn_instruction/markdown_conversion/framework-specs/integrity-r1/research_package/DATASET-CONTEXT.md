@@ -1,21 +1,24 @@
 ---
-title: Integrity R1 Dataset Context — Verified Facts About the Frozen Training Dataset
+title: Integrity R1 Consolidated Dataset Context — Verified Facts About the Training Dataset
 package_for: integrity-r1 (framework integrity audit round)
-role: curated dataset-facts companion — every entry carries a per-fact status label
+role: consolidated dataset-facts companion — every entry carries a per-fact status label
 status: active
 created: 2026-06-12
 self_contained: true
 ---
 
-# Dataset Context — Verified Facts About the Frozen Training Dataset
+# Consolidated Dataset Context — Verified Facts About the Training Dataset
 
 This file gives you the empirical reality of the project's training dataset so you can
 check every dataset assumption the framework specs make against what is actually on
 disk. It is a curated transcription: every figure was either verified by direct
-read-only probes against the dataset (run 2026-06-11) or is explicitly labeled as an
-unverified claim. **You do not have the dataset itself** — this file is your only
-dataset evidence. Where it is silent, record the gap in your open-items register; do
-not estimate or invent dataset facts.
+read-only probes against the dataset (run 2026-06-11), verified by the current compact
+tree inventory (run 2026-06-13), or is explicitly labeled as an unverified claim.
+**You do not have the dataset itself** — this file is your only dataset evidence. It
+consolidates the useful context from the dataset README, the standard-gold-missing-ID
+document, the blacklist JSON, Phase-24 verified facts, and the current rerun staging
+state so those files do not need to be attached separately. Where this file is silent,
+record the gap in your open-items register; do not estimate or invent dataset facts.
 
 ## Status-label vocabulary
 
@@ -30,6 +33,9 @@ Every entry below carries exactly one of these labels:
   empirical verification *corrected*. The entry shows both the superseded claim and the
   corrected value; the corrected value is the verified fact. The "DATA-07 correction
   addendum" is the project's authoritative correction record for these.
+- **`active-staged-remediation`** — a user-authorized data remediation / extension path
+  exists, but its outputs are staged and are **not** part of the verified training
+  dataset facts until separately validated and promoted.
 
 One additional qualifier appears on a few entries: **(post-remediation)**. A validated
 data remediation was executed on 2026-06-11 *after* some of the documents embedded in
@@ -38,16 +44,22 @@ counts. Post-remediation values are the current disk truth; the superseded value
 listed in the "Figures that moved" table at the end so you can recognize stale citations
 in the bundle documents.
 
-## Hard frame: the dataset is frozen
+## Hard frame: verified dataset baseline and staged exception
 
-The dataset is complete and will not be regenerated — this is an explicit project
-decision (a Tier-1 fixed fact per `RESEARCH-CONTEXT-MASTER.md`), not a probed figure, so
-it carries no empirical label. The generation pipeline (documented in
-`sampling_method.md`) has finished its job; the only post-freeze change ever made was
-the validated 70-file remediation described below (`verified-empirically`), which
-replaced corrupted artifacts from the *existing* generation contract — it did not extend
-or re-sample the dataset. Any audit finding whose only resolution is "generate different
-data" is a one-way-door finding and must be flagged as such.
+The verified dataset baseline described in this file is the dataset state that exists in
+the live training-data folders and the framework specs at package time. The original
+generation pipeline (documented in `sampling_method.md`) has finished its job; the
+validated 70-file DATA-05 remediation described below replaced corrupted artifacts from
+the *existing* generation contract and is already part of the verified baseline.
+
+There is one current exception to the historical "no more generation" framing: the
+project owner has authorized a targeted rerun of the **184 missing standard-gold
+outputs**. Those outputs are currently staged under the rerun workflow and are not
+promoted into `brutus_standard_quasi_random_gold_standard`; therefore they do **not**
+change the verified counts in this file. Treat this as `active-staged-remediation`, not
+as adopted dataset truth. Any audit finding whose only resolution is "generate different
+data" beyond this already-authorized missing-184 path is still a one-way-door finding
+and must be flagged as such.
 
 ## Dataset identity and variants
 
@@ -87,6 +99,21 @@ arbitrary-precision N-body integrator, in four variant collections
 - **184 standard IDs have no gold counterpart** (simulated at base resolution, never
   selected for gold re-simulation). The documented 184-ID list matches the on-disk set
   exactly: base 2,749 − gold 2,565 = 184. `verified-empirically`.
+
+## Standard-gold missing-184 rerun status
+
+- Current live training-data folder count remains **2,565**
+  `brutus_standard_quasi_random_gold_standard` trajectory files. The staged rerun has
+  not been promoted into that folder. `verified-empirically` against the current tree
+  inventory (2026-06-13).
+- A runner now exists for the missing 184 standard-gold outputs. It stages outputs under
+  `simulation_data/Data/rerun_staging/standard_gold_missing_184/outputs/`, records a
+  manifest, supports resume / validate-only / promote modes, and promotes only
+  validated files. `active-staged-remediation`.
+- Audit consequence: if you find that the framework fundamentally requires a complete
+  standard-gold counterpart for all 2,749 standard IDs, distinguish between (a) findings
+  resolved by the already-authorized missing-184 rerun once validated/promoted and
+  (b) findings requiring additional data beyond that path.
 
 ## Blacklist
 
@@ -227,6 +254,7 @@ value from this file:
 | 70-file mass-drift quarantine "open" / "pending rerun" | remediation executed, validated, swapped; 0/15,028 mismatches | remediation completed 2026-06-11 |
 | "Partial"/"minimal" footers | no footer at all (folder defaults apply) | empirical correction (DATA-07) |
 | Gold filenames carry `_gold_` infix | no infix; folder encodes gold status | empirical correction (DATA-07) |
+| 184 standard IDs permanently lack gold counterparts | live dataset still lacks them, but a user-authorized staged rerun is in progress; no outputs count until validated/promoted | active-staged-remediation (2026-06-13) |
 
 ## What this file is not
 
@@ -235,7 +263,8 @@ value from this file:
 - It does **not** restate the project's locked screening gate or physics conventions —
   those live in the specs and in `RESEARCH-CONTEXT-MASTER.md` (three-tier source
   treatment).
-- Sources referenced here by name (dataset README, probe register, correction addendum)
-  are **not attached**; this file is the curated transcription of them. Treat any other
-  dataset figure you encounter in the bundle documents as a claim unless it appears
-  here as `verified-empirically`.
+- Sources referenced here by name (dataset README, missing-ID document, blacklist JSON,
+  probe register, correction addendum, rerun script/manifest) are **not attached**; this
+  file is the curated transcription of them. Treat any other dataset figure you
+  encounter in the bundle documents as a claim unless it appears here as
+  `verified-empirically`, `corrected-by-DATA-07`, or `active-staged-remediation`.

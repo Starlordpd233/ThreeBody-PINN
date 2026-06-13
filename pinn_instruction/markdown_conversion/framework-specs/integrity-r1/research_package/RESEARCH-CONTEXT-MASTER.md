@@ -4,7 +4,7 @@ package_for: integrity-r1 (disruption-first audit of the three framework specs)
 role: research-context entry point (orientation, source tiers, review dimensions RD-1..RD-8, output contract)
 status: active
 created: 2026-06-12
-source_baseline: 55ab6e4bfba0ada4f8ab48539d2385905d594e8a
+source_baseline: 14bd96e19d30dd8c25e5045ad1c40567f871644e
 self_contained: true
 ---
 
@@ -51,7 +51,7 @@ register if it matters — rather than guessing at its content.
 | `ctl_instruction.md` | Framework spec — CTL methodology: data characterization/stratification, preprocessing, invariants, input-vector formulation, curriculum staging, training loop | **Audit subject.** Authoritative *within the project*, which is exactly why every error in it matters |
 | `pinn_architecture.md` | Framework spec — network architecture, loss functions, AD contract, output head, inference, acceptance checks | **Audit subject.** Same standing |
 | `sampling_method.md` | Framework spec — how the (now frozen, completed) dataset's initial conditions were generated and prescreened | **Audit subject, special standing:** historical record of completed generation work; frozen by default, not an active revision target. Audit it for what it implies about the data and for contradictions with the other two specs; treat "change the generation method" recommendations as one-way doors (the dataset will not be regenerated) |
-| `DATASET-CONTEXT.md` | Curated, per-fact-labeled empirical facts about the frozen dataset | Your only dataset evidence. `verified-empirically` entries are Tier-1 facts; the file's "Figures that moved" table corrects stale figures cited in the bundle |
+| `DATASET-CONTEXT.md` | Consolidated, per-fact-labeled empirical facts about the training dataset, including stale-figure corrections and the staged missing-184 standard-gold rerun status | Your only dataset evidence. `verified-empirically` entries are Tier-1 facts; `active-staged-remediation` entries are current process state, not adopted dataset facts; the file's "Figures that moved" table corrects stale figures cited in the bundle |
 | `KNOWN-ISSUES-AND-IN-FLIGHT-BUNDLE.md` | Three verbatim-embedded project documents (a data-quality research report; a candidate-verdicts resolution doc under adjudication; an unadjudicated curriculum/training-loop issue doc), each behind an authority banner, plus the project's in-flight work register | Read **last**. Evaluative material and novelty-classification anchor — never defaults to adopt. Respect each embedded doc's authority banner |
 
 ## Recommended read order — and an honest caveat
@@ -74,9 +74,11 @@ carry your own evidence for why you concur.
 
 **Tier 1 — fixed facts (not challengeable; constraints on every finding):**
 
-1. The dataset is frozen and will not be regenerated or extended. Findings whose only
-   resolution requires different data are still wanted — but must be flagged as one-way
-   doors.
+1. The verified dataset baseline in `DATASET-CONTEXT.md` is fixed for this audit. The
+   only current data-change exception is the explicitly labeled staged rerun of the 184
+   missing standard-gold outputs; do not assume those outputs exist until validated and
+   promoted. Findings whose only resolution requires other different data are still
+   wanted — but must be flagged as one-way doors.
 2. Training happens on a single MacBook (Apple-Silicon laptop, unified memory); no
    cloud, no cluster.
 3. Every `verified-empirically` entry in `DATASET-CONTEXT.md`.
@@ -129,9 +131,9 @@ You MAY challenge a Tier-2 locked decision, but only under all three of:
 The project is mid-milestone: an adjudication of data-pipeline-and-validation issues is
 in flight. Its first tranche (DataLoader ingestion and selection contracts) has **already
 landed in the attached `ctl_instruction.md`** and is part of what you are auditing; the
-remaining tranches (sampling/precision/global-scale, then validation-metric data-side
-definitions) will edit the specs after this audit is commissioned (the bundle's in-flight
-register enumerates every topic by phase and marks which have landed). This audit is
+next tranche (sampling/precision/global-scale) is in planning with no adopted spec edits
+yet; the validation-metric data-side definitions remain pending. The bundle's in-flight
+register enumerates every topic by phase and marks which have landed. This audit is
 deliberately commissioned *anyway*: disruption surfaced now is more useful than
 disruption serialized until after those edits. Your obligations are only:
 

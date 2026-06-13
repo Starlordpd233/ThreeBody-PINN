@@ -38,8 +38,10 @@ sources (peer-reviewed literature, official documentation; not blog hearsay):
   framework specs. These are the audit subjects. `sampling_method.md` documents the
   *completed, frozen* data-generation work — audit it for what it implies about the
   data and for cross-spec contradictions, not as an active design to improve.
-- `DATASET-CONTEXT.md` — verified facts about the frozen dataset, each entry carrying a
-  per-fact status label. This is your only dataset evidence.
+- `DATASET-CONTEXT.md` — consolidated dataset context: verified facts about the current
+  training-data folders, stale-figure corrections, and the staged missing-184
+  standard-gold rerun status, each entry carrying a per-fact status label. This is your
+  only dataset evidence.
 - `KNOWN-ISSUES-AND-IN-FLIGHT-BUNDLE.md` — three embedded project documents (known
   critiques and candidate verdicts, each behind an authority banner stating its exact,
   non-authoritative standing) plus the register of the project's in-flight work. Read
@@ -61,6 +63,27 @@ assumptions and risk register (door classification, compound failures, mitigatio
 ranking). Every dimension produces findings, a coverage statement, and an explicit
 "checked, found nothing" register — negative results are valued and required.
 
+High-priority stress questions to keep in view throughout the audit:
+
+- Does the framework remain mathematically and physically coherent under the actual
+  dataset realities in `DATASET-CONTEXT.md`: non-contiguous IDs, variable snapshot
+  counts, absent footers, folder-level parameter defaults, missing/staged gold
+  counterparts, and blacklist semantics?
+- Does the HDF5 processed-data contract preserve all identities and provenance needed
+  for physics and curriculum logic: `record_key`, `physical_key`, source hashes,
+  fidelity, per-trajectory parameters, `dt_out`, and stage labels?
+- Are dimensionless scaling, mass handling, time normalization, COM projection,
+  automatic differentiation, Plummer softening, and validation-epsilon choices mutually
+  consistent across the specs?
+- Are SCS, SASD, IPR, and PSC definitions mathematically meaningful and threshold-
+  aligned with the locked post-v1.3 screening gate, especially where embedded known
+  issues contain pre-adjudication or conflicting formulations?
+- Is the curriculum / multi-fidelity story buildable when standard-gold coverage is
+  incomplete in the current live folders and only staged for the missing 184 IDs?
+- Can the entire approach plausibly train and be verified on the stated single
+  Apple-Silicon laptop constraint, without relying on unstated cloud, cluster, or
+  future-data assumptions?
+
 Ground rules:
 
 - **Severity discipline.** Every finding carries exactly one severity from the master's
@@ -78,9 +101,10 @@ Ground rules:
 - **Locked decisions are challengeable only via the protocol**: high evidence bar
   (math or literature, not judgment alone), explicit steelman of the locked decision
   first, and a `locked-decision challenge` flag on the finding.
-- **Tier-1 facts are fixed**: the dataset is frozen (no regeneration — findings that
-  require different data are one-way doors and must say so), training is single-machine,
-  and `verified-empirically` dataset facts are facts.
+- **Tier-1 facts are fixed**: the verified dataset baseline and any
+  `verified-empirically` entries in `DATASET-CONTEXT.md` are facts; the only current
+  data-change exception is the explicitly labeled `active-staged-remediation` path for
+  the 184 missing standard-gold outputs; training is single-machine.
 - **Never invent.** Where the attached materials are silent, ambiguous, or insufficient,
   record the gap in the §7 open-items register; where you must assume to proceed, state
   the assumption inside the finding. Treat any file referenced but not attached as
