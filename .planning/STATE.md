@@ -4,13 +4,13 @@ milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: Executed
 stopped_at: context exhaustion at 75% (2026-06-14)
-last_updated: "2026-06-14T04:41:25.126Z"
-last_activity: 2026-06-14 -- Phase 27 Plan 03 (PIPE-08 stage-query) complete
+last_updated: "2026-06-14T04:50:00.000Z"
+last_activity: 2026-06-14 -- Phase 27 Plan 04 (PIPE-09 compute_globals) complete; full-suite AC re-run green; phase-exit gate met
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 50
 ---
 
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 ## Current Position
 
 Phase: 27
-Plan: 03 complete
+Plan: 04 complete
 Status: Executed
-Next: Plan 04 (PIPE-09 compute_globals)
-Last activity: 2026-06-14 -- Phase 27 Plan 03 (PIPE-08 stage-query) complete
+Next: Phase 28 (Validation-metrics contracts: SCS/SASD/IPR/PSC) — `/gsd-discuss-phase 28` or `/gsd-plan-phase 28`
+Last activity: 2026-06-14 -- Phase 27 Plan 04 (PIPE-09 compute_globals) complete; full-suite AC re-run green; phase-exit gate met (all Phase 27 in-scope ledger rows VERIFIED: M12, G5, mass-drift, footer, D=6.694)
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
