@@ -37,8 +37,8 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | PSC | Phase Space Coverage Entropy (data-side; Q-C4) | 28 (VAL-04) | PENDING | — | NO | — | AC-VAL-04 | ctl_instruction.md; pinn_architecture.md | Q-C4 | 2026-06-11 |
 | D-03 | Processed training-data format (HDF5 vs .npy vs txt/json) | 26 (PIPE-10) | VERIFIED | `accept-resolution` (user-locked 2026-06-13: HDF5 canonical) | NO | [d-03-training-data-format.md](../25-evidence-framework-and-issue-ledger/evidence/d-03-training-data-format.md) | AC-PIPE-10 | ctl_instruction.md Step 1 item 6 | Q-A6 | 2026-06-13 |
 | D=6.694 | compute_globals / D=6.694 convention conflict (CLM-13) — NOT probed by Phase 24; routed to Phase 25 EVID-10 / Phase 27 PIPE-09 | 25 (EVID-10) / 27 (PIPE-09) | PENDING | `accept-resolution` (CLM-13 ratified `convention-rejected`) | YES — EVID-10 required (PHYS-01 raw-mass D ~ 4.6416 vs mass-fraction 6.694) | [compute-globals-D.md](../25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md) | AC-PIPE-09 / EVID-10 verdict | ctl_instruction.md §2.5 line 598 explicitly rejects 6.694 form | Q-B4 | 2026-06-12 |
-| footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | PENDING | — | NO — GAP-24-01 resolved by user instruction; 70 base-hier artifacts required rerun, not Decimal fallback (rerun executed+validated 2026-06-11) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
-| mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | PENDING | — | NO — DATA-05 resolved as invalid/stale base-hier artifacts; rerun passed 2026-06-11, replacements live; metrics for the 70 IDs regenerated and validated 2026-06-11 (gate 7 closed) | `24-DATA05-RERUN-REMEDIATION.md` | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-11 |
+| footer | Footer/mass-drift protocol (np.allclose rtol=1e-15, decimal.Decimal fallback) | 26/27 (PIPE-06/07) | VERIFIED | — | NO — GAP-24-01 resolved by user instruction; 70 base-hier artifacts required rerun, not Decimal fallback (rerun executed+validated 2026-06-11) | [data05-precision.md](../25-evidence-framework-and-issue-ledger/evidence/data05-precision.md) | AC-PIPE-06 / AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B2; D-12 anomaly; DATA-05 remediation | 2026-06-14 |
+| mass-drift | Precision handling (float64 sufficiency; Decimal-for-masses) — DATA-05 verdict feeds this | 27 (PIPE-07) | VERIFIED | `accept-resolution` | NO — DATA-05 resolved as invalid/stale base-hier artifacts; rerun passed 2026-06-11, replacements live; metrics for the 70 IDs regenerated and validated 2026-06-11 (gate 7 closed) | [data05-precision.md](../25-evidence-framework-and-issue-ledger/evidence/data05-precision.md) | AC-PIPE-07 (consume remediated/quarantined DATA-05 state) | ctl_instruction.md; pinn_architecture.md | Q-B3; D-12 anomaly; DATA-05 remediation | 2026-06-14 |
 
 ## Notes
 - **2026-06-12:** D-11 re-issue: the Lifecycle Rules block's stale v1.4 applicability text (the v1.4-era phase range that named the old spec-edit phases and the inserted phase) was mechanically updated to the v1.5 spec-edit phases (now 26-28 with Phase 29 as the acceptance phase). State machine, batch definition, regression policy, and phase-exit gate preserved verbatim per D-11 KEEP-VERBATIM list. Only the stale applicability token changed; the per-finding rows, Status Table, and Anomalies section are untouched (Plan 25-02 fills the three EVID-10 rows' Evidence-Packet links and per-finding verdict notes in its own commit, per D-06).
@@ -455,6 +455,9 @@ boundary; PIPE-06/07 must not consume the old 70 outputs until rerun validation 
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-14 <pending-27-02-sha> PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet link updated to data05-precision.md, mass-drift row IN_PROGRESS)
+- 2026-06-14 <pending-27-02-sha> IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored)
+- 2026-06-14 <pending-27-02-sha> FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS; D7 regression AC-PIPE-06 PASS; footer row VERIFIED with PIPE-07 facet closed; PIPE-06 facet already VERIFIED via D7 Phase 26)
 
 ### mass-drift: Precision handling (Phase 27 PIPE-07)
 
@@ -470,6 +473,9 @@ before training, metrics, or PIPE-07 consume them.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-14 <pending-27-02-sha> PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet link updated to data05-precision.md, mass-drift row IN_PROGRESS)
+- 2026-06-14 <pending-27-02-sha> IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored)
+- 2026-06-14 <pending-27-02-sha> FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS; D7 regression AC-PIPE-06 PASS; mass-drift row VERIFIED)
 
 ## Dataset Evidence Annex
 

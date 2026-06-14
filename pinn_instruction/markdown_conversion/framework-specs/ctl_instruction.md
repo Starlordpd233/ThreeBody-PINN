@@ -575,6 +575,18 @@ folded-in B-11 (COM <-> mass consistency) assertion: the COM transform in 2.2
 and every BRUTUS-snapshot correction require consistent masses between the IC
 and the BRUTUS output.
 
+> **Precision note (PIPE-07, `accept-resolution`, DATA-05 rerun validated 70/70).**
+> `float64` is the data-side precision contract for all validation metrics and
+> invariants. `decimal.Decimal` is used **only** as the failure classifier for
+> the IC↔Brutus `t=0` mass-consistency gate (`max_i |Δm_i| < 1e-15`, float64
+> absolute), never as the routine parsing or metric-computation path. Current
+> IC masses are canonical; the 70 historical base-hier mismatches were stale
+> artifacts (0.1–1.0 mass units, not a float64 round-trip), not a precision
+> failure, and were remediated by targeted rerun from the current canonical ICs
+> (`24-DATA05-RERUN-VALIDATION.md`: 70/70 PASS). A future IC↔Brutus mass-gate
+> mismatch is a **fail** condition for the affected trajectory (quarantine), not
+> a trigger to switch the metric path to Decimal.
+
 ### 2.2 COM recenter and zero-momentum boost
 
 Apply a universal center-of-mass recenter and zero-momentum (Galilean) boost to
