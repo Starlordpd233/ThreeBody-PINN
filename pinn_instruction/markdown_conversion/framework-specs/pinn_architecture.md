@@ -349,7 +349,7 @@ snapshots available in the training dataset, representing specific
 moments where high-precision numerical integration data is available.
 
   **[Author Comment: This above batch construction is not consistent with the CTL instruction plan. Look into this.]**
-  *Note (PIPE-04): `points_per_trajectory=32` is a code default, not the spec contract. The operative data-loss sampling rule is `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` without replacement, defined in `ctl_instruction.md` Mini-Batch Construction.*
+  *Note (PIPE-04): `points_per_trajectory=32` is a code default, not the spec contract. The operative data-loss sampling rule is `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` without replacement, defined in `ctl_instruction.md` Mini-Batch Construction. The data-side loader also exposes `sample_replay(n, max_stage)` and `sample_lookahead(n, stage)` for stage-aware trajectory selection (PIPE-08, `ctl_instruction.md` §2.6).*
 
 **Loss Integration Note:**\
 The data term is unweighted in the default objective. Physics and

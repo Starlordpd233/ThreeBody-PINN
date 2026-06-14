@@ -820,7 +820,7 @@ r_true_prime_ordered_gauge: (Nt,3,3)
 v_true_prime_ordered_gauge: (Nt,3,3)  # optional but recommended
 IC13: (13,)
 invariants: E, Q, s_min, L_vec, L_norm, I_norm_raw, I1, I2, I3, tau_L
-brutus_tolerance, word_length, dt_out, trustworthy_horizon
+brutus_tolerance, word_length, dt_out, n_snapshots, trustworthy_horizon
 ```
 
 Each processed record additionally carries `param_provenance` (PIPE-06 / D7): a
@@ -834,6 +834,33 @@ timestamp spacing (which also drives the >1% footer/default cross-check warning)
 The `trustworthy_horizon` field is RESERVED — its definition is pending (Open
 Item OI-4); writers emit `null` and readers MUST NOT consume it until it is
 defined.
+
+#### Data-side stage-query interface
+
+The preprocessed trajectory store exposes a data-side query interface for
+stage-aware sampling. The method names are locked by the Phase 27 specification
+(`27-SPEC.md`); the data-side semantics are grounded in `REQUIREMENTS.md` PIPE-08
+and described in `pinn_instruction/issues/03-curriculum-and-training-loop.md`
+(lines 683–684, cited as descriptive reference only, not authority).
+
+- `sample_replay(n, max_stage)` — sample `n` trajectories from the cumulative
+  dataset $D_{\leq k}$ (all trajectories from stages $0$ through `max_stage`).
+  The query operates on the admitted, preprocessed trajectory set and returns
+  trajectories together with their per-trajectory metadata (`dt_out`,
+  `n_snapshots`, and the fields listed above).
+
+- `sample_lookahead(n, stage)` — sample `n` trajectories from the next-stage
+  dataset $D_{k+1}$ (the single stage `stage`). The query operates on the
+  admitted, preprocessed trajectory set and returns trajectories together with
+  their per-trajectory metadata.
+
+> **Scope boundary (SCOPE-11).** This sub-section defines the data-side query
+> signatures and their dataset semantics only. Collocation-density scaling that
+> consumes `dt_out` / `n_snapshots` (the M16 question), replay-fraction policy,
+> lookahead-ratio scheduling, and any training-loop usage of these interfaces are
+> deferred to the doc-03 milestone. A forward reference is recorded here so that
+> the data-side contract is visible to FUT-01 DataLoader implementation without
+> prematurely committing to training-loop policy.
 
 Raw masses are always available separately from the network-facing mass
 channels. Step 3 consumes the COM-corrected, canonically ordered, gauge-fixed,
