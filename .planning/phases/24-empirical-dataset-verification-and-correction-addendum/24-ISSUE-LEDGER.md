@@ -441,7 +441,7 @@ canonicalization as a 2-of-3 editable-spec choice).
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict + CLM-13 ratified `convention-rejected`; fix owned by Phase 27 PIPE-09; OI-11 propagated)
-- 2026-06-14 <pending-27-04-sha> PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED (Phase 27 Plan 04 PIPE-09; normative `compute_globals` contract transcribed into ctl_instruction.md §2.5; E_scale canonicalized +1e-10 -> +1e-8; M_tot_ref prohibited by name; Plummer rule restated; admitted-set scope per GAP-27-02 Option A; AC-PIPE-09 passed; evidence packet `compute-globals-D.md` status log advanced; D-14 dependents unchanged)
+- 2026-06-14 731c795 PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED (Phase 27 Plan 04 PIPE-09; normative `compute_globals` contract transcribed into ctl_instruction.md §2.5; E_scale canonicalized +1e-10 -> +1e-8; M_tot_ref prohibited by name; Plummer rule restated; admitted-set scope per GAP-27-02 Option A; AC-PIPE-09 passed; evidence packet `compute-globals-D.md` status log advanced; D-14 dependents unchanged)
 
 ### footer: Footer/mass-drift protocol (Phase 26/27 PIPE-06/07)
 
