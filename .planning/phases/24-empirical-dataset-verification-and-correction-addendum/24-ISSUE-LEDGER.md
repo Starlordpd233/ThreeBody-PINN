@@ -23,14 +23,14 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | B-06 | Stage 4→5 validation gate (trajectory-validator at DataLoader init) | 26 (PIPE-01) | VERIFIED | `accept-resolution` | NO | [b-06-admission-gate.md](../25-evidence-framework-and-issue-ledger/evidence/b-06-admission-gate.md) | AC-PIPE-01 | ctl_instruction.md Step 1A (admission gate); pinn_architecture.md None (D-04 data-side) | Q-A1; B-11 | 2026-06-13 |
 | B-11 | Non-contiguous IDs (ID ≠ array index; id_to_path / TrajectoryIndex contract) | 26 (PIPE-02) | VERIFIED | `accept-resolution` | NO | [b-11-id-resolution.md](../25-evidence-framework-and-issue-ledger/evidence/b-11-id-resolution.md) | AC-PIPE-02 | ctl_instruction.md Step 1 item 7 (ID resolution); pinn_architecture.md None (D-04 data-side) | Q-A2; B-06 | 2026-06-13 |
 | M11 | Blacklist not loaded at training time (consumption contract) | 26 (PIPE-03) | VERIFIED | **BLOCKING STANDS** (M11 explicit severity ruling; data-integrity grounds; PIPE-03 blacklist-exclusion contract landed in ctl_instruction.md; OI-8 carried forward to FUT-01) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-03 | ctl_instruction.md Step 1A blacklist-exclusion contract; pinn_architecture.md None (D-04 data-side) | Q-A3 | 2026-06-13 |
-| M12 | Points-per-trajectory infeasibility (32 vs observed snapshot distribution) | 27 (PIPE-04) | PENDING | `accept-third-position` (BLOCKING-infeasibility claim rejected; P1-4 `0.5×` factor rejected) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-04 | ctl_instruction.md | Q-B1 | 2026-06-12 |
+| M12 | Points-per-trajectory infeasibility (32 vs observed snapshot distribution) | 27 (PIPE-04) | **VERIFIED** | `accept-third-position` (BLOCKING-infeasibility claim rejected; P1-4 `0.5×` factor rejected) | NO | [m11-m12-severity.md](../25-evidence-framework-and-issue-ledger/evidence/m11-m12-severity.md) | AC-PIPE-04 PASS (2026-06-14) | ctl_instruction.md Mini-Batch Construction; pinn_architecture.md §3.1 code-default note | Q-B1 | 2026-06-14 |
 | M13 | 184 standard IDs without gold counterpart (fallback policy) | 26 (PIPE-05) | VERIFIED | `accept-third-position` (user-ruled B; re-simulation remediation) | NO | [m13-gold-counterpart.md](../25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md) | AC-PIPE-05 | ctl_instruction.md Step 5 (gold-counterpart contract + resolved per-ID note); pinn_architecture.md None (D-04 data-side) | Q-A4 | 2026-06-13 |
 | D7 | Footer / parameter heterogeneity (folder-default fallback, tol_confidence) | 26 (PIPE-06) | VERIFIED | `accept-resolution` | NO | [d7-footer-heterogeneity.md](../25-evidence-framework-and-issue-ledger/evidence/d7-footer-heterogeneity.md) | AC-PIPE-06 | ctl_instruction.md Step 1 item 3 (footer contract) + §2.6 (param_provenance); pinn_architecture.md None (D-04 data-side) | Q-A5 | 2026-06-13 |
 | G1 | Pipeline validation gap — synthesis view (B-06) | 26 (PIPE-01) | VERIFIED | `accept-resolution` (closes with B-06) | NO | (closes with B-06; no separate packet — D-07) | AC-PIPE-01 (synthesis view over B-06) | ctl_instruction.md Step 1A | B-06 | 2026-06-13 |
 | G2 | Pipeline validation gap — synthesis view (B-11) | 26 (PIPE-02) | VERIFIED | `accept-resolution` (closes with B-11) | NO | (closes with B-11; no separate packet — D-07) | AC-PIPE-02 (synthesis view over B-11) | ctl_instruction.md Step 1 item 7 | B-11 | 2026-06-13 |
 | G3 | Pipeline validation gap — synthesis view (M11) | 26 (PIPE-03) | VERIFIED | **BLOCKING STANDS** (closes with M11; data-integrity grounds) | NO | (closes with M11; no separate packet — D-07) | AC-PIPE-03 (synthesis view over M11) | ctl_instruction.md Step 1A blacklist-exclusion contract | M11 | 2026-06-13 |
 | G4 | Pipeline validation gap — synthesis view (M13) | 26 (PIPE-05) | VERIFIED | `accept-third-position` (closes with M13) | NO | (closes with M13; no separate packet — D-07) | AC-PIPE-05 (synthesis view over M13) | ctl_instruction.md Step 5 (gold-counterpart contract); pinn_architecture.md None (D-04 data-side) | M13 | 2026-06-13 |
-| G5 | dt_out heterogeneity (data-side; Q-B1 facet; collocation-scaling facet M16 deferred to doc-03) | 27 (PIPE-04) | PENDING | — | NO | — | AC-PIPE-04 (data-side facet; M16 training-side deferred) | ctl_instruction.md; pinn_architecture.md | M12; M16-deferred | 2026-06-11 |
+| G5 | dt_out heterogeneity (data-side; Q-B1 facet; collocation-scaling facet M16 deferred to doc-03) | 27 (PIPE-04) | **VERIFIED** | — (closes with M12; no separate packet — D-08) | NO | — | AC-PIPE-04 (data-side facet; M16 training-side deferred) | ctl_instruction.md; pinn_architecture.md | M12; M16-deferred | 2026-06-14 |
 | SCS | Symplectic Conservation Score definition + thresholds (data-side; Q-C1) | 28 (VAL-01) | PENDING | `accept-resolution` | YES — EVID-10 required (ratio-SCS vs locked log-drift gate) | [scs-thresholds.md](../25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md) | AC-VAL-01 | data_quality_assessment.md (read-only; sole written home of locked gate) | Q-C1 | 2026-06-12 |
 | SASD | Stiffness-Aware Sampling Density (data-side; Q-C2) | 28 (VAL-02) | PENDING | — | NO | — | AC-VAL-02 | ctl_instruction.md; pinn_architecture.md | Q-C2 | 2026-06-11 |
 | IPR | Interpolation Physics Residual (data-side, dual-epsilon; Q-C3) | 28 (VAL-03) | PENDING | — | NO | — | AC-VAL-03 | ctl_instruction.md; pinn_architecture.md | Q-C3 | 2026-06-11 |
@@ -195,6 +195,9 @@ with M12 — no separate evidence packet. Fix owned by Phase 27 PIPE-04.
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 `accept-third-position` verdict; fix owned by Phase 27 PIPE-04; D-12 G5->M12 close-with-parent)
+- 2026-06-14 <pending-27-01-sha> PENDING -> IN_PROGRESS (Phase 27 P01; M12 locked contract transcribed into ctl_instruction.md Mini-Batch Construction from m11-m12-severity.md:107; pinn_architecture.md §3.1 code-default note added; AC-PIPE-04 defined and pre-edit FAIL confirmed)
+- 2026-06-14 <pending-27-01-sha> IN_PROGRESS -> FIX_APPLIED (Phase 27 P01; AC-PIPE-04 PASS; B-06 region byte-stable, no regression re-check required)
+- 2026-06-14 <pending-27-01-sha> FIX_APPLIED -> VERIFIED (Phase 27 P01; AC-PIPE-04 all 8 assertions PASS; G5 closes with M12, doc-03 M16 deferral recorded)
 
 ### M13: 184 standard IDs without gold counterpart (Phase 26 PIPE-05)
 
@@ -333,8 +336,13 @@ deferred to doc-03 per SCOPE-11).
 
 Owning requirement: PIPE-04 (data-side facet; M16 deferred).
 
+Note: G5 closes with M12 (D-08) — no separate evidence packet. The M16
+collocation-density question is deferred to the doc-03 milestone (training-loop
+policy, not a data-side contract).
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-14 <pending-27-01-sha> PENDING -> VERIFIED (Phase 27 P01; closes with M12; doc-03 M16 deferral recorded; no separate packet per D-08)
 
 ### SCS: Symplectic Conservation Score (Phase 28 VAL-01)
 

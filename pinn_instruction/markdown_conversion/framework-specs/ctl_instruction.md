@@ -1417,10 +1417,11 @@ At the beginning of a new stage $k$:
 ### Mini-Batch Construction with Lookahead Sampling
 
 For batch size B (e.g., 256), reserve $\rho_{\text{lookahead}}$ (e.g.,
-5%) for lookahead sampling to smooth stage transitions. Sample
-$n_{\text{pts}}$ (e.g., 32) time points per trajectory: 50% uniform from
-$[0, T]$, 50% weighted by acceleration norm (prioritizes close
-encounters).
+5%) for lookahead sampling to smooth stage transitions.
+
+> **Per-trajectory data-loss point count.** `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))`, sampled **without replacement** from the trajectory's snapshot times. `n_pts_cap` defaults to 32 (the spec's example value; not evidence-based -- revisit with admitted-set snapshot distributions; exposed as a configuration knob). The 50/50 composition is realized as: `k_w = floor(n_pts/2)` acceleration-norm-weighted draws without replacement (Gumbel-top-k), then `n_pts - k_w` uniform draws without replacement from the remainder; all draws from a seeded generator. The loader exposes `n_snapshots(traj)` and `dt_out(traj)` as metadata (forward interface for the deferred M16 collocation-density question -- doc-03; not used here). **No `0.5 x n_snapshots` factor is imposed** (unevidenced; see Q-B1 resolution).
+>
+> Citation: locked M12 verdict in `evidence/m11-m12-severity.md` (Phase 25 EVID-10). Verified snapshot-count medians (DATA-06, CLM-10): 61 standard-base / 127 hierarchical-base / 1003 gold. These are population medians, not hard per-file guarantees.
 
 | Portion | Purpose | Symbol | Size |
 |---|---|---|---:|
