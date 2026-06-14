@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-stopped_at: Phase 27 context gathered; stopped before planning phase starts
-last_updated: "2026-06-13T13:26:20.869Z"
-last_activity: 2026-06-13 -- Phase 27 planning complete
+stopped_at: Phase 27 Plan 01 complete (2026-06-14)
+last_updated: "2026-06-14T03:35:00.000Z"
+last_activity: 2026-06-14 -- Phase 27 Plan 01 PIPE-04 M12 contract landed, M12+G5 VERIFIED
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 18
+  total_plans: 22
   completed_plans: 17
   percent: 50
 ---
@@ -180,8 +180,8 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-13T10:47:17.382Z
-Stopped at: Phase 27 context gathered; stopped before planning phase starts
+Last session: 2026-06-13T15:06:24.104Z
+Stopped at: context exhaustion at 90% (2026-06-13)
 Next action: Plan Phase 27 with `$gsd-plan-phase 27 --auto` when ready; start from .planning/phases/27-sampling-precision-and-global-scale-contracts/27-CONTEXT.md and 27-SPEC.md.
 
 ## Operator Next Steps
