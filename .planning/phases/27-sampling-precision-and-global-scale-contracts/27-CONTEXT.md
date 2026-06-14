@@ -71,6 +71,45 @@ Downstream agents MUST read `27-SPEC.md` before planning or implementing. Requir
 - **D-13 - Recommended order:** Plan M12/G5 first, then precision, then stage-query metadata, then global-scale cleanup. This keeps snapshot/metadata contracts available before interface wording and leaves the more isolated `compute_globals` cleanup last. The planner may batch adjacent contracts only if the acceptance checks and ledger transitions remain reviewable.
 - **D-14 - Regression discipline:** Any edit to sections touched by Phase 26 triggers targeted rechecks for previously verified rows sharing that text, especially B-06 admission, D7 footer provenance, and D-03 HDF5 wording if nearby text is moved.
 
+### Autonomous execution and recovery (audit remediation 2026-06-13)
+
+These three decisions operationalize the Phase 27 plan-audit findings F-06, F-09,
+and F-21 (`docs/work/reviews/milestone_v1.5/27-sampling-precision-and-global-scale-contracts/2026-06-13-phase-27-plan-audit-report.md`).
+They are **operational coordination** defaults derived from existing governance,
+not new semantic or physics decisions; each cites its grounding.
+
+- **D-15 - Autonomous-STOP operationalization (F-06):** Under `autonomous: true`, a
+  STOP-protocol gap neither silently resolves nor proceeds. The affected plan **parks**
+  at the gap, records a full STOP-protocol entry in `27-GAPS.md`, and the phase-exit gate
+  blocks while any in-scope gap is OPEN. **Independent** plans/waves may proceed; the
+  halted plan resumes only when the user resolves the gap. Grounding: `CLAUDE.md` STOP
+  protocol step 5 ("halted work stays halted until the user provides instruction") and the
+  explicit "There is no exception" clause govern. `autonomous: true` removes mid-run human
+  checkpoints; it does not license inventing past a source-silent decision.
+- **D-16 - STOP-recovery contract (F-09):** If a STOP/gap fires mid-wave after a ledger row
+  has advanced past `PENDING` (the EVID-06 packet-before-edit gate), **do NOT revert** the
+  row status — revert is a destructive operation requiring user approval. Leave the row at
+  its current status (`IN_PROGRESS` or `FIX_APPLIED`), record the halt in `27-GAPS.md`, and
+  let the gap's resolution note carry the resume path. The phase-exit gate will keep the
+  phase open until the gap is resolved and the row reaches `VERIFIED`. Grounding:
+  `CLAUDE.md` destructive-operation policy.
+- **D-17 - Owned-paths is advisory, not hook-enforced (F-21):** `scripts/agent-commit`
+  enforces only that `GIT_AGENT_OWNED_PATHS` is non-empty; `.githooks` →
+  `validate_staged_paths.py` validates blocked patterns and blob size but does **not**
+  cross-check staged paths against declared owned paths. Owned-paths discipline is therefore
+  advisory: each executor MUST self-audit `git diff --cached --name-only` before committing
+  and stage only its plan's explicit owned paths. Grounding: verified against
+  `scripts/agent-commit` and `.githooks/validate_staged_paths.py` during the audit.
+- **D-18 - Line anchors drift across waves; re-locate by content (F-19):** The fixed line
+  numbers cited in plan `read_first` blocks (e.g. `1410-1430`, `800-825`, `744-774`,
+  `~773`) are the line numbers AT PLAN-AUTHORING TIME. Wave 1 (Plan 27-01) inserts ~12-40 new
+  lines into `ctl_instruction.md` (Mini-Batch transcription), so every later wave's ctl anchors
+  shift by the insertion delta (already observed: the 27-04 `E_scale` "~line 773" anchor is
+  actually `:771`). Executors MUST re-locate every edit target by **section heading and content
+  marker** (e.g. `grep -n '## Mini-Batch Construction'`, `grep -n 'Per-trajectory data-loss
+  point count'`, `grep -n 'Global-scale D'`), not by the cited line number. Each plan's
+  pre-transcription content-marker verification (audit F-04) is the enforced form of this rule.
+
 ### Codex's Discretion
 - Exact heading names and placement within `ctl_instruction.md` / `pinn_architecture.md`, so long as canonical references and before/after notes make the placement auditable.
 - Whether acceptance checks are implemented as inline commands or small disposable scripts under the Phase 27 directory.
