@@ -778,9 +778,11 @@ only and is not adopted in v1.4. See
 `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
 for the full EVID-05 adjudication.
 
+**Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{1/3} \approx 4.6416$ is the **canonical** convention (HC-6 / PHYS-01). Raw masses are used throughout the framework; the dimensionless residual keeps unit coefficient with raw $m_j$, forcing $D^3 = G T^2$. The mass-fraction alternative $D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ (with $M_{\mathrm{tot}} = 3$) is **rejected as a pipeline instruction** and remains documented as a future-only rewrite requiring a framework-wide migration (every residual, Hamiltonian, invariant, COM formula; stage thresholds re-derived; normalizers recomputed; processed stores regenerated; network retrained). **No configuration parameter may select the mass-fraction form.** The potential regularizes with the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with $\varepsilon_{\mathrm{inv}} = 10^{-10}$; $\varepsilon$ enters $V$ only. **Additive $+ \epsilon$ on the distance norm is the PHYS-03 anti-pattern and is prohibited.** The `compute_globals` scope evaluates per-IC energies with raw masses over the **admitted set** (post-Step-1A admission, post-blacklist exclusion, post-DATA-05-quarantine). Medians over the admitted set are deterministic and immune to NaN poisoning from corrupt or stale records. See `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md` for the EVID-10 adjudication record.
+
 Global normalization scales (computed after scaling all trajectories):
 
-- $E_{\mathrm{scale}} = \lvert \mathrm{median}(\{E_j\}) \rvert + 10^{-10}$
+- $E_{\mathrm{scale}} = \lvert \mathrm{median}(\{E_j\}) \rvert + 10^{-8}$
 - $s_{\min,\mathrm{scale}} = \mathrm{median}(\{r_{\mathrm{char},j}\})$, where
   $r_{\mathrm{char},j} = \frac{1}{3} \sum_{i<k} \lVert \mathbf{r}'_{i,j} - \mathbf{r}'_{k,j} \rVert$
 - $Q_{\mathrm{scale}}$ remains fixed at $0.5$.

@@ -131,7 +131,7 @@ Phase 27 PIPE-09 owns the runnable pass criteria for AC-PIPE-09 (verification su
 ## Status Transition Log
 
 ```text
-2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + accept-resolution verdict assigned; CLM-13 ratified convention-rejected; fix owned by Phase 27 PIPE-09)
+2026-06-14 <pending-27-04-sha> PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED (Phase 27 Plan 04 PIPE-09 normative contract transcribed into ctl_instruction.md §2.5; E_scale canonicalized +1e-10 -> +1e-8; M_tot_ref prohibited by name; Plummer rule restated; admitted-set scope transcribed per GAP-27-02 Option A; AC-PIPE-09 passed; D-14 dependents unchanged)
 ```
 
 The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsection (D-06 same-commit discipline). The CLM-13 ratification note (OI-11) is the formal disposition of the `24-VERIFIED-FACTS.md` CLM-13 row (carry-forward to the addendum maintainer).
