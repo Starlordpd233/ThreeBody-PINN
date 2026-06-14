@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: Executed
-stopped_at: Phase 28 context gathered
-last_updated: "2026-06-14T05:43:49.452Z"
-last_activity: "2026-06-14 -- Phase 27 Plan 04 (PIPE-09 compute_globals) complete; full-suite AC re-run green; phase-exit gate met (all Phase 27 in-scope ledger rows VERIFIED: M12, G5, mass-drift, footer, D=6.694)"
+status: Complete
+stopped_at: Phase 27 complete; Phase 28 ready to plan
+last_updated: "2026-06-14T14:35:00+08:00"
+last_activity: "2026-06-14 -- Phase 27 formally closed: all review defects remediated (71df3e4d), ROADMAP transition applied, evidence-packet OBS-2 cleaned; Phase 28 discuss-phase complete, ready for /gsd-plan-phase 28"
 progress:
   total_phases: 8
-  completed_phases: 5
-  total_plans: 22
-  completed_plans: 21
-  percent: 63
+  completed_phases: 6
+  total_plans: 26
+  completed_plans: 25
+  percent: 75
 ---
 
 # Project State
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-12)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 27 - sampling-precision-and-global-scale-contracts
+**Current focus:** Phase 28 - validation-metrics-contracts
 
 ## Current Position
 
-Phase: 27
-Plan: 04 complete
-Status: Executed
-Next: Phase 28 (Validation-metrics contracts: SCS/SASD/IPR/PSC) — `/gsd-discuss-phase 28` or `/gsd-plan-phase 28`
-Last activity: 2026-06-14 -- Phase 27 Plan 04 (PIPE-09 compute_globals) complete; full-suite AC re-run green; phase-exit gate met (all Phase 27 in-scope ledger rows VERIFIED: M12, G5, mass-drift, footer, D=6.694)
+Phase: 28
+Plan: Not started
+Status: Ready to plan
+Next: Phase 28 (Validation-metrics contracts: SCS/SASD/IPR/PSC) — `/gsd-plan-phase 28`
+Last activity: 2026-06-14 -- Phase 27 formally closed (review defects remediated, ROADMAP/STATE transition applied, evidence cleanup done); Phase 28 discuss-phase complete, ready for planning
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 

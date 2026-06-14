@@ -72,7 +72,7 @@ Every selected finding follows the v1.4-style loop:
 
 - [x] **Phase 25: Evidence Framework and Issue Ledger** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes, root-cause conflict adjudication) and the re-verification ledger before any spec edit. (completed 2026-06-12)
 - [x] **Phase 26: DataLoader Ingestion and Selection Contracts** — Lock the ingestion gate, ID-resolution, blacklist-exclusion, gold-counterpart, footer-heterogeneity, and training-data-format contracts. (completed 2026-06-13)
-- [ ] **Phase 27: Sampling, Precision, and Global-Scale Contracts** — Lock the points-per-trajectory, precision/Decimal, dt_out/stage-query metadata, and `compute_globals` global-scale contracts.
+- [x] **Phase 27: Sampling, Precision, and Global-Scale Contracts** — Lock the points-per-trajectory, precision/Decimal, dt_out/stage-query metadata, and `compute_globals` global-scale contracts. (completed 2026-06-14)
 - [ ] **Phase 28: Validation-Metrics Contracts** — Define one canonical data-side contract each for SCS, SASD, IPR, and PSC, threshold-aligned to the locked gate and v1.4 physics outcomes.
 - [ ] **Phase 29: Acceptance Checks, Re-verification, and Handoff** — Execute every contract's acceptance check, close the ledger, reconcile the SI-ledger, and produce the FUT-01 handoff.
 
@@ -236,19 +236,19 @@ Every selected finding follows the v1.4-style loop:
 
 **Wave 1**
 
-  - [ ] 27-01-PLAN.md — PIPE-04 (M12) points-per-trajectory + G5 close-with-M12; ctl Mini-Batch contract; AC-PIPE-04; AC-PIPE-01 regression
+  - [x] 27-01-PLAN.md — PIPE-04 (M12) points-per-trajectory + G5 close-with-M12; ctl Mini-Batch contract; AC-PIPE-04; AC-PIPE-01 regression — `6e81d14f`, 27-01-SUMMARY.md
 
 **Wave 2** *(blocked on 27-01)*
 
-  - [ ] 27-02-PLAN.md — PIPE-07 precision (float64 sufficiency / Decimal-as-classifier); confirm+link existing `data05-precision.md` pointer packet (GAP-27-01 Option C) BEFORE the §2.1 note; AC-PIPE-07; AC-PIPE-06 regression
+  - [x] 27-02-PLAN.md — PIPE-07 precision (float64 sufficiency / Decimal-as-classifier); confirm+link existing `data05-precision.md` pointer packet (GAP-27-01 Option C) BEFORE the §2.1 note; AC-PIPE-07; AC-PIPE-06 regression — `b6fe225d`, 27-02-SUMMARY.md
 
 **Wave 3** *(blocked on 27-02; serializes on ctl_instruction.md)*
 
-  - [ ] 27-03-PLAN.md — PIPE-08 data-side `dt_out`/stage-query interface (`sample_replay`/`sample_lookahead`, net-new); A1 grounding-depth guard; doc-03/M16 deferral; AC-PIPE-08; AC-PIPE-06 regression
+  - [x] 27-03-PLAN.md — PIPE-08 data-side `dt_out`/stage-query interface (`sample_replay`/`sample_lookahead`, net-new); A1 grounding-depth guard; doc-03/M16 deferral; AC-PIPE-08; AC-PIPE-06 regression — `c647fc33`, 27-03-SUMMARY.md
 
 **Wave 4** *(blocked on 27-03; serializes on ctl_instruction.md)*
 
-  - [ ] 27-04-PLAN.md — PIPE-09 normative `compute_globals` §2.5 contract (raw-mass D; `6.694`/`M_tot_ref` rejected by name; `E_scale +1e-10 → +1e-8`); AC-PIPE-09; phase-exit gate confirm
+  - [x] 27-04-PLAN.md — PIPE-09 normative `compute_globals` §2.5 contract (raw-mass D; `6.694`/`M_tot_ref` rejected by name; `E_scale +1e-10 → +1e-8`); AC-PIPE-09; phase-exit gate confirm — `731c795e`, 27-04-SUMMARY.md
 
 ### Phase 28: Validation-Metrics Contracts
 
@@ -290,9 +290,9 @@ Every selected finding follows the v1.4-style loop:
 | 24.5. Resolution Doc Readiness Verification (INSERTED) | v1.5 | 1/1 | Complete    | 2026-06-11 |
 | 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete    | 2026-06-12 |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 5/5 | Complete    | 2026-06-13 |
-| 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 0/4 | Planned (ready to execute) | - |
+| 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 4/4 | Complete    | 2026-06-14 |
 | 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 | 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 
 ---
-*Last updated: 2026-06-13 after Phase 27 planning (4 plans, PIPE-04/07/08/09; Waves 1-4 serialized on ctl_instruction.md).*
+*Last updated: 2026-06-14 after Phase 27 completion (4/4 plans executed, all ACs green, all in-scope ledger rows VERIFIED; phase-exit gate met).*

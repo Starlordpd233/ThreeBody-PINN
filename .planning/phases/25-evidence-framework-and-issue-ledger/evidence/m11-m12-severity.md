@@ -182,9 +182,9 @@ $ grep -nE 'problematic_ics_blacklist\.json|before stage assignment|before any d
 2026-06-14 6e81d14f M12 FIX_APPLIED -> VERIFIED (Phase 27 P01; AC-PIPE-04 all 8 assertions PASS; G5 closes with M12, doc-03 M16 deferral recorded)
 ```
 
-The three M11 transitions reference the substantive Plan 26-02 commit `a187e20f`; the short SHA was backfilled in the immediately following provenance commit (a commit cannot reference its own hash inline; backfill is the accepted Phase 25 / 26-01 pattern). The M12 transition above (`e05b4b1a`) is unchanged.
+The three M11 transitions reference the substantive Plan 26-02 commit `a187e20f`; the short SHA was backfilled in the immediately following provenance commit (a commit cannot reference its own hash inline; backfill is the accepted Phase 25 / 26-01 pattern). The M12 transitions were advanced during Phase 27 Plan 01 (commit `6e81d14f`; provenance backfill `da2149d`), taking M12 from PENDING through IN_PROGRESS, FIX_APPLIED, and VERIFIED.
 
-The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsections (D-06 same-commit discipline; D-12 close-with-parent annotations in the M11 and M12 per-finding notes).
+The Phase 25 atomic commit `e05b4b1a` (backfilled 2026-06-12) remains the packet's authoring SHA; the audit label travels in the ledger's per-finding subsections (D-06 same-commit discipline; D-12 close-with-parent annotations in the M11 and M12 per-finding notes).
 
 **D-14 conditional Dependents:** no shared contract discovered. M11 (blacklist consumption, IC-level exclusion) and M12 (data-loss sample count) are distinct findings on distinct code paths. The `M11` and `M12` rows' `Dependents:` fields are unchanged.
 
