@@ -85,11 +85,11 @@ updated: 2026-06-14
 
 ## Validation Sign-Off
 
-- [ ] All four contracts have an automated AC `grep` block (+ dataset probe where applicable) or a Wave-0 dependency to author it
-- [ ] Sampling continuity: no contract edited without its AC + any shared-section regression AC run in the same wave
-- [ ] Wave 0 covers all MISSING AC pass-criteria (the four AC blocks + two regression blocks)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s (grep)
-- [ ] `nyquist_compliant: true` set in frontmatter (after Wave 0 authors the AC blocks)
+- [x] All four contracts have an automated AC `grep` block (+ dataset probe where applicable) or a Wave-0 dependency to author it
+- [x] Sampling continuity: no contract edited without its AC + any shared-section regression AC run in the same wave
+- [x] Wave 0 covers all MISSING AC pass-criteria (the four AC blocks + two regression blocks)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s (grep)
+- [x] `nyquist_compliant: true` set in frontmatter (after Wave 0 authors the AC blocks)
 
 **Approval:** approved 2026-06-14 (gsd-executor-27-04; full-suite AC re-run green: AC-PIPE-04/07/08/09 + regression AC-PIPE-01/06/10 all PASS against final spec; arch §5.2 consistency confirmed; SCS untouched per D-14; phase-exit gate met: M12, G5, mass-drift, footer, D=6.694 all VERIFIED in `24-ISSUE-LEDGER.md`; no OPEN in-scope gap in `27-GAPS.md`).

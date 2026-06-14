@@ -7,7 +7,7 @@
 | ID | `M11/M12` |
 | Title | `Severity reclassifications (M11 blacklist consumption; M12 points-per-trajectory)` |
 | Severity | `BLOCKING` (M11: per ledger; M12: BLOCKING-infeasibility claim rejected on arithmetic) |
-| Current Status | `PENDING` |
+| Current Status | `VERIFIED` (M11: AC-PIPE-03 PASS Phase 26 P02; M12: AC-PIPE-04 PASS Phase 27 P01; both transitions complete) |
 | Current Verdict | M12: `accept-third-position`; M11: **explicit severity ruling** recorded in §Verdict M11 sub-part below (distinct from M12; not a placeholder) |
 | Phase | `Phase 25 (EVID-10 record) / Phase 26 prioritization (M11) / Phase 27 (M12)` |
 | Acceptance Check ID | `AC-PIPE-03 (M11) / AC-PIPE-04 (M12)` |

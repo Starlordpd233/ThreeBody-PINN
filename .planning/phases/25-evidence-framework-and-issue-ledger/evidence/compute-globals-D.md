@@ -7,7 +7,7 @@
 | ID | `D=6.694` |
 | Title | `compute_globals / D=6.694 convention conflict (CLM-13)` |
 | Severity | `BLOCKING` |
-| Current Status | `PENDING` |
+| Current Status | `VERIFIED` (AC-PIPE-09 PASS; Phase 27 P04; same-commit discipline with ctl §2.5 edit + ledger transition) |
 | Current Verdict | `accept-resolution` |
 | Phase | `Phase 25 (EVID-10 record) / Phase 27 (PIPE-09 edit)` |
 | Acceptance Check ID | `AC-PIPE-09` |
