@@ -343,7 +343,7 @@ policy, not a data-side contract).
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-14 6e81d14f PENDING -> VERIFIED (Phase 27 P01; closes with M12; doc-03 M16 deferral recorded; no separate packet per D-08)
-- <pending-27-03-sha> PIPE-08 metadata consistency: the data-side stage-query interface (`sample_replay` / `sample_lookahead`) references the same `dt_out`/`n_snapshots` metadata G5/PIPE-04 settled; G5 stays VERIFIED (not reopened).
+- 2026-06-14 c647fc3 PIPE-08 metadata consistency: the data-side stage-query interface (`sample_replay` / `sample_lookahead`) references the same `dt_out`/`n_snapshots` metadata G5/PIPE-04 settled; G5 stays VERIFIED (not reopened).
 
 ### SCS: Symplectic Conservation Score (Phase 28 VAL-01)
 
