@@ -195,9 +195,9 @@ with M12 — no separate evidence packet. Fix owned by Phase 27 PIPE-04.
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + M12 `accept-third-position` verdict; fix owned by Phase 27 PIPE-04; D-12 G5->M12 close-with-parent)
-- 2026-06-14 <pending-27-01-sha> PENDING -> IN_PROGRESS (Phase 27 P01; M12 locked contract transcribed into ctl_instruction.md Mini-Batch Construction from m11-m12-severity.md:107; pinn_architecture.md §3.1 code-default note added; AC-PIPE-04 defined and pre-edit FAIL confirmed)
-- 2026-06-14 <pending-27-01-sha> IN_PROGRESS -> FIX_APPLIED (Phase 27 P01; AC-PIPE-04 PASS; B-06 region byte-stable, no regression re-check required)
-- 2026-06-14 <pending-27-01-sha> FIX_APPLIED -> VERIFIED (Phase 27 P01; AC-PIPE-04 all 8 assertions PASS; G5 closes with M12, doc-03 M16 deferral recorded)
+- 2026-06-14 6e81d14f PENDING -> IN_PROGRESS (Phase 27 P01; M12 locked contract transcribed into ctl_instruction.md Mini-Batch Construction from m11-m12-severity.md:107; pinn_architecture.md §3.1 code-default note added; AC-PIPE-04 defined and pre-edit FAIL confirmed)
+- 2026-06-14 6e81d14f IN_PROGRESS -> FIX_APPLIED (Phase 27 P01; AC-PIPE-04 PASS; B-06 region byte-stable, no regression re-check required)
+- 2026-06-14 6e81d14f FIX_APPLIED -> VERIFIED (Phase 27 P01; AC-PIPE-04 all 8 assertions PASS; G5 closes with M12, doc-03 M16 deferral recorded)
 
 ### M13: 184 standard IDs without gold counterpart (Phase 26 PIPE-05)
 
@@ -342,7 +342,7 @@ policy, not a data-side contract).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-14 <pending-27-01-sha> PENDING -> VERIFIED (Phase 27 P01; closes with M12; doc-03 M16 deferral recorded; no separate packet per D-08)
+- 2026-06-14 6e81d14f PENDING -> VERIFIED (Phase 27 P01; closes with M12; doc-03 M16 deferral recorded; no separate packet per D-08)
 
 ### SCS: Symplectic Conservation Score (Phase 28 VAL-01)
 

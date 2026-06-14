@@ -177,9 +177,9 @@ $ grep -nE 'problematic_ics_blacklist\.json|before stage assignment|before any d
 2026-06-13 a187e20f M11 PENDING -> IN_PROGRESS (Phase 26 P02 by gsd-executor; M11 PIPE-03 before/after note added, AC-PIPE-03 defined; M12 sub-part untouched)
 2026-06-13 a187e20f M11 IN_PROGRESS -> FIX_APPLIED (Phase 26 P02; blacklist-exclusion contract transcribed into ctl_instruction.md from 02-resolution-doc.md:223-251, co-located with Step-1A clause 1)
 2026-06-13 a187e20f M11 FIX_APPLIED -> VERIFIED (Phase 26 P02; AC-PIPE-03 spec-consistency + CLM-03 dataset probe PASS; AC-PIPE-01 regression re-check PASS, B-06 stays VERIFIED; G3 closes with M11)
-2026-06-14 <pending-27-01-sha> M12 PENDING -> IN_PROGRESS (Phase 27 P01; M12 locked contract transcribed into ctl_instruction.md Mini-Batch Construction from m11-m12-severity.md:107; pinn_architecture.md §3.1 code-default note added; AC-PIPE-04 defined and pre-edit FAIL confirmed)
-2026-06-14 <pending-27-01-sha> M12 IN_PROGRESS -> FIX_APPLIED (Phase 27 P01; AC-PIPE-04 PASS; B-06 region byte-stable, no regression re-check required)
-2026-06-14 <pending-27-01-sha> M12 FIX_APPLIED -> VERIFIED (Phase 27 P01; AC-PIPE-04 all 8 assertions PASS; G5 closes with M12, doc-03 M16 deferral recorded)
+2026-06-14 6e81d14f M12 PENDING -> IN_PROGRESS (Phase 27 P01; M12 locked contract transcribed into ctl_instruction.md Mini-Batch Construction from m11-m12-severity.md:107; pinn_architecture.md §3.1 code-default note added; AC-PIPE-04 defined and pre-edit FAIL confirmed)
+2026-06-14 6e81d14f M12 IN_PROGRESS -> FIX_APPLIED (Phase 27 P01; AC-PIPE-04 PASS; B-06 region byte-stable, no regression re-check required)
+2026-06-14 6e81d14f M12 FIX_APPLIED -> VERIFIED (Phase 27 P01; AC-PIPE-04 all 8 assertions PASS; G5 closes with M12, doc-03 M16 deferral recorded)
 ```
 
 The three M11 transitions reference the substantive Plan 26-02 commit `a187e20f`; the short SHA was backfilled in the immediately following provenance commit (a commit cannot reference its own hash inline; backfill is the accepted Phase 25 / 26-01 pattern). The M12 transition above (`e05b4b1a`) is unchanged.
