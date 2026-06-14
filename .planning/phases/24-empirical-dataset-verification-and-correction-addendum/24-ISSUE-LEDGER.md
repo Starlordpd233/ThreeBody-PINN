@@ -455,9 +455,9 @@ boundary; PIPE-06/07 must not consume the old 70 outputs until rerun validation 
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-14 <pending-27-02-sha> PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet link updated to data05-precision.md, mass-drift row IN_PROGRESS)
-- 2026-06-14 <pending-27-02-sha> IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored)
-- 2026-06-14 <pending-27-02-sha> FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS; D7 regression AC-PIPE-06 PASS; footer row VERIFIED with PIPE-07 facet closed; PIPE-06 facet already VERIFIED via D7 Phase 26)
+- 2026-06-14 b6fe225d PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet link updated to data05-precision.md, mass-drift row IN_PROGRESS)
+- 2026-06-14 b6fe225d IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored)
+- 2026-06-14 b6fe225d FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS; D7 regression AC-PIPE-06 PASS; footer row VERIFIED with PIPE-07 facet closed; PIPE-06 facet already VERIFIED via D7 Phase 26)
 
 ### mass-drift: Precision handling (Phase 27 PIPE-07)
 
@@ -473,9 +473,9 @@ before training, metrics, or PIPE-07 consume them.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-14 <pending-27-02-sha> PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet link updated to data05-precision.md, mass-drift row IN_PROGRESS)
-- 2026-06-14 <pending-27-02-sha> IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored)
-- 2026-06-14 <pending-27-02-sha> FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS; D7 regression AC-PIPE-06 PASS; mass-drift row VERIFIED)
+- 2026-06-14 b6fe225d PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet link updated to data05-precision.md, mass-drift row IN_PROGRESS)
+- 2026-06-14 b6fe225d IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored)
+- 2026-06-14 b6fe225d FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS; D7 regression AC-PIPE-06 PASS; mass-drift row VERIFIED)
 
 ## Dataset Evidence Annex
 

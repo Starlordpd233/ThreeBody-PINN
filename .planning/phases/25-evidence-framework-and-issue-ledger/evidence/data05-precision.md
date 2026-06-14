@@ -88,9 +88,9 @@ Each entry: `date`, `commit short SHA`, `status transition`, `actor / plan refer
 
 ```text
 2026-06-13 09e37f8 PENDING -> PENDING (Phase 27 /gsd-plan-phase; data05-precision pointer packet authored + accept-resolution verdict assigned via pointer to Phase 24 DATA-05 artifacts; GAP-27-01 Option C, user instruction)
-2026-06-14 <pending-27-02-sha> PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet linked from ledger mass-drift/footer rows, ctl_instruction.md §2.1 precision-note edit prepared)
-2026-06-14 <pending-27-02-sha> IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored and executed)
-2026-06-14 <pending-27-02-sha> FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS — float64 sufficiency + Decimal-only-as-classifier + stale-not-precision + DATA-05 citation confirmed; D7 regression AC-PIPE-06 PASS; mass-drift and footer rows VERIFIED)
+2026-06-14 b6fe225d PENDING -> IN_PROGRESS (Phase 27 P02; evidence packet linked from ledger mass-drift/footer rows, ctl_instruction.md §2.1 precision-note edit prepared)
+2026-06-14 b6fe225d IN_PROGRESS -> FIX_APPLIED (Phase 27 P02; ctl_instruction.md §2.1 precision note appended; AC-PIPE-07 authored and executed)
+2026-06-14 b6fe225d FIX_APPLIED -> VERIFIED (Phase 27 P02; AC-PIPE-07 PASS — float64 sufficiency + Decimal-only-as-classifier + stale-not-precision + DATA-05 citation confirmed; D7 regression AC-PIPE-06 PASS; mass-drift and footer rows VERIFIED)
 ```
 
 > Forward transitions `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED` are applied by the **Phase 27 PIPE-07 plan execution**, in the same commit as the `ctl_instruction.md` §2.1 precision-note edit, the `24-ISSUE-LEDGER.md` mass-drift/footer-row Evidence-Packet link + status edit, and the passing `AC-PIPE-07` check (same-commit discipline, evidence/README.md `:101`). The `<commit-pending>` SHA above is backfilled with this packet's authoring commit short SHA.
