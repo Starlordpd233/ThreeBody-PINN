@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: Executed
-stopped_at: context exhaustion at 75% (2026-06-14)
-last_updated: "2026-06-14T04:50:00.000Z"
-last_activity: 2026-06-14 -- Phase 27 Plan 04 (PIPE-09 compute_globals) complete; full-suite AC re-run green; phase-exit gate met
+stopped_at: Phase 28 context gathered
+last_updated: "2026-06-14T05:43:49.452Z"
+last_activity: "2026-06-14 -- Phase 27 Plan 04 (PIPE-09 compute_globals) complete; full-suite AC re-run green; phase-exit gate met (all Phase 27 in-scope ledger rows VERIFIED: M12, G5, mass-drift, footer, D=6.694)"
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 22
   completed_plans: 21
-  percent: 50
+  percent: 63
 ---
 
 # Project State
@@ -183,8 +183,8 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-14T04:41:25.118Z
-Stopped at: context exhaustion at 75% (2026-06-14)
+Last session: 2026-06-14T05:43:49.448Z
+Stopped at: Phase 28 context gathered
 Next action: Plan Phase 27 with `$gsd-plan-phase 27 --auto` when ready; start from .planning/phases/27-sampling-precision-and-global-scale-contracts/27-CONTEXT.md and 27-SPEC.md.
 
 ## Operator Next Steps
