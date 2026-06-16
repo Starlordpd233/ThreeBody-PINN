@@ -57,9 +57,9 @@ completed: 2026-06-16
 
 ## Task Commits
 
-1. **Task 1: Author IPR packet and adjudicate Q-C3 units fork** - `<pending-28-03-sha>` (plan parked)
+1. **Task 1: Author IPR packet and adjudicate Q-C3 units fork** - `aea6747` (plan parked)
 2. **Task 2: Append IPR clause and arch note** - not run; blocked by GAP-28-02
-3. **Task 3: Close ledger/summary** - `<pending-28-03-sha>` (DEFERRED closeout)
+3. **Task 3: Close ledger/summary** - `aea6747` (DEFERRED closeout)
 
 **Provenance backfill:** expected follow-up commit `verify(28-03): backfill commit sha`.
 

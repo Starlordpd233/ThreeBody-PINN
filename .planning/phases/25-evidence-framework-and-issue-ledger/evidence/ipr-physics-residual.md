@@ -69,6 +69,6 @@ Phase 28 Plan 03 owns AC-VAL-03, but its runnable structural check is parked wit
 ## Status Transition Log
 
 ```text
-2026-06-16 <pending-28-03-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 03; IPR EVID-06 packet opened and Q-C3 units fork evaluated)
-2026-06-16 <pending-28-03-sha> IN_PROGRESS -> DEFERRED (Phase 28 Plan 03; GAP-28-02 opened for IPR unit-convention sign-off, no spec edit landed)
+2026-06-16 aea6747 PENDING -> IN_PROGRESS (Phase 28 Plan 03; IPR EVID-06 packet opened and Q-C3 units fork evaluated)
+2026-06-16 aea6747 IN_PROGRESS -> DEFERRED (Phase 28 Plan 03; GAP-28-02 opened for IPR unit-convention sign-off, no spec edit landed)
 ```

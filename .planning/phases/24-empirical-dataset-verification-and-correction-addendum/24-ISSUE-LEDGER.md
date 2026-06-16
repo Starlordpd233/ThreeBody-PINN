@@ -391,8 +391,8 @@ doc-03 per SCOPE-11).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-16 <pending-28-03-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 03; `ipr-physics-residual.md` EVID-06 packet opened; Q-C3 units fork evaluated against DQA, issue doc, resolution doc, CLM-09/CLM-10, ctl/architecture dual-epsilon context, and dimensional analysis)
-- 2026-06-16 <pending-28-03-sha> IN_PROGRESS -> DEFERRED (Phase 28 Plan 03; GAP-28-02 opened for IPR raw-vs-scaled unit sign-off; no IPR spec edit landed)
+- 2026-06-16 aea6747 PENDING -> IN_PROGRESS (Phase 28 Plan 03; `ipr-physics-residual.md` EVID-06 packet opened; Q-C3 units fork evaluated against DQA, issue doc, resolution doc, CLM-09/CLM-10, ctl/architecture dual-epsilon context, and dimensional analysis)
+- 2026-06-16 aea6747 IN_PROGRESS -> DEFERRED (Phase 28 Plan 03; GAP-28-02 opened for IPR raw-vs-scaled unit sign-off; no IPR spec edit landed)
 
 ### PSC: Phase Space Coverage Entropy (Phase 28 VAL-04)
 
