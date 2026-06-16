@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: phase 28 closed; ready for phase 29
-stopped_at: Phase 28 CLOSED — VAL-01/SCS, VAL-02/SASD (both-endpoint), VAL-03/IPR (raw units) VERIFIED; VAL-04/PSC user-DEFERRED (GAP-28-03). All in-scope STOP gaps resolved/deferred.
-last_updated: "2026-06-16T17:56:00+08:00"
-last_activity: "2026-06-16 -- Phase 28 closed. After EDL empirical decision-support, the user resolved the three STOP forks: GAP-28-01 SASD both-endpoint and GAP-28-02 IPR raw units (both RESOLVED-WITH-INSTRUCTION; clauses landed in ctl_instruction.md Step-1A Data-side quality-metric contracts subsection + pinn_architecture.md dual-epsilon note; AC-VAL-02/03 PASS; ledger VERIFIED); GAP-28-03 PSC user-DEFERRED (report-only, design-open, entangled with gold-completeness/missing-67). Phase 28 lands 3 of 4 validation-metric contracts; VAL-04/PSC carried forward to a first-run sanity check once the gold dataset is complete. v1.5-GAPS: 9 total, 0 open, 8 resolved, 1 deferred."
+status: phase 28 closed; phase 29 discuss complete (context gathered), paused before plan
+stopped_at: Phase 29 context gathered (discuss complete); paused before plan per user. GAP-29-01 resolved Option A — Phase 29 reconciles only the planning/governance/ledger layer to the locked 117-validated/67-permanent-absent/0-promoted gold fact; dataset promotion + 184->67 framework-spec/AC cascade deferred to a separate explicit user ruling. PSC/VAL-04 deferred (GAP-28-03).
+last_updated: "2026-06-16T22:01:00+08:00"
+last_activity: "2026-06-16 -- Phase 29 discuss-phase complete. Spec-locked via 29-SPEC.md (5 reqs); discussed all four areas — three already grounded (rerun evidence; ledger/SI closure; FUT-01 handoff = v1.4 Phase 21 two-artifact pattern 29-HANDOFF.md + 29-CODE-DIVERGENCE.md). Surfaced + resolved GAP-29-01 (gold-completeness reconciliation scope) as Option A: Phase 29 reconciles only the planning/governance/ledger layer to the locked 117-validated/67-permanent-absent/0-promoted fact; dataset promotion of the 117 + 184->67 framework-spec/AC cascade deferred to a separate explicit user ruling, recorded as a FUT-01 forward obligation. PSC/VAL-04 stays deferred (GAP-28-03); trainex-r1 todo reviewed, not folded. Paused before plan per user. v1.5-GAPS: 10 total, 0 open, 9 resolved, 1 deferred. Artifacts committed ff9ad65."
 progress:
   total_phases: 8
   completed_phases: 7
@@ -183,9 +183,9 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-16T12:16:19+08:00
-Stopped at: Phase 28 executed to terminal ledger states; SCS verified, SASD/IPR/PSC deferred behind OPEN STOP gaps GAP-28-01/02/03
-Next action: User must resolve or explicitly defer GAP-28-01 (SASD endpoint), GAP-28-02 (IPR units), and GAP-28-03 (PSC composition). Then resume the affected Phase 28 plans to land the parked validation-metric clauses and AC-VAL-02/03/04. Phase 29 remains blocked until Phase 28's open gaps are handled.
+Last session: 2026-06-16T22:01:00+08:00
+Stopped at: Phase 29 context gathered (discuss complete); paused before plan per user. GAP-29-01 resolved Option A (planning-layer gold reconciliation; promotion + 184->67 cascade deferred).
+Next action: Review .planning/phases/29-acceptance-checks-re-verification-and-handoff/29-CONTEXT.md, then /gsd-plan-phase 29. GAP-29-01 promote+cascade stays deferred pending explicit user ruling; PSC/VAL-04 deferred (GAP-28-03).
 
 ## Operator Next Steps
 
