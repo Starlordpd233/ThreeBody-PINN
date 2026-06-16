@@ -534,6 +534,8 @@ COM/zero-momentum/gauge/scaling preprocessing over the training split
 using the matched-Plummer Hamiltonian components with
 $\epsilon_{train} = 10^{-5}$. (Author Comment: I am not sure why there is a duplicate 10^-5 here)Persist both $S_H$ and $\epsilon_H$ in training metadata. $S_H$ must be finite and strictly positive; $S_H \leq 0$ or non-finite $S_H$ is a preprocessing/metadata validation failure. Do not apply a fallback numeric floor. Use $\epsilon_H$ only in $|H_0| + \epsilon_H$. Phase 21 reports activation behavior only and must not reselect $\epsilon_H$ unless a new user instruction opens a replacement gap.
 
+**Dual-epsilon visibility (IPR cross-reference; VAL-03).** The training-time softening $\epsilon_{train} = 10^{-5}$ above is distinct from the data-side validation softening $\epsilon_{inv} = 10^{-10}$ used by the Interpolation Physics Residual (IPR) admission diagnostic in `ctl_instruction.md` Step-1A `Data-side quality-metric contracts`. Data-side IPR (validation, $\epsilon_{inv} = 10^{-10}$) and any training-loop `IPR_train` noise-floor role (training, $\epsilon_{train} = 10^{-5}$, deferred to doc-03) are different quantities and must not be conflated. This note states the separation; it does not alter the PHYS-04 / HC-4 training contracts above.
+
 The FUT-01 divergence handoff must flag executable training metadata as
 divergent if it omits $S_H$ or $\epsilon_H$, computes $S_H$ from a
 different split or preprocessing stage, computes $S_H$ per minibatch,

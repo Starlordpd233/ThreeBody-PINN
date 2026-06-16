@@ -7,11 +7,11 @@
 | ID | `IPR` |
 | Title | Interpolation Physics Residual units and dual-epsilon contract |
 | Severity | `MAJOR` |
-| Current Status | `DEFERRED` |
-| Current Verdict | `defer-with-blocker` |
+| Current Status | `VERIFIED` |
+| Current Verdict | `accept-resolution` (raw G=1 units; GAP-28-02 user sign-off 2026-06-16) |
 | Phase | Phase 28 |
 | Acceptance Check ID | `AC-VAL-03` |
-| Spec Sections Touched | None yet - IPR clause parked pending GAP-28-02 |
+| Spec Sections Touched | `ctl_instruction.md` Step-1A Data-side quality-metric contracts subsection (IPR clause, raw units); `pinn_architecture.md` §3.4 dual-epsilon visibility note |
 | Code Paths Touched | Not code-applicable |
 
 ## Source Positions
@@ -44,9 +44,9 @@ Live `pinn/` code is not a v1.5 evidence source and was not consulted for this v
 
 ## Verdict
 
-`defer-with-blocker`
+`accept-resolution` (raw G=1 units) — RESOLVED 2026-06-16 via GAP-28-02 user sign-off (Option A). The EDL gold-flag-rate calibration tripwire was inconclusive (both raw-1e-3 and scaled-1e-3 saturate the admitted-set proxy because IPR is dominated by close-encounter under-resolution), so the unit pin rests on grounded convention-consistency: the pipeline computes conservation in raw `G = 1` units (SCOPE-06/07). The IPR clause landed in `ctl_instruction.md` Step-1A; AC-VAL-03 PASS. The original `defer-with-blocker` rationale is retained below for provenance.
 
-The packet cannot lock the IPR unit convention without user instruction. The following facts are grounded:
+The packet could not lock the IPR unit convention without user instruction. The following facts are grounded:
 
 - The construction should use the velocity-carrying cubic Hermite interpolant rather than shape-derived `PchipInterpolator`.
 - The data-side validation metric uses the validation softening `eps = 1e-10`; the issue-doc `eps = 1e-5` belongs, if adopted, to a distinct doc-03 `IPR_train` training/noise-floor role.
@@ -71,4 +71,5 @@ Phase 28 Plan 03 owns AC-VAL-03, but its runnable structural check is parked wit
 ```text
 2026-06-16 aea6747 PENDING -> IN_PROGRESS (Phase 28 Plan 03; IPR EVID-06 packet opened and Q-C3 units fork evaluated)
 2026-06-16 aea6747 IN_PROGRESS -> DEFERRED (Phase 28 Plan 03; GAP-28-02 opened for IPR unit-convention sign-off, no spec edit landed)
+2026-06-16 PENDING_SHA DEFERRED -> VERIFIED (Phase 28 Plan 03 resumed; GAP-28-02 RESOLVED-WITH-INSTRUCTION raw G=1 units on grounded convention-consistency; IPR clause landed in ctl Step-1A + arch §3.4 note; AC-VAL-03 PASS; 1e-3 threshold provisional; EDL support FINDINGS.md)
 ```

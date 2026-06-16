@@ -46,8 +46,8 @@
   - **B. Scaled units.** Canonical data-side IPR is computed after locked scaling/normalized time, and `IPR > 1e-3` is a scaled-unit flag. This preserves the scaled-units dissent and likely flags many more trajectories for the same number.
   - **C. Defer IPR unit convention.** Keep VAL-03 deferred until empirical IPR distributions or user-led research resolves which convention the `1e-3` threshold was intended to bind.
 - **Confidence of impact:** **HIGH** - raw vs scaled units change the threshold interpretation by about 464x. A wrong pin can materially over-flag or under-flag trajectories and mislead Phase 29 acceptance thresholds.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-16)
+- **Resolution note:** User selected **Option A (raw `G = 1` units)** after reviewing EDL empirical decision-support (`.planning/research/edl/phase28-validation-metrics/FINDINGS.md`). **Basis (important):** the resolution doc's proposed gold-flag-rate calibration tripwire proved **inconclusive** — both raw-1e-3 and scaled-1e-3 flag ~100% of the clean admitted-set proxy because IPR is dominated by close-encounter under-resolution — so the units pin was decided on grounded **convention-consistency**: the data pipeline computes energy/conservation in raw `G = 1` units (`simulation_data/Scripts/metrics_calculation/`, a SCOPE-06/07 grounding source), matching the resolution doc's primary raw argument. Canonical data-side IPR is raw; landed in `ctl_instruction.md` Step-1A `Data-side quality-metric contracts` (Hermite/PCHIP-prohibited construction, `eps_inv = 1e-10`, stacked residual, dual-epsilon `IPR_train` separation) plus a `pinn_architecture.md` §3.4 visibility note; AC-VAL-03 PASS; IPR ledger row → VERIFIED. **Separate finding (not a blocker):** the `1e-3` threshold is empirically mis-calibrated in *both* unit conventions and must be re-anchored to the admitted-set distribution (doc-03/FUT-01); it is landed as provisional, consistent with the resolution doc marking it provisional.
 
 ## GAP-28-03 - PSC population/weighting composition needs user sign-off before canonical spec edit
 

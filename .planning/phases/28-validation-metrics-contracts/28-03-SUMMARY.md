@@ -39,6 +39,15 @@ completed: 2026-06-16
 
 **IPR raw-vs-scaled unit fork parked with a defer-with-blocker evidence packet and GAP-28-02 user sign-off gate**
 
+> **RESUMED 2026-06-16 — GAP-28-02 RESOLVED-WITH-INSTRUCTION (raw G=1 units).** The EDL gold-flag-rate
+> tripwire was inconclusive (both raw and scaled saturate the admitted-set proxy), so the user selected
+> Option A (raw) on grounded convention-consistency — the pipeline computes conservation in raw G=1
+> units. Plan 03 Task 2/3 executed: the IPR clause (raw units, Hermite/PCHIP-prohibited, eps_inv=1e-10,
+> dual-epsilon IPR_train separation) landed in `ctl_instruction.md` Step-1A `Data-side quality-metric
+> contracts`, plus a `pinn_architecture.md` §3.4 dual-epsilon visibility note; AC-VAL-03 PASS; IPR ledger
+> row → VERIFIED. The `1e-3` threshold is provisional (mis-calibrated in both conventions per EDL;
+> doc-03/FUT-01 recalibration). The parked-state narrative below is retained as the original record.
+
 ## Performance
 
 - **Duration:** 4 min

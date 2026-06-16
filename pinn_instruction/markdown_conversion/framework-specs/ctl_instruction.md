@@ -603,6 +603,41 @@ SASD-weighted collocation sampling (M16), is **deferred to the doc-03 milestone*
 not specified here. Evidence packet:
 `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
 
+**IPR — Interpolation Physics Residual (VAL-03; Q-C3).** For each trajectory a
+velocity-carrying cubic Hermite interpolant `CubicHermiteSpline(t, q, dydx=v)` is built from
+the snapshot positions `q` and the recorded file velocities `v`. `PchipInterpolator(t, q)` is
+**prohibited**: it discards the recorded velocities and synthesizes slopes from shape, yielding
+a different spline whose second derivative diverges most near encounters. The residual is
+evaluated at 10 deterministic mid-offset interior points per interval,
+`tau_{i,j} = t_i + (j - 1/2) * dt_i / 10` for `j = 1..10` (never at knots, never random), and
+
+`IPR = (1 / M_total) * sum_k || q''_spline(tau_k) - F_grav^eps(q_spline(tau_k)) ||^2`, with
+`M_total = 10 * (n_snapshots - 1)`,
+
+the mean squared stacked 9-component residual between the interpolant's second derivative and
+the analytic Plummer-softened gravity at validation softening `eps_inv = 1e-10`. IPR is
+computed in **raw `G = 1` units on the parsed arrays** (GAP-28-02 RESOLVED-WITH-INSTRUCTION,
+user sign-off 2026-06-16): raw matches the locked conservation/SCS convention — the data
+pipeline computes energy conservation in raw `G = 1` units — and the raw-array convention of
+the companion data-side metrics. IPR is dimensionful (acceleration-squared, scaling as
+`D^2/T^4`), so the gate is **unit-bound**: under the locked global scale the same numeric
+value differs by about 464x between raw and scaled readings; the canonical convention is raw,
+and a scaled reading must be converted before comparison.
+
+Dual-epsilon (PHYS-03 consistency): the data-side validation IPR uses the static invariant
+softening `eps_inv = 1e-10` (§2.5); the training-time `epsilon_train = 1e-5`
+(`pinn_architecture.md` §3.4) belongs to a **distinct** training-loop metric `IPR_train` (the
+ALM noise-floor role), not to this data-side gate. They are different quantities with
+different epsilons; this clause does not conflate them, and the `IPR_train` noise-floor role
+is **deferred to the doc-03 milestone** via this forward-reference.
+
+Flag rule (provisional): `IPR > 1e-3` (raw units) flags the trajectory for resampling with the
+same flag-not-auto-reject semantics and disposition routing as SASD — **not** an auto-reject.
+The `1e-3` constant is provisional pending recalibration to the admitted-set IPR distribution
+(doc-03 / FUT-01), a separate axis from the raw/scaled unit pin resolved here. Persist `IPR`
+and the maximum per-interval contribution with its interval index. Evidence packet:
+`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md`.
+
 ## Step 2: Unified Preprocessing Pipeline
 
 Every IC/BRUTUS pair passes through one deterministic preprocessing transform
