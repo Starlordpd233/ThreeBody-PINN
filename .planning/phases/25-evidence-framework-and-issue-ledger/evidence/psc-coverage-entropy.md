@@ -7,8 +7,8 @@
 | ID | `PSC` |
 | Title | Phase Space Coverage Entropy population and weighting contract |
 | Severity | `MAJOR` |
-| Current Status | `DEFERRED` |
-| Current Verdict | `defer-with-blocker` |
+| Current Status | `DEFERRED` (user-DEFERRED 2026-06-16) |
+| Current Verdict | `defer` (GAP-28-03 user-deferred; PSC composition pending gold-completeness + first-run) |
 | Phase | Phase 28 |
 | Acceptance Check ID | `AC-VAL-04` |
 | Spec Sections Touched | None yet - PSC clause parked pending GAP-28-03 |
@@ -45,9 +45,9 @@ Live `pinn/` code is not a v1.5 evidence source and was not consulted for this v
 
 ## Verdict
 
-`defer-with-blocker`
+`defer` (user-DEFERRED) — GAP-28-03 explicitly DEFERRED by the user 2026-06-16: PSC is report-only, the most design-open metric in the cluster, and its pooled population is entangled with unsettled gold-completeness work (the 184 base-only standard systems and the pending missing-67 / OI-7b re-simulations). No PSC clause is landed; the composition is revisited with a first-run sanity check once the gold dataset is complete. The original `defer-with-blocker` analysis is retained below for provenance.
 
-The packet cannot lock the PSC population/weighting construction without user instruction. The following elements are grounded enough to carry forward as constraints for a later PSC clause, but are not landed as canonical spec text here:
+The packet could not lock the PSC population/weighting construction without user instruction. The following elements are grounded enough to carry forward as constraints for a later PSC clause, but are not landed as canonical spec text here:
 
 - PSC is data-side and report-only; it has no per-trajectory reject authority.
 - Sorted pair distances make the grid permutation-invariant.
@@ -77,4 +77,5 @@ Phase 28 Plan 04 owns AC-VAL-04, but its runnable structural check is parked wit
 ```text
 2026-06-16 f7c68e6 PENDING -> IN_PROGRESS (Phase 28 Plan 04; PSC EVID-06 packet opened and Q-C4 composition fork evaluated)
 2026-06-16 f7c68e6 IN_PROGRESS -> DEFERRED (Phase 28 Plan 04; GAP-28-03 opened for PSC population/weighting composition sign-off, no spec edit landed)
+2026-06-16 PENDING_SHA DEFERRED -> DEFERRED (Phase 28 close; GAP-28-03 user-DEFERRED — PSC composition pending gold-completeness/missing-67 and a first-run sanity check; VAL-04 not landed this phase)
 ```

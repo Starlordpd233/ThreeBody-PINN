@@ -39,6 +39,13 @@ completed: 2026-06-16
 
 **PSC pooled population/weighting synthesis parked with a defer-with-blocker evidence packet and GAP-28-03 user sign-off gate**
 
+> **CLOSED 2026-06-16 — GAP-28-03 user-DEFERRED (Option D).** The user explicitly deferred VAL-04: PSC
+> is report-only and the most design-open metric, and its pooled population is entangled with unsettled
+> gold-completeness work (the 184 base-only standard systems and the pending missing-67 / OI-7b
+> re-simulations). No PSC clause is landed; the dedup-prefer-gold + equal-record-weighting composition is
+> revisited with a first-run PSC/SCR sanity check once the gold dataset is complete. Phase 28 closes on
+> VAL-01/02/03 (SCS/SASD/IPR) with VAL-04 explicitly user-deferred. Original parked narrative retained below.
+
 ## Performance
 
 - **Duration:** 4 min

@@ -69,8 +69,8 @@
   - **C. Equal-record weighting only.** Remove snapshot-resolution skew but keep paired base/gold records as distinct contributors.
   - **D. Defer PSC composition.** Keep VAL-04 deferred pending the first-run PSC/SCR sanity check, upstream R1-R8 review, or user-led research before any canonical PSC clause lands.
 - **Confidence of impact:** **MEDIUM** - PSC is report-only and has no trajectory reject authority, but the convention controls diagnostic outputs that can guide dataset curation and doc-03 replay decisions.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **DEFERRED** (user-deferred 2026-06-16)
+- **Resolution note:** User selected **Option D (defer PSC composition)** 2026-06-16. PSC is report-only (no trajectory reject authority; MEDIUM impact), the most design-open metric in the cluster (grid constants explicitly provisional), and its pooled population is **entangled with unsettled gold-completeness work** — the 184 base-only standard systems and the pending missing-67 / OI-7b gold re-simulations ([[GAP-26-01]] forward dependency). Canonizing a pooled-population convention now would bake in a population about to change. VAL-04 remains **DEFERRED**: no PSC clause lands this phase; the dedup-prefer-gold + equal-record-weighting composition is revisited with a first-run PSC/SCR sanity check once the gold dataset is complete and the missing-67 ruling is applied. Milestone-scope decision: Phase 28 closes on VAL-01/02/03 (SCS/SASD/IPR) with VAL-04 explicitly user-deferred.
 
 ## Milestone-wide index
 
