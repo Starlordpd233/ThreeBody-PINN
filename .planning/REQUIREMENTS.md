@@ -60,7 +60,7 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 - [x] **VAL-01**: Framework specs carry one canonical SCS contract — definition and threshold adjudicated against the locked post-v1.3 gate (`\epsilon_H > 10^{-5}` / `SCS > -5`); the issue-02 ratio-based thresholds are resolved through EVID-10, not transcribed. Verified in Phase 28 Plan 01.
 - [x] **VAL-02**: Framework specs define SASD — formula, data-side computation contract, and the low-resolution floor-effect caveat. Training-side collocation weighting is deferred to the doc-03 milestone with a recorded forward-reference. Verified in Phase 28 Plan 02 (both-endpoint convention; GAP-28-01 RESOLVED-WITH-INSTRUCTION 2026-06-16; AC-VAL-02 PASS).
 - [x] **VAL-03**: Framework specs define IPR — formula and dual-epsilon consistency with the v1.4 PHYS-03 outcome; its ALM noise-floor role is recorded as a doc-03 forward-reference. Verified in Phase 28 Plan 03 (raw `G=1` units; GAP-28-02 RESOLVED-WITH-INSTRUCTION 2026-06-16; AC-VAL-03 PASS). The `1e-3` threshold lands provisional pending doc-03/FUT-01 recalibration.
-- [ ] **VAL-04**: Framework specs define PSC — formula and data-side computation contract; replay-governance use is deferred to the doc-03 milestone with a recorded forward-reference. **User-DEFERRED 2026-06-16 (GAP-28-03):** PSC is report-only and design-open, and its pooled population is entangled with unsettled gold-completeness work; the dedup + equal-record composition is revisited with a first-run sanity check once the gold dataset is complete. Not landed in Phase 28.
+- [x] **VAL-04**: Framework specs define PSC — formula and data-side computation contract; replay-governance use is deferred to the doc-03 milestone with a recorded forward-reference. **Landed via GAP-28-03 RESOLVED-WITH-INSTRUCTION 2026-06-16** (reopened post-Phase-28 once gold completeness settled as final in shape; the composition rule is promotion-invariant): canonical PSC clause in `ctl_instruction.md` `Data-side quality-metric contracts` (Shannon-entropy coverage diagnostic + SCR; dedup-prefer-gold + `1/N_t` equal-record composition ratified). Grid construction, `H/ln K` normalization, SCR anchor, and the first-run sanity check land as the resolution doc's provisional candidate pending the post-promotion pool (FUT-01), mirroring the VAL-02/03 provisional thresholds. AC-VAL-04 execution pending Phase 29 (VER-09).
 
 ### Verification and Handoff (continuing v1.4 VER numbering)
 
@@ -143,7 +143,7 @@ Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`,
 | VAL-01 | Phase 28 | Verified (Phase 28 Plan 01) |
 | VAL-02 | Phase 28 | Verified (Plan 02; both-endpoint; GAP-28-01 resolved) |
 | VAL-03 | Phase 28 | Verified (Plan 03; raw units; GAP-28-02 resolved) |
-| VAL-04 | Phase 28 | User-DEFERRED (GAP-28-03; revisit at first-run) |
+| VAL-04 | Phase 28/29 | Landed (GAP-28-03 RESOLVED-WITH-INSTRUCTION 2026-06-16; composition ratified; grid/normalization/SCR + first-run sanity provisional→FUT-01; AC-VAL-04 pending Phase 29) |
 | VER-07 | Phase 29 | Pending (gated on Phase 24.5) |
 | VER-08 | Phase 29 | Satisfied by roadmap creation; confirmed at closure |
 | VER-09 | Phase 29 | Pending (gated on Phase 24.5) |

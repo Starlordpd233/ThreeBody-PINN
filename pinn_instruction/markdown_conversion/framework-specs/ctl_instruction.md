@@ -565,9 +565,11 @@ These are the data-side validation metrics that complement the Step-1A conservat
 gate (clause 5, the family's only reject gate). SASD and IPR are **flag-for-resampling
 diagnostics, not reject gates**: a flagged trajectory is routed to the resample queue and
 withheld from clean-training designation, never excluded outright. PSC is a dataset-level,
-report-only coverage diagnostic that is deferred this phase (GAP-28-03 DEFERRED, user
-sign-off 2026-06-16): no canonical PSC clause is landed here, and its pooled-population
-and weighting composition is revisited once the gold dataset is complete.
+**report-only coverage diagnostic** — no per-trajectory flag and no admission/reject
+authority — whose contract is landed below (GAP-28-03 RESOLVED-WITH-INSTRUCTION, user
+sign-off 2026-06-16): its pooled-population and weighting composition is ratified there,
+while the grid construction, estimator normalization, SCR anchor, and first-run sanity
+check are provisional pending the materialized post-promotion pool (FUT-01).
 All metrics are computed from the raw parsed arrays under the locked `G = 1`, raw-mass
 convention (§2.5 PIPE-09); every training-loop consumer is deferred to the doc-03 milestone
 via the forward-reference named in each clause. Each metric's adjudication is recorded in a
@@ -639,6 +641,55 @@ The `1e-3` constant is provisional pending recalibration to the admitted-set IPR
 (doc-03 / FUT-01), a separate axis from the raw/scaled unit pin resolved here. Persist `IPR`
 and the maximum per-interval contribution with its interval index. Evidence packet:
 `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md`.
+
+**PSC — Phase-Space Coverage Entropy (VAL-04; Q-C4).** A dataset-level, **report-only
+coverage diagnostic** — unlike SASD and IPR it carries no per-trajectory flag and no
+admission/reject authority; it reports how completely the admitted population samples phase
+space. PSC is the Shannon entropy of the pooled occupancy distribution over a discretized
+phase-space grid,
+
+`PSC = - sum_b p_b * log p_b`,
+
+with `b` indexing grid cells and `p_b` the pooled occupancy fraction in cell `b` (grounded:
+`data_quality_assessment.md:176-190`; `02-data-pipeline-and-validation.md:167-169`). A companion
+close-encounter coverage ratio (**SCR**) reports the pooled fraction of records whose scaled
+minimum pair-distance falls in the near-singular region, so the diagnostic cannot certify
+coverage while the chaotic close-encounter tail is empty.
+
+Pooled-population composition (**GAP-28-03 RESOLVED-WITH-INSTRUCTION, user sign-off 2026-06-16**):
+the occupancy distribution is built over **one record per `physical_key`, preferring the gold
+realization where present and falling back to base** (dedup-prefer-gold; the base-only
+`gold_counterpart = absent` ICs — the 67 permanent Stage-5 holes — enter via base), and **each
+surviving trajectory contributes unit total mass, i.e. each snapshot is weighted by
+`1 / N_t(record)`** (`N_t` = the record's snapshot count). This trajectory-equal (not
+snapshot-equal) weighting neutralizes the base/gold snapshot-count asymmetry (gold
+`dt_out = 0.01`, ~1003 snapshots; base `dt_out = 0.17`, ~61), so the statistic reports how many
+ICs reach each region rather than how many snapshots, and the low-snapshot base-only chaotic
+tail is held at full per-trajectory weight instead of suppressed by ~16x; dedup prevents an IC's
+base and gold realizations from double-counting. The two operations are orthogonal — dedup
+removes physical-system duplication, `1/N_t` removes resolution skew — and together make PSC an
+honest coverage statistic under the dataset's MNAR gold censoring (the 67 unobtainable gold
+counterparts are precisely the chaotic close-encounter tail). The composition is
+consolidator-original synthesis (`02-resolution-doc.md §5.4 Q-C4`), ratified here on those
+grounds, not transcribed from a silent source. Computed from the raw parsed arrays under the
+locked `G = 1`, raw-mass convention (§2.5 PIPE-09), consistent with the companion metrics.
+
+Provisional construction, pending the first-run PSC/SCR sanity check on the materialized pool
+(FUT-01): the phase-space coordinates (resolution-doc candidate: sorted scaled pair-distances,
+permutation-invariant), the grid (candidate: log-spaced bins on `[1e-3, 1e2]`, 25 per axis,
+`K = 625`), the estimator normalization (candidate: `H_norm = H / ln K`, with a Miller-Madow
+finite-sample correction reported, not silently added), and the SCR anchor (candidate: scaled
+`d_min < 0.5`, the Stage-6 anchor) are **not fixed here** — they are the resolution doc's
+consolidator-original candidate (`02-resolution-doc.md §5.4 Q-C4`), confirmed or revised by the
+first-run sanity check on the **final post-promotion population** (the 117 gold promotions shift
+those ICs base->gold and refine their occupancy, so the check runs after the 184->67 promotion
+cascade lands, recorded as the FUT-01 dataset-finalization gate). This mirrors the provisional
+status of the SASD `0.5` and IPR `1e-3` constants. Persist `PSC`, `SCR`, the per-cell occupancy
+(or its sufficient statistics), and the population/grid parameters of the run. The naive
+all-snapshot pooled value is confounded by both resolution mix and base/gold duplication and is
+**not** a deliverable. Replay-governance and training-side use of PSC is **deferred to the doc-03
+milestone** via this forward-reference. Evidence packet:
+`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md`.
 
 ## Step 2: Unified Preprocessing Pipeline
 

@@ -7,11 +7,11 @@
 | ID | `PSC` |
 | Title | Phase Space Coverage Entropy population and weighting contract |
 | Severity | `MAJOR` |
-| Current Status | `DEFERRED` (user-DEFERRED 2026-06-16) |
-| Current Verdict | `defer` (GAP-28-03 user-deferred; PSC composition pending gold-completeness + first-run) |
+| Current Status | `FIX_APPLIED` (GAP-28-03 RESOLVED-WITH-INSTRUCTION 2026-06-16; PSC clause landed; AC-VAL-04 pending Phase 29) |
+| Current Verdict | `apply` (composition dedup-prefer-gold + `1/N_t` ratified; clause landed; grid/normalization/SCR provisional→FUT-01) |
 | Phase | Phase 28 |
 | Acceptance Check ID | `AC-VAL-04` |
-| Spec Sections Touched | None yet - PSC clause parked pending GAP-28-03 |
+| Spec Sections Touched | `ctl_instruction.md` `Data-side quality-metric contracts` (PSC clause landed 2026-06-16) |
 | Code Paths Touched | Not code-applicable |
 
 ## Source Positions
@@ -45,7 +45,11 @@ Live `pinn/` code is not a v1.5 evidence source and was not consulted for this v
 
 ## Verdict
 
-`defer` (user-DEFERRED) — GAP-28-03 explicitly DEFERRED by the user 2026-06-16: PSC is report-only, the most design-open metric in the cluster, and its pooled population is entangled with unsettled gold-completeness work (the 184 base-only standard systems and the pending missing-67 / OI-7b re-simulations). No PSC clause is landed; the composition is revisited with a first-run sanity check once the gold dataset is complete. The original `defer-with-blocker` analysis is retained below for provenance.
+**`apply` (RESOLVED-WITH-INSTRUCTION 2026-06-16, reopened from DEFERRED).** Once gold completeness settled as final *in shape* (117 validatable + 67 permanent `gold_counterpart=absent`; see [[GAP-29-01]]), the entanglement blocker was discharged — the composition rule is **promotion-invariant** ("prefer gold when present" is unchanged by the pending 117 promotion; only PSC's computed value shifts) — and the user ratified the composed convention: **dedup-prefer-gold (one record per `physical_key`) + equal-record `1/N_t` weighting**, on coverage-diagnostic + MNAR-censoring grounds (the `1/N_t` weighting holds the 67 low-snapshot chaotic-tail base trajectories at full per-trajectory weight rather than suppressing them ~16x). The canonical PSC clause is landed in `ctl_instruction.md` `Data-side quality-metric contracts` beside SASD/IPR; VAL-04 contract satisfied. The grid coordinates, bin constants, `H/ln K` normalization, the SCR `d_min<0.5` anchor, and the Miller-Madow correction land as the resolution doc's **provisional candidate** (`02-resolution-doc.md §5.4 Q-C4`), confirmed or revised by the first-run PSC/SCR sanity check on the **post-promotion** pool at the FUT-01 dataset-finalization gate. AC-VAL-04 structural verification pending Phase 29. The original `defer` analysis is retained below for provenance.
+
+---
+
+_Historical (defer) analysis:_ `defer` (user-DEFERRED) — GAP-28-03 explicitly DEFERRED by the user 2026-06-16: PSC is report-only, the most design-open metric in the cluster, and its pooled population is entangled with unsettled gold-completeness work (the 184 base-only standard systems and the pending missing-67 / OI-7b re-simulations). No PSC clause is landed; the composition is revisited with a first-run sanity check once the gold dataset is complete. The original `defer-with-blocker` analysis is retained below for provenance.
 
 The packet could not lock the PSC population/weighting construction without user instruction. The following elements are grounded enough to carry forward as constraints for a later PSC clause, but are not landed as canonical spec text here:
 
@@ -78,4 +82,5 @@ Phase 28 Plan 04 owns AC-VAL-04, but its runnable structural check is parked wit
 2026-06-16 f7c68e6 PENDING -> IN_PROGRESS (Phase 28 Plan 04; PSC EVID-06 packet opened and Q-C4 composition fork evaluated)
 2026-06-16 f7c68e6 IN_PROGRESS -> DEFERRED (Phase 28 Plan 04; GAP-28-03 opened for PSC population/weighting composition sign-off, no spec edit landed)
 2026-06-16 6153389 DEFERRED -> DEFERRED (Phase 28 close; GAP-28-03 user-DEFERRED — PSC composition pending gold-completeness/missing-67 and a first-run sanity check; VAL-04 not landed this phase)
+2026-06-16 PENDING_SHA DEFERRED -> FIX_APPLIED (GAP-28-03 reopened + RESOLVED-WITH-INSTRUCTION, advisor session; composition dedup-prefer-gold + 1/N_t ratified; PSC clause landed in ctl_instruction.md Data-side quality-metric contracts; grid/normalization/SCR provisional->FUT-01; AC-VAL-04 pending Phase 29)
 ```
