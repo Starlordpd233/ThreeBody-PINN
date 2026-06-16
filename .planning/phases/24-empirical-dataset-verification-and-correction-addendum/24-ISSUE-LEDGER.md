@@ -381,7 +381,7 @@ Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-16 2f7681d PENDING -> IN_PROGRESS (Phase 28 Plan 02; `sasd-sampling-density.md` EVID-06 packet opened; Q-C2 endpoint fork evaluated against DQA, issue doc, resolution doc, CLM-09/CLM-10, and first principles)
 - 2026-06-16 2f7681d IN_PROGRESS -> DEFERRED (Phase 28 Plan 02; GAP-28-01 opened for SASD endpoint sign-off; no SASD spec edit landed)
-- 2026-06-16 PENDING_SHA DEFERRED -> VERIFIED (Phase 28 Plan 02 resumed; GAP-28-01 RESOLVED-WITH-INSTRUCTION — both-endpoint convention adopted per user sign-off after EDL empirical support; SASD clause landed in ctl Step-1A Data-side quality-metric contracts subsection; AC-VAL-02 PASS; EDL distribution support in `.planning/research/edl/phase28-validation-metrics/`)
+- 2026-06-16 cb6a76e DEFERRED -> VERIFIED (Phase 28 Plan 02 resumed; GAP-28-01 RESOLVED-WITH-INSTRUCTION — both-endpoint convention adopted per user sign-off after EDL empirical support; SASD clause landed in ctl Step-1A Data-side quality-metric contracts subsection; AC-VAL-02 PASS; EDL distribution support in `.planning/research/edl/phase28-validation-metrics/`)
 
 ### IPR: Interpolation Physics Residual (Phase 28 VAL-03)
 
@@ -394,7 +394,7 @@ Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-16 aea6747 PENDING -> IN_PROGRESS (Phase 28 Plan 03; `ipr-physics-residual.md` EVID-06 packet opened; Q-C3 units fork evaluated against DQA, issue doc, resolution doc, CLM-09/CLM-10, ctl/architecture dual-epsilon context, and dimensional analysis)
 - 2026-06-16 aea6747 IN_PROGRESS -> DEFERRED (Phase 28 Plan 03; GAP-28-02 opened for IPR raw-vs-scaled unit sign-off; no IPR spec edit landed)
-- 2026-06-16 PENDING_SHA DEFERRED -> VERIFIED (Phase 28 Plan 03 resumed; GAP-28-02 RESOLVED-WITH-INSTRUCTION — raw G=1 units adopted on grounded convention-consistency, the EDL flag-rate tripwire being inconclusive; IPR clause landed in ctl Step-1A subsection + pinn_architecture.md §3.4 dual-epsilon note; AC-VAL-03 PASS; 1e-3 threshold provisional pending recalibration)
+- 2026-06-16 ea2af12 DEFERRED -> VERIFIED (Phase 28 Plan 03 resumed; GAP-28-02 RESOLVED-WITH-INSTRUCTION — raw G=1 units adopted on grounded convention-consistency, the EDL flag-rate tripwire being inconclusive; IPR clause landed in ctl Step-1A subsection + pinn_architecture.md §3.4 dual-epsilon note; AC-VAL-03 PASS; 1e-3 threshold provisional pending recalibration)
 
 ### PSC: Phase Space Coverage Entropy (Phase 28 VAL-04)
 
@@ -407,7 +407,7 @@ Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-16 f7c68e6 PENDING -> IN_PROGRESS (Phase 28 Plan 04; `psc-coverage-entropy.md` EVID-06 packet opened; Q-C4 composition fork evaluated against DQA, issue doc, resolution doc, CLM-05b/09/10, ctl scaled-coordinate/Stage-6 anchors, and first-principles confound accounting)
 - 2026-06-16 f7c68e6 IN_PROGRESS -> DEFERRED (Phase 28 Plan 04; GAP-28-03 opened for PSC dedup-prefer-gold plus equal-record-weighted composition sign-off; no PSC spec edit landed)
-- 2026-06-16 PENDING_SHA DEFERRED -> DEFERRED (Phase 28 close; GAP-28-03 user-DEFERRED — PSC composition deferred pending gold-completeness/missing-67 and a first-run sanity check; VAL-04 not landed this phase)
+- 2026-06-16 6153389 DEFERRED -> DEFERRED (Phase 28 close; GAP-28-03 user-DEFERRED — PSC composition deferred pending gold-completeness/missing-67 and a first-run sanity check; VAL-04 not landed this phase)
 
 ### D-03: Processed training-data format (Phase 26 PIPE-10)
 

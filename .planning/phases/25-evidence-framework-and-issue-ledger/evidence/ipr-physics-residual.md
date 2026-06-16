@@ -71,5 +71,5 @@ Phase 28 Plan 03 owns AC-VAL-03, but its runnable structural check is parked wit
 ```text
 2026-06-16 aea6747 PENDING -> IN_PROGRESS (Phase 28 Plan 03; IPR EVID-06 packet opened and Q-C3 units fork evaluated)
 2026-06-16 aea6747 IN_PROGRESS -> DEFERRED (Phase 28 Plan 03; GAP-28-02 opened for IPR unit-convention sign-off, no spec edit landed)
-2026-06-16 PENDING_SHA DEFERRED -> VERIFIED (Phase 28 Plan 03 resumed; GAP-28-02 RESOLVED-WITH-INSTRUCTION raw G=1 units on grounded convention-consistency; IPR clause landed in ctl Step-1A + arch §3.4 note; AC-VAL-03 PASS; 1e-3 threshold provisional; EDL support FINDINGS.md)
+2026-06-16 ea2af12 DEFERRED -> VERIFIED (Phase 28 Plan 03 resumed; GAP-28-02 RESOLVED-WITH-INSTRUCTION raw G=1 units on grounded convention-consistency; IPR clause landed in ctl Step-1A + arch §3.4 note; AC-VAL-03 PASS; 1e-3 threshold provisional; EDL support FINDINGS.md)
 ```
