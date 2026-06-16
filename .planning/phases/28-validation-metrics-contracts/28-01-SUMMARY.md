@@ -154,6 +154,14 @@ None - plan executed exactly as written.
 
 None.
 
+## Self-Check: PASSED
+
+- AC-VAL-01 passed all six structural assertions plus the ratio-threshold negative control.
+- PIPE-09 `compute_globals` extraction matched `HEAD` byte-for-byte at SHA-256 `816589102aea99f2878991bda9cee351db08e8d2cd5c64fbe725c551a825b986`.
+- `data_quality_assessment.md` was not modified.
+- SCS issue-ledger row is VERIFIED with AC-VAL-01, `scs-thresholds.md`, CTL Step-1A, DQA historical-home, and 2026-06-16 provenance.
+- `scs-thresholds.md` transition log carries the Phase 28 Plan 01 transitions with substantive commit `bd31dcd`.
+
 ## User Setup Required
 
 None - no external service configuration required.
