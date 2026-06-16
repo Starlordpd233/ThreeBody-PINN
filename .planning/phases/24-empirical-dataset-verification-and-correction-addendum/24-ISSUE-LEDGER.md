@@ -236,6 +236,16 @@ re-confirmed 184/184; deferral lifted by the user ruling). The OI-7b re-simulati
 forward data-generation prerequisite (not yet executed), tracked downstream — not a blocker
 on this finding.
 
+**OI-7b reconciliation (2026-06-16/17):** OI-7b executed **partial** — of the 184 reruns,
+117 validated (gold-config-homogeneous: footer tol=1e-13/Lw=130/dt=0.01, final_time≈10.01;
+staged, unpromoted) and 67 are permanent-absent (MNAR close-encounter tail; 130-digit gold
+integration non-terminating, gold runs die median t≈1.32 vs horizon t=10). 0 promoted to
+date. Per the 2026-06-14 ruling the 67 are permanent Stage-5 holes (keep base; no base→gold
+substitution; no retry). Promotion of the 117 (gold 2,565→2,682) + the 184→67 cascade is
+**ruled to the FUT-01 dataset-finalization gate** (GAP-29-01; `29-CODE-DIVERGENCE.md` FO-1).
+M13 stays **VERIFIED** — factual-outcome record; the `accept-third-position` verdict is
+untouched.
+
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-13 1806366e PENDING -> IN_PROGRESS (Phase 26 P04; M13 packet authored, defer-with-blocker verdict; mandatory data-side gold-counterpart contract FIX_APPLIED in ctl_instruction.md Step 5 from 02-resolution-doc.md:262; AC-PIPE-05 set-difference probe PASS 184/184; AC-PIPE-02 regression re-check PASS, B-11 stays VERIFIED; fallback policy UNRESOLVED pending OI-7a framework-owner ruling, surfaced as parent-recorded STOP gap; ruling NOT invented)
@@ -322,6 +332,10 @@ attach to IDs, OI-7a); the mandatory data-side gold-counterpart contract is land
 AC-PIPE-05-verified (184/184 re-confirmed); the 184 gold-less standard IDs are genuine
 Stage-5 holes resolved by re-simulating their gold counterparts to 1:1 (OI-7b, ACTIVATED
 data-generation remediation, not yet executed). G4 is `VERIFIED`, closing with M13.
+**OI-7b reconciliation (2026-06-16/17):** OI-7b executed partial — 117 validated-staged, 67
+permanent-absent (MNAR), 0 promoted; promotion + 184→67 cascade ruled to the FUT-01
+dataset-finalization gate (GAP-29-01; `29-CODE-DIVERGENCE.md` FO-1). G4 stays VERIFIED with
+M13; factual-outcome only, verdict untouched.
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)

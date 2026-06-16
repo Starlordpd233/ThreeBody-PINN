@@ -138,3 +138,5 @@ Per-claim:
 ```
 
 **Note:** M13 is `VERIFIED` as of 2026-06-13: the framework-owner ruling (GAP-26-01 = Option B) lifted the deferral, the resolved gold-counterpart note is landed in `ctl_instruction.md`, and AC-PIPE-05 is re-confirmed (184/184). The OI-7b re-simulation of the 184 missing gold counterparts is a forward data-generation prerequisite (activated, not yet executed) tracked downstream, not a blocker on this packet. G4 (synthesis over M13) closes with M13 = VERIFIED.
+
+**OI-7b reconciliation (2026-06-16/17):** OI-7b executed **partial** — 117 validated (gold-config-homogeneous, staged) + 67 permanent-absent (MNAR close-encounter tail; gold integration non-terminating), 0 promoted. The 67 are permanent Stage-5 holes per the 2026-06-14 ruling (keep base; no base→gold substitution; no retry). Promotion of the 117 + the 184→67 cascade is **ruled to the FUT-01 dataset-finalization gate** (GAP-29-01; `29-CODE-DIVERGENCE.md` FO-1). M13/G4 stay `VERIFIED`; this is a factual-outcome record — the `accept-third-position` verdict is untouched (D-01a, GAP-29-01).
