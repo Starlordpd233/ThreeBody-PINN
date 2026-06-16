@@ -559,6 +559,50 @@ The live-loader's actual blacklist enforcement at training time is a FUT-01
 hand-off question (OI-8 / SCOPE-10), outside the grounding of this contract; the
 data-side contract above is stated regardless.
 
+### Data-side quality-metric contracts (SASD, IPR, PSC)
+
+These are the data-side validation metrics that complement the Step-1A conservation
+gate (clause 5, the family's only reject gate). SASD and IPR are **flag-for-resampling
+diagnostics, not reject gates**: a flagged trajectory is routed to the resample queue and
+withheld from clean-training designation, never excluded outright. PSC is a dataset-level,
+report-only coverage diagnostic (deferred; see VAL-04 note at the end of this subsection).
+All metrics are computed from the raw parsed arrays under the locked `G = 1`, raw-mass
+convention (§2.5 PIPE-09); every training-loop consumer is deferred to the doc-03 milestone
+via the forward-reference named in each clause. Each metric's adjudication is recorded in a
+Phase 25 evidence packet.
+
+**SASD — Stiffness-Aware Sampling Density (VAL-02; Q-C2).** For each output interval
+`[t_i, t_{i+1}]` with `dt_i = t_{i+1} - t_i`, the analytic per-body acceleration `a_b` is
+computed from the snapshot positions with Plummer softening `eps = 1e-10` (validation
+softening; enters `V` only), and
+
+`SASD_i = dt_i * max_b max_{t in {t_i, t_{i+1}}} ( ||a_b(t)|| / max(||v_b(t)||, 1e-12) )`
+
+(per-body maximum of the full acceleration norm over the local speed, evaluated at **both
+interval endpoints**). The trajectory score is `max_i SASD_i`. Both-endpoint evaluation is
+the canonical convention (GAP-28-01 RESOLVED-WITH-INSTRUCTION, user sign-off 2026-06-16): it
+dominates the DQA-literal left-endpoint form — `max(left, right) >= left`, so it cannot
+un-flag any trajectory the literal form flags — and closes the final/right-endpoint blind
+spot a left-only evaluation never sees. The perpendicular-component variant is rejected
+(blind to near-radial close encounters where `a` is parallel to `v`); the stacked
+9-component aggregation is rejected (dilutes the local stiffness signal). SASD is
+scale-invariant (`||a||/||v||` carries `1/time`, `dt` carries `time`), so raw and scaled
+coordinates give identical scores; by convention it is computed from the raw parsed arrays.
+
+Flag rule (provisional): `max_i SASD_i > 0.5` flags the trajectory for resampling — a
+Nyquist-flavored "local dynamical time spans fewer than ~2 sampling intervals" warning,
+**not** an auto-reject. The `0.5` constant is provisional pending recalibration to the
+admitted-set `max SASD` distribution (doc-03 / FUT-01), a separate axis from this endpoint
+convention. Persist `max SASD`, the argmax interval index, and a `v_floor_hit` flag.
+
+Low-resolution floor effect (documented): an encounter completing entirely between two
+snapshots is invisible to any endpoint-evaluated sampling metric; SASD bounds resolution
+adequacy from the snapshots that exist and is complemented by IPR (below), which probes
+between snapshots via the interpolant — the pairing is by design. Training-side use,
+SASD-weighted collocation sampling (M16), is **deferred to the doc-03 milestone** and is
+not specified here. Evidence packet:
+`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
+
 ## Step 2: Unified Preprocessing Pipeline
 
 Every IC/BRUTUS pair passes through one deterministic preprocessing transform

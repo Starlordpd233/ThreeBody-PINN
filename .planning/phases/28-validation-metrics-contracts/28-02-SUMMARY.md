@@ -39,6 +39,13 @@ completed: 2026-06-16
 
 **SASD endpoint fork parked with a defer-with-blocker evidence packet and GAP-28-01 user sign-off gate**
 
+> **RESUMED 2026-06-16 — GAP-28-01 RESOLVED-WITH-INSTRUCTION (both endpoints).** After EDL empirical
+> support (both-endpoint adds zero extra flags vs left across all tiers), the user selected Option A.
+> Plan 02 Task 2/3 executed: the canonical SASD clause (both-endpoint) landed in `ctl_instruction.md`
+> Step-1A `Data-side quality-metric contracts` subsection (created this wave); AC-VAL-02 PASS; SASD
+> ledger row → VERIFIED. The `0.5` flag threshold is provisional (doc-03/FUT-01 recalibration). The
+> parked-state narrative below is retained as the original record.
+
 ## Performance
 
 - **Duration:** 5 min

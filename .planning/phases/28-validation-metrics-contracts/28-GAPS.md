@@ -23,8 +23,8 @@
   - **B. Left endpoint.** Canonical SASD uses the DQA/issue-doc literal `t_i` formula. Minimal deviation from the written DQA/issue sources; avoids expanding flags without explicit evidence; leaves final/right-endpoint blind spot documented.
   - **C. Defer SASD endpoint convention.** Keep VAL-02 deferred for now; Phase 28 does not land a canonical SASD clause until empirical SASD distributions or user-led research resolve the endpoint convention.
 - **Confidence of impact:** **HIGH** - the endpoint convention directly changes which trajectories are flagged and therefore affects downstream resampling and clean-training designation. It blocks the SASD spec edit but does not invalidate independent IPR/PSC evidence work if those plans can proceed without relying on a canonical SASD clause.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-16)
+- **Resolution note:** User selected **Option A (both endpoints)** after reviewing EDL empirical decision-support (`.planning/research/edl/phase28-validation-metrics/FINDINGS.md`). The empirics show both-endpoint evaluation adds **zero** extra flags vs left-endpoint across all four tiers (`cross-only-both = 0`, including the non-saturated hier_gold at 73%), confirming the resolution doc's "strictly dominates at no cost" rationale on this dataset. Canonical SASD therefore uses `max_b max_{t in {t_i, t_{i+1}}}(||a_b||/max(||v_b||,1e-12))`, landed in `ctl_instruction.md` Step-1A `Data-side quality-metric contracts` subsection (created this wave with the SCS-gate cross-reference); AC-VAL-02 PASS; SASD ledger row → VERIFIED. The `0.5` flag threshold is provisional — EDL shows it over-flags the admitted-set proxy (73-100%); recalibration is deferred to doc-03/FUT-01 and is a separate axis from the endpoint convention resolved here.
 
 ## GAP-28-02 - IPR raw-vs-scaled unit convention needs user sign-off before canonical spec edit
 

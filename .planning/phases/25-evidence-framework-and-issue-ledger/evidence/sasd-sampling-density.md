@@ -7,11 +7,11 @@
 | ID | `SASD` |
 | Title | Stiffness-Aware Sampling Density endpoint and data-side contract |
 | Severity | `MAJOR` |
-| Current Status | `DEFERRED` |
-| Current Verdict | `defer-with-blocker` |
+| Current Status | `VERIFIED` |
+| Current Verdict | `accept-resolution` (both-endpoint; GAP-28-01 user sign-off 2026-06-16) |
 | Phase | Phase 28 |
 | Acceptance Check ID | `AC-VAL-02` |
-| Spec Sections Touched | None yet - `ctl_instruction.md` Data-side quality-metric contracts subsection is parked pending GAP-28-01 |
+| Spec Sections Touched | `ctl_instruction.md` Step-1A `Data-side quality-metric contracts` subsection (SASD clause, both-endpoint) |
 | Code Paths Touched | Not code-applicable |
 
 ## Source Positions
@@ -41,9 +41,9 @@ Live `pinn/` code is not a v1.5 evidence source and was not consulted for this v
 
 ## Verdict
 
-`defer-with-blocker`
+`accept-resolution` (both-endpoint) — RESOLVED 2026-06-16 via GAP-28-01 user sign-off (Option A) after EDL empirical support showed both-endpoint adds zero extra flags vs left across all tiers; SASD clause landed in `ctl_instruction.md` Step-1A, AC-VAL-02 PASS. The original `defer-with-blocker` rationale is retained below for provenance.
 
-The packet cannot lock a SASD endpoint convention without user instruction. The evidence supports the following engineering facts:
+The packet could not lock a SASD endpoint convention without user instruction. The evidence supports the following engineering facts:
 
 - The DQA and issue doc state a left-endpoint formula.
 - The resolution doc proposes a both-endpoint max and gives a first-principles rationale: the right endpoint can expose a spike at `t_{i+1}`, the final snapshot would otherwise never be evaluated, and `max(left,right) >= left`, so both-endpoint evaluation cannot un-flag any trajectory flagged by the DQA-literal form.
@@ -68,4 +68,5 @@ Phase 28 Plan 02 owns AC-VAL-02, but its runnable structural check is parked wit
 ```text
 2026-06-16 2f7681d PENDING -> IN_PROGRESS (Phase 28 Plan 02; SASD EVID-06 packet opened and Q-C2 endpoint fork evaluated)
 2026-06-16 2f7681d IN_PROGRESS -> DEFERRED (Phase 28 Plan 02; GAP-28-01 opened for SASD endpoint sign-off, no spec edit landed)
+2026-06-16 PENDING_SHA DEFERRED -> VERIFIED (Phase 28 Plan 02 resumed; GAP-28-01 RESOLVED-WITH-INSTRUCTION both-endpoint per user sign-off; SASD clause landed in ctl Step-1A; AC-VAL-02 PASS; EDL support .planning/research/edl/phase28-validation-metrics/FINDINGS.md)
 ```
