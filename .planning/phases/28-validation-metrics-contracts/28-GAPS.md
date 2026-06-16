@@ -26,6 +26,29 @@
 - **Status:** **OPEN**
 - **Resolution note:**
 
+## GAP-28-02 - IPR raw-vs-scaled unit convention needs user sign-off before canonical spec edit
+
+- **Decision point:** Should the canonical data-side IPR contract bind `IPR > 1e-3` to raw `G=1` units, or to scaled normalized units? The same numerical threshold differs by about 464x between conventions.
+- **Where in artifact:** Surfaced while authoring `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md` for Phase 28 Plan 03 Task 1, before any IPR spec edit. The candidate spec edit is the future `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` IPR clause in `Data-side quality-metric contracts` plus a possible `pinn_architecture.md` dual-epsilon visibility note. No IPR clause has been landed.
+- **Task context:** Phase 28 Plan 03 Task 1 ("Author the IPR EVID-06 packet + adjudicate the Q-C3 units fork"). The plan explicitly routes outcome (b) to STOP when the evidence does not settle raw vs scaled units or the calibration-tripwire sign-off cannot be discharged.
+- **Classification:** **semantic** - the unit convention changes the meaning of the `1e-3` flag and therefore changes which trajectories are flagged, resampled, or treated as clean training data.
+- **Source silence:**
+  - `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md:160-174` defines IPR and its residual construction, but does not state raw or scaled units.
+  - `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md:220-252` places IPR in a Phase-1 "Load and Normalize" workflow and gives the `IPR > 10^-3` gate; the "Load and Normalize" wording prevents the agent from treating "on load" as an unambiguous raw-units proof.
+  - `pinn_instruction/issues/02-data-pipeline-and-validation.md:155-165` gives an `eps = 1e-5` training/noise-floor role and does not settle data-side units.
+  - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/02-resolution-doc.md:627-673` proposes raw `G=1` units and derives the ~464x distinction, but it explicitly calls units a genuine consequential fork, preserves scaled-units dissent, and relies on placement inference plus calibration tripwire.
+  - `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-VERIFIED-FACTS.md:24-25` grounds snapshot/dt resolution context but does not determine the unit convention for the IPR threshold.
+  - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:930-935` and `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md:520-535` ground the validation/training epsilon separation, not the raw/scaled IPR unit pin.
+- **Mathematical / engineering grounding:** IPR is an acceleration-squared residual: `||q''_spline - F_gravity(q_spline)||^2`. Under the locked scale transform `r = D r'`, `t = T u`, acceleration scales as `D/T^2`, so squared acceleration residuals scale as `D^2/T^4`; the resolution doc's reported relationship is raw IPR roughly scaled IPR times `2.155e-3`, equivalently scaled readings about 464x larger. Therefore a unitless-looking `1e-3` flag is not portable across raw/scaled conventions. Raw units align with the resolution doc's candidate and Q-C1/Q-C2 raw-array convention; scaled units align with a normalized preprocessing interpretation and CR-A's preserved dissent. The dataset facts show that aliasing diagnostics matter, but do not prove which unit convention authored the original threshold.
+- **Agent was tempted to:** choose raw `G=1` units because the resolution doc offers a detailed candidate, raw aligns with the SCS convention, and the dimension analysis is clear. Rejected: the DQA "Load and Normalize" wording keeps the placement inference ambiguous, the resolution doc itself preserved scaled-units dissent, and a ~464x threshold change is too consequential for agent inference.
+- **What the user needs to decide:**
+  - **A. Raw units.** Canonical data-side IPR is computed on parsed raw `G=1` arrays, and `IPR > 1e-3` is a raw-unit flag. This matches the resolution doc candidate and requires distribution calibration as a tripwire.
+  - **B. Scaled units.** Canonical data-side IPR is computed after locked scaling/normalized time, and `IPR > 1e-3` is a scaled-unit flag. This preserves the scaled-units dissent and likely flags many more trajectories for the same number.
+  - **C. Defer IPR unit convention.** Keep VAL-03 deferred until empirical IPR distributions or user-led research resolves which convention the `1e-3` threshold was intended to bind.
+- **Confidence of impact:** **HIGH** - raw vs scaled units change the threshold interpretation by about 464x. A wrong pin can materially over-flag or under-flag trajectories and mislead Phase 29 acceptance thresholds.
+- **Status:** **OPEN**
+- **Resolution note:**
+
 ## Milestone-wide index
 
 Mirrored at `.planning/milestones/v1.5-GAPS.md` (Phase 28 section).
