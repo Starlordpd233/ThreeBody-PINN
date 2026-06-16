@@ -69,8 +69,9 @@ ingestion/selection contracts: B-06 admission gate, B-11 id-resolution, M11 blac
 exclusion, D7 footer/parameter heterogeneity, M13 gold-counterpart, D-03 HDF5 format);
 its edits are now part of the refreshed `ctl_instruction.md` snapshot and are audited as
 live spec text. Phase 27 (sampling/precision/global-scale) is now in planning / research
-with GAP-27-01 open and no adopted spec edits yet; Phase 28 (validation-metric
-data-side definitions) remains pending. The audit is sent now anyway — the in-flight
+with its PIPE-07 evidence-packet process question resolved as a thin pointer packet and
+no adopted spec edits yet; Phase 28 (validation-metric data-side definitions) remains
+pending. The audit is sent now anyway — the in-flight
 register inside the bundle plus the mandatory novelty classification absorb the
 remaining overlap; disruption surfaced now is more useful than serialized-later
 disruption. The agents audit the pinned snapshots as attached; any finding overlapping a
@@ -147,10 +148,10 @@ Per the round's mandatory Bundle Assembly Procedure:
   complete** — its 7 spec commits (`b1852b0f`..`ab5f7f06`) landed the DataLoader
   ingestion/selection contracts in `ctl_instruction.md`, the snapshot was refreshed to
   package HEAD `14bd96e1`, and the register's Phase-26 row was updated from "planned" to
-  "landed"; Phase 27 planning / research is in progress with GAP-27-01 open and no
-  adopted spec edits yet; Phases 28–29 not started. The register lists exactly these
-  states and topics; no closed topic is listed as open and no landed topic is listed as
-  pending.
+  "landed"; Phase 27 planning / research is in progress with the PIPE-07 pointer-packet
+  process question resolved and no adopted spec edits yet; Phases 28–29 not started. The
+  register lists exactly these states and topics; no closed topic is listed as open and
+  no landed topic is listed as pending.
 - **V4 trainex-r1 register recency — PASS.** Checked against both trainex-r1 masters
   and `.planning/research/questions.md`: D1–D7 (package a) + K1–K5 (package b),
   PACKAGE-READY awaiting handoff, no decisions adopted. Register matches.

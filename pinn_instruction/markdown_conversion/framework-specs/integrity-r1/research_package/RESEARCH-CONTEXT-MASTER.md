@@ -320,6 +320,13 @@ New sub-checks:
   specified batch/accumulation scheme, validation cadence vs dataset size, model size vs
   training horizon — flag what the spec *implies*, parameterized where facts are
   missing; do not invent runtime numbers.
+- **(vi) Temporal sampling / representable-frequency check.** Using the snapshot-count
+  facts in `DATASET-CONTEXT.md` and the SIREN frequency settings in
+  `pinn_architecture.md`, explicitly assess whether the base-resolution stages can
+  support the temporal frequency content implied by close-encounter dynamics and
+  `first_omega_0 = 30`, or whether high-frequency learning implicitly depends on the
+  gold-resolution stages. Treat this as a Nyquist / aliasing / overfit stress question,
+  not as a pre-decided failure from snapshot counts alone.
 
 ### RD-7 — Data–framework compatibility
 
@@ -428,7 +435,7 @@ coverage matrix (below) is how thoroughness is demonstrated.
 
 ### Coverage-matrix enumeration (audit every one of these)
 
-Your §3 must carry a verdict for each heading below — 26 in `ctl_instruction.md`, 25 in
+Your §3 must carry a verdict for each heading below — 27 in `ctl_instruction.md`, 25 in
 `pinn_architecture.md`, 12 in `sampling_method.md` (H1/H2 only; line numbers refer to
 the attached snapshots; code-comment lines inside fenced blocks are excluded).
 
@@ -444,24 +451,25 @@ the attached snapshots; code-comment lines inside fenced blocks are excluded).
 | 262 | H1 | A Glimpse at the Data |
 | 334 | H1 | Phase 1 - Data Preparation and Stratification |
 | 340 | H2 | Step 1: Parse Raw Simulation Data |
-| 383 | H2 | Step 2: Unified Preprocessing Pipeline |
-| 655 | H2 | Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation) |
-| 925 | H2 | Step 4: Formulating the Input Vector: Canonical Ordering, Normalization, and Assembly |
-| 1061 | H2 | Step 5: Curriculum Stage Assignment |
-| 1070 | H1 | Phase 2 - The Definitive CTL-PINN Training Loop |
-| 1100 | H2 | Overview: The Two-Phase Optimization Strategy |
-| 1145 | H2 | Loss Function Formulation |
-| 1174 | H2 | Phase 2a: Adam-driven Exploration |
-| 1231 | H2 | Phase 2b: High-Precision L-BFGS Refinement |
-| 1256 | H2 | Stage Transition Criteria |
-| 1298 | H2 | Consolidated Hyperparameter Schedule |
-| 1308 | H2 | Implementation Notes |
-| 1337 | H1 | Advanced Considerations and Best Practices |
-| 1339 | H2 | Evaluation Metrics and Validation |
-| 1413 | H1 | Reproducibility Note (Ignore Now and Come Back Later): |
-| 1446 | H1 | Supplementary Figures |
-| 1452 | H1 | Source Issues / Notes for Future Reconciliation |
-| 1456 | H2 | SI-CTL-001: Input-vector dimensionality inconsistency |
+| 452 | H2 | Step 1A — Trajectory Admission Gate (data-side; runs at DataLoader init) |
+| 546 | H2 | Step 2: Unified Preprocessing Pipeline |
+| 830 | H2 | Step 3: Necessary Calculations of Invariants (for Stage Assignment and Input Vector Formulation) |
+| 1100 | H2 | Step 4: Formulating the Input Vector: Canonical Ordering, Normalization, and Assembly |
+| 1236 | H2 | Step 5: Curriculum Stage Assignment |
+| 1290 | H1 | Phase 2 - The Definitive CTL-PINN Training Loop |
+| 1320 | H2 | Overview: The Two-Phase Optimization Strategy |
+| 1365 | H2 | Loss Function Formulation |
+| 1394 | H2 | Phase 2a: Adam-driven Exploration |
+| 1451 | H2 | Phase 2b: High-Precision L-BFGS Refinement |
+| 1476 | H2 | Stage Transition Criteria |
+| 1518 | H2 | Consolidated Hyperparameter Schedule |
+| 1528 | H2 | Implementation Notes |
+| 1557 | H1 | Advanced Considerations and Best Practices |
+| 1559 | H2 | Evaluation Metrics and Validation |
+| 1633 | H1 | Reproducibility Note (Ignore Now and Come Back Later): |
+| 1666 | H1 | Supplementary Figures |
+| 1672 | H1 | Source Issues / Notes for Future Reconciliation |
+| 1676 | H2 | SI-CTL-001: Input-vector dimensionality inconsistency |
 
 **`pinn_architecture.md`:**
 
