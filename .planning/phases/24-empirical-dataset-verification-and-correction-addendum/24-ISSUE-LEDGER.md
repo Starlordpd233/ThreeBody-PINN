@@ -32,7 +32,7 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | G4 | Pipeline validation gap — synthesis view (M13) | 26 (PIPE-05) | VERIFIED | `accept-third-position` (closes with M13) | NO | (closes with M13; no separate packet — D-07) | AC-PIPE-05 (synthesis view over M13) | ctl_instruction.md Step 5 (gold-counterpart contract); pinn_architecture.md None (D-04 data-side) | M13 | 2026-06-13 |
 | G5 | dt_out heterogeneity (data-side; Q-B1 facet; collocation-scaling facet M16 deferred to doc-03) | 27 (PIPE-04) | **VERIFIED** | — (closes with M12; no separate packet — D-08) | NO | — | AC-PIPE-04 (data-side facet; M16 training-side deferred) | ctl_instruction.md; pinn_architecture.md | M12; M16-deferred | 2026-06-14 |
 | SCS | Symplectic Conservation Score definition + thresholds (data-side; Q-C1) | 28 (VAL-01) | **VERIFIED** | `accept-resolution` | YES — EVID-10 required (ratio-SCS vs locked log-drift gate) | [scs-thresholds.md](../25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md) | AC-VAL-01 PASS (2026-06-16) | ctl_instruction.md Step-1A conservation gate (canonical); data_quality_assessment.md read-only/historical home | Q-C1 | 2026-06-16 |
-| SASD | Stiffness-Aware Sampling Density (data-side; Q-C2) | 28 (VAL-02) | PENDING | — | NO | — | AC-VAL-02 | ctl_instruction.md; pinn_architecture.md | Q-C2 | 2026-06-11 |
+| SASD | Stiffness-Aware Sampling Density (data-side; Q-C2) | 28 (VAL-02) | **DEFERRED** | `defer-with-blocker` (GAP-28-01 endpoint sign-off) | NO | [sasd-sampling-density.md](../25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md) | AC-VAL-02 (parked pending GAP-28-01) | ctl_instruction.md Data-side quality-metric contracts (parked); pinn_architecture.md optional visibility note parked | Q-C2 | 2026-06-16 |
 | IPR | Interpolation Physics Residual (data-side, dual-epsilon; Q-C3) | 28 (VAL-03) | PENDING | — | NO | — | AC-VAL-03 | ctl_instruction.md; pinn_architecture.md | Q-C3 | 2026-06-11 |
 | PSC | Phase Space Coverage Entropy (data-side; Q-C4) | 28 (VAL-04) | PENDING | — | NO | — | AC-VAL-04 | ctl_instruction.md; pinn_architecture.md | Q-C4 | 2026-06-11 |
 | D-03 | Processed training-data format (HDF5 vs .npy vs txt/json) | 26 (PIPE-10) | VERIFIED | `accept-resolution` (user-locked 2026-06-13: HDF5 canonical) | NO | [d-03-training-data-format.md](../25-evidence-framework-and-issue-ledger/evidence/d-03-training-data-format.md) | AC-PIPE-10 | ctl_instruction.md Step 1 item 6 | Q-A6 | 2026-06-13 |
@@ -379,6 +379,8 @@ doc-03 per SCOPE-11).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
+- 2026-06-16 <pending-28-02-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 02; `sasd-sampling-density.md` EVID-06 packet opened; Q-C2 endpoint fork evaluated against DQA, issue doc, resolution doc, CLM-09/CLM-10, and first principles)
+- 2026-06-16 <pending-28-02-sha> IN_PROGRESS -> DEFERRED (Phase 28 Plan 02; GAP-28-01 opened for SASD endpoint sign-off; no SASD spec edit landed)
 
 ### IPR: Interpolation Physics Residual (Phase 28 VAL-03)
 
