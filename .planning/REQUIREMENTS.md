@@ -58,9 +58,9 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 ### Validation-Metrics Contracts
 
 - [x] **VAL-01**: Framework specs carry one canonical SCS contract — definition and threshold adjudicated against the locked post-v1.3 gate (`\epsilon_H > 10^{-5}` / `SCS > -5`); the issue-02 ratio-based thresholds are resolved through EVID-10, not transcribed. Verified in Phase 28 Plan 01.
-- [ ] **VAL-02**: Framework specs define SASD — formula, data-side computation contract, and the low-resolution floor-effect caveat. Training-side collocation weighting is deferred to the doc-03 milestone with a recorded forward-reference. Deferred pending GAP-28-01 endpoint sign-off.
-- [ ] **VAL-03**: Framework specs define IPR — formula and dual-epsilon consistency with the v1.4 PHYS-03 outcome; its ALM noise-floor role is recorded as a doc-03 forward-reference. Deferred pending GAP-28-02 raw-vs-scaled unit sign-off.
-- [ ] **VAL-04**: Framework specs define PSC — formula and data-side computation contract; replay-governance use is deferred to the doc-03 milestone with a recorded forward-reference. Deferred pending GAP-28-03 population/weighting composition sign-off.
+- [x] **VAL-02**: Framework specs define SASD — formula, data-side computation contract, and the low-resolution floor-effect caveat. Training-side collocation weighting is deferred to the doc-03 milestone with a recorded forward-reference. Verified in Phase 28 Plan 02 (both-endpoint convention; GAP-28-01 RESOLVED-WITH-INSTRUCTION 2026-06-16; AC-VAL-02 PASS).
+- [x] **VAL-03**: Framework specs define IPR — formula and dual-epsilon consistency with the v1.4 PHYS-03 outcome; its ALM noise-floor role is recorded as a doc-03 forward-reference. Verified in Phase 28 Plan 03 (raw `G=1` units; GAP-28-02 RESOLVED-WITH-INSTRUCTION 2026-06-16; AC-VAL-03 PASS). The `1e-3` threshold lands provisional pending doc-03/FUT-01 recalibration.
+- [ ] **VAL-04**: Framework specs define PSC — formula and data-side computation contract; replay-governance use is deferred to the doc-03 milestone with a recorded forward-reference. **User-DEFERRED 2026-06-16 (GAP-28-03):** PSC is report-only and design-open, and its pooled population is entangled with unsettled gold-completeness work; the dedup + equal-record composition is revisited with a first-run sanity check once the gold dataset is complete. Not landed in Phase 28.
 
 ### Verification and Handoff (continuing v1.4 VER numbering)
 
@@ -141,9 +141,9 @@ Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`,
 | PIPE-08 | Phase 27 | Pending (gated on Phase 24.5) |
 | PIPE-09 | Phase 27 | Pending (gated on Phase 24.5) |
 | VAL-01 | Phase 28 | Verified (Phase 28 Plan 01) |
-| VAL-02 | Phase 28 | Deferred (GAP-28-01) |
-| VAL-03 | Phase 28 | Deferred (GAP-28-02) |
-| VAL-04 | Phase 28 | Deferred (GAP-28-03) |
+| VAL-02 | Phase 28 | Verified (Plan 02; both-endpoint; GAP-28-01 resolved) |
+| VAL-03 | Phase 28 | Verified (Plan 03; raw units; GAP-28-02 resolved) |
+| VAL-04 | Phase 28 | User-DEFERRED (GAP-28-03; revisit at first-run) |
 | VER-07 | Phase 29 | Pending (gated on Phase 24.5) |
 | VER-08 | Phase 29 | Satisfied by roadmap creation; confirmed at closure |
 | VER-09 | Phase 29 | Pending (gated on Phase 24.5) |

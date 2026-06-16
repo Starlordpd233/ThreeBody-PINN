@@ -5,8 +5,8 @@ source: [28-01-SUMMARY.md, 28-02-SUMMARY.md, 28-03-SUMMARY.md, 28-04-SUMMARY.md]
 started: 2026-06-16T04:30:00Z
 updated: 2026-06-16T04:40:00Z
 verification_mode: spec-phase-claim-audit
-phase_closeable: false
-phase_blocked_by: [GAP-28-01, GAP-28-02, GAP-28-03]
+phase_closeable: true
+phase_blockers_resolved: "2026-06-16 — GAP-28-01 RESOLVED (both-endpoint); GAP-28-02 RESOLVED (raw units); GAP-28-03 user-DEFERRED (PSC)"
 ---
 
 ## Current Test
@@ -137,3 +137,13 @@ USER adjudication of the three forks, not a `/gsd-execute-phase --gaps-only` fix
 Phase 28 closes only after each is RESOLVED-WITH-INSTRUCTION or explicitly user-DEFERRED
 (then resume 28-02/03/04 to land the SASD/IPR/PSC clauses + AC-VAL-02/03/04), and Phase 29
 owns milestone-wide acceptance/handoff.
+
+## Resolution Addendum (2026-06-16)
+
+All three blockers are now closed and **Phase 28 is closed** (3 of 4 contracts landed):
+
+- **GAP-28-01 (SASD)** → RESOLVED-WITH-INSTRUCTION: both-endpoint convention. SASD clause landed in `ctl_instruction.md` Step-1A `Data-side quality-metric contracts` subsection; AC-VAL-02 PASS; ledger VERIFIED. Commit `cb6a76e`.
+- **GAP-28-02 (IPR)** → RESOLVED-WITH-INSTRUCTION: raw `G=1` units (decided on grounded convention-consistency — the EDL gold-flag-rate tripwire was inconclusive because both conventions saturate). IPR clause landed + `pinn_architecture.md` §3.4 dual-epsilon note; AC-VAL-03 PASS; ledger VERIFIED. Commit `ea2af12`.
+- **GAP-28-03 (PSC)** → user-DEFERRED: report-only + design-open + entangled with gold-completeness (missing-67/OI-7b); VAL-04 carried forward to a first-run sanity check. Commit `6153389`.
+
+Decision support: EDL empirical study (`.planning/research/edl/phase28-validation-metrics/`, commit `ea285ea`). The SASD `0.5` and IPR `1e-3` thresholds land **provisional** pending admitted-set recalibration (doc-03/FUT-01) — a separate axis from the endpoint/units pins. v1.5-GAPS: 0 open, 8 resolved, 1 deferred. Next: **Phase 29** (acceptance/re-verification/handoff).
