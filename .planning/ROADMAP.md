@@ -306,7 +306,7 @@ Every selected finding follows the v1.4-style loop:
 | 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete    | 2026-06-12 |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 5/5 | Complete    | 2026-06-13 |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 4/4 | Complete    | 2026-06-14 |
-| 28. Validation-Metrics Contracts | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
+| 28. Validation-Metrics Contracts | v1.5 | 1/4 | Executed — blocked on GAP-28-01/02/03 (SCS verified; SASD/IPR/PSC deferred) | - |
 | 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (gated on Phase 24.5) | - |
 
 ---
