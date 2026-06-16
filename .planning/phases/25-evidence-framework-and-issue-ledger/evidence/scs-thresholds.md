@@ -106,9 +106,9 @@ Phase 28 VAL-01 owns the runnable pass criteria for AC-VAL-01 (verification sugg
 
 ```text
 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + accept-resolution verdict assigned; fix owned by Phase 28 VAL-01)
-2026-06-16 <pending-28-01-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 01; locked SCS verdict confirmed and AC-VAL-01 structural check run pre-edit)
-2026-06-16 <pending-28-01-sha> IN_PROGRESS -> FIX_APPLIED (Phase 28 Plan 01; canonical SCS contract reconciled into ctl_instruction.md Step-1A with invariance, symbol hygiene, ratio-threshold rejection, and EVID-10 citation)
-2026-06-16 <pending-28-01-sha> FIX_APPLIED -> VERIFIED (Phase 28 Plan 01; AC-VAL-01 PASS and PIPE-09 compute_globals byte-stable)
+2026-06-16 bd31dcd PENDING -> IN_PROGRESS (Phase 28 Plan 01; locked SCS verdict confirmed and AC-VAL-01 structural check run pre-edit)
+2026-06-16 bd31dcd IN_PROGRESS -> FIX_APPLIED (Phase 28 Plan 01; canonical SCS contract reconciled into ctl_instruction.md Step-1A with invariance, symbol hygiene, ratio-threshold rejection, and EVID-10 citation)
+2026-06-16 bd31dcd FIX_APPLIED -> VERIFIED (Phase 28 Plan 01; AC-VAL-01 PASS and PIPE-09 compute_globals byte-stable)
 ```
 
 The final short SHA `e05b4b1a` replaced `<pending-commit-sha>` after the atomic 25-02 commit (backfilled 2026-06-12); the audit label travels in the ledger's per-finding subsection (D-06 same-commit discipline).

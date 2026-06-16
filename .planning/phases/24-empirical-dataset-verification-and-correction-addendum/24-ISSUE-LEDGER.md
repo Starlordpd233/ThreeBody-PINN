@@ -366,9 +366,9 @@ read-only per SCOPE-09).
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict assigned; fix owned by Phase 28 VAL-01)
-- 2026-06-16 <pending-28-01-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 01; locked SCS verdict confirmed, AC-VAL-01 structural check authored and run pre-edit)
-- 2026-06-16 <pending-28-01-sha> IN_PROGRESS -> FIX_APPLIED (Phase 28 Plan 01; `ctl_instruction.md` Step-1A SCS clause reconciled with invariance, symbol-hygiene, ratio-threshold rejection, and EVID-10 citation)
-- 2026-06-16 <pending-28-01-sha> FIX_APPLIED -> VERIFIED (Phase 28 Plan 01; AC-VAL-01 PASS, PIPE-09 `compute_globals` byte-stable, `scs-thresholds.md` transition log advanced)
+- 2026-06-16 bd31dcd PENDING -> IN_PROGRESS (Phase 28 Plan 01; locked SCS verdict confirmed, AC-VAL-01 structural check authored and run pre-edit)
+- 2026-06-16 bd31dcd IN_PROGRESS -> FIX_APPLIED (Phase 28 Plan 01; `ctl_instruction.md` Step-1A SCS clause reconciled with invariance, symbol-hygiene, ratio-threshold rejection, and EVID-10 citation)
+- 2026-06-16 bd31dcd FIX_APPLIED -> VERIFIED (Phase 28 Plan 01; AC-VAL-01 PASS, PIPE-09 `compute_globals` byte-stable, `scs-thresholds.md` transition log advanced)
 
 ### SASD: Stiffness-Aware Sampling Density (Phase 28 VAL-02)
 

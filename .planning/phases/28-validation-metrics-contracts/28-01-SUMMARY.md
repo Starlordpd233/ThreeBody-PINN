@@ -49,14 +49,14 @@ completed: 2026-06-16
 
 - Reconciled the existing Step-1A conservation gate into the canonical SCS contract: `eps_H = max_t |(H(t)-H(0))/H(0)|`, `SCS = log10(eps_H)`, REJECT if `SCS > -5`, with the tie, band-table, near-zero-`|H(0)|`, `eps_H = 0`, Plummer `eps = 1e-10`, and per-trajectory storage rules preserved.
 - Added the Phase 28 commentary required by the locked verdict: raw/scaled invariance (`H' = D*H`), dual-`eps_H` symbol hygiene against `pinn_architecture.md` training `eps_H = 1e-4*S_H`, explicit rejection of issue-02 `1e-6`/`1e-8`, and citation of `scs-thresholds.md`.
-- Advanced the SCS issue-ledger row and `scs-thresholds.md` status log through `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED` using `<pending-28-01-sha>` for the required backfill.
+- Advanced the SCS issue-ledger row and `scs-thresholds.md` status log through `PENDING -> IN_PROGRESS -> FIX_APPLIED -> VERIFIED`, then backfilled the substantive commit SHA.
 - Verified the PIPE-09 `compute_globals` region remained byte-identical after the SCS edit.
 
 ## Task Commits
 
-1. **Task 1: Verify locked SCS verdict and author AC-VAL-01** - `<pending-28-01-sha>` (spec)
-2. **Task 2: Reconcile canonical SCS contract into CTL** - `<pending-28-01-sha>` (spec)
-3. **Task 3: PIPE-09 re-check and ledger/evidence close** - `<pending-28-01-sha>` (spec)
+1. **Task 1: Verify locked SCS verdict and author AC-VAL-01** - `bd31dcd` (spec)
+2. **Task 2: Reconcile canonical SCS contract into CTL** - `bd31dcd` (spec)
+3. **Task 3: PIPE-09 re-check and ledger/evidence close** - `bd31dcd` (spec)
 
 **Provenance backfill:** expected follow-up commit `verify(28-01): backfill commit sha`.
 
