@@ -476,10 +476,26 @@ counts per folder at init.
    `eps_H = max_t |(H(t) - H(0)) / H(0)|`, `SCS = log10(eps_H)`.
    REJECT if `SCS > -5` (equivalently `eps_H > 1e-5`). `SCS = -5` exactly is
    Marginal: admitted, flagged for review. If `|H(0)|` is numerically near zero,
-   SCS is undefined: QUARANTINE for manual review. Store per-trajectory `eps_H`,
-   `SCS`, and band label (Excellent <= -10; Acceptable (-10,-6]; Marginal (-6,-5];
-   Reject > -5). This clause TRANSCRIBES the locked gate into an editable spec; it
-   implements, and does not re-open, Hard Constraint 5.
+   SCS is undefined: QUARANTINE for manual review; do not introduce a denominator
+   floor. If `eps_H = 0`, set `SCS = -inf` and label the trajectory Excellent.
+   Store per-trajectory `eps_H`, `SCS`, and band label (Excellent <= -10;
+   Acceptable (-10,-6]; Marginal (-6,-5]; Reject > -5). This clause
+   TRANSCRIBES the locked gate into an editable spec; it implements, and does
+   not re-open, Hard Constraint 5. Under the locked global scaling, Hamiltonian
+   values scale as `H' = D*H`, so `eps_H` and the SCS band decision are
+   invariant to raw/scaled units; by convention the admission check is computed
+   from the raw parsed arrays. This validation-gate `eps_H` is distinct from
+   the training-loss `eps_H = 1e-4*S_H` in `pinn_architecture.md` §3.4: same
+   glyph, different quantity, and this gate is not changed by that training
+   symbol. The issue-02 ratio thresholds are rejected by name, not transcribed:
+   `1e-6` is the Acceptable/Marginal band boundary (`SCS = -6`) mis-promoted to
+   a reject gate, and `1e-8` is an unsourced tightening proposal with no package
+   basis. The EVID-10 adjudication record is
+   `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
+   Any stage-conditional SCS tightening (OI-2) is deferred to doc-03 and
+   per-variant SCS distributions; it is not a Phase 28 policy. SASD, IPR, and
+   PSC are companion data-side validation metrics in the `Data-side
+   quality-metric contracts` subsection populated by later Phase 28 waves.
 6. Physical invariant gates. The Step-2/§2.1 gates apply as admission criteria:
    mass invariance `max_{t,i}|m_i(t) - m_i(0)| < 1e-15` (float64, absolute); the
    IC<->Brutus `t=0` mass gate (§2.1 as amended per Q-B2); the COM/momentum

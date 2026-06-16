@@ -31,7 +31,7 @@ phase_closure_note: "Phase 24 deliverable complete. Phase 25 owns the operating 
 | G3 | Pipeline validation gap — synthesis view (M11) | 26 (PIPE-03) | VERIFIED | **BLOCKING STANDS** (closes with M11; data-integrity grounds) | NO | (closes with M11; no separate packet — D-07) | AC-PIPE-03 (synthesis view over M11) | ctl_instruction.md Step 1A blacklist-exclusion contract | M11 | 2026-06-13 |
 | G4 | Pipeline validation gap — synthesis view (M13) | 26 (PIPE-05) | VERIFIED | `accept-third-position` (closes with M13) | NO | (closes with M13; no separate packet — D-07) | AC-PIPE-05 (synthesis view over M13) | ctl_instruction.md Step 5 (gold-counterpart contract); pinn_architecture.md None (D-04 data-side) | M13 | 2026-06-13 |
 | G5 | dt_out heterogeneity (data-side; Q-B1 facet; collocation-scaling facet M16 deferred to doc-03) | 27 (PIPE-04) | **VERIFIED** | — (closes with M12; no separate packet — D-08) | NO | — | AC-PIPE-04 (data-side facet; M16 training-side deferred) | ctl_instruction.md; pinn_architecture.md | M12; M16-deferred | 2026-06-14 |
-| SCS | Symplectic Conservation Score definition + thresholds (data-side; Q-C1) | 28 (VAL-01) | PENDING | `accept-resolution` | YES — EVID-10 required (ratio-SCS vs locked log-drift gate) | [scs-thresholds.md](../25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md) | AC-VAL-01 | data_quality_assessment.md (read-only; sole written home of locked gate) | Q-C1 | 2026-06-12 |
+| SCS | Symplectic Conservation Score definition + thresholds (data-side; Q-C1) | 28 (VAL-01) | **VERIFIED** | `accept-resolution` | YES — EVID-10 required (ratio-SCS vs locked log-drift gate) | [scs-thresholds.md](../25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md) | AC-VAL-01 PASS (2026-06-16) | ctl_instruction.md Step-1A conservation gate (canonical); data_quality_assessment.md read-only/historical home | Q-C1 | 2026-06-16 |
 | SASD | Stiffness-Aware Sampling Density (data-side; Q-C2) | 28 (VAL-02) | PENDING | — | NO | — | AC-VAL-02 | ctl_instruction.md; pinn_architecture.md | Q-C2 | 2026-06-11 |
 | IPR | Interpolation Physics Residual (data-side, dual-epsilon; Q-C3) | 28 (VAL-03) | PENDING | — | NO | — | AC-VAL-03 | ctl_instruction.md; pinn_architecture.md | Q-C3 | 2026-06-11 |
 | PSC | Phase Space Coverage Entropy (data-side; Q-C4) | 28 (VAL-04) | PENDING | — | NO | — | AC-VAL-04 | ctl_instruction.md; pinn_architecture.md | Q-C4 | 2026-06-11 |
@@ -366,6 +366,9 @@ read-only per SCOPE-09).
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
 - 2026-06-12 e05b4b1a PENDING -> PENDING (Phase 25 P02 EVID-10 record authored + `accept-resolution` verdict assigned; fix owned by Phase 28 VAL-01)
+- 2026-06-16 <pending-28-01-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 01; locked SCS verdict confirmed, AC-VAL-01 structural check authored and run pre-edit)
+- 2026-06-16 <pending-28-01-sha> IN_PROGRESS -> FIX_APPLIED (Phase 28 Plan 01; `ctl_instruction.md` Step-1A SCS clause reconciled with invariance, symbol-hygiene, ratio-threshold rejection, and EVID-10 citation)
+- 2026-06-16 <pending-28-01-sha> FIX_APPLIED -> VERIFIED (Phase 28 Plan 01; AC-VAL-01 PASS, PIPE-09 `compute_globals` byte-stable, `scs-thresholds.md` transition log advanced)
 
 ### SASD: Stiffness-Aware Sampling Density (Phase 28 VAL-02)
 
