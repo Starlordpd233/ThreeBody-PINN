@@ -403,8 +403,8 @@ doc-03 per SCOPE-11).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-16 <pending-28-04-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 04; `psc-coverage-entropy.md` EVID-06 packet opened; Q-C4 composition fork evaluated against DQA, issue doc, resolution doc, CLM-05b/09/10, ctl scaled-coordinate/Stage-6 anchors, and first-principles confound accounting)
-- 2026-06-16 <pending-28-04-sha> IN_PROGRESS -> DEFERRED (Phase 28 Plan 04; GAP-28-03 opened for PSC dedup-prefer-gold plus equal-record-weighted composition sign-off; no PSC spec edit landed)
+- 2026-06-16 f7c68e6 PENDING -> IN_PROGRESS (Phase 28 Plan 04; `psc-coverage-entropy.md` EVID-06 packet opened; Q-C4 composition fork evaluated against DQA, issue doc, resolution doc, CLM-05b/09/10, ctl scaled-coordinate/Stage-6 anchors, and first-principles confound accounting)
+- 2026-06-16 f7c68e6 IN_PROGRESS -> DEFERRED (Phase 28 Plan 04; GAP-28-03 opened for PSC dedup-prefer-gold plus equal-record-weighted composition sign-off; no PSC spec edit landed)
 
 ### D-03: Processed training-data format (Phase 26 PIPE-10)
 

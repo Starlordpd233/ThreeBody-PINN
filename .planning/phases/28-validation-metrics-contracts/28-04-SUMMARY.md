@@ -57,11 +57,11 @@ completed: 2026-06-16
 
 ## Task Commits
 
-1. **Task 1: Author PSC packet and adjudicate Q-C4 composition fork** - `<pending-28-04-sha>` (plan parked)
+1. **Task 1: Author PSC packet and adjudicate Q-C4 composition fork** - `f7c68e6` (plan parked)
 2. **Task 2: Append PSC clause and arch note** - not run; blocked by GAP-28-03
-3. **Task 3: Close ledger/summary** - `<pending-28-04-sha>` (DEFERRED closeout)
+3. **Task 3: Close ledger/summary** - `f7c68e6` (DEFERRED closeout)
 
-**Provenance backfill:** expected follow-up commit `verify(28-04): backfill commit sha`.
+**Provenance backfill:** completed by `verify(28-04): backfill commit sha`.
 
 ## Files Created/Modified
 

@@ -75,6 +75,6 @@ Phase 28 Plan 04 owns AC-VAL-04, but its runnable structural check is parked wit
 ## Status Transition Log
 
 ```text
-2026-06-16 <pending-28-04-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 04; PSC EVID-06 packet opened and Q-C4 composition fork evaluated)
-2026-06-16 <pending-28-04-sha> IN_PROGRESS -> DEFERRED (Phase 28 Plan 04; GAP-28-03 opened for PSC population/weighting composition sign-off, no spec edit landed)
+2026-06-16 f7c68e6 PENDING -> IN_PROGRESS (Phase 28 Plan 04; PSC EVID-06 packet opened and Q-C4 composition fork evaluated)
+2026-06-16 f7c68e6 IN_PROGRESS -> DEFERRED (Phase 28 Plan 04; GAP-28-03 opened for PSC population/weighting composition sign-off, no spec edit landed)
 ```
