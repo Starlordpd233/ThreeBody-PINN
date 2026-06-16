@@ -265,19 +265,19 @@ Every selected finding follows the v1.4-style loop:
 **Plans**: 4 plans (CONTEXT D-12 order; each plan = one same-commit-discipline metric contract; all serialize on `ctl_instruction.md`, so sequential waves)
 **Wave 1**
 
-- [ ] 28-01-PLAN.md — VAL-01/SCS: transcribe + verify the locked `accept-resolution` gate into ctl, reject the issue-02 ratio thresholds by name, re-check the PIPE-09 compute_globals scale (Wave 1, no fork)
+- [x] 28-01-PLAN.md — VAL-01/SCS: transcribe + verify the locked `accept-resolution` gate into ctl, reject the issue-02 ratio thresholds by name, re-check the PIPE-09 compute_globals scale (Wave 1, no fork) — VERIFIED 2026-06-16
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 28-02-PLAN.md — VAL-02/SASD: author the EVID-06 packet, adjudicate the Q-C2 endpoint fork (settle or STOP-and-surface), land the SASD clause in a new Data-side quality-metric contracts subsection (Wave 2)
+- [ ] 28-02-PLAN.md — VAL-02/SASD: author the EVID-06 packet, adjudicate the Q-C2 endpoint fork (settle or STOP-and-surface), land the SASD clause in a new Data-side quality-metric contracts subsection (Wave 2) — DEFERRED at GAP-28-01; clause parked
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 28-03-PLAN.md — VAL-03/IPR: author the EVID-06 packet, adjudicate the Q-C3 units fork (the consequential ×464; settle or STOP-and-surface), land the IPR clause + dual-epsilon consistency (Wave 3)
+- [ ] 28-03-PLAN.md — VAL-03/IPR: author the EVID-06 packet, adjudicate the Q-C3 units fork (the consequential ×464; settle or STOP-and-surface), land the IPR clause + dual-epsilon consistency (Wave 3) — DEFERRED at GAP-28-02; clause parked
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 28-04-PLAN.md — VAL-04/PSC: author the EVID-06 packet, adjudicate the Q-C4 composition synthesis fork (settle or STOP-and-surface), land the report-only PSC clause + SCR companion (Wave 4)
+- [ ] 28-04-PLAN.md — VAL-04/PSC: author the EVID-06 packet, adjudicate the Q-C4 composition synthesis fork (settle or STOP-and-surface), land the report-only PSC clause + SCR companion (Wave 4) — DEFERRED at GAP-28-03; clause parked
 
 ### Phase 29: Acceptance Checks, Re-verification, and Handoff
 

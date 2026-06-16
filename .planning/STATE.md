@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: planned, ready to execute
-stopped_at: Phase 28 plans (28-01..04) ready to execute; audit-propagation complete (S184, 14 findings, commits 3067fd3/ada6bd08)
-last_updated: "2026-06-16T11:45:00+08:00"
-last_activity: "2026-06-16 -- Phase 28 plan revision finalized: S184 audit propagated 14 findings across 5 planning artifacts (plan(28) commit 3067fd3); integrity-r1 package refresh (docs(spec) commit ada6bd08); Phase 28 plans now self-consistent, four plans ready for /gsd-execute-phase 28"
+status: executed, blocked on user decisions
+stopped_at: Phase 28 executed; VAL-01/SCS VERIFIED; VAL-02/SASD, VAL-03/IPR, and VAL-04/PSC DEFERRED behind GAP-28-01/02/03
+last_updated: "2026-06-16T12:16:19+08:00"
+last_activity: "2026-06-16 -- Phase 28 executed carefully in four waves. 28-01/SCS landed and verified; 28-02/SASD, 28-03/IPR, and 28-04/PSC each parked with defer-with-blocker evidence packets and OPEN STOP gaps (GAP-28-01 endpoint, GAP-28-02 units, GAP-28-03 composition). Phase 28 is not closed until user decisions resolve or explicitly defer those gaps."
 progress:
   total_phases: 8
   completed_phases: 6
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 ## Current Position
 
 Phase: 28
-Plan: All 4 plans authored (28-01..04); audit-propagation complete (S184, 14 findings across 5 planning artifacts); not yet executed
-Status: planned, ready to execute
-Next: Phase 28 (Validation-metrics contracts: SCS/SASD/IPR/PSC) — `/gsd-execute-phase 28` to run 28-01 (SCS transcription) first; 28-02/03/04 gate on it
-Last activity: 2026-06-16 -- Phase 28 plan revision finalized: S184 audit's 14 findings propagated; four plans (28-01..04) self-consistent and ready for sequential execution (wave dependencies honored)
+Plan: All 4 Phase 28 plans executed. 28-01/SCS is VERIFIED. 28-02/SASD, 28-03/IPR, and 28-04/PSC reached the planned STOP/park path and are DEFERRED behind GAP-28-01, GAP-28-02, and GAP-28-03.
+Status: blocked on user decisions; Phase 28 is not closed
+Next: User decision required for GAP-28-01 (SASD endpoint), GAP-28-02 (IPR raw-vs-scaled units), and GAP-28-03 (PSC population/weighting composition). After resolution, resume the affected plans to land the parked clauses and AC-VAL-02/03/04.
+Last activity: 2026-06-16 -- Phase 28 execution completed to terminal ledger states: SCS VERIFIED; SASD/IPR/PSC DEFERRED with no spec edits for the unresolved forks. Four summaries exist (28-01..04), and phase-level checks passed except closure is blocked by the three OPEN STOP gaps.
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
@@ -183,9 +183,9 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-16T11:45:00+08:00
-Stopped at: Phase 28 plan revision finalized (S184 audit propagation, 14 findings, commits 3067fd3 + ada6bd08); all 4 plans (28-01..04) self-consistent and ready for execution
-Next action: Execute Phase 28 with `$gsd-execute-phase 28` (or run 28-01 first with `$gsd-execute-plan 28-01`); start from .planning/phases/28-validation-metrics-contracts/28-01-PLAN.md (VAL-01/SCS — no fork, transcription of the locked Phase 25 accept-resolution gate). 28-02 (SASD, Q-C2 fork), 28-03 (IPR, Q-C3 units fork — the consequential ~464x one), 28-04 (PSC, Q-C4 composition fork) gate on 28-01. STOP protocol (v1.5) remains active: any of Q-C2/C3/C4 may surface as gap rather than be settled.
+Last session: 2026-06-16T12:16:19+08:00
+Stopped at: Phase 28 executed to terminal ledger states; SCS verified, SASD/IPR/PSC deferred behind OPEN STOP gaps GAP-28-01/02/03
+Next action: User must resolve or explicitly defer GAP-28-01 (SASD endpoint), GAP-28-02 (IPR units), and GAP-28-03 (PSC composition). Then resume the affected Phase 28 plans to land the parked validation-metric clauses and AC-VAL-02/03/04. Phase 29 remains blocked until Phase 28's open gaps are handled.
 
 ## Operator Next Steps
 
