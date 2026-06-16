@@ -61,9 +61,21 @@ Handoff). Milestone index: `.planning/milestones/v1.5-GAPS.md`.
   factual-outcome record grounded by `29-SPEC.md`; the LOCKED M13 verdict is untouched,
   and if execution finds the packet edit reads as re-adjudication it must re-surface.
 - **Resolution note:** User selected Option A in the discuss-phase 29 AskUserQuestion
-  (2026-06-16). The embedded DEFERRED sub-item (promote + cascade) is tracked by this gap
-  until the user explicitly reopens it. No PSC composition and no reinterpretation of the
-  67 permanent holes was invented.
+  (2026-06-16). **Embedded sub-decision now RULED (2026-06-16, advisor session):** the
+  deferred promotion + 184→67 cascade is ruled **promote = yes, at the FUT-01
+  dataset-finalization gate** (before any training code reads gold), as one atomic
+  transaction; two additions — (a) re-derive the gold-hole count from the parsed
+  `not_in_gold.md` content rather than re-hardcoding 67 (blacklist-contract anti-hardcode
+  rule), and (b) back up the 117 staged outputs + `run_manifest.json` to the separate
+  simulation-payload set in the interim. Recorded in `29-CODE-DIVERGENCE.md` (FO-1), which
+  also carries the gold-completeness reconciliation table + stale-artifact inventory (placed
+  there rather than `29-UAT.md`, since the full Phase 29 UAT — including the AC re-run suite —
+  is Phase 29 execution work; `29-UAT.md` references the divergence doc). GAP-28-03/PSC was
+  subsequently **reopened and RESOLVED** (composition ratified; PSC clause landed in
+  `ctl_instruction.md`; see [[GAP-28-03]]); its first-run sanity check is co-located at the
+  same FUT-01 gate (`29-CODE-DIVERGENCE.md` FO-2). No PSC composition beyond the ratified
+  dedup-prefer-gold + `1/N_t`, and no reinterpretation of the 67 permanent holes, was
+  invented.
 
 ---
 
