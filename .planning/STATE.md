@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: Complete
-stopped_at: Phase 27 complete; Phase 28 ready to plan
-last_updated: "2026-06-14T14:35:00+08:00"
-last_activity: "2026-06-14 -- Phase 27 formally closed: all review defects remediated (71df3e4d), ROADMAP transition applied, evidence-packet OBS-2 cleaned; Phase 28 discuss-phase complete, ready for /gsd-plan-phase 28"
+status: planned, ready to execute
+stopped_at: Phase 28 plans (28-01..04) ready to execute; audit-propagation complete (S184, 14 findings, commits 3067fd3/ada6bd08)
+last_updated: "2026-06-16T11:45:00+08:00"
+last_activity: "2026-06-16 -- Phase 28 plan revision finalized: S184 audit propagated 14 findings across 5 planning artifacts (plan(28) commit 3067fd3); integrity-r1 package refresh (docs(spec) commit ada6bd08); Phase 28 plans now self-consistent, four plans ready for /gsd-execute-phase 28"
 progress:
   total_phases: 8
   completed_phases: 6
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 ## Current Position
 
 Phase: 28
-Plan: Not started
-Status: Ready to plan
-Next: Phase 28 (Validation-metrics contracts: SCS/SASD/IPR/PSC) — `/gsd-plan-phase 28`
-Last activity: 2026-06-14 -- Phase 27 formally closed (review defects remediated, ROADMAP/STATE transition applied, evidence cleanup done); Phase 28 discuss-phase complete, ready for planning
+Plan: All 4 plans authored (28-01..04); audit-propagation complete (S184, 14 findings across 5 planning artifacts); not yet executed
+Status: planned, ready to execute
+Next: Phase 28 (Validation-metrics contracts: SCS/SASD/IPR/PSC) — `/gsd-execute-phase 28` to run 28-01 (SCS transcription) first; 28-02/03/04 gate on it
+Last activity: 2026-06-16 -- Phase 28 plan revision finalized: S184 audit's 14 findings propagated; four plans (28-01..04) self-consistent and ready for sequential execution (wave dependencies honored)
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
@@ -37,7 +37,7 @@ Last activity: 2026-06-14 -- Phase 27 formally closed (review defects remediated
 
 **Velocity:**
 
-- Total plans completed: 78 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 65 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -183,9 +183,9 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-14T05:43:49.448Z
-Stopped at: Phase 28 context gathered
-Next action: Plan Phase 27 with `$gsd-plan-phase 27 --auto` when ready; start from .planning/phases/27-sampling-precision-and-global-scale-contracts/27-CONTEXT.md and 27-SPEC.md.
+Last session: 2026-06-16T11:45:00+08:00
+Stopped at: Phase 28 plan revision finalized (S184 audit propagation, 14 findings, commits 3067fd3 + ada6bd08); all 4 plans (28-01..04) self-consistent and ready for execution
+Next action: Execute Phase 28 with `$gsd-execute-phase 28` (or run 28-01 first with `$gsd-execute-plan 28-01`); start from .planning/phases/28-validation-metrics-contracts/28-01-PLAN.md (VAL-01/SCS — no fork, transcription of the locked Phase 25 accept-resolution gate). 28-02 (SASD, Q-C2 fork), 28-03 (IPR, Q-C3 units fork — the consequential ~464x one), 28-04 (PSC, Q-C4 composition fork) gate on 28-01. STOP protocol (v1.5) remains active: any of Q-C2/C3/C4 may surface as gap rather than be settled.
 
 ## Operator Next Steps
 
