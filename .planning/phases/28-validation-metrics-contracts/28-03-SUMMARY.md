@@ -28,6 +28,7 @@ key-files:
 key-decisions:
   - "Q-C3 raw-vs-scaled unit convention was not resolved by the agent; GAP-28-02 is OPEN for user sign-off."
   - "No IPR framework-spec clause or architecture dual-epsilon note was landed because the packet verdict is defer-with-blocker."
+  - "[SUPERSEDED 2026-06-16, UAT Pass 2] GAP-28-02 RESOLVED-WITH-INSTRUCTION (raw G=1 units); IPR clause landed in ctl_instruction.md Step-1A + pinn_architecture.md §3.4 dual-epsilon note; AC-VAL-03 PASS; ledger VERIFIED. The parked-state body sections below (Issues Encountered, Self-Check, Next Phase Readiness) are the historical first-park STOP record — their 'GAP-28-02 is OPEN', counters 8/2, 'DEFERRED / No spec edit landed', and 'Phase 28 cannot close' lines are NOT current state. See 28-UAT.md Pass 2."
 patterns-established:
   - "Dimensionful validation metrics must bind threshold values to explicit units before spec transcription."
 requirements-completed: [VAL-03]

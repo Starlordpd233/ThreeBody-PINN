@@ -3,8 +3,9 @@ status: complete
 phase: 28-validation-metrics-contracts
 source: [28-01-SUMMARY.md, 28-02-SUMMARY.md, 28-03-SUMMARY.md, 28-04-SUMMARY.md]
 started: 2026-06-16T04:30:00Z
-updated: 2026-06-16T04:40:00Z
+updated: 2026-06-16T12:22:00Z
 verification_mode: spec-phase-claim-audit
+verification_pass_2: "2026-06-16 — post-resolution re-verification; 26/26 structural assertions PASS; grounding user-confirmed"
 phase_closeable: true
 phase_blockers_resolved: "2026-06-16 — GAP-28-01 RESOLVED (both-endpoint); GAP-28-02 RESOLVED (raw units); GAP-28-03 user-DEFERRED (PSC)"
 ---
@@ -20,11 +21,19 @@ phase_blockers_resolved: "2026-06-16 — GAP-28-01 RESOLVED (both-endpoint); GAP
 > list, checked ledger/gap/counter consistency, and spot-checked grounding in the
 > candidate resolution doc). Checks were performed by the verifier, not the user.
 >
-> **The phase is NOT eligible for completion-transition.** Three STOP-protocol gaps
-> (GAP-28-01/02/03) are OPEN and require user sign-off. Auto-transition to "complete"
-> was deliberately suppressed — see Summary.
+> **Status (post-resolution, re-verified — see Pass 2): Phase 28 is CLOSED at 3/4.** All
+> three STOP gaps are discharged — GAP-28-01/02 RESOLVED-WITH-INSTRUCTION and GAP-28-03
+> user-DEFERRED (user sign-off confirmed 2026-06-16). The "NOT eligible / OPEN" framing in
+> the Pass-1 tests and Summary below is the **parked-state snapshot** (commit 371c2387);
+> Pass 2 supersedes it. See `## Pass 2 — Re-verification` and `## Resolution Addendum`.
 
 ## Tests
+
+> **Pass 1 = parked-state snapshot (commit 371c2387, 2026-06-16).** Tests 3, 5, 6, 7, 9, 11
+> assert the pre-resolution state ("no spec edit landed", "Status = OPEN", counters 9/3/6/0,
+> "SASD/IPR/PSC DEFERRED", "executed-but-blocked", ROADMAP "Not started"). Those assertions
+> are **historical**; the current state is SASD/IPR landed + VERIFIED, PSC DEFERRED, counters
+> 9/0/8/1, ROADMAP row corrected (commit 44191964) — see `## Pass 2 — Re-verification`.
 
 ### 1. SCS canonical contract landed and correct (VAL-01 / AC-VAL-01)
 expected: ctl_instruction.md Step-1A carries the single canonical SCS gate — `eps_H = max_t |(H(t)-H(0))/H(0)|`, `SCS = log10(eps_H)`, REJECT if `SCS > -5`; band table + tie rule; near-zero `|H(0)|` quarantine + Plummer `eps=1e-10`; issue-02 ratio thresholds `1e-6`/`1e-8` rejected by name (not canonical); scs-thresholds.md cited; raw/scaled invariance + dual-`eps_H` symbol hygiene present.
@@ -91,23 +100,26 @@ pending: 0
 skipped: 0
 blocked: 0
 
-**Verdict:** Phase 28 executed correctly and to a high standard of governance integrity.
-The one landed contract (SCS / VAL-01) is correct, grounded, and regression-clean; the
-three deferred contracts (SASD/IPR/PSC) were parked exactly as the v1.5 STOP protocol
-requires — evidence packets authored, forks surfaced as fully-specified gaps, and **no
-spec text invented** (proven by the park commits touching zero framework-spec files).
-Bookkeeping (ledger, gap register, milestone index, counters, state files) is internally
-consistent and honest.
+**Verdict (Pass 2, 2026-06-16): Phase 28 is properly CLOSED at 3/4 — PASS.** Three of four
+canonical data-side contracts (SCS/SASD/IPR) are landed, structurally correct (26/26 re-check
+assertions), regression-clean, and VERIFIED in the ledger; PSC (VAL-04) is explicitly
+user-DEFERRED (Option D) with a recorded forward-dependency on gold-completeness + first-run
+sanity check. All three STOP forks are discharged on **user-confirmed instruction** (the only
+valid grounding for semantic forks; EDL briefs were support only, and GAP-28-02's tripwire was
+inconclusive). No spec text was invented at park time (proven by park commits touching zero
+framework-spec files), and the landed clauses are mathematically sound (see Pass 2).
 
-**One minor defect:** ROADMAP.md's status-summary table row for Phase 28 is stale
-("Not started"). This is a documentation-consistency issue, not a spec-deliverable or
-grounding defect — root cause is known (missed row in the e8c4399b ROADMAP update), so
-no diagnosis pass is required. Fix = one-line table edit.
+**Pass 1 minor defect (ROADMAP "Not started") — RESOLVED** by commit 44191964; the row now
+reads "3/4 | Complete". No outstanding code/spec defects.
 
-**Completion-transition deliberately NOT performed.** Unlike a normal passing UAT, this
-phase must not be auto-marked complete: GAP-28-01/02/03 are OPEN and the phase-exit gate
-(CONTEXT D-13) blocks closure while any in-scope VAL gap is OPEN. The genuine next step is
-USER adjudication of the three forks, not a `/gsd-execute-phase --gaps-only` fix loop.
+**Caveat carried forward (not a defect):** the SASD `0.5` and IPR `1e-3` flag thresholds are
+**provisional** (over-flag / mis-calibrated on the admitted-set proxy) and are a hard
+recalibration dependency for doc-03/FUT-01 — recorded in the landed spec, not hidden.
+
+**Documentation-integrity follow-up (this session):** the Pass-1 parked-state bodies in
+`28-UAT.md` and `28-02/03/04-SUMMARY.md` contradicted their own resolution banners; they are
+reconciled in this verification commit (Pass-2 sections + superseded markers; original parked
+narrative retained as the STOP record).
 
 ## Gaps
 
@@ -147,3 +159,54 @@ All three blockers are now closed and **Phase 28 is closed** (3 of 4 contracts l
 - **GAP-28-03 (PSC)** → user-DEFERRED: report-only + design-open + entangled with gold-completeness (missing-67/OI-7b); VAL-04 carried forward to a first-run sanity check. Commit `6153389`.
 
 Decision support: EDL empirical study (`.planning/research/edl/phase28-validation-metrics/`, commit `ea285ea`). The SASD `0.5` and IPR `1e-3` thresholds land **provisional** pending admitted-set recalibration (doc-03/FUT-01) — a separate axis from the endpoint/units pins. v1.5-GAPS: 0 open, 8 resolved, 1 deferred. Next: **Phase 29** (acceptance/re-verification/handoff).
+
+## Pass 2 — Re-verification (2026-06-16, post-resolution)
+
+Independent re-derivation of the **landed** Phase 28 deliverables (Pass 1 only tested SCS,
+because SASD/IPR/PSC were parked). Performed by the verifier; grounding was user-confirmed in
+session (the user attested they personally instructed all three resolutions — required, since
+EDL is support-not-grounding and GAP-28-02's tripwire was inconclusive).
+
+**P2-1. Landed contracts structurally correct — 26/26 PASS.** Re-extracted the
+`### Data-side quality-metric contracts` subsection of `ctl_instruction.md` and §3.4 of
+`pinn_architecture.md` and asserted every required clause. All 26 assertions pass:
+- SASD (VAL-02): both-endpoint formula `dt_i·max_b max_{t∈{t_i,t_{i+1}}} ‖a_b‖/max(‖v_b‖,1e-12)`,
+  trajectory score `max_i SASD_i`, threshold 0.5, flag-for-resampling (NOT auto-reject),
+  provisional caveat, `v_floor_hit`/1e-12 floor, `sasd-sampling-density.md` citation.
+- IPR (VAL-03): mean-square spline-vs-gravity residual, `eps_inv=1e-10`, **raw `G=1` units**,
+  threshold 1e-3, flag-not-reject, provisional caveat, dual-epsilon/`IPR_train` separation,
+  dimensionful (accel²) note, `ipr-physics-residual.md` citation.
+- PSC (VAL-04): report-only deferral note present (not canonicalized).
+- §3.4 dual-epsilon visibility note present: `ε_train=1e-5` vs `ε_inv=1e-10`, `IPR_train`
+  "must not be conflated", "does not alter" PHYS-04/HC-4.
+- SCS clause-5 gate intact (`eps_H`, `1e-5`, `SCS`).
+
+**P2-2. Math sound — no flaws.** Dimensional check: SCS dimensionless (log relative drift);
+SASD dimensionless (`[T]·[L/T²]/[L/T]`); both-endpoint max is monotone ≥ left-only (strictly
+more conservative, EDL shows 0 extra flags on the admitted set). IPR accel²; the 464× raw-vs-
+scaled split = `D²/T⁴` under `r=Dr′, t=Tu`, consistent across gap register and SPEC. Thresholds
+explicitly provisional (recorded, not hidden).
+
+**P2-3. Ledger terminal states correct.** `24-ISSUE-LEDGER.md`: SCS/SASD/IPR = **VERIFIED**
+(AC-VAL-01/02/03 PASS, real commit SHAs bd31dcd/cb6a76e/ea2af12); PSC = **DEFERRED**
+(GAP-28-03 user-DEFERRED). Transition logs intact; PIPE-09 `compute_globals` byte-stable.
+
+**P2-4. AC provenance.** AC-VAL-01..04 pre-defined in `28-SPEC.md` reqs 1–4 and seeded via the
+D-07 reservation — not invented at execution (satisfies the process-artifact-schema rule).
+
+**P2-5. Gap index consistent.** v1.5-GAPS `total 9, open 0, resolved 8, deferred 1` (8+1+0=9).
+
+**P2-6. Grounding confirmed (user, in session).** User attested they personally chose
+both-endpoint SASD, raw-units IPR, and Option-D PSC defer. This is the only valid grounding
+for these semantic forks; the phase-closure verdict rests on it.
+
+**Findings (non-blocking, addressed this session):**
+- F1 (doc-integrity, MAJOR): Pass-1 parked-state bodies in `28-UAT.md` + `28-02/03/04-SUMMARY.md`
+  contradicted their resolution banners ("GAP OPEN", "cannot close", stale counters 9/3/6/0).
+  → Reconciled: Pass-2 sections + superseded markers added; original parked narrative retained
+  as the STOP record.
+- F2 (forward-dependency, tracked): SASD 0.5 / IPR 1e-3 thresholds provisional → doc-03/FUT-01
+  recalibration. Recorded in landed spec; not a Phase 28 defect.
+
+**Verdict: Phase 28 PASS — properly closed at 3/4, grounded, mathematically sound, artifacts
+reconciled. Ready for Phase 29.**

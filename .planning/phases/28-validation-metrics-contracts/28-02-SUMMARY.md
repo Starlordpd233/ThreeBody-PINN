@@ -28,6 +28,7 @@ key-files:
 key-decisions:
   - "Q-C2 endpoint convention was not resolved by the agent; GAP-28-01 is OPEN for user sign-off."
   - "No SASD framework-spec clause was landed because the packet verdict is defer-with-blocker."
+  - "[SUPERSEDED 2026-06-16, UAT Pass 2] GAP-28-01 RESOLVED-WITH-INSTRUCTION (both-endpoint); SASD clause landed in ctl_instruction.md Step-1A 'Data-side quality-metric contracts'; AC-VAL-02 PASS; ledger VERIFIED. The parked-state body sections below (Issues Encountered, Self-Check, Next Phase Readiness) are the historical first-park STOP record — their 'GAP-28-01 is OPEN', counters 7/1, 'DEFERRED / No spec edit landed', and 'Phase 28 cannot close' lines are NOT current state. See 28-UAT.md Pass 2."
 patterns-established:
   - "For Phase 28 validation metric forks, DEFERRED ledger status does not close the phase while the corresponding STOP gap remains OPEN."
 requirements-completed: [VAL-02]

@@ -28,6 +28,7 @@ key-files:
 key-decisions:
   - "Q-C4 pooled PSC population/weighting composition was not resolved by the agent; GAP-28-03 is OPEN for user sign-off."
   - "No PSC framework-spec clause or architecture visibility note was landed because the packet verdict is defer-with-blocker."
+  - "[SUPERSEDED 2026-06-16, UAT Pass 2] GAP-28-03 user-DEFERRED (Option D); PSC intentionally NOT landed (report-only, design-open, entangled with gold-completeness); ledger DEFERRED — a valid terminal state, not an open gap. The parked-state body sections below (Issues Encountered, Self-Check, Next Phase Readiness) are the historical first-park STOP record — their 'GAP-28-03 is OPEN', counters 9/3, and 'Phase 28 cannot close' lines are NOT current state. See 28-UAT.md Pass 2."
 patterns-established:
   - "Metric population/weighting conventions that affect diagnostic probabilities must be explicit before spec transcription."
 requirements-completed: [VAL-04]
