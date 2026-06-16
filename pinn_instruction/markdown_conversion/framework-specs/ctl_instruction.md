@@ -565,7 +565,9 @@ These are the data-side validation metrics that complement the Step-1A conservat
 gate (clause 5, the family's only reject gate). SASD and IPR are **flag-for-resampling
 diagnostics, not reject gates**: a flagged trajectory is routed to the resample queue and
 withheld from clean-training designation, never excluded outright. PSC is a dataset-level,
-report-only coverage diagnostic (deferred; see VAL-04 note at the end of this subsection).
+report-only coverage diagnostic that is deferred this phase (GAP-28-03 DEFERRED, user
+sign-off 2026-06-16): no canonical PSC clause is landed here, and its pooled-population
+and weighting composition is revisited once the gold dataset is complete.
 All metrics are computed from the raw parsed arrays under the locked `G = 1`, raw-mass
 convention (§2.5 PIPE-09); every training-loop consumer is deferred to the doc-03 milestone
 via the forward-reference named in each clause. Each metric's adjudication is recorded in a
