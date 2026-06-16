@@ -49,6 +49,29 @@
 - **Status:** **OPEN**
 - **Resolution note:**
 
+## GAP-28-03 - PSC population/weighting composition needs user sign-off before canonical spec edit
+
+- **Decision point:** Should the canonical data-side PSC contract adopt the composed deduplicated, equal-record-weighted pooled population (one record per `physical_key`, prefer gold, then weight each surviving record by `1/N_t(record)`), or should that synthesis wait for the resolution doc's first-run sanity check / upstream-report review? This decides the pooled PSC/SCR reporting axis for a future `ctl_instruction.md` PSC clause.
+- **Where in artifact:** Surfaced while authoring `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md` for Phase 28 Plan 04 Task 1, before any PSC spec edit. The candidate spec edit is the future `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` PSC clause in `Data-side quality-metric contracts`, plus a possible `pinn_architecture.md` visibility note. No PSC clause has been landed.
+- **Task context:** Phase 28 Plan 04 Task 1 ("Author the PSC EVID-06 packet + adjudicate the Q-C4 composition fork"). The plan explicitly routes outcome (b) to STOP when the evidence does not settle the composition, the first-run verification is a genuine ratification requirement, or the resolution doc's sign-off request cannot be discharged.
+- **Classification:** **semantic** - this changes the population and weights behind the pooled PSC/SCR diagnostic, which affects dataset-curation and doc-03 replay-governance inputs even though PSC has no admission/reject authority.
+- **Source silence:**
+  - `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md:176-190` defines PSC as Shannon entropy over binned phase-space occupancy and names a close-encounter/stiffness bin check, but does not specify population, weighting, deduplication, grid constants, or estimator normalization.
+  - `pinn_instruction/issues/02-data-pipeline-and-validation.md:167-169` recites PSC as Shannon entropy over a discretized phase-space grid and routes replay use to training, but it does not answer the population/weighting composition.
+  - `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/02-resolution-doc.md:675-728` proposes the composed dedup-prefer-gold plus equal-record weighting convention, but explicitly flags it as consolidator-original synthesis present in neither input and says the project should sanity-check the composed weighting on first run.
+  - `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-VERIFIED-FACTS.md:20,24-25` grounds the confound arithmetic (2,749 base vs 2,565 gold; 184 base-only; base/gold `dt_out` and snapshot-count differences), but those dataset facts do not by themselves authorize the composed convention as canonical.
+  - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:237-242` and `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md:891-905` ground the scaled Stage-6/SCR anchor, not the pooled PSC population/weighting policy.
+- **Mathematical / engineering grounding:** PSC is an occupancy-entropy diagnostic, so population and weighting determine the empirical probabilities `p_k`. The verified dataset has two independent pooling confounds. First, base/gold duplication means the same physical system can contribute more than once if both records are pooled. Second, resolution skew means a gold-backed standard trajectory contributes about `1003 / 61 ~= 16.4` times as many snapshots as a standard base trajectory under naive all-snapshot pooling, which under-represents the 184 base-only standard ICs relative to gold-backed ICs. Dedup-prefer-gold addresses the physical-system duplication layer by selecting one record per `physical_key`; equal-record weighting addresses the snapshot-resolution layer by giving each surviving record equal total mass. These operations are mathematically compatible and do not interfere. The remaining question is not whether the confounds exist, but whether the agent may canonize a composed convention that neither primary input stated and that the candidate source itself marked for empirical sanity-checking.
+- **Agent was tempted to:** choose the composed convention because it fixes both independently verified confounds, the fixes are orthogonal, and the resolution doc gives a coherent candidate. Rejected: the candidate source names this as original synthesis and asks for first-run verification; adopting it now would silently turn a requested sign-off / empirical ratification into a normative framework contract.
+- **What the user needs to decide:**
+  - **A. Adopt the composed convention now.** Canonical PSC pooled reporting uses dedup-prefer-gold plus equal-record weighting, with the first-run PSC verification recorded as an acceptance/tripwire rather than a precondition.
+  - **B. Dedup-prefer-gold only.** Remove base/gold physical-system duplication but leave the within-pool snapshot-resolution skew documented.
+  - **C. Equal-record weighting only.** Remove snapshot-resolution skew but keep paired base/gold records as distinct contributors.
+  - **D. Defer PSC composition.** Keep VAL-04 deferred pending the first-run PSC/SCR sanity check, upstream R1-R8 review, or user-led research before any canonical PSC clause lands.
+- **Confidence of impact:** **MEDIUM** - PSC is report-only and has no trajectory reject authority, but the convention controls diagnostic outputs that can guide dataset curation and doc-03 replay decisions.
+- **Status:** **OPEN**
+- **Resolution note:**
+
 ## Milestone-wide index
 
 Mirrored at `.planning/milestones/v1.5-GAPS.md` (Phase 28 section).

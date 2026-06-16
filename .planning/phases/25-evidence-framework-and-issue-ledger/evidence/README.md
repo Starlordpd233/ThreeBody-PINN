@@ -129,6 +129,7 @@ Evidence packet filenames under `evidence/` use the sanitization rule: filesyste
 | `mass-drift` / `DATA-05` (PIPE-07 precision facet) | `evidence/data05-precision.md` |
 | `SASD` | `evidence/sasd-sampling-density.md` |
 | `IPR` | `evidence/ipr-physics-residual.md` |
+| `PSC` | `evidence/psc-coverage-entropy.md` |
 
 Sanitization rule: replace any character not in `[A-Za-z0-9_-]` with `-` and trim repeated `-`; lower-case the result unless the ID mixes cases the ledger preserves. Each filename must be unique within `evidence/`.
 
