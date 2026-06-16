@@ -379,8 +379,8 @@ doc-03 per SCOPE-11).
 
 Status transition log:
 - 2026-06-11 SEED_SHA PENDING -> PENDING (seeded by Phase 24 P03)
-- 2026-06-16 <pending-28-02-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 02; `sasd-sampling-density.md` EVID-06 packet opened; Q-C2 endpoint fork evaluated against DQA, issue doc, resolution doc, CLM-09/CLM-10, and first principles)
-- 2026-06-16 <pending-28-02-sha> IN_PROGRESS -> DEFERRED (Phase 28 Plan 02; GAP-28-01 opened for SASD endpoint sign-off; no SASD spec edit landed)
+- 2026-06-16 2f7681d PENDING -> IN_PROGRESS (Phase 28 Plan 02; `sasd-sampling-density.md` EVID-06 packet opened; Q-C2 endpoint fork evaluated against DQA, issue doc, resolution doc, CLM-09/CLM-10, and first principles)
+- 2026-06-16 2f7681d IN_PROGRESS -> DEFERRED (Phase 28 Plan 02; GAP-28-01 opened for SASD endpoint sign-off; no SASD spec edit landed)
 
 ### IPR: Interpolation Physics Residual (Phase 28 VAL-03)
 

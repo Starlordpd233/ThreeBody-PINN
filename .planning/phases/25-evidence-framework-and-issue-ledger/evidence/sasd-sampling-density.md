@@ -66,6 +66,6 @@ Phase 28 Plan 02 owns AC-VAL-02, but its runnable structural check is parked wit
 ## Status Transition Log
 
 ```text
-2026-06-16 <pending-28-02-sha> PENDING -> IN_PROGRESS (Phase 28 Plan 02; SASD EVID-06 packet opened and Q-C2 endpoint fork evaluated)
-2026-06-16 <pending-28-02-sha> IN_PROGRESS -> DEFERRED (Phase 28 Plan 02; GAP-28-01 opened for SASD endpoint sign-off, no spec edit landed)
+2026-06-16 2f7681d PENDING -> IN_PROGRESS (Phase 28 Plan 02; SASD EVID-06 packet opened and Q-C2 endpoint fork evaluated)
+2026-06-16 2f7681d IN_PROGRESS -> DEFERRED (Phase 28 Plan 02; GAP-28-01 opened for SASD endpoint sign-off, no spec edit landed)
 ```

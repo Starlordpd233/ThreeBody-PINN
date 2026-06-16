@@ -57,9 +57,9 @@ completed: 2026-06-16
 
 ## Task Commits
 
-1. **Task 1: Author SASD packet and adjudicate Q-C2 fork** - `<pending-28-02-sha>` (plan parked)
+1. **Task 1: Author SASD packet and adjudicate Q-C2 fork** - `2f7681d` (plan parked)
 2. **Task 2: Land SASD clause** - not run; blocked by GAP-28-01
-3. **Task 3: Close ledger/summary** - `<pending-28-02-sha>` (DEFERRED closeout)
+3. **Task 3: Close ledger/summary** - `2f7681d` (DEFERRED closeout)
 
 **Provenance backfill:** expected follow-up commit `verify(28-02): backfill commit sha`.
 
