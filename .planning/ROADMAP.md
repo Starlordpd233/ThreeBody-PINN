@@ -73,7 +73,7 @@ Every selected finding follows the v1.4-style loop:
 - [x] **Phase 25: Evidence Framework and Issue Ledger** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes, root-cause conflict adjudication) and the re-verification ledger before any spec edit. (completed 2026-06-12)
 - [x] **Phase 26: DataLoader Ingestion and Selection Contracts** — Lock the ingestion gate, ID-resolution, blacklist-exclusion, gold-counterpart, footer-heterogeneity, and training-data-format contracts. (completed 2026-06-13)
 - [x] **Phase 27: Sampling, Precision, and Global-Scale Contracts** — Lock the points-per-trajectory, precision/Decimal, dt_out/stage-query metadata, and `compute_globals` global-scale contracts. (completed 2026-06-14)
-- [x] **Phase 28: Validation-Metrics Contracts** — Define one canonical data-side contract each for SCS, SASD, IPR, and PSC, threshold-aligned to the locked gate and v1.4 physics outcomes. (SCS/SASD/IPR landed & verified; VAL-04/PSC user-deferred — GAP-28-03.)
+- [x] **Phase 28: Validation-Metrics Contracts** — Define one canonical data-side contract each for SCS, SASD, IPR, and PSC, threshold-aligned to the locked gate and v1.4 physics outcomes. (SCS/SASD/IPR + VAL-04/PSC LANDED & verified; GAP-28-03 reopened+RESOLVED 2026-06-17; AC-VAL-04 numeric→FUT-01 FO-2.)
 - [ ] **Phase 29: Acceptance Checks, Re-verification, and Handoff** — Execute every contract's acceptance check, close the ledger, reconcile the SI-ledger, and produce the FUT-01 handoff.
 
 ## Phase Details
@@ -314,8 +314,8 @@ Plans:
 | 25. Evidence Framework and Issue Ledger | v1.5 | 2/2 | Complete    | 2026-06-12 |
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 5/5 | Complete    | 2026-06-13 |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 4/4 | Complete    | 2026-06-14 |
-| 28. Validation-Metrics Contracts | v1.5 | 3/4 | Complete — SCS/SASD/IPR landed & VERIFIED; VAL-04/PSC user-deferred (GAP-28-03) | 2026-06-16 |
-| 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 0/TBD | Not started (ready; Phase 28 closed) | - |
+| 28. Validation-Metrics Contracts | v1.5 | 4/4 | Complete — SCS/SASD/IPR + VAL-04/PSC LANDED (GAP-28-03 reopened+RESOLVED 2026-06-17; AC-VAL-04 numeric→FUT-01) | 2026-06-16 |
+| 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 1/2 | In progress (Plan 01: AC suite re-run + ledger audit + traceability + ROADMAP reconcile) | - |
 
 ---
-*Last updated: 2026-06-14 after Phase 27 completion (4/4 plans executed, all ACs green, all in-scope ledger rows VERIFIED; phase-exit gate met).*
+*Last updated: 2026-06-17 — Phase 28 closed (4/4 contracts: SCS/SASD/IPR + PSC landed; GAP-28-03 reopened+RESOLVED; AC-VAL-04 numeric→FUT-01 FO-2); Phase 29 in progress (Plan 01: 13-check AC suite re-run 12 PASS + AC-VAL-04 split, 19-row ledger audit 18 VERIFIED + 1 DEFERRED, 36/36 traceability confirmed).*
