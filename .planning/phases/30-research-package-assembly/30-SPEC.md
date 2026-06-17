@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-17
 **Ambiguity score:** 0.105 (gate: ≤ 0.20)
-**Requirements:** 5 locked (PKG-05, PKG-06, PKG-07, PKG-08 + operational delivery / gate-open)
+**Requirements:** 6 locked (PKG-05, PKG-06, PKG-07, PKG-08, the non-binding resolution-doc skeleton, and an operational delivery / gate-open requirement)
 **Branch:** `milestone/v1.6` (isolated worktree `../3_body_problem-v1.6`)
 
 ## Goal
