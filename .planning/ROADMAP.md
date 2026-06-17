@@ -74,7 +74,7 @@ Every selected finding follows the v1.4-style loop:
 - [x] **Phase 26: DataLoader Ingestion and Selection Contracts** — Lock the ingestion gate, ID-resolution, blacklist-exclusion, gold-counterpart, footer-heterogeneity, and training-data-format contracts. (completed 2026-06-13)
 - [x] **Phase 27: Sampling, Precision, and Global-Scale Contracts** — Lock the points-per-trajectory, precision/Decimal, dt_out/stage-query metadata, and `compute_globals` global-scale contracts. (completed 2026-06-14)
 - [x] **Phase 28: Validation-Metrics Contracts** — Define one canonical data-side contract each for SCS, SASD, IPR, and PSC, threshold-aligned to the locked gate and v1.4 physics outcomes. (SCS/SASD/IPR + VAL-04/PSC LANDED & verified; GAP-28-03 reopened+RESOLVED 2026-06-17; AC-VAL-04 numeric→FUT-01 FO-2.)
-- [ ] **Phase 29: Acceptance Checks, Re-verification, and Handoff** — Execute every contract's acceptance check, close the ledger, reconcile the SI-ledger, and produce the FUT-01 handoff.
+- [x] **Phase 29: Acceptance Checks, Re-verification, and Handoff** — Execute every contract's acceptance check, close the ledger, reconcile the SI-ledger, and produce the FUT-01 handoff. (COMPLETE 2026-06-17; verified 5/5 must-haves; D-08 SI-PINN-002 user-approved preserve-with-reason; AC-VAL-04 numeric + gold cascade deferred to FUT-01 FO-1/FO-2.)
 
 ## Phase Details
 

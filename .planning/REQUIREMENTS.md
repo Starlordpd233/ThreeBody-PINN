@@ -64,12 +64,12 @@ The issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`) is 
 
 ### Verification and Handoff (continuing v1.4 VER numbering)
 
-- [ ] **VER-07**: Every v1.5 contract has a numerically-defined acceptance check naming its pass criterion, the data it runs on, and the command or function that executes it — not just prose.
-- [ ] **VER-08**: The roadmap maps every v1.5 requirement to exactly one phase, beginning at Phase 23.
-- [ ] **VER-09**: The acceptance checks are **executed** using disposable probes (dataset probes and spec-consistency probes), each producing recorded pass/fail evidence. A failing check blocks phase completion and routes back to the originating phase; v1.5 does not ship while any required check fails. Probes test the specs and the dataset — they never touch `pinn/` production code.
+- [x] **VER-07**: Every v1.5 contract has a numerically-defined acceptance check naming its pass criterion, the data it runs on, and the command or function that executes it — not just prose.
+- [x] **VER-08**: The roadmap maps every v1.5 requirement to exactly one phase, beginning at Phase 23.
+- [x] **VER-09**: The acceptance checks are **executed** using disposable probes (dataset probes and spec-consistency probes), each producing recorded pass/fail evidence. A failing check blocks phase completion and routes back to the originating phase; v1.5 does not ship while any required check fails. Probes test the specs and the dataset — they never touch `pinn/` production code.
 - [x] **VER-10**: Every fix closes through the iterative re-verification loop: the issue ledger tracks each finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`; after each batch of edits, previously `VERIFIED` findings that the batch could have regressed are re-verified and demoted on regression. The ledger lives at a stable path under the empirical-dataset-verification phase directory; nothing closes until all in-scope findings are `VERIFIED` or explicitly `DEFERRED` with a written blocker.
-- [ ] **VER-11**: The milestone handoff identifies which findings were fixed, which were intentionally left unchanged, and which were deferred; FUT-01 divergence records are updated for every DataLoader-implementation-shaped finding.
-- [ ] **VER-12**: The remaining framework-spec Source-Issue entries (`SI-DQA-002`, `SI-DQA-003`, `SI-PINN-002`) are reviewed for issue-02 relevance — each retired with a back-reference to the resolving phase/commit or preserved with a written reason. None is assumed resolved or assumed irrelevant.
+- [x] **VER-11**: The milestone handoff identifies which findings were fixed, which were intentionally left unchanged, and which were deferred; FUT-01 divergence records are updated for every DataLoader-implementation-shaped finding.
+- [x] **VER-12**: The remaining framework-spec Source-Issue entries (`SI-DQA-002`, `SI-DQA-003`, `SI-PINN-002`) are reviewed for issue-02 relevance — each retired with a back-reference to the resolving phase/commit or preserved with a written reason. None is assumed resolved or assumed irrelevant.
 
 ## Future Requirements
 
@@ -144,11 +144,11 @@ Filled by roadmap creation, revised by roadmap revision (`.planning/ROADMAP.md`,
 | VAL-02 | Phase 28 | Verified (Plan 02; both-endpoint; GAP-28-01 resolved) |
 | VAL-03 | Phase 28 | Verified (Plan 03; raw units; GAP-28-02 resolved) |
 | VAL-04 | Phase 28/29 | Landed (GAP-28-03 RESOLVED-WITH-INSTRUCTION 2026-06-16; composition ratified; grid/normalization/SCR + first-run sanity provisional→FUT-01; AC-VAL-04 pending Phase 29) |
-| VER-07 | Phase 29 | Pending (gated on Phase 24.5) |
-| VER-08 | Phase 29 | Satisfied by roadmap creation; confirmed at closure |
-| VER-09 | Phase 29 | Pending (gated on Phase 24.5) |
-| VER-11 | Phase 29 | Pending (gated on Phase 24.5) |
-| VER-12 | Phase 29 | Pending (gated on Phase 24.5) |
+| VER-07 | Phase 29 | Complete (2026-06-17; 13-check AC suite executed, recorded in 29-UAT.md) |
+| VER-08 | Phase 29 | Complete (2026-06-17; 36/36 traceability confirmed at closure) |
+| VER-09 | Phase 29 | Complete (2026-06-17; disposable probes executed with recorded evidence; G1-G8 route-back gate defined) |
+| VER-11 | Phase 29 | Complete (2026-06-17; 29-HANDOFF.md fixed/unchanged/deferred + FUT-01 FO-1/FO-2) |
+| VER-12 | Phase 29 | Complete (2026-06-17; 3 SI dispositions recorded; SI-PINN-002 user-approved preserve-with-reason, D-08) |
 
 **Coverage:**
 

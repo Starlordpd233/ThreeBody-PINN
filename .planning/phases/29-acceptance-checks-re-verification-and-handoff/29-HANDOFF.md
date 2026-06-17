@@ -120,6 +120,13 @@ not folded in; it remains an FUT-05 item.
 | `SI-DQA-003` | **Retired with VAL-01 back-reference.** The corrected SCS gate it describes (`ε_H` raw-drift vs `SCS=log10(ε_H)`; gate `ε_H>1e-5`≡`SCS>-5`; Reject tightened `SCS>-4`→`SCS>-5`) is the gate v1.5 VAL-01 canonicalized into the live spec; the SCS ledger row already names the DQA as the read-only/historical home. | SCS ledger row (VAL-01) + `data_quality_assessment.md:324-328` (read-only home) |
 | `SI-PINN-002` | **Preserved with written reason.** These are architecture-side `\authcomment{}` editorial notes (omega_0 detail; hidden-layer detail; "batch construction not consistent with the CTL instruction plan"), out of the issue-02 data-pipeline scope this milestone resolves; carried forward to FUT-05 / training implementation (the v1.4 Phase 22 author-comment adjudication target). The 3rd comment is **not** marked retired-by-M12 — whether the landed M12 mini-batch contract discharges that author comment is source-silent (D-08), so the grounded disposition is preserve-with-reason. Matches the v1.4 `21-HANDOFF.md` "Preserved untouched." | `pinn_architecture.md:996-1004` (editable home, not edited) + `21-HANDOFF.md` SI-PINN-002 row |
 
+**D-08 checkpoint resolution (provenance).** The `SI-PINN-002` preserve-with-reason disposition was
+surfaced to the user as a `checkpoint:human-verify` STOP point during Plan 02 Task 2 — the
+source-silent question of whether the landed M12 mini-batch contract discharges the 3rd author
+comment. The user **approved preserve-with-reason on 2026-06-17**, explicitly declining to mark the
+comment retired-by-M12. The disposition above is therefore user-confirmed under the STOP protocol,
+not a silent semantic call.
+
 ## 5. FUT-01 / Consumption Notes
 
 - The FUT-01 forward obligations are recorded in `29-CODE-DIVERGENCE.md`: **FO-1** (promote the
