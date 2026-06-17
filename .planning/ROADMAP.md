@@ -292,7 +292,15 @@ Every selected finding follows the v1.4-style loop:
   4. The remaining Source-Issue entries (`SI-DQA-002`, `SI-DQA-003`, `SI-PINN-002`) are each reviewed for issue-02 relevance and either retired with a back-reference to the resolving phase/commit or preserved with a written reason — none assumed resolved or assumed irrelevant.
   5. Roadmap traceability is confirmed at closure: all 36 v1.5 requirements map to exactly one phase, beginning at Phase 23 (VER-08).
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 29-01-PLAN.md — re-execute the full 13-check AC-PIPE/AC-VAL suite as fresh disposable probes into 29-UAT.md; audit the 19-row ledger to terminal state (reframe the PSC-row blocker per D-06); confirm 36/36 traceability; reconcile the stale ROADMAP Progress row (Wave 1; VER-07/08/09)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 29-02-PLAN.md — author 29-HANDOFF.md (fixed/unchanged/deferred + the three SI dispositions, SI-PINN-002 source-silence STOP check) and define the numerically-defined G1-G8 milestone-closure gate with route-back-on-fail (Wave 2; VER-11/12)
 
 ## Progress
 

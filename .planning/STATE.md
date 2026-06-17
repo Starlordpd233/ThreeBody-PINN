@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: phase 28 closed; phase 29 discuss complete (context gathered), paused before plan
-stopped_at: Phase 29 context gathered (discuss complete); paused before plan per user. GAP-29-01 resolved Option A — Phase 29 reconciles only the planning/governance/ledger layer to the locked 117-validated/67-permanent-absent/0-promoted gold fact; dataset promotion + 184->67 framework-spec/AC cascade RULED 2026-06-16 to the FUT-01 dataset-finalization gate (29-CODE-DIVERGENCE.md). PSC/VAL-04 LANDED (GAP-28-03 reopened + RESOLVED 2026-06-16; PSC clause in ctl_instruction.md, composition ratified, constants provisional->FUT-01).
-last_updated: "2026-06-16T22:01:00+08:00"
-last_activity: "2026-06-16 -- Phase 29 discuss-phase complete. Spec-locked via 29-SPEC.md (5 reqs); discussed all four areas — three already grounded (rerun evidence; ledger/SI closure; FUT-01 handoff = v1.4 Phase 21 two-artifact pattern 29-HANDOFF.md + 29-CODE-DIVERGENCE.md). Surfaced + resolved GAP-29-01 (gold-completeness reconciliation scope) as Option A: Phase 29 reconciles only the planning/governance/ledger layer to the locked 117-validated/67-permanent-absent/0-promoted fact; dataset promotion of the 117 + 184->67 framework-spec/AC cascade deferred to a separate explicit user ruling, recorded as a FUT-01 forward obligation. PSC/VAL-04 stays deferred (GAP-28-03); trainex-r1 todo reviewed, not folded. Paused before plan per user. v1.5-GAPS: 10 total, 0 open, 10 resolved, 0 deferred. Artifacts committed ff9ad65. 2026-06-17 advisor session: GAP-28-03/PSC reopened + RESOLVED (PSC coverage-entropy clause landed in ctl_instruction.md; dedup-prefer-gold + 1/N_t composition ratified; constants provisional->FUT-01; commits 6eae642/44b7bc0), and the GAP-29-01 embedded promotion sub-decision ruled = promote the 117 at the FUT-01 dataset-finalization gate, not in v1.5 (29-CODE-DIVERGENCE.md FO-1; commit b6feb48)."
+status: Phase 28 closed. All in-scope STOP gaps RESOLVED-WITH-INSTRUCTION (GAP-28-01/02 2026-06-16; GAP-28-03 reopened + RESOLVED 2026-06-17).
+stopped_at: Phase 29 PLANNED (2 plans: 29-01 AC-suite re-run + ledger close + traceability [VER-07/08/09]; 29-02 handoff + SI dispositions + G1-G8 closure gate [VER-11/12]); research + Nyquist validation written; plan-checker PASSED (0 blockers); decision-coverage 9/9. Ready to execute, PAUSED BEFORE EXECUTION per user. GAP-29-01 Option A (planning-layer gold reconciliation; promotion + 184->67 cascade RULED 2026-06-16 to the FUT-01 gate, 29-CODE-DIVERGENCE.md). GAP-28-03/PSC reopened + RESOLVED 2026-06-17.
+last_updated: "2026-06-17T08:55:35.000Z"
+last_activity: 2026-06-17 -- Phase 29 planned (research -> 2 plans -> plan-checker PASSED); paused before execution per user. See 29-01-PLAN.md / 29-02-PLAN.md.
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 26
+  total_plans: 28
   completed_plans: 26
   percent: 88
 ---
