@@ -3,8 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 status: planning
-last_updated: "2026-06-17T13:42:00.000Z"
-last_activity: 2026-06-17
+stopped_at: Phase 30 context gathered
+last_updated: "2026-06-17T16:09:37.033Z"
+last_activity: 2026-06-17 — v1.6 roadmap created (7 phases, standard granularity, continuing from v1.5's Phase 29)
 progress:
   total_phases: 7
   completed_phases: 0
@@ -188,8 +189,8 @@ v1.6 roadmap created; Phase 30 ready to plan. Phases 32–36 gate on Phase 31 (r
 
 ## Session Continuity
 
-Last session: 2026-06-17T13:42:00.000Z
-Stopped at: v1.6 roadmap created (Phases 30–36; 32/32 mapped)
+Last session: 2026-06-17T16:09:37.029Z
+Stopped at: Phase 30 context gathered
 Next action: Plan Phase 30 (Research Package Assembly) with `/gsd-plan-phase 30`; tag `v1.6-pre-phase-30` from `milestone/v1.6` HEAD first.
 
 ## Operator Next Steps
