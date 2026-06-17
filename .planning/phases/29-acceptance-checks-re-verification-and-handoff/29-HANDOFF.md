@@ -3,7 +3,7 @@
 This handoff is the v1.5 milestone-closure record and the FUT-01 input. It mirrors the v1.4
 `21-HANDOFF.md` four-section shape (Fixed / Intentionally Unchanged / Deferred / SI Metadata
 Reconciliation), adds the FUT-01 / Consumption Notes and the numerically-defined
-Milestone-Closure Gate, and is grounded in the fresh Phase-29 acceptance re-run (`29-UAT.md`),
+Milestone-Closure Gate, and is grounded in the fresh Phase-29 acceptance re-run (`29-ACCEPTANCE-EVIDENCE-2026-06-17.md`),
 the `24-ISSUE-LEDGER.md` terminal-state audit, and the already-committed `29-CODE-DIVERGENCE.md`
 forward obligations. It is the `29-HANDOFF.md` half of the two-artifact FUT-01 handoff (D-09);
 `29-CODE-DIVERGENCE.md` is the other half.
@@ -14,7 +14,7 @@ records, not by editing their home files (SCOPE-08/09/10, D-01).
 
 ## Evidence Used
 
-- `29-UAT.md` — the fresh 2026-06-17 Phase-29 acceptance re-run (13-check AC suite, 12 PASS +
+- `29-ACCEPTANCE-EVIDENCE-2026-06-17.md` — the fresh 2026-06-17 Phase-29 acceptance re-run (13-check AC suite, 12 PASS +
   AC-VAL-04 structural-PASS / numeric-DEFERRED split, exit 0), the 19-row ledger terminal-state
   audit (18 VERIFIED + 1 DEFERRED), and the 36/36 roadmap traceability confirmation.
 - `24-ISSUE-LEDGER.md` — the v1.5 issue ledger Status Table (19 rows); the source of the Fixed
@@ -32,7 +32,7 @@ records, not by editing their home files (SCOPE-08/09/10, D-01).
 
 The following **18 in-scope v1.5 findings** are `VERIFIED` in `24-ISSUE-LEDGER.md` and are
 covered by their Phase-25 evidence packets plus the fresh Phase-29 acceptance evidence
-(`29-UAT.md`). Each row names its acceptance check and the phase that resolved it — transcribed
+(`29-ACCEPTANCE-EVIDENCE-2026-06-17.md`). Each row names its acceptance check and the phase that resolved it — transcribed
 from the ledger Status Table, nothing invented.
 
 | Finding | Title | Acceptance Check | Resolving Phase |
@@ -56,7 +56,7 @@ from the ledger Status Table, nothing invented.
 | **footer** | Footer / mass-drift protocol (DATA-05 rerun, not Decimal fallback) | AC-PIPE-06 / AC-PIPE-07 | 26/27 (PIPE-06/07) |
 | **mass-drift** | Precision handling (float64 sufficiency; DATA-05 verdict) | AC-PIPE-07 | 27 (PIPE-07) |
 
-All 18 re-ran fresh and PASSED in Phase 29 (`29-UAT.md` §2); AC-PIPE-05 PASSED at **184/184**
+All 18 re-ran fresh and PASSED in Phase 29 (`29-ACCEPTANCE-EVIDENCE-2026-06-17.md` §2); AC-PIPE-05 PASSED at **184/184**
 (0 promoted under D-01 — internally consistent because gold stays 2,565 and `base − gold = 184`).
 
 ## 2. Intentionally Unchanged
@@ -157,7 +157,7 @@ failing check blocks closure and routes the specific finding back to its origina
 | G4 (VER-12) | 3 SI dispositions recorded | SI-DQA-002, SI-DQA-003, SI-PINN-002 each retired-with-backref OR preserved-with-reason; 0 assumed | (no spec phase — recorded in `29-HANDOFF.md` §4) |
 | G5 (VER-11) | Handoff completeness | `29-HANDOFF.md` has fixed/unchanged/deferred + SI table; `29-CODE-DIVERGENCE.md` FO-1/FO-2 present | — |
 | G6 (VER-08) | Traceability | 36/36 reqs → exactly one phase; Phase 29 = VER-07/08/09/11/12 | roadmap revision if mismatch |
-| G7 (D-05/D-01) | Gold reconciliation recorded | `29-UAT.md` references the 117/67/0-promoted table; stale-artifact inventory present; PSC numeric stays DEFERRED | — |
+| G7 (D-05/D-01) | Gold reconciliation recorded | `29-ACCEPTANCE-EVIDENCE-2026-06-17.md` references the 117/67/0-promoted table; stale-artifact inventory present; PSC numeric stays DEFERRED | — |
 | G8 (governance) | No `pinn/` touch, no spec edit, no dataset mutation, no read-only/frozen-file edit | grep diff of touched paths shows only `.planning/` (+ optional probe scripts) | STOP if violated |
 
 **Closure rule:** v1.5 closes only when **G1–G8 all pass**. Any G1/G2/G3 FAIL routes the specific
