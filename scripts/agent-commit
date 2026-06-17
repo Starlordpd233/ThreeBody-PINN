@@ -6,14 +6,34 @@ if [ -z "${GIT_AGENT_ID:-}" ]; then
   exit 1
 fi
 
+if [ -z "${GIT_AGENT_OWNED_PATHS:-}" ]; then
+  echo "git policy: set GIT_AGENT_OWNED_PATHS to repo-relative owned paths before committing" >&2
+  exit 1
+fi
+
 export GIT_AGENT_COMMIT=1
+
+repo_root="$(git rev-parse --show-toplevel)"
+common_dir="$(git rev-parse --git-common-dir)"
+case "$common_dir" in
+  /*) ;;
+  *) common_dir="$repo_root/$common_dir" ;;
+esac
+
+lock_dir="$common_dir/agent-commit.lock"
+if ! mkdir "$lock_dir" 2>/dev/null; then
+  echo "git policy: another agent commit is in progress; retry after the lock clears: $lock_dir" >&2
+  exit 1
+fi
+trap 'rmdir "$lock_dir" 2>/dev/null || true' EXIT
 
 for arg in "$@"; do
   case "$arg" in
     Agent-Assisted-By:*|Co-Authored-By:*)
-      exec git commit "$@"
+      git commit "$@"
+      exit $?
       ;;
   esac
 done
 
-exec git commit "$@" -m "Agent-Assisted-By: $GIT_AGENT_ID"
+git commit "$@" -m "Agent-Assisted-By: $GIT_AGENT_ID"

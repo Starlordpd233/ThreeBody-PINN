@@ -1,7 +1,12 @@
 ---
+status: consumed
+purpose: other
+created: 2026-05-24
+milestone: untracked
+phase: latex-sync
+retirement_trigger: milestone complete; superseded by subsequent work
 title: LaTeX-Markdown Sync Strategy
 date: 2026-05-24
-status: draft (audit-revised; pending GSD integration decision)
 scope: cross-milestone (v1.4, v1.5, v1.6, v1.6.5-latex-sync)
 authors: [user, claude]
 ---

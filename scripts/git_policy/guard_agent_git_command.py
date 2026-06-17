@@ -84,6 +84,39 @@ def command_invokes_raw_git_commit(command):
     return False
 
 
+def git_subcommand_index(words, subcommand):
+    git_options_with_values = {"-c", "-C", "--git-dir", "--work-tree", "--namespace", "--config-env"}
+    for index, word in enumerate(words):
+        if word != "git" and not word.endswith("/git"):
+            continue
+        cursor = index + 1
+        while cursor < len(words):
+            token = words[cursor]
+            if token in git_options_with_values:
+                cursor += 2
+                continue
+            if any(token.startswith(f"{option}=") for option in git_options_with_values if option.startswith("--")):
+                cursor += 1
+                continue
+            if token.startswith("-"):
+                cursor += 1
+                continue
+            if token == subcommand:
+                return cursor
+            return None
+    return None
+
+
+def command_invokes_broad_git_add(command):
+    words = shell_words(command)
+    add_index = git_subcommand_index(words, "add")
+    if add_index is None:
+        return False
+    args = words[add_index + 1 :]
+    broad_args = {".", "-A", "--all", "-u", "--update"}
+    return any(arg in broad_args for arg in args)
+
+
 def mutates_core_hooks_path(command):
     if "core.hooksPath" not in command or not re.search(r"\bgit\s+config\b", command):
         return False
@@ -92,8 +125,29 @@ def mutates_core_hooks_path(command):
     return not any(flag in words for flag in read_flags)
 
 
-def command_has_destructive_bypass(command):
-    return "ALLOW_DESTRUCTIVE_GIT=1" in command or os.environ.get("ALLOW_DESTRUCTIVE_GIT") == "1"
+def command_has_marker(command, name, expected=None):
+    env_value = os.environ.get(name)
+    if env_value and (expected is None or env_value == expected):
+        return True
+    prefix = f"{name}="
+    for word in shell_words(command):
+        if not word.startswith(prefix):
+            continue
+        value = word[len(prefix) :]
+        if value and (expected is None or value == expected):
+            return True
+    return False
+
+
+def destructive_marker_errors(command):
+    errors = []
+    if not command_has_marker(command, "ALLOW_DESTRUCTIVE_GIT", expected="1"):
+        errors.append("ALLOW_DESTRUCTIVE_GIT=1")
+    if not command_has_marker(command, "GIT_DESTRUCTIVE_APPROVAL"):
+        errors.append("GIT_DESTRUCTIVE_APPROVAL")
+    if not command_has_marker(command, "GIT_RECOVERY_CHECKPOINT"):
+        errors.append("GIT_RECOVERY_CHECKPOINT")
+    return errors
 
 
 def main():
@@ -111,10 +165,17 @@ def main():
         if command_invokes_raw_git_commit(command):
             return fail("agents must use scripts/agent-commit so attribution and hook policy are enforced")
 
+        if command_invokes_broad_git_add(command):
+            return fail("agent command attempted broad staging; stage explicit owned paths instead")
+
         for pattern, label in DESTRUCTIVE_PATTERNS:
-            if pattern.search(command) and not command_has_destructive_bypass(command):
+            if not pattern.search(command):
+                continue
+            missing = destructive_marker_errors(command)
+            if missing:
                 return fail(
-                    f"agent command attempted destructive Git operation '{label}' without explicit user approval marker"
+                    f"agent command attempted destructive Git operation '{label}' without required marker(s): "
+                    + ", ".join(missing)
                 )
 
     return 0

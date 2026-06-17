@@ -1,9 +1,14 @@
 ---
+status: consumed
+purpose: other
+created: unknown
+milestone: untracked
+phase: git-guidelines
+retirement_trigger: milestone complete; superseded by subsequent work
 Design: Git Workflow and Commit Guidelines
-
 Placement: Expand the existing "Commit Message Conventions" section in .planning/codebase/CONVENTIONS.md (lines 266–301) into a comprehensive "Git Workflow and Commit Guidelines" section. Update AGENTS.md to reference these expanded conventions.
-
 ---
+
 Section 1: Commit Message Format and Type Taxonomy
 
 The project already uses Conventional Commits. I propose expanding the type definitions to cover the project-specific types that have emerged:

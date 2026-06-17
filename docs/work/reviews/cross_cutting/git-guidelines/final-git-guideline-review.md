@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: unknown
+milestone: untracked
+phase: git-guidelines
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Final Git Guideline Review and Consolidation
 
 Date: 2026-06-05

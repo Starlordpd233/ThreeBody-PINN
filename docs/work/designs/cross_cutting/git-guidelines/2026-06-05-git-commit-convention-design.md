@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-05
+milestone: untracked
+phase: git-guidelines
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Git Commit Convention Design
 
 **Date**: 2026-06-05

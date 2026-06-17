@@ -1,30 +1,44 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-04-27
+**Analysis Date:** 2026-06-10
 
 ## Test Framework
 
 **Runner:**
-- No test runner configured. No `pytest`, `unittest`, or C++ test framework installed at the project level.
-- No `conftest.py`, `pytest.ini`, `tox.ini`, or `setup.cfg` in project root.
-- Python packages present in `.venv/` include `pytest`, `unittest`, and `numpy.testing` as transitive dependencies, but no project test configuration exists.
+- No project-wide test runner configured. No `pytest.ini`, `tox.ini`, or `setup.cfg` in project root.
+- `tests/git_policy/test_git_policy.py` uses `unittest` (standard library).
+- `tests/test_phase12_validation.py` uses a hand-rolled check/result accumulator (no framework dependency).
+- `simulation_data/Data/testing_data/test_pipeline.py` uses `subprocess` and manual assertions.
+- Python packages present in `.venv/` include `pytest` as a transitive dependency, but no project test configuration uses it.
 
 **Assertion Library:**
-- No dedicated assertion library. The minimal test code uses manual checks with `print()` and `if` statements.
+- `unittest.TestCase` assertions in `tests/git_policy/test_git_policy.py` (`assertEqual`, `assertNotEqual`, `assertIn`, `assertTrue`, `assertFalse`)
+- Manual `check(name, condition, detail)` accumulator pattern in `tests/test_phase12_validation.py`
+- Manual `print()` + `if` checks in older test files
 
 **Run Commands:**
 ```bash
-# No standard test commands. The closest equivalents:
-python simulation_data/Data/testing_data/test_pipeline.py        # Integration test
-cd brutus_Newton-main && make && ./test_libs                      # Library test
+# Phase 12 content-integrity tests
+python3 tests/test_phase12_validation.py
+
+# Git policy unit tests
+python3 -m unittest tests/git_policy/test_git_policy.py
+
+# Legacy pipeline integration test
+python simulation_data/Data/testing_data/test_pipeline.py
+
+# C++ library link test
+cd brutus_Newton-main && make && ./test_libs
 ```
 
 ## Test File Inventory
 
-**Project-owned test files: 2**
+**Project-owned test files: 4**
 
 | File | Type | What it tests |
 |------|------|---------------|
+| `tests/test_phase12_validation.py` | Content-integrity test | Structural properties of `pinn_architecture.md` against Phase 12 plan requirements: section order, inactive-content absence, source-issues metadata, bibliography, index entry |
+| `tests/git_policy/test_git_policy.py` | Unit tests (unittest) | Git policy enforcement scripts: `validate_commit_msg.py`, `validate_staged_paths.py`, `guard_agent_git_command.py` |
 | `brutus_Newton-main/test_libs.cpp` | C++ compilation test | Verifies GMP, MPFR, and mpreal libraries link correctly |
 | `simulation_data/Data/testing_data/test_pipeline.py` | Python integration test | End-to-end: IC generation -> prescreening -> Brutus execution -> output validation |
 
@@ -40,79 +54,97 @@ cd brutus_Newton-main && make && ./test_libs                      # Library test
 ## Test File Organization
 
 **Location:**
+- `tests/` at repo root -- primary test directory (Phase 12 content validation, git-policy unit tests)
 - Co-located with source for C++: `test_libs.cpp` in `brutus_Newton-main/`, `test.cpp` in `lib/Data_Handler/`
 - Separate test data directory for Python: `simulation_data/Data/testing_data/test_pipeline.py`
-- One project test file: `tests/test_phase12_validation.py` (Phase 12 validation test)
 
 **Naming:**
-- C++: `test_*.cpp` or `test.cpp` (inconsistent)
-- Python: `test_pipeline.py`
+- Python: `test_*.py` (consistent across both `tests/` and data testing)
+- C++: `test_*.cpp` or `test.cpp`
 
-**Expected structure (not yet present):**
+**Package structure:**
 ```
-# What a testing directory would look like (none exist currently)
-simulation_data/tests/
-brutus_Newton-main/tests/
-pinn/tests/
+tests/
+├── __pycache__/
+├── git_policy/
+│   ├── __init__.py
+│   └── test_git_policy.py
+└── test_phase12_validation.py
 ```
 
 ## Test Structure
 
-**`test_libs.cpp` (`brutus_Newton-main/test_libs.cpp`):**
+### `tests/test_phase12_validation.py` (280 lines)
 
-```cpp
-#include <iostream>
-#define MPFR_USE_NO_MACRO
-#define MPFR_USE_INTMAX_T
-#include <gmp.h>
-#include <mpfr.h>
-#include "mpreal.h"
+Content-integrity detector pattern — verifies that converted markdown artifacts satisfy structural requirements from the Phase 12 plan. Uses a module-level accumulator:
 
-using namespace mpfr;
+```python
+results = {"pass": 0, "fail": 0, "errors": []}
 
-int main() {
-    std::cout << "GMP version: " << gmp_version << std::endl;
-    std::cout << "MPFR version: " << mpfr_get_version() << std::endl;
-    
-    mpreal::set_default_prec(128);
-    mpreal x = "1.234567890123456789";
-    std::cout << "mpreal test: " << x << std::endl;
-    std::cout << "Libraries are working correctly!" << std::endl;
-    
-    return 0;
-}
+def check(name, condition, detail=""):
+    if condition:
+        results["pass"] += 1
+        print(f"  PASS: {name}")
+    else:
+        results["fail"] += 1
+        msg = f"  FAIL: {name}"
+        if detail:
+            msg += f" ({detail})"
+        print(msg)
+        results["errors"].append(msg)
 ```
 
-Pattern: Compile-and-run sanity check, no assertions, relies on visual inspection of output.
+Check IDs match plan acceptance criteria: `CLEAN-01`, `FIDEL-05`, `FIDEL-06`, `CROSS-01`, `CROSS-02`, `FIDEL-03`.
 
-**`test_pipeline.py` (`simulation_data/Data/testing_data/test_pipeline.py`):**
+Several checks are marked SKIP (report artifact retired after v1.3 closure): `CLEAN-03`, `CAND-01`, `AUDIT-01`, `AUDIT-02`, `AUDIT-03`.
 
-- Orchestrated as four sequential steps: `step1_generate_ics()`, `step2_prescreening()`, `step3_run_brutus()`, `step4_verify()`
-- Manual assertions via `validate_brutus_output()` which checks final timestep >= 9.5
-- Uses `subprocess.run()` to execute Brutus binary
-- Hardcoded parameters for fast testing (lower tolerances, larger dt)
-- Graceful fallback if Brutus binary not built
-- Output: prints PASS/FAIL per simulation, summary at end
+**What it validates:**
+- `pinn_architecture.md` exists and exceeds 200 lines (`CLEAN-01`)
+- Numbered sections appear in correct order: `# 1.` through `# 10.` (`FIDEL-05`)
+- Inactive terms absent from faithful body (`FIDEL-06`): `"Input Vector Formulation"`, `"14-dimensional injective"`, `"Advanced Training Dynamics"`, `"Curriculum-Aware Energy Regularization"`
+- Source Issues metadata section present (`CROSS-01`)
+- Bibliography section present with entries (`FIDEL-03`)
+- Conversion index (`pinn_instruction/markdown_conversion/README.md`) has Phase 12 entry (`CROSS-02`)
 
-**What the pipeline validates:**
-1. IC files can be generated and parsed
-2. Prescreening can process ICs (optional, skippable)
-3. Brutus binary exists and can be executed
-4. Brutus output files contain valid timestep data
-5. Final simulation time exceeds threshold (9.5)
+### `tests/git_policy/test_git_policy.py` (179 lines)
+
+Standard `unittest.TestCase` tests for git policy enforcement scripts. Uses subprocess to invoke the validator scripts with controlled inputs and environment variables:
+
+```python
+def validate_message(message, env=None):
+    with tempfile.NamedTemporaryFile("w", delete=False) as handle:
+        handle.write(message)
+        path = handle.name
+    return run_python(COMMIT_VALIDATOR, [path], env=env)
+```
+
+Tests cover: valid agent commit acceptance, uppercase subject rejection, throwaway subject rejection, scope validation, body requirements, and attribution trailer enforcement.
+
+### `brutus_Newton-main/test_libs.cpp` (20 lines)
+
+Compile-and-run sanity check. No assertions; relies on visual inspection of output. Verifies GMP, MPFR, and mpreal link correctly and can perform arbitrary-precision arithmetic.
+
+### `simulation_data/Data/testing_data/test_pipeline.py` (407 lines)
+
+Four sequential steps: `step1_generate_ics()`, `step2_prescreening()`, `step3_run_brutus()`, `step4_verify()`. Manual assertions via `validate_brutus_output()` which checks final timestep >= 9.5. Uses `subprocess.run()` to execute Brutus binary. Graceful fallback if Brutus binary not built.
 
 ## Mocking
 
-**Framework:** None. No mocking library used, no mock objects or stubs.
+**`tests/git_policy/test_git_policy.py`:**
+- No mock objects. Tests invoke the real validator scripts via `subprocess.run()` with controlled `env` dicts.
+- `GIT_AGENT_COMMIT`, `GIT_POLICY_STAGED_FILES` environment variables injected per test to simulate different commit contexts.
 
-**Patterns:** Not applicable. The test_pipeline.py tests against real Brutus binary execution.
+**`simulation_data/Data/testing_data/test_pipeline.py`:**
+- No mocking. Tests against real Brutus binary execution.
 
 ## Fixtures and Factories
 
 **Test Data:**
 - `simulation_data/Data/testing_data/test_pipeline.py` generates its own test ICs using `continuation_enhanced_ic_generation()` from `ic_generation_utils.py`
 - Parameters: `N_STANDARD = 3`, `N_HIERARCHICAL = 3` small sample sizes
-- No fixture files exist; test data is generated and cleaned up in `Data/testing_data/ic_raw/`, `ic_final/`, `brutus_output/` subdirectories (git-ignored)
+- No fixture files; test data is generated and cleaned up in `Data/testing_data/ic_raw/`, `ic_final/`, `brutus_output/` subdirectories (git-ignored)
+- `tests/test_phase12_validation.py` reads live project artifacts directly (no fixtures)
+- `tests/git_policy/test_git_policy.py` uses `tempfile.NamedTemporaryFile` for commit message inputs (no persistent fixtures)
 
 **Location:**
 - `simulation_data/Data/testing_data/` -- git-ignored, regenerated on each test run
@@ -131,15 +163,19 @@ pip install pytest pytest-cov
 ## Test Types
 
 **Unit Tests:**
-- **None exist.** No individual Python module or C++ function has a unit test.
-- All computational functions in `simulation_data/Validation/prescreening/`, `simulation_data/Scripts/metrics_calculation/`, `pinn/data-handling/core/`, etc., are untested.
+- `tests/git_policy/test_git_policy.py` -- unit tests for git policy scripts (`validate_commit_msg.py`, `validate_staged_paths.py`, `guard_agent_git_command.py`)
+- `brutus_Newton-main/lib/Data_Handler/test.cpp` -- Data_Handler parsing unit (compile and run manually)
+- All computational functions in `simulation_data/Validation/prescreening/`, `simulation_data/Scripts/metrics_calculation/`, `pinn/data-handling/core/` remain untested.
+
+**Content-Integrity Tests:**
+- `tests/test_phase12_validation.py` -- verifies structural properties of generated markdown artifacts against plan acceptance criteria. Pattern introduced in Phase 12 for v1.4 milestone work.
 
 **Integration Tests:**
 - `simulation_data/Data/testing_data/test_pipeline.py` (407 lines) -- end-to-end pipeline test exercising IC generation, prescreening, Brutus execution, and output validation.
 - `brutus_Newton-main/test_libs.cpp` (20 lines) -- library linking verification (GMP, MPFR, mpreal).
 
 **E2E Tests:**
-- Not used. The test_pipeline.py is the closest approximation.
+- Not used. `test_pipeline.py` is the closest approximation.
 
 **Scientific Validation Tests (domain-specific correctness, not software testing):**
 - `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` -- leapfrog N-body integration to validate IC stability (680 lines)
@@ -170,11 +206,6 @@ This is the primary quality assurance mechanism in the project, distinct from so
 - Adaptive threshold computation from data percentiles
 - Failure categorization: `min_separation`, `energy_conservation`, `static_check`
 - Results serialized to JSON processing index files: `processing_index_ic_hierarchical.json`, `processing_index_ic_standard_quasi_random.json`
-
-**Test-like qualities:**
-- Deterministic pass/fail outcomes per IC file
-- Reproducible with seeded random sampling
-- Audit trail via processing index
 
 ### Dataset Readiness Checks
 
@@ -216,20 +247,9 @@ def validate_brutus_output(output_path: Path, time_threshold: float = 9.5) -> tu
 
 Pattern: manual file parsing with regex, float comparison, boolean-plus-message return tuple.
 
-## Common Testing Patterns (if tests existed)
-
-**Async Testing:**
-Not applicable -- no async Python code in project.
-
-**Error Testing:**
-The `validate_brutus_output()` function in `test_pipeline.py:267-296` is the only exemplar of a test-like validation function. It follows this pattern:
-- Return `(False, error_message)` on failure
-- Return `(True, success_message)` on success
-- Catch generic `Exception` with `(False, f"Validation error: {e}")`
-
 ## CI/CD Testing Setup
 
-**Status: No testing CI/CD.** 
+**Status: No testing CI/CD.**
 
 The `.github/workflows/` directory contains only Gemini AI agent dispatch/review/triage workflows:
 - `gemini-dispatch.yml` -- route issues to Gemini
@@ -279,40 +299,43 @@ None of these execute tests, build code, or run validation scripts.
    - No known-answer IC files with expected Brutus outputs
    - No canonical test dataset for deterministic comparison
 
+7. **Content-integrity test pattern not applied to `ctl_instruction.md`:**
+   - `tests/test_phase12_validation.py` pattern covers `pinn_architecture.md` only
+   - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` has no equivalent structural test
+
 ### Low Priority / Non-Critical
 
-7. **LaTeX compilation testing is manual:**
+8. **LaTeX compilation testing is manual:**
    - `simulation_data/Validation/` has LaTeX verification scripts (`verify_compile.py`, `verify_structure.py`, `verify_preamble.py`, `verify_content.py`) that check document structure and compilability
    - These are run manually, not in CI
 
-8. **Reference code tests exist but are not project tests:**
+9. **Reference code tests exist but are not project tests:**
    - DeepXDE, PyTorch, PINA, etc. have their own test suites but these validate the reference implementations, not project code
 
-## How to Add Tests (Recommended Pattern)
+## How to Add Tests (Recommended Patterns)
 
-Based on the project's conventions, new tests should follow:
+**Content-integrity tests (follow `tests/test_phase12_validation.py` pattern):**
+- Place in `tests/` at repo root
+- Use the `check(name, condition, detail)` accumulator pattern
+- Name checks after acceptance-criteria IDs from the relevant phase plan
+- Read live project artifacts directly; no fixtures needed for structural checks
+- Include a `main()` that prints pass/fail summary and exits non-zero on failure
 
-1. **Location:** Create `tests/` directories at appropriate levels:
-   - `simulation_data/tests/` for simulation pipeline tests
-   - `pinn/tests/` for PINN pipeline tests
-   - `brutus_Newton-main/tests/` for C++ tests
+**Git-policy / tooling unit tests (follow `tests/git_policy/test_git_policy.py` pattern):**
+- Use `unittest.TestCase`
+- Invoke scripts via `subprocess.run()` with controlled environment variables
+- Place in `tests/<domain>/` subdirectory with `__init__.py`
 
-2. **Framework:** Install `pytest` (already in .venv) and create `conftest.py` files
+**Path handling in all new tests:**
+```python
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[N]
+```
+Never hardcode `<home>/` paths.
 
-3. **Naming:** Use `test_*.py` for Python tests, following existing `test_pipeline.py` pattern
-
-4. **Fixtures:** Use `simulation_data/Data/testing_data/` (already git-ignored) for test data
-
-5. **Path handling:** Use `pathlib.Path` and relative-to-project-root resolution:
-   ```python
-   PROJECT_ROOT = Path(__file__).resolve().parent.parent
-   ```
-   Do not hardcode `<home>/` paths.
-
-6. **Assertions:** Use `assert` statements with descriptive messages or `pytest.raises()` for exception testing
-
-7. **Scientific validation:** For physics correctness tests, use `np.testing.assert_allclose()` with appropriate relative/absolute tolerances
+**Scientific validation tests:**
+- For physics correctness, use `np.testing.assert_allclose()` with appropriate relative/absolute tolerances
+- Place in `simulation_data/tests/` when created
 
 ---
 
-*Testing analysis: 2026-04-27*
+*Testing analysis: 2026-06-10*

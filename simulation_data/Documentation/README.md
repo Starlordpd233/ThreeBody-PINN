@@ -173,8 +173,8 @@ Validation/prescreening/  -->  Data/ic_final/       [Stage 2 - prescreened ICs]
 - Each IC file has a corresponding Brutus output file with the same numeric ID
 - Non-gold: `ic_hierarchical_XXXX.txt` ↔ `brutus_hierarchical_XXXX.txt`
 - Non-gold: `ic_standard_XXXX.txt` ↔ `brutus_standard_XXXX.txt`
-- Gold hierarchical: `ic_hierarchical_gold_XXXX.txt` ↔ `brutus_hierarchical_gold_XXXX.txt`
-- Gold standard: `ic_standard_gold_XXXX.txt` ↔ `brutus_standard_gold_XXXX.txt`
+- Gold hierarchical (in `brutus_hierarchical_gold_standard/`): `ic_hierarchical_XXXX.txt` ↔ `brutus_hierarchical_XXXX.txt`
+- Gold standard (in `brutus_standard_quasi_random_gold_standard/`): `ic_standard_XXXX.txt` ↔ `brutus_standard_XXXX.txt`
 
 **Gold Standard Subsets:**
 - `*_gold_standard` Brutus output folders contain higher-resolution outputs (dt_out=0.01)
@@ -200,32 +200,26 @@ ic_hierarchical_XXXX.txt
 ic_standard_XXXX.txt
 ```
 
-Gold-standard folders use a `_gold_` infix:
-```
-ic_hierarchical_gold_XXXX.txt
-ic_standard_gold_XXXX.txt
-```
+**Historical note (2026-06-10):** the gold-standard IC folders were documented as using a `_gold_` infix (`ic_hierarchical_gold_XXXX.txt`, `ic_standard_gold_XXXX.txt`). Those folders have since been removed, so this naming is no longer verifiable on disk; no current IC file uses a `_gold_` infix.
 
 Where `XXXX` is a 4-digit zero-padded integer (e.g., `0000`, `0427`, `3998`).
 
 ### Brutus Output Files
 
-Non-gold and gold-standard folders use **different filename prefixes**:
+All four folders use the **base filename prefixes**; gold-standard folders do **not** add a `_gold_` infix (verified against the on-disk tree 2026-06-10):
 
 ```
 simulation_data/Data/brutus_output/brutus_hierarchical/brutus_hierarchical_XXXX.txt
-simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_gold_XXXX.txt
+simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/brutus_hierarchical_XXXX.txt
 simulation_data/Data/brutus_output/brutus_standard_quasi_random/brutus_standard_XXXX.txt
-simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/brutus_standard_gold_XXXX.txt
+simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/brutus_standard_XXXX.txt
 ```
 
-Gold-standard status is encoded in **both** the folder name and the filename. When parsing, either signal is sufficient; the folder is the authoritative variant identifier.
+Gold-standard status is encoded **only** in the folder name; filenames do not encode it. When parsing, the folder is the authoritative (and only) variant identifier.
 
-**Note:** The mapping between IC and Brutus files is always by numeric ID:
-- `ic_hierarchical_0427.txt` → `brutus_hierarchical_0427.txt`
-- `ic_hierarchical_gold_0427.txt` → `brutus_hierarchical_gold_0427.txt`
-- `ic_standard_0427.txt` → `brutus_standard_0427.txt`
-- `ic_standard_gold_0427.txt` → `brutus_standard_gold_0427.txt`
+**Note:** The mapping between IC and Brutus files is always by numeric ID, within the corresponding folder pair:
+- `ic_hierarchical_0427.txt` → `brutus_hierarchical_0427.txt` (same filename in the base and gold-standard Brutus folders)
+- `ic_standard_0427.txt` → `brutus_standard_0427.txt` (same filename in the base and gold-standard Brutus folders)
 
 ---
 
@@ -588,17 +582,24 @@ Important distinction:
 
 ### Observed Parameter Sets (from `Result:` footers)
 
-All Brutus output files contain a `Result:` footer, but the footer schema varies: some omit `eta`, and a small subset omits both `eta` and `tol`. The counts below are split by footer schema. Files whose footers lack `tol` cannot be assigned a parameter set from the footer alone; for those, assume the folder-level defaults.
+Most Brutus output files end with a `Result:` footer; a subset has no footer at all (counts below; verified 2026-06-10, matching the missing-footer counts in `Validation/audit_reports/footer_audit_20251224_170141.md`, except `brutus_hierarchical`, re-verified 2026-06-11 after the DATA-05 remediation rerun of 70 files — see note under that folder). Footers that are present carry the full schema, including `eta` and `tol`. Files without a footer cannot be assigned a parameter set from the file alone; for those, assume the folder-level defaults.
 
-Each entry below is `(tol, Lw, dt_out, t_end, eta) → count`. Files with a partial footer (no `eta`) are listed separately.
+Each entry below is `(tol, Lw, dt_out, t_end, eta) → count`. Files with no footer are listed separately.
 
-#### `simulation_data/Data/brutus_output/brutus_hierarchical/` (4,857 files; 3,307 full-schema, 1,550 partial)
+#### `simulation_data/Data/brutus_output/brutus_hierarchical/` (4,857 files; 3,377 with footer, 1,480 without)
 
-Full-schema footers (with `eta`):
-- `(1e-15, 130, 0.08, 10, 0.263027) → 3,307`
+Footers (full schema, with `eta`):
+- `(1e-15, 130, 0.08, 10, 0.263027) → 3,377`
 
-Partial footers (no `eta`; tol/Lw/dt still parseable):
-- `(1e-15, 130, 0.08, ~10) → 1,550` (same parameters, different Brutus build omitted `eta`)
+No `Result:` footer:
+- `→ 1,480` (no parameters recorded in-file; assume folder defaults: tol=1e-15, Lw=130, dt_out=0.08)
+
+> Counts updated 2026-06-11 (previously 3,307 / 1,550): the GAP-24-01 DATA-05 remediation
+> rerun replaced 70 stale base-hierarchical files (IDs `0005`-`0059`, `0061`-`0075`); all
+> 70 old files were footer-less, all 70 replacements carry full-schema footers with the
+> same parameter tuple. This folder now intentionally differs from
+> `footer_audit_20251224_170141.md` by −70 missing footers. Evidence:
+> `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-DATA05-RERUN-REMEDIATION.md`.
 
 #### `simulation_data/Data/brutus_output/brutus_hierarchical_gold_standard/` (4,857 files; all full-schema)
 
@@ -608,23 +609,23 @@ Partial footers (no `eta`; tol/Lw/dt still parseable):
 - `(1e-14, 112, 0.01, 10.01, 0.270396) → 27`
 - `(1e-14, 124, 0.01, 10.01, 0.270396) → 1`
 
-#### `simulation_data/Data/brutus_output/brutus_standard_quasi_random/` (2,749 files; 2,048 full-schema, 701 partial)
+#### `simulation_data/Data/brutus_output/brutus_standard_quasi_random/` (2,749 files; 2,048 with footer, 701 without)
 
-Full-schema footers (with `eta`):
+Footers (full schema, with `eta`):
 - `(1e-13, 118, 0.17, 10.03, 0.277971) → 1,126`
 - `(1e-13, 130, 0.17, 10.03, 0.277971) → 922`
 
-Partial footers (no `eta`; tol/Lw/dt still parseable):
-- `(1e-13, 118, 0.17, ~10.03) → 701` (assume default Lw=118 unless footer shows otherwise)
+No `Result:` footer:
+- `→ 701` (no parameters recorded in-file; assume folder defaults: tol=1e-13, Lw=118, dt_out=0.17)
 
-#### `simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/` (2,565 files; 2,346 full-schema, 219 minimal)
+#### `simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/` (2,565 files; 2,346 with footer, 219 without)
 
-Full-schema footers (with `eta` and `tol`):
+Footers (full schema, with `eta` and `tol`):
 - `(1e-13, 130, 0.01, 10.01, 0.277971) → 1,754`
 - `(1e-14, 130, 0.01, 10.01, 0.270396) → 592`
 
-Minimal footers (no `eta` or `tol`; only `dt`, `Lw`, `t_cpu`, and energy fields):
-- `(Lw=130, dt=0.01, ~10.01) → 219` (tol unknown from footer; assume folder default 1e-13)
+No `Result:` footer:
+- `→ 219` (no parameters recorded in-file; assume folder defaults: tol=1e-13, Lw=130, dt_out=0.01)
 
 ### Snapshot Count Note
 
@@ -680,21 +681,21 @@ if final_timestep < 9.5:
 
 ## Known Anomalies and Gotchas
 
-### 1. Heterogeneous `Result:` Footer Schemas
+### 1. Missing `Result:` Footers
 
-All Brutus output files contain a `Result:` footer line, but the **field set varies** depending on which Brutus build produced the file. Three schema variants exist:
+Most Brutus output files end with a `Result:` footer line, but a subset has none at all (verified 2026-06-10; matches the missing-footer counts in `Validation/audit_reports/footer_audit_20251224_170141.md`, except `brutus_hierarchical`, re-verified 2026-06-11 after the DATA-05 remediation rerun — see Section "Observed Parameter Sets"). Footers that are present carry the full field set, including `eta` and `tol`:
 
-| Folder | Total Files | Full Schema (eta+tol) | Partial (tol only) | Minimal (no eta/tol) |
-|--------|-------------|----------------------|--------------------|--------------------|
-| brutus_hierarchical | 4,857 | 3,307 | 1,550 | 0 |
-| brutus_hierarchical_gold_standard | 4,857 | 4,857 | 0 | 0 |
-| brutus_standard_quasi_random | 2,749 | 2,048 | 701 | 0 |
-| brutus_standard_quasi_random_gold_standard | 2,565 | 2,346 | 0 | 219 |
+| Folder | Total Files | With Footer (full schema) | No Footer |
+|--------|-------------|---------------------------|-----------|
+| brutus_hierarchical | 4,857 | 3,377 | 1,480 |
+| brutus_hierarchical_gold_standard | 4,857 | 4,857 | 0 |
+| brutus_standard_quasi_random | 2,749 | 2,048 | 701 |
+| brutus_standard_quasi_random_gold_standard | 2,565 | 2,346 | 219 |
 
 **Implications:**
-- A `Result:` line is always present; do not treat its absence as a failure mode
-- Parsers must treat `eta` and `tol` as **optional** fields
-- For files whose footer lacks `tol`, assume the folder-level default tolerance
+- A `Result:` footer may be absent; do not treat its absence as a failure mode
+- Parsers must treat the entire footer as optional
+- For files with no footer, assume the folder-level defaults
 - Use timestep coverage (final timestep ≥ 9.5) as primary completeness check, not footer presence
 
 ### 2. `Result: filename=` Path and IC-Folder Ambiguity

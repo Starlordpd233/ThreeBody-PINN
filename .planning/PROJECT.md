@@ -51,7 +51,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 <!-- Current scope. Building toward these. -->
 
-- No active requirements. The next milestone will define a fresh requirement set through `$gsd-new-milestone`.
+- v1.5 requirement set is being defined through `$gsd-new-milestone` — see `.planning/REQUIREMENTS.md` once committed.
 
 ### Deferred
 
@@ -73,6 +73,8 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 ## Current State
 
 **Shipped:** v1.4 Resolving 01 Architecture and Physics Foundations on 2026-06-09.
+
+**In progress:** v1.5 Phase 23 (Research Package Assembly) complete and verified 2026-06-10 (research context consolidated to single master file on 2026-06-11). The issue-02 research package is delivered under `framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/`. Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11; the consolidated resolution doc landed the same day, closing the external gate. Phase 24.5 (resolution doc readiness verification) completed 2026-06-11 with gate verdict READY-WITH-CAVEATS (verification passed 5/5): 19/19 ledger findings covered, zero DATA-xx contradictions, zero locked-convention violations; caveats are deferred-by-design open items (OI-3/6/7/8/11/12), none blocking. Phase 25 evidence-packet construction is unblocked and may start from `24.5-RESOLUTION-MAP.md`.
 
 The milestone closed 32/32 requirements across eight verified phases and 26 plans. Its roadmap, requirements, audit, and phase execution history are archived under `.planning/milestones/`; production PINN alignment and author-comment adjudication remain documented future candidates rather than assumed next-milestone scope.
 
@@ -111,11 +113,26 @@ The milestone closed 32/32 requirements across eight verified phases and 26 plan
 
 </details>
 
-## Next Milestone Goals
+## Current Milestone: v1.5 Resolving 02 Data Pipeline and Validation
 
-- Select the next milestone through `$gsd-new-milestone`.
-- Create a fresh `.planning/REQUIREMENTS.md` from user-approved scope.
-- Evaluate documented candidates such as FUT-01 implementation alignment and FUT-05 author-comment adjudication without promoting either automatically.
+**Goal:** Critically examine each finding in `pinn_instruction/issues/02-data-pipeline-and-validation.md` — treating the issue doc as non-authoritative — verify every claim empirically against the on-disk dataset, the `simulation_data/` scripts that generated it, the v1.4-revised framework specs, and first principles; adjudicate against the user-produced external resolution doc once it lands; apply evidence-backed framework-spec edits; and verify each fix with disposable acceptance probes before closing. v1.5 settles the data-pipeline/validation design contracts; it does not implement production DataLoader/training code (that remains FUT-01).
+
+**Target features:**
+- Research package for user-led external multi-AI research: a curated document list (consolidating scattered fragments into a single context file if the list would exceed ~5 files; framework specs passed intact) plus the questions to pose. The resulting resolution doc is expected at `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`; adjudication phases gate on its arrival. The resolution doc is the candidate verdict source, NOT authoritative — same standing as `ctl_pinn_resolution.md` in v1.4.
+- Evidence framework and issue ledger covering the issue-02 findings: B-06, B-11, M11, M12, M13, D7, G1–G5, D-03 (training-data format), validation-metrics-as-live-parameters claims (SCS/SASD/IPR/PSC), `compute_globals` D=6.694 correction, footer/mass-drift protocol, and precision handling — with v1.4-style verdicts and iterative re-verification (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`).
+- Disposable empirical probes against the on-disk dataset: file counts, ID gaps (claimed 1,250/4,000 standard; 143/5,000 hierarchical), blacklist contents (claimed 65 IDs), gold-counterpart gaps (claimed 184 standard IDs), footer schema variance, mass-drift check, global-scale recomputation.
+- Spec edits limited to `ctl_instruction.md` and `pinn_architecture.md`. `sampling_method.md` is frozen by default (completed generation-instruction doc — see Key Decisions); `data_quality_assessment.md` is untouched but characterized early, with findings reported to the user.
+- Doc-03 boundary: data-side contracts only (dt_out metadata exposure, stage/replay query interface). M16 collocation-scaling policy and the G6 causal-training decision stay with the future doc-03 milestone.
+- STOP protocol in full (v1.5 is a "similar adjudication milestone" per AGENTS.md governance): phase-local `NN-GAPS.md` registers, milestone index `.planning/milestones/v1.5-GAPS.md`, no inventing where sources are silent. Governance docs updated with the v1.5 phase list once the roadmap is approved.
+- Known tension to adjudicate in-milestone: issue 02's ratio-based SCS thresholds (`SCS > 1e-6` reject, `< 1e-8` Stage 5) conflict with the locked post-v1.3 gate (`\epsilon_H > 10^{-5}` / log-based `SCS > -5`).
+
+**Primary sources (neither authoritative):**
+- `pinn_instruction/issues/02-data-pipeline-and-validation.md` — thematic issue consolidation
+- Forthcoming resolution doc under `framework-revisions/research_reports/02-data-pipeline-and-validation/` — candidate verdict source, produced by user-led external research in two stages (process recorded 2026-06-10, mirroring v1.4): multiple independent research agents each produce an individual report from the Phase 23 package; one final consolidation agent then produces the final resolution doc. Only the final consolidated doc is the candidate verdict source; the Stage-1 individual reports are retained beside it as supporting evidence, consulted when the final doc's consolidation provenance records ambiguity (v1.4 precedent: `ctl_pinn_resolution.md` beside the four model reports). Operator prompts for both stages: `docs/work/plans/milestone_v1.5/23-research-package-assembly/`.
+
+**Grounding sources for v1.5:** dataset documentation (`simulation_data/Documentation/README.md`), the on-disk dataset itself (empirical facts), `simulation_data/Scripts/` (metrics calculation, prescreening, runners, ic_generation — extends the SCOPE-05 carveout), v1.4-revised framework specs, prior user decisions, and short uncontroversial first-principles derivations. **`pinn/` live code remains banned as grounding** — issue 02's "Canonical" citation of `data-processing-pipeline-full.py` is overridden; live-code references stay confined to forward-pointing FUT-01 hand-off documents.
+
+**Git workflow:** main repo directory (no worktree); branch `milestone/v1.5` cut from master HEAD (`b8b39a4`) before any v1.5 commits; tag `v1.5-pre-phase-NN` from branch HEAD before each phase begins; one atomic commit per plan via `scripts/agent-commit`; `--no-ff` merge to master at milestone end.
 
 ### Previous Milestones
 
@@ -184,6 +201,11 @@ The milestone closed 32/32 requirements across eight verified phases and 26 plan
 | Phase 18 frame and gauge contracts complete (2026-05-21, verification `18aacde`) | The framework specs now define the unified preprocessing order, COM/momentum frame assertions, canonical ordering, canonical rotation gauge, global scaling order, FRAME-03 sampling-frame reconciliation, and 3D Cartesian output guard. B-05 and M3 are `VERIFIED`; FUT-01 code divergence is recorded without editing `pinn/`. | ✓ Phase 18 complete; Phase 19 physics/loss contracts are next. |
 | Markdown framework specs authoritative; LaTeX source refresh is final-stage only (2026-06-09) | Markdown framework specs (`pinn_instruction/markdown_conversion/framework-specs/*.md`) will continue changing during implementation, training, and research-result iteration; syncing LaTeX sources earlier creates churn and false stability. LaTeX sources (`pinn_instruction/original_latex/framework-specs/**/*.tex`) are publication/archive derivatives, not active design sources. | — Active (cross-project); LaTeX is deferred until final publication/archive stage. Supersedes the draft v1.6.5 timing from `docs/work/designs/cross_cutting/latex-sync/2026-05-24-latex-markdown-sync-strategy-design.md`. |
 | `master` is a personal working line on a private repo (2026-06-10) | The GitHub remote (`github.com/Starlordpd233/ThreeBodyProblem`) is **private** (verified via `gh repo view` 2026-06-10); no public audience exists for this history. User directive: master is for the owner's personal use and may freely contain scratch and personal artifacts (e.g., `docs_temp/` chat transcripts, agent context bundles, workspace captures). | — Active (cross-project). Any future public release must be a separately sanitized export — never a direct push of this repository's history, which contains personal chat transcripts. |
+| v1.5 targets issue doc 02 with v1.4-style adjudication; user-produced resolution doc is the candidate verdict source (2026-06-10) | No resolution doc existed for issue 02 at milestone start. The user runs external multi-AI research from an agent-prepared research package (document list; scattered fragments consolidated into one context file if >~5 files; framework specs passed intact); adjudication phases gate on the doc landing. The issue doc remains non-authoritative — every finding is verified empirically before any fix. | — Active (v1.5). Resolution doc expected at `framework-revisions/research_reports/02-data-pipeline-and-validation/`. |
+| `sampling_method.md` frozen by default (user directive 2026-06-10) | It is the completed instruction file that generated the now-finished `simulation_data/` dataset; the generation work will not be re-run, so design-revision of this file is futile. It remains the authoritative historical record of how the existing training data was produced. Only verified data-feasibility issues (dataset ↔ framework incompatibilities blocking training) plus explicit user instruction may touch it. No dedicated phase/milestone has yet verified dataset ↔ framework compatibility; `data_quality_assessment.md` may cover parts of that ground and is characterized (not edited) during v1.5. | — Active (cross-project). Recorded in AGENTS.md Source of Truth section. |
+| v1.5 grounding extensions: on-disk dataset + `simulation_data/Scripts/` (2026-06-10) | Issue 02's claims are largely empirical dataset facts (counts, gaps, footers, blacklist); verify-then-fix requires the dataset itself and the scripts that generated it as provenance. Extends the SCOPE-05 precedent beyond `ic_generation/`. The `pinn/` live-code ban persists — issue 02's "Canonical" citation of `data-processing-pipeline-full.py` is overridden. | — Active (v1.5); to be codified as SCOPE requirements in `.planning/REQUIREMENTS.md`. |
+| v1.5 git workflow replicates v1.4 (2026-06-10) | Same rationale as the v1.4 decision: master stays a known-good baseline; per-plan atomic commits preserve selective revertibility; pre-phase tags give named recovery points; `--no-ff` merge preserves per-phase commits on master. Worktree isolation again rejected (no parallel-work need; interacts badly with STOP protocol). | — Active (v1.5); branch `milestone/v1.5` cut from master HEAD `b8b39a4` 2026-06-10, before any v1.5 planning commits. |
+| Phase 25 EVID-10 verdicts locked (2026-06-12) | Root-cause adjudication of the three known cross-source conflicts, grounded in first principles + locked specs + verified dataset facts (D-09), not the resolution doc's recommendation: SCS — locked log-based gate `SCS > -5` stands, issue-doc ratio thresholds rejected (`accept-resolution`); `compute_globals` D — raw-mass `D = (G·T²)^(1/3) ≈ 4.6416` stands, 6.694 mass-fraction form rejected, CLM-13 ratified `convention-rejected` (OI-11); M12 — BLOCKING-infeasibility falsified on corrected CLM-10 medians, `n_pts = min(n_pts_cap, n_snapshots)` locked (`accept-third-position`); M11 — MAJOR→BLOCKING reclassification STANDS on data-integrity grounds (OI-8 carried to Phase 26 PIPE-03/FUT-01). | — Active (v1.5). Spec transcription owned by Phases 26–28 citing the EVID-10 records by path; ledger rows stay PENDING (adjudicated-but-unfixed per GAP-25-02) until fixes land and verify. |
 
 ## Evolution
 
@@ -203,4 +225,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-10 after v1.4 milestone close-out (gap-count reconciliation and master branch policy).*
+*Last updated: 2026-06-13 after v1.5 Phase 26 completion (DataLoader ingestion/selection contracts locked in ctl_instruction.md — B-06 admission gate, B-11 ID-resolution, M11 blacklist, D7 footer, M13 gold-counterpart, D-03 format; 5/5 success criteria verified. M13 STOP gap GAP-26-01 resolved by user ruling B (Stage-5 labels attach to IDs); the 184 gold-less standard IDs are to be closed by re-simulating their gold counterparts to 1:1 — OI-7b, a forward data-generation dependency. D-03 user-locked HDF5 canonical. Phases 27–28 next.).*

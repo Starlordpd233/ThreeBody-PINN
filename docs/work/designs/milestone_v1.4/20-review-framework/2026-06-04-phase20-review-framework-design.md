@@ -1,3 +1,12 @@
+---
+status: consumed
+purpose: other
+created: 2026-06-04
+milestone: v1.4
+phase: 20-review-framework
+retirement_trigger: milestone complete; superseded by subsequent work
+---
+
 # Phase 20 Plan Review Framework — Design
 
 **Date:** 2026-06-04
@@ -65,7 +74,7 @@
 
 ## Report Output
 
-**Path**: `docs/work/reviews/milestone_v1.4/20-plan-audit-legacy/phase20-review.md` (absolute; directory already exists)
+**Path**: `docs/archive/work/reviews/milestone_v1.4/20-plan-audit-legacy/phase20-review.md` (absolute; directory already exists)
 
 **Structure**:
 1. Executive Summary

@@ -15,7 +15,18 @@ If this repository is being opened on the new Mac during the workstation migrati
 
 ## CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones
 
-**For every phase in v1.4 (Phases 17, 18, 19, 20, 20.5, 21, 22) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
+**For every phase in v1.4 (Phases 17, 18, 19, 20, 20.5, 21, 22), every phase in v1.5 (Phases 23–29) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
+
+### v1.5 applicability (2026-06-10)
+
+v1.5 "Resolving 02 Data Pipeline and Validation" (Phases 23–29, branch `milestone/v1.5`) runs under this protocol. Read the grounding test below with these substitutions and extensions for v1.5 work:
+
+- The issue doc is `pinn_instruction/issues/02-data-pipeline-and-validation.md` (non-authoritative; known to contain at least one suspect claim — the ratio-based SCS thresholds).
+- The candidate verdict source is the **user-produced resolution doc** expected under `pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`. It does not exist until the user's external research delivers it; adjudication Phases 25–29 cannot start until it lands AND Phase 24 completes.
+- Additional grounding (SCOPE-06/07 in `.planning/REQUIREMENTS.md`): the on-disk `simulation_data/` dataset (empirical facts verified by direct observation, recorded re-derivably) and `simulation_data/Scripts/` (`ic_generation/`, `metrics_calculation/`, `Validation/prescreening/`, `brutus_runners/`).
+- Framework-spec sections revised during v1.4 or v1.5 are grounding; the `pinn/` live-code ban persists unchanged.
+- Spec-edit targets are `ctl_instruction.md` and `pinn_architecture.md` ONLY; `sampling_method.md` is frozen by default (SCOPE-08); `data_quality_assessment.md` is read-only (SCOPE-09).
+- The milestone-wide gap index for v1.5 phases is `.planning/milestones/v1.5-GAPS.md` (read step 4 of the STOP protocol accordingly).
 
 ### Grounded vs. silent: the test
 
@@ -91,15 +102,15 @@ User does not trust the agent to make spec-engineering or physics-adjudication c
 
 ## CRITICAL GOVERNANCE: Git Branch Awareness & Destructive Operations
 
-Always surface the current Git state at session start and before any operation that could discard work. Be cautious on non-master branches or branches with red-flag names (`backup`, `recovery`, `wip`, `experiment`, `tmp`, etc.).
+Always surface the current Git state at session start, before committing, and before any operation that could discard work. Run `git status --short --branch`, report the branch plus ahead/behind state, and summarize existing modified/deleted/untracked files. Treat existing changes as user-owned unless you created them in the current task.
 
 ### Destructive-operation awareness
 
-Before running any operation that can permanently discard commits, working-tree changes, branch refs, stashes, tags, or history, confirm with the user and explain what will be affected. Accept any clear confirmation.
+Before running any operation that can permanently discard commits, working-tree changes, branch refs, stashes, tags, or history, explain what will be affected and obtain exact user approval for the command or effect. Vague approval is not enough.
 
 Common destructive operations include: `git reset --hard`, `git clean -f`, `git branch -D`, `git rebase`, `git push --force`, `git stash drop`, `rm -rf` on tracked paths, and similar.
 
-Consider creating a recovery checkpoint (`git branch backup/<context>-<date>`, `git tag recovery/<context>-<date>`, or `git stash`) before destructive operations.
+Create or verify a recovery checkpoint before destructive operations. The command must include all three markers: `ALLOW_DESTRUCTIVE_GIT=1`, `GIT_DESTRUCTIVE_APPROVAL='<exact approved command or effect>'`, and `GIT_RECOVERY_CHECKPOINT='<backup branch, tag, stash, or commit ref>'`.
 
 ### Recovery from suspected loss
 
@@ -107,15 +118,26 @@ If the user reports lost work, perform read-only forensics first (`git reflog`, 
 
 ### Commit cadence
 
-Commit at logical task boundaries. When touching files under `pinn_instruction/`, `.planning/`, or LaTeX framework specs, commit the task's changes as one atomic commit at task end.
+Agents may commit approved task work at logical boundaries unless the user explicitly says not to commit. Keep commits atomic, reversible, and reviewable. When touching files under `pinn_instruction/`, `.planning/`, or LaTeX framework specs, commit the task's changes as one atomic commit at task end.
+
+Use the layered capture ladder: commits for completed logical work, backup branches or tags before risky history operations, and stashes or durable patch snapshots for dirty unfinished work.
+
+### Concurrent agents
+
+For Claude Code CCP or other multi-agent setups, prefer separate worktrees and branches for independent agents. If agents share one worktree, they still must declare disjoint owned paths and serialize commits through `scripts/agent-commit`.
+
+Every agent commit must set `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS`. `GIT_AGENT_OWNED_PATHS` is a colon- or newline-separated list of repo-relative file or directory prefixes owned by the committing agent. Do not use broad staging (`git add .`, `git add -A`, `git add --all`, `git add -u`); stage explicit owned paths only. Re-check `git status --short --branch`, `git diff --cached`, and touched unstaged diffs immediately before committing.
+
+Archived plans or old snippets that omit current Git-policy env vars are stale for execution purposes; adapt them to this policy instead of replaying them literally.
 
 ### Pause and ask
 
 Pause and ask the user when:
 - On a red-flag branch or non-primary worktree
-- About to run a destructive operation without clear user confirmation
+- About to run a destructive operation without exact user confirmation and a recovery checkpoint
 - The user reports lost work
 - You cannot fully enumerate what an operation will affect
+- Required Git policy markers or owned-path declarations are missing
 
 ### Why
 
@@ -132,12 +154,12 @@ Follow this protocol whenever a task may require a later Git commit, even if the
 - At session start and before committing, run `git status --short --branch` and surface branch, ahead/behind state, and existing worktree changes.
 - Treat existing changes as user-owned unless you created them in the current task.
 - Before committing, inspect `git diff --cached`, check unstaged changes for touched files, and run relevant verification plus `git diff --check`.
-- Stage only intended files. Do not include unrelated user changes.
+- Stage only explicit files covered by `GIT_AGENT_OWNED_PATHS`. Do not include unrelated user changes.
 
 ### Hook and bypass policy
 
 - Run `scripts/setup-git-hooks.sh` if `git config --get core.hooksPath` is not `.githooks`.
-- Agents must use `scripts/agent-commit`; do not run raw `git commit`.
+- Agents must use `scripts/agent-commit`; do not run raw `git commit`. Set both `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS`.
 - Do not use `--no-verify`, `core.hooksPath=/dev/null`, or equivalent bypasses without explicit user approval.
 
 ### Commit message policy
@@ -146,13 +168,15 @@ Use `<type>(<scope>): <lowercase imperative subject>`.
 
 Allowed types: `spec`, `evidence`, `verify`, `plan`, `docs`, `feat`, `fix`, `refactor`, `test`, `chore`.
 
-Allowed scopes: two-digit phase scopes such as `20`, task scopes such as `20-05`, and fixed domain scopes `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`.
+Allowed scopes: two-digit phase scopes such as `20`, task scopes such as `20-05`, and fixed domain scopes `governance`, `planning`, `pinn`, `brutus`, `pipeline`, `spec`, `docs`, `ref`. Inserted phases use task-style scope (`20-05`), not `20.5`, `20-5`, or `20_5`.
 
 The subject starts lowercase, uses imperative voice, is 80 characters or fewer, has no trailing period, and contains no markdown ticks, quotes, or semicolon-chained changes.
 
 A body is required for `spec`, `evidence`, `verify`, and `plan` commits; commits touching multiple files; commits touching `pinn_instruction/`, `.planning/`, framework specs, or governance instructions.
 
 Agent-authored or materially agent-assisted commits must include `Agent-Assisted-By: <agent/tool/model>` or a valid `Co-Authored-By:` trailer.
+
+Do not push directly from protected branches `master`, `main`, or `milestone/*`. Milestone branches are local integration branches; publish through feature/review branches or explicit user-controlled integration.
 
 ### Transformation and verification integrity
 
@@ -161,7 +185,44 @@ Agent-authored or materially agent-assisted commits must include `Agent-Assisted
 
 ### Docs plan-review-fix lifecycle
 
-Rules attach to the action, not the agent; file retention, naming, and archive follow `docs/README.md`.
+Rules attach to the action, not the agent; file retention, naming, and archive follow `docs/README.md`. **Read `docs/README.md` in full before creating, moving, or deleting any file in `docs/`.**
+
+#### Docs/ placement rules (mandatory)
+
+**Where new files go** — purpose-based folders only:
+- `docs/work/plans/milestone_v<m#>/<phase>/` or `cross_cutting/<topic>/` — implementation, remediation, execution plans
+- `docs/work/reviews/milestone_v<m#>/<phase>/` or `cross_cutting/<topic>/` — reviews, audits, verification reports, findings
+- `docs/work/designs/milestone_v<m#>/<phase>/` or `cross_cutting/<topic>/` — design docs, strategy alternatives, pre-implementation artifacts
+- `docs/runbooks/<category>/` — operational procedures
+- `docs/archive/` — only after explicit user approval
+
+**Do NOT write to these legacy paths** (no new files unless completing already-started work in that exact path):
+- `docs/superpowers/` · `docs/user_plans/` · `docs/plans/` · `docs/findings/` · `docs/migration/` · `docs/brainstorms/`
+
+**Do NOT:**
+- Nest plans inside designs (no `docs/work/designs/plans/`) or vice versa.
+- Create folders named after an agent, skill, workflow, or tool.
+- Use dash-encoded phase numbers — use `20.5`, not `20-5`.
+- Use bare filenames like `review1.md`, `final.md`, `notes.md`, or filenames with spaces.
+
+#### Frontmatter rules
+
+All new files under `docs/work/` must have this frontmatter block:
+
+```yaml
+---
+status: active | consumed | retirement-proposed | archived | retained
+purpose: implementation-plan | review-findings | verification-report | design | runbook | governance | migration | other
+created: YYYY-MM-DD
+milestone: v#.# (or "untracked")
+phase: <phase-topic-slug> (or "cross-cutting")
+retirement_trigger: <free text describing when this file is no longer needed>
+---
+```
+
+Allowed `status` values: `active`, `consumed`, `retirement-proposed`, `archived`, `retained`. Do NOT use: `complete`, `completed`, `draft`, `superseded`, or any qualified string.
+
+#### Execution, review, and commit rules
 
 - Executing a `docs/` plan: record execution provenance in the plan frontmatter (`execution_status`, `executed_at` with date and time, `review_status`) per `docs/README.md`; close each pass with a dedicated commit carrying `Plan-Execution:` and `Plan-Source:` trailers, separate from the work commits. Re-runs use `remediation-pass-N`.
 - Review reports: commit as `verify(<scope>)`, date-named, kept; supersede by setting frontmatter `status: superseded` (never delete-and-recreate); commit the report separately from any fixes it motivates.
@@ -177,6 +238,17 @@ Rules attach to the action, not the agent; file retention, naming, and archive f
 - `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` — CTL methodology, input-vector formulation, curriculum staging
 - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` — network architecture, AD contract, output head
 - `pinn_instruction/markdown_conversion/framework-specs/sampling_method.md` — IC sampling
+
+**`sampling_method.md` status (user directive 2026-06-10):** This file is the completed
+instruction document that generated the now-finished `simulation_data/` dataset. The generation
+work is done and will not be re-run, so `sampling_method.md` is **frozen by default** — it is NOT
+an active design-revision target for v1.5 or later milestones. It remains authoritative as the
+historical record of how the existing training data was produced. It may be revised ONLY on
+explicit user instruction, triggered by verified data-feasibility issues (dataset ↔ framework
+incompatibilities that must be fixed to make the existing data trainable). Note that no dedicated
+phase or milestone has yet verified dataset ↔ framework compatibility; `data_quality_assessment.md`
+(in `framework-revisions/`, a research report — not an authoritative spec) may cover parts of that
+ground and is to be characterized, not edited, during v1.5.
 
 **v1.3-era live code is NOT a grounding source** (user directive 2026-05-19): `pinn/data-processing-pipeline-full.py`, `pinn/basic_architecture.py`. These files are NOT evidence, NOT source-of-truth for any v1.4 spec decision. They may be referenced ONLY in forward-pointing FUT-01 hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`).
 

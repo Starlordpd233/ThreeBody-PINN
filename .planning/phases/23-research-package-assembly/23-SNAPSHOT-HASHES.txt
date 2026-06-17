@@ -1,0 +1,11 @@
+# Phase 23 Plan 03: Snapshot Provenance
+# Format: basename | canonical source path | source commit hash
+
+02-data-pipeline-and-validation.md | pinn_instruction/issues/02-data-pipeline-and-validation.md | d43afcd69af027e0689f42ac61e130f8497939f8
+ctl_instruction.md | pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md | 192c7c3c55ca0730c34ce708abf24c613234dd2e
+pinn_architecture.md | pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md | 192c7c3c55ca0730c34ce708abf24c613234dd2e
+sampling_method.md | pinn_instruction/markdown_conversion/framework-specs/sampling_method.md | 916d3f84ad7282c1f8ace45901441f7d3ac054ca
+data_quality_assessment.md | pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md | d3fcff99268b4493629eb2f0fe580f43c51ec019
+
+# Package-wide pin
+package-wide | (all sources) | 96f9150a02919d492a86ef9f63e10e5942d2d8e3

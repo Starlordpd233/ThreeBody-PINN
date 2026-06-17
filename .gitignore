@@ -22,6 +22,7 @@ Thumbs.db
 # -----------------------------------------------------------------------------
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *.kate-swp
@@ -312,6 +313,7 @@ simulation_data/Data/ic_raw/
 simulation_data/Data/ic_final/
 simulation_data/Data/brutus_output/
 simulation_data/Data/metrics/
+simulation_data/Data/rerun_staging/
 simulation_data/Data/testing_data/
 simulation_data/Documentation/problematic_ics/
 simulation_data/Documentation/problematic_ics_blacklist.json
@@ -322,6 +324,24 @@ simulation_data/Scripts/debug/*.png
 simulation_data/**/figures/**/*.html
 simulation_data/**/*.txt
 !simulation_data/**/README.txt
+
+# -----------------------------------------------------------------------------
+# Generated knowledge-graph artifacts (regenerable; large blobs)
+# -----------------------------------------------------------------------------
+graphify-out/
+.planning/graphs/
+
+# -----------------------------------------------------------------------------
+# Scratch outputs, knowledge-graph intermediates, and probe regeneration
+# -----------------------------------------------------------------------------
+# Throwaway smoke-test outputs
+scratch/
+# understand-anything regenerable intermediates (scan-result.json stays tracked)
+.understand-anything/intermediate/*
+!.understand-anything/intermediate/scan-result.json
+.understand-anything/tmp/
+# Phase probe regeneration outputs (regeneratable from tracked scripts)
+.planning/phases/*/probes/outputs/
 
 # -----------------------------------------------------------------------------
 # END OF .gitignore

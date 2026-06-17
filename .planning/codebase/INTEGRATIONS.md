@@ -1,6 +1,6 @@
 # External Integrations
 
-**Analysis Date:** 2026-04-27
+**Analysis Date:** 2026-06-10
 
 ## Integration Architecture Overview
 
@@ -65,7 +65,9 @@ This project has **no external network services, APIs, databases, or cloud integ
 │                                                      ▼                  │
 │                                             ┌──────────────────┐        │
 │                                             │ CTL-PINN Training │        │
-│                                             │ (WIP)             │        │
+│                                             │ (FUT-01: pending  │        │
+│                                             │  rewrite from     │        │
+│                                             │  framework specs) │        │
 │                                             └──────────────────┘        │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -247,21 +249,17 @@ Result: filename=... N=3 t_begin=... t_end=... dt=... eta=... tol=... Lw=... t_c
 - Time sampling strategies: uniform, acceleration-weighted, or mixed
 - Outputs per-stage: `training_data.npz`, `batches.pkl`, `summary.json`
 
-### Stage 6: PINN Training (Work in Progress)
+### Stage 6: PINN Training (Pending FUT-01 Rewrite)
 
-**Architecture:** `pinn/basic_architecture.py`
+**Current v1.3-era file (not spec-authoritative):** `pinn/basic_architecture.py`
 
-**Model:** SQRSkipResNetSIREN
-- Input: 14 dimensions (t + 13-component IC vector)
-- Output: 9 dimensions (3D positions of 3 bodies)
-- 12 hidden layers, 256 neurons each
-- SIREN activation (first_omega_0=30.0, hidden_omega_0=1.0)
-- Skip connections with power term p=2 on odd layers
-- LayerNorm (elementwise_affine=True, eps=1e-5) on odd layers
-- Final linear layer (no activation, weights U[-0.01, 0.01])
-- Second-order autodiff for velocity and acceleration via `torch.autograd.grad`
+This file is v1.3-era code slated for a complete rewrite (FUT-01) from the authoritative framework specs:
+- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
+- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
 
-**Training status:** Architecture implemented and verified (forward pass + gradient computation tested). Full training loop, physics loss, and CTL (Curriculum Training) logic are not yet in the committed code.
+**v1.3-era model (descriptive only):** SQRSkipResNetSIREN — 14-dim input (t + 13-component IC vector), 9-dim output (3D positions of 3 bodies), 12 hidden layers × 256 neurons, SIREN activation, skip connections, LayerNorm.
+
+**Training status:** The full training loop, physics loss, and CTL logic are not yet in the committed code. Architecture wiring is not spec-authoritative; FUT-01 will rewrite from specs.
 
 ## Data Storage and File Formats
 
@@ -309,6 +307,7 @@ simulation_data/
 | Variable | Set By | Purpose | Failure Mode |
 |----------|--------|---------|--------------|
 | `IC_RAW_DIR` | User (shell) | External raw IC storage path | Scripts exit with `SystemExit(1)` and error message |
+| `GIT_AGENT_ID` | Agent (shell) | Identifies agent/model for commit attribution | `scripts/agent-commit` exits with error message |
 
 ### Access Pattern
 
@@ -348,13 +347,38 @@ The project uses GitHub Actions exclusively for Gemini AI automation, not for CI
 
 These workflows are non-essential for the core research pipeline and serve as an AI productivity augmentation layer.
 
+## Git Hooks Integration
+
+The project has a real git hook system (distinct from the old INTEGRATIONS.md claim of "no pre-commit hooks"):
+
+**Hook directory:** `.githooks/` (7 hooks)
+**Activation:** `scripts/setup-git-hooks.sh` sets `git config core.hooksPath .githooks`
+
+| Hook | File | Action |
+|------|------|--------|
+| `pre-commit` | `.githooks/pre-commit` | Runs `scripts/git_policy/validate_staged_paths.py` |
+| `commit-msg` | `.githooks/commit-msg` | Runs `scripts/git_policy/validate_commit_msg.py` enforcing type/scope/subject format |
+| `pre-push` | `.githooks/pre-push` | Push policy enforcement |
+| `pre-rebase` | `.githooks/pre-rebase` | Rebase guard |
+| `post-checkout` | `.githooks/post-checkout` | Post-checkout notification |
+| `post-commit` | `.githooks/post-commit` | Post-commit notification |
+| `post-merge` | `.githooks/post-merge` | Post-merge notification |
+
+**Agent commit wrapper:** `scripts/agent-commit` — requires `GIT_AGENT_ID` env var; injects `Agent-Assisted-By:` trailer automatically. Agents must use this script instead of raw `git commit`.
+
+## Spec Render-Check Integration
+
+The `tools/spec-render-check/` tool verifies KaTeX rendering in framework spec Markdown files:
+
+- **Entry point:** `tools/spec-render-check/detect.mjs` (ESM, Node.js)
+- **Mirrors:** VS Code / Cursor KaTeX engine (`@vscode/markdown-it-katex@1.1.2`, `katex@0.16.47`)
+- **Fixture inputs:** `tools/spec-render-check/fixtures/` and `adjudications/`
+- **Purpose:** Catch math rendering defects before spec docs are published (Phase 22 deliverable)
+- **No CI integration:** Must be run manually; not wired into GitHub Actions or git hooks.
+
 ## Git-Based Integration
 
 **No submodules.** The `.gitmodules` file does not exist. All reference code is directly committed (or excluded via `.gitignore`).
-
-**Git hooks:**
-- `.github/commands/` directory contains Gemini command definitions (TOML files). These are not standard git hooks.
-- No pre-commit, post-commit, or pre-push hooks detected.
 
 ## Missing Integrations
 
@@ -363,11 +387,12 @@ The following integration points do NOT currently exist:
 1. **No CI/CD for core pipeline.** No automated build/test for Brutus, no automated prescreening validation, no automated metrics extraction.
 2. **No experiment tracking.** No MLflow, Weights & Biases, TensorBoard, or custom logging for PINN training runs.
 3. **No data versioning.** No DVC, Git LFS, or artifact registry for simulation data or trained models.
-4. **No dependency management.** No Python lockfile, no conda environment file, no Docker image for reproducible environments.
+4. **No dependency management.** No Python lockfile, no conda environment file, no Docker image for reproducible Python environments.
 5. **No model registry.** No system for tracking trained PINN checkpoints (`.gitignore` excludes `.pt`, `.pth`, `.ckpt` files).
 6. **No Docker/Container setup.** Brutus compilation requires manual dependency installation (GMP, MPFR, mpreal).
 7. **No MPS/GPU acceleration for PINN.** Training runs on CPU only on macOS. No ROCm, CUDA, or MPS detection.
+8. **Spec render-check not CI-integrated.** `tools/spec-render-check/` must be run manually; no hook or workflow triggers it automatically.
 
 ---
 
-*Integration audit: 2026-04-27*
+*Integration audit: 2026-06-10*

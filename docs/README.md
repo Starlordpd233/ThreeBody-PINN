@@ -25,6 +25,8 @@ docs/
   git-guidelines.md
 
   runbooks/
+    EDL/
+    maintenance/
     migration/
 
   work/
@@ -47,7 +49,7 @@ docs/
     runbooks/
 ```
 
-Existing folders such as `docs/plans/`, `docs/findings/`, `docs/superpowers/`, and `docs/user_plans/` are legacy locations. Do not add new files there unless you are intentionally completing already-started work in that exact legacy path. Future cleanup should migrate files within `docs/` or retire them only after the reference-audit and approval rules below are satisfied.
+The legacy path names `docs/plans/`, `docs/findings/`, `docs/superpowers/`, and `docs/user_plans/` are reserved for already-started work; do not create new content in these paths. Do not add new files there unless you are intentionally completing already-started work in that exact legacy path. Future cleanup should migrate files within `docs/` or retire them only after the reference-audit and approval rules below are satisfied.
 
 ## Root Files
 
@@ -400,9 +402,9 @@ Docs cleanup must not silently change project truth.
 - Do preserve or archive a file when it still has unresolved findings, active references, or historical value the user has approved.
 - Do not create new duplicate buckets such as `docs/superpowers/plans/` or `docs/user_plans/`.
 
-## Current Legacy State
+## Prior Legacy Folders (Cleanup Record)
 
-As of this guideline, the existing `docs/` tree contains legacy folders whose purposes overlap:
+As of a prior cleanup pass, the following legacy folders were retired from the `docs/` tree:
 
 - `docs/plans/`
 - `docs/findings/`
@@ -410,7 +412,7 @@ As of this guideline, the existing `docs/` tree contains legacy folders whose pu
 - `docs/user_plans/`
 - `docs/migration/`
 
-These folders should be cleaned up in a separate, explicit pass. That pass must respect the same rules in this README:
+This section is retained as a record of that cleanup. Any future cleanup pass must respect the same rules in this README:
 
 - Audit references before proposing deletion.
 - Use finding-by-finding closeout for reviews.

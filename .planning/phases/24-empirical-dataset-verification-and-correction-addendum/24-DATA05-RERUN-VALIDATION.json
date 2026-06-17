@@ -1,0 +1,498 @@
+{
+  "total": 70,
+  "missing": 0,
+  "passes": 70,
+  "failures": 0,
+  "details": {
+    "0005": {
+      "id": "0005",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0006": {
+      "id": "0006",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0007": {
+      "id": "0007",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0008": {
+      "id": "0008",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0009": {
+      "id": "0009",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0010": {
+      "id": "0010",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0011": {
+      "id": "0011",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0012": {
+      "id": "0012",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0013": {
+      "id": "0013",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0014": {
+      "id": "0014",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0015": {
+      "id": "0015",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0016": {
+      "id": "0016",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0017": {
+      "id": "0017",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0018": {
+      "id": "0018",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0019": {
+      "id": "0019",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0020": {
+      "id": "0020",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0021": {
+      "id": "0021",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0022": {
+      "id": "0022",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0023": {
+      "id": "0023",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0024": {
+      "id": "0024",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0025": {
+      "id": "0025",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0026": {
+      "id": "0026",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0027": {
+      "id": "0027",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0028": {
+      "id": "0028",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0029": {
+      "id": "0029",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0030": {
+      "id": "0030",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0031": {
+      "id": "0031",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0032": {
+      "id": "0032",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0033": {
+      "id": "0033",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0034": {
+      "id": "0034",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0035": {
+      "id": "0035",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0036": {
+      "id": "0036",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0037": {
+      "id": "0037",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0038": {
+      "id": "0038",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0039": {
+      "id": "0039",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0040": {
+      "id": "0040",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0041": {
+      "id": "0041",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0042": {
+      "id": "0042",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0043": {
+      "id": "0043",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0044": {
+      "id": "0044",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0045": {
+      "id": "0045",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0046": {
+      "id": "0046",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0047": {
+      "id": "0047",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0048": {
+      "id": "0048",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0049": {
+      "id": "0049",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0050": {
+      "id": "0050",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0051": {
+      "id": "0051",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0052": {
+      "id": "0052",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0053": {
+      "id": "0053",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0054": {
+      "id": "0054",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0055": {
+      "id": "0055",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0056": {
+      "id": "0056",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0057": {
+      "id": "0057",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0058": {
+      "id": "0058",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0059": {
+      "id": "0059",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0061": {
+      "id": "0061",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0062": {
+      "id": "0062",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0063": {
+      "id": "0063",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0064": {
+      "id": "0064",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0065": {
+      "id": "0065",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0066": {
+      "id": "0066",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0067": {
+      "id": "0067",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0068": {
+      "id": "0068",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0069": {
+      "id": "0069",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0070": {
+      "id": "0070",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0071": {
+      "id": "0071",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0072": {
+      "id": "0072",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0073": {
+      "id": "0073",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0074": {
+      "id": "0074",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    },
+    "0075": {
+      "id": "0075",
+      "status": "pass",
+      "errors": [],
+      "final_t": 10.000000000000007,
+      "footer_found": true
+    }
+  }
+}

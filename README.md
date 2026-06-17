@@ -39,6 +39,7 @@ The repository currently holds massive datasets generated from two main sampling
 - **`pinn_instruction/`**: Markdown conversions and reference documents describing sampling methodology, CTL routines, and PINN architecture plans.
 - **`paper_templates/`**: Latex and typst templates for documentation or papers.
 - **`reference-code/`**: Reference Python implementations of N-body integrators, lyapunov analysis, and other baselines.
+- **`tools/`**: Verification tooling, e.g. `spec-render-check/`, the framework-spec render detector suite added in v1.4 Phase 22.
 
 ---
 

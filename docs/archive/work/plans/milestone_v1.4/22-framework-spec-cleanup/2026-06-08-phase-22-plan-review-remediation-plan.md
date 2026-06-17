@@ -14,7 +14,7 @@ executed_at: 2026-06-09T10:23:17+0800
 review_status: reviewed
 retirement_trigger: "Phase 22 planning artifacts are revised, review findings are closed out, and reference audit passes"
 retirement_trigger_met: 2026-06-09
-closeout_evidence: docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-09-phase22-review-closeout-matrix.md
+closeout_evidence: docs/archive/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-09-phase22-review-closeout-matrix.md
 ---
 
 # docs: Remediate Phase 22 planning artifacts from plan audits
@@ -314,8 +314,8 @@ Out of scope:
 - `.planning/ROADMAP.md`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-VALIDATION.md`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-04-PLAN.md`
-- `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md` read-only
-- `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md` read-only
+- `docs/archive/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md` read-only
+- `docs/archive/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md` read-only
 
 **Approach:**
 - Update `.planning/ROADMAP.md` Phase 22 row from `0/TBD | Not planned` to the correct five-plan planned state. Do not mark Phase 22 complete.
@@ -357,8 +357,8 @@ Before committing, run `git status --short --branch`, inspect staged and unstage
 
 ## Sources
 
-- `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md`
-- `docs/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md`
+- `docs/archive/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/2026-06-08-phase22-adversarial-plan-audit.md`
+- `docs/archive/work/reviews/milestone_v1.4/22-framework-spec-cleanup/review_of_plans/phase-22-adversarial-audit-report.md`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-01-PLAN.md`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-02-PLAN.md`
 - `.planning/milestones/v1.4-phases/22-framework-spec-cleanup/22-03-PLAN.md`

@@ -1,33 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Resolving 01 Architecture and Physics Foundations
-status: Awaiting next milestone
-last_updated: "2026-06-09T14:55:06.084Z"
-last_activity: 2026-06-09 — Milestone v1.4 completed and archived
+milestone: v1.5
+milestone_name: Resolving 02 Data Pipeline and Validation
+status: verifying
+stopped_at: context exhaustion at 81% (2026-06-17)
+last_updated: "2026-06-17T12:48:09.367Z"
+last_activity: 2026-06-17 -- G1-G8 closure gate re-executed fresh and PASS recorded in 29-VALIDATION.md; STATE.md lifted to closure-ready status.
 progress:
   total_phases: 8
-  completed_phases: 8
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
+  completed_phases: 7
+  total_plans: 28
+  completed_plans: 27
+  percent: 88
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-09)
+See: .planning/PROJECT.md (updated 2026-06-12)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Planning the next milestone; no scope has been selected
+**Current focus:** Phase 29 — Acceptance Checks, Re-verification, and Handoff
 
 ## Current Position
 
-Phase: Milestone v1.4 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-09 — Milestone v1.4 completed and archived
+Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — CLOSURE-READY (2/2 plans complete + gate passed)
+Plan: 2 of 2 complete
+Status: **Milestone v1.5 closure-ready.** All 8 v1.5 phases executed and verified. Phase 29 Plan 01 (29-UAT.md; AC suite green; ledger terminal; traceability) + Plan 02 (29-HANDOFF.md; 3 SI dispositions; G1-G8 closure gate) both complete; 29-VERIFICATION.md PASSED (5/5 must-haves; D-08 human item resolved). G1-G8 milestone-closure gate PASSED 2026-06-17 with fresh re-execution — recorded in 29-VALIDATION.md §"Milestone-Closure Gate Pass". VER-07/08/09/11/12 reconciled to complete in REQUIREMENTS.md + ROADMAP. FO-1 durability scripts + 3 review files committed. The v1.5 --no-ff merge to master is the user-owned final step.
+Next: User-owned `--no-ff` merge of `milestone/v1.5` → `master` to close out v1.5. FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate: promote the 117 validated gold + 184→67 cascade (GAP-29-01, FO-1), then PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
+Last activity: 2026-06-17 -- G1-G8 closure gate re-executed fresh and PASS recorded in 29-VALIDATION.md; STATE.md lifted to closure-ready status.
+
+**Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
 ## Performance Metrics
 
@@ -65,6 +69,16 @@ Last activity: 2026-06-09 — Milestone v1.4 completed and archived
 | 20 | 5 | - | - |
 | 20.5 | 1 | - | - |
 | 21 | 2 | complete | 2026-06-08 |
+| Phase 23 P04 | 12min | 2 tasks | 1 files |
+| Phase 23 P05 | 15min | 2 tasks | 2 files |
+| 23 | 5 | - | - |
+| 24.5 | 1 | - | - |
+| 25 | 2 | - | - |
+| Phase 26 P26-02 | 28 | 2 tasks | 3 files |
+| Phase 26 P26-05 | ~25 min | 3 tasks | 4 files |
+| 26 | 5 | - | - |
+| Phase 27 P01 | 15min | 3 tasks | 3 files |
+| Phase 27 P02 | 15min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,12 +88,27 @@ Last activity: 2026-06-09 — Milestone v1.4 completed and archived
 - v1.1: LaTeX Modularization Verification (Phases 5-8) — shipped 2026-03-22
 - v1.2: PINN Implementation Readiness (Phase 9) — complete; 3 thematic docs + MIGRATION.md + README.md written, verified and validated
 - v1.3: Markdown Conversion Verification & Correction (Phases 10-15, 15.1) — shipped 2026-05-08; post-ship SCS gate correction verified 2026-05-15
-- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — complete and verified 2026-06-09. All phases closed; milestone ready for `--no-ff` merge to master. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
+- v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — shipped 2026-06-09. All phases closed; archived under `.planning/milestones/v1.4-*`. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
+- v1.5: Resolving 02 Data Pipeline and Validation (Phases 23-29) — roadmap created 2026-06-10, revised same day (phase-order swap). 36/36 requirements mapped; standard granularity; 7 phases. Phase 23 (research package) first; Phase 24 (verification + DATA-07 addendum) runs in parallel with the external-research gate; Phases 25-29 gate on the resolution doc AND Phase 24. Spec edits limited to `ctl_instruction.md` and `pinn_architecture.md` (SCOPE-08/09/10). Branch `milestone/v1.5` from master HEAD `b8b39a4`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
-- Phase 15.1 edited (2026-05-07): scope narrowed to v1.3 review report issues only; new issues handled via GSD workflow
-- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15), survived adversarial review (3 BLOCK + 7 FLAG fixes applied), and completed execution 2026-06-07. Inserts between Phase 20 and Phase 21; locks Option A (`u_4` scale, `u_5`–`u_7` velocity for standard config) matching `simulation_data/Scripts/ic_generation/ic_generation_utils.py`. Introduces SCOPE-05 (data-spec alignment carveout); completion artifacts are archived under `.planning/milestones/v1.4-phases/20.5-sampling-coordinate-allocation/`.
-- Phase 21 (Acceptance Checks, Validation Execution, and Handoff) repaired and completed 2026-06-08. All five Section 10 probes execute under `.venv/bin/python` with raw stdout evidence and SHA-256 hashes archived in `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/21-PROBE-RESULTS.md`; SI metadata reconciliation and handoff are recorded in `21-HANDOFF.md` and the Phase 16 ledger addendum.
-- Phase 22 completed 2026-06-09: presentation-preserving framework-spec cleanup passed G1-G4 and VER-05.
+- Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15); completed execution 2026-06-07.
+
+### v1.5 Phase Summary
+
+| Phase | Focus | Requirements | Gate |
+|-------|-------|--------------|------|
+| 23 | Research package assembly (annotated doc list + framed questions, figures "claimed, unverified") + DQA characterization | PKG-01..04 | None (first phase); delivery opens external gate |
+| 24 | Empirical dataset verification + DATA-07 correction addendum (seeds the issue ledger) | DATA-01..07 | None external; runs in parallel with gate window; depends on Phase 23 |
+| 24.5 | Resolution doc readiness verification (INSERTED) | Operational (no new IDs) | Consolidated resolution doc + Phase 24 |
+| 25 | Evidence framework, verdicts, root-cause conflict adjudication, re-verification ledger | EVID-06..10, VER-10 | Phase 24.5 |
+| 26 | DataLoader ingestion & selection contracts | PIPE-01, 02, 03, 05, 06, 10 | Phase 24.5 |
+| 27 | Sampling, precision, dt_out/stage-query, global-scale contracts | PIPE-04, 07, 08, 09 | Phase 24.5 |
+| 28 | Validation-metrics contracts (SCS, SASD, IPR, PSC) | VAL-01..04 | Phase 24.5 |
+| 29 | Acceptance checks executed, ledger close, SI-ledger reconcile, handoff | VER-07, 08, 09, 11, 12 | Phase 24.5 |
+
+**Execution order:** 23 → ⛔gate opens (user research starts) ‖ 24 runs in parallel → 24.5 readiness check → 25 → 26 → 27 → 28 → 29.
+
+**Verification protocol (applies to every adjudication phase 25–29):** adjudicate → fix → verify → re-verify after every batch → close only when the acceptance check passes. The issue ledger lives at a stable path under the Phase 24 (empirical-dataset-verification) directory, seeded by Phase 24 and operated through the protocol established in Phase 25. Spec edits limited to `ctl_instruction.md` / `pinn_architecture.md`; probes never touch `pinn/`. STOP protocol in full; phase-local `NN-GAPS.md` + milestone index `.planning/milestones/v1.5-GAPS.md`.
 
 ### v1.4 Phase Summary
 
@@ -93,8 +122,6 @@ Last activity: 2026-06-09 — Milestone v1.4 completed and archived
 | 20.5 | Sampling coordinate allocation | SAMP-01, SAMP-02; SCOPE-05 boundary; complete |
 | 21 | Acceptance checks executed, SI-ledger reconciled, handoff | VER-01, VER-03, VER-04, VER-06 — complete |
 | 22 | Presentation-preserving framework-spec cleanup | Complete; G1-G4 and VER-05 passed |
-
-**Verification protocol (applies to every adjudication phase):** adjudicate → fix → verify → re-verify after every batch → close only when the acceptance check passes. The v1.4 record is archived in `.planning/milestones/v1.4-ROADMAP.md`.
 
 ### v1.3 Phase Summary
 
@@ -111,77 +138,57 @@ Last activity: 2026-06-09 — Milestone v1.4 completed and archived
 
 Recent decisions affecting current work:
 
-- [v1.3]: One phase per LaTeX source (6 phases, Phases 10-15)
-- [v1.3]: Phases ordered hardest-first: CTL (Phase 10) validates the approach before proceeding
-- [v1.3]: Each phase follows: pick best candidate -> audit section-by-section -> fix -> verify -> archive -> report
-- [v1.3]: One-to-one injection fidelity required — markdown must match LaTeX source exactly
-- [v1.3]: Inter-document inconsistencies preserved, not resolved (separate future task)
-- [v1.3]: Commented-out LaTeX sections (\begin{comment}...\end{comment}) excluded from markdown
-- [v1.3]: Best markdown candidate selected per source; unselected duplicates archived to _archive/
-- [v1.3]: Manual comparison only — no automated verification scripts this milestone (deferred to v2)
-- [v1.3]: Milestone complete 2026-05-08 — all 6 markdown conversions verified and archived
-- [Post-v1.3]: SCS gate correction shipped — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, and the data-ingestion gate is `\epsilon_H > 10^{-5}` / `SCS > -5`
-- [v1.4-init]: Resolution doc is NOT authoritative; EVID-05 mandates critical examination of both `ctl_pinn_resolution.md` and `01-architecture-and-physics-foundations.md` against current framework specs and first-principles physics for every contested finding (B-02, B-04, B-09, M5)
-- [v1.4-init]: Iterative re-verification loop (`PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`) codified in VER-05; "fix applied" is not closure — only a passing acceptance check is. Loop expected to iterate; phases do not exit on regressed findings.
-- [v1.4-scope]: Validation suite execution is VER-04 (in Phase 21) — not deferred to FUT — but execution uses disposable validation probes against the v1.4 framework specs. Existing `pinn/` implementation edits are deferred until after the framework specs are settled and live PINN-side code is not v1.4 evidence.
-- [v1.4-init]: M4 (constraint counting) elevated to PHYS-06 — was missing from initial requirement coverage.
-- [v1.4-init]: `master_consolidation_report.md` demoted from co-equal primary source to supporting evidence.
-- [v1.4-workflow]: All Phases 17–22 spec work, including Phase 20.5, happens on `milestone/v1.4` branch; master frozen at branch-root commit until milestone acceptance. One atomic commit per plan completion; tag `v1.4-pre-phase-NN` before each phase begins; `--no-ff` merge to master at milestone end (preserves per-phase commits for granular post-merge revert). Worktree + squash-merge rejected. See PROJECT.md Key Decisions (2026-05-19) for full rationale.
-- [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative, the user performs external research, and EDL artifacts do not resolve gaps or authorize probes/defaults/spec edits without user instruction. GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
-- [v1.2]: Phase 9 consolidated 7 issues files into 3 thematic docs: 01-architecture, 02-data-pipeline, 03-curriculum
-- [v1.1]: Automated Python diffing approach chosen for verification
-- [v1.1]: 4 verification dimensions: content completeness, preamble parity, structure fidelity, compilability
-- [v1.1]: 5 modular structures across 4 directories (sampling-method excluded — no modular structure exists)
-- [Phase 05]: D-01: Full recursive reassembly - resolve all input/include to produce flat file
-- [Phase 06]: D-01: Inline preamble extraction for Data-quality-assessment (no input directive)
-- [Phase 06]: D-02: Brace-depth tracking for multi-line config block extraction
-- [Phase 06]: D-03: Whitespace normalization before comparison (strip trailing, collapse blanks)
-- [Phase 07]: Exclude inactive sections from original comparison (not modular) for correct structural verification
-- [Phase 07]: Section ordering must match original document structure exactly, including commented sections
-- [Phase 07]: Float content formatting (line breaks) must match original exactly for structural fidelity
-- [Phase 08]: D-04: Use latexmk -pdf for compilation (handles multi-pass automatically)
-- [Phase 08]: D-10: PASS = 0 fatal errors in compilation log (lines matching ^!)
-- [Phase 08]: D-15: Normalize warnings by stripping line numbers before comparison
+- [v1.5-roadmap-revision 2026-06-10]: Phase-order swap — **research package first (Phase 23)**, **empirical verification second (Phase 24)**. Rationale: the user's external multi-AI research is the milestone critical path (it gates all adjudication, Phases 25–29), so the package must ship first; figures in the package are marked "claimed, unverified" (PKG-03). PKG-04 (DQA characterization) moves to Phase 23 (read-only, fast, informs the document-list decision). DATA-07 added — a post-verification correction addendum forwarded to the in-flight external research; nil addendum if nothing contradicted. Phase 24 runs in parallel with the gate window and gates on nothing external.
+- [v1.5-roadmap]: 7 phases (23–29), standard granularity, derived from issue-02's simpler shape (one issue doc, two spec-edit targets). Research package (Phase 23) precedes; verification + correction addendum (Phase 24) runs in parallel with the external resolution-doc gate; EVID/PIPE/VAL adjudication (Phases 25–28) and acceptance/handoff (Phase 29) follow the gate AND Phase 24.
+- [v1.5-roadmap]: VER-10 (re-verification ledger) owned by Phase 25; the ledger file lives at a stable path under the **Phase 24 (empirical-dataset-verification)** directory, seeded with the finding inventory + DATA evidence by Phase 24 and operated through the protocol established in Phase 25.
+- [v1.5-roadmap]: VER-08 satisfied by this roadmap (every requirement maps to exactly one phase, 36/36); confirmed again at Phase 29 closure.
+- [v1.5-init]: Resolution doc is NOT authoritative — candidate verdict source only, same standing `ctl_pinn_resolution.md` had in v1.4. Issue doc non-authoritative. Every finding verified empirically before any fix.
+- [v1.5-init]: Spec edits limited to `ctl_instruction.md` / `pinn_architecture.md`; `sampling_method.md` frozen (SCOPE-08); `data_quality_assessment.md` read-only/characterized (SCOPE-09); `pinn/` never touched and not grounding (SCOPE-10).
+- [v1.5-init]: On-disk dataset (SCOPE-06) and `simulation_data/Scripts/` (SCOPE-07) are grounding for v1.5; extends the v1.4 SCOPE-05 carveout.
+- [v1.5-workflow]: All v1.5 work on `milestone/v1.5` branch (cut from master HEAD `b8b39a4`). Tag `v1.5-pre-phase-NN` before each phase; one atomic commit per plan via `scripts/agent-commit`; `--no-ff` merge to master at milestone end.
+- [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative.
+- [Post-v1.3]: SCS gate — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, gate is `\epsilon_H > 10^{-5}` / `SCS > -5`. Known v1.5 tension: issue-02 ratio-based SCS thresholds (`> 1e-6` / `< 1e-8`) conflict with this gate — adjudicated via EVID-10 in Phase 25, edited in Phase 28 (VAL-01).
+- [Phase ?]: [23-04 PKG-02] Framed-research-questions.md authored: six locked v1.4 conventions as verbatim hard constraints (SCS gate cited only to read-only DQA, never editable spec); every in-scope finding posed as a neutral CLM-referenced question in three clusters; both known conflicts (SCS thresholds, D=6.694) and M13 fallback posed without settling; doc-03 items deferred. No STOP gap surfaced.
+- [Phase 23]: Phase 23 research package delivered; external resolution-doc gate OPEN (user multi-AI research starts). Resolution doc lands at research_reports/02-data-pipeline-and-validation/.
+- [Phase 23]: Doc-integrity audit F-08/F-09 contradict two claims carried in the delivered Phase 23 package: gold output filenames carry no gold token (folder-only), and ~2,470 files (1,550+701+219) have NO Result: footer rather than partial footers. CLM-07 claim text affected; CLM-09 values re-verified correct. Package stays byte-stable - audit workstream issues an erratum beside the package; Phase 24 DATA-07 CLM-keyed correction addendum is the authoritative follow-up and must fold these in.
+- [Phase 23→24]: Phase 23 review (`23-REVIEW.md:115-173`) identified four non-blocking warnings (WR-01..04) routed to Phase 24's DATA-07 correction pass: WR-01 (Q-B2 sample-size conflict 1000 vs 100), WR-02 (Hard Constraint 3 wrong line cite 972→967), WR-03 (Q-B1 dangling "§5.3.2" cite, spec says example not contract), WR-04 (CLM-05 dual-observable ambiguity — IC vs Brutus folder counts). Two schema questions (CLM-05 split, new CLM row for WR-01) and one channel question (WR-02/03 citation-fix channel) are surfaced as open decisions in `24-DISCUSSION-LOG.md` — NOT pre-decided. WR-04 shapes DATA-03/04 probe design (count both observables separately). All corrections travel through the correction channel; package byte-stability preserved.
+- [Phase 24.5 2026-06-11]: Resolution-doc readiness verification complete. Gate verdict **READY-WITH-CAVEATS**. All four checks pass: structure citable; 19/19 issue-02 findings covered (0 silent, 0 partial); 0 DATA-xx contradictions across CLM-01..13 + DATA-05; 0 locked-convention violations (HC-1..HC-6 upheld; issue-doc SCS ratio thresholds and D=6.694 rejected). Caveats are deferred-by-design open items the resolution doc registers (OI-3 calibration constants, OI-6 no-footer probe gap, OI-7 Q-A4 label-semantics STOP-gap defeater + gold-rerun residue, OI-8 M11 live-loader outside grounding, OI-11 CLM-13 → EVID-10/PIPE-09, OI-12 optional addendum erratum). Phases 25-29 unblocked. Deliverables: `24.5-READINESS-REPORT.md`, `24.5-RESOLUTION-MAP.md`. No STOP-gap opened.
+- [Phase 24 2026-06-11]: GAP-24-01 (DATA-05 base-hier mass mismatch) resolved with user instruction. Current IC files are canonical; the 70 affected base-hier outputs (`0005`-`0059`, `0061`-`0075`) are invalid/stale artifacts requiring targeted rerun from current ICs; old artifacts are quarantined from training, metrics, and PIPE-07 until rerun validation passes. Remediation boundary recorded in `24-DATA05-RERUN-REMEDIATION.md`; the milestone gap index now has 0 open gaps.
+- [Phase 25 2026-06-12]: Adjudication machinery stood up (`evidence/_TEMPLATE.md` 12-section + §3b Dataset Evidence; protocol README with EVID-10 trigger table, D-03 downstream enforcement, GAP-25-02 adjudicated-but-unfixed legend; `24-ISSUE-LEDGER.md` Lifecycle Rules re-issued to Phases 26–28). Four EVID-10 verdicts locked: SCS `accept-resolution` (locked log-based gate `SCS > -5` stands; ratio thresholds rejected); D=6.694 `accept-resolution` (raw-mass D ≈ 4.6416 stands; CLM-13 ratified `convention-rejected`, OI-11); M12 `accept-third-position` (`n_pts = min(n_pts_cap, n_snapshots)` locked; 0.5× factor rejected); M11 MAJOR→BLOCKING reclassification STANDS (data-integrity grounds; OI-8 carried to Phase 26 PIPE-03/FUT-01). G3/G5 close with parents (D-12). Remaining packets authored by owning phases 26–28 immediately before their spec edits (GAP-25-01 split reading); ledger rows stay PENDING (adjudicated-but-unfixed) until fixes verify.
 
 ### Pending Todos
 
-All v1.3 tasks, the post-ship SCS gate correction, and v1.4 Phases 16-22 are complete. No next milestone is active.
+v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 gated on Phase 24.5 (consolidated resolution doc + readiness check).
 
-- [x] Complete v1.2 Phase 9 verification (deferred — outside v1.3 scope)
-- [x] Execute v1.3 Phases 11-15 (complete)
-- [x] Fix all audit gaps from MILESTONE-AUDIT-v1.3.md (complete — Task #3)
-- [x] Correct and verify SCS/raw-drift gate across LaTeX, PDF, markdown, and closure audit
+- [x] Plan Phase 23 (Research Package Assembly + DQA Characterization) with `/gsd-plan-phase 23`
+- [x] Tag `v1.5-pre-phase-23` from `milestone/v1.5` HEAD before Phase 23 begins
+- [x] **[Standing trigger]** Create `.planning/milestones/v1.5-GAPS.md` index when the first v1.5 phase opens a gap (created 2026-06-11; GAP-24-01 now RESOLVED-WITH-INSTRUCTION)
+- [x] Continue Phase 24 DATA-07 addendum assembly and ledger/facts cleanup with `GAP-24-01` resolved (Phase 24 closed 2026-06-11; do not claim the 70 files are fixed until the rerun remediation gates pass — tracked under `24-DATA05-RERUN-REMEDIATION.md` as a separate operation).
+- [x] (Separate remediation) DATA-05 70-file base-hier rerun from current canonical ICs: preserve old artifacts, run in staging, validate against DATA-05 gates, then replace and regenerate dependent metrics. Recorded under `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-DATA05-RERUN-REMEDIATION.md`. Not a Phase 24 closure prerequisite. (Executed and validated 2026-06-11: 70/70 reruns passed all gates, swap approved, old artifacts archived under `simulation_data/Data/forensic/data05_gap24-01_old_outputs/`; see GAP-24-01 in `.planning/milestones/v1.5-GAPS.md`.)
+- [x] Define v1.5 requirements (36 requirements committed 2026-06-10, incl. DATA-07)
+- [x] Create v1.5 roadmap (Phases 23–29; 36/36 mapped)
+- [x] Revise v1.5 roadmap — phase-order swap, research package first (2026-06-10)
 
 ### Prerequisites
 
-**v1.2 Phase 9 completion** — Phase 9 has 3 thematic docs + MIGRATION.md + README.md written in `pinn_instruction/issues/`. Verification complete. Markdown conversion reorganization also complete (framework-specs/ vs framework-revisions/ taxonomy).
+**v1.4 shipped and merged to master** — framework specs carry the locked v1.4 architecture/physics conventions that v1.5 treats as hard constraints (14D input, Jacobi IC₁₃, COM projection head, PHYS-03 softening, PHYS-01 D convention, post-v1.3 SCS gate).
 
 ### Blockers/Concerns
 
-One dependency-scoped blocker plus three operational notes apply to v1.4 execution:
-
-- GAP-19-01 resolved by user instruction: epsilon_H = 1e-4 * S_H, with S_H = median_train(K0 + Uabs0). Phase 21 validates activation behavior only.
-- **Working branch is `milestone/v1.4`** (cut from master 2026-05-19). Do NOT commit v1.4 spec edits to master. Before each phase begins, tag `v1.4-pre-phase-NN` from the branch HEAD as a named checkpoint. At milestone end, merge to master with `git merge --no-ff milestone/v1.4`. Standard branch-awareness governance (CLAUDE.md / AGENTS.md "CRITICAL GOVERNANCE: Git Branch Awareness") applies — every session must surface `git status --short --branch`, `git branch --show-current`, and `git worktree list` before any file mutation.
-- Phase 16 produced the issue ledger at `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/16-ISSUE-LEDGER.md` and the EVID-05 adjudication template used by Phase 17 and later v1.4 spec phases.
-- Phase 21 execution complete (2026-06-08). The full Section 10 acceptance suite has captured stdout evidence; Phase 22 is presentation cleanup only unless it opens a new grounded gap.
-
-## Quick Tasks Completed
-
-| Task ID | Description | Result | Files |
-|---------|-------------|--------|-------|
-| 260320-rca | Modularize PINN_architecture_plan.tex | 12 files, 13-page PDF, 0 errors/warnings | main.tex, preamble.tex, 6 active + 3 inactive sections, blueprint_summary.tex, bibliography.tex |
-| 260320-rxu | Split CTL-instruction-final.tex | 12 files, 22-page PDF, 0 errors | main_CTL.tex, preamble_CTL.tex, 8 section files |
-| 260320-sh3 | Modularize review_of_ctl-pinn_framework.tex | 9 files, 16-page PDF, 0 errors/warnings | main.tex, preamble.tex, 7 section files |
-| 260320-ssi | Modularize stage-strat-revision.tex | 8 files, 17-page PDF, 0 errors/warnings | main.tex, preamble.tex, 6 section files |
-| 260321-g5d | Modularize data_quality_assess.tex | 9 files, 11-page PDF, 0 errors/warnings | main.tex, preamble.tex, 7 section files |
-| 260322-c01 | Create verify_compile.py | All 5 structures compile with 0 errors, 0 new warnings | verify_compile.py, compile_verification_report.md, tmp/.gitkeep |
-| 260426-bfd | Update Brutus footer docs (resolved missing-footer claims) | 6 files updated; historical audit reports preserved | CLAUDE.md, AGENTS.md, GEMINI.md, ANTIGRAVITY.md, .planning/codebase/CONCERNS.md, .planning/codebase/TESTING.md |
+- **Working branch is `milestone/v1.5`** (cut from master HEAD `b8b39a4`, 2026-06-10). Do NOT commit v1.5 work to master. Tag `v1.5-pre-phase-NN` before each phase; `--no-ff` merge at milestone end. Every session must surface `git status --short --branch` before any file mutation.
+- **External gate:** opens on Phase 23 (research package) delivery. Phase 24.5 verifies the consolidated resolution doc before adjudication begins. Phases 25–29 cannot start until Phase 24.5 passes (which requires BOTH the consolidated resolution doc landing AND Phase 24 completion). Phase 23 is unblocked; Phase 24 is unblocked and runs in parallel with the gate window (gates on nothing external).
+- **DATA-05 remediation boundary:** GAP-24-01 is resolved as a decision, not as completed data repair. The old 70 base-hier outputs (`0005`-`0059`, `0061`-`0075`) are quarantined from training, metrics, and PIPE-07 until targeted rerun from current ICs passes validation (`24-DATA05-RERUN-REMEDIATION.md`).
+- **STOP protocol active:** v1.5 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
+- Phase 24.5 passed 2026-06-11 (READY-WITH-CAVEATS) and Phase 25 closed 2026-06-12 — Phases 26–28 proceed under the Phase 25 machinery: evidence packet before any spec edit (EVID-06), same-commit ledger wiring (D-06), phase-exit only at VERIFIED/DEFERRED; carry the resolution-doc OI caveats (OI-3/6/7/8/11/12) forward.
 
 ## Session Continuity
 
-Last session: 2026-06-09T22:55:00+0800
-Next action: Define the next milestone with `$gsd-new-milestone`; branch integration remains a separate manual decision.
+Last session: 2026-06-17T12:48:09.363Z
+Stopped at: context exhaustion at 81% (2026-06-17)
+Next action: User-owned `--no-ff` merge of `milestone/v1.5` → `master` to close out v1.5. FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate.
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Phases 23 and 24 are closed; the issue-02 consolidation input package (bundles + manifest + originals) is committed and hash-verified.
+- DATA-05 70-file rerun remediation executed and validated 2026-06-11 (all eight gates closed); old artifacts archived under `simulation_data/Data/forensic/data05_gap24-01_old_outputs/`.
+- Phases 25–29 unblock once the consolidated resolution doc lands and Phase 24.5 readiness verification passes (Phase 24 completion side of the gate is already met).

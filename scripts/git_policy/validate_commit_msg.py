@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -87,6 +88,48 @@ def staged_files():
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
+def split_owned_paths(raw):
+    return [part.strip().rstrip("/") for part in re.split(r"[:\n]", raw or "") if part.strip()]
+
+
+def normalize_owned_path(path):
+    if path in {"", ".", "/"}:
+        return None
+    if path.startswith("/") or path.startswith("./"):
+        return None
+    parts = path.split("/")
+    if any(part in {"", ".", ".."} for part in parts):
+        return None
+    normalized = posixpath.normpath(path)
+    if normalized in {"", ".", "/"} or normalized.startswith("../"):
+        return None
+    return normalized
+
+
+def path_is_owned(path, owned_paths):
+    return any(path == owned or path.startswith(f"{owned}/") for owned in owned_paths)
+
+
+def validate_agent_owned_paths(paths):
+    raw = os.environ.get("GIT_AGENT_OWNED_PATHS", "")
+    owned_paths = split_owned_paths(raw)
+    if not owned_paths:
+        return fail("GIT_AGENT_OWNED_PATHS is required for agent commits")
+
+    normalized = []
+    for path in owned_paths:
+        safe_path = normalize_owned_path(path)
+        if safe_path is None:
+            return fail(f"GIT_AGENT_OWNED_PATHS contains unsafe path '{path}'")
+        normalized.append(safe_path)
+
+    for path in paths:
+        if not path_is_owned(path, normalized):
+            return fail(f"staged file outside declared owned paths: {path}")
+
+    return 0
+
+
 def valid_scope(scope):
     return scope in FIXED_SCOPES or PHASE_SCOPE_RE.match(scope) or TASK_SCOPE_RE.match(scope)
 
@@ -162,8 +205,12 @@ def main(argv):
     if body_required and not body:
         return fail("commit body is required for this commit")
 
-    if os.environ.get("GIT_AGENT_COMMIT") == "1" and not has_agent_trailer(trailers):
-        return fail("agent commits must include Agent-Assisted-By or Co-Authored-By trailer")
+    if os.environ.get("GIT_AGENT_COMMIT") == "1":
+        ownership_status = validate_agent_owned_paths(paths)
+        if ownership_status:
+            return ownership_status
+        if not has_agent_trailer(trailers):
+            return fail("agent commits must include Agent-Assisted-By or Co-Authored-By trailer")
 
     return 0
 
