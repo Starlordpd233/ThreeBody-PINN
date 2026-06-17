@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-stopped_at: Phase 29 Plan 01 complete — 13-check AC suite re-run fresh (12 PASS + AC-VAL-04 structural-PASS/numeric-DEFERRED), 19-row ledger audit (18 VERIFIED + 1 DEFERRED [PSC, reframed to FUT-01 FO-2]), 36/36 traceability confirmed, ROADMAP reconciled to PSC-landed. Plan 02 (29-HANDOFF.md + G1-G8 closure gate) next. GAP-29-01 Option A; promotion + 184->67 cascade carried to FUT-01 FO-1.
-last_updated: "2026-06-17T09:15:00.000Z"
-last_activity: 2026-06-17 -- Phase 29 Plan 01 executed (AC suite re-run, ledger audit, traceability, ROADMAP reconcile)
+stopped_at: Phase 29 FULLY EXECUTED (2/2 plans). Plan 02 complete — 29-HANDOFF.md authored (7 sections: Evidence/Fixed[18]/Unchanged/Deferred/SI-Reconciliation/FUT-01/G1-G8 gate); 3 VER-12 SI dispositions recorded (SI-DQA-002/003 retired-with-VAL-01-backref; SI-PINN-002 preserve-with-reason→FUT-05, user-APPROVED at the D-08 STOP checkpoint); G1-G8 numerically-defined closure gate transcribed with route-back-on-fail. VER-11/12 satisfied. All 8 v1.5 phases executed; FUT-01 handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) complete. Closure gated on G1-G8 (gsd-verifier records 29-VERIFICATION.md downstream).
+last_updated: "2026-06-17T10:30:00.000Z"
+last_activity: 2026-06-17 -- Phase 29 Plan 02 executed (29-HANDOFF.md + 3 SI dispositions + G1-G8 closure gate); Phase 29 fully executed
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 28
-  completed_plans: 26
-  percent: 79
+  completed_plans: 27
+  percent: 82
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — EXECUTING
-Plan: 1 of 2 complete (Plan 02 next)
-Status: Executing Phase 29 — Plan 01 complete (29-UAT.md landed; AC suite green; ledger terminal; traceability confirmed)
-Next: Phase 29 Plan 02 (VER-11/12): author 29-HANDOFF.md (fixed/intentionally-unchanged/deferred + the three SI dispositions SI-DQA-002/003, SI-PINN-002 with the SI-PINN-002 source-silence STOP check) and define the numerically-defined G1-G8 milestone-closure gate with route-back-on-fail. Carry-forward to the FUT-01 dataset-finalization gate (29-CODE-DIVERGENCE.md): promote the 117 validated gold + 184->67 cascade (GAP-29-01 ruling, FO-1), then the PSC/SCR first-run sanity check on the post-promotion pool + SASD/IPR/PSC constant recalibration (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
-Last activity: 2026-06-17 -- Phase 29 Plan 01 executed (AC suite re-run, ledger audit, traceability, ROADMAP reconcile)
+Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — FULLY EXECUTED (2/2 plans)
+Plan: 2 of 2 complete
+Status: Phase 29 executed — Plan 01 (29-UAT.md; AC suite green; ledger terminal; traceability) + Plan 02 (29-HANDOFF.md; 3 SI dispositions; G1-G8 closure gate) both complete. VER-07/08/09/11/12 satisfied. All 8 v1.5 phases executed.
+Next: Milestone-closure verification/validation (gsd-verifier records the G1-G8 gate result in 29-VERIFICATION.md / 29-VALIDATION.md), then the v1.5 --no-ff merge to master. FUT-01 consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate: promote the 117 validated gold + 184->67 cascade (GAP-29-01, FO-1), then PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
+Last activity: 2026-06-17 -- Phase 29 Plan 02 executed (29-HANDOFF.md + 3 SI dispositions + G1-G8 closure gate); Phase 29 fully executed
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 

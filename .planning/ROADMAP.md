@@ -296,11 +296,11 @@ Every selected finding follows the v1.4-style loop:
 Plans:
 **Wave 1**
 
-- [ ] 29-01-PLAN.md — re-execute the full 13-check AC-PIPE/AC-VAL suite as fresh disposable probes into 29-UAT.md; audit the 19-row ledger to terminal state (reframe the PSC-row blocker per D-06); confirm 36/36 traceability; reconcile the stale ROADMAP Progress row (Wave 1; VER-07/08/09)
+- [x] 29-01-PLAN.md — re-execute the full 13-check AC-PIPE/AC-VAL suite as fresh disposable probes into 29-UAT.md; audit the 19-row ledger to terminal state (reframe the PSC-row blocker per D-06); confirm 36/36 traceability; reconcile the stale ROADMAP Progress row (Wave 1; VER-07/08/09)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 29-02-PLAN.md — author 29-HANDOFF.md (fixed/unchanged/deferred + the three SI dispositions, SI-PINN-002 source-silence STOP check) and define the numerically-defined G1-G8 milestone-closure gate with route-back-on-fail (Wave 2; VER-11/12)
+- [x] 29-02-PLAN.md — author 29-HANDOFF.md (fixed/unchanged/deferred + the three SI dispositions, SI-PINN-002 source-silence STOP check) and define the numerically-defined G1-G8 milestone-closure gate with route-back-on-fail (Wave 2; VER-11/12)
 
 ## Progress
 
@@ -315,7 +315,7 @@ Plans:
 | 26. DataLoader Ingestion and Selection Contracts | v1.5 | 5/5 | Complete    | 2026-06-13 |
 | 27. Sampling, Precision, and Global-Scale Contracts | v1.5 | 4/4 | Complete    | 2026-06-14 |
 | 28. Validation-Metrics Contracts | v1.5 | 4/4 | Complete — SCS/SASD/IPR + VAL-04/PSC LANDED (GAP-28-03 reopened+RESOLVED 2026-06-17; AC-VAL-04 numeric→FUT-01) | 2026-06-16 |
-| 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 1/2 | In progress (Plan 01: AC suite re-run + ledger audit + traceability + ROADMAP reconcile) | - |
+| 29. Acceptance Checks, Re-verification, and Handoff | v1.5 | 2/2 | Complete — Plan 01 (AC suite re-run + ledger audit + traceability) + Plan 02 (29-HANDOFF.md + 3 SI dispositions + G1-G8 closure gate); VER-07/08/09/11/12 satisfied | 2026-06-17 |
 
 ---
-*Last updated: 2026-06-17 — Phase 28 closed (4/4 contracts: SCS/SASD/IPR + PSC landed; GAP-28-03 reopened+RESOLVED; AC-VAL-04 numeric→FUT-01 FO-2); Phase 29 in progress (Plan 01: 13-check AC suite re-run 12 PASS + AC-VAL-04 split, 19-row ledger audit 18 VERIFIED + 1 DEFERRED, 36/36 traceability confirmed).*
+*Last updated: 2026-06-17 — Phase 29 fully executed (2/2 plans): Plan 01 (13-check AC suite re-run 12 PASS + AC-VAL-04 split, 19-row ledger audit 18 VERIFIED + 1 DEFERRED, 36/36 traceability) + Plan 02 (29-HANDOFF.md with 7 sections; SI-DQA-002/003 retired-with-VAL-01-backref + SI-PINN-002 preserve-with-reason→FUT-05 [user-approved D-08 checkpoint]; G1-G8 numerically-defined closure gate). All 8 v1.5 phases executed; milestone-closure gated on G1-G8.*
