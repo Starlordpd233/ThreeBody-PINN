@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: executing
-stopped_at: Phase 29 FULLY EXECUTED (2/2 plans). Plan 02 complete — 29-HANDOFF.md authored (7 sections: Evidence/Fixed[18]/Unchanged/Deferred/SI-Reconciliation/FUT-01/G1-G8 gate); 3 VER-12 SI dispositions recorded (SI-DQA-002/003 retired-with-VAL-01-backref; SI-PINN-002 preserve-with-reason→FUT-05, user-APPROVED at the D-08 STOP checkpoint); G1-G8 numerically-defined closure gate transcribed with route-back-on-fail. VER-11/12 satisfied. All 8 v1.5 phases executed; FUT-01 handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) complete. Phase-goal verification PASSED 2026-06-17 (29-VERIFICATION.md status=passed; 5/5 must-haves; the single D-08 human item resolved — user approved SI-PINN-002 preserve-with-reason, recorded in 29-HANDOFF.md §4). REQUIREMENTS VER-07/08/09/11/12 and the ROADMAP Phase-29 bullet reconciled to complete. Remaining: milestone-closure G1-G8 gate + v1.5 --no-ff merge to master (user-owned).
-last_updated: "2026-06-17T11:00:00.000Z"
-last_activity: 2026-06-17 -- Phase 29 verified (29-VERIFICATION.md passed, 5/5; D-08 resolved); REQUIREMENTS VER-07/08/09/11/12 + ROADMAP Phase-29 bullet reconciled to complete
+status: closure-ready
+stopped_at: Milestone v1.5 closure-ready. G1-G8 milestone-closure gate PASSED 2026-06-17 (12 PASS + AC-VAL-04 STRUCTURAL PASS / NUMERIC DEFERRED; 0 FAIL); fresh re-execution recorded in 29-VALIDATION.md §"Milestone-Closure Gate Pass" (commit b2c5a00). 19-row ledger audit: 18 VERIFIED + 1 DEFERRED (PSC). 36/36 traceability confirmed; REQUIREMENTS VER-07/08/09/11/12 + ROADMAP Phase-29 bullet already reconciled to complete. 3 SI dispositions recorded (SI-DQA-002/003 retired-with-VAL-01-backref; SI-PINN-002 preserve-with-reason→FUT-01, user-APPROVED at D-08). FO-1 durability (rerun_standard_gold_missing_184.py + test) and 3 untracked review files preserved via commits 1b1c939e and f6e1367. Remaining: v1.5 --no-ff merge to master (user-owned). FUT-01 consumes 29-HANDOFF.md + 29-CODE-DIVERGENCE.md at the dataset-finalization gate: FO-1 (117 promotion + 184→67 cascade) then FO-2 (PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run). Gold is final in shape: 117 validatable + 67 permanent-absent.
+last_updated: "2026-06-17T11:45:00.000Z"
+last_activity: 2026-06-17 -- G1-G8 closure gate re-executed fresh and PASS recorded (29-VALIDATION.md lifted from draft → satisfied; commit b2c5a00). FO-1 durability scripts committed (1b1c939e). Three untracked review files committed (f6e1367).
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 28
-  completed_plans: 27
-  percent: 82
+  completed_plans: 28
+  percent: 100
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — FULLY EXECUTED (2/2 plans)
+Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — CLOSURE-READY (2/2 plans complete + gate passed)
 Plan: 2 of 2 complete
-Status: Phase 29 executed AND verified — Plan 01 (29-UAT.md; AC suite green; ledger terminal; traceability) + Plan 02 (29-HANDOFF.md; 3 SI dispositions; G1-G8 closure gate) both complete; 29-VERIFICATION.md PASSED (5/5 must-haves; D-08 human item resolved). VER-07/08/09/11/12 reconciled to complete in REQUIREMENTS.md + ROADMAP. All 8 v1.5 phases executed and verified.
-Next: Milestone-closure verification/validation (gsd-verifier records the G1-G8 gate result in 29-VERIFICATION.md / 29-VALIDATION.md), then the v1.5 --no-ff merge to master. FUT-01 consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate: promote the 117 validated gold + 184->67 cascade (GAP-29-01, FO-1), then PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
-Last activity: 2026-06-17 -- Phase 29 Plan 02 executed (29-HANDOFF.md + 3 SI dispositions + G1-G8 closure gate); Phase 29 fully executed
+Status: **Milestone v1.5 closure-ready.** All 8 v1.5 phases executed and verified. Phase 29 Plan 01 (29-UAT.md; AC suite green; ledger terminal; traceability) + Plan 02 (29-HANDOFF.md; 3 SI dispositions; G1-G8 closure gate) both complete; 29-VERIFICATION.md PASSED (5/5 must-haves; D-08 human item resolved). G1-G8 milestone-closure gate PASSED 2026-06-17 with fresh re-execution — recorded in 29-VALIDATION.md §"Milestone-Closure Gate Pass". VER-07/08/09/11/12 reconciled to complete in REQUIREMENTS.md + ROADMAP. FO-1 durability scripts + 3 review files committed. The v1.5 --no-ff merge to master is the user-owned final step.
+Next: User-owned `--no-ff` merge of `milestone/v1.5` → `master` to close out v1.5. FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate: promote the 117 validated gold + 184→67 cascade (GAP-29-01, FO-1), then PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
+Last activity: 2026-06-17 -- G1-G8 closure gate re-executed fresh and PASS recorded in 29-VALIDATION.md; STATE.md lifted to closure-ready status.
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
@@ -183,9 +183,9 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-16T22:01:00+08:00
-Stopped at: Phase 29 context gathered (discuss complete); paused before plan per user. GAP-29-01 resolved Option A (planning-layer gold reconciliation; promotion + 184->67 cascade RULED 2026-06-16 to the FUT-01 gate, 29-CODE-DIVERGENCE.md). GAP-28-03/PSC reopened + RESOLVED 2026-06-17.
-Next action: Review .planning/phases/29-acceptance-checks-re-verification-and-handoff/29-CONTEXT.md and 29-CODE-DIVERGENCE.md, then /gsd-plan-phase 29. GAP-29-01 promote+cascade RULED to the FUT-01 dataset-finalization gate (29-CODE-DIVERGENCE.md FO-1); PSC/VAL-04 LANDED (GAP-28-03 RESOLVED 2026-06-17).
+Last session: 2026-06-17T19:45:00+08:00
+Stopped at: Milestone v1.5 closure-ready. G1-G8 gate PASSED fresh (29-VALIDATION.md §"Milestone-Closure Gate Pass"; commit b2c5a00). 19-row ledger: 18 VERIFIED + 1 DEFERRED. 36/36 traceability. 3 SI dispositions recorded. FO-1 durability scripts (1b1c939e) + 3 review files (f6e1367) committed. STATE.md lifted to closure-ready.
+Next action: User-owned `--no-ff` merge of `milestone/v1.5` → `master` to close out v1.5. FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate.
 
 ## Operator Next Steps
 
