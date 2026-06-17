@@ -15,7 +15,7 @@ If this repository is being opened on the new Mac during the workstation migrati
 
 ## CRITICAL GOVERNANCE: v1.4 and similar adjudication milestones
 
-**For every phase in v1.4 (Phases 17, 18, 19, 20, 20.5, 21, 22), every phase in v1.5 (Phases 23–29) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
+**For every phase in v1.4 (Phases 17, 18, 19, 20, 20.5, 21, 22), every phase in v1.5 (Phases 23–29), every phase in v1.6 (Phases 30–36) — and every future adjudication milestone where a "candidate verdict source" is designated — do NOT invent content where source materials are silent or ambiguous. STOP the affected work, surface the gap with full context, and wait for user instruction. The agent does NOT proceed past a non-grounded MUST-surface decision under any circumstance.**
 
 ### v1.5 applicability (2026-06-10)
 
@@ -27,6 +27,17 @@ v1.5 "Resolving 02 Data Pipeline and Validation" (Phases 23–29, branch `milest
 - Framework-spec sections revised during v1.4 or v1.5 are grounding; the `pinn/` live-code ban persists unchanged.
 - Spec-edit targets are `ctl_instruction.md` and `pinn_architecture.md` ONLY; `sampling_method.md` is frozen by default (SCOPE-08); `data_quality_assessment.md` is read-only (SCOPE-09).
 - The milestone-wide gap index for v1.5 phases is `.planning/milestones/v1.5-GAPS.md` (read step 4 of the STOP protocol accordingly).
+
+### v1.6 applicability (2026-06-17)
+
+v1.6 "Resolving 03 Curriculum and Training Loop" (Phases 30–36, branch `milestone/v1.6`) runs under this protocol. Read the grounding test below with these substitutions and extensions for v1.6 work:
+
+- The issue doc is `pinn_instruction/issues/03-curriculum-and-training-loop.md` (non-authoritative; consolidates the 2026-04-27 audit Sections 6–7, the Causal Training Mismatch blueprint, the stage-assignment methodology, and `next steps.txt`; carries the `D = 6.694` claim that conflicts with the v1.5-locked raw-mass `D ≈ 4.6416`).
+- The candidate verdict source is the **user-produced resolution doc** expected under `pinn_instruction/markdown_conversion/framework-revisions/research_reports/03-curriculum-and-training-loop/`. It does not exist until the user's external research (ERW) delivers it; adjudication Phases 32–36 cannot start until it lands AND Phase 31 (resolution-doc readiness verification) passes.
+- Additional grounding (SCOPE-12 in `.planning/REQUIREMENTS.md`): the locked v1.4 (doc-01) and v1.5 (doc-02) framework-spec outcomes are hard constraints — 14D input `[τ, IC₁₃]`, Jacobi IC₁₃, mass-weighted COM projection head, PHYS-03 softening `eps_soft = 1e-5`, the post-v1.3 SCS gate (`ε_H > 10⁻⁵` / `SCS > −5`), the raw-mass `D ≈ 4.6416` convention (`D = 6.694` rejected by v1.5 Phase 25 EVID-10), and the v1.5 DataLoader/stage-query/validation-metric contracts (PIPE-01..10, VAL-01..04) — plus v1.5-verified dataset facts.
+- Framework-spec sections revised during v1.4, v1.5, or v1.6 are grounding; the `pinn/` live-code ban persists unchanged.
+- v1.6 is **specwork-only** (user-confirmed 2026-06-17): spec-edit targets are `ctl_instruction.md` and `pinn_architecture.md` ONLY (SCOPE-13); `sampling_method.md` is frozen (SCOPE-08); `data_quality_assessment.md`, `review-of-framework.md`, and `stage-strat-revision.md` are read-only (SCOPE-09). Training-loop code, the adaptive-stage-assignment EDA run, and the Stage-0 pilot are FUT-01/FUT-04 (SCOPE-14/15) — never implemented in v1.6; the verbatim audit "Section 6" pseudocode is transcribed as a normative spec contract, not executed.
+- The milestone-wide gap index for v1.6 phases is `.planning/milestones/v1.6-GAPS.md` (created on the first v1.6 STOP gap, per the standing trigger; read step 4 of the STOP protocol accordingly).
 
 ### Grounded vs. silent: the test
 
