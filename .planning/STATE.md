@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: closure-ready
-stopped_at: Milestone v1.5 closure-ready. G1-G8 milestone-closure gate PASSED 2026-06-17 (12 PASS + AC-VAL-04 STRUCTURAL PASS / NUMERIC DEFERRED; 0 FAIL); fresh re-execution recorded in 29-VALIDATION.md §"Milestone-Closure Gate Pass" (commit b2c5a00). 19-row ledger audit: 18 VERIFIED + 1 DEFERRED (PSC). 36/36 traceability confirmed; REQUIREMENTS VER-07/08/09/11/12 + ROADMAP Phase-29 bullet already reconciled to complete. 3 SI dispositions recorded (SI-DQA-002/003 retired-with-VAL-01-backref; SI-PINN-002 preserve-with-reason→FUT-01, user-APPROVED at D-08). FO-1 durability (rerun_standard_gold_missing_184.py + test) and 3 untracked review files preserved via commits 1b1c939e and f6e1367. Remaining: v1.5 --no-ff merge to master (user-owned). FUT-01 consumes 29-HANDOFF.md + 29-CODE-DIVERGENCE.md at the dataset-finalization gate: FO-1 (117 promotion + 184→67 cascade) then FO-2 (PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run). Gold is final in shape: 117 validatable + 67 permanent-absent.
-last_updated: "2026-06-17T11:45:00.000Z"
-last_activity: 2026-06-17 -- G1-G8 closure gate re-executed fresh and PASS recorded (29-VALIDATION.md lifted from draft → satisfied; commit b2c5a00). FO-1 durability scripts committed (1b1c939e). Three untracked review files committed (f6e1367).
+status: verifying
+stopped_at: context exhaustion at 81% (2026-06-17)
+last_updated: "2026-06-17T12:48:09.367Z"
+last_activity: 2026-06-17 -- G1-G8 closure gate re-executed fresh and PASS recorded in 29-VALIDATION.md; STATE.md lifted to closure-ready status.
 progress:
   total_phases: 8
-  completed_phases: 8
+  completed_phases: 7
   total_plans: 28
-  completed_plans: 28
-  percent: 100
+  completed_plans: 27
+  percent: 88
 ---
 
 # Project State
@@ -183,8 +183,8 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 ## Session Continuity
 
-Last session: 2026-06-17T19:45:00+08:00
-Stopped at: Milestone v1.5 closure-ready. G1-G8 gate PASSED fresh (29-VALIDATION.md §"Milestone-Closure Gate Pass"; commit b2c5a00). 19-row ledger: 18 VERIFIED + 1 DEFERRED. 36/36 traceability. 3 SI dispositions recorded. FO-1 durability scripts (1b1c939e) + 3 review files (f6e1367) committed. STATE.md lifted to closure-ready.
+Last session: 2026-06-17T12:48:09.363Z
+Stopped at: context exhaustion at 81% (2026-06-17)
 Next action: User-owned `--no-ff` merge of `milestone/v1.5` → `master` to close out v1.5. FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate.
 
 ## Operator Next Steps
