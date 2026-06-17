@@ -83,6 +83,46 @@
 
 ---
 
+## Milestone: v1.5 — Resolving 02 Data Pipeline and Validation
+
+**Shipped:** 2026-06-17
+**Phases:** 8 | **Plans:** 27
+
+### What Was Built
+- Research package that opened the external resolution-doc gate; empirical dataset verification with re-derivable probes (DATA-01..07, including a 70-file base-hierarchical rerun for DATA-05)
+- Evidence-packet / EVID-10 root-cause adjudication machinery and the re-verification issue ledger; SCS-threshold, D=6.694, and M11/M12 conflicts adjudicated at root cause
+- Locked DataLoader ingestion/selection contracts and sampling/precision/global-scale contracts in `ctl_instruction.md` / `pinn_architecture.md`
+- Canonical SCS/SASD/IPR/PSC validation-metric contracts with training-loop usage deferred to doc-03
+- Executed the 13-check acceptance suite (G1–G8 gate PASS), closed the 19-row ledger, reconciled SI dispositions, and produced the two-artifact FUT-01 handoff
+
+### What Worked
+- The v1.4 adjudication machinery (evidence packets, EVID-10, ledger lifecycle, STOP protocol) carried over cleanly and kept every decision grounded
+- Running empirical verification (Phase 24) in parallel with the external research gate compressed the critical path
+- The G1–G8 milestone-closure gate with fresh re-execution caught reconciliation drift (unchecked requirement checkboxes, stale traceability rows) before archive
+
+### What Was Inefficient
+- The milestone audit found unchecked DATA/PIPE checkboxes and stale Phase-24.5-gated traceability rows that should have been flipped at each phase close, not at the milestone audit
+- Four phases (24, 25, 27, 28) lacked a phase-level VERIFICATION.md; the issue ledger carried verification, but this required an explicit audit interpretation
+- The v1.5 learnings extraction (commit 01274c6) covered only phases 26-29; the phases 23-25 learnings and the audit file were left in a stash and had to be recovered at archive
+- A concurrent-session phase-dir move staged probe-output files that the `outputs/*` policy blocks, stalling its commit until a coordinated takeover
+
+### Patterns Established
+- Candidate verdict sources remain evidence, not authority; the resolution doc was transcribed only where it survived empirical and first-principles checks
+- Provisional thresholds (VAL-02/03/04) land with an explicit FUT-01/doc-03 recalibration forward-reference rather than blocking the milestone
+- Gold is final in shape (117 validatable + 67 permanent-absent); the promotion cascade is a FUT-01 data-generation dependency, not a v1.5 closure blocker
+
+### Key Lessons
+1. Flip requirement checkboxes and advance traceability rows at each phase close, not deferred to the milestone audit.
+2. A milestone learnings extraction must cover all phases in one pass, or the remainder lands in scratch and must be recovered at archive.
+3. When two sessions share a worktree, a pre-commit hook rejection (e.g., `outputs/*` policy) can stall one agent indefinitely — serialize commits via the `agent-commit` lock and coordinate takeovers explicitly.
+
+### Cost Observations
+- Model mix: not captured reliably
+- Sessions: many (v1.5 spanned 2026-06-10 to 2026-06-17 with concurrent sessions)
+- Notable: 36/36 requirements, 8/8 phases, G1–G8 gate PASS, 10/10 STOP gaps resolved; audit verdict `tech_debt` with all 3 non-blocking items closed at archive.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -91,6 +131,7 @@
 |-----------|----------|--------|------------|
 | v1.0 | 3 | 4 | Established GSD workflow: strict phase ordering, wave parallelization, post-phase verification |
 | v1.4 | not captured | 8 | Added evidence adjudication, STOP-gap governance, executable acceptance checks, and archived phase history |
+| v1.5 | not captured | 8 | Extended adjudication to data-pipeline/validation contracts; empirical dataset verification in parallel with the research gate; G1–G8 milestone-closure gate |
 
 ### Cumulative Quality
 
@@ -98,6 +139,7 @@
 |-----------|-------|-------------------|-------------|
 | v1.0 | 10 | 9/9 (Phase 4) | 0 |
 | v1.4 | 26 | 32/32 requirements; 8/8 phases | 0 open at close |
+| v1.5 | 27 | 36/36 requirements; 8/8 phases; G1–G8 gate PASS | 0 open at close |
 
 ### Top Lessons (Verified Across Milestones)
 

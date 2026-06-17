@@ -46,12 +46,15 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 - ✓ Settled architecture and normalization contracts with downstream implementation divergences recorded — v1.4
 - ✓ Executed five numerical acceptance probes and closed 32/32 requirements across 8/8 verified phases — v1.4
 - ✓ Presentation-preserving framework-spec cleanup with complete author-comment preservation and FUT-05 handoff — v1.4
+- ✓ Evidence-backed Issue 02 data-pipeline adjudication with empirical dataset verification and STOP-gap handling — v1.5
+- ✓ Locked DataLoader ingestion/selection contracts (B-06 gate, B-11 ID-resolution, M11 blacklist, M13 gold-counterpart, D7 footers, D-03 HDF5) and sampling/precision/global-scale contracts — v1.5
+- ✓ Canonical SCS/SASD/IPR/PSC validation-metric contracts, threshold-aligned to the locked gate; G1–G8 milestone-closure gate PASS — v1.5
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- v1.5 requirement set is being defined through `$gsd-new-milestone` — see `.planning/REQUIREMENTS.md` once committed.
+- v1.6 (Issue-03 "Resolving CTL") requirement set being defined in the `milestone/v1.6` worktree — see `.planning/REQUIREMENTS.md` once the new milestone creates it.
 
 ### Deferred
 
@@ -72,11 +75,11 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 ## Current State
 
-**Shipped:** v1.4 Resolving 01 Architecture and Physics Foundations on 2026-06-09.
+**Shipped:** v1.5 Resolving 02 Data Pipeline and Validation on 2026-06-17.
 
-**In progress:** v1.5 Phase 23 (Research Package Assembly) complete and verified 2026-06-10 (research context consolidated to single master file on 2026-06-11). The issue-02 research package is delivered under `framework-revisions/research_reports/02-data-pipeline-and-validation/research_package/`. Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11; the consolidated resolution doc landed the same day, closing the external gate. Phase 24.5 (resolution doc readiness verification) completed 2026-06-11 with gate verdict READY-WITH-CAVEATS (verification passed 5/5): 19/19 ledger findings covered, zero DATA-xx contradictions, zero locked-convention violations; caveats are deferred-by-design open items (OI-3/6/7/8/11/12), none blocking. Phase 25 evidence-packet construction is unblocked and may start from `24.5-RESOLUTION-MAP.md`.
+**In progress:** v1.6 (Issue-03 "Resolving CTL") initialization in the `milestone/v1.6` worktree — the next milestone starts fresh requirements. FUT-01 consumes the v1.5 dataset-finalization handoff (`29-HANDOFF.md` + `29-CODE-DIVERGENCE.md`): FO-1 promotes the 117 validated gold + the 184→67 cascade, then FO-2 runs PSC/SCR first-run sanity, SASD/IPR/PSC constant recalibration, and the AC-VAL-04 numeric check.
 
-The milestone closed 32/32 requirements across eight verified phases and 26 plans. Its roadmap, requirements, audit, and phase execution history are archived under `.planning/milestones/`; production PINN alignment and author-comment adjudication remain documented future candidates rather than assumed next-milestone scope.
+v1.5 closed 36/36 requirements across eight verified phases (23–29, including inserted 24.5) and 27 plans, with the G1–G8 milestone-closure gate PASS and 10/10 STOP-protocol gaps RESOLVED-WITH-INSTRUCTION. Its roadmap, requirements, audit, and phase execution history are archived under `.planning/milestones/v1.5-*`; the live `REQUIREMENTS.md` was removed at archive (fresh for v1.6).
 
 <details>
 <summary>Archived v1.4 planning context</summary>
@@ -113,7 +116,12 @@ The milestone closed 32/32 requirements across eight verified phases and 26 plan
 
 </details>
 
-## Current Milestone: v1.5 Resolving 02 Data Pipeline and Validation
+## Current Milestone: v1.6 Resolving CTL (Issue-03) — initializing
+
+v1.6 starts fresh requirements for the curriculum-and-training-loop (CTL) issue (`pinn_instruction/issues/03-curriculum-and-training-loop.md`); see the `milestone/v1.6` branch/worktree and the forthcoming `.planning/REQUIREMENTS.md`. FUT-01 consumes the v1.5 dataset-finalization handoff (`29-HANDOFF.md` + `29-CODE-DIVERGENCE.md`).
+
+<details>
+<summary>Archived v1.5 planning context (shipped 2026-06-17)</summary>
 
 **Goal:** Critically examine each finding in `pinn_instruction/issues/02-data-pipeline-and-validation.md` — treating the issue doc as non-authoritative — verify every claim empirically against the on-disk dataset, the `simulation_data/` scripts that generated it, the v1.4-revised framework specs, and first principles; adjudicate against the user-produced external resolution doc once it lands; apply evidence-backed framework-spec edits; and verify each fix with disposable acceptance probes before closing. v1.5 settles the data-pipeline/validation design contracts; it does not implement production DataLoader/training code (that remains FUT-01).
 
@@ -133,6 +141,8 @@ The milestone closed 32/32 requirements across eight verified phases and 26 plan
 **Grounding sources for v1.5:** dataset documentation (`simulation_data/Documentation/README.md`), the on-disk dataset itself (empirical facts), `simulation_data/Scripts/` (metrics calculation, prescreening, runners, ic_generation — extends the SCOPE-05 carveout), v1.4-revised framework specs, prior user decisions, and short uncontroversial first-principles derivations. **`pinn/` live code remains banned as grounding** — issue 02's "Canonical" citation of `data-processing-pipeline-full.py` is overridden; live-code references stay confined to forward-pointing FUT-01 hand-off documents.
 
 **Git workflow:** main repo directory (no worktree); branch `milestone/v1.5` cut from master HEAD (`b8b39a4`) before any v1.5 commits; tag `v1.5-pre-phase-NN` from branch HEAD before each phase begins; one atomic commit per plan via `scripts/agent-commit`; `--no-ff` merge to master at milestone end.
+
+</details>
 
 ### Previous Milestones
 
@@ -225,4 +235,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-13 after v1.5 Phase 26 completion (DataLoader ingestion/selection contracts locked in ctl_instruction.md — B-06 admission gate, B-11 ID-resolution, M11 blacklist, D7 footer, M13 gold-counterpart, D-03 format; 5/5 success criteria verified. M13 STOP gap GAP-26-01 resolved by user ruling B (Stage-5 labels attach to IDs); the 184 gold-less standard IDs are to be closed by re-simulating their gold counterparts to 1:1 — OI-7b, a forward data-generation dependency. D-03 user-locked HDF5 canonical. Phases 27–28 next.).*
+*Last updated: 2026-06-17 after v1.5 milestone archive (v1.5 shipped 2026-06-17: 36/36 requirements, 8/8 phases, G1–G8 closure gate PASS; roadmap/requirements/audit/phase history archived under `milestones/v1.5-*`; live `REQUIREMENTS.md` removed for v1.6). Next: v1.6 (Issue-03 Resolving CTL) initialization.*

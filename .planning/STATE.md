@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: closure-ready
+status: complete
 stopped_at: Milestone v1.5 closure-ready. G1-G8 milestone-closure gate PASSED 2026-06-17 (12 PASS + AC-VAL-04 STRUCTURAL PASS / NUMERIC DEFERRED; 0 FAIL); fresh re-execution recorded in 29-VALIDATION.md §"Milestone-Closure Gate Pass" (commit b2c5a00). 19-row ledger audit: 18 VERIFIED + 1 DEFERRED (PSC). 36/36 traceability confirmed; REQUIREMENTS VER-07/08/09/11/12 + ROADMAP Phase-29 bullet already reconciled to complete. 3 SI dispositions recorded (SI-DQA-002/003 retired-with-VAL-01-backref; SI-PINN-002 preserve-with-reason→FUT-01, user-APPROVED at D-08). FO-1 durability (rerun_standard_gold_missing_184.py + test) and 3 untracked review files preserved via commits 1b1c939e and f6e1367. **v1.5 --no-ff merge to master COMPLETE (commit fe9b3c92, 2026-06-17, two-parent merge of b8b39a44 + 88aa1e4f).** Recovery tag v1.5-pre-merge-backup preserved at b8b39a44; untracked scratch from milestone/v1.5 preserved in stash@{0}. Master is now 256 commits ahead of origin/master. Closure-ready to archive: user may run `/gsd-complete-milestone v1.5` to archive the ROADMAP/REQUIREMENTS/AUDIT/STATE under `.planning/milestones/v1.5-*`, then `/gsd-new-milestone` to start v1.6 (Issue-03 "Resolving CTL"). FUT-01 consumes 29-HANDOFF.md + 29-CODE-DIVERGENCE.md at the dataset-finalization gate: FO-1 (117 promotion + 184→67 cascade) then FO-2 (PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run). Gold is final in shape: 117 validatable + 67 permanent-absent.
-last_updated: "2026-06-17T13:00:00.000Z"
-last_activity: 2026-06-17 -- v1.5 --no-ff merge to master COMPLETE (fe9b3c92). 256 commits ahead of origin/master. STATE.md lifted to post-merge closure-ready (status: closure-ready, completed_phases: 8/8, completed_plans: 28/28, percent: 100). Recovery tag v1.5-pre-merge-backup at b8b39a44. Untracked scratch from milestone/v1.5 preserved in stash@{0}. Ready for `/gsd-complete-milestone v1.5`.
+last_updated: "2026-06-17T14:30:00.000Z"
+last_activity: 2026-06-17 -- v1.5 ARCHIVED via /gsd-complete-milestone on master (after the fe9b3c92 merge). Commits: 2e08dab moved phase directories to milestones/v1.5-phases/; 77299b9 recovered the v1.5-MILESTONE-AUDIT.md + phases 23/24/24.5/25 LEARNINGS from stash@{0} and authored v1.5-ROADMAP/v1.5-REQUIREMENTS archives + MILESTONES entry (requirement checkboxes and traceability reconciled to final state). The 01274c6 learnings extraction (phases 26-29) plus the recovered phases 23-25 LEARNINGS give all eight phases a committed LEARNINGS file. Live ROADMAP collapsed, PROJECT/RETROSPECTIVE/STATE closed out, live REQUIREMENTS.md removed, tag v1.5 created. Recovery tag v1.5-pre-merge-backup at b8b39a44; stash@{0} preserved.
 progress:
   total_phases: 8
   completed_phases: 8
-  total_plans: 28
-  completed_plans: 28
+  total_plans: 27
+  completed_plans: 27
   percent: 100
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — CLOSURE-READY (2/2 plans complete + gate passed)
 Plan: 2 of 2 complete
 Status: **Milestone v1.5 closure-ready and MERGED to master (commit fe9b3c92, 2026-06-17, --no-ff two-parent merge b8b39a44 + 88aa1e4f).** All 8 v1.5 phases executed and verified. Phase 29 Plan 01 (29-UAT.md; AC suite green; ledger terminal; traceability) + Plan 02 (29-HANDOFF.md; 3 SI dispositions; G1-G8 closure gate) both complete; 29-VERIFICATION.md PASSED (5/5 must-haves; D-08 human item resolved). G1-G8 milestone-closure gate PASSED 2026-06-17 with fresh re-execution — recorded in 29-VALIDATION.md §"Milestone-Closure Gate Pass". VER-07/08/09/11/12 reconciled to complete in REQUIREMENTS.md + ROADMAP. FO-1 durability scripts + 3 review files committed. Master is 256 commits ahead of origin/master. Recovery tag v1.5-pre-merge-backup preserved at b8b39a44; untracked scratch from milestone/v1.5 preserved in stash@{0}. Closure-ready to archive.
-Next: User-owned `/gsd-complete-milestone v1.5` to archive the ROADMAP/REQUIREMENTS/AUDIT/STATE under `.planning/milestones/v1.5-*`, then `/gsd-new-milestone` to start v1.6 (Issue-03 "Resolving CTL"). FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate: promote the 117 validated gold + 184→67 cascade (GAP-29-01, FO-1), then PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
+Next: v1.5 ARCHIVED under `.planning/milestones/v1.5-*` (tag v1.5); run `/gsd-new-milestone` to start v1.6 (Issue-03 "Resolving CTL") — already initializing in the `milestone/v1.6` worktree. FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate: promote the 117 validated gold + 184→67 cascade (GAP-29-01, FO-1), then PSC/SCR first-run sanity + SASD/IPR/PSC constant recalibration + AC-VAL-04 numeric run (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
 Last activity: 2026-06-17 -- G1-G8 closure gate re-executed fresh and PASS recorded in 29-VALIDATION.md; STATE.md lifted to closure-ready status.
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
@@ -185,7 +185,7 @@ v1.5 Phases 23–24 complete; Phase 24.5 inserted and planned; Phases 25–29 ga
 
 Last session: 2026-06-17T13:00:00+08:00
 Stopped at: Milestone v1.5 closure-ready. G1-G8 gate PASSED fresh (29-VALIDATION.md §"Milestone-Closure Gate Pass"; commit b2c5a00). 19-row ledger: 18 VERIFIED + 1 DEFERRED. 36/36 traceability. 3 SI dispositions recorded. FO-1 durability scripts (1b1c939e) + 3 review files (f6e1367) committed. **v1.5 --no-ff merge to master COMPLETE (commit fe9b3c92, two-parent merge b8b39a44 + 88aa1e4f).** Master now 256 ahead of origin/master. Recovery tag v1.5-pre-merge-backup at b8b39a44 preserved. Untracked scratch from milestone/v1.5 preserved in stash@{0}.
-Next action: User-owned `/gsd-complete-milestone v1.5` to archive the milestone under `.planning/milestones/v1.5-*`, then `/gsd-new-milestone` to start v1.6 (Issue-03 "Resolving CTL"). FUT-01 then consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate.
+Next action: v1.5 ARCHIVED (tag v1.5); run `/gsd-new-milestone` to start v1.6 (Issue-03 "Resolving CTL") — already initializing in the `milestone/v1.6` worktree. FUT-01 consumes the two-artifact handoff (29-HANDOFF.md + 29-CODE-DIVERGENCE.md) at the dataset-finalization gate.
 
 ## Operator Next Steps
 
