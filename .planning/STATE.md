@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
-status: Phase 28 closed. All in-scope STOP gaps RESOLVED-WITH-INSTRUCTION (GAP-28-01/02 2026-06-16; GAP-28-03 reopened + RESOLVED 2026-06-17).
-stopped_at: Phase 29 PLANNED (2 plans: 29-01 AC-suite re-run + ledger close + traceability [VER-07/08/09]; 29-02 handoff + SI dispositions + G1-G8 closure gate [VER-11/12]); research + Nyquist validation written; plan-checker PASSED (0 blockers); decision-coverage 9/9. Ready to execute, PAUSED BEFORE EXECUTION per user. GAP-29-01 Option A (planning-layer gold reconciliation; promotion + 184->67 cascade RULED 2026-06-16 to the FUT-01 gate, 29-CODE-DIVERGENCE.md). GAP-28-03/PSC reopened + RESOLVED 2026-06-17.
-last_updated: "2026-06-17T08:55:35.000Z"
-last_activity: 2026-06-17 -- Phase 29 planned (research -> 2 plans -> plan-checker PASSED); paused before execution per user. See 29-01-PLAN.md / 29-02-PLAN.md.
+status: executing
+stopped_at: Phase 29 context gathered (discuss complete); paused before plan per user. GAP-29-01 resolved Option A (planning-layer gold reconciliation; promotion + 184->67 cascade RULED 2026-06-16 to the FUT-01 gate, 29-CODE-DIVERGENCE.md). GAP-28-03/PSC reopened + RESOLVED 2026-06-17.
+last_updated: "2026-06-17T09:00:01.541Z"
+last_activity: 2026-06-17 -- Phase 29 execution started
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 6
   total_plans: 28
-  completed_plans: 26
-  percent: 88
+  completed_plans: 25
+  percent: 75
 ---
 
 # Project State
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-12)
 
 **Core value:** Simulation dataset and data pipeline are clean, validated, and correctly processed
-**Current focus:** Phase 29 - acceptance-checks-re-verification-and-handoff (Phase 28 closed)
+**Current focus:** Phase 29 — Acceptance Checks, Re-verification, and Handoff
 
 ## Current Position
 
-Phase: 28 — CLOSED (4 of 4 contracts landed; VAL-04/PSC landed 2026-06-17 via GAP-28-03 reopen + RESOLVED)
-Plan: 28-01/SCS, 28-02/SASD (both-endpoint), 28-03/IPR (raw units) VERIFIED with AC-VAL-01/02/03 PASS. 28-04/PSC LANDED 2026-06-17 (GAP-28-03 reopened + RESOLVED; PSC coverage-entropy clause; composition ratified; constants provisional->FUT-01; AC-VAL-04 pending Phase 29). Clauses live in ctl_instruction.md Step-1A `Data-side quality-metric contracts` subsection; IPR dual-epsilon note in pinn_architecture.md §3.4.
-Status: Phase 28 closed. All in-scope STOP gaps RESOLVED-WITH-INSTRUCTION (GAP-28-01/02 2026-06-16; GAP-28-03 reopened + RESOLVED 2026-06-17).
+Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 29
 Next: Phase 29 — Acceptance Checks, Re-verification, and Handoff (VER-07/08/09/11/12): build/execute the AC-VAL suite, milestone-wide re-verification, SI-ledger reconcile, FUT-01 handoff. Carry-forward to the FUT-01 dataset-finalization gate (29-CODE-DIVERGENCE.md): promote the 117 validated gold + 184->67 cascade (GAP-29-01 ruling), then the PSC/SCR first-run sanity check on the post-promotion pool + SASD/IPR/PSC constant recalibration. Gold is final in shape: 117 validatable + 67 permanent-absent.
-Last activity: 2026-06-16 -- Phase 28 closed after EDL empirical support resolved the three forks (SASD both-endpoint, IPR raw units, PSC deferred). See v1.5-GAPS.md (0 open) and 24-ISSUE-LEDGER.md.
+Last activity: 2026-06-17 -- Phase 29 execution started
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
