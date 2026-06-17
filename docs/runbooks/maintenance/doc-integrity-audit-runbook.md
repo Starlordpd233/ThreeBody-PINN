@@ -12,7 +12,7 @@ Repeatable milestone-boundary integrity check of project-owned documentation.
 Checklist-shaped by design (R12): criteria and pointers only — never duplicate
 content from the audited docs into this runbook.
 
-**Origin:** `docs/brainstorms/2026-06-10-doc-integrity-audit-requirements.md` (requirements R1–R13)
+**Origin:** `docs/work/designs/cross_cutting/doc-integrity-audit/2026-06-06-doc-integrity-audit-requirements.md` (requirements R1–R13)
 **Plan:** `docs/work/plans/cross_cutting/doc-integrity-audit/2026-06-10-doc-integrity-audit-plan.md`
 **Reports:** `docs/work/reviews/cross_cutting/doc-integrity-audit/YYYY-MM-DD-doc-integrity-audit-drift-report.md`
 
