@@ -136,4 +136,23 @@ not folded in; it remains an FUT-05 item.
 
 ## 6. Milestone-Closure Gate (G1-G8)
 
-<!-- Populated in Task 3 (numerically-defined G1-G8 closure gate). -->
+The numerically-defined gate under which v1.5 closes. The eight conditions are transcribed from
+`29-RESEARCH.md` §Milestone-Closure Gate; nothing is invented. The PLAN defines these criteria and
+the gsd-verifier records the result in `29-VERIFICATION.md` / `29-VALIDATION.md` downstream. A
+failing check blocks closure and routes the specific finding back to its originating phase
+(VER-09 routing clause).
+
+| # | Gate Condition (numeric) | Pass = | Route-back-on-fail target |
+|---|--------------------------|--------|---------------------------|
+| G1 (VER-07/09) | All 13 AC checks executed with fresh Phase-29 results | 12 PASS + 1 split (AC-VAL-04 structural PASS / numeric DEFERRED); 0 FAIL | The originating spec-edit phase (26/27/28) for any FAIL |
+| G2 (VER-09) | AC-PIPE-05 dataset probe | PASS @184/184 (0 promoted; consistent under D-01) | Phase 26 (M13) if set-difference breaks |
+| G3 (D-07/VER-10) | Ledger row-status audit | 19 rows; 18 VERIFIED + 1 DEFERRED; **0** PENDING/IN_PROGRESS/FIX_APPLIED | The owning phase of any non-terminal row |
+| G4 (VER-12) | 3 SI dispositions recorded | SI-DQA-002, SI-DQA-003, SI-PINN-002 each retired-with-backref OR preserved-with-reason; 0 assumed | (no spec phase — recorded in `29-HANDOFF.md` §4) |
+| G5 (VER-11) | Handoff completeness | `29-HANDOFF.md` has fixed/unchanged/deferred + SI table; `29-CODE-DIVERGENCE.md` FO-1/FO-2 present | — |
+| G6 (VER-08) | Traceability | 36/36 reqs → exactly one phase; Phase 29 = VER-07/08/09/11/12 | roadmap revision if mismatch |
+| G7 (D-05/D-01) | Gold reconciliation recorded | `29-UAT.md` references the 117/67/0-promoted table; stale-artifact inventory present; PSC numeric stays DEFERRED | — |
+| G8 (governance) | No `pinn/` touch, no spec edit, no dataset mutation, no read-only/frozen-file edit | grep diff of touched paths shows only `.planning/` (+ optional probe scripts) | STOP if violated |
+
+**Closure rule:** v1.5 closes only when **G1–G8 all pass**. Any G1/G2/G3 FAIL routes the specific
+finding back to its originating phase (26/27/28) per VER-09; v1.5 does not ship while any required
+check fails.
