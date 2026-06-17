@@ -105,7 +105,20 @@ The following remain explicitly deferred, each pointing to its forward home:
 
 ## 4. SI Metadata Reconciliation
 
-<!-- Populated in Task 2 (VER-12 SI dispositions). -->
+The three SI entries named by VER-12 are reviewed for issue-02 relevance. Each is
+**retired-with-backref** or **preserved-with-written-reason** — none assumed resolved or assumed
+irrelevant. The table mirrors the `21-HANDOFF.md` SI-reconciliation shape
+(`Entry | Status | Evidence`). Dispositions are recorded here only; no SI home file is edited
+(SCOPE-09 makes `data_quality_assessment.md` read-only; the `pinn_architecture.md` SI section is
+not touched). The adjacent `pinn_architecture.md` batch-construction-inconsistency SI entry
+(the next SI block after `SI-PINN-002`) is **not** in the VER-12 review list and is deliberately
+not folded in; it remains an FUT-05 item.
+
+| Entry | Status | Evidence |
+|---|---|---|
+| `SI-DQA-002` | **Retired with VAL-01 / SCS-row back-reference.** The SCS gate inconsistency it flags ("initial audit missed SCS gate inconsistency") is now resolved and canonical in `ctl_instruction.md` (Step-1A conservation gate, `SCS>-5` / `ε_H>1e-5`) via v1.5 VAL-01. | SCS ledger row (VAL-01, AC-VAL-01 PASS 2026-06-16) + `data_quality_assessment.md:318-322` (read-only home) |
+| `SI-DQA-003` | **Retired with VAL-01 back-reference.** The corrected SCS gate it describes (`ε_H` raw-drift vs `SCS=log10(ε_H)`; gate `ε_H>1e-5`≡`SCS>-5`; Reject tightened `SCS>-4`→`SCS>-5`) is the gate v1.5 VAL-01 canonicalized into the live spec; the SCS ledger row already names the DQA as the read-only/historical home. | SCS ledger row (VAL-01) + `data_quality_assessment.md:324-328` (read-only home) |
+| `SI-PINN-002` | **Preserved with written reason.** These are architecture-side `\authcomment{}` editorial notes (omega_0 detail; hidden-layer detail; "batch construction not consistent with the CTL instruction plan"), out of the issue-02 data-pipeline scope this milestone resolves; carried forward to FUT-05 / training implementation (the v1.4 Phase 22 author-comment adjudication target). The 3rd comment is **not** marked retired-by-M12 — whether the landed M12 mini-batch contract discharges that author comment is source-silent (D-08), so the grounded disposition is preserve-with-reason. Matches the v1.4 `21-HANDOFF.md` "Preserved untouched." | `pinn_architecture.md:996-1004` (editable home, not edited) + `21-HANDOFF.md` SI-PINN-002 row |
 
 ## 5. FUT-01 / Consumption Notes
 
