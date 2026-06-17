@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Resolving 02 Data Pipeline and Validation
 status: executing
-stopped_at: Phase 29 context gathered (discuss complete); paused before plan per user. GAP-29-01 resolved Option A (planning-layer gold reconciliation; promotion + 184->67 cascade RULED 2026-06-16 to the FUT-01 gate, 29-CODE-DIVERGENCE.md). GAP-28-03/PSC reopened + RESOLVED 2026-06-17.
-last_updated: "2026-06-17T09:00:01.541Z"
-last_activity: 2026-06-17 -- Phase 29 execution started
+stopped_at: Phase 29 Plan 01 complete — 13-check AC suite re-run fresh (12 PASS + AC-VAL-04 structural-PASS/numeric-DEFERRED), 19-row ledger audit (18 VERIFIED + 1 DEFERRED [PSC, reframed to FUT-01 FO-2]), 36/36 traceability confirmed, ROADMAP reconciled to PSC-landed. Plan 02 (29-HANDOFF.md + G1-G8 closure gate) next. GAP-29-01 Option A; promotion + 184->67 cascade carried to FUT-01 FO-1.
+last_updated: "2026-06-17T09:15:00.000Z"
+last_activity: 2026-06-17 -- Phase 29 Plan 01 executed (AC suite re-run, ledger audit, traceability, ROADMAP reconcile)
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 28
-  completed_plans: 25
-  percent: 75
+  completed_plans: 26
+  percent: 79
 ---
 
 # Project State
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-06-12)
 ## Current Position
 
 Phase: 29 (Acceptance Checks, Re-verification, and Handoff) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 29
-Next: Phase 29 — Acceptance Checks, Re-verification, and Handoff (VER-07/08/09/11/12): build/execute the AC-VAL suite, milestone-wide re-verification, SI-ledger reconcile, FUT-01 handoff. Carry-forward to the FUT-01 dataset-finalization gate (29-CODE-DIVERGENCE.md): promote the 117 validated gold + 184->67 cascade (GAP-29-01 ruling), then the PSC/SCR first-run sanity check on the post-promotion pool + SASD/IPR/PSC constant recalibration. Gold is final in shape: 117 validatable + 67 permanent-absent.
-Last activity: 2026-06-17 -- Phase 29 execution started
+Plan: 1 of 2 complete (Plan 02 next)
+Status: Executing Phase 29 — Plan 01 complete (29-UAT.md landed; AC suite green; ledger terminal; traceability confirmed)
+Next: Phase 29 Plan 02 (VER-11/12): author 29-HANDOFF.md (fixed/intentionally-unchanged/deferred + the three SI dispositions SI-DQA-002/003, SI-PINN-002 with the SI-PINN-002 source-silence STOP check) and define the numerically-defined G1-G8 milestone-closure gate with route-back-on-fail. Carry-forward to the FUT-01 dataset-finalization gate (29-CODE-DIVERGENCE.md): promote the 117 validated gold + 184->67 cascade (GAP-29-01 ruling, FO-1), then the PSC/SCR first-run sanity check on the post-promotion pool + SASD/IPR/PSC constant recalibration (FO-2). Gold is final in shape: 117 validatable + 67 permanent-absent.
+Last activity: 2026-06-17 -- Phase 29 Plan 01 executed (AC suite re-run, ledger audit, traceability, ROADMAP reconcile)
 
 **Gate awareness:** Phase 23 (research package assembly + DQA characterization) completed 2026-06-10; its delivery opened the external resolution-doc gate (user research started). Phase 24 (empirical dataset verification + DATA-07 correction addendum) completed 2026-06-11 — ran **in parallel** during the gate window. 8 individual AI research results have landed. **Phase 24.5** (INSERTED 2026-06-11) verifies the consolidated resolution doc is ready for use before adjudication begins. Phases 25–29 (all adjudication / spec-edit work) gate on Phase 24.5 passing.
 
