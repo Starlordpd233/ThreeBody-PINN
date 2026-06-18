@@ -1,45 +1,33 @@
 ---
 title: doc-03 Research Agent Prompt
 package_for: doc-03 (curriculum + training loop)
-role: paste-ready prompt + attach-list header; ships with RESEARCH-CONTEXT-MASTER.md
+role: paste-ready prompt + six-file attach-list header; prompt is pasted separately
 status: active
 created: 2026-06-18
 ---
 
 # doc-03 Research Agent Prompt
 
-This file ships with `RESEARCH-CONTEXT-MASTER.md`; a package without its prompt is
-incomplete. The header below tells you which files to attach to the external AI agent.
-Below the horizontal rule is the verbatim, paste-ready prompt.
+This file is pasted into the external AI agent separately; it is not counted as an
+uploaded file. The header below tells you which six files to attach from the package's
+`upload/` directory. Below the horizontal rule is the verbatim, paste-ready prompt.
 
 ## Attach these files (by bare filename)
 
-Attach **all** of the following to the external research agent. Every file is in this
-package; attach them as a set:
+Attach **all six** of the following files to the external research agent. They are the
+complete upload package:
 
-**Entry point and authored companions**
-
-- `RESEARCH-CONTEXT-MASTER.md` — read first (orientation: source-treatment preamble +
-  manifest + reading order)
-- `scope-12-hard-constraints.md` — the locked v1.4 + v1.5 outcomes (hard constraints)
-- `framed-research-questions.md` — the questions to answer
-- `resolution-doc-skeleton.md` — the non-binding coverage skeleton (suggestion only)
-
-**Grounding companions**
-
-- `claims-register.md` — the claimed-vs-verified figure register (resolves every `CLM-NN`)
-- `verified-facts-reference.md` — the v1.5-verified dataset anchors
-
-**`specs/` snapshots**
-
-- `03-curriculum-and-training-loop.md` — the issue doc (non-authoritative adjudication
-  subject)
-- `ctl_instruction.md` — spec-edit target (source of truth)
-- `pinn_architecture.md` — spec-edit target (source of truth)
-- `sampling_method.md` — FROZEN; historical record (context only)
-- `review_of_framework.md` — baseline design intent (critique mandate)
-- `stage_strat_revision.md` — baseline design intent (critique mandate)
-- `consolidated-context.md` — minimal consolidated dataset context
+- `RESEARCH-CONTEXT-MASTER.md` — read first; uploaded entry point and manifest
+- `TASK-AND-CONSTRAINTS-BUNDLE.md` — hard constraints, framed questions, and the
+  non-binding resolution skeleton
+- `CLAIMS-AND-FACTS-BUNDLE.md` — claimed-vs-verified figure register, v1.5 verified
+  anchors, and minimal consolidated dataset context
+- `03-curriculum-and-training-loop.md` — issue doc snapshot; non-authoritative
+  adjudication subject
+- `FRAMEWORK-SPECS-BUNDLE.md` — framework spec snapshots, bundled byte-identically for
+  transport
+- `BASELINE-REPORTS-BUNDLE.md` — baseline design-intent reports, bundled byte-identically
+  for transport
 
 ---
 
@@ -49,10 +37,11 @@ work from the attached files only.** You have no repository access; every input 
 attached. Do not assume, invent, or fetch any file, path, or figure that is not in the
 attached set.
 
-Read the attached files in this order: read `RESEARCH-CONTEXT-MASTER.md` first (it tells
-you how to treat each input), then `scope-12-hard-constraints.md`, then
-`framed-research-questions.md`. Use `claims-register.md` and `verified-facts-reference.md`
-to ground every figure, and the `specs/` snapshots as the questions direct you.
+Read `RESEARCH-CONTEXT-MASTER.md` first. Then read
+`TASK-AND-CONSTRAINTS-BUNDLE.md`; inside it, read `scope-12-hard-constraints.md` before
+`framed-research-questions.md`. Use `CLAIMS-AND-FACTS-BUNDLE.md` to ground every figure,
+and use the issue doc, framework-spec bundle, and baseline-report bundle as the questions
+direct you.
 
 Honor these treatment rules:
 
@@ -60,7 +49,8 @@ Honor these treatment rules:
   are non-authoritative and may contain errors.** Adjudicate its findings; do not transcribe
   its proposals as decisions. The worked example is the `D` conflict: the issue doc's
   `D = 6.694` conflicts with the locked raw-mass `D ≈ 4.6416` — the locked value stands (see
-  `scope-12-hard-constraints.md` item 6 and `claims-register.md` CLM-01/CLM-19).
+  `scope-12-hard-constraints.md` item 6 and `claims-register.md` CLM-01/CLM-19 inside the
+  attached bundles).
 - **The framework specs (`ctl_instruction.md`, `pinn_architecture.md`) are the source of
   truth.** Where the issue doc cites live implementation code as "Canonical", that citation
   is overridden — the specs are authoritative instead (`scope-12-hard-constraints.md` §2).
@@ -73,13 +63,14 @@ Honor these treatment rules:
   `claims-register.md`. No in-milestone phase verifies the `claimed-unverified` figures —
   treat them as unverified inputs, not facts.
 
-Answer each question in `framed-research-questions.md`. For each: state your finding, cite
-which attached files (and which sections) you relied on, and identify conflicts and
-uncertainty explicitly. Where the attached materials are **silent or ambiguous**, say so
-and **log the gap in the claims register rather than inventing an answer** — record what is
-missing and what would resolve it. "Insufficient evidence" is an acceptable, honest finding.
-Do not force a resolution where the sources do not support one.
+Answer each question in `framed-research-questions.md` inside
+`TASK-AND-CONSTRAINTS-BUNDLE.md`. For each: state your finding, cite which attached files
+(and which sections) you relied on, and identify conflicts and uncertainty explicitly.
+Where the attached materials are **silent or ambiguous**, say so and **log the gap in the
+claims register rather than inventing an answer** — record what is missing and what would
+resolve it. "Insufficient evidence" is an acceptable, honest finding. Do not force a
+resolution where the sources do not support one.
 
-The `resolution-doc-skeleton.md` is offered only to ease coverage-checking and is
-non-binding — you may structure your resolution however you prefer; the cited resolution
-docs are format precedents, not a required schema.
+The `resolution-doc-skeleton.md` section inside `TASK-AND-CONSTRAINTS-BUNDLE.md` is offered
+only to ease coverage-checking and is non-binding — you may structure your resolution
+however you prefer; the cited resolution docs are format precedents, not a required schema.

@@ -233,7 +233,8 @@ MULTI-COMPANION and is not re-litigated here.*
 | 11 | `resolution-doc-skeleton.md` | Non-binding per-finding skeleton (D-14); finding → phase 32–36 map | Authored companion (multi-companion) |
 | 12 | `claims-register.md` | PKG-07 claimed-vs-verified register; D-17 boundary | Authored companion (multi-companion) |
 
-**Package form:** MULTI-COMPANION (LOCKED in Task 1; not re-litigated).
+**Package form:** MULTI-COMPANION (LOCKED in Task 1; not re-litigated at D-09).
+See D-09A below for the later user-directed six-file transport packaging update.
 
 ### Inclusion Decisions
 
@@ -257,3 +258,31 @@ this adjudication," with the downstream consequence noted.)
 
 **Assembly unlocked.** 30-03 may proceed with snapshot assembly against this approved document
 list and the resolved inclusion calls.
+
+---
+
+## D-09A Six-File Transport Packaging Update
+
+**Date:** 2026-06-18
+**Decision authority:** User (explicit implementation instruction after package assembly)
+**Status:** APPROVED AND IMPLEMENTED
+
+The external handoff platform cannot accept more than six uploaded files. The prior
+MULTI-COMPANION package form is therefore superseded **only at the transport layer**:
+
+- The approved 12-document content set above remains unchanged.
+- The paste-ready `RESEARCH-AGENT-PROMPT.md` is pasted separately and is not counted as an
+  uploaded file.
+- The handoff attach list is exactly six files under `research_package/upload/`:
+  `RESEARCH-CONTEXT-MASTER.md`, `TASK-AND-CONSTRAINTS-BUNDLE.md`,
+  `CLAIMS-AND-FACTS-BUNDLE.md`, `03-curriculum-and-training-loop.md`,
+  `FRAMEWORK-SPECS-BUNDLE.md`, and `BASELINE-REPORTS-BUNDLE.md`.
+- The original granular package parts are preserved under `research_package/source_parts/`.
+- Bundling is mechanical transport packaging only. Bundle sections are delimited,
+  round-trip extracted, and SHA-256 checked against `source_parts/`. No framework spec,
+  issue doc, report, claim register, question file, hard-constraints file, or skeleton
+  content is summarized, adjudicated, or semantically edited by this update.
+
+This D-09A update does **not** reopen any v1.6 adjudication question and does not create a
+STOP-protocol semantic gap. It implements the user's operational file-count constraint
+while preserving D-09's approved content set and treatment labels.
