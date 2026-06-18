@@ -21,11 +21,56 @@ case "$common_dir" in
 esac
 
 lock_dir="$common_dir/agent-commit.lock"
-if ! mkdir "$lock_dir" 2>/dev/null; then
-  echo "git policy: another agent commit is in progress; retry after the lock clears: $lock_dir" >&2
-  exit 1
-fi
-trap 'rmdir "$lock_dir" 2>/dev/null || true' EXIT
+
+# Option beta: wait up to ~5 min for the shared lock. Reclaim it only when the
+# holder process is gone, or as a backstop when the lock is older than the stale
+# floor. Poll window and stale floor share one value so a waiter never gives up
+# on a commit that is still legitimately in progress. Both are overridable.
+# A half-initialized lock (pid/started not yet written) is treated as fresh so a
+# just-acquired lock is never stolen out from under its owner.
+lock_timeout="${AGENT_COMMIT_LOCK_TIMEOUT:-300}"
+lock_stale="${AGENT_COMMIT_LOCK_STALE:-300}"
+deadline=$(( $(date +%s) + lock_timeout ))
+
+while true; do
+  if mkdir "$lock_dir" 2>/dev/null; then
+    printf '%s\n' "$$" > "$lock_dir/pid"
+    date +%s > "$lock_dir/started"
+    break
+  fi
+
+  holder_pid="$(cat "$lock_dir/pid" 2>/dev/null || true)"
+  started="$(cat "$lock_dir/started" 2>/dev/null || true)"
+
+  holder_gone=0
+  if [ -n "$holder_pid" ]; then
+    kill -0 "$holder_pid" 2>/dev/null || holder_gone=1
+  fi
+
+  stale=0
+  if [ -n "$started" ] && [ "$(( $(date +%s) - started ))" -ge "$lock_stale" ]; then
+    stale=1
+  fi
+
+  if [ "$holder_gone" -eq 1 ] || [ "$stale" -eq 1 ]; then
+    # Atomic steal: only one waiter can rename the lock aside, so two waiters
+    # cannot both reclaim. The commit-time owned-paths net is the backstop for
+    # the rare case where a holder dies and a new one acquires within this window.
+    steal_dir="${lock_dir}.steal.$$"
+    if mv "$lock_dir" "$steal_dir" 2>/dev/null; then
+      rm -rf "$steal_dir" 2>/dev/null || true
+    fi
+    continue
+  fi
+
+  if [ "$(date +%s)" -ge "$deadline" ]; then
+    echo "git policy: an agent commit has held the lock for >${lock_timeout}s; retry shortly: $lock_dir" >&2
+    exit 1
+  fi
+  sleep 1
+done
+
+trap 'rm -rf "$lock_dir" 2>/dev/null || true' EXIT
 
 for arg in "$@"; do
   case "$arg" in
