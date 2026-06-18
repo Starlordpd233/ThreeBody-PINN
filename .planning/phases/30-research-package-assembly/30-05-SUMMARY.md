@@ -37,7 +37,7 @@ key-files:
 
 key-decisions:
   - "DELIVERY-NOTE.md placed at the round root (not in research_package/) — it is the only repo-path-bearing, never-uploaded file"
-  - "source_baseline pinned to assembly-time HEAD 522cea7182bf3d0e3206d8faa75150e705b174f0"
+  - "original delivery source_baseline pinned to assembly-time HEAD 522cea7182bf3d0e3206d8faa75150e705b174f0; audit refresh superseded the current package baseline to 3781d1a68a9364717d399e536b7fc9ad56e19645 after a path-only CTL citation repair"
   - "STATE counter + status/session regressions from the gsd-tools handlers hand-restored per the documented bug remediation; only the gate-open decision + blocker + a benign last_updated timestamp remain as net changes"
 
 patterns-established:

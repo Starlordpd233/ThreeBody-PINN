@@ -5,7 +5,7 @@ role: uploaded entry point for the six-file transport package
 status: active
 created: 2026-06-18
 updated: 2026-06-18
-source_baseline: 522cea7182bf3d0e3206d8faa75150e705b174f0
+source_baseline: 3781d1a68a9364717d399e536b7fc9ad56e19645
 self_contained: true
 form: six-file upload package; prompt is pasted separately
 ---

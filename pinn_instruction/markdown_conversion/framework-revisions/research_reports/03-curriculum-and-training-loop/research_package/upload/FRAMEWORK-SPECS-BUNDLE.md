@@ -10,11 +10,11 @@ source edit and does not summarize the enclosed files.
 
 | File | Bytes | SHA-256 |
 |------|-------|---------|
-| `ctl_instruction.md` | 98,598 | `4ee083fce79755ec75ce86cade36822cf50c082fcae80a4b181a6974658d2afc` |
+| `ctl_instruction.md` | 98,694 | `1a6c7ef34dcace96b70144d94f9318499b5fe254f5a0754ba8e68509805a3ca7` |
 | `pinn_architecture.md` | 57,765 | `318f297a3b122e64a06d9b2c09f59e078ce06b7863e1a04637cb02e8020f62cd` |
 | `sampling_method.md` | 22,236 | `750e625efa51767eed0371dc4d6ee73d598fbd77c98592cef18bce5fc84f6f07` |
 
-===== BEGIN FILE ctl_instruction.md (98598 bytes, sha256 4ee083fce79755ec75ce86cade36822cf50c082fcae80a4b181a6974658d2afc) =====
+===== BEGIN FILE ctl_instruction.md (98694 bytes, sha256 1a6c7ef34dcace96b70144d94f9318499b5fe254f5a0754ba8e68509805a3ca7) =====
 ---
 author:
 - Starlordpd233
@@ -508,7 +508,7 @@ counts per folder at init.
    `1e-6` is the Acceptable/Marginal band boundary (`SCS = -6`) mis-promoted to
    a reject gate, and `1e-8` is an unsourced tightening proposal with no package
    basis. The EVID-10 adjudication record is
-   `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
+   `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
    Any stage-conditional SCS tightening (OI-2) is deferred to doc-03 and
    per-variant SCS distributions; it is not a Phase 28 policy. SASD, IPR, and
    PSC are companion data-side validation metrics in the `Data-side
@@ -622,7 +622,7 @@ adequacy from the snapshots that exist and is complemented by IPR (below), which
 between snapshots via the interpolant — the pairing is by design. Training-side use,
 SASD-weighted collocation sampling (M16), is **deferred to the doc-03 milestone** and is
 not specified here. Evidence packet:
-`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
+`.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
 
 **IPR — Interpolation Physics Residual (VAL-03; Q-C3).** For each trajectory a
 velocity-carrying cubic Hermite interpolant `CubicHermiteSpline(t, q, dydx=v)` is built from
@@ -657,7 +657,7 @@ same flag-not-auto-reject semantics and disposition routing as SASD — **not** 
 The `1e-3` constant is provisional pending recalibration to the admitted-set IPR distribution
 (doc-03 / FUT-01), a separate axis from the raw/scaled unit pin resolved here. Persist `IPR`
 and the maximum per-interval contribution with its interval index. Evidence packet:
-`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md`.
+`.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md`.
 
 **PSC — Phase-Space Coverage Entropy (VAL-04; Q-C4).** A dataset-level, **report-only
 coverage diagnostic** — unlike SASD and IPR it carries no per-trajectory flag and no
@@ -706,7 +706,7 @@ status of the SASD `0.5` and IPR `1e-3` constants. Persist `PSC`, `SCR`, the per
 all-snapshot pooled value is confounded by both resolution mix and base/gold duplication and is
 **not** a deliverable. Replay-governance and training-side use of PSC is **deferred to the doc-03
 milestone** via this forward-reference. Evidence packet:
-`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md`.
+`.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md`.
 
 ## Step 2: Unified Preprocessing Pipeline
 
@@ -943,7 +943,7 @@ only and is not adopted in v1.4. See
 `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
 for the full EVID-05 adjudication.
 
-**Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{1/3} \approx 4.6416$ is the **canonical** convention (HC-6 / PHYS-01). Raw masses are used throughout the framework; the dimensionless residual keeps unit coefficient with raw $m_j$, forcing $D^3 = G T^2$. The mass-fraction alternative $D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ (with $M_{\mathrm{tot}} = 3$) is **rejected as a pipeline instruction** and remains documented as a future-only rewrite requiring a framework-wide migration (every residual, Hamiltonian, invariant, COM formula; stage thresholds re-derived; normalizers recomputed; processed stores regenerated; network retrained). **No configuration parameter may select the mass-fraction form.** The potential regularizes with the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with $\varepsilon_{\mathrm{inv}} = 10^{-10}$; $\varepsilon$ enters $V$ only. **Additive $+ \epsilon$ on the distance norm is the PHYS-03 anti-pattern and is prohibited.** The `compute_globals` scope evaluates per-IC energies with raw masses over the **admitted set** (post-Step-1A admission, post-blacklist exclusion, post-DATA-05-quarantine). Medians over the admitted set are deterministic and immune to NaN poisoning from corrupt or stale records. See `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md` for the EVID-10 adjudication record.
+**Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{1/3} \approx 4.6416$ is the **canonical** convention (HC-6 / PHYS-01). Raw masses are used throughout the framework; the dimensionless residual keeps unit coefficient with raw $m_j$, forcing $D^3 = G T^2$. The mass-fraction alternative $D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ (with $M_{\mathrm{tot}} = 3$) is **rejected as a pipeline instruction** and remains documented as a future-only rewrite requiring a framework-wide migration (every residual, Hamiltonian, invariant, COM formula; stage thresholds re-derived; normalizers recomputed; processed stores regenerated; network retrained). **No configuration parameter may select the mass-fraction form.** The potential regularizes with the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with $\varepsilon_{\mathrm{inv}} = 10^{-10}$; $\varepsilon$ enters $V$ only. **Additive $+ \epsilon$ on the distance norm is the PHYS-03 anti-pattern and is prohibited.** The `compute_globals` scope evaluates per-IC energies with raw masses over the **admitted set** (post-Step-1A admission, post-blacklist exclusion, post-DATA-05-quarantine). Medians over the admitted set are deterministic and immune to NaN poisoning from corrupt or stale records. See `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md` for the EVID-10 adjudication record.
 
 Global normalization scales (computed after scaling all trajectories):
 
@@ -1491,7 +1491,7 @@ data-side invariant, independently of any Stage-5 fallback policy:
 > re-simulated gold trajectories land and validate. **Forward dependency
 > (not yet executed):** the 184 gold re-simulations are a data-generation
 > prerequisite for a complete gold Stage-5 stratum (OI-7b). See
-> `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
+> `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 

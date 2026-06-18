@@ -4,7 +4,7 @@ package_for: doc-03 (curriculum + training loop)
 role: single uploaded entry point — source-treatment preamble + per-file manifest + reading order (PKG-05/06/07 orientation)
 status: active
 created: 2026-06-18
-source_baseline: 522cea7182bf3d0e3206d8faa75150e705b174f0
+source_baseline: 3781d1a68a9364717d399e536b7fc9ad56e19645
 self_contained: true
 form: multi-companion (the master references companions by bare filename; it never folds them)
 ---
@@ -136,7 +136,7 @@ have no single source commit. `specs/` snapshots are pinned package-wide to
 | Package file | Role | Source commit | Treatment |
 |--------------|------|---------------|-----------|
 | `specs/03-curriculum-and-training-loop.md` | Adjudication subject — NON-authoritative; carries the `D = 6.694` claim and the overridden "Canonical" citations | `d43afcd69af027e0689f42ac61e130f8497939f8` | Byte-for-byte intact snapshot |
-| `specs/ctl_instruction.md` | Spec-edit target; carries curriculum staging, `τ_L`/`L_max`, s_min gate, loss scaling, PHYS-01 `D ≈ 4.6416` | `6eae642299f11357693d8912cb6476194e1e8897` | Byte-for-byte intact snapshot |
+| `specs/ctl_instruction.md` | Spec-edit target; carries curriculum staging, `τ_L`/`L_max`, s_min gate, loss scaling, PHYS-01 `D ≈ 4.6416` | `3781d1a68a9364717d399e536b7fc9ad56e19645` | Byte-for-byte intact snapshot |
 | `specs/pinn_architecture.md` | Spec-edit target; carries gradient-clipping / training-strategy contracts | `ea2af12348b6fd95521e0e4c251c92a0160030cf` | Byte-for-byte intact snapshot |
 | `specs/sampling_method.md` | FROZEN (SCOPE-08); historical record of dataset generation; not a revision target | `916d3f84ad7282c1f8ace45901441f7d3ac054ca` | Byte-for-byte intact snapshot |
 | `specs/review_of_framework.md` | Baseline design intent; ships WITH a baseline-critique mandate; the broadest doc-03-relevant report | `6ab19ea3f8f9248578296472f75b659a8e5b19a4` | Byte-for-byte intact snapshot |

@@ -13,7 +13,7 @@ provides:
   - "30-SNAPSHOT-HASHES.txt — complete per-file content sha256 + source-commit provenance + package-wide source_baseline pin"
 affects:
   - "30-04 (authors companions; references verified-facts-reference.md + claims register)"
-  - "30-05 (writes source_baseline = 522cea71 into master frontmatter; DELIVERY-NOTE.md at round root, D-03)"
+  - "30-05 (originally writes source_baseline = 522cea71 into master frontmatter; audit refresh later supersedes current package baseline to 3781d1a after the CTL path-only citation repair; DELIVERY-NOTE.md at round root, D-03)"
 tech-stack:
   added: []
   patterns: ["byte-for-byte cp snapshotting", "content sha256 + source-commit dual provenance", "assembly-time HEAD pin (F7)"]
@@ -31,7 +31,7 @@ key-files:
     - ".planning/phases/30-research-package-assembly/30-SNAPSHOT-HASHES.txt"
 decisions:
   - "verified-facts-reference.md created STANDALONE per D-09 inclusion call (b) APPROVED-STANDALONE; 30-03 is sole owner (F11)"
-  - "source_baseline pinned to assembly-time HEAD 522cea71 (F7), NOT the recovery-tag commit e841c958; byte-identity note recorded"
+  - "source_baseline originally pinned to assembly-time HEAD 522cea71 (F7), NOT the recovery-tag commit e841c958; audit refresh later supersedes current package baseline to 3781d1a after the CTL path-only citation repair"
   - "DELIVERY-NOTE.md placement (round root, D-03) is 30-05's concern; not created here"
 metrics:
   duration: "~1 task-session"
@@ -73,6 +73,12 @@ pin to the assembly-time `milestone/v1.6` HEAD.
   `522cea7182bf3d0e3206d8faa75150e705b174f0` (assembly-time `git rev-parse HEAD`, F7), with a
   byte-identity note that the recovery tag `v1.6-pre-phase-30` = `e841c958` trails HEAD by the
   30-01/30-02 `.planning/` commits and that all six sources are byte-identical across both refs.
+
+> Audit refresh 2026-06-18: the current package baseline is
+> `3781d1a68a9364717d399e536b7fc9ad56e19645`; `ctl_instruction.md` was refreshed
+> after a path-only correction to stale Phase 25 evidence citations. See
+> `30-SNAPSHOT-HASHES.txt` and `30-VERIFICATION.md` for current hash and
+> re-validation records.
 
 ## Verification Evidence
 

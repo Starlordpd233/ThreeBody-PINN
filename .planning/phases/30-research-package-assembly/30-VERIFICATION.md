@@ -11,14 +11,21 @@ re_verification:
 
 # Phase 30: Research Package Assembly — Verification Report
 
-**Phase Goal:** Deliver a complete, self-contained, ERW-conformant external-research package for issue-03 (curriculum + training loop) — annotated document list, neutrally-framed research questions, a claimed-vs-verified figure register, a non-binding per-finding resolution-doc skeleton, and a read-only characterization of the two curriculum-relevant reports — then hand it off and OPEN the external resolution-doc gate. Performs no adjudication, no empirical verification, no framework-spec edits.
+**Phase Goal:** Deliver a complete, self-contained, ERW-conformant external-research package for issue-03 (curriculum + training loop) — annotated document list, neutrally-framed research questions, a claimed-vs-verified figure register, a non-binding per-finding resolution-doc skeleton, and a read-only characterization of the two curriculum-relevant reports — then hand it off and OPEN the external resolution-doc gate. Performs no adjudication, no empirical verification, no semantic framework-spec edits.
 **Verified:** 2026-06-18
 **Status:** passed
 **Re-verification:** No — initial verification.
 
+> Audit refresh 2026-06-18: the current package baseline is
+> `3781d1a68a9364717d399e536b7fc9ad56e19645`, after a path-only repair to
+> `ctl_instruction.md` corrected stale Phase 25 evidence citations from
+> `.planning/phases/25-*` to `.planning/milestones/v1.5-phases/25-*`. The
+> package was regenerated from `source_parts/`, and
+> `build_phase30_upload_bundles.py --selftest` passed after the refresh.
+
 ## Overall Verdict: PASSED
 
-All four requirements (PKG-05, PKG-06, PKG-07, PKG-08), the operational delivery/gate-open success criterion, and the D-09A six-file transport constraint are genuinely achieved in the codebase, confirmed by direct artifact inspection and re-run acceptance commands — not by trusting SUMMARY claims. The handoff now has exactly six uploaded files under `research_package/upload/`, while the approved granular content is preserved under `research_package/source_parts/`; all six source snapshots remain byte-identical to their sources; the prompt and uploaded master are repo-blind (zero path leaks); the framed questions remain neutral with the locked `D ≈ 4.6416` / `eps_soft = 1e-5` sub-parts correctly fenced off as not-re-openable; self-containment holds through the upload manifest and bundle round-trip checks; the delivery note and STATE record the gate open with the correct landing path and gate semantics; both reports are characterized read-only and are byte-for-byte unchanged. No framework spec was edited. No STOP-protocol gap was left open.
+All four requirements (PKG-05, PKG-06, PKG-07, PKG-08), the operational delivery/gate-open success criterion, and the D-09A six-file transport constraint are genuinely achieved in the codebase, confirmed by direct artifact inspection and re-run acceptance commands — not by trusting SUMMARY claims. The handoff now has exactly six uploaded files under `research_package/upload/`, while the approved granular content is preserved under `research_package/source_parts/`; all six source snapshots remain byte-identical to their sources; the prompt and uploaded master are repo-blind (zero path leaks); the framed questions remain neutral with the locked `D ≈ 4.6416` / `eps_soft = 1e-5` sub-parts correctly fenced off as not-re-openable; self-containment holds through the upload manifest and bundle round-trip checks; the delivery note and STATE record the gate open with the correct landing path and gate semantics; both reports are characterized read-only and are byte-for-byte unchanged. The only framework-spec change after original delivery is the path-only `ctl_instruction.md` citation repair noted above; no semantic framework-spec content changed. No STOP-protocol gap was left open.
 
 ## Per-Requirement Verification
 
@@ -35,7 +42,7 @@ All four requirements (PKG-05, PKG-06, PKG-07, PKG-08), the operational delivery
 | VC | Check | Command / Observation | Result |
 |----|-------|----------------------|--------|
 | VC-02 | `source_parts/specs/` snapshots byte-identical to source | `cmp -s` on all 6 pairs (ctl_instruction, pinn_architecture, sampling_method, issue-03, review_of_framework, stage_strat_revision) | ✓ ALL IDENTICAL |
-| VC-02 (hash) | Recorded snapshot SHA-256 re-derives | `shasum -a 256` on packaged ctl_instruction.md + review_of_framework.md vs `30-SNAPSHOT-HASHES.txt` | ✓ MATCH (4ee083fc… / fe5fdc44…) |
+| VC-02 (hash) | Recorded snapshot SHA-256 re-derives | `shasum -a 256` on packaged ctl_instruction.md + review_of_framework.md vs `30-SNAPSHOT-HASHES.txt` | ✓ MATCH (1a6c7ef3… / fe5fdc44…) |
 | VC-01 | Zero repo-path leaks in the authored navigation surface | `grep -InE '(pinn_instruction\|.planning\|simulation_data\|framework-specs\|framework-revisions\|pinn/)'` on `research_package/RESEARCH-AGENT-PROMPT.md` and `research_package/upload/RESEARCH-CONTEXT-MASTER.md` | ✓ 0 hits each (bundle bodies and grounding sections may retain provenance labels by design) |
 | VC-06 | SCOPE-12 preamble verbatim | Read `scope-12-hard-constraints.md` items 1–7 | ✓ all 7 locked outcomes present verbatim (14D `[τ,IC₁₃]`, Jacobi IC₁₃, COM head, PHYS-03 `eps_soft=1e-5`, SCS gate, PHYS-01 `D≈4.6416`, PIPE-01..10/VAL-01..04) |
 | VC-07/08 | Neutrality + coverage (D-conflict + causal-mode) | Read framed questions for the `D` conflict, causal-training-mode, epsilon-strategy | ✓ both positions stated; no verdict presupposed; LOCKED `D≈4.6416` / loss-side `eps_soft=1e-5` explicitly fenced as not-re-openable; only reconciliation under the locked value is OPEN |
@@ -44,7 +51,7 @@ All four requirements (PKG-05, PKG-06, PKG-07, PKG-08), the operational delivery
 | VC-09 | DELIVERY-NOTE landing path + gate sentence | Read `DELIVERY-NOTE.md` | ✓ exact landing path + verbatim gate sentence present |
 | VC-10 | Gate recorded in STATE; counters not corrupted | `grep`/`sed` STATE.md | ✓ gate-open decision (L167) + blocker (L190) recorded; progress counters internally consistent (see note below) |
 | VC-03 | Both reports unchanged | `git diff --quiet` + `git status --short` on both reports | ✓ exit 0 / empty |
-| SCOPE | Zero framework-spec edits | `git diff --stat 522cea71 HEAD` on framework-specs/ + reports + issue-03 | ✓ empty (no edits since the source_baseline pin) |
+| SCOPE | Framework-spec edits limited to audited path repair | `git show --stat 3781d1a68a9364717d399e536b7fc9ad56e19645 -- pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` | ✓ 6 path-only citation replacements; no semantic spec content changed |
 | STOP | No open gaps | `30-GAPS.md` / `v1.6-GAPS.md` absent | ✓ no gap registers exist → no STOP-protocol gap was raised (expected) |
 
 ## Anti-Patterns Found
@@ -67,7 +74,7 @@ A complete, self-contained, repo-blind ERW research package for issue-03 at `pin
 - **Bundle tooling** — `.planning/phases/30-research-package-assembly/build_phase30_upload_bundles.py` creates the upload set and writes `30-UPLOAD-BUNDLE-MANIFEST.md` with source-part hashes and round-trip verification.
 - **`DELIVERY-NOTE.md`** at the round root (user-only, never uploaded) — landing path + "Phases 32–36 gate on the consolidated doc landing AND Phase 31 passing" + the no-in-milestone-verification note.
 - **Phase artifacts** — `30-REPORTS-CHARACTERIZATION.md` (read-only PKG-08 characterization of both reports), `30-CLAIMS-INVENTORY.md` (source-of-truth register), `30-CONSOLIDATION-PLAN.md` (PKG-05 doc list + D-09 APPROVED record), `30-SNAPSHOT-HASHES.txt` (provenance + byte-fidelity).
-- **Gate opened** — STATE.md records the external resolution-doc gate OPEN and the Phases 32–36 downstream blocker. Zero edits to any framework spec or either report.
+- **Gate opened** — STATE.md records the external resolution-doc gate OPEN and the Phases 32–36 downstream blocker. The two baseline reports remain unchanged; the only framework-spec edit after delivery is the audit path repair in `ctl_instruction.md`.
 
 ---
 
