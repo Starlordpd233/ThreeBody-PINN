@@ -1,18 +1,26 @@
 ---
-status: active
+status: consumed
 purpose: design
 created: 2026-06-17
 milestone: untracked
 phase: cross-cutting
 retirement_trigger: >
-  When the design is approved and its content is split into canonical homes
-  (docs/git-guidelines.md, project CLAUDE.md Git-governance section, the watchdog
-  skill under .claude/skills/, and the .live-monitor/ spine build). This file is a
-  review draft; once approved content has landed in those targets, set status to
-  consumed and point readers there.
+  Superseded 2026-06-18 by the revised design at
+  2026-06-18-worktree-placement-and-concurrency-design.md (same folder). This draft
+  recommended Option alpha (fail-fast commits) and left worktree isolation as an open
+  question; the revised design chooses Option beta and confirms per-track isolation,
+  so this file is kept only as the record of the alpha->beta reversal. Once the
+  revised design's decisions land in docs/git-guidelines.md A4, move this file to
+  retirement-proposed, then archive (not delete — the alpha record has historical
+  value).
 ---
 
 # Parallel-Agent Coordination — Design Review (Draft, Not Applied)
+
+> **SUPERSEDED 2026-06-18.** This draft is retained only as the record of the Option
+> alpha (fail-fast) recommendation and the open worktree-isolation question. The
+> current design lives at `2026-06-18-worktree-placement-and-concurrency-design.md`
+> (same folder), which chooses Option beta and confirms per-track worktrees.
 
 **Status:** DESIGN ONLY. This document edits **nothing** in `docs/git-guidelines.md`,
 project `CLAUDE.md`, the `.live-monitor/` spine, or any hook/script. It exists so the
