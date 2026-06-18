@@ -93,7 +93,12 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. Every dataset/empirical figure stated in the package is explicitly marked "claimed, unverified" (the issue-doc value) unless already verified by v1.5 — figures verified by v1.5 (e.g., the 184 standard IDs without gold, the ~2,565 quasi-random gold count, per-variant snapshot/`dt_out` distributions) are stated as verified with their v1.5 citation; no unverified figure is presented as fact (PKG-07).
   4. `review-of-framework.md` and `stage-strat-revision.md` are characterized read-only (provenance, content map, and relation to the doc-03 findings), reported to the user with zero edits to either file (SCOPE-09 analog; PKG-08).
   5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 30-01-PLAN.md — Characterize the two PKG-08 reports read-only + seed the PKG-07 claims register + recovery-tag pre-flight (PKG-08, PKG-07)
+- [ ] 30-02-PLAN.md — Build the PKG-05 consolidation plan and surface it at the hard D-09 user gate (PKG-05)
+- [ ] 30-03-PLAN.md — Assemble byte-for-byte commit-pinned specs/ snapshots + consolidated context + source_baseline pin (PKG-05)
+- [ ] 30-04-PLAN.md — Author framed questions (issue-03 section order), SCOPE-12 preamble, non-binding resolution-doc skeleton (PKG-06)
+- [ ] 30-05-PLAN.md — Finalize master + prompt + delivery note, commit the package, record gate-open via gsd-tools (delivery/gate-open)
 **UI hint**: no
 
 ### Phase 31: Resolution Doc Readiness Verification
