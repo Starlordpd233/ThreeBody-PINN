@@ -37,6 +37,8 @@ Thumbs.db
 .claude/settings.local.json
 .claude/scheduled_tasks.json
 .claude/worktrees/
+# Manual per-track worktrees (see docs/git-guidelines.md A4)
+.worktrees/
 .gemini/
 .tmp/
 
