@@ -126,6 +126,8 @@ Use the layered capture ladder: commits for completed logical work, backup branc
 
 For Claude Code CCP or other multi-agent setups, prefer separate worktrees and branches for independent agents. If agents share one worktree, they still must declare disjoint owned paths and serialize commits through `scripts/agent-commit`.
 
+Per-track worktrees live under `.worktrees/<track>/` (the main repo stays on `master` for cross-cutting governance, planning, and CI); the commit lock waits-and-retries and reclaims only dead or stale holders; same-file overlap is mediated by `scripts/agent-claim` plus a warn-on-edit auto-declare hook, with the commit-time owned-paths net as the hard backstop. See `docs/git-guidelines.md`.
+
 Every agent commit must set `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS`. `GIT_AGENT_OWNED_PATHS` is a colon- or newline-separated list of repo-relative file or directory prefixes owned by the committing agent. Do not use broad staging (`git add .`, `git add -A`, `git add --all`, `git add -u`); stage explicit owned paths only. Re-check `git status --short --branch`, `git diff --cached`, and touched unstaged diffs immediately before committing.
 
 Archived plans or old snippets that omit current Git-policy env vars are stale for execution purposes; adapt them to this policy instead of replaying them literally.
