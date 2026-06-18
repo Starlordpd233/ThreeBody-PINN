@@ -14,7 +14,12 @@ chmod +x .githooks/commit-msg \
   scripts/git_policy/validate_commit_msg.py \
   scripts/git_policy/validate_staged_paths.py \
   scripts/git_policy/guard_agent_git_command.py \
-  scripts/agent-commit
+  scripts/agent-commit \
+  scripts/agent-claim \
+  scripts/agent-release \
+  scripts/git_policy/agent_claims.py \
+  scripts/git_policy/claim_guard.py \
+  scripts/session_banner.sh
 
 git config core.hooksPath .githooks
 

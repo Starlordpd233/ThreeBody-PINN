@@ -125,8 +125,26 @@ Rules for concurrent agents:
   committing.
 - Never alter another agent's staged or unstaged work unless explicitly assigned.
 
-`scripts/agent-commit` serializes commits with a repository-local lock. If the
-lock is held, wait or retry after the other commit finishes.
+`scripts/agent-commit` serializes commits with a repository-local lock shared by
+all worktrees. Acquisition waits up to ~5 minutes for a held lock and reclaims it
+only when the holder process is gone or the lock exceeds the stale floor (both
+default 300s, overridable via `AGENT_COMMIT_LOCK_TIMEOUT` / `AGENT_COMMIT_LOCK_STALE`),
+so a live commit is never interrupted and a crashed holder never blocks others.
+
+### Per-track worktrees and overlap avoidance
+
+- Long-running parallel tracks (e.g. `specwork`, `trainex`) each get a worktree
+  under `.worktrees/<track>/`; the main repo folder stays on `master` for
+  cross-cutting governance, planning, and CI. Tracks **merge** `master` into their
+  branch and never rebase (history is never rewritten).
+- Before overlapping on a file or folder, consult or declare it with
+  `scripts/agent-claim <area>` (release with `scripts/agent-release <area>`;
+  claims self-expire after ~2 hours). An on-edit hook warns automatically when a
+  target overlaps another session's claim and auto-declares the editing session's
+  claim, so the warning does not depend on remembering to check.
+- The hard backstop is the commit-time owned-paths net: a commit may only stage
+  paths under `GIT_AGENT_OWNED_PATHS` (enforced by the commit-msg validator,
+  `scripts/git_policy/validate_commit_msg.py`, gated on `GIT_AGENT_COMMIT=1`).
 
 ## Capture And Recovery Ladder
 
