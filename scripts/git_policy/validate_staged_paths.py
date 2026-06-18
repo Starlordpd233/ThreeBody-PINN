@@ -90,6 +90,23 @@ def main():
         if size > MAX_BLOB_BYTES and not matches_any(path, ALLOW_LARGE_PATTERNS):
             errors.append(f"staged blob exceeds 10 MiB: {path}")
 
+    owned_raw = os.environ.get("GIT_AGENT_OWNED_PATHS", "")
+    if owned_raw:
+        prefixes = []
+        for chunk in owned_raw.split(":"):
+            for piece in chunk.splitlines():
+                piece = piece.strip()
+                if not piece:
+                    continue
+                if piece.startswith("./"):
+                    piece = piece[2:]
+                prefixes.append(piece.rstrip("/"))
+        for path in paths:
+            if not any(path == prefix or path.startswith(prefix + "/") for prefix in prefixes):
+                errors.append(
+                    f"staged path outside GIT_AGENT_OWNED_PATHS (declare it or unstage it): {path}"
+                )
+
     if errors:
         for error in errors:
             print(f"git policy: {error}", file=sys.stderr)
