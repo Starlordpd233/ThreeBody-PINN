@@ -17,7 +17,8 @@ chmod +x .githooks/commit-msg \
   scripts/agent-commit \
   scripts/agent-claim \
   scripts/agent-release \
-  scripts/git_policy/agent_claims.py
+  scripts/git_policy/agent_claims.py \
+  scripts/git_policy/claim_guard.py
 
 git config core.hooksPath .githooks
 

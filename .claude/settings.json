@@ -11,6 +11,17 @@
             "statusMessage": "Checking Git command policy"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/git_policy/claim_guard.py\"",
+            "timeout": 15,
+            "statusMessage": "Checking agent claims"
+          }
+        ]
       }
     ]
   },

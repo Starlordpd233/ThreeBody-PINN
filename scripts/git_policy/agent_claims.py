@@ -80,6 +80,29 @@ def holder(area):
     return entry
 
 
+def find_conflict(path):
+    """Return a foreign live claim that overlaps `path`, else None.
+
+    Overlap covers an exact match, a folder claim covering the path, and a
+    claimed file sitting under the path. This is what lets a folder-level claim
+    warn on edits to files inside it.
+    """
+    sweep()
+    me = agent_id()
+    path = path.rstrip("/")
+    directory = claims_dir()
+    for name in os.listdir(directory):
+        entry = load(os.path.join(directory, name))
+        if entry is None or expired(entry) or entry.get("who") == me:
+            continue
+        area = entry.get("area", "").rstrip("/")
+        if not area:
+            continue
+        if path == area or path.startswith(area + "/") or area.startswith(path + "/"):
+            return entry
+    return None
+
+
 def claim(area, why=""):
     sweep()
     if holder(area) is not None:
@@ -105,8 +128,7 @@ def release(area):
 
 
 def check(area):
-    sweep()
-    other = holder(area)
+    other = find_conflict(area)
     if other is None:
         return 0
     when = time.strftime("%H:%M", time.localtime(other.get("when", 0)))
