@@ -138,13 +138,17 @@ This is the main new piece, added because same-file overlap between agents is **
     run something'").
   - Agents can also declare a broader area (a whole folder, a big rebuild) up front with one quick
     command (`scripts/agent-claim <area>`), so others are warned *before* they start.
-- **Self-cleaning:** entries fade away after about **2 hours**, or sooner if the holder's process
-  is gone — so a crashed agent never blocks anyone, and forgetting to "un-claim" is harmless. A
-  task that runs longer than ~2 hours simply re-claims on its next edit (the same hook refreshes
-  it); the commit-time net below is the hard backstop regardless.
-- **Second safety net (unchanged):** at commit time, an agent may only stage the paths it
-  declared. So even if a warning were missed, two agents cannot silently overwrite each other —
-  it is caught when they commit.
+- **Self-cleaning:** entries fade away after about **2 hours** (time-based: each edit-hook runs as
+  a short-lived process, so unlike the commit lock there is no persistent agent process to test for
+  liveness — expiry is by age plus explicit release) — so a crashed agent never blocks anyone, and
+  forgetting to "un-claim" is harmless. A task that runs longer than ~2 hours simply re-claims on
+  its next edit (the same hook refreshes it); the commit-time net below is the hard backstop
+  regardless.
+- **Second safety net (the hard guarantee — to be built):** at commit time, an agent may only
+  stage the paths it declared via `GIT_AGENT_OWNED_PATHS`. So even if a warning were missed, two
+  agents cannot silently overwrite each other — it is caught when they commit. *Note (verified
+  2026-06-18): today the git-policy hooks block only **broad** `git add`; this per-path ownership
+  check does **not** yet exist and is new work in the implementation plan — not pre-existing.*
 - **Why it is generic:** the list does not care about specific files. Any agent, any task,
   declares the area it is working in; the rule is always "do not overlap with someone already on
   the list." The same mechanism handles same-file clashes, same-folder work, and big cleanups.
