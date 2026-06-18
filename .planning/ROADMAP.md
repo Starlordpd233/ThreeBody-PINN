@@ -96,11 +96,11 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 **Wave 1**
 
-- [ ] 30-01-PLAN.md — Characterize the two PKG-08 reports read-only + seed the PKG-07 claims register + recovery-tag pre-flight (PKG-08, PKG-07)
+- [x] 30-01-PLAN.md — Characterize the two PKG-08 reports read-only + seed the PKG-07 claims register + recovery-tag pre-flight (PKG-08, PKG-07)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 30-02-PLAN.md — Build the PKG-05 consolidation plan and surface it at the hard D-09 user gate (PKG-05)
+- [x] 30-02-PLAN.md — Build the PKG-05 consolidation plan and surface it at the hard D-09 user gate (PKG-05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -216,7 +216,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 30. Research Package Assembly | v1.6 | 0/0 | Not started | - |
+| 30. Research Package Assembly | v1.6 | 2/5 | In Progress | - |
 | 31. Resolution Doc Readiness Verification | v1.6 | 0/0 | Not started | - |
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 0/0 | Not started | - |
 | 33. Curriculum-Stage Contracts | v1.6 | 0/0 | Not started | - |

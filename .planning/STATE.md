@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 status: executing
-stopped_at: Phase 30 context gathered
+stopped_at: Phase 30 Waves 1-2 complete; paused before 30-03 (Wave 3)
 last_updated: "2026-06-18T06:32:10.868Z"
-last_activity: 2026-06-18 -- Phase 30 execution started
+last_activity: 2026-06-18 -- Phase 30 Waves 1-2 complete (30-01, 30-02); paused before 30-03
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 0
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-17)
 ## Current Position
 
 Phase: 30 (research-package-assembly) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 30
-Last activity: 2026-06-18 -- Phase 30 execution started
+Plan: 2 of 5 complete (30-01, 30-02); paused before Wave 3 (30-03)
+Status: Paused after Wave 2 — D-09 consolidation gate APPROVED; resume at Wave 3 (30-03)
+Last activity: 2026-06-18 -- Waves 1-2 complete; paused before 30-03 per user
 
 ## Performance Metrics
 
