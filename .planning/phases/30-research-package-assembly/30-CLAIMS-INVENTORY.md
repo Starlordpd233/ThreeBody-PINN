@@ -1,14 +1,15 @@
-# Phase 30: CLM Claims Register (PKG-07) — PROVISIONAL SEED
+# Phase 30: CLM Claims Register (PKG-07) — EXTENDED (no longer provisional)
 
-> **STATUS: PROVISIONAL SEED — extended in 30-04 after the full issue-03 read (F6).**
-> This file is the phase-local PKG-07 source-of-truth claims register (the v1.5
-> `23-CLAIMS-INVENTORY.md` analog). It is seeded here in 30-01 from the 30-RESEARCH
-> pre-scan (C-1..C-13 claimed-unverified rows + V-1..V-6 verified anchors). It is
-> **extended in 30-04** after issue-03 is read in full; additional package-stated figures
-> receive the next `CLM-NN` ID (append-only — existing IDs are NEVER renumbered). The
-> **uploaded** form is the `claims-register.md` companion produced in 30-04 (a
-> grounding-class derivative that MAY retain repo-path provenance labels — NOT a
-> strict-grep upload).
+> **STATUS: EXTENDED 2026-06-18 in 30-04 after the full issue-03 read (F6) — NO LONGER
+> PROVISIONAL.** This file is the phase-local PKG-07 source-of-truth claims register (the
+> v1.5 `23-CLAIMS-INVENTORY.md` analog). It was seeded in 30-01 from the 30-RESEARCH
+> pre-scan (C-1..C-13 claimed-unverified rows + V-1..V-6 verified anchors → CLM-01..CLM-19).
+> It is now **extended in 30-04** after issue-03 was read in full: the full-read figure
+> sweep added CLM-20 (M16 collocation-scaling factors) and the "Non-dataset figures
+> (excluded by design)" note below; additional package-stated figures receive the next
+> `CLM-NN` ID (append-only — existing IDs are NEVER renumbered). The **uploaded** form is
+> the `claims-register.md` companion produced in 30-04 (a grounding-class derivative that
+> MAY retain repo-path provenance labels — NOT a strict-grep upload).
 
 **Purpose:** This register enumerates every dataset/empirical figure that the research package
 will state, with a stable `CLM-NN` ID, classified as `claimed-unverified` (issue-03 value, no
@@ -65,6 +66,7 @@ FUT). No plan may assume a later v1.6 phase will check a package figure.
 | CLM-17 | Per-variant `dt_out` | std 0.17 / hier base 0.08 / hier gold 0.01 / std gold 0.01 | `24-VERIFIED-FACTS.md` CLM-09 (v1.5 DATA-04 `confirmed`); `simulation_data/Documentation/README.md` Brutus Parameters by Variant | `verified` | — |
 | CLM-18 | Hierarchical Brutus output | **4,857** files | `24-VERIFIED-FACTS.md` CLM-06 (v1.5 DATA-03/04 `confirmed`); `simulation_data/Documentation/README.md` Brutus Parameters by Variant | `verified` | — |
 | CLM-19 | `D ≈ 4.6416` raw-mass convention (the locked counter to CLM-01) | `D = (G·T²)^(1/3) ≈ 4.6416` (with `G = 1`); locked Phase 19, PHYS-01 | `ctl_instruction.md:904–919` (§2.5; line ~910 "With `G = 1`, `D ~ 4.6416`"; "locked Phase 19, PHYS-01") | `verified` | — — SCOPE-12 HARD CONSTRAINT; v1.5 Phase 25 EVID-10 reaffirmed the rejection of CLM-01's 6.694 |
+| CLM-20 | M16 `dt_out`-aware collocation-scaling factors | `n_col ∝ dt_base/dt_out`: gold **1×**, hierarchical-base **≈0.125×**, standard-base **≈0.059×** (for `dt_base = 0.01`) | issue-03 lines 106, 440 (M16 / P3-9, audit-verbatim direction) | `claimed-unverified` | FUT — derived design figures (M16 context); depend on the **verified** per-variant `dt_out` (CLM-17) but the scaling-factor rule itself is an unverified design hypothesis |
 
 ---
 
@@ -100,13 +102,43 @@ DATA-06 `corrected`: standard 59→61, hierarchical 125→127, gold 1000→1003 
 State BOTH: the issue-doc `~`-values are the claim, the v1.5 median is the verified fact. Any
 package figure that needs a snapshot count uses CLM-16, not CLM-13.
 
+**CLM-20 (M16 collocation-scaling factors — added in the 30-04 full-read sweep).** The
+factors `gold 1× / hier ≈0.125× / std ≈0.059×` are the audit-verbatim `n_col ∝ dt_base/dt_out`
+direction (issue-03 lines 106, 440). They are **derived** design figures: the per-variant
+`dt_out` they divide by IS v1.5-verified (CLM-17), but the scaling *rule* and the resulting
+factors are an unverified design hypothesis (FUT-flagged). Registered claimed-unverified.
+
+**Non-dataset figures (excluded by design — the 30-04 full-read F6 sweep result).** The
+full issue-03 read surfaced additional numeric values that are **framework-spec design /
+numerical-stability parameters, NOT dataset/empirical figures**, and therefore receive NO
+CLM row (D-15 scopes the register to dataset/empirical figures). These are grounded as
+framework-spec contracts and cited in `framed-research-questions.md` by spec section
+anchor, not by CLM ID:
+- Stage-transition strict-criteria constants: `ε_plateau = 1e-5` (patience 200), validation
+  stability, `ε_phys = 1e-4`, `ε_energy = 1e-4`, and the locked energy floor `ε_H = 1e-4·S_H`
+  (`ctl_instruction.md` § "Stage Transition Criteria"; the floor is a SCOPE-12-locked PHYS-04
+  contract).
+- `τ_L` split softening parameters `epsilon_pert = 1e-8` / `epsilon_soft = 1e-10`
+  (issue-03 § "τ_L and L_max Formula Resolution"; CURR-02 framework contract, distinct from
+  the locked loss-side `eps_soft = 1e-5`).
+- ALM `μ_p` clamp bounds `[1e-4, 100.0]` (issue-03 § "ALM Parameter Update"; a design
+  constant on the optional P2 scalar-constraint ALM ablation).
+- Gradient-clip factor `5.0 × median` (`pinn_architecture.md §4.4`) and the `C` schedule
+  `7–10 / 5 / 3` (`ctl_instruction.md`); the issue-doc `C_table` numeric instantiation
+  `8.5/5.0/3.0` IS registered (CLM-10) as the design figure.
+- The PHYS-05 loss-weight warmup schedule values in `pinn_architecture.md §4.1`; the
+  issue-doc capped-hybrid `cap_table` instantiation IS registered (CLM-11).
+These are framework-spec parameters (locked or revisable-baseline), not claimed dataset
+facts; registering them as CLM figures would mis-classify spec contracts as empirical claims.
+
 **Every `verified` row carries an exact v1.5 grounding citation** (CLM-14..CLM-19): each cites a
 `24-VERIFIED-FACTS.md` CLM verdict and/or `simulation_data/Documentation/` and/or
 `ctl_instruction.md:904–919`. No figure is `verified` without such a citation (D-16).
 
 ---
 
-*This register is the phase-local source of truth for the PKG-07 claims list. It is provisional
-(seeded in 30-01) and extended in 30-04 after the full issue-03 read; the uploaded form is the
-30-04 `claims-register.md` companion (F1/F6). Content/source-commit provenance for the verified
+*This register is the phase-local source of truth for the PKG-07 claims list. It was seeded in
+30-01 and **extended in 30-04 after the full issue-03 read (F6) — it is no longer provisional**
+(CLM-20 added; the non-dataset exclusion note recorded). The uploaded form is the 30-04
+`claims-register.md` companion (F1/F6). Content/source-commit provenance for the verified
 anchors' grounding sources is recorded in `30-SNAPSHOT-HASHES.txt`.*
