@@ -13,6 +13,15 @@ included_files:
 This file bundles the current framework specs for the Post-Spec R1 external research package.
 The inserted file-boundary headings are packaging markers. The spec bodies below are copied from the baseline files named in each section.
 
+Read `RESEARCH-CONTEXT-MASTER.md` before using this bundle. Repository-local
+references retained inside the copied specs are provenance only unless their
+content appears in the attached package. Inline `Author Comment` passages,
+`Source Issues` sections, and text marked candidate, provisional, reserved,
+deferred, pending, or open item should be treated as risk context rather than
+locked instructions or invitations to adjudicate framework-spec details.
+`sampling_method.md` is included as frozen-by-default historical
+IC-generation context, not as an active revision target.
+
 ---
 
 # Bundled File: ctl_instruction.md

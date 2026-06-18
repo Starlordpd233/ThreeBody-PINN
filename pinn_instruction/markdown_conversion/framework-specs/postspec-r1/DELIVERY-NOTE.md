@@ -12,7 +12,9 @@ Workflow package. Do not upload this file to the external research agent.
 
 ## Source Baseline
 
-- Baseline commit: `6a720fe0`
+- Framework-spec source baseline: `6a720fe0`
+- Baseline meaning: commit used for the bundled framework-spec snapshots; this
+  is not a claim about the package file's own commit.
 - Packaged on: 2026-06-18
 
 Refresh the package if any source document changes before handoff.
@@ -64,6 +66,11 @@ document may be created after the user reviews the returned reports.
 This round asks for broad strategic direction after the recent spec-heavy work.
 It should help decide whether the next major stage should be EDL-first,
 Trainex-first, a hybrid, or a different path proposed by the external agent.
+
+This is separate from the active v1.6/doc-03 candidate-verdict workflow. If
+sent while v1.6 is still gated on its consolidated resolution doc, use this
+package as strategic advice for the broad direction after or alongside that
+in-flight gate, not as a substitute for the v1.6 adjudication path.
 
 The package intentionally avoids asking for detailed implementation gates,
 task-by-task planning, milestone checklists, or a full execution backlog.
