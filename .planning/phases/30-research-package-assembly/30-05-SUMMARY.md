@@ -118,6 +118,17 @@ None - no external service configuration required. The delivery note instructs t
 - Phase 31 (resolution-doc readiness verification) and Phases 32-36 remain blocked until the consolidated resolution doc lands at `…/research_reports/03-curriculum-and-training-loop/` AND Phase 31 passes — recorded as a STATE.md blocker.
 - No STOP-protocol gap was encountered (the plan was mechanical assembly + delivery).
 
+## Self-Check: PASSED
+
+- Created files exist: RESEARCH-CONTEXT-MASTER.md, RESEARCH-AGENT-PROMPT.md, DELIVERY-NOTE.md, 30-05-SUMMARY.md — all FOUND.
+- Commit `836415c4` present in history.
+- Working tree clean after commit (Waves 3/4 artifacts untouched; no dangling changes).
+- VC-01 leak grep returns 0 hits on both the master and the prompt.
+- F12 self-containment cross-check passed both directions (14 shipped files all in the manifest; 14 bare-filename refs all resolve).
+- STATE.md progress counters byte-identical to pre-handler capture (handler regression hand-restored).
+
+_Note: the self-check ran after the atomic delivery commit; this SUMMARY annotation is committed in the plan-completion follow-up below._
+
 ---
 *Phase: 30-research-package-assembly*
 *Completed: 2026-06-18*
