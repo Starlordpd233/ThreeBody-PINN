@@ -1,0 +1,14 @@
+# Phase 30: Snapshot Provenance + Byte-Fidelity Hashes (PKG-08 / VC-02)
+# Schema (F8): basename | canonical source path | file sha256 | source commit | notes
+#
+# Each line records BOTH a content SHA-256 (byte-fidelity proof, PKG-08/VC-02) AND the
+# source commit (provenance). Recomputed re-derivably via: shasum -a 256 <file>
+#
+# SEEDED in 30-01 with the two PKG-08 reports + the v1.5 verified-facts source.
+# The 6 spec/issue snapshot lines (03-curriculum-and-training-loop.md, ctl_instruction.md,
+# pinn_architecture.md, sampling_method.md, + the two reports as packaged snapshots) and the
+# package-wide source_baseline pin are APPENDED in 30-03.
+
+review_of_framework.md | pinn_instruction/markdown_conversion/framework-revisions/review-of-framework/review_of_framework.md | fe5fdc449cf0858046fda7bfd0c17b5fe0a9d2284af08c793c3829f715a617a1 | 6ab19ea3f8f9248578296472f75b659a8e5b19a4 | PKG-08 report; characterized read-only in 30-REPORTS-CHARACTERIZATION.md; baseline design intent + baseline-critique mandate; 529 lines; git diff --quiet exits 0 (unchanged)
+stage_strat_revision.md | pinn_instruction/markdown_conversion/framework-revisions/stage-strat-revision/stage_strat_revision.md | d875cd6680e3ec5239bd2c0d35b9bb8eaba39480f26cd909e4c0bc2fd9011fea | 2f952cf0154b40e054287902716f16f8d50db576 | PKG-08 report; characterized read-only in 30-REPORTS-CHARACTERIZATION.md; baseline design intent + baseline-critique mandate; 427 lines; git diff --quiet exits 0 (unchanged)
+24-VERIFIED-FACTS.md | .planning/milestones/v1.5-phases/24-empirical-dataset-verification-and-correction-addendum/24-VERIFIED-FACTS.md | e71c10d368335e16e53c5188c038315b72afbaf0c29d6dbb6b0847a5ed5351ca | 2e08dabda3a69d12e48652abd119ad080f7e5466 | v1.5 verified-facts source; grounds the CLM-14..CLM-18 verified anchors in 30-CLAIMS-INVENTORY.md (CLM-04/05b/06/09/10); not packaged here, recorded for provenance
