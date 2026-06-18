@@ -4,7 +4,7 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 status: executing
 stopped_at: Phase 30 Waves 1-2 complete; paused before 30-03 (Wave 3)
-last_updated: "2026-06-18T06:32:10.868Z"
+last_updated: "2026-06-18T09:01:07.926Z"
 last_activity: 2026-06-18 -- Phase 30 Waves 1-2 complete (30-01, 30-02); paused before 30-03
 progress:
   total_phases: 7
@@ -164,6 +164,7 @@ Recent decisions affecting current work:
 - [v1.4-EDL]: Empirically consequential source-silent gaps may attach central EDL research briefs under `.planning/research/edl/`; phase-local gap registers remain authoritative.
 - [Post-v1.3]: SCS gate — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, gate is `\epsilon_H > 10^{-5}` / `SCS > -5`. v1.5 Phase 25 EVID-10 locked the log-based gate and rejected issue-02 ratio thresholds; the raw-mass `D ≈ 4.6416` convention stands (`D = 6.694` rejected). v1.6 reconciles issue-03's `D = 6.694` against this hard constraint (EVID-15).
 - [Phase 25 2026-06-12]: Four v1.5 EVID-10 verdicts locked: SCS `accept-resolution` (locked log-based gate `SCS > -5` stands); D=6.694 `accept-resolution` (raw-mass D ≈ 4.6416 stands; CLM-13 ratified `convention-rejected`); M12 `accept-third-position` (`n_pts = min(n_pts_cap, n_snapshots)`); M11 MAJOR→BLOCKING reclassification STANDS. These are SCOPE-12 hard constraints for v1.6.
+- [Phase 30]: Phase 30 research package delivered; external resolution-doc gate OPEN, user multi-AI ERW research starts
 
 ### Pending Todos
 
@@ -186,6 +187,7 @@ v1.6 roadmap created; Phase 30 ready to plan. Phases 32–36 gate on Phase 31 (r
 - **External gate:** opens on Phase 30 (research package) delivery. Phase 31 verifies the consolidated resolution doc before adjudication begins. Phases 32–36 cannot start until Phase 31 passes (which requires the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` — confirmed absent at milestone start). Phase 30 is unblocked.
 - **Concurrent v1.5 closure:** v1.5's `--no-ff` merge + `/gsd-complete-milestone` run in the main tree concurrently; v1.6's forward-only PROJECT.md/STATE.md edits reconcile at the rebase. Do not assume v1.5 phase-dir archival here (owned by `/gsd-complete-milestone`).
 - **STOP protocol active:** v1.6 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
+- Phases 32-36 blocked until the issue-03 resolution doc lands at research_reports/03-curriculum-and-training-loop/ AND Phase 31 resolution-doc readiness passes
 
 ## Session Continuity
 
