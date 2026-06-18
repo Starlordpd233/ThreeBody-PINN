@@ -1,5 +1,5 @@
 ---
-status: active
+status: consumed
 purpose: design
 created: 2026-06-18
 milestone: untracked
@@ -13,6 +13,14 @@ retirement_trigger: >
 ---
 
 # Worktree Placement & Parallel-Agent Concurrency — Design
+
+> **Status: CONSUMED (2026-06-18).** Implemented and landed. Canonical homes:
+> `docs/git-guidelines.md` (§"Per-track worktrees and overlap avoidance"), `.gitignore`,
+> `scripts/agent-commit` (Option-β lock), `scripts/agent-claim`/`scripts/agent-release`
+> with `scripts/git_policy/agent_claims.py`, `scripts/git_policy/claim_guard.py`
+> (warn-on-edit), `scripts/session_banner.sh` (banner), and `AGENTS.md` (recognition).
+> The owned-paths net is enforced by `scripts/git_policy/validate_commit_msg.py`. Retained
+> as the decision record; the historical design note below is preserved as-written.
 
 **Status: DESIGN ONLY.** No code, `.gitignore`, `scripts/agent-commit`, worktree, or hook
 changes happen until the implementation plan derived from this doc is approved and executed.
@@ -144,11 +152,13 @@ This is the main new piece, added because same-file overlap between agents is **
   forgetting to "un-claim" is harmless. A task that runs longer than ~2 hours simply re-claims on
   its next edit (the same hook refreshes it); the commit-time net below is the hard backstop
   regardless.
-- **Second safety net (the hard guarantee — to be built):** at commit time, an agent may only
-  stage the paths it declared via `GIT_AGENT_OWNED_PATHS`. So even if a warning were missed, two
-  agents cannot silently overwrite each other — it is caught when they commit. *Note (verified
-  2026-06-18): today the git-policy hooks block only **broad** `git add`; this per-path ownership
-  check does **not** yet exist and is new work in the implementation plan — not pre-existing.*
+- **Second safety net (the hard guarantee — already enforced):** at commit time, an agent may
+  only stage the paths it declared via `GIT_AGENT_OWNED_PATHS`. So even if a warning were missed,
+  two agents cannot silently overwrite each other — it is caught when they commit. *Enforced today
+  by the commit-msg hook: `validate_agent_owned_paths` in `scripts/git_policy/validate_commit_msg.py`
+  fails any agent commit (`GIT_AGENT_COMMIT=1`, set by `scripts/agent-commit`) that stages a file
+  outside its declared owned paths. This pre-dates this design — no new work is needed for the net
+  itself.*
 - **Why it is generic:** the list does not care about specific files. Any agent, any task,
   declares the area it is working in; the rule is always "do not overlap with someone already on
   the list." The same mechanism handles same-file clashes, same-folder work, and big cleanups.

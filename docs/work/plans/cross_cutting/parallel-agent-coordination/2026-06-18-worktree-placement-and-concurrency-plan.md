@@ -1,5 +1,5 @@
 ---
-status: active
+status: consumed
 purpose: implementation-plan
 created: 2026-06-18
 milestone: untracked
@@ -12,6 +12,12 @@ retirement_trigger: >
 ---
 
 # Worktree Placement & Parallel-Agent Concurrency — Implementation Plan
+
+> **Status: CONSUMED (2026-06-18).** All tasks executed and committed; Task 3 resolved as
+> already-existing (see Deviations §1 — the owned-paths net lives in
+> `scripts/git_policy/validate_commit_msg.py`). Canonical homes: `docs/git-guidelines.md`
+> (§"Per-track worktrees and overlap avoidance") and the shipped scripts under `scripts/`
+> and `scripts/git_policy/`. Retained as the execution record.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -173,7 +179,17 @@ GIT_AGENT_ID="<agent/tool/model>" GIT_AGENT_OWNED_PATHS="scripts/agent-commit" \
 
 ---
 
-## Task 3: The hard guarantee — commit-time owned-paths net
+## Task 3: The hard guarantee — commit-time owned-paths net  — NOT NEEDED (already exists)
+
+> **Resolved during execution:** this net already exists and is the canonical
+> enforcement. `scripts/git_policy/validate_commit_msg.py` calls
+> `validate_agent_owned_paths()` on every agent commit (`GIT_AGENT_COMMIT=1`, set by
+> `scripts/agent-commit`) and fails any staged file outside `GIT_AGENT_OWNED_PATHS`
+> (message: `staged file outside declared owned paths`). The original design's
+> "(unchanged)" was correct. A duplicate added to the pre-commit hook during
+> execution (commit 24bd70e) was reverted (commit c5cb055) to keep a single
+> enforcement point. **No action required for this task.** The steps below are
+> retained only as the historical record of the mistaken addition.
 
 **Files:**
 - Modify: `scripts/git_policy/validate_staged_paths.py` (extend `main()`)
@@ -682,13 +698,13 @@ GIT_AGENT_ID="<agent/tool/model>" GIT_AGENT_OWNED_PATHS="docs/git-guidelines.md:
 
 ## Deviations from the design (captured during planning)
 
-1. **Commit-time net is new, not "unchanged."** Verified that no current hook enforces per-path ownership (`guard_agent_git_command.py` blocks only broad `git add`; `validate_staged_paths.py` checks artifacts/blob size). Task 3 builds it. The design doc was corrected (commit `0400a4c`).
+1. **Commit-time net already exists (correction of an execution-time error).** The pre-existing `validate_commit_msg.py` (`validate_agent_owned_paths`, gated on `GIT_AGENT_COMMIT=1`) already fails any agent commit staging a file outside `GIT_AGENT_OWNED_PATHS`. An earlier check missed that file and wrongly concluded the net did not exist; Task 3 then added a duplicate to the pre-commit hook (commit `24bd70e`), which was reverted (commit `c5cb055`). The original design's "(unchanged)" was correct; the design note is re-corrected accordingly. Net effect: no code change to the owned-paths net.
 2. **Claim expiry is time-based, not PID-based.** Edit-hooks are short-lived processes, so there is no persistent agent PID to test (the PID-liveness check is valid only for the commit lock, where the committing process is alive throughout). Design corrected in the same commit.
 3. **Hook shipping mechanism confirmed:** `.claude/settings.json` is tracked, so the new PreToolUse and SessionStart hooks propagate to clones/worktrees with no extra installer. (`.claude/settings.local.json` remains gitignored for machine-specific overrides.)
 4. **Codex parity not included:** `.codex/hooks.json` exists, so a Codex equivalent of the claim/banner hooks is a possible follow-up; this plan implements the Claude Code hooks the design specifies.
 
 ## Self-review
 
-- **Spec coverage:** design §5 change-set items 1–8 map to Tasks 1–8; §2.4 commit-time net → Task 3; §2.4 claims board + auto-declare → Tasks 4–5; §2.2 banner → Task 6; §2.1 migration → Task 7. ✓
+- **Spec coverage:** design §5 change-set items 1–8 map to Tasks 1–8; §2.4 commit-time net → already enforced by `validate_commit_msg.py` (Task 3 not needed); §2.4 claims board + auto-declare → Tasks 4–5; §2.2 banner → Task 6; §2.1 migration → Task 7. ✓
 - **Placeholders:** none — every code/file step shows complete content; `<agent/tool/model>` in commit commands is the executor's required identity value, not a code placeholder. ✓
 - **Type/name consistency:** `agent_claims.holder/claim/release/check/list_claims` are defined in Task 4 and consumed unchanged in Task 5; lock files `pid`/`started` defined and read in Task 2; `GIT_AGENT_OWNED_PATHS` semantics consistent across Tasks 2–3. ✓

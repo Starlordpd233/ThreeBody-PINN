@@ -1,5 +1,5 @@
 ---
-status: active
+status: consumed
 purpose: review-findings
 created: 2026-06-18
 milestone: untracked
