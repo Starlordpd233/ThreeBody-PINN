@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 status: executing
-stopped_at: Phase 30 Waves 1-2 complete; paused before 30-03 (Wave 3)
-last_updated: "2026-06-18T09:01:07.926Z"
-last_activity: 2026-06-18 -- Phase 30 Waves 1-2 complete (30-01, 30-02); paused before 30-03
+stopped_at: Phase 30 complete (5/5 plans, verified); external resolution-doc gate OPEN — awaiting user ERW resolution doc + Phase 31 readiness before Phases 32-36
+last_updated: "2026-06-18T09:11:16.783Z"
+last_activity: 2026-06-18 -- Phase 30 complete (30-01..30-05); ERW research package delivered, external gate OPEN
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 2
-  percent: 0
+  completed_plans: 5
+  percent: 14
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 30 (research-package-assembly) — EXECUTING
-Plan: 2 of 5 complete (30-01, 30-02); paused before Wave 3 (30-03)
-Status: Paused after Wave 2 — D-09 consolidation gate APPROVED; resume at Wave 3 (30-03)
-Last activity: 2026-06-18 -- Waves 1-2 complete; paused before 30-03 per user
+Phase: 30 (research-package-assembly) — COMPLETE (verified)
+Plan: 5 of 5 complete (30-01..30-05)
+Status: Phase 30 delivered + verified (30-VERIFICATION.md PASSED 4/4 PKG requirements); external resolution-doc gate OPEN — user ERW research starts; Phases 32-36 gated on the resolution doc landing AND Phase 31
+Last activity: 2026-06-18 -- Phase 30 complete; ERW package delivered, external gate open
 
 ## Performance Metrics
 
@@ -191,9 +191,9 @@ v1.6 roadmap created; Phase 30 ready to plan. Phases 32–36 gate on Phase 31 (r
 
 ## Session Continuity
 
-Last session: 2026-06-17T16:09:37.029Z
-Stopped at: Phase 30 context gathered
-Next action: Plan Phase 30 (Research Package Assembly) with `/gsd-plan-phase 30`; tag `v1.6-pre-phase-30` from `milestone/v1.6` HEAD first.
+Last session: 2026-06-18T09:11:16.783Z
+Stopped at: Phase 30 complete (all 5 plans delivered + verified); external resolution-doc gate OPEN
+Next action: USER runs the external multi-AI ERW research from the delivered package (research_package/RESEARCH-CONTEXT-MASTER.md + RESEARCH-AGENT-PROMPT.md, routed by DELIVERY-NOTE.md) and lands the consolidated resolution doc under framework-revisions/research_reports/03-curriculum-and-training-loop/. Then run Phase 31 (resolution-doc readiness verification) before Phases 32-36.
 
 ## Operator Next Steps
 

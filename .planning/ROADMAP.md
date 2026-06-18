@@ -104,15 +104,15 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 30-03-PLAN.md — Assemble byte-for-byte commit-pinned specs/ snapshots + consolidated context + source_baseline pin (PKG-05)
+- [x] 30-03-PLAN.md — Assemble byte-for-byte commit-pinned specs/ snapshots + consolidated context + source_baseline pin (PKG-05)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 30-04-PLAN.md — Author framed questions (issue-03 section order), SCOPE-12 preamble, non-binding resolution-doc skeleton (PKG-06)
+- [x] 30-04-PLAN.md — Author framed questions (issue-03 section order), SCOPE-12 preamble, non-binding resolution-doc skeleton (PKG-06)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 30-05-PLAN.md — Finalize master + prompt + delivery note, commit the package, record gate-open via gsd-tools (delivery/gate-open)
+- [x] 30-05-PLAN.md — Finalize master + prompt + delivery note, commit the package, record gate-open via gsd-tools (delivery/gate-open)
 
 **UI hint**: no
 
