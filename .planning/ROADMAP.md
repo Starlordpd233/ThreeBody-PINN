@@ -92,13 +92,28 @@ Every selected finding follows the v1.4/v1.5-style loop:
   2. Each contested or unverified finding is posed as an explicit neutral research question, with the locked v1.4 conventions AND v1.5 data-pipeline/validation outcomes listed as hard constraints the research must respect (SCOPE-12); the three human-approval decisions — D-04 (causal training mode: per-time-step / global+ALM / time-windowed hybrid), D-05 (s_min frame), D-06 (epsilon strategy) — and the known cross-milestone `D = 6.694` vs `D ≈ 4.6416` conflict are posed without being settled (PKG-06).
   3. Every dataset/empirical figure stated in the package is explicitly marked "claimed, unverified" (the issue-doc value) unless already verified by v1.5 — figures verified by v1.5 (e.g., the 184 standard IDs without gold, the ~2,565 quasi-random gold count, per-variant snapshot/`dt_out` distributions) are stated as verified with their v1.5 citation; no unverified figure is presented as fact (PKG-07).
   4. `review-of-framework.md` and `stage-strat-revision.md` are characterized read-only (provenance, content map, and relation to the doc-03 findings), reported to the user with zero edits to either file (SCOPE-09 analog; PKG-08).
-  5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.
-**Plans**: 5 plans
+  5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.**Plans**: 5 plans
+
+**Wave 1**
+
 - [ ] 30-01-PLAN.md — Characterize the two PKG-08 reports read-only + seed the PKG-07 claims register + recovery-tag pre-flight (PKG-08, PKG-07)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 30-02-PLAN.md — Build the PKG-05 consolidation plan and surface it at the hard D-09 user gate (PKG-05)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 30-03-PLAN.md — Assemble byte-for-byte commit-pinned specs/ snapshots + consolidated context + source_baseline pin (PKG-05)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 30-04-PLAN.md — Author framed questions (issue-03 section order), SCOPE-12 preamble, non-binding resolution-doc skeleton (PKG-06)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 30-05-PLAN.md — Finalize master + prompt + delivery note, commit the package, record gate-open via gsd-tools (delivery/gate-open)
+
 **UI hint**: no
 
 ### Phase 31: Resolution Doc Readiness Verification
@@ -112,6 +127,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   2. The resolution doc shows no unexplained contradictions of v1.5-verified dataset facts or of the locked v1.4 + v1.5 conventions (SCOPE-12); scope observations — recommendations to change a locked convention — are recorded but are not failures.
   3. A resolution-doc quick-reference map exists providing enough information for Phase 32 to begin evidence-packet construction without reading the full resolution doc first.
   4. If any check fails, specific fix instructions are routed to the external consolidation agent via the readiness report, and Phases 32–36 remain blocked until the fix lands and re-check passes.
+
 **Plans**: TBD
 **UI hint**: no
 
@@ -127,6 +143,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. False positives in either source are documented as intentional non-changes naming why the current convention stands and which source(s) misread it (e.g., M6's `L_norm` clamp under the v1.4 Jacobi IC₁₃, which no longer carries `L_norm` as an IC slot — EVID-13), and every accepted finding carries a before/after note naming the changed spec section, the contract it now enforces, and the verification step (EVID-14).
   4. The headline conflicts are adjudicated at root cause (EVID-15) — D-04 causal training mode (Option A/B/C), D-06 epsilon strategy (`1e-5` everywhere / dual-context / `1e-10` everywhere), D-05 s_min frame, the M14 dual gradient-clipping divergence, and the `D = 6.694` vs v1.5-locked `D ≈ 4.6416` conflict (reconciled with v1.5 Phase 25 EVID-10 as the hard constraint) — each naming the root-cause ambiguity, which source was right and which wrong, and the convention now locked; the corresponding spec edits land in the contract phases (33–35).
   5. The issue ledger exists at its stable path under this (Phase 32, evidence-framework) directory, tracking every in-scope finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`, with the explicit rule that "fix applied" is not closure and that each edit batch re-verifies previously `VERIFIED` findings it could have regressed.
+
 **Plans**: TBD
 **UI hint**: no
 
@@ -142,6 +159,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. The dual-path stage-transition criteria contract is defined — strict Path A (training plateau, validation stability, stage-dependent `ε_phys` and `ε_energy`) and fallback Path B (max-epochs, stagnation, NaN/Inf rollback) — with thresholds marked **provisional pending the FUT Stage-0 pilot calibration** (D5; CURR-03).
   4. The Stage 0–6 inventory and gating contract is defined (per-stage definitions, criteria, cumulative replay, Stage-6 catch-all, the M6 `np.clip(L_norm, 0, 1)` guard used in stage gating), consistent with v1.5-verified dataset facts; stage trajectory counts are cited as v1.5-verified or marked "claimed" where not yet grounded (CURR-04).
   5. The s_min frame for the curriculum **stage gate** is defined — unsoftened geometric `s_min` for the Stage-6 collision gate — per the D-05 adjudication; the loss-side softened `max(s_min, eps_soft)` is owned by LOSS (Phase 35), and the unsoftened value is always logged for diagnostics (CURR-05).
+
 **Plans**: TBD
 **UI hint**: no
 
@@ -157,6 +175,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. The merged gradient-clipping contract is defined — `clip_value = C_stage · median(grad_norm_history)` with the per-stage `C_table` (stages 0–1: 8.5; 2–3: 5.0; 4–6: 3.0) and a rolling window — per M14 (LOOP-04); and the ALM parameter-update contract is defined — `λ_p`/`μ_p` RMSprop-style moving-average update under `torch.no_grad()`, with the `μ_p` clamp `[1e-4, 100]` — per the audit ALM specification and the MINOR clamping finding (LOOP-05).
   4. The `dt_out`-aware collocation-scaling contract is defined — `n_col ∝ dt_base / dt_out` (audit M16 line-163 verbatim direction; the inverse form is an explicit future methodology change, not transcribed) — **realizing the v1.5 SCOPE-11 / PIPE-08 forward-reference** (LOOP-06).
   5. The training-side use of the v1.5-provisional metrics is defined — IPR as the ALM convergence / noise-floor (v1.5 VAL-03 forward-reference; provisional `1e-3` confirmed or recalibrated) and PSC for replay-buffer governance (v1.5 VAL-04 forward-reference; provisional grid/normalization/SCR confirmed or recalibrated) per LOOP-07, plus SASD training-side collocation-weighting (v1.5 VAL-02 deferral) per LOOP-08.
+
 **Plans**: TBD
 **UI hint**: no
 
@@ -171,6 +190,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   2. The capped-hybrid energy-loss-weight schedule is defined — `λ_E(k) = min(10^(k-3), cap[k])` with `cap = {0:1, 1:5, 2:20, 3:50, 4:100, 5:200, 6:500}`, the adaptive `0.5×` reduction when energy is already well-conserved, and the dominance safeguard (`λ_E·L_energy > 10·L_data` → warn/reduce) — per M15 (LOSS-02).
   3. The Huber-δ calibration contract for the normalized-energy loss is defined — δ selected from empirical `|ΔH|` quantiles with a `0.01–0.1` starting range, recorded per stage — per NS-13 (LOSS-03).
   4. The causal-training-mode contract is defined per the D-04 verdict — the chosen mode's batch-windowing, ALM locality, and loss-weighting structure; if Option C (time-windowed causal-ALM hybrid) is adjudicated, the overlapping-window partitioning, hard convergence gating, and state-propagation contract — with the blueprint's Option-C recommendation preserved unless the verdict downgrades it as an explicit, recorded human decision (LOSS-04).
+
 **Plans**: TBD
 **UI hint**: no
 
@@ -186,6 +206,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. Every fix closes through the iterative re-verification loop: the issue ledger reaches terminal state — all in-scope findings `VERIFIED` or explicitly `DEFERRED` with a written blocker — with previously `VERIFIED` findings re-verified and demoted on regression after each edit batch (VER-16).
   4. The milestone handoff identifies which findings were fixed, which were intentionally left unchanged, and which were deferred; FUT-01 and FUT-04 divergence records are updated for every training-loop-implementation-shaped finding (VER-17); and the remaining curriculum/training-loop `SI-*` entries are each reviewed for issue-03 relevance and either retired with a back-reference to the resolving phase/commit or preserved with a written reason — none assumed resolved or assumed irrelevant (VER-18).
   5. Roadmap traceability is confirmed at closure: all 32 v1.6 requirements map to exactly one phase, beginning at Phase 30 (VER-14).
+
 **Plans**: TBD
 **UI hint**: no
 

@@ -4,7 +4,7 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 status: planning
 stopped_at: Phase 30 context gathered
-last_updated: "2026-06-17T16:09:37.033Z"
+last_updated: "2026-06-18T02:56:43.348Z"
 last_activity: 2026-06-17 — v1.6 roadmap created (7 phases, standard granularity, continuing from v1.5's Phase 29)
 progress:
   total_phases: 7
