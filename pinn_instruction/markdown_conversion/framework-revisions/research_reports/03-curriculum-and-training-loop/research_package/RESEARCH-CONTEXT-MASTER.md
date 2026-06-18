@@ -22,8 +22,13 @@ companions; it does not fold them.**
 
 The package is **self-contained**. Every file named below is shipped in this package
 (either in this directory or in its `specs/` subdirectory). The external researcher is
-assumed to have **no repository access** and works only from the attached files. No file
-in this package, other than the never-uploaded delivery note, names a repository path.
+assumed to have **no repository access** and works only from the attached files. The
+authored entry points — this master and `RESEARCH-AGENT-PROMPT.md` — name no repository
+path; the grounding companions (`claims-register.md`, `verified-facts-reference.md`,
+`consolidated-context.md`) retain repo-relative provenance *labels* by design
+(non-navigable, for v1.5 traceability — see those files' headers). No uploaded file points
+a repo-blind agent at a path that would dangle without repository access; repository
+routing lives only in the never-uploaded delivery note.
 
 ## Reading order
 
@@ -63,7 +68,7 @@ is weighed; the verbatim hard constraints themselves are in `scope-12-hard-const
   its "Recommended Resolutions" may contain errors and must NOT be treated as settled. The
   worked example is the `D` conflict: the issue doc derives `D = 6.694`, which **conflicts
   with** the locked raw-mass `D ≈ 4.6416` (rejected by v1.5 Phase 25 EVID-10; see
-  `scope-12-hard-constraints.md` item 6 and `claims-register.md` CLM-13). The research
+  `scope-12-hard-constraints.md` item 6 and `claims-register.md` CLM-01/CLM-19). The research
   adjudicates such conflicts; it does not assume the issue doc is correct.
 
 - **The framework specs are the source of truth.** `ctl_instruction.md` and

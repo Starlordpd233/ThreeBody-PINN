@@ -60,7 +60,7 @@ Honor these treatment rules:
   are non-authoritative and may contain errors.** Adjudicate its findings; do not transcribe
   its proposals as decisions. The worked example is the `D` conflict: the issue doc's
   `D = 6.694` conflicts with the locked raw-mass `D ≈ 4.6416` — the locked value stands (see
-  `scope-12-hard-constraints.md` item 6 and `claims-register.md` CLM-13).
+  `scope-12-hard-constraints.md` item 6 and `claims-register.md` CLM-01/CLM-19).
 - **The framework specs (`ctl_instruction.md`, `pinn_architecture.md`) are the source of
   truth.** Where the issue doc cites live implementation code as "Canonical", that citation
   is overridden — the specs are authoritative instead (`scope-12-hard-constraints.md` §2).
