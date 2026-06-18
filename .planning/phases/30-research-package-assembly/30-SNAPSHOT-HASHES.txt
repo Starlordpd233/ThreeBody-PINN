@@ -12,3 +12,29 @@
 review_of_framework.md | pinn_instruction/markdown_conversion/framework-revisions/review-of-framework/review_of_framework.md | fe5fdc449cf0858046fda7bfd0c17b5fe0a9d2284af08c793c3829f715a617a1 | 6ab19ea3f8f9248578296472f75b659a8e5b19a4 | PKG-08 report; characterized read-only in 30-REPORTS-CHARACTERIZATION.md; baseline design intent + baseline-critique mandate; 529 lines; git diff --quiet exits 0 (unchanged)
 stage_strat_revision.md | pinn_instruction/markdown_conversion/framework-revisions/stage-strat-revision/stage_strat_revision.md | d875cd6680e3ec5239bd2c0d35b9bb8eaba39480f26cd909e4c0bc2fd9011fea | 2f952cf0154b40e054287902716f16f8d50db576 | PKG-08 report; characterized read-only in 30-REPORTS-CHARACTERIZATION.md; baseline design intent + baseline-critique mandate; 427 lines; git diff --quiet exits 0 (unchanged)
 24-VERIFIED-FACTS.md | .planning/milestones/v1.5-phases/24-empirical-dataset-verification-and-correction-addendum/24-VERIFIED-FACTS.md | e71c10d368335e16e53c5188c038315b72afbaf0c29d6dbb6b0847a5ed5351ca | 2e08dabda3a69d12e48652abd119ad080f7e5466 | v1.5 verified-facts source; grounds the CLM-14..CLM-18 verified anchors in 30-CLAIMS-INVENTORY.md (CLM-04/05b/06/09/10); not packaged here, recorded for provenance
+
+# --- APPENDED in 30-03: the 6 intact packaged snapshots (specs/) ---
+# The two report lines above (review_of_framework.md, stage_strat_revision.md) ARE the
+# packaged snapshots for those two sources (their content sha256 = packaged-copy sha256,
+# proven by cmp -s snapshot==source exit 0); the four lines below add issue-03 + the three
+# framework specs. Each line: content sha256 = byte-fidelity (PKG-08/VC-02); source commit =
+# provenance (last-touching commit). cmp -s snapshot==source exits 0 for all six pairs.
+03-curriculum-and-training-loop.md | pinn_instruction/issues/03-curriculum-and-training-loop.md | 94c3c03b1323847eea84233bd29dddba8cf4b32b7dd08ecb0af52cdba4ad1d3a | d43afcd69af027e0689f42ac61e130f8497939f8 | issue-03 adjudication subject (NON-authoritative; carries D=6.694); intact byte-for-byte snapshot in research_package/specs/; cmp -s == source exit 0; git diff --quiet exits 0 (unchanged)
+ctl_instruction.md | pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md | 4ee083fce79755ec75ce86cade36822cf50c082fcae80a4b181a6974658d2afc | 6eae642299f11357693d8912cb6476194e1e8897 | spec-edit target (SCOPE-13); NEVER consolidated (D-04); 1868 lines; intact byte-for-byte snapshot in research_package/specs/; cmp -s == source exit 0; git diff --quiet exits 0 (unchanged)
+pinn_architecture.md | pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md | 318f297a3b122e64a06d9b2c09f59e078ce06b7863e1a04637cb02e8020f62cd | ea2af12348b6fd95521e0e4c251c92a0160030cf | spec-edit target (SCOPE-13); NEVER consolidated (D-04); 1013 lines; intact byte-for-byte snapshot in research_package/specs/; cmp -s == source exit 0; git diff --quiet exits 0 (unchanged)
+sampling_method.md | pinn_instruction/markdown_conversion/framework-specs/sampling_method.md | 750e625efa51767eed0371dc4d6ee73d598fbd77c98592cef18bce5fc84f6f07 | 916d3f84ad7282c1f8ace45901441f7d3ac054ca | FROZEN (SCOPE-08); NEVER consolidated (D-04); 281 lines; intact byte-for-byte snapshot in research_package/specs/; cmp -s == source exit 0; git diff --quiet exits 0 (unchanged)
+
+# --- Generated package artifacts (NOT source snapshots; no source commit / no cmp pair) ---
+consolidated-context.md | (generated; research_package/specs/consolidated-context.md) | n/a (generated artifact) | n/a (authored in 30-03 Task 2) | D-09 minimal sim_data/v1.5 excerpts (D-22); per-fragment source labels retained (D-10); all figures CLM-registered in 30-CLAIMS-INVENTORY.md
+verified-facts-reference.md | (generated; research_package/verified-facts-reference.md) | n/a (generated artifact) | n/a (authored in 30-03 Task 2; sole owner F11) | STANDALONE v1.5-verified-facts reference (D-09 inclusion call (b) = STANDALONE); reused by claims register + SCOPE-12 preamble
+
+# --- Package-wide source_baseline pin (F7) ---
+# source_baseline = the milestone/v1.6 HEAD at 30-03 assembly time, re-derived via
+# `git rev-parse HEAD`. This is the value 30-05 writes into the master frontmatter.
+# It is NOT the 30-01 recovery-tag commit: the recovery tag `v1.6-pre-phase-30` points at
+# e841c958b1ae7b18c9cdaa40b9e2432ecf7cc870, but 30-01/30-02 committed `.planning/` artifacts
+# after the tag, so assembly HEAD is ahead of the tag.
+# BYTE-IDENTITY NOTE: 30-01/30-02 wrote ONLY `.planning/` artifacts — they never touched any of
+# the six snapshotted sources. The six sources are therefore byte-identical between the
+# recovery-tag commit (e841c958) and assembly HEAD, so EITHER ref reproduces the snapshots.
+package-wide | (all sources) | source_baseline | 522cea7182bf3d0e3206d8faa75150e705b174f0 | assembly-time milestone/v1.6 HEAD (re-derived `git rev-parse HEAD`, F7); recovery tag v1.6-pre-phase-30 = e841c958 trails this by the 30-01/30-02 `.planning/` commits; sources byte-identical across both refs
