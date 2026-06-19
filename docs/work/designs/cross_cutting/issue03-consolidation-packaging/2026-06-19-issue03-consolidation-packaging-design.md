@@ -35,7 +35,8 @@ not the numbers transcribed here (they are for grounding and review).
 > decisions (see §5.0). Ground-truthing against specwork then surfaced three further
 > items — D-6 (an Issue 02 file in the results folder → **excluded**), D-7 (canonical
 > sources two commits behind phase30 → **fast-forwarded**, `milestone/v1.6 @ 05df2619`),
-> and D-8 (phase30 worktree retirement → **still pending**, §5.1). With D-6/D-7 ruled, the
+> and D-8 (phase30 worktree retirement → **executed**: worktree removed, branch deleted,
+> archive tag `archive/phase30-pre-retire` @ `05df2619`, §5.1). With D-6/D-7 ruled, the
 > two bundles were **built and byte-exact-verified** on 2026-06-19; full provenance lives
 > in the generated, never-uploaded `BUNDLE-MANIFEST.md` (nonce `f26fed61251ff665`).
 
@@ -159,7 +160,7 @@ ancestor of `05df2619`, so the two are reconcilable by fast-forward.
 - *Either way* the byte-exact canonical bundle pins to whichever version is chosen and
   records it in the manifest.
 
-#### D-8 — phase30 worktree disposition (does not block the build)  ·  **PENDING**
+#### D-8 — phase30 worktree disposition (does not block the build)  ·  **DONE 2026-06-19**
 The user wants the `phase30-package-audit-fixes` worktree gone. It is a **real registered
 worktree** on a 29-commit branch (the entire Phase 30 research-package assembly), two
 commits ahead of `milestone/v1.6`. Removing the worktree directory does not delete commits
@@ -169,6 +170,9 @@ redundant.
 - **Recommended:** after D-7 A, retire the worktree **with a recovery tag**
   (`archive/phase30-pre-retire` on `05df2619`) and explicit destructive-op approval, then
   `git worktree remove`. Branch deletion only after the user confirms nothing else needs it.
+- **Executed 2026-06-19:** tagged `archive/phase30-pre-retire` (→ `05df2619`),
+  `git worktree remove`d the phase30 worktree, and safe-deleted (`-d`)
+  `codex/phase30-package-audit-fixes` after confirming it is contained in `milestone/v1.6`.
 - *Never:* remove the worktree or delete the branch without explicit approval + recovery
   checkpoint (project destructive-git governance).
 
