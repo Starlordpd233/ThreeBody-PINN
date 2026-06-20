@@ -230,7 +230,7 @@ Most configuration is embedded directly in Python scripts, not externalized:
 
 ### Version Control
 - Git (repository root at `<home>/Desktop/3_body_problem/`)
-- Active branch: `milestone/v1.5` (main branch: `master`)
+- Active development branch: `milestone/v1.6` (in an isolated worktree; `master` holds shipped v1.0–v1.5)
 - No submodules
 - Git hooks installed at `.githooks/` (configured via `scripts/setup-git-hooks.sh`):
   - `pre-commit` — runs `scripts/git_policy/validate_staged_paths.py`

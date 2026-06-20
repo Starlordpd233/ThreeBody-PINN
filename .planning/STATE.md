@@ -21,7 +21,7 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-17)
+See: .planning/PROJECT.md (updated 2026-06-20)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
 **Current focus:** Phase 31 complete (resolution-doc readiness READY-WITH-CAVEATS); Phase 32 unblocked — next: discuss/plan Phase 32
@@ -172,13 +172,15 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-v1.6 roadmap created; Phase 30 ready to plan. Phases 32–36 gate on Phase 31 (resolution-doc readiness), which gates on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` (does NOT yet exist — gate closed, as expected at milestone start).
+Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phases 32–36 are UNBLOCKED. The consolidated resolution doc landed at `research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md` (commit `49fb7958`).
 
-- [ ] Plan Phase 30 (Research Package Assembly) with `/gsd-plan-phase 30`
-- [ ] Tag `v1.6-pre-phase-30` from `milestone/v1.6` HEAD before Phase 30 begins
-- [ ] **[Standing trigger]** Create `.planning/milestones/v1.6-GAPS.md` index when the first v1.6 phase opens a gap
-- [ ] **[User-owned]** Rebase `milestone/v1.6` onto the completed `master` once v1.5's `--no-ff` merge + `/gsd-complete-milestone` land (reconciles the forward-only PROJECT.md/STATE.md edits)
-- [x] Define v1.6 requirements (32 requirements committed 2026-06-17 across PKG/EVID/CURR/LOOP/LOSS/VER)
+- [ ] Discuss/plan Phase 32 (Evidence Framework, Issue Ledger & Conflict Adjudication) with `/gsd-discuss-phase 32` or `/gsd-plan-phase 32`; carry the 12 routed caveats from `31-READINESS-REPORT.md` §4
+- [ ] Tag `v1.6-pre-phase-32` from `milestone/v1.6` HEAD before Phase 32 begins
+- [ ] **[Standing trigger]** Create `.planning/milestones/v1.6-GAPS.md` index when the first v1.6 phase opens a gap (none arose in Phases 30–31)
+- [x] Plan + execute Phase 30 (Research Package Assembly); external resolution-doc gate opened on delivery (2026-06-18)
+- [x] Execute Phase 31 (resolution-doc readiness verification) — READY-WITH-CAVEATS (2026-06-20)
+- [x] Rebase `milestone/v1.6` onto the completed `master` (2026-06-17; recovery `backup/milestone-v1.6-pre-rebase` + tag `v1.6-pre-rebase`)
+- [x] Define v1.6 requirements (32 requirements across PKG/EVID/CURR/LOOP/LOSS/VER)
 - [x] Create v1.6 roadmap (Phases 30–36; 32/32 mapped)
 
 ### Prerequisites
@@ -188,8 +190,8 @@ v1.6 roadmap created; Phase 30 ready to plan. Phases 32–36 gate on Phase 31 (r
 ### Blockers/Concerns
 
 - **Working branch is `milestone/v1.6`** (isolated worktree at `../3_body_problem-v1.6`, cut from the v1.5 deliverable tip `88aa1e4f`, 2026-06-17). Do NOT commit v1.6 work to master or to `milestone/v1.5`. Tag `v1.6-pre-phase-NN` before each phase; `--no-ff` merge at milestone end. Every session must surface `git status --short --branch` before any file mutation.
-- **External gate:** opens on Phase 30 (research package) delivery. Phase 31 verifies the consolidated resolution doc before adjudication begins. Phases 32–36 cannot start until Phase 31 passes (which requires the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` — confirmed absent at milestone start). Phase 30 is unblocked.
-- **Concurrent v1.5 closure:** v1.5's `--no-ff` merge + `/gsd-complete-milestone` run in the main tree concurrently; v1.6's forward-only PROJECT.md/STATE.md edits reconcile at the rebase. Do not assume v1.5 phase-dir archival here (owned by `/gsd-complete-milestone`).
+- **External gate (SATISFIED):** the consolidated resolution doc landed under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 verified its readiness (READY-WITH-CAVEATS, 2026-06-20). The gate that blocked Phases 32–36 is now open.
+- **v1.5 closure (DONE):** v1.5 shipped 2026-06-17 (`--no-ff` merge `fe9b3c92`; archived under `.planning/milestones/v1.5-*`); `milestone/v1.6` was rebased onto the completed `master` the same day, reconciling the forward-only PROJECT.md/STATE.md edits.
 - **STOP protocol active:** v1.6 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
 - Phases 32-36 UNBLOCKED: the issue-03 resolution doc landed at `research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md` (commit `49fb7958`) AND Phase 31 resolution-doc readiness PASSED (READY-WITH-CAVEATS, 2026-06-20). Phase 32 may now be planned/executed, carrying the 12 routed caveats.
 

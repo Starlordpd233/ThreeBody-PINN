@@ -8,7 +8,7 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 1. **Brutus** (`brutus_Newton-main/`) — a high-precision C++ N-body integrator built on GMP/MPFR arbitrary-precision arithmetic. It is the integration engine that produces ground-truth trajectories.
 2. **Python data pipeline** (`simulation_data/`) — IC generation, Stage 2 prescreening, batch runners that drive Brutus, and post-integration metrics calculation. The output is a curated multi-fidelity dataset of three-body trajectories.
 3. **Framework specs** (`pinn_instruction/markdown_conversion/framework-specs/`) — the authoritative design documents for the curriculum-training methodology (`ctl_instruction.md`) and the SQR-SkipResNet-SIREN PINN architecture (`pinn_architecture.md`).
-4. **PINN training code** (`pinn/`) — the v1.3-era reference implementation that bridges Brutus outputs to ML tensors. Per user directive (2026-05-19) and `pinn-reference.md`, this code is NOT a grounding source for v1.4/v1.5 spec decisions; FUT-01 will rebuild it from the framework specs.
+4. **PINN training code** (`pinn/`) — the v1.3-era reference implementation that bridges Brutus outputs to ML tensors. Per user directive (2026-05-19) and `pinn-reference.md`, this code is NOT a grounding source for v1.4/v1.5/v1.6 spec decisions; FUT-01 will rebuild it from the framework specs.
 
 The primary inputs are three-body initial conditions (masses, positions, velocities). The primary outputs are (a) high-precision Brutus trajectory datasets used as PINN training targets, and (b) the locked v1.4 PINN architecture and CTL curriculum that govern how the network is trained.
 
@@ -73,7 +73,7 @@ A typical request flows top-to-bottom through the pipeline:
 
 ## Key abstractions
 
-### Framework spec contracts (authoritative for v1.4 / v1.5)
+### Framework spec contracts (authoritative for v1.4 / v1.5 / v1.6)
 
 | Abstraction | Location | Purpose |
 |---|---|---|
@@ -87,7 +87,7 @@ A typical request flows top-to-bottom through the pipeline:
 | **SCS gate** (post-v1.3 convention) | Phase 19 / 28 verdict | Raw Hamiltonian drift `ε_H`; SCS = `log₁₀(ε_H)`; gate: `ε_H > 10⁻⁵` / `SCS > −5`. |
 | **Validation contracts (Phase 28)** | `ctl_instruction.md` / `pinn_architecture.md` | SASD (sampling/dataset), IPR (input preprocessing/regularization), PSC (physical-scaling constants). SCS gate above. |
 
-### Dataset shape (v1.5 closure-ready, per STATE.md 2026-06-17)
+### Dataset shape (v1.5-verified; unchanged in v1.6, which is specwork-only)
 
 | Set | IC type | Files | Word length | tolerance | dt_out |
 |---|---|---:|---:|---:|---:|
@@ -110,7 +110,7 @@ Gold-standard completeness state (GAP-29-01 RESOLVED 2026-06-16): **117 validate
 | `simulation_data/Data/` | The generated dataset itself (gitignored; restored from backup per migration runbook). Folder name rigidly defines variant — see README §"Dataset Layout and Naming Conventions". |
 | `simulation_data/Validation/dataset_readiness_checks/` | Validation scripts. README flags these as Known-Broken (`ValidationConfig` NameError + pattern logic issues); rely on Stage 4 metrics instead. |
 | `simulation_data/Documentation/` | Dataset spec, anomalies (`README.md`), blacklist (`problematic_ics_blacklist.json`), and the ID-not-in-gold inventory (`standard_quasi_random_ids_not_in_gold.md`). |
-| `pinn/` | v1.3-era PINN reference code (`basic_architecture.py`, `data-processing-pipeline-full.py`). NOT authoritative for v1.4/v1.5; rebuilt from specs in FUT-01. |
+| `pinn/` | v1.3-era PINN reference code (`basic_architecture.py`, `data-processing-pipeline-full.py`). NOT authoritative for v1.4/v1.5/v1.6; rebuilt from specs in FUT-01. |
 | `pinn_instruction/markdown_conversion/framework-specs/` | Authoritative framework specs: `ctl_instruction.md`, `pinn_architecture.md`, `sampling_method.md` (frozen). |
 | `pinn_instruction/markdown_conversion/framework-revisions/` | Research reports and resolution-doc materials. `data_quality_assessment.md` is read-only (SCOPE-09). |
 | `pinn_instruction/markdown_conversion/framework-specs/integrity-r1/` | Integrity-r1 package (Phase 26 — pass-through consistency check artifacts). |
@@ -128,9 +128,9 @@ Gold-standard completeness state (GAP-29-01 RESOLVED 2026-06-16): **117 validate
 
 ## Notes on governance and grounding
 
-- **STOP protocol active**: source-silent semantic / process-schema / cross-phase decisions are surfaced as gaps, never invented. Phase-local `NN-GAPS.md` files plus the milestone-wide index at `.planning/milestones/v1.5-GAPS.md` are authoritative.
-- **`pinn/` live-code ban**: code under `pinn/` is NOT a grounding source for v1.5 spec decisions; forward-pointing hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`) are the only permitted references.
+- **STOP protocol active**: source-silent semantic / process-schema / cross-phase decisions are surfaced as gaps, never invented. Phase-local `NN-GAPS.md` files plus the current milestone-wide index at `.planning/milestones/v1.6-GAPS.md` (created on the first v1.6 gap; the v1.4/v1.5 indexes are archived) are authoritative.
+- **`pinn/` live-code ban**: code under `pinn/` is NOT a grounding source for v1.4/v1.5/v1.6 spec decisions; forward-pointing hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`) are the only permitted references.
 - **`sampling_method.md` is FROZEN** (SCOPE-08): read-only as the historical record of how the existing dataset was produced.
 - **`data_quality_assessment.md` is read-only** (SCOPE-09): a research report, not an authoritative spec.
 - **Spec-edit targets**: `ctl_instruction.md` and `pinn_architecture.md` ONLY.
-- **Current milestone state**: v1.5 (Phases 23–29) is closure-ready as of 2026-06-17; the `milestone/v1.5` → `master` `--no-ff` merge is user-owned. FUT-01 then consumes the two-artifact handoff (`29-HANDOFF.md` + `29-CODE-DIVERGENCE.md`).
+- **Current milestone state**: v1.5 (Phases 23–29) **shipped 2026-06-17** (`milestone/v1.5` → `master` `--no-ff` merge `fe9b3c92`; archived under `.planning/milestones/v1.5-*`). **v1.6 ("Resolving 03 Curriculum and Training Loop", Phases 30–36) is in progress** on `milestone/v1.6` — Phases 30–31 complete, Phase 32 (evidence framework + conflict adjudication) next; specwork-only (edits `ctl_instruction.md` / `pinn_architecture.md` only). FUT-01 consumes the v1.5 two-artifact handoff (`29-HANDOFF.md` + `29-CODE-DIVERGENCE.md`).

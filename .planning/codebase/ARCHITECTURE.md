@@ -19,13 +19,16 @@
 > physics/spec question; unsettled items are reported as "tracked; see
 > <artifact>" against `.planning/` and the framework specs only.
 
-**Milestone context:** v1.4 ("Resolving 01 Architecture and Physics
-Foundations", Phases 16–22 incl. 20.5) is **COMPLETE** (shipped 2026-06-09) and
-constructed/repaired the framework specs. v1.5 ("Resolving 02 Data Pipeline and
-Validation", Phases 23–29) is **IN PROGRESS** on branch `milestone/v1.5`
-(currently Phase 23, research-package assembly). The architecture documented
-here reflects the v1.4 framework-spec state, with `pinn/` noted as the
-not-yet-rewritten v1.3 code (FUT-01).
+**Milestone context** (code analysis dated 2026-06-10; milestone status refreshed
+2026-06-20): v1.4 ("Resolving 01 Architecture and Physics Foundations", Phases
+16–22 incl. 20.5) shipped 2026-06-09 and constructed/repaired the framework specs.
+v1.5 ("Resolving 02 Data Pipeline and Validation", Phases 23–29) **shipped
+2026-06-17** (merged to `master`, archived under `.planning/milestones/v1.5-*`).
+v1.6 ("Resolving 03 Curriculum and Training Loop", Phases 30–36) is **IN PROGRESS**
+on branch `milestone/v1.6` (Phases 30–31 complete; Phase 32 next); it is
+specwork-only and edits no runtime code. The architecture documented here reflects
+the v1.4/v1.5 framework-spec state, with `pinn/` noted as the not-yet-rewritten
+v1.3 code (FUT-01).
 
 ## System Overview
 
@@ -40,9 +43,9 @@ pipeline** that orchestrates, validates, and processes data across 6 stages.
 Alongside the runtime stack sits a large **spec-engineering / governance
 subsystem** (`pinn_instruction/`, `.planning/`, `docs/`, `tools/`, `scripts/`,
 `.githooks/`, `tests/`) where the framework specs, adjudication artifacts, and
-GSD project management live. For the current milestones (v1.4 complete, v1.5 in
-progress) the spec-engineering subsystem — not the runtime code — is where
-design work happens; `pinn/` is frozen v1.3 code awaiting FUT-01.
+GSD project management live. For the current milestones (v1.4 and v1.5 shipped,
+v1.6 in progress) the spec-engineering subsystem — not the runtime code — is
+where design work happens; `pinn/` is frozen v1.3 code awaiting FUT-01.
 
 ```mermaid
 graph TD
@@ -205,7 +208,7 @@ GSD (Goal-Structured Development) spec-engineering and governance subsystem.
   - `pinn_instruction/markdown_conversion/framework-specs/` — **AUTHORITATIVE** markdown specs (`ctl_instruction.md`, `pinn_architecture.md`, `sampling_method.md`).
   - `pinn_instruction/markdown_conversion/framework-revisions/` — research reports (non-authoritative): `data_quality_assessment.md`, `review-of-framework/`, `stage-strat-revision/`, and `research_reports/01-architecture-and-physics-foundations/` (the v1.4 resolution doc `ctl_pinn_resolution.md` plus external research reports).
   - `pinn_instruction/original_latex/framework-specs/` and `.../framework-revisions/` — modular LaTeX sources for the above (kebab-case doc dirs: `ctl-instruction/`, `pinn-architecture/`, `sampling-method/`, `data-quality-assessment/`, `review-of-framework/`).
-  - `pinn_instruction/issues/` — consolidated thematic issue docs (`01-…`, `02-…`, `03-…`) + `MIGRATION.md`, `README.md`, `archive/`. Issue `02-data-pipeline-and-validation.md` is the (non-authoritative) target of v1.5.
+  - `pinn_instruction/issues/` — consolidated thematic issue docs (`01-…`, `02-…`, `03-…`) + `MIGRATION.md`, `README.md`, `archive/`. Issue `02-data-pipeline-and-validation.md` was the (non-authoritative) target of v1.5; issue `03-curriculum-and-training-loop.md` is the (non-authoritative) target of v1.6.
 - **Depends on:** LaTeX toolchain (LaTeX sources), pandoc (markdown conversion), Node (`tools/spec-render-check`).
 - **Used by:** GSD planning/adjudication; FUT-01 will generate code from the specs.
 
@@ -313,7 +316,7 @@ GSD (Goal-Structured Development) spec-engineering and governance subsystem.
 
 ### GSD Adjudication & Gap-Register Pattern
 - **Purpose:** Block on source-silent spec decisions rather than inventing content (governance STOP protocol).
-- **Artifacts:** phase-local gap registers `.planning/phases/NN-*/NN-GAPS.md`; milestone index `.planning/milestones/v1.4-GAPS.md` (and `v1.5-GAPS.md` once it lands); EDL research-support briefs `.planning/research/edl/`; spec-render adjudication fixtures `tools/spec-render-check/adjudications/`.
+- **Artifacts:** phase-local gap registers `.planning/phases/NN-*/NN-GAPS.md`; milestone gap indexes `.planning/milestones/v1.4-GAPS.md` and `v1.5-GAPS.md` (and `v1.6-GAPS.md`, created on the first v1.6 gap); EDL research-support briefs `.planning/research/edl/`; spec-render adjudication fixtures `tools/spec-render-check/adjudications/`.
 - **Pattern:** A decision is "grounded" only if explicitly answered by a designated source (resolution doc, issue doc, prior user decision, planning artifact, or a v1.4-revised spec section). Otherwise STOP and surface. See `AGENTS.md` "CRITICAL GOVERNANCE" for the full test.
 
 ## Entry Points

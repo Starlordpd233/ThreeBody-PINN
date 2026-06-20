@@ -8,7 +8,7 @@
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; [archive](milestones/v1.3-ROADMAP.md))
 - ✅ **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–22, including 20.5 (shipped 2026-06-09; [roadmap archive](milestones/v1.4-ROADMAP.md), [requirements archive](milestones/v1.4-REQUIREMENTS.md), [phase archive](milestones/v1.4-phases/))
 - ✅ **v1.5 Resolving 02 Data Pipeline and Validation** — Phases 23–29, including 24.5 (shipped 2026-06-17; archived under [`milestones/v1.5-*`](milestones/))
-- 🚧 **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (in progress; planning)
+- 🚧 **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (in progress; Phases 30–31 complete, Phase 32 next)
 - 🔮 **Final Publication LaTeX Sync** — deferred until implementation, network/training design, training, and research-result interpretation are complete
 
 ## Deferred: Final Publication LaTeX Sync
@@ -30,7 +30,7 @@
 
 ---
 
-## 🚧 v1.6 Resolving 03 Curriculum and Training Loop (Planning)
+## 🚧 v1.6 Resolving 03 Curriculum and Training Loop (Executing)
 
 **Milestone Goal:** Critically examine each finding in `pinn_instruction/issues/03-curriculum-and-training-loop.md` — treating the issue doc as non-authoritative — against the user-produced external resolution doc (once it lands), the locked v1.4 (doc-01) and v1.5 (doc-02) conventions, the framework specs, and first principles; adjudicate the curriculum-staging and training-loop findings; apply evidence-backed edits limited to `ctl_instruction.md` and `pinn_architecture.md`; and verify each fix with disposable acceptance probes before closing. v1.6 settles the curriculum/training-loop **design contracts**; it does NOT implement training-loop code, run the adaptive-assignment EDA, or run the Stage-0 pilot calibration — those remain FUT-01/FUT-04 (the trainex track).
 
@@ -92,8 +92,10 @@ Every selected finding follows the v1.4/v1.5-style loop:
   2. Each contested or unverified finding is posed as an explicit neutral research question, with the locked v1.4 conventions AND v1.5 data-pipeline/validation outcomes listed as hard constraints the research must respect (SCOPE-12); the three human-approval decisions — D-04 (causal training mode: per-time-step / global+ALM / time-windowed hybrid), D-05 (s_min frame), D-06 (epsilon strategy) — and the known cross-milestone `D = 6.694` vs `D ≈ 4.6416` conflict are posed without being settled (PKG-06).
   3. Every dataset/empirical figure stated in the package is explicitly marked "claimed, unverified" (the issue-doc value) unless already verified by v1.5 — figures verified by v1.5 (e.g., the 184 standard IDs without gold, the ~2,565 quasi-random gold count, per-variant snapshot/`dt_out` distributions) are stated as verified with their v1.5 citation; no unverified figure is presented as fact (PKG-07).
   4. `review-of-framework.md` and `stage-strat-revision.md` are characterized read-only (provenance, content map, and relation to the doc-03 findings), reported to the user with zero edits to either file (SCOPE-09 analog; PKG-08).
-  5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.**Plans**: 5/6 plans executed
-- [ ] 30-CONSOLIDATION-PLAN.md
+  5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.
+
+**Plans**: 5/5 plans complete
+- [x] 30-CONSOLIDATION-PLAN.md (PKG-05 planning/structural artifact, not an executable plan — see 30-CONSOLIDATION-SUMMARY.md)
 
 **Wave 1**
 
@@ -229,4 +231,4 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
 
 ---
-*Last updated: 2026-06-17 — v1.6 roadmap created (`/gsd-new-project` roadmapper). 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29. 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6); Phase 31 readiness verification is operational (0 IDs). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*
+*Last updated: 2026-06-20 — Phases 30 (research package) and 31 (resolution-doc readiness, READY-WITH-CAVEATS) complete; Phases 32–36 unblocked, Phase 32 (Evidence Framework, Issue Ledger & Conflict Adjudication) next. Roadmap created 2026-06-17 (`/gsd-new-project` roadmapper): 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29; 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6); Phase 31 readiness verification is operational (0 IDs). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*
