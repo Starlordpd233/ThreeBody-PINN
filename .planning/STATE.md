@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
-current_phase: 30
-current_phase_name: research-package-assembly
+current_phase: 31
+current_phase_name: resolution-doc-readiness-verification
 status: executing
-stopped_at: Phase 31 context gathered
-last_updated: "2026-06-20T06:33:38.751Z"
-last_activity: 2026-06-18
-last_activity_desc: Phase 30 complete; ERW package delivered, external gate open
+stopped_at: Phase 31 planned (31-01-PLAN.md, plan-checker PASSED); paused before execution per user
+last_updated: "2026-06-20T07:23:22.000Z"
+last_activity: 2026-06-20
+last_activity_desc: Phase 31 planned (1 plan, verified); paused before execute per user
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 5
+  total_plans: 6
   completed_plans: 5
   percent: 14
 ---
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** Phase 30 — research-package-assembly
+**Current focus:** Phase 31 — resolution-doc-readiness-verification (planned; paused before execute)
 
 ## Current Position
 
-Phase: 30 (research-package-assembly) — COMPLETE (verified)
-Plan: 5 of 5 complete (30-01..30-05)
-Status: Phase 30 delivered + verified (30-VERIFICATION.md PASSED 4/4 PKG requirements); external resolution-doc gate OPEN — user ERW research starts; Phases 32-36 gated on the resolution doc landing AND Phase 31
-Last activity: 2026-06-18 -- Phase 30 complete; ERW package delivered, external gate open
+Phase: 31 (resolution-doc-readiness-verification) — PLANNED (1 plan, plan-checker PASSED); paused before execution per user
+Plan: 31-01 created + verified; 0 of 1 executed (Phase 30: 5/5 complete + verified)
+Status: Phase 31 planning complete — 31-CONTEXT/RESEARCH/VALIDATION + 31-01-PLAN.md committed; execution NOT started (user requested stop after planning). The resolution doc has landed; external gate OPEN. Phases 32-36 remain gated on Phase 31 passing (the readiness checks run at execution).
+Last activity: 2026-06-20 -- Phase 31 planned (research + validation + plan, all verified); paused before /gsd-execute-phase 31 per user
 
 ## Performance Metrics
 
