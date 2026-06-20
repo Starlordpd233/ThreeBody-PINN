@@ -120,6 +120,11 @@ orchestrator's atomic commit.
 - The R4 `consistent?` table records all 12 mapped CLM/VF rows (not just contradictions) for
   Phase 32 traceability — the SPEC's "lists each doc figure that maps to a verified-facts row"
   language was read as exhaustive rather than exceptions-only.
+  **[Corrected 2026-06-20]** This 12-row table was unsound: it conflated the resolution doc's
+  `CLM/VF` IDs (the doc-03 package's own registers in `CLAIMS-AND-FACTS-BUNDLE.md`) with v1.5
+  `24-VERIFIED-FACTS.md` rows of the same number. The R4 verdict (0 contradictions) held, but
+  the table was replaced in `31-READINESS-REPORT.md` §3 with the 3 figures that genuinely
+  cross-walk to a v1.5-verified fact (a near-vacuous pass). See that report's §3 R4 correction.
 - The §4 gap list uses stable caveat IDs (C-01..C-12) rather than re-using the doc's GAP-xx
   IDs, to distinguish "Phase 31 caveats carried forward" from "doc-internal gap-register rows"
   (the latter are referenced in the C-rows' Affects column and enumerated in the map §6).

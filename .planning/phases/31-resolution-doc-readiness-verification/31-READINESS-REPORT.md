@@ -116,34 +116,47 @@ Coverage shapes of note (covered-with-caveat, not gaps):
 
 ### R4 — Dataset-figure consistency check: PASS (0 contradictions)
 
-The doc cites 13 CLM/VF IDs (CLM-01, CLM-02, CLM-08, CLM-10, CLM-11, CLM-12, CLM-14, CLM-16,
-CLM-17, CLM-19, CLM-20, VF-1, VF-5) — every one as a **provenance anchor** inside a
-`[Canonical: S4, …]` citation, never restating the verified numeric value with a contradicting
-number. The doc explicitly treats CLM-11's cap table and CLM-20's `dt_base/dt_out` factors as
-`claimed_unverified` / `rejected` — it does NOT present them as verified facts. The single
-figure the doc asserts in its own voice — `D = (G·T²)^(1/3) ≈ 4.6416` (§1.16) — agrees exactly
-with the v1.5 Phase-25 EVID-10 ratified convention (SCOPE-12 convention 6).
+> **Correction (2026-06-20, in-place — register conflation).** The first version of this table
+> cross-referenced the resolution doc's `CLM-NN`/`VF-N` citations against `24-VERIFIED-FACTS.md`
+> rows *of the same number*. That was unsound: the doc's CLM/VF IDs are the **doc-03 research
+> package's own** registers (`CLAIMS-AND-FACTS-BUNDLE.md` — its claims-register + a
+> verified-facts-reference), which **reuse the same numbering as v1.5 `24-VERIFIED-FACTS.md` for
+> different claims** (e.g. doc CLM-10 = grad-clip `8.5/5.0/3.0`, v1.5 CLM-10 = snapshot medians
+> `61/127/1003`; doc CLM-11 = `λ_E` cap table, v1.5 CLM-11 = `final_timestep` prevalence; doc
+> CLM-01 = `D=6.694`, v1.5 CLM-01 = ID gaps; doc CLM-16/17/19/20 and VF-1/VF-5 do not exist as
+> rows in `24-VERIFIED-FACTS.md`). The R4 **verdict (0 contradictions → PASS) was correct on the
+> merits**, but the original table is replaced below with the grounded crosswalk.
 
-`consistent?` table (mapped figures only; within-stated-precision rule applied):
+**The two registers (do not conflate).** SPEC R4 checks only against the v1.5 register
+`24-VERIFIED-FACTS.md` (CLM-01..13 + DATA-05). The resolution doc cites the **doc-03 package**
+registers, whose *verified* rows carry an explicit crosswalk *to* v1.5
+(per `CLAIMS-AND-FACTS-BUNDLE.md`):
 
-| CLM / row | Verified value (`24-VERIFIED-FACTS.md`) | Resolution doc position | Consistent? |
-|-----------|------------------------------------------|-------------------------|-------------|
-| CLM-01 (std ID gaps) | 1,250 gaps / 2,749 files / max_id 3,998 | cited as provenance anchor for the D conflict (§1.16: "S4, CLM-01/19 and VF-5") — value NOT restated, NOT contradicted | YES (no contradiction; provenance-only citation) |
-| CLM-02..07 (adaptive staging figures) | CLM-02..07 PENDING (claimed-unverified) | §1.15: "CLM-02..07 remain unverified" — explicitly NOT cited as verified | YES (consistent — doc agrees they are unverified; never presented as facts) |
-| CLM-08/09 (tol=1e-14 gold files; transition stability) | 592 standard-gold `tol=1e-14`; folder defaults | §1.11 cites CLM-08/09 as provenance for D5 transition stability — value NOT restated, NOT contradicted | YES (no contradiction; provenance-only citation) |
-| CLM-10 (snapshots/traj medians 61/127/1003) | corrected medians 61/127/1003 | §1.8 cites CLM-10 as provenance for M14 gradient clipping — value NOT restated, NOT contradicted | YES (no contradiction; provenance-only citation) |
-| CLM-11 (`λ_E = 1000` issue premise; cap table) | PENDING / `claimed_unverified` | §1.9: "the issue premise of `lambda_E = 1000` is stale … reject CLM-11's cap table up to `500`" — explicitly REJECTS the unverified figure; never presented as verified | YES (consistent — doc rejects the unverified claim) |
-| CLM-12 (nominal IC counts ~4,000/~5,000; `n_pts_cap`) | ~4,000 std / ~5,000 hier (max_id 3,998/4,999) | §1.4/§1.5 cite CLM-12 as provenance for B-07/B-08; treats `240/16`, `n_pts_cap=32`, `8192/4096` as **provisional defaults, not verified optima** | YES (no contradiction; CLM-12 IC-count value NOT restated; provisional figures flagged unverified) |
-| CLM-16 (snapshot sampling `min(cap, n_snapshots)`) | part of B-07 claim register | §1.4 cites CLM-16 alongside CLM-12 as provenance — value NOT restated, NOT contradicted | YES (no contradiction; provenance-only citation) |
-| CLM-17/20 (`dt_out` / `dt_base` factors) | CLM-17 = verified `dt_out` distribution; CLM-20 PENDING | §1.10: "verified `dt_out` values do not establish a collocation-density objective … do not adopt CLM-20's `dt_base/dt_out` factors or the inverse" — explicitly DEFERS and rejects the unverified scaling | YES (consistent — doc defers; never adopts the unverified figure) |
-| CLM-19 / VF-5 (D convention verification) | VF-5 = verified D anchor | §1.16: "D = (G·T²)^(1/3) ≈ 4.6416 is mandatory" — agrees exactly with the verified anchor | YES (agrees within stated precision — exact match) |
-| CLM-14/15 (adaptive staging extension) | zero rows in register (D-06 prose sweep found none) | §1.15 cites CLM-14/15 as provenance alongside CLM-02..07 — no figure restated | YES (no contradiction; provenance-only citation) |
-| DATA-05 (70 base-hier mass-drift) | 70/4,857 mismatches quarantined | NOT cited in the doc (out of doc-03 scope — DATA-05 was settled in v1.5) — no position taken, no contradiction | N/A (no mapped figure; out of scope) |
-| CLM-13 (`D = 6.694` contested convention) | PENDING — routed Phase 25 EVID-10 (now ratified `convention-rejected`) | §1.16: upholds `≈ 4.6416`, rejects `6.694` — the EXPECTED contested-convention position | YES (expected position; not a contradiction here — re-adjudication is Phase 32 EVID-15) |
+- doc-03 **CLM-16** (per-variant snapshot medians `61/127/1003`, `verified`) ← v1.5 **CLM-10**.
+- doc-03 **CLM-17 / VF-1** (per-variant `dt_out`, `verified`) ← v1.5 **CLM-09**.
+- doc-03 **CLM-19 / VF-5** (`D ≈ 4.6416`, `verified`) ← `ctl_instruction.md` §2.5 + v1.5 Phase 25
+  EVID-10 (the SCOPE-12 counter to the issue-doc's `D = 6.694`, which is doc-03 **CLM-01**).
+- Every other doc CLM citation — doc-03 CLM-01 (`D=6.694`), CLM-02..07 (Stage trajectory counts),
+  CLM-10 (grad-clip), CLM-11 (`λ_E` cap), CLM-12 (replay/point counts), CLM-20 (`dt` scaling) —
+  is a `claimed-unverified` design figure that maps to **no** v1.5-verified row (handled under the
+  unverified-figures clause below, not as a mapped row).
 
-**No CLM/VF row shows a contradicted value.** The doc never restates a verified number with a
-different figure; it either cites the CLM ID as a provenance anchor or explicitly flags the
-figure as unverified / rejected. **0 contradictions → R4 PASS.**
+**Mapped-figure check.** Translating through that crosswalk, the resolution doc touches exactly
+three genuinely v1.5-verified facts, restating none of them with a contradicting value:
+
+`consistent?` table (only figures that genuinely map to a `24-VERIFIED-FACTS.md` row /
+v1.5-ratified convention; within-stated-precision rule applied):
+
+| v1.5 verified fact | Verified value | Resolution-doc position (via doc-03 anchor) | Consistent? |
+|--------------------|----------------|---------------------------------------------|-------------|
+| `24-VERIFIED-FACTS.md` CLM-10 — per-variant snapshot medians | 61 / 127 / 1003 (corrected) | doc-03 CLM-16 = the **verified** `61/127/1003`; the doc uses it as the snapshot count, explicitly superseding the issue-doc `~59/~125/~1000` — never restated with a different number | YES (verified value used) |
+| `24-VERIFIED-FACTS.md` CLM-09 — per-variant `dt_out` | std 0.17 / hier-base 0.08 / gold 0.01 | doc-03 CLM-17 / VF-1; §1.10: "verified `dt_out` values do not establish a collocation-density objective" — uses the verified `dt_out` as given; asserts no contradicting number | YES (verified value used) |
+| Phase 25 EVID-10 / SCOPE-12 conv. 6 — raw-mass `D` (v1.5 CLM-13 holds the `D=6.694` counterpart PENDING) | `D = (G·T²)^(1/3) ≈ 4.6416`; `6.694` rejected | doc-03 CLM-19 / VF-5; §1.16: "`D ≈ 4.6416` is mandatory … remove the `6.694` claim" | YES (exact agreement; the expected position) |
+
+**No mapped figure is contradicted.** The doc either uses the v1.5-verified value (snapshot
+medians, `dt_out`) or upholds the locked convention (`D ≈ 4.6416`). This is therefore a
+near-vacuous pass — `D ≈ 4.6416` is the only dataset-derived figure the doc asserts in its own
+voice, and it agrees. **0 contradictions → R4 PASS.**
 
 **Unverified-but-non-contradicting figures flagged FUT (caveats, NOT failures):** `240/16` /
 `n_pts_cap = 32` (B-07 provisional defaults, §1.4); `8192/4096` (B-08 provisional budgets,
@@ -303,7 +316,7 @@ restores + hand-corrects under `docs(planning)` scope if any `progress` counter 
 | 1 | Pre-exec gate records both conditions PASS (doc present/non-empty/canonical; Phase 30 COMPLETE); a stub/empty doc or missing marker STOPs | **MET** | §2 — both conditions PASS with evidence; doc is 48,049 bytes (substantive, not a stub), byte-identical to `49fb7958`; STATE.md line 32 carries `5/5 complete + verified` |
 | 2 | Presence/structural check records PASS/FAIL with a section inventory; raw concatenation → FAIL | **MET** | §3 R2 — PASS; §0–§7 + §1.1–§1.18 inventory in `31-RESOLUTION-MAP.md` §1; single coherent doc (§6 claim-collapsing is coherence-preserving); 18 `### 1.x` headings confirmed |
 | 3 | Crosswalk maps all 18 findings by identity with covered/partial/silent; surface_to_user/defer = covered-with-caveat; every partial/silent flagged as gap; row count = 18 | **MET** | §3 R3 + `31-RESOLUTION-MAP.md` §2 — 18/18 covered (3 surface_to_user + 3 defer + 12 outright); 0 partial; 0 silent; by-identity matching documented |
-| 4 | Consistency check lists each mapped figure with `consistent? yes/no` under within-precision; passes iff 0 contradictions; unverified = caveats; zero-mapped = vacuous pass | **MET** | §3 R4 — `consistent?` table lists 12 mapped CLM/VF rows, all YES; 0 contradictions; 7 sets of unverified figures flagged FUT as caveats |
+| 4 | Consistency check lists each mapped figure with `consistent? yes/no` under within-precision; passes iff 0 contradictions; unverified = caveats; zero-mapped = vacuous pass | **MET** | §3 R4 — `consistent?` table lists the 3 figures that genuinely map to a v1.5-verified fact (snapshot medians, `dt_out`, `D ≈ 4.6416`), all consistent; near-vacuous pass; 0 contradictions; 7 sets of unverified figures flagged FUT as caveats. (The doc's other `CLM/VF` citations are doc-03-package IDs, a separate register — see the §3 R4 correction.) |
 | 5 | Convention-compliance marks each of 7 SCOPE-12 conventions `compliant? yes/no`; passes iff 0 violations; scope observations surfaced, never failures; no convention re-adjudicated | **MET** | §3 R5 — `compliant?` table marks all 7 YES; 0 violations; 0 scope observations; §1.16 read fresh and recorded verbatim; no re-adjudication in any Phase 31 artifact |
 | 6 | `31-RESOLUTION-MAP.md` exists with section index (line ranges), 18-finding mapping, citation guide with concrete revision-anchored example, per-finding verdict-direction preview, open-items carry-forward | **MET** | `31-RESOLUTION-MAP.md` — §1 section index (all §0–§7 + §1.1–§1.18 line ranges anchored to `49fb7958`); §2 18-finding mapping; §3 citation guide with `03-final-resolution.md:24–27` example (sed-verified to land in §1.1); §4 verdict-direction preview (18 rows); §6 GAP-01..GAP-19 carry-forward + §6 note |
 | 7 | `31-READINESS-REPORT.md` exists with exec verdict, four check results, gap list, fix instructions, re-check protocol, gate decision — verdict derivable by precedence | **MET** | this report — §1 exec verdict (READY-WITH-CAVEATS, re-derived in §1 and §7); §3 four check results; §4 gap list (12 caveats, 0 blocking); §5 fix instructions (none needed); §6 re-check protocol; §7 gate decision |
