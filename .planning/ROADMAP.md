@@ -128,7 +128,8 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. A resolution-doc quick-reference map exists providing enough information for Phase 32 to begin evidence-packet construction without reading the full resolution doc first.
   4. If any check fails, specific fix instructions are routed to the external consolidation agent via the readiness report, and Phases 32–36 remain blocked until the fix lands and re-check passes.
 
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 31-01-PLAN.md — Resolution-doc readiness verification: pre-exec gate + four checks (presence/structural, 18-finding crosswalk, dataset-figure consistency, SCOPE-12 convention compliance) + 31-RESOLUTION-MAP.md + 31-READINESS-REPORT.md + gate decision
 **UI hint**: no
 
 ### Phase 32: Evidence Framework, Issue Ledger & Conflict Adjudication
