@@ -59,6 +59,22 @@ pinn_instruction/markdown_conversion/framework-specs/postspec-r1/research_result
 If multiple agents are used, save each report separately. A later consolidation
 document may be created after the user reviews the returned reports.
 
+## Result Landed (2026-06-21)
+
+- `research_results/postspec-r1-direction-assessment.md` — one external strategy
+  advisory (kept under its descriptive name). Standing as above: recommendation
+  only; not a candidate verdict source. Filed verbatim, byte-for-byte (sha256
+  `f57c63d5…`).
+- **Open reconciliation — do this before adopting any direction.** The report was
+  written *without* the `trainex-r1` foundational result and states (its §8/§10)
+  that its recommendation should be reconciled with `trainex-r1` before acting.
+  The `trainex-r1` returned options/decisions are landing on this same
+  `track/trainex` under `trainex-r1/research_results/`, so the two rounds are now
+  co-located. Reconcile postspec-r1 (strategy) with trainex-r1 (foundational
+  options), then make the go / adjust / rethink call.
+- **No milestone or roadmap is opened by this landing**, per the package intent
+  (no task-by-task planning, no backlog).
+
 ## Package Intent
 
 This round asks for broad strategic direction after the recent spec-heavy work.
