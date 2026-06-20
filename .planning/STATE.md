@@ -5,16 +5,16 @@ milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 31
 current_phase_name: resolution-doc-readiness-verification
 status: executing
-stopped_at: Phase 31 planned (31-01-PLAN.md, plan-checker PASSED); paused before execution per user
-last_updated: "2026-06-20T07:23:22.000Z"
+stopped_at: Phase 31 complete — resolution-doc readiness READY-WITH-CAVEATS; Phases 32-36 unblocked, proceeding to Phase 32 planning
+last_updated: "2026-06-20T11:18:06.000Z"
 last_activity: 2026-06-20
-last_activity_desc: Phase 31 planned (1 plan, verified); paused before execute per user
+last_activity_desc: Phase 31 executed — resolution-doc readiness READY-WITH-CAVEATS (32-36 unblocked)
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 14
+  completed_plans: 6
+  percent: 29
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** Phase 31 — resolution-doc-readiness-verification (planned; paused before execute)
+**Current focus:** Phase 31 complete (resolution-doc readiness READY-WITH-CAVEATS); Phase 32 unblocked — next: discuss/plan Phase 32
 
 ## Current Position
 
-Phase: 31 (resolution-doc-readiness-verification) — PLANNED (1 plan, plan-checker PASSED); paused before execution per user
-Plan: 31-01 created + verified; 0 of 1 executed (Phase 30: 5/5 complete + verified)
-Status: Phase 31 planning complete — 31-CONTEXT/RESEARCH/VALIDATION + 31-01-PLAN.md committed; execution NOT started (user requested stop after planning). The resolution doc has landed; external gate OPEN. Phases 32-36 remain gated on Phase 31 passing (the readiness checks run at execution).
-Last activity: 2026-06-20 -- Phase 31 planned (research + validation + plan, all verified); paused before /gsd-execute-phase 31 per user
+Phase: 31 (resolution-doc-readiness-verification) — COMPLETE (gate READY-WITH-CAVEATS; 31-01 executed, user-confirmed)
+Plan: 31-01 executed + committed; 1 of 1 complete (Phase 30: 5/5 complete + verified)
+Status: Phase 31 complete — resolution-doc readiness verdict READY-WITH-CAVEATS (31-READINESS-REPORT.md + 31-RESOLUTION-MAP.md committed). Pre-exec gate PASS; 18/18 findings covered (0 silent, 0 partial); 0 v1.5-verified-fact contradictions; 0 SCOPE-12 locked-convention violations. 12 non-blocking caveats routed downstream by design: D-04/D-05/D-06 + tau_L estimator + GAP-17 provenance → Phase 32 EVID-15; M16/NS-13/ALM defers → Phases 34/35; unverified figures → FUT calibration; §6 non-independence → provenance hygiene for EVID-11..15. Phases 32-36 UNBLOCKED. No STOP-protocol gap arose.
+Last activity: 2026-06-20 — Phase 31 executed (Tasks 1-7 + user-confirmed gate decision); resolution-doc readiness READY-WITH-CAVEATS
 
 ## Performance Metrics
 
@@ -168,6 +168,7 @@ Recent decisions affecting current work:
 - [Post-v1.3]: SCS gate — raw Hamiltonian drift is `\epsilon_H`, SCS is `\log_{10}(\epsilon_H)`, gate is `\epsilon_H > 10^{-5}` / `SCS > -5`. v1.5 Phase 25 EVID-10 locked the log-based gate and rejected issue-02 ratio thresholds; the raw-mass `D ≈ 4.6416` convention stands (`D = 6.694` rejected). v1.6 reconciles issue-03's `D = 6.694` against this hard constraint (EVID-15).
 - [Phase 25 2026-06-12]: Four v1.5 EVID-10 verdicts locked: SCS `accept-resolution` (locked log-based gate `SCS > -5` stands); D=6.694 `accept-resolution` (raw-mass D ≈ 4.6416 stands; CLM-13 ratified `convention-rejected`); M12 `accept-third-position` (`n_pts = min(n_pts_cap, n_snapshots)`); M11 MAJOR→BLOCKING reclassification STANDS. These are SCOPE-12 hard constraints for v1.6.
 - [Phase 30]: Phase 30 research package delivered; external resolution-doc gate OPEN, user multi-AI ERW research starts
+- [Phase 31 2026-06-20]: Resolution-doc readiness verdict READY-WITH-CAVEATS. Pre-exec gate PASS (doc 48,049 B / 282 lines, byte-identical to commit `49fb7958`; Phase 30 `5/5 complete + verified`). 18/18 selected findings `covered` by identity (0 `silent`, 0 `partial`); 0 v1.5-verified-fact contradictions (CLM IDs cited as provenance anchors; `D ≈ 4.6416` exact-matches EVID-10); 0 SCOPE-12 violations (§1.16 read fresh — upholds `4.6416`, rejects `6.694`). 12 non-blocking caveats routed by design: D-04/D-05/D-06 + §1.17 `tau_L` + GAP-17 provenance → Phase 32 EVID-15; M16/NS-13/ALM defers → Phases 34/35; unverified figures → FUT; §6 non-independence → provenance hygiene. Phases 32-36 UNBLOCKED. The resolution doc is the candidate verdict source (not authoritative); Phase 31 adjudicated nothing. No STOP-protocol gap arose.
 
 ### Pending Todos
 
@@ -190,15 +191,15 @@ v1.6 roadmap created; Phase 30 ready to plan. Phases 32–36 gate on Phase 31 (r
 - **External gate:** opens on Phase 30 (research package) delivery. Phase 31 verifies the consolidated resolution doc before adjudication begins. Phases 32–36 cannot start until Phase 31 passes (which requires the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` — confirmed absent at milestone start). Phase 30 is unblocked.
 - **Concurrent v1.5 closure:** v1.5's `--no-ff` merge + `/gsd-complete-milestone` run in the main tree concurrently; v1.6's forward-only PROJECT.md/STATE.md edits reconcile at the rebase. Do not assume v1.5 phase-dir archival here (owned by `/gsd-complete-milestone`).
 - **STOP protocol active:** v1.6 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
-- Phases 32-36 blocked until the issue-03 resolution doc lands at research_reports/03-curriculum-and-training-loop/ AND Phase 31 resolution-doc readiness passes
+- Phases 32-36 UNBLOCKED: the issue-03 resolution doc landed at `research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md` (commit `49fb7958`) AND Phase 31 resolution-doc readiness PASSED (READY-WITH-CAVEATS, 2026-06-20). Phase 32 may now be planned/executed, carrying the 12 routed caveats.
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/31-resolution-doc-readiness-verification/31-CONTEXT.md
+**Resume file:** .planning/phases/31-resolution-doc-readiness-verification/31-01-SUMMARY.md
 
-Last session: 2026-06-20T06:33:38.746Z
-Stopped at: Phase 31 context gathered
-Next action: USER runs the external multi-AI ERW research from the delivered package (research_package/RESEARCH-CONTEXT-MASTER.md + RESEARCH-AGENT-PROMPT.md, routed by DELIVERY-NOTE.md) and lands the consolidated resolution doc under framework-revisions/research_reports/03-curriculum-and-training-loop/. Then run Phase 31 (resolution-doc readiness verification) before Phases 32-36.
+Last session: 2026-06-20T11:18:06.000Z
+Stopped at: Phase 31 complete (resolution-doc readiness READY-WITH-CAVEATS)
+Next action: Phase 32 (Evidence Framework, Issue Ledger & Conflict Adjudication) is UNBLOCKED. Run `/gsd-discuss-phase 32` (recommended) or `/gsd-plan-phase 32` to begin evidence-packet construction (EVID-11..15), adjudicating the headline conflicts (D-04/D-05/D-06, M14, `D = 6.694`) using `31-RESOLUTION-MAP.md` and carrying the 12 routed caveats from `31-READINESS-REPORT.md` §4.
 
 ## Operator Next Steps
 

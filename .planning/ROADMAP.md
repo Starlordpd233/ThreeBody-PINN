@@ -67,7 +67,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 > ⛔ **External gate — resolution doc.** On Phase 30 delivery, the **USER** begins external multi-AI research (the ERW: multiple independent agents each produce a report from the package; one consolidation agent produces the resolution doc) and delivers it to `pinn_instruction/markdown_conversion/framework-revisions/research_reports/03-curriculum-and-training-loop/`. The gate opens here, when package delivery starts the user's research. **Phase 31** (Resolution Doc Readiness Verification) verifies the consolidated resolution doc is ready before adjudication begins. Phases 32–36 (all adjudication and spec-edit work) **cannot start** until Phase 31 passes (which requires the consolidated doc landing). The doc is the candidate verdict source, not authoritative.
 
-- [ ] **Phase 31: Resolution Doc Readiness Verification** — Verify the consolidated resolution doc covers every selected issue-03 finding, contains zero contradictions of v1.5-verified dataset facts, and respects all locked v1.4 + v1.5 conventions; produce a readiness report and a quick-reference resolution-doc map. Operational (0 requirement IDs; the v1.5 Phase 24.5 analog). Gates on the consolidated resolution doc landing; Phases 32–36 gate on this passing.
+- [x] **Phase 31: Resolution Doc Readiness Verification** — Verify the consolidated resolution doc covers every selected issue-03 finding, contains zero contradictions of v1.5-verified dataset facts, and respects all locked v1.4 + v1.5 conventions; produce a readiness report and a quick-reference resolution-doc map. Operational (0 requirement IDs; the v1.5 Phase 24.5 analog). Gates on the consolidated resolution doc landing; Phases 32–36 gate on this passing. (completed 2026-06-20)
 
 - [ ] **Phase 32: Evidence Framework, Issue Ledger & Conflict Adjudication** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes) and the re-verification ledger, then perform root-cause adjudication of the headline conflicts before any spec edit lands: D-04 (causal training mode A/B/C), D-06 (epsilon strategy), D-05 (s_min frame), the M14 dual gradient-clipping divergence, and the cross-milestone `D = 6.694` vs the v1.5-locked `D ≈ 4.6416`.
 
@@ -92,7 +92,8 @@ Every selected finding follows the v1.4/v1.5-style loop:
   2. Each contested or unverified finding is posed as an explicit neutral research question, with the locked v1.4 conventions AND v1.5 data-pipeline/validation outcomes listed as hard constraints the research must respect (SCOPE-12); the three human-approval decisions — D-04 (causal training mode: per-time-step / global+ALM / time-windowed hybrid), D-05 (s_min frame), D-06 (epsilon strategy) — and the known cross-milestone `D = 6.694` vs `D ≈ 4.6416` conflict are posed without being settled (PKG-06).
   3. Every dataset/empirical figure stated in the package is explicitly marked "claimed, unverified" (the issue-doc value) unless already verified by v1.5 — figures verified by v1.5 (e.g., the 184 standard IDs without gold, the ~2,565 quasi-random gold count, per-variant snapshot/`dt_out` distributions) are stated as verified with their v1.5 citation; no unverified figure is presented as fact (PKG-07).
   4. `review-of-framework.md` and `stage-strat-revision.md` are characterized read-only (provenance, content map, and relation to the doc-03 findings), reported to the user with zero edits to either file (SCOPE-09 analog; PKG-08).
-  5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.**Plans**: 5 plans
+  5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.**Plans**: 5/6 plans executed
+- [ ] 30-CONSOLIDATION-PLAN.md
 
 **Wave 1**
 
@@ -128,8 +129,10 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. A resolution-doc quick-reference map exists providing enough information for Phase 32 to begin evidence-packet construction without reading the full resolution doc first.
   4. If any check fails, specific fix instructions are routed to the external consolidation agent via the readiness report, and Phases 32–36 remain blocked until the fix lands and re-check passes.
 
-**Plans**: 1 plan
-- [ ] 31-01-PLAN.md — Resolution-doc readiness verification: pre-exec gate + four checks (presence/structural, 18-finding crosswalk, dataset-figure consistency, SCOPE-12 convention compliance) + 31-RESOLUTION-MAP.md + 31-READINESS-REPORT.md + gate decision
+**Plans**: 1/1 plans complete
+
+- [x] 31-01-PLAN.md — Resolution-doc readiness verification: pre-exec gate + four checks (presence/structural, 18-finding crosswalk, dataset-figure consistency, SCOPE-12 convention compliance) + 31-RESOLUTION-MAP.md + 31-READINESS-REPORT.md + gate decision
+
 **UI hint**: no
 
 ### Phase 32: Evidence Framework, Issue Ledger & Conflict Adjudication
@@ -217,8 +220,8 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 30. Research Package Assembly | v1.6 | 2/5 | In Progress | - |
-| 31. Resolution Doc Readiness Verification | v1.6 | 0/0 | Not started | - |
+| 30. Research Package Assembly | v1.6 | 5/5 | Complete | 2026-06-18 |
+| 31. Resolution Doc Readiness Verification | v1.6 | 1/1 | Complete | 2026-06-20 |
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 0/0 | Not started | - |
 | 33. Curriculum-Stage Contracts | v1.6 | 0/0 | Not started | - |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 0/0 | Not started | - |
