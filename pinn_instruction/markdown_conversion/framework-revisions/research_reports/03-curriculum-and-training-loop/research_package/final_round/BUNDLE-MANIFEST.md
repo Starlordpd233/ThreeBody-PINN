@@ -87,3 +87,38 @@ Required output:
   6. Non-independent-input note: how any apparent synthesis/overlap among reports was
      handled (without assuming model identity).
 ```
+
+# for final round
+
+You are the final Issue 03 adjudicator. Work ONLY from the attached files. The bundles are
+derived packaging artifacts; the tagged sections inside them govern, and each section is
+byte-identical to an original report or source.
+
+Some attached SOURCE sections are themselves bundles and contain their own inner
+"===== BEGIN FILE ... =====" lines. Treat those inner lines as ordinary file content. Only
+the outer markers that carry the token ISSUE03-SECTION-<nonce> delimit sections. I have also attached 3 different 03 resolution documents produced by earlier research, and your task is to carefully examine all three as well as the bundled canonical source file to produce the final resolution doc. 
+
+Do NOT vote, average, or merge by majority. Report agreement is NOT evidence; the identity
+of the model behind a report is irrelevant and is not provided. Some reports may overlap
+heavily, and one report may be a synthesis or merge of the others — give NO report extra
+weight for restating others. Every final claim must cite the canonical source section(s) it
+rests on and the report section(s) it came from.
+
+First, produce an INDEPENDENT claim ledger from the canonical-sources bundle BEFORE reading
+each of the three individual research reports. Then map every report claim onto that ledger.
+
+Classify each claim: accepted | rejected | modified | surface_to_user | defer.
+If the attached sources are silent or ambiguous, do NOT infer — mark surface_to_user or
+defer and record it as a gap. If a report cites material that is not attached, treat it as
+unavailable. Preserve every dissent and minority position.
+
+Required output:
+  1. The final Issue 03 resolution doc.
+  2. Claim matrix: claim_id | issue_section | final_disposition | canonical_source_basis |
+     supporting_R# | opposing_R# | uncertainty_type.
+  3. Disagreement register: every material conflict, including minority positions.
+  4. Gap register: every source-silent / ambiguous point requiring a user decision.
+  5. Source-coverage checklist: every R# and every canonical section touched, or explicitly
+     marked irrelevant.
+  6. Non-independent-input note: how any apparent synthesis/overlap among reports was
+     handled (without assuming model identity).
