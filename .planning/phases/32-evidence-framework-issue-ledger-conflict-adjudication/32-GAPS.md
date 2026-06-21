@@ -97,11 +97,18 @@ Conflict Adjudication). Milestone index: `.planning/milestones/v1.6-GAPS.md`.
     stage labels.
 - **Confidence of impact:** **HIGH** - the gate frame directly affects Phase 33
   `CURR-05` and can alter stage assignment semantics.
-- **Status:** **DEFERRED** (2026-06-21)
-- **Resolution note:** Per the user's 2026-06-21 closeout-remediation instruction,
-  Phase 32 closes without selecting the D-05 stage-gate frame. The blocker is
-  deferred to Phase 33 `CURR-05`; Phase 35 may consume only the already-grounded
-  matched-Plummer loss-side distinction, not a final stage-gate decision.
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-21)
+- **Resolution note:** Owner (user) ratified **Option A** on 2026-06-21 via
+  AskUserQuestion: the curriculum stage gate uses **unsoftened geometric `s_min`**
+  (true pairwise separations), while the training residual and energy use
+  **matched-Plummer** softening `r_safe = sqrt(||r||^2 + epsilon_train^2)` with
+  `epsilon_train = 1e-5`, identically in force and Hamiltonian. The resolution is
+  recorded in matched-Plummer terms per `03-final-resolution.md` section 1.2 / `DGR-03`;
+  the issue-doc "`max(s_min, epsilon)` collision criterion" phrasing is explicitly NOT
+  adopted, because a `max`/additive floor would (a) introduce a collision-loss term that
+  does not exist in the specs and (b) violate the PHYS-03 anti-pattern
+  (`ctl_instruction.md:1062-1067`). Phase 33 `CURR-05` transcribes the geometric gate;
+  Phase 35 cites only the matched-Plummer loss-side distinction. No spec edit in Phase 32.
 
 ---
 
@@ -147,12 +154,25 @@ Conflict Adjudication). Milestone index: `.planning/milestones/v1.6-GAPS.md`.
     replacement strategy.
 - **Confidence of impact:** **HIGH** - the choice affects Phase 33 static
   invariants and Phase 35 loss-consistency cross-references.
-- **Status:** **DEFERRED** (2026-06-21)
-- **Resolution note:** Per the user's 2026-06-21 closeout-remediation instruction,
-  Phase 32 closes without selecting the D-06 static epsilon strategy. The blocker is
-  deferred to Phase 33 static invariant handling; Phase 35 may preserve only the
-  locked loss-side `epsilon_train = 1e-5` matched-Plummer contract until explicit
-  instruction says otherwise.
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-21)
+- **Resolution note:** Owner (user) ratified the **dual-context** strategy on 2026-06-21
+  via AskUserQuestion (GAP-register Option A; equals issue-doc Option B - the
+  option-letter mismatch is resolved by the description, not the letter): offline
+  static/invariant and data-side validation contexts retain `epsilon_inv = 1e-10`, while
+  the training residual/energy retain the locked `epsilon_train = 1e-5`, matched-Plummer.
+  This is the only choice consistent with both existing locks - the v1.5-locked data-side
+  IPR convention `epsilon_inv = 1e-10` (GAP-28-02, 2026-06-16; `ctl_instruction.md:622-636`)
+  and the locked loss-side `epsilon_train = 1e-5` - without reopening either. Option C
+  (`1e-10` everywhere) stays rejected. Grounding: `review_of_framework.md` section 2.2's
+  "indistinguishable from zero" argument applies to the float32 training loop (already
+  honored by `epsilon_train = 1e-5`), not to float64 offline ground-truth invariants where
+  near-unsoftened fidelity is the goal. **Known caveat (no blocker):** no sensitivity study
+  exists (EPS-05 `defer`, GAP-04 `missing_empirical_evidence`); at the tightest encounters
+  (`r <= ~1e-4`) the validation energy (`epsilon_inv`) and training energy
+  (`epsilon_train`) differ by about 0.5-30%, bounded to the Stage-6 tail. Logged as a
+  FUT/trainex validation item: confirm this train-vs-validate mismatch is negligible on the
+  admitted set. Phase 33 transcribes static invariants with `epsilon_inv = 1e-10`; Phase 35
+  preserves the loss-side lock. No spec edit in Phase 32.
 
 ---
 
