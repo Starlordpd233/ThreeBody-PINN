@@ -43,3 +43,10 @@ Plan 32-01 initializes this file with the immutable baseline block above. The st
 - `evidence/d-6-694-conflict.md` exists and records `accept-resolution` for the raw-mass `D ~= 4.6416` convention after the resolution-doc freshness guard, SCOPE-12/current-spec/v1.5 EVID-10 citations, and first-principles dimensional check. The ledger mirrors `AC-EVID-15-D-CONFLICT`; GAP-17 remains provenance-only.
 - `evidence/m14-gradient-clipping.md` exists and records `accept-resolution` for the M14 structural merge only: Adam-only `clip_value = C_stage * median(recent global gradient norms)`, no L-BFGS clipping, CTL `7-10 / 5 / 3` preserved without canonizing `8.5`. The ledger mirrors `AC-LOOP-04`; bootstrap floor, exact early-stage `C`, lower floor, and history-reset mechanics remain Phase 34/FUT-routed.
 - Task-local automated checks for Plan 32-02 passed during execution. Final full structural command output remains owned by Plan 32-04.
+
+## Plan 32-03 Notes
+
+- `evidence/d-04-causal-training-mode.md` exists and records `defer-with-blocker` with `Explicit user instruction: None`; no Option A/B/C causal-training mode is selected, and the ledger mirrors `AC-EVID-15-D04`.
+- `evidence/d-05-s-min-frame.md` exists and records `defer-with-blocker` with `Explicit user instruction: None`; no final stage-gate frame is selected, and the ledger mirrors `AC-EVID-15-D05`.
+- `evidence/d-06-epsilon-strategy.md` exists and records `defer-with-blocker` with `Explicit user instruction: None`; loss-side `epsilon_train = 1e-5` is preserved as locked while the static/invariant epsilon decision remains owner-routed, and the ledger mirrors `AC-EVID-15-D06`.
+- Task-local automated checks for Plan 32-03 passed during execution. Final full structural command output remains owned by Plan 32-04.
