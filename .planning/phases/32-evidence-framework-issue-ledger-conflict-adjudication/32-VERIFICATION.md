@@ -37,3 +37,9 @@ Plan 32-01 initializes this file with the immutable baseline block above. The st
 - The protocol README and packet template preserve the fixed verdict enum and lifecycle tokens.
 - The issue ledger is seeded with all 18 selected findings from `31-RESOLUTION-MAP.md`.
 - Final command outputs remain intentionally owned by Plan 32-04, after headline packets exist.
+
+## Plan 32-02 Notes
+
+- `evidence/d-6-694-conflict.md` exists and records `accept-resolution` for the raw-mass `D ~= 4.6416` convention after the resolution-doc freshness guard, SCOPE-12/current-spec/v1.5 EVID-10 citations, and first-principles dimensional check. The ledger mirrors `AC-EVID-15-D-CONFLICT`; GAP-17 remains provenance-only.
+- `evidence/m14-gradient-clipping.md` exists and records `accept-resolution` for the M14 structural merge only: Adam-only `clip_value = C_stage * median(recent global gradient norms)`, no L-BFGS clipping, CTL `7-10 / 5 / 3` preserved without canonizing `8.5`. The ledger mirrors `AC-LOOP-04`; bootstrap floor, exact early-stage `C`, lower floor, and history-reset mechanics remain Phase 34/FUT-routed.
+- Task-local automated checks for Plan 32-02 passed during execution. Final full structural command output remains owned by Plan 32-04.

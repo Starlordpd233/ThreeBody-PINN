@@ -15,7 +15,7 @@ Stable issue-03 ledger for Phase 32 through Phase 36. The ledger is seeded from 
 | B-08 | Data versus collocation points | Phase 34 | PENDING | - | Owner must author packet before spec edits | AC-LOOP-02 | `ctl_instruction.md` data/collocation point-set contract | Phase 34 LOOP-02/03; Phase 36 | Seeded; packet-before-edit forward reference |
 | M6 | L_norm clamping | Phase 33 | PENDING | - | Owner must author packet before spec edits | AC-CURR-04-M6 | `ctl_instruction.md` stage inventory and L_norm metadata policy | Phase 33 CURR-04; Phase 36 | Seeded; packet-before-edit forward reference |
 | M7 | tau_L exclusion from IC13 | Phase 33 | PENDING | - | Owner must author packet before spec edits | AC-CURR-02-M7 | `ctl_instruction.md` tau_L metadata exclusion | Phase 33 CURR-02; Phase 36 | Seeded; packet-before-edit forward reference |
-| M14 | Gradient clipping divergence | Phase 32 | PENDING | - | `evidence/m14-gradient-clipping.md` | AC-EVID-15-M14 | Phase 32 packet locks or defers structure; Phase 34 LOOP-04 performs spec transcription | Phase 34 LOOP-04; Phase 36 | Seeded; headline packet owned by Phase 32 |
+| M14 | Gradient clipping divergence | Phase 32 | PENDING | accept-resolution | `evidence/m14-gradient-clipping.md` | AC-LOOP-04 | Phase 32 packet accepts structural merge only: Adam-only `clip_value = C_stage * median(recent global gradient norms)`, no L-BFGS clipping, CTL `7-10 / 5 / 3` preserved; bootstrap floor, exact early-stage `C`, lower floor, and history reset routed to Phase 34/FUT | Phase 34 LOOP-04; Phase 36 | 2026-06-21 pending-commit PENDING -> PENDING + accept-resolution by Phase 32 Plan 32-02 Task 2; structural merge adjudicated, spec transcription remains Phase 34-owned |
 | M15 | Energy-loss weights | Phase 35 | PENDING | - | Owner must author packet before spec edits | AC-LOSS-02 | `ctl_instruction.md` energy-loss weight schedule | Phase 35 LOSS-02; Phase 36 | Seeded; packet-before-edit forward reference |
 | M16 | dt_out-aware collocation scaling | Phase 34 | PENDING | - | Owner must author packet before spec edits | AC-LOOP-06 | `ctl_instruction.md` dt_out collocation scaling contract | Phase 34 LOOP-06; Phase 36 | Seeded; packet-before-edit forward reference |
 | D5 | Stage transitions | Phase 33 | PENDING | - | Owner must author packet before spec edits | AC-CURR-03 | `ctl_instruction.md` dual-path transition criteria | Phase 33 CURR-03; Phase 36 | Seeded; packet-before-edit forward reference |
@@ -64,6 +64,7 @@ Every non-headline row above has exactly one primary owner phase from Phase 33, 
 ### M14
 
 - 2026-06-21 pending-commit PENDING seeded by Phase 32 Plan 32-01 Task 3; headline packet is owned by Phase 32 before Phase 34 transcription.
+- 2026-06-21 pending-commit PENDING -> PENDING + accept-resolution by Phase 32 Plan 32-02 Task 2; `evidence/m14-gradient-clipping.md` accepts the grounded structural merge only and routes bootstrap floor, exact early-stage `C`, lower floor, and history-reset mechanics to Phase 34/FUT.
 
 ### M15
 
