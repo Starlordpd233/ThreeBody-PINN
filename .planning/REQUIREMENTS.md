@@ -30,11 +30,11 @@ The issue doc (`pinn_instruction/issues/03-curriculum-and-training-loop.md`) is 
 
 ### Adjudication (continuing v1.4 EVID-01..05 / v1.5 EVID-06..10)
 
-- [ ] **EVID-11**: For each issue-03 finding selected for remediation, the agent records direct evidence — issue-doc citation, resolution-doc verdict (once landed), current framework-spec evidence, and (where relevant) v1.5-verified dataset evidence — before editing. Evidence packets cite line ranges, not whole files.
-- [ ] **EVID-12**: Each finding receives an explicit verdict from the fixed set — `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, or `defer-with-blocker` — with reasoning recorded in the evidence packet.
+- [x] **EVID-11**: For each issue-03 finding selected for remediation, the agent records direct evidence — issue-doc citation, resolution-doc verdict (once landed), current framework-spec evidence, and (where relevant) v1.5-verified dataset evidence — before editing. Evidence packets cite line ranges, not whole files.
+- [x] **EVID-12**: Each finding receives an explicit verdict from the fixed set — `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, or `defer-with-blocker` — with reasoning recorded in the evidence packet.
 - [ ] **EVID-13**: False positives in either source are documented as intentional non-changes, including why the current convention remains valid and which source(s) misread it (e.g., M6's L_norm clamp under the v1.4 Jacobi IC₁₃, which no longer carries L_norm as an IC slot).
 - [ ] **EVID-14**: Every accepted finding has a before/after evidence note naming the changed spec section, the contract it now enforces, and the verification step that confirms the fix.
-- [ ] **EVID-15**: When sources conflict — issue doc vs resolution doc vs v1.4/v1.5-locked conventions vs first principles — the agent performs root-cause adjudication: reads all positions, verifies each against specs and first principles, names the root-cause ambiguity, locks the convention, and records which source was right, which wrong, and why. Findings requiring adjudication (not pre-resolved here): **D-04** causal training mode (Option A / B / C); **D-06** epsilon strategy (`1e-5` everywhere / dual-context `1e-10`+`1e-5` / `1e-10` everywhere, cross-linked to the doc-01 dual-context discussion); **D-05** s_min frame (unsoftened stage gate + softened loss vs softened everywhere); the **`D = 6.694` vs v1.5-locked `D ≈ 4.6416`** conflict (reconciled with v1.5 Phase 25 EVID-10 as the hard constraint); and the **M14** dual gradient-clipping divergence.
+- [x] **EVID-15**: When sources conflict — issue doc vs resolution doc vs v1.4/v1.5-locked conventions vs first principles — the agent performs root-cause adjudication: reads all positions, verifies each against specs and first principles, names the root-cause ambiguity, locks the convention, and records which source was right, which wrong, and why. Findings requiring adjudication (not pre-resolved here): **D-04** causal training mode (Option A / B / C); **D-06** epsilon strategy (`1e-5` everywhere / dual-context `1e-10`+`1e-5` / `1e-10` everywhere, cross-linked to the doc-01 dual-context discussion); **D-05** s_min frame (unsoftened stage gate + softened loss vs softened everywhere); the **`D = 6.694` vs v1.5-locked `D ≈ 4.6416`** conflict (reconciled with v1.5 Phase 25 EVID-10 as the hard constraint); and the **M14** dual gradient-clipping divergence.
 
 ### Curriculum-Stage Contracts (spec-side; FUT implements)
 
@@ -119,11 +119,11 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v1.6 requirement maps
 | PKG-06 | Phase 30 | Pending |
 | PKG-07 | Phase 30 | Pending |
 | PKG-08 | Phase 30 | Pending |
-| EVID-11 | Phase 32 | Pending |
-| EVID-12 | Phase 32 | Pending |
+| EVID-11 | Phase 32 | Complete |
+| EVID-12 | Phase 32 | Complete |
 | EVID-13 | Phase 32 | Pending |
 | EVID-14 | Phase 32 | Pending |
-| EVID-15 | Phase 32 | Pending |
+| EVID-15 | Phase 32 | Complete |
 | CURR-01 | Phase 33 | Pending |
 | CURR-02 | Phase 33 | Pending |
 | CURR-03 | Phase 33 | Pending |

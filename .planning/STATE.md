@@ -5,15 +5,15 @@ milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 32
 current_phase_name: evidence-framework-issue-ledger-conflict-adjudication
 status: executing
-stopped_at: Completed 32-01-PLAN.md
-last_updated: "2026-06-21T09:06:26.127Z"
+stopped_at: Completed 32-03-PLAN.md
+last_updated: "2026-06-21T09:41:23.176Z"
 last_activity: 2026-06-21
-last_activity_desc: Phase 32 execution started
+last_activity_desc: Phase 32 Plan 32-03 completed
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 10
   percent: 29
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 ## Current Position
 
 Phase: 32 (evidence-framework-issue-ledger-conflict-adjudication) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
-Last activity: 2026-06-21 — Phase 32 execution started
+Last activity: 2026-06-21 — Phase 32 Plan 32-03 completed
 
 ## Performance Metrics
 
@@ -80,6 +80,7 @@ Last activity: 2026-06-21 — Phase 32 execution started
 | Phase 27 P01 | 15min | 3 tasks | 3 files |
 | Phase 27 P02 | 15min | 3 tasks | 3 files |
 | Phase 32 P01 | 11 min | 3 tasks | 6 files |
+| Phase 32 P03 | 597 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,9 @@ Recent decisions affecting current work:
 - [Phase 32 Plan 32-01]: Created first-write baselines plus issue-03 evidence protocol/template/ledger machinery; the resolution doc remains a candidate verdict source, not authority, and live `pinn/` code remains NOT grounding.
 - [Phase 32 Plan 32-01]: D-04, D-05, and D-06 remain owner-routed decisions; Plan 32-01 seeded routing without selecting causal mode, `s_min` gate frame, or static epsilon strategy.
 - [Phase 32 Plan 32-01]: Every non-headline row must get an evidence packet and ledger update before downstream spec edits; `FIX_APPLIED` is not terminal.
+- [Phase 32]: Plan 32-03: D-04 remains defer-with-blocker; no causal-training Option A/B/C selected without explicit owner instruction. — The issue doc and candidate verdict source preserve D-04 as owner-routed, and Phase 32 must not select a semantic default.
+- [Phase 32]: Plan 32-03: D-05 remains defer-with-blocker; no final s_min stage-gate frame selected without explicit owner instruction. — Matched-Plummer loss-side evidence is recorded, but the curriculum stage-gate frame remains owner-routed.
+- [Phase 32]: Plan 32-03: D-06 remains defer-with-blocker; loss-side epsilon_train = 1e-5 stays locked while static/invariant epsilon remains owner-routed. — The resolution doc narrows the open decision to static/invariant context; no sensitivity study or explicit owner instruction resolves it.
 
 ### Pending Todos
 
@@ -204,12 +208,12 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-21T09:06:25.885Z
-Stopped at: Completed 32-01-PLAN.md
-Next action: Execute Phase 32 Plan 32-02, using the Plan 32-01 evidence protocol, template, ledger, and baseline sentinel to author the `D = 6.694` and M14 headline packets.
+Last session: 2026-06-21T09:41:23.172Z
+Stopped at: Completed 32-03-PLAN.md
+Next action: Execute Phase 32 Plan 32-04 final structural verification across the Phase 32 packet set, issue ledger, and verification record.
 
 ## Operator Next Steps
 
-- Phase 32 Plan 32-01 is complete; Plan 32-02 is the next execution target.
+- Phase 32 Plans 32-01 through 32-03 are complete; Plan 32-04 is the next execution target.
 - Phases 32–36 are unblocked after Phase 31 readiness verification passed.
 - v1.6 remains on `milestone/v1.6`; continue preserving unrelated dirty docs/review artifacts.
