@@ -53,7 +53,7 @@ Plan 32-01 initializes this file with the immutable baseline block above. The st
 
 ## Plan 32-04 Task 1 Structural Validation
 
-Executed at UTC: 2026-06-21T09:54Z
+Executed during Plan 32-04 Task 1; command output captured below.
 
 ### Commands and Outcomes
 
@@ -77,7 +77,7 @@ The first structural run failed only the citation-section freshness check for `m
 
 ## Plan 32-04 Task 2 Closeout Guards
 
-Executed at UTC: 2026-06-21T09:56Z, after Task 1 commit `c6aa112`.
+Executed during Plan 32-04 Task 2, after Task 1 commit `c6aa112`.
 
 | Check | Command | Result |
 |---|---|---|
