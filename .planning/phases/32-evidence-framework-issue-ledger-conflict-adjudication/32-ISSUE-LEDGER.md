@@ -8,7 +8,7 @@ Stable issue-03 ledger for Phase 32 through Phase 36. The ledger is seeded from 
 
 | Finding ID | Title | Owner Phase | Status | Verdict | Evidence Packet | Acceptance Check | Spec Targets | Dependents | Transition Log |
 |---|---|---|---|---|---|---|---|---|---|
-| D-04 | Causal-training mode owner decision | Phase 32 | PENDING | - | `evidence/d-04-causal-training-mode.md` | AC-EVID-15-D04 | No Option A/B/C selection in Plan 32-01; Phase 35 LOSS-04 and Phase 34 LOOP-01 consume only after explicit instruction or grounded verdict | Phase 35 LOSS-04; Phase 34 LOOP-01; Phase 36 | Seeded; unresolved owner decision routes to Phase 32 EVID-15 |
+| D-04 | Causal-training mode owner decision | Phase 32 | DEFERRED | defer-with-blocker | `evidence/d-04-causal-training-mode.md` | AC-EVID-15-D04 | No Option A/B/C selected in Phase 32; Phase 35 LOSS-04 and Phase 34 LOOP-01 consume only after explicit owner instruction or later grounded verdict | Phase 35 LOSS-04; Phase 34 LOOP-01 if batch-windowing changes; Phase 36 | 2026-06-21 pending-commit PENDING -> DEFERRED by Phase 32 Plan 32-03 Task 1; packet preserves owner decision and blocks downstream final causal-mode transcription |
 | D-05 | s_min frame owner decision | Phase 32 | PENDING | - | `evidence/d-05-s-min-frame.md` | AC-EVID-15-D05 | No gate-frame selection in Plan 32-01; Phase 33 CURR-05 consumes only after explicit instruction or grounded verdict | Phase 33 CURR-05; Phase 35 loss-side references; Phase 36 | Seeded; unresolved owner decision routes to Phase 32 EVID-15 |
 | D-06 | Epsilon strategy owner decision | Phase 32 | PENDING | - | `evidence/d-06-epsilon-strategy.md` | AC-EVID-15-D06 | No static epsilon selection in Plan 32-01; Phase 33 and Phase 35 consume only after explicit instruction or grounded verdict | Phase 33 static invariants; Phase 35 loss consistency; Phase 36 | Seeded; unresolved owner decision routes to Phase 32 EVID-15 |
 | B-07 | Replay/lookahead batching | Phase 34 | PENDING | - | Owner must author packet before spec edits | AC-LOOP-01 | `ctl_instruction.md` training-loop batch construction | Phase 34 LOOP-01; Phase 36 | Seeded; packet-before-edit forward reference |
@@ -36,6 +36,7 @@ Every non-headline row above has exactly one primary owner phase from Phase 33, 
 ### D-04
 
 - 2026-06-21 pending-commit PENDING seeded by Phase 32 Plan 32-01 Task 3; unresolved owner decision routes to Phase 32 EVID-15 without selecting Option A/B/C.
+- 2026-06-21 pending-commit PENDING -> DEFERRED by Phase 32 Plan 32-03 Task 1; `evidence/d-04-causal-training-mode.md` records `defer-with-blocker`, cites issue-doc Option A/B/C and resolution-doc `surface_to_user` evidence, and routes final mode selection to Phase 35 `LOSS-04` plus Phase 34 `LOOP-01` only if batch-windowing changes.
 
 ### D-05
 
