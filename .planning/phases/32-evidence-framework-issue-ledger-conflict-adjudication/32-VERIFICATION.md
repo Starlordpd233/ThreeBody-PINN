@@ -16,3 +16,24 @@ Resolution doc baseline sha256: 4c5195b874d33a0ab73e51527b2569f729692b248d7fa9b2
 ## Structural Check Log
 
 Plan 32-01 initializes this file with the immutable baseline block above. The structural check inventory is seeded in Task 3 and final command outputs are recorded by Plan 32-04.
+
+## Check Inventory
+
+| Check | Scope | Plan 32-01 Status | Final Output Owner |
+|---|---|---|---|
+| Required artifact existence | README, template, baseline sentinel, ledger, verification file | pending final suite | Plan 32-04 |
+| Headline packet coverage | D-04, D-05, D-06, M14, D = 6.694 packets | pending later plans | Plans 32-02 through 32-04 |
+| Verdict and lifecycle tokens | README and packet template preserve five verdicts and five statuses | pending final suite | Plan 32-04 |
+| Ledger row coverage and owner parser | 18 selected findings, no row status `FIX_APPLIED`, exact non-headline owner phases | pending final suite | Plan 32-04 |
+| Forbidden-path status guard | framework specs, read-only reports, final resolution doc, `.planning/STATE.md`, and `pinn/` | pending final suite | Plan 32-04 |
+| Baseline sentinel guard | dirty-doc, gap-file, untracked-`pinn/`, and resolution-doc baselines | pending final suite | Plan 32-04 |
+| Resolution-doc freshness | lines, bytes, sha256, and headline section citations | pending after packets exist | Plan 32-04 |
+| Packet live-code discipline | live `pinn/` mentions must state NOT grounding or FUT | pending after packets exist | Plan 32-04 |
+| Owner decision parser | D-04, D-05, D-06 require `defer-with-blocker` unless explicit instruction exists | pending after packets exist | Plan 32-04 |
+
+## Plan 32-01 Notes
+
+- Baseline values above were captured before non-baseline Phase 32 artifact writes.
+- The protocol README and packet template preserve the fixed verdict enum and lifecycle tokens.
+- The issue ledger is seeded with all 18 selected findings from `31-RESOLUTION-MAP.md`.
+- Final command outputs remain intentionally owned by Plan 32-04, after headline packets exist.
