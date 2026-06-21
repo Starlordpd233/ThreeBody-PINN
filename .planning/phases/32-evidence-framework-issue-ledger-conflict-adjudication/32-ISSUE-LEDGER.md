@@ -9,7 +9,7 @@ Stable issue-03 ledger for Phase 32 through Phase 36. The ledger is seeded from 
 | Finding ID | Title | Owner Phase | Status | Verdict | Evidence Packet | Acceptance Check | Spec Targets | Dependents | Transition Log |
 |---|---|---|---|---|---|---|---|---|---|
 | D-04 | Causal-training mode owner decision | Phase 32 | DEFERRED | defer-with-blocker | `evidence/d-04-causal-training-mode.md` | AC-EVID-15-D04 | No Option A/B/C selected in Phase 32; Phase 35 LOSS-04 and Phase 34 LOOP-01 consume only after explicit owner instruction or later grounded verdict | Phase 35 LOSS-04; Phase 34 LOOP-01 if batch-windowing changes; Phase 36 | 2026-06-21 pending-commit PENDING -> DEFERRED by Phase 32 Plan 32-03 Task 1; packet preserves owner decision and blocks downstream final causal-mode transcription |
-| D-05 | s_min frame owner decision | Phase 32 | PENDING | - | `evidence/d-05-s-min-frame.md` | AC-EVID-15-D05 | No gate-frame selection in Plan 32-01; Phase 33 CURR-05 consumes only after explicit instruction or grounded verdict | Phase 33 CURR-05; Phase 35 loss-side references; Phase 36 | Seeded; unresolved owner decision routes to Phase 32 EVID-15 |
+| D-05 | s_min frame owner decision | Phase 32 | DEFERRED | defer-with-blocker | `evidence/d-05-s-min-frame.md` | AC-EVID-15-D05 | No stage-gate frame selected in Phase 32; Phase 33 CURR-05 consumes only after explicit owner instruction or later grounded verdict; matched-Plummer loss-side distinction recorded but not used as gate-frame approval | Phase 33 CURR-05; Phase 35 loss-side references; Phase 36 | 2026-06-21 pending-commit PENDING -> DEFERRED by Phase 32 Plan 32-03 Task 2; packet preserves owner decision and blocks downstream stage-gate frame transcription |
 | D-06 | Epsilon strategy owner decision | Phase 32 | PENDING | - | `evidence/d-06-epsilon-strategy.md` | AC-EVID-15-D06 | No static epsilon selection in Plan 32-01; Phase 33 and Phase 35 consume only after explicit instruction or grounded verdict | Phase 33 static invariants; Phase 35 loss consistency; Phase 36 | Seeded; unresolved owner decision routes to Phase 32 EVID-15 |
 | B-07 | Replay/lookahead batching | Phase 34 | PENDING | - | Owner must author packet before spec edits | AC-LOOP-01 | `ctl_instruction.md` training-loop batch construction | Phase 34 LOOP-01; Phase 36 | Seeded; packet-before-edit forward reference |
 | B-08 | Data versus collocation points | Phase 34 | PENDING | - | Owner must author packet before spec edits | AC-LOOP-02 | `ctl_instruction.md` data/collocation point-set contract | Phase 34 LOOP-02/03; Phase 36 | Seeded; packet-before-edit forward reference |
@@ -41,6 +41,7 @@ Every non-headline row above has exactly one primary owner phase from Phase 33, 
 ### D-05
 
 - 2026-06-21 pending-commit PENDING seeded by Phase 32 Plan 32-01 Task 3; unresolved owner decision routes to Phase 32 EVID-15 without selecting a gate frame.
+- 2026-06-21 pending-commit PENDING -> DEFERRED by Phase 32 Plan 32-03 Task 2; `evidence/d-05-s-min-frame.md` records `defer-with-blocker`, cites issue-doc D-05 options plus resolution-doc `SMIN-01..03` / `DGR-02/03`, preserves matched-Plummer loss-side evidence, and routes final stage-gate frame selection to Phase 33 `CURR-05`.
 
 ### D-06
 
