@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
-current_phase: 32
-current_phase_name: evidence-framework-issue-ledger-conflict-adjudication
-status: executing
+current_phase: 33
+current_phase_name: Curriculum-Stage Contracts
+status: completed
 stopped_at: Completed 32-04-PLAN.md
-last_updated: "2026-06-21T09:53:05.734Z"
+last_updated: "2026-06-21T10:06:39.336Z"
 last_activity: 2026-06-21
-last_activity_desc: Phase 32 Plan 32-04 completed
+last_activity_desc: Phase 32 complete, transitioned to Phase 33
 progress:
   total_phases: 7
   completed_phases: 3
@@ -28,16 +28,16 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 
 ## Current Position
 
-Phase: 32 (evidence-framework-issue-ledger-conflict-adjudication) — COMPLETE
-Plan: 4 of 4
+Phase: 33 — Curriculum-Stage Contracts
+Plan: Not started
 Status: Phase complete
-Last activity: 2026-06-21 — Phase 32 Plan 32-04 completed
+Last activity: 2026-06-21 — Phase 32 complete, transitioned to Phase 33
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 65 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 69 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -82,6 +82,7 @@ Last activity: 2026-06-21 — Phase 32 Plan 32-04 completed
 | Phase 32 P01 | 11 min | 3 tasks | 6 files |
 | Phase 32 P03 | 597 | 3 tasks | 6 files |
 | Phase 32 P04 | 7 min | 2 tasks | 4 files |
+| 32 | 4 | - | - |
 
 ## Accumulated Context
 
