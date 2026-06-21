@@ -50,3 +50,27 @@ Plan 32-01 initializes this file with the immutable baseline block above. The st
 - `evidence/d-05-s-min-frame.md` exists and records `defer-with-blocker` with `Explicit user instruction: None`; no final stage-gate frame is selected, and the ledger mirrors `AC-EVID-15-D05`.
 - `evidence/d-06-epsilon-strategy.md` exists and records `defer-with-blocker` with `Explicit user instruction: None`; loss-side `epsilon_train = 1e-5` is preserved as locked while the static/invariant epsilon decision remains owner-routed, and the ledger mirrors `AC-EVID-15-D06`.
 - Task-local automated checks for Plan 32-03 passed during execution. Final full structural command output remains owned by Plan 32-04.
+
+## Plan 32-04 Task 1 Structural Validation
+
+Executed at UTC: 2026-06-21T09:54Z
+
+### Commands and Outcomes
+
+| Check | Command | Result |
+|---|---|---|
+| Required artifact existence and five headline packet coverage | `python3 - <<'PY'` consolidated structural suite over README, template, baseline sentinel, ledger, verification file, and five packet files | PASS - 10 files present |
+| Verdict enum and lifecycle token preservation | `python3 - <<'PY'` check for `accept-resolution`, `accept-issue-doc`, `accept-third-position`, `reject-both-as-unsupported`, `defer-with-blocker`, `PENDING`, `IN_PROGRESS`, `FIX_APPLIED`, `VERIFIED`, `DEFERRED` in `evidence/README.md` | PASS - all fixed tokens present |
+| Ledger coverage, terminal-state guard, and non-headline owner mapping | `python3 - <<'PY'` row parser for `32-ISSUE-LEDGER.md` `Finding ID`, `Status`, and `Owner Phase` columns | PASS - 18 rows parsed; 0 missing; 0 `FIX_APPLIED` statuses; 0 owner mismatches |
+| Resolution-doc freshness and headline citation-section freshness | `python3 - <<'PY'` compare `03-final-resolution.md` lines/bytes/sha256 to `32-BASELINE-CAPTURED`, then verify packet section labels for sections 1.1, 1.2, 1.3, 1.8, and 1.16 | PASS after repair - baseline remains 282 lines, 48049 bytes, sha256 `4c5195b874d33a0ab73e51527b2569f729692b248d7fa9b22334be2e4135d353`; citation bad list `[]` |
+| Forbidden-path status guard including untracked `pinn/` baseline | `python3 - <<'PY'` guard over framework specs, frozen/read-only reports, final resolution doc, `.planning/STATE.md`, and `pinn/` | PASS - tracked protected diffs `[]`; untracked `pinn/` sha256 unchanged at `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`; untracked entries `[]` |
+| Dirty-doc baseline status and patch hash guard | `python3 - <<'PY'` compare `git status --short -- docs/work/plans/cross_cutting/gsd-cross-ai-review-resilience/2026-06-20-gsd-review-dispatch-resilience-plan.md` and its diff sha256 to the recorded baseline | PASS - status remains `M docs/work/plans/cross_cutting/gsd-cross-ai-review-resilience/2026-06-20-gsd-review-dispatch-resilience-plan.md`; patch sha256 remains `034a6636ac94a6b5cd667f734410daf6fa7c6d53a2f1323e18190b91818884c7` |
+| Gap-file baseline guard | `python3 - <<'PY'` compare `32-GAPS.md` and `.planning/milestones/v1.6-GAPS.md` to baseline sentinel | PASS - both remain `MISSING`; no STOP gap opened |
+| Packet-scoped live `pinn/` source discipline | `python3 - <<'PY'` search packet windows around `pinn/basic_architecture.py` and `pinn/data-processing-pipeline-full.py` mentions | PASS - all live `pinn/` mentions are labelled `NOT grounding` or `FUT` in the local packet window |
+| D-04/D-05/D-06 owner-decision parser | `python3 - <<'PY'` parse `Verdict:` and `Explicit user instruction:` fields in the three owner-routed packets | PASS - all three packets are `defer-with-blocker` with no explicit instruction |
+| Phase 32 plan-file closeout guard | `python3 - <<'PY'` compare `sorted(root.glob('32-*-PLAN.md'))` with expected plan set | PASS - exactly `32-01-PLAN.md`, `32-02-PLAN.md`, `32-03-PLAN.md`, `32-04-PLAN.md` |
+| Headline packet content sanity | `python3 - <<'PY'` token sanity over D conflict, M14, D-04, D-05, and D-06 packets | PASS - expected headline tokens present |
+
+### Repair During Task 1
+
+The first structural run failed only the citation-section freshness check for `m14-gradient-clipping.md` and `d-6-694-conflict.md`: both packets cited the correct line ranges and section headings but lacked the parser-required literal strings `section 1.8` and `section 1.16`. The packet source rows were repaired mechanically to include those labels without changing semantic verdicts. The full suite was rerun and passed with 11/11 checks passing.
