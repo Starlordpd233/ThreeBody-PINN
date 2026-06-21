@@ -24,13 +24,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-20)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** Phase 32 — evidence-framework-issue-ledger-conflict-adjudication
+**Current focus:** Phase 33 — curriculum-stage-contracts
 
 ## Current Position
 
 Phase: 33 — Curriculum-Stage Contracts
 Plan: Not started
-Status: Phase complete
+Status: Phase 33 not started; Phase 32 complete
 Last activity: 2026-06-21 — Phase 32 complete, transitioned to Phase 33
 
 ## Performance Metrics
@@ -80,7 +80,8 @@ Last activity: 2026-06-21 — Phase 32 complete, transitioned to Phase 33
 | Phase 27 P01 | 15min | 3 tasks | 3 files |
 | Phase 27 P02 | 15min | 3 tasks | 3 files |
 | Phase 32 P01 | 11 min | 3 tasks | 6 files |
-| Phase 32 P03 | 597 | 3 tasks | 6 files |
+| Phase 32 P02 | 9 min | 2 tasks | 5 files |
+| Phase 32 P03 | 10 min | 3 tasks | 6 files |
 | Phase 32 P04 | 7 min | 2 tasks | 4 files |
 | 32 | 4 | - | - |
 
@@ -179,17 +180,18 @@ Recent decisions affecting current work:
 - [Phase 32]: Plan 32-03: D-04 remains defer-with-blocker; no causal-training Option A/B/C selected without explicit owner instruction. — The issue doc and candidate verdict source preserve D-04 as owner-routed, and Phase 32 must not select a semantic default.
 - [Phase 32]: Plan 32-03: D-05 remains defer-with-blocker; no final s_min stage-gate frame selected without explicit owner instruction. — Matched-Plummer loss-side evidence is recorded, but the curriculum stage-gate frame remains owner-routed.
 - [Phase 32]: Plan 32-03: D-06 remains defer-with-blocker; loss-side epsilon_train = 1e-5 stays locked while static/invariant epsilon remains owner-routed. — The resolution doc narrows the open decision to static/invariant context; no sensitivity study or explicit owner instruction resolves it.
-- [Phase 32]: Plan 32-04 closed Phase 32 structural verification with no STOP gap opened — D-04, D-05, and D-06 remain defer-with-blocker owner-routed decisions; all final structural and closeout guards passed.
+- [Phase 32]: Plan 32-04 closed Phase 32 structural verification; closeout remediation subsequently registered the known D-04/D-05/D-06 owner-route blockers as GAP-32-01/02/03 with `DEFERRED` status per user instruction. D-04, D-05, and D-06 remain defer-with-blocker owner-routed decisions; all final structural and closeout guards passed.
 - [Phase 32]: Plan 32-04 protected-path and baseline guards passed before closeout — Framework specs, frozen/read-only reports, final resolution doc, .planning/STATE.md, and pinn/ remained untouched during task verification; the unrelated dirty docs patch, gap-file state, untracked pinn state, and resolution-doc identity matched the Phase 32 baseline.
+- [Phase 32 closeout 2026-06-21]: Created `32-GAPS.md` and `.planning/milestones/v1.6-GAPS.md` for GAP-32-01/02/03; added the ledger `Owner Phase` legend without changing owner values; reconciled Phase 32 complete -> Phase 33 next state.
 
 ### Pending Todos
 
 Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phases 32–36 are UNBLOCKED. The consolidated resolution doc landed at `research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md` (commit `49fb7958`).
 
-- [ ] Execute Phase 32 Plan 32-02 (D = 6.694 and M14 headline packets) using `32-ISSUE-LEDGER.md`, `evidence/README.md`, and `evidence/_TEMPLATE.md`
+- [x] Execute Phase 32 Plan 32-02 (D = 6.694 and M14 headline packets) using `32-ISSUE-LEDGER.md`, `evidence/README.md`, and `evidence/_TEMPLATE.md`
 - [x] Execute Phase 32 Plan 32-01 — evidence machinery baseline, protocol, template, ledger, and verification inventory
-- [ ] Tag `v1.6-pre-phase-32` from `milestone/v1.6` HEAD before Phase 32 begins
-- [ ] **[Standing trigger]** Create `.planning/milestones/v1.6-GAPS.md` index when the first v1.6 phase opens a gap (none arose in Phases 30–31)
+- [x] Tag `v1.6-pre-phase-32` from the true pre-Phase 32 boundary commit `15363d6b`
+- [x] **[Standing trigger]** Create `.planning/milestones/v1.6-GAPS.md` index when the first v1.6 phase opens a gap; GAP-32-01/02/03 are recorded as `DEFERRED`
 - [x] Plan + execute Phase 30 (Research Package Assembly); external resolution-doc gate opened on delivery (2026-06-18)
 - [x] Execute Phase 31 (resolution-doc readiness verification) — READY-WITH-CAVEATS (2026-06-20)
 - [x] Rebase `milestone/v1.6` onto the completed `master` (2026-06-17; recovery `backup/milestone-v1.6-pre-rebase` + tag `v1.6-pre-rebase`)

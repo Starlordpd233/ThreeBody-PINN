@@ -8,7 +8,7 @@
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; [archive](milestones/v1.3-ROADMAP.md))
 - ✅ **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–22, including 20.5 (shipped 2026-06-09; [roadmap archive](milestones/v1.4-ROADMAP.md), [requirements archive](milestones/v1.4-REQUIREMENTS.md), [phase archive](milestones/v1.4-phases/))
 - ✅ **v1.5 Resolving 02 Data Pipeline and Validation** — Phases 23–29, including 24.5 (shipped 2026-06-17; archived under [`milestones/v1.5-*`](milestones/))
-- 🚧 **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (in progress; Phases 30–31 complete, Phase 32 next)
+- 🚧 **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (in progress; Phases 30–32 complete, Phase 33 next)
 - 🔮 **Final Publication LaTeX Sync** — deferred until implementation, network/training design, training, and research-result interpretation are complete
 
 ## Deferred: Final Publication LaTeX Sync
@@ -238,4 +238,4 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
 
 ---
-*Last updated: 2026-06-20 — Phases 30 (research package) and 31 (resolution-doc readiness, READY-WITH-CAVEATS) complete; Phases 32–36 unblocked, Phase 32 (Evidence Framework, Issue Ledger & Conflict Adjudication) next. Roadmap created 2026-06-17 (`/gsd-new-project` roadmapper): 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29; 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6); Phase 31 readiness verification is operational (0 IDs). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*
+*Last updated: 2026-06-21 — Phases 30 (research package), 31 (resolution-doc readiness, READY-WITH-CAVEATS), and 32 (Evidence Framework, Issue Ledger & Conflict Adjudication) complete; Phase 33 (Curriculum-Stage Contracts) next. Roadmap created 2026-06-17 (`/gsd-new-project` roadmapper): 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29; 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6); Phase 31 readiness verification is operational (0 IDs). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*
