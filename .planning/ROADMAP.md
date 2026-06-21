@@ -69,7 +69,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 - [x] **Phase 31: Resolution Doc Readiness Verification** — Verify the consolidated resolution doc covers every selected issue-03 finding, contains zero contradictions of v1.5-verified dataset facts, and respects all locked v1.4 + v1.5 conventions; produce a readiness report and a quick-reference resolution-doc map. Operational (0 requirement IDs; the v1.5 Phase 24.5 analog). Gates on the consolidated resolution doc landing; Phases 32–36 gate on this passing. (completed 2026-06-20)
 
-- [ ] **Phase 32: Evidence Framework, Issue Ledger & Conflict Adjudication** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes) and the re-verification ledger, then perform root-cause adjudication of the headline conflicts before any spec edit lands: D-04 (causal training mode A/B/C), D-06 (epsilon strategy), D-05 (s_min frame), the M14 dual gradient-clipping divergence, and the cross-milestone `D = 6.694` vs the v1.5-locked `D ≈ 4.6416`.
+- [x] **Phase 32: Evidence Framework, Issue Ledger & Conflict Adjudication** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes) and the re-verification ledger, then perform root-cause adjudication of the headline conflicts before any spec edit lands: D-04 (causal training mode A/B/C), D-06 (epsilon strategy), D-05 (s_min frame), the M14 dual gradient-clipping divergence, and the cross-milestone `D = 6.694` vs the v1.5-locked `D ≈ 4.6416`. (completed 2026-06-21)
 
 - [ ] **Phase 33: Curriculum-Stage Contracts** — Transcribe the adjudicated curriculum-stage contracts into `ctl_instruction.md`: data-driven adaptive stage assignment, `tau_L`/`L_max` formulas, dual-path stage-transition criteria, the Stage 0–6 inventory/gating (incl. the M6 `L_norm` clamp guard), and the s_min stage-gate frame (per the D-05 verdict).
 
@@ -151,12 +151,12 @@ Every selected finding follows the v1.4/v1.5-style loop:
   4. The headline conflicts are adjudicated at root cause (EVID-15) — D-04 causal training mode (Option A/B/C), D-06 epsilon strategy (`1e-5` everywhere / dual-context / `1e-10` everywhere), D-05 s_min frame, the M14 dual gradient-clipping divergence, and the `D = 6.694` vs v1.5-locked `D ≈ 4.6416` conflict (reconciled with v1.5 Phase 25 EVID-10 as the hard constraint) — each naming the root-cause ambiguity, which source was right and which wrong, and the convention now locked; the corresponding spec edits land in the contract phases (33–35).
   5. The issue ledger exists at its stable path under this (Phase 32, evidence-framework) directory, tracking every in-scope finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`, with the explicit rule that "fix applied" is not closure and that each edit batch re-verifies previously `VERIFIED` findings it could have regressed.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 
 - [x] 32-01-PLAN.md
 - [x] 32-02-PLAN.md
 - [x] 32-03-PLAN.md
-- [ ] 32-04-PLAN.md
+- [x] 32-04-PLAN.md
 
 **UI hint**: no
 
@@ -231,7 +231,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 |-------|-----------|----------------|--------|-----------|
 | 30. Research Package Assembly | v1.6 | 5/5 | Complete | 2026-06-18 |
 | 31. Resolution Doc Readiness Verification | v1.6 | 1/1 | Complete | 2026-06-20 |
-| 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 3/4 | In Progress|  |
+| 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete   | 2026-06-21 |
 | 33. Curriculum-Stage Contracts | v1.6 | 0/0 | Not started | - |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 0/0 | Not started | - |
 | 35. Loss & Energy-Weight Contracts | v1.6 | 0/0 | Not started | - |

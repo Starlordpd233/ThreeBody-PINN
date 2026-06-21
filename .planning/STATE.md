@@ -5,16 +5,16 @@ milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 32
 current_phase_name: evidence-framework-issue-ledger-conflict-adjudication
 status: executing
-stopped_at: Completed 32-03-PLAN.md
-last_updated: "2026-06-21T09:41:23.176Z"
+stopped_at: Completed 32-04-PLAN.md
+last_updated: "2026-06-21T09:53:05.734Z"
 last_activity: 2026-06-21
-last_activity_desc: Phase 32 Plan 32-03 completed
+last_activity_desc: Phase 32 Plan 32-04 completed
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 10
-  percent: 29
+  completed_plans: 11
+  percent: 43
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 
 ## Current Position
 
-Phase: 32 (evidence-framework-issue-ledger-conflict-adjudication) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
-Last activity: 2026-06-21 — Phase 32 Plan 32-03 completed
+Phase: 32 (evidence-framework-issue-ledger-conflict-adjudication) — COMPLETE
+Plan: 4 of 4
+Status: Phase complete
+Last activity: 2026-06-21 — Phase 32 Plan 32-04 completed
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Last activity: 2026-06-21 — Phase 32 Plan 32-03 completed
 | Phase 27 P02 | 15min | 3 tasks | 3 files |
 | Phase 32 P01 | 11 min | 3 tasks | 6 files |
 | Phase 32 P03 | 597 | 3 tasks | 6 files |
+| Phase 32 P04 | 7 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,8 @@ Recent decisions affecting current work:
 - [Phase 32]: Plan 32-03: D-04 remains defer-with-blocker; no causal-training Option A/B/C selected without explicit owner instruction. — The issue doc and candidate verdict source preserve D-04 as owner-routed, and Phase 32 must not select a semantic default.
 - [Phase 32]: Plan 32-03: D-05 remains defer-with-blocker; no final s_min stage-gate frame selected without explicit owner instruction. — Matched-Plummer loss-side evidence is recorded, but the curriculum stage-gate frame remains owner-routed.
 - [Phase 32]: Plan 32-03: D-06 remains defer-with-blocker; loss-side epsilon_train = 1e-5 stays locked while static/invariant epsilon remains owner-routed. — The resolution doc narrows the open decision to static/invariant context; no sensitivity study or explicit owner instruction resolves it.
+- [Phase 32]: Plan 32-04 closed Phase 32 structural verification with no STOP gap opened — D-04, D-05, and D-06 remain defer-with-blocker owner-routed decisions; all final structural and closeout guards passed.
+- [Phase 32]: Plan 32-04 protected-path and baseline guards passed before closeout — Framework specs, frozen/read-only reports, final resolution doc, .planning/STATE.md, and pinn/ remained untouched during task verification; the unrelated dirty docs patch, gap-file state, untracked pinn state, and resolution-doc identity matched the Phase 32 baseline.
 
 ### Pending Todos
 
@@ -208,12 +211,12 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-21T09:41:23.172Z
-Stopped at: Completed 32-03-PLAN.md
-Next action: Execute Phase 32 Plan 32-04 final structural verification across the Phase 32 packet set, issue ledger, and verification record.
+Last session: 2026-06-21T09:52:48.857Z
+Stopped at: Completed 32-04-PLAN.md
+Next action: Plan and execute Phase 33 Curriculum-Stage Contracts using the Phase 32 verified evidence packets and issue ledger.
 
 ## Operator Next Steps
 
-- Phase 32 Plans 32-01 through 32-03 are complete; Plan 32-04 is the next execution target.
-- Phases 32–36 are unblocked after Phase 31 readiness verification passed.
+- Phase 32 Plans 32-01 through 32-04 are complete.
+- Phase 33 is the next execution target; consume the Phase 32 packets and preserve D-04, D-05, and D-06 as owner-routed blockers until explicit instruction resolves them.
 - v1.6 remains on `milestone/v1.6`; continue preserving unrelated dirty docs/review artifacts.
