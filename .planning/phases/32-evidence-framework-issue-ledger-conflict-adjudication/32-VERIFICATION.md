@@ -74,3 +74,18 @@ Executed at UTC: 2026-06-21T09:54Z
 ### Repair During Task 1
 
 The first structural run failed only the citation-section freshness check for `m14-gradient-clipping.md` and `d-6-694-conflict.md`: both packets cited the correct line ranges and section headings but lacked the parser-required literal strings `section 1.8` and `section 1.16`. The packet source rows were repaired mechanically to include those labels without changing semantic verdicts. The full suite was rerun and passed with 11/11 checks passing.
+
+## Plan 32-04 Task 2 Closeout Guards
+
+Executed at UTC: 2026-06-21T09:56Z, after Task 1 commit `c6aa112`.
+
+| Check | Command | Result |
+|---|---|---|
+| Protected-path status guard | `python3 - <<'PY'` guard over framework specs, frozen/read-only reports, final resolution doc, `.planning/STATE.md`, and `pinn/` | PASS - tracked protected diffs `[]`; untracked `pinn/` sha256 unchanged at `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`; untracked entries `[]` |
+| Dirty-doc closeout baseline guard | `python3 - <<'PY'` compare current dirty docs status and patch sha256 to the Phase 32 baseline | PASS - status remains `M docs/work/plans/cross_cutting/gsd-cross-ai-review-resilience/2026-06-20-gsd-review-dispatch-resilience-plan.md`; patch sha256 remains `034a6636ac94a6b5cd667f734410daf6fa7c6d53a2f1323e18190b91818884c7` |
+| Packet-scoped source discipline | `python3 - <<'PY'` inspect live `pinn/` mentions in packet windows | PASS - all live `pinn/` mentions remain labelled `NOT grounding` or `FUT` in the local packet window |
+| Exact Phase 32 plan-file set | `python3 - <<'PY'` compare `32-*-PLAN.md` files to the expected four-plan set | PASS - exactly `32-01-PLAN.md`, `32-02-PLAN.md`, `32-03-PLAN.md`, `32-04-PLAN.md` |
+| D-04/D-05/D-06 exact verdict parser | `python3 - <<'PY'` parse owner-routed packet `Verdict:` and `Explicit user instruction:` fields | PASS - all three packets remain `defer-with-blocker` with `Explicit user instruction: None` |
+| Gap-file closeout baseline guard | `python3 - <<'PY'` compare `32-GAPS.md` and `.planning/milestones/v1.6-GAPS.md` to the baseline sentinel | PASS - both remain `MISSING`; no STOP gap opened |
+
+Closeout result: 6/6 checks passed. Phase 32 evidence-framework artifacts remain within plan-owned paths, protected paths are clean, owner-routed D-04/D-05/D-06 decisions remain blocked rather than silently selected, and the unrelated dirty docs file matches its Phase 32 baseline.
