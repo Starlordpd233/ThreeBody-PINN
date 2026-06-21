@@ -4,6 +4,10 @@ Stable issue-03 ledger for Phase 32 through Phase 36. The ledger is seeded from 
 
 `FIX_APPLIED is not terminal`. Closure requires `VERIFIED` after the named acceptance check passes, or `DEFERRED` with a written blocker and `defer-with-blocker` verdict.
 
+## Column Definitions
+
+- `Owner Phase` names the phase that authored the current row verdict or deferral. For Phase 32 headline rows, `Owner Phase = Phase 32` means Phase 32 owns the evidence packet and current `accept-resolution` / `defer-with-blocker` state; the `Dependents` column and blocker text name the downstream phase that must consume or resolve the row before spec transcription.
+
 ## Ledger
 
 | Finding ID | Title | Owner Phase | Status | Verdict | Evidence Packet | Acceptance Check | Spec Targets | Dependents | Transition Log |
