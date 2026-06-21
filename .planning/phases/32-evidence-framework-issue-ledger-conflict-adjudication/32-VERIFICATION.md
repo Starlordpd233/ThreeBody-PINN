@@ -1,3 +1,12 @@
+---
+phase: 32-evidence-framework-issue-ledger-conflict-adjudication
+verified: 2026-06-21T09:31:00Z
+status: passed
+score: 11/11 structural checks and 6/6 closeout guards passed
+behavior_unverified: 0
+overrides_applied: 0
+---
+
 # Phase 32 Verification Record
 
 ## Baseline
