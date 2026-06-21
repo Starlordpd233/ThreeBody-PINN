@@ -23,7 +23,7 @@ Stable issue-03 ledger for Phase 32 through Phase 36. The ledger is seeded from 
 | NS-13 | Energy Huber delta | Phase 35 | PENDING | - | Owner must author packet before spec edits | AC-LOSS-03 | `ctl_instruction.md` Huber delta calibration contract | Phase 35 LOSS-03; Phase 36 | Seeded; packet-before-edit forward reference |
 | NS-18 | Loss scaling and units | Phase 35 | PENDING | - | Owner must author packet before spec edits | AC-LOSS-01 | `ctl_instruction.md` dimensionless loss scaling | Phase 35 LOSS-01; Phase 36 | Seeded; packet-before-edit forward reference |
 | adaptive stage assignment | Data-driven adaptive stage assignment | Phase 33 | PENDING | - | Owner must author packet before spec edits | AC-CURR-01 | `ctl_instruction.md` adaptive stage methodology | Phase 33 CURR-01; Phase 36 | Seeded; packet-before-edit forward reference |
-| D = 6.694 | Raw-mass D conflict | Phase 32 | PENDING | - | `evidence/d-6-694-conflict.md` | AC-EVID-15-D | Phase 32 convention-locking packet; Phase 33 consumes D in tau_L and L_max; Phase 36 checks unresolved provenance and deferred-list handling | Phase 33 CURR-02; Phase 36 provenance/deferred-list checker | Seeded; SCOPE-12 hard constraint remains until packet adjudication |
+| D = 6.694 | Raw-mass D conflict | Phase 32 | VERIFIED | accept-resolution | `evidence/d-6-694-conflict.md` | AC-EVID-15-D-CONFLICT | Current `ctl_instruction.md` raw-mass `D ~= 4.6416` convention stands; no Phase 32 spec edit; Phase 33 consumes D in `tau_L` and `L_max`; GAP-17 provenance remains provenance-only | Phase 33 CURR-02; Phase 36 provenance/deferred-list checker | 2026-06-21 pending-commit PENDING -> VERIFIED by Phase 32 Plan 32-02 Task 1; packet accepts the resolution-doc convention only after SCOPE-12, current-spec, v1.5 EVID-10, and first-principles checks; issue-doc `D = 6.694` and P4-1 rerun directive rejected |
 | L_max / tau_L | L_max and tau_L formulas | Phase 33 | PENDING | - | Owner must author packet before spec edits | AC-CURR-02 | `ctl_instruction.md` L_max and tau_L formula contract | Phase 33 CURR-02; Phase 36 | Seeded; packet-before-edit forward reference |
 | ALM mu_p clamp | ALM mu_p clamp | Phase 34 | PENDING | - | Owner must author packet before spec edits | AC-LOOP-05 | `ctl_instruction.md` or `pinn_architecture.md` ALM update and optional clamp contract | Phase 34 LOOP-05; Phase 36 | Seeded; packet-before-edit forward reference |
 
@@ -96,6 +96,7 @@ Every non-headline row above has exactly one primary owner phase from Phase 33, 
 ### D = 6.694
 
 - 2026-06-21 pending-commit PENDING seeded by Phase 32 Plan 32-01 Task 3; Phase 32 packet owns convention lock, Phase 33 consumes tau_L/L_max, and Phase 36 checks unresolved provenance/deferred-list handling.
+- 2026-06-21 pending-commit PENDING -> VERIFIED by Phase 32 Plan 32-02 Task 1; `evidence/d-6-694-conflict.md` records `accept-resolution` for the raw-mass `D ~= 4.6416` convention, rejects the issue-doc `D = 6.694` / P4-1 blanket rerun directive, and preserves GAP-17 as provenance-only.
 
 ### L_max / tau_L
 
