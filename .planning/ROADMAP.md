@@ -95,6 +95,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   5. The package is handed to the user, and the milestone records that the external resolution-doc gate is now open (user ERW research starts) and that adjudication Phases 32–36 gate on the consolidated resolution doc landing under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 passing.
 
 **Plans**: 5/5 plans complete
+
 - [x] 30-CONSOLIDATION-PLAN.md (PKG-05 planning/structural artifact, not an executable plan — see 30-CONSOLIDATION-SUMMARY.md)
 
 **Wave 1**
@@ -150,7 +151,13 @@ Every selected finding follows the v1.4/v1.5-style loop:
   4. The headline conflicts are adjudicated at root cause (EVID-15) — D-04 causal training mode (Option A/B/C), D-06 epsilon strategy (`1e-5` everywhere / dual-context / `1e-10` everywhere), D-05 s_min frame, the M14 dual gradient-clipping divergence, and the `D = 6.694` vs v1.5-locked `D ≈ 4.6416` conflict (reconciled with v1.5 Phase 25 EVID-10 as the hard constraint) — each naming the root-cause ambiguity, which source was right and which wrong, and the convention now locked; the corresponding spec edits land in the contract phases (33–35).
   5. The issue ledger exists at its stable path under this (Phase 32, evidence-framework) directory, tracking every in-scope finding through `PENDING → IN_PROGRESS → FIX_APPLIED → VERIFIED`, with the explicit rule that "fix applied" is not closure and that each edit batch re-verifies previously `VERIFIED` findings it could have regressed.
 
-**Plans**: TBD
+**Plans**: 1/4 plans executed
+
+- [x] 32-01-PLAN.md
+- [ ] 32-02-PLAN.md
+- [ ] 32-03-PLAN.md
+- [ ] 32-04-PLAN.md
+
 **UI hint**: no
 
 ### Phase 33: Curriculum-Stage Contracts
@@ -224,7 +231,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 |-------|-----------|----------------|--------|-----------|
 | 30. Research Package Assembly | v1.6 | 5/5 | Complete | 2026-06-18 |
 | 31. Resolution Doc Readiness Verification | v1.6 | 1/1 | Complete | 2026-06-20 |
-| 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 0/0 | Not started | - |
+| 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 1/4 | In Progress | - |
 | 33. Curriculum-Stage Contracts | v1.6 | 0/0 | Not started | - |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 0/0 | Not started | - |
 | 35. Loss & Energy-Weight Contracts | v1.6 | 0/0 | Not started | - |
