@@ -376,22 +376,25 @@ No `[ASSUMED]` claims are used in this research. All substantive recommendations
 |---|-------|---------|---------------|
 | none | n/a | n/a | n/a |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How many Phase 33 plan files should exist?**
    - What we know: Planner may decide the number and grouping if every `CURR-01` through `CURR-05` appears in a plan `requirements` field. [VERIFIED: `.planning/phases/33-curriculum-stage-contracts/33-CONTEXT.md:102-105`]
    - What's unclear: The optimal grouping is not locked. [VERIFIED: `.planning/phases/33-curriculum-stage-contracts/33-CONTEXT.md:102-105`]
    - Recommendation: Use 2-3 plans if keeping packet work separate from spec edits improves reviewability; use 1 plan only if it still preserves packet-before-edit ordering. [VERIFIED: `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/32-ISSUE-LEDGER.md:36`]
+   - **RESOLVED:** Planner discretion selected four executable plans: packet baseline/ledger first, two sequential `ctl_instruction.md` edit waves, then verification/ledger closeout. This is a workflow grouping choice, not a source-silent semantic blocker.
 
 2. **Should Phase 33 create a local `evidence/` directory?**
    - What we know: Phase 32 used an `evidence/` directory and seeded Phase 33-owned rows that need packets. [VERIFIED: local file listing, `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/32-ISSUE-LEDGER.md:20-31`]
    - What's unclear: `33-SPEC.md` does not mandate the directory name. [VERIFIED: `.planning/phases/33-curriculum-stage-contracts/33-SPEC.md:104-137`]
    - Recommendation: Mirror Phase 32 as `.planning/phases/33-curriculum-stage-contracts/evidence/` to keep packet paths predictable. [VERIFIED: `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/evidence/README.md` local existence]
+   - **RESOLVED:** Planner discretion selected `.planning/phases/33-curriculum-stage-contracts/evidence/`, mirroring Phase 32's packet schema and avoiding a new process-artifact schema.
 
 3. **STOP risks the planner must preserve**
    - What we know: No new STOP gap was found during this research. [VERIFIED: `.planning/phases/33-curriculum-stage-contracts/33-GAPS.md:1-228`, `.planning/milestones/v1.6-GAPS.md:1-36`]
    - What's unclear: Execution may surface new source-silent details when writing exact prose. [VERIFIED: `AGENTS.md:91-125`]
    - Recommendation: If exact prose requires selecting a population floor, `tau_L` estimator, clipped gate, transition threshold, unverified trajectory count, or Phase 34/35 contract, STOP and record the gap before dependent edits. [VERIFIED: `.planning/phases/33-curriculum-stage-contracts/33-SPEC.md:139-147`, `.planning/phases/33-curriculum-stage-contracts/33-SPEC.md:219-228`]
+   - **RESOLVED:** No new planning-time STOP blocker remains. The execution plans carry explicit STOP instructions for any later source-silent semantic, process-schema, or cross-phase decision encountered during exact spec prose edits.
 
 ## Environment Availability
 
