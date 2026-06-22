@@ -46,8 +46,19 @@ Milestone index: `.planning/milestones/v1.6-GAPS.md`.
     admitted-set size, or another named rule).
 - **Confidence of impact:** **HIGH** - this policy can change stage labels and
   therefore affects `CURR-01`, `CURR-04`, and Phase 36 acceptance evidence.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-22)
+- **Resolution note:** Owner ratified the packet-first / defer-floor disposition
+  (grounded default; AskUserQuestion 2026-06-22), matching resolution doc §1.15
+  (ADAPT-04 `surface_to_user`, ADAPT-07 `defer`). `CURR-01` specifies the
+  offline-EDA -> PCA + clustering + quantile methodology augmenting the static
+  theoretical anchors and materializes stable integer stage labels keyed by
+  `record_key` within the existing multi-fidelity topology (Stage-2
+  hierarchical-gold and Stage-5 quasi-random-gold refinement roles preserved;
+  `stage_strat_revision.md` Table 4 not adopted wholesale, per ADAPT-03 /
+  DGR-15). The per-stage population safeguard value (5% vs `>10%` vs adaptive)
+  is NOT locked - it is owner-pending the FUT admitted-set EDA (SCOPE-15). The
+  roadmap / `REQUIREMENTS.md` `>10%` phrasing is superseded by this deferral and
+  must not be transcribed as a locked floor. CLM-02..07 remain unverified.
 
 ---
 
@@ -103,8 +114,24 @@ Milestone index: `.planning/milestones/v1.6-GAPS.md`.
     responsibility).
 - **Confidence of impact:** **HIGH** - the choice affects `CURR-02`, `CURR-04`,
   stage thresholds, and Phase 36 numeric acceptance probes.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-22)
+- **Resolution note:** Owner ratified the keep-Rosenstein-baseline / defer
+  disposition (grounded default; AskUserQuestion 2026-06-22), matching
+  resolution doc §1.17 (TAUL-01 `surface_to_user`, TAUL-03 `defer`). `CURR-02`
+  transcribes the grounded `L_max` contract - `L_max = M_tot * r_char *
+  sqrt(2|E|/M_tot)` as the **characteristic** angular-momentum scale (LMAX-01
+  accepted; LMAX-02: characteristic scale, not a proven global maximum), with
+  `D ~= 4.6416` (D-01 accepted; `D = 6.694` rejected) - and records M7 (`tau_L`
+  excluded from the IC vector by design). The `tau_L` **estimator** is NOT
+  locked: the current Rosenstein-style trajectory estimator is retained as the
+  revisable baseline; method, time-unit convention, fit parameters, uncertainty
+  handling, and final stage thresholds are owner-pending before any threshold
+  lock. The roadmap / `REQUIREMENTS.md` shadow-trajectory + `eps_pert = 1e-8` /
+  `eps_soft = 1e-10` + fast PCA+Rosenstein phrasing is NOT normatively adopted
+  (issue shadow force denominator is not matched-Plummer; the PCA+Rosenstein
+  shortcut is unspecified - TAUL-02 / TAUL-05 rejected). Any `eps_pert` /
+  `eps_soft` are shadow-method parameters only, distinct from training
+  `eps_train = 1e-5`.
 
 ---
 
@@ -155,8 +182,20 @@ Milestone index: `.planning/milestones/v1.6-GAPS.md`.
   - **C.** Apply a global clipped `L_norm` storage policy.
 - **Confidence of impact:** **HIGH** - this affects `CURR-04`, stage assignment,
   metadata semantics, and Phase 36 acceptance probes.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-22)
+- **Resolution note:** Owner ratified the raw-only / defer-clip disposition
+  (grounded default; AskUserQuestion 2026-06-22), matching resolution doc §1.6
+  (M6-02 `surface_to_user`, M6-03 `defer`, DGR-07). `CURR-04` stores raw
+  (un-clipped) `L_norm` as staging / diagnostic metadata and includes the
+  MANDATORY nonfinite / near-degenerate `L_max` guard (explicit handling
+  required per §1.6). No global clamp is authorized (M6-01 rejected: the "clamp
+  before IC mapping" rationale is rejected - `L_norm` is metadata, not an
+  `IC13` slot). The M6 `np.clip(L_norm, 0, 1)` **stage-gate** is NOT locked; the
+  clipped-gate-vs-raw question is owner-pending admitted-set evidence. The
+  roadmap / `REQUIREMENTS.md` `np.clip(L_norm, 0, 1)` gating phrasing is
+  superseded by this deferral. (Raw-plus-derived-clipped and global-clipped
+  remain the other two owner options should later evidence support a bounded
+  gate.)
 
 ---
 
