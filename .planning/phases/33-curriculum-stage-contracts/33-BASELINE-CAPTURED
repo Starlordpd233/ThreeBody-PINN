@@ -1,0 +1,43 @@
+# Phase 33 Baseline Captured
+
+Captured before any Phase 33 evidence-packet write to enforce the
+packet-before-edit mandate, the protected-path guard, and the
+unrelated-dirty-doc preservation check. Updated by Phase 33 Plan 01 Task 3
+to append `ledger_post_33_01_sha256` after the Phase 32 ledger has been
+linked (Plan 33-04 Task 2 freshness check consumes that field).
+
+## Git state at baseline
+
+git_branch=milestone/v1.6
+git_status_short_branch=## milestone/v1.6
+
+## Resolution doc fingerprint
+
+resolution_doc_path=pinn_instruction/markdown_conversion/framework-revisions/research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md
+resolution_doc_sha256=4c5195b874d33a0ab73e51527b2569f729692b248d7fa9b22334be2e4135d353
+
+## Protected-path snapshots
+
+The `pinn/` working tree is captured as an empty status short, confirming
+the protected-path guard has nothing to preserve at baseline:
+
+pinn_status_short=
+
+## Unrelated dirty-doc guard (dynamic)
+
+Captured dynamically from `git diff --name-only` at baseline. Plan 33-04
+Task 2 and the Plan 01 Task 3 closed-set assertion re-check this set
+without hardcoding any single filename (review finding 6).
+
+dirty_doc_path=.planning/STATE.md
+dirty_doc_sha256=b744ee52f2706d0d909175776e775a5129a56794c1516e93737ebd79f2b0ae0c
+dirty_doc_path=docs/work/plans/cross_cutting/gsd-cross-ai-review-resilience/2026-06-20-gsd-review-dispatch-resilience-plan.md
+dirty_doc_sha256=034a6636ac94a6b5cd667f734410daf6fa7c6d53a2f1323e18190b91818884c7
+dirty_docs_sha256=bc0c211a3f02e535ee699e4667ec3f7a074b6e00970afa91fc73187330962559
+
+## Concurrency reference (appended by Plan 01 Task 3)
+
+`ledger_post_33_01_sha256` is appended below after Plan 01 Task 3 finishes
+linking the Phase 32 ledger; it is the SHA-256 of `32-ISSUE-LEDGER.md` at
+the close of Plan 01 Task 3 and is the freshness reference for Plan 33-04
+Task 2 (codex MEDIUM ledger-concurrency finding).
