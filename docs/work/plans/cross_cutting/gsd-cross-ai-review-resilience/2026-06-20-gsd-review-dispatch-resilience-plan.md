@@ -289,3 +289,25 @@ their timeout and the run continued; failures captured to `.err` and surfaced; n
    broken `gsd-review`; reuses the official loop + CYCLE_SUMMARY contract.
 2. Global `.claude-max-max` sweep (installer-baked; reverts on each `gsd update`) **+ a
    post-update repair hook** for durability.
+
+## 12. Final configuration + validation (2026-06-21, user-directed)
+
+**Default panel** (`~/.claude-max/skills/xreview/config.json`): `claude` (Opus 4.8) · `claude-glm`
+(GLM-5.2) · `claude-deepseek` (V4) · `claude-minimax` (M3) · `cursor` → **`gpt-5.5-extra-high`**
+(GPT-5.5 1M xhigh — the OpenAI voice, via Cursor's working auth). 5 distinct model families.
+- **codex** excluded from default (it's `401`-unauthenticated — no `~/.codex/auth.json`); `--codex`
+  remains an explicit opt-in flag (stubs until `codex login`; config.toml model = gpt-5.5).
+- **Model-card pins** (update-proof, in xreview's own config.json so `gsd update` can't revert):
+  `claude-alt` + `claude-max` → `claude-opus-4-8`; `--claude-qwen` keeps the `qwen3.7-max` alias.
+- **gemini** is dead (Google retired free-tier Code Assist for the CLI).
+
+**Doctor validation:** claude 5s · claude-glm 14s · claude-deepseek 7s · claude-minimax 8s — all
+PASS. cursor verified working at ~19–20s warm (the doctor's short ping can show TIMEOUT on a cold
+start; real reviews use the 240s/reviewer budget). No orphan processes after any run.
+
+**New dispatcher features:** `--list` (prints resolved panel + every flag + its model);
+xreview-owned `config.json` (`default_panel`, `models`, `ccp_reviewers`) preferred over the GSD
+manifest. Files: `~/.claude-max/skills/xreview/{SKILL.md, dispatch.sh, config.json, .sync-baseline.json}`.
+
+**Still remaining:** (1) `/xconverge` fork (convergence loop calling `xreview`); (2) post-update
+repair hook for the typo sweep; (3) `codex login` (user-side) if codex is wanted live.
