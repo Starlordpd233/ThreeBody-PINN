@@ -4,17 +4,17 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 33
 current_phase_name: curriculum-stage-contracts
-status: executing
-stopped_at: Completed 33-03-PLAN.md
-last_updated: "2026-06-23T02:55:00.000Z"
+status: phase_complete
+stopped_at: Completed 33-04-PLAN.md (Phase 33 complete)
+last_updated: "2026-06-23T03:40:00.000Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 33 Plan 33-03 complete (CURR-03 ADVANCE/RECOVER/HALT-REVIEW state machine + CURR-05 unsoftened geometric s_min Stage-6 gate / dual-context epsilon transcribed into ctl_instruction.md)
+last_activity_desc: Phase 33 Plan 33-04 complete (deterministic verification recorded in 33-VERIFICATION.md; all AC-CURR-01..05 PASS; five Phase-33-owned ledger rows closed VERIFIED; Phase 33 ready for gsd-verify-work)
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 14
-  percent: 60
+  completed_plans: 15
+  percent: 67
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 
 ## Current Position
 
-Phase: 33 (curriculum-stage-contracts) — EXECUTING
-Plan: 4 of 4 (33-03 complete; 33-04 verification remains)
-Status: Executing Phase 33
-Last activity: 2026-06-23 — Plan 33-03 complete (CURR-03 ADVANCE/RECOVER/HALT-REVIEW dual-path state machine transcribed into the Stage Transition Criteria section, reconciling the stale Author-note blockquote out and folding the four advance criteria into the ADVANCE success gate; CURR-05 unsoftened geometric s_min Stage-6 collision gate + dual-context epsilon (epsilon_inv = 1e-10 / epsilon_train = 1e-5) + Phase 35 matched-Plummer loss-side handoff transcribed next to the Stage-6 catch-all inventory; grounded by resolution doc §1.11, evidence/d5-stage-transitions.md, and GAP-32-02/03 owner decisions; all numeric thresholds provisional pending FUT Stage-0 pilot calibration)
+Phase: 33 (curriculum-stage-contracts) — COMPLETE
+Plan: 4 of 4 (33-04 verification complete)
+Status: Phase 33 complete (ready for gsd-verify-work)
+Last activity: 2026-06-23 — Plan 33-04 complete (deterministic Phase 33 verification recorded in 33-VERIFICATION.md: all AC-CURR-01..05 acceptance checks PASS against the transcribed ctl_instruction.md curriculum-stage contracts; five Phase-33-owned ledger rows in 32-ISSUE-LEDGER.md closed VERIFIED with the reconciled AC-ID convention AC-CURR-01 / AC-CURR-02-LMAX / AC-CURR-02-M7 / AC-CURR-03 / AC-CURR-04; protected-path guard empty (tracked + untracked); D-05/D-06 transition logs record Phase 33 GAP-32-02/03 consumption with Phase 35 loss-side work explicitly left open; one documented Wave 1-3 STATE.md tracking-write divergence on the combined dirty-doc hash surfaced for parent adjudication, protected-path invariant satisfied)
 
 ## Performance Metrics
 
@@ -214,12 +214,12 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-23T02:55:00.000Z
-Stopped at: Completed 33-03-PLAN.md
-Next action: Execute Phase 33 Plan 33-04 (verification) to run the AC-CURR-01..05 acceptance checks against the transcribed ctl_instruction.md contracts and close Phase 33.
+Last session: 2026-06-23T03:40:00.000Z
+Stopped at: Completed 33-04-PLAN.md (Phase 33 complete)
+Next action: Run `$gsd-verify-work` for Phase 33 (UAT/verification pass), then proceed to Phase 34 (Training-Loop & Batch-Construction Contracts) planning. A documented Wave 1-3 STATE.md tracking-write divergence on the Plan 33-04 Task 1 combined dirty-doc hash verify check is surfaced for parent adjudication (protected-path invariant satisfied; see 33-VERIFICATION.md section 8 and 33-04-SUMMARY.md).
 
 ## Operator Next Steps
 
 - Phase 32 Plans 32-01 through 32-04 are complete.
-- Phase 33 is the next execution target; consume the Phase 32 packets and preserve D-04, D-05, and D-06 as owner-routed blockers until explicit instruction resolves them.
+- Phase 33 Plans 33-01 through 33-04 are complete; Phase 33 is ready for `$gsd-verify-work`. Preserve D-04, D-05, and D-06 as owner-routed blockers until explicit instruction resolves them (D-05/D-06 transition logs now record Phase 33 GAP-32-02/03 consumption; D-04 remains Phase 32 DEFERRED).
 - v1.6 remains on `milestone/v1.6`; continue preserving unrelated dirty docs/review artifacts.

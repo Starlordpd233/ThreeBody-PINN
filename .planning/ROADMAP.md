@@ -8,7 +8,7 @@
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; [archive](milestones/v1.3-ROADMAP.md))
 - ✅ **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–22, including 20.5 (shipped 2026-06-09; [roadmap archive](milestones/v1.4-ROADMAP.md), [requirements archive](milestones/v1.4-REQUIREMENTS.md), [phase archive](milestones/v1.4-phases/))
 - ✅ **v1.5 Resolving 02 Data Pipeline and Validation** — Phases 23–29, including 24.5 (shipped 2026-06-17; archived under [`milestones/v1.5-*`](milestones/))
-- 🚧 **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (in progress; Phases 30–32 complete, Phase 33 next)
+- 🚧 **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (in progress; Phases 30–33 complete, Phase 34 next)
 - 🔮 **Final Publication LaTeX Sync** — deferred until implementation, network/training design, training, and research-result interpretation are complete
 
 ## Deferred: Final Publication LaTeX Sync
@@ -173,7 +173,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   4. The Stage 0–6 inventory and gating contract is defined (per-stage definitions, criteria, cumulative replay, Stage-6 catch-all, storing raw un-clipped `L_norm` as metadata plus the mandatory nonfinite / near-degenerate `L_max` guard — the M6 `np.clip(L_norm, 0, 1)` stage-gate is not locked and is owner-pending per GAP-33-03, and no global clamp is authorized), consistent with v1.5-verified dataset facts; stage trajectory counts are cited as v1.5-verified or marked "claimed" where not yet grounded (CURR-04).
   5. The s_min frame for the curriculum **stage gate** is defined — unsoftened geometric `s_min` for the Stage-6 collision gate — per the D-05 adjudication; the loss-side softened `max(s_min, eps_soft)` is owned by LOSS (Phase 35), and the unsoftened value is always logged for diagnostics (CURR-05).
 
-**Plans**: 33-01 complete (2026-06-23); 33-02 complete (2026-06-23); 33-03/33-04 pending
+**Plans**: 33-01 complete (2026-06-23); 33-02 complete (2026-06-23); 33-03 complete (2026-06-23); 33-04 complete (2026-06-23) — Phase 33 complete, ready for `$gsd-verify-work`
 **UI hint**: no
 
 ### Phase 34: Training-Loop & Batch-Construction Contracts
@@ -238,4 +238,4 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
 
 ---
-*Last updated: 2026-06-21 — Phases 30 (research package), 31 (resolution-doc readiness, READY-WITH-CAVEATS), and 32 (Evidence Framework, Issue Ledger & Conflict Adjudication) complete; Phase 33 (Curriculum-Stage Contracts) next. Roadmap created 2026-06-17 (`/gsd-new-project` roadmapper): 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29; 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6); Phase 31 readiness verification is operational (0 IDs). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*
+*Last updated: 2026-06-23 — Phases 30 (research package), 31 (resolution-doc readiness, READY-WITH-CAVEATS), 32 (Evidence Framework, Issue Ledger & Conflict Adjudication), and 33 (Curriculum-Stage Contracts) complete; Phase 34 (Training-Loop & Batch-Construction Contracts) next. Phase 33 Plans 33-01..33-04 complete; all AC-CURR-01..05 acceptance checks PASS (recorded in 33-VERIFICATION.md); five Phase-33-owned ledger rows closed VERIFIED. Roadmap created 2026-06-17 (`/gsd-new-project` roadmapper): 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29; 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6); Phase 31 readiness verification is operational (0 IDs). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*
