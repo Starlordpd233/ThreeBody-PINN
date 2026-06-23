@@ -1799,45 +1799,80 @@ creates a trust region.
 
 ## Stage Transition Criteria
 
-> **Author note:** Now, for this, we will need to look at how the first stage goes
-> when the actual process starts. All of this transition creteria is
-> theoretical now, and it will heavily depend on what the actual situation
-> is like. Because I only have a limited amount of training data, maybe
-> not even enough, I would not expect the network to perform
-> extraodinarily well. All I have to see is that the network has the
-> potential to do something similar to a 3-body integrator and that it has
-> the potential to become better with more training data and optimization.
-> Based on this, how should we handle the stage transition criteria
-> depending on the actual situations that might happen? Should we first
-> test train stage 0 and see how it goes and then go from there?
+> **Phase 33 contract: dual-path stage-transition state machine (CURR-03;
+> D-33-08, D-33-09; AC-CURR-03; grounded by the resolution doc §1.11 and
+> `evidence/d5-stage-transitions.md`).** Within each curriculum stage, the
+> training loop's stage-exit decision is an operational state machine with
+> three dispositions: **ADVANCE**, **RECOVER**, and **HALT/REVIEW**. There is
+> no automatic fallback-advancement path: a stage that cannot reach the
+> approved success gate either retries transient numerical failure via
+> **RECOVER** or blocks progression via **HALT/REVIEW** until the owner
+> explicitly authorizes degraded advancement. All numeric thresholds, epoch
+> tables, stagnation windows, retry limits, and percentile relaxations in
+> this section are **provisional pending FUT Stage-0 pilot calibration**
+> (SCOPE-14); the spec records the *form* of the success gate and the
+> state-machine contract, not calibrated values.
 
-Advance to the next stage only when all four criteria are met on the
-validation set (hold-out 10-20% of cumulative data per stage).
+**ADVANCE — the only path to the next stage.** ADVANCE is permitted only when
+the approved success gate passes on the held-out validation set (hold-out
+10-20% of cumulative data per stage). The success gate is the conjunction of
+the four criteria below: training-loss plateau, validation-loss stability, the
+stage-dependent physics-residual threshold, and the energy-conservation check.
+The issue-doc "fallback advancement" framing that treats `MAX_EPOCHS`,
+stagnation, or NaN/Inf as alternate *advancement* triggers is **rejected**: it
+silently relaxes the success criterion. Those conditions instead route to
+**HALT/REVIEW** or **RECOVER** below.
 
-### 1. Training Loss Plateau
+### 1. Training-Loss Plateau (ADVANCE criterion 1 of 4)
 
 Relative change in smoothed total loss below threshold:
 $$\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{plateau}}$$
 where
 $\mathcal{L}_{\text{smooth}}(i) = \beta \cdot \mathcal{L}_{\text{smooth}}(i-1) + (1-\beta) \cdot \mathcal{L}_{\text{train,total}}(i)$,
 $\beta = 0.98$, patience = 200, $\epsilon_{\text{plateau}} = 10^{-5}$.
-Initialize $\mathcal{L}_{\text{smooth}}(0)$ as the first computed loss.
+Initialize $\mathcal{L}_{\text{smooth}}(0)$ as the first computed loss. These
+numeric values are provisional pending Stage-0 pilot calibration.
 
-### 2. Validation Loss Stability
+### 2. Validation-Loss Stability (ADVANCE criterion 2 of 4)
 
 Current validation loss $\leq$ minimum seen in stage:
 $$\mathcal{L}_{\text{val}}(i) \leq \min_{j \leq i} \mathcal{L}_{\text{val}}(j)$$
 
-### 3. Physics Residual Threshold
+### 3. Physics-Residual Threshold (ADVANCE criterion 3 of 4, stage-dependent)
 
 Validation physics loss below threshold:
 $$\mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilon_{\text{phys}} = 10^{-4})$$
+The per-stage `epsilon_phys` table that appears in the issue doc is
+**claimed-unverified** (D5-05; CLM-08/09) and is not transcribed as locked;
+the threshold value remains provisional pending Stage-0 pilot calibration.
 
-### 4. Energy Conservation Check
+### 4. Energy-Conservation Check (ADVANCE criterion 4 of 4)
 
 Average relative energy drift below threshold, using the persisted
-PHYS-04/D-20 (GAP-19-01) energy denominator floor `epsilon_H = 1e-4 * S_H`:
+PHYS-04/D-20 (GAP-19-01) energy denominator floor `epsilon_H = 1e-4 * S_H`
+(unchanged by Phase 33):
 $$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)| + \epsilon_H} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})$$
+
+**RECOVER — transient numerical failure, not a progression path.** If training
+produces NaN or Inf gradients (typically during close-encounter stages), the
+loop rolls back to the last well-formed checkpoint and retries with a bounded
+retry budget. RECOVER does not advance the curriculum; it restores a
+numerically valid state from which ADVANCE can be re-evaluated. Retry limits
+are provisional pending Stage-0 pilot calibration. If the retry budget is
+exhausted without restoring a valid state, the stage transitions to
+**HALT/REVIEW**, not to ADVANCE.
+
+**HALT/REVIEW — blocked progression, owner authorization required for any
+degraded advancement.** If a stage reaches its per-stage max-epoch budget
+without satisfying the ADVANCE success gate, or if validation loss stagnates
+above the ADVANCE threshold for the stagnation window, the loop halts and
+surfaces the stage for owner review. No automatic degraded advancement is
+authorized: advancing the curriculum past a failed success gate requires an
+explicit owner decision (logged in the gap register with the justification
+and the relaxation applied). The per-stage `MAX_EPOCHS` table, the stagnation
+window, and the percentile-10 relaxation that appear in the issue doc are
+**claimed-unverified** (D5-05; CLM-08/09) and are not transcribed as locked
+thresholds; they remain provisional pending Stage-0 pilot calibration.
 
 ## Consolidated Hyperparameter Schedule
 
