@@ -144,7 +144,7 @@ Commits:
 
 - `0113f86` plan(33): capture phase 33 baseline and evidence workspace
 - `699b849` plan(33): author curr-01 and curr-02 evidence packets
-- `f2c8a9b` plan(33): author curr-03/curr-04 packets and link phase 32 ledger (this commit)
+- `9171bf0` plan(33): author curr-03/curr-04 packets and link phase 32 ledger (this commit)
 
 No framework spec, frozen/read-only report, live `pinn/` code, generated data,
 package manifest, or UI artifact was modified by Plan 33-01. The dirty-doc set
