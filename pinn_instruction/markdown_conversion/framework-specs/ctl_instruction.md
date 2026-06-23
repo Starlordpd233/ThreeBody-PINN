@@ -67,7 +67,9 @@ metrics:
   binding). Values near zero indicate marginally bound or unbound
   systems which tend to be more chaotic. (Bound systems satisfy $E<0$;
   as a guideline, "Stage 0" easiest cases have $E<-0.5$ in normalized
-  units.)
+  units; the full Stage 0..6 inventory with per-stage definitions and
+  per-stage criteria is given in §2.3 "Multi-Stage Data Stratification
+  by Difficulty".)
 
 - **Total Angular Momentum Magnitude ($L$) and $L/L_{\max}$:** $L$ is
   the magnitude of the total angular momentum vector. We often normalize
@@ -189,7 +191,7 @@ as follows:
 - **Stage 3: Moderately Chaotic (Low-Fidelity)** Data source:
   low-fidelity quasi-random simulations (Set 1b).
 
-  - **Criteria:**
+  - **Criteria (per-stage gating):**
 
     - $E \leq E^{\mathrm{LF}}_{25\%}$ (top 25% most bound in LF dataset)
 
@@ -208,7 +210,7 @@ as follows:
 
     - **Data Source:** Remaining low-fidelity simulations
 
-    - **Criteria:**
+    - **Criteria (per-stage gating):**
 
       - $\tau_L > 5$ (Lyapunov time $>$ 5 code units)
 
@@ -219,7 +221,7 @@ as follows:
 
     - **Data Source:** Remaining low-fidelity simulations
 
-    - **Criteria:**
+    - **Criteria (per-stage gating):**
 
       - $2 < \tau_L \leq 5$
 
@@ -229,7 +231,7 @@ as follows:
 - **Stage 5: High-Resolution Chaotic Orbits** Data source:
   High-resolution chaotic simulations (Set 2b).
 
-  - **Criteria:** Same as Stage 4
+  - **Criteria (per-stage gating):** Same as Stage 4
 
   - **Description:** High-temporal-resolution trajectories of chaotic
     systems. Focuses on resolving close encounters.
@@ -1126,6 +1128,41 @@ final network IC slots under the Phase 17 input contract.
     the characteristic circular‐orbit scale at energy $E$. All other
     historical variants are deprecated.
 
+    > **Phase 33 contract: $L_{\max}$ characteristic scale + raw $L_{\mathrm{norm}}$
+    > storage + degenerate-$L_{\max}$ guard (CURR-02 D-33-04, CURR-04 D-33-10 /
+    > D-33-11; AC-CURR-02-LMAX, AC-CURR-04; grounded by GAP-33-02 and GAP-33-03,
+    > resolution doc §1.6 / §1.17).**
+    >
+    > - $L_{\max} = M_{\mathrm{tot}} \, r_{\mathrm{char}} \, v_{\mathrm{char}}$ is the
+    >   **characteristic angular-momentum scale**, **not a proven global maximum**
+    >   (LMAX-02). For high-eccentricity or hierarchical configurations $L$ can
+    >   transiently exceed this scale, so $L_{\mathrm{norm}} = L / L_{\max}$ can
+    >   legitimately overshoot 1. The "proven maximum" framing in the issue doc is
+    >   rejected.
+    > - **Raw un-clipped $L_{\mathrm{norm}}$ storage** (D-33-10):
+    >   $L_{\mathrm{norm}}$ is **staging / diagnostic metadata**, **not** an
+    >   `IC13` network slot (see Phase 17 contract; SCOPE-12). It is stored **raw
+    >   and un-clipped** so downstream stage-gating, replay analysis, and
+    >   acceptance probes retain the true overshoot magnitude. The `np.clip`
+    >   storage value proposed in the issue doc is NOT the locked contract.
+    > - **Mandatory nonfinite / near-degenerate $L_{\max}$ guard** (D-33-10):
+    >   when $L_{\max}$ is **nonfinite** or **near-degenerate** (e.g. near-zero
+    >   $|E|$ or near-zero $r_{\mathrm{char}}$ for a near-collision configuration),
+    >   the recorded $L_{\mathrm{norm}}$ MUST carry a **diagnostic flag** rather
+    >   than being silently clamped or stored as `inf` / `nan`. Stage 6
+    >   (`$s_{\min} < 0.5$ OR $|E| < 0.01$`) is precisely the regime where $|E|$
+    >   is small, so a global clamp would erase exactly the diagnostic signal
+    >   that distinguishes genuine near-collision trajectories from formula
+    >   failure.
+    > - **No global clamp is authorized** (D-33-11; M6-01 rejected — the original
+    >   "clamp before IC mapping" rationale is rejected because $L_{\mathrm{norm}}$
+    >   is metadata, not an `IC13` slot). The `np.clip(L_norm, 0, 1)` **stage-gate
+    >   is NOT locked**; the clipped-gate-vs-raw question (raw-only vs
+    >   raw-plus-derived-clipped vs global-clipped) is **owner-pending** admitted-set
+    >   evidence (GAP-33-03; M6-02 `surface_to_user`, M6-03 `defer`, DGR-07).
+    >   Raw-only is the locked default; the other two options remain available
+    >   should later admitted-set evidence support a bounded gate.
+
     ```python
     def compute_L_norm(m, r_prime, v_prime, E, eps=1e-10):
         L_vec = np.sum([m[i] * np.cross(r_prime[i], v_prime[i]) for i in range(3)], axis=0)
@@ -1136,6 +1173,12 @@ final network IC slots under the Phase 17 input contract.
         v_char = np.sqrt(2 * np.abs(E) / M_total + eps)
         L_max = M_total * r_char * v_char
         return L / (L_max + eps)
+        # Phase 33 (CURR-04): raw un-clipped storage; no global clamp authorized.
+        # Callers MUST attach a diagnostic flag when L_max is nonfinite or
+        # near-degenerate (e.g. |E| or r_char below a numerical floor); the
+        # np.clip(L_norm, 0, 1) stage-gate is NOT locked (and is therefore
+        # not locked as a normative gate; owner-pending admitted-set
+        # evidence, GAP-33-03).
     ```
 
 3.  **Normalized moment of inertia $I_{\mathrm{norm,raw}}$.** Let $I(\mathbf r')$ be the inertia tensor about
@@ -1232,6 +1275,42 @@ final network IC slots under the Phase 17 input contract.
     6.  *Lyapunov Time:* The Lyapunov time is then calculated as
         $\tau_L = 1/\lambda_{\max}$. If $\lambda_{\max} \le 0$, we
         consider the system to be regular and set $\tau_L = \infty$.
+
+    > **Phase 33 contract: $\tau_L$ Rosenstein-style revisable baseline, owner-pending
+    > final estimator, and `IC13` exclusion (CURR-02 D-33-06 / D-33-07; AC-CURR-02-LMAX,
+    > AC-CURR-02-M7; grounded by GAP-33-02 and resolution doc §1.7 / §1.17).**
+    >
+    > - **$\tau_L$ is staging / evaluation metadata outside `IC13`** (D-33-06; M7
+    >   accepted, §1.7). $\tau_L$ is deliberately excluded from the locked
+    >   Jacobi-state input `IC13` by design: it is a trajectory-derived dynamical
+    >   property (the inverse of the largest Lyapunov exponent of the orbit),
+    >   not an IC invariant, and including it in `IC13` would create a circular
+    >   dependency (the network input would depend on a quantity derived from the
+    >   orbit the network is trained to predict). $\tau_L$ is used only for stage
+    >   assignment (Stage 4a $\tau_L > 5$, Stage 4b $2 < \tau_L \le 5$) and model
+    >   evaluation (predictability-horizon analysis); no `IC13` slot holds $\tau_L$.
+    > - The current **Rosenstein-style** trajectory estimator above is retained
+    >   as a **revisable baseline** (D-33-07). The final $\tau_L$ **estimator**
+    >   (Rosenstein vs shadow / Benettin vs other), the **time-unit convention**
+    >   (raw $t$ vs scaled $u = t/T$), **fit window**, **perturbation size**,
+    >   **uncertainty handling**, and the **final stage thresholds** are all
+    >   **owner-pending** before any threshold lock (GAP-33-02; TAUL-01
+    >   `surface_to_user`, TAUL-03 `defer`).
+    > - The issue-doc **shadow-trajectory** `compute_tau_L` method is **NOT
+    >   normatively adopted** (its force denominator $\lVert dr \rVert^3 +
+    >   \epsilon_{\mathrm{soft}}$ is not matched-Plummer, inconsistent with the
+    >   v1.5-locked PHYS-03 training softening; TAUL-02 rejected). The
+    >   unspecified **PCA+Rosenstein shortcut** is **NOT adopted** (TAUL-05
+    >   rejected). Any `epsilon_pert = 1e-8` / `epsilon_soft = 1e-10` referenced
+    >   in the issue doc are **shadow-method parameters only**, distinct from the
+    >   training-time softening $\varepsilon_{\mathrm{train}} = 10^{-5}$.
+    >
+    > **Canonical sentence (AC-CURR-02-M7):** $\tau_L$ is staging/evaluation
+    > metadata outside `IC13` by design — **tau_L is staging metadata, not a
+    > network input**; it lives **outside IC13** and is consumed only by stage
+    > assignment and model evaluation. The active global scale remains the
+    > v1.5-locked raw-mass **D ~= 4.6416** (§2.5; Phase 32 `D = 6.694` packet;
+    > `D = 6.694` is rejected provenance, not the active scale).
 
     ```python
     import numpy as np
