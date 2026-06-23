@@ -71,7 +71,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 - [x] **Phase 32: Evidence Framework, Issue Ledger & Conflict Adjudication** — Stand up the adjudication machinery (evidence packets, verdict set, false-positive/before-after notes) and the re-verification ledger, then perform root-cause adjudication of the headline conflicts before any spec edit lands: D-04 (causal training mode A/B/C), D-06 (epsilon strategy), D-05 (s_min frame), the M14 dual gradient-clipping divergence, and the cross-milestone `D = 6.694` vs the v1.5-locked `D ≈ 4.6416`. (completed 2026-06-21)
 
-- [ ] **Phase 33: Curriculum-Stage Contracts** — Transcribe the adjudicated curriculum-stage contracts into `ctl_instruction.md`: data-driven adaptive stage assignment, `tau_L`/`L_max` formulas, dual-path stage-transition criteria, the Stage 0–6 inventory/gating (incl. the M6 `L_norm` clamp guard), and the s_min stage-gate frame (per the D-05 verdict).
+- [x] **Phase 33: Curriculum-Stage Contracts** — Transcribe the adjudicated curriculum-stage contracts into `ctl_instruction.md`: data-driven adaptive stage assignment, `tau_L`/`L_max` formulas, dual-path stage-transition criteria, the Stage 0–6 inventory/gating (incl. the M6 `L_norm` clamp guard), and the s_min stage-gate frame (per the D-05 verdict). (completed 2026-06-23)
 
 - [ ] **Phase 34: Training-Loop & Batch-Construction Contracts** — Transcribe the adjudicated training-loop contracts as normative spec contracts: replay/lookahead batch construction (B-07), two-independent-point-set separation (B-08), mixed time sampling, merged gradient clipping (M14), the ALM update + `μ_p` clamp, `dt_out`-aware collocation scaling (realizing v1.5 SCOPE-11), and the training-side use of SASD/IPR/PSC that v1.5 left provisional.
 
@@ -232,7 +232,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 30. Research Package Assembly | v1.6 | 5/5 | Complete | 2026-06-18 |
 | 31. Resolution Doc Readiness Verification | v1.6 | 1/1 | Complete | 2026-06-20 |
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete    | 2026-06-21 |
-| 33. Curriculum-Stage Contracts | v1.6 | 3/4 | Executing | - |
+| 33. Curriculum-Stage Contracts | v1.6 | 4/4 | Complete    | 2026-06-23 |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 0/0 | Not started | - |
 | 35. Loss & Energy-Weight Contracts | v1.6 | 0/0 | Not started | - |
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |

@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
-current_phase: 33
-current_phase_name: curriculum-stage-contracts
-status: phase_complete
+current_phase: 34
+current_phase_name: Training-Loop & Batch-Construction Contracts
+status: verifying
 stopped_at: Completed 33-04-PLAN.md (Phase 33 complete)
-last_updated: "2026-06-23T03:40:00.000Z"
+last_updated: "2026-06-23T03:54:14.050Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 33 Plan 33-04 complete (deterministic verification recorded in 33-VERIFICATION.md; all AC-CURR-01..05 PASS; five Phase-33-owned ledger rows closed VERIFIED; Phase 33 ready for gsd-verify-work)
+last_activity_desc: Phase 33 complete, transitioned to Phase 34
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 15
   completed_plans: 15
-  percent: 67
+  percent: 57
 ---
 
 # Project State
@@ -28,16 +28,16 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 
 ## Current Position
 
-Phase: 33 (curriculum-stage-contracts) — COMPLETE
-Plan: 4 of 4 (33-04 verification complete)
+Phase: 34 — Training-Loop & Batch-Construction Contracts
+Plan: Not started
 Status: Phase 33 complete (ready for gsd-verify-work)
-Last activity: 2026-06-23 — Plan 33-04 complete (deterministic Phase 33 verification recorded in 33-VERIFICATION.md: all AC-CURR-01..05 acceptance checks PASS against the transcribed ctl_instruction.md curriculum-stage contracts; five Phase-33-owned ledger rows in 32-ISSUE-LEDGER.md closed VERIFIED with the reconciled AC-ID convention AC-CURR-01 / AC-CURR-02-LMAX / AC-CURR-02-M7 / AC-CURR-03 / AC-CURR-04; protected-path guard empty (tracked + untracked); D-05/D-06 transition logs record Phase 33 GAP-32-02/03 consumption with Phase 35 loss-side work explicitly left open; one documented Wave 1-3 STATE.md tracking-write divergence on the combined dirty-doc hash surfaced for parent adjudication, protected-path invariant satisfied)
+Last activity: 2026-06-23 — Phase 33 complete, transitioned to Phase 34
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 69 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 73 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -84,6 +84,7 @@ Last activity: 2026-06-23 — Plan 33-04 complete (deterministic Phase 33 verifi
 | Phase 32 P03 | 10 min | 3 tasks | 6 files |
 | Phase 32 P04 | 7 min | 2 tasks | 4 files |
 | 32 | 4 | - | - |
+| 33 | 4 | - | - |
 
 ## Accumulated Context
 
