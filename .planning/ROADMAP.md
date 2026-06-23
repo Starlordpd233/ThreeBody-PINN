@@ -232,7 +232,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 30. Research Package Assembly | v1.6 | 5/5 | Complete | 2026-06-18 |
 | 31. Resolution Doc Readiness Verification | v1.6 | 1/1 | Complete | 2026-06-20 |
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete    | 2026-06-21 |
-| 33. Curriculum-Stage Contracts | v1.6 | 0/0 | Not started | - |
+| 33. Curriculum-Stage Contracts | v1.6 | 3/4 | Executing | - |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 0/0 | Not started | - |
 | 35. Loss & Energy-Weight Contracts | v1.6 | 0/0 | Not started | - |
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |

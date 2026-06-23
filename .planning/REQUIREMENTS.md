@@ -40,9 +40,9 @@ The issue doc (`pinn_instruction/issues/03-curriculum-and-training-loop.md`) is 
 
 - [x] **CURR-01**: Framework specs define the data-driven adaptive stage-assignment methodology contract (dataset EDA → PCA + K-means + quantile thresholds augmenting the static theoretical anchors; the per-stage population safeguard — its value (5% / >10% / adaptive) owner-pending the FUT admitted-set EDA per GAP-33-01, not locked here) per the issue-03 "Data-Driven Adaptive Stage Assignment" section. The actual EDA run over the dataset is FUT (SCOPE-15).
 - [x] **CURR-02**: Framework specs define the `tau_L` and `L_max` computation contracts — `L_max = M_total · r_char · v_char` (the characteristic angular-momentum scale, not a proven global maximum, per GAP-33-02); `tau_L = 1/λ_max` via the current Rosenstein-style revisable baseline estimator, with the shadow-trajectory `epsilon_pert = 1e-8` / `epsilon_soft = 1e-10` method and the fast PCA+Rosenstein batch approximation not normatively adopted, and the estimator, time units, and thresholds owner-pending per GAP-33-02 — with the D value reconciled against the v1.5-locked convention (EVID-15). M7 (`tau_L` excluded from the IC vector by design) is recorded.
-- [ ] **CURR-03**: Framework specs define the dual-path stage-transition criteria contract — strict Path A (training plateau, validation stability, stage-dependent physics-residual `ε_phys` and energy-drift `ε_energy`) and fallback Path B (max-epochs, stagnation, NaN/Inf rollback) — as a curriculum contract. Thresholds are marked **provisional pending the FUT Stage-0 pilot calibration** (D5).
+- [x] **CURR-03**: Framework specs define the dual-path stage-transition state machine — **ADVANCE** (only on the approved success gate: training plateau, validation stability, stage-dependent physics-residual `ε_phys` and energy-drift `ε_energy`), **RECOVER** (NaN/Inf rollback with bounded retry), and **HALT/REVIEW** (max-epoch or stagnation, with explicit owner authorization required for any degraded advancement) — as a curriculum contract. The issue-doc "fallback Path B advancement" framing is rejected; max-epoch/stagnation route to HALT/REVIEW and NaN/Inf route to RECOVER, not to advancement. Thresholds are marked **provisional pending the FUT Stage-0 pilot calibration** (D5-05 claimed-unverified; D-33-09). Transcribed in Plan 33-03; AC-CURR-03 verified by Plan 33-04.
 - [x] **CURR-04**: Framework specs define the Stage 0–6 inventory and gating contract (per-stage definitions, criteria, cumulative replay, Stage-6 catch-all, storing raw un-clipped `L_norm` as metadata plus the mandatory nonfinite / near-degenerate `L_max` guard — the M6 `np.clip(L_norm, 0, 1)` stage-gate is not locked and is owner-pending per GAP-33-03, and no global clamp is authorized) consistent with v1.5-verified dataset facts; stage trajectory counts are cited as v1.5-verified or marked "claimed" where not yet grounded.
-- [ ] **CURR-05**: Framework specs define the s_min frame for the curriculum **stage gate** — unsoftened geometric `s_min` for the Stage-6 collision gate (detect true close encounters) — per the D-05 adjudication; the loss-side softened `max(s_min, eps_soft)` is owned by LOSS, and the unsoftened value is always logged for diagnostics.
+- [x] **CURR-05**: Framework specs define the s_min frame for the curriculum **stage gate** — unsoftened geometric `s_min` for the Stage-6 collision gate (detect true close encounters, raw value logged for diagnostics) — per the D-05 adjudication (GAP-32-02 Option A); the issue-doc `max(s_min, eps_soft)` phrasing is rejected per PHYS-03, and loss-side matched-Plummer softening (`epsilon_train = 1e-5`) is owned by Phase 35 (LOSS), with dual-context epsilon (`epsilon_inv = 1e-10` offline / `epsilon_train = 1e-5` training; GAP-32-03 Option A) transcribed alongside. Transcribed in Plan 33-03; AC-CURR-05 verified by Plan 33-04.
 
 ### Training-Loop and Batch-Construction Contracts (spec-side; FUT-01/FUT-04 implement)
 
@@ -126,9 +126,9 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v1.6 requirement maps
 | EVID-15 | Phase 32 | Complete |
 | CURR-01 | Phase 33 | Complete |
 | CURR-02 | Phase 33 | Complete |
-| CURR-03 | Phase 33 | Pending |
+| CURR-03 | Phase 33 | Complete |
 | CURR-04 | Phase 33 | Complete |
-| CURR-05 | Phase 33 | Pending |
+| CURR-05 | Phase 33 | Complete |
 | LOOP-01 | Phase 34 | Pending |
 | LOOP-02 | Phase 34 | Pending |
 | LOOP-03 | Phase 34 | Pending |

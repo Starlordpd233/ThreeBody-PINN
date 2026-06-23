@@ -5,16 +5,16 @@ milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 33
 current_phase_name: curriculum-stage-contracts
 status: executing
-stopped_at: Completed 33-02-PLAN.md
-last_updated: "2026-06-23T02:25:00.000Z"
+stopped_at: Completed 33-03-PLAN.md
+last_updated: "2026-06-23T02:55:00.000Z"
 last_activity: 2026-06-23
-last_activity_desc: Phase 33 Plan 33-02 complete (CURR-01/02/04 framework-spec contracts transcribed into ctl_instruction.md)
+last_activity_desc: Phase 33 Plan 33-03 complete (CURR-03 ADVANCE/RECOVER/HALT-REVIEW state machine + CURR-05 unsoftened geometric s_min Stage-6 gate / dual-context epsilon transcribed into ctl_instruction.md)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 15
-  completed_plans: 13
-  percent: 53
+  completed_plans: 14
+  percent: 60
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 ## Current Position
 
 Phase: 33 (curriculum-stage-contracts) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4 (33-03 complete; 33-04 verification remains)
 Status: Executing Phase 33
-Last activity: 2026-06-23 — Plan 33-02 complete (CURR-01 adaptive stage-assignment, CURR-02 L_max/tau_L/M7, CURR-04 raw L_norm + degenerate-L_max guard contracts transcribed into ctl_instruction.md; all five packet-grounded contracts grounded by GAP-33-01/02/03 RESOLVED-WITH-INSTRUCTION 2026-06-22)
+Last activity: 2026-06-23 — Plan 33-03 complete (CURR-03 ADVANCE/RECOVER/HALT-REVIEW dual-path state machine transcribed into the Stage Transition Criteria section, reconciling the stale Author-note blockquote out and folding the four advance criteria into the ADVANCE success gate; CURR-05 unsoftened geometric s_min Stage-6 collision gate + dual-context epsilon (epsilon_inv = 1e-10 / epsilon_train = 1e-5) + Phase 35 matched-Plummer loss-side handoff transcribed next to the Stage-6 catch-all inventory; grounded by resolution doc §1.11, evidence/d5-stage-transitions.md, and GAP-32-02/03 owner decisions; all numeric thresholds provisional pending FUT Stage-0 pilot calibration)
 
 ## Performance Metrics
 
@@ -214,9 +214,9 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-21T09:52:48.857Z
-Stopped at: Completed 32-04-PLAN.md
-Next action: Plan and execute Phase 33 Curriculum-Stage Contracts using the Phase 32 verified evidence packets and issue ledger.
+Last session: 2026-06-23T02:55:00.000Z
+Stopped at: Completed 33-03-PLAN.md
+Next action: Execute Phase 33 Plan 33-04 (verification) to run the AC-CURR-01..05 acceptance checks against the transcribed ctl_instruction.md contracts and close Phase 33.
 
 ## Operator Next Steps
 
