@@ -280,6 +280,36 @@ way to rank problem instances by difficulty.
 > and the nonfinite / near-degenerate `L_max` guard contract that underpins
 > Stage-6 catch-all diagnostics.
 
+> **Phase 33 contract: Stage-6 curriculum `s_min` gate and dual-context
+> epsilon (CURR-05; D-33-13, D-33-14, D-33-15; AC-CURR-05; grounded by
+> Phase 32 `GAP-32-02` / `GAP-32-03` owner decisions and the `D-05` /
+> `D-06` evidence packets).** The Stage-6 curriculum collision gate uses
+> **unsoftened geometric s_min** (the raw `s_min` from Step 3 item 1)
+> computed from the **true pairwise
+> separations** $\min_{i<j} \lVert \mathbf r'_i - \mathbf r'_j \rVert$ (Step 3
+> item 1). The curriculum gate does **not** apply any Plummer, additive, or
+> epsilon-floored softening to `s_min`; the gate value is the raw geometric
+> minimum separation, and that raw value is logged for diagnostics. The
+> issue-doc `max(s_min, epsilon)` phrasing is **rejected** per PHYS-03
+> (additive `+ epsilon` on the distance norm is the PHYS-03 anti-pattern; see
+> Step 3 item 1 anti-pattern block); it is not transcribed as a curriculum
+> gate. **Loss-side matched-Plummer softening belongs to Phase 35**, not the
+> curriculum gate: the training-time residual/energy
+> `epsilon_train = 1e-5` matched-Plummer contract is owned by the Phase 35
+> loss contracts and is *not* a curriculum-stage-gate parameter; Phase 33
+> does not define loss contracts. **Dual-context epsilon instruction** (where
+> static-invariant epsilon appears in curriculum metadata): offline
+> invariants retain `epsilon_inv = 1e-10` (consistent with v1.5-locked IPR
+> GAP-28-02 and Step 3 item 1); training retains `epsilon_train = 1e-5`. The
+> two contexts are distinct and are not conflated. **Cross-phase handoffs:
+> Phase 34** owns replay / lookahead batching, batch construction, ALM, and
+> training-side metric contracts; **Phase 35** owns loss-side softened
+> `s_min`, loss scaling, energy weighting, Huber delta, and causal training
+> mode. Phase 33 records these handoffs only and does not plan those
+> contracts. This implements GAP-32-02 (Option A) and GAP-32-03 (Option A =
+> issue-doc Option B); Option C (collapse static `epsilon_inv` to `1e-5`) is
+> rejected.
+
 > **Phase 33 contract: data-driven adaptive stage assignment (CURR-01;
 > D-33-01, D-33-02, D-33-03; AC-CURR-01; grounded by GAP-33-01 and resolution
 > doc §1.15).** Stage assignment is an **offline admitted-set methodology**
