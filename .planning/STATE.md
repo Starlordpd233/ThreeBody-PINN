@@ -4,9 +4,9 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 34
 current_phase_name: Training-Loop & Batch-Construction Contracts
-status: verifying
-stopped_at: context exhaustion at 75% (2026-06-23)
-last_updated: "2026-06-23T10:32:01.358Z"
+status: ready
+stopped_at: Phase 33 complete and verified (UAT 7/7, 0 issues); ready to plan Phase 34
+last_updated: "2026-06-23T14:12:21.287Z"
 last_activity: 2026-06-23
 last_activity_desc: Phase 33 complete, transitioned to Phase 34
 progress:
@@ -24,20 +24,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-20)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** Phase 33 — curriculum-stage-contracts
+**Current focus:** Phase 34 — training-loop-&-batch-construction-contracts
 
 ## Current Position
 
 Phase: 34 — Training-Loop & Batch-Construction Contracts
 Plan: Not started
-Status: Phase 33 complete (ready for gsd-verify-work)
+Status: Phase 33 complete and verified (UAT 7/7); ready to plan Phase 34
 Last activity: 2026-06-23 — Phase 33 complete, transitioned to Phase 34
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 73 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 77 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -215,9 +215,9 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-23T10:32:01.353Z
+Last session: 2026-06-23T14:12:21.283Z
 Stopped at: context exhaustion at 75% (2026-06-23)
-Next action: Run `$gsd-verify-work` for Phase 33 (UAT/verification pass), then proceed to Phase 34 (Training-Loop & Batch-Construction Contracts) planning. A documented Wave 1-3 STATE.md tracking-write divergence on the Plan 33-04 Task 1 combined dirty-doc hash verify check is surfaced for parent adjudication (protected-path invariant satisfied; see 33-VERIFICATION.md section 8 and 33-04-SUMMARY.md).
+Next action: Phase 33 is complete and verified (UAT 7/7, 0 issues; goal-backward 5/5; ROADMAP/REQUIREMENTS/STATE reconciled via `phase.complete 33`). Proceed to Phase 34 (Training-Loop & Batch-Construction Contracts): `/gsd-discuss-phase 34` then `/gsd-plan-phase 34`. Non-blocking follow-up: a future plan touching Phase 33 should re-baseline `33-BASELINE-CAPTURED` or migrate Plan 33-04 check 5 to a per-path assertion that excludes delegated tracking-write paths (the combined dirty-doc hash false positive documented in 33-VERIFICATION.md section 8).
 
 ## Operator Next Steps
 
