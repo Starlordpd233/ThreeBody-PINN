@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 33
-current_phase_name: Curriculum-Stage Contracts
-status: completed
-stopped_at: Completed 32-04-PLAN.md
-last_updated: "2026-06-21T10:06:39.336Z"
-last_activity: 2026-06-21
-last_activity_desc: Phase 32 complete, transitioned to Phase 33
+current_phase_name: curriculum-stage-contracts
+status: executing
+stopped_at: Completed 33-01-PLAN.md
+last_updated: "2026-06-23T01:59:00.000Z"
+last_activity: 2026-06-23
+last_activity_desc: Phase 33 Plan 33-01 complete (evidence baseline + packet/ledger linkage)
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
-  percent: 43
+  total_plans: 15
+  completed_plans: 12
+  percent: 47
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 
 ## Current Position
 
-Phase: 33 — Curriculum-Stage Contracts
-Plan: Not started
-Status: Phase 33 not started; Phase 32 complete
-Last activity: 2026-06-21 — Phase 32 complete, transitioned to Phase 33
+Phase: 33 (curriculum-stage-contracts) — EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 33
+Last activity: 2026-06-23 — Plan 33-01 complete (evidence baseline + packet/ledger linkage for CURR-01..04; no framework-spec edit; packet-before-edit prerequisite satisfied for all five Phase 33-owned ledger rows)
 
 ## Performance Metrics
 

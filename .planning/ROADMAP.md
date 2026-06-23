@@ -173,7 +173,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
   4. The Stage 0–6 inventory and gating contract is defined (per-stage definitions, criteria, cumulative replay, Stage-6 catch-all, storing raw un-clipped `L_norm` as metadata plus the mandatory nonfinite / near-degenerate `L_max` guard — the M6 `np.clip(L_norm, 0, 1)` stage-gate is not locked and is owner-pending per GAP-33-03, and no global clamp is authorized), consistent with v1.5-verified dataset facts; stage trajectory counts are cited as v1.5-verified or marked "claimed" where not yet grounded (CURR-04).
   5. The s_min frame for the curriculum **stage gate** is defined — unsoftened geometric `s_min` for the Stage-6 collision gate — per the D-05 adjudication; the loss-side softened `max(s_min, eps_soft)` is owned by LOSS (Phase 35), and the unsoftened value is always logged for diagnostics (CURR-05).
 
-**Plans**: TBD
+**Plans**: 33-01 complete (2026-06-23); 33-02/33-03/33-04 pending
 **UI hint**: no
 
 ### Phase 34: Training-Loop & Batch-Construction Contracts
