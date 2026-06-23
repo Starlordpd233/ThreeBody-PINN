@@ -259,6 +259,48 @@ in that each invariant correlates with aspects of the equations of
 motion's behavior (stability, boundedness, etc.), providing a principled
 way to rank problem instances by difficulty.
 
+> **Phase 33 contract: stage 0-6 inventory, per-stage definitions, per-stage
+> criteria, cumulative replay, and Stage-6 catch-all (D-33-12; AC-CURR-04).**
+> The list above is the full Stage 0-6 inventory and the per-stage definitions +
+> per-stage criteria contract. Stage 0 through Stage 6 are each named with their
+> data source, criteria, and description; this is the complete inventory and no
+> Stage-7+ is defined. **Cumulative replay** is the rule above: each subsequent
+> stage's training set includes all data from previous stages plus the new
+> subset. **Stage-6 catch-all** handling for near-collision / extreme cases
+> (`s_min < 0.5` OR `|E| < 0.01`) is the final stage of the inventory and
+> absorbs the near-collision tail across both fidelities (HF+LF). **Stage
+> trajectory counts:** v1.5 verification does not yet support numeric trajectory
+> counts per stage; stage counts cited without supporting verification evidence
+> are marked **claimed** (asserted by the spec but not verified against the
+> dataset) or **FUT** (pending the FUT admitted-set EDA run, SCOPE-15). Only
+> stage counts with explicit verification support may be marked **verified**.
+> See `ctl_instruction.md` Step 3 item 2 for the raw `L_norm` metadata storage
+> and the nonfinite / near-degenerate `L_max` guard contract that underpins
+> Stage-6 catch-all diagnostics.
+
+> **Phase 33 contract: data-driven adaptive stage assignment (CURR-01;
+> D-33-01, D-33-02, D-33-03; AC-CURR-01; grounded by GAP-33-01 and resolution
+> doc §1.15).** Stage assignment is an **offline admitted-set methodology**
+> that *augments* the static theoretical anchors above (energy $E$, virial $Q$,
+> $s_{\min}$, $\tau_L$, $L_{\mathrm{norm}}$); it does not replace the multi-fidelity
+> topology. The methodology is: admitted-set EDA -> robust transforms -> PCA ->
+> clustering -> quantile threshold boundary calibration, producing stable
+> integer stage labels keyed by `record_key` (never by positional index) so the
+> dataset<->framework binding does not drift at training time. This contract:
+>
+> - **preserves** the **Stage-2 hierarchical-gold** and **Stage-5
+>   quasi-random-gold** refinement roles defined above (`stage_strat_revision.md`
+>   Table 4 is NOT adopted wholesale; ADAPT-03 rejected; DGR-15);
+> - **does NOT lock** any per-stage population safeguard value (5% / `>10%` /
+>   adaptive) — the **population safeguard value is owner-pending** the FUT
+>   admitted-set EDA (SCOPE-15), matching GAP-33-01 and resolution doc §1.15
+>   (ADAPT-04 `surface_to_user`, ADAPT-07 `defer`); the roadmap / `CURR-01`
+>   `>10%` phrasing is superseded by this deferral and is not transcribed as a
+>   locked floor;
+> - **defers** the actual admitted-set EDA run, the cluster count, and the
+>   per-stage quantile cut points themselves to the owner after the FUT
+>   admitted-set EDA (SCOPE-15; CLM-02..07 remain unverified).
+
 # A Glimpse at the Data
 
 **Analysis of Data Formats:**
@@ -1475,6 +1517,19 @@ data-side invariant, independently of any Stage-5 fallback policy:
 > (not yet executed):** the 184 gold re-simulations are a data-generation
 > prerequisite for a complete gold Stage-5 stratum (OI-7b). See
 > `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
+
+> **Phase 33 contract: stage-label materialization (CURR-01; D-33-01,
+> D-33-02, D-33-03; AC-CURR-01; grounded by GAP-33-01).** The offline
+> admitted-set EDA -> robust transforms -> PCA -> clustering -> quantile
+> threshold methodology (see "Multi-Stage Data Stratification by Difficulty"
+> Phase 33 contract above) **augments** the static theoretical anchors and
+> materializes a stable integer stage label keyed by `record_key` for every
+> Step-1A-admitted trajectory. Stage labels are integers 0..6 from the inventory
+> defined in §2.3; the mapping is **owner-pending** the FUT admitted-set EDA
+> run (SCOPE-15). The **population safeguard value is owner-pending** the FUT
+> admitted-set EDA; no 5% / `>10%` / adaptive floor is locked in Phase 33. The
+> Stage-2 hierarchical-gold and Stage-5 quasi-random-gold refinement roles are
+> preserved.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
