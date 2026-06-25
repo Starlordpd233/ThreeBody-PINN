@@ -179,5 +179,33 @@ class RegisterSweepTests(PresenceTestBase):
         self.assertEqual(agent_presence.register(None), "")  # no env, no arg
 
 
+class FormattingTests(PresenceTestBase):
+    def test_roster_formatting(self):
+        import agent_presence
+        agent_presence.register("sid-A", pid=100)
+        os.environ["AGENT_CLAIM_WHO"] = agent_presence.who_key("sid-A")
+        agent_claims.claim("sim/a.py")
+        agent_claims.claim("pinn/c.py")
+        agent_presence.register("sid-B", pid=101)  # no claims
+        
+        # Test roster format output
+        out = agent_presence.format_roster()
+        self.assertIn("sid-A", out)
+        self.assertIn("sid-B", out)
+        self.assertIn("pinn/c.py, sim/a.py", out)
+
+    def test_task_summary_read_write(self):
+        import agent_presence
+        agent_presence.register("sid-1")
+        agent_presence.set_task_summary("sid-1", "investigate test failures")
+        
+        path = agent_presence.presence_file("sid-1")
+        entry = agent_claims.load(path)
+        self.assertEqual(entry["task_summary"], "investigate test failures")
+        
+        out = agent_presence.format_roster()
+        self.assertIn("investigate test failures", out)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -64,6 +64,8 @@ def expired(entry):
 def sweep():
     directory = claims_dir()
     for name in os.listdir(directory):
+        if name.startswith("presence-"):
+            continue
         full = os.path.join(directory, name)
         if name.endswith(".tmp") or expired(load(full)):
             try:

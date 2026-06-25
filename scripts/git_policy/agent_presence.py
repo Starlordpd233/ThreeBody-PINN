@@ -9,7 +9,8 @@ import time
 import agent_claims
 
 
-STALE_FLOOR_SEC = int(os.environ.get("AGENT_PRESENCE_STALE", "1200"))
+def get_stale_floor():
+    return int(os.environ.get("AGENT_PRESENCE_STALE", "1200"))
 
 
 def who_key(session_id):
@@ -84,7 +85,7 @@ def sweep_presence():
             continue
             
         last_heartbeat = entry.get("last_heartbeat", 0)
-        if now - last_heartbeat > STALE_FLOOR_SEC:
+        if now - last_heartbeat > get_stale_floor():
             # Reaping dead session
             session_id = entry.get("session_id")
             if session_id:
@@ -93,6 +94,50 @@ def sweep_presence():
                 os.remove(full)
             except OSError:
                 pass
+
+
+def set_task_summary(session_id, summary):
+    if not session_id:
+        return
+    path = presence_file(session_id)
+    entry = agent_claims.load(path)
+    if entry:
+        entry["task_summary"] = summary
+        entry["last_heartbeat"] = int(time.time())
+        _atomic_write(path, entry)
+
+
+def format_roster():
+    sweep_presence()
+    directory = agent_claims.claims_dir()
+    lines = []
+    
+    sessions = []
+    for name in os.listdir(directory):
+        if name.startswith("presence-") and name.endswith(".json"):
+            entry = agent_claims.load(os.path.join(directory, name))
+            if entry:
+                sessions.append(entry)
+                
+    sessions.sort(key=lambda x: x.get("start_time", 0))
+    
+    if not sessions:
+        return "No active agents."
+        
+    for idx, entry in enumerate(sessions):
+        sid = entry.get("session_id", "unknown")
+        pid = entry.get("pid")
+        task = entry.get("task_summary") or "(no active task)"
+        
+        claims = agent_claims.claims_for_who(who_key(sid))
+        claims_str = ", ".join(claims) if claims else "(no claims)"
+        
+        lines.append(f"Agent {idx+1} [sid:{sid[:8]}] (pid:{pid}):")
+        lines.append(f"  Task: {task}")
+        lines.append(f"  Claims: {claims_str}")
+        lines.append("")
+        
+    return "\n".join(lines).strip()
 
 
 def main(argv):
