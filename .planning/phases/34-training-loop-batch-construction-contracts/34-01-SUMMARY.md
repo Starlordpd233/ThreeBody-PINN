@@ -139,6 +139,14 @@ None - no external service configuration required.
 - Plans 34-02, 34-03, and 34-04 can now perform framework-spec edits for LOOP-01/02/03, LOOP-04/M14, LOOP-05/06, LOOP-07/08, and SI-PINN-003 with packet-before-edit prerequisites satisfied.
 - Plan 34-05 can use `ledger_post_34_01_sha256` to verify ledger freshness before final verification.
 
+## Self-Check: PASSED
+
+- [x] Created files exist: 34-BASELINE-CAPTURED, evidence/README.md, evidence/_TEMPLATE.md, evidence/b-07-replay-lookahead-batching.md, evidence/b-08-data-vs-collocation-points.md, evidence/m16-dt-out-collocation-scaling.md, evidence/alm-mu-p-clamp.md, 34-01-SUMMARY.md.
+- [x] Task commits found in git log: a99b753, d1a1c7f, a4086b6.
+- [x] Final metadata commit recorded: 9c751f8.
+- [x] Ledger post-link SHA-256 matches captured value.
+- [x] No unintended deletions; no framework spec, frozen/read-only file, or `pinn/` code modified.
+
 ---
 *Phase: 34-training-loop-batch-construction-contracts*
 *Completed: 2026-06-25*
