@@ -1785,17 +1785,40 @@ For batch size B (e.g., 256), reserve $\rho_{\text{lookahead}}$ (e.g.,
 
 ### Adaptive Median-Based Gradient Clipping
 
+> **Phase 34 contract: curriculum-aware C-schedule (LOOP-04; M14 modified/accept-resolution; AC-LOOP-04; grounded by the resolution doc §1.8 and `evidence/m14-gradient-clipping.md`).**
+
 Use adaptive global-norm clipping to handle gradient explosions from
-close encounters; threshold is $C$ times the moving median of recent
-norms.
+close encounters. The clipping **mechanism** is defined canonically in
+`pinn_architecture.md` §4.4 **Adaptive Gradient Clipping** (AC-LOOP-04):
+during Adam only, the global L2 norm is clipped to the
+$C_{\text{stage}} \cdot \text{median}$ value over a rolling window of
+recent global gradient norms. This section owns only the per-stage
+multiplier $C_{\text{stage}}$.
 
-**Curriculum-aware $C$ schedule:**
+**Curriculum-aware $C_{\text{stage}}$ schedule (locked):**
 
-| Curriculum stage | Data difficulty | C |
+| Curriculum stage | Data difficulty | $C_{\text{stage}}$ |
 |---|---|---:|
-| 0--1 | quasi-periodic orbits | 7--10 |
-| 2--3 | onset of mild chaos | 5 |
-| 4--6 | frequent close encounters | 3 |
+| 0-1 | quasi-periodic orbits | 7-10 |
+| 2-3 | onset of mild chaos | 5 |
+| 4-6 | frequent close encounters | 3 |
+
+The Stage 2/3 value $C_{\text{stage}} = 5$ (hence the fixed `5.0`
+multiplier in the pre-Phase-34 `pinn_architecture.md` pseudocode) is the
+instance that explains that pseudocode; it is also the natural fallback
+when no stage-specific value is selected.
+
+**Adam-only scope.** No gradient clipping during L-BFGS, as line-search
+creates a trust region.
+
+**Deferred → FUT execution constants.** The exact early-stage
+$C_{\text{stage}}$ within the Stage 0-1 range, the bootstrap median fallback
+used before the history window is populated, the lower floor (e.g.
+`1e-6`) on the median, and the gradient-history reset mechanics at stage
+boundaries are routed to Phase 34/FUT calibration. They are explicitly
+left open by the M14 packet owner-route and resolution-doc §1.8
+(GAP-08); this contract does not invent them and does not tag the
+early-stage value as locked.
 
 ### Termination Criterion
 
@@ -1907,12 +1930,15 @@ thresholds; they remain provisional pending Stage-0 pilot calibration.
 ## Consolidated Hyperparameter Schedule
 
 | Stage | Adam LR (Initial) | Clip `C` | Loss-weight schedule | L-BFGS Type |
-|---|---|---:|---|---|
-| 0-1 | $10^{-3} \times (0.7)^k$ | 7-10 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch |
-| 2-3 | $10^{-3} \times (0.7)^k$ | 5 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch / sL-BFGS |
-| 4-6 | $10^{-3} \times (0.7)^k$ | 3 | See PHYS-05 warmup schedule in `pinn_architecture.md` | sL-BFGS |
+|---|---|---|---|---|
+| 0-1 | $10^{-3} \times (0.7)^k$ | See AC-LOOP-04 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch |
+| 2-3 | $10^{-3} \times (0.7)^k$ | See AC-LOOP-04 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch / sL-BFGS |
+| 4-6 | $10^{-3} \times (0.7)^k$ | See AC-LOOP-04 | See PHYS-05 warmup schedule in `pinn_architecture.md` | sL-BFGS |
 
-*Stage-by-stage guide for key dynamic hyperparameters.*
+*Stage-by-stage guide for key dynamic hyperparameters. The canonical
+C-schedule values live only in the Adaptive Median-Based Gradient
+Clipping section above (AC-LOOP-04); this table points to them rather
+than duplicating them.*
 
 ## Implementation Notes
 
