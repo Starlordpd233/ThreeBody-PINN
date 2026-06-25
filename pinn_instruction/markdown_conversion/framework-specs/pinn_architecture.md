@@ -348,8 +348,9 @@ The time points $t_k$ are sampled from the discrete BRUTUS trajectory
 snapshots available in the training dataset, representing specific
 moments where high-precision numerical integration data is available.
 
-  **[Author Comment: This above batch construction is not consistent with the CTL instruction plan. Look into this.]**
-  *Note (PIPE-04): `points_per_trajectory=32` is a code default, not the spec contract. The operative data-loss sampling rule is `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` without replacement, defined in `ctl_instruction.md` Mini-Batch Construction. The data-side loader also exposes `sample_replay(n, max_stage)` and `sample_lookahead(n, stage)` for stage-aware trajectory selection (PIPE-08, `ctl_instruction.md` §2.6).*
+> **Phase 34 contract: batch-construction reconciliation (SI-PINN-003; ctl canonical; AC-LOOP-02; grounded by the resolution doc §1.5 claim matrix B07-04 and `ctl_instruction.md` Mini-Batch Construction).**
+>
+> *Note (PIPE-04): `points_per_trajectory=32` and `N_data = batch_size * points_per_trajectory` are code defaults/illustrations only, not the spec contract. The operative data-loss sampling rule is `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` without replacement, defined canonically in `ctl_instruction.md` Mini-Batch Construction. The data-side loader also exposes `sample_replay(n, max_stage)` and `sample_lookahead(n, stage)` for stage-aware trajectory selection (PIPE-08, `ctl_instruction.md` §2.6). A verifier confirms `pinn_architecture.md` agrees with the canonical ctl contract and carries no contradictory copy here.*
 
 **Loss Integration Note:**\
 The data term is unweighted in the default objective. Physics and
@@ -1024,14 +1025,14 @@ These notes are metadata for future reconciliation. They are not part of the fai
 - **Description:** 3 author comments from the LaTeX source (`\authcomment{}`) are preserved in the converted body as bold bracketed text (`**[...]**`). These are editorial notes from the original authors, not content discrepancies:
   1. "Need more detail on this dynamic scheduling for omega_0" (Section 2)
   2. "Need confirmation on this hidden layer's detail" (Section 2)
-  3. "Comment: This above batch construction is not consistent with the CTL instruction plan" (Section 3)
+  3. The batch-construction inconsistency comment (Section 3) — resolved under SI-PINN-003 by Phase 34; `pinn_architecture.md` §3.1 now points to the canonical `ctl_instruction.md` Mini-Batch Construction contract.
 - **Status:** Documented for future reconciliation — author should resolve these notes before training implementation
 
 ### SI-PINN-003: Batch construction inconsistency with CTL instruction plan
 
 - **Section:** Section 3 (physics_constrained_loss) — Data Batch Construction code block
-- **Description:** The author comment "This above batch construction is not consistent with the CTL instruction plan" flags a methodological inconsistency between the data sampling strategy described here and the CTL curriculum training plan. This should be investigated and resolved during training implementation.
-- **Status:** Documented for future reconciliation
+- **Status:** RESOLVED — reconciled by Phase 34; `ctl_instruction.md` Mini-Batch Construction is the canonical batch-construction contract (SI-PINN-003; AC-LOOP-01/02); `pinn_architecture.md` §3.1 now points to it via the PIPE-04 pointer and no longer asserts an inconsistency.
+- **Description:** The original author comment flagging a batch-construction inconsistency with the CTL curriculum training plan has been removed from §3.1 and reconciled by designating `ctl_instruction.md` as the single canonical home for batch construction.
 
 ---
 
