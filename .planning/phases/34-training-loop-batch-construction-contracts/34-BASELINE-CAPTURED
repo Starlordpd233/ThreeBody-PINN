@@ -52,3 +52,4 @@ finishes linking the Phase 32 ledger; it is the SHA-256 of
 `32-ISSUE-LEDGER.md` at the close of Plan 34-01 Task 3 and is the
 freshness reference for Plan 34-05.
 
+ledger_post_34_01_sha256=0b24619a7029277ab770336aca0c7c51e7356bea4cbc30a6ca583ef99eb0638f
