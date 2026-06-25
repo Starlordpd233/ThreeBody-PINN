@@ -1,0 +1,54 @@
+# Phase 34 Baseline Captured
+
+Captured before any Phase 34 evidence-packet write to enforce the
+packet-before-edit mandate, the protected-path guard, and the
+unrelated-dirty-doc preservation check. Updated by Phase 34 Plan 34-01
+Task 3 to append `ledger_post_34_01_sha256` after the Phase 32 ledger has
+been linked (Plan 34-05 freshness check consumes that field).
+
+## Git state at baseline
+
+git_branch=milestone/v1.6
+git_status_short_branch=## milestone/v1.6
+ M .planning/STATE.md
+?? .planning/phases/34-training-loop-batch-construction-contracts/34-REVIEWS-cycle1.md
+?? .planning/phases/34-training-loop-batch-construction-contracts/34-REVIEWS-cycle2.md
+?? .planning/phases/34-training-loop-batch-construction-contracts/34-REVIEWS.md
+
+## Resolution doc fingerprint
+
+resolution_doc_path=pinn_instruction/markdown_conversion/framework-revisions/research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md
+resolution_doc_sha256=4c5195b874d33a0ab73e51527b2569f729692b248d7fa9b22334be2e4135d353
+
+## Protected-path snapshots
+
+The `pinn/` working tree is captured as an empty status short, confirming
+the protected-path guard has nothing to preserve at baseline:
+
+pinn_status_short=
+
+## Unrelated dirty-doc guard (dynamic)
+
+Captured dynamically from `git diff --name-only` at baseline. Plan 34-01
+Task 1 and the closed-set assertion re-check this set without hardcoding
+any single filename (D-34-18).
+
+dirty_doc_path=.planning/STATE.md
+dirty_doc_sha256=0db058e47ed7c01d658de64be880e708f6248dd09cd5f078e6d5f802dc0b5956
+dirty_docs_sha256=0db058e47ed7c01d658de64be880e708f6248dd09cd5f078e6d5f802dc0b5956
+
+## Pre-edit spec fingerprints
+
+Captured before any Phase 34 framework-spec edit for the locked-convention
+regression guard and the LOOP-04 cross-file freshness check.
+
+ctl_pre_edit_sha256=281f4203fe11578f09dd79913d9d7e1aae6041445a21cf5333215a2c3342397d
+pinn_pre_edit_sha256=318f297a3b122e64a06d9b2c09f59e078ce06b7863e1a04637cb02e8020f62cd
+
+## Concurrency reference
+
+`ledger_post_34_01_sha256` is appended below after Plan 34-01 Task 3
+finishes linking the Phase 32 ledger; it is the SHA-256 of
+`32-ISSUE-LEDGER.md` at the close of Plan 34-01 Task 3 and is the
+freshness reference for Plan 34-05.
+
