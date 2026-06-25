@@ -681,6 +681,8 @@ SASD-weighted collocation sampling (M16), is **deferred to the doc-03 milestone*
 not specified here. Evidence packet:
 `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
 
+> **Phase 34 contract: SASD training-side collocation-weighting role (LOOP-08; provisional; grounded by VAL-02).** SASD is carried as a provisional signal for training-side collocation weighting. No weighting formula is invented here (same discipline as LOOP-06); the role is forward-referenced and recalibration is FUT (SCOPE-15), not done in Phase 34.
+
 **IPR — Interpolation Physics Residual (VAL-03; Q-C3).** For each trajectory a
 velocity-carrying cubic Hermite interpolant `CubicHermiteSpline(t, q, dydx=v)` is built from
 the snapshot positions `q` and the recorded file velocities `v`. `PchipInterpolator(t, q)` is
@@ -764,6 +766,8 @@ all-snapshot pooled value is confounded by both resolution mix and base/gold dup
 **not** a deliverable. Replay-governance and training-side use of PSC is **deferred to the doc-03
 milestone** via this forward-reference. Evidence packet:
 `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md`.
+
+> **Phase 34 contract: training-side IPR / PSC roles (LOOP-07; v1.5 carry-forward; provisional; grounded by VAL-03 / VAL-04).** For the training loop, `IPR_train` serves as the ALM-convergence / noise-floor signal, carrying the provisional `1e-3` threshold from the data-side IPR contract. PSC serves as a provisional signal for replay-buffer governance, carrying the provisional grid / normalization / SCR parameters. Both roles are recalibrated in FUT (SCOPE-15), not during Phase 34; no numeric probe or EDA is performed.
 
 ## Step 2: Unified Preprocessing Pipeline
 
@@ -1744,6 +1748,17 @@ gap if execution requires one.
 
 The previous pseudo-ALM formulation (`L_data + λ_p·L_phys + (μ_p/2)·L_phys² + λ_E(k)·L_energy`) is rejected because squaring a nonnegative MSE produces a quartic residual that does not represent a standard equality-constrained augmented Lagrangian. Optional ALM for scalar conservation constraints only is documented as a P2 ablation in the PHYS-05 ablation section of `pinn_architecture.md`.
 
+**Per-step ordering skeleton (Adam epoch).** The default training step follows this order, treating each loss term as an opaque input whose component definition, weight schedule (`λ_E`, `λ_L`, etc.), and Huber-δ calibration are owned by Phase 35. The placeholder `L_total` names the assembled scalar loss:
+
+1. **Forward pass** over the concatenated data-fidelity and collocation point sets.
+2. **Assemble** the total loss `L_total` (\mathcal{L}_{\text{total}}) from the named loss components using the current scheduled weights.
+3. **Backward pass** to compute gradients (`L_total.backward()`).
+4. **Adam-only median-based global gradient clip**, using the mechanism defined canonically in `pinn_architecture.md` §4.4 **Adaptive Gradient Clipping** (AC-LOOP-04); this section does not restate the formula.
+5. **`optimizer.step()`** to update network weights.
+6. **Optional scalar-ALM dual update**, applicable only to the optional scalar-conservation ALM ablation documented in `pinn_architecture.md` §4.2 (LOOP-05 deferred); the default training step has **no** dense-residual ALM update.
+
+During L-BFGS, no gradient clipping is applied and no dual variables are updated inside a line search.
+
 ## Phase 2a: Adam-driven Exploration
 
 The initial phase uses Adam for robust navigation of non-convex loss
@@ -1769,19 +1784,41 @@ At the beginning of a new stage $k$:
 
 ### Mini-Batch Construction with Lookahead Sampling
 
-For batch size B (e.g., 256), reserve $\rho_{\text{lookahead}}$ (e.g.,
-5%) for lookahead sampling to smooth stage transitions.
+> **Phase 34 contract: replay/lookahead batch construction (LOOP-01; provisional; AC-LOOP-01; grounded by the resolution doc §1.4 and `evidence/b-07-replay-lookahead-batching.md`).** This `ctl_instruction.md` section is the **canonical** batch-construction contract (SI-PINN-003); `pinn_architecture.md` points here rather than duplicating the rule.
 
-> **Per-trajectory data-loss point count.** `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))`, sampled **without replacement** from the trajectory's snapshot times. `n_pts_cap` defaults to 32 (the spec's example value; not evidence-based -- revisit with admitted-set snapshot distributions; exposed as a configuration knob). The 50/50 composition is realized as: `k_w = floor(n_pts/2)` acceleration-norm-weighted draws without replacement (Gumbel-top-k), then `n_pts - k_w` uniform draws without replacement from the remainder; all draws from a seeded generator. The loader exposes `n_snapshots(traj)` and `dt_out(traj)` as metadata (forward interface for the deferred M16 collocation-density question -- doc-03; not used here). **No `0.5 x n_snapshots` factor is imposed** (unevidenced; see Q-B1 resolution).
+For a 256-trajectory training batch at curriculum stage $k$:
+
+- **Replay set** `B_replay = 240` trajectories drawn from stages $\leq k$ ($B_{\text{replay}} = 240$).
+- **Look-ahead set** `B_lookahead = 16` trajectories drawn from stage $k+1$ ($B_{\text{lookahead}} = 16$), **gated by `has_stage(k+1)`**.
+- **Per-trajectory data-loss point count** `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))`, sampled **without replacement**; `n_pts_cap = 32`.
+
+All values are tagged **provisional** (B-07 `modified`: "provisional defaults, not verified optimums").
+
+> **Windowed-causal-mode compatibility note.** The batch-construction contract above is **compatible with** a windowed causal mode that excludes future-window trajectories, should the Phase-35 owner decision (D-04 / GAP-02) later select such a mode. This contract does **not** select or lock a causal mode; the causal-mode decision is deferred to Phase 35 (owner-pending) with a forward-reference.
+
+> **Batch edge cases — owner-pending (GAP-34-01).** The final-stage behavior when `has_stage(k+1)` is false, the behavior when the next-stage lookahead pool has fewer than 16 eligible trajectories, and the replacement / reservoir policy for the replay and lookahead sets are flagged by B-07 §1.4 as needing determinism, but the source gives no policy. These edge cases are recorded as `GAP-34-01` (OPEN) rather than filled with an invented default.
+
+> **Phase 34 contract: data versus collocation points (LOOP-02; provisional; AC-LOOP-02; grounded by the resolution doc §1.5 and `evidence/b-08-data-vs-collocation-points.md`).**
+
+The training batch consists of two logically independent point sets:
+
+1. **Data-fidelity points**: sampled from the discrete BRUTUS trajectory snapshots (the replay/lookahead trajectories above), used for the Huber data loss $\mathcal{L}_{\text{data}}$.
+2. **Collocation points**: continuous samples from $[0,T]$ for the physics residual $\mathcal{L}_{\text{phys}}^{\text{causal}}$ and the energy residual $\mathcal{L}_E$ (energy reuses the physics collocation set).
+
+A single concatenated forward pass over both point sets is permitted for implementation efficiency, but it does **not** merge the loss roles: data loss is evaluated only at snapshot times, and physics/energy losses are evaluated only at their respective collocation times. The budgets `8192` data points and `4096` collocation points are **provisional/example budgets** (B-08 `modified`); the actual data count follows the per-trajectory cap `min(n_pts_cap, n_snapshots(traj))`.
+
+> **Phase 34 contract: mixed time sampling (LOOP-03; data retained / collocation deferred; grounded by the resolution doc §§1.4–1.5 and the B-07/B-08 evidence packets).**
+
+- **Data-fidelity points — 50/50 retained:** The existing 50/50 split (uniform + acceleration-weighted, without replacement, Gumbel-top-k) is **retained** for data-fidelity points. For `n_pts(traj)` points, draw `k_w = floor(n_pts/2)` acceleration-norm-weighted samples, then `n_pts - k_w` uniform samples from the remainder.
+- **Collocation points — 50/50 deferred:** A mandatory 50/50 mixed continuous collocation sampler is **deferred** (B-08 / GAP-06); Phase 34 does not mandate it. The current uniform/adaptive collocation choices remain usable.
+
+> **Per-trajectory data-loss point count and snapshot metadata.** `n_pts_cap` defaults to 32 (the spec's example value; not evidence-based -- revisit with admitted-set snapshot distributions; exposed as a configuration knob). The 50/50 composition is realized as: `k_w = floor(n_pts/2)` acceleration-norm-weighted draws without replacement (Gumbel-top-k), then `n_pts - k_w` uniform draws without replacement from the remainder; all draws from a seeded generator. The loader exposes `n_snapshots(traj)` and `dt_out(traj)` as metadata (forward interface for the deferred M16 collocation-density question -- doc-03; not used here). **No `0.5 x n_snapshots` factor is imposed** (unevidenced; see Q-B1 resolution).
 >
 > Citation: locked M12 verdict in `evidence/m11-m12-severity.md` (Phase 25 EVID-10). Verified snapshot-count medians (DATA-06, CLM-10): 61 standard-base / 127 hierarchical-base / 1003 gold. These are population medians, not hard per-file guarantees.
 
-| Portion | Purpose | Symbol | Size |
-|---|---|---|---:|
-| Replay set | Prevent forgetting of material from stages $0 \ldots k$ (ensures curriculum replay) | $B_{\leq k}$ | 240 |
-| Look-ahead set | "Preview" data from the next stage $k+1$ | $B_{k+1}$ | 16 |
-
-*Mini-batch composition for batch size = 256.*
+> **Phase 34 contract: `dt_out`-aware collocation scaling (LOOP-06; deferred; AC-LOOP-06; grounded by the resolution doc §1.10 and `evidence/m16-dt-out-collocation-scaling.md`).**
+>
+> `dt_out`-aware collocation scaling is **deferred to FUT**. The loader keeps `dt_out(traj)` and `n_snapshots(traj)` exposed as metadata, and the present fixed/configurable collocation budget is retained. The audit direction `n_col \propto dt_base/dt_out` is recorded **only** as a deferred candidate direction — not as a locked or probe-able contract — and the inverse form `n_col \propto dt_out/dt_base` is explicitly **not adopted**. The v1.5 SCOPE-11/PIPE-08 forward-reference is **realized-as-deferred**.
 
 ### Adaptive Median-Based Gradient Clipping
 
