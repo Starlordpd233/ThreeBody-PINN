@@ -671,13 +671,24 @@ training contract and is documented separately as the P2 ablation below.
 
 ## 4.2 Optional ALM Ablation (P2)
 
+> **Phase 34 contract: ALM parameter update / `mu_p` clamp (LOOP-05; deferred; AC-LOOP-05; grounded by the resolution doc §1.18 and `evidence/alm-mu-p-clamp.md`).**
+
+Default: ALM is OFF. The default training loss is the penalty-term formulation in §3–§4 above; it has no `mu_p` and no dense-residual ALM update. Dense-residual ALM is rejected from the default loss.
+
+ALM remains an optional scalar-conservation add-on only. If a future optional scalar-conservation ALM ablation is fully specified (constraint normalization, penalty-update law, state reset/persistence, and update cadence), its dual-variable update may run under `torch.no_grad()`:
+
+- Moving-average variance / second-moment update for `lambda_p` and `mu_p` in RMSprop style.
+- Clamp `mu_p` to `[1e-4, 100]` after each update.
+
+These `lambda_p`/`mu_p` mechanics are **deferred** and **conditional**; they are **not adopted into the default training loop** and may not be used until the ablation specification closes GAP-19.
+
 As a P2 ablation, an augmented Lagrangian method may be applied to scalar conservation constraints only:
 
 - **Constraints:** $c_E = \mathrm{RMS}_n(\Delta H_n)$ (energy drift), $c_{L,\alpha} = \mathrm{RMS}_n((L'_{\theta,\alpha}(u_n) - L'_{0,\alpha}) / L_{scale})$ (angular momentum drift per component). (Author Comment: this syntax is not ideal since it invovles math equations/formula; it should properly use correct markdown render-friendly syntax)
 - **Never apply ALM to the dense ODE residual.**
 - **Dual-variable updates:** Only between Adam epochs or between deterministic refinement passes. Never update dual variables during L-BFGS or inside a line search.
 - **Logging:** Log constraint values before and after each dual-variable update.
-- **Default:** ALM is OFF. The default loss is the penalty-term formulation in §3-§4 above.
+- **Default: ALM is OFF.** The default loss is the penalty-term formulation in §3-§4 above.
 
 This P2 ablation is not part of the baseline training contract. It is documented for completeness and for future experimentation.
 
