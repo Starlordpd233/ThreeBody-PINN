@@ -145,6 +145,36 @@ def list_claims():
             print(f"{entry.get('who')}\t{entry.get('area')}\t{entry.get('why', '')}")
     return 0
 
+def claims_for_who(who):
+    """Return the sorted non-expired areas currently claimed by `who`."""
+    sweep()
+    areas = []
+    directory = claims_dir()
+    for name in os.listdir(directory):
+        entry = load(os.path.join(directory, name))
+        if entry is None or expired(entry):
+            continue
+        if entry.get("who") == who:
+            area = entry.get("area")
+            if area:
+                areas.append(area)
+    return sorted(areas)
+
+
+def release_by_who(who):
+    """Remove every claim held by `who`. Returns the count removed."""
+    directory = claims_dir()
+    removed = 0
+    for name in os.listdir(directory):
+        full = os.path.join(directory, name)
+        entry = load(full)
+        if entry is not None and entry.get("who") == who:
+            try:
+                os.remove(full)
+                removed += 1
+            except OSError:
+                pass
+    return removed
 
 def main(argv):
     if not argv:
