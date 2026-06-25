@@ -94,5 +94,90 @@ class ClaimsByWhoTests(PresenceTestBase):
         self.assertEqual(agent_claims.claims_for_who("session:B"), ["pinn/c.py"])
 
 
+class RegisterSweepTests(PresenceTestBase):
+    def _load(self, sid):
+        import agent_presence
+        return agent_claims.load(agent_presence.presence_file(sid))
+
+    def test_register_writes_schema_with_live_pid(self):
+        import agent_presence
+        agent_presence.register("sid-1", pid=os.getpid())
+        entry = self._load("sid-1")
+        self.assertEqual(entry["session_id"], "sid-1")
+        self.assertEqual(entry["pid"], os.getpid())
+        self.assertIsNone(entry["task_summary"])
+        self.assertIn("start_time", entry)
+        self.assertIn("last_heartbeat", entry)
+
+    def test_register_is_idempotent_and_preserves_summary(self):
+        import agent_presence
+        agent_presence.register("sid-1", pid=os.getpid())
+        path = agent_presence.presence_file("sid-1")
+        entry = agent_claims.load(path)
+        entry["task_summary"] = "do the thing"
+        entry["start_time"] = 111
+        agent_presence._atomic_write(path, entry)
+        agent_presence.register("sid-1", pid=os.getpid())  # re-register (resume)
+        again = self._load("sid-1")
+        self.assertEqual(again["task_summary"], "do the thing")
+        self.assertEqual(again["start_time"], 111)
+
+    def test_sweep_keeps_live_pid_even_when_heartbeat_old(self):
+        import agent_presence
+        os.environ["AGENT_PRESENCE_STALE"] = "0"  # floor would reap if applied
+        agent_presence.register("sid-live", pid=os.getpid())
+        path = agent_presence.presence_file("sid-live")
+        entry = agent_claims.load(path)
+        entry["last_heartbeat"] = 0  # ancient
+        agent_presence._atomic_write(path, entry)
+        agent_presence.sweep_presence()
+        self.assertIsNotNone(self._load("sid-live"))  # live pid => kept
+
+    def test_sweep_reaps_dead_pid_past_floor_and_releases_claims(self):
+        import agent_presence
+        os.environ["AGENT_PRESENCE_STALE"] = "0"  # collapse the floor
+        dead = subprocess.Popen([sys.executable, "-c", "pass"])
+        dead.wait()  # pid now dead
+        os.environ["AGENT_CLAIM_WHO"] = agent_presence.who_key("sid-dead")
+        agent_claims.claim("sim/owned.py")
+        os.environ.pop("AGENT_CLAIM_WHO", None)
+        agent_presence.register("sid-dead", pid=dead.pid)
+        path = agent_presence.presence_file("sid-dead")
+        entry = agent_claims.load(path)
+        entry["last_heartbeat"] = 0  # ancient -> past the (zero) floor
+        agent_presence._atomic_write(path, entry)
+        agent_presence.sweep_presence()
+        self.assertIsNone(self._load("sid-dead"))                     # reaped
+        self.assertEqual(agent_claims.claims_for_who(
+            agent_presence.who_key("sid-dead")), [])                  # claims released
+
+    def test_sweep_keeps_dead_pid_within_floor(self):
+        # A transient SessionStart shell pid dies immediately; an actively
+        # heartbeating session must survive (untrusted pid -> floor, not reap).
+        import agent_presence
+        dead = subprocess.Popen([sys.executable, "-c", "pass"])
+        dead.wait()
+        agent_presence.register("sid-untrusted", pid=dead.pid)  # dead nonzero pid
+        # last_heartbeat is fresh (register set it); default 20-min floor applies
+        agent_presence.sweep_presence()
+        self.assertIsNotNone(self._load("sid-untrusted"))  # kept by the floor grace
+
+    def test_sweep_reaps_pidless_entry_past_floor(self):
+        import agent_presence
+        os.environ["AGENT_PRESENCE_STALE"] = "0"
+        agent_presence.register("sid-x", pid=os.getpid())
+        path = agent_presence.presence_file("sid-x")
+        entry = agent_claims.load(path)
+        entry["pid"] = None          # untrusted/absent pid
+        entry["last_heartbeat"] = 0  # past the (zero) floor
+        agent_presence._atomic_write(path, entry)
+        agent_presence.sweep_presence()
+        self.assertIsNone(self._load("sid-x"))
+
+    def test_register_without_identity_is_silent(self):
+        import agent_presence
+        self.assertEqual(agent_presence.register(None), "")  # no env, no arg
+
+
 if __name__ == "__main__":
     unittest.main()
