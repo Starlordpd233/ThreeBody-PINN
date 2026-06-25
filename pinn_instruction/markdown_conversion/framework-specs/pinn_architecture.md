@@ -699,13 +699,29 @@ two-phase optimization strategy is employed.
 
 ## 4.4 Adaptive Gradient Clipping
 
+> **Phase 34 contract: adaptive median-based gradient clipping (LOOP-04; M14 modified/accept-resolution; AC-LOOP-04; grounded by the resolution doc §1.8 and `evidence/m14-gradient-clipping.md`).**
+
 A significant challenge arises from the inverse-square distance terms in
 the loss function, which can explode during simulated close encounters.
 To prevent a single event from destabilizing the optimizer, adaptive
 gradient clipping is essential. A robust strategy is to clip the global
 L2 norm of the gradients relative to their recent typical magnitude.
 
-``` {.python language="Python" caption="Listing 6: Adaptive Gradient Clipping Logic"}
+The merged clipping mechanism is **locked**: during Adam epochs only,
+the clip value is the product of the curriculum-aware stage multiplier
+$C_{\text{stage}}$ and the median of recent global gradient norms,
+computed over a rolling window of recent global gradient norms. The
+per-stage multiplier $C_{\text{stage}}$ is defined canonically in
+`ctl_instruction.md` under **Adaptive Median-Based Gradient Clipping**
+(AC-LOOP-04); this section owns the mechanism, not the schedule values.
+The fixed multiplier `5.0` that appeared in the pre-Phase-34
+`pinn_architecture.md` pseudocode is the Stage 2/3 instance
+($C_{\text{stage}} = 5$) or a fallback, not an additional multiplier.
+
+**Adam-only scope.** No gradient clipping is applied during L-BFGS
+refinement; the line-search trust region already bounds the step.
+
+``` {.python language="Python" caption="Listing 6: Adaptive Gradient Clipping Logic (normative spec contract — not executable; FUT-01/FUT-04 implements)"}
 # Maintain a queue/list of the last 100 gradient norms
 grad_history = [] 
 
@@ -715,12 +731,21 @@ grad_history.append(total_norm)
 if len(grad_history) > 100:
     grad_history.pop(0)
 
-# Clip norm to 5x the median of recent norms
-clip_value = 5.0 * torch.median(torch.stack(grad_history))
+# Clip norm to C_stage times the median of recent norms
+clip_value = C_stage * torch.median(torch.stack(grad_history))
 torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
 
 # Then, call optimizer.step()
 ```
+
+**Deferred → FUT execution constants.** The exact early-stage value of
+$C_{\text{stage}}$ within the Stage 0-1 range, the bootstrap median fallback
+used before the history window is populated, the lower floor (e.g.
+`1e-6`) on the median, and the gradient-history reset mechanics at stage
+boundaries are routed to Phase 34/FUT calibration. They are explicitly
+left open by the M14 packet owner-route and resolution-doc §1.8
+(GAP-08); this contract does not invent them and does not tag the
+early-stage value as locked.
 
 # 5. Inference and Trajectory Generation
 
