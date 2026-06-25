@@ -46,12 +46,12 @@ The issue doc (`pinn_instruction/issues/03-curriculum-and-training-loop.md`) is 
 
 ### Training-Loop and Batch-Construction Contracts (spec-side; FUT-01/FUT-04 implement)
 
-- [ ] **LOOP-01**: Framework specs define the replay/lookahead batch-construction contract (`B_replay = 240` from `D_≤k` + `B_lookahead = 16` from `D_{k+1}`, with the `has_stage(k+1)` guard) per B-07 / audit Section 6 — as a DataLoader/training design contract; the structure is reconciled with the D-04 causal-mode verdict (a windowed mode excludes future-window trajectories). Implementation is FUT-01.
-- [ ] **LOOP-02**: Framework specs define the two-independent-point-set contract — data-fidelity points (8192 from Brutus snapshots, L1/MAE loss) kept separate from collocation points (4096 from `[0,T]`, physics + energy loss), even when they share trajectory IDs — per B-08.
-- [ ] **LOOP-03**: Framework specs define the mixed time-sampling contract (50% uniform + 50% acceleration-weighted) applied to **both** data-fidelity and collocation point sets, per audit Section 6.1 (P3-3).
+- [x] **LOOP-01**: Framework specs define the replay/lookahead batch-construction contract (`B_replay = 240` from `D_≤k` + `B_lookahead = 16` from `D_{k+1}`, with the `has_stage(k+1)` guard) per B-07 / audit Section 6 — as a DataLoader/training design contract; the structure is reconciled with the D-04 causal-mode verdict (a windowed mode excludes future-window trajectories). Implementation is FUT-01.
+- [x] **LOOP-02**: Framework specs define the two-independent-point-set contract — data-fidelity points (8192 from Brutus snapshots, L1/MAE loss) kept separate from collocation points (4096 from `[0,T]`, physics + energy loss), even when they share trajectory IDs — per B-08.
+- [x] **LOOP-03**: Framework specs define the mixed time-sampling contract (50% uniform + 50% acceleration-weighted) applied to **both** data-fidelity and collocation point sets, per audit Section 6.1 (P3-3).
 - [ ] **LOOP-04**: Framework specs define the merged gradient-clipping contract — `clip_value = C_stage · median(grad_norm_history)` with the per-stage `C_table` (stages 0–1: 8.5; 2–3: 5.0; 4–6: 3.0) and a rolling window — per M14.
-- [ ] **LOOP-05**: Framework specs define the ALM parameter-update contract — `λ_p`/`μ_p` RMSprop-style moving-average update executed under `torch.no_grad()`, with the `μ_p` clamp `[1e-4, 100]` — per the audit ALM specification and the MINOR clamping finding.
-- [ ] **LOOP-06**: Framework specs define the `dt_out`-aware collocation-scaling contract — `n_col ∝ dt_base / dt_out` (audit M16 line-163 verbatim direction; the inverse form is an explicit future methodology change, not transcribed) — **realizing the v1.5 SCOPE-11 / PIPE-08 forward-reference** that left collocation-scaling to the doc-03 milestone.
+- [x] **LOOP-05**: Framework specs define the ALM parameter-update contract — `λ_p`/`μ_p` RMSprop-style moving-average update executed under `torch.no_grad()`, with the `μ_p` clamp `[1e-4, 100]` — per the audit ALM specification and the MINOR clamping finding.
+- [x] **LOOP-06**: Framework specs define the `dt_out`-aware collocation-scaling contract — `n_col ∝ dt_base / dt_out` (audit M16 line-163 verbatim direction; the inverse form is an explicit future methodology change, not transcribed) — **realizing the v1.5 SCOPE-11 / PIPE-08 forward-reference** that left collocation-scaling to the doc-03 milestone.
 - [ ] **LOOP-07**: Framework specs define the training-side use of the v1.5 metrics left provisional — **IPR** as the ALM convergence / noise-floor (v1.5 VAL-03 forward-reference; the provisional `1e-3` threshold confirmed or recalibrated) and **PSC** for replay-buffer governance (v1.5 VAL-04 forward-reference; the provisional grid/normalization/SCR confirmed or recalibrated).
 - [ ] **LOOP-08**: Framework specs define the **SASD** training-side collocation-weighting use (v1.5 VAL-02 explicitly deferred "training-side collocation weighting" to the doc-03 milestone with a recorded forward-reference).
 
@@ -129,12 +129,12 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v1.6 requirement maps
 | CURR-03 | Phase 33 | Complete |
 | CURR-04 | Phase 33 | Complete |
 | CURR-05 | Phase 33 | Complete |
-| LOOP-01 | Phase 34 | Pending |
-| LOOP-02 | Phase 34 | Pending |
-| LOOP-03 | Phase 34 | Pending |
+| LOOP-01 | Phase 34 | Complete |
+| LOOP-02 | Phase 34 | Complete |
+| LOOP-03 | Phase 34 | Complete |
 | LOOP-04 | Phase 34 | Pending |
-| LOOP-05 | Phase 34 | Pending |
-| LOOP-06 | Phase 34 | Pending |
+| LOOP-05 | Phase 34 | Complete |
+| LOOP-06 | Phase 34 | Complete |
 | LOOP-07 | Phase 34 | Pending |
 | LOOP-08 | Phase 34 | Pending |
 | LOSS-01 | Phase 35 | Pending |

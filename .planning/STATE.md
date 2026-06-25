@@ -4,16 +4,17 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 34
 current_phase_name: Training-Loop & Batch-Construction Contracts
-status: ready
-stopped_at: Phase 33 complete and verified (UAT 7/7, 0 issues); ready to plan Phase 34
-last_updated: "2026-06-23T14:12:21.287Z"
+current_plan: 2
+status: executing
+stopped_at: Completed 34-01-PLAN.md
+last_updated: "2026-06-25T06:43:19.729Z"
 last_activity: 2026-06-23
 last_activity_desc: Phase 33 complete, transitioned to Phase 34
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 20
+  completed_plans: 16
   percent: 57
 ---
 
@@ -29,8 +30,9 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 ## Current Position
 
 Phase: 34 — Training-Loop & Batch-Construction Contracts
-Plan: Not started
-Status: Phase 33 complete and verified (UAT 7/7); ready to plan Phase 34
+Current Plan: 2
+Total Plans in Phase: 5
+Status: Ready to execute
 Last activity: 2026-06-23 — Phase 33 complete, transitioned to Phase 34
 
 ## Performance Metrics
@@ -85,6 +87,7 @@ Last activity: 2026-06-23 — Phase 33 complete, transitioned to Phase 34
 | Phase 32 P04 | 7 min | 2 tasks | 4 files |
 | 32 | 4 | - | - |
 | 33 | 4 | - | - |
+| Phase 34 P01 | 8min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -184,6 +187,13 @@ Recent decisions affecting current work:
 - [Phase 32]: Plan 32-04 closed Phase 32 structural verification; closeout remediation subsequently registered the known D-04/D-05/D-06 owner-route blockers as GAP-32-01/02/03 with `DEFERRED` status per user instruction. D-04, D-05, and D-06 remain defer-with-blocker owner-routed decisions; all final structural and closeout guards passed.
 - [Phase 32]: Plan 32-04 protected-path and baseline guards passed before closeout — Framework specs, frozen/read-only reports, final resolution doc, .planning/STATE.md, and pinn/ remained untouched during task verification; the unrelated dirty docs patch, gap-file state, untracked pinn state, and resolution-doc identity matched the Phase 32 baseline.
 - [Phase 32 closeout 2026-06-21]: Created `32-GAPS.md` and `.planning/milestones/v1.6-GAPS.md` for GAP-32-01/02/03; added the ledger `Owner Phase` legend without changing owner values; reconciled Phase 32 complete -> Phase 33 next state.
+- [Phase 34]: B-07 (LOOP-01): consume resolution-doc §1.4 modified verdict; keep 240/16 and n_pts_cap=32 as provisional defaults; route source-silent edge cases to 34-GAPS.md by Plan 34-03
+- [Phase 34]: B-08 (LOOP-02/03): consume resolution-doc §1.5 modified verdict; formalize two independent point sets; carry 8192/4096 as provisional; defer mandatory collocation 50/50
+- [Phase 34]: M16 (LOOP-06): consume resolution-doc §1.10 defer; record dt_out scaling as realized-as-deferred with no transcribed formula and no probe
+- [Phase 34]: ALM mu_p clamp (LOOP-05): consume resolution-doc §1.18 defer; reject dense-residual ALM from default loss; clamp conditional on optional scalar-conservation ablation
+- [Phase 34]: LOOP-04 reuses existing Phase 32 M14 packet; no new M14 packet authored
+- [Phase 34]: LOOP-07 and LOOP-08 are v1.5 carry-forwards with no ledger row and no packet
+- [Phase 34]: Phase 34 evidence packets mirror Phase 32 template/schema without reinvention
 
 ### Pending Todos
 
@@ -215,8 +225,8 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-23T14:12:21.283Z
-Stopped at: context exhaustion at 75% (2026-06-23)
+Last session: 2026-06-25T06:43:19.725Z
+Stopped at: Completed 34-01-PLAN.md
 Next action: Phase 33 is complete and verified (UAT 7/7, 0 issues; goal-backward 5/5; ROADMAP/REQUIREMENTS/STATE reconciled via `phase.complete 33`). Proceed to Phase 34 (Training-Loop & Batch-Construction Contracts): `/gsd-discuss-phase 34` then `/gsd-plan-phase 34`. Non-blocking follow-up: a future plan touching Phase 33 should re-baseline `33-BASELINE-CAPTURED` or migrate Plan 33-04 check 5 to a per-path assertion that excludes delegated tracking-write paths (the combined dirty-doc hash false positive documented in 33-VERIFICATION.md section 8).
 
 ## Operator Next Steps

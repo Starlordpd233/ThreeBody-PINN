@@ -189,7 +189,14 @@ Every selected finding follows the v1.4/v1.5-style loop:
   4. The `dt_out`-aware collocation-scaling contract is defined — `n_col ∝ dt_base / dt_out` (audit M16 line-163 verbatim direction; the inverse form is an explicit future methodology change, not transcribed) — **realizing the v1.5 SCOPE-11 / PIPE-08 forward-reference** (LOOP-06).
   5. The training-side use of the v1.5-provisional metrics is defined — IPR as the ALM convergence / noise-floor (v1.5 VAL-03 forward-reference; provisional `1e-3` confirmed or recalibrated) and PSC for replay-buffer governance (v1.5 VAL-04 forward-reference; provisional grid/normalization/SCR confirmed or recalibrated) per LOOP-07, plus SASD training-side collocation-weighting (v1.5 VAL-02 deferral) per LOOP-08.
 
-**Plans**: TBD
+**Plans**: 1/5 plans executed
+
+- [x] 34-01-PLAN.md
+- [ ] 34-02-PLAN.md
+- [ ] 34-03-PLAN.md
+- [ ] 34-04-PLAN.md
+- [ ] 34-05-PLAN.md
+
 **UI hint**: no
 
 ### Phase 35: Loss & Energy-Weight Contracts
@@ -233,7 +240,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 31. Resolution Doc Readiness Verification | v1.6 | 1/1 | Complete | 2026-06-20 |
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete    | 2026-06-21 |
 | 33. Curriculum-Stage Contracts | v1.6 | 4/4 | Complete    | 2026-06-23 |
-| 34. Training-Loop & Batch-Construction Contracts | v1.6 | 0/0 | Not started | - |
+| 34. Training-Loop & Batch-Construction Contracts | v1.6 | 1/5 | In Progress|  |
 | 35. Loss & Energy-Weight Contracts | v1.6 | 0/0 | Not started | - |
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
 
