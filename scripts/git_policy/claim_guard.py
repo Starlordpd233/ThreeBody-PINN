@@ -10,9 +10,12 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import agent_claims  # noqa: E402
+import agent_presence  # noqa: E402
 
 
 def repo_relative(file_path):
@@ -37,6 +40,10 @@ def main():
     session = payload.get("session_id")
     if session:
         os.environ["AGENT_CLAIM_WHO"] = f"session:{session}"
+        try:
+            agent_presence.heartbeat(session)
+        except Exception:
+            pass   # advisory: heartbeat must never block an edit
     area = repo_relative(file_path)
     try:
         other = agent_claims.find_conflict(area)

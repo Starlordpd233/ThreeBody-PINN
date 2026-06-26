@@ -8,6 +8,7 @@ are never touched. Identity/floor env vars are stripped per-test so the parent
 session never leaks into a temp-repo assertion.
 """
 import importlib
+import json
 import os
 import pathlib
 import subprocess
@@ -328,6 +329,40 @@ class CliTests(unittest.TestCase):
         out = run_iso(["bash", str(AGENT_PRESENCE), "list"],
                       self.repo, env={"CLAUDE_CODE_SESSION_ID": "me"})
         self.assertEqual(out.returncode, 0, out.stderr)
+
+
+CLAIM_GUARD = GIT_POLICY / "claim_guard.py"
+
+
+def guard(cwd, file_path, session, env=None):
+    payload = json.dumps({"session_id": session,
+                          "tool_input": {"file_path": file_path}})
+    return run_iso([sys.executable, str(CLAIM_GUARD)], cwd, stdin=payload, env=env)
+
+
+class GuardHeartbeatTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = init_repo(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+
+    def test_edit_bumps_heartbeat_when_registered(self):
+        run_iso([sys.executable, str(PRESENCE), "register"], self.repo,
+                env={"CLAUDE_CODE_SESSION_ID": "sess-A"})
+        pf = self.repo / ".git" / "agent-presence" / "sess-A.json"
+        before = json.loads(pf.read_text())
+        before["last_heartbeat"] = 0
+        pf.write_text(json.dumps(before))
+        result = guard(self.repo, "sim/foo.py", "sess-A")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertGreater(json.loads(pf.read_text())["last_heartbeat"], 0)
+
+    def test_edit_without_presence_still_exits_zero(self):
+        result = guard(self.repo, "sim/foo.py", "sess-Z")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        # heartbeat no-op left no presence file behind
+        self.assertFalse(
+            (self.repo / ".git" / "agent-presence" / "sess-Z.json").exists())
 
 
 if __name__ == "__main__":
