@@ -289,9 +289,57 @@ def list_roster(exclude=None):
     return "Active sessions (excluding yours):\n" + "\n".join(lines)
 
 
+def _parse_announce(args):
+    summary_parts, areas, session = [], [], None
+    i = 0
+    while i < len(args):
+        tok = args[i]
+        if tok == "--areas":
+            i += 1
+            if i < len(args):
+                areas = [a for a in args[i].split(",") if a.strip()]
+        elif tok == "--session":
+            i += 1
+            if i < len(args):
+                session = args[i]
+        else:
+            summary_parts.append(tok)
+        i += 1
+    return " ".join(summary_parts), areas, session
+
+
 def main(argv):
-    pass
+    if not argv:
+        print("usage: agent_presence.py "
+              "{register|deregister|announce|list|heartbeat} ...", file=sys.stderr)
+        return 0
+    command, rest = argv[0], argv[1:]
+    try:
+        if command == "register":
+            roster = register(_session_from_env() or _session_from_stdin())
+            if roster:
+                print(roster)
+            return 0
+        if command == "deregister":
+            deregister(_session_from_env() or _session_from_stdin())
+            return 0
+        if command == "list":
+            print(list_roster())
+            return 0
+        if command == "heartbeat":
+            heartbeat(rest[0] if rest else _session_from_env())
+            return 0
+        if command == "announce":
+            summary, areas, session = _parse_announce(rest)
+            roster = announce(session or _session_from_env(), summary, areas)
+            if roster:
+                print(roster)
+            return 0
+    except Exception:
+        return 0   # advisory: never fail a hook or the agent's shell
+    print(f"unknown command: {command}", file=sys.stderr)
+    return 0
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    raise SystemExit(main(sys.argv[1:]))

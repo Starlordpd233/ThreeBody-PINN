@@ -276,5 +276,59 @@ class DeregisterTests(PresenceTestBase):
         self.assertEqual(agent_presence.deregister("ghost"), 0)
 
 
+PRESENCE = GIT_POLICY / "agent_presence.py"
+AGENT_PRESENCE = ROOT / "scripts" / "agent-presence"
+
+
+def run_iso(args, cwd, stdin=None, env=None):
+    merged = os.environ.copy()
+    for key in ISOLATED_KEYS:
+        merged.pop(key, None)
+    if env:
+        merged.update(env)
+    return subprocess.run(args, cwd=str(cwd), input=stdin, text=True,
+                          capture_output=True, env=merged, check=False)
+
+
+class CliTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = init_repo(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+
+    def cli(self, *args, env=None, stdin=None):
+        return run_iso([sys.executable, str(PRESENCE), *args],
+                       self.repo, stdin=stdin, env=env)
+
+    def test_register_then_list_via_env(self):
+        self.cli("register", env={"CLAUDE_CODE_SESSION_ID": "peer1"})
+        out = self.cli("list", env={"CLAUDE_CODE_SESSION_ID": "me"})
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("[peer", out.stdout)
+
+    def test_announce_declares_areas(self):
+        self.cli("announce", "do the thing", "--areas", "a.md,b.md",
+                 env={"CLAUDE_CODE_SESSION_ID": "me"})
+        claims_out = run_iso(
+            [sys.executable, str(GIT_POLICY / "agent_claims.py"), "list"],
+            self.repo)
+        self.assertIn("a.md", claims_out.stdout)
+        self.assertIn("b.md", claims_out.stdout)
+
+    def test_unknown_and_noenv_exit_zero(self):
+        self.assertEqual(self.cli("bogus").returncode, 0)
+        # No env, stdin is /dev/null (not a tty) -> silent, no hang.
+        self.assertEqual(self.cli("register", stdin="").returncode, 0)
+
+    def test_shim_runs(self):
+        import shutil
+        os.makedirs(os.path.join(self.repo, "scripts", "git_policy"))
+        shutil.copy(PRESENCE, os.path.join(self.repo, "scripts", "git_policy", "agent_presence.py"))
+        shutil.copy(GIT_POLICY / "agent_claims.py", os.path.join(self.repo, "scripts", "git_policy", "agent_claims.py"))
+        out = run_iso(["bash", str(AGENT_PRESENCE), "list"],
+                      self.repo, env={"CLAUDE_CODE_SESSION_ID": "me"})
+        self.assertEqual(out.returncode, 0, out.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
