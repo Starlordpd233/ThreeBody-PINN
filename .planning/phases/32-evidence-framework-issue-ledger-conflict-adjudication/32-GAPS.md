@@ -47,11 +47,14 @@ Conflict Adjudication). Milestone index: `.planning/milestones/v1.6-GAPS.md`.
     final loss/batch transcription.
 - **Confidence of impact:** **HIGH** - the selected mode determines Phase 35
   `LOSS-04` and may affect Phase 34 `LOOP-01` if batch-windowing changes.
-- **Status:** **DEFERRED** (2026-06-21)
-- **Resolution note:** Per the user's 2026-06-21 closeout-remediation instruction,
-  Phase 32 closes without selecting D-04 Option A/B/C. The blocker is deferred to
-  Phase 35 `LOSS-04`, with Phase 34 `LOOP-01` as a secondary consumer only if the
-  eventual owner decision changes batch-windowing.
+- **Status:** **RESOLVED-WITH-INSTRUCTION** (2026-06-26)
+- **Resolution note:** Per the user's Phase 35 spec-gate instruction, Option A is
+  ratified: retain the current per-time causal weighting baseline with
+  `w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))`, `w_1 = 1`, and
+  `eta_c = 1`; preserve the dense-residual pseudo-ALM rejection; keep optional
+  scalar-conservation ALM as deferred P2 only; and defer the numeric
+  causal-exponent clip bound to FUT. Phase 35 `LOSS-04` owns transcription of
+  this owner-ratified verdict and status.
 
 ---
 
