@@ -1,10 +1,13 @@
 ---
-status: active
+status: consumed
 purpose: implementation-plan
 created: 2026-06-22
 milestone: untracked
 phase: cross-cutting
 retirement_trigger: Retire when all tasks are executed, the test suite is green, and the operating contract is merged into docs/git-guidelines.md; or when superseded by a consolidated parallel-agent-coordination plan.
+execution_status: executed
+executed_at: 2026-06-26T13:38:00+08:00
+review_status: pending
 ---
 
 # Presence & Overlap Awareness Implementation Plan
@@ -17,29 +20,59 @@ retirement_trigger: Retire when all tasks are executed, the test suite is green,
 
 **Tech Stack:** Python 3 standard library only (`os`, `json`, `subprocess`, `time`, `re`, `sys`). Tests use `unittest` driven by `python3 tests/git_policy/test_presence.py`, mirroring the isolated-temp-repo harness in `tests/git_policy/test_concurrency.py`. Bash shims mirror `scripts/agent-claim`.
 
+## Operating model & design priorities
+
+This repo is **agent-first**: agents run the planning, GSD processes, execution, and review for nearly all work, and human attention is reserved for decisions a human *must* own. This plan is built — and must be executed — in that priority order:
+
+1. **Agent-autonomy by default.** If an agent can resolve a situation itself, it should; escalating to a human is a fallback for genuine deadlock, not a routine step. This is deliberately *distinct* from the v1.4/v1.5 **adjudication** STOP protocol in `CLAUDE.md` (which surfaces spec/physics decisions to the user on purpose): presence/overlap is **operational coordination**, so it defaults to agent-autonomous resolution and does **not** relax that adjudication norm.
+2. **Prevent mistakes by construction.** The mechanical layer makes correct behavior the easy default — auto-register, auto-heartbeat, board-derived write sets, declare-not-seize — so an agent has little to remember to behave well.
+3. **Stay recoverable when a mistake slips through.** Everything is advisory and fail-open; presence state self-heals (sweep + 2 h TTL); every task is an atomic, revertible commit; and the commit-time owned-paths net stays the one hard backstop. A wrong overlap call must only ever cost a little rework — never corrupt work or block an agent.
+
+When a choice trades these off, prefer accuracy and recoverability over cleverness, and agent-autonomy over human escalation.
+
 ## Global Constraints
 
-- **Source of identity:** the Claude session id, resolved from the `CLAUDE_CODE_SESSION_ID` environment variable (exported into every tool subprocess), with a non-blocking stdin-payload fallback for the SessionStart/Stop hooks. The join key with the claims board is the string `session:<session_id>` — exactly what `claim_guard.py` already writes as `AGENT_CLAIM_WHO`.
+- **Source of identity:** the Claude session id. Hooks (SessionStart `register`, Stop `deregister`, PreToolUse `heartbeat`) read it from their **stdin payload** `session_id` — the documented Claude Code channel and the same field `claim_guard.py` already uses. The SessionStart hook additionally **seeds** `CLAUDE_CODE_SESSION_ID` into `CLAUDE_ENV_FILE` so later **agent Bash-tool** calls (`announce`, `list`) can read it from the environment (those calls have no hook payload). `CLAUDE_CODE_SESSION_ID` is therefore *seeded by us*, not assumed to pre-exist (it is not in Claude Code's documented hook env vars). The join key with the claims board is the string `session:<session_id>` — exactly what `claim_guard.py` writes as `AGENT_CLAIM_WHO`. Probe 1a (Task 0) verifies the seeded env var equals the payload id before any build.
 - **Advisory / fail-open everywhere:** every library entry point swallows its own exceptions and the CLI always returns exit code 0. A presence failure must never block an edit, a hook, or the agent's shell. The only hard backstop is the owned-paths check in `scripts/agent-commit`.
 - **Atomic writes:** all presence-file writes use the `tmp` + `os.replace` pattern already used by `agent_claims.claim`.
 - **Claims board is the single source of truth for "who writes what."** Presence stores only liveness + intent (`task_summary`); claimed areas are derived by scanning the board, never persisted in the presence file (design decision #4, adopted).
-- **Adopted design decisions (settled at the spec-review gate):** (1) 20-minute heartbeat-stale floor, and live-PID sessions are **never** reaped for idleness — the floor is a backstop for absent/untrusted PIDs only; (2) cross-worktree peers are visible-but-marked, file-collision weight highest for same-worktree/same-branch, semantic-duplication weight across all peers; (3) deregister = release-on-exit, expire-on-crash (Stop releases claims, the claims board's existing 2 h TTL is the crash backstop); (4) `claimed_areas` derived, not persisted.
+- **Adopted design decisions:** (1) 20-minute heartbeat-stale floor; a `kill -0`-live pid is **never** reaped for idleness, and a pid that is absent **or untrusted** (e.g. the transient SessionStart shell captured by `getppid()`) falls through to the floor rather than being reaped on sight — this is the design reaping table's row 3 (the floor is the real backstop for untrusted PIDs); (2) **OPEN — confirm before Task 10:** cross-worktree weighting (visible-but-marked; file-collision weight highest for same-worktree/same-branch; semantic-duplication weight across all peers) is a *reconstruction of garbled source text* per the design's Open Decision #2, so it is NOT settled — the user must confirm it matches intent; (3) deregister = release-on-exit, expire-on-crash (Stop releases claims, the claims board's existing 2 h TTL is the crash backstop); (4) `claimed_areas` derived, not persisted.
 - **Non-goals (do NOT build):** cross-session activation / the watchdog, any daemon / polling / `tmux send-keys` / cron, any lock that blocks an edit or commit, and sub-file / line-range claim granularity (Decision R1: rejected — the claims engine prefix-matches on `/`).
 - **Execution location:** this is cross-cutting parallel-agent infrastructure; like the claims board it lives on **`master`** and is developed from the **master-root** worktree. **Never push from `master`** — commits are local-only.
 - **Commit policy (every task):** commit via `scripts/agent-commit` only, with `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS` set to explicit owned paths; stage explicit paths only (never `git add -A/-u/.`). Conventional message `<type>(governance): <lowercase imperative>`; body required (governance + multi-file); include an `Agent-Assisted-By:` or `Co-Authored-By:` trailer. Re-run `git status --short --branch` before each commit.
 
 ---
 
+## Scope & sequencing note (review outcome)
+
+The mechanical layer (Tasks 1–8) plus an announce nudge and a single "if a peer's
+summary looks like your task, stand down and redirect to other work" rule delivers
+the core value and is recommended as the MVP. The following are **deferral-eligible** and should not be
+built until explicitly confirmed:
+
+- **Task 9 (Stop hook)** — correctness-non-critical (dead-pid sweep + 2 h TTL already
+  clean up) and the only shared-`.claude/settings.json` touch. Defer unless prompt
+  cleanup is wanted.
+- **Task 10 graduated-autonomy matrix + A1/A2/B/C/D taxonomy** — unenforced prose with
+  no code consuming it; the value is the agent *seeing* peer summaries, which the
+  roster already provides. Keep S1 (the headline duplicate-task case); the rest can
+  collapse to the one stand-down rule for v1.
+- **Cross-worktree weighting** — Decision #2 is **OPEN** (reconstructed from garbled
+  source text per the design); confirm intent before encoding it.
+
+---
+
 ## Task 0: Pre-build verification gate
 
-**No code.** Confirm the one load-bearing assumption before writing any module code. The other three items from the design's gate are non-blocking given the env-var identity source (justified inline) and are folded into later tasks as confirmations with graceful-degradation contingencies.
+**No code.** Confirm the load-bearing identity assumption (Probe 1a) before writing any module code. Probe 2 (pid durability) is **no longer a blocker** because the reaper now treats an untrusted pid as floor-governed rather than trusting `getppid()` (see Task 2); it is kept below as an informational observation. Probes 3 and 4 remain non-blocking confirmations folded into later tasks with graceful-degradation contingencies.
 
-**Probe 1a — identity equality (HARD BLOCKER).** `heartbeat` keys off the PreToolUse payload `session_id` (via `claim_guard`); `register`/`announce`/`deregister`/`list` key off `CLAUDE_CODE_SESSION_ID`. The join only works if these are the same string.
+**Probe 1a — identity equality (HARD BLOCKER).** Hooks (`register`/`deregister`/`heartbeat`) read the session id from their **stdin payload**; agent Bash-tool calls (`announce`/`list`) read it from the **seeded** `CLAUDE_CODE_SESSION_ID` env var (Task 8 writes it into `CLAUDE_ENV_FILE` at SessionStart). The join works only if the value an agent Bash-tool call sees equals the payload id `claim_guard` writes. **Run this probe as a normal agent Bash-tool call** — the same context `announce`/`list` use — so it exercises the real environment.
 
-- [ ] **Step 1: Capture the env identity.**
+- [ ] **Step 1: Capture the env identity (agent Bash-tool call).**
 
 Run: `echo "$CLAUDE_CODE_SESSION_ID"`
-Expected: a non-empty UUID-like string. Record it as `ENV_SID`.
+- Non-empty UUID-like string → record it as `ENV_SID` and go to Step 2.
+- **Empty** → expected *before* Task 8 seeds it. De-risk now by confirming the seeding mechanism exists: from a SessionStart hook, `echo "$CLAUDE_ENV_FILE"` must yield a writable path (that is how Task 8 will export `CLAUDE_CODE_SESSION_ID` to later tool calls). If `CLAUDE_ENV_FILE` is also unavailable here, **STOP and surface to the user** — the seeding strategy is unsupported and the design must change (e.g. the agent passes `--session` explicitly).
 
 - [ ] **Step 2: Capture the claim_guard payload identity.**
 
@@ -64,16 +97,16 @@ Expected: `session:$CLAUDE_CODE_SESSION_ID` appears among the board's `who` valu
 
 - [ ] **Step 3: Verdict.**
 
-PASS if `session:$CLAUDE_CODE_SESSION_ID` matches the `who` written by `claim_guard` for this session. Proceed to Task 1.
-FAIL → do not build. Contingency: switch `register`/`announce`/`deregister`/`list` to source the session id from the SessionStart/Stop/PreToolUse **stdin payload** instead of the env var (and add the `isatty()` guard from Task 6 to `session_banner.sh`). Surface the failure to the user before changing the design.
+PASS if (a) Step 1 yields a non-empty id in an agent Bash-tool call **or** `CLAUDE_ENV_FILE` is confirmed available so Task 8 can seed it, **and** (b) `session:$CLAUDE_CODE_SESSION_ID` matches the `who` `claim_guard` wrote for this session. Proceed to Task 1.
+FAIL → do not build. The env var is the only identity source for `announce`/`list`, which are **not hooks and have no stdin payload to fall back to**. Contingency options, in order: (i) confirm `CLAUDE_ENV_FILE` seeding works and rely on it (Task 8); (ii) have the agent pass `--session "$CLAUDE_CODE_SESSION_ID"` on every `announce`/`list`; (iii) resolve identity from the claims board's most-recent payload-seeded `who` for this session. Surface the failure to the user before changing the design.
 
-**Probe 2 — `getppid()` durability (NON-BLOCKING, confirmed in Task 2).** At SessionStart the hook's `getppid()` should resolve to the durable `claude` process so `kill -0` liveness is trustworthy. Confirmed after `register` exists: read a registered presence file's `pid` and run `ps -p <pid> -o comm=` — expect `claude`. If it is a transient shell, the system still works: the 20-minute heartbeat-stale floor backstops liveness. No design change required.
+**Probe 2 — `getppid()` durability (INFORMATIONAL, no longer a blocker).** At SessionStart the hook's `getppid()` is typically the *transient* shell running `session_banner.sh`, which exits immediately — so its pid is usually a dead, **untrusted** pid within milliseconds. The reaper (Task 2) is built for this: a pid is trusted only while `kill -0` succeeds; a dead/untrusted pid is **not** reaped on sight but falls through to the 20-minute heartbeat-stale floor, and `register`/`announce`/`heartbeat` keep the heartbeat fresh so an active session is never reaped. Optional observation after `register` exists: read a presence file's `pid` and run `ps -p <pid> -o comm=`. If it is the durable `claude` process you additionally get "live-pid → never reaped even when idle"; if it is a shell, the floor governs. Either way no design change is required.
 
 **Probe 3 — subagent identity (NON-BLOCKING, documented in Task 10).** Inspect whether `CLAUDE_CODE_SESSION_ID` changes inside an Agent-tool subagent and what `CLAUDE_CODE_CHILD_SESSION` holds. If subagent edits carry a distinct child id, their auto-declared claims become orphan records that expire under the 2 h TTL and never attach to a rostered session — acceptable per the design's contingency. `register` is wired only to SessionStart, so subagents never create presence files regardless.
 
 **Probe 4 — Stop reliability (NON-BLOCKING, verified in Task 9).** The Stop hook must fire with the session id available so `deregister` can release claims. If it does not fire, the dead-PID sweep (Task 2) plus the 2 h TTL still reap the session — Stop only makes cleanup prompt, not correct.
 
-- [ ] **Step 4: Record the gate result** in the eventual commit body for Task 1 (one line: "Probe 1a PASS: claim_guard payload session_id == CLAUDE_CODE_SESSION_ID").
+- [ ] **Step 4: Record the gate result** in the eventual commit body for Task 1 (one line, e.g. "Probe 1a PASS: agent-Bash CLAUDE_CODE_SESSION_ID == claim_guard payload who; CLAUDE_ENV_FILE seeding available").
 
 ---
 
@@ -318,18 +351,34 @@ class RegisterSweepTests(PresenceTestBase):
         agent_presence.sweep_presence()
         self.assertIsNotNone(self._load("sid-live"))  # live pid => kept
 
-    def test_sweep_reaps_dead_pid_and_releases_claims(self):
+    def test_sweep_reaps_dead_pid_past_floor_and_releases_claims(self):
         import agent_presence
+        os.environ["AGENT_PRESENCE_STALE"] = "0"  # collapse the floor
         dead = subprocess.Popen([sys.executable, "-c", "pass"])
         dead.wait()  # pid now dead
         os.environ["AGENT_CLAIM_WHO"] = agent_presence.who_key("sid-dead")
         agent_claims.claim("sim/owned.py")
         os.environ.pop("AGENT_CLAIM_WHO", None)
         agent_presence.register("sid-dead", pid=dead.pid)
+        path = agent_presence.presence_file("sid-dead")
+        entry = agent_claims.load(path)
+        entry["last_heartbeat"] = 0  # ancient -> past the (zero) floor
+        agent_presence._atomic_write(path, entry)
         agent_presence.sweep_presence()
         self.assertIsNone(self._load("sid-dead"))                     # reaped
         self.assertEqual(agent_claims.claims_for_who(
             agent_presence.who_key("sid-dead")), [])                  # claims released
+
+    def test_sweep_keeps_dead_pid_within_floor(self):
+        # A transient SessionStart shell pid dies immediately; an actively
+        # heartbeating session must survive (untrusted pid -> floor, not reap).
+        import agent_presence
+        dead = subprocess.Popen([sys.executable, "-c", "pass"])
+        dead.wait()
+        agent_presence.register("sid-untrusted", pid=dead.pid)  # dead nonzero pid
+        # last_heartbeat is fresh (register set it); default 20-min floor applies
+        agent_presence.sweep_presence()
+        self.assertIsNotNone(self._load("sid-untrusted"))  # kept by the floor grace
 
     def test_sweep_reaps_pidless_entry_past_floor(self):
         import agent_presence
@@ -366,10 +415,11 @@ common-dir location so every worktree sees the same roster. A presence file
 records liveness (pid, last_heartbeat) and intent (task_summary); a session's
 *write set* is derived from the claims board, never duplicated here.
 
-Identity is the Claude session id, resolved from CLAUDE_CODE_SESSION_ID (the
-env var exported into every tool subprocess) with a non-blocking stdin-payload
-fallback for the SessionStart/Stop hooks. The join key with the claims board is
-"session:<session_id>" -- exactly what claim_guard.py writes as AGENT_CLAIM_WHO.
+Identity is the Claude session id. Hooks read it from their stdin payload; agent
+Bash-tool calls read it from CLAUDE_CODE_SESSION_ID, which the SessionStart hook
+seeds into CLAUDE_ENV_FILE (it is not assumed to pre-exist). The join key with the
+claims board is "session:<session_id>" -- exactly what claim_guard.py writes as
+AGENT_CLAIM_WHO.
 
 Advisory only: every entry point fails open and the CLI always exits 0. The one
 hard backstop against silent overwrite is the commit-time owned-paths net in
@@ -519,12 +569,13 @@ def sweep_presence():
         if entry is None:
             continue
         pid = entry.get("pid")
-        if pid:
-            if _pid_alive(pid):
-                continue            # live: keep regardless of heartbeat age
-            reap = True             # pid present but dead
-        else:
-            reap = (now - entry.get("last_heartbeat", 0)) > floor  # absent pid
+        if pid and _pid_alive(pid):
+            continue                # trusted-live: keep regardless of heartbeat age
+        # Absent, dead, OR untrusted pid (e.g. the transient SessionStart shell
+        # captured by getppid()): do NOT reap on sight -- fall through to the
+        # heartbeat-stale floor (design reaping table row 3). register/announce/
+        # heartbeat keep last_heartbeat fresh, so an active session is never reaped.
+        reap = (now - entry.get("last_heartbeat", 0)) > floor
         if reap:
             sid = entry.get("session_id")
             if sid:
@@ -561,7 +612,7 @@ def register(session_id=None, pid=None):
 - [ ] **Step 4: Run the test to verify it passes.**
 
 Run: `python3 tests/git_policy/test_presence.py RegisterSweepTests -v`
-Expected: PASS (6 tests).
+Expected: PASS (7 tests).
 
 - [ ] **Step 5: Confirm Probe 2 (non-blocking).**
 
@@ -594,7 +645,7 @@ Add the per-edit `heartbeat` bump, the `list_roster` that derives each peer's wr
 - Produces:
   - `heartbeat(session_id) -> int` (0; no-op when no presence file exists)
   - `list_roster(exclude=None) -> str` (multi-line roster; current session excluded; areas derived from the board)
-  - `_format_line(entry, areas, now) -> str`
+  - `_format_line(entry, areas, now, my_worktree=None) -> str`
 
 - [ ] **Step 1: Write the failing test.**
 
@@ -634,6 +685,17 @@ class RosterHeartbeatTests(PresenceTestBase):
         import agent_presence
         agent_presence.register("me", pid=os.getpid())
         self.assertIn("none", agent_presence.list_roster(exclude="me"))
+
+    def test_roster_marks_cross_worktree_peer(self):
+        import agent_presence
+        agent_presence.register("me", pid=os.getpid())
+        agent_presence.register("peer", pid=os.getpid())
+        ppath = agent_presence.presence_file("peer")
+        pe = agent_claims.load(ppath)
+        pe["worktree"] = "some-other-worktree"  # force a different worktree
+        agent_presence._atomic_write(ppath, pe)
+        roster = agent_presence.list_roster(exclude="me")
+        self.assertIn("[cross-worktree]", roster)
 ```
 
 - [ ] **Step 2: Run the test to verify it fails.**
@@ -643,7 +705,7 @@ Expected: FAIL — `test_roster_excludes_self_and_derives_areas` fails (stub ret
 
 - [ ] **Step 3: Implement.**
 
-In `scripts/git_policy/agent_presence.py`, add `heartbeat` (after `register`) and **replace** the `list_roster` stub with the full body plus `_format_line`:
+In `scripts/git_policy/agent_presence.py`, add `heartbeat` (after `register`) and **delete the Task 2 `list_roster` stub** (the two-line `def list_roster(exclude=None): return ""` at the bottom of the file), replacing it with the full body below plus `_format_line`. Afterward confirm there is exactly one `def list_roster` in the file:
 
 ```python
 def heartbeat(session_id):
@@ -659,7 +721,7 @@ def heartbeat(session_id):
     return 0
 
 
-def _format_line(entry, areas, now):
+def _format_line(entry, areas, now, my_worktree=None):
     sid = (entry.get("session_id") or "????")[:4]
     worktree = entry.get("worktree") or "?"
     branch = entry.get("branch") or "?"
@@ -667,7 +729,9 @@ def _format_line(entry, areas, now):
     age = now - entry.get("last_heartbeat", now)
     heart = "fresh" if age < FRESH_SECONDS else f"{age // 60}m"
     writes = ", ".join(areas) if areas else "none"
-    return (f"  [{sid}] {worktree} / {branch} — \"{summary}\"\n"
+    # Cross-worktree peers are visible but marked (design roster format).
+    mark = "" if (my_worktree is None or worktree == my_worktree) else "  [cross-worktree]"
+    return (f"  [{sid}] {worktree} / {branch}{mark} — \"{summary}\"\n"
             f"         writes: {writes}   ♥ {heart}")
 
 
@@ -677,6 +741,7 @@ def list_roster(exclude=None):
         exclude = _session_from_env()
     directory = presence_dir()
     now = int(time.time())
+    my_worktree, _ = _git_context()
     lines = []
     for name in sorted(os.listdir(directory)):
         if not name.endswith(".json"):
@@ -688,7 +753,7 @@ def list_roster(exclude=None):
         if sid and sid == exclude:
             continue
         areas = agent_claims.claims_for_who(who_key(sid)) if sid else []
-        lines.append(_format_line(entry, areas, now))
+        lines.append(_format_line(entry, areas, now, my_worktree))
     if not lines:
         return "Active sessions (excluding yours): none"
     return "Active sessions (excluding yours):\n" + "\n".join(lines)
@@ -697,7 +762,7 @@ def list_roster(exclude=None):
 - [ ] **Step 4: Run the test to verify it passes.**
 
 Run: `python3 tests/git_policy/test_presence.py RosterHeartbeatTests -v`
-Expected: PASS (4 tests).
+Expected: PASS (5 tests).
 
 - [ ] **Step 5: Commit.**
 
@@ -789,11 +854,20 @@ def announce(session_id, summary, areas):
     entry["last_heartbeat"] = int(time.time())
     _atomic_write(presence_file(session_id), entry)
     # Declare the intended write set on the board, attributed to this session.
+    # Save/restore AGENT_CLAIM_WHO so announce never leaks identity into a
+    # longer-lived process that later calls agent_claims under its own who.
+    saved_who = os.environ.get("AGENT_CLAIM_WHO")
     os.environ["AGENT_CLAIM_WHO"] = who_key(session_id)
-    for area in areas:
-        area = area.strip()
-        if area:
-            agent_claims.claim(area, why="announced intent")
+    try:
+        for area in areas:
+            area = area.strip()
+            if area:
+                agent_claims.claim(area, why="announced intent")
+    finally:
+        if saved_who is None:
+            os.environ.pop("AGENT_CLAIM_WHO", None)
+        else:
+            os.environ["AGENT_CLAIM_WHO"] = saved_who
     return list_roster(exclude=session_id)
 ```
 
@@ -1057,7 +1131,7 @@ scripts/agent-commit -m "feat(governance): add agent-presence CLI and shim" \
 
 ## Task 7: claim_guard heartbeat integration (PreToolUse wiring)
 
-Make every edit bump the session's heartbeat, via one in-process call inside the existing claim guard. It must remain fail-open and must not change the existing auto-declare behavior.
+Make every edit bump the session's heartbeat, via one in-process call inside the existing claim guard. It must remain fail-open and must not change the existing auto-declare behavior. (Cost note: `heartbeat` resolves the presence dir via `git rev-parse`, so it is one cheap subprocess per edit, not literally zero as the design's "not a fork" wording implies — still well under the hook budget and fail-open.)
 
 **Files:**
 - Modify: `scripts/git_policy/claim_guard.py`
@@ -1161,7 +1235,7 @@ scripts/agent-commit -m "feat(governance): bump presence heartbeat on every edit
 
 ## Task 8: SessionStart wiring (register + roster banner)
 
-Extend the existing SessionStart banner so each session registers and prints the roster. Sourcing identity from `CLAUDE_CODE_SESSION_ID` means no `.claude/settings.json` change and no stdin handling.
+Extend the existing SessionStart banner so each session (1) reads its session id from the SessionStart **stdin payload**, (2) **seeds** `CLAUDE_CODE_SESSION_ID` into `CLAUDE_ENV_FILE` so later agent Bash-tool calls (`announce`/`list`) can read it, (3) registers, and (4) prints the roster plus a one-line announce nudge. No `.claude/settings.json` change is needed (the SessionStart hook already runs `session_banner.sh`); the banner now reads stdin, guarded so it never blocks on a tty.
 
 **Files:**
 - Modify: `scripts/session_banner.sh`
@@ -1169,7 +1243,7 @@ Extend the existing SessionStart banner so each session registers and prints the
 
 **Interfaces:**
 - Consumes: `agent-presence register`.
-- Produces: SessionStart now prints the worktree/branch line **and** the roster; registers a presence file when `CLAUDE_CODE_SESSION_ID` is set.
+- Produces: SessionStart seeds `CLAUDE_CODE_SESSION_ID` (via `CLAUDE_ENV_FILE`) for later tool calls, registers a presence file when a session id is resolvable (payload or env), and prints the worktree/branch line, the roster, and an announce nudge.
 
 - [ ] **Step 1: Write the failing test.**
 
@@ -1188,16 +1262,27 @@ class BannerRegisterTests(unittest.TestCase):
         git(self.repo, "add", "f")
         git(self.repo, "commit", "-q", "-m", "init")
 
-    def test_banner_registers_when_session_id_present(self):
-        result = run_iso(["bash", str(SESSION_BANNER)], self.repo,
-                         env={"CLAUDE_CODE_SESSION_ID": "sess-banner"})
+    def test_banner_registers_via_payload_and_seeds_env_file(self):
+        env_file = self.repo / "claude_env"
+        payload = json.dumps({"session_id": "sess-banner",
+                              "hook_event_name": "SessionStart"})
+        result = run_iso(["bash", str(SESSION_BANNER)], self.repo, stdin=payload,
+                         env={"CLAUDE_ENV_FILE": str(env_file)})
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertRegex(result.stdout, r"worktree \S+ -> branch \S+")
         self.assertTrue(
             (self.repo / ".git" / "agent-presence" / "sess-banner.json").exists())
+        self.assertIn("CLAUDE_CODE_SESSION_ID=sess-banner", env_file.read_text())
+
+    def test_banner_registers_via_env_when_no_payload(self):
+        result = run_iso(["bash", str(SESSION_BANNER)], self.repo, stdin="",
+                         env={"CLAUDE_CODE_SESSION_ID": "sess-env"})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(
+            (self.repo / ".git" / "agent-presence" / "sess-env.json").exists())
 
     def test_banner_silent_without_session_id(self):
-        result = run_iso(["bash", str(SESSION_BANNER)], self.repo)
+        result = run_iso(["bash", str(SESSION_BANNER)], self.repo, stdin="")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertRegex(result.stdout, r"worktree \S+ -> branch \S+")
         # No identity -> no presence dir entries created
@@ -1208,18 +1293,37 @@ class BannerRegisterTests(unittest.TestCase):
 - [ ] **Step 2: Run the test to verify it fails.**
 
 Run: `python3 tests/git_policy/test_presence.py BannerRegisterTests -v`
-Expected: FAIL — `test_banner_registers_when_session_id_present` fails (no presence file created).
+Expected: FAIL — `test_banner_registers_via_payload_and_seeds_env_file` fails (banner does not yet read the payload, seed the env file, or register).
 
 - [ ] **Step 3: Edit `scripts/session_banner.sh`.**
 
-Replace the final `exit 0` with the register call followed by `exit 0`:
+Replace the final `exit 0` with the identity-seeding + register block followed by `exit 0`:
 
 ```bash
 echo "worktree $(basename "$root") -> branch ${branch}  ($root)"
 
-# Advisory presence: register this session (identity from CLAUDE_CODE_SESSION_ID)
-# and print the roster of other live sessions. Never blocks; failures ignored.
-python3 "$root/scripts/git_policy/agent_presence.py" register 2>/dev/null || true
+# Advisory presence. Identity is the Claude session id, which arrives on the
+# SessionStart hook payload (stdin). Read it (guarded so we never block on a
+# tty), seed CLAUDE_CODE_SESSION_ID into CLAUDE_ENV_FILE so later agent
+# Bash-tool calls (announce/list) can read it, then register for this call.
+# Everything here is advisory; failures are ignored.
+sid=""
+if [ ! -t 0 ]; then
+  payload="$(cat 2>/dev/null || true)"
+  sid="$(printf '%s' "$payload" | python3 -c 'import sys, json
+try:
+    print(json.load(sys.stdin).get("session_id", "") or "")
+except Exception:
+    pass' 2>/dev/null || true)"
+fi
+if [ -n "$sid" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
+  printf 'export CLAUDE_CODE_SESSION_ID=%s\n' "$sid" >> "$CLAUDE_ENV_FILE"
+fi
+CLAUDE_CODE_SESSION_ID="${sid:-${CLAUDE_CODE_SESSION_ID:-}}" \
+  python3 "$root/scripts/git_policy/agent_presence.py" register 2>/dev/null || true
+
+# Nudge the agent to announce its task so peers can see intent (the core datum).
+echo 'presence: run  scripts/agent-presence announce "<your task>" --areas <paths>  so peers can see your work.'
 
 exit 0
 ```
@@ -1254,11 +1358,19 @@ Add a Stop hook so a clean session end releases claims and removes its presence 
 - Consumes: `agent-presence deregister`.
 - Produces: Stop event runs `deregister` for `CLAUDE_CODE_SESSION_ID`.
 
-- [ ] **Step 1: Concurrency guard — re-check the file's ownership.**
+- [ ] **Step 0: Resolve any pre-existing modification first.**
 
-Run: `git -C "$(git rev-parse --show-toplevel)" status --short --branch .claude/settings.json`
-- If it shows `M .claude/settings.json` (uncommitted changes you did not make), **STOP** and surface to the user: another session owns an in-flight edit; do not clobber. Resume this task only once the file is clean or the user authorizes coordinating the change.
-- If clean, proceed.
+`.claude/settings.json` may already be modified in the working tree (it is, in the repo state this plan was written against). A bulk edit must not fold an unrelated change into this commit. If `git status --short .claude/settings.json` is non-empty, first commit or stash that pre-existing change as its own unit (with user confirmation), or have the user confirm it is yours to include. Only then continue.
+
+- [ ] **Step 1: Concurrency guard — check for a foreign in-flight edit.**
+
+`git status` cannot tell "a live peer is mid-edit" from "benign local dirt", so use the claims board (the mechanism this very system provides) as the ownership signal, with `git status` only as a secondary smell test:
+
+Run: `python3 "$(git rev-parse --show-toplevel)/scripts/git_policy/agent_claims.py" check .claude/settings.json`
+- Exit code 3 (a **foreign** session holds a claim) → **STOP** and surface to the user; do not clobber a peer's in-flight edit.
+- Exit 0 (no foreign claim) → proceed. The commit-time owned-paths net (`GIT_AGENT_OWNED_PATHS=.claude/settings.json`, Step 5) remains the hard backstop if a peer races in after this check.
+
+> Note: this task edits a shared file and is **correctness-non-critical** (the dead-pid sweep + 2 h TTL already clean up). If you are shipping the MVP slice, it is safe to defer Task 9 entirely.
 
 - [ ] **Step 2: Add the Stop hook.**
 
@@ -1326,24 +1438,40 @@ it:
 the summary). Announcing declares those areas on the claims board; it respects
 peers' existing claims and never seizes them. Read-only files need no area.
 
-**Before working, classify overlap with live peers and act by confidence:**
+**Before working, classify overlap with live peers and resolve it yourself where you can. Escalating to a human is the fallback for genuine deadlock, not the default — if you can resolve it autonomously, do.**
 
-- **HIGH (proceed):** auto-coordinate and go — including first *narrowing your
-  own write set* to dodge a peer's claimed areas when the narrowed set still
-  completes the task.
-- **MEDIUM (propose, wait):** state a mitigation (e.g. "I'll sequence after
-  session a1b2's edit to ctl_instruction.md") and wait for acknowledgement.
-- **LOW (STOP, surface):** do not proceed on the overlapping work; surface it to
-  the user.
+- **HIGH — proceed autonomously.** Disjoint work, or a conflict you can dissolve
+  yourself: narrow your own write set to dodge a peer's claimed areas, then go. No
+  human, no waiting.
+- **MEDIUM — self-mitigate, then proceed.** A real but workable interaction (you
+  both touch one file in sequence, or your scopes are related). *Act on a
+  mitigation yourself* — sequence your edits after the peer's, re-scope to a
+  disjoint slice, or take a non-overlapping portion — and record what you did in
+  your `announce` summary so the roster reflects it. There is no synchronous peer
+  to "acknowledge"; do not idle waiting for one. Surface to a human only if no
+  self-mitigation exists.
+- **LOW — stand down autonomously; surface only if unresolved.** This is likely
+  the *same task* as a live peer (S1). Do **not** proceed on the overlapping work.
+  Prefer an autonomous resolution: defer to the peer and pick up the next
+  unclaimed task, or re-scope to clearly different work. Surface to a human
+  **only** when you cannot resolve it yourself — e.g. both efforts look canonical
+  and choosing which proceeds is a priority call you don't own.
 
-Two axes drive the call — **write-overlap** (computed authoritatively by
-`agent_claims.find_conflict` against the live board) and **semantic
-relationship**:
+Two axes drive the call — **write-overlap** and **semantic relationship**.
+Compute write-overlap against the live board, but **run the check under your own
+session identity** so your own announced areas aren't mistaken for a peer's
+(`agent_claims.find_conflict` excludes only the *caller's* `who`; a plain shell
+resolves a different `who`, so it would flag your own claims):
+
+    AGENT_CLAIM_WHO="session:$CLAUDE_CODE_SESSION_ID" python3 scripts/git_policy/agent_claims.py check <path>
+
+The roster above already excludes your session, so it is the primary surface;
+use `check` only for an authoritative per-path verdict. Mapping the two axes:
 
 | Planned writes vs. live peers | Unrelated | Related (S2) | Same task (S1) |
 |---|---|---|---|
-| No write-overlap | proceed | MEDIUM — propose, wait | LOW — STOP, surface |
-| Write-overlap | MEDIUM — sequence (Class B) | MEDIUM → LOW — sequence + confirm | LOW — STOP, surface |
+| No write-overlap | proceed | MEDIUM — self-mitigate (re-scope), then proceed | LOW — stand down / re-scope; surface only if unresolved |
+| Write-overlap | MEDIUM — sequence yourself (Class B) | MEDIUM → LOW — sequence or re-scope; surface only if stuck | LOW — stand down / re-scope; surface only if unresolved |
 
 Conflict classes: **A1/A2** same-file contention (handled by the claim guard +
 commit-time net); **B** shared-file-in-sequence; **C** branch/worktree
@@ -1352,8 +1480,11 @@ structural; **D** read-only sharing (always proceed); **S1** task duplication
 **S2** scope overlap (related tasks that may interfere).
 
 **Conservative tie-breaks:** if you cannot *confidently* place a situation in
-the proceed cell, treat it as at least MEDIUM. **Any** whiff of S1 → LOW,
-regardless of file overlap — duplicated work is the failure to prevent.
+the proceed cell, treat it as at least MEDIUM (self-mitigate before proceeding).
+**Any** whiff of S1 → treat as LOW and **stand down from the duplicate work**,
+regardless of file overlap — duplicated effort is the failure to prevent.
+Standing down means redirecting yourself to other useful work, not halting for a
+human; escalate only when you cannot find a safe autonomous path.
 
 **Cross-worktree weighting:** peers in other worktrees stay visible but marked.
 Same-worktree/same-branch peers carry the highest weight for *file-collision*
@@ -1407,7 +1538,7 @@ Expected: the second `list` shows no error; the announce created a `session:<id>
 | Two-layer architecture (mechanical + semantic) | T1–T9 (mechanical), T10 (semantic) |
 | Presence registry: location / identity / schema / atomicity | T2 |
 | `claimed_areas` derived, not persisted (decision #4) | T1 (`claims_for_who`) + T3 (roster) |
-| Liveness & reaping table (decision #1) | T2 (`sweep_presence`, `_pid_alive`, floor) |
+| Liveness & reaping table (decision #1) | T2 (`sweep_presence` keeps trusted-live pids; absent/dead/untrusted pids → heartbeat floor; `_pid_alive`) |
 | announce sets summary + declares write set | T4 |
 | claim_guard heartbeat on edit | T7 |
 | Deregister = release-on-exit / expire-on-crash (decision #3) | T5 + T2 (dead-pid reap) + 2 h TTL |
@@ -1417,11 +1548,11 @@ Expected: the second `list` shows no error; the announce created a `session:<id>
 | Hook wiring SessionStart / PreToolUse / Stop | T8 / T7 / T9 |
 | Subagents (unit = top-level session) | T10 + Probe 3 (T0); heartbeat no-op safety |
 | Roster format | T3 (`_format_line`) |
-| Cross-worktree visibility & weighting (decision #2) | T3 (line fields) + T10 (weighting) |
+| Cross-worktree visibility & weighting (decision #2) | T3 (`_format_line` marks cross-worktree peers) + T10 (weighting — **OPEN**, confirm intent) |
 | Pre-build verification gate | T0 |
 | Failure modes / hard backstop | fail-open in every function + T10 note |
 
-No spec section is unmapped; no task references a symbol defined only in a later task (T1 helpers precede their T3/T5 consumers; T2 primitives precede T3–T6; `register`'s forward call to `list_roster` is covered by the explicit stub-then-replace note in T2/T3).
+Every spec section is mapped (deltas noted inline: cross-worktree weighting is OPEN pending user confirmation; reaping uses the untrusted-pid→floor refinement). No task references a symbol defined only in a later task (T1 helpers precede their T3/T5 consumers; T2 primitives precede T3–T6; `register`'s forward call to `list_roster` is covered by the explicit stub-then-delete note in T2/T3).
 
 ## Execution handoff
 
