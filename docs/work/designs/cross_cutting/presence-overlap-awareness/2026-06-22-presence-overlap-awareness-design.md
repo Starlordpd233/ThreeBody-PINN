@@ -306,9 +306,9 @@ Active sessions (excluding yours):
 Fields: short session id, worktree, branch, `task_summary` (or "no task announced"),
 derived claimed (write) areas, heartbeat age.
 
-**Cross-worktree visibility and weighting** (reconstruction of garbled source text —
-flagged for review): peers in **other** worktrees remain visible but are **marked** as
-cross-worktree. The agent weights overlap **by locality**:
+**Cross-worktree visibility and weighting** (originally a reconstruction of garbled
+source text; **confirmed by the user 2026-06-26**): peers in **other** worktrees remain
+visible but are **marked** as cross-worktree. The agent weights overlap **by locality**:
 
 - **Same-worktree / same-branch** peers carry the **highest** weight for *file-collision*
   risk, because they share a working directory.
@@ -355,8 +355,9 @@ be corrected at the spec-review gate rather than buried:
 1. **Heartbeat-stale floor = 20 min**, and **live-PID sessions are never reaped for
    idleness** (rendered `idle (♥ Nm)`). The floor is a backstop for untrusted PIDs only.
 2. **Cross-worktree weighting** as reconstructed above (visible-but-marked; file-collision
-   weight highest for same-worktree/same-branch; semantic weight across all peers). This
-   is a reconstruction of garbled source text — confirm it matches intent.
+   weight highest for same-worktree/same-branch; semantic weight across all peers).
+   Originally a reconstruction of garbled source text; **confirmed by the user 2026-06-26**
+   (post-execution review) to match intent — now settled.
 3. **Deregister = release-on-exit, expire-on-crash** (Stop releases claims; 2 h TTL is
    the crash backstop).
 4. **`claimed_areas` derived from the board, not persisted** in the presence file

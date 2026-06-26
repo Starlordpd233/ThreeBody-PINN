@@ -7,7 +7,8 @@ phase: cross-cutting
 retirement_trigger: Retire when all tasks are executed, the test suite is green, and the operating contract is merged into docs/git-guidelines.md; or when superseded by a consolidated parallel-agent-coordination plan.
 execution_status: executed
 executed_at: 2026-06-26T13:38:00+08:00
-review_status: pending
+review_status: reviewed
+reviewed_at: 2026-06-26
 ---
 
 # Presence & Overlap Awareness Implementation Plan
@@ -36,7 +37,7 @@ When a choice trades these off, prefer accuracy and recoverability over cleverne
 - **Advisory / fail-open everywhere:** every library entry point swallows its own exceptions and the CLI always returns exit code 0. A presence failure must never block an edit, a hook, or the agent's shell. The only hard backstop is the owned-paths check in `scripts/agent-commit`.
 - **Atomic writes:** all presence-file writes use the `tmp` + `os.replace` pattern already used by `agent_claims.claim`.
 - **Claims board is the single source of truth for "who writes what."** Presence stores only liveness + intent (`task_summary`); claimed areas are derived by scanning the board, never persisted in the presence file (design decision #4, adopted).
-- **Adopted design decisions:** (1) 20-minute heartbeat-stale floor; a `kill -0`-live pid is **never** reaped for idleness, and a pid that is absent **or untrusted** (e.g. the transient SessionStart shell captured by `getppid()`) falls through to the floor rather than being reaped on sight — this is the design reaping table's row 3 (the floor is the real backstop for untrusted PIDs); (2) **OPEN — confirm before Task 10:** cross-worktree weighting (visible-but-marked; file-collision weight highest for same-worktree/same-branch; semantic-duplication weight across all peers) is a *reconstruction of garbled source text* per the design's Open Decision #2, so it is NOT settled — the user must confirm it matches intent; (3) deregister = release-on-exit, expire-on-crash (Stop releases claims, the claims board's existing 2 h TTL is the crash backstop); (4) `claimed_areas` derived, not persisted.
+- **Adopted design decisions:** (1) 20-minute heartbeat-stale floor; a `kill -0`-live pid is **never** reaped for idleness, and a pid that is absent **or untrusted** (e.g. the transient SessionStart shell captured by `getppid()`) falls through to the floor rather than being reaped on sight — this is the design reaping table's row 3 (the floor is the real backstop for untrusted PIDs); (2) **RESOLVED 2026-06-26 (user-confirmed):** cross-worktree weighting (visible-but-marked; file-collision weight highest for same-worktree/same-branch; semantic-duplication weight across all peers). Originally a *reconstruction of garbled source text* per the design's Open Decision #2; the user confirmed during post-execution review that it matches intent, so it is now settled; (3) deregister = release-on-exit, expire-on-crash (Stop releases claims, the claims board's existing 2 h TTL is the crash backstop); (4) `claimed_areas` derived, not persisted.
 - **Non-goals (do NOT build):** cross-session activation / the watchdog, any daemon / polling / `tmux send-keys` / cron, any lock that blocks an edit or commit, and sub-file / line-range claim granularity (Decision R1: rejected — the claims engine prefix-matches on `/`).
 - **Execution location:** this is cross-cutting parallel-agent infrastructure; like the claims board it lives on **`master`** and is developed from the **master-root** worktree. **Never push from `master`** — commits are local-only.
 - **Commit policy (every task):** commit via `scripts/agent-commit` only, with `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS` set to explicit owned paths; stage explicit paths only (never `git add -A/-u/.`). Conventional message `<type>(governance): <lowercase imperative>`; body required (governance + multi-file); include an `Agent-Assisted-By:` or `Co-Authored-By:` trailer. Re-run `git status --short --branch` before each commit.
@@ -57,8 +58,8 @@ built until explicitly confirmed:
   no code consuming it; the value is the agent *seeing* peer summaries, which the
   roster already provides. Keep S1 (the headline duplicate-task case); the rest can
   collapse to the one stand-down rule for v1.
-- **Cross-worktree weighting** — Decision #2 is **OPEN** (reconstructed from garbled
-  source text per the design); confirm intent before encoding it.
+- **Cross-worktree weighting** — Decision #2 was **RESOLVED 2026-06-26** (user-confirmed
+  during post-execution review; originally reconstructed from garbled source text).
 
 ---
 
@@ -1548,11 +1549,11 @@ Expected: the second `list` shows no error; the announce created a `session:<id>
 | Hook wiring SessionStart / PreToolUse / Stop | T8 / T7 / T9 |
 | Subagents (unit = top-level session) | T10 + Probe 3 (T0); heartbeat no-op safety |
 | Roster format | T3 (`_format_line`) |
-| Cross-worktree visibility & weighting (decision #2) | T3 (`_format_line` marks cross-worktree peers) + T10 (weighting — **OPEN**, confirm intent) |
+| Cross-worktree visibility & weighting (decision #2) | T3 (`_format_line` marks cross-worktree peers) + T10 (weighting — **RESOLVED 2026-06-26, user-confirmed**) |
 | Pre-build verification gate | T0 |
 | Failure modes / hard backstop | fail-open in every function + T10 note |
 
-Every spec section is mapped (deltas noted inline: cross-worktree weighting is OPEN pending user confirmation; reaping uses the untrusted-pid→floor refinement). No task references a symbol defined only in a later task (T1 helpers precede their T3/T5 consumers; T2 primitives precede T3–T6; `register`'s forward call to `list_roster` is covered by the explicit stub-then-delete note in T2/T3).
+Every spec section is mapped (deltas noted inline: cross-worktree weighting was RESOLVED 2026-06-26 by user confirmation; reaping uses the untrusted-pid→floor refinement). No task references a symbol defined only in a later task (T1 helpers precede their T3/T5 consumers; T2 primitives precede T3–T6; `register`'s forward call to `list_roster` is covered by the explicit stub-then-delete note in T2/T3).
 
 ## Execution handoff
 
@@ -1562,3 +1563,31 @@ After the user approves this plan, choose an execution path:
 2. **Inline Execution** — batch execution in this session with checkpoints (REQUIRED SUB-SKILL: `superpowers:executing-plans`).
 
 Either way: **Task 0 (Probe 1a) must pass before Task 1**, and all work runs on `master` from the master-root worktree with **no push**.
+
+---
+
+## Post-execution review (2026-06-26)
+
+Reviewed after execution by driving the live CLI and hooks at runtime (not just the
+test suite): `agent-presence list` against the live board, plus
+register / announce / heartbeat-on-edit / deregister / sweep exercised through the
+real module and the real `claim_guard.py` and `session_banner.sh` against an isolated
+temp repo. The presence suite passes 28/28; the pre-existing `test_concurrency.py` (12)
+and `test_git_policy.py` (27) suites still pass — the shared-file edits to `claim_guard.py`
+and `session_banner.sh` did not regress existing tooling.
+
+**Decision #2 (cross-worktree weighting):** the plan's confirm-before-Task-10 gate was
+not recorded at execution time, so the weighting shipped into `docs/git-guidelines.md`
+unconfirmed. The user confirmed it on 2026-06-26 during this review; it is now settled
+and the OPEN markers above are reconciled to RESOLVED. The agent-facing guidance in
+`docs/git-guidelines.md` was already written as settled and needs no change.
+
+**Reviewer note (good deviation):** the executor correctly extended the plan's prescribed
+`CliTests`/`BannerRegisterTests` by copying the scripts into each temp repo (the shim and
+banner resolve the module via `$root/scripts/git_policy/…`, which a bare temp repo lacks),
+so those tests genuinely exercise the module.
+
+**Not changed:** task-step checkboxes were left unticked (execution is verified by the
+runtime review and git history, not the checkboxes); committed history (Task 2–3 commit
+granularity, the separate `claude-mem` settings commit) was left intact rather than
+rewritten.
