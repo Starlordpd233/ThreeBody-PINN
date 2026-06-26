@@ -34,6 +34,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/git_policy/agent_presence.py\" deregister",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {
