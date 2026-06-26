@@ -43,7 +43,7 @@ Copied verbatim from project governance; every task inherits these.
 
 - **Commits:** use `scripts/agent-commit` only — never raw `git commit`. Set `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS` (colon/newline-separated explicit paths). Stage explicit owned paths only — **no** `git add .`/`-A`/`-u`.
 - **Branch:** this is cross-cutting work → perform in the **main worktree** (`<home>/Desktop/3_body_problem`) on `master`. Commit locally; **do not push** from `master`/`main`/`milestone/*`.
-- **Commit messages:** `<type>(<scope>): <lowercase imperative subject>`; scopes here are `docs` (Phase 0) and a fixed domain scope. `plan`/`docs` commits require a body. Add an `Agent-Assisted-By:` trailer.
+- **Commit messages:** `<type>(<scope>): <lowercase imperative subject>`; scopes here are `docs` (Phase 0 docs moves) and `governance` (the watchdog tooling/evidence — it is Part B of the parallel-agent-coordination/governance family; the commit-msg hook **rejects** a `watchdog` scope, allowing only `governance, planning, pinn, brutus, pipeline, spec, docs, ref` plus phase/task scopes). `plan`/`docs` commits require a body. Add an `Agent-Assisted-By:` trailer.
 - **Docs moves (Phase 0):** require a reference audit + a written move proposal + **explicit user approval** before executing (docs/README.md §Reference Audit / §Cleanup Boundaries). Never move artifacts outside `docs/`.
 - **Pre-existing uncommitted edits:** the old build plan currently carries uncommitted cross-worktree edits. Commit those as their **own** atomic unit before any supersession/transformation (git-guidelines: never fold pre-existing changes into a transformation commit).
 - **Evidence re-derivability:** committed tests/proofs, not `/tmp`. Wake prompts are **fixed constants** — never interpolate channel-file contents into a prompt or `send-keys`.
@@ -166,7 +166,7 @@ cd <home>/Desktop/3_body_problem
 rm -f /tmp/wd_wake_demo /tmp/wd_wake_demo2
 GIT_AGENT_ID=watchdog-build \
 GIT_AGENT_OWNED_PATHS='tools/watchdog/' \
-scripts/agent-commit -m "test(watchdog): record unattended idle-wake results and re-home PTY proof" \
+scripts/agent-commit -m "test(governance): record unattended idle-wake results and re-home PTY proof" \
   -m "Manual two-terminal P1/P2 idle-wake evidence; selects the primary wake path for the MVP."
 ```
 
@@ -316,7 +316,7 @@ done
 cd <home>/Desktop/3_body_problem
 GIT_AGENT_ID=watchdog-build \
 GIT_AGENT_OWNED_PATHS='tools/watchdog/:tests/watchdog/' \
-scripts/agent-commit -m "feat(watchdog): add signal, staleness gate, and exactly-once watcher (MVP)" \
+scripts/agent-commit -m "feat(governance): add watchdog signal, staleness gate, and exactly-once watcher (MVP)" \
   -m "wd-common/publish-done/check/arm + same-worktree end-to-end tests. Same-worktree handoff works; cross-worktree integration is Phase 3."
 ```
 
@@ -351,7 +351,7 @@ fi
 
 - [ ] **Step 1: Add `tests/watchdog/test_watchdog_xworktree.py`** — temp repo with two linked worktrees on different branches; A commits on its branch + publishes; assert `wd-check --require-integration` returns `STALE:not-integrated`, then `wd-integrate` succeeds, then it returns `WAKE`; and a conflicting B-edit makes `wd-integrate` exit 4 cleanly (no half-merge). Run with `python3 -m unittest`.
 
-- [ ] **Step 2: Commit** (`feat(watchdog): add cross-worktree integration step and test`).
+- [ ] **Step 2: Commit** (`feat(governance): add watchdog cross-worktree integration step and test`).
 
 ---
 
