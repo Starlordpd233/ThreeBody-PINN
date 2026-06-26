@@ -25,7 +25,10 @@ retirement_trigger: >
 Two Claude Code sessions run in separate terminal tabs. **Agent A** does a unit of work
 (e.g. a GSD phase). **Agent B** sits idle in its own tab, pre-armed by the user with a
 short prompt: *"wait for the watchdog; start your task once Agent A is done."* When A
-finishes, B must **start working on its own, unattended** — no human keystroke. This plan
+finishes, B must **start working on its own, unattended** — no human keystroke. The two
+sessions typically run in **separate git worktrees** (this project runs one worktree per
+track), so the watchdog must work **across worktrees** — a hard requirement (set 2026-06-22)
+that shapes the channel and gate design (§4, §5). This plan
 specifies the files, the signal, and the wake mechanism that make that happen, plus the
 one last-mile question (`does a keystroke injected into B's terminal actually submit?`)
 that only the user's manual two-terminal test can close.
@@ -104,19 +107,32 @@ exactly what a multiplexer (tmux) provides. Hence: **PUSH requires B launched un
 
 ---
 
-## 4. The signal — what "Agent A is done" means (unchanged from design)
+## 4. The signal — what "Agent A is done" means (cross-worktree)
 
-Reusing the design's L1/L2 model verbatim; this plan only operationalizes it.
+The design's L1/L2 model, **adapted for the cross-worktree requirement**. The design was
+written assuming one shared worktree (it says so explicitly); this project runs one worktree
+per track, so the channel and the gate must be redefined to span worktrees. The anchor is
+unchanged; the channel location and the gate (§5 step 5) are the adaptations.
 
 - **Anchor = the Git commit (design B2).** A unit of work is done when its atomic
-  completion commit lands (for GSD: the `verify(NN)` phase-close commit). A commit is
-  durable, ordered, and unambiguous — unlike `.planning/STATE.md`, which is structurally
-  noisy and must **not** be used as a done signal.
-- **Channel = the gitignored `.live-monitor/` spine (design L1/B4).** On-disk message
-  channels under `.live-monitor/channels/<name>/messages/`, append-only, **atomic publish**
-  (write temp file, then `rename`), with per-consumer cursors so B reads only new messages.
-- **Done message = `{ stage, head, scope, producer, ts }` (design B5).** `head` is the
-  commit SHA at publish time (the anchor); `scope` is the path set the done covers.
+  completion commit lands (for GSD: the `verify(NN)` phase-close commit). The commit SHA is a
+  *global* anchor: all linked worktrees share one object store, so A's commit is visible from
+  B's worktree regardless of branch (verified 2026-06-22 — `cat-file -e` resolves a
+  cross-worktree HEAD). A commit is durable, ordered, and unambiguous — unlike
+  `.planning/STATE.md`, which is structurally noisy and must **not** be used as a done signal.
+- **Channel = a shared `live-monitor/` spine in the git common dir (cross-worktree fix).**
+  Channels live under `<git-common-dir>/live-monitor/channels/<name>/messages/`, where the
+  root is `git rev-parse --git-common-dir` — the single physical `.git` directory shared by
+  every linked worktree (verified identical from all three live worktrees). Append-only,
+  **atomic publish** (write temp file, then `rename`), per-consumer cursors so B reads only new
+  messages. Because it lives inside `.git/`, it is outside every working tree and needs **no
+  `.gitignore` entry**. (The design's working-tree-relative `.live-monitor/` would give each
+  worktree a *private* channel — the cross-worktree break this fixes.)
+- **Done message = `{ stage, head, producer, producer_ref, scope, ts }`.** `head` is the
+  commit SHA at publish time (the anchor); `producer_ref` is A's branch (so B can detect
+  whether A advanced past `head` within `scope`); `scope` is the path set the done covers. A
+  publishes only when `scope` is committed and clean in its own worktree (a publish-time
+  invariant the message asserts).
 
 ---
 
@@ -124,25 +140,43 @@ Reusing the design's L1/L2 model verbatim; this plan only operationalizes it.
 
 Ordered so each step is independently testable. Nothing here is built yet.
 
-### L1 — `.live-monitor/` spine
+### L1 — shared `live-monitor/` spine (in the git common dir)
 1. **L0 lock primitive.** Reuse the `mkdir`-lock pattern already in `scripts/agent-commit`
    (atomic create; trap-cleanup on exit). No new primitive.
-2. **Channel layout.** `.live-monitor/channels/<name>/messages/` (gitignored). Publish =
-   write `*.tmp`, then `rename` to a monotonic `NNNN.json`. Consumers keep a cursor file.
-3. **`lm-publish` / `lm-check`.** Two small scripts: publish a message; report new messages
-   since the cursor as **IDLE** / **WAKE**. (The design's 90-second cron drives `lm-check`;
-   here the wake mechanism in L2 subsumes that.)
+2. **Channel layout.** `<git-common-dir>/live-monitor/channels/<name>/messages/`, where the
+   root is resolved at runtime by `git rev-parse --git-common-dir` (**not** a
+   working-tree-relative path — that is what made the channel per-worktree). Publish = write
+   `*.tmp`, then `rename` to a monotonic `NNNN.json`. Consumers keep a cursor file. No
+   `.gitignore` entry needed (inside `.git/`).
+3. **`lm-publish` / `lm-check`.** Two small scripts; **both resolve the channel root via
+   `git rev-parse --git-common-dir`** so every worktree shares one channel. Publish a message;
+   report new messages since the cursor as **IDLE** / **WAKE**. (The design's 90-second cron
+   drives `lm-check`; here the wake mechanism in L2 subsumes that.)
 
-### L2 — done-signal + consumer-side staleness gate (the new core)
+### L2 — done-signal + consumer-side staleness gate (the new core, redefined for cross-worktree)
 4. **Producer side (`lm-publish done`).** Agent A, on completing its unit, publishes the
-   `done` message with the current HEAD as `head`.
-5. **Consumer staleness gate (design B6)** — B runs all three before acting:
-   - **Ancestry** — is `done.head` an ancestor of current integration HEAD?
-   - **Committed-drift** — was anything in `done.scope` committed *after* `done.head`?
-   - **Uncommitted-drift** — does the working tree carry uncommitted changes in `done.scope`?
-   Wake only if all three pass. This is what makes "no more work after this commit"
-   *detectable* at B's start point — the honest guarantee (the mechanism cannot stop a
-   willful producer from working past `done`, but B will not start on a stale done).
+   `done` message with its current HEAD as `head` and its branch as `producer_ref`. A
+   publishes only when `scope` is committed and clean in its worktree.
+5. **Consumer staleness gate (cross-worktree).** The design's B6 gate assumed A and B share
+   one branch ("is `done.head` an ancestor of *my* HEAD?"). Across worktrees on different
+   branches that ancestry is `false` even when A is genuinely done (verified 2026-06-22:
+   specwork HEAD is not an ancestor of trainex HEAD), so the gate is redefined against the
+   shared object store and A's own ref. B runs all three before acting:
+   - **Reachability** — `git rev-parse --verify --quiet <done.head>^{commit}` succeeds: A's
+     commit really exists in the shared store. (Replaces "ancestry to B's HEAD.")
+   - **Producer-stability** — `git rev-list <done.head>..<done.producer_ref> -- <done.scope>`
+     is empty: A's branch has no further `scope`-touching commits after the anchor. (Replaces
+     same-branch committed-drift.)
+   - **Producer-cleanliness** — the publish-time clean invariant holds; B may re-verify with
+     `git -C <A-worktree> status --porcelain -- <done.scope>` if the message carries A's
+     worktree path. (Replaces uncommitted-drift.)
+   Wake only if all three pass — the honest guarantee (the mechanism cannot stop a willful
+   producer from working past `done`, but B will not start on a stale done).
+   - **Optional integration variant.** If B needs A's *content present in its own line* (not
+     just "A finished"), additionally require
+     `git merge-base --is-ancestor <done.head> <B-integration-ref>`. Whether to require this is
+     a per-consumer choice — **surface, do not hardcode**; it changes the handoff from "A is
+     done" to "A's work is merged into B's branch."
 
 ### Wake mechanism (the part the design left open)
 6. **P1 — background watcher (default).** B's arming prompt installs a background `Bash`
@@ -237,8 +271,9 @@ tmux new -s agentB
 #   inside: start `claude`, and tell it: "wait for the watchdog; when it injects
 #   a prompt saying Agent A is done, begin your task."  Then leave it idle.
 
-# 3. from ANOTHER terminal, simulate the watchdog firing the wake:
-tmux send-keys -t agentB 'Agent A is done — begin your task now.' Enter
+# 3. from ANOTHER terminal, simulate the watchdog firing the wake (TWO calls — see Outcome):
+tmux send-keys -t agentB 'Agent A is done — begin your task now.'   # type the text
+tmux send-keys -t agentB Enter                                       # submit separately
 
 # PASS = the idle Agent B receives the line, submits it, and starts working
 #        with no human keystroke in B's tab.
@@ -271,7 +306,9 @@ PUSH (P3) is cleared for build with this shim baked into the wake command.
   producer from working *after* publishing `done`. The achievable guarantee is unambiguous
   publish + consumer-side staleness detection. Accepted.
 - **Long idle gaps.** A background watcher (P1) lives only as long as the session process;
-  truly long idle (hours/restart) needs the durable cron (P2). Both are specified.
+  truly long idle (hours/restart) needs the durable cron (P2). Note P2's ceilings (from the
+  `CronCreate` contract): durable crons **auto-expire after 7 days** and fire with up to
+  ~15 min jitter — so a >7-day idle outlives even P2, and P2 latency is not exact.
 - **Staleness-gate scope precision.** The gate is only as good as `done.scope`. A too-broad
   scope causes false "stale"; too-narrow misses real drift. Adapter (L3) must set scope from
   the actual phase paths.
@@ -279,6 +316,35 @@ PUSH (P3) is cleared for build with this shim baked into the wake command.
   opt-in accelerator, never a requirement.
 - **Dependency on Part A.** The done-anchor trusts atomic, owned-path commits — Part A's
   discipline (now landed). Weaker commit hygiene makes the gate noisy.
+- **Cross-worktree assumptions (2026-06-22 requirement).** The shared channel and the
+  redefined gate assume A and B are **linked worktrees of the same repo** — one git common
+  dir, one object store (verified). They do **not** span separate clones or machines; that is
+  out of scope. Producer-stability/cleanliness assume A commits its unit before publishing
+  `done` and does not later rewrite or force-push `producer_ref`.
+
+### Open items to resolve before build (2026-06-22 review)
+
+Recorded so they are not lost. Several are design sub-decisions to settle at build start, not
+agent calls to make now:
+
+- **Task payload contract (gap).** The wake transfers *control* to B, but nothing yet defines
+  *what B does* — where B's task is specified and how it re-derives it after a cron fire or a
+  long idle. Decide: arming-prompt-only, or a task-spec file the `done`/wake message points to.
+- **Exactly-once guard (gap).** If both P1 (watcher) and P2 (cron) are armed, or a second
+  `done` lands, B can double-start. Add a single-consumption claim/lock (e.g. B writes a
+  `claimed/<msg-id>` marker under the channel via the L0 lock before acting).
+- **Producer-liveness / dead-A timeout (gap).** P1's `until`-loop has no timeout; if A
+  crashes, B blocks forever. Add a bounded timeout that surfaces "A appears stalled" rather
+  than hanging silently.
+- **P1 idle-wake grounding.** The real basis for "idle B wakes" is the tool contract
+  (background `Bash` "re-invokes you when it exits"; `ScheduleWakeup`/`Monitor` notes), not the
+  single `PULL_DETECTED after 3s` run (which did not isolate the no-human case). Add an
+  explicit idle test to §6: arm B, type nothing, confirm B still wakes.
+- **Evidence re-derivability.** Move `/tmp/wd_pty_proof.py` into `tools/` at build start so the
+  PUSH proof is re-derivable from committed state, not `/tmp`.
+- **Authority hygiene.** When building, re-home design Part B as `active` (or add a forward
+  pointer) so a `status: consumed` doc is not the sole architecture record. Keep the injected
+  wake prompt a fixed constant — never interpolate channel-file contents into `send-keys`.
 
 ---
 
