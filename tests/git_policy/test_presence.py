@@ -225,5 +225,40 @@ class RosterHeartbeatTests(PresenceTestBase):
         self.assertIn("[cross-worktree]", roster)
 
 
+class AnnounceTests(PresenceTestBase):
+    def test_announce_sets_summary_and_claims_areas(self):
+        import agent_presence
+        agent_presence.register("sid-1", pid=os.getpid())
+        agent_presence.announce("sid-1", "adjudicate phase 32", ["a.md", "b.md"])
+        entry = agent_claims.load(agent_presence.presence_file("sid-1"))
+        self.assertEqual(entry["task_summary"], "adjudicate phase 32")
+        self.assertEqual(
+            agent_claims.claims_for_who(agent_presence.who_key("sid-1")),
+            ["a.md", "b.md"])
+
+    def test_announce_empty_areas_sets_summary_only(self):
+        import agent_presence
+        agent_presence.register("sid-1", pid=os.getpid())
+        agent_presence.announce("sid-1", "just thinking", [])
+        entry = agent_claims.load(agent_presence.presence_file("sid-1"))
+        self.assertEqual(entry["task_summary"], "just thinking")
+        self.assertEqual(
+            agent_claims.claims_for_who(agent_presence.who_key("sid-1")), [])
+
+    def test_announce_does_not_seize_peer_claim(self):
+        import agent_presence
+        os.environ["AGENT_CLAIM_WHO"] = agent_presence.who_key("peer")
+        agent_claims.claim("contested.md")
+        os.environ.pop("AGENT_CLAIM_WHO", None)
+        agent_presence.register("mine", pid=os.getpid())
+        agent_presence.announce("mine", "try to take it", ["contested.md"])
+        # peer still owns it; announce did not clobber
+        self.assertEqual(
+            agent_claims.claims_for_who(agent_presence.who_key("peer")),
+            ["contested.md"])
+        self.assertEqual(
+            agent_claims.claims_for_who(agent_presence.who_key("mine")), [])
+
+
 if __name__ == "__main__":
     unittest.main()

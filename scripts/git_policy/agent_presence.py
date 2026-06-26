@@ -220,6 +220,37 @@ def _format_line(entry, areas, now, my_worktree=None):
             f"         writes: {writes}   ♥ {heart}")
 
 
+def announce(session_id, summary, areas):
+    session_id = _safe_session_id(session_id) or _session_from_env()
+    if session_id is None:
+        return ""
+    entry = _load_or_init(session_id)
+    entry["session_id"] = session_id
+    if entry.get("pid") is None:
+        entry["pid"] = os.getppid()
+    if entry.get("worktree") in (None, "?"):
+        entry["worktree"], entry["branch"] = _git_context()
+    entry["task_summary"] = summary
+    entry["last_heartbeat"] = int(time.time())
+    _atomic_write(presence_file(session_id), entry)
+    # Declare the intended write set on the board, attributed to this session.
+    # Save/restore AGENT_CLAIM_WHO so announce never leaks identity into a
+    # longer-lived process that later calls agent_claims under its own who.
+    saved_who = os.environ.get("AGENT_CLAIM_WHO")
+    os.environ["AGENT_CLAIM_WHO"] = who_key(session_id)
+    try:
+        for area in areas:
+            area = area.strip()
+            if area:
+                agent_claims.claim(area, why="announced intent")
+    finally:
+        if saved_who is None:
+            os.environ.pop("AGENT_CLAIM_WHO", None)
+        else:
+            os.environ["AGENT_CLAIM_WHO"] = saved_who
+    return list_roster(exclude=session_id)
+
+
 def list_roster(exclude=None):
     sweep_presence()
     if exclude is None:
