@@ -27,7 +27,7 @@ retirement_trigger: >
 
 Three things prompted this rewrite:
 
-1. **Two scattered plan folders.** The watchdog's work is split across `docs/work/plans/cross_cutting/parallel-agent-coordination/` (the **completed** Part-A worktree/concurrency plan, `status: consumed`) and `docs/work/plans/cross_cutting/cross-session-watchdog/` (the **active, unbuilt** watchdog plan). They are two phases of one design family, not the same task. Phase 0 consolidates them under the umbrella `parallel-agent-coordination/` topic.
+1. **Two scattered plan folders.** The watchdog's work is split across `docs/work/plans/cross_cutting/parallel-agent-coordination/` (the **completed** Part-A worktree/concurrency plan, `status: consumed`) and `docs/work/plans/cross_cutting/cross-session-watchdog/` (the **active, unbuilt** watchdog plan). They are two phases of one design family, not the same task. Phase 0 consolidates them under the umbrella `parallel-agent-coordination/` topic. (After Phase 0 ran, the umbrella folder was renamed to `parallel-agent-coordination-watchdog/` on 2026-06-26 for quick identification; the original-name paths in the Phase 0 steps below reflect the commands as executed.)
 
 2. **The prior plan was a feasibility/rationale doc, not an executable plan.** A final review (this session) found load-bearing gaps: the "primary" PULL wake path's unattended idle-wake was the *least*-demonstrated piece (PUSH was the only path proven in a real idle TUI); a producer-stability livelock; an incomplete `git rev-parse --git-common-dir` command; an unspecified exactly-once race; a missing task-payload contract; and no dead-producer timeout. This plan resolves each.
 

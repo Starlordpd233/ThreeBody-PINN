@@ -13,7 +13,7 @@ retirement_trigger: >
 # Worktree Placement & Parallel-Agent Concurrency — Implementation Review
 
 **Design:** `docs/work/designs/cross_cutting/parallel-agent-coordination/2026-06-18-worktree-placement-and-concurrency-design.md`  
-**Plan:** `docs/work/plans/cross_cutting/parallel-agent-coordination/2026-06-18-worktree-placement-and-concurrency-plan.md`  
+**Plan:** `docs/work/plans/cross_cutting/parallel-agent-coordination-watchdog/2026-06-18-worktree-placement-and-concurrency-plan.md`  
 **Reviewer:** Claude Code verification gatekeeper  
 **Date:** 2026-06-18
 
@@ -177,7 +177,7 @@ but not committed:
 - `AGENTS.md`
 - `docs/git-guidelines.md`
 - `docs/work/designs/cross_cutting/parallel-agent-coordination/2026-06-18-worktree-placement-and-concurrency-design.md`
-- `docs/work/plans/cross_cutting/parallel-agent-coordination/2026-06-18-worktree-placement-and-concurrency-plan.md`
+- `docs/work/plans/cross_cutting/parallel-agent-coordination-watchdog/2026-06-18-worktree-placement-and-concurrency-plan.md`
 - `scripts/git_policy/validate_staged_paths.py`
 
 The prior agent's commit history contains commits for each task, but the final
