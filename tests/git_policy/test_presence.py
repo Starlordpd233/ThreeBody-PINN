@@ -365,5 +365,50 @@ class GuardHeartbeatTests(unittest.TestCase):
             (self.repo / ".git" / "agent-presence" / "sess-Z.json").exists())
 
 
+SESSION_BANNER = ROOT / "scripts" / "session_banner.sh"
+
+
+class BannerRegisterTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = init_repo(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+        (self.repo / "f").write_text("x\n")
+        git(self.repo, "add", "f")
+        git(self.repo, "commit", "-q", "-m", "init")
+
+        import shutil
+        os.makedirs(os.path.join(self.repo, "scripts", "git_policy"))
+        shutil.copy(PRESENCE, os.path.join(self.repo, "scripts", "git_policy", "agent_presence.py"))
+        shutil.copy(GIT_POLICY / "agent_claims.py", os.path.join(self.repo, "scripts", "git_policy", "agent_claims.py"))
+
+    def test_banner_registers_via_payload_and_seeds_env_file(self):
+        env_file = self.repo / "claude_env"
+        payload = json.dumps({"session_id": "sess-banner",
+                              "hook_event_name": "SessionStart"})
+        result = run_iso(["bash", str(SESSION_BANNER)], self.repo, stdin=payload,
+                         env={"CLAUDE_ENV_FILE": str(env_file)})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertRegex(result.stdout, r"worktree \S+ -> branch \S+")
+        self.assertTrue(
+            (self.repo / ".git" / "agent-presence" / "sess-banner.json").exists())
+        self.assertIn("CLAUDE_CODE_SESSION_ID=sess-banner", env_file.read_text())
+
+    def test_banner_registers_via_env_when_no_payload(self):
+        result = run_iso(["bash", str(SESSION_BANNER)], self.repo, stdin="",
+                         env={"CLAUDE_CODE_SESSION_ID": "sess-env"})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(
+            (self.repo / ".git" / "agent-presence" / "sess-env.json").exists())
+
+    def test_banner_silent_without_session_id(self):
+        result = run_iso(["bash", str(SESSION_BANNER)], self.repo, stdin="")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertRegex(result.stdout, r"worktree \S+ -> branch \S+")
+        # No identity -> no presence dir entries created
+        pdir = self.repo / ".git" / "agent-presence"
+        self.assertTrue(not pdir.exists() or not any(pdir.iterdir()))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -202,13 +202,13 @@ class SessionBannerTests(unittest.TestCase):
             (repo / "f").write_text("x\n")
             git(repo, "add", "f")
             git(repo, "commit", "-q", "-m", "init")
-            result = run(["bash", str(SESSION_BANNER)], repo)
+            result = run(["bash", str(SESSION_BANNER)], repo, stdin="")
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertRegex(result.stdout.strip(), r"^worktree \S+ -> branch \S+")
 
     def test_silent_outside_repo(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = run(["bash", str(SESSION_BANNER)], tmp)
+            result = run(["bash", str(SESSION_BANNER)], tmp, stdin="")
             self.assertEqual(result.returncode, 0)
             self.assertEqual(result.stdout.strip(), "")
 
