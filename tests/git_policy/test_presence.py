@@ -179,32 +179,50 @@ class RegisterSweepTests(PresenceTestBase):
         self.assertEqual(agent_presence.register(None), "")  # no env, no arg
 
 
-class FormattingTests(PresenceTestBase):
-    def test_roster_formatting(self):
+class RosterHeartbeatTests(PresenceTestBase):
+    def test_heartbeat_bumps_only_existing_file(self):
         import agent_presence
-        agent_presence.register("sid-A", pid=100)
-        os.environ["AGENT_CLAIM_WHO"] = agent_presence.who_key("sid-A")
-        agent_claims.claim("sim/a.py")
-        agent_claims.claim("pinn/c.py")
-        agent_presence.register("sid-B", pid=101)  # no claims
-        
-        # Test roster format output
-        out = agent_presence.format_roster()
-        self.assertIn("sid-A", out)
-        self.assertIn("sid-B", out)
-        self.assertIn("pinn/c.py, sim/a.py", out)
-
-    def test_task_summary_read_write(self):
-        import agent_presence
-        agent_presence.register("sid-1")
-        agent_presence.set_task_summary("sid-1", "investigate test failures")
-        
+        agent_presence.register("sid-1", pid=os.getpid())
         path = agent_presence.presence_file("sid-1")
         entry = agent_claims.load(path)
-        self.assertEqual(entry["task_summary"], "investigate test failures")
-        
-        out = agent_presence.format_roster()
-        self.assertIn("investigate test failures", out)
+        entry["last_heartbeat"] = 100
+        agent_presence._atomic_write(path, entry)
+        self.assertEqual(agent_presence.heartbeat("sid-1"), 0)
+        self.assertGreater(agent_claims.load(path)["last_heartbeat"], 100)
+
+    def test_heartbeat_missing_file_is_noop(self):
+        import agent_presence
+        self.assertEqual(agent_presence.heartbeat("never-registered"), 0)
+        self.assertIsNone(agent_claims.load(
+            agent_presence.presence_file("never-registered")))
+
+    def test_roster_excludes_self_and_derives_areas(self):
+        import agent_presence
+        agent_presence.register("me", pid=os.getpid())
+        agent_presence.register("peer", pid=os.getpid())
+        os.environ["AGENT_CLAIM_WHO"] = agent_presence.who_key("peer")
+        agent_claims.claim("ctl_instruction.md")
+        os.environ.pop("AGENT_CLAIM_WHO", None)
+        roster = agent_presence.list_roster(exclude="me")
+        self.assertIn("[peer", roster)
+        self.assertNotIn("[me]", roster)
+        self.assertIn("ctl_instruction.md", roster)
+
+    def test_roster_empty_when_alone(self):
+        import agent_presence
+        agent_presence.register("me", pid=os.getpid())
+        self.assertIn("none", agent_presence.list_roster(exclude="me"))
+
+    def test_roster_marks_cross_worktree_peer(self):
+        import agent_presence
+        agent_presence.register("me", pid=os.getpid())
+        agent_presence.register("peer", pid=os.getpid())
+        ppath = agent_presence.presence_file("peer")
+        pe = agent_claims.load(ppath)
+        pe["worktree"] = "some-other-worktree"  # force a different worktree
+        agent_presence._atomic_write(ppath, pe)
+        roster = agent_presence.list_roster(exclude="me")
+        self.assertIn("[cross-worktree]", roster)
 
 
 if __name__ == "__main__":
