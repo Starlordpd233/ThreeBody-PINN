@@ -19,8 +19,8 @@ Milestone index: `.planning/milestones/v1.6-GAPS.md`.
   - **B.** Final stage trains on replay only; undersized lookahead reduces the batch size (or is padded from replay); replay uses a reservoir sampler.
   - **C.** Another explicit deterministic policy supplied by the owner.
 - **Confidence of impact:** **HIGH** — the choice affects batch distribution, curriculum convergence, and whether the final stage trains correctly.
-- **Status:** **OPEN**
-- **Resolution note:**
+- **Status:** **RESOLVED-WITH-INSTRUCTION**
+- **Resolution note:** 2026-06-25 — Owner ratified **Option A** via AskUserQuestion during Phase 34 UAT (`/gsd-verify-work 34`). The deterministic edge-case policy is: **(a)** at the final stage (`has_stage(k+1)` false) the batch trains on the **replay set only**; **(b)** when the next-stage look-ahead pool has fewer than 16 eligible trajectories it is **padded by sampling with replacement** from the available pool, holding the batch size fixed at `B_replay + B_lookahead = 240 + 16`; **(c)** the replay set is **sampled without replacement across the epoch** (standard once-per-epoch coverage). Options B (reservoir sampler / shrink-batch) and C (custom) declined. The transcribed values inherit the LOOP-01 `provisional` tag (B-07 `modified`: provisional defaults, not verified optimums). Transcription into the `ctl_instruction.md` Mini-Batch Construction LOOP-01 contract — replacing the L1799 "owner-pending (GAP-34-01)" callout with the ratified policy — is routed to a follow-up Phase 34 spec-edit plan (34-06) under the normal packet/verify discipline; it was **not** free-handed inside the UAT flow. This clears the Phase-34 closure gate recorded in `34-VERIFICATION.md` §8.
 
 ---
 
