@@ -251,6 +251,20 @@ def announce(session_id, summary, areas):
     return list_roster(exclude=session_id)
 
 
+def deregister(session_id=None):
+    session_id = _safe_session_id(session_id) or _session_from_env()
+    if session_id is None:
+        return 0
+    agent_claims.release_by_who(who_key(session_id))
+    path = presence_file(session_id)
+    if path:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+    return 0
+
+
 def list_roster(exclude=None):
     sweep_presence()
     if exclude is None:

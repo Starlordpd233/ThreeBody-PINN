@@ -260,5 +260,21 @@ class AnnounceTests(PresenceTestBase):
             agent_claims.claims_for_who(agent_presence.who_key("mine")), [])
 
 
+class DeregisterTests(PresenceTestBase):
+    def test_deregister_removes_presence_and_releases_claims(self):
+        import agent_presence
+        agent_presence.register("sid-1", pid=os.getpid())
+        agent_presence.announce("sid-1", "work", ["x.md", "y.md"])
+        agent_presence.deregister("sid-1")
+        self.assertIsNone(agent_claims.load(
+            agent_presence.presence_file("sid-1")))
+        self.assertEqual(
+            agent_claims.claims_for_who(agent_presence.who_key("sid-1")), [])
+
+    def test_deregister_unknown_session_is_noop(self):
+        import agent_presence
+        self.assertEqual(agent_presence.deregister("ghost"), 0)
+
+
 if __name__ == "__main__":
     unittest.main()
