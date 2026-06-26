@@ -1796,7 +1796,13 @@ All values are tagged **provisional** (B-07 `modified`: "provisional defaults, n
 
 > **Windowed-causal-mode compatibility note.** The batch-construction contract above is **compatible with** a windowed causal mode that excludes future-window trajectories, should the Phase-35 owner decision (D-04 / GAP-02) later select such a mode. This contract does **not** select or lock a causal mode; the causal-mode decision is deferred to Phase 35 (owner-pending) with a forward-reference.
 
-> **Batch edge cases — owner-pending (GAP-34-01).** The final-stage behavior when `has_stage(k+1)` is false, the behavior when the next-stage lookahead pool has fewer than 16 eligible trajectories, and the replacement / reservoir policy for the replay and lookahead sets are flagged by B-07 §1.4 as needing determinism, but the source gives no policy. These edge cases are recorded as `GAP-34-01` (OPEN) rather than filled with an invented default.
+> **Phase 34 contract: batch edge-case policy (LOOP-01; provisional; resolved by owner instruction — GAP-34-01 RESOLVED-WITH-INSTRUCTION 2026-06-25, Option A via UAT).** The three batch edge cases flagged by B-07 §1.4 as needing determinism are resolved by owner-ratified **Option A**, each carrying the LOOP-01 `provisional` tag (B-07 `modified`):
+>
+> 1. **Final stage** — when `has_stage(k+1)` is false there is no look-ahead set, so the batch trains on the **replay set only** (`B_lookahead = 0`).
+> 2. **Undersized look-ahead pool** — when the stage `k+1` pool has fewer than `B_lookahead = 16` eligible trajectories, the look-ahead set is **padded by sampling with replacement** from the available pool, holding the batch size fixed at `B_replay + B_lookahead = 240 + 16`.
+> 3. **Replay sampling** — the replay set is **sampled without replacement** across the epoch (standard once-per-epoch coverage).
+>
+> These are provisional defaults (B-07 `modified`), not verified optimums; owner-ratified Option A — see `34-GAPS.md` GAP-34-01 (RESOLVED-WITH-INSTRUCTION).
 
 > **Phase 34 contract: data versus collocation points (LOOP-02; provisional; AC-LOOP-02; grounded by the resolution doc §1.5 and `evidence/b-08-data-vs-collocation-points.md`).**
 

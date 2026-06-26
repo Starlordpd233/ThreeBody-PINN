@@ -2,9 +2,9 @@
 phase: 34
 slug: training-loop-batch-construction-contracts
 verified: 2026-06-25T07:30:00Z
-status: passed-with-closure-gate
-score: 9/9 requirements verified; 5/5 LOOP ledger rows VERIFIED
-gaps_remaining: [GAP-34-01]
+status: passed
+score: 9/9 requirements verified; 5/5 LOOP ledger rows VERIFIED; GAP-34-01 resolved (Plan 34-06)
+gaps_remaining: []
 behavior_unverified: 0
 overrides_applied: 0
 roadmap_truths:
@@ -330,6 +330,10 @@ Result: `STOP-GAP-COMPLETENESS: PASS`.
 ### Phase-34 Closure Gating
 
 Because `GAP-34-01` is an **OPEN owner-pending STOP gap**, Phase-34 closure is **GATED** on the user resolving it (`RESOLVED-WITH-INSTRUCTION`) or explicitly deferring it (`DEFERRED`) per the AGENTS.md STOP protocol ("a phase may not close with an unresolved gap unless the user explicitly resolves or defers it"). The source-silent batch edge cases (final-stage `has_stage(k+1)`=false, undersized next-stage lookahead pool <16, replacement policy) are NOT filled with an invented default. Phase 34 must not be declared fully complete until this gap is resolved or deferred.
+
+### Phase-34 Closure-Gate Update (2026-06-26, Plan 34-06)
+
+**Gate CLEARED.** `GAP-34-01` was resolved `RESOLVED-WITH-INSTRUCTION` on 2026-06-25 — the owner ratified **Option A** via AskUserQuestion during the Phase 34 UAT (`/gsd-verify-work 34`): final stage trains replay-only; an undersized look-ahead pool (<16) is padded by sampling **with** replacement (batch size fixed at `B_replay + B_lookahead = 240 + 16`); replay is sampled **without** replacement across the epoch. The ratified policy was transcribed into the `ctl_instruction.md` Mini-Batch Construction LOOP-01 contract (provisional tag) by **Plan 34-06**, replacing the prior `owner-pending (GAP-34-01)` callout. The LOOP-04 (a)-(e) cross-file suite and the locked-convention regression guard re-passed after the ctl batch (see `34-06-SUMMARY.md`). The frontmatter `status` is updated `passed-with-closure-gate → passed` and `gaps_remaining → []`. The original 2026-06-25T07:30 verification body above is preserved as the historical record. STATE.md / ROADMAP.md advancement remains with the user (D-34-18).
 
 ---
 
