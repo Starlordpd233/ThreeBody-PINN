@@ -1,5 +1,5 @@
 ---
-status: consumed
+status: archived
 purpose: implementation-plan
 created: 2026-06-22
 milestone: untracked
@@ -9,6 +9,7 @@ execution_status: executed
 executed_at: 2026-06-26T13:38:00+08:00
 review_status: reviewed
 reviewed_at: 2026-06-26
+archived_at: 2026-06-26
 ---
 
 # Presence & Overlap Awareness Implementation Plan
