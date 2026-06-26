@@ -77,7 +77,7 @@ the watchdog — see Non-goals.
 - **Not the cross-session watchdog.** No agent is ever auto-activated, woken, or
   signalled. No daemon, no `tmux send-keys`, no cron, no cross-session invocation. The
   watchdog is a separate, parked effort
-  (`docs/work/plans/cross_cutting/cross-session-watchdog/`).
+  (`docs/work/plans/cross_cutting/parallel-agent-coordination/`).
 - **Not a re-implementation of Part A.** The claims board, `claim_guard.py`, and the
   commit-time net already exist and are unchanged in contract. Presence sits on top.
 - **Not a lock.** No verdict here blocks an edit or a commit. The hard backstop stays

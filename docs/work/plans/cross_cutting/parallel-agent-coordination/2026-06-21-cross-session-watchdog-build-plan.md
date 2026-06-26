@@ -1,5 +1,5 @@
 ---
-status: active
+status: consumed
 purpose: implementation-plan
 created: 2026-06-21
 milestone: untracked
@@ -13,6 +13,11 @@ retirement_trigger: >
 ---
 
 # Cross-Session Watchdog — Build Plan
+
+> **Superseded 2026-06-26** by
+> [`2026-06-26-cross-session-watchdog-implementation-plan.md`](2026-06-26-cross-session-watchdog-implementation-plan.md)
+> in this same folder. That rewrite is the executable plan of record; this document is
+> retained as the feasibility/rationale predecessor (`status: consumed`).
 
 > **Companion to the design.** The architecture lives in Part B (Sections B1–B8) of
 > `docs/work/designs/cross_cutting/parallel-agent-coordination/2026-06-17-parallel-agent-coordination-design.md`.
