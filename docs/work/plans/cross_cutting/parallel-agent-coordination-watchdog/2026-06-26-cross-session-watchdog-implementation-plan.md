@@ -136,14 +136,7 @@ The whole "primary" wake path rests on one unproven behavior: **does an idle `cl
 - Move: `/tmp/wd_pty_proof.py` → `tools/watchdog/wd-pty-proof.py` (re-derivable evidence)
 - Create: `tools/watchdog/evidence/2026-06-26-idle-wake-results.md` (record PASS/FAIL)
 
-- [ ] **Step 1: Re-home the PTY proof so the existing evidence is committed.**
-
-```bash
-cd <home>/Desktop/3_body_problem
-mkdir -p tools/watchdog
-[ -f /tmp/wd_pty_proof.py ] && cp /tmp/wd_pty_proof.py tools/watchdog/wd-pty-proof.py || true
-python3 tools/watchdog/wd-pty-proof.py   # expect: PTY_INJECTION_PASS (137 -> 1507)
-```
+- [x] **Step 1: Re-home the PTY proof so the existing evidence is committed.** *Done as deferral (2026-06-27):* `/tmp/wd_pty_proof.py` was absent at session resume; per the evidence file's Provenance section, the PTY proof pertains to the PUSH path (Phase 5, optional). It will be regenerated only if/when Phase 5 is taken up — no committed re-homing needed at this time.
 
 - [ ] **Step 2: Manual idle-wake test — P1 background watcher.** In **terminal 1**, in the main worktree, launch `claude` and arm it (idle) with exactly: *"Run this in the background and do nothing else until it returns: `bash -c 'until test -f /tmp/wd_wake_demo; do sleep 2; done'`. When it returns, print WOKE and stop."* Walk away (no keystrokes in terminal 1). In **terminal 2**:
 
