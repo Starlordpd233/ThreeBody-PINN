@@ -1,3 +1,17 @@
+---
+status: active
+purpose: verification-report
+created: 2026-06-26
+milestone: untracked
+phase: cross-cutting
+retirement_trigger: >
+  Retire when the Phase 4 termination-guarantee contract lands and the watchdog MVP
+  ships — this file's "Discoveries" become regression-test targets rather than standing
+  evidence. The P1/P2 results remain valid for as long as Claude Code's harness primitives
+  (`Bash` background re-entry, `CronCreate`) behave as observed; re-validate after any
+  harness upgrade that touches either primitive.
+---
+
 # Unattended Idle-Wake Test Results — 2026-06-26
 
 Phase 1 of the cross-session watchdog implementation plan
@@ -32,19 +46,76 @@ and act on its own when its own background shell exits (P1) or its own durable c
   not instrumented to sub-second).
 - **Re-entry mode:** spontaneous — NOT keystroke-gated.
 
-## P2 — durable cron re-entry: **NOT YET RUN**
+## P2 — durable cron re-entry: **PASS** ✅ (with caveats)
 
-Deferred. P1 PASS already establishes that an unattended PULL wake is viable, which is the
-load-bearing unknown for the MVP — the Phase 2 MVP wake *is* the P1 background-watcher
-path. P2 (durable `CronCreate`, which survives restarts and long idle) is the intended
-fallback and will be validated when Phase 4 builds the durable wake.
+- **Arming.** A durable `CronCreate` was armed in the consumer session with the fixed
+  prompt: *"If `/tmp/wd_wake_demo2` exists, print WOKE-CRON and stop; else do nothing."*
+  `CronList` and `.claude/scheduled_tasks.json` were verified immediately after arming to
+  confirm the job was on disk (see "Discoveries" below — durability must be verified, not
+  assumed).
+- **Signal.** `/tmp/wd_wake_demo2` created at the consumer session's home worktree by a
+  separate process (the operator's other session), with no interaction with the consumer
+  session after arming.
+- **Result.** The consumer session **spontaneously started new assistant turns with no
+  human keystroke** and printed `WOKE-CRON` on every fire. The cron fired repeatedly (every
+  minute per the cron spec) as long as the session remained foreground and the signal file
+  existed; once the operator closed the session (full computer restart at session end), the
+  fires stopped cleanly.
+- **Latency.** ≤ 60 seconds per fire (cron spec interval). Not instrumented to sub-minute.
+- **Re-entry mode.** spontaneous — NOT keystroke-gated.
+
+### Caveats
+
+- **Foreground requirement.** Cron firing pauses when the consumer session's terminal tab
+  is backgrounded on macOS (process-group throttling). P2 is therefore only reliable when
+  B's TUI is foreground or near-foreground. The watchdog's arming step must warn the user
+  about this.
+- **Drain risk.** A `CronCreate` armed with `durable: true` and no termination contract is a
+  **silent quota drain** against the owning session — confirmed in this test (see
+  "Discoveries"). P2 is therefore not eligible for activation until the Phase 4
+  termination-guarantee contract ships.
+
+## Discoveries (regression targets for Phase 4)
+
+1. **macOS background-tab throttle (MEDIUM).** `CronCreate` does not fire reliably when the
+   consumer session's terminal tab is backgrounded on macOS — the timer pauses with the
+   rest of the tab's process group. Re-entry happens, but with unpredictable / unbounded
+   latency. First observed when an initial arming attempt against a backgrounded tab
+   produced no fires despite the cron being correctly registered.
+2. **Agent-armed `durable: true` crons can come out session-only (MEDIUM).** When a
+   `claude` agent invokes `CronCreate` with `durable: true`, the job has been observed
+   persisting as **session-only** (lives in the agent's process memory, not in
+   `.claude/scheduled_tasks.json`) on at least one path through the harness — even though
+   the `durable` flag was explicitly set. Observed twice in succession on the operator's
+   fresh-session arming attempt; the third attempt (this session, direct arming) did
+   persist correctly. Counterintuitively, **durable is safer than session-only for this
+   use case** because a durable job is observable on disk and externally killable (via
+   `.claude/scheduled_tasks.json` edit), whereas a session-only job is invisible from
+   outside the owning session. The arming skill must therefore **verify persistence on
+   disk** immediately after arming and refuse to consider the arm complete until
+   `CronList` shows the job AND `.claude/scheduled_tasks.json` contains it.
+3. **Silent drain risk from recurring crons (HIGH).** The most important finding of this
+   test. A `CronCreate` armed with `durable: true` and no termination contract will keep
+   firing every minute against an unattended session — every fire is an
+   inference-cost-attached prompt. If the user walks away from the session (or forgets
+   the cron exists), usage accumulates with no visible signal. The operator's own session
+   ran a recurring `* * * * *` cron for ~25 minutes during this test before explicit
+   deletion via `CronDelete` — and a separate agent's `f4c0519d` session-only cron
+   remained live in its owning terminal until the operator closed the entire workstation.
+   The watchdog's P2 path therefore MUST be gated on the Phase 4 termination-guarantee
+   contract (`wd-disarm`, `wd-status`, TTL-bound arming, conservative defaults,
+   disarm-on-success) before it is enabled. This is now a hard requirement in the plan
+   ("Termination guarantee (hard requirement — discovered 2026-06-26)").
 
 ## Decision (Phase 1 Step 4 gate)
 
-- **PULL is viable unattended.** Confirmed by P1.
-- **Primary wake path = P1 background-watcher re-entry** (low latency). This is what the
-  Phase 2 MVP `wd-arm` watcher relies on.
-- **P2 durable cron = intended fallback**, to be verified at Phase 4.
+- **PULL is viable unattended.** Confirmed by both P1 and P2 (in the foreground case).
+- **Primary wake path = P1 background-watcher re-entry** (low latency, inherently
+  drain-safe). This is what the Phase 2 MVP `wd-arm` watcher relies on. The MVP MAY ship
+  with P1 only.
+- **P2 durable cron = intended fallback**, eligible for activation **only after** the
+  Phase 4 termination-guarantee contract lands and is verified by `tests/watchdog/test_termination.py`.
+  Until then, P2 is documented but not enabled.
 - **PUSH (tmux) stays an optional accelerator** (Phase 5), not the primary — PULL works.
 
 ## Provenance
