@@ -279,6 +279,7 @@ class DeregisterTests(PresenceTestBase):
 
 PRESENCE = GIT_POLICY / "agent_presence.py"
 AGENT_PRESENCE = ROOT / "scripts" / "agent-presence"
+PRESENCE_HOOK = GIT_POLICY / "presence_hook.sh"
 
 
 def run_iso(args, cwd, stdin=None, env=None):
@@ -329,6 +330,38 @@ class CliTests(unittest.TestCase):
         out = run_iso(["bash", str(AGENT_PRESENCE), "list"],
                       self.repo, env={"CLAUDE_CODE_SESSION_ID": "me"})
         self.assertEqual(out.returncode, 0, out.stderr)
+
+    def test_heartbeat_via_stdin_payload(self):
+        # The standalone PreToolUse heartbeat hook delivers the session id on
+        # the payload (stdin), not the environment. heartbeat must resolve it.
+        self.cli("register", env={"CLAUDE_CODE_SESSION_ID": "sess-hb"})
+        pf = self.repo / ".git" / "agent-presence" / "sess-hb.json"
+        data = json.loads(pf.read_text())
+        data["last_heartbeat"] = 0
+        pf.write_text(json.dumps(data))
+        payload = json.dumps({"session_id": "sess-hb",
+                              "hook_event_name": "PreToolUse"})
+        out = self.cli("heartbeat", stdin=payload)  # no env: stdin only
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertGreater(json.loads(pf.read_text())["last_heartbeat"], 0)
+
+
+class DispatcherTests(unittest.TestCase):
+    """The branch-independent presence_hook.sh launcher (used by global hooks)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = init_repo(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+
+    def test_dispatcher_register_then_deregister(self):
+        env = {"CLAUDE_CODE_SESSION_ID": "sess-d"}
+        run_iso(["bash", str(PRESENCE_HOOK), "register"], self.repo, env=env)
+        pf = self.repo / ".git" / "agent-presence" / "sess-d.json"
+        self.assertTrue(pf.exists())
+        out = run_iso(["bash", str(PRESENCE_HOOK), "deregister"], self.repo, env=env)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertFalse(pf.exists())
 
 
 CLAIM_GUARD = GIT_POLICY / "claim_guard.py"

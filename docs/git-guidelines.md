@@ -397,5 +397,12 @@ cross-worktree ones.
 **Subagents:** the unit of presence is the top-level session. Agent-tool
 subagents do not register, announce, or appear in the roster.
 
+**Lifecycle (automatic, all worktrees).** Registration, heartbeat, and
+deregistration are wired through Claude session hooks and run off one shared
+registry under `.git/agent-presence/`, so every worktree shares the same roster.
+You deregister at session **end** (`SessionEnd`, not per-turn); a crashed
+session is reaped by the next sweep. You never manage this by hand — just
+`announce` and read the roster.
+
 This layer is **advisory**. No verdict here blocks an edit or a commit; the
 commit-time owned-paths net in `scripts/agent-commit` is the only hard backstop.

@@ -327,7 +327,8 @@ def main(argv):
             print(list_roster())
             return 0
         if command == "heartbeat":
-            heartbeat(rest[0] if rest else _session_from_env())
+            heartbeat(rest[0] if rest else
+                      (_session_from_env() or _session_from_stdin()))
             return 0
         if command == "announce":
             summary, areas, session = _parse_announce(rest)
