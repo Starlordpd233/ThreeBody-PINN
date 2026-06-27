@@ -1,5 +1,6 @@
 ---
-status: active
+status: archived
+archived_at: 2026-06-27
 purpose: design
 created: 2026-06-22
 milestone: untracked

@@ -19,8 +19,7 @@ file (full path, basename, or stem), so it is no longer active work.
   (commits `1c5cdf9b`..`80a2679b`; review reconciliation `3d4834e2`).
 - **Operating contract:** merged into `docs/git-guidelines.md` → section
   "Presence & overlap awareness (advisory)".
-- **Companion design:** `docs/work/designs/cross_cutting/presence-overlap-awareness/2026-06-22-presence-overlap-awareness-design.md`
-  (retirement-eligible; left in place pending its own retire decision).
+- **Companion design (also archived 2026-06-27):** `docs/archive/work/designs/cross_cutting/presence-overlap-awareness/2026-06-22-presence-overlap-awareness-design.md`.
 
 ## Retention
 Retained as historical provenance. Revisit if the presence system is revised or folded
