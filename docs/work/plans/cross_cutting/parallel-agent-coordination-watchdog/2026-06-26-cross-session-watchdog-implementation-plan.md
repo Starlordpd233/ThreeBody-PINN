@@ -155,8 +155,8 @@ sleep 15 && : > /tmp/wd_wake_demo    # create the signal after B is confirmed id
 - [ ] **Step 3: Manual idle-wake test — P2 durable cron.** In terminal 1, arm idle `claude` to register a `durable` `CronCreate` firing every minute with the fixed prompt: *"If `/tmp/wd_wake_demo2` exists, print WOKE-CRON and stop; else do nothing."* Walk away. In terminal 2: `: > /tmp/wd_wake_demo2`. **PASS =** the next cron fire prints `WOKE-CRON` unattended. Note the fire latency and jitter.
 
 - [ ] **Step 4: Record results and decide the primary path.** Write PASS/FAIL + latencies to the evidence file. **Decision gate:**
-  - Both pass → **P1 primary** (low latency), **P2 durable fallback**.
-  - Only cron passes → **P2 primary** (matches `CronCreate`'s documented "fires while the REPL is idle").
+  - Both pass → **P1 primary** (low latency), **P2 durable fallback** — **but P2 may not be enabled as a wake path until the Phase 4 termination-guarantee contract (see "Termination guarantee" below) is shipped and tested.** Without those layers, a recurring `CronCreate` is a silent quota drain (see evidence file 2026-06-26-idle-wake-results.md, "Discoveries"); P1 is inherently drain-safe (one watcher, no recurring timer) and is the only path the MVP may rely on.
+  - Only cron passes → **P2 primary**, conditional on the Phase 4 termination contract landing in the same change set as P2 activation.
   - Neither passes → **PULL is not viable unattended**; fall back to **PUSH (Phase 5) as the primary**, and the MVP's wake becomes tmux-based. (This is why Phase 5 stays specified even though it's "optional.")
 
 - [ ] **Step 5: Commit evidence.**
@@ -359,8 +359,28 @@ fi
 
 Forward outline; detail finalized after the Phase 1 decision.
 
-- **P2 durable cron arming.** A `durable CronCreate` firing the fixed wake prompt into idle B every N minutes; B runs `wd-check` + claim. Survives restarts/long idle. Note the documented ceilings: 7-day auto-expiry, ≤15-min jitter — surface these to the user when arming.
+- **P2 durable cron arming.** A `durable CronCreate` firing the fixed wake prompt into idle B every N minutes; B runs `wd-check` + claim. Survives restarts/long idle. Note the documented ceilings: 7-day auto-expiry, ≤15-min jitter — surface these to the user when arming. **P2 may only be enabled once the "Termination guarantee" contract below is implemented and committed** (see Step 4 of Phase 1: P2 is a fallback, not the primary, and is gated on the termination layers).
 - **Packaged skill** at `.claude/skills/cross-session-watchdog/SKILL.md`, exposing `arm-consumer` (B: write task, install P1 watcher and/or P2 cron, register channel + scope + integration flag) and `publish-done` (A). The skill loads the GSD adapter (Phase 5) only when present.
+
+### Termination guarantee (hard requirement — discovered 2026-06-26)
+
+**Why this exists.** The P2 idle-wake test (see `tools/watchdog/evidence/2026-06-26-idle-wake-results.md`) confirmed that a recurring `CronCreate` wakes idle B correctly, but exposed a load-bearing risk: a recurring timer that fires every minute against an unattended session is a **silent quota drain** — usage accumulates even when no one is watching, and the user has no obvious place to look for "why is my usage going down?" The P1 background-watcher path is inherently drain-safe (one watcher process, no recurring timer) and is therefore the only MVP-eligible path. P2 may only ship if and when every layer below is in place.
+
+**Constraint source:** user directive 2026-06-26, grounded in the observed drain behavior of the just-completed test.
+
+**Five layers — every layer is required, no shortcuts:**
+
+1. **Disarm-on-success.** When the watchdog's job is done (`wd-arm` returned `WAKE <head>` and B successfully claimed), the arming skill **must** delete the cron / kill the watcher as its first action after the wake prompt fires. No "leave it running in case I need to re-wake" — that is exactly the leak.
+2. **Self-termination (TTL + disarm flag).** Every recurring timer the watchdog arms carries an explicit `--ttl` (or equivalent) bounding parameter. When the TTL expires, the wake prompt itself deletes the cron / kills the watcher before doing anything else. A separate **disarm flag** (e.g. `<channel>/disarm` sentinel in the channel dir, OR a sentinel file the wake prompt checks first) lets a finished handoff tell an in-flight timer to stand down on its very next fire. TTL is the backstop; disarm is the fast path.
+3. **External kill-switch — `wd-disarm`.** A standalone script under `tools/watchdog/wd-disarm` that the user (or another agent) can invoke at any time to forcibly remove **every** watchdog-armed timer and watcher the tool can see, on every worktree it can reach. Must be idempotent and safe to call repeatedly. The arming step's documentation must call this out: *"if anything goes wrong, `wd-disarm` cleans up."*
+4. **Visibility — `wd-status`.** A standalone script that lists every active watchdog timer + watcher across all reachable worktrees (channel name, what it watches, when it was armed, when its TTL expires, when it last fired, who armed it). Drain troubleshooting starts here: if the user thinks the watchdog is leaking, `wd-status` shows whether a timer is live and where.
+5. **Conservative defaults.** No recurring timer may be armed with `durable: true` without the user **explicitly** opting in at arm time (default = `durable: false`, session-only, dies when the owner session ends). Cron frequency defaults to the longest interval the wake SLA permits, not the shortest. TTL defaults to a small multiple of the expected handoff duration — never "forever / 7 days" unless the user names a specific long-running handoff. Every deviation from a default is printed in the arming output so the user sees what they just authorized.
+
+**Skill integration.** The packaged `arm-consumer` skill (Phase 4, second bullet) MUST refuse to arm P2 unless (a) the user typed an explicit "yes, durable" at the prompt, (b) a TTL was supplied, and (c) `wd-disarm` and `wd-status` exist on disk and pass their own smoke tests. The skill MUST print, after every successful arm: the channel, the TTL, when the TTL expires, the disarm command, and the status command.
+
+**Verification.** A committed test under `tests/watchdog/test_termination.py` must cover at least: arming a recurring timer with a 2-second TTL and asserting the timer is gone at T+3s; arming and then calling `wd-disarm` and asserting the timer is gone immediately; `wd-status` reporting the timer while live and not reporting it after disarm. The full Phase 1 evidence file's "Discoveries" section is the regression target — re-running it after Phase 4 lands must show: arm → drains-while-idle → TTL-or-disarm removes the timer → no further firings → `wd-status` confirms empty.
+
+**Out of scope for this contract:** the user's choice of how often a recurring timer may fire, the wake prompt text (still a fixed constant), and the choice of P2 vs PUSH as a backup wake path. Those remain user-driven.
 
 ## Phase 5 — Optional PUSH accelerator + GSD adapter (opt-in)
 
@@ -385,8 +405,11 @@ Forward outline; detail finalized after the Phase 1 decision.
 
 - **Honest guarantee:** the gate cannot stop a willful producer from working past `done`; it guarantees unambiguous publish + consumer-side staleness detection. Accepted.
 - **Capability precondition:** both wake paths assume B's `claude` session has the scheduling/background tools (same launch profile). The arm step checks for them.
+- **Recurring-timer drain (HIGH; captured 2026-06-26).** A `CronCreate` armed with `durable: true` and no termination contract is a silent quota drain against the owning session — observed in the P2 test. Mitigated by the Phase 4 termination-guarantee contract (disarm-on-success, self-termination TTL, external `wd-disarm`, visibility `wd-status`, conservative defaults) and by gating P2 activation on that contract landing.
+- **macOS background-tab throttle (MEDIUM; captured 2026-06-26).** `CronCreate` does not fire reliably when the consumer session is in a backgrounded terminal tab on macOS — the timer pauses with the rest of the tab's process group. P2 therefore requires B's TUI to be foreground (or near-foreground) for the wake to fire in a timely manner. The arming skill warns the user about this; documented as a P2 capability precondition, not a bug to fix.
+- **Agent-armed `durable: true` crons can come out session-only (MEDIUM; captured 2026-06-26).** When a `claude` agent invokes `CronCreate` on the user's behalf with `durable: true`, the job has been observed persisting as session-only (lives only in the agent's process memory, not in `.claude/scheduled_tasks.json`) on at least one path through the harness. The arming skill must therefore **verify persistence on disk** immediately after arming and refuse to consider the arm complete until `CronList` shows the job AND `.claude/scheduled_tasks.json` contains it; otherwise the wake is silently non-durable.
 - **Out of scope:** separate clones or separate machines (the channel assumes one shared git common dir); auto-integration with no human (user chose B-integrates); rewriting/force-pushing `producer_ref` after publish.
-- **Scope guard:** Phases 0–3 are the build. Phases 4–5 begin only after 0–3 land and the Phase 1 decision is recorded.
+- **Scope guard:** Phases 0–3 are the build. Phases 4–5 begin only after 0–3 land, the Phase 1 decision is recorded, AND the Phase 4 termination-guarantee contract lands before any P2 activation.
 
 ## Self-review (writing-plans checklist)
 
