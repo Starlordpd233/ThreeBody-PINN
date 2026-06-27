@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# wd-publish-done — producer side of the cross-session watchdog.
+#
+# Publishes a terminal "done" marker into a channel under the shared git common
+# dir so an idle consumer (Agent B) can detect that this producer (Agent A) has
+# finished a unit of work. The marker (<channel>/done.json) is anchored on the
+# producer's HEAD commit and is written atomically (write-temp + mv), so the
+# newest publish always wins and a reader never sees a half-written file.
+#
+# Publish-time clean invariant: refuses to publish while the declared scope has
+# uncommitted changes, so the marker can only certify committed work.
+#
+# Usage: wd-publish-done --channel NAME --stage STR --scope "PATHSPEC..."
+set -euo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
+
+channel=
+stage=
+scope=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --channel) channel=$2; shift 2 ;;
+    --stage) stage=$2; shift 2 ;;
+    --scope) scope=$2; shift 2 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+[ -n "$channel" ] && [ -n "$stage" ] && [ -n "$scope" ] || {
+  echo "need --channel --stage --scope" >&2
+  exit 2
+}
+
+# shellcheck disable=SC2086  # scope is an intentional space-separated pathspec list
+if [ -n "$(git status --porcelain -- $scope)" ]; then
+  echo "wd-publish-done: scope has uncommitted changes; refusing to publish" >&2
+  exit 3
+fi
+
+dir="$(wd_channel_dir "$channel")"
+mkdir -p "$dir"
+head="$(git rev-parse HEAD)"
+ref="$(git rev-parse --abbrev-ref HEAD)"
+wt="$(git rev-parse --show-toplevel)"
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+tmp="$dir/.done.json.tmp.$$"
+printf '{"stage":"%s","head":"%s","producer_ref":"%s","producer_worktree":"%s","scope":"%s","ts":"%s"}\n' \
+  "$stage" "$head" "$ref" "$wt" "$scope" "$ts" > "$tmp"
+mv "$tmp" "$dir/done.json"
+echo "published done @ $head ($ref)"

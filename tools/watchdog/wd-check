@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# wd-check — consumer-side staleness gate for the cross-session watchdog.
+#
+# Reads <channel>/done.json and decides whether the producer's "done" marker is
+# still actionable. Prints exactly one verdict and sets a matching exit code:
+#   WAKE        (exit 0)   marker is valid and actionable
+#   IDLE        (exit 10)  no marker yet
+#   STALE:<why> (exit 20)  marker exists but is no longer trustworthy
+#
+# Newest-done-wins is automatic: done.json is overwritten atomically by the
+# producer, so there is no queue to drain and no livelock. The gate runs four
+# checks in order:
+#   1. reachability        — the marked head commit exists locally
+#   2. producer-stability  — the producer ref has not advanced past head within scope
+#   3. producer-cleanliness— the producer worktree has no uncommitted scope changes
+#   4. integration (opt-in)— head is an ancestor of the integration ref
+#
+# Usage: wd-check --channel NAME [--require-integration] [--integration-ref REF]
+set -euo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
+
+channel=
+require_integration=0
+integration_ref=HEAD
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --channel) channel=$2; shift 2 ;;
+    --require-integration) require_integration=1; shift ;;
+    --integration-ref) integration_ref=$2; shift 2 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+
+done_f="$(wd_channel_dir "$channel")/done.json"
+[ -f "$done_f" ] || { echo IDLE; exit 10; }
+
+jget() { sed -n 's/.*"'"$1"'":"\([^"]*\)".*/\1/p' "$done_f" | head -1; }
+head="$(jget head)"
+ref="$(jget producer_ref)"
+wt="$(jget producer_worktree)"
+scope="$(jget scope)"
+
+git rev-parse --verify --quiet "${head}^{commit}" >/dev/null || { echo "STALE:unreachable"; exit 20; }
+# shellcheck disable=SC2086  # scope is an intentional space-separated pathspec list
+[ -z "$(git rev-list "${head}..${ref}" -- $scope 2>/dev/null)" ] || { echo "STALE:producer-advanced"; exit 20; }
+# shellcheck disable=SC2086
+if [ -d "$wt" ] && [ -n "$(git -C "$wt" status --porcelain -- $scope 2>/dev/null)" ]; then
+  echo "STALE:producer-dirty"; exit 20
+fi
+if [ "$require_integration" = 1 ]; then
+  git merge-base --is-ancestor "$head" "$integration_ref" || { echo "STALE:not-integrated"; exit 20; }
+fi
+
+echo WAKE
+exit 0

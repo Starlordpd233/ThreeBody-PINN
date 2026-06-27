@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# wd-arm — consumer-side watcher for the cross-session watchdog (P1, MVP).
+#
+# This is the P1 "background-watcher" wake path and the ONLY path the MVP ships.
+# Agent B runs this in the background from inside its own Claude Code session;
+# when the watcher exits, the harness re-enters B's conversation, so the wake
+# targets the right session by construction. The watcher polls wd-check and, on
+# the first WAKE, performs an atomic exactly-once claim and exits.
+#
+# This script installs ONLY the background watcher. It does NOT register a cron
+# (no CronCreate). The durable P2 cron path is out of scope here and is gated on
+# the Phase 4 termination-guarantee contract; see the implementation plan.
+#
+# Exactly-once claim: the claim is an atomic `mkdir <channel>/claimed.<head>`.
+# mkdir is atomic on POSIX filesystems, so exactly one watcher (across any wake
+# path) creates the directory and prints WAKE; every other watcher on the same
+# head prints ALREADY-CLAIMED. This is the shared guard against double-starts.
+#
+# Dead-producer guard: with --timeout-secs N (>0), if no WAKE is seen within N
+# seconds the watcher prints PRODUCER-STALLED and exits 42, so an unattended B
+# never waits forever on a producer that died.
+#
+# Task payload (F9): the task B should perform on wake is persisted at ARM time
+# to <channel>/consumer-task.md (via --task-file), so a woken B knows what to do
+# even after a restart. The wake prompt is a FIXED CONSTANT that points B at that
+# file by name; channel-file contents are NEVER interpolated into the prompt.
+#
+#   Fixed wake prompt (the arming session fires this verbatim on re-entry):
+#     "Watchdog: read `consumer-task.md` in this channel and the `wd-arm` result
+#      line; if WAKE, begin that task; if ALREADY-CLAIMED or PRODUCER-STALLED,
+#      stop and report."
+#
+# Output / exit:
+#   WAKE <head>             exit 0   claimed; begin the consumer-task.md task
+#   ALREADY-CLAIMED <head>  exit 0   another watcher already claimed this head
+#   PRODUCER-STALLED after Ns  exit 42   timed out with no done marker
+#
+# Usage: wd-arm --channel NAME [--poll-secs N] [--timeout-secs N] [--task-file PATH]
+set -uo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
+# wd-common.sh sets `set -e`; restore this script's declared options so the
+# long-running watch loop is not killed by an expected non-zero from wd-check.
+set +e
+
+channel=
+poll=20
+timeout=0
+task_file=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --channel) channel=$2; shift 2 ;;
+    --poll-secs) poll=$2; shift 2 ;;
+    --timeout-secs) timeout=$2; shift 2 ;;
+    --task-file) task_file=$2; shift 2 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+[ -n "$channel" ] || { echo "need --channel" >&2; exit 2; }
+
+dir="$(wd_channel_dir "$channel")"
+here="$(dirname "$0")"
+start="$(date +%s)"
+
+# Persist the task payload at arm time so a woken (or restarted) B knows what to
+# do. Written atomically; the wake prompt references this file, never its bytes.
+if [ -n "$task_file" ]; then
+  [ -f "$task_file" ] || { echo "wd-arm: --task-file not found: $task_file" >&2; exit 2; }
+  mkdir -p "$dir"
+  tmp="$dir/.consumer-task.md.tmp.$$"
+  cat "$task_file" > "$tmp"
+  mv "$tmp" "$dir/consumer-task.md"
+fi
+
+while true; do
+  st="$("$here/wd-check" --channel "$channel" || true)"
+  if [ "${st%%:*}" = WAKE ]; then
+    head="$(sed -n 's/.*"head":"\([^"]*\)".*/\1/p' "$dir/done.json" | head -1)"
+    if mkdir "$dir/claimed.$head" 2>/dev/null; then
+      echo "WAKE $head"
+    else
+      echo "ALREADY-CLAIMED $head"
+    fi
+    exit 0
+  fi
+  if [ "$timeout" -gt 0 ] && [ "$(( $(date +%s) - start ))" -ge "$timeout" ]; then
+    echo "PRODUCER-STALLED after ${timeout}s"
+    exit 42
+  fi
+  sleep "$poll"
+done
