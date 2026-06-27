@@ -6,16 +6,16 @@ current_phase: 34
 current_phase_name: Training-Loop & Batch-Construction Contracts
 current_plan: 2
 status: executing
-stopped_at: Completed 34-01-PLAN.md
-last_updated: "2026-06-25T06:43:19.729Z"
+stopped_at: Phase 35 context gathered
+last_updated: "2026-06-27T02:01:38.409Z"
 last_activity: 2026-06-23
 last_activity_desc: Phase 33 complete, transitioned to Phase 34
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 20
-  completed_plans: 16
-  percent: 57
+  completed_phases: 5
+  total_plans: 21
+  completed_plans: 21
+  percent: 71
 ---
 
 # Project State
@@ -223,10 +223,10 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/35-loss-energy-weight-contracts/35-CONTEXT.md
 
-Last session: 2026-06-25T06:43:19.725Z
-Stopped at: Completed 34-01-PLAN.md
+Last session: 2026-06-27T02:01:38.404Z
+Stopped at: Phase 35 context gathered
 Next action: Phase 33 is complete and verified (UAT 7/7, 0 issues; goal-backward 5/5; ROADMAP/REQUIREMENTS/STATE reconciled via `phase.complete 33`). Proceed to Phase 34 (Training-Loop & Batch-Construction Contracts): `/gsd-discuss-phase 34` then `/gsd-plan-phase 34`. Non-blocking follow-up: a future plan touching Phase 33 should re-baseline `33-BASELINE-CAPTURED` or migrate Plan 33-04 check 5 to a per-path assertion that excludes delegated tracking-write paths (the combined dirty-doc hash false positive documented in 33-VERIFICATION.md section 8).
 
 ## Operator Next Steps
