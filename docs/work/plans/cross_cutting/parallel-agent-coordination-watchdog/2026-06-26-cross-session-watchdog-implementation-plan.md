@@ -169,12 +169,14 @@ scripts/agent-commit -m "test(governance): record unattended idle-wake results a
 
 Builds the essential core for the common (same-worktree) case. All scripts live under `tools/watchdog/`; tests under `tests/watchdog/` (python `unittest`, matching `tests/git_policy/`).
 
+> *Executed 2026-06-28 (Phase 2 only).* MVP committed `f37469c4` (tools + `unittest`, all green); `wd-arm` missing-`--task-file` hardening in `dbca0af`. Same-worktree handoff confirmed end-to-end by the committed unittest **and** a two-tab live dry run — evidence: `tools/watchdog/evidence/2026-06-28-same-worktree-live-dryrun.md`. The Task 2.2/2.3 "commit a trivial change" smoke steps were instead verified in throwaway temp repos and against a clean tracked-file scope, to avoid junk commits on `master`. Phases 3–5 remain unexecuted, so the plan-level `execution_status` is intentionally left unset.
+
 ### Task 2.1 — Channel root resolver (absolute common-dir)
 
 **Files:** Create `tools/watchdog/lib/wd-common.sh`.
 **Interfaces:** Produces `wd_channel_root` and `wd_channel_dir NAME` → absolute paths under the shared git common dir.
 
-- [ ] **Step 1: Write the resolver** (normalizes the relative `.git` that the main worktree returns — the bug in the old plan; mirrors `scripts/agent-commit:16-21`).
+- [x] **Step 1: Write the resolver** (normalizes the relative `.git` that the main worktree returns — the bug in the old plan; mirrors `scripts/agent-commit:16-21`).
 
 ```bash
 #!/usr/bin/env bash
@@ -189,7 +191,7 @@ wd_channel_root() {
 wd_channel_dir() { printf '%s/%s' "$(wd_channel_root)" "$1"; }
 ```
 
-- [ ] **Step 2: Verify it returns an identical absolute path from main and linked worktrees.**
+- [x] **Step 2: Verify it returns an identical absolute path from main and linked worktrees.**
 
 ```bash
 ( cd <home>/Desktop/3_body_problem && bash -c 'source tools/watchdog/lib/wd-common.sh; wd_channel_root' )
@@ -202,7 +204,7 @@ Expected: both print `<home>/Desktop/3_body_problem/.git/live-monitor/channels`.
 **Files:** Create `tools/watchdog/wd-publish-done`.
 **Interfaces:** Consumes `wd-common.sh`. Produces `<channel>/done.json` `{ stage, head, producer_ref, producer_worktree, scope, ts }`, written atomically (write-temp + `mv`), last-write-wins.
 
-- [ ] **Step 1: Write the publisher** (refuses to publish a dirty scope — the publish-time clean invariant).
+- [x] **Step 1: Write the publisher** (refuses to publish a dirty scope — the publish-time clean invariant).
 
 ```bash
 #!/usr/bin/env bash
@@ -227,14 +229,14 @@ mv "$tmp" "$dir/done.json"
 echo "published done @ $head ($ref)"
 ```
 
-- [ ] **Step 2: Smoke test** in the main worktree: commit a trivial change, then `tools/watchdog/wd-publish-done --channel demo --stage smoke --scope README.md`. Expected: `published done @ <sha>`; `cat .git/live-monitor/channels/demo/done.json` shows the fields.
+- [x] **Step 2: Smoke test** in the main worktree: commit a trivial change, then `tools/watchdog/wd-publish-done --channel demo --stage smoke --scope README.md`. Expected: `published done @ <sha>`; `cat .git/live-monitor/channels/demo/done.json` shows the fields.
 
 ### Task 2.3 — Consumer gate: `wd-check`
 
 **Files:** Create `tools/watchdog/wd-check`.
 **Interfaces:** Consumes `wd-common.sh` + `<channel>/done.json`. Prints one of `WAKE` | `IDLE` | `STALE:<reason>`; exits `0`/`10`/`20`.
 
-- [ ] **Step 1: Write the gate** (reachability → producer-stability → producer-cleanliness → optional integration). Newest-done-wins is automatic because `done.json` is overwritten atomically, dissolving the prior plan's livelock.
+- [x] **Step 1: Write the gate** (reachability → producer-stability → producer-cleanliness → optional integration). Newest-done-wins is automatic because `done.json` is overwritten atomically, dissolving the prior plan's livelock.
 
 ```bash
 #!/usr/bin/env bash
@@ -259,14 +261,14 @@ fi
 echo WAKE; exit 0
 ```
 
-- [ ] **Step 2: Verify WAKE / STALE transitions by hand** (same-worktree): after Task 2.2's publish, `wd-check --channel demo` → `WAKE`. Then commit another change to `README.md` and re-run → `STALE:producer-advanced`. Re-publish → `WAKE` again.
+- [x] **Step 2: Verify WAKE / STALE transitions by hand** (same-worktree): after Task 2.2's publish, `wd-check --channel demo` → `WAKE`. Then commit another change to `README.md` and re-run → `STALE:producer-advanced`. Re-publish → `WAKE` again.
 
 ### Task 2.4 — Consumer watcher + exactly-once claim + dead-A timeout: `wd-arm`
 
 **Files:** Create `tools/watchdog/wd-arm`.
 **Interfaces:** Consumes `wd-check`. The background body B runs; on exit prints `WAKE <head>` (claimed) / `ALREADY-CLAIMED <head>` / `PRODUCER-STALLED after Ns`. Exit `0`/`0`/`42`.
 
-- [ ] **Step 1: Write the watcher** (atomic `mkdir` claim keyed by head = the exactly-once guard shared by every wake path; bounded by an optional timeout = the dead-producer guard).
+- [x] **Step 1: Write the watcher** (atomic `mkdir` claim keyed by head = the exactly-once guard shared by every wake path; bounded by an optional timeout = the dead-producer guard).
 
 ```bash
 #!/usr/bin/env bash
@@ -291,19 +293,19 @@ while true; do
 done
 ```
 
-- [ ] **Step 2: Persist the task payload at arm time** (F9 — so a woken B knows what to do even after a restart). The arming convention writes B's task to `<channel>/consumer-task.md`; the wake prompt is the **fixed constant**: *"Watchdog: read `consumer-task.md` in this channel and the `wd-arm` result line; if WAKE, begin that task; if ALREADY-CLAIMED or PRODUCER-STALLED, stop and report."* Document this in the script header; never interpolate file contents into the prompt.
+- [x] **Step 2: Persist the task payload at arm time** (F9 — so a woken B knows what to do even after a restart). The arming convention writes B's task to `<channel>/consumer-task.md`; the wake prompt is the **fixed constant**: *"Watchdog: read `consumer-task.md` in this channel and the `wd-arm` result line; if WAKE, begin that task; if ALREADY-CLAIMED or PRODUCER-STALLED, stop and report."* Document this in the script header; never interpolate file contents into the prompt.
 
 ### Task 2.5 — Same-worktree end-to-end + negative tests (committed)
 
 **Files:** Create `tests/watchdog/test_watchdog_mvp.py` (python `unittest`, shells out to the scripts in a throwaway temp git repo).
 
-- [ ] **Step 1: Write tests** covering: (a) publish→check returns `WAKE`; (b) producer-advanced → `STALE:producer-advanced`; (c) dirty scope → publish refused (exit 3); (d) `wd-arm` claims once — a second `wd-arm` on the same head returns `ALREADY-CLAIMED`; (e) `wd-arm --timeout-secs 1` with no done → `PRODUCER-STALLED` exit 42; (f) resolver returns an absolute path. Each test builds a temp repo with two commits and asserts stdout + exit code.
+- [x] **Step 1: Write tests** covering: (a) publish→check returns `WAKE`; (b) producer-advanced → `STALE:producer-advanced`; (c) dirty scope → publish refused (exit 3); (d) `wd-arm` claims once — a second `wd-arm` on the same head returns `ALREADY-CLAIMED`; (e) `wd-arm --timeout-secs 1` with no done → `PRODUCER-STALLED` exit 42; (f) resolver returns an absolute path. Each test builds a temp repo with two commits and asserts stdout + exit code.
 
-- [ ] **Step 2: Run** `python3 -m unittest tests/watchdog/test_watchdog_mvp.py -v`. Expected: all pass.
+- [x] **Step 2: Run** `python3 -m unittest tests/watchdog/test_watchdog_mvp.py -v`. Expected: all pass.
 
-- [ ] **Step 3: Live same-worktree dry run** — two `claude` tabs in the main worktree: B arms `wd-arm --channel live` in the background + records its task; A commits + `wd-publish-done`. Expected: B re-enters (per Phase 1's proven path), claims, reads `consumer-task.md`, begins. Confirms the common-case path end-to-end.
+- [x] **Step 3: Live same-worktree dry run** — two `claude` tabs in the main worktree: B arms `wd-arm --channel live` in the background + records its task; A commits + `wd-publish-done`. Expected: B re-enters (per Phase 1's proven path), claims, reads `consumer-task.md`, begins. Confirms the common-case path end-to-end.
 
-- [ ] **Step 4: Commit** the tools + tests.
+- [x] **Step 4: Commit** the tools + tests.
 
 ```bash
 cd <home>/Desktop/3_body_problem
