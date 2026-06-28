@@ -24,6 +24,8 @@
 # to <channel>/consumer-task.md (via --task-file), so a woken B knows what to do
 # even after a restart. The wake prompt is a FIXED CONSTANT that points B at that
 # file by name; channel-file contents are NEVER interpolated into the prompt.
+# A missing --task-file is non-fatal: the watcher warns and arms without a
+# payload, so a bad path can never silently prevent the watcher from arming.
 #
 #   Fixed wake prompt (the arming session fires this verbatim on re-entry):
 #     "Watchdog: read `consumer-task.md` in this channel and the `wd-arm` result
@@ -64,11 +66,15 @@ start="$(date +%s)"
 # Persist the task payload at arm time so a woken (or restarted) B knows what to
 # do. Written atomically; the wake prompt references this file, never its bytes.
 if [ -n "$task_file" ]; then
-  [ -f "$task_file" ] || { echo "wd-arm: --task-file not found: $task_file" >&2; exit 2; }
-  mkdir -p "$dir"
-  tmp="$dir/.consumer-task.md.tmp.$$"
-  cat "$task_file" > "$tmp"
-  mv "$tmp" "$dir/consumer-task.md"
+  if [ -f "$task_file" ]; then
+    mkdir -p "$dir"
+    tmp="$dir/.consumer-task.md.tmp.$$"
+    cat "$task_file" > "$tmp"
+    mv "$tmp" "$dir/consumer-task.md"
+  else
+    # A bad path must not silently kill the arm: warn and arm without a payload.
+    echo "wd-arm: --task-file not found: $task_file (arming without a task payload)" >&2
+  fi
 fi
 
 while true; do

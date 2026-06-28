@@ -151,6 +151,14 @@ class WatchdogMvpTests(unittest.TestCase):
         self.assertTrue(task.is_file(), "consumer-task.md not written at arm time")
         self.assertEqual(task.read_text(), "# B task\nDo the thing.\n")
 
+    # A missing --task-file must NOT kill the arm: it warns and arms anyway, so a
+    # bad path can't silently prevent the watcher from running.
+    def test_arm_missing_task_file_still_arms(self):
+        result = self.arm("none2", "1", "1", "--task-file", "does-not-exist.md")
+        self.assertEqual(result.returncode, 42, result.stderr)  # armed, then timed out
+        self.assertIn("not found", result.stderr)
+        self.assertIn("arming without", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
