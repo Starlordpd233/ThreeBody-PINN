@@ -7,7 +7,7 @@
 # nothing.
 #
 # For each <channel>/armed.json that exists, prints one line:
-#   <channel> kind=<watcher|cron> age=<secs since armed_at> ttl=<secs|null> armed_by=<id>
+#   <channel> kind=<watcher|push-watcher|cron> age=<secs since armed_at> ttl=<secs|null> armed_by=<id>
 # A present <channel>/disarm sentinel is flagged:
 #   - appended to an arm line as ` DISARM-REQUESTED`
 #   - or, if the sentinel exists with no armed.json, as a separate line:
@@ -25,7 +25,9 @@ source "$(dirname "$0")/lib/wd-common.sh"
 root="$(wd_channel_root)"
 [ -d "$root" ] || { echo "no active arms"; exit 0; }
 
-# Deterministic ordering (ls | sort) so test assertions are stable.
+# Channel dirs come from bash glob expansion ("$root"/*/ with nullglob), NOT
+# ls | sort; iteration order is glob/locale order. Tests assert substring
+# presence, not iteration order.
 found=0
 shopt -s nullglob
 for cdir in "$root"/*/; do

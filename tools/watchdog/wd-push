@@ -104,6 +104,14 @@ remove_armed_record() { rm -f "$dir/armed.json" 2>/dev/null || true; }
 # sleep, the watcher still exits 0 with DISARMED instead of being killed
 # silently. Normal PUSHED / ALREADY-CLAIMED / PRODUCER-STALLED exits do not raise
 # SIGTERM, so the trap never masks their exit codes.
+#
+# NOTE: disarm_standdown intentionally does NOT rmdir claimed.<head>. If SIGTERM
+# (e.g. wd-disarm) lands between winning the mkdir claimed.<head> claim and the
+# send-keys calls completing, the claim persists — ACCEPTED: narrow + teardown-
+# initiated; explicit disarm is terminal-by-intent (re-releasing would let a
+# disarmed handoff re-wake), and it self-heals on next publish (new done marker
+# → new head → fresh claimed.<new-head>). Do NOT release the claim on every
+# SIGTERM or add trap state-tracking.
 disarm_standdown() {
   remove_armed_record
   rm -f "$dir/disarm" 2>/dev/null || true
