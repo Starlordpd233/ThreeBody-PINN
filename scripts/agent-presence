@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-repo_root="$(git rev-parse --show-toplevel)"
+# --path-format=absolute avoids the bare ".git" the main worktree would otherwise return.
+repo_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 exec python3 "$repo_root/scripts/git_policy/agent_presence.py" "$@"
