@@ -2,8 +2,8 @@
 phase: 35
 slug: loss-energy-weight-contracts
 verified: 2026-06-29T03:32:42Z
-status: ledger-closure-passed
-score: "LOSS-01..04 structural checks passed; 5/5 Phase 35 ledger rows VERIFIED; final suite pending"
+status: passed
+score: "4/4 LOSS requirements verified; 5/5 Phase 35 ledger rows VERIFIED; final suite passed"
 gaps_remaining: []
 behavior_unverified: 0
 overrides_applied: 0
@@ -262,10 +262,34 @@ records the traversable `IN_PROGRESS -> FIX_APPLIED -> VERIFIED` chain.
 No new status enum or AC-ID scheme was minted. Non-Phase-35 rows were not
 modified by Task 2.
 
+## 12. Final Full-Suite Guards - PASS
+
+Task 3 reran the closure suite after ledger rows were committed.
+
+| Guard | Result | Notes |
+|---|---|---|
+| Hardened cross-spec structural suite | PASS | Rechecked `AC-LOSS-01..04`, `NS-18`, `M15`, `NS-13`, `D-04`, and every testable D-35-12 prohibition across both specs. |
+| Content-preservation / anti-truncation | PASS | `pinn_architecture.md` has 1064 lines and current Plan 35-02 heading `The Multi-Component Loss Function (Physics-Constrained)`; `ctl_instruction.md` has 2142 lines and required anchors. |
+| Protected-path guard via `git diff HEAD` | PASS | No diffs in `sampling_method.md`, read-only framework-revision reports, final resolution doc, or live `pinn/` code. |
+| Expanded `git diff --check` | PASS | Covered `35-VERIFICATION.md`, prior Phase 35 summaries, evidence packets, ledger, and both framework specs. `35-04-SUMMARY.md` was not yet created at this task point and is checked during summary closeout. |
+| Allowed-path guard (A5) | PASS | Changed files inside Phase 35 write domains were restricted to the declared write set; pre-existing `AGENTS.md` dirt is outside the guarded domains. |
+| Quick `rg` suite from `35-VALIDATION.md` | PASS | `AC-LOSS|LOSS-|M15|NS-12|NS-13|NS-18|D-04` returned 35 matching lines after ledger closure. |
+
+Command result labels:
+
+```text
+TASK3-HARDENED-CROSS-SPEC: PASS
+TASK3-CONTENT-PRESERVATION-ADJUSTED: PASS
+TASK3-PROTECTED-PATH-GUARD: PASS
+TASK3-DIFF-CHECK: PASS
+TASK3-ALLOWED-PATH-GUARD: PASS
+TASK3-QUICK-RG: PASS lines=35
+```
+
 ## Overall Verdict
 
-Phase 35 structural verification and ledger closure have passed. The final
-full-suite / allowed-path / whitespace guards remain Task 3.
+Phase 35 structural verification, ledger closure, final full-suite checks,
+protected-path guard, allowed-path guard, and whitespace checks have passed.
 
 The only execution deviation so far is the stale `pinn_architecture.md`
 anti-truncation anchor in the plan command; the adjusted guard checks the
