@@ -34,7 +34,7 @@ prohibitions:
     verification: "Spec callouts reject dense-residual ALM from the default loss and preserve scalar ALM as deferred P2 only."
   - statement: "MUST NOT duplicate normative loss math across framework specs."
     status: resolved
-    verification: "D-35-05 single-home sentinel found the energy-Huber loss body only in pinn_architecture.md; 35-REVIEW.md is clean after final review."
+    verification: "D-35-05 single-home sentinels found both the energy-Huber loss body and the causal-weight body (exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))) only in pinn_architecture.md (causal-weight de-duplicated from the ctl LOSS-04 callout at GAP-35-01 closure, 2026-06-29); 35-REVIEW.md is clean after final review."
 ---
 
 # Phase 35: Loss & Energy-Weight Contracts Verification Report
@@ -131,7 +131,7 @@ No unreferenced blocker-level debt markers were found in the Phase 35 modified a
 
 ### Human Verification Required
 
-None. The only manual-only validation concern from `35-VALIDATION.md` was canonical-home split / duplicate normative text. It is covered by the deterministic `L_{E} =` single-home sentinel, well-formed callout checks, and the final clean `35-REVIEW.md` produced after commit `eaa25c5`.
+None. The only manual-only validation concern from `35-VALIDATION.md` was canonical-home split / duplicate normative text. It is covered by the deterministic single-home sentinels for both the energy-Huber `L_{E} =` body and the causal-weight `exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))` body (the latter added at GAP-35-01 closure, 2026-06-29), well-formed callout checks, and the final clean `35-REVIEW.md` produced after commit `eaa25c5`.
 
 ### Gaps Summary
 
@@ -144,6 +144,7 @@ No blocking gaps remain. The phase goal is achieved against the locked Phase 35 
 | `node <home>/.codex/gsd-core/bin/gsd-tools.cjs init phase-op 35` | PASS; phase found in specwork worktree. |
 | `node <home>/.codex/gsd-core/bin/gsd-tools.cjs query roadmap.get-phase 35 --raw` | PASS; roadmap phase loaded. |
 | `python3` structural verifier script | PASS: contract tokens, callout structure, LOSS-01..04 positive checks, source-precedence negative checks, single-home sentinel, truncation guards, evidence packets, ledger rows/logs, committed gap-register dual read, review fix, CTL path resolution, and protected-path guard. |
+| `python3 -c` causal-weight single-home sentinel (GAP-35-01 closure) | PASS: `exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))` resolves to `pinn_architecture.md` only; 0 occurrences in `ctl_instruction.md`. Energy-Huber sentinel re-run PASS (no regression). |
 | `rg -n "AC-LOSS|LOSS-|M15|NS-12|NS-13|NS-18|D-04" ...` | PASS; Phase 35 callouts and VERIFIED ledger rows found. |
 | `python3 -c` 35-VALIDATION full suite | PASS. |
 | `git diff --check -- <Phase 35 artifacts and framework specs>` | PASS. |
