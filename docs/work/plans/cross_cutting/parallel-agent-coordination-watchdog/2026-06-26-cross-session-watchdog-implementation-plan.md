@@ -4,6 +4,9 @@ purpose: implementation-plan
 created: 2026-06-26
 milestone: untracked
 phase: cross-cutting
+execution_status: remediation-pass-1-complete
+executed_at: 2026-06-29T21:11:08+0800
+review_status: reviewed
 retirement_trigger: >
   Retire when the watchdog MVP is built and landed — the signal+gate (wd-* tools),
   the proven wake path (Phase 1 decision), the same-worktree end-to-end test, and
@@ -356,6 +359,8 @@ fi
 
 Forward outline; detail finalized after the Phase 1 decision.
 
+> *Executed 2026-06-29 (Phase 4).* Termination guarantee + packaged skill landed in `a9930614` (`feat(governance): add watchdog termination guarantee and packaged skill`). `wd-arm` now writes `<channel>/armed.json` on arm and removes it on every exit, and checks a `<channel>/disarm` sentinel each poll (stands down `DISARMED`). `wd-disarm` is the external kill-switch (sentinel + best-effort kill + rm armed; idempotent and empty-safe); `wd-status` lists every active arm across all channels (the drain-troubleshooting view). The armed-state lives on disk under the git common dir alongside `done.json`/`claimed.<head>` so the lifecycle is bash-observable and unittest-able — the real P2 `CronCreate` stays an agent-side action the skill wires up, and `tests/watchdog/test_termination.py` exercises this on-disk lifecycle layer (not the harness cron). The packaged skill gates P2 durable arming behind explicit user opt-in + a supplied TTL + `wd-disarm`/`wd-status` smoke tests, with conservative defaults. Final-review comment remediation in `7f9a2a43`. 17/17 watchdog tests green at landing (8 MVP + 4 xworktree + 5 termination).
+
 - **P2 durable cron arming.** A `durable CronCreate` firing the fixed wake prompt into idle B every N minutes; B runs `wd-check` + claim. Survives restarts/long idle. Note the documented ceilings: 7-day auto-expiry, ≤15-min jitter — surface these to the user when arming. **P2 may only be enabled once the "Termination guarantee" contract below is implemented and committed** (see Step 4 of Phase 1: P2 is a fallback, not the primary, and is gated on the termination layers).
 - **Packaged skill** at `.claude/skills/cross-session-watchdog/SKILL.md`, exposing `arm-consumer` (B: write task, install P1 watcher and/or P2 cron, register channel + scope + integration flag) and `publish-done` (A). The skill loads the GSD adapter (Phase 5) only when present.
 
@@ -380,6 +385,8 @@ Forward outline; detail finalized after the Phase 1 decision.
 **Out of scope for this contract:** the user's choice of how often a recurring timer may fire, the wake prompt text (still a fixed constant), and the choice of P2 vs PUSH as a backup wake path. Those remain user-driven.
 
 ## Phase 5 — Optional PUSH accelerator + GSD adapter (opt-in)
+
+> *Executed 2026-06-29 (Phase 5).* PUSH accelerator + GSD adapter landed in `45a5f065` (`feat(governance): add watchdog PUSH accelerator and GSD adapter`). `wd-push` is the external PUSH watcher: polls `wd-check`, and on a won exactly-once `claimed.<head>` claim injects the fixed wake prompt into the consumer tmux pane via the proven two-call shim (`send-keys` prompt, then `send-keys` Enter as a separate call); it mirrors `wd-arm`'s `armed.json`/disarm/timeout lifecycle so a PUSH watcher is subject to the same termination guarantee. Review found and fixed an Important defect: a `send-keys` failure was silently holding the shared `claimed.<head>` and printing a misleading `PUSHED`, which poisoned the claim and blocked the primary `wd-arm` PULL path — fixed (capture the send-keys rc; on failure release the claim, stderr diagnostic, exit 7, no `PUSHED`; a test proves a subsequent `wd-arm` then claims `WAKE`). `wd-gsd-publish` is the thin GSD adapter (`--phase NN` → `stage=gsd:phase-NN`, scope passthrough, `exec`s `wd-publish-done`); `done.head` is HEAD by convention (run right after the `verify(NN)` commit), no git-log archaeology — flagged as an assumption. Final-review comment remediation in `7f9a2a43`. 28/28 watchdog tests green at landing (8 MVP + 4 xworktree + 5 termination + 6 push + 4 gsd + 1 push-claim-release).
 
 - **PUSH (tmux).** If the Phase 1 decision kept PULL primary, PUSH is a low-latency accelerator for users already in tmux: external watcher runs `wd-check`; on WAKE, the **two-call** shim (proven 2026-06-22) — `tmux send-keys -t agentB '<fixed prompt>'` then a separate `tmux send-keys -t agentB Enter`. Precondition checks: B is a named pane at a clean idle prompt; re-test after `claude` TUI upgrades. (tmux 3.6b is installed.) If Phase 1 found PULL non-viable, this becomes the primary path instead.
 - **GSD adapter (L3).** Maps GSD onto the generic core: phase → `stage`; the `verify(NN)` commit → `done.head`; phase-scope paths → `scope`. Ships as a separate file; the core stays generic.
