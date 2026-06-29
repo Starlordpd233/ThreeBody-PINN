@@ -321,11 +321,13 @@ scripts/agent-commit -m "feat(governance): add watchdog signal, staleness gate, 
 
 Same-worktree needs no integration (shared tree). Cross-worktree, B must pull A's commit into its own branch before starting (user decision: **B integrates; watchdog signals only**).
 
+> *Executed 2026-06-29 (Phase 3 only).* Cross-worktree integration landed in `ec673b8a` (`wd-integrate`, the `wd-arm` wake-sequence header note, and `tests/watchdog/test_watchdog_xworktree.py` — four cases). The unittest is green standalone and under full `tests/watchdog` discovery, with a 15x stress run clean. Execution note: the test was briefly blocked by a call-site bug — `check_b("--require-integration")` bound the flag to the `channel` parameter (yielding `--channel --require-integration` and a false IDLE), a test-only mistake, not the filesystem-visibility race initially suspected; resolved by passing the channel explicitly. Phases 4–5 remain unexecuted, so the plan-level `execution_status` stays unset.
+
 ### Task 3.1 — Integration step + gate variant
 
 **Files:** Create `tools/watchdog/wd-integrate`; the gate variant already exists (`wd-check --require-integration`).
 
-- [ ] **Step 1: Write `wd-integrate`** — fast-forward-or-merge A's `done.head` into B's branch; on conflict, abort and surface (never leave a half-merge in an unattended path).
+- [x] **Step 1: Write `wd-integrate`** — fast-forward-or-merge A's `done.head` into B's branch; on conflict, abort and surface (never leave a half-merge in an unattended path).
 
 ```bash
 #!/usr/bin/env bash
@@ -340,13 +342,13 @@ if git merge --no-edit "$head"; then echo "integrated $head"; else
 fi
 ```
 
-- [ ] **Step 2: Wake sequence for cross-worktree** = `wd-arm` (WAKE) → `wd-integrate` → `wd-check --require-integration` (now passes) → begin. Document this ordering in the arm header.
+- [x] **Step 2: Wake sequence for cross-worktree** = `wd-arm` (WAKE) → `wd-integrate` → `wd-check --require-integration` (now passes) → begin. Document this ordering in the arm header.
 
 ### Task 3.2 — Cross-worktree end-to-end test (committed)
 
-- [ ] **Step 1: Add `tests/watchdog/test_watchdog_xworktree.py`** — temp repo with two linked worktrees on different branches; A commits on its branch + publishes; assert `wd-check --require-integration` returns `STALE:not-integrated`, then `wd-integrate` succeeds, then it returns `WAKE`; and a conflicting B-edit makes `wd-integrate` exit 4 cleanly (no half-merge). Run with `python3 -m unittest`.
+- [x] **Step 1: Add `tests/watchdog/test_watchdog_xworktree.py`** — temp repo with two linked worktrees on different branches; A commits on its branch + publishes; assert `wd-check --require-integration` returns `STALE:not-integrated`, then `wd-integrate` succeeds, then it returns `WAKE`; and a conflicting B-edit makes `wd-integrate` exit 4 cleanly (no half-merge). Run with `python3 -m unittest`.
 
-- [ ] **Step 2: Commit** (`feat(governance): add watchdog cross-worktree integration step and test`).
+- [x] **Step 2: Commit** (`feat(governance): add watchdog cross-worktree integration step and test` — `ec673b8a`).
 
 ---
 
