@@ -1746,11 +1746,9 @@ values are frozen and no dual updates occur inside a line search.
 Stage-boundary transitions apply re-warmup per the new stage's
 `λ_phys^max` / `λ_E^max` / `λ_L^max`.
 
-**Causal weighting (PHYS-05 default):** Dense ODE residuals use causal weighting `w_n = exp(-η_c · Σ_{m<n} stopgrad(R̄_m))`, `w_1 = 1`, `η_c = 1`
-default, with stopgrad in weights by default to prevent the weight mechanism
-from becoming an adversarial term. The exponent must be clipped to avoid
-underflow, but Phase 19 does not choose a numeric clipping bound; surface a
-gap if execution requires one.
+> **Phase 35 contract: causal-training mode (LOSS-04; D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A; AC-LOSS-04; grounded by the resolution doc §1.1, `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/32-GAPS.md` GAP-32-01, and `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/evidence/d-04-causal-training-mode.md`).** The Phase 35 baseline retains the existing per-time causal weighting component: `w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))`, `w_1 = 1`, and `eta_c = 1`. `pinn_architecture.md` remains the component-math home for the causal weight formula and PHYS-05 catalog. Dense-residual pseudo-ALM is rejected from the default loss, optional scalar-conservation ALM remains deferred P2 only, Option C / windowed-causal mechanics are not commissioned, and the numeric causal-exponent clip bound is deferred to FUT.
+
+**Causal weighting (PHYS-05 default):** Dense ODE residuals use the owner-ratified causal weighting baseline above, with stopgrad in weights by default to prevent the weight mechanism from becoming an adversarial term. The exponent must be clipped to avoid underflow, but no numeric clipping bound is selected in Phase 35; the bound remains deferred to FUT.
 
 The previous pseudo-ALM formulation (`L_data + λ_p·L_phys + (μ_p/2)·L_phys² + λ_E(k)·L_energy`) is rejected because squaring a nonnegative MSE produces a quartic residual that does not represent a standard equality-constrained augmented Lagrangian. Optional ALM for scalar conservation constraints only is documented as a P2 ablation in the PHYS-05 ablation section of `pinn_architecture.md`.
 
@@ -1800,7 +1798,7 @@ For a 256-trajectory training batch at curriculum stage $k$:
 
 All values are tagged **provisional** (B-07 `modified`: "provisional defaults, not verified optimums").
 
-> **Windowed-causal-mode compatibility note.** The batch-construction contract above is **compatible with** a windowed causal mode that excludes future-window trajectories, should the Phase-35 owner decision (D-04 / GAP-02) later select such a mode. This contract does **not** select or lock a causal mode; the causal-mode decision is deferred to Phase 35 (owner-pending) with a forward-reference.
+> **D-04 causal-mode compatibility note (LOSS-04; RESOLVED-WITH-INSTRUCTION Option A).** GAP-32-01 ratified the current per-time causal weighting baseline for Phase 35, so this batch-construction contract does not add Option C / windowed-causal mechanics; that design is not commissioned and not part of the default loss. The replay/lookahead contract remains compatible with the retained Option A because no future-window partitioning is introduced.
 
 > **Phase 34 contract: batch edge-case policy (LOOP-01; provisional; resolved by owner instruction — GAP-34-01 RESOLVED-WITH-INSTRUCTION 2026-06-25, Option A via UAT).** The three batch edge cases flagged by B-07 §1.4 as needing determinism are resolved by owner-ratified **Option A**, each carrying the LOOP-01 `provisional` tag (B-07 `modified`):
 >
