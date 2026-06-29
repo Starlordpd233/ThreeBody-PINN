@@ -666,6 +666,8 @@ The warmup schedule is:
 
 > **Phase 35 contract: energy-loss weights (LOSS-02; M15 rejected as issue-doc replacement; AC-LOSS-02; grounded by the resolution doc §1.9 and `.planning/phases/35-loss-energy-weight-contracts/evidence/m15-energy-weight-schedule.md`).** Retain the PHYS-05 warmup schedule above with `lambda_E^max <= 1` and scheduled conservation weights at or below one. The issue-doc cap-table replacement and stale high-energy-weight premise are rejected, not adopted as a locked schedule. Before any future control law, log weighted losses, scheduled weights, and gradient statistics; automatic dominance reweighting is deferred until measured weighted-loss/gradient evidence exists.
 
+> **Phase 35 guard: source precedence and deferred values (LOSS-02 / LOSS-03 / LOSS-04; AC-LOSS-02 / AC-LOSS-03 / AC-LOSS-04).** The Phase 35 evidence packets supersede issue-doc replacement proposals for this component catalog: Option C windowed-causal mechanics are not commissioned, automatic dominance reweighting is deferred, dense-residual ALM is rejected from the default loss, stage-indexed Huber-delta calibration is deferred, and `ctl_instruction.md` remains the total-loss assembly home while this file remains the component-formula home.
+
 Optimizer-phase semantics:
 
 - During Adam epochs: $\lambda$ values may be scheduled per the warmup
