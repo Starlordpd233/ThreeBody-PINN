@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# wd-gsd-publish — GSD adapter for the cross-session watchdog producer (Phase 5).
+#
+# A thin SEPARATE wrapper that maps GSD phase concepts onto the generic, GSD-
+# agnostic wd-publish-done core. The core (wd-publish-done) stays untouched;
+# this adapter only translates args and delegates.
+#
+#   --phase NN   ->  stage = "gsd:phase-NN"        (e.g. --phase 35 -> gsd:phase-35)
+#   --scope STR  ->  forwarded unchanged to wd-publish-done
+#   --channel N  ->  forwarded (defaults to "default" if omitted)
+#
+# done.head anchoring (BY CONVENTION — the adapter does NO commit archaeology):
+#   wd-publish-done anchors done.head on HEAD (`git rev-parse HEAD`). The GSD
+#   mapping "verify(NN) commit -> done.head" is satisfied by running this adapter
+#   IMMEDIATELY AFTER the `git commit` whose message is `verify(<scope>): ...` for
+#   phase NN — at that moment HEAD already IS the verify(NN) commit, so the
+#   anchored done.head is the verify(NN) commit by construction. The adapter
+#   does NOT grep git log for verify(NN); the caller supplies --scope, the
+#   convention supplies the head. If the plan's "verify(NN) -> done.head" instead
+#   meant git-log archaeology, that is deliberately NOT implemented here (flagged
+#   as an assumption in the task report).
+#
+# Usage: wd-gsd-publish --phase NN --scope "<pathspec>" [--channel NAME]
+set -euo pipefail
+
+phase=
+scope=
+channel=default
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --phase) phase=$2; shift 2 ;;
+    --scope) scope=$2; shift 2 ;;
+    --channel) channel=$2; shift 2 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+
+# --phase must be a positive integer (digits only, > 0). Empty / non-numeric /
+# zero / negative all fail with exit 2.
+case "$phase" in
+  ''|*[!0-9]*) echo "wd-gsd-publish: --phase must be a positive integer" >&2; exit 2 ;;
+esac
+[ "$phase" -gt 0 ] || { echo "wd-gsd-publish: --phase must be a positive integer" >&2; exit 2; }
+# --scope must be non-empty.
+[ -n "$scope" ] || { echo "wd-gsd-publish: --scope is required" >&2; exit 2; }
+
+stage="gsd:phase-$phase"
+
+# Delegate to the generic core. exec replaces this shell with wd-publish-done, so
+# the core's exit code and stdout/stderr become this script's, verbatim.
+exec "$(dirname "$0")/wd-publish-done" --channel "$channel" --stage "$stage" --scope "$scope"

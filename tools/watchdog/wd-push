@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+# wd-push — PUSH accelerator for the cross-session watchdog (Phase 5, optional).
+#
+# An EXTERNAL watcher (run from the operator's terminal or a cron — NOT inside
+# B's session) that polls wd-check and, on the first WAKE, injects the FIXED
+# wake prompt into B's tmux pane via the proven two-call send-keys shim:
+#   1. tmux send-keys -t PANE "<fixed wake prompt>"   # the prompt, no Enter
+#   2. tmux send-keys -t PANE Enter                    # then Enter, separately
+# A single call with a trailing Enter is NOT equivalent — the 2026-06-22 idle
+# evidence established this two-call ordering. The prompt is a fixed constant;
+# channel-file contents are NEVER interpolated.
+#
+# PUSH is subject to the SAME termination guarantee as wd-arm (Phase 4): it
+# writes <channel>/armed.json with kind="push-watcher" on start (removed on
+# every exit), checks the <channel>/disarm sentinel each poll (DISARMED exit 0),
+# honors --timeout-secs (PRODUCER-STALLED exit 42), and uses the same atomic
+# `mkdir claimed.<head>` exactly-once claim shared by every wake path. So
+# wd-disarm/wd-status manage a push-watcher identically to a P1 watcher, and a
+# push-watcher that loses the claim prints ALREADY-CLAIMED and injects nothing
+# (only one wake path injects).
+#
+# Soft precondition (warned, NOT verified): PUSH injects keystrokes blindly, so
+# the target pane must already be sitting at a clean idle claude prompt. Auto-
+# detecting claude's idle state via capture-pane is fragile and out of scope.
+#
+#   Fixed wake prompt (injected verbatim into B's pane on a won claim):
+#     "Watchdog: read `consumer-task.md` in this channel and the `wd-arm` result
+#      line; if WAKE, begin that task; if ALREADY-CLAIMED or PRODUCER-STALLED,
+#      stop and report."
+#
+# Output / exit:
+#   PUSHED <head>              exit 0   claimed + injected; B wakes on its own
+#   ALREADY-CLAIMED <head>     exit 0   another wake path claimed this head first
+#   PRODUCER-STALLED after Ns  exit 42  no done marker within --timeout-secs
+#   DISARMED                   exit 0   stood down via the <channel>/disarm sentinel
+#   wd-push: tmux not found    exit 5   precondition: tmux binary missing on PATH
+#   wd-push: pane not found: P exit 6   precondition: pane target did not resolve
+#   wd-push: send-keys failed  exit 7   injection failed (tmux send-keys non-zero);
+#                                                 shared claim RELEASED so the
+#                                                 default PULL wake path (wd-arm)
+#                                                 can still fire on this head.
+#                                       Reachable via TOCTOU between the
+#                                       has-session precondition and injection
+#                                       (pane dies, tmux server restarts). The
+#                                       loop runs under `set +e`, so send-keys
+#                                       exit codes are captured explicitly.
+#
+# Usage: wd-push --channel NAME --pane PANE [--poll-secs N] [--timeout-secs N]
+set -uo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
+# wd-common.sh sets `set -e`; restore this script's declared options so the
+# long-running watch loop is not killed by an expected non-zero from wd-check.
+set +e
+
+channel=
+pane=
+poll=20
+timeout=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --channel) channel=$2; shift 2 ;;
+    --pane) pane=$2; shift 2 ;;
+    --poll-secs) poll=$2; shift 2 ;;
+    --timeout-secs) timeout=$2; shift 2 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+[ -n "$channel" ] || { echo "need --channel" >&2; exit 2; }
+[ -n "$pane" ] || { echo "need --pane" >&2; exit 2; }
+
+# --- Hard preconditions (fail loudly; do NOT crash with a stack trace). -----
+# Both are testable by manipulating PATH / pointing at a stub tmux.
+# tmux binary must be on PATH.
+if ! command -v tmux >/dev/null 2>&1; then
+  echo "wd-push: tmux not found" >&2
+  exit 5
+fi
+# Pane target must resolve. has-session accepts session/window/pane targets and
+# exits non-zero if the target does not resolve to an existing session.
+if ! tmux has-session -t "$pane" 2>/dev/null; then
+  echo "wd-push: pane not found: $pane" >&2
+  exit 6
+fi
+
+# --- Soft precondition (warned, not verified). ------------------------------
+echo "wd-push: ensure pane $pane is at a clean idle claude prompt (PUSH injects keystrokes blindly)" >&2
+
+dir="$(wd_channel_dir "$channel")"
+here="$(dirname "$0")"
+start="$(date +%s)"
+
+# The fixed wake prompt, injected verbatim into B's pane on a won claim.
+# Single-quoted so the backticks are literal (no command substitution).
+WAKE_PROMPT='Watchdog: read `consumer-task.md` in this channel and the `wd-arm` result line; if WAKE, begin that task; if ALREADY-CLAIMED or PRODUCER-STALLED, stop and report.'
+
+# Remove this watcher's armed.json record. Idempotent (`rm -f`) so wd-disarm
+# having removed it first is not fatal under the loop's set +e semantics, and
+# silent so it never masks the intended exit code.
+remove_armed_record() { rm -f "$dir/armed.json" 2>/dev/null || true; }
+
+# Disarm-standdown: drop the armed record + sentinel and print DISARMED. Used by
+# BOTH the in-loop sentinel check and the TERM trap. The trap is the backstop
+# for wd-disarm's best-effort `kill`: if SIGTERM lands during the poll loop's
+# sleep, the watcher still exits 0 with DISARMED instead of being killed
+# silently. Normal PUSHED / ALREADY-CLAIMED / PRODUCER-STALLED exits do not raise
+# SIGTERM, so the trap never masks their exit codes.
+disarm_standdown() {
+  remove_armed_record
+  rm -f "$dir/disarm" 2>/dev/null || true
+  echo "DISARMED"
+  exit 0
+}
+trap disarm_standdown TERM
+
+# Record this push-watcher on disk so wd-disarm/wd-status can see it. Same schema
+# as wd-arm with kind="push-watcher". ttl is --timeout-secs (the watcher's own
+# TTL bound) or null when --timeout-secs is 0. Written atomically so a concurrent
+# reader never sees a half-written file.
+mkdir -p "$dir"
+armed_by="${GIT_AGENT_ID:-}"
+[ -n "$armed_by" ] || armed_by="unknown"
+if [ "$timeout" -gt 0 ]; then ttl_json="$timeout"; else ttl_json="null"; fi
+armed_tmp="$dir/.armed.json.tmp.$$"
+printf '{"kind":"push-watcher","channel":"%s","armed_at":%s,"ttl":%s,"armed_by":"%s","pid":%s}\n' \
+  "$channel" "$start" "$ttl_json" "$armed_by" "$$" > "$armed_tmp"
+mv "$armed_tmp" "$dir/armed.json"
+
+while true; do
+  st="$("$here/wd-check" --channel "$channel" || true)"
+  if [ "${st%%:*}" = WAKE ]; then
+    head="$(sed -n 's/.*"head":"\([^"]*\)".*/\1/p' "$dir/done.json" | head -1)"
+    if mkdir "$dir/claimed.$head" 2>/dev/null; then
+      # Won the claim — inject the fixed wake prompt via the two-call shim.
+      # Two SEPARATE tmux invocations (prompt, then Enter) — a single call with
+      # a trailing Enter is NOT equivalent (proven 2026-06-22 ordering).
+      #
+      # Capture each send-keys exit code explicitly. The watch loop runs under
+      # `set +e` (restored above so wd-check non-zero exits do not kill it), so
+      # a non-zero from send-keys would otherwise be silently swallowed and
+      # execution would fall through to `PUSHED`. On EITHER failure we RELEASE
+      # the shared exactly-once claim: a failed PUSH injection must NOT leave
+      # claimed.<head> in place, or it would poison the claim and silently
+      # disable the default PULL wake path (wd-arm hits the existing dir and
+      # prints ALREADY-CLAIMED). rmdir first (the dir is empty); rm -rf backstop
+      # guards against an unexpected leftover entry. Exit 7, no PUSHED.
+      tmux send-keys -t "$pane" "$WAKE_PROMPT"; rc_prompt=$?
+      if [ "$rc_prompt" -ne 0 ]; then
+        rmdir "$dir/claimed.$head" 2>/dev/null || rm -rf "$dir/claimed.$head"
+        remove_armed_record
+        echo "wd-push: send-keys failed (prompt); claim released, head not injected" >&2
+        exit 7
+      fi
+      tmux send-keys -t "$pane" Enter; rc_enter=$?
+      if [ "$rc_enter" -ne 0 ]; then
+        # The prompt text may be in the pane but Enter was not sent, so B is
+        # not woken; releasing the claim lets another wake path retry.
+        rmdir "$dir/claimed.$head" 2>/dev/null || rm -rf "$dir/claimed.$head"
+        remove_armed_record
+        echo "wd-push: send-keys failed (Enter); claim released, head not injected" >&2
+        exit 7
+      fi
+      remove_armed_record
+      echo "PUSHED $head"
+    else
+      remove_armed_record
+      echo "ALREADY-CLAIMED $head"
+    fi
+    exit 0
+  fi
+  if [ "$timeout" -gt 0 ] && [ "$(( $(date +%s) - start ))" -ge "$timeout" ]; then
+    remove_armed_record
+    echo "PRODUCER-STALLED after ${timeout}s"
+    exit 42
+  fi
+  # Disarm-sentinel fast-path standdown: a finished handoff (or wd-disarm) drops
+  # a <channel>/disarm file to tell an in-flight watcher to quit on its very next
+  # poll. The watcher consumes the sentinel and its armed record on the way out.
+  if [ -e "$dir/disarm" ]; then
+    remove_armed_record
+    rm -f "$dir/disarm" 2>/dev/null || true
+    echo "DISARMED"
+    exit 0
+  fi
+  sleep "$poll"
+done

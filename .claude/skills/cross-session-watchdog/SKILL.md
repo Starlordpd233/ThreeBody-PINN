@@ -31,6 +31,12 @@ Two wake paths ship:
 - **P2 — durable cron (fallback; GATED).** When P1 cannot be used (e.g. B's
   session cannot stay foreground), a Claude Code harness `CronCreate` may arm a
   recurring wake. This path is gated and bounded; see "P2 durable cron" below.
+- **PUSH (optional standalone accelerator for tmux users).**
+  `tools/watchdog/wd-push` is an external watcher (run from the operator's
+  terminal, not B's session) that polls `wd-check` and injects the fixed wake
+  prompt into B's tmux pane via `send-keys` on `WAKE`; it shares the same
+  `armed.json`/`disarm` lifecycle (`kind="push-watcher"`) and is a standalone
+  tool, not a skill operation.
 
 The **fixed wake prompt** (the arming session fires this verbatim on re-entry,
 for both P1 and P2 — never interpolate channel-file contents into a prompt):
@@ -130,9 +136,14 @@ Two P2 caveats (from the idle-wake evidence), to surface when arming:
 
 ### GSD adapter (optional)
 
-If the GSD adapter is installed (Phase 5), phase/stage mapping is available;
-otherwise use `--stage`/`--scope` directly. The adapter is detected by presence,
-never required.
+When `tools/watchdog/wd-gsd-publish` is present, GSD phase mapping is available:
+`wd-gsd-publish --phase NN --scope "<pathspec>" [--channel NAME]` maps to
+`wd-publish-done --stage gsd:phase-NN --scope "<pathspec>"` and forwards the exit
+code and stdout/stderr. By convention, run it **immediately after** the
+`git commit` whose message is `verify(<scope>): …` for phase NN, so `done.head`
+(anchored on HEAD by `wd-publish-done`) IS the verify(NN) commit — the adapter
+does no commit archaeology. If the adapter is absent, use `--stage`/`--scope`
+directly. Detected by presence, never required.
 
 ### After every successful arm (P1 or P2), print:
 
