@@ -4,18 +4,18 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 35
 current_phase_name: loss-energy-weight-contracts
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 35-02-PLAN.md
-last_updated: "2026-06-29T03:05:02.743Z"
+stopped_at: Completed 35-03-PLAN.md
+last_updated: "2026-06-29T03:23:41.454Z"
 last_activity: 2026-06-29
 last_activity_desc: Phase 35 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 25
-  completed_plans: 23
-  percent: 71
+  completed_plans: 24
+  percent: 96
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 ## Current Position
 
 Phase: 35 (loss-energy-weight-contracts) — EXECUTING
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 4
 Status: Ready to execute
 Last activity: 2026-06-29 — Phase 35 execution started
@@ -89,6 +89,7 @@ Last activity: 2026-06-29 — Phase 35 execution started
 | 33 | 4 | - | - |
 | Phase 34 P01 | 8min | 3 tasks | 8 files |
 | Phase 35-loss-energy-weight-contracts P35-02 | 728 | 2 tasks | 2 files |
+| Phase 35 P03 | 12 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -227,9 +228,9 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-29T03:05:02.738Z
-Stopped at: Completed 35-02-PLAN.md
-Next action: Continue Phase 35 execution with 35-03-PLAN.md (Wave 3): add Phase 35 methodology/assembly callouts and stable cross-references to ctl_instruction.md.
+Last session: 2026-06-29T03:23:41.449Z
+Stopped at: Completed 35-03-PLAN.md
+Next action: Continue Phase 35 execution with 35-04-PLAN.md (Wave 4): close Phase 35 ledger/verification state for LOSS-01 through LOSS-04.
 
 ## Operator Next Steps
 
