@@ -32,6 +32,13 @@
 #      line; if WAKE, begin that task; if ALREADY-CLAIMED or PRODUCER-STALLED,
 #      stop and report."
 #
+# Cross-worktree wake sequence: when A and B are in DIFFERENT worktrees, B's
+# branch does not yet contain A's done commit, so after this watcher prints WAKE,
+# B integrates A's commit before acting:
+#   wd-arm (WAKE)  ->  wd-integrate  ->  wd-check --require-integration (WAKE)  ->  begin
+# Same-worktree (the common case) skips wd-integrate entirely — A's done commit
+# is already on B's HEAD and A's files are already in B's checkout.
+#
 # Output / exit:
 #   WAKE <head>             exit 0   claimed; begin the consumer-task.md task
 #   ALREADY-CLAIMED <head>  exit 0   another watcher already claimed this head

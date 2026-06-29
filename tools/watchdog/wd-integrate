@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# wd-integrate — consumer-side integration step for the cross-worktree watchdog.
+#
+# Same-worktree handoff needs no integration: A and B share one checkout, so when
+# B wakes, A's done commit is already on B's HEAD and A's files are already in
+# the tree. Cross-worktree is different: B's branch does not yet contain A's done
+# commit, so B must integrate it before acting. User decision: B integrates; the
+# watchdog only signals ("A is done + reachable").
+#
+# Merges the producer's marked head (from <channel>/done.json) into the current
+# branch. On a clean merge or fast-forward it prints "integrated <head>"; if the
+# head is already an ancestor it prints "already-integrated <head>" and does
+# nothing. On conflict it ABORTS the merge and exits 4, so an unattended path is
+# never left half-merged — B surfaces the conflict instead of guessing.
+#
+# Cross-worktree wake sequence (documented here and in the wd-arm header):
+#   wd-arm (WAKE)  ->  wd-integrate  ->  wd-check --require-integration (WAKE)  ->  begin
+#
+# Output / exit:
+#   integrated <head>           exit 0   A's head merged into the current branch
+#   already-integrated <head>   exit 0   A's head was already an ancestor
+#   CONFLICT integrating <head> exit 4   merge conflicted; aborted, tree clean
+#   (no done marker)            exit 10  nothing to integrate yet
+#
+# Usage: wd-integrate --channel NAME
+set -euo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
+
+channel=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --channel) channel=$2; shift 2 ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+[ -n "$channel" ] || { echo "need --channel" >&2; exit 2; }
+
+done_f="$(wd_channel_dir "$channel")/done.json"
+[ -f "$done_f" ] || { echo "wd-integrate: no done marker on channel $channel" >&2; exit 10; }
+head="$(sed -n 's/.*"head":"\([^"]*\)".*/\1/p' "$done_f" | head -1)"
+
+git merge-base --is-ancestor "$head" HEAD && { echo "already-integrated $head"; exit 0; }
+
+if git merge --no-edit "$head"; then
+  echo "integrated $head"
+else
+  # `git merge --abort` is guarded so that, under `set -e`, a failed abort can
+  # never mask the conflict exit code returned next. If the merge never started
+  # there is no half-merge to clean up anyway.
+  git merge --abort || true
+  echo "CONFLICT integrating $head — manual merge required" >&2
+  exit 4
+fi
