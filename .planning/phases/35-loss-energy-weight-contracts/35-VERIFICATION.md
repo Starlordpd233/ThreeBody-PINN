@@ -2,8 +2,8 @@
 phase: 35
 slug: loss-energy-weight-contracts
 verified: 2026-06-29T03:32:42Z
-status: pre-ledger-passed
-score: "LOSS-01..04 structural checks passed; GAP-32-01 dual-register check passed; ledger closure pending"
+status: ledger-closure-passed
+score: "LOSS-01..04 structural checks passed; 5/5 Phase 35 ledger rows VERIFIED; final suite pending"
 gaps_remaining: []
 behavior_unverified: 0
 overrides_applied: 0
@@ -245,22 +245,29 @@ verification:
 Because all Phase 35 decisions were already grounded or resolved with explicit
 instruction, this plan does not create or modify gap registers.
 
-## 11. Phase-32 Ledger Closure - PENDING
+## 11. Phase-32 Ledger Closure - PASS
 
-This Task 1 precheck does not mark any ledger row `VERIFIED`. Task 2 may close
-only the Phase 35-owned rows after this file records PASS:
+Task 2 closed only the Phase 35-owned rows after this file recorded PASS. The
+row status column lands on `VERIFIED`; each per-finding transition-log section
+records the traversable `IN_PROGRESS -> FIX_APPLIED -> VERIFIED` chain.
 
-| Finding row | Current status before Task 2 | Target after Task 2 |
-|---|---|---|
-| D-04 | IN_PROGRESS | VERIFIED |
-| M15 | IN_PROGRESS | VERIFIED |
-| NS-12 | IN_PROGRESS | VERIFIED |
-| NS-13 | IN_PROGRESS | VERIFIED |
-| NS-18 | IN_PROGRESS | VERIFIED |
+| Finding row | AC ID | Evidence packet / resolution source | Transition | Final status | Preserved verdict |
+|---|---|---|---|---|---|
+| D-04 | AC-LOSS-04 | `evidence/d-04-causal-training-mode.md` + GAP-32-01 dual-register Option A | `IN_PROGRESS -> FIX_APPLIED -> VERIFIED` | VERIFIED | `accept-resolution` |
+| M15 | AC-LOSS-02 | `../35-loss-energy-weight-contracts/evidence/m15-energy-weight-schedule.md` | `IN_PROGRESS -> FIX_APPLIED -> VERIFIED` | VERIFIED | `accept-resolution` |
+| NS-12 | AC-LOSS-01-AD | `../35-loss-energy-weight-contracts/evidence/ns-12-componentwise-ad.md` | `IN_PROGRESS -> FIX_APPLIED -> VERIFIED` | VERIFIED | `accept-resolution` |
+| NS-13 | AC-LOSS-03 | `../35-loss-energy-weight-contracts/evidence/ns-13-energy-huber-delta.md` | `IN_PROGRESS -> FIX_APPLIED -> VERIFIED` | VERIFIED | `defer-with-blocker` |
+| NS-18 | AC-LOSS-01 | `../35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md` | `IN_PROGRESS -> FIX_APPLIED -> VERIFIED` | VERIFIED | `accept-resolution` |
+
+No new status enum or AC-ID scheme was minted. Non-Phase-35 rows were not
+modified by Task 2.
 
 ## Overall Verdict
 
-Phase 35 structural verification is ready for ledger closure. The only
-execution deviation so far is the stale `pinn_architecture.md` anti-truncation
-anchor in the plan command; the adjusted guard checks the current committed
-heading from Plan 35-02 and preserves the same truncation intent.
+Phase 35 structural verification and ledger closure have passed. The final
+full-suite / allowed-path / whitespace guards remain Task 3.
+
+The only execution deviation so far is the stale `pinn_architecture.md`
+anti-truncation anchor in the plan command; the adjusted guard checks the
+current committed heading from Plan 35-02 and preserves the same truncation
+intent.
