@@ -4,17 +4,17 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 35
 current_phase_name: loss-energy-weight-contracts
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: Completed 35-01-PLAN.md
-last_updated: "2026-06-29T02:47:08.433Z"
+stopped_at: Completed 35-02-PLAN.md
+last_updated: "2026-06-29T03:05:02.743Z"
 last_activity: 2026-06-29
 last_activity_desc: Phase 35 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 25
-  completed_plans: 22
+  completed_plans: 23
   percent: 71
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 ## Current Position
 
 Phase: 35 (loss-energy-weight-contracts) — EXECUTING
-Current Plan: 2
+Current Plan: 3
 Total Plans in Phase: 4
 Status: Ready to execute
 Last activity: 2026-06-29 — Phase 35 execution started
@@ -88,6 +88,7 @@ Last activity: 2026-06-29 — Phase 35 execution started
 | 32 | 4 | - | - |
 | 33 | 4 | - | - |
 | Phase 34 P01 | 8min | 3 tasks | 8 files |
+| Phase 35-loss-energy-weight-contracts P35-02 | 728 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -194,6 +195,7 @@ Recent decisions affecting current work:
 - [Phase 34]: LOOP-04 reuses existing Phase 32 M14 packet; no new M14 packet authored
 - [Phase 34]: LOOP-07 and LOOP-08 are v1.5 carry-forwards with no ledger row and no packet
 - [Phase 34]: Phase 34 evidence packets mirror Phase 32 template/schema without reinvention
+- [Phase 35]: No new semantic/spec decision was invented in 35-02; loss contract text follows Phase 35 evidence packets and owner-ratified D-04 Option A.
 
 ### Pending Todos
 
@@ -225,9 +227,9 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** None
 
-Last session: 2026-06-29T02:46:22.189Z
-Stopped at: Completed 35-01-PLAN.md
-Next action: Continue Phase 35 execution with 35-02-PLAN.md (Wave 2): transcribe Phase 35 verdict-status callouts and component-math tags into pinn_architecture.md.
+Last session: 2026-06-29T03:05:02.738Z
+Stopped at: Completed 35-02-PLAN.md
+Next action: Continue Phase 35 execution with 35-03-PLAN.md (Wave 3): add Phase 35 methodology/assembly callouts and stable cross-references to ctl_instruction.md.
 
 ## Operator Next Steps
 

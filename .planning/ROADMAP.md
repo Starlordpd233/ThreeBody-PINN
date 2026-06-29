@@ -211,10 +211,10 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. The Huber-δ calibration contract for the normalized-energy loss is defined — δ selected from empirical `|ΔH|` quantiles with a `0.01–0.1` starting range, recorded per stage — per NS-13 (LOSS-03).
   4. The causal-training-mode contract is defined per the D-04 verdict — the chosen mode's batch-windowing, ALM locality, and loss-weighting structure; if Option C (time-windowed causal-ALM hybrid) is adjudicated, the overlapping-window partitioning, hard convergence gating, and state-propagation contract — with the blueprint's Option-C recommendation preserved unless the verdict downgrades it as an explicit, recorded human decision (LOSS-04).
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 - [x] 35-01-PLAN.md
-- [ ] 35-02-PLAN.md
+- [x] 35-02-PLAN.md
 - [ ] 35-03-PLAN.md
 - [ ] 35-04-PLAN.md
 
@@ -247,7 +247,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete    | 2026-06-21 |
 | 33. Curriculum-Stage Contracts | v1.6 | 4/4 | Complete    | 2026-06-23 |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 1/5 | In Progress|  |
-| 35. Loss & Energy-Weight Contracts | v1.6 | 1/4 | In Progress|  |
+| 35. Loss & Energy-Weight Contracts | v1.6 | 2/4 | In Progress|  |
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
 
 ---
