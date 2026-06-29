@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
-current_phase: 34
-current_phase_name: Training-Loop & Batch-Construction Contracts
+current_phase: 35
+current_phase_name: loss-energy-weight-contracts
 current_plan: 2
 status: executing
-stopped_at: Phase 35 context gathered
-last_updated: "2026-06-27T02:01:38.409Z"
-last_activity: 2026-06-23
-last_activity_desc: Phase 33 complete, transitioned to Phase 34
+stopped_at: Completed 35-01-PLAN.md
+last_updated: "2026-06-29T02:47:08.433Z"
+last_activity: 2026-06-29
+last_activity_desc: Phase 35 execution started
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 25
+  completed_plans: 22
   percent: 71
 ---
 
@@ -25,15 +25,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-20)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** Phase 34 — training-loop-&-batch-construction-contracts
+**Current focus:** Phase 35 — loss-energy-weight-contracts
 
 ## Current Position
 
-Phase: 34 — Training-Loop & Batch-Construction Contracts
+Phase: 35 (loss-energy-weight-contracts) — EXECUTING
 Current Plan: 2
-Total Plans in Phase: 5
+Total Plans in Phase: 4
 Status: Ready to execute
-Last activity: 2026-06-23 — Phase 33 complete, transitioned to Phase 34
+Last activity: 2026-06-29 — Phase 35 execution started
 
 ## Performance Metrics
 
@@ -223,11 +223,11 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/35-loss-energy-weight-contracts/35-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-06-27T02:01:38.404Z
-Stopped at: Phase 35 context gathered
-Next action: Phase 33 is complete and verified (UAT 7/7, 0 issues; goal-backward 5/5; ROADMAP/REQUIREMENTS/STATE reconciled via `phase.complete 33`). Proceed to Phase 34 (Training-Loop & Batch-Construction Contracts): `/gsd-discuss-phase 34` then `/gsd-plan-phase 34`. Non-blocking follow-up: a future plan touching Phase 33 should re-baseline `33-BASELINE-CAPTURED` or migrate Plan 33-04 check 5 to a per-path assertion that excludes delegated tracking-write paths (the combined dirty-doc hash false positive documented in 33-VERIFICATION.md section 8).
+Last session: 2026-06-29T02:46:22.189Z
+Stopped at: Completed 35-01-PLAN.md
+Next action: Continue Phase 35 execution with 35-02-PLAN.md (Wave 2): transcribe Phase 35 verdict-status callouts and component-math tags into pinn_architecture.md.
 
 ## Operator Next Steps
 
