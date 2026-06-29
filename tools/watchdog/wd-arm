@@ -43,6 +43,15 @@
 #   WAKE <head>             exit 0   claimed; begin the consumer-task.md task
 #   ALREADY-CLAIMED <head>  exit 0   another watcher already claimed this head
 #   PRODUCER-STALLED after Ns  exit 42   timed out with no done marker
+#   DISARMED                exit 0   stood down via the <channel>/disarm sentinel
+#
+# Termination guarantee (Phase 4): every armed watcher records its existence in
+# <channel>/armed.json (single-line JSON) so wd-disarm/wd-status — and a future
+# P2 durable-cron armer — can see it. The watcher removes its own record on every
+# exit path. The <channel>/disarm sentinel is the fast-path standdown signal: an
+# in-flight watcher checks it on every poll and exits DISARMED on the next tick.
+# This on-disk lifecycle is the shared substrate for both P1 and P2; the harness
+# CronCreate (agent-side) is NOT involved here.
 #
 # Usage: wd-arm --channel NAME [--poll-secs N] [--timeout-secs N] [--task-file PATH]
 set -uo pipefail
@@ -70,6 +79,25 @@ dir="$(wd_channel_dir "$channel")"
 here="$(dirname "$0")"
 start="$(date +%s)"
 
+# Remove this watcher's armed.json record. Idempotent (`rm -f`) so wd-disarm
+# having removed it first is not fatal under the loop's set +e semantics, and
+# silent (`2>/dev/null || true`) so it never masks the intended exit code.
+remove_armed_record() { rm -f "$dir/armed.json" 2>/dev/null || true; }
+
+# Disarm-standdown: drop the armed record + sentinel and print DISARMED. Used by
+# BOTH the in-loop sentinel check (Deliverable 1.2) and the TERM trap. The trap
+# is the backstop for wd-disarm's best-effort `kill`: if SIGTERM lands during the
+# poll loop's sleep, the watcher still exits 0 with DISARMED instead of being
+# killed silently. Normal WAKE / ALREADY-CLAIMED / PRODUCER-STALLED exits do not
+# raise SIGTERM, so the trap never masks their exit codes.
+disarm_standdown() {
+  remove_armed_record
+  rm -f "$dir/disarm" 2>/dev/null || true
+  echo "DISARMED"
+  exit 0
+}
+trap disarm_standdown TERM
+
 # Persist the task payload at arm time so a woken (or restarted) B knows what to
 # do. Written atomically; the wake prompt references this file, never its bytes.
 if [ -n "$task_file" ]; then
@@ -84,20 +112,45 @@ if [ -n "$task_file" ]; then
   fi
 fi
 
+# Record this watcher on disk so wd-disarm/wd-status can see it. Schema matches
+# the Phase 4 brief verbatim. ttl is --timeout-secs (the watcher's own TTL bound)
+# or null when --timeout-secs is 0 (no self-termination). Written atomically so a
+# concurrent reader never sees a half-written file.
+mkdir -p "$dir"
+armed_by="${GIT_AGENT_ID:-}"
+[ -n "$armed_by" ] || armed_by="unknown"
+if [ "$timeout" -gt 0 ]; then ttl_json="$timeout"; else ttl_json="null"; fi
+armed_tmp="$dir/.armed.json.tmp.$$"
+printf '{"kind":"watcher","channel":"%s","armed_at":%s,"ttl":%s,"armed_by":"%s","pid":%s}\n' \
+  "$channel" "$start" "$ttl_json" "$armed_by" "$$" > "$armed_tmp"
+mv "$armed_tmp" "$dir/armed.json"
+
 while true; do
   st="$("$here/wd-check" --channel "$channel" || true)"
   if [ "${st%%:*}" = WAKE ]; then
     head="$(sed -n 's/.*"head":"\([^"]*\)".*/\1/p' "$dir/done.json" | head -1)"
     if mkdir "$dir/claimed.$head" 2>/dev/null; then
+      remove_armed_record
       echo "WAKE $head"
     else
+      remove_armed_record
       echo "ALREADY-CLAIMED $head"
     fi
     exit 0
   fi
   if [ "$timeout" -gt 0 ] && [ "$(( $(date +%s) - start ))" -ge "$timeout" ]; then
+    remove_armed_record
     echo "PRODUCER-STALLED after ${timeout}s"
     exit 42
+  fi
+  # Disarm-sentinel fast-path standdown: a finished handoff (or wd-disarm) drops
+  # a <channel>/disarm file to tell an in-flight watcher to quit on its very next
+  # poll. The watcher consumes the sentinel and its armed record on the way out.
+  if [ -e "$dir/disarm" ]; then
+    remove_armed_record
+    rm -f "$dir/disarm" 2>/dev/null || true
+    echo "DISARMED"
+    exit 0
   fi
   sleep "$poll"
 done

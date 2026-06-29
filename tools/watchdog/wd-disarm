@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# wd-disarm — external kill-switch for the cross-session watchdog.
+#
+# Forcibly stands down every watchdog arm the tool can see. Idempotent and safe
+# to call repeatedly: exit 0 even when nothing is armed. Operates on the on-disk
+# armed.json records and the <channel>/disarm sentinel that wd-arm checks on each
+# poll, so it is observable from bash/unittest and shared by both the P1 watcher
+# and the future P2 durable-cron arm (which writes its own armed.json).
+#
+# Per target channel it:
+#   (a) touches <channel>/disarm  — in-flight watchers see it on their next poll
+#       and exit DISARMED; in-flight P2 crons see it on their next fire.
+#   (b) best-effort `kill` of any pid in that channel's armed.json — ignored on
+#       failure (the process may already be gone).
+#   (c) removes the armed.json record(s) for that channel.
+#   (d) leaves the sentinel in place — it is self-cleaning: a watcher removes it
+#       as it stands down; if no watcher is running, it harmlessly remains and
+#       wd-status reports its presence.
+#
+# Channels with no armed.json are skipped silently (no sentinel turds). If no
+# channel has an active arm, prints `no active arms`.
+#
+# Usage: wd-disarm [--channel NAME | --all]
+set -uo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
+
+channel=
+all=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --channel) channel=$2; shift 2 ;;
+    --all) all=1; shift ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+# --channel and --all are mutually exclusive; absence of either means --all.
+if [ -n "$channel" ] && [ "$all" = 1 ]; then
+  echo "wd-disarm: --channel and --all are mutually exclusive" >&2
+  exit 2
+fi
+
+root="$(wd_channel_root)"
+
+# Build the target list. --channel targets one name; --all targets every channel
+# dir under the root that currently has an arm to disarm.
+targets=""
+if [ -n "$channel" ]; then
+  targets="$channel"
+elif [ -d "$root" ]; then
+  for d in "$root"/*/; do
+    [ -d "$d" ] || continue
+    name="$(basename "$d")"
+    [ -f "$root/$name/armed.json" ] && targets="$targets $name"
+  done
+fi
+
+disarmed_one=0
+for name in $targets; do
+  cdir="$root/$name"
+  armed="$cdir/armed.json"
+  [ -f "$armed" ] || continue
+  mkdir -p "$cdir"
+  # (a) Sentinel first — in-flight watchers see it on their next poll and exit
+  #     DISARMED via the in-loop check (consuming the sentinel on the way out).
+  : > "$cdir/disarm"
+  # (b) Best-effort kill of the armed pid (read from armed.json BEFORE step (c)
+  #     removes it). The watcher's TERM trap prints DISARMED on this path too.
+  pid="$(sed -n 's/.*"pid":\([0-9][0-9]*\).*/\1/p' "$armed" | head -1)"
+  if [ -n "$pid" ]; then
+    kill "$pid" 2>/dev/null || true
+  fi
+  # (c) Remove the armed record.
+  rm -f "$armed"
+  # (d) Leave the sentinel in place — self-cleaning: a running watcher removes
+  #     it on standdown; if none is running, wd-status reports its presence.
+  echo "disarmed $name"
+  disarmed_one=1
+done
+
+if [ "$disarmed_one" = 0 ]; then
+  echo "no active arms"
+fi
+exit 0

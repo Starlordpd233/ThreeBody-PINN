@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# wd-status — drain-troubleshooting view for the cross-session watchdog.
+#
+# Lists every active watchdog arm across all channels under the shared git common
+# dir (channel dirs are shared by linked worktrees, so this naturally sees arms
+# from sibling worktrees too — no worktree special-casing). Read-only: mutates
+# nothing.
+#
+# For each <channel>/armed.json that exists, prints one line:
+#   <channel> kind=<watcher|cron> age=<secs since armed_at> ttl=<secs|null> armed_by=<id>
+# A present <channel>/disarm sentinel is flagged:
+#   - appended to an arm line as ` DISARM-REQUESTED`
+#   - or, if the sentinel exists with no armed.json, as a separate line:
+#     `<channel> disarm-requested (no active arm record)`
+#
+# If no armed.json and no sentinel exists anywhere, prints `no active arms`.
+#
+# JSON fields are parsed with the same sed idiom the other scripts use for
+# done.json (no jq dependency).
+#
+# Usage: wd-status
+set -uo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
+
+root="$(wd_channel_root)"
+[ -d "$root" ] || { echo "no active arms"; exit 0; }
+
+# Deterministic ordering (ls | sort) so test assertions are stable.
+found=0
+shopt -s nullglob
+for cdir in "$root"/*/; do
+  [ -d "$cdir" ] || continue
+  name="$(basename "$cdir")"
+  armed="$cdir/armed.json"
+  sentinel="$cdir/disarm"
+  if [ -f "$armed" ]; then
+    # String fields (kind, armed_by) use the quoted-value idiom shared with
+    # wd-check; numeric/null fields (armed_at, ttl) match up to a comma/brace.
+    kind="$(sed -n 's/.*"kind":"\([^"]*\)".*/\1/p' "$armed" | head -1)"
+    armed_at="$(sed -n 's/.*"armed_at":\([0-9][0-9]*\).*/\1/p' "$armed" | head -1)"
+    ttl="$(sed -n 's/.*"ttl":\([^,}]*\).*/\1/p' "$armed" | head -1)"
+    armed_by="$(sed -n 's/.*"armed_by":"\([^"]*\)".*/\1/p' "$armed" | head -1)"
+    # age = now - armed_at (an integer epoch). Skip cleanly if unparseable.
+    age=
+    if [ -n "$armed_at" ] && [ "$armed_at" -eq "$armed_at" ] 2>/dev/null; then
+      age=$(( $(date +%s) - armed_at ))
+    fi
+    line="$name kind=$kind age=$age ttl=$ttl armed_by=$armed_by"
+    if [ -e "$sentinel" ]; then
+      line="$line DISARM-REQUESTED"
+    fi
+    printf '%s\n' "$line"
+    found=1
+  elif [ -e "$sentinel" ]; then
+    printf '%s disarm-requested (no active arm record)\n' "$name"
+    found=1
+  fi
+done
+shopt -u nullglob
+
+if [ "$found" = 0 ]; then
+  echo "no active arms"
+fi
+exit 0
