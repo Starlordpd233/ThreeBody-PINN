@@ -265,7 +265,7 @@ Author Comment: I'm not sure why this section is formatted like this. It looks l
 | Power Term (p) | 2 (element-wise square) | Empirical results demonstrate that $p=2$ provides significant improvements in stability and accuracy without excessive computational overhead.[1] |
 | Output Activation | None (Linear) | The final layer must be linear to allow the predicted positions to take on any real value required by the physical system. |
 
-# 3. The Multi-Component, Physics-Constrained Loss Function
+# 3. The Multi-Component Loss Function (Physics-Constrained)
 
 The training of the PINN is guided by a composite loss function that
 simultaneously optimizes for three distinct yet complementary
@@ -306,6 +306,8 @@ Author Comment: again, the syntax is broken
 
 where $\delta_r = 1$ is the default Huber transition. The previous
 MAE/L1 data-loss prose is replaced by this Huber contract.
+
+> **Phase 35 contract: loss scaling and units (LOSS-01; NS-18 modified; AC-LOSS-01; grounded by the resolution doc §1.14 and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md`).** `pinn_architecture.md` is the canonical component-math home for data, physics, energy, and angular-momentum terms; `ctl_instruction.md` owns total-loss assembly and methodology cross-references by stable section heading plus AC ID. The component contract uses dimensionless `u=t/T` and `r'=r/D`, projected scaled positions for Huber data loss, ordered raw mass metadata where COM/force terms require masses, matched `epsilon_train = 1e-5` for force and Hamiltonian terms, separate data-fidelity snapshot points from physics/energy collocation points, the IC anchor, the angular-momentum regularizer, and no linear-momentum / no-linear-momentum-loss term.
 
 where:
 
@@ -419,6 +421,8 @@ $$L_{phys}^{causal} = \frac{1}{N_t} \sum_{n=1}^{N_t} w_n \bar R_n.$$
 The unweighted mean $\frac{1}{N_t}\sum_n \bar R_n$ may be logged as a
 diagnostic, but it is not the default training loss.
 
+> **Phase 35 contract: causal-training mode (LOSS-04; D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A; AC-LOSS-04; grounded by the resolution doc §1.1, `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/32-GAPS.md` GAP-32-01, and `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/evidence/d-04-causal-training-mode.md`).** This file keeps the per-time causal weighting component as the default: `w_1 = 1`, `w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))`, and `eta_c = 1`. Dense-residual ALM is rejected from the default loss, optional scalar-conservation ALM remains deferred P2 only, and the numeric causal-exponent clip bound is deferred to FUT. Option C time-windowed causal mechanics are not commissioned.
+
 **Collocation Point Sampling:**
 
 The collocation points are sampled according to the following strategy:
@@ -530,6 +534,8 @@ $$S_H = median_train(K0 + Uabs0)$$
 
 and $\delta = 1.0$ is the Huber transition.
 
+> **Phase 35 contract: energy Huber delta (LOSS-03; NS-13 defer / deferred calibration; AC-LOSS-03; grounded by the resolution doc §1.13 and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-13-energy-huber-delta.md`).** The normalized-energy Huber transition is named `delta_E = 1.0` for Phase 35 traceability and remains the configurable current baseline. Calibration to a smaller range such as `0.01-0.1`, any stage-indexed Huber delta table, and any median/quantile replacement are deferred until normalized `|Delta H|` quantiles, linear-branch occupancy, validation energy drift, and weighted gradients are measured.
+
 $S_H$ is computed once in float64 after final
 COM/zero-momentum/gauge/scaling preprocessing over the training split
 using the matched-Plummer Hamiltonian components with
@@ -616,6 +622,8 @@ drift follows resolution §8.6. The velocity $v_\theta'(u_n)$ used to
 compute $L_\theta'(u_n)$ comes from the PHYS-02 componentwise
 normalized-time AD contract.
 
+> **Phase 35 contract: angular-momentum component role (LOSS-01; NS-18 modified; AC-LOSS-01; grounded by `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md`).** $L_L$ remains a soft angular-momentum regularizer in the default component catalog; it does not authorize a separate linear-momentum loss.
+
 # 4. Advanced Training and Optimization Strategy
 
 Successfully training the network requires a sophisticated approach to
@@ -655,6 +663,8 @@ The warmup schedule is:
 - $\lambda_E^{max}(k) = \lambda_L^{max}(k) = \{0 \text{ for } k \in \{0,1\}; 10^{k-4} \text{ for } k \in \{2,3,4\}; 1 \text{ for } k \in \{5,6\}\}$
 - $\lambda_E(k, i)$ and $\lambda_L(k, i)$ warm up linearly with
   $i/I_{warm}$
+
+> **Phase 35 contract: energy-loss weights (LOSS-02; M15 rejected as issue-doc replacement; AC-LOSS-02; grounded by the resolution doc §1.9 and `.planning/phases/35-loss-energy-weight-contracts/evidence/m15-energy-weight-schedule.md`).** Retain the PHYS-05 warmup schedule above with `lambda_E^max <= 1` and scheduled conservation weights at or below one. The issue-doc cap-table replacement and stale high-energy-weight premise are rejected, not adopted as a locked schedule. Before any future control law, log weighted losses, scheduled weights, and gradient statistics; automatic dominance reweighting is deferred until measured weighted-loss/gradient evidence exists.
 
 Optimizer-phase semantics:
 
@@ -874,6 +884,8 @@ executes the numerical acceptance checks; this section only states the
 architectural guarantee.
 
 ### 5.3.1 Normalized-Time Derivative Contract (PHYS-02)
+
+> **Phase 35 contract: componentwise AD and tau/u boundary (LOSS-01; NS-12 accepted and NS-18 modified; AC-LOSS-01-AD; grounded by the resolution doc §§1.12/1.14, `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-12-componentwise-ad.md`, and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md`).** The canonical autograd leaf is `u=t/T`. When differentiating with respect to `u`, velocity and acceleration use `dr'/du` and `d^2r'/du^2` with no chain factor; the factors `2` and `4` apply only to a direct `tau = 2u - 1` leaf. Componentwise derivatives are required and the summed-output VJP remains forbidden; executable batching and performance strategy remain FUT.
 
 **Three-layer separation:** $(t, r, v)_{raw} \rightarrow (u, r', v')_{physics} \rightarrow (\tau, IC_{13})_{network}$ where `u=t/T` and $\tau = 2u - 1$.
 
