@@ -247,7 +247,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete    | 2026-06-21 |
 | 33. Curriculum-Stage Contracts | v1.6 | 4/4 | Complete    | 2026-06-23 |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 1/5 | In Progress|  |
-| 35. Loss & Energy-Weight Contracts | v1.6 | 4/4 | Complete   | 2026-06-29 |
+| 35. Loss & Energy-Weight Contracts | v1.6 | 4/4 | Complete    | 2026-06-29 |
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
 
 ---

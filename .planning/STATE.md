@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
-current_phase: 35
-current_phase_name: loss-energy-weight-contracts
-current_plan: 4
+current_phase: 36
+current_phase_name: Acceptance Checks, Re-verification & Handoff
+current_plan: Not started
 status: verifying
 stopped_at: Completed 35-04-PLAN.md
-last_updated: "2026-06-29T03:44:04.418Z"
+last_updated: "2026-06-29T04:09:58.100Z"
 last_activity: 2026-06-29
-last_activity_desc: Phase 35 execution completed
+last_activity_desc: Phase 35 complete, transitioned to Phase 36
 progress:
   total_phases: 7
   completed_phases: 6
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 
 ## Current Position
 
-Phase: 35 (loss-energy-weight-contracts) — EXECUTING
-Current Plan: 4
+Phase: 36 — Acceptance Checks, Re-verification & Handoff
+Current Plan: Not started
 Total Plans in Phase: 4
 Status: Phase complete — ready for verification
-Last activity: 2026-06-29 — Phase 35 execution completed
+Last activity: 2026-06-29 — Phase 35 complete, transitioned to Phase 36
 
 ## Performance Metrics
 
@@ -91,6 +91,7 @@ Last activity: 2026-06-29 — Phase 35 execution completed
 | Phase 35-loss-energy-weight-contracts P35-02 | 728 | 2 tasks | 2 files |
 | Phase 35 P03 | 12 min | 3 tasks | 2 files |
 | Phase 35 P04 | 11 min | 3 tasks | 3 files |
+| 35 | 4 | - | - |
 
 ## Accumulated Context
 
