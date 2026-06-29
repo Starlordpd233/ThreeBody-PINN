@@ -75,7 +75,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 - [ ] **Phase 34: Training-Loop & Batch-Construction Contracts** — Transcribe the adjudicated training-loop contracts as normative spec contracts: replay/lookahead batch construction (B-07), two-independent-point-set separation (B-08), mixed time sampling, merged gradient clipping (M14), the ALM update + `μ_p` clamp, `dt_out`-aware collocation scaling (realizing v1.5 SCOPE-11), and the training-side use of SASD/IPR/PSC that v1.5 left provisional.
 
-- [ ] **Phase 35: Loss & Energy-Weight Contracts** — Transcribe the adjudicated loss contracts: the loss-component scaling contract (NS-18), the capped-hybrid `λ_E` schedule (M15), the Huber-δ calibration (NS-13), and the causal-training-mode contract per the D-04 verdict (Option-C recommendation preserved unless downgraded by explicit human decision).
+- [x] **Phase 35: Loss & Energy-Weight Contracts** — Transcribe the adjudicated loss contracts: the loss-component scaling contract (NS-18), the capped-hybrid `λ_E` schedule (M15), the Huber-δ calibration (NS-13), and the causal-training-mode contract per the D-04 verdict (Option-C recommendation preserved unless downgraded by explicit human decision). (completed 2026-06-29)
 
 - [ ] **Phase 36: Acceptance Checks, Re-verification & Handoff** — Execute every contract's numerically-defined acceptance check via disposable probes, close the issue ledger to terminal state, reconcile the curriculum/training-loop `SI-*` entries, and write the FUT-01/FUT-04 handoff. Confirms 32/32 traceability (VER-14).
 
@@ -211,12 +211,12 @@ Every selected finding follows the v1.4/v1.5-style loop:
   3. The Huber-δ calibration contract for the normalized-energy loss is defined — δ selected from empirical `|ΔH|` quantiles with a `0.01–0.1` starting range, recorded per stage — per NS-13 (LOSS-03).
   4. The causal-training-mode contract is defined per the D-04 verdict — the chosen mode's batch-windowing, ALM locality, and loss-weighting structure; if Option C (time-windowed causal-ALM hybrid) is adjudicated, the overlapping-window partitioning, hard convergence gating, and state-propagation contract — with the blueprint's Option-C recommendation preserved unless the verdict downgrades it as an explicit, recorded human decision (LOSS-04).
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 
 - [x] 35-01-PLAN.md
 - [x] 35-02-PLAN.md
 - [x] 35-03-PLAN.md
-- [ ] 35-04-PLAN.md
+- [x] 35-04-PLAN.md
 
 **UI hint**: no
 
@@ -247,7 +247,7 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete    | 2026-06-21 |
 | 33. Curriculum-Stage Contracts | v1.6 | 4/4 | Complete    | 2026-06-23 |
 | 34. Training-Loop & Batch-Construction Contracts | v1.6 | 1/5 | In Progress|  |
-| 35. Loss & Energy-Weight Contracts | v1.6 | 3/4 | In Progress|  |
+| 35. Loss & Energy-Weight Contracts | v1.6 | 4/4 | Complete   | 2026-06-29 |
 | 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
 
 ---

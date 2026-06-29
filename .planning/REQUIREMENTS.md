@@ -57,10 +57,10 @@ The issue doc (`pinn_instruction/issues/03-curriculum-and-training-loop.md`) is 
 
 ### Loss and Energy-Weight Contracts (spec-side; FUT implements)
 
-- [ ] **LOSS-01**: Framework specs carry the loss-component scaling contract — `L_data`, `L_physics`, `L_energy` all evaluated in the same dimensionless coordinate system (`t_τ ∈ [-1,1]`, `r' = r/D`), with the AD chain-rule factors (`d²r'/du² = 4·d²r'/dτ²`, `dr'/du = 2·dr'/dτ`) cross-linked to their canonical doc-01 location — per NS-18.
-- [ ] **LOSS-02**: Framework specs define the capped-hybrid energy-loss-weight schedule — `λ_E(k) = min(10^(k-3), cap[k])` with `cap = {0:1, 1:5, 2:20, 3:50, 4:100, 5:200, 6:500}`, the adaptive `0.5×` reduction when energy is already well-conserved, and the dominance safeguard (`λ_E·L_energy > 10·L_data` → warn/reduce) — per M15.
-- [ ] **LOSS-03**: Framework specs define the Huber-δ calibration contract for the normalized-energy loss — δ selected from empirical `|ΔH|` quantiles with a `0.01–0.1` starting range, recorded per stage — per NS-13.
-- [ ] **LOSS-04**: Framework specs define the causal-training-mode contract per the **D-04** verdict — the chosen mode's batch-windowing, ALM locality, and loss-weighting structure; if Option C (time-windowed causal-ALM hybrid) is adjudicated, the overlapping-window partitioning, hard convergence gating, and state-propagation contract. The blueprint's Option-C recommendation is preserved unless the verdict downgrades it as an explicit, recorded human decision.
+- [x] **LOSS-01**: Framework specs carry the loss-component scaling contract — `L_data`, `L_physics`, `L_energy` all evaluated in the same dimensionless coordinate system (`t_τ ∈ [-1,1]`, `r' = r/D`), with the AD chain-rule factors (`d²r'/du² = 4·d²r'/dτ²`, `dr'/du = 2·dr'/dτ`) cross-linked to their canonical doc-01 location — per NS-18.
+- [x] **LOSS-02**: Framework specs define the capped-hybrid energy-loss-weight schedule — `λ_E(k) = min(10^(k-3), cap[k])` with `cap = {0:1, 1:5, 2:20, 3:50, 4:100, 5:200, 6:500}`, the adaptive `0.5×` reduction when energy is already well-conserved, and the dominance safeguard (`λ_E·L_energy > 10·L_data` → warn/reduce) — per M15.
+- [x] **LOSS-03**: Framework specs define the Huber-δ calibration contract for the normalized-energy loss — δ selected from empirical `|ΔH|` quantiles with a `0.01–0.1` starting range, recorded per stage — per NS-13.
+- [x] **LOSS-04**: Framework specs define the causal-training-mode contract per the **D-04** verdict — the chosen mode's batch-windowing, ALM locality, and loss-weighting structure; if Option C (time-windowed causal-ALM hybrid) is adjudicated, the overlapping-window partitioning, hard convergence gating, and state-propagation contract. The blueprint's Option-C recommendation is preserved unless the verdict downgrades it as an explicit, recorded human decision.
 
 ### Verification and Handoff (continuing v1.4 VER-01..06 / v1.5 VER-07..12)
 
@@ -137,10 +137,10 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v1.6 requirement maps
 | LOOP-06 | Phase 34 | Complete |
 | LOOP-07 | Phase 34 | Pending |
 | LOOP-08 | Phase 34 | Pending |
-| LOSS-01 | Phase 35 | Pending |
-| LOSS-02 | Phase 35 | Pending |
-| LOSS-03 | Phase 35 | Pending |
-| LOSS-04 | Phase 35 | Pending |
+| LOSS-01 | Phase 35 | Complete |
+| LOSS-02 | Phase 35 | Complete |
+| LOSS-03 | Phase 35 | Complete |
+| LOSS-04 | Phase 35 | Complete |
 | VER-13 | Phase 36 | Pending |
 | VER-14 | Phase 36 | Pending |
 | VER-15 | Phase 36 | Pending |
