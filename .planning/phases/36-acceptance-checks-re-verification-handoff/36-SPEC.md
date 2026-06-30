@@ -1,6 +1,7 @@
 # Phase 36: Acceptance Checks, Re-verification & Handoff - Specification
 
 **Created:** 2026-06-30
+**Updated:** 2026-06-30 (re-grounded against the post-Phase-35 codebase state — see Interview Log)
 **Ambiguity score:** 0.11 (gate: <= 0.20)
 **Requirements:** 6 locked
 
@@ -16,9 +17,8 @@ Current repository state relevant to Phase 36:
 
 - `.planning/REQUIREMENTS.md` has exactly 32 v1.6 traceability rows. Phase 36 owns `VER-13`, `VER-14`, `VER-15`, `VER-16`, `VER-17`, and `VER-18`, all currently `Pending`.
 - `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/32-ISSUE-LEDGER.md` currently has 18 ledger rows: 16 `VERIFIED` and 2 `PENDING` (`D-05`, `D-06`). Phase 36 must not treat those `PENDING` rows as terminal by implication.
-- `ctl_instruction.md` still carries `SI-CTL-001`, already resolved by v1.4 Phase 17.
-- `pinn_architecture.md` still carries `SI-PINN-002` and `SI-PINN-003`; `SI-PINN-003` is resolved by Phase 34, while `SI-PINN-002` remains documented for future reconciliation.
-- Phase 35 verification artifacts exist and report `LOSS-01..04` satisfied, but there are unrelated uncommitted Phase 35 plan/review edits and `AGENTS.md` changes in the worktree. Phase 36 must not absorb or overwrite them.
+- A fresh `rg -n "SI-[A-Z]+-[0-9]+"` over the two framework specs returns **four** distinct Source-Issue IDs, not three: `SI-CTL-001` (`ctl_instruction.md`, resolved by v1.4 finding B-03 / Phase 17); `SI-PINN-002` (`pinn_architecture.md`, documented for future reconciliation); `SI-PINN-003` (cited in both specs — the canonical batch-construction contract lives in `ctl_instruction.md`, `pinn_architecture.md` points to it — resolved by Phase 34); and `SI-DQA-003` (`ctl_instruction.md:548`, an inline citation for the conservation/SCS gate "locked post-v1.3", data-quality lineage; no dedicated reconciliation block). The earlier three-ID enumeration omitted `SI-DQA-003`; Phase 36 must review all four for Issue-03 relevance and assume none resolved or irrelevant (VER-18).
+- Phase 35 (loss/energy-weight contracts) is now **complete**: its ledger rows (`D-04`, `M15`, `NS-12`, `NS-13`, `NS-18`) are `VERIFIED`, `LOSS-01..04` read `Complete` in `REQUIREMENTS.md`, the lone Phase 35 gap `GAP-35-01` is `RESOLVED-WITH-INSTRUCTION`, and `STATE.md` records "Phase 35 complete, transitioned to Phase 36". The only remaining uncommitted worktree change is `AGENTS.md` (the earlier dirty Phase 35 plan/review edits have since been committed). Phase 36 must not absorb or overwrite any unrelated user-owned change.
 - The Phase 36 directory did not exist before this spec; Phase 36 artifacts are created under `.planning/phases/36-acceptance-checks-re-verification-handoff/`.
 
 The gap between current state and target state is closure evidence: v1.6 has per-phase verification, but no Phase 36-owned manifest, fresh disposable probe run, terminal ledger/SI audit, or final FUT handoff yet.
@@ -41,7 +41,7 @@ The gap between current state and target state is closure evidence: v1.6 has per
    - Acceptance: `36-VERIFICATION.md` includes a ledger-state table whose counts match a fresh parse of `32-ISSUE-LEDGER.md`; if any nonterminal row remains, Phase 36 records BLOCKED rather than complete.
 
 4. **Source-Issue reconciliation**: Phase 36 reconciles every remaining curriculum/training-loop Source-Issue entry by retiring it with a back-reference or preserving it with a written reason.
-   - Current: Framework specs contain `SI-CTL-001`, `SI-PINN-002`, and `SI-PINN-003`; Issue 03 relevance is not fully closed in a Phase 36 handoff.
+   - Current: A fresh grep of the two framework specs returns four distinct `SI-*` IDs — `SI-CTL-001`, `SI-PINN-002`, `SI-PINN-003`, and `SI-DQA-003` (conservation-gate citation, previously un-enumerated) — and Issue-03 relevance is not yet closed in a Phase 36 handoff for any of them.
    - Target: `36-HANDOFF.md` includes an SI reconciliation table for every current `SI-*` hit in `ctl_instruction.md` and `pinn_architecture.md`, marking each as retired/resolved/preserved with a phase/commit back-reference or preservation reason.
    - Acceptance: A fresh `rg -n "SI-[A-Z]+-[0-9]+"` over the two framework specs produces no entry absent from the `36-HANDOFF.md` SI table; no entry is marked resolved or irrelevant without a citation or reason.
 
@@ -73,7 +73,7 @@ The gap between current state and target state is closure evidence: v1.6 has per
 - Re-opening v1.4/v1.5 locked conventions - SCOPE-12 makes them hard constraints unless a STOP gap is explicitly resolved.
 - Editing `sampling_method.md`, `data_quality_assessment.md`, `review-of-framework.md`, or `stage-strat-revision.md` - SCOPE-08/SCOPE-09 keep them frozen/read-only.
 - Re-deciding semantic physics/training-loop gaps without source grounding - STOP protocol governs any source-silent semantic/process-schema choice.
-- Folding unrelated dirty Phase 35 plan/review edits or `AGENTS.md` changes into Phase 36 commits - those changes are user-owned unless separately authorized.
+- Folding unrelated user-owned working-tree changes into Phase 36 commits - currently `AGENTS.md`; the earlier dirty Phase 35 plan/review edits are now committed. Those changes are user-owned unless separately authorized.
 - Starting planning during this spec/discuss run - the user explicitly requested stopping before plan-phase starts.
 
 ## Constraints
@@ -95,7 +95,7 @@ The gap between current state and target state is closure evidence: v1.6 has per
 - [ ] Every current `SI-*` entry from `ctl_instruction.md` and `pinn_architecture.md` appears in `36-HANDOFF.md` with a retire/resolve/preserve disposition and a citation or reason.
 - [ ] The 32/32 traceability audit finds exactly 32 v1.6 rows, exactly one phase per row, and terminal evidence references for `VER-13` through `VER-18`.
 - [ ] Phase 36 artifacts and verification prove no live `pinn/` production code was used as grounding or changed.
-- [ ] Phase 36 commits stage only explicit owned paths and do not include unrelated dirty Phase 35 plan/review or `AGENTS.md` changes.
+- [ ] Phase 36 commits stage only explicit owned paths and do not include any unrelated user-owned working-tree changes (e.g., `AGENTS.md`).
 
 ## Edge Coverage
 
@@ -162,11 +162,14 @@ Status: met = met minimum, below = planner treats as assumption
 | 2 | Simplifier | What is the minimum complete closure? | Lock six requirements: manifest, probes, ledger terminal state, SI reconciliation, handoff, and 32/32 traceability. |
 | 3 | Boundary Keeper | What is explicitly out of scope? | No implementation, no live `pinn/` grounding, no reopening locked conventions, no unrelated dirty-file capture, and no planning start in this run. |
 | 4 | Failure Analyst | What would make a verifier reject Phase 36? | Missing manifest fields, failing/missing probes, nonterminal ledger rows, uncited SI dispositions, incomplete handoff tables, traceability count mismatch, `pinn/` changes, or broad staging. |
+| Update | Researcher (re-ground) | Does the SPEC's "current state" still match the codebase after Phase 35 closed? | Re-verified by direct observation: ledger (18 rows, 16 VERIFIED, 2 PENDING = D-05/D-06) and traceability (32 rows, 13 Pending / 19 Complete, VER-13..18 Pending) unchanged; corrected the SI universe to four IDs (added `SI-DQA-003`); recorded Phase 35 as complete and the dirty worktree as `AGENTS.md`-only. |
 
 Auto-mode note: The user requested auto-advancing from spec to `$gsd-discuss-phase 36 --auto --all`; recommended defaults were used for unresolved spec interview choices, while source-silent semantic choices remain governed by STOP protocol.
+
+Re-grounding note (2026-06-30 update): This pass re-verified every "current state" claim against the live `milestone/v1.6` worktree after Phase 35 closed. The only drift was empirical and re-derivable — the omitted `SI-DQA-003` grep hit, Phase 35's transition from "artifacts exist" to complete, and the narrowed dirty worktree. No requirement, boundary, acceptance criterion, edge, or prohibition changed shape, so the ambiguity scores and Edge/Prohibition coverage are unchanged. The `SI-DQA-003` disposition (retire vs preserve-with-reason) is deliberately NOT pre-decided here — it is Phase 36 execution work governed by the STOP protocol. Downstream note: `36-CONTEXT.md` D-36-09 and its canonical-refs still enumerate only three SI IDs; re-run `$gsd-discuss-phase 36` to refresh CONTEXT against this corrected SI universe before planning.
 
 ---
 
 *Phase: 36-acceptance-checks-re-verification-handoff*
-*Spec created: 2026-06-30*
-*Next step: $gsd-discuss-phase 36 --auto --all - implementation decisions (how to build what's specified above)*
+*Spec created: 2026-06-30; re-grounded against post-Phase-35 state 2026-06-30*
+*Next step: $gsd-discuss-phase 36 --auto --all - refresh CONTEXT against the corrected four-ID SI universe, then implementation decisions (how to build what's specified above)*
