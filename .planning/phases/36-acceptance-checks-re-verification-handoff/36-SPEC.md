@@ -1,13 +1,13 @@
 # Phase 36: Acceptance Checks, Re-verification & Handoff - Specification
 
 **Created:** 2026-06-30
-**Updated:** 2026-06-30 (re-grounded against the post-Phase-35 codebase state — see Interview Log)
+**Updated:** 2026-06-30 (re-grounded against the post-Phase-35 codebase state; R6 extended to own the REQUIREMENTS/ROADMAP status reconciliation per user instruction — see Interview Log)
 **Ambiguity score:** 0.11 (gate: <= 0.20)
 **Requirements:** 6 locked
 
 ## Goal
 
-Phase 36 closes v1.6 by executing a Phase 36-owned acceptance-check manifest, proving the Phase 32 ledger and Source-Issue metadata are terminal, and writing a FUT-01/FUT-04 handoff that confirms 32/32 v1.6 traceability.
+Phase 36 closes v1.6 by executing a Phase 36-owned acceptance-check manifest, proving the Phase 32 ledger and Source-Issue metadata are terminal, and writing a FUT-01/FUT-04 handoff that confirms 32/32 v1.6 traceability and reconciles the traceability records to terminal status.
 
 ## Background
 
@@ -50,10 +50,10 @@ The gap between current state and target state is closure evidence: v1.6 has per
    - Target: `36-HANDOFF.md` contains fixed, intentionally unchanged, and deferred tables; FUT-01 and FUT-04 sections identify every training-loop-implementation-shaped finding and the downstream divergence/action record that owns it.
    - Acceptance: Every v1.6 ledger row appears exactly once in a handoff outcome table; every training-loop-implementation-shaped row has a FUT-01 or FUT-04 disposition, or an explicit reason it does not apply.
 
-6. **32/32 traceability closure**: Phase 36 confirms 32 of 32 v1.6 requirements are traced to exactly one phase and that `VER-13` through `VER-18` are satisfied by terminal evidence.
-   - Current: `.planning/REQUIREMENTS.md` lists 32 traceability rows, with 13 currently `Pending` and 19 `Complete`; Phase 36's own six `VER-*` rows are still `Pending`.
-   - Target: `36-VERIFICATION.md` records a 32/32 traceability audit, flags duplicate/missing mappings, and names the Phase 36 evidence that satisfies `VER-13`, `VER-14`, `VER-15`, `VER-16`, `VER-17`, and `VER-18`.
-   - Acceptance: The audit fails unless there are exactly 32 v1.6 requirement rows, each maps to exactly one phase, and all six Phase 36 `VER-*` rows have terminal evidence references.
+6. **32/32 traceability closure and status reconciliation**: Phase 36 confirms 32 of 32 v1.6 requirements are traced to exactly one phase, that `VER-13` through `VER-18` are satisfied by terminal evidence, and reconciles the `.planning/REQUIREMENTS.md` traceability Status column and the `.planning/ROADMAP.md` progress table to their true terminal values.
+   - Current: `.planning/REQUIREMENTS.md` lists 32 traceability rows, with 13 currently `Pending` and 19 `Complete`; Phase 36's own six `VER-*` rows are still `Pending`. Several rows are stale relative to the Phase 32 ledger — `LOOP-04`, `LOOP-07`, and `LOOP-08` read `Pending` though Phase 34 closed them `VERIFIED`/`SATISFIED` — and the `ROADMAP.md` progress table still shows Phase 34 "In Progress 1/5" (dated 2026-06-23). Phase 34 explicitly deferred this ROADMAP/traceability reconciliation to Phase 36 (`34-VERIFICATION.md:102`).
+   - Target: `36-VERIFICATION.md` records a 32/32 traceability audit, flags duplicate/missing mappings, and names the Phase 36 evidence that satisfies `VER-13`, `VER-14`, `VER-15`, `VER-16`, `VER-17`, and `VER-18`; and the `REQUIREMENTS.md` Status column plus the `ROADMAP.md` progress table are updated so every v1.6 status flag matches the Phase 32 ledger's terminal state for that finding.
+   - Acceptance: The audit fails unless there are exactly 32 v1.6 requirement rows, each maps to exactly one phase, and all six Phase 36 `VER-*` rows have terminal evidence references; and after reconciliation no `REQUIREMENTS.md`/`ROADMAP.md` status flag contradicts the ledger — no row left `Pending` whose ledger finding is terminal, and none flipped terminal without a matching terminal ledger row.
 
 ## Boundaries
 
@@ -63,6 +63,7 @@ The gap between current state and target state is closure evidence: v1.6 has per
 - Execute fresh disposable Phase 36 probes and record `36-PROBE-RESULTS.md` plus raw evidence hashes.
 - Write `36-VERIFICATION.md` with traceability, manifest, probe, ledger, SI, and handoff checks.
 - Verify and, if a Phase 36 plan explicitly permits it, update the Phase 32 issue ledger to terminal states.
+- Reconcile the `.planning/REQUIREMENTS.md` traceability Status column and the `.planning/ROADMAP.md` progress table to terminal values that match the Phase 32 ledger (the reconciliation Phase 34 deferred to Phase 36 per `34-VERIFICATION.md:102`).
 - Reconcile current `SI-*` entries relevant to curriculum/training-loop closure inside `36-HANDOFF.md`.
 - Write `36-HANDOFF.md` with fixed/unchanged/deferred findings and FUT-01/FUT-04 dispositions.
 - Use prior Phase 21 and Phase 29 closure patterns as precedent for probe results, evidence hashes, SI reconciliation, and handoff structure.
@@ -82,6 +83,7 @@ The gap between current state and target state is closure evidence: v1.6 has per
 - Closure checks must be fail-closed: missing evidence, failed required probes, nonterminal ledger rows, or uncited SI outcomes block completion.
 - Any `DEFERRED` ledger or handoff row must include a written blocker and downstream owner.
 - State updates must use GSD state handlers; direct mutation of `.planning/STATE.md` is prohibited by workflow governance.
+- Reconciling `.planning/REQUIREMENTS.md` status flags and the `.planning/ROADMAP.md` progress table is done by direct manual edits with a reviewed diff (the GSD state/roadmap mutating verbs emit malformed output in this repository); every flip must match a terminal Phase 32 ledger row and is staged as an explicit Phase 36 owned path.
 - Commits must use `scripts/agent-commit` with `GIT_AGENT_ID` and explicit `GIT_AGENT_OWNED_PATHS`; broad staging is prohibited.
 - Any commit that touches `.planning/`, `pinn_instruction/`, framework specs, or multiple files needs a body and an `Agent-Assisted-By` trailer.
 
@@ -94,12 +96,13 @@ The gap between current state and target state is closure evidence: v1.6 has per
 - [ ] `36-HANDOFF.md` contains fixed, intentionally unchanged, deferred, SI reconciliation, FUT-01, and FUT-04 sections.
 - [ ] Every current `SI-*` entry from `ctl_instruction.md` and `pinn_architecture.md` appears in `36-HANDOFF.md` with a retire/resolve/preserve disposition and a citation or reason.
 - [ ] The 32/32 traceability audit finds exactly 32 v1.6 rows, exactly one phase per row, and terminal evidence references for `VER-13` through `VER-18`.
+- [ ] After reconciliation, every `.planning/REQUIREMENTS.md` Status flag and `.planning/ROADMAP.md` progress-table row for a v1.6 requirement matches the Phase 32 ledger's terminal state — no `Pending` row whose ledger finding is terminal, and none marked terminal without a matching terminal ledger row.
 - [ ] Phase 36 artifacts and verification prove no live `pinn/` production code was used as grounding or changed.
 - [ ] Phase 36 commits stage only explicit owned paths and do not include any unrelated user-owned working-tree changes (e.g., `AGENTS.md`).
 
 ## Edge Coverage
 
-**Coverage:** 25/25 applicable edges resolved; 0 unresolved
+**Coverage:** 26/26 applicable edges resolved; 0 unresolved
 
 | Category | Requirement | Status | Resolution / Reason |
 |----------|-------------|--------|---------------------|
@@ -128,10 +131,11 @@ The gap between current state and target state is closure evidence: v1.6 has per
 | empty | R6 | covered | An empty traceability table fails. |
 | ordering | R6 | covered | Traceability audit reports rows in requirement-family order for stable comparison. |
 | precision | R6 | covered | Count is integer exact; no fractional or approximate traceability count is allowed. |
+| idempotency | R6 | covered | Re-running the status reconciliation with no ledger change reproduces the same flags; each reconciled flag must equal the ledger's terminal state for that finding, and a flip lacking a matching terminal ledger row fails. |
 
 ## Prohibitions (must-NOT)
 
-**Coverage:** 4/4 applicable prohibitions resolved; 0 unresolved
+**Coverage:** 5/5 applicable prohibitions resolved; 0 unresolved
 
 | Prohibition (must-NOT statement) | Requirement | Status | Verification / Reason |
 |----------------------------------|-------------|--------|------------------------|
@@ -139,6 +143,7 @@ The gap between current state and target state is closure evidence: v1.6 has per
 | MUST NOT convert failed probes, missing evidence, or nonterminal ledger rows into advisory notes while marking Phase 36 complete. | R2, R3, R6 | resolved | test: completion is gated by manifest/probe/ledger checks; any failure records BLOCKED rather than PASS. |
 | MUST NOT invent Source-Issue or finding dispositions where source materials are silent; every retire/resolve/preserve/defer decision needs a citation, blocker, or STOP gap. | R4, R5 | resolved | judgment: SI and handoff tables require per-row source citations or written reasons; STOP protocol applies to source-silent semantic/process-schema choices. |
 | MUST NOT stage or commit unrelated user-owned Phase 35 plan/review edits or `AGENTS.md` changes as part of Phase 36 closure. | R1, R5, R6 | resolved | test: pre-commit status, staged diff, and `GIT_AGENT_OWNED_PATHS` checks must show only Phase 36-owned paths plus any explicitly planned ledger/SI/state paths. |
+| MUST NOT mark any `REQUIREMENTS.md`/`ROADMAP.md` status flag terminal or complete without a matching terminal Phase 32 ledger row or recorded verification evidence. | R6 | resolved | test: the reconciliation cross-checks each flipped flag against the ledger; a flag without a matching terminal ledger row fails closure. |
 
 ## Ambiguity Report
 
@@ -163,6 +168,7 @@ Status: met = met minimum, below = planner treats as assumption
 | 3 | Boundary Keeper | What is explicitly out of scope? | No implementation, no live `pinn/` grounding, no reopening locked conventions, no unrelated dirty-file capture, and no planning start in this run. |
 | 4 | Failure Analyst | What would make a verifier reject Phase 36? | Missing manifest fields, failing/missing probes, nonterminal ledger rows, uncited SI dispositions, incomplete handoff tables, traceability count mismatch, `pinn/` changes, or broad staging. |
 | Update | Researcher (re-ground) | Does the SPEC's "current state" still match the codebase after Phase 35 closed? | Re-verified by direct observation: ledger (18 rows, 16 VERIFIED, 2 PENDING = D-05/D-06) and traceability (32 rows, 13 Pending / 19 Complete, VER-13..18 Pending) unchanged; corrected the SI universe to four IDs (added `SI-DQA-003`); recorded Phase 35 as complete and the dirty worktree as `AGENTS.md`-only. |
+| Update 2 | Boundary Keeper | Phase 34 deferred ROADMAP/traceability reconciliation to Phase 36, but the SPEC did not name it in scope — should it? | User confirmed 2026-06-30 ("yes and add it"): R6 extended to own reconciling the stale `REQUIREMENTS.md` Status column + `ROADMAP.md` progress table to ledger-terminal values; added an in-scope bullet, a manual-edit constraint, an acceptance criterion, an idempotency edge, and a fabricated-completion prohibition. |
 
 Auto-mode note: The user requested auto-advancing from spec to `$gsd-discuss-phase 36 --auto --all`; recommended defaults were used for unresolved spec interview choices, while source-silent semantic choices remain governed by STOP protocol.
 
