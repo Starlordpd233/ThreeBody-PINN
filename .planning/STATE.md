@@ -6,8 +6,8 @@ current_phase: 36
 current_phase_name: Acceptance Checks, Re-verification & Handoff
 current_plan: Not started
 status: verifying
-stopped_at: Completed 35-04-PLAN.md
-last_updated: "2026-06-29T04:09:58.100Z"
+stopped_at: Phase 36 context gathered; plan-phase not started per user instruction
+last_updated: "2026-06-30T01:43:11.761Z"
 last_activity: 2026-06-29
 last_activity_desc: Phase 35 complete, transitioned to Phase 36
 progress:
@@ -228,10 +228,10 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/36-acceptance-checks-re-verification-handoff/36-CONTEXT.md
 
-Last session: 2026-06-29T03:44:04.414Z
-Stopped at: Completed 35-04-PLAN.md
+Last session: 2026-06-30T01:43:11.756Z
+Stopped at: Phase 36 context gathered; plan-phase not started per user instruction
 Next action: Run Phase 35 verification, then proceed to Phase 36 acceptance checks after verification passes.
 
 ## Operator Next Steps
