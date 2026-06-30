@@ -8,9 +8,9 @@ each task closes. Legend: ⬜ not started · 🟩 PASS · 🟥 FAIL(finding) · 
 - 🟩 A2 wake-prompt consistency
 - 🟥 A3 verdict/exit-code vocab in SKILL.md
 - 🟩 A4 watch-loops restore set +e
-- ⬜ A5 install drift (repo ↔ canonical bin)
-- ⬜ A6 deployed SKILL.md path-rewrite
-- ⬜ A7 alt-profile symlink integrity
+- 🟩 A5 install drift (repo ↔ canonical bin)
+- 🟩 A6 deployed SKILL.md path-rewrite
+- 🟩 A7 alt-profile symlink integrity
 
 ## G1 — unit logic gaps
 - ⬜ B1 concurrent claim race (exactly-once)
