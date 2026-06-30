@@ -13,11 +13,11 @@ each task closes. Legend: ⬜ not started · 🟩 PASS · 🟥 FAIL(finding) · 
 - 🟩 A7 alt-profile symlink integrity
 
 ## G1 — unit logic gaps
-- ⬜ B1 concurrent claim race (exactly-once)
-- ⬜ B2 non-git CWD fails safely  (also satisfies T4.4)
-- ⬜ B3 resolver uses CWD not tool-home  (automatable core of T4.2)
-- ⬜ B4 claim-dir accumulation + re-wake
-- ⬜ B5 disarm tolerates dead pid
+- 🟩 B1 concurrent claim race (exactly-once)
+- 🟩 B2 non-git CWD fails safely  (also satisfies T4.4)
+- 🟩 B3 resolver uses CWD not tool-home  (automatable core of T4.2)
+- 🟩 B4 claim-dir accumulation + re-wake
+- 🟩 B5 disarm tolerates dead pid
 
 ## G2 — multi-process integration
 - ⬜ C1 N-consumer real-process race
