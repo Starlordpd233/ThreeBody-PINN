@@ -4,10 +4,10 @@ Tracks per-cell status for the 2026-06-30 verification plan. Update the row as
 each task closes. Legend: ⬜ not started · 🟩 PASS · 🟥 FAIL(finding) · ⏭️ covered-elsewhere
 
 ## G0 — static & packaging contracts
-- ⬜ A1 shellcheck clean
-- ⬜ A2 wake-prompt consistency
-- ⬜ A3 verdict/exit-code vocab in SKILL.md
-- ⬜ A4 watch-loops restore set +e
+- ⏭️ A1 shellcheck clean (SKIP: shellcheck not installed)
+- 🟩 A2 wake-prompt consistency
+- 🟥 A3 verdict/exit-code vocab in SKILL.md
+- 🟩 A4 watch-loops restore set +e
 - ⬜ A5 install drift (repo ↔ canonical bin)
 - ⬜ A6 deployed SKILL.md path-rewrite
 - ⬜ A7 alt-profile symlink integrity
@@ -44,3 +44,4 @@ each task closes. Legend: ⬜ not started · 🟩 PASS · 🟥 FAIL(finding) · 
 ## Findings (RED cells / live FAILs — surface, do not patch)
 | id | cell | severity | summary | status |
 |----|------|----------|---------|--------|
+| F1 | A3 | HIGH | SKILL.md does not document the PUSHED verdict emitted by wd-push | OPEN |
