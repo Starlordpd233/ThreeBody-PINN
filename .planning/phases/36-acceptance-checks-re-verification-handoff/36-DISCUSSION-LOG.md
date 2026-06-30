@@ -85,3 +85,18 @@
 
 - Execute trainex-r1 external research handoff in the trainex/FUT track, not in Phase 36.
 - Implement training-loop/DataLoader/ALM logic in FUT-01/FUT-04, not in Phase 36.
+
+---
+
+## Refresh — 2026-06-30 (`--all --auto --analyze`, post-SPEC re-grounding)
+
+Re-grounded CONTEXT against the post-Phase-35 codebase after the SPEC re-grounding (commit `0ded50d`). No locked SPEC requirement changed; this pass corrected stale current-state facts and captured two newly-grounded decisions. Trade-off rationale (per `--analyze`):
+
+| Decision | Options considered | Selected | Rationale |
+|----------|--------------------|----------|-----------|
+| SI universe (D-36-09) | (a) keep 3 IDs; (b) correct to 4 IDs incl. `SI-DQA-003` | (b) | A fresh grep returns four IDs; VER-18 forbids assuming any SI hit irrelevant. Empirical + grounded; (a) would leave the mechanical acceptance check under-scoped. |
+| `D-05`/`D-06` closure (D-36-07) | (a) only gate/report `BLOCKED`; (b) verify-and-promote-if-clean, else `BLOCKED` | (b) | Verdicts are already `RESOLVED-WITH-INSTRUCTION`; promotion is mechanical verification of downstream transcription, not re-litigation. Fail-closed on missing/divergent transcription. SPEC permits ledger update "if a plan permits." |
+| ROADMAP/REQUIREMENTS reconciliation (D-36-17) | (a) audit-only; (b) reconcile stale status flags in scope | (b), flagged | `34-VERIFICATION.md:102` explicitly defers ROADMAP reconciliation to Phase 36; `LOOP-04/07/08` and the ROADMAP progress table are stale. Edits are mechanical but NOT in the SPEC in-scope list → flagged for user confirmation before owning those paths; must be done manually (state/roadmap tool mutators broken here). |
+| `SI-DQA-003` disposition (D-36-18) | (a) decide preserve now; (b) defer to execution under STOP | (b) | Issue-03-relevance is a STOP-protocol judgment; pre-deciding would risk inventing a source-silent disposition. Non-binding lean recorded as preserve-with-reason. |
+
+**Suppression:** Auto-advance to plan-phase remains intentionally suppressed per the standing user instruction (D-36-16).
