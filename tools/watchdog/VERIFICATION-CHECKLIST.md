@@ -3,7 +3,7 @@
 Tracks per-cell status for the 2026-06-30 verification plan. Update the row as
 each task closes. Legend: ⬜ not started · 🟩 PASS · 🟥 FAIL(finding) · ⏭️ covered-elsewhere
 
-## G0 — static & packaging contracts
+## G0 — static & packaging contracts [COMPLETE - one finding F1]
 - ⏭️ A1 shellcheck clean (SKIP: shellcheck not installed)
 - 🟩 A2 wake-prompt consistency
 - 🟥 A3 verdict/exit-code vocab in SKILL.md
@@ -12,14 +12,14 @@ each task closes. Legend: ⬜ not started · 🟩 PASS · 🟥 FAIL(finding) · 
 - 🟩 A6 deployed SKILL.md path-rewrite
 - 🟩 A7 alt-profile symlink integrity
 
-## G1 — unit logic gaps
+## G1 — unit logic gaps [COMPLETE]
 - 🟩 B1 concurrent claim race (exactly-once)
 - 🟩 B2 non-git CWD fails safely  (also satisfies T4.4)
 - 🟩 B3 resolver uses CWD not tool-home  (automatable core of T4.2)
 - 🟩 B4 claim-dir accumulation + re-wake
 - 🟩 B5 disarm tolerates dead pid
 
-## G2 — multi-process integration
+## G2 — multi-process integration [COMPLETE]
 - 🟩 C1 N-consumer real-process race
 - 🟩 C2 mixed arm+push race (tmux stub)
 - 🟩 C3 disarm sentinel stands down running watcher (timing)
