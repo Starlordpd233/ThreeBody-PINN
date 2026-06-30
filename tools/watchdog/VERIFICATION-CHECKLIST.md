@@ -20,12 +20,12 @@ each task closes. Legend: ⬜ not started · 🟩 PASS · 🟥 FAIL(finding) · 
 - 🟩 B5 disarm tolerates dead pid
 
 ## G2 — multi-process integration
-- ⬜ C1 N-consumer real-process race
-- ⬜ C2 mixed arm+push race (tmux stub)
-- ⬜ C3 disarm sentinel stands down running watcher (timing)
-- ⬜ C4 SIGTERM-during-sleep → DISARMED (TERM trap)
-- ⬜ C5 cross-worktree real linked worktrees (clean/already/conflict-abort)
-- ⬜ C6 cross-repo channel isolation  (satisfies T4.3)
+- 🟩 C1 N-consumer real-process race
+- 🟩 C2 mixed arm+push race (tmux stub)
+- 🟩 C3 disarm sentinel stands down running watcher (timing)
+- 🟩 C4 SIGTERM-during-sleep → DISARMED (TERM trap)
+- ⏭️ C5 cross-worktree real linked worktrees (clean/already/conflict-abort) [covered by test_watchdog_xworktree.py]
+- 🟩 C6 cross-repo channel isolation  (satisfies T4.3)
 
 ## G3 — live single-machine
 - ⬜ D1 cross-worktree two-session handoff
