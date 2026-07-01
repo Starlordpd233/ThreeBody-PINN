@@ -34,7 +34,7 @@ fail() { printf 'install-global.sh: %s\n' "$*" >&2; exit 1; }
 scripts=()
 for s in "$SRC_TOOLS_DIR"/wd-*; do
   [ -f "$s" ] || continue
-  case "$(basename "$s")" in wd-*) scripts+=("$(basename "$s")") ;; esac
+  scripts+=("$(basename "$s")")
 done
 [ "${#scripts[@]}" -eq 8 ] || fail "expected 8 wd-* scripts in $SRC_TOOLS_DIR, found ${#scripts[@]}: ${scripts[*]}"
 
@@ -58,9 +58,10 @@ SKILL_PREFIX='tools/watchdog/'
 # stays profile- and machine-independent (user shells expand $HOME at run time).
 SKILL_TARGET='$HOME/.claude/skills/cross-session-watchdog/bin/'
 
-# Count substitutions in source BEFORE rewriting — fails loud if source drifts
-# away from the repo-relative tools/watchdog/ convention.
-src_count=$(grep -c "$SKILL_PREFIX" "$SRC_SKILL" || true)
+# Count occurrences in source BEFORE rewriting — fails loud if source drifts
+# away from the repo-relative tools/watchdog/ convention. -F treats the prefix
+# literally (no regex); -o | wc -l counts occurrences, not just matching lines.
+src_count=$(grep -Fo -- "$SKILL_PREFIX" "$SRC_SKILL" | wc -l | tr -d ' ' || true)
 [ "$src_count" -gt 0 ] || fail "source SKILL.md has 0 occurrences of '$SKILL_PREFIX' (drift?); refusing to deploy an unrewritten SKILL.md"
 
 sed "s|${SKILL_PREFIX}|${SKILL_TARGET}|g" "$SRC_SKILL" > "$SKILL_DEST"
@@ -80,13 +81,13 @@ link_one() {
   mkdir -p "$profile_skills"
 
   if [ -L "$target_link" ]; then
-    ln -sfn "$CANONICAL" "$target_link"
+    ln -sfn "$CANONICAL" "$target_link" || { errors+=("$profile: ln -sfn failed"); return 1; }
   elif [ -e "$target_link" ]; then
     printf 'install-global.sh: WARNING: %s is a real directory; skipping (never clobber hand-installed skills)\n' "$target_link" >&2
     skipped+=("$profile (real dir)")
     return 0
   else
-    ln -s "$CANONICAL" "$target_link"
+    ln -s "$CANONICAL" "$target_link" || { errors+=("$profile: ln -s failed"); return 1; }
   fi
 
   # Verify the link now points where intended.
