@@ -1,16 +1,17 @@
 ---
 phase: 36
 reviewers: [claude, claude-glm, claude-deepseek, claude-minimax, cursor, codex, agy, opencode, claude-kimi]
-rerun_reviewers: [codex, claude-minimax, agy, opencode, claude-kimi]
-reviewed_at: 2026-07-01T03:18:48Z
+rerun_reviewers: [codex, agy, opencode, claude-minimax]
+reviewed_at: 2026-07-01T14:12:51Z
 generated_by: xreview
-xreview_run_dir: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260701T031247Z-13606
+xreview_run_dir: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260701T140941Z-48112
 merged_existing_reviews: true
 ---
 
 # Cross-AI Plan Review — Phase 36
 
 ## claude Review
+
 
 
 I have enough to write the review. All load-bearing factual claims verified against the actual repo state (32 traceability rows, ledger 16 VERIFIED/2 PENDING, SI universe = exactly 4 IDs, regexes match actual table formats). One integrity concern confirmed. Writing the review now.
@@ -61,11 +62,13 @@ The plans achieve the phase goal, cover all six VER requirements, order their wa
 ## claude-glm Review
 
 
+
 API Error: 529 [1305][该模型当前访问量过大，请您稍后再试][20260701111639045147c46f7f4317]. This is a server-side issue, usually temporary — try again in a moment. If it persists, check your inference gateway (open.bigmodel.cn).
 
 ---
 
 ## claude-deepseek Review
+
 
 
 I've now read all five plans and the supporting SPEC, CONTEXT, RESEARCH, GAPS, STATE, and v1.6-GAPS files. Here is the review.
@@ -143,66 +146,72 @@ The primary residual risks are (H1) evidence consistency after 36-05's probe sui
 
 ## claude-minimax Review
 
-# Phase 36 Plan Review
+# Phase 36 Plan Review — Cycle 2
 
 ## 1. Summary
 
-The five-plan closure packet follows the SPEC R1–R6 spine and assigns each closure responsibility (manifest, probe run, ledger promotion, SI reconciliation, handoff, traceability reconciliation) to a single plan with appropriate wave dependencies. The plans correctly invoke Phase 21/29 precedents, the protected-path guard (D-36-06), pre-write SHA-256 freshness checks (Phase 34 precedent), and the STOP protocol via a `checkpoint:human-verify` gate for the SI-DQA-003 disposition.
-
-The dominant risk is that the research doc explicitly flagged two STOP-protocol decisions (F1, F2) — whether to extend the R6 anchor definition beyond "terminal Phase 32 ledger row" to phase-completion records (for PKG-05..08) and phase-VERIFICATION records (for LOOP-07/08) — and Plan 36-05 Task 2 silently makes the call (Option A for both). The SPEC's literal "match a terminal ledger row" constraint is unsatisfiable for those four rows. The plan introduces a new anchor class without a logged STOP gap or user-ratification citation in the per-flip list.
+The cycle-2 plans successfully fold the three cycle-1 HIGHs: 36-05's `files_modified` now lists `run-ac-suite.sh`, `ac-traceability.py`, `36-GAPS.md`, and `v1.6-GAPS.md`; `36-PROBE-RESULTS.md` re-execution produces a "Final Rerun" block preserving the original 36-02 sections; and 36-05 records `requirements_pre_36_05_sha256` / `roadmap_pre_36_05_sha256` as freshness anchors mirroring the 36-03 ledger pattern. The five-wave plan is coherent, fail-closed, and grounded in Phase 21/29 precedent. The dominant remaining concern is that the F1/F2 anchor-class decision (R6 reconciliation for PKG-05..08 and LOOP-07/08) is still made silently inside Plan 36-05 Task 2 — the cycle-1 STOP-protocol concern is partially absorbed into GAP-36-01/02 but the per-flip ratification citation is incomplete.
 
 ## 2. Strengths
 
-- Strong fail-closed discipline; every plan has a BLOCKED exit with route-back semantics.
-- Concurrency is handled: pre-write ledger SHA-256 check (Plan 36-03), manifest-snapshot tying for the SI grep (Plan 36-04), and final batch re-verify (Plan 36-05 Task 3).
-- STOP protocol applied to SI-DQA-003 via `checkpoint:human-verify` (Plan 36-04 Task 2), mirroring the v1.5 Phase 29 D-08 precedent.
-- Owned-path commit policy is enforced per plan; the dirty-file guard correctly names `AGENTS.md` plus the untracked 36-* meta files (RESEARCH, PATTERNS, GAPS, VALIDATION).
-- Protected-path guard is a first-class probe wired into the driver.
-- Probe classification is principled: deferred contracts (LOOP-06, LOOP-07/08, LOSS-03 calibration, ALM, τ_L estimator) get spec-consistency / negative checks only — never a fabricated numeric probe.
-- Wave ordering is correct (1→2→3→4; 5 depends on 2, 3, 4).
-- Reuse of Phase 21/29 patterns (PROBE-RESULTS shape, HANDOFF skeleton, CODE-DIVERGENCE convention, accumulator-style probes) is consistent.
+- **Cycle-1 HIGHs visibly addressed.** 36-05's owned-paths, evidence preservation strategy, and freshness anchors are all present in the frontmatter and `must_haves`.
+- **Pre-write SHA-256 freshness pattern is consistent across shared artifacts** — 36-03 (ledger) and 36-05 (REQUIREMENTS/ROADMAP) both gate edits on a pre-write hash.
+- **Per-row binding in 36-PROBE-RESULTS** — automated audit asserts each manifest row has exactly one result section linking an evidence file and its own SHA-256, not a global hash.
+- **STRIDE threat model is realistic per plan** — trust boundaries (probe→pinn/, commit→dirty tree, probe→evidence) and concrete threats (Pitfall-1 leakage, broad staging, FAIL→advisory downgrade) match the actual risk surface.
+- **Protected-path guard is a first-class probe** wired into `run-ac-suite.sh`, and the dirty-file guard correctly names the user-owned `AGENTS.md` plus the untracked 36-* meta files.
+- **STOP protocol properly delegated** to a `checkpoint:human-verify` for SI-DQA-003 in 36-04 Task 2, mirroring the Phase 29 D-08 precedent.
+- **Idempotency / re-derive is preserved** — manifest snapshot, ledger re-run determinism, and Final-Rerun block together let a reviewer re-derive each flip.
 
 ## 3. Concerns
 
-**HIGH**
+### HIGH
 
-- **GAP-36-01 / GAP-36-02 are not pre-decided in the SPEC, but Plan 36-05 Task 2 silently resolves both as Option A.** The research doc surfaces F1 (PKG-05..08 anchor — these predate the ledger and have no Phase 32 row) and F2 (LOOP-07/08 anchor — 34-VERIFICATION.md truths 6-7 explicitly state "no dedicated ledger row") as STOP-protocol questions needing user input. The plan flips PKG-05..08 to Complete anchored on the Phase 30 completion record (introducing a "phase-completion record" anchor class) and LOOP-07/08 to Complete anchored on 34-VERIFICATION.md (introducing a "phase-VERIFICATION record" anchor class). The SPEC Constraint literally says "every flip must match a terminal Phase 32 ledger row" — unsatisfiable here. The plan extends the anchor definition without a logged STOP gap and without citing a user-instruction event. If the user has not explicitly resolved GAP-36-01/02, this is a process-artifact-schema violation; if they have, the citation is missing.
+- **H1. F1/F2 anchor-class decision is still under-documented.** Plan 36-05 Task 2 introduces a new terminal-anchor class (phase-VERIFICATION and phase-completion records) to satisfy the literal R6 constraint for PKG-05..08 and LOOP-07/08, but the per-flip list should cite the user-ratification event for GAP-36-01 / GAP-36-02 Option A. The "must_haves" claim the gaps are "resolved" but do not pin a date or commit ref to the user instruction. If a future reviewer audits provenance, the gap closures look self-asserted. *Concrete failure: a gap-register audit trail question ("who picked Option A and when?") cannot be answered from the per-flip list alone.*
 
-**MEDIUM**
+- **H2. 36-PROBE-RESULTS.md evidence/hashes after Final Rerun may not match 36-02's committed SHA-256s.** The cycle-1 fix preserves 36-02's result sections *and* appends a Final Rerun block, but if any individual probe re-run produces non-deterministic output (timestamps, dict-iteration order, path-dependent `pwd`), the per-row SHA-256s in the Final Rerun block will not match the original 36-02 SHAs, contradicting the "each result row carries its own SHA-256" invariant. There is no explicit pinning (e.g. `PYTHONHASHSEED`, frozen interpreter env, or `probes/evidence-lock.json`) declared in 36-05. *Concrete failure: the audit at 36-05 Task 1 succeeds, but a downstream re-derivation a week later produces different hashes and the prior verification claim cannot be re-derived.*
 
-- **Pitfall 1 protection is not mechanized.** The 36-01 Task 1 audit checks row count, ID presence, and non-empty required cells, but does NOT verify the pass criterion was sourced from spec+ledger+AC (not the stale `REQUIREMENTS.md`/`ROADMAP.md` prose). The negative-string assertions for the rejected cap-table, `8.5` clip constant, `n_col=` formula, and D-04 Option-C preservation live only in the formula-sanity probes — they are not in the manifest audit. Author discipline is the only protection at the manifest layer.
-- **STATE.md transition is unowned.** Plan 36-05 Task 3 states "the phase-completion STATE transition is a closure-time step outside this plan's manual edits" and forbids hand-editing STATE.md. The SPEC requires GSD state handlers, but no plan names when, by whom, or in which plan the transition is invoked. This leaves a coordination hole at phase closure (the verifier reading STATE.md will see a stale phase summary).
-- **The per-flip reconciliation list in `36-VERIFICATION.md` is not mechanically verified.** Plan 36-05 Task 1's audit asserts presence of the `VER-13..18`, `32/32`, `ledger-state`, and `protected-path` tokens, but not the structure of the per-flip list itself — which is the actual closure deliverable for R6 and the only artifact that proves the anchor-citation rule was followed.
-- **No "on BLOCKED" follow-on is defined.** Each plan has a BLOCKED exit path, but none names the rerun mechanism: which plan re-executes, who triggers it, and what gets marked. A BLOCKED in 36-02 (probe FAIL) should re-route to 36-01 or the originating phase; this operational coordination is asserted but not specified.
-- **R1 must_have wording is imprecise.** The plan says "every enumerated v1.6 contract (the 32-row traceability set plus the four SI IDs) must be represented," but the 32 rows are REQUIREMENTS — only 17 of them are contracts (5 CURR + 8 LOOP + 4 LOSS), plus 3 EVID-15 headlines, plus 4 SI IDs, plus the protected-path guard. The verify threshold of `>=22` rows is correct in practice, but the must_have text could mislead the executor into trying to enumerate all 32 REQs.
-- **The 36-VERIFICATION.md Plan 36-05 frontmatter is not explicitly required.** The action says it "replicates the 35-VERIFICATION frontmatter schema" but Plan 36-05 does not call out a frontmatter-block verify step. The other plans emit `*-SUMMARY.md` but only 36-VERIFICATION.md needs the `phase/verified/status/score/gaps_remaining/must_haves/artifacts/prohibitions` schema to be machine-checkable.
+### MEDIUM
 
-**LOW**
+- **M1. Plan 36-04 declares `depends_on: [36-03]` but reads `36-PROBE-RESULTS.md` written by 36-02.** Transitive coverage works, but a wave-scheduler that only enforces direct edges will silently misorder. Add 36-02 to 36-04's `depends_on` or annotate the transitive rule.
 
-- **Plan 36-05 Task 3 modifies `run-ac-suite.sh`** (adding `ac-traceability.py`) authored in Plan 36-01. The owned paths include `run-ac-suite.sh` in 36-05 so this is permitted, but cross-plan ownership of the driver should be noted explicitly to avoid double-edit risk if both plans re-execute.
-- **Plan 36-04 Task 1 builds the SI table, then Task 2 asks the human to verify it.** If the human rejects a disposition, Task 1 must be re-done. A "draft proposal first, then approve, then write" sequence would be more efficient — minor optimization.
-- **F4 path drift in 36-CONTEXT.md** (line 115: `29-acceptance-checks-reverification-handoff` vs the actual `29-acceptance-checks-re-verification-and-handoff`) is a CONTEXT bug, not a plan bug. Plans reference the correct path. The untracked 36-PATTERNS.md is correctly excluded by the dirty-file guard.
-- **Plan 36-05 produces a 5-file commit** (REQUIREMENTS.md, ROADMAP.md, run-ac-suite.sh, ac-traceability.py, 36-VERIFICATION.md, summary). Commit policy requires a body and `Agent-Assisted-By` trailer — the plan calls this out. Consider splitting the manual ROADMAP/REQUIREMENTS edits from the verification/probe work for cleaner rollback.
-- **The run-ac-suite.sh manifest-snapshot tie (R2 concurrency)** is not explicitly stated. The plan ties the SI grep to a working-tree snapshot, but the probe-results document should likewise record the manifest snapshot (commit or content hash) the run is tied to.
+- **M2. `run-ac-suite.sh` contract is implicit about continue-on-failure.** 36-01 specifies PASS/FAIL accumulator + nonzero exit; 36-02 Task 1 says "still capture all evidence" if the driver exits nonzero. The two together require running every probe before exit, but neither plan writes the "do not `set -e`, do not exit on first failure" rule explicitly. A naive implementation exits early and silently drops post-failure evidence.
+
+- **M3. 36-CONTEXT.md Phase 29 canonical_refs path is stale** (`29-acceptance-checks-reverification-handoff` vs on-disk `29-acceptance-checks-re-verification-and-handoff`). Plans reference the correct path, so this is docs-only drift — but it will trip any reviewer grepping canonical-refs.
+
+- **M4. Per-flip count = 13 assertion is missing from 36-05 Task 1's audit.** The 32/32 traceability check is asserted; the 13-flip reconciliation list is not. Without an explicit "13 anchors present with citations" gate, a missing anchor can slip through as a string-present-but-empty entry.
+
+- **M5. STATE.md transition is deferred outside the plans.** "Hand-edited outside this plan" leaves a coordination hole: who runs the GSD state handler, on which commit, and which path owns the transition? The phase-closure precedent in earlier milestones always included a state transition task; this one does not.
+
+- **M6. Protected-path guard may have a literal self-match bug.** A grep on the manifest / probe files for the literal `pinn/` token will hit the probe's own source code that prints the forbidden path. The plan does not state how the guard avoids matching its own definition. Build the forbidden token dynamically or filter self-paths.
+
+### LOW
+
+- **L1. Manifest row floor (≥22) is below the enumerated-ID count.** Tightening to ≥25 (matching the actual ID enumeration including the 4 SI entries) would catch a dropped-ID failure more robustly.
+- **L2. Frontmatter-block verify step in 36-VERIFICATION.md is not explicit.** Phase 35's VERIFICATION schema is referenced as a pattern but not asserted-on.
+- **L3. 36-05 produces an 8-file commit.** Per policy, multi-file commits need a body and `Agent-Assisted-By` trailer. Splitting the manual REQUIREMENTS/ROADMAP edits from the verification/probe work would improve rollback granularity.
+- **L4. `ac-traceability.py` is added to `run-ac-suite.sh` but is not in the manifest's per-row set.** Defining it explicitly as a verification-only probe with its own evidence file (rather than implicitly via the driver) would close the audit gap.
+- **L5. Branch-state checks in 36-04 are described but not anchored to specific pre-write snapshots** (analogous to the ledger/REQUIREMENTS freshness pattern).
 
 ## 4. Suggestions
 
-- **Before executing Plan 36-05 Task 2, confirm GAP-36-01 and GAP-36-02 are user-resolved.** If not, surface them as STOP gaps (per protocol) and obtain Option A ratification, or pick a different option. Cite the user-instruction event in the per-flip list (e.g., "GAP-36-01 Option A ratified <date>") so the provenance is re-derivable.
-- **Strengthen the manifest audit (Plan 36-01 Task 1) to assert absence of rejected strings** (the cap-table fragment, `8.5`, `n_col=`, D-04 Option-C preservation) in both the manifest and the framework specs. This mechanizes Pitfall 1 protection.
-- **Add a Phase 36 closure: STATE.md transition task** to Plan 36-05 (or a new plan) that names the GSD state handler invocation, the trigger condition (e.g., "after the final batch re-verify passes"), and the commit owned path. The current "outside this plan" deferral leaves a coordination hole.
-- **Add a "re-execute" subsection to each plan's BLOCKED exit** that names the originating phase, the rerun command, and the audit step that proves the rerun is clean.
-- **Mechanically verify the per-flip list in Plan 36-05 Task 1's audit:** assert each of the 13 flips is present with its anchor citation. Add a "per-flip count = 13" assertion alongside the existing 32/32 check.
-- **Add a frontmatter-block verify step to Plan 36-05 Task 1** that asserts the `phase/verified/status/score/gaps_remaining/must_haves/artifacts/prohibitions` fields are present in `36-VERIFICATION.md` (mirroring the 35-VERIFICATION schema).
-- **Record the manifest snapshot in `36-PROBE-RESULTS.md`** (commit hash or content hash) so stale/mixed evidence is detectable — R2 concurrency edge.
-- **Consider splitting the wave 5 commit** into the manual ROADMAP/REQUIREMENTS edits (one commit, agent-owned-paths scoped tightly) and the verification/probe work (another commit). The commit policy permits this and improves rollback granularity.
+1. **Pin probe determinism in 36-05 Task 3.** Add `PYTHONHASHSEED=0` (or a frozen env), capture the interpreter/commit in `evidence/`, and assert the per-row SHA-256 from the Final Rerun block matches a recorded `evidence-lock.json` produced by 36-02.
+2. **Cite GAP-36-01 / GAP-36-02 Option A ratification in the per-flip list** with date and user-instruction reference; add a "per-flip count = 13" assertion to 36-05 Task 1's audit.
+3. **Add 36-02 to Plan 36-04's `depends_on`** (or annotate transitive coverage) and state `run-ac-suite.sh` must not `set -e` / not exit on first probe failure.
+4. **Repair the Phase 29 path in `36-CONTEXT.md`** and tighten the manifest row floor to ≥25.
+5. **Add a 36-05 (or 36-06) task for the STATE.md closure transition** naming the GSD state handler, the trigger commit, and the owned-paths declaration.
+6. **Filter self-matches in the protected-path guard** by constructing the forbidden token from string concatenation or by excluding the probe's own source path.
+7. **Split the 36-05 commit** into the manual ROADMAP/REQUIREMENTS reconciliation (one commit, tight owned-paths) and the verification/probe work (another commit) for cleaner rollback.
 
-## 5. Overall Risk: MEDIUM
+## 5. Overall Risk
 
-The plans are competent, well-tested, and follow the SPEC R1–R6 spine faithfully. The HIGH concern is the only real blocker: if GAP-36-01/02 are not user-resolved, Plan 36-05 Task 2 makes an unauthorized extension of the closure anchor definition. Confirming those two gap decisions (or logging them as STOP gaps with proper OPTION selection) brings the overall risk to LOW. The MEDIUM concerns are addressable by tightening the manifest audit, owning the STATE.md transition, defining the BLOCKED rerun path, and mechanizing the per-flip list verification.
+**MEDIUM**
+
+The plans achieve the v1.6 closure goal and the three cycle-1 HIGHs are addressed at the surface. The residual MEDIUM risk concentrates in two areas: (a) the F1/F2 anchor-class provenance is thin (a future audit may not be able to re-derive who picked Option A and when), and (b) probe-determinism is not pinned, leaving 36-PROBE-RESULTS.md SHA-256s vulnerable to non-reproducible Final Rerun drift. Both are addressable with the targeted edits above. The MEDIUM/LOW items are hardening opportunities; they do not block execution but should be closed before final sign-off.
 
 ---
 
 ## cursor Review
+
 
 
 _cursor failed: returned empty output, failed, or timed out._
@@ -234,107 +243,101 @@ ActionRequiredError: You've hit your usage limit You've saved $49 on API model u
 
 ## 1. Summary
 
-The Phase 36 plans are mostly coherent and well-grounded for closing v1.6: they build a manifest, run probes, close the ledger, reconcile SI metadata, write the handoff, and reconcile traceability. The dependency order is sensible.
-
-The main risk is that Plan 36-05 adds a new traceability probe after the manifest/probe-results flow has already been sealed, without updating all artifacts and declared modified paths that earlier plans make authoritative.
+The Phase 36 plans are generally strong and appear capable of achieving the phase goal: acceptance-check execution, ledger/SI closure, FUT handoff, and 32/32 traceability reconciliation. I inspected the five phase plans and consulted `36-SPEC.md`, `36-CONTEXT.md`, and `36-RESEARCH.md` as needed. No files were edited; all inspected files were readable.
 
 ## 2. Strengths
 
-- Clear five-wave ordering: manifest → probe evidence → ledger closure → handoff/SI routing → final verification.
-- Strong grounding discipline: plans consistently avoid live `pinn/` as a source, route silent SI decisions through STOP, and preserve frozen/read-only boundaries.
-- Good fail-closed intent: failed probes, nonterminal ledger rows, missing SI dispositions, and traceability mismatches are supposed to block closure rather than become advisory.
-- GAP-36-01 and GAP-36-02 are resolved and give Plan 36-05 a grounded rule for PKG and LOOP-07/08 status reconciliation.
-- The plans explicitly protect unrelated dirty files and avoid hand-editing `STATE.md`.
+- Clear wave ordering: manifest/probes → evidence run → ledger closure → handoff/SI → final traceability reconciliation.
+- Strong fail-closed posture for missing evidence, nonterminal ledger rows, required probe failures, and protected-path violations.
+- Good handling of concurrent-agent risks through SHA-256 freshness checks and explicit owned-path commit scopes.
+- STOP-governance is explicitly carried into SI disposition work, especially for `SI-DQA-003`.
+- Final plan correctly preserves prior sealed evidence and appends final rerun evidence rather than overwriting it.
 
 ## 3. Concerns Tagged HIGH / MEDIUM / LOW
 
-**HIGH — Plan 36-05 breaks the manifest/probe-results invariant.**  
-Plan 36-05 creates `probes/ac-traceability.py` and says to add it to `run-ac-suite.sh`, but `run-ac-suite.sh` is not listed in `files_modified`. It also does not update `36-ACCEPTANCE-MANIFEST.md`, `36-PROBE-RESULTS.md`, or `evidence/`, even though Plans 36-01/02 define the suite as one probe/result/evidence record per manifest row. This can leave the final traceability probe outside the authoritative manifest and hashed probe-results record.
+- **HIGH:** None identified.
 
-**MEDIUM — Several automated audits are weaker than the acceptance criteria they claim to enforce.**  
-Examples: Plan 36-01 uses `>=22` rows despite requiring a specific manifest inventory and does not fully enforce duplicates/protected-path row coverage. Plan 36-02 checks that manifest IDs appear in `36-PROBE-RESULTS.md`, but not exactly once, and does not verify each cited evidence file exists or its SHA-256 matches. Plan 36-04 checks finding IDs appear somewhere in the handoff, but not exactly once across Fixed / Intentionally Unchanged / Deferred.
+- **MEDIUM:** The protected-path guard can miss live `pinn` usage. [36-01-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/36-01-PLAN.md:145) relies on checking for `pinn/` path references, but a probe could still use `import pinn`, `from pinn...`, or `Path("pinn")` without matching that literal. This weakens a hard phase boundary.
 
-**MEDIUM — Status reconciliation happens before the final re-verification gate.**  
-Plan 36-05 flips `REQUIREMENTS.md` statuses to `Complete` in Task 2, then adds the companion probe and performs final batch re-verification in Task 3. If Task 3 fails, the plan does not explicitly say to revert or withhold those status flips. The fail-closed intent is clear, but the edit order can leave terminal-looking planning state in a blocked working tree.
+- **MEDIUM:** The failed final-rerun rollback path is internally conflicted. [36-05-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/36-05-PLAN.md:196) allows “withhold the commit” if reverting is not clean, but also requires no terminal-looking `REQUIREMENTS.md` / `ROADMAP.md` state be left in a blocked working tree. Withholding a commit alone does not restore the working tree.
 
-**LOW — Protected-path guard is brittle.**  
-The `grep -rlE 'pinn/' probes/` guard will fail if the guard script itself or probe comments contain the literal `pinn/`. This is avoidable, but the plan should spell out the implementation pattern to prevent self-failure.
+- **LOW:** The final autonomous verification does not explicitly require proof that the 36-04 human SI checkpoint was approved. [36-04-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/36-04-PLAN.md:120) gates SI preserve dispositions on human verification, while [36-05-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/36-05-PLAN.md:121) checks SI citation completeness but not an approval marker.
+
+- **LOW:** The manifest audit language says “exact-set,” but the check is a hard-coded presence/lower-bound check. [36-01-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/36-01-PLAN.md:95) and [36-01-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/36-01-PLAN.md:123) could allow unexpected extra rows or drift from the R1 source map without failing.
 
 ## 4. Suggestions
 
-- In Plan 36-05, add `run-ac-suite.sh` to `files_modified`, and either add `ac-traceability.py` to the manifest/results/evidence flow or explicitly define it as a separate verification-only probe with its own recorded evidence.
-- Strengthen audits from substring/count checks to exact set checks: manifest IDs, result sections, evidence files, hashes, and handoff classification partitions.
-- Move `REQUIREMENTS.md`/`ROADMAP.md` terminal flips after final batch re-verification, or state that failed final verification requires reverting/marking those edits blocked before commit.
-- Make the protected-path guard avoid literal self-matches, for example by constructing the forbidden path token dynamically.
+- Harden the protected-path guard to detect module imports and path tokens for `pinn`, not only `pinn/`.
+- Make 36-05’s failure path require an explicit restore to pre-Task-2 `REQUIREMENTS.md` / `ROADMAP.md` content, or write the terminal flips only after the final rerun passes.
+- Add a required human-approval marker in `36-HANDOFF.md` or `36-04-SUMMARY.md`, and make 36-05 fail if it is absent.
+- Either derive the manifest expected-ID set from the R1 source map or rename the audit from “exact-set” to “minimum required set” and add an explicit unexpected-row review.
 
 ## 5. Overall Risk
 
-**MEDIUM**. The phase design is sound, but Plan 36-05’s late probe integration and the weak exactness checks could undermine the closure evidence unless corrected before execution.
+**MEDIUM.** The plan architecture is sound, but the remaining risks affect closure integrity: live-code boundary enforcement, failed-rerun state rollback, and human-gated SI disposition proof.
 
 ---
 
 ## agy Review
 
-# Cross-AI Plan Review: Phase 36 Acceptance Checks & Re-Verification Handoff
+# Cross-AI Plan Review: Phase 36
 
-## 1. Summary
-The Phase 36 plan sequence (Waves 1-5) is a highly defensive, comprehensive closure workflow for v1.6. It establishes acceptance criteria via a manifest, builds disposable probes, captures hashed test evidence, finalizes the Phase 32 issue ledger, builds the closure handoff, and reconciles the core project tracking files. The workflow successfully delegates complex verification into executable, reproducible scripts.
+## Summary
+The Phase 36 plans provide a highly rigorous, defense-in-depth closure sequence. The phase meticulously builds a traceability manifest (36-01), captures hashed execution evidence (36-02), cleanly finalizes the ledger (36-03) and handoff (36-04), and formally reconciles requirements with a batch re-verify (36-05). The use of freshness checks, protected-path guards, and immutable evidence capturing is exceptionally well-designed.
 
-## 2. Strengths
-- **Exceptional Security & Integrity:** The `protected-path` guard explicitly forbids probes from executing against or importing live `pinn/` code, forcing the use of isolated toy samples. This prevents accidental mutations of the production surface.
-- **Fail-Closed Architecture:** Relies heavily on SHA-256 evidence hashing, explicit transcription verifications, and deterministic fail-closed gating (assigning `BLOCKED` instead of ignoring failures).
-- **Human-in-the-Loop Gates:** `36-04-PLAN.md` correctly toggles `autonomous: false` and uses an explicit checkpoint to solicit human approval for subjective `SI` preserve dispositions prior to completion.
+## Strengths
+- **Immutability & Traceability:** The `SHA-256` hashing of evidence and the `evidence/final-rerun/` strategy perfectly insulate against tampering or silent evidence corruption (preventing overwrites of 36-02 results).
+- **Concurrency Defenses:** The pre-write SHA-256 freshness checks for shared files (`32-ISSUE-LEDGER.md`, `REQUIREMENTS.md`, `ROADMAP.md`) are best-in-class for multi-agent workflows.
+- **Fail-Closed Design:** Probes and audits correctly prioritize blocking and routing back rather than emitting advisory notes.
+- **Strict Boundary Control:** The protected-path guard (verifying `pinn/` is untouched) and explicit `GIT_AGENT_OWNED_PATHS` prevent accidental scope creep into production source or unrelated meta-files.
+- **Human Verification:** The blocking checkpoint in 36-04 for SI preserve decisions securely handles ambiguous dispositions.
 
-## 3. Concerns
+## Concerns
+- **MEDIUM:** In `36-05-PLAN.md`, the `files_modified` frontmatter is missing `.planning/phases/36-acceptance-checks-re-verification-handoff/evidence/` (or `evidence/final-rerun/`). Since Task 3 explicitly generates new captured outputs in this directory, the omission will likely trigger a strict git-commit or GSD phase-execution failure for modifying paths outside the declared plan scope.
+- **MEDIUM:** The manual rollback logic in 36-05 Task 3 is fragile. The directive to "revert the Task 2 status flips in REQUIREMENTS.md / ROADMAP.md to their pre-Task-2 state" if the final batch re-verify fails relies on the agent cleanly un-editing markdown tables. If it struggles, it could leave a blocked tree in a falsely terminal state.
+- **LOW:** `36-05-PLAN.md` redundantly declares `depends_on: [36-02, 36-03, 36-04]`. Since 36-04 strictly depends on 36-03, and 36-03 on 36-02, listing only `36-04` would suffice.
 
-- **HIGH: Missing Files in `36-05-PLAN.md` Frontmatter**
-  Task 2 instructs the agent to log a STOP gap in `36-GAPS.md` and `v1.6-GAPS.md` if an anchorless row is found. Task 3 instructs the agent to append the new `ac-traceability.py` probe to `run-ac-suite.sh`. The `<output>` block correctly scopes these files in the `GIT_AGENT_OWNED_PATHS`. However, **none of these three files are declared in the `files_modified` YAML frontmatter**. The GSD execution framework will likely block the agent from editing these files, causing the plan to fail.
-  
-- **LOW: Inconsistent Row Bound in `36-01-PLAN.md` Automated Audit**
-  The Task 1 Python verification script asserts `len(body) >= 22`. However, the script then explicitly iterates over and enforces the presence of exactly 25 unique `AC-*` / `SI-*` IDs. While mathematically safe (`25 >= 22`), the 22 bound is artificially low and inconsistent with the actual required minimum (26 rows, including the `protected-path-guard`).
+## Suggestions
+1. **Update 36-05 Frontmatter:** Add `- .planning/phases/36-acceptance-checks-re-verification-handoff/evidence/` to the `files_modified` list in `36-05-PLAN.md` so the `final-rerun` directory is a legally modifiable path.
+2. **Strengthen Rollback Instructions:** In 36-05 Task 3, explicitly instruct the agent to use `git restore .planning/REQUIREMENTS.md .planning/ROADMAP.md` if the final rerun fails, rather than relying on a manual textual diff revert.
+3. **Refine Dependencies (Optional):** Simplify the `depends_on` array in `36-05-PLAN.md` to just `- 36-04`.
 
-## 4. Suggestions
-- **Fix `36-05-PLAN.md` Frontmatter:** Add `.planning/phases/36-acceptance-checks-re-verification-handoff/run-ac-suite.sh`, `.planning/phases/36-acceptance-checks-re-verification-handoff/36-GAPS.md`, and `.planning/milestones/v1.6-GAPS.md` to the `files_modified` array so the agent is authorized to complete its instructions.
-- **Adjust `36-01-PLAN.md` Assertion:** Update `len(body) >= 22` to `len(body) >= 26` to accurately reflect the true minimum bounds of the manifest table.
-
-## 5. Overall Risk
-**LOW** 
-The plans are incredibly rigorous and logically sound. Resolving the frontmatter discrepancy in `36-05-PLAN.md` removes the only material execution risk.
+## Overall Risk
+**LOW**. The plans are exceptionally robust, defensive, and mathematically rigorous. The identified concerns are minor execution snags that are easily fixed and do not pose a systemic risk to the project's data integrity or security.
 
 ---
 
 ## opencode Review
 
-_opencode failed: returned empty output, failed, or timed out._
+**Summary**
 
-Diagnostics:
-- reviewer=opencode
-- exit_code=143
-- elapsed_seconds=360
-- timeout_seconds=360
-- watchdog=triggered
-- timeout_after_seconds=360
-- command=opencode run - 
-- stdout_bytes=0
-- stderr_bytes=58
+Phase 36 is a 5-plan closure sequence (manifest/probes → execution → ledger promotion → handoff/SI reconciliation → verification + REQUIREMENTS/ROADMAP reconciliation) that implements VER-13..18 with strong fail-closed, freshness-checked, and protected-path discipline. The plans correctly consume the resolved GAP-36-01/02 terminal-anchor rule and the R1–R6 research findings. All five plans were readable; no file was missing.
 
-Artifacts:
-- stdout: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260701T031247Z-13606/xreview-opencode-36.md
-- stderr: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260701T031247Z-13606/xreview-opencode-36.err
-- metadata: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260701T031247Z-13606/xreview-opencode-36.meta
+**Strengths**
+- Explicit fail-closed gates on every required check (probe FAIL, nonterminal ledger row, traceability != 32, count mismatch, freshness violation) with BLOCKED + route-back rather than advisory notes.
+- Freshness-checked writes (pre-write SHA-256) on every shared artifact (ledger, REQUIREMENTS.md, ROADMAP.md) mitigate concurrent-agent races (addresses prior HIGH #3).
+- Evidence non-overwrite contract: 36-02 evidence/ is sealed; final re-verify writes to evidence/final-rerun/ and appends a Final Rerun block (addresses prior HIGH #2).
+- Exactly-once handoff classification audit and SI-grep subset check are mechanically enforced.
+- Human checkpoint for SI preserve dispositions (36-04 Task 2) is explicitly declared blocking and autonomous=false.
 
-Stderr excerpt:
-```
-[0m
-> build · grok-4.3
-[0m
-[0m→ [0mSkill "xreview"
+**Concerns**
+- **HIGH**: 36-04 Task 2 human checkpoint relies on the literal token "approved" in chat; no machine-readable gate file exists. If the exact string is never emitted the phase is permanently blocked even though the work is otherwise complete.
+- **MEDIUM**: 36-05 Task 3 revert/withhold directive is prose-only; no automated guard (e.g., a pre-commit hook or probe that aborts before the commit) prevents the Task 2 flips from landing if the final re-verify later fails.
+- **LOW**: ac-traceability.py is authored after the REQUIREMENTS/ROADMAP edits in 36-05 Task 3; a bug in the probe itself could allow contradictory state to pass the final re-verify.
 
-```
+**Suggestions**
+- Add a `.gate-approved` sentinel file (or equivalent) for the 36-04 human checkpoint so resumption does not depend on chat text.
+- Move companion-probe authoring to 36-05 Task 1 so it can serve as a pre-flight before any status flips.
+- Consider wiring the revert/withhold rule into the verify block of Task 3 so a failed final re-verify automatically reverts the prior edits before the commit is attempted.
+
+**Overall Risk**: MEDIUM
+
+The design is rigorous and the mitigations for the documented reviewer concerns are concrete. The primary execution risks are the human checkpoint fragility and the lack of an automated safety net for the revert directive; both are addressable without changing scope.
 
 ---
 
 ## claude-kimi Review
+
 
 I'll review the Phase 36 plans by reading the listed files and producing the requested markdown review.
 
@@ -404,11 +407,11 @@ _Synthesize shared concerns across reviewers above (2+ agreement = highest prior
 ### claude-minimax
 - reviewer=claude-minimax
 - exit_code=0
-- elapsed_seconds=182
+- elapsed_seconds=105
 - timeout_seconds=360
 - watchdog=not_triggered
 - command=ccp claude-minimax -p - 
-- stdout_bytes=9702
+- stdout_bytes=8382
 - stderr_bytes=192
 
 ### cursor
@@ -417,77 +420,73 @@ _Synthesize shared concerns across reviewers above (2+ agreement = highest prior
 ### codex
 - reviewer=codex
 - exit_code=0
-- elapsed_seconds=265
+- elapsed_seconds=190
 - timeout_seconds=360
 - watchdog=not_triggered
 - command=codex exec --ephemeral --dangerously-bypass-hook-trust --model gpt-5.5 -c model_reasoning_effort=\"xhigh\" --skip-git-repo-check - 
-- stdout_bytes=3940
-- stderr_bytes=25248
+- stdout_bytes=3831
+- stderr_bytes=68821
 
 ### agy
 - reviewer=agy
 - exit_code=0
-- elapsed_seconds=77
+- elapsed_seconds=70
 - timeout_seconds=360
 - watchdog=not_triggered
-- stdout_bytes=2867
+- stdout_bytes=3116
 - stderr_bytes=0
 
 ### opencode
 - reviewer=opencode
-- exit_code=143
-- elapsed_seconds=360
-- timeout_seconds=360
-- watchdog=triggered
-- timeout_after_seconds=360
-- command=opencode run - 
-- stdout_bytes=0
-- stderr_bytes=58
-
-### claude-kimi
-- reviewer=claude-kimi
 - exit_code=0
-- elapsed_seconds=67
+- elapsed_seconds=53
 - timeout_seconds=360
 - watchdog=not_triggered
-- command=ccp kimi -p - 
-- stdout_bytes=7306
-- stderr_bytes=192
+- command=opencode run - 
+- stdout_bytes=2606
+- stderr_bytes=789
+
+### claude-kimi
+- status: preserved from existing REVIEWS.md
 
 ---
 
-## xconverge Source-Grounding Verification + Cycle-1 Reconciliation
+## xconverge Source-Grounding Verification + Cycle-2 Reconciliation
 
-_Appended by Agent B (xconverge orchestrator), cycle 1 of max-cycles 1, 2026-07-01._
+_Appended by the xconverge orchestrator (Agent A), cycle 2 of max-cycles 1, 2026-07-01. Cycle-1 snapshot preserved at `36-REVIEWS-cycle1.md`._
 
-### Source-grounding gate — PASS
+### Source-grounding gate — PASS (carried from cycle 1; no new external citations)
 
-Every symbol cited by `36-01..36-05-PLAN.md` was enumerated and verified against source:
+Cycle 1 fully enumerated every symbol cited by `36-01..36-05-PLAN.md` and verified it against source (requirement IDs VER-13..18, SCOPE-12..15, LOOP-01..08 / CURR-01..05 / PKG-05..08 / EVID-15 / PHYS-03/05; the exactly-four SI universe; no `pinn/basic_architecture` or `pinn/data-processing-pipeline` reference) — verdict: no fabricated citations. The cycle-1→cycle-2 plan delta (commit `48c5fadc`, "fold cycle-1 review fixes into plans") touched only `36-05-PLAN.md` frontmatter + Task 2/3 wording and added references exclusively to **phase-produced artifacts** (`run-ac-suite.sh`, `probes/ac-traceability.py`, `36-GAPS.md`, `v1.6-GAPS.md`, `evidence/final-rerun/`, `requirements_pre_36_05_sha256`, `roadmap_pre_36_05_sha256`, `36-VERIFICATION.md`) — which the gate excludes from verification — plus a mirror of the already-verified `36-03` `ledger_post_34_01_sha256` freshness pattern. No new external-code citations were introduced, so the cycle-1 PASS verdict stands. Effective authority: `grep` (signatures UNCHECKABLE under grep, as in cycle 1).
 
-- **Requirement IDs** — VER-13..18 (`REQUIREMENTS.md:67-72`), SCOPE-12..15 (`:92-95`), LOOP-01..08 / CURR-01..05 / PKG-05..08 / EVID-15 / PHYS-03/05 (traceability rows present). All present.
-- **SI universe (exactly four)** — SI-CTL-001 (`ctl_instruction.md:2140`), SI-DQA-003 (`:548`), SI-PINN-002 (`pinn_architecture.md:1047`), SI-PINN-003 (`:1056/1059`; `ctl:1793`). All present.
-- **Ledger anchors** — D-05/D-06 PENDING (`32-ISSUE-LEDGER.md:16-17`); M14 LOOP-04 row + LOOP-07/08 provisional SATISFIED (`34-VERIFICATION.md:115/118-119`); D-36-17 ROADMAP-defer anchor (`34-VERIFICATION.md:102`). All present.
-- **Phase artifacts** — `32-ISSUE-LEDGER.md`, `32-GAPS.md`, `33/34/35-VERIFICATION.md`, `v1.6-GAPS.md`, `scripts/agent-commit` — all exist on disk.
-- **Forbidden-grounding scan** — no `pinn/basic_architecture` or `pinn/data-processing-pipeline` reference in any plan. ✓
+### Cycle-2 reviewer reconciliation (transparency)
 
-Verdict: no fabricated citations; plans are well-grounded (independent of review findings).
+Requested panel `--codex --agy --opencode --claude-minimax`: **all four returned real output, no stubs** (opencode recovered from its cycle-1 empty/timeout stub). xreview upsert preserved five prior-run sections from cycle 1 (`claude`, `claude-glm`, `claude-deepseek`, `cursor`, `claude-kimi`) — these reflect the **pre-fix** plans and are treated as stale: their HIGHs were re-verified against the current plans below. Diagnostics: codex 190 s / stdout 3831 B, agy 70 s / 3116 B, opencode 53 s / 2606 B, claude-minimax 105 s / 8382 B; all exit 0, watchdog not triggered. Run dir: `xreview-20260701T140941Z-48112`.
 
-### Cycle-1 reviewer reconciliation (transparency)
+### Cycle-1 HIGHs — re-verified against current plans (all FULLY RESOLVED)
 
-Requested panel `--codex --claude-minimax --agy --opencode --claude-kimi`: codex=ok, claude-minimax=ok, agy=ok, **opencode=stub (empty/timeout at 360 s)**, claude-kimi=ok. xreview upsert also preserved four prior-run sections (`claude`, `claude-deepseek`, `cursor`=usage-limited, `claude-glm`=529) from an earlier `36-REVIEWS.md`.
+1. `files_modified` omission (codex, agy) — **RESOLVED**: `36-05-PLAN.md:11-19` now lists `run-ac-suite.sh`, `probes/ac-traceability.py`, `36-GAPS.md`, `v1.6-GAPS.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `36-PROBE-RESULTS.md`.
+2. Probe-suite re-open / sealed-evidence SHA-256 mismatch (claude-deepseek, preserved) — **RESOLVED**: `36-05-PLAN.md` L38/52-55/194/271 — Final Rerun writes to versioned `evidence/final-rerun/` and appends a Final Rerun block to `36-PROBE-RESULTS.md`; 36-02 sealed `evidence/` is NOT overwritten.
+3. REQUIREMENTS/ROADMAP pre-write freshness (claude-deepseek, preserved) — **RESOLVED**: `36-05-PLAN.md` L155/167-169/220/226 — `requirements_pre_36_05_sha256` / `roadmap_pre_36_05_sha256` recorded in `36-VERIFICATION.md`; mismatch BLOCKs the write (mirrors 36-03 `ledger_post_34_01_sha256`).
 
-**HIGH findings — counted (3):**
-1. `files_modified` omits `run-ac-suite.sh`, `36-GAPS.md`, `v1.6-GAPS.md` despite Task 2/3 editing them — execution-blocking (codex, agy — fresh panel; verified `36-05-PLAN.md:10-15` vs `:141/:173/:235`).
-2. 36-05 re-opens the probe suite after 36-02 sealed hashed evidence without specifying regenerate/subdir/append — evidence/ SHA-256s can mismatch the final suite (claude-deepseek — preserved section; verified unaddressed at `36-05-PLAN.md:173` vs `36-02-PLAN.md:78`).
-3. 36-05 edits REQUIREMENTS.md/ROADMAP.md without the pre-write SHA-256 freshness check 36-03 applies to the ledger (claude-deepseek — preserved section; verified `36-05-PLAN.md:141` vs `36-03-PLAN.md:21/117`).
+**Cycle-1 actionable non-HIGH (4) — all FOLDED:** revert/withhold on failed re-verify (36-05 L40/196/229/255); audit floor `>=22`→`>=26` + per-row SHA-256 + exactly-once partition (36-01 floor; 36-02 L116/133/141; 36-04 L164/192/196); STATE.md closure-transition ownership named (36-05 L39/198/230/273); Pitfall-1 absence mechanized (36-01 L112-119).
 
-**HIGH findings — assessed and NOT counted (3, all claude-kimi, fresh panel):**
-- _"No runnable definition of accept"_ — addressed: `36-01` defines a manifest (pass-criterion + data + command per AC) mapped 1:1 to disposable probes + fail-closed `run-ac-suite.sh`; residual edge (spec-consistency probes are token-grep) is MEDIUM-at-most and matches VER-13/15.
-- _"Resolution doc may be in flight"_ — invalid premise: Phase 31 readiness PASSED (READY-WITH-CAVEATS, 2026-06-20) and the doc landed (commit `49fb7958`); STATE.md confirms 32-36 unblocked on that gate.
-- _"pinn/STATUS.md + NN-CODE-DIVERGENCE.md violate live-code ban"_ — invalid: repo CLAUDE.md carries an explicit carveout permitting `pinn/` references **only** in those forward-pointing handoff docs.
+### Cycle-2 HIGH findings — assessed
 
-**Actionable non-HIGH (4):** codex (revert/withhold Task-2 status flips if Task-3 re-verify fails); mixed (tighten audit floors — manifest >=22->>=26, per-row hash binding, handoff exactly-once partition); claude-minimax (own the STATE.md closure transition — `36-05:173` defers it unnamed); claude-minimax (mechanize Pitfall-1 absence at the manifest layer).
+**Counted (0).** codex (cycle 2): "HIGH: None identified." agy / claude-minimax: no HIGH; claude-minimax records the `checkpoint:human-verify` for SI-DQA-003 as a **Strength** mirroring Phase 29 D-08.
 
-### Cycle-1 verdict
+**Assessed and NOT counted (1):** opencode (cycle 2) raises _"HIGH: 36-04 Task 2 human checkpoint relies on the literal token 'approved' in chat; no machine-readable gate file exists."_ Excluded as a HIGH because the three other fresh reviewers (codex/agy/claude-minimax) praised the checkpoint pattern and codex recorded "HIGH: None," and the pattern mirrors the accepted Phase 29 D-08 `checkpoint:human-verify` contract. The underlying hardening suggestion (a machine-verifiable approval marker) is legitimate and is retained below as actionable non-HIGH #6.
 
-`current_high=3, current_actionable=4` -> **NOT converged.** Cycle budget (max-cycles 1) exhausted. Recommended next command: `$gsd-plan-phase 36 --reviews` (replan to fold in the 3 HIGHs), or direct Agent A to apply the frontmatter/clarification fixes. The single fresh-panel HIGH (#1, `files_modified`) is mechanical and execution-blocking; #2/#3 are underspecifications in 36-05 Task 3.
+### Cycle-2 actionable non-HIGH (7)
+
+1. **36-05**: cite GAP-36-01/02 Option-A ratification (date + user-instruction ref) in the per-flip list; add a per-flip count assertion to Task 1's audit — provenance currently thin (codex/agy/claude-minimax, MEDIUM).
+2. **36-05 Task 3**: pin probe determinism — `PYTHONHASHSEED=0`, capture interpreter/commit in `evidence/`, assert per-row SHA-256 of the Final Rerun block matches a lockfile recorded by 36-02 (codex/agy/claude-minimax, MEDIUM).
+3. **36-01 protected-path probe**: broaden beyond the `pinn/` path literal — also catch `import pinn`, `from pinn ...`, `Path("pinn")`; construct the forbidden token dynamically to filter self-matches (opencode + claude-minimax, MEDIUM).
+4. **36-05 failed-rerun path**: specify HOW the working tree is restored on "withhold" (withholding the commit does not un-apply REQUIREMENTS/ROADMAP edits) — require explicit `git restore`, or move the terminal status flips to after the Final Rerun passes (opencode, MEDIUM).
+5. **36-04**: add `36-02` to `depends_on` (or annotate transitive coverage); state `run-ac-suite.sh` must NOT `set -e` / must NOT exit on first probe failure (claude-minimax, MEDIUM).
+6. **36-04/36-05**: persist a human-approval marker in `36-HANDOFF.md` or `36-04-SUMMARY.md` and make 36-05 fail if absent — machine-verifiable SI-DQA-003/PINN-002 approval (codex/agy/claude-minimax LOW; overlaps opencode's excluded HIGH) (LOW–MEDIUM).
+7. **36-CONTEXT.md**: repair the Phase 29 path typo `reverification` → `re-verification-and` (claude-minimax, LOW).
+
+### Cycle-2 verdict
+
+`current_high=0, current_actionable=7` → **NOT converged** under the strict gate (convergence requires both = 0). All HIGHs are clear; seven MEDIUM/LOW hardening items remain absent from PLAN.md. Cycle budget (max-cycles 1) exhausted — escalated to the user (proceed-as-is vs fold-and-re-verify vs manual review). Next command if user extends budget: `$gsd-plan-phase 36 --reviews --skip-research`; if accepted as-is: `$gsd-execute-phase 36`.
