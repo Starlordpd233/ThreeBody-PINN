@@ -4,12 +4,12 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 36
 current_phase_name: Acceptance Checks, Re-verification & Handoff
-current_plan: Not started
-status: verifying
-stopped_at: Phase 36 context gathered; plan-phase not started per user instruction
-last_updated: "2026-06-30T01:43:11.761Z"
-last_activity: 2026-06-29
-last_activity_desc: Phase 35 complete, transitioned to Phase 36
+current_plan: "Planned — Wave 1 (36-01) next"
+status: planned
+stopped_at: Phase 36 planned — 5 plans (waves 1-5), plan-checker PASS (no blockers); pending Agent B plan review before execution
+last_updated: "2026-07-01T02:45:00.000Z"
+last_activity: 2026-07-01
+last_activity_desc: Phase 36 planned (5 plans, plan-checker PASS)
 progress:
   total_phases: 7
   completed_phases: 6
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 ## Current Position
 
 Phase: 36 — Acceptance Checks, Re-verification & Handoff
-Current Plan: Not started
-Total Plans in Phase: 4
-Status: Phase complete — ready for verification
-Last activity: 2026-06-29 — Phase 35 complete, transitioned to Phase 36
+Current Plan: Planned — Wave 1 (36-01) next
+Total Plans in Phase: 5
+Status: Planned — 5 plans (waves 1-5); pending Agent B plan review, then execute
+Last activity: 2026-07-01 — Phase 36 planned (5 plans, plan-checker PASS)
 
 ## Performance Metrics
 
@@ -230,9 +230,9 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 **Resume file:** .planning/phases/36-acceptance-checks-re-verification-handoff/36-CONTEXT.md
 
-Last session: 2026-06-30T01:43:11.756Z
-Stopped at: Phase 36 context gathered; plan-phase not started per user instruction
-Next action: Run Phase 35 verification, then proceed to Phase 36 acceptance checks after verification passes.
+Last session: 2026-07-01T02:45:00.000Z
+Stopped at: Phase 36 planned (5 plans, plan-checker PASS); pending Agent B plan review
+Next action: Agent B reviews the Phase 36 plans (watchdog channel phase36-plan-ready); then /gsd-execute-phase 36 (Wave 1: 36-01).
 
 ## Operator Next Steps
 

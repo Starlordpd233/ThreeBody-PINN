@@ -70,7 +70,7 @@ Downstream agents MUST read `36-SPEC.md` before planning or implementing. Requir
 ### Git and Workflow Hygiene
 - **D-36-14:** Plan tasks must use explicit owned paths and `scripts/agent-commit`; broad staging is forbidden.
 - **D-36-15:** Unrelated user-owned working-tree changes must be excluded from Phase 36 commits unless separately authorized. As of this refresh the only dirty file is `AGENTS.md` (the earlier Phase 35 plan/review edits are now committed); stage explicit owned paths only.
-- **D-36-16:** This discuss run intentionally stops before planning. Do not invoke `$gsd-plan-phase` from the discuss auto-advance hook.
+- **D-36-16 [informational]:** This discuss run intentionally stops before planning. Do not invoke `$gsd-plan-phase` from the discuss auto-advance hook. *(Discuss-run governance, not a Phase 36 plan deliverable — recorded for provenance, intentionally not tracked by a plan.)*
 
 ### the agent's Discretion
 
