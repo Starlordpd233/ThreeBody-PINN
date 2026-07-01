@@ -112,7 +112,7 @@ The planner may choose the exact number and grouping of Phase 36 plan files, the
 - `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/21-PROBE-RESULTS.md` - Probe result summary pattern with raw evidence hashes.
 - `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/21-HANDOFF.md` - v1.4 handoff and SI reconciliation precedent, if present in the archived milestone.
 - `.planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/21-VERIFICATION.md` - Requirement coverage pattern for closure verification.
-- `.planning/milestones/v1.5-phases/29-acceptance-checks-reverification-handoff/29-VERIFICATION.md` - v1.5 acceptance/reverification handoff precedent, if present in the archived milestone.
+- `.planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/29-VERIFICATION.md` - v1.5 acceptance/re-verification handoff precedent, if present in the archived milestone.
 
 ### Handoff Inputs
 - `.planning/todos/pending/trainex-r1-research-handoff.md` - Folded todo for FUT/trainex handoff routing only.
