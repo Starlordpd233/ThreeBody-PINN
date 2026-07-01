@@ -233,7 +233,28 @@ Every selected finding follows the v1.4/v1.5-style loop:
   4. The milestone handoff identifies which findings were fixed, which were intentionally left unchanged, and which were deferred; FUT-01 and FUT-04 divergence records are updated for every training-loop-implementation-shaped finding (VER-17); and the remaining curriculum/training-loop `SI-*` entries are each reviewed for issue-03 relevance and either retired with a back-reference to the resolving phase/commit or preserved with a written reason — none assumed resolved or assumed irrelevant (VER-18).
   5. Roadmap traceability is confirmed at closure: all 32 v1.6 requirements map to exactly one phase, beginning at Phase 30 (VER-14).
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+**Wave 1**
+
+- [ ] 36-01-PLAN.md — Acceptance manifest + disposable probe suite authoring (VER-13, VER-15)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 36-02-PLAN.md — Probe execution + hashed evidence + 36-PROBE-RESULTS.md, fail-closed (VER-15)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 36-03-PLAN.md — Ledger terminal-state: D-05/D-06 transcription-verify + promote (VER-16)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 36-04-PLAN.md — Handoff + four-ID SI reconciliation + FUT-01/FUT-04 routing; SI-preserve checkpoint (VER-17, VER-18)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 36-05-PLAN.md — Verification + 32/32 traceability + REQUIREMENTS/ROADMAP status reconciliation (VER-14, VER-16)
+
 **UI hint**: no
 
 ## Progress
