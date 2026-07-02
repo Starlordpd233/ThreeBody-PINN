@@ -158,3 +158,9 @@ The candidate verdict source (issue-03 resolution doc) is verified ready for Pha
 
 _Verified: 2026-06-20T19:45:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+## Re-verification — v1.6 closure (2026-07-02)
+
+Re-confirmed verdict: **passed** (status unchanged).
+Basis: goal-backward re-check of the resolution-doc integrity the phase gates on — `03-final-resolution.md` is byte-identical to reference commit `49fb7958` (48,049 bytes / 282 lines / exactly 18 `### 1.x` headings; empty `git diff 49fb7958..HEAD`), the §1.1 citation spot-check (lines 24–27) still resolves into D-04 `surface_to_user`, both deliverables remain substantive (`31-READINESS-REPORT.md` 335 lines, `31-RESOLUTION-MAP.md` 225 lines), and the Phase 31 commit `827d2d22` plus the one post-verification R4-correction commit `bedab32a` touch only `.planning/` paths (zero edits to `ctl_instruction.md`, `pinn_architecture.md`, the resolution doc, or `pinn/**`). With the source doc unchanged since the reference commit, the four readiness checks (18/18 covered, 0 v1.5-verified-fact contradictions, 0 SCOPE-12 violations) and the READY-WITH-CAVEATS gate verdict remain mechanically re-derivable; no regression in any grounded artifact.
+Timestamp refresh: this re-verification refreshes VERIFICATION.md mtime relative to SUMMARY.md, resolving the stale-verification false-positive flagged by init.manager.

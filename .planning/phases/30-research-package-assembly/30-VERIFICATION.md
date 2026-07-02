@@ -80,3 +80,10 @@ A complete, self-contained, repo-blind ERW research package for issue-03 at `pin
 
 _Verified: 2026-06-18_
 _Verifier: Claude (gsd-verifier)_
+
+
+## Re-verification — v1.6 closure (2026-07-02)
+
+Re-confirmed verdict: **passed** (status unchanged).
+Basis: re-ran the acceptance VC spot-checks on the delivered package — the six transport files under `research_package/upload/` are intact, `build_phase30_upload_bundles.py --selftest` passes (round-trip byte-fidelity), VC-01 (zero repo-path leaks in `RESEARCH-AGENT-PROMPT.md` + `upload/RESEARCH-CONTEXT-MASTER.md`) and VC-03 (both baseline reports `git diff --quiet` clean) re-pass, `DELIVERY-NOTE.md` still carries the exact landing path and the verbatim "Phases 32–36 gate on the consolidated doc landing AND Phase 31 passing" sentence, and the PKG-07/08 phase artifacts (`30-REPORTS-CHARACTERIZATION.md`, `30-CLAIMS-INVENTORY.md`, `30-SNAPSHOT-HASHES.txt`) remain present; no `30-GAPS.md` was ever raised. The consolidated resolution doc has since landed (commit `49fb7958`), confirming the gate Phase 30 opened functioned as intended — not a regression. Post-verification Phase-30-tagged commits (`34110716`/`f03137c7`/`05df2619`/`d30fc03c`) refined the package form while preserving every verification criterion re-checked above.
+Timestamp refresh: this re-verification refreshes VERIFICATION.md mtime relative to SUMMARY.md, resolving the stale-verification false-positive flagged by init.manager.

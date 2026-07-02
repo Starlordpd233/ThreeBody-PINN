@@ -403,3 +403,10 @@ All Plan 34-05 `prohibitions` entries are satisfied (see frontmatter and section
 
 _Verified: 2026-06-25T07:30:00Z_
 _Verifier: Claude (gsd-executor-34-05)_
+
+
+## Re-verification — v1.6 closure (2026-07-02)
+
+Re-confirmed verdict: **passed** (status unchanged).
+Basis: goal-backward re-check re-ran the VERIFICATION.md deterministic suites (Sections 2–5: contract tokens, LOOP-04 cross-file single-home suite, negative/owner-pending checks, locked-convention regression guard) against the current `ctl_instruction.md` and `pinn_architecture.md` — all PASS; confirmed all five evidence packets exist in `evidence/`, GAP-34-01 is `RESOLVED-WITH-INSTRUCTION`, the LOOP-04 `8.5`-absent / `7-10 / 5 / 3` single-home and `AC-LOOP-04` bidirectional anchors hold, and `4.6416`/`6.694`-absent (pinn) locked conventions are intact. The only framework-spec commits since the 2026-06-25 verification are Phase 35 downstream work; no Phase-34 contract regressed.
+Timestamp refresh: this re-verification refreshes VERIFICATION.md mtime relative to SUMMARY.md, resolving the stale-verification false-positive flagged by init.manager.

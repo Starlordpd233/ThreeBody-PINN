@@ -176,3 +176,10 @@ Pre-write hashes captured before each edit; post-write hashes captured after eac
 7. ✅ protected-path / probe-target guard (no `pinn/` mutation; no framework-spec mutation)
 
 v1.6 milestone closure is reached; Phase 36 is COMPLETE.
+
+
+## Re-verification — v1.6 closure (2026-07-02)
+
+Re-confirmed verdict: **passed** (status unchanged).
+Basis: Goal-backward re-check of the ROADMAP Phase 36 goal (acceptance checks, terminal issue ledger, SI-* reconciliation, FUT-01/FUT-04 handoff, 32/32 traceability) against the recorded evidence — all 7 must-have audits in the body above remain satisfied, the recorded 26/26 AC-suite PASS in `36-PROBE-RESULTS.md` (re-run 2026-07-02T00:39:33Z) and the 11/11 independent UAT checks in `36-UAT.md` stand unchallenged, and an independent reproduction of all 27 probes by the Agent-B verifier (UAT test #1, 27 pass / 0 fail) had already corroborated the executor verdict. No regression was found: `git diff 9d4501b3..HEAD` shows `ctl_instruction.md`, `pinn_architecture.md`, and `pinn/` are all empty (protected-path guard PASS); the only post-verification commits touched `.planning/STATE.md` (GSD handler transition, owned per D-36) and `36-UAT.md` (the UAT record itself) — so the init.manager stale flag is the known SUMMARY-after-VERIFICATION mtime false-positive, not a content regression.
+Timestamp refresh: this re-verification refreshes VERIFICATION.md mtime relative to SUMMARY.md, resolving the stale-verification false-positive flagged by init.manager. The acceptance probe scripts were not re-executed; existing recorded PASS results were cited.
