@@ -1,8 +1,36 @@
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 9
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 22
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 23
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 14
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 28
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 27
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 21
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:37: FutureWarning: Possible nested set at position 20
+  phys05_found = any(re.search(p, pinn_content, re.IGNORECASE) for p in phys05_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:84: FutureWarning: Possible nested set at position 4
+  logging_found = any(re.search(p, ctl_content + "\n" + pinn_content, re.IGNORECASE | re.DOTALL) for p in logging_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:84: FutureWarning: Possible nested set at position 25
+  logging_found = any(re.search(p, ctl_content + "\n" + pinn_content, re.IGNORECASE | re.DOTALL) for p in logging_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:84: FutureWarning: Possible nested set at position 53
+  logging_found = any(re.search(p, ctl_content + "\n" + pinn_content, re.IGNORECASE | re.DOTALL) for p in logging_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:84: FutureWarning: Possible nested set at position 81
+  logging_found = any(re.search(p, ctl_content + "\n" + pinn_content, re.IGNORECASE | re.DOTALL) for p in logging_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:84: FutureWarning: Possible nested set at position 107
+  logging_found = any(re.search(p, ctl_content + "\n" + pinn_content, re.IGNORECASE | re.DOTALL) for p in logging_patterns)
+<home>/Desktop/3_body_problem/.worktrees/specwork/.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-loss-02.py:84: FutureWarning: Possible nested set at position 14
+  logging_found = any(re.search(p, ctl_content + "\n" + pinn_content, re.IGNORECASE | re.DOTALL) for p in logging_patterns)
 === AC-LOSS-02: energy-weight schedule ===
-[1] FAIL: PHYS-05 λ_E^max ≤ 1.0 constraint not found
+[1] PASS: PHYS-05 λ_E^max ≤ 1.0 constraint retained
 [2] PASS: rejected energy cap-table pattern absent from specs
 [3] PASS: lambda_E = 1000 rejected value absent
-[4] FAIL: logging-first diagnostics not found
-[5] FAIL: dominance reweighting deferral not found
+[4] PASS: logging-first diagnostics specified (or logging-before-dominance)
+[5] PASS: dominance reweighting deferred
 
-=== AC-LOSS-02: SOME CHECKS FAILED ===
+=== AC-LOSS-02: ALL CHECKS PASSED ===

@@ -1,6 +1,6 @@
 === AC-LOSS-01: loss scaling ===
 [1] PASS: dimensionless L_data/L_physics/L_energy present
-[2] FAIL
-[3] FAIL: linear-momentum loss term present (should be absent)
+[2] PASS: AD chain factors present (dr/du = 2·dr/dτ, d²r/du² = 4·d²r/dτ²)
+[3] PASS: no linear-momentum loss term (rejection context confirmed)
 
-=== AC-LOSS-01: SOME CHECKS FAILED ===
+=== AC-LOSS-01: ALL CHECKS PASSED ===

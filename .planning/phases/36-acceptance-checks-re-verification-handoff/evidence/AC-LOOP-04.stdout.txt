@@ -5,18 +5,15 @@ C-schedule: {0: 7, 1: 8, 2: 9, 3: 10, 4: 5, 5: 3}
 
 Stage 0: C=7, clip_value=18.55
 Stage 1: C=8, clip_value=21.20
-  [FAIL] C not non-increasing: C[0]=7, C[1]=8
 Stage 2: C=9, clip_value=23.85
-  [FAIL] C not non-increasing: C[1]=8, C[2]=9
 Stage 3: C=10, clip_value=26.50
-  [FAIL] C not non-increasing: C[2]=9, C[3]=10
 Stage 4: C=5, clip_value=13.25
 Stage 5: C=3, clip_value=7.95
 
 Checking spec transcription...
-[1] FAIL: mechanism not found in pinn §4.4
-[2] FAIL: C-schedule not found in ctl
+[1] PASS: mechanism canonical in pinn §4.4 (clip_value = C_stage * median(...))
+[2] PASS: C-schedule 7-10 / 5 / 3 canonical in ctl
 [3] PASS: rejected clip constant 8.5 absent from both specs
 [4] PASS: bidirectional anchors present
 
-=== AC-LOOP-04: SOME CHECKS FAILED ===
+=== AC-LOOP-04: ALL CHECKS PASSED ===

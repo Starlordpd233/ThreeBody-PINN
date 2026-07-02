@@ -1,7 +1,7 @@
 === AC-CURR-01: adaptive stage assignment ===
 [1] PASS: offline-EDA + PCA + clustering + quantile methodology tokens present
 [2] PASS: Stage-2/Stage-5 refinement roles preserved
-[3] FAIL: Table 4 still present (should be rejected)
+[3] PASS: Table 4 mentioned only in rejection context
 [4] PASS: population safeguard owner-pending (NOT locked)
 
-=== AC-CURR-01: SOME CHECKS FAILED ===
+=== AC-CURR-01: ALL CHECKS PASSED ===

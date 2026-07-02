@@ -1,6 +1,6 @@
 === AC-EVID-15-D06: epsilon strategy ===
 [1] PASS: owner dual-context cited
-[2] FAIL
-[3] FAIL
+[2] PASS: epsilon_inv = 1e-10 (offline) present
+[3] PASS: epsilon_train = 1e-5 (training) present
 
-=== AC-EVID-15-D06: SOME CHECKS FAILED ===
+=== AC-EVID-15-D06: ALL CHECKS PASSED ===

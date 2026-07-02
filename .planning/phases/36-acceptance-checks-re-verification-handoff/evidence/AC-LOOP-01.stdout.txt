@@ -1,9 +1,9 @@
 === AC-LOOP-01: replay/lookahead batching ===
-[1] FAIL
-[2] FAIL
+[1] PASS: B_replay = 240 present
+[2] PASS: B_lookahead = 16 present
 [3] PASS: has_stage(k+1) guard present
 [4] PASS: LOOP-01 marked provisional
 [5] PASS: edge-case policy (GAP-34-01 Option A) transcribed
 [6] PASS: SI-PINN-003 citation present (canonical in ctl)
 
-=== AC-LOOP-01: SOME CHECKS FAILED ===
+=== AC-LOOP-01: ALL CHECKS PASSED ===

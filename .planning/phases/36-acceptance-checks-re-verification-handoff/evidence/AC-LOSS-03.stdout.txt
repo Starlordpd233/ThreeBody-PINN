@@ -1,6 +1,6 @@
 === AC-LOSS-03: energy Huber delta ===
-[1] FAIL
-[2] FAIL
+[1] PASS: delta_E = 1.0 baseline retained
+[2] PASS: empirical/median-scaled calibration deferred
 [3] PASS: no per-stage delta table locked
 
-=== AC-LOSS-03: SOME CHECKS FAILED ===
+=== AC-LOSS-03: ALL CHECKS PASSED ===
