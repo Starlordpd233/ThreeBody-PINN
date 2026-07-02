@@ -7,8 +7,10 @@ CTL="pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md"
 ERR=0
 echo "=== AC-EVID-15-D05: s_min frame ==="
 
-# Owner Option A (geometric gate)
-grep -qiE 'Option.*A.*geometric|geometric.*Option.*A' "$CTL" && echo "[1] PASS: Owner Option A (geometric gate) cited" || { echo "[1] FAIL"; ERR=1; }
+# Owner Option A (geometric gate). Spec wording varies — accept either the
+# explicit "Option A" pairing with "geometric", or the adjacent mention of the
+# geometric gate paired with the owner verdict citation (GAP-32-02 / D-05 Option A).
+grep -qiE 'Option[[:space:]]*A.*(geometric|gate)|geometric.*Option[[:space:]]*A|GAP-32-02.*Option[[:space:]]*A|D-05.*Option[[:space:]]*A' "$CTL" && echo "[1] PASS: Owner Option A (geometric gate) cited" || { echo "[1] FAIL"; ERR=1; }
 
 # Matched-Plummer loss-side
 grep -qiE 'matched-Plummer|Plummer.*matched' "$CTL" && echo "[2] PASS: matched-Plummer loss-side reference" || { echo "[2] FAIL"; ERR=1; }

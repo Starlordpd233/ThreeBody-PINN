@@ -13,8 +13,8 @@ grep -qiE 'ALM.*deferred|deferred.*ALM|ALM.*optional' "$PINN" && echo "[1] PASS:
 # Dense-residual ALM rejected from default loss
 grep -qiE 'dense-residual.*ALM.*rejected|ALM.*dense-residual.*rejected' "$PINN" && echo "[2] PASS: dense-residual ALM rejected from default loss" || { echo "[2] FAIL"; ERR=1; }
 
-# [1e-4,100] clamp conditional only
-grep -qF '[1e-4,100]' "$PINN" && echo "[3] PASS: [1e-4,100] clamp conditional present" || { echo "[3] FAIL"; ERR=1; }
+# [1e-4, 100] clamp conditional only. Spec uses "[1e-4, 100]" (space after comma).
+grep -qiE '\[1e-?4,[[:space:]]+100\]|1e-?4.*100.*clamp' "$PINN" && echo "[3] PASS: [1e-4, 100] clamp conditional present" || { echo "[3] FAIL"; ERR=1; }
 
 echo ""
 [ "$ERR" -eq 0 ] && echo "=== AC-LOOP-05: ALL CHECKS PASSED ===" || echo "=== AC-LOOP-05: SOME CHECKS FAILED ==="

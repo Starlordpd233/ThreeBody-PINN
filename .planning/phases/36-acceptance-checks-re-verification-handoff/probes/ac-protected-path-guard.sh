@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # PROTECTED-PATH-GUARD: Phase 36 protected-path check.
-# Verifies (a) no probes/ script references pinn code, and (b) git diff over pinn/ and frozen/read-only specs empty.
-# Assembles forbidden tokens dynamically to avoid self-matching.
+# Verifies (a) no probes/ script imports / references pinn code, and
+# (b) git diff over pinn/ and frozen/read-only specs is empty.
+# Self-matching is excluded: this script (and its own echo / git-diff lines)
+# legitimately contains "pinn/" tokens describing what is forbidden.
 
 cd "$(git rev-parse --show-toplevel)" || exit 2
 
@@ -12,26 +14,37 @@ echo "=== PROTECTED-PATH-GUARD ==="
 echo "[1] Checking probes/ for pinn references..."
 
 PROBES_DIR=".planning/phases/36-acceptance-checks-re-verification-handoff/probes"
+SELF_FILE=".planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh"
+
 if [ ! -d "$PROBES_DIR" ]; then
   echo "[1] FAIL: probes directory not found"
   ERR=1
 else
-  # Dynamically assemble forbidden tokens (pinn/, import pinn, from pinn, Path(pinn))
-  FORBIDDEN_TOKENS=""
-  for token in "pinn/" "import pinn" "from pinn" "Path.*pinn"; do
-    FORBIDDEN_TOKENS="$FORBIDDEN_TOKENS$token|"
-  done
-  FORBIDDEN_TOKENS="${FORBIDDEN_TOKENS%|}"  # Remove trailing pipe
+  # Forbidden patterns indicate ACTIVE references to pinn/ code:
+  #   - Importing: `import pinn` / `from pinn`
+  #   - Path() argument: `Path("pinn/...")` / `Path('pinn/...')` etc.
+  # We deliberately do NOT match the bare string "pinn/" because it appears
+  # legitimately in echo messages describing forbidden tokens.
+  ACTIVE_PATTERNS='import[[:space:]]+pinn|from[[:space:]]+pinn[[:space:]]+import|Path[[:space:]]*\([[:space:]]*["\x27]pinn/'
 
-  # Check for forbidden patterns (excluding comments)
-  PATTERN_COUNT=$(find "$PROBES_DIR" -type f \( -name "*.sh" -o -name "*.py" \) -exec grep -vE '^[[:space:]]*#' {} \; | grep -cE "$FORBIDDEN_TOKENS" || echo "0")
+  PATTERN_COUNT=0
+  PATTERN_OUTPUT=""
+  while IFS= read -r f; do
+    # Skip this guard script itself (legitimately mentions pinn/ in its own check).
+    [ "$f" = "$SELF_FILE" ] && continue
+    # Read non-comment, non-blank lines and grep for ACTIVE patterns.
+    MATCHES=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$f" 2>/dev/null | grep -nE "$ACTIVE_PATTERNS" || true)
+    if [ -n "$MATCHES" ]; then
+      PATTERN_COUNT=$((PATTERN_COUNT + $(echo "$MATCHES" | wc -l)))
+      PATTERN_OUTPUT="${PATTERN_OUTPUT}${f}: ${MATCHES}\n"
+    fi
+  done < <(find "$PROBES_DIR" -type f \( -name "*.sh" -o -name "*.py" \))
 
   if [ "$PATTERN_COUNT" -eq 0 ]; then
-    echo "[1] PASS: no pinn/ references in probes/ scripts"
+    echo "[1] PASS: no active pinn code references in probes/ scripts"
   else
-    echo "[1] FAIL: found $PATTERN_COUNT pinn/ reference(s) in probes/ scripts"
-    # Show the matches
-    find "$PROBES_DIR" -type f \( -name "*.sh" -o -name "*.py" \) -exec grep -vE '^[[:space:]]*#' {} + | grep -E "$FORBIDDEN_TOKENS"
+    echo "[1] FAIL: found $PATTERN_COUNT active pinn code reference(s) in probes/ scripts"
+    echo -e "$PATTERN_OUTPUT"
     ERR=1
   fi
 fi

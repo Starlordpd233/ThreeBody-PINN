@@ -7,9 +7,9 @@ CTL="pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md"
 ERR=0
 echo "=== AC-LOOP-01: replay/lookahead batching ==="
 
-# B_replay=240, B_lookahead=16
-grep -qF 'B_replay=240' "$CTL" && echo "[1] PASS: B_replay=240 present" || { echo "[1] FAIL"; ERR=1; }
-grep -qF 'B_lookahead=16' "$CTL" && echo "[2] PASS: B_lookahead=16 present" || { echo "[2] FAIL"; ERR=1; }
+# B_replay = 240, B_lookahead = 16 (spec uses whitespace around =)
+grep -qiE 'B_replay[[:space:]]*=[[:space:]]*240' "$CTL" && echo "[1] PASS: B_replay = 240 present" || { echo "[1] FAIL"; ERR=1; }
+grep -qiE 'B_lookahead[[:space:]]*=[[:space:]]*16' "$CTL" && echo "[2] PASS: B_lookahead = 16 present" || { echo "[2] FAIL"; ERR=1; }
 
 # has_stage(k+1) guard
 grep -qiE 'has_stage.*k.*1|k.*1.*has_stage' "$CTL" && echo "[3] PASS: has_stage(k+1) guard present" || { echo "[3] FAIL"; ERR=1; }
