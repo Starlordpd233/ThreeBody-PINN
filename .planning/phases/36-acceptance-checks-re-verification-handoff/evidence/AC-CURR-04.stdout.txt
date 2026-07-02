@@ -1,0 +1,7 @@
+=== AC-CURR-04: L_norm clamping ===
+[1] FAIL
+[2] PASS: mandatory nonfinite/near-degenerate L_max diagnostic guard
+[3] PASS: global clamp explicitly NOT authorized
+[4] FAIL: np.clip(L_norm) gate locked (should be owner-pending)
+
+=== AC-CURR-04: SOME CHECKS FAILED ===

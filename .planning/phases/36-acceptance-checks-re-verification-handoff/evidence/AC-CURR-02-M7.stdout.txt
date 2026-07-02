@@ -1,0 +1,6 @@
+=== AC-CURR-02-M7: tau_L exclusion from IC13 ===
+[1] PASS: tau_L marked as staging/evaluation metadata
+[2] PASS: tau_L excluded from IC13 by design
+[3] PASS: tau_L absent from IC13 vector definition
+
+=== AC-CURR-02-M7: ALL CHECKS PASSED ===

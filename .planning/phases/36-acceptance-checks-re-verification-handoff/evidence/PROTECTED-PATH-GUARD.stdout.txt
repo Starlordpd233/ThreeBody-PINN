@@ -1,0 +1,16 @@
+=== PROTECTED-PATH-GUARD ===
+[1] Checking probes/ for pinn references...
+[1] FAIL: found 8 pinn/ reference(s) in probes/ scripts
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-evid-15-d-conflict.sh:grep -qF '6.694' "$PINN" && echo "[2] FAIL: D = 6.694 present in pinn (should be absent)" && ERR=1 || echo "[2] PASS: D = 6.694 absent from pinn (rejected provenance only)"
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh:  for token in "pinn/" "import pinn" "from pinn" "Path.*pinn"; do
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh:    echo "[1] PASS: no pinn/ references in probes/ scripts"
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh:    echo "[1] FAIL: found $PATTERN_COUNT pinn/ reference(s) in probes/ scripts"
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh:echo "[2] Checking git diff for pinn/ and frozen specs changes..."
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh:PINN_DIFF=$(git diff --name-only pinn/ 2>/dev/null)
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh:  echo "[2a] PASS: no pinn/ changes detected"
+.planning/phases/36-acceptance-checks-re-verification-handoff/probes/ac-protected-path-guard.sh:  echo "[2a] FAIL: pinn/ has uncommitted changes:"
+[2] Checking git diff for pinn/ and frozen specs changes...
+[2a] PASS: no pinn/ changes detected
+[2b] PASS: no frozen/read-only spec changes detected
+
+=== PROTECTED-PATH-GUARD: SOME CHECKS FAILED ===

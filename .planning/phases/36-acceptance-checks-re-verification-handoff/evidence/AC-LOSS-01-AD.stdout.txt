@@ -1,0 +1,19 @@
+=== AC-LOSS-01-AD: componentwise AD ===
+Testing AD chain factors on synthetic trajectory r(u) = u³:
+u        tau        dr/dtau         d²r/dtau²      
+--------------------------------------------------
+0.00     -1.00      0.0000          0.0000         
+0.25     -0.50      0.3750          6.0000         
+0.50     0.00       1.5000          12.0000        
+0.75     0.50       3.3750          18.0000        
+1.00     1.00       6.0000          24.0000        
+
+Verifying AD chain factors:
+[1] PASS: dr/du = (1/2) * dr/dtau (equivalent to dr/dtau = 2 * dr/du)
+[2] PASS: d²r/du² = (1/4) * d²r/dtau² (equivalent to d²r/dtau² = 4 * d²r/du²)
+
+Checking spec transcription...
+[3] PASS: componentwise AD with canonical u=t/T leaf present
+[4] FAIL: summed-output VJP rejection not found
+
+=== AC-LOSS-01-AD: SOME CHECKS FAILED ===

@@ -1,0 +1,6 @@
+=== AC-LOSS-03: energy Huber delta ===
+[1] FAIL
+[2] FAIL
+[3] PASS: no per-stage delta table locked
+
+=== AC-LOSS-03: SOME CHECKS FAILED ===

@@ -1,0 +1,6 @@
+=== AC-LOSS-01: loss scaling ===
+[1] PASS: dimensionless L_data/L_physics/L_energy present
+[2] FAIL
+[3] FAIL: linear-momentum loss term present (should be absent)
+
+=== AC-LOSS-01: SOME CHECKS FAILED ===

@@ -1,0 +1,8 @@
+=== AC-LOSS-04: causal mode (D-04 Option A) ===
+[1] PASS: per-time causal weighting present
+[2] PASS: w_1 = 1 present
+[3] PASS: η_c = 1 present
+[4] PASS: dense-residual pseudo-ALM rejected
+[5] PASS: scalar ALM deferred P2
+
+=== AC-LOSS-04: ALL CHECKS PASSED ===

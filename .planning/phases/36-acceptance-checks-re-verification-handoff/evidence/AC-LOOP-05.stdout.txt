@@ -1,0 +1,6 @@
+=== AC-LOOP-05: ALM mu_p clamp ===
+[1] PASS: ALM marked deferred/optional
+[2] PASS: dense-residual ALM rejected from default loss
+[3] FAIL
+
+=== AC-LOOP-05: SOME CHECKS FAILED ===

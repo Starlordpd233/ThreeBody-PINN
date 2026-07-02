@@ -1,0 +1,6 @@
+=== AC-EVID-15-D06: epsilon strategy ===
+[1] PASS: owner dual-context cited
+[2] FAIL
+[3] FAIL
+
+=== AC-EVID-15-D06: SOME CHECKS FAILED ===

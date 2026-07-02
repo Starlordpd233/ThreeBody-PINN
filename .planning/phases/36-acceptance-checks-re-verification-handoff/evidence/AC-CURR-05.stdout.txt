@@ -1,0 +1,8 @@
+=== AC-CURR-05: s_min gate ===
+[1] FAIL
+[2] PASS: max(s_min, eps) rejected per PHYS-03
+[3] PASS: matched-Plummer loss-side reference present
+[4] FAIL
+[5] FAIL
+
+=== AC-CURR-05: SOME CHECKS FAILED ===

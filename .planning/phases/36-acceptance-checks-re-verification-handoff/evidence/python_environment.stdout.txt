@@ -1,0 +1,9 @@
+Python 3.14.5
+
+Standard library path:
+
+/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python314.zip
+/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14
+/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/lib-dynload
+/opt/homebrew/lib/python3.14/site-packages
+/opt/homebrew/opt/python-tk@3.14/libexec

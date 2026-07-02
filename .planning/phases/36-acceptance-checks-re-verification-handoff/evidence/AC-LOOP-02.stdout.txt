@@ -1,0 +1,8 @@
+=== AC-LOOP-02: data vs collocation points ===
+[1] PASS: two independent point sets specified
+[2] PASS: 8192 present (data-fidelity provisional)
+[3] PASS: 4096 present (collocation provisional)
+[4] PASS: data-fidelity 50/50 retained
+[5] PASS: collocation 50/50 deferred (NOT mandated)
+
+=== AC-LOOP-02: ALL CHECKS PASSED ===

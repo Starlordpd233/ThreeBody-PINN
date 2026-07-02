@@ -1,0 +1,6 @@
+=== AC-EVID-15-D-CONFLICT: D=6.694 conflict ===
+[1] FAIL
+[2] PASS: D = 6.694 absent from pinn (rejected provenance only)
+[3] FAIL: D = 6.694 present in ctl (should be absent)
+
+=== AC-EVID-15-D-CONFLICT: SOME CHECKS FAILED ===

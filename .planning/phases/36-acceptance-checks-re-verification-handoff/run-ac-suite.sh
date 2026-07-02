@@ -8,15 +8,17 @@
 
 cd "$(git rev-parse --show-toplevel)" || exit 2
 H=".planning/phases/36-acceptance-checks-re-verification-handoff/probes"
-LOG="$(mktemp -t ac-suite.XXXXXX)"
-trap 'rm -f "$LOG"' EXIT
+EVIDENCE=".planning/phases/36-acceptance-checks-re-verification-handoff/evidence"
+mkdir -p "$EVIDENCE" || exit 2
 
 PASS=0
 FAIL=0
 
 line() { # $1 = label, $2... = command
-  local label="$1"; shift
-  if "$@" >>"$LOG" 2>&1; then
+  local label="$1"
+  local ev_file="$EVIDENCE/${label}.stdout.txt"
+  shift
+  if "$@" >"$ev_file" 2>&1; then
     echo "$label: PASS"
     PASS=$((PASS + 1))
   else
@@ -26,6 +28,13 @@ line() { # $1 = label, $2... = command
 }
 
 echo "=== v1.6 Acceptance Suite — fresh Phase-36 re-run ($(date -u +%Y-%m-%dT%H:%M:%SZ)) ==="
+
+# Capture python environment
+echo "Python environment capture:"
+python3 --version 2>&1 | tee "$EVIDENCE/python_environment.stdout.txt"
+echo "" >> "$EVIDENCE/python_environment.stdout.txt"
+echo "Standard library path:" >> "$EVIDENCE/python_environment.stdout.txt"
+python3 -c "import sys; print('\n'.join(sys.path))" >> "$EVIDENCE/python_environment.stdout.txt"
 
 # CURR probes
 line "AC-CURR-01" bash "$H/ac-curr-01.sh"

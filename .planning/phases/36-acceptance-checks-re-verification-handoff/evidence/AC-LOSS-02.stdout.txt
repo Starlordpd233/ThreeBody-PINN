@@ -1,0 +1,8 @@
+=== AC-LOSS-02: energy-weight schedule ===
+[1] FAIL: PHYS-05 λ_E^max ≤ 1.0 constraint not found
+[2] PASS: rejected energy cap-table pattern absent from specs
+[3] PASS: lambda_E = 1000 rejected value absent
+[4] FAIL: logging-first diagnostics not found
+[5] FAIL: dominance reweighting deferral not found
+
+=== AC-LOSS-02: SOME CHECKS FAILED ===
