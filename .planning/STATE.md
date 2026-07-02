@@ -4,36 +4,36 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 36
 current_phase_name: Acceptance Checks, Re-verification & Handoff
-current_plan: "Planned — Wave 1 (36-01) next"
-status: planned
-stopped_at: Phase 36 planned — 5 plans (waves 1-5), plan-checker PASS (no blockers); pending Agent B plan review before execution
-last_updated: "2026-07-01T02:45:00.000Z"
-last_activity: 2026-07-01
-last_activity_desc: Phase 36 planned (5 plans, plan-checker PASS)
+current_plan: "—"
+status: complete
+stopped_at: Phase 36 complete and independently verified (UAT verdict PASS — 27/27 probes, ledger 18/18 VERIFIED, 32/32 traceability). v1.6 milestone closure gate satisfied (7/7 phases, 28/28 plans). STATE.md advanced 2026-07-02 by the phase-completion transition. There is NO Phase 37 — v1.6 is the terminal specwork milestone (doc-03). Milestone ship (--no-ff merge milestone/v1.6 -> master + archive + tag v1.6) is pending explicit user approval per git governance.
+last_updated: "2026-07-02T07:35:00.000Z"
+last_activity: 2026-07-02
+last_activity_desc: Phase 36 complete and independently verified; v1.6 milestone closure gate satisfied
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 25
-  completed_plans: 25
-  percent: 86
+  completed_phases: 7
+  total_plans: 28
+  completed_plans: 28
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-20)
+See: .planning/PROJECT.md (updated 2026-07-02)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** Phase 35 — loss-energy-weight-contracts
+**Current focus:** v1.6 milestone complete — closure gate satisfied; awaiting user decision to ship v1.6, define v1.7, or pivot to the trainex track
 
 ## Current Position
 
-Phase: 36 — Acceptance Checks, Re-verification & Handoff
-Current Plan: Planned — Wave 1 (36-01) next
-Total Plans in Phase: 5
-Status: Planned — 5 plans (waves 1-5); pending Agent B plan review, then execute
-Last activity: 2026-07-01 — Phase 36 planned (5 plans, plan-checker PASS)
+Phase: 36 — Acceptance Checks, Re-verification & Handoff (COMPLETE)
+Current Plan: — (phase complete; all 5 plans executed and summarized)
+Total Plans in Phase: 5 (5/5 complete)
+Status: Phase 36 complete and independently verified (UAT PASS); v1.6 milestone closure gate satisfied
+Last activity: 2026-07-02 — Phase 36 complete (27/27 acceptance probes PASS; ledger 18/18 VERIFIED; 32/32 traceability)
 
 ## Performance Metrics
 
@@ -228,14 +228,15 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/36-acceptance-checks-re-verification-handoff/36-CONTEXT.md
+**Resume file:** None (milestone-boundary decision pending)
 
-Last session: 2026-07-01T02:45:00.000Z
-Stopped at: Phase 36 planned (5 plans, plan-checker PASS); pending Agent B plan review
-Next action: Agent B reviews the Phase 36 plans (watchdog channel phase36-plan-ready); then /gsd-execute-phase 36 (Wave 1: 36-01).
+Last session: 2026-07-02
+Stopped at: Phase 36 complete and independently verified; v1.6 milestone closure gate satisfied (7/7 phases). No Phase 37 exists — v1.6 is the terminal specwork milestone.
+Next action: User decides — (A) ship v1.6 via /gsd-complete-milestone (destructive: --no-ff merge to master, git rm REQUIREMENTS, tag v1.6, archive; needs approval + recovery checkpoint); (B) pivot to the trainex track (FUT-01/FUT-04) in .worktrees/trainex; (C) define v1.7 via /gsd-new-milestone; (D) hold.
 
 ## Operator Next Steps
 
-- Phase 32 Plans 32-01 through 32-04 are complete.
-- Phase 33 Plans 33-01 through 33-04 are complete; Phase 33 is ready for `$gsd-verify-work`. Preserve D-04, D-05, and D-06 as owner-routed blockers until explicit instruction resolves them (D-05/D-06 transition logs now record Phase 33 GAP-32-02/03 consumption; D-04 remains Phase 32 DEFERRED).
-- v1.6 remains on `milestone/v1.6`; continue preserving unrelated dirty docs/review artifacts.
+- Phase 36 is complete and independently verified (UAT PASS: 27/27 probes, ledger 18/18 VERIFIED, 32/32 traceability); the v1.6 milestone closure gate is satisfied (`36-HANDOFF.md`, `36-VERIFICATION.md`).
+- v1.6 is the terminal specwork milestone (doc-03). There is no Phase 37. The next GSD step is milestone ship then `/gsd-new-milestone`, OR pivot to the trainex track (FUT-01/FUT-04) in `.worktrees/trainex`.
+- Milestone ship (`/gsd-complete-milestone v1.6`) is destructive and crosses protected `master` (`--no-ff` merge, `git rm REQUIREMENTS.md`, tag `v1.6`, archive) — requires explicit user approval + recovery checkpoint per git governance; not done unilaterally.
+- Pre-existing dirty `AGENTS.md` and untracked watchdog `consumer-task*.md` are not owned by this transition; left untouched.
