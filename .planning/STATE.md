@@ -3,18 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 36
-current_plan: — (phase complete; all 5 plans executed and summarized)
-status: complete
-stopped_at: "Phase 36 complete and independently verified (UAT verdict PASS — 27/27 probes, ledger 18/18 VERIFIED, 32/32 traceability). v1.6 milestone closure gate satisfied (7/7 phases, 28/28 plans). STATE.md advanced 2026-07-02 by the phase-completion transition. There is NO Phase 37 — v1.6 is the terminal specwork milestone (doc-03). Milestone summary generated 2026-07-02 at `.planning/reports/MILESTONE_SUMMARY-v1.6.md` (commit 9e2df609) via /gsd-milestone-summary v1.6 (Agent B in the closure-chain watchdog: Agent A -> /gsd-audit-milestone, this Agent B -> /gsd-milestone-summary, Agent C -> /gsd-extract-learnings). Milestone ship (--no-ff merge milestone/v1.6 -> master + archive + tag v1.6) is pending explicit user approval per git governance."
-last_updated: "2026-07-02T10:49:51.136Z"
+status: Awaiting next milestone
+stopped_at: Phase 36 complete and independently verified; v1.6 milestone closure gate satisfied (7/7 phases). No Phase 37 exists — v1.6 is the terminal specwork milestone.
+last_updated: "2026-07-02T11:21:29.174Z"
 last_activity: 2026-07-02
+last_activity_desc: Milestone v1.6 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
-  total_plans: 28
-  completed_plans: 28
+  total_plans: 30
+  completed_plans: 30
   percent: 100
 current_phase_name: Acceptance Checks, Re-verification & Handoff
+current_plan: — (phase complete; all 5 plans executed and summarized)
 ---
 
 # Project State
@@ -24,15 +25,24 @@ current_phase_name: Acceptance Checks, Re-verification & Handoff
 See: .planning/PROJECT.md (updated 2026-07-02)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** v1.6 milestone complete — closure gate satisfied; awaiting user decision to ship v1.6, define v1.7, or pivot to the trainex track
+**Current focus:** v1.6 complete and archived (`.planning/milestones/v1.6-*`, local tag `v1.6`); next: `/gsd-new-milestone` (v1.7) or pivot to the trainex track (FUT-01/FUT-04). Master merge/publish of `milestone/v1.6` is a separate, user-gated destructive step — NOT performed at close (repo governance: `master` is governance-only).
 
 ## Current Position
 
-Phase: 36 — Acceptance Checks, Re-verification & Handoff (COMPLETE)
-Current Plan: — (phase complete; all 5 plans executed and summarized)
-Total Plans in Phase: 5 (5/5 complete)
-Status: Phase 36 complete and independently verified (UAT PASS); v1.6 milestone closure gate satisfied
-Last activity: 2026-07-02
+Phase: Milestone v1.6 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-02 — Milestone v1.6 completed and archived
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-07-02:
+
+| Category | Item | Status |
+|----------|------|--------|
+| pending_todo | trainex-r1-research-handoff | Deferred to trainex track (FUT-01/FUT-04); not v1.6 specwork |
+
+Closeout type: `override_closeout` — the only override is the acknowledged trainex-r1 todo above; all 7 v1.6 phases are verification-passed and 32/32 requirements Complete.
 
 ## Performance Metrics
 
@@ -235,7 +245,4 @@ Next action: User decides — (A) ship v1.6 via /gsd-complete-milestone (destruc
 
 ## Operator Next Steps
 
-- Phase 36 is complete and independently verified (UAT PASS: 27/27 probes, ledger 18/18 VERIFIED, 32/32 traceability); the v1.6 milestone closure gate is satisfied (`36-HANDOFF.md`, `36-VERIFICATION.md`).
-- v1.6 is the terminal specwork milestone (doc-03). There is no Phase 37. The next GSD step is milestone ship then `/gsd-new-milestone`, OR pivot to the trainex track (FUT-01/FUT-04) in `.worktrees/trainex`.
-- Milestone ship (`/gsd-complete-milestone v1.6`) is destructive and crosses protected `master` (`--no-ff` merge, `git rm REQUIREMENTS.md`, tag `v1.6`, archive) — requires explicit user approval + recovery checkpoint per git governance; not done unilaterally.
-- Pre-existing dirty `AGENTS.md` and untracked watchdog `consumer-task*.md` are not owned by this transition; left untouched.
+- Start the next milestone with /gsd-new-milestone
