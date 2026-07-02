@@ -1,0 +1,7 @@
+=== AC-CURR-03: stage transitions ===
+[1] PASS: ADVANCE / RECOVER / HALT-REVIEW state machine tokens present
+[2] PASS: Stage Transition Criteria section exists
+[3] PASS: thresholds marked provisional pending FUT Stage-0 pilot
+[4] PASS: automatic degraded advancement mentioned only in rejection context
+
+=== AC-CURR-03: ALL CHECKS PASSED ===

@@ -115,10 +115,10 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v1.6 requirement maps
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PKG-05 | Phase 30 | Pending |
-| PKG-06 | Phase 30 | Pending |
-| PKG-07 | Phase 30 | Pending |
-| PKG-08 | Phase 30 | Pending |
+| PKG-05 | Phase 30 | Complete |
+| PKG-06 | Phase 30 | Complete |
+| PKG-07 | Phase 30 | Complete |
+| PKG-08 | Phase 30 | Complete |
 | EVID-11 | Phase 32 | Complete |
 | EVID-12 | Phase 32 | Complete |
 | EVID-13 | Phase 32 | Complete |
@@ -132,21 +132,21 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v1.6 requirement maps
 | LOOP-01 | Phase 34 | Complete |
 | LOOP-02 | Phase 34 | Complete |
 | LOOP-03 | Phase 34 | Complete |
-| LOOP-04 | Phase 34 | Pending |
+| LOOP-04 | Phase 34 | Complete |
 | LOOP-05 | Phase 34 | Complete |
 | LOOP-06 | Phase 34 | Complete |
-| LOOP-07 | Phase 34 | Pending |
-| LOOP-08 | Phase 34 | Pending |
+| LOOP-07 | Phase 34 | Complete |
+| LOOP-08 | Phase 34 | Complete |
 | LOSS-01 | Phase 35 | Complete |
 | LOSS-02 | Phase 35 | Complete |
 | LOSS-03 | Phase 35 | Complete |
 | LOSS-04 | Phase 35 | Complete |
-| VER-13 | Phase 36 | Pending |
-| VER-14 | Phase 36 | Pending |
-| VER-15 | Phase 36 | Pending |
-| VER-16 | Phase 36 | Pending |
-| VER-17 | Phase 36 | Pending |
-| VER-18 | Phase 36 | Pending |
+| VER-13 | Phase 36 | Complete |
+| VER-14 | Phase 36 | Complete |
+| VER-15 | Phase 36 | Complete |
+| VER-16 | Phase 36 | Complete |
+| VER-17 | Phase 36 | Complete |
+| VER-18 | Phase 36 | Complete |
 
 **Coverage:**
 

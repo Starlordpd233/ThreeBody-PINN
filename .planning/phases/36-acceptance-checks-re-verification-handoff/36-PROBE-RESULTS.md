@@ -298,3 +298,49 @@ The previous BLOCKED verdict (2026-07-02T00:11:08Z; 11 PASS / 15 FAIL) reflected
 **Manifest:** `36-ACCEPTANCE-MANIFEST.md` (26 rows: CURR 1-6, LOOP 1-8, LOSS 1-4, EVID-15 headlines 3, SI rows 4, PROTECTED-PATH-GUARD)
 
 All probe results are tied to this manifest snapshot to ensure stale/mixed evidence is detectable.
+
+---
+
+## Final Rerun
+
+Final batch re-verify performed for Plan 36-05 (Task 3) and the closure gate.
+
+- **Rerun date:** 2026-07-02T01:02:00Z
+- **Manifest snapshot:** matches the 36-02 manifest (`36-ACCEPTANCE-MANIFEST.md`, 26 rows) plus the Plan 36-05 companion `ac-traceability.py` probe; no manifest delta beyond the new probe
+- **Evidence path:** `evidence/final-rerun/` (versioned subdirectory — 36-02's sealed `evidence/*.stdout.txt` files are preserved untouched)
+- **Determinism:** `PYTHONHASHSEED=0` exported; `evidence/final-rerun/python_environment.stdout.txt` captures interpreter (`Python 3.14.5`), the rerun git commit SHA, and `PYTHONHASHSEED=0` for reproducibility
+- **Per-probe PASS/FAIL:** all 27 probes PASS (26 acceptance + 1 companion traceability probe); no required FAIL, no required SKIP, no delta vs the 36-02 re-run; protected-path guard PASS (no probes touch live `pinn/` code); git diff over `pinn/` and frozen/read-only specs is empty
+- **Final rerun verdict:** PASS — closure gate satisfied
+
+### Per-file SHA-256 (final-rerun evidence/)
+
+- AC-CURR-01.stdout.txt: `08ae519e743d69001f77356f478f7465e3b81db51d93e2d88db30dd1255a5c52`
+- AC-CURR-02-LMAX.stdout.txt: `3bb6cd011c9dfad09b7d6e67838e0a5f550697c043d89e9d6e1fe653d5f68ab5`
+- AC-CURR-02-M7.stdout.txt: `9a92ddd58cd08060c4157461b338f16a284464cc6a72729598cde4bd7c23d637`
+- AC-CURR-03.stdout.txt: `c039cf490238fa19c3bd461a39cd70ccaa70302f41549a4c6e7ab89f24bfe5e5`
+- AC-CURR-04.stdout.txt: `7707616c83c7bd949489016765dd4cbeeeea2b6fa040069bfa3465aaafc89808`
+- AC-CURR-05.stdout.txt: `43c463a791e313a53cda3bad2385c78941cf19967beee9145f68595f9e777aa6`
+- AC-LOOP-01.stdout.txt: `ab80f6e91736cfeac83f4adda0895a317604275b35c6c4286c65f72db3429ce7`
+- AC-LOOP-02.stdout.txt: `e47dcb82b5218877df87519b032786c4d0f42432ee2577f758e823f53ffc4090`
+- AC-LOOP-04.stdout.txt: `c15ba9385a59c36861019840f22b3217479db8ad1f9d950b6f292ec5ba8bf25e`
+- AC-LOOP-05.stdout.txt: `6c8073784600c2dbddbcca63b69b9ade85baa9ccf439135fb37fe79c5e58bc8b`
+- AC-LOOP-06.stdout.txt: `165713fbce6b877410b88569f62109cb86d00006de78d6b40c21ded781c3aa86`
+- LOOP-07.stdout.txt: `2947028c50fbecfb882a9ff81006325f7d60b75d95c943ead135f1131e90e081`
+- LOOP-08.stdout.txt: `3ab4eaa66ac4ab3dda9b7dbb2d1f835d9bb51c11a6d5fa449becce18b4c85b11`
+- AC-LOSS-01.stdout.txt: `b79ea356d4d65737cf148f8e67bb3f7cc534b12d5c05d9bfee2d8ba679a13742`
+- AC-LOSS-01-AD.stdout.txt: `771671994cf648f3cfe780611ee8a9c6b4ffda5b3e3824a060d41eca803b9bad`
+- AC-LOSS-02.stdout.txt: `aab49821f31e6d26f6be5c903d1b6ea00ccf076dae7001ea5bc4b47510b5a7dd`
+- AC-LOSS-03.stdout.txt: `6da85f2b18c21cfb574f936142cc2f76a84d89f881dd69f60904f3423c280109`
+- AC-LOSS-04.stdout.txt: `f314d36a940f190a715e4ba330bddda459ef837cf534d718c0ab6e66ddc768a8`
+- AC-EVID-15-D-CONFLICT.stdout.txt: `2984361aab5ca0835b97ed9fc5627bed09e33407315b90fc20d42a90b3011aca`
+- AC-EVID-15-D05.stdout.txt: `e6ccc642e55591f8f42612e9cc045517b1892677fdda1bc1b73d4de5f3d8c77f`
+- AC-EVID-15-D06.stdout.txt: `f915c08041f9e092bf73f7dfa9a292333e255d601aa2cd8f679b3eaac0490f61`
+- SI-CTL-001.stdout.txt: `1ea041540984a19b9d28828a3eb3053d23e017179830484863a55ff99c6d3cbe`
+- SI-PINN-002.stdout.txt: `34228f9eb014ef9d1b986900182af1be4d428d024cb94fa44ca4037fefcf1e18`
+- SI-PINN-003.stdout.txt: `c368a4544d3d4f9bcae173efc1e85f9db07179e59f01155d300fce48d334a17e`
+- SI-DQA-003.stdout.txt: `ac9f66ff4c16d14a5a9c818fbc883cefc5fa245f978f1c40fe45ac9651ce5d98`
+- PROTECTED-PATH-GUARD.stdout.txt: `4267484d173a502092f4559151b3d4b61d8699b04aa1b60077d608f5bb5a24e7`
+- AC-TRACEABILITY.stdout.txt: `e8446554837a89b2575babeda843d0996414828d460480ac80e76a5a16d826ca`
+- python_environment.stdout.txt: `d8eb3eb475ebda4900fe3988e2822d4b3e7f7f65d60fe5329bd3caa83f1076c6`
+
+The 36-02 result sections above (per-probe blocks with Status, Command, Evidence path, SHA-256, Observed metric, Pass criterion) are preserved verbatim. The Final Rerun block is appended below them; both are equally authoritative for the closure verdict.

@@ -1,0 +1,6 @@
+=== AC-SI-PINN-002: author comments preserved ===
+[1] PASS: SI-PINN-002 block present
+[2] PASS: documented for future reconciliation
+[3] PASS: batch-construction comment resolved under SI-PINN-003
+
+=== AC-SI-PINN-002: ALL CHECKS PASSED ===

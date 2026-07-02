@@ -1,0 +1,8 @@
+=== LOOP-07: IPR/PSC training-side provisional ===
+[1] PASS: provisional token present
+[2] PASS: IPR token present
+[3] PASS: PSC token present
+[4] PASS: VAL-03 token present
+[5] PASS: VAL-04 token present
+
+=== LOOP-07: ALL CHECKS PASSED ===

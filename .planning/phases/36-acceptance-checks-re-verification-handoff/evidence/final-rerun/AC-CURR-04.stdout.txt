@@ -1,0 +1,7 @@
+=== AC-CURR-04: L_norm clamping ===
+[1] PASS: raw un-clipped L_norm metadata storage specified (Raw un-clipped $L_{\mathrm{norm}}$ storage)
+[2] PASS: mandatory nonfinite/near-degenerate L_max diagnostic guard
+[3] PASS: global clamp explicitly NOT authorized
+[4] PASS: np.clip mention carries non-locking (NOT locked/owner-pending) context
+
+=== AC-CURR-04: ALL CHECKS PASSED ===

@@ -8,7 +8,7 @@
 - ✅ **v1.3 Markdown Conversion Verification & Correction** — Phases 10–15, 15.1 (shipped 2026-05-08; [archive](milestones/v1.3-ROADMAP.md))
 - ✅ **v1.4 Resolving 01 Architecture and Physics Foundations** — Phases 16–22, including 20.5 (shipped 2026-06-09; [roadmap archive](milestones/v1.4-ROADMAP.md), [requirements archive](milestones/v1.4-REQUIREMENTS.md), [phase archive](milestones/v1.4-phases/))
 - ✅ **v1.5 Resolving 02 Data Pipeline and Validation** — Phases 23–29, including 24.5 (shipped 2026-06-17; archived under [`milestones/v1.5-*`](milestones/))
-- 🚧 **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (in progress; Phases 30–33 complete, Phase 34 next)
+- ✅ **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (closed 2026-07-02: ledger terminal 18/18 VERIFIED; all 26 acceptance probes PASS; FUT-01 / FUT-04 routed to trainex track)
 - 🔮 **Final Publication LaTeX Sync** — deferred until implementation, network/training design, training, and research-result interpretation are complete
 
 ## Deferred: Final Publication LaTeX Sync
@@ -73,11 +73,11 @@ Every selected finding follows the v1.4/v1.5-style loop:
 
 - [x] **Phase 33: Curriculum-Stage Contracts** — Transcribe the adjudicated curriculum-stage contracts into `ctl_instruction.md`: data-driven adaptive stage assignment, `tau_L`/`L_max` formulas, dual-path stage-transition criteria, the Stage 0–6 inventory/gating (incl. the M6 `L_norm` clamp guard), and the s_min stage-gate frame (per the D-05 verdict). (completed 2026-06-23)
 
-- [ ] **Phase 34: Training-Loop & Batch-Construction Contracts** — Transcribe the adjudicated training-loop contracts as normative spec contracts: replay/lookahead batch construction (B-07), two-independent-point-set separation (B-08), mixed time sampling, merged gradient clipping (M14), the ALM update + `μ_p` clamp, `dt_out`-aware collocation scaling (realizing v1.5 SCOPE-11), and the training-side use of SASD/IPR/PSC that v1.5 left provisional.
+- [x] **Phase 34: Training-Loop & Batch-Construction Contracts** — Transcribe the adjudicated training-loop contracts as normative spec contracts: replay/lookahead batch construction (B-07), two-independent-point-set separation (B-08), mixed time sampling, merged gradient clipping (M14), the ALM update + `μ_p` clamp, `dt_out`-aware collocation scaling (realizing v1.5 SCOPE-11), and the training-side use of SASD/IPR/PSC that v1.5 left provisional. (completed 2026-06-25; 5/5 plans; `34-VERIFICATION.md` status passed, gaps_remaining [])
 
 - [x] **Phase 35: Loss & Energy-Weight Contracts** — Transcribe the adjudicated loss contracts: the loss-component scaling contract (NS-18), the capped-hybrid `λ_E` schedule (M15), the Huber-δ calibration (NS-13), and the causal-training-mode contract per the D-04 verdict (Option-C recommendation preserved unless downgraded by explicit human decision). (completed 2026-06-29)
 
-- [ ] **Phase 36: Acceptance Checks, Re-verification & Handoff** — Execute every contract's numerically-defined acceptance check via disposable probes, close the issue ledger to terminal state, reconcile the curriculum/training-loop `SI-*` entries, and write the FUT-01/FUT-04 handoff. Confirms 32/32 traceability (VER-14).
+- [x] **Phase 36: Acceptance Checks, Re-verification & Handoff** — Execute every contract's numerically-defined acceptance check via disposable probes, close the issue ledger to terminal state, reconcile the curriculum/training-loop `SI-*` entries, and write the FUT-01/FUT-04 handoff. Confirms 32/32 traceability (VER-14). (completed 2026-07-02; 26/26 acceptance probes PASS; ledger terminal 18/18 VERIFIED; D-05 / D-06 promoted under freshness-checked write; SI table reconciled; FUT-01 / FUT-04 routing captured in `36-CODE-DIVERGENCE.md`)
 
 ## Phase Details
 
@@ -267,9 +267,9 @@ Every selected finding follows the v1.4/v1.5-style loop:
 | 31. Resolution Doc Readiness Verification | v1.6 | 1/1 | Complete | 2026-06-20 |
 | 32. Evidence Framework, Issue Ledger & Conflict Adjudication | v1.6 | 4/4 | Complete    | 2026-06-21 |
 | 33. Curriculum-Stage Contracts | v1.6 | 4/4 | Complete    | 2026-06-23 |
-| 34. Training-Loop & Batch-Construction Contracts | v1.6 | 1/5 | In Progress|  |
+| 34. Training-Loop & Batch-Construction Contracts | v1.6 | 5/5 | Complete    | 2026-06-25 |
 | 35. Loss & Energy-Weight Contracts | v1.6 | 4/4 | Complete    | 2026-06-29 |
-| 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 0/0 | Not started | - |
+| 36. Acceptance Checks, Re-verification & Handoff | v1.6 | 5/5 | Complete    | 2026-07-02 |
 
 ---
-*Last updated: 2026-06-23 — Phases 30 (research package), 31 (resolution-doc readiness, READY-WITH-CAVEATS), 32 (Evidence Framework, Issue Ledger & Conflict Adjudication), and 33 (Curriculum-Stage Contracts) complete; Phase 34 (Training-Loop & Batch-Construction Contracts) next. Phase 33 Plans 33-01..33-04 complete; all AC-CURR-01..05 acceptance checks PASS (recorded in 33-VERIFICATION.md); five Phase-33-owned ledger rows closed VERIFIED. Roadmap created 2026-06-17 (`/gsd-new-project` roadmapper): 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29; 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6); Phase 31 readiness verification is operational (0 IDs). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*
+*Last updated: 2026-07-02 — Phases 30 (research package, 5/5 Complete 2026-06-18), 31 (resolution-doc readiness, READY-WITH-CAVEATS), 32 (Evidence Framework, Issue Ledger & Conflict Adjudication), 33 (Curriculum-Stage Contracts, 5/5 Complete 2026-06-23), 34 (Training-Loop & Batch-Construction Contracts, 5/5 Complete 2026-06-25), 35 (Loss & Energy-Weight Contracts, complete 2026-06-29), and 36 (Acceptance Checks, Re-verification & Handoff, complete 2026-07-02) all closed. Phase 32 ledger terminal at 18/18 VERIFIED (post Phase 36 Plan 36-03 D-05/D-06 promotion under freshness-checked write). 32/32 v1.6 requirements reconciled in `.planning/REQUIREMENTS.md` — every R6 flip cites its terminal anchor (Phase 30 completion for PKG; M14 ledger row for LOOP-04; 34-VERIFICATION.md for LOOP-07/08; Phase 36 evidence for VER-13..18). All 26 acceptance probes PASS in `36-PROBE-RESULTS.md` (re-run 2026-07-02T00:39:33Z). FUT-01 (rebuild) and FUT-04 (training-loop impl + calibration) obligations routed to the trainex track via `36-CODE-DIVERGENCE.md`; trainex-r1 folded as a routing input only (not executed). Roadmap created 2026-06-17 (`/gsd-new-project` roadmapper): 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29; 32/32 v1.6 requirements mapped (PKG=4, EVID=5, CURR=5, LOOP=8, LOSS=4, VER=6). Package-first → readiness-gate → conflict-adjudication-then-contracts → acceptance/handoff ordering mirrors v1.5. Authored in the `milestone/v1.6` worktree off the v1.5 deliverable tip `88aa1e4f`.*

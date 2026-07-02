@@ -1,0 +1,8 @@
+=== AC-SI-PINN-003: batch construction inconsistency ===
+[1] PASS: SI-PINN-003 cited in ctl
+[2] PASS: SI-PINN-003 cited in pinn
+[3] PASS: RESOLVED by Phase 34
+[4] PASS: ctl Mini-Batch Construction is canonical
+[5] PASS: pinn points to ctl (canonical)
+
+=== AC-SI-PINN-003: ALL CHECKS PASSED ===

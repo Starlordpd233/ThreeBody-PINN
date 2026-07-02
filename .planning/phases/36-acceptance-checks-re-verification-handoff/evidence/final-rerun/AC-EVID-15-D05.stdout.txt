@@ -1,0 +1,5 @@
+=== AC-EVID-15-D05: s_min frame ===
+[1] PASS: Owner Option A (geometric gate) cited
+[2] PASS: matched-Plummer loss-side reference
+
+=== AC-EVID-15-D05: ALL CHECKS PASSED ===

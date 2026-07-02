@@ -2,9 +2,10 @@
 # run-ac-suite.sh — re-run the full v1.6 acceptance suite as fresh disposable Phase-36 probes
 # and emit one result line per acceptance check (VER-13 / VER-15, D-36-05).
 #
-# Suite = 26 probes (one per manifest row + protected-path guard).
-# No probe touches pinn/ production code (VER-15 / SCOPE-10). Probes read only
-# ctl_instruction.md, pinn_architecture.md, and the probes/ directory itself.
+# Suite = 26 probes (one per manifest row + protected-path guard) plus the companion
+# traceability probe added by Plan 36-05. No probe touches pinn/ production code
+# (VER-15 / SCOPE-10). Probes read only ctl_instruction.md, pinn_architecture.md,
+# the probes/ directory itself, REQUIREMENTS.md, and ROADMAP.md.
 
 cd "$(git rev-parse --show-toplevel)" || exit 2
 H=".planning/phases/36-acceptance-checks-re-verification-handoff/probes"
@@ -74,5 +75,8 @@ line "SI-DQA-003" bash "$H/ac-si-dqa-003.sh"
 # Protected-path guard
 line "PROTECTED-PATH-GUARD" bash "$H/ac-protected-path-guard.sh"
 
-echo "=== summary: ${PASS} pass / ${FAIL} fail (expect 26 pass, 0 fail) ==="
+# Companion traceability probe (Plan 36-05)
+line "AC-TRACEABILITY" python3 "$H/ac-traceability.py"
+
+echo "=== summary: ${PASS} pass / ${FAIL} fail (expect 26 acceptance + 1 traceability = 27 pass, 0 fail) ==="
 [ "$FAIL" -eq 0 ]
