@@ -4,10 +4,10 @@ milestone: v1.6
 milestone_name: Resolving 03 Curriculum and Training Loop
 current_phase: 36
 status: Awaiting next milestone
-stopped_at: Phase 36 complete and independently verified; v1.6 milestone closure gate satisfied (7/7 phases). No Phase 37 exists — v1.6 is the terminal specwork milestone.
-last_updated: "2026-07-02T11:21:29.174Z"
-last_activity: 2026-07-02
-last_activity_desc: Milestone v1.6 completed and archived
+stopped_at: Phase 36 complete and independently verified; v1.6 milestone closure gate satisfied (7/7 phases). No Phase 37 exists — v1.6 is the terminal specwork milestone. v1.6 --no-ff merged to master 2026-07-03 (commit 94a77960, two-parent merge of 2464af50 master cut + e68545ab v1.6 tip); recovery tag v1.6-pre-merge-backup at 2464af50. master remains local (not pushed); protected-branch publication is a separate user-owned step.
+last_updated: "2026-07-03T11:48:36.000Z"
+last_activity: 2026-07-03
+last_activity_desc: v1.6 merged to master (94a77960, --no-ff two-parent); specwork track complete on master, next is trainex
 progress:
   total_phases: 7
   completed_phases: 7
@@ -25,7 +25,7 @@ current_plan: — (phase complete; all 5 plans executed and summarized)
 See: .planning/PROJECT.md (updated 2026-07-02)
 
 **Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** v1.6 complete and archived (`.planning/milestones/v1.6-*`, local tag `v1.6`); next: `/gsd-new-milestone` (v1.7) or pivot to the trainex track (FUT-01/FUT-04). Master merge/publish of `milestone/v1.6` is a separate, user-gated destructive step — NOT performed at close (repo governance: `master` is governance-only).
+**Current focus:** v1.6 complete, archived (`.planning/milestones/v1.6-*`, local tag `v1.6`), AND merged to master 2026-07-03 (`--no-ff` commit `94a77960`, two-parent merge of `2464af50` + `e68545ab`; recovery tag `v1.6-pre-merge-backup` at `2464af50`). The specwork/framework-specs track is now COMPLETE on master — all three issue docs (01/02/03) resolved and the authoritative specs land on master. master is local (not pushed); protected-branch publication is a separate user-owned step. Next: pivot to the trainex track (FUT-01/FUT-04 in `.worktrees/trainex`), define v1.7 via `/gsd-new-milestone`, or publish master.
 
 ## Current Position
 
@@ -240,8 +240,8 @@ Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phase
 **Resume file:** None (milestone-boundary decision pending)
 
 Last session: 2026-07-02
-Stopped at: Phase 36 complete and independently verified; v1.6 milestone closure gate satisfied (7/7 phases). No Phase 37 exists — v1.6 is the terminal specwork milestone.
-Next action: User decides — (A) ship v1.6 via /gsd-complete-milestone (destructive: --no-ff merge to master, git rm REQUIREMENTS, tag v1.6, archive; needs approval + recovery checkpoint); (B) pivot to the trainex track (FUT-01/FUT-04) in .worktrees/trainex; (C) define v1.7 via /gsd-new-milestone; (D) hold.
+Stopped at: v1.6 --no-ff merged to master 2026-07-03 (commit `94a77960`, two-parent merge of `2464af50` master cut + `e68545ab` v1.6 tip). Phase 36 complete and independently verified; v1.6 closure gate satisfied (7/7 phases); specwork/framework-specs track complete on master. master is local (not pushed); recovery tag `v1.6-pre-merge-backup` at `2464af50`.
+Next action: User decides — (A) publish master (protected-branch push to origin; separate user-owned step); (B) pivot to the trainex track (FUT-01/FUT-04) in .worktrees/trainex; (C) define v1.7 via /gsd-new-milestone; (D) hold.
 
 ## Operator Next Steps
 
