@@ -83,6 +83,37 @@ dir="$(wd_channel_dir "$channel")"
 here="$(dirname "$0")"
 start="$(date +%s)"
 
+if [ ! -f "$dir/done.json" ]; then
+  root="$(wd_channel_root)"
+  for d in "$root"/*/; do
+    [ -d "$d" ] || continue
+    [ -f "$d/done.json" ] || continue
+    name="${d%/}"
+    name="${name##*/}"
+    [ "$name" != "$channel" ] || continue
+    head="$(sed -n 's/.*"head":"\([^"]*\)".*/\1/p' "$d/done.json" | head -1)"
+    [ -n "$head" ] || continue
+    [ ! -d "$d/claimed.$head" ] || continue
+    stage="$(sed -n 's/.*"stage":"\([^"]*\)".*/\1/p' "$d/done.json" | head -1)"
+    [ -n "$stage" ] || stage="unknown"
+    echo "wd-arm: WARNING: channel '$channel' has no done marker, but channel '$name' holds an UNCLAIMED done marker (stage=$stage); if that is your producer, re-arm with the matching --phase/--key" >&2
+  done
+fi
+
+if [ -f "$dir/armed.json" ]; then
+  old_pid="$(sed -n 's/.*"pid":\([0-9][0-9]*\).*/\1/p' "$dir/armed.json" | head -1)"
+  case "$old_pid" in
+    ''|*[!0-9]*) ;;
+    *)
+      if kill -0 "$old_pid" 2>/dev/null; then
+        old_by="$(sed -n 's/.*"armed_by":"\([^"]*\)".*/\1/p' "$dir/armed.json" | head -1)"
+        [ -n "$old_by" ] || old_by="unknown"
+        echo "wd-arm: WARNING: replacing live armed.json on channel '$channel' (was armed_by=$old_by pid=$old_pid); one consumer per channel is the supported shape" >&2
+      fi
+      ;;
+  esac
+fi
+
 # Remove this watcher's armed.json record. Idempotent (`rm -f`) so wd-disarm
 # having removed it first is not fatal under the loop's set +e semantics, and
 # silent (`2>/dev/null || true`) so it never masks the intended exit code.

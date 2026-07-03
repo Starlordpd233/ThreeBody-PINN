@@ -52,4 +52,23 @@ printf '{"stage":"%s","head":"%s","producer_ref":"%s","producer_worktree":"%s","
   "$stage" "$head" "$ref" "$wt" "$scope" "$ts" > "$tmp"
 mv "$tmp" "$dir/done.json"
 
+if [ ! -f "$dir/armed.json" ]; then
+  root="$(wd_channel_root)"
+  waiting=
+  for d in "$root"/*/; do
+    [ -d "$d" ] || continue
+    [ -f "$d/armed.json" ] || continue
+    name="${d%/}"
+    name="${name##*/}"
+    [ "$name" != "$channel" ] || continue
+    armed_by="$(sed -n 's/.*"armed_by":"\([^"]*\)".*/\1/p' "$d/armed.json" | head -1)"
+    [ -n "$armed_by" ] || armed_by="unknown"
+    waiting="${waiting:+$waiting }'$name' (armed_by=$armed_by)"
+  done
+  if [ -n "$waiting" ]; then
+    echo "wd-publish-done: WARNING: no consumer is armed on channel '$channel', but armed consumers are waiting on: $waiting" >&2
+    echo "wd-publish-done: WARNING: a consumer on the wrong channel never wakes; it must re-arm on '$channel' (derive it with --phase/--key; see cross-session-watchdog SKILL, Channel resolution)" >&2
+  fi
+fi
+
 echo "published done @ $head ($ref)"
