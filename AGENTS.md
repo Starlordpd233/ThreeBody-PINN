@@ -128,6 +128,12 @@ For Claude Code CCP or other multi-agent setups, prefer separate worktrees and b
 
 Per-track worktrees live under `.worktrees/<track>/` (the main repo stays on `master` for cross-cutting governance, planning, and CI); the commit lock waits-and-retries and reclaims only dead or stale holders; same-file overlap is mediated by `scripts/agent-claim` plus a warn-on-edit auto-declare hook, with the commit-time owned-paths net as the hard backstop. See `docs/git-guidelines.md`.
 
+### GSD milestone worktree awareness
+
+Before running a GSD phase workflow (`$gsd-spec-phase`, `$gsd-discuss-phase`, `$gsd-plan-phase`, `$gsd-execute-phase`, `$gsd-verify-work`) or concluding that a phase is missing, verify that you are in the correct milestone worktree. Run `git status --short --branch` and inspect `git worktree list --porcelain`; then run `gsd-tools init phase-op <phase>` from the worktree that owns the milestone roadmap. Do not treat `phase_found: false` from the main `master` checkout as authoritative when the roadmap, branch list, or worktree list indicates milestone work lives elsewhere.
+
+For this repository, `master` is reserved for cross-cutting governance, planning, and CI. v1.6 phase work lives in `.worktrees/specwork` on branch `milestone/v1.6`; Phase 35 and Phase 36 are registered there even though they are absent from the main `master` checkout. If a user asks for `$gsd-spec-phase 35`, switch context to `.worktrees/specwork` before initializing or scouting the phase.
+
 Every agent commit must set `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS`. `GIT_AGENT_OWNED_PATHS` is a colon- or newline-separated list of repo-relative file or directory prefixes owned by the committing agent. Do not use broad staging (`git add .`, `git add -A`, `git add --all`, `git add -u`); stage explicit owned paths only. Re-check `git status --short --branch`, `git diff --cached`, and touched unstaged diffs immediately before committing.
 
 Archived plans or old snippets that omit current Git-policy env vars are stale for execution purposes; adapt them to this policy instead of replaying them literally.
@@ -261,3 +267,17 @@ carveout from the `pinn/` no-live-code directive, not a general live-code except
 canonical rule lives in `.planning/REQUIREMENTS.md` SCOPE-05.
 
 For repo layout, command reference, dataset internals, and PINN architecture details: see `.claude/rules/` (path-scoped rules loaded by Claude Code when working in relevant directories; also readable directly by any agent).
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues for Starlordpd233/ThreeBodyProblem via the `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Standard five-role vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout — `CONTEXT.md` at root + `docs/adr/` for architectural decisions. See `docs/agents/domain.md`.
