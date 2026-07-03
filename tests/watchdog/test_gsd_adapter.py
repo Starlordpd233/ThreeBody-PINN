@@ -4,7 +4,7 @@
 The adapter maps GSD phase concepts onto the generic, GSD-agnostic core:
   --phase NN  -> stage "gsd:phase-NN"
   --scope STR -> forwarded unchanged
-  --channel N -> forwarded (defaults to "default")
+  --channel N -> forwarded as a raw override; default derives from --phase
 
 done.head is anchored on HEAD by wd-publish-done; by convention the adapter is
 run immediately after the verify(NN) commit, so HEAD IS that commit. These tests
