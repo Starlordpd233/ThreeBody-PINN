@@ -1,6 +1,7 @@
 ---
 title: Post-Spec R1 Research Context Master
 source_baseline: 6a720fe0
+source_baseline_meaning: framework-spec snapshot baseline, not package commit
 created: 2026-06-18
 channel: build-design / strategy advisory
 standing: recommendations and findings only; not a project decision and not a candidate verdict source
@@ -19,6 +20,12 @@ The project owner has recently spent several milestones on framework-spec work:
 editing, adjudicating, and stabilizing the core framework markdown documents.
 The owner is now deciding what broad type of work should come next.
 
+Current-state constraint: v1.6 "Resolving 03 Curriculum and Training Loop" is
+active in the project, and its doc-03 external resolution-doc gate is open. That
+workflow is the candidate-verdict path for issue-03 adjudication. This Post-Spec
+R1 package is separate strategy advice for the broad direction after or
+alongside that in-flight gate; it is not a replacement for v1.6 adjudication.
+
 This is a strategic direction assessment. It is not a request for a detailed
 implementation plan.
 
@@ -32,6 +39,9 @@ You have two attached files:
 
 You do not have repository access. Work only from the attached files plus your
 own external research where useful. Refer to companion files by bare filename.
+Repository-local references retained inside the bundled spec text are
+provenance only. If the referenced content is not present in the two attached
+files, treat it as unavailable and do not rely on it as cited evidence.
 
 ## Project State
 
@@ -41,6 +51,17 @@ contracts, and framework-spec correction.
 
 The current framework source of truth is the markdown framework specs bundled
 in `FRAMEWORK-SPECS-BUNDLE.md`.
+
+Within that bundle, text marked candidate, provisional, reserved, deferred,
+pending, or open item is not locked spec truth. Treat those labels as risks or
+unknowns and do not base a recommendation on them without marking the
+dependency.
+
+`sampling_method.md` is bundled as authoritative historical context for how the
+existing training dataset was generated. It is frozen by default and is not an
+active design-revision target. Recommendations that would change it must be
+framed only as candidate risks requiring explicit owner decision after a
+verified dataset-framework incompatibility.
 
 The project has not yet performed the main production implementation/training
 buildout from those specs. Existing older live code is not treated as the source
@@ -88,6 +109,10 @@ implementation path is locked.
 EDL does not decide outcomes by itself. It produces evidence or research support
 for later user-approved decisions.
 
+Recommended probes are candidate support only. They do not authorize execution,
+numeric defaults, framework-spec edits, or final decisions without explicit
+project-owner instruction and the repository gap protocol where applicable.
+
 An EDL-first next stage would emphasize small experiments, probes, and research
 loops before a larger buildout.
 
@@ -133,6 +158,8 @@ Do not produce:
 - a generic ML project roadmap detached from the attached framework;
 - a simple endorsement of EDL or Trainex without considering alternatives;
 - a re-adjudication of the framework specs;
+- a recommendation that bypasses or replaces the active v1.6/doc-03
+  adjudication gate;
 - a long list of possible work with no prioritized direction;
 - a recommendation that depends on facts not present in the attached materials
   without clearly marking that dependency.
@@ -184,6 +211,11 @@ Style requirements:
 
 Where the attached materials are silent or ambiguous, say so. Do not fill the
 gap with a confident-sounding assumption.
+
+Inline `Author Comment` passages, `Source Issues` sections, and similar
+historical notes inside the bundle are non-normative context for risk
+assessment only. They are not tasks for this report and are not invitations to
+fix or adjudicate framework-spec details.
 
 If you use outside sources, cite them clearly and date-sensitive claims should
 be verified from current primary sources.

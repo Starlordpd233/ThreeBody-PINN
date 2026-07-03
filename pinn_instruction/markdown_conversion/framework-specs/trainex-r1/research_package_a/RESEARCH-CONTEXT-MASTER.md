@@ -4,7 +4,7 @@ package_for: trainex-r1a (decisions-and-structure half of the foundational resea
 role: research-context entry point (orientation, constraints, decision areas D1–D7, baseline critique mandate, output contract)
 status: active
 created: 2026-06-11
-source_baseline: c17e23ed0642f01d2eda7e7f65c0f18ed7081487
+source_baseline: 01683da048f5a9cad33687283931a87d7ae90415
 self_contained: true
 ---
 

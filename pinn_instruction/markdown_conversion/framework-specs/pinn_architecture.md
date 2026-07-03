@@ -265,7 +265,7 @@ Author Comment: I'm not sure why this section is formatted like this. It looks l
 | Power Term (p) | 2 (element-wise square) | Empirical results demonstrate that $p=2$ provides significant improvements in stability and accuracy without excessive computational overhead.[1] |
 | Output Activation | None (Linear) | The final layer must be linear to allow the predicted positions to take on any real value required by the physical system. |
 
-# 3. The Multi-Component, Physics-Constrained Loss Function
+# 3. The Multi-Component Loss Function (Physics-Constrained)
 
 The training of the PINN is guided by a composite loss function that
 simultaneously optimizes for three distinct yet complementary
@@ -306,6 +306,8 @@ Author Comment: again, the syntax is broken
 
 where $\delta_r = 1$ is the default Huber transition. The previous
 MAE/L1 data-loss prose is replaced by this Huber contract.
+
+> **Phase 35 contract: loss scaling and units (LOSS-01; NS-18 modified; AC-LOSS-01; grounded by the resolution doc §1.14 and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md`).** `pinn_architecture.md` is the canonical component-math home for data, physics, energy, and angular-momentum terms; `ctl_instruction.md` owns total-loss assembly and methodology cross-references by stable section heading plus AC ID. The component contract uses dimensionless `u=t/T` and `r'=r/D`, projected scaled positions for Huber data loss, ordered raw mass metadata where COM/force terms require masses, matched `epsilon_train = 1e-5` for force and Hamiltonian terms, separate data-fidelity snapshot points from physics/energy collocation points, the IC anchor, the angular-momentum regularizer, and no linear-momentum / no-linear-momentum-loss term.
 
 where:
 
@@ -348,8 +350,9 @@ The time points $t_k$ are sampled from the discrete BRUTUS trajectory
 snapshots available in the training dataset, representing specific
 moments where high-precision numerical integration data is available.
 
-  **[Author Comment: This above batch construction is not consistent with the CTL instruction plan. Look into this.]**
-  *Note (PIPE-04): `points_per_trajectory=32` is a code default, not the spec contract. The operative data-loss sampling rule is `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` without replacement, defined in `ctl_instruction.md` Mini-Batch Construction. The data-side loader also exposes `sample_replay(n, max_stage)` and `sample_lookahead(n, stage)` for stage-aware trajectory selection (PIPE-08, `ctl_instruction.md` §2.6).*
+> **Phase 34 contract: batch-construction reconciliation (SI-PINN-003; ctl canonical; AC-LOOP-02; grounded by the resolution doc §1.5 claim matrix B07-04 and `ctl_instruction.md` Mini-Batch Construction).**
+>
+> *Note (PIPE-04): `points_per_trajectory=32` and `N_data = batch_size * points_per_trajectory` are code defaults/illustrations only, not the spec contract. The operative data-loss sampling rule is `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` without replacement, defined canonically in `ctl_instruction.md` Mini-Batch Construction. The data-side loader also exposes `sample_replay(n, max_stage)` and `sample_lookahead(n, stage)` for stage-aware trajectory selection (PIPE-08, `ctl_instruction.md` §2.6). A verifier confirms `pinn_architecture.md` agrees with the canonical ctl contract and carries no contradictory copy here.*
 
 **Loss Integration Note:**\
 The data term is unweighted in the default objective. Physics and
@@ -417,6 +420,8 @@ $$L_{phys}^{causal} = \frac{1}{N_t} \sum_{n=1}^{N_t} w_n \bar R_n.$$
 
 The unweighted mean $\frac{1}{N_t}\sum_n \bar R_n$ may be logged as a
 diagnostic, but it is not the default training loss.
+
+> **Phase 35 contract: causal-training mode (LOSS-04; D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A; AC-LOSS-04; grounded by the resolution doc §1.1, `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/32-GAPS.md` GAP-32-01, and `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/evidence/d-04-causal-training-mode.md`).** This file keeps the per-time causal weighting component as the default: `w_1 = 1`, `w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))`, and `eta_c = 1`. Dense-residual ALM is rejected from the default loss, optional scalar-conservation ALM remains deferred P2 only, and the numeric causal-exponent clip bound is deferred to FUT. Option C time-windowed causal mechanics are not commissioned.
 
 **Collocation Point Sampling:**
 
@@ -529,6 +534,8 @@ $$S_H = median_train(K0 + Uabs0)$$
 
 and $\delta = 1.0$ is the Huber transition.
 
+> **Phase 35 contract: energy Huber delta (LOSS-03; NS-13 defer / deferred calibration; AC-LOSS-03; grounded by the resolution doc §1.13 and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-13-energy-huber-delta.md`).** The normalized-energy Huber transition is named `delta_E = 1.0` for Phase 35 traceability and remains the configurable current baseline. Calibration to a smaller range such as `0.01-0.1`, any stage-indexed Huber delta table, and any median/quantile replacement are deferred until normalized `|Delta H|` quantiles, linear-branch occupancy, validation energy drift, and weighted gradients are measured.
+
 $S_H$ is computed once in float64 after final
 COM/zero-momentum/gauge/scaling preprocessing over the training split
 using the matched-Plummer Hamiltonian components with
@@ -615,6 +622,8 @@ drift follows resolution §8.6. The velocity $v_\theta'(u_n)$ used to
 compute $L_\theta'(u_n)$ comes from the PHYS-02 componentwise
 normalized-time AD contract.
 
+> **Phase 35 contract: angular-momentum component role (LOSS-01; NS-18 modified; AC-LOSS-01; grounded by `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md`).** $L_L$ remains a soft angular-momentum regularizer in the default component catalog; it does not authorize a separate linear-momentum loss.
+
 # 4. Advanced Training and Optimization Strategy
 
 Successfully training the network requires a sophisticated approach to
@@ -655,6 +664,10 @@ The warmup schedule is:
 - $\lambda_E(k, i)$ and $\lambda_L(k, i)$ warm up linearly with
   $i/I_{warm}$
 
+> **Phase 35 contract: energy-loss weights (LOSS-02; M15 rejected as issue-doc replacement; AC-LOSS-02; grounded by the resolution doc §1.9 and `.planning/phases/35-loss-energy-weight-contracts/evidence/m15-energy-weight-schedule.md`).** Retain the PHYS-05 warmup schedule above with `lambda_E^max <= 1` and scheduled conservation weights at or below one. The issue-doc cap-table replacement and stale high-energy-weight premise are rejected, not adopted as a locked schedule. Before any future control law, log weighted losses, scheduled weights, and gradient statistics; automatic dominance reweighting is deferred until measured weighted-loss/gradient evidence exists.
+
+> **Phase 35 guard: source precedence and deferred values (LOSS-02 / LOSS-03 / LOSS-04; AC-LOSS-02 / AC-LOSS-03 / AC-LOSS-04).** The Phase 35 evidence packets supersede issue-doc replacement proposals for this component catalog: Option C windowed-causal mechanics are not commissioned, automatic dominance reweighting is deferred, dense-residual ALM is rejected from the default loss, stage-indexed Huber-delta calibration is deferred, and `ctl_instruction.md` remains the total-loss assembly home while this file remains the component-formula home.
+
 Optimizer-phase semantics:
 
 - During Adam epochs: $\lambda$ values may be scheduled per the warmup
@@ -670,13 +683,24 @@ training contract and is documented separately as the P2 ablation below.
 
 ## 4.2 Optional ALM Ablation (P2)
 
+> **Phase 34 contract: ALM parameter update / `mu_p` clamp (LOOP-05; deferred; AC-LOOP-05; grounded by the resolution doc §1.18 and `evidence/alm-mu-p-clamp.md`).**
+
+Default: ALM is OFF. The default training loss is the penalty-term formulation in §3–§4 above; it has no `mu_p` and no dense-residual ALM update. Dense-residual ALM is rejected from the default loss.
+
+ALM remains an optional scalar-conservation add-on only. If a future optional scalar-conservation ALM ablation is fully specified (constraint normalization, penalty-update law, state reset/persistence, and update cadence), its dual-variable update may run under `torch.no_grad()`:
+
+- Moving-average variance / second-moment update for `lambda_p` and `mu_p` in RMSprop style.
+- Clamp `mu_p` to `[1e-4, 100]` after each update.
+
+These `lambda_p`/`mu_p` mechanics are **deferred** and **conditional**; they are **not adopted into the default training loop** and may not be used until the ablation specification closes GAP-19.
+
 As a P2 ablation, an augmented Lagrangian method may be applied to scalar conservation constraints only:
 
 - **Constraints:** $c_E = \mathrm{RMS}_n(\Delta H_n)$ (energy drift), $c_{L,\alpha} = \mathrm{RMS}_n((L'_{\theta,\alpha}(u_n) - L'_{0,\alpha}) / L_{scale})$ (angular momentum drift per component). (Author Comment: this syntax is not ideal since it invovles math equations/formula; it should properly use correct markdown render-friendly syntax)
 - **Never apply ALM to the dense ODE residual.**
 - **Dual-variable updates:** Only between Adam epochs or between deterministic refinement passes. Never update dual variables during L-BFGS or inside a line search.
 - **Logging:** Log constraint values before and after each dual-variable update.
-- **Default:** ALM is OFF. The default loss is the penalty-term formulation in §3-§4 above.
+- **Default: ALM is OFF.** The default loss is the penalty-term formulation in §3-§4 above.
 
 This P2 ablation is not part of the baseline training contract. It is documented for completeness and for future experimentation.
 
@@ -699,13 +723,29 @@ two-phase optimization strategy is employed.
 
 ## 4.4 Adaptive Gradient Clipping
 
+> **Phase 34 contract: adaptive median-based gradient clipping (LOOP-04; M14 modified/accept-resolution; AC-LOOP-04; grounded by the resolution doc §1.8 and `evidence/m14-gradient-clipping.md`).**
+
 A significant challenge arises from the inverse-square distance terms in
 the loss function, which can explode during simulated close encounters.
 To prevent a single event from destabilizing the optimizer, adaptive
 gradient clipping is essential. A robust strategy is to clip the global
 L2 norm of the gradients relative to their recent typical magnitude.
 
-``` {.python language="Python" caption="Listing 6: Adaptive Gradient Clipping Logic"}
+The merged clipping mechanism is **locked**: during Adam epochs only,
+the clip value is the product of the curriculum-aware stage multiplier
+$C_{\text{stage}}$ and the median of recent global gradient norms,
+computed over a rolling window of recent global gradient norms. The
+per-stage multiplier $C_{\text{stage}}$ is defined canonically in
+`ctl_instruction.md` under **Adaptive Median-Based Gradient Clipping**
+(AC-LOOP-04); this section owns the mechanism, not the schedule values.
+The fixed multiplier `5.0` that appeared in the pre-Phase-34
+`pinn_architecture.md` pseudocode is the Stage 2/3 instance
+($C_{\text{stage}} = 5$) or a fallback, not an additional multiplier.
+
+**Adam-only scope.** No gradient clipping is applied during L-BFGS
+refinement; the line-search trust region already bounds the step.
+
+``` {.python language="Python" caption="Listing 6: Adaptive Gradient Clipping Logic (normative spec contract — not executable; FUT-01/FUT-04 implements)"}
 # Maintain a queue/list of the last 100 gradient norms
 grad_history = [] 
 
@@ -715,12 +755,21 @@ grad_history.append(total_norm)
 if len(grad_history) > 100:
     grad_history.pop(0)
 
-# Clip norm to 5x the median of recent norms
-clip_value = 5.0 * torch.median(torch.stack(grad_history))
+# Clip norm to C_stage times the median of recent norms
+clip_value = C_stage * torch.median(torch.stack(grad_history))
 torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
 
 # Then, call optimizer.step()
 ```
+
+**Deferred → FUT execution constants.** The exact early-stage value of
+$C_{\text{stage}}$ within the Stage 0-1 range, the bootstrap median fallback
+used before the history window is populated, the lower floor (e.g.
+`1e-6`) on the median, and the gradient-history reset mechanics at stage
+boundaries are routed to Phase 34/FUT calibration. They are explicitly
+left open by the M14 packet owner-route and resolution-doc §1.8
+(GAP-08); this contract does not invent them and does not tag the
+early-stage value as locked.
 
 # 5. Inference and Trajectory Generation
 
@@ -837,6 +886,8 @@ executes the numerical acceptance checks; this section only states the
 architectural guarantee.
 
 ### 5.3.1 Normalized-Time Derivative Contract (PHYS-02)
+
+> **Phase 35 contract: componentwise AD and tau/u boundary (LOSS-01; NS-12 accepted and NS-18 modified; AC-LOSS-01-AD; grounded by the resolution doc §§1.12/1.14, `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-12-componentwise-ad.md`, and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md`).** The canonical autograd leaf is `u=t/T`. When differentiating with respect to `u`, velocity and acceleration use `dr'/du` and `d^2r'/du^2` with no chain factor; the factors `2` and `4` apply only to a direct `tau = 2u - 1` leaf. Componentwise derivatives are required and the summed-output VJP remains forbidden; executable batching and performance strategy remain FUT.
 
 **Three-layer separation:** $(t, r, v)_{raw} \rightarrow (u, r', v')_{physics} \rightarrow (\tau, IC_{13})_{network}$ where `u=t/T` and $\tau = 2u - 1$.
 
@@ -999,14 +1050,14 @@ These notes are metadata for future reconciliation. They are not part of the fai
 - **Description:** 3 author comments from the LaTeX source (`\authcomment{}`) are preserved in the converted body as bold bracketed text (`**[...]**`). These are editorial notes from the original authors, not content discrepancies:
   1. "Need more detail on this dynamic scheduling for omega_0" (Section 2)
   2. "Need confirmation on this hidden layer's detail" (Section 2)
-  3. "Comment: This above batch construction is not consistent with the CTL instruction plan" (Section 3)
+  3. The batch-construction inconsistency comment (Section 3) — resolved under SI-PINN-003 by Phase 34; `pinn_architecture.md` §3.1 now points to the canonical `ctl_instruction.md` Mini-Batch Construction contract.
 - **Status:** Documented for future reconciliation — author should resolve these notes before training implementation
 
 ### SI-PINN-003: Batch construction inconsistency with CTL instruction plan
 
 - **Section:** Section 3 (physics_constrained_loss) — Data Batch Construction code block
-- **Description:** The author comment "This above batch construction is not consistent with the CTL instruction plan" flags a methodological inconsistency between the data sampling strategy described here and the CTL curriculum training plan. This should be investigated and resolved during training implementation.
-- **Status:** Documented for future reconciliation
+- **Status:** RESOLVED — reconciled by Phase 34; `ctl_instruction.md` Mini-Batch Construction is the canonical batch-construction contract (SI-PINN-003; AC-LOOP-01/02); `pinn_architecture.md` §3.1 now points to it via the PIPE-04 pointer and no longer asserts an inconsistency.
+- **Description:** The original author comment flagging a batch-construction inconsistency with the CTL curriculum training plan has been removed from §3.1 and reconciled by designating `ctl_instruction.md` as the single canonical home for batch construction.
 
 ---
 

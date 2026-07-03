@@ -6,10 +6,10 @@ priority: high
 
 # Todo: Trainex R1 Research Handoff (two parallel sub-packages)
 
-The trainex-r1 foundational round was assembled 2026-06-11 and split into two parallel
+The trainex-r1 foundational round was assembled 2026-06-11, refreshed to source
+baseline `01683da048f5a9cad33687283931a87d7ae90415`, and split into two parallel
 sub-packages under `pinn_instruction/markdown_conversion/framework-specs/trainex-r1/`
-(`specs/` snapshots pinned to commit `c17e23ed`; design-doc snapshot includes its
-2026-06-11 standing note):
+(the design-doc snapshot includes its 2026-06-11 standing note):
 
 - **`research_package_a/`** — decisions & structure: D1 framework, D2 tracking, D3
   compute + ingestion memory strategy, D4 checkpoint policy + auto-guards + diagnostic
@@ -29,8 +29,9 @@ uploaded. Each sub-package has its own RESEARCH-AGENT-PROMPT.md.
 1. Review both RESEARCH-CONTEXT-MASTER.md files — especially r1a's decision areas +
    output contract and r1b's K4 feasibility question.
 2. Hand off both in parallel: per each sub-package's RESEARCH-AGENT-PROMPT.md, attach
-   its master + the three snapshots from the shared `trainex-r1/specs/` directory, and
-   paste its prompt (same multi-AI pattern as issue-02; ERW runbook:
+   four individual files named `RESEARCH-CONTEXT-MASTER.md`,
+   `2026-06-10-training-execution-design.md`, `pinn_architecture.md`, and
+   `ctl_instruction.md`, then paste its prompt (same multi-AI pattern as issue-02; ERW runbook:
    `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`).
 3. Land results under `trainex-r1/research_results/r1a/` and `.../r1b/` as
    `<agent>-resolution.md`.

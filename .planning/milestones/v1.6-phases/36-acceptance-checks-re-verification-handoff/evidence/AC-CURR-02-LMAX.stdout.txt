@@ -1,0 +1,12 @@
+=== AC-CURR-02-LMAX: L_max and tau_L formula sanity check ===
+Documented toy sample: G=1.0, T=10.0, M_tot=3.0
+Calculated D = (G * T^2)^(1/3) = 4.6416
+Locked v1.5 convention: D ≈ 4.6416
+Rejected provenance: D = 6.694
+L_max = M_tot * r_char * v_char = 6.5467
+
+[1] PASS: raw-mass D ≈ 4.6416 is numerically reproducible
+[2] PASS: D = 6.694 is NOT the active scale (rejected provenance only)
+[3] PASS: L_max = 6.5467 is a reasonable characteristic angular-momentum scale
+
+=== AC-CURR-02-LMAX: ALL CHECKS PASSED ===

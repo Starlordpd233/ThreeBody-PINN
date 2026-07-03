@@ -1,0 +1,8 @@
+=== AC-SI-DQA-003: conservation gate inline citation ===
+[1] PASS: SI-DQA-003 inline citation present
+[2] PASS: conservation gate cited
+[3] PASS: locked post-v1.3 status
+[4] PASS: SCS gate formula present
+[5] PASS: Plummer eps=1e-10 in V
+
+=== AC-SI-DQA-003: ALL CHECKS PASSED ===

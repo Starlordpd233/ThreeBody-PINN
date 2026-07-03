@@ -1,12 +1,13 @@
 # Trainex R1a Research Agent Prompt (decisions and structure)
 
-**[User instructions — not part of the prompt]** Attach these 4 files to the external
-agent's conversation, then paste everything below the horizontal rule as the prompt:
+**[User instructions — not part of the prompt]** Attach these 4 individual files to
+the external agent's conversation, then paste everything below the horizontal rule as
+the prompt:
 
-1. `research_package_a/RESEARCH-CONTEXT-MASTER.md` (this package's master)
-2. `specs/2026-06-10-training-execution-design.md` (shared snapshots at the round root)
-3. `specs/pinn_architecture.md`
-4. `specs/ctl_instruction.md`
+1. `RESEARCH-CONTEXT-MASTER.md`
+2. `2026-06-10-training-execution-design.md`
+3. `pinn_architecture.md`
+4. `ctl_instruction.md`
 
 ---
 

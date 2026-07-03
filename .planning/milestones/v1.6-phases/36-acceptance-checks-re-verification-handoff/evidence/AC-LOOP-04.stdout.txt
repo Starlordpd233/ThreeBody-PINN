@@ -1,0 +1,19 @@
+=== AC-LOOP-04: merged gradient clipping ===
+Synthetic gradient-norm history: [1.0, 2.5, 3.0, 2.8, 3.2, 4.0, 3.8, 2.2, 1.5, 2.0]
+Median: 2.65
+C-schedule: {0: 7, 1: 8, 2: 9, 3: 10, 4: 5, 5: 3}
+
+Stage 0: C=7, clip_value=18.55
+Stage 1: C=8, clip_value=21.20
+Stage 2: C=9, clip_value=23.85
+Stage 3: C=10, clip_value=26.50
+Stage 4: C=5, clip_value=13.25
+Stage 5: C=3, clip_value=7.95
+
+Checking spec transcription...
+[1] PASS: mechanism canonical in pinn §4.4 (clip_value = C_stage * median(...))
+[2] PASS: C-schedule 7-10 / 5 / 3 canonical in ctl
+[3] PASS: rejected clip constant 8.5 absent from both specs
+[4] PASS: bidirectional anchors present
+
+=== AC-LOOP-04: ALL CHECKS PASSED ===

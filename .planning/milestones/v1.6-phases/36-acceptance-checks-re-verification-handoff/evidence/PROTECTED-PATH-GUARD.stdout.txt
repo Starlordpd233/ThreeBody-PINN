@@ -1,0 +1,8 @@
+=== PROTECTED-PATH-GUARD ===
+[1] Checking probes/ for pinn references...
+[1] PASS: no active pinn code references in probes/ scripts
+[2] Checking git diff for pinn/ and frozen specs changes...
+[2a] PASS: no pinn/ changes detected
+[2b] PASS: no frozen/read-only spec changes detected
+
+=== PROTECTED-PATH-GUARD: ALL CHECKS PASSED ===

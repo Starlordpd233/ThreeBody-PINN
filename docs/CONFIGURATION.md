@@ -14,17 +14,17 @@ This document enumerates the configurable values in each layer, their defaults, 
 
 ## 1. Framework Specs (Authoritative)
 
-The framework specs live under `pinn_instruction/markdown_conversion/framework-specs/`. Each spec has a distinct edit status under the v1.5 governance rules.
+The framework specs live under `pinn_instruction/markdown_conversion/framework-specs/`. Each spec has a distinct edit status under the v1.6 governance rules.
 
-| File | Status | Edit policy (v1.5) | Purpose |
+| File | Status | Edit policy (v1.6) | Purpose |
 |---|---|---|---|
-| `ctl_instruction.md` | Active | Spec-edit target for v1.4 / v1.5 | CTL methodology, input-vector formulation, curriculum staging, dataset comparison table |
-| `pinn_architecture.md` | Active | Spec-edit target for v1.4 / v1.5 | Network architecture, AD contract, output head, SQR-SkipResNet-SIREN blueprint |
+| `ctl_instruction.md` | Active | Spec-edit target for v1.4 / v1.5 / v1.6 | CTL methodology, input-vector formulation, curriculum staging, dataset comparison table |
+| `pinn_architecture.md` | Active | Spec-edit target for v1.4 / v1.5 / v1.6 | Network architecture, AD contract, output head, SQR-SkipResNet-SIREN blueprint |
 | `sampling_method.md` | **FROZEN** | Read-only by default; revisions only on explicit user instruction triggered by verified data-feasibility issues | Historical record of how the existing training data was produced; generation is complete and will not be re-run |
 | `framework-revisions/data_quality_assessment.md` | Read-only research report | Characterize only; do not edit | Research report, not an authoritative spec |
 | `trainex-r1/` | Active | Authoritative trainex (training-execution) research round | Decomposition + PH inventory from the foundational trainex research round |
 
-**Spec-edit scope for v1.5:** `ctl_instruction.md` and `pinn_architecture.md` are the only spec-edit targets. The `pinn/` live-code ban is in effect: live code in `pinn/` is NOT a grounding source for v1.5 spec decisions (forward-pointing handoff only, e.g., `NN-CODE-DIVERGENCE.md`, `pinn/STATUS.md`).
+**Spec-edit scope for v1.6 (SCOPE-13):** `ctl_instruction.md` and `pinn_architecture.md` are the only spec-edit targets (unchanged from v1.4/v1.5). The `pinn/` live-code ban is in effect: live code in `pinn/` is NOT a grounding source for v1.4/v1.5/v1.6 spec decisions (forward-pointing handoff only, e.g., `NN-CODE-DIVERGENCE.md`, `pinn/STATUS.md`).
 
 ---
 
@@ -54,7 +54,7 @@ The four pipeline stages use a consistent directory naming pattern. The pipeline
 
 **Naming note:** For the metrics layer, `sim_result_metric_standard` corresponds to the `standard_quasi_random` IC type (the `standard` prefix is the metrics-file prefix, not the IC-type literal). The gold-standard files use the metrics prefix `hierarchical` / `standard` (not `hierarchical_gold_standard` / `standard_gold_standard`) — see `METRICS_PREFIXES` in `simulation_data/Scripts/metrics_calculation/calculate_metrics.py`.
 
-### 2.3 Gold-completeness state (v1.5)
+### 2.3 Gold-completeness state (v1.5; carried into v1.6 unchanged)
 
 Per GAP-29-01 (resolved 2026-06-16): 117 ICs are validated as gold, 67 are permanent `gold_counterpart=absent`, and 0 are promoted. The 184 → 67 cascade is deferred to FUT-01. <!-- VERIFY: gold-completeness state — derived from user-supplied critical_grounding_notes; re-verify against `.planning/milestones/v1.5-GAPS.md` and the Phase 29 verification record before any configuration decision that depends on it -->
 
@@ -120,7 +120,7 @@ and per-type sample counts (`N_SAMPLES_STANDARD=2500`, `N_SAMPLES_HIERARCHICAL=1
 | `ANGULAR_PERCENTILE_MIN` | `0` | No angular-momentum filtering |
 | `G` | `1.0` | Gravitational constant (natural units) |
 
-> **Note on virial ratio:** The `MIN_ANGULAR_MOMENTUM` and virial thresholds here are not the ratio-based SCS thresholds flagged in the v1.5 issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`). This script's thresholds are local prescreen-rejection criteria; the SCS thresholds are part of the unresolved v1.5 adjudication (Phases 25–29 require a user-produced resolution doc). Do not use this prescreening config as evidence for the SCS-threshold decision. <!-- VERIFY: SCS-threshold vs prescreen-threshold distinction — derived from user's critical_grounding_notes; cross-check against the live issue doc and the v1.5 resolution doc when it lands -->
+> **Note on virial ratio:** The `MIN_ANGULAR_MOMENTUM` and virial thresholds here are not the ratio-based SCS thresholds flagged in the v1.5 issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`). This script's thresholds are local prescreen-rejection criteria; the SCS adjudication was **resolved in v1.5 Phase 25 (EVID-10)** — the locked log-based gate `SCS > -5` / `eps_H > 1e-5` stands and the issue-02 ratio thresholds were rejected by name. Do not use this prescreening config as evidence for the SCS-threshold decision; see `ctl_instruction.md` Step-1A clause 5 for the canonical gate and `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md` for the adjudication record.
 
 ### 4.3 Brutus simulation parameters
 

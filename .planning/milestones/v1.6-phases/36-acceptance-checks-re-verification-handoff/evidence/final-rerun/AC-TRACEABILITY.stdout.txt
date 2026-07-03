@@ -1,0 +1,2 @@
+[INFO] Phase 30 completion anchor: row date 2026-06-18
+PROBE-TRACEABILITY: PASS — 32/32 v1.6 rows; 13 R6 flips reconciled; anchors cited.

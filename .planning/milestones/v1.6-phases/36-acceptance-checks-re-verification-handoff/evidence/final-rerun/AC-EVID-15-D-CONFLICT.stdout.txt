@@ -1,0 +1,6 @@
+=== AC-EVID-15-D-CONFLICT: D=6.694 conflict ===
+[1] PASS: D ≈ 4.6416 active in ctl
+[2] PASS: D = 6.694 absent from pinn (rejected provenance only)
+[3] PASS: every 6.694 mention in ctl is paired with rejection language
+
+=== AC-EVID-15-D-CONFLICT: ALL CHECKS PASSED ===

@@ -2,14 +2,23 @@
 
 # Testing and Acceptance
 
-This document describes how v1.5 ("Resolving 02 Data Pipeline and Validation") is tested,
-verified, and closed. It is the project-side view of the v1.5 acceptance and issue-ledger
-machinery landed across Phases 25-29, not a generic software-testing guide.
+This document describes how the project's adjudication milestones are tested, verified, and
+closed, using the **v1.5 ("Resolving 02 Data Pipeline and Validation")** acceptance suite as
+the worked example — the most recent *completed* acceptance work (v1.5 shipped 2026-06-17).
+It is the project-side view of the v1.5 acceptance and issue-ledger machinery landed across
+Phases 25-29, not a generic software-testing guide.
 
-The v1.5 contract is **spec-side**: production DataLoader, TrajectoryValidator, and training
-code are out of scope (FUT-01 implements them). The acceptance surface therefore tests the
-**framework specs** and the **canonical dataset** with disposable probes, never the live
-`pinn/` code (SCOPE-10).
+> **Current milestone (v1.6 "Resolving 03 Curriculum and Training Loop", Phases 30-36, in
+> progress).** v1.6 follows the same disposable-probe / issue-ledger / closure-gate pattern
+> documented here. Its acceptance checks (VER-13..18) are **executed in Phase 36, which has
+> not yet run**; the v1.6 issue ledger lives under the Phase 32 (evidence-framework)
+> directory. Until Phase 36 lands, the v1.5 suite below is the canonical example of the
+> testing discipline.
+
+The adjudication-milestone contract is **spec-side**: production DataLoader, TrajectoryValidator,
+and training code are out of scope (FUT-01 implements them). The acceptance surface therefore
+tests the **framework specs** and the **canonical dataset** with disposable probes, never the
+live `pinn/` code (SCOPE-10).
 
 ## Test layers
 

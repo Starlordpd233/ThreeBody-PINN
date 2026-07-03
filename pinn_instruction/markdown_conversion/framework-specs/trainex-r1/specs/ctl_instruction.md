@@ -348,16 +348,48 @@ Author Comment: I believe this is another case for broken syntax or stale code f
     (3,), initial positions as (3,3), and initial velocities as (3,3).
     Use a dedicated parsing function to handle both formats robustly.
 
-3.  From the `brutus_.txt` file, parse the time-series data. The file
-    consists of repetitive blocks, each starting with a header line
-    (`t, N=3, t_cpu`) followed by three lines of body states
-    (`m, x, y, z, vx, vy, vz`). Iterate through blocks, skipping empty
-    lines and handling an optional trailing 'Result:' line (which may
-    contain energies like E_initial, E_final, dE/E—extract these into
-    metadata). Store times as (T,), positions as (T,3,3), velocities as
-    (T,3,3), and any metadata (e.g., cpu_times, energies). Gracefully
-    handle short/incomplete files (e.g., fewer than 2 snapshots) by
-    returning empty arrays and logging warnings.
+3.  From the `brutus_.txt` file, parse the time-series data and apply the
+    footer-handling contract (PIPE-06 / D7). The file consists of repetitive
+    blocks, each starting with a header line (`t, N=3, t_cpu`) followed by
+    three lines of body states (`m, x, y, z, vx, vy, vz`). Iterate through
+    blocks, skipping empty lines. Store times as (T,), positions as (T,3,3),
+    velocities as (T,3,3). Gracefully handle short/incomplete files (e.g.,
+    fewer than 2 snapshots) by returning empty arrays and logging warnings.
+
+    A trailing `Result:` footer is OPTIONAL and is treated as metadata only
+    (footers are all-or-nothing — present footers carry the FULL parameter
+    schema; absent footers carry no parameter fields at all). Apply:
+
+    - **Footer present →** parse the full schema
+      `(tol, Lw, dt_out, t_end, eta, energies)` and mark each
+      `{param}_provenance = 'direct'`.
+    - **Footer absent →** assign the verified folder-level defaults and mark
+      each `{param}_provenance = 'inferred'`:
+        - standard base: `tol = 1e-13, Lw = 118, dt_out = 0.17`
+        - hierarchical base: `tol = 1e-15, Lw = 130, dt_out = 0.08`
+        - gold (both): `tol = 1e-13, Lw = 130, dt_out = 0.01`
+      `eta` has NO folder default: store `null` with provenance `'absent'`
+      (fabricating an `eta` is prohibited). Verified no-footer populations
+      (DATA-04 / CLM-07): 701 standard-base, 219 standard-gold, and (post
+      DATA-05 rerun, OI-9) 1,480 hierarchical-base — note the
+      `24-DATA05-RERUN-REMEDIATION.md` rerun replaced 70 stale footer-less
+      base-hier files with footer-bearing reruns, so the 1,550 figure in the
+      pre-rerun resolution doc is stale.
+    - **Footer present but partial-schema →** an anomaly: set
+      `footer_anomalous = true`, log `(variant, id, missing_fields)`, fall
+      back to defaults (`'inferred'`) for the missing fields, and surface the
+      population in the init log (it should be empty; any member is new
+      information).
+
+    Independently of the footer, MEASURE `dt_out` as the median inter-snapshot
+    timestamp spacing, store it with provenance `'measured'`, and WARN if it
+    disagrees with the footer/default value by more than 1% (relative).
+
+    Footers MUST NOT be used as completeness signals — completeness is decided
+    by the Step-1A admission gate from parsed snapshot block times, never from
+    footer presence (Step 1A clause 4) — and footers are NEVER a mapping
+    source (ID→path mapping uses the filesystem scan of Step 1 item 7, never
+    `Result:` footer paths). Footer fields are metadata only.
 
 4.  Infer metadata (e.g., dataset_type: 'hierarchical' or
     'quasi-random'; fidelity: 'high' or 'low'; dt_out: inferred from
@@ -371,14 +403,293 @@ Author Comment: I believe this is another case for broken syntax or stale code f
     files independently when possible (globals only need initials, not
     full Brutus time-series).
 
-6.  Save parsed objects for all simulations into an efficient format
-    like HDF5 or NumPy (.npy) files. This avoids repeated text parsing
-    and accelerates loading during training. Use parallel processing if
-    parsing large batches (e.g., via concurrent.futures for IC-only
-    globals).
+6.  Processed training data is stored in HDF5 (the canonical, single
+    source of truth — user-locked 2026-06-13): groups
+    `/{variant}/{fidelity}/{id}`; float64 datasets (`times`, `positions`,
+    `velocities`, masses, and the §2.6 derived arrays); per-group
+    attributes carrying the full §2.6 metadata record (including
+    `param_provenance`), raw-file SHA-256 hashes, a top-level
+    `schema_version`, and the build's transform metadata (`D`, `T`, `V`,
+    `E_scale` and scale provenance) so raw values are exactly
+    re-derivable. Chunked + compressed storage is recommended; partial
+    reads by group are supported. `.npy`/`.npz` is an ACCEPTABLE
+    derived cache/export alternative preserving the identical schema, but
+    the HDF5 file is the single source of truth. JSON/text exports are
+    inspection- and debugging-only and MUST NEVER be a training input
+    path. This avoids repeated text parsing and accelerates loading
+    during training; use parallel processing if parsing large batches
+    (e.g., via `concurrent.futures` for IC-only globals).
+
+    Acceptance test (round-trip): raw → HDF5 → arrays round-trips
+    bit-identically in float64 against direct parsing for a sample of
+    trajectories, including times. (The data round-trip implementation is
+    FUT-01; this clause is the spec-side acceptance contract.)
+
+7.  ID resolution (no dense-index assumption). Trajectory identity is
+    `record_key = (variant, fidelity, id)`; the physical IC is
+    `physical_key = (variant, id)`; `id` is the 4-digit zero-padded
+    integer in the filename. At DataLoader init, build `id_to_path` by
+    SCANNING each of the four Brutus output folders; accept only
+    filenames matching `^brutus_(hierarchical|standard)_(\d{4})\.txt$`
+    (folder name alone encodes gold status — filenames carry no `_gold_`
+    infix; non-matching files are logged and ignored). Two files mapping
+    to the same `record_key` is a hard init error. Lookup of an absent
+    key raises an explicit error; NO code path may compute a path
+    arithmetically from an `id` or assume IDs are contiguous, dense,
+    zero-based, or equal to an array index. All deterministic iteration
+    is over sorted `record_key`s, never `range(n_files)`. Stage labels
+    (Step 5) are keyed by `record_key`, never by positional index.
+    Blacklist and gold-availability semantics attach to `physical_key`
+    and apply to every `record_key` beneath it. `Result:` footer paths
+    are never used for mapping. Init logs, per folder: files found, IDs
+    parsed, duplicates (must be 0), and min/max ID span vs file count
+    (gap visibility). The ID space is non-dense (verified: standard-base
+    holds ID 3958 against 2,749 files), so dense indexing is prohibited.
 
 This parsing ensures consistency across all training data, preparing it
 for dimensionless scaling in Step 2.
+
+## Step 1A — Trajectory Admission Gate (data-side; runs at DataLoader init)
+
+Every `(variant, fidelity, id)` trajectory must pass ALL conditions below before
+it may enter stage assignment (Step 5), global-statistics computation
+(`compute_globals`, §2.5), or any training batch. Failures are recorded
+per-trajectory with a reason code; the loader logs admitted/rejected/quarantined
+counts per folder at init.
+
+1. Identity & blacklist. The `id` resolves via the Step-1 ID-resolution contract
+   (item 7). `(variant, id)` pairs present in `problematic_ics_blacklist.json` are
+   excluded from BOTH the base and gold folders of that variant, before stage
+   assignment and before `compute_globals`. Missing blacklist file = hard init
+   failure. A batch-time assertion re-checks emitted samples.
+2. Data-remediation quarantine. The 70 `brutus_hierarchical` base outputs flagged
+   by DATA-05 (IDs 0005-0059, 0061-0075) are quarantined from training, metrics,
+   and PIPE-07 use until rerun validation from the current canonical ICs passes.
+   The quarantine list is configuration, not code.
+3. Structural integrity. `>= 2` parsed snapshots; exactly 3 body rows per
+   snapshot; all values finite; timestamps strictly monotone increasing.
+4. Completeness. `final_timestep >= 9.5`, computed from parsed snapshot block
+   times. Footer presence, line counts, and snapshot-count constants MUST NOT be
+   used as completeness signals.
+5. Conservation gate (locked post-v1.3; SI-DQA-003). With H evaluated in float64
+   using Plummer softening `eps = 1e-10` in V:
+   `eps_H = max_t |(H(t) - H(0)) / H(0)|`, `SCS = log10(eps_H)`.
+   REJECT if `SCS > -5` (equivalently `eps_H > 1e-5`). `SCS = -5` exactly is
+   Marginal: admitted, flagged for review. If `|H(0)|` is numerically near zero,
+   SCS is undefined: QUARANTINE for manual review; do not introduce a denominator
+   floor. If `eps_H = 0`, set `SCS = -inf` and label the trajectory Excellent.
+   Store per-trajectory `eps_H`, `SCS`, and band label (Excellent <= -10;
+   Acceptable (-10,-6]; Marginal (-6,-5]; Reject > -5). This clause
+   TRANSCRIBES the locked gate into an editable spec; it implements, and does
+   not re-open, Hard Constraint 5. Under the locked global scaling, Hamiltonian
+   values scale as `H' = D*H`, so `eps_H` and the SCS band decision are
+   invariant to raw/scaled units; by convention the admission check is computed
+   from the raw parsed arrays. This validation-gate `eps_H` is distinct from
+   the training-loss `eps_H = 1e-4*S_H` in `pinn_architecture.md` §3.4: same
+   glyph, different quantity, and this gate is not changed by that training
+   symbol. The issue-02 ratio thresholds are rejected by name, not transcribed:
+   `1e-6` is the Acceptable/Marginal band boundary (`SCS = -6`) mis-promoted to
+   a reject gate, and `1e-8` is an unsourced tightening proposal with no package
+   basis. The EVID-10 adjudication record is
+   `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
+   Any stage-conditional SCS tightening (OI-2) is deferred to doc-03 and
+   per-variant SCS distributions; it is not a Phase 28 policy. SASD, IPR, and
+   PSC are companion data-side validation metrics in the `Data-side
+   quality-metric contracts` subsection populated by later Phase 28 waves.
+6. Physical invariant gates. The Step-2/§2.1 gates apply as admission criteria:
+   mass invariance `max_{t,i}|m_i(t) - m_i(0)| < 1e-15` (float64, absolute); the
+   IC<->Brutus `t=0` mass gate (§2.1 as amended per Q-B2); the COM/momentum
+   assertions with their existing reject/quarantine semantics.
+7. Grid-consistency checks (WARN level, not reject). With `dt_out` the record's
+   resolved output interval: warn if `max_i (t_{i+1} - t_i) > 1.5 * dt_out`, or if
+   `n_snapshots < 0.9 * (final_timestep / dt_out + 1)`. Escalation to reject is
+   conditional on characterizing the no-footer populations' snapshot
+   distributions.
+
+No fixed snapshot-count floor is imposed beyond condition 3. The issue doc's
+`>= 200` floor is rejected: verified base medians are 61 standard-base / 127
+hierarchical-base / 1003 gold, so floors such as `>= 200` are arithmetically
+incompatible with the base populations the locked stratification assigns to
+Stages 3-4. The per-trajectory *sampling* point count is governed by the locked
+M12 rule `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))` (locked M12 rule, see
+Phase 27 PIPE-04; transcribed in `m11-m12-severity.md`), not by any admission
+floor.
+
+### Blacklist-exclusion contract (clause 1 detail; M11 / PIPE-03)
+
+The blacklist exclusion named in Step-1A clause 1 is a blocking-grade, fail-closed
+DataLoader precondition. It is specified as follows:
+
+1. Load. `problematic_ics_blacklist.json` is loaded at DataLoader init, before
+   stage assignment (Step 5) and before any dataset-wide statistic
+   (`compute_globals`, §2.5) — the before-statistics ordering is load-bearing: a
+   blacklisted record left in the population contaminates the normalizers.
+2. Schema validation. The file is a top-level JSON object with exactly the keys
+   `hierarchical` and `standard`, each a list of integer-like IDs. Any other shape
+   (a missing key, a third top-level key, non-integer IDs) is a hard configuration
+   error. IDs normalize to `int` (the `%04d` filename boundary, Step 1 item 7) and
+   deduplicate within family.
+3. IC-level exclusion. Blacklist semantics attach to `physical_key = (variant, id)`
+   and exclude every `record_key` beneath it — both the base and gold realizations
+   of that variant (gold ICs are a byte-identical subset of base ICs, so a
+   problematic IC is problematic at every fidelity).
+4. Fail-closed. A missing, unreadable, or schema-invalid blacklist file is a hard
+   init failure; absence is a configuration error, never an empty blacklist. Any
+   override must be an explicit, logged, development-only flag.
+5. Logging. Per family, the loader logs `n_blacklist_entries`, `n_present_on_disk`
+   per fidelity, and `n_excluded`. A listed ID absent from disk is logged, not
+   fatal. Expected exclusion counts are asserted against the parsed file content of
+   the run, never against a hard-coded constant. (As a verified reference point, the
+   current blacklist holds 65 IDs — 2 hierarchical + 63 standard — per DATA-02 /
+   CLM-03; this count is a dataset fact for cross-checking, not a contract constant.)
+6. Defense in depth. A set-membership assertion at batch assembly re-checks every
+   emitted sample; a blacklisted sample reaching an emitted batch raises a hard
+   error, because it indicates a bypass path — exactly the M11 failure mode.
+
+Equivalently, the contract reads:
+
+> Blacklist semantics attach to `physical_key` and exclude every `record_key`
+> beneath it. A missing or malformed `problematic_ics_blacklist.json` is a fatal
+> configuration error unless an explicit, logged development-only override is set.
+> Exclusion executes before stage assignment and before any dataset-wide statistic.
+> Exclusion counts are logged per family and fidelity; expected counts are asserted
+> against the parsed file content of the run, never hard-coded.
+
+The live-loader's actual blacklist enforcement at training time is a FUT-01
+hand-off question (OI-8 / SCOPE-10), outside the grounding of this contract; the
+data-side contract above is stated regardless.
+
+### Data-side quality-metric contracts (SASD, IPR, PSC)
+
+These are the data-side validation metrics that complement the Step-1A conservation
+gate (clause 5, the family's only reject gate). SASD and IPR are **flag-for-resampling
+diagnostics, not reject gates**: a flagged trajectory is routed to the resample queue and
+withheld from clean-training designation, never excluded outright. PSC is a dataset-level,
+**report-only coverage diagnostic** — no per-trajectory flag and no admission/reject
+authority — whose contract is landed below (GAP-28-03 RESOLVED-WITH-INSTRUCTION, user
+sign-off 2026-06-16): its pooled-population and weighting composition is ratified there,
+while the grid construction, estimator normalization, SCR anchor, and first-run sanity
+check are provisional pending the materialized post-promotion pool (FUT-01).
+All metrics are computed from the raw parsed arrays under the locked `G = 1`, raw-mass
+convention (§2.5 PIPE-09); every training-loop consumer is deferred to the doc-03 milestone
+via the forward-reference named in each clause. Each metric's adjudication is recorded in a
+Phase 25 evidence packet.
+
+**SASD — Stiffness-Aware Sampling Density (VAL-02; Q-C2).** For each output interval
+`[t_i, t_{i+1}]` with `dt_i = t_{i+1} - t_i`, the analytic per-body acceleration `a_b` is
+computed from the snapshot positions with Plummer softening `eps = 1e-10` (validation
+softening; enters `V` only), and
+
+`SASD_i = dt_i * max_b max_{t in {t_i, t_{i+1}}} ( ||a_b(t)|| / max(||v_b(t)||, 1e-12) )`
+
+(per-body maximum of the full acceleration norm over the local speed, evaluated at **both
+interval endpoints**). The trajectory score is `max_i SASD_i`. Both-endpoint evaluation is
+the canonical convention (GAP-28-01 RESOLVED-WITH-INSTRUCTION, user sign-off 2026-06-16): it
+dominates the DQA-literal left-endpoint form — `max(left, right) >= left`, so it cannot
+un-flag any trajectory the literal form flags — and closes the final/right-endpoint blind
+spot a left-only evaluation never sees. The perpendicular-component variant is rejected
+(blind to near-radial close encounters where `a` is parallel to `v`); the stacked
+9-component aggregation is rejected (dilutes the local stiffness signal). SASD is
+scale-invariant (`||a||/||v||` carries `1/time`, `dt` carries `time`), so raw and scaled
+coordinates give identical scores; by convention it is computed from the raw parsed arrays.
+
+Flag rule (provisional): `max_i SASD_i > 0.5` flags the trajectory for resampling — a
+Nyquist-flavored "local dynamical time spans fewer than ~2 sampling intervals" warning,
+**not** an auto-reject. The `0.5` constant is provisional pending recalibration to the
+admitted-set `max SASD` distribution (doc-03 / FUT-01), a separate axis from this endpoint
+convention. Persist `max SASD`, the argmax interval index, and a `v_floor_hit` flag.
+
+Low-resolution floor effect (documented): an encounter completing entirely between two
+snapshots is invisible to any endpoint-evaluated sampling metric; SASD bounds resolution
+adequacy from the snapshots that exist and is complemented by IPR (below), which probes
+between snapshots via the interpolant — the pairing is by design. Training-side use,
+SASD-weighted collocation sampling (M16), is **deferred to the doc-03 milestone** and is
+not specified here. Evidence packet:
+`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
+
+**IPR — Interpolation Physics Residual (VAL-03; Q-C3).** For each trajectory a
+velocity-carrying cubic Hermite interpolant `CubicHermiteSpline(t, q, dydx=v)` is built from
+the snapshot positions `q` and the recorded file velocities `v`. `PchipInterpolator(t, q)` is
+**prohibited**: it discards the recorded velocities and synthesizes slopes from shape, yielding
+a different spline whose second derivative diverges most near encounters. The residual is
+evaluated at 10 deterministic mid-offset interior points per interval,
+`tau_{i,j} = t_i + (j - 1/2) * dt_i / 10` for `j = 1..10` (never at knots, never random), and
+
+`IPR = (1 / M_total) * sum_k || q''_spline(tau_k) - F_grav^eps(q_spline(tau_k)) ||^2`, with
+`M_total = 10 * (n_snapshots - 1)`,
+
+the mean squared stacked 9-component residual between the interpolant's second derivative and
+the analytic Plummer-softened gravity at validation softening `eps_inv = 1e-10`. IPR is
+computed in **raw `G = 1` units on the parsed arrays** (GAP-28-02 RESOLVED-WITH-INSTRUCTION,
+user sign-off 2026-06-16): raw matches the locked conservation/SCS convention — the data
+pipeline computes energy conservation in raw `G = 1` units — and the raw-array convention of
+the companion data-side metrics. IPR is dimensionful (acceleration-squared, scaling as
+`D^2/T^4`), so the gate is **unit-bound**: under the locked global scale the same numeric
+value differs by about 464x between raw and scaled readings; the canonical convention is raw,
+and a scaled reading must be converted before comparison.
+
+Dual-epsilon (PHYS-03 consistency): the data-side validation IPR uses the static invariant
+softening `eps_inv = 1e-10` (§2.5); the training-time `epsilon_train = 1e-5`
+(`pinn_architecture.md` §3.4) belongs to a **distinct** training-loop metric `IPR_train` (the
+ALM noise-floor role), not to this data-side gate. They are different quantities with
+different epsilons; this clause does not conflate them, and the `IPR_train` noise-floor role
+is **deferred to the doc-03 milestone** via this forward-reference.
+
+Flag rule (provisional): `IPR > 1e-3` (raw units) flags the trajectory for resampling with the
+same flag-not-auto-reject semantics and disposition routing as SASD — **not** an auto-reject.
+The `1e-3` constant is provisional pending recalibration to the admitted-set IPR distribution
+(doc-03 / FUT-01), a separate axis from the raw/scaled unit pin resolved here. Persist `IPR`
+and the maximum per-interval contribution with its interval index. Evidence packet:
+`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md`.
+
+**PSC — Phase-Space Coverage Entropy (VAL-04; Q-C4).** A dataset-level, **report-only
+coverage diagnostic** — unlike SASD and IPR it carries no per-trajectory flag and no
+admission/reject authority; it reports how completely the admitted population samples phase
+space. PSC is the Shannon entropy of the pooled occupancy distribution over a discretized
+phase-space grid,
+
+`PSC = - sum_b p_b * log p_b`,
+
+with `b` indexing grid cells and `p_b` the pooled occupancy fraction in cell `b` (grounded:
+`data_quality_assessment.md:176-190`; `02-data-pipeline-and-validation.md:167-169`). A companion
+close-encounter coverage ratio (**SCR**) reports the pooled fraction of records whose scaled
+minimum pair-distance falls in the near-singular region, so the diagnostic cannot certify
+coverage while the chaotic close-encounter tail is empty.
+
+Pooled-population composition (**GAP-28-03 RESOLVED-WITH-INSTRUCTION, user sign-off 2026-06-16**):
+the occupancy distribution is built over **one record per `physical_key`, preferring the gold
+realization where present and falling back to base** (dedup-prefer-gold; the base-only
+`gold_counterpart = absent` ICs — the 67 permanent Stage-5 holes — enter via base), and **each
+surviving trajectory contributes unit total mass, i.e. each snapshot is weighted by
+`1 / N_t(record)`** (`N_t` = the record's snapshot count). This trajectory-equal (not
+snapshot-equal) weighting neutralizes the base/gold snapshot-count asymmetry (gold
+`dt_out = 0.01`, ~1003 snapshots; base `dt_out = 0.17`, ~61), so the statistic reports how many
+ICs reach each region rather than how many snapshots, and the low-snapshot base-only chaotic
+tail is held at full per-trajectory weight instead of suppressed by ~16x; dedup prevents an IC's
+base and gold realizations from double-counting. The two operations are orthogonal — dedup
+removes physical-system duplication, `1/N_t` removes resolution skew — and together make PSC an
+honest coverage statistic under the dataset's MNAR gold censoring (the 67 unobtainable gold
+counterparts are precisely the chaotic close-encounter tail). The composition is
+consolidator-original synthesis (`02-resolution-doc.md §5.4 Q-C4`), ratified here on those
+grounds, not transcribed from a silent source. Computed from the raw parsed arrays under the
+locked `G = 1`, raw-mass convention (§2.5 PIPE-09), consistent with the companion metrics.
+
+Provisional construction, pending the first-run PSC/SCR sanity check on the materialized pool
+(FUT-01): the phase-space coordinates (resolution-doc candidate: sorted scaled pair-distances,
+permutation-invariant), the grid (candidate: log-spaced bins on `[1e-3, 1e2]`, 25 per axis,
+`K = 625`), the estimator normalization (candidate: `H_norm = H / ln K`, with a Miller-Madow
+finite-sample correction reported, not silently added), and the SCR anchor (candidate: scaled
+`d_min < 0.5`, the Stage-6 anchor) are **not fixed here** — they are the resolution doc's
+consolidator-original candidate (`02-resolution-doc.md §5.4 Q-C4`), confirmed or revised by the
+first-run sanity check on the **final post-promotion population** (the 117 gold promotions shift
+those ICs base->gold and refine their occupancy, so the check runs after the 184->67 promotion
+cascade lands, recorded as the FUT-01 dataset-finalization gate). This mirrors the provisional
+status of the SASD `0.5` and IPR `1e-3` constants. Persist `PSC`, `SCR`, the per-cell occupancy
+(or its sufficient statistics), and the population/grid parameters of the run. The naive
+all-snapshot pooled value is confounded by both resolution mix and base/gold duplication and is
+**not** a deliverable. Replay-governance and training-side use of PSC is **deferred to the doc-03
+milestone** via this forward-reference. Evidence packet:
+`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md`.
 
 ## Step 2: Unified Preprocessing Pipeline
 
@@ -411,6 +722,18 @@ quarantine it for parser debugging. This mass-invariance gate also carries the
 folded-in B-11 (COM <-> mass consistency) assertion: the COM transform in 2.2
 and every BRUTUS-snapshot correction require consistent masses between the IC
 and the BRUTUS output.
+
+> **Precision note (PIPE-07, `accept-resolution`, DATA-05 rerun validated 70/70).**
+> `float64` is the data-side precision contract for all validation metrics and
+> invariants. `decimal.Decimal` is used **only** as the failure classifier for
+> the IC↔Brutus `t=0` mass-consistency gate (`max_i |Δm_i| < 1e-15`, float64
+> absolute), never as the routine parsing or metric-computation path. Current
+> IC masses are canonical; the 70 historical base-hier mismatches were stale
+> artifacts (0.1–1.0 mass units, not a float64 round-trip), not a precision
+> failure, and were remediated by targeted rerun from the current canonical ICs
+> (`24-DATA05-RERUN-VALIDATION.md`: 70/70 PASS). A future IC↔Brutus mass-gate
+> mismatch is a **fail** condition for the affected trajectory (quarantine), not
+> a trigger to switch the metric path to Decimal.
 
 ### 2.2 COM recenter and zero-momentum boost
 
@@ -603,9 +926,11 @@ only and is not adopted in v1.4. See
 `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
 for the full EVID-05 adjudication.
 
+**Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{1/3} \approx 4.6416$ is the **canonical** convention (HC-6 / PHYS-01). Raw masses are used throughout the framework; the dimensionless residual keeps unit coefficient with raw $m_j$, forcing $D^3 = G T^2$. The mass-fraction alternative $D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ (with $M_{\mathrm{tot}} = 3$) is **rejected as a pipeline instruction** and remains documented as a future-only rewrite requiring a framework-wide migration (every residual, Hamiltonian, invariant, COM formula; stage thresholds re-derived; normalizers recomputed; processed stores regenerated; network retrained). **No configuration parameter may select the mass-fraction form.** The potential regularizes with the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with $\varepsilon_{\mathrm{inv}} = 10^{-10}$; $\varepsilon$ enters $V$ only. **Additive $+ \epsilon$ on the distance norm is the PHYS-03 anti-pattern and is prohibited.** The `compute_globals` scope evaluates per-IC energies with raw masses over the **admitted set** (post-Step-1A admission, post-blacklist exclusion, post-DATA-05-quarantine). Medians over the admitted set are deterministic and immune to NaN poisoning from corrupt or stale records. See `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md` for the EVID-10 adjudication record.
+
 Global normalization scales (computed after scaling all trajectories):
 
-- $E_{\mathrm{scale}} = \lvert \mathrm{median}(\{E_j\}) \rvert + 10^{-10}$
+- $E_{\mathrm{scale}} = \lvert \mathrm{median}(\{E_j\}) \rvert + 10^{-8}$
 - $s_{\min,\mathrm{scale}} = \mathrm{median}(\{r_{\mathrm{char},j}\})$, where
   $r_{\mathrm{char},j} = \frac{1}{3} \sum_{i<k} \lVert \mathbf{r}'_{i,j} - \mathbf{r}'_{k,j} \rVert$
 - $Q_{\mathrm{scale}}$ remains fixed at $0.5$.
@@ -645,8 +970,47 @@ r_true_prime_ordered_gauge: (Nt,3,3)
 v_true_prime_ordered_gauge: (Nt,3,3)  # optional but recommended
 IC13: (13,)
 invariants: E, Q, s_min, L_vec, L_norm, I_norm_raw, I1, I2, I3, tau_L
-brutus_tolerance, word_length, dt_out, trustworthy_horizon
+brutus_tolerance, word_length, dt_out, n_snapshots, trustworthy_horizon
 ```
+
+Each processed record additionally carries `param_provenance` (PIPE-06 / D7): a
+map over `{brutus_tolerance, word_length, dt_out, eta}` with values in
+`{'direct', 'inferred', 'absent', 'measured'}`, assigned by the Step-1 item-3
+footer-handling contract — `'direct'` when read from a present footer,
+`'inferred'` when taken from the folder-level default for a footer-absent file,
+`'absent'` for `eta` when no footer and no default exist (stored `null`), and
+`'measured'` for the `dt_out` value derived from the median inter-snapshot
+timestamp spacing (which also drives the >1% footer/default cross-check warning).
+The `trustworthy_horizon` field is RESERVED — its definition is pending (Open
+Item OI-4); writers emit `null` and readers MUST NOT consume it until it is
+defined.
+
+#### Data-side stage-query interface
+
+The preprocessed trajectory store exposes a data-side query interface for
+stage-aware sampling. The method names are locked by the Phase 27 specification
+(`27-SPEC.md`); the data-side semantics are grounded in `REQUIREMENTS.md` PIPE-08
+and described in `pinn_instruction/issues/03-curriculum-and-training-loop.md`
+(lines 683–684, cited as descriptive reference only, not authority).
+
+- `sample_replay(n, max_stage)` — sample `n` trajectories from the cumulative
+  dataset $D_{\leq k}$ (all trajectories from stages $0$ through `max_stage`).
+  The query operates on the admitted, preprocessed trajectory set and returns
+  trajectories together with their per-trajectory metadata (`dt_out`,
+  `n_snapshots`, and the fields listed above).
+
+- `sample_lookahead(n, stage)` — sample `n` trajectories from the next-stage
+  dataset $D_{k+1}$ (the single stage `stage`). The query operates on the
+  admitted, preprocessed trajectory set and returns trajectories together with
+  their per-trajectory metadata.
+
+> **Scope boundary (SCOPE-11).** This sub-section defines the data-side query
+> signatures and their dataset semantics only. Collocation-density scaling that
+> consumes `dt_out` / `n_snapshots` (the M16 question), replay-fraction policy,
+> lookahead-ratio scheduling, and any training-loop usage of these interfaces are
+> deferred to the doc-03 milestone. A forward reference is recorded here so that
+> the data-side contract is visible to FUT-01 DataLoader implementation without
+> prematurely committing to training-loop policy.
 
 Raw masses are always available separately from the network-facing mass
 channels. Step 3 consumes the COM-corrected, canonically ordered, gauge-fixed,
@@ -1065,7 +1429,52 @@ simulation. This is achieved by applying the specific threshold criteria
 defined in this document in section 2.3 on 'Multi-Stage Data
 Stratification by Difficulty'. This process should be fully automated in
 a script that reads the table of computed invariants and outputs a
-mapping from each simulation ID to its assigned stage index.
+mapping from each simulation ID to its assigned stage index. The stage
+mapping is keyed by `record_key`, never by positional index, per the
+Step-1 ID-resolution contract (Step 1 item 7); only trajectories admitted
+by the Step 1A gate appear in this mapping. (Stage-label obligation is
+per-ID, not per-simulation: every Stage-4-admitted ID owes a Stage-5 gold
+sample — GAP-26-01 resolved 2026-06-13, OI-7a; see the resolved
+gold-counterpart note below.)
+
+**Gold-counterpart contract (data-side, mandatory).** A standard
+`physical_key` may lack a gold-resolution realization (verified: 184
+standard IDs have no gold counterpart). The loader MUST handle this as a
+data-side invariant, independently of any Stage-5 fallback policy:
+
+- The gold-missing set is computed at init as the set difference of the
+  scanned base and gold ID sets, cross-checked against the verified 184-ID
+  list in `standard_quasi_random_ids_not_in_gold.md` (discrepancies
+  logged). The set is never hard-coded.
+- Each `physical_key` carries metadata `gold_counterpart ∈ {present,
+  absent}`.
+- The Stage-5 stratum (Set 2b, gold standard) is built by iterating the
+  gold folder's actual files, never by base-ID lookup into the gold index
+  (which would manufacture 184 spurious misses by construction).
+- A base-fidelity record is never silently substituted into a
+  gold-resolution slot.
+
+> **RESOLVED — Stage-5 labels attach to IDs (GAP-26-01, framework-owner
+> ruling 2026-06-13, OI-7a).** The label-semantics question — do Stage-5
+> stage labels attach to *simulations* (`record_key`) or to *IDs* — is
+> ruled in favor of **IDs**: every Stage-4-admitted ID owes a Stage-5
+> gold sample. Under this ruling the 184 standard IDs without a gold
+> counterpart are **genuine Stage-5 gold holes** (the per-simulation
+> no-fallback entailment is rejected, because it presupposed the
+> simulations reading). The resolution is a **data-generation
+> remediation, not a loader fallback**: the framework owner directed that
+> the missing gold counterparts for the 184 standard IDs be **re-simulated
+> to restore a 1:1 base:gold correspondence** (OI-7b, activated 2026-06-13).
+> No base→gold substitution is introduced (the mandatory data-side
+> contract above already forbids it and stays in force), and no silent
+> skip. **Pending re-simulation**, each affected ID carries
+> `gold_counterpart = absent` and contributes no gold Stage-5 sample; the
+> loader's gold-missing set (the set-difference machinery in the contract
+> above) is the **remediation backlog**, expected to be empty once the
+> re-simulated gold trajectories land and validate. **Forward dependency
+> (not yet executed):** the 184 gold re-simulations are a data-generation
+> prerequisite for a complete gold Stage-5 stratum (OI-7b). See
+> `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
@@ -1197,10 +1606,11 @@ At the beginning of a new stage $k$:
 ### Mini-Batch Construction with Lookahead Sampling
 
 For batch size B (e.g., 256), reserve $\rho_{\text{lookahead}}$ (e.g.,
-5%) for lookahead sampling to smooth stage transitions. Sample
-$n_{\text{pts}}$ (e.g., 32) time points per trajectory: 50% uniform from
-$[0, T]$, 50% weighted by acceleration norm (prioritizes close
-encounters).
+5%) for lookahead sampling to smooth stage transitions.
+
+> **Per-trajectory data-loss point count.** `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))`, sampled **without replacement** from the trajectory's snapshot times. `n_pts_cap` defaults to 32 (the spec's example value; not evidence-based -- revisit with admitted-set snapshot distributions; exposed as a configuration knob). The 50/50 composition is realized as: `k_w = floor(n_pts/2)` acceleration-norm-weighted draws without replacement (Gumbel-top-k), then `n_pts - k_w` uniform draws without replacement from the remainder; all draws from a seeded generator. The loader exposes `n_snapshots(traj)` and `dt_out(traj)` as metadata (forward interface for the deferred M16 collocation-density question -- doc-03; not used here). **No `0.5 x n_snapshots` factor is imposed** (unevidenced; see Q-B1 resolution).
+>
+> Citation: locked M12 verdict in `evidence/m11-m12-severity.md` (Phase 25 EVID-10). Verified snapshot-count medians (DATA-06, CLM-10): 61 standard-base / 127 hierarchical-base / 1003 gold. These are population medians, not hard per-file guarantees.
 
 | Portion | Purpose | Symbol | Size |
 |---|---|---|---:|

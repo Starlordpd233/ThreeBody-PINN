@@ -25,8 +25,10 @@ You have been given two files:
 
 The project has recently spent several milestones on framework-specification
 work: revising, adjudicating, and stabilizing its core framework markdown
-documents. The project owner is approaching the end of that spec-heavy period
-and is unsure what broad direction should come next.
+documents. It also has an active v1.6 curriculum/training-loop adjudication
+gate, described in the attached context. The project owner wants strategic
+advice about the broad direction after or alongside that in-flight gate, not a
+replacement for the active adjudication workflow.
 
 Two candidate directions are already visible:
 

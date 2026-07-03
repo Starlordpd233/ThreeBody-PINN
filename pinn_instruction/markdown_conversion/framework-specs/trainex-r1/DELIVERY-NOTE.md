@@ -42,18 +42,20 @@ at consolidation (below).
 
 ## What to send to each external research agent
 
-For **R1a**: per `research_package_a/RESEARCH-AGENT-PROMPT.md` — attach
-`research_package_a/RESEARCH-CONTEXT-MASTER.md` plus the three snapshots from the shared
-`specs/` directory at this round root, and paste the prompt below its horizontal rule.
+For **R1a**: use the R1a `RESEARCH-AGENT-PROMPT.md`. Upload four individual files
+named `RESEARCH-CONTEXT-MASTER.md`, `2026-06-10-training-execution-design.md`,
+`pinn_architecture.md`, and `ctl_instruction.md`, then paste the prompt below its
+horizontal rule.
 
-For **R1b**: per `research_package_b/RESEARCH-AGENT-PROMPT.md` — attach
-`research_package_b/RESEARCH-CONTEXT-MASTER.md` plus the same three shared `specs/`
-snapshots, and paste the prompt below its horizontal rule.
+For **R1b**: use the R1b `RESEARCH-AGENT-PROMPT.md`. Upload four individual files
+named `RESEARCH-CONTEXT-MASTER.md`, `2026-06-10-training-execution-design.md`,
+`pinn_architecture.md`, and `ctl_instruction.md`, then paste the prompt below its
+horizontal rule.
 
-The `specs/` directory is repo organization only — upload files individually; the agent
-sees filenames, not directories. **Snapshots are stored once at the round root and
-shared by both sub-packages** (ERW storage rule: never duplicate snapshot sets per
-sub-package; a routing note like this one does the job).
+Repo layout is organization only — upload files individually; the agent sees only these
+filenames. **Snapshots are stored once at the round root and shared by both
+sub-packages** (ERW storage rule: never duplicate snapshot sets per sub-package; a
+routing note like this one does the job).
 
 ## Scope notes
 

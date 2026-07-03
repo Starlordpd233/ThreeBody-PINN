@@ -1,0 +1,6 @@
+=== LOOP-08: SASD training-side provisional ===
+[1] PASS: provisional token present
+[2] PASS: SASD token present
+[3] PASS: VAL-02 token present
+
+=== LOOP-08: ALL CHECKS PASSED ===

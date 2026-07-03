@@ -67,7 +67,9 @@ metrics:
   binding). Values near zero indicate marginally bound or unbound
   systems which tend to be more chaotic. (Bound systems satisfy $E<0$;
   as a guideline, "Stage 0" easiest cases have $E<-0.5$ in normalized
-  units.)
+  units; the full Stage 0..6 inventory with per-stage definitions and
+  per-stage criteria is given in §2.3 "Multi-Stage Data Stratification
+  by Difficulty".)
 
 - **Total Angular Momentum Magnitude ($L$) and $L/L_{\max}$:** $L$ is
   the magnitude of the total angular momentum vector. We often normalize
@@ -189,7 +191,7 @@ as follows:
 - **Stage 3: Moderately Chaotic (Low-Fidelity)** Data source:
   low-fidelity quasi-random simulations (Set 1b).
 
-  - **Criteria:**
+  - **Criteria (per-stage gating):**
 
     - $E \leq E^{\mathrm{LF}}_{25\%}$ (top 25% most bound in LF dataset)
 
@@ -208,7 +210,7 @@ as follows:
 
     - **Data Source:** Remaining low-fidelity simulations
 
-    - **Criteria:**
+    - **Criteria (per-stage gating):**
 
       - $\tau_L > 5$ (Lyapunov time $>$ 5 code units)
 
@@ -219,7 +221,7 @@ as follows:
 
     - **Data Source:** Remaining low-fidelity simulations
 
-    - **Criteria:**
+    - **Criteria (per-stage gating):**
 
       - $2 < \tau_L \leq 5$
 
@@ -229,7 +231,7 @@ as follows:
 - **Stage 5: High-Resolution Chaotic Orbits** Data source:
   High-resolution chaotic simulations (Set 2b).
 
-  - **Criteria:** Same as Stage 4
+  - **Criteria (per-stage gating):** Same as Stage 4
 
   - **Description:** High-temporal-resolution trajectories of chaotic
     systems. Focuses on resolving close encounters.
@@ -258,6 +260,78 @@ and escapes. This invariant-based stratification is mathematically sound
 in that each invariant correlates with aspects of the equations of
 motion's behavior (stability, boundedness, etc.), providing a principled
 way to rank problem instances by difficulty.
+
+> **Phase 33 contract: stage 0-6 inventory, per-stage definitions, per-stage
+> criteria, cumulative replay, and Stage-6 catch-all (D-33-12; AC-CURR-04).**
+> The list above is the full Stage 0-6 inventory and the per-stage definitions +
+> per-stage criteria contract. Stage 0 through Stage 6 are each named with their
+> data source, criteria, and description; this is the complete inventory and no
+> Stage-7+ is defined. **Cumulative replay** is the rule above: each subsequent
+> stage's training set includes all data from previous stages plus the new
+> subset. **Stage-6 catch-all** handling for near-collision / extreme cases
+> (`s_min < 0.5` OR `|E| < 0.01`) is the final stage of the inventory and
+> absorbs the near-collision tail across both fidelities (HF+LF). **Stage
+> trajectory counts:** v1.5 verification does not yet support numeric trajectory
+> counts per stage; stage counts cited without supporting verification evidence
+> are marked **claimed** (asserted by the spec but not verified against the
+> dataset) or **FUT** (pending the FUT admitted-set EDA run, SCOPE-15). Only
+> stage counts with explicit verification support may be marked **verified**.
+> See `ctl_instruction.md` Step 3 item 2 for the raw `L_norm` metadata storage
+> and the nonfinite / near-degenerate `L_max` guard contract that underpins
+> Stage-6 catch-all diagnostics.
+
+> **Phase 33 contract: Stage-6 curriculum `s_min` gate and dual-context
+> epsilon (CURR-05; D-33-13, D-33-14, D-33-15; AC-CURR-05; grounded by
+> Phase 32 `GAP-32-02` / `GAP-32-03` owner decisions and the `D-05` /
+> `D-06` evidence packets).** The Stage-6 curriculum collision gate uses
+> **unsoftened geometric s_min** (the raw `s_min` from Step 3 item 1)
+> computed from the **true pairwise
+> separations** $\min_{i<j} \lVert \mathbf r'_i - \mathbf r'_j \rVert$ (Step 3
+> item 1). The curriculum gate does **not** apply any Plummer, additive, or
+> epsilon-floored softening to `s_min`; the gate value is the raw geometric
+> minimum separation, and that raw value is logged for diagnostics. The
+> issue-doc `max(s_min, epsilon)` phrasing is **rejected** per PHYS-03
+> (additive `+ epsilon` on the distance norm is the PHYS-03 anti-pattern; see
+> Step 3 item 1 anti-pattern block); it is not transcribed as a curriculum
+> gate. **Loss-side matched-Plummer softening belongs to Phase 35**, not the
+> curriculum gate: the training-time residual/energy
+> `epsilon_train = 1e-5` matched-Plummer contract is owned by the Phase 35
+> loss contracts and is *not* a curriculum-stage-gate parameter; Phase 33
+> does not define loss contracts. **Dual-context epsilon instruction** (where
+> static-invariant epsilon appears in curriculum metadata): offline
+> invariants retain `epsilon_inv = 1e-10` (consistent with v1.5-locked IPR
+> GAP-28-02 and Step 3 item 1); training retains `epsilon_train = 1e-5`. The
+> two contexts are distinct and are not conflated. **Cross-phase handoffs:
+> Phase 34** owns replay / lookahead batching, batch construction, ALM, and
+> training-side metric contracts; **Phase 35** owns loss-side softened
+> `s_min`, loss scaling, energy weighting, Huber delta, and causal training
+> mode. Phase 33 records these handoffs only and does not plan those
+> contracts. This implements GAP-32-02 (Option A) and GAP-32-03 (Option A =
+> issue-doc Option B); Option C (collapse static `epsilon_inv` to `1e-5`) is
+> rejected.
+
+> **Phase 33 contract: data-driven adaptive stage assignment (CURR-01;
+> D-33-01, D-33-02, D-33-03; AC-CURR-01; grounded by GAP-33-01 and resolution
+> doc §1.15).** Stage assignment is an **offline admitted-set methodology**
+> that *augments* the static theoretical anchors above (energy $E$, virial $Q$,
+> $s_{\min}$, $\tau_L$, $L_{\mathrm{norm}}$); it does not replace the multi-fidelity
+> topology. The methodology is: admitted-set EDA -> robust transforms -> PCA ->
+> clustering -> quantile threshold boundary calibration, producing stable
+> integer stage labels keyed by `record_key` (never by positional index) so the
+> dataset<->framework binding does not drift at training time. This contract:
+>
+> - **preserves** the **Stage-2 hierarchical-gold** and **Stage-5
+>   quasi-random-gold** refinement roles defined above (`stage_strat_revision.md`
+>   Table 4 is NOT adopted wholesale; ADAPT-03 rejected; DGR-15);
+> - **does NOT lock** any per-stage population safeguard value (5% / `>10%` /
+>   adaptive) — the **population safeguard value is owner-pending** the FUT
+>   admitted-set EDA (SCOPE-15), matching GAP-33-01 and resolution doc §1.15
+>   (ADAPT-04 `surface_to_user`, ADAPT-07 `defer`); the roadmap / `CURR-01`
+>   `>10%` phrasing is superseded by this deferral and is not transcribed as a
+>   locked floor;
+> - **defers** the actual admitted-set EDA run, the cluster count, and the
+>   per-stage quantile cut points themselves to the owner after the FUT
+>   admitted-set EDA (SCOPE-15; CLM-02..07 remain unverified).
 
 # A Glimpse at the Data
 
@@ -491,7 +565,7 @@ counts per folder at init.
    `1e-6` is the Acceptable/Marginal band boundary (`SCS = -6`) mis-promoted to
    a reject gate, and `1e-8` is an unsourced tightening proposal with no package
    basis. The EVID-10 adjudication record is
-   `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
+   `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
    Any stage-conditional SCS tightening (OI-2) is deferred to doc-03 and
    per-variant SCS distributions; it is not a Phase 28 policy. SASD, IPR, and
    PSC are companion data-side validation metrics in the `Data-side
@@ -605,7 +679,9 @@ adequacy from the snapshots that exist and is complemented by IPR (below), which
 between snapshots via the interpolant — the pairing is by design. Training-side use,
 SASD-weighted collocation sampling (M16), is **deferred to the doc-03 milestone** and is
 not specified here. Evidence packet:
-`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
+`.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/sasd-sampling-density.md`.
+
+> **Phase 34 contract: SASD training-side collocation-weighting role (LOOP-08; provisional; grounded by VAL-02).** SASD is carried as a provisional signal for training-side collocation weighting. No weighting formula is invented here (same discipline as LOOP-06); the role is forward-referenced and recalibration is FUT (SCOPE-15), not done in Phase 34.
 
 **IPR — Interpolation Physics Residual (VAL-03; Q-C3).** For each trajectory a
 velocity-carrying cubic Hermite interpolant `CubicHermiteSpline(t, q, dydx=v)` is built from
@@ -640,7 +716,7 @@ same flag-not-auto-reject semantics and disposition routing as SASD — **not** 
 The `1e-3` constant is provisional pending recalibration to the admitted-set IPR distribution
 (doc-03 / FUT-01), a separate axis from the raw/scaled unit pin resolved here. Persist `IPR`
 and the maximum per-interval contribution with its interval index. Evidence packet:
-`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md`.
+`.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/ipr-physics-residual.md`.
 
 **PSC — Phase-Space Coverage Entropy (VAL-04; Q-C4).** A dataset-level, **report-only
 coverage diagnostic** — unlike SASD and IPR it carries no per-trajectory flag and no
@@ -689,7 +765,9 @@ status of the SASD `0.5` and IPR `1e-3` constants. Persist `PSC`, `SCR`, the per
 all-snapshot pooled value is confounded by both resolution mix and base/gold duplication and is
 **not** a deliverable. Replay-governance and training-side use of PSC is **deferred to the doc-03
 milestone** via this forward-reference. Evidence packet:
-`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md`.
+`.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/psc-coverage-entropy.md`.
+
+> **Phase 34 contract: training-side IPR / PSC roles (LOOP-07; v1.5 carry-forward; provisional; grounded by VAL-03 / VAL-04).** For the training loop, `IPR_train` serves as the ALM-convergence / noise-floor signal, carrying the provisional `1e-3` threshold from the data-side IPR contract. PSC serves as a provisional signal for replay-buffer governance, carrying the provisional grid / normalization / SCR parameters. Both roles are recalibrated in FUT (SCOPE-15), not during Phase 34; no numeric probe or EDA is performed.
 
 ## Step 2: Unified Preprocessing Pipeline
 
@@ -926,7 +1004,7 @@ only and is not adopted in v1.4. See
 `.planning/milestones/v1.4-phases/16-evidence-framework-and-issue-adjudication/evidence/B-02.md`
 for the full EVID-05 adjudication.
 
-**Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{1/3} \approx 4.6416$ is the **canonical** convention (HC-6 / PHYS-01). Raw masses are used throughout the framework; the dimensionless residual keeps unit coefficient with raw $m_j$, forcing $D^3 = G T^2$. The mass-fraction alternative $D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ (with $M_{\mathrm{tot}} = 3$) is **rejected as a pipeline instruction** and remains documented as a future-only rewrite requiring a framework-wide migration (every residual, Hamiltonian, invariant, COM formula; stage thresholds re-derived; normalizers recomputed; processed stores regenerated; network retrained). **No configuration parameter may select the mass-fraction form.** The potential regularizes with the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with $\varepsilon_{\mathrm{inv}} = 10^{-10}$; $\varepsilon$ enters $V$ only. **Additive $+ \epsilon$ on the distance norm is the PHYS-03 anti-pattern and is prohibited.** The `compute_globals` scope evaluates per-IC energies with raw masses over the **admitted set** (post-Step-1A admission, post-blacklist exclusion, post-DATA-05-quarantine). Medians over the admitted set are deterministic and immune to NaN poisoning from corrupt or stale records. See `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md` for the EVID-10 adjudication record.
+**Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{1/3} \approx 4.6416$ is the **canonical** convention (HC-6 / PHYS-01). Raw masses are used throughout the framework; the dimensionless residual keeps unit coefficient with raw $m_j$, forcing $D^3 = G T^2$. The mass-fraction alternative $D = (G M_{\mathrm{tot}} T^2)^{1/3} \approx 6.694$ (with $M_{\mathrm{tot}} = 3$) is **rejected as a pipeline instruction** and remains documented as a future-only rewrite requiring a framework-wide migration (every residual, Hamiltonian, invariant, COM formula; stage thresholds re-derived; normalizers recomputed; processed stores regenerated; network retrained). **No configuration parameter may select the mass-fraction form.** The potential regularizes with the Plummer form $r_{\mathrm{safe}} = \sqrt{\lVert \mathbf{r}'_i - \mathbf{r}'_j \rVert^2 + \varepsilon_{\mathrm{inv}}^2}$ with $\varepsilon_{\mathrm{inv}} = 10^{-10}$; $\varepsilon$ enters $V$ only. **Additive $+ \epsilon$ on the distance norm is the PHYS-03 anti-pattern and is prohibited.** The `compute_globals` scope evaluates per-IC energies with raw masses over the **admitted set** (post-Step-1A admission, post-blacklist exclusion, post-DATA-05-quarantine). Medians over the admitted set are deterministic and immune to NaN poisoning from corrupt or stale records. See `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/compute-globals-D.md` for the EVID-10 adjudication record.
 
 Global normalization scales (computed after scaling all trajectories):
 
@@ -1084,6 +1162,41 @@ final network IC slots under the Phase 17 input contract.
     the characteristic circular‐orbit scale at energy $E$. All other
     historical variants are deprecated.
 
+    > **Phase 33 contract: $L_{\max}$ characteristic scale + raw $L_{\mathrm{norm}}$
+    > storage + degenerate-$L_{\max}$ guard (CURR-02 D-33-04, CURR-04 D-33-10 /
+    > D-33-11; AC-CURR-02-LMAX, AC-CURR-04; grounded by GAP-33-02 and GAP-33-03,
+    > resolution doc §1.6 / §1.17).**
+    >
+    > - $L_{\max} = M_{\mathrm{tot}} \, r_{\mathrm{char}} \, v_{\mathrm{char}}$ is the
+    >   **characteristic angular-momentum scale**, **not a proven global maximum**
+    >   (LMAX-02). For high-eccentricity or hierarchical configurations $L$ can
+    >   transiently exceed this scale, so $L_{\mathrm{norm}} = L / L_{\max}$ can
+    >   legitimately overshoot 1. The "proven maximum" framing in the issue doc is
+    >   rejected.
+    > - **Raw un-clipped $L_{\mathrm{norm}}$ storage** (D-33-10):
+    >   $L_{\mathrm{norm}}$ is **staging / diagnostic metadata**, **not** an
+    >   `IC13` network slot (see Phase 17 contract; SCOPE-12). It is stored **raw
+    >   and un-clipped** so downstream stage-gating, replay analysis, and
+    >   acceptance probes retain the true overshoot magnitude. The `np.clip`
+    >   storage value proposed in the issue doc is NOT the locked contract.
+    > - **Mandatory nonfinite / near-degenerate $L_{\max}$ guard** (D-33-10):
+    >   when $L_{\max}$ is **nonfinite** or **near-degenerate** (e.g. near-zero
+    >   $|E|$ or near-zero $r_{\mathrm{char}}$ for a near-collision configuration),
+    >   the recorded $L_{\mathrm{norm}}$ MUST carry a **diagnostic flag** rather
+    >   than being silently clamped or stored as `inf` / `nan`. Stage 6
+    >   (`$s_{\min} < 0.5$ OR $|E| < 0.01$`) is precisely the regime where $|E|$
+    >   is small, so a global clamp would erase exactly the diagnostic signal
+    >   that distinguishes genuine near-collision trajectories from formula
+    >   failure.
+    > - **No global clamp is authorized** (D-33-11; M6-01 rejected — the original
+    >   "clamp before IC mapping" rationale is rejected because $L_{\mathrm{norm}}$
+    >   is metadata, not an `IC13` slot). The `np.clip(L_norm, 0, 1)` **stage-gate
+    >   is NOT locked**; the clipped-gate-vs-raw question (raw-only vs
+    >   raw-plus-derived-clipped vs global-clipped) is **owner-pending** admitted-set
+    >   evidence (GAP-33-03; M6-02 `surface_to_user`, M6-03 `defer`, DGR-07).
+    >   Raw-only is the locked default; the other two options remain available
+    >   should later admitted-set evidence support a bounded gate.
+
     ```python
     def compute_L_norm(m, r_prime, v_prime, E, eps=1e-10):
         L_vec = np.sum([m[i] * np.cross(r_prime[i], v_prime[i]) for i in range(3)], axis=0)
@@ -1094,6 +1207,12 @@ final network IC slots under the Phase 17 input contract.
         v_char = np.sqrt(2 * np.abs(E) / M_total + eps)
         L_max = M_total * r_char * v_char
         return L / (L_max + eps)
+        # Phase 33 (CURR-04): raw un-clipped storage; no global clamp authorized.
+        # Callers MUST attach a diagnostic flag when L_max is nonfinite or
+        # near-degenerate (e.g. |E| or r_char below a numerical floor); the
+        # np.clip(L_norm, 0, 1) stage-gate is NOT locked (and is therefore
+        # not locked as a normative gate; owner-pending admitted-set
+        # evidence, GAP-33-03).
     ```
 
 3.  **Normalized moment of inertia $I_{\mathrm{norm,raw}}$.** Let $I(\mathbf r')$ be the inertia tensor about
@@ -1190,6 +1309,42 @@ final network IC slots under the Phase 17 input contract.
     6.  *Lyapunov Time:* The Lyapunov time is then calculated as
         $\tau_L = 1/\lambda_{\max}$. If $\lambda_{\max} \le 0$, we
         consider the system to be regular and set $\tau_L = \infty$.
+
+    > **Phase 33 contract: $\tau_L$ Rosenstein-style revisable baseline, owner-pending
+    > final estimator, and `IC13` exclusion (CURR-02 D-33-06 / D-33-07; AC-CURR-02-LMAX,
+    > AC-CURR-02-M7; grounded by GAP-33-02 and resolution doc §1.7 / §1.17).**
+    >
+    > - **$\tau_L$ is staging / evaluation metadata outside `IC13`** (D-33-06; M7
+    >   accepted, §1.7). $\tau_L$ is deliberately excluded from the locked
+    >   Jacobi-state input `IC13` by design: it is a trajectory-derived dynamical
+    >   property (the inverse of the largest Lyapunov exponent of the orbit),
+    >   not an IC invariant, and including it in `IC13` would create a circular
+    >   dependency (the network input would depend on a quantity derived from the
+    >   orbit the network is trained to predict). $\tau_L$ is used only for stage
+    >   assignment (Stage 4a $\tau_L > 5$, Stage 4b $2 < \tau_L \le 5$) and model
+    >   evaluation (predictability-horizon analysis); no `IC13` slot holds $\tau_L$.
+    > - The current **Rosenstein-style** trajectory estimator above is retained
+    >   as a **revisable baseline** (D-33-07). The final $\tau_L$ **estimator**
+    >   (Rosenstein vs shadow / Benettin vs other), the **time-unit convention**
+    >   (raw $t$ vs scaled $u = t/T$), **fit window**, **perturbation size**,
+    >   **uncertainty handling**, and the **final stage thresholds** are all
+    >   **owner-pending** before any threshold lock (GAP-33-02; TAUL-01
+    >   `surface_to_user`, TAUL-03 `defer`).
+    > - The issue-doc **shadow-trajectory** `compute_tau_L` method is **NOT
+    >   normatively adopted** (its force denominator $\lVert dr \rVert^3 +
+    >   \epsilon_{\mathrm{soft}}$ is not matched-Plummer, inconsistent with the
+    >   v1.5-locked PHYS-03 training softening; TAUL-02 rejected). The
+    >   unspecified **PCA+Rosenstein shortcut** is **NOT adopted** (TAUL-05
+    >   rejected). Any `epsilon_pert = 1e-8` / `epsilon_soft = 1e-10` referenced
+    >   in the issue doc are **shadow-method parameters only**, distinct from the
+    >   training-time softening $\varepsilon_{\mathrm{train}} = 10^{-5}$.
+    >
+    > **Canonical sentence (AC-CURR-02-M7):** $\tau_L$ is staging/evaluation
+    > metadata outside `IC13` by design — **tau_L is staging metadata, not a
+    > network input**; it lives **outside IC13** and is consumed only by stage
+    > assignment and model evaluation. The active global scale remains the
+    > v1.5-locked raw-mass **D ~= 4.6416** (§2.5; Phase 32 `D = 6.694` packet;
+    > `D = 6.694` is rejected provenance, not the active scale).
 
     ```python
     import numpy as np
@@ -1474,7 +1629,20 @@ data-side invariant, independently of any Stage-5 fallback policy:
 > re-simulated gold trajectories land and validate. **Forward dependency
 > (not yet executed):** the 184 gold re-simulations are a data-generation
 > prerequisite for a complete gold Stage-5 stratum (OI-7b). See
-> `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
+> `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/m13-gold-counterpart.md`.
+
+> **Phase 33 contract: stage-label materialization (CURR-01; D-33-01,
+> D-33-02, D-33-03; AC-CURR-01; grounded by GAP-33-01).** The offline
+> admitted-set EDA -> robust transforms -> PCA -> clustering -> quantile
+> threshold methodology (see "Multi-Stage Data Stratification by Difficulty"
+> Phase 33 contract above) **augments** the static theoretical anchors and
+> materializes a stable integer stage label keyed by `record_key` for every
+> Step-1A-admitted trajectory. Stage labels are integers 0..6 from the inventory
+> defined in §2.3; the mapping is **owner-pending** the FUT admitted-set EDA
+> run (SCOPE-15). The **population safeguard value is owner-pending** the FUT
+> admitted-set EDA; no 5% / `>10%` / adaptive floor is locked in Phase 33. The
+> Stage-2 hierarchical-gold and Stage-5 quasi-random-gold refinement roles are
+> preserved.
 
 # Phase 2 - The Definitive CTL-PINN Training Loop
 
@@ -1566,19 +1734,36 @@ where each term is defined by name in the PHYS-05 loss-term catalog in
 The loss-balancing contract, warmup schedule, and optimizer-phase semantics
 are defined in the PHYS-05 training-loss contract in `pinn_architecture.md`.
 
+> **Phase 35 contract: loss scaling and units (LOSS-01; NS-18 modified / NS-12 accepted; AC-LOSS-01 / AC-LOSS-01-AD; grounded by the resolution doc §§1.12/1.14 and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md` / `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-12-componentwise-ad.md`).** This `ctl_instruction.md` section owns dimensionless total-loss assembly and methodology; `pinn_architecture.md` owns the component math in **Data Fidelity Term**, **Physics Residual Term**, **Soft Energy Conservation Regularizer**, **Angular Momentum Conservation Loss**, and **Loss Balancing via Warmup Schedule (PHYS-05)**. The assembly contract keeps all terms in the same dimensionless coordinate system (`u=t/T`, `tau = 2u - 1`, scaled positions `r'=r/D`), preserves the Phase 34 separation between data-fidelity snapshot points and physics/energy collocation points, and records that energy reuses the physics collocation set. Component details remain in `pinn_architecture.md`: Huber data loss on projected scaled positions, componentwise AD with conditional tau/u chain factors, matched `epsilon_train = 1e-5` in physics and energy, raw-mass force/COM metadata, the IC anchor, the angular-momentum regularizer, and no linear-momentum / no-linear-momentum-loss term.
+
+> **Phase 35 contract: energy-loss weights (LOSS-02; M15 rejected as issue-doc replacement; AC-LOSS-02; grounded by the resolution doc §1.9 and `.planning/phases/35-loss-energy-weight-contracts/evidence/m15-energy-weight-schedule.md`).** Total-loss assembly retains the PHYS-05 schedule in `pinn_architecture.md` with `lambda_E^max <= 1` and scheduled conservation weights at or below one. The issue-doc replacement schedule and stale high-weight premise are rejected, not adopted. Before any future control law, training instrumentation must log weighted losses, scheduled weights, and gradient statistics; automatic dominance reweighting is deferred until measured weighted-loss/gradient evidence exists.
+
+> **Phase 35 contract: energy Huber delta (LOSS-03; NS-13 defer / deferred calibration; AC-LOSS-03; grounded by the resolution doc §1.13 and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-13-energy-huber-delta.md`).** Total-loss assembly uses the `pinn_architecture.md` **Soft Energy Conservation Regularizer** component as the canonical math home and keeps `delta_E = 1.0` as the configurable current baseline. Any stage-indexed or quantile-calibrated Huber transition is deferred until normalized `|Delta H|` quantiles, linear-branch occupancy, validation energy drift, and weighted gradients are measured.
+
 **Optimizer-phase semantics (PHYS-05):** During Adam epochs, hyperparameters
 (`λ` values) may be scheduled per the warmup schedule. During L-BFGS, `λ`
 values are frozen and no dual updates occur inside a line search.
 Stage-boundary transitions apply re-warmup per the new stage's
 `λ_phys^max` / `λ_E^max` / `λ_L^max`.
 
-**Causal weighting (PHYS-05 default):** Dense ODE residuals use causal weighting `w_n = exp(-η_c · Σ_{m<n} stopgrad(R̄_m))`, `w_1 = 1`, `η_c = 1`
-default, with stopgrad in weights by default to prevent the weight mechanism
-from becoming an adversarial term. The exponent must be clipped to avoid
-underflow, but Phase 19 does not choose a numeric clipping bound; surface a
-gap if execution requires one.
+> **Phase 35 contract: causal-training mode (LOSS-04; D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A; AC-LOSS-04; grounded by the resolution doc §1.1, `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/32-GAPS.md` GAP-32-01, and `.planning/phases/32-evidence-framework-issue-ledger-conflict-adjudication/evidence/d-04-causal-training-mode.md`).** Total-loss assembly uses the `pinn_architecture.md` **Physics Residual Term** component as the canonical math home for the per-time causal weighting and keeps `w_1 = 1` and `eta_c = 1` as the current defaults; the causal-weight formula body is defined there (see AC-LOSS-04) and is not restated in this assembly file. Dense-residual pseudo-ALM is rejected from the default loss, optional scalar-conservation ALM remains deferred P2 only, Option C / windowed-causal mechanics are not commissioned, and the numeric causal-exponent clip bound is deferred to FUT.
+
+> **Phase 35 guard: source precedence and assembly ownership (LOSS-02 / LOSS-03 / LOSS-04; AC-LOSS-02 / AC-LOSS-03 / AC-LOSS-04).** Stale issue-doc replacement constructs are not default loss contracts: automatic dominance reweighting is deferred; dense-residual ALM is rejected from the default loss; Option C / windowed-causal mechanics are not commissioned; stage-indexed Huber calibration is deferred. This file owns total-loss assembly and methodology, while `pinn_architecture.md` remains the component-formula home.
+
+**Causal weighting (PHYS-05 default):** Dense ODE residuals use the owner-ratified causal weighting baseline above, with stopgrad in weights by default to prevent the weight mechanism from becoming an adversarial term. The exponent must be clipped to avoid underflow, but no numeric clipping bound is selected in Phase 35; the bound remains deferred to FUT.
 
 The previous pseudo-ALM formulation (`L_data + λ_p·L_phys + (μ_p/2)·L_phys² + λ_E(k)·L_energy`) is rejected because squaring a nonnegative MSE produces a quartic residual that does not represent a standard equality-constrained augmented Lagrangian. Optional ALM for scalar conservation constraints only is documented as a P2 ablation in the PHYS-05 ablation section of `pinn_architecture.md`.
+
+**Per-step ordering skeleton (Adam epoch).** The default training step follows this order, treating each loss term as an opaque input whose component definition, weight schedule (`λ_E`, `λ_L`, etc.), and Huber-δ calibration are owned by Phase 35. The placeholder `L_total` names the assembled scalar loss:
+
+1. **Forward pass** over the concatenated data-fidelity and collocation point sets.
+2. **Assemble** the total loss `L_total` (\mathcal{L}_{\text{total}}) from the named loss components using the current scheduled weights.
+3. **Backward pass** to compute gradients (`L_total.backward()`).
+4. **Adam-only median-based global gradient clip**, using the mechanism defined canonically in `pinn_architecture.md` §4.4 **Adaptive Gradient Clipping** (AC-LOOP-04); this section does not restate the formula.
+5. **`optimizer.step()`** to update network weights.
+6. **Optional scalar-ALM dual update**, applicable only to the optional scalar-conservation ALM ablation documented in `pinn_architecture.md` §4.2 (LOOP-05 deferred); the default training step has **no** dense-residual ALM update.
+
+During L-BFGS, no gradient clipping is applied and no dual variables are updated inside a line search.
 
 ## Phase 2a: Adam-driven Exploration
 
@@ -1605,33 +1790,84 @@ At the beginning of a new stage $k$:
 
 ### Mini-Batch Construction with Lookahead Sampling
 
-For batch size B (e.g., 256), reserve $\rho_{\text{lookahead}}$ (e.g.,
-5%) for lookahead sampling to smooth stage transitions.
+> **Phase 34 contract: replay/lookahead batch construction (LOOP-01; provisional; AC-LOOP-01; grounded by the resolution doc §1.4 and `evidence/b-07-replay-lookahead-batching.md`).** This `ctl_instruction.md` section is the **canonical** batch-construction contract (SI-PINN-003); `pinn_architecture.md` points here rather than duplicating the rule.
 
-> **Per-trajectory data-loss point count.** `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))`, sampled **without replacement** from the trajectory's snapshot times. `n_pts_cap` defaults to 32 (the spec's example value; not evidence-based -- revisit with admitted-set snapshot distributions; exposed as a configuration knob). The 50/50 composition is realized as: `k_w = floor(n_pts/2)` acceleration-norm-weighted draws without replacement (Gumbel-top-k), then `n_pts - k_w` uniform draws without replacement from the remainder; all draws from a seeded generator. The loader exposes `n_snapshots(traj)` and `dt_out(traj)` as metadata (forward interface for the deferred M16 collocation-density question -- doc-03; not used here). **No `0.5 x n_snapshots` factor is imposed** (unevidenced; see Q-B1 resolution).
+For a 256-trajectory training batch at curriculum stage $k$:
+
+- **Replay set** `B_replay = 240` trajectories drawn from stages $\leq k$ ($B_{\text{replay}} = 240$).
+- **Look-ahead set** `B_lookahead = 16` trajectories drawn from stage $k+1$ ($B_{\text{lookahead}} = 16$), **gated by `has_stage(k+1)`**.
+- **Per-trajectory data-loss point count** `n_pts(traj) = min(n_pts_cap, n_snapshots(traj))`, sampled **without replacement**; `n_pts_cap = 32`.
+
+All values are tagged **provisional** (B-07 `modified`: "provisional defaults, not verified optimums").
+
+> **D-04 causal-mode compatibility note (LOSS-04; RESOLVED-WITH-INSTRUCTION Option A).** GAP-32-01 ratified the current per-time causal weighting baseline for Phase 35, so this batch-construction contract does not add Option C / windowed-causal mechanics; that design is not commissioned and not part of the default loss. The replay/lookahead contract remains compatible with the retained Option A because no future-window partitioning is introduced.
+
+> **Phase 34 contract: batch edge-case policy (LOOP-01; provisional; resolved by owner instruction — GAP-34-01 RESOLVED-WITH-INSTRUCTION 2026-06-25, Option A via UAT).** The three batch edge cases flagged by B-07 §1.4 as needing determinism are resolved by owner-ratified **Option A**, each carrying the LOOP-01 `provisional` tag (B-07 `modified`):
+>
+> 1. **Final stage** — when `has_stage(k+1)` is false there is no look-ahead set, so the batch trains on the **replay set only** (`B_lookahead = 0`).
+> 2. **Undersized look-ahead pool** — when the stage `k+1` pool has fewer than `B_lookahead = 16` eligible trajectories, the look-ahead set is **padded by sampling with replacement** from the available pool, holding the batch size fixed at `B_replay + B_lookahead = 240 + 16`.
+> 3. **Replay sampling** — the replay set is **sampled without replacement** across the epoch (standard once-per-epoch coverage).
+>
+> These are provisional defaults (B-07 `modified`), not verified optimums; owner-ratified Option A — see `34-GAPS.md` GAP-34-01 (RESOLVED-WITH-INSTRUCTION).
+
+> **Phase 34 contract: data versus collocation points (LOOP-02; provisional; AC-LOOP-02; grounded by the resolution doc §1.5 and `evidence/b-08-data-vs-collocation-points.md`).**
+
+The training batch consists of two logically independent point sets:
+
+1. **Data-fidelity points**: sampled from the discrete BRUTUS trajectory snapshots (the replay/lookahead trajectories above), used for the Huber data loss $\mathcal{L}_{\text{data}}$.
+2. **Collocation points**: continuous samples from $[0,T]$ for the physics residual $\mathcal{L}_{\text{phys}}^{\text{causal}}$ and the energy residual $\mathcal{L}_E$ (energy reuses the physics collocation set).
+
+A single concatenated forward pass over both point sets is permitted for implementation efficiency, but it does **not** merge the loss roles: data loss is evaluated only at snapshot times, and physics/energy losses are evaluated only at their respective collocation times. The budgets `8192` data points and `4096` collocation points are **provisional/example budgets** (B-08 `modified`); the actual data count follows the per-trajectory cap `min(n_pts_cap, n_snapshots(traj))`.
+
+> **Phase 34 contract: mixed time sampling (LOOP-03; data retained / collocation deferred; grounded by the resolution doc §§1.4–1.5 and the B-07/B-08 evidence packets).**
+
+- **Data-fidelity points — 50/50 retained:** The existing 50/50 split (uniform + acceleration-weighted, without replacement, Gumbel-top-k) is **retained** for data-fidelity points. For `n_pts(traj)` points, draw `k_w = floor(n_pts/2)` acceleration-norm-weighted samples, then `n_pts - k_w` uniform samples from the remainder.
+- **Collocation points — 50/50 deferred:** A mandatory 50/50 mixed continuous collocation sampler is **deferred** (B-08 / GAP-06); Phase 34 does not mandate it. The current uniform/adaptive collocation choices remain usable.
+
+> **Per-trajectory data-loss point count and snapshot metadata.** `n_pts_cap` defaults to 32 (the spec's example value; not evidence-based -- revisit with admitted-set snapshot distributions; exposed as a configuration knob). The 50/50 composition is realized as: `k_w = floor(n_pts/2)` acceleration-norm-weighted draws without replacement (Gumbel-top-k), then `n_pts - k_w` uniform draws without replacement from the remainder; all draws from a seeded generator. The loader exposes `n_snapshots(traj)` and `dt_out(traj)` as metadata (forward interface for the deferred M16 collocation-density question -- doc-03; not used here). **No `0.5 x n_snapshots` factor is imposed** (unevidenced; see Q-B1 resolution).
 >
 > Citation: locked M12 verdict in `evidence/m11-m12-severity.md` (Phase 25 EVID-10). Verified snapshot-count medians (DATA-06, CLM-10): 61 standard-base / 127 hierarchical-base / 1003 gold. These are population medians, not hard per-file guarantees.
 
-| Portion | Purpose | Symbol | Size |
-|---|---|---|---:|
-| Replay set | Prevent forgetting of material from stages $0 \ldots k$ (ensures curriculum replay) | $B_{\leq k}$ | 240 |
-| Look-ahead set | "Preview" data from the next stage $k+1$ | $B_{k+1}$ | 16 |
-
-*Mini-batch composition for batch size = 256.*
+> **Phase 34 contract: `dt_out`-aware collocation scaling (LOOP-06; deferred; AC-LOOP-06; grounded by the resolution doc §1.10 and `evidence/m16-dt-out-collocation-scaling.md`).**
+>
+> `dt_out`-aware collocation scaling is **deferred to FUT**. The loader keeps `dt_out(traj)` and `n_snapshots(traj)` exposed as metadata, and the present fixed/configurable collocation budget is retained. The audit direction `n_col \propto dt_base/dt_out` is recorded **only** as a deferred candidate direction — not as a locked or probe-able contract — and the inverse form `n_col \propto dt_out/dt_base` is explicitly **not adopted**. The v1.5 SCOPE-11/PIPE-08 forward-reference is **realized-as-deferred**.
 
 ### Adaptive Median-Based Gradient Clipping
 
+> **Phase 34 contract: curriculum-aware C-schedule (LOOP-04; M14 modified/accept-resolution; AC-LOOP-04; grounded by the resolution doc §1.8 and `evidence/m14-gradient-clipping.md`).**
+
 Use adaptive global-norm clipping to handle gradient explosions from
-close encounters; threshold is $C$ times the moving median of recent
-norms.
+close encounters. The clipping **mechanism** is defined canonically in
+`pinn_architecture.md` §4.4 **Adaptive Gradient Clipping** (AC-LOOP-04):
+during Adam only, the global L2 norm is clipped to the
+$C_{\text{stage}} \cdot \text{median}$ value over a rolling window of
+recent global gradient norms. This section owns only the per-stage
+multiplier $C_{\text{stage}}$.
 
-**Curriculum-aware $C$ schedule:**
+**Curriculum-aware $C_{\text{stage}}$ schedule (locked):**
 
-| Curriculum stage | Data difficulty | C |
+| Curriculum stage | Data difficulty | $C_{\text{stage}}$ |
 |---|---|---:|
-| 0--1 | quasi-periodic orbits | 7--10 |
-| 2--3 | onset of mild chaos | 5 |
-| 4--6 | frequent close encounters | 3 |
+| 0-1 | quasi-periodic orbits | 7-10 |
+| 2-3 | onset of mild chaos | 5 |
+| 4-6 | frequent close encounters | 3 |
+
+The Stage 2/3 value $C_{\text{stage}} = 5$ (hence the fixed `5.0`
+multiplier in the pre-Phase-34 `pinn_architecture.md` pseudocode) is the
+instance that explains that pseudocode; it is also the natural fallback
+when no stage-specific value is selected.
+
+**Adam-only scope.** No gradient clipping during L-BFGS, as line-search
+creates a trust region.
+
+**Deferred → FUT execution constants.** The exact early-stage
+$C_{\text{stage}}$ within the Stage 0-1 range, the bootstrap median fallback
+used before the history window is populated, the lower floor (e.g.
+`1e-6`) on the median, and the gradient-history reset mechanics at stage
+boundaries are routed to Phase 34/FUT calibration. They are explicitly
+left open by the M14 packet owner-route and resolution-doc §1.8
+(GAP-08); this contract does not invent them and does not tag the
+early-stage value as locked.
 
 ### Termination Criterion
 
@@ -1665,55 +1901,93 @@ creates a trust region.
 
 ## Stage Transition Criteria
 
-> **Author note:** Now, for this, we will need to look at how the first stage goes
-> when the actual process starts. All of this transition creteria is
-> theoretical now, and it will heavily depend on what the actual situation
-> is like. Because I only have a limited amount of training data, maybe
-> not even enough, I would not expect the network to perform
-> extraodinarily well. All I have to see is that the network has the
-> potential to do something similar to a 3-body integrator and that it has
-> the potential to become better with more training data and optimization.
-> Based on this, how should we handle the stage transition criteria
-> depending on the actual situations that might happen? Should we first
-> test train stage 0 and see how it goes and then go from there?
+> **Phase 33 contract: dual-path stage-transition state machine (CURR-03;
+> D-33-08, D-33-09; AC-CURR-03; grounded by the resolution doc §1.11 and
+> `evidence/d5-stage-transitions.md`).** Within each curriculum stage, the
+> training loop's stage-exit decision is an operational state machine with
+> three dispositions: **ADVANCE**, **RECOVER**, and **HALT/REVIEW**. There is
+> no automatic fallback-advancement path: a stage that cannot reach the
+> approved success gate either retries transient numerical failure via
+> **RECOVER** or blocks progression via **HALT/REVIEW** until the owner
+> explicitly authorizes degraded advancement. All numeric thresholds, epoch
+> tables, stagnation windows, retry limits, and percentile relaxations in
+> this section are **provisional pending FUT Stage-0 pilot calibration**
+> (SCOPE-14); the spec records the *form* of the success gate and the
+> state-machine contract, not calibrated values.
 
-Advance to the next stage only when all four criteria are met on the
-validation set (hold-out 10-20% of cumulative data per stage).
+**ADVANCE — the only path to the next stage.** ADVANCE is permitted only when
+the approved success gate passes on the held-out validation set (hold-out
+10-20% of cumulative data per stage). The success gate is the conjunction of
+the four criteria below: training-loss plateau, validation-loss stability, the
+stage-dependent physics-residual threshold, and the energy-conservation check.
+The issue-doc "fallback advancement" framing that treats `MAX_EPOCHS`,
+stagnation, or NaN/Inf as alternate *advancement* triggers is **rejected**: it
+silently relaxes the success criterion. Those conditions instead route to
+**HALT/REVIEW** or **RECOVER** below.
 
-### 1. Training Loss Plateau
+### 1. Training-Loss Plateau (ADVANCE criterion 1 of 4)
 
 Relative change in smoothed total loss below threshold:
 $$\frac{|\mathcal{L}_{\text{smooth}}(i) - \mathcal{L}_{\text{smooth}}(i - \text{patience})|}{\mathcal{L}_{\text{smooth}}(i)} < \epsilon_{\text{plateau}}$$
 where
 $\mathcal{L}_{\text{smooth}}(i) = \beta \cdot \mathcal{L}_{\text{smooth}}(i-1) + (1-\beta) \cdot \mathcal{L}_{\text{train,total}}(i)$,
 $\beta = 0.98$, patience = 200, $\epsilon_{\text{plateau}} = 10^{-5}$.
-Initialize $\mathcal{L}_{\text{smooth}}(0)$ as the first computed loss.
+Initialize $\mathcal{L}_{\text{smooth}}(0)$ as the first computed loss. These
+numeric values are provisional pending Stage-0 pilot calibration.
 
-### 2. Validation Loss Stability
+### 2. Validation-Loss Stability (ADVANCE criterion 2 of 4)
 
 Current validation loss $\leq$ minimum seen in stage:
 $$\mathcal{L}_{\text{val}}(i) \leq \min_{j \leq i} \mathcal{L}_{\text{val}}(j)$$
 
-### 3. Physics Residual Threshold
+### 3. Physics-Residual Threshold (ADVANCE criterion 3 of 4, stage-dependent)
 
 Validation physics loss below threshold:
 $$\mathcal{L}_{\text{phys}}^{\text{val}} < \epsilon_{\text{phys}} \quad (\epsilon_{\text{phys}} = 10^{-4})$$
+The per-stage `epsilon_phys` table that appears in the issue doc is
+**claimed-unverified** (D5-05; CLM-08/09) and is not transcribed as locked;
+the threshold value remains provisional pending Stage-0 pilot calibration.
 
-### 4. Energy Conservation Check
+### 4. Energy-Conservation Check (ADVANCE criterion 4 of 4)
 
 Average relative energy drift below threshold, using the persisted
-PHYS-04/D-20 (GAP-19-01) energy denominator floor `epsilon_H = 1e-4 * S_H`:
+PHYS-04/D-20 (GAP-19-01) energy denominator floor `epsilon_H = 1e-4 * S_H`
+(unchanged by Phase 33):
 $$\frac{1}{N_{\text{traj}}} \sum_{j=1}^{N_{\text{traj}}} \frac{|H_j(t_{\text{final}}) - H_j(0)|}{|H_j(0)| + \epsilon_H} < \epsilon_{\text{energy}} \quad (\epsilon_{\text{energy}} = 10^{-4})$$
+
+**RECOVER — transient numerical failure, not a progression path.** If training
+produces NaN or Inf gradients (typically during close-encounter stages), the
+loop rolls back to the last well-formed checkpoint and retries with a bounded
+retry budget. RECOVER does not advance the curriculum; it restores a
+numerically valid state from which ADVANCE can be re-evaluated. Retry limits
+are provisional pending Stage-0 pilot calibration. If the retry budget is
+exhausted without restoring a valid state, the stage transitions to
+**HALT/REVIEW**, not to ADVANCE.
+
+**HALT/REVIEW — blocked progression, owner authorization required for any
+degraded advancement.** If a stage reaches its per-stage max-epoch budget
+without satisfying the ADVANCE success gate, or if validation loss stagnates
+above the ADVANCE threshold for the stagnation window, the loop halts and
+surfaces the stage for owner review. No automatic degraded advancement is
+authorized: advancing the curriculum past a failed success gate requires an
+explicit owner decision (logged in the gap register with the justification
+and the relaxation applied). The per-stage `MAX_EPOCHS` table, the stagnation
+window, and the percentile-10 relaxation that appear in the issue doc are
+**claimed-unverified** (D5-05; CLM-08/09) and are not transcribed as locked
+thresholds; they remain provisional pending Stage-0 pilot calibration.
 
 ## Consolidated Hyperparameter Schedule
 
 | Stage | Adam LR (Initial) | Clip `C` | Loss-weight schedule | L-BFGS Type |
-|---|---|---:|---|---|
-| 0-1 | $10^{-3} \times (0.7)^k$ | 7-10 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch |
-| 2-3 | $10^{-3} \times (0.7)^k$ | 5 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch / sL-BFGS |
-| 4-6 | $10^{-3} \times (0.7)^k$ | 3 | See PHYS-05 warmup schedule in `pinn_architecture.md` | sL-BFGS |
+|---|---|---|---|---|
+| 0-1 | $10^{-3} \times (0.7)^k$ | See AC-LOOP-04 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch |
+| 2-3 | $10^{-3} \times (0.7)^k$ | See AC-LOOP-04 | See PHYS-05 warmup schedule in `pinn_architecture.md` | Full-Batch / sL-BFGS |
+| 4-6 | $10^{-3} \times (0.7)^k$ | See AC-LOOP-04 | See PHYS-05 warmup schedule in `pinn_architecture.md` | sL-BFGS |
 
-*Stage-by-stage guide for key dynamic hyperparameters.*
+*Stage-by-stage guide for key dynamic hyperparameters. The canonical
+C-schedule values live only in the Adaptive Median-Based Gradient
+Clipping section above (AC-LOOP-04); this table points to them rather
+than duplicating them.*
 
 ## Implementation Notes
 

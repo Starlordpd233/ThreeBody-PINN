@@ -123,6 +123,45 @@
 
 ---
 
+## Milestone: v1.6 — Resolving 03 Curriculum and Training Loop
+
+**Shipped:** 2026-07-02
+**Phases:** 7 | **Plans:** 30
+
+### What Was Built
+- Repo-blind ERW research package (master + prompt + companions + commit-pinned specs/snapshots) that opened the external resolution-doc gate; PKG-07 claims register; read-only PKG-08 characterizations
+- Resolution-doc readiness gate (READY-WITH-CAVEATS: 18/18 findings covered, 0 v1.5-fact contradictions, 0 SCOPE-12 violations, 12 caveats routed)
+- Evidence-packet / EVID-15 root-cause adjudication of the headline conflicts (D-04 causal mode, D-05 s_min frame, D-06 epsilon strategy, M14 gradient clipping) and reconciliation of issue-03's `D = 6.694` against the v1.5-locked raw-mass `D ≈ 4.6416`
+- Curriculum-stage (CURR-01..05), training-loop/batch-construction (LOOP-01..08), and loss/energy-weight (LOSS-01..04) contracts transcribed into `ctl_instruction.md` / `pinn_architecture.md`
+- 26/26 acceptance probes PASS, issue ledger driven to terminal 18/18 VERIFIED, four-ID SI reconciliation, and the FUT-01/FUT-04 handoff (`36-CODE-DIVERGENCE.md`)
+
+### What Worked
+- The v1.4/v1.5 adjudication machinery (evidence packets, verdict set, ledger lifecycle, STOP protocol) carried over cleanly for a third milestone
+- Specwork-only scoping (SCOPE-13/14/15) kept the milestone bounded: verbatim audit pseudocode transcribed as normative contracts, implementation explicitly routed to the trainex track
+- Owner-routed decisions (D-04/D-05/D-06) were surfaced and held as `defer-with-blocker` until the owner ratified them, never invented — 10/10 STOP gaps resolved with instruction
+
+### What Was Inefficient
+- The milestone-closure relay (audit → milestone-summary → extract-learnings → complete-milestone) ran as concurrent sessions in one shared worktree; the final agent nearly took over the still-running middle stage on a stale liveness read, and only a Write-guard + a fresh quiescence re-check prevented a shared-index race
+- `gsd-tools milestone.complete` (a mutating verb) corrupted the `current_phase` frontmatter (`36` → `6`) and had to be hand-repaired after diffing STATE.md
+- Requirement *description* wording (LOOP-03/04/06, LOSS-02/03) and ROADMAP per-phase plan checkboxes were left in pre-adjudication/stale form and surfaced only at the milestone audit
+
+### Patterns Established
+- Multi-agent milestone closure via the cross-session watchdog relay, with the final agent (complete-milestone) waiting on the middle stages rather than racing them
+- Provisional / owner-pending contract parameters land with an explicit GAP reference (GAP-33-01/02/03) and FUT routing rather than blocking the milestone
+- `/gsd-extract-learnings` is phase-scoped (`NN-LEARNINGS.md`); a milestone-level `LESSONS-LEARNED.md` is not a standard output and closure must not gate on it
+
+### Key Lessons
+1. In a shared worktree with a multi-agent closure relay, the final agent MUST verify quiescence (no recent `.planning` writes + the middle stage's artifacts committed, not dangling) before acting — a stale liveness snapshot nearly caused a shared-index race.
+2. Diff STATE.md (and any file a mutating `gsd-tools` verb touches) before committing — `milestone.complete` silently corrupted `current_phase` here.
+3. Do not gate milestone closure on a milestone-level `LESSONS-LEARNED.md`: no standard workflow emits one, and v1.4 shipped without it; the RETROSPECTIVE + MILESTONE_SUMMARY carry the lessons.
+
+### Cost Observations
+- Model mix: not captured reliably
+- Sessions: many concurrent (closure ran as a 4-stage relay across separate sessions in one worktree on 2026-07-02)
+- Notable: 32/32 requirements, 7/7 phases verified, 26/26 acceptance probes PASS, ledger 18/18 VERIFIED, 10/10 STOP gaps resolved; audit verdict `tech_debt`; closeout `override_closeout` (sole override: the deferred trainex-r1 todo). Master merge/publish deliberately NOT performed (repo governance: `master` is governance-only).
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -132,6 +171,7 @@
 | v1.0 | 3 | 4 | Established GSD workflow: strict phase ordering, wave parallelization, post-phase verification |
 | v1.4 | not captured | 8 | Added evidence adjudication, STOP-gap governance, executable acceptance checks, and archived phase history |
 | v1.5 | not captured | 8 | Extended adjudication to data-pipeline/validation contracts; empirical dataset verification in parallel with the research gate; G1–G8 milestone-closure gate |
+| v1.6 | many (relay) | 7 | Third adjudication milestone (curriculum + training loop); specwork-only with implementation routed to trainex; multi-agent closure relay via cross-session watchdog |
 
 ### Cumulative Quality
 
@@ -140,6 +180,7 @@
 | v1.0 | 10 | 9/9 (Phase 4) | 0 |
 | v1.4 | 26 | 32/32 requirements; 8/8 phases | 0 open at close |
 | v1.5 | 27 | 36/36 requirements; 8/8 phases; G1–G8 gate PASS | 0 open at close |
+| v1.6 | 30 | 32/32 requirements; 7/7 phases; 26/26 acceptance probes PASS; ledger 18/18 VERIFIED | 0 open at close |
 
 ### Top Lessons (Verified Across Milestones)
 

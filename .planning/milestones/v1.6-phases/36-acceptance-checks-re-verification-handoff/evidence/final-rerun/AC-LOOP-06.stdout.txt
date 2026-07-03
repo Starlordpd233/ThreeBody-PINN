@@ -1,0 +1,7 @@
+=== AC-LOOP-06: dt_out collocation scaling ===
+[1] PASS: realized-as-deferred marked
+[2] PASS: candidate direction only
+[3] PASS: no probe-able n_col= formula assignment
+[4] PASS: inverse form NOT adopted
+
+=== AC-LOOP-06: ALL CHECKS PASSED ===

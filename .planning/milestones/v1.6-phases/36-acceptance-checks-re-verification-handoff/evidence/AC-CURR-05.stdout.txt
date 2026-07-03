@@ -1,0 +1,8 @@
+=== AC-CURR-05: s_min gate ===
+[1] PASS: unsoftened geometric s_min stage gate present
+[2] PASS: max(s_min, eps) rejected per PHYS-03
+[3] PASS: matched-Plummer loss-side reference present
+[4] PASS: epsilon_inv = 1e-10 (offline invariants) present
+[5] PASS: epsilon_train = 1e-5 (training) present
+
+=== AC-CURR-05: ALL CHECKS PASSED ===

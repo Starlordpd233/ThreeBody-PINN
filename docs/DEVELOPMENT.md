@@ -22,7 +22,7 @@ proceeds safely.
 
 1. **Working tree state.** Run `git status --short --branch` and confirm the
    branch and ahead/behind state. The current development branch is
-   `milestone/v1.5`; protected branches `master`, `main`, and `milestone/*`
+   `milestone/v1.6` (in an isolated worktree); protected branches `master`, `main`, and `milestone/*`
    must not be pushed from directly.
 2. **Hooks path.** Run `scripts/setup-git-hooks.sh` once after cloning so that
    `git config --get core.hooksPath` returns `.githooks`. Hooks enforce
@@ -78,7 +78,7 @@ runner. Code style is enforced by:
 - **Spec-edit discipline.** Framework-spec edits are limited to
   `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
   and `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
-  (SCOPE-08). `sampling_method.md` is frozen by default
+  (SCOPE-13 in v1.6). `sampling_method.md` is frozen by default
   (user directive 2026-06-10) and `data_quality_assessment.md` is read-only
   research-report material; both are not active design-revision targets. The
   Brutus C++ build (`brutus_Newton-main/`) and the on-disk dataset
@@ -94,20 +94,21 @@ runner. Code style is enforced by:
 
 The branch model is:
 
-- **`master`** is the integration trunk. v1.0–v1.4 are merged here. Direct
+- **`master`** is the integration trunk. v1.0–v1.5 are merged here. Direct
   push to `master` is blocked by `pre-push` and is never the path a
   developer takes.
 - **`milestone/vN.N`** is the local integration branch for a milestone
-  (current: `milestone/v1.5`). v1.5 was cut from master HEAD `b8b39a4`. All
-  v1.5 work lives here. The `pre-push` hook blocks direct pushes from any
-  `milestone/*` branch.
+  (current: `milestone/v1.6`, in an isolated worktree). v1.6 was cut from the
+  v1.5 deliverable tip `88aa1e4f` and rebased onto the completed `master`
+  after v1.5 shipped. All v1.6 work lives here. The `pre-push` hook blocks
+  direct pushes from any `milestone/*` branch.
 - **Feature / review branches** carry work between agents and toward
   publication. PRs are opened from these branches, not from the milestone
   branch.
 
-Tagging convention: a `v1.5-pre-phase-NN` tag is cut from `milestone/v1.5`
+Tagging convention: a `v1.6-pre-phase-NN` tag is cut from `milestone/v1.6`
 before each phase starts, so a phase's work can be retrieved in isolation.
-The milestone closes with a `--no-ff` merge of `milestone/v1.5` into
+The milestone closes with a `--no-ff` merge of `milestone/v1.6` into
 `master` (user-owned final step).
 
 Red-flag branches `backup/*`, `recovery/*`, `wip/*`, `experiment/*`, and
@@ -123,11 +124,11 @@ The PR process is therefore governed by the project's own git policy
 1. **Surface git state first.** `git status --short --branch`, then
    `git diff --cached`, then any unstaged diffs for files you touched. Treat
    anything not created in this session as user-owned.
-2. **Work on the right branch.** If the change is a v1.5 spec edit, you
-   are on `milestone/v1.5`. If the change is documentation or runbook, you
+2. **Work on the right branch.** If the change is a v1.6 spec edit, you
+   are on `milestone/v1.6`. If the change is documentation or runbook, you
    are on a feature branch off the milestone branch.
 3. **Run the verification gate that matches the change.** For a spec edit,
-   the relevant Phase verification plan (e.g. `25-VERIFICATION.md`). For a
+   the relevant Phase verification plan (the phase's `NN-VERIFICATION.md`). For a
    Brutus change, the C++ build + the relevant Brutus runner. For a docs
    change, the `docs/` lifecycle per `docs/README.md`.
 4. **Commit atomically via `scripts/agent-commit`.** One commit per logical
@@ -148,15 +149,17 @@ boundary and must be manually advanced.
 Key artifacts:
 
 - `.planning/PROJECT.md` — project identity, core value, and key decisions.
-- `.planning/REQUIREMENTS.md` — the v1.5 requirements ledger (36 entries;
-  v1.5 reconciled VER-07/08/09/11/12 to complete in Phase 29).
+- `.planning/REQUIREMENTS.md` — the current-milestone requirements ledger
+  (v1.6: 32 entries across PKG/EVID/CURR/LOOP/LOSS/VER; v1.5's 36-entry
+  ledger is archived at `.planning/milestones/v1.5-REQUIREMENTS.md`).
 - `.planning/ROADMAP.md` — milestone and phase plan.
 - `.planning/STATE.md` — current position. **Manually advanced** after
   each phase; the three GSD query tools disagree on `current_phase`, so
   verify phase directories on disk rather than trust any single tool.
-- `.planning/milestones/v1.5-GAPS.md` — milestone-wide gap index for
-  v1.5. All ten registered gaps are RESOLVED-WITH-INSTRUCTION as of
-  2026-06-16 (latest: GAP-29-01, gold-completeness).
+- `.planning/milestones/v1.6-GAPS.md` — milestone-wide gap index for the
+  current milestone (created on the first v1.6 gap; none arose in Phases
+  30–31). The v1.5 index (`v1.5-GAPS.md`, ten gaps all
+  RESOLVED-WITH-INSTRUCTION) is archived.
 - `.planning/research/edl/` — non-canonical Empirical Decision Loop
   research-support briefs for empirically consequential source-silent
   gaps. The phase-local gap register remains the authoritative blocking
@@ -168,23 +171,24 @@ in this repository.
 
 ## STOP Protocol and the Gap Register
 
-This is a "similar adjudication milestone" repository (v1.4 and v1.5 per
+This is a "similar adjudication milestone" repository (v1.4, v1.5, and v1.6 per
 `AGENTS.md` governance). Spec work, adjudication, and cross-phase
 reframing are governed by the STOP protocol. A decision is "grounded" only
 if it is explicitly answered by one of:
 
 - A resolution doc under
   `pinn_instruction/markdown_conversion/framework-revisions/research_reports/`
-  (e.g. `02-data-pipeline-and-validation/02-resolution-doc.md` for v1.5).
+  (e.g. `03-curriculum-and-training-loop/research_result/03-final-resolution.md`
+  for v1.6).
 - The corresponding issue doc (e.g.
-  `pinn_instruction/issues/02-data-pipeline-and-validation.md`).
+  `pinn_instruction/issues/03-curriculum-and-training-loop.md`).
 - A prior user decision in chat, a `RESOLVED-WITH-INSTRUCTION` gap entry,
   or an `NN-CONTEXT.md` decision marked `LOCKED`.
 - A planning artifact: `.planning/REQUIREMENTS.md` requirement,
   `.planning/ROADMAP.md` success criterion, `.planning/PROJECT.md` Key
   Decision.
 - A framework spec section **only when that section was revised during
-  v1.4 or v1.5** (i.e., touched by an applied plan in this milestone).
+  v1.4, v1.5, or v1.6** (i.e., touched by an applied plan in this milestone).
   Pre-v1.4 framework spec content is not a grounding source.
 - First-principles physics or short uncontroversial math (long or
   contested derivations must be surfaced as a gap).
@@ -208,7 +212,7 @@ When a gap is detected:
    to decide (concrete A/B/C options), confidence of impact, status
    `OPEN`, and a resolution note.
 4. **Update the milestone-wide index** at
-   `.planning/milestones/v1.5-GAPS.md`.
+   `.planning/milestones/v1.6-GAPS.md`.
 5. **Surface to the user** via the active workflow channel. Halted work
    stays halted until the user provides instruction. Update status to
    `RESOLVED-WITH-INSTRUCTION` (or `DEFERRED`) when instruction arrives.
@@ -224,7 +228,7 @@ Development splits into two user-defined tracks (per
 
 - **specwork** — the framework-specs design/editing stage: authoring and
   adjudicating `ctl_instruction.md` and `pinn_architecture.md`. This is
-  the v1.4 / v1.5 / future doc-03 scientific-backbone track. Spec edits
+  the v1.4 / v1.5 / v1.6 (doc-03) scientific-backbone track. Spec edits
   land only on the two spec files above; all other spec content is
   frozen, read-only, or characterized-not-edited.
 - **trainex** — the training-execution / reality-pipeline development:
@@ -285,27 +289,24 @@ Two channels with different report standing:
 
 ## Phase Verification Discipline
 
-Every v1.5 phase (Phases 23-29) follows the same adjudication loop:
+Every v1.6 adjudication phase (Phases 32-36) follows the same loop:
 **adjudicate -> fix -> verify -> re-verify after every batch -> close
 only when the acceptance check passes**. The issue ledger lives at a
-stable path under
-`.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-ISSUE-LEDGER.md`,
-seeded by Phase 24 and operated through the protocol established in
-Phase 25.
+stable path under the Phase 32 (evidence-framework) directory, stood up
+and operated through the protocol established in Phase 32.
 
-Evidence-packet rules (EVID-06): a phase authors its non-conflict
-packets **immediately before** its spec edits, and packets that cite
-already-locked verdicts use a "thin pointer packet" pattern
-(`evidence/{id}.md` citing the prior remediation/validation artifact
-as the verdict source without re-deriving it; precedent: GAP-27-01).
-Conflict packets and the four EVID-10 verdicts (SCS,
-D=6.694, M12, M11) are owned by Phase 25; the phase 26-28 author the
-remaining packets/verdicts immediately before their spec edits
-(GAP-25-01, Option A).
+Evidence-packet rules (EVID-11): Phase 32 authors the evidence packets
+and verdicts for the headline conflicts (D-04 causal mode, D-05 s_min
+frame, D-06 epsilon strategy, the M14 gradient-clipping divergence, and
+the `D = 6.694` vs v1.5-locked `D ≈ 4.6416` reconciliation, EVID-15).
+Packets for the remaining findings may be authored by the owning contract
+phase (33-35) **immediately before** its spec edits, recorded as a
+STOP-resolved split where the source materials do not pre-specify it.
 
-Each spec-edit commit wires the affected ledger rows in the same
-commit (D-06). Phase exit happens only at VERIFIED or DEFERRED
-status.
+Each spec-edit commit wires the affected ledger rows in the same commit.
+Phase exit happens only at VERIFIED or DEFERRED status. (The v1.5 analog —
+Phases 23-29, ledger seeded by Phase 24, EVID-10 conflict verdicts owned by
+Phase 25 — is archived under `.planning/milestones/v1.5-*`.)
 
 ## Destructive Operations
 
@@ -371,6 +372,6 @@ claim is re-derivable.
   in `.planning/REQUIREMENTS.md`.
 - External research packaging: `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`.
 - Git policy in full: `docs/git-guidelines.md`.
-- Phase gap registers: `.planning/phases/NN-*/NN-GAPS.md`; milestone
-  index: `.planning/milestones/v1.5-GAPS.md`.
+- Phase gap registers: `.planning/phases/NN-*/NN-GAPS.md`; current
+  milestone index: `.planning/milestones/v1.6-GAPS.md`.
 - New Mac migration restore: `docs/runbooks/migration/exact-state-mac-migration.md`.
