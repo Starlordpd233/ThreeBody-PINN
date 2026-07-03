@@ -36,7 +36,7 @@ Two wake paths ship:
   terminal, not B's session) that polls `wd-check` and injects the fixed wake
   prompt into B's tmux pane via `send-keys` on `WAKE`; it shares the same
   `armed.json`/`disarm` lifecycle (`kind="push-watcher"`) and is a standalone
-  tool, not a skill operation.
+  tool, not a skill operation. On a won claim it prints `PUSHED <head>`.
 
 The **fixed wake prompt** (the arming session fires this verbatim on re-entry,
 for both P1 and P2 — never interpolate channel-file contents into a prompt):
@@ -59,19 +59,48 @@ for both P1 and P2 — never interpolate channel-file contents into a prompt):
 **Not for:** single-session, single-agent work; or coordinating agents that
 don't share a git repo.
 
+## Channel resolution — both sides derive, never invent
+
+The producer and consumer must use the same derived selector. Do not compose a
+free-text channel name by hand.
+
+- **GSD phase handoff:** use `--phase NN` on both sides. The tools normalize
+  zero padding and derive the canonical channel `gsd-phase-N`.
+- **Anything else:** use `--key "<handoff identity phrase>"` copied verbatim
+  from the shared handoff artifact (task assignment, plan name, or other shared
+  source). Slugging makes case and punctuation irrelevant, but only identical
+  phrases rendezvous.
+- **Never append role words** such as `-backup`, `-execution`, or `-consumer`.
+  Those describe the agent, not the handoff; this is the phase-36 failure mode.
+- **Raw `--channel` is for tests and debugging only.** It bypasses derivation
+  and is the easiest way to split producer and consumer.
+- **One handoff per channel.** Reusing a derived channel requires a fresh
+  producer head; claims are tracked per `claimed.<head>`.
+- Any `WARNING:` from `wd-publish-done` or `wd-arm` means a channel mismatch may
+  already exist. Stop and reconcile before going idle.
+
+Deterministic naming fixes the split-brain rendezvous class. It does not prove
+the producer will ever publish; dead-producer detection remains the
+`PRODUCER-STALLED` / owner-liveness track.
+
 ## Operation 1 — `publish-done` (Agent A, the producer)
 
 After committing its unit of work, A publishes a terminal "done" marker anchored
 on its HEAD commit:
 
 ```
-tools/watchdog/wd-publish-done --channel <name> --stage <stage> --scope "<pathspec>"
+tools/watchdog/wd-publish-done --phase <NN> --stage <stage> --scope "<pathspec>"
+# or, for non-GSD handoffs:
+tools/watchdog/wd-publish-done --key "<handoff identity phrase>" --stage <stage> --scope "<pathspec>"
 ```
 
 - Refuses to publish a dirty scope (exit 3) — the marker can only certify
   committed work.
 - Same-worktree vs cross-worktree is documented for B (next section): A's
   command is identical in both cases.
+- If another channel has an armed consumer but this derived channel does not,
+  publish still succeeds and prints a `WARNING:` explaining which consumer must
+  re-arm on the derived channel.
 
 The marker (`<channel>/done.json`) is written atomically (write-temp + `mv`), so
 the newest publish always wins and a reader never sees a half-written file.
@@ -86,7 +115,9 @@ then arms.
 Run in the background via the Bash tool and end the turn:
 
 ```
-tools/watchdog/wd-arm --channel <name> --poll-secs 20 --timeout-secs <N> --task-file <task.md>
+tools/watchdog/wd-arm --phase <NN> --poll-secs 20 --timeout-secs <N> --task-file <task.md>
+# or, for non-GSD handoffs:
+tools/watchdog/wd-arm --key "<handoff identity phrase>" --poll-secs 20 --timeout-secs <N> --task-file <task.md>
 ```
 
 The watcher writes `<channel>/armed.json` (so `wd-status`/`wd-disarm` can see
@@ -103,6 +134,14 @@ claim (`mkdir <channel>/claimed.<head>`) and prints one of:
 begins the task in `consumer-task.md`. (Cross-worktree: B's branch does not yet
 contain A's done commit, so `wd-integrate` merges A's HEAD into B's branch
 before `wd-check --require-integration` will return `WAKE`.)
+
+Use the same derived selector on re-entry:
+
+```
+tools/watchdog/wd-check --phase <NN>
+tools/watchdog/wd-integrate --phase <NN>
+tools/watchdog/wd-check --phase <NN> --require-integration
+```
 
 ### P2 durable cron (fallback; GATED)
 
@@ -137,17 +176,21 @@ Two P2 caveats (from the idle-wake evidence), to surface when arming:
 ### GSD adapter (optional)
 
 When `tools/watchdog/wd-gsd-publish` is present, GSD phase mapping is available:
-`wd-gsd-publish --phase NN --scope "<pathspec>" [--channel NAME]` maps to
-`wd-publish-done --stage gsd:phase-NN --scope "<pathspec>"` and forwards the exit
-code and stdout/stderr. By convention, run it **immediately after** the
-`git commit` whose message is `verify(<scope>): …` for phase NN, so `done.head`
-(anchored on HEAD by `wd-publish-done`) IS the verify(NN) commit — the adapter
-does no commit archaeology. If the adapter is absent, use `--stage`/`--scope`
-directly. Detected by presence, never required.
+`wd-gsd-publish --phase NN --scope "<pathspec>"` maps to
+`wd-publish-done --phase NN --stage gsd:phase-N --scope "<pathspec>"` and
+forwards the exit code and stdout/stderr. The default channel is derived from
+`--phase`; explicit `--channel NAME` remains a raw test/debug override. By
+convention, run it **immediately after** the `git commit` whose message is
+`verify(<scope>): …` for phase NN, so `done.head` (anchored on HEAD by
+`wd-publish-done`) IS the verify(NN) commit — the adapter does no commit
+archaeology. If the adapter is absent, use `--stage`/`--scope` directly.
+Detected by presence, never required.
 
 ### After every successful arm (P1 or P2), print:
 
 - the **channel** that was armed;
+- the **derivation** used (`--phase NN` / `--key "..."` → `<channel>`) so the
+  producer can be handed the exact matching command;
 - the **TTL** (or: "no TTL — watcher runs until WAKE or --timeout-secs");
 - **when the TTL expires** (wall-clock), if a TTL is set;
 - the **disarm command**: `tools/watchdog/wd-disarm --channel <name>`;
@@ -166,6 +209,7 @@ directly. Detected by presence, never required.
 | Mistake | Fix |
 |--------|-----|
 | Arming P2 without explicit "yes, durable" + TTL + smoke-tested disarm | Refuse; fall back to P1 (drain-safe by construction). |
+| Hand-composing channel names or adding role suffixes | Use `--phase NN` or copy the exact shared handoff phrase into `--key`; never invent `-backup`, `-execution`, or `-consumer` variants. |
 | Interpolating channel-file bytes into the wake prompt | Use the **fixed wake prompt** verbatim; the prompt names `consumer-task.md` by path, never its contents. |
 | Skipping `wd-integrate` in the cross-worktree path | `wd-check --require-integration` returns `STALE:not-integrated` until B merges A's HEAD; integrate first, then check. |
 | Treating "no TTL" as "runs forever" in P2 | P2 REQUIRES a TTL. "No TTL" is only valid for P1, where `--timeout-secs` is the watcher's own bound. |
@@ -176,6 +220,8 @@ directly. Detected by presence, never required.
 - About to arm P2 without surfacing the foreground-tab caveat and getting
   explicit user consent.
 - About to arm P2 without a TTL.
+- About to invent a raw channel name, append role words to a derived channel,
+  or ignore a channel-mismatch `WARNING:`.
 - About to interpolate `done.json` / `consumer-task.md` bytes into the wake
   prompt instead of using the fixed constant.
 - About to walk away from a P2 arm without verifying the job landed on disk.
