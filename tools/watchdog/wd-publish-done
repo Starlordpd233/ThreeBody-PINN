@@ -10,23 +10,28 @@
 # Publish-time clean invariant: refuses to publish while the declared scope has
 # uncommitted changes, so the marker can only certify committed work.
 #
-# Usage: wd-publish-done --channel NAME --stage STR --scope "PATHSPEC..."
+# Usage: wd-publish-done (--channel NAME | --phase NN | --key STR) --stage STR --scope "PATHSPEC..."
 set -euo pipefail
 source "$(dirname "$0")/lib/wd-common.sh"
 
 channel=
+phase=
+key=
 stage=
 scope=
 while [ $# -gt 0 ]; do
   case "$1" in
     --channel) channel=$2; shift 2 ;;
+    --phase) phase=$2; shift 2 ;;
+    --key) key=$2; shift 2 ;;
     --stage) stage=$2; shift 2 ;;
     --scope) scope=$2; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
-[ -n "$channel" ] && [ -n "$stage" ] && [ -n "$scope" ] || {
-  echo "need --channel --stage --scope" >&2
+channel="$(wd_resolve_channel "${0##*/}" "$channel" "$phase" "$key")" || exit 2
+[ -n "$stage" ] && [ -n "$scope" ] || {
+  echo "need --stage --scope" >&2
   exit 2
 }
 
@@ -46,4 +51,5 @@ tmp="$dir/.done.json.tmp.$$"
 printf '{"stage":"%s","head":"%s","producer_ref":"%s","producer_worktree":"%s","scope":"%s","ts":"%s"}\n' \
   "$stage" "$head" "$ref" "$wt" "$scope" "$ts" > "$tmp"
 mv "$tmp" "$dir/done.json"
+
 echo "published done @ $head ($ref)"

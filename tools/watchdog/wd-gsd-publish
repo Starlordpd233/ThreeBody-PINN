@@ -2,12 +2,11 @@
 # wd-gsd-publish — GSD adapter for the cross-session watchdog producer (Phase 5).
 #
 # A thin SEPARATE wrapper that maps GSD phase concepts onto the generic, GSD-
-# agnostic wd-publish-done core. The core (wd-publish-done) stays untouched;
-# this adapter only translates args and delegates.
+# agnostic wd-publish-done core. This adapter only translates args and delegates.
 #
 #   --phase NN   ->  stage = "gsd:phase-NN"        (e.g. --phase 35 -> gsd:phase-35)
 #   --scope STR  ->  forwarded unchanged to wd-publish-done
-#   --channel N  ->  forwarded (defaults to "default" if omitted)
+#   --channel N  ->  forwarded as a raw override; default channel derives from --phase
 #
 # done.head anchoring (BY CONVENTION — the adapter does NO commit archaeology):
 #   wd-publish-done anchors done.head on HEAD (`git rev-parse HEAD`). The GSD
@@ -22,10 +21,11 @@
 #
 # Usage: wd-gsd-publish --phase NN --scope "<pathspec>" [--channel NAME]
 set -euo pipefail
+source "$(dirname "$0")/lib/wd-common.sh"
 
 phase=
 scope=
-channel=default
+channel=
 while [ $# -gt 0 ]; do
   case "$1" in
     --phase) phase=$2; shift 2 ;;
@@ -40,11 +40,13 @@ done
 case "$phase" in
   ''|*[!0-9]*) echo "wd-gsd-publish: --phase must be a positive integer" >&2; exit 2 ;;
 esac
+phase=$((10#$phase))
 [ "$phase" -gt 0 ] || { echo "wd-gsd-publish: --phase must be a positive integer" >&2; exit 2; }
 # --scope must be non-empty.
 [ -n "$scope" ] || { echo "wd-gsd-publish: --scope is required" >&2; exit 2; }
 
 stage="gsd:phase-$phase"
+[ -n "$channel" ] || channel="$(wd_resolve_channel "${0##*/}" "" "$phase" "")" || exit 2
 
 # Delegate to the generic core. exec replaces this shell with wd-publish-done, so
 # the core's exit code and stdout/stderr become this script's, verbatim.

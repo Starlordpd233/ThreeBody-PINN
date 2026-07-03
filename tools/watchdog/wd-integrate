@@ -22,18 +22,22 @@
 #   CONFLICT integrating <head> exit 4   merge conflicted; aborted, tree clean
 #   (no done marker)            exit 10  nothing to integrate yet
 #
-# Usage: wd-integrate --channel NAME
+# Usage: wd-integrate (--channel NAME | --phase NN | --key STR)
 set -euo pipefail
 source "$(dirname "$0")/lib/wd-common.sh"
 
 channel=
+phase=
+key=
 while [ $# -gt 0 ]; do
   case "$1" in
     --channel) channel=$2; shift 2 ;;
+    --phase) phase=$2; shift 2 ;;
+    --key) key=$2; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
-[ -n "$channel" ] || { echo "need --channel" >&2; exit 2; }
+channel="$(wd_resolve_channel "${0##*/}" "$channel" "$phase" "$key")" || exit 2
 
 done_f="$(wd_channel_dir "$channel")/done.json"
 [ -f "$done_f" ] || { echo "wd-integrate: no done marker on channel $channel" >&2; exit 10; }

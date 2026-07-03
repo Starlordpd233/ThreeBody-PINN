@@ -15,21 +15,26 @@
 #   3. producer-cleanliness— the producer worktree has no uncommitted scope changes
 #   4. integration (opt-in)— head is an ancestor of the integration ref
 #
-# Usage: wd-check --channel NAME [--require-integration] [--integration-ref REF]
+# Usage: wd-check (--channel NAME | --phase NN | --key STR) [--require-integration] [--integration-ref REF]
 set -euo pipefail
 source "$(dirname "$0")/lib/wd-common.sh"
 
 channel=
+phase=
+key=
 require_integration=0
 integration_ref=HEAD
 while [ $# -gt 0 ]; do
   case "$1" in
     --channel) channel=$2; shift 2 ;;
+    --phase) phase=$2; shift 2 ;;
+    --key) key=$2; shift 2 ;;
     --require-integration) require_integration=1; shift ;;
     --integration-ref) integration_ref=$2; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
+channel="$(wd_resolve_channel "${0##*/}" "$channel" "$phase" "$key")" || exit 2
 
 done_f="$(wd_channel_dir "$channel")/done.json"
 [ -f "$done_f" ] || { echo IDLE; exit 10; }
