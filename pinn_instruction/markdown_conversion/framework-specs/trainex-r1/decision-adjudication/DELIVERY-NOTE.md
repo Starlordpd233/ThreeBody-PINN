@@ -92,3 +92,18 @@ pinn_instruction/markdown_conversion/framework-specs/trainex-r1/decision-adjudic
 Ratify `trainex-r1a-resolution-doc.md` → record the picks as project **Key Decisions** →
 the build milestone's trigger #3 is met. Build scoping then follows the viability slice
 (Stage-0 first), per `postspec-r1-direction-assessment.md`.
+
+## Delivered (2026-07-05)
+
+The round ran with three Stage-1 agents. Actual on-disk filenames (the descriptive names
+were kept over the note's `<agent>-decide-resolution.md` suggestion, and match the citations
+inside the consolidation):
+
+- Stage-1 results — `research_results/chatgpt-trainex-r1a-resolution.md`,
+  `research_results/fable-trainex-r1a-adjudication-resolution.md`,
+  `research_results/glm-trainex-r1a-resolution.md`.
+- Stage-2 consolidation output — filed at package root as `trainex-r1a-resolution-doc.md`
+  (delivered as `FINAL-RESOLUTION.md`; renamed to the note's canonical name on landing).
+- Owner ratification — `RATIFICATION.md` (2026-07-05): consolidated core accepted as
+  recommended; D1-p / D4-a ceiling / RECOVER budget / HALT + guard thresholds / B-5 field
+  list left as owner carve-outs at their designed moments; R-3 closed (Apple M5 Pro, 24 GB).
