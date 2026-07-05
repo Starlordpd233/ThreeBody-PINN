@@ -1,3 +1,610 @@
+# Consolidated attachment (mechanical bundle) for external research agent
+# This file = concatenation of the following original sources (content unchanged):
+#   1. research_package/RESEARCH-CONTEXT-MASTER.md
+#   2. attachments/postspec-r1-direction-assessment.md
+#   3. attachments/2026-06-10-training-execution-design.md
+# Baseline commit: 4bbd5443 (v1.6 tag per DELIVERY-NOTE)
+# Consolidated on: 2026-07-04
+# IMPORTANT: Original filenames appear in the BEGIN/END markers below.
+#            The RESEARCH-AGENT-PROMPT will instruct you which bundle contains which original.
+================================================================================
+BEGIN ORIGINAL: RESEARCH-CONTEXT-MASTER.md
+================================================================================
+---
+title: "Trainex r1a — Decision-Adjudication Research Brief (Context Master)"
+created: 2026-07-04
+source_baseline: 4bbd5443 (master; v1.6 merged, tag v1.6)
+channel: build-design (recommendation only; the project owner ratifies)
+---
+
+# Trainex r1a — Decision-Adjudication Research Brief
+
+## 0. What you are doing (read this first)
+
+You are an external research agent producing a **decisive engineering-decision
+resolution** for the *training-execution build* of a curriculum-trained, physics-informed
+neural network (a "CTL-PINN") that predicts three-body gravitational trajectories. The
+system will be built and operated by a **non-expert on a single Apple-Silicon laptop**
+(M-series, ~24 GB unified memory, **no cloud, no distributed training**).
+
+A prior research round already enumerated the decisions, laid out the options, and marked
+a *suggested default* for each. **Your job is not to re-invent the option space. Your job
+is to adjudicate it:** for each in-scope decision, recommend the choice — endorsing or
+overriding the prior suggested default — with clear reasoning, so the owner can adopt your
+resolution as the default and ratify it.
+
+Be **decisive** (recommend one option per decision) but **honest** (state your confidence
+and the biggest uncertainty). You are a recommender; the owner makes the final call. Where
+the attached materials are silent or ambiguous, **record the gap — never invent** a fact,
+number, or capability.
+
+You work **only from the attached files.** If something references a file that is not
+attached, treat it as unavailable and note it if it matters.
+
+## 1. The attached files (your only sources)
+
+| Filename | What it is | How to treat it |
+|---|---|---|
+| `trainex-r1a-options-and-decisions.md` | **The decision sheet you are adjudicating** — the 7 core decisions (D1–D7) and baseline-review items (B-1..B-12), each with option menus, a *suggested default*, and a one-way/two-way "door" label | Prior round's recommendation, to **endorse or override** — not settled |
+| `chatgpt-pro-resolution.md` | The **full-depth source report** behind that sheet (deeper per-option rationale) | Same standing; use for depth |
+| `ctl_instruction.md` | Authoritative **science spec** — curriculum staging + training-loop contracts | **Hard constraint.** Current; may postdate the decision sheet — flag conflicts |
+| `pinn_architecture.md` | Authoritative **science spec** — network, autodiff contract, output head, and the §10 numerical acceptance probes | **Hard constraint** |
+| `2026-06-10-training-execution-design.md` | The **pipeline baseline** the sheet critiques (subsystem decomposition; "PH-1..PH-10" placeholders) | **Baseline design intent** — challengeable starting point, not authority (it says so itself) |
+| `postspec-r1-direction-assessment.md` | **Strategy context** — recommends the first build be a thin *"Stage-0 viability slice"*, not the full platform | Use to tag decisions needed-now vs deferrable (§4). *Note:* it was written against a prior round's bundle that also included `sampling_method.md` and a `FRAMEWORK-SPECS-BUNDLE.md` (neither attached — `sampling_method.md` is the frozen data-generation spec, out of scope for build decisions); treat any references to those as background only. |
+| `trainex-r1b-findings.md`, `trainex-r1b-findings-2.md` | **Operations knowledge** — training-feasibility envelope, a trainer-correctness verification ladder, a PINN health watchlist, unattended-run practice | Background for the rows whose thresholds are marked "⚖" in the sheet. Those ⚖ values are **filled at Stage 2 (consolidation)**, not Stage 1: in Stage 1 leave them as placeholders and record in your claims register any ⚖ threshold these files do not actually give a number for. |
+
+## 2. Standing and authority (do not overstep)
+
+- This is a **build-design** round — engineering choices about how to build and run the
+  trainer. It is **NOT** a science/spec adjudication and does **NOT** edit or ground the
+  science specs.
+- Your resolution is a **recommendation the owner ratifies.** Recommend decisively; do not
+  claim final authority.
+- **Suggest a default; never assert final authority.** You suggest a decisive default for the
+  owner to ratify — you do not decide with final authority. On rows that are really an **owner
+  preference** (e.g., risk tolerance) or an **empirical** matter (needs a probe/measurement),
+  flag the row for the owner rather than deciding it.
+- **Do not re-adjudicate the science.** The attached specs are locked; treat them as fixed
+  constraints, not open questions.
+
+## 3. Scope — what to decide, what to leave alone
+
+**Decide (recommend one option each):** D1, D2, D3, D4-a/b/c/d, D5-a/b/c, D6,
+D7-a/b/c/d, and baseline items B-1, B-2, B-3, B-4, B-5, B-6, B-9, B-10, B-11. The attached
+decision sheet defines each and gives you the full menus.
+
+**Do NOT decide — context only:**
+
+- **D1-p (numerical precision, fp32 vs fp64).** A separate science/precision question in
+  another channel. Do not pick it. Instead ensure your recommendations **hold under both
+  branches** (fp32-on-GPU and fp64-on-CPU); where a decision's shape depends on the branch,
+  give the recommendation for each.
+- **B-8 (the ε_H acceptance-gate direction).** Settled by the spec — `ctl_instruction.md`
+  (lines 550–555) defines it unambiguously: REJECT if `eps_H > 1e-5` (smaller passes),
+  `eps_H = 0 → Excellent`. The baseline design doc's §6.3 renders an inverted-looking gate
+  example (r1b flags it as C-12); that is a display typo in a non-authoritative doc, not a
+  contradiction in the locked metric. Treat the gate as a fixed constraint (do not
+  re-adjudicate its direction); if a recommendation depends on it, note the dependency.
+
+**Not adjudicated here (handled elsewhere — transparency note):** the decision sheet's §8 also
+lists **B-7** (cosmetic: its error-table "CUDA out of memory" row should read MPS wording — a
+doc edit, no adjudication needed) and **B-12** (a split-policy tension routed to v1.5/PH-5;
+register U-4). Neither is in your Decide list; both are intentionally out of scope for this
+round. Your Decide set therefore covers B-1..B-6 and B-9..B-11.
+
+## 4. The lens: recommend for a thin first step, not the whole platform
+
+Per the attached strategy assessment, the intended first build is a **minimal Stage-0
+viability slice** — the thinnest end-to-end path that can train the first curriculum stage
+and reveal whether the model does anything physically sensible on the available data. So
+for **every** decision, tag your recommendation:
+
+- **Needed now** — required to stand up the Stage-0 slice, or a one-way (expensive-to-
+  reverse) choice that must be right from the start; **or**
+- **Deferrable** — safely postponed until the slice proves the approach (a two-way choice
+  addable later).
+
+Prefer the simplest recommendation that lets the thin slice run, while protecting the
+one-way doors.
+
+## 5. Output contract (what to return)
+
+One polished, human-readable Markdown report. For **each in-scope decision**:
+
+1. **Recommendation** — the single option you recommend.
+2. **Endorse or override** — whether you agree with the prior suggested default, and *why*.
+3. **Confidence** — High / Medium / Low, plus the single biggest uncertainty behind it.
+4. **Consistency** — how this pick fits the others (e.g., the framework choice constrains
+   the tracking, data-loading, and loop options). The full set must be coherent.
+5. **Timing** — Needed-now or Deferrable (§4).
+6. **Nature** — flag if the choice is really an **owner preference** (e.g., risk tolerance)
+   or an **empirical** matter (needs a measurement/probe) rather than research-settled.
+
+Then, once for the report:
+
+- **Composed first-run recipe** — a short end-to-end description of the resulting first
+  run, as a coherence check that your picks work together.
+- **What the runbook inherits** — the subset of your recommended picks that lands in the
+  non-expert operator's first runbook (the needed-now set, stated as concrete
+  defaults/instructions), kept distinct from the deferrable set.
+- **Claims-and-uncertainty register** — every place the attached materials were
+  silent/ambiguous, every project-side number you needed but did not have (do **not**
+  invent them), and every assumption you made.
+- **Standing restatement** — one line confirming this is a recommendation for the owner to
+  ratify, not a science-spec verdict, and that D1-p and B-8 were left to the owner.
+
+## 6. Hard constraints (never recommend against these)
+
+- **Single machine:** one Apple-Silicon laptop (M-series, ~24 GB unified memory). **No
+  cloud, no distributed training.**
+- **Non-expert operator:** comfortable with a terminal and a runbook; not a Python
+  developer. Favor simplicity, well-typed failures, and searchable/well-supported tools.
+- **Science specs are authoritative:** `ctl_instruction.md` and `pinn_architecture.md` fix
+  the network, losses, curriculum, optimizer regime, and acceptance probes. Build decisions
+  serve them; they do not change them.
+- **Current specs may postdate the decision sheet:** if the attached specs contradict any
+  option in the sheet, flag it as a spec-drift finding rather than silently following the
+  older text.
+
+## 7. Source discipline
+
+Work only from attached files. Do not import outside numbers for this project's data
+sizes, run durations, or hardware behavior — where you need such a number, name it in the
+claims register as a project-side unknown. Cite the attached filename when a recommendation
+leans on it. If the decision sheet references something not attached, treat it as
+unavailable and note it.
+================================================================================
+END ORIGINAL: RESEARCH-CONTEXT-MASTER.md
+================================================================================
+================================================================================
+BEGIN ORIGINAL: postspec-r1-direction-assessment.md
+================================================================================
+---
+title: "Post-Spec R1 — Strategic Direction Assessment"
+subtitle: "What Comes After the Specs for the Curriculum-Trained Three-Body PINN"
+author: "External Research Workflow · build-design / strategy advisory"
+date: "2026-06-18"
+geometry: margin=1in
+fontsize: 11pt
+linkcolor: black
+urlcolor: black
+---
+
+*Standing: recommendation only. This report advises a direction of travel; the
+project owner makes the decision. It is not a candidate verdict source for
+framework-spec adjudication, and it does not re-adjudicate the specs.*
+
+*Scope: written from `RESEARCH-CONTEXT-MASTER.md` and the three specs bundled in
+`FRAMEWORK-SPECS-BUNDLE.md` (`ctl_instruction.md`, `pinn_architecture.md`,
+`sampling_method.md`). No repository or live-code access; no external sources
+were required (the question is internal to the attached framework, and the
+underlying ML rationale is already argued inside the specs themselves).*
+
+---
+
+## 1. Executive Summary
+
+The specs are in unusually good shape. The architecture is fully pinned down and
+deliberately modest in size, the data-generation pipeline is clean, the data
+already exists, and the training loop is specified end to end. What is *not*
+settled is whether the approach actually works at the scale of data on hand —
+and the specs say so, repeatedly and in the owner's own voice.
+
+That single fact reshapes the EDL-versus-Trainex question. The largest risk
+sitting in front of this project is **not** "can we engineer a training
+pipeline" — the specs make that comparatively low-risk. The largest risk is
+**viability under data scarcity**: whether this curriculum-PINN, trained on the
+limited data available, can become something that even *resembles* a working
+three-body surrogate, and whether the curriculum's theoretical thresholds and
+stage populations survive contact with the real data distribution.
+
+Because that is fundamentally an *empirical* question, the next stage should be
+**evidence-first** in purpose — the spirit of EDL. But the evidence that matters
+cannot be gathered by small isolated probes alone; the central unknowns ("does
+Stage 0 converge to something physical? are the transition thresholds even
+reachable? is the data enough?") only reveal themselves when a real, if thin,
+training path runs. That requires a *minimal* Trainex spine.
+
+**Recommended direction of travel: a disciplined hybrid that leans EDL in
+purpose and Trainex in mechanism — a "viability slice."** Concretely, the next
+phase's job is to convert the specs' theoretical assumptions into evidence at
+the smallest possible scale: first a cheap **data-and-curriculum
+characterization** (which the spec author already proposed), then a **thin
+Stage-0 training run instrumented as a viability probe**. Both produce evidence;
+neither commits the project to building the whole system. The full
+training-execution platform — all seven curriculum stages, robust
+checkpoint/resume, a polished operator runbook, reproducibility provenance — and
+the production training run are deferred until the slice says the approach is
+worth industrializing and, just as importantly, tells us *what* to industrialize.
+
+This is not "abstract EDL probes," and it is not "full Trainex." It is the
+narrowest fusion of the two that attacks the real risk.
+
+---
+
+## 2. Current-State Diagnosis
+
+Read against the seven evaluation criteria, the framework's strengths and soft
+spots fall into a clear pattern.
+
+**What is solid.**
+
+- **The architecture is finalized and right-sized for the project's reality.**
+  `pinn_architecture.md` specifies a SQR-SkipResNet-SIREN backbone of 12 hidden
+  layers (6 residual blocks) at width 256, with principled SIREN initialization,
+  LayerNorm on odd layers, and soft conservation regularizers for energy
+  (matched-Plummer Hamiltonian) and angular momentum. This is a deliberately
+  modest network — a strong fit for a single-machine, non-expert-operator
+  project. Implementing it is standard PyTorch work, not research.
+- **The data exists and the pipeline that made it is clean.** `ctl_instruction.md`
+  reports 15,028 IC/Brutus pairs across four sets (high-fidelity hierarchical,
+  low-fidelity quasi-random, plus high-temporal-resolution variants).
+  `sampling_method.md` passed its audit with no source-level issues — every
+  section marked PASS. The generation side is not where risk lives.
+- **The training loop is specified end to end.** A two-phase per-stage strategy
+  (Adam exploration handing off to L-BFGS refinement), lookahead sampling for
+  smooth stage transitions, curriculum-aware adaptive gradient clipping, a
+  four-part stage-transition test, and a three-level Hydra configuration are all
+  written down in `ctl_instruction.md`.
+- **A verification surface is already designed.** `pinn_architecture.md` §10
+  defines five numerical acceptance probes — scaling consistency, COM
+  invariance, componentwise automatic differentiation against a synthetic
+  trajectory, force–energy consistency, and a loss-stability dry run. The
+  project has already done much of the conceptual work of *how to check itself*.
+
+**What is genuinely unsettled — and flagged as such by the specs.**
+
+- **The curriculum's stage-transition criteria are explicitly provisional.** The
+  author note in `ctl_instruction.md`'s Phase 2 states plainly that all
+  transition criteria are "theoretical now" and "will heavily depend on what the
+  actual situation is like," worries that the training data may be "maybe not
+  even enough," sets a deliberately modest success bar (the network shows "the
+  potential to do something similar to a 3-body integrator"), and asks directly:
+  *"Should we first test train stage 0 and see how it goes and then go from
+  there?"* This is the most important sentence in the bundle for the present
+  decision.
+- **Several curriculum criteria depend on data statistics that may not be
+  characterized yet.** Stage 3 is defined by quantiles of the low-fidelity
+  distribution; Stages 4–5 by per-trajectory Lyapunov time $\tau_L$. Whether
+  enough trajectories actually populate each stage — Stage 0 above all, since it
+  is the starting rung — is an empirical question. The author had already
+  suggested scanning the IC files first "to get an insight on what the data
+  looks like, and then decide on the criteria."
+- **At least one default is openly unevidenced.** The per-trajectory data-loss
+  point count `n_pts_cap` is set to 32 with the explicit caveat that this is "not
+  evidence-based — revisit with admitted-set snapshot distributions." (Helpfully,
+  some characterization already exists: snapshot-count medians of 61 / 127 / 1003
+  for standard / hierarchical / gold are recorded.)
+- **Two cross-spec reconciliations remain open before training.** `SI-PINN-003`
+  flags that the batch-construction strategy in `pinn_architecture.md` is "not
+  consistent with the CTL instruction plan," to be resolved during training
+  implementation. `SI-PINN-002` notes two SIREN details still marked for
+  confirmation (dynamic scheduling for `omega_0`, and a hidden-layer detail). The
+  earlier input-vector dimensionality question (`SI-CTL-001`) is, by contrast,
+  already resolved.
+- **The evaluation section narrates results that do not yet exist for this
+  build.** Passages such as "the final model shows minimal energy drift … below
+  0.1%" and "it can often reach 1–2 $\tau_L$" read as inherited from a source
+  paper. `RESEARCH-CONTEXT-MASTER.md` is clear that the production training
+  buildout has not been performed and that older live code is not the source of
+  truth. These figures should be treated as *aspirations to test*, not
+  established baselines — guarding against false certainty.
+
+**Net diagnosis.** This is a project that has done its design homework
+thoroughly and now faces a feasibility gate it has not yet walked through. The
+specs are detailed; the *evidence* is thin. The risk has migrated from "is the
+design coherent?" to "does the design, with this data, do anything?"
+
+---
+
+## 3. Strategic Evaluation Lens Applied
+
+`RESEARCH-CONTEXT-MASTER.md` asks that the lens *sharpen* the recommendation up
+front rather than be deferred. Applying it, three of the seven criteria
+dominate the decision and effectively settle it.
+
+- **Reduce the largest risk before full-scale implementation (criterion 1).**
+  The largest risk is viability under data scarcity, not pipeline engineering.
+  Any direction that pours effort into building the full system before testing
+  viability is optimizing the wrong variable.
+- **Create useful evidence without building the whole system first (criterion
+  2).** The decisive unknowns are observable from a Stage-0-scale run plus a data
+  audit. Building all seven stages, robust resume, and a runbook is not required
+  to learn what we most need to know — and is partly wasted motion if the answer
+  is discouraging.
+- **Avoid premature engineering detail (criterion 4).** The specs already over-
+  determine the design relative to the evidence behind it. The corrective is more
+  evidence, not more engineering.
+
+The remaining criteria reinforce rather than complicate this:
+
+- *Preserve momentum after a long spec period (criterion 3):* after milestones of
+  document work, the highest-morale move is to see the network *run* on real
+  data — concrete, motivating, and a clean break from prose.
+- *Avoid false certainty where sources are unsettled (criterion 5):* the
+  inherited "results" prose and the author's own caveats both argue for treating
+  the next phase as a question to answer, not a target to hit.
+- *Fit a single-machine, non-expert-operator reality (criterion 6):* the modest
+  model makes a thin slice cheap to run on one machine, and the slice doubles as
+  the seed of the operator's eventual day-to-day workflow.
+- *Clarify what broad class of work comes next (criterion 7):* the class is
+  "minimal evidence-producing vertical slice," which is neither pure research-
+  probing nor pure platform-building.
+
+The lens does not merely permit the recommendation below; it points at it.
+
+---
+
+## 4. Candidate Direction Assessment
+
+The brief asks for at least four directions: EDL-first, Trainex-first, a hybrid,
+and any stronger reframing. Here is how each fares against the lens.
+
+### 4.1 EDL-first (small probes and research loops before a larger buildout)
+
+**Strengths.** Correctly oriented toward evidence and toward the genuinely
+unsettled questions; cheap; low premature-engineering risk; honest about
+uncertainty.
+
+**Weakness.** As usually framed — small, *isolated* probes — EDL struggles to
+touch the risk that matters most. "Does Stage 0 train to something physical?",
+"are the transition thresholds reachable?", and "is the data enough?" are not
+answerable by micro-experiments in isolation; they need a real, if minimal,
+end-to-end training path. A purely probe-flavored stage risks producing tidy
+findings that sidestep the central feasibility question. EDL's *purpose* is
+exactly right; EDL *without any pipeline* is too thin.
+
+### 4.2 Trainex-first (turn the framework into a trainable operational system)
+
+**Strengths.** Produces the runnable artifact the project ultimately needs;
+forces the open cross-spec reconciliations (`SI-PINN-003`, `SI-PINN-002`) to be
+settled because you cannot build the loop without choosing; aligns with the
+owner's instinct to actually run something.
+
+**Weaknesses.** "Trainex" as a *full* reality pipeline — robust
+checkpoint/resume, complete monitoring, all seven stages, hardened ingestion of
+all four sets, a polished runbook, bit-for-bit provenance — is premature against
+unvalidated assumptions. If the approach turns out to be data-starved, much of
+that platform is built for a system that needs rethinking. A second caution:
+this package contains *no returned result* from the Trainex foundational
+research round that `RESEARCH-CONTEXT-MASTER.md` says exists elsewhere, so its
+current content and conclusions cannot be assessed here. Committing "Trainex-
+first" at full scope would partly rest on material not in evidence.
+
+### 4.3 Hybrid (EDL plus Trainex in parallel)
+
+**Strengths.** Recognizes, correctly, that the right answer combines evidence and
+execution.
+
+**Weakness.** A generic "do both" hybrid tends to do *too much* of both —
+standing up real platform machinery while also running a research program — which
+reintroduces exactly the premature-engineering risk the lens warns against. The
+hybrid is the right *family*; it needs discipline to be the right *plan*.
+
+### 4.4 Reframing — the "viability slice" (recommended)
+
+Rather than choosing between EDL and Trainex, reframe the next stage by its
+**deliverable**: *evidence about whether the framework, on the data we have,
+does anything worth industrializing.* That deliverable is EDL in purpose. The
+*cheapest mechanism* that yields it is a **thin Trainex spine** — the minimum
+ingestion → preprocess → model → loss → train → observe loop needed to reach
+Stage 0 — scoped to one viability question and one data audit, with everything
+else deferred. This is the disciplined version of the hybrid: EDL-in-intent,
+minimal-Trainex-in-means.
+
+| Direction | Hits the largest risk? | Evidence w/o full build? | Premature-engineering risk | Net fit |
+|---|---|---|---|---|
+| EDL-first (isolated probes) | Partially — misses end-to-end feasibility | Yes | Low | Right purpose, too thin |
+| Trainex-first (full pipeline) | Indirectly, and late | No | **High** | Right artifact, wrong timing |
+| Generic hybrid (both at once) | Yes, but diffuse | Mixed | Medium–high | Right family, undisciplined |
+| **Viability slice (reframe)** | **Yes, directly** | **Yes** | **Low** | **Recommended** |
+
+---
+
+## 5. Recommended Direction of Travel
+
+Aim the next phase at a single outcome: **decide whether this curriculum-PINN, on
+the data in hand, is worth a full buildout — and learn enough to design that
+buildout well.** Pursue it as a thin, evidence-first vertical slice with two
+sequenced thrusts. (These describe the *shape* and *intent* of the work, not a
+task list, and deliberately avoid gates, milestones, or backlogs.)
+
+**Thrust A — Characterize the data and the curriculum against reality (cheap,
+first).** This is the move the author already proposed: scan the admitted IC set,
+compute the difficulty invariants and $\tau_L$, and see how many trajectories
+actually land in each stage — Stage 0 most of all. The point is to replace
+theoretical stage definitions with knowledge of the real distribution, to
+confirm whether the curriculum's rungs are populated, and to retire unevidenced
+defaults such as `n_pts_cap`. This requires almost no training machinery and can
+reshape Thrust B before a single epoch runs.
+
+**Thrust B — Train Stage 0 as a viability probe on a minimal spine.** Stand up
+the *thinnest* end-to-end path that can train Stage 0 (and, via lookahead, peek
+at Stage 1), instrumented so the run answers the owner's own question: does the
+network reach something that behaves like a three-body integrator, conserve the
+invariants to a believable degree, and show the *potential* to improve with more
+data? Building this spine forces the two open cross-spec reconciliations to be
+settled — you cannot write the loop without choosing a batch construction
+(`SI-PINN-003`) and confirming the SIREN `omega_0` handling (`SI-PINN-002`) — and
+the slice itself generates the evidence to choose well. The already-designed §10
+acceptance probes are the natural correctness backstop for this spine; they exist
+precisely for this.
+
+The product of these two thrusts is a defensible **go / adjust / rethink**
+judgment, plus calibration data: realistic transition thresholds, a sane
+`n_pts_cap`, and a first read on data sufficiency. That judgment is what unlocks
+— and shapes — the full training-execution platform later. Crucially, the thin
+spine is not throwaway: it is the seed from which a fuller Trainex platform
+grows *if the evidence warrants it*.
+
+---
+
+## 6. Why This Direction Is Better Than The Alternatives
+
+**Versus EDL-first.** It keeps EDL's correct instinct — produce evidence before
+locking the path — but fixes EDL's blind spot. The feasibility of a
+curriculum-PINN is an *end-to-end* property; a thin training run observes it,
+isolated probes do not. The viability slice is EDL that actually reaches the risk.
+
+**Versus Trainex-first.** It refuses to industrialize an unproven approach. Every
+piece of platform engineering deferred here — full resume, complete monitoring,
+all seven stages, the operator runbook, bit-for-bit provenance (which the spec
+itself marks "ignore now, come back later") — is engineering that would be
+built against assumptions the slice is designed to test first. It also avoids
+leaning on the Trainex foundational research result, which is not in this
+package and therefore cannot be evaluated here.
+
+**Versus the generic hybrid.** It is the *disciplined* hybrid. By fixing a single
+deliverable (a viability judgment) and a single minimal mechanism (a Stage-0
+spine), it captures the "evidence plus execution" insight without the sprawl of
+running a full research program and a real platform simultaneously.
+
+**Against the lens, in one line:** it attacks the largest risk directly
+(criterion 1), produces decisive evidence without building the whole system
+(criterion 2), avoids premature engineering (criterion 4), restores momentum by
+getting the model running (criterion 3), treats unsettled claims as questions
+rather than targets (criterion 5), and fits a single-machine reality while
+seeding the eventual operator workflow (criterion 6) — which is as clean a
+mapping to the evaluation lens as any of the candidates achieves (criterion 7).
+
+It also has a quieter merit: it agrees with the project owner's own stated
+instinct to "test train stage 0 and see how it goes." The recommendation is not
+imposing a foreign plan; it is giving structure to an intuition already on the
+record in `ctl_instruction.md`.
+
+---
+
+## 7. What Not To Work On Yet
+
+Deferring the following is part of the recommendation, not an oversight. Each is
+either premature against current evidence or explicitly downstream.
+
+- **The full seven-stage curriculum buildout.** Stage 0 (plus a lookahead glance
+  at Stage 1) is enough to answer the viability question. Wiring all stages
+  before that answer is premature.
+- **A hardened training platform.** Robust checkpoint/resume, full monitoring
+  dashboards, Hydra sweep infrastructure, and a polished operator runbook are the
+  *output* of a successful slice, not its prerequisite.
+- **Active-learning data enhancement (the curriculum's Phase 3).** This is far
+  downstream of demonstrating that base training works at all.
+- **A full long-horizon evaluation harness.** Lyapunov prediction-horizon and
+  long-term statistical-outcome metrics are valuable later; a Stage-0 slice needs
+  only short-horizon error plus conservation diagnostics to read viability.
+- **Reproducibility provenance.** The spec itself defers bit-for-bit
+  reproducibility ("ignore now, come back later"); honor that.
+- **Re-adjudicating the specs.** Out of scope for this advisory and unnecessary —
+  the specs are coherent. The two open reconciliations get settled *as a
+  byproduct* of building the slice, not as a separate spec exercise.
+- **Chasing the inherited result numbers.** The "0.1% energy drift" and "1–2
+  $\tau_L$" figures are aspirations to test, not baselines to match; do not let
+  them set premature targets.
+
+---
+
+## 8. Key Risks and Unknowns
+
+State assumptions where they bite, plainly.
+
+- **Data sufficiency could be the binding constraint — possibly fatal.** The
+  author's worry that the data may be "not even enough" is the single largest
+  unknown. The viability slice is designed precisely to surface this early and
+  cheaply, before heavy investment. *If* the data is too thin, the right response
+  is to learn that now rather than after building a platform.
+- **Stage 0 may be under-populated.** If too few trajectories meet Stage-0
+  criteria, the curriculum's starting rung is shaky and the criteria likely need
+  empirical loosening — which is exactly what Thrust A would reveal and the
+  author anticipated.
+- **The theoretical thresholds may be unreachable.** The transition tests
+  ($\mathcal{L}_{\text{phys}}^{\text{val}} < 10^{-4}$, energy drift $< 10^{-4}$)
+  are provisional by the author's own statement. If a Stage-0 run cannot approach
+  them, they need empirical recalibration — a finding, not a failure.
+- **A dependency not in evidence: the Trainex foundational research result.**
+  `RESEARCH-CONTEXT-MASTER.md` says a Trainex research round exists elsewhere, but
+  no result is included here. *Assumption:* nothing in that result contradicts
+  this assessment. If it already contains viability evidence or constraints, this
+  recommendation should be reconciled with it before acting.
+- **The batch-construction inconsistency (`SI-PINN-003`) is unresolved.** The
+  slice cannot be built without choosing between the two specs' batch strategies;
+  that choice could affect both correctness and the slice's design. It should be
+  made deliberately, with the slice's evidence informing it.
+- **SIREN training stability is not yet demonstrated here.** The open `omega_0`
+  scheduling detail (`SI-PINN-002`) is an empirical matter; SIREN networks can be
+  initialization- and frequency-sensitive, and the §10 AD probe plus the slice
+  are the right places to confirm behavior.
+- **Specs-only vantage point.** This assessment is built from the attached files,
+  not from repository access or live code (which is declared outdated and
+  unusable). Conclusions about implementation readiness therefore rest on the
+  specs' completeness, which is high but not a substitute for a running system —
+  which is itself part of why a slice is the recommended next step.
+
+---
+
+## 9. Closing Recommendation
+
+Make the next stage **evidence-first and small**. Spend it answering the question
+the specs keep circling — *does this curriculum-PINN, on the data we actually
+have, do anything worth building out?* — by characterizing the data against the
+curriculum and then running Stage 0 on the thinnest possible training spine,
+instrumented as a viability probe. Treat the inherited result figures as
+hypotheses, settle the two open cross-spec reconciliations as a byproduct of
+building the slice, and explicitly defer the full platform, the remaining
+curriculum stages, active learning, and reproducibility provenance until the
+evidence justifies them.
+
+This is the disciplined hybrid: EDL in purpose, a minimal Trainex spine in
+mechanism. It reduces the largest risk first, produces decisive evidence without
+over-building, keeps momentum after a long spec period, and respects a single-
+machine, single-operator reality — while honoring the project owner's own
+instinct to test-train Stage 0 before committing to the larger road.
+
+The decision remains the owner's. This report recommends the direction; it does
+not lock it.
+
+---
+
+## 10. References / Source Notes
+
+**Primary sources (attached).**
+
+- `RESEARCH-CONTEXT-MASTER.md` — governing brief: task framing, ERW standing,
+  evaluation lens, failure modes, output contract, source discipline. Defines the
+  EDL and Trainex candidate directions and the "leave room for a third path"
+  instruction.
+- `FRAMEWORK-SPECS-BUNDLE.md` — bundled framework specs, baseline `6a720fe0`,
+  comprising:
+  - `ctl_instruction.md` — multi-fidelity dataset and the ~15,028 IC/Brutus
+    pairs; the difficulty invariants ($E$, $L/L_{\max}$, $Q$, $s_{\min}$,
+    $\tau_L$); the seven-stage replay curriculum and its mix of theoretical,
+    quantile-based, and Lyapunov-based criteria; the Phase 2 two-phase
+    (Adam → L-BFGS) training loop, lookahead sampling, adaptive clipping, and the
+    four stage-transition criteria; the `n_pts_cap` "not evidence-based" note and
+    recorded snapshot-count medians; the author notes on provisional transition
+    criteria and "test train stage 0"; `SI-CTL-001` (resolved).
+  - `pinn_architecture.md` — the SQR-SkipResNet-SIREN backbone and finalized
+    hyperparameters (depth 12 / width 256, SIREN, LayerNorm on odd layers, soft
+    energy and angular-momentum regularizers); the §10 numerical acceptance
+    probes; `SI-PINN-002` (open SIREN details) and `SI-PINN-003` (batch-
+    construction inconsistency with the CTL plan).
+  - `sampling_method.md` — the hierarchical + Sobol quasi-random IC generation
+    and pre-screening pipeline; audited clean (no source-level issues).
+
+**External sources.** None used. The question is internal to the attached
+framework, and the machine-learning rationale invoked here (SIREN derivative
+fidelity and spectral bias, residual/skip stability, L-BFGS refinement,
+curriculum learning) is already argued and cited within `pinn_architecture.md`
+itself; no date-sensitive external claims were required.
+
+**Uncertainty flags carried in-text.** The unresolved viability and data-
+sufficiency questions; the dependency on the Trainex foundational research result
+not included in this package; the inherited evaluation figures that do not yet
+correspond to a real run of the current build; and the specs-only vantage point
+(no repository or live-code access).
+================================================================================
+END ORIGINAL: postspec-r1-direction-assessment.md
+================================================================================
+================================================================================
+BEGIN ORIGINAL: 2026-06-10-training-execution-design.md
+================================================================================
 ---
 status: active
 purpose: design
@@ -685,3 +1292,6 @@ This spec is a **frozen reference design document** for the CTL-PINN training ex
 - The **3 open questions in Section 9** are also decisions waiting for the user.
 
 **No implementation plan is produced now.** The training pipeline does not have a near-term execution target. The scientific side (PINN code, loss, architecture, curriculum) is being designed separately, in the framework specs and the v1.5 phases. Producing a build plan now would be speculative: there is no concrete target, and the placeholders would force the plan to be mostly placeholders itself. When the user is ready to start building, a fresh brainstorm can produce a plan based on this spec as input.
+================================================================================
+END ORIGINAL: 2026-06-10-training-execution-design.md
+================================================================================
