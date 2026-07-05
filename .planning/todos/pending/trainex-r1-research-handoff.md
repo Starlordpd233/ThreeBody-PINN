@@ -24,6 +24,12 @@ sub-packages under `pinn_instruction/markdown_conversion/framework-specs/trainex
 The shared `DELIVERY-NOTE.md` at the round root is user-facing routing only — never
 uploaded. Each sub-package has its own RESEARCH-AGENT-PROMPT.md.
 
+**Status update (2026-06-19):** R1a research returned from **ChatGPT Pro** and landed at
+`trainex-r1/research_results/r1a/chatgpt-pro-resolution.md` (committed on the `track/trainex`
+worktree branch; build-design channel — an options menu, not a verdict). R1b has not yet
+returned. Action 3 below is therefore partially complete (r1a only); consolidation (action 4),
+the D1–D7 decision sheet (action 5), and join-point checks are deferred until R1b lands.
+
 **User actions remaining:**
 
 1. Review both RESEARCH-CONTEXT-MASTER.md files — especially r1a's decision areas +
