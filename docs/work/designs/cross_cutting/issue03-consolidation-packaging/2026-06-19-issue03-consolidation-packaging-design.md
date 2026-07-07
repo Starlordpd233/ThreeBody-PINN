@@ -49,6 +49,11 @@ research package together with all first-version resolution reports, in a single
 without exceeding the external UI's 6-attachment cap and without losing provenance or
 byte fidelity.
 
+> **Note (2026-07-07):** the ERW runbook (Rule 15, `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`)
+> has since tightened the per-sub-package attachment cap from 6 to **5**. This design
+> doc's 6-attachment references (§1, §2, §8.4) describe the historical Issue 03 build
+> and remain accurate for that round; future rounds apply Rule 15.
+
 **In scope:** the packaging mechanism — which files are bundled, how they are bundled
 byte-exactly, how the bundle is organized for a large-file reader, the builder script
 contract, the final-agent prompt contract, and the verification gates.
