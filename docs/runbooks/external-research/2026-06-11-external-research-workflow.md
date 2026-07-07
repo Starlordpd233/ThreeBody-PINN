@@ -131,6 +131,21 @@ delivered via ERW, but the gap register remains the blocking record.)
 11. Record **consolidation join points** in the delivery note (which findings feed which
     menus) so the halves merge deliberately, not accidentally.
 
+### Attachment cap (2026-07-07)
+15. **Maximum 5 uploaded attachments per sub-package.** From 2026-07-07 onward,
+    the package sent to each external research agent contains at most **5 attached
+    files** per sub-package. This is a hard cap; exceeding it requires explicit
+    user override. Files that are never uploaded to the agent — `DELIVERY-NOTE.md`
+    (user-only routing), `research_results/` (created at delivery), the eventual
+    `<round>-resolution-doc.md` (consolidated output) — are routing / provenance
+    / outputs and do not count. **`specs/` snapshots DO count when uploaded**:
+    bundle them into a single `framework-specs-bundle.md` so the bundle is 1
+    attachment, not N. If a round's input set would exceed 5, **bundle — do not
+    split into more attachments** (Rule 4 already prefers shared snapshots). The
+    cap applies per sub-package, so a split round (e.g. `research_package_a/` +
+    `research_package_b/`) may ship 5 attachments to each external agent
+    independently.
+
 ### Naming
 12. Rounds: `<track>-rN` (e.g., `trainex-r1`, `trainex-r2`); sub-packages
     `research_package_a/_b`; results `<agent>-resolution.md` under
