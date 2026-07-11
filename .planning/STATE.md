@@ -1,38 +1,35 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Resolving 03 Curriculum and Training Loop
-current_phase: 36
-status: Awaiting next milestone
-stopped_at: Phase 36 complete and independently verified; v1.6 milestone closure gate satisfied (7/7 phases). No Phase 37 exists — v1.6 is the terminal specwork milestone. v1.6 --no-ff merged to master 2026-07-03 (commit 94a77960, two-parent merge of 2464af50 master cut + e68545ab v1.6 tip); recovery tag v1.6-pre-merge-backup at 2464af50. master remains local (not pushed); protected-branch publication is a separate user-owned step.
-last_updated: "2026-07-03T11:48:36.000Z"
-last_activity: 2026-07-03
-last_activity_desc: v1.6 merged to master (94a77960, --no-ff two-parent); specwork track complete on master, next is trainex
+milestone: v2.0
+milestone_name: CTL-PINN Training Viability Slice
+current_phase: 37
+current_phase_name: Developer Environment & Precision Adjudication
+status: planning
+last_updated: "2026-07-05T23:34:01.942Z"
+last_activity: 2026-07-06
 progress:
   total_phases: 7
-  completed_phases: 7
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
-current_phase_name: Acceptance Checks, Re-verification & Handoff
-current_plan: — (phase complete; all 5 plans executed and summarized)
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-02)
+See: .planning/PROJECT.md (updated 2026-07-06)
 
-**Core value:** Curriculum-staging and training-loop framework contracts are evidence-backed, consistent with the locked v1.4/v1.5 conventions, and verified before any training-loop implementation depends on them
-**Current focus:** v1.6 complete, archived (`.planning/milestones/v1.6-*`, local tag `v1.6`), AND merged to master 2026-07-03 (`--no-ff` commit `94a77960`, two-parent merge of `2464af50` + `e68545ab`; recovery tag `v1.6-pre-merge-backup` at `2464af50`). The specwork/framework-specs track is now COMPLETE on master — all three issue docs (01/02/03) resolved and the authoritative specs land on master. master is local (not pushed); protected-branch publication is a separate user-owned step. Next: pivot to the trainex track (FUT-01/FUT-04 in `.worktrees/trainex`), define v1.7 via `/gsd-new-milestone`, or publish master.
+**Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
+**Current focus:** v2.0 CTL-PINN Training Viability Slice — the project's first **build** milestone (trainex track). Requirements defined (42 across ENV/NET/DATA/TRAIN/CTRL/OPS/ACC); roadmap Phases 37–43. Planning artifacts on `master`; build execution in `.worktrees/trainex` (branch to be aligned to `milestone/v2.0`). Grounded in the owner-ratified trainex-r1a decision set (2026-07-05) + the locked v1.4/v1.5/v1.6 specs; the `pinn/` live-code ban is lifted (FUT-01 rebuilds from specs). Five owner-carved decisions are built as seams, not invented.
 
 ## Current Position
 
-Phase: Milestone v1.6 complete
+Phase: 37 — Developer Environment & Precision Adjudication (not started)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-02 — Milestone v1.6 completed and archived
+Status: Roadmap complete (Phases 37–43, 42/42 mapped); ready to plan Phase 37
+Last activity: 2026-07-06 — Milestone v2.0 initialized (`/gsd-new-milestone`): PROJECT / REQUIREMENTS / ROADMAP / STATE written
 
 ## Deferred Items
 
@@ -113,6 +110,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 - v1.4: Resolving 01 Architecture and Physics Foundations (Phases 16-22, plus inserted Phase 20.5) — shipped 2026-06-09. All phases closed; archived under `.planning/milestones/v1.4-*`. EDL support remains a non-canonical support workflow under `.planning/research/edl/`.
 - v1.5: Resolving 02 Data Pipeline and Validation (Phases 23-29) — shipped 2026-06-17. 36/36 requirements mapped; standard granularity; 8 phases (incl. inserted 24.5). Phase 23 (research package) first; Phase 24 (verification + DATA-07 addendum) ran in parallel with the external-research gate; Phases 25-29 gated on the resolution doc AND Phase 24. Spec edits limited to `ctl_instruction.md` and `pinn_architecture.md` (SCOPE-08/09/10). Branch `milestone/v1.5` from master HEAD `b8b39a4`; `--no-ff` merged to master (fe9b3c92) and archived under `milestones/v1.5-*` 2026-06-17 (tag v1.5).
 - v1.6: Resolving 03 Curriculum and Training Loop (Phases 30-36) — roadmap created 2026-06-17. 32/32 requirements mapped; standard granularity; 7 phases (no inserted decimal). Phase 30 (research package) first and ungated; its delivery opens the external resolution-doc gate. Phase 31 (resolution-doc readiness verification, operational, 0 IDs) gates Phases 32-36. Phase 32 stands up the evidence ledger and adjudicates the headline conflicts (D-04/D-05/D-06 + `D=6.694` + M14) before the contract phases transcribe verdicts: Phase 33 (CURR), Phase 34 (LOOP), Phase 35 (LOSS). Phase 36 (VER) executes acceptance checks + handoff. Specwork-only (SCOPE-13/14/15); `pinn/` never grounding (SCOPE-10). Branch `milestone/v1.6` (worktree) cut from the v1.5 deliverable tip `88aa1e4f`; rebased onto completed master 2026-06-17 once v1.5 shipped.
+- v2.0: CTL-PINN Training Viability Slice (Phases 37–43) — roadmap created 2026-07-06. The project's first **build** milestone, opening the trainex track. 42 requirements mapped; standard granularity; 7 phases continuing from v1.6's Phase 36 (no reset). Dependency-ordered, no external gate: 37 ENV (dev env + D1-p probe) → 38 NET (`pinn/` rebuild, FUT-01) → 39 DATA (in-memory adapter + Stage-0 scan) → 40 TRAIN (Adam→L-BFGS Stage-0 loop, FUT-04) → 41 CTRL (config/checkpoint/guards/determinism) → 42 OPS (operator runbook + monitoring) → 43 ACC (verify + Stage-0 pilot + go/adjust/rethink verdict). Grounded in the ratified trainex-r1a decision set (2026-07-05); `pinn/` ban lifted; owner-carved decisions built as seams. Planning on `master`; build in `.worktrees/trainex`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15); completed execution 2026-06-07.
 
@@ -175,6 +173,9 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 Recent decisions affecting current work:
 
+- [integrity-r2-clearance 2026-07-11]: Owner disposed the integrity-r2 pre-build audit punch-list (MASTER-FINAL-RESOLUTION, status candidate/owner-disposes, verdict NO-GO): **PB-1 Option A + interim floor** (Stage-0/1a/1b `s_min` criterion becomes data-derived `s₀` ratified at the Phase 39 DATA-06 scan; interim `s₀ = 0.01`), **PB-2/PB-3/PB-4/PB-5 all Option A** (five-term Huber loss catalog; corrected replay/lookahead data/collocation contract; `physical_key` grouped-split invariant; Tier-1 dataset-count correction — corpus arithmetic becomes ≈8.23M snapshots ≈0.72 GB fp32, no ratified decision changes). Owner authorized a bounded spec micro-pass on `ctl_instruction.md` now (departing from the delivery-note "future spec milestone" routing): `s_min` repair, Set 1b/2a count swap, `compute_L_norm` degenerate-branch fix (IR2-007), DATA-05 quarantine historical note (IR2-008). v2.0 REQUIREMENTS/ROADMAP patched accordingly (NET-04, DATA-02, DATA-04, DATA-05, DATA-06 + Phase 38/39 criteria). **Phase-37 pre-build gate: CLEARED** (nothing waived). Clearance record: `pinn_instruction/markdown_conversion/framework-specs/integrity-r2/CLEARANCE.md` (trainex worktree, `milestone/v1.7` commit `09c972c6`).
+- [v2.0-init 2026-07-06]: v2.0 is the first **build** milestone (trainex track), scoped as the postspec-r1 **viability slice** (Stage-0 first); the full multi-stage platform is deferred pending an ACC-06 go/adjust/rethink verdict. Owner chose a major bump (v1.7 → v2.0) marking the spec→implementation inflection. Grounding is authoritative, not a candidate verdict source: the ratified trainex-r1a decision set (2026-07-05; D1–D7 / B-1–B-11 + §5 first-run recipe) for build-engineering, and the locked v1.4/v1.5/v1.6 specs for the science. The `pinn/` live-code ban is **LIFTED** (FUT-01 rebuilds from specs). Five owner-carved decisions (D1-p precision, D4-a checkpoint ceiling, RECOVER budget + HALT/guard thresholds R-1/R-2, B-5 resume-field list) are built as seams with safe defaults and calibrated/ratified by the owner at their designed moments — the build analog of the STOP protocol; the agent surfaces evidence, it does not pick the values.
+- [v2.0-roadmap 2026-07-06]: 7 phases (37–43), standard granularity, continuing numbering from v1.6's Phase 36. 42/42 requirements mapped 1:1 by category (ENV=4, NET=5, DATA=6, TRAIN=7, CTRL=8, OPS=6, ACC=6). Straight dependency order 37→43, no external research gate (unlike v1.4–v1.6 — the research is already delivered and ratified). Planning artifacts committed on `master`; build execution in `.worktrees/trainex` on `milestone/v2.0` (renamed/created from the stale anticipatory `milestone/v1.7` at first phase execution).
 - [v1.6-roadmap 2026-06-17]: 7 phases (30–36), standard granularity, continuing numbering from v1.5's Phase 29 (no reset). Phase 30 (research package, ungated) first; its delivery opens the external resolution-doc gate. Phase 31 (resolution-doc readiness verification) is operational (0 requirement IDs) and given the next whole number rather than a decimal because it is a planned milestone phase, not an urgent insertion (departs from the v1.5 inserted-Phase-24.5 convention). Phase 32 (EVID) stands up the ledger AND adjudicates the headline conflicts before the contract phases transcribe verdicts — there is intentionally NO standalone empirical-dataset-verification phase (doc-03's dataset facts were settled in v1.5; remaining empirical work is FUT/trainex). Contract phases 33/34/35 (CURR/LOOP/LOSS) follow the EVID verdicts; Phase 36 (VER) executes acceptance checks and writes the handoff. 32/32 mapped (VER-14).
 - [v1.6-init]: v1.6 targets issue doc 03 (curriculum + training loop); specwork-only, ERW package-first. Resolution doc is NOT authoritative — candidate verdict source only, same standing `ctl_pinn_resolution.md` had in v1.4 and `02-resolution-doc.md` had in v1.5. Issue doc non-authoritative. Locked v1.4 + v1.5 outcomes are hard-constraint grounding (SCOPE-12), incl. raw-mass `D ≈ 4.6416` (doc-03's `D=6.694` must reconcile, EVID-15). `pinn/` never grounding (SCOPE-10). Spec edits limited to `ctl_instruction.md` / `pinn_architecture.md` (SCOPE-13); `sampling_method.md` frozen (SCOPE-08); `data_quality_assessment.md` / `review-of-framework.md` / `stage-strat-revision.md` read-only (SCOPE-09); training-loop code + EDA run + Stage-0 pilot are FUT-01/FUT-04 (SCOPE-14/15).
 - [v1.6-init]: v1.6 initialized in an isolated worktree (`../3_body_problem-v1.6`, branch `milestone/v1.6`) cut from the v1.5 deliverable tip `88aa1e4f` — departs from the v1.4/v1.5 "no worktree" convention because v1.5 closure runs concurrently in the main tree. The branch is rebased onto the completed `master` once v1.5's `--no-ff` merge + `/gsd-complete-milestone` land. Tag `v1.6-pre-phase-NN` from branch HEAD before each phase; one atomic commit per plan via `scripts/agent-commit`; `--no-ff` merge to master at milestone end.
@@ -211,38 +212,35 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-Phase 31 (resolution-doc readiness) PASSED — verdict READY-WITH-CAVEATS; Phases 32–36 are UNBLOCKED. The consolidated resolution doc landed at `research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md` (commit `49fb7958`).
+v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-phase 37` (or `/gsd-discuss-phase 37`) from the `.worktrees/trainex` worktree once its branch is aligned to `milestone/v2.0`.
 
-- [x] Execute Phase 32 Plan 32-02 (D = 6.694 and M14 headline packets) using `32-ISSUE-LEDGER.md`, `evidence/README.md`, and `evidence/_TEMPLATE.md`
-- [x] Execute Phase 32 Plan 32-01 — evidence machinery baseline, protocol, template, ledger, and verification inventory
-- [x] Tag `v1.6-pre-phase-32` from the true pre-Phase 32 boundary commit `15363d6b`
-- [x] **[Standing trigger]** Create `.planning/milestones/v1.6-GAPS.md` index when the first v1.6 phase opens a gap; GAP-32-01/02/03 are recorded as `DEFERRED`
-- [x] Plan + execute Phase 30 (Research Package Assembly); external resolution-doc gate opened on delivery (2026-06-18)
-- [x] Execute Phase 31 (resolution-doc readiness verification) — READY-WITH-CAVEATS (2026-06-20)
-- [x] Rebase `milestone/v1.6` onto the completed `master` (2026-06-17; recovery `backup/milestone-v1.6-pre-rebase` + tag `v1.6-pre-rebase`)
-- [x] Define v1.6 requirements (32 requirements across PKG/EVID/CURR/LOOP/LOSS/VER)
-- [x] Create v1.6 roadmap (Phases 30–36; 32/32 mapped)
+- [x] Update PROJECT.md with the v2.0 Current Milestone (goal, target features, grounding, git workflow); archive v1.6 context
+- [x] Reset STATE.md for v2.0 (`gsd-tools state.milestone-switch`)
+- [x] Define v2.0 requirements (42 across ENV/NET/DATA/TRAIN/CTRL/OPS/ACC)
+- [x] Create v2.0 roadmap (Phases 37–43; 42/42 mapped)
+- [ ] At first phase execution: align the `.worktrees/trainex` branch to `milestone/v2.0` (currently the stale `milestone/v1.7`); tag a pre-phase recovery point
+- [ ] Carried-forward: `trainex-r1-research-handoff` (r1a ratified 2026-07-05; r1b tuning round pending — a Future item) and `d-06-static-epsilon-sensitivity-check` (spec-side sensitivity question, not a v2.0 build phase) remain in `.planning/todos/pending/`, unlinked to v2.0 phases
 
 ### Prerequisites
 
-**v1.4 shipped and merged to master; v1.5 closure-ready** — the framework specs carry the locked v1.4 architecture/physics conventions AND the v1.5 data-pipeline/validation contracts that v1.6 treats as hard constraints (14D input, Jacobi IC₁₃, COM projection head, PHYS-03 softening, PHYS-01 raw-mass D ≈ 4.6416, post-v1.3 SCS gate, PIPE-01..10, VAL-01..04). v1.6 rebases onto the completed `master` once v1.5's merge + completion land.
+**v1.4/v1.5/v1.6 shipped and merged to master** — the framework specs (`ctl_instruction.md`, `pinn_architecture.md`) are complete and authoritative: 14D input `[τ, IC₁₃]`, Jacobi IC₁₃, mass-weighted COM projection head, PHYS-02 AD contract, PHYS-03 softening, PHYS-05 scheduled weights, the post-v1.3 SCS gate (`ε_H > 10⁻⁵` / `SCS > −5`), raw-mass `D ≈ 4.6416`, the Stage 0–6 curriculum + CURR-03 stage-exit machine, LOOP-01..08 batch/loop contracts, LOSS-01..04 loss contracts. **Trainex-r1a decision set ratified 2026-07-05** (D1–D7 / B-1–B-11 + §5 first-run recipe). Both are v2.0's authoritative grounding. The on-disk `simulation_data/` admitted set + v1.5-verified dataset facts are the training data. **Hardware confirmed** (R-3 CLOSED): Apple M5 Pro, 24 GB unified memory, 15-core CPU.
 
 ### Blockers/Concerns
 
-- **Working branch is `milestone/v1.6`** (isolated worktree at `../3_body_problem-v1.6`, cut from the v1.5 deliverable tip `88aa1e4f`, 2026-06-17). Do NOT commit v1.6 work to master or to `milestone/v1.5`. Tag `v1.6-pre-phase-NN` before each phase; `--no-ff` merge at milestone end. Every session must surface `git status --short --branch` before any file mutation.
-- **External gate (SATISFIED):** the consolidated resolution doc landed under `framework-revisions/research_reports/03-curriculum-and-training-loop/` and Phase 31 verified its readiness (READY-WITH-CAVEATS, 2026-06-20). The gate that blocked Phases 32–36 is now open.
-- **v1.5 closure (DONE):** v1.5 shipped 2026-06-17 (`--no-ff` merge `fe9b3c92`; archived under `.planning/milestones/v1.5-*`); `milestone/v1.6` was rebased onto the completed `master` the same day, reconciling the forward-only PROJECT.md/STATE.md edits.
-- **STOP protocol active:** v1.6 is a "similar adjudication milestone" per AGENTS.md governance — source-silent semantic / process-schema / cross-phase decisions must be surfaced as gaps, never invented.
-- Phases 32-36 UNBLOCKED: the issue-03 resolution doc landed at `research_reports/03-curriculum-and-training-loop/research_result/03-final-resolution.md` (commit `49fb7958`) AND Phase 31 resolution-doc readiness PASSED (READY-WITH-CAVEATS, 2026-06-20). Phase 32 may now be planned/executed, carrying the 12 routed caveats.
+- **Build execution branch:** v2.0 code work happens in `.worktrees/trainex`, whose branch should be `milestone/v2.0` — it is currently the stale `milestone/v1.7` (anticipatory name from the v1.6 close; no unique commits; == master tip `9cff97e0`). Align at first phase execution; do NOT commit v2.0 build code to `master`. v2.0 PLANNING artifacts (PROJECT/REQUIREMENTS/ROADMAP/STATE) commit on `master` per repo policy (governance/planning line). Every session surfaces `git status --short --branch` before any file mutation.
+- **Owner-carved decisions are NOT invented:** D1-p (precision), D4-a (checkpoint ceiling), the RECOVER retry budget + HALT/guard thresholds (R-1/R-2), and the B-5 resume-field list are built as seams with safe defaults and calibrated/ratified by the owner at their designed moments (probe / smoke test / Stage-0 pilot / before run #1). The agent surfaces evidence; it does not pick these values.
+- **`pinn/` ban lifted for v2.0:** FUT-01 rebuilds `pinn/` FROM the specs; v2.0 is the first milestone to write production `pinn/` code. The v1.3-era `basic_architecture.py` / `data-processing-pipeline-full.py` are reference-only and replaced wholesale.
+- **Spec inputs are read-only in v2.0:** a build-discovered spec defect is surfaced as a gap and routed to a spec milestone; v2.0 implements the specs, it does not edit them.
+- **No external research gate:** unlike v1.4–v1.6, v2.0 has no candidate-verdict-source gate — the research (trainex-r1a) is already delivered and ratified. Phases run in straight dependency order 37 → 43.
 
 ## Session Continuity
 
-**Resume file:** None (milestone-boundary decision pending)
+**Resume file:** None (milestone just initialized)
 
-Last session: 2026-07-02
-Stopped at: v1.6 --no-ff merged to master 2026-07-03 (commit `94a77960`, two-parent merge of `2464af50` master cut + `e68545ab` v1.6 tip). Phase 36 complete and independently verified; v1.6 closure gate satisfied (7/7 phases); specwork/framework-specs track complete on master. master is local (not pushed); recovery tag `v1.6-pre-merge-backup` at `2464af50`.
-Next action: User decides — (A) publish master (protected-branch push to origin; separate user-owned step); (B) pivot to the trainex track (FUT-01/FUT-04) in .worktrees/trainex; (C) define v1.7 via /gsd-new-milestone; (D) hold.
+Last session: 2026-07-06
+Stopped at: v2.0 CTL-PINN Training Viability Slice initialized via `/gsd-new-milestone` — PROJECT.md updated (v2.0 Current Milestone; v1.6 archived), STATE.md reset (`gsd-tools state.milestone-switch`) and refreshed for v2.0, REQUIREMENTS.md defined (42 reqs), ROADMAP.md created (Phases 37–43; 42/42 mapped). Planning artifacts committed on `master`.
+Next action: `/clear`, then `/gsd-discuss-phase 37` (or `/gsd-plan-phase 37`) from the `.worktrees/trainex` worktree after aligning its branch to `milestone/v2.0`. Full multi-stage platform deferred pending the Phase 43 (ACC-06) go/adjust/rethink verdict.
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Align `.worktrees/trainex` to `milestone/v2.0`, then `/gsd-plan-phase 37` (or `/gsd-discuss-phase 37`) to begin the viability slice (Phase 37: developer environment + D1-p precision probe).
