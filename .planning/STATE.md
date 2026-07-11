@@ -3,16 +3,18 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 37
-current_phase_name: Developer Environment & Precision Adjudication
 status: planning
-last_updated: "2026-07-05T23:34:01.942Z"
+stopped_at: Phase 37 context gathered
+last_updated: "2026-07-11T11:49:06.293Z"
 last_activity: 2026-07-06
+last_activity_desc: "Milestone v2.0 initialized (`/gsd-new-milestone`): PROJECT / REQUIREMENTS / ROADMAP / STATE written"
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
+current_phase_name: Developer Environment & Precision Adjudication
 ---
 
 # Project State
@@ -227,7 +229,7 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ### Blockers/Concerns
 
-- **Build execution branch:** v2.0 code work happens in `.worktrees/trainex`, whose branch should be `milestone/v2.0` — it is currently the stale `milestone/v1.7` (anticipatory name from the v1.6 close; no unique commits; == master tip `9cff97e0`). Align at first phase execution; do NOT commit v2.0 build code to `master`. v2.0 PLANNING artifacts (PROJECT/REQUIREMENTS/ROADMAP/STATE) commit on `master` per repo policy (governance/planning line). Every session surfaces `git status --short --branch` before any file mutation.
+- **Build execution branch:** v2.0 code work happens in `.worktrees/trainex` on `milestone/v2.0`. Alignment completed at merge commit `89daf842`, preserving the trainex-only history and the master planning/spec updates. Do NOT commit v2.0 build code to `master`. Every session surfaces `git status --short --branch` before any file mutation.
 - **Owner-carved decisions are NOT invented:** D1-p (precision), D4-a (checkpoint ceiling), the RECOVER retry budget + HALT/guard thresholds (R-1/R-2), and the B-5 resume-field list are built as seams with safe defaults and calibrated/ratified by the owner at their designed moments (probe / smoke test / Stage-0 pilot / before run #1). The agent surfaces evidence; it does not pick these values.
 - **`pinn/` ban lifted for v2.0:** FUT-01 rebuilds `pinn/` FROM the specs; v2.0 is the first milestone to write production `pinn/` code. The v1.3-era `basic_architecture.py` / `data-processing-pipeline-full.py` are reference-only and replaced wholesale.
 - **Spec inputs are read-only in v2.0:** a build-discovered spec defect is surfaced as a gap and routed to a spec milestone; v2.0 implements the specs, it does not edit them.
@@ -235,12 +237,12 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None (milestone just initialized)
+**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-CONTEXT.md
 
-Last session: 2026-07-06
-Stopped at: v2.0 CTL-PINN Training Viability Slice initialized via `/gsd-new-milestone` — PROJECT.md updated (v2.0 Current Milestone; v1.6 archived), STATE.md reset (`gsd-tools state.milestone-switch`) and refreshed for v2.0, REQUIREMENTS.md defined (42 reqs), ROADMAP.md created (Phases 37–43; 42/42 mapped). Planning artifacts committed on `master`.
-Next action: `/clear`, then `/gsd-discuss-phase 37` (or `/gsd-plan-phase 37`) from the `.worktrees/trainex` worktree after aligning its branch to `milestone/v2.0`. Full multi-stage platform deferred pending the Phase 43 (ACC-06) go/adjust/rethink verdict.
+Last session: 2026-07-11T11:49:06.288Z
+Stopped at: Phase 37 context gathered
+Next action: `/gsd-plan-phase 37 --auto` from `.worktrees/trainex`; preserve the explicit owner D1-p checkpoint after the dual-arm precision evidence is recorded. Full multi-stage platform remains deferred pending the Phase 43 (ACC-06) go/adjust/rethink verdict.
 
 ## Operator Next Steps
 
-- Align `.worktrees/trainex` to `milestone/v2.0`, then `/gsd-plan-phase 37` (or `/gsd-discuss-phase 37`) to begin the viability slice (Phase 37: developer environment + D1-p precision probe).
+- Run `/gsd-plan-phase 37 --auto` in `.worktrees/trainex` to plan the developer environment and dual-arm D1-p evidence probe.
