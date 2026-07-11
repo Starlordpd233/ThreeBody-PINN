@@ -61,7 +61,7 @@
 - Decimal phases (e.g., 40.1): reserved for inserted checkpoints or urgent insertions (marked INSERTED), placed between their surrounding integers.
 
 - [ ] **Phase 37: Developer Environment & Precision Adjudication** — One-command M5 Pro setup (`pinn-train` env, PyTorch 2.12 + MPS, utility packages, environment fingerprint) and the `pinn_architecture.md` §10.3 componentwise-AD dual-arm probe (fp32-MPS vs fp64-CPU) run as the first build act to give the owner the D1-p precision evidence. First v2.0 phase; ungated. (ENV-01..04)
-- [ ] **Phase 38: PINN Model Rebuild from Specs (FUT-01)** — Rebuild `pinn/` from the authoritative specs: the SQR-SkipResNet-SIREN network (14→256×12→9), the mass-weighted COM projection head, autograd physics residuals (PHYS-02), and the three-term data+physics+IC loss — proven by gradcheck, residual-on-ground-truth, and a single-trajectory overfit. (NET-01..05)
+- [ ] **Phase 38: PINN Model Rebuild from Specs (FUT-01)** — Rebuild `pinn/` from the authoritative specs: the SQR-SkipResNet-SIREN network (14→256×12→9), the mass-weighted COM projection head, autograd physics residuals (PHYS-02), and the five-term Huber loss catalog (data + IC + causal physics + soft-energy + angular-momentum) — proven by gradcheck, residual-on-ground-truth, and a single-trajectory overfit. (NET-01..05)
 - [ ] **Phase 39: Data Ingestion & Stage-0 Population Scan** — The D3-C in-memory fp32 admitted-set adapter (Step-1A gate, NaN/Inf filter, `data_version_hash` refuse, `n_snapshots`/`dt_out` metadata, stage-stratified split), the replay/lookahead two-point-set batch constructor (LOOP-01/02/03), and the Thrust-A scan that counts Stage-0 population. (DATA-01..06)
 - [ ] **Phase 40: Stage-0 Curriculum Training Loop (FUT-04)** — `CurriculumController`/`RunController` running the two-phase Adam→L-BFGS closure loop with the PHYS-05 scheduled-weight module, the collocation sampler interface, merged gradient clipping (LOOP-04), and the ADVANCE/RECOVER/HALT stage-exit machine (CURR-03) with a preflight refusal of the unimplemented sL-BFGS stages. (TRAIN-01..07)
 - [ ] **Phase 41: Config, Checkpointing, Resume & Determinism** — A single keyed YAML with a frozen resolved copy (B-9), dual-trigger + atomic checkpointing with rolling/best/anchor retention (D4-a/b), idempotent promotion + `curriculum.jsonl` (D7-d), manual `--hold-stage` rollback + fail-safe resume config-diff (D7-c/B-5), Tier-1+2 guards + RECOVER + HALT/REVIEW + `failure/` bundle (D4-c/d), and full seed/RNG recording scoped to statistical-equivalence reproducibility (D6/B-11). (CTRL-01..08)
@@ -94,7 +94,7 @@
   1. The rebuilt network matches the locked architecture (14-dim `[τ, IC₁₃]` → 12×256 hidden → 9-dim output, SIREN `first_omega_0=30.0`/`hidden_omega_0=1.0`, skip + LayerNorm `elementwise_affine=False` on odd layers) and is instantiated from a config-supplied architecture spec (NET-01).
   2. The hard mass-weighted COM projection head is applied to the 9-dim output before any loss or metric (NET-02).
   3. Autograd physics residuals honor the PHYS-02 AD chain-rule factors and pass an fp64-CPU `gradcheck` and a residual-on-ground-truth probe (NET-03).
-  4. The three-term loss (data L1/MAE + physics + IC) evaluates in the shared dimensionless system (`t_τ ∈ [-1,1]`, `r' = r/D`, raw-mass `D ≈ 4.6416`) matching the locked spec loss contracts (NET-04).
+  4. The five-term loss catalog (data Huber `δ_r = 1` + IC squared-error + causal physics + soft-energy Huber `δ = 1.0` + componentwise angular-momentum Huber `δ = 1.0`, under the PHYS-05 scheduled weights) evaluates in the shared dimensionless system (`t_τ ∈ [-1,1]`, `r' = r/D`, raw-mass `D ≈ 4.6416`) matching the locked spec loss contracts (NET-04).
   5. A single-trajectory overfit probe drives the data loss to near-zero, confirming model + AD + loss are wired end-to-end (NET-05).
 
 **UI hint**: no
@@ -107,10 +107,10 @@
 **Success Criteria** (what must be TRUE):
 
   1. The adapter preloads the admitted set fully in-memory as fp32 (`num_workers=0`), exposes `n_snapshots(traj)`/`dt_out(traj)`, is the only component importing the disk format, and reports a `mem:` line against the 0.7 watermark (DATA-01).
-  2. The Step-1A admission gate (`final_timestep ≥ 9.5`) and NaN/Inf filter run at load with logged admitted/rejected/quarantined/dropped counts, and a `data_version_hash` mismatch is a hard refusal, never a silent proceed (DATA-02, DATA-03).
-  3. A deterministic, stage-stratified split manifest (~80/10/10) is written to the run folder; train shuffles per-epoch under a seeded RNG while val/test iterate in fixed order (DATA-04).
-  4. The replay/lookahead batch constructor emits the two independent point sets — data-fidelity (240 replay, 8192 pts) vs collocation (16 lookahead with the `has_stage(k+1)` guard, 4096 pts) — with 50/50 uniform + acceleration-weighted time sampling on both, per LOOP-01/02/03 (DATA-05).
-  5. The Thrust-A scan bins admitted trajectories by the difficulty invariants, reports per-stage populations (Stage 0 explicitly), and flags an under-populated Stage 0 as a fatal-class risk (DATA-06).
+  2. The full Step-1A admission gate (clauses 1–7, incl. the conservation reject gate `eps_H ≤ 1e-5` and the fail-closed blacklist) and NaN/Inf filter run at load with logged admitted/rejected/quarantined/dropped counts, and a `data_version_hash` mismatch is a hard refusal, never a silent proceed (DATA-02, DATA-03).
+  3. A deterministic, stage-stratified split manifest (~80/10/10) is written to the run folder, grouped by `physical_key = (variant, id)` with an assertion that no `physical_key` spans splits; train shuffles per-epoch under a seeded RNG while val/test iterate in fixed order (DATA-04).
+  4. The replay/lookahead batch constructor selects 240 replay + 16 lookahead trajectories (= 256, `has_stage(k+1)` guard) and emits the two independent point sets — data-fidelity points from their snapshots at `n_pts = min(32, n_snapshots)` (~8,192 pts, provisional) vs collocation points sampled continuously from `[0, T]` (~4,096 pts, provisional) — with 50/50 uniform + acceleration-weighted time sampling on the data-fidelity set only, per LOOP-01/02/03 (DATA-05).
+  5. The Thrust-A scan bins admitted trajectories by the difficulty invariants, reports per-stage populations (Stage 0 explicitly) plus the admitted-set `s_min` distribution for the owner's ratification of the repaired Stage-0/1 threshold `s₀` (interim floor 0.01), and flags an under-populated Stage 0 as a fatal-class risk (DATA-06).
 
 **UI hint**: no
 
