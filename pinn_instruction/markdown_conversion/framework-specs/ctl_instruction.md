@@ -23,8 +23,8 @@ structure of the neural network, please refer to the
 | Parameter | Dataset/Number of Files | IC Type | tolerance | Word Length | dt out | Temporal Density Increase |
 |---|---|---|---|---:|---:|---|
 | **Original** | Set 1a (4857) | Hierarchical | $1\text{e-}15$ | 130 | 0.08 | Baseline (1x) |
-|  | Set 1b (4857) | Standard | $1\text{e-}13$ | 118 | 0.17 | Baseline (1x) |
-| **New** | Set 2a (2749) | Hierarchical | $1\text{e-}13$ | 130 | **0.01** | **8x** |
+|  | Set 1b (2749) | Standard | $1\text{e-}13$ | 118 | 0.17 | Baseline (1x) |
+| **New** | Set 2a (4857) | Hierarchical | $1\text{e-}13$ | 130 | **0.01** | **8x** |
 |  | Set 2b (2565) | Standard | $1\text{e-}13$ | 130 | **0.01** | **17x** |
 
 *Table `tab:brutus_compare`: Comparative Analysis of BRUTUS Training Datasets. The new dataset provides a dramatic 8-fold to 17-fold increase in the temporal resolution of the ground-truth trajectories.*
@@ -94,8 +94,10 @@ metrics:
   chance of immediate close encounters. Very small initial separations
   (two bodies almost colliding at $t=0$) indicate extremely challenging
   cases that can cause numerical difficulties and chaotic scattering.
-  Stage 0 imposes $s_{\min}>2$ (in code units) to avoid any incipient
-  close approaches.
+  Stage 0 imposes $s_{\min}>s_0$ (in scaled code units) to avoid any incipient
+  close approaches, where $s_0$ is the data-derived stratification floor
+  ratified at the Phase 39 DATA-06 scan (interim $s_0 = 0.01$; see the
+  Integrity-R2 clearance note in the Stratification section).
 
 All data is normalized to dimensionless code units for training (e.g.,
 positions and distances scaled by a characteristic length, velocities by
@@ -115,6 +117,17 @@ scales.
 > method is complicated -- virial ratio is not preserved for quasi-random
 > IC sampling.
 
+> **Integrity-R2 clearance (PB-1 / IR2-001; owner-disposed 2026-07-11):** The
+> fixed criterion $s_{\min} > 2$ was proven geometrically unsatisfiable by the
+> frozen dataset's sampling envelope (`sampling_method.md` yields scaled
+> $s_{\min} \in [0.015,\ 0.084]$), which would leave Stages 0–2 empty. The
+> Stage-0/1a/1b criterion is therefore $s_{\min} > s_0$, where $s_0$ is a
+> **data-derived threshold** ratified by the owner from the admitted-set
+> $s_{\min}$ distribution reported by the Phase 39 DATA-06 Thrust-A scan — the
+> data-first approach proposed in the author note above. Until ratified, the
+> interim floor is $s_0 = 0.01$ (matching the `MIN_DISTANCE_THRESHOLD = 0.01`
+> pre-screening floor, `sampling_method.md` §4).
+
 With these invariants computed for all simulated trajectories, we can
 quantitatively stratify the data from "easy" ( stable, regular motion)
 to "hard" (chaotic, complex outcomes). The simulations are binned into
@@ -133,7 +146,7 @@ as follows:
 
     - Virial Ratio: $0.7 \leq Q \leq 1.3$
 
-    - Minimum Initial Separation: $s_{\min} > 2$
+    - Minimum Initial Separation: $s_{\min} > s_0$
 
   - **Description:** Tightly bound binaries with near-virial equilibrium
     and well-separated initial positions. Ideal for initial training due
@@ -153,7 +166,7 @@ as follows:
 
       - $0.7 \leq Q \leq 1.3$
 
-      - $s_{\min} > 2$
+      - $s_{\min} > s_0$
 
     - **Description:** Systems with moderately reduced binding energy
       while maintaining orbital stability.
@@ -168,7 +181,7 @@ as follows:
 
       - $0.7 \leq Q \leq 1.3$
 
-      - $s_{\min} > 2$
+      - $s_{\min} > s_0$
 
     - **Description:** Systems with moderately reduced angular momentum
       (eccentric orbits) but strong binding energy.
@@ -536,10 +549,14 @@ counts per folder at init.
    excluded from BOTH the base and gold folders of that variant, before stage
    assignment and before `compute_globals`. Missing blacklist file = hard init
    failure. A batch-time assertion re-checks emitted samples.
-2. Data-remediation quarantine. The 70 `brutus_hierarchical` base outputs flagged
-   by DATA-05 (IDs 0005-0059, 0061-0075) are quarantined from training, metrics,
-   and PIPE-07 use until rerun validation from the current canonical ICs passes.
-   The quarantine list is configuration, not code.
+2. Data-remediation quarantine. Historical note (integrity-r2 IR2-008): the 70
+   `brutus_hierarchical` base outputs flagged by DATA-05 (IDs 0005-0059,
+   0061-0075) were quarantined from training, metrics, and PIPE-07 use until
+   rerun validation from the current canonical ICs passed; that validation
+   passed on 2026-06-11 (`DATASET-CONTEXT.md`: 0 mismatches across all 15,028
+   pairs; all quarantines lifted), so the quarantine-list configuration is
+   empty in the verified baseline. The quarantine list is configuration, not
+   code; it re-opens only if a future validation run fails.
 3. Structural integrity. `>= 2` parsed snapshots; exactly 3 body rows per
    snapshot; all values finite; timestamps strictly monotone increasing.
 4. Completeness. `final_timestep >= 9.5`, computed from parsed snapshot block
@@ -1198,19 +1215,22 @@ final network IC slots under the Phase 17 input contract.
     >   should later admitted-set evidence support a bounded gate.
 
     ```python
-    def compute_L_norm(m, r_prime, v_prime, E, eps=1e-10):
+    def compute_L_norm(m, r_prime, v_prime, E, L_max_floor=1e-10):
         L_vec = np.sum([m[i] * np.cross(r_prime[i], v_prime[i]) for i in range(3)], axis=0)
         L = np.linalg.norm(L_vec)
         pairwise = [np.linalg.norm(r_prime[i] - r_prime[j]) for i in range(3) for j in range(i+1, 3)]
         r_char = np.mean(pairwise)
         M_total = np.sum(m)
-        v_char = np.sqrt(2 * np.abs(E) / M_total + eps)
+        v_char = np.sqrt(2 * np.abs(E) / M_total)  # exact formula; no eps inside the root
         L_max = M_total * r_char * v_char
-        return L / (L_max + eps)
+        if not np.isfinite(L_max) or L_max < L_max_floor:
+            # Degenerate regime (small |E| / near-degenerate L_max): emit the
+            # mandated diagnostic flag instead of a manufactured finite value
+            # (integrity-r2 IR2-007). The floor reuses the spec's eps_inv = 1e-10.
+            return None, "degenerate_Lmax"
+        return L / L_max, None
         # Phase 33 (CURR-04): raw un-clipped storage; no global clamp authorized.
-        # Callers MUST attach a diagnostic flag when L_max is nonfinite or
-        # near-degenerate (e.g. |E| or r_char below a numerical floor); the
-        # np.clip(L_norm, 0, 1) stage-gate is NOT locked (and is therefore
+        # The np.clip(L_norm, 0, 1) stage-gate is NOT locked (and is therefore
         # not locked as a normative gate; owner-pending admitted-set
         # evidence, GAP-33-03).
     ```
