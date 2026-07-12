@@ -1,0 +1,32 @@
+# Environment Fingerprint
+
+- **schema_version:** `phase37/v1`
+- **timestamp:** 2026-07-12T15:03:44Z
+- **repository_commit:** `df25a3f15f97d39c64c8af18d048b72829baf638`
+- **platform.os:** Darwin
+- **platform.machine:** arm64
+- **platform.sw_vers:** macOS 26.5.1 (25F80)
+- **conda.prefix:** `<home>/miniforge3/envs/pinn-train`
+- **conda.version:** unknown
+- **python:** 3.11.15
+- **packages:**
+  - `PyYAML==6.0.3`
+  - `h5py==3.16.0`
+  - `numpy==2.4.6`
+  - `tensorboard==2.21.0`
+  - `torch==2.12.1`
+- **torch.version:** 2.12.1
+- **torch.build:** unknown
+- **torch.mps.is_built:** True
+- **torch.mps.is_available:** True
+- **torch.mps.device_count:** 1
+- **lock.path:** `requirements-lock.txt`
+- **lock.sha256:** `36e718ccc140ec1f96f87840362d94f14d8cfebb1c0ddc70b8c8009c200293e3`
+- **verification.status:** pass
+- **verification.checks:**
+  - `lock_match`: pass
+  - `mps_available`: pass
+  - `pip_check`: pass
+  - `python_3_11`: pass
+  - `required_imports`: pass
+  - `torch_2_12`: pass

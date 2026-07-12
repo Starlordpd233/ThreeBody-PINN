@@ -1,0 +1,435 @@
+{
+  "arms": {
+    "fp32-mps": {
+      "actual_device": "mps",
+      "argv": [
+        "<home>/miniforge3/envs/pinn-train/bin/python",
+        "-m",
+        "pinn.verification.componentwise_ad",
+        "--precision",
+        "float32",
+        "--device",
+        "mps",
+        "--warmup",
+        "10",
+        "--samples",
+        "30",
+        "--evaluations",
+        "100",
+        "--u",
+        "0.3"
+      ],
+      "device": "mps",
+      "exception": null,
+      "pre_import_fallback": null,
+      "precision": "float32",
+      "profile": "fp32-mps",
+      "requested_device": "mps",
+      "resolved_device": "mps",
+      "returncode": 0,
+      "status": "ok",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'pinn.verification.componentwise_ad' found in sys.modules after import of package 'pinn.verification', but prior to execution of 'pinn.verification.componentwise_ad'; this may result in unpredictable behaviour\n",
+      "stdout": "{\"actual_device\": \"mps\", \"exception\": null, \"patterns\": {\"full_jacobian\": {\"absolute_error\": [0.0, 0.0, 0.0], \"aggregate_relative_error\": 0.0, \"analytical\": [-1.9416121244430542, -5.975663661956787, 0.6000000238418579], \"criterion\": 1e-06, \"device\": \"mps\", \"finite\": true, \"max\": 809845.0, \"mean\": 618925.8893333334, \"median\": 606992.085, \"min\": 593426.67, \"p25\": 605200.52, \"p75\": 613788.955, \"passed\": true, \"pattern\": \"full_jacobian\", \"precision\": \"float32\", \"predicted\": [-1.9416121244430542, -5.975663661956787, 0.6000000238418579], \"raw_samples_ns\": [809845.0, 678306.67, 675302.08, 618492.09, 613502.08, 612381.25, 605103.33, 604033.34, 605492.09, 606282.5, 593426.67, 606106.25, 606958.33, 593546.25, 609935.41, 606253.75, 605574.58, 608545.0, 596825.84, 613884.58, 620115.83, 606434.16, 617438.34, 607025.84, 604412.92, 619127.5, 610367.08, 600528.33, 609918.34, 602611.25], \"relative_error\": [0.0, 0.0, 0.0], \"signed_delta\": [0.0, 0.0, 0.0], \"u\": 0.3}, \"scalar_u_jvp\": {\"absolute_error\": [0.0, 0.0, 0.0], \"aggregate_relative_error\": 0.0, \"analytical\": [-1.9416121244430542, -5.975663661956787, 0.6000000238418579], \"criterion\": 1e-06, \"device\": \"mps\", \"finite\": true, \"max\": 963119.17, \"mean\": 805488.153, \"median\": 805568.9550000001, \"min\": 711931.66, \"p25\": 738327.71, \"p75\": 868552.9199999999, \"passed\": true, \"pattern\": \"scalar_u_jvp\", \"precision\": \"float32\", \"predicted\": [-1.9416121244430542, -5.975663661956787, 0.6000000238418579], \"raw_samples_ns\": [756664.17, 727185.0, 731792.08, 715562.92, 711931.66, 810227.09, 899971.67, 880229.17, 866706.66, 888731.67, 864449.17, 802954.16, 768458.75, 857085.83, 898822.92, 877642.08, 877236.25, 963119.17, 808183.75, 845568.75, 869168.34, 821986.67, 726896.66, 737892.5, 728540.83, 739633.34, 744956.67, 761788.33, 732632.5, 748625.83], \"relative_error\": [0.0, 0.0, 0.0], \"signed_delta\": [0.0, 0.0, 0.0], \"u\": 0.3}}, \"pre_import_fallback\": null, \"precision\": \"float32\", \"profile\": \"float32-mps\", \"protocol\": {\"evaluations_per_sample\": 100, \"sample_count\": 30, \"warmup_iterations\": 10}, \"requested_device\": \"mps\", \"resolved_device\": \"mps\", \"torch_build\": {\"git_version\": \"7269437d655783a26cba32aa88195b741ff496aa\", \"is_debug\": false, \"mps_is_built\": true, \"version\": \"2.12.1\"}, \"u\": 0.3}\n",
+      "worker_record": {
+        "actual_device": "mps",
+        "exception": null,
+        "patterns": {
+          "full_jacobian": {
+            "absolute_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "aggregate_relative_error": 0.0,
+            "analytical": [
+              -1.9416121244430542,
+              -5.975663661956787,
+              0.6000000238418579
+            ],
+            "criterion": 1e-06,
+            "device": "mps",
+            "finite": true,
+            "max": 809845.0,
+            "mean": 618925.8893333334,
+            "median": 606992.085,
+            "min": 593426.67,
+            "p25": 605200.52,
+            "p75": 613788.955,
+            "passed": true,
+            "pattern": "full_jacobian",
+            "precision": "float32",
+            "predicted": [
+              -1.9416121244430542,
+              -5.975663661956787,
+              0.6000000238418579
+            ],
+            "raw_samples_ns": [
+              809845.0,
+              678306.67,
+              675302.08,
+              618492.09,
+              613502.08,
+              612381.25,
+              605103.33,
+              604033.34,
+              605492.09,
+              606282.5,
+              593426.67,
+              606106.25,
+              606958.33,
+              593546.25,
+              609935.41,
+              606253.75,
+              605574.58,
+              608545.0,
+              596825.84,
+              613884.58,
+              620115.83,
+              606434.16,
+              617438.34,
+              607025.84,
+              604412.92,
+              619127.5,
+              610367.08,
+              600528.33,
+              609918.34,
+              602611.25
+            ],
+            "relative_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "signed_delta": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "u": 0.3
+          },
+          "scalar_u_jvp": {
+            "absolute_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "aggregate_relative_error": 0.0,
+            "analytical": [
+              -1.9416121244430542,
+              -5.975663661956787,
+              0.6000000238418579
+            ],
+            "criterion": 1e-06,
+            "device": "mps",
+            "finite": true,
+            "max": 963119.17,
+            "mean": 805488.153,
+            "median": 805568.9550000001,
+            "min": 711931.66,
+            "p25": 738327.71,
+            "p75": 868552.9199999999,
+            "passed": true,
+            "pattern": "scalar_u_jvp",
+            "precision": "float32",
+            "predicted": [
+              -1.9416121244430542,
+              -5.975663661956787,
+              0.6000000238418579
+            ],
+            "raw_samples_ns": [
+              756664.17,
+              727185.0,
+              731792.08,
+              715562.92,
+              711931.66,
+              810227.09,
+              899971.67,
+              880229.17,
+              866706.66,
+              888731.67,
+              864449.17,
+              802954.16,
+              768458.75,
+              857085.83,
+              898822.92,
+              877642.08,
+              877236.25,
+              963119.17,
+              808183.75,
+              845568.75,
+              869168.34,
+              821986.67,
+              726896.66,
+              737892.5,
+              728540.83,
+              739633.34,
+              744956.67,
+              761788.33,
+              732632.5,
+              748625.83
+            ],
+            "relative_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "signed_delta": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "u": 0.3
+          }
+        },
+        "pre_import_fallback": null,
+        "precision": "float32",
+        "profile": "float32-mps",
+        "protocol": {
+          "evaluations_per_sample": 100,
+          "sample_count": 30,
+          "warmup_iterations": 10
+        },
+        "requested_device": "mps",
+        "resolved_device": "mps",
+        "torch_build": {
+          "git_version": "7269437d655783a26cba32aa88195b741ff496aa",
+          "is_debug": false,
+          "mps_is_built": true,
+          "version": "2.12.1"
+        },
+        "u": 0.3
+      }
+    },
+    "fp64-cpu": {
+      "actual_device": "cpu",
+      "argv": [
+        "<home>/miniforge3/envs/pinn-train/bin/python",
+        "-m",
+        "pinn.verification.componentwise_ad",
+        "--precision",
+        "float64",
+        "--device",
+        "cpu",
+        "--warmup",
+        "10",
+        "--samples",
+        "30",
+        "--evaluations",
+        "100",
+        "--u",
+        "0.3"
+      ],
+      "device": "cpu",
+      "exception": null,
+      "pre_import_fallback": null,
+      "precision": "float64",
+      "profile": "fp64-cpu",
+      "requested_device": "cpu",
+      "resolved_device": "cpu",
+      "returncode": 0,
+      "status": "ok",
+      "stderr": "<frozen runpy>:128: RuntimeWarning: 'pinn.verification.componentwise_ad' found in sys.modules after import of package 'pinn.verification', but prior to execution of 'pinn.verification.componentwise_ad'; this may result in unpredictable behaviour\n",
+      "stdout": "{\"actual_device\": \"cpu\", \"exception\": null, \"patterns\": {\"full_jacobian\": {\"absolute_error\": [0.0, 0.0, 0.0], \"aggregate_relative_error\": 0.0, \"analytical\": [-1.941611038725466, -5.975664329483112, 0.6], \"criterion\": 1e-06, \"device\": \"cpu\", \"finite\": true, \"max\": 109062.08, \"mean\": 103607.54000000001, \"median\": 103400.83499999999, \"min\": 99480.83, \"p25\": 102337.6075, \"p75\": 104631.1425, \"passed\": true, \"pattern\": \"full_jacobian\", \"precision\": \"float64\", \"predicted\": [-1.941611038725466, -5.975664329483112, 0.6], \"raw_samples_ns\": [109062.08, 103580.42, 102099.59, 106689.17, 104692.08, 104154.59, 104947.08, 108092.5, 99937.91, 102425.41, 105119.58, 104232.91, 105233.33, 103985.0, 99480.83, 103254.16, 104448.33, 102059.16, 103419.59, 101930.41, 102308.34, 103179.59, 103382.08, 104791.66, 103554.16, 101624.58, 102861.25, 102901.66, 102803.33, 101975.42], \"relative_error\": [0.0, 0.0, 0.0], \"signed_delta\": [0.0, 0.0, 0.0], \"u\": 0.3}, \"scalar_u_jvp\": {\"absolute_error\": [0.0, 0.0, 0.0], \"aggregate_relative_error\": 0.0, \"analytical\": [-1.941611038725466, -5.975664329483112, 0.6], \"criterion\": 1e-06, \"device\": \"cpu\", \"finite\": true, \"max\": 116406.25, \"mean\": 113162.056, \"median\": 112854.58499999999, \"min\": 109485.83, \"p25\": 112110.52249999999, \"p75\": 114109.38, \"passed\": true, \"pattern\": \"scalar_u_jvp\", \"precision\": \"float64\", \"predicted\": [-1.941611038725466, -5.975664329483112, 0.6], \"raw_samples_ns\": [115942.5, 116301.67, 115458.75, 114172.09, 112081.67, 112197.08, 111603.33, 115023.75, 113258.75, 113302.09, 112256.67, 116406.25, 113921.25, 109485.83, 115214.17, 112583.33, 112847.92, 112321.25, 112250.42, 113106.66, 113607.91, 111852.09, 110694.17, 112419.58, 110502.92, 116172.91, 112861.25, 111935.83, 111669.59, 113410.0], \"relative_error\": [0.0, 0.0, 0.0], \"signed_delta\": [0.0, 0.0, 0.0], \"u\": 0.3}}, \"pre_import_fallback\": null, \"precision\": \"float64\", \"profile\": \"float64-cpu\", \"protocol\": {\"evaluations_per_sample\": 100, \"sample_count\": 30, \"warmup_iterations\": 10}, \"requested_device\": \"cpu\", \"resolved_device\": \"cpu\", \"torch_build\": {\"git_version\": \"7269437d655783a26cba32aa88195b741ff496aa\", \"is_debug\": false, \"mps_is_built\": true, \"version\": \"2.12.1\"}, \"u\": 0.3}\n",
+      "worker_record": {
+        "actual_device": "cpu",
+        "exception": null,
+        "patterns": {
+          "full_jacobian": {
+            "absolute_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "aggregate_relative_error": 0.0,
+            "analytical": [
+              -1.941611038725466,
+              -5.975664329483112,
+              0.6
+            ],
+            "criterion": 1e-06,
+            "device": "cpu",
+            "finite": true,
+            "max": 109062.08,
+            "mean": 103607.54000000001,
+            "median": 103400.83499999999,
+            "min": 99480.83,
+            "p25": 102337.6075,
+            "p75": 104631.1425,
+            "passed": true,
+            "pattern": "full_jacobian",
+            "precision": "float64",
+            "predicted": [
+              -1.941611038725466,
+              -5.975664329483112,
+              0.6
+            ],
+            "raw_samples_ns": [
+              109062.08,
+              103580.42,
+              102099.59,
+              106689.17,
+              104692.08,
+              104154.59,
+              104947.08,
+              108092.5,
+              99937.91,
+              102425.41,
+              105119.58,
+              104232.91,
+              105233.33,
+              103985.0,
+              99480.83,
+              103254.16,
+              104448.33,
+              102059.16,
+              103419.59,
+              101930.41,
+              102308.34,
+              103179.59,
+              103382.08,
+              104791.66,
+              103554.16,
+              101624.58,
+              102861.25,
+              102901.66,
+              102803.33,
+              101975.42
+            ],
+            "relative_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "signed_delta": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "u": 0.3
+          },
+          "scalar_u_jvp": {
+            "absolute_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "aggregate_relative_error": 0.0,
+            "analytical": [
+              -1.941611038725466,
+              -5.975664329483112,
+              0.6
+            ],
+            "criterion": 1e-06,
+            "device": "cpu",
+            "finite": true,
+            "max": 116406.25,
+            "mean": 113162.056,
+            "median": 112854.58499999999,
+            "min": 109485.83,
+            "p25": 112110.52249999999,
+            "p75": 114109.38,
+            "passed": true,
+            "pattern": "scalar_u_jvp",
+            "precision": "float64",
+            "predicted": [
+              -1.941611038725466,
+              -5.975664329483112,
+              0.6
+            ],
+            "raw_samples_ns": [
+              115942.5,
+              116301.67,
+              115458.75,
+              114172.09,
+              112081.67,
+              112197.08,
+              111603.33,
+              115023.75,
+              113258.75,
+              113302.09,
+              112256.67,
+              116406.25,
+              113921.25,
+              109485.83,
+              115214.17,
+              112583.33,
+              112847.92,
+              112321.25,
+              112250.42,
+              113106.66,
+              113607.91,
+              111852.09,
+              110694.17,
+              112419.58,
+              110502.92,
+              116172.91,
+              112861.25,
+              111935.83,
+              111669.59,
+              113410.0
+            ],
+            "relative_error": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "signed_delta": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "u": 0.3
+          }
+        },
+        "pre_import_fallback": null,
+        "precision": "float64",
+        "profile": "float64-cpu",
+        "protocol": {
+          "evaluations_per_sample": 100,
+          "sample_count": 30,
+          "warmup_iterations": 10
+        },
+        "requested_device": "cpu",
+        "resolved_device": "cpu",
+        "torch_build": {
+          "git_version": "7269437d655783a26cba32aa88195b741ff496aa",
+          "is_debug": false,
+          "mps_is_built": true,
+          "version": "2.12.1"
+        },
+        "u": 0.3
+      }
+    }
+  },
+  "fingerprint": {
+    "path": "<home>/Desktop/3_body_problem/.worktrees/trainex/.planning/phases/37-developer-environment-precision-adjudication/evidence/environment/20260712T150344Z/fingerprint.json",
+    "schema_version": "phase37/v1",
+    "sha256": "0628f5d11983614db6e84caef948e1165755403232fd9bec5341722bcc57e901"
+  },
+  "orchestration": {
+    "executable": "<home>/miniforge3/envs/pinn-train/bin/python",
+    "fallback_policy": "stripped-for-mps",
+    "profiles": [
+      "fp32-mps",
+      "fp64-cpu"
+    ],
+    "protocol": {
+      "evaluations": 100,
+      "samples": 30,
+      "warmup": 10
+    },
+    "timeout_seconds": 900,
+    "u": 0.3
+  },
+  "repository_commit": "df25a3f15f97d39c64c8af18d048b72829baf638",
+  "schema_version": "phase37-precision/v1",
+  "timestamp": "2026-07-12T15:03:59Z",
+  "verification": {
+    "checks": {
+      "both_patterns": true,
+      "fingerprint_hash_present": true,
+      "two_arms": true
+    },
+    "status": "pass"
+  }
+}

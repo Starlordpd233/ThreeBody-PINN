@@ -64,18 +64,28 @@ def synthetic_trajectory(u):
 
     ``u`` is a scalar Torch tensor (the autograd leaf). Returns a 3-vector.
     Both AD patterns share this one trajectory.
+
+    Implementation note: the constants are wrapped as same-dtype/device tensors
+    because the dual-number tangent representation inside ``torch.func.jvp``
+    on MPS does not support Python-float × dual-tensor in either operand
+    ordering. Tensor × tensor is correct on both CPU and MPS.
     """
-    two_pi_u = 2 * _math.pi * u
-    return _torch.stack([_torch.sin(two_pi_u), _torch.cos(two_pi_u), u ** 2])
+    two_pi = _torch.as_tensor(2 * _math.pi, dtype=u.dtype, device=u.device)
+    two = _torch.as_tensor(2.0, dtype=u.dtype, device=u.device)
+    two_pi_u = u * two_pi
+    return _torch.stack([_torch.sin(two_pi_u), _torch.cos(two_pi_u), u * u])
 
 
 def analytical_first_derivative(u):
     """Analytical dr'/du = [2*pi*cos(2*pi*u), -2*pi*sin(2*pi*u), 2*u]."""
-    two_pi_u = 2 * _math.pi * u
+    two_pi = _torch.as_tensor(2 * _math.pi, dtype=u.dtype, device=u.device)
+    neg_two_pi = _torch.as_tensor(-2 * _math.pi, dtype=u.dtype, device=u.device)
+    two = _torch.as_tensor(2.0, dtype=u.dtype, device=u.device)
+    two_pi_u = u * two_pi
     return _torch.stack([
-        2 * _math.pi * _torch.cos(two_pi_u),
-        -2 * _math.pi * _torch.sin(two_pi_u),
-        2 * u,
+        _torch.cos(two_pi_u) * two_pi,
+        _torch.sin(two_pi_u) * neg_two_pi,
+        u * two,
     ])
 
 
