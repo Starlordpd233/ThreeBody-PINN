@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 37
-status: ready_to_execute
-stopped_at: Phase 37 planning complete
-last_updated: "2026-07-12T06:57:23Z"
+status: in_progress
+stopped_at: "Phase 37 Wave 1 human-verify checkpoint (package identity) blocks Plan 37-02"
+last_updated: "2026-07-12T14:50:00Z"
 last_activity: 2026-07-12
-last_activity_desc: "Phase 37 planning completed: five plans checker-verified and ready to execute"
+last_activity_desc: "Wave 0 / Plan 37-01 complete: 6 stdlib tests/phase37 modules encoding ENV-01..04 / CTX-01..14 contracts committed (ea85e965). Wave 1 package-identity checkpoint now blocks Plan 37-02."
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 5
+  completed_plans: 1
+  percent: 1
 current_phase_name: Developer Environment & Precision Adjudication
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 37 — Developer Environment & Precision Adjudication (planned)
-Plan: 5 plans across Waves 0–4
-Status: Ready to execute
-Last activity: 2026-07-12 — Phase 37 planning complete; independent plan checker passed
+Phase: 37 — Developer Environment & Precision Adjudication (executing)
+Plan: 37-01 complete (Wave 0); 37-02 next (Wave 1, blocked at package-identity checkpoint)
+Status: Wave 0 GREEN and committed (ea85e965); Wave 1 halted at the blocking human-verify checkpoint before the seed install
+Last activity: 2026-07-12 — Wave 0 verification contract committed; Waves 1–4 await owner unblock (package-identity review → seed install → D1-p decision)
 
 ## Deferred Items
 
@@ -237,12 +237,13 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-CONTEXT.md
+**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-01-SUMMARY.md
 
-Last session: 2026-07-11T11:49:06.288Z
-Stopped at: Phase 37 context gathered
-Next action: `/gsd-plan-phase 37 --auto` from `.worktrees/trainex`; preserve the explicit owner D1-p checkpoint after the dual-arm precision evidence is recorded. Full multi-stage platform remains deferred pending the Phase 43 (ACC-06) go/adjust/rethink verdict.
+Last session: 2026-07-12T14:50:00Z
+Stopped at: Phase 37 Wave 0 complete (Plan 37-01, commit ea85e965); Wave 1 human-verify checkpoint (package identity) blocks Plan 37-02's seed install
+Next action: Owner reviews the Plan 37-02 package-identity checkpoint (confirm `torch`, `numpy`, `h5py`, `PyYAML`, `tensorboard` on PyPI and the Torch 2.12 line), then authorizes the one-time `scripts/refresh-environment-lock.sh --seed` install on the M5 Pro. Waves 2–4 follow once the committed lock exists. The terminal owner D1-p decision (Plan 37-05) remains explicitly preserved.
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 37 --auto` in `.worktrees/trainex` to plan the developer environment and dual-arm D1-p evidence probe.
+- Resume Wave 1 (Plan 37-02): confirm the package identities on PyPI, then authorize the one-time seed install. After the committed lock exists, run `./setup.sh` for first and second (validation-only) normal runs and capture the fingerprint evidence.
+- Waves 2–4 (Plans 37-03, 37-04, 37-05) execute in dependency order once the committed lock and `pinn-train` exist; Plan 37-05 ends at the blocking owner D1-p checkpoint.
