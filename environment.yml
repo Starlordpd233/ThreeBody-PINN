@@ -1,0 +1,32 @@
+# Phase 37 / ENV-01 / ENV-02 — human-edited direct dependency intent.
+#
+# This file is the loose, human-reviewed declaration of what the `pinn-train`
+# conda environment should contain. The exact osx-arm64 replay set lives in
+# `requirements-lock.txt`; normal `./setup.sh` consumes and validates BOTH
+# files and never rewrites either. Only `scripts/refresh-environment-lock.sh`
+# (explicit --seed or explicit refresh mode) may regenerate the lock.
+#
+# Per CTX-01..CTX-05 and REQUIREMENTS.md ENV-01/ENV-02:
+#   - Miniforge3 arm64 (installed by setup if absent, never replacing an
+#     existing conda silently).
+#   - Python 3.11.
+#   - PyTorch 2.12.* (locked major/minor; the lock pins the exact patch).
+#   - NumPy, h5py, PyYAML, TensorBoard as direct pip dependencies.
+#
+# PyTorch's MPS-enabled macOS arm64 wheels are distributed via PyPI; the conda
+# environment provides Python 3.11 + pip, and the pinned pip install (driven
+# from requirements-lock.txt) provides the exact replay set. Keeping torch on
+# the pip side matches the mixed conda/pip contract in 37-RESEARCH.md §"lock
+# mechanism".
+name: pinn-train
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11.*
+  - pip>=24.0
+  - pip:
+      - torch==2.12.*
+      - numpy
+      - h5py
+      - PyYAML
+      - tensorboard
