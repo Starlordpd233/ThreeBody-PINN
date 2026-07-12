@@ -1,0 +1,53 @@
+{
+  "conda": {
+    "executable": "<home>/miniforge3/bin/conda",
+    "prefix": "<home>/miniforge3/envs/pinn-train",
+    "version": ""
+  },
+  "lock": {
+    "path": "requirements-lock.txt",
+    "sha256": "36e718ccc140ec1f96f87840362d94f14d8cfebb1c0ddc70b8c8009c200293e3"
+  },
+  "packages": {
+    "PyYAML": "6.0.3",
+    "h5py": "3.16.0",
+    "numpy": "2.4.6",
+    "tensorboard": "2.21.0",
+    "torch": "2.12.1"
+  },
+  "platform": {
+    "machine": "arm64",
+    "os": "Darwin",
+    "sw_vers": {
+      "build_version": "25F80",
+      "product_name": "macOS",
+      "product_version": "26.5.1"
+    }
+  },
+  "python": "3.11.15",
+  "repository_commit": "b173204312a1b4d4b0cdf13eda504a9174c86102",
+  "schema_version": "phase37/v1",
+  "timestamp": "2026-07-12T14:18:46Z",
+  "torch": {
+    "build": "unknown",
+    "git_version": "7269437d655783a26cba32aa88195b741ff496aa",
+    "is_debug": false,
+    "mps": {
+      "device_count": 1,
+      "is_available": true,
+      "is_built": true
+    },
+    "version": "2.12.1"
+  },
+  "verification": {
+    "checks": {
+      "lock_match": true,
+      "mps_available": true,
+      "pip_check": true,
+      "python_3_11": true,
+      "required_imports": true,
+      "torch_2_12": true
+    },
+    "status": "pass"
+  }
+}

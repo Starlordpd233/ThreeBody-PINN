@@ -14,6 +14,7 @@ compilation is the only Wave 0 green condition.
 import json
 import os
 import pathlib
+import re
 import shutil
 import stat
 import subprocess
@@ -344,17 +345,38 @@ class TestLockBoundary(unittest.TestCase):
                          f"seed mode left disposable prefixes: {leftovers}")
 
     def test_default_setup_has_no_dispatch_edge_to_seed(self):
-        # Read setup.sh source and prove there is no invocation of the seed or
-        # refresh command from the default path. This is a structural guard, not
-        # a runtime probe.
+        # Read setup.sh source and prove the DEFAULT code path never DISPATCHES
+        # the refresh script or its seed mode. This is a structural guard, not a
+        # runtime probe. We inspect only executable statement lines (stripping
+        # comments and the contents of error-message string literals), because
+        # the remediation text legitimately tells the owner to run the seed
+        # command manually — that is guidance, not a dispatch.
         if not SETUP_SH.exists():
             self.skipTest("setup.sh not implemented until Wave 1")
         source = SETUP_SH.read_text()
-        # The default command must not contain an unconditional dispatch to
-        # refresh-environment-lock.sh --seed or to refresh mode.
-        # (Setup MAY reference the lock file path; it must not invoke the writer.)
-        self.assertNotIn("refresh-environment-lock.sh --seed", source,
-                         "default setup dispatches seed mode")
+        dispatch_patterns = [
+            "refresh-environment-lock.sh",   # any invocation of the writer
+            "refresh-environment-lock",      # ... via variable/source
+        ]
+        for line in source.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            # Skip pure comments.
+            if stripped.startswith("#"):
+                continue
+            # Skip lines that are entirely inside a single-quoted string used as
+            # an error message (heuristic: the whole stripped line is a die/echo
+            # argument). These legitimately reference the seed command as
+            # owner-facing remediation guidance.
+            # Strip quoted string contents to see whether any dispatch token
+            # appears in the actual command position.
+            code_without_strings = re.sub(r"'[^']*'", "''", stripped)
+            code_without_strings = re.sub(r'"[^"]*"', '""', code_without_strings)
+            for pat in dispatch_patterns:
+                self.assertNotIn(pat, code_without_strings,
+                                 f"default setup dispatches the lock writer ({pat!r}) "
+                                 f"in executable code: {stripped!r}")
 
     def test_ordinary_setup_preserves_yaml_and_lock_bytes(self):
         # CTX-05: ordinary setup validates, never rewrites the YAML or lock.
