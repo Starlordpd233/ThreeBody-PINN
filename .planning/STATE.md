@@ -4,16 +4,16 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 37
 status: in_progress
-stopped_at: "Phase 37 Wave 1 human-verify checkpoint (package identity) blocks Plan 37-02"
-last_updated: "2026-07-12T14:50:00Z"
+stopped_at: "Phase 37 Wave 1 complete (ENV-01/02 green); Waves 2-4 next"
+last_updated: "2026-07-12T15:10:00Z"
 last_activity: 2026-07-12
-last_activity_desc: "Wave 0 / Plan 37-01 complete: 6 stdlib tests/phase37 modules encoding ENV-01..04 / CTX-01..14 contracts committed (ea85e965). Wave 1 package-identity checkpoint now blocks Plan 37-02."
+last_activity_desc: "Wave 1 / Plan 37-02 complete: committed environment pair (b1732043), fail-closed setup.sh + verify_environment.py (42ef552), pinn-train verified, retained first/second-run fingerprint evidence. ENV-01 and ENV-02 GREEN."
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
-  percent: 1
+  completed_plans: 2
+  percent: 2
 current_phase_name: Developer Environment & Precision Adjudication
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 37 — Developer Environment & Precision Adjudication (executing)
-Plan: 37-01 complete (Wave 0); 37-02 next (Wave 1, blocked at package-identity checkpoint)
-Status: Wave 0 GREEN and committed (ea85e965); Wave 1 halted at the blocking human-verify checkpoint before the seed install
-Last activity: 2026-07-12 — Wave 0 verification contract committed; Waves 1–4 await owner unblock (package-identity review → seed install → D1-p decision)
+Plan: 37-01 + 37-02 complete (Waves 0-1); 37-03 next (Wave 2: runtime resolver + AD worker)
+Status: ENV-01 and ENV-02 GREEN. pinn-train verified (Python 3.11.15, Torch 2.12.1 + MPS, numpy/h5py/PyYAML/tensorboard); committed pair + retained first/second-run fingerprint evidence. Waves 2-4 remain (ENV-03/04: the D1-p dual-arm probe + owner checkpoint).
+Last activity: 2026-07-12 — Plan 37-02 committed (42ef552); ENV-01/02 verification chain green.
 
 ## Deferred Items
 
@@ -237,13 +237,13 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-01-SUMMARY.md
+**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-02-SUMMARY.md
 
-Last session: 2026-07-12T14:50:00Z
-Stopped at: Phase 37 Wave 0 complete (Plan 37-01, commit ea85e965); Wave 1 human-verify checkpoint (package identity) blocks Plan 37-02's seed install
-Next action: Owner reviews the Plan 37-02 package-identity checkpoint (confirm `torch`, `numpy`, `h5py`, `PyYAML`, `tensorboard` on PyPI and the Torch 2.12 line), then authorizes the one-time `scripts/refresh-environment-lock.sh --seed` install on the M5 Pro. Waves 2–4 follow once the committed lock exists. The terminal owner D1-p decision (Plan 37-05) remains explicitly preserved.
+Last session: 2026-07-12T15:10:00Z
+Stopped at: Phase 37 Wave 1 complete (Plan 37-02, commit 42ef552). ENV-01/02 GREEN; pinn-train verified; first/second-run fingerprint evidence retained.
+Next action: Wave 2 (Plan 37-03) — build pinn/runtime.py (the two-profile resolver) and pinn/verification/componentwise_ad.py (the shared §10.3 AD worker + timing protocol). Wave 3 (37-04) the dual-arm orchestrator + evidence contract; Wave 4 (37-05) the one real dual-arm run + blocking owner D1-p checkpoint.
 
 ## Operator Next Steps
 
-- Resume Wave 1 (Plan 37-02): confirm the package identities on PyPI, then authorize the one-time seed install. After the committed lock exists, run `./setup.sh` for first and second (validation-only) normal runs and capture the fingerprint evidence.
-- Waves 2–4 (Plans 37-03, 37-04, 37-05) execute in dependency order once the committed lock and `pinn-train` exist; Plan 37-05 ends at the blocking owner D1-p checkpoint.
+- Wave 2 (Plan 37-03) can proceed now: pinn-train is verified. Build the runtime seam + componentwise-AD worker against the Wave 0 contracts (test_runtime, test_componentwise_ad).
+- Wave 3 (37-04) builds the dual-arm orchestrator + evidence contract; Wave 4 (37-05) runs the one real dual-arm M5 Pro evidence pass and stops at the blocking owner D1-p checkpoint.
