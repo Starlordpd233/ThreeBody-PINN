@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 37
-status: in_progress
-stopped_at: "Phase 37 Wave 1 complete (ENV-01/02 green); Waves 2-4 next"
-last_updated: "2026-07-12T15:10:00Z"
+status: blocked_on_owner
+stopped_at: "Phase 37 Wave 4 complete; D1-p DEFERRED by owner (GAP-37-01); Phase 38 blocked"
+last_updated: "2026-07-12T15:30:00Z"
 last_activity: 2026-07-12
-last_activity_desc: "Wave 1 / Plan 37-02 complete: committed environment pair (b1732043), fail-closed setup.sh + verify_environment.py (42ef552), pinn-train verified, retained first/second-run fingerprint evidence. ENV-01 and ENV-02 GREEN."
+last_activity_desc: "Plan 37-05 task 37-05-01 complete (a65e78c): one validated on-device dual-arm D1-p evidence run + worker fix. Owner DEFERRED D1-p after retracting an initial fp32-MPS pick; recorded verbatim. GAP-37-01 opened (DEFERRED). Phase 38 blocked at the D1-p seam."
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
-  percent: 2
+  completed_plans: 4
+  percent: 4
 current_phase_name: Developer Environment & Precision Adjudication
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 37 — Developer Environment & Precision Adjudication (executing)
-Plan: 37-01 + 37-02 complete (Waves 0-1); 37-03 next (Wave 2: runtime resolver + AD worker)
-Status: ENV-01 and ENV-02 GREEN. pinn-train verified (Python 3.11.15, Torch 2.12.1 + MPS, numpy/h5py/PyYAML/tensorboard); committed pair + retained first/second-run fingerprint evidence. Waves 2-4 remain (ENV-03/04: the D1-p dual-arm probe + owner checkpoint).
-Last activity: 2026-07-12 — Plan 37-02 committed (42ef552); ENV-01/02 verification chain green.
+Phase: 37 — Developer Environment & Precision Adjudication (executing; Wave 4 done, owner D1-p DEFERRED)
+Plan: 37-01 + 37-02 + 37-03 + 37-04 complete; 37-05 task 37-05-01 complete, owner-checkpoint task recorded a DEFERRED verdict
+Status: ENV-01, ENV-02, ENV-04 GREEN. ENV-03's dual-arm evidence is recorded and validated but the owner's D1-p precision verdict is DEFERRED (GAP-37-01) — Phase 38 is blocked at the D1-p seam until the owner records fp32-MPS or fp64-CPU.
+Last activity: 2026-07-12 — Plan 37-05 dual-arm evidence committed (a65e78c); owner deferred D1-p; gap recorded.
 
 ## Deferred Items
 
@@ -175,6 +175,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 Recent decisions affecting current work:
 
+- [D1-p DEFERRED 2026-07-12]: Owner recorded an explicit DEFERRED verdict for D1-p (precision branch, fp32-MPS vs fp64-CPU) at the Plan 37-05 blocking checkpoint. Verbatim: *"i picked the wrong option. let's defer that and we'll decide on this later."* The owner retracted an initial fp32-MPS selection. **Phase 38 (NET) is blocked at the D1-p seam until the owner records a branch.** The agent did NOT choose, recommend, or apply a precision default. The retained dual-arm evidence (`evidence/precision/20260712T150406Z/`) is reusable; no re-run required when the owner records a branch. Full gap record: GAP-37-01 (`.planning/phases/37-developer-environment-precision-adjudication/37-GAPS.md`); milestone index: `.planning/milestones/v2.0-GAPS.md`.
 - [integrity-r2-clearance 2026-07-11]: Owner disposed the integrity-r2 pre-build audit punch-list (MASTER-FINAL-RESOLUTION, status candidate/owner-disposes, verdict NO-GO): **PB-1 Option A + interim floor** (Stage-0/1a/1b `s_min` criterion becomes data-derived `s₀` ratified at the Phase 39 DATA-06 scan; interim `s₀ = 0.01`), **PB-2/PB-3/PB-4/PB-5 all Option A** (five-term Huber loss catalog; corrected replay/lookahead data/collocation contract; `physical_key` grouped-split invariant; Tier-1 dataset-count correction — corpus arithmetic becomes ≈8.23M snapshots ≈0.72 GB fp32, no ratified decision changes). Owner authorized a bounded spec micro-pass on `ctl_instruction.md` now (departing from the delivery-note "future spec milestone" routing): `s_min` repair, Set 1b/2a count swap, `compute_L_norm` degenerate-branch fix (IR2-007), DATA-05 quarantine historical note (IR2-008). v2.0 REQUIREMENTS/ROADMAP patched accordingly (NET-04, DATA-02, DATA-04, DATA-05, DATA-06 + Phase 38/39 criteria). **Phase-37 pre-build gate: CLEARED** (nothing waived). Clearance record: `pinn_instruction/markdown_conversion/framework-specs/integrity-r2/CLEARANCE.md` (trainex worktree, `milestone/v1.7` commit `09c972c6`).
 - [v2.0-init 2026-07-06]: v2.0 is the first **build** milestone (trainex track), scoped as the postspec-r1 **viability slice** (Stage-0 first); the full multi-stage platform is deferred pending an ACC-06 go/adjust/rethink verdict. Owner chose a major bump (v1.7 → v2.0) marking the spec→implementation inflection. Grounding is authoritative, not a candidate verdict source: the ratified trainex-r1a decision set (2026-07-05; D1–D7 / B-1–B-11 + §5 first-run recipe) for build-engineering, and the locked v1.4/v1.5/v1.6 specs for the science. The `pinn/` live-code ban is **LIFTED** (FUT-01 rebuilds from specs). Five owner-carved decisions (D1-p precision, D4-a checkpoint ceiling, RECOVER budget + HALT/guard thresholds R-1/R-2, B-5 resume-field list) are built as seams with safe defaults and calibrated/ratified by the owner at their designed moments — the build analog of the STOP protocol; the agent surfaces evidence, it does not pick the values.
 - [v2.0-roadmap 2026-07-06]: 7 phases (37–43), standard granularity, continuing numbering from v1.6's Phase 36. 42/42 requirements mapped 1:1 by category (ENV=4, NET=5, DATA=6, TRAIN=7, CTRL=8, OPS=6, ACC=6). Straight dependency order 37→43, no external research gate (unlike v1.4–v1.6 — the research is already delivered and ratified). Planning artifacts committed on `master`; build execution in `.worktrees/trainex` on `milestone/v2.0` (renamed/created from the stale anticipatory `milestone/v1.7` at first phase execution).
@@ -237,13 +238,13 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-02-SUMMARY.md
+**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-05-SUMMARY.md
 
-Last session: 2026-07-12T15:10:00Z
-Stopped at: Phase 37 Wave 1 complete (Plan 37-02, commit 42ef552). ENV-01/02 GREEN; pinn-train verified; first/second-run fingerprint evidence retained.
-Next action: Wave 2 (Plan 37-03) — build pinn/runtime.py (the two-profile resolver) and pinn/verification/componentwise_ad.py (the shared §10.3 AD worker + timing protocol). Wave 3 (37-04) the dual-arm orchestrator + evidence contract; Wave 4 (37-05) the one real dual-arm run + blocking owner D1-p checkpoint.
+Last session: 2026-07-12T15:30:00Z
+Stopped at: Phase 37 Wave 4 complete. D1-p DEFERRED by owner (GAP-37-01); Phase 38 blocked at the D1-p seam.
+Next action: Owner records D1-p (fp32-MPS or fp64-CPU) when ready — the retained dual-arm evidence (`evidence/precision/20260712T150406Z/`) is reusable, no re-run required. Then Phase 38 (NET, `pinn/` rebuild) unblocks.
 
 ## Operator Next Steps
 
-- Wave 2 (Plan 37-03) can proceed now: pinn-train is verified. Build the runtime seam + componentwise-AD worker against the Wave 0 contracts (test_runtime, test_componentwise_ad).
-- Wave 3 (37-04) builds the dual-arm orchestrator + evidence contract; Wave 4 (37-05) runs the one real dual-arm M5 Pro evidence pass and stops at the blocking owner D1-p checkpoint.
+- **To unblock Phase 38:** record D1-p in GAP-37-01 (`.planning/phases/37-developer-environment-precision-adjudication/37-GAPS.md`) — set Status to `RESOLVED-WITH-INSTRUCTION`, fill the verbatim quote, and update one recorded config default. The implementation path does not change (CTX-14).
+- Phase 37's verification surface is otherwise complete: ENV-01/02/04 GREEN; ENV-03 evidence retained and validated; all 55 tests/phase37 tests pass; the committed environment substrate is re-derivable on the M5 Pro.

@@ -177,8 +177,8 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 37. Developer Environment & Precision Adjudication | v2.0 | 4/5 | In Progress|  |
-| 38. PINN Model Rebuild from Specs (FUT-01) | v2.0 | — | Not started | — |
+| 37. Developer Environment & Precision Adjudication | v2.0 | 4/5 | Blocked on D1-p (GAP-37-01 DEFERRED) |  |
+| 38. PINN Model Rebuild from Specs (FUT-01) | v2.0 | — | Blocked on D1-p | — |
 | 39. Data Ingestion & Stage-0 Population Scan | v2.0 | — | Not started | — |
 | 40. Stage-0 Curriculum Training Loop (FUT-04) | v2.0 | — | Not started | — |
 | 41. Config, Checkpointing, Resume & Determinism | v2.0 | — | Not started | — |
