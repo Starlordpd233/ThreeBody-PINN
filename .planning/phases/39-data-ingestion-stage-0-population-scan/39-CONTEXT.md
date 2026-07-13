@@ -1,7 +1,7 @@
 # Phase 39: Data Ingestion & Stage-0 Population Scan - Context
 
 **Gathered:** 2026-07-13
-**Status:** Blocked — GAP-39-02 requires owner direction before implementation planning
+**Status:** Ready for planning — owner rulings recorded 2026-07-13
 
 ## Phase Boundary
 
@@ -53,9 +53,12 @@ Requirements are not duplicated here.
   read-only and fail closed when the blacklist is missing, unreadable, or
   schema-invalid.
 - **D-02:** Implement the admitted-set reader as new Phase 39 code; do not
-  import v1 `pinn/data-handling/`. The Phase 38 fixture loader is explicitly
-  not the production adapter; its relationship to DATA-01's universal
-  single-reader criterion is the blocking GAP-39-02, not an implicit exception.
+  import v1 `pinn/data-handling/`. By the owner's 2026-07-13 delegation of
+  judgment, DATA-01's single-reader rule governs the **production ingestion
+  surface**. `pinn/verification/fixture_loader.py` remains the one retained,
+  probe-local Phase 38 exception. The Phase 39 audit must allow that exact
+  legacy verification module, route every new production reader through the
+  adapter, and fail on any additional on-disk parser.
 - **D-03:** Preload only admitted trajectories as fp32 with `num_workers=0`,
   emit `mem: <bytes> (<fraction>) watermark=0.7`, and keep model-facing tensor
   construction explicit about dtype/device. Do not mutate global Torch defaults
@@ -71,7 +74,8 @@ Requirements are not duplicated here.
 - **D-05:** A supplied `data_version_hash` mismatch is a hard refusal. An
   absent field emits the typed `DataVersionHashDeferred` signal and remains
   observable; Phase 39 must not invent a producer or silently treat absence as
-  a match. GAP-39-01 tracks that upstream coordination boundary.
+  a match. By the owner's 2026-07-13 delegation of judgment, retain this typed
+  deferral until an upstream canonical producer is ratified.
 - **D-06:** Partition by `physical_key = (variant, id)` before expanding to
   `record_key`s. Persist the seed and byte-stable manifest; train may shuffle
   under that seed while validation and test iteration remain fixed.
@@ -177,6 +181,9 @@ Requirements are not duplicated here.
   population, bytes, and `s_min` without ratifying a threshold.
 - Keep the two point sets visibly distinct in the batch type/API so the
   data-fidelity-only mixed sampler cannot accidentally apply to collocation.
+- Make the DATA-01 parser audit explicit: it protects the production ingestion
+  surface and permits only the already-existing probe-local
+  `pinn/verification/fixture_loader.py` exception.
 - Exercise the locked boundary cases directly: `SCS = -5`, near-zero `H(0)`,
   absent hash metadata, no `k+1` stage, a next-stage pool smaller than 16, and
   `s_min = s0`.
@@ -188,10 +195,11 @@ Requirements are not duplicated here.
 - FUT-02: full multi-stage curriculum EDA and Stage 1–6 threshold
   recalibration.
 - Owner decision: ratify `s0` from the emitted `s_min` distribution.
-- GAP-39-01: designate a canonical `data_version_hash` producer and metadata
-  source; the typed deferral is only the Phase 39 seam.
-- GAP-39-02: resolve whether the Phase 38 fixture loader is exempt from,
-  delegates to, or is replaced under DATA-01's single-reader rule.
+- Deferred by owner-ratified agent judgment: designate a canonical
+  `data_version_hash` producer and metadata source. Phase 39 retains the typed
+  absent-field deferral until that upstream contract exists.
+- Retained Phase 38 boundary: `pinn/verification/fixture_loader.py` stays a
+  probe-local exception; it does not become the admitted-set adapter.
 
 ### Reviewed Todos (not folded)
 

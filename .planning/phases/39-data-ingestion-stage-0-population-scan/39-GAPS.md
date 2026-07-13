@@ -37,10 +37,13 @@
     as the canonical source.
 - **Confidence of impact:** HIGH — an unratified hash can make the safety check
   either spuriously reject unchanged data or silently accept incompatible data.
-- **Status:** OPEN; non-blocking only for the locked compare/refuse plus typed
+- **Status:** DEFERRED — non-blocking for the locked compare/refuse plus typed
   deferral seam. It blocks a claim of mandatory version enforcement where the
   metadata field is absent.
-- **Resolution note:**
+- **Resolution note:** User instruction, 2026-07-13: “follow your best
+  judgement.” Agent judgment chooses option B: retain the typed absent-field
+  deferral and do not invent a producer, payload, or sidecar contract in Phase
+  39. Revisit only when an upstream canonical producer is ratified.
 
 ## GAP-39-02 — DATA-01 single-reader rule versus Phase 38 fixture loader
 
@@ -84,12 +87,18 @@
 - **Confidence of impact:** HIGH — without a ruling, no implementation can both
   preserve the existing Phase 38 probe contract and satisfy the stated
   repository-wide grep criterion.
-- **Status:** OPEN — BLOCKS DATA-01 implementation planning. Context gathering
-  and the independent DATA-02..06 decisions may proceed.
-- **Resolution note:**
+- **Status:** RESOLVED-WITH-INSTRUCTION — no longer blocks DATA-01 planning.
+- **Resolution note:** User instruction, 2026-07-13: “follow your best
+  judgement.” Agent judgment chooses option A: the DATA-01 single-reader rule
+  applies to the production ingestion surface. Preserve
+  `pinn/verification/fixture_loader.py` as the sole existing, probe-local Phase
+  38 exception; it is neither the admitted-set adapter nor a reusable production
+  parser. The Phase 39 reader audit must allow that exact module and fail on any
+  other non-adapter on-disk reader.
 
 ---
 
 **Milestone-index follow-up:** `.planning/milestones/v2.0-GAPS.md` is currently
-claimed by another active session. Do not overwrite that shared index; add these
-entries there once the owner releases the claim or coordinates the update.
+claimed by another active session. Do not overwrite that shared index; add the
+GAP-39-01 deferred and GAP-39-02 resolved entries once the owner releases the
+claim or coordinates the update.
