@@ -260,12 +260,15 @@ class LoadTrajectoryTests(unittest.TestCase):
             fixture = load_trajectory(
                 variant="hierarchical_gold_standard", id=42, root=root,
                 dtype=torch.float64, device=torch.device("cpu"))
+            # Read the expected hash INSIDE the tmp lifetime (the directory is
+            # gone once the context manager exits).
+            expected_sha = hashlib.sha256(brutus.read_bytes()).hexdigest()
+            brutus_name = brutus.name
         prov = fixture.provenance
         self.assertEqual(prov["variant"], "hierarchical_gold_standard")
         self.assertEqual(prov["id"], "0042")
-        self.assertEqual(Path(prov["path"]).name, brutus.name)
-        self.assertEqual(prov["sha256"],
-                         hashlib.sha256(brutus.read_bytes()).hexdigest())
+        self.assertEqual(Path(prov["path"]).name, brutus_name)
+        self.assertEqual(prov["sha256"], expected_sha)
         self.assertEqual(Path(prov["ic_path"]).name, "ic_hierarchical_0042.txt")
         for i, m in enumerate(MASSES):
             self.assertAlmostEqual(float(fixture.masses[i]), m, places=12)
