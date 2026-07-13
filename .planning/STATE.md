@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 37
-status: blocked_on_owner
-stopped_at: "Phase 37 Wave 4 complete; D1-p DEFERRED by owner (GAP-37-01); Phase 38 blocked"
-last_updated: "2026-07-12T15:30:00Z"
+status: in_progress
+stopped_at: "Phase 37 execution complete; D1-p recorded (fp32-MPS, GAP-37-01 RESOLVED); Phase 38 unblocked"
+last_updated: "2026-07-13T03:38:00Z"
 last_activity: 2026-07-12
-last_activity_desc: "Plan 37-05 task 37-05-01 complete (a65e78c): one validated on-device dual-arm D1-p evidence run + worker fix. Owner DEFERRED D1-p after retracting an initial fp32-MPS pick; recorded verbatim. GAP-37-01 opened (DEFERRED). Phase 38 blocked at the D1-p seam."
+last_activity_desc: "Owner resolved GAP-37-01: D1-p = fp32-MPS (verbatim ruling + explicit branch-naming confirmation recorded; R-6 dual-arm tolerance ratified). Production default precision=float32, device=mps; fp64-CPU escape hatch stands. Phase 38 unblocked; ENV-03 closable. No code changed (CTX-14)."
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
-  percent: 4
+  completed_plans: 5
+  percent: 5
 current_phase_name: Developer Environment & Precision Adjudication
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 37 — Developer Environment & Precision Adjudication (executing; Wave 4 done, owner D1-p DEFERRED)
-Plan: 37-01 + 37-02 + 37-03 + 37-04 complete; 37-05 task 37-05-01 complete, owner-checkpoint task recorded a DEFERRED verdict
-Status: ENV-01, ENV-02, ENV-04 GREEN. ENV-03's dual-arm evidence is recorded and validated but the owner's D1-p precision verdict is DEFERRED (GAP-37-01) — Phase 38 is blocked at the D1-p seam until the owner records fp32-MPS or fp64-CPU.
-Last activity: 2026-07-12 — Plan 37-05 dual-arm evidence committed (a65e78c); owner deferred D1-p; gap recorded.
+Phase: 37 — Developer Environment & Precision Adjudication (execution complete; pending verify)
+Plan: all 5 plans concluded — 37-01..37-04 complete; 37-05's owner checkpoint resolved with a recorded fp32-MPS ruling (after a same-day deferral)
+Status: ENV-01, ENV-02, ENV-04 GREEN. ENV-03's dual-arm evidence is recorded and validated AND the owner's D1-p verdict is recorded (fp32-MPS) — ENV-03 closable at phase verification. Phase 38 (NET) is UNBLOCKED.
+Last activity: 2026-07-12 — GAP-37-01 RESOLVED-WITH-INSTRUCTION: owner recorded fp32-MPS; STATE/ROADMAP/gap registers updated.
 
 ## Deferred Items
 
@@ -175,6 +175,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 Recent decisions affecting current work:
 
+- [D1-p RESOLVED 2026-07-12]: Owner recorded **fp32-MPS** (Option A) for D1-p, resolving GAP-37-01 and retiring the same-day deferral below. Verbatim ruling (*"...we will remain with the entire training happening on the MacBook Pro with M5 chip. Let's carry on with that choice and decision for now."*) plus an explicit branch-naming confirmation (owner selected "fp32-MPS" from {fp32-MPS, fp64-CPU, keep deferred}) are recorded in the gap register, including the R-6 dual-arm tolerance ratification (fp64-CPU reference arm; fp32-MPS within ~1e-4). Production default: `precision=float32, device=mps`; fp64-CPU remains the in-framework escape hatch (ENV-04). **Phase 38 (NET) UNBLOCKED**; ENV-03 closable. Single-machine M5 Pro training reaffirmed — a Lenovo/multi-machine split is a later cost-benefit question outside v2.0. No code changed (CTX-14): `pinn/runtime.py` encodes no default; the Phase 40/41 training config consumes the recorded value.
 - [D1-p DEFERRED 2026-07-12]: Owner recorded an explicit DEFERRED verdict for D1-p (precision branch, fp32-MPS vs fp64-CPU) at the Plan 37-05 blocking checkpoint. Verbatim: *"i picked the wrong option. let's defer that and we'll decide on this later."* The owner retracted an initial fp32-MPS selection. **Phase 38 (NET) is blocked at the D1-p seam until the owner records a branch.** The agent did NOT choose, recommend, or apply a precision default. The retained dual-arm evidence (`evidence/precision/20260712T150406Z/`) is reusable; no re-run required when the owner records a branch. Full gap record: GAP-37-01 (`.planning/phases/37-developer-environment-precision-adjudication/37-GAPS.md`); milestone index: `.planning/milestones/v2.0-GAPS.md`.
 - [integrity-r2-clearance 2026-07-11]: Owner disposed the integrity-r2 pre-build audit punch-list (MASTER-FINAL-RESOLUTION, status candidate/owner-disposes, verdict NO-GO): **PB-1 Option A + interim floor** (Stage-0/1a/1b `s_min` criterion becomes data-derived `s₀` ratified at the Phase 39 DATA-06 scan; interim `s₀ = 0.01`), **PB-2/PB-3/PB-4/PB-5 all Option A** (five-term Huber loss catalog; corrected replay/lookahead data/collocation contract; `physical_key` grouped-split invariant; Tier-1 dataset-count correction — corpus arithmetic becomes ≈8.23M snapshots ≈0.72 GB fp32, no ratified decision changes). Owner authorized a bounded spec micro-pass on `ctl_instruction.md` now (departing from the delivery-note "future spec milestone" routing): `s_min` repair, Set 1b/2a count swap, `compute_L_norm` degenerate-branch fix (IR2-007), DATA-05 quarantine historical note (IR2-008). v2.0 REQUIREMENTS/ROADMAP patched accordingly (NET-04, DATA-02, DATA-04, DATA-05, DATA-06 + Phase 38/39 criteria). **Phase-37 pre-build gate: CLEARED** (nothing waived). Clearance record: `pinn_instruction/markdown_conversion/framework-specs/integrity-r2/CLEARANCE.md` (trainex worktree, `milestone/v1.7` commit `09c972c6`).
 - [v2.0-init 2026-07-06]: v2.0 is the first **build** milestone (trainex track), scoped as the postspec-r1 **viability slice** (Stage-0 first); the full multi-stage platform is deferred pending an ACC-06 go/adjust/rethink verdict. Owner chose a major bump (v1.7 → v2.0) marking the spec→implementation inflection. Grounding is authoritative, not a candidate verdict source: the ratified trainex-r1a decision set (2026-07-05; D1–D7 / B-1–B-11 + §5 first-run recipe) for build-engineering, and the locked v1.4/v1.5/v1.6 specs for the science. The `pinn/` live-code ban is **LIFTED** (FUT-01 rebuilds from specs). Five owner-carved decisions (D1-p precision, D4-a checkpoint ceiling, RECOVER budget + HALT/guard thresholds R-1/R-2, B-5 resume-field list) are built as seams with safe defaults and calibrated/ratified by the owner at their designed moments — the build analog of the STOP protocol; the agent surfaces evidence, it does not pick the values.
@@ -240,11 +241,12 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-05-SUMMARY.md
 
-Last session: 2026-07-12T15:30:00Z
-Stopped at: Phase 37 Wave 4 complete. D1-p DEFERRED by owner (GAP-37-01); Phase 38 blocked at the D1-p seam.
-Next action: Owner records D1-p (fp32-MPS or fp64-CPU) when ready — the retained dual-arm evidence (`evidence/precision/20260712T150406Z/`) is reusable, no re-run required. Then Phase 38 (NET, `pinn/` rebuild) unblocks.
+Last session: 2026-07-13T03:38:00Z
+Stopped at: GAP-37-01 resolved (D1-p = fp32-MPS); Phase 37 execution complete; Phase 38 unblocked.
+Next action: Verify Phase 37 (`$gsd-verify-work 37`), then plan Phase 38 (`$gsd-plan-phase 38`) — the NET rebuild consumes the recorded fp32-MPS default (`precision=float32, device=mps`).
 
 ## Operator Next Steps
 
-- **To unblock Phase 38:** record D1-p in GAP-37-01 (`.planning/phases/37-developer-environment-precision-adjudication/37-GAPS.md`) — set Status to `RESOLVED-WITH-INSTRUCTION`, fill the verbatim quote, and update one recorded config default. The implementation path does not change (CTX-14).
-- Phase 37's verification surface is otherwise complete: ENV-01/02/04 GREEN; ENV-03 evidence retained and validated; all 55 tests/phase37 tests pass; the committed environment substrate is re-derivable on the M5 Pro.
+- **Phase 38 is unblocked:** D1-p recorded as **fp32-MPS** in GAP-37-01 (`RESOLVED-WITH-INSTRUCTION`, verbatim quote filled). Production default `precision=float32, device=mps`; fp64-CPU escape hatch stands (ENV-04); no code changed (CTX-14).
+- Run Phase 37 verification (`$gsd-verify-work 37`) to close ENV-01..04 formally, then `$gsd-plan-phase 38`.
+- Phase 37's verification surface: ENV-01/02/04 GREEN; ENV-03 evidence retained and validated + owner verdict recorded; all 55 tests/phase37 tests pass; the committed environment substrate is re-derivable on the M5 Pro.

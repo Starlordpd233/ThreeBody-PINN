@@ -102,7 +102,13 @@ None. The plan explicitly authorizes deferral as a valid resume-signal: *"If the
 - **Phase 38 (NET) is BLOCKED at D1-p.** When the owner records `fp32-MPS` or `fp64-CPU`, the single config default may change without changing the implementation path (CTX-14). No re-run of the probe is required: the retained evidence is reusable.
 - ENV-01, ENV-02, ENV-04 are GREEN; ENV-03 is satisfied as far as the agent may go (evidence recorded, owner decision surfaced and deferred). Phase 37's verification surface is otherwise complete.
 
+## Addendum — D1-p recorded (2026-07-12, later session)
+
+- The owner resolved GAP-37-01 with **fp32-MPS** (Option A), retiring the same-day deferral recorded above. The verbatim ruling plus an explicit branch-naming confirmation (owner selected "fp32-MPS" from {fp32-MPS, fp64-CPU, keep deferred}) are recorded in `37-GAPS.md` (RESOLVED-WITH-INSTRUCTION), including the R-6 dual-arm tolerance ratification (fp64-CPU reference arm; fp32-MPS within ~1e-4).
+- Production default: `precision=float32, device=mps`; the fp64-CPU arm stays the in-framework escape hatch (ENV-04). **Phase 38 (NET) is UNBLOCKED**; ENV-03 is closable. No probe re-run was needed; no code changed (CTX-14 — `pinn/runtime.py` encodes no default; the Phase 40/41 training config consumes the recorded value).
+- The owner additionally ruled that training remains single-machine on the M5 Pro; a Lenovo/multi-machine split is a later cost-benefit question outside v2.0.
+
 ---
 *Phase: 37-developer-environment-precision-adjudication*
-*Plan 37-05 status: deferred (owner-recorded D1-p deferral; Phase 38 blocked)*
+*Plan 37-05 status: complete (owner-recorded D1-p ruling: fp32-MPS; Phase 38 unblocked — see Addendum)*
 *Completed: 2026-07-12*

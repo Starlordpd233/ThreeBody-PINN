@@ -50,13 +50,34 @@ verbatim record after the fact.
 - **Confidence of impact:** HIGH — Phase 38 (`pinn/` model rebuild, FUT-01) is
   blocked at the D1-p seam until the owner records A or B. ENV-03 cannot close
   without the owner's verdict.
-- **Status:** `DEFERRED` (owner instruction 2026-07-12: *"i picked the wrong
-  option. let's defer that and we'll decide on this later."*). The owner
+- **Status:** `RESOLVED-WITH-INSTRUCTION` (2026-07-12). History: first
+  `DEFERRED` earlier the same day (owner instruction: *"i picked the wrong
+  option. let's defer that and we'll decide on this later."* — the owner
   retracted an initial fp32-MPS selection; recorded verbatim per the plan's
-  `<resume-signal>` contract.
-- **Resolution note:** DEFERRED on 2026-07-12 by explicit owner instruction.
-  Phase 38 remains blocked. When the owner records A or B, update this entry
-  to `RESOLVED-WITH-INSTRUCTION`, fill the verbatim quote, and change one
-  recorded config default — the implementation path does not change (CTX-14).
+  `<resume-signal>` contract), then resolved in a later session the same day.
+- **Resolution note:** RESOLVED-WITH-INSTRUCTION on 2026-07-12. The owner
+  recorded **Option A — fp32-MPS** as the D1-p branch. Verbatim owner
+  instruction: *"okay let's close out the gap now. I think we will remain with
+  the entire training happening on the MacBook Pro with M5 chip. Let's carry
+  on with that choice and decision for now. If later we do want to split the
+  workload to the Lenovo, then we can do that later if the benefit we'll gain
+  is actually sufficent enough to offset the work and extra time we put in to
+  setup the lenovo."* Because both branches run entirely on the M5 Pro, the
+  agent asked one explicit branch-naming confirmation; the owner selected
+  **"fp32-MPS"** from {fp32-MPS, fp64-CPU, keep deferred}. Per R-6, the
+  selected option's text stated that recording fp32-MPS also ratifies the
+  dual-arm tolerance scheme (fp64-CPU as reference arm; fp32-MPS accepted
+  within ~1e-4 of it), so that tolerance ruling is recorded as part of this
+  resolution. Effects: the v2.0 production precision default is
+  `precision=float32, device=mps`; the fp64-CPU arm remains the in-framework
+  escape hatch via the same resolver (ENV-04); **Phase 38 (NET) is
+  UNBLOCKED**; ENV-03 is closable. Per CTX-14 no code changed now —
+  `pinn/runtime.py` deliberately encodes no default and no training config
+  file exists yet; the first training config (Phase 40/41 YAML per the §5
+  recipe) consumes this recorded default. The retained dual-arm evidence
+  (`evidence/precision/20260712T150406Z/`) required no re-run. The owner
+  additionally ruled that training remains single-machine on the M5 Pro; any
+  Lenovo/multi-machine split is a later cost-benefit question outside v2.0
+  scope.
 
 ---
