@@ -60,7 +60,7 @@
 - Integer phases (37, 38, …): planned v2.0 work, continuing from v1.6's Phase 36. Numbering does **not** reset.
 - Decimal phases (e.g., 40.1): reserved for inserted checkpoints or urgent insertions (marked INSERTED), placed between their surrounding integers.
 
-- [ ] **Phase 37: Developer Environment & Precision Adjudication** — One-command M5 Pro setup (`pinn-train` env, PyTorch 2.12 + MPS, utility packages, environment fingerprint) and the `pinn_architecture.md` §10.3 componentwise-AD dual-arm probe (fp32-MPS vs fp64-CPU) run as the first build act to give the owner the D1-p precision evidence. First v2.0 phase; ungated. (ENV-01..04)
+- [x] **Phase 37: Developer Environment & Precision Adjudication** — One-command M5 Pro setup (`pinn-train` env, PyTorch 2.12 + MPS, utility packages, environment fingerprint) and the `pinn_architecture.md` §10.3 componentwise-AD dual-arm probe (fp32-MPS vs fp64-CPU) run as the first build act to give the owner the D1-p precision evidence. First v2.0 phase; ungated. (ENV-01..04) (completed 2026-07-13)
 - [ ] **Phase 38: PINN Model Rebuild from Specs (FUT-01)** — Rebuild `pinn/` from the authoritative specs: the SQR-SkipResNet-SIREN network (14→256×12→9), the mass-weighted COM projection head, autograd physics residuals (PHYS-02), and the five-term Huber loss catalog (data + IC + causal physics + soft-energy + angular-momentum) — proven by gradcheck, residual-on-ground-truth, and a single-trajectory overfit. (NET-01..05)
 - [ ] **Phase 39: Data Ingestion & Stage-0 Population Scan** — The D3-C in-memory fp32 admitted-set adapter (Step-1A gate, NaN/Inf filter, `data_version_hash` refuse, `n_snapshots`/`dt_out` metadata, stage-stratified split), the replay/lookahead two-point-set batch constructor (LOOP-01/02/03), and the Thrust-A scan that counts Stage-0 population. (DATA-01..06)
 - [ ] **Phase 40: Stage-0 Curriculum Training Loop (FUT-04)** — `CurriculumController`/`RunController` running the two-phase Adam→L-BFGS closure loop with the PHYS-05 scheduled-weight module, the collocation sampler interface, merged gradient clipping (LOOP-04), and the ADVANCE/RECOVER/HALT stage-exit machine (CURR-03) with a preflight refusal of the unimplemented sL-BFGS stages. (TRAIN-01..07)
@@ -177,7 +177,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 37. Developer Environment & Precision Adjudication | v2.0 | 5/5 | D1-p recorded (fp32-MPS); GAP-37-01 RESOLVED — pending verify |  |
+| 37. Developer Environment & Precision Adjudication | v2.0 | 5/5 | Complete    | 2026-07-13 |
 | 38. PINN Model Rebuild from Specs (FUT-01) | v2.0 | — | Not started (unblocked 2026-07-12) | — |
 | 39. Data Ingestion & Stage-0 Population Scan | v2.0 | — | Not started | — |
 | 40. Stage-0 Curriculum Training Loop (FUT-04) | v2.0 | — | Not started | — |

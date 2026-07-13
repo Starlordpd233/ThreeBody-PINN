@@ -30,10 +30,10 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 
 ### Developer Environment & Precision Adjudication (ENV) — Phase 37
 
-- [ ] **ENV-01**: A one-command setup script takes a fresh M5 Pro Mac from no-Python to a ready `pinn-train` conda environment (Miniforge3 arm64, Python 3.11, PyTorch 2.12 + MPS, numpy/h5py/pyyaml/tensorboard), idempotently, and verifies `torch.backends.mps.is_available()`. [D1, §5 Setup]
-- [ ] **ENV-02**: Setup records an environment fingerprint (`sw_vers`, `python -V`, framework version/build, lockfile hash) and exports a reproducible environment pair (loose `environment.yml` + a pinned lockfile / `pip freeze`). [B-6 / r1b D-12]
-- [ ] **ENV-03**: The `pinn_architecture.md` §10.3 componentwise-AD probe runs **dual-arm** — fp32 on `mps` with `PYTORCH_ENABLE_MPS_FALLBACK` unset AND an fp64-CPU reference arm — timing both AD patterns (full-Jacobian vs scalar-`u` forward-mode), and produces the recorded evidence the owner uses to adjudicate **D1-p** (fp32 vs fp64). The precision verdict is surfaced, not chosen by the agent. [D1-p, U-9, R-6; first build act]
-- [ ] **ENV-04**: Precision is a single config-selected switch (`precision: float32|float64`, `device: mps|cpu`) such that every ratified pick holds identically under both branches (fp32-MPS / fp64-CPU), the fp64-CPU arm being the in-framework escape hatch. [D1-p round mandate]
+- [x] **ENV-01**: A one-command setup script takes a fresh M5 Pro Mac from no-Python to a ready `pinn-train` conda environment (Miniforge3 arm64, Python 3.11, PyTorch 2.12 + MPS, numpy/h5py/pyyaml/tensorboard), idempotently, and verifies `torch.backends.mps.is_available()`. [D1, §5 Setup]
+- [x] **ENV-02**: Setup records an environment fingerprint (`sw_vers`, `python -V`, framework version/build, lockfile hash) and exports a reproducible environment pair (loose `environment.yml` + a pinned lockfile / `pip freeze`). [B-6 / r1b D-12]
+- [x] **ENV-03**: The `pinn_architecture.md` §10.3 componentwise-AD probe runs **dual-arm** — fp32 on `mps` with `PYTORCH_ENABLE_MPS_FALLBACK` unset AND an fp64-CPU reference arm — timing both AD patterns (full-Jacobian vs scalar-`u` forward-mode), and produces the recorded evidence the owner uses to adjudicate **D1-p** (fp32 vs fp64). The precision verdict is surfaced, not chosen by the agent. [D1-p, U-9, R-6; first build act]
+- [x] **ENV-04**: Precision is a single config-selected switch (`precision: float32|float64`, `device: mps|cpu`) such that every ratified pick holds identically under both branches (fp32-MPS / fp64-CPU), the fp64-CPU arm being the in-framework escape hatch. [D1-p round mandate]
 
 ### PINN Model Rebuild from Specs (NET) — Phase 38 (FUT-01 core)
 
@@ -149,10 +149,10 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENV-01 | Phase 37 | Pending |
-| ENV-02 | Phase 37 | Pending |
-| ENV-03 | Phase 37 | Pending |
-| ENV-04 | Phase 37 | Pending |
+| ENV-01 | Phase 37 | Complete |
+| ENV-02 | Phase 37 | Complete |
+| ENV-03 | Phase 37 | Complete |
+| ENV-04 | Phase 37 | Complete |
 | NET-01 | Phase 38 | Pending |
 | NET-02 | Phase 38 | Pending |
 | NET-03 | Phase 38 | Pending |

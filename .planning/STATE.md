@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
-current_phase: 37
-status: in_progress
-stopped_at: "Phase 37 execution complete; D1-p recorded (fp32-MPS, GAP-37-01 RESOLVED); Phase 38 unblocked"
-last_updated: "2026-07-13T03:38:00Z"
-last_activity: 2026-07-12
-last_activity_desc: "Owner resolved GAP-37-01: D1-p = fp32-MPS (verbatim ruling + explicit branch-naming confirmation recorded; R-6 dual-arm tolerance ratified). Production default precision=float32, device=mps; fp64-CPU escape hatch stands. Phase 38 unblocked; ENV-03 closable. No code changed (CTX-14)."
+current_phase: 38
+current_phase_name: PINN Model Rebuild from Specs (FUT-01)
+status: ready_to_plan
+stopped_at: Phase 37 complete (UAT 12/12, verification 4/4 passed); ready to plan Phase 38.
+last_updated: "2026-07-13T04:05:52.725Z"
+last_activity: 2026-07-13
+last_activity_desc: Phase 37 complete, transitioned to Phase 38
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
   completed_plans: 5
-  percent: 5
-current_phase_name: Developer Environment & Precision Adjudication
+  percent: 14
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 37 — Developer Environment & Precision Adjudication (execution complete; pending verify)
-Plan: all 5 plans concluded — 37-01..37-04 complete; 37-05's owner checkpoint resolved with a recorded fp32-MPS ruling (after a same-day deferral)
-Status: ENV-01, ENV-02, ENV-04 GREEN. ENV-03's dual-arm evidence is recorded and validated AND the owner's D1-p verdict is recorded (fp32-MPS) — ENV-03 closable at phase verification. Phase 38 (NET) is UNBLOCKED.
-Last activity: 2026-07-12 — GAP-37-01 RESOLVED-WITH-INSTRUCTION: owner recorded fp32-MPS; STATE/ROADMAP/gap registers updated.
+Phase: 38 — PINN Model Rebuild from Specs (FUT-01)
+Plan: Not started
+Status: Ready to plan. Phase 37 CLOSED — ENV-01..ENV-04 all GREEN (UAT 12/12 pass, 0 issues; goal-backward verification 4/4 criteria passed). The substrate Phase 38 builds on is verified: `pinn-train` env (Python 3.11.15, Torch 2.12.1 + MPS), the `resolve_runtime` precision seam, and the owner-recorded D1-p branch **fp32-MPS** (`precision=float32, device=mps`; fp64-CPU is the in-framework escape hatch). No training config exists yet — Phase 40/41 consumes the recorded default (CTX-14).
+Last activity: 2026-07-13 — Phase 37 complete and verified; transitioned to Phase 38
 
 ## Deferred Items
 
@@ -47,7 +47,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 77 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 832 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -100,6 +100,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 35 P03 | 12 min | 3 tasks | 2 files |
 | Phase 35 P04 | 11 min | 3 tasks | 3 files |
 | 35 | 4 | - | - |
+| 37 | 5 | - | - |
 
 ## Accumulated Context
 
