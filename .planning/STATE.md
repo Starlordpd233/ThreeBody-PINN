@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 38
-current_phase_name: PINN Model Rebuild from Specs (FUT-01)
+current_phase_name: FUT-01
 status: ready_to_plan
-stopped_at: Phase 37 complete (UAT 12/12, verification 4/4 passed); ready to plan Phase 38.
-last_updated: "2026-07-13T04:05:52.725Z"
+stopped_at: Phase 38 context gathered
+last_updated: "2026-07-13T04:32:08.835Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 37 complete, transitioned to Phase 38
+last_activity_desc: Phase 37 complete and verified; transitioned to Phase 38
 progress:
   total_phases: 7
   completed_phases: 1
@@ -240,10 +240,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/37-developer-environment-precision-adjudication/37-05-SUMMARY.md
+**Resume file:** .planning/phases/38-pinn-model-rebuild-from-specs-fut-01/38-CONTEXT.md
 
-Last session: 2026-07-13T03:38:00Z
-Stopped at: GAP-37-01 resolved (D1-p = fp32-MPS); Phase 37 execution complete; Phase 38 unblocked.
+Last session: 2026-07-13T04:32:08.829Z
+Stopped at: Phase 38 context gathered
 Next action: Verify Phase 37 (`$gsd-verify-work 37`), then plan Phase 38 (`$gsd-plan-phase 38`) — the NET rebuild consumes the recorded fp32-MPS default (`precision=float32, device=mps`).
 
 ## Operator Next Steps
