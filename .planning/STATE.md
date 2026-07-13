@@ -5,16 +5,16 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 38
 current_phase_name: FUT-01
 status: in_progress
-stopped_at: Phase 38 Plan 04 complete; Plans 38-05 and 38-06 pending
-last_updated: "2026-07-13T12:16:11.082Z"
+stopped_at: Phase 38 Plans 01-06 complete; real-trajectory phase-close DEFERRED (GAP-38-01)
+last_updated: "2026-07-13T12:30:00.000Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 38 Plan 04 complete; fp64-CPU gradcheck evidence recorded
+last_activity_desc: Phase 38 Plans 05-06 complete; NET-04/05 green; GAP-38-01 DEFERRED
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
-  percent: 14
+  completed_plans: 11
+  percent: 18
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 38 — PINN Model Rebuild from Specs (FUT-01)
-Plan: 4/6 executed (38-01 through 38-04 complete; 38-05 and 38-06 pending)
-Status: In progress — 6 plans in 5 waves (38-01 constants/arch-spec → 38-02 network+COM → 38-03 residual+fixture → 38-04 gradcheck/residual probes ∥ 38-05 loss catalog → 38-06 overfit probe + prohibition checks); plan-checker VERIFICATION PASSED. Phase 37 CLOSED — ENV-01..ENV-04 all GREEN (UAT 12/12 pass, 0 issues; goal-backward verification 4/4 criteria passed). The substrate Phase 38 builds on is verified: `pinn-train` env (Python 3.11.15, Torch 2.12.1 + MPS), the `resolve_runtime` precision seam, and the owner-recorded D1-p branch **fp32-MPS** (`precision=float32, device=mps`; fp64-CPU is the in-framework escape hatch). No training config exists yet — Phase 40/41 consumes the recorded default (CTX-14).
-Last activity: 2026-07-13 — Phase 38 Plan 04 complete; fp64-CPU gradcheck evidence recorded
+Plan: 6/6 plans executed (38-01 through 38-06 complete)
+Status: Plans complete; phase-close held on GAP-38-01 (real-trajectory residual+overfit evidence DEFERRED — no Brutus payload in worktree). Automated bar green: 128 `tests/phase38` under `pinn-train`; NET-01..05 implemented; dual synthetic overfit CLI launches PASS (ratio ~1691). Framework specs byte-identical to pre-phase baseline. Phase 37 CLOSED. Next: Phase 39 data adapter, or operator real-trajectory evidence to close Phase 38.
+Last activity: 2026-07-13 — Phase 38 Plans 05 (loss catalog) and 06 (overfit + prohibitions) complete
 
 ## Deferred Items
 
