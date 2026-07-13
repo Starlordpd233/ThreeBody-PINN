@@ -72,4 +72,4 @@ python -m pinn.verification.overfit_probe --precision float64 --device cpu \
 
 ## Phase-close gate
 
-Real Brutus trajectory rung 3/4 evidence is **DEFERRED** (payload absent) — see `38-GAPS.md` / `v2.0-GAPS.md`. Synthetic-only automated suite is the in-worktree bar.
+Real Brutus trajectory rung 3/4 evidence was **DEFERRED** at plan-06 completion (payload absent) — and **closed 2026-07-13 via decision B**: the admitted `standard_quasi_random_gold_standard/0000` trajectory was copied into the worktree and both rungs re-run PASS (residual Gate A 1.5e-15 / Gate B median 0.00647; overfit ratio 1097.6). See `38-GAPS.md` (GAP-38-01 RESOLVED-WITH-INSTRUCTION), `v2.0-GAPS.md`, and `38-VERIFICATION.md`.

@@ -1,0 +1,52 @@
+{
+  "arm": {
+    "device": "cpu",
+    "precision": "float64"
+  },
+  "com_offset_warn_threshold": 0.001,
+  "com_offset_warning": false,
+  "diagnostics": {
+    "final": {
+      "angular_momentum": 1188.6034329136348,
+      "causal_physics": 12093140.696436139,
+      "data": 0.0001997174686303869,
+      "ic": 7377.072079314231,
+      "soft_energy": "not evaluated \u2014 requires Phase 39/40 metadata"
+    },
+    "initial": {
+      "angular_momentum": 4392.904954619898,
+      "causal_physics": 10810349.939210083,
+      "data": 0.21921204799884003,
+      "ic": 48010.32931975503,
+      "soft_energy": "not evaluated \u2014 requires Phase 39/40 metadata"
+    }
+  },
+  "fail_reason": null,
+  "floor_loss": 0.0001997174686303869,
+  "ic13_placeholder": "zeros(13) \u2014 Phase-38 overfit smoke; physically-normalized IC13 deferred to Phase 39",
+  "initial_loss": 0.21921204799884003,
+  "lr": 0.0001,
+  "mass_weighted_com_offset": 4.95219093552111e-13,
+  "max_steps": 5000,
+  "passed": true,
+  "pre_import_fallback": null,
+  "provenance": {
+    "final_time": 10.009999999999831,
+    "ic_path": "<home>/Desktop/3_body_problem/.worktrees/trainex/simulation_data/Data/ic_final/ic_standard_quasi_random/ic_standard_0000.txt",
+    "ic_sha256": "36923ca8109179c61e45f29a151053a8d7041c04bece88dfb966dd329ebd932a",
+    "id": "0000",
+    "n_snapshots": 1002,
+    "path": "<home>/Desktop/3_body_problem/.worktrees/trainex/simulation_data/Data/brutus_output/brutus_standard_quasi_random_gold_standard/brutus_standard_0000.txt",
+    "result_footer": null,
+    "sha256": "1e48ae0dad9b58b310228ca76cfb2ee8f767a76b4076997213358666bcb53aff",
+    "variant": "standard_quasi_random_gold_standard"
+  },
+  "ratio": 1097.6107873895164,
+  "schema_version": "phase38-overfit/v1",
+  "steps": 176,
+  "timestamp": "2026-07-13T13:36:19.711482+00:00",
+  "torch_build": {
+    "git_version": "7269437d655783a26cba32aa88195b741ff496aa",
+    "version": "2.12.1"
+  }
+}
