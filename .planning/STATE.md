@@ -4,11 +4,11 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 38
 current_phase_name: FUT-01
-status: ready_to_plan
-stopped_at: Phase 38 context gathered
-last_updated: "2026-07-13T04:32:08.835Z"
+status: ready_to_execute
+stopped_at: Phase 38 planned (6 plans, 5 waves)
+last_updated: "2026-07-13T05:20:55.000Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 37 complete and verified; transitioned to Phase 38
+last_activity_desc: Phase 38 planned — 6 plans / 5 waves; plan-checker VERIFICATION PASSED
 progress:
   total_phases: 7
   completed_phases: 1
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 38 — PINN Model Rebuild from Specs (FUT-01)
-Plan: Not started
-Status: Ready to plan. Phase 37 CLOSED — ENV-01..ENV-04 all GREEN (UAT 12/12 pass, 0 issues; goal-backward verification 4/4 criteria passed). The substrate Phase 38 builds on is verified: `pinn-train` env (Python 3.11.15, Torch 2.12.1 + MPS), the `resolve_runtime` precision seam, and the owner-recorded D1-p branch **fp32-MPS** (`precision=float32, device=mps`; fp64-CPU is the in-framework escape hatch). No training config exists yet — Phase 40/41 consumes the recorded default (CTX-14).
-Last activity: 2026-07-13 — Phase 37 complete and verified; transitioned to Phase 38
+Plan: 0/6 executed (planned 2026-07-13; commit 9f9a8a41)
+Status: Ready to execute — 6 plans in 5 waves (38-01 constants/arch-spec → 38-02 network+COM → 38-03 residual+fixture → 38-04 gradcheck/residual probes ∥ 38-05 loss catalog → 38-06 overfit probe + prohibition checks); plan-checker VERIFICATION PASSED. Phase 37 CLOSED — ENV-01..ENV-04 all GREEN (UAT 12/12 pass, 0 issues; goal-backward verification 4/4 criteria passed). The substrate Phase 38 builds on is verified: `pinn-train` env (Python 3.11.15, Torch 2.12.1 + MPS), the `resolve_runtime` precision seam, and the owner-recorded D1-p branch **fp32-MPS** (`precision=float32, device=mps`; fp64-CPU is the in-framework escape hatch). No training config exists yet — Phase 40/41 consumes the recorded default (CTX-14).
+Last activity: 2026-07-13 — Phase 38 planned (6 plans, 5 waves; checker passed first iteration)
 
 ## Deferred Items
 
@@ -242,12 +242,12 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** .planning/phases/38-pinn-model-rebuild-from-specs-fut-01/38-CONTEXT.md
 
-Last session: 2026-07-13T04:32:08.829Z
-Stopped at: Phase 38 context gathered
-Next action: Verify Phase 37 (`$gsd-verify-work 37`), then plan Phase 38 (`$gsd-plan-phase 38`) — the NET rebuild consumes the recorded fp32-MPS default (`precision=float32, device=mps`).
+Last session: 2026-07-13T05:20:55.000Z
+Stopped at: Phase 38 planned (6 plans, 5 waves)
+Next action: Execute Phase 38 (`$gsd-execute-phase 38`) — waves 1→5; the NET rebuild consumes the recorded fp32-MPS default (`precision=float32, device=mps`), fp64-CPU for the gradcheck rung.
 
 ## Operator Next Steps
 
 - **Phase 38 is unblocked:** D1-p recorded as **fp32-MPS** in GAP-37-01 (`RESOLVED-WITH-INSTRUCTION`, verbatim quote filled). Production default `precision=float32, device=mps`; fp64-CPU escape hatch stands (ENV-04); no code changed (CTX-14).
-- Run Phase 37 verification (`$gsd-verify-work 37`) to close ENV-01..04 formally, then `$gsd-plan-phase 38`.
+- Execute Phase 38 (`$gsd-execute-phase 38`): plans 38-01..38-06 committed (9f9a8a41), checker passed. Note for rungs 3–4: no Brutus trajectory file exists in this worktree — probes are path-parameterized (CTX-26); point them at the real dataset location at execution time.
 - Phase 37's verification surface: ENV-01/02/04 GREEN; ENV-03 evidence retained and validated + owner verdict recorded; all 55 tests/phase37 tests pass; the committed environment substrate is re-derivable on the M5 Pro.
