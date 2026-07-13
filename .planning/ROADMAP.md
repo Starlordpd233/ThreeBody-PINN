@@ -178,7 +178,7 @@
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 37. Developer Environment & Precision Adjudication | v2.0 | 5/5 | Complete    | 2026-07-13 |
-| 38. PINN Model Rebuild from Specs (FUT-01) | v2.0 | — | Not started (unblocked 2026-07-12) | — |
+| 38. PINN Model Rebuild from Specs (FUT-01) | v2.0 | 0/6 | Planned (6 plans, 5 waves) | — |
 | 39. Data Ingestion & Stage-0 Population Scan | v2.0 | — | Not started | — |
 | 40. Stage-0 Curriculum Training Loop (FUT-04) | v2.0 | — | Not started | — |
 | 41. Config, Checkpointing, Resume & Determinism | v2.0 | — | Not started | — |
