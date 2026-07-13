@@ -1,0 +1,21 @@
+{
+  "arm": {
+    "device": "cpu",
+    "precision": "float64"
+  },
+  "exception": null,
+  "gradcheck_result": true,
+  "pre_import_fallback": null,
+  "reason": null,
+  "schema_version": "phase38-gradcheck/v1",
+  "timestamp": "2026-07-13T12:10:39.311589+00:00",
+  "tolerances": {
+    "atol": 1e-05,
+    "eps": 1e-06,
+    "rtol": 0.001
+  },
+  "torch_build": {
+    "git_version": "7269437d655783a26cba32aa88195b741ff496aa",
+    "version": "2.12.1"
+  }
+}
