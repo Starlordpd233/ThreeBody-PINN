@@ -590,12 +590,24 @@
 - **Confidence of impact:** HIGH — this is the per-batch sampling distribution
   for every physics/energy residual and becomes an executable test contract at
   the Phase 39 to Phase 40 seam.
-- **Status:** OPEN — blocks DATA-05 plan verification and completion of the
-  cycle-4 review replan.
-- **Resolution note:**
+- **Status:** RESOLVED-WITH-INSTRUCTION — no longer blocks DATA-05 plan
+  verification.
+- **Resolution note:** Under the user's 2026-07-14 delegation to use best
+  mathematical and physics judgment, choose option C: near-even quotas. For
+  `M` canonically sorted selected trajectory identities and total budget
+  `C = 4096`, assign `q = floor(C/M)` points to every identity, compute
+  `r = C mod M`, and give one additional point to `r` identities selected by a
+  canonical permutation from the task's local seeded RNG. Thus a 256-trajectory
+  batch receives exactly 16 points per identity; a 240-trajectory replay-only
+  batch receives 17 points per identity plus one extra point for 16 seeded
+  identities. Draw every assigned time independently and continuously from the
+  global `[0, T_CHARACTERISTIC_TIME] = [0, 10.0]` interval, and keep energy on
+  the same physics set. This stratifies the discrete identity dimension,
+  guarantees every selected trajectory contributes a physics residual, and
+  minimizes avoidable per-batch identity-weight variance without changing the
+  fixed budget or introducing Phase 40 adaptive/residual-aware sampling.
 
 ---
 
 **Milestone-index status:** `.planning/milestones/v2.0-GAPS.md` synchronized on
-2026-07-14: GAP-39-01 is deferred, GAP-39-02 through GAP-39-11 are resolved,
-and GAP-39-12 is open.
+2026-07-14: GAP-39-01 is deferred and GAP-39-02 through GAP-39-12 are resolved.
