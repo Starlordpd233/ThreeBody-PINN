@@ -2,12 +2,13 @@
 status: active
 purpose: design
 created: 2026-07-13
+updated: 2026-07-14
 milestone: cross-cutting
 phase: cross-cutting
-retirement_trigger: framework is either ratified into governance (AGENTS.md / rule file) and a living LEARN notebook is started, OR explicitly abandoned by the owner; this design draft is then consumed/retired.
+retirement_trigger: revised framework is ratified into governance and absorbed into the independent learning workspace, or explicitly abandoned by the owner
 ---
 ****
-# Owner Learning Framework — Design Draft (with Sample Lesson 0)
+# Owner Learning Framework — Revised Design (with Sample Orientation 0)
 
 **Owner note (verbatim, 2026-07-11):** *"Add one important rule: think about how the agent
 can teach me valuable things while doing this project. Now that all the frameworks specs are
@@ -19,14 +20,20 @@ structure its teaching and response so that a high school student can understand
 
 ## What this document is
 
-This is a **design draft**, not a ratified rule. It records (1) the agreed shape of a teaching
-framework for the project owner, (2) the owner's calibrated learning baseline, and (3) **one
-real sample lesson** so the owner can judge whether the lessons are *reachable* before we commit
-the framework to governance and start the LEARN notebook.
+This is the revised design for an **independent owner-learning system**. It records the owner's
+learning mission, the distinction between fast project execution and durable learning, the
+contracts for orientation and deep learning, and one sample orientation that proved the material
+can be made reachable.
 
-The owner's go/no-go criterion is reachability: **can a high school student with the stated
-baseline read the sample lesson and actually answer its three teach-back questions?** If yes, we
-ratify. If no, we redesign informed by the owner's reaction.
+The design was revised after the first sample exposed two truths:
+
+1. Project work advances too quickly for one lesson per GSD phase to be a useful cadence.
+2. A broad introductory lesson can be valuable without being the depth standard for real
+   learning.
+
+The framework therefore separates **work progress** from **learning progress**. GSD phases may
+suggest useful topics, but they do not schedule lessons, determine prerequisites, or wait for the
+owner to complete a learning unit.
 
 ---
 
@@ -53,89 +60,219 @@ external resource at this exact level is **3Blue1Brown's "Neural Networks" serie
 ~19 min each), which assumes approximately AP Calculus + a little linear algebra — i.e., this
 owner.
 
-## 2. Framework shape (agreed in grill session, 2026-07-13)
+## 2. Two independent tracks
 
-Four decisions, each resolved:
+### 2.1 Work track
 
-- **Goal (Q1): working competence.** The owner can explain a piece back, spot a gross error,
-  read a loss curve, reason about a design tradeoff. Not passive literacy (too low), not
-  scientific judgment (multi-year, out of scope). Working competence is the on-ramp to judgment
-  over many phases.
-- **Artifacts (Q2): B + C.** (B) One growing **LEARN notebook** in the repo that accumulates one
-  entry per phase — the concept, plain-language explanation, curated external resource, and
-  three-tier teach-back. (C) A **teaching-protocol rule** (in `AGENTS.md` or a rule file) that
-  makes every future agent teach the same calibrated way. A short pointer in each phase close-out
-  directs the owner to the new entry.
-- **Lesson selection (Q3): hybrid — mapped arc, emergent picks.** A lightweight curriculum map
-  (drafted before lesson 1) gives the owner the visible arc; each phase the agent picks the
-  concept that is *both* in the map *and* most alive in what just shipped, deferring the rest to
-  later phases or to named walls.
-- **Verification (Q4): three-tier teach-back, recorded.** Each entry ends with three questions
-  (recall / explain / apply), answered in the owner's own words and recorded in the notebook.
-  The agent never grades; the act of explaining is the check. Wrong answers are valuable — they
-  show where the owner was.
+The work track contains GSD phases, implementation, research adjudication, verification, and
+shipping. It moves at the pace required by the project. Learning is never a prerequisite for
+starting or closing a work phase unless the owner explicitly makes one particular decision a
+learning gate.
 
-### 2.1 Curriculum map (draft, to be refined before lesson 1)
+At a useful work boundary, an agent may add a **topic nomination** to the learning queue. A
+nomination is only a pointer: “this concept became concrete in the work.” It does not create a
+lesson automatically and does not outrank prerequisites, a misconception that needs repair, or a
+review that is already due.
 
-The map below is the *intended* arc. The actual per-phase pick follows the hybrid rule (in map
-AND most alive in what shipped). Phases are v2.0 (trainex) phases.
+### 2.2 Learning track
 
-| Lesson | Concept | Builds on (owner's prior) | Rough phase |
-|---|---|---|---|
-| 0 | A neural network is stacked regression | AP Stats §3.2 least-squares | sample (this doc) |
-| 1 | "Learning" = tuning numbers to reduce error, which is your least-squares idea generalized | Lesson 0 + Stats | 38 (model) |
-| 2 | The tuning is your chain rule, done automatically — that's "autograd" | Calc BC §4.1 chain rule | 38 (model) |
-| 3 | What the N-body problem actually is, and why it's hard | AP-C Mechanics gravitation unit | 39 (data) |
-| 4 | Loss = the error number; you've met its simplest form (sum of squared residuals) | Stats + Lessons 0–2 | 40 (training) |
-| 5 | What makes it "physics-informed" (the PINN idea: part of the loss enforces an ODE) | Diff eq + Lesson 4 | 40 (training) |
-| 6 | How you can tell a trained model is wrong (loss curves, residuals) | All prior | 43 (verify) |
+The learning track has its own mission, curriculum, active unit, and review schedule. Its pace is
+set by:
 
-That is seven lessons across seven phases — one per phase, in dependency order.
+1. prerequisite order;
+2. the owner's stated interests and available time;
+3. misconceptions revealed by prior attempts;
+4. concepts due for retrieval practice; and
+5. usefulness toward the owner's working-competence goal.
 
-## 3. Feasibility guarantees (the owner's core constraint)
+Current project work is a rich source of examples, but **work relevance is a tie-breaker, not the
+clock**.
 
-The owner's stated constraint: the knowledge is advanced and beyond current expertise, so
-lessons must be *feasible enough to understand and respond to*. Five conditions, enforced by the
-teaching-protocol rule, guarantee this:
+## 3. Learning goal: useful working competence
 
-1. **First sentence hooks prior knowledge.** Every lesson opens by naming something the owner
-   has already seen (in calc, stats, physics, or CS coursework), with a specific section
-   reference where possible. The new idea is *one* step from that hook.
-2. **One new idea per lesson.** Walls are named, not scaled (see §4).
-3. **Every term defined twice** — plain language on first use, then its formal version — so the
-   bridge builds both directions.
-4. **One curated resource at the owner's level** (chosen, not a menu). The lesson is designed so
-   the ~10-minute resource and the lesson cover the *same* idea; the owner is never asked to
-   leap past the resource.
-5. **The three-tier teach-back stays inside the lesson's four walls.** No question tests outside
-   knowledge. This is the feasibility guarantee: if all three questions are answerable from the
-   lesson + the curated resource, reachability is bounded by design.
+The goal remains **working competence**. The owner should increasingly be able to:
 
-## 4. Wall-naming (the "do not scale" section)
+- explain an important mechanism without relying on agent wording;
+- perform a small derivation, calculation, inspection, or debugging move;
+- distinguish a plausible claim from a grossly incorrect one;
+- interpret project evidence such as a loss curve, residual, data split, or validation result;
+  and
+- reason about a bounded design tradeoff while clearly naming what remains unknown.
 
-Every lesson includes a `### What we are NOT teaching this phase` section. The project contains
-concepts that are genuine walls at this stage (SIREN activations, Jacobi coordinates, the
-five-term loss catalog, the mass-weighted COM projection head, autograd internals). Each wall is
-*named* in one sentence, with its importance stated, and the rung the owner would climb to reach
-it eventually is pointed at. The owner's note asked the agent to "inspire me and encourage me to
-learn, but figure out an effective way." Naming the wall and pointing at the door is that way;
-teaching through the wall is not.
+Coverage is not learning. Reading a lesson changes a concept's state to **introduced**, not
+learned. A concept becomes **demonstrated** only after a correct explanation or application, and
+**retained** only after successful delayed retrieval.
 
-## 5. The three-tier teach-back (verification)
+## 4. Two teaching formats
 
-Per entry, three questions in escalating cognitive demand:
+### 4.1 Orientation
 
-1. **Recall** — pull one key fact from memory. Low friction, reactivates the lesson.
-2. **Explain in your own words** — the Feynman core; restate the lesson's central idea without
-   jargon.
-3. **Apply to this project** — a transfer question tied to what just shipped; predicts a small
-   change or reasons about a design choice.
+An orientation creates a map of unfamiliar territory. It may introduce several concepts at a
+very shallow level so the owner can see how they relate, recognize the vocabulary, and choose
+where to go deeper.
 
-Plus two low-cost mechanics: **prediction-before-reveal** in the lesson body (the owner guesses
-before the explanation lands — wrong guesses are the most valuable outcome), and **spaced
-callbacks** (lesson *N+2* or *N+3* opens with a one-line reactivation of an earlier concept).
+An orientation:
 
-## 6. Visual emphasis convention (owner preference, 2026-07-13)
+- may contain several new ideas;
+- explicitly marks every explanation as introductory;
+- makes no mastery or depth claim;
+- ends with questions that reveal interest and misconceptions; and
+- normally takes about 15–30 minutes, including one curated resource.
+
+Sample Lesson 0 is an orientation. Its breadth is intentional and acceptable. It is not the
+template for the depth of later units.
+
+### 4.2 Deep learning unit
+
+A deep unit develops **one useful capability**, not necessarily one vocabulary term. Several
+supporting concepts may appear when they are necessary to build that capability. A difficult
+capability may span multiple short sessions rather than being compressed into one oversized
+lesson.
+
+Examples of valid capability targets:
+
+- derive one gradient update from the chain rule and explain what autograd records;
+- inspect a train/validation split and detect trajectory leakage;
+- derive a PINN residual from one second-order ODE;
+- compare underfitting, overfitting, and optimization failure using evidence; or
+- read a five-term loss report and identify which physical constraint is failing.
+
+“Know what autograd is” is too shallow. “Understand neural networks” is too broad. A capability
+must end in something observable that the owner can do.
+
+Provisional timeboxes keep the system usable without sacrificing depth:
+
+- **acquisition session:** roughly 25–45 minutes;
+- **practice or correction session:** roughly 10–20 minutes;
+- **spaced review:** roughly 5–10 minutes.
+
+These are defaults, not quotas. When depth needs more time, split the unit at a meaningful
+capability boundary.
+
+## 5. Selecting what to learn next
+
+The curriculum is a dependency map plus a small priority queue, not a copy of the GSD roadmap.
+Before starting a unit, the agent recommends one next capability and explains why it is ready.
+The owner may choose another topic.
+
+Priority order:
+
+1. repair an important active misconception;
+2. complete a prerequisite for the current learning goal;
+3. perform a due retrieval review;
+4. pursue the owner's current question or curiosity;
+5. use a newly concrete project example; and
+6. explore an optional adjacent topic.
+
+The initial candidate sequence after Orientation 0 is deliberately provisional:
+
+1. **Capacity is not accuracy:** distinguish representation, optimization, and generalization.
+2. **Gradient descent and autograd:** connect iterative fitting to the chain rule.
+3. **Three-body state and scaling:** turn positions, masses, initial conditions, and time into a
+   model input/output contract.
+4. **Physics residuals:** derive how an ODE becomes a PINN loss term.
+5. **Training evidence:** distinguish loss reduction, overfitting, physical validity, and held-out
+   performance.
+6. **Curriculum and reproducibility:** understand stages, checkpoints, recovery, and why a run can
+   or cannot be trusted.
+
+This sequence may change when learning records show a different prerequisite or the owner chooses
+a different goal. No item is assigned to a phase number.
+
+## 6. Deep-unit contract
+
+Every deep unit must include:
+
+1. **Capability target** — one sentence describing what the owner will be able to do.
+2. **Prior-knowledge bridge** — the exact calculus, statistics, physics, programming, or earlier
+   learning concept being reused.
+3. **Source grounding** — at least one high-trust primary or authoritative source; project-specific
+   claims cite the authoritative spec or recorded evidence.
+4. **Explanation in layers** — intuition first, then the formal statement, then a worked example.
+5. **Guided practice** — one partially scaffolded example with immediate feedback.
+6. **Independent attempt** — recall, explanation, and application without copying lesson wording.
+7. **Diagnostic feedback and corrected re-attempt** — the loop in §7.
+8. **Transfer** — one small project or novel example that differs from the worked example.
+9. **Review hook** — a compact prompt scheduled for later retrieval.
+10. **Named walls** — adjacent ideas that are intentionally deferred and why.
+
+The old “one new idea per lesson” rule is retired. The replacement is stricter where it matters:
+**one useful capability per deep unit, with only the supporting concepts needed to acquire it**.
+
+## 7. Feedback, correction, and retention
+
+Teach-back remains low-stakes, but it is no longer feedback-free. The agent does not assign a
+number or letter grade. It must diagnose the attempt accurately.
+
+For each independent response, the agent:
+
+1. preserves the owner's original answer verbatim;
+2. identifies what is correct;
+3. classifies the remainder as incomplete, imprecise, or a misconception;
+4. explains the smallest correction needed, preferably with a counterexample;
+5. asks for one corrected re-attempt in the owner's own words; and
+6. records what future teaching should assume only after the correction is demonstrated.
+
+The original answer is never overwritten. A learning record may state that a misconception was
+corrected only after the re-attempt supplies evidence.
+
+Retrieval is scheduled by learning time, not work time:
+
+- a short reactivation at the next learning session;
+- an application or contrast question after at least one later session; and
+- a longer-delay check when the concept becomes a prerequisite or after roughly one to four
+  weeks.
+
+Exact intervals are adjusted from observed difficulty. A failed delayed retrieval returns the
+concept to **practicing**; it is useful evidence, not failure of the learner.
+
+## 8. Learning workspace and records
+
+The implemented framework should live in a bounded `learning/` workspace, separate from GSD and
+framework-spec artifacts:
+
+```text
+learning/
+  MISSION.md             # why the owner is learning and observable success criteria
+  CURRICULUM.md          # dependency map, queue, active unit, and due reviews
+  RESOURCES.md           # small annotated set of trusted sources
+  NOTES.md               # stable teaching preferences and constraints
+  lessons/               # orientations and deep units, numbered independently of phases
+  learning-records/      # demonstrated understanding and corrected misconceptions only
+  reference/             # compressed glossaries, derivations, and checklists
+```
+
+Markdown remains canonical because the owner reads in Obsidian or Typora. Interactive HTML may be
+added when it materially improves practice, but it is not required for ordinary lessons.
+
+The workspace deliberately avoids one ever-growing LEARN notebook. Lessons hold the teaching and
+the full attempt/feedback trail; learning records stay compact and record only durable changes in
+what future sessions may assume.
+
+## 9. Accuracy and source-grounding pipeline
+
+The first sample's adversarial review caught real errors, but requiring a separate reviewer for
+every small lesson would slow the system unnecessarily. Review depth is risk-based.
+
+Every lesson receives:
+
+1. **source pass** — factual claims checked against the annotated resource set;
+2. **project-truth pass** — project-specific claims checked against authoritative specs, evidence,
+   or current implementation as appropriate;
+3. **pedagogy pass** — capability, prerequisite, depth, walls, and likely misconceptions checked;
+4. **answer-key pass** — prompts tested against explicit expected reasoning before the owner sees
+   them; and
+5. **correction log** — any post-release correction recorded without silently rewriting the
+   learner's historical attempt.
+
+Use an independent adversarial review when the unit is mathematically subtle, scientifically
+contested, safety-sensitive, or foundational enough that a misconception would contaminate later
+units. Routine reviews need not pay that cost.
+
+If a prompt changes after the owner answered it, the old prompt remains attached to the old
+answer and the revised prompt requires a fresh attempt.
+
+## 10. Visual emphasis convention (owner preference, 2026-07-13)
 
 Lessons use a deliberate emphasis hierarchy so the owner's eye is drawn to what matters most.
 Frequency decreases as emphasis weight increases — the strongest form is rare, reserved for the
@@ -158,7 +295,7 @@ Rules of thumb:
   months, that sentence gets both. If a step has no clear climax, it is probably two steps.
 - Do not stack all four forms on one clause. The hierarchy only works if each tier stays distinct.
 
-### 6.1 Markdown syntax governance
+### 10.1 Markdown syntax governance
 
 **Canonical lesson reader: Obsidian or Typora** (owner decision, 2026-07-13). Both render
 LaTeX math natively via built-in MathJax, so proper math typesetting is the standard — no
@@ -169,27 +306,44 @@ portable-Markdown workarounds, no Unicode-substitution tricks.
 - **HTML emphasis tags (`<mark>`, `<u>`) are permitted** — both render correctly in Obsidian and Typora.
 - **GitHub web / VS Code preview caveat:** `$...$` does NOT render in GitHub web or plain VS Code preview (it shows literal dollar signs). If a lesson must be read in those renderers, the equations would need a code-span fallback. The owner has chosen Obsidian/Typora as the canonical reader, so this caveat does not apply to lesson documents.
 
-Teach-back answers (including wrong ones and missed predictions) are recorded in the LEARN
-notebook and committed, not kept private. Wrong answers are the most valuable record: they show
-where the owner was, and a future agent teaching the owner benefits from seeing prior
-misconceptions.
+Teach-back answers, feedback, and corrected re-attempts are recorded in the relevant lesson file.
+Compact learning records are written only when the owner demonstrates non-trivial understanding,
+corrects a misconception, establishes meaningful prior knowledge, or changes the mission.
+
+## 11. Evidence behind the learning mechanics
+
+The framework's learning claims are grounded in a small set of high-trust sources:
+
+- [Chi et al. (1989), “Self-Explanations”](https://doi.org/10.1207/s15516709cog1302_1) — supports
+  asking the learner to explain mechanisms and monitor gaps rather than only reread explanations.
+- [Karpicke and Blunt (2011), “Retrieval Practice Produces More Learning”](https://doi.org/10.1126/science.1199327)
+  — supports independent retrieval and transfer questions rather than familiarity checks alone.
+- [Butler and Roediger (2008), corrective feedback after testing](https://pubmed.ncbi.nlm.nih.gov/18491500/)
+  — supports diagnosing and correcting errors rather than merely preserving an attempt.
+- [Cepeda et al. (2006), distributed-practice synthesis](https://doi.org/10.1037/0033-2909.132.3.354)
+  — supports revisiting concepts after delay instead of treating immediate fluency as retention.
+- [U.S. Institute of Education Sciences practice guide](https://ies.ed.gov/ncee/wwc/practiceguide/1)
+  — integrates retrieval, deep explanatory questions, spacing, worked examples, and monitoring of
+  what is and is not yet known.
 
 ---
 ---
 
-# Sample Lesson 0 — A neural network is stacked regression
+# Sample Orientation 0 — A neural network grows from the regression idea
 
-> This is a real lesson, written to the five feasibility conditions above. The owner's job: read
-> it, watch the ~10-minute resource, and try the three teach-back questions. The framework is
-> ratified only if this lesson is reachable.
+> This is a real **orientation**, preserved as the reachability prototype that motivated the
+> revised framework. It intentionally introduces several ideas at shallow depth. Its job is to
+> provide a map and expose promising directions or misconceptions—not to demonstrate deep
+> learning or ratify the complete learning system.
 
 **Builds on:** AP Statistics §3.2 (Least-Squares Regression). TPS 5e.
-**New idea (one):** a neural network is a stack of tiny regressions, which makes the combined
-function flexible enough to approximate almost any input→output relationship.
+**Orientation map:** a neural network generalizes the tunable-function idea from regression by
+composing affine transformations with nonlinear activations and tuning the whole composition
+together.
 **Curated resource (one):** 3Blue1Brown, *"But what is a neural network?"* (Chapter 1 of the
 neural-networks series, 19 min): https://www.3blue1brown.com/lessons/neural-networks
-**Phase this lesson maps to:** 38 (model) — it is the foundation under the SQR-SkipResNet-SIREN
-network Phase 38 builds.
+**Project anchor:** the SQR-SkipResNet-SIREN model built during Phase 38 supplies a concrete
+example, but the orientation is not scheduled by or owned by that phase.
 
 ## Prediction (guess before you read on)
 
@@ -201,7 +355,7 @@ relationships.
 so the function could bend and curve to fit really complicated data, like the trajectory of three
 gravitating stars?* Take a real guess (one sentence). Wrong guesses are the point.
 
-> **Your prediction:** One way we can make this happen is by adding specific functions inside the function to modify components of it to make the graph change in a certain way we want at a very specific point. By continuously fitting this curve to the true curve we want to mimic, this can fit well. Functions that activate at a certain point can do this. 
+> **Your prediction:** One way we can make this happen is by adding specific functions inside the function to modify components of it to make the graph change in a certain way we want at a very specific point. By continuously fitting this curve to the true curve we want to mimic, this can fit well. Functions that activate at a certain point can do this.
 
 ## The lesson
 
@@ -217,13 +371,15 @@ and $b$ is a **bias** — same objects, new vocabulary.) "Fitting" the line mean
 numbers $w$ and $b$ to <mark>minimize the total squared error across all data points</mark>. That is the
 least-squares regression you did on your TI-84.
 
-So you already understand the whole shape of machine learning at its smallest scale:
+So you already understand one important starting point for machine learning:
 
 > *A model is a function with some tunable numbers. **Learning means choosing those numbers to
-> make the function fit the data.***
+> reduce a defined objective.***
 
-That is the entire idea. Everything else — neural networks, deep learning, PINNs — is just a
-more flexible choice of function $f$ and a more careful choice of "fit."
+In least-squares regression, that objective measures data fit. Neural networks use more flexible
+functions, and PINNs use objectives that can combine data fit with physical constraints. The
+deeper questions—what the objective guarantees, how the parameters are adjusted, and whether the
+result generalizes—belong to later deep units.
 
 ### Step 2 — One tiny generalization: the "neuron"
 
@@ -232,11 +388,11 @@ A line $wx + b$ takes one input. Real data has many inputs (the 14-number input 
 
 $$\text{output} = w_1 x_1 + w_2 x_2 + \dots + w_n x_n + b$$
 
-This is still least-squares regression — just with multiple inputs. With several inputs at once
-this is called *multiple regression* (you may have seen it briefly in stats; if not, it is just
-"a line with more than one input," which the equation above shows). In ML this whole expression
-is one **neuron**: <mark>it takes $n$ inputs, multiplies each by its own tunable weight, adds a bias,
-and produces one number</mark>. ML people often write this sum as a **dot product** of two *vectors* —
+This has the same affine form used by multiple regression, just with several inputs. (You may
+have seen multiple regression briefly in stats; if not, it is “a line with more than one input,”
+which the equation above shows.) In ML this expression is the **pre-activation** part of one
+**neuron**: <mark>it takes $n$ inputs, multiplies each by its own tunable weight, adds a bias, and
+produces one number</mark>. ML people often write this sum as a **dot product** of two *vectors* —
 a list of inputs $[x_1, \dots, x_n]$ and a list of weights $[w_1, \dots, w_n]$. If "dot product"
 or "vector" is rusty, the 3Blue1Brown video reviews them visually.
 
@@ -252,35 +408,39 @@ its shape yet; for now, read "activation" as "a little bend inserted after the r
 
 Here is the whole neural-network idea in one sentence:
 
-> **A neural network is a stack of these little regressions, where each layer's outputs feed the
-> next layer's inputs, so the combined function can bend enough to approximate almost anything.**
+> **A neural network composes layers of affine transformations and nonlinear activations, where
+> each layer's outputs feed the next layer's inputs and the whole composition is trained
+> together.**
 
-That is it. Layer 1 is a handful of parallel neurons (each a tiny multiple regression with a
-bend). Layer 2 takes all of layer 1's outputs as its inputs. Layer 3 takes layer 2's outputs. The
-final layer produces the answer. Phase 38's network is "<mark>14 inputs → 12 hidden layers of 256
-neurons each → 9 outputs</mark>" (per the locked spec `pinn_architecture.md`): twelve stacked layers
-of regression-with-bends, wide and deep enough to approximate the three-body trajectory function.
+Layer 1 is a handful of parallel neurons (each an affine calculation followed by a nonlinear
+activation). Layer 2 takes all of layer 1's outputs as its inputs. Layer 3 takes layer 2's outputs.
+The final layer produces the answer. <mark>No layer performs its own separate fit to the target;
+the parameters across all layers are adjusted jointly by one training objective.</mark> Phase 38's
+network is "<mark>14 inputs → 12 hidden layers of 256 neurons each → 9 outputs</mark>" (per the
+locked spec `pinn_architecture.md`): twelve stacked layers of affine transformations and
+activations, designed with enough capacity to approximate the three-body trajectory function.
 
 Why does stacking make it flexible? Each layer recomputes its inputs as a different mixture of
 the previous layer's outputs. Compose enough mixtures-with-bends and the overall function can —
 *in principle* — approximate essentially any smooth shape on a bounded region, including the curve
 of three stars orbiting each other. (This is the **Universal Approximation Theorem**. A footnote
-for later: it says the capacity *exists*, not that we can always *find* the right weights — that
-capacity-vs-learnability distinction is exactly what Lessons 1 and 2 unpack.) This potential
-flexibility is the core reason we use neural networks for hard functions instead of plain
-regression.
+for later: it says the capacity *exists*, not that we can always *find* the right weights or that
+the fitted model will generalize — the capacity-vs-optimization-vs-generalization distinction is
+the first recommended deep unit.) This potential flexibility is the core reason we use neural
+networks for hard functions instead of plain regression. More depth or width can increase
+capacity, but it does not guarantee better accuracy.
 
 ### Step 4 — "Learning" is the same *goal* as least-squares — but a different *method*
 
-"Training" the network = choosing *all* the weights and biases (Phase 38's network has on the
+"Training" the network = choosing *all* the weights and biases jointly (Phase 38's network has on the
 order of **600,000** of them) to minimize the total error across the training data. The *goal*
 is the same as choosing the slope and intercept of a least-squares line. <mark><u>But the *method*
 differs, and the difference matters.</u></mark> Your TI-84 solves the linear case **directly** — there
 is a one-shot formula (the normal equations) that spits out the best slope and intercept
 instantly. A neural network's bend makes the error a function with **no one-shot formula for its
 minimum**, so the weights have to be **nudged iteratively** toward a smaller and smaller error.
-That iterative nudging — called *gradient descent*, with the nudging done automatically by
-*autograd* — is exactly what Lessons 1 and 2 unpack. For now, hold the corrected shape:
+That iterative nudging — called *gradient descent*, with derivatives supplied automatically by
+*autograd* — is a later deep-learning sequence. For now, hold the corrected shape:
 
 > *Training = error-minimization, like least-squares in its **goal**. But because the network's
 > bend destroys the one-shot formula, the **method** is iterative nudging rather than a direct
@@ -295,8 +455,9 @@ gravitating stars</mark>. (Mathematicians have found infinite-series solutions �
 but they converge so slowly they are useless in practice; that impracticality, not a total
 absence of solutions, is why we resort to numerical integration or, here, a learned
 approximation.) So instead of solving the equations directly, this project trains a neural
-network to *approximate* the trajectory function. The network is the flexible function; physics
-(Lessons 3 and 5) is what makes the approximation trustworthy rather than just curve-fitting.
+network to *approximate* the trajectory function. The network is the flexible function; later
+deep units examine how physics constraints help and what evidence is still required before the
+approximation can be trusted.
 
 ## Curated resource (please watch, ~19 min)
 
@@ -306,35 +467,33 @@ URL: https://www.3blue1brown.com/lessons/neural-networks
 YouTube: https://www.youtube.com/watch?v=aircAruvnKk
 
 Why this one: it assumes approximately your exact level (AP Calculus + a little linear algebra),
-it builds the same "neuron = small regression, network = stack" picture visually, and the
-handwritten-digit example is the cleanest first encounter with a real network. Lessons 1 and 2
-will lean on Chapters 2 and 3 of the same series. The next chapters introduce the one piece this
-lesson deliberately postponed: *how* the weights get tuned (gradient descent + backpropagation =
-your chain rule).
+visually connects simple neurons into a network, and uses handwritten digits as a clean first
+encounter with a real model. Later deep units may use Chapters 2 and 3 when they teach how the
+weights are tuned through gradient descent and backpropagation.
 
-## What we are NOT teaching this phase (walls)
+## What we are NOT teaching in this orientation (walls)
 
 These appear in Phase 38's spec. They are real, they matter, and you do **not** need them yet.
 Each is named so you know it exists; the on-ramp is noted.
 
 - **SIREN activation function.** A specific choice of the "bend" in Step 2 (a sine function
-  instead of the usual squashing). Phase 38 uses it because sine's derivatives stay well-behaved,
-  which matters for the physics residual in later lessons. *On-ramp: not needed until Lesson 5
-  (PINN); for now "activation = a bend" is enough.*
+  instead of the usual squashing). Its smooth derivatives matter when a PINN differentiates the
+  network output. *On-ramp: a later deep unit on activations and physics residuals; for now
+  "activation adds nonlinearity" is enough.*
 - **SQR-SkipResNet architecture (skip connections, residual blocks).** A particular way of
-  wiring the stack so very deep networks can still train. *On-ramp: Lesson 2, after you meet
-  gradient descent — skip connections solve a problem you haven't met yet, so naming it now would
-  be noise.*
+  wiring the stack so very deep networks can still train. *On-ramp: after the deep unit on
+  gradient descent; skip connections solve a problem you have not yet studied.*
 - **The 14-dim input `[τ, IC₁₃]` and 9-dim output.** These are project-specific choices (one
-  time + 13 initial-condition numbers in; 3 positions × 3 bodies out). *On-ramp: Lesson 3, when
-  you meet the N-body problem — the input/output shapes will then make physical sense.*
+  time + 13 initial-condition numbers in; 3 positions × 3 bodies out). *On-ramp: the deep unit
+  on three-body state and scaling.*
 - **Autograd / `torch.func` / Jacobians.** How the chain rule is applied automatically. *On-ramp:
-  Lesson 2 — this is literally your Calc BC chain rule, mechanized. Do not chase it now.*
+  the gradient-descent and autograd sequence—your Calc BC chain rule, mechanized.*
 
-## Teach-back (three questions)
+## Orientation teach-back and diagnostic follow-up
 
-Answer in your own words, in this document beneath each question. The agent does not grade.
-Wrong answers are useful — record them honestly.
+These answers were captured under the original feedback-free protocol. The 2026-07-14 revision
+preserves them and adds the diagnostic feedback that should have followed. Corrected re-attempts
+remain optional until the owner resumes this learning track; they do not block project work.
 
 ### Q1 — Recall
 Name, in your own words, the operations a neuron performs on its inputs, in order — and say
@@ -342,12 +501,28 @@ which one is responsible for letting the network bend.
 
 > **Your answer:** uses the input, multiples by the weight and adds the bias, and produces the output
 
+> **Diagnostic feedback (2026-07-14):** Incomplete. You correctly named the weighted combination
+> and bias. The missing operation is the nonlinear activation applied afterward; that activation
+> is what prevents a stack of affine transformations from collapsing into another affine
+> transformation. The wording of Q1 was strengthened after your original answer, so the revised
+> prompt requires a fresh attempt rather than being judged retroactively.
+>
+> **Corrected re-attempt:** _pending when this learning track resumes_
+
 ### Q2 — Explain
 A classmate who has not seen this lesson asks you: "I did least-squares regression in stats. What
 is a neural network, compared to that?" Answer in 2–3 sentences. Do not use the words "gradient"
 or "backpropagation" (you haven't met them yet — that is deliberate).
 
-> **Your answer:** A neural network is doing something very similar to LSR. It's aimed at minimizing loss, or a loss function that we want to define. The ultimate goal is to think of it as to "fit" something genuinely and universally true so that we can continue improving our model/function to fit that grdoung-truth. And the way we achieve that is by choosing the parameters' values inside the neural network, like how you adjust the slope and y-intercept in the linear equation for a function. 
+> **Your answer:** A neural network is doing something very similar to LSR. It's aimed at minimizing loss, or a loss function that we want to define. The ultimate goal is to think of it as to "fit" something genuinely and universally true so that we can continue improving our model/function to fit that grdoung-truth. And the way we achieve that is by choosing the parameters' values inside the neural network, like how you adjust the slope and y-intercept in the linear equation for a function.
+
+> **Diagnostic feedback (2026-07-14):** Partly correct. The parameter-tuning analogy and the
+> objective-minimization goal are good. The phrase “genuinely and universally true” is the key
+> misconception: minimizing a chosen objective does not guarantee truth or generalization. A
+> network may fit the training evidence and still fail on unseen cases or violate important
+> physics. Its layers are also tuned jointly, not as separate regressions.
+>
+> **Corrected re-attempt:** _pending when this learning track resumes_
 
 ### Q3 — Apply to this project
 Phase 38's network has **12 hidden layers** of 256 neurons each. Suppose someone proposed
@@ -357,22 +532,34 @@ think about Step 3, "stacking makes it flexible.")
 
 > **Your answer:** more neurons and more layers give more curated and accurate final answer because more fitting was executed during each layer. With more neuron stacked within one layer, we gain a little bit of flexibility in tuning the specifc numbers: the more weights and biases we can tune and change, the more accurate we can make the fit to be. Now scale that one layer to many more layers, we gain even more accuracy. But what's the tradeoff? Is the accuracy simply going to increase infinitely without bound? I don't think so.
 
----
-
-## Owner go/no-go (to fill in after reading)
-
-- [ ] I could read the lesson without getting lost. Where I lost the thread (if anywhere):
-  _
-- [ ] I watched the 3Blue1Brown chapter and it covered the same idea.
-- [ ] I could attempt all three teach-back questions using only the lesson + the video.
-- [ ] The "walls" section felt like honest signposting, not noise.
-
-**Verdict:** _ GO (the framework is feasible — ratify into governance and start the LEARN
-notebook) / NO-GO (redesign needed — what specifically was unreachable: _ )
+> **Diagnostic feedback (2026-07-14):** Partly correct. You correctly identified that more
+> parameters can provide more representational capacity, and you correctly doubted that accuracy
+> rises without bound. The correction is that each layer does not perform another fit. All layers
+> form one function and are optimized together. A tiny network may underfit a complex trajectory;
+> a larger network may represent it better, but can also cost more, optimize poorly, or overfit.
+> Capacity is therefore not the same as achieved accuracy.
+>
+> **Corrected re-attempt:** _pending when this learning track resumes_
 
 ---
 
-## Adversarial review log (Step C of the accuracy pipeline)
+## Orientation verdict and framework status
+
+**Orientation reachability: GO.** On 2026-07-14 the owner clarified that the amount and breadth
+of content in this sample are acceptable because every idea is introduced only at a very shallow
+level. This validates orientation as a format.
+
+**Depth verdict: not applicable.** The sample was not intended to represent the depth of real
+learning. Actual learning must go far enough to produce useful understanding and retention,
+which is now the purpose of deep units.
+
+**Framework status: revised design, active.** Reachability of one orientation does not by itself
+validate diagnostic feedback, transfer, or delayed retention. Those mechanisms must be exercised
+when the independent learning workspace begins.
+
+---
+
+## Historical adversarial content-review log (2026-07-13)
 
 **Reviewer:** fresh adversarial subagent (no drafting involvement), 2026-07-13.
 **Scope:** Sample Lesson 0 only.
@@ -387,17 +574,16 @@ appearance of infallibility.
 | F1 | CRITICAL | Lesson said Phase 38's network has **3** hidden layers; locked spec `pinn_architecture.md` Table 2 says **12** (6 SQR-SkipResNet blocks × 2). A factual error about the owner's own project. | Fixed in Step 3 and Q3: corrected to 12 hidden layers. |
 | F2 | MAJOR | "Tens of thousands" of parameters understates; true count ~661,000 for the 12×256 architecture. | Fixed in Step 4: "on the order of 600,000." |
 | F3 | MAJOR | "No closed-form solution" for the three-body problem is technically false (Sundman 1912 gave a convergent series; it is just impractically slow). | Fixed in Step 5: qualified to "no closed-form solution in elementary functions," with the Sundman note. |
-| F4 | MAJOR | Universality claim overstated: dropped the "continuous on a bounded domain" qualifier and presented capacity as learnability (the classic beginner misconception). | Fixed in Step 3: added "in principle," named the Universal Approximation Theorem, and deferred the capacity-vs-learnability distinction to Lessons 1–2. |
+| F4 | MAJOR | Universality claim overstated: dropped the "continuous on a bounded domain" qualifier and presented capacity as learnability (the classic beginner misconception). | Fixed in Step 3: added "in principle," named the Universal Approximation Theorem, and routed capacity vs optimization vs generalization to the first recommended deep unit. |
 | F5 | MAJOR | "Training is the same action as least-squares" hid the closed-form-vs-iterative distinction. The owner's own Q2 answer showed this slip already happening. | Fixed in Step 4: separated *goal* (same: minimize error) from *method* (different: one-shot formula vs. iterative nudging). |
 | F6 | MINOR | "Linear" used where "affine" is meant. | Fixed in Step 2: parenthetical "(strictly, affine)". |
 | F7 | MINOR | "Multiple regression" hook may exceed AP Stats coverage (TPS 5e §3.2 is simple regression). | Fixed in Step 2: softened to "you may have seen it briefly; if not, it is just 'a line with more than one input.'" |
 | F8 | MINOR | Dot products / vectors used implicitly but never anchored; the 3B1B video leans on them. | Fixed in Step 2: one sentence naming dot product + vector, pointing to the video's visual review. |
 | F9 | MINOR | "Squashing function" inconsistent with this project's SIREN/sine activation (sine is not squashing). | Fixed in Step 2: generalized to "nonlinear function" with the squashing/sine distinction noted as a wall. |
-| Q1 | MINOR | Q1 phrasing let the owner skip the activation in their answer (the load-bearing ingredient). | Fixed: Q1 now asks which operation lets the network bend. |
+| Q1 | MINOR | Q1 phrasing let the owner skip the activation in their answer (the load-bearing ingredient). | The prompt was strengthened, but the original response was not re-attempted. The revised framework now preserves the mismatch and requires a fresh attempt. |
 | Q3 | — | Q3 inherited the F1 layer-count error. | Fixed with F1. |
 
-**What this review validated.** The conceptual spine of the lesson was sound — no finding
-required restructuring. The pipeline caught one factual error about the owner's own project
-before it could be committed to memory, plus four wording qualifications that would mislead a
-careful reader. This is the system working as designed on its first run.
-
+**What this review validated.** Independent content review was valuable: it caught one factual
+error about the owner's own project and several misleading qualifications. It did **not** validate
+the learning system, and the missing feedback/re-attempt after Q1 is evidence for the revised
+contract in §7 and §9.
