@@ -345,9 +345,57 @@
   replay and Stage-1 lookahead pools from Set 1a when `has_stage(1)` is true,
   and zero gold records labeled Stage 0 or 1.
 
+## GAP-39-09 — Measured-vs-reference `dt_out` warning threshold
+
+- **Decision point:** Define the relative-disagreement threshold at which the
+  adapter warns that the independently measured `dt_out` disagrees with the
+  footer/default reference value. The threshold is diagnostic only (it never
+  gates admission), but it decides whether the real-corpus scan emits a wall of
+  warnings or stays quiet.
+- **Where in artifact:** `39-02-PLAN.md` task 39-02-01 behavior/action ("warn
+  only when finite relative disagreement exceeds 1%"); `39-SPEC.md` DATA-01
+  measured/reference dt_out provenance.
+- **Task context:** Recording the reversible implementation default surfaced by
+  cross-AI review (claude MEDIUM-2) for consistency with how GAP-39-04 handled
+  its `64` safety factor.
+- **Classification:** semantic implementation threshold (reversible default).
+- **Source silence:**
+  - `simulation_data/Documentation/README.md:580-628` documents folder-specific
+    reference/default `dt_out` values but gives no measured-vs-reference
+    disagreement tolerance.
+  - `ctl_instruction.md` does not mention a measured/reference `dt_out`
+    comparison or warning at all; `dt_out` provenance is a Phase 39 diagnostic
+    addition.
+  - `39-SPEC.md` DATA-01 requires measured and reference `dt_out` provenance to
+    be retained and warns on disagreement, but does not name a threshold.
+- **Mathematical / engineering grounding:** The measured value is
+  `median(diff(times))` and the reference is a documented cadence; their
+  relative disagreement is `|measured - reference| / max(|reference|, tiny)`.
+  A 1% relative threshold is large enough to tolerate float cadence jitter and
+  small enough to flag a genuine folder/default mismatch. It is a warning only:
+  it never changes completeness (clause 4 uses `times[-1] >= 9.5`) or admission.
+- **Agent was tempted to:** Leave the 1% value inline as if it were source
+  authority. That would repeat the unregistered-default drift the gap register
+  exists to prevent.
+- **What the user needs to decide:**
+  - **A.** Retain 1% as a reversible, clearly-labeled diagnostic warning
+    threshold (consistent with how GAP-39-04 labels `64`).
+  - **B.** Choose a different relative/absolute threshold and its units.
+  - **C.** Suppress the warning entirely and retain only raw provenance.
+- **Confidence of impact:** LOW — the threshold is diagnostic only and never
+  gates admission or completeness; it affects log noise, not scientific
+  selection.
+- **Status:** RESOLVED-WITH-INSTRUCTION — non-blocking for DATA-01 planning.
+- **Resolution note:** Under the user's 2026-07-13 full-autonomy instruction,
+  choose option A: retain the 1% relative measured-vs-reference `dt_out`
+  disagreement threshold as a reversible implementation safety factor, not
+  source authority. Plans and tests must label it reversible and test the exact
+  1% no-warning and greater-than-1% warning boundaries. Revisit only if
+  real-corpus logs show the threshold is miscalibrated.
+
 ---
 
 **Milestone-index follow-up:** `.planning/milestones/v2.0-GAPS.md` is currently
 claimed by another active session. Do not overwrite that shared index; add the
-GAP-39-01 deferred and GAP-39-02 through GAP-39-08 resolved entries once the
+GAP-39-01 deferred and GAP-39-02 through GAP-39-09 resolved entries once the
 owner releases the claim or coordinates the update.

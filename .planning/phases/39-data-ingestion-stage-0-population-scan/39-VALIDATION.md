@@ -46,6 +46,7 @@ The task IDs below are reconciled one-for-one with all final PLAN tasks.
 | 39-02-01 | 02 | 1 | DATA-01 / DATA-03 | T-39-01 / T-39-05 | Frozen types, parser containment, footer/measured dt_out provenance, and version outcomes | unit | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_adapter tests.phase39.test_prohibitions -v` | ✅ W0 planned | ⬜ pending |
 | 39-02-02 | 02 | 1 | DATA-01 / DATA-02 / DATA-04 / DATA-05 / DATA-06 | T-39-02 | Preprocessing/Lmax/normalization plus sole stages.py classifier: base Set 1a numeric, all gold UNASSIGNED, zero numeric gold | unit | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_adapter tests.phase39.test_stages -v` | ✅ W0 planned | ⬜ pending |
 | 39-02-03 | 02 | 1 | DATA-02 | T-39-02 / T-39-03 | Seven admission clauses and GAP-39-04/05 boundaries fail closed | unit | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_adapter tests.phase39.test_admission tests.phase39.test_prohibitions -v` | ✅ W0 planned | ⬜ pending |
+| 39-02-04 | 02 | 1 | DATA-01 / DATA-06 | T-39-02 | Phase-local SPEC defect banners point at GAP-39-02/03/08 so literal verifiers read correct behavior as correct (HIGH-4) | artifact/spec | `bash -c 'set -euo pipefail; s=.planning/phases/39-data-ingestion-stage-0-population-scan/39-SPEC.md; rg -q "GAP-39-03" "$s"; rg -q "GAP-39-08" "$s"; rg -q "GAP-39-02" "$s"; git diff --exit-code -- pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md'` | ✅ W0 planned | ⬜ pending |
 | 39-03-01 | 03 | 2 | DATA-01..03 | T-39-01 / T-39-03 / T-39-05 | First pass calls only stages.py before residency and hard-fails unless gold_numeric_stage_count is zero | integration | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_adapter tests.phase39.test_admission -v` | ✅ W0 planned | ⬜ pending |
 | 39-03-02 | 03 | 2 | DATA-01..03 | T-39-02 | Second pass normalizes/materializes fp32 and serves base-only numeric StageQuery pools with all gold UNASSIGNED | integration | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_adapter -v` | ✅ W0 planned | ⬜ pending |
 | 39-03-03 | 03 | 2 | DATA-01..03 | T-39-01..T-39-06 | Sole-reader/sole-classifier, zero-gold, disk independence, two-pass, logs, and prohibitions integrate | integration/security | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_adapter tests.phase39.test_admission tests.phase39.test_prohibitions -v` | ✅ W0 planned | ⬜ pending |
@@ -56,7 +57,7 @@ The task IDs below are reconciled one-for-one with all final PLAN tasks.
 | 39-06-01 | 06 | 4 | DATA-06 | T-39-02 / T-39-12 | Report consumes sole-classifier base labels, asserts gold_numeric_stage_count=0, and enforces 239/240 | unit | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_stage_scan -v` | ✅ W0 planned | ⬜ pending |
 | 39-06-02 | 06 | 4 | DATA-06 | T-39-04 / T-39-12 | CLI writes atomic evidence with base-only numeric labels and explicit zero-gold count | integration | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest tests.phase39.test_stage_scan -v` | ✅ W0 planned | ⬜ pending |
 | 39-07-01 | 07 | 5 | DATA-01..06 | T-39-01..T-39-06 | Dataset-free and repository-suite PASS markers are retained and inspected | regression/evidence | `bash -c 'set -euo pipefail; log=.planning/phases/39-data-ingestion-stage-0-population-scan/evidence/stage-scan/phase-close/dataset-free.log; test -s "$log"; rg -q "^phase39_suite=PASS$" "$log"; rg -q "^repository_suite=PASS$" "$log"'` | ✅ prior rows | ⬜ pending |
-| 39-07-02 | 07 | 5 | DATA-01..06 | T-39-01..T-39-06 | Real report is byte-identical and explicitly inspected for gold_numeric_stage_count=0 | dataset-backed/evidence | `bash -c 'set -euo pipefail; e=.planning/phases/39-data-ingestion-stage-0-population-scan/evidence/stage-scan/phase-close; cmp /tmp/phase39-real-scan/stage_population.json "$e/stage_population.json"; rg -q "gold_numeric_stage_count=0" "$e/scan.log"'` | ✅ prior rows | ⬜ pending |
+| 39-07-02 | 07 | 5 | DATA-01..06 | T-39-01..T-39-06 | Real report is byte-identical and explicitly inspected for gold_numeric_stage_count=0 | dataset-backed/evidence | **Run (SINGLE source of truth for the exact invocation, N8):** `GSD_DATA_ROOT=<simulation_data/Data> $HOME/miniforge3/envs/pinn-train/bin/python -m pinn.data.stage_scan --run-dir /tmp/phase39-real-scan` (placeholders only — no absolute `/Users/...`/hostname, per N12). **Post-check:** `bash -c 'set -euo pipefail; e=.planning/phases/39-data-ingestion-stage-0-population-scan/evidence/stage-scan/phase-close; cmp /tmp/phase39-real-scan/stage_population.json "$e/stage_population.json"; rg -q "gold_numeric_stage_count=0" "$e/scan.log"'` | ✅ prior rows | ⬜ pending |
 | 39-07-03 | 07 | 5 | DATA-01..06 | T-39-01..T-39-12 | Reader/classifier audit and real base-only replay/lookahead prove zero gold plus source/evidence integrity | audit/evidence | `bash -c 'set -euo pipefail; v=.planning/phases/39-data-ingestion-stage-0-population-scan/evidence/stage-scan/phase-close/verification.log; rg -q "^classifier_audit=PASS$" "$v"; rg -q "^gold_numeric_stage_count=0$" "$v"; rg -q "^real_stage0_gold_keys=0$" "$v"'` | ✅ prior rows | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
@@ -94,6 +95,12 @@ Its report and logs must still be inspected as committed execution evidence.
 | T-39-04 | Partial or nondeterministic split-manifest write | Use canonical serialization and atomic replacement inside the run folder. |
 | T-39-05 | Ignored version mismatch | Hard-refuse mismatch; emit the typed deferral only when canonical metadata is absent. |
 | T-39-06 | Test or scan mutation of the source corpus | Open the corpus read-only; use temporary roots for synthetic tests; audit write targets. |
+| T-39-07 | Elevation via unauthorized reader or global-default mutation | AST exact-reader and global-state audits over discovered production modules (Plan 01). |
+| T-39-08 | Repudiation of split seed/order provenance | Persist seed, ratios, algorithm, tie order, and signature quotas/counts/deviations (Plan 04). |
+| T-39-09 | Information disclosure of absolute corpus paths | Canonical payload omits absolute roots; risk is local and tests enforce omission (Plan 04). |
+| T-39-10 | Repudiation of batch randomness | Caller-owned local Generator and recorded sampled keys/indices; no global seed (Plan 05). |
+| T-39-11 | Tampering via point-set aliasing | Separate frozen data/collocation fields/types and tests proving independent draws (Plan 05). |
+| T-39-12 | Repudiation of s0/fatal evidence | Persist interim input, exact sorted distribution, threshold/observed typed state; never mutate/ratify (Plan 06). |
 
 ---
 
@@ -108,6 +115,6 @@ Its report and logs must still be inspected as committed execution evidence.
 - [x] The final gate runs the full repository suite and real-corpus scan separately.
 - [x] DATA-06 tests cite GAP-39-03/08 and prove sole-classifier base Set 1a labels, all-gold UNASSIGNED, and no second predicate.
 - [x] DATA-01/02/04/05 tests cite GAP-39-04..08 and enforce all five rulings exactly.
-- [x] `nyquist_compliant: true` and `wave_0_complete: true` are set after the 18-task reconciliation.
+- [x] `nyquist_compliant: true` and `wave_0_complete: true` are set after the 19-task reconciliation (cycle-2 review incorporation added 39-02-04).
 
-**Approval:** validation map reconciled to all 18 final tasks
+**Approval:** validation map reconciled to all 19 final tasks
