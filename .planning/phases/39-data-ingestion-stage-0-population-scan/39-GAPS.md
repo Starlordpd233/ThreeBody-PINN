@@ -395,7 +395,126 @@
 
 ---
 
+## GAP-39-10 — Characteristic-time `T` in `τ = 2(t/T)−1` and the collocation bound `[0,T]`
+
+- **Decision point:** Choose the characteristic time `T` used by the
+  replay/lookahead batch constructor for `τ = 2(t/T)−1` and the collocation
+  bound `[0,T]` (DATA-05). The plans (cycle-2 M2/HIGH-5) introduced a per-record
+  `T = times[-1]`, but the locked non-dimensionalization pairs a global `T`.
+- **Where in artifact:** `39-02-PLAN.md` task 39-02-01 `FixedBatch.T` field and
+  the DATA-01 `T` accessor; `39-05-PLAN.md` task 39-05-02 (`T = times[-1]` for
+  `tau` and `[0,T]`); `pinn/constants.py:24,31`; `39-RESEARCH.md` τ/collocation
+  text.
+- **Task context:** Cross-AI review cycle 4 (claude HIGH-1), verified against the
+  live `pinn/constants.py`.
+- **Classification:** semantic — touches a v1.5-locked convention
+  (`D ≈ 4.6416`); cross-phase (affects every emitted τ, the collocation bound,
+  Phase 40's derivative rescaling `u = t/T`, and Phase 38's `T=10` gradcheck
+  probe).
+- **Source silence:**
+  - `pinn/constants.py:24` — `D_CHARACTERISTIC_LENGTH = 100^(1/3) ≈ 4.6416`,
+    comment "cbrt(T²) with T = 10 (PIPE-09 identity D³ = G·T²)."
+  - `pinn/constants.py:31` — `T_CHARACTERISTIC_TIME = 10.0`, comment
+    "T = t_max; dataset horizon t_end = 10 fixes t_max = 10."
+  - `.planning/REQUIREMENTS.md:13` locks "the raw-mass `D ≈ 4.6416` convention"
+    (v1.5 outcome); NET-04 (`.planning/REQUIREMENTS.md:43`) evaluates the loss
+    in the *shared* dimensionless system `t_τ ∈ [-1,1]`, `r' = r/D`.
+  - None of `ctl_instruction.md`, `pinn_architecture.md`, or `39-SPEC.md`
+    states whether `τ`'s `T` is the global `T_CHARACTERISTIC_TIME = 10.0` or a
+    per-record `times[-1]`; the existing code locks the global `T` for
+    `u = t/T`.
+- **Mathematical / engineering grounding:** PIPE-09 ties `(T, D)` together by
+  `D³ = G·T²`. The locked `D ≈ 4.6416` is derived from the global `T = 10`. If
+  `τ = 2(t/T)−1` scales time by a per-record `T = times[-1]` while
+  `r' = r/D` keeps the global `D` (from `T = 10`), the single
+  non-dimensionalization splits across two inconsistent `(T, D)` pairs; every
+  emitted `τ`, the collocation bound, and Phase 40's `u = t/T` derivative
+  rescaling inherit the discrepancy, and Phase 38's `T = 10` gradcheck probe
+  would disagree with the loader. The split is invisible to dataset-free tests
+  (fixtures with `T ≈ 10` pass).
+- **Agent was tempted to:** Silently pick the per-record `T` (cycle-2's choice)
+  or silently pick the global `T`. Either is a physics-adjudication call on a
+  locked convention; STOP protocol forbids inventing it.
+- **What the user needs to decide:**
+  - **A.** Global `T = T_CHARACTERISTIC_TIME = 10.0` for both `τ` and the
+    `[0,T]` collocation bound — keeps `(T, D)` coherent with PIPE-09 and
+    matches Phase 38's `T = 10` gradcheck probe.
+  - **B.** Per-record `T = times[-1]` with a per-record `D` re-derivation
+    (`D = ∛(G·T²)`) — keeps PIPE-09 per-record but changes the v1.5-locked
+    global `D` convention.
+  - **C.** Hybrid — global `T = 10` for `τ`, per-record `times[-1]` only for
+    the collocation `[0,T]` bound.
+- **Confidence of impact:** HIGH — affects every emitted `τ`, the collocation
+  bound, and the Phase 40 cross-phase seam; one option (B) revises a v1.5 lock.
+- **Status:** RESOLVED-WITH-INSTRUCTION (non-blocking for DATA-05 planning).
+- **Resolution note:** Under the user's 2026-07-13 instruction, choose option A:
+  Phase 39 uses the global `T = T_CHARACTERISTIC_TIME = 10.0` (from
+  `pinn/constants.py`) for BOTH `τ = 2(t/T)−1` and the `[0,T]` collocation
+  bound. The per-record `FixedBatch.T` field introduced cycle 2 is REMOVED; the
+  DATA-01 `T` accessor is removed (no per-record `T` is exposed). This keeps
+  `(T, D)` coherent with PIPE-09 and aligns with Phase 38's `T = 10` gradcheck
+  probe. The admission guarantee `times[-1] >= 9.5` (clause 4) remains a
+  completeness gate but is NOT the `τ`/collocation `T`. Apply in `39-02-PLAN.md`
+  and `39-05-PLAN.md` before execution.
+
+## GAP-39-11 — Missing-base sentinel in the DATA-04 split signature
+
+- **Decision point:** The DATA-04 split signature
+  `(variant, base_stage_label, gold_stage_or_missing)` defines a missing-gold
+  sentinel (GAP-39-06) but no value for a missing *base* record. Base and gold
+  are independent Brutus runs at different tolerance/word-length and receive
+  independent admission outcomes, so a base record rejected by admission
+  clause-5 while its gold sibling is admitted leaves a `physical_key` group in
+  the admitted set containing only a gold record with no defined
+  `base_stage_label`. Decide how the split/partition represents a
+  missing/admitted-without-base group.
+- **Where in artifact:** `39-04-PLAN.md` task 39-04-02 (split signature
+  `(variant, base_stage_label, gold_stage_or_missing)`); the partition function
+  that forms that signature.
+- **Task context:** Cross-AI review cycle 4 (claude HIGH-2).
+- **Classification:** semantic — defines a new sentinel value in the DATA-04
+  contract; the silent-coercion failure mode would conflate "base rejected"
+  with "base admitted-but-unlabeled."
+- **Source silence:**
+  - `ctl_instruction.md` / `pinn_architecture.md` do not address base-vs-gold
+    asymmetric admission outcomes within a `physical_key` group.
+  - `39-SPEC.md` DATA-04 specifies the `physical_key` grouping and the
+    no-spanning-splits invariant but not a missing-base representation.
+  - GAP-39-06 (the gold side) is resolved; the base side is not.
+- **Mathematical / engineering grounding:** The signature is the partition key
+  for the Hamilton stratified split. Every `physical_key` group must receive
+  exactly one split. A group present in the admitted set with gold only (base
+  rejected) has a well-defined `variant` and `gold_stage_or_missing` but no
+  `base_stage_label`; an undefined slot is a `KeyError`/`None` hazard at
+  partition time, and silently coercing it to `UNASSIGNED` conflates "base
+  rejected" with "base admitted but UNASSIGNED." The reviewer notes all 4,857
+  hierarchical IDs have both base+gold files, so the affected population is the
+  whole hierarchical set (any clause-5 base rejection creates it).
+- **Agent was tempted to:** Silently add a `MISSING_BASE` sentinel symmetric to
+  missing-gold. That is a DATA-04 contract change the source materials do not
+  authorize; STOP protocol forbids inventing it.
+- **What the user needs to decide:**
+  - **A.** Add a `MISSING_BASE` sentinel symmetric to `MISSING_GOLD`
+    (GAP-39-06); a base-rejected/gold-admitted group partitions as a distinct
+    signature, with a fixture asserting it still receives exactly one split.
+  - **B.** Treat a missing base as `UNASSIGNED` for the base slot, but record an
+    explicit `base_admission_status=rejected` side-channel so the partition
+    keeps the distinction without a new label.
+  - **C.** Exclude base-rejected/gold-admitted groups from numeric pools
+    entirely (they cannot contribute a numeric `base_stage_label`), documenting
+    the exclusion.
+- **Confidence of impact:** MEDIUM — affects a contract value used at Wave-4
+  split time; the failure mode is a KeyError/silent coercion at the real-corpus
+  Wave-5 gate, not at dataset-free test time.
+- **Status:** OPEN — blocking the missing-base path of DATA-04 planning.
+  (Deferral recorded in `39-04-PLAN.md` citing this gap; the plans are NOT
+  train-ready until the user resolves or explicitly defers it.)
+- **Resolution note:** _(awaiting user instruction)_
+
+---
+
 **Milestone-index follow-up:** `.planning/milestones/v2.0-GAPS.md` is currently
 claimed by another active session. Do not overwrite that shared index; add the
-GAP-39-01 deferred and GAP-39-02 through GAP-39-09 resolved entries once the
-owner releases the claim or coordinates the update.
+GAP-39-01 deferred, GAP-39-02 through GAP-39-09 resolved, GAP-39-10 resolved,
+and GAP-39-11 open entries once the owner releases the claim or coordinates the
+update.
