@@ -521,7 +521,81 @@
   replan, and add a fixture where base is rejected, gold is admitted, and the
   group partitions exactly once without entering numeric pools.
 
+## GAP-39-12 — Collocation-point allocation across selected trajectories
+
+- **Decision point:** Define how DATA-05 allocates the provisional total of
+  4,096 continuous collocation points across the 240 replay-only or 256
+  replay-plus-lookahead trajectory identities selected for a batch. The total
+  point budget and uniform time domain are grounded, but the per-trajectory
+  integer counts are not.
+- **Where in artifact:** `39-05-PLAN.md:19,103,109,114`, task 39-05-02
+  (`sample_collocation_points` and its tests); future
+  `pinn/data/batches.py` implementation.
+- **Task context:** `$gsd-plan-phase 39 --reviews`, checker pass after the
+  cycle-4 replan. The replan rejected the review's near-even suggestion and
+  selected a global multinomial trajectory-identity draw without an owner
+  ruling.
+- **Classification:** semantic — changes how physics-residual samples weight
+  selected trajectories within every Stage-0 batch and therefore changes the
+  training distribution seen by Phase 40.
+- **Source silence:**
+  - `39-SPEC.md:48-51` fixes independent data/collocation point sets, continuous
+    uniform collocation times, and the provisional total near 4,096, but does
+    not assign those points to trajectory identities.
+  - `ctl_instruction.md:1833-1853` separates the two loss roles, fixes the
+    continuous `[0,T]` time domain, and labels 4,096 a provisional/example
+    budget; it does not specify per-trajectory collocation counts or an
+    identity-sampling distribution. Its word "independent" distinguishes the
+    data and collocation point sets, not independent trajectory-identity draws.
+  - `39-CONTEXT.md:85-94` (D-07/D-08) fixes the 240/16 trajectory pools, point-set
+    separation, input shape, and sub-240 fatal signal, but leaves collocation
+    allocation unstated.
+  - `39-RESEARCH.md:420-423` repeats the provisional global count and continuous
+    time domain without defining identity allocation.
+  - `39-REVIEWS.md:73-75` explicitly states that CTL is silent and contrasts a
+    global multinomial draw with an even per-trajectory allocation; review
+    advice is not a grounding source.
+- **Mathematical / engineering grounding:** For `M` selected trajectories and
+  total collocation budget `C = 4096`, the implementation must choose integer
+  counts `n_i >= 0` satisfying `sum_i n_i = C`. A uniform multinomial draw
+  preserves i.i.d. identity sampling and an exact total but allows uneven
+  gradient weight and `n_i = 0`; at `M = 256`, the zero-count probability for
+  one trajectory is `(255/256)^4096 ~= e^-16 ~= 1.1e-7` (so zero coverage is
+  possible but rare, not a "nontrivial fraction"). A guaranteed-minimum draw
+  removes zero coverage but changes the identity distribution through the
+  forced allocation. A near-even quota minimizes per-batch variance and
+  guarantees coverage, but it abandons i.i.d. identity draws; for the 240-only
+  case it also needs a deterministic or seeded rule for the 16-point remainder
+  because `4096 = 17*240 + 16`. All choices preserve tensor cardinality but
+  produce different physics-loss weighting, reproducibility tests, and Phase
+  40 sampler seams.
+- **Agent was tempted to:** Keep option A because it is simple and uses the
+  existing local RNG, or choose option C because `4096 = 16*256` makes the
+  populated-lookahead batch exactly balanced. Neither follows from the cited
+  sources, and `TRAIN-04`'s later adaptive sampler ownership does not authorize
+  Phase 39 to choose the initial identity allocation silently.
+- **What the user needs to decide:**
+  - **A.** Global i.i.d. draw — independently choose each of the 4,096
+    trajectory identities uniformly with replacement from the selected pool;
+    exact total and i.i.d. semantics, with uneven counts and rare zero-count
+    trajectories allowed.
+  - **B.** Guaranteed-one plus random remainder — give every selected
+    trajectory one collocation point, then allocate the remaining `4096-M`
+    identities by uniform multinomial draw; exact total and guaranteed
+    coverage, with random unevenness after the minimum.
+  - **C.** Near-even quota — allocate each selected trajectory either
+    `floor(4096/M)` or `ceil(4096/M)` points, distributing any remainder by a
+    canonical seeded order; exact total, guaranteed balanced coverage, and no
+    i.i.d. trajectory-identity draw.
+- **Confidence of impact:** HIGH — this is the per-batch sampling distribution
+  for every physics/energy residual and becomes an executable test contract at
+  the Phase 39 to Phase 40 seam.
+- **Status:** OPEN — blocks DATA-05 plan verification and completion of the
+  cycle-4 review replan.
+- **Resolution note:**
+
 ---
 
 **Milestone-index status:** `.planning/milestones/v2.0-GAPS.md` synchronized on
-2026-07-14: GAP-39-01 is deferred and GAP-39-02 through GAP-39-11 are resolved.
+2026-07-14: GAP-39-01 is deferred, GAP-39-02 through GAP-39-11 are resolved,
+and GAP-39-12 is open.
