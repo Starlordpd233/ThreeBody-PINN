@@ -2,9 +2,9 @@
 phase: 39
 reviewers: [claude, claude-glm, claude-deepseek, codex, agy]
 rerun_reviewers: [claude, claude-glm, claude-deepseek, codex, agy]
-reviewed_at: 2026-07-14T02:03:17Z
+reviewed_at: 2026-07-14T03:27:57Z
 generated_by: xreview
-xreview_run_dir: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260714T015738Z-21382
+xreview_run_dir: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260714T032222Z-19760
 merged_existing_reviews: true
 ---
 
@@ -12,7 +12,7 @@ merged_existing_reviews: true
 
 ## claude Review
 
-I read all seven plans plus the SPEC, CONTEXT, gap register, validation map, and cross-checked the dataset README and the CTL batch/normalization contract. Review below.
+I read all seven plans plus 39-SPEC, 39-CONTEXT, the gap register, and the validation map, and checked two claims against the filesystem. Review follows.
 
 ---
 
@@ -20,75 +20,76 @@ I read all seven plans plus the SPEC, CONTEXT, gap register, validation map, and
 
 ## 1. Summary
 
-Seven plans across six waves: a Wave-0 dataset-free test contract (39-01), pure production contracts + parser + seven-clause admission + sole stage classifier (39-02), the production `AdmittedSetAdapter` (39-03), the grouped split manifest (39-04), the replay/lookahead batch constructor (39-05), the Thrust-A scan/CLI (39-06), and a real-corpus phase-close gate with retained evidence (39-07). The decomposition is sound, the dependency chain (0→1→2→3→{4,5}→5) is coherent, and every SPEC requirement and gap resolution is traceable to a task. The plans do achieve the phase goal on paper. My concerns are concentrated in three places: a memory cross-check that is arithmetically wrong and will fire on every real run, a Stage-0 fatal threshold applied to the wrong population, and an IC/Brutus pairing rule that the plans never state and that the real corpus violates in a way the synthetic fixtures will not catch.
+Seven plans across six waves: a dataset-free test contract (39-01), pure production contracts — parser/preprocessing/classifier/admission (39-02), the `AdmittedSetAdapter` (39-03), the grouped split manifest (39-04), the replay/lookahead batch constructor (39-05), the Thrust-A scan CLI (39-06), and a real-corpus phase-close gate (39-07). Dependency chain is linear except Waves 4 (05 ‖ 06), and the file-ownership partition across those two plans is genuinely disjoint.
+
+This is a third-cycle set: prior review rounds are visibly folded in (`HIGH-1..5`, `claude M1–M6`, `N1–N13`), and the three biggest earlier defects — the memory-ballpark arithmetic, the full-set-vs-train-split fatal operand, and the 1:1 Brutus↔IC folder assumption — are all correctly fixed. Requirements DATA-01..06 trace cleanly to tasks, and every SPEC edge row has a named test.
+
+The remaining problems are concentrated in **the fatal-Stage-0 branch and corpus-root resolution**, i.e. exactly the paths that only execute on the real corpus and therefore cannot be caught by the dataset-free suite.
 
 ## 2. Strengths
 
-- **Single-seam discipline is enforced mechanically, not by convention.** The AST reader audit, the `pinn/data/stages.py` sole-classifier rule (GAP-39-08), and the write-spy/root-containment tests are strong controls, and the `gold_numeric_stage_count == 0` invariant is re-asserted at adapter init, StageIndex, split, batch assembly, and report — the right defense-in-depth for a leakage-class bug.
-- **Fail-closed scientific gates.** `eps_H` recomputed in float64 from raw arrays, no denominator floor, no footer `dE/E`, no metrics-JSON shortcut, whole-trajectory quarantine on non-finite blocks, and blacklist schema hard-failure are all specified with negative tests rather than prose.
-- **The GAP-39-03 spec-defect routing is handled correctly.** Rather than editing the authoritative CTL spec or silently implementing the reversed predicate, the plans implement CTL and add a banner to the phase-local SPEC. That is the right call under SCOPE-18.
-- **Real-corpus evidence hygiene.** Freshness markers, allowlisted exit codes, byte-identity between scratch and retained report, spec-hash and corpus-fingerprint checks, and path redaction are unusually thorough for a phase-close gate.
-- **Determinism is specified at the level that matters**: canonical JSON + fsync/replace, seeded local `Generator`s, Hamilton apportionment with a fixed tie order, no global RNG mutation.
+- **The sole-seam discipline is enforced mechanically, not by convention.** One reader (`pinn/data/adapter.py` + the retained `fixture_loader.py` exception), one stage classifier (`pinn/data/stages.py`), one memory numerator (`resident_tensor_bytes`), each backed by an AST audit rather than a code-review promise.
+- **Scientific fail-closed behavior is well specified**: float64 `eps_H` recomputation from raw arrays, the near-zero `H(0)` short-circuit *before* the division (GAP-39-04), no denominator floor, whole-trajectory quarantine on non-finite blocks, and negative tests that footer `dE/E` and metrics JSON never influence the verdict.
+- **The `L_norm is None` → `UNASSIGNED` guard** in 39-02-02 is a real catch: without it `None > 0.5` raises `TypeError` on degenerate-`Lmax` records.
+- **Determinism is treated as a first-class contract** — canonical JSON, sibling-temp/fsync/replace, Hamilton apportionment with a fixed tie order, per-signature local RNG, byte-identical re-runs.
+- **`StageIndex.from_split(adapter, manifest, "train")`** now connects DATA-04's no-leakage manifest to DATA-05's constructor, so the split manifest is no longer a file nobody reads.
 
 ## 3. Concerns
 
-### HIGH
+### HIGH-A — The worktree *does* contain a partial `simulation_data/Data/`, so the root-resolution guard cannot fire
+39-03-PLAN asserts as fact that "the `.worktrees/trainex` worktree case … carries no `simulation_data/Data/`", and builds the typed `DataSourceRootMissing` error on that premise. It is false: this worktree has `simulation_data/Data/` with **74 files (2.7 MB)** — only `ic_standard_quasi_random` and `brutus_standard_quasi_random_gold_standard` — versus **38,017 files** in the main repo. Consequence: the plan permits "`git rev-parse --git-common-dir` **or an equivalent repository-relative resolution**". A naive repo-relative derivation resolves to the *worktree* copy, which **exists**, so `DataSourceRootMissing` never raises, the empty-admitted-set hard-fail never trips (those gold records admit fine), and — because GAP-39-08 grants numeric labels only to base *hierarchical* Set 1a — every record scores `UNASSIGNED`, yielding **Stage-0 = 0, a spurious fatal, and `gold_numeric_stage_count == 0` passing**. Every invariant in the phase reports green while the scan ran on 0.007% of the corpus.
 
-**H1 — The `resident_tensor_bytes` ballpark cross-check is off by ~2.7× and will warn on every real run (39-03, task 39-03-02).**
-The plan defines `ballpark_bytes = total_admitted_snapshots * 7 * 4`, glossing 7 as "3 positions + 3 velocities + 1 time". But 7 is the per-*body row* width in the Brutus format; a snapshot holds three body rows, so the resident payload per snapshot is ~19–22 fp32 (1 time + 9 positions + 9 velocities), not 7. The SPEC's own figure confirms this: ~8.23M snapshots ≈ 0.72 GB fp32 ⇒ ~87 bytes/snapshot ⇒ ~22 floats. With the planned formula the ballpark is ~230 MB against a true ~0.72 GB, a 171% misfit — far above the 50% threshold — so `resident_tensor_bytes_misfit` fires unconditionally on the real corpus. Worse, the natural "fix" during execution is to adjust whichever number is easier, and one of those adjustments (tuning the dedup count down to meet the ballpark) silently defeats the 0.7 watermark hard gate the check exists to protect.
+### HIGH-B — The phase-close verify makes the fatal branch unsatisfiable
+39-07-03's automated verify greps unconditionally for `^real_stage0_replay=240$`, but `select_stage_records` (39-05-01) *hard-fails* below 240 replay keys. The Stage-1 lookahead assertion is properly guarded behind `has_stage1=true`; the Stage-0 replay assertion has no equivalent guard, even though a sub-240 Stage-0 population is an outcome the phase explicitly contemplates. If the full admitted Stage-0 pool is under 240, the executor can neither produce the line nor pass the gate — and this is not remote: GAP-39-08 confines the numeric pool to base hierarchical Set 1a only.
 
-**H2 — The Stage-0 fatal threshold is evaluated on the full admitted set, but batches are drawn from the train split (39-06 vs 39-05/39-04).**
-`build_population_report` raises `StageZeroUnderpopulated` only when the *full-corpus* Stage-0 count is < 240, while `select_stage_records` requires 240 unique replay keys — and per the HIGH-3 seam, Phase 40 draws them from `StageIndex.from_split(..., "train")`, i.e. ~80% of Stage 0. A Stage-0 population of, say, 260 passes the DATA-06 scan with exit 0 and then makes training structurally impossible (~208 train keys). Plan 07 does record `stage0_train_split_count` and a `phase39_stage0_fatal` branch, but that is evidence-time detection in Wave 5 — the shipped scan CLI, which is the artifact the owner runs and ratifies `s₀` from, still reports the wrong readiness verdict. The fatal criterion should be the train-restricted count (or equivalently ≥ 240/train_ratio on the full set), with both numbers in the report.
+### HIGH-C — "Fatal" has two contradictory phase-close meanings
+39-07's `must_haves` say the gate "refuses to claim train-readiness, and **exits the documented nonzero code**" when `stage0_train_split_count < 240`. Its actual 39-07-03 verify **exits 0** whenever `phase39_stage0_fatal` merely agrees with the count. So a fatal is simultaneously a nonzero-exit failure and a coherent-evidence pass. Nothing states whether Phase 39 *closes* on a fatal, or whether the phase goal ("the trainer serves fixed-shape Stage-0 mini-batches") is then unmet and the phase blocks. An executor has no rule to follow.
 
-**H3 — Gold Brutus folders pair to the *base* IC folders; no plan says so, and the new missing-sibling quarantine will punish that.**
-`simulation_data/Documentation/README.md:155,176-177` is explicit: the `*_for_gold_standard` IC folders were deleted, so `brutus_hierarchical_gold_standard/brutus_hierarchical_XXXX.txt` reads its IC from `ic_final/ic_hierarchical/`. Four Brutus folders map to **two** IC folders. Plan 02 says only "exact filename regex/folder tables for the four Brutus variants and paired IC folders" — the 4→2 mapping is never stated — while Plan 01's fixture builder says it creates `ic_final` and "all four exact `brutus_output` folders" without pinning the IC side to two. If the fixture materializes four IC folders and the adapter assumes a 1:1 folder pairing, every gold record on the real corpus quarantines as `missing_ic_sibling` while the entire synthetic suite stays green. Gold is ~91% of all snapshots and supplies the `gold_stage_or_missing` slot in the DATA-04 split signature, so this corrupts admission counts, split strata, and the Thrust-A byte report — and it surfaces only at the Wave-5 corpus gate.
+### MEDIUM-D — `write_split_manifest`'s signature is unreconciled across Plans 04 and 06
+Exactly the defect class `claude M3` fixed for `from_split`, left open one function over. Plan 04 describes `write_split_manifest(..., run_dir, seed, ratios)` as a *serializer* that "returns the typed manifest", with the partition as a separate, unnamed pure function absent from the export list. Plan 06's CLI calls `write_split_manifest(adapter, run_dir=…, seed=…, ratios=…)`, assuming it partitions the admitted set internally. One of the two is wrong, and Plan 06's HIGH-4 sequencing depends on it.
 
-### MEDIUM
+### MEDIUM-E — The validation map's post-check contradicts `claude M5` and skips `splits.json`
+39-VALIDATION.md row 39-07-02 is declared the *single source of truth* for both the command and its post-check, and that post-check is `cmp /tmp/phase39-real-scan/stage_population.json …` — i.e. it depends on `/tmp` surviving, which 39-07-02 explicitly forbids ("the verify relies on the retained evidence copies … NOT on `/tmp/phase39-real-scan` surviving"). It also omits any `splits.json` byte-identity check, which HIGH-4 makes load-bearing.
 
-**M1 — Collocation point allocation across trajectories is unspecified (39-05).** The batch fixes `collocation_count=4096` and draws over `[0, T]` with per-record `T = times[-1]`, but never says how the 4096 points distribute over the selected trajectories. It divides evenly for a 256-trajectory batch (16 each) and not for a 240-trajectory replay-only batch. Each collocation point also needs an IC₁₃/mass channel to reach the network, so the assignment is load-bearing, not cosmetic. State the rule (e.g. per-trajectory `ceil`/remainder with a deterministic order, or `collocation_per_traj` as the knob).
+### MEDIUM-F — Collocation points are never asserted to be model-ready
+39-05-02's behavior notes that each collocation point "needs an IC13/mass channel", but the acceptance criteria only assert collocation *cardinality, continuity, bounds and independence*. The `(N,14)` / `(N,3)` shape+dtype smoke assertion is scoped to the data-fidelity set. Since the physics residual in Phase 40 feeds collocation through `network.forward(tau_ic13, masses)`, a constructor that emits bare times with no IC13/mass/`T` channel would pass every Phase 39 check and break at the Phase 40 seam.
 
-**M2 — `FixedBatch` carries no per-record `T`, and DATA-01 exposes no `T` accessor.** CTL:1596 defines `T = t_max` and the loss assembly (CTL:1757) is dimensionless in `u = t/T`, so the Phase 40 physics/energy residuals need `T` per trajectory to rescale derivatives. The batch fields listed are τ/IC₁₃/masses/targets/times/keys/provenance, and DATA-01's accessors are `n_snapshots` and `dt_out` only. Phase 40 would have no supported way to recover `T`. Add it to `FixedBatch` (and/or as an accessor) now — it is a one-field change here and a cross-phase seam break later.
+### MEDIUM-G — `scan.log` has no single owner
+Plan 06 says `main` "records its SHA-256 + byte identity in `scan.log`", but `scan.log` appears in neither Plan 06's `files_modified` nor its artifacts; Plan 07 treats it as an executor-assembled capture of stdout plus appended markers. The 39-07-02 verify greps a mix of CLI-authored lines (`mem:`, `mem_ballpark=`, `n_blacklist_entries`) and executor-authored lines (`run_nonce=`, `evidence_byte_identity=true`, `stage0_train_split_count=`) with no statement of which side emits which.
 
-**M3 — `StageIndex.from_split` has two different signatures across plans.** 39-04 defines `from_split(records, manifest, split_name)`; 39-05 and 39-07 both call `from_split(adapter, manifest, "train")`. Passing an adapter where a record collection is expected will not type-check as written. Pick one (an adapter-or-records union is fine, but say so).
+### LOW-H — `DT_OUT_WARN_REL_THRESHOLD = 0.01` may flood the real-corpus log
+The warning fires per-trajectory on >1% measured-vs-reference disagreement, with no aggregation or cap. On ~38k records this could bury the disposition summary. Aggregate to a count in the per-folder report.
 
-**M4 — Wave-4 parallelism is not as clean as `files_modified` suggests.** Plans 05 and 06 declare disjoint files, but 39-06's verify command runs `tests.phase39.test_prohibitions`, which is a whole-tree AST audit that discovers `pinn/**/*.py` — including `pinn/data/batches.py` while Plan 05 is mid-write. That is an ordering-sensitive, potentially flaky gate. Either drop `test_prohibitions` from 39-06's verify (39-07-03 re-runs it anyway) or serialize the two.
+### LOW-I — Every gap closed under a blanket autonomy delegation
+All nine entries read "RESOLVED-WITH-INSTRUCTION … *Under the user's full-autonomy instruction*, choose option A." GAP-39-03 (overriding the phase SPEC's `s_min` predicate with CTL) and GAP-39-08 (which record classes may carry numeric stage labels) are semantic calls, which project governance classes as MUST-surface. The autonomy delegation is on record, but these two deserve an explicit owner acknowledgement line rather than inheriting a blanket one — GAP-39-08 in particular determines the entire Stage-0 population.
 
-**M5 — The Wave-5 verify gate depends on `/tmp` surviving.** 39-07-02's automated check does `test -s /tmp/phase39-real-scan/stage_population.json` and `cmp` against the retained copy. Re-running the phase verification after a reboot or a `/tmp` sweep fails even though the committed evidence is intact — contradicting the plan's own "`/tmp` is disposable scratch" stance. Record the scratch SHA-256 in `scan.log` and compare hashes instead of requiring the scratch file.
-
-**M6 — The data-root fallback is unspecified and worktree-hostile.** Plans say "explicit arg → `GSD_DATA_ROOT` → main-repo `simulation_data/Data`", but never how the third leg is derived. In `.worktrees/trainex` there is no `simulation_data/Data`, so a `__file__`-relative default silently points at a nonexistent path, and a literal `<home>/...` default would bake a personal path into production code — directly against the redaction discipline the same phase enforces on its logs. Specify the derivation (e.g. `git rev-parse --git-common-dir`-based, or make `GSD_DATA_ROOT` mandatory and fail loudly).
-
-### LOW
-
-**L1 — `mem_ballpadck` is a typo baked into a contract string.** It appears as the literal log key and in an acceptance criterion in 39-03. Fix to `mem_ballpark` before it becomes a grepped invariant.
-
-**L2 — Redaction enforcement is pattern-narrow.** 39-07-02's verify only rejects `^GSD_DATA_ROOT=/Users/` and `command: .*GSD_DATA_ROOT=/Users/`. Adapter-emitted lines (resolved root, blacklist path, per-folder logs) can carry absolute `/Users/...` and pass. A blanket `! rg -q "/Users/"` over the retained logs matches the stated N12 intent.
-
-**L3 — `regime` in the DATA-04 split signature `(regime, base_stage_label, gold_stage_or_missing)` is never defined** — presumably `variant` (hierarchical/standard). Name it consistently with `PhysicalKey`.
-
-**L4 — Two SPEC acceptance criteria remain knowingly false by design.** DATA-06's "`s_min > s₀` ⇒ Stage 1, else Stage 0" and the AC "`s_min = s₀` exactly lands in Stage 0" are contradicted by the CTL conjunction the plans implement (equality ⇒ neither Stage 0 nor Stage 1 ⇒ `UNASSIGNED`). The banner approach in 39-02-04 is the right mitigation, but any downstream goal-backward verifier reading the AC checklist literally will flag correct behavior. Make sure the phase VERIFICATION step is routed to GAP-39-03/08 explicitly.
+### LOW-J — A train pool of exactly 240 yields zero replay diversity
+Replay samples 240 *unique* keys without replacement (no padding path, unlike lookahead). At `stage0_train_split_count == 240` every batch is the identical trajectory set. Worth surfacing the margin explicitly in the report, not just the pass/fail.
 
 ## 4. Suggestions
 
-1. Fix H1 by deriving the ballpark from the actual resident layout (`snapshots × 19 × 4`, or better, `sum(t.numel() * t.element_size())` over a second independent traversal) and keep the 50% band; a check that always fires is worse than no check.
-2. Fix H2 by making `build_population_report` take the split manifest (or the train ratio) and adjudicate the fatal on the train-restricted Stage-0 count, reporting both counts. This also makes the owner's `s₀` ratification evidence match the population that actually trains.
-3. Fix H3 by pinning the folder table in 39-02 (four Brutus variants → two IC folders, gold reads the base IC) and by making 39-01's `TinyCorpus` mirror the real two-IC-folder layout, with an explicit test that a gold record admits with its base IC sibling.
-4. Add per-record `T` to `FixedBatch` and state the collocation-per-trajectory rule (M1/M2) before Wave 4 starts — both are cheap now, expensive at the Phase 40 boundary.
-5. Reconcile the `from_split` signature (M3) in 39-04 and let 39-05/39-07 quote it verbatim, the same way 39-07-02 defers the real-corpus command to 39-VALIDATION.md.
-6. Note for the record: because gold records can never carry a numeric label, the adapter preloads ~91% of all snapshots (gold) that cannot enter a Phase 39 batch. That is correct under GAP-39-08 and harmless at 0.72 GB, but worth stating in the summary so it is not mistaken for a bug later.
+1. **Pin corpus-root resolution to `git rev-parse --git-common-dir` only** — delete the "or an equivalent repository-relative resolution" latitude — and add a corpus-shape assertion at init (all four Brutus folders present; found-record count above an explicit floor) that hard-fails, plus log the resolved root and file count. This is what converts HIGH-A from silent to loud.
+2. **Guard `real_stage0_replay=240` behind a full-set condition**, symmetric to the `has_stage1` fork: `if stage0_full_split_count >= 240 → real_stage0_replay=240; else → record the shortfall`.
+3. **State the phase-close rule for a fatal in one sentence** in 39-07's success criteria: either "a coherent fatal is a valid phase close, Phase 40 is blocked pending owner ratification of `s₀`", or "a fatal blocks phase close". Then make the 39-07-03 verify match.
+4. **Quote one canonical `write_split_manifest` signature verbatim in Plans 04 and 06**, the way `from_split` is now handled, and add the partition entry point to Plan 04's `exports`.
+5. **Rewrite the 39-VALIDATION.md 39-07-02 post-check** to compare the retained evidence copies against their recorded SHA-256 (and include `splits.json`), removing the `/tmp` dependency.
+6. **Add an acceptance criterion to 39-05-02** that collocation emits `(N,14)` `tau_ic13`, `(N,3)` raw masses, and per-point `T`, and that a network smoke call accepts the *collocation* tensors too.
 
 ## 5. Overall Risk
 
-**MEDIUM.** The governance, security, and determinism posture is strong, and no destructive-operation or corpus-mutation risk is present (read-only adapter, write spy, atomic writers, containment checks, no history rewriting). The risk is concentrated in three correctness defects that all share one property: they pass the entire dataset-free suite and surface only at the Wave-5 real-corpus gate — H3 potentially as a mass gold quarantine, H2 as a false "proceed", H1 as a warning the operator is trained to ignore. Fixing H1–H3 and M1–M3 before Wave 1 starts would put this at LOW.
+**MEDIUM.** The synthetic-path engineering is strong and the earlier review cycles have visibly hardened it; requirement coverage is complete and the invariants are mechanically enforced. The residual risk is concentrated in the paths that only run once, on the real corpus, at phase close — root resolution (HIGH-A), the fatal branch (HIGH-B/C) — where the current design can report a fully green, fully self-consistent phase close over a 74-file partial corpus. Fixing suggestions 1–3 would bring this to LOW.
 
 ---
 
 ## claude-glm Review
 
-API Error: 529 [1305][该模型当前访问量过大，请您稍后再试][20260714100125cd46a86228ed421f]. This is a server-side issue, usually temporary — try again in a moment. If it persists, check your inference gateway (127.0.0.1:4148).
+API Error: 529 [1305][该模型当前访问量过大，请您稍后再试][20260714112558a20268bc93dd4bb4]. This is a server-side issue, usually temporary — try again in a moment. If it persists, check your inference gateway (127.0.0.1:4148).
 
 ---
 
 ## claude-deepseek Review
+
+I now have full coverage of all seven plans, the gap register, SPEC, CONTEXT, and the REQUIREMENTS/ROADMAP scope boundaries. Here is the review:
 
 ---
 
@@ -96,55 +97,65 @@ API Error: 529 [1305][该模型当前访问量过大，请您稍后再试][20260
 
 ## 1. Summary
 
-The seven plans (39-01 through 39-07) deliver a complete, well-structured implementation of the six DATA requirements. The plan architecture uses a five-wave pipeline: Wave 0 establishes deferred test contracts before any production code; Waves 1–4 build types, parser, admission, adapter, splits, batches, and scan in strict dependency order; Wave 5 gates everything behind a single read-only real-corpus run with retained evidence. Nine gaps were discovered during research, all resolved or deferred with explicit engineering decisions — including one critical SPEC defect (GAP-39-03: reversed `s_min` predicate) that was correctly routed around via the authoritative CTL contract. Cross-AI review findings (N1–N13, HIGH-1 through HIGH-5) are thoroughly integrated.
+Phase 39 delivers six DATA requirements (DATA-01 through DATA-06) across seven plans organized in five waves: Wave 0 (dataset-free test contracts), Wave 1 (production types, parser, admission, classifier), Wave 2 (adapter integration, fp32 residency, memory accounting), Wave 3 (split manifest, StageIndex), Wave 4 parallel (batch constructor + Thrust-A scan/CLI), and Wave 5 (real-corpus evidence gate + audits). The dependency chain is `01 → 02 → 03 → 04 → {05, 06} → 07`. Nine gap-register entries (GAP-39-01 through GAP-39-09) are resolved with proper STOP-protocol compliance, mathematical grounding, and owner-delegated agent judgment. Prior cross-AI review feedback is extensively incorporated (HIGH-1 through HIGH-5, claude M1–M6, N1–N13 markers in the plan text). The plans are thorough and executable.
 
 ## 2. Strengths
 
-- **Test-first architecture.** Wave 0 creates the complete nine-file test suite as deferred contracts (`_require` skip helper) before any production module exists. This enforces spec-faithful implementation and prevents test-after-the-fact gaps.
-- **Gap discipline.** Nine gaps were correctly surfaced under the STOP protocol and resolved with engineering grounding. GAP-39-03 (reversed SPEC predicate) is the standout — the plans implement the authoritative CTL conjunction, not the derived-SPEC error, and Plan 02-04 annotates the SPEC with defect banners rather than silently rewriting it.
-- **Fail-closed everywhere.** Blacklist missing → hard failure. Hash mismatch → hard error. Empty admitted set → init failure. Stage 0 < 240 → fatal signal with report persisted before nonzero exit. Corpus write → mechanical audit rejection. No silent proceed path exists.
-- **Cross-module integration contract.** The `StageIndex.from_split(records, manifest, "train")` seam (HIGH-3) connects DATA-04's split manifest to DATA-05's batch constructor, with Plan 07 exercising it end-to-end on the real corpus. This prevents the split manifest from becoming a file no consumer reads.
-- **Memory accounting rigor (N7).** The `resident_tensor_bytes` dedup + `mem_ballpadck` ballpark cross-check prevents a `untyped_storage()` miscount from silently flipping the 0.7 watermark.
-- **Per-plan threat models.** Every plan carries a STRIDE register with specific mitigations, not boilerplate.
-- **Wave-4 parallelism.** Plans 05 (batches) and 06 (stage scan) are correctly independent — both consume Plan 04's splits but don't share mutable state — and Plan 07's Phase 38 fixture preflight (N13) guards against regression masking.
+1. **Gap register rigor.** Nine entries with full STOP-protocol documentation: decision point, source silence citations, mathematical/engineering grounding, agent temptation, user-decision options, and resolution notes. Each gap that required a numeric or semantic default (GAP-39-04 near-zero threshold, GAP-39-05 non-finite salvage, GAP-39-07 memory numerator, GAP-39-09 dt_out warning) labels its chosen value as a reversible implementation default, not source authority.
+
+2. **TDD-first wave structure.** Wave 0 (Plan 01) builds the complete nine-file `tests/phase39/` scaffold with deferred `_require` skips before any production code exists. The `_require` helper emits the exact skip phrase `skipped Phase39 production symbol <module>.<symbol>` consumed by the Wave 5 final grep. This ensures every DATA requirement has a discoverable test module before implementation begins.
+
+3. **Mechanical prohibition enforcement.** AST-based reader audits, write-spy for corpus mutation, global-state checks (Torch/NumPy defaults, RNG, device availability), and v1 import prohibition are specified with exact allowlists (e.g., `ALLOWED_CORPUS_READERS = {pinn/data/adapter.py, pinn/verification/fixture_loader.py}`).
+
+4. **Cross-phase seam documentation.** The DATA-04→DATA-05 seam is explicitly documented: `StageIndex.from_split(adapter, manifest, "train")` is the single canonical signature reconciled across Plans 04, 05, 07, and documented for Phase 40. Plan 05's batch constructor accepts any `StageQuery`, enabling Phase 40 to supply a train-restricted source.
+
+5. **Clear scope discipline.** Phase 40 adaptive collocation, FUT-02 curriculum EDA, s₀ ratification, data-version-hash production, training-loop DataLoader plumbing — all explicitly excluded and deferred. Every plan carries a `prohibitions` block naming what must NOT be introduced.
+
+6. **Memory accounting with cross-check.** GAP-39-07 defines `resident_tensor_bytes` as deduplicated owned fp32 storage. Plan 03 adds a `mem_ballpark` lower-bound cross-check (19 floats/snapshot: 3 bodies × 6 dof + shared time) with a documented misfit band, catching the prior review's ~2.7× undercount. The `mem_ballpadck` typo is explicitly corrected.
+
+7. **Real-corpus gate isolation.** Wave 5 (Plan 07) runs the expensive 6.3 GB corpus scan exactly once, separate from normal test feedback loops. Evidence is committed to the repository with SHA-256 hashes, freshness markers (`run_timestamp` + `run_nonce`), allowlisted exit codes, and path redaction (`$GSD_DATA_ROOT` placeholder, no `/Users/...` in committed files).
+
+8. **Edge coverage.** SPEC edge coverage table resolves 19/19 applicable edges with citations to authoritative sources. Two new edge-derived acceptance criteria (`s_min = s₀` boundary, empty-admitted-set hard failure) are added.
 
 ## 3. Concerns
 
 ### HIGH
 
-- **GAP-39-01 — `data_version_hash` producer remains open.** The compare-and-refuse path works, but the typed `DataVersionHashDeferred` deferral means the hard-refuse path is effectively dead code on the real corpus until an upstream producer is ratified. This is correctly documented and deferred, but Phase 40 (training loop) will inherit the same unresolved seam. **Mitigation**: already surfaced in the gap register; the Phase 39 → Phase 40 handoff should explicitly flag this.
-
-- **SPEC.md defect banner edit (Plan 02-04).** Editing `39-SPEC.md` post-spec-phase is unusual. The CONTEXT.md states at line 12: "this document does not reopen their what or why." The annotations are defensive (preventing a future literal verifier from flagging correct behavior as a failure), and the task verification confirms no framework spec is touched. Still, this crosses the "SPEC is frozen after spec phase" expectation. **Mitigation**: the task is scoped to annotation-only (no text rewrite) and the acceptance criteria are precise about what changes.
+*None identified.* The prior cross-AI review's HIGH concerns (H1: memory ballpark arithmetic ~2.7× off, H2: Stage-0 fatal threshold evaluated on wrong population, H3: IC/Brutus folder 1:1 pairing assumption mass-quarantining gold records) are all addressed: `floats_per_snapshot = 19` with correct decomposition, train-split-restricted fatal verdict via `StageIndex.from_split(adapter, manifest, "train")`, and `(variant, id)` physical-key grouping with variant-based 4→2 Brutus→IC folder mapping.
 
 ### MEDIUM
 
-- **`mem_ballpadck` typo.** Plan 03-02 introduces the ballpark cross-check field as `mem_ballpadck` (missing "r"). This will propagate to log output and tests. Trivial to fix, but once committed in log format, it becomes a permanent artifact.
+**M1: SPEC "locked at commit" claim conflicts with Plan 02 edit.** `39-CONTEXT.md:12-13` states the SPEC is "locked by `39-SPEC.md` at commit `4fed73f4`; this document does not reopen their what or why." Plan 02 Task 39-02-04 edits `39-SPEC.md` to add defect banners for GAP-39-02, GAP-39-03, and GAP-39-08. The edits are non-destructive annotations (they preserve contradictory text verbatim and add clarifying banners), so they don't change requirements. But the "locked at commit" claim in CONTEXT.md becomes stale — a reader checking the commit hash would find a different file. *Recommendation:* Update CONTEXT.md after Plan 02 executes to note the annotation edits and the new commit reference, or qualify the "locked" claim to apply to requirement text only, not annotations.
 
-- **Plan 07 evidence redaction edge case (N12).** The verification grep at line 110 checks `GSD_DATA_ROOT=/Users/` and expects it absent from retained logs. If `GSD_DATA_ROOT` is unset and the fallback main-repo path is used, the fallback path (which resolves to `<home>/...`) could leak into logs through other channels (e.g., the adapter's resolved root). The redaction logic in the plan text is sound, but the implementation must be thorough.
+**M2: `GSD_DATA_ROOT` git-based fallback is underspecified.** Plan 03 Task 39-03-01 uses `git rev-parse --git-common-dir` as an example for deriving the main-repo `simulation_data/Data/` path. However, `--git-common-dir` returns the `.git` directory path (e.g., `/path/to/repo/.git`), not the repo root (`/path/to/repo`). The plan says "or an equivalent repository-relative derivation" which leaves the exact derivation to the executor. The acceptance test covers failure by asserting a `DataSourceRootMissing` error when the derived path doesn't exist. However, if the derivation is subtly wrong (e.g., resolves to a valid but wrong directory that happens to contain data files), the test won't catch it. *Recommendation:* Pin the derivation to a specific algorithm in Plan 03 (e.g., resolve `$(git rev-parse --show-toplevel)/simulation_data/Data/` from any worktree, which correctly returns the main repo root). `--show-toplevel` is the standard git command for this purpose and is more robust than deriving the root from `--git-common-dir`.
 
-- **`s0_sensitivity_sweep` scope expansion (N1).** Plan 06-01 adds a diagnostic sensitivity sweep recomputing Stage-0 counts at a geometric grid via the sole `classify_stage_label` seam. This is not in the original SPEC's DATA-06 requirement but is explicitly read-only, never mutates residency, and is clearly labeled as reversible. It's a reasonable diagnostic addition, but technically expands scope beyond the letter of DATA-06.
+**M3: SPEC defect-banner approach creates latent readability hazard.** The SPEC still carries the reversed `s_min` predicate ("s_min > s₀ for Stage 1, else Stage 0") while the CTL requires the opposite. Plan 02 adds defect banners but deliberately preserves the wrong text. A future maintainer reading the SPEC without consulting the gap register could implement the wrong predicate. The defect banners mitigate this, but only if they remain visibly attached to the defective text. If the SPEC is ever reformatted or the banners are pruned during cleanup, the hazard returns. *Recommendation:* Add a prominent warning at the top of the SPEC (in addition to the inline banners) stating that GAP-39-03 supersedes certain predicate wording and listing the affected line ranges. This makes the hazard discoverable even on a cursory read.
 
 ### LOW
 
-- **`39-PATTERNS.md` and `39-VALIDATION.md` referenced but not in review file list.** Plan 01 cites both as context. These are likely present and well-formed given the plan quality, but I cannot verify their content against the plans.
+**L1: `mem_ballpark` upper bound (3.0×) is very loose.** Plan 03's misfit band uses `resident_tensor_bytes > ballpark_bytes * 3.0` as the upper threshold. Since the real ratio should be close to 1.0× (ballpark excludes per-record IC13/mass overhead, ~16 floats × ~3,400 trajectories), a 3.0× band only catches catastrophic miscounts. The lower bound (`< ballpark * 0.5`) is the load-bearing check since `resident_tensor_bytes` must be ≥ `ballpark_bytes`. *Recommendation:* Tighten the upper bound to 2.0× to catch moderate double-counting while still tolerating per-record overhead. The current 3.0× is safe but less diagnostic.
 
-- **`phase-close` directory naming.** The evidence directory name `phase-close` is slightly confusing — it IS the phase close, not a sub-phase. Minor.
+**L2: Plan 05 collocation global-draw semantics are load-bearing for Phase 40.** Plan 05 Task 39-05-02 specifies collocation as "a SINGLE global pool drawn over the union of all selected trajectories' [0,T] ranges" — exactly 4,096 points regardless of whether the batch has 240 or 256 trajectories. Each point is tagged with its source trajectory for IC₁₃/mass channel resolution. This design means Phase 40 cannot assume a fixed per-trajectory collocation allocation (the point count per trajectory varies). The plan correctly documents this as "load-bearing" and the semantics are explicit. No action needed; noted for Phase 40 awareness.
 
-- **R1-empty acceptance criterion.** SPEC line 103 adds "An empty admitted set is a hard init failure" as an edge-derived AC — this is correct, but it's listed in the AC block for DATA-01..06 without a clear requirement assignment. It's really a DATA-02/DATA-01 cross-cutting guard.
+**L3: Plan 07 verify script depends on exact log line formats.** The `39-07-02` verify block uses an extensive bash script with regex patterns (e.g., `mem: [0-9]+ \([0-9]+\.[0-9]{6}\) watermark=0\.7`). If the adapter's log format deviates from the expected pattern (e.g., different whitespace, additional fields), the verify fails even if the behavior is correct. The tight coupling between log format and verify regex is deliberate (it's the evidence contract), but it means any intentional log format change must also update the verify script. *Recommendation:* Add a comment in Plan 03's `mem:` log emission code citing the verify regex so future editors know the format is contract-locked.
 
 ## 4. Suggestions
 
-1. **Fix the `mem_ballpadck` → `mem_ballpark` typo** before implementation reaches Plan 03-02. It appears in the `must_haves.truths` and action text of task 39-03-02.
+1. **Use `git rev-parse --show-toplevel` for repo-root derivation (M2).** Replace the `--git-common-dir` example in Plan 03 with `--show-toplevel`, which directly returns the main repo root from any worktree. This eliminates the need to derive the root from the `.git` directory path.
 
-2. **Consider a handoff note for Phase 40** documenting that GAP-39-01 (hash producer) is still open and the typed deferral path will fire on every real-corpus adapter init until resolved.
+2. **Add a SPEC-top warning banner (M3).** In addition to the inline defect banners in Plan 02 Task 39-02-04, add a prominent warning at the top of `39-SPEC.md` listing all GAP-superseded sections so the hazard is visible on initial read.
 
-3. **Verify `39-VALIDATION.md` is the single source of truth for the real-corpus command** (as Plan 07 claims at line 100: "that file is the SINGLE source of truth for the exact `GSD_DATA_ROOT`/interpreter/`--run-dir` invocation"). This is a strong design choice — confirm the file exists and the command is correct before Wave 5.
+3. **Tighten `mem_ballpark` upper bound from 3.0× to 2.0× (L1).** Still generous enough to avoid false positives from per-record overhead, but narrow enough to catch moderate double-counting bugs.
 
-4. **Add a Phase 39 → Phase 40 integration checklist item** for the `StageIndex.from_split(records, manifest, "train")` seam. Plan 07 already exercises it, but Phase 40's training loop is the real consumer and should know this is the documented entry point.
+4. **Add cross-reference comments between log emission and verify regex (L3).** In `pinn/data/adapter.py`'s `mem:` log emission, add a comment citing the verify regex in `39-07-PLAN.md` to lock the format contract at both ends.
+
+5. **Consider a Phase 38 regression preflight in Wave 2 or 3.** Currently, `tests/phase38/test_prohibitions.py` is only re-run at Wave 5 (Plan 07). While Phase 39 writes to disjoint directories (`pinn/data/`, `tests/phase39/`), adding a mechanical preflight check at Wave 2 (when `pinn/data/` modules first land) would catch any accidental Phase 38 test contamination earlier. At minimum, `git diff --check` over Phase 38 test files during Wave 2/3 execution.
+
+6. **Update CONTEXT.md after SPEC annotation (M1).** After Plan 02 executes, update the "locked at commit" claim in `39-CONTEXT.md` to note the annotation-only edit and its purpose, keeping the "what and why" lock semantically intact.
 
 ## 5. Overall Risk: **LOW**
 
-The plans are thorough, the dependency ordering is correct, all nine gaps are resolved or deferred, cross-AI review feedback is integrated, and every DATA requirement is covered with specific acceptance criteria and test coverage. The primary residual risk is GAP-39-01 (hash producer still open), which is a deferred operational decision, not a plan defect. The SPEC defect banner annotation and the `s0_sensitivity_sweep` scope expansion are well-justified and self-documenting. No blocking issues.
+The plans are comprehensive, internally consistent, and grounded in authoritative sources. All nine gap-register entries are properly resolved. The prior cross-AI review's three HIGH concerns are fully addressed with explicit acceptance criteria and tests. The wave structure correctly sequences dependencies, and Wave 4 parallel execution is safe (disjoint file ownership between Plans 05 and 06). The three MEDIUM concerns are documentation/clarity issues, not correctness risks. The remaining LOW concerns affect diagnostic sensitivity and maintainability, not scientific correctness. The plans achieve the phase goal: a complete DATA-01 through DATA-06 data substrate ready for Phase 40 consumption.
 
 ---
 
@@ -152,73 +163,64 @@ The plans are thorough, the dependency ordering is correct, all nine gaps are re
 
 ## 1. Summary
 
-The Phase 39 plans are mostly coherent and well sequenced. They cover the main substrate: deferred tests, parser/admission, resident adapter, split manifest logic, batch construction, Stage-0 scan, and real-corpus closeout.
-
-The main risk is in Plan 39-07: the real-corpus closeout depends on train-split Stage-0 evidence, but the plan does not explicitly generate, retain, or hash the real split manifest used for that evidence, and the automated check only confirms the fatal flag exists.
+Phase 39 plans are broadly coherent and likely achieve the stated data-ingestion / Stage-0 scan goal if executed faithfully. No listed file failed to read. No HIGH blockers found; the main risks are final-gate consistency issues around retained evidence and validation-map drift.
 
 ## 2. Strengths
 
-- Clear wave ordering: tests first, then parser/admission, resident adapter, splits, batches, scan, and real-corpus evidence.
-- Strong attention to data integrity: fail-closed blacklist handling, typed hash deferral, non-finite quarantine, no corpus mutation, no global RNG/default mutation.
-- Good single-source classifier discipline: `stage_label` is shared across adapter, split, batch, and scan plans.
-- Strong prohibition coverage around v1 code reuse, framework-spec mutation, footer/metrics misuse, and duplicate on-disk readers.
-- Plan 39-07 correctly separates fast regression from the expensive real-corpus gate.
+- Strong phased dependency structure: tests/contracts first, parser/admission next, residency, split, batches, scan, then real-corpus close.
+- Good edge coverage for scientific/data-integrity risks: NaN/Inf quarantine, near-zero `H(0)`, hash mismatch/deferred absence, gold exclusion, strict Stage-0 predicate, train-split readiness.
+- Clear scope controls: no framework-spec edits, no corpus mutation, no v1 data-handling import, no Phase 40 training-loop creep.
+- Strong final evidence intent: retained logs/reports, freshness markers, exit-code allowlist, redaction, byte identity, reader/classifier audits.
 
 ## 3. Concerns Tagged HIGH / MEDIUM / LOW
 
-- **HIGH:** Plan 39-07 requires `stage0_train_split_count`, but the exact real-corpus validation command only runs `pinn.data.stage_scan`; it does not specify generation/retention of a real `splits.json`. The plan also omits a manifest seed/path/hash from retained evidence. This weakens DATA-04 closure and makes the Phase 40 training seam hard to reproduce.
+- **HIGH:** None found.
 
-- **HIGH:** The fatal train-split gate is under-verified. [39-07-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/trainex/.planning/phases/39-data-ingestion-stage-0-population-scan/39-07-PLAN.md:132) only checks that `phase39_stage0_fatal` is present, not that it equals `true` exactly when `stage0_train_split_count < 240`, nor that train-readiness is refused in that branch.
+- **MEDIUM:** [39-07-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/trainex/.planning/phases/39-data-ingestion-stage-0-population-scan/39-07-PLAN.md:103) says [39-VALIDATION.md](<home>/Desktop/3_body_problem/.worktrees/trainex/.planning/phases/39-data-ingestion-stage-0-population-scan/39-VALIDATION.md:60) is the single source of truth for the real-corpus invocation and post-check, but that row’s post-check is much weaker than the plan’s acceptance criteria. It only compares `stage_population.json` and greps `gold_numeric_stage_count=0`; it does not verify retained `splits.json`, exit-code coherence, freshness markers, redaction, `mem:`/`mem_ballpark`, or train-split count derivation.
 
-- **MEDIUM:** Evidence redaction verification is weaker than the acceptance criteria. The plan says retained logs must avoid absolute `/Users/...`, host, and username data, but the grep checks only a narrow `GSD_DATA_ROOT=/Users/` pattern. Other absolute paths or tracebacks could leak into committed evidence.
+- **MEDIUM:** `splits.json` is a must-have retained artifact, but it is missing from the `must_haves.artifacts` list and from task `39-07-02`’s `<files>` ownership list, despite appearing in `files_modified` and acceptance checks. See [39-07-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/trainex/.planning/phases/39-data-ingestion-stage-0-population-scan/39-07-PLAN.md:27) and [39-07-PLAN.md](<home>/Desktop/3_body_problem/.worktrees/trainex/.planning/phases/39-data-ingestion-stage-0-population-scan/39-07-PLAN.md:95). This could cause execution/commit tooling to omit the manifest evidence.
 
-- **LOW:** Plan 39-02 edits the phase-local `39-SPEC.md` even though the context calls it locked. The edit is narrowly framed as a defect banner, not a requirement rewrite, but it should be treated as provenance-only and mechanically constrained.
+- **LOW:** The fixed scratch path `/tmp/phase39-real-scan` is acceptable, but repeat runs could be ambiguous unless the executor enforces exclusive creation or explicit stale-scratch refusal before the scan. The plan says not to overwrite silently, but the validation command itself does not encode that guard.
+
+- **LOW:** Phase 39 consumes the Phase 38 network contract while the roadmap notes Phase 38 plan completion but phase-close held on deferred real-trajectory evidence. This is probably nonblocking, but the Phase 39 execution precondition should state that the Phase 38 interface is frozen enough for DATA-05.
 
 ## 4. Suggestions
 
-- Add an explicit 39-07 step to create the real-corpus split manifest with a fixed seed, retain it under the phase-close evidence directory, and record its SHA-256/hash, seed, ratios, and byte identity.
+- Make the `39-VALIDATION.md` row 39-07-02 match the stronger `39-07-PLAN.md` checks, or stop calling the validation row the single source of truth for post-checks.
+- Add retained `splits.json` to `39-07` artifacts and task `<files>`.
+- Use a nonce/stamped scratch run directory, or require `/tmp/phase39-real-scan` to be absent/empty before execution.
+- Add a short Phase 38 interface precondition before Plan 39-05.
 
-- Strengthen the 39-07 verification script to parse `stage0_train_split_count` and assert:
-  `phase39_stage0_fatal == (stage0_train_split_count < 240)`.
+## 5. Overall Risk
 
-- Add a positive train-readiness marker only when the train split has at least 240 Stage-0 replay candidates, and assert that marker is absent/false in the fatal branch.
-
-- Broaden evidence redaction checks to reject any retained `/Users/`, local username, hostname, or unredacted interpreter/data-root path.
-
-- For the `39-SPEC.md` banner edit, verify that only banner text was inserted and no locked requirement wording was silently changed.
-
-## 5. Overall Risk (LOW/MEDIUM/HIGH)
-
-**HIGH** until the real split-manifest evidence and train-split fatal verification are made explicit.
+**MEDIUM**. The plan is technically strong, but final-gate evidence consistency and real-corpus execution details need tightening before execution.
 
 ---
 
 ## agy Review
 
-# Phase 39 Plan Review
+_agy failed: returned empty output, failed, or timed out._
 
-## 1. Summary
-The Phase 39 execution plans (01-07) define a highly rigorous, defensively engineered pipeline for ingesting the dataset into a memory-resident PyTorch adapter. The rollout is meticulously phased: it begins with comprehensive test scaffolding (Wave 0), progresses through pure parsing and admission logic (Wave 1), integrates the in-memory adapter (Wave 2), establishes stage-stratified splitting (Wave 3), and implements batching and population scanning (Wave 4), culminating in a read-only real-corpus validation gate (Wave 5). The plans demonstrate excellent command of memory constraints, edge-case handling, and strict separation of physics from data-fidelity sets.
+Diagnostics:
+- reviewer=agy
+- exit_code=1
+- elapsed_seconds=2
+- timeout_seconds=360
+- watchdog=not_triggered
+- stdout_bytes=0
+- stderr_bytes=164
 
-## 2. Strengths
-*   **Defensive Architecture**: The use of a read-only real-corpus validation gate (39-07) ensures that expensive tests don't bleed into normal iteration loops, while the `_require` test scaffolding prevents premature failures.
-*   **Robust Edge-Case Handling**: The `T = times[-1]` fix explicitly prevents a `t/None` crash. The handling of missing siblings (Brutus/IC mismatch) quarantines safely without silently dropping or admitting data.
-*   **Impeccable Memory Accounting**: Implementing a fallback cross-check (`mem_ballpadck`) in 39-03 to verify `untyped_storage` deduplication ensures the 0.7 memory watermark cannot be bypassed by subtle pointer aliasing bugs.
-*   **Fail-Safe Diagnostics**: In 39-06, attaching the fully-built report to the `StageZeroUnderpopulated` exception guarantees that fatal evidence is persisted atomically prior to a nonzero exit (agy N10).
+Artifacts:
+- stdout: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260714T032222Z-19760/xreview-agy-39.md
+- stderr: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260714T032222Z-19760/xreview-agy-39.err
+- metadata: /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/xreview-20260714T032222Z-19760/xreview-agy-39.meta
 
-## 3. Concerns
-*   **MEDIUM: Acceleration Calculation Overhead (39-05)**: Task 39-05-02 requires calculating "acceleration magnitudes from resident snapshots" for the Gumbel-top-k sampler. Depending on how this is implemented (e.g., finite differences vs. gravitational calculation), it risks introducing significant performance overhead during batch construction if not strictly vectorized.
-*   **LOW: Test Discovery Import Errors (39-01)**: Task 39-01-03 specifies using a `_require` helper to skip tests for absent production symbols. If the test modules import missing production files at the top level, `unittest discover` will crash with an `ImportError` before the skip logic can execute. 
-*   **LOW: Spec Modification During Execution (39-02)**: Task 39-02-04 edits `39-SPEC.md` to add defect banners. While the rationale is sound, modifying a specification file during the execution phase is generally an anti-pattern.
-*   **LOW: Floating-Point Sweep Grids (39-06)**: The `s0_sensitivity_sweep` uses geometric multipliers (`{0.5, 1, 2} * interim_s0`). Floating-point arithmetic on `0.01` could yield minor precision artifacts (e.g., `0.005000000000000001`), which is a slight cosmetic/diagnostic risk.
+Stderr excerpt:
+```
+sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+sudo: a password is required
 
-## 4. Suggestions
-*   **Lazy Test Imports**: Explicitly mandate in 39-01 that imports for Phase 39 production modules must be deferred (placed inside the test methods) or wrapped in `try/except` blocks to ensure `unittest discover` functions smoothly across waves.
-*   **Vectorize Acceleration**: Ensure the batch constructor in 39-05-02 relies on heavily vectorized NumPy operations to compute the acceleration magnitudes across the `n_snapshots` array, avoiding any Python `for`-loops per trajectory.
-*   **Acknowledge Spec Edit**: Treat the `39-SPEC.md` modification as a one-time necessary exception to prevent literal verifier failures, rather than a precedent for altering specs mid-implementation.
-
-## 5. Overall Risk
-**LOW**. The execution plans are exceptionally detailed, highly defensive, and rigorously cross-referenced against the specification and threat models.
+```
 
 ---
 
@@ -230,17 +232,17 @@ _Synthesize shared concerns across reviewers above (2+ agreement = highest prior
 ### claude
 - reviewer=claude
 - exit_code=0
-- elapsed_seconds=325
+- elapsed_seconds=256
 - timeout_seconds=360
 - watchdog=not_triggered
 - command=ccp pro --model claude-opus-4-8 -p - 
-- stdout_bytes=12234
+- stdout_bytes=10398
 - stderr_bytes=0
 
 ### claude-glm
 - reviewer=claude-glm
 - exit_code=1
-- elapsed_seconds=228
+- elapsed_seconds=217
 - timeout_seconds=540
 - watchdog=not_triggered
 - command=ccp glm -p - 
@@ -250,28 +252,28 @@ _Synthesize shared concerns across reviewers above (2+ agreement = highest prior
 ### claude-deepseek
 - reviewer=claude-deepseek
 - exit_code=0
-- elapsed_seconds=147
+- elapsed_seconds=215
 - timeout_seconds=360
 - watchdog=not_triggered
 - command=ccp deepseek -p - 
-- stdout_bytes=7024
+- stdout_bytes=11498
 - stderr_bytes=192
 
 ### codex
 - reviewer=codex
 - exit_code=0
-- elapsed_seconds=339
+- elapsed_seconds=335
 - timeout_seconds=360
 - watchdog=not_triggered
 - command=codex exec --ephemeral --dangerously-bypass-hook-trust --model gpt-5.5 -c model_reasoning_effort=\"xhigh\" --skip-git-repo-check - 
-- stdout_bytes=3463
-- stderr_bytes=131019
+- stdout_bytes=3561
+- stderr_bytes=330164
 
 ### agy
 - reviewer=agy
-- exit_code=0
-- elapsed_seconds=79
+- exit_code=1
+- elapsed_seconds=2
 - timeout_seconds=360
 - watchdog=not_triggered
-- stdout_bytes=3694
-- stderr_bytes=0
+- stdout_bytes=0
+- stderr_bytes=164
