@@ -506,15 +506,22 @@
 - **Confidence of impact:** MEDIUM — affects a contract value used at Wave-4
   split time; the failure mode is a KeyError/silent coercion at the real-corpus
   Wave-5 gate, not at dataset-free test time.
-- **Status:** OPEN — blocking the missing-base path of DATA-04 planning.
-  (Deferral recorded in `39-04-PLAN.md` citing this gap; the plans are NOT
-  train-ready until the user resolves or explicitly defers it.)
-- **Resolution note:** _(awaiting user instruction)_
+- **Status:** RESOLVED-WITH-INSTRUCTION — no longer blocks the missing-base
+  path of DATA-04 planning.
+- **Resolution note:** Under the user's 2026-07-14 instruction to resolve this
+  gap carefully, choose option A. Add a canonical `MISSING_BASE` sentinel
+  symmetric to `MISSING_GOLD`. The sentinel belongs only to the DATA-04 split
+  signature and manifest metadata; it is not a persisted record `stage_label`
+  and never enters a numeric stage pool. A base-rejected/gold-admitted group
+  therefore has a total, distinct signature (for example,
+  `(variant, MISSING_BASE, UNASSIGNED)`), remains distinguishable from a group
+  whose base was admitted with `stage_label=UNASSIGNED`, and still receives
+  exactly one split like every other admitted `physical_key`. Replace the
+  `MissingBaseSentinelUndefined` deferral in `39-04-PLAN.md` during the cycle-4
+  replan, and add a fixture where base is rejected, gold is admitted, and the
+  group partitions exactly once without entering numeric pools.
 
 ---
 
-**Milestone-index follow-up:** `.planning/milestones/v2.0-GAPS.md` is currently
-claimed by another active session. Do not overwrite that shared index; add the
-GAP-39-01 deferred, GAP-39-02 through GAP-39-09 resolved, GAP-39-10 resolved,
-and GAP-39-11 open entries once the owner releases the claim or coordinates the
-update.
+**Milestone-index status:** `.planning/milestones/v2.0-GAPS.md` synchronized on
+2026-07-14: GAP-39-01 is deferred and GAP-39-02 through GAP-39-11 are resolved.
