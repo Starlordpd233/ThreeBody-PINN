@@ -13,7 +13,7 @@
 | ID | Capability | Depends on | State at workspace creation | Evidence or next action |
 |---|---|---|---|---|
 | O0 | Map regression to a layered neural network | AP Statistics least-squares | introduced | Historical sample in the source design; three corrected re-attempts remain pending. |
-| U1 | Distinguish representation, optimization, and generalization from evidence | O0 vocabulary only | queued | First deep unit; repairs “more layers means more fitting and accuracy.” |
+| U1 | Distinguish representation, optimization, and generalization from evidence | O0 vocabulary only | introduced | Lesson 0001 released; independent attempt pending. |
 | U2 | Derive one gradient update and explain what autograd records | U1 | queued | Start only after U1's three-way distinction is at least demonstrated or deliberately deferred. |
 | U3 | Translate three-body state and scaling into model inputs and outputs | algebra, mechanics | queued | Independent of project phase numbering. |
 | U4 | Derive one physics residual from a second-order ODE | U2, U3 | queued | No implementation detail until the mathematical residual is understood. |
@@ -22,7 +22,7 @@
 
 ## Active unit
 
-No unit is active until Unit 0001 is source-checked and released. The executor changes U1 from `queued` to `introduced` at that release; the learner's attempt then determines whether it becomes `practicing` or `demonstrated`.
+Unit 0001 (U1) is active at state `introduced`. The lesson has been source-checked, reviewed, and released; reading alone does not advance it beyond `introduced`. The learner's independent attempt will determine whether U1 becomes `practicing` or `demonstrated`.
 
 ## Review queue
 
