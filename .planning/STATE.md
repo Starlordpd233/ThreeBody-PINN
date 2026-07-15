@@ -5,16 +5,16 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 39
 current_phase_name: data-ingestion-stage-0-population-scan
 status: executing
-stopped_at: Phase 39 Plan 03 complete (production AdmittedSetAdapter integration, DATA-01..03); ready for Plan 39-04
-last_updated: "2026-07-15T10:05:00.000Z"
+stopped_at: Completed 39-06-PLAN.md; ready for 39-07
+last_updated: "2026-07-15T11:23:13.098Z"
 last_activity: 2026-07-15
-last_activity_desc: Phase 39 Plan 03 complete (production AdmittedSetAdapter, fp32 residency, GAP-39-07 accounting, DATA-01..03 integration gate)
+last_activity_desc: Phase 39 Plan 06 complete (DATA-06 stage population report and CLI); Plan 39-07 phase close remains
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 14
-  percent: 29
+  completed_plans: 17
+  percent: 94
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
-Plan: 4 of 7 (Plans 01-03 complete: Wave-0 test contract, frozen contracts/parser/preprocessing/stages/admission, production AdmittedSetAdapter integration)
-Status: Executing Phase 39
-Last activity: 2026-07-15 — Phase 39 Plan 03 complete (production AdmittedSetAdapter, fp32 residency, GAP-39-07 accounting, DATA-01..03 integration gate)
+Plan: 7 of 7 (Plans 01-06 complete; Plan 39-07 phase close remains)
+Status: Ready to execute Plan 39-07
+Last activity: 2026-07-15 — Phase 39 Plan 06 complete (DATA-06 stage population report and CLI)
 
 ## Deferred Items
 
@@ -105,6 +105,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 39 P01 | 18min | 3 tasks | 9 files |
 | Phase 39 P02 | 22min | 4 tasks | 8 files |
 | Phase 39 P03 | 35min | 3 tasks | 4 files |
+| Phase 39 P06 | 17 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -252,11 +253,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/39-data-ingestion-stage-0-population-scan/39-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-07-15T10:05:00.000Z
-Stopped at: Phase 39 Plan 03 complete (production AdmittedSetAdapter integration for DATA-01..03); Plan 39-04 next
-Next action: Execute Phase 39 Plan 04 (DATA-04 physical-key grouped splits), then Plans 39-05..39-07.
+Last session: 2026-07-15T11:23:13.092Z
+Stopped at: Completed 39-06-PLAN.md; ready for 39-07
+Next action: Execute Phase 39 Plan 07 phase-close verification and retained-evidence gate.
 
 ## Operator Next Steps
 
