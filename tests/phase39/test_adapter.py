@@ -25,11 +25,14 @@ Contract highlights (39-01-PLAN task 39-01-01 acceptance criteria):
 import importlib
 import unittest
 
+import numpy as np
+
 from tests.phase39 import _SKIP_PHRASE
 from tests.phase39 import _fixtures
 
 TYPES = "pinn.data.types"
 ADAPTER = "pinn.data.adapter"
+PREPROCESSING = "pinn.data.preprocessing"
 SPLITS = "pinn.data.splits"
 BATCHES = "pinn.data.batches"
 STAGE_SCAN = "pinn.data.stage_scan"
@@ -452,6 +455,165 @@ class RawParseTests(unittest.TestCase):
         a = record_key_from_brutus("brutus_hierarchical", "brutus_hierarchical_0000.txt")
         b = record_key_from_brutus("brutus_hierarchical", "brutus_hierarchical_0000.txt")
         self.assertEqual(a, b)
+
+
+# ===========================================================================
+# Task 39-02-02 — pure CTL preprocessing, invariants, IC13, normalization.
+# ===========================================================================
+
+def _sample_system():
+    """One deterministic, non-degenerate 3-body float64 system."""
+    masses = np.array([1.35, 0.31, 1.34], dtype=np.float64)
+    r0 = np.array([[2.0, 0.5, 0.1], [-1.0, -0.3, 0.2], [0.0, 1.2, -0.4]], dtype=np.float64)
+    v0 = np.array([[0.1, 0.2, 0.0], [-0.2, 0.1, 0.05], [0.05, -0.1, 0.1]], dtype=np.float64)
+    times = np.linspace(0.0, 10.0, 12)
+    positions = np.stack([r0 + 0.01 * t * np.array([1.0, 0.0, 0.0]) for t in times])
+    velocities = np.stack([v0 for _ in times])
+    return times, positions, velocities, masses
+
+
+class PreprocessingPipelineTests(unittest.TestCase):
+    def test_imports_locked_D_and_produces_float64_deterministic_output(self):
+        constants = importlib.import_module("pinn.constants")
+        preprocess_trajectory = _require("preprocess_trajectory", PREPROCESSING)
+        times, positions, velocities, masses = _sample_system()
+        a = preprocess_trajectory(times, positions, velocities, masses)
+        b = preprocess_trajectory(times, positions, velocities, masses)
+        self.assertEqual(a.D, constants.D_CHARACTERISTIC_LENGTH)
+        self.assertAlmostEqual(a.D, 100.0 ** (1.0 / 3.0))
+        self.assertEqual(a.r_gauge.dtype, np.float64)
+        self.assertEqual(a.v_gauge.dtype, np.float64)
+        np.testing.assert_array_equal(a.r_gauge, b.r_gauge)   # deterministic
+        np.testing.assert_array_equal(a.masses_ordered, b.masses_ordered)
+
+    def test_com_and_momentum_postconditions_hold_after_preprocessing(self):
+        preprocess_trajectory = _require("preprocess_trajectory", PREPROCESSING)
+        times, positions, velocities, masses = _sample_system()
+        pre = preprocess_trajectory(times, positions, velocities, masses)
+        com = np.sum(pre.masses_ordered[:, None] * pre.r0_gauge, axis=0)
+        momentum = np.sum(pre.masses_ordered[:, None] * pre.v0_gauge, axis=0)
+        self.assertLess(float(np.linalg.norm(com)), 1e-12)
+        self.assertLess(float(np.linalg.norm(momentum)), 1e-12)
+
+    def test_mass_invariance_check_passes_and_rejects(self):
+        check_mass_invariance = _require("check_mass_invariance", PREPROCESSING)
+        MassInvarianceError = _require("MassInvarianceError", PREPROCESSING)
+        stable = np.array([[1.0, 2.0, 3.0]] * 5, dtype=np.float64)
+        self.assertEqual(check_mass_invariance(stable), 0.0)
+        drifting = stable.copy()
+        drifting[-1, 0] += 1e-10   # >= 1e-15 tolerance
+        with self.assertRaises(MassInvarianceError):
+            check_mass_invariance(drifting)
+
+    def test_gauge_degenerate_rho_raises(self):
+        preprocess_trajectory = _require("preprocess_trajectory", PREPROCESSING)
+        GaugeDegenerateError = _require("GaugeDegenerateError", PREPROCESSING)
+        masses = np.array([3.0, 2.0, 1.0], dtype=np.float64)
+        r0 = np.array([[0.0, 0.0, 0.0], [1e-12, 0.0, 0.0], [5.0, 0.0, 0.0]], dtype=np.float64)
+        v0 = np.zeros((3, 3), dtype=np.float64)
+        times = np.linspace(0.0, 10.0, 3)
+        positions = np.stack([r0] * 3)
+        velocities = np.stack([v0] * 3)
+        with self.assertRaises(GaugeDegenerateError):
+            preprocess_trajectory(times, positions, velocities, masses)
+
+
+class InvariantsTests(unittest.TestCase):
+    def test_s_min_is_unsoftened_true_pairwise_separation(self):
+        compute_invariants = _require("compute_invariants", PREPROCESSING)
+        masses = np.array([1.0, 1.0, 1.0], dtype=np.float64)
+        r0 = np.array([[0.0, 0.0, 0.0], [0.3, 0.0, 0.0], [0.0, 0.9, 0.0]], dtype=np.float64)
+        v0 = np.array([[0.1, 0.0, 0.0], [-0.1, 0.05, 0.0], [0.0, -0.05, 0.1]], dtype=np.float64)
+        inv = compute_invariants(masses, r0, v0)
+        # True minimal separation (0.3) with NO Plummer softening added.
+        self.assertAlmostEqual(inv.s_min, 0.3)
+
+    def test_raw_masses_remain_separate_from_invariants(self):
+        # The invariants dataclass carries no mass field; raw masses travel
+        # alongside, never folded into E/Q/s_min/l_ratio.
+        import dataclasses
+        Invariants = _require("Invariants", PREPROCESSING)
+        names = {f.name for f in dataclasses.fields(Invariants)}
+        self.assertNotIn("masses", names)
+        self.assertEqual(names, {"E", "Q", "s_min", "l_ratio", "l_ratio_reason"})
+
+    def test_l_ratio_degenerate_near_collision_returns_none_with_reason(self):
+        compute_l_ratio = _require("compute_l_ratio", PREPROCESSING)
+        masses = np.array([1.0, 1.0, 1.0], dtype=np.float64)
+        r0 = np.array([[1e-9, 0, 0], [0, 1e-9, 0], [0, 0, 1e-9]], dtype=np.float64)
+        v0 = np.zeros((3, 3), dtype=np.float64)
+        l_ratio, reason = compute_l_ratio(masses, r0, v0, E=1e-12)
+        self.assertIsNone(l_ratio)
+        self.assertEqual(reason, "degenerate_Lmax")
+
+    def test_l_ratio_overshoot_is_not_clamped(self):
+        # No global clamp is authorized (Phase 33 D-33-11): L_norm may
+        # legitimately exceed 1 and must be returned raw, un-clipped.
+        compute_l_ratio = _require("compute_l_ratio", PREPROCESSING)
+        masses = np.array([1.0, 1.0, 1.0], dtype=np.float64)
+        r0 = np.array([[2.0, 0, 0], [-1.0, 1.5, 0], [-1.0, -1.5, 0]], dtype=np.float64)
+        v0 = np.array([[0, 3.0, 0], [-2.6, -1.5, 0], [2.6, -1.5, 0]], dtype=np.float64)
+        # An independently small |E| shrinks L_max (v_char) while L (from r0,v0)
+        # stays fixed, forcing a genuine overshoot with no clipping.
+        l_ratio, reason = compute_l_ratio(masses, r0, v0, E=-0.01)
+        self.assertIsNone(reason)
+        self.assertIsNotNone(l_ratio)
+        self.assertGreater(l_ratio, 1.0)
+
+    def test_l_ratio_ordinary_finite_case_is_not_degenerate(self):
+        compute_l_ratio = _require("compute_l_ratio", PREPROCESSING)
+        masses = np.array([1.35, 0.31, 1.34], dtype=np.float64)
+        r0 = np.array([[2.0, 0.5, 0.1], [-1.0, -0.3, 0.2], [0.0, 1.2, -0.4]], dtype=np.float64)
+        v0 = np.array([[0.1, 0.2, 0.0], [-0.2, 0.1, 0.05], [0.05, -0.1, 0.1]], dtype=np.float64)
+        l_ratio, reason = compute_l_ratio(masses, r0, v0, E=-0.8)
+        self.assertIsNone(reason)
+        self.assertTrue(np.isfinite(l_ratio))
+
+
+class IC13AndNormalizationTests(unittest.TestCase):
+    def test_raw_ic13_exact_shape_and_slot_order(self):
+        preprocess_trajectory = _require("preprocess_trajectory", PREPROCESSING)
+        compute_invariants = _require("compute_invariants", PREPROCESSING)
+        build_raw_ic13 = _require("build_raw_ic13", PREPROCESSING)
+        times, positions, velocities, masses = _sample_system()
+        pre = preprocess_trajectory(times, positions, velocities, masses)
+        inv = compute_invariants(pre.masses_ordered, pre.r0_gauge, pre.v0_gauge)
+        ic13 = build_raw_ic13(pre.masses_ordered, pre.r0_gauge, pre.v0_gauge, inv.E)
+        self.assertEqual(ic13.shape, (13,))
+        self.assertEqual(ic13.dtype, np.float64)
+        # Slots 0-2 are the ordered raw masses; slot 12 is E.
+        np.testing.assert_array_equal(ic13[:3], pre.masses_ordered)
+        self.assertEqual(ic13[12], inv.E)
+        # rho_x / lambda_x / lambda_y are slots 3-5.
+        m1, m2 = pre.masses_ordered[0], pre.masses_ordered[1]
+        rho = pre.r0_gauge[1] - pre.r0_gauge[0]
+        lam = pre.r0_gauge[2] - (m1 * pre.r0_gauge[0] + m2 * pre.r0_gauge[1]) / (m1 + m2)
+        self.assertAlmostEqual(ic13[3], rho[0])
+        self.assertAlmostEqual(ic13[4], lam[0])
+        self.assertAlmostEqual(ic13[5], lam[1])
+
+    def test_normalization_roundtrip_and_energy_slot_formula(self):
+        compute_normalization_stats = _require("compute_normalization_stats", PREPROCESSING)
+        normalize_ic13 = _require("normalize_ic13", PREPROCESSING)
+        rng = np.random.default_rng(0)
+        pop = rng.normal(size=(20, 13)).astype(np.float64)
+        energies = pop[:, 12]
+        stats = compute_normalization_stats(pop, energies)
+        normalized = normalize_ic13(pop[0], stats)
+        self.assertEqual(normalized.shape, (13,))
+        expected_first = np.tanh((pop[0, :12] - stats.slot_means) / (stats.slot_stds + 1e-8))
+        np.testing.assert_allclose(normalized[:12], expected_first)
+        expected_energy = np.tanh(pop[0, 12] / stats.e_scale)
+        self.assertAlmostEqual(normalized[12], expected_energy)
+        # All slots land in the open (-1, 1) tanh range.
+        self.assertTrue(np.all(np.abs(normalized) < 1.0))
+
+    def test_e_scale_uses_median_absolute_trajectory_energy(self):
+        compute_normalization_stats = _require("compute_normalization_stats", PREPROCESSING)
+        pop = np.zeros((5, 13), dtype=np.float64)
+        energies = np.array([-1.0, -2.0, -3.0, -4.0, -5.0])
+        stats = compute_normalization_stats(pop, energies)
+        self.assertAlmostEqual(stats.e_scale, abs(-3.0) + 1e-8)   # median
 
 
 # ===========================================================================
