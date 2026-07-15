@@ -190,6 +190,271 @@ class ResidentBytesTests(unittest.TestCase):
 
 
 # ===========================================================================
+# Task 39-02-01 — sole float64 parser helpers + version outcomes (green now).
+# ===========================================================================
+
+class FolderTableMappingTests(unittest.TestCase):
+    """HIGH-3: the README-confirmed 4->2 variant-based Brutus->IC mapping."""
+
+    def test_folder_table_pins_four_brutus_to_two_ic_folders(self):
+        table = _require("BRUTUS_FOLDER_TABLE", ADAPTER)
+        ic_for_variant = _require("IC_FOLDER_FOR_VARIANT", ADAPTER)
+        self.assertEqual(set(table), set(_fixtures.BRUTUS_FOLDERS))
+        self.assertEqual(set(ic_for_variant), {"hierarchical", "standard"})
+        for folder in ("brutus_hierarchical", "brutus_hierarchical_gold_standard"):
+            variant, _fidelity = table[folder]
+            self.assertEqual(ic_for_variant[variant], "ic_hierarchical")
+        for folder in ("brutus_standard_quasi_random",
+                        "brutus_standard_quasi_random_gold_standard"):
+            variant, _fidelity = table[folder]
+            self.assertEqual(ic_for_variant[variant], "ic_standard_quasi_random")
+        # No ``_for_gold_standard`` IC folder is ever named.
+        self.assertNotIn("ic_hierarchical_for_gold_standard", ic_for_variant.values())
+
+    def test_record_key_from_brutus_resolves_across_all_four_folders(self):
+        record_key_from_brutus = _require("record_key_from_brutus", ADAPTER)
+        cases = [
+            ("brutus_hierarchical", "brutus_hierarchical_0007.txt", "hierarchical", "base", 7),
+            ("brutus_hierarchical_gold_standard", "brutus_hierarchical_0007.txt",
+             "hierarchical", "gold", 7),
+            ("brutus_standard_quasi_random", "brutus_standard_0005.txt", "standard", "base", 5),
+            ("brutus_standard_quasi_random_gold_standard", "brutus_standard_0005.txt",
+             "standard", "gold", 5),
+        ]
+        for folder, filename, variant, fidelity, id_ in cases:
+            key = record_key_from_brutus(folder, filename)
+            self.assertEqual((key.variant, key.fidelity, key.id), (variant, fidelity, id_))
+
+    def test_gold_brutus_pairs_to_a_base_ic_physical_key(self):
+        """HIGH-3: a gold record ADMITS via its base IC sibling even though no
+        ``_for_gold_standard`` IC folder exists."""
+        record_key_from_brutus = _require("record_key_from_brutus", ADAPTER)
+        physical_key_from_ic = _require("physical_key_from_ic", ADAPTER)
+        gold_key = record_key_from_brutus(
+            "brutus_hierarchical_gold_standard", "brutus_hierarchical_0000.txt")
+        base_ic_key = physical_key_from_ic("ic_hierarchical", "ic_hierarchical_0000.txt")
+        self.assertEqual(gold_key.physical_key, base_ic_key)
+
+    def test_malformed_filename_and_folder_variant_mismatch_fail(self):
+        record_key_from_brutus = _require("record_key_from_brutus", ADAPTER)
+        physical_key_from_ic = _require("physical_key_from_ic", ADAPTER)
+        with self.assertRaises(ValueError):
+            record_key_from_brutus("brutus_hierarchical", "not_a_trajectory.txt")
+        with self.assertRaises(ValueError):
+            record_key_from_brutus("brutus_hierarchical", "brutus_standard_0001.txt")
+        with self.assertRaises(ValueError):
+            physical_key_from_ic("ic_hierarchical", "ic_standard_0001.txt")
+        with self.assertRaises(ValueError):
+            record_key_from_brutus("unknown_folder", "brutus_hierarchical_0001.txt")
+
+
+class AsymmetricPairingTests(unittest.TestCase):
+    """DATA-04 ``physical_key = (variant, id)`` grouping, never a 1:1 folder
+    correspondence (HIGH-3)."""
+
+    def test_asymmetric_pairing_quarantines_by_physical_key(self):
+        PhysicalKey = _require("PhysicalKey", TYPES)
+        pair_by_physical_key = _require("pair_by_physical_key", ADAPTER)
+        with _fixtures.TinyCorpus() as corpus:
+            bv, bid = corpus.brutus_without_ic
+            iv, iid = corpus.ic_without_brutus
+            gv, gid = corpus.gold_with_base_ic
+            brutus_keys = {PhysicalKey(bv, bid), PhysicalKey(gv, gid), PhysicalKey("hierarchical", 3)}
+            ic_keys = {PhysicalKey(iv, iid), PhysicalKey(gv, gid), PhysicalKey("hierarchical", 3)}
+            result = pair_by_physical_key(brutus_keys, ic_keys)
+            self.assertIn(PhysicalKey(bv, bid), result.missing_ic_sibling)
+            self.assertIn(PhysicalKey(iv, iid), result.missing_brutus_sibling)
+            # The gold-with-base-IC case is NOT an anomaly: it pairs cleanly.
+            self.assertNotIn(PhysicalKey(gv, gid), result.missing_ic_sibling)
+            self.assertNotIn(PhysicalKey(gv, gid), result.missing_brutus_sibling)
+
+
+class FooterProvenanceTests(unittest.TestCase):
+    """Full / absent / partial footer provenance across all four folder
+    variants, plus the exact GAP-39-09 1% measured-vs-reference boundary."""
+
+    def test_full_footer_is_all_direct_not_anomalous(self):
+        parse_footer = _require("parse_footer", ADAPTER)
+        ref, prov, anomalous, missing = parse_footer(
+            _fixtures.FOOTER_FULL, variant="hierarchical", fidelity="base")
+        self.assertEqual(ref["tol"], 1e-15)
+        self.assertEqual(ref["Lw"], 130)
+        self.assertAlmostEqual(ref["dt_out"], 0.08)
+        self.assertAlmostEqual(ref["eta"], 0.263027)
+        self.assertTrue(all(v == "direct" for v in prov.values()))
+        self.assertFalse(anomalous)
+        self.assertEqual(missing, ())
+
+    def test_absent_footer_infers_folder_defaults_per_variant(self):
+        parse_footer = _require("parse_footer", ADAPTER)
+        cases = [
+            ("hierarchical", "base", dict(tol=1e-15, Lw=130, dt_out=0.08)),
+            ("standard", "base", dict(tol=1e-13, Lw=118, dt_out=0.17)),
+            ("hierarchical", "gold", dict(tol=1e-13, Lw=130, dt_out=0.01)),
+            ("standard", "gold", dict(tol=1e-13, Lw=130, dt_out=0.01)),
+        ]
+        for variant, fidelity, expected in cases:
+            ref, prov, anomalous, missing = parse_footer(
+                None, variant=variant, fidelity=fidelity)
+            for key, value in expected.items():
+                self.assertAlmostEqual(ref[key], value)
+                self.assertEqual(prov[key], "inferred")
+            self.assertIsNone(ref["eta"])
+            self.assertEqual(prov["eta"], "absent")
+            self.assertFalse(anomalous)   # absence is the expected, not anomalous, case
+            self.assertEqual(missing, ())
+
+    def test_partial_footer_is_anomalous_and_logs_missing_names(self):
+        parse_footer = _require("parse_footer", ADAPTER)
+        ref, prov, anomalous, missing = parse_footer(
+            _fixtures.FOOTER_PARTIAL, variant="hierarchical", fidelity="base")
+        self.assertEqual(prov["tol"], "direct")
+        self.assertEqual(prov["dt_out"], "direct")
+        self.assertEqual(prov["t_end"], "direct")
+        self.assertEqual(prov["eta"], "absent")   # no documented eta default
+        self.assertTrue(anomalous)
+        self.assertIn("eta", missing)
+        self.assertIsNone(ref["eta"])
+
+    def test_footer_never_supplies_energy_fields(self):
+        # DATA-02 prohibition: energies are footer-only diagnostics, never a
+        # reference/admission field.
+        parse_footer = _require("parse_footer", ADAPTER)
+        ref, _prov, _anom, _missing = parse_footer(
+            _fixtures.FOOTER_FULL, variant="hierarchical", fidelity="base")
+        self.assertNotIn("E_initial", ref)
+        self.assertNotIn("E_final", ref)
+        self.assertNotIn("dE/E", ref)
+
+
+class MeasuredDtOutTests(unittest.TestCase):
+    """GAP-39-09: independently measured ``dt_out`` and the reversible 1%
+    relative-disagreement warning boundary."""
+
+    def test_measured_dt_out_is_median_diff_times(self):
+        measure_dt_out = _require("measure_dt_out", ADAPTER)
+        times = _fixtures.complete_times(12)
+        self.assertAlmostEqual(measure_dt_out(times), 10.0 / 11.0, places=6)
+
+    def test_exact_one_percent_does_not_warn_and_above_does(self):
+        import math
+        dt_out_disagreement_warns = _require("dt_out_disagreement_warns", ADAPTER)
+        threshold = _require("DT_OUT_WARN_REL_THRESHOLD", ADAPTER)
+        self.assertEqual(threshold, 0.01)
+        # reference=100.0, measured=101.0 -> ratio = 1.0/100.0, which is
+        # bit-for-bit == the 0.01 literal (IEEE-754 division is correctly
+        # rounded), so this boundary is exact, not float-literal-brittle.
+        reference, boundary = 100.0, 101.0
+        self.assertEqual(abs(boundary - reference) / reference, threshold)
+        self.assertFalse(dt_out_disagreement_warns(boundary, reference))
+        just_above = math.nextafter(boundary, math.inf)
+        self.assertTrue(dt_out_disagreement_warns(just_above, reference))
+
+    def test_absent_or_nonfinite_reference_never_warns(self):
+        dt_out_disagreement_warns = _require("dt_out_disagreement_warns", ADAPTER)
+        self.assertFalse(dt_out_disagreement_warns(0.9, None))
+        self.assertFalse(dt_out_disagreement_warns(float("nan"), 1.0))
+        self.assertFalse(dt_out_disagreement_warns(0.9, float("inf")))
+
+
+class VersionSeamTests(unittest.TestCase):
+    """DATA-03 / GAP-39-01: the module-level compare-and-refuse seam."""
+
+    def test_match_is_verified(self):
+        verify_data_version = _require("verify_data_version", ADAPTER)
+        Verified = _require("DataVersionHashVerified", TYPES)
+        self.assertIs(verify_data_version("a" * 64, "a" * 64), Verified)
+
+    def test_mismatch_raises(self):
+        verify_data_version = _require("verify_data_version", ADAPTER)
+        Mismatch = _require("DataVersionHashMismatch", TYPES)
+        with self.assertRaises(Mismatch):
+            verify_data_version("a" * 64, "b" * 64)
+
+    def test_absent_canonical_is_deferred(self):
+        verify_data_version = _require("verify_data_version", ADAPTER)
+        Deferred = _require("DataVersionHashDeferred", TYPES)
+        self.assertIs(verify_data_version(None, "b" * 64), Deferred)
+
+
+class RawParseTests(unittest.TestCase):
+    """The parser preserves float64 precision and rejects malformed input."""
+
+    def test_ic_roundtrip_preserves_float64_precision(self):
+        parse_ic_text = _require("parse_ic_text", ADAPTER)
+        masses, positions, velocities = parse_ic_text(
+            "\n".join(_fixtures._body_line(m, i, 0.0)
+                      for i, m in enumerate(_fixtures.HIER_MASSES)) + "\n")
+        for got, want in zip(masses.tolist(), _fixtures.HIER_MASSES):
+            self.assertEqual(got, want)
+        self.assertEqual(positions.shape, (3, 3))
+        self.assertEqual(velocities.shape, (3, 3))
+
+    def test_brutus_roundtrip_shapes_and_footer_capture(self):
+        parse_brutus_text = _require("parse_brutus_text", ADAPTER)
+        text = _fixtures._brutus_text(_fixtures.complete_times(12), _fixtures.HIER_MASSES,
+                                       footer=_fixtures.FOOTER_FULL)
+        parsed = parse_brutus_text(text)
+        self.assertEqual(parsed.n_complete_blocks, 12)
+        self.assertEqual(parsed.n_nonfinite_blocks, 0)
+        self.assertEqual(parsed.n_malformed_blocks, 0)
+        self.assertEqual(parsed.positions.shape, (12, 3, 3))
+        self.assertEqual(parsed.velocities.shape, (12, 3, 3))
+        self.assertIsNotNone(parsed.footer_raw)
+
+    def test_interior_nonfinite_block_is_counted_not_dropped_silently(self):
+        # Self-contained override (does not depend on the Wave-0
+        # ``_fixtures._nonfinite_interior`` t==4.0 trigger, which the default
+        # ``complete_times(12)`` array never hits exactly) so this test is
+        # exact regardless of that fixture's own time grid.
+        parse_brutus_text = _require("parse_brutus_text", ADAPTER)
+        times = _fixtures.complete_times(12)
+        target_t = times[6]
+
+        def corrupt(t, i, m):
+            if t == target_t and i == 1:
+                return f"{m!r} inf 0.0 0.0 0.0 0.0 0.0"
+            return _fixtures._body_line(m, i, t)
+
+        text = _fixtures._brutus_text(times, _fixtures.HIER_MASSES, body_override=corrupt)
+        parsed = parse_brutus_text(text)
+        self.assertEqual(parsed.n_complete_blocks, 12)
+        self.assertEqual(parsed.n_nonfinite_blocks, 1)
+
+    def test_malformed_missing_row_is_not_salvaged(self):
+        # Self-contained override (does not depend on the Wave-0
+        # ``_fixtures._malformed_missing_row`` t==2.0 trigger, which the
+        # default ``complete_times(12)`` array never hits exactly).
+        parse_brutus_text = _require("parse_brutus_text", ADAPTER)
+        times = _fixtures.complete_times(12)
+        target_t = times[2]
+
+        def drop_row(t, i, m):
+            if t == target_t and i == 2:
+                return None
+            return _fixtures._body_line(m, i, t)
+
+        text = _fixtures._brutus_text(times, _fixtures.HIER_MASSES, body_override=drop_row)
+        parsed = parse_brutus_text(text)
+        self.assertEqual(parsed.n_complete_blocks, 11)
+        self.assertEqual(parsed.n_malformed_blocks, 1)
+
+    def test_root_containment_rejects_escape(self):
+        resolve_within_root = _require("resolve_within_root", ADAPTER)
+        with _fixtures.TinyCorpus() as corpus:
+            with self.assertRaises(Exception):
+                resolve_within_root(corpus.data_root, corpus.data_root / ".." / "escape.txt")
+
+    def test_duplicate_record_key_from_two_scanned_paths_is_equal(self):
+        # Identity is structural: the same folder+filename always resolves the
+        # same RecordKey, so a scanner can hard-fail on duplicates by equality.
+        record_key_from_brutus = _require("record_key_from_brutus", ADAPTER)
+        a = record_key_from_brutus("brutus_hierarchical", "brutus_hierarchical_0000.txt")
+        b = record_key_from_brutus("brutus_hierarchical", "brutus_hierarchical_0000.txt")
+        self.assertEqual(a, b)
+
+
+# ===========================================================================
 # Adapter residency / accessors / version / label persistence (deferred).
 # ===========================================================================
 
