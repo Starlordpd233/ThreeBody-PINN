@@ -668,6 +668,7 @@ class AdmittedSetAdapter:
 
         # Two-pass ingestion.
         self._records: dict[RecordKey, AdmittedRecord] = {}
+        self._trajectory_tensors: dict[RecordKey, tuple] = {}
         self._resident_tensors: list = []
         self.folder_counts: dict[str, dict] = {}
         self._total_admitted_snapshots = 0
@@ -854,6 +855,7 @@ class AdmittedSetAdapter:
                 np.asarray(cand.raw_ic13, dtype=np.float64), dtype=self._dtype,
                 device=self._device)
             self._resident_tensors.extend([times_t, pos_t, vel_t, ic13_t, masses_t, raw_ic13_t])
+            self._trajectory_tensors[cand.record_key] = (times_t, pos_t, vel_t)
 
             record = AdmittedRecord(
                 record_key=cand.record_key,
@@ -899,6 +901,33 @@ class AdmittedSetAdapter:
 
     def n_snapshots(self, key):
         return self._records[key].n_snapshots
+
+    def snapshot_times(self, key):
+        return self._trajectory_tensors[key][0]
+
+    def snapshot_positions(self, key):
+        return self._trajectory_tensors[key][1]
+
+    def snapshot_velocities(self, key):
+        return self._trajectory_tensors[key][2]
+
+    def acceleration_magnitudes(self, key):
+        """Finite-difference full-trajectory acceleration norms from residency.
+
+        DATA-05 uses these observed-snapshot weights only for data-fidelity
+        sampling.  No collocation/adaptive policy is encoded here.
+        """
+        times, _positions, velocities = self._trajectory_tensors[key]
+        n = int(times.shape[0])
+        if n < 2:
+            raise ValueError(f"record {key!r} needs at least two snapshots")
+        acceleration = torch.empty_like(velocities)
+        acceleration[0] = (velocities[1] - velocities[0]) / (times[1] - times[0])
+        acceleration[-1] = (velocities[-1] - velocities[-2]) / (times[-1] - times[-2])
+        if n > 2:
+            denominator = (times[2:] - times[:-2]).reshape(-1, 1, 1)
+            acceleration[1:-1] = (velocities[2:] - velocities[:-2]) / denominator
+        return torch.linalg.vector_norm(acceleration.reshape(n, -1), dim=1)
 
     def dt_out(self, key):
         return self._records[key].dt_out_measured

@@ -131,18 +131,19 @@ class StageIndex:
         "_labels",
         "_pools",
         "_blacklisted_physical_keys",
+        "_source",
         "_locked",
     )
 
     def __init__(self, records):
-        self._initialize(records, frozenset())
+        self._initialize(records, frozenset(), None)
 
     def __setattr__(self, name, value):
         if getattr(self, "_locked", False):
             raise AttributeError("StageIndex is immutable")
         object.__setattr__(self, name, value)
 
-    def _initialize(self, records, blacklisted_physical_keys):
+    def _initialize(self, records, blacklisted_physical_keys, source):
         validated = _validated_records(tuple(records))
         by_key = {record.record_key: record for record in validated}
         labels = {key: record.stage_label for key, record in by_key.items()}
@@ -156,12 +157,13 @@ class StageIndex:
         object.__setattr__(
             self, "_blacklisted_physical_keys", frozenset(blacklisted_physical_keys)
         )
+        object.__setattr__(self, "_source", source)
         object.__setattr__(self, "_locked", True)
 
     @classmethod
-    def _with_blacklist(cls, records, blacklisted_physical_keys):
+    def _with_blacklist(cls, records, blacklisted_physical_keys, source=None):
         instance = object.__new__(cls)
-        instance._initialize(records, blacklisted_physical_keys)
+        instance._initialize(records, blacklisted_physical_keys, source)
         return instance
 
     @classmethod
@@ -181,7 +183,7 @@ class StageIndex:
         allowed = manifest.physical_keys(split_name)
         selected = [record for record in records if _record_key(record).physical_key in allowed]
         blacklist = getattr(source, "blacklisted_physical_keys", frozenset())
-        return cls._with_blacklist(selected, blacklist)
+        return cls._with_blacklist(selected, blacklist, source)
 
     @property
     def stage_labels(self) -> Mapping[RecordKey, StageLabel]:
@@ -203,6 +205,35 @@ class StageIndex:
 
     def n_snapshots(self, key: RecordKey) -> int:
         return int(self._records[key].n_snapshots)
+
+    def _source_value(self, accessor: str, key: RecordKey):
+        if key not in self._records:
+            raise KeyError(key)
+        if self._source is None:
+            record = self._records[key]
+            if hasattr(record, accessor):
+                value = getattr(record, accessor)
+                return value() if callable(value) else value
+            raise TypeError(
+                f"StageIndex(records) has no {accessor} snapshot surface; "
+                "use StageIndex.from_split(adapter, manifest, split_name)"
+            )
+        value = getattr(self._source, accessor, None)
+        if not callable(value):
+            raise TypeError(f"admitted source does not expose {accessor}(key)")
+        return value(key)
+
+    def snapshot_times(self, key: RecordKey):
+        return self._source_value("snapshot_times", key)
+
+    def snapshot_positions(self, key: RecordKey):
+        return self._source_value("snapshot_positions", key)
+
+    def snapshot_velocities(self, key: RecordKey):
+        return self._source_value("snapshot_velocities", key)
+
+    def acceleration_magnitudes(self, key: RecordKey):
+        return self._source_value("acceleration_magnitudes", key)
 
     def dt_out(self, key: RecordKey) -> float:
         record = self._records[key]

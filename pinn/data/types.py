@@ -256,10 +256,16 @@ class NormalizationStats:
 @dataclass(frozen=True)
 class DataFidelityPoints:
     """Data-fidelity point set: model-facing ``(N, 14)`` ``[tau, IC13]`` plus the
-    aligned raw ``(N, 3)`` masses (never reconstructed from normalized slots)."""
+    aligned raw ``(N, 3)`` masses (never reconstructed from normalized slots),
+    observed position targets, and auditable snapshot provenance."""
 
     tau_ic13: Any
     masses: Any
+    targets: Any
+    times: Any
+    record_keys: tuple[RecordKey, ...]
+    snapshot_indices: tuple[int, ...]
+    sampling_kinds: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -270,6 +276,7 @@ class PhysicsCollocationPoints:
     times: Any
     tau_ic13: Any
     masses: Any
+    record_keys: tuple[RecordKey, ...]
 
 
 @dataclass(frozen=True)
@@ -282,6 +289,8 @@ class FixedBatch:
 
     data_points: DataFidelityPoints
     collocation_points: PhysicsCollocationPoints
+    replay_keys: tuple[RecordKey, ...]
+    lookahead_keys: tuple[RecordKey, ...]
 
 
 @dataclass(frozen=True)
