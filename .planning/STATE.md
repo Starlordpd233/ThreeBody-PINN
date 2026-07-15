@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
-current_phase: 38
-current_phase_name: FUT-01
-status: in_progress
-stopped_at: Phase 38 Plans 01-06 complete; real-trajectory phase-close DEFERRED (GAP-38-01)
-last_updated: "2026-07-13T12:30:00.000Z"
-last_activity: 2026-07-13
-last_activity_desc: Phase 38 Plans 05-06 complete; NET-04/05 green; GAP-38-01 DEFERRED
+current_phase: 39
+current_phase_name: data-ingestion-stage-0-population-scan
+status: executing
+stopped_at: Phase 39 Plan 01 complete (Wave 0 test-contract scaffold); ready for Plan 39-02
+last_updated: "2026-07-15T01:56:07Z"
+last_activity: 2026-07-15
+last_activity_desc: Completed 39-01-PLAN.md (Wave 0 nine-file test contract)
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 11
-  completed_plans: 11
-  percent: 18
+  completed_phases: 2
+  total_plans: 18
+  completed_plans: 12
+  percent: 29
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** v2.0 CTL-PINN Training Viability Slice — the project's first **build** milestone (trainex track). Requirements defined (42 across ENV/NET/DATA/TRAIN/CTRL/OPS/ACC); roadmap Phases 37–43. Planning artifacts on `master`; build execution in `.worktrees/trainex` (branch to be aligned to `milestone/v2.0`). Grounded in the owner-ratified trainex-r1a decision set (2026-07-05) + the locked v1.4/v1.5/v1.6 specs; the `pinn/` live-code ban is lifted (FUT-01 rebuilds from specs). Five owner-carved decisions are built as seams, not invented.
+**Current focus:** Phase 39 — data-ingestion-stage-0-population-scan
 
 ## Current Position
 
-Phase: 38 — PINN Model Rebuild from Specs (FUT-01)
-Plan: 6/6 plans executed (38-01 through 38-06 complete)
-Status: Plans complete; phase-close held on GAP-38-01 (real-trajectory residual+overfit evidence DEFERRED — no Brutus payload in worktree). Automated bar green: 128 `tests/phase38` under `pinn-train`; NET-01..05 implemented; dual synthetic overfit CLI launches PASS (ratio ~1691). Framework specs byte-identical to pre-phase baseline. Phase 37 CLOSED. Next: Phase 39 data adapter, or operator real-trajectory evidence to close Phase 38.
-Last activity: 2026-07-13 — Phase 38 Plans 05 (loss catalog) and 06 (overfit + prohibitions) complete
+Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
+Plan: 2 of 7 (Plan 01 Wave-0 test contract complete)
+Status: Executing Phase 39
+Last activity: 2026-07-15 — Phase 39 Plan 01 complete (nine-file dataset-free test scaffold)
 
 ## Deferred Items
 
@@ -102,6 +102,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 35 | 4 | - | - |
 | 37 | 5 | - | - |
 | Phase 38 P04 | 9min | 3 tasks | 6 files |
+| Phase 39 P01 | 18min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
