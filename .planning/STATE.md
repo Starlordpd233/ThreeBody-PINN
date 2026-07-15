@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 39
 current_phase_name: data-ingestion-stage-0-population-scan
-status: executing
-stopped_at: Completed 39-06-PLAN.md; ready for 39-07
-last_updated: "2026-07-15T11:23:13.098Z"
+status: phase_complete
+stopped_at: Completed 39-07-PLAN.md; Phase 39 train-ready (stage0_full_split_count=2265)
+last_updated: "2026-07-15T12:33:00.000Z"
 last_activity: 2026-07-15
-last_activity_desc: Phase 39 Plan 06 complete (DATA-06 stage population report and CLI); Plan 39-07 phase close remains
+last_activity_desc: Phase 39 complete (Plan 07 phase close; real-corpus Thrust-A scan train-ready); ready for Phase 40
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 18
-  completed_plans: 17
-  percent: 94
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
-Plan: 7 of 7 (Plans 01-06 complete; Plan 39-07 phase close remains)
-Status: Ready to execute Plan 39-07
-Last activity: 2026-07-15 — Phase 39 Plan 06 complete (DATA-06 stage population report and CLI)
+Phase: 39 (data-ingestion-stage-0-population-scan) — COMPLETE (train-ready)
+Plan: 7 of 7 complete
+Status: Phase 39 closed by Plan 39-07 — real-corpus Thrust-A scan reports stage0_full_split_count=2265 (>=240), phase39_status=train-ready
+Last activity: 2026-07-15 — Phase 39 Plan 07 phase close (dataset-free + full-repository regression, read-only 6.3 GB scan, reader/readiness audit)
 
 ## Deferred Items
 
