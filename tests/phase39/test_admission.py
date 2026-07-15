@@ -152,6 +152,128 @@ class StructuralAndCompletenessClauseTests(unittest.TestCase):
         self.assertNotIn("dE_over_E", params)
 
 
+class OrchestrationClauseTests(unittest.TestCase):
+    """Clauses 1, 2, 6, 7 plus the aggregate parsed-count identity. Every
+    fixture body's inter-body separation is invariant under the shared
+    ``+0.1*t`` offset applied to all three bodies, so H(t) is exactly
+    conserved (eps_H == 0, Excellent) and the record cleanly reaches clause
+    5/6/7 when not blocked earlier -- isolating each clause under test."""
+
+    def setUp(self):
+        self.evaluate_admission = _require("evaluate_admission", ADMISSION)
+        self.ParsedTrajectory = _require("ParsedTrajectory", TYPES)
+        self.RecordKey = _require("RecordKey", TYPES)
+        self.PhysicalKey = _require("PhysicalKey", TYPES)
+
+    def _times(self, n=12):
+        return [round(i * (10.0 / (n - 1)), 6) for i in range(n)]
+
+    def _parsed(self, record_key=None):
+        np = _np()
+        times = self._times()
+        n = len(times)
+        positions = np.zeros((n, 3, 3), dtype=np.float64)
+        velocities = np.zeros((n, 3, 3), dtype=np.float64)
+        for s in range(n):
+            for b in range(3):
+                positions[s, b] = [1.0 + b + 0.1 * times[s], -0.5 * (b + 1), 0.05 * (b + 1)]
+                velocities[s, b] = [0.3 * (b + 1), -0.2 * (b + 1), 0.01 * (b + 1)]
+        masses = np.array([1.349, 0.307, 1.344], dtype=np.float64)
+        key = record_key or self.RecordKey("hierarchical", "base", 0)
+        return self.ParsedTrajectory(record_key=key, times=np.asarray(times, dtype=np.float64),
+                                      positions=positions, velocities=velocities, masses=masses)
+
+    def test_control_record_admits_with_excellent_grade(self):
+        # Exact-conservation-by-construction (all bodies share the +0.1*t
+        # offset, so pairwise separations -- and hence H(t) -- are invariant
+        # up to float64 rounding, not bit-exact zero).
+        out = self.evaluate_admission(self._parsed())
+        self.assertEqual(out.disposition, "admit")
+        self.assertEqual(out.grade, "Excellent")
+        self.assertLess(out.eps_H, 1e-10)
+
+    # -- clause 1: identity/blacklist -----------------------------------
+    def test_blacklisted_physical_key_is_excluded(self):
+        key = self.RecordKey("hierarchical", "base", 3)
+        blacklist = {self.PhysicalKey("hierarchical", 3)}
+        out = self.evaluate_admission(self._parsed(key), blacklist=blacklist)
+        self.assertNotEqual(out.disposition, "admit")
+        self.assertIn("blacklisted", out.reasons)
+
+    def test_non_blacklisted_key_is_unaffected_by_a_nonempty_blacklist(self):
+        key = self.RecordKey("hierarchical", "base", 3)
+        blacklist = {self.PhysicalKey("hierarchical", 999)}
+        out = self.evaluate_admission(self._parsed(key), blacklist=blacklist)
+        self.assertEqual(out.disposition, "admit")
+
+    # -- clause 2: remediation quarantine ---------------------------------
+    def test_remediation_quarantine_present_key_quarantines(self):
+        key = self.RecordKey("hierarchical", "base", 5)
+        remediation = {self.PhysicalKey("hierarchical", 5)}
+        out = self.evaluate_admission(self._parsed(key), remediation_quarantine=remediation)
+        self.assertEqual(out.disposition, "quarantine")
+        self.assertIn("remediation_quarantine", out.reasons)
+
+    def test_default_empty_remediation_quarantine_matches_explicit_empty_set(self):
+        # Proves clause 2's fail-closed source is SPECIFIED (empty set), not
+        # merely unspecified/omitted.
+        default_out = self.evaluate_admission(self._parsed())
+        explicit_out = self.evaluate_admission(self._parsed(), remediation_quarantine=frozenset())
+        self.assertEqual(default_out.disposition, explicit_out.disposition)
+        self.assertEqual(default_out.reasons, explicit_out.reasons)
+
+    # -- clause 6: physical invariant gates (optional post-preprocessing) --
+    def test_com_postcondition_failure_quarantines_when_supplied(self):
+        out = self.evaluate_admission(self._parsed(), com_norm=1e-6)
+        self.assertEqual(out.disposition, "quarantine")
+        self.assertIn("com_postcondition_failed", out.reasons)
+
+    def test_momentum_postcondition_failure_quarantines_when_supplied(self):
+        out = self.evaluate_admission(self._parsed(), momentum_norm=1e-6)
+        self.assertEqual(out.disposition, "quarantine")
+        self.assertIn("momentum_postcondition_failed", out.reasons)
+
+    def test_com_momentum_absent_by_default_does_not_block_admission(self):
+        out = self.evaluate_admission(self._parsed())
+        self.assertEqual(out.disposition, "admit")
+
+    # -- clause 7: grid-consistency (WARN only, never reject) --------------
+    def test_grid_consistency_warns_but_does_not_reject(self):
+        # dt_out far smaller than the actual ~0.909 spacing -> max_gap warning.
+        out = self.evaluate_admission(self._parsed(), dt_out=0.1)
+        self.assertEqual(out.disposition, "admit")
+        self.assertTrue(any("grid" in w for w in out.warnings))
+
+    def test_grid_consistency_matching_dt_out_does_not_warn(self):
+        out = self.evaluate_admission(self._parsed(), dt_out=10.0 / 11.0)
+        self.assertEqual(out.disposition, "admit")
+        self.assertEqual(out.warnings, ())
+
+    # -- aggregate identity -------------------------------------------------
+    def test_parsed_equals_admitted_plus_rejected_plus_quarantined(self):
+        admit_key = self.RecordKey("hierarchical", "base", 0)
+        reject_key = self.RecordKey("hierarchical", "base", 1)
+        quarantine_key = self.RecordKey("hierarchical", "base", 2)
+        blacklist = {self.PhysicalKey("hierarchical", 1)}
+        remediation = {self.PhysicalKey("hierarchical", 2)}
+
+        outcomes = [
+            self.evaluate_admission(self._parsed(admit_key), blacklist=blacklist,
+                                    remediation_quarantine=remediation),
+            self.evaluate_admission(self._parsed(reject_key), blacklist=blacklist,
+                                    remediation_quarantine=remediation),
+            self.evaluate_admission(self._parsed(quarantine_key), blacklist=blacklist,
+                                    remediation_quarantine=remediation),
+        ]
+        counts = {"admit": 0, "reject": 0, "quarantine": 0}
+        for out in outcomes:
+            counts[out.disposition] += 1
+        self.assertEqual(sum(counts.values()), len(outcomes))
+        self.assertEqual(counts, {"admit": 1, "reject": 1, "quarantine": 1})
+        # dropped_samples is a fully independent counter from disposition.
+        self.assertTrue(all(isinstance(o.dropped_samples, int) for o in outcomes))
+
+
 class NonFiniteQuarantineTests(unittest.TestCase):
     """GAP-39-05 — a non-finite block quarantines the WHOLE trajectory; sample
     drops and trajectory disposition are kept as separate counters."""
