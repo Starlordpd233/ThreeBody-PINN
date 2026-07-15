@@ -764,5 +764,162 @@ class EndToEndIntegrationTests(unittest.TestCase):
             self.assertEqual(report.gold_numeric_stage_count, 0)
 
 
+# ===========================================================================
+# Task 39-03-01 — production root resolution, fail-closed init, admission
+# counting (claude M6, HIGH-A, N3, cycle-4 claude LOW-1).
+# ===========================================================================
+
+class ProductionRootAndBlacklistTests(unittest.TestCase):
+    def _full_adapter(self, corpus, **over):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        kwargs = dict(root=corpus.data_root, blacklist_path=corpus.blacklist_path,
+                      precision="float32", device="cpu", run_dir=corpus.run_dir,
+                      version_metadata_path=corpus.version_metadata_path)
+        kwargs.update(over)
+        return AdmittedSetAdapter(**kwargs)
+
+    def _partial_root(self, tmp, *, with_record):
+        import json
+        from pathlib import Path
+        root = Path(tmp) / "Data"
+        # Only ONE of the four Brutus folders (mirrors this worktree's 74-file
+        # partial, which carries a single Brutus folder).
+        (root / _fixtures.BRUTUS_SUBDIR / "brutus_hierarchical").mkdir(parents=True)
+        for f in _fixtures.IC_FOLDERS:
+            (root / _fixtures.IC_SUBDIR / f).mkdir(parents=True)
+        (root / "problematic_ics_blacklist.json").write_text(
+            json.dumps({"hierarchical": [], "standard": []}))
+        if with_record:
+            _fixtures.write_brutus(
+                root / _fixtures.BRUTUS_SUBDIR / "brutus_hierarchical"
+                / "brutus_hierarchical_0000.txt",
+                _fixtures.complete_times(12), _fixtures.HIER_MASSES, footer=_fixtures.FOOTER_FULL)
+        return root
+
+    def test_missing_derived_root_raises_typed_error_naming_path_and_env(self):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        DataSourceRootMissing = _require("DataSourceRootMissing", ADAPTER)
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "nonexistent_Data"
+            with self.assertRaises(DataSourceRootMissing) as ctx:
+                AdmittedSetAdapter(root=missing, precision="float32", device="cpu")
+            msg = str(ctx.exception)
+            self.assertIn(str(missing), msg)
+            self.assertIn("GSD_DATA_ROOT", msg)
+
+    def test_default_root_uses_git_common_dir_not_worktree_toplevel(self):
+        default_data_root = _require("default_data_root", ADAPTER)
+        import subprocess
+        from pathlib import Path
+        default = default_data_root()
+        common = subprocess.check_output(
+            ["git", "rev-parse", "--git-common-dir"], text=True).strip()
+        expected = Path(common).resolve().parent / "simulation_data" / "Data"
+        self.assertEqual(default, expected)
+        # The main-repo default must NOT be the worktree-local toplevel (which in
+        # a linked worktree carries a PARTIAL simulation_data/Data/).
+        toplevel = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"], text=True).strip()
+        worktree_based = Path(toplevel).resolve() / "simulation_data" / "Data"
+        if Path(common).resolve().parent != Path(toplevel).resolve():
+            self.assertNotEqual(default, worktree_based)
+        # No hardcoded personal absolute path is baked into source (claude M6).
+        import pinn.data.adapter as adapter_mod
+        src = Path(adapter_mod.__file__).read_text(encoding="utf-8")
+        self.assertNotIn("/Users/", src)
+
+    def test_partial_corpus_root_raises_incomplete_unless_opt_in(self):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        DataSourceRootIncomplete = _require("DataSourceRootIncomplete", ADAPTER)
+        import os
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._partial_root(tmp, with_record=True)
+            blacklist = root / "problematic_ics_blacklist.json"
+            os.environ.pop("GSD_ALLOW_PARTIAL_DATA_ROOT", None)
+            with self.assertRaises(DataSourceRootIncomplete) as ctx:
+                AdmittedSetAdapter(root=root, blacklist_path=blacklist,
+                                   precision="float32", device="cpu")
+            msg = str(ctx.exception)
+            for folder in ("brutus_hierarchical_gold_standard",
+                           "brutus_standard_quasi_random",
+                           "brutus_standard_quasi_random_gold_standard"):
+                self.assertIn(folder, msg)
+            # The explicit opt-in (fixture-only) bypass succeeds and records the
+            # allow_partial_data_root=1 provenance marker.
+            os.environ["GSD_ALLOW_PARTIAL_DATA_ROOT"] = "1"
+            try:
+                adapter = AdmittedSetAdapter(root=root, blacklist_path=blacklist,
+                                             precision="float32", device="cpu")
+            finally:
+                os.environ.pop("GSD_ALLOW_PARTIAL_DATA_ROOT", None)
+            self.assertEqual(adapter.allow_partial_data_root, 1)
+            self.assertTrue(any("allow_partial_data_root=1" in ln for ln in adapter.init_log))
+
+    def test_full_corpus_records_allow_partial_zero_by_default(self):
+        import os
+        os.environ.pop("GSD_ALLOW_PARTIAL_DATA_ROOT", None)
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            self.assertEqual(adapter.allow_partial_data_root, 0)
+            self.assertTrue(any("allow_partial_data_root=0" in ln for ln in adapter.init_log))
+
+    def test_invalid_blacklist_schema_hard_fails(self):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        BlacklistSchemaError = _require("BlacklistSchemaError", ADAPTER)
+        with _fixtures.TinyCorpus() as corpus:
+            with self.assertRaises(BlacklistSchemaError):
+                AdmittedSetAdapter(root=corpus.data_root,
+                                   blacklist_path=corpus.invalid_blacklist_path,
+                                   precision="float32", device="cpu", run_dir=corpus.run_dir)
+
+    def test_remediation_quarantine_is_sourced_from_constructor(self):
+        RecordKey = _require("RecordKey", TYPES)
+        PhysicalKey = _require("PhysicalKey", TYPES)
+        with _fixtures.TinyCorpus() as corpus:
+            base = self._full_adapter(corpus)
+            self.assertIn(RecordKey("hierarchical", "base", 0), base.record_keys())
+            quarantined = self._full_adapter(
+                corpus, remediation_quarantine=frozenset({PhysicalKey("hierarchical", 0)}))
+            # The adapter passed its constructor value to clause 2, so id 0 (both
+            # fidelities) is quarantined out of the admitted set.
+            self.assertNotIn(RecordKey("hierarchical", "base", 0), quarantined.record_keys())
+            self.assertNotIn(RecordKey("hierarchical", "gold", 0), quarantined.record_keys())
+            self.assertGreater(
+                quarantined.folder_counts["brutus_hierarchical"]["quarantined"],
+                base.folder_counts["brutus_hierarchical"]["quarantined"])
+
+    def test_per_folder_accounting_and_blacklist_logs_are_exact(self):
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            for folder, counts in adapter.folder_counts.items():
+                self.assertEqual(
+                    counts["found"],
+                    counts["admitted"] + counts["rejected"] + counts["quarantined"],
+                    f"{folder} found != admitted+rejected+quarantined: {counts}")
+            # Per-family blacklist entry counts + absent-ID logs (both listed IDs
+            # exist on disk, so absent lists are empty).
+            self.assertTrue(any("blacklist hierarchical n_blacklist_entries=1" in ln
+                                for ln in adapter.init_log))
+            self.assertTrue(any("blacklist standard n_blacklist_entries=1" in ln
+                                for ln in adapter.init_log))
+            self.assertTrue(any("blacklist hierarchical absent_ids=[]" in ln
+                                for ln in adapter.init_log))
+
+    def test_paired_base_gold_identical_invariants_split_the_label(self):
+        classify_stage_label = _require("classify_stage_label", "pinn.data.stages")
+        StageLabel = _require("StageLabel", TYPES)
+        Variant = _require("Variant", TYPES)
+        Fidelity = _require("Fidelity", TYPES)
+        from types import SimpleNamespace
+        shared = dict(E=-1.0, l_ratio=0.8, Q=1.0, s_min=0.5)  # a clean Stage-0 point
+        base = SimpleNamespace(variant=Variant.HIERARCHICAL, fidelity=Fidelity.BASE, **shared)
+        gold = SimpleNamespace(variant=Variant.HIERARCHICAL, fidelity=Fidelity.GOLD, **shared)
+        self.assertEqual(classify_stage_label(base, 0.01), StageLabel.STAGE_0)
+        self.assertEqual(classify_stage_label(gold, 0.01), StageLabel.UNASSIGNED)
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

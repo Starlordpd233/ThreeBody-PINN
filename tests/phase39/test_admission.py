@@ -333,5 +333,20 @@ class NonFiniteQuarantineTests(unittest.TestCase):
         self.assertIsInstance(out.dropped_samples, int)
 
 
+class RemediationSupplierContractTests(unittest.TestCase):
+    """N3: the clause-2 remediation set has a SPECIFIED empty-``frozenset``
+    default (not an unspecified/omitted source), and the production
+    ``AdmittedSetAdapter`` additionally passes it EXPLICITLY from its constructor
+    (that explicit-supplier behaviour is verified end-to-end in
+    ``tests/phase39/test_adapter.py::ProductionRootAndBlacklistTests``)."""
+
+    def test_evaluate_admission_remediation_default_is_specified_empty_frozenset(self):
+        evaluate_admission = _require("evaluate_admission", ADMISSION)
+        sig = inspect.signature(evaluate_admission)
+        param = sig.parameters["remediation_quarantine"]
+        self.assertIsInstance(param.default, frozenset)
+        self.assertEqual(param.default, frozenset())
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
