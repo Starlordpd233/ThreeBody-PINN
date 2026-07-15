@@ -24,6 +24,7 @@ Contract highlights (39-01-PLAN task 39-01-01 acceptance criteria):
 
 import importlib
 import unittest
+import warnings
 
 import numpy as np
 
@@ -919,6 +920,112 @@ class ProductionRootAndBlacklistTests(unittest.TestCase):
         gold = SimpleNamespace(variant=Variant.HIERARCHICAL, fidelity=Fidelity.GOLD, **shared)
         self.assertEqual(classify_stage_label(base, 0.01), StageLabel.STAGE_0)
         self.assertEqual(classify_stage_label(gold, 0.01), StageLabel.UNASSIGNED)
+
+
+# ===========================================================================
+# Task 39-03-02 — fp32 storage, accessors, GAP-39-07 ballpark cross-check,
+# and the minimal package surface (HIGH-1, L1, N7).
+# ===========================================================================
+
+class ProductionResidencyAccountingTests(unittest.TestCase):
+    def _full_adapter(self, corpus, **over):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        kwargs = dict(root=corpus.data_root, blacklist_path=corpus.blacklist_path,
+                      precision="float32", device="cpu", run_dir=corpus.run_dir,
+                      version_metadata_path=corpus.version_metadata_path)
+        kwargs.update(over)
+        return AdmittedSetAdapter(**kwargs)
+
+    def test_floats_per_snapshot_is_nineteen(self):
+        FLOATS_PER_SNAPSHOT = _require("FLOATS_PER_SNAPSHOT", ADAPTER)
+        # 3 bodies x 6 dof (3 position + 3 velocity) + 1 shared time.
+        self.assertEqual(FLOATS_PER_SNAPSHOT, 3 * 6 + 1)
+        self.assertEqual(FLOATS_PER_SNAPSHOT, 19)
+
+    def test_mem_ballpark_line_correct_spelling_and_formula(self):
+        resident_ballpark_bytes = _require("resident_ballpark_bytes", ADAPTER)
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            total = sum(adapter.n_snapshots(k) for k in adapter.record_keys())
+            expected = resident_ballpark_bytes(total)
+            self.assertEqual(adapter.mem_ballpark_bytes, expected)
+            self.assertEqual(expected, total * 19 * 4)
+            # Correct (non-typo) spelling emitted alongside the mem: line.
+            self.assertTrue(any("mem_ballpark=" in ln for ln in adapter.init_log))
+            self.assertFalse(any("mem_ballpadck" in ln for ln in adapter.init_log))
+
+    def test_resident_bytes_is_a_lower_bound_and_does_not_misfit(self):
+        with _fixtures.TinyCorpus() as corpus:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error")   # a misfit warning would fail here
+                adapter = self._full_adapter(corpus)
+            # The authoritative deduplicated numerator carries extra per-record
+            # IC13/mass floats, so it is >= the snapshot-only lower bound.
+            self.assertGreaterEqual(adapter.resident_tensor_bytes(), adapter.mem_ballpark_bytes)
+
+    def test_misfit_warning_fires_when_dedup_count_is_corrupted(self):
+        torch = _load_torch()
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            # Artificially corrupt the dedup count to a tiny value; the ballpark
+            # stays as computed at init, so the cross-check must warn loudly.
+            adapter._resident_tensors = [torch.zeros(1, dtype=torch.float32)]
+            with self.assertWarns(UserWarning) as ctx:
+                adapter._check_resident_ballpark()
+            self.assertIn("resident_tensor_bytes_misfit", str(ctx.warning))
+
+    def test_resident_is_misfit_band_boundaries(self):
+        resident_is_misfit = _require("resident_is_misfit", ADAPTER)
+        self.assertTrue(resident_is_misfit(100, 1000))    # below 0.5x
+        self.assertTrue(resident_is_misfit(4000, 1000))   # above 3.0x
+        self.assertFalse(resident_is_misfit(1000, 1000))  # exactly at ballpark
+        self.assertFalse(resident_is_misfit(1500, 1000))  # inside the band
+
+    def test_every_resident_tensor_is_cpu_fp32(self):
+        torch = _load_torch()
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            for key in adapter.record_keys():
+                record = adapter.get(key)
+                for name in ("ic13", "masses", "raw_ic13"):
+                    tensor = getattr(record, name)
+                    self.assertEqual(tensor.dtype, torch.float32, name)
+                    self.assertEqual(tensor.device.type, "cpu", name)
+
+    def test_stage_accessors_expose_numeric_only_base_pools(self):
+        StageLabel = _require("StageLabel", TYPES)
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            at_or_below = adapter.records_at_or_below(StageLabel.STAGE_1)
+            at0 = adapter.records_at(StageLabel.STAGE_0)
+            at1 = adapter.records_at(StageLabel.STAGE_1)
+            # records_at_or_below never raises on UNASSIGNED (string-valued) labels
+            # and is the union of the numeric pools.
+            self.assertLessEqual(set(at0) | set(at1), set(at_or_below))
+            for key in set(at_or_below) | set(at0) | set(at1):
+                self.assertEqual((key.variant, key.fidelity), ("hierarchical", "base"))
+                self.assertIsNot(adapter.stage_label(key), StageLabel.UNASSIGNED)
+            # has_stage agrees with the persisted label for every admitted record.
+            for key in adapter.record_keys():
+                self.assertEqual(
+                    adapter.has_stage(key),
+                    adapter.stage_label(key) is not StageLabel.UNASSIGNED)
+
+
+class PackageSurfaceTests(unittest.TestCase):
+    def test_package_exports_shared_types_and_adapter_without_scanning(self):
+        pkg = importlib.import_module("pinn.data")
+        for symbol in ("AdmittedSetAdapter", "PhysicalKey", "RecordKey", "StageLabel",
+                       "AdmittedRecord", "FixedBatch", "StageQuery"):
+            self.assertTrue(hasattr(pkg, symbol), symbol)
+        # Parser helpers are NOT part of the public package surface.
+        self.assertNotIn("parse_brutus_text", getattr(pkg, "__all__", []))
+        self.assertNotIn("parse_footer", getattr(pkg, "__all__", []))
+
+    def test_importing_types_does_not_require_a_corpus(self):
+        # A fresh import of the shared-types module never touches disk; it only
+        # binds dataclasses/enums. (Corpus discovery is instance-time only.)
+        importlib.import_module("pinn.data.types")
 
 
 if __name__ == "__main__":  # pragma: no cover
