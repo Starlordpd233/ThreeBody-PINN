@@ -94,13 +94,25 @@ class _Query:
     """A minimal StageQuery over persisted base Set-1a labels."""
 
     def __init__(self, RecordKey, StageLabel, n_stage0=300, n_stage1=20,
-                 blacklisted=(), inject_gold=False):
+                 blacklisted=(), inject_gold=False, inject_standard=False,
+                 gold_numeric_stage_count=0):
         self.RecordKey, self.StageLabel = RecordKey, StageLabel
         self._s0 = [RecordKey("hierarchical", "base", i) for i in range(n_stage0)]
         self._s1 = [RecordKey("hierarchical", "base", 1000 + i) for i in range(n_stage1)]
         if inject_gold and self._s0:
             self._s0[0] = RecordKey("hierarchical", "gold", 0)   # bypass attempt
+        if inject_standard and self._s0:
+            self._s0[0] = RecordKey("standard", "base", 0)       # bypass attempt
         self._black = set(blacklisted)
+        self.gold_numeric_stage_count = gold_numeric_stage_count
+
+    @property
+    def blacklisted_physical_keys(self):
+        return frozenset(
+            key.physical_key
+            for key in tuple(self._s0) + tuple(self._s1)
+            if (key.variant, key.id) in self._black
+        )
 
     def has_stage(self, k):
         return {0: bool(self._s0), 1: bool(self._s1)}.get(k, False)
@@ -129,7 +141,9 @@ class _Query:
 
 class SelectionContract(unittest.TestCase):
     def setUp(self):
-        self.select = _require("select_batch_trajectories", BATCHES)
+        mod = importlib.import_module(BATCHES)
+        self.select = getattr(mod, "select_stage_records")
+        self.compat_select = getattr(mod, "select_batch_trajectories")
         self.RecordKey = _require("RecordKey", TYPES)
         self.StageLabel = _require("StageLabel", TYPES)
 
@@ -144,6 +158,9 @@ class SelectionContract(unittest.TestCase):
             self.assertEqual(key.fidelity, "base")
             self.assertEqual(key.variant, "hierarchical")
 
+    def test_frozen_name_is_identity_alias_of_canonical_selector(self):
+        self.assertIs(self.compat_select, self.select)
+
     def test_replay_only_when_no_next_stage(self):
         replay, lookahead = self.select(self._query(n_stage1=0), stage=0, rng=_rng(0))
         self.assertEqual(len(replay), 240)
@@ -155,6 +172,41 @@ class SelectionContract(unittest.TestCase):
         self.assertEqual(len(lookahead), 16)                 # padded to 16
         self.assertLessEqual(len(set(lookahead)), 5)          # replacement padding
 
+    def test_lookahead_boundaries_one_fifteen_sixteen_and_larger(self):
+        for pool_size in (1, 15, 16, 17):
+            with self.subTest(pool_size=pool_size):
+                _replay, lookahead = self.select(
+                    self._query(n_stage1=pool_size), stage=0, rng=_rng(4))
+                self.assertEqual(len(lookahead), 16)
+                if pool_size < 16:
+                    self.assertLessEqual(len(set(lookahead)), pool_size)
+                else:
+                    self.assertEqual(len(set(lookahead)), 16)
+
+    def test_true_but_empty_next_stage_is_inconsistent(self):
+        query = self._query(n_stage1=0)
+        query.has_stage = lambda stage: stage == 1
+        with self.assertRaises((ValueError, AssertionError)):
+            self.select(query, stage=0, rng=_rng(0))
+
+    def test_insufficient_replay_pool_fails_before_sampling(self):
+        with self.assertRaises(Exception):
+            self.select(self._query(n_stage0=239), stage=0, rng=_rng(0))
+
+    def test_selection_is_seed_stable_and_does_not_touch_global_numpy_rng(self):
+        import numpy as np
+
+        np.random.seed(321)
+        before = np.random.get_state()
+        first = self.select(self._query(), stage=0, rng=_rng(9))
+        second = self.select(self._query(), stage=0, rng=_rng(9))
+        after = np.random.get_state()
+
+        self.assertEqual(first, second)
+        self.assertEqual(before[0], after[0])
+        self.assertTrue(np.array_equal(before[1], after[1]))
+        self.assertEqual(before[2:], after[2:])
+
     def test_blacklisted_key_in_pool_is_a_hard_failure(self):
         q = self._query(blacklisted=[("hierarchical", 0)])
         with self.assertRaises((ValueError, AssertionError)):
@@ -162,6 +214,16 @@ class SelectionContract(unittest.TestCase):
 
     def test_gold_key_in_numeric_pool_is_a_hard_failure(self):
         q = self._query(inject_gold=True)
+        with self.assertRaises((ValueError, AssertionError)):
+            self.select(q, stage=0, rng=_rng(0))
+
+    def test_non_hierarchical_key_in_numeric_pool_is_a_hard_failure(self):
+        q = self._query(inject_standard=True)
+        with self.assertRaises((ValueError, AssertionError)):
+            self.select(q, stage=0, rng=_rng(0))
+
+    def test_nonzero_gold_numeric_count_is_a_hard_failure(self):
+        q = self._query(gold_numeric_stage_count=1)
         with self.assertRaises((ValueError, AssertionError)):
             self.select(q, stage=0, rng=_rng(0))
 
