@@ -1,0 +1,215 @@
+"""Phase 39 Wave-0 contract — the seven-clause Step-1A admission gate (DATA-02).
+
+Deferred contract for ``pinn.data.admission`` (+ the ``pinn.data.types``
+parsed-record type). Every test SKIPs via the localized ``_require`` helper
+(importing the single ``tests.phase39._SKIP_PHRASE``) until production lands.
+
+The conservation boundary (clause 5) and the GAP-39-04 near-zero-``H(0)``
+predicate are expressed against PURE helpers so their exact boundaries are
+testable dataset-free without crafting a full trajectory with a target energy
+drift; structural/completeness/non-finite clauses (3, 4, GAP-39-05) are tested
+through the full ``evaluate_admission`` over controllable float64 arrays.
+
+Grounding: ``ctl_instruction.md:539-607``; GAP-39-04 (scale-aware 64-eps
+quarantine, no denominator floor); GAP-39-05 (whole-trajectory quarantine after
+dropping any non-finite block, sample/trajectory accounting kept separate).
+The footer ``dE/E`` and metrics JSON must never gate — mechanically enforced in
+``test_prohibitions.py``; here we assert the admission API takes no such input.
+"""
+
+import importlib
+import inspect
+import math
+import unittest
+
+from tests.phase39 import _SKIP_PHRASE
+
+ADMISSION = "pinn.data.admission"
+TYPES = "pinn.data.types"
+
+
+def _require(symbol, module):
+    try:
+        mod = importlib.import_module(module)
+    except ImportError:
+        raise unittest.SkipTest(f"{_SKIP_PHRASE} {module}.{symbol}")
+    if not hasattr(mod, symbol):
+        raise unittest.SkipTest(f"{_SKIP_PHRASE} {module}.{symbol}")
+    return getattr(mod, symbol)
+
+
+def _np():
+    try:
+        import numpy as np
+    except ImportError as exc:  # pragma: no cover
+        raise unittest.SkipTest(f"numpy not installed: {exc}")
+    return np
+
+
+class ConservationBoundaryTests(unittest.TestCase):
+    """Clause 5 disposition as a function of the recomputed ``eps_H``.
+
+    SCS = log10(eps_H): reject only ``SCS > -5`` (eps_H > 1e-5); ``SCS == -5``
+    (eps_H == 1e-5) is admitted-and-flagged Marginal; ``eps_H == 0`` is Excellent
+    (SCS = -inf)."""
+
+    def setUp(self):
+        self.evaluate = _require("evaluate_conservation", ADMISSION)
+
+    def test_reject_above_minus_five(self):
+        out = self.evaluate(1e-4)              # SCS = -4 > -5
+        self.assertTrue(out.rejected)
+
+    def test_marginal_exactly_minus_five(self):
+        out = self.evaluate(1e-5)              # SCS = -5 -> admit + Marginal
+        self.assertFalse(out.rejected)
+        self.assertTrue(out.marginal)
+
+    def test_admit_below_minus_five(self):
+        out = self.evaluate(1e-6)              # SCS = -6 -> admit
+        self.assertFalse(out.rejected)
+        self.assertFalse(out.marginal)
+
+    def test_zero_drift_is_excellent(self):
+        out = self.evaluate(0.0)
+        self.assertFalse(out.rejected)
+        self.assertEqual(out.grade, "Excellent")
+        self.assertEqual(out.scs, -math.inf)
+
+
+class NearZeroEnergyTests(unittest.TestCase):
+    """GAP-39-04 scale-aware quarantine predicate (no denominator floor)."""
+
+    def setUp(self):
+        self.near_zero = _require("is_near_zero_initial_energy", ADMISSION)
+
+    def _boundary(self, k0, v0):
+        np = _np()
+        return 64 * np.finfo(np.float64).eps * (abs(k0) + abs(v0))
+
+    def test_exact_zero_quarantines(self):
+        self.assertTrue(self.near_zero(0.0, 1.0, -1.0))
+
+    def test_boundary_quarantines(self):
+        k0, v0 = 2.0, -1.0
+        h0 = self._boundary(k0, v0)            # |H0| == 64*eps*scale
+        self.assertTrue(self.near_zero(h0, k0, v0))
+
+    def test_nextafter_above_boundary_is_resolved(self):
+        np = _np()
+        k0, v0 = 2.0, -1.0
+        h0 = np.nextafter(self._boundary(k0, v0), np.inf)
+        self.assertFalse(self.near_zero(h0, k0, v0))
+
+    def test_small_but_resolved_energy_is_not_near_zero(self):
+        self.assertFalse(self.near_zero(0.5, 1.0, -0.5))
+
+
+class StructuralAndCompletenessClauseTests(unittest.TestCase):
+    """Clauses 3-4 over full parsed float64 arrays (disposition before clause 5)."""
+
+    def setUp(self):
+        self.evaluate_admission = _require("evaluate_admission", ADMISSION)
+        self.ParsedTrajectory = _require("ParsedTrajectory", TYPES)
+        self.RecordKey = _require("RecordKey", TYPES)
+
+    def _parsed(self, times, corrupt=None):
+        np = _np()
+        n = len(times)
+        # Deterministic finite bodies; ``corrupt(i_snapshot)`` may inject a
+        # non-finite value into one snapshot's positions.
+        positions = np.zeros((n, 3, 3), dtype=np.float64)
+        velocities = np.zeros((n, 3, 3), dtype=np.float64)
+        for s in range(n):
+            for b in range(3):
+                positions[s, b] = [1.0 + b + 0.1 * times[s], -0.5 * (b + 1), 0.05 * (b + 1)]
+                velocities[s, b] = [0.3 * (b + 1), -0.2 * (b + 1), 0.01 * (b + 1)]
+            if corrupt is not None:
+                corrupt(positions, s)
+        masses = np.array([1.349, 0.307, 1.344], dtype=np.float64)
+        return self.ParsedTrajectory(
+            record_key=self.RecordKey("hierarchical", "base", 0),
+            times=np.asarray(times, dtype=np.float64),
+            positions=positions, velocities=velocities, masses=masses)
+
+    def test_fewer_than_two_snapshots_is_not_admitted(self):
+        out = self.evaluate_admission(self._parsed([0.0]))
+        self.assertNotEqual(out.disposition, "admit")
+
+    def test_non_monotone_times_is_not_admitted(self):
+        out = self.evaluate_admission(self._parsed([0.0, 5.0, 3.0, 9.6]))
+        self.assertNotEqual(out.disposition, "admit")
+
+    def test_incomplete_final_time_is_rejected(self):
+        out = self.evaluate_admission(self._parsed([0.0, 2.0, 4.0]))  # final < 9.5
+        self.assertEqual(out.disposition, "reject")
+
+    def test_admission_api_takes_no_footer_or_metrics_input(self):
+        # The gate recomputes eps_H from raw arrays: no footer / metrics param.
+        params = set(inspect.signature(self.evaluate_admission).parameters)
+        self.assertNotIn("footer", params)
+        self.assertNotIn("metrics", params)
+        self.assertNotIn("dE_over_E", params)
+
+
+class NonFiniteQuarantineTests(unittest.TestCase):
+    """GAP-39-05 — a non-finite block quarantines the WHOLE trajectory; sample
+    drops and trajectory disposition are kept as separate counters."""
+
+    def setUp(self):
+        self.evaluate_admission = _require("evaluate_admission", ADMISSION)
+        self.ParsedTrajectory = _require("ParsedTrajectory", TYPES)
+        self.RecordKey = _require("RecordKey", TYPES)
+
+    def _times(self, n=12):
+        return [round(i * (10.0 / (n - 1)), 6) for i in range(n)]
+
+    def _parsed(self, times, corrupt=None):
+        np = _np()
+        n = len(times)
+        positions = np.zeros((n, 3, 3), dtype=np.float64)
+        velocities = np.zeros((n, 3, 3), dtype=np.float64)
+        for s in range(n):
+            for b in range(3):
+                positions[s, b] = [1.0 + b + 0.1 * times[s], -0.5 * (b + 1), 0.05 * (b + 1)]
+                velocities[s, b] = [0.3 * (b + 1), -0.2 * (b + 1), 0.01 * (b + 1)]
+        if corrupt is not None:
+            corrupt(positions)
+        masses = np.array([1.349, 0.307, 1.344], dtype=np.float64)
+        return self.ParsedTrajectory(
+            record_key=self.RecordKey("hierarchical", "base", 0),
+            times=np.asarray(times, dtype=np.float64),
+            positions=positions, velocities=velocities, masses=masses)
+
+    def test_interior_nonfinite_block_quarantines_and_counts_one_drop(self):
+        def corrupt(pos):
+            pos[6, 1, 0] = float("inf")     # interior snapshot 6, body 1
+        out = self.evaluate_admission(self._parsed(self._times(), corrupt))
+        self.assertEqual(out.disposition, "quarantine")
+        self.assertIn("non_finite_snapshot", out.reasons)
+        self.assertEqual(out.dropped_samples, 1)
+
+    def test_all_finite_control_is_not_nonfinite_quarantined(self):
+        out = self.evaluate_admission(self._parsed(self._times()))
+        self.assertNotIn("non_finite_snapshot", out.reasons)
+        self.assertEqual(out.dropped_samples, 0)
+
+    def test_fewer_than_two_finite_blocks_records_both_reasons(self):
+        def corrupt(pos):
+            pos[1:, 0, 0] = float("nan")    # all but the first snapshot
+        out = self.evaluate_admission(self._parsed(self._times(), corrupt))
+        self.assertEqual(out.disposition, "quarantine")
+        self.assertIn("non_finite_snapshot", out.reasons)
+        # Structural insufficiency is also recorded (dual-reason case).
+        self.assertTrue(any("structural" in r or "insufficient" in r for r in out.reasons))
+
+    def test_disposition_counts_partition_and_drops_are_separate(self):
+        # A record contributes to exactly one of admit/reject/quarantine; a
+        # dropped sample is an independent count, never a disposition.
+        out = self.evaluate_admission(self._parsed(self._times()))
+        self.assertIn(out.disposition, {"admit", "reject", "quarantine"})
+        self.assertIsInstance(out.dropped_samples, int)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    unittest.main()
