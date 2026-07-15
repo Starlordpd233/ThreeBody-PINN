@@ -8,11 +8,18 @@ only for the explicitly diagnostic, read-only threshold-sensitivity sweep.
 
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
 import math
+import os
+from pathlib import Path
+import sys
 from types import SimpleNamespace
 from typing import Any, Iterable
 
-from pinn.data.splits import StageIndex
+from pinn.data.adapter import AdmittedSetAdapter
+from pinn.data.splits import SplitRatios, StageIndex, write_split_manifest
 from pinn.data.stages import classify_stage_label
 from pinn.data.types import (
     Fidelity,
@@ -28,6 +35,8 @@ _SCHEMA_VERSION = "phase39-stage-population/v1"
 _FATAL_THRESHOLD = 240
 _SWEEP_MULTIPLIERS = (0.5, 1.0, 2.0)
 _LABEL_ORDER = ("0", "1", "UNASSIGNED")
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+_REPOSITORY_CORPUS_ROOT = (_REPOSITORY_ROOT / "simulation_data").resolve()
 
 
 def _materialize_records(source: Any) -> tuple[Any, ...]:
@@ -234,9 +243,10 @@ def _sensitivity_sweep(
         per_pair = {pair: 0 for pair in pairs}
         observed = 0
         for record, variant, fidelity in eligible:
+            classifier_options = {"interim_s0": sweep_floor}
             label = classify_stage_label(
                 _classifier_view(record, variant, fidelity),
-                interim_s0=sweep_floor,
+                **classifier_options,
             )
             if label is not StageLabel.UNASSIGNED and int(label.value) == 0:
                 observed += 1
@@ -408,4 +418,205 @@ def build_population_report(source: Any, manifest: Any = None) -> dict[str, Any]
     return report
 
 
-__all__ = ["build_population_report"]
+def _is_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _resolve_run_dir(run_dir: Any) -> Path:
+    resolved = Path(run_dir).expanduser().resolve()
+    if _is_within(resolved, _REPOSITORY_CORPUS_ROOT):
+        raise ValueError(
+            "run_dir must not be inside the repository simulation_data corpus"
+        )
+    return resolved
+
+
+def _atomic_write(path: Path, content: str) -> None:
+    temporary = path.with_name(path.name + f".tmp.{os.getpid()}")
+    try:
+        with open(temporary, "w", encoding="utf-8") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+        directory_fd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    finally:
+        try:
+            temporary.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def write_population_report(report: dict[str, Any], run_dir: Any) -> Path:
+    """Atomically write canonical, portable population evidence to a run dir."""
+    resolved_run_dir = _resolve_run_dir(run_dir)
+    resolved_run_dir.mkdir(parents=True, exist_ok=True)
+    destination = (resolved_run_dir / "stage_population.json").resolve()
+    if destination.parent != resolved_run_dir:
+        raise ValueError("population report destination escaped run_dir")
+    payload = json.dumps(report, sort_keys=True, indent=2) + "\n"
+    _atomic_write(destination, payload)
+    return Path(run_dir).expanduser().absolute() / "stage_population.json"
+
+
+def _split_file_evidence(path: Path) -> dict[str, Any]:
+    first = path.read_bytes()
+    second = path.read_bytes()
+    if first != second:
+        raise RuntimeError("splits.json changed while recording byte identity")
+    return {
+        "sha256": hashlib.sha256(first).hexdigest(),
+        "bytes": len(first),
+        "byte_identity": True,
+    }
+
+
+def _scan_log(
+    split_evidence: dict[str, Any],
+    *,
+    report: dict[str, Any] | None,
+    exit_code: int | None,
+) -> str:
+    lines = [
+        "schema_version=phase39-stage-scan-log/v1",
+        f"splits.json_sha256={split_evidence['sha256']}",
+        f"splits.json_bytes={split_evidence['bytes']}",
+        "splits.json_byte_identity=true",
+    ]
+    if report is None:
+        lines.extend(("readiness=pending", "exit_code=pending"))
+    else:
+        lines.extend(
+            (
+                f"stage0_full_split_count={report['stage0_full_split_count']}",
+                f"stage0_train_split_count={report['stage0_train_split_count']}",
+                f"stage0_threshold={_FATAL_THRESHOLD}",
+                f"gold_numeric_stage_count={report['gold_numeric_stage_count']}",
+                f"exit_code={exit_code}",
+            )
+        )
+    return "\n".join(lines) + "\n"
+
+
+def _write_scan_log(
+    run_dir: Any,
+    split_evidence: dict[str, Any],
+    *,
+    report: dict[str, Any] | None,
+    exit_code: int | None,
+) -> Path:
+    resolved_run_dir = _resolve_run_dir(run_dir)
+    destination = (resolved_run_dir / "scan.log").resolve()
+    if destination.parent != resolved_run_dir:
+        raise ValueError("scan log destination escaped run_dir")
+    _atomic_write(
+        destination,
+        _scan_log(split_evidence, report=report, exit_code=exit_code),
+    )
+    return Path(run_dir).expanduser().absolute() / "scan.log"
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="python -m pinn.data.stage_scan")
+    parser.add_argument("--run-dir", required=True)
+    parser.add_argument("--data-root")
+    parser.add_argument("--blacklist-path")
+    parser.add_argument("--version-metadata-path")
+    parser.add_argument("--expected-data-version-hash")
+    parser.add_argument("--supplied-data-version-hash")
+    parser.add_argument(
+        "--memory-capacity-bytes",
+        type=int,
+        default=24 * 1024**3,
+    )
+    parser.add_argument("--memory-watermark", type=float, default=0.7)
+    parser.add_argument("--interim-s0", type=float, default=0.01)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--ratios",
+        nargs=3,
+        type=float,
+        metavar=("TRAIN", "VALIDATION", "TEST"),
+        default=(0.8, 0.1, 0.1),
+    )
+    return parser
+
+
+def _status_line(report_path: Path, report: dict[str, Any]) -> str:
+    return (
+        f"report={report_path} "
+        f"stage0_full_split_count={report['stage0_full_split_count']} "
+        f"stage0_train_split_count={report['stage0_train_split_count']} "
+        f"threshold={_FATAL_THRESHOLD} "
+        f"gold_numeric_stage_count={report['gold_numeric_stage_count']}"
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the deterministic DATA-06 scan without reopening admitted records."""
+    args = _parser().parse_args(argv)
+    adapter_options = {
+        "data_root": args.data_root,
+        "blacklist_path": args.blacklist_path,
+        "version_metadata_path": args.version_metadata_path,
+        "expected_data_version_hash": args.expected_data_version_hash,
+        "supplied_data_version_hash": args.supplied_data_version_hash,
+        "capacity_bytes": args.memory_capacity_bytes,
+        "memory_watermark": args.memory_watermark,
+        "interim_s0": args.interim_s0,
+        "run_dir": args.run_dir,
+    }
+    source = AdmittedSetAdapter(**adapter_options)
+    ratios = SplitRatios(*args.ratios)
+    manifest = write_split_manifest(
+        source,
+        run_dir=args.run_dir,
+        seed=args.seed,
+        ratios=ratios,
+    )
+    split_evidence = _split_file_evidence(Path(manifest.path))
+    _write_scan_log(
+        args.run_dir,
+        split_evidence,
+        report=None,
+        exit_code=None,
+    )
+
+    try:
+        report = build_population_report(source, manifest=manifest)
+    except StageZeroUnderpopulated as error:
+        report = error.report
+        report_path = write_population_report(report, args.run_dir)
+        _write_scan_log(
+            args.run_dir,
+            split_evidence,
+            report=report,
+            exit_code=2,
+        )
+        print(_status_line(report_path, report))
+        return 2
+
+    report_path = write_population_report(report, args.run_dir)
+    _write_scan_log(
+        args.run_dir,
+        split_evidence,
+        report=report,
+        exit_code=0,
+    )
+    print(_status_line(report_path, report))
+    return 0
+
+
+if __name__ == "__main__":  # pragma: no cover
+    sys.exit(main())
+
+
+__all__ = ["build_population_report", "main", "write_population_report"]
