@@ -179,7 +179,7 @@
 |-------|-----------|----------------|--------|-----------|
 | 37. Developer Environment & Precision Adjudication | v2.0 | 5/5 | Complete    | 2026-07-13 |
 | 38. PINN Model Rebuild from Specs (FUT-01) | v2.0 | 4/6 | In Progress|  |
-| 39. Data Ingestion & Stage-0 Population Scan | v2.0 | 1/7 | In Progress | |
+| 39. Data Ingestion & Stage-0 Population Scan | v2.0 | 2/7 | In Progress|  |
 | 40. Stage-0 Curriculum Training Loop (FUT-04) | v2.0 | — | Not started | — |
 | 41. Config, Checkpointing, Resume & Determinism | v2.0 | — | Not started | — |
 | 42. Operator Runbook Surface & Monitoring | v2.0 | — | Not started | — |

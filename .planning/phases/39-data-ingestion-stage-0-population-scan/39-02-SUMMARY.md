@@ -43,7 +43,7 @@ key-decisions:
   - "Admission clause 6's mass-invariance component is a documented no-op: ParsedTrajectory.masses is frozen as one (3,) vector, so cross-snapshot invariance is enforced upstream at parse time, not re-checked against a single vector; the Step-2.6 COM/momentum postconditions require the SCALED preprocessed state, which a pure admission evaluator over raw parsed arrays does not have, so they are exposed as optional com_norm/momentum_norm kwargs for Plan 39-03 to supply post-preprocessing"
   - "The Wave-0 _fixtures.py helpers _nonfinite_interior/_malformed_missing_row check for t==4.0/t==2.0, values the default complete_times(12) time grid never produces exactly; rather than editing _fixtures.py (not in this task's owned files), the two RawParseTests that need a guaranteed-triggering corruption use self-contained body_override closures against the actual times array"
 
-requirements-completed: [DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06]
+requirements-completed: []  # Plan 39-02 delivers only the pure building-block layer (types/parser-helpers/preprocessing/stages/admission). DATA-01/02/03 need Plan 39-03's AdmittedSetAdapter integration (real fp32 preload, mem: log, admission-at-init wiring, verify_data_version wiring); DATA-04/05/06 have zero code yet (splits.py/batches.py/stage_scan.py are Plans 39-04/05/06). Marking any complete now would be a false traceability claim -- matches Plan 39-01's identical precedent.
 
 coverage:
   - id: D1
