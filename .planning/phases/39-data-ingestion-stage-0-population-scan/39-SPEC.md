@@ -55,6 +55,24 @@ The trainer serves fixed-shape Stage-0 mini-batches from an in-memory, admitted-
    - Target: The scan runs at init over the admitted set, bins by the Stage-0/1 criterion (`s_min > s₀` for Stage 1, else Stage 0; interim `s₀ = 0.01`), writes a per-stage population + byte-count + `s_min` distribution report, and raises a fatal-class signal if Stage 0 is under-populated (below the batch minimum of 240). It does NOT ratify `s₀`.
    - Acceptance: A test with a fixture admitted set produces the report with Stage-0 population ≥ 240 → proceeds; a fixture with Stage-0 population < 240 → fatal signal; the report file exists; the code path does not mutate `s₀`.
 
+   > **⚠️ ROUTED BUILD-DISCOVERED SPEC DEFECT (GAP-39-03 / GAP-39-08).**
+   > (Marker phrase for the mechanical audit: routed build-discovered spec defect.)
+   > The "Target" wording directly above (`s_min > s₀` for Stage 1, else Stage
+   > 0) is a REVERSED predicate — it is preserved here verbatim as the routed
+   > defect, not implemented. The AUTHORITATIVE CTL contract
+   > (`ctl_instruction.md:138-150`) requires the OPPOSITE conjunction: strict
+   > `s_min > s₀` is part of the Stage-0 (and Stage-1a/1b) criterion; equality
+   > (`s_min == s₀`) is NOT Stage 0. Per `.planning/REQUIREMENTS.md:126`
+   > (SCOPE-18, framework specs are authoritative and read-only for v2.0) and
+   > `39-GAPS.md` GAP-39-03 (RESOLVED-WITH-INSTRUCTION, option A) /
+   > GAP-39-08 (RESOLVED-WITH-INSTRUCTION, option A: only admitted
+   > original/base hierarchical Set 1a records receive a numeric Stage-0/1
+   > label; every gold and non-Set-1a record is `UNASSIGNED`), Phase 39 plans
+   > and implementation (`pinn/data/stages.py::classify_stage_label`) follow
+   > the CTL conjunction, NOT this SPEC sentence. A literal verifier reading
+   > `pinn/data/stages.py` against GAP-39-03/08 (not against this paragraph)
+   > will find the implementation correct.
+
 ## Boundaries
 
 **In scope:**
@@ -87,6 +105,17 @@ The trainer serves fixed-shape Stage-0 mini-batches from an in-memory, admitted-
 - [ ] The adapter preloads the admitted set in fp32 with `num_workers=0` and logs a `mem:` line ≤ 0.7 of 24 GB (DATA-01)
 - [ ] `n_snapshots(traj)` and `dt_out(traj)` return values matching a direct parse of the `.txt` file (DATA-01)
 - [ ] No `pinn/` module other than the adapter imports/reads the on-disk `.txt` format (grep-verified) (DATA-01)
+  > **⚠️ NARROWED ACCEPTANCE CRITERION (GAP-39-02).** This "no `pinn/`
+  > module other than the adapter" grep is narrowed to the PRODUCTION
+  > ingestion surface. `pinn/verification/fixture_loader.py` is the sole
+  > retained Phase 38 probe-local exception (RESOLVED-WITH-INSTRUCTION,
+  > option A, `39-GAPS.md` GAP-39-02): it is neither the Phase 39 admitted-set
+  > adapter nor a reusable production parser, and Phase 38's regression
+  > coverage depends on it. The Phase 39 reader audit
+  > (`tests/phase39/test_prohibitions.py::ALLOWED_CORPUS_READERS`) allows
+  > exactly `pinn/data/adapter.py` plus that one exception and fails on any
+  > other `.txt` reader — a literal grep for "any OTHER pinn/ module" should
+  > read this criterion as satisfied by that allowlist, not violated by it.
 - [ ] The adapter applies all 7 Step-1A clauses at init and logs admitted/rejected/quarantined/dropped counts per folder (DATA-02)
 - [ ] A trajectory with `SCS > −5` is rejected; `SCS = −5` is admitted-and-flagged Marginal; `eps_H = 0` is labeled Excellent (DATA-02)
 - [ ] `eps_H` is recomputed in float64 from raw parsed arrays (NOT read from the metrics JSON, NOT read from the footer `dE/E`) (DATA-02)
@@ -104,6 +133,17 @@ The trainer serves fixed-shape Stage-0 mini-batches from an in-memory, admitted-
 - [ ] The Thrust-A scan reports per-stage populations + byte counts + the `s_min` distribution to a report file (DATA-06)
 - [ ] A Stage-0 population below 240 raises a fatal-class signal (DATA-06)
 - [ ] A trajectory with `s_min = s₀` exactly lands in Stage 0 (Stage-1 criterion is strict `> s₀`) (edge-derived, R6-boundary)
+  > **⚠️ ROUTED BUILD-DISCOVERED SPEC DEFECT (GAP-39-03 / GAP-39-08).**
+  > (Marker phrase for the mechanical audit: routed build-discovered spec defect.)
+  > This criterion is REVERSED and is preserved verbatim as the routed
+  > defect, not implemented. The authoritative CTL conjunction
+  > (`ctl_instruction.md:138-150`) requires strict `s_min > s₀` for Stage 0
+  > (and Stage 1a/1b); equality (`s_min == s₀`) is UNASSIGNED, never Stage 0.
+  > See the identical banner at the DATA-06 requirement above and
+  > `39-GAPS.md` GAP-39-03/GAP-39-08 for the full resolution. Test evidence:
+  > `tests/phase39/test_stages.py::test_s_min_equal_s0_is_not_stage0`
+  > (frozen Wave-0 contract) asserts equality is `UNASSIGNED`, matching CTL
+  > and NOT this criterion's wording.
 
 ## Edge Coverage
 
