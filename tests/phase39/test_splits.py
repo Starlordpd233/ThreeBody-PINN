@@ -278,6 +278,42 @@ class SignaturePartitionContract(unittest.TestCase):
         )
 
 
+class ManifestWriterContract(unittest.TestCase):
+    """Task 39-04-02 — canonical atomic split-manifest persistence."""
+
+    def test_writer_partitions_source_internally_and_returns_typed_manifest(self):
+        splits = importlib.import_module(SPLITS)
+        types = importlib.import_module(TYPES)
+        records = []
+        for id_ in range(10):
+            physical_key = types.PhysicalKey("hierarchical", id_)
+            records.extend((
+                SimpleNamespace(
+                    physical_key=physical_key,
+                    record_key=types.RecordKey("hierarchical", "base", id_),
+                    stage_label=types.StageLabel.STAGE_0,
+                ),
+                SimpleNamespace(
+                    physical_key=physical_key,
+                    record_key=types.RecordKey("hierarchical", "gold", id_),
+                    stage_label=types.StageLabel.UNASSIGNED,
+                ),
+            ))
+
+        with TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "run"
+            manifest = splits.write_split_manifest(
+                _Source(records),
+                run_dir=run_dir,
+                seed=11,
+                ratios=splits.SplitRatios(),
+            )
+
+            self.assertIsInstance(manifest, splits.SplitManifest)
+            self.assertEqual(Path(manifest.path), run_dir / "splits.json")
+            self.assertTrue(Path(manifest.path).is_file())
+
+
 class SplitManifestContract(unittest.TestCase):
     def setUp(self):
         self.build = _require("build_split_manifest", SPLITS)
