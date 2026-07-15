@@ -45,9 +45,9 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 
 ### Data Ingestion & Stage-0 Population Scan (DATA) — Phase 39
 
-- [ ] **DATA-01**: A thin, format-aware adapter is the only component that imports the on-disk dataset format; it preloads the admitted set fully in-memory as fp32 (D3-C, `num_workers=0`), exposes `n_snapshots(traj)` / `dt_out(traj)` metadata (LOOP-06), and emits a `mem:` log line with a 0.7 watermark knob. [D3-C, LOOP-06]
-- [ ] **DATA-02**: The adapter applies the full Step-1A admission gate (clauses 1–7: identity & fail-closed blacklist, quarantine, structural integrity, completeness `final_timestep ≥ 9.5`, the conservation reject gate `eps_H ≤ 1e-5` / `SCS ≤ −5`, physical-invariant gates, grid-consistency WARN), logs admitted/rejected/quarantined counts, and drops NaN/Inf samples with a logged count. [Step-1A; design §4.2; integrity-r2 IR2-006]
-- [ ] **DATA-03**: The adapter reads `data_version_hash` and refuses to load on mismatch — a hard error, never a silent proceed. [design §4.2, U-12]
+- [x] **DATA-01**: A thin, format-aware adapter is the only component that imports the on-disk dataset format; it preloads the admitted set fully in-memory as fp32 (D3-C, `num_workers=0`), exposes `n_snapshots(traj)` / `dt_out(traj)` metadata (LOOP-06), and emits a `mem:` log line with a 0.7 watermark knob. [D3-C, LOOP-06]
+- [x] **DATA-02**: The adapter applies the full Step-1A admission gate (clauses 1–7: identity & fail-closed blacklist, quarantine, structural integrity, completeness `final_timestep ≥ 9.5`, the conservation reject gate `eps_H ≤ 1e-5` / `SCS ≤ −5`, physical-invariant gates, grid-consistency WARN), logs admitted/rejected/quarantined counts, and drops NaN/Inf samples with a logged count. [Step-1A; design §4.2; integrity-r2 IR2-006]
+- [x] **DATA-03**: The adapter reads `data_version_hash` and refuses to load on mismatch — a hard error, never a silent proceed. [design §4.2, U-12]
 - [ ] **DATA-04**: A deterministic, stage-stratified split manifest (train/val/test, ~80/10/10 default) is written to the run folder, partitioned by `physical_key = (variant, id)` first and expanded to all `record_key`s, with an assertion that no `physical_key` spans splits; the train split shuffles per-epoch under a seeded RNG while val/test iterate in fixed order. [design §4.2, PH-5 default; integrity-r2 PB-4]
 - [ ] **DATA-05**: The replay/lookahead batch constructor selects `B_replay = 240` trajectories from `D_≤k` plus `B_lookahead = 16` from `D_{k+1}` under the `has_stage(k+1)` guard (256 total) and emits the two independent point sets — data-fidelity points drawn from the selected trajectories' snapshots at `n_pts = min(32, n_snapshots)` (~8,192 points, provisional), and collocation points drawn as continuous samples from `[0, T]` (~4,096 points, provisional; energy reuses the physics collocation set) — with the 50% uniform + 50% acceleration-weighted time sampler applied to the data-fidelity set only (mixed continuous collocation stays deferred per LOOP-03), per the locked LOOP-01/02/03 contracts (provisional budgets). [LOOP-01/02/03; integrity-r2 PB-3]
 - [ ] **DATA-06**: A Thrust-A data scan bins the admitted trajectories by the difficulty invariants, counts per-stage populations (Stage 0 above all), flags an under-populated Stage 0 as a fatal-class risk — supplying the per-stage byte counts before any training run — and reports the admitted-set `s_min` distribution so the owner ratifies the data-derived Stage-0/1 threshold `s₀` (interim floor `s₀ = 0.01` until ratified). [§5 Step-0; partial FUT-02; integrity-r2 PB-1]
@@ -158,9 +158,9 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 | NET-03 | Phase 38 | Pending |
 | NET-04 | Phase 38 | Pending |
 | NET-05 | Phase 38 | Pending |
-| DATA-01 | Phase 39 | Pending |
-| DATA-02 | Phase 39 | Pending |
-| DATA-03 | Phase 39 | Pending |
+| DATA-01 | Phase 39 | Complete |
+| DATA-02 | Phase 39 | Complete |
+| DATA-03 | Phase 39 | Complete |
 | DATA-04 | Phase 39 | Pending |
 | DATA-05 | Phase 39 | Pending |
 | DATA-06 | Phase 39 | Pending |

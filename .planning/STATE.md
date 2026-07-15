@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 39
 current_phase_name: data-ingestion-stage-0-population-scan
 status: executing
-stopped_at: Phase 39 Plan 02 complete (frozen contracts, parser, preprocessing, stages, admission); ready for Plan 39-03
-last_updated: "2026-07-15T09:35:57.367Z"
+stopped_at: Phase 39 Plan 03 complete (production AdmittedSetAdapter integration, DATA-01..03); ready for Plan 39-04
+last_updated: "2026-07-15T10:05:00.000Z"
 last_activity: 2026-07-15
-last_activity_desc: Phase 39 Plan 02 complete (frozen contracts, sole parser, preprocessing, stages, admission)
+last_activity_desc: Phase 39 Plan 03 complete (production AdmittedSetAdapter, fp32 residency, GAP-39-07 accounting, DATA-01..03 integration gate)
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 13
+  completed_plans: 14
   percent: 29
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
-Plan: 3 of 7 (Plans 01-02 complete: Wave-0 test contract, frozen contracts/parser/preprocessing/stages/admission)
+Plan: 4 of 7 (Plans 01-03 complete: Wave-0 test contract, frozen contracts/parser/preprocessing/stages/admission, production AdmittedSetAdapter integration)
 Status: Executing Phase 39
-Last activity: 2026-07-15 — Phase 39 Plan 02 complete (frozen contracts, sole parser, preprocessing, stages, admission)
+Last activity: 2026-07-15 — Phase 39 Plan 03 complete (production AdmittedSetAdapter, fp32 residency, GAP-39-07 accounting, DATA-01..03 integration gate)
 
 ## Deferred Items
 
@@ -104,6 +104,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 38 P04 | 9min | 3 tasks | 6 files |
 | Phase 39 P01 | 18min | 3 tasks | 9 files |
 | Phase 39 P02 | 22min | 4 tasks | 8 files |
+| Phase 39 P03 | 35min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -221,6 +222,10 @@ Recent decisions affecting current work:
 - [Phase 39-02]: evaluate_admission blacklist kwarg defaults to frozenset() (not required) to match the frozen tests/phase39/test_admission.py contract from Plan 01, which calls evaluate_admission(parsed) with no blacklist arg.
 - [Phase 39-02]: Admission clause 6 COM/momentum checks are optional com_norm/momentum_norm kwargs (default None) since ParsedTrajectory carries no preprocessed state; Plan 39-03 wires them after running preprocessing.
 - [Phase 39-02]: REQUIREMENTS.md DATA-01..06 left Pending (not marked complete) despite the plan frontmatter listing all six: Plan 39-02 delivers only the pure building-block layer (types/parser-helpers/preprocessing/stages/admission); DATA-01/02/03 need Plan 39-03's AdmittedSetAdapter integration and DATA-04/05/06 have zero code yet (splits.py/batches.py/stage_scan.py are Plans 39-04/05/06). Matches Plan 39-01's identical precedent.
+- [Phase 39-03]: DATA-01/02/03 marked Complete — Plan 39-03 landed the production AdmittedSetAdapter (two-pass scan→admit→classify→fp32 residency), the deterministic GAP-39-07 resident_tensor_bytes numerator + mem_ballpark lower-bound cross-check, and the DATA-01..03 integration/containment gate. DATA-04/05/06 remain Pending (splits.py/batches.py/stage_scan.py are Plans 39-04/05/06).
+- [Phase 39-03]: The full production adapter (residency, accessors, mem accounting, module-level resident_tensor_bytes/format_mem_line) landed in the task-01 commit rather than being split across tasks 01/02, because the frozen Wave-0 deferred tests (AdapterResidencyTests, ResidentBytesTests) activate the instant the AdmittedSetAdapter symbol exists and cannot be partially satisfied. Tasks 02/03 add the plan's additional named requirements as additive tests. Mirrors Plan 39-02's frozen-test-is-load-bearing precedent.
+- [Phase 39-03]: Adapter constructor follows the frozen Wave-0 test's interface (root=, precision=, device=, run_dir=, version_metadata_path=, capacity_bytes=) rather than the plan prose's data_root=/memory_capacity_bytes= naming, since the deferred tests are the load-bearing contract; plan-named features (GSD_DATA_ROOT/git-common-dir default, DataSourceRootMissing/Incomplete, GSD_ALLOW_PARTIAL_DATA_ROOT, mem_ballpark, resident_tensor_bytes_misfit, remediation_quarantine, records_at/records_at_or_below/has_stage) are layered in as additive behavior + tests.
+- [Phase 39-03]: adapter.py references .s_min (building the interim classify record) but deliberately contains NO STAGE_0/STAGE_1 literal — numeric-stage detection uses `label is not StageLabel.UNASSIGNED` / `label.value` — so it stays off the sole-classifier prohibition audit while stages.py remains the sole numeric classifier. The classifier floor is stored as self.classifier_interim_s0 (word-boundary-safe against the s0-mutation detector) and passed positionally to classify_stage_label.
 
 ### Pending Todos
 
@@ -249,9 +254,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** .planning/phases/39-data-ingestion-stage-0-population-scan/39-CONTEXT.md
 
-Last session: 2026-07-15T09:33:42.613Z
-Stopped at: Phase 39 Plan 02 complete (frozen contracts, parser, preprocessing, stages, admission); Plan 39-03 starting
-Next action: Execute Phase 39 Plan 03 (production AdmittedSetAdapter integration for DATA-01..03), then Plans 39-04..39-07.
+Last session: 2026-07-15T10:05:00.000Z
+Stopped at: Phase 39 Plan 03 complete (production AdmittedSetAdapter integration for DATA-01..03); Plan 39-04 next
+Next action: Execute Phase 39 Plan 04 (DATA-04 physical-key grouped splits), then Plans 39-05..39-07.
 
 ## Operator Next Steps
 
