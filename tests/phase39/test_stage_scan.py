@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import hashlib
+import io
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -160,6 +162,20 @@ class ProductionPresenceContract(unittest.TestCase):
             "Plan 39-06 must provide pinn.data.stage_scan",
         )
 
+    def test_stage_scan_exports_atomic_writer(self):
+        module = importlib.import_module(STAGE_SCAN)
+        self.assertTrue(
+            hasattr(module, "write_population_report"),
+            "Plan 39-06 Task 2 must export write_population_report",
+        )
+
+    def test_stage_scan_exports_cli_main(self):
+        module = importlib.import_module(STAGE_SCAN)
+        self.assertTrue(
+            hasattr(module, "main"),
+            "Plan 39-06 Task 2 must export testable main(argv=None)",
+        )
+
 
 class PopulationReportContract(unittest.TestCase):
     def setUp(self):
@@ -293,6 +309,160 @@ class PopulationReportContract(unittest.TestCase):
         self.assertEqual(report["stage0_train_split_count"], 100)
         self.assertIs(report["fatal"], False)
         self.assertEqual(report["readiness_operand"], "stage0_full_split_count")
+
+
+class PopulationReportWriterContract(unittest.TestCase):
+    def setUp(self):
+        self.write = _require("write_population_report")
+
+    def test_writer_emits_canonical_atomic_json_bytes(self):
+        report = {"z": [3, 2, 1], "a": {"fatal": False}}
+        expected = (json.dumps(report, sort_keys=True, indent=2) + "\n").encode()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir) / "run"
+            path = self.write(report, run_dir)
+
+            self.assertEqual(path, run_dir / "stage_population.json")
+            self.assertEqual(path.read_bytes(), expected)
+            self.assertEqual(list(run_dir.glob("*.tmp.*")), [])
+
+    def test_writer_rejects_repository_corpus_run_directory(self):
+        repository = Path(__file__).resolve().parents[2]
+        forbidden = repository / "simulation_data" / "phase39-forbidden-run"
+
+        with self.assertRaisesRegex(ValueError, "simulation_data|corpus"):
+            self.write({"fatal": False}, forbidden)
+        self.assertFalse(forbidden.exists())
+
+    def test_writer_replace_failure_preserves_previous_report(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir) / "run"
+            run_dir.mkdir()
+            destination = run_dir / "stage_population.json"
+            destination.write_bytes(b"previous\n")
+
+            with mock.patch("pinn.data.stage_scan.os.replace", side_effect=OSError("boom")):
+                with self.assertRaisesRegex(OSError, "boom"):
+                    self.write({"fatal": False}, run_dir)
+
+            self.assertEqual(destination.read_bytes(), b"previous\n")
+            self.assertEqual(list(run_dir.glob("*.tmp.*")), [])
+
+
+class StageScanCliContract(unittest.TestCase):
+    def setUp(self):
+        self.main = _require("main")
+
+    def _run(self, source, run_dir, *extra):
+        adapter_factory = mock.Mock(return_value=source)
+        stdout = io.StringIO()
+        with mock.patch(
+            "pinn.data.stage_scan.AdmittedSetAdapter",
+            adapter_factory,
+        ), mock.patch("sys.stdout", new=stdout):
+            exit_code = self.main(["--run-dir", str(run_dir), *extra])
+        return exit_code, stdout.getvalue(), adapter_factory
+
+    def test_cli_full_pass_writes_manifest_report_and_hash_log(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(250, data_root=root / "corpus")
+            run_dir = root / "run"
+
+            exit_code, stdout, _factory = self._run(source, run_dir)
+
+            report = json.loads((run_dir / "stage_population.json").read_text())
+            split_bytes = (run_dir / "splits.json").read_bytes()
+            scan_log = (run_dir / "scan.log").read_text()
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report["stage0_full_split_count"], 250)
+        self.assertLess(report["stage0_train_split_count"], 240)
+        self.assertIs(report["fatal"], False)
+        self.assertIn("stage0_full_split_count=250", stdout)
+        self.assertIn(
+            f"stage0_train_split_count={report['stage0_train_split_count']}",
+            stdout,
+        )
+        self.assertIn("gold_numeric_stage_count=0", stdout)
+        self.assertIn(
+            "splits.json_sha256=" + hashlib.sha256(split_bytes).hexdigest(),
+            scan_log,
+        )
+        self.assertIn(f"splits.json_bytes={len(split_bytes)}", scan_log)
+        self.assertIn("splits.json_byte_identity=true", scan_log)
+
+    def test_cli_fatal_writes_report_manifest_and_log_before_exit_two(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(239, data_root=root / "corpus")
+            run_dir = root / "run"
+
+            exit_code, stdout, _factory = self._run(source, run_dir)
+
+            report_path = run_dir / "stage_population.json"
+            split_path = run_dir / "splits.json"
+            log_path = run_dir / "scan.log"
+            report = json.loads(report_path.read_text())
+            split_bytes = split_path.read_bytes()
+            scan_log = log_path.read_text()
+
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(report["fatal"]["type"], "StageZeroUnderpopulated")
+        self.assertEqual(report["fatal"]["observed"], 239)
+        self.assertEqual(report["stage0_full_split_count"], 239)
+        self.assertTrue(split_bytes)
+        self.assertIn("stage0_full_split_count=239", stdout)
+        self.assertIn("exit_code=2", scan_log)
+
+    def test_cli_forwards_all_explicit_adapter_and_split_flags(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            blacklist = root / "blacklist.json"
+            metadata = root / "version.json"
+
+            exit_code, _stdout, factory = self._run(
+                source,
+                run_dir,
+                "--data-root",
+                str(root / "corpus"),
+                "--blacklist-path",
+                str(blacklist),
+                "--version-metadata-path",
+                str(metadata),
+                "--expected-data-version-hash",
+                "expected",
+                "--supplied-data-version-hash",
+                "supplied",
+                "--memory-capacity-bytes",
+                "123456",
+                "--memory-watermark",
+                "0.75",
+                "--interim-s0",
+                "0.02",
+                "--seed",
+                "77",
+                "--ratios",
+                "0.7",
+                "0.2",
+                "0.1",
+            )
+
+        self.assertEqual(exit_code, 0)
+        factory.assert_called_once_with(
+            data_root=str(root / "corpus"),
+            blacklist_path=str(blacklist),
+            version_metadata_path=str(metadata),
+            expected_data_version_hash="expected",
+            supplied_data_version_hash="supplied",
+            capacity_bytes=123456,
+            memory_watermark=0.75,
+            interim_s0=0.02,
+            run_dir=str(run_dir),
+        )
 
 
 if __name__ == "__main__":  # pragma: no cover
