@@ -18,10 +18,13 @@ record label, never a numeric pool).
 """
 
 import importlib
+import inspect
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
+
+import numpy as np
 
 from tests.phase39 import _SKIP_PHRASE
 
@@ -72,6 +75,207 @@ class StageIndexContract(unittest.TestCase):
         self.assertEqual(index.records_at_or_below(1), (base.record_key,))
         self.assertFalse(index.has_stage(1))
         self.assertEqual(index.gold_numeric_stage_count, 0)
+
+    def test_stage_index_rejects_missing_invalid_and_gold_numeric_labels(self):
+        splits = importlib.import_module(SPLITS)
+        types = importlib.import_module(TYPES)
+
+        def record(fidelity, label=...):
+            fields = {
+                "physical_key": types.PhysicalKey("hierarchical", 1),
+                "record_key": types.RecordKey("hierarchical", fidelity, 1),
+            }
+            if label is not ...:
+                fields["stage_label"] = label
+            return SimpleNamespace(**fields)
+
+        with self.assertRaises((TypeError, ValueError)):
+            splits.StageIndex([record("base")])
+        with self.assertRaises((TypeError, ValueError)):
+            splits.StageIndex([record("base", 0)])
+        with self.assertRaises((TypeError, ValueError)):
+            splits.StageIndex([record("base", types.MISSING_BASE)])
+        with self.assertRaises((TypeError, ValueError)):
+            splits.StageIndex([record("gold", types.StageLabel.STAGE_0)])
+        self.assertNotIn(types.MISSING_BASE, set(types.StageLabel))
+
+    def test_numeric_labels_are_restricted_to_original_base_hierarchical(self):
+        splits = importlib.import_module(SPLITS)
+        types = importlib.import_module(TYPES)
+        standard = SimpleNamespace(
+            physical_key=types.PhysicalKey("standard", 2),
+            record_key=types.RecordKey("standard", "base", 2),
+            stage_label=types.StageLabel.STAGE_1,
+        )
+        with self.assertRaises((TypeError, ValueError)):
+            splits.StageIndex([standard])
+
+    def test_constructor_has_no_independent_stage_map_parameter(self):
+        splits = importlib.import_module(SPLITS)
+        self.assertEqual(list(inspect.signature(splits.StageIndex).parameters), ["records"])
+
+
+class SignaturePartitionContract(unittest.TestCase):
+    """Task 39-04-01 — complete-signature Hamilton group allocation."""
+
+    def setUp(self):
+        self.splits = importlib.import_module(SPLITS)
+        self.types = importlib.import_module(TYPES)
+
+    def _rec(self, fidelity, id_, label, variant="hierarchical"):
+        return SimpleNamespace(
+            physical_key=self.types.PhysicalKey(variant, id_),
+            record_key=self.types.RecordKey(variant, fidelity, id_),
+            stage_label=label,
+        )
+
+    def _pair(self, id_, label, variant="hierarchical"):
+        return [
+            self._rec("base", id_, label, variant),
+            self._rec("gold", id_, self.types.StageLabel.UNASSIGNED, variant),
+        ]
+
+    def _partition(self, records, seed=17):
+        return self.splits._partition_by_signature(
+            records, seed=seed, ratios=self.splits.SplitRatios()
+        )
+
+    def test_complete_signatures_preserve_missing_sentinels_and_group_integrity(self):
+        records = self._pair(1, self.types.StageLabel.STAGE_0)
+        records.append(self._rec("base", 2, self.types.StageLabel.STAGE_1))
+        records.append(self._rec("gold", 3, self.types.StageLabel.UNASSIGNED))
+
+        manifest = self._partition(records)
+
+        self.assertIn(
+            ("hierarchical", 0, "UNASSIGNED"), manifest.signatures
+        )
+        self.assertIn(
+            ("hierarchical", 1, self.types.MISSING_GOLD), manifest.signatures
+        )
+        self.assertIn(
+            ("hierarchical", self.types.MISSING_BASE, "UNASSIGNED"),
+            manifest.signatures,
+        )
+        placements = {}
+        for split_name, keys in manifest.splits.items():
+            for key in keys:
+                placements.setdefault(key.physical_key, set()).add(split_name)
+        self.assertEqual(set(placements), {
+            self.types.PhysicalKey("hierarchical", 1),
+            self.types.PhysicalKey("hierarchical", 2),
+            self.types.PhysicalKey("hierarchical", 3),
+        })
+        self.assertTrue(all(len(names) == 1 for names in placements.values()))
+
+    def test_hamilton_uses_fixed_tie_order_and_emits_rare_deviations(self):
+        records = [
+            rec
+            for id_ in range(5)
+            for rec in self._pair(id_, self.types.StageLabel.STAGE_0)
+        ]
+
+        manifest = self._partition(records)
+        summary = manifest.signature_summaries[0]
+
+        self.assertEqual(summary.counts, {"train": 4, "validation": 1, "test": 0})
+        self.assertEqual(sum(summary.counts.values()), 5)
+        self.assertTrue(summary.deviations)
+        self.assertEqual(
+            summary.deviations,
+            self._partition(list(reversed(records))).signature_summaries[0].deviations,
+        )
+
+    def test_every_hamilton_allocation_sums_exactly_to_signature_size(self):
+        for size in range(1, 21):
+            with self.subTest(size=size):
+                records = [
+                    rec
+                    for id_ in range(size)
+                    for rec in self._pair(id_, self.types.StageLabel.STAGE_0)
+                ]
+                summary = self._partition(records).signature_summaries[0]
+                self.assertEqual(sum(summary.counts.values()), size)
+
+    def test_partition_uses_only_local_rng_state(self):
+        records = [
+            rec
+            for id_ in range(10)
+            for rec in self._pair(id_, self.types.StageLabel.STAGE_0)
+        ]
+        np.random.seed(12345)
+        expected = np.random.random()
+        np.random.seed(12345)
+        self._partition(records)
+        self.assertEqual(np.random.random(), expected)
+
+    def test_input_order_is_irrelevant_and_seed_changes_only_identities(self):
+        records = [
+            rec
+            for id_ in range(30)
+            for rec in self._pair(id_, self.types.StageLabel.STAGE_0)
+        ]
+        first = self._partition(records, seed=1)
+        reversed_input = self._partition(list(reversed(records)), seed=1)
+        second_seed = self._partition(records, seed=2)
+
+        self.assertEqual(first.to_dict(), reversed_input.to_dict())
+        self.assertEqual(
+            {name: len(keys) for name, keys in first.splits.items()},
+            {name: len(keys) for name, keys in second_seed.splits.items()},
+        )
+        self.assertNotEqual(
+            {key.physical_key for key in first.splits["train"]},
+            {key.physical_key for key in second_seed.splits["train"]},
+        )
+
+    def test_partition_rejects_empty_input_and_invalid_ratios(self):
+        with self.assertRaises(ValueError):
+            self._partition([])
+        with self.assertRaises(ValueError):
+            self.splits.SplitRatios(train=0.7, validation=0.2, test=0.2)
+
+    def test_from_split_materializes_adapter_once_and_excludes_other_splits(self):
+        records = [
+            rec
+            for id_ in range(20)
+            for rec in self._pair(id_, self.types.StageLabel.STAGE_0)
+        ]
+        manifest = self._partition(records)
+
+        class AdapterLike:
+            def __init__(self, admitted):
+                self._by_key = {record.record_key: record for record in admitted}
+                self.record_keys_calls = 0
+                self.blacklisted_physical_keys = frozenset()
+
+            def record_keys(self):
+                self.record_keys_calls += 1
+                return tuple(reversed(sorted(self._by_key)))
+
+            def get(self, key):
+                return self._by_key[key]
+
+        source = AdapterLike(records)
+        train = self.splits.StageIndex.from_split(source, manifest, "train")
+        self.assertEqual(source.record_keys_calls, 1)
+        train_physical = {key.physical_key for key in train.records_at_or_below(1)}
+        expected_train = {
+            key.physical_key for key in manifest.splits["train"]
+        }
+        held_out = {
+            key.physical_key
+            for name in ("validation", "test")
+            for key in manifest.splits[name]
+        }
+        self.assertEqual(train_physical, expected_train)
+        self.assertTrue(train_physical.isdisjoint(held_out))
+
+        validation = self.splits.StageIndex.from_split(source, manifest, "validation")
+        self.assertEqual(
+            {key.physical_key for key in validation.records_at_or_below(1)},
+            {key.physical_key for key in manifest.splits["validation"]},
+        )
 
 
 class SplitManifestContract(unittest.TestCase):
