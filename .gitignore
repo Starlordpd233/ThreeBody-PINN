@@ -262,6 +262,10 @@ target/
 # Simulation logs (keep scripts that generate logs)
 *.log
 !**/logging_config.py
+# Retained Phase 39 stage-scan evidence logs are committed deliverables
+# (Plan 39-07 files_modified); override the generic *.log catch-all here so
+# normal `git add` (never `git add -f`) can retain them for re-verification.
+!.planning/phases/39-data-ingestion-stage-0-population-scan/evidence/stage-scan/phase-close/*.log
 
 # -----------------------------------------------------------------------------
 # Documentation Build Artifacts

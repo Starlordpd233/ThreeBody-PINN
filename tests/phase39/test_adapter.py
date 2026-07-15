@@ -751,8 +751,12 @@ class EndToEndIntegrationTests(unittest.TestCase):
             # Stage-0 trajectories, so the wiring may legitimately surface the
             # typed underpopulation fatal instead of a batch — either proves the
             # boundary is wired (a crash / import error would not).
+            torch = _load_torch()
+            rng = np.random.default_rng(0)
             try:
-                batch = build_stage_batch(adapter, stage=0)
+                batch = build_stage_batch(
+                    adapter, stage=0, rng=rng,
+                    dtype=torch.float32, device=torch.device("cpu"))
                 if batch is not None:
                     self.assertEqual(batch.data_points.tau_ic13.shape[-1], 14)
                     self.assertEqual(batch.data_points.masses.shape[-1], 3)
@@ -760,9 +764,13 @@ class EndToEndIntegrationTests(unittest.TestCase):
                 pass
 
             # The Stage-0 report always consumes persisted labels and holds the
-            # zero-gold invariant regardless of population.
-            report = build_population_report(adapter, interim_s0=0.01)
-            self.assertEqual(report.gold_numeric_stage_count, 0)
+            # zero-gold invariant regardless of population.  A TinyCorpus cannot
+            # supply 240 Stage-0 records, so the typed fatal carries the report.
+            try:
+                report = build_population_report(adapter)
+                self.assertEqual(report["gold_numeric_stage_count"], 0)
+            except StageZeroUnderpopulated as error:
+                self.assertEqual(error.report["gold_numeric_stage_count"], 0)
 
 
 # ===========================================================================
