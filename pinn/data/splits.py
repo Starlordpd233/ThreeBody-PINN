@@ -16,10 +16,12 @@ its memory-only accessors; no disk format is consulted by splitting or query.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import Decimal, ROUND_FLOOR
 import enum
 import json
+import os
+from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
@@ -168,6 +170,14 @@ class StageIndex:
         if split_name not in _SPLIT_NAMES:
             raise ValueError(f"split_name must be one of {_SPLIT_NAMES}; got {split_name!r}")
         records = _materialize_records(source)
+        source_physical = {_record_key(record).physical_key for record in records}
+        manifest_physical = {
+            group.physical_key for group in manifest.groups
+        }
+        if source_physical != manifest_physical:
+            raise ValueError(
+                "manifest physical-key population does not match the admitted source"
+            )
         allowed = manifest.physical_keys(split_name)
         selected = [record for record in records if _record_key(record).physical_key in allowed]
         blacklist = getattr(source, "blacklisted_physical_keys", frozenset())
@@ -358,6 +368,187 @@ class SplitManifest:
             "groups": [group.to_dict() for group in self.groups],
         }
 
+    def train_epoch_order(self, seed: int) -> tuple[RecordKey, ...]:
+        """Return a group-preserving local seeded order for one train epoch."""
+        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+            raise TypeError(f"seed must be a non-negative int; got {seed!r}")
+        groups = sorted(
+            (group for group in self.groups if group.split == "train"),
+            key=lambda group: group.physical_key,
+        )
+        rng = np.random.default_rng(np.random.SeedSequence([self.seed, seed]))
+        order = rng.permutation(len(groups)).tolist()
+        return tuple(
+            record.record_key
+            for index in order
+            for record in groups[index].records
+        )
+
+    def fixed_order(self, split_name: str) -> tuple[RecordKey, ...]:
+        """Return canonical fixed validation/test order."""
+        if split_name not in ("validation", "test"):
+            raise ValueError("fixed_order is defined only for validation and test")
+        return self.splits[split_name]
+
+    def iter_split(self, split_name: str, *, epoch_seed: Any = None):
+        if split_name == "train":
+            if epoch_seed is None:
+                raise ValueError("train iteration requires an explicit epoch_seed")
+            return iter(self.train_epoch_order(epoch_seed))
+        if split_name in ("validation", "test"):
+            if epoch_seed is not None:
+                raise ValueError("validation/test order is fixed and accepts no epoch_seed")
+            return iter(self.fixed_order(split_name))
+        raise ValueError(f"split_name must be one of {_SPLIT_NAMES}; got {split_name!r}")
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any], *, path: Any = None):
+        if payload.get("schema_version") != 1:
+            raise ValueError("split manifest schema_version must be 1")
+        if payload.get("algorithm") != _ALGORITHM:
+            raise ValueError(f"unsupported split algorithm {payload.get('algorithm')!r}")
+        if tuple(payload.get("tie_order", ())) != _SPLIT_NAMES:
+            raise ValueError("split manifest tie_order must be train, validation, test")
+        seed = payload.get("seed")
+        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+            raise ValueError("split manifest seed must be a non-negative integer")
+        try:
+            ratio_values = payload["ratios"]
+            ratios = SplitRatios(**ratio_values)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("split manifest ratios are invalid") from exc
+
+        summaries = []
+        for item in payload.get("signatures", ()):
+            signature = _signature_from_dict(item["signature"])
+            summaries.append(
+                SignatureSummary(
+                    signature=signature,
+                    quota=MappingProxyType(dict(item["quota"])),
+                    counts=MappingProxyType(dict(item["counts"])),
+                    deviations=tuple(
+                        MappingProxyType(dict(deviation))
+                        for deviation in item.get("deviations", ())
+                    ),
+                )
+            )
+        if len({summary.signature for summary in summaries}) != len(summaries):
+            raise ValueError("split manifest contains duplicate signature summaries")
+
+        groups = []
+        seen_physical = set()
+        for item in payload.get("groups", ()):
+            physical_payload = item["physical_key"]
+            physical_key = PhysicalKey(
+                physical_payload["variant"], physical_payload["id"]
+            )
+            if physical_key in seen_physical:
+                raise ValueError(f"physical key appears more than once: {physical_key!r}")
+            seen_physical.add(physical_key)
+            split_name = item["split"]
+            if split_name not in _SPLIT_NAMES:
+                raise ValueError(f"unknown split name {split_name!r}")
+            records = []
+            for record_payload in item["records"]:
+                key = RecordKey(
+                    record_payload["variant"],
+                    record_payload["fidelity"],
+                    record_payload["id"],
+                )
+                if key.physical_key != physical_key:
+                    raise ValueError("manifest record does not match its physical group")
+                records.append(
+                    _ManifestRecord(
+                        record_key=key,
+                        physical_key=key.physical_key,
+                        stage_label=StageLabel(record_payload["stage"]),
+                    )
+                )
+            group = SplitGroup(
+                physical_key=physical_key,
+                signature=_signature_from_dict(item["signature"]),
+                split=split_name,
+                records=tuple(sorted(records, key=lambda record: record.record_key)),
+            )
+            if _signature_for_group(group.records) != group.signature:
+                raise ValueError("manifest group signature disagrees with record entries")
+            groups.append(group)
+
+        manifest = cls(
+            seed=seed,
+            ratios=MappingProxyType(ratios.as_dict()),
+            signature_summaries=tuple(summaries),
+            groups=tuple(sorted(groups, key=lambda group: group.physical_key)),
+            path=path,
+        )
+        if not manifest.groups:
+            raise ValueError("split manifest must contain at least one physical group")
+        _validated_records(
+            record for group in manifest.groups for record in group.records
+        )
+        actual_counts = {
+            (summary.signature, split_name): 0
+            for summary in manifest.signature_summaries
+            for split_name in _SPLIT_NAMES
+        }
+        for group in manifest.groups:
+            key = (group.signature, group.split)
+            if key not in actual_counts:
+                raise ValueError("manifest group has no matching signature summary")
+            actual_counts[key] += 1
+        for summary in manifest.signature_summaries:
+            size = sum(actual_counts[(summary.signature, name)] for name in _SPLIT_NAMES)
+            quotas, expected_values = _hamilton_counts(size, ratios)
+            expected_counts = dict(zip(_SPLIT_NAMES, expected_values))
+            if dict(summary.counts) != expected_counts:
+                raise ValueError("signature summary counts disagree with Hamilton allocation")
+            expected_quota = {
+                name: float(quota) for name, quota in zip(_SPLIT_NAMES, quotas)
+            }
+            if dict(summary.quota) != expected_quota:
+                raise ValueError("signature summary quota disagrees with ratios")
+            expected_deviations = tuple(
+                {
+                    "split": name,
+                    "quota": expected_quota[name],
+                    "count": expected_counts[name],
+                    "delta": float(Decimal(expected_counts[name]) - quotas[index]),
+                }
+                for index, name in enumerate(_SPLIT_NAMES)
+                if Decimal(expected_counts[name]) != quotas[index]
+            )
+            if tuple(dict(item) for item in summary.deviations) != expected_deviations:
+                raise ValueError("signature deviations disagree with Hamilton allocation")
+        return manifest
+
+    @classmethod
+    def from_path(cls, path):
+        manifest_path = Path(path)
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        return cls.from_dict(payload, path=manifest_path)
+
+
+@dataclass(frozen=True)
+class _ManifestRecord:
+    record_key: RecordKey
+    physical_key: PhysicalKey
+    stage_label: StageLabel
+
+
+def _signature_from_dict(payload: Mapping[str, Any]) -> Signature:
+    def decode(value):
+        if value == "MISSING_BASE":
+            return MISSING_BASE
+        if value == "MISSING_GOLD":
+            return MISSING_GOLD
+        return value
+
+    return (
+        payload["variant"],
+        decode(payload["base_stage"]),
+        decode(payload["gold_stage"]),
+    )
+
 
 def _signature_for_group(records: tuple[Any, ...]) -> Signature:
     variant = records[0].record_key.variant
@@ -500,6 +691,76 @@ def _partition_by_signature(records, seed, ratios) -> SplitManifest:
             if previous != split_name:
                 raise AssertionError(f"physical key spans {previous!r} and {split_name!r}")
     return manifest
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_REPOSITORY_CORPUS_ROOT = (_REPO_ROOT / "simulation_data").resolve()
+
+
+def _is_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _resolve_run_dir(source: Any, run_dir: Any) -> Path:
+    resolved = Path(run_dir).expanduser().resolve()
+    forbidden_roots = [_REPOSITORY_CORPUS_ROOT]
+    source_root = getattr(source, "data_root", None)
+    if source_root is not None:
+        forbidden_roots.append(Path(source_root).expanduser().resolve())
+    for root in forbidden_roots:
+        if _is_within(resolved, root):
+            raise ValueError(
+                f"run_dir must not be inside the read-only corpus root {root}"
+            )
+    return resolved
+
+
+def _atomic_write(path: Path, content: str) -> None:
+    temporary = path.with_name(path.name + f".tmp.{os.getpid()}")
+    try:
+        with open(temporary, "w", encoding="utf-8") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+        directory_fd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    finally:
+        try:
+            temporary.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def write_split_manifest(
+    source, run_dir, seed, ratios=SplitRatios()
+) -> SplitManifest:
+    """Partition an admitted adapter internally and atomically write splits.json."""
+    records = _materialize_records(source)
+    manifest = _partition_by_signature(records, seed=seed, ratios=ratios)
+    resolved_run_dir = _resolve_run_dir(source, run_dir)
+    resolved_run_dir.mkdir(parents=True, exist_ok=True)
+    destination = (resolved_run_dir / "splits.json").resolve()
+    if destination.parent != resolved_run_dir:
+        raise ValueError("split manifest destination escaped run_dir")
+    payload = json.dumps(manifest.to_dict(), sort_keys=True, indent=2) + "\n"
+    _atomic_write(destination, payload)
+    # Preserve the caller-visible path spelling (notably macOS /var -> /private/var)
+    # while containment and writes use the resolved destination above.
+    caller_path = Path(run_dir).expanduser().absolute() / "splits.json"
+    return replace(manifest, path=caller_path)
+
+
+# Wave-0 compatibility name. It is the SAME function object and signature, not
+# a second partition/serializer API; Plan 06 uses write_split_manifest directly.
+build_split_manifest = write_split_manifest
 
 
 __all__ = ["SplitManifest", "SplitRatios", "StageIndex", "write_split_manifest"]

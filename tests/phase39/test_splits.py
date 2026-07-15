@@ -19,14 +19,16 @@ record label, never a numeric pool).
 
 import importlib
 import inspect
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
+from unittest import mock
 
 import numpy as np
 
-from tests.phase39 import _SKIP_PHRASE
+from tests.phase39 import _SKIP_PHRASE, _fixtures
 
 SPLITS = "pinn.data.splits"
 TYPES = "pinn.data.types"
@@ -312,6 +314,201 @@ class ManifestWriterContract(unittest.TestCase):
             self.assertIsInstance(manifest, splits.SplitManifest)
             self.assertEqual(Path(manifest.path), run_dir / "splits.json")
             self.assertTrue(Path(manifest.path).is_file())
+
+    def _records(self, count=30):
+        types = importlib.import_module(TYPES)
+        records = []
+        for id_ in range(count):
+            physical_key = types.PhysicalKey("hierarchical", id_)
+            records.extend((
+                SimpleNamespace(
+                    physical_key=physical_key,
+                    record_key=types.RecordKey("hierarchical", "base", id_),
+                    stage_label=types.StageLabel.STAGE_0,
+                ),
+                SimpleNamespace(
+                    physical_key=physical_key,
+                    record_key=types.RecordKey("hierarchical", "gold", id_),
+                    stage_label=types.StageLabel.UNASSIGNED,
+                ),
+            ))
+        return records
+
+    def test_writer_is_single_canonical_signature_and_materializes_once(self):
+        splits = importlib.import_module(SPLITS)
+        records = self._records(10)
+
+        class AdapterLike:
+            def __init__(self, admitted):
+                self._records = {record.record_key: record for record in admitted}
+                self.calls = 0
+
+            def record_keys(self):
+                self.calls += 1
+                return tuple(self._records)
+
+            def get(self, key):
+                return self._records[key]
+
+        source = AdapterLike(records)
+        with TemporaryDirectory() as tmp:
+            splits.write_split_manifest(
+                source, run_dir=Path(tmp) / "run", seed=9,
+                ratios=splits.SplitRatios())
+        self.assertEqual(source.calls, 1)
+        self.assertIs(splits.build_split_manifest, splits.write_split_manifest)
+        self.assertEqual(
+            list(inspect.signature(splits.write_split_manifest).parameters),
+            ["source", "run_dir", "seed", "ratios"],
+        )
+
+    def test_independent_writes_are_byte_identical_and_round_trip_typed(self):
+        splits = importlib.import_module(SPLITS)
+        records = self._records()
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first = splits.write_split_manifest(
+                _Source(records), root / "one", 41, splits.SplitRatios())
+            second = splits.write_split_manifest(
+                _Source(reversed(records)), root / "two", 41,
+                splits.SplitRatios())
+            first_bytes = Path(first.path).read_bytes()
+            second_bytes = Path(second.path).read_bytes()
+            parsed = splits.SplitManifest.from_path(first.path)
+
+        self.assertEqual(first_bytes, second_bytes)
+        self.assertEqual(parsed.to_dict(), first.to_dict())
+        payload = json.loads(first_bytes)
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["algorithm"], "group-signature-hamilton-v1")
+        self.assertEqual(payload["tie_order"], ["train", "validation", "test"])
+        self.assertIn("signatures", payload)
+        self.assertIn("groups", payload)
+        serialized = first_bytes.decode("utf-8")
+        self.assertNotIn("timestamp", serialized.lower())
+        self.assertNotIn(".tmp.", serialized)
+        self.assertNotIn(str(Path(tmp).resolve()), serialized)
+
+    def test_replace_failure_preserves_destination_and_removes_temporary(self):
+        splits = importlib.import_module(SPLITS)
+        with TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "run"
+            run_dir.mkdir()
+            destination = run_dir / "splits.json"
+            destination.write_bytes(b"previous-manifest\n")
+            with mock.patch("pinn.data.splits.os.replace", side_effect=OSError("injected")):
+                with self.assertRaisesRegex(OSError, "injected"):
+                    splits.write_split_manifest(
+                        _Source(self._records(10)), run_dir, 1,
+                        splits.SplitRatios())
+            self.assertEqual(destination.read_bytes(), b"previous-manifest\n")
+            self.assertEqual(list(run_dir.glob("splits.json.tmp.*")), [])
+
+    def test_run_directory_beneath_source_corpus_is_rejected_before_write(self):
+        splits = importlib.import_module(SPLITS)
+
+        class CorpusSource(_Source):
+            def __init__(self, records, data_root):
+                super().__init__(records)
+                self.data_root = data_root
+
+        with TemporaryDirectory() as tmp:
+            corpus = Path(tmp) / "simulation_data" / "Data"
+            run_dir = corpus / "run"
+            source = CorpusSource(self._records(10), corpus)
+            with self.assertRaisesRegex(ValueError, "read-only corpus root"):
+                splits.write_split_manifest(
+                    source, run_dir, 1, splits.SplitRatios())
+            self.assertFalse(run_dir.exists())
+
+    def test_train_epoch_order_is_seeded_while_validation_and_test_are_fixed(self):
+        splits = importlib.import_module(SPLITS)
+        with TemporaryDirectory() as tmp:
+            manifest = splits.write_split_manifest(
+                _Source(self._records()), Path(tmp) / "run", 7,
+                splits.SplitRatios())
+
+        epoch_a = manifest.train_epoch_order(100)
+        epoch_a_repeat = manifest.train_epoch_order(100)
+        epoch_b = manifest.train_epoch_order(101)
+        self.assertEqual(epoch_a, epoch_a_repeat)
+        self.assertNotEqual(epoch_a, epoch_b)
+        self.assertEqual(set(epoch_a), set(manifest.splits["train"]))
+        for split_name in ("validation", "test"):
+            fixed = manifest.fixed_order(split_name)
+            self.assertEqual(fixed, tuple(sorted(fixed)))
+            self.assertEqual(tuple(manifest.iter_split(split_name)), fixed)
+        self.assertEqual(tuple(manifest.iter_split("train", epoch_seed=100)), epoch_a)
+
+    def test_gold_only_group_round_trip_keeps_missing_base_out_of_record_label(self):
+        splits = importlib.import_module(SPLITS)
+        types = importlib.import_module(TYPES)
+        records = self._records(9)
+        records.append(SimpleNamespace(
+            physical_key=types.PhysicalKey("hierarchical", 42),
+            record_key=types.RecordKey("hierarchical", "gold", 42),
+            stage_label=types.StageLabel.UNASSIGNED,
+        ))
+        with TemporaryDirectory() as tmp:
+            manifest = splits.write_split_manifest(
+                _Source(records), Path(tmp) / "run", 3, splits.SplitRatios())
+            parsed = splits.SplitManifest.from_path(manifest.path)
+
+        signature = ("hierarchical", types.MISSING_BASE, "UNASSIGNED")
+        self.assertIn(signature, parsed.signatures)
+        group = next(group for group in parsed.groups if group.physical_key.id == 42)
+        self.assertEqual(group.signature, signature)
+        self.assertEqual(group.records[0].stage_label, types.StageLabel.UNASSIGNED)
+        self.assertNotEqual(group.records[0].stage_label, types.MISSING_BASE)
+
+    def test_production_adapter_is_the_direct_writer_and_from_split_source(self):
+        splits = importlib.import_module(SPLITS)
+        adapter_module = importlib.import_module("pinn.data.adapter")
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = adapter_module.AdmittedSetAdapter(
+                root=corpus.data_root,
+                blacklist_path=corpus.blacklist_path,
+                precision="float32",
+                device="cpu",
+                run_dir=corpus.run_dir,
+                version_metadata_path=corpus.version_metadata_path,
+            )
+            manifest = splits.write_split_manifest(
+                adapter,
+                run_dir=corpus.run_dir,
+                seed=23,
+                ratios=splits.SplitRatios(),
+            )
+            train = splits.StageIndex.from_split(adapter, manifest, "train")
+
+        self.assertEqual(
+            {group.physical_key for group in manifest.groups},
+            {key.physical_key for key in adapter.record_keys()},
+        )
+        self.assertTrue(
+            {key.physical_key for key in train.record_keys()}.issubset(
+                manifest.physical_keys("train")
+            )
+        )
+        self.assertEqual(train.gold_numeric_stage_count, 0)
+
+    def test_tampered_manifest_counts_and_duplicate_groups_fail_to_parse(self):
+        splits = importlib.import_module(SPLITS)
+        with TemporaryDirectory() as tmp:
+            manifest = splits.write_split_manifest(
+                _Source(self._records(10)), Path(tmp) / "run", 5,
+                splits.SplitRatios())
+            payload = manifest.to_dict()
+
+        bad_counts = json.loads(json.dumps(payload))
+        bad_counts["signatures"][0]["counts"]["train"] += 1
+        with self.assertRaisesRegex(ValueError, "Hamilton allocation"):
+            splits.SplitManifest.from_dict(bad_counts)
+
+        duplicate = json.loads(json.dumps(payload))
+        duplicate["groups"].append(duplicate["groups"][0])
+        with self.assertRaisesRegex(ValueError, "more than once"):
+            splits.SplitManifest.from_dict(duplicate)
 
 
 class SplitManifestContract(unittest.TestCase):
