@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 39-data-ingestion-stage-0-population-scan
 source:
   - 39-01-SUMMARY.md
@@ -10,7 +10,7 @@ source:
   - 39-06-SUMMARY.md
   - 39-07-SUMMARY.md
 started: 2026-07-15T06:36:39-07:00
-updated: 2026-07-15T06:46:47-07:00
+updated: 2026-07-15T07:00:57-07:00
 ---
 
 ## Current Test
@@ -187,7 +187,7 @@ skipped: 0
   reason: sample_collocation_points deduplicates selected record keys before applying GAP-39-12 quotas.
   severity: major
   test: 22
-  root_cause: pinn/data/batches.py constructs identities with sorted(set(record_keys)), changing M from 256 selected slots to the number of unique keys.
+  root_cause: pinn/data/batches.py:302 constructs identities with tuple(sorted(set(record_keys))), changing M from 256 selected slots to 241 unique keys in the one-lookahead case and assigning only 17 aggregate lookahead points.
   artifacts:
     - path: pinn/data/batches.py
       issue: Duplicate lookahead slots are collapsed before quota allocation.
@@ -197,14 +197,14 @@ skipped: 0
     - Extend the frozen Wave-0 contract to cover quota allocation after replacement padding.
     - Preserve selected-slot multiplicity through collocation allocation or encode slot provenance explicitly.
     - Add integration coverage for lookahead pools of size 1 and 15.
-  debug_session: inline-fable-gate-3
+  debug_session: .planning/debug/phase39-collocation-slot-multiplicity.md
 
 - truth: DATA-01 residency and memory safety inputs fail closed.
   status: failed
   reason: Adapter constructor parameters are coerced but not validated for finiteness, range, positive capacity, or CPU-only residency.
   severity: major
   test: 23
-  root_cause: The watermark comparison uses fraction > self._watermark, which is false for NaN, and device is passed directly to torch.tensor.
+  root_cause: AdmittedSetAdapter validates only precision; capacity, watermark, interim_s0, and device are forwarded after coercion without domain checks, so NaN/Inf/negative values bypass comparison and non-CPU storage breaks the CPU-oriented byte accounting.
   artifacts:
     - path: pinn/data/adapter.py
       issue: Missing constructor validation for capacity_bytes, memory_watermark, interim_s0, and device.
@@ -213,14 +213,14 @@ skipped: 0
   missing:
     - Validate finite positive capacity, finite watermark in the allowed range, finite positive interim_s0, and CPU-only residency.
     - Add negative configuration tests, including CLI NaN handling.
-  debug_session: inline-fable-gate-3
+  debug_session: .planning/debug/phase39-memory-guard-validation.md
 
 - truth: Phase completion is backed by canonical verification state.
   status: failed
   reason: Implementation and evidence are green, but the GSD completion predicate has no passing VERIFICATION.md and the validation ledger remains pending.
   severity: major
   test: 24
-  root_cause: Phase-close execution produced summaries/evidence and updated ROADMAP without completing the canonical execute-phase verification/report transition.
+  root_cause: Commit 61adc800 conflated successful Plan 39-07 execution evidence with phase completion, updating ROADMAP and STATE without execute-phase's verify_phase_goal step; unsupported coverage kinds and the untouched validation ledger are independent metadata debts.
   artifacts:
     - path: .planning/phases/39-data-ingestion-stage-0-population-scan/39-VALIDATION.md
       issue: All task rows remain pending.
@@ -229,6 +229,8 @@ skipped: 0
     - path: .planning/ROADMAP.md
       issue: Phase is marked complete despite missing canonical verification.
   missing:
-    - Generate a fresh Phase 39 VERIFICATION.md after implementation fixes and rerun the shared completion predicate.
+    - Restore Phase 39 to incomplete until implementation gaps are fixed and canonical verification passes.
     - Correct coverage kinds so phase-close evidence is machine-classifiable.
-  debug_session: inline-fable-gate-2
+    - Rerun each validation command before marking its ledger row green.
+    - Generate a fresh Phase 39 VERIFICATION.md and rerun the shared completion predicate.
+  debug_session: .planning/debug/phase39-canonical-verification-state.md
