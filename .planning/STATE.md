@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 39
 current_phase_name: data-ingestion-stage-0-population-scan
 status: executing
-stopped_at: Phase 39 Plan 01 complete (Wave 0 test-contract scaffold); ready for Plan 39-02
-last_updated: "2026-07-15T01:56:07Z"
+stopped_at: Phase 39 Plan 02 complete (frozen contracts, parser, preprocessing, stages, admission); ready for Plan 39-03
+last_updated: "2026-07-15T09:35:57.367Z"
 last_activity: 2026-07-15
-last_activity_desc: Completed 39-01-PLAN.md (Wave 0 nine-file test contract)
+last_activity_desc: Phase 39 Plan 02 complete (frozen contracts, sole parser, preprocessing, stages, admission)
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 12
+  completed_plans: 13
   percent: 29
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
-Plan: 2 of 7 (Plan 01 Wave-0 test contract complete)
+Plan: 3 of 7 (Plans 01-02 complete: Wave-0 test contract, frozen contracts/parser/preprocessing/stages/admission)
 Status: Executing Phase 39
-Last activity: 2026-07-15 — Phase 39 Plan 01 complete (nine-file dataset-free test scaffold)
+Last activity: 2026-07-15 — Phase 39 Plan 02 complete (frozen contracts, sole parser, preprocessing, stages, admission)
 
 ## Deferred Items
 
@@ -103,6 +103,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 37 | 5 | - | - |
 | Phase 38 P04 | 9min | 3 tasks | 6 files |
 | Phase 39 P01 | 18min | 3 tasks | 9 files |
+| Phase 39 P02 | 22min | 4 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -216,6 +217,10 @@ Recent decisions affecting current work:
 - [Phase 34]: LOOP-07 and LOOP-08 are v1.5 carry-forwards with no ledger row and no packet
 - [Phase 34]: Phase 34 evidence packets mirror Phase 32 template/schema without reinvention
 - [Phase 35]: No new semantic/spec decision was invented in 35-02; loss contract text follows Phase 35 evidence packets and owner-ratified D-04 Option A.
+- [Phase 39-02]: AdmittedRecord field renamed s_min -> min_separation to keep pinn/data/types.py off the sole-classifier prohibition audit (only pinn/data/stages.py may co-occur s_min with STAGE_0/STAGE_1).
+- [Phase 39-02]: evaluate_admission blacklist kwarg defaults to frozenset() (not required) to match the frozen tests/phase39/test_admission.py contract from Plan 01, which calls evaluate_admission(parsed) with no blacklist arg.
+- [Phase 39-02]: Admission clause 6 COM/momentum checks are optional com_norm/momentum_norm kwargs (default None) since ParsedTrajectory carries no preprocessed state; Plan 39-03 wires them after running preprocessing.
+- [Phase 39-02]: REQUIREMENTS.md DATA-01..06 left Pending (not marked complete) despite the plan frontmatter listing all six: Plan 39-02 delivers only the pure building-block layer (types/parser-helpers/preprocessing/stages/admission); DATA-01/02/03 need Plan 39-03's AdmittedSetAdapter integration and DATA-04/05/06 have zero code yet (splits.py/batches.py/stage_scan.py are Plans 39-04/05/06). Matches Plan 39-01's identical precedent.
 
 ### Pending Todos
 
@@ -242,11 +247,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/38-pinn-model-rebuild-from-specs-fut-01/38-CONTEXT.md
+**Resume file:** .planning/phases/39-data-ingestion-stage-0-population-scan/39-CONTEXT.md
 
-Last session: 2026-07-13T12:15:50.268Z
-Stopped at: Phase 38 Plan 04 complete; Plans 38-05 and 38-06 pending
-Next action: Execute Phase 38 Plan 05, then Plan 06; the NET rebuild consumes the recorded fp32-MPS default (`precision=float32, device=mps`), with fp64-CPU for the gradcheck rung.
+Last session: 2026-07-15T09:33:42.613Z
+Stopped at: Phase 39 Plan 02 complete (frozen contracts, parser, preprocessing, stages, admission); Plan 39-03 starting
+Next action: Execute Phase 39 Plan 03 (production AdmittedSetAdapter integration for DATA-01..03), then Plans 39-04..39-07.
 
 ## Operator Next Steps
 
