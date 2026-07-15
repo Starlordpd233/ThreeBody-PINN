@@ -371,6 +371,52 @@ class TinyCorpusContractTests(unittest.TestCase):
 
 
 # ===========================================================================
+# Task 39-03-03 — integration containment gate (adapter/preprocessing/stages/
+# admission now all exist).
+# ===========================================================================
+
+class IntegrationContainmentTests(unittest.TestCase):
+    """With the Wave-1..3 production modules landed, tighten the sole-reader /
+    sole-classifier / single-glob audits into strict positive assertions."""
+
+    def test_adapter_is_the_only_data_module_that_parses_or_globs_the_corpus(self):
+        offenders = []
+        for path in discover_data_modules():
+            rel = path.relative_to(ROOT).as_posix()
+            if rel == "pinn/data/adapter.py":
+                continue
+            src = executable_source(path)
+            if parses_corpus(src) or "glob(" in src or "rglob(" in src:
+                offenders.append(rel)
+        self.assertEqual(offenders, [], f"non-adapter data modules read/glob the corpus: {offenders}")
+
+    def test_adapter_module_actually_scans_the_corpus(self):
+        # Positive assertion: the sole reader really does own the glob/parse path.
+        adapter_src = executable_source(ROOT / "pinn/data/adapter.py")
+        self.assertTrue(parses_corpus(adapter_src))
+        self.assertIn("glob(", adapter_src)
+
+    def test_adapter_does_not_own_the_numeric_stage_classifier(self):
+        # The adapter reads ``.s_min`` off its interim classify record but must
+        # NOT own the STAGE_0/STAGE_1 predicate — that lives only in stages.py.
+        adapter_src = executable_source(ROOT / "pinn/data/adapter.py")
+        self.assertFalse(owns_numeric_stage_classifier(adapter_src))
+
+    def test_stages_remains_the_sole_numeric_classifier_among_present_modules(self):
+        owners = [p.relative_to(ROOT).as_posix() for p in discover_data_modules()
+                  if owns_numeric_stage_classifier(executable_source(p))]
+        self.assertEqual(owners, [SOLE_CLASSIFIER])
+
+    def test_all_present_expected_data_modules_are_covered_by_discovery(self):
+        discovered = {p.relative_to(ROOT).as_posix() for p in discover_pinn_modules()}
+        present_expected = {m for m in EXPECTED_DATA_MODULES if (ROOT / m).is_file()}
+        # Wave-1..3 modules exist; Wave-4..6 (splits/batches/stage_scan) do not yet.
+        self.assertIn("pinn/data/adapter.py", present_expected)
+        self.assertIn("pinn/data/stages.py", present_expected)
+        self.assertLessEqual(present_expected, discovered)
+
+
+# ===========================================================================
 # Deferred adapter-level write/containment audits (skip until adapter lands).
 # ===========================================================================
 

@@ -1012,6 +1012,70 @@ class ProductionResidencyAccountingTests(unittest.TestCase):
                     adapter.stage_label(key) is not StageLabel.UNASSIGNED)
 
 
+# ===========================================================================
+# Task 39-03-03 — DATA-01..03 integration gate (version states, all admission
+# dispositions, memory-only survival of corpus removal).
+# ===========================================================================
+
+class AdapterIntegrationGateTests(unittest.TestCase):
+    def _full_adapter(self, corpus, **over):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        kwargs = dict(root=corpus.data_root, blacklist_path=corpus.blacklist_path,
+                      precision="float32", device="cpu", run_dir=corpus.run_dir,
+                      version_metadata_path=corpus.version_metadata_path)
+        kwargs.update(over)
+        return AdmittedSetAdapter(**kwargs)
+
+    def test_tiny_corpus_exercises_all_admission_dispositions(self):
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            admitted = sum(c["admitted"] for c in adapter.folder_counts.values())
+            rejected = sum(c["rejected"] for c in adapter.folder_counts.values())
+            quarantined = sum(c["quarantined"] for c in adapter.folder_counts.values())
+            self.assertGreater(admitted, 0)        # clean base/gold records
+            self.assertGreater(rejected, 0)        # blacklist + incomplete trajectory
+            self.assertGreater(quarantined, 0)     # non-finite pervasive trajectory
+            self.assertEqual(adapter.gold_numeric_stage_count, 0)
+
+    def test_all_public_accessors_survive_corpus_file_removal(self):
+        torch = _load_torch()
+        RecordKey = _require("RecordKey", TYPES)
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            data_root = corpus.data_root
+            keys = adapter.record_keys()
+        # The TinyCorpus temp tree is now deleted; every accessor is memory-only.
+        self.assertFalse(data_root.exists())
+        key = RecordKey("hierarchical", "base", 0)
+        self.assertIn(key, keys)
+        record = adapter.get(key)
+        self.assertEqual(record.ic13.dtype, torch.float32)
+        self.assertEqual(adapter.n_snapshots(key), 12)
+        self.assertAlmostEqual(adapter.dt_out(key), 10.0 / 11.0, places=6)
+        self.assertIsNotNone(adapter.stage_label(key))
+        self.assertGreater(adapter.resident_tensor_bytes(), 0)
+        self.assertRegex(adapter.mem_line(), r"mem: \d+ \(\d+\.\d{6}\) watermark=0\.7")
+
+    def test_version_states_and_dt_out_provenance_are_observable(self):
+        Deferred = _require("DataVersionHashDeferred", TYPES)
+        Mismatch = _require("DataVersionHashMismatch", TYPES)
+        RecordKey = _require("RecordKey", TYPES)
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            self.assertNotEqual(
+                adapter.verify_data_version(corpus.known_data_version_hash), Deferred)
+            with self.assertRaises(Mismatch):
+                adapter.verify_data_version("b" * 64)
+            absent = self._full_adapter(
+                corpus, version_metadata_path=corpus.absent_version_metadata_path)
+            self.assertEqual(absent.verify_data_version("b" * 64), Deferred)
+            # dt_out provenance travels on the admitted record (measured + reference).
+            record = adapter.get(RecordKey("hierarchical", "base", 0))
+            self.assertAlmostEqual(record.dt_out_measured, 10.0 / 11.0, places=6)
+            self.assertIn(record.dt_out_reference_provenance,
+                          ("direct", "inferred", "absent"))
+
+
 class PackageSurfaceTests(unittest.TestCase):
     def test_package_exports_shared_types_and_adapter_without_scanning(self):
         pkg = importlib.import_module("pinn.data")
