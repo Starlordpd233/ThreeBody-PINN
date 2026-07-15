@@ -49,6 +49,31 @@ class _Source:
         return tuple(self._records)
 
 
+class StageIndexContract(unittest.TestCase):
+    """Task 39-04-01 — persisted-label, memory-only StageQuery behavior."""
+
+    def test_numeric_queries_read_persisted_labels_and_exclude_gold(self):
+        splits = importlib.import_module(SPLITS)
+        types = importlib.import_module(TYPES)
+        base = SimpleNamespace(
+            physical_key=types.PhysicalKey("hierarchical", 7),
+            record_key=types.RecordKey("hierarchical", "base", 7),
+            stage_label=types.StageLabel.STAGE_0,
+        )
+        gold = SimpleNamespace(
+            physical_key=types.PhysicalKey("hierarchical", 7),
+            record_key=types.RecordKey("hierarchical", "gold", 7),
+            stage_label=types.StageLabel.UNASSIGNED,
+        )
+
+        index = splits.StageIndex([gold, base])
+
+        self.assertEqual(index.records_at(0), (base.record_key,))
+        self.assertEqual(index.records_at_or_below(1), (base.record_key,))
+        self.assertFalse(index.has_stage(1))
+        self.assertEqual(index.gold_numeric_stage_count, 0)
+
+
 class SplitManifestContract(unittest.TestCase):
     def setUp(self):
         self.build = _require("build_split_manifest", SPLITS)
