@@ -1,9 +1,31 @@
 schema_version=phase39-stage-scan-log/v1
+run_timestamp=2026-07-16T12:59:03Z
+run_nonce=559c24e09b0eb1e0
+GSD_DATA_ROOT=$GSD_DATA_ROOT source=explicit
+brutus_folder brutus_hierarchical present=True
+brutus_folder brutus_hierarchical_gold_standard present=True
+brutus_folder brutus_standard_quasi_random present=True
+brutus_folder brutus_standard_quasi_random_gold_standard present=True
+allow_partial_data_root=0
+blacklist hierarchical n_blacklist_entries=2
+blacklist standard n_blacklist_entries=63
+folder brutus_hierarchical found=4857 admitted=4857 rejected=0 quarantined=0 dropped_samples=0
+folder brutus_hierarchical_gold_standard found=4857 admitted=4857 rejected=0 quarantined=0 dropped_samples=0
+folder brutus_standard_quasi_random found=2749 admitted=2749 rejected=0 quarantined=0 dropped_samples=0
+folder brutus_standard_quasi_random_gold_standard found=2565 admitted=2565 rejected=0 quarantined=0 dropped_samples=0
+blacklist hierarchical absent_ids=[123, 253]
+blacklist standard absent_ids=[21, 30, 52, 89, 121, 130, 152, 189, 221, 230, 252, 289, 321, 330, 352, 389, 421, 430, 452, 489, 511, 526, 568, 573, 576, 621, 630, 652, 689, 711, 726, 768, 773, 776, 821, 830, 852, 889, 911, 926, 968, 973, 976, 1002, 1019, 1035, 1038, 1044, 1057, 1097, 1114, 1115, 1124, 1140, 1143, 1153, 1162, 1172, 1221, 1230, 1249, 1252, 1289]
+blacklist base n_present_on_disk=0 n_excluded=0
+blacklist gold n_present_on_disk=0 n_excluded=0
+mem: 625989388 (0.024292) watermark=0.7
+mem_ballpark=624246140
+gold_numeric_stage_count=0
 splits.json_sha256=0d33539b6fa0d79d95b052a779b3838b4413f126dc89dfdddd913f51edac299f
 splits.json_bytes=4159981
 splits.json_byte_identity=true
+evidence_byte_identity=true
 stage0_full_split_count=2265
 stage0_train_split_count=1812
 stage0_threshold=240
 gold_numeric_stage_count=0
-exit_code=0
+scan_exit_code=0
