@@ -135,6 +135,13 @@ class CorpusPathEscape(ValueError):
     """A scanned/opened path resolves outside the configured data root."""
 
 
+class EvidenceRedactionError(ValueError):
+    """``AdmittedSetAdapter.evidence_lines()`` detected a host-path leak — the
+    resolved corpus root or the user's home prefix survived into a projected
+    evidence line. The caller must not persist the returned lines; the adapter
+    refuses to silently strip a leaking line (fail-closed)."""
+
+
 # ---------------------------------------------------------------------------
 # Version-comparison seam (DATA-03 / GAP-39-01).
 # ---------------------------------------------------------------------------
@@ -750,6 +757,8 @@ class AdmittedSetAdapter:
                 f"set {DATA_ROOT_ENV} to the corpus Data/ directory")
         resolved = resolved.resolve()
 
+        self.data_root_source = source
+
         allow_partial = os.environ.get(ALLOW_PARTIAL_ENV) == "1"
         self.allow_partial_data_root = 1 if allow_partial else 0
         missing = [f for f in README_BRUTUS_FOLDERS
@@ -962,6 +971,53 @@ class AdmittedSetAdapter:
             warnings.warn(
                 f"resident_tensor_bytes_misfit resident={resident} "
                 f"ballpark={self._ballpark_bytes}")
+
+    # -- redacted evidence projection ----------------------------------------
+    # ``init_log`` is the in-process operator diagnostic and must retain the
+    # resolved absolute root (39-03-PLAN.md:88 "the resolved root is never
+    # opaque"). The retained ``scan.log`` must not contain any absolute source
+    # root, username, or hostname (39-07-PLAN.md:29, N12). These two consumers
+    # have opposite requirements, so the adapter exposes a separate redacted
+    # projection — ``evidence_lines()`` — that Plan 39-12 serializes into
+    # ``scan.log`` instead of dumping ``init_log`` verbatim.
+    _ROOT_PREFIX = "root: "
+    _REDACTED_ROOT_FMT = "GSD_DATA_ROOT=$GSD_DATA_ROOT source={source}"
+
+    def evidence_lines(self):
+        """Redacted, verbatim-order projection of ``init_log`` for retention.
+
+        The single ``root: <absolute> source=<src>`` entry is replaced with the
+        literal placeholder ``GSD_DATA_ROOT=$GSD_DATA_ROOT source=<src>``
+        (``$GSD_DATA_ROOT`` is the literal string, not an expansion) at the same
+        position; every other entry passes through verbatim.
+
+        Fail-closed: if any projected line still contains the resolved
+        ``data_root`` or the user's home prefix, raises ``EvidenceRedactionError``
+        rather than returning a silently-stripped or silently-leaking artifact.
+        """
+        source = getattr(self, "data_root_source", "unknown")
+        redacted_root = self._REDACTED_ROOT_FMT.format(source=source)
+        root_str = str(self.data_root)
+        home_str = str(Path.home())
+
+        projected = []
+        for ln in self.init_log:
+            if ln.startswith(self._ROOT_PREFIX):
+                projected.append(redacted_root)
+            else:
+                projected.append(ln)
+
+        # Fail-closed guard: a leak is a hard error, never a silently-stripped
+        # line. Use host-agnostic needles so the guard holds on any machine.
+        for ln in projected:
+            if root_str in ln:
+                raise EvidenceRedactionError(
+                    f"evidence line contains resolved data_root: {ln!r}")
+            if home_str in ln:
+                raise EvidenceRedactionError(
+                    f"evidence line contains home prefix: {ln!r}")
+
+        return tuple(projected)
 
     # -- memory-only accessors ----------------------------------------------
     def record_keys(self):

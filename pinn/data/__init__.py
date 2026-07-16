@@ -16,7 +16,10 @@ corpus discovery and NO adapter initialization: scanning happens only when an
 ``import pinn.data`` never touches the on-disk corpus.
 """
 
-from pinn.data.adapter import AdmittedSetAdapter
+from pinn.data.adapter import (
+    AdmittedSetAdapter,
+    EvidenceRedactionError,
+)
 from pinn.data.types import (
     AdmittedRecord,
     DataFidelityPoints,
@@ -45,6 +48,7 @@ __all__ = [
     "DataVersionHashDeferred",
     "DataVersionHashMismatch",
     "DataVersionHashVerified",
+    "EvidenceRedactionError",
     "Fidelity",
     "FixedBatch",
     "MISSING_BASE",

@@ -1201,6 +1201,84 @@ class AdapterIntegrationGateTests(unittest.TestCase):
         kwargs.update(over)
         return AdmittedSetAdapter(**kwargs)
 
+# ===========================================================================
+# Task 39-11-02 — fail-closed redacted evidence projection (evidence_lines).
+# ===========================================================================
+
+class EvidenceRedactionTests(unittest.TestCase):
+    def _full_adapter(self, corpus, **over):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        kwargs = dict(root=corpus.data_root, blacklist_path=corpus.blacklist_path,
+                      precision="float32", device="cpu", run_dir=corpus.run_dir,
+                      version_metadata_path=corpus.version_metadata_path)
+        kwargs.update(over)
+        return AdmittedSetAdapter(**kwargs)
+
+    def test_evidence_lines_replaces_root_with_redacted_placeholder(self):
+        # 39-11-02 Task 1: the absolute-root entry is replaced, not appended
+        # alongside, with the $GSD_DATA_ROOT placeholder and source preserved.
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            EvidenceRedactionError = _require("EvidenceRedactionError", ADAPTER)  # noqa: F841
+            lines = adapter.evidence_lines()
+            self.assertIsInstance(lines, tuple)
+            # Exactly one redacted placeholder line, carrying the provenance source.
+            placeholder = [ln for ln in lines if re.match(
+                r"^GSD_DATA_ROOT=\$GSD_DATA_ROOT source=(explicit|env:GSD_DATA_ROOT|git_common_dir_default)$", ln)]
+            self.assertEqual(len(placeholder), 1)
+            # Zero absolute-root entries in the projection.
+            self.assertFalse(any(ln.startswith("root: ") for ln in lines))
+
+    def test_init_log_still_contains_absolute_root(self):
+        # 39-11-02 Task 3: init_log retains the resolved absolute root for the
+        # operator diagnostic (39-03-PLAN.md:88 "never opaque" contract).
+        from pathlib import Path
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            self.assertTrue(any(
+                re.match(r"^root: .+ source=(explicit|env:GSD_DATA_ROOT|git_common_dir_default)$", ln)
+                for ln in adapter.init_log), adapter.init_log)
+
+    def test_evidence_lines_contains_no_host_path(self):
+        # 39-11-02 Task 4: no projected line contains the resolved data_root or
+        # the user's home prefix.
+        from pathlib import Path
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            root_str = str(adapter.data_root)
+            home_str = str(Path.home())
+            for ln in adapter.evidence_lines():
+                self.assertNotIn(root_str, ln)
+                self.assertNotIn(home_str, ln)
+
+    def test_evidence_lines_carries_data01_data02_payload(self):
+        # 39-11-02 Task 5: the projection carries the DATA-01/DATA-02 evidence
+        # fields — mem:, mem_ballpark, allow_partial_data_root, blacklist counts,
+        # and per-folder dispositions.
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            lines = adapter.evidence_lines()
+            self.assertTrue(any(re.match(
+                r"^mem: \d+ \(\d+\.\d{6}\) watermark=0\.7$", ln) for ln in lines), lines)
+            self.assertTrue(any(re.match(r"^mem_ballpark=\d+$", ln) for ln in lines), lines)
+            self.assertTrue(any(re.match(r"^allow_partial_data_root=[01]$", ln)
+                                for ln in lines), lines)
+            self.assertTrue(any("n_blacklist_entries" in ln for ln in lines), lines)
+            self.assertTrue(any("n_present_on_disk" in ln for ln in lines), lines)
+            self.assertTrue(any(ln.startswith("folder ") for ln in lines), lines)
+
+    def test_evidence_lines_fail_closed_on_leak(self):
+        # 39-11-02 Task 6 (fail-closed guard): a post-construction init_log
+        # mutation injecting the resolved data_root raises EvidenceRedactionError
+        # rather than returning the leaking line.
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            EvidenceRedactionError = _require("EvidenceRedactionError", ADAPTER)
+            leak = str(adapter.data_root)
+            adapter.init_log.append(f"leaked: {leak}")
+            with self.assertRaises(EvidenceRedactionError):
+                adapter.evidence_lines()
+
     def test_tiny_corpus_exercises_all_admission_dispositions(self):
         with _fixtures.TinyCorpus() as corpus:
             adapter = self._full_adapter(corpus)
