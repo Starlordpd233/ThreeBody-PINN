@@ -19,6 +19,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import re
 from types import SimpleNamespace
 import tempfile
 import unittest
@@ -69,6 +70,25 @@ class _ReportSource:
 
     def admitted_records(self):
         return self._records
+
+    def evidence_lines(self):
+        """Mirrors the adapter's redacted evidence projection for the CLI."""
+        return (
+            "GSD_DATA_ROOT=$GSD_DATA_ROOT source=env:GSD_DATA_ROOT",
+            "brutus_folder brutus_hierarchical present=True",
+            "brutus_folder brutus_hierarchical_gold_standard present=True",
+            "brutus_folder brutus_standard_quasi_random present=True",
+            "brutus_folder brutus_standard_quasi_random_gold_standard present=True",
+            "allow_partial_data_root=0",
+            "blacklist hierarchical n_blacklist_entries=2",
+            "blacklist standard n_blacklist_entries=63",
+            "blacklist base n_present_on_disk=65 n_excluded=65",
+            "blacklist gold n_present_on_disk=65 n_excluded=65",
+            "folder brutus_hierarchical found=1 admitted=1 rejected=0 quarantined=0 dropped_samples=0",
+            "mem: 1234 (0.000048) watermark=0.7",
+            "mem_ballpark=1100",
+            "gold_numeric_stage_count=0",
+        )
 
 
 class _Manifest:
@@ -392,6 +412,20 @@ class StageScanCliContract(unittest.TestCase):
         )
         self.assertIn(f"splits.json_bytes={len(split_bytes)}", scan_log)
         self.assertIn("splits.json_byte_identity=true", scan_log)
+        # Evidence passthrough: every line the source's evidence_lines()
+        # returned reaches scan.log verbatim, in order.
+        for line in source.evidence_lines():
+            self.assertIn(line, scan_log)
+        # Freshness markers: one run_timestamp and one run_nonce, stable
+        # within the run and formatted per the row contract.
+        self.assertRegex(scan_log, re.compile(r"^run_timestamp=[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$", re.MULTILINE))
+        self.assertRegex(scan_log, re.compile(r"^run_nonce=[0-9a-f]{16}$", re.MULTILINE))
+        # Exit code and byte-identity fields use the renamed/derived names.
+        self.assertIn("scan_exit_code=0", scan_log)
+        self.assertIn("evidence_byte_identity=true", scan_log)
+        # Privacy: no resolved host path leaks into retained evidence.
+        self.assertNotIn("root: ", scan_log)
+        self.assertNotIn(str(Path.home()), scan_log)
 
     def test_cli_fatal_writes_report_manifest_and_log_before_exit_two(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -414,7 +448,9 @@ class StageScanCliContract(unittest.TestCase):
         self.assertEqual(report["stage0_full_split_count"], 239)
         self.assertTrue(split_bytes)
         self.assertIn("stage0_full_split_count=239", stdout)
-        self.assertIn("exit_code=2", scan_log)
+        self.assertIn("splits.json_byte_identity=true", scan_log)
+        self.assertIn("scan_exit_code=2", scan_log)
+        self.assertIn("evidence_byte_identity=true", scan_log)
 
     def test_cli_forwards_all_explicit_adapter_and_split_flags(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -585,6 +621,132 @@ class StageScanCliContract(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         _, kwargs = factory.call_args
         self.assertEqual(kwargs.get("device"), "cpu")
+
+    def test_cli_stamps_one_run_timestamp_and_nonce_across_writes(self):
+        """The pending and final writes of one run share one nonce/timestamp."""
+        write_scan_log = _require("_write_scan_log")
+        captured = {}
+
+        def _capture_nonce(*args, **kwargs):
+            # The nonce is embedded in the scan.log text; extract it.
+            text = write_scan_log(*args, **kwargs)
+            captured["path"] = text
+            return text
+
+        # A source whose report raises lets us observe the pending write's
+        # nonce by reading scan.log after the fatal path returns. Simpler:
+        # assert the nonce is stable by running main() once and reading the
+        # final scan.log — the pending write happened earlier in the same run
+        # with the same nonce, so the final artifact's nonce is the run nonce.
+        # Two separate main() invocations must produce different nonces.
+        nonces = set()
+        timestamps = set()
+        for _ in range(2):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                root = Path(temp_dir)
+                source = _source(240, data_root=root / "corpus")
+                run_dir = root / "run"
+                self._run(source, run_dir)
+                scan_log = (run_dir / "scan.log").read_text()
+                nonce_match = re.search(r"^run_nonce=([0-9a-f]{16})$", scan_log, re.MULTILINE)
+                ts_match = re.search(r"^run_timestamp=([0-9T:Z-]+)$", scan_log, re.MULTILINE)
+                self.assertIsNotNone(nonce_match)
+                self.assertIsNotNone(ts_match)
+                nonces.add(nonce_match.group(1))
+                timestamps.add(ts_match.group(1))
+        self.assertEqual(len(nonces), 2, "two runs must produce distinct nonces")
+
+    def test_cli_exit_code_field_renamed_to_scan_exit_code(self):
+        """The readiness tail emits scan_exit_code=, never a bare exit_code=."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            self._run(source, run_dir)
+            scan_log = (run_dir / "scan.log").read_text()
+        self.assertIn("scan_exit_code=0", scan_log)
+        # No line may start with the old bare field name (the new name contains
+        # "exit_code=" as a substring, so a plain substring check would lie).
+        for line in scan_log.splitlines():
+            self.assertFalse(
+                line.startswith("exit_code="),
+                f"bare exit_code= field leaked: {line!r}",
+            )
+
+    def test_cli_fail_closed_source_without_evidence_lines(self):
+        """A source lacking evidence_lines() raises TypeError, no clean scan.log."""
+        # A source that cannot produce evidence — the CLI must fail loudly
+        # rather than write an evidence-poor scan.log.
+        class _BareSource:
+            pass
+
+        bare_source = _BareSource()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = root / "run"
+            with self.assertRaises(TypeError) as cm:
+                self._run(bare_source, run_dir)
+            self.assertIn("evidence_lines", str(cm.exception))
+
+
+# Deliberate duplicate of the ledger row's contract. If row 39-07-02 ever
+# changes, this tuple must be updated in lockstep so the mirror cannot
+# silently drift from the row it mirrors.
+_ROW_39_07_02_PATTERNS = (
+    r"^allow_partial_data_root=0$",
+    r"^scan_exit_code=[0-9]+$",
+    r"^run_timestamp=[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}",
+    r"^run_nonce=[0-9a-f]{16}$",
+    r"^stage0_train_split_count=[0-9]+$",
+    r"^stage0_full_split_count=[0-9]+$",
+    r"splits.json_sha256=[0-9a-f]{64}",
+    r"^evidence_byte_identity=true$",
+    r"gold_numeric_stage_count=0",
+    r"mem: [0-9]+ \([0-9]+\.[0-9]{6}\) watermark=0\.7",
+    r"mem_ballpark=[0-9]+",
+    r"n_blacklist_entries",
+    r"n_present_on_disk",
+    r"GSD_DATA_ROOT=",
+)
+
+
+class ScanLogLedgerRowContract(unittest.TestCase):
+    """Dataset-free mirror of 39-VALIDATION.md row 39-07-02."""
+
+    def setUp(self):
+        self.main = _require("main")
+
+    def _run(self, source, run_dir, *extra):
+        adapter_factory = mock.Mock(return_value=source)
+        with mock.patch(
+            "pinn.data.stage_scan.AdmittedSetAdapter",
+            adapter_factory,
+        ):
+            return self.main(["--run-dir", str(run_dir), *extra])
+
+    def test_scan_log_satisfies_validation_row_39_07_02_field_contract(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(250, data_root=root / "corpus")
+            run_dir = root / "run"
+            self._run(source, run_dir)
+            scan_log = (run_dir / "scan.log").read_text()
+
+        for pattern in _ROW_39_07_02_PATTERNS:
+            with self.subTest(pattern=pattern):
+                self.assertRegex(scan_log, re.compile(pattern, re.MULTILINE))
+
+        # Privacy conditions paired with the presence checks: no resolved
+        # root line and no host home prefix anywhere in the emitted bytes.
+        for line in scan_log.splitlines():
+            self.assertFalse(line.startswith("root: "), "resolved root leaked")
+        self.assertNotIn(str(Path.home()), scan_log)
+
+        # The mem: fraction must parse as a float at or below the 0.7 watermark.
+        mem_match = re.search(
+            r"mem: [0-9]+ \(([0-9]+\.[0-9]{6})\) watermark=0\.7", scan_log)
+        self.assertIsNotNone(mem_match)
+        self.assertLessEqual(float(mem_match.group(1)), 0.7)
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -14,7 +14,9 @@ import json
 import math
 import os
 from pathlib import Path
+import secrets
 import sys
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from typing import Any, Iterable
 
@@ -64,6 +66,29 @@ def _materialize_records(source: Any) -> tuple[Any, ...]:
         raise TypeError(
             "source must be an admitted-set adapter or expose records()/iteration"
         ) from exc
+
+
+def _source_evidence_lines(source: Any) -> tuple[str, ...]:
+    """Fail-closed probe for the adapter's redacted evidence projection.
+
+    Mirrors ``_materialize_records``'s duck-typing idiom: a source that cannot
+    produce evidence is a hard ``TypeError`` (naming ``evidence_lines``), never
+    a silent empty fallback. A silent evidence-poor ``scan.log`` is precisely
+    the defect 39-VERIFICATION.md found, so the CLI cannot write one.
+    """
+    evidence_lines = getattr(source, "evidence_lines", None)
+    if not callable(evidence_lines):
+        raise TypeError(
+            "source must be an admitted-set adapter exposing evidence_lines(); "
+            "a source that cannot produce evidence must fail loudly"
+        )
+    projected = tuple(evidence_lines())
+    for line in projected:
+        if not isinstance(line, str):
+            raise TypeError(
+                f"evidence_lines() must yield str, got {type(line).__name__}: {line!r}"
+            )
+    return projected
 
 
 def _record_identity(record: Any) -> tuple[RecordKey, PhysicalKey]:
@@ -482,17 +507,28 @@ def _split_file_evidence(path: Path) -> dict[str, Any]:
 def _scan_log(
     split_evidence: dict[str, Any],
     *,
+    evidence_lines: tuple[str, ...],
     report: dict[str, Any] | None,
-    exit_code: int | None,
+    exit_code: int | str | None,
+    run_timestamp: str,
+    run_nonce: str,
 ) -> str:
     lines = [
         "schema_version=phase39-stage-scan-log/v1",
-        f"splits.json_sha256={split_evidence['sha256']}",
-        f"splits.json_bytes={split_evidence['bytes']}",
-        "splits.json_byte_identity=true",
+        f"run_timestamp={run_timestamp}",
+        f"run_nonce={run_nonce}",
     ]
+    lines.extend(evidence_lines)
+    lines.extend(
+        (
+            f"splits.json_sha256={split_evidence['sha256']}",
+            f"splits.json_bytes={split_evidence['bytes']}",
+            "splits.json_byte_identity=true",
+            f"evidence_byte_identity={str(split_evidence['byte_identity']).lower()}",
+        )
+    )
     if report is None:
-        lines.extend(("readiness=pending", "exit_code=pending"))
+        lines.extend(("readiness=pending", "scan_exit_code=pending"))
     else:
         lines.extend(
             (
@@ -500,7 +536,7 @@ def _scan_log(
                 f"stage0_train_split_count={report['stage0_train_split_count']}",
                 f"stage0_threshold={_FATAL_THRESHOLD}",
                 f"gold_numeric_stage_count={report['gold_numeric_stage_count']}",
-                f"exit_code={exit_code}",
+                f"scan_exit_code={exit_code}",
             )
         )
     return "\n".join(lines) + "\n"
@@ -510,8 +546,11 @@ def _write_scan_log(
     run_dir: Any,
     split_evidence: dict[str, Any],
     *,
+    evidence_lines: tuple[str, ...],
     report: dict[str, Any] | None,
-    exit_code: int | None,
+    exit_code: int | str | None,
+    run_timestamp: str,
+    run_nonce: str,
 ) -> Path:
     resolved_run_dir = _resolve_run_dir(run_dir)
     destination = (resolved_run_dir / "scan.log").resolve()
@@ -519,7 +558,14 @@ def _write_scan_log(
         raise ValueError("scan log destination escaped run_dir")
     _atomic_write(
         destination,
-        _scan_log(split_evidence, report=report, exit_code=exit_code),
+        _scan_log(
+            split_evidence,
+            evidence_lines=evidence_lines,
+            report=report,
+            exit_code=exit_code,
+            run_timestamp=run_timestamp,
+            run_nonce=run_nonce,
+        ),
     )
     return Path(run_dir).expanduser().absolute() / "scan.log"
 
@@ -604,7 +650,16 @@ def main(argv: list[str] | None = None) -> int:
         # production call site cannot drift from CPU-only residency.
         "device": "cpu",
     }
+    # Freshness markers: one run_timestamp and one run_nonce per run, stamped
+    # before adapter construction so the pending and final writes of the same
+    # run share one identity. Not injectable via CLI flags — an injectable
+    # freshness marker is not a freshness marker.
+    run_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    run_nonce = secrets.token_hex(8)
     source = AdmittedSetAdapter(**adapter_options)
+    # Fail-closed evidence probe: a source that cannot produce evidence raises
+    # before any scan.log claiming completeness is written.
+    evidence_lines = _source_evidence_lines(source)
     ratios = SplitRatios(*args.ratios)
     manifest = write_split_manifest(
         source,
@@ -616,8 +671,11 @@ def main(argv: list[str] | None = None) -> int:
     _write_scan_log(
         args.run_dir,
         split_evidence,
+        evidence_lines=evidence_lines,
         report=None,
         exit_code=None,
+        run_timestamp=run_timestamp,
+        run_nonce=run_nonce,
     )
 
     try:
@@ -628,8 +686,11 @@ def main(argv: list[str] | None = None) -> int:
         _write_scan_log(
             args.run_dir,
             split_evidence,
+            evidence_lines=evidence_lines,
             report=report,
             exit_code=2,
+            run_timestamp=run_timestamp,
+            run_nonce=run_nonce,
         )
         print(_status_line(report_path, report))
         return 2
@@ -638,8 +699,11 @@ def main(argv: list[str] | None = None) -> int:
     _write_scan_log(
         args.run_dir,
         split_evidence,
+        evidence_lines=evidence_lines,
         report=report,
         exit_code=0,
+        run_timestamp=run_timestamp,
+        run_nonce=run_nonce,
     )
     print(_status_line(report_path, report))
     return 0
