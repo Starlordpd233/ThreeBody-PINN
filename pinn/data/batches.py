@@ -295,19 +295,36 @@ def sample_collocation_points(
     device,
     collocation_count: int = 4096,
 ) -> PhysicsCollocationPoints:
-    """Draw global-[0,10] physics points under balanced identity quotas."""
+    """Draw global-[0,10] physics points under balanced per-slot quotas.
+
+    The canonical identities are the sorted selected-slot multiset, not a
+    unique-key set: ``allocate_collocation_quota`` divides ``collocation_count``
+    over the ``M = len(record_keys)`` selected slots (one quota per slot). A
+    RecordKey that occupies ``k`` selected slots therefore accumulates ``k``
+    per-slot quotas of collocation rows, preserving the replacement-padded
+    replay/lookahead weighting through the two-point-set batch. Because the
+    quotas sum to ``collocation_count`` over slots, the emitted total is always
+    exactly ``collocation_count`` regardless of key repetition.
+    """
     rng = _require_local_rng(rng)
     if collocation_count <= 0:
         raise ValueError("collocation_count must be positive")
-    identities = tuple(sorted(set(record_keys)))
-    identities = _validate_numeric_pool(
-        source, identities, pool_name="collocation identities"
-    )
-    quotas = allocate_collocation_quota(len(identities), collocation_count, rng)
+
+    # One near-even quota per selected slot (the multiset). Repeated keys
+    # naturally accumulate multiple per-slot quotas; the total is always exact.
+    per_slot_quotas = allocate_collocation_quota(len(record_keys), collocation_count, rng)
 
     assigned: list[tuple[RecordKey, float]] = []
-    for key, count in zip(identities, quotas):
-        for value in rng.uniform(0.0, T_CHARACTERISTIC_TIME, size=count):
+    for key, per_slot_count in zip(record_keys, per_slot_quotas):
+        if not isinstance(key, RecordKey):
+            raise TypeError(f"collocation member must be RecordKey; got {key!r}")
+        if (key.variant, key.fidelity) != ("hierarchical", "base"):
+            raise ValueError(
+                f"collocation contains non-original/base hierarchical Set 1a key {key!r}"
+            )
+        if _is_blacklisted(source, key):
+            raise ValueError(f"collocation contains blacklisted physical key {key.physical_key!r}")
+        for value in rng.uniform(0.0, T_CHARACTERISTIC_TIME, size=per_slot_count):
             assigned.append((key, float(value)))
     assigned.sort(key=lambda item: (item[0], item[1]))
     if len(assigned) != collocation_count:

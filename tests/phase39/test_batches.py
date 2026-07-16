@@ -428,6 +428,55 @@ class FullBatchContract(unittest.TestCase):
         self.assertEqual(sum(value == 18 for value in counts.values()), 16)
         self.assertEqual(set(a.record_keys), set(first.replay_keys))
 
+    def test_pool_size_one_lookahead_key_receives_all_256_collocation_rows(self):
+        """Stage-1 pool size 1: one lookahead slot, replacement-padded to 16
+        selected slots, contributes 256 aggregate collocation rows (16*16);
+        each of 240 replay slots contributes 16, totaling 4096."""
+        import collections
+        import torch
+
+        query = self._query(n_stage0=300, n_stage1=1)
+        batch = self.build_stage_batch(
+            query, stage=0, rng=_rng(7), dtype=torch.float32,
+            device=torch.device("cpu"), collocation_count=4096)
+        collocation_owners = collections.Counter(batch.collocation_points.record_keys)
+        selected_multiset = collections.Counter(batch.replay_keys + batch.lookahead_keys)
+        self.assertEqual(len(batch.replay_keys) + len(batch.lookahead_keys), 240 + 16)
+        self.assertEqual(batch.collocation_points.times.shape[0], 4096)
+        # Each selected slot receives one per-slot quota; a key's aggregate rows
+        # equal its per-slot quota times its occurrence count in selected slots.
+        for key, count in collocation_owners.items():
+            self.assertEqual(count, 16 * selected_multiset[key], f"key {key}")
+        # The one lookahead key occupies 16 selected slots -> 256 aggregate rows.
+        # lookahead_keys is replacement-padded (16 entries, one unique key), so
+        # sum over the unique set, not the multiset.
+        self.assertEqual(
+            sum(collocation_owners[key] for key in set(batch.lookahead_keys)), 256)
+        # 240 replay slots * 16 per slot = 3840 replay aggregate rows.
+        self.assertEqual(
+            sum(collocation_owners[key] for key in batch.replay_keys), 3840)
+
+    def test_pool_size_fifteen_preserves_per_key_occurrence_multiplicity(self):
+        """Stage-1 pool size 15: each key's emitted collocation count equals
+        16 times that key's occurrence count in replay_keys + lookahead_keys."""
+        import collections
+        import torch
+
+        query = self._query(n_stage0=300, n_stage1=15)
+        batch = self.build_stage_batch(
+            query, stage=0, rng=_rng(13), dtype=torch.float32,
+            device=torch.device("cpu"), collocation_count=4096)
+        collocation_owners = collections.Counter(batch.collocation_points.record_keys)
+        selected_slots = collections.Counter(batch.replay_keys + batch.lookahead_keys)
+        self.assertEqual(batch.collocation_points.times.shape[0], 4096)
+        for key, occurrence in selected_slots.items():
+            self.assertEqual(
+                collocation_owners[key],
+                16 * occurrence,
+                f"key {key} occurrence {occurrence}",
+            )
+        self.assertEqual(sum(collocation_owners.values()), 4096)
+
     def test_real_network_accepts_model_facing_batch_shapes(self):
         import torch
         from pinn.architecture_spec import ArchitectureSpec
