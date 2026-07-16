@@ -792,7 +792,14 @@ class AdmittedSetAdapter:
         raw_ic13_population = []
         trajectory_energies = []
         gold_numeric = 0
-        blacklist_present = {f: 0 for f in README_BRUTUS_FOLDERS}
+        # Per-fidelity blacklist disposition counters (39-03-PLAN.md:85 contract).
+        # Keyed by the fidelity component of BRUTUS_FOLDER_TABLE[folder]; every
+        # fidelity is initialized so a fidelity with zero blacklisted files still
+        # emits a ``0`` line rather than being absent.
+        blacklist_by_fidelity = {
+            fidelity: {"n_present_on_disk": 0, "n_excluded": 0}
+            for _, (_, fidelity) in BRUTUS_FOLDER_TABLE.items()
+        }
 
         for folder, (variant, fidelity) in sorted(BRUTUS_FOLDER_TABLE.items()):
             counts = dict(found=0, admitted=0, rejected=0, quarantined=0, dropped_samples=0)
@@ -803,7 +810,7 @@ class AdmittedSetAdapter:
                 parsed_brutus = parse_brutus_file(path, root=self.data_root)
                 record_key = record_key_from_brutus(folder, path.name)
                 if record_key.physical_key in self.blacklisted_physical_keys:
-                    blacklist_present[folder] += 1
+                    blacklist_by_fidelity[fidelity]["n_present_on_disk"] += 1
                 parsed = to_parsed_trajectory(record_key, parsed_brutus)
                 reference, provenance, _anom, _missing = parse_footer(
                     parsed_brutus.footer_raw, variant=variant, fidelity=fidelity)
@@ -814,6 +821,9 @@ class AdmittedSetAdapter:
                     remediation_quarantine=self._remediation_quarantine,
                     dt_out=reference.get("dt_out"))
                 counts["dropped_samples"] += outcome.dropped_samples
+                if record_key.physical_key in self.blacklisted_physical_keys:
+                    if outcome.disposition != "admit":
+                        blacklist_by_fidelity[fidelity]["n_excluded"] += 1
                 if outcome.disposition == "reject":
                     counts["rejected"] += 1
                     continue
@@ -873,6 +883,16 @@ class AdmittedSetAdapter:
         for family, ids in self._blacklist_entries.items():
             absent = [i for i in ids if PhysicalKey(family, i) not in present_on_disk]
             self.init_log.append(f"blacklist {family} absent_ids={absent}")
+
+        # Per-fidelity blacklist disposition counts (39-03-PLAN.md:85 contract):
+        # n_present_on_disk = blacklisted records of this fidelity found on disk;
+        # n_excluded = those not admitted (clause-1 defense-in-depth). Emitted in
+        # sorted fidelity order (base before gold) for byte-stable evidence.
+        for fidelity in sorted(blacklist_by_fidelity):
+            present = blacklist_by_fidelity[fidelity]["n_present_on_disk"]
+            excluded = blacklist_by_fidelity[fidelity]["n_excluded"]
+            self.init_log.append(
+                f"blacklist {fidelity} n_present_on_disk={present} n_excluded={excluded}")
 
         # Zero-gold numeric invariant (hard fail-closed).
         if gold_numeric != 0:

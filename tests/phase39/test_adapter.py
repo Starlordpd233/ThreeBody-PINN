@@ -23,6 +23,7 @@ Contract highlights (39-01-PLAN task 39-01-01 acceptance criteria):
 """
 
 import importlib
+import re
 import unittest
 from unittest import mock
 import warnings
@@ -1005,6 +1006,83 @@ class ProductionRootAndBlacklistTests(unittest.TestCase):
                                 for ln in adapter.init_log))
             self.assertTrue(any("blacklist hierarchical absent_ids=[]" in ln
                                 for ln in adapter.init_log))
+
+    def test_per_fidelity_blacklist_presence_and_exclusion_counts(self):
+        # 39-11-01 Task 1: per-fidelity n_present_on_disk / n_excluded lines are
+        # derived from the fixture's actual files, not a hardcoded corpus total.
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            # Both fidelities emit a line, in sorted order (base before gold).
+            self.assertTrue(any(re.match(
+                r"^blacklist base n_present_on_disk=\d+ n_excluded=\d+$", ln
+            ) for ln in adapter.init_log), adapter.init_log)
+            self.assertTrue(any(re.match(
+                r"^blacklist gold n_present_on_disk=\d+ n_excluded=\d+$", ln
+            ) for ln in adapter.init_log), adapter.init_log)
+
+    def test_n_excluded_equals_n_present_on_disk_for_each_fidelity(self):
+        # 39-11-01 Task 2: on a healthy fixture, every blacklisted record that is
+        # present on disk is excluded (clause-1 defense-in-depth).
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            counts = {}
+            for ln in adapter.init_log:
+                m = re.match(
+                    r"^blacklist (?P<fidelity>base|gold) "
+                    r"n_present_on_disk=(?P<p>\d+) n_excluded=(?P<e>\d+)$", ln)
+                if m:
+                    counts[m.group("fidelity")] = (int(m.group("p")), int(m.group("e")))
+            self.assertEqual(set(counts), {"base", "gold"})
+            for fidelity, (present, excluded) in counts.items():
+                self.assertEqual(
+                    excluded, present,
+                    f"{fidelity}: n_excluded={excluded} != n_present_on_disk={present}")
+
+    def test_per_family_blacklist_lines_unchanged(self):
+        # 39-11-01 Task 3: the existing per-family lines are byte-identical.
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = self._full_adapter(corpus)
+            self.assertTrue(any("blacklist hierarchical n_blacklist_entries=1" in ln
+                                for ln in adapter.init_log))
+            self.assertTrue(any("blacklist standard n_blacklist_entries=1" in ln
+                                for ln in adapter.init_log))
+            self.assertTrue(any("blacklist hierarchical absent_ids=[]" in ln
+                                for ln in adapter.init_log))
+
+    def test_absent_blacklisted_id_contributes_zero_to_present_on_disk(self):
+        # 39-11-01 Task 4: a blacklisted id listed in the file but absent on disk
+        # contributes 0 to each fidelity's n_present_on_disk and still appears in
+        # the family's absent_ids list.
+        with _fixtures.TinyCorpus() as corpus:
+            # The tiny corpus blacklists standard id 5, present in both the base
+            # and gold standard folders -> n_present_on_disk=1 for each fidelity.
+            # Add an absent listed id (99999) to the standard family.
+            import json
+            black = json.loads(corpus.blacklist_path.read_text())
+            black["standard"].append(99999)
+            corpus.blacklist_path.write_text(json.dumps(black))
+            adapter = self._full_adapter(corpus)
+            fidelity_counts = {}
+            absent_line = None
+            for ln in adapter.init_log:
+                m = re.match(
+                    r"^blacklist (?P<fidelity>base|gold) "
+                    r"n_present_on_disk=(?P<p>\d+) n_excluded=(?P<e>\d+)$", ln)
+                if m:
+                    fidelity_counts[m.group("fidelity")] = (int(m.group("p")), int(m.group("e")))
+                if ln.startswith("blacklist standard absent_ids="):
+                    absent_line = ln
+            # Both fidelities present (the standard family spans base + gold).
+            self.assertEqual(set(fidelity_counts), {"base", "gold"})
+            # Each fidelity has 2 on-disk blacklisted records (hierarchical id 3
+            # and standard id 5). The absent id 99999 contributes 0 to both
+            # fidelities' counts (still 2, not 3).
+            for fidelity, (present, excluded) in fidelity_counts.items():
+                self.assertEqual(present, 2, f"{fidelity}: expected present=2")
+                self.assertEqual(excluded, present, f"{fidelity}: excluded != present")
+            # The absent id appears in the family's absent_ids list.
+            self.assertIsNotNone(absent_line)
+            self.assertIn("99999", absent_line)
 
     def test_paired_base_gold_identical_invariants_split_the_label(self):
         classify_stage_label = _require("classify_stage_label", "pinn.data.stages")
