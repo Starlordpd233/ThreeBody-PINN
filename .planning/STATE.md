@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
-current_phase: 39
-current_phase_name: data-ingestion-stage-0-population-scan
-status: executing
-stopped_at: Completed 39-12-PLAN.md
-last_updated: "2026-07-16T12:47:18.347Z"
+current_phase: 40
+current_phase_name: stage-0-curriculum-training-loop
+status: ready
+stopped_at: Phase 39 closed; all 14 plans complete, 27/27 UAT tests pass, ROADMAP marked complete
+last_updated: "2026-07-16T07:58:00.000Z"
 last_activity: 2026-07-16
-last_activity_desc: Phase 39 execution started
+last_activity_desc: Phase 39 gap-closure closeout (plans 39-11..39-14) and phase completion
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 24
-  completed_plans: 23
-  percent: 29
+  completed_plans: 24
+  percent: 33
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 39 — data-ingestion-stage-0-population-scan
+**Current focus:** Phase 40 — stage-0-curriculum-training-loop (FUT-04)
 
 ## Current Position
 
-Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
-Plan: 1 of 13
-Status: Executing Phase 39
-Last activity: 2026-07-16 — Phase 39 execution started
+Phase: 40 (stage-0-curriculum-training-loop) — READY
+Plan: pending
+Status: Phase 39 closed 2026-07-16; ready to plan/execute Phase 40
+Last activity: 2026-07-16 — Phase 39 gap-closure closeout complete
 
 ## Deferred Items
 
@@ -188,6 +188,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 Recent decisions affecting current work:
 
 - [Phase 39 verification 2026-07-16]: Verification closeout ran under owner "Full closeout" instruction. 39-10-03 authority checkpoint resolved as Option A (gsd-core hard-gate at <home>/Desktop/code/gsd-core `fix/phase-complete-uat-predicate`, deployed to .claude-alt); 39-10 closed with SUMMARY. Canonical 39-VERIFICATION.md produced by gsd-verifier → **gaps_found (6/7)**. DATA-01..06 substance solid (251/251 dataset-free tests pass; all requirements map to real code), but an independently-reproduced evidence-integrity gap blocks completion: 39-VALIDATION row 39-07-02 is marked green yet its command fails against the retained 9-line scan.log — the original 41-line scan.log (acf9b207) was hand-assembled (its `# adapter init_log` block cannot come from the CLI), and 39-10-01 honestly regenerated the minimal true CLI output without correcting the ledger. Root cause: `pinn/data/stage_scan.py` CLI never serializes `AdmittedSetAdapter.init_log` (mem/watermark/blacklist/freshness). Phase 39 stays In Progress; fix routed to /gsd-plan-phase 39 --gaps. Memory-below-watermark held mechanically (adapter fail-closed) but is not independently provable from retained bytes.
+- [Phase 39 closeout 2026-07-16]: Gap-closure plans 39-11..39-14 executed and committed. 39-11 added fail-closed redacted `evidence_lines()` + per-fidelity `n_present_on_disk`/`n_excluded` to `AdmittedSetAdapter`; 39-12 wired `evidence_lines()` into the scan CLI with `run_timestamp`/`run_nonce`/`evidence_byte_identity` freshness markers and renamed `exit_code`→`scan_exit_code`; 39-13 regenerated real-corpus evidence (scan.log now carries `mem:`/`n_blacklist_entries`/`n_present_on_disk`/freshness fields, no `/Users/` leakage); 39-14 repaired the vacuous row 39-10-02 awk assertion. Row 39-07-02 command re-run: observed exit 0. 39-UAT updated: Test 24 → pass, 27/27 pass, status complete, G-39-24 resolved. ROADMAP Phase 39 marked `[x]`. STATE advanced to Phase 40.
 - [D1-p RESOLVED 2026-07-12]: Owner recorded **fp32-MPS** (Option A) for D1-p, resolving GAP-37-01 and retiring the same-day deferral below. Verbatim ruling (*"...we will remain with the entire training happening on the MacBook Pro with M5 chip. Let's carry on with that choice and decision for now."*) plus an explicit branch-naming confirmation (owner selected "fp32-MPS" from {fp32-MPS, fp64-CPU, keep deferred}) are recorded in the gap register, including the R-6 dual-arm tolerance ratification (fp64-CPU reference arm; fp32-MPS within ~1e-4). Production default: `precision=float32, device=mps`; fp64-CPU remains the in-framework escape hatch (ENV-04). **Phase 38 (NET) UNBLOCKED**; ENV-03 closable. Single-machine M5 Pro training reaffirmed — a Lenovo/multi-machine split is a later cost-benefit question outside v2.0. No code changed (CTX-14): `pinn/runtime.py` encodes no default; the Phase 40/41 training config consumes the recorded value.
 - [D1-p DEFERRED 2026-07-12]: Owner recorded an explicit DEFERRED verdict for D1-p (precision branch, fp32-MPS vs fp64-CPU) at the Plan 37-05 blocking checkpoint. Verbatim: *"i picked the wrong option. let's defer that and we'll decide on this later."* The owner retracted an initial fp32-MPS selection. **Phase 38 (NET) is blocked at the D1-p seam until the owner records a branch.** The agent did NOT choose, recommend, or apply a precision default. The retained dual-arm evidence (`evidence/precision/20260712T150406Z/`) is reusable; no re-run required when the owner records a branch. Full gap record: GAP-37-01 (`.planning/phases/37-developer-environment-precision-adjudication/37-GAPS.md`); milestone index: `.planning/milestones/v2.0-GAPS.md`.
 - [integrity-r2-clearance 2026-07-11]: Owner disposed the integrity-r2 pre-build audit punch-list (MASTER-FINAL-RESOLUTION, status candidate/owner-disposes, verdict NO-GO): **PB-1 Option A + interim floor** (Stage-0/1a/1b `s_min` criterion becomes data-derived `s₀` ratified at the Phase 39 DATA-06 scan; interim `s₀ = 0.01`), **PB-2/PB-3/PB-4/PB-5 all Option A** (five-term Huber loss catalog; corrected replay/lookahead data/collocation contract; `physical_key` grouped-split invariant; Tier-1 dataset-count correction — corpus arithmetic becomes ≈8.23M snapshots ≈0.72 GB fp32, no ratified decision changes). Owner authorized a bounded spec micro-pass on `ctl_instruction.md` now (departing from the delivery-note "future spec milestone" routing): `s_min` repair, Set 1b/2a count swap, `compute_L_norm` degenerate-branch fix (IR2-007), DATA-05 quarantine historical note (IR2-008). v2.0 REQUIREMENTS/ROADMAP patched accordingly (NET-04, DATA-02, DATA-04, DATA-05, DATA-06 + Phase 38/39 criteria). **Phase-37 pre-build gate: CLEARED** (nothing waived). Clearance record: `pinn_instruction/markdown_conversion/framework-specs/integrity-r2/CLEARANCE.md` (trainex worktree, `milestone/v1.7` commit `09c972c6`).
@@ -263,12 +264,13 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-16T12:01:06.014Z
-Stopped at: Completed 39-12-PLAN.md
-Next action: /gsd-execute-phase 39 — runs waves 8→10. Waves 8–9 (39-11, 39-12) are dataset-free. Wave 10 (39-13) is the ONLY dataset-dependent task: it needs the main-repo corpus at <home>/Desktop/3_body_problem/simulation_data (~38,017 files, not present in this worktree) via the GSD_DATA_ROOT procedure established by 39-07/39-10. After execution, re-run verification — closing this gap should flip 39-VERIFICATION.md truth 7 to verified — then re-run UAT so Test 24 / G-39-24 can close.
+Last session: 2026-07-16T07:58:00.000Z
+Stopped at: Phase 39 closed — all 14 plans (39-01..39-14) complete, 27/27 UAT tests pass, 39-UAT status complete, ROADMAP Phase 39 marked `[x]`
+Next action: `/gsd-plan-phase 40` (Stage-0 Curriculum Training Loop, FUT-04) from the `.worktrees/trainex` worktree on `milestone/v2.0`
 
 ## Operator Next Steps
 
-- **Phase 38 is unblocked:** D1-p recorded as **fp32-MPS** in GAP-37-01 (`RESOLVED-WITH-INSTRUCTION`, verbatim quote filled). Production default `precision=float32, device=mps`; fp64-CPU escape hatch stands (ENV-04); no code changed (CTX-14).
-- Continue Phase 38 with Plans 38-05 then 38-06; Plans 38-01..38-04 are complete. Note for rungs 3–4: no Brutus trajectory file exists in this worktree — probes are path-parameterized (CTX-26); point them at the real dataset location at execution time.
-- Phase 37's verification surface: ENV-01/02/04 GREEN; ENV-03 evidence retained and validated + owner verdict recorded; all 55 tests/phase37 tests pass; the committed environment substrate is re-derivable on the M5 Pro.
+- **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
+- **Phase 40 (TRAIN, FUT-04) is next**: `CurriculumController`/`RunController` implementing the Adam→L-BFGS Stage-0 closure loop, PHYS-05 scheduled weights, collocation sampler, merged gradient clipping, and the ADVANCE/RECOVER/HALT stage-exit machine. Depends on Phase 38 (model) and Phase 39 (batches) — both complete.
+- **Phase 38 is complete** (NET-01..05): spec-faithful SQR-SkipResNet-SIREN rebuild with gradcheck/overfit proof rungs.
+- **Phase 37 is complete** (ENV-01..04): `pinn-train` conda env on M5 Pro, D1-p recorded as fp32-MPS.
