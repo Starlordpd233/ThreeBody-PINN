@@ -170,9 +170,9 @@ resolved_by: 39-09-PLAN.md / 39-09-SUMMARY.md
 ### 24. Canonical Phase Verification State
 expected: Phase 39 has a fresh passing VERIFICATION.md and completed validation ledger before ROADMAP marks the phase complete.
 result: issue
-reported: Validation ledger green through 39-10-02; evidence train-ready. ROADMAP premature Phase 39 [x] revoked 2026-07-16 (now unchecked / In Progress). GSD runtime now hard-blocks phase.complete when UAT is diagnosed (deployed from <home>/Desktop/code/gsd-core branch fix/phase-complete-uat-predicate). Still open: no 39-VERIFICATION.md, so phase.complete still fails verification gate; UAT remains diagnosed until this test can pass.
+reported: 39-10 closed (authority checkpoint resolved, Option A gsd-core hard-gate deployed to .claude-alt); ROADMAP premature [x] stays revoked. Canonical 39-VERIFICATION.md now PRODUCED 2026-07-16 but verdict is gaps_found — verification did NOT pass. A new, independently-reproduced evidence-integrity gap blocks completion: 39-VALIDATION row 39-07-02 is marked green yet its exact command fails against the retained scan.log (10 fields absent), because stage_scan.py's CLI never surfaces AdmittedSetAdapter.init_log; the original 41-line scan.log was hand-assembled. Gate correctly holds phase_complete=false. Fix routed to /gsd-plan-phase 39 --gaps; re-run UAT after the gap closes and verification passes.
 severity: major
-partially_resolved_by: 39-10-PLAN.md tasks 39-10-01/02 + gsd-core UAT hard-gate 2026-07-16
+partially_resolved_by: 39-10-PLAN.md tasks 39-10-01/02 + gsd-core UAT hard-gate + 39-VERIFICATION.md (gaps_found) 2026-07-16
 
 ### 25. Selected-Slot Multiplicity Implementation (Plan 08)
 expected: sample_collocation_points treats the selected-slot multiset as canonical identity and allocates exact collocation_count over M slots including replacement-padded duplicates.
@@ -249,7 +249,7 @@ blocked: 0
 - gap_id: G-39-24
   truth: "Phase completion is backed by canonical verification state and a shared UAT-plus-verification predicate."
   status: failed
-  reason: "Ledger/evidence/coverage hygiene fixed by 39-10-01/02. GSD runtime hard-gate for diagnosed UAT is now implemented and deployed (open-gsd/gsd-core branch fix/phase-complete-uat-predicate; installed into ~/.claude, ~/.codex, ~/.codex2, …). ROADMAP Phase 39 premature [x] revoked 2026-07-16. Remaining product-side blockers: no 39-VERIFICATION.md; UAT still status=diagnosed because this gap is open."
+  reason: "GSD runtime hard-gate deployed (open-gsd/gsd-core branch fix/phase-complete-uat-predicate; ~/.claude, ~/.claude-alt, ~/.codex, …). ROADMAP premature [x] revoked and 39-10 closed 2026-07-16. Canonical 39-VERIFICATION.md now produced but verdict gaps_found: verification surfaced a NEW evidence-integrity gap (39-VALIDATION row 39-07-02 false-green vs retained scan.log; stage_scan.py CLI omits AdmittedSetAdapter.init_log). The lifecycle predicate is fixed; completion is now blocked by that evidence gap. UAT stays diagnosed until it closes. See 39-VERIFICATION.md gaps + /gsd-plan-phase 39 --gaps."
   severity: major
   test: 24
   root_cause: "Historically roadmap.update-plan-progress stamped Complete on last SUMMARY (pre-#2022 / lagging installs), and phase.complete only warned on diagnosed UAT. Runtime now hard-blocks phase.complete and Complete stamps when UAT is diagnosed/failing."
@@ -265,8 +265,8 @@ blocked: 0
     - path: <home>/Desktop/code/gsd-core (branch fix/phase-complete-uat-predicate)
       issue: resolved runtime surface — UAT hard gate + execute-phase predicate precheck
   missing:
-    - Fresh 39-VERIFICATION.md via verify_phase_goal / execute-phase verification step
-    - Re-run UAT after VERIFICATION lands; set frontmatter status complete only when Test 24 passes
+    - "DONE 2026-07-16 — Fresh 39-VERIFICATION.md produced (verdict gaps_found); the remaining blocker is the evidence-integrity gap it surfaced (stage_scan.py CLI evidence wiring + 39-VALIDATION row 39-07-02), routed to /gsd-plan-phase 39 --gaps"
+    - Close the evidence-integrity gap, regenerate real-corpus scan.log, then re-run UAT after VERIFICATION passes; set frontmatter status complete only when Test 24 passes
     - Optional: open upstream PR for open-gsd/gsd-core so installs survive `gsd-update`
   debug_session: .planning/debug/phase39-canonical-verification-state.md
   partially_resolved_by: 39-10-PLAN.md (tasks 01-02) + gsd-core lifecycle hard-gate (2026-07-16)

@@ -1,8 +1,8 @@
 ---
-status: investigating
+status: resolved
 trigger: "Diagnose root cause only for Phase 39 UAT gap: Phase completion is backed by canonical verification state."
 created: 2026-07-15T13:51:40Z
-updated: 2026-07-15T13:56:40Z
+updated: 2026-07-16T10:40:55Z
 ---
 
 ## Current Focus
@@ -71,7 +71,31 @@ started: Present in the Phase 39 completion state at HEAD e9e2996acf5ffe4c82dbbb
 
 ## Resolution
 
-root_cause:
-fix:
-verification:
-files_changed: []
+root_cause: |
+  Two independent process defects, both now confirmed:
+  (1) Lifecycle: execute-phase never produced 39-VERIFICATION.md, and roadmap.update-plan-progress
+      stamped Complete on last SUMMARY without the shared diagnosed-UAT-plus-passing-verification
+      predicate, so phase.complete could pass with UAT diagnosed.
+  (2) Evidence integrity (surfaced by the 2026-07-16 closeout verification, not part of the original
+      hypothesis): 39-VALIDATION row 39-07-02 was marked green but its exact command fails against the
+      retained scan.log, because pinn/data/stage_scan.py's CLI never serializes AdmittedSetAdapter.init_log
+      (mem/watermark/blacklist/freshness). The original 41-line scan.log (commit acf9b207) was hand-assembled
+      — its `# adapter init_log` block cannot come from the CLI — and 39-10-01 honestly regenerated the
+      minimal 9-line true CLI output without correcting the ledger row.
+fix: |
+  (1) Lifecycle: resolved out-of-band — gsd-core branch fix/phase-complete-uat-predicate hard-gates
+      phase.complete on diagnosed UAT, deployed to .claude-alt; ROADMAP premature [x] revoked (a599c90f);
+      39-10 closed (7107e0b); canonical 39-VERIFICATION.md produced (8d640e3).
+  (2) Evidence integrity: NOT yet fixed — routed to /gsd-plan-phase 39 --gaps (wire adapter init_log into
+      stage_scan.py CLI evidence output + add dataset-free test + correct 39-VALIDATION row 39-07-02 +
+      regenerate real-corpus evidence). Tracked in 39-VERIFICATION.md gaps frontmatter.
+verification: |
+  init.verify-work 39 → implementation_complete=true, has_verification=true, verification_status=gaps_found,
+  verification_passed=false, phase_complete=false (hard-gate correctly holds). Field-absence in scan.log and
+  the row-39-07-02 failure independently reproduced.
+files_changed:
+  - .planning/phases/39-data-ingestion-stage-0-population-scan/39-10-SUMMARY.md
+  - .planning/phases/39-data-ingestion-stage-0-population-scan/39-VERIFICATION.md
+  - .planning/STATE.md
+  - .planning/phases/39-data-ingestion-stage-0-population-scan/39-UAT.md
+  - .planning/debug/phase39-canonical-verification-state.md
