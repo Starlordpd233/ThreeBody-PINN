@@ -47,26 +47,26 @@ requirements-completed: [DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06]
 
 coverage:
   - id: P1
-    description: "Dataset-free Phase 39 suite (17 slices) + full repository unittest discovery (402 tests) both exit zero with structured command_result markers"
+    description: "Dataset-free Phase 39 suite and full repository unittest discovery both exit zero with structured command_result markers"
     requirement: DATA-01..06
     verification:
-      - kind: regression
+      - kind: integration
         ref: "evidence/stage-scan/phase-close/dataset-free.log (phase39_suite=PASS, repository_suite=PASS)"
         status: pass
     human_judgment: false
   - id: P2
-    description: "Read-only real-corpus Thrust-A scan: stage0_full_split_count=2265 (>=240) -> scan_exit_code=0 (train-ready); gold_numeric_stage_count=0; mem fraction 0.024292 <= 0.7; byte-identical retained evidence"
+    description: "Read-only real-corpus Thrust-A scan with train-ready exit code, zero numeric gold labels, memory fraction within watermark, and byte-identical retained evidence"
     requirement: DATA-06
     verification:
-      - kind: dataset-backed
+      - kind: e2e
         ref: "evidence/stage-scan/phase-close/scan.log + stage_population.json + splits.json"
         status: pass
     human_judgment: false
   - id: P3
-    description: "Exact-reader / sole-classifier / source-integrity / readiness audit; full>=240 -> real_stage0_replay=240, train_ready=true; framework specs + simulation_data byte-unchanged"
+    description: "Exact-reader, sole-classifier, source-integrity, and readiness audit; full-admitted replay/lookahead selection over base Set 1a only; framework specs and corpus byte-unchanged"
     requirement: DATA-01..06
     verification:
-      - kind: audit
+      - kind: integration
         ref: "evidence/stage-scan/phase-close/verification.log"
         status: pass
     human_judgment: false
