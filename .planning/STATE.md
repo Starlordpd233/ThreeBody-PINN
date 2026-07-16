@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 39
 current_phase_name: data-ingestion-stage-0-population-scan
 status: executing
-stopped_at: Completed 39-11-PLAN.md
-last_updated: "2026-07-16T11:46:32.351Z"
+stopped_at: Completed 39-12-PLAN.md
+last_updated: "2026-07-16T12:01:06.020Z"
 last_activity: 2026-07-16
 last_activity_desc: Phase 39 execution started
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 24
-  completed_plans: 22
+  completed_plans: 23
   percent: 29
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
-Plan: 2 of 13
+Plan: 3 of 13
 Status: Ready to execute
 Last activity: 2026-07-16 — Phase 39 execution started
 
@@ -111,6 +111,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 39 P11 | 12min | 2 tasks | 3 files |
+| Phase 39 P12 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -233,6 +234,7 @@ Recent decisions affecting current work:
 - [Phase 39-03]: The full production adapter (residency, accessors, mem accounting, module-level resident_tensor_bytes/format_mem_line) landed in the task-01 commit rather than being split across tasks 01/02, because the frozen Wave-0 deferred tests (AdapterResidencyTests, ResidentBytesTests) activate the instant the AdmittedSetAdapter symbol exists and cannot be partially satisfied. Tasks 02/03 add the plan's additional named requirements as additive tests. Mirrors Plan 39-02's frozen-test-is-load-bearing precedent.
 - [Phase 39-03]: Adapter constructor follows the frozen Wave-0 test's interface (root=, precision=, device=, run_dir=, version_metadata_path=, capacity_bytes=) rather than the plan prose's data_root=/memory_capacity_bytes= naming, since the deferred tests are the load-bearing contract; plan-named features (GSD_DATA_ROOT/git-common-dir default, DataSourceRootMissing/Incomplete, GSD_ALLOW_PARTIAL_DATA_ROOT, mem_ballpark, resident_tensor_bytes_misfit, remediation_quarantine, records_at/records_at_or_below/has_stage) are layered in as additive behavior + tests.
 - [Phase 39-03]: adapter.py references .s_min (building the interim classify record) but deliberately contains NO STAGE_0/STAGE_1 literal — numeric-stage detection uses `label is not StageLabel.UNASSIGNED` / `label.value` — so it stays off the sole-classifier prohibition audit while stages.py remains the sole numeric classifier. The classifier floor is stored as self.classifier_interim_s0 (word-boundary-safe against the s0-mutation detector) and passed positionally to classify_stage_label.
+- [Phase ?]: Retained exit_code as internal param while renaming emitted scan.log field to scan_exit_code=; plan acceptance grep over-broad on param names
 
 ### Pending Todos
 
@@ -261,8 +263,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-16T11:46:32.345Z
-Stopped at: Completed 39-11-PLAN.md
+Last session: 2026-07-16T12:01:06.014Z
+Stopped at: Completed 39-12-PLAN.md
 Next action: /gsd-execute-phase 39 — runs waves 8→10. Waves 8–9 (39-11, 39-12) are dataset-free. Wave 10 (39-13) is the ONLY dataset-dependent task: it needs the main-repo corpus at <home>/Desktop/3_body_problem/simulation_data (~38,017 files, not present in this worktree) via the GSD_DATA_ROOT procedure established by 39-07/39-10. After execution, re-run verification — closing this gap should flip 39-VERIFICATION.md truth 7 to verified — then re-run UAT so Test 24 / G-39-24 can close.
 
 ## Operator Next Steps
