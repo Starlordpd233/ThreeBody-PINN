@@ -428,6 +428,58 @@ class FullBatchContract(unittest.TestCase):
         self.assertEqual(sum(value == 18 for value in counts.values()), 16)
         self.assertEqual(set(a.record_keys), set(first.replay_keys))
 
+    def test_singleton_stage1_pool_preserves_replacement_multiplicity(self):
+        import collections
+        import torch
+
+        # One Stage-1 identity padded with replacement to 16 lookahead slots.
+        query = self._query(n_stage0=300, n_stage1=1)
+        batch = self.build_stage_batch(
+            query, stage=0, rng=_rng(0), dtype=torch.float32,
+            device=torch.device("cpu"), collocation_count=4096)
+        self.assertEqual(len(batch.replay_keys), 240)
+        self.assertEqual(len(batch.lookahead_keys), 16)
+        # Replacement padding from a pool of one collapses to a single unique key.
+        self.assertEqual(len(set(batch.lookahead_keys)), 1)
+        selected_slot_counts = collections.Counter(
+            batch.replay_keys + batch.lookahead_keys)
+        collocation_counts = collections.Counter(
+            batch.collocation_points.record_keys)
+        self.assertEqual(sum(collocation_counts.values()), 4096)
+        # Every selected slot contributes 16 collocation rows, including the
+        # 16 replacement-padded lookahead slots sharing one RecordKey.
+        for key, slot_count in selected_slot_counts.items():
+            self.assertEqual(collocation_counts[key], 16 * slot_count)
+        # The singleton lookahead key therefore aggregates 16 * 16 = 256 rows.
+        self.assertEqual(collocation_counts[batch.lookahead_keys[0]], 256)
+        # Each of the 240 unique replay slots contributes exactly 16 rows.
+        for key in batch.replay_keys:
+            self.assertEqual(collocation_counts[key], 16)
+
+    def test_undersized_stage1_pool_preserves_every_repeated_occurrence(self):
+        import collections
+        import torch
+
+        # Fifteen Stage-1 identities sampled with replacement to 16 lookahead
+        # slots; by the pigeonhole principle at least one key repeats.
+        query = self._query(n_stage0=300, n_stage1=15)
+        batch = self.build_stage_batch(
+            query, stage=0, rng=_rng(0), dtype=torch.float32,
+            device=torch.device("cpu"), collocation_count=4096)
+        self.assertEqual(len(batch.replay_keys), 240)
+        self.assertEqual(len(batch.lookahead_keys), 16)
+        self.assertLessEqual(len(set(batch.lookahead_keys)), 15)
+        selected_slot_counts = collections.Counter(
+            batch.replay_keys + batch.lookahead_keys)
+        collocation_counts = collections.Counter(
+            batch.collocation_points.record_keys)
+        self.assertEqual(sum(collocation_counts.values()), 4096)
+        # 240 replay + 16 lookahead = 256 selected slots; 256 * 16 = 4096.
+        self.assertEqual(sum(selected_slot_counts.values()), 256)
+        # Collocation ownership preserves every replacement-padded occurrence.
+        for key, slot_count in selected_slot_counts.items():
+            self.assertEqual(collocation_counts[key], 16 * slot_count)
+
     def test_real_network_accepts_model_facing_batch_shapes(self):
         import torch
         from pinn.architecture_spec import ArchitectureSpec

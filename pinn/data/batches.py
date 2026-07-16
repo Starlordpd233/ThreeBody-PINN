@@ -299,14 +299,16 @@ def sample_collocation_points(
     rng = _require_local_rng(rng)
     if collocation_count <= 0:
         raise ValueError("collocation_count must be positive")
-    identities = tuple(sorted(set(record_keys)))
-    identities = _validate_numeric_pool(
-        source, identities, pool_name="collocation identities"
+    # Preserve selected-slot multiplicity: sort for deterministic output but do
+    # not deduplicate, so replacement-padded replay/lookahead slots retain their
+    # GAP-39-12 weighting through quota allocation.
+    slot_keys = _validate_numeric_pool(
+        source, record_keys, pool_name="collocation slots"
     )
-    quotas = allocate_collocation_quota(len(identities), collocation_count, rng)
+    quotas = allocate_collocation_quota(len(slot_keys), collocation_count, rng)
 
     assigned: list[tuple[RecordKey, float]] = []
-    for key, count in zip(identities, quotas):
+    for key, count in zip(slot_keys, quotas):
         for value in rng.uniform(0.0, T_CHARACTERISTIC_TIME, size=count):
             assigned.append((key, float(value)))
     assigned.sort(key=lambda item: (item[0], item[1]))
