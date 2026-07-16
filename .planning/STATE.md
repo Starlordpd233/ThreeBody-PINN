@@ -5,16 +5,16 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 39
 current_phase_name: data-ingestion-stage-0-population-scan
 status: executing
-stopped_at: "Phase 39 gap closure PLANNED 2026-07-16 — plans 39-11/12/13 registered and checker-passed. Verification stays gaps_found until they execute: 39-VALIDATION row 39-07-02 remains false-green vs the retained scan.log because stage_scan.py's CLI still omits adapter init_log."
-last_updated: "2026-07-16T11:21:21.000Z"
+stopped_at: Completed 39-11-PLAN.md
+last_updated: "2026-07-16T11:46:32.351Z"
 last_activity: 2026-07-16
-last_activity_desc: Gap-closure planning — 3 plans (39-11..39-13) registered for the evidence-integrity gap; plan-checker passed 0 blockers / 0 warnings
+last_activity_desc: Phase 39 execution started
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 24
-  completed_plans: 21
-  percent: 88
+  completed_plans: 22
+  percent: 29
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING (implementation train-ready; verification gaps_found, not complete)
-Plan: 13 plans registered (01–13); 01–10 have SUMMARYs. Gap-closure plans 39-11/12/13 registered 2026-07-16 (waves 8→9→10), plan-checker passed, NOT yet executed.
-Status: DATA-01..06 substance verified (6/7 truths; 251/251 dataset-free tests pass; all requirements map to real code). Canonical 39-VERIFICATION.md produced → gaps_found. Completion blocked by an evidence-integrity gap: 39-VALIDATION row 39-07-02 is marked green but its command fails against the current retained scan.log (10 fields absent); root cause is stage_scan.py's CLI never surfacing AdmittedSetAdapter.init_log. GSD runtime hard-gate correctly holds phase_complete=false. Gap closure is now planned: 39-11 adds a fail-closed redacted `evidence_lines()` projection to the adapter (and the per-fidelity blacklist counts 39-03 mandated but never implemented), 39-12 serializes it into scan.log plus run_timestamp/run_nonce/scan_exit_code/evidence_byte_identity, 39-13 regenerates real-corpus evidence and reconciles the ledger. Row 39-07-02's command stays byte-identical — every field it asserts is grounded in 39-03/39-07-PLAN; only the code failed the contract.
-Last activity: 2026-07-16 — gap-closure planning registered 39-11..39-13 (checker: 0 blockers, 0 warnings)
+Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING
+Plan: 2 of 13
+Status: Ready to execute
+Last activity: 2026-07-16 — Phase 39 execution started
 
 ## Deferred Items
 
@@ -106,6 +106,11 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 39 P02 | 22min | 4 tasks | 8 files |
 | Phase 39 P03 | 35min | 3 tasks | 4 files |
 | Phase 39 P06 | 17 min | 2 tasks | 2 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 39 P11 | 12min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -256,8 +261,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-16T11:21:21.000Z
-Stopped at: Gap-closure planning complete — 39-11/12/13 registered and checker-passed; not yet executed
+Last session: 2026-07-16T11:46:32.345Z
+Stopped at: Completed 39-11-PLAN.md
 Next action: /gsd-execute-phase 39 — runs waves 8→10. Waves 8–9 (39-11, 39-12) are dataset-free. Wave 10 (39-13) is the ONLY dataset-dependent task: it needs the main-repo corpus at <home>/Desktop/3_body_problem/simulation_data (~38,017 files, not present in this worktree) via the GSD_DATA_ROOT procedure established by 39-07/39-10. After execution, re-run verification — closing this gap should flip 39-VERIFICATION.md truth 7 to verified — then re-run UAT so Test 24 / G-39-24 can close.
 
 ## Operator Next Steps
