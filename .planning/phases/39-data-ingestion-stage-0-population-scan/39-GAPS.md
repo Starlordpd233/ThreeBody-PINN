@@ -607,7 +607,77 @@
   minimizes avoidable per-batch identity-weight variance without changing the
   fixed budget or introducing Phase 40 adaptive/residual-aware sampling.
 
+## GAP-39-13 — Inert prohibited-content assertion in the validation ledger
+
+- **Decision point:** Decide how the `39-VALIDATION.md` ledger should express a
+  "prohibited content is absent" assertion, given that the current
+  `! rg -q "<pattern>" "$v"` form cannot fail. This is the ledger's assertion
+  schema, not a single row's content.
+- **Where in artifact:** `39-VALIDATION.md:65` (row 39-10-02) and
+  `39-VALIDATION.md:71` (row 39-13-02), both in the clause
+  `! rg -q "\*\*R[u]n:\*\*|simulation_data/Data>" "$v"`.
+- **Task context:** Surfaced as finding #2 of `39-13-SUMMARY.md`; re-confirmed
+  by the 2026-07-16 re-verification (`39-VERIFICATION.md`, FINDING-2) after
+  gap-closure plan 39-14 repaired the adjacent awk defect in row 39-10-02.
+- **Classification:** process-artifact schema — this is the ledger's
+  pass-criteria format, which the governance instructions reserve to the owner.
+- **Source silence:**
+  - `39-10-PLAN.md:115` supplies the authoritative text for row 39-10-02's awk
+    clause but carries the same `! rg -q` form, so the plan reproduces the
+    defect rather than resolving it.
+  - `39-13-PLAN.md:137` explicitly forbids widening a historical row's
+    exclusion set, but does not address the inverted-assertion form.
+  - `.planning/REQUIREMENTS.md` DATA-01..06 constrain scan behavior and
+    evidence content; no requirement specifies ledger assertion syntax.
+- **Mathematical / engineering grounding:** Two independent defects compound so
+  that the clause is inert in both directions, each empirically reproduced
+  2026-07-16.
+  1. **The needle self-matches.** `$v` is `39-VALIDATION.md` itself, and the
+     literal string `simulation_data/Data>` occurs twice in that file — inside
+     the two rows' own command text. `rg -c '\*\*R[u]n:\*\*|simulation_data/Data>'`
+     returns 2. The author defended the first alternative against exactly this
+     (`R[u]n` is a character-class evasion; searching for the literal `**Run:**`
+     returns 0) but did not apply the same device to the second alternative.
+     So `rg -q` always exits 0 and the inverted clause always evaluates to false.
+  2. **`!`-inversion is exempt from `errexit`.** POSIX specifies that `set -e`
+     does not abort when the failing command is the operand of `!`. Verified:
+     `bash -c 'set -euo pipefail; ! true; echo REACHED'` prints `REACHED`.
+     So the false clause is discarded and the script proceeds.
+  The two cancel: the assertion always "fails" and the failure is always
+  ignored. It therefore carries no information — it would stay silent if a
+  hand-pasted terminal transcript were present, which is the precise thing it
+  was written to prohibit. Note this is the same defect class as the row
+  39-10-02 awk brace (`test -z "$(cmd)"` discards the inner exit status) that
+  39-14 repaired: a check that cannot fail. Fixing defect 1 alone would make
+  the clause fire spuriously on its own text; fixing defect 2 alone would make
+  it abort on that spurious match. Both must move together.
+- **Agent was tempted to:** Rewrite both rows to the `assert_absent()` helper
+  already defined in rows 39-07-02/39-10-01 (`39-VALIDATION.md:59,60,70`),
+  which handles the rc distinction correctly, and add a `[u]`-style evasion to
+  the second alternative. This edits the recorded commands of two historical
+  green rows — the exact move `39-13-PLAN.md:137` prohibits — and silently
+  chooses a self-match evasion the sources never ratified.
+- **What the user needs to decide:**
+  - **A.** Leave both rows as recorded and accept the clause as inert,
+    documenting it here as a known no-op. Preserves the historical rows byte-
+    for-byte; the criterion stays enforced only by the independent audit.
+  - **B.** Repair both rows in place to the existing `assert_absent()` form
+    with a self-match evasion on both alternatives, and re-run them. Restores
+    a real check at the cost of editing two historical rows' commands.
+  - **C.** Leave the historical rows untouched and add one new ledger row that
+    asserts the prohibition correctly going forward. Preserves history and
+    restores enforcement, at the cost of a row whose scope overlaps two others.
+- **Confidence of impact:** LOW for Phase 39's verdict — the underlying
+  criterion is independently satisfied (the 2 matches are the assertion's own
+  pattern text, not pasted transcript; 0 real violations, confirmed by the
+  2026-07-16 re-verification, which scored the phase 7/7 with this finding
+  recorded as non-blocking). MEDIUM going forward — the form is copyable, and
+  this phase has now produced three separate "check that cannot fail" defects.
+- **Status:** OPEN.
+- **Resolution note:** _(empty — awaiting user instruction)_
+
 ---
 
 **Milestone-index status:** `.planning/milestones/v2.0-GAPS.md` synchronized on
-2026-07-14: GAP-39-01 is deferred and GAP-39-02 through GAP-39-12 are resolved.
+2026-07-16: GAP-39-01 is deferred, GAP-39-02 through GAP-39-12 are resolved,
+and GAP-39-13 is open.
