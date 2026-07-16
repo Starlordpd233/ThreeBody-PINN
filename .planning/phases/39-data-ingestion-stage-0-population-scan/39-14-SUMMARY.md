@@ -44,7 +44,7 @@ A one-character restoration from `39-10-PLAN.md:115` that converts row 39-10-02 
 
 | Task | Name | Type | Commit | Files |
 |------|------|------|--------|-------|
-| 39-14-01 | Restore row 39-10-02's awk closing brace | auto | see commit below | 39-VALIDATION.md |
+| 39-14-01 | Restore row 39-10-02's awk closing brace | auto | `06130c6` | 39-VALIDATION.md |
 
 ## What Was Built
 
