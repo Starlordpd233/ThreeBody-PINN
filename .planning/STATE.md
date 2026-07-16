@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 39
 current_phase_name: data-ingestion-stage-0-population-scan
-status: phase_complete
-stopped_at: Completed 39-07-PLAN.md; Phase 39 train-ready (stage0_full_split_count=2265)
-last_updated: "2026-07-15T12:33:00.000Z"
-last_activity: 2026-07-15
-last_activity_desc: Phase 39 complete (Plan 07 phase close; real-corpus Thrust-A scan train-ready); ready for Phase 40
+status: executing
+stopped_at: Phase 39 implementation train-ready; phase completion withheld (UAT Test 24 / missing VERIFICATION.md; premature close revoked 2026-07-16)
+last_updated: "2026-07-16T08:15:00.000Z"
+last_activity: 2026-07-16
+last_activity_desc: Lifecycle honesty repair — ROADMAP Phase 39 unchecked; GSD runtime UAT hard gate deployed
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 18
+  completed_phases: 2
+  total_plans: 21
   completed_plans: 18
-  percent: 100
+  percent: 86
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 39 (data-ingestion-stage-0-population-scan) — COMPLETE (train-ready)
-Plan: 7 of 7 complete
-Status: Phase 39 closed by Plan 39-07 — real-corpus Thrust-A scan reports stage0_full_split_count=2265 (>=240), phase39_status=train-ready
-Last activity: 2026-07-15 — Phase 39 Plan 07 phase close (dataset-free + full-repository regression, read-only 6.3 GB scan, reader/readiness audit)
+Phase: 39 (data-ingestion-stage-0-population-scan) — EXECUTING (implementation train-ready; not lifecycle-complete)
+Plan: 10 plans registered (01–10); 01–09 have SUMMARYs; 39-10 stopped at authority checkpoint without SUMMARY
+Status: Product path green (Stage-0 train-ready, gap-closure 08/09, evidence refresh). Phase certification blocked on UAT Test 24 (missing VERIFICATION.md + previously premature ROADMAP complete). GSD runtime now hard-gates phase.complete on diagnosed UAT.
+Last activity: 2026-07-16 — lifecycle honesty + GSD-core UAT hard-gate fix
 
 ## Deferred Items
 

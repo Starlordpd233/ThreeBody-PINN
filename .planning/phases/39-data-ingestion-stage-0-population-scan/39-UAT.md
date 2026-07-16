@@ -12,7 +12,7 @@ source:
   - 39-08-SUMMARY.md
   - 39-09-SUMMARY.md
 started: 2026-07-15T06:36:39-07:00
-updated: 2026-07-15T22:49:10-07:00
+updated: 2026-07-16T01:15:00-07:00
 ---
 
 ## Current Test
@@ -170,9 +170,9 @@ resolved_by: 39-09-PLAN.md / 39-09-SUMMARY.md
 ### 24. Canonical Phase Verification State
 expected: Phase 39 has a fresh passing VERIFICATION.md and completed validation ledger before ROADMAP marks the phase complete.
 result: issue
-reported: Validation ledger is fully green (39-01-01 through 39-10-02) and 39-07 coverage classifies with supported kinds (3 auto_passed, 0 present). Retained evidence is post-remediation and train-ready. However 39-VERIFICATION.md is still absent, ROADMAP still shows Phase 39 checked complete from the premature Plan-07 close, and the shared UAT-plus-verification completion predicate is not enforced by the installed GSD runtime. Plan 39-10 stopped at blocking checkpoint 39-10-03 without creating 39-10-SUMMARY.md pending user authority for a commit-able lifecycle repair surface.
+reported: Validation ledger green through 39-10-02; evidence train-ready. ROADMAP premature Phase 39 [x] revoked 2026-07-16 (now unchecked / In Progress). GSD runtime now hard-blocks phase.complete when UAT is diagnosed (deployed from <home>/Desktop/code/gsd-core branch fix/phase-complete-uat-predicate). Still open: no 39-VERIFICATION.md, so phase.complete still fails verification gate; UAT remains diagnosed until this test can pass.
 severity: major
-partially_resolved_by: 39-10-PLAN.md tasks 39-10-01 and 39-10-02
+partially_resolved_by: 39-10-PLAN.md tasks 39-10-01/02 + gsd-core UAT hard-gate 2026-07-16
 
 ### 25. Selected-Slot Multiplicity Implementation (Plan 08)
 expected: sample_collocation_points treats the selected-slot multiset as canonical identity and allocates exact collocation_count over M slots including replacement-padded duplicates.
@@ -249,25 +249,27 @@ blocked: 0
 - gap_id: G-39-24
   truth: "Phase completion is backed by canonical verification state and a shared UAT-plus-verification predicate."
   status: failed
-  reason: "Ledger/evidence/coverage hygiene fixed by 39-10-01/02, but 39-VERIFICATION.md is still missing, ROADMAP remains prematurely checked complete, and the executable lifecycle predicate lives only in the home-directory GSD install (outside this worktree). Plan 39-10 stopped at checkpoint 39-10-03 awaiting user authority."
+  reason: "Ledger/evidence/coverage hygiene fixed by 39-10-01/02. GSD runtime hard-gate for diagnosed UAT is now implemented and deployed (open-gsd/gsd-core branch fix/phase-complete-uat-predicate; installed into ~/.claude, ~/.codex, ~/.codex2, …). ROADMAP Phase 39 premature [x] revoked 2026-07-16. Remaining product-side blockers: no 39-VERIFICATION.md; UAT still status=diagnosed because this gap is open."
   severity: major
   test: 24
-  root_cause: "roadmap.update-plan-progress and phase.complete can complete without diagnosed-UAT plus passing VERIFICATION; no repo-owned extension surface was authorized to fix that."
+  root_cause: "Historically roadmap.update-plan-progress stamped Complete on last SUMMARY (pre-#2022 / lagging installs), and phase.complete only warned on diagnosed UAT. Runtime now hard-blocks phase.complete and Complete stamps when UAT is diagnosed/failing."
   artifacts:
     - path: .planning/phases/39-data-ingestion-stage-0-population-scan/39-VALIDATION.md
       issue: resolved — all rows green through 39-10-02
     - path: .planning/phases/39-data-ingestion-stage-0-population-scan/39-07-SUMMARY.md
       issue: resolved — supported coverage kinds
     - path: .planning/ROADMAP.md
-      issue: still shows Phase 39 complete without VERIFICATION.md
+      issue: resolved honesty — Phase 39 unchecked / In Progress (2026-07-16)
     - path: .planning/phases/39-data-ingestion-stage-0-population-scan/39-VERIFICATION.md
       issue: still missing
+    - path: <home>/Desktop/code/gsd-core (branch fix/phase-complete-uat-predicate)
+      issue: resolved runtime surface — UAT hard gate + execute-phase predicate precheck
   missing:
-    - User authority for a commit-able lifecycle repair surface (gsd-core repo, repo extension, or explicit deferral) per 39-10-03
-    - Fresh 39-VERIFICATION.md from verify_phase_goal after lifecycle predicate is enforceable
-    - ROADMAP/STATE alignment with the shared completion predicate
+    - Fresh 39-VERIFICATION.md via verify_phase_goal / execute-phase verification step
+    - Re-run UAT after VERIFICATION lands; set frontmatter status complete only when Test 24 passes
+    - Optional: open upstream PR for open-gsd/gsd-core so installs survive `gsd-update`
   debug_session: .planning/debug/phase39-canonical-verification-state.md
-  partially_resolved_by: 39-10-PLAN.md (tasks 01-02 only; no SUMMARY by design)
+  partially_resolved_by: 39-10-PLAN.md (tasks 01-02) + gsd-core lifecycle hard-gate (2026-07-16)
 
 ## Reconcile Note
 
