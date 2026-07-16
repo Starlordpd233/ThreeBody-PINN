@@ -95,5 +95,6 @@ None. `evidence_lines()` is fully wired from `init_log` entries appended during 
 
 - `pinn/data/adapter.py` — `evidence_lines`, `EvidenceRedactionError`, `data_root_source`, per-fidelity counters all present ✓
 - `pinn/data/__init__.py` — `EvidenceRedactionError` exported ✓
-- Commits d2300e2, 08a4641 exist on `milestone/v2.0` ✓
+- Commits d2300e2, 08a4641, 42a09a9 exist on `milestone/v2.0` ✓
 - 260 phase39 tests pass; 443 full-suite tests pass ✓
+- `39-11-SUMMARY.md` exists at `.planning/phases/39-data-ingestion-stage-0-population-scan/` ✓
