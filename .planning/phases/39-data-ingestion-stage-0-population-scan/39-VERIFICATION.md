@@ -1,69 +1,127 @@
 ---
 phase: 39-data-ingestion-stage-0-population-scan
-verified: 2026-07-16T10:40:00Z
-status: gaps_found
-score: 6/7 must-haves verified
+verified: 2026-07-16T15:27:56Z
+status: passed
+score: 7/7 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "Retained real-corpus scan evidence (scan.log) proves memory-below-watermark, blacklist disposition, and run freshness, matching 39-VALIDATION.md row 39-07-02's own documented command."
-    status: failed
+re_verification:
+  previous_status: gaps_found
+  previous_score: 6/7
+  previous_verified: 2026-07-16T10:40:00Z
+  gaps_closed:
+    - "Retained real-corpus scan evidence (scan.log) proves memory-below-watermark, blacklist disposition, and run freshness, matching 39-VALIDATION.md row 39-07-02's own documented command."
+  gaps_remaining: []
+  regressions: []
+  closure_evidence: >
+    The gap was closed by an INDEPENDENT re-derivation, not by accepting any SUMMARY claim.
+    The verifier re-ran the stage_scan CLI itself against the real 38,017-file main-repo corpus
+    (2:49 wall clock, exit 0) into a scratch run dir, and the freshly produced scan.log is
+    IDENTICAL to the retained evidence on every line except run_timestamp/run_nonce (which are
+    per-run by design). splits.json and stage_population.json came back BYTE-IDENTICAL (cmp).
+    Hand-assembly — the prior report's root-cause finding — is therefore refuted for the
+    current bytes: the retained scan.log is reproducible from the documented CLI invocation.
+warnings:
+  - id: FINDING-2
+    severity: warning
+    statement: "39-VALIDATION.md rows 39-10-02 and 39-13-02 contain an inert hygiene assertion (`! rg -q \"\\*\\*R[u]n:\\*\\*|simulation_data/Data>\" \"$v\"`) that cannot fail."
+    independently_confirmed: true
+    blocking: false
     reason: >
-      Directly re-running the exact bash command recorded in 39-VALIDATION.md row 39-07-02
-      against the CURRENT retained evidence file fails (script exits 1). The retained
-      .planning/phases/39-data-ingestion-stage-0-population-scan/evidence/stage-scan/phase-close/scan.log
-      (9 lines, last touched by commit 722154b9 "evidence(39-10)") lacks 10 of the fields the
-      row's command requires: allow_partial_data_root=0, scan_exit_code=<n>, run_timestamp=,
-      run_nonce=, evidence_byte_identity=true, GSD_DATA_ROOT=, the "mem: <bytes> (<fraction>)
-      watermark=0.7" line, mem_ballpark=<bytes>, n_blacklist_entries, and n_present_on_disk.
-      39-VALIDATION.md nonetheless marks this row "✅ green".
-
-      Root cause (confirmed by code reading, not conjecture): pinn/data/stage_scan.py's
-      `_scan_log()` function (unchanged in this respect since its first commit, 1cb26700) has
-      NEVER written any of those fields to scan.log, stdout, or stderr — it only ever emits
-      schema_version, splits.json_sha256/bytes/byte_identity, stage0_full_split_count,
-      stage0_train_split_count, stage0_threshold, gold_numeric_stage_count, and exit_code.
-      The richer data (root, allow_partial_data_root, per-family blacklist counts, the mem:
-      line, mem_ballpark) IS computed and stored — but only in the in-memory
-      `AdmittedSetAdapter.init_log` list (pinn/data/adapter.py:709,764-932), which `main()` in
-      stage_scan.py never reads or serializes anywhere. This means the ORIGINAL richer
-      scan.log retained under commit acf9b207 ("evidence(39-07)") — which did satisfy the
-      row's command — could not have been produced solely by running the documented
-      `python -m pinn.data.stage_scan ...` command; some additional, uncommitted step must
-      have appended adapter.init_log content by hand. The 39-10-01 "regeneration" instead
-      captured the CLI's true (simpler) output faithfully, which is more honest but no
-      longer satisfies the row's own long-standing acceptance command, and 39-VALIDATION.md
-      was not corrected to reflect this.
-    artifacts:
-      - path: pinn/data/stage_scan.py
-        issue: "_scan_log()/main() never reads AdmittedSetAdapter.init_log or otherwise surfaces mem:/mem_ballpark/blacklist-disposition/root/freshness fields to any evidence artifact or CLI output"
-      - path: .planning/phases/39-data-ingestion-stage-0-population-scan/evidence/stage-scan/phase-close/scan.log
-        issue: "Missing 10 fields required by its own 39-VALIDATION.md row 39-07-02 command (allow_partial_data_root, scan_exit_code, run_timestamp, run_nonce, evidence_byte_identity, GSD_DATA_ROOT=, mem:, mem_ballpark, n_blacklist_entries, n_present_on_disk)"
-      - path: .planning/phases/39-data-ingestion-stage-0-population-scan/39-VALIDATION.md
-        issue: "Row 39-07-02 marked ✅ green despite its exact documented command failing against current retained bytes (independently reproduced; see verification notes)"
-    missing:
-      - "Wire AdmittedSetAdapter.init_log (or an equivalent explicit call to adapter.mem_line()/blacklist counters) into pinn/data/stage_scan.py's _write_scan_log or CLI stdout, so a real run actually emits the mem:/mem_ballpark/blacklist/root/freshness evidence the phase's own plans require."
-      - "Add dataset-free unit coverage in tests/phase39/test_stage_scan.py asserting scan.log (or stdout) contains the mem:/mem_ballpark/blacklist fields — currently no unit test enforces this, which is how the gap went undetected through Waves 4-6."
-      - "Re-run the real-corpus scan (39-07-02/39-10-01 procedure) once the CLI is fixed, and update 39-VALIDATION.md row 39-07-02 (and 39-10-01/39-10-02 rows, which depend on the same scan.log) to reflect a command that genuinely passes against the regenerated bytes."
+      Verifier reproduced both defects: (1) bash exempts `!`-inverted commands from errexit
+      (`bash -c 'set -euo pipefail; ! true; echo reached'` prints "reached"); (2) the needle
+      `simulation_data/Data>` self-matches the ledger (2 hits — rows 39-10-02/39-13-02's own
+      pattern literals). The two defects cancel. NOT a phase-goal gap: the criterion the
+      assertion guards is independently confirmed SATISFIED (0 real `**Run:**` prefixes, 0 real
+      angle-bracket placeholders outside the pattern literals). Surfaced for owner decision by
+      39-13-SUMMARY.md and deliberately left unfixed by 39-14 per that plan's explicit
+      out-of-scope instruction and CLAUDE.md's process-artifact-schema MUST-surface rule.
+    owner_decision_requested: "Fix the assertion (drop the `!` inversion / de-self-match the needle) or formally accept it. Recommend also logging it in 39-GAPS.md, where it currently does not appear."
+  - id: UAT-TEST-24-PREMATURE
+    severity: warning
+    statement: "39-UAT.md Test 24 was marked `result: pass` before the verification it depends on had been re-run, justified by declaring the gaps_found verdict 'superseded'."
+    independently_confirmed: true
+    blocking: false
+    reason: >
+      Test 24's own `expected` is 'Phase 39 has a fresh passing VERIFICATION.md and completed
+      validation ledger before ROADMAP marks the phase complete.' At the time it was marked pass
+      (commit aed98909), 39-VERIFICATION.md said status=gaps_found — the expected condition was
+      literally FALSE. A UAT cannot supersede a verification verdict; that reasoning was invalid
+      and is the same self-certification pattern that produced the revoked ROADMAP `[x]`
+      (a599c90f) and the false-green row 39-07-02. The condition is satisfied ONLY as of THIS
+      report, whose independent re-derivation is what makes it true.
+    owner_decision_requested: "Correct Test 24's `reported` text to cite this verification (39-VERIFICATION.md @ 2026-07-16T15:27:56Z, status=passed) as its basis, replacing the 'superseded' justification."
+human_verification: []
 ---
 
 # Phase 39: Data Ingestion & Stage-0 Population Scan Verification Report
 
 **Phase Goal:** The D3-C in-memory fp32 admitted-set adapter (Step-1A gate, NaN/Inf filter, `data_version_hash` refuse, `n_snapshots`/`dt_out` metadata, stage-stratified split), the replay/lookahead two-point-set batch constructor (LOOP-01/02/03), and the Thrust-A scan that counts Stage-0 population. (DATA-01..06)
 
-**Verified:** 2026-07-16T10:40:00Z
-**Status:** gaps_found
-**Re-verification:** No — initial canonical verification (no prior `39-VERIFICATION.md` existed)
+**Verified:** 2026-07-16T15:27:56Z
+**Status:** passed
+**Re-verification:** Yes — after gap-closure plans 39-11, 39-12, 39-13, 39-14
 
-## Scope Note
+## Adversarial Posture
 
-Per explicit instruction, this verification does **not** re-flag the UAT Test 24 GSD-lifecycle
-transition defect (premature `phase.complete` predicate) as a phase-goal gap — that issue is
-tracked as resolved out-of-band via a gsd-core runtime hard-gate (branch
-`fix/phase-complete-uat-predicate`), and the ROADMAP premature `[x]` was already revoked. This
-report verifies the phase's *substantive* DATA-01..06 deliverables and the retained real-corpus
-evidence, and surfaces one additional, independently-discovered evidence-integrity gap (below)
-that is separate from and unrelated to Test 24.
+This phase has a documented history of false-green self-certification (revoked ROADMAP `[x]`
+a599c90f; row 39-07-02 marked green while its own command failed; row 39-10-02's vacuous awk).
+Accordingly **no SUMMARY.md, and specifically not 39-UAT.md, was treated as evidence**. Every
+claim below was re-derived by the verifier: commands extracted byte-exactly from the ledger and
+re-run, the CLI re-executed against the real corpus, and every assertion probed against a
+deliberately-red input to prove it *can* fail.
+
+## The Adjudicated Gap — Closed
+
+The prior report's single failing truth was that the retained `scan.log` did not satisfy row
+39-07-02's own documented command, root-caused to `stage_scan.py` never surfacing
+`AdmittedSetAdapter.init_log`. Four independent checks, in increasing order of strength:
+
+**1. The acceptance bar was not weakened.** Row 39-07-02's command is byte-identical
+(sha256 `55347926d8414b89…`, 2,623 bytes) at the commit that recorded the FAIL (`8d640e30`) and at
+HEAD. Tracing the full ledger history, the command reached this exact form at `e58e876a`
+(2026-07-14, cycle-4 **planning** review) — *before* any evidence was produced (39-10 on 07-15,
+39-13 on 07-16) — and never changed since. The code was aligned to a long-standing contract; the
+goalposts did not move toward the code.
+
+**2. The command now passes, and it can still fail.** Extracted byte-exactly from the ledger and
+run unmodified: **exit 0**. Run against a deliberately-red input (the pre-fix 9-line `scan.log`
+from `722154b9`, staged in a scratch tree): **exit 1**. The assertion is discriminating, not
+vacuous.
+
+**3. The wiring exists in code.** `pinn/data/stage_scan.py:71-91` `_source_evidence_lines()` is a
+fail-closed probe — a source without a callable `evidence_lines()` raises `TypeError` rather than
+writing an evidence-poor log. It is called at `stage_scan.py:662` and threaded through
+`_write_scan_log` → `_scan_log`, where `stage_scan.py:521` `lines.extend(evidence_lines)` splices
+the adapter's projection into `scan.log`. The producer is `pinn/data/adapter.py:986-1020`
+`evidence_lines()`, a redacted verbatim-order projection of `init_log` that replaces the absolute
+root with the literal `GSD_DATA_ROOT=$GSD_DATA_ROOT` placeholder in-position and raises
+`EvidenceRedactionError` (`adapter.py:1014,1017`) if the resolved root or home prefix survives —
+fail-closed, never silently stripped.
+
+**4. Decisive — the verifier reproduced the evidence from scratch.** The CLI was re-run against
+the real main-repo corpus (38,017 files, root via `git rev-parse --path-format=absolute
+--git-common-dir` parent, `GSD_ALLOW_PARTIAL_DATA_ROOT` unset), 2:49 wall clock, exit 0:
+
+| Artifact | Retained vs verifier's fresh run |
+|---|---|
+| `scan.log` | Identical on **every line except `run_timestamp`/`run_nonce`** (per-run by design) |
+| `splits.json` | **BYTE-IDENTICAL** (`cmp`) — sha `0d33539b6f…`, 4,159,981 bytes |
+| `stage_population.json` | **BYTE-IDENTICAL** (`cmp`) — sha `ffffd1da4f…` |
+
+Every field the prior report listed as missing is now present *and reproducible*:
+`mem: 625989388 (0.024292) watermark=0.7`, `mem_ballpark=624246140`, `allow_partial_data_root=0`,
+`scan_exit_code=0`, `run_timestamp=`, `run_nonce=`, `evidence_byte_identity=true`,
+`GSD_DATA_ROOT=`, `n_blacklist_entries`, `n_present_on_disk`. The retained `scan.log` hashes to
+`7137c1d89f19e7dc…` / 1,807 bytes, matching 39-13-SUMMARY.md's recorded value. **Hand-assembly is
+refuted for the current bytes**: they are regenerable from the documented invocation alone.
+
+**Logging-only, not a decision-path change.** Across the entire gap-closure sequence
+(`722154b9`..HEAD) the only production files touched are `adapter.py`, `stage_scan.py`,
+`__init__.py` (+155/−11); `splits.json` and `stage_population.json` are byte-identical throughout;
+`pinn_instruction/` and `simulation_data/` are untouched. All 11 deleted lines are logging
+(notably the `exit_code` → `scan_exit_code` rename that satisfies the long-standing contract, and
+the per-folder → per-fidelity blacklist counter swap). No scientific count moved.
 
 ## Goal Achievement
 
@@ -71,113 +129,148 @@ that is separate from and unrelated to Test 24.
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Sole-reader in-memory fp32 admitted-set adapter with Step-1A gate, `n_snapshots`/`dt_out` accessors, and watermark-gated residency | ✓ VERIFIED | `pinn/data/adapter.py` (1015 lines): `AdmittedSetAdapter.__init__` resolves root via `git rev-parse --git-common-dir` parent (not `--show-toplevel`), validates capacity/watermark/interim_s0/device before any corpus I/O (`_validate_adapter_config`, added by Plan 09 gap-closure), calls `evaluate_admission`/`classify_stage_label` once per record, materializes CPU fp32 tensors, and exposes `resident_tensor_bytes()`/`mem_line()`/`n_snapshots`/`dt_out`. Fresh re-run: 251/251 dataset-free tests pass (see Behavioral Spot-Checks). |
-| 2 | Data version hash: match/mismatch/absent-deferred are distinct typed outcomes | ✓ VERIFIED | `pinn/data/adapter.py:142` `verify_data_version`; `DataVersionHashDeferred`/`DataVersionHashMismatch`/`DataVersionHashVerified` sentinels in `pinn/data/types.py`, exported via `pinn/data/__init__.py`. `test_adapter.py` version-outcome tests pass fresh. |
-| 3 | Sole base-Set-1a Stage 0/1 classifier; all gold/non-Set1a UNASSIGNED; `gold_numeric_stage_count == 0` everywhere | ✓ VERIFIED | `pinn/data/stages.py` (86 lines) — single `classify_stage_label`. `tests/phase39/test_stages.py` 14/14 tests pass fresh, including gold-Set-2a-UNASSIGNED and degenerate-Lmax null-guard cases. Confirmed `gold_numeric_stage_count=0` in real-corpus `stage_population.json`. |
-| 4 | Deterministic, leakage-free, stage-stratified split manifest (Hamilton 0.8/0.1/0.1, `MISSING_BASE` sentinel, atomic byte-stable write) | ✓ VERIFIED | `pinn/data/splits.py` (797 lines): `StageIndex`, `StageIndex.from_split`, `write_split_manifest`. Real retained `splits.json` is 4,159,981 bytes, `algorithm=group-signature-hamilton-v1`, `ratios={train,validation,test}`, SHA-256 cross-checked identically in `scan.log` and `verification.log` (`0d33539b6f...`/`04991e509e...`). |
-| 5 | Replay/lookahead (240/16) selection plus independent data-fidelity/collocation point sets; collocation quota preserves replacement-padded slot multiplicity (post-39-08) | ✓ VERIFIED | `pinn/data/batches.py` (399 lines): `select_stage_records`, `sample_data_points`, `sample_collocation_points` (uses "sorted selected-slot multiset, not a unique-key set" per line 300 — the 39-08 gap-closure fix), `build_stage_batch`. Fresh re-run: `tests.phase39.test_batches` 29/29 pass, including the two integrated multiplicity-preserving regressions added by Plan 08. |
-| 6 | DATA-06 Thrust-A population/s_min report with fatal bound exclusively to admitted/full Stage-0 count (239 fatal, 240 nonfatal) | ✓ VERIFIED | `pinn/data/stage_scan.py` `build_population_report`/`StageZeroUnderpopulated`. Fresh re-run: `tests.phase39.test_stage_scan` all pass. Real corpus: `stage0_full_split_count=2265` (≥240, nonfatal), `stage0_train_split_count=1812` (diagnostic only), `gold_numeric_stage_count=0`, `phase39_status=train-ready`, consistent across `scan.log`/`stage_population.json`/`verification.log`. |
-| 7 | Retained real-corpus scan evidence (`scan.log`) proves memory-below-watermark, blacklist disposition, and freshness, matching its own 39-VALIDATION.md row 39-07-02 command | ✗ FAILED | Directly re-ran the exact row-39-07-02 command against current retained bytes: it fails (10 required fields absent from `scan.log`). See Gaps section and code citation above (`pinn/data/stage_scan.py::_scan_log` never surfaces `AdmittedSetAdapter.init_log`). `39-VALIDATION.md` marks this row "✅ green" incorrectly. |
+| 1 | Sole-reader in-memory fp32 admitted-set adapter with Step-1A gate, `n_snapshots`/`dt_out` accessors, and watermark-gated residency | ✓ VERIFIED | `pinn/data/adapter.py` (1,091 lines). Verifier's own real-corpus run emitted `mem: 625989388 (0.024292) watermark=0.7` — 0.024292 ≤ 0.7 asserted by row 39-07-02's embedded python and re-run green. `_validate_adapter_config` fires before `_resolve_root`. 264/264 phase39 tests pass fresh. |
+| 2 | Data version hash: match/mismatch/absent-deferred are distinct typed outcomes | ✓ VERIFIED | `adapter.py:1090` `verify_data_version`; `DataVersionHashDeferred`/`Mismatch`/`Verified` in `pinn/data/types.py`, exported via `pinn/data/__init__.py`. Covered in the fresh 447-test full-suite pass. Honors 39-CONTEXT D-05 (hard refusal). |
+| 3 | Sole base-Set-1a Stage 0/1 classifier; all gold/non-Set1a UNASSIGNED; `gold_numeric_stage_count == 0` everywhere | ✓ VERIFIED | `pinn/data/stages.py` (86 lines), single `classify_stage_label`; sole-ownership enforced by `test_prohibitions.py`. Verifier's own scan reproduced `gold_numeric_stage_count=0` (twice in scan.log, and in stage_population.json). |
+| 4 | Deterministic, leakage-free, stage-stratified split manifest (Hamilton 0.8/0.1/0.1, `MISSING_BASE` sentinel, atomic byte-stable write) | ✓ VERIFIED | `pinn/data/splits.py` (797 lines). Determinism proven the hard way: the verifier's independent run reproduced `splits.json` **byte-identically** (4,159,981 bytes, sha `0d33539b6f…`). Row 39-07-02's python asserts `algorithm=group-signature-hamilton-v1` and `ratios=={train,validation,test}` — green. |
+| 5 | Replay/lookahead (240/16) selection plus independent data-fidelity/collocation point sets; collocation quota preserves replacement-padded slot multiplicity (post-39-08) | ✓ VERIFIED | `pinn/data/batches.py` (399 lines): `select_stage_records`, `sample_data_points`, `sample_collocation_points` (sorted selected-slot multiset, the 39-08 fix), `build_stage_batch`. Ledger row 39-08-01 green; covered by the fresh 264-test phase39 pass. Honors 39-CONTEXT D-07. |
+| 6 | DATA-06 Thrust-A population/s_min report with fatal bound exclusively to admitted/full Stage-0 count (239 fatal, 240 nonfatal) | ✓ VERIFIED | `pinn/data/stage_scan.py` `build_population_report`/`StageZeroUnderpopulated`. Verifier's own run: `stage0_full_split_count=2265` (≥240 → nonfatal), `stage0_train_split_count=1812` (diagnostic), `stage0_threshold=240`, `scan_exit_code=0`. Row 39-07-03 audit re-run green (`phase39_status=train-ready`). |
+| 7 | Retained real-corpus scan evidence (`scan.log`) proves memory-below-watermark, blacklist disposition, and run freshness, matching its own 39-VALIDATION.md row 39-07-02 command | ✓ VERIFIED | **The adjudicated gap — closed.** Byte-identical command → exit 0 (exit 1 on pre-fix red input). Verifier's independent CLI re-run reproduces the retained scan.log except run_timestamp/run_nonce. See "The Adjudicated Gap" above. |
 
-**Score:** 6/7 truths verified (0 present-but-behavior-unverified)
+**Score:** 7/7 truths verified (0 present-but-behavior-unverified, 0 overrides)
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `pinn/data/types.py` | Frozen identities/records/outcomes/StageQuery/FixedBatch | ✓ VERIFIED | 307 lines; exported cleanly via `pinn/data/__init__.py`; no corpus discovery on import. |
-| `pinn/data/adapter.py` | Sole parser + `AdmittedSetAdapter` | ✓ VERIFIED | 1015 lines; root resolution, admission wiring, fp32 residency, config validation (39-09) all present and unit-tested. |
-| `pinn/data/preprocessing.py` | CTL preprocessing/invariants/normalization | ✓ VERIFIED | 344 lines; imported by adapter, exercised by `test_adapter.py`/`test_stages.py`. |
-| `pinn/data/stages.py` | Sole GAP-39-08 classifier | ✓ VERIFIED | 86 lines; single `classify_stage_label`; enforced as sole numeric classifier by `test_prohibitions.py` (`test_only_stages_owns_the_numeric_classifier`, passes fresh). |
-| `pinn/data/admission.py` | Seven-clause Step-1A evaluator | ✓ VERIFIED | 250 lines; `evaluate_admission`; near-zero/eps_H short-circuit tested. |
-| `pinn/data/splits.py` | StageIndex/manifest/Hamilton partition | ✓ VERIFIED | 797 lines; `StageIndex.from_split(adapter, manifest, split_name)` canonical seam confirmed in code and consumed identically by `batches.py`/`stage_scan.py`. |
-| `pinn/data/batches.py` | Replay/lookahead + two point sets | ✓ VERIFIED | 399 lines; multiplicity-preserving collocation (39-08 fix) confirmed in source. |
-| `pinn/data/stage_scan.py` | Report + CLI | ⚠️ PARTIAL | 652 lines; report/CLI/exit-code logic (Levels 1-3) all wired and tested — but the CLI's evidence-writing path (`_scan_log`) does not surface `AdmittedSetAdapter.init_log`, so real-run evidence is incomplete relative to Plan 07's own must_haves (see Gaps). |
-| `.planning/.../evidence/stage-scan/phase-close/{stage_population.json,splits.json}` | Real-corpus DATA-06 evidence | ✓ VERIFIED | Present, non-empty, internally consistent (2265/1812/0 counts cross-checked across 3 files, corpus fingerprint 38,017 files matches documented main-repo corpus size). |
-| `.planning/.../evidence/stage-scan/phase-close/scan.log` | Real-corpus DATA-01/06 disposition/memory evidence | ✗ INCOMPLETE | Present and non-empty, but missing 10 fields mandated by Plan 07/39-VALIDATION row 39-07-02 (see Gaps). |
+| `pinn/data/types.py` | Frozen identities/records/outcomes/StageQuery/FixedBatch | ✓ VERIFIED | 307 lines; no corpus discovery on import. |
+| `pinn/data/adapter.py` | Sole parser + `AdmittedSetAdapter` + evidence projection | ✓ VERIFIED | 1,091 lines; `evidence_lines()` (986-1020) added by 39-11, fail-closed redaction. |
+| `pinn/data/preprocessing.py` | CTL preprocessing/invariants/normalization | ✓ VERIFIED | 344 lines. |
+| `pinn/data/stages.py` | Sole GAP-39-08 classifier | ✓ VERIFIED | 86 lines; sole numeric classifier, prohibition-tested. |
+| `pinn/data/admission.py` | Seven-clause Step-1A evaluator | ✓ VERIFIED | 250 lines. |
+| `pinn/data/splits.py` | StageIndex/manifest/Hamilton partition | ✓ VERIFIED | 797 lines; byte-stable output independently reproduced. |
+| `pinn/data/batches.py` | Replay/lookahead + two point sets | ✓ VERIFIED | 399 lines; 39-08 multiplicity fix present. |
+| `pinn/data/stage_scan.py` | Report + CLI + evidence serialization | ✓ VERIFIED | 716 lines. **Upgraded from ⚠️ PARTIAL** — the CLI now surfaces the adapter's evidence projection (`_source_evidence_lines` at :71-91, spliced at :521), which was the prior report's root cause. |
+| `.../phase-close/scan.log` | Real-corpus DATA-01/06 disposition/memory/freshness evidence | ✓ VERIFIED | **Upgraded from ✗ INCOMPLETE** — 31 lines, 1,807 bytes, sha `7137c1d89f…`; all 10 previously-missing fields present and independently reproduced from the CLI. |
+| `.../phase-close/{stage_population.json,splits.json}` | Real-corpus DATA-06 evidence | ✓ VERIFIED | Byte-identical to the verifier's independent regeneration (`cmp`). |
+| `.../phase-close/{dataset-free.log,verification.log}` | Suite + audit evidence | ✓ VERIFIED | Rows 39-07-01 and 39-07-03 re-run green against them. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|-----|-----|--------|---------|
-| `pinn/data/adapter.py` | `pinn/data/admission.py` | `evaluate_admission` per parsed record | ✓ WIRED | Confirmed by grep + `test_adapter.py`/`test_admission.py` pass. |
-| `pinn/data/adapter.py` | `pinn/data/stages.py` | `classify_stage_label` pre-residency | ✓ WIRED | Confirmed; `gold_numeric_stage_count` hard-fail path present. |
-| `pinn/data/splits.py` | `pinn/data/types.py` | `PhysicalKey`/`StageQuery` grouping | ✓ WIRED | Confirmed. |
-| `pinn/data/batches.py` | `pinn/data/splits.py` | `StageIndex.from_split(adapter, manifest, "train")` | ✓ WIRED | Canonical signature confirmed identical across `batches.py`, `stage_scan.py`, and `splits.py` docstrings/call sites. |
-| `pinn/data/stage_scan.py` | `pinn/data/adapter.py` | `AdmittedSetAdapter` instantiation, no text parsing in stage_scan | ✓ WIRED | Confirmed — `stage_scan.py` only imports the adapter/splits/types modules; no `.txt`/glob logic present. |
-| `AdmittedSetAdapter.init_log` (rich mem/blacklist/root evidence) | `pinn/data/stage_scan.py` scan.log / stdout | Expected: CLI surfaces adapter's accumulated evidence log | ✗ NOT WIRED | `init_log` is populated (`adapter.py:709,764-932`) but never read by `stage_scan.py`. This is the root cause of the Gap above. |
+| `adapter.py` | `admission.py` | `evaluate_admission` per parsed record | ✓ WIRED | `adapter.py:827`. |
+| `adapter.py` | `stages.py` | `classify_stage_label` pre-residency | ✓ WIRED | `gold_numeric_stage_count` hard-fail path present; real value 0. |
+| `splits.py` | `types.py` | `PhysicalKey`/`StageQuery` grouping | ✓ WIRED | Confirmed. |
+| `batches.py` | `splits.py` | `StageIndex.from_split(adapter, manifest, "train")` | ✓ WIRED | Canonical seam identical across call sites. |
+| `stage_scan.py` | `adapter.py` | `AdmittedSetAdapter` instantiation, no text parsing in stage_scan | ✓ WIRED | Confirmed. |
+| **`AdmittedSetAdapter.evidence_lines()`** | **`stage_scan.py` scan.log** | **CLI serializes the adapter's redacted evidence projection** | **✓ WIRED** | **Was ✗ NOT WIRED — the prior report's root cause. Now `_source_evidence_lines()` (`stage_scan.py:71-91`) → `main()` (:662) → `_write_scan_log` (:671,686,699) → `_scan_log` (:521). Fail-closed: a source lacking `evidence_lines()` raises `TypeError`.** |
 
 ### Data-Flow Trace (Level 4)
 
-Not applicable in the UI-rendering sense (no dashboard/component); the equivalent trace here is
-the evidence-artifact chain, covered above. The scientific data flow itself (corpus text → parsed
-float64 → admitted/classified record → normalized fp32 tensor → StageQuery → split → batch) was
-traced through code reading and confirmed wired at every hop; the only disconnect found is the
-adapter's own audit-log (`init_log`) → CLI evidence-file boundary (Key Link table, last row).
+Not a UI phase; the equivalent is the evidence-artifact chain. The scientific flow (corpus text →
+float64 parse → admitted/classified record → normalized fp32 tensor → StageQuery → split → batch →
+report) is wired at every hop. The one previously-broken hop — adapter audit log → CLI evidence
+file — is now closed and, critically, **the data flowing through it is real, not hardcoded**:
+the verifier's independent run produced the identical `mem:`/blacklist/count values from a live
+38,017-file corpus walk. `n_present_on_disk=0` on the real corpus is a *true observation*, not a
+stub: all 65 blacklisted ids (2 hierarchical + 63 standard) are genuinely absent from disk, which
+`absent_ids` corroborates exactly. The counter is walk-derived (`adapter.py:822` increments inside
+the file loop) and its nonzero path is unit-tested
+(`tests/phase39/test_adapter.py:1052-1075`, which asserts `n_present_on_disk=1` for a present
+blacklisted id) — so the zero is discriminating, not vacuous.
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full dataset-free Phase 39 suite (fresh, this session) | `$HOME/miniforge3/envs/pinn-train/bin/python -m unittest discover -s tests/phase39 -p 'test_*.py' -v` | `Ran 251 tests in 2.422s — OK` | ✓ PASS |
-| Exact 39-VALIDATION.md row 39-07-03 command (reader/classifier/source-integrity/readiness audit) | (full command from ledger; see row 39-07-03) | Exit 0; all `rg`/`test` assertions passed; `tests.phase39.test_prohibitions`/`test_stages` (44 tests) and `tests.phase38.test_prohibitions` (6 tests) all OK; `git diff --check` clean; no `simulation_data` tracked changes | ✓ PASS |
-| Exact 39-VALIDATION.md row 39-07-02 command (real-corpus scan.log/report/manifest evidence check) | (full command from ledger; see row 39-07-02) | **Exit 1** — 10 required fields absent from current `scan.log` | ✗ FAIL (see Gaps) |
-| `pinn/data/stage_scan.py::_scan_log` code inspection across all 3 commits touching the file | `git log`/`git show` on `pinn/data/stage_scan.py` | Confirmed `_scan_log()` never wrote the missing fields, in any committed version | ✓ Root-cause confirmed |
+| **Independent real-corpus CLI re-run** | `python -m pinn.data.stage_scan --run-dir <scratch> --data-root <main>/simulation_data/Data --blacklist-path <main>/…/problematic_ics_blacklist.json` | **exit 0** in 2:49; scan.log identical to retained except run_timestamp/run_nonce; splits.json + stage_population.json byte-identical (`cmp`) | ✓ PASS |
+| Row 39-07-02 (the adjudicated gap), byte-identical from ledger | extracted verbatim, run unmodified | **exit 0** | ✓ PASS |
+| Row 39-07-02 against **deliberately-red** input (pre-fix scan.log @722154b9) | same command, scratch tree | **exit 1** | ✓ PASS (proves it can fail) |
+| Row 39-10-02 (39-14's awk repair), current ledger | extracted verbatim | **exit 0** | ✓ PASS |
+| Row 39-10-02 against **deliberately-red** ledger (39-01-01 forced ❌ red on a copy) | same command | **exit 1** | ✓ PASS (the vacuous assertion is genuinely fixed) |
+| Rows 39-07-01, 39-07-03, 39-13-01, 39-13-02 | extracted verbatim | **exit 0** each | ✓ PASS |
+| Full repository suite | `python -m unittest discover -s tests -p 'test_*.py'` | **Ran 447 tests — OK** | ✓ PASS |
+| Phase 39 suite | `python -m unittest discover -s tests/phase39 -p 'test_*.py'` | **Ran 264 tests in 2.279s — OK** | ✓ PASS |
+| FINDING-2 probe: `!` inversion inert under errexit | `bash -c 'set -euo pipefail; ! true; echo reached'` | prints `reached` | ✗ confirms defect (warning) |
+| FINDING-2 probe: needle self-matches ledger | `rg -c 'simulation_data/Data>' 39-VALIDATION.md` | `2` (rows' own literals) | ✗ confirms defect (warning) |
+| FINDING-2 underlying criterion | real `**Run:**` prefixes / real angle-bracket placeholders | `0` / `0` | ✓ criterion satisfied |
+
+Note: all probes captured stderr **separately** (never `2>&1` into the assertion's stdout), per the
+known hazard that folding stderr in masks a syntax-erroring assertion.
 
 ### Requirements Coverage
 
-| Requirement | Source Plan | Description | Status | Evidence |
+| Requirement | Source Plans | Description | Status | Evidence |
 |---|---|---|---|---|
-| DATA-01 | 01,02,03,09 | Sole-reader fp32 resident adapter/accessors/memory watermark gate | ✓ SATISFIED (core) / ⚠️ evidence gap | Adapter-level implementation and enforcement solid; CLI-level evidence surfacing incomplete (see Gaps). |
-| DATA-02 | 01,02,03 | Seven-clause Step-1A gate, admitted/rejected/quarantined counts | ✓ SATISFIED | `admission.py`; per-folder counts present in real `stage_population.json`. |
-| DATA-03 | 01,02,03 | `data_version_hash` compare/refuse/deferred | ✓ SATISFIED | `verify_data_version`; typed outcomes tested. |
-| DATA-04 | 01,04 | Deterministic stage-stratified split manifest, no leakage | ✓ SATISFIED | `splits.py`; real `splits.json` retained, hash cross-checked. |
-| DATA-05 | 01,05,08 | Replay/lookahead + independent point sets | ✓ SATISFIED | `batches.py`; 39-08 gap-closure fix confirmed in source and tests (29/29 fresh pass). |
-| DATA-06 | 01,06,07,10 | Thrust-A population scan, fatal threshold, s_min evidence | ✓ SATISFIED (core) / ⚠️ evidence gap | `stage_scan.py`; real scan shows train-ready (2265≥240); evidentiary completeness gap shared with DATA-01. |
+| DATA-01 | 01,02,03,07,09,10,11,12,13,14 | Sole-reader fp32 resident adapter, `n_snapshots`/`dt_out`, `mem:` line + 0.7 watermark | ✓ SATISFIED | **Evidence gap now closed.** The `mem:` line is genuinely emitted and independently reproduced: `mem: 625989388 (0.024292) watermark=0.7`. |
+| DATA-02 | 01,02,03,07,10,11,13,14 | Seven-clause Step-1A gate, admitted/rejected/quarantined counts, NaN/Inf drop count | ✓ SATISFIED | `admission.py`; per-folder counts reproduced (found=admitted for all 4 folders, dropped_samples=0). |
+| DATA-03 | 01,02,03,07,10 | `data_version_hash` compare/refuse/deferred | ✓ SATISFIED | `verify_data_version`; typed outcomes; 39-CONTEXT D-05 honored. |
+| DATA-04 | 01,02,04,07,10 | Deterministic stage-stratified split manifest, no leakage | ✓ SATISFIED | `splits.py`; byte-identical independent regeneration is direct proof of determinism. |
+| DATA-05 | 01,02,05,07,08,10 | Replay/lookahead 240/16 + independent point sets | ✓ SATISFIED | `batches.py`; 39-08 multiplicity fix; row 39-08-01 green. |
+| DATA-06 | 01,02,06,07,09,10,12,13,14 | Thrust-A population scan, fatal threshold, s_min evidence | ✓ SATISFIED | **Evidence gap now closed.** 2265≥240 nonfatal, exit 0, `train-ready`, all independently reproduced. |
 
-**Orphaned requirements:** None. `.planning/REQUIREMENTS.md` lines 161-166 map DATA-01..06 to Phase 39 exactly, matching the `requirements:` frontmatter declared across Plans 01-10.
+**Orphaned requirements:** None. `.planning/REQUIREMENTS.md:161-166` maps DATA-01..06 to Phase 39
+exactly; the union of `requirements:` frontmatter across Plans 01-14 is exactly {DATA-01..06}. No
+ID is declared that REQUIREMENTS.md does not map, and none is mapped that no plan claims.
 
 ### Anti-Patterns Found
 
-No `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` markers found in `pinn/data/*.py`. No empty-implementation or hardcoded-empty-return stubs found in the production modules. The one substantive finding is the missing CLI→evidence wiring documented above (an omission, not a stub marker).
+No `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` markers in `pinn/data/*.py`. The two bare
+`pass` statements (`stage_scan.py:480`, `splits.py:770`) are `except FileNotFoundError:` cleanup
+arms in atomic-write paths — legitimate, not stubs.
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `pinn/data/stage_scan.py` | 482-506 (`_scan_log`) | Silent evidence-completeness gap (function never surfaces `adapter.init_log`) | 🛑 Blocker | Retained real-corpus evidence cannot independently prove memory-below-watermark/blacklist-disposition/freshness; ledger row falsely marked green. |
+| `39-VALIDATION.md` | rows 39-10-02, 39-13-02 | Inert `!`-inverted, self-matching hygiene assertion (FINDING-2) | ⚠️ Warning | Cannot fail. Does not affect DATA-01..06; guarded criterion independently confirmed satisfied. Open owner decision. |
+| `39-UAT.md` | 170-175 | Test 24 marked `pass` before its own precondition existed; "superseded" justification (see warnings) | ⚠️ Warning | Procedurally invalid at the time of writing; substantively satisfied only as of this report. |
+| `pinn/data/stage_scan.py` | 495-504, 526 | `_split_file_evidence` returns a constant `byte_identity: True` (raises on double-read mismatch); `splits.json_byte_identity=true` is a literal | ℹ️ Info | `evidence_byte_identity` is therefore near-tautological — it attests only that splits.json didn't change *during* recording. It is not a strong integrity signal, but nothing in this phase's must-haves depends on it beyond that meaning. |
+
+The prior report's 🛑 Blocker (`stage_scan.py:482-506 _scan_log` never surfacing `adapter.init_log`)
+is **resolved** — see the Key Link table.
 
 ### Human Verification Required
 
-None. All findings in this report were independently confirmed via direct command execution
-and source-code reading (not SUMMARY narrative). No item requires subjective/visual/UX judgment.
+None. Every finding in this report was established by direct command execution, independent
+CLI re-execution against the real corpus, and source reading. Nothing requires subjective,
+visual, or UX judgment. The two `warnings` above are owner **decisions** on process artifacts
+(not verification uncertainties): the verifier resolved both questions factually and neither
+affects a must-have.
 
 ### Gaps Summary
 
-The DATA-01..06 **scientific/engineering substance** is solidly implemented and wired: all 251
-dataset-free tests pass on a fresh re-run, every requirement maps to real, non-stub, correctly
-wired production code in `pinn/data/*.py`, and the retained real-corpus scan numbers
-(`stage0_full_split_count=2265`, `stage0_train_split_count=1812`, `gold_numeric_stage_count=0`,
-`phase39_status=train-ready`) are internally consistent across `scan.log`, `stage_population.json`,
-and `verification.log`, and consistent with the documented main-repo corpus size (38,017 files).
+**No gaps.** The phase goal is achieved: DATA-01..06 are implemented in real, non-stub, correctly
+wired production code across `pinn/data/*.py` (3,990 lines), 447/447 repository tests and 264/264
+phase-39 tests pass on a fresh run, and every retained real-corpus number is now independently
+reproducible by re-running the documented CLI.
 
-However, one concrete, independently-reproduced gap blocks a clean "passed" verdict: the
-`39-VALIDATION.md` row `39-07-02` — which is supposed to be the standalone, re-runnable proof that
-the retained real-corpus evidence demonstrates memory-below-watermark, blacklist disposition, and
-run freshness — **fails when actually re-run against the current retained `scan.log`**, despite
-being marked "✅ green" in the ledger. This is exactly the SUMMARY-vs-actual-state discrepancy this
-verification role exists to catch: the ledger's claim is not backed by the bytes it claims to
-verify. The root cause traces cleanly to `pinn/data/stage_scan.py`, whose CLI has never (in any
-committed version) surfaced the adapter's own accumulated `init_log` evidence (mem line, blacklist
-counts, root diagnostics, freshness markers) into any file or console output the phase's evidence
-chain relies on. This is a wiring gap between two otherwise-correct pieces (`AdmittedSetAdapter`
-and `stage_scan.py`'s CLI), not a scientific-correctness defect — the underlying watermark gate did
-mechanically hold during the real run (the adapter is fail-closed on watermark and would have
-raised rather than complete with `train-ready`), but this is not independently provable from
-current retained bytes, and the ledger inaccurately claims it is.
+The prior report's single gap is closed by the strongest available evidence rather than by
+assertion: the verifier ran the scan itself and got the retained bytes back. Notably, the fix went
+in the correct direction — the acceptance command has been frozen since **planning** (2026-07-14),
+the code was changed to satisfy it, and the scientific outputs (`splits.json`,
+`stage_population.json`) never moved a byte across the entire gap-closure sequence, which is what
+distinguishes an honest evidence-wiring repair from a results-fitting one.
 
-This finding is separate from, and additional to, the already-acknowledged UAT Test 24 GSD-lifecycle
-issue, which is out of scope for this report per explicit instruction.
+Two non-blocking warnings are recorded for owner decision. Both are process-artifact integrity
+items of the same *class* this phase has repeatedly stumbled on, and both deserve attention even
+though neither touches DATA-01..06:
+
+1. **FINDING-2** — two ledger rows carry an assertion that cannot fail. 39-14 correctly declined
+   to fix it unilaterally (process-artifact schema → MUST surface per CLAUDE.md). The verifier
+   confirmed the defect *and* confirmed the guarded criterion is satisfied anyway. It is not
+   logged in `39-GAPS.md`, which it arguably should be.
+2. **UAT Test 24** — was marked pass by fiat, declaring a gaps_found verdict "superseded". That
+   reasoning is invalid: a UAT cannot supersede a verification. Its `expected` condition becomes
+   true only now, on the strength of *this* report's independent re-derivation. The `reported`
+   text should be corrected to cite this report rather than "superseded". The right sequence was
+   always verify-then-mark; the outcome happens to land where the UAT claimed, but it was not
+   entitled to that claim when it made it.
+
+With this report at `status: passed`, the canonical predicate
+`gsd-tools phase uat-passed 39 --require-verification` — whose sole remaining blocker was
+`39-VERIFICATION.md: verification status=gaps_found` — clears legitimately.
 
 ---
 
-_Verified: 2026-07-16T10:40:00Z_
+_Verified: 2026-07-16T15:27:56Z_
 _Verifier: Claude (gsd-verifier)_
