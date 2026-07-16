@@ -462,7 +462,129 @@ class StageScanCliContract(unittest.TestCase):
             memory_watermark=0.75,
             interim_s0=0.02,
             run_dir=str(run_dir),
+            device="cpu",
         )
+
+    def test_cli_rejects_zero_capacity_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--memory-capacity-bytes", "0",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_negative_capacity_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--memory-capacity-bytes", "-1",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_nan_watermark_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--memory-watermark", "nan",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_inf_watermark_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--memory-watermark", "inf",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_zero_watermark_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--memory-watermark", "0",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_negative_watermark_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--memory-watermark", "-0.5",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_watermark_greater_than_one_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--memory-watermark", "1.5",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_nan_interim_s0_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--interim-s0", "nan",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_inf_interim_s0_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--interim-s0", "inf",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_rejects_nonpositive_interim_s0_before_adapter_construction(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(
+                source, run_dir, "--interim-s0", "0",
+            )
+        self.assertNotEqual(exit_code, 0)
+        factory.assert_not_called()
+
+    def test_cli_forwards_explicit_device_cpu(self):
+        """The production CLI passes device='cpu' explicitly (D-03)."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = _source(240, data_root=root / "corpus")
+            run_dir = root / "run"
+            exit_code, _stdout, factory = self._run(source, run_dir)
+        self.assertEqual(exit_code, 0)
+        _, kwargs = factory.call_args
+        self.assertEqual(kwargs.get("device"), "cpu")
 
 
 if __name__ == "__main__":  # pragma: no cover

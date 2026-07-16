@@ -24,6 +24,7 @@ Contract highlights (39-01-PLAN task 39-01-01 acceptance criteria):
 
 import importlib
 import unittest
+from unittest import mock
 import warnings
 
 import numpy as np
@@ -718,6 +719,94 @@ class AdapterResidencyTests(unittest.TestCase):
                              {k.physical_key if hasattr(k, "physical_key")
                               else PhysicalKey(k.variant, k.id)
                               for k in adapter.record_keys()})
+
+
+# ===========================================================================
+# DATA-01 fail-closed adapter configuration validation.
+# ===========================================================================
+
+class AdapterConfigValidationTests(unittest.TestCase):
+    """Invalid capacity/watermark/interim_s0/device is rejected before any
+    corpus-side effect (root resolution, scanning, tensor materialization,
+    memory logging)."""
+
+    def _rejects_before_side_effects(self, **over):
+        AdmittedSetAdapter = _require("AdmittedSetAdapter", ADAPTER)
+        with _fixtures.TinyCorpus() as corpus:
+            kwargs = dict(root=corpus.data_root, blacklist_path=corpus.blacklist_path,
+                          precision="float32", device="cpu", run_dir=corpus.run_dir,
+                          version_metadata_path=corpus.version_metadata_path)
+            kwargs.update(over)
+            with mock.patch.object(AdmittedSetAdapter, "_resolve_root",
+                                   side_effect=RuntimeError("side-effect-reached")):
+                with self.assertRaises((ValueError, TypeError)):
+                    AdmittedSetAdapter(**kwargs)
+
+    def test_capacity_zero_is_rejected(self):
+        self._rejects_before_side_effects(capacity_bytes=0)
+
+    def test_capacity_negative_is_rejected(self):
+        self._rejects_before_side_effects(capacity_bytes=-1)
+
+    def test_capacity_nan_is_rejected(self):
+        self._rejects_before_side_effects(capacity_bytes=float("nan"))
+
+    def test_capacity_inf_is_rejected(self):
+        self._rejects_before_side_effects(capacity_bytes=float("inf"))
+
+    def test_capacity_bool_is_rejected(self):
+        self._rejects_before_side_effects(capacity_bytes=True)
+
+    def test_watermark_nan_is_rejected(self):
+        self._rejects_before_side_effects(memory_watermark=float("nan"))
+
+    def test_watermark_inf_is_rejected(self):
+        self._rejects_before_side_effects(memory_watermark=float("inf"))
+
+    def test_watermark_zero_is_rejected(self):
+        self._rejects_before_side_effects(memory_watermark=0.0)
+
+    def test_watermark_negative_is_rejected(self):
+        self._rejects_before_side_effects(memory_watermark=-0.5)
+
+    def test_watermark_greater_than_one_is_rejected(self):
+        self._rejects_before_side_effects(memory_watermark=1.5)
+
+    def test_watermark_bool_is_rejected(self):
+        self._rejects_before_side_effects(memory_watermark=True)
+
+    def test_interim_s0_nan_is_rejected(self):
+        self._rejects_before_side_effects(interim_s0=float("nan"))
+
+    def test_interim_s0_inf_is_rejected(self):
+        self._rejects_before_side_effects(interim_s0=float("inf"))
+
+    def test_interim_s0_zero_is_rejected(self):
+        self._rejects_before_side_effects(interim_s0=0.0)
+
+    def test_interim_s0_negative_is_rejected(self):
+        self._rejects_before_side_effects(interim_s0=-0.01)
+
+    def test_device_meta_is_rejected(self):
+        self._rejects_before_side_effects(device="meta")
+
+    def test_device_cuda_is_rejected(self):
+        self._rejects_before_side_effects(device="cuda")
+
+    def test_device_mps_is_rejected(self):
+        self._rejects_before_side_effects(device="mps")
+
+    def test_valid_cpu_default_still_initializes(self):
+        torch = _load_torch()
+        RecordKey = _require("RecordKey", TYPES)
+        with _fixtures.TinyCorpus() as corpus:
+            adapter = _require("AdmittedSetAdapter", ADAPTER)(
+                root=corpus.data_root, blacklist_path=corpus.blacklist_path,
+                precision="float32", device="cpu", run_dir=corpus.run_dir,
+                version_metadata_path=corpus.version_metadata_path)
+            self.assertEqual(adapter._device.type, "cpu")
+            key = RecordKey("hierarchical", "base", 0)
+            self.assertEqual(adapter.get(key).ic13.dtype, torch.float32)
 
 
 # ===========================================================================

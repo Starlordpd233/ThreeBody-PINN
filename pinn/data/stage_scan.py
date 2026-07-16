@@ -563,6 +563,33 @@ def _status_line(report_path: Path, report: dict[str, Any]) -> str:
 def main(argv: list[str] | None = None) -> int:
     """Run the deterministic DATA-06 scan without reopening admitted records."""
     args = _parser().parse_args(argv)
+
+    # DATA-01 fail-closed preflight: reject invalid safety inputs before
+    # constructing the adapter or touching the corpus. argparse's ``type=int``
+    # / ``type=float`` accept NaN/Inf floats and non-positive integers, so the
+    # finite/range checks live here rather than in the argument types.
+    if not math.isfinite(args.memory_capacity_bytes) or args.memory_capacity_bytes <= 0:
+        print(
+            f"error: --memory-capacity-bytes must be positive and finite; "
+            f"got {args.memory_capacity_bytes}",
+            file=sys.stderr,
+        )
+        return 1
+    if not math.isfinite(args.memory_watermark) or not (0 < args.memory_watermark <= 1):
+        print(
+            f"error: --memory-watermark must be in (0, 1] and finite; "
+            f"got {args.memory_watermark}",
+            file=sys.stderr,
+        )
+        return 1
+    if not math.isfinite(args.interim_s0) or args.interim_s0 <= 0:
+        print(
+            f"error: --interim-s0 must be positive and finite; "
+            f"got {args.interim_s0}",
+            file=sys.stderr,
+        )
+        return 1
+
     adapter_options = {
         "data_root": args.data_root,
         "blacklist_path": args.blacklist_path,
@@ -573,6 +600,9 @@ def main(argv: list[str] | None = None) -> int:
         "memory_watermark": args.memory_watermark,
         "interim_s0": args.interim_s0,
         "run_dir": args.run_dir,
+        # D-03 explicit CPU residency contract — passed from the CLI so the
+        # production call site cannot drift from CPU-only residency.
+        "device": "cpu",
     }
     source = AdmittedSetAdapter(**adapter_options)
     ratios = SplitRatios(*args.ratios)

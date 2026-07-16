@@ -24,6 +24,7 @@ and recomputes energy from raw arrays).
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import subprocess
@@ -491,6 +492,56 @@ def to_parsed_trajectory(record_key, parsed_brutus):
 # Production in-memory admitted-set adapter (DATA-01..03, Plan 39-03).
 # ===========================================================================
 
+# DATA-01 explicit memory budget + watermark (never inferred from RSS/MPS).
+MEMORY_CAPACITY_DEFAULT = 24 * 1024 ** 3
+MEMORY_WATERMARK_DEFAULT = 0.7
+
+
+def _validate_adapter_config(capacity_bytes, memory_watermark, interim_s0, device):
+    """Fail-closed validation of residency/configuration inputs (DATA-01).
+
+    Every check runs before ``_resolve_root``, ``_scan_and_admit``, tensor
+    materialization, or memory logging so an invalid caller configuration
+    cannot bypass the explicit CPU memory-watermark gate or produce misleading
+    ``mem:`` evidence. Returns the normalized CPU ``torch.device``.
+    """
+    # capacity_bytes: positive finite integer.
+    if isinstance(capacity_bytes, bool) or not isinstance(capacity_bytes, (int, float)):
+        raise TypeError(
+            f"capacity_bytes must be a positive finite int; got {capacity_bytes!r}")
+    if not math.isfinite(capacity_bytes) or capacity_bytes <= 0:
+        raise ValueError(
+            f"capacity_bytes must be positive and finite; got {capacity_bytes!r}")
+
+    # memory_watermark: finite in (0, 1].
+    if isinstance(memory_watermark, bool) or not isinstance(memory_watermark, (int, float)):
+        raise TypeError(
+            f"memory_watermark must be a finite float in (0, 1]; got {memory_watermark!r}")
+    if not math.isfinite(memory_watermark) or not (0 < memory_watermark <= 1):
+        raise ValueError(
+            f"memory_watermark must be in (0, 1] and finite; got {memory_watermark!r}")
+
+    # interim_s0: finite and positive.
+    if isinstance(interim_s0, bool) or not isinstance(interim_s0, (int, float)):
+        raise TypeError(
+            f"interim_s0 must be a finite positive float; got {interim_s0!r}")
+    if not math.isfinite(interim_s0) or interim_s0 <= 0:
+        raise ValueError(
+            f"interim_s0 must be positive and finite; got {interim_s0!r}")
+
+    # device: CPU-only. Normalize through torch.device so malformed devices
+    # (including strings that torch cannot parse) are rejected explicitly.
+    try:
+        normalized = torch.device(device)
+    except (ValueError, TypeError) as exc:
+        raise ValueError(f"malformed device {device!r}: {exc}") from exc
+    if normalized.type != "cpu":
+        raise ValueError(
+            f"only CPU residency is supported; got device={device!r} "
+            f"(normalized type={normalized.type})")
+    return normalized
+
+
 # Corpus layout (README File Naming Conventions; mirrored by the TinyCorpus
 # fixture). The four README-documented Brutus folders live beneath
 # ``<root>/brutus_output/``; the two IC folders beneath ``<root>/ic_final/``.
@@ -501,10 +552,6 @@ README_BRUTUS_FOLDERS = tuple(BRUTUS_FOLDER_TABLE.keys())
 DATA_ROOT_ENV = "GSD_DATA_ROOT"
 ALLOW_PARTIAL_ENV = "GSD_ALLOW_PARTIAL_DATA_ROOT"
 DEFAULT_BLACKLIST_NAME = "problematic_ics_blacklist.json"
-
-# DATA-01 explicit memory budget + watermark (never inferred from RSS/MPS).
-MEMORY_CAPACITY_DEFAULT = 24 * 1024 ** 3
-MEMORY_WATERMARK_DEFAULT = 0.7
 
 # GAP-39-07 / HIGH-1 coarse ballpark decomposition. Per admitted snapshot there
 # are 3 bodies, each contributing 3 position + 3 velocity components = 6 dof, so
@@ -648,11 +695,15 @@ class AdmittedSetAdapter:
                  supplied_data_version_hash=None):
         if precision != "float32":
             raise ValueError(f"only float32 residency is supported; got {precision!r}")
+        # DATA-01 fail-closed safety boundary: validate capacity, watermark,
+        # interim_s0, and CPU residency BEFORE root resolution, corpus scanning,
+        # tensor materialization, or memory logging.
+        self._device = _validate_adapter_config(
+            capacity_bytes, memory_watermark, interim_s0, device)
         self._dtype = torch.float32
-        self._device = device
         self._capacity_bytes = int(capacity_bytes)
         self._watermark = float(memory_watermark)
-        self.classifier_interim_s0 = interim_s0
+        self.classifier_interim_s0 = float(interim_s0)
         self._remediation_quarantine = frozenset(remediation_quarantine)
         self.run_dir = run_dir
         self.init_log: list[str] = []
