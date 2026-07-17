@@ -274,5 +274,118 @@ class GradClipTests(unittest.TestCase):
                 f"GradClipOutcome missing required field {field!r}")
 
 
+class GradClipCheckpointRoundTripTests(unittest.TestCase):
+    """WR-01: state_dict / load_state_dict preserves the run's window dtype.
+
+    Pre-fix ``load_state_dict`` hardcodes ``dtype=torch.float64`` for every
+    restored entry, which silently corrupts an fp32-MPS production resume
+    (D1-p). These tests are the first coverage of the checkpoint path in
+    either dtype.
+    """
+
+    def _populate(self, clipper, *, dtype, norms):
+        p = torch.nn.Parameter(torch.zeros(2, dtype=dtype))
+        for norm in norms:
+            _set_grad(p, norm, dtype=dtype)
+            clipper.clip([p], stage=0)
+        return p
+
+    def test_float32_round_trip_preserves_window_dtype_and_values(self):
+        GradClipper = _require("GradClipper")
+        clipper = GradClipper()
+        norms = [3.0, 4.0, 5.0]
+        self._populate(clipper, dtype=torch.float32, norms=norms)
+        pre_values = [float(v) for v in clipper._window]
+        pre_table = dict(clipper._c_stage_table)
+        pre_floor = clipper._median_floor
+        pre_len = clipper._window_length
+
+        state = clipper.state_dict()
+        # Payload must carry dtype as a plain string (weights_only-clean).
+        self.assertIn("dtype", state)
+        self.assertIsInstance(state["dtype"], str)
+        self.assertEqual(state["dtype"], "float32")
+
+        restored = GradClipper()
+        restored.load_state_dict(state)
+
+        self.assertEqual(len(restored._window), len(norms))
+        for entry in restored._window:
+            self.assertEqual(
+                entry.dtype, torch.float32,
+                f"restored window entry has dtype {entry.dtype}, expected float32")
+        self.assertTrue(
+            torch.allclose(
+                torch.stack(restored._window),
+                torch.tensor(pre_values, dtype=torch.float32),
+            ),
+            "restored window values must match pre-save values",
+        )
+        self.assertEqual(dict(restored._c_stage_table), pre_table)
+        self.assertEqual(restored._median_floor, pre_floor)
+        self.assertEqual(restored._window_length, pre_len)
+
+    def test_float32_clip_after_resume_matches_torch_median_reference(self):
+        GradClipper = _require("GradClipper")
+        clipper = GradClipper()
+        norms = [3.0, 4.0, 5.0]
+        p = self._populate(clipper, dtype=torch.float32, norms=norms)
+        state = clipper.state_dict()
+
+        restored = GradClipper()
+        restored.load_state_dict(state)
+
+        # One more clip after resume; reference includes the appended norm.
+        _set_grad(p, 6.0, dtype=torch.float32)
+        outcome = restored.clip([p], stage=0)
+        self.assertFalse(outcome.non_finite)
+        ref_history = norms + [6.0]
+        ref_stack = torch.tensor(ref_history, dtype=torch.float32)
+        expected = C_STAGE_TABLE[0] * float(torch.median(ref_stack))
+        self.assertAlmostEqual(float(outcome.clip_value), expected, places=5)
+        # Window must stay dtype-homogeneous after the post-resume append.
+        for entry in restored._window:
+            self.assertEqual(entry.dtype, torch.float32)
+
+    def test_float64_round_trip_preserves_window_dtype(self):
+        GradClipper = _require("GradClipper")
+        clipper = GradClipper()
+        self._populate(clipper, dtype=torch.float64, norms=[2.0, 8.0, 4.0])
+        state = clipper.state_dict()
+        self.assertEqual(state["dtype"], "float64")
+
+        restored = GradClipper()
+        restored.load_state_dict(state)
+        for entry in restored._window:
+            self.assertEqual(entry.dtype, torch.float64)
+        self.assertTrue(
+            torch.allclose(
+                torch.stack(restored._window),
+                torch.tensor([2.0, 8.0, 4.0], dtype=torch.float64),
+            ))
+
+    def test_empty_window_round_trips_without_dtype(self):
+        GradClipper = _require("GradClipper")
+        clipper = GradClipper()
+        self._populate(clipper, dtype=torch.float32, norms=[1.0, 2.0])
+        clipper.clear()
+        state = clipper.state_dict()
+        restored = GradClipper()
+        restored.load_state_dict(state)
+        self.assertEqual(restored._window, [])
+        self.assertEqual(restored._window_length, clipper._window_length)
+
+    def test_unknown_dtype_string_raises_value_error_naming_it(self):
+        GradClipper = _require("GradClipper")
+        clipper = GradClipper()
+        self._populate(clipper, dtype=torch.float32, norms=[1.0])
+        state = clipper.state_dict()
+        state["dtype"] = "float16"  # outside the closed 2-entry set
+        restored = GradClipper()
+        with self.assertRaises(ValueError) as ctx:
+            restored.load_state_dict(state)
+        self.assertIn("float16", str(ctx.exception))
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
