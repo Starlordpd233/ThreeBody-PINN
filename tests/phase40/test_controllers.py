@@ -22,7 +22,11 @@ import numpy as np
 import torch
 
 from tests.phase40 import _SKIP_PHRASE
-from tests.phase40._fixtures import make_stub_model, make_stub_split_sources
+from tests.phase40._fixtures import (
+    make_stub_model,
+    make_stub_source,
+    make_stub_split_sources,
+)
 from pinn.loss_catalog import LossTerms
 
 MODULE = "pinn.training.controllers"
@@ -148,6 +152,27 @@ class CurriculumControllerConstructionTests(unittest.TestCase):
         )
         self.assertEqual(controller.stage, 0)
         self.assertFalse(controller.halted)
+
+    def test_stage_factory_defaults_to_none(self):
+        """GAP-40-04 / PLAT-01: stage_factory is opt-in; default preserves single-stage."""
+        sig = inspect.signature(self.CurriculumController.__init__)
+        self.assertIn("stage_factory", sig.parameters)
+        self.assertIsNone(sig.parameters["stage_factory"].default)
+
+    def test_stage_factory_alongside_forced_disposition_raises_at_construction(self):
+        """T-40-09: stage_factory is a live-run construct; same single guard."""
+        checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)
+        scheduled_weights = ScheduledWeights(1)
+
+        def _factory(_k):
+            raise AssertionError("factory must not be called at construction")
+
+        with self.assertRaises(self.ForcedDispositionOnLiveRun):
+            self.CurriculumController(
+                _make_config(), checkpoint_store, scheduled_weights,
+                stage_factory=_factory,
+                forced_disposition=lambda k: StageDisposition.ADVANCE,
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -481,6 +506,261 @@ class ComposedGateEarnedAdvanceTests(unittest.TestCase):
 
         self.assertEqual(disposition, StageDisposition.ADVANCE)
         self.assertEqual(controller.stage, 1)
+
+
+# ---------------------------------------------------------------------------
+# GAP-40-04 / CR-03 — stage_factory seam (Option C): per-stage RunController
+# swap on ADVANCE, model continuity, anchor provenance, composed RECOVER.
+# ---------------------------------------------------------------------------
+
+class StageFactorySeamTests(unittest.TestCase):
+    """Task 1 ACs for the GAP-40-04 stage_factory Option C seam.
+
+    Uses a live RunController whose ``run_stage`` is mocked to return ADVANCE
+    (or RECOVER) so the tests exercise the ADVANCE-branch swap / rebind /
+    anchor ordering without paying for a full earned-gate training pass. The
+    live-objective AC (Task 2) is the physics proof on a non-mocked path.
+    """
+
+    STAGE0_LAMBDA_PHYS = 1.0
+    STAGE1_LAMBDA_PHYS = 7.0
+
+    def setUp(self):
+        self.RunController = _require("RunController")
+        self.CurriculumController = _require("CurriculumController")
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self.runtime = resolve_runtime("float64", "cpu")
+        self.model = make_stub_model(
+            dtype=self.runtime.dtype, device=self.runtime.torch_device,
+        )
+        # Stage-1 records required so a real stage-1 run_stage could build a
+        # batch; keep them even when run_stage is mocked for the seam tests.
+        self.train_source = make_stub_source(
+            n_stage0=80, n_stage1=80, id_offset=0,
+        )
+        self.validation_source = make_stub_source(
+            n_stage0=80, n_stage1=80, id_offset=50_000,
+        )
+        self.config = _make_config(max_epochs=2, n_adam=1)
+        self.checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)
+
+    def _require_model_mismatch(self):
+        return _require("StageFactoryModelMismatch")
+
+    def _build_run_controller(self, *, model, lambda_phys_max, n_adam=1):
+        scheduled = ScheduledWeights(
+            n_adam,
+            lambda_phys_max=lambda_phys_max,
+            lambda_e_max=0.0,
+            lambda_l_max=0.0,
+        )
+        return self.RunController(
+            model, self.train_source, self.validation_source, self.config,
+            scheduled, GradClipper(),
+            CollocationSampler(2, np.random.default_rng(0)),
+            StageExitMachine(self.config), self.checkpoint_store, self.runtime,
+            rng=np.random.default_rng(1),
+        )
+
+    def _build_curriculum(self, *, stage0_rc, stage_factory, recover_retries=0):
+        # Prefer the public read-only accessor once present; fall back to the
+        # private field so RED against pre-seam code fails on stage_factory
+        # (TypeError) rather than on a missing property.
+        try:
+            stage0_weights = stage0_rc.scheduled_weights
+        except AttributeError:
+            stage0_weights = stage0_rc._scheduled_weights
+        return self.CurriculumController(
+            self.config, self.checkpoint_store,
+            stage0_weights,
+            run_controller=stage0_rc,
+            stage_factory=stage_factory,
+            recover_retries=recover_retries,
+        )
+
+    def test_model_continuity_preserved_across_factory_swap(self):
+        stage0 = self._build_run_controller(
+            model=self.model, lambda_phys_max=self.STAGE0_LAMBDA_PHYS,
+        )
+        stage1 = self._build_run_controller(
+            model=self.model, lambda_phys_max=self.STAGE1_LAMBDA_PHYS,
+        )
+        factory_calls = []
+
+        def factory(k):
+            factory_calls.append(k)
+            self.assertEqual(k, 1)
+            return stage1
+
+        controller = self._build_curriculum(
+            stage0_rc=stage0, stage_factory=factory,
+        )
+        pre_swap_params = [p.detach().clone() for p in self.model.parameters()]
+        with mock.patch.object(
+            stage0, "run_stage", return_value=StageDisposition.ADVANCE,
+        ):
+            disposition = controller.step()
+
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        self.assertEqual(controller.stage, 1)
+        self.assertEqual(factory_calls, [1])
+        self.assertIs(controller._run_controller, stage1)
+        self.assertIs(controller._run_controller.model, self.model)
+        self.assertIs(
+            controller._scheduled_weights,
+            controller._run_controller.scheduled_weights,
+        )
+        self.assertIs(
+            controller._scheduled_weights,
+            stage1.scheduled_weights,
+        )
+        self.assertEqual(
+            controller._scheduled_weights.state_dict()["lambda_phys_max"],
+            self.STAGE1_LAMBDA_PHYS,
+        )
+        for p, ref in zip(self.model.parameters(), pre_swap_params):
+            self.assertTrue(
+                torch.allclose(p, ref),
+                "factory swap itself must not modify model parameter tensors",
+            )
+
+    def test_foreign_model_from_factory_raises_and_does_not_partial_swap(self):
+        StageFactoryModelMismatch = self._require_model_mismatch()
+        stage0 = self._build_run_controller(
+            model=self.model, lambda_phys_max=self.STAGE0_LAMBDA_PHYS,
+        )
+        foreign_model = make_stub_model(
+            dtype=self.runtime.dtype, device=self.runtime.torch_device,
+        )
+        foreign_stage1 = self._build_run_controller(
+            model=foreign_model, lambda_phys_max=self.STAGE1_LAMBDA_PHYS,
+        )
+        try:
+            stage0_weights = stage0.scheduled_weights
+        except AttributeError:
+            stage0_weights = stage0._scheduled_weights
+
+        def factory(_k):
+            return foreign_stage1
+
+        controller = self._build_curriculum(
+            stage0_rc=stage0, stage_factory=factory,
+        )
+        with mock.patch.object(
+            stage0, "run_stage", return_value=StageDisposition.ADVANCE,
+        ):
+            with self.assertRaises(StageFactoryModelMismatch):
+                controller.step()
+
+        # No partial swap: live controller and schedule remain stage 0's.
+        self.assertIs(controller._run_controller, stage0)
+        self.assertIs(controller._scheduled_weights, stage0_weights)
+        # Rebind nothing before the model-continuity check passes. The ruled
+        # sequence sets stage = k+1 before the factory call, so stage may
+        # already be 1 on raise; the load-bearing invariant is no rebind.
+        self.assertIs(controller._run_controller.model, self.model)
+
+    def test_anchor_provenance_final_from_old_init_from_new(self):
+        stage0 = self._build_run_controller(
+            model=self.model, lambda_phys_max=self.STAGE0_LAMBDA_PHYS,
+        )
+        stage1 = self._build_run_controller(
+            model=self.model, lambda_phys_max=self.STAGE1_LAMBDA_PHYS,
+        )
+
+        def factory(_k):
+            return stage1
+
+        controller = self._build_curriculum(
+            stage0_rc=stage0, stage_factory=factory,
+        )
+        save_spy = mock.Mock(wraps=self.checkpoint_store.save)
+        with mock.patch.object(self.checkpoint_store, "save", save_spy), \
+             mock.patch.object(
+                 stage0, "run_stage", return_value=StageDisposition.ADVANCE,
+             ):
+            disposition = controller.step()
+
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        tags = [call.args[0]["tag"] for call in save_spy.call_args_list]
+        self.assertEqual(tags, ["stage-0-final", "stage-1-init"])
+        final_payload = save_spy.call_args_list[0].args[0]
+        init_payload = save_spy.call_args_list[1].args[0]
+        final_max = final_payload["run_controller"]["scheduled_weights"][
+            "lambda_phys_max"
+        ]
+        init_max = init_payload["run_controller"]["scheduled_weights"][
+            "lambda_phys_max"
+        ]
+        self.assertEqual(final_max, self.STAGE0_LAMBDA_PHYS)
+        self.assertEqual(init_max, self.STAGE1_LAMBDA_PHYS)
+
+    def test_composed_swap_anchor_recover_keeps_stage1_lambda_max(self):
+        """W4: swap → stage-1-init → RECOVER restore leaves stage-1 caps live.
+
+        Proves the joint path, not two halves: after a factory-swapped ADVANCE
+        the stage-1-init anchor must carry stage 1's lambda^max so a RECOVER
+        restore cannot re-pin the objective to stage 0 (T-40-13 / CR-03).
+        """
+        stage0 = self._build_run_controller(
+            model=self.model, lambda_phys_max=self.STAGE0_LAMBDA_PHYS,
+        )
+        stage1 = self._build_run_controller(
+            model=self.model, lambda_phys_max=self.STAGE1_LAMBDA_PHYS,
+        )
+
+        def factory(_k):
+            return stage1
+
+        controller = self._build_curriculum(
+            stage0_rc=stage0, stage_factory=factory, recover_retries=1,
+        )
+        with mock.patch.object(
+            stage0, "run_stage", return_value=StageDisposition.ADVANCE,
+        ):
+            self.assertEqual(controller.step(), StageDisposition.ADVANCE)
+        self.assertEqual(controller.stage, 1)
+        self.assertIs(controller._run_controller, stage1)
+
+        # Snapshot stage-1-init anchored params, then mutate live weights.
+        reference = [p.detach().clone() for p in self.model.parameters()]
+        with torch.no_grad():
+            for p in self.model.parameters():
+                p.add_(1.0)
+        for p, ref in zip(self.model.parameters(), reference):
+            self.assertFalse(torch.allclose(p, ref))
+
+        dtype, device = stage1._dtype, stage1._device
+        zero = torch.zeros((), dtype=dtype, device=device)
+
+        def nan_compose(batch, anchor_ctx, weights):
+            return LossTerms(
+                data=zero, ic=zero,
+                phys=torch.tensor(1.0, dtype=dtype, device=device),
+                energy=zero, angmom=zero,
+                total=torch.tensor(float("nan"), dtype=dtype, device=device),
+            )
+
+        with mock.patch.object(
+            stage1, "_compose_loss_terms", side_effect=nan_compose,
+        ):
+            disposition = controller.step()
+
+        self.assertEqual(disposition, StageDisposition.RECOVER)
+        for p, ref in zip(self.model.parameters(), reference):
+            self.assertTrue(
+                torch.allclose(p, ref),
+                "RECOVER must restore model params (proves 40-07 restore ran)",
+            )
+        live_max = controller._run_controller.scheduled_weights.state_dict()[
+            "lambda_phys_max"
+        ]
+        self.assertEqual(
+            live_max, self.STAGE1_LAMBDA_PHYS,
+            "restore must leave stage-1 lambda^max live (swap precedes init save)",
+        )
+        self.assertNotEqual(live_max, self.STAGE0_LAMBDA_PHYS)
 
 
 if __name__ == "__main__":  # pragma: no cover
