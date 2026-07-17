@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
-current_phase: 40
-current_phase_name: stage-0-curriculum-training-loop-fut-04
-status: ready_for_verification
+current_phase: 41
+current_phase_name: Config, Checkpointing, Resume & Determinism
+status: planning
 stopped_at: Completed 40-09-PLAN.md
-last_updated: "2026-07-17T14:33:40.443Z"
+last_updated: "2026-07-17T14:42:24.057Z"
 last_activity: 2026-07-17
-last_activity_desc: Completed 40-09-PLAN.md (CR-03 stage_factory Option C)
+last_activity_desc: Phase 40 complete, transitioned to Phase 41
 progress:
   total_phases: 7
   completed_phases: 4
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 40 (stage-0-curriculum-training-loop-fut-04) — READY FOR VERIFICATION
-Plan: 9 of 9 (all plans complete)
-Status: Gap-closure complete (40-07 CR-01/CR-02; 40-08 WR-01..04; 40-09 CR-03); ready for re-verification
-Last activity: 2026-07-17 — Completed 40-09-PLAN.md (CR-03 stage_factory Option C)
+Phase: 41 — Config, Checkpointing, Resume & Determinism
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-17 — Phase 40 complete, transitioned to Phase 41
 
 ## Deferred Items
 
@@ -47,7 +47,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 832 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 841 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -106,6 +106,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 39 P02 | 22min | 4 tasks | 8 files |
 | Phase 39 P03 | 35min | 3 tasks | 4 files |
 | Phase 39 P06 | 17 min | 2 tasks | 2 files |
+| 40 | 9 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
