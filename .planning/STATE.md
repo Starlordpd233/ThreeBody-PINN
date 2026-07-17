@@ -4,16 +4,16 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 40
 current_phase_name: stage-0-curriculum-training-loop-fut-04
-status: verifying
-stopped_at: Phase 40 verification gaps_found (CR-01 rollback discarded, CR-02 ADVANCE unreachable at n_adam==max_epochs, CR-03 per-stage config not swapped) — next /gsd-plan-phase 40 --gaps
-last_updated: "2026-07-17T11:10:34.408Z"
+status: executing
+stopped_at: Completed 40-07-PLAN.md
+last_updated: "2026-07-17T14:08:13.106Z"
 last_activity: 2026-07-17
-last_activity_desc: Phase 40 all 6 plans executed (142/142 tests); code review 3 crit; verification gaps_found — gap closure pending
+last_activity_desc: Completed 40-07 gap closure (CR-01/CR-02)
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 31
-  completed_plans: 31
+  total_plans: 34
+  completed_plans: 32
   percent: 43
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 40 (stage-0-curriculum-training-loop-fut-04) — Verification: gaps_found
-Plan: 6 of 6 executed; 3 verification gaps open (CR-01/02/03 in controllers.py wiring)
-Status: All plans executed and reviewed; phase NOT complete — gap-closure planning next (/gsd-plan-phase 40 --gaps)
-Last activity: 2026-07-17 — Phase 40 executed 6/6 (142/142 tests), code review 3 crit / 5 warn / 2 info, verification gaps_found
+Phase: 40 (stage-0-curriculum-training-loop-fut-04) — EXECUTING
+Plan: 8 of 9
+Status: Executing gap-closure (40-07 complete; 40-08/40-09 remain)
+Last activity: 2026-07-17 — Completed 40-07-PLAN.md (CR-01/CR-02 restore + boundary poll)
 
 ## Deferred Items
 
@@ -113,6 +113,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 39 P11 | 12min | 2 tasks | 3 files |
 | Phase 39 P12 | 4min | 2 tasks | 2 files |
 | Phase 40 P06 | 20 min | 2 tasks | 3 files |
+| Phase 40 P07 | 12min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -239,6 +240,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Retained exit_code as internal param while renaming emitted scan.log field to scan_exit_code=; plan acceptance grep over-broad on param names
 - [Phase 40]: [Phase 40 Plan 40-05]: RunController anchors L_IC/L_E/L_L on one representative identity per fixed batch (pinn.loss_catalog single-trajectory-scoped signatures), computing h0/l0 from that identity ground-truth snapshot-0 via loss_catalog own helpers, eps_h provisional |h0|*1e-4; GradClipper.clip fixed to materialize its params iterable (was silently no-oping the apply call on a live generator) and gained state_dict/load_state_dict for RunController checkpoint composition.
 - [Phase 40]: CurriculumController requires exactly one of run_controller/forced_disposition at construction — Defensive Rule 2 addition beyond the plan's T-40-09 both-supplied guard; a controller with neither could never produce a StageDisposition
+- [Phase ?]: CR-01: RECOVER restores RunController from rollback payload before retry (dual-guard: live controller + run_controller key)
+- [Phase ?]: CR-02: zero L-BFGS headroom polls StageExitMachine once; n_adam==max_epochs stays legal (GAP-40-02 A)
 
 ### Pending Todos
 
@@ -267,13 +270,14 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-17T11:10:34.403Z
-Stopped at: Completed 40-06-PLAN.md (CurriculumController + package barrel); Phase 40 complete, ready for verification
-Next action: `/gsd-verify-work 40` (Stage-0 Curriculum Training Loop, FUT-04) from the `.worktrees/trainex` worktree on `milestone/v2.0`
+Last session: 2026-07-17T14:08:13.100Z
+Stopped at: Completed 40-07-PLAN.md
+Next action: Execute remaining gap-closure plans 40-08 / 40-09 (CR-03 / stage_factory), then re-verify Phase 40 from `.worktrees/trainex` on `milestone/v2.0`
 
 ## Operator Next Steps
 
-- **Phase 40 is complete** (all 6 plans 40-01..40-06 executed 2026-07-17): `CurriculumController`/`RunController` implement the Adam→L-BFGS Stage-0 closure loop, PHYS-05 scheduled weights, collocation sampler, merged gradient clipping, and the ADVANCE/RECOVER/HALT stage-exit machine with the sL-BFGS preflight refusal; TRAIN-01..07 all landed. Full dataset-free `tests/phase40` suite is 142/142 pass, 0 skips. Ready for `/gsd-verify-work 40`.
+- **Phase 40 gap-closure in progress** (2026-07-17): plans 40-01..40-06 executed; verification found CR-01/CR-02/CR-03. **40-07 complete** — CR-01 RECOVER restore + CR-02 zero-headroom gate poll + WR-05 test replacement; phase40 suite **146/146** green. Remaining: **40-08**, **40-09** (CR-03 per-stage reconfiguration / `stage_factory`). Do not close Phase 40 until gap plans land and re-verification passes.
+- **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
 - **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
 - **Phase 38 is complete** (NET-01..05): spec-faithful SQR-SkipResNet-SIREN rebuild with gradcheck/overfit proof rungs.
 - **Phase 37 is complete** (ENV-01..04): `pinn-train` conda env on M5 Pro, D1-p recorded as fp32-MPS.
