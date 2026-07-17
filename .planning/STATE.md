@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 40
 current_phase_name: stage-0-curriculum-training-loop-fut-04
-status: executing
-stopped_at: Plan 40-05 complete (RunController Adam->L-BFGS optimizer phase) — plan 40-06 (CurriculumController) remains
-last_updated: "2026-07-17T10:51:12.327Z"
+status: verifying
+stopped_at: Completed 40-06-PLAN.md (CurriculumController + package barrel); Phase 40 complete, ready for verification
+last_updated: "2026-07-17T11:10:34.408Z"
 last_activity: 2026-07-17
-last_activity_desc: Plan 40-05 (RunController Adam->L-BFGS optimizer phase) complete, 129/129 tests/phase40 pass
+last_activity_desc: Plan 40-06 (CurriculumController + package barrel) complete, 142/142 tests/phase40 pass — Phase 40 complete
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 31
-  completed_plans: 30
-  percent: 43
+  completed_plans: 31
+  percent: 57
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 40 (stage-0-curriculum-training-loop-fut-04) — EXECUTING
+Phase: 40 (stage-0-curriculum-training-loop-fut-04) — COMPLETE
 Plan: 6 of 6
-Status: Executing Phase 40
-Last activity: 2026-07-17 — Plan 40-05 (RunController Adam->L-BFGS optimizer phase) complete, 129/129 tests/phase40 pass
+Status: Phase complete — ready for verification
+Last activity: 2026-07-17 — Plan 40-06 (CurriculumController + package barrel) complete, 142/142 tests/phase40 pass — Phase 40 complete
 
 ## Deferred Items
 
@@ -112,6 +112,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 |------|----------|-------|-------|
 | Phase 39 P11 | 12min | 2 tasks | 3 files |
 | Phase 39 P12 | 4min | 2 tasks | 2 files |
+| Phase 40 P06 | 20 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -237,6 +238,7 @@ Recent decisions affecting current work:
 - [Phase 39-03]: adapter.py references .s_min (building the interim classify record) but deliberately contains NO STAGE_0/STAGE_1 literal — numeric-stage detection uses `label is not StageLabel.UNASSIGNED` / `label.value` — so it stays off the sole-classifier prohibition audit while stages.py remains the sole numeric classifier. The classifier floor is stored as self.classifier_interim_s0 (word-boundary-safe against the s0-mutation detector) and passed positionally to classify_stage_label.
 - [Phase ?]: Retained exit_code as internal param while renaming emitted scan.log field to scan_exit_code=; plan acceptance grep over-broad on param names
 - [Phase 40]: [Phase 40 Plan 40-05]: RunController anchors L_IC/L_E/L_L on one representative identity per fixed batch (pinn.loss_catalog single-trajectory-scoped signatures), computing h0/l0 from that identity ground-truth snapshot-0 via loss_catalog own helpers, eps_h provisional |h0|*1e-4; GradClipper.clip fixed to materialize its params iterable (was silently no-oping the apply call on a live generator) and gained state_dict/load_state_dict for RunController checkpoint composition.
+- [Phase 40]: CurriculumController requires exactly one of run_controller/forced_disposition at construction — Defensive Rule 2 addition beyond the plan's T-40-09 both-supplied guard; a controller with neither could never produce a StageDisposition
 
 ### Pending Todos
 
@@ -263,15 +265,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/40-stage-0-curriculum-training-loop-fut-04/40-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-07-17T10:50:46.438Z
-Stopped at: Phase 40 planned — 6 plans (40-01..40-06), plan-checker passed
-Next action: `/gsd-execute-phase 40` (Stage-0 Curriculum Training Loop, FUT-04) from the `.worktrees/trainex` worktree on `milestone/v2.0`
+Last session: 2026-07-17T11:10:34.403Z
+Stopped at: Completed 40-06-PLAN.md (CurriculumController + package barrel); Phase 40 complete, ready for verification
+Next action: `/gsd-verify-work 40` (Stage-0 Curriculum Training Loop, FUT-04) from the `.worktrees/trainex` worktree on `milestone/v2.0`
 
 ## Operator Next Steps
 
+- **Phase 40 is complete** (all 6 plans 40-01..40-06 executed 2026-07-17): `CurriculumController`/`RunController` implement the Adam→L-BFGS Stage-0 closure loop, PHYS-05 scheduled weights, collocation sampler, merged gradient clipping, and the ADVANCE/RECOVER/HALT stage-exit machine with the sL-BFGS preflight refusal; TRAIN-01..07 all landed. Full dataset-free `tests/phase40` suite is 142/142 pass, 0 skips. Ready for `/gsd-verify-work 40`.
 - **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
-- **Phase 40 (TRAIN, FUT-04) is next**: `CurriculumController`/`RunController` implementing the Adam→L-BFGS Stage-0 closure loop, PHYS-05 scheduled weights, collocation sampler, merged gradient clipping, and the ADVANCE/RECOVER/HALT stage-exit machine. Depends on Phase 38 (model) and Phase 39 (batches) — both complete.
 - **Phase 38 is complete** (NET-01..05): spec-faithful SQR-SkipResNet-SIREN rebuild with gradcheck/overfit proof rungs.
 - **Phase 37 is complete** (ENV-01..04): `pinn-train` conda env on M5 Pro, D1-p recorded as fp32-MPS.

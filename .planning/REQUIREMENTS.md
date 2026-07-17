@@ -54,12 +54,12 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 
 ### Stage-0 Curriculum Training Loop (TRAIN) — Phase 40 (FUT-04 core)
 
-- [ ] **TRAIN-01**: A `CurriculumController` + `RunController` pair drives an outer curriculum loop and an inner optimization loop, implementing the `ctl_instruction.md` Stage-0 contract (the trainer implements the spec; it does not re-decide it). [B-3, D5-a]
+- [x] **TRAIN-01**: A `CurriculumController` + `RunController` pair drives an outer curriculum loop and an inner optimization loop, implementing the `ctl_instruction.md` Stage-0 contract (the trainer implements the spec; it does not re-decide it). [B-3, D5-a]
 - [x] **TRAIN-02**: Each stage runs the two-phase Adam→L-BFGS closure loop — Adam with PHYS-05 warmup → plateau handoff → full-batch L-BFGS via accumulate-in-closure; frozen-λ and no clipping during L-BFGS. [D5-a]
 - [ ] **TRAIN-03**: A scheduled loss-weight module implements the PHYS-05 schedule (warmup `I_warm = min(2000, 0.1·N_Adam,k)`, per-stage `λ^max` with `λ_E^max ≤ 1`, frozen during L-BFGS, re-warmed at boundaries) with its state serialized into checkpoints. [D5-c, PHYS-05, LOSS-02]
 - [ ] **TRAIN-04**: A collocation sampler interface (uniform + spec-adaptive) with the stateful `(model, last_residuals)` hook signature supplies interior points for the physics loss term. [D5-b, LOOP-03]
 - [ ] **TRAIN-05**: Merged gradient clipping applies `clip_value = C_stage · median(grad_norm_history)` with the per-stage C-table (stages 0–1: 8.5; 2–3: 5.0; 4–6: 3.0) and a rolling window, and applies no clipping during L-BFGS. [LOOP-04, B-1]
-- [ ] **TRAIN-06**: The stage-exit state machine implements **ADVANCE** (the approved success gate: plateau + validation stability + `ε_phys`/`ε_energy`), **RECOVER** (NaN/Inf rollback with a bounded retry budget, default `recover.retries: 0`), and **HALT/REVIEW** (max-epoch / stagnation → owner review); there is no fallback advancement. Thresholds are safe placeholders pending Stage-0-pilot calibration (owner-ratified, not invented). [CURR-03, D4-c, R-1/R-2]
+- [x] **TRAIN-06**: The stage-exit state machine implements **ADVANCE** (the approved success gate: plateau + validation stability + `ε_phys`/`ε_energy`), **RECOVER** (NaN/Inf rollback with a bounded retry budget, default `recover.retries: 0`), and **HALT/REVIEW** (max-epoch / stagnation → owner review); there is no fallback advancement. Thresholds are safe placeholders pending Stage-0-pilot calibration (owner-ratified, not invented). [CURR-03, D4-c, R-1/R-2]
 - [ ] **TRAIN-07**: A preflight refuses to enter the stochastic-L-BFGS stages (3–6) until a concrete sL-BFGS implementation exists — a typed stop, not a silent science deviation (out of the slice's Stage-0–2 full-batch path regardless). [D5-a, U-7]
 
 ### Config, Checkpointing, Resume & Determinism (CTRL) — Phase 41
@@ -164,12 +164,12 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 | DATA-04 | Phase 39 | Complete |
 | DATA-05 | Phase 39 | Complete |
 | DATA-06 | Phase 39 | Complete |
-| TRAIN-01 | Phase 40 | Pending |
+| TRAIN-01 | Phase 40 | Complete |
 | TRAIN-02 | Phase 40 | Complete |
 | TRAIN-03 | Phase 40 | Pending |
 | TRAIN-04 | Phase 40 | Pending |
 | TRAIN-05 | Phase 40 | Pending |
-| TRAIN-06 | Phase 40 | Pending |
+| TRAIN-06 | Phase 40 | Complete |
 | TRAIN-07 | Phase 40 | Pending |
 | CTRL-01 | Phase 41 | Pending |
 | CTRL-02 | Phase 41 | Pending |
