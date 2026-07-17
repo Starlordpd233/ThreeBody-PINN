@@ -673,11 +673,44 @@
   2026-07-16 re-verification, which scored the phase 7/7 with this finding
   recorded as non-blocking). MEDIUM going forward — the form is copyable, and
   this phase has now produced three separate "check that cannot fail" defects.
-- **Status:** OPEN.
-- **Resolution note:** _(empty — awaiting user instruction)_
+- **Status:** RESOLVED-WITH-INSTRUCTION (2026-07-16) — Option B (repair both
+  rows in place).
+- **Resolution note:** Under the user's 2026-07-16 delegation to use best
+  judgment and resolve the gap, **Option B** was chosen over the initially
+  recommended Option C. The decisive ground is the **Plan 39-14 precedent**
+  (owner-accepted at Phase 39 closure): 39-14 fixed the identical defect class —
+  a vacuous "cannot fail" assertion — in row 39-10-02's awk **in place**, and
+  established that `39-13-PLAN.md:137`'s prohibition is an *anti-weakening* rule
+  (do not widen a historical row's exclusion set), so *strengthening* a vacuous
+  assertion is not barred. De-self-matching the second alternative to parity
+  with the already-evaded first alternative (`R[u]n`) completes the author's
+  evident intent and adds real enforcement — a strengthening, not a weakening.
+  Option B also yields the cleanest end state: both broken rows become live, with
+  no permanently-inert assertion, no overlapping duplicate row, and no invented
+  non-plan row identity (39-14-01 being already taken would have forced Option C
+  to mint a fresh row-identity schema — the invention the STOP protocol avoids).
+  The fix, applied to rows 39-10-02 (`39-VALIDATION.md:65`) and 39-13-02
+  (`39-VALIDATION.md:71`), replaces the inert `! rg -q "…|simulation_data/Data>"`
+  clause with the ledger's already-ratified `assert_absent()` helper (as used in
+  rows 39-07-01/02 and 39-13-01), split into two line-anchored, de-self-matched
+  calls: `^[[:space:]]*\*\*R[u]n:\*\*` and `^[[:space:]]*simulation_data/Data[>]`.
+  Anchoring targets a pasted transcript prompt at (indented) line start — the
+  real prohibited artifact — while the mid-line pattern text in every command
+  cell is not a line start, so it cannot self-match; the char-class evasion is
+  belt-and-suspenders. Verified exactly as 39-14 did: (1) literal
+  `simulation_data/Data>` count in the ledger dropped 2 → **0**; (2) both full
+  row commands, extracted verbatim from the edited ledger and `eval`'d, observed
+  **exit 0**; (3) liveness proven — the assertions **exit 1** on a scratch copy
+  with injected `simulation_data/Data> …` and `**Run:** …` transcript lines
+  (scratch written outside the repo, deleted after; no red status ever written
+  to the real ledger); (4) the row→status pair list is byte-identical pre/post
+  (SHA-256 `b940c5e5…`, 29 rows, all `✅ green`), so both rows' `✅ green` is
+  retained from a fresh observed exit, not carried forward on the prior
+  worthless record. The `assert_absent()` form is now the canonical
+  prohibited-content schema for the Phase 40 `40-VALIDATION.md` ledger, closing
+  the "MEDIUM going forward / copyable" risk this gap flagged.
 
 ---
 
 **Milestone-index status:** `.planning/milestones/v2.0-GAPS.md` synchronized on
-2026-07-16: GAP-39-01 is deferred, GAP-39-02 through GAP-39-12 are resolved,
-and GAP-39-13 is open.
+2026-07-16: GAP-39-01 is deferred, GAP-39-02 through GAP-39-13 are resolved.

@@ -37,6 +37,7 @@ warnings:
       39-13-SUMMARY.md and deliberately left unfixed by 39-14 per that plan's explicit
       out-of-scope instruction and CLAUDE.md's process-artifact-schema MUST-surface rule.
     owner_decision_requested: "Fix the assertion (drop the `!` inversion / de-self-match the needle) or formally accept it. Recommend also logging it in 39-GAPS.md, where it currently does not appear."
+    resolution: "RESOLVED-WITH-INSTRUCTION 2026-07-16 (GAP-39-13, Option B). Both rows repaired in place to the ratified `assert_absent()` helper with line-anchored, de-self-matched patterns; literal-needle count 2→0, both rows re-ran verbatim at exit 0, liveness proven (exit 1) on a forced-red copy, 29-row status list byte-identical (SHA b940c5e5…). Justified by the Plan 39-14 strengthening precedent. Full record: 39-GAPS.md GAP-39-13."
   - id: UAT-TEST-24-PREMATURE
     severity: warning
     statement: "39-UAT.md Test 24 was marked `result: pass` before the verification it depends on had been re-run, justified by declaring the gaps_found verdict 'superseded'."
