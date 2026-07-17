@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 40
-current_phase_name: stage-0-curriculum-training-loop
-status: ready
-stopped_at: Phase 40 planned — 6 plans, plan-checker passed
-last_updated: "2026-07-17T06:06:20.212Z"
-last_activity: 2026-07-16
-last_activity_desc: Phase 40 planned (research + patterns + 6 plans + checker pass)
+current_phase_name: stage-0-curriculum-training-loop-fut-04
+status: executing
+stopped_at: Plan 40-05 complete (RunController Adam->L-BFGS optimizer phase) — plan 40-06 (CurriculumController) remains
+last_updated: "2026-07-17T10:51:12.327Z"
+last_activity: 2026-07-17
+last_activity_desc: Plan 40-05 (RunController Adam->L-BFGS optimizer phase) complete, 129/129 tests/phase40 pass
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 31
-  completed_plans: 25
+  completed_plans: 30
   percent: 43
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 40 — stage-0-curriculum-training-loop (FUT-04)
+**Current focus:** Phase 40 — stage-0-curriculum-training-loop-fut-04
 
 ## Current Position
 
-Phase: 40 (stage-0-curriculum-training-loop) — Ready to execute
-Plan: 6 plans in 4 waves (40-01..40-06)
-Status: Phase 40 planned 2026-07-16; plan-checker VERIFICATION PASSED (12/12 dimensions); ready to execute
-Last activity: 2026-07-16 — Phase 40 planned (research + patterns + 6 plans + checker pass)
+Phase: 40 (stage-0-curriculum-training-loop-fut-04) — EXECUTING
+Plan: 6 of 6
+Status: Executing Phase 40
+Last activity: 2026-07-17 — Plan 40-05 (RunController Adam->L-BFGS optimizer phase) complete, 129/129 tests/phase40 pass
 
 ## Deferred Items
 
@@ -236,6 +236,7 @@ Recent decisions affecting current work:
 - [Phase 39-03]: Adapter constructor follows the frozen Wave-0 test's interface (root=, precision=, device=, run_dir=, version_metadata_path=, capacity_bytes=) rather than the plan prose's data_root=/memory_capacity_bytes= naming, since the deferred tests are the load-bearing contract; plan-named features (GSD_DATA_ROOT/git-common-dir default, DataSourceRootMissing/Incomplete, GSD_ALLOW_PARTIAL_DATA_ROOT, mem_ballpark, resident_tensor_bytes_misfit, remediation_quarantine, records_at/records_at_or_below/has_stage) are layered in as additive behavior + tests.
 - [Phase 39-03]: adapter.py references .s_min (building the interim classify record) but deliberately contains NO STAGE_0/STAGE_1 literal — numeric-stage detection uses `label is not StageLabel.UNASSIGNED` / `label.value` — so it stays off the sole-classifier prohibition audit while stages.py remains the sole numeric classifier. The classifier floor is stored as self.classifier_interim_s0 (word-boundary-safe against the s0-mutation detector) and passed positionally to classify_stage_label.
 - [Phase ?]: Retained exit_code as internal param while renaming emitted scan.log field to scan_exit_code=; plan acceptance grep over-broad on param names
+- [Phase 40]: [Phase 40 Plan 40-05]: RunController anchors L_IC/L_E/L_L on one representative identity per fixed batch (pinn.loss_catalog single-trajectory-scoped signatures), computing h0/l0 from that identity ground-truth snapshot-0 via loss_catalog own helpers, eps_h provisional |h0|*1e-4; GradClipper.clip fixed to materialize its params iterable (was silently no-oping the apply call on a live generator) and gained state_dict/load_state_dict for RunController checkpoint composition.
 
 ### Pending Todos
 
@@ -264,7 +265,7 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** .planning/phases/40-stage-0-curriculum-training-loop-fut-04/40-CONTEXT.md
 
-Last session: 2026-07-17T03:15:00.000Z
+Last session: 2026-07-17T10:50:46.438Z
 Stopped at: Phase 40 planned — 6 plans (40-01..40-06), plan-checker passed
 Next action: `/gsd-execute-phase 40` (Stage-0 Curriculum Training Loop, FUT-04) from the `.worktrees/trainex` worktree on `milestone/v2.0`
 
