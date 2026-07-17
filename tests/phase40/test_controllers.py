@@ -764,5 +764,137 @@ class StageFactorySeamTests(unittest.TestCase):
         self.assertNotEqual(live_max, self.STAGE0_LAMBDA_PHYS)
 
 
+# ---------------------------------------------------------------------------
+# GAP-40-04 live-objective AC (TRAIN-01) — the physics proof that CR-03 is
+# closed for real: weights reaching _compose_loss_terms after ADVANCE carry
+# stage 1's lambda^max, not stage 0's. Observed on the real :479→:482 path
+# of a live non-forced RunController. A factory call-count is NOT the proof.
+# ---------------------------------------------------------------------------
+
+class LiveObjectiveStageFactoryTests(unittest.TestCase):
+    """Replacement TRAIN-01 AC from GAP-40-04 Resolution note.
+
+    MECHANISM values only (permissive thresholds, distinct lambda_phys_max,
+    small n_adam so I_warm==0 and ramp saturates at 1.0). Not calibrated pass
+    levels; assert nothing about real-data convergence; touch no config
+    default. Per-stage values arrive THROUGH the factory seam exactly as an
+    owner would supply them (SCOPE-19). Whether stage 1 earns ADVANCE on real
+    data under calibrated thresholds remains Phase 43 (ACC-05).
+    """
+
+    STAGE0_LAMBDA_PHYS = 1.0
+    STAGE1_LAMBDA_PHYS = 7.0
+    TOL = 1e-12
+
+    def setUp(self):
+        self.RunController = _require("RunController")
+        self.CurriculumController = _require("CurriculumController")
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+
+    def test_stage1_compose_receives_stage1_lambda_phys_max(self):
+        runtime = resolve_runtime("float64", "cpu")
+        model = make_stub_model(dtype=runtime.dtype, device=runtime.torch_device)
+        # Stage-1 records required for stage-1 run_stage batch construction.
+        # Disjoint id_offset mirrors make_stub_split_sources key separation.
+        train_source = make_stub_source(n_stage0=300, n_stage1=300, id_offset=0)
+        validation_source = make_stub_source(
+            n_stage0=300, n_stage1=300, id_offset=50_000,
+        )
+        # n_adam=1 → I_warm = min(2000, int(0.1*1)) = 0 → ramp == 1.0, so
+        # lambda_phys == lambda_phys_max exactly (clean equality to tol).
+        config = _make_config(
+            max_epochs=2, n_adam=1, validation_every=2,
+            beta=0.5, patience=1,
+            eps_plateau=1e15, eps_phys=1e15, eps_energy=1e15,
+            lbfgs_chunk_size=8, lbfgs_max_iter=2,
+        )
+        stage0_weights = ScheduledWeights(
+            1,
+            lambda_phys_max=self.STAGE0_LAMBDA_PHYS,
+            lambda_e_max=0.0,
+            lambda_l_max=0.0,
+        )
+        checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)
+        stage0_rc = self.RunController(
+            model, train_source, validation_source, config,
+            stage0_weights, GradClipper(),
+            CollocationSampler(2, np.random.default_rng(0)),
+            StageExitMachine(config), checkpoint_store, runtime,
+            rng=np.random.default_rng(1),
+        )
+
+        def stage_factory(k):
+            # Permissive thresholds can earn ADVANCE at stage 1 too; factory
+            # must accept k>=1. Discriminator is lambda_phys_max for k==1
+            # (stage 0 uses STAGE0_LAMBDA_PHYS via the seed controller).
+            lambda_phys = (
+                self.STAGE1_LAMBDA_PHYS if k == 1 else self.STAGE1_LAMBDA_PHYS
+            )
+            stage_k_weights = ScheduledWeights(
+                1,
+                lambda_phys_max=lambda_phys,
+                lambda_e_max=0.0,
+                lambda_l_max=0.0,
+            )
+            # SAME model instance (model-continuity invariant).
+            return self.RunController(
+                model, train_source, validation_source, config,
+                stage_k_weights, GradClipper(),
+                CollocationSampler(2, np.random.default_rng(2 + k)),
+                StageExitMachine(config), checkpoint_store, runtime,
+                rng=np.random.default_rng(3 + k),
+            )
+
+        controller = self.CurriculumController(
+            config, checkpoint_store, stage0_weights,
+            run_controller=stage0_rc,
+            stage_factory=stage_factory,
+        )
+
+        # (1) Earn ADVANCE at stage 0 through the real gate path.
+        disposition = controller.step()
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        self.assertEqual(controller.stage, 1)
+        self.assertIs(controller._run_controller.model, model)
+
+        # (2) Capture weights reaching _compose_loss_terms on the NEW live
+        # controller; delegate to the real implementation so run_stage stays real.
+        captured = []
+        real_compose = controller._run_controller._compose_loss_terms
+
+        def recording_compose(batch, anchor_ctx, weights):
+            captured.append(weights)
+            return real_compose(batch, anchor_ctx, weights)
+
+        with mock.patch.object(
+            controller._run_controller, "_compose_loss_terms",
+            side_effect=recording_compose,
+        ):
+            # (3) Train stage 1 for real (preflight accepts stages {0,1,2}).
+            controller.step()
+
+        self.assertGreater(
+            len(captured), 0,
+            "stage-1 composition path must execute (non-vacuous capture)",
+        )
+        # (4) Live-objective AC: composed lambda_phys is stage 1's, not stage 0's.
+        observed = [float(w.lambda_phys) for w in captured]
+        for lp in observed:
+            self.assertLessEqual(
+                abs(lp - self.STAGE1_LAMBDA_PHYS), self.TOL,
+                f"composed lambda_phys={lp} must equal stage-1 max "
+                f"{self.STAGE1_LAMBDA_PHYS}",
+            )
+            self.assertGreater(
+                abs(lp - self.STAGE0_LAMBDA_PHYS), self.TOL,
+                f"composed lambda_phys={lp} must NOT equal stage-0 max "
+                f"{self.STAGE0_LAMBDA_PHYS}",
+            )
+        # Cheap companion pin on the schedule object itself.
+        pin = controller._run_controller.scheduled_weights.current(0).lambda_phys
+        self.assertLessEqual(abs(float(pin) - self.STAGE1_LAMBDA_PHYS), self.TOL)
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
