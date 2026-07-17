@@ -477,6 +477,71 @@ class RunControllerControlFlowTests(unittest.TestCase):
         self.assertEqual(len(lbfgs_calls), 1)  # queried exactly once, then reused for every closure call
         self.assertFalse(controller._scheduled_weights._frozen)  # rewarm() restored after L-BFGS
 
+    def test_zero_lbfgs_headroom_boundary_advances_when_gate_satisfied(self):
+        """CR-02: n_adam == max_epochs with a satisfied gate must ADVANCE.
+
+        Equality is legal (GAP-40-02 → A). Pre-fix code short-circuits to
+        HALT without polling StageExitMachine, so this FAILS before the fix.
+        """
+        controller = _build_controller(
+            self._tmpdir.name, max_epochs=6, n_adam=6, validation_every=6,
+        )
+        model = controller._model
+        dtype, device = controller._dtype, controller._device
+        # Graph-connected constant total: backward succeeds, gradient is zero,
+        # parameters never move, EMA relative change is exactly 0 < eps_plateau.
+        c = 1.0
+
+        def fake_compose(batch, anchor_ctx, weights):
+            total = torch.zeros((), dtype=dtype, device=device) + c
+            for p in model.parameters():
+                total = total + 0.0 * (p ** 2).sum()
+            zero = torch.zeros((), dtype=dtype, device=device)
+            return LossTerms(
+                data=zero, ic=zero,
+                phys=torch.tensor(1e-6, dtype=dtype, device=device),
+                energy=torch.tensor(1e-6, dtype=dtype, device=device),
+                angmom=zero, total=total,
+            )
+
+        with mock.patch.object(controller, "_compose_loss_terms", side_effect=fake_compose):
+            disposition = controller.run_stage(0)
+
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        self.assertIsNotNone(controller.last_handoff_event)
+        self.assertEqual(controller.last_handoff_event.trigger, "budget-exhausted")
+        self.assertEqual(controller.last_handoff_event.adam_epochs_used, 6)
+
+    def test_zero_lbfgs_headroom_boundary_halts_when_gate_unmet(self):
+        """CR-02 mirror: same boundary with one failing criterion → HALT only."""
+        controller = _build_controller(
+            self._tmpdir.name, max_epochs=6, n_adam=6, validation_every=6,
+        )
+        model = controller._model
+        dtype, device = controller._dtype, controller._device
+        c = 1.0
+
+        def fake_compose(batch, anchor_ctx, weights):
+            total = torch.zeros((), dtype=dtype, device=device) + c
+            for p in model.parameters():
+                total = total + 0.0 * (p ** 2).sum()
+            zero = torch.zeros((), dtype=dtype, device=device)
+            # phys above eps_phys=1e-4 → criterion 3 fails → max-epoch HALT
+            return LossTerms(
+                data=zero, ic=zero,
+                phys=torch.tensor(1.0, dtype=dtype, device=device),
+                energy=torch.tensor(1e-6, dtype=dtype, device=device),
+                angmom=zero, total=total,
+            )
+
+        with mock.patch.object(controller, "_compose_loss_terms", side_effect=fake_compose):
+            disposition = controller.run_stage(0)
+
+        self.assertEqual(disposition, StageDisposition.HALT)
+        self.assertNotEqual(disposition, StageDisposition.ADVANCE)
+        self.assertEqual(controller.last_handoff_event.trigger, "budget-exhausted")
+        self.assertEqual(controller.last_handoff_event.adam_epochs_used, 6)
+
 
 # ---------------------------------------------------------------------------
 # Real, non-injected wiring: validation pass + TRAIN-06 criteria producers.
