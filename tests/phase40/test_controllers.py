@@ -19,9 +19,11 @@ import unittest
 from unittest import mock
 
 import numpy as np
+import torch
 
 from tests.phase40 import _SKIP_PHRASE
 from tests.phase40._fixtures import make_stub_model, make_stub_split_sources
+from pinn.loss_catalog import LossTerms
 
 MODULE = "pinn.training.controllers"
 
@@ -221,10 +223,145 @@ class ColdStartRecoverTests(unittest.TestCase):
         self.assertEqual(controller.stage, 0)
         self.assertTrue(controller.halted)
 
-    def test_recover_branch_catches_empty_checkpoint_store(self):
-        CurriculumController = _require("CurriculumController")
-        source = inspect.getsource(CurriculumController)
-        self.assertIn("except EmptyCheckpointStore", source)
+
+# ---------------------------------------------------------------------------
+# CR-01 / WR-05 — RECOVER restores rolled-back checkpoint state (behavioral).
+# ---------------------------------------------------------------------------
+
+class RecoverRestoreBehavioralTests(unittest.TestCase):
+    """Behavioral RECOVER-restore coverage (closes CR-01; replaces WR-05 grep).
+
+    Asserts on live model parameter tensors after a real RunController
+    RECOVER path — not on rollback spy call counts or source-text greps.
+    """
+
+    def setUp(self):
+        self.RunController = _require("RunController")
+        self.CurriculumController = _require("CurriculumController")
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+
+    def _build_live_curriculum(self, *, recover_retries: int):
+        runtime = resolve_runtime("float64", "cpu")
+        model = make_stub_model(dtype=runtime.dtype, device=runtime.torch_device)
+        train_source, validation_source = make_stub_split_sources(
+            n_train=300, n_validation=300,
+        )
+        config = _make_config(max_epochs=3, n_adam=3)
+        scheduled_weights = ScheduledWeights(1, lambda_e_max=0.0, lambda_l_max=0.0)
+        grad_clipper = GradClipper()
+        collocation_sampler = CollocationSampler(2, np.random.default_rng(0))
+        stage_exit_machine = StageExitMachine(config)
+        checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)
+        run_controller = self.RunController(
+            model, train_source, validation_source, config,
+            scheduled_weights, grad_clipper, collocation_sampler,
+            stage_exit_machine, checkpoint_store, runtime,
+            rng=np.random.default_rng(1),
+        )
+        controller = self.CurriculumController(
+            config, checkpoint_store, scheduled_weights,
+            run_controller=run_controller,
+            recover_retries=recover_retries,
+        )
+        return controller, run_controller, model
+
+    @staticmethod
+    def _nan_compose(run_controller):
+        dtype, device = run_controller._dtype, run_controller._device
+        zero = torch.zeros((), dtype=dtype, device=device)
+
+        def fake_compose(batch, anchor_ctx, weights):
+            return LossTerms(
+                data=zero, ic=zero,
+                phys=torch.tensor(1.0, dtype=dtype, device=device),
+                energy=zero, angmom=zero,
+                total=torch.tensor(float("nan"), dtype=dtype, device=device),
+            )
+
+        return fake_compose
+
+    def test_recover_with_retries_restores_model_params_from_checkpoint(self):
+        controller, run_controller, model = self._build_live_curriculum(
+            recover_retries=1,
+        )
+        # (1) Snapshot known-good parameters (clone — state_dict views alias).
+        reference = [p.detach().clone() for p in model.parameters()]
+        # (2) Save anchor through the controller's own payload path so the
+        # stored payload carries run_controller.
+        controller._save_run_start_anchor()
+        # (3) Mutate live parameters so a no-op restore is distinguishable.
+        with torch.no_grad():
+            for p in model.parameters():
+                p.add_(1.0)
+        for p, ref in zip(model.parameters(), reference):
+            self.assertFalse(
+                torch.allclose(p, ref),
+                "mutation step must make live params differ from the seed",
+            )
+        # (4) Drive a REAL RunController to RECOVER via the sanctioned seam.
+        with mock.patch.object(
+            run_controller, "_compose_loss_terms",
+            side_effect=self._nan_compose(run_controller),
+        ):
+            disposition = controller.step()
+        # (5) Retry authorized at recover_retries=1 → RECOVER, and params
+        # restored from the rolled-back checkpoint (CR-01).
+        self.assertEqual(disposition, StageDisposition.RECOVER)
+        for p, ref in zip(model.parameters(), reference):
+            self.assertTrue(
+                torch.allclose(p, ref),
+                "RECOVER must restore model parameters from the rolled-back "
+                "checkpoint (CR-01)",
+            )
+
+    def test_recover_at_retries_zero_restores_then_halts_with_no_retrain(self):
+        controller, run_controller, model = self._build_live_curriculum(
+            recover_retries=0,
+        )
+        reference = [p.detach().clone() for p in model.parameters()]
+        controller._save_run_start_anchor()
+        with torch.no_grad():
+            for p in model.parameters():
+                p.add_(1.0)
+        for p, ref in zip(model.parameters(), reference):
+            self.assertFalse(torch.allclose(p, ref))
+
+        with mock.patch.object(
+            run_controller, "_compose_loss_terms",
+            side_effect=self._nan_compose(run_controller),
+        ):
+            disposition = controller.step()
+
+        self.assertEqual(disposition, StageDisposition.HALT)
+        self.assertEqual(controller.stage, 0)
+        self.assertTrue(controller.halted)
+        for p, ref in zip(model.parameters(), reference):
+            self.assertTrue(
+                torch.allclose(p, ref),
+                "recover_retries=0 still restores, then HALTs with no retrain",
+            )
+
+    def test_live_run_controller_recover_against_empty_store_does_not_crash(self):
+        """Empty-store backstop with a LIVE RunController (restore path).
+
+        Forced-disposition coverage already exists in ColdStartRecoverTests;
+        this case reaches the restore code inside the guarded region that a
+        forced-disposition controller never exercises.
+        """
+        controller, run_controller, _model = self._build_live_curriculum(
+            recover_retries=0,
+        )
+        with mock.patch.object(controller, "_save_run_start_anchor"), \
+             mock.patch.object(
+                 run_controller, "_compose_loss_terms",
+                 side_effect=self._nan_compose(run_controller),
+             ):
+            disposition = controller.run()
+
+        self.assertEqual(disposition, StageDisposition.HALT)
+        self.assertEqual(controller.stage, 0)
+        self.assertTrue(controller.halted)
 
 
 # ---------------------------------------------------------------------------
