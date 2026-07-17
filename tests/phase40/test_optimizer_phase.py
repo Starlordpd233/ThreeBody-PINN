@@ -55,8 +55,8 @@ from pinn.training.stage_exit import StageDisposition, StageExitMachine  # noqa:
 # ---------------------------------------------------------------------------
 
 def _make_config(*, max_epochs, n_adam, validation_every=10_000, lbfgs_chunk_size=4,
-                 lbfgs_max_iter=2):
-    stage = StageConfig(
+                 lbfgs_max_iter=2, energy_floor_factor=None):
+    stage_kwargs = dict(
         max_epochs=max_epochs,
         n_adam=n_adam,
         stagnation_window=10_000,
@@ -67,6 +67,9 @@ def _make_config(*, max_epochs, n_adam, validation_every=10_000, lbfgs_chunk_siz
         eps_phys=1e-4,
         eps_energy=1e-4,
     )
+    if energy_floor_factor is not None:
+        stage_kwargs["energy_floor_factor"] = energy_floor_factor
+    stage = StageConfig(**stage_kwargs)
     opt = OptConfig(
         validation_every=validation_every,
         lbfgs_chunk_size=lbfgs_chunk_size,
@@ -76,12 +79,15 @@ def _make_config(*, max_epochs, n_adam, validation_every=10_000, lbfgs_chunk_siz
 
 
 def _build_controller(tmp_dir, *, max_epochs, n_adam, validation_every=10_000,
-                      collocation_count=2):
+                      collocation_count=2, energy_floor_factor=None):
     RunController = _require("RunController")
     runtime = resolve_runtime("float64", "cpu")
     model = make_stub_model(dtype=runtime.dtype, device=runtime.torch_device)
     train_source, validation_source = make_stub_split_sources(n_train=300, n_validation=300)
-    config = _make_config(max_epochs=max_epochs, n_adam=n_adam, validation_every=validation_every)
+    config = _make_config(
+        max_epochs=max_epochs, n_adam=n_adam, validation_every=validation_every,
+        energy_floor_factor=energy_floor_factor,
+    )
     scheduled_weights = ScheduledWeights(n_adam, lambda_e_max=0.0, lambda_l_max=0.0)
     grad_clipper = GradClipper()
     collocation_sampler = CollocationSampler(collocation_count, np.random.default_rng(0))
@@ -687,6 +693,60 @@ class ChunkedAccumulationTests(unittest.TestCase):
     def test_chunk_size_read_from_config_not_invented(self):
         config = _make_config(max_epochs=1, n_adam=1, lbfgs_chunk_size=17)
         self.assertEqual(config.opt.lbfgs_chunk_size, 17)
+
+
+class EnergyFloorFactorWiringTests(unittest.TestCase):
+    """WR-02: StageConfig.energy_floor_factor must govern eps_h.
+
+    Pre-fix code shadows the config field with a module constant, so two
+    controllers that differ only in the factor produce the same eps_h.
+    """
+
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+
+    def _eps_h_for(self, energy_floor_factor=None):
+        controller = _build_controller(
+            self._tmpdir.name, max_epochs=1, n_adam=1,
+            energy_floor_factor=energy_floor_factor,
+        )
+        batch = build_stage_batch(
+            controller._train_source, stage=0,
+            rng=np.random.default_rng(0),
+            dtype=controller._dtype, device=controller._device,
+            collocation_count=2,
+        )
+        fixed_times = np.asarray([0.1, 0.5], dtype=np.float64)
+        ctx = controller._build_anchor_context(
+            controller._train_source, batch, fixed_times,
+        )
+        return ctx, controller
+
+    def test_energy_floor_factor_override_changes_eps_h(self):
+        default_factor = 1e-4
+        override_factor = 1e-1  # mechanism value, not a calibrated level
+        ctx_default, _ = self._eps_h_for(energy_floor_factor=default_factor)
+        ctx_override, _ = self._eps_h_for(energy_floor_factor=override_factor)
+
+        expected_default = abs(ctx_default.h0) * default_factor + 1e-12
+        expected_override = abs(ctx_override.h0) * override_factor + 1e-12
+        self.assertAlmostEqual(ctx_default.eps_h, expected_default, places=12)
+        self.assertAlmostEqual(ctx_override.eps_h, expected_override, places=12)
+        # The override case is the RED assertion: pre-fix both equal 1e-4 * |h0|.
+        self.assertNotAlmostEqual(
+            ctx_default.eps_h, ctx_override.eps_h, places=12,
+            msg="energy_floor_factor override must change eps_h (WR-02)",
+        )
+        # Same h0 for both (same stub source / batch) so the ratio tracks factors.
+        self.assertAlmostEqual(ctx_default.h0, ctx_override.h0, places=12)
+
+    def test_default_energy_floor_factor_matches_pre_fix_scale(self):
+        """Shipped default 1e-4 must keep eps_h == |h0|*1e-4 + 1e-12."""
+        ctx, controller = self._eps_h_for(energy_floor_factor=None)
+        self.assertEqual(controller._config.stage.energy_floor_factor, 1e-4)
+        expected = abs(ctx.h0) * 1e-4 + 1e-12
+        self.assertAlmostEqual(ctx.eps_h, expected, places=12)
 
 
 if __name__ == "__main__":  # pragma: no cover
