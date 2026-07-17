@@ -276,18 +276,69 @@ class GradClipper:
     # composes the RunController checkpoint dict from model + schedule +
     # clipper state -- see 40-02-SUMMARY.md "Next Phase Readiness").
     # ------------------------------------------------------------------
+    # Closed dtype-string map for checkpoint payloads (WR-01 / T-40-11).
+    # Payload stays weights_only-clean (CTX-44): dtype travels as a plain
+    # string, never a torch.dtype object. Only the two production dtypes
+    # (fp32-MPS run + the float64 suite) are accepted; anything else raises.
+    _DTYPE_TO_NAME: dict[torch.dtype, str] = {
+        torch.float32: "float32",
+        torch.float64: "float64",
+    }
+    _NAME_TO_DTYPE: dict[str, torch.dtype] = {
+        "float32": torch.float32,
+        "float64": torch.float64,
+    }
+
     def state_dict(self) -> dict[str, Any]:
-        """Serialize the rolling window into plain python floats (weights_only-clean)."""
-        return {
+        """Serialize the rolling window into plain python floats (weights_only-clean).
+
+        When the window is non-empty, also record the window's dtype as a
+        string (``\"float32\"`` / ``\"float64\"``) so ``load_state_dict`` can
+        restore entries in the run's working dtype rather than hardcoding
+        float64 (WR-01). An empty window carries no dtype key.
+        """
+        payload: dict[str, Any] = {
             "window": [float(v) for v in self._window],
             "c_stage_table": dict(self._c_stage_table),
             "median_floor": self._median_floor,
             "window_length": self._window_length,
         }
+        if self._window:
+            window_dtype = self._window[0].dtype
+            try:
+                payload["dtype"] = self._DTYPE_TO_NAME[window_dtype]
+            except KeyError:
+                raise ValueError(
+                    f"GradClipper.state_dict: unsupported window dtype "
+                    f"{window_dtype!r}; only float32/float64 are serializable")
+        return payload
 
     def load_state_dict(self, state: dict[str, Any]) -> None:
-        """Restore the rolling window from a ``state_dict()`` dict (round-trip)."""
+        """Restore the rolling window from a ``state_dict()`` dict (round-trip).
+
+        Restores each entry in the run's recorded dtype (string key
+        ``\"dtype\"`` mapped through a closed 2-entry dict). An empty window
+        needs no dtype. An unknown dtype string raises ``ValueError`` naming
+        the value (T-40-11: never ``getattr(torch, untrusted)``).
+        """
         self._c_stage_table = self._validate_c_stage_table(dict(state["c_stage_table"]))
         self._median_floor = float(state["median_floor"])
         self._window_length = int(state["window_length"])
-        self._window = [torch.tensor(v, dtype=torch.float64) for v in state["window"]]
+        raw_window = list(state["window"])
+        if not raw_window:
+            self._window = []
+            return
+        dtype_name = state.get("dtype")
+        if dtype_name is None:
+            raise ValueError(
+                "GradClipper.load_state_dict: non-empty window payload is "
+                "missing the 'dtype' string key (expected 'float32' or "
+                "'float64')")
+        try:
+            dtype = self._NAME_TO_DTYPE[dtype_name]
+        except KeyError:
+            raise ValueError(
+                f"GradClipper.load_state_dict: unsupported dtype string "
+                f"{dtype_name!r}; expected one of "
+                f"{sorted(self._NAME_TO_DTYPE)}") from None
+        self._window = [torch.tensor(v, dtype=dtype) for v in raw_window]
