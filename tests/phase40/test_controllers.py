@@ -534,13 +534,14 @@ class StageFactorySeamTests(unittest.TestCase):
         self.model = make_stub_model(
             dtype=self.runtime.dtype, device=self.runtime.torch_device,
         )
-        # Stage-1 records required so a real stage-1 run_stage could build a
-        # batch; keep them even when run_stage is mocked for the seam tests.
+        # Stage-1 records required so a real stage-1 run_stage can build a
+        # batch (composed RECOVER path). Population sized to clear
+        # StageZeroUnderpopulated / select_stage_records floors (240 replay).
         self.train_source = make_stub_source(
-            n_stage0=80, n_stage1=80, id_offset=0,
+            n_stage0=300, n_stage1=300, id_offset=0,
         )
         self.validation_source = make_stub_source(
-            n_stage0=80, n_stage1=80, id_offset=50_000,
+            n_stage0=300, n_stage1=300, id_offset=50_000,
         )
         self.config = _make_config(max_epochs=2, n_adam=1)
         self.checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)

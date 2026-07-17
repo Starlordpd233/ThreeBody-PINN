@@ -88,6 +88,7 @@ __all__ = [
     "accumulate_chunked_data_term",
     "CurriculumController",
     "ForcedDispositionOnLiveRun",
+    "StageFactoryModelMismatch",
 ]
 
 # ---------------------------------------------------------------------------
@@ -291,6 +292,16 @@ class RunController:
     @property
     def checkpoint_store(self):
         return self._checkpoint_store
+
+    @property
+    def model(self):
+        """The network instance this controller optimizes (read-only)."""
+        return self._model
+
+    @property
+    def scheduled_weights(self):
+        """This stage's PHYS-05 schedule (read-only; constructed once per stage)."""
+        return self._scheduled_weights
 
     # ------------------------------------------------------------------
     # Anchor-identity selection + ground-truth conserved quantities.
@@ -666,25 +677,48 @@ _LOGGER = logging.getLogger("pinn.training.controllers")
 class ForcedDispositionOnLiveRun(Exception):
     """T-40-09 typed guard -- the ONE mechanism, no alternative.
 
-    Raised at ``CurriculumController`` CONSTRUCTION when both a live
-    ``run_controller`` and a ``forced_disposition`` injection are supplied
-    together. T-40-09 is the HIGH-severity spurious-stage-advance threat: a
-    test-side "assert the injection is unset whenever a live run executes"
-    would guard only the code paths a test happens to exercise, whereas
-    raising here makes the unsafe combination impossible to construct on
-    EVERY path, including ones no test covers. Do not add a second guard
-    (e.g. an ``assert`` elsewhere in this class) -- two mechanisms for one
-    contract means neither is the contract.
+    Raised at ``CurriculumController`` CONSTRUCTION when a
+    ``forced_disposition`` injection is supplied together with ANY live-run
+    construct (a live ``run_controller`` and/or a ``stage_factory``). T-40-09
+    is the HIGH-severity spurious-stage-advance threat: a test-side "assert
+    the injection is unset whenever a live run executes" would guard only
+    the code paths a test happens to exercise, whereas raising here makes
+    the unsafe combination impossible to construct on EVERY path, including
+    ones no test covers. Do not add a second guard (e.g. an ``assert``
+    elsewhere in this class) -- two mechanisms for one contract means
+    neither is the contract.
     """
 
     def __init__(self) -> None:
         super().__init__(
-            "CurriculumController refuses construction with BOTH a live "
-            "RunController and a forced_disposition injection supplied "
-            "together -- a forced signal could silently steer a live run "
-            "toward a spurious stage advance (T-40-09, HIGH severity). This "
-            "is the ONLY guard: pass exactly one of run_controller / "
-            "forced_disposition."
+            "CurriculumController refuses construction with BOTH a "
+            "forced_disposition injection and any live-run construct "
+            "(run_controller and/or stage_factory) supplied together -- a "
+            "forced signal could silently steer a live run toward a "
+            "spurious stage advance (T-40-09, HIGH severity). This is the "
+            "ONLY guard: pass forced_disposition alone, or a live-run "
+            "construct (run_controller, optionally with stage_factory), "
+            "never both."
+        )
+
+
+class StageFactoryModelMismatch(Exception):
+    """GAP-40-04 model-continuity guard -- curriculum weights must persist.
+
+    Raised when ``stage_factory(k+1)`` returns a ``RunController`` whose
+    ``model`` is not identity-same as the model the curriculum already held.
+    Curriculum learning carries network weights across stages; only the Adam
+    state resets at a boundary (40-SPEC R2). Accepting a foreign model would
+    silently discard all prior training with no symptom.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "stage_factory returned a RunController whose model is not the "
+            "same object the curriculum already held -- curriculum learning "
+            "requires weight continuity across stages (only Adam state "
+            "resets at a boundary; 40-SPEC R2). A foreign model would "
+            "silently discard all prior training (GAP-40-04 / T-40-12)."
         )
 
 
@@ -694,22 +728,37 @@ class CurriculumController:
     Wraps a per-stage ``StageDisposition`` (from a live ``RunController`` or
     the forced-disposition injection seam) into stage progression: ADVANCE
     checkpoints the stage boundary (stage-{k}-final + stage-{k+1}-init) and
-    increments the stage index, then re-warms the schedule; RECOVER rolls
-    back to the last well-formed checkpoint and, at the default
-    ``recover_retries=0`` (CTX-41's ratified ``recover.retries: 0``),
+    increments the stage index; when a ``stage_factory`` is injected the
+    controller obtains that stage's ``RunController`` from it (carrying that
+    stage's ``ScheduledWeights`` / ``TrainingConfig`` / ``GradClipper``) and
+    rebinds its own schedule reference so the two cannot diverge; with no
+    factory (the default) the run is single-stage and stages >= 1 are NOT
+    reconfigured (PLAT-01) -- only ``ScheduledWeights.rewarm()`` runs.
+    RECOVER rolls back to the last well-formed checkpoint and, at the
+    default ``recover_retries=0`` (CTX-41's ratified ``recover.retries: 0``),
     transitions straight to HALT with no retrain attempt; HALT stops for
     owner review. There is no fallback advancement -- only ADVANCE ever
     changes the stage.
 
-    Injection seam (TRAIN-01 ACs): ``forced_disposition`` is an optional
-    ``Callable[[int], StageDisposition]`` that, when supplied, replaces the
-    live ``run_controller.run_stage(k)`` call entirely. This is a first-class
-    controller seam (a constructor parameter), not test-only monkey-patching
-    -- but it is mutually exclusive with a live ``run_controller``: supplying
-    both raises ``ForcedDispositionOnLiveRun`` at construction (T-40-09).
+    Injection seams (TRAIN-01 ACs):
 
-    Owns the current stage index, the injected ``CheckpointStore``, and the
-    ``ScheduledWeights`` re-warm trigger (CTX-33/38/41).
+    - ``forced_disposition`` is an optional
+      ``Callable[[int], StageDisposition]`` that, when supplied, replaces the
+      live ``run_controller.run_stage(k)`` call entirely. Mutually exclusive
+      with any live-run construct (``run_controller`` and/or
+      ``stage_factory``): supplying both raises
+      ``ForcedDispositionOnLiveRun`` at construction (T-40-09).
+    - ``stage_factory`` is an optional ``Callable[[int], RunController]``
+      (GAP-40-04 Option C). On ADVANCE the controller replaces its live
+      ``RunController`` with ``stage_factory(k+1)`` after verifying model
+      identity (raises ``StageFactoryModelMismatch`` on mismatch). Default
+      ``None`` preserves the single-stage path byte-for-byte (PLAT-01).
+      Per-stage ``n_adam`` / ``max_epochs`` / ``eps_*`` are NEVER invented
+      here (SCOPE-19) -- they arrive through the seam from the caller.
+
+    Owns the current stage index, the injected ``CheckpointStore``, the live
+    ``RunController`` (when present), and the rebound ``ScheduledWeights``
+    reference (CTX-33/38/41; GAP-40-04).
     """
 
     def __init__(
@@ -720,10 +769,15 @@ class CurriculumController:
         *,
         run_controller: Optional[RunController] = None,
         forced_disposition: Optional[Callable[[int], StageDisposition]] = None,
+        stage_factory: Optional[Callable[[int], RunController]] = None,
         recover_retries: int = 0,
         initial_stage: int = 0,
     ) -> None:
-        if run_controller is not None and forced_disposition is not None:
+        # T-40-09: forced disposition is mutually exclusive with ANY live-run
+        # construct (run_controller and/or stage_factory). One guard, no assert.
+        if forced_disposition is not None and (
+            run_controller is not None or stage_factory is not None
+        ):
             raise ForcedDispositionOnLiveRun()
         if run_controller is None and forced_disposition is None:
             raise ValueError(
@@ -744,6 +798,7 @@ class CurriculumController:
         self._scheduled_weights = scheduled_weights
         self._run_controller = run_controller
         self._forced_disposition = forced_disposition
+        self._stage_factory = stage_factory
         self._recover_retries = int(recover_retries)
         self._recover_attempts = 0
         self._stage = int(initial_stage)
@@ -852,11 +907,26 @@ class CurriculumController:
 
         if disposition is StageDisposition.ADVANCE:
             k = self._stage
+            # stage-{k}-final carries the EXITING stage's state (OLD controller).
             self._checkpoint_store.save(self._checkpoint_payload(f"stage-{k}-final", k))
             self._stage = k + 1
+            # GAP-40-04 Option C: replace the live RunController before the
+            # stage-{k+1}-init save so the anchor carries the ENTERED stage's
+            # collaborators (ScheduledWeights caps restore from payload on
+            # RECOVER; a pre-swap init anchor would re-pin stage k+1 to stage
+            # k's lambda^max -- T-40-13 / CR-03 through the back door).
+            if self._stage_factory is not None:
+                previous_model = self._run_controller.model
+                new_controller = self._stage_factory(self._stage)
+                if new_controller.model is not previous_model:
+                    raise StageFactoryModelMismatch()
+                self._run_controller = new_controller
+                self._scheduled_weights = new_controller.scheduled_weights
             self._checkpoint_store.save(
                 self._checkpoint_payload(f"stage-{self._stage}-init", self._stage)
             )
+            # rewarm is unconditional: on a fresh factory schedule it is an
+            # idempotent no-op; on stage_factory=None it is today's call.
             self._scheduled_weights.rewarm()
             self._recover_attempts = 0
             self._log_stage_exit(StageDisposition.ADVANCE, stage=k)
