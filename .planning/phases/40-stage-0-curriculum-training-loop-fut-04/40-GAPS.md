@@ -75,10 +75,35 @@
   advancement contract; `40-04` Task 1, `40-05` Task 2 and `40-06` Task 1 all
   depend on it, and an executor choosing silently at implementation time would
   bake an unreviewed representation into the phase's central safety surface.
-- **Status:** OPEN — blocks `40-04` Task 1, `40-05` Task 2, `40-06` Task 1.
-  `40-01`, `40-02`, `40-03`, and `40-04` Tasks 2–3 are independent and proceed
-  (Waves 1–2 are unaffected).
-- **Resolution note:** _(empty — awaiting user instruction)_
+- **Status:** RESOLVED-WITH-INSTRUCTION (2026-07-17) — `40-04` Task 1, `40-05`
+  Task 2, `40-06` Task 1 unblocked.
+- **Resolution note:** The user delegated the ruling to the agent's best judgment
+  (2026-07-17: "rule on gap 40 01 and 02 using your best judgement…"). ERW triage:
+  **not ERW-grade** — a type-representation decision with zero scientific content;
+  all governing facts are in-corpus (the `ctl_instruction.md:1928` three-disposition
+  lock; CURR-03 no-fallback semantics), and external literature adds no signal.
+
+  **Ruling: Option B** — `StageExitOutcome.disposition: StageDisposition | None`,
+  where `None` means "no exit decision fired; keep training."
+  - Option A rejected: a fourth `CONTINUE` member contradicts the positively-grounded
+    three-disposition lock and corrupts the enum's meaning ("the stage exited, and
+    this is how"); a `match` arm could silently treat a still-training stage as
+    terminal.
+  - Option C rejected: splitting one decision across `should_exit` + `disposition`
+    makes the invalid state (`should_exit=False`, `disposition=ADVANCE`)
+    representable — the standard two-field failure mode.
+  - Option B is representationally honest (mid-flight is the *absence* of an exit
+    decision, not a fourth kind of one), keeps the locked three-member enum intact,
+    and forces every dispatch site to handle absence under type narrowing; enum
+    members are truthy, so even sloppy truthiness cannot mistake `None` for an exit.
+
+  Bound consequences: the no-fallback test assertion shape is
+  `outcome.disposition is None`; `StageExitMachine.evaluate` has codomain
+  `StageDisposition | None`, while `RunController.run_stage(k)` KEEPS its
+  non-Optional `-> StageDisposition` signature — its loop consumes `None` internally
+  by continuing training, and the GAP-40-02 ruling guarantees a non-None disposition
+  by `MAX_EPOCHS` — so `CurriculumController` (40-06) dispatches on exactly the three
+  members and never receives the mid-flight state. Resolved jointly with GAP-40-02.
 
 ## GAP-40-02 — Relationship between `MAX_EPOCHS` and `N_Adam,k`
 
@@ -151,8 +176,58 @@
   gates a stated Phase-40 acceptance criterion, and it must be resolved jointly
   with GAP-40-01 (option A leaves the mid-flight state reachable; option B does
   not).
-- **Status:** OPEN — blocks the HALT-specific half of `40-05` Task 2's
-  descending-curve acceptance criterion and any cross-field invariant in `40-04`
-  Task 2's config. The bounded-loop and never-ADVANCE assertions hold under every
-  option and proceed now.
-- **Resolution note:** _(empty — awaiting user instruction)_
+- **Status:** RESOLVED-WITH-INSTRUCTION (2026-07-17) — the HALT-specific half of
+  `40-05` Task 2's descending-curve criterion and `40-04` Task 2's cross-field
+  invariant unblocked.
+- **Resolution note:** Same delegation as GAP-40-01 (user, 2026-07-17). ERW triage:
+  **not ERW-grade** — budget-accounting/termination semantics decidable from the
+  spec's own formulas plus short, uncontroversial termination analysis; the numeric
+  *values* of `MAX_EPOCHS` and `N_Adam,k` remain owner-picked config (CTX-39/48),
+  informed by the Stage-0 pilot, unchanged by this ruling.
+
+  **Ruling: Option A** — `MAX_EPOCHS` bounds the WHOLE stage (Adam + L-BFGS epochs
+  combined); `TrainingConfig` validates `N_Adam,k ≤ MAX_EPOCHS` at construction.
+  Equality is legal (zero L-BFGS headroom: the stage-exit poll at the shared
+  boundary fires HALT before any L-BFGS epoch runs). Grounds:
+  1. **Termination** — a guard guarantees termination only if it dominates every
+     loop in the stage. Option B makes `MAX_EPOCHS` an Adam-phase bound and leaves
+     the L-BFGS loop unbounded: no termination proof exists for a non-converging run.
+  2. **The spec's HALT wording is stage-scoped** — "if a **stage** reaches its
+     **per-stage** max-epoch budget without satisfying the ADVANCE success gate"
+     (`ctl_instruction.md:1988`) — not Adam-phase-scoped.
+  3. **The cosine schedule completes at `T_max = N_Adam,k`** (CTX-48), and
+     `I_warm = min(2000, 0.1·N_Adam,k)` (`pinn_architecture.md:660`) likewise treats
+     `N_Adam,k` as the planned Adam-phase duration — a subordinate budget *inside*
+     the stage budget, which is exactly what `N_Adam,k ≤ MAX_EPOCHS` encodes.
+
+  **Accompanying sub-rule (the case option A required):** exhausting `N_Adam,k`
+  WITHOUT a plateau is a normal **handoff to L-BFGS**, not a fault. The Adam phase
+  ends at `min(first plateau-fire epoch, N_Adam,k)`; both routes proceed to L-BFGS.
+  Rejected alternatives for this sub-case: (i) HALT-at-exhaustion (≈ option C) would
+  mint a third HALT trigger the spec does not define (its two: per-stage max-epoch
+  without gate; validation stagnation over the stagnation window), would misreport a
+  healthy still-descending run as a failure, and would make legitimate ADVANCE
+  unreachable for any run whose Adam budget is under-provisioned; (ii) continuing
+  Adam past `T_max` is unscheduled behavior (torch `CosineAnnealingLR` is periodic
+  past `T_max` — the LR climbs back up). L-BFGS with strong-Wolfe line search needs
+  no plateau precondition; the plateau detector is the *early-switch optimization*,
+  the budget the deterministic backstop — the standard two-phase PINN pattern.
+  Option C as a whole is rejected for the same trigger-minting reason.
+
+  **Loop consequences (fills the L-BFGS bound 40-05 left unstated):** the L-BFGS
+  phase consumes at most the remaining `MAX_EPOCHS − adam_epochs_used` stage budget;
+  `RunController` polls `StageExitMachine` during the phase and returns the FIRST
+  non-None disposition; at `epoch_count == MAX_EPOCHS` without the gate the poll
+  returns HALT by construction, so `run_stage` always terminates with a non-None
+  disposition. The two handoff triggers stay distinguishable in the CTX-45 handoff
+  event payload (`trigger=plateau` vs `trigger=budget-exhausted`), preserving the
+  SPEC TRAIN-02 acceptance's faithful reading: the *plateau* handoff never fires on
+  a descending curve.
+
+  **AC amendment (40-05 Task 2):** the descending-curve criterion becomes — with a
+  fixture where `N_Adam,k < MAX_EPOCHS`, a descending `L_phys` curve exits Adam at
+  exactly `N_Adam,k` without the plateau detector firing (exhaustion-handoff), runs
+  bounded L-BFGS, and terminates HALT/REVIEW (max-epoch-without-gate) at
+  `MAX_EPOCHS`, never ADVANCE. Resolved jointly with GAP-40-01: option A makes the
+  mid-flight state reachable by design, and it is represented as
+  `disposition = None` per that ruling.
