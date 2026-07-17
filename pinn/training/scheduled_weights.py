@@ -25,10 +25,14 @@ State machine (D5-c / CTX-38):
   floating tolerance; the prohibition "MUST NOT update lambda during an
   L-BFGS line search" is resolved/tested as that identity).
 - ``rewarm()`` -- clears the frozen state so the ramp goes live again. At a
-  stage boundary the RunController resets its per-stage epoch counter to 0
-  (and, if the new stage's ``lambda^max`` differs, constructs a new
-  ``ScheduledWeights`` for that stage); ``rewarm()`` is the explicit unfreeze
-  that guarantees the ramp restarts from 0.
+  stage boundary the ``CurriculumController`` obtains that stage's
+  ``RunController`` from the injected ``stage_factory`` (which carries the
+  stage's ``ScheduledWeights`` / ``TrainingConfig`` / ``GradClipper``) and
+  rebinds its own schedule reference to it; ``rewarm()`` is then the
+  explicit unfreeze that guarantees the ramp restarts from 0. With no
+  factory (the default) the run is single-stage and stages >= 1 are NOT
+  reconfigured (PLAT-01; ``40-SPEC.md`` defers the full multi-stage
+  curriculum beyond the Stage 0-2 full-batch path).
 
 Provisional seams (CTX-38): the per-stage ``lambda^max`` caps and the warmup
 horizon are PROVISIONAL, config-overridable defaults carrying PHYS-05 /
@@ -221,11 +225,16 @@ class ScheduledWeights:
     def rewarm(self) -> None:
         """Clear the freeze so the warmup ramp goes live again.
 
-        At a stage boundary the RunController resets its per-stage epoch
-        counter to 0 (constructing a new ``ScheduledWeights`` if the new
-        stage's ``lambda^max`` differs); ``rewarm()`` is the explicit unfreeze
-        guaranteeing the ramp restarts. After this call, small-epoch
-        ``current(epoch)`` values yield ``lambda < lambda^max`` again.
+        At a stage boundary the ``CurriculumController`` obtains that stage's
+        ``RunController`` from the injected ``stage_factory`` (carrying the
+        stage's ``ScheduledWeights`` / ``TrainingConfig`` / ``GradClipper``)
+        and rebinds its schedule reference; ``rewarm()`` is then the explicit
+        unfreeze guaranteeing the ramp restarts from 0 on the (possibly new)
+        schedule instance. With no factory (the default) the run is
+        single-stage and stages >= 1 are NOT reconfigured (PLAT-01) -- only
+        this unfreeze runs on the same instance. After this call, small-epoch
+        ``current(epoch)`` values yield ``lambda < lambda^max`` again when
+        ``I_warm > 0``.
         """
         self._frozen = False
         self._frozen_ramp = None
