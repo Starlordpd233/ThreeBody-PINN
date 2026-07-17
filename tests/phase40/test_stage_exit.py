@@ -197,6 +197,73 @@ class HaltAndMidFlightTests(unittest.TestCase):
         self.assertIsNone(out.disposition)
 
 
+class StagnationWindowHaltTests(unittest.TestCase):
+    """WR-04: cover the stagnation-window HALT branch (stage_exit.py:195-213).
+
+    Spec-grounded at ctl_instruction.md:1989-1990; one of HALT's two ratified
+    triggers (GAP-40-02 → A). Pre-existing HaltAndMidFlightTests used histories
+    shorter than stagnation_window, so the branch never executed.
+    """
+
+    def setUp(self):
+        # Small stagnation_window keeps fixtures readable; large max_epochs
+        # makes the max-epoch branch structurally unreachable (anti-vacuity).
+        self.stag = 5
+        self.max_epochs = 100
+        self.cfg = _stub_cfg(
+            patience=5, max_epochs=self.max_epochs, stagnation_window=self.stag,
+        )
+        self.machine = StageExitMachine(self.cfg)
+
+    def test_stagnation_window_halts_when_val_never_recovers_running_min(self):
+        # Min early, then a full stagnation_window of entries strictly above it.
+        # Running min is over FULL history; trailing window never re-touches it.
+        val = [0.1, 0.5, 0.5, 0.5, 0.5, 0.5]  # len 6 >= stag 5; last 5 all > 0.1
+        train = _descending_history(len(val))  # no train plateau → ADVANCE unreachable
+        epoch_count = 10
+        # Anti-vacuity: epoch_count < max_epochs makes max-epoch HALT unreachable,
+        # so a returned HALT can only come from the stagnation branch.
+        self.assertLess(epoch_count, self.cfg.max_epochs)
+        out = self.machine.evaluate(
+            train, val, val_phys=1.0, val_energy=1.0,
+            had_nan_inf=False, epoch_count=epoch_count,
+        )
+        self.assertEqual(out.disposition, StageDisposition.HALT)
+        # Fixture-shape sanity (necessary but not sufficient discriminator —
+        # max-epoch HALT also returns val_stable=False).
+        self.assertFalse(out.val_stable)
+        self.assertNotEqual(out.disposition, StageDisposition.ADVANCE)
+
+    def test_stagnation_window_does_not_fire_when_window_retouches_running_min(self):
+        # Same shape but trailing window re-touches the running min → val_stable.
+        val = [0.1, 0.5, 0.5, 0.5, 0.5, 0.1]
+        train = _descending_history(len(val))
+        epoch_count = 10
+        self.assertLess(epoch_count, self.cfg.max_epochs)
+        out = self.machine.evaluate(
+            train, val, val_phys=1.0, val_energy=1.0,
+            had_nan_inf=False, epoch_count=epoch_count,
+        )
+        # val_stable holds; gate otherwise unmet → mid-flight (GAP-40-01 → B).
+        self.assertIsNone(out.disposition)
+        self.assertTrue(out.val_stable)
+        self.assertNotEqual(out.disposition, StageDisposition.ADVANCE)
+
+    def test_history_shorter_than_stagnation_window_does_not_fire(self):
+        # Length boundary: one entry short of stag, otherwise stagnating.
+        val = [0.1, 0.5, 0.5, 0.5]  # len 4 < stag 5
+        train = _descending_history(len(val))
+        epoch_count = 10
+        self.assertLess(epoch_count, self.cfg.max_epochs)
+        self.assertLess(len(val), self.stag)
+        out = self.machine.evaluate(
+            train, val, val_phys=1.0, val_energy=1.0,
+            had_nan_inf=False, epoch_count=epoch_count,
+        )
+        self.assertIsNone(out.disposition)
+        self.assertNotEqual(out.disposition, StageDisposition.ADVANCE)
+
+
 class PlateauSmootherMechanismTests(unittest.TestCase):
     """M3: drive the real TotalLossPlateauSmoother, not a boolean stub."""
 
