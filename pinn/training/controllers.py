@@ -56,9 +56,10 @@ literal ``torch.no_grad()`` context.
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass, replace
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 import torch
@@ -76,9 +77,18 @@ from pinn.loss_catalog import (
     soft_energy_loss,
 )
 from pinn.physics_residual import componentwise_du, softened_acceleration
+from pinn.training.checkpoint import EmptyCheckpointStore
+from pinn.training.slbfgs_preflight import check_stage_preflight
 from pinn.training.stage_exit import StageDisposition
 
-__all__ = ["PlateauDetector", "HandoffEvent", "RunController", "accumulate_chunked_data_term"]
+__all__ = [
+    "PlateauDetector",
+    "HandoffEvent",
+    "RunController",
+    "accumulate_chunked_data_term",
+    "CurriculumController",
+    "ForcedDispositionOnLiveRun",
+]
 
 # ---------------------------------------------------------------------------
 # CTX-46 Adam -> L-BFGS handoff detector (TRAIN-02 part a).
@@ -628,3 +638,255 @@ class RunController:
             k, remaining_budget, state["epoch_count"],
             train_loss_history, val_loss_history, state,
         )
+
+
+# ---------------------------------------------------------------------------
+# CurriculumController -- the outer curriculum loop (TRAIN-01).
+# ---------------------------------------------------------------------------
+
+_LOGGER = logging.getLogger("pinn.training.controllers")
+
+
+class ForcedDispositionOnLiveRun(Exception):
+    """T-40-09 typed guard -- the ONE mechanism, no alternative.
+
+    Raised at ``CurriculumController`` CONSTRUCTION when both a live
+    ``run_controller`` and a ``forced_disposition`` injection are supplied
+    together. T-40-09 is the HIGH-severity spurious-stage-advance threat: a
+    test-side "assert the injection is unset whenever a live run executes"
+    would guard only the code paths a test happens to exercise, whereas
+    raising here makes the unsafe combination impossible to construct on
+    EVERY path, including ones no test covers. Do not add a second guard
+    (e.g. an ``assert`` elsewhere in this class) -- two mechanisms for one
+    contract means neither is the contract.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "CurriculumController refuses construction with BOTH a live "
+            "RunController and a forced_disposition injection supplied "
+            "together -- a forced signal could silently steer a live run "
+            "toward a spurious stage advance (T-40-09, HIGH severity). This "
+            "is the ONLY guard: pass exactly one of run_controller / "
+            "forced_disposition."
+        )
+
+
+class CurriculumController:
+    """The outer curriculum loop (TRAIN-01): stage progression + dispatch.
+
+    Wraps a per-stage ``StageDisposition`` (from a live ``RunController`` or
+    the forced-disposition injection seam) into stage progression: ADVANCE
+    checkpoints the stage boundary (stage-{k}-final + stage-{k+1}-init) and
+    increments the stage index, then re-warms the schedule; RECOVER rolls
+    back to the last well-formed checkpoint and, at the default
+    ``recover_retries=0`` (CTX-41's ratified ``recover.retries: 0``),
+    transitions straight to HALT with no retrain attempt; HALT stops for
+    owner review. There is no fallback advancement -- only ADVANCE ever
+    changes the stage.
+
+    Injection seam (TRAIN-01 ACs): ``forced_disposition`` is an optional
+    ``Callable[[int], StageDisposition]`` that, when supplied, replaces the
+    live ``run_controller.run_stage(k)`` call entirely. This is a first-class
+    controller seam (a constructor parameter), not test-only monkey-patching
+    -- but it is mutually exclusive with a live ``run_controller``: supplying
+    both raises ``ForcedDispositionOnLiveRun`` at construction (T-40-09).
+
+    Owns the current stage index, the injected ``CheckpointStore``, and the
+    ``ScheduledWeights`` re-warm trigger (CTX-33/38/41).
+    """
+
+    def __init__(
+        self,
+        config: Any,
+        checkpoint_store: Any,
+        scheduled_weights: Any,
+        *,
+        run_controller: Optional[RunController] = None,
+        forced_disposition: Optional[Callable[[int], StageDisposition]] = None,
+        recover_retries: int = 0,
+        initial_stage: int = 0,
+    ) -> None:
+        if run_controller is not None and forced_disposition is not None:
+            raise ForcedDispositionOnLiveRun()
+        if run_controller is None and forced_disposition is None:
+            raise ValueError(
+                "CurriculumController requires exactly one of run_controller "
+                "or forced_disposition to obtain a StageDisposition per stage"
+            )
+        if (
+            not isinstance(recover_retries, int)
+            or isinstance(recover_retries, bool)
+            or recover_retries < 0
+        ):
+            raise ValueError(
+                f"recover_retries must be a non-negative int (got "
+                f"{recover_retries!r}); CTX-41's ratified default is 0"
+            )
+        self._config = config
+        self._checkpoint_store = checkpoint_store
+        self._scheduled_weights = scheduled_weights
+        self._run_controller = run_controller
+        self._forced_disposition = forced_disposition
+        self._recover_retries = int(recover_retries)
+        self._recover_attempts = 0
+        self._stage = int(initial_stage)
+        self._halted = False
+
+    @property
+    def stage(self) -> int:
+        """The current curriculum stage index (Δstage tracked by tests)."""
+        return self._stage
+
+    @property
+    def halted(self) -> bool:
+        """True once a HALT (direct or RECOVER-exhausted) has been reached."""
+        return self._halted
+
+    # ------------------------------------------------------------------
+    # Disposition acquisition -- forced injection XOR live RunController
+    # (exactly one is non-None per the constructor's T-40-09 guard).
+    # ------------------------------------------------------------------
+    def _get_disposition(self, stage: int) -> StageDisposition:
+        if self._forced_disposition is not None:
+            return self._forced_disposition(stage)
+        disposition = self._run_controller.run_stage(stage)
+        self._log_handoff_if_any()
+        return disposition
+
+    # ------------------------------------------------------------------
+    # Checkpoint payload / run-start anchor (cycle-2 H3).
+    # ------------------------------------------------------------------
+    def _checkpoint_payload(self, tag: str, stage: int) -> dict[str, Any]:
+        payload: dict[str, Any] = {"tag": tag, "stage": stage}
+        if self._run_controller is not None:
+            payload["run_controller"] = self._run_controller.state_dict()
+        return payload
+
+    def _save_run_start_anchor(self) -> None:
+        """Save the k=0 rollback anchor BEFORE the first stage is entered.
+
+        The k=0 analog of the stage-{k+1}-init anchor the ADVANCE branch
+        already saves at every later boundary: without it, a cold-start
+        RECOVER (a NaN/Inf on an early close-encounter sample -- exactly the
+        sample class that produces one) would hit a genuinely empty
+        CheckpointStore. The ``except EmptyCheckpointStore`` in the RECOVER
+        branch below is the backstop that keeps the run numerically valid
+        even if this anchor save is skipped, suppressed, or fails -- do not
+        drop that catch on the grounds that this anchor makes it redundant.
+        """
+        self._checkpoint_store.save(self._checkpoint_payload("stage-0-init", self._stage))
+
+    # ------------------------------------------------------------------
+    # CTX-38/45 logging (stdlib logging.getLogger('pinn.training.*') tree,
+    # machine-readable key/value payloads via ``extra``).
+    # ------------------------------------------------------------------
+    def _log_run_start(self) -> None:
+        fields = self._config.provisional_fields()
+        summary = "; ".join(
+            f"{f['name']}={f['value']!r} (provisional, {f['provenance']})"
+            for f in fields
+        )
+        _LOGGER.info(
+            "run-start provisional thresholds: %s", summary,
+            extra={"event": "run_start_provisional_thresholds", "count": len(fields)},
+        )
+
+    def _log_stage_exit(self, disposition: StageDisposition, *, stage: int, **fields: Any) -> None:
+        _LOGGER.info(
+            "stage-exit disposition=%s stage=%s", disposition.value, stage,
+            extra={
+                "event": "stage_exit_disposition",
+                "disposition": disposition.value,
+                "stage": stage,
+                **fields,
+            },
+        )
+
+    def _log_handoff_if_any(self) -> None:
+        if self._run_controller is None:
+            return
+        event = self._run_controller.last_handoff_event
+        if event is None:
+            return
+        _LOGGER.info(
+            "adam-to-lbfgs handoff trigger=%s adam_epochs_used=%s",
+            event.trigger, event.adam_epochs_used,
+            extra={
+                "event": "adam_lbfgs_handoff",
+                "trigger": event.trigger,
+                "adam_epochs_used": event.adam_epochs_used,
+            },
+        )
+
+    # ------------------------------------------------------------------
+    # step() -- one stage-exit dispatch; run() -- the full curriculum loop.
+    # ------------------------------------------------------------------
+    def step(self) -> StageDisposition:
+        """Advance the curriculum by exactly one stage-exit dispatch.
+
+        ``check_stage_preflight(k)`` runs BEFORE any disposition is obtained
+        (TRAIN-07): a stage >= 3 request is refused before either a live
+        RunController or the forced-disposition seam ever runs. Dispatch is
+        an exact three-way match on the disposition -- there is no fallback
+        advancement (T-40-09): only ADVANCE ever changes ``self.stage``.
+        """
+        check_stage_preflight(self._stage)
+        disposition = self._get_disposition(self._stage)
+
+        if disposition is StageDisposition.ADVANCE:
+            k = self._stage
+            self._checkpoint_store.save(self._checkpoint_payload(f"stage-{k}-final", k))
+            self._stage = k + 1
+            self._checkpoint_store.save(
+                self._checkpoint_payload(f"stage-{self._stage}-init", self._stage)
+            )
+            self._scheduled_weights.rewarm()
+            self._recover_attempts = 0
+            self._log_stage_exit(StageDisposition.ADVANCE, stage=k)
+            return StageDisposition.ADVANCE
+
+        if disposition is StageDisposition.RECOVER:
+            empty_store = False
+            try:
+                self._checkpoint_store.rollback()
+            except EmptyCheckpointStore:
+                empty_store = True
+            self._log_stage_exit(
+                StageDisposition.RECOVER, stage=self._stage, empty_store=empty_store,
+            )
+            if self._recover_attempts < self._recover_retries:
+                self._recover_attempts += 1
+                return StageDisposition.RECOVER
+            self._halted = True
+            self._log_stage_exit(
+                StageDisposition.HALT, stage=self._stage, reason="recover-exhausted",
+            )
+            return StageDisposition.HALT
+
+        if disposition is StageDisposition.HALT:
+            self._halted = True
+            self._log_stage_exit(StageDisposition.HALT, stage=self._stage)
+            return StageDisposition.HALT
+
+        raise AssertionError(
+            f"CurriculumController received an unrecognized disposition: {disposition!r}"
+        )
+
+    def run(self) -> StageDisposition:
+        """Run the curriculum until a terminal HALT is reached.
+
+        Saves the run-start ``stage-0-init`` anchor and logs the full
+        provisional-threshold set ONCE, before the first stage is entered,
+        then dispatches ``step()`` repeatedly: ADVANCE and RECOVER (while a
+        retry budget remains) continue the loop; HALT is terminal and is
+        returned. Always returns NORMALLY -- a RECOVER against an empty
+        CheckpointStore is caught inside ``step()`` and never propagates.
+        """
+        self._save_run_start_anchor()
+        self._log_run_start()
+        while True:
+            disposition = self.step()
+            if disposition in (StageDisposition.ADVANCE, StageDisposition.RECOVER):
+                continue
+            return disposition
