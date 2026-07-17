@@ -115,6 +115,18 @@ human_verification: []
 
 Expected: 163 tests OK (per 40-09 SUMMARY regression table).
 
+**Live re-confirmation (2026-07-17, `phase-40-closeout` chain, position B):** The suite was
+executed live in-agent during the Phase 40 verification-closeout handoff (after position A's
+`/gsd-validate-phase 40` published `done`):
+
+```
+Ran 163 tests in 34.659s — OK
+```
+
+Result matches the expected 163/163, so the "no live shell runner in-agent" caveat above is
+closed: the CR-01/02/03 and WR-01..05 closure verdicts are now backed by a green live run, not
+static proof alone. Status remains `passed` (5/5).
+
 ### Probe Execution
 
 | Probe | Command | Result | Status |
