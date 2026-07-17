@@ -5,10 +5,10 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 40
 current_phase_name: stage-0-curriculum-training-loop
 status: ready
-stopped_at: "Phase 40 planned — 6 plans, plan-checker passed"
-last_updated: "2026-07-17T03:15:00.000Z"
+stopped_at: Phase 40 planned — 6 plans, plan-checker passed
+last_updated: "2026-07-17T06:06:20.212Z"
 last_activity: 2026-07-16
-last_activity_desc: Phase 40 planned — 6 plans in 4 waves, verification passed
+last_activity_desc: Phase 40 planned (research + patterns + 6 plans + checker pass)
 progress:
   total_phases: 7
   completed_phases: 3
