@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 40
 current_phase_name: stage-0-curriculum-training-loop-fut-04
-status: executing
-stopped_at: Completed 40-08-PLAN.md
-last_updated: "2026-07-17T14:18:26.119Z"
+status: ready_for_verification
+stopped_at: Completed 40-09-PLAN.md
+last_updated: "2026-07-17T14:33:40.443Z"
 last_activity: 2026-07-17
-last_activity_desc: Completed 40-08-PLAN.md (WR-01..WR-04 integrity closure)
+last_activity_desc: Completed 40-09-PLAN.md (CR-03 stage_factory Option C)
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 34
-  completed_plans: 33
-  percent: 43
+  completed_plans: 34
+  percent: 57
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 40 (stage-0-curriculum-training-loop-fut-04) — EXECUTING
-Plan: 9 of 9
-Status: Executing gap-closure (40-08 complete; 40-09 remains for CR-03)
-Last activity: 2026-07-17 — Completed 40-08-PLAN.md (WR-01..WR-04 integrity closure)
+Phase: 40 (stage-0-curriculum-training-loop-fut-04) — READY FOR VERIFICATION
+Plan: 9 of 9 (all plans complete)
+Status: Gap-closure complete (40-07 CR-01/CR-02; 40-08 WR-01..04; 40-09 CR-03); ready for re-verification
+Last activity: 2026-07-17 — Completed 40-09-PLAN.md (CR-03 stage_factory Option C)
 
 ## Deferred Items
 
@@ -115,6 +115,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 40 P06 | 20 min | 2 tasks | 3 files |
 | Phase 40 P07 | 12min | 2 tasks | 3 files |
 | Phase 40 P08 | 25min | 3 tasks | 6 files |
+| Phase 40 P09 | 10min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -245,6 +246,8 @@ Recent decisions affecting current work:
 - [Phase ?]: CR-02: zero L-BFGS headroom polls StageExitMachine once; n_adam==max_epochs stays legal (GAP-40-02 A)
 - [Phase ?]: WR-01: GradClipper checkpoint carries dtype as string and restores via closed local float32/float64 map
 - [Phase ?]: WR-03: percentile_10_relaxation is a reserved owner-authorized degraded-advancement seam with no automatic consumer
+- [Phase ?]: GAP-40-04 Option C: stage_factory yields RunController; ADVANCE swaps + rebinds schedule before stage-init save
+- [Phase ?]: stage_factory=None preserves PLAT-01 single-stage; no default factory / no invented per-stage tables (SCOPE-19)
 
 ### Pending Todos
 
@@ -273,13 +276,13 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-17T14:18:26.113Z
-Stopped at: Completed 40-08-PLAN.md
-Next action: Execute remaining gap-closure plans 40-08 / 40-09 (CR-03 / stage_factory), then re-verify Phase 40 from `.worktrees/trainex` on `milestone/v2.0`
+Last session: 2026-07-17T14:33:40.437Z
+Stopped at: Completed 40-09-PLAN.md
+Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
 
-- **Phase 40 gap-closure in progress** (2026-07-17): plans 40-01..40-06 executed; verification found CR-01/CR-02/CR-03. **40-07 complete** — CR-01 RECOVER restore + CR-02 zero-headroom gate poll + WR-05 test replacement; phase40 suite **146/146** green. Remaining: **40-08**, **40-09** (CR-03 per-stage reconfiguration / `stage_factory`). Do not close Phase 40 until gap plans land and re-verification passes.
+- **Phase 40 gap-closure complete** (2026-07-17): plans 40-01..40-09 executed. **40-07** CR-01/CR-02; **40-08** WR-01..04; **40-09** CR-03 / GAP-40-04 Option C (`stage_factory` yields `RunController`, live-objective AC green). phase40 suite **163/163** green. Ready for Phase 40 re-verification (do not close until re-verification passes).
 - **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
 - **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
 - **Phase 38 is complete** (NET-01..05): spec-faithful SQR-SkipResNet-SIREN rebuild with gradcheck/overfit proof rungs.
