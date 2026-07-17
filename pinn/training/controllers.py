@@ -633,6 +633,21 @@ class RunController:
 
         remaining_budget = max(max_epochs - adam_epochs_used, 0)
         if remaining_budget == 0:
+            # CR-02 / GAP-40-02: equality n_adam == max_epochs is legal with
+            # zero L-BFGS headroom. Poll the stage-exit machine once at the
+            # shared boundary so a satisfied gate yields ADVANCE and an unmet
+            # gate yields HALT by construction — do not shortcut to HALT.
+            # had_nan_inf=False is correct here: Adam non-finite already
+            # returned RECOVER above. Do not rewarm(): freeze() never ran.
+            outcome = self._stage_exit_machine.evaluate(
+                train_loss_history, val_loss_history,
+                state["val_phys"], state["val_energy"],
+                False, state["epoch_count"],
+            )
+            if outcome.disposition is StageDisposition.ADVANCE:
+                return StageDisposition.ADVANCE
+            if outcome.disposition is StageDisposition.RECOVER:
+                return StageDisposition.RECOVER
             return StageDisposition.HALT
         return self._run_lbfgs_phase(
             k, remaining_budget, state["epoch_count"],
