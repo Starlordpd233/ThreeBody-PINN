@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 40
 current_phase_name: stage-0-curriculum-training-loop-fut-04
 status: executing
-stopped_at: Completed 40-07-PLAN.md
-last_updated: "2026-07-17T14:08:13.106Z"
+stopped_at: Completed 40-08-PLAN.md
+last_updated: "2026-07-17T14:18:26.119Z"
 last_activity: 2026-07-17
-last_activity_desc: Completed 40-07 gap closure (CR-01/CR-02)
+last_activity_desc: Completed 40-08-PLAN.md (WR-01..WR-04 integrity closure)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 34
-  completed_plans: 32
+  completed_plans: 33
   percent: 43
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 40 (stage-0-curriculum-training-loop-fut-04) — EXECUTING
-Plan: 8 of 9
-Status: Executing gap-closure (40-07 complete; 40-08/40-09 remain)
-Last activity: 2026-07-17 — Completed 40-07-PLAN.md (CR-01/CR-02 restore + boundary poll)
+Plan: 9 of 9
+Status: Executing gap-closure (40-08 complete; 40-09 remains for CR-03)
+Last activity: 2026-07-17 — Completed 40-08-PLAN.md (WR-01..WR-04 integrity closure)
 
 ## Deferred Items
 
@@ -114,6 +114,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 39 P12 | 4min | 2 tasks | 2 files |
 | Phase 40 P06 | 20 min | 2 tasks | 3 files |
 | Phase 40 P07 | 12min | 2 tasks | 3 files |
+| Phase 40 P08 | 25min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -242,6 +243,8 @@ Recent decisions affecting current work:
 - [Phase 40]: CurriculumController requires exactly one of run_controller/forced_disposition at construction — Defensive Rule 2 addition beyond the plan's T-40-09 both-supplied guard; a controller with neither could never produce a StageDisposition
 - [Phase ?]: CR-01: RECOVER restores RunController from rollback payload before retry (dual-guard: live controller + run_controller key)
 - [Phase ?]: CR-02: zero L-BFGS headroom polls StageExitMachine once; n_adam==max_epochs stays legal (GAP-40-02 A)
+- [Phase ?]: WR-01: GradClipper checkpoint carries dtype as string and restores via closed local float32/float64 map
+- [Phase ?]: WR-03: percentile_10_relaxation is a reserved owner-authorized degraded-advancement seam with no automatic consumer
 
 ### Pending Todos
 
@@ -270,8 +273,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-17T14:08:13.100Z
-Stopped at: Completed 40-07-PLAN.md
+Last session: 2026-07-17T14:18:26.113Z
+Stopped at: Completed 40-08-PLAN.md
 Next action: Execute remaining gap-closure plans 40-08 / 40-09 (CR-03 / stage_factory), then re-verify Phase 40 from `.worktrees/trainex` on `milestone/v2.0`
 
 ## Operator Next Steps
