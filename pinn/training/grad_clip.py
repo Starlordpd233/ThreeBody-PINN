@@ -211,8 +211,14 @@ class GradClipper:
         Single public per-step entry point (Adam-only; the spy target plan
         40-05 counts). Internally makes two ``torch.nn.utils.clip_grad_norm_``
         calls: an inf-norm measure that does not raise on non-finite input,
-        then the apply call at the computed clip value.
+        then the apply call at the computed clip value. ``params`` is
+        materialized into a list up front so a caller passing a one-shot
+        generator (e.g. ``model.parameters()``) is not silently exhausted by
+        the first (measure) call, which would make the second (apply) call a
+        silent no-op (Rule 1 -- caught via a live ``UserWarning`` from
+        ``clip_grad_norm_`` when 40-05 wired this against a real model).
         """
+        params = list(params)
         c_stage = self._lookup_c_stage(stage)
 
         # Step 1: measure the pre-clip total L2 norm. ``error_if_nonfinite``
@@ -264,3 +270,24 @@ class GradClipper:
         differs; a stale median would mis-clip the new stage's first steps.
         """
         self._window = []
+
+    # ------------------------------------------------------------------
+    # Checkpoint serialization (CTX-44; deferred from 40-02 to 40-05, which
+    # composes the RunController checkpoint dict from model + schedule +
+    # clipper state -- see 40-02-SUMMARY.md "Next Phase Readiness").
+    # ------------------------------------------------------------------
+    def state_dict(self) -> dict[str, Any]:
+        """Serialize the rolling window into plain python floats (weights_only-clean)."""
+        return {
+            "window": [float(v) for v in self._window],
+            "c_stage_table": dict(self._c_stage_table),
+            "median_floor": self._median_floor,
+            "window_length": self._window_length,
+        }
+
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        """Restore the rolling window from a ``state_dict()`` dict (round-trip)."""
+        self._c_stage_table = self._validate_c_stage_table(dict(state["c_stage_table"]))
+        self._median_floor = float(state["median_floor"])
+        self._window_length = int(state["window_length"])
+        self._window = [torch.tensor(v, dtype=torch.float64) for v in state["window"]]
