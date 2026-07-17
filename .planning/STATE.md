@@ -5,16 +5,16 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 40
 current_phase_name: stage-0-curriculum-training-loop-fut-04
 status: verifying
-stopped_at: Completed 40-06-PLAN.md (CurriculumController + package barrel); Phase 40 complete, ready for verification
+stopped_at: Phase 40 verification gaps_found (CR-01 rollback discarded, CR-02 ADVANCE unreachable at n_adam==max_epochs, CR-03 per-stage config not swapped) — next /gsd-plan-phase 40 --gaps
 last_updated: "2026-07-17T11:10:34.408Z"
 last_activity: 2026-07-17
-last_activity_desc: Plan 40-06 (CurriculumController + package barrel) complete, 142/142 tests/phase40 pass — Phase 40 complete
+last_activity_desc: Phase 40 all 6 plans executed (142/142 tests); code review 3 crit; verification gaps_found — gap closure pending
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 3
   total_plans: 31
   completed_plans: 31
-  percent: 57
+  percent: 43
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 40 (stage-0-curriculum-training-loop-fut-04) — COMPLETE
-Plan: 6 of 6
-Status: Phase complete — ready for verification
-Last activity: 2026-07-17 — Plan 40-06 (CurriculumController + package barrel) complete, 142/142 tests/phase40 pass — Phase 40 complete
+Phase: 40 (stage-0-curriculum-training-loop-fut-04) — Verification: gaps_found
+Plan: 6 of 6 executed; 3 verification gaps open (CR-01/02/03 in controllers.py wiring)
+Status: All plans executed and reviewed; phase NOT complete — gap-closure planning next (/gsd-plan-phase 40 --gaps)
+Last activity: 2026-07-17 — Phase 40 executed 6/6 (142/142 tests), code review 3 crit / 5 warn / 2 info, verification gaps_found
 
 ## Deferred Items
 
