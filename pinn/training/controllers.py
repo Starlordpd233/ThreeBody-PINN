@@ -849,7 +849,19 @@ class CurriculumController:
         if disposition is StageDisposition.RECOVER:
             empty_store = False
             try:
-                self._checkpoint_store.rollback()
+                restored = self._checkpoint_store.rollback()
+                # CR-01 / TRAIN-06: actually restore the rolled-back payload
+                # before the retry decision so a retried stage resumes from
+                # the last well-formed checkpoint, not the diverged weights.
+                # Both guard halves are load-bearing: forced_disposition
+                # controllers have no run controller (T-40-09), and some
+                # payloads (e.g. forced-path seeds) carry no run_controller key.
+                if (
+                    self._run_controller is not None
+                    and isinstance(restored, dict)
+                    and "run_controller" in restored
+                ):
+                    self._run_controller.load_state_dict(restored["run_controller"])
             except EmptyCheckpointStore:
                 empty_store = True
             self._log_stage_exit(
