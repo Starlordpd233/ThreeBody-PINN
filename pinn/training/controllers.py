@@ -227,9 +227,6 @@ class _AnchorContext:
     collocation_times: np.ndarray  # ascending-sorted, shape (N,)
 
 
-_EPS_H_SCALE_FACTOR = 1e-4  # mirrors the documented eps_h = 1e-4 * S_H form
-
-
 class RunController:
     """The inner Adam->L-BFGS two-phase optimization loop for one stage.
 
@@ -335,7 +332,11 @@ class RunController:
             true_r0.unsqueeze(0), true_v0.unsqueeze(0), masses_t,
             dtype=self._dtype, device=self._device,
         )[0]
-        eps_h = abs(h0) * _EPS_H_SCALE_FACTOR + 1e-12
+        # WR-02: eps_h scale is the config-overridable StageConfig.energy_floor_factor
+        # (CTX-38 provisional default 1e-4 = ctl_instruction.md CURR-03 ε_H=1e-4·S_H).
+        # The +1e-12 additive floor is a numeric-safety zero-denominator guard, not
+        # the configurable scale.
+        eps_h = abs(h0) * float(self._config.stage.energy_floor_factor) + 1e-12
 
         if fixed_collocation_times is None:
             colloc_times = self._collocation_sampler.uniform()

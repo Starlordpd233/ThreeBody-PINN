@@ -99,6 +99,17 @@ class StageConfig:
     max_epochs: Optional[int] = None
     n_adam: Optional[int] = None  # T_max = N_Adam,k
     stagnation_window: Optional[int] = None
+    # WR-03 / reserved seam (do NOT wire into automatic ADVANCE/HALT paths):
+    # percentile_10_relaxation parameterizes the *owner-authorized degraded-
+    # advancement* relaxation at ctl_instruction.md:1987-1997. That path is an
+    # explicit MANUAL owner decision logged in the gap register with its
+    # justification — "No automatic degraded advancement is authorized"
+    # (ctl_instruction.md:1991-1992; 40-SPEC R6). The field is therefore
+    # config-required (CTX-39) and range-validated to [0, 1] but has NO automatic
+    # consumer by design. Claimed-unverified (D5-05; CLM-08/09); provisional
+    # pending Phase-43 / ACC-05 Stage-0 pilot calibration (SCOPE-14). Minting a
+    # HALT trigger from this field is forbidden (GAP-40-02 → A: HALT has exactly
+    # two triggers — max-epoch without the gate, and validation stagnation).
     percentile_10_relaxation: Optional[float] = None
 
     # CTX-38 provisional stage-exit thresholds.
