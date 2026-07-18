@@ -141,21 +141,19 @@ def _json_safe_scalar(value: Any) -> Any:
 
 
 def _default_memory_signal() -> Optional[int]:
-    """Read MPS driver-allocated memory; None when MPS is unavailable.
+    """Read MPS driver-allocated memory; None when the API is unavailable.
 
     RESEARCH Open Question 2 recommendation: ``torch.mps.driver_allocated_memory``
     rather than ``resource.getrusage().ru_maxrss`` (macOS bytes-vs-KB gotcha).
+
+    Phase-40 training-module ban: no ``.is_available()`` probe — try the API
+    and treat any failure as "signal unavailable" (None / Tier-B skip).
     """
     try:
         import torch
     except ImportError:
         return None
     if not hasattr(torch, "mps"):
-        return None
-    try:
-        if not torch.backends.mps.is_available():
-            return None
-    except Exception:
         return None
     try:
         return int(torch.mps.driver_allocated_memory())

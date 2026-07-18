@@ -150,12 +150,12 @@ def apply_strict_cpu_determinism(seed: int) -> Any:
 
 
 def _capture_mps_rng_state(torch_mod: Any) -> Optional[Any]:
+    """Best-effort MPS RNG capture without device-availability probes.
+
+    Phase-40 training-module ban: no ``.is_available()`` — try the API and
+    treat any failure as "stream absent" (None).
+    """
     if not hasattr(torch_mod, "mps"):
-        return None
-    try:
-        if not torch_mod.backends.mps.is_available():
-            return None
-    except Exception:
         return None
     try:
         return torch_mod.mps.get_rng_state()
@@ -164,12 +164,8 @@ def _capture_mps_rng_state(torch_mod: Any) -> Optional[Any]:
 
 
 def _restore_mps_rng_state(torch_mod: Any, mps_state: Any) -> None:
-    if not hasattr(torch_mod, "mps"):
-        return
-    try:
-        if not torch_mod.backends.mps.is_available():
-            return
-    except Exception:
+    """Best-effort MPS RNG restore without ``.is_available()`` probes."""
+    if mps_state is None or not hasattr(torch_mod, "mps"):
         return
     try:
         torch_mod.mps.set_rng_state(mps_state)
@@ -180,12 +176,8 @@ def _restore_mps_rng_state(torch_mod: Any, mps_state: Any) -> None:
 
 
 def _seed_mps(torch_mod: Any, seed: int) -> None:
+    """Best-effort MPS re-seed without ``.is_available()`` probes."""
     if not hasattr(torch_mod, "mps"):
-        return
-    try:
-        if not torch_mod.backends.mps.is_available():
-            return
-    except Exception:
         return
     try:
         torch_mod.mps.manual_seed(int(seed))
