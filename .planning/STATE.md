@@ -5,8 +5,8 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
 current_phase_name: Config, Checkpointing, Resume & Determinism
 status: planning
-stopped_at: Completed 40-09-PLAN.md
-last_updated: "2026-07-17T14:42:24.057Z"
+stopped_at: Phase 41 context gathered
+last_updated: "2026-07-18T03:08:56.931Z"
 last_activity: 2026-07-17
 last_activity_desc: Phase 40 complete, transitioned to Phase 41
 progress:
@@ -275,10 +275,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/41-config-checkpointing-resume-determinism/41-CONTEXT.md
 
-Last session: 2026-07-17T14:33:40.437Z
-Stopped at: Completed 40-09-PLAN.md
+Last session: 2026-07-18T03:08:56.925Z
+Stopped at: Phase 41 context gathered
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
