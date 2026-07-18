@@ -134,6 +134,7 @@
 **Goal**: Every run is driven by one frozen keyed config, survives interruption and corruption, resumes and rolls back correctly, and records enough seed/RNG state to reproduce to statistical equivalence — with guards that stop-and-preserve on trouble.
 **Depends on**: Phase 40 (the loop the config / checkpoint / guard layer wraps).
 **Requirements**: CTRL-01, CTRL-02, CTRL-03, CTRL-04, CTRL-05, CTRL-06, CTRL-07, CTRL-08
+**Plans**: 5 plans — 41-01 config foundation (CTRL-01); 41-02 production CheckpointStore (CTRL-02/03/04); 41-03 guards + determinism (CTRL-07/08); 41-04 controllers extension (CTRL-02/04/06/08); 41-05 resume + `pinn.train` entry point (CTRL-05/01/08). Waves: 1 → (2 ∥ 2) → 3 → 4.
 **Success Criteria** (what must be TRUE):
 
   1. A single keyed YAML (`run/stage/opt/loss`) drives the run and its fully-resolved copy is frozen into the run folder (CTRL-01); `--resume` continues exactly, `--hold-stage` rolls back, and the field-classified resume-diff refuses on any unclassified/identity-field change (fail-safe; the field list owner-ratified before run #1) (CTRL-05).
