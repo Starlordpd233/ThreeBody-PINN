@@ -58,8 +58,9 @@ from __future__ import annotations
 
 import logging
 import math
+import time
 from dataclasses import dataclass, replace
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Mapping, Optional
 
 import numpy as np
 import torch
@@ -77,7 +78,12 @@ from pinn.loss_catalog import (
     soft_energy_loss,
 )
 from pinn.physics_residual import componentwise_du, softened_acceleration
-from pinn.training.checkpoint import EmptyCheckpointStore
+from pinn.training import determinism
+from pinn.training.checkpoint import (
+    CHECKPOINT_SCHEMA_VERSION,
+    EmptyCheckpointStore,
+    PromotionRefused,
+)
 from pinn.training.slbfgs_preflight import check_stage_preflight
 from pinn.training.stage_exit import StageDisposition
 
@@ -86,9 +92,11 @@ __all__ = [
     "HandoffEvent",
     "RunController",
     "accumulate_chunked_data_term",
+    "build_checkpoint_payload",
     "CurriculumController",
     "ForcedDispositionOnLiveRun",
     "StageFactoryModelMismatch",
+    "CHECKPOINT_SCHEMA_VERSION",
 ]
 
 # ---------------------------------------------------------------------------
@@ -211,6 +219,42 @@ def accumulate_chunked_data_term(
 
 
 # ---------------------------------------------------------------------------
+# CTX-53 checkpoint payload composer (HIGH 1 — single owned composition site).
+# ---------------------------------------------------------------------------
+
+def build_checkpoint_payload(
+    controller: "RunController",
+    curriculum_state: Any,
+    config_identity: Any,
+    schema_version: Any,
+) -> dict[str, Any]:
+    """Assemble the FULL CTX-53 envelope from a live RunController + live inputs.
+
+    Single owned composition site for every save path (boundary anchors,
+    mid-stage rolling, guard-trip failure, best/latest). ``schema_version``
+    must be ``CHECKPOINT_SCHEMA_VERSION`` imported from ``checkpoint.py`` —
+    this module never redefines it. ``curriculum_state`` and
+    ``config_identity`` are handed in LIVE by the checkpoint_hook closure
+    (or CurriculumController boundary path) so mid-stage fires never see
+    None/stale stage metadata.
+    """
+    sd = controller.state_dict()
+    return {
+        "model": sd["model"],
+        "optimizer": sd.get("optimizer"),
+        "scheduled_weights": sd["scheduled_weights"],
+        # state_dict keeps the Phase-40 key name ``clipper``; CTX-53 surface
+        # uses ``grad_clip``.
+        "grad_clip": sd["clipper"],
+        "curriculum": curriculum_state,
+        "rng": sd.get("rng"),
+        "counters": sd.get("counters"),
+        "config_identity": config_identity,
+        "schema_version": schema_version,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Per-fixed-batch anchor context (single-identity IC/energy/angmom evaluation).
 # ---------------------------------------------------------------------------
 
@@ -251,6 +295,8 @@ class RunController:
         runtime,
         *,
         rng: Optional[np.random.Generator] = None,
+        checkpoint_hook: Optional[Callable[..., Any]] = None,
+        guard_hook: Optional[Callable[..., Any]] = None,
     ) -> None:
         if validation_source is None:
             raise ValueError(
@@ -272,22 +318,64 @@ class RunController:
         self._device = runtime.torch_device
         self._rng = rng if rng is not None else np.random.default_rng(config.run.seed)
 
+        # Phase-41 CTRL-08 / CTRL-02 / CTRL-07 additive surface (hooks default
+        # None so a hook-less controller is byte-for-byte Phase 40).
+        self._optimizer: Any = None
+        self._global_step: int = 0
+        self._global_epoch: int = 0
+        self._pending_optimizer_state: Any = None
+        self._last_val_total: Optional[float] = None
+        self._wall_clock_baseline: float = float(time.monotonic())
+        self._checkpoint_hook = checkpoint_hook
+        self._guard_hook = guard_hook
+
         self.last_handoff_event: Optional[HandoffEvent] = None
 
     # ------------------------------------------------------------------
-    # Public checkpoint surface (CTX-44 -- composes model + schedule + clipper).
+    # Public checkpoint surface (CTX-44 -- composes model + schedule + clipper
+    # + Phase-41 optimizer / rng / counters).
     # ------------------------------------------------------------------
     def state_dict(self) -> dict[str, Any]:
         return {
             "model": self._model.state_dict(),
             "scheduled_weights": self._scheduled_weights.state_dict(),
             "clipper": self._grad_clipper.state_dict(),
+            "optimizer": (
+                self._optimizer.state_dict() if self._optimizer is not None else None
+            ),
+            "rng": determinism.capture_rng_state(self._rng),
+            "counters": {
+                "global_step": int(self._global_step),
+                "global_epoch": int(self._global_epoch),
+                "wall_clock_baseline": float(self._wall_clock_baseline),
+            },
         }
 
     def load_state_dict(self, state: dict[str, Any]) -> None:
         self._model.load_state_dict(state["model"])
         self._scheduled_weights.load_state_dict(state["scheduled_weights"])
-        self._grad_clipper.load_state_dict(state["clipper"])
+        # Phase-40 nested payloads use ``clipper``; CTX-53 envelopes use
+        # ``grad_clip`` (build_checkpoint_payload renames on save).
+        if "clipper" in state:
+            self._grad_clipper.load_state_dict(state["clipper"])
+        elif "grad_clip" in state:
+            self._grad_clipper.load_state_dict(state["grad_clip"])
+        # CYCLE-4 MEDIUM-5: DEFER optimizer into pending — live optimizer may
+        # not exist yet (build-then-load). Boundary anchors carry optimizer=None
+        # so pending stays None and the fresh Adam remains reset (CTRL-06).
+        if "optimizer" in state:
+            self._pending_optimizer_state = state.get("optimizer")
+        rng_state = state.get("rng")
+        if rng_state is not None:
+            determinism.restore_rng_state(rng_state, self._rng)
+        counters = state.get("counters")
+        if isinstance(counters, Mapping):
+            if "global_step" in counters:
+                self._global_step = int(counters["global_step"])
+            if "global_epoch" in counters:
+                self._global_epoch = int(counters["global_epoch"])
+            if "wall_clock_baseline" in counters:
+                self._wall_clock_baseline = float(counters["wall_clock_baseline"])
 
     @property
     def checkpoint_store(self):
@@ -474,14 +562,69 @@ class RunController:
         )
 
     # ------------------------------------------------------------------
+    # Minimal step log + loss-terms helper for L-BFGS guard bridge.
+    # ------------------------------------------------------------------
+    def _log_step(self, *, step: int, loss_terms: Any, lr: Optional[float], phase: str) -> None:
+        """CTX-52 minimal functional step log (canonical JSONL is Phase 42)."""
+        try:
+            total = float(loss_terms.total.detach()) if hasattr(loss_terms, "total") else float("nan")
+            terms = {
+                "data": float(loss_terms.data.detach()) if hasattr(loss_terms, "data") else None,
+                "ic": float(loss_terms.ic.detach()) if hasattr(loss_terms, "ic") else None,
+                "phys": float(loss_terms.phys.detach()) if hasattr(loss_terms, "phys") else None,
+                "energy": float(loss_terms.energy.detach()) if hasattr(loss_terms, "energy") else None,
+                "angmom": float(loss_terms.angmom.detach()) if hasattr(loss_terms, "angmom") else None,
+            }
+        except Exception:
+            total = float("nan")
+            terms = {}
+        _LOGGER.info(
+            "step=%s phase=%s total=%s lr=%s terms=%s",
+            step, phase, total, lr, terms,
+            extra={
+                "event": "step",
+                "step": step,
+                "phase": phase,
+                "total": total,
+                "lr": lr,
+                **{f"loss_{k}": v for k, v in terms.items()},
+            },
+        )
+
+    def _scalar_loss_terms(self, total_value: float) -> LossTerms:
+        """Build a LossTerms carrier for the L-BFGS guard bridge (total only)."""
+        zero = torch.zeros((), dtype=self._dtype, device=self._device)
+        total = torch.tensor(float(total_value), dtype=self._dtype, device=self._device)
+        return LossTerms(
+            data=zero, ic=zero, phys=zero, energy=zero, angmom=zero, total=total,
+        )
+
+    def _apply_pending_optimizer_state(self) -> None:
+        """CYCLE-4 MEDIUM-5: apply deferred Adam moments after fresh build."""
+        if self._optimizer is not None and self._pending_optimizer_state is not None:
+            self._optimizer.load_state_dict(self._pending_optimizer_state)
+            self._pending_optimizer_state = None
+
+    # ------------------------------------------------------------------
     # Phase 2a: Adam.
     # ------------------------------------------------------------------
-    def _run_adam_phase(self, k: int, n_adam_k: int, optimizer, scheduler, plateau: PlateauDetector,
-                        train_loss_history: list, val_loss_history: list, state: dict) -> tuple[str, int]:
+    def _run_adam_phase(
+        self,
+        k: int,
+        n_adam_k: int,
+        optimizer,
+        scheduler,
+        plateau: PlateauDetector,
+        train_loss_history: list,
+        val_loss_history: list,
+        state: dict,
+        *,
+        adam_start: int = 0,
+    ) -> tuple[str, int]:
         validation_every = int(self._config.opt.validation_every)
         handoff_trigger = "budget-exhausted"
-        adam_epochs_used = 0
-        for epoch in range(n_adam_k):
+        adam_epochs_used = int(adam_start)
+        for epoch in range(int(adam_start), n_adam_k):
             adam_epochs_used = epoch + 1
             batch = build_stage_batch(
                 self._train_source, stage=k, rng=self._rng,
@@ -492,28 +635,79 @@ class RunController:
 
             optimizer.zero_grad(set_to_none=True)
             loss_terms = self._compose_loss_terms(batch, anchor_ctx, weights)
-            if not self._loss_finite(loss_terms.total):
-                state["disposition"] = StageDisposition.RECOVER
-                return handoff_trigger, adam_epochs_used
-            loss_terms.total.backward()
 
-            outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
-            if outcome.non_finite:
-                state["disposition"] = StageDisposition.RECOVER
-                return handoff_trigger, adam_epochs_used
+            # ---- Guard path (cycle-2 HIGH 1 + cycle-4 MEDIUM-2): Adam ----
+            # Loss/grad exist before optimizer.step(); guard runs FIRST so a
+            # NaN/Inf writes the failure bundle rather than the bare RECOVER.
+            clip_outcome = None
+            grad_norm: Optional[float] = None
+            if self._guard_hook is not None:
+                if self._loss_finite(loss_terms.total):
+                    loss_terms.total.backward()
+                    clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
+                    try:
+                        grad_norm = float(clip_outcome.total_norm)
+                    except Exception:
+                        grad_norm = None
+                guard_outcome = self._guard_hook(
+                    self, loss_terms, grad_norm, self._global_step, k, "2a",
+                )
+                if (
+                    guard_outcome is not None
+                    and getattr(guard_outcome, "disposition", None) is not None
+                ):
+                    state["disposition"] = guard_outcome.disposition
+                    return handoff_trigger, adam_epochs_used
+                # Guard did not trip — inline checks fire as Phase 40.
+                if not self._loss_finite(loss_terms.total):
+                    state["disposition"] = StageDisposition.RECOVER
+                    return handoff_trigger, adam_epochs_used
+                if clip_outcome is None:
+                    loss_terms.total.backward()
+                    clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
+                if clip_outcome.non_finite:
+                    state["disposition"] = StageDisposition.RECOVER
+                    return handoff_trigger, adam_epochs_used
+            else:
+                # Phase-40 path: inline non-finite checks only.
+                if not self._loss_finite(loss_terms.total):
+                    state["disposition"] = StageDisposition.RECOVER
+                    return handoff_trigger, adam_epochs_used
+                loss_terms.total.backward()
+                clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
+                if clip_outcome.non_finite:
+                    state["disposition"] = StageDisposition.RECOVER
+                    return handoff_trigger, adam_epochs_used
 
             optimizer.step()
             scheduler.step()
 
             state["epoch_count"] += 1
+            self._global_step += 1
+            self._global_epoch += 1
             train_loss_history.append(float(loss_terms.total.detach()))
             fires = plateau.update(float(loss_terms.phys.detach()))
 
             if state["epoch_count"] % validation_every == 0:
                 val_terms = self._run_validation(k, weights)
-                val_loss_history.append(float(val_terms.total.detach()))
+                val_total = float(val_terms.total.detach())
+                val_loss_history.append(val_total)
+                self._last_val_total = val_total
                 state["val_phys"] = float(val_terms.phys.detach())
                 state["val_energy"] = float(val_terms.energy.detach())
+
+            lr_now: Optional[float] = None
+            try:
+                lr_now = float(scheduler.get_last_lr()[0])
+            except Exception:
+                lr_now = None
+            self._log_step(
+                step=self._global_step, loss_terms=loss_terms, lr=lr_now, phase="2a",
+            )
+
+            # Checkpoint/best hook AFTER validation so _last_val_total is live.
+            if self._checkpoint_hook is not None:
+                self._checkpoint_hook(self, self._global_step)
 
             if fires:
                 handoff_trigger = "plateau"
@@ -546,8 +740,17 @@ class RunController:
 
         return closure
 
-    def _run_lbfgs_phase(self, k: int, remaining_budget: int, epoch_count_start: int,
-                         train_loss_history: list, val_loss_history: list, state: dict):
+    def _run_lbfgs_phase(
+        self,
+        k: int,
+        remaining_budget: int,
+        epoch_count_start: int,
+        train_loss_history: list,
+        val_loss_history: list,
+        state: dict,
+        *,
+        lbfgs_start: int = 0,
+    ):
         cfg = self._config
         self._scheduled_weights.freeze()
         weights_frozen = self._scheduled_weights.current(0)
@@ -565,29 +768,73 @@ class RunController:
             max_iter=cfg.opt.lbfgs_max_iter,
             line_search_fn=cfg.opt.lbfgs_line_search,
         )
+        # Live optimizer exposure is Adam-only for CTRL-06; L-BFGS is local.
         chunk_size = int(cfg.opt.lbfgs_chunk_size)
         validation_every = int(cfg.opt.validation_every)
 
         epoch_count = epoch_count_start
-        for _lbfgs_epoch in range(remaining_budget):
+        # lbfgs_start is the number of L-BFGS epochs already consumed (resume).
+        for _lbfgs_epoch in range(int(lbfgs_start), remaining_budget):
             closure_state: dict[str, Any] = {"non_finite": False, "last_loss": None}
             closure = self._make_lbfgs_closure(
                 optimizer, fixed_batch, anchor_ctx, weights_frozen, chunk_size, closure_state
             )
             optimizer.step(closure)
             epoch_count += 1
+            self._global_step += 1
+            self._global_epoch += 1
 
-            if closure_state["non_finite"]:
-                self._scheduled_weights.rewarm()
-                return StageDisposition.RECOVER
+            # ---- Guard path (cycle-4 MEDIUM-2): L-BFGS ----
+            # Loss/grads are computed INSIDE the closure during step, so the
+            # guard runs AFTER step at the non_finite check — not first.
+            if self._guard_hook is not None:
+                last_loss = closure_state.get("last_loss")
+                if closure_state["non_finite"]:
+                    total_for_guard = float("nan")
+                else:
+                    total_for_guard = (
+                        float(last_loss) if last_loss is not None else float("nan")
+                    )
+                loss_terms_for_guard = self._scalar_loss_terms(total_for_guard)
+                guard_outcome = self._guard_hook(
+                    self, loss_terms_for_guard, None, self._global_step, k, "2b",
+                )
+                if (
+                    guard_outcome is not None
+                    and getattr(guard_outcome, "disposition", None) is not None
+                ):
+                    self._scheduled_weights.rewarm()
+                    return guard_outcome.disposition
+                # Guard did not trip — bare RECOVER still fires if non_finite.
+                if closure_state["non_finite"]:
+                    self._scheduled_weights.rewarm()
+                    return StageDisposition.RECOVER
+            else:
+                if closure_state["non_finite"]:
+                    self._scheduled_weights.rewarm()
+                    return StageDisposition.RECOVER
 
             train_loss_history.append(closure_state["last_loss"])
 
             if epoch_count % validation_every == 0:
                 val_terms = self._run_validation(k, weights_frozen)
-                val_loss_history.append(float(val_terms.total.detach()))
+                val_total = float(val_terms.total.detach())
+                val_loss_history.append(val_total)
+                self._last_val_total = val_total
                 state["val_phys"] = float(val_terms.phys.detach())
                 state["val_energy"] = float(val_terms.energy.detach())
+
+            # Minimal step log for L-BFGS (loss total only).
+            if closure_state["last_loss"] is not None:
+                self._log_step(
+                    step=self._global_step,
+                    loss_terms=self._scalar_loss_terms(float(closure_state["last_loss"])),
+                    lr=None,
+                    phase="2b",
+                )
+
+            if self._checkpoint_hook is not None:
+                self._checkpoint_hook(self, self._global_step)
 
             outcome = self._stage_exit_machine.evaluate(
                 train_loss_history, val_loss_history,
@@ -607,10 +854,16 @@ class RunController:
     # ------------------------------------------------------------------
     # run_stage(k) -- the pinned entry point.
     # ------------------------------------------------------------------
-    def run_stage(self, k: int) -> StageDisposition:
+    def run_stage(self, k: int, *, resume_ctx: Optional[Mapping[str, Any]] = None) -> StageDisposition:
         cfg = self._config
         n_adam_k = int(cfg.stage.n_adam)
         max_epochs = int(cfg.stage.max_epochs)
+
+        resume_phase: Optional[str] = None
+        resume_epoch = 0
+        if resume_ctx is not None:
+            resume_phase = resume_ctx.get("phase")  # "2a" | "2b"
+            resume_epoch = int(resume_ctx.get("epoch", 0) or 0)
 
         optimizer = torch.optim.Adam(
             self._model.parameters(),
@@ -618,7 +871,27 @@ class RunController:
             betas=cfg.opt.adam_betas,
             eps=cfg.opt.adam_eps,
         )
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_adam_k)
+        # Expose live Adam (Pattern 4) + apply deferred moments (MEDIUM-5).
+        self._optimizer = optimizer
+        self._apply_pending_optimizer_state()
+
+        adam_start = 0
+        scheduler_last_epoch = -1
+        epoch_count_init = 0
+        skip_adam = False
+        if resume_phase == "2a":
+            adam_start = max(0, min(resume_epoch, n_adam_k))
+            scheduler_last_epoch = adam_start - 1
+            epoch_count_init = adam_start
+        elif resume_phase == "2b":
+            # Adam budget already consumed; re-enter L-BFGS at resume_epoch.
+            skip_adam = True
+            adam_start = n_adam_k
+            epoch_count_init = n_adam_k + max(0, resume_epoch)
+
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=max(n_adam_k, 1), last_epoch=scheduler_last_epoch,
+        )
 
         self._grad_clipper.clear()
         self._scheduled_weights.rewarm()
@@ -627,16 +900,21 @@ class RunController:
         train_loss_history: list[float] = []
         val_loss_history: list[float] = []
         state: dict[str, Any] = {
-            "epoch_count": 0,
+            "epoch_count": int(epoch_count_init),
             "val_phys": math.inf,
             "val_energy": math.inf,
             "disposition": None,
         }
 
-        handoff_trigger, adam_epochs_used = self._run_adam_phase(
-            k, n_adam_k, optimizer, scheduler, plateau,
-            train_loss_history, val_loss_history, state,
-        )
+        if skip_adam:
+            handoff_trigger = "budget-exhausted"
+            adam_epochs_used = n_adam_k
+        else:
+            handoff_trigger, adam_epochs_used = self._run_adam_phase(
+                k, n_adam_k, optimizer, scheduler, plateau,
+                train_loss_history, val_loss_history, state,
+                adam_start=adam_start,
+            )
         self.last_handoff_event = HandoffEvent(
             trigger=handoff_trigger, adam_epochs_used=adam_epochs_used,
         )
@@ -644,7 +922,7 @@ class RunController:
             return state["disposition"]
 
         remaining_budget = max(max_epochs - adam_epochs_used, 0)
-        if remaining_budget == 0:
+        if remaining_budget == 0 and not skip_adam:
             # CR-02 / GAP-40-02: equality n_adam == max_epochs is legal with
             # zero L-BFGS headroom. Poll the stage-exit machine once at the
             # shared boundary so a satisfied gate yields ADVANCE and an unmet
@@ -661,9 +939,20 @@ class RunController:
             if outcome.disposition is StageDisposition.RECOVER:
                 return StageDisposition.RECOVER
             return StageDisposition.HALT
+
+        lbfgs_start = 0
+        if resume_phase == "2b":
+            lbfgs_start = max(0, resume_epoch)
+            # remaining_budget is total L-BFGS slots from a full Adam budget;
+            # re-entry still iterates range(lbfgs_start, remaining_budget).
+            remaining_budget = max(max_epochs - n_adam_k, 0)
+            if remaining_budget == 0:
+                remaining_budget = max(max_epochs - adam_epochs_used, 1)
+
         return self._run_lbfgs_phase(
             k, remaining_budget, state["epoch_count"],
             train_loss_history, val_loss_history, state,
+            lbfgs_start=lbfgs_start,
         )
 
 
@@ -829,10 +1118,43 @@ class CurriculumController:
     # Checkpoint payload / run-start anchor (cycle-2 H3).
     # ------------------------------------------------------------------
     def _checkpoint_payload(self, tag: str, stage: int) -> dict[str, Any]:
+        """Phase-40 nested payload (tag/stage/run_controller) for save() spies."""
         payload: dict[str, Any] = {"tag": tag, "stage": stage}
         if self._run_controller is not None:
             payload["run_controller"] = self._run_controller.state_dict()
         return payload
+
+    def _curriculum_state(self) -> dict[str, Any]:
+        """Live curriculum metadata for build_checkpoint_payload (HIGH 2)."""
+        return {
+            "stage": int(self._stage),
+            "phase": None,
+            "epoch": 0,
+            "step": self._disposition_step(),
+            "disposition_log_pointer": None,
+        }
+
+    def _config_identity(self) -> Any:
+        """Frozen config identity if set by pinn.train (41-05); else empty dict."""
+        return getattr(self, "_config_identity_payload", None) or {}
+
+    def _disposition_step(self) -> int:
+        """Global step for ledger rows — live counter or stage surrogate."""
+        if self._run_controller is not None:
+            return int(getattr(self._run_controller, "_global_step", 0))
+        return int(self._stage)
+
+    def _save_ctx53_anchor(self, tag: str, stage: int) -> None:
+        """Production CTX-53 anchor via the single composer + save_anchor."""
+        if self._run_controller is None:
+            return
+        payload = build_checkpoint_payload(
+            self._run_controller,
+            self._curriculum_state(),
+            self._config_identity(),
+            CHECKPOINT_SCHEMA_VERSION,
+        )
+        self._checkpoint_store.save_anchor(tag=tag, stage=stage, payload=payload)
 
     def _save_run_start_anchor(self) -> None:
         """Save the k=0 rollback anchor BEFORE the first stage is entered.
@@ -846,7 +1168,11 @@ class CurriculumController:
         even if this anchor save is skipped, suppressed, or fails -- do not
         drop that catch on the grounds that this anchor makes it redundant.
         """
+        # CTRL-06: stage-0-init carries reset Adam (optimizer cleared).
+        if self._run_controller is not None:
+            self._run_controller._optimizer = None
         self._checkpoint_store.save(self._checkpoint_payload("stage-0-init", self._stage))
+        self._save_ctx53_anchor("stage-0-init", self._stage)
 
     # ------------------------------------------------------------------
     # CTX-38/45 logging (stdlib logging.getLogger('pinn.training.*') tree,
@@ -907,8 +1233,10 @@ class CurriculumController:
 
         if disposition is StageDisposition.ADVANCE:
             k = self._stage
+            step = self._disposition_step()
             # stage-{k}-final carries the EXITING stage's state (OLD controller).
             self._checkpoint_store.save(self._checkpoint_payload(f"stage-{k}-final", k))
+            self._save_ctx53_anchor(f"stage-{k}-final", k)
             self._stage = k + 1
             # GAP-40-04 Option C: replace the live RunController before the
             # stage-{k+1}-init save so the anchor carries the ENTERED stage's
@@ -920,10 +1248,34 @@ class CurriculumController:
                 new_controller = self._stage_factory(self._stage)
                 if new_controller.model is not previous_model:
                     raise StageFactoryModelMismatch()
+                # Drop the outgoing stage-k optimizer before the entered-stage
+                # init anchor is serialized (CTRL-06 / MEDIUM fix).
+                if self._run_controller is not None:
+                    self._run_controller._optimizer = None
                 self._run_controller = new_controller
                 self._scheduled_weights = new_controller.scheduled_weights
+            # CTRL-06 composition: stage-{k+1}-init is sourced from the ENTERED
+            # (post-swap) controller with self._optimizer EXPLICITLY CLEARED so
+            # the anchor carries reset Adam (optimizer key None).
+            if self._run_controller is not None:
+                self._run_controller._optimizer = None
             self._checkpoint_store.save(
                 self._checkpoint_payload(f"stage-{self._stage}-init", self._stage)
+            )
+            self._save_ctx53_anchor(f"stage-{self._stage}-init", self._stage)
+            # CTRL-04: ordered/idempotent promote + disposition ledger row.
+            # Unconditional — safe via 41-02 no-op store defaults (HIGH 5).
+            # Beyond-terminal promote is soft: TRAIN-07 preflight owns the
+            # stage>=3 hard stop (phase40 PreflightGateTests advances 0→3
+            # then raises StochasticLBFGSNotImplemented). Skip/regress still
+            # hard-raises so ordered promotion is preserved.
+            try:
+                self._checkpoint_store.promote(k, k + 1)
+            except PromotionRefused as exc:
+                if "beyond terminal" not in str(getattr(exc, "reason", exc)):
+                    raise
+            self._checkpoint_store.record_disposition(
+                k, k + 1, StageDisposition.ADVANCE, step,
             )
             # rewarm is unconditional: on a fresh factory schedule it is an
             # idempotent no-op; on stage_factory=None it is today's call.
@@ -934,6 +1286,7 @@ class CurriculumController:
 
         if disposition is StageDisposition.RECOVER:
             empty_store = False
+            step = self._disposition_step()
             try:
                 restored = self._checkpoint_store.rollback()
                 # CR-01 / TRAIN-06: actually restore the rolled-back payload
@@ -942,14 +1295,17 @@ class CurriculumController:
                 # Both guard halves are load-bearing: forced_disposition
                 # controllers have no run controller (T-40-09), and some
                 # payloads (e.g. forced-path seeds) carry no run_controller key.
-                if (
-                    self._run_controller is not None
-                    and isinstance(restored, dict)
-                    and "run_controller" in restored
-                ):
-                    self._run_controller.load_state_dict(restored["run_controller"])
+                if self._run_controller is not None and isinstance(restored, dict):
+                    if "run_controller" in restored:
+                        self._run_controller.load_state_dict(restored["run_controller"])
+                    elif "model" in restored:
+                        # Flat CTX-53 envelope (production save_anchor path).
+                        self._run_controller.load_state_dict(restored)
             except EmptyCheckpointStore:
                 empty_store = True
+            self._checkpoint_store.record_disposition(
+                self._stage, self._stage, StageDisposition.RECOVER, step,
+            )
             self._log_stage_exit(
                 StageDisposition.RECOVER, stage=self._stage, empty_store=empty_store,
             )
@@ -963,7 +1319,11 @@ class CurriculumController:
             return StageDisposition.HALT
 
         if disposition is StageDisposition.HALT:
+            step = self._disposition_step()
             self._halted = True
+            self._checkpoint_store.record_disposition(
+                self._stage, self._stage, StageDisposition.HALT, step,
+            )
             self._log_stage_exit(StageDisposition.HALT, stage=self._stage)
             return StageDisposition.HALT
 
