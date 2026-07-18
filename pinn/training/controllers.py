@@ -328,6 +328,9 @@ class RunController:
         self._wall_clock_baseline: float = float(time.monotonic())
         self._checkpoint_hook = checkpoint_hook
         self._guard_hook = guard_hook
+        # Live phase/epoch for curriculum_state_accessor (41-05 mid-stage resume).
+        self._active_phase: Optional[str] = None
+        self._active_epoch: int = 0
 
         self.last_handoff_event: Optional[HandoffEvent] = None
 
@@ -626,6 +629,8 @@ class RunController:
         adam_epochs_used = int(adam_start)
         for epoch in range(int(adam_start), n_adam_k):
             adam_epochs_used = epoch + 1
+            self._active_phase = "2a"
+            self._active_epoch = int(adam_epochs_used)
             batch = build_stage_batch(
                 self._train_source, stage=k, rng=self._rng,
                 dtype=self._dtype, device=self._device, collocation_count=1,
@@ -775,6 +780,8 @@ class RunController:
         epoch_count = epoch_count_start
         # lbfgs_start is the number of L-BFGS epochs already consumed (resume).
         for _lbfgs_epoch in range(int(lbfgs_start), remaining_budget):
+            self._active_phase = "2b"
+            self._active_epoch = int(_lbfgs_epoch + 1)
             closure_state: dict[str, Any] = {"non_finite": False, "last_loss": None}
             closure = self._make_lbfgs_closure(
                 optimizer, fixed_batch, anchor_ctx, weights_frozen, chunk_size, closure_state
@@ -1092,6 +1099,8 @@ class CurriculumController:
         self._recover_attempts = 0
         self._stage = int(initial_stage)
         self._halted = False
+        # One-shot mid-stage resume context (consumed by first run_stage only).
+        self._pending_resume_ctx: Optional[Mapping[str, Any]] = None
 
     @property
     def stage(self) -> int:
@@ -1110,7 +1119,10 @@ class CurriculumController:
     def _get_disposition(self, stage: int) -> StageDisposition:
         if self._forced_disposition is not None:
             return self._forced_disposition(stage)
-        disposition = self._run_controller.run_stage(stage)
+        # Consume one-shot resume_ctx for the ENTERED stage only (41-05).
+        ctx = self._pending_resume_ctx
+        self._pending_resume_ctx = None
+        disposition = self._run_controller.run_stage(stage, resume_ctx=ctx)
         self._log_handoff_if_any()
         return disposition
 
@@ -1331,7 +1343,12 @@ class CurriculumController:
             f"CurriculumController received an unrecognized disposition: {disposition!r}"
         )
 
-    def run(self) -> StageDisposition:
+    def run(
+        self,
+        *,
+        resume_ctx: Optional[Mapping[str, Any]] = None,
+        from_resume: bool = False,
+    ) -> StageDisposition:
         """Run the curriculum until a terminal HALT is reached.
 
         Saves the run-start ``stage-0-init`` anchor and logs the full
@@ -1340,9 +1357,16 @@ class CurriculumController:
         retry budget remains) continue the loop; HALT is terminal and is
         returned. Always returns NORMALLY -- a RECOVER against an empty
         CheckpointStore is caught inside ``step()`` and never propagates.
+
+        ``resume_ctx`` (41-05 / CTRL-05): optional ``{phase, epoch}`` threaded
+        into the ENTERED stage's ``run_stage`` only (subsequent stages start
+        fresh). ``from_resume=True`` skips the cold-start stage-0-init anchor
+        so a mid-stage / stage-final resume does not clobber prior artifacts.
         """
-        self._save_run_start_anchor()
-        self._log_run_start()
+        self._pending_resume_ctx = dict(resume_ctx) if resume_ctx is not None else None
+        if not from_resume:
+            self._save_run_start_anchor()
+            self._log_run_start()
         while True:
             disposition = self.step()
             if disposition in (StageDisposition.ADVANCE, StageDisposition.RECOVER):
