@@ -159,17 +159,23 @@ class ConstructionTests(unittest.TestCase):
         self.assertEqual(cfg.beta, cfg.stage.beta)
         self.assertEqual(cfg.max_epochs, cfg.stage.max_epochs)
 
-    def test_no_precision_device_yaml(self):
+    def test_config_module_has_no_yaml_parser(self):
+        # Phase 40 boundary retained: config.py is pure dataclasses.
+        # Phase 41 (CTRL-01) adds precision/device on RunConfig and puts YAML
+        # parsing in pinn.training.config_yaml — not here.
         import inspect
         import pinn.training.config as mod
         src = inspect.getsource(mod)
         self.assertNotIn("import yaml", src)
         self.assertNotIn("yaml.safe_load", src)
         cfg = _valid_training()
+        # Top-level TrainingConfig still has no flat precision/device attrs
+        # (they live under run.*, matching RESEARCH Pattern 2 paths).
         self.assertFalse(hasattr(cfg, "precision"))
         self.assertFalse(hasattr(cfg, "device"))
-        self.assertFalse(hasattr(cfg.run, "precision"))
-        self.assertFalse(hasattr(cfg.run, "device"))
+        # Phase 41 surface: run.precision / run.device are first-class fields.
+        self.assertTrue(hasattr(cfg.run, "precision"))
+        self.assertTrue(hasattr(cfg.run, "device"))
 
 
 if __name__ == "__main__":
