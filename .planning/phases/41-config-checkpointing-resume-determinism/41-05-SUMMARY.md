@@ -119,7 +119,7 @@ Each task was committed atomically:
 1. **Task 1: resume.py multi-module identity + fail-safe diff** - `91723553` (feat)
 2. **Tasks 2–3: pinn.train composition root + e2e falsifiability** - `d4c7dbe3` (feat)
 
-**Plan metadata:** (docs commit after this summary)
+**Plan metadata:** `3e889c57` (docs: complete plan)
 
 _Note: Tasks 2 and 3 share `pinn/train.py` / `test_train_entrypoint.py`; shipped as one feat commit after full green._
 
