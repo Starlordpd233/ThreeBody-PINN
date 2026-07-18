@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
 current_phase_name: config-checkpointing-resume-determinism
-status: executing
-stopped_at: Completed 41-04-PLAN.md
-last_updated: "2026-07-18T08:34:06.617Z"
+status: verifying
+stopped_at: Completed 41-05-PLAN.md
+last_updated: "2026-07-18T08:45:34.336Z"
 last_activity: 2026-07-18
-last_activity_desc: Completed 41-04 controllers mid-stage checkpoint + guard hooks
+last_activity_desc: Completed 41-05 resume/rollback + pinn.train driver
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 39
-  completed_plans: 38
-  percent: 59
+  completed_plans: 39
+  percent: 71
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 41 (config-checkpointing-resume-determinism) — EXECUTING
+Phase: 41 (config-checkpointing-resume-determinism) — VERIFYING
 Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-07-18 — Completed 41-04 controllers mid-stage checkpoint + guard hooks
+Status: Phase complete — ready for verification
+Last activity: 2026-07-18 — Completed 41-05 resume/rollback + pinn.train driver
 
 ## Deferred Items
 
@@ -121,6 +121,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 41 P02 | 5min | 3 tasks | 2 files |
 | Phase 41 P03 | 5min | 2 tasks | 4 files |
 | Phase 41 P04 | 25min | 3 tasks | 2 files |
+| Phase 41 P05 | 10min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -262,6 +263,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Dual save path: Phase-40 nested save() + CTX-53 save_anchor via build_checkpoint_payload
 - [Phase ?]: Beyond-terminal promote soft-fail; TRAIN-07 preflight owns stage>=3 hard stop
 - [Phase ?]: checkpoint_hook/guard_hook are closures with phase-specific placement (Adam before step, L-BFGS after)
+- [Phase ?]: Seed fan-out: ArchitectureSpec.seed = config.run.seed for weight init + sampling
+- [Phase ?]: B-5 RESUME_FIELD_REGISTRY is provisional; unclassified-to-refuse is locked
+- [Phase ?]: python -m pinn.train is the CTRL-01/05/08 composition root with exact-anchor resume routing
 
 ### Pending Todos
 
@@ -290,8 +294,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-18T08:34:06.612Z
-Stopped at: Completed 41-04-PLAN.md
+Last session: 2026-07-18T08:45:34.331Z
+Stopped at: Completed 41-05-PLAN.md
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps

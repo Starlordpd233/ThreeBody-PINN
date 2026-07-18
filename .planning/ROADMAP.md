@@ -134,13 +134,13 @@
 **Goal**: Every run is driven by one frozen keyed config, survives interruption and corruption, resumes and rolls back correctly, and records enough seed/RNG state to reproduce to statistical equivalence — with guards that stop-and-preserve on trouble.
 **Depends on**: Phase 40 (the loop the config / checkpoint / guard layer wraps).
 **Requirements**: CTRL-01, CTRL-02, CTRL-03, CTRL-04, CTRL-05, CTRL-06, CTRL-07, CTRL-08
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans executed
 
 - [x] 41-01-PLAN.md
 - [x] 41-02-PLAN.md
 - [x] 41-03-PLAN.md
 - [x] 41-04-PLAN.md
-- [ ] 41-05-PLAN.md
+- [x] 41-05-PLAN.md
 
 **Success Criteria** (what must be TRUE):
 
@@ -189,7 +189,7 @@
 | 38. PINN Model Rebuild from Specs (FUT-01) | v2.0 | 4/6 | In Progress|  |
 | 39. Data Ingestion & Stage-0 Population Scan | v2.0 | 14/14 | In Progress|  |
 | 40. Stage-0 Curriculum Training Loop (FUT-04) | v2.0 | 9/9 | Complete    | 2026-07-17 |
-| 41. Config, Checkpointing, Resume & Determinism | v2.0 | 4/5 | In Progress|  |
+| 41. Config, Checkpointing, Resume & Determinism | v2.0 | 5/5 | In Progress|  |
 | 42. Operator Runbook Surface & Monitoring | v2.0 | — | Not started | — |
 | 43. Verification, Stage-0 Pilot & Acceptance | v2.0 | — | Not started | — |
 
