@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
 current_phase_name: config-checkpointing-resume-determinism
 status: executing
-stopped_at: Completed 41-01-PLAN.md
-last_updated: "2026-07-18T08:08:33.911Z"
+stopped_at: Completed 41-02-PLAN.md
+last_updated: "2026-07-18T08:16:03.343Z"
 last_activity: 2026-07-18
-last_activity_desc: Phase 41 execution started
+last_activity_desc: Completed 41-02 production CheckpointStore
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 39
-  completed_plans: 35
+  completed_plans: 36
   percent: 57
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 41 (config-checkpointing-resume-determinism) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
-Last activity: 2026-07-18 — Phase 41 execution started
+Last activity: 2026-07-18 — Completed 41-02 production CheckpointStore
 
 ## Deferred Items
 
@@ -118,6 +118,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 40 P08 | 25min | 3 tasks | 6 files |
 | Phase 40 P09 | 10min | 3 tasks | 3 files |
 | Phase 41 P01 | 6min | 3 tasks | 9 files |
+| Phase 41 P02 | 5min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -241,16 +242,19 @@ Recent decisions affecting current work:
 - [Phase 39-03]: The full production adapter (residency, accessors, mem accounting, module-level resident_tensor_bytes/format_mem_line) landed in the task-01 commit rather than being split across tasks 01/02, because the frozen Wave-0 deferred tests (AdapterResidencyTests, ResidentBytesTests) activate the instant the AdmittedSetAdapter symbol exists and cannot be partially satisfied. Tasks 02/03 add the plan's additional named requirements as additive tests. Mirrors Plan 39-02's frozen-test-is-load-bearing precedent.
 - [Phase 39-03]: Adapter constructor follows the frozen Wave-0 test's interface (root=, precision=, device=, run_dir=, version_metadata_path=, capacity_bytes=) rather than the plan prose's data_root=/memory_capacity_bytes= naming, since the deferred tests are the load-bearing contract; plan-named features (GSD_DATA_ROOT/git-common-dir default, DataSourceRootMissing/Incomplete, GSD_ALLOW_PARTIAL_DATA_ROOT, mem_ballpark, resident_tensor_bytes_misfit, remediation_quarantine, records_at/records_at_or_below/has_stage) are layered in as additive behavior + tests.
 - [Phase 39-03]: adapter.py references .s_min (building the interim classify record) but deliberately contains NO STAGE_0/STAGE_1 literal — numeric-stage detection uses `label is not StageLabel.UNASSIGNED` / `label.value` — so it stays off the sole-classifier prohibition audit while stages.py remains the sole numeric classifier. The classifier floor is stored as self.classifier_interim_s0 (word-boundary-safe against the s0-mutation detector) and passed positionally to classify_stage_label.
-- [Phase ?]: Retained exit_code as internal param while renaming emitted scan.log field to scan_exit_code=; plan acceptance grep over-broad on param names
+- [Phase 41]: Retained exit_code as internal param while renaming emitted scan.log field to scan_exit_code=; plan acceptance grep over-broad on param names
 - [Phase 40]: [Phase 40 Plan 40-05]: RunController anchors L_IC/L_E/L_L on one representative identity per fixed batch (pinn.loss_catalog single-trajectory-scoped signatures), computing h0/l0 from that identity ground-truth snapshot-0 via loss_catalog own helpers, eps_h provisional |h0|*1e-4; GradClipper.clip fixed to materialize its params iterable (was silently no-oping the apply call on a live generator) and gained state_dict/load_state_dict for RunController checkpoint composition.
 - [Phase 40]: CurriculumController requires exactly one of run_controller/forced_disposition at construction — Defensive Rule 2 addition beyond the plan's T-40-09 both-supplied guard; a controller with neither could never produce a StageDisposition
-- [Phase ?]: CR-01: RECOVER restores RunController from rollback payload before retry (dual-guard: live controller + run_controller key)
-- [Phase ?]: CR-02: zero L-BFGS headroom polls StageExitMachine once; n_adam==max_epochs stays legal (GAP-40-02 A)
-- [Phase ?]: WR-01: GradClipper checkpoint carries dtype as string and restores via closed local float32/float64 map
-- [Phase ?]: WR-03: percentile_10_relaxation is a reserved owner-authorized degraded-advancement seam with no automatic consumer
-- [Phase ?]: GAP-40-04 Option C: stage_factory yields RunController; ADVANCE swaps + rebinds schedule before stage-init save
-- [Phase ?]: stage_factory=None preserves PLAT-01 single-stage; no default factory / no invented per-stage tables (SCOPE-19)
-- [Phase ?]: 41-01: checkpoint cadence under run.checkpoint; guards under run.guards; RNG format UNDECIDED (A sidecar vs B sibling)
+- [Phase 41]: CR-01: RECOVER restores RunController from rollback payload before retry (dual-guard: live controller + run_controller key)
+- [Phase 41]: CR-02: zero L-BFGS headroom polls StageExitMachine once; n_adam==max_epochs stays legal (GAP-40-02 A)
+- [Phase 41]: WR-01: GradClipper checkpoint carries dtype as string and restores via closed local float32/float64 map
+- [Phase 41]: WR-03: percentile_10_relaxation is a reserved owner-authorized degraded-advancement seam with no automatic consumer
+- [Phase 41]: GAP-40-04 Option C: stage_factory yields RunController; ADVANCE swaps + rebinds schedule before stage-init save
+- [Phase 41]: stage_factory=None preserves PLAT-01 single-stage; no default factory / no invented per-stage tables (SCOPE-19)
+- [Phase 41]: 41-01: checkpoint cadence under run.checkpoint; guards under run.guards; RNG format UNDECIDED (A sidecar vs B sibling)
+- [Phase 41]: TorchSaveCheckpointStore name preserved as production body; CHECKPOINT_SCHEMA_VERSION owned by checkpoint.py
+- [Phase 41]: failure-* excluded from fallback_scan and latest.pt; bounded by failure_keep
+- [Phase 41]: should_checkpoint elapsed is time-since-last-write via last_written_time + injectable time.monotonic
 
 ### Pending Todos
 
@@ -279,8 +283,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-18T08:08:33.905Z
-Stopped at: Completed 41-01-PLAN.md
+Last session: 2026-07-18T08:16:03.337Z
+Stopped at: Completed 41-02-PLAN.md
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
