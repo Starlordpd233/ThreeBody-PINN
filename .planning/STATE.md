@@ -5,10 +5,10 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
 current_phase_name: config-checkpointing-resume-determinism
 status: verifying
-stopped_at: Completed 41-05-PLAN.md
+stopped_at: Phase 41 verification gaps_found (CTRL-08 config RNG)
 last_updated: "2026-07-18T08:45:34.336Z"
 last_activity: 2026-07-18
-last_activity_desc: Completed 41-05 resume/rollback + pinn.train driver
+last_activity_desc: Phase 41 executed 5/5 plans; verification gaps_found on CTRL-08 frozen-config RNG
 progress:
   total_phases: 7
   completed_phases: 5
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 41 (config-checkpointing-resume-determinism) — VERIFYING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
-Last activity: 2026-07-18 — Completed 41-05 resume/rollback + pinn.train driver
+Phase: 41 (config-checkpointing-resume-determinism) — GAPS FOUND
+Plan: 5 of 5 executed; verification incomplete
+Status: gaps_found — CTRL-08 config-side four-stream RNG pending owner pick (A/B)
+Last activity: 2026-07-18 — execute-phase complete; VERIFICATION.md status gaps_found
 
 ## Deferred Items
 
