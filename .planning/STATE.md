@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
-current_phase_name: Config, Checkpointing, Resume & Determinism
+current_phase_name: config-checkpointing-resume-determinism
 status: executing
-stopped_at: Phase 41 planned (5 plans)
-last_updated: "2026-07-18T04:10:06.465Z"
-last_activity: 2026-07-17
-last_activity_desc: Phase 41 planned — 5 plans, ready to execute
+stopped_at: Completed 41-01-PLAN.md
+last_updated: "2026-07-18T08:08:33.911Z"
+last_activity: 2026-07-18
+last_activity_desc: Phase 41 execution started
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 34
-  completed_plans: 34
+  total_plans: 39
+  completed_plans: 35
   percent: 57
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 41 — Config, Checkpointing, Resume & Determinism
+**Current focus:** Phase 41 — config-checkpointing-resume-determinism
 
 ## Current Position
 
-Phase: 41 — Config, Checkpointing, Resume & Determinism
-Plan: Not started
+Phase: 41 (config-checkpointing-resume-determinism) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-07-17 — Phase 40 complete, transitioned to Phase 41
+Last activity: 2026-07-18 — Phase 41 execution started
 
 ## Deferred Items
 
@@ -117,6 +117,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 40 P07 | 12min | 2 tasks | 3 files |
 | Phase 40 P08 | 25min | 3 tasks | 6 files |
 | Phase 40 P09 | 10min | 3 tasks | 3 files |
+| Phase 41 P01 | 6min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -249,6 +250,7 @@ Recent decisions affecting current work:
 - [Phase ?]: WR-03: percentile_10_relaxation is a reserved owner-authorized degraded-advancement seam with no automatic consumer
 - [Phase ?]: GAP-40-04 Option C: stage_factory yields RunController; ADVANCE swaps + rebinds schedule before stage-init save
 - [Phase ?]: stage_factory=None preserves PLAT-01 single-stage; no default factory / no invented per-stage tables (SCOPE-19)
+- [Phase ?]: 41-01: checkpoint cadence under run.checkpoint; guards under run.guards; RNG format UNDECIDED (A sidecar vs B sibling)
 
 ### Pending Todos
 
@@ -275,10 +277,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/41-config-checkpointing-resume-determinism/41-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-07-18T03:08:56.925Z
-Stopped at: Phase 41 context gathered
+Last session: 2026-07-18T08:08:33.905Z
+Stopped at: Completed 41-01-PLAN.md
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps

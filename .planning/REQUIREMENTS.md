@@ -64,7 +64,7 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 
 ### Config, Checkpointing, Resume & Determinism (CTRL) — Phase 41
 
-- [ ] **CTRL-01**: A single YAML config keyed `run / stage / opt / loss` drives every run, with the fully-resolved config frozen into the run folder. [B-9]
+- [x] **CTRL-01**: A single YAML config keyed `run / stage / opt / loss` drives every run, with the fully-resolved config frozen into the run folder. [B-9]
 - [ ] **CTRL-02**: Checkpoints write on a dual trigger (every N steps OR a wall-clock ceiling, whichever first) with rolling-3 + `best.pt` + `latest.pt` + stage anchors retention; the wall-clock ceiling value is an owner pick (r1b 15–30 min range, informed by the smoke test). [D4-a]
 - [ ] **CTRL-03**: Checkpoint writes are atomic (tmp + fsync + rename), `weights_only`-clean, with a fallback scan on corruption. [D4-b]
 - [ ] **CTRL-04**: Dual stage-boundary anchors (`stage-{k}-final.pt` + `stage-{k+1}-init.pt`, excluded from rolling deletion) and idempotent ordered promotion with a `curriculum.jsonl` recording every promotion / RECOVER / HALT disposition. [D7-a, D7-d]
@@ -171,7 +171,7 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 | TRAIN-05 | Phase 40 | Complete |
 | TRAIN-06 | Phase 40 | Complete |
 | TRAIN-07 | Phase 40 | Complete |
-| CTRL-01 | Phase 41 | Pending |
+| CTRL-01 | Phase 41 | Complete |
 | CTRL-02 | Phase 41 | Pending |
 | CTRL-03 | Phase 41 | Pending |
 | CTRL-04 | Phase 41 | Pending |
