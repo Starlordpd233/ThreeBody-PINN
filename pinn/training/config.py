@@ -534,4 +534,24 @@ class TrainingConfig:
                 ),
             }
         )
+        # ⚖ B-5 / CTX-57 resume field classification (41-05). Constraint pinned;
+        # exact field-location mapping for DEFERRED categories is owner-carved.
+        try:
+            from pinn.training.resume import (
+                resume_field_classification_provisional_entry,
+            )
+
+            out.append(resume_field_classification_provisional_entry())
+        except ImportError:
+            out.append(
+                {
+                    "name": "resume_field_classification_registry",
+                    "value": "PROVISIONAL",
+                    "provisional": True,
+                    "provenance": (
+                        "⚖ PROVISIONAL (B-5 / CTX-57): resume field classification "
+                        "registry; owner-ratify before run #1"
+                    ),
+                }
+            )
         return tuple(out)
