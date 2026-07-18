@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
 current_phase_name: config-checkpointing-resume-determinism
 status: executing
-stopped_at: Completed 41-03-PLAN.md
-last_updated: "2026-07-18T08:23:10.726Z"
+stopped_at: Completed 41-04-PLAN.md
+last_updated: "2026-07-18T08:34:06.617Z"
 last_activity: 2026-07-18
-last_activity_desc: Completed 41-03 guards + determinism modules
+last_activity_desc: Completed 41-04 controllers mid-stage checkpoint + guard hooks
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 39
-  completed_plans: 37
+  completed_plans: 38
   percent: 59
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 41 (config-checkpointing-resume-determinism) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
-Last activity: 2026-07-18 — Completed 41-03 guards + determinism modules
+Last activity: 2026-07-18 — Completed 41-04 controllers mid-stage checkpoint + guard hooks
 
 ## Deferred Items
 
@@ -120,6 +120,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 41 P01 | 6min | 3 tasks | 9 files |
 | Phase 41 P02 | 5min | 3 tasks | 2 files |
 | Phase 41 P03 | 5min | 2 tasks | 4 files |
+| Phase 41 P04 | 25min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -258,6 +259,9 @@ Recent decisions affecting current work:
 - [Phase 41]: should_checkpoint elapsed is time-since-last-write via last_written_time + injectable time.monotonic
 - [Phase 41]: GuardOutcome per-family RECOVER/HALT (LOW-1); memory signal torch.mps.driver_allocated_memory with injectable total
 - [Phase 41]: apply_strict_cpu_determinism returns float64/cpu RuntimeSpec for pinn.train build override (HIGH 4)
+- [Phase ?]: Dual save path: Phase-40 nested save() + CTX-53 save_anchor via build_checkpoint_payload
+- [Phase ?]: Beyond-terminal promote soft-fail; TRAIN-07 preflight owns stage>=3 hard stop
+- [Phase ?]: checkpoint_hook/guard_hook are closures with phase-specific placement (Adam before step, L-BFGS after)
 
 ### Pending Todos
 
@@ -286,8 +290,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-18T08:23:10.720Z
-Stopped at: Completed 41-03-PLAN.md
+Last session: 2026-07-18T08:34:06.612Z
+Stopped at: Completed 41-04-PLAN.md
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
