@@ -110,7 +110,7 @@ Each task was committed atomically (implementation landed as one intertwined com
 
 1. **Tasks 1–3: state exposure + hooks + curriculum ledger** - `92dabc98` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `93aeb49f` (docs: complete plan)
 
 _Note: TDD tasks share production file; RED/GREEN were executed in-session with final green suite before the single feat commit._
 
