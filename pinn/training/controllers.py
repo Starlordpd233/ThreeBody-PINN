@@ -60,7 +60,7 @@ import logging
 import math
 import time
 from dataclasses import dataclass, replace
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Mapping, Optional, Sequence
 
 import numpy as np
 import torch
@@ -334,6 +334,20 @@ class RunController:
 
         self.last_handoff_event: Optional[HandoffEvent] = None
 
+        # Phase-42 OPS-03/04b widened logging substrate (CTX-65 / CTX-70).
+        # Populated by `_non_data_terms` (via `causal_physics_loss(return_details=True)`)
+        # and read by `_log_step` so both Adam and L-BFGS records share one
+        # provenance for w_n stats, per-bin residuals, and the non-data term
+        # scalars. None-tolerant: tests that monkeypatch `_compose_loss_terms`
+        # (bypassing `_non_data_terms`) still log without error.
+        self._last_widened_details: Optional[dict] = None
+        # Per-step-delta wall clock (distinct from `self._wall_clock_baseline`,
+        # which is the run-start baseline). Used to derive `s_per_step` (EMA of
+        # per-step wall time) and `eta_seconds` (stage-remaining ETA; null until
+        # the EMA warms — CTX discretion).
+        self._last_step_wall: Optional[float] = None
+        self._s_per_step_ema: Optional[float] = None
+
     # ------------------------------------------------------------------
     # Public checkpoint surface (CTX-44 -- composes model + schedule + clipper
     # + Phase-41 optimizer / rng / counters).
@@ -494,8 +508,13 @@ class RunController:
         times_tensor = torch.as_tensor(
             anchor_ctx.collocation_times, dtype=self._dtype, device=self._device,
         )
-        phys_term = causal_physics_loss(
+        # CTX-70 / OPS-04b: `return_details=True` exposes the detached causal
+        # weights `w_n` and per-bin residuals `Rbar_n` without altering the
+        # scalar `phys_term` (the default return is byte-for-byte unchanged, so
+        # `_weighted_non_data_terms` and Phase 38/40 tests are untouched).
+        phys_term, phys_details = causal_physics_loss(
             rbar, times=times_tensor, dtype=self._dtype, device=self._device,
+            return_details=True,
         )
 
         energy_term = soft_energy_loss(
@@ -506,6 +525,31 @@ class RunController:
             positions, velocities, anchor_ctx.l0,
             masses=anchor_ctx.masses, dtype=self._dtype, device=self._device,
         )
+
+        # Phase-42 OPS-03 widened logging surface: stash native-Python scalars
+        # (NOT tensors — `json.dumps(allow_nan=False)` in 42-04 would
+        # `TypeError` on a raw `torch.Tensor`) so both Adam and L-BFGS log
+        # sites read ONE shared source (review finding #7). `front_idx` uses
+        # `default=-1` so a collapsed causal-weight vector (no `w_n > 0.5`)
+        # returns -1 instead of raising on an empty sequence (cycle-2 agy HIGH).
+        w_n = phys_details["w_n"]
+        rbar_det = phys_details["rbar"]
+        w_n_list = w_n.tolist()
+        self._last_widened_details = {
+            "w_n_stats": {
+                "w_min": float(w_n.min()),
+                "w_mean": float(w_n.mean()),
+                "w_max": float(w_n.max()),
+                "front_idx": max(
+                    [n for n, w in enumerate(w_n_list) if w > 0.5], default=-1,
+                ),
+            },
+            "residuals_per_bin": [float(r) for r in rbar_det.tolist()],
+            "ic": float(ic_term.detach()),
+            "phys": float(phys_term.detach()),
+            "energy": float(energy_term.detach()),
+            "angmom": float(angmom_term.detach()),
+        }
         return {"ic": ic_term, "phys": phys_term, "energy": energy_term, "angmom": angmom_term}
 
     def _weighted_non_data_terms(self, anchor_ctx: _AnchorContext, weights) -> torch.Tensor:
@@ -567,8 +611,31 @@ class RunController:
     # ------------------------------------------------------------------
     # Minimal step log + loss-terms helper for L-BFGS guard bridge.
     # ------------------------------------------------------------------
-    def _log_step(self, *, step: int, loss_terms: Any, lr: Optional[float], phase: str) -> None:
-        """CTX-52 minimal functional step log (canonical JSONL is Phase 42)."""
+    def _log_step(
+        self,
+        *,
+        step: int,
+        loss_terms: Any,
+        lr: Optional[float],
+        phase: str,
+        stage: int = 0,
+        grad_norm: Optional[float] = None,
+        w_n_stats: Optional[Mapping] = None,
+        residuals_per_bin: Optional[Sequence[float]] = None,
+        s_per_step: Optional[float] = None,
+        eta_seconds: Optional[float] = None,
+        epoch: Optional[int] = None,
+        step_completed: bool = True,
+        weights: Optional[loss_catalog.LossWeights] = None,
+    ) -> None:
+        """CTX-52 / Phase-42 OPS-03 widened step log (canonical JSONL + TB panel).
+
+        Single emission point (CTX-65): every downstream sink (JSONL handler,
+        human mirror, TensorBoard residual panel) fans out from this one
+        ``extra=`` dict. Guard-tripped / non-finite steps reach this method
+        before the disposition ``return`` (Task 3) so a diverged step is
+        recorded, not silently dropped.
+        """
         try:
             total = float(loss_terms.total.detach()) if hasattr(loss_terms, "total") else float("nan")
             terms = {
@@ -581,17 +648,91 @@ class RunController:
         except Exception:
             total = float("nan")
             terms = {}
+
+        # Both Adam and L-BFGS read ONE shared source for w_n stats, per-bin
+        # residuals, and the non-data term scalars (review finding #7). The
+        # stash is None-tolerant (e.g. tests that monkeypatch
+        # `_compose_loss_terms`, bypassing `_non_data_terms`). Explicit kwargs
+        # take precedence so the L-BFGS full-record path (Task 3) can override.
+        stash = self._last_widened_details or {}
+        resolved_w_n_stats = w_n_stats if w_n_stats is not None else stash.get("w_n_stats")
+        resolved_residuals = residuals_per_bin if residuals_per_bin is not None else stash.get("residuals_per_bin")
+
+        # Per-step-delta wall clock (distinct from `self._wall_clock_baseline`,
+        # the run-start baseline). `s_per_step` is an EMA of per-step wall
+        # time; `eta_seconds` is the stage-remaining ETA, null until the EMA
+        # warms (CTX discretion). Explicit kwargs override the computed values.
+        now = float(time.monotonic())
+        if self._last_step_wall is not None:
+            dt = now - self._last_step_wall
+            alpha = 0.1
+            if self._s_per_step_ema is None:
+                self._s_per_step_ema = dt
+            else:
+                self._s_per_step_ema = alpha * dt + (1.0 - alpha) * self._s_per_step_ema
+        self._last_step_wall = now
+        resolved_s_per_step = s_per_step if s_per_step is not None else self._s_per_step_ema
+        resolved_eta_seconds = eta_seconds if eta_seconds is not None else None
+
+        # Lambda weight-vector components under the CANONICAL names matching
+        # the `LossWeights` dataclass fields EXACTLY (`lambda_data/ic/phys/e/l`
+        # — NOT `lambda_energy`/`lambda_angmom`, which do not exist on
+        # `LossWeights`). The logged value is the warmup-ramped
+        # `λ·min(1, i/I_warm)` actually applied this step, not the raw
+        # `ScheduledWeights` per-stage cap (cycle-2 claude-glm LOW).
+        lambda_keys: dict[str, float] = {}
+        if weights is not None:
+            lambda_keys = {
+                "lambda_data": weights.lambda_data,
+                "lambda_ic": weights.lambda_ic,
+                "lambda_phys": weights.lambda_phys,
+                "lambda_e": weights.lambda_e,
+                "lambda_l": weights.lambda_l,
+            }
+
+        # w_n stats keys (None-tolerant; emitted as null when the stash is
+        # absent — the sink applies the null policy).
+        w_keys: dict[str, Any] = {}
+        if resolved_w_n_stats is not None:
+            w_keys = {
+                "w_min": resolved_w_n_stats.get("w_min"),
+                "w_mean": resolved_w_n_stats.get("w_mean"),
+                "w_max": resolved_w_n_stats.get("w_max"),
+                "front_idx": resolved_w_n_stats.get("front_idx"),
+            }
+
+        # Per-bin residual scalars — OPS-04b TensorBoard-only fields. The
+        # JSONL handler (42-04) filters these out when serializing; the TB
+        # sink (42-05) reads them from this same widened record. Keeping them
+        # in the single extra dict preserves the CTX-65 "one emission point,
+        # sinks fan out" invariant.
+        res_keys: dict[str, float] = {}
+        if resolved_residuals is not None:
+            res_keys = {
+                f"residuals_bin_{n:02d}": r for n, r in enumerate(resolved_residuals)
+            }
+
+        extra = {
+            "event": "step",
+            "step": step,
+            "phase": phase,
+            "total": total,
+            "lr": lr,
+            **{f"loss_{k}": v for k, v in terms.items()},
+            **lambda_keys,
+            "grad_norm": grad_norm,
+            **w_keys,
+            "s_per_step": resolved_s_per_step,
+            "eta_seconds": resolved_eta_seconds,
+            "epoch": epoch,
+            "stage": stage,
+            "step_completed": step_completed,
+            **res_keys,
+        }
         _LOGGER.info(
             "step=%s phase=%s total=%s lr=%s terms=%s",
             step, phase, total, lr, terms,
-            extra={
-                "event": "step",
-                "step": step,
-                "phase": phase,
-                "total": total,
-                "lr": lr,
-                **{f"loss_{k}": v for k, v in terms.items()},
-            },
+            extra=extra,
         )
 
     def _scalar_loss_terms(self, total_value: float) -> LossTerms:
@@ -600,6 +741,44 @@ class RunController:
         total = torch.tensor(float(total_value), dtype=self._dtype, device=self._device)
         return LossTerms(
             data=zero, ic=zero, phys=zero, energy=zero, angmom=zero, total=total,
+        )
+
+    def _lbfgs_full_loss_terms(self, closure_state: dict[str, Any]) -> LossTerms:
+        """Full five-term LossTerms for the L-BFGS widened step log.
+
+        Sources the data term from the closure's detached capture
+        (`closure_state['data_detached']`) and the non-data per-term scalars
+        from `self._last_widened_details` (populated by `_non_data_terms` via
+        `causal_physics_loss(return_details=True)`), so the phase-2b JSONL
+        record carries the full widened field set (review finding #7) rather
+        than the total-only carrier from `_scalar_loss_terms`.
+
+        Falls back to `_scalar_loss_terms` when the detached capture or stash
+        is absent (e.g. a test bypassed `_non_data_terms`).
+
+        CAVEAT: L-BFGS evaluates the closure multiple times per
+        `optimizer.step(closure)` (line-search trials), so the logged
+        per-term breakdown reflects the LAST closure evaluation, which may
+        not be the accepted step — acceptable for a diagnostic panel.
+        """
+        stash = self._last_widened_details or {}
+        data_detached = closure_state.get("data_detached")
+        last_loss = closure_state.get("last_loss")
+        if data_detached is None or not stash:
+            return self._scalar_loss_terms(
+                float(last_loss) if last_loss is not None else float("nan"),
+            )
+        zero = torch.zeros((), dtype=self._dtype, device=self._device)
+        return LossTerms(
+            data=torch.tensor(float(data_detached), dtype=self._dtype, device=self._device),
+            ic=torch.tensor(stash.get("ic", 0.0), dtype=self._dtype, device=self._device),
+            phys=torch.tensor(stash.get("phys", 0.0), dtype=self._dtype, device=self._device),
+            energy=torch.tensor(stash.get("energy", 0.0), dtype=self._dtype, device=self._device),
+            angmom=torch.tensor(stash.get("angmom", 0.0), dtype=self._dtype, device=self._device),
+            total=torch.tensor(
+                float(last_loss) if last_loss is not None else float("nan"),
+                dtype=self._dtype, device=self._device,
+            ),
         )
 
     def _apply_pending_optimizer_state(self) -> None:
@@ -662,26 +841,56 @@ class RunController:
                     and getattr(guard_outcome, "disposition", None) is not None
                 ):
                     state["disposition"] = guard_outcome.disposition
+                    # CTX-65 / OPS-04b: emit the widened record BEFORE the
+                    # disposition return so a diverged step is recorded, not
+                    # silently dropped. step = self._global_step + 1 is the
+                    # index the completed step would have carried (the increment
+                    # at the bottom of the loop hasn't run yet on this path).
+                    self._log_step(
+                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
+                        phase="2a", stage=k, grad_norm=grad_norm,
+                        step_completed=False, weights=weights,
+                    )
                     return handoff_trigger, adam_epochs_used
                 # Guard did not trip — inline checks fire as Phase 40.
                 if not self._loss_finite(loss_terms.total):
                     state["disposition"] = StageDisposition.RECOVER
+                    self._log_step(
+                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
+                        phase="2a", stage=k, grad_norm=None,
+                        step_completed=False, weights=weights,
+                    )
                     return handoff_trigger, adam_epochs_used
                 if clip_outcome is None:
                     loss_terms.total.backward()
                     clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
                 if clip_outcome.non_finite:
                     state["disposition"] = StageDisposition.RECOVER
+                    self._log_step(
+                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
+                        phase="2a", stage=k, grad_norm=grad_norm,
+                        step_completed=False, weights=weights,
+                    )
                     return handoff_trigger, adam_epochs_used
             else:
                 # Phase-40 path: inline non-finite checks only.
                 if not self._loss_finite(loss_terms.total):
                     state["disposition"] = StageDisposition.RECOVER
+                    self._log_step(
+                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
+                        phase="2a", stage=k, grad_norm=None,
+                        step_completed=False, weights=weights,
+                    )
                     return handoff_trigger, adam_epochs_used
                 loss_terms.total.backward()
                 clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
                 if clip_outcome.non_finite:
                     state["disposition"] = StageDisposition.RECOVER
+                    self._log_step(
+                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
+                        phase="2a", stage=k, grad_norm=grad_norm,
+                        step_completed=False, weights=weights,
+                    )
                     return handoff_trigger, adam_epochs_used
 
             optimizer.step()
@@ -708,6 +917,7 @@ class RunController:
                 lr_now = None
             self._log_step(
                 step=self._global_step, loss_terms=loss_terms, lr=lr_now, phase="2a",
+                stage=k, grad_norm=grad_norm, epoch=int(adam_epochs_used), weights=weights,
             )
 
             # Checkpoint/best hook AFTER validation so _last_val_total is live.
@@ -736,6 +946,13 @@ class RunController:
 
             total = weighted_data + other_total.detach()
             closure_state["last_loss"] = float(total.detach())
+            # Detached data-term capture for the post-step widened log (review
+            # finding #7). The LAST closure invocation's value is the one the
+            # log site reads; L-BFGS may evaluate the closure multiple times
+            # per `optimizer.step(closure)` (line-search trials), so the logged
+            # per-term breakdown reflects the last evaluation, which may not be
+            # the accepted step — acceptable for a diagnostic panel.
+            closure_state["data_detached"] = float(weighted_data.detach())
             if not self._loss_finite(total):
                 closure_state["non_finite"] = True
                 return total
@@ -811,14 +1028,34 @@ class RunController:
                     and getattr(guard_outcome, "disposition", None) is not None
                 ):
                     self._scheduled_weights.rewarm()
+                    # CTX-65 / OPS-04b: emit the widened record BEFORE the
+                    # disposition return so a diverged L-BFGS step is recorded.
+                    self._log_step(
+                        step=self._global_step,
+                        loss_terms=self._lbfgs_full_loss_terms(closure_state),
+                        lr=None, phase="2b", stage=k, grad_norm=None,
+                        step_completed=False,
+                    )
                     return guard_outcome.disposition
                 # Guard did not trip — bare RECOVER still fires if non_finite.
                 if closure_state["non_finite"]:
                     self._scheduled_weights.rewarm()
+                    self._log_step(
+                        step=self._global_step,
+                        loss_terms=self._lbfgs_full_loss_terms(closure_state),
+                        lr=None, phase="2b", stage=k, grad_norm=None,
+                        step_completed=False,
+                    )
                     return StageDisposition.RECOVER
             else:
                 if closure_state["non_finite"]:
                     self._scheduled_weights.rewarm()
+                    self._log_step(
+                        step=self._global_step,
+                        loss_terms=self._lbfgs_full_loss_terms(closure_state),
+                        lr=None, phase="2b", stage=k, grad_norm=None,
+                        step_completed=False,
+                    )
                     return StageDisposition.RECOVER
 
             train_loss_history.append(closure_state["last_loss"])
@@ -831,13 +1068,15 @@ class RunController:
                 state["val_phys"] = float(val_terms.phys.detach())
                 state["val_energy"] = float(val_terms.energy.detach())
 
-            # Minimal step log for L-BFGS (loss total only).
+            # Widened step log for L-BFGS (full five-term breakdown + w_n
+            # stats + per-bin residuals via `closure_state['data_detached']`
+            # + `self._last_widened_details`; review finding #7).
             if closure_state["last_loss"] is not None:
                 self._log_step(
                     step=self._global_step,
-                    loss_terms=self._scalar_loss_terms(float(closure_state["last_loss"])),
-                    lr=None,
-                    phase="2b",
+                    loss_terms=self._lbfgs_full_loss_terms(closure_state),
+                    lr=None, phase="2b", stage=k,
+                    epoch=int(epoch_count),
                 )
 
             if self._checkpoint_hook is not None:

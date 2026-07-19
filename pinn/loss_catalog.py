@@ -206,7 +206,7 @@ def ic_anchor_loss(pred_r0, true_r0, pred_v0, true_v0, *, beta_v=1.0, dtype, dev
 
 
 def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
-                        dtype, device):
+                        dtype, device, return_details: bool = False):
     """§3.2 causally-weighted physics residual energy.
 
     Preconditions
@@ -258,7 +258,12 @@ def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
     weights = torch.exp(-eta * cumsum_excl)
     # w_1 is identically 1 by construction (cumsum_excl[0] = 0); pin via constant.
     _ = CAUSAL_W1
-    return (weights * rbar).mean()
+    loss = (weights * rbar).mean()
+    if return_details:
+        # CTX-70: detach so the autograd graph is NOT retained across steps
+        # (retaining it would be a self-inflicted per-step memory DoS).
+        return loss, {"w_n": weights.detach(), "rbar": rbar.detach()}
+    return loss
 
 
 def soft_energy_loss(pred_positions, pred_velocities, h0, eps_h, *,
