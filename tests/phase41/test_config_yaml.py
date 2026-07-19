@@ -255,29 +255,22 @@ class ProvisionalSeamTests(unittest.TestCase):
                     f"{p['provenance']!r}",
                 )
 
-    def test_frozen_config_rng_recording_format_registered_undecided(self):
+    def test_frozen_config_rng_recording_format_decided_option_b(self):
+        # GAP-41-01 RESOLVED-WITH-INSTRUCTION (2026-07-18): representation B —
+        # config.yaml stays a pure TrainingConfig; four streams land in the
+        # sibling runs/<name>/run_start_rng.pt plus every checkpoint.
+        from pinn.training.config import FROZEN_CONFIG_RNG_RECORDING_FORMAT
+        from pinn.training.determinism import RUN_START_RNG_FILENAME
+
+        self.assertEqual(
+            FROZEN_CONFIG_RNG_RECORDING_FORMAT, "sibling-artifact:run_start_rng.pt"
+        )
+        self.assertEqual(RUN_START_RNG_FILENAME, "run_start_rng.pt")
+        # The seam is decided — it must no longer appear in the run-start
+        # provisional (owner-attention) listing.
         cfg = _valid_training()
-        prov = cfg.provisional_fields()
-        by_name = {p["name"]: p for p in prov}
-        self.assertIn("frozen_config_rng_recording_format", by_name)
-        entry = by_name["frozen_config_rng_recording_format"]
-        self.assertEqual(entry["value"], "UNDECIDED")
-        self.assertTrue(entry.get("provisional") is True)
-        provenance = entry["provenance"]
-        # Constraint + both candidates must be enumerated.
-        self.assertIn("RNG", provenance.upper() if "rng" not in provenance.lower() else provenance)
-        # Be flexible: accept either "RNG" or "stream" language plus A/B candidates.
-        self.assertTrue(
-            "sidecar" in provenance.lower() or "_runtime_state" in provenance
-            or "envelope" in provenance.lower(),
-            f"candidate A (sidecar envelope) missing from provenance: {provenance!r}",
-        )
-        self.assertTrue(
-            "sibling" in provenance.lower()
-            or "run_start_rng" in provenance
-            or "artifact" in provenance.lower(),
-            f"candidate B (sibling artifact) missing from provenance: {provenance!r}",
-        )
+        names = {p["name"] for p in cfg.provisional_fields()}
+        self.assertNotIn("frozen_config_rng_recording_format", names)
 
     def test_dataclass_equality_holds_with_new_fields(self):
         a = _valid_training()

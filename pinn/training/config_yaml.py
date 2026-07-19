@@ -266,9 +266,11 @@ def freeze_resolved_config(config: TrainingConfig, run_dir: PathLike) -> Path:
     Returns the path of the frozen artifact. Re-parsing via ``load_config``
     yields a ``TrainingConfig`` EQUAL to ``config`` (CTRL-01 / CTX-51).
 
-    The RNG-stream carriage representation is the ⚖
-    ``frozen_config_rng_recording_format`` seam (registered in
-    ``provisional_fields()`` as UNDECIDED) and is NOT implemented here.
+    RNG-stream carriage (CTRL-08) uses representation B of the
+    ``frozen_config_rng_recording_format`` seam (GAP-41-01, ratified
+    2026-07-18): this file stays a pure TrainingConfig; the four run-start
+    streams are recorded beside it in ``run_start_rng.pt`` by
+    ``determinism.record_run_start_rng`` — and in every checkpoint.
     """
     destination_dir = Path(run_dir)
     destination_dir.mkdir(parents=True, exist_ok=True)

@@ -20,7 +20,8 @@ explicitly NEVER bitwise. 41-05's run reporting emits this string.
 from __future__ import annotations
 
 import random
-from typing import Any, Mapping, MutableMapping, Optional
+from pathlib import Path
+from typing import Any, Mapping, MutableMapping, Optional, Union
 
 # Documented stream key order — capture and restore iterate in this sequence.
 # Consumers (checkpoint payload composition, tests) rely on these names.
@@ -30,6 +31,12 @@ RNG_STREAM_KEYS: tuple[str, ...] = (
     "numpy",
     "python_random",
 )
+
+# GAP-41-01 representation B (RESOLVED-WITH-INSTRUCTION 2026-07-18): the
+# frozen-config side of CTRL-08 records the four run-start streams in this
+# sibling artifact next to runs/<name>/config.yaml — config.yaml itself stays
+# a pure TrainingConfig (CTRL-01/CTX-51 re-parse equality untouched).
+RUN_START_RNG_FILENAME: str = "run_start_rng.pt"
 
 # CTX-64 honesty layer — single source of truth for run reporting (41-05).
 # MUST state statistical-equivalence + exact-checkpoint-continuation.
@@ -106,6 +113,33 @@ def restore_rng_state(state: Mapping[str, Any], rng: Any) -> None:
         # the legacy tuple shape. Coerce defensively.
         py_state = state["python_random"]
         random.setstate(_coerce_python_random_state(py_state))
+
+
+def record_run_start_rng(run_dir: Union[str, Path], rng: Any) -> Path:
+    """Record the four run-start RNG streams beside the frozen config (CTRL-08).
+
+    Representation B of the ``frozen_config_rng_recording_format`` seam
+    (GAP-41-01 RESOLVED-WITH-INSTRUCTION 2026-07-18): the streams land in
+    ``<run_dir>/run_start_rng.pt`` via the same ``capture_rng_state`` +
+    ``atomic_io.atomic_write_torch`` path every checkpoint already uses.
+    Written once at fresh launch; resume must never overwrite it — the
+    resume-time streams are not the run-start streams.
+    """
+    from pinn.training.atomic_io import atomic_write_torch
+
+    payload = {
+        "rng": capture_rng_state(rng),
+        "rng_stream_keys": list(RNG_STREAM_KEYS),
+        "reproducibility_scope": REPRODUCIBILITY_SCOPE,
+    }
+    return atomic_write_torch(Path(run_dir) / RUN_START_RNG_FILENAME, payload)
+
+
+def load_run_start_rng(run_dir: Union[str, Path]) -> dict[str, Any]:
+    """Load the run-start RNG record written by ``record_run_start_rng``."""
+    import torch  # lazy
+
+    return torch.load(Path(run_dir) / RUN_START_RNG_FILENAME, weights_only=True)
 
 
 def apply_strict_cpu_determinism(seed: int) -> Any:
@@ -204,8 +238,11 @@ def _coerce_python_random_state(py_state: Any) -> Any:
 __all__ = [
     "RNG_STREAM_KEYS",
     "REPRODUCIBILITY_SCOPE",
+    "RUN_START_RNG_FILENAME",
     "apply_strict_cpu_determinism",
     "capture_rng_state",
+    "load_run_start_rng",
+    "record_run_start_rng",
     "restore_rng_state",
     "reproducibility_scope",
 ]

@@ -125,8 +125,13 @@ _PROVISIONAL_EVERY_N_STEPS = 100  # cadence seam default (not owner-carved scien
 _DEFAULT_ROLLING_KEEP = 3
 _DEFAULT_FAILURE_KEEP = 10  # plain disk-hygiene retention bound (LOW-2)
 
-# Sentinel for the undecided frozen-config RNG recording representation.
-_FROZEN_CONFIG_RNG_RECORDING_UNDECIDED = "UNDECIDED"
+# frozen_config_rng_recording_format — GAP-41-01 RESOLVED-WITH-INSTRUCTION
+# (2026-07-18, owner delegated best-judgment pick): representation B. The
+# frozen runs/<name>/config.yaml stays a pure TrainingConfig; the four RNG
+# streams are recorded at run start in the sibling artifact
+# runs/<name>/run_start_rng.pt (determinism.record_run_start_rng) PLUS every
+# checkpoint. See .planning/phases/41-*/41-GAPS.md for the full record.
+FROZEN_CONFIG_RNG_RECORDING_FORMAT = "sibling-artifact:run_start_rng.pt"
 
 # Provisional registry: (dotted_name, default_value, provenance).
 _PROVISIONAL: tuple[tuple[str, Any, str], ...] = (
@@ -474,8 +479,10 @@ class TrainingConfig:
         """Enumerate provisional-tagged fields with provenance for run-start log.
 
         Includes Phase-40 CTX-38/47/49 thresholds plus Phase-41 ⚖ seams
-        (D4-a wall-clock ceiling, R-1 guard thresholds) and the
-        ``frozen_config_rng_recording_format`` undecided representation.
+        (D4-a wall-clock ceiling, R-1 guard thresholds). The former
+        ``frozen_config_rng_recording_format`` seam is DECIDED (GAP-41-01,
+        representation B — see ``FROZEN_CONFIG_RNG_RECORDING_FORMAT``) and no
+        longer appears in this owner-attention listing.
         """
         lookup = {
             "stage.beta": self.stage.beta,
@@ -510,30 +517,6 @@ class TrainingConfig:
                     "provenance": provenance,
                 }
             )
-        # ⚖ HIGH (cross-AI review): CTRL-08 requires config.yaml to carry all
-        # four RNG streams while CTRL-01/CTX-51 requires the frozen file to
-        # re-parse to an EQUAL TrainingConfig. The CONSTRAINT is pinned; the
-        # SERIALIZATION REPRESENTATION is owner-carved and NOT silently chosen.
-        out.append(
-            {
-                "name": "frozen_config_rng_recording_format",
-                "value": _FROZEN_CONFIG_RNG_RECORDING_UNDECIDED,
-                "provisional": True,
-                "provenance": (
-                    "⚖ PROVISIONAL (owner-carved representation): CONSTRAINT pinned "
-                    "— runs/<name>/config.yaml MUST carry all four RNG streams "
-                    "(CTRL-08/CTX-62) WHILE preserving TrainingConfig re-parse "
-                    "equality (CTRL-01/CTX-51). Representation candidates: "
-                    "(A) sidecar metadata envelope inside config.yaml under an "
-                    "ignored top-level key (e.g. _runtime_state) holding the four "
-                    "streams — load_config skips it; OR (B) config.yaml stays a pure "
-                    "TrainingConfig and the four streams are recorded in a sibling "
-                    "artifact runs/<name>/run_start_rng.pt PLUS every checkpoint. "
-                    "Value=UNDECIDED until owner pick; do not implement either as "
-                    "ratified."
-                ),
-            }
-        )
         # ⚖ B-5 / CTX-57 resume field classification (41-05). Constraint pinned;
         # exact field-location mapping for DEFERRED categories is owner-carved.
         try:

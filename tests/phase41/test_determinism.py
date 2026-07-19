@@ -226,5 +226,36 @@ class ReproHonestyTests(unittest.TestCase):
         # But the word "bitwise" as a positive claim is banned — already checked.
 
 
+class RunStartRngRecordTests(unittest.TestCase):
+    """GAP-41-01 representation B: run-start four-stream record round-trip."""
+
+    def setUp(self):
+        self.record = _require("record_run_start_rng")
+        self.load = _require("load_run_start_rng")
+        self.restore = _require("restore_rng_state")
+        self.filename = _require("RUN_START_RNG_FILENAME")
+
+    def test_record_and_load_round_trip_four_streams(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            rng = np.random.default_rng(4242)
+            written = self.record(run_dir, rng)
+            self.assertEqual(Path(written), run_dir / self.filename)
+            self.assertTrue((run_dir / self.filename).is_file())
+
+            record = self.load(run_dir)
+            self.assertIn("rng", record)
+            for key in _STREAM_KEYS:
+                self.assertIn(key, record["rng"], msg=f"missing rng.{key}")
+
+            # Exact continuation off the record: restoring the numpy stream
+            # into a fresh generator reproduces the recorded generator's draws.
+            expected = [float(rng.random()) for _ in range(5)]
+            other = np.random.default_rng(1)
+            self.restore(record["rng"], other)
+            replayed = [float(other.random()) for _ in range(5)]
+            self.assertEqual(expected, replayed)
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

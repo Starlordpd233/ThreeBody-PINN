@@ -460,19 +460,23 @@ class RngRecordedEverywhereTests(_TrainHarness):
             for k in keys:
                 self.assertIn(k, rng, msg=f"{path.name} missing rng.{k}")
 
-        # Frozen-config RNG carriage is ⚖ UNDECIDED — assert conditionally.
-        from pinn.training.config import TrainingConfig
+        # Frozen-config RNG carriage — GAP-41-01 representation B: config.yaml
+        # stays a pure TrainingConfig (load_config's unknown-key rejection
+        # would refuse an A-style _runtime_state sidecar) and the four streams
+        # land in the sibling runs/<name>/run_start_rng.pt.
         from pinn.training.config_yaml import load_config
 
-        cfg = load_config(self.runs_root / "test-run" / "config.yaml")
-        prov = {f["name"]: f for f in cfg.provisional_fields()}
-        seam = prov.get("frozen_config_rng_recording_format")
-        self.assertIsNotNone(seam)
-        self.assertEqual(seam["value"], "UNDECIDED")
-        # Representation A would put _runtime_state in yaml; B would put
-        # run_start_rng.pt. Neither is implemented while UNDECIDED.
+        load_config(self.runs_root / "test-run" / "config.yaml")  # pure config
         sibling = self.runs_root / "test-run" / "run_start_rng.pt"
-        # Do not assert either representation exists.
+        self.assertTrue(
+            sibling.is_file(), "run_start_rng.pt missing (GAP-41-01 rep B)"
+        )
+        record = torch.load(sibling, weights_only=True)
+        self.assertIn("rng", record)
+        for k in keys:
+            self.assertIn(
+                k, record["rng"], msg=f"run_start_rng.pt missing rng.{k}"
+            )
 
 
 class MidStageRollingStructuralValidityTests(_TrainHarness):

@@ -312,6 +312,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"error: runtime resolve failed: {exc}", file=sys.stderr)
         return 1
 
+    # Run-start RNG record (CTRL-08, GAP-41-01 representation B): the four
+    # streams land in runs/<name>/run_start_rng.pt beside the frozen config.
+    # Recorded AFTER runtime resolve (so a strict-CPU reseed is reflected) on
+    # the same generator RunController consumes. Fresh launch only — resume
+    # must never overwrite the original run-start record.
+    run_rng = np.random.default_rng(int(config.run.seed))
+    if not is_resume:
+        determinism.record_run_start_rng(run_dir, run_rng)
+
     # Seed fan-out: ArchitectureSpec.seed = config.run.seed (RESEARCH OQ1).
     arch_spec = ArchitectureSpec(seed=int(config.run.seed))
 
@@ -466,7 +475,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         stage_exit_machine=stage_exit_machine,
         checkpoint_store=store,
         runtime=runtime_spec,
-        rng=np.random.default_rng(int(config.run.seed)),
+        rng=run_rng,
         checkpoint_hook=checkpoint_hook,
         guard_hook=guard_hook,
     )
