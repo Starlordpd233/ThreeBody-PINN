@@ -1,0 +1,42 @@
+# Copy this file before a run, then set the required Stage-0 budget for that run.
+run:
+  seed: 42
+  precision: float32
+  device: mps
+  log_every: 100
+  run_name: stage0-example
+  checkpoint: {}
+  # Advanced/provisional cadence and retention knobs use their documented defaults.
+  # checkpoint:
+  #   every_n_steps: 100
+  #   wall_clock_ceiling_s: 3600
+  guards: {}
+  # Advanced/provisional guard thresholds use their documented defaults.
+  # guards:
+  #   loss_explosion_ceiling: 1.0e12
+  #   disk_floor_fraction: 0.01
+  #   memory_watermark_fraction: 0.99
+  monitor:
+    heartbeat_secs: 30
+    staleness_factor: 3
+    # tb_histogram_every: 100
+    # mem_every: 100
+
+stage:
+  max_epochs: 1000
+  n_adam: 1000
+  stagnation_window: 10000
+  percentile_10_relaxation: 0.1
+  # beta: 0.98
+  # patience: 200
+  # eps_plateau: 1.0e-5
+  # eps_phys: 1.0e-4
+  # eps_energy: 1.0e-4
+
+opt:
+  validation_every: 100
+  # lbfgs_max_iter: 20
+  # lbfgs_chunk_size: 1024
+
+loss:
+  lambda_e_max: 1.0
