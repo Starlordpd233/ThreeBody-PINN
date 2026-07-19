@@ -12,6 +12,8 @@ logging schema + operator ergonomics stay Phase 42.
 from __future__ import annotations
 
 import argparse
+import logging
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,6 +39,7 @@ from pinn.training.controllers import (
 )
 from pinn.training.grad_clip import GradClipper
 from pinn.training.guards import StepGuards, write_failure_bundle
+from pinn.training.heartbeat import HeartbeatThread, sample_memory_fields
 from pinn.training.resume import (
     RESUME_FIELD_REGISTRY,
     HoldStageTargetError,
@@ -51,7 +54,11 @@ from pinn.training.resume import (
     validate_hold_stage_target,
 )
 from pinn.training.scheduled_weights import ScheduledWeights
+from pinn.training.signals import SignalState, install_signal_handlers
 from pinn.training.stage_exit import StageExitMachine
+from pinn.training.step_log import HumanStepHandler, JsonlStepHandler
+from pinn.training.summary import finalize_summary, stub_summary
+from pinn.training.tb_sink import TbSink
 
 # Overridable for tests (inject synthetic sources / alternate runs root).
 _RUNS_ROOT: Path = Path("runs")
@@ -292,8 +299,86 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 1
 
     run_dir.mkdir(parents=True, exist_ok=True)
+    for directory in ("logs", "tb", "failure"):
+        (run_dir / directory).mkdir(exist_ok=True)
     ckpt_dir = run_dir / "checkpoints"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
+
+    run_started_at = datetime.now(timezone.utc)
+    summary_header = {
+        "run_name": run_name,
+        "start_utc": run_started_at.isoformat(),
+        "end_utc": None,
+        "wall_clock_secs": None,
+        "device": config.run.device,
+        "precision": config.run.precision,
+        "seed": int(config.run.seed),
+    }
+    monitor = config.run.monitor
+    heartbeat = HeartbeatThread(
+        run_dir / "status.json",
+        heartbeat_secs=int(monitor.heartbeat_secs),
+        staleness_factor=int(monitor.staleness_factor),
+        run_name=run_name,
+        pid=os.getpid(),
+    )
+    heartbeat.write_initial()
+    stub_summary(run_dir, header=summary_header)
+
+    training_logger = logging.getLogger("pinn.training")
+    training_logger.setLevel(logging.INFO)
+    tracked_handlers = [
+        JsonlStepHandler(run_dir / "logs" / "train.log.jsonl"),
+        HumanStepHandler(run_dir / "logs" / "train.log"),
+        TbSink(run_dir / "tb"),
+    ]
+    for handler in tracked_handlers:
+        training_logger.addHandler(handler)
+
+    signal_state = SignalState()
+
+    def on_escalate() -> None:
+        try:
+            heartbeat.transition("interrupted")
+        except Exception:
+            pass
+        for handler in tracked_handlers:
+            try:
+                handler.flush()
+            except Exception:
+                pass
+
+    restore_handlers = install_signal_handlers(signal_state, on_escalate=on_escalate)
+    heartbeat.start()
+
+    def finish_run(
+        disposition: str,
+        exit_code: int,
+        final_losses: Optional[Mapping[str, Any]] = None,
+    ) -> int:
+        """Finalize one catchable run and release process-global resources."""
+        try:
+            finished_at = datetime.now(timezone.utc)
+            summary_header["end_utc"] = finished_at.isoformat()
+            summary_header["wall_clock_secs"] = (
+                finished_at - run_started_at
+            ).total_seconds()
+            heartbeat.transition(disposition)
+            finalize_summary(
+                run_dir,
+                disposition=disposition,
+                header=summary_header,
+                final_losses=final_losses if disposition == "finished" else None,
+                curriculum_path=run_dir / "curriculum.jsonl",
+            )
+        finally:
+            heartbeat.stop()
+            heartbeat.join()
+            for handler in tracked_handlers:
+                training_logger.removeHandler(handler)
+                handler.close()
+            restore_handlers()
+        return exit_code
 
     # Freeze resolved config (CTRL-01 / CTX-51). On resume, rewrite only when
     # the frozen file is absent so we do not thrash an existing freeze.
@@ -310,7 +395,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         runtime_spec = _resolve_runtime_spec(config)
     except Exception as exc:
         print(f"error: runtime resolve failed: {exc}", file=sys.stderr)
-        return 1
+        return finish_run("failed", 1)
 
     # Run-start RNG record (CTRL-08, GAP-41-01 representation B): the four
     # streams land in runs/<name>/run_start_rng.pt beside the frozen config.
@@ -336,7 +421,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
     except IdentityCoverageError as exc:
         print(f"error: {exc}", file=sys.stderr)
-        return 1
+        return finish_run("failed", 1)
 
     config_identity = build_config_identity_envelope(
         config, arch_spec, effective_runtime_spec=runtime_spec
@@ -384,6 +469,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         }
 
     best_val_cell: dict[str, float] = {"best": float("inf")}
+    last_losses_cell: dict[str, Optional[Mapping[str, Any]]] = {"losses": None}
 
     def checkpoint_hook(controller: RunController, global_step: int) -> None:
         elapsed = float(store._clock()) - float(store.last_written_time)
@@ -439,6 +525,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             grad_norm=grad_norm,
             disk_root=run_dir,
         )
+        last_losses_cell["losses"] = dict(terms_map or {})
+        heartbeat.update(
+            step=int(global_step),
+            stage=int(stage),
+            phase=str(phase),
+            epoch=int(getattr(controller, "_active_epoch", 0)),
+            losses=terms_map,
+            s_per_step_ema=getattr(controller, "_s_per_step_ema", None),
+            mem=sample_memory_fields(),
+        )
         if outcome is not None and outcome.disposition is not None:
             try:
                 write_failure_bundle(
@@ -478,6 +574,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         rng=run_rng,
         checkpoint_hook=checkpoint_hook,
         guard_hook=guard_hook,
+        should_stop=lambda: signal_state.stop_requested,
     )
     curriculum_holder["run_controller"] = run_controller
 
@@ -491,7 +588,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             payload = load_resume_target(store, args.resume)
         except Exception as exc:
             print(f"error: failed to load resume target: {exc}", file=sys.stderr)
-            return 1
+            return finish_run("failed", 1)
 
         ckpt_identity = payload.get("config_identity")
         if ckpt_identity is None and isinstance(payload.get("run_controller"), Mapping):
@@ -506,7 +603,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
         except ResumeConfigRefused as exc:
             print(f"error: {exc}", file=sys.stderr)
-            return 1
+            return finish_run("failed", 1)
 
         _restore_run_controller(run_controller, payload)
         initial_stage, resume_ctx = _derive_resume_plan(
@@ -529,18 +626,42 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"reproducibility_scope={scope}")
     print(f"run_dir={run_dir}")
     print(f"runtime precision={runtime_spec.precision} device={runtime_spec.requested_device}")
+    heartbeat.transition("running")
 
+    run_raised = False
     try:
         disposition = curriculum.run(
             resume_ctx=resume_ctx,
             from_resume=from_resume,
         )
     except Exception as exc:
+        run_raised = True
+        disposition = None
         print(f"error: training failed: {exc}", file=sys.stderr)
-        return 1
+
+    # HALT alone is ambiguous: an operator-visible failure is derived from
+    # interruption, failure artifacts, non-finite logging, or an exception.
+    if signal_state.stop_requested:
+        checkpoint_payload = build_checkpoint_payload(
+            run_controller,
+            curriculum_state_accessor(),
+            config_identity,
+            CHECKPOINT_SCHEMA_VERSION,
+        )
+        store.save_rolling(checkpoint_payload, int(run_controller._global_step))
+        return finish_run("interrupted", signal_state.exit_code)
+
+    jsonl_handler = tracked_handlers[0]
+    failed = (
+        run_raised
+        or any((run_dir / "failure").iterdir())
+        or getattr(jsonl_handler, "last_step_finite", None) is False
+    )
+    if failed:
+        return finish_run("failed", 1)
 
     print(f"terminal_disposition={getattr(disposition, 'value', disposition)}")
-    return 0
+    return finish_run("finished", 0, last_losses_cell["losses"])
 
 
 if __name__ == "__main__":

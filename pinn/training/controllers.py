@@ -87,6 +87,11 @@ from pinn.training.checkpoint import (
 from pinn.training.slbfgs_preflight import check_stage_preflight
 from pinn.training.stage_exit import StageDisposition
 
+
+class _StopRequested(BaseException):
+    """Abort an in-progress L-BFGS step at the next closure evaluation."""
+
+
 __all__ = [
     "PlateauDetector",
     "HandoffEvent",
@@ -297,6 +302,7 @@ class RunController:
         rng: Optional[np.random.Generator] = None,
         checkpoint_hook: Optional[Callable[..., Any]] = None,
         guard_hook: Optional[Callable[..., Any]] = None,
+        should_stop: Optional[Callable[[], bool]] = None,
     ) -> None:
         if validation_source is None:
             raise ValueError(
@@ -328,6 +334,7 @@ class RunController:
         self._wall_clock_baseline: float = float(time.monotonic())
         self._checkpoint_hook = checkpoint_hook
         self._guard_hook = guard_hook
+        self._should_stop = should_stop
         # Live phase/epoch for curriculum_state_accessor (41-05 mid-stage resume).
         self._active_phase: Optional[str] = None
         self._active_epoch: int = 0
@@ -807,6 +814,9 @@ class RunController:
         handoff_trigger = "budget-exhausted"
         adam_epochs_used = int(adam_start)
         for epoch in range(int(adam_start), n_adam_k):
+            if self._should_stop is not None and self._should_stop():
+                state["disposition"] = StageDisposition.HALT
+                return handoff_trigger, adam_epochs_used
             adam_epochs_used = epoch + 1
             self._active_phase = "2a"
             self._active_epoch = int(adam_epochs_used)
@@ -935,6 +945,8 @@ class RunController:
     # ------------------------------------------------------------------
     def _make_lbfgs_closure(self, optimizer, fixed_batch, anchor_ctx, weights, chunk_size, closure_state):
         def closure():
+            if self._should_stop is not None and self._should_stop():
+                raise _StopRequested
             optimizer.zero_grad(set_to_none=True)
             weighted_data = accumulate_chunked_data_term(
                 self._model, fixed_batch.data_points,
@@ -997,13 +1009,20 @@ class RunController:
         epoch_count = epoch_count_start
         # lbfgs_start is the number of L-BFGS epochs already consumed (resume).
         for _lbfgs_epoch in range(int(lbfgs_start), remaining_budget):
+            if self._should_stop is not None and self._should_stop():
+                self._scheduled_weights.rewarm()
+                return StageDisposition.HALT
             self._active_phase = "2b"
             self._active_epoch = int(_lbfgs_epoch + 1)
             closure_state: dict[str, Any] = {"non_finite": False, "last_loss": None}
             closure = self._make_lbfgs_closure(
                 optimizer, fixed_batch, anchor_ctx, weights_frozen, chunk_size, closure_state
             )
-            optimizer.step(closure)
+            try:
+                optimizer.step(closure)
+            except _StopRequested:
+                self._scheduled_weights.rewarm()
+                return StageDisposition.HALT
             epoch_count += 1
             self._global_step += 1
             self._global_epoch += 1
