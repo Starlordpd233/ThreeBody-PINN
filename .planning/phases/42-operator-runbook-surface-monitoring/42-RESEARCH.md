@@ -748,7 +748,11 @@ behavior), by reading the actual source of the functions being modified
 authoritative `man caffeinate` page, or by official PyTorch 2.12 documentation
 via context7.
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Both questions below were resolved during Phase 42 planning (2026-07-18), within Phase-42 scope (neither is a framework-spec / STOP-protocol question):
+> - **Q1** (pre- vs post-increment `global_step` on a guard-tripped record) → resolved in **42-01 Task 3**: log the step index identifying *this attempt*, consistently across Adam and L-BFGS, plus a new `step_completed` boolean.
+> - **Q2** (`heartbeat_secs` / `staleness_factor` defaults) → resolved in **42-02 Task 1**: 30 s / ×3, the CTX-74/CTX-80 pre-cleared discretion.
 
 1. **Should the guard-tripped step's widened JSONL record use the
    pre-increment or would-be-post-increment `global_step` value?**
