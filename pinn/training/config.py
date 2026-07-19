@@ -239,6 +239,42 @@ class CheckpointCadence:
 
 
 @dataclass(frozen=True)
+class MonitorConfig:
+    """Monitoring cadence knobs (run.monitor).
+
+    ``heartbeat_secs`` / ``staleness_factor`` are the heartbeat timing
+    parameters read by the status.json writer.  ``tb_histogram_every`` is the
+    TB w_n-histogram thinning cadence (discretionary, CTX-70/80).  ``mem_every``
+    is the periodic ``mem:`` line cadence.  All are operational (B-5) —
+    changeable on resume.  Values are owner-carved, not science thresholds.
+    """
+
+    heartbeat_secs: int = 30
+    staleness_factor: int = 3
+    tb_histogram_every: int = 100
+    mem_every: int = 100
+
+    def __post_init__(self) -> None:
+        prov = "operational monitoring cadence (B-5)"
+        object.__setattr__(
+            self, "heartbeat_secs",
+            _require_int("heartbeat_secs", self.heartbeat_secs, prov),
+        )
+        object.__setattr__(
+            self, "staleness_factor",
+            _require_int("staleness_factor", self.staleness_factor, prov),
+        )
+        object.__setattr__(
+            self, "tb_histogram_every",
+            _require_int("tb_histogram_every", self.tb_histogram_every, prov),
+        )
+        object.__setattr__(
+            self, "mem_every",
+            _require_int("mem_every", self.mem_every, prov),
+        )
+
+
+@dataclass(frozen=True)
 class RunConfig:
     """Run-level knobs: seed, logging, precision/device, ⚖ guards + cadence.
 
@@ -257,6 +293,7 @@ class RunConfig:
     run_name: Optional[str] = None
     guards: GuardConfig = field(default_factory=GuardConfig)
     checkpoint: CheckpointCadence = field(default_factory=CheckpointCadence)
+    monitor: MonitorConfig = field(default_factory=MonitorConfig)
 
     def __post_init__(self) -> None:
         if not isinstance(self.seed, int) or isinstance(self.seed, bool):
@@ -281,6 +318,11 @@ class RunConfig:
             raise TypeError(
                 f"run.checkpoint must be CheckpointCadence "
                 f"(got {type(self.checkpoint)!r})"
+            )
+        if not isinstance(self.monitor, MonitorConfig):
+            raise TypeError(
+                f"run.monitor must be MonitorConfig "
+                f"(got {type(self.monitor)!r})"
             )
 
 
@@ -534,6 +576,25 @@ class TrainingConfig:
                     "provenance": (
                         "⚖ PROVISIONAL (B-5 / CTX-57): resume field classification "
                         "registry; owner-ratify before run #1"
+                    ),
+                }
+            )
+        # ⚖ B-2 / OPS-03 step-log field registry (42-02).
+        try:
+            from pinn.training.step_log import (
+                step_log_fields_provisional_entry,
+            )
+
+            out.append(step_log_fields_provisional_entry())
+        except ImportError:
+            out.append(
+                {
+                    "name": "step_log_fields_registry",
+                    "value": "PROVISIONAL",
+                    "provisional": True,
+                    "provenance": (
+                        "⚖ PROVISIONAL (B-2 / OPS-03): step-log field registry; "
+                        "owner-ratify before run #1"
                     ),
                 }
             )
