@@ -164,6 +164,18 @@
   4. A written runbook under `docs/runbooks/` covers the mental model, the five entry points, the categorized error surface, and the M5-Pro-specific notes (unified memory, thermal, sleep, single-MPS-device) (OPS-06).
 
 **UI hint**: no
+**Plans**: 9 plans (4 waves)
+
+Plans:
+- [ ] 42-01-PLAN.md — Emission spine: `causal_physics_loss` return_details + widened `_log_step` + guard-order reorder (wave 1)
+- [ ] 42-02-PLAN.md — Config + owner-owned seams: `MonitorConfig` + provisional `STEP_LOG_FIELDS` registry (wave 1)
+- [ ] 42-03-PLAN.md — Test Wave-0 scaffold: `tests/phase42` fixtures + nine skip-guarded stubs (wave 1)
+- [ ] 42-04-PLAN.md — JSONL canonical log + human mirror + E1 non-finite sanitizer (wave 2)
+- [ ] 42-05-PLAN.md — TensorBoard per-time-bin residual panel + `w_n` scalars (wave 2)
+- [ ] 42-06-PLAN.md — `status.json` heartbeat + `mem:` line + stub-then-finalize summary (wave 2)
+- [ ] 42-07-PLAN.md — Operator surface: `caffeinate -is` wrapper + example config + runbook (wave 2)
+- [ ] 42-08-PLAN.md — Composition wiring: `signals.py` + `train.py main()` lifecycle (wave 3)
+- [ ] 42-09-PLAN.md — Held-out edge (E2/E4) + prohibition (must-NOT #1/#2) tests (wave 4)
 
 ### Phase 43: Verification, Stage-0 Pilot & Acceptance
 
