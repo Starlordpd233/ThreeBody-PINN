@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
 current_phase_name: config-checkpointing-resume-determinism
-status: verifying
-stopped_at: Phase 41 verification gaps_found (CTRL-08 config RNG)
-last_updated: "2026-07-18T08:45:34.336Z"
+status: phase_complete
+stopped_at: Phase 41 complete; Phase 42 (operator runbook surface & monitoring) not started
+last_updated: "2026-07-19T02:05:00.000Z"
 last_activity: 2026-07-18
-last_activity_desc: Phase 41 executed 5/5 plans; verification gaps_found on CTRL-08 frozen-config RNG
+last_activity_desc: GAP-41-01 resolved (rep B, run_start_rng.pt); re-verification 6/6; Phase 41 closed
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 39
   completed_plans: 39
-  percent: 71
+  percent: 86
 ---
 
 # Project State
@@ -28,10 +28,12 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 41 (config-checkpointing-resume-determinism) — GAPS FOUND
-Plan: 5 of 5 executed; verification incomplete
-Status: gaps_found — CTRL-08 config-side four-stream RNG pending owner pick (A/B)
-Last activity: 2026-07-18 — execute-phase complete; VERIFICATION.md status gaps_found
+Phase: 41 (config-checkpointing-resume-determinism) — COMPLETE
+Plan: 5 of 5 executed; re-verification 6/6 must-haves (status human_needed only for
+the carried-forward owner items: B-5 field-list ratification before run #1, R-1/D4-a
+threshold calibration at the Phase 43 pilot — non-blocking for closure)
+Status: complete — GAP-41-01 RESOLVED-WITH-INSTRUCTION (rep B: runs/<name>/run_start_rng.pt)
+Last activity: 2026-07-18 — gap closed (fix 9abc676), re-verified 6/6; next: Phase 42
 
 ## Deferred Items
 
