@@ -1,59 +1,43 @@
 ---
 phase: 41-config-checkpointing-resume-determinism
-verified: 2026-07-18T08:54:46Z
-status: gaps_found
-score: 5/6 must-haves verified
+verified: 2026-07-19T02:08:05Z
+status: human_needed
+score: 6/6 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "Full seed/RNG state is recorded in config + every checkpoint (CTRL-08 / ROADMAP SC #4 / SPEC AC)"
-    status: failed
-    reason: >
-      Every checkpoint carries the four RNG streams (torch, torch_mps, numpy,
-      python_random) and exact-continuation restore is tested end-to-end, but
-      the frozen runs/<name>/config.yaml does NOT carry those four streams.
-      freeze_resolved_config writes a pure TrainingConfig only; the
-      frozen_config_rng_recording_format seam is registered as UNDECIDED with
-      candidates (A) sidecar _runtime_state envelope or (B) sibling
-      run_start_rng.pt — neither is implemented. SPEC AC requires a test that
-      frozen config AND checkpoint both contain all four streams; that config
-      half is intentionally unimplemented pending owner pick, and no later
-      phase claims the work. Seed is present in config (statistical-equivalence
-      path works); full RNG carriage in config is the missing half of SC #4.
-    artifacts:
-      - path: "pinn/training/config_yaml.py"
-        issue: "freeze_resolved_config dumps pure TrainingConfig only; no RNG streams"
-      - path: "pinn/training/config.py"
-        issue: "provisional_fields registers frozen_config_rng_recording_format=UNDECIDED"
-      - path: "pinn/train.py"
-        issue: "composition root freezes config but never writes run_start_rng.pt or _runtime_state"
-      - path: "tests/phase41/test_train_entrypoint.py"
-        issue: "RngRecordedEverywhereTests asserts UNDECIDED and does not require config-side RNG"
-    missing:
-      - "Owner pick of frozen_config_rng_recording_format: (A) _runtime_state envelope in config.yaml ignored by load_config, or (B) sibling runs/<name>/run_start_rng.pt"
-      - "Implement the chosen representation so freeze/startup records all four streams without breaking TrainingConfig re-parse equality"
-      - "Test asserting frozen config artifact (yaml envelope or sibling .pt) contains torch/torch_mps/numpy/python_random"
+re_verification:
+  previous_status: gaps_found
+  previous_score: 5/6
+  previous_verified: 2026-07-18T08:54:46Z
+  gaps_closed:
+    - "Full seed/RNG state is recorded in config + every checkpoint (CTRL-08 / ROADMAP SC #4 / SPEC AC) — closed by 9abc676c per GAP-41-01 RESOLVED-WITH-INSTRUCTION (representation B: sibling runs/<name>/run_start_rng.pt)"
+  gaps_remaining: []
+  regressions: []
+gaps: []
 deferred: []
 human_verification:
-  - test: "Owner pick frozen_config_rng_recording_format (A vs B) before claiming CTRL-08 complete"
-    expected: "One representation is chosen and implemented; four streams land in the frozen-config path without breaking load_config equality"
-    why_human: "Representation is ⚖ owner-carved; agent must not invent it (governance STOP)"
-  - test: "Owner-ratify B-5 IDENTITY/OPERATIONAL field lists in RESUME_FIELD_REGISTRY before run #1"
+  - test: "Owner-ratify B-5 IDENTITY/OPERATIONAL field lists in RESUME_FIELD_REGISTRY before production run #1"
     expected: "Lists marked owner-ratified (not only provisional/⚖); real-data deferred IDENTITY categories resolved or still explicitly deferred"
-    why_human: "CTRL-05 requires owner ratification of the field list; code ships a surfaced ⚖ proposal only"
-  - test: "Owner-calibrate R-1 guard thresholds at Phase-43 pilot"
+    why_human: "CTRL-05 requires owner ratification of the field list; code ships a surfaced ⚖ proposal only. NON-blocking for Phase-41 closure (pre-run-#1 obligation)"
+  - test: "Owner-calibrate R-1 guard thresholds + D4-a wall-clock checkpoint ceiling at the Phase-43 Stage-0 pilot"
     expected: "loss_explosion_ceiling / disk_floor_fraction / memory_watermark_fraction and wall_clock_ceiling_s ratified from pilot variance"
-    why_human: "Values are ⚖ provisional placeholders by design; mechanism is wired, values are owner-carved"
+    why_human: "Values are ⚖ provisional placeholders by design; mechanism is wired and tested, values are owner-carved at Phase 43. NON-blocking for Phase-41 closure"
 ---
 
-# Phase 41: Config, Checkpointing, Resume & Determinism — Verification Report
+# Phase 41: Config, Checkpointing, Resume & Determinism — Re-Verification Report
 
 **Phase Goal:** Every run is driven by one frozen keyed config, survives interruption and corruption, resumes and rolls back correctly, and records enough seed/RNG state to reproduce to statistical equivalence — with guards that stop-and-preserve on trouble.
 
-**Verified:** 2026-07-18T08:54:46Z  
-**Status:** `gaps_found`  
-**Re-verification:** No — initial verification  
-**Branch / HEAD:** `milestone/v2.0` @ `fe38b2d6` (post-merge fix removed banned `.is_available()` probes)
+**Verified:** 2026-07-19T02:08:05Z
+**Status:** `human_needed` (all 6 truths verified; two carried-forward human-owned ratification items remain — both NON-blocking for phase closure)
+**Re-verification:** Yes — after GAP-41-01 closure (previous report 2026-07-18T08:54:46Z @ fe38b2d6, `gaps_found` 5/6)
+**Branch / HEAD:** `milestone/v2.0` @ `66141380` (gap-fix commit `9abc676c` + gap-register docs `66141380`)
+
+## Re-Verification Focus
+
+The initial verification failed exactly one truth — #6 (CTRL-08 / ROADMAP SC #4): the four RNG streams were in every checkpoint but not on the frozen-config path; the `frozen_config_rng_recording_format` seam was UNDECIDED. That gap is now **GAP-41-01 RESOLVED-WITH-INSTRUCTION (2026-07-18)**, owner best-judgment delegation, ratified as **representation B**: `runs/<name>/config.yaml` stays a pure `TrainingConfig` (CTRL-01/CTX-51 re-parse equality untouched) and the four run-start streams land in the sibling artifact `runs/<name>/run_start_rng.pt`. **Ratified AC interpretation (recorded in GAP-41-01):** the SPEC acceptance "frozen config and a checkpoint both contain all four RNG stream states" is satisfied on the config side by the frozen-config-side sibling artifact — `config.yaml` purity is the ratified design, not a gap.
+
+Truth #6 was re-verified end-to-end against live code; truths 1-5 received regression checks (artifact existence, key-link sanity, full suite re-run).
 
 ## Goal Achievement
 
@@ -61,71 +45,67 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Single keyed YAML (`run/stage/opt/loss`) drives the run; fully-resolved copy frozen into `runs/<name>/config.yaml` (CTRL-01 / B-9) | ✓ VERIFIED | `config_yaml.load_config` + recursive `ConfigKeyError`; `freeze_resolved_config` → `atomic_io.atomic_write_text`; re-parse equality tested (`FrozenCopyRoundTripTests`, `LaunchContractTests.test_fresh_launch_writes_artifacts`) |
-| 2 | Dual-trigger + atomic checkpointing with rolling/best/latest/anchor retention (CTRL-02/03) | ✓ VERIFIED | `CheckpointStore.should_checkpoint` (step OR wall-clock); `atomic_write_torch`; rolling-N eviction; `save_best` / `latest.pt` / stage anchors; `weights_only=True` on all loads; `fallback_scan` on corrupt latest. Tests: DualTrigger/Atomicity/Retention/FallbackScan + e2e dual-trigger |
-| 3 | Dual stage anchors + idempotent ordered promotion + `curriculum.jsonl` (CTRL-04) + complete Adam reset at boundary (CTRL-06) | ✓ VERIFIED | `CurriculumController` ADVANCE writes `stage-{k}-final` + `stage-{k+1}-init` via `build_checkpoint_payload`/`save_anchor`; `promote(k,k+1)` ordered; `record_disposition` fsync-appends ledger idempotently; init anchors carry `optimizer=None`. Tests: `LedgerAndPromotionTests`, `AdamResetCompositionTests`, `OptimizerRestoreOrderingTests` |
-| 4 | `--resume` continues exactly; `--hold-stage` rolls back; field-classified resume-diff refuses identity/unclassified (CTRL-05) | ✓ VERIFIED | `pinn.train` CLI; `load_resume_target` exact-anchor routing; `validate_hold_stage_target`; `resume_config_diff` + `RESUME_FIELD_REGISTRY` (strict_cpu IDENTITY); mid-stage weight match + hold-stage e2e tests pass. Field list is ⚖ provisional (owner-ratify before run #1 — human item) |
-| 5 | Tier-1+2 guards + RECOVER/HALT + always-on `failure/` bundle (CTRL-07) | ✓ VERIFIED | `StepGuards.check`: NaN/Inf→RECOVER, loss-explosion→RECOVER, disk-floor→HALT, memory-watermark→HALT; wired via `guard_hook` in Adam (pre-step) and L-BFGS (post-step); `write_failure_bundle` Tier-A README+trip.json; thresholds from `run.guards` ⚖. Tests: unit guards + controller HALT family + failure-bundle backstop |
-| 6 | Full seed/RNG state recorded in **config + every checkpoint**; statistical-equivalence + exact continuation (not bitwise); strict-CPU switch (CTRL-08) | ✗ FAILED | **Checkpoint half ✓:** four streams in every CTX-53 payload; `capture_rng_state`/`restore_rng_state` exact (not reseed); honesty string; `apply_strict_cpu_determinism` returns float64/cpu RuntimeSpec used by `build_network`. **Config half ✗:** frozen `config.yaml` has seed only; four streams not recorded (UNDECIDED seam). SPEC AC unmet for config side |
+| 1 | Single keyed YAML (`run/stage/opt/loss`) drives the run; fully-resolved copy frozen into `runs/<name>/config.yaml` (CTRL-01 / B-9) | ✓ VERIFIED | Carried forward + regression-confirmed: `config_yaml.load_config` + `freeze_resolved_config` intact; `FrozenCopyRoundTripTests.test_freeze_resolved_config_reparse_equal` asserts `reloaded == cfg`; independent spot-check CHECK2 re-confirmed frozen == original after a real launch |
+| 2 | Dual-trigger + atomic checkpointing with rolling/best/latest/anchor retention (CTRL-02/03) | ✓ VERIFIED | Carried forward: `checkpoint.py` (607 lines) unchanged by gap fix; DualTrigger/Atomicity/Retention/FallbackScan + e2e tests all green in the 193-test suite re-run |
+| 3 | Dual stage anchors + idempotent ordered promotion + `curriculum.jsonl` (CTRL-04) + complete Adam reset at boundary (CTRL-06) | ✓ VERIFIED | Carried forward: `controllers.py` ADVANCE path unchanged; `LedgerAndPromotionTests`, `AdamResetCompositionTests`, `OptimizerRestoreOrderingTests` green in re-run |
+| 4 | `--resume` continues exactly; `--hold-stage` rolls back; field-classified resume-diff refuses identity/unclassified (CTRL-05) | ✓ VERIFIED | Carried forward: `resume.py` + train CLI unchanged; mid-stage exact-continuation + hold-stage e2e tests green in re-run; field list remains ⚖ provisional (human item, non-blocking) |
+| 5 | Tier-1+2 guards + RECOVER/HALT + always-on `failure/` bundle (CTRL-07) | ✓ VERIFIED | Carried forward: `guards.py` + `guard_hook` wiring unchanged; guard unit + HALT-family + failure-bundle tests green in re-run |
+| 6 | Full seed/RNG state recorded in **config + every checkpoint**; statistical-equivalence + exact continuation (not bitwise); strict-CPU switch (CTRL-08) | ✓ VERIFIED | **Checkpoint half (carried):** four streams in every CTX-53 payload; exact restore. **Config half (NEW, 9abc676c):** `determinism.record_run_start_rng` writes `runs/<name>/run_start_rng.pt` via the same `capture_rng_state` + `atomic_write_torch` + `torch.load(weights_only=True)` path; wired in `pinn/train.py:316-322` at fresh launch AFTER `_resolve_runtime_spec` (strict-CPU reseed reflected), on the same `run_rng` generator RunController consumes (`rng=run_rng`, train.py:478); `if not is_resume:` guard means resume never overwrites. Behavioral: `RngRecordedEverywhereTests` (real launch → all four streams in sibling + pure-config reparse) green; independent 3-part spot-check PASS (see below) |
 
-**Score:** 5/6 truths verified (0 present-but-behavior-unverified)
+**Score:** 6/6 truths verified (0 present-but-behavior-unverified)
 
-### Required Artifacts
+### Gap Closure Verification (truth #6, three levels + data flow)
 
-| Artifact | Expected | Status | Details |
-|----------|----------|--------|---------|
-| `pinn/training/atomic_io.py` | Shared tmp→fsync→replace→dir-fsync | ✓ VERIFIED | 92 lines; `atomic_write_text` + `atomic_write_torch` |
-| `pinn/training/config.py` | precision/device/strict_cpu + ⚖ guards/cadence + provisional_fields | ✓ VERIFIED | `GuardConfig`, `CheckpointCadence`, `RunConfig` extensions; provisional registry + UNDECIDED RNG format |
-| `pinn/training/config_yaml.py` | load_config + freeze_resolved_config + ConfigKeyError | ✓ VERIFIED | Recursive dotted-path unknown keys; pure TrainingConfig freeze |
-| `pinn/training/checkpoint.py` | Production store dual-trigger/retention/atomic/ledger | ✓ VERIFIED | 607 lines; CTX-53 schema; promote + record_disposition |
-| `pinn/training/guards.py` | StepGuards + write_failure_bundle | ✓ VERIFIED | Per-family disposition; no `.is_available()` probes |
-| `pinn/training/determinism.py` | Four-stream capture/restore + strict-CPU + honesty | ✓ VERIFIED | No `.is_available()`; REPRODUCIBILITY_SCOPE honesty |
-| `pinn/training/controllers.py` | Hooks, build_checkpoint_payload, resume_ctx, Adam reset | ✓ VERIFIED | checkpoint_hook/guard_hook; pending optimizer; global step |
-| `pinn/training/resume.py` | Identity digest + config-diff + hold-stage validation | ✓ VERIFIED | RESUME_FIELD_REGISTRY; load_resume_target |
-| `pinn/train.py` | Composition root CLI | ✓ VERIFIED | `--config`/`--resume`/`--hold-stage`; freezes config; wires hooks |
-| `tests/phase41/*` | Wave-0 + plan tests | ✓ VERIFIED | 192 tests collected/passed |
+| Level | Check | Result |
+|-------|-------|--------|
+| Exists | `RUN_START_RNG_FILENAME` (determinism.py:39), `record_run_start_rng` (:118), `load_run_start_rng` (:138), `FROZEN_CONFIG_RNG_RECORDING_FORMAT = "sibling-artifact:run_start_rng.pt"` (config.py:134) | ✓ |
+| Substantive | `record_run_start_rng` payload = `capture_rng_state(rng)` + `rng_stream_keys` + `reproducibility_scope`, written via `atomic_write_torch`; `load_run_start_rng` uses `weights_only=True` — same representation as every checkpoint | ✓ |
+| Wired | `pinn/train.py:322` calls `determinism.record_run_start_rng(run_dir, run_rng)`; ordering: after `_resolve_runtime_spec` (which applies `apply_strict_cpu_determinism` when strict_cpu on), before RunController build; `run_rng` is the exact generator passed to RunController (`rng=run_rng`, :478); guarded by `if not is_resume:` | ✓ |
+| Data flows | Independent spot-check: recorded torch state tensor numel=5056 (real), numpy state carries PCG64 bit_generator (real), python_random 3-tuple (real) — not empty/hardcoded | ✓ |
+| Seam closed | `provisional_fields()` no longer registers `frozen_config_rng_recording_format` (docstring: DECIDED, GAP-41-01 rep B); `test_frozen_config_rng_recording_format_decided_option_b` asserts the constant | ✓ |
+
+### Required Artifacts (regression check)
+
+| Artifact | Status | Details |
+|----------|--------|---------|
+| `pinn/training/atomic_io.py` | ✓ VERIFIED | 92 lines, unchanged |
+| `pinn/training/config.py` | ✓ VERIFIED | 540 lines; UNDECIDED seam removed, `FROZEN_CONFIG_RNG_RECORDING_FORMAT` constant added |
+| `pinn/training/config_yaml.py` | ✓ VERIFIED | 282 lines; pure-TrainingConfig freeze preserved (rep B requirement); docstring documents the decided seam |
+| `pinn/training/checkpoint.py` | ✓ VERIFIED | 607 lines, unchanged |
+| `pinn/training/guards.py` | ✓ VERIFIED | 510 lines, unchanged |
+| `pinn/training/determinism.py` | ✓ VERIFIED | 248 lines; +`record_run_start_rng`/`load_run_start_rng`/`RUN_START_RNG_FILENAME` (exported in `__all__`) |
+| `pinn/training/controllers.py` | ✓ VERIFIED | 1374 lines, unchanged |
+| `pinn/training/resume.py` | ✓ VERIFIED | 631 lines, unchanged |
+| `pinn/train.py` | ✓ VERIFIED | 547 lines; run-start RNG recording wired at :316-322 |
+| `tests/phase41/*` | ✓ VERIFIED | 193 tests (was 192): +RunStartRngRecordTests round-trip; RngRecordedEverywhereTests extended; config_yaml seam test flipped from UNDECIDED-assertion to decided-Option-B assertion |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `config_yaml.load_config` | `TrainingConfig` dataclasses | yaml.safe_load + `_map_section` | ✓ WIRED | Field-for-field; tuple coerce for adam_betas |
-| `freeze_resolved_config` | `atomic_io.atomic_write_text` | `runs/<name>/config.yaml` | ✓ WIRED | Pure config only (no RNG) |
-| `CheckpointStore` save paths | `atomic_io.atomic_write_torch` | rolling/best/anchor/latest | ✓ WIRED | All production writes |
-| `build_checkpoint_payload` | store save_* | Single composer + CHECKPOINT_SCHEMA_VERSION | ✓ WIRED | Controllers + train hooks |
-| `checkpoint_hook` closure | `store.should_checkpoint` + `save_rolling`/`save_best` | pinn.train | ✓ WIRED | Live curriculum_state_accessor |
-| `guard_hook` | `StepGuards.check` → `write_failure_bundle` + failure anchor | pinn.train | ✓ WIRED | Disposition propagated to phase return |
-| `CurriculumController` ADVANCE | promote + record_disposition + dual anchors | controllers.py | ✓ WIRED | Ledger + CTRL-06 optimizer clear |
-| `load_state_dict` | `determinism.restore_rng_state` + pending optimizer | controllers.py | ✓ WIRED | Exact continuation; build-then-load fix |
-| `pinn.train` strict_cpu | `apply_strict_cpu_determinism` → `build_network` | BEFORE resolve_runtime override | ✓ WIRED | HIGH 4 ordering |
-| Frozen config | four RNG streams | freeze path / sibling artifact | ✗ NOT_WIRED | UNDECIDED; intentional non-implementation |
+| `freeze_resolved_config` | `atomic_io.atomic_write_text` | `runs/<name>/config.yaml` | ✓ WIRED | Pure config (rep B design); re-parse equality carried |
+| **Frozen-config path** | **four RNG streams** | **`determinism.record_run_start_rng` → sibling `run_start_rng.pt`** | ✓ WIRED | **Previously NOT_WIRED — now closed.** Fresh-launch-only, post-strict-CPU-resolve, same generator RunController consumes |
+| `load_run_start_rng` | recorded payload | `torch.load(weights_only=True)` | ✓ WIRED | Same load discipline as checkpoints |
+| `--resume` | run-start record | `if not is_resume:` guard (train.py:321) | ✓ WIRED | Spot-check CHECK3: sha256 unchanged across resume |
+| All other links (config→dataclasses, store→atomic_io, hooks, ADVANCE, restore ordering, strict-CPU→build_network) | — | — | ✓ WIRED | Unchanged by gap fix; exercised by the green 193-test re-run |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|---------------|--------|-------------------|--------|
-| Rolling checkpoint | `payload["rng"]` | `controller.state_dict()` → `capture_rng_state(self._rng)` | Live torch/numpy/python/(mps) state | ✓ FLOWING |
-| Rolling checkpoint | `payload["curriculum"]` | `curriculum_state_accessor()` at fire time | Live stage/phase/epoch/step | ✓ FLOWING |
-| best.pt | `payload` | `_last_val_total` strict improvement | Real validation total from `_run_validation` | ✓ FLOWING |
-| failure/trip.json | trip scalars | `GuardOutcome` from live loss/grad/disk/mem | Live metrics + ⚖ thresholds | ✓ FLOWING |
-| frozen config.yaml | TrainingConfig fields | resolved defaults + YAML overrides | Real resolved config | ✓ FLOWING |
-| frozen config.yaml | four RNG streams | *(none)* | Not produced | ✗ DISCONNECTED |
+| `run_start_rng.pt` | `payload["rng"]` | `capture_rng_state(run_rng)` at fresh launch | torch tensor numel=5056; numpy PCG64 state; python_random 3-tuple | ✓ FLOWING (was ✗ DISCONNECTED) |
+| frozen config.yaml | TrainingConfig fields | resolved defaults + YAML overrides | Real resolved config; reparse EQUAL | ✓ FLOWING |
+| Rolling checkpoints / best.pt / trip.json | (carried) | (carried) | (carried) | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full phase41 suite | `pytest tests/phase41 -q` | **192 passed** in ~30s | ✓ PASS |
-| phase41 + phase40 regression | `pytest tests/phase41 tests/phase40 -q` | **355 passed**, 106 subtests | ✓ PASS |
-| Fresh launch artifacts | `LaunchContractTests.test_fresh_launch_writes_artifacts` | config.yaml + checkpoints + honesty stdout | ✓ PASS |
-| Mid-stage exact resume | `ExactContinuationTests.test_mid_stage_resume_matches_uninterrupted_weights` | pass | ✓ PASS |
-| RNG exact vs reseed | `test_resume_rng_exact_vs_fresh_statistical` | pass | ✓ PASS |
-| Four streams in every ckpt | `RngRecordedEverywhereTests` | pass (also asserts config RNG UNDECIDED) | ✓ PASS (ckpt) / documents config gap |
-| Hold-stage exact anchor | `HoldStageTests` | pass | ✓ PASS |
-| Dual-trigger e2e rolling | `DualTriggerEndToEndTests` | pass | ✓ PASS |
-| Ledger + dual anchors | `LedgerAndPromotionTests` | pass | ✓ PASS |
-| Adam reset at init anchor | `AdamResetCompositionTests` | pass | ✓ PASS |
-| HALT not flattened to RECOVER | `GuardHaltFamilyTests` | pass | ✓ PASS |
+| Full phase41 suite | `conda run -n pinn-train python -m unittest discover -s tests/phase41 -t .` | **193 tests, OK** (36.6s) | ✓ PASS |
+| Phase40 regression | `conda run -n pinn-train python -m unittest discover -s tests/phase40 -t .` | **163 tests, OK** (29.4s) | ✓ PASS |
+| Fresh launch writes `run_start_rng.pt` with 4 real streams | Independent script (scratchpad, outside suite): real `pinn.train.main` launch | torch numel=5056, numpy PCG64, python_random tuple, scope string present | ✓ PASS |
+| `config.yaml` re-parses EQUAL after real launch | Same script, CHECK2 | `load_config(frozen) == load_config(original)` | ✓ PASS |
+| `--resume` never overwrites run-start record | Same script, CHECK3: resume from `latest.pt`, compare sha256 | sha256 `742fea5b7a68191a` unchanged | ✓ PASS |
 
 ### Probe Execution
 
@@ -135,59 +115,49 @@ human_verification:
 
 ### Requirements Coverage
 
-| Requirement | Source Plan(s) | Description | Status | Evidence |
-|-------------|----------------|-------------|--------|----------|
-| CTRL-01 | 41-01, 41-05 | Keyed YAML + frozen resolved copy | ✓ SATISFIED | config_yaml + freeze + e2e freeze reparse |
-| CTRL-02 | 41-02, 41-04 | Dual-trigger + rolling/best/latest/anchors | ✓ SATISFIED | CheckpointStore + hooks + e2e |
-| CTRL-03 | 41-02 | Atomic + weights_only + fallback scan | ✓ SATISFIED | atomic_io; all loads weights_only; fallback_scan tests |
-| CTRL-04 | 41-02, 41-04 | Dual anchors + idempotent promote + curriculum.jsonl | ✓ SATISFIED | ADVANCE path + ledger tests |
-| CTRL-05 | 41-05 | --resume / --hold-stage / fail-safe config-diff | ✓ SATISFIED | resume.py + train CLI + e2e; field list ⚖ pending owner |
-| CTRL-06 | 41-04 | Complete Adam reset at stage boundary | ✓ SATISFIED | optimizer=None on init anchors; restore ordering tests |
-| CTRL-07 | 41-03, 41-04 | Tier-1+2 guards + RECOVER/HALT + failure/ | ✓ SATISFIED | guards.py + guard_hook + bundle tests |
-| CTRL-08 | 41-03, 41-04, 41-05 | Seed/RNG in config + checkpoint; repro scope; strict-CPU | ✗ BLOCKED (partial) | Checkpoints + restore + strict-CPU + honesty ✓; **four-stream RNG in frozen config ✗** |
+| Requirement | Status | Evidence |
+|-------------|--------|----------|
+| CTRL-01 | ✓ SATISFIED | Carried + reconfirmed (reparse equality after gap fix) |
+| CTRL-02/03/04 | ✓ SATISFIED | Carried; suite re-run green |
+| CTRL-05 | ✓ SATISFIED | Carried; field list ⚖ pending owner ratification (human item, non-blocking) |
+| CTRL-06/07 | ✓ SATISFIED | Carried; suite re-run green |
+| CTRL-08 | ✓ SATISFIED (was ✗ BLOCKED partial) | Checkpoints + restore + strict-CPU + honesty (carried) **+ frozen-config-side four-stream carriage via ratified sibling artifact (9abc676c)** |
 
-**Orphaned requirements:** none — all CTRL-01..08 appear in plan frontmatter.
-
-**Note:** `.planning/REQUIREMENTS.md` marks CTRL-01..08 as Complete. Code evidence supports Complete for CTRL-01..07; CTRL-08 is **not** fully complete until config-side RNG carriage is implemented after owner pick.
+**Orphaned requirements:** none.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| — | — | No `FIXME`/`XXX`/`TBD` debt markers in phase-modified production files | — | clean |
-| — | — | No `yaml.load(` (only `safe_load`/`safe_dump`) | — | clean |
-| — | — | No `.is_available()` call sites (comments only; fe38b2d6 compliance) | — | clean |
-| `config_yaml.py` / `config.py` | freeze path | RNG-in-config intentionally absent (UNDECIDED) | 🛑 Blocker for SC #4 | See gap |
+| — | — | No `TBD`/`FIXME`/`XXX` in gap-fix files (determinism, train, config, config_yaml, tests) | — | clean |
+| — | — | No `.is_available()` call sites (docstring mentions only; fe38b2d6 compliance held) | — | clean |
+| — | — | No `yaml.load(` (safe-load discipline held) | — | clean |
+
+The prior report's single 🛑 blocker (RNG-in-config intentionally absent) is closed.
 
 ### Human Verification Required
 
-### 1. Owner pick: frozen_config_rng_recording_format
+Both items are carried forward from the initial verification, are human-owned by design, and are **NON-blocking** for Phase-41 closure (per owner instruction 2026-07-18). Item #1 of the prior report (owner pick A/B) is resolved and removed.
 
-**Test:** Choose (A) `_runtime_state` sidecar key in `config.yaml` ignored by `load_config`, or (B) sibling `runs/<name>/run_start_rng.pt` (+ every checkpoint already carries streams).  
-**Expected:** Chosen representation implemented; four streams recorded at run start; TrainingConfig re-parse equality preserved; SPEC AC test green.  
-**Why human:** ⚖ owner-carved representation; agent must not invent (governance).
+### 1. Owner-ratify B-5 resume field lists (before production run #1)
 
-### 2. Owner-ratify B-5 resume field lists
+**Test:** Review `RESUME_FIELD_REGISTRY` IDENTITY/OPERATIONAL classification before production run #1.
+**Expected:** Ratified list (or explicit deferrals) replaces provisional-only status.
+**Why human:** CTRL-05 / B-5 owner ratification; code surfaces a ⚖ proposal only.
 
-**Test:** Review `RESUME_FIELD_REGISTRY` IDENTITY/OPERATIONAL classification before production run #1.  
-**Expected:** Ratified list (or explicit deferrals) replaces provisional-only status.  
-**Why human:** CTRL-05 / B-5 owner ratification; code surfaces proposal only.
+### 2. Owner-calibrate R-1 guard thresholds + D4-a wall-clock ceiling (Phase 43 pilot)
 
-### 3. Owner-calibrate R-1 / D4-a provisional thresholds (Phase 43)
-
-**Test:** After Stage-0 pilot, ratify guard ceilings and wall-clock checkpoint ceiling.  
-**Expected:** Values no longer only ⚖ placeholders.  
-**Why human:** Mechanism complete; values owner-carved by design (not a Phase-41 code gap).
+**Test:** After the Stage-0 pilot, ratify `loss_explosion_ceiling` / `disk_floor_fraction` / `memory_watermark_fraction` and `wall_clock_ceiling_s` from pilot variance.
+**Expected:** Values no longer only ⚖ placeholders.
+**Why human:** Mechanism complete and tested; values owner-carved by design (Phase-43 obligation, not a Phase-41 code gap).
 
 ### Gaps Summary
 
-Phase 41 delivers a working control layer: keyed YAML config, atomic dual-trigger checkpoints with retention and anchors, curriculum ledger, resume/hold-stage with fail-safe identity diff, Tier-1+2 guards with failure bundles, four-stream RNG in checkpoints with exact continuation, strict-CPU switch, and honesty-scoped reporting. **192/192 phase41 tests and 355 combined phase40+41 tests pass.**
+**No gaps remain.** The sole gap from the initial verification (CTRL-08 config-side RNG carriage, GAP-41-01) is closed by commit `9abc676c` under the owner-ratified representation B: `config.yaml` stays a pure `TrainingConfig` and the four run-start streams (torch, torch_mps, numpy, python_random) are recorded once at fresh launch in the sibling artifact `runs/<name>/run_start_rng.pt`, after the strict-CPU runtime resolve, on the same generator RunController consumes, never overwritten by `--resume`. Verified at all four levels (exists / substantive / wired / data-flowing), by the extended 193-test phase41 suite plus the 163-test phase40 regression suite (both green), and by an independent out-of-suite fresh-launch + resume spot-check. Per the ratified AC interpretation in GAP-41-01, `config.yaml` purity is the design, not a deficiency.
 
-One roadmap success criterion remains unmet: **CTRL-08 requires full seed/RNG state in the frozen config as well as every checkpoint.** The checkpoint path is complete; the config path is deliberately left as `frozen_config_rng_recording_format=UNDECIDED` (candidates A/B enumerated, neither implemented). That is correct governance (do not invent the representation) but it is still a **failed must-have** relative to ROADMAP SC #4 and SPEC acceptance — not deferred to Phase 42/43, and not covered by an override.
-
-**Recommended next action:** Owner picks A or B; implement config-side four-stream recording + test; re-verify. Optionally ratify B-5 field lists in the same pass. Guard-threshold ratification stays Phase 43.
+No regressions detected in truths 1-5. Remaining human items are the two carried-forward owner-ratification obligations (B-5 before run #1; R-1/D4-a at Phase 43) — non-blocking for phase closure.
 
 ---
 
-_Verified: 2026-07-18T08:54:46Z_  
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-07-19T02:08:05Z_
+_Verifier: Claude (gsd-verifier, re-verification after GAP-41-01 closure)_
