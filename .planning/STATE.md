@@ -5,16 +5,16 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 41
 current_phase_name: config-checkpointing-resume-determinism
 status: phase_complete
-stopped_at: Phase 41 complete; Phase 42 (operator runbook surface & monitoring) not started
-last_updated: "2026-07-19T02:05:00.000Z"
+stopped_at: Phase 42 context gathered
+last_updated: "2026-07-19T03:30:31.589Z"
 last_activity: 2026-07-18
-last_activity_desc: GAP-41-01 resolved (rep B, run_start_rng.pt); re-verification 6/6; Phase 41 closed
+last_activity_desc: "gap closed (fix 9abc676), re-verified 6/6; next: Phase 42"
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 5
   total_plans: 39
   completed_plans: 39
-  percent: 86
+  percent: 71
 ---
 
 # Project State
@@ -294,10 +294,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/42-operator-runbook-surface-monitoring/42-CONTEXT.md
 
-Last session: 2026-07-18T08:45:34.331Z
-Stopped at: Completed 41-05-PLAN.md
+Last session: 2026-07-19T03:30:31.583Z
+Stopped at: Phase 42 context gathered
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
