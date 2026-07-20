@@ -332,6 +332,13 @@ simulation_data/**/*.txt
 !simulation_data/**/README.txt
 
 # -----------------------------------------------------------------------------
+# Training-run output contract (Phase 42 / OPS-05)
+# -----------------------------------------------------------------------------
+# runs/<name>/ is produced at runtime by `python -m pinn.train` (checkpoints,
+# logs, tb event files, status.json). It is the hand-over artifact, not source.
+runs/
+
+# -----------------------------------------------------------------------------
 # Generated knowledge-graph artifacts (regenerable; large blobs)
 # -----------------------------------------------------------------------------
 graphify-out/
