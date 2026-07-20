@@ -143,6 +143,30 @@ class RunsContractTests(unittest.TestCase):
         # curriculum progression rendered (non-empty for a run that trained).
         self.assertIsInstance(summary.get("curriculum"), list)
 
+        # The hand-over contract is the DIRECTORY, not just summary.json
+        # (OPS-05 / SPEC AC "complete runs/<name>/ contract"). logs/, tb/,
+        # failure/, and checkpoints/ are scaffolded at launch (train.py:301-305),
+        # so every member is deterministically present on a finished run.
+        for member in (
+            "config.yaml",
+            "checkpoints",
+            "logs/train.log",
+            "logs/train.log.jsonl",
+            "tb",
+            "summary.md",
+            "summary.json",
+            "status.json",
+            "failure",
+        ):
+            self.assertTrue(
+                (run_dir / member).exists(),
+                msg=f"runs/<name>/{member} missing from the hand-over contract",
+            )
+        self.assertTrue(
+            any((run_dir / "tb").rglob("events.out.tfevents*")),
+            "tb/ carries no TensorBoard event data",
+        )
+
     # ------------------------------------------------------------------
     # (b) SIGKILL at three barriers → presence + parseable + NOT finished +
     #     staleness-decidable. SIGKILL cannot be caught, so the process dies
@@ -198,7 +222,9 @@ class RunsContractTests(unittest.TestCase):
 
             # SIGKILL — uncatchable, no cleanup, no finish_run.
             os.kill(proc.pid, signal.SIGKILL)
-            proc.wait(timeout=30)
+            # communicate(), not wait(): it drains and closes the stdout/stderr
+            # pipes, which wait() leaves open until GC (ResourceWarning noise).
+            proc.communicate(timeout=30)
 
             # Presence: summary.json exists (written at launch by stub_summary).
             summary_path = run_dir / "summary.json"
