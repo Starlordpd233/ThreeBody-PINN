@@ -39,7 +39,11 @@ from pinn.training.controllers import (
 )
 from pinn.training.grad_clip import GradClipper
 from pinn.training.guards import StepGuards, write_failure_bundle
-from pinn.training.heartbeat import HeartbeatThread, sample_memory_fields
+from pinn.training.heartbeat import (
+    HeartbeatThread,
+    emit_mem_line,
+    sample_memory_fields,
+)
 from pinn.training.resume import (
     RESUME_FIELD_REGISTRY,
     HoldStageTargetError,
@@ -526,6 +530,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             disk_root=run_dir,
         )
         last_losses_cell["losses"] = dict(terms_map or {})
+        mem_fields = sample_memory_fields()
         heartbeat.update(
             step=int(global_step),
             stage=int(stage),
@@ -533,8 +538,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             epoch=int(getattr(controller, "_active_epoch", 0)),
             losses=terms_map,
             s_per_step_ema=getattr(controller, "_s_per_step_ema", None),
-            mem=sample_memory_fields(),
+            mem=mem_fields,
         )
+        # OPS-04 periodic mem: line — same main-thread update that cached the
+        # value (heartbeat.py emit_mem_line contract), thinned to mem_every.
+        if int(monitor.mem_every) > 0 and int(global_step) % int(monitor.mem_every) == 0:
+            emit_mem_line(mem_fields)
         if outcome is not None and outcome.disposition is not None:
             try:
                 write_failure_bundle(

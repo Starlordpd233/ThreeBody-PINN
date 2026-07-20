@@ -168,6 +168,54 @@ class RunsContractTests(unittest.TestCase):
         )
 
     # ------------------------------------------------------------------
+    # (a2) GAP-42-01 regression: the periodic mem: line must reach train.log
+    #      in a REAL run. The pre-existing unit test called emit_mem_line
+    #      itself, which proved the format and not the wiring — train.py had
+    #      no caller at all, and 251/252-step runs emitted zero lines. This
+    #      asserts the line lands in an actual run's log at the configured
+    #      cadence, so an unwired emitter fails here.
+    # ------------------------------------------------------------------
+    def test_mem_line_emitted_into_real_run_train_log(self) -> None:
+        name = _unique_name("mem-line")
+        cfg = self.tmp / f"{name}.yaml"
+        write_train_config(
+            cfg,
+            run={
+                "run_name": name,
+                "log_every": 1,
+                # run.update() replaces the whole monitor block, so restate it.
+                "monitor": {
+                    "heartbeat_secs": 5,
+                    "staleness_factor": 3,
+                    "mem_every": 1,
+                },
+            },
+            stage={"max_epochs": 2, "n_adam": 2},
+        )
+        proc = self._launch(cfg)
+        out, err = proc.communicate(timeout=120)
+        self.assertEqual(
+            proc.returncode,
+            0,
+            msg=f"expected exit 0\nstdout={out}\nstderr={err}",
+        )
+        run_dir = self._run_dir(name)
+        log_text = (run_dir / "logs" / "train.log").read_text(encoding="utf-8")
+        mem_lines = [ln for ln in log_text.splitlines() if "mem:" in ln]
+        self.assertTrue(
+            mem_lines,
+            "no periodic mem: line in train.log — OPS-04 / GAP-42-01",
+        )
+        self.assertIn("driver_bytes=", mem_lines[0])
+        self.assertIn("current_bytes=", mem_lines[0])
+        # The human mirror carries it; the canonical JSONL stays step-only.
+        for line in (run_dir / "logs" / "train.log.jsonl").read_text(
+            encoding="utf-8"
+        ).splitlines():
+            if line.strip():
+                self.assertEqual(json.loads(line).get("event"), "step")
+
+    # ------------------------------------------------------------------
     # (b) SIGKILL at three barriers → presence + parseable + NOT finished +
     #     staleness-decidable. SIGKILL cannot be caught, so the process dies
     #     without calling finish_run; status.json reflects the last heartbeat
