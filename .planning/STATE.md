@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 42
 current_phase_name: operator-runbook-surface-monitoring
-status: phase_complete
-stopped_at: "Phase 42 complete (9/9 plans; 4/4 criteria verified; tests/phase42 37 tests green)"
+status: gaps_found
+stopped_at: "Phase 42 verification found GAP-42-01 (mem: line never emitted); 3/4 criteria verified"
 last_updated: "2026-07-20T00:00:00.000Z"
 last_activity: 2026-07-20
-last_activity_desc: "Phase 42 executed and closed: plan 42-09 finished, tests/phase42 37 tests green, 4/4 criteria verified; next: Phase 43"
+last_activity_desc: "Phase 42 re-verified against a real run: GAP-42-01 opened (emit_mem_line has no production caller); phase NOT closed"
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 5
   total_plans: 48
   completed_plans: 48
-  percent: 86
+  percent: 71
 ---
 
 # Project State
@@ -24,22 +24,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 42 — operator-runbook-surface-monitoring (complete); next Phase 43
+**Current focus:** Phase 42 — operator-runbook-surface-monitoring (GAP-42-01 open)
 
 ## Current Position
 
-Phase: 42 (operator-runbook-surface-monitoring) — COMPLETE
-Plan: 9 of 9 executed; verification 4/4 success criteria and all 11 SPEC acceptance
-criteria covered by the 37-test `tests/phase42` suite (0 skips). Status human_needed
-only for the two 42-VALIDATION Manual-Only rows (TensorBoard render legibility,
-real lid-close sleep test) — both non-blocking for closure.
-Status: complete — no gaps recorded. One PRE-EXISTING repo-wide regression failure is
+Phase: 42 (operator-runbook-surface-monitoring) — EXECUTED, NOT CLOSED
+Plan: 9 of 9 executed; `tests/phase42` 37 tests green (0 skips). Verification scores
+3/4 success criteria: GAP-42-01 is open — `emit_mem_line` has no production caller, so
+the periodic `mem:` line named by OPS-04 and SPEC AC 6 never reaches `train.log`. Found
+by running `python -m pinn.train` and grepping the log, not by the suite; the existing
+test calls the emitter directly. Two 42-VALIDATION Manual-Only rows (TensorBoard render
+legibility, sleep prevention) are also still unrun — those are non-blocking.
+Status: gaps_found — GAP-42-01 open (see 42-VERIFICATION.md). One PRE-EXISTING repo-wide regression failure is
 open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_the_corpus` flags
 `pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
 parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
 to the phase39 detector.
-Last activity: 2026-07-20 — plan 42-09 finished (5 test fixes), suite green, phase
-verified and closed; next: Phase 43 (verification, Stage-0 pilot, acceptance verdict)
+Last activity: 2026-07-20 — plan 42-09 finished (5 test fixes), suite green; then a
+real-run check opened GAP-42-01 and reverted the premature closure. Next: fix GAP-42-01,
+then the two manual checks, then close.
 
 ## Deferred Items
 

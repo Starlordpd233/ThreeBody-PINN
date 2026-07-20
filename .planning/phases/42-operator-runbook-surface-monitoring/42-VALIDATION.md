@@ -88,4 +88,4 @@ created: 2026-07-18
 - [x] Feedback latency < 90s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** validated 2026-07-20 at phase closure — all nine rows green in the 37-test `tests/phase42` suite (0 skips). Feedback latency note: the realized suite runs ~5 min, not the ~90 s estimated at planning time, because the E2/E4 rows drive real subprocess training runs and real signal delivery; the per-module quick command stays well under a minute.
+**Approval:** validated 2026-07-20 (sampling contract only — see 42-VERIFICATION GAP-42-01: the suite is green, but the `mem:` line clause of OPS-04 had no end-to-end row and is unimplemented in production) — all nine rows green in the 37-test `tests/phase42` suite (0 skips). Feedback latency note: the realized suite runs ~5 min, not the ~90 s estimated at planning time, because the E2/E4 rows drive real subprocess training runs and real signal delivery; the per-module quick command stays well under a minute.

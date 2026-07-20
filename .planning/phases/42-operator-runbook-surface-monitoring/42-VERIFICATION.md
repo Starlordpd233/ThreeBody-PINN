@@ -1,12 +1,18 @@
 ---
 phase: 42-operator-runbook-surface-monitoring
 verified: 2026-07-20
-status: human_needed
-score: 4/4 success criteria verified
+status: gaps_found
+score: 3/4 success criteria verified
 behavior_unverified: 0
 overrides_applied: 0
-gaps: []
-deferred: []
+gaps:
+  - id: GAP-42-01
+    truth: "A periodic `mem:` line appears in `train.log` (OPS-04 / SPEC AC 6)"
+    missing: "`emit_mem_line` (pinn/training/heartbeat.py:176) has no caller anywhere in `pinn/`, and `MonitorConfig.mem_every` (pinn/training/config.py:255) is parsed and validated but never read by a producer."
+    evidence: "Two real runs of `python -m pinn.train` with `mem_every` set — 251 steps on mps and 252 steps on cpu — produced ZERO `mem:` lines in `runs/<name>/logs/train.log`. The memory FIELDS do reach `status.json` (`heartbeat.update(mem=…)` is wired); only the log line is missing."
+    why_tests_missed_it: "`test_mem_field_mirrored_and_mem_line_emitted` calls `emit_mem_line` directly and asserts it formats a line. Nothing asserted that the training loop calls it — a presence test standing in for a wiring test."
+    severity: critical
+    status: open
 human_verification:
   - test: "Reviewer-executes-Launch: run `python -m pinn.train --config configs/stage0-example.yaml`, Ctrl-C once mid-run, then `tensorboard --logdir runs/<name>/tb`"
     expected: "The runbook's Launch/Monitor/Resume steps work as written for a reader who has not seen the code; the residual panel plots legibly"
@@ -21,7 +27,7 @@ human_verification:
 **Phase Goal:** A non-expert operator can run, watch, and hand over a training run through five single-command entry points, an unattended-safe launch, canonical logging, and a written runbook — with the `runs/<name>/` directory as the reproducibility contract.
 
 **Verified:** 2026-07-20
-**Status:** `human_needed` — all four success criteria verified against live code and a green suite; the two carried Manual-Only items (visual TensorBoard render, real lid-close sleep test) remain and are non-blocking per `42-VALIDATION.md`.
+**Status:** `gaps_found` — three of four success criteria verified. Criterion 2 fails on one clause: the periodic `mem:` line is never emitted (GAP-42-01, found by running the program rather than reading its tests). The two Manual-Only items (visual TensorBoard render, real sleep-prevention test) also remain.
 **Branch / HEAD:** `milestone/v2.0` @ `4e977d3d`
 
 ## Goal Achievement
@@ -31,11 +37,29 @@ human_verification:
 | # | Criterion | Status | Evidence |
 |---|-----------|--------|----------|
 | 1 | Five entry points each run as a single command; unattended launch under `caffeinate -is`; SIGTERM treated as one graceful Ctrl-C → checkpoint (OPS-01, OPS-02) | ✓ VERIFIED | Runbook §"The Five Entry Points" gives exactly one command per point: `./setup.sh`, `cp configs/stage0-example.yaml …`, `python -m pinn.train --config …`, `tail -f runs/<name>/logs/train.log`, `--resume latest`. All referenced artifacts exist (`setup.sh`, `configs/stage0-example.yaml`, `--resume` at `pinn/train.py:73`). `scripts/train-unattended.sh:9` is `exec caffeinate -is python -m pinn.train "$@"` — no new subcommand surface. SIGTERM: `test_sigterm_graceful_exit_143` asserts exit 143 + `checkpoints/latest.pt` + `status.state == interrupted`. |
-| 2 | Widened field set to canonical JSONL with a TensorBoard secondary view; `status.json` heartbeat, `mem:` line, and per-time-bin residual panel make health observable (OPS-03, OPS-04) | ✓ VERIFIED | `test_ops03_happy_path_field_presence` + `test_ops03_registry_parity_and_no_residuals_leak` pin the field set against the `STEP_LOG_FIELDS` registry (`pinn/training/step_log.py`); `test_e1_nonfinite_whole_file_parseability` proves the whole file stays parseable under NaN/Inf. Panel: `test_ops04b_panel_present_via_event_accumulator` and `test_ops04b_collapse_nan_roundtrip` read back through `EventAccumulator`, so emission survives `w_n` collapse. Heartbeat: `test_state_sequence_reader_classification_and_staleness_arithmetic`, `test_no_torn_read_under_concurrent_rewrites`, `test_frozen_step_count_still_refreshes_timestamp`, `test_mem_field_mirrored_and_mem_line_emitted`. |
+| 2 | Widened field set to canonical JSONL with a TensorBoard secondary view; `status.json` heartbeat, `mem:` line, and per-time-bin residual panel make health observable (OPS-03, OPS-04) | ✗ FAILED (one clause) | JSONL, TB panel, and heartbeat all verified — `test_ops03_happy_path_field_presence` + `test_ops03_registry_parity_and_no_residuals_leak` pin the field set against the `STEP_LOG_FIELDS` registry; `test_e1_nonfinite_whole_file_parseability` proves parseability under NaN/Inf; `test_ops04b_panel_present_via_event_accumulator` and `test_ops04b_collapse_nan_roundtrip` read the panel back through `EventAccumulator`; `test_state_sequence_reader_classification_and_staleness_arithmetic`, `test_no_torn_read_under_concurrent_rewrites`, and `test_frozen_step_count_still_refreshes_timestamp` cover the heartbeat. **The `mem:` line clause fails: `emit_mem_line` is never called in production — see GAP-42-01 and the wiring table below.** |
 | 3 | Each run produces the `runs/<name>/` contract that reproduces the result when handed over (OPS-05) | ✓ VERIFIED | `test_success_summary_has_full_member_list` now asserts the directory membership itself — `config.yaml`, `checkpoints/`, `logs/train.log`, `logs/train.log.jsonl`, `tb/` (with real `events.out.tfevents*` data), `summary.md`, `summary.json`, `status.json`, `failure/` — plus the ratified `summary.json` header, six non-null final loss terms, and curriculum progression. Under-failure presence is held by the three SIGKILL-barrier tests and the two honesty tests. |
 | 4 | A written runbook under `docs/runbooks/` covers the mental model, five entry points, categorized error surface, and M5-Pro notes (OPS-06) | ✓ VERIFIED | `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md` carries all four sections (verified by heading inspection and by `test_runbook_has_mandated_sections`); `test_runbook_config_loads` validates `configs/stage0-example.yaml` through `config_yaml.load_config`. |
 
-**Score:** 4/4 criteria verified (0 present-but-behavior-unverified)
+**Score:** 3/4 criteria verified (0 present-but-behavior-unverified)
+
+### Key Link Verification
+
+| From | To | Via | Status | Details |
+|------|----|----|--------|---------|
+| training step loop | `status.json` memory fields | `heartbeat.update(mem=…)` | ✓ WIRED | Real runs show populated `memory.driver_bytes` / `current_bytes` on mps |
+| training step loop | `train.log` `mem:` line | `emit_mem_line(...)` at `monitor.mem_every` cadence | ✗ NOT WIRED | No caller of `emit_mem_line` exists in `pinn/`; `MonitorConfig.mem_every` is validated but never read. 251-step (mps) and 252-step (cpu) runs produced zero `mem:` lines. |
+
+### Critical Gaps (Block Progress)
+
+1. **GAP-42-01 — the periodic `mem:` line is never emitted**
+   - Missing: a production caller for `emit_mem_line` (`pinn/training/heartbeat.py:176`) on the `monitor.mem_every` cadence (`pinn/training/config.py:255`).
+   - Impact: OPS-04 and SPEC acceptance criterion 6 both name a periodic `mem:` line in `train.log` as part of how the operator answers "is it alive / healthy?". An operator tailing `train.log` — the runbook's own Monitor step — never sees memory pressure. The `status.json` mirror still works, so the gap is one surface, not the whole requirement.
+   - Fix: call `emit_mem_line(mem_fields)` from the same main-thread update that already pushes `mem=` into the heartbeat, gated on `step % monitor.mem_every == 0`; then add a test that asserts the line appears in a real run's `train.log`, not one that calls the emitter directly.
+
+### How this was missed
+
+`test_mem_field_mirrored_and_mem_line_emitted` calls `emit_mem_line` itself and asserts the output format. That proves the function works; it says nothing about whether anything invokes it. The gap surfaced only when a real `python -m pinn.train` was run and its `train.log` grepped. Every other OPS-04 clause has an end-to-end assertion; this one did not.
 
 ### SPEC Acceptance Criteria
 
