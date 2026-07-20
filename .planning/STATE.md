@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
-current_phase: 41
-current_phase_name: config-checkpointing-resume-determinism
+current_phase: 42
+current_phase_name: operator-runbook-surface-monitoring
 status: phase_complete
-stopped_at: Phase 42 planned (9 plans, 4 waves; plan-checker PASSED)
-last_updated: "2026-07-19T05:17:48.000Z"
-last_activity: 2026-07-18
-last_activity_desc: "Phase 42 planned: 9 plans/4 waves, plan-checker PASSED; next: execute Phase 42"
+stopped_at: "Phase 42 complete (9/9 plans; 4/4 criteria verified; tests/phase42 37 tests green)"
+last_updated: "2026-07-20T00:00:00.000Z"
+last_activity: 2026-07-20
+last_activity_desc: "Phase 42 executed and closed: plan 42-09 finished, tests/phase42 37 tests green, 4/4 criteria verified; next: Phase 43"
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 39
-  completed_plans: 39
-  percent: 71
+  completed_phases: 6
+  total_plans: 48
+  completed_plans: 48
+  percent: 86
 ---
 
 # Project State
@@ -24,16 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 41 — config-checkpointing-resume-determinism
+**Current focus:** Phase 42 — operator-runbook-surface-monitoring (complete); next Phase 43
 
 ## Current Position
 
-Phase: 41 (config-checkpointing-resume-determinism) — COMPLETE
-Plan: 5 of 5 executed; re-verification 6/6 must-haves (status human_needed only for
-the carried-forward owner items: B-5 field-list ratification before run #1, R-1/D4-a
-threshold calibration at the Phase 43 pilot — non-blocking for closure)
-Status: complete — GAP-41-01 RESOLVED-WITH-INSTRUCTION (rep B: runs/<name>/run_start_rng.pt)
-Last activity: 2026-07-18 — gap closed (fix 9abc676), re-verified 6/6; next: Phase 42
+Phase: 42 (operator-runbook-surface-monitoring) — COMPLETE
+Plan: 9 of 9 executed; verification 4/4 success criteria and all 11 SPEC acceptance
+criteria covered by the 37-test `tests/phase42` suite (0 skips). Status human_needed
+only for the two 42-VALIDATION Manual-Only rows (TensorBoard render legibility,
+real lid-close sleep test) — both non-blocking for closure.
+Status: complete — no gaps recorded. One PRE-EXISTING repo-wide regression failure is
+open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_the_corpus` flags
+`pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
+parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
+to the phase39 detector.
+Last activity: 2026-07-20 — plan 42-09 finished (5 test fixes), suite green, phase
+verified and closed; next: Phase 43 (verification, Stage-0 pilot, acceptance verdict)
 
 ## Deferred Items
 

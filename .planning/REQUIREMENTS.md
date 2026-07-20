@@ -75,12 +75,12 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 
 ### Operator Runbook Surface & Monitoring (OPS) — Phase 42
 
-- [ ] **OPS-01**: The operator drives training through five single-command entry points — Setup, Configure, Launch, Monitor, Resume — with internals hidden. [design §5]
-- [ ] **OPS-02**: Unattended runs launch under `caffeinate -is <cmd>` (lid-open + AC-power rule; SIGTERM treated as one graceful Ctrl-C → checkpoint). [B-10]
-- [ ] **OPS-03**: Every logged step emits the widened field set (5 loss terms + total + λ vector + grad-norm + `w_n` causal-weight stats + lr + s/step + ETA) to a canonical JSONL log, with TensorBoard as a secondary view in `runs/<name>/tb/`. [D2, B-2]
-- [ ] **OPS-04**: A `status.json` heartbeat and a periodic `mem:` line let the operator answer "is it alive / healthy?"; a per-time-bin residual panel surfaces causal-weight collapse and propagation failure. [B-2, design §6.1]
-- [ ] **OPS-05**: Each run produces the `runs/<name>/` contract (frozen `config.yaml`, `checkpoints/`, `logs/`, `summary.md`, `status.json`, `failure/`) such that handing over the directory reproduces the result. [design §5.7, B-6]
-- [ ] **OPS-06**: A written operator runbook under `docs/runbooks/` covers the mental model, the five entry points, the categorized error surface, and the M5-Pro-specific notes (unified memory, thermal, sleep, single-MPS-device). [design §5, §5.8]
+- [x] **OPS-01**: The operator drives training through five single-command entry points — Setup, Configure, Launch, Monitor, Resume — with internals hidden. [design §5]
+- [x] **OPS-02**: Unattended runs launch under `caffeinate -is <cmd>` (lid-open + AC-power rule; SIGTERM treated as one graceful Ctrl-C → checkpoint). [B-10]
+- [x] **OPS-03**: Every logged step emits the widened field set (5 loss terms + total + λ vector + grad-norm + `w_n` causal-weight stats + lr + s/step + ETA) to a canonical JSONL log, with TensorBoard as a secondary view in `runs/<name>/tb/`. [D2, B-2]
+- [x] **OPS-04**: A `status.json` heartbeat and a periodic `mem:` line let the operator answer "is it alive / healthy?"; a per-time-bin residual panel surfaces causal-weight collapse and propagation failure. [B-2, design §6.1]
+- [x] **OPS-05**: Each run produces the `runs/<name>/` contract (frozen `config.yaml`, `checkpoints/`, `logs/`, `summary.md`, `status.json`, `failure/`) such that handing over the directory reproduces the result. [design §5.7, B-6]
+- [x] **OPS-06**: A written operator runbook under `docs/runbooks/` covers the mental model, the five entry points, the categorized error surface, and the M5-Pro-specific notes (unified memory, thermal, sleep, single-MPS-device). [design §5, §5.8]
 
 ### Verification, Stage-0 Pilot & Acceptance (ACC) — Phase 43
 
@@ -179,12 +179,12 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 | CTRL-06 | Phase 41 | Complete |
 | CTRL-07 | Phase 41 | Complete |
 | CTRL-08 | Phase 41 | Complete |
-| OPS-01 | Phase 42 | Pending |
-| OPS-02 | Phase 42 | Pending |
-| OPS-03 | Phase 42 | Pending |
-| OPS-04 | Phase 42 | Pending |
-| OPS-05 | Phase 42 | Pending |
-| OPS-06 | Phase 42 | Pending |
+| OPS-01 | Phase 42 | Complete |
+| OPS-02 | Phase 42 | Complete |
+| OPS-03 | Phase 42 | Complete |
+| OPS-04 | Phase 42 | Complete |
+| OPS-05 | Phase 42 | Complete |
+| OPS-06 | Phase 42 | Complete |
 | ACC-01 | Phase 43 | Pending |
 | ACC-02 | Phase 43 | Pending |
 | ACC-03 | Phase 43 | Pending |
