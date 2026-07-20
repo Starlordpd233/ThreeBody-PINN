@@ -74,7 +74,7 @@ created: 2026-07-18
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| macOS sleep actually prevented under `caffeinate -is` (lid-open + AC) | OPS-02 | Requires real hardware sleep/lid state; not reproducible in unittest | Launch the wrapper, close lid on AC power, confirm the run continues (runbook §M5-Pro notes). The wrapper's exit-code propagation IS automated (`test_wrapper_exit.py`). |
+| macOS sleep actually prevented under `caffeinate -is` (lid-open + AC) | OPS-02 | Requires real power-assertion state; not reproducible in unittest | Launch `scripts/train-unattended.sh`, find its caffeinate pid (`pgrep -laf "caffeinate -is"`), and confirm `pmset -g assertions` lists that pid holding `PreventUserIdleSystemSleep`; then confirm an unwrapped `python -m pinn.train` adds no such assertion. **Corrected 2026-07-20:** this row previously said "close lid on AC power", which contradicts OPS-02's lid-OPEN + AC rule and the runbook §M5-Pro note; `caffeinate` does not assert against clamshell sleep, so a lid-close would fail for reasons unrelated to the wrapper. The wrapper's exit-code propagation IS automated (`test_wrapper_exit.py`). |
 | TensorBoard renders the residual panel legibly | OPS-04b | Visual/UX judgment of the rendered panel | `tensorboard --logdir runs/<name>/tb`; confirm `residuals/bin_*` and `causal/*` scalars plot. Emission is automated; rendering is manual. |
 
 ---
