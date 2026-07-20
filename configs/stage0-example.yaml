@@ -11,11 +11,15 @@ run:
   #   every_n_steps: 100
   #   wall_clock_ceiling_s: 3600
   guards: {}
-  # Advanced/provisional guard thresholds use their documented defaults.
+  # Advanced guard thresholds use their defaults, shown below. All three are
+  # ⚖ provisional placeholders (R-1) that the owner calibrates from the Phase-43
+  # pilot; the run banner reprints them at every launch. Note that the default
+  # ceiling stops a diverging run early — raise it deliberately, and read
+  # runs/<name>/failure/ before you do.
   # guards:
-  #   loss_explosion_ceiling: 1.0e12
-  #   disk_floor_fraction: 0.01
-  #   memory_watermark_fraction: 0.99
+  #   loss_explosion_ceiling: 1.0e6
+  #   disk_floor_fraction: 0.05
+  #   memory_watermark_fraction: 0.7
   monitor:
     heartbeat_secs: 30
     staleness_factor: 3
