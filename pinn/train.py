@@ -329,6 +329,83 @@ def _write_smoke_timing_calibration(
         print(f"warning: smoke timing calibration write failed: {exc}", file=sys.stderr)
 
 
+# ACC-01 / SPEC prohibition 4: no projected >30-minute run may proceed without a
+# green verify ladder. 1800 s is the 30-minute boundary; a forecast of EXACTLY
+# 1800 s PASSES (SPEC edge R1 — the reject is the strict inequality > 1800).
+_DURATION_GATE_LIMIT_S = 1800.0
+
+
+class DurationGateError(ValueError):
+    """Typed refusal: the >30-min launch duration gate refused a fresh launch.
+
+    Raised BEFORE any run-directory / checkpoint / optimizer construction
+    (fail-closed, ACC-01). Two refusal modes, both reported to stderr with no
+    warning-only path:
+
+    * no valid persisted 43-03 Stage-0 timing calibration is available for a
+      non-smoke launch — there is no honest forecast, and the gate never
+      fabricates one from a step count or a default estimate (SPEC edge R2);
+    * the measured forecast is strictly above 1800 s and no fresh GREEN
+      full-fingerprint 43-01 verify marker authorizes the run.
+    """
+
+
+def _check_duration_gate(config: TrainingConfig, *, runs_root: Path) -> None:
+    """Fail-closed >30-min launch duration gate (ACC-01); raise to refuse.
+
+    Wired into the launch preflight BEFORE run-directory creation so a refused
+    run leaves no run-dir behind. The forecast is the PERSISTED measured
+    seconds-per-step (plan 43-03 ``runs/.calibration/stage0-timing.json``) times
+    THIS launch's own declared Stage-0 budget (``config.stage.max_epochs``) — the
+    authoritative launch forecast, recomputed from the launch's own budget rather
+    than the calibration record's recorded budget (43-03 SUMMARY). A run whose
+    forecast is strictly above 1800 s additionally needs a fresh GREEN
+    full-fingerprint verify marker (plan 43-01 ``marker_is_green_and_fresh``);
+    a forecast of exactly 1800 s passes (SPEC edge R1).
+
+    Exemptions: ``run.smoke`` (the ~5-min smoke is the gate's own calibration
+    source) and resume (a resume re-enters a run that was already authorized at
+    its fresh launch; re-gating it would lock an operator out of their own run
+    once the 24 h marker window lapses). The caller applies the resume exemption.
+    """
+    if config.run.smoke:
+        return
+
+    # Deferred imports keep the composition root's top-level import light and
+    # avoid a load-time cycle (pinn.training.timing imports pinn.verify).
+    from pinn import verify
+    from pinn.training import timing
+
+    # One runtime+code fingerprint certifies BOTH the calibration read and the
+    # marker predicate, so they authorize the identical device/dtype/torch/
+    # python/git-head identity.
+    fingerprint = verify.current_fingerprint(
+        precision=config.run.precision, device=config.run.device
+    )
+    requested_steps = int(config.stage.max_epochs)
+    forecast = timing.forecast_from_calibration(
+        runs_root, requested_steps=requested_steps, fingerprint=fingerprint
+    )
+    if forecast is None:
+        raise DurationGateError(
+            f"no valid persisted Stage-0 timing calibration is available for a "
+            f"non-smoke launch ({requested_steps} steps on "
+            f"{config.run.precision}/{config.run.device}); refusing before "
+            f"construction rather than forecasting without a measurement. Run the "
+            f"ACC-02 smoke (configs/smoke.yaml) to persist a calibration first."
+        )
+    if forecast > _DURATION_GATE_LIMIT_S:
+        marker = verify.read_verify_marker(runs_root)
+        if not verify.marker_is_green_and_fresh(marker, fingerprint=fingerprint):
+            raise DurationGateError(
+                f"projected run duration {forecast:.1f} s exceeds the "
+                f"{_DURATION_GATE_LIMIT_S:.0f} s (30 min) limit and no fresh green "
+                f"full-fingerprint verify marker authorizes it; refusing before "
+                f"construction (SPEC prohibition 4). Run `python -m pinn.verify` "
+                f"to green the ladder first."
+            )
+
+
 def _resolve_runtime_spec(config: TrainingConfig) -> RuntimeSpec:
     """HIGH 4: strict-CPU returns forced float64/cpu RuntimeSpec."""
     if config.run.strict_cpu_determinism:
@@ -425,6 +502,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         err = RunFolderExistsError(run_dir)
         print(f"error: {err}", file=sys.stderr)
         return 1
+
+    # ACC-01 >30-min launch duration gate — fail-closed BEFORE run-dir creation.
+    # A fresh non-smoke launch must present a valid persisted 43-03 timing
+    # calibration (and, for a forecast strictly > 1800 s, a fresh green 43-01
+    # verify marker). Resume re-enters an already-authorized run and is exempt.
+    if not is_resume:
+        try:
+            _check_duration_gate(config, runs_root=runs_root)
+        except DurationGateError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
 
     run_dir.mkdir(parents=True, exist_ok=True)
     for directory in ("logs", "tb", "failure"):
