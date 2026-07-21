@@ -426,6 +426,15 @@ class RunController:
         """This stage's PHYS-05 schedule (read-only; constructed once per stage)."""
         return self._scheduled_weights
 
+    @property
+    def s_per_step(self) -> Optional[float]:
+        """Measured per-step wall-time EMA (read-only; None until it warms).
+
+        43-03 ACC-02: the finite value after a smoke's steps is the sole source
+        the persisted timing calibration records — never an invented duration.
+        """
+        return self._s_per_step_ema
+
     # ------------------------------------------------------------------
     # Anchor-identity selection + ground-truth conserved quantities.
     # ------------------------------------------------------------------

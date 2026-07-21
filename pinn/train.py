@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import math
 import os
 import sys
 from datetime import datetime, timezone
@@ -242,6 +243,36 @@ def _build_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
     if config.data.source == "admitted":
         return _build_admitted_sources(config, run_dir)
     return _synthetic_split_sources()
+
+
+def _write_smoke_timing_calibration(
+    config: TrainingConfig, run_controller: RunController, runs_root: Path
+) -> None:
+    """Persist a fresh-launch timing calibration after a successful smoke.
+
+    Fail-closed (SPEC edge R2): writes the versioned
+    ``runs/.calibration/stage0-timing.json`` ONLY when the run measured a finite,
+    strictly-positive per-step EMA. Absent a measurement the calibration is not
+    written — a fresh launch then finds no forecast rather than an invented one.
+    The measured partial s/step already lives in the run's ``status.json``
+    heartbeat evidence on any outcome; only a terminal-success measurement is
+    ever marked calibration-``valid``. A write failure never fails the run.
+    """
+    from pinn.training import timing
+
+    s_per_step = getattr(run_controller, "s_per_step", None)
+    if s_per_step is None or not math.isfinite(float(s_per_step)) or float(s_per_step) <= 0.0:
+        return
+    try:
+        timing.write_calibration(
+            s_per_step=float(s_per_step),
+            full_stage0_steps=int(config.stage.max_epochs),
+            precision=config.run.precision,
+            device=config.run.device,
+            runs_root=runs_root,
+        )
+    except Exception as exc:  # never let a calibration write fail the run
+        print(f"warning: smoke timing calibration write failed: {exc}", file=sys.stderr)
 
 
 def _resolve_runtime_spec(config: TrainingConfig) -> RuntimeSpec:
@@ -708,6 +739,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     if failed:
         return finish_run("failed", 1)
+
+    # Terminal success: a smoke persists its measured s/step calibration (fail-
+    # closed — no valid calibration without a finite positive measurement).
+    if config.run.smoke:
+        _write_smoke_timing_calibration(config, run_controller, runs_root)
 
     print(f"terminal_disposition={getattr(disposition, 'value', disposition)}")
     return finish_run("finished", 0, last_losses_cell["losses"])
