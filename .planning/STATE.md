@@ -5,10 +5,10 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 42
 current_phase_name: operator-runbook-surface-monitoring
 status: phase_complete
-stopped_at: "Phase 42 complete (9/9 plans; GAP-42-01 fixed; 4/4 criteria verified; 38 tests green)"
-last_updated: "2026-07-20T00:00:00.000Z"
+stopped_at: Phase 43 context gathered (SPEC + CONTEXT + DISCUSSION-LOG committed; position A of phase-43-work chain)
+last_updated: "2026-07-21T02:57:58.391Z"
 last_activity: 2026-07-20
-last_activity_desc: "Phase 42 closed: GAP-42-01 fixed (mem: line wired + end-to-end test), 4/4 criteria verified; two non-blocking manual checks still unrun"
+last_activity_desc: "GAP-42-01 fixed and phase closed; next: the two manual"
 progress:
   total_phases: 7
   completed_phases: 6
@@ -302,10 +302,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/42-operator-runbook-surface-monitoring/42-CONTEXT.md
+**Resume file:** .planning/phases/43-verification-stage-0-pilot-acceptance/43-CONTEXT.md
 
-Last session: 2026-07-19T03:30:31.583Z
-Stopped at: Phase 42 context gathered
+Last session: 2026-07-21T02:57:58.386Z
+Stopped at: Phase 43 context gathered (SPEC + CONTEXT + DISCUSSION-LOG committed; position A of phase-43-work chain)
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
