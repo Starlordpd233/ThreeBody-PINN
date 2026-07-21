@@ -548,39 +548,20 @@ explicit resolution before finalizing a unit test is documented as Open Question
 it is not a training-knowledge assumption — it is a directly-observed internal contradiction in a
 LOCKED spec document.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **SPEC.md's SCS-direction wording contradicts `ctl_instruction.md` and the ratified B-8 finding — which reading governs the Prohibition #1 unit test?**
-   - What we know (HIGH confidence, two independent authoritative citations): `SCS = log10(eps_H)`
-     is monotonic in `eps_H`; `ctl_instruction.md:567-568` and `trainex-r1a-resolution-doc.md:13`
-     (ratified B-8) both state ONE criterion — REJECT iff `eps_H > 1e-5` (equivalently `SCS > -5`),
-     with the exact-boundary point (`eps_H==1e-5`/`SCS==-5`) landing on the PASS/admitted side
-     ("Marginal: admitted, flagged for review").
-   - What's unclear: SPEC.md's own Constraints prose ("PASS if SCS > -5") and Acceptance Criteria
-     ("SCS (required: > -5)"; boundary "SCS==-5 -> FAIL") state the opposite polarity for SCS while
-     correctly stating the ε_H polarity — an internally contradictory pair of bullets in the SAME
-     locked document, since `eps_H==1e-5` and `SCS==-5` are the same event and SPEC.md's own text
-     assigns them opposite verdicts (PASS vs. FAIL) in adjacent bullets.
-   - Recommendation: build and test the gate as ONE condition on `eps_H` (REJECT iff `eps_H > 1e-5`,
-     inclusive-PASS boundary at exactly `1e-5`), rendering `SCS = log10(eps_H)` purely as a second
-     DISPLAY row of the same number — this is the only reading consistent with the cited authoritative
-     source and with SPEC.md's own `eps_H` bullets. The planner (or the discuss-phase owner) should
-     explicitly confirm this reading before the Prohibition #1 negative test is written, since a
-     literal reading of SPEC.md's SCS bullets would produce a test that asserts a mathematical
-     impossibility (the same input passing and failing simultaneously).
+1. **SCS-direction wording for the Prohibition #1 gate test — RESOLVED.** The authoritative
+   inclusive-PASS boundary is now explicit: reject iff `epsilon_H > 1e-5` or, equivalently,
+   `SCS > -5`; `SCS == -5` passes. The test implements one consistent gate rather than the
+   obsolete inverted design-doc rendering. Resolution: `43-SPEC.md` (ACC-03 / Prohibition #1)
+   and `43-CONTEXT.md` CTX-75; implementation is pinned in `43-02-PLAN.md` Task 1.
 
-2. **`_SOURCE_FACTORY` wiring scope: does the planner add a permanent real-data path to `pinn.train`, or a smoke/pilot-only test-injection shim?**
-   - What we know: `_SOURCE_FACTORY` is designed as a test-injection seam (module-level, mutable,
-     used by existing tests per the `train.py` docstring "mirrors phase40 stub shape without importing
-     the tests package").
-   - What's unclear: whether ACC-02/ACC-05 want a durable, config-driven "use real data" CLI path
-     (e.g., a `--data-root` flag or a `stage.residency` config value already hinted at in
-     `trainex-r1a-resolution-doc.md`'s example YAML, `stage: { ..., residency: auto }`) versus a
-     narrower harness-only wiring used just for the smoke test and pilot scripts.
-   - Recommendation: given `stage.residency: auto` already appears in the ratified example config
-     (§5 first-run recipe) and D3-C's adapter is meant to be the production data path (not test-only),
-     the durable config-driven path is likely the correct scope — but this affects how many
-     plan tasks/files are touched, so confirm during planning rather than defaulting silently.
+2. **Real-data wiring scope — RESOLVED.** The durable contract is limited to Plan 43-03's
+   validated `data.source` selector with optional explicit `data.root`, plus its fail-closed
+   admitted-data preflight. It attempts `default_data_root()` first and, when unavailable,
+   directs the operator to the CTX-79-approved corpus location or read-only Stage-0 copy; it
+   neither automates a copy nor silently falls back to synthetic data. Resolution:
+   `43-03-PLAN.md` Tasks 1 and 3.
 
 ## Environment Availability
 

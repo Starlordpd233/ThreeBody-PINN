@@ -78,8 +78,11 @@ implementing. Requirements are not duplicated here.
   best-effort. Single **no-grad** forward over the held-out test set, run **once**.
 - **CTX-75:** Gate direction is the **authoritative** one (`ctl_instruction.md` / ACC-03),
   NOT the design-doc §6.3 render example (which inverts ε_H): REJECT if `ε_H > 1e-5`
-  (smaller passes); PASS if `SCS > -5`; OVERALL FAIL iff `ε_H > 1e-5` OR `SCS ≤ -5`;
-  boundary `ε_H == 1e-5` → PASS, `SCS == -5` → FAIL. A gate boundary unit test locks this
+  (smaller passes); equivalently REJECT if `SCS > -5`; OVERALL FAIL iff
+  `ε_H > 1e-5` (equivalently iff `SCS > -5`). Both boundaries pass:
+  `ε_H == 1e-5` → PASS and `SCS == -5` → PASS. This is already the authoritative
+  Phase-43 SPEC wording (confirmed against commit `5d269156`); execution needs only a
+  confirm-only note, not a correction checkpoint. A gate boundary unit test locks this
   (SPEC Prohibition #1).
 - **CTX-76:** ε_H (energy error) and SCS are computed by **reusing the existing invariants /
   physics machinery** (`pinn/data-handling/processing/invariants.py`,

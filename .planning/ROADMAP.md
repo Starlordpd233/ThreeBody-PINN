@@ -167,6 +167,7 @@
 **Plans**: 9 plans (4 waves)
 
 Plans:
+
 - [x] 42-01-PLAN.md — Emission spine: `causal_physics_loss` return_details + widened `_log_step` + guard-order reorder (wave 1)
 - [x] 42-02-PLAN.md — Config + owner-owned seams: `MonitorConfig` + provisional `STEP_LOG_FIELDS` registry (wave 1)
 - [x] 42-03-PLAN.md — Test Wave-0 scaffold: `tests/phase42` fixtures + nine skip-guarded stubs (wave 1)
@@ -190,16 +191,35 @@ Plans:
   4. The milestone closes with a recorded **go / adjust / rethink** verdict on whether the Stage-0 slice justifies the full multi-stage platform, and updates the FUT-01 / FUT-04 handoff with what shipped, what stayed a placeholder seam, and what was deferred (ACC-06).
 
 **UI hint**: no
-**Plans**: 8 plans (6 waves)
+**Plans**: 8 plans (7 waves)
+**Wave 1**
 
 - [ ] 43-01-PLAN.md — verify ladder + verdict marker + tests/phase43 scaffold (ACC-01, wave 1)
-- [ ] 43-02-PLAN.md — evaluate script + model-prediction eps_H/SCS gate metric + authoritative gate boundary (ACC-03, wave 2)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 43-03-PLAN.md — real-data _SOURCE_FACTORY wiring + s_per_step accessor/forecast + smoke config (ACC-02, wave 2)
-- [ ] 43-05-PLAN.md — summary.md enrichment: validation summary + test-set preview + comparison hint + honesty layer (ACC-04, wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 43-02-PLAN.md — evaluate script + model-prediction eps_H/SCS gate metric + authoritative gate boundary (ACC-03, wave 3)
 - [ ] 43-04-PLAN.md — >30-min launch gate reading the fresh-green verify marker (ACC-01, wave 3)
-- [ ] 43-06-PLAN.md — smoke execution on real data + B-5 & D4-a owner pauses (ACC-02, wave 4)
-- [ ] 43-07-PLAN.md — Stage-0 pilot + seed-band calibration note + R-1/R-2 owner pause (ACC-05, wave 5)
-- [ ] 43-08-PLAN.md — go/adjust/rethink verdict + FUT-01/FUT-04 handoff + ACC-06 owner pause (ACC-06, wave 6)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 43-05-PLAN.md — summary.md enrichment: validation summary + test-set preview + comparison hint + honesty layer (ACC-04, wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 43-06-PLAN.md — smoke execution on real data + B-5 & D4-a owner pauses (ACC-02, wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 43-07-PLAN.md — Stage-0 pilot + seed-band calibration note + R-1/R-2 owner pause (ACC-05, wave 6)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 43-08-PLAN.md — go/adjust/rethink verdict + FUT-01/FUT-04 handoff + ACC-06 owner pause (ACC-06, wave 7)
 
 ## Progress
 
