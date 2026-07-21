@@ -76,9 +76,9 @@ observed variance), and the ACC-06 verdict.
      **once** (no-grad forward), writes `metrics.json` + `metrics.md`, and renders the
      binary gate with plain-English descriptions and an OVERALL verdict.
    - Acceptance: `metrics.md` contains a `## Gate Check` block with
-     `ε_H: <v> (reject if > 1e-5) → ✅/❌`, `SCS: <v> (required: > -5) → ✅/❌`, and an
-     `OVERALL: PASS/FAIL`; OVERALL is FAIL iff `ε_H > 1e-5` OR `SCS ≤ -5`; the boundary
-     `ε_H == 1e-5` → PASS and `SCS == -5` → FAIL; `metrics.json` carries the same numbers;
+     `ε_H: <v> (reject if > 1e-5) → ✅/❌`, `SCS: <v> (reject if > -5) → ✅/❌`, and an
+     `OVERALL: PASS/FAIL`; OVERALL is FAIL iff `ε_H > 1e-5` (equivalently `SCS > -5`); the boundary
+     `ε_H == 1e-5` → PASS and `SCS == -5` → PASS; `metrics.json` carries the same numbers;
      an empty/absent test set is refused with a clear non-zero error, and a NaN/Inf metric
      renders an honest FAIL rather than a crash.
 
@@ -154,8 +154,8 @@ observed variance), and the ACC-06 verdict.
   (project convention, not pytest). No cloud/distributed — hard constraint.
 - Stage-0 only; in-memory fp32 admitted set (~0.55 GB); manual rollback.
 - **Binary gate direction is the authoritative one** (`REQUIREMENTS.md` ACC-03 /
-  `ctl_instruction.md`): **REJECT if `ε_H > 1e-5`** (smaller energy error passes); **PASS if
-  `SCS > -5`**. The non-authoritative design doc §6.3 render example inverts `ε_H` (it fails
+  `ctl_instruction.md`): **REJECT if `ε_H > 1e-5`** (smaller energy error passes), equivalently **REJECT if
+  `SCS > -5`** (`SCS = log10(ε_H)`; PASS iff `SCS ≤ -5`). The non-authoritative design doc §6.3 render example inverts `ε_H` (it fails
   `8.2e-6`, contradicting its own "smaller is better, < 1e-5 is excellent" text) and MUST NOT
   be copied — see Prohibitions.
 - The `verify` ladder gates any run **projected > 30 min**; the ~5-min smoke test is exempt.
@@ -173,8 +173,8 @@ observed variance), and the ACC-06 verdict.
 - [ ] Smoke test (~32 Stage-0 traj, ~300 steps, `checkpoint_every=100`) completes in ~5 min, writes checkpoints at steps 100/200/300, survives Ctrl-C + resume, and emits a numeric `s_per_step` + per-run forecast
 - [ ] On early smoke divergence/NaN, the smoke reports an honest failure with partial s/step and does NOT emit a fabricated forecast
 - [ ] `python -m pinn.evaluate --checkpoint <ckpt> --output <dir>` runs the test set once and writes `metrics.json` + `metrics.md`
-- [ ] `metrics.md` renders `## Gate Check` with `ε_H` (reject if > 1e-5), `SCS` (required: > -5), and `OVERALL: PASS/FAIL`; OVERALL FAIL iff `ε_H > 1e-5` OR `SCS ≤ -5`
-- [ ] Gate boundary: `ε_H == 1e-5` → PASS and `SCS == -5` → FAIL (strict inequalities)
+- [ ] `metrics.md` renders `## Gate Check` with `ε_H` (reject if > 1e-5), `SCS` (reject if > -5), and `OVERALL: PASS/FAIL`; OVERALL FAIL iff `ε_H > 1e-5` (equivalently `SCS > -5`)
+- [ ] Gate boundary: `ε_H == 1e-5` → PASS and `SCS == -5` → PASS (strict-inequality reject: `ε_H > 1e-5` / `SCS > -5`)
 - [ ] `metrics.md` includes plain-English descriptions of `ε_H` and `SCS`; `metrics.json` carries the same numeric values
 - [ ] `evaluate` refuses an empty/absent test set with a clear non-zero error and renders an honest FAIL (no crash) on a NaN/Inf metric
 - [ ] A completed run's `summary.md` contains Run header, Final losses, Validation summary, Curriculum progression, Test-set preview, and Comparison hint, plus the three honesty-layer statements
@@ -193,7 +193,7 @@ observed variance), and the ACC-06 verdict.
 |----------|-------------|--------|---------------------|
 | unclassified | R1 | ✅ covered | Broken/missing probe → ladder names first failing rung (AC 2); duration gate uses strict `> 30 min` (AC 3) |
 | unclassified | R2 | ✅ covered | Ctrl-C mid-checkpoint → resume from last atomic checkpoint; early divergence → honest failure + partial s/step, never a fabricated forecast (AC 5) |
-| adjacency | R3 | ✅ covered | Threshold boundary pinned: `ε_H == 1e-5` PASS, `SCS == -5` FAIL — strict inequalities (AC 8) |
+| adjacency | R3 | ✅ covered | Threshold boundary pinned: `ε_H == 1e-5` PASS, `SCS == -5` PASS — strict-inequality reject (AC 8) |
 | empty | R3 | ✅ covered | Empty/absent test set refused with non-zero error; NaN/Inf metric → honest FAIL, no crash (AC 10) |
 | ordering | R3 | ⛔ dismissed | Fixed two-metric render in a published order; no data-dependent collection to order |
 | adjacency | R4 | ⛔ dismissed | `summary.md` uses a fixed section template; no touching/merge semantics |
