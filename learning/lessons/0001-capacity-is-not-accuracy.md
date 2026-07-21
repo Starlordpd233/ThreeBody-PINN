@@ -2,7 +2,7 @@
 lesson_id: "0001"
 title: Capacity is not accuracy
 format: deep-unit
-capability_state: introduced
+capability_state: practicing
 created: 2026-07-14
 source_design: docs/work/designs/cross_cutting/owner-learning-framework/2026-07-13-owner-learning-framework-design.md
 ---
@@ -20,7 +20,12 @@ source_design: docs/work/designs/cross_cutting/owner-learning-framework/2026-07-
 These two prompts reactivate Orientation 0. Answer from memory before continuing; your answers are diagnostic and will be preserved.
 
 1. Without reopening Orientation 0: after a neuron forms its weighted sum and adds its bias, what operation comes next, and why does it matter?
+
+Answer: the third thing is the final outcome or value of a neuron, and it provides the answer? I'm not sure if I'm getting what you're asking here. 
+
 2. In Orientation 0 you wrote that more layers “give more accuracy because more fitting is executed during each layer.” From memory now — name **one thing** a larger network definitely provides, and **one thing** it does **not** by itself guarantee.
+
+Answer: A larger network provides more flexibility. With more neurons and layers, we are able to better fit our model to a situation that we want, so that we can adjust the values for the weights and biases to better approach the final value that we want to achieve. I'm not sure what a larger network by itself does not guarantee. It could be that if we don't design a training loss function well, the gradient descent will not happen smoothly as we want? 
 
 Commit to an answer for both before reading on. These are diagnostic predictions, not a test you can fail: the value is in committing first, then comparing your prediction to the formal statement as you read §2–§3. Your exact wording will be preserved either way.
 
@@ -34,7 +39,7 @@ Suppose you face a mechanical job. Three very different facts matter:
 
 Map these to three separate questions about a neural network:
 
-- **Representation** — is the model class rich enough, relative to *this* target, to contain a function capable of the required mapping?
+- **Representation** — is the model class rich enough, relative to *this* target, to contain a function capable of the required mapping? <mark>User: What's a model class?<mark>
 - **Optimization** — did the training process find a sufficiently good member of that class?
 - **Generalization** — does the fitted function work on relevant cases that did not determine its parameters?
 
@@ -49,7 +54,7 @@ $$\mathcal{F} = \{f_\theta\}$$
 indexed by parameters $\theta$. Training selects one fitted member $f_{\hat\theta} \in \mathcal{F}$ by adjusting **all** parameters $\theta$ jointly under one objective — no layer is fitted separately; the whole network is one composed function whose every weight and bias is tuned together. Define:
 
 - training loss $L_{\mathrm{train}}(f)$ — average error over the examples whose parameters the fit was allowed to see;
-- unseen / validation loss $L_{\mathrm{unseen}}(f)$ — average error over relevant examples that did *not* choose $\hat\theta$.
+- unseen / validation loss $L_{\mathrm{unseen}}(f)$ — average error over relevant examples that did *not* choose $\hat\theta$. User: what do you mean relevant examples that did not choose ${\theta}$?
 
 Now the three questions become precise:
 
@@ -73,7 +78,7 @@ Each question only becomes informative once the previous one is at least approxi
 
 <mark><u>Increasing capacity changes what the model class *could* represent; it does not by itself choose good parameters or supply unseen evidence.</u></mark>
 
-That single sentence is the load-bearing claim of this unit.
+That single sentence is the load-bearing claim of this unit. User: my biggest confusion till now is: what do you mean by representation? How well the model class can fit a specific scenario? How many functions that are available to be chosen for modeling?
 
 ## 4. A complete algebraic example: when the class cannot represent the target
 
@@ -112,9 +117,9 @@ Read each case, pause, and classify it as evidence of a **representation**, **op
 
 | Case | Observation |
 |---|---|
-| A | An exact least-squares fit of an affine model cannot match the three $x^2$ points, while a quadratic model matches all three exactly. |
-| B | Two runs use the same network, data, and objective; one reaches training loss 100 times lower than the other. |
-| C | Training loss keeps falling while held-out loss rises for several evaluations. |
+| A | An exact least-squares fit of an affine model cannot match the three $x^2$ points, while a quadratic model matches all three exactly. | representation
+| B | Two runs use the same network, data, and objective; one reaches training loss 100 times lower than the other. | optimization
+| C | Training loss keeps falling while held-out loss rises for several evaluations. | generalizations
 
 ### Check your reasoning
 
@@ -137,9 +142,22 @@ For context (from the authoritative [PINN architecture spec](../pinn_instruction
 Answer all four from memory. Do not copy lesson phrasing. Naming uncertainty is allowed and expected; say what you do not yet know.
 
 1. **Explain:** In your own words, distinguish representation, optimization, and generalization *without* using the toolbox analogy.
+
+Representation is basically how big and rich the model class is for a neural network. The more and richer the model class contains, perhaps with different functions and different tools that the neural network are equipped with (although currently I cannot name you any examples of what a model class contains inside, except the only thing I know is functions), the better the chances that the neural network can sue this strong representation capabilities to model and fit a specific requirement. optimization is about training, and it's what we try to continuously minimize the training less to find the best fitting parameters for a model class. Generalization is the ability of the neural network to extends its answers to anser questions that it has not yet seen before. This generalization capabilities are independent from optimization, and overfitting and underfitting are examples of this independence. 
+
+
 2. **Diagnose:** Classify Cases A, B, and C from §6. For each, cite the specific observation that supports your classification, and name one conclusion the observation does *not* establish.
+Already done this.
+
 3. **Transfer:** Respond to the project claim in §7 in 3–5 sentences. State what the larger network and low training loss *do* support. Then name at least three categories of evidence still needed before you would trust the three-body trajectories.
+
+The larger network and low training loss are good evidence to support that the model is indeed representative enough to learn to model different trajectories, and it is able to do so accurately because of the low training loss. But we still need to see its generalization abilities in order to fully be confident of whether or not it's a good model at predicting correct trajectories. Overfitting and underfitting could be problems. This is all I can say for this question for now.
+
+
 4. **Correct the old model:** Rewrite this statement so it is technically sound: *“More neurons and layers give more accuracy because more fitting is executed during each layer.”* Preserve whatever is correct in the original; do not replace it with “bigger is bad.”
+
+More neurons and layers give more accuracy because each layer takes the input from the previous layer, adds its own calculations, and produces a new result to be fed into the next layer, until the last layer. The training and loss minimizing happens at the same time for all layers. 
+
 
 When you finish:
 
@@ -155,6 +173,8 @@ Do not read past this section until you have written your four responses. Nothin
 > “A very large model achieves almost zero training loss. From memory, draw the three-question diagnostic and name the additional observation you would seek at each step.”
 
 This review hook is **not due yet**. It becomes due at the next learning session only after the current correction cycle closes.
+
+User: I'm still a little confused at what the general "three-category" or three-perspsectives are. Representation, optimization, and generalization? But doesn't this question already contain the first two? 
 
 ## Walls for this unit
 
@@ -175,4 +195,88 @@ The following are deliberately deferred because they do not improve the target c
 
 ## Attempt and feedback history
 
-No Unit 0001 attempt is recorded yet. The learner completes the independent attempt in conversation; the teaching agent appends it here verbatim before giving diagnostic feedback.
+### Initial independent attempt — 2026-07-19
+
+The learner also wrote the cold-retrieval answers, three clarification questions ("what's a model class?", "what do you mean relevant examples that did not choose θ̂?", "what do you mean by representation?"), the Review-hook clarification, and the Case A/B/C classifications inline in the body of the lesson. Those inline annotations are preserved in place as the learner's working layer and are addressed under "Term clarifications" below.
+
+#### Response 1 — Explain
+
+> Representation is basically how big and rich the model class is for a neural network. The more and richer the model class contains, perhaps with different functions and different tools that the neural network are equipped with (although currently I cannot name you any examples of what a model class contains inside, except the only thing I know is functions), the better the chances that the neural network can sue this strong representation capabilities to model and fit a specific requirement. optimization is about training, and it's what we try to continuously minimize the training less to find the best fitting parameters for a model class. Generalization is the ability of the neural network to extends its answers to anser questions that it has not yet seen before. This generalization capabilities are independent from optimization, and overfitting and underfitting are examples of this independence.
+
+**What is correct:**
+- Representation correctly anchored to "how big and rich the model class is" — that is the right object (the class, not a fitted model).
+- Optimization correctly anchored to training and to minimizing training loss to find parameters.
+- Generalization correctly anchored to "questions it has not yet seen before."
+- The instinct that generalization can fail independently of optimization (overfitting/underfitting) is the right instinct.
+
+**Diagnosis: imprecise.** Two imprecisions, one load-bearing:
+1. The phrase "use this strong representation capabilities to **model and fit** a specific requirement" slips from the class (representation) to the act of fitting a member (optimization). The class is the *menu*; fitting is *placing an order*. Richness of the menu does not fit anything — it only makes a good fit *possible*.
+2. "best fitting parameters **for a model class**" — parameters belong to one fitted member $f_{\hat\theta}$, not to the class $\mathcal{F}$. The class has no parameters; it has candidates.
+3. "generalization capabilities are independent from optimization" is mostly right but overstated as a universal: they can fail independently, and they can also fail together. The safe statement is "a model can be well-optimized and still generalize poorly" — one-directional, not a general independence claim.
+
+**Smallest correction:** Replace "use this strong representation capabilities to model and fit" with "makes it *possible* that a good fitting function exists in the class — but representation alone does not do the fitting." Use the §4 algebraic example as the counterexample: the affine class could not represent $y=x^2$ at three points; the quadratic class could. The richer class made a correct fit *possible*, not *done*.
+
+#### Response 2 — Diagnose
+
+> Already done this.
+
+(Refers to the inline classifications in §6: A = representation, B = optimization, C = generalization.)
+
+**What is correct:** All three classifications are correct.
+- A (affine cannot fit $x^2$ points; quadratic can) → representation ✓
+- B (same network, one run 100× lower training loss) → optimization ✓
+- C (training loss falls, held-out loss rises) → generalization ✓
+
+**Diagnosis: incomplete.** The prompt asked for two things per case: (a) the classification, and (b) cite the observation that supports it AND name one conclusion the observation does *not* establish. You did (a) inline. You did not do (b) for any case.
+
+**Smallest correction:** For each case, add one sentence of the form "Observation X supports this because __; it does *not* establish __." Example for Case B: "The 100×-lower-loss run supports an optimization diagnosis for the worse run because the same class demonstrably fits the training objective better; it does *not* establish anything about held-out performance for either run."
+
+#### Response 3 — Transfer
+
+> The larger network and low training loss are good evidence to support that the model is indeed representative enough to learn to model different trajectories, and it is able to do so accurately because of the low training loss. But we still need to see its generalization abilities in order to fully be confident of whether or not it's a good model at predicting correct trajectories. Overfitting and underfitting could be problems. This is all I can say for this question for now.
+
+**What is correct:**
+- "Larger network" supports representational capacity (richness of the class) — correct.
+- "We still need to see its generalization abilities" — correct direction.
+- Naming overfitting/underfitting as candidate problems — on-topic.
+
+**Diagnosis: misconception (load-bearing).** The clause "it is able to do so **accurately because of the low training loss**" is the exact claim this unit exists to repair, now endorsed in your own words. Low training loss supports fit **to the training objective on the training cases**. It does **not** support accuracy on trajectories in general — which is a generalization claim. The project claim you were asked to push back on is precisely "low training loss → trajectories are accurate," and this response concedes that step.
+
+The prompt also asked for **at least three categories of evidence still needed**. You named one (generalization). Three more categories from the unit that you did not reach:
+- **Held-out trajectory performance** on a valid validation split — quantitatively, not just "we need to see generalization."
+- **Physical-consistency evidence** (residual against the equations of motion) — does the fitted trajectory obey Newton's laws, not just fit training data?
+- **Domain/edge-case coverage** — does the model handle close encounters, chaotic regimes, or initial conditions outside the training distribution?
+- (Also valid: baseline comparison to a trusted integrator; reproducibility across seeds; uncertainty estimates.)
+
+**Smallest correction (counterexample):** In [Zhang et al.](https://arxiv.org/abs/1611.03530), high-capacity networks fit *randomly assigned* labels with near-zero training loss. So near-zero training loss is possible even when there is no true input→output relationship to generalize. Therefore: low training loss is *consistent with* accuracy but does *not establish* it. The missing inferential step is "training loss → accuracy on training cases → accuracy on unseen trajectories," and the second arrow is the one low training loss cannot buy.
+
+This is the **focused re-attempt** requested below.
+
+#### Response 4 — Correct the old model
+
+> More neurons and layers give more accuracy because each layer takes the input from the previous layer, adds its own calculations, and produces a new result to be fed into the next layer, until the last layer. The training and loss minimizing happens at the same time for all layers.
+
+**What is correct:**
+- "Training and loss minimizing happens at the same time for all layers" — this correctly kills the original statement's "each layer executes its own fit" error. Layers form one jointly-optimized function; this is the joint-optimization correction and it is exactly right.
+- The description of the forward pass (each layer takes the previous layer's output) is mechanically correct.
+
+**Diagnosis: imprecise.** The rewrite *adds* a correct clause but does not *revise* the false one. The sentence still begins "More neurons and layers give more accuracy because..." — which is the very guarantee the unit says cannot be made. More capacity makes better performance *possible*, not *guaranteed*. The original statement had two errors; you corrected one (per-layer fitting → joint fitting) and left the other (capacity → guaranteed accuracy) standing.
+
+**Smallest correction:** Replace "give more accuracy" with "may make better performance *possible* by increasing the range of functions the network can represent; whether that performance is actually realized depends on optimization, and whether it holds beyond training cases depends on generalization."
+
+#### Corrected re-attempt — *focused on the Response 3 misconception*
+
+Your Response 3 endorsed the step "low training loss → trajectories are accurate." That is the same shape as the first clause of the statement in Response 4. Re-attempt **only this Transfer prompt**, in your own words:
+
+> The project network has 12 hidden layers of 256 neurons, and its training loss is low. Re-state what those two facts *do* support, then re-state what they do *not* establish — using the Zhang et al. counterexample (networks that fit random labels with near-zero training loss) as the concrete reason the second arrow fails.
+
+Aim for 3–5 sentences. Do not just rephrase the lesson — name the inferential step that low training loss cannot buy. After your re-attempt lands, the Response 4 first-clause fix and the Response 2 "what it doesn't establish" skill will follow naturally from the same distinction.
+
+### Term clarifications (addressing inline questions)
+
+You asked four questions inline. Brief answers, using only terms already in the lesson:
+
+- **"What's a model class?"** — The set of candidate functions the network *could* be, before training chooses one. Written $\mathcal{F} = \{f_\theta\}$ in §2. Concretely: fix the architecture (12 layers, 256 neurons, SIREN activations) and you have fixed the class; every possible assignment of weights and biases is one member $f_\theta$ of that class. The class is the *menu*; one fitted network is one *item ordered from it*. (Your instinct in the inline note — "how many functions available" — is essentially right: the class is the collection of all members reachable by some parameter choice.)
+- **"What do you mean relevant examples that did not choose $\hat\theta$?"** — Training adjusts $\hat\theta$ to reduce loss on the *training* examples; those examples "chose" $\hat\theta$ in the sense that they shaped it. Held-out examples are ones the training procedure never saw, so they did *not* shape $\hat\theta$. "Relevant" means: drawn from the same kind of problem you actually care about (here, three-body trajectories with similar regimes), not arbitrary random inputs.
+- **"What do you mean by representation? How well the model class can fit a specific scenario? How many functions available?"** — Closer to the second. Representation is about whether a *sufficient* function exists somewhere in the class for *this* target — a yes/no richness question about the menu, not a measurement of how well any particular fitted member does. "How well a fitted model fits" is an *optimization/evaluation* question about one member, not a representation question about the class.
+- **"The three-question perspectives — doesn't the Review hook already contain the first two?"** — The Review hook asks you to *re-derive the gating sequence from memory* and name the *additional observation you would seek at each step*. The three questions are not three coexisting labels; they are three sequential gates (§3): first ask whether a good function exists in the class; *only if yes* ask whether training finds one; *only if yes* ask whether it works on unseen cases. The Review hook tests whether you can reproduce that *sequence*, including what each step does not yet entitle you to conclude.

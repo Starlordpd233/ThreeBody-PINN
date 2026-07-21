@@ -13,7 +13,7 @@
 | ID | Capability | Depends on | State at workspace creation | Evidence or next action |
 |---|---|---|---|---|
 | O0 | Map regression to a layered neural network | AP Statistics least-squares | introduced | Historical sample in the source design; three corrected re-attempts remain pending. |
-| U1 | Distinguish representation, optimization, and generalization from evidence | O0 vocabulary only | introduced | Lesson 0001 released; independent attempt pending. |
+| U1 | Distinguish representation, optimization, and generalization from evidence | O0 vocabulary only | practicing | Initial attempt 2026-07-19 classified all three cases correctly but endorsed "low training loss → accurate trajectories" (Response 3) and left "more capacity → more accuracy" un-revised (Response 4). Focused re-attempt on the Response 3 misconception is pending. |
 | U2 | Derive one gradient update and explain what autograd records | U1 | queued | Start only after U1's three-way distinction is at least demonstrated or deliberately deferred. |
 | U3 | Translate three-body state and scaling into model inputs and outputs | algebra, mechanics | queued | Independent of project phase numbering. |
 | U4 | Derive one physics residual from a second-order ODE | U2, U3 | queued | No implementation detail until the mathematical residual is understood. |
@@ -22,7 +22,7 @@
 
 ## Active unit
 
-Unit 0001 (U1) is active at state `introduced`. The lesson has been source-checked, reviewed, and released; reading alone does not advance it beyond `introduced`. The learner's independent attempt will determine whether U1 becomes `practicing` or `demonstrated`.
+Unit 0001 (U1) is active at state `practicing`. The initial attempt (2026-07-19) classified all three cases correctly but did not yet demonstrate the capability: Response 3 endorsed "low training loss → accurate trajectories," and Response 4 left "more capacity → more accuracy" un-revised. A focused re-attempt on the Response 3 misconception is pending. Delayed review remains unscheduled until the corrected re-attempt arrives.
 
 ## Review queue
 
