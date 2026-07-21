@@ -16,6 +16,7 @@ import importlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 import torch
@@ -285,6 +286,71 @@ class SyntheticDefaultTests(unittest.TestCase):
         # The synthetic stub meets the 240 Stage-0 population floor.
         self.assertEqual(len(train_source.records_at_or_below(0)), 240)
         self.assertEqual(len(validation_source.records_at_or_below(0)), 240)
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — CTX-79-preserving data-reachability preflight.
+# ---------------------------------------------------------------------------
+class DataReachabilityPreflightTests(unittest.TestCase):
+    def _config(self, root):
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        TrainingConfig = _require("TrainingConfig", CONFIG_MODULE)
+        return TrainingConfig(
+            stage=_valid_stage(),
+            data=DataConfig(source="admitted", root=(str(root) if root else None)),
+        )
+
+    def _assert_names_both_fallbacks(self, message):
+        self.assertIn("main-root checkout", message)
+        self.assertIn("read-only", message)
+        self.assertIn("data.root", message)
+
+    def test_explicit_missing_root_refuses_naming_both_fallbacks(self):
+        preflight = _require("_admitted_data_preflight", TRAIN_MODULE)
+        DataReachabilityError = _require("DataReachabilityError", TRAIN_MODULE)
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "absent" / "Data"
+            with self.assertRaises(DataReachabilityError) as ctx:
+                preflight(self._config(missing))
+        self._assert_names_both_fallbacks(str(ctx.exception))
+
+    def test_explicit_existing_root_passes(self):
+        preflight = _require("_admitted_data_preflight", TRAIN_MODULE)
+        with tempfile.TemporaryDirectory() as tmp:
+            resolved = preflight(self._config(tmp))
+        self.assertEqual(resolved, Path(tmp).resolve())
+
+    def test_default_root_missing_refuses_naming_both_fallbacks(self):
+        preflight = _require("_admitted_data_preflight", TRAIN_MODULE)
+        DataReachabilityError = _require("DataReachabilityError", TRAIN_MODULE)
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "no-corpus" / "Data"
+            with mock.patch(
+                "pinn.data.adapter.default_data_root", return_value=missing
+            ):
+                with self.assertRaises(DataReachabilityError) as ctx:
+                    preflight(self._config(None))
+        self._assert_names_both_fallbacks(str(ctx.exception))
+
+    def test_default_root_success(self):
+        preflight = _require("_admitted_data_preflight", TRAIN_MODULE)
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch(
+                "pinn.data.adapter.default_data_root", return_value=Path(tmp)
+            ):
+                resolved = preflight(self._config(None))
+        self.assertEqual(resolved, Path(tmp).resolve())
+
+    def test_default_root_resolution_failure_refuses(self):
+        preflight = _require("_admitted_data_preflight", TRAIN_MODULE)
+        DataReachabilityError = _require("DataReachabilityError", TRAIN_MODULE)
+        with mock.patch(
+            "pinn.data.adapter.default_data_root",
+            side_effect=RuntimeError("git unavailable"),
+        ):
+            with self.assertRaises(DataReachabilityError) as ctx:
+                preflight(self._config(None))
+        self._assert_names_both_fallbacks(str(ctx.exception))
 
 
 if __name__ == "__main__":  # pragma: no cover
