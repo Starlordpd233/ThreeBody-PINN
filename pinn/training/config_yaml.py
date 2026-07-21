@@ -22,6 +22,7 @@ import yaml
 from pinn.training.atomic_io import atomic_write_text
 from pinn.training.config import (
     CheckpointCadence,
+    DataConfig,
     GuardConfig,
     LossConfig,
     MonitorConfig,
@@ -40,8 +41,12 @@ _SECTION_CLASSES: Mapping[str, Type[Any]] = {
     "stage": StageConfig,
     "opt": OptConfig,
     "loss": LossConfig,
+    "data": DataConfig,
 }
 
+# ``data`` is intentionally NOT required: pre-43-03 configs omit it and default
+# to the synthetic source. Unknown ``data.*`` keys still fail loud because the
+# section is registered in ``_SECTION_CLASSES`` above.
 _REQUIRED_SECTIONS = ("run", "stage", "opt", "loss")
 
 
@@ -224,6 +229,7 @@ def load_config(path: PathLike) -> TrainingConfig:
         run=sections["run"],
         opt=sections["opt"],
         loss=sections["loss"],
+        data=sections["data"],
     )
 
 
@@ -259,6 +265,7 @@ def resolved_config_to_dict(config: TrainingConfig) -> dict[str, Any]:
         "stage": _to_plain(config.stage),
         "opt": _to_plain(config.opt),
         "loss": _to_plain(config.loss),
+        "data": _to_plain(config.data),
     }
 
 

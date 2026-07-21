@@ -199,9 +199,48 @@ def _synthetic_split_sources(
     return train, val
 
 
-def _build_sources(config: TrainingConfig) -> tuple[Any, Any]:
+def _build_admitted_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
+    """Compose the sole production admitted corpus into leakage-free split views.
+
+    Constructs the ``AdmittedSetAdapter`` on CPU/float32 residency REGARDLESS of
+    the model runtime (43-03 ACC-02 / DATA-01): the adapter owns fp32 CPU tensors
+    and each batch is moved onto the model device only at sampling time, so an
+    MPS/fp32 model and the CPU/fp32 adapter coexist. A deterministic
+    ``SplitManifest`` is created (or reloaded on resume) and atomically persisted
+    as ``runs/<run>/splits.json`` BEFORE any batch is drawn, so evaluation can
+    later reconstruct the exact held-out ``StageIndex``. Only the train and
+    validation split views are returned — the test split never reaches training.
+    """
+    # Deferred imports keep the composition root's import light (mirrors
+    # ``_synthetic_split_sources``); the heavy data stack loads only for a real run.
+    from pinn.data.adapter import AdmittedSetAdapter
+    from pinn.data.splits import SplitManifest, StageIndex, write_split_manifest
+
+    adapter = AdmittedSetAdapter(
+        root=config.data.root,
+        precision="float32",
+        device="cpu",
+        run_dir=run_dir,
+    )
+
+    manifest_path = Path(run_dir) / "splits.json"
+    if manifest_path.is_file():
+        # Resume: reuse the frozen split provenance rather than re-partitioning.
+        manifest = SplitManifest.from_path(manifest_path)
+    else:
+        # Fresh launch: partition and atomically write splits.json BEFORE batches.
+        manifest = write_split_manifest(adapter, run_dir, seed=int(config.run.seed))
+
+    train_index = StageIndex.from_split(adapter, manifest, "train")
+    validation_index = StageIndex.from_split(adapter, manifest, "validation")
+    return train_index, validation_index
+
+
+def _build_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
     if _SOURCE_FACTORY is not None:
         return _SOURCE_FACTORY(config)
+    if config.data.source == "admitted":
+        return _build_admitted_sources(config, run_dir)
     return _synthetic_split_sources()
 
 
@@ -438,7 +477,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         device=runtime_spec.torch_device,
     )
 
-    train_source, validation_source = _build_sources(config)
+    train_source, validation_source = _build_sources(config, run_dir)
 
     store = TorchSaveCheckpointStore(ckpt_dir, config=config)
     step_guards = StepGuards(config, disk_root=run_dir)
@@ -584,6 +623,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         checkpoint_hook=checkpoint_hook,
         guard_hook=guard_hook,
         should_stop=lambda: signal_state.stop_requested,
+        replay_count=config.stage.replay_count,
     )
     curriculum_holder["run_controller"] = run_controller
 

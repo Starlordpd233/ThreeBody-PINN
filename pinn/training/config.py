@@ -125,6 +125,11 @@ _PROVISIONAL_EVERY_N_STEPS = 100  # cadence seam default (not owner-carved scien
 _DEFAULT_ROLLING_KEEP = 3
 _DEFAULT_FAILURE_KEEP = 10  # plain disk-hygiene retention bound (LOW-2)
 
+# DATA-01 composition seam (43-03): the two supported training-data sources.
+# ``synthetic`` is the dataset-free falsifiability-floor stub; ``admitted`` is
+# the sole production ``AdmittedSetAdapter`` corpus path.
+_DATA_SOURCES = ("synthetic", "admitted")
+
 # frozen_config_rng_recording_format — GAP-41-01 RESOLVED-WITH-INSTRUCTION
 # (2026-07-18, owner delegated best-judgment pick): representation B. The
 # frozen runs/<name>/config.yaml stays a pure TrainingConfig; the four RNG
@@ -290,6 +295,7 @@ class RunConfig:
     precision: str = "float32"  # D1-p production default
     device: str = "mps"  # D1-p production default
     strict_cpu_determinism: bool = False  # CTX-63 default OFF
+    smoke: bool = False  # 43-03 ACC-02: mark a ~5-min Stage-0 smoke run
     run_name: Optional[str] = None
     guards: GuardConfig = field(default_factory=GuardConfig)
     checkpoint: CheckpointCadence = field(default_factory=CheckpointCadence)
@@ -309,6 +315,8 @@ class RunConfig:
                 f"strict_cpu_determinism must be a bool "
                 f"(got {self.strict_cpu_determinism!r})"
             )
+        if not isinstance(self.smoke, bool):
+            raise ValueError(f"run.smoke must be a bool (got {self.smoke!r})")
         object.__setattr__(self, "run_name", _validate_run_name(self.run_name))
         if not isinstance(self.guards, GuardConfig):
             raise TypeError(
@@ -346,6 +354,12 @@ class StageConfig:
     # HALT trigger from this field is forbidden (GAP-40-02 → A: HALT has exactly
     # two triggers — max-epoch without the gate, and validation stagnation).
     percentile_10_relaxation: Optional[float] = None
+
+    # 43-03 ACC-02: DATA-05 replay budget override. None keeps the
+    # ``select_stage_records`` default (240); a positive int (e.g. the smoke's
+    # 32) narrows the per-batch replay identity count without touching the
+    # adapter/data selection algorithm.
+    replay_count: Optional[int] = None
 
     # CTX-38 provisional stage-exit thresholds.
     beta: float = 0.98
@@ -387,6 +401,12 @@ class StageConfig:
             raise ValueError(
                 f"patience must be a positive int (got {self.patience!r}); CTX-38"
             )
+        if self.replay_count is not None:
+            rc = _require_int(
+                "replay_count", self.replay_count,
+                "43-03 DATA-05 replay-budget override",
+            )
+            object.__setattr__(self, "replay_count", rc)
         # Re-bind validated ints through object.__setattr__ (frozen).
         object.__setattr__(self, "max_epochs", me)
         object.__setattr__(self, "n_adam", na)
@@ -462,17 +482,44 @@ class LossConfig:
 
 
 @dataclass(frozen=True)
+class DataConfig:
+    """Training-data source selector (43-03 DATA-01 composition seam).
+
+    ``source`` chooses between the sole production ``AdmittedSetAdapter`` corpus
+    (``"admitted"``) and the dataset-free synthetic Stage-0 stub
+    (``"synthetic"`` — the v2.0 falsifiability-floor default). ``root`` is an
+    optional explicit corpus ``Data/`` directory; when ``None`` the admitted
+    path resolves the root via ``default_data_root()`` / ``GSD_DATA_ROOT``
+    (CTX-79). Only type/enum validation lives here — reachability of a real root
+    is a run-time preflight (``pinn.train`` Task 3), not a config-load concern.
+    """
+
+    source: str = "synthetic"
+    root: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.source not in _DATA_SOURCES:
+            raise ValueError(
+                f"data.source must be one of {_DATA_SOURCES} (got {self.source!r})"
+            )
+        if self.root is not None:
+            _require_nonempty_str("data.root", self.root)
+
+
+@dataclass(frozen=True)
 class TrainingConfig:
     """Top-level nested config. Exposes flat gate attributes for StageExitMachine.
 
     ``stage`` is required (CTX-39 fields live there and have no inventable
-    defaults). ``run`` / ``opt`` / ``loss`` default to empty valid sections.
+    defaults). ``run`` / ``opt`` / ``loss`` / ``data`` default to empty valid
+    sections (``data`` defaults to the synthetic source — 43-03).
     """
 
     stage: StageConfig
     run: RunConfig = field(default_factory=RunConfig)
     opt: OptConfig = field(default_factory=OptConfig)
     loss: LossConfig = field(default_factory=LossConfig)
+    data: DataConfig = field(default_factory=DataConfig)
 
     def __post_init__(self) -> None:
         if not isinstance(self.stage, StageConfig):
@@ -483,6 +530,8 @@ class TrainingConfig:
             raise TypeError(f"opt must be OptConfig (got {type(self.opt)!r})")
         if not isinstance(self.loss, LossConfig):
             raise TypeError(f"loss must be LossConfig (got {type(self.loss)!r})")
+        if not isinstance(self.data, DataConfig):
+            raise TypeError(f"data must be DataConfig (got {type(self.data)!r})")
 
     # ---- flat surface for StageExitMachine (duck-typed attribute access) ----
     @property

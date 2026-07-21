@@ -1,0 +1,42 @@
+# ACC-02 Stage-0 smoke config (43-03). A ~5-minute end-to-end run over ~32
+# admitted Stage-0 trajectories that exercises the whole mechanical surface
+# (launch -> monitor -> checkpoint -> Ctrl-C/resume -> summary) and measures the
+# per-step wall time used for the full-run duration forecast.
+#
+# The MODEL runs on MPS/float32 (D1-p); the admitted data adapter always resides
+# on CPU/float32 (a hard DATA-01 contract) and batches move to the model device
+# at sampling time — the two are intentionally independent.
+#
+# Data root: `data.root` is left unset so the corpus resolves via
+# `default_data_root()` (run from the main-root checkout that holds the
+# gitignored corpus). To run from the trainex worktree instead, make a
+# gitignored, read-only Stage-0 copy and set `data.root` to its `Data/` dir.
+run:
+  seed: 42
+  precision: float32
+  device: mps
+  smoke: true
+  log_every: 50
+  run_name: stage0-smoke
+  checkpoint:
+    every_n_steps: 100      # checkpoints land at steps 100 / 200 / 300
+  monitor:
+    heartbeat_secs: 30
+    staleness_factor: 3
+
+stage:
+  max_epochs: 300           # ~300 Stage-0 steps for the smoke
+  n_adam: 300
+  stagnation_window: 10000
+  percentile_10_relaxation: 0.1
+  replay_count: 32          # ~32 admitted Stage-0 replay trajectories
+
+opt:
+  validation_every: 100
+
+loss:
+  lambda_e_max: 1.0
+
+data:
+  source: admitted
+  # root: /path/to/gitignored/Stage-0/Data   # optional explicit corpus root

@@ -67,7 +67,13 @@ import torch
 
 import pinn.loss_catalog as loss_catalog
 from pinn.constants import T_CHARACTERISTIC_TIME
-from pinn.data.batches import build_stage_batch
+from pinn.data.batches import (
+    build_stage_batch,
+    sample_collocation_points,
+    sample_data_points,
+    select_stage_records,
+)
+from pinn.data.types import FixedBatch
 from pinn.loss_catalog import (
     LossTerms,
     angular_momentum_loss,
@@ -303,6 +309,7 @@ class RunController:
         checkpoint_hook: Optional[Callable[..., Any]] = None,
         guard_hook: Optional[Callable[..., Any]] = None,
         should_stop: Optional[Callable[[], bool]] = None,
+        replay_count: Optional[int] = None,
     ) -> None:
         if validation_source is None:
             raise ValueError(
@@ -335,6 +342,10 @@ class RunController:
         self._checkpoint_hook = checkpoint_hook
         self._guard_hook = guard_hook
         self._should_stop = should_stop
+        # 43-03 ACC-02 DATA-05 replay-budget override. None preserves the
+        # ``select_stage_records`` default (240) byte-for-byte; a positive int
+        # (the smoke's 32) narrows the per-batch replay identity count.
+        self._replay_count = replay_count
         # Live phase/epoch for curriculum_state_accessor (41-05 mid-stage resume).
         self._active_phase: Optional[str] = None
         self._active_epoch: int = 0
@@ -585,14 +596,55 @@ class RunController:
         return compose_total(terms, weights)
 
     # ------------------------------------------------------------------
+    # Fixed-batch construction (DATA-05) with the optional replay-budget seam.
+    # ------------------------------------------------------------------
+    def _stage_batch(self, source, *, stage: int, collocation_count: int):
+        """Build one DATA-05 fixed batch, honoring the replay-budget override.
+
+        When ``replay_count`` is unset (every pre-43-03 run) this delegates to
+        ``build_stage_batch`` byte-for-byte, so Phase-40/41/42 behavior is
+        unchanged. When set (the admitted Stage-0 smoke, 43-03 ACC-02) it drives
+        the SAME public DATA-05 selection/sampling pipeline
+        (``select_stage_records`` -> ``sample_data_points`` ->
+        ``sample_collocation_points``) with the configured replay budget — no
+        bespoke smoke loader and no data-policy change, only the ``replay_count``
+        argument threaded into ``select_stage_records``.
+        """
+        if self._replay_count is None:
+            return build_stage_batch(
+                source, stage=stage, rng=self._rng,
+                dtype=self._dtype, device=self._device,
+                collocation_count=collocation_count,
+            )
+        selected = select_stage_records(
+            source, stage=stage, rng=self._rng,
+            replay_count=int(self._replay_count),
+        )
+        selected_keys = selected.replay + selected.lookahead
+        data_points = sample_data_points(
+            source, selected_keys, rng=self._rng,
+            dtype=self._dtype, device=self._device,
+        )
+        collocation_points = sample_collocation_points(
+            source, selected_keys, rng=self._rng,
+            dtype=self._dtype, device=self._device,
+            collocation_count=collocation_count,
+        )
+        return FixedBatch(
+            data_points=data_points,
+            collocation_points=collocation_points,
+            replay_keys=selected.replay,
+            lookahead_keys=selected.lookahead,
+        )
+
+    # ------------------------------------------------------------------
     # Validation pass (TRAIN-06 wiring -- ADVANCE criteria 2/3/4 producer).
     # ------------------------------------------------------------------
     def _run_validation(self, k: int, weights) -> LossTerms:
         self._model.eval()
         try:
-            batch = build_stage_batch(
-                self._validation_source, stage=k, rng=self._rng,
-                dtype=self._dtype, device=self._device, collocation_count=1,
+            batch = self._stage_batch(
+                self._validation_source, stage=k, collocation_count=1,
             )
             anchor_ctx = self._build_anchor_context(self._validation_source, batch, None)
             loss_terms = self._compose_loss_terms(batch, anchor_ctx, weights)
@@ -820,9 +872,8 @@ class RunController:
             adam_epochs_used = epoch + 1
             self._active_phase = "2a"
             self._active_epoch = int(adam_epochs_used)
-            batch = build_stage_batch(
-                self._train_source, stage=k, rng=self._rng,
-                dtype=self._dtype, device=self._device, collocation_count=1,
+            batch = self._stage_batch(
+                self._train_source, stage=k, collocation_count=1,
             )
             anchor_ctx = self._build_anchor_context(self._train_source, batch, None)
             weights = self._scheduled_weights.current(epoch)
@@ -989,9 +1040,8 @@ class RunController:
         self._scheduled_weights.freeze()
         weights_frozen = self._scheduled_weights.current(0)
 
-        fixed_batch = build_stage_batch(
-            self._train_source, stage=k, rng=self._rng,
-            dtype=self._dtype, device=self._device, collocation_count=1,
+        fixed_batch = self._stage_batch(
+            self._train_source, stage=k, collocation_count=1,
         )
         fixed_collocation_times = self._collocation_sampler.uniform()
         anchor_ctx = self._build_anchor_context(self._train_source, fixed_batch, fixed_collocation_times)
