@@ -162,18 +162,18 @@ class NonfiniteMetricTests(unittest.TestCase):
                 outcome = evaluate_run(
                     checkpoint_path=ckpt, output_dir=run_dir / "evaluation", runs_root=runs_root,
                 )
-        self.assertEqual(outcome.verdict, "FAIL")
-        self.assertTrue(math.isnan(outcome.eps_h))
+            self.assertEqual(outcome.verdict, "FAIL")
+            self.assertTrue(math.isnan(outcome.eps_h))
 
-        metrics = json.loads(
-            (run_dir / "evaluation" / "metrics.json").read_text(encoding="utf-8")
-        )
-        self.assertEqual(metrics["verdict"], "FAIL")
-        self.assertEqual(metrics["eps_h"], "NaN")
+            metrics = json.loads(
+                (run_dir / "evaluation" / "metrics.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(metrics["verdict"], "FAIL")
+            self.assertEqual(metrics["eps_h"], "NaN")
 
-        md_text = (run_dir / "evaluation" / "metrics.md").read_text(encoding="utf-8")
-        self.assertIn("OVERALL: FAIL", md_text)
-        self.assertIn("nan", md_text.lower())
+            md_text = (run_dir / "evaluation" / "metrics.md").read_text(encoding="utf-8")
+            self.assertIn("OVERALL: FAIL", md_text)
+            self.assertIn("nan", md_text.lower())
 
 
 class RerunReceiptRefusalTests(unittest.TestCase):
