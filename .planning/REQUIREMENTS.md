@@ -84,7 +84,7 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 
 ### Verification, Stage-0 Pilot & Acceptance (ACC) — Phase 43
 
-- [ ] **ACC-01**: A `verify` pre-flight ladder (device sanity → §10.3 AD probe → fp64-CPU gradcheck → residual-on-ground-truth + remaining §10 probes → single-trajectory overfit) gates any run longer than the smoke test; no run > 30 min proceeds without it green. [§5 pre-flight]
+- [x] **ACC-01**: A `verify` pre-flight ladder (device sanity → §10.3 AD probe → fp64-CPU gradcheck → residual-on-ground-truth + remaining §10 probes → single-trajectory overfit) gates any run longer than the smoke test; no run > 30 min proceeds without it green. [§5 pre-flight]
 - [ ] **ACC-02**: A ~5-minute smoke test (≈32 Stage-0 trajectories, ~300 steps, `checkpoint_every=100`) exercises the whole mechanical surface (Ctrl-C / resume included) and records the measured s/step, collapsing the ~30×-wide duration envelope into a per-run forecast that informs the D4-a ceiling. [§5 rung 6, D-5]
 - [x] **ACC-03**: A separate `evaluate` script runs the held-out test set once and renders the binary post-v1.3 gate check (`ε_H > 1e-5` reject; `SCS > −5`) with plain-English metric descriptions in `metrics.md`. [design §6.3, B-8]
 - [ ] **ACC-04**: An end-of-run `summary.md` reports final losses, a validation summary, curriculum progression, a test-set preview, and a run-to-run comparison hint; the honesty layer (healthy val ≠ working model; clean loss curve ≠ correct physics) is stated. [design §6.2, §6.4]
@@ -185,7 +185,7 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 | OPS-04 | Phase 42 | Complete |
 | OPS-05 | Phase 42 | Complete |
 | OPS-06 | Phase 42 | Complete |
-| ACC-01 | Phase 43 | Pending |
+| ACC-01 | Phase 43 | Complete |
 | ACC-02 | Phase 43 | Pending |
 | ACC-03 | Phase 43 | Complete |
 | ACC-04 | Phase 43 | Pending |

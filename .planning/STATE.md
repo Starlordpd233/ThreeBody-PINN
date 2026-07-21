@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 43
 current_phase_name: verification-stage-0-pilot-acceptance
 status: executing
-stopped_at: Completed 43-02-PLAN.md
-last_updated: "2026-07-21T12:45:27.759Z"
+stopped_at: Completed 43-04-PLAN.md
+last_updated: "2026-07-21T13:06:58.422Z"
 last_activity: 2026-07-21
 last_activity_desc: Phase 43 execution started
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 56
-  completed_plans: 51
+  completed_plans: 52
   percent: 86
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 43 (verification-stage-0-pilot-acceptance) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 and all 11 SPEC acceptance criteria verified. GAP-42-01 (emit_mem_line had no production
 caller, so the periodic `mem:` line never reached train.log) was found by running the
 program rather than reading its tests, and is FIXED in 0fae07f with an end-to-end test
@@ -133,6 +133,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 41 P04 | 25min | 3 tasks | 2 files |
 | Phase 41 P05 | 10min | 3 tasks | 6 files |
 | Phase 43 P02 | ~7min | 2 tasks | 5 files |
+| Phase 43 P04 | ~50min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -278,6 +279,7 @@ Recent decisions affecting current work:
 - [Phase ?]: B-5 RESUME_FIELD_REGISTRY is provisional; unclassified-to-refuse is locked
 - [Phase ?]: python -m pinn.train is the CTRL-01/05/08 composition root with exact-anchor resume routing
 - [Phase ?]: 43-02: velocity for the gate Hamiltonian is derived by finite-differencing the model's predicted positions (never input-time autograd), keeping the model forward pass a single torch.no_grad() call; gate_verdict is the sole PASS/FAIL source (SCS is display-only), avoiding a two-independent-booleans render; the evaluation receipt is colocated with metrics.json/metrics.md at the operator-supplied --output directory per the plan's literal artifact contract
+- [Phase ?]: [Phase 43 43-04]: ACC-01 completed — pinn.train._check_duration_gate wired into the launch preflight before run_dir.mkdir; reconciled pre-existing uncommitted work rather than rewriting (matched plan + 43-REVIEWS.md HIGH finding + SPEC edges R1/R2). Discovered (not fixed, out of scope): tests/phase41/test_train_entrypoint.py (17/193) and tests/phase42 subprocess-launch tests now fail against the new fail-closed gate since they launch fresh non-smoke pinn.train without a persisted calibration; logged as DI-43-04-01/02 in deferred-items.md for a follow-up fixture update.
 
 ### Pending Todos
 
@@ -306,8 +308,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-21T12:45:27.753Z
-Stopped at: Completed 43-02-PLAN.md
+Last session: 2026-07-21T13:06:58.415Z
+Stopped at: Completed 43-04-PLAN.md
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
