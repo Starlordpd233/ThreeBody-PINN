@@ -181,18 +181,21 @@ class ComputeTrajectoryGateMetricsTests(unittest.TestCase):
         compute_trajectory_gate_metrics = _require("compute_trajectory_gate_metrics")
         times = torch.tensor([0.0, 1.0, 2.0], dtype=torch.float32)
         masses = torch.tensor([1.0, 1.0, 1.0])
-        positions = torch.zeros(3, 3, 3, dtype=torch.float32)
-        for t_idx, t in enumerate(times.tolist()):
-            positions[t_idx, 0, 0] = t  # body 0 moves at unit velocity along x
-            positions[t_idx, 1, 1] = 5.0  # body 1 fixed, offset from origin
-            positions[t_idx, 2, 2] = -5.0  # body 2 fixed, offset from origin
+        # A genuinely static (non-moving) three-body configuration: finite
+        # differencing recovers exactly zero velocity for every body, so
+        # T == 0 and V is exactly constant across snapshots (fixed pairwise
+        # separations) -> the Hamiltonian series is exactly conserved.
+        static_positions = torch.tensor(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 5.0, 0.0]], dtype=torch.float32
+        )
+        positions = static_positions.unsqueeze(0).expand(3, 3, 3).clone()
 
         result = compute_trajectory_gate_metrics(positions, times, masses)
 
         self.assertTrue(torch.isfinite(result.hamiltonian_series).all())
         self.assertTrue(math.isfinite(result.eps_h))
-        # A conserved analytic trajectory (constant velocities, fixed
-        # separations) has an EXACTLY constant Hamiltonian -> eps_H == 0.
+        # A static configuration (zero velocity, fixed separations) has an
+        # EXACTLY constant Hamiltonian -> eps_H == 0.
         self.assertAlmostEqual(result.eps_h, 0.0, places=8)
 
 
