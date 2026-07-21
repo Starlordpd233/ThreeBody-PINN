@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
-current_phase: 42
-current_phase_name: operator-runbook-surface-monitoring
-status: phase_complete
-stopped_at: Phase 43 context gathered (SPEC + CONTEXT + DISCUSSION-LOG committed; position A of phase-43-work chain)
-last_updated: "2026-07-21T02:57:58.391Z"
-last_activity: 2026-07-20
-last_activity_desc: "GAP-42-01 fixed and phase closed; next: the two manual"
+current_phase: 43
+current_phase_name: verification-stage-0-pilot-acceptance
+status: executing
+stopped_at: Completed 43-02-PLAN.md
+last_updated: "2026-07-21T12:45:27.759Z"
+last_activity: 2026-07-21
+last_activity_desc: Phase 43 execution started
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 48
-  completed_plans: 48
+  total_plans: 56
+  completed_plans: 51
   percent: 86
 ---
 
@@ -24,23 +24,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 42 — operator-runbook-surface-monitoring (complete); next Phase 43
+**Current focus:** Phase 43 — verification-stage-0-pilot-acceptance
 
 ## Current Position
 
-Phase: 42 (operator-runbook-surface-monitoring) — COMPLETE
-Plan: 9 of 9 executed; `tests/phase42` 38 tests green (0 skips). 4/4 success criteria
+Phase: 43 (verification-stage-0-pilot-acceptance) — EXECUTING
+Plan: 2 of 8
 and all 11 SPEC acceptance criteria verified. GAP-42-01 (emit_mem_line had no production
 caller, so the periodic `mem:` line never reached train.log) was found by running the
 program rather than reading its tests, and is FIXED in 0fae07f with an end-to-end test
 whose negative control was checked. Two 42-VALIDATION Manual-Only rows remain unrun
 (TensorBoard render legibility, sleep-prevention assertion check) — both non-blocking.
-Status: phase_complete — GAP-42-01 RESOLVED. One PRE-EXISTING repo-wide regression
+Status: Ready to execute
 failure is open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_the_corpus`
 flags `pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
 parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
 to the phase39 detector.
-Last activity: 2026-07-20 — GAP-42-01 fixed and phase closed; next: the two manual
+Last activity: 2026-07-21 — Phase 43 execution started
 checks, then Phase 43 (verification, Stage-0 pilot, acceptance verdict).
 
 ## Deferred Items
@@ -132,6 +132,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 41 P03 | 5min | 2 tasks | 4 files |
 | Phase 41 P04 | 25min | 3 tasks | 2 files |
 | Phase 41 P05 | 10min | 3 tasks | 6 files |
+| Phase 43 P02 | ~7min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -276,6 +277,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Seed fan-out: ArchitectureSpec.seed = config.run.seed for weight init + sampling
 - [Phase ?]: B-5 RESUME_FIELD_REGISTRY is provisional; unclassified-to-refuse is locked
 - [Phase ?]: python -m pinn.train is the CTRL-01/05/08 composition root with exact-anchor resume routing
+- [Phase ?]: 43-02: velocity for the gate Hamiltonian is derived by finite-differencing the model's predicted positions (never input-time autograd), keeping the model forward pass a single torch.no_grad() call; gate_verdict is the sole PASS/FAIL source (SCS is display-only), avoiding a two-independent-booleans render; the evaluation receipt is colocated with metrics.json/metrics.md at the operator-supplied --output directory per the plan's literal artifact contract
 
 ### Pending Todos
 
@@ -302,10 +304,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/43-verification-stage-0-pilot-acceptance/43-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-07-21T02:57:58.386Z
-Stopped at: Phase 43 context gathered (SPEC + CONTEXT + DISCUSSION-LOG committed; position A of phase-43-work chain)
+Last session: 2026-07-21T12:45:27.753Z
+Stopped at: Completed 43-02-PLAN.md
 Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
 
 ## Operator Next Steps
