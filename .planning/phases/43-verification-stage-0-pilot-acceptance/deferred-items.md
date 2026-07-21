@@ -71,37 +71,49 @@ bug during Phase 43 close-out.
 reasoning as DI-43-04-01 — logged separately because it is a different
 plan's owned files (`tests/phase42/*`).
 
-**Symptom:** Every `tests/phase42` test that launches a real, fresh, non-smoke
-`python -m pinn.train` subprocess now fails or errors with the identical
-`no valid persisted Stage-0 timing calibration is available for a non-smoke
-launch` refusal. Confirmed directly: `test_honesty_layer.HonestyTests.
-test_forced_divergence_catchable_state_not_finished`,
-`test_honesty_layer.HonestyTests.test_forced_halt_catchable_state_not_finished_and_no_fabricated_metrics`,
-`test_redaction.RedactionTests.test_no_forbidden_shapes_in_artifacts`,
-`test_runs_contract.RunsContractTests.test_mem_line_emitted_into_real_run_train_log`,
-`test_runs_contract.RunsContractTests.test_sigkill_at_launch_presence_and_staleness`,
-`test_runs_contract.RunsContractTests.test_sigkill_mid_adam_presence_and_staleness`.
-Pure config/unit tests in the same discover run stay green
-(`test_runbook_config.RunbookConfigTests.*`), confirming the failure is
-scoped exactly to real subprocess launches, not a broader breakage.
+**Symptom (full enumeration — `python -m unittest discover -s tests/phase42 -v`
+run to completion: `Ran 38 tests in 605.161s`, `FAILED (failures=5, errors=10)`,
+15/38 affected):**
 
-**Secondary effect (not a correctness bug, a cost note):** several
-`test_runs_contract` "sigkill mid-<phase>" tests are written to poll
-`wait_for_status(...)` for a status transition (e.g. "reached mid-Adam")
-that a gate-refused launch — which exits before `run_dir.mkdir` and never
-writes `status.json` — can never produce. Those tests now pay out their
-full polling timeout before failing instead of failing fast, materially
-inflating `tests/phase42`'s wall-clock time versus its pre-43-04 baseline
-(43-03-SUMMARY.md recorded "passed, 0 failures/errors" with no duration
-noted; this run exceeded 10 minutes for 38 tests, versus tests that used to
-complete in seconds once their fresh launch succeeded).
+- `test_honesty_layer.HonestyTests.test_forced_divergence_catchable_state_not_finished` (ERROR)
+- `test_honesty_layer.HonestyTests.test_forced_halt_catchable_state_not_finished_and_no_fabricated_metrics` (ERROR)
+- `test_redaction.RedactionTests.test_summary_md_has_no_env_fingerprint` (ERROR)
+- `test_runs_contract.RunsContractTests.test_sigkill_mid_adam_presence_and_staleness` (ERROR)
+- `test_runs_contract.RunsContractTests.test_sigkill_mid_checkpoint_presence_and_staleness` (ERROR)
+- `test_signals.SignalTests.test_sigint_mid_lbfgs_closure_stops_between_evals` (ERROR)
+- `test_signals.SignalTests.test_sigint_once_checkpoints_and_exits_130` (ERROR)
+- `test_signals.SignalTests.test_sigint_twice_inside_debounce_coalesces` (ERROR)
+- `test_signals.SignalTests.test_sigint_twice_outside_debounce_escalates` (ERROR)
+- `test_signals.SignalTests.test_sigterm_graceful_exit_143` (ERROR)
+- `test_redaction.RedactionTests.test_no_forbidden_shapes_in_artifacts` (FAIL)
+- `test_runs_contract.RunsContractTests.test_mem_line_emitted_into_real_run_train_log` (FAIL)
+- `test_runs_contract.RunsContractTests.test_repeated_main_handler_lifecycle_regression` (FAIL)
+- `test_runs_contract.RunsContractTests.test_sigkill_at_launch_presence_and_staleness` (FAIL)
+- `test_runs_contract.RunsContractTests.test_success_summary_has_full_member_list` (FAIL)
 
-**Not enumerated exhaustively:** a full `tests/phase42` discover run was
-started and confirmed the pattern above; it was not run to completion in
-this session because of the timeout-inflation cost noted above compounding
-across the full 38-test file set. The follow-up fix (same remedy as
-DI-43-04-01, applied to `tests/phase42`'s launch fixtures) should re-run
-`python -m unittest discover -s tests/phase42 -v` to completion and confirm
-0 failures/errors once landed.
+All 15 traced to the identical refusal. The direct-assertion failures
+(`test_success_summary_has_full_member_list` and similar) show the exact
+`error: no valid persisted Stage-0 timing calibration is available for a
+non-smoke launch (2 steps on float64/cpu); refusing before construction`
+stderr. Every `test_signals.SignalTests` case and the two
+`test_runs_contract` "sigkill mid-<phase>" cases instead time out —
+confirmed in the traceback as
+`TimeoutError: wait_for_status: .../status.json never reached state
+in ['running'] ... within 60.0s` — because a gate-refused launch exits
+before `run_dir.mkdir` and never writes `status.json`, so the fixture's
+60s polling barrier for "running" always expires. Pure config/unit tests
+in the same discover run stay green (`test_runbook_config.RunbookConfigTests.*`),
+confirming the failure is scoped exactly to real subprocess launches, not a
+broader breakage.
+
+**Secondary effect (not a correctness bug, a cost note):** the 60s-timeout
+tests above account for most of the suite's 605s (10 min) total runtime —
+materially inflated versus the pre-43-04 baseline (43-03-SUMMARY.md recorded
+"passed, 0 failures/errors" with no duration noted; these same launches used
+to succeed and progress within seconds). The follow-up fix (same remedy as
+DI-43-04-01, applied to `tests/phase42`'s launch fixtures — pre-write a
+matching calibration, or use `run.smoke: true` where duration is not the
+test's point) should re-run `python -m unittest discover -s tests/phase42 -v`
+and confirm 0 failures/errors once landed.
 
 **Status:** OPEN (informational; not blocking 43-04's own acceptance).
