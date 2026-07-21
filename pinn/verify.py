@@ -22,17 +22,35 @@ probe module, and a missing probe symbol all become that rung's FAIL — never a
 silent skip. The ladder always runs all five rungs so the operator sees the full
 picture, and the overall verdict names the FIRST failed rung.
 
-The verdict marker that gates a long run (CTX-71) is written by this same
-module; see ``write_verify_marker`` / ``marker_is_green_and_fresh``.
+Marker contract (CTX-71). Both a green and a red ladder atomically write
+``runs/.verify/latest-marker.json`` through ``pinn.training.atomic_io``. The
+marker carries a UTC timestamp, the ordered rung records, and a fingerprint of
+the runtime **and the code**::
+
+    {"device", "dtype", "torch_version", "python_version",
+     "git_head", "git_head_available"}
+
+``marker_is_green_and_fresh`` — the predicate plan 43-04's >30-min launch gate
+consumes — is fail-closed: it requires a green verdict, an age inside the
+declared window, and an exact match on *every* fingerprint value. A marker
+written when ``git rev-parse HEAD`` was unavailable records
+``git_head_available: false`` and can never authorize a long run, because the
+code it certified cannot be identified.
 """
 
 from __future__ import annotations
 
 import argparse
 import importlib
+import json
+import platform
+import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Mapping, Optional, Sequence
+
+from pinn.training.atomic_io import atomic_write_text
 
 # --- ladder identity -------------------------------------------------------
 
@@ -69,8 +87,27 @@ DEFAULT_TRAJECTORY_ID = "0000"
 
 # --- marker contract -------------------------------------------------------
 
+MARKER_SCHEMA_VERSION = "phase43-verify-marker/v1"
+
+#: Marker location, relative to the runs root. Kept under ``runs/`` (gitignored,
+#: already the home of every run-produced artifact).
+MARKER_RELATIVE_PATH = Path(".verify") / "latest-marker.json"
+
 #: Overridable for tests, mirroring ``pinn.train._RUNS_ROOT``.
 _RUNS_ROOT: Path = Path("runs")
+
+#: Freshness window for the >30-min launch gate. The window is a secondary
+#: control — the full runtime+code fingerprint is the primary one — so a day is
+#: long enough to be workable and short enough that an unattended machine change
+#: (OS/driver-level) does not silently ride along.
+DEFAULT_MAX_MARKER_AGE_S = 24 * 60 * 60
+
+#: Bound on the ``git rev-parse HEAD`` subprocess so a wedged git can never hang
+#: a verify run.
+_GIT_TIMEOUT_S = 10.0
+
+VERDICT_GREEN = "green"
+VERDICT_RED = "red"
 
 
 # ---------------------------------------------------------------------------
@@ -263,6 +300,188 @@ def first_failed_rung(results: Sequence[Mapping[str, Any]]) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
+# Marker: fingerprint, atomic write, read, freshness predicate.
+# ---------------------------------------------------------------------------
+
+
+def _repo_root() -> Path:
+    """Repository root — this file is ``<root>/pinn/verify.py``."""
+    return Path(__file__).resolve().parents[1]
+
+
+def git_head() -> tuple[Optional[str], bool]:
+    """Return ``(head_sha, available)`` from a bounded ``git rev-parse HEAD``.
+
+    A missing git binary, a non-repository directory, a non-zero exit, and a
+    timeout are all reported as unavailable — verify still reports its ladder
+    result; only the marker's authority is withdrawn.
+    """
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(_repo_root()),
+            capture_output=True,
+            text=True,
+            timeout=_GIT_TIMEOUT_S,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None, False
+    if completed.returncode != 0:
+        return None, False
+    head = completed.stdout.strip()
+    if not head:
+        return None, False
+    return head, True
+
+
+def current_fingerprint(*, precision: str, device: str) -> dict[str, Any]:
+    """The runtime + code fingerprint a marker must match to stay authoritative."""
+    import torch
+
+    from pinn.runtime import resolve_runtime
+
+    try:
+        spec = resolve_runtime(precision, device)
+        dtype = str(spec.dtype)
+        device_label = spec.torch_device.type
+    except ValueError:
+        # An unsupported pair still fingerprints honestly (as requested), so a
+        # marker written under it can never match a supported-pair launch.
+        dtype = f"unresolved:{precision}"
+        device_label = device
+    head, available = git_head()
+    return {
+        "device": device_label,
+        "dtype": dtype,
+        "torch_version": str(torch.__version__),
+        "python_version": platform.python_version(),
+        "git_head": head,
+        "git_head_available": available,
+    }
+
+
+def marker_path(runs_root: Optional[Path] = None) -> Path:
+    """Resolve the marker path and refuse anything escaping the runs root."""
+    root = Path(runs_root if runs_root is not None else _RUNS_ROOT).resolve()
+    path = (root / MARKER_RELATIVE_PATH).resolve()
+    try:
+        path.relative_to(root)
+    except ValueError as exc:  # pragma: no cover — constant relative path
+        raise ValueError(
+            f"verify marker path escapes the runs root: {path} !< {root}"
+        ) from exc
+    return path
+
+
+def write_verify_marker(
+    results: Sequence[Mapping[str, Any]],
+    *,
+    precision: str,
+    device: str,
+    runs_root: Optional[Path] = None,
+    fingerprint: Optional[Mapping[str, Any]] = None,
+    now: Optional[datetime] = None,
+) -> Path:
+    """Atomically write ``runs/.verify/latest-marker.json`` for ANY outcome.
+
+    A red ladder is recorded just as a green one is: the marker is the record of
+    what verify observed, and the freshness predicate — not the writer — decides
+    whether it may authorize a long run.
+    """
+    records = [
+        {
+            "name": str(record.get("name")),
+            "passed": bool(record.get("passed")),
+            "reason": record.get("reason"),
+        }
+        for record in results
+    ]
+    green = ladder_is_green(records)
+    stamp = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    payload = {
+        "schema_version": MARKER_SCHEMA_VERSION,
+        "timestamp": stamp.isoformat(),
+        "verdict": VERDICT_GREEN if green else VERDICT_RED,
+        "first_failed_rung": first_failed_rung(records),
+        "rungs": records,
+        "fingerprint": dict(
+            fingerprint
+            if fingerprint is not None
+            else current_fingerprint(precision=precision, device=device)
+        ),
+    }
+    destination = marker_path(runs_root)
+    return atomic_write_text(destination, json.dumps(payload, indent=2) + "\n")
+
+
+def read_verify_marker(runs_root: Optional[Path] = None) -> Optional[dict[str, Any]]:
+    """Read the marker, or None when it is absent/unreadable/not valid JSON."""
+    path = marker_path(runs_root)
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    try:
+        marker = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(marker, dict):
+        return None
+    return marker
+
+
+def marker_is_green_and_fresh(
+    marker: Optional[Mapping[str, Any]],
+    *,
+    fingerprint: Mapping[str, Any],
+    now: Optional[datetime] = None,
+    max_age_s: float = DEFAULT_MAX_MARKER_AGE_S,
+) -> bool:
+    """Fail-closed: green verdict AND inside the window AND full fingerprint match.
+
+    Every fingerprint value is compared, including ``git_head`` and
+    ``git_head_available`` — so a green marker from *different code*, a
+    different Torch/Python build, a different device/dtype, or a run whose code
+    identity could not be established never authorizes a long run.
+    """
+    if not isinstance(marker, Mapping):
+        return False
+    if marker.get("verdict") != VERDICT_GREEN:
+        return False
+    rungs = marker.get("rungs")
+    if not isinstance(rungs, Sequence) or not ladder_is_green(list(rungs)):
+        return False
+
+    stamp = marker.get("timestamp")
+    if not isinstance(stamp, str):
+        return False
+    try:
+        written = datetime.fromisoformat(stamp)
+    except ValueError:
+        return False
+    if written.tzinfo is None:
+        return False
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    age_s = (current - written.astimezone(timezone.utc)).total_seconds()
+    if age_s < 0 or age_s > float(max_age_s):
+        return False
+
+    recorded = marker.get("fingerprint")
+    if not isinstance(recorded, Mapping):
+        return False
+    # A marker whose code identity is unknown can never authorize a long run.
+    if not recorded.get("git_head_available") or not fingerprint.get(
+        "git_head_available"
+    ):
+        return False
+    for key, expected in fingerprint.items():
+        if recorded.get(key) != expected:
+            return False
+    return True
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -333,11 +552,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             line = f"{line} — {record['reason']}"
         print(line)
 
+    try:
+        written = write_verify_marker(
+            results,
+            precision=args.precision,
+            device=args.device,
+            runs_root=args.runs_root,
+        )
+        print(f"verify marker: {written}")
+    except (OSError, ValueError) as exc:
+        print(f"error: could not write the verify marker: {exc}", file=sys.stderr)
+        return 1
+
     green = ladder_is_green(results)
     if green:
         print(f"VERIFY: GREEN — all {len(LADDER)} rungs PASS")
         return 0
     failed = first_failed_rung(results)
+    # Flush the per-rung lines first so a terminal shows the ladder above the
+    # verdict rather than interleaving the two streams.
+    sys.stdout.flush()
     print(
         f"VERIFY: RED — first failed rung: {failed}",
         file=sys.stderr,

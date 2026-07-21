@@ -362,8 +362,11 @@ class MarkerWriteTests(_CliHarness):
     """Both ladder outcomes atomically write a runs-rooted marker."""
 
     def test_marker_path_is_rooted_under_runs(self):
+        # ``marker_path`` resolves both sides (macOS /var -> /private/var), so
+        # the expectation is resolved too.
         path = verify.marker_path(self.runs_root)
-        self.assertEqual(path, (self.runs_root / ".verify" / "latest-marker.json"))
+        expected = (self.runs_root / ".verify" / "latest-marker.json").resolve()
+        self.assertEqual(path, expected)
         self.assertTrue(path.is_relative_to(self.runs_root.resolve()))
 
     def test_green_outcome_writes_a_green_marker(self):
