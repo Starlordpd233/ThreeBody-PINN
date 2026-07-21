@@ -200,6 +200,60 @@ def _synthetic_split_sources(
     return train, val
 
 
+class DataReachabilityError(ValueError):
+    """The admitted corpus root is unreachable.
+
+    A fail-closed refusal raised BEFORE any expensive construction / optimizer /
+    checkpoint, preserving CTX-79's corpus policy: no automatic copy, no
+    master-corpus mutation, and no silent fallback to synthetic data.
+    """
+
+
+# The two locked CTX-79 reachability fallbacks, named verbatim in every refusal
+# so the operator gets an actionable message rather than a mid-run corpus crash.
+_CTX79_FALLBACKS = (
+    "Reachability fallbacks (CTX-79): (1) run from the main-root checkout that "
+    "contains the gitignored corpus, OR (2) make a gitignored, read-only Stage-0 "
+    "copy in the trainex worktree and set data.root to its Data/ directory. The "
+    "corpus is never copied or mutated automatically, and an admitted run never "
+    "silently falls back to synthetic data."
+)
+
+
+def _admitted_data_preflight(config: TrainingConfig) -> Path:
+    """Refuse an admitted run whose corpus root is unreachable, before construction.
+
+    Resolution order (CTX-79): the explicit ``data.root`` when set, else
+    ``default_data_root()`` (main-repo ``simulation_data/Data`` via the shared
+    git-common dir). A missing / non-directory root raises
+    ``DataReachabilityError`` naming BOTH locked CTX-79 fallbacks, so a missing
+    corpus is an actionable refusal rather than a mid-run crash. This checks
+    reachability only — it never copies, mutates the master corpus, or falls back
+    to synthetic data; the adapter's own scan performs admission afterward.
+    """
+    from pinn.data.adapter import default_data_root
+
+    if config.data.root is not None:
+        root = Path(config.data.root)
+        source = "data.root"
+    else:
+        try:
+            root = Path(default_data_root())
+        except Exception as exc:
+            raise DataReachabilityError(
+                f"could not resolve the default corpus root "
+                f"(default_data_root failed: {exc}). {_CTX79_FALLBACKS}"
+            ) from exc
+        source = "default_data_root"
+
+    if not root.exists() or not root.is_dir():
+        raise DataReachabilityError(
+            f"admitted corpus root is unreachable: {root} (via {source}) does not "
+            f"exist or is not a directory. {_CTX79_FALLBACKS}"
+        )
+    return root.resolve()
+
+
 def _build_admitted_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
     """Compose the sole production admitted corpus into leakage-free split views.
 
@@ -454,6 +508,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             restore_handlers()
         return exit_code
 
+    # Fail-closed corpus reachability BEFORE runtime resolve / network build /
+    # adapter scan / optimizer (CTX-79-preserving refusal; never a silent
+    # synthetic fallback for an admitted run).
+    if config.data.source == "admitted":
+        try:
+            _admitted_data_preflight(config)
+        except DataReachabilityError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return finish_run("failed", 1)
+
     # Freeze resolved config (CTRL-01 / CTX-51). On resume, rewrite only when
     # the frozen file is absent so we do not thrash an existing freeze.
     frozen_path = run_dir / "config.yaml"
@@ -508,7 +572,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         device=runtime_spec.torch_device,
     )
 
-    train_source, validation_source = _build_sources(config, run_dir)
+    # Adapter admission runs here; a reachable-but-empty/incomplete corpus is a
+    # fail-closed refusal (never a half-started run), matching the preflight.
+    try:
+        train_source, validation_source = _build_sources(config, run_dir)
+    except ValueError as exc:
+        print(f"error: failed to build data sources: {exc}", file=sys.stderr)
+        return finish_run("failed", 1)
 
     store = TorchSaveCheckpointStore(ckpt_dir, config=config)
     step_guards = StepGuards(config, disk_root=run_dir)
