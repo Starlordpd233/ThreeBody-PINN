@@ -195,6 +195,13 @@ _PROVISIONAL: tuple[tuple[str, Any, str], ...] = (
         "⚖ PROVISIONAL (R-1): owner-calibrate-at-Phase-43-pilot memory-watermark "
         "fraction in (0, 1]; mechanism ships, value is owner-carved",
     ),
+    (
+        "run.recover_retries",
+        0,
+        "⚖ PROVISIONAL (R-2): existing CurriculumController retry-budget "
+        "seam; owner-ratify at the Phase-43 pilot before changing the "
+        "ratified baseline of zero",
+    ),
 )
 
 
@@ -318,6 +325,7 @@ class RunConfig:
     device: str = "mps"  # D1-p production default
     strict_cpu_determinism: bool = False  # CTX-63 default OFF
     smoke: bool = False  # 43-03 ACC-02: mark a ~5-min Stage-0 smoke run
+    recover_retries: int = 0  # R-2 controller baseline; owner-ratified later
     run_name: Optional[str] = None
     guards: GuardConfig = field(default_factory=GuardConfig)
     checkpoint: CheckpointCadence = field(default_factory=CheckpointCadence)
@@ -339,6 +347,15 @@ class RunConfig:
             )
         if not isinstance(self.smoke, bool):
             raise ValueError(f"run.smoke must be a bool (got {self.smoke!r})")
+        if (
+            not isinstance(self.recover_retries, int)
+            or isinstance(self.recover_retries, bool)
+            or self.recover_retries < 0
+        ):
+            raise ValueError(
+                "run.recover_retries must be a non-negative int "
+                f"(got {self.recover_retries!r}); R-2 owner-ratified seam"
+            )
         object.__setattr__(self, "run_name", _validate_run_name(self.run_name))
         if not isinstance(self.guards, GuardConfig):
             raise TypeError(
@@ -629,6 +646,7 @@ class TrainingConfig:
             "run.guards.memory_watermark_fraction": (
                 self.run.guards.memory_watermark_fraction
             ),
+            "run.recover_retries": self.run.recover_retries,
         }
         out = []
         for name, _default, provenance in _PROVISIONAL:

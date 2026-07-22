@@ -42,14 +42,26 @@ def _write_config(path: Path, recover_retries: object) -> Path:
 
 class RecoverRetryConfigTests(unittest.TestCase):
     def test_yaml_accepts_and_round_trips_exact_non_negative_integer(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            cfg = load_config(_write_config(Path(tmp) / "config.yaml", 3))
+        for value in (0, 3):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as tmp:
+                cfg = load_config(_write_config(Path(tmp) / "config.yaml", value))
 
-        self.assertEqual(cfg.run.recover_retries, 3)
-        self.assertEqual(
-            resolved_config_to_dict(cfg)["run"]["recover_retries"],
-            3,
-        )
+            self.assertEqual(cfg.run.recover_retries, value)
+            self.assertEqual(
+                resolved_config_to_dict(cfg)["run"]["recover_retries"],
+                value,
+            )
+
+    def test_yaml_rejects_invalid_retry_counts(self):
+        for invalid_yaml in ("-1", "true", "1.5", "'2'"):
+            with self.subTest(invalid_yaml=invalid_yaml):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = _write_config(
+                        Path(tmp) / "config.yaml",
+                        invalid_yaml,
+                    )
+                    with self.assertRaisesRegex(ValueError, "recover_retries"):
+                        load_config(path)
 
     def test_run_config_rejects_invalid_retry_counts(self):
         for invalid in (-1, True, 1.5, "2"):

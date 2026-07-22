@@ -5,6 +5,9 @@ run:
   device: mps
   log_every: 100
   run_name: stage0-example
+  # R-2 remains owner-owned until the 43-07 pilot evidence is reviewed.
+  # Uncomment only after owner ratification at Task 3:
+  # recover_retries: <owner-provided non-negative integer>
   # D4-a: wall_clock_ceiling_s is OWNER-RATIFIED (2026-07-21, explicit
   # selection at 120 s) — roughly 10x the ~9-12 s normal inter-checkpoint
   # interval measured in the 43-06 real Stage-0 smoke, and well under the

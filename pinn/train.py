@@ -937,6 +937,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         checkpoint_store=store,
         scheduled_weights=scheduled_weights,
         run_controller=run_controller,
+        recover_retries=config.run.recover_retries,
         initial_stage=initial_stage,
     )
     # Stash frozen config identity for CurriculumController boundary anchors.

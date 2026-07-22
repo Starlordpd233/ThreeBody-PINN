@@ -7,6 +7,10 @@ nested ``run.guards.*`` / ``run.checkpoint.*``). The fully-resolved config is
 written verbatim to ``runs/<name>/config.yaml`` via ``atomic_io.atomic_write_text``
 so re-parse yields an EQUAL TrainingConfig (CTX-51).
 
+Phase 43 exposes the existing ``CurriculumController.recover_retries`` seam as
+the validated scalar ``run.recover_retries``; generic dataclass mapping keeps
+its YAML read/freeze/round-trip path identical to other run-level fields.
+
 Threat T-41-01: ``yaml.safe_load`` / ``yaml.safe_dump`` exclusively — never
 ``yaml.load``.
 """
