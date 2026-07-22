@@ -89,7 +89,7 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 - [x] **ACC-03**: A separate `evaluate` script runs the held-out test set once and renders the binary post-v1.3 gate check (`ε_H > 1e-5` reject; `SCS > −5`) with plain-English metric descriptions in `metrics.md`. [design §6.3, B-8]
 - [ ] **ACC-04**: An end-of-run `summary.md` reports final losses, a validation summary, curriculum progression, a test-set preview, and a run-to-run comparison hint; the honesty layer (healthy val ≠ working model; clean loss curve ≠ correct physics) is stated. [design §6.2, §6.4]
 - [x] **ACC-05**: The Stage-0 pilot repeats the short run 2–3× across seeds, records the seed-band spread in `summary.md`, and calibrates the ⚖ guard / RECOVER thresholds from the observed variance for owner ratification. [D6, R-1/R-2]
-- [ ] **ACC-06**: The milestone closes with a **go / adjust / rethink** verdict on whether the Stage-0 viability slice justifies building the full multi-stage platform, and updates the FUT-01 / FUT-04 handoff with what shipped, what stayed a placeholder seam, and what was deferred. [RATIFICATION standing, §5 coherence]
+- [x] **ACC-06**: The milestone closes with a **go / adjust / rethink** verdict on whether the Stage-0 viability slice justifies building the full multi-stage platform, and updates the FUT-01 / FUT-04 handoff with what shipped, what stayed a placeholder seam, and what was deferred. [RATIFICATION standing, §5 coherence]
 
 ## Future Requirements
 
@@ -190,7 +190,7 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 | ACC-03 | Phase 43 | Complete |
 | ACC-04 | Phase 43 | Pending |
 | ACC-05 | Phase 43 | Complete |
-| ACC-06 | Phase 43 | Pending |
+| ACC-06 | Phase 43 | Complete |
 
 **Coverage:**
 
