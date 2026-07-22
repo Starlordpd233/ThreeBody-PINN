@@ -13,6 +13,7 @@ and SKIP (never ERROR) — the Phase-43 convention (``tests/phase43/__init__``).
 from __future__ import annotations
 
 import importlib
+import inspect
 import math
 import unittest
 
@@ -31,6 +32,45 @@ def _require(symbol, module=MODULE):
     if not hasattr(mod, symbol):
         raise unittest.SkipTest(f"{_SKIP_PHRASE} {module}.{symbol}")
     return getattr(mod, symbol)
+
+
+class CpuFloat64ConversionTests(unittest.TestCase):
+    def test_helper_moves_to_cpu_before_casting_to_float64(self):
+        """MPS cannot cast to float64, so the operation order is contractual."""
+        helper = _require("_as_cpu_f64")
+        source = inspect.getsource(helper)
+        cpu_transfer = source.index('.to(device="cpu")')
+        float64_cast = source.index('.to(dtype=torch.float64)')
+        self.assertLess(cpu_transfer, float64_cast)
+
+    def test_cpu_input_is_detached_and_cast_to_float64(self):
+        helper = _require("_as_cpu_f64")
+        source = torch.tensor([1.25, -2.5], dtype=torch.float32, requires_grad=True)
+
+        converted = helper(source)
+
+        self.assertEqual(converted.device.type, "cpu")
+        self.assertEqual(converted.dtype, torch.float64)
+        self.assertFalse(converted.requires_grad)
+        torch.testing.assert_close(converted, source.detach().double())
+
+    @unittest.skipUnless(
+        torch.backends.mps.is_available(), "requires an available MPS device"
+    )
+    def test_real_mps_input_moves_to_cpu_before_float64_cast(self):
+        helper = _require("_as_cpu_f64")
+        source = torch.tensor(
+            [1.25, -2.5], dtype=torch.float32, device="mps", requires_grad=True
+        )
+
+        converted = helper(source)
+
+        self.assertEqual(converted.device.type, "cpu")
+        self.assertEqual(converted.dtype, torch.float64)
+        self.assertFalse(converted.requires_grad)
+        torch.testing.assert_close(
+            converted, torch.tensor([1.25, -2.5], dtype=torch.float64)
+        )
 
 
 # ---------------------------------------------------------------------------

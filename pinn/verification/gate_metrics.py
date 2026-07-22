@@ -71,8 +71,9 @@ _PAIRS = ((0, 1), (0, 2), (1, 2))
 
 def _as_cpu_f64(value) -> torch.Tensor:
     """Detach + coerce to a plain CPU float64 tensor (never grad-tracked)."""
-    tensor = torch.as_tensor(value)
-    return tensor.detach().to(dtype=torch.float64, device="cpu")
+    tensor = torch.as_tensor(value).detach()
+    cpu_tensor = tensor.to(device="cpu")
+    return cpu_tensor.to(dtype=torch.float64)
 
 
 # ---------------------------------------------------------------------------
