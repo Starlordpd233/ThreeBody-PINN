@@ -774,3 +774,94 @@ non-descending pattern persist and indicate a tuning issue upstream (LR
 schedule, warmup length, loss weighting)? Root cause was NOT investigated
 further in this plan — out of 43-06's scope (owner-carved R-1 calibration,
 not loss-curve tuning).
+
+## Task 3 — D4-a `wall_clock_ceiling_s` RESOLVED — 2026-07-21, owner explicit selection
+
+**Owner decision (explicit selection, not delegated):** `run.checkpoint.wall_clock_ceiling_s
+= 120` (seconds), selected directly by the owner from the options presented
+below — the owner picked the value itself rather than delegating best
+judgement (contrast with R-1's DI-43-06-02 delegation above).
+
+**Context presented to the owner before the pick:**
+
+- **Mechanism (verified, not assumed):** `CheckpointCadence.wall_clock_ceiling_s`
+  forces a checkpoint once elapsed-since-last-write reaches the ceiling,
+  OR'd with the `every_n_steps` periodic cadence (`pinn/training/config.py`
+  `CheckpointCadence` docstring + `__post_init__`). It is a **stall-bounding
+  safety net**, not an abort trigger — it never stops or fails a run; it only
+  forces an extra save if the normal cadence would otherwise leave too much
+  unsaved progress during a slow/stalled stretch.
+- **Normal inter-checkpoint interval, measured:** ~9-12 s in the accepted
+  Task 2 acceptance smoke (Attempt 2, this file, `s_per_step≈0.1157`,
+  `every_n_steps=100` → ~11.57 s between periodic saves at this smoke's
+  cadence; the earlier diagnostic run's warmer `s_per_step≈0.0941-0.0982`
+  gives ~9.4-9.8 s per 100-step interval).
+- **Production Stage-0 forecast:** ~270-305 s per run (derived from the same
+  measured `s_per_step` range scaled to a full-curriculum Stage-0 budget,
+  not just this smoke's 300-step Adam-only budget).
+- **Template's pre-existing example value:** `3600` s (1 hour) — the
+  commented documentation example in `configs/stage0-example.yaml` before
+  this plan's edit, itself inherited from `pinn/training/config.py`'s
+  `_PROVISIONAL_WALL_CLOCK_CEILING_S` class default (unchanged by this
+  ratification — see below).
+
+**Owner's stated rationale (verbatim summary from the coordinator):** choose
+a ceiling roughly 10x the normal ~9-12 s inter-checkpoint interval so it
+never fires during a healthy run, while still bounding unsaved progress on a
+stall to at most ~2 minutes. `120` s satisfies both: it is comfortably above
+the ~9-12 s normal interval (never fires healthy) and comfortably below the
+~270-305 s full-run forecast (bounds a stall meaningfully), landing at the
+owner's explicit "~2 minutes" bound.
+
+**Persistence — landed exactly as specified:**
+
+`configs/stage0-example.yaml` `run.checkpoint` changed from `{}` (all
+defaults) to an active mapping carrying `wall_clock_ceiling_s: 120`; the
+commented `every_n_steps: 100` documentation example is retained unchanged
+(still an accurate description of the class default when not overridden).
+The commented `wall_clock_ceiling_s: 3600` documentation example was removed
+from the commented block (it would otherwise contradict the now-active `120`
+override in the same file) — the class default of `3600.0` in
+`pinn/training/config.py`'s `_PROVISIONAL_WALL_CLOCK_CEILING_S` is
+**unchanged**, per this task's explicit instruction to retain the config
+class's provisional default. `pinn/training/checkpoint.py`,
+`pinn/training/config.py`, and `pinn/training/resume.py` were **not**
+touched by this task.
+
+**Also owner-authorized in the same edit (stale-comment fix, not a new
+carve):** the commented guard example `loss_explosion_ceiling: 1.0e6` in
+`configs/stage0-example.yaml` was stale — it still showed the pre-DI-43-06-02
+default even though R-1's `loss_explosion_ceiling` was owner-ratified to
+`1.0e11` via delegation earlier in this same plan (see the DI-43-06-02
+resolution section above, commit `9cd5e85`). Fixed to `1.0e11`, and the
+adjacent comment now honestly states: `loss_explosion_ceiling` is
+owner-ratified (2026-07-21, via delegation; explicitly revisable at the
+ACC-05 Stage-0 pilot); `disk_floor_fraction` / `memory_watermark_fraction`
+remain uncalibrated ⚖ provisional placeholders (R-1), unchanged by this task.
+
+**Verification (automated):**
+
+```
+~/miniforge3/envs/pinn-train/bin/python -c "
+from pinn.training.config_yaml import load_config
+cfg = load_config('configs/stage0-example.yaml')
+v = cfg.run.checkpoint.wall_clock_ceiling_s
+assert float(v) == 120.0, v
+print('D4-a persisted:', v)
+"
+```
+
+Output: `D4-a persisted: 120.0` — confirms the declared production template
+target loads the owner-ratified value through the ordinary `load_config`
+composition root, with no other target edited.
+
+**Commit:** `386f2ee` (`feat(43-06): persist owner-ratified d4-a wall clock
+ceiling in stage0 template`).
+
+**Status: RESOLVED.** D4-a is owner-ratified and persisted in the declared
+production template before the ACC-05 Stage-0 pilot. Both of 43-06's blocking
+owner checkpoints (B-5 Task 1, D4-a Task 3) are now closed; R-1 (surfaced
+mid-plan as DI-43-06-02) is also closed via delegation. This plan's
+`must_haves.truths` are satisfied: the real ordinary smoke evidence exists
+(Task 2 Attempt 2, above) and B-5/D4-a persist at their exact owner-ratified
+targets.
