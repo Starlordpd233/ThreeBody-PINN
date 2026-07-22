@@ -20,6 +20,14 @@ run:
   run_name: stage0-smoke
   checkpoint:
     every_n_steps: 100      # checkpoints land at steps 100 / 200 / 300
+    # rolling_keep bumped from the class default (3) to 4 (43-06 acceptance
+    # finding): a mid-run SIGTERM interrupt writes an extra off-cadence
+    # step-*.pt rolling save alongside the 3 periodic saves (100/200/300),
+    # so the rolling pool holds 4 entries across one interrupt+resume cycle.
+    # At rolling_keep=3 the oldest (step 100) gets evicted once step 300
+    # lands, violating this plan's must_have that 100/200/300 all survive.
+    # Operational retention knob (not owner-carved) — see evidence/smoke/README.md.
+    rolling_keep: 4
   monitor:
     heartbeat_secs: 30
     staleness_factor: 3
