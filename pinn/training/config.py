@@ -116,9 +116,22 @@ def _validate_run_name(value: Optional[str]) -> Optional[str]:
 
 # ⚖ PROVISIONAL defaults — mechanism ships; values are owner-ratified later
 # (D4-a wall-clock at run #1; R-1 guard thresholds at Phase-43 pilot).
-# Do NOT present these as ratified.
+# Do NOT present these as ratified — EXCEPT loss_explosion_ceiling below,
+# which R-1 has now ratified.
 _PROVISIONAL_WALL_CLOCK_CEILING_S = 3600.0  # ⚖ provisional placeholder
-_PROVISIONAL_LOSS_EXPLOSION_CEILING = 1.0e6  # ⚖ provisional placeholder
+
+# R-1 loss_explosion_ceiling: OWNER-RATIFIED via delegation 2026-07-21
+# ("follow your best judgement"). Value 1e11, calibrated from the 43-06
+# diagnostic run's observed peak total loss ~4e9 (single seed, MPS/fp32) —
+# roughly 25x headroom above that peak. Explicitly REVISABLE at the ACC-05
+# Stage-0 pilot. The constant name and the ``_PROVISIONAL`` registry entry
+# below are kept as-is (not renamed / not removed from the registry): R-1 as
+# a whole covers three GuardConfig thresholds reported together under one
+# owner-carved seam, and disk_floor_fraction / memory_watermark_fraction
+# remain uncalibrated placeholders — see the provisional-flag ambiguity note
+# in .planning/phases/43-verification-stage-0-pilot-acceptance/evidence/
+# smoke/README.md.
+_PROVISIONAL_LOSS_EXPLOSION_CEILING = 1.0e11
 _PROVISIONAL_DISK_FLOOR_FRACTION = 0.05  # ⚖ provisional placeholder
 _PROVISIONAL_MEMORY_WATERMARK_FRACTION = 0.7  # ⚖ provisional placeholder
 _PROVISIONAL_EVERY_N_STEPS = 100  # cadence seam default (not owner-carved science)
@@ -161,8 +174,14 @@ _PROVISIONAL: tuple[tuple[str, Any, str], ...] = (
     (
         "run.guards.loss_explosion_ceiling",
         _PROVISIONAL_LOSS_EXPLOSION_CEILING,
-        "⚖ PROVISIONAL (R-1): owner-calibrate-at-Phase-43-pilot loss-explosion "
-        "guard ceiling; mechanism ships, value is owner-carved",
+        "⚖ R-1: OWNER-RATIFIED via delegation 2026-07-21 at value 1e11 "
+        "(calibrated from the 43-06 diagnostic peak ~4e9, MPS/fp32, ~25x "
+        "headroom); explicitly revisable at the ACC-05 Stage-0 pilot. Still "
+        "surfaced here (provisional=True) as part of the shared R-1 "
+        "guard-threshold seam alongside disk_floor_fraction / "
+        "memory_watermark_fraction, which remain owner-carved and "
+        "uncalibrated — see evidence/smoke/README.md for the provisional-flag "
+        "ambiguity note",
     ),
     (
         "run.guards.disk_floor_fraction",
@@ -184,7 +203,10 @@ class GuardConfig:
     """R-1 guard thresholds (run.guards) — ⚖ provisional defaults.
 
     Fractional thresholds are finite-in-(0, 1]; the loss-explosion ceiling is
-    finite-positive. Values are owner-carved placeholders, not ratified.
+    finite-positive. ``disk_floor_fraction`` / ``memory_watermark_fraction``
+    remain owner-carved placeholders, not ratified. ``loss_explosion_ceiling``
+    is OWNER-RATIFIED (delegation 2026-07-21, value 1e11; revisable at ACC-05)
+    — see ``_PROVISIONAL_LOSS_EXPLOSION_CEILING`` above.
     """
 
     loss_explosion_ceiling: float = _PROVISIONAL_LOSS_EXPLOSION_CEILING
