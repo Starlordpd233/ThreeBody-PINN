@@ -191,7 +191,7 @@ Plans:
   4. The milestone closes with a recorded **go / adjust / rethink** verdict on whether the Stage-0 slice justifies the full multi-stage platform, and updates the FUT-01 / FUT-04 handoff with what shipped, what stayed a placeholder seam, and what was deferred (ACC-06).
 
 **UI hint**: no
-**Plans**: 5/8 plans executed
+**Plans**: 6/8 plans executed
 **Wave 1**
 
 - [x] 43-01-PLAN.md — verify ladder + verdict marker + tests/phase43 scaffold (ACC-01, wave 1)
@@ -211,7 +211,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 43-06-PLAN.md — smoke execution on real data + B-5 & D4-a owner pauses (ACC-02, wave 5)
+- [x] 43-06-PLAN.md — smoke execution on real data + B-5 & D4-a owner pauses (ACC-02, wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -233,7 +233,7 @@ Plans:
 | 40. Stage-0 Curriculum Training Loop (FUT-04) | v2.0 | 9/9 | Complete    | 2026-07-17 |
 | 41. Config, Checkpointing, Resume & Determinism | v2.0 | 5/5 | In Progress|  |
 | 42. Operator Runbook Surface & Monitoring | v2.0 | 9/9 | Complete    | 2026-07-20 |
-| 43. Verification, Stage-0 Pilot & Acceptance | v2.0 | 5/8 | In Progress|  |
+| 43. Verification, Stage-0 Pilot & Acceptance | v2.0 | 6/8 | In Progress|  |
 
 ---
 *Created 2026-07-06 (`/gsd-new-milestone`, roadmap generated inline — no external research spawn, since the trainex-r1a ERW is delivered and ratified). 7 phases (37–43), standard granularity, continuing numbering from v1.6's Phase 36; 42/42 v2.0 requirements mapped 1:1 by category (ENV=4, NET=5, DATA=6, TRAIN=7, CTRL=8, OPS=6, ACC=6). Dependency-ordered with no external gate. Grounded in the owner-ratified trainex-r1a decision set (2026-07-05) and the locked v1.4/v1.5/v1.6 framework specs; `pinn/` live-code ban lifted (FUT-01 rebuilds from specs); five owner-carved decisions built as seams. Full multi-stage platform deferred pending the Phase 43 (ACC-06) go/adjust/rethink verdict.*

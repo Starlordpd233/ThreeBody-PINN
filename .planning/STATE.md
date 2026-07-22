@@ -5,16 +5,16 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 43
 current_phase_name: verification-stage-0-pilot-acceptance
 status: executing
-stopped_at: Completed 43-05-PLAN.md
-last_updated: "2026-07-22T02:34:19Z"
+stopped_at: Completed 43-06-PLAN.md
+last_updated: "2026-07-22T06:37:25Z"
 last_activity: 2026-07-21
-last_activity_desc: Phase 43 execution started
+last_activity_desc: 43-06 complete — real ACC-02 smoke + B-5/D4-a owner ratification
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 56
-  completed_plans: 53
-  percent: 86
+  completed_plans: 54
+  percent: 96
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 43 (verification-stage-0-pilot-acceptance) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8 (6 of 8 complete)
 and all 11 SPEC acceptance criteria verified. GAP-42-01 (emit_mem_line had no production
 caller, so the periodic `mem:` line never reached train.log) was found by running the
 program rather than reading its tests, and is FIXED in 0fae07f with an end-to-end test
@@ -40,7 +40,7 @@ failure is open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_
 flags `pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
 parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
 to the phase39 detector.
-Last activity: 2026-07-21 — Phase 43 execution started
+Last activity: 2026-07-21 — 43-06 complete: real ACC-02 smoke + B-5/D4-a owner ratification
 checks, then Phase 43 (verification, Stage-0 pilot, acceptance verdict).
 
 ## Deferred Items
@@ -281,6 +281,7 @@ Recent decisions affecting current work:
 - [Phase ?]: python -m pinn.train is the CTRL-01/05/08 composition root with exact-anchor resume routing
 - [Phase ?]: 43-02: velocity for the gate Hamiltonian is derived by finite-differencing the model's predicted positions (never input-time autograd), keeping the model forward pass a single torch.no_grad() call; gate_verdict is the sole PASS/FAIL source (SCS is display-only), avoiding a two-independent-booleans render; the evaluation receipt is colocated with metrics.json/metrics.md at the operator-supplied --output directory per the plan's literal artifact contract
 - [Phase ?]: [Phase 43 43-04]: ACC-01 completed — pinn.train._check_duration_gate wired into the launch preflight before run_dir.mkdir; reconciled pre-existing uncommitted work rather than rewriting (matched plan + 43-REVIEWS.md HIGH finding + SPEC edges R1/R2). Discovered (not fixed, out of scope): tests/phase41/test_train_entrypoint.py (17/193) and tests/phase42 subprocess-launch tests now fail against the new fail-closed gate since they launch fresh non-smoke pinn.train without a persisted calibration; logged as DI-43-04-01/02 in deferred-items.md for a follow-up fixture update.
+- [Phase 43 43-06, 2026-07-21]: ACC-02 real smoke complete over the real admitted corpus: 32 identities, 300/300 gap-free steps, checkpoints 100/158/200/300, one SIGTERM interrupt + `--resume latest` to finished, `s_per_step=0.11570`, forecast 34.71s. Loss bounded but non-descending across the 300-step Adam budget — recorded as an ACC-05 pilot watch-item, never framed as convergence. Three owner-carved seams closed this plan: B-5 `ratify-current` (unchanged registry); R-1 `loss_explosion_ceiling=1e11` via owner delegation (revisable at ACC-05); D4-a `wall_clock_ceiling_s=120` via owner's explicit selection, persisted in `configs/stage0-example.yaml`. Two Rule-3 operational auto-fixes: `data.blacklist_path` threaded to fix DI-43-06-01 (owner-authorized, legacy Documentation blacklist designated authoritative), and `rolling_keep` 3→4 in `configs/smoke.yaml` to preserve checkpoint 100 across the required interrupt.
 
 ### Pending Todos
 
@@ -309,9 +310,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-22T02:34:19Z
-Stopped at: Completed 43-05-PLAN.md
-Next action: Execute 43-06-PLAN.md; Phase 43 remains in progress with 5/8 plans complete.
+Last session: 2026-07-22T06:37:25Z
+Stopped at: Completed 43-06-PLAN.md
+Next action: Execute 43-07-PLAN.md; Phase 43 remains in progress with 6/8 plans complete.
 
 ## Operator Next Steps
 
