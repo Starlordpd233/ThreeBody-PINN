@@ -1,32 +1,33 @@
 ---
 schema_version: phase43-verdict/v1
-status: awaiting-owner-decision
+status: owner-signed
 gate: FAIL
-verdict: pending-owner
+verdict: adjust
 recommendation: adjust
-owner_decision: null
+owner_decision: adjust
+owner_decision_date: 2026-07-22
 receipt_citation: runs/stage0-pilot-seed42/evaluation/evaluation-receipt.json
 seed_citation: .planning/phases/43-verification-stage-0-pilot-acceptance/43-CALIBRATION.md
 timing_citation: .planning/phases/43-verification-stage-0-pilot-acceptance/evidence/smoke/README.md
 seams_citation: pinn/STATUS.md
 ---
 
-# Phase 43 ACC-06 Verdict Evidence Draft
+# Phase 43 ACC-06 Owner Verdict
 
 This is the evidence package for the owner's `go` / `adjust` / `rethink`
-decision. The owner decision is deliberately **not recorded yet**. The agent's
-grounded recommendation is **adjust**: the Stage-0 mechanical slice is real and
-repeatable, but the sole held-out gate is an unequivocal `FAIL`, and the pilot
-does not establish convergence.
+decision. The owner rendered the exact verdict **adjust** on 2026-07-22. This
+matches the agent's grounded recommendation: the Stage-0 mechanical slice is
+real and repeatable, but the sole held-out gate is an unequivocal `FAIL`, and
+the pilot does not establish convergence.
 
 ## Decision boundary
 
-- **Owner decision:** `pending-owner`
+- **Owner decision:** `adjust` (owner-authored, signed 2026-07-22)
 - **Agent recommendation:** `adjust`
 - **Why `go` cannot be unqualified:** the receipt reports `gate: FAIL` with
   `eps_H = 237.2086056078468`, versus rejection above `1e-5`. A `go` decision,
   if the owner chooses it, must explicitly acknowledge and override that failed
-  gate; this draft cannot encode an unqualified `verdict: go`.
+  gate; this record cannot encode an unqualified `verdict: go`.
 - **Confirm-only gate rule:** the authoritative SPEC and corrected CTX-75 reject
   only when `eps_H > 1e-5` (equivalently `SCS > -5`). Equality passes. No
   correction action is pending.
@@ -112,9 +113,13 @@ qualified despite `gate: FAIL`, cite the receipt, and define what the failed
 gate permits and forbids. An unqualified `go` is rejected by the grounding
 test and must not be recorded.
 
-## Awaiting owner sign-off
+## Owner sign-off
 
-Choose `go`, `adjust`, or `rethink`. The decision, date, rationale, and any
-qualification belong here only after the owner responds at the blocking-human
-checkpoint.
-
+- **Decision:** `adjust`
+- **Date:** 2026-07-22
+- **Meaning:** retain the demonstrated mechanical Stage-0 slice, block
+  full-platform expansion, and route a separately governed investigation of the
+  failed physics-conservation gate and non-convergent/noisy pilot behavior.
+- **Qualification:** this decision does not claim that the remedy is known. It
+  does not authorize another held-out evaluation, Stage 1, or any PLAT-01..07
+  implementation.

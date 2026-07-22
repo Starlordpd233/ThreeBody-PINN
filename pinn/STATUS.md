@@ -1,7 +1,7 @@
 # CTL-PINN Forward Status
 
 **Milestone:** v2.0 Stage-0 training viability slice  
-**Status:** Awaiting owner `go` / `adjust` / `rethink` decision  
+**Status:** Owner verdict `adjust` (2026-07-22); Stage-0 mechanical slice retained and full-platform expansion blocked  
 **Held-out gate:** `FAIL` (`eps_H = 237.2086056078468`, `SCS = 2.3751304405952904`)
 
 This handoff separates what is shipped, what remains an explicit seam or
@@ -53,9 +53,8 @@ in `.planning/phases/38-pinn-model-rebuild-from-specs-fut-01/38-GAPS.md`.
 
 ## Acceptance handoff
 
-The complete owner evidence draft is
+The complete owner verdict and evidence record is
 `.planning/phases/43-verification-stage-0-pilot-acceptance/43-VERDICT.md`.
 The evaluator invocation budget is exhausted: two failed attempts and the one
 final completed invocation are all documented there. No further held-out
 evaluation is authorized under the current policy.
-

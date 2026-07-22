@@ -49,21 +49,28 @@ def validate_verdict_grounding(text: str) -> None:
     for key, expected_path in REQUIRED_CITATIONS.items():
         if fields.get(key) != expected_path or expected_path not in text:
             raise ValueError(f"missing required {key}: {expected_path}")
-    if not re.search(r"owner_decision:\s*(?:null|pending)\b", text):
-        raise ValueError("draft must preserve the pending owner-decision seam")
+    owner_decision = fields.get("owner_decision", "").lower()
+    if verdict == "pending-owner":
+        if owner_decision not in {"null", "pending"}:
+            raise ValueError("draft must preserve the pending owner-decision seam")
+        return
+    if owner_decision != verdict:
+        raise ValueError("final verdict must match the owner decision")
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fields.get("owner_decision_date", "")):
+        raise ValueError("final verdict requires a dated owner sign-off")
 
 
 class VerdictGroundingTests(unittest.TestCase):
     def setUp(self):
         self.text = VERDICT_PATH.read_text(encoding="utf-8")
 
-    def test_current_draft_is_receipt_seed_timing_and_seam_grounded(self):
+    def test_current_verdict_is_receipt_seed_timing_and_seam_grounded(self):
         validate_verdict_grounding(self.text)
 
     def test_failing_gate_rejects_unqualified_go(self):
         unsupported = self.text.replace(
-            "verdict: pending-owner", "verdict: go", 1
-        ).replace("owner_decision: null", "owner_decision: go", 1)
+            "verdict: adjust", "verdict: go", 1
+        ).replace("owner_decision: adjust", "owner_decision: go", 1)
         with self.assertRaisesRegex(ValueError, "unqualified verdict: go"):
             validate_verdict_grounding(unsupported)
 
@@ -74,10 +81,14 @@ class VerdictGroundingTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, f"missing required {key}"):
                     validate_verdict_grounding(missing)
 
-    def test_draft_does_not_persist_an_owner_choice(self):
+    def test_owner_adjust_decision_and_dated_sign_off_are_persisted(self):
         fields = _frontmatter(self.text)
-        self.assertEqual(fields["verdict"], "pending-owner")
-        self.assertEqual(fields["owner_decision"], "null")
+        self.assertEqual(fields["status"], "owner-signed")
+        self.assertEqual(fields["verdict"], "adjust")
+        self.assertEqual(fields["owner_decision"], "adjust")
+        self.assertEqual(fields["owner_decision_date"], "2026-07-22")
+        self.assertRegex(self.text, r"block\s+full-platform expansion")
+        self.assertIn("does not claim that the remedy is known", self.text)
 
 
 if __name__ == "__main__":  # pragma: no cover
