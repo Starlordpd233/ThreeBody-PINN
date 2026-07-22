@@ -55,6 +55,7 @@ from pinn.data.adapter import AdmittedSetAdapter
 from pinn.data.splits import SplitManifest, StageIndex
 from pinn.network import build_network
 from pinn.runtime import resolve_runtime
+from pinn.train import _resolve_blacklist_path
 from pinn.training.atomic_io import atomic_write_text
 from pinn.training.config_yaml import load_config
 from pinn.training.summary import refresh_completed_summary
@@ -255,7 +256,12 @@ def evaluate_run(
 
     # CPU/float32 ONLY — the same 43-03 DATA-01 residency contract, never the
     # model's runtime device (mirrors ``pinn.train._build_admitted_sources``).
-    adapter = AdmittedSetAdapter(root=config.data.root, precision="float32", device="cpu")
+    adapter = AdmittedSetAdapter(
+        root=config.data.root,
+        blacklist_path=_resolve_blacklist_path(config),
+        precision="float32",
+        device="cpu",
+    )
     test_index = StageIndex.from_split(adapter, manifest, "test")
     test_keys = test_index.record_keys()
     if not test_keys:

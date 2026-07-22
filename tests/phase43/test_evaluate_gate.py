@@ -47,7 +47,15 @@ def _sha256(path) -> str:
     return digest.hexdigest()
 
 
-def _build_run(base_dir, corpus, *, ratios, seed=0, run_name="test-run"):
+def _build_run(
+    base_dir,
+    corpus,
+    *,
+    ratios,
+    seed=0,
+    run_name="test-run",
+    blacklist_path=None,
+):
     """A minimal real (config.yaml + splits.json + checkpoint) run directory.
 
     ``ratios`` is threaded straight into ``write_split_manifest`` so a test can
@@ -70,7 +78,11 @@ def _build_run(base_dir, corpus, *, ratios, seed=0, run_name="test-run"):
             max_epochs=1, n_adam=1, stagnation_window=1, percentile_10_relaxation=0.0,
         ),
         run=RunConfig(seed=seed, precision="float64", device="cpu"),
-        data=DataConfig(source="admitted", root=str(corpus.data_root)),
+        data=DataConfig(
+            source="admitted",
+            root=str(corpus.data_root),
+            blacklist_path=blacklist_path,
+        ),
     )
     freeze_resolved_config(config, run_dir)
 
@@ -91,6 +103,41 @@ def _all_to_test_ratios():
 
 
 class ClosedEvaluationFlowTests(unittest.TestCase):
+    def test_adapter_receives_blacklist_resolved_against_admitted_data_root(self):
+        evaluate_run = _require("evaluate_run")
+        from pinn.data.adapter import AdmittedSetAdapter
+
+        with tempfile.TemporaryDirectory() as tmp, TinyCorpus() as corpus:
+            sibling_dir = corpus.data_root.parent / "Documentation"
+            sibling_dir.mkdir()
+            sibling_blacklist = sibling_dir / "problematic_ics_blacklist.json"
+            sibling_blacklist.write_text(
+                corpus.blacklist_path.read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            runs_root, run_dir, ckpt = _build_run(
+                tmp,
+                corpus,
+                ratios=_all_to_test_ratios(),
+                blacklist_path="../Documentation/problematic_ics_blacklist.json",
+            )
+
+            with mock.patch(
+                f"{EVALUATE_MODULE}.AdmittedSetAdapter",
+                side_effect=AdmittedSetAdapter,
+            ) as adapter_spy:
+                evaluate_run(
+                    checkpoint_path=ckpt,
+                    output_dir=run_dir / "evaluation",
+                    runs_root=runs_root,
+                )
+
+            self.assertEqual(adapter_spy.call_count, 1)
+            self.assertEqual(
+                Path(adapter_spy.call_args.kwargs["blacklist_path"]),
+                sibling_blacklist.resolve(),
+            )
+
     def test_happy_path_metrics_and_markdown_carry_matching_numbers_and_verdict(self):
         evaluate_run = _require("evaluate_run")
         with tempfile.TemporaryDirectory() as tmp, TinyCorpus() as corpus:
