@@ -5,9 +5,10 @@ run:
   device: mps
   log_every: 100
   run_name: stage0-example
-  # R-2 remains owner-owned until the 43-07 pilot evidence is reviewed.
-  # Uncomment only after owner ratification at Task 3:
+  # R-2 is OWNER-RATIFIED (2026-07-22) from the 43-07 pilot evidence.
+  # The pre-ratification slot was:
   # recover_retries: <owner-provided non-negative integer>
+  recover_retries: 0
   # D4-a: wall_clock_ceiling_s is OWNER-RATIFIED (2026-07-21, explicit
   # selection at 120 s) — roughly 10x the ~9-12 s normal inter-checkpoint
   # interval measured in the 43-06 real Stage-0 smoke, and well under the
@@ -22,18 +23,14 @@ run:
   # defaults unless overridden above.
   # checkpoint:
   #   every_n_steps: 100
-  guards: {}
-  # loss_explosion_ceiling is OWNER-RATIFIED (R-1, via delegation 2026-07-21;
-  # explicitly revisable at the ACC-05 Stage-0 pilot) — shown below at its
-  # ratified value. disk_floor_fraction / memory_watermark_fraction remain ⚖
-  # provisional placeholders (R-1) that the owner still calibrates from the
-  # Phase-43 pilot; the run banner reprints all three at every launch. Note
-  # that the loss-explosion ceiling stops a diverging run early — raise it
-  # deliberately, and read runs/<name>/failure/ before you do.
-  # guards:
-  #   loss_explosion_ceiling: 1.0e11
-  #   disk_floor_fraction: 0.05
-  #   memory_watermark_fraction: 0.7
+  # R-1 is OWNER-RATIFIED (2026-07-22) from the 43-07 pilot evidence.
+  # The run banner reprints all three values at every launch. The
+  # loss-explosion ceiling stops a diverging run early; read
+  # runs/<name>/failure/ before changing it.
+  guards:
+    loss_explosion_ceiling: 100000000000.0
+    disk_floor_fraction: 0.05
+    memory_watermark_fraction: 0.7
   monitor:
     heartbeat_secs: 30
     staleness_factor: 3

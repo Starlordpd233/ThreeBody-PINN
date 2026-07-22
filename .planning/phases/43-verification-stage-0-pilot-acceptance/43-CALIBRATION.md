@@ -1,8 +1,8 @@
 # Phase 43 ACC-05 Stage-0 pilot calibration
 
-**Status:** `AWAITING-OWNER-RATIFICATION`  
+**Status:** `OWNER-RATIFIED`  
 **Pilot date:** 2026-07-22  
-**Decision boundary:** This document reports observations and candidate options. It does not ratify or persist R-1 or R-2.
+**Decision boundary:** This document preserves the pilot observations and candidate options, then records the owner's exact R-1/R-2 ratification dated 2026-07-22.
 
 ## Pilot contract
 
@@ -51,7 +51,7 @@ Field-level limits matter:
 
 ## Owner decision candidates
 
-These options are candidates, not defaults. The owner must provide the exact four values before Task 3 changes supported configuration.
+These were the candidates presented at the Task 3 checkpoint. They remain here as the evidence trail for the exact values the owner subsequently selected.
 
 ### R-1: `run.guards.loss_explosion_ceiling`
 
@@ -82,7 +82,11 @@ These options are candidates, not defaults. The owner must provide the exact fou
 
 ## Ratification record
 
-**Owner sign-off:** pending.  
-**Exact R-1 values:** pending.  
-**Exact R-2 value:** pending.  
-**Persistence status:** no R-1/R-2 value has been changed by this calibration task.
+**Owner sign-off:** approved on 2026-07-22 through the Plan 43-07 Task 3 owner-response checkpoint.  
+**Exact R-1 values:** `loss_explosion_ceiling = 100000000000.0`; `disk_floor_fraction = 0.05`; `memory_watermark_fraction = 0.7`.  
+**Exact R-2 value:** `recover_retries = 0`.  
+**Persistence status:** the four exact owner-provided values are active in `configs/stage0-example.yaml`; no value was rounded, reinterpreted, or substituted.
+
+### Superseded checkpoint state
+
+Before the owner response, this record was `AWAITING-OWNER-RATIFICATION` and its historical marker read **Owner sign-off:** pending. The dated approval and exact persisted values above supersede that checkpoint state.
