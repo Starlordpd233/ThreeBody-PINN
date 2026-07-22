@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import ast
+import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,6 +16,36 @@ from pinn.training.config_yaml import load_config, resolved_config_to_dict
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _STAGE0_EXAMPLE = _REPO_ROOT / "configs" / "stage0-example.yaml"
 _TRAIN_SOURCE = _REPO_ROOT / "pinn" / "train.py"
+_CALIBRATION = (
+    _REPO_ROOT
+    / ".planning"
+    / "phases"
+    / "43-verification-stage-0-pilot-acceptance"
+    / "43-CALIBRATION.md"
+)
+_PILOT_EVIDENCE = _CALIBRATION.parent / "evidence" / "pilot" / "README.md"
+
+
+def _load_evidence_manifest() -> dict[str, object]:
+    text = _PILOT_EVIDENCE.read_text(encoding="utf-8")
+    match = re.search(
+        r"<!-- phase43-pilot-schema: phase43-pilot/v1 -->\s*```json\s*(.*?)\s*```",
+        text,
+        re.DOTALL,
+    )
+    if match is None:
+        raise AssertionError("pilot evidence must expose the phase43-pilot/v1 JSON block")
+    return json.loads(match.group(1))
+
+
+def _summarize_fixture(records: list[dict[str, object]]) -> dict[str, object]:
+    retained = list(records)
+    completed = sum(record.get("disposition") == "finished" for record in retained)
+    return {
+        "records": retained,
+        "completed_seed_count": completed,
+        "confidence": "HIGH" if completed >= 2 else "LOW",
+    }
 
 
 def _write_config(path: Path, recover_retries: object) -> Path:
@@ -101,6 +133,86 @@ class TrainRecoverRetryHandoffTests(unittest.TestCase):
                 include_attributes=False,
             ),
         )
+
+
+class PilotCalibrationEvidenceTests(unittest.TestCase):
+    def test_manifest_has_traceable_completed_seed_band_and_required_schema(self):
+        manifest = _load_evidence_manifest()
+        records = manifest["records"]
+
+        self.assertEqual(manifest["schema"], "phase43-pilot/v1")
+        self.assertGreaterEqual(len(records), 2)
+        self.assertEqual({record["seed"] for record in records}, {41, 42, 43})
+        self.assertTrue(manifest["confidence_rule"]["diverged_seeds_retained"])
+        for record in records:
+            with self.subTest(seed=record["seed"]):
+                for field in (
+                    "run_path",
+                    "state",
+                    "disposition",
+                    "final_losses",
+                    "validation",
+                    "peak_memory",
+                    "wall_clock_secs",
+                    "final_s_per_step_ema",
+                    "checkpoints",
+                    "failure_files",
+                    "sha256",
+                ):
+                    self.assertIn(field, record)
+                self.assertEqual(record["steps_completed"], 300)
+                self.assertTrue(record["all_steps_finite"])
+
+        observed = _summarize_fixture(records)
+        self.assertEqual(observed["completed_seed_count"], 3)
+        self.assertEqual(observed["confidence"], "HIGH")
+        self.assertEqual(manifest["rollup"]["confidence"], "HIGH")
+
+    def test_diverged_fixture_is_retained_in_band(self):
+        fixture = [
+            {"seed": 11, "disposition": "finished"},
+            {"seed": 12, "disposition": "diverged"},
+        ]
+
+        observed = _summarize_fixture(fixture)
+
+        self.assertEqual(observed["records"], fixture)
+        self.assertEqual(
+            [record["seed"] for record in observed["records"]],
+            [11, 12],
+        )
+
+    def test_fewer_than_two_completed_seeds_is_low_confidence(self):
+        fixture = [
+            {"seed": 11, "disposition": "finished"},
+            {"seed": 12, "disposition": "diverged"},
+            {"seed": 13, "disposition": "failed"},
+        ]
+
+        observed = _summarize_fixture(fixture)
+
+        self.assertEqual(observed["completed_seed_count"], 1)
+        self.assertEqual(observed["confidence"], "LOW")
+
+    def test_candidates_are_observation_linked_and_await_owner_ratification(self):
+        manifest = _load_evidence_manifest()
+        calibration = _CALIBRATION.read_text(encoding="utf-8")
+        refs = manifest["candidate_observation_refs"]
+
+        self.assertEqual(
+            set(refs),
+            {
+                "loss_explosion_ceiling",
+                "disk_floor_fraction",
+                "memory_watermark_fraction",
+                "recover_retries",
+            },
+        )
+        self.assertTrue(all(refs[field] for field in refs))
+        self.assertIn("AWAITING-OWNER-RATIFICATION", calibration)
+        self.assertIn("60811735040.0", calibration)
+        self.assertIn("0.13837178548177084", calibration)
+        self.assertIn("Owner sign-off:** pending", calibration)
 
 
 if __name__ == "__main__":
