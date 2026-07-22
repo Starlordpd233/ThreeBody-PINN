@@ -206,6 +206,125 @@ class AdmittedCompositionTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# DI-43-06-01 — data.blacklist_path (owner Option A, 2026-07-22): a relative
+# path resolves against the ADMITTED DATA ROOT (never the CWD), an absolute
+# path is used as-is, None preserves the adapter's own default, and a missing
+# file at the resolved location still fails closed (no silent empty blacklist).
+# ---------------------------------------------------------------------------
+class BlacklistPathResolutionTests(unittest.TestCase):
+    def test_data_config_accepts_blacklist_path(self):
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        data = DataConfig(
+            source="admitted", root="/some/Data",
+            blacklist_path="../Documentation/x.json",
+        )
+        self.assertEqual(data.blacklist_path, "../Documentation/x.json")
+
+    def test_blacklist_path_defaults_to_none(self):
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        self.assertIsNone(DataConfig().blacklist_path)
+
+    def test_empty_blacklist_path_rejected(self):
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        with self.assertRaises(ValueError):
+            DataConfig(blacklist_path="")
+
+    def test_relative_blacklist_path_resolves_against_data_root_not_cwd(self):
+        _resolve_blacklist_path = _require("_resolve_blacklist_path", TRAIN_MODULE)
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        TrainingConfig = _require("TrainingConfig", CONFIG_MODULE)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "Data"
+            root.mkdir()
+            cfg = TrainingConfig(
+                stage=_valid_stage(),
+                data=DataConfig(
+                    source="admitted", root=str(root),
+                    blacklist_path="../Documentation/blacklist.json",
+                ),
+            )
+            resolved = _resolve_blacklist_path(cfg)
+        expected = (root / ".." / "Documentation" / "blacklist.json").resolve()
+        self.assertEqual(Path(resolved), expected)
+        self.assertNotEqual(Path(resolved), Path.cwd() / "Documentation" / "blacklist.json")
+
+    def test_absolute_blacklist_path_used_as_is(self):
+        _resolve_blacklist_path = _require("_resolve_blacklist_path", TRAIN_MODULE)
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        TrainingConfig = _require("TrainingConfig", CONFIG_MODULE)
+        with tempfile.TemporaryDirectory() as tmp:
+            abs_path = str(Path(tmp) / "explicit-blacklist.json")
+            cfg = TrainingConfig(
+                stage=_valid_stage(),
+                data=DataConfig(source="admitted", root=tmp, blacklist_path=abs_path),
+            )
+            resolved = _resolve_blacklist_path(cfg)
+        self.assertEqual(resolved, abs_path)
+
+    def test_none_blacklist_path_preserves_adapter_default(self):
+        _resolve_blacklist_path = _require("_resolve_blacklist_path", TRAIN_MODULE)
+        TrainingConfig = _require("TrainingConfig", CONFIG_MODULE)
+        cfg = TrainingConfig(stage=_valid_stage())
+        self.assertIsNone(_resolve_blacklist_path(cfg))
+
+    def test_admitted_composition_admits_corpus_via_relative_sibling_blacklist(self):
+        _build_admitted_sources = _require("_build_admitted_sources", TRAIN_MODULE)
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        RunConfig = _require("RunConfig", CONFIG_MODULE)
+        TrainingConfig = _require("TrainingConfig", CONFIG_MODULE)
+        from tests.phase39._fixtures import TinyCorpus
+
+        with TinyCorpus() as corpus:
+            # Reproduce the DI-43-06-01 layout: no blacklist colocated with
+            # Data/ (the adapter's default resolution); the real file lives a
+            # directory up, mirroring Data/ vs Documentation/ in the real
+            # corpus.
+            default_location = corpus.data_root / "problematic_ics_blacklist.json"
+            sibling_dir = corpus.data_root.parent / "Documentation"
+            sibling_dir.mkdir(parents=True, exist_ok=True)
+            sibling_blacklist = sibling_dir / "problematic_ics_blacklist.json"
+            sibling_blacklist.write_text(
+                default_location.read_text(encoding="utf-8"), encoding="utf-8"
+            )
+            default_location.unlink()
+
+            cfg = TrainingConfig(
+                stage=_valid_stage(replay_count=32),
+                run=RunConfig(seed=7, smoke=True, run_name="stage0-smoke"),
+                data=DataConfig(
+                    source="admitted",
+                    root=str(corpus.data_root),
+                    blacklist_path="../Documentation/problematic_ics_blacklist.json",
+                ),
+            )
+            train_index, _val_index = _build_admitted_sources(cfg, corpus.run_dir)
+            adapter = train_index._source
+            # Never a silent empty-blacklist substitution: the relative-path
+            # file's entries (TinyCorpus's known hierarchical=3/standard=5)
+            # are genuinely applied.
+            self.assertTrue(len(adapter.blacklisted_physical_keys) > 0)
+
+    def test_missing_blacklist_at_relative_path_still_fails_closed(self):
+        _build_admitted_sources = _require("_build_admitted_sources", TRAIN_MODULE)
+        BlacklistSchemaError = _require("BlacklistSchemaError", "pinn.data.adapter")
+        DataConfig = _require("DataConfig", CONFIG_MODULE)
+        TrainingConfig = _require("TrainingConfig", CONFIG_MODULE)
+        from tests.phase39._fixtures import TinyCorpus
+
+        with TinyCorpus() as corpus:
+            cfg = TrainingConfig(
+                stage=_valid_stage(replay_count=32),
+                data=DataConfig(
+                    source="admitted",
+                    root=str(corpus.data_root),
+                    blacklist_path="../Documentation/does-not-exist.json",
+                ),
+            )
+            with self.assertRaises(BlacklistSchemaError):
+                _build_admitted_sources(cfg, corpus.run_dir)
+
+
+# ---------------------------------------------------------------------------
 # ~32-trajectory selection — the existing DATA-05 selector honors replay_count,
 # and RunController threads it while the default preserves the 240 population.
 # ---------------------------------------------------------------------------

@@ -490,12 +490,20 @@ class DataConfig:
     (``"synthetic"`` — the v2.0 falsifiability-floor default). ``root`` is an
     optional explicit corpus ``Data/`` directory; when ``None`` the admitted
     path resolves the root via ``default_data_root()`` / ``GSD_DATA_ROOT``
-    (CTX-79). Only type/enum validation lives here — reachability of a real root
-    is a run-time preflight (``pinn.train`` Task 3), not a config-load concern.
+    (CTX-79). ``blacklist_path`` (DI-43-06-01) is an optional override for the
+    admission blacklist file; when ``None`` the adapter's own default
+    (``<data_root>/problematic_ics_blacklist.json``) applies. A relative
+    ``blacklist_path`` resolves against the RESOLVED admitted data root (never
+    the CWD), so a portable relative path may be committed to a shared config;
+    an absolute path is used as-is. Only type/enum validation lives here —
+    reachability of a real root, or of the blacklist file, is a run-time
+    preflight/construction concern (``pinn.train`` / ``AdmittedSetAdapter``),
+    not a config-load concern.
     """
 
     source: str = "synthetic"
     root: Optional[str] = None
+    blacklist_path: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.source not in _DATA_SOURCES:
@@ -504,6 +512,8 @@ class DataConfig:
             )
         if self.root is not None:
             _require_nonempty_str("data.root", self.root)
+        if self.blacklist_path is not None:
+            _require_nonempty_str("data.blacklist_path", self.blacklist_path)
 
 
 @dataclass(frozen=True)

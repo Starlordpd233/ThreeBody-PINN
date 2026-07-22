@@ -40,3 +40,7 @@ loss:
 data:
   source: admitted
   # root: /path/to/gitignored/Stage-0/Data   # optional explicit corpus root
+  # DI-43-06-01: owner-designated Stage-0 admission blacklist (Option A,
+  # 2026-07-22) — the legacy 65-ID Documentation blacklist, resolved relative
+  # to the admitted data root so this path stays portable across machines.
+  blacklist_path: ../Documentation/problematic_ics_blacklist.json

@@ -286,6 +286,39 @@ def _admitted_data_preflight(config: TrainingConfig) -> Path:
     return root.resolve()
 
 
+def _resolve_admitted_data_root(config: TrainingConfig) -> Path:
+    """Mirror ``AdmittedSetAdapter._resolve_root``'s precedence (explicit
+    ``data.root`` -> ``GSD_DATA_ROOT`` env -> ``default_data_root()``) so a
+    relative ``data.blacklist_path`` (DI-43-06-01) resolves against the SAME
+    root the adapter will actually use. Duplicated (not imported) because this
+    plan's owned files exclude ``pinn/data/adapter.py``; keep in sync with
+    ``AdmittedSetAdapter._resolve_root`` if that precedence ever changes.
+    """
+    from pinn.data.adapter import DATA_ROOT_ENV, default_data_root
+
+    if config.data.root is not None:
+        return Path(config.data.root).resolve()
+    if os.environ.get(DATA_ROOT_ENV):
+        return Path(os.environ[DATA_ROOT_ENV]).resolve()
+    return Path(default_data_root()).resolve()
+
+
+def _resolve_blacklist_path(config: TrainingConfig) -> Optional[str]:
+    """Resolve ``data.blacklist_path`` against the ADMITTED DATA ROOT, never the
+    CWD (DI-43-06-01), so a relative path stays portable across machines and
+    worktrees in a committed config (e.g. ``configs/smoke.yaml``). An absolute
+    path is used as-is. ``None`` preserves the adapter's own default
+    (``<data_root>/problematic_ics_blacklist.json``).
+    """
+    raw = config.data.blacklist_path
+    if raw is None:
+        return None
+    candidate = Path(raw)
+    if candidate.is_absolute():
+        return str(candidate)
+    return str((_resolve_admitted_data_root(config) / candidate).resolve())
+
+
 def _build_admitted_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
     """Compose the sole production admitted corpus into leakage-free split views.
 
@@ -305,6 +338,7 @@ def _build_admitted_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any,
 
     adapter = AdmittedSetAdapter(
         root=config.data.root,
+        blacklist_path=_resolve_blacklist_path(config),
         precision="float32",
         device="cpu",
         run_dir=run_dir,
