@@ -191,7 +191,7 @@ Plans:
   4. The milestone closes with a recorded **go / adjust / rethink** verdict on whether the Stage-0 slice justifies the full multi-stage platform, and updates the FUT-01 / FUT-04 handoff with what shipped, what stayed a placeholder seam, and what was deferred (ACC-06).
 
 **UI hint**: no
-**Plans**: 6/8 plans executed
+**Plans**: 8 plans + 4 gap-closure plans (43-09..43-12, from 43-VERIFICATION gaps)
 **Wave 1**
 
 - [x] 43-01-PLAN.md — verify ladder + verdict marker + tests/phase43 scaffold (ACC-01, wave 1)
@@ -220,6 +220,18 @@ Plans:
 **Wave 7** *(blocked on Wave 6 completion)*
 
 - [ ] 43-08-PLAN.md — go/adjust/rethink verdict + FUT-01/FUT-04 handoff + ACC-06 owner pause (ACC-06, wave 7)
+
+### Gap Closure (from 43-VERIFICATION.md, score 2/6)
+
+**Gap-Closure Wave 1**
+
+- [ ] 43-09-PLAN.md — ACC-01 long-run authorization: effective-runtime duration gate (CR-03) + verify-marker schema validation (CR-04) (ACC-01, gc-wave 1)
+- [ ] 43-10-PLAN.md — ACC-03 once-only held-out enforcement: canonical evaluation dir (CR-01) + atomic pre-access claim (CR-02) (ACC-03, gc-wave 1)
+- [ ] 43-11-PLAN.md — ACC-06 verdict grounding backstop: receipt-grounded validation + regressions (CR-05) (ACC-06, gc-wave 1)
+
+**Gap-Closure Wave 2** *(blocked on Gap-Closure Wave 1 completion)*
+
+- [ ] 43-12-PLAN.md — ACC-02 repo-wide fixture repair (WR-03) + ACC-02/ACC-04 formal acceptance (ACC-02, ACC-04, gc-wave 2)
 
 ## Progress
 
