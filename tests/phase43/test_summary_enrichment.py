@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 import tempfile
 import unittest
 from pathlib import Path
@@ -137,6 +138,90 @@ class SummaryEnrichmentTests(unittest.TestCase):
         self.assertIn("(no curriculum records)", md)
         self.assertIn("(test metrics unavailable)", md)
         self.assertIn("(named prior summary unavailable)", md)
+
+    def test_terminal_train_caller_passes_persisted_validation_and_curriculum(self) -> None:
+        import pinn.train as train_module
+
+        source = inspect.getsource(train_module.main)
+        self.assertIn("validation_records_path=run_dir / \"validation.jsonl\"", source)
+        self.assertIn("curriculum_path=run_dir / \"curriculum.jsonl\"", source)
+
+    def test_actual_evaluate_flow_refreshes_the_completed_run_summary_once(self) -> None:
+        from pinn.evaluate import evaluate_run
+        from tests.phase39._fixtures import TinyCorpus
+        from tests.phase43.test_evaluate_gate import _all_to_test_ratios, _build_run
+
+        with TinyCorpus() as corpus:
+            runs_root, run_dir, checkpoint = _build_run(
+                self.root,
+                corpus,
+                ratios=_all_to_test_ratios(),
+                run_name="completed-run",
+            )
+            validation_path = _write_jsonl(
+                run_dir / "validation.jsonl",
+                [{"step": 1, "final_val_loss": 0.25, "trend": "improving"}],
+            )
+            curriculum_path = _write_jsonl(
+                run_dir / "curriculum.jsonl",
+                [{"stage": 0, "phase": "2b", "step": 1}],
+            )
+            finalize_summary(
+                run_dir,
+                disposition="finished",
+                header={**self.header, "run_name": "completed-run"},
+                final_losses=self.losses,
+                curriculum_path=curriculum_path,
+                validation_records_path=validation_path,
+            )
+            before = json.loads((run_dir / "summary.json").read_text())
+            self.assertIsNone(before["test_preview"])
+
+            evaluate_run(
+                checkpoint_path=checkpoint,
+                output_dir=run_dir / "evaluation",
+                runs_root=runs_root,
+            )
+
+            after = json.loads((run_dir / "summary.json").read_text())
+            md = (run_dir / "summary.md").read_text()
+            metrics = json.loads(
+                (run_dir / "evaluation" / "metrics.json").read_text()
+            )
+            self.assertEqual(after["disposition"], "finished")
+            self.assertEqual(after["test_preview"]["eps_h"], metrics["eps_h"])
+            self.assertEqual(after["test_preview"]["verdict"], metrics["verdict"])
+            self.assertIn("## Test-set preview", md)
+            self.assertIn("## Comparison hint", md)
+            self.assertTrue(
+                (run_dir / "evaluation" / "evaluation-receipt.json").is_file()
+            )
+
+    def test_refresh_does_not_overwrite_a_non_success_summary(self) -> None:
+        summary_module = __import__("pinn.training.summary", fromlist=["summary"])
+        refresh_completed_summary = getattr(summary_module, "refresh_completed_summary")
+        metrics_path = _write_json(
+            self.root / "metrics.json",
+            {"eps_h": 1.0e-6, "scs": -6.0, "verdict": "PASS"},
+        )
+        finalize_summary(
+            self.root,
+            disposition="failed",
+            header=self.header,
+            final_losses=None,
+            curriculum_path=None,
+        )
+        before = (self.root / "summary.json").read_bytes()
+
+        refreshed = refresh_completed_summary(
+            self.root,
+            metrics_path=metrics_path,
+            validation_records_path=self.root / "validation.jsonl",
+            curriculum_path=self.root / "curriculum.jsonl",
+        )
+
+        self.assertIsNone(refreshed)
+        self.assertEqual((self.root / "summary.json").read_bytes(), before)
 
 
 if __name__ == "__main__":
