@@ -61,6 +61,12 @@ _STATUS_TEXT = {
     "interrupted": "interrupted",
 }
 
+_HONESTY_NOTES = (
+    "Healthy validation does not mean the model works.",
+    "Run-to-run comparison does not prove progress.",
+    "A clean loss curve does not establish correct physics.",
+)
+
 
 def _null_if_nonfinite(value: Any) -> Optional[float]:
     """CTX-67 null policy for a single scalar: None / NaN / Inf → JSON null."""
@@ -146,6 +152,104 @@ def _render_curriculum(curriculum_path: Optional[PathLike]) -> List[Dict[str, An
     return records
 
 
+def _read_json_mapping(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
+    """Read one persisted JSON object, returning unavailable on any bad input."""
+    if path is None:
+        return None
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        return None
+    return dict(value) if isinstance(value, Mapping) else None
+
+
+def _read_jsonl_mappings(path: Optional[PathLike]) -> List[Dict[str, Any]]:
+    """Read persisted JSONL records in order without deriving replacement data."""
+    if path is None:
+        return []
+    try:
+        lines = Path(path).read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+    records: List[Dict[str, Any]] = []
+    for line in lines:
+        try:
+            value = json.loads(line)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(value, Mapping):
+            records.append(dict(value))
+    return records
+
+
+def _validation_summary(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
+    """Select the last persisted validation record; never infer a trend."""
+    records = _read_jsonl_mappings(path)
+    if not records:
+        return None
+    record = records[-1]
+    final_val_loss = _null_if_nonfinite(record.get("final_val_loss"))
+    trend = record.get("trend")
+    if not isinstance(trend, str) or not trend:
+        trend = None
+    step = record.get("step")
+    return {
+        "final_val_loss": final_val_loss,
+        "trend": trend,
+        "step": step,
+    }
+
+
+def _test_preview(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
+    """Project the committed evaluation artifact into the summary payload."""
+    metrics = _read_json_mapping(path)
+    if metrics is None:
+        return None
+    verdict = metrics.get("verdict")
+    if verdict not in ("PASS", "FAIL"):
+        verdict = None
+    return {
+        "eps_h": _null_if_nonfinite(metrics.get("eps_h")),
+        "scs": _null_if_nonfinite(metrics.get("scs")),
+        "verdict": verdict,
+        "n_test_trajectories": metrics.get("n_test_trajectories"),
+    }
+
+
+def _comparison_hint(
+    prior_summary_path: Optional[PathLike],
+    *,
+    current_preview: Optional[Mapping[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """Render persisted current/prior values side by side without judging progress."""
+    prior = _read_json_mapping(prior_summary_path)
+    if prior is None:
+        return None
+    prior_run_name = prior.get("run_name")
+    if prior_run_name is None and isinstance(prior.get("header"), Mapping):
+        prior_run_name = prior["header"].get("run_name")
+    if not isinstance(prior_run_name, str) or not prior_run_name:
+        return None
+    prior_preview = prior.get("test_preview")
+    if not isinstance(prior_preview, Mapping):
+        prior_preview = {}
+    return {
+        "prior_run_name": prior_run_name,
+        "current_eps_h": (
+            current_preview.get("eps_h") if current_preview is not None else None
+        ),
+        "prior_eps_h": _null_if_nonfinite(prior_preview.get("eps_h")),
+        "current_scs": (
+            current_preview.get("scs") if current_preview is not None else None
+        ),
+        "prior_scs": _null_if_nonfinite(prior_preview.get("scs")),
+        "current_verdict": (
+            current_preview.get("verdict") if current_preview is not None else None
+        ),
+        "prior_verdict": prior_preview.get("verdict"),
+    }
+
+
 def _final_losses_dict(final_losses: Optional[Mapping[str, Any]]) -> Dict[str, Optional[float]]:
     src: Mapping[str, Any] = final_losses or {}
     return {term: _null_if_nonfinite(src.get(term)) for term in _LOSS_TERMS}
@@ -158,9 +262,14 @@ def _compose(
     header: Optional[Mapping[str, Any]],
     final_losses: Optional[Mapping[str, Any]],
     curriculum: List[Dict[str, Any]],
+    validation_records_path: Optional[PathLike] = None,
+    metrics_path: Optional[PathLike] = None,
+    prior_summary_path: Optional[PathLike] = None,
 ) -> "tuple[Dict[str, Any], str]":
     """Build the (summary.json payload, summary.md text) pair for ``disposition``."""
     hdr: Mapping[str, Any] = header or {}
+    success = disposition == "finished"
+    preview = _test_preview(metrics_path) if success else None
     payload: Dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "disposition": disposition,
@@ -177,8 +286,15 @@ def _compose(
             # B-6/D-12 environment fingerprint lives in summary.json ONLY.
             "env_fingerprint": _env_fingerprint(),
         },
-        "final_losses": _final_losses_dict(final_losses),
-        "curriculum": curriculum,
+        "final_losses": _final_losses_dict(final_losses if success else None),
+        "validation": _validation_summary(validation_records_path) if success else None,
+        "curriculum": curriculum if success else [],
+        "test_preview": preview,
+        "comparison": (
+            _comparison_hint(prior_summary_path, current_preview=preview)
+            if success
+            else None
+        ),
     }
     return payload, _render_md(payload)
 
@@ -189,13 +305,12 @@ def _render_md(payload: Mapping[str, Any]) -> str:
     header: Mapping[str, Any] = payload["header"]
     losses: Mapping[str, Any] = payload["final_losses"]
     curriculum: List[Dict[str, Any]] = payload["curriculum"]
+    validation = payload.get("validation")
+    test_preview = payload.get("test_preview")
+    comparison = payload.get("comparison")
     status_text = _STATUS_TEXT.get(disposition, str(disposition))
 
     lines: List[str] = ["# Run Summary", "", f"**Status:** {status_text}", ""]
-    if disposition != "finished":
-        # Honest non-success template: state named, no fabricated metrics (must-NOT #1).
-        lines.append("The run did not complete.")
-        lines.append("")
     lines.append("## Run header")
     lines.append("")
     lines.append(f"- run_name: {header.get('run_name')}")
@@ -206,11 +321,26 @@ def _render_md(payload: Mapping[str, Any]) -> str:
     lines.append(f"- seed: {header.get('seed')}")
     lines.append(f"- config_identity_digest: {header.get('config_identity_digest')}")
     lines.append("")
+    if disposition != "finished":
+        # Honest non-success early return: header only; no metric-bearing sections.
+        lines.append("The run did not complete.")
+        lines.append("")
+        return "\n".join(lines)
     lines.append("## Final losses")
     lines.append("")
     for term in _LOSS_TERMS:
         value = losses.get(term)
         lines.append(f"- {term}: {value if value is not None else 'null'}")
+    lines.append("")
+    lines.append("## Validation summary")
+    lines.append("")
+    if isinstance(validation, Mapping):
+        value = validation.get("final_val_loss")
+        lines.append(f"- final_val_loss: {value if value is not None else 'null'}")
+        lines.append(f"- trend: {validation.get('trend') or 'unavailable'}")
+        lines.append(f"- step: {validation.get('step')}")
+    else:
+        lines.append("- (validation records unavailable)")
     lines.append("")
     lines.append("## Curriculum progression")
     lines.append("")
@@ -225,6 +355,35 @@ def _render_md(payload: Mapping[str, Any]) -> str:
                 lines.append(f"- {json.dumps(rec, sort_keys=True)}")
     else:
         lines.append("- (no curriculum records)")
+    lines.append("")
+    lines.append("## Test-set preview")
+    lines.append("")
+    if isinstance(test_preview, Mapping):
+        eps_h = test_preview.get("eps_h")
+        scs = test_preview.get("scs")
+        lines.append(f"- eps_H: {eps_h if eps_h is not None else 'null'}")
+        lines.append(f"- SCS: {scs if scs is not None else 'null'}")
+        lines.append(f"- verdict: {test_preview.get('verdict') or 'unavailable'}")
+        lines.append(
+            f"- n_test_trajectories: {test_preview.get('n_test_trajectories')}"
+        )
+    else:
+        lines.append("- (test metrics unavailable)")
+    lines.append("")
+    lines.append("## Comparison hint")
+    lines.append("")
+    if isinstance(comparison, Mapping):
+        lines.append(f"- prior_run: {comparison.get('prior_run_name')}")
+        lines.append(f"- current_eps_H: {comparison.get('current_eps_h')}")
+        lines.append(f"- prior_eps_H: {comparison.get('prior_eps_h')}")
+        lines.append(f"- current_verdict: {comparison.get('current_verdict')}")
+        lines.append(f"- prior_verdict: {comparison.get('prior_verdict')}")
+    else:
+        lines.append("- (named prior summary unavailable)")
+    lines.append("")
+    lines.append("## Honesty notes")
+    lines.append("")
+    lines.extend(f"- {note}" for note in _HONESTY_NOTES)
     lines.append("")
     return "\n".join(lines)
 
@@ -261,6 +420,9 @@ def finalize_summary(
     header: Optional[Mapping[str, Any]],
     final_losses: Optional[Mapping[str, Any]],
     curriculum_path: Optional[PathLike],
+    validation_records_path: Optional[PathLike] = None,
+    metrics_path: Optional[PathLike] = None,
+    prior_summary_path: Optional[PathLike] = None,
 ) -> Path:
     """Atomically replace ``summary.md`` + ``summary.json`` with the terminal one-pager.
 
@@ -272,13 +434,18 @@ def finalize_summary(
     """
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
-    curriculum = _render_curriculum(curriculum_path)
+    curriculum = (
+        _render_curriculum(curriculum_path) if disposition == "finished" else []
+    )
     payload, md = _compose(
         run_dir=run_dir,
         disposition=disposition,
         header=header,
         final_losses=final_losses,
         curriculum=curriculum,
+        validation_records_path=validation_records_path,
+        metrics_path=metrics_path,
+        prior_summary_path=prior_summary_path,
     )
     atomic_write_text(
         run_dir / "summary.json",
