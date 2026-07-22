@@ -453,3 +453,48 @@ def finalize_summary(
     )
     atomic_write_text(run_dir / "summary.md", md)
     return run_dir / "summary.md"
+
+
+def refresh_completed_summary(
+    run_dir: PathLike,
+    *,
+    metrics_path: PathLike,
+    validation_records_path: Optional[PathLike] = None,
+    curriculum_path: Optional[PathLike] = None,
+    prior_summary_path: Optional[PathLike] = None,
+) -> Optional[Path]:
+    """Refresh one already-finished run from committed evaluation artifacts.
+
+    The existing ``summary.json`` is the sole source for the terminal run header
+    and final losses. Missing/malformed summaries, non-success dispositions, and
+    missing/malformed metrics are no-ops: evaluation must never turn a failed or
+    interrupted run into a completed one, nor create a fabricated preview.
+    """
+    run_dir = Path(run_dir)
+    existing = _read_json_mapping(run_dir / "summary.json")
+    if existing is None or existing.get("disposition") != "finished":
+        return None
+    if _test_preview(metrics_path) is None:
+        return None
+    header = existing.get("header")
+    losses = existing.get("final_losses")
+    if not isinstance(header, Mapping) or not isinstance(losses, Mapping):
+        return None
+    return finalize_summary(
+        run_dir,
+        disposition="finished",
+        header=header,
+        final_losses=losses,
+        curriculum_path=(
+            curriculum_path
+            if curriculum_path is not None
+            else run_dir / "curriculum.jsonl"
+        ),
+        validation_records_path=(
+            validation_records_path
+            if validation_records_path is not None
+            else run_dir / "validation.jsonl"
+        ),
+        metrics_path=metrics_path,
+        prior_summary_path=prior_summary_path,
+    )

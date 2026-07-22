@@ -12,6 +12,7 @@ logging schema + operator ergonomics stay Phase 42.
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import math
 import os
@@ -69,6 +70,37 @@ from pinn.training.tb_sink import TbSink
 _RUNS_ROOT: Path = Path("runs")
 _SOURCE_FACTORY: Optional[Callable[[TrainingConfig], tuple[Any, Any]]] = None
 _HAS_DATASET: bool = False  # v2.0 wires no real data source
+
+
+def _append_validation_record(
+    path: Path,
+    *,
+    step: int,
+    final_val_loss: float,
+    previous_val_loss: Optional[float],
+) -> float:
+    """Persist one validation observation and its contemporaneous trend."""
+    value = float(final_val_loss)
+    if not math.isfinite(value):
+        return value
+    if previous_val_loss is None or not math.isfinite(float(previous_val_loss)):
+        trend = "unavailable"
+    elif value < float(previous_val_loss):
+        trend = "improving"
+    elif value > float(previous_val_loss):
+        trend = "worsening"
+    else:
+        trend = "flat"
+    record = {
+        "step": int(step),
+        "final_val_loss": value,
+        "trend": trend,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record, sort_keys=True, allow_nan=False) + "\n")
+        handle.flush()
+    return value
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -586,6 +618,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 header=summary_header,
                 final_losses=final_losses if disposition == "finished" else None,
                 curriculum_path=run_dir / "curriculum.jsonl",
+                validation_records_path=run_dir / "validation.jsonl",
             )
         finally:
             heartbeat.stop()
@@ -701,6 +734,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         }
 
     best_val_cell: dict[str, float] = {"best": float("inf")}
+    validation_state_cell: dict[str, Any] = {
+        "previous": None,
+        "last_step": None,
+    }
     last_losses_cell: dict[str, Optional[Mapping[str, Any]]] = {"losses": None}
 
     def checkpoint_hook(controller: RunController, global_step: int) -> None:
@@ -715,6 +752,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             store.save_rolling(payload, int(global_step))
         # best.pt producer (cycle-4 MEDIUM-1)
         val = getattr(controller, "_last_val_total", None)
+        validation_every = int(config.opt.validation_every)
+        if (
+            val is not None
+            and int(global_step) % validation_every == 0
+            and validation_state_cell["last_step"] != int(global_step)
+        ):
+            validation_state_cell["previous"] = _append_validation_record(
+                run_dir / "validation.jsonl",
+                step=int(global_step),
+                final_val_loss=float(val),
+                previous_val_loss=validation_state_cell["previous"],
+            )
+            validation_state_cell["last_step"] = int(global_step)
         if val is not None and float(val) < best_val_cell["best"]:
             best_val_cell["best"] = float(val)
             payload = build_checkpoint_payload(

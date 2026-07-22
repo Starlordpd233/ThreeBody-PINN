@@ -57,6 +57,7 @@ from pinn.network import build_network
 from pinn.runtime import resolve_runtime
 from pinn.training.atomic_io import atomic_write_text
 from pinn.training.config_yaml import load_config
+from pinn.training.summary import refresh_completed_summary
 from pinn.verification import gate_metrics
 
 __all__ = [
@@ -324,6 +325,16 @@ def evaluate_run(
     _write_receipt(
         receipt_path, run_dir=run_dir, checkpoint_path=checkpoint_path,
         aggregate=aggregate, stamp=stamp,
+    )
+    # ACC-04: only after BOTH metrics and the one-time receipt are committed,
+    # project those persisted artifacts into this run's existing finished
+    # summary. The refresh is a no-op for absent/failed/interrupted summaries;
+    # it never evaluates again or selects a checkpoint.
+    refresh_completed_summary(
+        run_dir,
+        metrics_path=resolved_output / "metrics.json",
+        validation_records_path=run_dir / "validation.jsonl",
+        curriculum_path=run_dir / "curriculum.jsonl",
     )
 
     return EvaluationOutcome(
