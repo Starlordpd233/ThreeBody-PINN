@@ -5,15 +5,15 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 43
 current_phase_name: verification-stage-0-pilot-acceptance
 status: executing
-stopped_at: Completed 43-04-PLAN.md
-last_updated: "2026-07-21T13:06:58.422Z"
+stopped_at: Completed 43-05-PLAN.md
+last_updated: "2026-07-22T02:34:19Z"
 last_activity: 2026-07-21
 last_activity_desc: Phase 43 execution started
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 56
-  completed_plans: 52
+  completed_plans: 53
   percent: 86
 ---
 
@@ -29,13 +29,13 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 43 (verification-stage-0-pilot-acceptance) — EXECUTING
-Plan: 3 of 8
+Plan: 6 of 8
 and all 11 SPEC acceptance criteria verified. GAP-42-01 (emit_mem_line had no production
 caller, so the periodic `mem:` line never reached train.log) was found by running the
 program rather than reading its tests, and is FIXED in 0fae07f with an end-to-end test
 whose negative control was checked. Two 42-VALIDATION Manual-Only rows remain unrun
 (TensorBoard render legibility, sleep-prevention assertion check) — both non-blocking.
-Status: Ready to execute
+Status: Executing Phase 43
 failure is open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_the_corpus`
 flags `pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
 parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
@@ -134,6 +134,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 41 P05 | 10min | 3 tasks | 6 files |
 | Phase 43 P02 | ~7min | 2 tasks | 5 files |
 | Phase 43 P04 | ~50min | 1 tasks | 2 files |
+| Phase 43 P05 | 9min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -308,9 +309,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-21T13:06:58.415Z
-Stopped at: Completed 43-04-PLAN.md
-Next action: Re-verify Phase 40 (SC1/SC4) from `.worktrees/trainex` on `milestone/v2.0` — all gap-closure plans 40-07..40-09 complete
+Last session: 2026-07-22T02:34:19Z
+Stopped at: Completed 43-05-PLAN.md
+Next action: Execute 43-06-PLAN.md; Phase 43 remains in progress with 5/8 plans complete.
 
 ## Operator Next Steps
 
