@@ -139,6 +139,18 @@ For Claude Code CCP or other multi-agent setups, prefer separate worktrees and b
 
 Per-track worktrees live under `.worktrees/<track>/` (the main repo stays on `master` for cross-cutting governance, planning, and CI); the commit lock waits-and-retries and reclaims only dead or stale holders; same-file overlap is mediated by `scripts/agent-claim` plus a warn-on-edit auto-declare hook, with the commit-time owned-paths net as the hard backstop. See `docs/git-guidelines.md`.
 
+**Codex sessions — announce at session start (advisory).** Codex reads this file, not
+`CLAUDE.md`. Presence/claims are recorded automatically by the global hooks (roster on
+session start, write-area claims on `apply_patch`), so this step is optional human-intent
+signalling, not a safety requirement. From any worktree:
+
+    P="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+    "$P/scripts/agent-codex-announce" "<your task summary>" --areas <comma,separated,paths>
+
+See peers:
+
+    "$P/scripts/agent-presence" list
+
 ### GSD milestone worktree awareness
 
 Before running a GSD phase workflow (`$gsd-spec-phase`, `$gsd-discuss-phase`, `$gsd-plan-phase`, `$gsd-execute-phase`, `$gsd-verify-work`) or concluding that a phase is missing, verify that you are in the correct milestone worktree. Run `git status --short --branch` and inspect `git worktree list --porcelain`; then run `gsd-tools init phase-op <phase>` from the worktree that owns the milestone roadmap. Do not treat `phase_found: false` from the main `master` checkout as authoritative when the roadmap, branch list, or worktree list indicates milestone work lives elsewhere.
