@@ -489,3 +489,288 @@ guard was lifted via a YAML override for observation only; `configs/smoke.yaml`
 and the owner-carved default in `pinn/training/config.py` are unchanged.
 DI-43-06-02 remains OPEN until the owner ratifies R-1 (or another remedy) and
 a real acceptance-run smoke completes with the production guard active.
+
+## DI-43-06-02 RESOLUTION — 2026-07-21, owner delegation ("follow your best judgement")
+
+**Owner decision (verbatim summary from the coordinator):** the owner
+DELEGATED the R-1 `loss_explosion_ceiling` value to the orchestrator's best
+judgement, rather than selecting a number directly. **Ratified value:
+`1.0e11`** — calibrated from the diagnostic run's observed peak total loss
+(~4e9, single seed, MPS/fp32; see the loss-trajectory table above), giving
+roughly 25x headroom above that peak. Provenance recorded everywhere it
+matters: owner-ratified via delegation 2026-07-21; explicitly **REVISABLE at
+the ACC-05 Stage-0 pilot** (this value is not assumed to generalize across
+seeds, corpora, or curriculum stages beyond Stage-0).
+
+**Fix landed (`pinn/training/config.py`, commit `9cd5e85`):**
+`_PROVISIONAL_LOSS_EXPLOSION_CEILING` changed from `1.0e6` to `1.0e11`. The
+constant name and its `_PROVISIONAL` registry tuple entry were deliberately
+**kept as-is** (not renamed, not removed from the registry) — see the
+provisional-flag ambiguity note directly below. Both `tests.phase41.test_config_yaml`
+(35/35) and `tests.phase41.test_resume` (30/30) pass unchanged after this
+edit; no test in the repository asserted the literal old default value
+(all existing `1e6`/`1e12` references in `tests/phase41/test_guards.py`,
+`tests/phase42/*`, and `tests/phase41/test_train_entrypoint.py` are explicit
+test-fixture overrides, not assertions on the production default), so no test
+file required a corresponding edit.
+
+**Provisional-flag ambiguity (explicitly surfaced, not guessed):**
+`run.guards.loss_explosion_ceiling`'s entry in `TrainingConfig.provisional_fields()`
+still reports `provisional: True`, identical to the still-uncalibrated
+`disk_floor_fraction` / `memory_watermark_fraction` R-1 siblings. This was a
+deliberate choice, not an oversight: R-1 as a whole is documented (`.planning/STATE.md`
+v2.0-init entry) as ONE owner-carved decision spanning all three `GuardConfig`
+thresholds, reported together under one shared registry. Splitting the
+*reporting mechanism* itself (i.e., making `provisional_fields()` distinguish
+a ratified guard threshold from an unratified one) was judged out of scope for
+this ratification — no owner instruction addressed the reporting mechanism,
+only the value. The **value** change is unambiguous and is applied; the
+**flag** is left untouched pending an explicit owner or design decision on
+whether/how `provisional_fields()` should represent partially-ratified
+seams. Each `_PROVISIONAL` registry entry's `provenance` string is
+independent per field, so this is a reporting-granularity question, not a
+code-structure blocker — a future plan may resolve it without re-touching the
+ratified value.
+
+**Status: RESOLVED** — DI-43-06-02 is closed. The blocking condition (no real
+acceptance smoke could complete under the production guard) is lifted; see
+the acceptance-run section below for the completed run this ratification
+unblocked.
+
+## Task 2 — REAL ACC-02 acceptance smoke: PASSED (R-1 = 1e11)
+
+Two acceptance-run attempts were made under the ratified `1e11` ceiling. The
+first surfaced a new, non-blocking finding (checkpoint-retention eviction);
+the second, after a config-only fix, is the accepted evidence for this plan's
+must_have truths.
+
+### Attempt 1 (superseded by Attempt 2's config fix) — mechanically PASSED, but did not preserve checkpoint 100
+
+Stale `runs/stage0-smoke/` from the DI-43-06-02 attempt (disposition
+`"failed"`, guard-tripped at 1e6) was confirmed and removed before this
+attempt launched.
+
+Reachability preflight re-verified immediately before launch: `PREFLIGHT_PASS
+root= <home>/Desktop/3_body_problem/simulation_data/Data`.
+
+Ordinary command run, no bespoke harness: `python -m pinn.train --config
+configs/smoke.yaml`. Interrupted once via a single `SIGTERM` after the
+step-100 periodic checkpoint was confirmed on disk (caught at step 163);
+`status.json` / `summary.json` honestly recorded `state`/`disposition:
+"interrupted"` with every `final_losses` value `null` (R2 — no fabrication).
+Resumed with `--resume latest`; ran gap-free to step 300, `disposition:
+"finished"`, `final_losses` populated with finite values, `run.guards.loss_explosion_ceiling=1e11`
+never tripped (`failure/` directory present but empty — proactively created,
+never populated). Total run wall-clock (construction + steps, both
+launches): `179.79 s` + `174.69 s`. Persisted timing calibration:
+`s_per_step=0.09410` (Run A's construction), `s_per_step=0.09882` at
+finish (`git_head=9cd5e853ee9536df66e780f80cb28bfb75fb5574` — confirms this
+run executed against the ratified-R-1 commit).
+
+**New finding (checkpoint-retention eviction, non-blocking, self-fixed):** at
+run end, `runs/stage0-smoke/checkpoints/` held `step-000164.pt`,
+`step-000200.pt`, `step-000300.pt` — **`step-000100.pt` was missing**,
+evicted by `CheckpointCadence.rolling_keep`'s class default of `3`. Root
+cause: `TorchSaveCheckpointStore.save_rolling()` writes ALL `step-*.pt` saves
+(both the periodic cadence saves AND the interrupt-time rolling save) into
+one shared eviction pool; `_evict_rolling()` keeps only the newest
+`rolling_keep` entries with no distinction between "periodic" and
+"interrupt" saves. The one, plan-required SIGTERM interrupt (off-cadence, at
+step 163/164) added a 4th `step-*.pt` entry alongside the 3 periodic saves
+(100/200/300); once step 300 landed, the pool held 4 entries against a
+keep-3 limit, and the oldest (100) was evicted. This exactly reproduces what
+the earlier owner-authorized DIAGNOSTIC run (Run B, above) had already shown
+in passing ("`step-000100.pt` ... evicted by rolling retention after later
+saves") — that observation is the same underlying mechanism, now confirmed
+to actually violate this plan's must_have on a real acceptance run.
+
+**Why this was self-fixed (Rule 3, not escalated):** `rolling_keep` is
+explicitly documented in `pinn/training/config.py`'s `CheckpointCadence`
+docstring as an "operational hygiene bound" — it is NOT one of the five
+owner-carved v2.0 seams (D1-p precision, D4-a checkpoint ceiling, R-1/R-2
+guard thresholds, B-5 resume-field list). A blocking issue in an operational,
+non-scientific knob is within the executor's auto-fix authority. Fix (commit
+`4ea595b`): bumped `configs/smoke.yaml`'s `run.checkpoint.rolling_keep` from
+the class default (3) to **4** — the minimal value that tolerates exactly
+one off-cadence interrupt alongside the 3 required periodic saves. This run's
+artifacts were superseded by Attempt 2 below (re-run after the fix) rather
+than patched in place, since checkpoint files cannot be un-evicted after the
+fact.
+
+### Attempt 2 (ACCEPTED — this plan's must_have evidence) — full PASS
+
+Config: identical to Attempt 1 plus `run.checkpoint.rolling_keep: 4` (commit
+`4ea595b`). `runs/stage0-smoke/` removed and the smoke re-run fresh end to
+end (fresh construction, fresh interrupt, fresh resume) — no artifact reuse
+across attempts.
+
+**Reachability preflight:** re-verified before launch (unchanged from
+Attempt 1's config; not re-quoted here).
+
+**Run path:** `runs/stage0-smoke/` (gitignored, not committed).
+
+**CPU-adapter/MPS-model confirmation:** stdout at both launch and resume:
+`runtime precision=float32 device=mps` (model runtime); the admitted adapter
+is unconditionally constructed CPU/float32 in `_build_admitted_sources`
+(DATA-01, unchanged). `runs/stage0-smoke/config.yaml` (the frozen run config)
+records `data.source: admitted`, `data.blacklist_path:
+../Documentation/problematic_ics_blacklist.json`, `data.root: null` (resolves
+via `default_data_root()`).
+
+**32 admitted-identity count:** `stage.replay_count: 32` confirmed in the
+frozen `runs/stage0-smoke/config.yaml` (config-level confirmation, matching
+the existing `ReplayCountSelectionTests` unit proof of this threading — the
+run did not fail in any way attributable to the 32-count seam).
+
+**Checkpoints — full accounting (100/200/300 all present, plan requirement
+met):**
+
+```
+best.pt                  (finished-run best-loss anchor)
+ckpt-16085826544.pt      (pre-training construction anchor)
+latest.pt                (final state, refreshed on every rolling save)
+stage-0-init.pt          (k=0 rollback anchor)
+step-000100.pt           (periodic, every_n_steps=100)
+step-000158.pt           (interrupt-time rolling save — SIGTERM caught at step 157/158)
+step-000200.pt           (periodic)
+step-000300.pt           (periodic, final)
+```
+
+All 4 `step-*.pt` entries coexist under `rolling_keep=4` — no eviction.
+
+**Interrupt/resume — full accounting:** single `SIGTERM` sent after the
+step-100 periodic checkpoint was polled and confirmed present on disk;
+signal caught at step 157 (`status.json`: `"state": "interrupted"`, `"step":
+157`); `summary.json` honestly recorded `"disposition": "interrupted"` with
+every `final_losses` value `null` (R2 — no fabrication on interrupt; no
+timing calibration was written, per the honesty-guard contract). Internal
+curriculum-machinery log lines (`[adam_lbfgs_handoff] ... trigger=budget-exhausted`,
+`[stage_exit_disposition] ... disposition=HALT`) appear in `train.log` at the
+interrupt step — this is EXPECTED, benign behavior: the internal Adam loop's
+early exit on `should_stop()` is classified internally as budget-exhaustion
+by the stage-exit machinery, but `pinn/train.py`'s composition root checks
+`signal_state.stop_requested` FIRST (before consulting that internal
+disposition) and correctly overrides it, reporting `"interrupted"` — the true
+disposition — to `status.json`/`summary.json`. This was traced in
+`pinn/train.py` (`if signal_state.stop_requested: ... return
+finish_run("interrupted", ...)`) and `pinn/training/signals.py`
+(`handle_sigterm` only sets `stop_requested = True`), confirming no
+mislabeling occurred.
+
+Resumed via `python -m pinn.train --config configs/smoke.yaml --resume
+latest`; the resumed process reconstructed the admitted corpus again
+(construction is per-process, not persisted) and ran the remaining steps to
+completion: `disposition: "finished"`, checkpoints `step-000200.pt` and
+`step-000300.pt` landed. `train.log.jsonl` step-record analysis (300 total
+records across the combined pre-interrupt + post-resume trajectory):
+**300/300 unique steps 1–300, zero missing, zero duplicated, zero non-finite**
+— a single coherent, gap-free trajectory.
+
+**Measured `s_per_step` + persisted timing forecast:**
+
+```json
+{
+  "schema_version": "phase43-stage0-timing/v1",
+  "s_per_step": 0.11570179534756522,
+  "full_stage0_steps": 300,
+  "forecast_seconds": 34.710538604269566,
+  "timestamp": "2026-07-22T05:52:18.150298+00:00",
+  "fingerprint": {
+    "device": "mps", "dtype": "torch.float32", "torch_version": "2.12.1",
+    "python_version": "3.11.15",
+    "git_head": "9cd5e853ee9536df66e780f80cb28bfb75fb5574",
+    "git_head_available": true
+  },
+  "valid": true
+}
+```
+
+`git_head` confirms this run executed against the R-1-ratification commit.
+Total wall-clock across both launches: `178.22 s` (pre-interrupt) + `186.42 s`
+(post-resume) — construction/admission of the real ~8.23M-snapshot corpus
+into memory dominates each launch; this is a distinct per-launch fixed cost,
+not a per-step rate. The `s_per_step≈0.1157` this run measured is
+somewhat warmer/slower than the earlier diagnostic's `0.0941–0.0982` (both
+single-sample MPS/fp32 measurements on the same machine under normal
+session load variance) — both are real, unfabricated measurements; D4-a
+(Task 3) should treat this range, not a single point estimate, as the basis
+for a wall-clock ceiling.
+
+**R-1 guard headroom (no trip):** max observed per-step `total` loss this
+run was `4.615e9` — the `1e11` ceiling held with roughly **21.7x headroom**
+above that peak, consistent with the diagnostic run's ~25x estimate (this
+run's specific max differs slightly from the diagnostic's ~4e9 sample by
+ordinary run-to-run noise at random SIREN init + real-corpus batch content;
+both are well within the ratified ceiling). `runs/stage0-smoke/failure/` is
+present but **empty** — proactively created directory structure, never
+populated (no guard ever tripped this run); `train.py`'s `failed` predicate
+(`any((run_dir / "failure").iterdir())`) correctly evaluates `False` against
+an empty directory.
+
+**Loss trajectory — honest, non-convergence characterization (R2 / ACC-05
+watch-item):** per-third `total` loss statistics over the full 300-step
+combined (pre-interrupt + resumed) trajectory:
+
+| Steps | median | mean | min | max |
+|---|---|---|---|---|
+| 1-100 | 4.014e+08 | 5.989e+08 | 2.387e+04 | 3.735e+09 |
+| 101-200 | 4.280e+08 | 6.958e+08 | 2.038e+07 | 4.615e+09 |
+| 201-300 | 4.292e+08 | 6.304e+08 | 3.864e+07 | 2.395e+09 |
+
+Medians show essentially **no downward trend** (4.01e8 → 4.28e8 → 4.29e8)
+across the full 300-step Adam budget — consistent with the earlier
+diagnostic run's finding. `summary.json`'s own `validation` block records
+`"trend": "worsening"` at step 300 (`final_val_loss: 1.118e9`). **This run
+does NOT claim, and must not be read as claiming, convergence** — ACC-02
+passing means the mechanical pipeline (launch → admit real data → train →
+checkpoint → interrupt → resume → finish → measure timing) works correctly
+end-to-end and the guard/timing evidence is genuine, nothing more. See the
+"ACC-05 pilot watch-item" note below.
+
+### Task 3 — real-data success-path tests: ACTIVATED, all PASS
+
+`tests/phase43/test_smoke.py::RealSmokeArtifactTests` activated automatically
+(skip-to-green convention, no source edit required — the class's `setUp`
+skip guard on `checkpoints/step-000300.pt` existence resolved on its own once
+Attempt 2's real run landed that file):
+
+```
+python -m unittest tests.phase43.test_smoke -v
+```
+
+Result: **9/9 pass, 0 skips** — `RealCorpusReachabilityGuardTests` (1),
+`HonestyGuardTests` (4), `RealSmokeArtifactTests` (4: checkpoints-100-200-300,
+measured-s_per_step-finite-positive, persisted-calibration-valid,
+resume-result-finished). No `unittest.SkipTest` fired in
+`RealSmokeArtifactTests` this run (confirmed via `grep -i skip` on the `-v`
+output — zero matches).
+
+```
+python -m unittest tests.phase43.test_real_data_smoke_config -v
+```
+
+Result: **29/29 pass** (unchanged from the DI-43-06-01 fix — no regression;
+this module's own suite doesn't touch checkpoint retention).
+
+Full `tests/phase43/` discovery sweep (`python -m unittest discover -s
+tests/phase43 -v`): **160/160 pass**.
+
+### ACC-05 Stage-0 pilot watch-item
+
+**The Stage-0 smoke's loss is bounded but non-descending within a 300-step
+Adam budget at this smoke's hyperparameters** (`loss.lambda_e_max: 1.0`,
+`I_warm=30` per PHYS-05 warmup, `n_adam=300`, real admitted 32-trajectory
+replay). Both the earlier diagnostic run and this accepted acceptance run
+independently observe the same pattern: per-third medians stay flat
+(~4.0-4.3e8) rather than trending down, and `validation.trend` is reported
+`"worsening"` at step 300. This is NOT a mechanical failure — the pipeline
+trains, checkpoints, interrupts, resumes, and finishes correctly, and the
+loss stays finite/bounded throughout (zero non-finite steps across both
+diagnostic and acceptance runs) — but it IS an open question for the actual
+ACC-05 Stage-0 pilot (a longer run, likely spanning the Adam→L-BFGS handoff
+and multiple stages) to watch: does the loss actually descend given a longer
+budget, a full curriculum, and/or different hyperparameters, or does this
+non-descending pattern persist and indicate a tuning issue upstream (LR
+schedule, warmup length, loss weighting)? Root cause was NOT investigated
+further in this plan — out of 43-06's scope (owner-carved R-1 calibration,
+not loss-curve tuning).
