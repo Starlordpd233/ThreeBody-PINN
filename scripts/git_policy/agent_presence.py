@@ -69,7 +69,13 @@ def who_key(session_id):
 
 
 def _session_from_env():
-    return _safe_session_id(os.environ.get("CLAUDE_CODE_SESSION_ID"))
+    # Codex sets CODEX_THREAD_ID; Claude Code sets CLAUDE_CODE_SESSION_ID. When
+    # Codex is launched from within a Claude terminal both may be set, so take
+    # CODEX_THREAD_ID first: it is the active session's own identity.
+    return (
+        _safe_session_id(os.environ.get("CODEX_THREAD_ID"))
+        or _safe_session_id(os.environ.get("CLAUDE_CODE_SESSION_ID"))
+    )
 
 
 def _session_from_stdin():
