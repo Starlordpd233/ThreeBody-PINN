@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Sandboxed staging shim: a Codex model-run Bash tool call cannot write the git
+# common-dir under seatbelt workspace-write, so it stages its announce under
+# $TMPDIR instead. The unsandboxed PostToolUse flush hook (codex_presence_flush.py)
+# consumes the file on the same call. Advisory: always exits 0.
+#
+# Usage: agent-codex-announce "<summary>" --areas <comma,separated,paths>
+set -uo pipefail
+
+sid="${CODEX_THREAD_ID:-}"
+[ -n "$sid" ] || exit 0  # no identity -> nothing to stage
+
+summary=""
+areas=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --areas) shift; areas="${1:-}";;
+    *) summary="${summary:+$summary }$1";;
+  esac
+  shift || true
+done
+
+dir="${TMPDIR:-/tmp}/agent-presence-staging"
+mkdir -p "$dir" 2>/dev/null || exit 0
+
+# Emit JSON via python3 to avoid quoting/escaping pitfalls; areas split on comma.
+SID="$sid" SUMMARY="$summary" AREAS="$areas" python3 - "$dir/$sid.json" <<'PY' 2>/dev/null || exit 0
+import json, os, sys
+path = sys.argv[1]
+areas = [a.strip() for a in os.environ.get("AREAS", "").split(",") if a.strip()]
+payload = {"session_id": os.environ["SID"],
+           "summary": os.environ.get("SUMMARY", ""),
+           "areas": areas}
+tmp = path + ".tmp"
+with open(tmp, "w") as fh:
+    json.dump(payload, fh)
+os.replace(tmp, path)
+PY
+
+echo "announce staged for session $sid (flushes on next tool call)"
+exit 0
