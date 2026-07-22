@@ -340,3 +340,152 @@ therefore Task 3's D4-a candidate ceiling, still cannot be produced from a
 completed real run until the owner decides how to proceed on R-1). See the
 Task 3 checkpoint return to the orchestrator/owner for the explicit statement
 of this new gap.
+
+## DIAGNOSTIC run (R-1 guard temporarily lifted — NOT the acceptance run)
+
+**Purpose:** owner-authorized (2026-07-22) diagnostic to determine whether the
+~2.82e8 raw physics residual observed in the Attempt-2 acceptance run
+(DI-43-06-02) is an expected random-init transient that training resolves, or
+a real pathology (diverges/NaN) — and to gather a real loss trajectory +
+timing so the owner can carve R-1 and D4-a informed. **This run does NOT
+count as the ACC-02 acceptance smoke** and does not resolve DI-43-06-02.
+
+**Config (throwaway, uncommitted, scratchpad-only):** a copy of
+`configs/smoke.yaml` with exactly two changes — `run.run_name:
+stage0-smoke-diag` (distinct run dir) and `run.guards.loss_explosion_ceiling:
+1000000000000.0` (1e12, a YAML override for observation only; `configs/smoke.yaml`
+and `pinn/training/config.py`'s owner-carved default were NOT touched).
+`data.blacklist_path` was kept unchanged (still resolves against the data
+root). The file lived only at
+`/private/tmp/.../scratchpad/smoke-diag.yaml` and was never committed.
+
+**Execution — two runs, matching the plan's interrupt+resume protocol:**
+
+*Run A (uninterrupted control):* ran to completion in one process to observe
+the full uninterrupted trajectory shape. Finished cleanly, `disposition:
+"finished"`, `wall_clock_secs: 184.203173` end-to-end (construction/admission
+dominates; the 300 training steps themselves took a few seconds once
+underway). All 300 steps `finite: true`, zero non-finite steps.
+
+*Run B (interrupt+resume validation):* relaunched fresh (same seed=42, same
+config). Tight-polled `status.json` and sent `SIGTERM` the instant step ≥ 100
+was observed (caught at step 101). Post-signal `status.json`: `"state":
+"interrupted"`, `"step": 102`, exit via the established graceful SIGTERM path
+(`pinn.training.signals`). **Checkpoint confirmed persisted before resume:**
+`runs/stage0-smoke-diag/checkpoints/step-000100.pt` and `step-000103.pt` both
+present; `summary.json` honestly recorded `disposition: "interrupted"` with
+every `final_losses` value `null` (R2 — no fabrication on interrupt). Resumed
+with `--resume latest`; the resumed process reconstructed the admitted corpus
+again (construction is per-process, not persisted) and ran the remaining
+steps to completion: `disposition: "finished"`, checkpoints
+`step-000200.pt` and `step-000300.pt` landed, `train.log.jsonl` shows a single
+coherent, non-duplicated, gap-free trajectory from step 1 to step 300 (300
+records total). **Interrupt+resume on real admitted data: CONFIRMED WORKING.**
+
+### Loss trajectory — does it descend?
+
+Combined observation across Run A (full, uninterrupted) and Run B (resumed
+continuation), sampled at representative steps (`total` / raw `phys` /
+`lambda_phys` ramp fraction; format `value` in scientific notation):
+
+```
+step   1: total=2.3865e+04  phys=3.3223e+08  lambda_phys=0.0000
+step   2: total=9.4268e+06  phys=2.8240e+08  lambda_phys=0.0333
+step  10: total=7.5345e+07  phys=2.5094e+08  lambda_phys=0.3000
+step  20: total=4.0334e+08  phys=6.3681e+08  lambda_phys=0.6333
+step  30: total=7.9042e+08  phys=8.1761e+08  lambda_phys=0.9667
+step  50: total=4.8338e+08  phys=4.8334e+08  lambda_phys=1.0000
+step 100: total=3.7347e+09  phys=3.7346e+09  lambda_phys=1.0000  <- PEAK (Run A)
+step 150: total=1.9788e+08  phys=1.9787e+08  lambda_phys=1.0000
+step 200: total=2.4983e+08  phys=2.4980e+08  lambda_phys=1.0000
+step 250: total=3.1386e+08  phys=3.1384e+08  lambda_phys=1.0000
+step 300 (Run A, uninterrupted): total=6.5044e+08
+step 300 (Run B, resumed):       total=4.1721e+08
+```
+
+**Per-third median/mean `total` (Run B's single coherent 1-300 trajectory) —
+checking for a downward trend:**
+
+| Steps | median | mean | min | max |
+|---|---|---|---|---|
+| 1-100 | 4.014e+08 | 5.989e+08 | 2.387e+04 | 3.735e+09 |
+| 101-200 | 4.238e+08 | 6.364e+08 | 3.612e+07 | 4.081e+09 |
+| 201-300 | 3.887e+08 | 5.569e+08 | 3.359e+07 | 4.120e+09 |
+
+Final 10 steps (291-300) `total`: `4.24e8, 1.79e8, 8.15e8, 6.54e8, 1.90e8,
+1.19e8, 1.74e8, 8.77e8, 1.06e9, 4.17e8` — still spanning two orders of
+magnitude at the very end of the 300-step Adam budget.
+
+**Non-finite check:** zero non-finite steps across all ~600 logged step
+records (Run A's 300 + Run B's 300) — the loss is finite/bounded throughout,
+never NaN, never Inf, and does not runaway-grow monotonically either (it
+peaks once `lambda_phys` reaches ~1.0 around step ~75-100, then oscillates in
+roughly the same 1e8-1e9 order of magnitude for the remainder of the budget).
+
+**Honest characterization — this does NOT cleanly match either proposed
+category:** it is not a "real pathology" in the diverge/NaN sense (confirmed
+finite throughout, both runs). It is also not a clean "expected transient
+that resolves" in the sense of settling to a small, controlled loss — the
+per-third medians (4.01e8 → 4.24e8 → 3.89e8) show essentially NO downward
+trend across the full 300-step Adam budget at this smoke's hyperparameters
+(`loss.lambda_e_max: 1.0`, `I_warm=30`, `n_adam=300`, `opt.adam_lr_base` per
+run-start log). The raw physics residual stays large and noisy (bounded
+roughly within 1e7-1e9, briefly touching ~4e9) rather than shrinking toward
+zero within this budget. Root cause (whether this residual scale is expected
+for the real corpus's physical units, or points to a separate scale/tuning
+issue) was NOT investigated further — outside this diagnostic's scope.
+
+### Warm measured `s_per_step` + forecast
+
+From Run A's `train.log.jsonl` (n=298 finite `s_per_step` samples, excluding
+the first 5 post-construction warm-up samples): **median 0.09229 s/step, mean
+0.09259 s/step**, range [0.08852, 0.10846]. The persisted calibration from Run
+B's terminal-success finish (`run.smoke: true` → `_write_smoke_timing_calibration`
+fired normally, gitignored, not committed):
+
+```json
+{
+  "schema_version": "phase43-stage0-timing/v1",
+  "s_per_step": 0.09410000567703417,
+  "full_stage0_steps": 300,
+  "forecast_seconds": 28.23000170311025,
+  "fingerprint": {"device": "mps", "dtype": "torch.float32", "torch_version": "2.12.1",
+                   "python_version": "3.11.15", "git_head": "464fd40dc4a7947d18f73357faa72e7a66e2d848",
+                   "git_head_available": true},
+  "valid": true
+}
+```
+
+**300-step smoke forecast: ~28.2 s** (measured, not construction time —
+construction/admission of the real corpus separately took ~150-185 s per
+process launch, which is a distinct, per-launch fixed cost, not a per-step
+rate). This diagnostic run's calibration write is the most recent one in the
+shared, gitignored `runs/.calibration/stage0-timing.json` — expected,
+harmless mechanism behavior (not committed, not a repo change).
+
+**Note:** translating the per-step rate into a D4-a WALL-CLOCK CEILING for
+the actual Stage-0 pilot/production run additionally requires the intended
+real run's step count (not determined by this diagnostic, which only ran the
+smoke's own 300-step budget) — see the suggested range below for how the
+agent handled that gap.
+
+### Checkpoints and resume — full accounting
+
+`step-000100.pt` (Run B, evicted by rolling retention after later saves —
+confirmed present at interrupt time before eviction), `step-000103.pt` (Run
+B, final pre-interrupt save), `step-000200.pt` and `step-000300.pt` (Run B,
+post-resume). Run A separately produced `step-000100.pt`, `step-000200.pt`,
+`step-000300.pt` in its own uninterrupted pass (overwritten when Run B
+reused the same run directory name after Run A's artifacts were copied aside
+and removed). Both runs' `best.pt` / `latest.pt` / `stage-0-init.pt` anchors
+present as expected.
+
+### Explicit framing
+
+**This diagnostic evidence is NOT a passing acceptance run.** It exists
+solely to inform the owner's R-1 (`loss_explosion_ceiling`) and D4-a
+(`wall_clock_ceiling_s`) carves with real trajectory and timing data. The
+guard was lifted via a YAML override for observation only; `configs/smoke.yaml`
+and the owner-carved default in `pinn/training/config.py` are unchanged.
+DI-43-06-02 remains OPEN until the owner ratifies R-1 (or another remedy) and
+a real acceptance-run smoke completes with the production guard active.
