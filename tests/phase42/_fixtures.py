@@ -81,6 +81,10 @@ def write_train_config(path: Path, **overrides) -> Path:
         "precision": "float64",
         "device": "cpu",
         "strict_cpu_determinism": False,
+        # Phase-42 exercises operator mechanics, not duration authorization.
+        # The production smoke exemption keeps these isolated launches honest;
+        # Phase-43 gate tests explicitly override this field to False.
+        "smoke": True,
         "log_every": 1,
         "run_name": "test-run",
         "monitor": {
@@ -119,6 +123,10 @@ def write_train_config(path: Path, **overrides) -> Path:
     for key, val in overrides.items():
         if key == "run":
             run.update(val)
+            # Strict-CPU tests must exercise the effective-runtime gate with
+            # their real cpu/float64 calibration, never the smoke exemption.
+            if val.get("strict_cpu_determinism") is True and "smoke" not in val:
+                run["smoke"] = False
         elif key == "stage":
             stage.update(val)
         elif key == "opt":

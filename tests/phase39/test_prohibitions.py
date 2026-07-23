@@ -60,7 +60,8 @@ EXPECTED_DATA_MODULES = {
 # The one module allowed to own numeric Stage-0/1 invariant predicates.
 SOLE_CLASSIFIER = "pinn/data/stages.py"
 
-_CORPUS_TOKENS = ("brutus_hierarchical", "brutus_standard", "ic_hierarchical", "ic_standard", ".txt")
+_CORPUS_TOKENS = ("brutus_hierarchical", "brutus_standard", "ic_hierarchical", "ic_standard")
+_CORPUS_TEXT_GLOB_RE = re.compile(r"\b(?:glob|rglob)\s*\([^)]*\.txt")
 _V1_TOKENS = ("data-handling", "data_handling", "data-processing-pipeline-full",
               "data_processing_pipeline_full", "basic_architecture")
 _GLOBAL_DEFAULT_TOKENS = ("set_default_dtype", "is_available")
@@ -104,7 +105,9 @@ def executable_source(path):
 
 
 def parses_corpus(exec_src):
-    return any(tok in exec_src for tok in _CORPUS_TOKENS)
+    return any(tok in exec_src for tok in _CORPUS_TOKENS) or bool(
+        _CORPUS_TEXT_GLOB_RE.search(exec_src)
+    )
 
 
 def has_v1_import(exec_src):
@@ -268,6 +271,8 @@ class DetectorSelfTests(unittest.TestCase):
     def test_unauthorized_reader_detected(self):
         self.assertTrue(parses_corpus('p = root / "brutus_hierarchical" / f.txt'))
         self.assertTrue(parses_corpus('re.compile(r"brutus_standard_(\\d{4})\\.txt")'))
+        self.assertTrue(parses_corpus('files = root.rglob("*.txt")'))
+        self.assertFalse(parses_corpus('atomic_write_text(root / "README.txt", text)'))
         self.assertFalse(parses_corpus("x = tensor + 1"))
 
     def test_v1_import_detected(self):
