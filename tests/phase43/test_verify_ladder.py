@@ -548,6 +548,28 @@ class MarkerFreshnessTests(unittest.TestCase):
     def test_fresh_green_matching_marker_is_accepted(self):
         self.assertTrue(self._check())
 
+    def test_real_green_marker_written_by_writer_is_accepted(self):
+        with tempfile.TemporaryDirectory(prefix="phase43-real-marker-") as raw:
+            runs_root = Path(raw) / "runs"
+            runs_root.mkdir()
+            verify.write_verify_marker(
+                _green_results(),
+                precision="float64",
+                device="cpu",
+                runs_root=runs_root,
+                fingerprint=_fingerprint(),
+                now=self.now - timedelta(minutes=5),
+            )
+            marker = verify.read_verify_marker(runs_root)
+
+        self.assertTrue(
+            verify.marker_is_green_and_fresh(
+                marker,
+                fingerprint=_fingerprint(),
+                now=self.now,
+            )
+        )
+
     def test_absent_or_non_mapping_marker_is_rejected(self):
         for absent in (None, "green", [], 0):
             with self.subTest(marker=absent):
@@ -564,6 +586,45 @@ class MarkerFreshnessTests(unittest.TestCase):
     def test_green_verdict_with_a_failed_rung_is_rejected(self):
         lying = dict(self.marker, rungs=_red_results())
         self.assertFalse(self._check(marker=lying))
+
+    def test_five_duplicate_unknown_rungs_are_rejected(self):
+        forged = dict(
+            self.marker,
+            rungs=[
+                {"name": "not_a_rung", "passed": True, "reason": None}
+                for _ in verify.LADDER
+            ],
+        )
+        self.assertFalse(self._check(marker=forged))
+
+    def test_correct_rungs_in_reverse_order_are_rejected(self):
+        reordered = dict(self.marker, rungs=list(reversed(_green_results())))
+        self.assertFalse(self._check(marker=reordered))
+
+    def test_missing_rung_is_rejected(self):
+        missing = dict(self.marker, rungs=_green_results()[:-1])
+        self.assertFalse(self._check(marker=missing))
+
+    def test_unknown_extra_rung_is_rejected(self):
+        extra = _green_results() + [
+            {"name": "not_a_rung", "passed": True, "reason": None}
+        ]
+        self.assertFalse(self._check(marker=dict(self.marker, rungs=extra)))
+
+    def test_stale_schema_version_is_rejected(self):
+        stale_schema = dict(self.marker, schema_version="phase43-verify-marker/v0")
+        self.assertFalse(self._check(marker=stale_schema))
+
+    def test_truthy_non_bool_passed_value_is_rejected(self):
+        non_bool = _green_results()
+        non_bool[2] = dict(non_bool[2], passed=1)
+        self.assertFalse(self._check(marker=dict(self.marker, rungs=non_bool)))
+
+    def test_incomplete_fingerprint_shape_is_rejected_even_when_both_match(self):
+        incomplete = _fingerprint()
+        incomplete.pop("python_version")
+        marker = dict(self.marker, fingerprint=incomplete)
+        self.assertFalse(self._check(marker=marker, fingerprint=incomplete))
 
     def test_stale_marker_is_rejected(self):
         stale = dict(
