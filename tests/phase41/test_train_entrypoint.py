@@ -20,6 +20,7 @@ import torch
 import yaml
 
 from tests.phase41 import _SKIP_PHRASE
+from tests.phase41._fixtures import write_duration_gate_calibration
 
 TRAIN_MODULE = "pinn.train"
 
@@ -95,6 +96,7 @@ class _TrainHarness(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix="phase41-train-"))
         self.runs_root = self.tmp / "runs"
         self.runs_root.mkdir()
+        write_duration_gate_calibration(self.runs_root)
         self.cfg_path = self.tmp / "cfg.yaml"
         _write_config(self.cfg_path)
         self._orig_runs = self.train_mod._RUNS_ROOT

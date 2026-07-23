@@ -28,7 +28,32 @@ __all__ = [
     "make_stub_source",
     "make_stub_split_sources",
     "make_synthetic_stage0_loop",
+    "write_duration_gate_calibration",
 ]
+
+
+def write_duration_gate_calibration(
+    runs_root: Any,
+    *,
+    precision: str = "float64",
+    device: str = "cpu",
+    full_stage0_steps: int = 2,
+) -> Any:
+    """Authorize a test launch through the real persisted duration gate.
+
+    The deliberately small measured seconds-per-step keeps these dataset-free
+    fixture runs below the production 1800-second boundary while retaining the
+    production calibration fingerprint and validation path.
+    """
+    from pinn.training.timing import write_calibration
+
+    return write_calibration(
+        s_per_step=1.0,
+        full_stage0_steps=full_stage0_steps,
+        precision=precision,
+        device=device,
+        runs_root=runs_root,
+    )
 
 
 class StubClock:
