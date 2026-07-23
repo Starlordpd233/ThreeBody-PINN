@@ -23,10 +23,13 @@ A fresh checkout needs four things configured before any development work
 proceeds safely.
 
 1. **Working tree state.** Run `git status --short --branch` and confirm the
-   branch and ahead/behind state. The current development branch is
-   `milestone/v2.0` (the trainex worktree; a sibling `.worktrees/specwork` holds
-   `milestone/v1.6`); protected branches `master`, `main`, and `milestone/*`
-   must not be pushed from directly.
+   branch and ahead/behind state. The trainex worktree's git branch is still
+   literally `milestone/v2.0` (a sibling `.worktrees/specwork` holds
+   `milestone/v1.6`), but v2.0 shipped 2026-07-23 and the active milestone is
+   now **v2.1** (Physics-Gate Investigation & trainex-r2 Research Package) —
+   the branch rename/cut to `milestone/v2.1` happens at first phase execution,
+   the same pattern v2.0 itself started from. Protected branches `master`,
+   `main`, and `milestone/*` must not be pushed from directly.
 2. **Hooks path.** Run `scripts/setup-git-hooks.sh` once after cloning so that
    `git config --get core.hooksPath` returns `.githooks`. Hooks enforce
    commit-message format, agent attribution, owned-path staging, and the
@@ -100,11 +103,14 @@ The branch model is:
 - **`master`** is the integration trunk. v1.0–v1.6 are merged here (v1.6 via
   `--no-ff` merge `94a77960`). Direct push to `master` is blocked by
   `pre-push` and is never the path a developer takes.
-- **`milestone/vN.N`** is the local integration branch for a milestone
-  (current: `milestone/v2.0`, in the trainex worktree; `milestone/v1.6` lives
-  in the sibling `.worktrees/specwork`). Planning artifacts for a milestone are
-  committed on `master`; build/spec work happens on its milestone branch. The
-  `pre-push` hook blocks direct pushes from any `milestone/*` branch.
+- **`milestone/vN.N`** is the local integration branch for a milestone. The
+  trainex worktree's branch is still named `milestone/v2.0` even though the
+  active milestone is v2.1 — the rename/cut to `milestone/v2.1` happens at
+  first phase execution (v2.0 itself started this way, on the stale
+  `milestone/v1.7` name). `milestone/v1.6` lives in the sibling
+  `.worktrees/specwork`. Planning artifacts for a milestone are committed on
+  `master`; build/spec work happens on its milestone branch. The `pre-push`
+  hook blocks direct pushes from any `milestone/*` branch.
 - **Feature / review branches** carry work between agents and toward
   publication. PRs are opened from these branches, not from the milestone
   branch.
@@ -128,9 +134,11 @@ in `AGENTS.md`. The summary:
 1. **Surface git state first.** `git status --short --branch`, then
    `git diff --cached`, then any unstaged diffs for files you touched. Treat
    anything not created in this session as user-owned.
-2. **Work on the right branch.** Build work is on `milestone/v2.0` (trainex);
-   a spec adjudication would be on its milestone branch (e.g. `milestone/v1.6`
-   in `.worktrees/specwork`). Documentation or runbook changes go on a feature
+2. **Work on the right branch.** Trainex work is on the trainex worktree's
+   branch — still literally named `milestone/v2.0`, though the active
+   milestone is v2.1 (see "Local Setup" above); a spec adjudication would be
+   on its milestone branch (e.g. `milestone/v1.6` in `.worktrees/specwork`).
+   Documentation or runbook changes go on a feature
    branch off the milestone branch.
 3. **Run the verification gate that matches the change.** For a spec edit,
    the relevant Phase verification plan (the phase's `NN-VERIFICATION.md`). For a
@@ -155,17 +163,19 @@ Key artifacts:
 
 - `.planning/PROJECT.md` — project identity, core value, and key decisions.
 - `.planning/REQUIREMENTS.md` — the current-milestone requirements ledger
-  (v2.0: 42 entries across ENV/NET/DATA/TRAIN/CTRL/OPS/ACC; the v1.6 32-entry
-  and v1.5 36-entry ledgers are archived under `.planning/milestones/`).
+  (v2.1: 7 entries, DIAG-01..04 + PKG-09..11; the v2.0 42-entry, v1.6
+  32-entry, and v1.5 36-entry ledgers are archived under
+  `.planning/milestones/`).
 - `.planning/ROADMAP.md` — milestone and phase plan.
 - `.planning/STATE.md` — current position. **Manually advanced** after
   each phase; the three GSD query tools disagree on `current_phase`, so
   verify phase directories on disk rather than trust any single tool.
-- `.planning/milestones/v2.0-GAPS.md` — milestone-wide gap index for the
-  current milestone. The v1.5 and v1.6 indexes (`v1.5-GAPS.md`,
-  `v1.6-GAPS.md`) are archived; the v1.5 index enumerates eleven unique IDs
-  (GAP-23-01 … GAP-29-01, all RESOLVED-WITH-INSTRUCTION), though its
-  frontmatter `total_gaps: 10` undercounts by one.
+- `.planning/milestones/v2.1-GAPS.md` — milestone-wide gap index for the
+  current milestone (created on the first v2.1 gap, per the standing
+  trigger; none exists yet). The v1.5, v1.6, and v2.0 indexes (`v1.5-GAPS.md`,
+  `v1.6-GAPS.md`, `v2.0-GAPS.md`) are archived; the v1.5 index enumerates
+  eleven unique IDs (GAP-23-01 … GAP-29-01, all RESOLVED-WITH-INSTRUCTION),
+  though its frontmatter `total_gaps: 10` undercounts by one.
 - `.planning/research/edl/` — non-canonical Empirical Decision Loop
   research-support briefs for empirically consequential source-silent
   gaps. The phase-local gap register remains the authoritative blocking
@@ -178,10 +188,12 @@ in this repository.
 ## STOP Protocol and the Gap Register
 
 This repository ran a series of "adjudication milestones" (v1.4, v1.5, v1.6 per
-`AGENTS.md` governance), now all shipped; the active v2.0 is a **build**
-milestone. Spec work, adjudication, and cross-phase reframing are governed by
-the STOP protocol. A decision is "grounded" only if it is explicitly answered
-by one of:
+`AGENTS.md` governance), now all shipped, followed by the v2.0 **build**
+milestone (also shipped, 2026-07-23, `adjust` verdict). The active v2.1 is a
+read-only **diagnosis** milestone — no new training, no held-out evaluation,
+no spec edits. Spec work, adjudication, and cross-phase reframing are
+governed by the STOP protocol. A decision is "grounded" only if it is
+explicitly answered by one of:
 
 - A resolution doc under
   `pinn_instruction/markdown_conversion/framework-revisions/research_reports/`
@@ -219,7 +231,7 @@ When a gap is detected:
    to decide (concrete A/B/C options), confidence of impact, status
    `OPEN`, and a resolution note.
 4. **Update the milestone-wide index** under `.planning/milestones/`
-   (currently `.planning/milestones/v2.0-GAPS.md`).
+   (`v2.1-GAPS.md`, created on the first v2.1 gap; none exists yet).
 5. **Surface to the user** via the active workflow channel. Halted work
    stays halted until the user provides instruction. Update status to
    `RESOLVED-WITH-INSTRUCTION` (or `DEFERRED`) when instruction arrives.
@@ -241,9 +253,13 @@ Development splits into two user-defined tracks (per
 - **trainex** — the training-execution / reality-pipeline development:
   the user runbook, the PH-1..PH-10 research placeholders, and the
   build of the training pipeline + PINN code (FUT-01 / FUT-04). **v2.0
-  (CTL-PINN Training Viability Slice) is the active trainex build milestone**,
-  executing FUT-01 (`pinn/` rebuild) and the Stage-0 scope of FUT-04.
-  Reference design at
+  (CTL-PINN Training Viability Slice) shipped 2026-07-23**, executing FUT-01
+  (`pinn/` rebuild) and the Stage-0 scope of FUT-04, but its held-out
+  physics-conservation gate FAILed and the owner signed `adjust`. **v2.1
+  (Physics-Gate Investigation & trainex-r2 Research Package) is the active
+  trainex milestone** — read-only forensics over the retained v2.0 artifacts
+  plus assembly of a trainex-r2 ERW package; no new training, no held-out
+  evaluation, no spec edits. Reference design at
   `docs/work/designs/cross_cutting/training-execution/2026-06-10-training-execution-design.md`.
   Research packages for trainex decisions live at
   `pinn_instruction/markdown_conversion/framework-specs/trainex-<id>/`,
@@ -302,9 +318,11 @@ Each v1.6 adjudication phase (Phases 32-36, now shipped) followed the same loop:
 **adjudicate -> fix -> verify -> re-verify after every batch -> close
 only when the acceptance check passes**. The issue ledger lived at a
 stable path under the Phase 32 (evidence-framework) directory, stood up
-and operated through the protocol established in Phase 32. (v2.0 build phases
-use a `pytest` acceptance suite and the Stage-0 pilot verdict instead — see
-`docs/TESTING.md` and `.planning/ROADMAP.md`.)
+and operated through the protocol established in Phase 32. (v2.0's build
+phases used a `pytest` acceptance suite and the Stage-0 pilot verdict instead
+— see `docs/TESTING.md` and the archived `.planning/milestones/v2.0-ROADMAP.md`.
+The live `.planning/ROADMAP.md` now covers v2.1, the read-only investigation
+that followed v2.0's `adjust` verdict.)
 
 Evidence-packet rules (EVID-11): Phase 32 authors the evidence packets
 and verdicts for the headline conflicts (D-04 causal mode, D-05 s_min
@@ -384,5 +402,6 @@ claim is re-derivable.
 - External research packaging: `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`.
 - Git policy in full: `docs/git-guidelines.md`.
 - Phase gap registers: `.planning/phases/NN-*/NN-GAPS.md`; current
-  milestone index: `.planning/milestones/v2.0-GAPS.md`.
+  milestone index: `.planning/milestones/v2.1-GAPS.md` (created on the
+  first v2.1 gap; none exists yet).
 - New Mac migration restore: `docs/runbooks/migration/exact-state-mac-migration.md`.

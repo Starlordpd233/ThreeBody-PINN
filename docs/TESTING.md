@@ -6,35 +6,46 @@ This document describes how the project's adjudication milestones are tested, ve
 closed, using the **v1.5 ("Resolving 02 Data Pipeline and Validation")** acceptance suite as
 the worked example (v1.5 shipped 2026-06-17; v1.6 shipped 2026-07-02 on the same pattern).
 It is the project-side view of the v1.5 acceptance and issue-ledger machinery landed across
-Phases 25-29, not a generic software-testing guide. For the current v2.0 build milestone's
-test surface, see "Current test surface (v2.0)" below.
+Phases 25-29, not a generic software-testing guide. For the v2.0 build milestone's test
+surface (shipped, now historical), see "Test surface history (v2.0)" below.
 
 > **Status.** v1.5 (documented below) shipped 2026-06-17 and is retained here as the worked
 > example. **v1.6 shipped 2026-07-02** ("Resolving 03 Curriculum and Training Loop",
 > Phases 30-36): Phase 36 completed with **26/26 acceptance probes PASS** and the issue
 > ledger **18/18 VERIFIED** (see `.planning/milestones/v1.6-phases/36-.../36-VERIFICATION.md`).
-> The active milestone is **v2.0 "CTL-PINN Training Viability Slice"** (Phases 37-43), a
-> *build* milestone with a different test surface — see "Current test surface (v2.0)" below.
+> **v2.0 "CTL-PINN Training Viability Slice" shipped 2026-07-23** (Phases 37-43, 42/42
+> requirements): its held-out physics-conservation gate came back FAIL and the owner signed
+> `adjust` (`.planning/milestones/v2.0-phases/43-.../43-VERDICT.md`). The **active milestone
+> is v2.1** "Physics-Gate Investigation & trainex-r2 Research Package" — a read-only
+> diagnosis milestone with no new automated-test surface of its own yet (Phase 44 not
+> started); see "Test surface history (v2.0)" below for the pytest/pilot surface v2.0 built.
 
 The adjudication-milestone contract is **spec-side**: production DataLoader, TrajectoryValidator,
 and training code are out of scope (FUT-01 implements them). The acceptance surface therefore
 tests the **framework specs** and the **canonical dataset** with disposable probes, never the
 live `pinn/` code (SCOPE-10).
 
-## Current test surface (v2.0)
+## Test surface history (v2.0)
 
-The rest of this document is the **v1.5 adjudication-milestone worked example**. The active
-v2.0 "CTL-PINN Training Viability Slice" is a *build* milestone, so its live test surface is
-different:
+The rest of this document is the **v1.5 adjudication-milestone worked example**. v2.0
+"CTL-PINN Training Viability Slice" (shipped 2026-07-23) was a *build* milestone with its
+own, different test surface:
 
 - **`pytest` suite** under `tests/` — `tests/phase37`–`phase43`, plus `tests/git_policy`
-  and `tests/watchdog`. This is the primary automated test surface for the trainex build
-  (run with `pytest tests/`).
+  and `tests/watchdog`. This remains the primary automated test surface in the repository
+  (run with `pytest tests/`); it is not tied to any single milestone.
 - **`tools/spec-render-check/`** — the framework-spec render-detector suite (v1.4 Phase 22).
-- **Stage-0 pilot acceptance** — Phase 43 (`verification-stage-0-pilot-acceptance`) runs the
-  end-to-end Stage-0 training slice and records a go/adjust/rethink verdict. The operator
-  procedure is `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md`; the
-  phase plan is in `.planning/ROADMAP.md`.
+- **Stage-0 pilot acceptance** — Phase 43 (`verification-stage-0-pilot-acceptance`) ran the
+  end-to-end Stage-0 training slice and recorded a go/adjust/rethink verdict: the owner
+  signed **`adjust`** (held-out physics-conservation gate FAIL; see
+  `.planning/milestones/v2.0-phases/43-verification-stage-0-pilot-acceptance/43-VERDICT.md`).
+  The operator procedure is
+  `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md`; the archived
+  phase plan is `.planning/milestones/v2.0-ROADMAP.md`.
+
+The active **v2.1** milestone (Physics-Gate Investigation & trainex-r2 Research Package) is
+read-only diagnosis over the retained v2.0 artifacts — it does not add a new automated-test
+surface; see `.planning/ROADMAP.md` for its Phase 44/45 plan.
 
 The v1.5 acceptance-suite machinery below (disposable probes, issue ledger, G1-G8 gate) is
 retained as the reference example of how an adjudication milestone is verified and closed.
@@ -51,8 +62,9 @@ and its own place in the AC-PIPE-* / AC-VAL-* taxonomy.
 | Issue ledger | Status transitions of every in-scope finding row, plus the milestone-closure gate (G1-G8) | Python enumeration of the ledger Status Table; `run-ac-suite.sh` exit code; non-terminal count = 0 | VER-07, VER-08, VER-09, VER-11, VER-12 |
 
 The v1.5 probes are archived under `.planning/milestones/v1.5-phases/<NN-...>/ac-*.sh`,
-`ac-*.py`, and `run-ac-suite.sh` (the live `.planning/phases/` tree now holds only the
-v2.0 phases 37-43). They are disposable: a probe re-run produces a fresh pass/fail line.
+`ac-*.py`, and `run-ac-suite.sh` (v2.0's Phases 37-43 are likewise archived, under
+`.planning/milestones/v2.0-phases/`; the live `.planning/phases/` tree is empty pending
+v2.1's Phase 44). They are disposable: a probe re-run produces a fresh pass/fail line.
 The Phase-29 driver script `run-ac-suite.sh` re-runs the full 13-check suite and exits
 0 on success.
 
@@ -473,9 +485,11 @@ standalone CI job. The verification chain is:
   read-only research report (SCOPE-09); the SI-DQA-002 / SI-DQA-003 home file
 - `.planning/milestones/v1.5-REQUIREMENTS.md` - VER-* / AC-* / VAL-* requirements
   (archived v1.5 ledger; confirms 36/36 traceability). The live `.planning/REQUIREMENTS.md`
-  is now the v2.0 ledger.
+  is now the v2.1 ledger (DIAG-01..04 + PKG-09..11); v2.0's 42-entry ledger is archived at
+  `.planning/milestones/v2.0-REQUIREMENTS.md`.
 - `.planning/milestones/v1.5-ROADMAP.md` - v1.5 phase distribution (= 36); Phase 29
-  covers VER-07/08/09/11/12. The live `.planning/ROADMAP.md` is now the v2.0 roadmap.
+  covers VER-07/08/09/11/12. The live `.planning/ROADMAP.md` is now the v2.1 roadmap
+  (Phases 44-45); v2.0's is archived at `.planning/milestones/v2.0-ROADMAP.md`.
 - `.planning/milestones/v1.5-phases/24-empirical-dataset-verification-and-correction-addendum/24-ISSUE-LEDGER.md` -
   v1.5 issue ledger (19 rows: 18 VERIFIED + 1 DEFERRED at v1.5 closure)
 - `.planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/29-SPEC.md` -

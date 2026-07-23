@@ -18,7 +18,7 @@ When the bulky simulation payloads are restored (they are gitignored and copied 
 
 **Note:** Gold-standard Brutus outputs exist. Gold IC input folders have been removed (they were duplicates of the base IC folders).
 
-**Active build milestone (v2.0):** The project is now in its first *build* milestone — the v2.0 CTL-PINN Training Viability Slice on the trainex track, which rebuilds the PINN code under `pinn/` from the locked framework specs (FUT-01) and runs a Stage-0-first training slice. See [`.planning/ROADMAP.md`](.planning/ROADMAP.md) for the phase plan and [`docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md`](docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md) for the Stage-0 training operator runbook.
+**Milestone history:** The v2.0 CTL-PINN Training Viability Slice (trainex track) shipped 2026-07-23: it rebuilt the PINN training code under `pinn/` from the locked framework specs (FUT-01) and ran a Stage-0-first training slice end-to-end (42/42 requirements complete), but the held-out physics-conservation gate came back FAIL and the owner signed an **`adjust`** verdict. The active milestone, **v2.1 (Physics-Gate Investigation & trainex-r2 Research Package)**, diagnoses that failure and assembles a research package for the owner's external research — see [`.planning/ROADMAP.md`](.planning/ROADMAP.md) for the current phase plan. The Stage-0 training operator runbook from v2.0 remains at [`docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md`](docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md).
 
 **Key Outputs**:
 - Generating Sobol-based and Hierarchical Initial Conditions.
