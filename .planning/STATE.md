@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-07-23T11:57:46.635Z"
 last_activity: 2026-07-23
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap created — Phase 44 next)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-23 — Milestone v2.1 started
+Status: Roadmap created; ready to plan Phase 44 (Physics-Gate Forensics)
+Last activity: 2026-07-23 — Milestone v2.1 initialized: requirements (7: DIAG-01..04, PKG-09..11) + roadmap (Phases 44–45) committed. Next: /gsd-plan-phase 44 (or /gsd-discuss-phase 44) from .worktrees/trainex; cut branch milestone/v2.1 from the v2.0 tip at first phase execution.
 
 ## Deferred Items
 
