@@ -1,0 +1,122 @@
+auto-loaded Phase 22 adjudication allowlists:
+  - tools/spec-render-check/adjudications/22-02-pinn-architecture.json
+  - tools/spec-render-check/adjudications/22-03-ctl-instruction.json
+
+
+=== ctl_instruction.md ===
+  [REVIEW/D5] §multi-stage-data-stratification-by-difficulty-revised-to-handle-the-issue-that-virial-ratio-is-not-preserved-for-quasi-random-ic-sampling (line 122): backtick-wrapped ASCII math near author flag: `sampling_method.md`
+      | > frozen dataset's sampling envelope (`sampling_method.md` yields scaled
+  [REVIEW/D5] §multi-stage-data-stratification-by-difficulty-revised-to-handle-the-issue-that-virial-ratio-is-not-preserved-for-quasi-random-ic-sampling (line 128): backtick-wrapped ASCII math near author flag: `MIN_DISTANCE_THRESHOLD = 0.01`
+      | > interim floor is $s_0 = 0.01$ (matching the `MIN_DISTANCE_THRESHOLD = 0.01`
+  [REVIEW/D5] §multi-stage-data-stratification-by-difficulty-revised-to-handle-the-issue-that-virial-ratio-is-not-preserved-for-quasi-random-ic-sampling (line 129): backtick-wrapped ASCII math near author flag: `sampling_method.md`
+      | > pre-screening floor, `sampling_method.md` §4).
+  [REVIEW/D3] §multi-stage-data-stratification-by-difficulty-revised-to-handle-the-issue-that-virial-ratio-is-not-preserved-for-quasi-random-ic-sampling (line 300): bare multi-char sub/superscript outside math: s_min
+      | > **unsoftened geometric s_min** (the raw `s_min` from Step 3 item 1)
+  [REVIEW/D3] §initial-conditions-ichierarchical-txt (line 357): bare multi-char sub/superscript outside math: ic_hierarchical
+      | #### Initial Conditions (ic_hierarchical_\*.txt)
+  [REVIEW/D5] §step-1-parse-raw-simulation-data (line 440): backtick-wrapped ASCII math near author flag: `t, N=3, t_cpu`
+      | blocks, each starting with a header line (`t, N=3, t_cpu`) followed by
+  [REVIEW/D3] §step-1-parse-raw-simulation-data (line 482): bare multi-char sub/superscript outside math: dt_out
+      | 'quasi-random'; fidelity: 'high' or 'low'; dt_out: inferred from
+  [REVIEW/D5] §2-5-global-scaling (line 1024): backtick-wrapped ASCII math near author flag: `compute_globals`
+      | **Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{…
+  [REVIEW/D5] §2-5-global-scaling (line 1024): backtick-wrapped ASCII math near author flag: `compute_globals`
+      | **Normative `compute_globals` contract (PIPE-09).** The global-scale length $D = (G T^2)^{…
+  [REVIEW/D5] §outputs-of-this-step (line 1162): backtick-wrapped ASCII math near author flag: `pinn_architecture.md`
+      | softening $\varepsilon_{\mathrm{train}} = 10^{-5}$ used in the `pinn_architecture.md` PHYS…
+  [DEFINITE/D4] §outputs-of-this-step (line 1354): surviving LaTeX command `\lVert` outside math
+      | >   normatively adopted** (its force denominator $\lVert dr \rVert^3 +
+  [DEFINITE/D4] §outputs-of-this-step (line 1355): surviving LaTeX command `\epsilon` outside math
+      | >   \epsilon_{\mathrm{soft}}$ is not matched-Plummer, inconsistent with the
+  [REVIEW/D6] §network-input-contract (line 1548): prose ASCII math near author flag: …componentwise derivatives, and synthetic-trajectory test), see pinn_ar…
+      | componentwise derivatives, and synthetic-trajectory test), see pinn_architecture.md PHYS-0…
+  [REVIEW/D5] §network-input-contract (line 1590): backtick-wrapped ASCII math near author flag: `simulation_data/Documentation/README.md`
+      | The energy normalization maps any real $E$ into the network range $(-1, 1)$ via $\tanh(E /…
+  [REVIEW/D5] §step-5-curriculum-stage-assignment (line 1608): backtick-wrapped ASCII math near author flag: `record_key`
+      | mapping is keyed by `record_key`, never by positional index, per the
+  [REVIEW/D5] §step-5-curriculum-stage-assignment (line 1616): backtick-wrapped ASCII math near author flag: `physical_key`
+      | `physical_key` may lack a gold-resolution realization (verified: 184
+  [REVIEW/D5] §step-5-curriculum-stage-assignment (line 1659): backtick-wrapped ASCII math near author flag: `record_key`
+      | > materializes a stable integer stage label keyed by `record_key` for every
+  [DEFINITE/D4] §phase-2-total-training-loss (line 1780): surviving LaTeX command `\mathcal` outside math
+      | 2. **Assemble** the total loss `L_total` (\mathcal{L}_{\text{total}}) from the named loss …
+  [SUPPRESSED/D3] §existing-training-dataset (line 21): identifier-shape sub/sup excluded (surfaced for review): brutus_compare
+  [SUPPRESSED/D3] §brutus-simulation-output-brutushierarchical-txt (line 373): identifier-shape sub/sup excluded (surfaced for review): brutus_hierarchical
+  [SUPPRESSED/D3] §step-1-parse-raw-simulation-data (line 481): identifier-shape sub/sup excluded (surfaced for review): dataset_type
+  [SUPPRESSED/D3] §network-input-contract (line 1548): identifier-shape sub/sup excluded (surfaced for review): pinn_architecture
+  [SUPPRESSED/D3] §step-5-curriculum-stage-assignment (line 1624): identifier-shape sub/sup excluded (surfaced for review): gold_counterpart
+
+=== pinn_architecture.md ===
+  [ADJUDICATED/D5] §2-2-a-principled-initialization-scheme-for-siren-layers (line 170): backtick-wrapped ASCII math near author flag: `first_omega_0`
+      | epochwise or optimizer-step `omega0` scheduler. If `first_omega_0` is
+      | verdict: code-identifier-kept — SIREN initialization parameter name (PyTorch code identifier in backtick code span, not math)
+  [ADJUDICATED/D5] §2-2-a-principled-initialization-scheme-for-siren-layers (line 188): backtick-wrapped ASCII math near author flag: `\text{xxx}`
+      | Author Comment: All of these fields with `\text{xxx}` are not rnedered correctly and show …
+      | verdict: code-identifier-kept — Placeholder literal inside Author Comment text (not math to render)
+  [ADJUDICATED/D5] §critical-rationale-for-layernorm (line 236): backtick-wrapped ASCII math near author flag: `elementwise_affine=False`
+      | The default contract uses `elementwise_affine=False` (no learnable
+      | verdict: code-identifier-kept — torch.nn.LayerNorm keyword argument (Python code identifier, not math expression)
+  [ADJUDICATED/D5] §critical-rationale-for-layernorm (line 238): backtick-wrapped ASCII math near author flag: `elementwise_affine=True`
+      | (`elementwise_affine=True`) or removing LayerNorm entirely are optional
+      | verdict: code-identifier-kept — torch.nn.LayerNorm keyword argument (Python code identifier, not math expression)
+  [ADJUDICATED/D6] §2-4-finalized-architectural-hyperparameters (line 259): prose ASCII math near author flag: …| LayerNorm | elementwise_affine=False, eps=1e-5 | Stabilizes skip pat…
+      | | LayerNorm | elementwise_affine=False, eps=1e-5 | Stabilizes skip path gradients without …
+      | verdict: code-identifier-kept — PyTorch LayerNorm parameter name in hyperparameter table cell (code identifier in prose)
+  [ADJUDICATED/D6] §2-4-finalized-architectural-hyperparameters (line 260): prose ASCII math near author flag: …| first_omega_0 | 30 | A high initial frequency injects a high-frequen…
+      | | first_omega_0 | 30 | A high initial frequency injects a high-frequency basis into the ne…
+      | verdict: code-identifier-kept — SIREN parameter name in hyperparameter table cell (code identifier in prose)
+  [ADJUDICATED/D6] §2-4-finalized-architectural-hyperparameters (line 261): prose ASCII math near author flag: …| hidden_omega_0 | 1 | This value is used within the principled weight…
+      | | hidden_omega_0 | 1 | This value is used within the principled weight initialization form…
+      | verdict: code-identifier-kept — SIREN parameter name in hyperparameter table cell (code identifier in prose)
+  [REVIEW/D5] §3-4-soft-energy-conservation-regularizer-le-enforcing-a-global-conservation-law (line 537): backtick-wrapped ASCII math near author flag: `delta_E = 1.0`
+      | > **Phase 35 contract: energy Huber delta (LOSS-03; NS-13 defer / deferred calibration; AC…
+  [REVIEW/D5] §3-4-soft-energy-conservation-regularizer-le-enforcing-a-global-conservation-law (line 544): backtick-wrapped ASCII math near author flag: `ctl_instruction.md`
+      | **Dual-epsilon visibility (IPR cross-reference; VAL-03).** The training-time softening $\e…
+  [REVIEW/D5] §3-4-soft-energy-conservation-regularizer-le-enforcing-a-global-conservation-law (line 544): backtick-wrapped ASCII math near author flag: `IPR_train`
+      | **Dual-epsilon visibility (IPR cross-reference; VAL-03).** The training-time softening $\e…
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 686): backtick-wrapped ASCII math near author flag: `mu_p`
+      | > **Phase 34 contract: ALM parameter update / `mu_p` clamp (LOOP-05; deferred; AC-LOOP-05;…
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 688): backtick-wrapped ASCII math near author flag: `mu_p`
+      | Default: ALM is OFF. The default training loss is the penalty-term formulation in §3–§4 ab…
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 690): backtick-wrapped ASCII math near author flag: `torch.no_grad()`
+      | ALM remains an optional scalar-conservation add-on only. If a future optional scalar-conse…
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 692): backtick-wrapped ASCII math near author flag: `lambda_p`
+      | - Moving-average variance / second-moment update for `lambda_p` and `mu_p` in RMSprop styl…
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 692): backtick-wrapped ASCII math near author flag: `mu_p`
+      | - Moving-average variance / second-moment update for `lambda_p` and `mu_p` in RMSprop styl…
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 693): backtick-wrapped ASCII math near author flag: `mu_p`
+      | - Clamp `mu_p` to `[1e-4, 100]` after each update.
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 693): backtick-wrapped ASCII math near author flag: `[1e-4, 100]`
+      | - Clamp `mu_p` to `[1e-4, 100]` after each update.
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 695): backtick-wrapped ASCII math near author flag: `lambda_p`
+      | These `lambda_p`/`mu_p` mechanics are **deferred** and **conditional**; they are **not ado…
+  [REVIEW/D5] §4-2-optional-alm-ablation-p2 (line 695): backtick-wrapped ASCII math near author flag: `mu_p`
+      | These `lambda_p`/`mu_p` mechanics are **deferred** and **conditional**; they are **not ado…
+  [SUPPRESSED/D3] §2-4-finalized-architectural-hyperparameters (line 259): identifier-shape sub/sup excluded (surfaced for review): elementwise_affine
+  [SUPPRESSED/D3] §2-4-finalized-architectural-hyperparameters (line 260): identifier-shape sub/sup excluded (surfaced for review): first_omega_0
+  [SUPPRESSED/D3] §2-4-finalized-architectural-hyperparameters (line 261): identifier-shape sub/sup excluded (surfaced for review): hidden_omega_0
+  [SUPPRESSED/D3] §3-4-soft-energy-conservation-regularizer-le-enforcing-a-global-conservation-law (line 533): identifier-shape sub/sup excluded (surfaced for review): median_train
+  [SUPPRESSED/D3] §references (line 998): identifier-shape sub/sup excluded (surfaced for review): PIG_Physics
+  [SUPPRESSED/D3] §references (line 998): identifier-shape sub/sup excluded (surfaced for review): Informed_Gaussians_as_Adaptive_Parametric_Mesh_Representations
+  [SUPPRESSED/D3] §references (line 1002): identifier-shape sub/sup excluded (surfaced for review): Siren_PINNs
+  [SUPPRESSED/D3] §references (line 1007): identifier-shape sub/sup excluded (surfaced for review): Enhanced_Residual_Network_for_Function_Approximation_and_Physics
+  [SUPPRESSED/D3] §references (line 1007): identifier-shape sub/sup excluded (surfaced for review): Informed_Inverse_Problems
+  [SUPPRESSED/D3] §references (line 1008): identifier-shape sub/sup excluded (surfaced for review): Informed_with_Power
+  [SUPPRESSED/D3] §references (line 1008): identifier-shape sub/sup excluded (surfaced for review): Enhanced_Residual_Network_for_Interpolation_and_Inverse_Problems
+  [SUPPRESSED/D3] §si-pinn-002-author-comments-preserved-in-converted-body (line 1049): identifier-shape sub/sup excluded (surfaced for review): sqr_skipresnet_siren_backbone
+  [SUPPRESSED/D3] §si-pinn-002-author-comments-preserved-in-converted-body (line 1049): identifier-shape sub/sup excluded (surfaced for review): physics_constrained_loss
+  [SUPPRESSED/D3] §si-pinn-003-batch-construction-inconsistency-with-ctl-instruction-plan (line 1058): identifier-shape sub/sup excluded (surfaced for review): physics_constrained_loss
+
+=== sampling_method.md ===
+  [SUPPRESSED/D3] §5-a-coordinated-strategy-for-minimum-distance (line 260): identifier-shape sub/sup excluded (surfaced for review): close_low_L
+
+-- adjudicated (cleared): 7 --
+  pinn_architecture.md:170 [D5] first_omega_0 → code-identifier-kept
+  pinn_architecture.md:188 [D5] \text{xxx} → code-identifier-kept
+  pinn_architecture.md:236 [D5] elementwise_affine=False → code-identifier-kept
+  pinn_architecture.md:238 [D5] elementwise_affine=True → code-identifier-kept
+  pinn_architecture.md:259 [D6] elementwise_affine → code-identifier-kept
+  pinn_architecture.md:260 [D6] first_omega_0 → code-identifier-kept
+  pinn_architecture.md:261 [D6] hidden_omega_0 → code-identifier-kept
+
+-- totals: 3 DEFINITE, 27 REVIEW, 7 ADJUDICATED, 20 SUPPRESSED (surfaced for review) --
