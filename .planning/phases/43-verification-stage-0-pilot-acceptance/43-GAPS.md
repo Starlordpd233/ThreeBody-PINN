@@ -87,6 +87,20 @@
 - **Confidence of impact:** HIGH — the failure is deterministic and blocks the
   1,036-test repository gate, ACC-02/ACC-04 completion, Phase 43 verification,
   and milestone closeout.
-- **Status:** OPEN
-- **Resolution note:**
+- **Status:** RESOLVED-WITH-INSTRUCTION (2026-07-22)
+- **Resolution note:** Owner selected **Option A (materialization proof)** at
+  the surfaced checkpoint (2026-07-22). Implemented in `pinn/verify.py`: the
+  explicit availability predicate was deleted and replaced by the constructive
+  seam `_mps_materialization_error()`, which proves the MPS runtime by building
+  a probe tensor on it (a raise becomes a curated rung FAIL; a wrong-device
+  landing becomes a silent-fallback FAIL). The D1-p-resolved dtype/device probe
+  and its landing checks are unchanged, and CTX-70's unconditional-MPS
+  semantics are preserved on every arm. `tests/phase43/test_verify_ladder.py`
+  patches the seam instead of the predicate and adds three hermetic tests
+  exercising successful and failing materialization. Phase 38's prohibition
+  scan is untouched. Evidence: prohibition discovery 58/58 OK;
+  `tests.phase43.test_verify_ladder` 52/52 OK; independent
+  `python -m unittest discover -s tests` → 1,039 tests, exit 0 (1,036 prior +
+  3 new materialization tests). ACC-02/ACC-04 restored to Complete in
+  `.planning/REQUIREMENTS.md`.
 
