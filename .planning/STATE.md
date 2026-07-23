@@ -45,13 +45,33 @@ checks, then Phase 43 (verification, Stage-0 pilot, acceptance verdict).
 
 ## Deferred Items
 
-Items acknowledged and deferred at milestone close on 2026-07-02:
+Items acknowledged and deferred at milestone close on 2026-07-23 (v2.0):
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | phase39-collocation-slot-multiplicity | Open session record [diagnosed]; deferred — session never formally closed |
+| debug | phase39-memory-guard-validation | Open session record [investigating]; deferred — session never formally closed |
+| uat | 38-UAT partial | Stale-satisfied — its one outstanding item (real-trajectory rung 3/4 gate) passed 2026-07-13 with GAP-38-01 closure; frontmatter never updated |
+| verification | 41-VERIFICATION human_needed | Stale-satisfied — both human items (B-5 ratification; R-1/D4-a calibration) owner-ratified during Phase 43 |
+| verification | 42-VERIFICATION human_needed | Genuinely open, explicitly non-blocking — 2 Manual-Only visual checks (runbook walkthrough legibility; sleep-assertion identity) |
+| pending_todo | trainex-r1-research-handoff | Deliberate carry-forward (r1b tuning round); unlinked to v2.0 phases |
+| pending_todo | d-06-static-epsilon-sensitivity-check | Deliberate carry-forward (spec-side sensitivity question); not a v2.0 build item |
+| audit_warning | W-1 evaluation-attempt.json absent (seed-42) | Provenance-only; claim hardening postdates the sole evaluation; refusal holds via receipt path; do NOT re-run |
+| audit_warning | W-2 runbook omits verify/evaluate entry points | Discoverability only; correctness protected by fail-closed train.py gate |
+| audit_warning | W-3 ACC-05 spread location | Spread lives in 43-CALIBRATION.md, not pilot summary.md; substance complete and ratified |
+
+Closeout type: `override_closeout` — all 7 v2.0 phases verification-scored in full and 42/42 requirements Complete; overrides are the acknowledged items above (see `.planning/v2.0-MILESTONE-AUDIT.md`, status `tech_debt`). Milestone verdict: owner-signed `adjust` (43-VERDICT.md).
+
+<details>
+<summary>Prior close (v1.6, 2026-07-02)</summary>
 
 | Category | Item | Status |
 |----------|------|--------|
 | pending_todo | trainex-r1-research-handoff | Deferred to trainex track (FUT-01/FUT-04); not v1.6 specwork |
 
 Closeout type: `override_closeout` — the only override is the acknowledged trainex-r1 todo above; all 7 v1.6 phases are verification-passed and 32/32 requirements Complete.
+
+</details>
 
 ## Performance Metrics
 
