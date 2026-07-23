@@ -5,16 +5,16 @@ milestone_name: CTL-PINN Training Viability Slice
 current_phase: 43
 current_phase_name: verification-stage-0-pilot-acceptance
 status: verified
-stopped_at: Phase 43 complete — re-verified 6/6 (passed), UAT 8/8; milestone close pending Phase 38 (GAP-38-01 deferred)
-last_updated: "2026-07-23T06:26:38Z"
+stopped_at: "v2.0 complete — 7/7 phases verified (Phase 38 completion reconciled 2026-07-23; GAP-38-01 was RESOLVED-WITH-INSTRUCTION 2026-07-13); owner verdict adjust; ready for milestone close-out"
+last_updated: "2026-07-23T10:43:26Z"
 last_activity: 2026-07-23
-last_activity_desc: Phase 43 re-verified 6/6 (passed) + UAT 8/8 complete; phase marked complete
+last_activity_desc: Reconciled stale Phase 38 completion records (ROADMAP checkbox, NET-01..05 requirement rows, STATE counters) ahead of v2.0 close-out
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 60
   completed_plans: 60
-  percent: 86
+  percent: 100
 ---
 
 # Project State
@@ -35,7 +35,7 @@ caller, so the periodic `mem:` line never reached train.log) was found by runnin
 program rather than reading its tests, and is FIXED in 0fae07f with an end-to-end test
 whose negative control was checked. Two 42-VALIDATION Manual-Only rows remain unrun
 (TensorBoard render legibility, sleep-prevention assertion check) — both non-blocking.
-Status: Phase 43 COMPLETE — milestone v2.0 close pending Phase 38 (GAP-38-01 deferred)
+Status: Phase 43 COMPLETE — all 7 v2.0 phases complete (Phase 38 records reconciled 2026-07-23); ready for /gsd-complete-milestone
 failure is open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_the_corpus`
 flags `pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
 parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
@@ -312,7 +312,7 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 Last session: 2026-07-23T06:26:38Z
 Stopped at: Phase 43 complete — re-verified 6/6 (passed) + UAT 8/8; all 12 plans done
-Next action: Milestone v2.0 close is NOT automatic — Phase 38 phase-close is held on GAP-38-01 (deferred) and phases 41/42 carry verification-close debt. Decide milestone disposition before /gsd-complete-milestone.
+Next action: /gsd-complete-milestone (v2.0), then /gsd-new-milestone (v2.1 physics-gate investigation). The prior hold reasons are cleared: Phase 38's GAP-38-01 was RESOLVED-WITH-INSTRUCTION 2026-07-13 (38-VERIFICATION.md 12/12 passed on real-trajectory evidence; records reconciled 2026-07-23), and the Phase 41/42 suites were re-run green during Phase 43 re-verification (193/193, 38/38; only the two non-blocking 42-VALIDATION Manual-Only rows remain).
 
 ## Operator Next Steps
 

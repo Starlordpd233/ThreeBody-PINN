@@ -37,11 +37,11 @@ v2.0 is a **build** milestone, not a spec-adjudication milestone. It has no "can
 
 ### PINN Model Rebuild from Specs (NET) — Phase 38 (FUT-01 core)
 
-- [ ] **NET-01**: The `pinn/` package is rebuilt from the authoritative framework specs (not the v1.3-era code): the SQR-SkipResNet-SIREN backbone (14-dim input `[τ, IC₁₃]` → 12×256 hidden → 9-dim output), SIREN `first_omega_0=30.0` / `hidden_omega_0=1.0`, skip + LayerNorm (`elementwise_affine=False`, odd layers) per `pinn_architecture.md`. [FUT-01; locked v1.4 ARCH]
-- [ ] **NET-02**: The network applies the hard mass-weighted COM projection head to the 9-dim output before any loss or metric. [v1.4 D-02 locked]
-- [ ] **NET-03**: Physics residuals are computed by autograd per the PHYS-02 AD contract (componentwise second derivatives w.r.t. the autograd leaf `u`, with the chain-rule factors `d²r'/du² = 4·d²r'/dτ²`, `dr'/du = 2·dr'/dτ`), validated by an fp64-CPU `gradcheck` and a residual-on-ground-truth probe. [PHYS-02, LOSS-01, §5 pre-flight rungs]
-- [ ] **NET-04**: The loss is the locked five-term catalog — data Huber (`δ_r = 1`) on Brutus snapshots, IC squared-error anchors, causally-weighted physics residual, soft-energy Huber (`δ = 1.0`), and componentwise angular-momentum Huber (`δ = 1.0`), under the PHYS-05 scheduled weights — evaluated in the shared dimensionless coordinate system (`t_τ ∈ [-1,1]`, `r' = r/D`, raw-mass `D ≈ 4.6416`), per `pinn_architecture.md` §3/§4.1 and the `ctl_instruction.md` loss-function contract. [LOSS-01, PHYS-05, SCOPE-12 `D`; integrity-r2 PB-2]
-- [ ] **NET-05**: A single-trajectory overfit probe (pre-flight rung 4) drives the data loss to near-zero, confirming the model + AD + loss are wired correctly end-to-end before any full run. [§5 rung 4]
+- [x] **NET-01**: The `pinn/` package is rebuilt from the authoritative framework specs (not the v1.3-era code): the SQR-SkipResNet-SIREN backbone (14-dim input `[τ, IC₁₃]` → 12×256 hidden → 9-dim output), SIREN `first_omega_0=30.0` / `hidden_omega_0=1.0`, skip + LayerNorm (`elementwise_affine=False`, odd layers) per `pinn_architecture.md`. [FUT-01; locked v1.4 ARCH]
+- [x] **NET-02**: The network applies the hard mass-weighted COM projection head to the 9-dim output before any loss or metric. [v1.4 D-02 locked]
+- [x] **NET-03**: Physics residuals are computed by autograd per the PHYS-02 AD contract (componentwise second derivatives w.r.t. the autograd leaf `u`, with the chain-rule factors `d²r'/du² = 4·d²r'/dτ²`, `dr'/du = 2·dr'/dτ`), validated by an fp64-CPU `gradcheck` and a residual-on-ground-truth probe. [PHYS-02, LOSS-01, §5 pre-flight rungs]
+- [x] **NET-04**: The loss is the locked five-term catalog — data Huber (`δ_r = 1`) on Brutus snapshots, IC squared-error anchors, causally-weighted physics residual, soft-energy Huber (`δ = 1.0`), and componentwise angular-momentum Huber (`δ = 1.0`), under the PHYS-05 scheduled weights — evaluated in the shared dimensionless coordinate system (`t_τ ∈ [-1,1]`, `r' = r/D`, raw-mass `D ≈ 4.6416`), per `pinn_architecture.md` §3/§4.1 and the `ctl_instruction.md` loss-function contract. [LOSS-01, PHYS-05, SCOPE-12 `D`; integrity-r2 PB-2]
+- [x] **NET-05**: A single-trajectory overfit probe (pre-flight rung 4) drives the data loss to near-zero, confirming the model + AD + loss are wired correctly end-to-end before any full run. [§5 rung 4]
 
 ### Data Ingestion & Stage-0 Population Scan (DATA) — Phase 39
 
@@ -153,11 +153,11 @@ Filled by roadmap creation (`.planning/ROADMAP.md`). Every v2.0 requirement maps
 | ENV-02 | Phase 37 | Complete |
 | ENV-03 | Phase 37 | Complete |
 | ENV-04 | Phase 37 | Complete |
-| NET-01 | Phase 38 | Pending |
-| NET-02 | Phase 38 | Pending |
-| NET-03 | Phase 38 | Pending |
-| NET-04 | Phase 38 | Pending |
-| NET-05 | Phase 38 | Pending |
+| NET-01 | Phase 38 | Complete |
+| NET-02 | Phase 38 | Complete |
+| NET-03 | Phase 38 | Complete |
+| NET-04 | Phase 38 | Complete |
+| NET-05 | Phase 38 | Complete |
 | DATA-01 | Phase 39 | Complete |
 | DATA-02 | Phase 39 | Complete |
 | DATA-03 | Phase 39 | Complete |
