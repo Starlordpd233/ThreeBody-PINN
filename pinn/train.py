@@ -365,6 +365,13 @@ def _build_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
     return _synthetic_split_sources()
 
 
+def _effective_runtime_labels(config: TrainingConfig) -> tuple[str, str]:
+    """Return the precision/device labels the launch will actually execute."""
+    if config.run.strict_cpu_determinism:
+        return ("float64", "cpu")
+    return (config.run.precision, config.run.device)
+
+
 def _write_smoke_timing_calibration(
     config: TrainingConfig, run_controller: RunController, runs_root: Path
 ) -> None:
@@ -384,11 +391,12 @@ def _write_smoke_timing_calibration(
     if s_per_step is None or not math.isfinite(float(s_per_step)) or float(s_per_step) <= 0.0:
         return
     try:
+        precision, device = _effective_runtime_labels(config)
         timing.write_calibration(
             s_per_step=float(s_per_step),
             full_stage0_steps=int(config.stage.max_epochs),
-            precision=config.run.precision,
-            device=config.run.device,
+            precision=precision,
+            device=device,
             runs_root=runs_root,
         )
     except Exception as exc:  # never let a calibration write fail the run
@@ -445,8 +453,9 @@ def _check_duration_gate(config: TrainingConfig, *, runs_root: Path) -> None:
     # One runtime+code fingerprint certifies BOTH the calibration read and the
     # marker predicate, so they authorize the identical device/dtype/torch/
     # python/git-head identity.
+    precision, device = _effective_runtime_labels(config)
     fingerprint = verify.current_fingerprint(
-        precision=config.run.precision, device=config.run.device
+        precision=precision, device=device
     )
     requested_steps = int(config.stage.max_epochs)
     forecast = timing.forecast_from_calibration(
@@ -456,7 +465,7 @@ def _check_duration_gate(config: TrainingConfig, *, runs_root: Path) -> None:
         raise DurationGateError(
             f"no valid persisted Stage-0 timing calibration is available for a "
             f"non-smoke launch ({requested_steps} steps on "
-            f"{config.run.precision}/{config.run.device}); refusing before "
+            f"{precision}/{device}); refusing before "
             f"construction rather than forecasting without a measurement. Run the "
             f"ACC-02 smoke (configs/smoke.yaml) to persist a calibration first."
         )
