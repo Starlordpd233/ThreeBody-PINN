@@ -8,7 +8,7 @@ This repository implements a complete three-body simulation and CTL-PINN trainin
 1. **Brutus** (`brutus_Newton-main/`) — a high-precision C++ N-body integrator built on GMP/MPFR arbitrary-precision arithmetic. It is the integration engine that produces ground-truth trajectories.
 2. **Python data pipeline** (`simulation_data/`) — IC generation, Stage 2 prescreening, batch runners that drive Brutus, and post-integration metrics calculation. The output is a curated multi-fidelity dataset of three-body trajectories.
 3. **Framework specs** (`pinn_instruction/markdown_conversion/framework-specs/`) — the authoritative design documents for the curriculum-training methodology (`ctl_instruction.md`) and the SQR-SkipResNet-SIREN PINN architecture (`pinn_architecture.md`).
-4. **PINN training code** (`pinn/`) — the v1.3-era reference implementation that bridges Brutus outputs to ML tensors. Per user directive (2026-05-19) and `pinn-reference.md`, this code is NOT a grounding source for v1.4/v1.5/v1.6 spec decisions; FUT-01 will rebuild it from the framework specs.
+4. **PINN training code** (`pinn/`) — as of v2.0 (FUT-01), the rebuilt training stack generated from the framework specs (`network.py`, `train.py`, `evaluate.py`, `loss_catalog.py`, `com_projection.py`, `data/`, `training/`); the v1.3-era monofiles (`basic_architecture.py`, `data-processing-pipeline-full.py`) remain as peers. The `pinn/` live-code ban that held through v1.4/v1.5/v1.6 spec adjudication is **lifted for v2.0** (per `.planning/PROJECT.md`), which builds `pinn/` from the specs; NET-01..05 in `.planning/REQUIREMENTS.md` track the rebuild and are not all closed, so code presence ≠ ledger complete.
 
 The primary inputs are three-body initial conditions (masses, positions, velocities). The primary outputs are (a) high-precision Brutus trajectory datasets used as PINN training targets, and (b) the locked v1.4 PINN architecture and CTL curriculum that govern how the network is trained.
 
@@ -37,8 +37,8 @@ graph TD
     end
 
     subgraph Dataset["simulation_data/Data/"]
-        ICF[ic_hierarchical/<br/>ic_standard_quasi_random/]
-        BOF[brutus_hierarchical/<br/>brutus_standard_quasi_random/<br/>+ _gold_standard variants]
+        ICF[ic_final/ic_hierarchical/<br/>ic_final/ic_standard_quasi_random/]
+        BOF[brutus_output/brutus_hierarchical/<br/>brutus_output/brutus_standard_quasi_random/<br/>+ _gold_standard variants]
     end
 
     subgraph Training["PINN training"]
@@ -65,10 +65,10 @@ graph TD
 
 A typical request flows top-to-bottom through the pipeline:
 
-1. **IC generation (Stage 1)** — `simulation_data/Scripts/ic_generation/generate_ics.py` writes `.txt` IC files into `simulation_data/Data/ic_hierarchical/` and `ic_standard_quasi_random/`. Two sampling flavors: hierarchical (tight binary + distant tertiary, stable) and standard quasi-random (Sobol-based broad coverage, more chaotic). Sampling is governed by `sampling_method.md` (frozen; historical record only).
+1. **IC generation (Stage 1)** — `simulation_data/Scripts/ic_generation/generate_ics.py` writes raw `.txt` IC files into `$IC_RAW_DIR/ic_hierarchical/` and `$IC_RAW_DIR/ic_standard_quasi_random/`; Stage 2 copies the passers into `simulation_data/Data/ic_final/`. Two sampling flavors: hierarchical (tight binary + distant tertiary, stable) and standard quasi-random (Sobol-based broad coverage, more chaotic). Sampling is governed by `sampling_method.md` (frozen; historical record only).
 2. **Prescreening (Stage 2)** — `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` runs a fast leapfrog integration to filter out colliding/escaping systems before the expensive Brutus pass.
-3. **Brutus integration (Stage 3)** — batch runners (`Scripts/brutus_runners/run_brutus_both_type_simple.py`, `run_brutus_hierarchical_only_mac_gold_standard.py`) invoke the compiled `brutus` binary (built from `brutus_Newton-main/` via `make`). Each Brutus run uses arbitrary-precision arithmetic at tolerance `1e-13` or `1e-15` with word lengths 118 or 130 depending on the dataset set. Outputs land in `simulation_data/Data/brutus_<variant>/` and `brutus_<variant>_gold_standard/`. Typical timeout ~3000 s per IC.
-4. **Metrics (Stage 4)** — `simulation_data/Scripts/metrics_calculation/calculate_metrics.py` (and `calculate_brutus_metrics.py`) compute energy drift, momentum drift, collision flags, and other quality metrics, writing JSON metric files alongside the Brutus outputs.
+3. **Brutus integration (Stage 3)** — batch runners (`Scripts/brutus_runners/run_brutus_both_type_simple.py`, `run_brutus_hierarchical_only_mac_gold_standard.py`) invoke the compiled `brutus` binary (built from `brutus_Newton-main/` via `make`). Each Brutus run uses arbitrary-precision arithmetic at tolerance `1e-13` or `1e-15` with word lengths 118 or 130 depending on the dataset set. Outputs land under `simulation_data/Data/brutus_output/` as `brutus_<variant>/` and `brutus_<variant>_gold_standard/`. Typical timeout ~3000 s per IC.
+4. **Metrics (Stage 4)** — `simulation_data/Scripts/metrics_calculation/calculate_metrics.py` (and `calculate_brutus_metrics.py`) compute energy drift, momentum drift, collision flags, and other quality metrics, writing JSON metric files into a separate `simulation_data/Data/metrics/sim_result_metric_<variant>/` tree (not alongside the Brutus trajectories).
 5. **PINN preprocessing (Stage 5)** — `pinn/data-processing-pipeline-full.py` consolidates and normalizes Brutus outputs into ML-ready tensors. The v1.4 framework specs define the normalization (`tanh((z − μ_z) / (σ_z + 10⁻⁸))` with dataset-wide statistics) and the input-vector contract (14D = `[τ, IC₁₃]`).
 
 ## Key abstractions
@@ -77,7 +77,7 @@ A typical request flows top-to-bottom through the pipeline:
 
 | Abstraction | Location | Purpose |
 |---|---|---|
-| **IC₁₃ vector** (13-dim Jacobi IC) | `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md` §5.3 (D-01 LOCKED 2026-05-18) | Input contract: `[m₁, m₂, m₃, ρ_x, λ_x, λ_y, ρ̇_x, ρ̇_y, ρ̇_z, λ̇_x, λ̇_y, λ̇_z, E]`. Replaces the v1.3 IC vector. |
+| **IC₁₃ vector** (13-dim Jacobi IC) | `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`, Step 4 (IC₁₃ construction; D-01 LOCKED 2026-05-18) | Input contract: `[m₁, m₂, m₃, ρ_x, λ_x, λ_y, ρ̇_x, ρ̇_y, ρ̇_z, λ̇_x, λ̇_y, λ̇_z, E]`. Replaces the v1.3 IC vector. |
 | **Time embedding τ** | Same spec, D-03 LOCKED | `τ = 2u − 1` where `u = t/T` is an autograd leaf. |
 | **COM projection head** | `pinn_architecture.md` (D-02 LOCKED 2026-05-18) | Hard mass-weighted center-of-mass projection applied to the 9D output before any loss/metric. |
 | **Matched-Plummer softening** | `pinn_architecture.md` (PHYS-03 LOCKED) | Analytic matched-Plummer Hamiltonian `H_ε` evaluates energies from predicted positions and AD-derived velocities; ε_train = 1e-5 (per Phase 28 HC-4 hardening). |
@@ -103,34 +103,34 @@ Gold-standard completeness state (GAP-29-01 RESOLVED 2026-06-16): **117 validate
 | Directory | Purpose |
 |---|---|
 | `brutus_Newton-main/` | Standalone C++ N-body integrator. GMP/MPFR-dependent; built with `make` from the bundled `Makefile`. The integration engine — separate language/runtime because arbitrary-precision arithmetic is the bottleneck. |
-| `simulation_data/Scripts/ic_generation/` | Stage 1 — writes IC files to `Data/ic_<variant>/`. Governed by `sampling_method.md` (frozen). |
+| `simulation_data/Scripts/ic_generation/` | Stage 1 — writes raw IC files to `$IC_RAW_DIR/ic_<variant>/`; Stage 2 copies passers to `Data/ic_final/ic_<variant>/`. Governed by `sampling_method.md` (frozen). |
 | `simulation_data/Validation/prescreening/` | Stage 2 — leapfrog-based filter that rejects colliding/escaping systems before the expensive Brutus pass. |
 | `simulation_data/Scripts/brutus_runners/` | Stage 3 — Python wrappers that shell out to the compiled `brutus` binary. Includes the FO-1 durability scripts (`rerun_data05_base_hierarchical_70.py`, `rerun_standard_gold_missing_184.py`) and the gold-standard hierarchical runner. |
 | `simulation_data/Scripts/metrics_calculation/` | Stage 4 — post-integration quality metrics (energy drift, momentum, collision flags) emitted as JSON metric files. |
 | `simulation_data/Data/` | The generated dataset itself (gitignored; restored from backup per migration runbook). Folder name rigidly defines variant — see README §"Dataset Layout and Naming Conventions". |
-| `simulation_data/Validation/dataset_readiness_checks/` | Validation scripts. README flags these as Known-Broken (`ValidationConfig` NameError + pattern logic issues); rely on Stage 4 metrics instead. |
-| `simulation_data/Documentation/` | Dataset spec, anomalies (`README.md`), blacklist (`problematic_ics_blacklist.json`), and the ID-not-in-gold inventory (`standard_quasi_random_ids_not_in_gold.md`). |
-| `pinn/` | v1.3-era PINN reference code (`basic_architecture.py`, `data-processing-pipeline-full.py`). NOT authoritative for v1.4/v1.5/v1.6; rebuilt from specs in FUT-01. |
+| `simulation_data/Validation/dataset_readiness_checks/` | Validation scripts. The old `ValidationConfig` NameError etiology is stale (the class is defined in `config.py` and imported in `validator.py`); treat as unverified pending a project-env run and rely on Stage 4 metrics meanwhile. |
+| `simulation_data/Documentation/` | Dataset spec, anomalies (`README.md`), the blacklist (`problematic_ics_blacklist.json`, gitignored — present only after restore), and the ID-not-in-gold inventory (`standard_quasi_random_ids_not_in_gold.md`). |
+| `pinn/` | v2.0 rebuilt PINN training stack (`network.py`, `train.py`, `evaluate.py`, `loss_catalog.py`, `com_projection.py`, `data/`, `training/`), generated from the specs under FUT-01; the v1.3-era monofiles (`basic_architecture.py`, `data-processing-pipeline-full.py`) remain as peers. |
 | `pinn_instruction/markdown_conversion/framework-specs/` | Authoritative framework specs: `ctl_instruction.md`, `pinn_architecture.md`, `sampling_method.md` (frozen). |
 | `pinn_instruction/markdown_conversion/framework-revisions/` | Research reports and resolution-doc materials. `data_quality_assessment.md` is read-only (SCOPE-09). |
 | `pinn_instruction/markdown_conversion/framework-specs/integrity-r1/` | Integrity-r1 package (Phase 26 — pass-through consistency check artifacts). |
 | `pinn_instruction/markdown_conversion/framework-specs/trainex-r1/` | Training-execution research package (trainex track, round 1). |
 | `reference-code/` | Reference implementations of N-body integrators, Lyapunov analysis, and other baselines used during framework development. |
 | `tools/spec-render-check/` | Framework-spec render detector suite (added in v1.4 Phase 22). Catches rendering regressions in the markdown specs. |
-| `paper_templates/` | LaTeX/typst templates for documentation or papers. |
+| `paper_templates/` | LaTeX templates for documentation or papers (`mdpi_template/`; no Typst assets). |
 | `docs/runbooks/` | Operational procedures (migration, external research, EDL). |
 | `docs/work/plans/`, `docs/work/reviews/`, `docs/work/designs/` | Lifecycle-managed GSD work artifacts (see `docs/README.md`). |
 | `.planning/` | GSD planning artifacts: `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, milestone-specific phases, gap registers. |
 | `.planning/research/edl/` | Non-canonical Empirical Decision Loop research-support briefs for source-silent gaps. |
 | `.claude/rules/` | Path-scoped Claude Code rules (`repo-map.md`, `pinn-reference.md`, `docs-conventions.md`, etc.). |
 | `scripts/` | Repo-local scripts (e.g., `agent-commit`, `setup-git-hooks.sh`) used by the agent workflow. |
-| `tests/` | Repository-level tests for tooling (e.g., phase 12 validation). The FO-1 durability test for the gold-missing rerun lives at `simulation_data/Scripts/brutus_runners/`. |
+| `tests/` | Repository-level pytest suite (`tests/phase37`–`phase43`, `tests/git_policy`, `tests/watchdog`, …) covering the v2.0 trainex build and governance tooling. The FO-1 durability test for the gold-missing rerun lives at `simulation_data/Scripts/brutus_runners/`. |
 
 ## Notes on governance and grounding
 
-- **STOP protocol active**: source-silent semantic / process-schema / cross-phase decisions are surfaced as gaps, never invented. Phase-local `NN-GAPS.md` files plus the current milestone-wide index at `.planning/milestones/v1.6-GAPS.md` (created on the first v1.6 gap; the v1.4/v1.5 indexes are archived) are authoritative.
+- **STOP protocol active**: source-silent semantic / process-schema / cross-phase decisions are surfaced as gaps, never invented. Phase-local `NN-GAPS.md` files plus the current milestone-wide index at `.planning/milestones/v2.0-GAPS.md` (the v1.4/v1.5/v1.6 indexes are archived) are authoritative.
 - **`pinn/` live-code ban**: code under `pinn/` is NOT a grounding source for v1.4/v1.5/v1.6 spec decisions; forward-pointing hand-off documents (`NN-CODE-DIVERGENCE.md`, eventual `pinn/STATUS.md`) are the only permitted references.
 - **`sampling_method.md` is FROZEN** (SCOPE-08): read-only as the historical record of how the existing dataset was produced.
 - **`data_quality_assessment.md` is read-only** (SCOPE-09): a research report, not an authoritative spec.
 - **Spec-edit targets**: `ctl_instruction.md` and `pinn_architecture.md` ONLY.
-- **Current milestone state**: v1.5 (Phases 23–29) **shipped 2026-06-17** (`milestone/v1.5` → `master` `--no-ff` merge `fe9b3c92`; archived under `.planning/milestones/v1.5-*`). **v1.6 ("Resolving 03 Curriculum and Training Loop", Phases 30–36) is in progress** on `milestone/v1.6` — Phases 30–31 complete, Phase 32 (evidence framework + conflict adjudication) next; specwork-only (edits `ctl_instruction.md` / `pinn_architecture.md` only). FUT-01 consumes the v1.5 two-artifact handoff (`29-HANDOFF.md` + `29-CODE-DIVERGENCE.md`).
+- **Current milestone state**: v1.5 (Phases 23–29) shipped 2026-06-17 and v1.6 ("Resolving 03 Curriculum and Training Loop", Phases 30–36) shipped 2026-07-02 (`--no-ff` merges to `master`: `fe9b3c92`, `94a77960`; archived under `.planning/milestones/v1.5-*` / `v1.6-*`). The active milestone is **v2.0 "CTL-PINN Training Viability Slice"** — the project's first *build* milestone (trainex track) on `milestone/v2.0`, Phases 37–43; see `.planning/STATE.md` for the live phase position (Phase 43, verification-stage-0-pilot-acceptance, at the time of writing). v2.0 executes FUT-01 (`pinn/` rebuild from specs) and the Stage-0 scope of FUT-04 (training loop); the `pinn/` live-code ban is lifted for v2.0. See `.planning/ROADMAP.md` and `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md`.

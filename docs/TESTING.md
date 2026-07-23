@@ -4,21 +4,40 @@
 
 This document describes how the project's adjudication milestones are tested, verified, and
 closed, using the **v1.5 ("Resolving 02 Data Pipeline and Validation")** acceptance suite as
-the worked example — the most recent *completed* acceptance work (v1.5 shipped 2026-06-17).
+the worked example (v1.5 shipped 2026-06-17; v1.6 shipped 2026-07-02 on the same pattern).
 It is the project-side view of the v1.5 acceptance and issue-ledger machinery landed across
-Phases 25-29, not a generic software-testing guide.
+Phases 25-29, not a generic software-testing guide. For the current v2.0 build milestone's
+test surface, see "Current test surface (v2.0)" below.
 
-> **Current milestone (v1.6 "Resolving 03 Curriculum and Training Loop", Phases 30-36, in
-> progress).** v1.6 follows the same disposable-probe / issue-ledger / closure-gate pattern
-> documented here. Its acceptance checks (VER-13..18) are **executed in Phase 36, which has
-> not yet run**; the v1.6 issue ledger lives under the Phase 32 (evidence-framework)
-> directory. Until Phase 36 lands, the v1.5 suite below is the canonical example of the
-> testing discipline.
+> **Status.** v1.5 (documented below) shipped 2026-06-17 and is retained here as the worked
+> example. **v1.6 shipped 2026-07-02** ("Resolving 03 Curriculum and Training Loop",
+> Phases 30-36): Phase 36 completed with **26/26 acceptance probes PASS** and the issue
+> ledger **18/18 VERIFIED** (see `.planning/milestones/v1.6-phases/36-.../36-VERIFICATION.md`).
+> The active milestone is **v2.0 "CTL-PINN Training Viability Slice"** (Phases 37-43), a
+> *build* milestone with a different test surface — see "Current test surface (v2.0)" below.
 
 The adjudication-milestone contract is **spec-side**: production DataLoader, TrajectoryValidator,
 and training code are out of scope (FUT-01 implements them). The acceptance surface therefore
 tests the **framework specs** and the **canonical dataset** with disposable probes, never the
 live `pinn/` code (SCOPE-10).
+
+## Current test surface (v2.0)
+
+The rest of this document is the **v1.5 adjudication-milestone worked example**. The active
+v2.0 "CTL-PINN Training Viability Slice" is a *build* milestone, so its live test surface is
+different:
+
+- **`pytest` suite** under `tests/` — `tests/phase37`–`phase43`, plus `tests/git_policy`
+  and `tests/watchdog`. This is the primary automated test surface for the trainex build
+  (run with `pytest tests/`).
+- **`tools/spec-render-check/`** — the framework-spec render-detector suite (v1.4 Phase 22).
+- **Stage-0 pilot acceptance** — Phase 43 (`verification-stage-0-pilot-acceptance`) runs the
+  end-to-end Stage-0 training slice and records a go/adjust/rethink verdict. The operator
+  procedure is `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md`; the
+  phase plan is in `.planning/ROADMAP.md`.
+
+The v1.5 acceptance-suite machinery below (disposable probes, issue ledger, G1-G8 gate) is
+retained as the reference example of how an adjudication milestone is verified and closed.
 
 ## Test layers
 
@@ -31,8 +50,9 @@ and its own place in the AC-PIPE-* / AC-VAL-* taxonomy.
 | Validation metric | Step-1A conservation gate (SCS) and the SASD / IPR / PSC data-side quality-metric clauses | Grep over `ctl_instruction.md` for the landed metric clause + EPS/D-01/dual-epsilon/grid/dedup/`1/N_t` markers | AC-VAL-01 ... AC-VAL-04 |
 | Issue ledger | Status transitions of every in-scope finding row, plus the milestone-closure gate (G1-G8) | Python enumeration of the ledger Status Table; `run-ac-suite.sh` exit code; non-terminal count = 0 | VER-07, VER-08, VER-09, VER-11, VER-12 |
 
-Probes are checked in under `.planning/phases/<NN-...>/ac-*.sh`, `ac-*.py`, and
-`run-ac-suite.sh`. They are disposable: a probe re-run produces a fresh pass/fail line.
+The v1.5 probes are archived under `.planning/milestones/v1.5-phases/<NN-...>/ac-*.sh`,
+`ac-*.py`, and `run-ac-suite.sh` (the live `.planning/phases/` tree now holds only the
+v2.0 phases 37-43). They are disposable: a probe re-run produces a fresh pass/fail line.
 The Phase-29 driver script `run-ac-suite.sh` re-runs the full 13-check suite and exits
 0 on success.
 
@@ -44,9 +64,9 @@ have a resolving Phase column.
 
 | AC | Resolves | What it asserts (numeric / structural) | Source evidence |
 |---|---|---|---|
-| AC-PIPE-01 | B-06 / G1 | Step-1A admission gate landed in `ctl_instruction.md` | `ctl_instruction.md:452` |
+| AC-PIPE-01 | B-06 / G1 | Step-1A admission gate landed in `ctl_instruction.md` | `ctl_instruction.md`, Step 1A admission gate |
 | AC-PIPE-02 | B-11 / G2 | `id_to_path` non-contiguous-ID contract landed | `ctl_instruction.md` Step-1 ID-resolution |
-| AC-PIPE-03 | M11 / G3 | Blacklist-exclusion contract landed (fail-closed; `physical_key` semantics) | `ctl_instruction.md:518-560` |
+| AC-PIPE-03 | M11 / G3 | Blacklist-exclusion contract landed (fail-closed; `physical_key` semantics) | `ctl_instruction.md`, blacklist-exclusion contract |
 | AC-PIPE-04 | M12 / G5 | `n_pts = min(n_pts_cap, n_snapshots)` rule landed; AC-PIPE-08 stage-query re-run is part of this family line | Phase 27 probe `ac-pipe-04.sh` |
 | AC-PIPE-05 | M13 / G4 | 184 standard IDs without gold counterpart - fallback policy landed; dataset probe returns 184/184 with 0 promoted under D-01 | `ac-pipe-05.py` (set-difference; no hard-coded counts) |
 | AC-PIPE-06 | D7 | Footer / parameter-provenance contract landed | `ctl_instruction.md` |
@@ -54,10 +74,10 @@ have a resolving Phase column.
 | AC-PIPE-08 | (no standalone row) | Stage-query contract landed - executed as part of AC-PIPE-04 family line | Phase 27 probe `ac-pipe-08.sh` |
 | AC-PIPE-09 | D=6.694 | `compute_globals` raw-mass `D ≈ 4.6416`; the `6.694` value is rejected by name | `ac-pipe-09.sh` (Phase 27) |
 | AC-PIPE-10 | D-03 | Processed training-data format (HDF5 canonical) | `ac-pipe-10.sh` |
-| AC-VAL-01 | SCS | Step-1A conservation gate landed: `eps_H = max_t |(H(t)-H(0))/H(0)|`, `SCS = log10(eps_H)`, reject if `SCS > -5` | `ctl_instruction.md:474-498` |
-| AC-VAL-02 | SASD | SASD clause landed with both-endpoint convention and `dt * ||a|| / ||v||` formula | `ctl_instruction.md:578-608` |
-| AC-VAL-03 | IPR | IPR clause landed with `CubicHermiteSpline` (not `Pchip`), raw `G = 1` units, dual-epsilon consistency | `ctl_instruction.md:610-643` |
-| AC-VAL-04 | PSC | PSC clause landed (Shannon entropy, dedup-prefer-gold, `1/N_t` composition); numeric axis is DEFERRED to FUT-01 FO-2 | `ctl_instruction.md:645-692` |
+| AC-VAL-01 | SCS | Step-1A conservation gate landed: `eps_H = max_t |(H(t)-H(0))/H(0)|`, `SCS = log10(eps_H)`, reject if `SCS > -5` | `ctl_instruction.md`, Step 1A clause 5 (SCS gate) |
+| AC-VAL-02 | SASD | SASD clause landed with both-endpoint convention and `dt * ||a|| / ||v||` formula | `ctl_instruction.md`, SASD contract |
+| AC-VAL-03 | IPR | IPR clause landed with `CubicHermiteSpline` (not `Pchip`), raw `G = 1` units, dual-epsilon consistency | `ctl_instruction.md`, IPR contract |
+| AC-VAL-04 | PSC | PSC clause landed (Shannon entropy, dedup-prefer-gold, `1/N_t` composition); numeric axis is DEFERRED to FUT-01 FO-2 | `ctl_instruction.md`, PSC contract |
 
 AC-PIPE-08 has no standalone ledger row; it is re-run inside the AC-PIPE-04 / G5 family
 line and noted under G5 (matching the `29-UAT.md` table shape). AC-VAL-04 is a two-axis
@@ -103,7 +123,7 @@ is not changed by the training symbol.
 The issue-02 ratio thresholds are rejected by name, not transcribed: `1e-6` is the
 Acceptable/Marginal band boundary (`SCS = -6`) mis-promoted to a reject gate, and
 `1e-8` is an unsourced tightening proposal with no package basis. Adjudication record:
-`.planning/phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
+`.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md`.
 
 ### SASD - Stiffness-Aware Sampling Density (VAL-02; flag, not reject)
 
@@ -208,12 +228,15 @@ duplication and is **not** a deliverable.
 
 ## Running the v1.5 acceptance suite
 
-The Phase-29 driver script re-runs the entire 13-check suite as fresh disposable probes
-and emits one result line per check. Probes test the specs and the dataset - they
-never touch `pinn/` production code (SCOPE-10 / VER-09).
+The Phase-29 driver script (archived under `.planning/milestones/v1.5-phases/29-.../`)
+re-runs the entire 13-check suite as fresh disposable probes and emits one result line
+per check. Probes test the specs and the dataset - they never touch `pinn/` production
+code (SCOPE-10 / VER-09). **Note:** the archived `run-ac-suite.sh` still embeds the
+pre-archive `.planning/phases/29-...` / `27-...` paths internally, so it fails as-written
+after the v1.5 archive move; it is preserved as a historical record, not a runnable suite.
 
 ```bash
-bash .planning/phases/29-acceptance-checks-re-verification-and-handoff/run-ac-suite.sh
+bash .planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/run-ac-suite.sh
 ```
 
 Expected outcome (v1.5 closure):
@@ -240,20 +263,20 @@ Exit code 0 is required for closure. The driver invokes each per-check probe
 (`ac-pipe-01.sh` ... `ac-pipe-10.sh`, `ac-val-01.sh` ... `ac-val-04.sh`,
 `ac-pipe-05.py`) from inside the phase directory; the three already-persisted
 Phase-27 probes (`ac-pipe-04.sh`, `ac-pipe-08.sh`, `ac-pipe-09.sh`) are re-run in
-place from `.planning/phases/27-sampling-precision-and-global-scale-contracts/`.
+place from `.planning/milestones/v1.5-phases/27-sampling-precision-and-global-scale-contracts/`.
 
 Individual probes are also runnable directly, e.g.:
 
 ```bash
 # Dataset set-difference probe (count derived from parsed sets, never hard-coded)
-python3 .planning/phases/29-acceptance-checks-re-verification-and-handoff/ac-pipe-05.py
+python3 .planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/ac-pipe-05.py
 # -> AC-PIPE-05 PASS 184/184  (base=2749 gold=2565 not_in_gold=184 promoted=0)
 
 # A spec-consistency probe
-bash .planning/phases/29-acceptance-checks-re-verification-and-handoff/ac-pipe-01.sh
+bash .planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/ac-pipe-01.sh
 
 # The two-axis PSC probe
-bash .planning/phases/29-acceptance-checks-re-verification-and-handoff/ac-val-04.sh
+bash .planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/ac-val-04.sh
 # structural PASS, numeric DEFERRED
 ```
 
@@ -263,8 +286,8 @@ A core acceptance rule (VER-09 / SCOPE-10): probes test the specs and the datase
 they never touch `pinn/` production code. To confirm:
 
 ```bash
-grep -lE 'pinn/' .planning/phases/29-acceptance-checks-re-verification-and-handoff/ac-*.sh \
-                 .planning/phases/29-acceptance-checks-re-verification-and-handoff/ac-*.py
+grep -lE 'pinn/' .planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/ac-*.sh \
+                 .planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/ac-*.py
 # expected: empty (exit 1)
 ```
 
@@ -333,8 +356,8 @@ recorded by `ac-pipe-05.py` reflects the *pre-promotion* set-difference state
 (`base - gold = 184`); the gold output folder stays at 2,565 records. The 117
 validated reruns are preserved on disk (staging area + manifest entries) but not
 promoted; the rerun scripts (`simulation_data/Scripts/brutus_runners/rerun_standard_gold_missing_184.py`
-and its test) remain untracked and are flagged as a "do NOW" interim FO-1 durability
-item to prevent silent loss before the FUT-01 gate.
+and its test) are now **tracked** in git (the earlier "do NOW" FO-1 durability item is
+discharged), so the silent-loss risk they guarded against before the FUT-01 gate is closed.
 
 Phase 29 reconciles only the **planning/governance/ledger** layer to the
 117/67/0-promoted fact. The stale records (the 184-IDs file, the AC-PIPE-05
@@ -448,25 +471,26 @@ standalone CI job. The verification chain is:
   data-generation instruction (SCOPE-08); read-only as historical record
 - `pinn_instruction/markdown_conversion/framework-revisions/data_quality_assessment.md` -
   read-only research report (SCOPE-09); the SI-DQA-002 / SI-DQA-003 home file
-- `.planning/REQUIREMENTS.md` - VER-* / AC-* / VAL-* requirements (Coverage block
-  at lines 147-157 confirms 36/36 traceability)
-- `.planning/ROADMAP.md` - phase distribution (4+7+0+6+6+4+4+5 = 36); Phase 29
-  covers VER-07/08/09/11/12
-- `.planning/phases/24-empirical-dataset-verification-and-correction-addendum/24-ISSUE-LEDGER.md` -
+- `.planning/milestones/v1.5-REQUIREMENTS.md` - VER-* / AC-* / VAL-* requirements
+  (archived v1.5 ledger; confirms 36/36 traceability). The live `.planning/REQUIREMENTS.md`
+  is now the v2.0 ledger.
+- `.planning/milestones/v1.5-ROADMAP.md` - v1.5 phase distribution (= 36); Phase 29
+  covers VER-07/08/09/11/12. The live `.planning/ROADMAP.md` is now the v2.0 roadmap.
+- `.planning/milestones/v1.5-phases/24-empirical-dataset-verification-and-correction-addendum/24-ISSUE-LEDGER.md` -
   v1.5 issue ledger (19 rows: 18 VERIFIED + 1 DEFERRED at v1.5 closure)
-- `.planning/phases/29-acceptance-checks-re-verification-and-handoff/29-SPEC.md` -
+- `.planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/29-SPEC.md` -
   Phase 29 specification
-- `.planning/phases/29-acceptance-checks-re-verification-and-handoff/29-UAT.md` -
+- `.planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/29-UAT.md` -
   Phase 29 UAT summary
-- `.planning/phases/29-acceptance-checks-re-verification-and-handoff/29-VERIFICATION.md` -
+- `.planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/29-VERIFICATION.md` -
   Phase 29 verification report (gate G1-G8 results)
-- `.planning/phases/29-acceptance-checks-re-verification-and-handoff/29-HANDOFF.md` -
+- `.planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/29-HANDOFF.md` -
   v1.5 milestone handoff (Fixed / Intentionally Unchanged / Deferred / SI table /
   G1-G8)
-- `.planning/phases/29-acceptance-checks-re-verification-and-handoff/29-CODE-DIVERGENCE.md` -
+- `.planning/milestones/v1.5-phases/29-acceptance-checks-re-verification-and-handoff/29-CODE-DIVERGENCE.md` -
   FUT-01 forward obligations FO-1 (gold promotion + 184 -> 67 cascade) and FO-2
   (PSC numeric calibration + AC-VAL-04 numeric run)
 - `.planning/milestones/v1.5-GAPS.md` - milestone-wide gap index
-- `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/` - per-metric
+- `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/` - per-metric
   evidence packets (`sasd-sampling-density.md`, `ipr-physics-residual.md`,
   `psc-coverage-entropy.md`, `scs-thresholds.md`)

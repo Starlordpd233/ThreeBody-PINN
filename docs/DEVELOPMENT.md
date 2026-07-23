@@ -11,7 +11,9 @@ governance section in `AGENTS.md`.
 The repository is not a typical web-service project. There is no top-level
 `package.json`, `Makefile`, or package manager. The "build" is the Brutus C++
 integrator (its own `makefile` lives in `brutus_Newton-main/`). The "tests" are
-the GSD phase verification artifacts and the Brutus CLI runs. Almost all
+a real `pytest` suite under `tests/` (`tests/phase37`–`phase43`, `tests/git_policy`,
+`tests/watchdog`, …), the GSD phase verification artifacts, and the Brutus CLI
+runs. Almost all
 developer actions are governed by a small set of scripts, hooks, and planning
 artifacts under `.planning/`. This file is the entry point for that workflow.
 
@@ -22,7 +24,8 @@ proceeds safely.
 
 1. **Working tree state.** Run `git status --short --branch` and confirm the
    branch and ahead/behind state. The current development branch is
-   `milestone/v1.6` (in an isolated worktree); protected branches `master`, `main`, and `milestone/*`
+   `milestone/v2.0` (the trainex worktree; a sibling `.worktrees/specwork` holds
+   `milestone/v1.6`); protected branches `master`, `main`, and `milestone/*`
    must not be pushed from directly.
 2. **Hooks path.** Run `scripts/setup-git-hooks.sh` once after cloning so that
    `git config --get core.hooksPath` returns `.githooks`. Hooks enforce
@@ -39,7 +42,7 @@ proceeds safely.
    user-owned unless you created them in the current task. Surface them in
    your session-start report and never fold them into your own commits.
 
-The dataset under `simulation_data/` is large and gitignored. Restore it from
+The bulky dataset **payloads** under `simulation_data/Data/` and `simulation_data/Validation/prescreening/prescreening_data/` are gitignored (the `Scripts/`, `Documentation/`, and directory structure stay tracked). Restore the payloads from
 the workstation backup per `docs/runbooks/migration/exact-state-mac-migration.md`
 if you are on a new machine; otherwise, expect the Python pipeline to discover
 the expected directory layout but no payload.
@@ -52,13 +55,13 @@ There is no central `scripts` block. Commands group by subsystem.
 |---|---|
 | `git status --short --branch` | Surface branch and working-tree state; mandatory at session start and before any commit. |
 | `scripts/setup-git-hooks.sh` | One-time install of `.githooks/` paths. Run after cloning. |
-| `scripts/agent-commit` | The only commit entry point agents may use. Wraps `git commit` with owned-path, attribution, and lock checks. Raw `git commit` is blocked by lifecycle hooks. |
+| `scripts/agent-commit` | The only commit entry point agents may use. Wraps `git commit` with owned-path, attribution, and lock checks. The lifecycle hooks enforce message format, owned paths, push, and destructive-op guards; a raw agent `git commit` is blocked primarily by the agent git-command guard (`guard_agent_git_command.py`), not a universal hook ban. |
 | `brutus_Newton-main/makefile` (`make`) | Builds the C++ arbitrary-precision N-body integrator. The integrator is the ground-truth engine; every Brutus runner script depends on the built binary. |
 | `python simulation_data/Scripts/ic_generation/generate_ics.py` | Generates initial conditions (ICs) for the dataset. |
 | `python simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py` | Runs the Stage 2 prescreening pass. |
 | `python simulation_data/Scripts/brutus_runners/run_brutus_both_type_simple.py` | Standard Brutus batch runner (hierarchical + flat). |
 | `python simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_gold_standard.py` | Gold-standard hierarchical runner. |
-| `python simulation_data/Scripts/metrics_calculation/calculate_metrics.py` | Computes validation metrics (SCS, SASD, IPR, PSC) over simulated trajectories. |
+| `python simulation_data/Scripts/metrics_calculation/calculate_metrics.py` | Computes conservation/quality metrics (energy, momentum, angular-momentum drift; separation; escape/collision flags). It does **not** compute SCS/SASD/IPR/PSC — those are validation-metric *contracts* defined in the framework specs, not in this script. |
 
 ## Code Style
 
@@ -94,22 +97,22 @@ runner. Code style is enforced by:
 
 The branch model is:
 
-- **`master`** is the integration trunk. v1.0–v1.5 are merged here. Direct
-  push to `master` is blocked by `pre-push` and is never the path a
-  developer takes.
+- **`master`** is the integration trunk. v1.0–v1.6 are merged here (v1.6 via
+  `--no-ff` merge `94a77960`). Direct push to `master` is blocked by
+  `pre-push` and is never the path a developer takes.
 - **`milestone/vN.N`** is the local integration branch for a milestone
-  (current: `milestone/v1.6`, in an isolated worktree). v1.6 was cut from the
-  v1.5 deliverable tip `88aa1e4f` and rebased onto the completed `master`
-  after v1.5 shipped. All v1.6 work lives here. The `pre-push` hook blocks
-  direct pushes from any `milestone/*` branch.
+  (current: `milestone/v2.0`, in the trainex worktree; `milestone/v1.6` lives
+  in the sibling `.worktrees/specwork`). Planning artifacts for a milestone are
+  committed on `master`; build/spec work happens on its milestone branch. The
+  `pre-push` hook blocks direct pushes from any `milestone/*` branch.
 - **Feature / review branches** carry work between agents and toward
   publication. PRs are opened from these branches, not from the milestone
   branch.
 
-Tagging convention: a `v1.6-pre-phase-NN` tag is cut from `milestone/v1.6`
+Tagging convention: a `vN.N-pre-phase-NN` tag is cut from the milestone branch
 before each phase starts, so a phase's work can be retrieved in isolation.
-The milestone closes with a `--no-ff` merge of `milestone/v1.6` into
-`master` (user-owned final step).
+The milestone closes with a `--no-ff` merge of the milestone branch into
+`master` (user-owned final step; e.g. `fe9b3c92` for v1.5, `94a77960` for v1.6).
 
 Red-flag branches `backup/*`, `recovery/*`, `wip/*`, `experiment/*`, and
 `tmp/*` are pause-and-ask territory: do not commit, push, or do destructive
@@ -117,16 +120,18 @@ work on them without first confirming with the user.
 
 ## PR Process
 
-The repository does not currently host a `.github/PULL_REQUEST_TEMPLATE.md`.
-The PR process is therefore governed by the project's own git policy
-(`docs/git-guidelines.md`) plus the `CONTRIBUTING.md` guide. The summary:
+The repository does not currently host a `.github/PULL_REQUEST_TEMPLATE.md`
+or a root `CONTRIBUTING.md`. The PR process is therefore governed by the
+project's own git policy (`docs/git-guidelines.md`) and the governance section
+in `AGENTS.md`. The summary:
 
 1. **Surface git state first.** `git status --short --branch`, then
    `git diff --cached`, then any unstaged diffs for files you touched. Treat
    anything not created in this session as user-owned.
-2. **Work on the right branch.** If the change is a v1.6 spec edit, you
-   are on `milestone/v1.6`. If the change is documentation or runbook, you
-   are on a feature branch off the milestone branch.
+2. **Work on the right branch.** Build work is on `milestone/v2.0` (trainex);
+   a spec adjudication would be on its milestone branch (e.g. `milestone/v1.6`
+   in `.worktrees/specwork`). Documentation or runbook changes go on a feature
+   branch off the milestone branch.
 3. **Run the verification gate that matches the change.** For a spec edit,
    the relevant Phase verification plan (the phase's `NN-VERIFICATION.md`). For a
    Brutus change, the C++ build + the relevant Brutus runner. For a docs
@@ -150,16 +155,17 @@ Key artifacts:
 
 - `.planning/PROJECT.md` — project identity, core value, and key decisions.
 - `.planning/REQUIREMENTS.md` — the current-milestone requirements ledger
-  (v1.6: 32 entries across PKG/EVID/CURR/LOOP/LOSS/VER; v1.5's 36-entry
-  ledger is archived at `.planning/milestones/v1.5-REQUIREMENTS.md`).
+  (v2.0: 42 entries across ENV/NET/DATA/TRAIN/CTRL/OPS/ACC; the v1.6 32-entry
+  and v1.5 36-entry ledgers are archived under `.planning/milestones/`).
 - `.planning/ROADMAP.md` — milestone and phase plan.
 - `.planning/STATE.md` — current position. **Manually advanced** after
   each phase; the three GSD query tools disagree on `current_phase`, so
   verify phase directories on disk rather than trust any single tool.
-- `.planning/milestones/v1.6-GAPS.md` — milestone-wide gap index for the
-  current milestone (created on the first v1.6 gap; none arose in Phases
-  30–31). The v1.5 index (`v1.5-GAPS.md`, ten gaps all
-  RESOLVED-WITH-INSTRUCTION) is archived.
+- `.planning/milestones/v2.0-GAPS.md` — milestone-wide gap index for the
+  current milestone. The v1.5 and v1.6 indexes (`v1.5-GAPS.md`,
+  `v1.6-GAPS.md`) are archived; the v1.5 index enumerates eleven unique IDs
+  (GAP-23-01 … GAP-29-01, all RESOLVED-WITH-INSTRUCTION), though its
+  frontmatter `total_gaps: 10` undercounts by one.
 - `.planning/research/edl/` — non-canonical Empirical Decision Loop
   research-support briefs for empirically consequential source-silent
   gaps. The phase-local gap register remains the authoritative blocking
@@ -171,10 +177,11 @@ in this repository.
 
 ## STOP Protocol and the Gap Register
 
-This is a "similar adjudication milestone" repository (v1.4, v1.5, and v1.6 per
-`AGENTS.md` governance). Spec work, adjudication, and cross-phase
-reframing are governed by the STOP protocol. A decision is "grounded" only
-if it is explicitly answered by one of:
+This repository ran a series of "adjudication milestones" (v1.4, v1.5, v1.6 per
+`AGENTS.md` governance), now all shipped; the active v2.0 is a **build**
+milestone. Spec work, adjudication, and cross-phase reframing are governed by
+the STOP protocol. A decision is "grounded" only if it is explicitly answered
+by one of:
 
 - A resolution doc under
   `pinn_instruction/markdown_conversion/framework-revisions/research_reports/`
@@ -211,8 +218,8 @@ When a gap is detected:
    grounding, what the agent was tempted to decide, what the user needs
    to decide (concrete A/B/C options), confidence of impact, status
    `OPEN`, and a resolution note.
-4. **Update the milestone-wide index** at
-   `.planning/milestones/v1.6-GAPS.md`.
+4. **Update the milestone-wide index** under `.planning/milestones/`
+   (currently `.planning/milestones/v2.0-GAPS.md`).
 5. **Surface to the user** via the active workflow channel. Halted work
    stays halted until the user provides instruction. Update status to
    `RESOLVED-WITH-INSTRUCTION` (or `DEFERRED`) when instruction arrives.
@@ -233,7 +240,9 @@ Development splits into two user-defined tracks (per
   frozen, read-only, or characterized-not-edited.
 - **trainex** — the training-execution / reality-pipeline development:
   the user runbook, the PH-1..PH-10 research placeholders, and the
-  future build of the training pipeline + PINN code (FUT-01 / FUT-04).
+  build of the training pipeline + PINN code (FUT-01 / FUT-04). **v2.0
+  (CTL-PINN Training Viability Slice) is the active trainex build milestone**,
+  executing FUT-01 (`pinn/` rebuild) and the Stage-0 scope of FUT-04.
   Reference design at
   `docs/work/designs/cross_cutting/training-execution/2026-06-10-training-execution-design.md`.
   Research packages for trainex decisions live at
@@ -289,11 +298,13 @@ Two channels with different report standing:
 
 ## Phase Verification Discipline
 
-Every v1.6 adjudication phase (Phases 32-36) follows the same loop:
+Each v1.6 adjudication phase (Phases 32-36, now shipped) followed the same loop:
 **adjudicate -> fix -> verify -> re-verify after every batch -> close
-only when the acceptance check passes**. The issue ledger lives at a
+only when the acceptance check passes**. The issue ledger lived at a
 stable path under the Phase 32 (evidence-framework) directory, stood up
-and operated through the protocol established in Phase 32.
+and operated through the protocol established in Phase 32. (v2.0 build phases
+use a `pytest` acceptance suite and the Stage-0 pilot verdict instead — see
+`docs/TESTING.md` and `.planning/ROADMAP.md`.)
 
 Evidence-packet rules (EVID-11): Phase 32 authors the evidence packets
 and verdicts for the headline conflicts (D-04 causal mode, D-05 s_min
@@ -373,5 +384,5 @@ claim is re-derivable.
 - External research packaging: `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`.
 - Git policy in full: `docs/git-guidelines.md`.
 - Phase gap registers: `.planning/phases/NN-*/NN-GAPS.md`; current
-  milestone index: `.planning/milestones/v1.6-GAPS.md`.
+  milestone index: `.planning/milestones/v2.0-GAPS.md`.
 - New Mac migration restore: `docs/runbooks/migration/exact-state-mac-migration.md`.

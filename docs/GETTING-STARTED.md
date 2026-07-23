@@ -83,7 +83,7 @@ export IC_RAW_DIR=/path/to/ic_raw
 # Stage 1: IC generation (writes into $IC_RAW_DIR/ic_hierarchical/ or $IC_RAW_DIR/ic_standard_quasi_random/)
 python3 simulation_data/Scripts/ic_generation/generate_ics.py
 
-# Stage 2: prescreening (filters unstable ICs; copies passed ICs to simulation_data/Data/ic_final/ and writes prescreening_data/)
+# Stage 2: prescreening (filters unstable ICs; copies passed ICs to simulation_data/Data/ic_final/ and writes processing-index JSON under simulation_data/Validation/prescreening/)
 python3 simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py
 
 # Stage 3: Brutus integration via the compiled binary
@@ -96,9 +96,9 @@ python3 simulation_data/Scripts/brutus_runners/run_brutus_hierarchical_only_mac_
 python3 simulation_data/Scripts/metrics_calculation/calculate_metrics.py
 ```
 
-`run_brutus_both_type_simple.py` exposes `HIERARCHICAL_ICS_PER_RUN=10` and `STANDARD_ICS_PER_RUN=0` by default and enforces a 3000-second per-simulation timeout. The gold-standard hierarchical runner exposes `ICS_PER_RUN=1000`. The `run_brutus_standard_quasi_random_gold_standard/` outputs were generated partly from prior pipeline versions and have no in-repo runner that natively reproduces them.
+`run_brutus_both_type_simple.py` exposes `HIERARCHICAL_ICS_PER_RUN=10` and `STANDARD_ICS_PER_RUN=0` by default and enforces a 3000-second per-simulation timeout. The gold-standard hierarchical runner exposes `ICS_PER_RUN=1000`. The `brutus_standard_quasi_random_gold_standard/` outputs (under `Data/brutus_output/`) were generated partly from prior pipeline versions and have no in-repo runner that natively reproduces them.
 
-The README §"Script Status Matrix" notes that `pinn/data-processing-pipeline-full.py` (Stage 5) is **Known-Broken** at the import level on its current form: it needs a `sys.path` edit or to be run as `python3 -m pinn.data-processing-pipeline-full`. The `simulation_data/Validation/dataset_readiness_checks/` validation scripts are also **Known-Broken** with a `ValidationConfig` NameError; rely on Stage 4 `brutus_metrics` instead.
+The README §"Script Status Matrix" notes that the legacy `pinn/data-processing-pipeline-full.py` monofile (Stage 5) is import-broken in its current form: it needs the repo root added to `sys.path` before importing. (Its hyphenated filename is not a valid Python module name, so `python3 -m pinn.data-processing-pipeline-full` does **not** work.) The `simulation_data/Validation/dataset_readiness_checks/` validation scripts are marked **unverified**: their old `ValidationConfig` NameError etiology is stale (the class is defined and imported in the package sources). Rely on the Stage 4 metrics scripts (`calculate_metrics.py` / `calculate_brutus_metrics.py`) meanwhile.
 
 ## Common setup issues
 
@@ -114,13 +114,14 @@ These are the issues that bite a fresh setup most often. The first three are the
 | `make` fails with `mpreal.h: No such file` | `mpreal` headers are not at the hard-coded path | Clone or copy the `mpreal` library to `~/src/mpreal`, or edit `MPRLIB` in the `makefile`. |
 | `IC_RAW_DIR` not set | Required env var for Stage 1 and Stage 2 scripts | `export IC_RAW_DIR=/path/to/ic_raw` with subdirs `ic_hierarchical/` and `ic_standard_quasi_random/`. The script raises `RuntimeError` at startup if this is missing. |
 | Brutus runner reports "executable not found" | `brutus_Newton-main/brutus` was not built, or the runner is invoked from a different working directory | Run `make clean && make` in `brutus_Newton-main/` before invoking the runner. |
-| Final Brutus timestamp `< 9.5` | The simulation timed out or failed to converge | Increase `TIMEOUT_SECONDS` (default 3000), check `simulation_data/Documentation/problematic_ics_blacklist.json`, and treat the file as scientifically invalid even if the return code was zero. Do not rely on the optional `Result:` footer. |
-| `pinn/data-processing-pipeline-full.py` import errors | Internal module cross-references fail under the default invocation | Run as `python3 -m pinn.data-processing-pipeline-full` after editing `sys.path` to the repo root, or apply the README's documented workaround. |
+| Final Brutus timestamp `< 9.5` | The simulation timed out or failed to converge | Increase `TIMEOUT_SECONDS` (default 3000), check `simulation_data/Documentation/problematic_ics_blacklist.json` (gitignored; present only after restore), and treat the file as scientifically invalid even if the return code was zero. Do not rely on the optional `Result:` footer. |
+| `pinn/data-processing-pipeline-full.py` import errors | Internal `from core...` / `from processing...` cross-references fail under the default invocation | Add the repo root to `sys.path` before importing (the hyphenated filename is not a valid Python module, so `python3 -m pinn.data-processing-pipeline-full` does not work). |
 | Hierarchical COM drift | Hierarchical ICs enforce `~0` total momentum then perturb with `sigma=0.01` noise, so COM drifts slightly | Re-center manually before translationally-invariant training; this is a data property, not a bug. |
 
 ## Next steps
 
 - For a new contributor: `docs/ARCHITECTURE.md` for the layered pipeline and component diagram; `docs/CONFIGURATION.md` for environment variables, Brutus build flags, and pipeline stage configuration; the framework specs at `pinn_instruction/markdown_conversion/framework-specs/` for the authoritative methodology.
+- For running the v2.0 CTL-PINN training slice (trainex track): the Stage-0 training operator runbook `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md`, and `.planning/ROADMAP.md` for the v2.0 phase plan. The rebuilt training code lives under `pinn/` (`train.py`, `network.py`, `evaluate.py`, `loss_catalog.py`).
 - For a fresh workstation migration: `docs/runbooks/migration/exact-state-mac-migration.md` is the canonical runbook. Do not improvise — the runbook includes exact-state verification gates (B4, B5) that detect restore drift before it can pollute later work.
 - For dataset conventions and the `Result:` footer parsing rules: `simulation_data/Documentation/README.md` and `.claude/rules/dataset-reference.md`.
 - For development workflow: `AGENTS.md` (governance, STOP protocol, branch awareness, commit policy) and `docs/git-guidelines.md` (the `scripts/agent-commit` workflow and the `GIT_AGENT_OWNED_PATHS` rule).

@@ -56,15 +56,15 @@ The four pipeline stages use a consistent directory naming pattern. The pipeline
 
 ### 2.3 Gold-completeness state (v1.5; carried into v1.6 unchanged)
 
-Per GAP-29-01 (resolved 2026-06-16): 117 ICs are validated as gold, 67 are permanent `gold_counterpart=absent`, and 0 are promoted. The 184 → 67 cascade is deferred to FUT-01. <!-- VERIFY: gold-completeness state — derived from user-supplied critical_grounding_notes; re-verify against `.planning/milestones/v1.5-GAPS.md` and the Phase 29 verification record before any configuration decision that depends on it -->
+Per GAP-29-01 (resolved 2026-06-16): 117 ICs are validated as gold, 67 are permanent `gold_counterpart=absent`, and 0 are promoted. The 184 → 67 cascade is deferred to FUT-01. (Verified against `.planning/milestones/v1.5-GAPS.md` GAP-29-01 and the Phase 29 verification record.)
 
 ### 2.4 Dataset comparison (per `ctl_instruction.md` Table `tab:brutus_compare`)
 
 | Set | IC Type | Tolerance | Word Length | dt_out | Temporal Density vs. baseline |
 |---|---|---:|---:|---:|---|
 | Set 1a (4857 files) | Hierarchical | `1e-15` | 130 | 0.08 | 1x (baseline) |
-| Set 1b (4857 files) | Standard | `1e-13` | 118 | 0.17 | 1x (baseline) |
-| Set 2a (2749 files) | Hierarchical | `1e-13` | 130 | **0.01** | **8x** |
+| Set 1b (2749 files) | Standard | `1e-13` | 118 | 0.17 | 1x (baseline) |
+| Set 2a (4857 files) | Hierarchical | `1e-13` | 130 | **0.01** | **8x** |
 | Set 2b (2565 files) | Standard | `1e-13` | 130 | **0.01** | **17x** |
 
 Total: 15,028 IC + Brutus-output pairs were generated for the v1.3-era training data. Final file counts are subject to prescreening and Brutus computational feasibility.
@@ -77,7 +77,16 @@ Total: 15,028 IC + Brutus-output pairs were generated for the v1.3-era training 
 |---|---|---|---|
 | `IC_RAW_DIR` | `simulation_data/Validation/prescreening/stage2_prescreening_revised_auto.py`, `simulation_data/Scripts/ic_generation/ic_generation_utils.py` | **Required — startup fails if unset** | Path to the external `ic_raw` directory holding pre-prescreening ICs (`ic_hierarchical/`, `ic_standard_quasi_random/`). Set with `export IC_RAW_DIR=/path/to/ic_raw`. Required because raw ICs are kept external to the repo. |
 
-There is no `.env`, `.env.example`, or `.env.sample` file in the repository root. The `IC_RAW_DIR` variable is the only environment-driven configuration.
+There is no `.env`, `.env.example`, or `.env.sample` file in the repository root. `IC_RAW_DIR` is the only environment-driven configuration for the **simulation pipeline**. The v2.0 trainex training code (`pinn/`) adds its own variables — see §3.1.
+
+### 3.1 Trainex training env vars (v2.0)
+
+The v2.0 trainex training code under `pinn/` reads two additional environment variables:
+
+| Variable | Read by | Purpose |
+|---|---|---|
+| `GSD_DATA_ROOT` | `pinn/data/adapter.py`, `pinn/train.py`, `pinn/training/config.py` | Overrides the dataset root the Stage-0 data adapter reads from. |
+| `GSD_ALLOW_PARTIAL_DATA_ROOT` | same | Companion flag controlling whether a partial / fixture-scale data root is accepted instead of requiring the full dataset. See `pinn/data/adapter.py` for exact semantics. |
 
 ---
 
@@ -91,7 +100,7 @@ There is no `.env`, `.env.example`, or `.env.sample` file in the repository root
 | `scale_range` | `(0.8, 1.2)` for standard; `(1.0, 1.0)` for hierarchical | Scale variation. Standard explicitly enables sampling-time size variability per `sampling_method.md` "Sampling-Time Size Variability" note (distorts virial ratio by `s^3`); hierarchical does not scale by default |
 | `velocity_scale` | `0.1` | Standard deviation for non-zero velocity component sampling |
 | Sobol dim | 3 + (1 if scaling) + (3 if velocity) + (3 if rotate) | Quasi-random coordinate allocation; per v1.4 Phase 20.5 lock, scale factor sits at `u_4` ahead of velocity coords `u_5`–`u_7` in the standard configuration |
-| `seed` | `42` | Sobol scrambling seed (used in `generate_ics.py` and in `calculate_brutus_metrics` invocations) |
+| `seed` | `42` (standard) / `43` (hierarchical) | Sobol scrambling seed in `generate_ics.py` (standard `seed=42`, hierarchical `seed=43`). The metrics scripts contain no seed. |
 | `mass` | `1.0` | Base mass unit (natural units; `G=1.0`) |
 | Mass sampling (hierarchical) | `q_inner ~ U(0.1, 1.0)`, `q_outer ~ U(0.1, 2.0)`, `m_1 ~ U(0.5, 1.5)`, normalized to `m_1+m_2+m_3=3` | Per `sampling_method.md` Stage 1 |
 | Hierarchical separation | `R ~ U(max(3, min_ratio), 10)` with `min_ratio = 2.8 * ((1 + q_outer) / 0.5) ** 0.4` | Kozai–Lidov stability threshold; source comment: `Assume max e_outer = 0.5` (denominator is the literal `0.5`, not `(1+e_outer)`) |
@@ -120,7 +129,7 @@ and per-type sample counts (`N_SAMPLES_STANDARD=2500`, `N_SAMPLES_HIERARCHICAL=1
 | `ANGULAR_PERCENTILE_MIN` | `0` | No angular-momentum filtering |
 | `G` | `1.0` | Gravitational constant (natural units) |
 
-> **Note on virial ratio:** The `MIN_ANGULAR_MOMENTUM` and virial thresholds here are not the ratio-based SCS thresholds flagged in the v1.5 issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`). This script's thresholds are local prescreen-rejection criteria; the SCS adjudication was **resolved in v1.5 Phase 25 (EVID-10)** — the locked log-based gate `SCS > -5` / `eps_H > 1e-5` stands and the issue-02 ratio thresholds were rejected by name. Do not use this prescreening config as evidence for the SCS-threshold decision; see `ctl_instruction.md` Step-1A clause 5 for the canonical gate and `.planning/phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md` for the adjudication record.
+> **Note on virial ratio:** The `MIN_ANGULAR_MOMENTUM` and virial thresholds here are not the ratio-based SCS thresholds flagged in the v1.5 issue doc (`pinn_instruction/issues/02-data-pipeline-and-validation.md`). This script's thresholds are local prescreen-rejection criteria; the SCS adjudication was **resolved in v1.5 Phase 25 (EVID-10)** — the locked log-based gate `SCS > -5` / `eps_H > 1e-5` stands and the issue-02 ratio thresholds were rejected by name. Do not use this prescreening config as evidence for the SCS-threshold decision; see `ctl_instruction.md` Step-1A clause 5 for the canonical gate and `.planning/milestones/v1.5-phases/25-evidence-framework-and-issue-ledger/evidence/scs-thresholds.md` for the adjudication record (archived with the v1.5 phases).
 
 ### 4.3 Brutus simulation parameters
 
@@ -139,7 +148,7 @@ The pipeline scripts fix the per-type parameter set. `t_begin=0`, `t_end=10`, `n
 | `hierarchical_gold_standard` (Set 2a) | `1e-13` | `130` | `0.01` | `calculate_metrics.py` (BRUTUS_PARAMS block) |
 | `standard_gold_standard` (Set 2b) | `1e-13` | `130` | `0.01` | same |
 
-> **Note on the Set 2 / gold_standard values:** The `run_brutus_hierarchical_only_mac_gold_standard.py` runner uses a *separate* parameter set (`tolerance=1e-13`, `word_length=130`, `dt_out=0.01`) when generating the gold-standard subset from the standard runner pipeline. The `dt_out=0.01` values here match the Set 2 rows of the `ctl_instruction.md` table. The `calculate_metrics.py` gold-standard param block records the same set, so the two sources agree. <!-- VERIFY: gold-standard param source — runner script vs metrics script; confirm before any change -->
+> **Note on the Set 2 / gold_standard values:** The `run_brutus_hierarchical_only_mac_gold_standard.py` runner uses a *separate* parameter set (`tolerance=1e-13`, `word_length=130`, `dt_out=0.01`) when generating the gold-standard **hierarchical** subset. The `dt_out=0.01` values here match the Set 2 rows of the `ctl_instruction.md` table, and the `calculate_metrics.py` gold-standard param block records the same set, so the two sources agree.
 
 ### 4.4 Brutus runner tuning knobs
 
@@ -173,7 +182,7 @@ Brutus is a C++ N-body integrator with arbitrary-precision arithmetic via GMP (`
 | `INCLUDE_DIRS` | `-I$(BREW_PREFIX)/include -I$(MPRLIB)` | Include paths |
 | `LIB_DIRS` | `-L$(BREW_PREFIX)/lib` | Library link path |
 
-> The current `makefile` is hard-wired to `<home>/...`. For a non-M2 or non-Homebrew environment, the file must be edited. `makefile.original` is preserved as the upstream-default reference. <!-- VERIFY: makefile.original is the upstream-default reference — confirm by reading the file before any build-config change -->
+> The current `makefile` is hard-wired to `<home>/...`. For a non-M2 or non-Homebrew environment, the file must be edited. (There is no `makefile.original` in the tree — only `makefile` — so keep a copy of the current file before editing if you need an upstream-default reference.)
 
 ### 5.2 Compiler settings
 
@@ -209,8 +218,8 @@ Required system libraries: `libgmpxx`, `libgmp`, `libmpfr`. Brutus cannot be bui
 | `Bulirsch_Stoer.o` | `Bulirsch_Stoer.cpp` / `Bulirsch_Stoer.h` | Bulirsch–Stoer extrapolation integrator |
 | `Cluster.o` | `Cluster.cpp` / `Cluster.h` | N-body cluster abstraction |
 | `Star.o` | `Star.cpp` / `Star.h` | Single body |
-| `Data_Handler.o` | `lib/Data_Handler.cpp` / `lib/Data_Handler.h` | I/O and output formatting |
-| `Timer.o` | `lib/Timer.cpp` / `lib/Timer.h` | Timing utilities |
+| `Data_Handler.o` | `lib/Data_Handler/Data_Handler.cpp` / `lib/Data_Handler/Data_Handler.h` | I/O and output formatting |
+| `Timer.o` | `lib/Timer/Timer.cpp` / `lib/Timer/Timer.h` | Timing utilities |
 
 ---
 
@@ -232,9 +241,9 @@ There is no centralized config-validation step. Each stage's Python script reads
 
 There is no `NODE_ENV`-style mechanism, no `.env.development` / `.env.production` split, and no per-environment config file. The repo is a research project with a single canonical pipeline.
 
-The only environment override is the `IC_RAW_DIR` env var, which is read at runtime by both `ic_generation_utils.py` and `stage2_prescreening_revised_auto.py`. To point the pipeline at a different raw-IC location, export the variable before invoking the relevant stage.
+The only environment override for the simulation pipeline is the `IC_RAW_DIR` env var, which is read at runtime by both `ic_generation_utils.py` and `stage2_prescreening_revised_auto.py`. To point the pipeline at a different raw-IC location, export the variable before invoking the relevant stage. (The v2.0 trainex training code adds `GSD_DATA_ROOT` / `GSD_ALLOW_PARTIAL_DATA_ROOT`; see §3.1.)
 
-The `makefile` path variables (`BREW_PREFIX`, `HOME_DIR`, `MPRLIB`) are also environment-overridable in principle (they are `make` variables, not environment variables), but the file currently has hard-coded absolute paths and no conditional logic. Any build on a non-M2 or non-`<home>` host requires editing the `makefile`. <!-- VERIFY: makefile path handling — derived from reading the file; no per-environment build mechanism was found in this repository -->
+The `makefile` path variables (`BREW_PREFIX`, `HOME_DIR`, `MPRLIB`) are also environment-overridable in principle (they are `make` variables, not environment variables), but the file currently has hard-coded absolute paths and no conditional logic. Any build on a non-M2 or non-`<home>` host requires editing the `makefile`.
 
 ---
 
