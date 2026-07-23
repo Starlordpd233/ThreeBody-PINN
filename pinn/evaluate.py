@@ -6,7 +6,8 @@ test split from a checkpoint's OWNING run (frozen ``config.yaml`` + persisted
 under ``.eval()`` + ``torch.no_grad()`` over that split's IC13/raw-mass/time
 metadata, and renders the authoritative post-v1.3 binary gate
 (``pinn.verification.gate_metrics``) to ``metrics.json`` / ``metrics.md`` /
-``evaluation-receipt.json``.
+``evaluation-receipt.json`` under the owning run's canonical ``evaluation/``
+directory.
 
 Closed data flow (SPEC prohibition: the held-out set is evaluated only once
 and is never selected by training/validation evidence):
@@ -22,17 +23,20 @@ and is never selected by training/validation evidence):
   training/validation split as an argument.
 * An empty test view is refused (``EmptyTestSetError``) rather than rendering
   a verdict over zero trajectories.
-* A pre-existing ``evaluation-receipt.json`` at ``--output`` refuses a second
-  evaluation (``EvaluationReceiptExistsError``) — no automatic rerun is
-  authorized; SPEC single-eval discipline.
+* ``--output`` MUST resolve to the owning run's canonical ``evaluation/``
+  directory. A fixed ``evaluation-attempt.json`` is created there with
+  ``O_CREAT | O_EXCL`` before corpus access. A pre-existing attempt OR receipt
+  refuses a second evaluation (``EvaluationReceiptExistsError``), so neither
+  output redirection nor a crash/concurrent evaluator can replay the budget.
 * Every metric flows through ``pinn.verification.gate_metrics`` (Task 1);
   this module never differentiates the gate and never fabricates a value for
   a non-finite result — ``metrics.json``/``metrics.md`` render the honest
   FAIL instead.
-* ``--output`` is path-guarded beneath a ``runs/`` root (``OutputPathEscapeError``
-  on escape) — mirrors ``pinn.verify``'s/``pinn.training.timing``'s marker
-  path-guard convention. Plotting is explicitly NOT implemented here (SPEC
-  boundary: ``metrics.json``/``metrics.md`` never depend on it).
+* ``--output`` is also path-guarded beneath a ``runs/`` root
+  (``OutputPathEscapeError`` on escape) — mirrors ``pinn.verify``'s /
+  ``pinn.training.timing``'s marker path-guard convention. Plotting is
+  explicitly NOT implemented here (SPEC boundary: ``metrics.json`` /
+  ``metrics.md`` never depend on it).
 """
 
 from __future__ import annotations
@@ -41,6 +45,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -63,6 +68,7 @@ from pinn.verification import gate_metrics
 
 __all__ = [
     "METRICS_SCHEMA_VERSION",
+    "ATTEMPT_SCHEMA_VERSION",
     "RECEIPT_SCHEMA_VERSION",
     "CheckpointOwnershipError",
     "OutputPathEscapeError",
@@ -74,6 +80,7 @@ __all__ = [
 ]
 
 METRICS_SCHEMA_VERSION = "phase43-evaluate-metrics/v1"
+ATTEMPT_SCHEMA_VERSION = "phase43-evaluation-attempt/v1"
 RECEIPT_SCHEMA_VERSION = "phase43-evaluation-receipt/v1"
 
 #: Overridable for tests, mirroring ``pinn.train._RUNS_ROOT`` / ``pinn.verify``.
@@ -85,7 +92,7 @@ class CheckpointOwnershipError(ValueError):
 
 
 class OutputPathEscapeError(ValueError):
-    """``--output`` does not resolve beneath the runs root."""
+    """``--output`` escapes the runs root or is not the canonical run output."""
 
 
 class EmptyTestSetError(ValueError):
@@ -93,7 +100,7 @@ class EmptyTestSetError(ValueError):
 
 
 class EvaluationReceiptExistsError(RuntimeError):
-    """A prior evaluation receipt already exists at this output directory.
+    """A prior evaluation attempt or receipt exists for this owning run.
 
     The held-out test set is evaluated only ONCE (SPEC prohibition); no
     automatic rerun is authorized unless an explicit new milestone procedure
@@ -146,6 +153,94 @@ def _validate_output_dir(output_dir: Path, *, runs_root: Optional[Path] = None) 
             f"--output must resolve beneath the runs root {root}; got {resolved}"
         ) from exc
     return resolved
+
+
+def _single_use_refusal(path: Path) -> EvaluationReceiptExistsError:
+    return EvaluationReceiptExistsError(
+        f"a prior evaluation attempt or receipt already exists at {path}; the "
+        "held-out test set is evaluated only once (SPEC single-eval discipline) "
+        "— failed, abandoned, concurrent, and completed attempts all consume "
+        "the budget"
+    )
+
+
+def _assert_evaluation_unclaimed(*, attempt_path: Path, receipt_path: Path) -> None:
+    """Cheap fail-closed guard before frozen-input validation.
+
+    The exclusive create in ``_claim_evaluation_attempt`` is the authoritative
+    race guard. This preliminary check provides a clear refusal without loading
+    config or touching the admitted corpus when a durable claim already exists.
+    """
+    for path in (attempt_path, receipt_path):
+        if path.exists():
+            raise _single_use_refusal(path)
+
+
+def _claim_evaluation_attempt(
+    attempt_path: Path,
+    *,
+    run_dir: Path,
+    checkpoint_path: Path,
+    stamp: datetime,
+) -> None:
+    """Atomically and durably consume this run's one held-out evaluation.
+
+    The claim is intentionally never removed. If anything after this function
+    fails, the in-progress record remains the honest evidence that corpus
+    access began and a retry is forbidden.
+    """
+    attempt_path.parent.mkdir(parents=True, exist_ok=True)
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+    try:
+        fd = os.open(attempt_path, flags, 0o600)
+    except FileExistsError as exc:
+        raise _single_use_refusal(attempt_path) from exc
+
+    payload = {
+        "schema_version": ATTEMPT_SCHEMA_VERSION,
+        "status": "in_progress",
+        "run_dir": str(run_dir),
+        "checkpoint_path": str(checkpoint_path),
+        "claimed_at": stamp.isoformat(),
+    }
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    directory_fd = os.open(attempt_path.parent, os.O_RDONLY)
+    try:
+        os.fsync(directory_fd)
+    finally:
+        os.close(directory_fd)
+
+
+def _finalize_evaluation_attempt(
+    attempt_path: Path,
+    *,
+    run_dir: Path,
+    checkpoint_path: Path,
+    receipt_path: Path,
+    claimed_at: datetime,
+    completed_at: datetime,
+) -> None:
+    """Mark a successfully rendered PASS/FAIL gate receipt as completed.
+
+    ``atomic_write_text`` replaces the in-progress payload but not its fixed
+    path. A crash before this call therefore leaves the original consumed
+    claim intact rather than restoring a clean slate.
+    """
+    payload = {
+        "schema_version": ATTEMPT_SCHEMA_VERSION,
+        "status": "completed",
+        "run_dir": str(run_dir),
+        "checkpoint_path": str(checkpoint_path),
+        "receipt_path": str(receipt_path),
+        "claimed_at": claimed_at.isoformat(),
+        "completed_at": completed_at.isoformat(),
+    }
+    atomic_write_text(
+        attempt_path, json.dumps(payload, indent=2, sort_keys=True) + "\n"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -233,26 +328,45 @@ def evaluate_run(
 ) -> EvaluationOutcome:
     """Run the ACC-03 one-time held-out gate and write its artifacts.
 
-    Fail-closed ordering: checkpoint ownership -> output path guard -> rerun
-    receipt check (BEFORE any corpus scan / model construction) -> frozen
-    config/manifest load -> CPU/float32 adapter + test-split selection ->
-    empty-test refusal -> model load (``weights_only=True``) -> the single
-    no-grad forward pass -> gate metrics -> atomic artifact writes.
+    Fail-closed ordering: checkpoint ownership -> canonical output guard ->
+    prior attempt/receipt check -> frozen config/manifest load -> manifest-only
+    empty-test refusal -> EXCLUSIVE durable claim -> CPU/float32 adapter +
+    test-split selection -> model load (``weights_only=True``) -> the single
+    no-grad forward pass -> gate metrics -> atomic artifact writes -> completed
+    attempt marker. No admitted-corpus access occurs before the claim.
     """
     checkpoint_path = Path(checkpoint_path)
     run_dir = _resolve_owning_run(checkpoint_path)
     resolved_output = _validate_output_dir(output_dir, runs_root=runs_root)
+    canonical_output = (run_dir / "evaluation").resolve()
+    if resolved_output != canonical_output:
+        raise OutputPathEscapeError(
+            f"--output for checkpoint {checkpoint_path} must resolve to its "
+            f"owning run's canonical evaluation directory {canonical_output}; "
+            f"got {resolved_output}"
+        )
 
     receipt_path = resolved_output / "evaluation-receipt.json"
-    if receipt_path.is_file():
-        raise EvaluationReceiptExistsError(
-            f"an evaluation receipt already exists at {receipt_path}; the "
-            "held-out test set is evaluated only once (SPEC single-eval "
-            "discipline) — no automatic rerun is authorized"
-        )
+    attempt_path = resolved_output / "evaluation-attempt.json"
+    _assert_evaluation_unclaimed(
+        attempt_path=attempt_path, receipt_path=receipt_path
+    )
 
     config = load_config(run_dir / "config.yaml")
     manifest = SplitManifest.from_path(run_dir / "splits.json")
+    if not manifest.fixed_order("test"):
+        raise EmptyTestSetError(
+            f"held-out test split is empty for run {run_dir}; refusing to "
+            "render a gate verdict over zero trajectories"
+        )
+
+    claim_stamp = datetime.now(timezone.utc)
+    _claim_evaluation_attempt(
+        attempt_path,
+        run_dir=run_dir,
+        checkpoint_path=checkpoint_path,
+        stamp=claim_stamp,
+    )
 
     # CPU/float32 ONLY — the same 43-03 DATA-01 residency contract, never the
     # model's runtime device (mirrors ``pinn.train._build_admitted_sources``).
@@ -331,6 +445,14 @@ def evaluate_run(
     _write_receipt(
         receipt_path, run_dir=run_dir, checkpoint_path=checkpoint_path,
         aggregate=aggregate, stamp=stamp,
+    )
+    _finalize_evaluation_attempt(
+        attempt_path,
+        run_dir=run_dir,
+        checkpoint_path=checkpoint_path,
+        receipt_path=receipt_path,
+        claimed_at=claim_stamp,
+        completed_at=stamp,
     )
     # ACC-04: only after BOTH metrics and the one-time receipt are committed,
     # project those persisted artifacts into this run's existing finished
