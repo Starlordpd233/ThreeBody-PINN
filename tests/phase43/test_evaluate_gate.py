@@ -102,6 +102,11 @@ def _all_to_test_ratios():
     return SplitRatios(train=0.0, validation=0.0, test=1.0)
 
 
+def _all_to_train_ratios():
+    SplitRatios = importlib.import_module("pinn.data.splits").SplitRatios
+    return SplitRatios(train=1.0, validation=0.0, test=0.0)
+
+
 class ClosedEvaluationFlowTests(unittest.TestCase):
     def test_adapter_receives_blacklist_resolved_against_admitted_data_root(self):
         evaluate_run = _require("evaluate_run")
@@ -232,6 +237,117 @@ class ClosedEvaluationFlowTests(unittest.TestCase):
                 evaluate_run(
                     checkpoint_path=ckpt, output_dir=run_dir / "evaluation", runs_root=runs_root,
                 )
+
+    def test_second_evaluation_cannot_redirect_to_an_alternate_output(self):
+        evaluate_run = _require("evaluate_run")
+        OutputPathEscapeError = _require("OutputPathEscapeError")
+        with tempfile.TemporaryDirectory() as tmp, TinyCorpus() as corpus:
+            runs_root, run_dir, ckpt = _build_run(tmp, corpus, ratios=_all_to_test_ratios())
+            evaluate_run(
+                checkpoint_path=ckpt,
+                output_dir=run_dir / "evaluation",
+                runs_root=runs_root,
+            )
+
+            with self.assertRaises(OutputPathEscapeError):
+                evaluate_run(
+                    checkpoint_path=ckpt,
+                    output_dir=run_dir / "evaluation-alt",
+                    runs_root=runs_root,
+                )
+
+    def test_attempt_is_claimed_before_test_split_materialization(self):
+        evaluate_run = _require("evaluate_run")
+        splits_module = importlib.import_module("pinn.data.splits")
+        original_from_split = splits_module.StageIndex.from_split
+
+        with tempfile.TemporaryDirectory() as tmp, TinyCorpus() as corpus:
+            runs_root, run_dir, ckpt = _build_run(tmp, corpus, ratios=_all_to_test_ratios())
+            attempt_path = run_dir / "evaluation" / "evaluation-attempt.json"
+
+            def assert_claim_then_materialize(source, manifest, split_name="train"):
+                self.assertTrue(
+                    attempt_path.is_file(),
+                    "held-out split materialized before the evaluation budget was claimed",
+                )
+                return original_from_split(source, manifest, split_name)
+
+            with mock.patch.object(
+                splits_module.StageIndex,
+                "from_split",
+                side_effect=assert_claim_then_materialize,
+            ):
+                evaluate_run(
+                    checkpoint_path=ckpt,
+                    output_dir=run_dir / "evaluation",
+                    runs_root=runs_root,
+                )
+
+    def test_post_claim_failure_preserves_attempt_and_refuses_retry(self):
+        evaluate_run = _require("evaluate_run")
+        EvaluationReceiptExistsError = _require("EvaluationReceiptExistsError")
+        gate_metrics = importlib.import_module("pinn.verification.gate_metrics")
+
+        with tempfile.TemporaryDirectory() as tmp, TinyCorpus() as corpus:
+            runs_root, run_dir, ckpt = _build_run(tmp, corpus, ratios=_all_to_test_ratios())
+            attempt_path = run_dir / "evaluation" / "evaluation-attempt.json"
+            receipt_path = run_dir / "evaluation" / "evaluation-receipt.json"
+
+            with mock.patch.object(
+                gate_metrics,
+                "compute_trajectory_gate_metrics",
+                side_effect=RuntimeError("injected post-claim failure"),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "injected post-claim failure"):
+                    evaluate_run(
+                        checkpoint_path=ckpt,
+                        output_dir=run_dir / "evaluation",
+                        runs_root=runs_root,
+                    )
+
+            self.assertTrue(attempt_path.is_file())
+            self.assertFalse(receipt_path.exists())
+            with self.assertRaises(EvaluationReceiptExistsError):
+                evaluate_run(
+                    checkpoint_path=ckpt,
+                    output_dir=run_dir / "evaluation",
+                    runs_root=runs_root,
+                )
+
+    def test_preexisting_attempt_refuses_a_concurrent_claim(self):
+        evaluate_run = _require("evaluate_run")
+        EvaluationReceiptExistsError = _require("EvaluationReceiptExistsError")
+
+        with tempfile.TemporaryDirectory() as tmp, TinyCorpus() as corpus:
+            runs_root, run_dir, ckpt = _build_run(tmp, corpus, ratios=_all_to_test_ratios())
+            output_dir = run_dir / "evaluation"
+            output_dir.mkdir()
+            (output_dir / "evaluation-attempt.json").write_text(
+                '{"status": "in_progress"}\n', encoding="utf-8"
+            )
+
+            with self.assertRaises(EvaluationReceiptExistsError):
+                evaluate_run(
+                    checkpoint_path=ckpt,
+                    output_dir=output_dir,
+                    runs_root=runs_root,
+                )
+
+    def test_empty_test_refusal_does_not_consume_the_attempt(self):
+        evaluate_run = _require("evaluate_run")
+        EmptyTestSetError = _require("EmptyTestSetError")
+
+        with tempfile.TemporaryDirectory() as tmp, TinyCorpus() as corpus:
+            runs_root, run_dir, ckpt = _build_run(tmp, corpus, ratios=_all_to_train_ratios())
+            with self.assertRaises(EmptyTestSetError):
+                evaluate_run(
+                    checkpoint_path=ckpt,
+                    output_dir=run_dir / "evaluation",
+                    runs_root=runs_root,
+                )
+            self.assertFalse(
+                (run_dir / "evaluation" / "evaluation-attempt.json").exists()
+            )
 
     def test_receipt_binds_checkpoint_config_and_splits_digests(self):
         evaluate_run = _require("evaluate_run")
