@@ -20,9 +20,9 @@ plan's own artifact, so its absence must be a hard ERROR, not a skip — the sam
 fail-closed discipline the ladder itself enforces on a missing probe.
 
 The ladder tests never touch MPS or the dataset: they drive the fp64-CPU arm
-with ``torch.backends.mps.is_available`` and the four probe entry points
-patched, so pass/fail semantics are asserted independently of hardware and of
-``simulation_data/``.
+with ``pinn.verify._mps_materialization_error`` (the GAP-43-01 constructive
+MPS proof seam) and the four probe entry points patched, so pass/fail
+semantics are asserted independently of hardware and of ``simulation_data/``.
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ def _healthy_ad_record() -> dict:
 
 @contextmanager
 def _healthy_probes(**overrides):
-    """Patch all four probe entry points (plus MPS availability) to PASS.
+    """Patch all four probe entry points (plus the MPS materialization proof) to PASS.
 
     ``overrides`` replaces a single probe's patch value by rung name, e.g.
     ``_healthy_probes(gradcheck=mock.Mock(side_effect=RuntimeError("boom")))``.
@@ -85,7 +85,7 @@ def _healthy_probes(**overrides):
             {"passed": True, "fail_reason": None, "ratio": 1e4},
         ),
     }
-    patches = [mock.patch("torch.backends.mps.is_available", return_value=True)]
+    patches = [mock.patch("pinn.verify._mps_materialization_error", return_value=None)]
     for key, (target, healthy) in specs.items():
         replacement = overrides.get(key)
         if replacement is None:
@@ -113,6 +113,35 @@ def _hidden_symbol(module_name: str, symbol: str):
     finally:
         if original is not sentinel:
             setattr(module, symbol, original)
+
+
+class MpsMaterializationProofTests(unittest.TestCase):
+    """GAP-43-01 Option A: the MPS proof is constructive, never a predicate.
+
+    All three paths are hermetic — ``torch.zeros`` is patched so success and
+    failure of the materialization itself are exercised on any hardware.
+    """
+
+    def test_raising_construction_returns_the_error(self):
+        with mock.patch("torch.zeros", side_effect=RuntimeError("no mps build")):
+            error = verify._mps_materialization_error()
+        self.assertIsNotNone(error)
+        self.assertIn("failed to materialize", error)
+        self.assertIn("no mps build", error)
+
+    def test_silent_fallback_to_another_device_returns_the_error(self):
+        fake = mock.Mock()
+        fake.device.type = "cpu"
+        with mock.patch("torch.zeros", return_value=fake):
+            error = verify._mps_materialization_error()
+        self.assertIsNotNone(error)
+        self.assertIn("silent fallback", error)
+
+    def test_successful_materialization_returns_none(self):
+        fake = mock.Mock()
+        fake.device.type = "mps"
+        with mock.patch("torch.zeros", return_value=fake):
+            self.assertIsNone(verify._mps_materialization_error())
 
 
 class LadderOrderTests(unittest.TestCase):
@@ -195,7 +224,10 @@ class RaisedRungTests(unittest.TestCase):
 
     def test_unavailable_mps_fails_the_device_rung(self):
         with _healthy_probes():
-            with mock.patch("torch.backends.mps.is_available", return_value=False):
+            with mock.patch(
+                "pinn.verify._mps_materialization_error",
+                return_value="MPS probe tensor failed to materialize — boom",
+            ):
                 results = verify.run_ladder(**_ARM)
         by_name = {r["name"]: r for r in results}
         self.assertFalse(by_name[verify.RUNG_DEVICE_SANITY]["passed"])

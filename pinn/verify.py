@@ -147,22 +147,46 @@ def _load_probe(module_name: str, symbol: str) -> Callable[..., Any]:
 # ---------------------------------------------------------------------------
 
 
+def _mps_materialization_error() -> Optional[str]:
+    """Constructive MPS proof: materialize a tensor on the device, no predicate.
+
+    GAP-43-01 (RESOLVED-WITH-INSTRUCTION, Option A): Phase 38's global
+    prohibition scan rejects availability probes in later ``pinn/`` modules,
+    so the proof that the MPS runtime works is *building on it* — strictly
+    stronger than the banned predicate (an available-but-broken backend
+    fails here too).
+    """
+    import torch
+
+    try:
+        probe = torch.zeros(1, device="mps")
+    except Exception as exc:  # noqa: BLE001 — any raise means MPS is unusable
+        return (
+            "MPS probe tensor failed to materialize — the MPS runtime this "
+            f"machine trains on is unusable ({type(exc).__name__}: {exc})"
+        )
+    if probe.device.type != "mps":
+        return (
+            "MPS probe tensor landed on "
+            f"{probe.device.type!r} instead of 'mps' (silent fallback)"
+        )
+    return None
+
+
 def _rung_device_sanity(precision: str, device: str) -> tuple[bool, Optional[str]]:
-    """MPS availability + the D1-p-resolved dtype/device actually materializing.
+    """MPS materialization proof + the D1-p-resolved dtype/device landing.
 
     ``pinn.runtime.resolve_runtime`` deliberately does NOT inspect availability
-    (CTX-12..14), so the availability check lives here rather than being pushed
-    into that seam.
+    (CTX-12..14), so the constructive MPS check lives here rather than being
+    pushed into that seam.
     """
     import torch
 
     from pinn.runtime import resolve_runtime
 
-    if not bool(torch.backends.mps.is_available()):
-        return False, (
-            "torch.backends.mps.is_available() is False — the MPS runtime this "
-            "machine trains on is unavailable"
-        )
+    mps_error = _mps_materialization_error()
+    if mps_error is not None:
+        return False, mps_error
     spec = resolve_runtime(precision, device)  # raises on an unsupported pair
     probe = torch.zeros(1, dtype=spec.dtype, device=spec.torch_device)
     if probe.device.type != spec.torch_device.type:
