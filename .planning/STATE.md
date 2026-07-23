@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
-current_phase: 43
-current_phase_name: verification-stage-0-pilot-acceptance
-status: verified
-stopped_at: "v2.0 complete — 7/7 phases verified (Phase 38 completion reconciled 2026-07-23; GAP-38-01 was RESOLVED-WITH-INSTRUCTION 2026-07-13); owner verdict adjust; ready for milestone close-out"
-last_updated: "2026-07-23T10:43:26Z"
+status: Awaiting next milestone
+stopped_at: Phase 43 complete — re-verified 6/6 (passed) + UAT 8/8; all 12 plans done
+last_updated: "2026-07-23T11:50:54.540Z"
 last_activity: 2026-07-23
-last_activity_desc: Reconciled stale Phase 38 completion records (ROADMAP checkbox, NET-01..05 requirement rows, STATE counters) ahead of v2.0 close-out
+last_activity_desc: Milestone v2.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
   total_plans: 60
   completed_plans: 60
   percent: 100
+current_phase: 43
+current_phase_name: verification-stage-0-pilot-acceptance
 ---
 
 # Project State
@@ -28,20 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 43 (verification-stage-0-pilot-acceptance) — COMPLETE (re-verified 6/6 passed; UAT 8/8)
-Plan: 12 of 12 complete (8 original + 4 gap-closure 43-09..43-12)
-and all 11 SPEC acceptance criteria verified. GAP-42-01 (emit_mem_line had no production
-caller, so the periodic `mem:` line never reached train.log) was found by running the
-program rather than reading its tests, and is FIXED in 0fae07f with an end-to-end test
-whose negative control was checked. Two 42-VALIDATION Manual-Only rows remain unrun
-(TensorBoard render legibility, sleep-prevention assertion check) — both non-blocking.
-Status: Phase 43 COMPLETE — all 7 v2.0 phases complete (Phase 38 records reconciled 2026-07-23); ready for /gsd-complete-milestone
-failure is open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_the_corpus`
-flags `pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
-parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
-to the phase39 detector.
-Last activity: 2026-07-22 — Phase 43 execution resumed (wave continue)
-checks, then Phase 43 (verification, Stage-0 pilot, acceptance verdict).
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-23 — Milestone v2.0 completed and archived
 
 ## Deferred Items
 
@@ -336,8 +326,4 @@ Next action: /gsd-complete-milestone (v2.0), then /gsd-new-milestone (v2.1 physi
 
 ## Operator Next Steps
 
-- **Phase 40 gap-closure complete** (2026-07-17): plans 40-01..40-09 executed. **40-07** CR-01/CR-02; **40-08** WR-01..04; **40-09** CR-03 / GAP-40-04 Option C (`stage_factory` yields `RunController`, live-objective AC green). phase40 suite **163/163** green. Ready for Phase 40 re-verification (do not close until re-verification passes).
-- **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
-- **Phase 39 is complete** (closed 2026-07-16): gap-closure plans 39-11 (adapter evidence_lines + per-fidelity blacklist counts), 39-12 (CLI evidence wiring + freshness markers), 39-13 (real-corpus evidence regeneration), 39-14 (vacuous-assertion repair) all committed. 39-VALIDATION.md all-green through row 39-14-02; 39-UAT 27/27 pass (Test 24 → pass, status complete); row 39-07-02 command observed exit 0 against regenerated scan.log.
-- **Phase 38 is complete** (NET-01..05): spec-faithful SQR-SkipResNet-SIREN rebuild with gradcheck/overfit proof rungs.
-- **Phase 37 is complete** (ENV-01..04): `pinn-train` conda env on M5 Pro, D1-p recorded as fp32-MPS.
+- Start the next milestone with /gsd-new-milestone

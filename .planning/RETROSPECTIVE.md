@@ -162,6 +162,43 @@
 
 ---
 
+## Milestone: v2.0 — CTL-PINN Training Viability Slice
+
+**Shipped:** 2026-07-23
+**Phases:** 7 | **Plans:** 60
+
+### What Was Built
+- The project's first production code: the full Stage-0 mechanical training stack rebuilt from the locked specs — MPS/fp32 runtime + fp64-CPU reference (37), 14D SQR-SkipResNet-SIREN with COM projection, AD residuals, five-term loss (38), fail-closed admitted-data adapter with physical-key splits (39), Adam→L-BFGS curriculum loop with ADVANCE/RECOVER/HALT (40), config/checkpoint/exact-resume/guards/determinism (41), operator runbook + JSONL/TB monitoring (42)
+- The acceptance machinery: five-rung verify ladder + fail-closed fresh marker, >30-min duration gate, real-data smoke with SIGTERM interrupt + exact resume, three-seed Stage-0 pilot with owner-ratified guard calibration, one-time receipt-bound held-out evaluator, receipt-grounded verdict backstop
+- The honest answer: sole held-out gate **FAIL** (`ε_H = 237.21` vs ≤ 1e-5; `SCS = 2.375`; 1,500 trajectories); pilots mechanically clean but non-convergent; owner verdict **`adjust`** with a `pinn/STATUS.md` shipped/seam/deferred handoff
+
+### What Worked
+- Owner-carved seams (D1-p, D4-a, R-1/R-2, B-5) held safe defaults until their designed calibration moments and were all ratified on real evidence — the build analog of the STOP protocol worked end to end
+- The verification culture transferred from specwork to build: the Phase 43 verifier reproduced the prior report's bypass probes rather than trusting closure summaries, and the five CR blockers were independently confirmed closed
+- Rendering FAIL honestly: the gate, summary, verdict grounding test, and audit all agree on the failing numbers — no viability inference was laundered through healthy-looking validation
+
+### What Was Inefficient
+- Phase 38's completion was never recorded after GAP-38-01 resolved (2026-07-13): the ROADMAP checkbox, NET-01..05 requirement rows, and STATE counters stayed stale for ten days and had to be reconciled at close (commit 7567be24) — phase-close bookkeeping should happen in the same session as the gap resolution
+- Verification-status staleness accumulated the same way: 41-VERIFICATION stayed `human_needed` after its human items were satisfied at Phase 43; 38-UAT stayed `partial` after its outstanding item passed
+- Two Phase-39 debug-session records were left open (`diagnosed`/`investigating`) with no formal closure, surfacing only at the close-out artifact audit
+
+### Patterns Established
+- Build milestones close through the full chain: open-artifact audit (acknowledge-all with per-item annotations distinguishing stale-satisfied from genuinely-deferred) → milestone audit with integration checker → archive → evolution review
+- One-time, budget-bound evaluation as a governance object: the held-out evaluator is exhausted by policy, and re-evaluation requires a new owner policy + evidence boundary, not a retry
+- Threshold ratification via delegated calibration: agent runs the diagnostic, surfaces the band, owner ratifies the exact value (R-1 `1e11` from the warmup-spike diagnostic)
+
+### Key Lessons
+1. When a gap resolution un-holds a phase close, flip the phase's completion records (ROADMAP/REQUIREMENTS/STATE/UAT frontmatter) in that same session — stale "pending" claims in STATE compound into false milestone-close blockers.
+2. Verification reports whose `human_needed` items are satisfied later need a dated status reconciliation note; otherwise every downstream audit re-litigates them.
+3. A failing acceptance gate can still be a successful milestone: v2.0's definition of done was an honest verdict, and `adjust` grounded in a FAIL receipt is a stronger platform decision than an unexamined `go`.
+
+### Cost Observations
+- Model mix: not captured reliably
+- Sessions: many (multi-wave watchdog-chain execution for Phase 43; concurrent docs/planning sessions at close)
+- Notable: 42/42 requirements, 7/7 phases, audit `tech_debt` with zero blockers; closeout `override_closeout` (10 acknowledged deferrals incl. 3 integration warnings); held-out budget exhausted after 3 attempts (2 failed, 1 completed FAIL). Master merge deliberately NOT performed — user-controlled integration.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -172,6 +209,7 @@
 | v1.4 | not captured | 8 | Added evidence adjudication, STOP-gap governance, executable acceptance checks, and archived phase history |
 | v1.5 | not captured | 8 | Extended adjudication to data-pipeline/validation contracts; empirical dataset verification in parallel with the research gate; G1–G8 milestone-closure gate |
 | v1.6 | many (relay) | 7 | Third adjudication milestone (curriculum + training loop); specwork-only with implementation routed to trainex; multi-agent closure relay via cross-session watchdog |
+| v2.0 | many (watchdog waves) | 7 | First build milestone (trainex track): production `pinn/` from specs, owner-carved seams ratified at designed moments, one-time budget-bound held-out evaluation, honest FAIL → `adjust` verdict |
 
 ### Cumulative Quality
 
@@ -181,6 +219,7 @@
 | v1.4 | 26 | 32/32 requirements; 8/8 phases | 0 open at close |
 | v1.5 | 27 | 36/36 requirements; 8/8 phases; G1–G8 gate PASS | 0 open at close |
 | v1.6 | 30 | 32/32 requirements; 7/7 phases; 26/26 acceptance probes PASS; ledger 18/18 VERIFIED | 0 open at close |
+| v2.0 | 60 | 42/42 requirements; 7/7 phases; integration 6/6 WIRED; held-out gate honestly FAIL | 0 open at close (10 acknowledged deferrals) |
 
 ### Top Lessons (Verified Across Milestones)
 

@@ -1,5 +1,58 @@
 # Milestones
 
+## v2.0 CTL-PINN Training Viability Slice (Shipped: 2026-07-23)
+
+**Phases completed:** 7 phases, 60 plans, 190 tasks
+
+**Key accomplishments:**
+
+- Six stdlib-only `tests/phase37/` modules encoding the executable ENV-01..04 / CTX-01..14 contracts before any host mutation, package install, or empirical MPS run
+- Reviewed committed environment pair + fail-closed normal setup + re-derivable M5 Pro provenance, all gated by an explicit (non-circular) first-lock seed
+- The narrow two-profile precision/device seam and the one §10.3 componentwise-AD worker both D1-p arms execute unchanged — no global default, no fallback, no D1-p pick
+- One stdlib-only command that runs both D1-p profiles through isolated, sanitized subprocesses and writes append-only, provenance-bound, verdict-free evidence — no real MPS run yet (that is Plan 37-05)
+- The one authorized M5 Pro dual-arm run is retained and validated; the owner explicitly DEFERRED D1-p (retracting an initial fp32-MPS pick); Phase 38 remains blocked
+- Wave-1 substrate landed: one cited constants home and a frozen fail-closed ArchitectureSpec for every later Phase 38 module
+- Wave-2 model core landed: a spec-faithful SQR-SkipResNet-SIREN backbone instantiated from an ArchitectureSpec, with a hard mass-weighted COM projection head wired so projected positions are the model's only public output.
+- PHYS-02 componentwise-AD residual on the canonical `u = t/T` leaf (jacrev+vmap, no manual chain factor, gradcheck-clean under fp64-CPU and live under fp32-MPS) plus a read-only, sha256-provenanced, completeness-gated single-Brutus-trajectory loader with traversal-proof path resolution.
+- 1. [Rule 2 - Missing Critical] Protect the read-only dataset boundary from probe output
+- Nine-file dataset-free Nyquist Wave-0 unittest contract for DATA-01..06: a deterministic read-only TinyCorpus fixture, a self-testing mechanical boundary audit (green today), and deferred executable expectations that Plans 02-06 implement against — no production `pinn/data` code introduced.
+- Sole float64 corpus parser + version seam, pure CTL preprocessing/invariants/IC13/normalization pipeline, the sole GAP-39-08 base-Set-1a Stage-0/1 classifier, and the seven-clause Step-1A admission gate with GAP-39-04/05 boundaries — all frozen Wave-0 tests green, zero real-corpus scanning.
+- The production two-pass `AdmittedSetAdapter` integrates the Wave-1 pure contracts into one deterministic, read-only, fp32-resident admitted set with observable admission/provenance/memory state — fail-closed root resolution (git-common-dir default, typed missing/partial-corpus guards), the seven-clause admission gate, the sole base-Set-1a classifier with a hard zero-gold-numeric invariant, the GAP-39-07 deduplicated `resident_tensor_bytes` numerator plus a `mem_ballpark` lower-bound cross-check, and the sole-reader/sole-classifier containment gate — closing DATA-01/02/03.
+- A persisted-label `StageIndex` and complete-signature Hamilton allocator now keep every physical base/gold group indivisible, expose a train-only batching seam, and atomically write a byte-stable, typed `splits.json`.
+- The DATA-04 train-restricted `StageIndex` now builds deterministic replay/lookahead batches containing aligned observed snapshots and an independent, exactly balanced continuous physics-collocation set.
+- DATA-06 now has a portable persisted-label population report and atomic CLI whose sole fatal operand is the admitted/full Stage-0 count, with canonical split bytes retained and hashed before either exit 0 or exit 2.
+- Phase 39 closes train-ready: the read-only 6.3 GB Thrust-A scan reports `stage0_full_split_count=2265` (>= 240) with `gold_numeric_stage_count=0`, retained byte-identical evidence, and an exact-reader/source audit — after a green dataset-free + full-repository regression.
+- Refreshed real-corpus evidence and the Phase-39 validation ledger for the 08/09 behavior changes, then closed the 39-10-03 authority checkpoint under the owner's Option-A resolution (the deployed gsd-core UAT hard-gate), unblocking the verification closeout.
+- 1. [Rule 1 - Bug] Python bool capitalization in `evidence_byte_identity`
+- PHYS-05 warmup/freeze/rewarm schedule + §4.4 Adam-only median grad clipper with single-mechanism non-finite flag -- the two pure numeric-machinery modules RunController (40-05) composes per Adam step.
+- RunController.run_stage(k) — the real Adam→L-BFGS two-phase closure loop with per-epoch resampled batches, Adam-only median gradient clipping, the CTX-46 50-epoch plateau handoff (or budget-exhaustion fallback), a frozen-λ fixed-batch L-BFGS phase with chunked-accumulation gradients, and a real held-out validation pass wiring StageExitMachine's ADVANCE criteria 2–4.
+- CurriculumController closes TRAIN-01 -- ADVANCE/RECOVER/HALT stage-progression dispatch over RunController.run_stage(k), a T-40-09-guarded forced-disposition injection seam, a cold-start RECOVER backstop against an empty CheckpointStore, CTX-38/45 run-start provisional-threshold logging, and the full pinn/training package barrel -- closing Phase 40 at 142/142 dataset-free tests.
+- RECOVER restores rolled-back RunController state; zero-L-BFGS-headroom boundary polls stage-exit so ADVANCE is reachable when the gate holds
+- Dtype-honest grad-clip resume, config-governed energy floor, reserved percentile-10 seam, and stagnation-HALT coverage
+- Per-stage RunController swap via caller-supplied stage_factory so ADVANCE trains stage k+1 against that stage's lambda^max (PHYS-05), not stage 0's
+- CTRL-01 library floor: keyed YAML ↔ frozen TrainingConfig with recursive fail-loud keys, atomic frozen copy, shared atomic_io, and ⚖ provisional cadence/guard/RNG-format seams
+- Production CheckpointStore delivers atomic weights_only-clean writes, dual-trigger rolling/best/anchor retention, fallback scan, exact-path load_checkpoint, and an idempotent curriculum.jsonl promotion ledger behind the preserved CTX-43 Protocol
+- Injectable StepGuards (Tier-1+2, per-family RECOVER/HALT, disk-floor-safe failure/) and four-stream RNG exact-continuation + strict-CPU RuntimeSpec return with statistical-equivalence honesty — CTRL-07/08 modules ready for 41-04/41-05 wiring
+- RunController/CurriculumController additive mid-stage checkpoint + guard wiring — live Adam/RNG/global-step state, single CTX-53 composer, phase-specific guard placement, disposition ledger, and CTRL-06 Adam-reset init anchors — composition seam ready for 41-05 pinn.train
+- Multi-module field-classified resume refuse + exact-anchor hold-stage routing + minimal runnable `python -m pinn.train` composition root delivering CTRL-01/05/08 end-to-end on the dataset-free Stage-0 floor
+- 42-operator-runbook-surface-monitoring (Wave 1)
+- A macOS-safe unattended wrapper, loadable Stage-0 configuration, and five-entry-point operator runbook with focused contract coverage.
+- Graceful signal interruption and honest run-directory lifecycle wiring for the training composition root
+- Realize E2/E4/must-NOT edge tests against the fully wired system (42-08)
+- `python -m pinn.verify` — an ordered five-rung pre-flight that orchestrates the four existing probes as in-process library calls, names its first failure, and writes an atomic `runs/.verify/latest-marker.json` fingerprinted by device, dtype, Torch, Python and Git head so only a fresh green marker from the same code can authorize a long run.
+- One-time `pinn.evaluate` CLI that reconstructs the persisted held-out test split from a checkpoint's frozen run provenance and renders the authoritative post-v1.3 binary gate (worst-case Hamiltonian drift, matched-Plummer `eps_inv=1e-10`) with a single-evaluation receipt.
+- `pinn.train._check_duration_gate` — wired into the launch preflight before any run-directory/checkpoint/optimizer construction, forecasting from the persisted 43-03 Stage-0 timing calibration times the launch's own declared budget, and refusing both an absent calibration (unconditional on duration) and a >1800s forecast lacking a fresh green 43-01 verify marker.
+- Completed-run summaries now project persisted validation, curriculum, held-out metrics, and prior-run evidence into one honest payload, with evaluation refreshing only an existing finished run after its one-time receipt is committed.
+- Real ordinary Stage-0 smoke over the actual admitted corpus (32 trajectories, 300 gap-free steps, checkpoints 100/158/200/300, one SIGTERM interrupt + resume to finished, s_per_step≈0.1157) with B-5, R-1, and D4-a all owner-ratified — B-5 and R-1 via explicit instruction/delegation earlier in the plan, D4-a (wall_clock_ceiling_s=120) via the owner's explicit selection that resolved this continuation's blocking checkpoint.
+- Three real admitted-data Stage-0 seeds produced a traceable calibration band, and the owner ratified the exact supported guard/recovery configuration: `100000000000.0`, `0.05`, `0.7`, and `0`.
+- The sole held-out evaluation produced an unequivocal FAIL, and the owner rendered `adjust`: keep the proven mechanical Stage-0 slice, block full-platform expansion, and investigate the physics-gate failure and non-convergent behavior without claiming a known remedy.
+- The long-run gate now binds calibration and verification authority to the effective strict-CPU runtime, and only a complete current-schema ordered marker can grant authorization.
+- Each run now owns exactly one canonical evaluation path and durably consumes its held-out budget before admitted-corpus access, preventing redirected replay, crash erasure, and concurrent double evaluation.
+- The owner verdict backstop now parses typed YAML and verifies its gate, metrics, and provenance digests against the cited receipt, closing the forged-go, quoted-YAML, and impossible-date bypasses.
+- Legacy launch fixtures now satisfy the unchanged duration gate, the corpus-reader audit retains its prohibition without false-flagging diagnostic text writes, and all 1,036 repository tests authorize ACC-02/ACC-04 completion.
+
+---
+
 ## v1.6 Resolving 03 Curriculum and Training Loop (Shipped: 2026-07-02)
 
 **Phases completed:** 7 phases, 30 plans, 49 tasks
