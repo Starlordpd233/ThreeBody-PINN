@@ -1,13 +1,17 @@
-"""Phase 43 / 43-08 — receipt-grounded owner verdict contract."""
+"""Phase 43 / 43-11 — receipt-grounded owner verdict contract."""
 
 from __future__ import annotations
 
 import json
-import re
 import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+
+try:
+    import yaml
+except ModuleNotFoundError:  # pragma: no cover - dependency guard
+    yaml = None
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -76,43 +80,125 @@ def _write_synthetic_receipt(base: Path) -> Path:
     return path
 
 
-def _frontmatter(text: str) -> dict[str, str]:
+def _frontmatter(text: str) -> dict[str, object]:
+    if yaml is None:
+        raise unittest.SkipTest("PyYAML is unavailable")
     if not text.startswith("---\n"):
         raise ValueError("verdict artifact requires YAML-style frontmatter")
+    lines = text.splitlines()
     try:
-        block = text.split("---\n", 2)[1]
-    except IndexError as exc:  # pragma: no cover - defensive malformed input
+        terminator = lines.index("---", 1)
+    except ValueError as exc:
         raise ValueError("unterminated verdict frontmatter") from exc
-    fields: dict[str, str] = {}
-    for line in block.splitlines():
-        if not line.strip() or line.startswith((" ", "\t")):
-            continue
-        key, separator, value = line.partition(":")
-        if separator:
-            fields[key.strip()] = value.strip()
-    return fields
+    try:
+        fields = yaml.safe_load("\n".join(lines[1:terminator]))
+    except (ValueError, yaml.YAMLError) as exc:
+        raise ValueError(
+            f"invalid verdict frontmatter or owner_decision_date: {exc}"
+        ) from exc
+    if not isinstance(fields, dict):
+        raise ValueError("verdict frontmatter must parse to a mapping")
+    return dict(fields)
 
 
-def validate_verdict_grounding(text: str) -> None:
+def _string_field(fields: dict[str, object], key: str) -> str:
+    value = fields.get(key)
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"missing required {key}")
+    return value
+
+
+def _load_cited_receipt(
+    fields: dict[str, object], text: str, *, receipt_base: Path
+) -> dict[str, object]:
+    citation = _string_field(fields, "receipt_citation")
+    if citation not in text:
+        raise ValueError(f"missing required receipt_citation: {citation}")
+    base = Path(receipt_base).resolve()
+    receipt_path = (base / citation).resolve()
+    try:
+        receipt_path.relative_to(base)
+    except ValueError as exc:
+        raise ValueError("receipt_citation escapes receipt_base") from exc
+    with receipt_path.open(encoding="utf-8") as handle:
+        receipt = json.load(handle)
+    if not isinstance(receipt, dict):
+        raise ValueError("cited receipt must contain a JSON object")
+    return dict(receipt)
+
+
+def _require_receipt_value(receipt: dict[str, object], key: str) -> object:
+    if key not in receipt:
+        raise ValueError(f"cited receipt is missing {key}")
+    return receipt[key]
+
+
+def validate_verdict_grounding(
+    text: str, *, receipt_base: Path = ROOT
+) -> None:
     fields = _frontmatter(text)
-    gate = fields.get("gate", "").upper()
-    verdict = fields.get("verdict", "").lower()
+    gate = _string_field(fields, "gate").upper()
+    verdict = _string_field(fields, "verdict").lower()
+    if gate not in {"PASS", "FAIL"}:
+        raise ValueError(f"unsupported gate state: {gate!r}")
     if gate == "FAIL" and verdict == "go":
         raise ValueError("gate FAIL cannot carry an unqualified verdict: go")
     if verdict not in {"pending-owner", "go", "adjust", "rethink"}:
         raise ValueError(f"unsupported verdict state: {verdict!r}")
+
     for key, expected_path in REQUIRED_CITATIONS.items():
+        if key == "receipt_citation":
+            continue
         if fields.get(key) != expected_path or expected_path not in text:
             raise ValueError(f"missing required {key}: {expected_path}")
-    owner_decision = fields.get("owner_decision", "").lower()
+
+    receipt = _load_cited_receipt(
+        fields, text, receipt_base=Path(receipt_base)
+    )
+    receipt_verdict_value = _require_receipt_value(receipt, "verdict")
+    if not isinstance(receipt_verdict_value, str):
+        raise ValueError("cited receipt verdict must be a string")
+    receipt_verdict = receipt_verdict_value.upper()
+    if gate != receipt_verdict:
+        raise ValueError(
+            f"frontmatter gate {gate} does not match receipt verdict "
+            f"{receipt_verdict}"
+        )
+    for key in ("eps_h", "scs"):
+        value = _require_receipt_value(receipt, key)
+        if str(value) not in text:
+            raise ValueError(f"verdict text does not match receipt {key}: {value}")
+    for key in ("checkpoint_sha256", "config_sha256", "splits_sha256"):
+        value = _require_receipt_value(receipt, key)
+        if not isinstance(value, str) or value not in text:
+            raise ValueError(f"verdict text does not match receipt {key}")
+
+    owner_decision_value = fields.get("owner_decision")
     if verdict == "pending-owner":
-        if owner_decision not in {"null", "pending"}:
+        if owner_decision_value not in {None, "pending"}:
             raise ValueError("draft must preserve the pending owner-decision seam")
         return
+    if not isinstance(owner_decision_value, str):
+        raise ValueError("final verdict requires an owner decision")
+    owner_decision = owner_decision_value.lower()
     if owner_decision != verdict:
         raise ValueError("final verdict must match the owner decision")
-    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fields.get("owner_decision_date", "")):
-        raise ValueError("final verdict requires a dated owner sign-off")
+    if gate == "FAIL" and owner_decision == "go":
+        raise ValueError("gate FAIL cannot carry an unqualified owner decision: go")
+
+    owner_date_value = fields.get("owner_decision_date")
+    if isinstance(owner_date_value, date):
+        owner_date_text = owner_date_value.isoformat()
+    elif isinstance(owner_date_value, str):
+        owner_date_text = owner_date_value
+    else:
+        raise ValueError("owner_decision_date requires an ISO calendar date")
+    try:
+        date.fromisoformat(owner_date_text)
+    except ValueError as exc:
+        raise ValueError(
+            f"invalid owner_decision_date: {owner_date_text!r}"
+        ) from exc
 
 
 class VerdictGroundingTests(unittest.TestCase):
