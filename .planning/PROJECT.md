@@ -123,6 +123,22 @@ v1.5 closed 36/36 requirements across eight verified phases (23–29, including 
 
 </details>
 
+## Current Milestone: v2.1 Physics-Gate Investigation & trainex-r2 Research Package
+
+**Goal:** Diagnose — from the evidence v2.0 already produced — how and plausibly why the Stage-0 model fails the physics-conservation gate, and hand the owner a trainex-r2 ERW research package that lets their external research adjudicate the remedy. This is the "separately governed investigation" the v2.0 `adjust` verdict routed. The milestone closes when the research package is delivered; the remedy itself (recipe changes, new training, any new evaluation policy) belongs to the milestone after the resolution doc returns — mirroring the v1.5/v1.6 package-first rhythm.
+
+**Target features:**
+- **Physics-gate forensics (DIAG, Phase 44)** — read-only analysis of the retained v2.0 artifacts: per-trajectory ε_H distribution over the 1,500 held-out trajectories (uniform vs tail-driven failure structure, from the preserved `metrics.json` — the evaluator is NOT re-run); per-term loss decomposition across the 300-step smoke/pilot runs (`train.log.jsonl`, TensorBoard traces — which of the five loss terms dominates, warmup-spike attribution); seed-divergence characterization across seeds 41/42/43 (validation-trend direction, final-loss spread — budget-limited descent vs recipe instability); and a hypothesis-ranked diagnosis report citing evidence per candidate cause (undertrained budget / loss-term imbalance / optimization-warmup pathology / normalization-or-data-scale issue) that explicitly does NOT select a remedy — remedy selection is owner-routed through ERW.
+- **trainex-r2 ERW package assembly (PKG, Phase 45)** — the research package per the canonical ERW runbook (`docs/runbooks/external-research/2026-06-11-external-research-workflow.md`): curated annotated document list with commit-pinned snapshots (forensics report, gate/receipt artifacts, relevant spec sections, run evidence), neutrally framed research questions covering the training recipe (budget/steps, warmup and LR schedule, loss weighting, curriculum pacing) and the evaluation-policy question (what a future held-out evaluation would require), a claims register separating verified facts from unverified claims, and a delivery note. Package lands under `pinn_instruction/markdown_conversion/framework-specs/trainex-r2/`.
+
+**Boundaries (hard, from the owner-signed `adjust` verdict):** no new training runs beyond explicitly scoped read-only artifact analysis; NO held-out evaluation (budget exhausted — a future evaluation requires a new, explicitly changed owner policy); no PLAT-01..07 or Stage-1 work; no framework-spec edits (a diagnosis pointing at a spec parameter is routed as an ERW question, not an edit); the diagnosis report ranks hypotheses with evidence but never selects the remedy — the STOP-protocol spirit applies to any physics-adjudication call the forensics surfaces.
+
+**Grounding sources:** the archived v2.0 evidence (runs/ artifacts incl. `runs/stage0-pilot-seed42/evaluation/`, `milestones/v2.0-phases/43-*/43-CALIBRATION.md` + `43-VERDICT.md`, smoke/pilot evidence), the shipped `pinn/` code as the factual record of what was executed (reading it to describe behavior is grounding; editing is out of scope), the locked framework specs (read-only), `pinn/STATUS.md`, and the v2.0 milestone audit. The eventual trainex-r2 resolution doc will be a candidate verdict source for the NEXT milestone, not this one.
+
+**Git workflow:** planning artifacts commit in `.worktrees/trainex` (this milestone's work continues the trainex track); branch `milestone/v2.1` to be cut from the v2.0 tip at first phase execution (v2.0 precedent: no branch op during setup). Per-plan atomic commits via `scripts/agent-commit`; no protected-branch push; master merge remains user-controlled integration.
+
+---
+
 <details>
 <summary>Archived v2.0 planning context (shipped 2026-07-23)</summary>
 

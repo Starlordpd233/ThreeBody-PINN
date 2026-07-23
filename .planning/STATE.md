@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: CTL-PINN Training Viability Slice
-status: Awaiting next milestone
-stopped_at: Phase 43 complete — re-verified 6/6 (passed) + UAT 8/8; all 12 plans done
-last_updated: "2026-07-23T11:50:54.540Z"
+milestone: v2.1
+milestone_name: Physics-Gate Investigation & trainex-r2 Research Package
+status: planning
+last_updated: "2026-07-23T11:57:46.635Z"
 last_activity: 2026-07-23
-last_activity_desc: Milestone v2.0 completed and archived
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 60
-  completed_plans: 60
-  percent: 100
-current_phase: 43
-current_phase_name: verification-stage-0-pilot-acceptance
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: Milestone v2.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-23 — Milestone v2.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-23 — Milestone v2.1 started
 
 ## Deferred Items
 
