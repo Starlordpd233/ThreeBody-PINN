@@ -66,7 +66,7 @@
 - [x] **Phase 40: Stage-0 Curriculum Training Loop (FUT-04)** — `CurriculumController`/`RunController` running the two-phase Adam→L-BFGS closure loop with the PHYS-05 scheduled-weight module, the collocation sampler interface, merged gradient clipping (LOOP-04), and the ADVANCE/RECOVER/HALT stage-exit machine (CURR-03) with a preflight refusal of the unimplemented sL-BFGS stages. (TRAIN-01..07) (completed 2026-07-17)
 - [x] **Phase 41: Config, Checkpointing, Resume & Determinism** — A single keyed YAML with a frozen resolved copy (B-9), dual-trigger + atomic checkpointing with rolling/best/anchor retention (D4-a/b), idempotent promotion + `curriculum.jsonl` (D7-d), manual `--hold-stage` rollback + fail-safe resume config-diff (D7-c/B-5), Tier-1+2 guards + RECOVER + HALT/REVIEW + `failure/` bundle (D4-c/d), and full seed/RNG recording scoped to statistical-equivalence reproducibility (D6/B-11). (CTRL-01..08) (completed 2026-07-18; re-verified 6/6 after GAP-41-01 closed the CTRL-08 config-side RNG gap — B-5 field-list ratification before run #1 and R-1/D4-a threshold calibration at the Phase 43 pilot remain human-owned)
 - [x] **Phase 42: Operator Runbook Surface & Monitoring** — The five entry points (Setup/Configure/Launch/Monitor/Resume), the `caffeinate -is` unattended-run wrapper (B-10), canonical JSONL + TensorBoard logging with the widened field set (D2/B-2), the `runs/<name>/` directory contract, and a written runbook under `docs/runbooks/`. (OPS-01..06)
-- [ ] **Phase 43: Verification, Stage-0 Pilot & Acceptance** — The `verify` pre-flight ladder + ~5-minute smoke test (records s/step), the `evaluate` script rendering the binary post-v1.3 gate (`ε_H > 1e-5` / `SCS > −5`), the run-comparison `summary.md`, the 2–3-seed Stage-0 pilot (seed band + ⚖ threshold calibration for owner ratification), and the go / adjust / rethink verdict on the full platform. (ACC-01..06)
+- [x] **Phase 43: Verification, Stage-0 Pilot & Acceptance** — The `verify` pre-flight ladder + ~5-minute smoke test (records s/step), the `evaluate` script rendering the binary post-v1.3 gate (`ε_H > 1e-5` / `SCS > −5`), the run-comparison `summary.md`, the 2–3-seed Stage-0 pilot (seed band + ⚖ threshold calibration for owner ratification), and the go / adjust / rethink verdict on the full platform. (ACC-01..06) (completed 2026-07-23; re-verified 6/6 after gap-closure plans 43-09..43-12 + GAP-43-01 closed the five CR authorization blockers; owner verdict adjust, held-out gate FAIL; UAT 8/8)
 
 ## Phase Details
 
@@ -215,23 +215,23 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 43-07-PLAN.md — Stage-0 pilot + seed-band calibration note + R-1/R-2 owner pause (ACC-05, wave 6)
+- [x] 43-07-PLAN.md — Stage-0 pilot + seed-band calibration note + R-1/R-2 owner pause (ACC-05, wave 6)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 43-08-PLAN.md — go/adjust/rethink verdict + FUT-01/FUT-04 handoff + ACC-06 owner pause (ACC-06, wave 7)
+- [x] 43-08-PLAN.md — go/adjust/rethink verdict + FUT-01/FUT-04 handoff + ACC-06 owner pause (ACC-06, wave 7)
 
 ### Gap Closure (from 43-VERIFICATION.md, score 2/6)
 
 **Gap-Closure Wave 1**
 
-- [ ] 43-09-PLAN.md — ACC-01 long-run authorization: effective-runtime duration gate (CR-03) + verify-marker schema validation (CR-04) (ACC-01, gc-wave 1)
-- [ ] 43-10-PLAN.md — ACC-03 once-only held-out enforcement: canonical evaluation dir (CR-01) + atomic pre-access claim (CR-02) (ACC-03, gc-wave 1)
-- [ ] 43-11-PLAN.md — ACC-06 verdict grounding backstop: receipt-grounded validation + regressions (CR-05) (ACC-06, gc-wave 1)
+- [x] 43-09-PLAN.md — ACC-01 long-run authorization: effective-runtime duration gate (CR-03) + verify-marker schema validation (CR-04) (ACC-01, gc-wave 1)
+- [x] 43-10-PLAN.md — ACC-03 once-only held-out enforcement: canonical evaluation dir (CR-01) + atomic pre-access claim (CR-02) (ACC-03, gc-wave 1)
+- [x] 43-11-PLAN.md — ACC-06 verdict grounding backstop: receipt-grounded validation + regressions (CR-05) (ACC-06, gc-wave 1)
 
 **Gap-Closure Wave 2** *(blocked on Gap-Closure Wave 1 completion)*
 
-- [ ] 43-12-PLAN.md — ACC-02 repo-wide fixture repair (WR-03) + ACC-02/ACC-04 formal acceptance (ACC-02, ACC-04, gc-wave 2)
+- [x] 43-12-PLAN.md — ACC-02 repo-wide fixture repair (WR-03) + ACC-02/ACC-04 formal acceptance (ACC-02, ACC-04, gc-wave 2)
 
 ## Progress
 
@@ -245,7 +245,7 @@ Plans:
 | 40. Stage-0 Curriculum Training Loop (FUT-04) | v2.0 | 9/9 | Complete    | 2026-07-17 |
 | 41. Config, Checkpointing, Resume & Determinism | v2.0 | 5/5 | In Progress|  |
 | 42. Operator Runbook Surface & Monitoring | v2.0 | 9/9 | Complete    | 2026-07-20 |
-| 43. Verification, Stage-0 Pilot & Acceptance | v2.0 | 6/8 | In Progress|  |
+| 43. Verification, Stage-0 Pilot & Acceptance | v2.0 | 12/12 | Complete    | 2026-07-23 |
 
 ---
 *Created 2026-07-06 (`/gsd-new-milestone`, roadmap generated inline — no external research spawn, since the trainex-r1a ERW is delivered and ratified). 7 phases (37–43), standard granularity, continuing numbering from v1.6's Phase 36; 42/42 v2.0 requirements mapped 1:1 by category (ENV=4, NET=5, DATA=6, TRAIN=7, CTRL=8, OPS=6, ACC=6). Dependency-ordered with no external gate. Grounded in the owner-ratified trainex-r1a decision set (2026-07-05) and the locked v1.4/v1.5/v1.6 framework specs; `pinn/` live-code ban lifted (FUT-01 rebuilds from specs); five owner-carved decisions built as seams. Full multi-stage platform deferred pending the Phase 43 (ACC-06) go/adjust/rethink verdict.*

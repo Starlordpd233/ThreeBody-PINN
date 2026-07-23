@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: CTL-PINN Training Viability Slice
 current_phase: 43
 current_phase_name: verification-stage-0-pilot-acceptance
-status: executing
-stopped_at: Completed 43-06-PLAN.md
-last_updated: "2026-07-22T06:37:25Z"
-last_activity: 2026-07-21
-last_activity_desc: 43-06 complete — real ACC-02 smoke + B-5/D4-a owner ratification
+status: verified
+stopped_at: Phase 43 complete — re-verified 6/6 (passed), UAT 8/8; milestone close pending Phase 38 (GAP-38-01 deferred)
+last_updated: "2026-07-23T06:26:38Z"
+last_activity: 2026-07-23
+last_activity_desc: Phase 43 re-verified 6/6 (passed) + UAT 8/8 complete; phase marked complete
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 56
-  completed_plans: 54
-  percent: 96
+  total_plans: 60
+  completed_plans: 60
+  percent: 86
 ---
 
 # Project State
@@ -28,19 +28,19 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 43 (verification-stage-0-pilot-acceptance) — EXECUTING
-Plan: 7 of 8 (6 of 8 complete)
+Phase: 43 (verification-stage-0-pilot-acceptance) — COMPLETE (re-verified 6/6 passed; UAT 8/8)
+Plan: 12 of 12 complete (8 original + 4 gap-closure 43-09..43-12)
 and all 11 SPEC acceptance criteria verified. GAP-42-01 (emit_mem_line had no production
 caller, so the periodic `mem:` line never reached train.log) was found by running the
 program rather than reading its tests, and is FIXED in 0fae07f with an end-to-end test
 whose negative control was checked. Two 42-VALIDATION Manual-Only rows remain unrun
 (TensorBoard render legibility, sleep-prevention assertion check) — both non-blocking.
-Status: Executing Phase 43
+Status: Phase 43 COMPLETE — milestone v2.0 close pending Phase 38 (GAP-38-01 deferred)
 failure is open and NOT from Phase 42: phase39 `test_only_allowed_modules_parse_the_corpus`
 flags `pinn/training/guards.py` because the detector treats the substring `.txt` as corpus
 parsing, while guards.py only WRITES `failure/README.txt` (Phase-41 bundle). Fix belongs
 to the phase39 detector.
-Last activity: 2026-07-21 — 43-06 complete: real ACC-02 smoke + B-5/D4-a owner ratification
+Last activity: 2026-07-22 — Phase 43 execution resumed (wave continue)
 checks, then Phase 43 (verification, Stage-0 pilot, acceptance verdict).
 
 ## Deferred Items
@@ -310,9 +310,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-22T06:37:25Z
-Stopped at: Completed 43-06-PLAN.md
-Next action: Execute 43-07-PLAN.md; Phase 43 remains in progress with 6/8 plans complete.
+Last session: 2026-07-23T06:26:38Z
+Stopped at: Phase 43 complete — re-verified 6/6 (passed) + UAT 8/8; all 12 plans done
+Next action: Milestone v2.0 close is NOT automatic — Phase 38 phase-close is held on GAP-38-01 (deferred) and phases 41/42 carry verification-close debt. Decide milestone disposition before /gsd-complete-milestone.
 
 ## Operator Next Steps
 
