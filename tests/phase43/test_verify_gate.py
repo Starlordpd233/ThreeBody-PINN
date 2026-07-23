@@ -41,7 +41,9 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Dict, Optional
+from unittest import mock
 
 from tests.phase43 import _SKIP_PHRASE
 from tests.phase43._fixtures import launch_train, write_train_config
@@ -217,6 +219,72 @@ class DurationGateFunctionTests(unittest.TestCase):
         )
         reason = self._refused()
         self.assertIn(_REFUSE_PHRASE, reason)
+
+    def test_strict_cpu_gate_uses_effective_float64_cpu_fingerprint(self) -> None:
+        train = importlib.import_module(TRAIN_MODULE)
+        verify = importlib.import_module("pinn.verify")
+        cfg_path = write_train_config(
+            self.tmp / "strict-cpu-gate.yaml",
+            run={
+                "run_name": "strict-cpu-gate",
+                "precision": "float32",
+                "device": "mps",
+                "strict_cpu_determinism": True,
+            },
+        )
+        config = _load_config(cfg_path)
+        _write_calibration(self.runs_root, s_per_step=_SPS_EXACTLY_1800)
+
+        captured: Dict[str, Any] = {}
+        real_current_fingerprint = verify.current_fingerprint
+
+        def record_fingerprint(*, precision: str, device: str) -> Dict[str, Any]:
+            captured["precision"] = precision
+            captured["device"] = device
+            fingerprint = real_current_fingerprint(
+                precision=precision,
+                device=device,
+            )
+            captured["fingerprint"] = fingerprint
+            return fingerprint
+
+        with mock.patch.object(
+            verify,
+            "current_fingerprint",
+            side_effect=record_fingerprint,
+        ):
+            train._check_duration_gate(config, runs_root=self.runs_root)
+
+        self.assertEqual(captured["precision"], "float64")
+        self.assertEqual(captured["device"], "cpu")
+        self.assertEqual(captured["fingerprint"]["device"], "cpu")
+        self.assertEqual(captured["fingerprint"]["dtype"], "torch.float64")
+
+    def test_strict_cpu_smoke_calibration_uses_effective_runtime_labels(self) -> None:
+        train = importlib.import_module(TRAIN_MODULE)
+        timing = importlib.import_module("pinn.training.timing")
+        cfg_path = write_train_config(
+            self.tmp / "strict-cpu-smoke.yaml",
+            run={
+                "run_name": "strict-cpu-smoke",
+                "precision": "float32",
+                "device": "mps",
+                "strict_cpu_determinism": True,
+            },
+        )
+        config = _load_config(cfg_path)
+
+        with mock.patch.object(timing, "write_calibration") as write_calibration:
+            train._write_smoke_timing_calibration(
+                config,
+                SimpleNamespace(s_per_step=0.25),
+                self.runs_root,
+            )
+
+        self.assertEqual(write_calibration.call_count, 1)
+        kwargs = write_calibration.call_args.kwargs
+        self.assertEqual(kwargs["precision"], "float64")
+        self.assertEqual(kwargs["device"], "cpu")
 
     # -- the exact 1800 s boundary (SPEC edge R1) -------------------------
 
