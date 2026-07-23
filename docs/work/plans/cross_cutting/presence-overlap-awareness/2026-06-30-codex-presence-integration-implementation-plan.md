@@ -1,5 +1,5 @@
 ---
-status: active
+status: consumed
 purpose: implementation-plan
 created: 2026-06-30
 milestone: untracked
