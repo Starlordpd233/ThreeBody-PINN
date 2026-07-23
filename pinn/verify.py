@@ -89,6 +89,17 @@ DEFAULT_TRAJECTORY_ID = "0000"
 
 MARKER_SCHEMA_VERSION = "phase43-verify-marker/v1"
 
+_FINGERPRINT_KEYS = frozenset(
+    {
+        "device",
+        "dtype",
+        "torch_version",
+        "python_version",
+        "git_head",
+        "git_head_available",
+    }
+)
+
 #: Marker location, relative to the runs root. Kept under ``runs/`` (gitignored,
 #: already the home of every run-produced artifact).
 MARKER_RELATIVE_PATH = Path(".verify") / "latest-marker.json"
@@ -291,6 +302,20 @@ def ladder_is_green(results: Sequence[Mapping[str, Any]]) -> bool:
     return all(bool(record.get("passed")) for record in records)
 
 
+def _marker_ladder_is_valid(rungs: Any) -> bool:
+    """Require the exact ordered ladder and strict-boolean green results."""
+    if not isinstance(rungs, Sequence) or isinstance(rungs, (str, bytes)):
+        return False
+    records = list(rungs)
+    if len(records) != len(LADDER):
+        return False
+    if not all(isinstance(record, Mapping) for record in records):
+        return False
+    if [record.get("name") for record in records] != list(LADDER):
+        return False
+    return all(record.get("passed") is True for record in records)
+
+
 def first_failed_rung(results: Sequence[Mapping[str, Any]]) -> Optional[str]:
     """Name of the earliest failing rung in ladder order, or None if green."""
     for record in results:
@@ -447,10 +472,12 @@ def marker_is_green_and_fresh(
     """
     if not isinstance(marker, Mapping):
         return False
+    if marker.get("schema_version") != MARKER_SCHEMA_VERSION:
+        return False
     if marker.get("verdict") != VERDICT_GREEN:
         return False
     rungs = marker.get("rungs")
-    if not isinstance(rungs, Sequence) or not ladder_is_green(list(rungs)):
+    if not _marker_ladder_is_valid(rungs):
         return False
 
     stamp = marker.get("timestamp")
@@ -468,7 +495,11 @@ def marker_is_green_and_fresh(
         return False
 
     recorded = marker.get("fingerprint")
-    if not isinstance(recorded, Mapping):
+    if not isinstance(recorded, Mapping) or not isinstance(fingerprint, Mapping):
+        return False
+    if not _FINGERPRINT_KEYS.issubset(recorded) or not _FINGERPRINT_KEYS.issubset(
+        fingerprint
+    ):
         return False
     # A marker whose code identity is unknown can never authorize a long run.
     if not recorded.get("git_head_available") or not fingerprint.get(
