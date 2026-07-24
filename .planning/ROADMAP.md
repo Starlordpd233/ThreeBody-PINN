@@ -89,6 +89,25 @@ Plans:
 **Goal**: The owner can hand the package to external research as-is: it contains everything needed to adjudicate the training-recipe questions (including the forensics evidence map), poses the questions neutrally, and separates verified fact from agent hypothesis — so the returning resolution doc can serve as a clean candidate verdict source for the next milestone.
 **Depends on**: Phase 44 (the diagnosis report is the package's centerpiece).
 **Requirements**: PKG-09, PKG-10, PKG-11
+**Plans:** 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 45-01-PLAN.md — PKG-09 package skeleton, source_baseline pin, verbatim 44-DIAGNOSIS.md snapshot, framework-specs-bundle.md + run-evidence-bundle.md (uploads 3-4 of ≤5)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 45-02-PLAN.md — PKG-11 claims register (direct [FACT]/[HYP] tag lift, GAP-44-01 owner-instructed) + PKG-10 RESEARCH-CONTEXT-MASTER.md (5 neutral questions, tiering, folded register, D-04 output contract)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 45-03-PLAN.md — RESEARCH-AGENT-PROMPT.md (4-file attach list, pasted body) + DELIVERY-NOTE.md draft (routing, provenance, return format, D-13 owner questions PENDING)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 45-04-PLAN.md — D-13 owner checkpoint (surfaced, never auto-answered) + verbatim answer recording + ten-check final package audit → 45-AUDIT.md
+
 **Success Criteria** (what must be TRUE):
 
   1. The package exists under `framework-specs/trainex-r2/` following the ERW runbook structure, with commit-pinned snapshots of every included document (PKG-09).
@@ -104,7 +123,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 44. Physics-Gate Forensics | v2.1 | 5/5 | Complete    | 2026-07-23 |
-| 45. trainex-r2 ERW Package Assembly | v2.1 | 0/? | Not started | - |
+| 45. trainex-r2 ERW Package Assembly | v2.1 | 0/4 | Planned | - |
 
 ---
 *v2.1 created 2026-07-23 (`/gsd-new-milestone`, roadmap generated inline — v2.0 precedent; no research spawn, since the milestone analyzes internal artifacts and the ERW package is the research vehicle). 2 phases (44–45) continuing numbering from v2.0's Phase 43; 7/7 requirements mapped (DIAG-01..04 → 44, PKG-09..11 → 45). Grounded in the owner-signed `adjust` verdict and the v2.0 archive; scope boundaries SCOPE-22..26 are hard constraints. v2.0 archived under [`milestones/v2.0-*`](milestones/) (roadmap, requirements, audit, phase dirs).*
