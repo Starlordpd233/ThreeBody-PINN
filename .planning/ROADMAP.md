@@ -62,10 +62,18 @@
 **Plans:** 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 44-01-PLAN.md — DIAG-01 ε_H distribution from preserved metrics.json + D-07 surfaced as GAP-44-01 (44-GAPS.md, v2.1-GAPS.md created)
 - [ ] 44-02-PLAN.md — DIAG-02 five-term loss decomposition (raw + λ-weighted), four per-run spike attributions, PHYS-05 interaction incl. lambda_l ≡ 0
 - [ ] 44-03-PLAN.md — DIAG-03 three-seed band: trends/spreads, 43-CALIBRATION anchor, seed-dependent-split caveat, Phase-38 rung citation
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 44-04-PLAN.md — evidence consolidation: build_manifest.py → manifest.json (SHA-256 + git head), evidence/README.md reproduction boundary
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 44-05-PLAN.md — DIAG-04 44-DIAGNOSIS.md (≥4 ranked causes, remedy-abstinent) + end-to-end re-derivability gate
 
 **Success Criteria** (what must be TRUE):
@@ -95,7 +103,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 44. Physics-Gate Forensics | v2.1 | 0/? | Not started | - |
+| 44. Physics-Gate Forensics | v2.1 | 0/5 | Planned | - |
 | 45. trainex-r2 ERW Package Assembly | v2.1 | 0/? | Not started | - |
 
 ---

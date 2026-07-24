@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Physics-Gate Investigation & trainex-r2 Research Package
 current_phase_name: Physics-Gate Forensics
-status: planning
-stopped_at: Phase 44 context gathered
-last_updated: "2026-07-24T01:45:44.134Z"
+status: ready_to_execute
+stopped_at: Phase 44 planned
+last_updated: "2026-07-24T02:50:00.000Z"
 last_activity: 2026-07-23
-last_activity_desc: "Phase 44 context gathered (--all --auto): 44-CONTEXT.md + 44-DISCUSSION-LOG.md committed. D-07 flagged MUST-SURFACE — the gate eps_H (237.2086) is max(per_trajectory), not the mean (5.6222). Next: /gsd-plan-phase 44; cut branch milestone/v2.1 from the v2.0 tip at first phase execution."
+last_activity_desc: "Phase 44 planned: 5 plans across 3 waves (44-01..44-05), research + pattern-map + validation strategy retained. D-07 carried into plan 44-01 as GAP-44-01 (MUST-SURFACE, decides nothing). Next: /gsd-execute-phase 44; cut branch milestone/v2.1 from the v2.0 tip at first phase execution."
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
 ---
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 44 — Physics-Gate Forensics (context gathered)
-Plan: —
-Status: Context gathered; ready to plan Phase 44
-Last activity: 2026-07-23 — Phase 44 discussion complete (`--all --auto`, watchdog chain `phase-44-work` position 2): `44-CONTEXT.md` + `44-DISCUSSION-LOG.md` committed. Scouting cleared both feasibility risks (per-trajectory array preserved in `metrics.json`; all five loss terms + PHYS-05 weights in `train.log.jsonl`). D-07 flagged MUST-SURFACE: the gate `ε_H` = 237.2086 is `max(per_trajectory)`, not the mean (5.6222) — routed to the STOP-protocol gap register, not decided. Next: `/gsd-plan-phase 44` (chain position 3); cut branch `milestone/v2.1` from the v2.0 tip at first phase execution (chain position 4).
+Phase: 44 — Physics-Gate Forensics (planned)
+Plan: 5 plans across 3 waves — Wave 1: 44-01/02/03 (parallel, disjoint files); Wave 2: 44-04; Wave 3: 44-05
+Status: Ready to execute
+Last activity: 2026-07-23 — Phase 44 planned (`/gsd-plan-phase 44`, watchdog chain `phase-44-work` position 3): `44-RESEARCH.md` + `44-PATTERNS.md` + `44-VALIDATION.md` committed (`b6246f4`), then `44-01..44-05-PLAN.md` + ROADMAP plan list (`a7fcfac`). Gates: requirements coverage 4/4 (DIAG-01..04); decision coverage 17/17 after adding the missing D-03 determinism/no-new-dependency truth to 44-01 and 44-04; plan-checker VERIFICATION PASSED; spec-less edge probe 12 items accounted for (11 authored as covered truths, 1 DIAG-03 `unclassified` row surfaced as a flagged assumption in 44-03). Research added three findings not in CONTEXT: the warmup spike is **four independent per-run events** (smoke 194/4.61e9, s41 123/6.08e9, s42 100/3.73e9, s43 169/3.83e9; `loss_phys` >99.9% of total, all post-λ-ramp), the held-out split is **seed-dependent** (so per-seed DIAG-03 comparisons span different populations), and **`lambda_l` is pinned at 0.0** in all 300 steps of all four runs (angular-momentum term never contributed gradient signal). D-07 carried into 44-01 as `GAP-44-01` — surfaced with the full 11-field STOP schema, decides nothing, and is designed to remain OPEN at phase close. Next: `/gsd-execute-phase 44` (chain position 4); cut branch `milestone/v2.1` from the v2.0 tip at first phase execution.
 
 ## Deferred Items
 
@@ -317,12 +317,13 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/44-physics-gate-forensics/44-CONTEXT.md
+**Resume file:** .planning/phases/44-physics-gate-forensics/44-01-PLAN.md
 
-Last session: 2026-07-24T01:45:44.129Z
-Stopped at: Phase 44 context gathered
-Next action: /gsd-complete-milestone (v2.0), then /gsd-new-milestone (v2.1 physics-gate investigation). The prior hold reasons are cleared: Phase 38's GAP-38-01 was RESOLVED-WITH-INSTRUCTION 2026-07-13 (38-VERIFICATION.md 12/12 passed on real-trajectory evidence; records reconciled 2026-07-23), and the Phase 41/42 suites were re-run green during Phase 43 re-verification (193/193, 38/38; only the two non-blocking 42-VALIDATION Manual-Only rows remain).
+Last session: 2026-07-24T02:50:00.000Z
+Stopped at: Phase 44 planned (5 plans, 3 waves)
+Next action: /gsd-execute-phase 44. Cut branch `milestone/v2.1` from the v2.0 tip before first execution (no branch op was performed during planning — v2.0 precedent). Execution runs read-only over retained artifacts under SCOPE-22..26: no held-out evaluation, no training runs, no spec edits, no remedy selection. Expect `GAP-44-01` (D-07 max-vs-mean gate statistic) to be raised during plan 44-01 and to remain OPEN for owner adjudication — that is by design, not a phase failure.
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Execute Phase 44 with /gsd-execute-phase 44 (cut `milestone/v2.1` from the v2.0 tip first)
+- Adjudicate GAP-44-01 when it is raised: is the physics gate defined over `max` or `mean` per-trajectory ε_H? The specs are silent; the agent will not decide it.
