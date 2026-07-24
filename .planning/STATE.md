@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Physics-Gate Investigation & trainex-r2 Research Package
-current_phase_name: Physics-Gate Forensics
-status: ready_to_execute
-stopped_at: Phase 44 planned
-last_updated: "2026-07-24T02:50:00.000Z"
+current_phase: 45
+current_phase_name: trainex-r2 ERW Package Assembly
+status: planning
+stopped_at: Phase 44 complete, ready to plan Phase 45
+last_updated: "2026-07-24T06:31:45.788Z"
 last_activity: 2026-07-23
-last_activity_desc: "Phase 44 planned: 5 plans across 3 waves (44-01..44-05), research + pattern-map + validation strategy retained. D-07 carried into plan 44-01 as GAP-44-01 (MUST-SURFACE, decides nothing). Next: /gsd-execute-phase 44; cut branch milestone/v2.1 from the v2.0 tip at first phase execution."
+last_activity_desc: Phase 44 complete, transitioned to Phase 45
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 0
-  percent: 0
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State
@@ -23,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 43 — verification-stage-0-pilot-acceptance
+**Current focus:** Phase 45 — trainex-r2 ERW Package Assembly
 
 ## Current Position
 
-Phase: 44 — Physics-Gate Forensics (planned)
-Plan: 5 plans across 3 waves — Wave 1: 44-01/02/03 (parallel, disjoint files); Wave 2: 44-04; Wave 3: 44-05
-Status: Ready to execute
-Last activity: 2026-07-23 — Phase 44 planned (`/gsd-plan-phase 44`, watchdog chain `phase-44-work` position 3): `44-RESEARCH.md` + `44-PATTERNS.md` + `44-VALIDATION.md` committed (`b6246f4`), then `44-01..44-05-PLAN.md` + ROADMAP plan list (`a7fcfac`). Gates: requirements coverage 4/4 (DIAG-01..04); decision coverage 17/17 after adding the missing D-03 determinism/no-new-dependency truth to 44-01 and 44-04; plan-checker VERIFICATION PASSED; spec-less edge probe 12 items accounted for (11 authored as covered truths, 1 DIAG-03 `unclassified` row surfaced as a flagged assumption in 44-03). Research added three findings not in CONTEXT: the warmup spike is **four independent per-run events** (smoke 194/4.61e9, s41 123/6.08e9, s42 100/3.73e9, s43 169/3.83e9; `loss_phys` >99.9% of total, all post-λ-ramp), the held-out split is **seed-dependent** (so per-seed DIAG-03 comparisons span different populations), and **`lambda_l` is pinned at 0.0** in all 300 steps of all four runs (angular-momentum term never contributed gradient signal). D-07 carried into 44-01 as `GAP-44-01` — surfaced with the full 11-field STOP schema, decides nothing, and is designed to remain OPEN at phase close. Next: `/gsd-execute-phase 44` (chain position 4); cut branch `milestone/v2.1` from the v2.0 tip at first phase execution.
+Phase: 45 — trainex-r2 ERW Package Assembly
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-23 — Phase 44 complete, transitioned to Phase 45
 
 ## Deferred Items
 
@@ -66,7 +67,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 841 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 846 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -126,6 +127,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 39 P03 | 35min | 3 tasks | 4 files |
 | Phase 39 P06 | 17 min | 2 tasks | 2 files |
 | 40 | 9 | - | - |
+| 44 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -317,11 +319,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/44-physics-gate-forensics/44-01-PLAN.md
+**Resume file:** None
 
-Last session: 2026-07-24T02:50:00.000Z
-Stopped at: Phase 44 planned (5 plans, 3 waves)
-Next action: /gsd-execute-phase 44. Cut branch `milestone/v2.1` from the v2.0 tip before first execution (no branch op was performed during planning — v2.0 precedent). Execution runs read-only over retained artifacts under SCOPE-22..26: no held-out evaluation, no training runs, no spec edits, no remedy selection. Expect `GAP-44-01` (D-07 max-vs-mean gate statistic) to be raised during plan 44-01 and to remain OPEN for owner adjudication — that is by design, not a phase failure.
+Last session: 2026-07-24
+Stopped at: Phase 44 complete — UAT 7/7 pass, verification 5/5 (44-VERIFICATION.md status: passed); ready to plan Phase 45.
+Next action: /gsd-plan-phase 45 (trainex-r2 ERW Package Assembly). GAP-44-01 (D-07 max-vs-mean gate statistic) was RESOLVED-WITH-INSTRUCTION during Phase 44 (owner option A 2026-07-23: worst-case max is the gate statistic). Follow-up: 44-VALIDATION.md remains status: draft / nyquist_compliant: false — run /gsd-validate-phase 44 to finalize the Nyquist map if milestone hygiene requires it (does not block Phase 45 planning).
 
 ## Operator Next Steps
 

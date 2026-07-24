@@ -10,10 +10,10 @@ Routed by the v2.0 owner verdict `adjust` (2026-07-22, `milestones/v2.0-phases/4
 
 ### Physics-Gate Forensics (DIAG) — Phase 44
 
-- [ ] **DIAG-01**: The per-trajectory ε_H distribution over all 1,500 held-out test trajectories is characterized from the **preserved** evaluation artifacts (`runs/stage0-pilot-seed42/evaluation/metrics.json` — the evaluator is NOT re-run): summary statistics (min/median/max/percentiles), uniform-vs-tail failure structure, and any correlation with recorded trajectory attributes available in the artifacts — all derived re-derivably (analysis scripts + outputs retained in phase evidence). [ACC-03 receipt; SCOPE-22]
-- [ ] **DIAG-02**: The five-term loss composition (data / IC / causal-physics / soft-energy / angular-momentum) is decomposed per-step across the retained smoke and pilot runs (`runs/stage0-smoke`, `runs/stage0-pilot-seed{41,42,43}`: `logs/train.log.jsonl`, `tb/`, `status.json`), identifying which terms dominate at which step ranges, the warmup-spike attribution (which term spikes to ~3.7e9), and the interaction with the PHYS-05 scheduled weights — read-only over existing artifacts. [Phase 43 evidence; PHYS-05]
-- [ ] **DIAG-03**: The three-seed band (41/42/43) is characterized to distinguish budget-limited-but-descending behavior from recipe instability: per-seed validation-trend direction (2/3 worsened per 43-CALIBRATION.md), final-loss/validation spreads, and step-window trend analysis — with the Phase 38 single-trajectory overfit rung cited as the machinery-integrity control (the network CAN fit one trajectory; failure emerges at population scale/budget). [43-CALIBRATION.md; 38-VERIFICATION.md]
-- [ ] **DIAG-04**: A hypothesis-ranked diagnosis report (`44-DIAGNOSIS.md`) ranks at least four candidate causes — insufficient training budget, loss-term imbalance, optimization/warmup pathology, normalization-or-data-scale issue (plus any the evidence surfaces) — each with cited supporting AND contradicting evidence from DIAG-01..03, and **explicitly abstains from selecting a remedy** (remedy selection is owner-routed through the trainex-r2 ERW round). Any source-silent physics-adjudication call encountered is surfaced as a STOP-protocol gap, never decided. [SCOPE-26; STOP protocol]
+- [x] **DIAG-01**: The per-trajectory ε_H distribution over all 1,500 held-out test trajectories is characterized from the **preserved** evaluation artifacts (`runs/stage0-pilot-seed42/evaluation/metrics.json` — the evaluator is NOT re-run): summary statistics (min/median/max/percentiles), uniform-vs-tail failure structure, and any correlation with recorded trajectory attributes available in the artifacts — all derived re-derivably (analysis scripts + outputs retained in phase evidence). [ACC-03 receipt; SCOPE-22]
+- [x] **DIAG-02**: The five-term loss composition (data / IC / causal-physics / soft-energy / angular-momentum) is decomposed per-step across the retained smoke and pilot runs (`runs/stage0-smoke`, `runs/stage0-pilot-seed{41,42,43}`: `logs/train.log.jsonl`, `tb/`, `status.json`), identifying which terms dominate at which step ranges, the warmup-spike attribution (which term spikes to ~3.7e9), and the interaction with the PHYS-05 scheduled weights — read-only over existing artifacts. [Phase 43 evidence; PHYS-05]
+- [x] **DIAG-03**: The three-seed band (41/42/43) is characterized to distinguish budget-limited-but-descending behavior from recipe instability: per-seed validation-trend direction (2/3 worsened per 43-CALIBRATION.md), final-loss/validation spreads, and step-window trend analysis — with the Phase 38 single-trajectory overfit rung cited as the machinery-integrity control (the network CAN fit one trajectory; failure emerges at population scale/budget). [43-CALIBRATION.md; 38-VERIFICATION.md]
+- [x] **DIAG-04**: A hypothesis-ranked diagnosis report (`44-DIAGNOSIS.md`) ranks at least four candidate causes — insufficient training budget, loss-term imbalance, optimization/warmup pathology, normalization-or-data-scale issue (plus any the evidence surfaces) — each with cited supporting AND contradicting evidence from DIAG-01..03, and **explicitly abstains from selecting a remedy** (remedy selection is owner-routed through the trainex-r2 ERW round). Any source-silent physics-adjudication call encountered is surfaced as a STOP-protocol gap, never decided. [SCOPE-26; STOP protocol]
 
 ### trainex-r2 ERW Package Assembly (PKG) — Phase 45
 
@@ -49,10 +49,10 @@ Routed by the v2.0 owner verdict `adjust` (2026-07-22, `milestones/v2.0-phases/4
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIAG-01 | Phase 44 | Pending |
-| DIAG-02 | Phase 44 | Pending |
-| DIAG-03 | Phase 44 | Pending |
-| DIAG-04 | Phase 44 | Pending |
+| DIAG-01 | Phase 44 | Complete |
+| DIAG-02 | Phase 44 | Complete |
+| DIAG-03 | Phase 44 | Complete |
+| DIAG-04 | Phase 44 | Complete |
 | PKG-09 | Phase 45 | Pending |
 | PKG-10 | Phase 45 | Pending |
 | PKG-11 | Phase 45 | Pending |
