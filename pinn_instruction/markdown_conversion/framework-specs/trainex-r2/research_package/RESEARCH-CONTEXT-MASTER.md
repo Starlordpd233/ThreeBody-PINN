@@ -71,7 +71,7 @@ one diagnosis. Do not over-weight the headline failure magnitude: the
 gate-statistic choice (F-15) is verdict-neutral, because the population fails
 under any aggregate statistic.
 
-## 4. The five research questions
+## 4. The six research questions
 
 Each question is posed **neutrally** — no recommended answer, no preferred
 value, schedule, direction, or candidate. Each block gives: the facts that bear
@@ -80,6 +80,13 @@ the matching DIAG-04 candidate as `[HYP]` context only → a **proposed**
 research direction (requiring separate project-owner authorization; never
 performed here) → what a complete answer specifies (the **structure** of an
 adequate answer, never a value) → the question itself.
+
+> **Q6 provenance (owner override of D-05).** Q1–Q5 are the locked
+> training-recipe question set. Q6 — dual-epsilon safety on the admitted set —
+> was **added by owner instruction (2026-07-24, D-13 Question 2 pick A)**, an
+> explicit override of the locked five-question set (D-05). It is a spec-side
+> verification question, not a training-recipe question; it is posed in the same
+> neutral Q-cluster shape and under the same neutrality rules as Q1–Q5.
 
 ### Q1 — Training budget / steps
 
@@ -207,6 +214,43 @@ adequate answer, never a value) → the question itself.
   the current evaluator budget is exhausted and the population fails the gate
   under any aggregate statistic?*
 
+### Q6 — Dual-epsilon safety on the admitted set (owner-added spec-verification question)
+
+- **Provenance:** added by owner instruction (2026-07-24, D-13 Question 2 pick
+  A) — an explicit override of the locked five-question set (D-05). It is a
+  spec-side verification question, not a training-recipe question.
+- **Facts:** two distinct gravitational softenings are locked by design.
+  `epsilon_train = 1e-5` softens the distance inside the **training loss**
+  (physics residual + energy regularizer — see `framework-specs-bundle.md`
+  Excerpt 4, §3.2/§3.4). `epsilon_inv = 1e-10` softens the potential only for
+  **offline ground-truth invariants** and the **held-out gate** (Excerpt 1 —
+  the gate evaluates `eps_H` with Plummer softening `eps = 1e-10`; F-01). The two
+  agree to ~10 digits at ordinary separations and diverge only at the tightest
+  encounters; the dual-context choice was ratified on first-principles +
+  lock-consistency grounds, not on a measured sensitivity study.
+- **Spec position:** the dual-epsilon choice is **locked** (v1.6 loss
+  contract). This question asks what would **confirm** it is safe on the real
+  data, not whether to change it.
+- **`[HYP]` context:** none mapped from DIAG-04 (this question post-dates the
+  diagnosis).
+- **Proposed research direction (owner-authorization-gated; not performed
+  here):** a sensitivity study that, on the admitted set, counts trajectories
+  whose minimum pairwise separation falls in the divergence band (broken down
+  by curriculum stage), computes the offline energy / invariant under both
+  softenings, and reports whether any stage label or validation gate moves.
+- **What a complete answer specifies:** the evidence and acceptance structure
+  that would confirm the dual-epsilon split does not change which trajectories
+  are admitted or how they are staged — a verification design with stated
+  pass/fail criteria at the **label/gate level**, and the decision rule for when
+  a finding would warrant reopening the locked choice. (Structure only; do not
+  set numeric bands beyond the locked spec, and do not propose running the
+  check now — SCOPE-23.)
+- **The question:** *What evidence and acceptance structure would confirm that
+  the locked dual-epsilon choice (`epsilon_train = 1e-5` vs
+  `epsilon_inv = 1e-10`) is safe on the admitted set — i.e., that the
+  train-vs-validate softening gap does not move any stage label or trip any
+  validation gate differently at close encounters?*
+
 ## 5. Claims register (folded in verbatim from CLAIMS-REGISTER.md)
 
 `F-` rows are established evidence you may rely on. `H-` rows are one prior
@@ -263,11 +307,11 @@ Every row below is **agent analysis — not established fact**.
 
 ## 7. Output contract
 
-Produce one research report, structured as **per-question sections (Q1–Q5) plus
+Produce one research report, structured as **per-question sections (Q1–Q6) plus
 a dedicated gaps section**. The project will later consolidate individual agents'
 reports into one resolution document; write yours to stand alone.
 
-1. **Answer each of the five questions** with reasoning, citing evidence to the
+1. **Answer each of the six questions** with reasoning, citing evidence to the
    attached files by **bare filename and section** (e.g., "44-DIAGNOSIS.md §3",
    "framework-specs-bundle.md Excerpt 5", "F-07").
 2. **Frame the trade-offs** between plausible positions; do not assume a house

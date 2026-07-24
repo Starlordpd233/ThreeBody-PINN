@@ -19,14 +19,16 @@ as unavailable rather than guessing (D-08, D-11).
 
 ## The package
 
-trainex-r2 is delivered as a **single sub-package** (D-01): five research
+trainex-r2 is delivered as a **single sub-package** (D-01): six research
 questions is under the ~6–7-item split threshold (ERW Rule 10), the questions
 share one coherent output contract and one centerpiece (`44-DIAGNOSIS.md`), so
 one package keeps them mutually consistent.
 
-The five question areas: (Q1) training budget/steps; (Q2) warmup + learning-rate
+The six question areas: (Q1) training budget/steps; (Q2) warmup + learning-rate
 schedule; (Q3) loss weighting/balancing — including the normalization/data-scale
-sub-facet; (Q4) Stage-0 curriculum pacing; (Q5) evaluation policy.
+sub-facet; (Q4) Stage-0 curriculum pacing; (Q5) evaluation policy; (Q6)
+dual-epsilon safety on the admitted set (owner-added spec-verification question,
+2026-07-24 — see "Owner decisions to record at assembly").
 
 **Purpose:** this package hands the training-recipe questions raised by the v2.0
 Stage-0 pilot's physics-gate failure to external research agents, so their
@@ -144,7 +146,9 @@ how (if at all) the r1b findings relate to the trainex-r2 package.
 - **(C)** the r1b handoff **completes first**, as a soft precondition on
   trainex-r2 delivery.
 
-**Owner's pick: PENDING (recorded at the Plan 45-04 checkpoint).**
+**Owner's pick: A — no linkage (owner decision 2026-07-24).** r1b's K-series
+findings are treated as independent of the trainex-r2 training-recipe questions;
+the package is delivered as-is with no r1b cross-reference added.
 
 ### Question 2 — `d-06-static-epsilon-sensitivity-check` (inclusion)
 
@@ -162,4 +166,9 @@ enters trainex-r2.
 - **(C)** **mention in the package as related-but-out-of-scope context**, not
   posed as a question.
 
-**Owner's pick: PENDING (recorded at the Plan 45-04 checkpoint).**
+**Owner's pick: A — add as a 6th research question (owner decision 2026-07-24;
+explicit override of the locked five-question set, D-05).** A sixth question
+(Q6 — dual-epsilon safety on the admitted set) has been added to
+`RESEARCH-CONTEXT-MASTER.md` §4, and the prompt body's question count updated
+to six. Q6 lives inside the existing master file — it changes **no** attachment
+count (the package stays 4 uploads of the at-most-5 cap).

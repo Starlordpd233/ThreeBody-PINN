@@ -39,11 +39,13 @@ attachments are the evidence and the locked spec it directs you to.
 
 ## What you are doing
 
-Answer the **five research questions** defined in `RESEARCH-CONTEXT-MASTER.md`
+Answer the **six research questions** defined in `RESEARCH-CONTEXT-MASTER.md`
 (Q1 training budget/steps; Q2 warmup + learning-rate schedule; Q3 loss
 weighting/balancing, which includes the normalization/data-scale sub-facet;
-Q4 Stage-0 curriculum pacing; Q5 evaluation policy). The questions are posed
-**neutrally** — they recommend no answer, and neither does this prompt.
+Q4 Stage-0 curriculum pacing; Q5 evaluation policy; Q6 dual-epsilon safety on
+the admitted set — an owner-added spec-verification question, 2026-07-24). The
+questions are posed **neutrally** — they recommend no answer, and neither does
+this prompt.
 
 ## How to answer (your contract)
 
@@ -82,7 +84,7 @@ unavailable, per `RESEARCH-CONTEXT-MASTER.md` §1.)
 
 ## Report structure
 
-Produce one report with **per-question sections (Q1–Q5)** and a final
+Produce one report with **per-question sections (Q1–Q6)** and a final
 **gaps section**. In each answer, state the evidence you relied on, frame the
 trade-offs, and flag any place you relied on an `H-` row as if it were
 established (you should not, but say so if you did). The project will
