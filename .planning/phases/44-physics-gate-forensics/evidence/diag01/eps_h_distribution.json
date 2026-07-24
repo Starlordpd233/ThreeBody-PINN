@@ -1,0 +1,159 @@
+{
+  "attribute_separation": {
+    "fidelity": {
+      "median_range": [
+        1.3742800277446185,
+        4.57204694706693
+      ],
+      "separates_population": false
+    },
+    "method": ">=10x median gap between groups flagged as separating",
+    "variant": {
+      "median_range": [
+        1.8473661259309764,
+        2.854397839231366
+      ],
+      "separates_population": false
+    }
+  },
+  "by_fidelity": {
+    "base": {
+      "comparison_operator": ">",
+      "frac_exceeding_threshold": 1.0,
+      "max": 237.2086056078468,
+      "mean": 3.932881434261734,
+      "median": 1.3742800277446185,
+      "min": 1.0040110547887884,
+      "n": 759,
+      "n_exceeding_threshold": 759,
+      "p25": 1.1113885033893012,
+      "p50": 1.3742800277446185,
+      "p75": 2.1500889468935847,
+      "p90": 4.119108157130283,
+      "p99": 58.35520533996435,
+      "threshold": 1e-05
+    },
+    "gold": {
+      "comparison_operator": ">",
+      "frac_exceeding_threshold": 1.0,
+      "max": 144.32081828660097,
+      "mean": 7.352528526334802,
+      "median": 4.57204694706693,
+      "min": 0.9741251227996501,
+      "n": 741,
+      "n_exceeding_threshold": 741,
+      "p25": 2.3980572408003153,
+      "p50": 4.57204694706693,
+      "p75": 8.174682033444844,
+      "p90": 14.830413704079621,
+      "p99": 54.65884257270531,
+      "threshold": 1e-05
+    }
+  },
+  "by_variant": {
+    "hierarchical": {
+      "comparison_operator": ">",
+      "frac_exceeding_threshold": 1.0,
+      "max": 135.18822352820976,
+      "mean": 4.943741073302622,
+      "median": 1.8473661259309764,
+      "min": 0.9741251227996501,
+      "n": 970,
+      "n_exceeding_threshold": 970,
+      "p25": 1.1125310141402305,
+      "p50": 1.8473661259309764,
+      "p75": 4.992395394409828,
+      "p90": 9.934254848773337,
+      "p99": 53.65319856133219,
+      "threshold": 1e-05
+    },
+    "standard": {
+      "comparison_operator": ">",
+      "frac_exceeding_threshold": 1.0,
+      "max": 237.2086056078468,
+      "mean": 6.863871331160756,
+      "median": 2.854397839231366,
+      "min": 0.9754766254936226,
+      "n": 530,
+      "n_exceeding_threshold": 530,
+      "p25": 1.7530387838375183,
+      "p50": 2.854397839231366,
+      "p75": 5.649459536930631,
+      "p90": 13.50734533185996,
+      "p99": 55.86566981617219,
+      "threshold": 1e-05
+    }
+  },
+  "d07_observation": {
+    "exact_equality_max_vs_top_level": true,
+    "gap": "GAP-44-01",
+    "max_per_trajectory_eps_h": 237.2086056078468,
+    "mean_per_trajectory_eps_h": 5.6221870977458295,
+    "median_per_trajectory_eps_h": 2.232675867436938,
+    "note": "The reported gate value (eps_h=237.2086...) is EXACTLY the MAX per-trajectory eps_h, not the mean (5.6222...) nor median (2.2327...). Whether a worst-case max is the SPEC-INTENDED gate statistic is a source-silent semantics question (GAP-44-01) and is NOT decided here.",
+    "top_level_eps_h": 237.2086056078468
+  },
+  "generated_by": "evidence/diag01/eps_h_distribution.py",
+  "input": {
+    "artifact_top_level": {
+      "eps_h": 237.2086056078468,
+      "eps_h_reject_threshold": 1e-05,
+      "n_test_trajectories": 1500,
+      "scs": 2.3751304405952904,
+      "scs_reject_threshold": -5.0,
+      "verdict": "FAIL"
+    },
+    "path": "runs/stage0-pilot-seed42/evaluation/metrics.json",
+    "schema_version": "phase43-evaluate-metrics/v1",
+    "sha256": "fe19df3f7c4d56f2d3e4df182c6d320ccd1ba1405dbc888f433b5f14ecb4bdd6"
+  },
+  "overall": {
+    "comparison_operator": ">",
+    "frac_exceeding_threshold": 1.0,
+    "max": 237.2086056078468,
+    "mean": 5.6221870977458295,
+    "median": 2.232675867436938,
+    "min": 0.9741251227996501,
+    "n": 1500,
+    "n_exceeding_threshold": 1500,
+    "p25": 1.2153156187500609,
+    "p50": 2.232675867436938,
+    "p75": 5.217656570222811,
+    "p90": 11.089014714714816,
+    "p99": 55.06878112170717,
+    "threshold": 1e-05
+  },
+  "percentile_interpolation": "linear",
+  "pre_registered_criterion": {
+    "comparison_operator": ">",
+    "name": "uniform-vs-tail",
+    "rule": "failure is UNIFORM iff min(per_trajectory.eps_h) > threshold (strict greater-than, matching gate semantics; a value exactly equal to the threshold does NOT count as exceeding)",
+    "stated_before_verdict": true,
+    "threshold": 1e-05
+  },
+  "provenance": {
+    "inputs": [
+      {
+        "path": "runs/stage0-pilot-seed42/evaluation/metrics.json",
+        "sha256": "fe19df3f7c4d56f2d3e4df182c6d320ccd1ba1405dbc888f433b5f14ecb4bdd6"
+      }
+    ],
+    "repo_relative": true
+  },
+  "schema": "diag01-eps-h-distribution/v1",
+  "tail_structure": {
+    "max_over_median": 106.24408543464799,
+    "note": "magnitude spread reported separately from the uniform/tail verdict",
+    "p99_over_median": 24.664924239506785
+  },
+  "verdict": {
+    "statement": "UNIFORM failure: the minimum per-trajectory eps_h exceeds the 1e-5 reject threshold (strict >), so 100% of held-out trajectories fail; a heavy right tail is reported separately in tail_structure.",
+    "uniform_failure": true
+  },
+  "worst_trajectory": {
+    "eps_h": 237.2086056078468,
+    "fidelity": "base",
+    "id": 1414,
+    "variant": "standard"
+  }
+}
