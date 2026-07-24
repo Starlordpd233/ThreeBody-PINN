@@ -1,0 +1,34 @@
+{
+  "convention_note": "Standalone manifest.json is a NEW Phase 44 convention, assembled from pinn/verify.py's git_head/git_head_available bounded mechanics plus Phase 43's inline sha256-dict shape (repo-relative path -> hex digest). It is the phase's single pinning record; the diag outputs carry no timestamp and remain byte-identical across re-runs. Recorded choice, not an accident.",
+  "cross_check": {
+    "all_match": true,
+    "diag_outputs_verified": [
+      ".planning/phases/44-physics-gate-forensics/evidence/diag01/eps_h_distribution.json",
+      ".planning/phases/44-physics-gate-forensics/evidence/diag02/loss_decomposition.json",
+      ".planning/phases/44-physics-gate-forensics/evidence/diag03/seed_band.json"
+    ],
+    "mismatches": [],
+    "provenance_entries_checked": 15
+  },
+  "generated_by": "evidence/build_manifest.py",
+  "git_head": "8631576dc5d8f76d1d0b301895ec5014161941cc",
+  "git_head_available": true,
+  "inputs": {
+    ".planning/milestones/v2.0-phases/38-pinn-model-rebuild-from-specs-fut-01/38-VERIFICATION.md": "22ea1f29515193fb5c15294a87091e3f84aa981d3ab15d23250bef5889db99e5",
+    ".planning/milestones/v2.0-phases/43-verification-stage-0-pilot-acceptance/43-CALIBRATION.md": "b92d0ad81f053305c9b69f379a6be076c99836f2ce089268ed88bfa0b90d6724",
+    "runs/stage0-pilot-seed41/logs/train.log.jsonl": "d1be6a6613f59526840180bad9fd6a0cecaa7df7f45a510adf24c92b429c3998",
+    "runs/stage0-pilot-seed41/splits.json": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+    "runs/stage0-pilot-seed41/validation.jsonl": "c22bb39a70c60308bb688196101b1f6dede34ddb61047191dbcdd69748a5722a",
+    "runs/stage0-pilot-seed42/evaluation/metrics.json": "fe19df3f7c4d56f2d3e4df182c6d320ccd1ba1405dbc888f433b5f14ecb4bdd6",
+    "runs/stage0-pilot-seed42/logs/train.log.jsonl": "d7958a3397eafc7a41039c43dcf8a0d59fab46d53fa82952e0eb0bb769a7a3d2",
+    "runs/stage0-pilot-seed42/splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+    "runs/stage0-pilot-seed42/validation.jsonl": "efcc4fdc54ee92c51c08676574d477efb389b6401e5e47ea2bc9b9f3ef43e6b2",
+    "runs/stage0-pilot-seed43/logs/train.log.jsonl": "0f1b5ba7a0c1de5cce4a2c51a307fe4706755fc271a07dc588b86c4bac109302",
+    "runs/stage0-pilot-seed43/splits.json": "a8618b0c6d0f0f1487fe4e3f8c0409a3e3398c7e8cb8bee2b4d3d7962a576172",
+    "runs/stage0-pilot-seed43/validation.jsonl": "b10de7758528be2a410165a61cf2747a279d111b761f11f83d0bad3d8ed8a012",
+    "runs/stage0-smoke/logs/train.log.jsonl": "228b5ca650716701deaffe9f63c8ea1d1fcf89f539d4b2a0af1ae5b475c6179b",
+    "runs/stage0-smoke/splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+    "runs/stage0-smoke/validation.jsonl": "70450fb1150e6ff2a90cd28771428a2232aa29d88b64f0b1e9eaef8a56c7ec91"
+  },
+  "schema": "phase44-evidence-manifest/v1"
+}
