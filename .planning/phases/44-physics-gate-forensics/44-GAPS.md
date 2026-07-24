@@ -106,8 +106,19 @@ subagent — per governance, the parent owns gap-register writes.
   affects the reported headline magnitude and the trainex-r2 research framing;
   silently reporting the mean would mislead downstream research.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:** *(empty — awaiting owner instruction; until resolved,
-  `44-DIAGNOSIS.md` follows option C and quotes both max and mean as facts
-  without designating either as the gate statistic, per D-15.)*
+- **Resolution note:** Owner instruction 2026-07-23 (interactive session,
+  AskUserQuestion): **Option A — the worst-case max is the spec-intended gate
+  statistic.** The held-out physics gate fails if ANY trajectory's `eps_H`
+  exceeds `1e-5`, and the headline is
+  `max(per_trajectory.eps_h) = 237.2086056078468` — confirming the evaluator's
+  rendering, consistent with the per-trajectory reject rule applied set-wide,
+  43-VERDICT's citation, and the preserved aggregate `SCS = log10(max)`.
+  Applied: `44-DIAGNOSIS.md` (GAP-44-01 section, §2 gate table, §7) updated to
+  designate max as THE gate number with this grounding; mean (5.6222) and
+  median (2.2327) remain quoted as distribution facts, not gate numbers;
+  `v2.1-GAPS.md` row updated. Codifying the aggregate-statistic wording into
+  `ctl_instruction.md` is NOT done here (SCOPE-24 — Phase 44 edits no spec);
+  it remains available to a later spec-editing milestone if the owner wants
+  the gate definition to state it explicitly.

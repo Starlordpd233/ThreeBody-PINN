@@ -57,13 +57,13 @@ The gate is two-sided (`ctl_instruction.md:567-572`).
 
 | Criterion | Reject rule | Preserved value | Verdict | Source |
 |-----------|-------------|-----------------|---------|--------|
-| **ε_H** (energy drift) | `eps_H > 1e-5` | per-trajectory; **max = 237.2086…**, mean = 5.6222, median = 2.2327; **1500/1500 exceed** | FAIL | `evidence/diag01/eps_h_distribution.json` |
+| **ε_H** (energy drift) | `eps_H > 1e-5` | per-trajectory; **max = 237.2086…** (the gate headline — GAP-44-01 resolved), mean = 5.6222, median = 2.2327; **1500/1500 exceed** | FAIL | `evidence/diag01/eps_h_distribution.json` |
 | **SCS** (= `log10(eps_H)`) | `SCS > -5` | aggregate-only `SCS = 2.3751304405952904` | FAIL | `metrics.json` top-level `scs` |
 
 [FACT] The preserved artifact carries a per-trajectory `eps_H` array but **no per-trajectory SCS**;
 this report does not speculate why (D-15). The aggregate `SCS` is exactly `log10(max per-trajectory
 eps_H) = log10(237.2086…) = 2.3751…`, consistent with the headline `eps_H` being the worst-case
-maximum (see GAP-44-01).
+maximum (confirmed as the gate statistic by the GAP-44-01 resolution, owner option A 2026-07-23).
 
 ### 2.1 The ε_H distribution (DIAG-01)
 
@@ -173,12 +173,16 @@ confound materially weaken a pure "need more steps" reading.
 number — but no consulted source explicitly defines the **aggregate held-out headline statistic**
 (max vs mean vs median vs fraction-failing) over the 1,500 trajectories.
 
-This is recorded as **GAP-44-01** (`.planning/phases/44-physics-gate-forensics/44-GAPS.md`;
-index `.planning/milestones/v2.1-GAPS.md`), status **OPEN**. Per D-07/D-15 this report **quotes both
-the max (237.21) and the mean (5.62) as facts and does not designate either as "the" gate
-statistic.** [FACT] The choice is **verdict-neutral**: because 1500/1500 trajectories exceed `1e-5`
-individually, the population is FAIL under any aggregate — the choice affects only the reported
-magnitude and the research framing, not pass/fail (impact rated **MEDIUM**).
+This was recorded as **GAP-44-01** (`.planning/phases/44-physics-gate-forensics/44-GAPS.md`;
+index `.planning/milestones/v2.1-GAPS.md`) and is now **RESOLVED-WITH-INSTRUCTION** (owner
+instruction 2026-07-23, option A): **the worst-case max IS the gate statistic.** The held-out gate
+fails if ANY trajectory's `eps_H` exceeds `1e-5`, and the headline is
+`max = 237.2086056078468` — confirming the evaluator's rendering, consistent with the
+per-trajectory reject rule applied set-wide and with the preserved aggregate `SCS = log10(max)`.
+The mean (5.62) and median (2.23) remain quoted as distribution facts, not gate numbers. [FACT]
+The choice is **verdict-neutral**: because 1500/1500 trajectories exceed `1e-5` individually, the
+population is FAIL under any aggregate — the resolution fixes the reported headline magnitude and
+the research framing, not pass/fail.
 
 ---
 
@@ -192,8 +196,9 @@ magnitude and the research framing, not pass/fail (impact rated **MEDIUM**).
   are proposals for owner authorization only).
 - **Edits no framework spec** (SCOPE-24). A diagnosis implicating a spec parameter becomes an ERW
   research question, never an edit.
-- **Decides no source-silent adjudication call.** The max-vs-mean gate statistic is GAP-44-01
-  (OPEN); the trend-direction disagreement with 43-CALIBRATION is reported, not adjudicated.
+- **Decides no source-silent adjudication call.** The max-vs-mean gate statistic was surfaced as
+  GAP-44-01 and resolved by owner instruction (2026-07-23: worst-case max), not decided inline;
+  the trend-direction disagreement with 43-CALIBRATION is reported, not adjudicated.
 
 ## 8. Provenance and reproduction
 

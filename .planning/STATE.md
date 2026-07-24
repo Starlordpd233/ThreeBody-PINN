@@ -326,4 +326,4 @@ Next action: /gsd-execute-phase 44. Cut branch `milestone/v2.1` from the v2.0 ti
 ## Operator Next Steps
 
 - Execute Phase 44 with /gsd-execute-phase 44 (cut `milestone/v2.1` from the v2.0 tip first)
-- Adjudicate GAP-44-01 when it is raised: is the physics gate defined over `max` or `mean` per-trajectory ε_H? The specs are silent; the agent will not decide it.
+- ~~Adjudicate GAP-44-01~~ — RESOLVED-WITH-INSTRUCTION 2026-07-23 (owner option A: the physics gate is defined over the worst-case `max` per-trajectory ε_H; headline `max = 237.2086056078468`. See `.planning/phases/44-physics-gate-forensics/44-GAPS.md` and the updated `44-DIAGNOSIS.md`.)
