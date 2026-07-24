@@ -1,0 +1,240 @@
+{
+  "calibration_agreement": {
+    "agree": false,
+    "artifact_last_window_worsened_seeds": [
+      "stage0-pilot-seed41",
+      "stage0-pilot-seed43"
+    ],
+    "claim": "43-CALIBRATION.md: '2/3 seeds worsened' (two final validation trends were worsening)",
+    "direction_definition_used": "first-vs-last (step100 -> step300 final_val_loss), per D-11",
+    "reason": "This script's D-11 direction is first-vs-last (step100->step300): it counts the seeds whose final validation loss ENDED HIGHER than it started. 43-CALIBRATION's '2/3' uses the validation.jsonl `trend` field, which is the LAST-WINDOW (step200->300) direction. Under first-vs-last a seed can improve net over the whole run yet show a last-window worsening (or vice versa). Both counts are reported; the difference is the direction definition, not a data conflict. Neither definition is adjudicated here.",
+    "this_script_first_vs_last_worsened_count": 1,
+    "this_script_first_vs_last_worsened_seeds": [
+      "stage0-pilot-seed43"
+    ],
+    "verdict": "DISAGREE"
+  },
+  "generated_by": "evidence/diag03/seed_band.py",
+  "held_out_split_divergence": {
+    "byte_identical_groups": [
+      [
+        "stage0-pilot-seed42",
+        "stage0-smoke"
+      ]
+    ],
+    "caveat": "seed41 and seed43 each carry a DIFFERENT held-out split from seed42 (and stage0-smoke == seed42). Cross-seed validation-MAGNITUDE comparisons therefore span DIFFERENT held-out populations and are not directly comparable; only WITHIN-seed trend direction is a clean longitudinal signal.",
+    "divergent_runs": [
+      "stage0-pilot-seed41",
+      "stage0-pilot-seed43"
+    ],
+    "hashes": {
+      "stage0-pilot-seed41": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+      "stage0-pilot-seed42": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+      "stage0-pilot-seed43": "a8618b0c6d0f0f1487fe4e3f8c0409a3e3398c7e8cb8bee2b4d3d7962a576172",
+      "stage0-smoke": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    },
+    "method": "SHA-256 of runs/<run>/splits.json"
+  },
+  "per_seed_trend": {
+    "stage0-pilot-seed41": {
+      "artifact_last_window_trend": "worsening",
+      "definition": "improving iff last<first, worsening iff last>first, flat iff exact equality (D-11)",
+      "direction_first_vs_last": "improving",
+      "first_step": 100,
+      "first_val": 2270930688.0,
+      "last_step": 300,
+      "last_val": 463856672.0,
+      "records": [
+        {
+          "final_val_loss": 2270930688.0,
+          "step": 100,
+          "trend": "unavailable"
+        },
+        {
+          "final_val_loss": 322188672.0,
+          "step": 200,
+          "trend": "improving"
+        },
+        {
+          "final_val_loss": 463856672.0,
+          "step": 300,
+          "trend": "worsening"
+        }
+      ]
+    },
+    "stage0-pilot-seed42": {
+      "artifact_last_window_trend": "improving",
+      "definition": "improving iff last<first, worsening iff last>first, flat iff exact equality (D-11)",
+      "direction_first_vs_last": "improving",
+      "first_step": 100,
+      "first_val": 838149312.0,
+      "last_step": 300,
+      "last_val": 78489008.0,
+      "records": [
+        {
+          "final_val_loss": 838149312.0,
+          "step": 100,
+          "trend": "unavailable"
+        },
+        {
+          "final_val_loss": 112568496.0,
+          "step": 200,
+          "trend": "improving"
+        },
+        {
+          "final_val_loss": 78489008.0,
+          "step": 300,
+          "trend": "improving"
+        }
+      ]
+    },
+    "stage0-pilot-seed43": {
+      "artifact_last_window_trend": "worsening",
+      "definition": "improving iff last<first, worsening iff last>first, flat iff exact equality (D-11)",
+      "direction_first_vs_last": "worsening",
+      "first_step": 100,
+      "first_val": 896691456.0,
+      "last_step": 300,
+      "last_val": 1851546240.0,
+      "records": [
+        {
+          "final_val_loss": 896691456.0,
+          "step": 100,
+          "trend": "unavailable"
+        },
+        {
+          "final_val_loss": 208946624.0,
+          "step": 200,
+          "trend": "improving"
+        },
+        {
+          "final_val_loss": 1851546240.0,
+          "step": 300,
+          "trend": "worsening"
+        }
+      ]
+    }
+  },
+  "phase38_overfit_rung_citation": {
+    "caveats": [
+      "single-trajectory overfit on ONE real admitted Brutus trajectory, not population scale",
+      "IC13 slot is a fixed zeros(13) placeholder, NOT the Phase-39 physically-normalized IC13",
+      "probe-local fixture loader is NOT the Phase 39 adapter (no Step-1A gate, no splits, no batching)",
+      "different optimizer/training context (Adam lr=1e-4 overfit probe) vs the Stage-0 curriculum training"
+    ],
+    "evidence_path": "evidence/overfit/20260713T133619Z/",
+    "flag": "CITATION-NOT-COMPUTATION (quoted verbatim from 38-VERIFICATION.md; never re-run, SCOPE-23/D-12)",
+    "interpretation_for_DIAG03": "Establishes machinery integrity: the network CAN fit one trajectory (>=1e3x data-loss reduction), so the Stage-0 population-scale gate failure emerges at population scale / under the Stage-0 budget and recipe, not from a structurally broken network. Cited as the machinery-integrity control; not re-run here.",
+    "source_file": ".planning/milestones/v2.0-phases/38-pinn-model-rebuild-from-specs-fut-01/38-VERIFICATION.md",
+    "source_section": "Rung 4 - single-trajectory overfit (REAL admitted trajectory)",
+    "source_sha256": "22ea1f29515193fb5c15294a87091e3f84aa981d3ab15d23250bef5889db99e5",
+    "verbatim": {
+      "com_offset_warning": "none fired (offset << 1e-3 threshold)",
+      "conditioning": "tau_ic13(u_n) = [2u_n-1, zeros(13)] (Phase-38 smoke placeholder; physically-normalized IC13 deferred to Phase 39)",
+      "floor_Lf": 0.0001997174686303869,
+      "initial_data_loss_L0": 0.21921204799884003,
+      "optimizer": "Adam lr=1e-4 (early-broke from --max-steps 5000 cap)",
+      "ratio_L0_over_Lf": 1097.6107873895164,
+      "soft_energy_status": "not evaluated - requires Phase 39/40 metadata",
+      "steps_to_floor": 176,
+      "threshold": "1e3",
+      "verdict": "PASS"
+    }
+  },
+  "pilot_seeds": [
+    "stage0-pilot-seed41",
+    "stage0-pilot-seed42",
+    "stage0-pilot-seed43"
+  ],
+  "provenance": {
+    "inputs": [
+      {
+        "path": "runs/stage0-pilot-seed41/validation.jsonl",
+        "sha256": "c22bb39a70c60308bb688196101b1f6dede34ddb61047191dbcdd69748a5722a"
+      },
+      {
+        "path": "runs/stage0-pilot-seed42/validation.jsonl",
+        "sha256": "efcc4fdc54ee92c51c08676574d477efb389b6401e5e47ea2bc9b9f3ef43e6b2"
+      },
+      {
+        "path": "runs/stage0-pilot-seed43/validation.jsonl",
+        "sha256": "b10de7758528be2a410165a61cf2747a279d111b761f11f83d0bad3d8ed8a012"
+      },
+      {
+        "path": "runs/stage0-smoke/validation.jsonl",
+        "sha256": "70450fb1150e6ff2a90cd28771428a2232aa29d88b64f0b1e9eaef8a56c7ec91"
+      },
+      {
+        "path": ".planning/milestones/v2.0-phases/43-verification-stage-0-pilot-acceptance/43-CALIBRATION.md",
+        "sha256": "b92d0ad81f053305c9b69f379a6be076c99836f2ce089268ed88bfa0b90d6724"
+      },
+      {
+        "path": "runs/stage0-smoke/splits.json",
+        "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+      },
+      {
+        "path": "runs/stage0-pilot-seed41/splits.json",
+        "sha256": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86"
+      },
+      {
+        "path": "runs/stage0-pilot-seed42/splits.json",
+        "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+      },
+      {
+        "path": "runs/stage0-pilot-seed43/splits.json",
+        "sha256": "a8618b0c6d0f0f1487fe4e3f8c0409a3e3398c7e8cb8bee2b4d3d7962a576172"
+      },
+      {
+        "path": ".planning/milestones/v2.0-phases/38-pinn-model-rebuild-from-specs-fut-01/38-VERIFICATION.md",
+        "sha256": "22ea1f29515193fb5c15294a87091e3f84aa981d3ab15d23250bef5889db99e5"
+      }
+    ],
+    "repo_relative": true
+  },
+  "schema": "diag03-seed-band/v1",
+  "separate_trace": "stage0-smoke (reported separately, never pooled into seed statistics; D-10)",
+  "spreads_over_pilot_seeds_final_val_loss": {
+    "absolute_span": 1773057232.0,
+    "cross_check_43_calibration": {
+      "matches_within_1e-9_rel": true,
+      "recorded_relative_span": 3.8224247683129153
+    },
+    "formula_source": "43-CALIBRATION.md 'Defined spread calculation' (verbatim): the absolute span is max(seed values) - min(seed values); the relative span is (max - min) / median(seed values); no values are rounded before the calculation.",
+    "max": 1851546240.0,
+    "median": 463856672.0,
+    "median_nonzero_asserted": true,
+    "min": 78489008.0,
+    "relative_span": 3.8224247683129153,
+    "seed_final_values": {
+      "stage0-pilot-seed41": 463856672.0,
+      "stage0-pilot-seed42": 78489008.0,
+      "stage0-pilot-seed43": 1851546240.0
+    }
+  },
+  "stage0_smoke_trace": {
+    "artifact_last_window_trend": "worsening",
+    "definition": "improving iff last<first, worsening iff last>first, flat iff exact equality (D-11)",
+    "direction_first_vs_last": "worsening",
+    "first_step": 100,
+    "first_val": 838149312.0,
+    "last_step": 300,
+    "last_val": 1117646720.0,
+    "records": [
+      {
+        "final_val_loss": 838149312.0,
+        "step": 100,
+        "trend": "unavailable"
+      },
+      {
+        "final_val_loss": 294354272.0,
+        "step": 200,
+        "trend": "unavailable"
+      },
+      {
+        "final_val_loss": 1117646720.0,
+        "step": 300,
+        "trend": "worsening"
+      }
+    ]
+  }
+}
