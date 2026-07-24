@@ -59,6 +59,15 @@
 **Goal**: The failure is characterized, not guessed at: the held-out ε_H distribution, the training-time loss composition, and the seed band are each quantified from retained artifacts, and a hypothesis-ranked diagnosis report gives the owner (and the trainex-r2 researchers) an evidence map of candidate causes — with the remedy deliberately left open.
 **Depends on**: v2.0 archive (complete). Ungated — first v2.1 phase.
 **Requirements**: DIAG-01, DIAG-02, DIAG-03, DIAG-04
+**Plans:** 5 plans
+
+Plans:
+- [ ] 44-01-PLAN.md — DIAG-01 ε_H distribution from preserved metrics.json + D-07 surfaced as GAP-44-01 (44-GAPS.md, v2.1-GAPS.md created)
+- [ ] 44-02-PLAN.md — DIAG-02 five-term loss decomposition (raw + λ-weighted), four per-run spike attributions, PHYS-05 interaction incl. lambda_l ≡ 0
+- [ ] 44-03-PLAN.md — DIAG-03 three-seed band: trends/spreads, 43-CALIBRATION anchor, seed-dependent-split caveat, Phase-38 rung citation
+- [ ] 44-04-PLAN.md — evidence consolidation: build_manifest.py → manifest.json (SHA-256 + git head), evidence/README.md reproduction boundary
+- [ ] 44-05-PLAN.md — DIAG-04 44-DIAGNOSIS.md (≥4 ranked causes, remedy-abstinent) + end-to-end re-derivability gate
+
 **Success Criteria** (what must be TRUE):
 
   1. A per-trajectory ε_H analysis over all 1,500 held-out trajectories exists, derived solely from the preserved evaluation artifacts (no evaluator invocation — checked against SCOPE-22), and states with numbers whether failure is uniform or tail-driven (DIAG-01).
