@@ -5,14 +5,14 @@ milestone_name: Physics-Gate Investigation & trainex-r2 Research Package
 current_phase: 45
 current_phase_name: trainex-r2 ERW Package Assembly
 status: planning
-stopped_at: Phase 45 context gathered (45-CONTEXT.md); ready to plan
+stopped_at: Phase 45 planned (4 plans, waves 1-4); ready to execute
 last_updated: "2026-07-24T07:02:46.000Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 45 context gathered via discuss-phase --all --auto; ready to plan
+last_activity_desc: Phase 45 planned via gsd-plan-phase (fable planner, max effort); 4 plans + research, plan-checker PASSED; ready to execute
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 5
+  total_plans: 9
   completed_plans: 5
   percent: 50
 ---
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 45 — trainex-r2 ERW Package Assembly
-Plan: Not started
-Status: Ready to plan (45-CONTEXT.md captured)
-Last activity: 2026-07-24 — Phase 45 context gathered via discuss-phase --all --auto
+Plan: 4 plans (0/4 complete)
+Status: Planned — 4 plans, plan-checker PASSED; ready to execute
+Last activity: 2026-07-24 — Phase 45 planned (4 plans; fable planner, max effort)
 
 ## Deferred Items
 
@@ -322,8 +322,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** None
 
 Last session: 2026-07-24
-Stopped at: Phase 44 complete — UAT 7/7 pass, verification 5/5 (44-VERIFICATION.md status: passed); ready to plan Phase 45.
-Next action: /gsd-plan-phase 45 (trainex-r2 ERW Package Assembly). GAP-44-01 (D-07 max-vs-mean gate statistic) was RESOLVED-WITH-INSTRUCTION during Phase 44 (owner option A 2026-07-23: worst-case max is the gate statistic). Follow-up: 44-VALIDATION.md remains status: draft / nyquist_compliant: false — run /gsd-validate-phase 44 to finalize the Nyquist map if milestone hygiene requires it (does not block Phase 45 planning).
+Stopped at: Phase 45 planned — 4 plans (45-01..04) + 45-RESEARCH.md, plan-checker PASSED, committed 71d23c87. Ready to execute Phase 45.
+Next action: /gsd-execute-phase 45 (watchdog chain phase-45-work position 3 executes the 4 plans). Note the blocking D-13 owner checkpoint in 45-04 — two carried-forward todos surfaced as A/B/C questions, never auto-answered. Follow-up: 44-VALIDATION.md remains status: draft / nyquist_compliant: false — run /gsd-validate-phase 44 if milestone hygiene requires (does not block Phase 45).
 
 ## Operator Next Steps
 
