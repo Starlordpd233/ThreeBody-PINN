@@ -4,17 +4,17 @@ milestone: v2.1
 milestone_name: Physics-Gate Investigation & trainex-r2 Research Package
 current_phase: 45
 current_phase_name: trainex-r2 ERW Package Assembly
-status: planning
-stopped_at: Phase 45 planned (4 plans, waves 1-4); ready to execute
-last_updated: "2026-07-24T07:02:46.000Z"
+status: complete
+stopped_at: "Phase 45 executed and audited PASS; package delivered; trainex-r2 report returned and verified; all five gaps adjudicated 2026-07-24 (4 RESOLVED-WITH-INSTRUCTION, 1 DEFERRED). Closeout committed; --no-ff merge to master, archive, and tag deliberately NOT performed — owner-controlled integration."
+last_updated: "2026-07-24T00:00:00.000Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 45 planned via gsd-plan-phase (fable planner, max effort); 4 plans + research, plan-checker PASSED; ready to execute
+last_activity_desc: "Phase 45 executed (4/4 plans, 45-AUDIT.md all ten checks PASS); trainex-r2 report returned Route B (open-book) and verified per-claim (6/6 confirmed); bounded Stage-0 conformance audit found 8 divergences (C-01..C-08); 44-ERRATUM.md issued; 5 gaps opened; ERW runbook revised with two access-mode routes"
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 9
-  completed_plans: 5
-  percent: 50
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -24,14 +24,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 45 — trainex-r2 ERW Package Assembly
+**Current focus:** v2.1 milestone close — pending owner decisions on five open gaps
 
 ## Current Position
 
-Phase: 45 — trainex-r2 ERW Package Assembly
-Plan: 4 plans (0/4 complete)
-Status: Planned — 4 plans, plan-checker PASSED; ready to execute
-Last activity: 2026-07-24 — Phase 45 planned (4 plans; fable planner, max effort)
+Phase: 45 — trainex-r2 ERW Package Assembly (complete)
+Plan: 4 plans (4/4 complete)
+Status: Both v2.1 phases complete, 7/7 requirements delivered, all five gaps terminal (4 RESOLVED-WITH-INSTRUCTION, 1 DEFERRED). Awaiting owner-controlled integration: `--no-ff` merge to master, archive under `milestones/v2.1-*`, tag.
+Last activity: 2026-07-24 — Phase 45 executed + audited PASS; trainex-r2 report returned, verified, and its conformance findings audited
+
+**Post-delivery development (2026-07-24).** The returned trainex-r2 report was
+delivered Route B (open-book — owner override of the package's "no codebase
+access" clause). Its repository-derived claims were verified per ERW Rule 19:
+6/6 confirmed, two stronger than the report asserted. A bounded conformance audit
+then established the full inventory — 8 findings, C-01..C-08. The finding that
+matters: **the executed Stage-0 pilot did not implement the locked specs**, so its
+physics-gate failure is not evidence about the design. The component math is
+faithful and well-tested; every divergence sits in the assembly, wiring, and
+configuration seams, and the test suite currently defends two of them.
+
+- Verification: `docs/work/reviews/milestone_v2.1/45-trainex-r2-erw-package-assembly/2026-07-24-trainex-r2-report-factw-verification.md`
+- Conformance audit: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-24-stage0-training-path-conformance-audit.md`
+- Phase 44 qualification: `.planning/phases/44-physics-gate-forensics/44-ERRATUM.md`
+- Enforcement charter (separate concurrent workstream): `docs/work/designs/cross_cutting/training-verification-regime/2026-07-24-verification-enforcement-charter.md`
+- ERW runbook revised (Route A/B access modes, Rules 16-20): `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`
 
 ## Deferred Items
 
@@ -159,6 +175,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 - v1.5: Resolving 02 Data Pipeline and Validation (Phases 23-29) — shipped 2026-06-17. 36/36 requirements mapped; standard granularity; 8 phases (incl. inserted 24.5). Phase 23 (research package) first; Phase 24 (verification + DATA-07 addendum) ran in parallel with the external-research gate; Phases 25-29 gated on the resolution doc AND Phase 24. Spec edits limited to `ctl_instruction.md` and `pinn_architecture.md` (SCOPE-08/09/10). Branch `milestone/v1.5` from master HEAD `b8b39a4`; `--no-ff` merged to master (fe9b3c92) and archived under `milestones/v1.5-*` 2026-06-17 (tag v1.5).
 - v1.6: Resolving 03 Curriculum and Training Loop (Phases 30-36) — roadmap created 2026-06-17. 32/32 requirements mapped; standard granularity; 7 phases (no inserted decimal). Phase 30 (research package) first and ungated; its delivery opens the external resolution-doc gate. Phase 31 (resolution-doc readiness verification, operational, 0 IDs) gates Phases 32-36. Phase 32 stands up the evidence ledger and adjudicates the headline conflicts (D-04/D-05/D-06 + `D=6.694` + M14) before the contract phases transcribe verdicts: Phase 33 (CURR), Phase 34 (LOOP), Phase 35 (LOSS). Phase 36 (VER) executes acceptance checks + handoff. Specwork-only (SCOPE-13/14/15); `pinn/` never grounding (SCOPE-10). Branch `milestone/v1.6` (worktree) cut from the v1.5 deliverable tip `88aa1e4f`; rebased onto completed master 2026-06-17 once v1.5 shipped.
 - v2.0: CTL-PINN Training Viability Slice (Phases 37–43) — roadmap created 2026-07-06. The project's first **build** milestone, opening the trainex track. 42 requirements mapped; standard granularity; 7 phases continuing from v1.6's Phase 36 (no reset). Dependency-ordered, no external gate: 37 ENV (dev env + D1-p probe) → 38 NET (`pinn/` rebuild, FUT-01) → 39 DATA (in-memory adapter + Stage-0 scan) → 40 TRAIN (Adam→L-BFGS Stage-0 loop, FUT-04) → 41 CTRL (config/checkpoint/guards/determinism) → 42 OPS (operator runbook + monitoring) → 43 ACC (verify + Stage-0 pilot + go/adjust/rethink verdict). Grounded in the ratified trainex-r1a decision set (2026-07-05); `pinn/` ban lifted; owner-carved decisions built as seams. Planning on `master`; build in `.worktrees/trainex`.
+- v2.1: Physics-Gate Investigation & trainex-r2 Research Package (Phases 44-45) — roadmap created 2026-07-23; both phases complete 2026-07-24, 7/7 requirements delivered; close PENDING five open gaps. Small granularity, 2 phases, no external gate inside the milestone (the gate opens at close). Phase 44 (DIAG-01..04) read-only forensics from retained v2.0 artifacts → `44-DIAGNOSIS.md`; Phase 45 (PKG-09..11) the trainex-r2 ERW package, delivered and audited PASS. SCOPE-22..26 held throughout: no evaluation, no training, no spec edits, no remedy chosen. **Post-delivery:** the returned report (Route B / open-book) established that the v2.0 Stage-0 pilot diverged from the locked specs in five verified respects, qualifying Phase 44's DIAG-04 rankings (`44-ERRATUM.md`) and opening GAP-44-02 + GAP-45-01..04. Branch `milestone/v2.1` in `.worktrees/trainex`.
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15); completed execution 2026-06-07.
 
@@ -327,5 +344,13 @@ Next action: /gsd-execute-phase 45 (watchdog chain phase-45-work position 3 exec
 
 ## Operator Next Steps
 
-- Execute Phase 44 with /gsd-execute-phase 44 (cut `milestone/v2.1` from the v2.0 tip first)
+- ~~Execute Phase 44~~ — complete 2026-07-23 (qualified by `44-ERRATUM.md` 2026-07-24)
 - ~~Adjudicate GAP-44-01~~ — RESOLVED-WITH-INSTRUCTION 2026-07-23 (owner option A: the physics gate is defined over the worst-case `max` per-trajectory ε_H; headline `max = 237.2086056078468`. See `.planning/phases/44-physics-gate-forensics/44-GAPS.md` and the updated `44-DIAGNOSIS.md`.)
+- ~~Execute Phase 45~~ — complete 2026-07-24, `45-AUDIT.md` all ten checks PASS, package delivered
+- ~~Adjudicate the five open gaps~~ — all five RESOLVED/DEFERRED 2026-07-24. GAP-45-03: per-stage PHYS-05 values are locked (option A). GAP-45-02: λ_E provenance unrecoverable, treated as drift, reverts to 0 (option C) → C-05 is a defect. GAP-45-04: mandate the invariant "no causal weight may be exactly zero", defer the number to the implementer with a recording obligation (option C). GAP-45-01: deferred to the conformance-fix phase, must resolve **before** any re-run (option C). GAP-44-02: erratum + mandatory re-derivation as a mapped requirement (option C). Index: `.planning/milestones/v2.1-GAPS.md`.
+- ~~Frame the next milestone~~ — owner decision 2026-07-24: **conformance first**, then re-run, then tuning adjudication. Six inherited obligations enumerated in `v2.1-GAPS.md`.
+- **Owner-controlled integration (NOT performed by the agent):** `--no-ff` merge of `milestone/v2.1` to master, archive under `milestones/v2.1-*`, tag `v2.1`. Closeout is committed on the branch and ready.
+- **Provenance gap to close:** the returned research report does not identify which external agent produced it (landed as `trainex-r2-research-report.md`, not the convention's `<agent>-resolution.md`). Owner to confirm the agent/service so the delivery-note provenance record is complete.
+- **Open the next milestone** — conformance-first roadmap; the six inherited obligations are the seed scope.
+- **Spawn the verification-enforcement workstream** — separate concurrent session; charter at `docs/work/designs/cross_cutting/training-verification-regime/2026-07-24-verification-enforcement-charter.md`, initial register contents ready in the conformance audit's C-01..C-08.
+- Hygiene (non-blocking): `44-VALIDATION.md` remains `status: draft` / `nyquist_compliant: false`.

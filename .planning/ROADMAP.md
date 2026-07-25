@@ -50,7 +50,7 @@
 **Phase Numbering:** integer phases 44–45 continue from v2.0's Phase 43 (numbering does not reset). Decimal phases reserved for urgent insertions.
 
 - [x] **Phase 44: Physics-Gate Forensics** — Read-only diagnosis from retained v2.0 artifacts: per-trajectory ε_H distribution over the 1,500 held-out trajectories (preserved `metrics.json`; evaluator NOT re-run), five-term loss decomposition across the smoke + three pilot runs (dominance, warmup-spike attribution, PHYS-05 interaction), three-seed divergence characterization (budget-limited descent vs recipe instability, with the Phase 38 overfit rung as machinery-integrity control), culminating in `44-DIAGNOSIS.md` — a hypothesis-ranked, evidence-cited diagnosis that explicitly abstains from remedy selection. (DIAG-01..04) (completed 2026-07-23)
-- [ ] **Phase 45: trainex-r2 ERW Package Assembly** — The research package under `pinn_instruction/markdown_conversion/framework-specs/trainex-r2/` per the canonical ERW runbook: annotated document list with commit-pinned snapshots (44-DIAGNOSIS.md, receipt/metrics, 43-CALIBRATION/43-VERDICT, relevant locked spec sections, run-evidence excerpts), neutrally framed research questions (budget/steps, warmup + LR schedule, loss weighting, Stage-0 curriculum pacing, evaluation-policy), claims register (verified facts vs agent hypotheses), and delivery note. Delivery opens the external research gate and closes the milestone. (PKG-09..11)
+- [x] **Phase 45: trainex-r2 ERW Package Assembly** — The research package under `pinn_instruction/markdown_conversion/framework-specs/trainex-r2/` per the canonical ERW runbook: annotated document list with commit-pinned snapshots (44-DIAGNOSIS.md, receipt/metrics, 43-CALIBRATION/43-VERDICT, relevant locked spec sections, run-evidence excerpts), neutrally framed research questions (budget/steps, warmup + LR schedule, loss weighting, Stage-0 curriculum pacing, evaluation-policy), claims register (verified facts vs agent hypotheses), and delivery note. Delivery opens the external research gate and closes the milestone. (PKG-09..11)
 
 ## Phase Details
 
@@ -89,24 +89,24 @@ Plans:
 **Goal**: The owner can hand the package to external research as-is: it contains everything needed to adjudicate the training-recipe questions (including the forensics evidence map), poses the questions neutrally, and separates verified fact from agent hypothesis — so the returning resolution doc can serve as a clean candidate verdict source for the next milestone.
 **Depends on**: Phase 44 (the diagnosis report is the package's centerpiece).
 **Requirements**: PKG-09, PKG-10, PKG-11
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 45-01-PLAN.md — PKG-09 package skeleton, source_baseline pin, verbatim 44-DIAGNOSIS.md snapshot, framework-specs-bundle.md + run-evidence-bundle.md (uploads 3-4 of ≤5)
+- [x] 45-01-PLAN.md — PKG-09 package skeleton, source_baseline pin, verbatim 44-DIAGNOSIS.md snapshot, framework-specs-bundle.md + run-evidence-bundle.md (uploads 3-4 of ≤5)
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 45-02-PLAN.md — PKG-11 claims register (direct [FACT]/[HYP] tag lift, GAP-44-01 owner-instructed) + PKG-10 RESEARCH-CONTEXT-MASTER.md (5 neutral questions, tiering, folded register, D-04 output contract)
+- [x] 45-02-PLAN.md — PKG-11 claims register (direct [FACT]/[HYP] tag lift, GAP-44-01 owner-instructed) + PKG-10 RESEARCH-CONTEXT-MASTER.md (5 neutral questions, tiering, folded register, D-04 output contract)
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 45-03-PLAN.md — RESEARCH-AGENT-PROMPT.md (4-file attach list, pasted body) + DELIVERY-NOTE.md draft (routing, provenance, return format, D-13 owner questions PENDING)
+- [x] 45-03-PLAN.md — RESEARCH-AGENT-PROMPT.md (4-file attach list, pasted body) + DELIVERY-NOTE.md draft (routing, provenance, return format, D-13 owner questions PENDING)
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 45-04-PLAN.md — D-13 owner checkpoint (surfaced, never auto-answered) + verbatim answer recording + ten-check final package audit → 45-AUDIT.md
+- [x] 45-04-PLAN.md — D-13 owner checkpoint (surfaced, never auto-answered) + verbatim answer recording + ten-check final package audit → 45-AUDIT.md
 
 **Success Criteria** (what must be TRUE):
 
@@ -122,8 +122,28 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 44. Physics-Gate Forensics | v2.1 | 5/5 | Complete    | 2026-07-23 |
-| 45. trainex-r2 ERW Package Assembly | v2.1 | 0/4 | Planned | - |
+| 44. Physics-Gate Forensics | v2.1 | 5/5 | Complete (qualified — see `44-ERRATUM.md`) | 2026-07-23 |
+| 45. trainex-r2 ERW Package Assembly | v2.1 | 4/4 | Complete — package audited PASS, delivered | 2026-07-24 |
+
+**Milestone close: gaps cleared 2026-07-24; merge/archive/tag pending owner action.**
+Both phases complete, 7/7 requirements delivered. The returned trainex-r2 report
+(Route B / open-book) plus its mandatory verification pass and a bounded conformance
+audit established that the v2.0 Stage-0 pilot diverged from the locked specs in five
+verified respects. This qualified Phase 44's DIAG-04 rankings (`44-ERRATUM.md`) and
+opened five gaps — **all five adjudicated by the owner the same day** (four
+RESOLVED-WITH-INSTRUCTION, one DEFERRED with a pre-re-run condition). See
+`.planning/milestones/v2.1-GAPS.md`, which also lists the six obligations the next
+milestone inherits.
+
+SCOPE-22..26 held throughout: no held-out evaluation, no training run, no
+framework-spec edit, no remedy selected. Three spec-edit items surfaced by the
+rulings were routed onward rather than actioned here, per SCOPE-24.
+
+**Next milestone framing (owner decision 2026-07-24): conformance first.** Fix the
+verified divergences and the two tests that defend them, resolve GAP-45-01, re-run
+Stage-0 under the corrected recipe — *then* adjudicate recipe tuning. The trainex-r2
+resolution doc is an input to a later phase, not the opening gate, because its
+Q1–Q6 answers reason about a recipe that did not run.
 
 ---
 *v2.1 created 2026-07-23 (`/gsd-new-milestone`, roadmap generated inline — v2.0 precedent; no research spawn, since the milestone analyzes internal artifacts and the ERW package is the research vehicle). 2 phases (44–45) continuing numbering from v2.0's Phase 43; 7/7 requirements mapped (DIAG-01..04 → 44, PKG-09..11 → 45). Grounded in the owner-signed `adjust` verdict and the v2.0 archive; scope boundaries SCOPE-22..26 are hard constraints. v2.0 archived under [`milestones/v2.0-*`](milestones/) (roadmap, requirements, audit, phase dirs).*
