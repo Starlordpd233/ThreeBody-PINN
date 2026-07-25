@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-07-25T13:10:52.385Z"
 last_activity: 2026-07-25
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap created — Phase 46 next)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-25 — Milestone v2.2 started
+Status: Roadmap created; ready to plan Phase 46 (Frame Resolution & Gate-Aligned Validation)
+Last activity: 2026-07-25 — Milestone v2.2 initialized: requirements (22: CONF-01..07, INST-01..03, GATE-01..03, TEST-01..02, RUN-01..03, EVAL-01, DIAG-05, VER-19..20) + roadmap (Phases 46–52) committed from the owner-ratified v2.2 roadmap proposal. Next: /gsd-plan-phase 46 (or /gsd-discuss-phase 46) from .worktrees/trainex; cut branch milestone/v2.2 from the v2.1 tip at first phase execution.
 
 ## Deferred Items
 
