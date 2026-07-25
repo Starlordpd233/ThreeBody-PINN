@@ -122,3 +122,122 @@ subagent — per governance, the parent owns gap-register writes.
   `ctl_instruction.md` is NOT done here (SCOPE-24 — Phase 44 edits no spec);
   it remains available to a later spec-editing milestone if the owner wants
   the gate definition to state it explicitly.
+
+## GAP-44-02 — Is an erratum sufficient for the DIAG-04 rankings, or must Phase 44 be reopened?
+
+- **Decision point:** The trainex-r2 research result, and the independent
+  verification that followed it, established that the executed Stage-0 pilot
+  diverged from the locked framework specs in at least five verified respects.
+  `44-DIAGNOSIS.md`'s DIAG-04 candidate-cause rankings were assembled on the
+  assumption that the run implemented the spec. Does the qualification land as a
+  standalone erratum (`44-ERRATUM.md`, written 2026-07-24, diagnosis left
+  byte-identical), or must Phase 44 be reopened and its diagnosis re-derived
+  against the corrected understanding?
+
+- **Where in artifact:**
+  `.planning/phases/44-physics-gate-forensics/44-DIAGNOSIS.md` §7 (DIAG-04
+  ranking table) and its supporting §§3-6;
+  `.planning/phases/44-physics-gate-forensics/44-ERRATUM.md` (the proposed
+  qualification);
+  `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-24-stage0-training-path-conformance-audit.md`
+  (findings C-01…C-08);
+  `docs/work/reviews/milestone_v2.1/45-trainex-r2-erw-package-assembly/2026-07-24-trainex-r2-report-factw-verification.md`
+  (per-claim verification).
+
+- **Task context:** Post-delivery verification of the returned trainex-r2 report
+  (Route B / open-book, per the amended ERW runbook Rule 19). Six repository-derived
+  claims were verified; all six confirmed, two stronger than the report asserted.
+  A bounded conformance audit of the executed Stage-0 path then established the
+  full inventory. The question of what happens to Phase 44's already-delivered
+  interpretive layer surfaced immediately and is not answerable from any source.
+
+- **Classification:** cross-phase reframing — the answer determines whether a
+  closed phase reopens, and it changes what the next milestone inherits as its
+  starting diagnosis.
+
+- **Source silence:**
+  - `.planning/ROADMAP.md:57-85` (Phase 44 success criteria) states what the
+    diagnosis must contain and that it must abstain from remedy selection. It is
+    silent on what happens if the diagnosis's premise is later falsified.
+  - `.planning/REQUIREMENTS.md` DIAG-01..04 define the deliverables, not a
+    revision protocol for them.
+  - `docs/README.md` defines a supersession protocol for `docs/` review reports
+    (`status: superseded`, never delete-and-recreate). `44-DIAGNOSIS.md` is a
+    `.planning/` phase artifact, not a `docs/` file, and no equivalent protocol
+    is stated for phase artifacts.
+  - CLAUDE.md's STOP protocol governs gaps found *during* a phase; it does not
+    address retroactive qualification of a completed phase's output.
+  - `45-AUDIT.md` Checks 4-5 assert the diagnosis is byte-identical to the
+    package snapshot and that no source changed since `source_baseline` — a
+    constraint on any in-place edit, but not an instruction about which route to
+    take.
+
+- **Mathematical / engineering grounding:** The distinction at stake is between
+  measurement and inference. Phase 44's measurements — the per-trajectory ε_H
+  distribution, the five-term loss decomposition, the three-seed band — are
+  derived from retained artifacts and are unaffected by the conformance findings;
+  they describe what the run did, and the run did what it did. What the findings
+  invalidate is the *inference step* that mapped those measurements onto ranked
+  causes, because that mapping assumed the observed behavior was produced by the
+  specified recipe. Concretely: the top-ranked cause (population-scale
+  generalization shortfall) was supported by a uniform 1500/1500 failure plus a
+  single-trajectory overfit control. A uniform failure discriminates between
+  "population-scale capacity limit" and "recipe-level mechanism applying
+  identically to every trajectory" only if the recipe is known correct — and
+  C-01/C-02 establish a mechanism of exactly the second kind (physics supervision
+  reaching 1 of 16 collocation points on every step of every run). The evidence
+  therefore under-determines the ranking it was used to justify. Reopening would
+  re-derive the inference against the corrected premise; an erratum records that
+  the inference is under-determined and defers re-derivation to the next
+  milestone, where the divergences will be fixed and the pilot re-run — which is
+  the only thing that can actually discriminate the hypotheses. The engineering
+  trade-off is whether the project's record should carry a corrected ranking now
+  (costly, and still not decidable without a valid run) or an honest statement
+  that the ranking is under-determined pending one.
+
+- **Agent was tempted to:** write the erratum and treat the matter as closed,
+  on the reasoning that Phase 44's success criteria were met, its measurements
+  stand, and re-ranking hypotheses without a valid training run would substitute
+  one under-determined inference for another. That reasoning is the case for
+  Option A below, but choosing between A/B/C decides whether a closed phase
+  reopens and what the next milestone inherits — a cross-phase reframing the
+  agent does not decide.
+
+- **What the user needs to decide:**
+  - **(A)** Erratum is sufficient. `44-ERRATUM.md` stands alongside the
+    byte-identical diagnosis; Phase 44 stays closed; re-derivation happens in the
+    next milestone after the divergences are fixed and the pilot re-run.
+  - **(B)** Reopen Phase 44. Re-derive DIAG-04 against the conformance findings,
+    re-verify, and re-close the phase. Note this breaks the delivered package's
+    byte-identity pin unless the revision is written to a new file.
+  - **(C)** Erratum now, mandatory re-derivation later. Phase 44 stays closed but
+    the next milestone carries an explicit requirement to re-derive the diagnosis
+    from a conformant run, rather than leaving it to judgement.
+
+- **Confidence of impact:** MEDIUM — the measurements are unaffected either way,
+  so no number changes; the impact is on what the next milestone treats as its
+  inherited diagnosis and on whether the project record shows a corrected or an
+  explicitly-under-determined ranking.
+
+- **Status:** RESOLVED-WITH-INSTRUCTION
+
+- **Resolution note:** Owner instruction 2026-07-24 (interactive session,
+  AskUserQuestion): **Option C — erratum now, re-derivation mandatory later.**
+  1. **Phase 44 stays closed.** `44-ERRATUM.md` stands alongside the
+     byte-identical `44-DIAGNOSIS.md`; the diagnosis is not edited, preserving the
+     delivered trainex-r2 package's snapshot pin (`45-AUDIT.md` Checks 4-5).
+  2. **The DIAG-04 rankings are recorded as under-determined, not corrected.**
+     Re-ranking hypotheses without a conformant training run would substitute one
+     under-determined inference for another; the only thing that discriminates the
+     candidate causes is a valid Stage-0 run, which does not yet exist.
+  3. **The next milestone carries an explicit requirement** to re-derive the
+     diagnosis from a conformant run — a mapped requirement with an acceptance
+     check, not a judgement call or a best-effort intention. This is the operative
+     difference from a plain erratum, and it is the condition on which Phase 44 is
+     permitted to stay closed.
+  4. Phase 44's measurements, its GAP-44-01 headline
+     (`max = 237.2086056078468`), the uniform 1500/1500 failure, and its remedy
+     abstinence all stand unchanged.
+
+  *All five v2.1 gaps are now terminal (four RESOLVED-WITH-INSTRUCTION, one
+  DEFERRED). The milestone-close blocker is cleared.*
