@@ -199,6 +199,43 @@
 
 ---
 
+## Milestone: v2.1 — Physics-Gate Investigation & trainex-r2 Research Package
+
+**Shipped:** 2026-07-24
+**Phases:** 2 (44–45) | **Plans:** 9
+
+### What Was Built
+- A read-only forensic diagnosis of the v2.0 physics-gate FAIL from retained evidence only: the per-trajectory ε_H distribution over all 1,500 held-out trajectories (preserved `metrics.json`; evaluator NOT re-run), the five-term loss decomposition + ~3.7e9 warmup-spike attribution, and the three-seed 41/42/43 band — consolidated into `44-DIAGNOSIS.md` (≥4 hypothesis-ranked causes, remedy-abstinent), with a SHA-256 `manifest.json` making every quoted number re-derivable
+- The trainex-r2 ERW package under `framework-specs/trainex-r2/`: commit-pinned document snapshots, 5 neutrally framed research questions + evaluation-policy question, a [FACT]/[HYP] claims register, and a delivery note — audited PASS (`45-AUDIT.md`, ten checks)
+- A bounded Stage-0 conformance audit (C-01..C-08) that reframed the whole milestone: the executed pilot diverged from the locked specs in five verified respects, so the gate FAIL is not evidence about the design — issued as `44-ERRATUM.md`
+
+### What Worked
+- Scope discipline under a signed verdict: SCOPE-22..26 (no held-out evaluation, no new training, no spec edits, no PLAT-01..07, no remedy selection) held for all 9 plans; every spec-parameter suspicion became an ERW research question, not an edit
+- The STOP-protocol spirit on a build-adjacent milestone: the diagnosis ranked hypotheses and abstained; the remedy stayed owner-routed and no physics-adjudication call was made inline
+- Verify-what-was-executed paid off: auditing the returned report against the live repo (Route B / open-book, 6/6 claims confirmed) surfaced that the pilot never implemented the specs — the single most consequential finding of the milestone, and it came from conformance-checking rather than trusting the recipe
+
+### What Was Inefficient
+- Phase 45 shipped without a gsd-verifier `45-VERIFICATION.md` (the `45-AUDIT.md` ten-check record was substantively equivalent but formally asymmetric vs Phase 44); the PKG-09/10/11 checkboxes and SUMMARY `requirements:` frontmatter were reconciled at closeout (chain position 2), not in-phase
+- `44-VALIDATION.md` remained `status: draft` / `nyquist_compliant: false` (pre-existing, non-blocking hygiene) through close
+- The returned report landed as `trainex-r2-research-report.md` rather than the convention's `<agent>-resolution.md`; producer identity remains unconfirmed by owner
+
+### Patterns Established
+- Diagnose-then-hand-off as its own milestone shape: the package-first rhythm (v1.5/v1.6) applied to a build failure — characterize the failure re-derivably, package it for external research, and defer the remedy to the post-resolution milestone
+- Conformance-before-tuning: when a returned research doc reasons about a recipe that did not run as specified, the verified divergences must be fixed and re-run before any tuning is adjudicated — the origin of the conformance-first v2.2 scope
+- A diagnosis can be delivered *and* qualified: `44-ERRATUM.md` records that the DIAG-04 rankings are under-determined pending re-derivation against a conformant run (GAP-44-02), rather than silently retracting or over-trusting them
+
+### Key Lessons
+1. Verify what actually executed, not what the recipe says: the pilot's five conformance divergences (C-01..C-08) meant the physics-gate FAIL was never evidence about the design — a lesson that reorders the entire next milestone.
+2. A forensic diagnosis over a non-conformant run is provisional by construction; mark the re-derivation obligation explicitly (erratum + mapped GAP) so the next milestone cannot skip it.
+3. Read-only investigation milestones still need the full lifecycle stamp (verification artifact + checkbox/frontmatter reconciliation) or the close-out audit re-litigates delivered work as "gaps."
+
+### Cost Observations
+- Model mix: not captured reliably
+- Sessions: several (Phase 44/45 execution inline on the data-bearing worktree; multi-position `v2-1-closeout` watchdog chain at close)
+- Notable: 7/7 requirements delivered; 2/2 phases; package audited PASS (ten checks); milestone audit `gaps_found` by the strict 3-source gate (PKG-09/10/11 verification-gap over complete work), reconciled inline to 7/7. Master merge + tag push deliberately NOT performed — owner-controlled integration.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -210,6 +247,7 @@
 | v1.5 | not captured | 8 | Extended adjudication to data-pipeline/validation contracts; empirical dataset verification in parallel with the research gate; G1–G8 milestone-closure gate |
 | v1.6 | many (relay) | 7 | Third adjudication milestone (curriculum + training loop); specwork-only with implementation routed to trainex; multi-agent closure relay via cross-session watchdog |
 | v2.0 | many (watchdog waves) | 7 | First build milestone (trainex track): production `pinn/` from specs, owner-carved seams ratified at designed moments, one-time budget-bound held-out evaluation, honest FAIL → `adjust` verdict |
+| v2.1 | several (inline + closeout chain) | 2 | Diagnose-then-hand-off investigation: read-only forensics over retained artifacts + trainex-r2 ERW package; conformance audit reframed the FAIL as an assembly divergence, seeding conformance-first v2.2 |
 
 ### Cumulative Quality
 
@@ -220,6 +258,7 @@
 | v1.5 | 27 | 36/36 requirements; 8/8 phases; G1–G8 gate PASS | 0 open at close |
 | v1.6 | 30 | 32/32 requirements; 7/7 phases; 26/26 acceptance probes PASS; ledger 18/18 VERIFIED | 0 open at close |
 | v2.0 | 60 | 42/42 requirements; 7/7 phases; integration 6/6 WIRED; held-out gate honestly FAIL | 0 open at close (10 acknowledged deferrals) |
+| v2.1 | 9 | 7/7 requirements; 2/2 phases; integration 3/3 WIRED; package audited PASS (ten checks) | 0 open at close (6 obligations inherited by v2.2) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -228,3 +267,4 @@
 3. Duplicated content across files (agent instruction sections) creates drift risk
 4. Source-silent semantic decisions must stop for user instruction rather than being inferred
 5. Executable acceptance evidence is part of the specification closure contract
+6. Verify what actually executed against the spec before trusting any result derived from it — a failing gate over a non-conformant run is evidence about the assembly, not the design (v2.1)

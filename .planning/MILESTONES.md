@@ -1,5 +1,18 @@
 # Milestones
 
+## v2.1 Physics-Gate Investigation & trainex-r2 Research Package (Shipped: 2026-07-24)
+
+**Phases completed:** 2 phases (44–45), 9 plans
+
+**Key accomplishments:**
+
+- Characterized the physics-gate FAIL from retained v2.0 evidence — the per-trajectory ε_H distribution over all 1,500 held-out trajectories (from the preserved `metrics.json`; the exhausted-budget evaluator was NOT re-run), the five-term loss decomposition with the ~3.7e9 warmup-spike attribution, and the three-seed 41/42/43 band — all re-derivably (pinned scripts + SHA-256 `manifest.json`)
+- Delivered `44-DIAGNOSIS.md`: ≥4 hypothesis-ranked candidate causes, each with cited supporting AND contradicting evidence, explicitly abstaining from remedy selection (SCOPE-26)
+- Assembled and delivered the trainex-r2 ERW package under `pinn_instruction/markdown_conversion/framework-specs/trainex-r2/` — commit-pinned document snapshots, 5 neutrally framed research questions + an evaluation-policy question, a claims register ([FACT] vs [HYP]), and a delivery note — audited PASS (`45-AUDIT.md`, ten checks)
+- A bounded Stage-0 conformance audit established that the v2.0 pilot diverged from the locked specs in five verified respects (C-01..C-08), so the physics-gate failure is not evidence about the design — this qualified `44-DIAGNOSIS.md` via `44-ERRATUM.md` (re-derivation obligation GAP-44-02)
+- All five gap questions routed to the owner and resolved the same day (4 RESOLVED-WITH-INSTRUCTION, 1 DEFERRED); the returned report accepted Route B / open-book with repository-derived claims verified 6/6 per ERW Rule 19
+- SCOPE-22..26 held throughout (no held-out evaluation, no new training, no spec edits, no PLAT-01..07, no remedy selection); owner set the next milestone conformance-first with six inherited obligations (`milestones/v2.1-GAPS.md §Obligations`)
+
 ## v2.0 CTL-PINN Training Viability Slice (Shipped: 2026-07-23)
 
 **Phases completed:** 7 phases, 60 plans, 190 tasks

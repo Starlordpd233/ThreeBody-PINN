@@ -5,10 +5,10 @@ milestone_name: Physics-Gate Investigation & trainex-r2 Research Package
 current_phase: 45
 current_phase_name: trainex-r2 ERW Package Assembly
 status: complete
-stopped_at: "Phase 45 executed and audited PASS; package delivered; trainex-r2 report returned and verified; all five gaps adjudicated 2026-07-24 (4 RESOLVED-WITH-INSTRUCTION, 1 DEFERRED). Closeout committed; --no-ff merge to master, archive, and tag deliberately NOT performed — owner-controlled integration."
-last_updated: "2026-07-24T00:00:00.000Z"
-last_activity: 2026-07-24
-last_activity_desc: "Phase 45 executed (4/4 plans, 45-AUDIT.md all ten checks PASS); trainex-r2 report returned Route B (open-book) and verified per-claim (6/6 confirmed); bounded Stage-0 conformance audit found 8 divergences (C-01..C-08); 44-ERRATUM.md issued; 5 gaps opened; ERW runbook revised with two access-mode routes"
+stopped_at: "v2.1 COMPLETE and archived (/gsd-complete-milestone): ROADMAP + REQUIREMENTS archived to milestones/v2.1-*, ROADMAP collapsed, REQUIREMENTS.md removed (fresh for next milestone), PROJECT.md evolved, MILESTONES/RETROSPECTIVE recorded, local tag v2.1 created. Remaining owner-controlled integration: --no-ff merge to master and tag PUSH — deliberately NOT performed (master is governance-only). Next milestone v2.2 Conformance-Repair proposed, not yet initialized."
+last_updated: "2026-07-25T00:00:00.000Z"
+last_activity: 2026-07-25
+last_activity_desc: "v2.1 milestone completed via /gsd-complete-milestone (watchdog chain v2-1-closeout position 4/tail): archived ROADMAP + REQUIREMENTS to milestones/v2.1-*, collapsed ROADMAP.md, evolved PROJECT.md, recorded MILESTONES.md + RETROSPECTIVE.md, created local tag v2.1. Master merge + tag push remain owner-gated. Next: v2.2 Conformance-Repair (proposed 2026-07-25, not yet initialized)."
 progress:
   total_phases: 2
   completed_phases: 2
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** v2.1 milestone close — pending owner decisions on five open gaps
+**Current focus:** v2.1 COMPLETE and archived (2026-07-24 ship; closed via `/gsd-complete-milestone` 2026-07-25). Next: v2.2 Conformance-Repair (proposed, not yet initialized). Owner-gated: `--no-ff` master merge + tag push.
 
 ## Current Position
 
 Phase: 45 — trainex-r2 ERW Package Assembly (complete)
 Plan: 4 plans (4/4 complete)
-Status: Both v2.1 phases complete, 7/7 requirements delivered, all five gaps terminal (4 RESOLVED-WITH-INSTRUCTION, 1 DEFERRED). Awaiting owner-controlled integration: `--no-ff` merge to master, archive under `milestones/v2.1-*`, tag.
-Last activity: 2026-07-24 — Phase 45 executed + audited PASS; trainex-r2 report returned, verified, and its conformance findings audited
+Status: v2.1 COMPLETE and archived via `/gsd-complete-milestone` (2026-07-25). Both phases complete, 7/7 requirements delivered, all five gaps terminal (4 RESOLVED-WITH-INSTRUCTION, 1 DEFERRED). Archived under `milestones/v2.1-*`; ROADMAP collapsed; REQUIREMENTS.md removed; local tag `v2.1` created. Remaining owner-controlled integration: `--no-ff` merge to master + tag PUSH (NOT performed — master is governance-only). Next: v2.2 Conformance-Repair (proposed 2026-07-25, not yet initialized).
+Last activity: 2026-07-25 — v2.1 milestone completed (watchdog chain `v2-1-closeout` position 4/tail): archive + ROADMAP collapse + PROJECT.md evolution + MILESTONES/RETROSPECTIVE + local tag `v2.1`
 
 **Post-delivery development (2026-07-24).** The returned trainex-r2 report was
 delivered Route B (open-book — owner override of the package's "no codebase
