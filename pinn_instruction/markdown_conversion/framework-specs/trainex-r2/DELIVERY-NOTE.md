@@ -58,6 +58,39 @@ bundles** (`framework-specs-bundle.md` / `run-evidence-bundle.md`), never added
 as new attachments (D-02 + Rule 4). The prompt file itself is **pasted as text,
 never uploaded** — it does not count against the cap.
 
+## Access mode — amended 2026-07-24 (ERW Rules 16, 20)
+
+**This round was delivered as Route B (open-book), not Route A as originally
+packaged.** The master and prompt were authored under the Route A clause "you
+have no codebase access"; the owner overrode that clause in the commissioning
+prompt, granting the external agent read-only access to referenced files in the
+`trainex` worktree. The returned report discloses the override in its §0 and
+labels every repository-derived claim `[FACT-W]` with file citations.
+
+- **Agent identity: UNRECORDED.** The returned document does not name the model or
+  service that produced it, and it landed as `trainex-r2-research-report.md` rather
+  than the convention's `<agent>-resolution.md` (ERW Rule 12). The owner
+  commissioned exactly one external agent for this round, so N = 1 and the
+  multi-agent consolidation step collapses. Owner to confirm the agent/service so
+  this record is complete; the file is intentionally left un-renamed until then
+  rather than renamed on a guess.
+- **Access granted:** read-only, `trainex` worktree, branch `milestone/v2.1`.
+- **Tree state during the engagement:** HEAD `bf4cc289` (the final package
+  commit) plus the untracked result file. Inferred, not directly attested: the
+  report answers Q6, which landed in `e394c6d3`, and no commit followed
+  `bf4cc289` before delivery. Treat the report's file:line citations as
+  re-derivable against `bf4cc289`.
+- **Consequence for package audits:** `45-AUDIT.md` Check 3 (zero repo-path
+  markers in authored uploads) was a correct Route A check at the time it ran. It
+  does not apply to a Route B package — see the runbook's amended Rules 1–2.
+- **Mandatory verification pass (Rule 19):** completed 2026-07-24 for the six
+  consequential repo-derived claims —
+  `docs/work/reviews/milestone_v2.1/45-trainex-r2-erw-package-assembly/2026-07-24-trainex-r2-report-factw-verification.md`.
+  All six confirmed; two are stronger than the report asserted.
+
+The runbook was revised on the strength of this round: see the "Access modes"
+section of `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`.
+
 ## Provenance
 
 - **Package baseline (`source_baseline`):**
