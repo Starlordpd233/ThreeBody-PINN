@@ -67,13 +67,16 @@ prompt, granting the external agent read-only access to referenced files in the
 `trainex` worktree. The returned report discloses the override in its §0 and
 labels every repository-derived claim `[FACT-W]` with file citations.
 
-- **Agent identity: UNRECORDED.** The returned document does not name the model or
-  service that produced it, and it landed as `trainex-r2-research-report.md` rather
-  than the convention's `<agent>-resolution.md` (ERW Rule 12). The owner
-  commissioned exactly one external agent for this round, so N = 1 and the
-  multi-agent consolidation step collapses. Owner to confirm the agent/service so
-  this record is complete; the file is intentionally left un-renamed until then
-  rather than renamed on a guess.
+- **Agent identity: UNRECORDED — owner ruled this need not be pursued
+  (2026-07-24).** The returned document names no model or service, and it landed as
+  `trainex-r2-research-report.md` rather than the convention's
+  `<agent>-resolution.md` (ERW Rule 12). The owner commissioned exactly one external
+  agent for this round, so N = 1 and the multi-agent consolidation step collapses;
+  attribution carries no downstream weight here. The filename stands as-is. **This
+  is a closed item, not an open action** — do not re-open it as a provenance gap.
+  Note for future rounds: ERW Rule 20 now requires recording how access was granted
+  and the tree state, which is the part that actually matters for re-deriving
+  open-book citations.
 - **Access granted:** read-only, `trainex` worktree, branch `milestone/v2.1`.
 - **Tree state during the engagement:** HEAD `bf4cc289` (the final package
   commit) plus the untracked result file. Inferred, not directly attested: the
