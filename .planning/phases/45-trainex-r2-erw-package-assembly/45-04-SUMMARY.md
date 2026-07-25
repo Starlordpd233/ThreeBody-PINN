@@ -4,7 +4,7 @@ phase: 45-trainex-r2-erw-package-assembly
 status: complete
 completed: 2026-07-24
 wave: 4
-requirement: PKG-09, PKG-10, PKG-11
+requirement: PKG-11
 ---
 
 # 45-04 Summary — owner package-scope decisions and final package audit

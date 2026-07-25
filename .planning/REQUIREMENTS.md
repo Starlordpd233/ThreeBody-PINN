@@ -17,9 +17,9 @@ Routed by the v2.0 owner verdict `adjust` (2026-07-22, `milestones/v2.0-phases/4
 
 ### trainex-r2 ERW Package Assembly (PKG) — Phase 45
 
-- [ ] **PKG-09**: The trainex-r2 research package is assembled per the canonical ERW runbook (`docs/runbooks/external-research/2026-06-11-external-research-workflow.md`) under `pinn_instruction/markdown_conversion/framework-specs/trainex-r2/`: curated annotated document list with commit-pinned snapshots — the 44-DIAGNOSIS.md forensics report, the held-out receipt/metrics artifacts, 43-CALIBRATION.md/43-VERDICT.md, the relevant locked spec sections (Stage-0 recipe, loss catalog, scheduled weights, gate definition), and run-evidence excerpts. [ERW runbook]
-- [ ] **PKG-10**: The package poses neutrally framed research questions — no recommended answer, v1.5/v1.6 precedent — covering at minimum: training budget/steps, warmup and learning-rate schedule, loss weighting/balancing, curriculum pacing for Stage 0, and the evaluation-policy question (what evidence and governance a future held-out evaluation would require, given the exhausted budget). [SCOPE-22; ERW precedent]
-- [ ] **PKG-11**: The package carries a claims register separating verified facts (v2.0-verified numbers with citations) from unverified claims/hypotheses (the DIAG-04 rankings, marked as agent analysis — not established fact), plus a delivery note recording package contents, provenance (commit pins), and the expected return format (individual reports → one consolidated resolution doc as candidate verdict source, per v1.4/v1.5/v1.6). [PKG-07/PKG-03 precedent]
+- [x] **PKG-09**: The trainex-r2 research package is assembled per the canonical ERW runbook (`docs/runbooks/external-research/2026-06-11-external-research-workflow.md`) under `pinn_instruction/markdown_conversion/framework-specs/trainex-r2/`: curated annotated document list with commit-pinned snapshots — the 44-DIAGNOSIS.md forensics report, the held-out receipt/metrics artifacts, 43-CALIBRATION.md/43-VERDICT.md, the relevant locked spec sections (Stage-0 recipe, loss catalog, scheduled weights, gate definition), and run-evidence excerpts. [ERW runbook]
+- [x] **PKG-10**: The package poses neutrally framed research questions — no recommended answer, v1.5/v1.6 precedent — covering at minimum: training budget/steps, warmup and learning-rate schedule, loss weighting/balancing, curriculum pacing for Stage 0, and the evaluation-policy question (what evidence and governance a future held-out evaluation would require, given the exhausted budget). [SCOPE-22; ERW precedent]
+- [x] **PKG-11**: The package carries a claims register separating verified facts (v2.0-verified numbers with citations) from unverified claims/hypotheses (the DIAG-04 rankings, marked as agent analysis — not established fact), plus a delivery note recording package contents, provenance (commit pins), and the expected return format (individual reports → one consolidated resolution doc as candidate verdict source, per v1.4/v1.5/v1.6). [PKG-07/PKG-03 precedent]
 
 ## Scope Boundaries (from the owner-signed verdict — hard constraints)
 
@@ -53,9 +53,9 @@ Routed by the v2.0 owner verdict `adjust` (2026-07-22, `milestones/v2.0-phases/4
 | DIAG-02 | Phase 44 | Complete |
 | DIAG-03 | Phase 44 | Complete |
 | DIAG-04 | Phase 44 | Complete |
-| PKG-09 | Phase 45 | Pending |
-| PKG-10 | Phase 45 | Pending |
-| PKG-11 | Phase 45 | Pending |
+| PKG-09 | Phase 45 | Complete |
+| PKG-10 | Phase 45 | Complete |
+| PKG-11 | Phase 45 | Complete |
 
 **Coverage:** 7/7 mapped (Phase 44: 4 DIAG; Phase 45: 3 PKG). No orphans; no duplicates. SCOPE-22..26 are scope-boundary annotations, not numbered requirements (v2.0 SCOPE-16..21 precedent). PKG numbering continues from v1.6's PKG-08.
 

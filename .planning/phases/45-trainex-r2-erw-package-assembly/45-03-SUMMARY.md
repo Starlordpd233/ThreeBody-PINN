@@ -4,7 +4,7 @@ phase: 45-trainex-r2-erw-package-assembly
 status: complete
 completed: 2026-07-24
 wave: 3
-requirement: PKG-10, PKG-11
+requirement: PKG-10
 ---
 
 # 45-03 Summary — research-agent prompt and delivery-note draft
