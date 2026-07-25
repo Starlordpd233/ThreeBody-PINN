@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Physics-Gate Investigation & trainex-r2 Research Package
-current_phase: 45
-current_phase_name: trainex-r2 ERW Package Assembly
-status: complete
-stopped_at: "v2.1 COMPLETE and archived (/gsd-complete-milestone): ROADMAP + REQUIREMENTS archived to milestones/v2.1-*, ROADMAP collapsed, REQUIREMENTS.md removed (fresh for next milestone), PROJECT.md evolved, MILESTONES/RETROSPECTIVE recorded, local tag v2.1 created. Remaining owner-controlled integration: --no-ff merge to master and tag PUSH — deliberately NOT performed (master is governance-only). Next milestone v2.2 Conformance-Repair proposed, not yet initialized."
-last_updated: "2026-07-25T00:00:00.000Z"
+milestone: v2.2
+milestone_name: Stage-0 Conformance Repair & Valid Re-Run
+status: planning
+last_updated: "2026-07-25T13:10:52.385Z"
 last_activity: 2026-07-25
-last_activity_desc: "v2.1 milestone completed via /gsd-complete-milestone (watchdog chain v2-1-closeout position 4/tail): archived ROADMAP + REQUIREMENTS to milestones/v2.1-*, collapsed ROADMAP.md, evolved PROJECT.md, recorded MILESTONES.md + RETROSPECTIVE.md, created local tag v2.1. Master merge + tag push remain owner-gated. Next: v2.2 Conformance-Repair (proposed 2026-07-25, not yet initialized)."
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,26 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 45 — trainex-r2 ERW Package Assembly (complete)
-Plan: 4 plans (4/4 complete)
-Status: v2.1 COMPLETE and archived via `/gsd-complete-milestone` (2026-07-25). Both phases complete, 7/7 requirements delivered, all five gaps terminal (4 RESOLVED-WITH-INSTRUCTION, 1 DEFERRED). Archived under `milestones/v2.1-*`; ROADMAP collapsed; REQUIREMENTS.md removed; local tag `v2.1` created. Remaining owner-controlled integration: `--no-ff` merge to master + tag PUSH (NOT performed — master is governance-only). Next: v2.2 Conformance-Repair (proposed 2026-07-25, not yet initialized).
-Last activity: 2026-07-25 — v2.1 milestone completed (watchdog chain `v2-1-closeout` position 4/tail): archive + ROADMAP collapse + PROJECT.md evolution + MILESTONES/RETROSPECTIVE + local tag `v2.1`
-
-**Post-delivery development (2026-07-24).** The returned trainex-r2 report was
-delivered Route B (open-book — owner override of the package's "no codebase
-access" clause). Its repository-derived claims were verified per ERW Rule 19:
-6/6 confirmed, two stronger than the report asserted. A bounded conformance audit
-then established the full inventory — 8 findings, C-01..C-08. The finding that
-matters: **the executed Stage-0 pilot did not implement the locked specs**, so its
-physics-gate failure is not evidence about the design. The component math is
-faithful and well-tested; every divergence sits in the assembly, wiring, and
-configuration seams, and the test suite currently defends two of them.
-
-- Verification: `docs/work/reviews/milestone_v2.1/45-trainex-r2-erw-package-assembly/2026-07-24-trainex-r2-report-factw-verification.md`
-- Conformance audit: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-24-stage0-training-path-conformance-audit.md`
-- Phase 44 qualification: `.planning/phases/44-physics-gate-forensics/44-ERRATUM.md`
-- Enforcement charter (separate concurrent workstream): `docs/work/designs/cross_cutting/training-verification-regime/2026-07-24-verification-enforcement-charter.md`
-- ERW runbook revised (Route A/B access modes, Rules 16-20): `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-25 — Milestone v2.2 started
 
 ## Deferred Items
 
