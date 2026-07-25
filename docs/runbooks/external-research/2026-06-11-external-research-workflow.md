@@ -17,8 +17,14 @@ in-repo agent transcribes and packages; it never adjudicates science itself.
 
 Distilled 2026-06-11 from the issue-01/issue-02 resolution rounds (specwork channel) and
 the trainex-r1 foundational round (build-design channel). Worked examples:
-`pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`
-and `pinn_instruction/markdown_conversion/framework-specs/trainex-r1/`.
+`pinn_instruction/markdown_conversion/framework-revisions/research_reports/02-data-pipeline-and-validation/`,
+`pinn_instruction/markdown_conversion/framework-specs/trainex-r1/`, and
+`pinn_instruction/markdown_conversion/framework-specs/trainex-r2/` (the open-book
+worked example — see "Access modes").
+
+**Revised 2026-07-24: two access modes added** (closed-book and open-book), on owner
+instruction after the trainex-r2 round. Rules 1–2 are now mode-conditional and Rules
+16–20 are new. Rationale in "Access modes" below.
 
 ## When to invoke ERW
 
@@ -38,13 +44,52 @@ Empirical Decision Loop at `.planning/research/edl/` supports empirically conseq
 source-silent gaps, possibly with probes; ERW is the handoff relay. An EDL brief MAY be
 delivered via ERW, but the gap register remains the blocking record.)
 
+## Access modes (two routes) — added 2026-07-24
+
+Channel sets the **standing** of the returned report. Access mode sets its **evidence
+base**. The two axes are independent: either channel may run in either mode, and the mode
+must be declared explicitly in the master frontmatter, the prompt, and the delivery note.
+
+| | **Route A — closed-book** | **Route B — open-book** |
+|---|---|---|
+| Agent sees | attached files only | attachments **plus read-only repository access** |
+| Use when | the question is conceptual — literature, methodology trade-offs, standard practice, how to frame a decision. No project fact is in dispute. | the question depends on what the code, data, configs, or run artifacts **actually do** |
+| Evidence labels | package-derived facts + agent analysis | adds a distinct **repo-verified** label (`[FACT-W]`-style) with file:line citations |
+| Repo paths in uploads | **forbidden** (Rule 1) | **expected** — the agent can resolve them |
+| Premise challenge | limited to internal consistency of the package | **mandated** — the agent must test the package's own premises against the repository |
+| Receiving-end burden | none beyond normal channel protocol | **every repo-derived claim independently verified in-repo before use** (Rule 19) |
+
+**Why Route B exists (the trainex-r2 lesson, 2026-07-24).** The trainex-r2 package was
+built Route A — "you have no codebase access" — and asked six questions about how to
+re-tune a training recipe after a physics-gate failure. The owner overrode the clause and
+granted read-only repository access. The agent then found that the executed run diverged
+from the locked spec in five respects, including a causal-weighting collapse that made
+the entire question set's premise false. All five were independently confirmed. Had the
+round run strictly Route A, it would have returned a polished, internally consistent
+resolution doc pointing in the wrong direction, and the false premise would have been
+carried into the next milestone's scope. **A closed-book agent cannot tell you that your
+question is wrong.**
+
+**Default:** if any question references a project artifact — a run, a config, a code
+path, a dataset — use **Route B**. Reserve Route A for questions that are purely
+conceptual. When in doubt, Route B: its only real cost is the verification pass, and that
+pass is cheap relative to acting on an unverified premise.
+
+**Usage pattern — the premise-audit pass.** Route B may be commissioned specifically to
+attack an existing package's premises rather than to answer its questions: same
+attachments, plus repository access, with the mandate "tell me which of these stated
+premises does not hold." Useful when a Route A round has already returned and its answers
+depend on premises nobody verified.
+
 ## The workflow
 
 ```
+0. MODE       pick Route A (closed-book) or Route B (open-book); declare it everywhere
 1. GATHER     identify grounding sources; classify hard constraints vs baseline intent
 2. PACKAGE    snapshot sources (commit-pinned) + write master, prompt, delivery note
 3. HANDOFF    user attaches files + pastes prompt to external agent(s), in parallel
 4. RESULTS    land per naming convention; optional multi-AI consolidation
+4b. VERIFY    Route B only, mandatory: per-claim in-repo verification report (Rule 19)
 5. USE        report becomes guiding source per channel standing; decisions recorded
 ```
 
@@ -61,9 +106,11 @@ delivered via ERW, but the gap register remains the blocking record.)
   <round>-resolution-doc.md            consolidated output (lands later)
 ```
 
-- **RESEARCH-CONTEXT-MASTER.md** (uploaded): orientation; manifest of companion files
-  *by bare filename*; source-treatment notes; hard-constraints-vs-baseline tiering;
-  framed questions; output contract. This is the agent's single entry point.
+- **RESEARCH-CONTEXT-MASTER.md** (uploaded): declared `access_mode` (Rule 16);
+  orientation; manifest of companion files (*by bare filename* under Route A);
+  source-treatment notes; hard-constraints-vs-baseline tiering; framed questions; output
+  contract. Under Route B it also carries the premise-challenge mandate, the read-only
+  bars, and the repo-derived evidence label. This is the agent's single entry point.
 - **RESEARCH-AGENT-PROMPT.md** (paste-ready): a user-facing header above a horizontal
   rule listing exactly which files to attach; below the rule, the verbatim prompt.
   **A package without its prompt is incomplete — always ship them together.**
@@ -75,8 +122,8 @@ delivered via ERW, but the gap register remains the blocking record.)
 
 ## Rules (each learned the hard way — do not relearn them)
 
-### Self-containment of uploads
-1. **ZERO repo paths in any authored upload (masters and prompts).** The external agent
+### Self-containment of uploads — **Route A only** (see "Access modes")
+1. **ZERO repo paths in any authored upload (masters and prompts).** A closed-book agent
    has no codebase access; refer to companion files by bare filename only. Never say
    "the `specs/` bundle" — directory structure is lost at upload. Exception
    (2026-06-11, trainex-r1): `specs/` snapshots are verbatim pins and may retain
@@ -85,6 +132,14 @@ delivered via ERW, but the gap register remains the blocking record.)
    unavailable and log it in the claims register if it matters.
 2. Tell the agent explicitly: "you are working from attached files only" and enumerate
    the files in a manifest table with per-file treatment instructions.
+
+   **Under Route B, Rules 1–2 invert:** repo paths in the master are *expected*, since
+   the agent can resolve them, and the "attached files only" instruction must NOT appear
+   — it directly contradicts the mandate in Rule 17. A Route B master still ships the
+   attachments and still pins them, because they frame the questions and fix the
+   baseline; the repository is an additional evidence source, not a replacement for the
+   package. Package audits that check "zero repo-path markers" apply to Route A packages
+   only.
 
 ### Storage (2026-06-11)
 3. **One shared `specs/` snapshot set per round, at the round root — never duplicated
@@ -146,6 +201,39 @@ delivered via ERW, but the gap register remains the blocking record.)
     `research_package_b/`) may ship 5 attachments to each external agent
     independently.
 
+### Access mode (2026-07-24)
+16. **Declare the mode explicitly** in the master frontmatter (`access_mode: closed-book`
+    or `open-book`), in the prompt body, and in the delivery note. An undeclared mode is
+    a package defect: the agent's behavior, the evidence labels, and the receiving-end
+    verification burden all depend on it.
+17. **Route B carries a premise-challenge mandate, and it is not optional.** The prompt
+    must instruct the agent to test the package's own stated premises against the
+    repository and to report contradictions as **first-class findings reported up front**,
+    not as per-question footnotes. Phrase it as a duty, not a permission: an agent that
+    finds a false premise and buries it has failed the round. The trainex-r2 report's
+    "source-verification findings that bear on multiple questions" section, placed ahead
+    of the per-question answers, is the shape to ask for.
+18. **Route B is read-only, and the prompt must say so in the imperative.** No file
+    edited, no training run, no evaluation invoked, no command with side effects, no
+    commit. On this project the standing bars (no held-out evaluation without owner
+    policy, no new training runs, no framework-spec edits, no remedy selection) apply to
+    external agents exactly as they apply to in-repo agents, and the prompt must
+    enumerate them. Discriminating experiments are **proposed** as owner-gated options,
+    never performed.
+19. **Every repo-derived claim is verified in-repo before use, and the verification is
+    recorded.** A Route B report's repo claims arrive as checkable assertions, not as
+    established facts — they carry a file:line citation precisely so they can be
+    re-derived independently. Produce a verification report under
+    `docs/work/reviews/` with a per-claim verdict before any claim informs a decision,
+    a roadmap, or a spec edit. This is a required step of the round, not a discretionary
+    extra. Worked example:
+    `docs/work/reviews/milestone_v2.1/45-trainex-r2-erw-package-assembly/2026-07-24-trainex-r2-report-factw-verification.md`.
+20. **Pin the tree the agent saw.** Record in the delivery note how access was granted
+    (which worktree, which branch) and the commit the working tree was at during the
+    engagement. Open-book file:line citations are only re-derivable against that state;
+    without the pin they rot silently as the tree moves. The attachment `source_baseline`
+    pin does not cover this — it pins the snapshots, not the live tree.
+
 ### Naming
 12. Rounds: `<track>-rN` (e.g., `trainex-r1`, `trainex-r2`); sub-packages
     `research_package_a/_b`; results `<agent>-resolution.md` under
@@ -170,3 +258,8 @@ delivered via ERW, but the gap register remains the blocking record.)
    (per-sub-package subfolder if split).
 5. Consolidate (issue-02 bundle tooling reusable) → `<round>-resolution-doc.md`; check
    the delivery note's join points; fill in the decision sheet where one exists.
+6. **Route B only:** before consolidating or acting, have the in-repo agent produce the
+   per-claim verification report (Rule 19). Repo-derived claims are checkable assertions
+   until verified — the report's own file:line citations exist so you can hold it to that.
+   If a verified claim contradicts a package premise, re-frame the round before using its
+   answers; a false premise invalidates the answers built on it, however well-reasoned.
