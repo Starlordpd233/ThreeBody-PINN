@@ -5,9 +5,9 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase_name: "Phase 46: Frame Resolution & Gate-Aligned Validation"
 status: ready to execute
 stopped_at: Phase 46 planned
-last_updated: "2026-07-26T11:04:34.000Z"
+last_updated: "2026-07-26T15:41:33.000Z"
 last_activity: 2026-07-26
-last_activity_desc: "Phase 46 planned: 7 plans across 5 waves, verified by gsd-plan-checker (VERIFICATION PASSED at iteration 2) plus an orchestrator-detected skip-tolerance defect in 46-01 fixed at iteration 3. Requirements coverage 2/2 (CONF-01, INST-01); decision coverage 26/26 (D-01..D-26). THREE GAPS OPEN in 46-GAPS.md: GAP-46-01 (dependency-scoped to Phases 50/51, does not block 46), GAP-46-02 (blocks execution of 46-06 and therefore 46-07), GAP-46-03 (blocks the tolerance constant in 46-02). Plans 46-02 and 46-06 carry hard halt gates that refuse to execute while their gap is OPEN. Waves 1-3 (46-01, 46-03, 46-05 and the gap-free portions) are executable now. Next: owner rulings on GAP-46-02 and GAP-46-03, then /gsd-execute-phase 46 from .worktrees/trainex; cut branch milestone/v2.2 from the v2.1 tip at first phase execution."
+last_activity_desc: "All three Phase 46 gaps RESOLVED-WITH-INSTRUCTION on 2026-07-26 under explicit user-delegated option selection. GAP-46-02 selects the content-pinned seed-41/42/43 pilot-manifest intersection (1,651 Stage-0 identities), clearing 46-06/46-07. GAP-46-03 ratifies the measured control FD floor plus nonnegative fp32 round-trip increment, clearing 46-02. GAP-46-01 binds canonical r'/u evaluator assembly to RUN-03 before Phase 51 held-out access. Phase 46 is fully unblocked. Next: /gsd-execute-phase 46 from .worktrees/trainex; cut milestone/v2.2 from the v2.1 tip at first phase execution."
 progress:
   total_phases: 7
   completed_phases: 0
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 Phase: 46 — Frame Resolution & Gate-Aligned Validation (planned, not started)
 Plan: — (7 plans across 5 waves; none executed)
-Status: Ready to execute, partially gap-blocked — waves 1–3 are clear; 46-02's tolerance constant awaits GAP-46-03 and 46-06/46-07 await GAP-46-02
-Last activity: 2026-07-26 — Phase 46 planned: 7 plans across 5 waves, verified by gsd-plan-checker (VERIFICATION PASSED at iteration 2) plus an orchestrator-detected skip-tolerance defect in 46-01 fixed at iteration 3. Requirements coverage 2/2 (CONF-01, INST-01); decision coverage 26/26 (D-01..D-26). Three gaps OPEN — see `.planning/phases/46-frame-resolution-gate-aligned-validation/46-GAPS.md` and `.planning/milestones/v2.2-GAPS.md`.
+Status: Ready to execute — all Phase 46 gap gates cleared; seven plans across five waves
+Last activity: 2026-07-26 — GAP-46-01/02/03 all `RESOLVED-WITH-INSTRUCTION` under explicit user-delegated option selection. The 46-02 and 46-06 hard gates now have recorded executable inputs; GAP-46-01 is mapped to RUN-03 / Phase 51 before held-out access.
 
 ## Deferred Items
 
@@ -319,11 +319,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/46-frame-resolution-gate-aligned-validation/46-GAPS.md
+**Resume file:** .planning/phases/46-frame-resolution-gate-aligned-validation/46-01-PLAN.md
 
 Last session: 2026-07-26
-Stopped at: Phase 46 planned (7 plans, 5 waves) — awaiting owner rulings on GAP-46-02 and GAP-46-03
-Next action: Rule on **GAP-46-02** (which frozen split manifest instantiates the D-02 probe population — options A/B/C) and **GAP-46-03** (whether a measured finite-difference floor is admissible in D-06's tolerance basis). Both are recorded with full options in `46-GAPS.md`; plans 46-06 and 46-02 carry hard halt gates and will refuse to execute while their gap is OPEN. **GAP-46-01 does not block Phase 46** — it binds at Phase 50/51 planning, before the single held-out evaluation (EVAL-01) is spent. Then `/gsd-execute-phase 46` from `.worktrees/trainex`. Cut `milestone/v2.2` from the v2.1 deliverable tip at first phase execution, per the recorded branch-timing decision.
+Stopped at: Phase 46 planned (7 plans, 5 waves) — all three recorded gaps adjudicated and execution gates cleared
+Next action: Run `/gsd-execute-phase 46` from `.worktrees/trainex`. Cut `milestone/v2.2` from the v2.1 deliverable tip at first phase execution, per the recorded branch-timing decision. Plans 46-02 and 46-06 must consume the exact GAP-46-03 and GAP-46-02 resolution notes; Phase 51 must discharge GAP-46-01 through RUN-03 before any held-out access.
 
 ## Operator Next Steps
 

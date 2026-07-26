@@ -130,15 +130,32 @@ subagent — per governance, the parent owns gap-register writes.
   single unspendable-twice held-out evaluation (EVAL-01 / SCOPE-28), which is the point
   of v2.2, and couples to the inherited GAP-44-02 re-derivation obligation.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:** *(empty — awaiting owner instruction)*
+- **Resolution note:** User instruction 2026-07-26 explicitly delegated the option
+  selection to Codex. **Refined Option A — bind the obligation now and discharge it
+  before the Phase 51 held-out access.**
+  1. EVAL-01 is authorized for the **corrected conformant implementation**. The locked
+     output consumed by evaluation is therefore scaled position `r'`, and its coherent
+     finite-difference time coordinate is `u = t/T`. The Phase 51 evaluator must pass
+     predicted `r'` with `times_native / T_CHARACTERISTIC_TIME` to `gate_metrics`;
+     passing raw native times with scaled predictions is prohibited.
+  2. A CONF-01 `TARGETS_ARE_RAW` result diagnoses the historical resident target path
+     and triggers D-09's owner-governed repair branch. It does **not** authorize a new
+     raw-frame EVAL-01 run. The historical v2.0 evaluator pairing may have been coherent
+     for a raw-output checkpoint, but its status remains conditional on the measured
+     CONF-01 verdict and the GAP-44-02 re-derivation; this ruling does not pre-judge it.
+  3. Phase 50/51 planning must make the evaluator's position/time assembly explicit,
+     add a dataset-free regression proving the `r'`/`u` pair, and run a pre-invocation
+     assertion before any test `StageIndex` or held-out trajectory is materialized.
+     This is a RUN-03 implementation-correctness obligation, recorded separately from
+     EVAL-01's already-ratified three eligibility preconditions.
+  4. Phase 46 remains unchanged: D-16 still forbids it from importing, invoking, or
+     modifying `pinn.evaluate`.
 
-- **Blocking scope (dependency-scoped):** Does **not** block Phase 46 planning or
-  execution. Phase 46's INST-01 builds its own validation-side composition in the
-  coherent frame per D-12, and D-12/D-13 already prescribe how to behave if the
-  CONF-01 branch selects an alternate pair. Blocks nothing until Phase 50/51 planning,
-  where it must be resolved before EVAL-01 is spent.
+- **Blocking scope (resolved, dependency-scoped):** Never blocked Phase 46. The
+  downstream obligation is now mapped to RUN-03 / Phase 51 and blocks the held-out
+  invocation there until its regression and pre-access assertion pass.
 
 ---
 
@@ -207,13 +224,33 @@ subagent — per governance, the parent owns gap-register writes.
   the ruling determines the formal held-out-isolation claim and the recorded evidence
   counts, and held-out isolation is the discipline the whole milestone is protecting.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:** *(empty — awaiting owner instruction)*
+- **Resolution note:** User instruction 2026-07-26 explicitly delegated the option
+  selection to Codex. **Option A — conservative intersection across the three retained
+  pilot manifests**, content-pinned as:
+  - `runs/stage0-pilot-seed41/splits.json` —
+    `c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86`
+  - `runs/stage0-pilot-seed42/splits.json` —
+    `5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903`
+  - `runs/stage0-pilot-seed43/splits.json` —
+    `a8618b0c6d0f0f1487fe4e3f8c0409a3e3398c7e8cb8bee2b4d3d7962a576172`
 
-- **Blocking scope (dependency-scoped):** Blocks **46-06** (the one real-corpus evidence
-  run) and therefore 46-07. Waves 1–3 (46-01 through 46-05) are unaffected — they are
-  synthetic/dataset-free and manifest-agnostic.
+  `runs/stage0-smoke/splits.json` is omitted because it is byte-identical to the
+  seed-42 manifest and adds no independent exclusion constraint. An identity is
+  eligible only when it is Stage 0 and train-or-validation under **all three** pilot
+  manifests; test under **any one** excludes it. Direct manifest arithmetic records
+  2,265 Stage-0 physical identities, 2,039 non-test identities per individual seed,
+  and a 1,651-identity all-three intersection — 388 (19.0%) fewer than one seed's
+  train+validation view. Those are manifest-level provenance counts; adapter
+  admission/quarantine and snapshot exclusions remain separately reported in D-05
+  evidence. The retained 1,651-identity population is ample for a pipeline-wide frame
+  property, while this is the only listed basis that makes D-02's absolute test
+  exclusion true across the full three-seed protocol.
+
+- **Blocking scope (resolved, dependency-scoped):** The 46-06 population gate and
+  therefore 46-07 are unblocked as of 2026-07-26. Plan 46-06 must pass exactly the
+  three content-pinned pilot manifests above and quote this resolution as provenance.
 
 ---
 
@@ -266,13 +303,37 @@ subagent — per governance, the parent owns gap-register writes.
   unlikely to turn on this. It matters for whether the evidence artifact's agreement claim
   is well-founded and for whether the fail-closed path behaves as D-06 intends.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:** *(empty — awaiting owner instruction)*
+- **Resolution note:** User instruction 2026-07-26 explicitly delegated the option
+  selection to Codex. **Option A — ratify the measured two-term numerical comparison
+  tolerance**, with these binding guardrails:
+  1. Per trajectory and under the same qualifying-snapshot mask, the finite-difference
+     floor is `max(positive_control_median_residual,
+     provenance_control_median_residual)`.
+  2. The fp32 term is the measured, nonnegative residual increase caused by
+     fp32-cast-then-float64-restored copies of the same control inputs. The tolerance
+     is `finite_difference_floor + fp32_roundtrip_increment`.
+  3. Persist the floor, round-trip increment, and sum separately. No safety multiplier,
+     population-fitted percentile, imported physics threshold, Phase 38 threshold, or
+     theory-predicted `~21x` / `~99x` separation may enter the tolerance; those
+     separations remain diagnostics only.
+  4. This tolerance answers only whether two measurements agree within the numerical
+     resolution of the finite-difference operator. It is not a physics-acceptance,
+     target-quality, Hamiltonian, or training threshold.
+  5. Non-finite controls, a non-positive/non-finite tolerance, simultaneous consistency
+     of both hypotheses, or failure of the opposing arm to lie strictly above the
+     tolerance remains fail-closed as `VERDICT_AMBIGUOUS`.
 
-- **Blocking scope (dependency-scoped):** Blocks the tolerance constant in **46-02** only.
-  46-01 and the INST-01 strand (46-03, 46-05) are unaffected. Cheap to ratify; the planner
-  supplied a complete rationale.
+  A dtype-only basis was rejected because it omits the discretization error of the
+  measurement operator and would test the coherent controls against a bound below that
+  operator's own resolution. A Richardson-extrapolation or fitted global error model
+  would add assumptions and machinery without improving this binary, control-anchored
+  frame decision.
+
+- **Blocking scope (resolved, dependency-scoped):** The tolerance gate in 46-02 is
+  unblocked as of 2026-07-26. The implementation and Test 6 must reproduce the
+  two-term provenance and guardrails above exactly.
 
 ---
 

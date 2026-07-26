@@ -61,7 +61,7 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 
 - [ ] **RUN-01**: Stage-0 re-run under the corrected recipe, with conformance-only iteration (SCOPE-29). [SCOPE-27 authorizes Stage-0 training]
 - [ ] **RUN-02**: Re-establish the three-seed band, matching the v2.0 protocol so the runs are comparable. [v2.0 pilot protocol]
-- [ ] **RUN-03**: Execute the single authorized held-out evaluation, gated on EVAL-01. [SCOPE-28]
+- [ ] **RUN-03**: Execute the single authorized held-out evaluation, gated on EVAL-01. Before any held-out access, prove with a dataset-free regression and pre-invocation assertion that the evaluator pairs canonical predicted `r'` with `u=t/T`; raw native time with scaled predictions is prohibited. [SCOPE-28; GAP-46-01 delegated ruling 2026-07-26]
 - [ ] **EVAL-01**: The evaluation policy above, as a binding requirement with its three preconditions checked and recorded before the evaluator is invoked. [owner-ratified 2026-07-25]
 
 ### Diagnosis Re-Derivation & Traceability (DIAG / VER) — Phase 52

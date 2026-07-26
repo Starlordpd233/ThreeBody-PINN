@@ -157,8 +157,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. The three EVAL-01 preconditions are verified and recorded before the evaluator is invoked: (i) preflight conformance passing with zero unwaived divergences, (ii) RG-02 resolved, (iii) validation-side gate metrics recorded for the run being submitted (EVAL-01).
-  2. The evaluator is invoked exactly once; the invocation, its gating verification, and the receipt are recorded (RUN-03, SCOPE-28).
-  3. The owner renders a go / adjust / rethink verdict on the design (the v2.0 ACC-06 pattern) — the first valid grade the design has ever received (RUN-03).
+  2. Before any held-out access, a dataset-free evaluator-assembly regression and a pre-invocation assertion prove that canonical predicted `r'` is paired with `u=t/T`, never raw native time; this discharges GAP-46-01 without adding a fourth EVAL-01 eligibility precondition (RUN-03).
+  3. The evaluator is invoked exactly once; the invocation, its gating verification, and the receipt are recorded (RUN-03, SCOPE-28).
+  4. The owner renders a go / adjust / rethink verdict on the design (the v2.0 ACC-06 pattern) — the first valid grade the design has ever received (RUN-03).
 
 ### Phase 52: Diagnosis Re-Derivation & Handoff
 
