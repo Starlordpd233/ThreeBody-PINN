@@ -2,10 +2,12 @@
 phase: 46
 slug: frame-resolution-gate-aligned-validation
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
+# status stays draft until /gsd-validate-phase §6; wave_0_complete flips when 46-01 executes
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-25
+revised: 2026-07-25  # plan revision 1 (post-checker): nyquist sign-off + measured environment
 ---
 
 # Phase 46 — Validation Strategy
@@ -26,10 +28,13 @@ created: 2026-07-25
 | **Full suite command** | `pytest tests/` |
 | **Estimated runtime** | quick ~seconds (dataset-free synthetic fixtures); full suite covers `tests/phase37`–`phase43` and must stay green |
 
-**Environment precondition (from research, unverified at plan time):** `torch` (pinned
-2.12.1 in `requirements-lock.txt:19`) and `pytest` must be present in the execution
-environment. The research session's system Python had neither. Confirm before Wave 1,
-or fall back to `python -m unittest discover tests/phase46`.
+**Environment precondition (MEASURED at plan revision 1, 2026-07-25):** the resolved
+interpreter `"$(dirname "$(git rev-parse --git-common-dir)")/.venv/bin/python"`
+(→ `<home>/Desktop/3_body_problem/.venv/bin/python`) imports torch 2.12.0,
+numpy 2.2.0, pytest 9.1.1. Lockfile-drift observation retained: `requirements-lock.txt:19`
+pins torch 2.12.1 while 2.12.0 is installed — 46-01 Task 1 records this drift in its
+SUMMARY as an observation; a lockfile change is out of Phase 46 scope. The
+`python -m unittest discover` fallback is unnecessary (pytest present) but remains valid.
 
 **Corpus location:** the real corpus lives in the MAIN checkout
 (`<home>/Desktop/3_body_problem/simulation_data/Data`), not in this worktree.
@@ -76,6 +81,13 @@ interpreter `"$(dirname "$(git rev-parse --git-common-dir)")/.venv/bin/python"`.
 | 46-07-T2 | 46-07 | 5 | INST-01 | T-46-07-02/04 | Sidecar-before-pointer at existing cadence; failure fails closed | unit (tdd) | `"$PY" -m pytest tests/phase46/test_validation_wiring.py -x -q` | ❌ | ⬜ pending |
 | 46-07-T3 | 46-07 | 5 | INST-01 | T-46-07-03/05 | EVAL-01 (iii) render fail-closed; sentinel passthrough | unit (tdd) | `"$PY" -m pytest tests/phase46/test_validation_wiring.py -x -q && "$PY" -m pytest tests/ -q` | ❌ | ⬜ pending |
 
+> **Revision 1 note (2026-07-25, checker B2):** the per-plan `<verify>` blocks now wrap each
+> OWN-suite pytest invocation in a skip-intolerant guard (`-rs` plus a zero-"skipped" check),
+> so a suite whose tests all hit the `_require` SkipTest path can no longer exit green. The
+> commands above are the underlying pytest invocations; phase-WIDE sweeps stay skip-tolerant
+> mid-wave (sibling plans may not have landed) and become skip-intolerant at 46-07-T3 (wave 5,
+> all owners landed).
+
 ### Requirement-level map (binding; from `46-RESEARCH.md`)
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists |
@@ -107,11 +119,11 @@ interpreter `"$(dirname "$(git rev-parse --git-common-dir)")/.venv/bin/python"`.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (16/16 task rows carry an automated command)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (46-01 lands `__init__`, `_fixtures`, selfcheck before every consumer)
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s (dataset-free synthetic suites; the one real-corpus run is 46-06's committed one-time evidence, not a standing suite)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** planner sign-off 2026-07-25 (revision 1, after gsd-plan-checker audit: 16/16 per-task map rows populated and Nyquist-compliant). The `status: validated` flip remains with `/gsd-validate-phase` §6.

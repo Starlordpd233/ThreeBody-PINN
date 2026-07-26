@@ -334,6 +334,11 @@ class _StubSource:
 Per the governance STOP protocol, these are surfaced for the orchestrator to decide whether they are formal gaps — none are invented answers.
 
 ### C1 — `pinn/evaluate.py`'s existing gate-metrics call pairs `r'` with raw `t`, not `u=t/T`
+
+> **ROUTED (2026-07-25, plan revision 1):** formally recorded as **GAP-46-01** in `46-GAPS.md`
+> — Status OPEN, owner-routed, dependency-scoped: does NOT block Phase 46; must be resolved
+> at Phase 50/51 planning before EVAL-01 is spent.
+
 - **Decision point:** Does the ONE existing production consumer of `gate_metrics.compute_trajectory_gate_metrics` (`pinn/evaluate.py:405-425`, the Phase-43 held-out evaluator) already violate the same position/time coherence requirement CONTEXT.md D-12 locks for INST-01 — i.e., is the milestone's single authorized held-out evaluation (Phase 51, EVAL-01) at risk of computing a wrongly-scaled `eps_H`/`SCS`?
 - **Where in artifact:** `pinn/evaluate.py:407` (`times_native = test_index.snapshot_times(key)`, RAW native times) paired with `pinn/evaluate.py:420-424` (`positions = predicted.reshape(-1,3,3)`, the network's physics-frame output, passed to `gate_metrics.compute_trajectory_gate_metrics(positions, times_t.detach(), ...)` at line 423-425).
 - **Why each candidate resolution has different downstream consequences:** (a) If this IS a real unit mismatch, Phase 51's held-out evaluation — which can only be spent ONCE (SCOPE-28) — would render a `eps_H`/`SCS` verdict computed from a velocity off by a fixed factor of `T=10` (kinetic term off by `T²=100`), which could flip a genuine PASS to FAIL or vice versa, and this would not be discoverable after the fact without re-deriving by hand. (b) If it is NOT a real mismatch — e.g., if `test_index.snapshot_times` is later found to already return `u` rather than raw `t` for some reason this research missed, or if the intended contract is deliberately "raw t is fine because X" — then no action is needed, but that intent is nowhere documented in `pinn/evaluate.py` or `gate_metrics.py`. This research traced `snapshot_times` through `StageIndex._source_value("snapshot_times", key)` (`splits.py:226-227`) to `AdmittedSetAdapter.snapshot_times` (`adapter.py:1032-1033`) to `self._trajectory_tensors[key][0]`, which is built from `cand.times = parsed_brutus.times` (`adapter.py:923-924`, `863`) — i.e., genuinely raw, unnormalized times, confirming interpretation (a) as the code-verified fact; whether that fact was a deliberate acceptable choice at Phase 43 time is what's unresolved.
@@ -344,6 +349,11 @@ Per the governance STOP protocol, these are surfaced for the orchestrator to dec
 - **Confidence of impact:** HIGH — if the interpretation above is correct, it directly threatens the correctness of the milestone's one unspendable-twice held-out evaluation (EVAL-01/SCOPE-28), the entire point of the v2.2 milestone.
 
 ### C2 — Exact prevalence of the body-permutation confound in the real corpus is unmeasured
+
+> **ROUTED (2026-07-25, plan revision 1):** NOT a gap, per `46-GAPS.md` § "Not recorded as
+> gaps" — the question is the phase's own D-04 deliverable; folded into the 46-02 discriminator
+> design (permutation-identity check first and cheapest).
+
 - **Decision point:** What fraction of admitted Stage-0 trajectories have `preprocess_trajectory(...).permutation != (0, 1, 2)` (i.e., how often is the canonical-order mass array actually misaligned with the raw-order position array in current residency)?
 - **Where in artifact:** `pinn/data/preprocessing.py:109-120` (`_canonical_order`, sorts descending mass/velocity/position norm) and `pinn/data/adapter.py:865` (`masses_ordered=pre.masses_ordered` stored) vs `adapter.py:863-864`/`938` (raw, un-permuted positions stored).
 - **Why each candidate resolution has different downstream consequences:** If the permutation is identity for effectively all trajectories (e.g., the corpus's raw file ordering happens to already be mass-descending by convention of how ICs were generated), the confound is theoretical, not practical, and the D-scale question dominates. If the permutation is frequently non-identity, the defect is a compound, more severe divergence and the eventual repair (Phases 47-48 growth) is larger.
