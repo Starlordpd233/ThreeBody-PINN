@@ -69,13 +69,28 @@
 **Plans:** 7 plans (5 waves; only 46-07 is frame-dependent per D-07; 46-06 carries the D-09 owner branch)
 
 Plans:
+**Wave 1**
+
 - [ ] 46-01-PLAN.md — Wave-0 test scaffolding: `tests/phase46/` skip convention, StageIndex-shaped stub, dual-frame/degenerate/confound fixtures (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 46-02-PLAN.md — CONF-01 probe core: symmetric arms, numerics-only tolerance, confound discriminators, fail-closed 4-way verdict (wave 2)
 - [ ] 46-03-PLAN.md — INST-01 gate composition core: frame-explicit full-pool `gate_metrics` pass, atomic sidecar, compact JSONL fields (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 46-04-PLAN.md — CONF-01 evidence writer + manifest-parametric CLI, D-05 deterministic artifact, redaction/containment (wave 3)
 - [ ] 46-05-PLAN.md — INST-01 isolation + artifact test suites: evaluator-import isolation, mode restore, schema fail-closed, pointer discipline (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 46-06-PLAN.md — The single real-corpus evidence run, `46-VERDICT.md`, and D-08/D-09 branch routing (wave 4; `autonomous: false` — owner branch point)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 46-07-PLAN.md — Frame ratification (`RATIFIED_VALIDATION_FRAME`), `train.py`/`summary.py` wiring, EVAL-01 precondition (iii) projection (wave 5; blocked until D-08 or owner-resolved D-09)
+
 **Success Criteria** (what must be TRUE):
 
   1. RG-02 is settled by the train-free residual-on-stored-targets check — no training run — with the verdict (raw positions vs `r' = r/D`) and its evidence recorded (CONF-01).
