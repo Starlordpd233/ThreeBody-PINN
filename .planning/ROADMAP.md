@@ -66,6 +66,16 @@
 **Goal**: The last remaining way the next run could be invalid is settled, and validation carries a conservation signal where none exists.
 **Depends on**: v2.1 archive (complete). Ungated — first v2.2 phase.
 **Requirements**: CONF-01, INST-01
+**Plans:** 7 plans (5 waves; only 46-07 is frame-dependent per D-07; 46-06 carries the D-09 owner branch)
+
+Plans:
+- [ ] 46-01-PLAN.md — Wave-0 test scaffolding: `tests/phase46/` skip convention, StageIndex-shaped stub, dual-frame/degenerate/confound fixtures (wave 1)
+- [ ] 46-02-PLAN.md — CONF-01 probe core: symmetric arms, numerics-only tolerance, confound discriminators, fail-closed 4-way verdict (wave 2)
+- [ ] 46-03-PLAN.md — INST-01 gate composition core: frame-explicit full-pool `gate_metrics` pass, atomic sidecar, compact JSONL fields (wave 2)
+- [ ] 46-04-PLAN.md — CONF-01 evidence writer + manifest-parametric CLI, D-05 deterministic artifact, redaction/containment (wave 3)
+- [ ] 46-05-PLAN.md — INST-01 isolation + artifact test suites: evaluator-import isolation, mode restore, schema fail-closed, pointer discipline (wave 3)
+- [ ] 46-06-PLAN.md — The single real-corpus evidence run, `46-VERDICT.md`, and D-08/D-09 branch routing (wave 4; `autonomous: false` — owner branch point)
+- [ ] 46-07-PLAN.md — Frame ratification (`RATIFIED_VALIDATION_FRAME`), `train.py`/`summary.py` wiring, EVAL-01 precondition (iii) projection (wave 5; blocked until D-08 or owner-resolved D-09)
 **Success Criteria** (what must be TRUE):
 
   1. RG-02 is settled by the train-free residual-on-stored-targets check — no training run — with the verdict (raw positions vs `r' = r/D`) and its evidence recorded (CONF-01).
@@ -152,7 +162,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 0/? | Not started | - |
+| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 0/7 | Planned | - |
 | 47. S_H Pipeline | v2.2 | 0/? | Not started | - |
 | 48. Loss-Math Conformance | v2.2 | 0/? | Not started | - |
 | 49. Conformance Gate | v2.2 | 0/? | Not started | - |
