@@ -2,9 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
+current_phase_name: roadmap created — Phase 46 next
 status: planning
-last_updated: "2026-07-25T13:10:52.385Z"
+stopped_at: Phase 46 context gathered
+last_updated: "2026-07-26T00:58:52.624Z"
 last_activity: 2026-07-25
+last_activity_desc: "Milestone v2.2 initialized: requirements (22: CONF-01..07, INST-01..03, GATE-01..03, TEST-01..02, RUN-01..03, EVAL-01, DIAG-05, VER-19..20) + roadmap (Phases 46–52) committed from the owner-ratified v2.2 roadmap proposal. Next: /gsd-plan-phase 46 (or /gsd-discuss-phase 46) from .worktrees/trainex; cut branch milestone/v2.2 from the v2.1 tip at first phase execution."
 progress:
   total_phases: 7
   completed_phases: 0
@@ -316,11 +319,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/46-frame-resolution-gate-aligned-validation/46-CONTEXT.md
 
-Last session: 2026-07-24
-Stopped at: Phase 45 planned — 4 plans (45-01..04) + 45-RESEARCH.md, plan-checker PASSED, committed 71d23c87. Ready to execute Phase 45.
-Next action: /gsd-execute-phase 45 (watchdog chain phase-45-work position 3 executes the 4 plans). Note the blocking D-13 owner checkpoint in 45-04 — two carried-forward todos surfaced as A/B/C questions, never auto-answered. Follow-up: 44-VALIDATION.md remains status: draft / nyquist_compliant: false — run /gsd-validate-phase 44 if milestone hygiene requires (does not block Phase 45).
+Last session: 2026-07-26T00:58:52.615Z
+Stopped at: Phase 46 context gathered
+Next action: `/gsd-plan-phase 46` from `.worktrees/trainex`; Phase 46 context is ready. Cut `milestone/v2.2` from the v2.1 deliverable tip at first phase execution, per the recorded branch-timing decision.
 
 ## Operator Next Steps
 
