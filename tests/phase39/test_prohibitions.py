@@ -39,10 +39,14 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 # GAP-39-02: the exact permitted corpus-reader set. ``adapter.py`` is the new
 # production reader (may not exist yet); ``fixture_loader.py`` is the sole
-# retained Phase 38 probe exception.
+# retained Phase 38 probe exception. ``target_frame_probe.py`` is the Phase 46
+# CONF-01 probe exception (D-01/D-03, plan 46-04): it reads parsed corpus
+# arrays as provenance/positive-control arms through the adapter module's own
+# containment-enforcing parse seams, never as a second training-data path.
 ALLOWED_CORPUS_READERS = {
     "pinn/data/adapter.py",
     "pinn/verification/fixture_loader.py",
+    "pinn/verification/target_frame_probe.py",
 }
 
 # Every Wave-1+ production module the discovered set must eventually cover.
