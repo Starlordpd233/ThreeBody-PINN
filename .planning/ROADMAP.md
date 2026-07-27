@@ -11,7 +11,7 @@
 - ✅ **v1.6 Resolving 03 Curriculum and Training Loop** — Phases 30–36 (shipped 2026-07-02; 32/32 requirements, 26/26 acceptance probes PASS, ledger 18/18 VERIFIED; FUT-01/FUT-04 routed to the trainex track; archived under [`milestones/v1.6-*`](milestones/))
 - ✅ **v2.0 CTL-PINN Training Viability Slice** — Phases 37–43 (shipped 2026-07-23; the project's first **build** milestone / trainex track — Stage-0-first end-to-end training slice from the ratified trainex-r1a decisions; 42/42 requirements Complete; audit `tech_debt` with zero blockers; the sole held-out physics gate rendered an honest **FAIL** (`ε_H = 237.21` vs ≤ 1e-5) and the owner signed **`adjust`** — Stage-0 mechanical slice retained, PLAT-01..07 blocked, physics-gate investigation routed to the next milestone; archived under [`milestones/v2.0-*`](milestones/))
 - ✅ **v2.1 Physics-Gate Investigation & trainex-r2 Research Package** — Phases 44–45 (shipped 2026-07-24; the separately governed investigation routed by the v2.0 `adjust` verdict — read-only forensics over the retained v2.0 artifacts + trainex-r2 ERW package delivery; 7/7 requirements, package audited PASS; a bounded conformance audit found the v2.0 pilot diverged from the locked specs in five verified respects, qualifying the Phase 44 diagnosis and seeding a conformance-first next milestone; archived under [roadmap](milestones/v2.1-ROADMAP.md), [requirements](milestones/v2.1-REQUIREMENTS.md), [gaps](milestones/v2.1-GAPS.md), [phase archive](milestones/v2.1-phases/))
-- 🚧 **v2.2 Stage-0 Conformance Repair & Valid Re-Run** — Phases 46–52 (started 2026-07-25; repair the verified Stage-0 conformance divergences C-01..C-08, prove the repair with gate-aligned instrumentation and a preflight conformance gate, re-run Stage-0 across the three-seed band, and spend the single owner-authorized held-out evaluation on a conformant run — the first valid verdict on the *design*; 22 requirements across CONF/INST/GATE/TEST/RUN/EVAL/DIAG/VER; closes at the verdict + the re-derived diagnosis)
+- 🚧 **v2.2 Stage-0 Conformance Repair & Valid Re-Run** — Phases 46–52 (started 2026-07-25; repair the verified Stage-0 conformance divergences C-01..C-08, prove the repair with gate-aligned instrumentation and a preflight conformance gate, re-run Stage-0 across the three-seed band, and spend the single owner-authorized held-out evaluation on a conformant run — the first valid verdict on the *design*; 23 requirements across CONF/INST/GATE/TEST/RUN/EVAL/DIAG/VER; closes at the verdict + the re-derived diagnosis)
 - 🔮 **Final Publication LaTeX Sync** — deferred until implementation, network/training design, training, and research-result interpretation are complete
 
 ## Deferred: Final Publication LaTeX Sync
@@ -35,9 +35,9 @@
 
 **Milestone Goal:** Establish, for the first time, a **valid** test of the Stage-0 design: repair the verified conformance divergences, prove the repair with gate-aligned instrumentation and a preflight gate, re-run Stage-0 under the corrected recipe, and spend the one authorized held-out evaluation on a run that is actually the specified experiment. The milestone ends with a verdict on the *design* — which the v2.0 pilot never produced, because what it graded was not the design. **What this milestone deliberately does not do:** tune the recipe. If the conformant run still fails, that failure is the first real evidence about the design, and recipe adjudication (with the trainex-r2 resolution doc as a candidate verdict source) is v2.3.
 
-**Granularity:** standard (7 phases, 22 requirements: CONF-01..07, INST-01..03, GATE-01..03, TEST-01..02, RUN-01..03, EVAL-01, DIAG-05, VER-19..20)
-**Coverage:** 22/22 v2.2 requirements mapped (VER-19 verified at roadmap creation)
-**Branch:** work continues in `.worktrees/trainex`; branch `milestone/v2.2` to be cut from the v2.1 deliverable tip at first phase execution (v2.0/v2.1 precedent — no branch op during setup). Per-plan atomic commits via `scripts/agent-commit`; no protected-branch push; master merge is user-controlled integration.
+**Granularity:** standard (7 phases, 23 requirements: CONF-01..08, INST-01..03, GATE-01..03, TEST-01..02, RUN-01..03, EVAL-01, DIAG-05, VER-19..20)
+**Coverage:** 23/23 v2.2 requirements mapped (re-verified 2026-07-27 after CONF-08 was added by GAP-46-05; VER-19's binding check is at Phase 52 close, not at roadmap creation)
+**Branch:** work continues in `.worktrees/trainex` on `milestone/v2.2`, created 2026-07-27 at `997c731b`. It was **not** cut from the v2.1 deliverable tip as originally specified — Phase 46 planning and plans 46-01..46-06 had already executed on `milestone/v2.1` before the branch op happened, so the branch was created at the then-current HEAD instead. The v2.1 record is preserved by tag `v2.1` (`f72eaabd`); `milestone/v2.1` remains at `997c731b` and no longer advances. Per-plan atomic commits via `scripts/agent-commit`; no protected-branch push; master merge is user-controlled integration and should target the `v2.1` tag, not the `milestone/v2.1` branch ref.
 
 ### Conformance discipline (applies to all phases)
 
@@ -51,13 +51,13 @@
 
 **Phase Numbering:** integer phases 46–52 continue from v2.1's Phase 45 (numbering does not reset). Decimal phases reserved for urgent insertions.
 
-- [ ] **Phase 46: Frame Resolution & Gate-Aligned Validation** — Settle RG-02 (raw positions vs `r' = r/D` training targets) via the train-free residual-on-stored-targets check — no training run — and add per-trajectory ε_H/SCS validation metrics via the existing `pinn.verification.gate_metrics` functions, so validation carries a conservation signal where none exists. **Branch point:** a wrong frame is a sixth, data-path divergence — surface as an owner scope decision, never absorbed silently. (CONF-01, INST-01)
+- [ ] **Phase 46: Frame Resolution & Gate-Aligned Validation** — Settle RG-02 (raw positions vs `r' = r/D` training targets) via the train-free residual-on-stored-targets check — no training run — and add per-trajectory ε_H/SCS validation metrics via the existing `pinn.verification.gate_metrics` functions, so validation carries a conservation signal where none exists. **The branch point fired** (2026-07-27, `VERDICT_AMBIGUOUS`): a 100%-prevalent mass↔position permutation + COM/boost gauge divergence is the sixth, data-path divergence, and per GAP-46-05 its *minimum* repair plus a follow-up re-probe are owned by this phase as CONF-08. (CONF-01, CONF-08, INST-01)
 - [ ] **Phase 47: S_H Pipeline** — A real preprocessing stage computing the dataset-wide statistic `S_H = median_train(K0 + Uabs0)` over the admitted set, persisted in training metadata with fail-closed validation (finite, strictly positive, per spec §3.4), and the `ε_H = 1e-4 · S_H` wiring with the prohibited `+1e-12` fallback floor removed. The largest single work item in the milestone. (CONF-02, CONF-03)
 - [ ] **Phase 48: Loss-Math Conformance** — The loss math the trainer executes becomes the loss math the specs lock: `R̄ = (1/3)Σ_i‖f_i‖²`, the causal-exponent clip (invariant A, chosen against the corrected `R̄`), `λ_E^max → 0`, and the `L_data` reduction — plus per-term gradient-statistics logging, the two divergence-defending tests corrected in the same change, and assembly-boundary conformance tests. **Blocking owner checkpoint:** GAP-45-01 `L_data` reduction with computed term magnitudes. Ordering: CONF-04 before CONF-05. (CONF-04..07, INST-02, TEST-01, TEST-02)
 - [ ] **Phase 49: Conformance Gate** — The minimum enforcement subset that protects the single look: preflight asserts the full PHYS-05 per-stage table at run start and every stage boundary; the placeholder census (every spec-required loss quantity resolves real or is explicitly owner-waived); runtime invariants A/B failing loud and early; the known-divergence register surfaced in the run record. **Owner checkpoint:** N for invariant B. Coordinated with the charter workstream per SCOPE-32. (GATE-01..03, INST-03)
 - [ ] **Phase 50: Valid Stage-0 Re-Run** — Stage-0 runs end-to-end under the corrected recipe across the re-established three-seed band (v2.0 protocol, comparable runs). Training authorized (SCOPE-27). Iteration is conformance-only (SCOPE-29). (RUN-01, RUN-02)
 - [ ] **Phase 51: The Authorized Evaluation** — The three EVAL-01 preconditions verified and recorded, the evaluator invoked **once**, and the owner's go / adjust / rethink verdict on the design rendered (the v2.0 ACC-06 pattern) — the first valid grade the design has ever received. (RUN-03, EVAL-01)
-- [ ] **Phase 52: Diagnosis Re-Derivation & Handoff** — The GAP-44-02 obligation discharged: the Phase 44 diagnosis re-derived against the conformant run with an acceptance check; 22/22 traceability closed; the four-item spec-amendment routing list handed off for a later spec milestone. (DIAG-05, VER-19, VER-20)
+- [ ] **Phase 52: Diagnosis Re-Derivation & Handoff** — The GAP-44-02 obligation discharged: the Phase 44 diagnosis re-derived against the conformant run with an acceptance check; 23/23 traceability closed; the four-item spec-amendment routing list handed off for a later spec milestone. (DIAG-05, VER-19, VER-20)
 
 ## Phase Details
 
@@ -65,8 +65,8 @@
 
 **Goal**: The last remaining way the next run could be invalid is settled, and validation carries a conservation signal where none exists.
 **Depends on**: v2.1 archive (complete). Ungated — first v2.2 phase.
-**Requirements**: CONF-01, INST-01
-**Plans:** 6/7 plans executed
+**Requirements**: CONF-01, CONF-08, INST-01
+**Plans:** 6/9 plans executed
 
 Plans:
 **Wave 1**
@@ -87,20 +87,29 @@ Plans:
 
 - [x] 46-06-PLAN.md — The single real-corpus evidence run, `46-VERDICT.md`, and D-08/D-09 branch routing (wave 4; `autonomous: false` — owner branch point)
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 5** *(blocked on Wave 4 completion; added 2026-07-27 by GAP-46-05)*
 
-- [ ] 46-07-PLAN.md — Frame ratification (`RATIFIED_VALIDATION_FRAME`), `train.py`/`summary.py` wiring, EVAL-01 precondition (iii) projection (wave 5; blocked until D-08 or owner-resolved D-09)
+- [ ] 46-08-PLAN.md — CONF-08 minimum data-path repair: apply `pre.permutation` and the COM-recentre/boost gauge to the resident position/velocity series so they address the same bodies as `masses_ordered`; **no `D` scaling and no rotation gauge**; correct in the same change any test that encodes the divergent pairing (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion; added 2026-07-27 by GAP-46-05)*
+
+- [ ] 46-09-PLAN.md — CONF-08 re-verification: re-run the **unchanged** CONF-01 probe over the same GAP-46-02 1,651-trajectory population, author the post-repair verdict, and route the D-08/D-09 branch again (wave 6; `autonomous: false` — owner branch point)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 46-07-PLAN.md — Frame ratification (`RATIFIED_VALIDATION_FRAME`), `train.py`/`summary.py` wiring, EVAL-01 precondition (iii) projection (wave 7; blocked until 46-09 yields D-08 or an owner-resolved D-09. Its Task-1 hard gate was repointed to `46-VERDICT-POSTREPAIR.md`, since the pre-repair `46-VERDICT.md` must never ratify a frame; the gate's three-state logic is otherwise unchanged)
 
 **Success Criteria** (what must be TRUE):
 
-  1. RG-02 is settled by the train-free residual-on-stored-targets check — no training run — with the verdict (raw positions vs `r' = r/D`) and its evidence recorded (CONF-01).
-  2. If the check shows the target frame *is* wrong, the finding is surfaced as an owner scope decision (a sixth divergence, data-path not loss-math) — Phases 47–48 grow accordingly and the scope change is never absorbed silently (CONF-01 branch point).
+  1. RG-02 is settled by the train-free residual-on-stored-targets check — no training run — with the verdict (raw positions vs `r' = r/D`) and its evidence recorded (CONF-01). The 2026-07-27 run did not settle it (`VERDICT_AMBIGUOUS`); the post-repair re-probe of 46-09 is what closes this criterion.
+  2. The sixth divergence surfaced as an owner scope decision rather than being absorbed silently — satisfied 2026-07-27 by GAP-46-04 and GAP-46-05, which moved the minimum repair into this phase as CONF-08 and left residual conformance repair with Phases 47–48 (CONF-01 branch point).
   3. Per-trajectory ε_H/SCS are computed on the validation split via the existing `pinn.verification.gate_metrics` functions and recorded per run; validation is no longer limited to `final_val_loss`/`step`/`trend` (INST-01).
+  4. The resident position and velocity series address the same bodies as `masses_ordered` and carry the COM-recentre/boost gauge, and the unchanged CONF-01 probe re-run over the same 1,651-trajectory population records a verdict against the repaired corpus. The repair is defined by the canonical pipeline in `preprocess_trajectory`, never by which transform lowers the residual — if the re-probe reports a later `first_diverging_step` (e.g. `rotation_gauge`), that is a measurement to route, not a licence to iterate against the probe (CONF-08, SCOPE-29).
 
 ### Phase 47: S_H Pipeline
 
 **Goal**: The loss's energy scale is a real dataset statistic, not a per-anchor stand-in: `S_H` is computed over the admitted set and the spec's ε_H formula is wired end-to-end.
-**Depends on**: Phase 46 — `K0`/`Uabs0` are frame-dependent (`H' = D·H`), so the frame must be settled before the median is computed.
+**Depends on**: Phase 46 — `K0`/`Uabs0` are frame-dependent (`H' = D·H`), so the frame must be settled before the median is computed. **Strengthened 2026-07-27 (GAP-46-05):** both terms are also mass-weighted (`K = ½ Σᵢ mᵢ‖vᵢ‖²`, `U = Σ_{i<j} G mᵢmⱼ/‖rᵢ−rⱼ‖`), so the CONF-08 permutation repair is a hard precondition too — computing the median over the un-permuted corpus would yield an `S_H` for a different three-body system, silently mis-scaling `ε_H = 1e-4 · S_H` across the whole milestone.
 **Requirements**: CONF-02, CONF-03
 **Success Criteria** (what must be TRUE):
 
@@ -169,16 +178,16 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. The Phase 44 diagnosis is re-derived from the conformant run with an acceptance check — recording either that the v2.0 failure is explained by conformance divergence (if Phase 51 passed) or the first evidence-grounded diagnosis of the *design* (if it failed) (DIAG-05, the GAP-44-02 obligation).
-  2. Every requirement maps to exactly one phase and 22/22 coverage is verified at close (VER-19).
+  2. Every requirement maps to exactly one phase and 23/23 coverage is verified at close (VER-19). The count grew from 22 when GAP-46-05 added CONF-08 on 2026-07-27; VER-19's binding check is this one, not the roadmap-creation check.
   3. The spec-amendment routing list is handed off with all four items: (a) the misleading "default" wording on `pinn_architecture.md` §4.1's `λ_phys^max` line, (b) a convention for marking locked-vs-default values inside a spec table, (c) the explicit `L_data` reduction as settled by CONF-07, (d) the aggregate gate statistic from GAP-44-01 (VER-20, SCOPE-30).
 
 ## Progress
 
-**Execution Order:** 46 → 47 → 48 → 49 → 50 → 51 → 52 — strict dependency order (frame → S_H → loss math → gate → re-run → evaluation → handoff). The only branch is the Phase 46 CONF-01 branch point (frame defect ⇒ owner scope decision). No external research gate inside v2.2 (unlike v1.4–v1.6): the trainex-r2 resolution doc enters at v2.3, not here (SCOPE-31).
+**Execution Order:** 46 → 47 → 48 → 49 → 50 → 51 → 52 — strict dependency order (frame → S_H → loss math → gate → re-run → evaluation → handoff). The only branch is the Phase 46 CONF-01 branch point (frame defect ⇒ owner scope decision), which **fired on 2026-07-27**. Within Phase 46 the post-branch order is: 46-08 data-path repair → 46-09 re-probe → clean frame verdict → 46-07 wiring (GAP-46-05). No external research gate inside v2.2 (unlike v1.4–v1.6): the trainex-r2 resolution doc enters at v2.3, not here (SCOPE-31).
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 6/7 | In Progress|  |
+| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 6/9 | In Progress|  |
 | 47. S_H Pipeline | v2.2 | 0/? | Not started | - |
 | 48. Loss-Math Conformance | v2.2 | 0/? | Not started | - |
 | 49. Conformance Gate | v2.2 | 0/? | Not started | - |
@@ -188,3 +197,5 @@ Plans:
 
 ---
 *v2.2 created 2026-07-25 (`/gsd-new-milestone`, roadmap generated inline from the owner-ratified v2.2 roadmap proposal — v2.0/v2.1 precedent; no research spawn, since the milestone repairs existing code against already-locked specs and the proposal fully specifies the work). 7 phases (46–52) continuing numbering from v2.1's Phase 45; 22/22 requirements mapped (CONF-01→46, CONF-02/03→47, CONF-04..07+INST-02+TEST-01/02→48, GATE-01..03+INST-03→49, RUN-01/02→50, RUN-03+EVAL-01→51, DIAG-05+VER-19/20→52). Grounded in the locked framework specs, the five v2.1 gap rulings, the C-01..C-08 verified defect inventory, and the owner-ratified evaluation policy; scope boundaries SCOPE-27..32 are hard constraints. v2.1 archived under [`milestones/v2.1-*`](milestones/) (roadmap, requirements, gaps, phase dirs).*
+
+*Amended 2026-07-27 (GAP-46-05, owner instruction). The CONF-01 branch point fired: the real-corpus probe returned `VERDICT_AMBIGUOUS` on a 100%-prevalent mass↔position permutation and COM/boost gauge divergence. GAP-46-04 routed the repair to Phases 47/48, which deadlocked the milestone — Phase 47 is gated on Phase 46 while Plan 46-07 was gated on the Phase 47/48 repair. GAP-46-05 moves the minimum repair and its re-probe into Phase 46 as new requirement **CONF-08** (plans 46-08, 46-09; 46-07 to wave 7), taking the milestone to 23 requirements. CONF-01 and INST-01 reverted Complete → Pending, both having been marked prematurely. Branch `milestone/v2.2` created the same day at `997c731b` rather than at the v2.1 deliverable tip, because plans 46-01..46-06 had already executed on `milestone/v2.1`.*

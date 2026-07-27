@@ -2,7 +2,7 @@
 
 **Defined:** 2026-07-25
 **Core value:** A *valid* test of the Stage-0 design — repair the verified conformance divergences, prove the repair with gate-aligned instrumentation and a preflight gate, re-run Stage-0 under the corrected recipe, and spend the one authorized held-out evaluation on a run that is actually the specified experiment — never tuning the recipe against observed results.
-**Total:** 22 requirements (7 CONF + 3 INST + 3 GATE + 2 TEST + 3 RUN + 1 EVAL + 1 DIAG + 2 VER) + scope boundaries SCOPE-27..32.
+**Total:** 23 requirements (8 CONF + 3 INST + 3 GATE + 2 TEST + 3 RUN + 1 EVAL + 1 DIAG + 2 VER) + scope boundaries SCOPE-27..32.
 
 **Source:** the owner-ratified v2.2 roadmap proposal (`docs/work/designs/cross_cutting/v2.2-milestone-proposal/2026-07-25-v2.2-roadmap-proposal.md`), consumed by `/gsd-new-milestone` on 2026-07-25. Requirement texts below are transcribed from that proposal.
 
@@ -32,17 +32,18 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 
 ### Conformance Repair (CONF) — Phases 46–48
 
-- [x] **CONF-01**: Resolve RG-02: settle whether training targets are raw positions or `r' = r/D`, via the train-free residual-on-stored-targets check. No training run. **Branch point:** if the target frame *is* wrong, that is a sixth divergence and a data-path defect rather than a loss-math one — surface as an owner scope decision, never absorbed silently. [RG-02; proposal Phase 46]
+- [ ] **CONF-01**: Resolve RG-02: settle whether training targets are raw positions or `r' = r/D`, via the train-free residual-on-stored-targets check. No training run. **Branch point:** if the target frame *is* wrong, that is a sixth divergence and a data-path defect rather than a loss-math one — surface as an owner scope decision, never absorbed silently. [RG-02; proposal Phase 46] *(The 2026-07-27 real-corpus run returned `VERDICT_AMBIGUOUS`; the branch point fired and produced CONF-08. CONF-01 closes on the post-repair re-probe's clean verdict — see GAP-46-04/GAP-46-05.)*
 - [ ] **CONF-02**: Build the `S_H` pipeline: `S_H = median_train(K0 + Uabs0)` over the admitted set, persisted in training metadata. `S_H` must be finite and strictly positive; non-finite or `≤ 0` is a preprocessing/metadata validation failure that fails closed (spec §3.4). [spec §3.4; conformance audit]
 - [ ] **CONF-03**: Wire `ε_H = 1e-4 · S_H` into the loss assembly and remove the `+1e-12` additive fallback floor, which §3.4 explicitly prohibits. [spec §3.4]
 - [ ] **CONF-04**: Correct `R̄` to the locked `(1/3) Σ_i ‖f_i‖²` (from the implemented `(1/9)Σ`). [locked loss contract; conformance audit]
 - [ ] **CONF-05**: Implement a causal-exponent clip satisfying invariant A (no causal weight may be exactly zero), **chosen against the corrected `R̄`** — which is 3× larger and underflows sooner. Record the chosen bound in the plan and the run record. [GAP-45-04 owner ruling: invariant mandated, number deferred to the implementer with a recording obligation]
 - [ ] **CONF-06**: Revert `λ_E^max` to the locked Stage-0 value `0`. [GAP-45-02 owner ruling: λ_E provenance unrecoverable, treated as drift]
 - [ ] **CONF-07**: Implement the `L_data` component reduction per the owner ruling on GAP-45-01. [GAP-45-01: deferred with a pre-re-run condition; blocking owner checkpoint at Phase 48, presented with computed term magnitudes from the retained runs]
+- [ ] **CONF-08**: Repair the sixth (data-path) divergence and re-verify CONF-01. The resident trajectory surface pairs `pre.masses_ordered` (`pinn/data/adapter.py:865`) with the un-permuted, un-gauged `parsed_brutus.positions` (`:863`), so mass index *i* does not address body *i* — measured at 1651/1651 trajectories, permutation `(2,0,1)`×1547 and `(0,2,1)`×104, identity never. Repair covers **exactly** the two measured transforms: apply `pre.permutation` (`pinn/data/preprocessing.py:188-189`) and the COM-recentre/boost gauge (`:186`) to the resident position and velocity series. The `D` scaling is **excluded** — it is the raw-vs-scaled question CONF-01 exists to answer, and pre-applying it would decide the verdict by construction. Rotation gauge (`:195`) enters only if the re-probe measures it as the new `first_diverging_step`. Then re-run the CONF-01 probe unchanged over the same GAP-46-02 1,651-trajectory population and record the verdict. [GAP-46-04 + GAP-46-05 owner rulings 2026-07-27; conformance audit sixth divergence]
 
 ### Instrumentation (INST) — Phases 46, 48, 49
 
-- [x] **INST-01**: Gate-aligned validation metrics: per-trajectory `ε_H`/`SCS` on the validation split, via the existing `pinn.verification.gate_metrics` functions. Currently validation records only `final_val_loss`, `step`, `trend` — no conservation signal at all. [conformance audit; EVAL-01 precondition (iii)]
+- [ ] **INST-01**: Gate-aligned validation metrics: per-trajectory `ε_H`/`SCS` on the validation split, via the existing `pinn.verification.gate_metrics` functions. Currently validation records only `final_val_loss`, `step`, `trend` — no conservation signal at all. [conformance audit; EVAL-01 precondition (iii)] *(Frame-independent components shipped in plans 46-03/46-05; the production wiring is Plan 46-07, which has not executed. Closes when 46-07 lands.)*
 - [ ] **INST-02**: Log per-term gradient statistics — the precondition the locked Phase-35 contract names for any reweighting decision, never satisfied. [Phase-35 loss/energy-weight contract]
 - [ ] **INST-03**: Maintain the known-divergence register; the run record surfaces every open divergence so a run carries its own caveats. [conformance audit]
 
@@ -104,14 +105,15 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | Phase 46 | Complete |
+| CONF-01 | Phase 46 | Pending |
 | CONF-02 | Phase 47 | Pending |
 | CONF-03 | Phase 47 | Pending |
 | CONF-04 | Phase 48 | Pending |
 | CONF-05 | Phase 48 | Pending |
 | CONF-06 | Phase 48 | Pending |
 | CONF-07 | Phase 48 | Pending |
-| INST-01 | Phase 46 | Complete |
+| CONF-08 | Phase 46 | Pending |
+| INST-01 | Phase 46 | Pending |
 | INST-02 | Phase 48 | Pending |
 | INST-03 | Phase 49 | Pending |
 | GATE-01 | Phase 49 | Pending |
@@ -127,8 +129,10 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 | VER-19 | Phase 52 | Pending |
 | VER-20 | Phase 52 | Pending |
 
-**Coverage:** 22/22 mapped (Phase 46: CONF-01, INST-01 · Phase 47: CONF-02, CONF-03 · Phase 48: CONF-04..07, INST-02, TEST-01, TEST-02 · Phase 49: GATE-01..03, INST-03 · Phase 50: RUN-01, RUN-02 · Phase 51: RUN-03, EVAL-01 · Phase 52: DIAG-05, VER-19, VER-20). No orphans; no duplicates. SCOPE-27..32 are scope-boundary annotations, not numbered requirements (v2.0 SCOPE-16..21 precedent). CONF/INST/GATE/TEST/RUN/EVAL are new categories beginning at 01; DIAG continues from v2.1's DIAG-04; VER continues from v1.6's VER-18; SCOPE continues from v2.1's SCOPE-26.
+**Coverage:** 23/23 mapped (Phase 46: CONF-01, CONF-08, INST-01 · Phase 47: CONF-02, CONF-03 · Phase 48: CONF-04..07, INST-02, TEST-01, TEST-02 · Phase 49: GATE-01..03, INST-03 · Phase 50: RUN-01, RUN-02 · Phase 51: RUN-03, EVAL-01 · Phase 52: DIAG-05, VER-19, VER-20). No orphans; no duplicates. SCOPE-27..32 are scope-boundary annotations, not numbered requirements (v2.0 SCOPE-16..21 precedent). CONF/INST/GATE/TEST/RUN/EVAL are new categories beginning at 01; DIAG continues from v2.1's DIAG-04; VER continues from v1.6's VER-18; SCOPE continues from v2.1's SCOPE-26.
+
+**Amendment 2026-07-27 (GAP-46-05, owner instruction).** CONF-08 was added to Phase 46 and the milestone moved 22 → 23 requirements after the CONF-01 branch point fired: the real-corpus probe returned `VERDICT_AMBIGUOUS` on a 100%-prevalent mass↔position permutation and COM/boost gauge divergence. GAP-46-04 first routed that repair to Phases 47/48; because Phase 47 is gated on Phase 46 (`ROADMAP.md:103`) while Plan 46-07 was gated on the repair, the routing deadlocked the milestone at its first phase. GAP-46-05 moves the **minimum** repair and its re-probe into Phase 46 as CONF-08. In the same amendment, CONF-01 and INST-01 reverted from Complete to Pending: CONF-01 mandates "Resolve RG-02" and RG-02 is measurably unresolved (this sits directly under EVAL-01 precondition (ii)), and INST-01's production wiring is the unexecuted Plan 46-07. VER-19 is re-verified against 23/23 at Phase 52 close, not carried forward from the roadmap-creation check.
 
 ---
 *Requirements defined: 2026-07-25 via `/gsd-new-milestone`, transcribed from the owner-ratified v2.2 roadmap proposal.*
-*Last updated: 2026-07-25 after initial definition*
+*Last updated: 2026-07-27 — CONF-08 added and CONF-01/INST-01 status corrected per GAP-46-05.*

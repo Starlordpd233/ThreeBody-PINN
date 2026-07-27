@@ -476,6 +476,170 @@ subagent — per governance, the parent owns gap-register writes.
   46-07 — the task literally bound to that chain position — is still not
   executable.
 
+- **SUPERSEDED IN PART by GAP-46-05 (2026-07-27, same day).** This ruling's
+  routing of the repair to "Phase 47/48" proved circular: Phase 47 is gated on
+  Phase 46, and 46-07 was gated on Phase 47/48's repair, so neither phase could
+  start. GAP-46-05 (owner instruction, option A) moves the **minimum** repair —
+  body permutation + COM-recentre/boost gauge — and its follow-up CONF-01 re-probe
+  into Phase 46 as new requirement CONF-08, restoring a satisfiable order. Every
+  other element of this ruling stands unchanged: `VERDICT_AMBIGUOUS` is still not
+  retroactively upgraded, 46-07 is still unblocked only by a clean verdict, and
+  conformance repair beyond the minimum remains routed to Phases 47/48.
+
+---
+
+## GAP-46-05 — GAP-46-04's Option-A routing leaves Phase 46 and Phase 47 mutually blocking: Plan 46-07 waits on a repair that Phase 47 may not begin until Phase 46 closes. Where does the minimum repair live?
+
+- **Decision point:** GAP-46-04's resolution (option A, 2026-07-27) routes the
+  body-permutation + COM/boost repair into Phase 47/48 while explicitly holding
+  Plan 46-07 blocked until that repair produces a clean conformance verdict. But
+  Phase 47 is itself gated on Phase 46. The two conditions cannot both be
+  satisfied: Phase 46 cannot close without a repair only Phase 47 may perform,
+  and Phase 47 may not start until Phase 46 closes. The milestone is deadlocked
+  at its first phase, and the deadlock is structural rather than evidentiary — no
+  additional measurement resolves it.
+
+- **Where in artifact:**
+  - `.planning/milestones/v2.2-GAPS.md` § "Open gaps" — "Plan 46-07 stays BLOCKED
+    regardless … Phase 47/48 planning must carry both the pre-existing `S_H`/loss-math
+    repair and this body-permutation + COM/boost repair, and must specify the
+    follow-up conformance re-verification that would actually unblock 46-07-equivalent
+    wiring."
+  - `.planning/ROADMAP.md:103` — Phase 47 "**Depends on**: Phase 46 — `K0`/`Uabs0`
+    are frame-dependent (`H' = D·H`), so the frame must be settled before the median
+    is computed."
+  - `.planning/ROADMAP.md:92` — Plan 46-07 "blocked until D-08 or owner-resolved D-09".
+  - `.planning/ROADMAP.md:177` — "Execution Order: 46 → 47 → 48 … strict dependency order".
+  - `46-GAPS.md` § GAP-46-04 "Blocking scope (resolved, dependency-scoped)".
+
+- **Task context:** Phase 46 orchestration review, 2026-07-27, immediately after
+  GAP-46-04 was resolved and committed (`997c731b`). The deadlock was surfaced by
+  the owner while assessing whether Phase 46 could proceed to UAT. No plan was
+  executing at the time.
+
+- **Classification:** cross-phase reframing. Resolving it moves scope between
+  phases and changes Phase 46's requirement set, Phase 47's entry condition, and
+  the milestone's requirement count — none of which a planner or executor may
+  decide inline.
+
+- **Source silence:** `46-CONTEXT.md` D-08/D-09 define the branch routing but
+  presume the D-09 "stop and surface" ends in an owner ruling that either supplies
+  a frame or defers the phase; neither anticipates a ruling that routes repair
+  downstream while holding the current phase open. ROADMAP Phase 46 success
+  criterion 2 pre-authorized "Phases 47–48 grow accordingly" on a frame defect,
+  but was written on the assumption that Phase 46 would still be *closable* once
+  the branch was surfaced — it does not address a defect whose repair is itself a
+  precondition of Phase 46's own last plan. GAP-46-04's option menu listed both
+  (B) "insert a dedicated repair phase between 46 and 47 … and gate Phase 47 on a
+  clean verdict from that re-run" and (D) "request a … permutation-corrected
+  symmetric-hypothesis re-run before any scope decision"; the selected option A
+  named neither, and no source states which phase owns the repair when A's routing
+  proves circular.
+
+- **Mathematical / engineering grounding:** The confound is a mass↔position index
+  mismatch, verified in code: `pinn/data/preprocessing.py:186` computes the
+  COM-recentred, boost-removed series via `_com_recenter_and_boost`, and `:188-189`
+  computes `permutation = _canonical_order(...)` then `masses_ordered = masses[permutation]`;
+  `pinn/data/adapter.py:865` stores `pre.masses_ordered` (permuted, gauged basis)
+  beside `:863` `parsed_brutus.positions` (neither permuted nor gauged). Measured
+  prevalence is 1651/1651, with permutation `(2,0,1)` for 1547 trajectories and
+  `(0,2,1)` for 104 — the identity permutation never occurs.
+
+  Every downstream quantity Phase 47 computes is mass-weighted and therefore
+  invalid under this mismatch. `S_H = median_train(K₀ + U_abs,0)` is built from
+  `K = ½ Σᵢ mᵢ‖vᵢ‖²` and `U = Σ_{i<j} G mᵢmⱼ/‖rᵢ−rⱼ‖`: pairing mass index *i* with
+  position index *σ(i)* computes both terms for a different three-body system than
+  the trajectory came from. Since `ε_H = 1e-4 · S_H` is the energy-residual
+  normalizer for the whole loss, a permuted `S_H` silently mis-scales every
+  energy term in the milestone. The same mismatch corrupts the Newtonian residual
+  `f_i = Σ_{j≠i} G m_j (r_j − r_i)/(‖r_j−r_i‖² + ε)^{3/2}` that CONF-04's `R̄`
+  aggregates, and the locked mass-weighted COM projection head (v1.4 D-02), which
+  projects on `Σ mᵢ rᵢ / Σ mᵢ`. Computing `S_H` before the repair therefore does not
+  merely risk a wrong number — it guarantees one, and Phase 47's sole deliverable
+  would have to be discarded and recomputed. This is the engineering reason the
+  repair cannot follow the phase that consumes it.
+
+  A second-order consequence bounds the repair's scope honestly: the probe reports
+  `first_diverging_step`, and it reports `com_recenter_boost` for 100% of
+  trajectories. "First" means the canonical-pipeline walk halts there, so the
+  conformance of the *later* steps — `_canonical_order` ordering of the position
+  series, `_rotation_gauge` (preprocessing.py:195), and the `D` scaling — is
+  unmeasured, not established. Repairing permutation + COM/boost may therefore
+  move `first_diverging_step` to `rotation_gauge` rather than clearing it. That is
+  an expected outcome of walking a pipeline in order, not a failed repair, and it
+  does not license iterating against the probe's output: each repair step is
+  defined by the canonical pipeline in `preprocess_trajectory`, never by which
+  transform makes the residual fall below tolerance (SCOPE-29).
+
+- **Agent was tempted to:** (a) Close Phase 46 with Plan 46-07 descoped to Phase
+  47 or a new phase, treating the deadlock as a plan-sequencing detail — refused;
+  that silently marks CONF-01 ("Resolve RG-02") complete while RG-02 is measurably
+  unresolved, and EVAL-01 precondition (ii) is literally "RG-02 resolved", so the
+  falsehood would propagate to the single authorized evaluation. (b) Perform the
+  repair inline under GAP-46-04's existing option-A authority, on the reading that
+  "Phase 47/48 scope" loosely means "downstream repair work" — refused; option A
+  names the phases explicitly, and reallocating scope between phases is the
+  cross-phase-reframing class this protocol reserves for the owner. (c) Insert a
+  decimal Phase 46.5 rather than extending Phase 46 — not refused on principle
+  (it is GAP-46-04's own option B, and ROADMAP:52 reserves decimals for urgent
+  insertions), but not selected: the owner directed the work into Phase 46.
+
+- **What the user needs to decide:**
+  - **(A) Move the minimum repair and the follow-up probe into Phase 46.** Phase 46
+    grows by two plans (repair, re-probe); Phase 47 keeps its existing entry
+    condition and receives a corrected corpus. Phase 46 closes on a clean verdict.
+  - **(B) Insert a decimal Phase 46.5** owning the repair + re-probe, close Phase 46
+    with 46-07 moved into 46.5, and gate Phase 47 on 46.5 (GAP-46-04 option B).
+  - **(C) Descope Plan 46-07 to Phase 49** and let Phase 47 open on the permuted
+    corpus, accepting that `S_H` is recomputed after the repair lands.
+
+- **Confidence of impact:** HIGH — this decides whether the milestone can advance at
+  all, and it governs whether Phase 47's `S_H` is computed on a corrected or a
+  corrupted corpus.
+
+- **Status:** RESOLVED-WITH-INSTRUCTION
+
+- **Resolution note:** Owner instruction 2026-07-27 selected **Option A — move the
+  minimum permutation/gauge repair and the follow-up frame probe into Phase 46.**
+  Verbatim: *"Resolve it by moving the minimum permutation/gauge repair and follow-up
+  frame probe into Phase 46… Re-plan Phase 46 so the execution order becomes:
+  data-path repair → repeat CONF-01 probe → clean frame verdict → Plan 46-07 wiring."*
+  The owner further ruled (2026-07-27, in the same instruction round) that this scope
+  is traced as a **new requirement CONF-08 owned by Phase 46**, rather than absorbed
+  into CONF-01's branch-point clause — matching the convention by which each earlier
+  conformance divergence received its own CONF identifier, and giving INST-03's
+  known-divergence register and the VER-20 handoff a stable ID to cite. The milestone
+  moves from 22 to 23 requirements.
+
+  **Minimum is defined by the evidence, not by convenience.** The repair covers the
+  body permutation and the COM-recentre/boost gauge — the two transforms the confound
+  register actually measured — applied to the resident position and velocity series so
+  they share `masses_ordered`' basis. It explicitly does **not** apply the `D` scaling,
+  because that is the raw-vs-scaled question CONF-01 exists to answer and pre-applying
+  it would decide the verdict by construction. Rotation gauge is out of the minimum
+  repair unless the re-probe measures it as the new `first_diverging_step`.
+
+- **Blocking scope (resolved):** Phase 46 gains plans 46-08 (repair, wave 5) and
+  46-09 (re-probe + verdict, wave 6, `autonomous: false` — owner branch point);
+  Plan 46-07 moves to wave 7 and stays gated on 46-09 producing a clean verdict. Its
+  Task-1 hard gate required one repoint — it read `46-VERDICT.md`, which after the repair
+  is the superseded pre-repair measurement, so it now reads `46-VERDICT-POSTREPAIR.md` and
+  treats that file's absence as state (c) BLOCKED. The gate's three-state logic, its
+  prohibition on inferring a frame, and its BLOCKED reporting path are otherwise unchanged. Phase 47's stated dependency on
+  Phase 46 is unchanged and is now satisfiable. CONF-01 and INST-01 revert from
+  Complete to Pending (both were marked Complete prematurely — see the
+  correction note below). GAP-46-04's option-A routing is **superseded in part**:
+  the minimum repair moves to Phase 46; any residual conformance repair beyond the
+  minimum remains routed to Phases 47/48 as that ruling directed.
+
+- **Correction recorded with this gap:** `REQUIREMENTS.md` marked **CONF-01** and
+  **INST-01** `Complete` before either was true. CONF-01 reads "Resolve RG-02"; RG-02
+  is measurably unresolved (`VERDICT_AMBIGUOUS`), and EVAL-01 precondition (ii) is
+  "RG-02 resolved", so the false marking sat directly on the gate protecting the single
+  authorized evaluation. INST-01's production wiring is Plan 46-07, which has never
+  executed. Both revert to Pending under this resolution. This is a factual repair of
+  the traceability record, not a scope change.
+
 ---
 
 ## Not recorded as gaps
