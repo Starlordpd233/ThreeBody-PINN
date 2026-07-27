@@ -445,18 +445,36 @@ subagent — per governance, the parent owns gap-register writes.
   resolution (already RESOLVED-WITH-INSTRUCTION, binding Phase 50/51) is also
   directly downstream of which reading ultimately prevails.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:** (empty — awaiting owner instruction)
+- **Resolution note:** User instruction 2026-07-27 selected **Option A —
+  treat the confound as the sixth conformance divergence.** The
+  100%-prevalent body-permutation (masses paired against un-permuted
+  positions) and `com_recenter_boost` gauge divergence are routed into
+  Phase 47/48's scope alongside the already-planned `S_H`/loss-math repairs,
+  using the repair transform this evidence already characterizes (reorder
+  the resident position array to match `masses_ordered`) even though probe
+  rule 4 could not unanimously confirm the raw-vs-scaled question on its own.
+  This ruling decides **where the repair work happens**, not the CONF-01
+  verdict itself: `VERDICT_AMBIGUOUS` stands as measured evidence and is not
+  retroactively upgraded to `VERDICT_TARGETS_ARE_SCALED`. Plan 46-07 remains
+  gated on a clean D-08 verdict, which this run did not produce and cannot
+  retroactively produce — 46-07 is unblocked only by a future clean
+  conformance verdict (expected as an output of Phase 47/48's repair plus a
+  follow-up re-verification, which Phase 47/48's own planning must specify;
+  not invented here).
 
-- **Blocking scope:** Plan 46-07 (INST-01 production wiring) and Phase 47
-  (the target-frame/loss-math repair phase) are BLOCKED pending resolution or
-  deferral. The frame-independent INST-01 deliverables already shipped in
-  Waves 1-3 (46-01, 46-02, 46-03, 46-05 — fixtures, probe core,
+- **Blocking scope (resolved, dependency-scoped):** Plan 46-07 (INST-01
+  production wiring) remains BLOCKED — this resolution routes the repair, it
+  does not supply a clean verdict. Phase 47's scope now explicitly includes
+  the body-permutation + COM/boost repair alongside the pre-existing
+  `S_H`/loss-math work. The frame-independent INST-01 deliverables already
+  shipped in Waves 1-3 (46-01, 46-02, 46-03, 46-05 — fixtures, probe core,
   gate-composition module, isolation/artifact test suites) are complete and
-  unaffected. Position 3 of the `phase-46-execution` watchdog chain is held
-  open (its done marker is withheld per its own contract) pending this gap's
-  resolution.
+  unaffected. Position 3 of the `phase-46-execution` watchdog chain has this
+  gap's resolution recorded but its done marker remains withheld, since
+  46-07 — the task literally bound to that chain position — is still not
+  executable.
 
 ---
 
