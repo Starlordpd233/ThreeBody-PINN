@@ -66,7 +66,7 @@
 **Goal**: The last remaining way the next run could be invalid is settled, and validation carries a conservation signal where none exists.
 **Depends on**: v2.1 archive (complete). Ungated — first v2.2 phase.
 **Requirements**: CONF-01, INST-01
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 
 Plans:
 **Wave 1**
@@ -81,7 +81,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 46-04-PLAN.md — CONF-01 evidence writer + manifest-parametric CLI, D-05 deterministic artifact, redaction/containment (wave 3)
-- [ ] 46-05-PLAN.md — INST-01 isolation + artifact test suites: evaluator-import isolation, mode restore, schema fail-closed, pointer discipline (wave 3)
+- [x] 46-05-PLAN.md — INST-01 isolation + artifact test suites: evaluator-import isolation, mode restore, schema fail-closed, pointer discipline (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -178,7 +178,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 4/7 | In Progress|  |
+| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 5/7 | In Progress|  |
 | 47. S_H Pipeline | v2.2 | 0/? | Not started | - |
 | 48. Loss-Math Conformance | v2.2 | 0/? | Not started | - |
 | 49. Conformance Gate | v2.2 | 0/? | Not started | - |

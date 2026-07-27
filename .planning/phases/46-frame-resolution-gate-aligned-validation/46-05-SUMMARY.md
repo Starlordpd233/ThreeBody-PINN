@@ -162,7 +162,7 @@ The missing-key fail-closed loop enumerates the sixteen top-level keys recorded 
 
 Both tasks landed in one plan-prescribed commit:
 
-1. **Tasks 1-2: test_isolation.py + test_artifacts.py** - see hash below (test)
+1. **Tasks 1-2: test_isolation.py + test_artifacts.py** - `270e045` (test)
 
 ## Files Created/Modified
 
@@ -217,7 +217,7 @@ None — no external service configuration required.
 - `tests/phase46/test_artifacts.py` — FOUND (18 tests, green)
 - `.planning/phases/46-frame-resolution-gate-aligned-validation/deferred-items.md` — FOUND (DI-46-05-01)
 - `.planning/phases/46-frame-resolution-gate-aligned-validation/46-05-SUMMARY.md` — FOUND (this file)
-- Commit hash recorded below after commit (self-check completed post-commit; see Task Commits).
+- Commit `270e045` — FOUND (`git log --oneline` verifies all four files in one atomic commit; no deletions)
 
 ---
 *Phase: 46-frame-resolution-gate-aligned-validation*
