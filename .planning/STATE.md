@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
-current_phase_name: "Phase 46: Frame Resolution & Gate-Aligned Validation"
-status: ready to execute
-stopped_at: Phase 46 planned
-last_updated: "2026-07-26T15:41:33.000Z"
+current_phase: 46
+current_phase_name: frame-resolution-gate-aligned-validation
+status: executing
+stopped_at: Completed 46-04-PLAN.md
+last_updated: "2026-07-27T05:18:17.185Z"
 last_activity: 2026-07-26
-last_activity_desc: "All three Phase 46 gaps RESOLVED-WITH-INSTRUCTION on 2026-07-26 under explicit user-delegated option selection. GAP-46-02 selects the content-pinned seed-41/42/43 pilot-manifest intersection (1,651 Stage-0 identities), clearing 46-06/46-07. GAP-46-03 ratifies the measured control FD floor plus nonnegative fp32 round-trip increment, clearing 46-02. GAP-46-01 binds canonical r'/u evaluator assembly to RUN-03 before Phase 51 held-out access. Phase 46 is fully unblocked. Next: /gsd-execute-phase 46 from .worktrees/trainex; cut milestone/v2.2 from the v2.1 tip at first phase execution."
+last_activity_desc: Phase 46 plan 46-04 complete (4 of 7)
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 0
-  percent: 0
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State
@@ -23,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** v2.1 COMPLETE and archived (2026-07-24 ship; closed via `/gsd-complete-milestone` 2026-07-25). Next: v2.2 Conformance-Repair (proposed, not yet initialized). Owner-gated: `--no-ff` master merge + tag push.
+**Current focus:** Phase 46 — frame-resolution-gate-aligned-validation
 
 ## Current Position
 
-Phase: 46 — Frame Resolution & Gate-Aligned Validation (planned, not started)
-Plan: — (7 plans across 5 waves; none executed)
-Status: Ready to execute — all Phase 46 gap gates cleared; seven plans across five waves
-Last activity: 2026-07-26 — GAP-46-01/02/03 all `RESOLVED-WITH-INSTRUCTION` under explicit user-delegated option selection. The 46-02 and 46-06 hard gates now have recorded executable inputs; GAP-46-01 is mapped to RUN-03 / Phase 51 before held-out access.
+Phase: 46 (frame-resolution-gate-aligned-validation) — EXECUTING
+Plan: 4 of 7 complete (46-01..46-04); next 46-05
+Status: Executing Phase 46
+Last activity: 2026-07-26 — Phase 46 plan 46-04 complete (frame-probe evidence writer + manifest-parametric CLI)
 
 ## Deferred Items
 
@@ -145,6 +146,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 43 P02 | ~7min | 2 tasks | 5 files |
 | Phase 43 P04 | ~50min | 1 tasks | 2 files |
 | Phase 43 P05 | 9min | 2 tasks | 5 files |
+| Phase 46 P04 | ~45min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -221,6 +223,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 Recent decisions affecting current work:
 
+- [Phase 46 Plan 46-04]: CONF-01 evidence layer landed (commit aa094f37). Population rule fixed and manifest-parametric: eligible = train-or-validation under EVERY supplied manifest; excluded = test under ANY, attributed `test_under_<label>`; the test partition is read as a manifest-payload physical-key set, never a StageIndex (D-16). Exclusion ledger keyed on PhysicalKey so the excluded set is exactly the supplied manifests' test partitions. Resident-reader routing uses the first supplied manifest's membership (routing-only choice, recorded via `first_manifest_label`). Control reader streams per key under a `--chunk-size` FIFO window, never caching the corpus. Manifest labels derive from path stems with deterministic `~2` collision suffixes. Rule-3 deviation: the plan-mandated control reader was registered in the Phase 39 GAP-39-02 sole-reader audit allow-list (`tests/phase39/test_prohibitions.py`) — a registration gate, exactly one coherent resolution. Pre-existing `tests/phase43` failures (12; worktree-environmental + stale archived-milestone paths, zero coupling) logged as DI-46-04-01, not fixed.
 - [Phase 39 verification 2026-07-16]: Verification closeout ran under owner "Full closeout" instruction. 39-10-03 authority checkpoint resolved as Option A (gsd-core hard-gate at <home>/Desktop/code/gsd-core `fix/phase-complete-uat-predicate`, deployed to .claude-alt); 39-10 closed with SUMMARY. Canonical 39-VERIFICATION.md produced by gsd-verifier → **gaps_found (6/7)**. DATA-01..06 substance solid (251/251 dataset-free tests pass; all requirements map to real code), but an independently-reproduced evidence-integrity gap blocks completion: 39-VALIDATION row 39-07-02 is marked green yet its command fails against the retained 9-line scan.log — the original 41-line scan.log (acf9b207) was hand-assembled (its `# adapter init_log` block cannot come from the CLI), and 39-10-01 honestly regenerated the minimal true CLI output without correcting the ledger. Root cause: `pinn/data/stage_scan.py` CLI never serializes `AdmittedSetAdapter.init_log` (mem/watermark/blacklist/freshness). Phase 39 stays In Progress; fix routed to /gsd-plan-phase 39 --gaps. Memory-below-watermark held mechanically (adapter fail-closed) but is not independently provable from retained bytes.
 - [Phase 39 closeout 2026-07-16]: Gap-closure plans 39-11..39-14 executed and committed. 39-11 added fail-closed redacted `evidence_lines()` + per-fidelity `n_present_on_disk`/`n_excluded` to `AdmittedSetAdapter`; 39-12 wired `evidence_lines()` into the scan CLI with `run_timestamp`/`run_nonce`/`evidence_byte_identity` freshness markers and renamed `exit_code`→`scan_exit_code`; 39-13 regenerated real-corpus evidence (scan.log now carries `mem:`/`n_blacklist_entries`/`n_present_on_disk`/freshness fields, no `/Users/` leakage); 39-14 repaired the vacuous row 39-10-02 awk assertion. Row 39-07-02 command re-run: observed exit 0. 39-UAT updated: Test 24 → pass, 27/27 pass, status complete, G-39-24 resolved. ROADMAP Phase 39 marked `[x]`. STATE advanced to Phase 40.
 - [D1-p RESOLVED 2026-07-12]: Owner recorded **fp32-MPS** (Option A) for D1-p, resolving GAP-37-01 and retiring the same-day deferral below. Verbatim ruling (*"...we will remain with the entire training happening on the MacBook Pro with M5 chip. Let's carry on with that choice and decision for now."*) plus an explicit branch-naming confirmation (owner selected "fp32-MPS" from {fp32-MPS, fp64-CPU, keep deferred}) are recorded in the gap register, including the R-6 dual-arm tolerance ratification (fp64-CPU reference arm; fp32-MPS within ~1e-4). Production default: `precision=float32, device=mps`; fp64-CPU remains the in-framework escape hatch (ENV-04). **Phase 38 (NET) UNBLOCKED**; ENV-03 closable. Single-machine M5 Pro training reaffirmed — a Lenovo/multi-machine split is a later cost-benefit question outside v2.0. No code changed (CTX-14): `pinn/runtime.py` encodes no default; the Phase 40/41 training config consumes the recorded value.
@@ -319,11 +322,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/46-frame-resolution-gate-aligned-validation/46-01-PLAN.md
+**Resume file:** .planning/phases/46-frame-resolution-gate-aligned-validation/46-05-PLAN.md
 
 Last session: 2026-07-26
-Stopped at: Phase 46 planned (7 plans, 5 waves) — all three recorded gaps adjudicated and execution gates cleared
-Next action: Run `/gsd-execute-phase 46` from `.worktrees/trainex`. Cut `milestone/v2.2` from the v2.1 deliverable tip at first phase execution, per the recorded branch-timing decision. Plans 46-02 and 46-06 must consume the exact GAP-46-03 and GAP-46-02 resolution notes; Phase 51 must discharge GAP-46-01 through RUN-03 before any held-out access.
+Stopped at: Completed 46-04-PLAN.md (4 of 7 plans; SUMMARY at `.planning/phases/46-frame-resolution-gate-aligned-validation/46-04-SUMMARY.md`, commit aa094f37)
+Next action: Continue `/gsd-execute-phase 46` from `.worktrees/trainex` with plan 46-05 (isolation/artifact tests). Plan 46-06 must consume the GAP-46-02 seed-41/42/43 intersection ruling and the three contract surfaces recorded in the 46-04 SUMMARY (CLI synopsis, payload key list, population rule sentence); Phase 51 must discharge GAP-46-01 through RUN-03 before any held-out access.
 
 ## Operator Next Steps
 

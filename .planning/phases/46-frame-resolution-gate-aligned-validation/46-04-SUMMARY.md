@@ -147,7 +147,7 @@ in the payload at `population.rule`):**
 Both tasks landed in one plan-prescribed commit (TDD performed locally: RED
 suite failed on missing symbols, then GREEN):
 
-1. **Tasks 1-2: population resolution + evidence writer + CLI** - see hash below (feat)
+1. **Tasks 1-2: population resolution + evidence writer + CLI** - `aa094f37` (feat)
 
 ## Files Created/Modified
 
@@ -258,7 +258,7 @@ None — no external service configuration required.
 - `tests/phase39/test_prohibitions.py` — FOUND (modified, deviation 1)
 - `.planning/phases/46-frame-resolution-gate-aligned-validation/deferred-items.md` — FOUND (created)
 - `.planning/phases/46-frame-resolution-gate-aligned-validation/46-04-SUMMARY.md` — FOUND (this file)
-- Commit hash recorded below after commit (self-check completed post-commit; see Task Commits).
+- Commit `aa094f37` — FOUND (`git log --oneline` verifies all five files in one atomic commit; no deletions)
 
 ---
 *Phase: 46-frame-resolution-gate-aligned-validation*

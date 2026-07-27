@@ -32,7 +32,7 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 
 ### Conformance Repair (CONF) — Phases 46–48
 
-- [ ] **CONF-01**: Resolve RG-02: settle whether training targets are raw positions or `r' = r/D`, via the train-free residual-on-stored-targets check. No training run. **Branch point:** if the target frame *is* wrong, that is a sixth divergence and a data-path defect rather than a loss-math one — surface as an owner scope decision, never absorbed silently. [RG-02; proposal Phase 46]
+- [x] **CONF-01**: Resolve RG-02: settle whether training targets are raw positions or `r' = r/D`, via the train-free residual-on-stored-targets check. No training run. **Branch point:** if the target frame *is* wrong, that is a sixth divergence and a data-path defect rather than a loss-math one — surface as an owner scope decision, never absorbed silently. [RG-02; proposal Phase 46]
 - [ ] **CONF-02**: Build the `S_H` pipeline: `S_H = median_train(K0 + Uabs0)` over the admitted set, persisted in training metadata. `S_H` must be finite and strictly positive; non-finite or `≤ 0` is a preprocessing/metadata validation failure that fails closed (spec §3.4). [spec §3.4; conformance audit]
 - [ ] **CONF-03**: Wire `ε_H = 1e-4 · S_H` into the loss assembly and remove the `+1e-12` additive fallback floor, which §3.4 explicitly prohibits. [spec §3.4]
 - [ ] **CONF-04**: Correct `R̄` to the locked `(1/3) Σ_i ‖f_i‖²` (from the implemented `(1/9)Σ`). [locked loss contract; conformance audit]
@@ -104,7 +104,7 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | Phase 46 | Pending |
+| CONF-01 | Phase 46 | Complete |
 | CONF-02 | Phase 47 | Pending |
 | CONF-03 | Phase 47 | Pending |
 | CONF-04 | Phase 48 | Pending |
