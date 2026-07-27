@@ -25,3 +25,24 @@ inline by a later plan.
 - **Disposition:** deferred. Remediation belongs to a phase-43 test-path repair
   (point the artifact paths at the archived milestone location or skip when the
   v2.0 archive is absent), not to Phase 46.
+
+## DI-46-05-01 — `tests/watchdog/test_global_packaging.py` pre-existing failures (2)
+
+- **Found during:** Plan 46-05 phase-wide verification sweep (2026-07-27).
+- **Observed:** 2 failed in `tests/watchdog/test_global_packaging.py` under the
+  confirmed interpreter: `GlobalPackagingTests::test_a5_canonical_bin_matches_repo_source`
+  and `test_a6_deployed_skill_paths_rewritten`.
+- **Cause (environmental, pre-existing):** the tests compare the repo's
+  `scripts/watchdog/` source against the live canonical global deploy
+  (`~/.claude` bin/skills). `wd-arm` differs between repo and canonical bin
+  (DRIFT assertion) — the repo source was updated by watchdog work outside this
+  phase (the standalone-extraction effort) without a redeploy. The failure set
+  is identical with and without this plan's diff, which adds two files under
+  `tests/phase46/` and touches nothing else.
+- **Coupling with 46-05:** none — no `tests/phase46` module imports or
+  references watchdog packaging; the drift is in `scripts/watchdog/` vs the
+  global deploy location.
+- **Disposition:** deferred. Remediation belongs to the watchdog
+  redeploy/extraction track (regenerate the canonical deploy from the repo
+  source), not to Phase 46. The 12 pre-existing `tests/phase43` failures
+  (DI-46-04-01) are unchanged: same 12 tests, zero new phase43 failures.
