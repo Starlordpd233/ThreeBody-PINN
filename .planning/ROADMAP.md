@@ -66,7 +66,7 @@
 **Goal**: The last remaining way the next run could be invalid is settled, and validation carries a conservation signal where none exists.
 **Depends on**: v2.1 archive (complete). Ungated — first v2.2 phase.
 **Requirements**: CONF-01, INST-01
-**Plans:** 5/7 plans executed
+**Plans:** 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -85,7 +85,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 46-06-PLAN.md — The single real-corpus evidence run, `46-VERDICT.md`, and D-08/D-09 branch routing (wave 4; `autonomous: false` — owner branch point)
+- [x] 46-06-PLAN.md — The single real-corpus evidence run, `46-VERDICT.md`, and D-08/D-09 branch routing (wave 4; `autonomous: false` — owner branch point)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -178,7 +178,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 5/7 | In Progress|  |
+| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 6/7 | In Progress|  |
 | 47. S_H Pipeline | v2.2 | 0/? | Not started | - |
 | 48. Loss-Math Conformance | v2.2 | 0/? | Not started | - |
 | 49. Conformance Gate | v2.2 | 0/? | Not started | - |

@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 46
 current_phase_name: frame-resolution-gate-aligned-validation
 status: executing
-stopped_at: Completed 46-05-PLAN.md
-last_updated: "2026-07-27T06:30:27.035Z"
+stopped_at: Completed 46-06-PLAN.md -- CONF-01 D-09 STOP (VERDICT_AMBIGUOUS); Plan 46-07 and Phase 47 BLOCKED pending owner resolution
+last_updated: "2026-07-27T07:10:52.544Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 46 plan 46-05 complete (5 of 7)
+last_activity_desc: Phase 46 plan 46-06 complete -- CONF-01 D-09 STOP (VERDICT_AMBIGUOUS); Plan 46-07 and Phase 47 BLOCKED pending owner resolution
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 6
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 46 (frame-resolution-gate-aligned-validation) — EXECUTING
-Plan: 5 of 7 complete (46-01..46-05); next 46-06
-Status: Executing Phase 46
-Last activity: 2026-07-27 — Phase 46 plan 46-05 complete (INST-01 isolation + artifact fail-closed test suites)
+Phase: 46 (frame-resolution-gate-aligned-validation) — EXECUTING, BLOCKED at plan 46-07
+Plan: 6 of 7 complete (46-01..46-06); Plan 46-07 (INST-01 production wiring) and Phase 47 BLOCKED pending owner resolution of the CONF-01 D-09 STOP
+Status: Blocked -- CONF-01 verdict VERDICT_AMBIGUOUS (see 46-VERDICT.md); owner scope decision required before Plan 46-07 or Phase 47 can proceed
+Last activity: 2026-07-27 — Phase 46 plan 46-06 complete: single real-corpus CONF-01 evidence run committed, 46-VERDICT.md authored, D-09 branch routed
 
 ## Deferred Items
 
@@ -148,6 +148,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 43 P05 | 9min | 2 tasks | 5 files |
 | Phase 46 P04 | ~45min | 2 tasks | 4 files |
 | Phase 46 P05 | 58min | 2 tasks | 4 files |
+| Phase 46 P06 | ~25min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -298,6 +299,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 43 43-04]: ACC-01 completed — pinn.train._check_duration_gate wired into the launch preflight before run_dir.mkdir; reconciled pre-existing uncommitted work rather than rewriting (matched plan + 43-REVIEWS.md HIGH finding + SPEC edges R1/R2). Discovered (not fixed, out of scope): tests/phase41/test_train_entrypoint.py (17/193) and tests/phase42 subprocess-launch tests now fail against the new fail-closed gate since they launch fresh non-smoke pinn.train without a persisted calibration; logged as DI-43-04-01/02 in deferred-items.md for a follow-up fixture update.
 - [Phase 43 43-06, 2026-07-21]: ACC-02 real smoke complete over the real admitted corpus: 32 identities, 300/300 gap-free steps, checkpoints 100/158/200/300, one SIGTERM interrupt + `--resume latest` to finished, `s_per_step=0.11570`, forecast 34.71s. Loss bounded but non-descending across the 300-step Adam budget — recorded as an ACC-05 pilot watch-item, never framed as convergence. Three owner-carved seams closed this plan: B-5 `ratify-current` (unchanged registry); R-1 `loss_explosion_ceiling=1e11` via owner delegation (revisable at ACC-05); D4-a `wall_clock_ceiling_s=120` via owner's explicit selection, persisted in `configs/stage0-example.yaml`. Two Rule-3 operational auto-fixes: `data.blacklist_path` threaded to fix DI-43-06-01 (owner-authorized, legacy Documentation blacklist designated authoritative), and `rolling_keep` 3→4 in `configs/smoke.yaml` to preserve checkpoint 100 across the required interrupt.
 - [Phase 46 Plan 46-05]: INST-01 safety properties proven as tests (commit 270e045). Held-out isolation enforced doubly — AST scan over raw validation_gate source covering absolute/from/relative import spellings, plus a fresh-subprocess sys.modules check (T-46-05-01). Prior-mode restoration proven from BOTH prior states under an injected mid-population failure; mode bracket AST-pinned handler-less try/finally. Non-interference proven bitwise (real CPU/float64 network), structurally (exact signature pin), behaviorally (deterministic passes). Artifact contract pinned: atomic publication with no temp residue, schema fail-closed over the full 16-key 46-03 schema list, NaN/Infinity/-Infinity quoted sentinels under plain json.loads, pointer fields only behind a durable schema-valid sidecar; valid-FAIL observation still yields gate_status ok (metric FAIL is honest evidence). Both suites dataset-free with inline FrameConvention (the wave-5 ratified-frame constant never referenced — T-46-05-04). Clarified 46-03 contract: validator enforces the 16 top-level keys; nested frame/row shape pinned on the published payload; Inf-aggregate shape constructed directly with gate_metrics-derived SCS/verdict. Pre-existing watchdog packaging failures (2, live-deploy drift) logged as DI-46-05-01, not fixed.
+- [Phase ?]: [Phase 46 Plan 46-06]: CONF-01 real-corpus evidence run (commit f106889b) returned VERDICT_AMBIGUOUS over 1651 GAP-46-02-Option-A trajectories -- routes D-09, not the clean D-08 continuation. 100% of eligible trajectories carry a body-permutation confound and a com_recenter_boost gauge divergence; identity_raw=true for 100% but only 66.6% (1100/1651) clear the corrected-raw residual tolerance, short of decide_verdict rule 4's unanimity requirement, so the verdict falls to the rule-6 fail-closed catch-all. 46-VERDICT.md (commit 6638204d) records the branch; Plan 46-07 and Phase 47 stay BLOCKED pending owner resolution. GAP-46-01's consequence note: the verdict selects neither of that gap's two evaluator-pairing readings cleanly, though the identity classification leans structurally toward the raw-target reading.
 
 ### Pending Todos
 
@@ -321,14 +323,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 - **`pinn/` ban lifted for v2.0:** FUT-01 rebuilds `pinn/` FROM the specs; v2.0 is the first milestone to write production `pinn/` code. The v1.3-era `basic_architecture.py` / `data-processing-pipeline-full.py` are reference-only and replaced wholesale.
 - **Spec inputs are read-only in v2.0:** a build-discovered spec defect is surfaced as a gap and routed to a spec milestone; v2.0 implements the specs, it does not edit them.
 - **No external research gate:** unlike v1.4–v1.6, v2.0 has no candidate-verdict-source gate — the research (trainex-r1a) is already delivered and ratified. Phases run in straight dependency order 37 → 43.
+- CONF-01 D-09 STOP (2026-07-27, Plan 46-06): the real-corpus target-frame probe returned VERDICT_AMBIGUOUS, not the clean D-08 VERDICT_TARGETS_ARE_SCALED. Plan 46-07 (INST-01 production wiring) and Phase 47 (target-frame repair) are BLOCKED pending owner resolution/deferral of the ambiguity recorded in 46-VERDICT.md. Full STOP-protocol surface returned to the orchestrator by the 46-06 executor; gap-register writes (46-GAPS.md, .planning/milestones/v2.2-GAPS.md) are orchestrator-owned, not yet written.
 
 ## Session Continuity
 
 **Resume file:** None
 
-Last session: 2026-07-27T06:29:50.488Z
-Stopped at: Completed 46-05-PLAN.md (5 of 7 plans; SUMMARY at `.planning/phases/46-frame-resolution-gate-aligned-validation/46-05-SUMMARY.md`, commit 270e045)
-Next action: Continue `/gsd-execute-phase 46` from `.worktrees/trainex` with plan 46-06 (the single real-corpus CONF-01 evidence run; `autonomous: false` — owner branch point). Plan 46-06 must consume the GAP-46-02 seed-41/42/43 intersection ruling and the three contract surfaces recorded in the 46-04 SUMMARY (CLI synopsis, payload key list, population rule sentence); Phase 51 must discharge GAP-46-01 through RUN-03 before any held-out access.
+Last session: 2026-07-27T07:10:52.537Z
+Stopped at: Completed 46-06-PLAN.md -- CONF-01 D-09 STOP (VERDICT_AMBIGUOUS); Plan 46-07 and Phase 47 BLOCKED pending owner resolution
+Next action: BLOCKED. Plan 46-06 completed (VERDICT_AMBIGUOUS, D-09 STOP; see `.planning/phases/46-frame-resolution-gate-aligned-validation/46-VERDICT.md` and `46-06-SUMMARY.md`). Plan 46-07 (INST-01 production wiring) and Phase 47 cannot proceed until the orchestrator records the gap (`46-GAPS.md`, `.planning/milestones/v2.2-GAPS.md`) and the owner resolves or defers the CONF-01 ambiguity. Phase 51 must still discharge GAP-46-01 through RUN-03 before any held-out access, once frame-dependent work resumes.
 
 ## Operator Next Steps
 
