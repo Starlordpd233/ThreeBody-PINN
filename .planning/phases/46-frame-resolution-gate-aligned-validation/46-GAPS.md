@@ -337,6 +337,129 @@ subagent — per governance, the parent owns gap-register writes.
 
 ---
 
+## GAP-46-04 — CONF-01's real-corpus verdict is `VERDICT_AMBIGUOUS`: a 100%-prevalent body-permutation + COM/boost confound prevents a unanimous raw-vs-scaled verdict. How should the owner route this?
+
+- **Decision point:** The single sanctioned real-corpus CONF-01 evidence run
+  (Plan 46-06, over the GAP-46-02 Option A 1651-trajectory intersection
+  population) returned machine verdict `VERDICT_AMBIGUOUS`
+  (`decide_verdict` rule 6, the fail-closed catch-all) — neither the clean
+  `VERDICT_TARGETS_ARE_SCALED` that would unblock 46-07 under D-08, nor a
+  clean `VERDICT_TARGETS_ARE_RAW`. Per D-09 this is an unresolved ambiguity,
+  not a confirmed defect and not a confirmed-conformant frame, and it must be
+  resolved or deferred by the owner before any frame-dependent work resumes.
+
+- **Where in artifact:**
+  `.planning/phases/46-frame-resolution-gate-aligned-validation/46-VERDICT.md`
+  §§ "Branch: D-09", "Confound register", "Population and exclusion
+  accounting"; measured fields cited from
+  `.planning/phases/46-frame-resolution-gate-aligned-validation/evidence/target-frame/20260727T070221Z/raw.json`
+  (SHA-256 `3fa8251b464600fd2e99f5745bdfb1c315fb0073051de009d2b60a13a7dfcf08`,
+  committed `f106889b90b84dcc4889427a8e0272dc76f6e59b`): `verdict`,
+  `aggregates.{raw_hypothesis,scaled_hypothesis}.count_consistent`,
+  `confound_register` (3302 entries), and the per-trajectory
+  `confounds.{identity_raw,identity_scaled,raw_residual_corrected}` fields.
+
+- **Task context:** Plan 46-06, Task 3 ("Author 46-VERDICT.md and route the
+  D-08/D-09 branch"), executed by the gsd-executor subagent in
+  `.worktrees/trainex` on `milestone/v2.1`, 2026-07-27. Recorded by the Phase
+  46 orchestrator (parent session) per governance — the executor returned the
+  full STOP block in its completion message without writing this register
+  itself.
+
+- **Classification:** cross-phase reframing (the measured outcome bears on
+  Phase 47's scope and the Phase 46→47 dependency) with a semantic-ambiguity
+  component (the raw-vs-scaled target-frame question itself is not decidably
+  answered by this evidence).
+
+- **Source silence:** `46-CONTEXT.md` D-08/D-09 name exactly two routes (a
+  clean scaled-verdict continuation, or "defect or ambiguity → stop and
+  surface") but do not, and structurally cannot, pre-decide which of the four
+  machine verdicts a real run would return. This register's own "Not recorded
+  as gaps" § (below) anticipated the body-permutation confound as a probe
+  design input — it correctly routed the *measurement* to the planner rather
+  than treating prevalence as a gap in advance — but it did not and could not
+  anticipate the specific outcome that 100% confound prevalence would push
+  33.4% of corrected-raw residuals over tolerance, short of rule 4's
+  unanimity requirement. GAP-46-04 is the first phase artifact to record this
+  specific ambiguity; no prior owner ruling addresses what to do when the
+  verdict is `VERDICT_AMBIGUOUS` with universal confound prevalence but a
+  near-miss corrected-raw-consistency rate.
+
+- **Mathematical / engineering grounding:** Every one of the 1651 eligible
+  trajectories (100%) carries two confounds simultaneously: (1) a
+  non-identity body-permutation between the resident position array and its
+  paired mass vector (`(2,0,1)` for 1547 trajectories, `(0,2,1)` for 104;
+  zero show the identity permutation), and (2) a `com_recenter_boost` gauge
+  divergence (the resident trajectory's first point of departure from the
+  canonical ordered/gauged/scaled pipeline). Structurally, `identity_raw =
+  true` for 100% of trajectories and `identity_scaled = false` for 100% —
+  every trajectory classifies as "raw-shaped," never "scaled-shaped." Yet
+  after correcting for the measured permutation, the raw residual clears the
+  numerical tolerance (GAP-46-03 Option A two-term floor) for only 1100/1651
+  (66.6%) of trajectories — short of the unanimity `decide_verdict` rule 4
+  requires for a clean `VERDICT_TARGETS_ARE_RAW`. This 33.4% shortfall,
+  universally attributable to the same two confounds present in 100% of
+  trajectories, means the "raw-vs-scaled" question and the "is there a
+  permutation/gauge defect" question are entangled in this population in a
+  way the probe's own symmetric-hypothesis design (correctly, per D-04)
+  refuses to silently resolve. Additionally, all 1651 eligible identities are
+  `variant=hierarchical, fidelity=base` — no `standard` or `gold_standard`
+  identity survives the three-manifold GAP-46-02 intersection at Stage 0, a
+  previously unmeasured population fact whose implication (curriculum design
+  vs. labeling artifact) is undecidable from this evidence alone.
+
+- **Agent was tempted to:** (a) round the near-miss 66.6% raw-corrected
+  consistency up to a "practically raw" verdict and route the clean-raw
+  branch of D-09 — refused; the machine's own unanimity rule (rule 4) exists
+  precisely to prevent an executor from making that judgment call, and D-06
+  forbids inventing an alternate threshold. (b) Repair the identified
+  body-permutation confound inline (it is a well-characterized, mechanically
+  simple fix — reorder positions to match `masses_ordered`) — refused; D-09
+  and the plan's explicit prohibition forbid any `pinn/` modification under
+  any branch, verified clean by `git status --short -- pinn/`. (c) Treat the
+  all-hierarchical population composition as either "expected" or "a bug" —
+  refused; neither reading is decidable from this evidence alone, so it is
+  reported as a measured fact only.
+
+- **What the user needs to decide:**
+  - **(A) Treat the confound as the sixth conformance divergence.** Route the
+    100%-prevalent permutation + COM/boost confound into Phase 47/48's scope
+    alongside the existing `S_H`/loss-math repairs, since the repair
+    transform (reorder positions to match `masses_ordered`) is well-
+    characterized by this evidence even though probe rule 4 could not
+    unanimously confirm it.
+  - **(B) Insert a dedicated repair phase between 46 and 47** specifically
+    for the permutation/gauge confound, re-run this exact probe post-repair,
+    and gate Phase 47 on a clean D-08/D-09-raw verdict from that re-run.
+  - **(C) Defer with a recorded risk acceptance** — proceed to Phase 47
+    assuming the raw-target reading (supported by the 100% `identity_raw`
+    signal) without a unanimous machine verdict, explicitly accepting that
+    33.4% of the population remains unexplained.
+  - **(D) Request a widened or corrected probe** (e.g. a permutation-
+    corrected symmetric-hypothesis re-run) before any scope decision, to
+    determine whether correcting the confound analytically would also
+    resolve rule 4's unanimity requirement.
+
+- **Confidence of impact:** HIGH — Phases 47-52 and the single EVAL-01 look
+  all depend on the frame this branch settles; GAP-46-01's evaluator-pairing
+  resolution (already RESOLVED-WITH-INSTRUCTION, binding Phase 50/51) is also
+  directly downstream of which reading ultimately prevails.
+
+- **Status:** OPEN
+
+- **Resolution note:** (empty — awaiting owner instruction)
+
+- **Blocking scope:** Plan 46-07 (INST-01 production wiring) and Phase 47
+  (the target-frame/loss-math repair phase) are BLOCKED pending resolution or
+  deferral. The frame-independent INST-01 deliverables already shipped in
+  Waves 1-3 (46-01, 46-02, 46-03, 46-05 — fixtures, probe core,
+  gate-composition module, isolation/artifact test suites) are complete and
+  unaffected. Position 3 of the `phase-46-execution` watchdog chain is held
+  open (its done marker is withheld per its own contract) pending this gap's
+  resolution.
+
+---
+
 ## Not recorded as gaps
 
 Recorded here so the reasoning is re-derivable and the same candidates are not
