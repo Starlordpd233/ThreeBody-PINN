@@ -642,6 +642,146 @@ subagent — per governance, the parent owns gap-register writes.
 
 ---
 
+## GAP-46-06 — The successful minimum repair leaves residency at an ordered COM/boost-gauged raw-scale intermediate that the unchanged v1 probe classifies as `VERDICT_NON_FRAME_DIVERGENCE`. What contract or frame does Phase 46 use next?
+
+- **Decision point:** The one authorized post-repair probe returned
+  `VERDICT_NON_FRAME_DIVERGENCE` (rule 5, D-09), not a clean raw or scaled
+  verdict. CONF-08's repair is nevertheless exact:
+  `stepwise_attribution.plus_permutation = 0.0` for 1651/1651 trajectories, so
+  resident positions and `masses_ordered` now address the same canonical
+  bodies in the COM/boost gauge. The owner must decide whether Phase 46 should
+  revise the post-repair probe contract, ratify an operational frame by
+  instruction, authorize a further canonical transform and measurement, or
+  defer the phase.
+
+- **Where in artifact:**
+  - `evidence/target-frame/20260728T014532Z/raw.json`:
+    `.verdict`, `.rationale`, `.aggregates`, and
+    `.trajectories[].confounds.stepwise_attribution`
+  - `46-VERDICT-POSTREPAIR.md` §§ "Pre/post comparison", "Confound register",
+    and "Branch: D-09"
+  - `pinn/verification/target_frame_probe.py:620-643` — identity and canonical
+    permutation booleans
+  - `pinn/verification/target_frame_probe.py:658-695` — stepwise attribution and
+    unconditional inverse-permutation correction
+  - `pinn/verification/target_frame_probe.py:887-893` — rule-5 D-09 classifier
+  - `pinn/data/adapter.py:861-875` — the repaired resident surface
+
+- **Task context:** Surfaced during Plan 46-09 Task 3 after all four pre-run
+  gates passed and the single permitted measurement completed. The unchanged
+  instrument and population reproduced both controls exactly. The hypothesis
+  arms moved, but the machine returned its grounded non-frame route. Per
+  fable-mode's truth and failure-visibility gates, the result is preserved
+  without retuning, rerunning, or self-ratifying.
+
+- **Classification:** cross-phase reframing (+ semantic probe-contract
+  ambiguity) — the ruling determines what Phase 46 calls the resident frame,
+  whether a new evidence instrument/run is authorized, and whether Phase 47
+  may begin. It also changes the acceptance meaning of CONF-01 and therefore
+  the roadmap's frame-first dependency.
+
+- **Source silence:**
+  - `46-CONTEXT.md:60-68` requires two symmetric hypotheses and explicit
+    coordinate conventions but does not specify how to classify an intentionally
+    resident, ordered COM/boost-gauged raw-scale intermediate.
+  - `46-CONTEXT.md:70-78` requires non-frame divergences to be preserved and
+    owner-routed; it supplies no resolution for one found after the authorized
+    minimum repair.
+  - `46-CONTEXT.md:105-116` supplies D-08/D-09 routing and requires this gap,
+    but deliberately reserves the branch resolution to the owner.
+  - `46-02-SUMMARY.md:85-100` fixes rule 5 as a D-09
+    `VERDICT_NON_FRAME_DIVERGENCE` route; it does not define a postrepair-aware
+    third identity arm.
+  - `46-09-PLAN.md:60-72` enumerates clean raw, clean scaled, and repeated
+    ambiguity, anticipating that the first divergence might move to rotation
+    or scaling. It does not anticipate rule 5 remaining stable because the
+    unchanged attribution algorithm compares the ordered resident against the
+    earlier unpermuted intermediate first.
+  - `46-09-PLAN.md:153-169` requires pre/post confound comparison and owner
+    routing, but only spells out creation of GAP-46-06 for a repeated
+    `VERDICT_AMBIGUOUS`; it does not authorize self-resolving the equally
+    explicit D-09 non-frame outcome.
+  - `46-08-SUMMARY.md:72-110` proves the intended repair boundary and that no
+    rotation or global scaling was applied. It does not choose which resulting
+    coordinate convention validation should ratify.
+
+- **Mathematical / engineering grounding:** The repaired resident is
+  `r_bar_perm = P(r - R_COM0 - V_COM t)`: raw dimensional length, zero-COM and
+  zero-COM-velocity gauge, canonical body order, no rotation gauge, and no
+  division by `D`. Translation, uniform boost, and simultaneous body
+  permutation are symmetries/relabelings of Newtonian three-body dynamics when
+  positions, velocities, and masses transform together. They do not select the
+  dimensionless scaled frame `r' = R0 r_bar_perm / D`, nor do they make
+  `r_bar_perm` byte-identical to parsed file-order raw `r`.
+
+  The probe's two identity tests admit only those endpoints:
+  file-order parsed raw (`positions_vs_parsed`) and fully
+  ordered/rotated/scaled (`positions_vs_r_gauge`). The repaired intermediate is
+  therefore `identity_neither` by construction. Its stepwise loop tests
+  `r_bar` before `r_bar_perm`, so an ordered resident first differs at the
+  label `com_recenter_boost` even though it exactly equals the very next
+  intermediate. Finally, the "corrected raw" arm applies the inverse canonical
+  permutation to stored masses unconditionally. That operation repaired the
+  old file-order-position/ordered-mass mismatch; after CONF-08 it creates the
+  mismatch, which is why corrected-raw consistency moves from 1100/1651 to
+  0/1651 while the direct raw hypothesis moves from 0/1651 to 1086/1651.
+
+  A validation frame must still pair positions and time coherently. The locked
+  future contract is canonical scaled `r'` with `u=t/T`, while the historical
+  raw reading is parsed raw `r` with native `t`. Treating `r_bar_perm` as
+  either endpoint without an explicit gauge/frame ruling changes target
+  semantics and downstream validation assembly. Conversely, applying rotation
+  and `D/V` scaling now would establish the scaled endpoint by construction,
+  not independently measure raw-versus-scaled residency. The options therefore
+  have materially different scientific and engineering consequences.
+
+- **Agent was tempted to:** (a) call the 1086/1651 uncorrected-raw consistency
+  a "raw verdict" — refused because rule 4 requires unanimity and identity-raw,
+  neither of which holds. (b) infer that rotation is the next divergence from
+  `plus_permutation = 0.0` and apply it — refused because the single measured
+  result does not authorize another transform. (c) patch the probe's
+  discriminators and re-run — refused because Plan 46-09 permits exactly one
+  completed measurement with the unchanged instrument. (d) treat rule 5 as a
+  tool bug and proceed to 46-07 — refused because rule 5 is explicitly a
+  grounded D-09 route.
+
+- **What the user needs to decide:**
+  - **(A) Authorize a postrepair-aware probe revision and one new measurement.**
+    Add an explicit ordered COM/boost-gauged raw intermediate identity arm;
+    define pairing status by resident/mass alignment rather than whether the
+    canonical permutation is identity; make the inverse-mass correction
+    conditional on the resident convention; and make stepwise attribution
+    report the matching/latest canonical intermediate. Keep Phase 46 stalled
+    and author a new plan before changing the instrument.
+  - **(B) Ratify an operational raw/native validation frame by instruction.**
+    Treat the repaired order and COM/boost gauge as symmetry-equivalent to raw
+    positions for conservation validation, explicitly accept that the current
+    raw arm clears tolerance for only 1086/1651 trajectories, and authorize
+    46-07 to wire that named pair. This is an owner override of the machine
+    verdict, not a clean CONF-01 measurement.
+  - **(C) Authorize the remaining canonical transform to the locked scaled
+    contract, then create new evidence.** Apply rotation plus `D/V` scaling in
+    a separately planned repair and remeasure. This makes future residency
+    conformant but establishes scaled targets by specified transformation
+    rather than by the original symmetric raw-vs-scaled diagnosis.
+  - **(D) Defer Phase 46.** Leave GAP-46-06 open/deferred and carry the
+    probe-contract/frame adjudication into a later milestone. Phase 46,
+    46-07, Phase 47, and downstream frame-dependent work remain blocked.
+
+- **Confidence of impact:** HIGH — this ruling controls the frame named by
+  INST-01, the input to Phase 47's mass-weighted `S_H`, and whether the
+  milestone's single held-out evaluation is ever eligible to run.
+
+- **Status:** OPEN
+
+- **Resolution note:**
+
+- **Blocking scope:** Plan 46-07, Phase 46 closure, Phase 47, and all
+  frame-dependent downstream work. Independent evidence review may continue;
+  no further repair, probe run, or frame ratification is authorized.
+
+---
+
 ## Not recorded as gaps
 
 Recorded here so the reasoning is re-derivable and the same candidates are not
