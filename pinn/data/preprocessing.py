@@ -65,6 +65,9 @@ class PreprocessedTrajectory:
 
     masses_ordered: Any        # (3,) raw ordered masses (unscaled)
     permutation: Any           # (3,) canonical-order indices into the input
+    r_com_ordered: Any         # (Nt, 3, 3) positions: COM/boost-gauged + canonically ordered.
+                               # NOT rotation-gauged, NOT scaled by D. CONF-08 resident surface.
+    v_com_ordered: Any         # (Nt, 3, 3) velocities: same two transforms only.
     r0_gauge: Any              # (3, 3) initial positions, ordered+gauged+scaled
     v0_gauge: Any              # (3, 3) initial velocities, ordered+gauged+scaled
     r_gauge: Any               # (Nt, 3, 3) full trajectory positions, scaled
@@ -211,6 +214,7 @@ def preprocess_trajectory(times, positions, velocities, masses):
 
     return PreprocessedTrajectory(
         masses_ordered=masses_ordered, permutation=permutation,
+        r_com_ordered=r_bar, v_com_ordered=v_bar,
         r0_gauge=r_scaled[0], v0_gauge=v_scaled[0],
         r_gauge=r_scaled, v_gauge=v_scaled,
         R0=R0, R_COM0=R_COM0, V_COM=V_COM, D=D, T=T, V=V,

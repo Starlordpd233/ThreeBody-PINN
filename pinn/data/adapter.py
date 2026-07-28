@@ -858,19 +858,21 @@ class AdmittedSetAdapter:
                 if fidelity == "gold" and label is not StageLabel.UNASSIGNED:
                     gold_numeric += 1
 
+                # CONF-08 repair: resident arrays carry COM/boost + canonical
+                # body order, deliberately without rotation gauge or D/V scaling.
                 candidates.append(SimpleNamespace(
                     record_key=record_key, variant=variant, fidelity=fidelity,
-                    times=parsed_brutus.times, positions=parsed_brutus.positions,
-                    velocities=parsed_brutus.velocities,
+                    times=parsed_brutus.times, positions=pre.r_com_ordered,
+                    velocities=pre.v_com_ordered,
                     masses_ordered=pre.masses_ordered, raw_ic13=raw_ic13,
                     inv=inv, measured=measured,
                     dt_reference=reference.get("dt_out"),
                     dt_provenance=provenance.get("dt_out"),
-                    n_snapshots=int(parsed_brutus.positions.shape[0]),
+                    n_snapshots=int(pre.r_com_ordered.shape[0]),
                     stage_label=label))
                 raw_ic13_population.append(raw_ic13)
                 trajectory_energies.append(inv.E)
-                self._total_admitted_snapshots += int(parsed_brutus.positions.shape[0])
+                self._total_admitted_snapshots += int(pre.r_com_ordered.shape[0])
                 counts["admitted"] += 1
 
             assert counts["found"] == (
