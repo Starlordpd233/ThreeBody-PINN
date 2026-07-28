@@ -772,13 +772,110 @@ subagent — per governance, the parent owns gap-register writes.
   INST-01, the input to Phase 47's mass-weighted `S_H`, and whether the
   milestone's single held-out evaluation is ever eligible to run.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** Owner ruling 2026-07-28 selected **Option B — ratify an
+  operational raw/native validation frame by instruction.**
 
-- **Blocking scope:** Plan 46-07, Phase 46 closure, Phase 47, and all
-  frame-dependent downstream work. Independent evidence review may continue;
-  no further repair, probe run, or frame ratification is authorized.
+  **The ratified pair, named exactly (D-12 requires 46-07 to quote, not infer):**
+
+  | field | constant | value |
+  |---|---|---|
+  | `position_frame` | `POSITION_FRAME_RAW` | `"r_raw"` |
+  | `time_coord` | `TIME_COORD_RAW` | `"t_native"` |
+  | `mass_convention` | `MASS_CONVENTION_ORDERED_RAW` | `"ordered_raw"` |
+
+  `(POSITION_FRAME_RAW, TIME_COORD_RAW)` is a member of `COHERENT_FRAME_PAIRS`
+  (`pinn/training/validation_gate.py:81-84`), so the `FrameConvention`
+  post-init coherence check accepts it without modification.
+
+  **`conf01_evidence_ref`:**
+  `.planning/phases/46-frame-resolution-gate-aligned-validation/evidence/target-frame/20260728T014532Z/raw.json`
+  (SHA-256 `11b6690add8bb18181efadd2e7848a5c04439e7c8d501cfd9c22ebe69a402654`,
+  measured against repo commit `a7a211ed`).
+
+  **What this ruling does and does not assert.** It ratifies the repaired
+  resident — canonically ordered, COM-recentred/boosted, raw dimensional scale,
+  unrotated, paired with `masses_ordered` — as the coordinate convention the
+  Phase 46 validation gate computes `eps_H` and `SCS` in. It does **not** alter
+  the machine verdict: `VERDICT_NON_FRAME_DIVERGENCE` (rule 5, D-09) stands
+  unchanged in `46-VERDICT-POSTREPAIR.md` and in the evidence run. This is an
+  owner exercise of the D-09 branch on recorded evidence, not a clean CONF-01
+  machine measurement, and it must be described that way wherever CONF-01
+  status is asserted — including EVAL-01 precondition (ii).
+
+  **Evidence basis.** The ruling rests on the arm measurements below (see
+  "Evidence addendum"), not on the option-B caveat as originally written. The
+  "clears tolerance for only 1086/1651" framing in option B is a tolerance
+  artifact, not a physics disagreement; the addendum supersedes it.
+
+  **Known follow-up, accepted by the owner.** If Phase 47/48 moves residency to
+  the locked canonical scaled contract (`r'` with `u = t/T`),
+  `RATIFIED_VALIDATION_FRAME` becomes stale and requires a fresh ratification
+  under the same D-12 discipline. The constant carries its ratification source
+  in-code specifically so that re-ratification is a traceable edit rather than a
+  silent one.
+
+- **Evidence addendum (2026-07-28, orchestrator analysis of the committed
+  `raw.json`; no new probe run, no `pinn/` change — permitted under this gap's
+  "independent evidence review may continue"):**
+
+  Option B was offered with the caveat that the raw arm "clears tolerance for
+  only 1086/1651 trajectories." Per-trajectory comparison of the raw hypothesis
+  against the provenance control shows that number is a property of the
+  tolerance, not of the data:
+
+  | quantity | value |
+  |---|---|
+  | `raw_hypothesis.median / provenance_control.median`, population | min 0.999308, p05 0.999917, **median 0.999996**, p95 1.000109, max 1.001113 |
+  | same ratio, restricted to the 565 inconsistent trajectories | min 1.0000000, median **1.0000200**, max 1.0011127 |
+  | `abs(raw − provenance)` per trajectory | median 1.4e-06, max 2.8e-05 |
+  | `tolerance_floor == max(control medians)` | 1651 / 1651 |
+  | `tolerance_fp32_increment == 0` | 801 / 1651 (median 8.0e-09) |
+  | `consistency == (median <= numerical_tolerance)` | 1651 / 1651 (rule confirmed) |
+
+  The tolerance floor is the control's own residual with effectively no
+  headroom, so the consistency test reduces to `raw <= control + ~1e-8`. The
+  failing trajectories exceed by ~0.002%, and the ratio distribution is
+  symmetric about 1.0 at the 1e-4 level — the signature of rounding, not of a
+  frame disagreement.
+
+  The mechanism is visible in the controls themselves. The two float64 controls
+  — positive (`preprocess_r_gauge`, rotated **and** scaled) and provenance
+  (`parsed_over_D`, unrotated) — agree to 8.6e-16 absolute
+  (0.08022618097116868 vs 0.08022618097116782), empirically confirming that
+  rotation and simultaneous body permutation are residual-neutral in this
+  instrument, as Newtonian covariance requires. The resident is stored
+  **float32** (`raw.json.dtype`). The ~1e-6 gap between the raw arm and the
+  float64 controls is residency quantization measured against a tolerance whose
+  fp32 term budgeted for a single realization of that same quantization.
+
+  Consequently the substantive CONF-01 question is answered by the measurement:
+  the scaled arm sits at median 0.9894 with 1605/1651 separated, while the raw
+  arm sits at 0.0802249 against controls at 0.0802262 — a factor of 12.3
+  separation, anchored by two controls that reproduced their pre-repair values
+  exactly. The resident targets are at raw dimensional scale. What rule 4 could
+  not supply is the verdict *token*: it requires `all_identity_raw`, a
+  byte-match against the parsed file-order array
+  (`pinn/verification/target_frame_probe.py:641`), which the CONF-08 repair
+  deliberately and correctly made unreachable, plus
+  `all_raw_corrected_consistent`, whose unconditional inverse-permutation
+  correction post-repair creates the very mismatch it was written to undo.
+  Both unreachability conditions are consequences of the authorized repair, not
+  of the corpus.
+
+  Re-derivation: `json.load` the run's `raw.json` and compare
+  `trajectories[i].arms.raw_hypothesis.median` against
+  `trajectories[i].arms.provenance_control.median`,
+  `trajectories[i].numerical_tolerance`, `.tolerance_floor`, and
+  `.tolerance_fp32_increment`.
+
+- **Blocking scope:** CLEARED for Plan 46-07 (which proceeds under its Task-1
+  state (b), quoting the pair named above), Phase 46 closure, and Phase 47.
+  Still NOT authorized by this ruling: any probe revision, any re-run of the
+  target-frame probe, any further canonical transform of residency, and any
+  held-out evaluation (SCOPE-28 unchanged; EVAL-01's three preconditions are
+  untouched by this gap).
 
 ---
 
