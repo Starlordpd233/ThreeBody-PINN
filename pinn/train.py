@@ -26,7 +26,7 @@ import numpy as np
 from pinn.architecture_spec import ArchitectureSpec
 from pinn.network import build_network
 from pinn.runtime import RuntimeSpec, resolve_runtime
-from pinn.training import determinism
+from pinn.training import determinism, validation_gate
 from pinn.training.checkpoint import (
     CHECKPOINT_SCHEMA_VERSION,
     TorchSaveCheckpointStore,
@@ -78,9 +78,14 @@ def _append_validation_record(
     step: int,
     final_val_loss: float,
     previous_val_loss: Optional[float],
+    gate_fields: Optional[Mapping[str, Any]] = None,
 ) -> float:
     """Persist one validation observation and its contemporaneous trend."""
     value = float(final_val_loss)
+    # PRE-EXISTING contract, preserved verbatim: a non-finite final_val_loss
+    # appends no record. A gate sidecar already published for such an event is
+    # left unreferenced, which is harmless -- D-17 forbids only the reverse
+    # direction, a pointer naming a sidecar that was never durably published.
     if not math.isfinite(value):
         return value
     if previous_val_loss is None or not math.isfinite(float(previous_val_loss)):
@@ -96,11 +101,58 @@ def _append_validation_record(
         "final_val_loss": value,
         "trend": trend,
     }
+    if gate_fields is not None:
+        # Gate values are already json-safe (finite numbers or string sentinels)
+        # per 46-03, so the existing allow_nan=False serialization stands.
+        record.update(dict(gate_fields))
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(record, sort_keys=True, allow_nan=False) + "\n")
         handle.flush()
     return value
+
+
+def _run_validation_gate_pass(
+    model,
+    validation_source,
+    *,
+    stage: int,
+    global_step: int,
+    run_dir: Path,
+    runtime_spec: Any,
+) -> dict[str, Any]:
+    """Compute, durably publish, and compact one full-pool gate observation.
+
+    The testable seam ``checkpoint_hook`` calls at the existing validation event
+    boundary. Instrumentation must never kill training (D-15/D-20), so every
+    exception converts to a ``failed:`` status record carrying no pointer: the
+    run stays inspectable as EVAL-01-ineligible while training control flow is
+    unchanged. The sidecar is published BEFORE any pointer field is produced,
+    and the pointer fields come only from ``compact_validation_fields``, which
+    re-validates the durable sidecar (D-17).
+    """
+    try:
+        observation = validation_gate.compute_validation_gate(
+            model,
+            validation_source,
+            stage=int(stage),
+            global_step=int(global_step),
+            frame=validation_gate.RATIFIED_VALIDATION_FRAME,
+            dtype=runtime_spec.dtype,
+            device=runtime_spec.torch_device,
+        )
+        validation_gate.publish_gate_sidecar(run_dir, observation)
+        return validation_gate.compact_validation_fields(observation, run_dir)
+    except Exception as exc:  # deliberately broad: D-15/D-20
+        print(
+            f"warning: validation gate pass failed at step {int(global_step)}: "
+            f"{type(exc).__name__}",
+            file=sys.stderr,
+        )
+        return {
+            "gate_schema_version": validation_gate.GATE_SIDECAR_SCHEMA_VERSION,
+            "gate_status": "failed:" + type(exc).__name__,
+        }
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -801,11 +853,23 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             and int(global_step) % validation_every == 0
             and validation_state_cell["last_step"] != int(global_step)
         ):
+            # Gate-aligned validation seam (46-07): same branch, same
+            # validation_every condition, same validation_state_cell dedup --
+            # D-10 forbids any new cadence, knob, or trigger.
+            gate_fields = _run_validation_gate_pass(
+                model,
+                validation_source,
+                stage=int(curriculum_state_accessor()["stage"]),
+                global_step=int(global_step),
+                run_dir=run_dir,
+                runtime_spec=runtime_spec,
+            )
             validation_state_cell["previous"] = _append_validation_record(
                 run_dir / "validation.jsonl",
                 step=int(global_step),
                 final_val_loss=float(val),
                 previous_val_loss=validation_state_cell["previous"],
+                gate_fields=gate_fields,
             )
             validation_state_cell["last_step"] = int(global_step)
         if val is not None and float(val) < best_val_cell["best"]:

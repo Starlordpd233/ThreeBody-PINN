@@ -500,3 +500,37 @@ def compact_validation_fields(observation: ValidationGateObservation, run_dir) -
         "gate_n_nonfinite": int(observation.n_nonfinite),
         "gate_sidecar": rel,
     }
+
+
+# ---------------------------------------------------------------------------
+# Ratified production frame (46-07; D-07/D-08/D-09/D-12)
+# ---------------------------------------------------------------------------
+
+# Ratification source: GAP-46-06, Status RESOLVED-WITH-INSTRUCTION, owner ruling
+# 2026-07-28, option B -- "ratify an operational raw/native validation frame by
+# instruction". Full record:
+# .planning/phases/46-frame-resolution-gate-aligned-validation/46-GAPS.md,
+# section "## GAP-46-06".
+#
+# The D-09 branch was routed by Plan 46-09's single post-repair measurement,
+# which returned the grounded rule-5 verdict VERDICT_NON_FRAME_DIVERGENCE
+# (46-VERDICT-POSTREPAIR.md). That verdict is NOT overwritten here. The owner
+# exercised the D-09 branch on the recorded evidence and named this pair
+# explicitly, so the values below are quoted from the resolution note rather
+# than inferred from any measurement (D-12).
+#
+# The ratified convention is the CONF-08-repaired residency: canonically
+# ordered, COM-recentred and boost-corrected, raw dimensional scale, unrotated,
+# paired with masses_ordered.
+#
+# Re-ratification is REQUIRED if Phase 47/48 moves residency to the locked
+# canonical scaled contract (r' with u = t/T); this constant then goes stale.
+RATIFIED_VALIDATION_FRAME = FrameConvention(
+    position_frame=POSITION_FRAME_RAW,
+    time_coord=TIME_COORD_RAW,
+    mass_convention=MASS_CONVENTION_ORDERED_RAW,
+    conf01_evidence_ref=(
+        ".planning/phases/46-frame-resolution-gate-aligned-validation/"
+        "evidence/target-frame/20260728T014532Z/raw.json"
+    ),
+)

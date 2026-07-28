@@ -61,6 +61,31 @@ _STATUS_TEXT = {
     "interrupted": "interrupted",
 }
 
+# Phase 46 gate keys projected verbatim from the last validation record (D-19).
+# Persisted-bytes passthrough: never recomputed, never null-collapsed (D-20).
+_GATE_KEYS = (
+    "gate_schema_version",
+    "gate_eps_h",
+    "gate_scs",
+    "gate_verdict",
+    "gate_status",
+    "gate_n_trajectories",
+    "gate_n_nonfinite",
+    "gate_sidecar",
+)
+
+# Fixed render order for summary.md (differs from _GATE_KEYS: metrics first).
+_GATE_MD_ORDER = (
+    "gate_eps_h",
+    "gate_scs",
+    "gate_verdict",
+    "gate_status",
+    "gate_n_trajectories",
+    "gate_n_nonfinite",
+    "gate_sidecar",
+    "gate_schema_version",
+)
+
 _HONESTY_NOTES = (
     "Healthy validation does not mean the model works.",
     "Run-to-run comparison does not prove progress.",
@@ -182,6 +207,34 @@ def _read_jsonl_mappings(path: Optional[PathLike]) -> List[Dict[str, Any]]:
     return records
 
 
+def _eval01_precondition_iii(
+    record: Mapping[str, Any], path: Optional[PathLike]
+) -> bool:
+    """True only when the gate status is ok AND its sidecar is durably valid.
+
+    Fail-closed eligibility render (D-19/D-20): this reads and validates
+    persisted bytes; it never recomputes eps_H, SCS, or the verdict. The
+    validator import is function-local on purpose — summary.py is the
+    stdlib-only honesty layer rendered under EVERY death mode, while
+    ``pinn.training.validation_gate`` transitively imports torch via
+    gate_metrics, so an ImportError degrades the flag to False instead of
+    breaking the terminal summary render.
+    """
+    if record.get("gate_status") != "ok":
+        return False
+    rel = record.get("gate_sidecar")
+    if not isinstance(rel, str) or not rel or path is None:
+        return False
+    try:
+        from pinn.training.validation_gate import validate_sidecar_payload
+
+        sidecar = Path(path).parent / rel
+        validate_sidecar_payload(json.loads(sidecar.read_text(encoding="utf-8")))
+        return True
+    except Exception:
+        return False
+
+
 def _validation_summary(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
     """Select the last persisted validation record; never infer a trend."""
     records = _read_jsonl_mappings(path)
@@ -193,11 +246,19 @@ def _validation_summary(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
     if not isinstance(trend, str) or not trend:
         trend = None
     step = record.get("step")
-    return {
+    summary: Dict[str, Any] = {
         "final_val_loss": final_val_loss,
         "trend": trend,
         "step": step,
     }
+    # Gate fields pass through UNCHANGED — a finite number or a string sentinel.
+    # _null_if_nonfinite must NOT touch them: collapsing "Infinity" to null would
+    # render a metric FAIL as missing data (D-20). Absent keys (pre-Phase-46
+    # records) default to None.
+    for key in _GATE_KEYS:
+        summary[key] = record.get(key)
+    summary["eval01_precondition_iii"] = _eval01_precondition_iii(record, path)
+    return summary
 
 
 def _test_preview(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
@@ -339,6 +400,13 @@ def _render_md(payload: Mapping[str, Any]) -> str:
         lines.append(f"- final_val_loss: {value if value is not None else 'null'}")
         lines.append(f"- trend: {validation.get('trend') or 'unavailable'}")
         lines.append(f"- step: {validation.get('step')}")
+        for key in _GATE_MD_ORDER:
+            gate_value = validation.get(key)
+            lines.append(f"- {key}: {gate_value if gate_value is not None else 'null'}")
+        lines.append(
+            "- eval01_precondition_iii: "
+            f"{bool(validation.get('eval01_precondition_iii'))}"
+        )
     else:
         lines.append("- (validation records unavailable)")
     lines.append("")

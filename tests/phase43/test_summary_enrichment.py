@@ -93,9 +93,27 @@ class SummaryEnrichmentTests(unittest.TestCase):
 
         payload = json.loads((self.root / "summary.json").read_text())
         md = (self.root / "summary.md").read_text()
+        # Phase 46 (plan 46-07) widened this projection additively: the three
+        # legacy keys keep their values and the eight gate keys plus the
+        # eligibility flag are appended. This fixture writes a pre-Phase-46
+        # validation.jsonl with no gate fields and no sidecar, so every gate key
+        # is None and eval01_precondition_iii is False.
         self.assertEqual(
             payload["validation"],
-            {"final_val_loss": 2.5, "trend": "improving", "step": 20},
+            {
+                "final_val_loss": 2.5,
+                "trend": "improving",
+                "step": 20,
+                "gate_schema_version": None,
+                "gate_eps_h": None,
+                "gate_scs": None,
+                "gate_verdict": None,
+                "gate_status": None,
+                "gate_n_trajectories": None,
+                "gate_n_nonfinite": None,
+                "gate_sidecar": None,
+                "eval01_precondition_iii": False,
+            },
         )
         self.assertEqual(payload["test_preview"]["eps_h"], 8.0e-6)
         self.assertEqual(payload["test_preview"]["verdict"], "PASS")
