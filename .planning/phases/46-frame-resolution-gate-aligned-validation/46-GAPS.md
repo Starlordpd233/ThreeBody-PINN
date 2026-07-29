@@ -1065,16 +1065,59 @@ subagent — per governance, the parent owns gap-register writes.
   bound, RUN-01/02's re-run, and the single authorized EVAL-01 look — is
   computed on top of it.
 
-- **Status:** `OPEN`
+- **Status:** `RESOLVED-WITH-INSTRUCTION`
 
-- **Resolution note:** *(empty — awaiting owner instruction)*
+- **Resolution note:** **Owner ruling 2026-07-28, option A.** Complete the
+  residency transform to the locked canonical contract as **one** new
+  requirement, **CONF-09**, placed in **Phase 47 ahead of CONF-02**. The
+  milestone moves 23 → 24 requirements.
 
-- **Blocking scope:** BLOCKS Phase 47 (CONF-02's `S_H` is frame-dependent) and
-  the CONF-05 clip-bound selection in Phase 48. Does NOT block Phase 46
-  verification and closure on its own three requirements, whose evidence stands
-  as recorded. Nothing in this gap authorizes a probe revision, a training run,
-  a held-out evaluation (SCOPE-28 unchanged), or a framework-spec edit
-  (SCOPE-30 unchanged).
+  What the ruling authorizes: moving the resident position and velocity series
+  (`pinn/data/adapter.py:864-865`) from `pre.r_com_ordered` / `pre.v_com_ordered`
+  to `pre.r_gauge` / `pre.v_gauge` — the rotation-gauged, `D`/`V`-scaled
+  canonical output `preprocess_trajectory` already computes and currently
+  exports only to the probe; re-ratifying `RATIFIED_VALIDATION_FRAME` to
+  `(POSITION_FRAME_SCALED, TIME_COORD_NORMALIZED, MASS_CONVENTION_ORDERED_RAW)`
+  in the same change, as `validation_gate.py:526-528` requires; and correcting,
+  in that same change, any test that encodes the current resident pairing
+  (the TEST-01 principle, applied ahead of its phase).
+
+  Three consistency gains were confirmed while stress-testing the option and are
+  part of its rationale, not separate work: `H' = D·H` holds uniformly because
+  `T²/D² = D` under `D³ = T²`, so `h0` becomes the scaled-frame invariant
+  `soft_energy_loss` expects; `HUBER_DELTA_DATA = 1.0` is locked *for scaled
+  positions* (`loss_catalog.py:174-183`) and is currently applied to raw ones;
+  and `EPS_SOFT = 1e-5` is a scaled-frame softening per
+  `softened_acceleration`'s stated input contract, likewise currently applied to
+  raw positions. Gate metrics are unaffected in value: `ε_H` is a relative drift
+  and is invariant under the uniform `H → D·H` rescaling.
+
+  **This does not decide CONF-01 by construction.** CONF-08 excluded the `D`
+  scaling so the probe could still measure raw-versus-scaled; that measurement
+  was made, and GAP-46-06 ratified its answer. Applying the scaling now is the
+  *consequence* of the answer, not a pre-emption of it. It is also not recipe
+  tuning under SCOPE-29: loss magnitudes change because the frame becomes the
+  locked one, not because any hyperparameter was adjusted against an observed
+  result.
+
+  **Supersedes in part:** GAP-46-06's ratified `("r_raw", "t_native",
+  "ordered_raw")` frame, which was scoped to validation observation and whose
+  own constant declares its staleness condition. CONF-01's status and its
+  mandatory EVAL-01 precondition-(ii) qualification are unchanged — RG-02 stays
+  settled by owner instruction on measured evidence.
+
+  **Still NOT authorized by this ruling:** any training run, any held-out
+  evaluation (SCOPE-28 unchanged), any framework-spec edit (SCOPE-30 unchanged),
+  and any hyperparameter change. A post-repair CONF-01 re-probe is permitted as
+  a *regression check* that residency equals the canonical output, but it is no
+  longer a frame test — after this change `identity_scaled` is true by
+  construction, and it must be described that way wherever it is cited.
+
+- **Blocking scope:** CLEARED by the option-A ruling. Phase 47 proceeds with
+  CONF-09 sequenced ahead of CONF-02, and the Phase 48 CONF-05 clip bound is
+  chosen after both CONF-04 and CONF-09. Phase 46 verification and closure were
+  never blocked by this gap; its three requirements' evidence stands as
+  recorded.
 
 - **Re-derivation:** every number above is reproduced by the scripts embedded in
   `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-report.md`
