@@ -879,6 +879,209 @@ subagent — per governance, the parent owns gap-register writes.
 
 ---
 
+## GAP-46-07 — Residency stops two canonical transforms short of the locked contract, and the training path consumes it in a frame `validation_gate.py` itself declares incoherent. Is completing the transform a v2.2 requirement, and where does it live?
+
+- **Decision point:** CONF-08 applied the COM/boost gauge and the canonical
+  body permutation to the resident position and velocity series, deliberately
+  excluding the rotation gauge and the `D`/`V` scaling. GAP-46-06 then ratified
+  that intermediate as the *validation observation* frame. Neither ruling
+  addressed the **training** path, which pairs those unrotated, unscaled
+  residents with normalized time `u = t/T`. That pairing is not one of the two
+  coherent frame pairs the codebase admits, the physics residual it produces
+  has no zero, and the network input `IC₁₃` is built in a gauge the targets do
+  not share. The owner must decide whether completing the residency transform
+  is a v2.2 requirement and, if so, which phase owns it.
+
+- **Where in artifact:**
+  - `pinn/training/controllers.py:521-533` — `u_leaf = collocation_times / T`,
+    positions taken from the model at resident scale, `residual = accel - force`
+  - `pinn/training/controllers.py:466`, `:468-472`, `:474-476` — `true_v0`,
+    `h0`, `l0` built from raw native resident velocities
+  - `pinn/training/controllers.py:514-515`, `:547`, `:551` — those targets
+    compared against autograd `d/du` quantities
+  - `pinn/data/adapter.py:864-865` — the resident surface (`pre.r_com_ordered`,
+    `pre.v_com_ordered`)
+  - `pinn/data/adapter.py:847-849` — `IC₁₃` built from `pre.r0_gauge` /
+    `pre.v0_gauge` (rotation-gauged **and** `D`/`V`-scaled)
+  - `pinn/data/preprocessing.py:69` — the resident field's own annotation:
+    "NOT rotation-gauged, NOT scaled by D. CONF-08 resident surface."
+  - `pinn/training/validation_gate.py:81-84` — `COHERENT_FRAME_PAIRS`
+  - `pinn/training/validation_gate.py:526-528` — "Re-ratification is REQUIRED if
+    Phase 47/48 moves residency to the locked canonical scaled contract"
+  - `evidence/target-frame/20260728T014532Z/raw.json` —
+    `.aggregates.scaled_hypothesis.residual_medians` and
+    `.trajectories[].confounds.stepwise_attribution`
+
+- **Task context:** Surfaced 2026-07-28 during an independent verification of
+  the six claims in
+  `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-handoff.md`,
+  performed before Phase 47 begins. Phase 46 is executed but not verified or
+  closed. No `pinn/` file was modified; all work was read-only inspection plus
+  throwaway scratchpad scripts.
+
+- **Classification:** cross-phase reframing (+ semantic frame adjudication) —
+  the ruling determines whether a new requirement enters v2.2, whether Phase 47
+  builds `S_H` before or after the repair, and whether
+  `RATIFIED_VALIDATION_FRAME` goes stale.
+
+- **Source silence:**
+  - `.planning/REQUIREMENTS.md:42` (CONF-08) excludes the `D` scaling
+    explicitly and correctly — "pre-applying it would decide the verdict by
+    construction" — and admits the rotation gauge only "if the re-probe
+    measures it as the new `first_diverging_step`". Once CONF-01 answered, no
+    requirement was created to apply either deferred transform.
+  - CONF-08's rotation trigger never fired: the post-repair
+    `first_diverging_step` is `com_recenter_boost` (it retains pre-repair
+    semantics, comparing against the file-order array), while
+    `stepwise_attribution.plus_rotation = 1.72` sits in the same record.
+  - GAP-46-06's ruling names a **validation** frame and says nothing about the
+    training path. `RATIFIED_VALIDATION_FRAME`'s own comment scopes it to
+    validation and flags its own staleness condition.
+  - GAP-46-01 settles the **evaluator** assembly (`r'` with `u=t/T`, mapped to
+    RUN-03) and does not reach residency.
+  - The 2026-07-24 conformance audit recorded RG-02 as "Not verifiable here"
+    because the corpus payload was absent; it verified the code half only.
+  - Coverage is `23/23 mapped` with no orphans
+    (`.planning/REQUIREMENTS.md:132`), which is precisely why a *missing*
+    requirement is invisible to a coverage check.
+
+- **Mathematical / engineering grounding:** `D = (G T²)^(1/3)` is the Kepler
+  scaling condition, chosen so the equations of motion are form-invariant under
+  `r → r' = r/D`, `t → u = t/T`. Verified numerically: `T²/D − D² = 7.1e-15`.
+  In that frame and only that frame is `d²r'/du² − a(r')` identically zero on a
+  true trajectory.
+
+  **Scale.** Executed on a trajectory satisfying Newton's law exactly in native
+  time, through the production `componentwise_du` / `softened_acceleration`:
+  raw positions give `d²r/du² / a(r) = 100.0000000000 = T²` and
+  `R̄ = 1.548e+02`; scaled positions give `1.0000000014` and `R̄ = 1.14e-17`.
+  So in the executed frame `residual = (T² − 1)·a(r)` on a *perfect*
+  trajectory: `L_phys` has no zero, and it is minimized where `a(r) = 0` — an
+  active gradient signal toward zero gravity, opposing the data term.
+
+  This is already measured on the real corpus. The probe's `scaled_hypothesis`
+  arm *is* the training path's frame (residents as-is, `u = t/T`), and the
+  probe's own module docstring
+  (`pinn/verification/target_frame_probe.py:26-32`) predicts its value
+  analytically: "a raw series read as scaled gives `a_fd = T² a` vs
+  `a_newton = a`, i.e. `(T²−1)/T² ≈ 0.99`". Measured median over 1,651
+  trajectories: **0.98936**, separated 1605/1651. Per trajectory,
+  `stepwise_attribution.plus_scale = 1.26 ≠ 0`.
+
+  **Velocity.** `‖dr/du‖ / ‖dr/dt‖ = 10.0000000000 = T`, in both frames —
+  autograd necessarily returns `d/du` while `batches.py:185` builds the
+  resident series from `np.gradient(velocities, times)` against native times.
+  The energy anchor is the damaging one: `K_model = T²·K_raw` while
+  `U_model = U_raw`, so `H_model` is unit-inconsistent and no single constant
+  absorbs it. This lands directly on CONF-02 — `S_H = median(K0 + Uabs0)` built
+  on this frame is a correctly-computed statistic feeding an inconsistent
+  comparison.
+
+  **Rotation — the half not previously examined.** `IC₁₃` is built from
+  `r0_gauge = R0 · r̄ / D`, so it is expressed in the rotation-gauge basis;
+  the targets are not rotated. `R0` is materially non-identity on real data:
+  median `‖R0 − I‖_F = 2.83` over 30 hierarchical trajectories, 30/30 above
+  `0.01`. Because the gauge is *constructed from* the data, `IC₁₃` is exactly
+  invariant under a global rotation `Q` of the system while the targets are
+  equivariant. Measured on a real trajectory with an arbitrary `Q`:
+  `max|ΔIC₁₃| = 2.4e-15` (machine zero) against `max|Δtarget| = 2.21`, larger
+  than the target's own scale (1.13). **The regression target is therefore not
+  a function of the network input** — three orientation degrees of freedom per
+  trajectory are provably absent from the 14-dim input. This is a different
+  and worse failure mode than a scale error: a scale error makes the loss
+  minimum wrong; this makes the data term ask for something unlearnable, so the
+  best achievable fit is the conditional mean over orientations.
+
+  **Interaction with CONF-05 (measured, and it corrects a natural assumption).**
+  The tempting inference is that the inflated `R̄` causes the observed causal
+  collapse. It does not. With `w = [1, 0, …, 0]` over 16 points,
+  `loss_phys = R̄₀/16`, so the retained `loss_phys = 3.32e+08` at step 1 gives
+  `R̄₀ = 5.32e+09`. `exp(−x)` underflows to exactly `0.0` at `x > 745.13` with
+  `η_c = 1`, so `R̄₀` must fall by `7.1e+06×` for `w₂` to be nonzero — while
+  the frame repair buys at most `D² ≈ 21.5×` and CONF-04 moves it `3×` the
+  other way. Decisively, at step 1 the model is at initialization, so `R̄₀` is
+  *identical* under any target-frame repair; the collapse is caused by the
+  absent clip (CONF-05), not by the frame. But the frame does impose an
+  asymptotic floor: on 25 real trajectories a *perfect* trajectory in the
+  executed frame yields `R̄` floor median `8.36e+05` (min `7.55e+04`), which is
+  `1122×` above the underflow threshold on 25/25. So the front could never
+  advance even at perfect convergence. Both repairs are necessary; neither is
+  sufficient. The practical consequence is the one that matters: a clip applied
+  to an unrepaired frame produces a run whose causal front advances and whose
+  weights look healthy, while `L_phys` still has no zero and still pulls toward
+  zero gravity — **the run would look better and be just as invalid.**
+
+- **Agent was tempted to:** (a) treat this as already covered by CONF-01/CONF-08
+  because the evidence exists — refused: the measurement exists, the routing
+  does not, and `23/23 mapped` cannot detect a missing requirement. (b) apply
+  the repair directly, since `pre.r_gauge` / `pre.v_gauge` are already computed
+  and consumed only by the probe, making it a small diff — refused: adding a
+  requirement and changing phase scope is an owner routing call, and it would
+  invalidate `RATIFIED_VALIDATION_FRAME` without re-ratification. (c) file
+  scale, velocity, and rotation as three separate gaps — refused: they are one
+  defect (residency stops short of the locked contract) with one repair.
+  (d) repeat "the frame error explains the v2.0 7-orders-of-magnitude gate
+  failure" as established — refused: not measured, and stated here only as an
+  unverified candidate explanation.
+
+- **What the user needs to decide:**
+  - **(A) Add one requirement — complete the residency transform — and place it
+    in Phase 47 before CONF-02.** Move the resident surface
+    (`adapter.py:864-865`) from `pre.r_com_ordered` / `pre.v_com_ordered` to
+    `pre.r_gauge` / `pre.v_gauge`, the locked canonical contract. This repairs
+    scale, velocity, and rotation in one move and makes every derived anchor
+    target self-consistent without a separate conversion table, because they
+    all derive from the residents: `dr'/du = (T/D)·v_rot = v_gauge` exactly, so
+    `true_v0` matches autograd `d/du`; `h0` and `l0` become the scaled-frame
+    invariants that `soft_energy_loss` and `angular_momentum_loss` are then
+    given. `IC₁₃` already lives in this frame, so the rotation mismatch closes
+    too. Requires re-ratifying `RATIFIED_VALIDATION_FRAME` in the same change
+    (the constant's own comment mandates this) and re-running the CONF-01 probe
+    if the owner wants a clean post-repair token. **Placement rationale:** `S_H`
+    is frame-dependent, so building it first means rebuilding it. Aligns with
+    RUN-03's existing obligation that the evaluator pair canonical `r'` with
+    `u = t/T` — note `pinn/evaluate.py` imports `T` but never `D`, so it
+    already consumes model output as `r'`.
+  - **(B) Same repair, but placed in Phase 48 with the other loss-math work.**
+    Keeps Phase 47 scoped to `S_H` as planned; costs a rebuild of `S_H` on the
+    corrected frame and leaves CONF-05's clip bound dependent on two later
+    changes.
+  - **(C) Split into two requirements** — scale+velocity, and rotation — if the
+    owner wants the rotation half evidenced by a dedicated probe measurement
+    before it is repaired, rather than by the `plus_rotation` attribution and
+    the invariance test recorded above.
+  - **(D) Rule that raw-frame training is intended and the specs are the stale
+    artifact.** Then `constants.py:21`'s `D = (GT²)^(1/3)` derivation,
+    `componentwise_du`'s `r'` docstring, `softened_acceleration`'s
+    "positions in the dimensionless system" input contract, and
+    `loss_catalog.py:174-183`'s explicit caller contract are wrong together.
+    Possible, but it makes the specs the thing needing repair — a different and
+    SCOPE-30-blocked conversation.
+
+- **Confidence of impact:** **HIGH.** The physics, IC-anchor, energy, and
+  angular-momentum terms are all evaluated in a frame in which they are
+  structurally wrong, and the position targets are not a function of the network
+  input. Every downstream v2.2 deliverable — `S_H` (CONF-02), the CONF-05 clip
+  bound, RUN-01/02's re-run, and the single authorized EVAL-01 look — is
+  computed on top of it.
+
+- **Status:** `OPEN`
+
+- **Resolution note:** *(empty — awaiting owner instruction)*
+
+- **Blocking scope:** BLOCKS Phase 47 (CONF-02's `S_H` is frame-dependent) and
+  the CONF-05 clip-bound selection in Phase 48. Does NOT block Phase 46
+  verification and closure on its own three requirements, whose evidence stands
+  as recorded. Nothing in this gap authorizes a probe revision, a training run,
+  a held-out evaluation (SCOPE-28 unchanged), or a framework-spec edit
+  (SCOPE-30 unchanged).
+
+- **Re-derivation:** every number above is reproduced by the scripts embedded in
+  `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-report.md`
+  §7, run as `PYTHONPATH=<worktree> <repo-venv>/bin/python`.
+
+---
+
 ## Not recorded as gaps
 
 Recorded here so the reasoning is re-derivable and the same candidates are not
