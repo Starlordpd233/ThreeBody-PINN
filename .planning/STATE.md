@@ -5,8 +5,8 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 47
 current_phase_name: Frame Completion & S_H Pipeline
 status: planning
-stopped_at: Completed 46-10-PLAN.md -- both INST-01 verifier gaps closed; all 10 Phase 46 plans executed; re-verification pending
-last_updated: "2026-07-30T03:59:03.766Z"
+stopped_at: Phase 47 context gathered
+last_updated: "2026-07-30T05:10:40.665Z"
 last_activity: 2026-07-29
 last_activity_desc: Phase 46 complete, transitioned to Phase 47
 progress:
@@ -339,11 +339,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/47-frame-completion-s-h-pipeline/47-CONTEXT.md
 
-Last session: 2026-07-30T03:26:38.573Z
-Stopped at: Completed 46-10-PLAN.md -- both INST-01 verifier gaps closed; all 10 Phase 46 plans executed; re-verification pending
-Next action: Run canonical verification and `$gsd-verify-work 46`, then close Phase 46 and proceed to Phase 47. When verifying, note two things: (1) `$gsd-verify-work` is plan-conformance, not spec-conformance — the load-bearing evidence for this phase is 46-08's test triage, 46-09's control-arm reproduction, and 46-07's end-to-end artifact inspection, not a passing verifier verdict; (2) the full suite is NOT green, but all 14 failures are pre-existing and environmental (see Blockers/Concerns). Phase 47 must compute `S_H` in the ratified raw/native frame over the CONF-08-repaired pairing. Phase 51 must still discharge GAP-46-01 through RUN-03, and must read CONF-01's qualification before treating EVAL-01 precondition (ii) as met.
+Last session: 2026-07-30T05:10:40.659Z
+Stopped at: Phase 47 context gathered
+Next action: Run `/gsd-plan-phase 47`, consuming `47-CONTEXT.md`. **Corrected 2026-07-29 —** the note previously here said "Phase 47 must compute `S_H` in the ratified raw/native frame over the CONF-08-repaired pairing". GAP-46-07 (owner option A, 2026-07-28) superseded that in part: the raw/native frame GAP-46-06 ratified is the **validation observation** frame, and it never reached the training path. Phase 47's order is CONF-09 → CONF-02 → CONF-03 — residency moves to `pre.r_gauge`/`pre.v_gauge` and `RATIFIED_VALIDATION_FRAME` is re-ratified to the scaled contract **first**, and `S_H` is then computed in that completed frame. Per `pinn_architecture.md` §3.4:539-542, `S_H` is float64, reduced over the training split only, computed once (never per minibatch), from the matched-Plummer components at `ε_train = 1e-5` — **not** at `ε_inv = 1e-10`, which §3.4:544 (VAL-03) explicitly separates. Still true and still relevant: the full suite is NOT green, but the known failures are pre-existing and environmental (see Blockers/Concerns). Phase 51 must still discharge GAP-46-01 through RUN-03, and must read CONF-01's qualification before treating EVAL-01 precondition (ii) as met.
 
 ## Operator Next Steps
 
