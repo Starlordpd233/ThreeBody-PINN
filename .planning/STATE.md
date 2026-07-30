@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
-current_phase: 46
-current_phase_name: frame-resolution-gate-aligned-validation
-status: executing
+current_phase: 47
+current_phase_name: Frame Completion & S_H Pipeline
+status: planning
 stopped_at: Completed 46-10-PLAN.md -- both INST-01 verifier gaps closed; all 10 Phase 46 plans executed; re-verification pending
-last_updated: "2026-07-30T03:26:38.579Z"
-last_activity: 2026-07-30
-last_activity_desc: Plan 46-10 gap closure executed and committed (`ad5331cd`, `35c88d7f`, `0ea7ead`).
+last_updated: "2026-07-30T03:59:03.766Z"
+last_activity: 2026-07-29
+last_activity_desc: Phase 46 complete, transitioned to Phase 47
 progress:
   total_phases: 7
   completed_phases: 1
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 46 (frame-resolution-gate-aligned-validation) — ALL PLANS EXECUTED, RE-VERIFICATION PENDING
-Plan: 10 of 10 complete (46-01..46-10 executed).
-Status: All Phase 46 plans executed. Plan 46-10 closed both remaining INST-01 verifier gaps: the sidecar receipt is now a strict, recomputed semantic contract bound to its own run/step/path identity, and the latest validation.jsonl event is durable and non-fallback (a failed, non-finite, malformed, or cross-run/wrong-step event can never expose an older eligible success). CONF-01 and CONF-08 remain Complete and untouched. Next: re-run goal verification against the updated 46-VERIFICATION.md gaps before closing Phase 46.
-Last activity: 2026-07-30 — Plan 46-10 gap closure executed and committed (`ad5331cd`, `35c88d7f`, `0ea7ead`).
+Phase: 47 — Frame Completion & S_H Pipeline
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-29 — Phase 46 complete, transitioned to Phase 47
 
 **Phase 47 scope changed 2026-07-28 (GAP-46-07, owner option A) — read before planning it.** An independent verification of the conformance handoff confirmed all six carried divergences and surfaced a seventh that no requirement owned: CONF-08 excluded the rotation gauge and the `D`/`V` scaling by design, GAP-46-06 ratified the resulting intermediate as the **validation** frame, and neither reached the **training** path, which pairs unrotated/unscaled residents with `u = t/T` — a pairing `COHERENT_FRAME_PAIRS` does not admit. New requirement **CONF-09** completes the residency transform to the locked canonical contract and is sequenced **ahead of CONF-02** (`S_H` is frame-dependent). Milestone is now **24 requirements**; Phase 47 is renamed "Frame Completion & S_H Pipeline" and runs CONF-09 → CONF-02 → CONF-03. The Phase 48 CONF-05 clip bound now waits on CONF-09 as well as CONF-04. `RATIFIED_VALIDATION_FRAME` is re-ratified by CONF-09, so GAP-46-06 is superseded **in part** — CONF-01's Complete status and its mandatory EVAL-01 precondition-(ii) qualification are unchanged. Report: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-report.md`.
 
@@ -69,7 +69,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 846 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 856 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -130,6 +130,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 39 P06 | 17 min | 2 tasks | 2 files |
 | 40 | 9 | - | - |
 | 44 | 5 | - | - |
+| 46 | 10 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |

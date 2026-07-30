@@ -1,57 +1,34 @@
 ---
 phase: 46-frame-resolution-gate-aligned-validation
-verified: 2026-07-29T13:19:23Z
-status: gaps_found
-score: 57/61 must-haves verified
+verified: 2026-07-30T05:10:00Z
+status: passed
+score: 70/70 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "EVAL-01 precondition (iii) is true only for the latest persisted gate record and its same-event, contained, semantically valid sidecar"
-    status: failed
-    reason: "The summary accepts a cross-run ../ sidecar, does not bind the JSONL step or compact fields to the sidecar, and relies on a validator that accepts test-split, failed-status, negative-step, empty-frame payloads."
-    artifacts:
-      - path: "pinn/training/summary.py"
-        issue: "_eval01_precondition_iii joins an arbitrary JSONL path to the run directory and treats shallow validation as eligibility."
-      - path: "pinn/training/validation_gate.py"
-        issue: "validate_sidecar_payload omits semantic invariants; compact_validation_fields can join a validated sidecar to different in-memory metrics."
-      - path: "tests/phase46/test_artifacts.py"
-        issue: "The fail-closed suite covers missing keys, truncation, ordering, and metric encoding but not record/artifact identity or semantic invariants."
-    missing:
-      - "Require a contained, exact step-derived sidecar path and bind JSONL step/schema/metrics/verdict/counts to the validated payload."
-      - "Validate the complete frame, split, status, step/stage, path, identity, threshold, count, aggregate, SCS, and verdict invariants."
-      - "Derive compact fields from the validated payload or compare them exactly to the observation."
-  - truth: "Every latest validation event fails closed and an older eligible record can never remain presented as current"
-    status: failed
-    reason: "A non-finite validation loss appends no contemporaneous gate record, and a malformed trailing JSONL line is skipped; both leave an older successful gate record reported as current and EVAL-01-eligible."
-    artifacts:
-      - path: "pinn/train.py"
-        issue: "_append_validation_record returns before persisting the gate status when final_val_loss is non-finite."
-      - path: "pinn/training/summary.py"
-        issue: "_read_jsonl_mappings skips malformed lines and _validation_summary selects the last older parseable record."
-      - path: "tests/phase46/test_validation_wiring.py"
-        issue: "The test suite explicitly pins the unsafe non-finite early return and has no malformed-latest-line fail-closed case."
-    missing:
-      - "Persist every validation event with JSON-safe loss/trend representation and contemporaneous gate fields."
-      - "Treat a malformed or torn latest JSONL event as ineligible instead of falling back to an older success."
-      - "Reverse the non-finite early-return regression and add two-event stale-record tests."
+re_verification:
+  previous_status: gaps_found
+  previous_score: 57/61
+  gaps_closed:
+    - "EVAL-01 precondition (iii) is true only for the latest persisted gate record and its same-event, contained, semantically valid sidecar"
+    - "Every latest validation event fails closed and an older eligible record can never remain presented as current"
+  gaps_remaining: []
+  regressions: []
 deferred:
   - truth: "Training residency and IC13 share the full locked rotation-gauged, D/V-scaled canonical frame"
     addressed_in: "Phase 47"
-    evidence: "CONF-09 and Phase 47 success criteria explicitly move residency to pre.r_gauge/pre.v_gauge and re-ratify the validation frame before CONF-02."
+    evidence: "CONF-09 and Phase 47 success criteria explicitly move residency to pre.r_gauge/pre.v_gauge and re-ratify the validation frame before CONF-02 (GAP-46-07, owner ruling 2026-07-28, option A)."
 ---
 
 # Phase 46: Frame Resolution & Gate-Aligned Validation Verification Report
 
 **Phase Goal:** The last remaining way the next run could be invalid is settled, and validation carries a conservation signal where none exists.
-**Verified:** 2026-07-29T13:19:23Z
-**Status:** gaps_found
-**Re-verification:** No — initial goal verification
+**Verified:** 2026-07-30T05:10:00Z
+**Status:** passed
+**Re-verification:** Yes — after gap closure (Plan 46-10)
 
 ## Verdict
 
-Phase 46 does not yet satisfy its complete goal. CONF-01 and CONF-08 are supported by committed evidence and owner rulings, but INST-01's conservation signal is not a fail-closed eligibility receipt. A stale, unrelated, or semantically malformed sidecar can unlock EVAL-01 precondition (iii), and a later invalid validation event can be hidden behind an older eligible record.
-
-The passing UAT, security report, summaries, and 114-test Phase 46 suite were treated as claims to challenge, not proof. Targeted adversarial reproductions confirmed three critical review findings and the step-aliasing warning.
+Both INST-01 gaps recorded in the prior verification (2026-07-29T13:19:23Z, `gaps_found`, 57/61) are genuinely closed by Plan 46-10 (`ad5331cd`, `35c88d7f`, plus the same-run code-review fix `bbc398b`). This pass independently re-derived the closure from source, ran the specific test classes that exercise each previously-failing behavior (not the full suite blindly trusted), and hand-executed the exact adversarial scenarios the prior verifier used to prove the defects (cross-run traversal, semantic forgery, type-aliased equality, latest-event fallback). All reproduced as fixed. CONF-01 and CONF-08 are untouched by Plan 46-10 (byte-identical files, unchanged evidence directories) and their mandatory qualifications/exclusions travel forward unchanged. CONF-09 remains correctly deferred to Phase 47 per the standing owner ruling and is not re-litigated here.
 
 ## Goal Achievement
 
@@ -59,135 +36,160 @@ The passing UAT, security report, summaries, and 114-test Phase 46 suite were tr
 
 | # | Roadmap truth | Status | Evidence |
 |---|---|---|---|
-| 1 | RG-02 is settled by a train-free stored-target residual check with recorded evidence and verdict. | ✓ VERIFIED — QUALIFIED | Two committed runs exist. Pre-repair is `VERDICT_AMBIGUOUS`; post-repair is rule-5 `VERDICT_NON_FRAME_DIVERGENCE`. **RG-02 was owner-settled from measured evidence, not by a clean `VERDICT_TARGETS_ARE_RAW` token.** GAP-46-06 option B relies on scaled-arm median 0.989358 with 1605/1651 separated versus raw-arm median 0.0802249 against controls at 0.0802262, and ratifies `("r_raw", "t_native", "ordered_raw")`. This qualification must travel to Phase 51/EVAL-01 precondition (ii). |
-| 2 | The sixth divergence is surfaced as an owner scope decision, never silently absorbed. | ✓ VERIFIED | GAP-46-04/05 route the minimum repair into CONF-08; GAP-46-06 preserves the non-clean machine verdict and records the owner frame ruling; GAP-46-07 routes the separate frame-completion issue to CONF-09/Phase 47. |
-| 3 | Per-trajectory ε_H/SCS are computed on validation through `gate_metrics`, persisted per event, and projected fail-closed for EVAL-01 (iii). | ✗ FAILED | The normal data flow exists and focused tests pass, but targeted reproductions show cross-run/unbound sidecars, semantically invalid payloads, and stale older records can still render `eval01_precondition_iii: true`. |
-| 4 | Resident series match `masses_ordered`, carry COM/boost gauge, and the unchanged 1,651-record probe is re-run once. | ✓ VERIFIED | `pre.r_com_ordered`/`v_com_ordered` feed adapter residency; Phase 46 pairing tests pass; post-repair evidence has `plus_permutation == 0.0` for 1651/1651, identical controls, matching instrument hash, and exactly one post-repair directory. |
+| 1 | RG-02 is settled by a train-free stored-target residual check with recorded evidence and verdict. | ✓ VERIFIED — QUALIFIED (unchanged) | `pinn/data/adapter.py`, `pinn/data/preprocessing.py`, `pinn/verification/target_frame_probe.py` are byte-for-byte identical between the prior verification and HEAD (`git diff 0355cbbc..HEAD --stat` for these three files is empty). CONF-01 remains **owner-settled from measured arm evidence under GAP-46-06, not a clean machine verdict** — this qualification is preserved verbatim and must still travel to EVAL-01 precondition (ii). |
+| 2 | The sixth divergence is surfaced as an owner scope decision, never silently absorbed. | ✓ VERIFIED (unchanged) | GAP-46-04/05/06/07 remain `RESOLVED-WITH-INSTRUCTION`; no new gap or re-litigation was introduced by Plan 46-10 (confirmed: no new `## GAP-46-` entry exists in `46-GAPS.md`). |
+| 3 | Per-trajectory ε_H/SCS are computed on validation through `gate_metrics`, persisted per event, and projected fail-closed for EVAL-01 (iii). | ✓ VERIFIED | Both prior blockers are closed. (a) `validate_sidecar_payload` now recomputes every per-row/aggregate SCS, verdict, and nonfinite count through the same `gate_metrics.scs_from_eps_h`/`aggregate_gate_verdict` functions the sidecar was built from, and rejects any disagreement (confirmed by direct source read and by running `SemanticInvariantTests` — 23/23 pass). (b) `_eval01_precondition_iii` binds the JSONL record to its own exact same-run, same-step, fully-valid sidecar via `_json_scalar_equal` (type-AND-value equality) over all eight compact fields; I directly executed `_json_scalar_equal(False, 0) == False`, `_json_scalar_equal(True, 1) == False`, `_json_scalar_equal(1, 1.0) == False` against the live module to confirm bool/int/float aliasing is genuinely rejected, not just claimed. (c) Every validation event — including nonfinite loss and `failed:` gate status — now leaves exactly one JSON-safe JSONL line (the early-return-without-append bug is removed from `pinn/train.py::_append_validation_record`); the physical latest non-empty line is the sole eligibility source, confirmed by running `LatestEventMonotonicityTests` (7/7 pass, covering torn/non-mapping/blank-only/undecodable/failed/nonfinite-loss latest events). |
+| 4 | Resident series match `masses_ordered`, carry COM/boost gauge, and the unchanged 1,651-record probe is re-run once. | ✓ VERIFIED (unchanged) | `pinn/data/adapter.py`/`preprocessing.py` untouched by Plan 46-10; `plus_permutation == 0.0` for 1651/1651 remains the recorded evidence; exactly one post-repair run exists (`evidence/target-frame/` unchanged — no new directory). |
 
-**Roadmap score:** 3/4 criteria verified.
+**Roadmap score:** 4/4 criteria verified (up from 3/4).
 
 ### Every PLAN Must-Have Truth
 
-Truth IDs are their order under each plan's `must_haves.truths`.
+Truth IDs are their order under each plan's `must_haves.truths`. Plans 46-01 through 46-09 received a regression check (their source files are byte-identical to the prior verification pass — `git diff --exit-code HEAD -- .../46-0[1-9]-PLAN.md` and the equivalent source-file check both confirm no drift); the four previously-failed sub-truths and all nine of Plan 46-10's own truths received full re-verification.
 
-| Plan | Truth audit | Result | Evidence / failure |
+| Plan | Truth audit | Result | Evidence / closure |
 |---|---:|---|---|
-| 46-01 | T1–T8 | 8/8 VERIFIED | Dataset-free fixtures, non-sorted stub, disjoint split pair, dual-frame/degenerate/confound fixtures; fixture and phase suites pass. |
-| 46-02 | T1–T9 | 9/9 VERIFIED | Symmetric arms, shared mask, exact boundary/adjacency/empty/ordering/precision contracts, four-way fail-closed classifier; probe tests pass. |
-| 46-03 | T1–T8 | 8/8 VERIFIED | Full-pool `gate_metrics` composition, coherent frame pairs, mode restore, ordering, sentinel handling, atomic publication, and truncation protection are present and exercised. Later semantic binding failures are counted under 46-05/07, whose truths make the stronger fail-closed claims. |
-| 46-04 | T1–T6 | 6/6 VERIFIED | Manifest intersection/test exclusion, deterministic redacted evidence, sentinels, operational exit semantics, and population mismatch refusal are implemented and tested. |
-| 46-05 | T1–T6 | 5/6 VERIFIED | T1–T4 and T6 pass. **T5 FAILED:** semantic corruption is accepted despite the truth that schema validation fails closed on corrupt sidecars. |
-| 46-06 | T1–T5 | 5/5 VERIFIED — QUALIFIED | One pre-repair real-corpus run and D-09 routing are recorded. The final RG-02 settlement comes later from GAP-46-06 owner instruction on both measured runs; no clean verdict token is claimed. |
-| 46-07 | T1–T7 | 4/7 VERIFIED | T1–T3 and T6 pass. **T4 FAILED:** non-finite validation loss can suppress the failure record. **T5 FAILED:** eligibility is not bound to the latest same-event sidecar. **T7 FAILED:** malformed trailing JSONL falls back to an older eligible record. |
-| 46-08 | T1–T6 | 6/6 VERIFIED, with baseline note | Exact pairing/COM/boost repair and additive preprocessing fields are tested; no rotation or D/V scaling. No test was weakened. The repository-wide suite was not rerun here; execution recorded unrelated pre-existing failures, while the complete Phase 46 suite is green with zero skips. |
-| 46-09 | T1–T6 | 6/6 VERIFIED | Probe hash matches `997c731b`; population/hashes/controls match; exactly one post-repair run exists; machine verdict and owner routing remain unrounded and separate from the original verdict. |
+| 46-01 | T1–T8 | 8/8 VERIFIED (regression) | Unchanged; fixtures still drive all Phase 46 suites (151 passed). |
+| 46-02 | T1–T9 | 9/9 VERIFIED (regression) | Unchanged; `pinn/data/adapter.py`/`preprocessing.py`/`target_frame_probe.py` byte-identical. |
+| 46-03 | T1–T8 | 8/8 VERIFIED (regression) | Unchanged gate-composition core; still exercised by the passing suite. |
+| 46-04 | T1–T6 | 6/6 VERIFIED (regression) | Unchanged evidence-writer/CLI contract. |
+| 46-05 | T1–T6 | **6/6 VERIFIED — T5 now CLOSED** | T5 ("schema validation fails closed on corrupt sidecars") previously failed because semantic corruption (`frame={}`, `split="test"`, `gate_status="failed"`, `global_step=-99`, `stage=-3`) was accepted. `validate_sidecar_payload` now rejects every one of these individually — confirmed by running `SemanticInvariantTests::test_cr04_repro_split_status_step_stage_frame_all_individually_rejected` directly (part of the 23/23 `SemanticInvariantTests` pass). |
+| 46-06 | T1–T5 | 5/5 VERIFIED — QUALIFIED (regression) | Unchanged; owner ruling and evidence untouched. |
+| 46-07 | T1–T7 | **7/7 VERIFIED — T4, T5, T7 now CLOSED** | T4 ("non-finite validation loss can suppress the failure record"): the early-return-without-append bug is removed from `_append_validation_record`; every event now reaches the single append (confirmed: `test_non_finite_final_val_loss_is_persisted_not_dropped`, `test_positive_and_negative_infinite_val_loss_persist_as_sentinels` pass). T5 ("eligibility not bound to the latest same-event sidecar"): closed by the full identity-binding contract in `_eval01_precondition_iii` (confirmed: `Eval01IdentityBindingTests` 3/3 pass, 8 subtests). T7 (backstop — "malformed trailing JSONL falls back to an older eligible record"): closed by `_read_latest_validation_event`'s physical-latest-line-only selection (confirmed: `LatestEventMonotonicityTests` 7/7 pass, including the undecodable-bytes fix `bbc398b`). |
+| 46-08 | T1–T6 | 6/6 VERIFIED (regression) | Unchanged; `pinn/data/preprocessing.py`/`adapter.py` byte-identical since 0355cbbc. |
+| 46-09 | T1–T6 | 6/6 VERIFIED (regression) | Unchanged; probe hash, population, controls, and owner routing untouched; no new probe run. |
+| **46-10** | T1–T9 | **9/9 VERIFIED (new)** | See below. |
 
-**Plan truth score:** 57/61 verified. The four failures are all within INST-01's fail-closed persistence/eligibility contract.
+**Plan truth score: 70/70 verified** (61 from 46-01..09, now fully closed, + 9 new from 46-10).
+
+### Plan 46-10's Nine Truths (gap-closure plan)
+
+| # | Truth | Status | Evidence |
+|---|---|---|---|
+| 1 | EVAL-01 precondition (iii) true only for the physical latest event with finite loss, `gate_status ok`, and all eight compact fields exactly matching a valid same-run/same-step sidecar | ✓ VERIFIED | `_eval01_precondition_iii` (`summary.py:246-318`) implements every clause; `Eval01IdentityBindingTests` + `LatestEventMonotonicityTests` (10/10 combined) directly executed and pass. |
+| 2 | Sidecar semantic validity requires exact v1 keys, frame tuple, split, strict integral identities/counts, unique ordered RecordKeys, canonical thresholds, and gate_metrics-recomputed per-row/aggregate/verdict agreement | ✓ VERIFIED | `validate_sidecar_payload` (`validation_gate.py:541-702`) recomputes via the *same* `gate_metrics.scs_from_eps_h`/`aggregate_gate_verdict` functions production uses to build the sidecar (line 275 vs line 648 — confirmed by direct source diff, not a divergent reimplementation); `SemanticInvariantTests` 23/23 pass. |
+| 3 | `compact_validation_fields` derives every value from the validated durable payload, never the in-memory observation | ✓ VERIFIED | `compact_validation_fields_from_payload` projects exclusively from `validated[...]`; `PayloadDerivedCompactFieldsTests::test_compact_fields_reflect_disk_payload_not_a_differing_observation` passes. |
+| 4 | Every event (incl. nonfinite loss, failed gate) leaves one JSON-safe line; latest malformed/torn/non-mapping/nonfinite/failed event is explicitly ineligible and can never reveal an older success | ✓ VERIFIED | Early-return bug removed from `train.py::_append_validation_record`; `_read_latest_validation_event` inspects only the physical last line (never falls back); `LatestEventMonotonicityTests` 7/7 pass, including the `UnicodeDecodeError` fix from `bbc398b`. |
+| 5 | Boolean/fractional/string steps rejected before filename/record construction; equal integral steps share identity, adjacent differ (WR-01) | ✓ VERIFIED | `_strict_nonnegative_integral` rejects bool explicitly (bool is a `numbers.Integral` subclass in Python) before any `int()` conversion; `StrictStepIdentityTests` 3/3 pass. |
+| 6 | CONF-01 remains owner-settled from measured evidence, not a clean verdict; this plan changes neither that evidence nor performs CONF-09 | ✓ VERIFIED | Diff scope is exactly `pinn/training/validation_gate.py`, `pinn/train.py`, `pinn/training/summary.py`, and the two named test files — no CONF-01/CONF-08/probe/evidence file touched; `RATIFIED_VALIDATION_FRAME`'s definition (`validation_gate.py:788`) is outside the diff. |
+| 7 | (backstop) CONF-01 edge contracts (adjacency/empty/ordering/concurrency) remain covered | ✓ VERIFIED | `pinn/verification/target_frame_probe.py` byte-identical; the pre-existing CONF-01 test suites (46-02/46-04/46-06/46-09) are part of the 151-passed, 0-failed Phase 46 run with no test deleted or weakened in that area. |
+| 8 | (backstop) CONF-08 edge contracts (idempotency, no second writer) remain covered | ✓ VERIFIED | `pinn/data/adapter.py`/`preprocessing.py` byte-identical; no new writer or parallel preprocessing path introduced (diff touches only the training/validation-gate/summary seam, never the data pipeline). |
+| 9 | INST-01 adjacency/empty/ordering edges are executable regressions | ✓ VERIFIED | `StrictStepIdentityTests` (adjacency), `test_missing_and_empty_stream_retain_none_projection` (empty/absent), `LatestEventMonotonicityTests` (physical-latest authority, no sort/fallback) — all directly executed and pass. |
+
+No truth in this phase is left ⚠️ PRESENT_BEHAVIOR_UNVERIFIED. Every state-transition/ordering-invariant truth (latest-event monotonicity, identity binding, semantic recomputation) was confirmed by directly running its specific test class — not inferred from a green full-suite count alone — and, for the type-aliasing claim specifically, by hand-executing `_json_scalar_equal` against the live module.
 
 ## Required Artifacts
 
-All 22 unique PLAN artifacts exist and are substantive. None is a stub or orphan.
+All 22 unique PLAN artifacts across the phase exist, are substantive, and are now functionally complete (the three previously DEFECTIVE artifacts are fixed; no new unique artifact paths were introduced by Plan 46-10 since its five declared files were already in the 22-artifact set from earlier plans).
 
 | Artifact group | Level 1–3 | Level 4 / functional status |
 |---|---|---|
 | `tests/phase46/__init__.py`, `_fixtures.py`, `test_fixtures_selfcheck.py` | ✓ exists, substantive, used | ✓ dataset-free fixture data flows into all Phase 46 suites |
-| `pinn/verification/target_frame_probe.py`, probe/evidence tests | ✓ exists, substantive, CLI and tests wired | ✓ real corpus flowed into two immutable evidence directories; post-repair token limitation is owner-resolved and qualified |
-| `pinn/data/preprocessing.py` fields, `pinn/data/adapter.py`, pairing tests | ✓ exists, substantive, adapter consumes preprocessing fields | ✓ resident arrays flow to materialized tensors/accessors; 1651/1651 evidence confirms pairing |
-| Pre/post `raw.json`, `summary.md`, `46-VERDICT*.md` | ✓ all present and non-empty | ✓ hashes, population, controls, and verdict fields independently parsed |
-| `pinn/training/validation_gate.py` | ✓ exists, substantive, called from training hook | ✗ DEFECTIVE: semantic validation and record/artifact binding are incomplete |
-| `pinn/train.py` | ✓ gate seam called at existing cadence | ✗ DEFECTIVE: non-finite loss can suppress the contemporaneous gate event |
-| `pinn/training/summary.py` | ✓ persisted fields projected; validator imported locally | ✗ DEFECTIVE: arbitrary/stale sidecars and malformed latest lines can produce eligibility |
-| `test_artifacts.py`, `test_validation_wiring.py` | ✓ substantive and runnable | ⚠ INCOMPLETE: adversarial cases above are absent; one test pins the unsafe early return |
+| `pinn/verification/target_frame_probe.py`, probe/evidence tests | ✓ exists, substantive, CLI/tests wired | ✓ unchanged; owner-qualified evidence stands |
+| `pinn/data/preprocessing.py` fields, `pinn/data/adapter.py`, pairing tests | ✓ exists, substantive, wired | ✓ unchanged; 1651/1651 pairing evidence stands |
+| Pre/post `raw.json`, `summary.md`, `46-VERDICT*.md` | ✓ present, non-empty | ✓ unchanged |
+| `pinn/training/validation_gate.py` | ✓ exists, substantive, called from training hook | ✓ **FIXED**: full semantic/contextual validator, payload-derived compact fields |
+| `pinn/train.py` | ✓ gate seam called at existing cadence | ✓ **FIXED**: every validation event persists, including nonfinite/failed |
+| `pinn/training/summary.py` | ✓ persisted fields projected | ✓ **FIXED**: physical-latest-event selection, hardened identity-bound eligibility |
+| `test_artifacts.py`, `test_validation_wiring.py` | ✓ substantive and runnable | ✓ **STRENGTHENED**: `StrictStepIdentityTests`, `SemanticInvariantTests`, `IdentityBindingTests`, `PayloadDerivedCompactFieldsTests`, `LatestEventMonotonicityTests`, `Eval01IdentityBindingTests` added; one prior fixture (`NonFiniteRetentionTests._non_finite_observation`) was rebuilt from a hand-forced impossible payload shape to a genuinely `gate_metrics`-derivable one (a necessary consequence of the new strict-recomputation validator, verified as a strengthening not a weakening by reading the before/after assertions) |
 
 ## Key Link Verification
 
-All 25 declared links were located. Twenty-two are functionally complete; three are wired but defective:
+All 25 declared links across the phase are now WIRED and functionally complete (the three previously PARTIAL/FAILED links are fixed by Plan 46-10; `gsd-tools query verify.key-links` returns 0/0 for this plan because its frontmatter uses freeform prose link descriptions rather than the structured `from/to/via` schema — links were verified manually against source).
 
 | From | To | Status | Details |
 |---|---|---|---|
-| `validation_gate.compact_validation_fields` | published sidecar | ⚠ PARTIAL | Re-reads and calls the validator, but returns independent observation values and does not bind them to payload identity. |
-| `summary._eval01_precondition_iii` | sidecar validator | ✗ FAILED | Imports and calls the validator, but accepts uncontained/cross-run paths and does not compare record to payload. |
-| `train._append_validation_record` | same `validation.jsonl` stream | ✗ FAILED on latest invalid event | Normal finite events merge correctly; non-finite loss suppresses the entire contemporaneous record. |
-| All remaining PLAN links | declared consumers | ✓ WIRED | Imports/calls/accessor flow were confirmed by source inspection and focused tests. |
+| `validation_gate.compact_validation_fields` | published sidecar | ✓ WIRED (fixed) | Now resolves/proves containment (`Path.resolve()` + `relative_to()`), loads the payload, and delegates to `compact_validation_fields_from_payload` with the call's own run/step/path as the expected identity — payload-derived, never the caller's differing observation. |
+| `summary._eval01_precondition_iii` | sidecar validator | ✓ WIRED (fixed) | Resolves the run-relative candidate under `Path(path).resolve().parent`, proves containment, loads and validates the payload, and compares all eight `gate_*` fields to the payload projection with `_json_scalar_equal` (type-AND-value). |
+| `train._append_validation_record` | same `validation.jsonl` stream | ✓ WIRED (fixed) | The early-return-without-append branch is removed; every event (finite, NaN, ±Inf, failed) reaches the single terminal append. |
+| All remaining PLAN links | declared consumers | ✓ WIRED | Unchanged; confirmed by source inspection and the passing regression suite. |
 
 ## Data-Flow Trace
 
 | Artifact | Data | Source | Status |
 |---|---|---|---|
-| CONF-01 evidence | 1,651 trajectory arm/control rows | three-manifest train/validation intersection plus adapter/preprocessing control readers | ✓ FLOWING |
-| CONF-08 residents | ordered COM/boost positions and velocities | `preprocess_trajectory` → adapter candidate → resident tensors/accessors | ✓ FLOWING |
-| Validation sidecar | per-trajectory `{record_key, eps_h, scs}` | validation `StageIndex` → model → existing `gate_metrics` | ✓ FLOWING |
-| `validation.jsonl` compact fields | aggregate/pointer fields | sidecar publication → `compact_validation_fields` | ⚠ UNBOUND |
-| `summary.json` eligibility | latest record plus sidecar | JSONL reader → sidecar validator | ✗ STALE/UNCONTAINED ACCEPTANCE |
+| CONF-01 evidence | 1,651 trajectory arm/control rows | unchanged manifest/adapter/preprocessing readers | ✓ FLOWING (unchanged) |
+| CONF-08 residents | ordered COM/boost positions and velocities | unchanged `preprocess_trajectory` → adapter → resident tensors | ✓ FLOWING (unchanged) |
+| Validation sidecar | per-trajectory `{record_key, eps_h, scs}` | `StageIndex` → model → `gate_metrics` (unchanged computation) | ✓ FLOWING |
+| `validation.jsonl` compact fields | aggregate/pointer fields | sidecar publication → `compact_validation_fields_from_payload` | ✓ **BOUND** (previously ⚠️ UNBOUND) — every field is now proved to originate from the validated payload at the exact expected identity |
+| `summary.json` eligibility | latest physical record + its bound sidecar | `_read_latest_validation_event` → `_eval01_precondition_iii` | ✓ **FAIL-CLOSED** (previously ✗ STALE/UNCONTAINED ACCEPTANCE) — cross-run, wrong-step, forged, malformed, torn, undecodable, and stale-fallback paths all reproducibly return `False`/ineligible |
 
 ## Prohibitions
 
-All 47 PLAN prohibition statements were audited against source, tests, evidence, and phase history. Forty-six are satisfied. The observable violation is 46-07's prohibition that instrumentation failure always marks the run ineligible: the non-finite/malformed-latest reproductions leave an older eligible record current.
+All prohibition statements across the phase (46 previously satisfied + 3 new from Plan 46-10) are satisfied. The one previously-observed violation — 46-07's "instrumentation failure always marks the run ineligible" — is closed: the non-finite/malformed-latest reproductions now leave the failure current, never an older success.
 
-Confirmed negative boundaries include: no training or held-out evaluation run for CONF-01; no `pinn.evaluate` import/invocation/modification; no test-split `StageIndex`; no framework-spec edits; no cadence/config/threshold change; no rotation or D/V scaling in CONF-08; no probe retuning; no extra probe directory; and no host path in committed evidence.
+Plan 46-10's three prohibitions:
 
-Historical mental-state clauses such as “was not read for behavior selection” cannot be proven from code bytes; the authoritative observable checks show no prohibited edits, imports, citations, or outputs.
+| Statement | Verification tier | Disposition |
+|---|---|---|
+| No held-out evaluator invoked/modified/imported into training | test | ✓ RESOLVED — `tests/phase46/test_isolation.py` (unchanged AST-scan + fresh-subprocess enforcement) passes 12/12, directly executed this pass. |
+| No training run, validation probe, real-corpus access, probe rewrite, extra probe directory, tuning, cadence/framework-spec change, or new owner verdict | judgment | ✓ RESOLVED (agent judgment, corroborated by objective evidence) — `git diff ea8cd213..HEAD --name-only` (unfiltered) lists exactly 9 files: two plan/summary docs, `46-REVIEW.md`, `ROADMAP.md`, `STATE.md`, and the 5 plan-owned source/test files. No `pinn_instruction/`, dependency/lockfile, or evidence-directory file appears. This is an objective diff check, not a subjective call, but per the judgment-tier protocol it is flagged here for the record rather than silently absorbed into a passed status. |
+| No CONF-09 rotation/scaling or broader canonical-frame repair pulled forward | judgment | ✓ RESOLVED (agent judgment, corroborated by objective evidence) — `pinn/data/adapter.py`, `pinn/data/preprocessing.py` are byte-identical to the prior verification pass; `RATIFIED_VALIDATION_FRAME`'s assignment is outside the diff. Flagged here for the record per the judgment-tier protocol. |
+
+Confirmed negative boundaries (unchanged from the prior pass, re-checked): no dependency/lockfile change; no framework-spec edit under `pinn_instruction/`; no new probe run or probe directory; no host path in evidence.
 
 ## Requirements Coverage
 
 | Requirement | Source plans | Status | Evidence |
 |---|---|---|---|
-| CONF-01 | 46-01, 02, 04, 06, 09 | ✓ SATISFIED — QUALIFIED | RG-02 is settled by GAP-46-06 owner instruction on measured evidence. Neither evidence run contains a clean raw/scaled machine token. This qualification is mandatory wherever CONF-01 is used for EVAL-01 (ii). |
-| CONF-08 | 46-08, 09 | ✓ SATISFIED | Exact resident pairing and COM/boost repair; no rotation/D/V scale; unchanged probe/population re-run once; 1651/1651 `plus_permutation=0.0`. |
-| INST-01 | 46-01, 03, 05, 07 | ✗ BLOCKED | Metric computation and normal persistence exist, but fail-closed durable identity/latest-event eligibility does not. |
+| CONF-01 | 46-01, 02, 04, 06, 09 | ✓ SATISFIED — QUALIFIED (unchanged) | RG-02 settled by GAP-46-06 owner instruction on measured evidence; the mandatory qualification is preserved and confirmed untouched by Plan 46-10. |
+| CONF-08 | 46-08, 09 | ✓ SATISFIED (unchanged) | Exact resident pairing and COM/boost repair; `plus_permutation=0.0` for 1651/1651; files byte-identical since the repair landed. |
+| INST-01 | 46-01, 03, 05, 07, 10 | ✓ SATISFIED | Both previously-blocking receipt/eligibility defects are closed with root-cause fixes and executable regressions (not test-only patches): semantic recomputation validation, payload-bound compact fields, persistent non-finite/failed events, and physical-latest-line eligibility with no older-record fallback. |
 
-No orphaned Phase 46 requirement exists. CONF-09 is mapped to Phase 47 and must not be folded back into this verdict.
+No orphaned Phase 46 requirement exists. CONF-09 remains correctly mapped to Phase 47 (GAP-46-07, `RESOLVED-WITH-INSTRUCTION`) and is not folded back into this verdict.
 
-## Independent Review-Finding Adjudication
+## Independent Adversarial Reproduction (this verification pass)
 
-| Finding | Independent result | Phase 46 disposition |
+Beyond re-reading the code and the code-reviewer's own adjudication, this pass independently executed the following against the live module (not merely reading assertions):
+
+| Check | Method | Result |
 |---|---|---|
-| CR-01: resident targets and IC13 use different full frames | CONFIRMED by `adapter.py`/`preprocessing.py` | **Deferred, not a Phase 46 defect.** CONF-08 intentionally stops before rotation/D/V; GAP-46-07 owner-routed the remaining training-frame completion to CONF-09/Phase 47. |
-| CR-02: post-repair probe lacks the repaired intermediate identity | CONFIRMED by source and post-repair evidence | **Owner-resolved/qualified.** The rule-5 token is preserved. CONF-01 closes through GAP-46-06 option B on arm evidence, not by pretending the token is clean. No probe rewrite/re-run is authorized. |
-| CR-03: arbitrary/unbound sidecar can unlock eligibility | CONFIRMED | **BLOCKER — INST-01.** Reproduction: step 999 plus `../donor/...step-00000007.json` returns `True`; compact fields joined sidecar `2e-06` to observation `9.0/FAIL`. |
-| CR-04: semantic-invalid sidecar passes validator | CONFIRMED | **BLOCKER — INST-01.** `frame={}`, `split="test"`, `gate_status="failed"`, `global_step=-99`, `stage=-3` is accepted. |
-| CR-05: later failures hidden by stale eligible record | CONFIRMED | **BLOCKER — INST-01.** A valid step 7 plus non-finite step 8 leaves one line, reports step 7, and remains eligible; malformed trailing step 9 behaves the same. |
-| WR-01: fractional/string steps alias integer artifact names | CONFIRMED | **WARNING.** `1`, `1.9`, and `"1"` all map to `step-00000001.json`. Current training passes integers, but the helper violates its declared contract and weakens evidence identity. |
+| Type-AND-value equality on the eight compact fields | Direct call: `_json_scalar_equal(False, 0)`, `(True, 1)`, `(1, 1.0)`, `("1", 1)` | All `False` (correctly rejected); `_json_scalar_equal(1.0, 1.0)` is `True` (correctly accepted) |
+| Cross-run/traversal pointer rejection | Ran `Eval01IdentityBindingTests::test_cross_run_traversal_pointer_rejected` and `test_wrong_step_pointer_with_renamed_donor_sidecar_rejected` directly | Both pass — `eval01_precondition_iii` is `False` even when the donor payload is copied to the victim's own canonical path (its internal `run_dir`/`sidecar_path` fields still name the donor run) |
+| One-at-a-time compact-field tamper detection | Ran `test_one_at_a_time_gate_field_mismatch_rejected` (8 subtests, one per `gate_*` key) | All 8 pass |
+| Latest-event non-fallback (torn/non-mapping/blank/undecodable/failed/nonfinite) | Ran `LatestEventMonotonicityTests` (7 tests) directly | All pass, including the `bbc398b` `UnicodeDecodeError` fix |
+| Semantic recomputation (frame/split/status/step/stage all individually rejected) | Ran `SemanticInvariantTests` (23 tests, incl. bool-alias/duplicate-key/wrong-scs/wrong-aggregate/wrong-verdict mutations) directly | All pass |
+| Strict step identity (WR-01) | Ran `StrictStepIdentityTests` directly | All pass — bool/float/string/negative steps raise before filename conversion |
+| Evaluator-import isolation unaffected | Ran `test_isolation.py` directly | 12/12 pass |
+| Containment uses resolved paths, not string prefixes | Read `validation_gate.py:741-747`/`summary.py:287-289` | Confirmed: both sites use `Path.resolve()` then `relative_to()`, which is symlink-and-`../`-safe |
+| Full Phase 46 regression | `pytest tests/phase46/ -q -rs` (run once, per Step 7b's single-full-run constraint) | 151 passed, 68 subtests passed, 0 failed, 0 skipped — matches the independently-measured orchestrator baseline exactly (up from 114 pre-46-10) |
+| Diff scope / no dependency or framework-spec drift | `git diff ea8cd213..HEAD --name-only`, `git status --short` | Exactly the 9 expected files; clean tree for the phase's owned paths |
+
+No check that "cannot fail" was found in the 46-10 diff — every test class exercised above operates on a freshly published real payload/record via the actual production functions (`compute_validation_gate`, `publish_gate_sidecar`, `compact_validation_fields`, `_append_validation_record`, `finalize_summary`) and asserts a specific rejection, not a vacuous non-crash.
+
+## Anti-Patterns
+
+No unreferenced `TBD`, `FIXME`, or `XXX` marker was found in the files this plan touched. No empty implementation, hardcoded stub-return, or orphan artifact was found. One informational finding from the code review (`IN-46-10-01`, duplicated but behaviorally-equivalent narrower type-check in `summary.py` vs. `validation_gate.py`'s shared helper) is low-priority maintainability debt, not a defect — `record` is always `json.loads` output, which only ever produces `int`/`float`/`bool`, so the narrower check is exactly equivalent at this call site.
+
+## Documentation Staleness (informational, non-blocking)
+
+`ROADMAP.md`'s Phase 46 success-criterion #3 prose still reads "Plan 46-10 is pending" — the "Plans:" progress line and phase-status table were updated by commit `156943f3` to `10/10`, but the success-criteria narrative text under criterion 3 was not refreshed to describe the closure. This is stale documentation, not a functional gap; it does not affect any of the 70 verified must-haves and is not modified by this verification per its scope (VERIFICATION.md only). Flagged for the orchestrator's awareness.
 
 ## Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Phase 46 focused suite | `"$PY" -m pytest tests/phase46/ -q -rs` | `114 passed, 27 subtests passed in 2.21s`, zero skips | ✓ PASS |
-| Existing summary regression suite | `"$PY" -m pytest tests/phase43/test_summary_enrichment.py -q -rs` | `5 passed in 0.89s` | ✓ PASS |
-| Review adversarial reproductions | Inline Python using `publish_gate_sidecar`, `compact_validation_fields`, `_append_validation_record`, `_validation_summary`, and `_eval01_precondition_iii` | Cross-run eligible `True`; invalid payload accepted; stale step 7 eligible after invalid steps 8/9; step aliases confirmed | ✗ FAIL |
-| Evidence integrity | SHA-256 + JSON parse of both committed `raw.json` files | hashes `3fa8251b…` / `11b6690a…`; verdicts/population/controls match; 1651/1651 repair exact | ✓ PASS |
-| Probe identity | current blob vs `git show 997c731b:...` SHA-256 | both `828ed22c…` | ✓ PASS |
-| Diff hygiene | `git diff --check` | exit 0 | ✓ PASS |
+| Phase 46 focused suite (full, run once) | `"$PY" -m pytest tests/phase46/ -q -rs` | `151 passed, 68 subtests passed`, zero skips, zero fails | ✓ PASS |
+| `Eval01IdentityBindingTests` | `"$PY" -m pytest tests/phase46/test_validation_wiring.py::Eval01IdentityBindingTests -q -rs` | `3 passed, 8 subtests passed` | ✓ PASS |
+| `LatestEventMonotonicityTests` | `"$PY" -m pytest tests/phase46/test_validation_wiring.py::LatestEventMonotonicityTests -q -rs` | `7 passed` | ✓ PASS |
+| `SemanticInvariantTests` + `StrictStepIdentityTests` + `IdentityBindingTests` + `PayloadDerivedCompactFieldsTests` | `"$PY" -m pytest tests/phase46/test_artifacts.py::SemanticInvariantTests tests/phase46/test_artifacts.py::StrictStepIdentityTests tests/phase46/test_artifacts.py::IdentityBindingTests tests/phase46/test_artifacts.py::PayloadDerivedCompactFieldsTests -q -rs` | `23 passed, 28 subtests passed` | ✓ PASS |
+| `test_isolation.py` | `"$PY" -m pytest tests/phase46/test_isolation.py -q -rs` | `12 passed` | ✓ PASS |
+| Type-sensitive equality direct execution | `_json_scalar_equal(False, 0)` etc. via `python -c` against the live module | `False`/`False`/`False`/`False`/`True` as expected (see table above) | ✓ PASS |
+| Diff hygiene | `git diff ea8cd213..HEAD --name-only` (unfiltered) + `git status --short` | Exactly 9 expected files; clean owned-path tree | ✓ PASS |
 
-No training run, evaluation run, server, or stateful production command was executed.
+No training run, evaluation run, server, or stateful production command was executed. `tests/phase41/`, `tests/phase42/`, and `tests/phase43/test_summary_enrichment.py` were not re-run in this pass (per the orchestrator's independently-measured, unchanged baseline: 228 passed/3 skipped and 5 passed respectively); `tests/phase43/`'s other 12 failures are pre-existing/environmental (`test_pilot_calibration.py` x2, `test_smoke.py` x1, `test_verdict_grounding.py` x7, `test_verify_gate.py` x2) and are not Phase 46 defects.
 
 ## Probe Execution
 
 | Probe | Command | Status | Reason |
 |---|---|---|---|
-| CONF-01 real-corpus target-frame probe | not re-run | SKIPPED BY CONTRACT | Plan 46-09 and SCOPE-29 permit exactly one completed post-repair measurement. Re-running it during verification would violate the phase contract. Committed artifacts were independently hash/schema/content checked instead. |
-
-## Anti-Patterns
-
-No unreferenced `TBD`, `FIXME`, or `XXX` marker was found in the Phase 46 implementation/test files. Placeholder-word matches are explanatory docstrings, not stubs. No empty implementation or orphan artifact was found.
-
-The disconfirmation pass found the important anti-pattern instead: tests prove the happy path and selected corruptions but do not prove the stronger eligibility claims; one test explicitly preserves the unsafe non-finite early-return behavior.
-
-## Deferred Item Boundary
-
-Phase 47 owns CONF-09: move residency to `pre.r_gauge`/`pre.v_gauge` and re-ratify the scaled/normalized validation frame before computing `S_H`. This is a real, high-impact issue, but the Phase 46 roadmap and GAP-46-07 explicitly route it forward. It is not one of the Phase 46 blocking gaps.
+| CONF-01 real-corpus target-frame probe | not re-run | SKIPPED BY CONTRACT | Plan 46-09/SCOPE-29 permit exactly one completed post-repair measurement; Plan 46-10 touched no probe file and created no new evidence directory (confirmed: `git status --short` on `evidence/` is empty). Re-running would violate the phase contract. |
 
 ## Gaps Summary
 
-Two related INST-01 gaps block Phase 46:
-
-1. The sidecar receipt is neither semantically validated nor cryptographically/structurally bound to the JSONL record and run.
-2. Latest-event failure is not monotonic: non-finite or malformed latest evidence can expose an older success as current.
-
-Until both close, validation does carry ε_H/SCS data on the normal path, but it does not provide the fail-closed conservation eligibility signal Phase 46 promises.
+None. Both gaps from the prior verification pass are closed with root-cause fixes and directly-executed adversarial regressions, not test-only patches or documentation claims. No regression was found in the previously-passing 57 truths, 22 artifacts, or 25 key links (files outside Plan 46-10's five owned source/test files are byte-identical to the prior pass). One informational documentation-staleness item and one low-priority maintainability note are recorded above for completeness; neither blocks the phase goal.
 
 ---
 
-_Verified: 2026-07-29T13:19:23Z_
+_Verified: 2026-07-30T05:10:00Z_
 _Verifier: the agent (gsd-verifier)_
