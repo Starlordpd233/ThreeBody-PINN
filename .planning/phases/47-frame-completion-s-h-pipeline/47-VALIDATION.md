@@ -83,10 +83,17 @@ Framework install: none needed — pytest, numpy, torch already present in `.ven
 
 ## Manual-Only Verifications
 
+**Owner ruling (2026-07-30, Option B):** Phase 47 verifies the complete production
+pipeline without launching training. It does not require a real
+`run_dir/training_metadata.json`, does not add a zero-step/setup-only real-data
+emission path, and does not STOP when no real run artifact exists. Phase 50's first
+authorized Stage-0 setup/run produces and reports the first authoritative real-corpus
+`S_H`, `ε_H`, and `N_train`; that is deliberate routing, not missing Phase 47 evidence.
+
 | Behavior | Requirement | Why Manual | Test Instructions |
 |---|---|---|---|
 | The permitted one-shot CONF-01 re-probe as a regression check that residency equals the canonical preprocessing output (D-22) | CONF-09 | Runs the probe instrument over the full 1,651-trajectory corpus; not a unit test, and explicitly capped at exactly one run by SCOPE-29 | Run the unchanged probe once, record `identity_scaled` and `first_diverging_step`. **Record only.** `identity_scaled` becomes true by construction — this is no longer a frame test and MUST NOT be presented as a new CONF-01 verdict, nor may its numbers steer implementation. |
-| `S_H` reported with inputs visible — `N_train`, population median, resulting `ε_H` (D-23, `<specifics>`) | CONF-02 | A reviewer judgement that a value is correct rather than merely plausible | Confirm the run record shows all three, so the value is re-derivable from the split manifest without re-running admission |
+| Training-metadata field visibility and relationship are proven, and authoritative real values are routed explicitly | CONF-02 / CONF-03 | Numeric calculation, persistence, loading, fail-closed behavior, and loss wiring are automated; manual closure checks that summaries do not mislabel deterministic fixture values as real-corpus evidence and preserve the Phase 50 handoff | Run `pytest tests/phase47/test_conf02_s_h_pipeline.py::test_metadata_roundtrip_revalidates tests/phase47/test_conf02_s_h_pipeline.py::test_resume_recompute_refuses_mismatch tests/phase47/test_conf03_eps_h_wiring.py::test_eps_h_assembly_value tests/phase47/test_conf03_eps_h_wiring.py::test_eps_h_uniform_across_anchors -q -rs`. Confirm the deterministic artifact exposes `n_train`, `s_h`, and `eps_h`, enforces `eps_h == energy_floor_factor * s_h`, re-validates on load, and passes the exact validated scale into the loss. Then confirm `47-02-SUMMARY.md` and `47-03-SUMMARY.md` state that Phase 50's first authorized Stage-0 setup/run will produce/report the first authoritative real-corpus values; no Phase 47 real-value row is required. |
 
 ---
 
