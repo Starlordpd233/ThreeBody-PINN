@@ -115,6 +115,20 @@ Plans:
 **Goal**: The training path runs in the frame the specs lock, and the loss's energy scale is a real dataset statistic computed in that frame — not a per-anchor stand-in built on an incoherent one.
 **Depends on**: Phase 46 — `K0`/`Uabs0` are frame-dependent (`H' = D·H`), so the frame must be settled before the median is computed. **Strengthened 2026-07-27 (GAP-46-05):** both terms are also mass-weighted (`K = ½ Σᵢ mᵢ‖vᵢ‖²`, `U = Σ_{i<j} G mᵢmⱼ/‖rᵢ−rⱼ‖`), so the CONF-08 permutation repair is a hard precondition too — computing the median over the un-permuted corpus would yield an `S_H` for a different three-body system, silently mis-scaling `ε_H = 1e-4 · S_H` across the whole milestone. That repair landed exactly on 2026-07-28 (`plus_permutation = 0.0` for 1651/1651). **Re-scoped 2026-07-28 (GAP-46-07, owner option A):** the frame condition this phase was waiting on is now satisfied *by this phase*, not inherited from Phase 46. GAP-46-06 ratified `("r_raw", "t_native", "ordered_raw")` as the **validation observation** frame; the **training** path pairs unrotated, unscaled residents with `u = t/T`, which `COHERENT_FRAME_PAIRS` does not admit. CONF-09 completes the residency transform first, and `S_H` is then computed in the canonical scaled frame — the "if a later phase re-ratifies the frame, any already-computed `S_H` is invalidated" clause fires here, and is discharged by ordering rather than by rework.
 **Requirements**: CONF-09, CONF-02, CONF-03 — **in that order**
+**Plans:** 3 plans, strictly sequential waves (CONF-09 → CONF-02 → CONF-03; `S_H` is frame-dependent, so no wave sharing)
+
+**Wave 1**
+
+- [ ] 47-01-PLAN.md — CONF-09 frame completion: the atomic residency swap to `pre.r_gauge`/`pre.v_gauge` + `RATIFIED_VALIDATION_FRAME` re-ratification + in-place correction of the phase-46 pairing test (one commit), the CONF-09 invariant suite (IC₁₃ invariance, `dr'/du = v_gauge`, frame coherence, approximate gate-metric invariance), and the record-only one-shot re-probe + D-08 comparison evidence (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 47-02-PLAN.md — CONF-02 `S_H` pipeline: matched-Plummer component seam, float64 `(K0, Uabs0)` capture at admission, train-split-only `numpy.median` at run setup, and fail-closed `training_metadata.json` persistence (both `S_H` and `ε_H`, atomic write, re-validate-on-load) (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 47-03-PLAN.md — CONF-03 `ε_H` wiring: keyword-only required `s_h` channel into `RunController`, `ε_H = 1e-4 · S_H` at the anchor-context assembly with the §3.4-prohibited additive floor deleted, per-anchor `abs(h0)` retained in the denominator, uniform-`eps_h` invariant test, and the phase regression gate (wave 3)
+
 **Success Criteria** (what must be TRUE):
 
   1. The resident position and velocity series are the locked canonical contract — rotation-gauged and `D`/`V`-scaled (`pre.r_gauge` / `pre.v_gauge`) — so the physics residual is zero on a true trajectory, the autograd `d/du` velocity matches its target exactly (`dr'/du = (T/D)·v_rot = v_gauge`), and `IC₁₃` and the position targets share one gauge (CONF-09).
