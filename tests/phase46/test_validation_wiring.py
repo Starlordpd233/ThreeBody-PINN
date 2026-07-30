@@ -182,7 +182,11 @@ class ValidationGateSeamTests(unittest.TestCase):
         for key, value in gate_fields.items():
             self.assertEqual(record[key], value)
 
-    def test_non_finite_final_val_loss_still_returns_early_without_appending(self) -> None:
+    def test_non_finite_final_val_loss_is_persisted_not_dropped(self) -> None:
+        # CR-05 closure: a non-finite validation loss must still leave exactly
+        # one JSON-safe line -- the OLD contract (early return, no append) is
+        # precisely the bug that let a later invalid event hide behind an
+        # older eligible record.
         path = self.root / "validation.jsonl"
         returned = self.append_record(
             path,
@@ -192,7 +196,39 @@ class ValidationGateSeamTests(unittest.TestCase):
             gate_fields={"gate_status": "ok"},
         )
         self.assertNotEqual(returned, returned)  # NaN round-trips unchanged
-        self.assertFalse(path.exists(), "pre-existing early-return contract broken")
+        self.assertTrue(path.exists(), "a non-finite validation event must still be appended (CR-05)")
+        record = json.loads(path.read_text(encoding="utf-8").splitlines()[-1])
+        self.assertEqual(record["step"], 4)
+        self.assertEqual(record["final_val_loss"], "NaN")
+        self.assertEqual(record["trend"], "unavailable")
+        self.assertEqual(record["gate_status"], "ok")
+
+    def test_positive_and_negative_infinite_val_loss_persist_as_sentinels(self) -> None:
+        path = self.root / "validation.jsonl"
+        self.append_record(path, step=5, final_val_loss=float("inf"), previous_val_loss=None)
+        self.append_record(path, step=6, final_val_loss=float("-inf"), previous_val_loss=None)
+        lines = path.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(json.loads(lines[0])["final_val_loss"], "Infinity")
+        self.assertEqual(json.loads(lines[1])["final_val_loss"], "-Infinity")
+
+    def test_trend_is_unavailable_whenever_current_or_previous_loss_is_nonfinite(self) -> None:
+        path = self.root / "validation.jsonl"
+        self.append_record(path, step=1, final_val_loss=2.0, previous_val_loss=None)
+        self.append_record(path, step=2, final_val_loss=float("nan"), previous_val_loss=2.0)
+        self.append_record(path, step=3, final_val_loss=3.0, previous_val_loss=float("nan"))
+        records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+        self.assertEqual([r["trend"] for r in records], ["unavailable"] * 3)
+
+    def test_hostile_step_rejected_before_any_write(self) -> None:
+        path = self.root / "validation.jsonl"
+        for hostile in (True, False, 1.9, "1", -1):
+            with self.subTest(step=hostile):
+                with self.assertRaises(ValueError):
+                    self.append_record(
+                        path, step=hostile, final_val_loss=1.0, previous_val_loss=None
+                    )
+        self.assertFalse(path.exists(), "a hostile step must not create the file (WR-01)")
 
     def test_seam_has_exactly_one_definition_and_one_call_inside_the_branch(self) -> None:
         train_path = Path(importlib.import_module("pinn.train").__file__)
@@ -368,6 +404,272 @@ class SummaryGateProjectionTests(unittest.TestCase):
             self.assertIsNone(validation[key])
         self.assertFalse(validation["eval01_precondition_iii"])
         self.assertIn("- gate_verdict: null", md)
+
+    def test_missing_and_empty_stream_retain_none_projection(self) -> None:
+        summary_mod.finalize_summary(
+            self.root, disposition="finished", header=self.header,
+            final_losses=self.losses, curriculum_path=self.curriculum_path,
+            validation_records_path=self.root / "does-not-exist.jsonl",
+        )
+        payload = json.loads((self.root / "summary.json").read_text(encoding="utf-8"))
+        self.assertIsNone(payload["validation"])
+
+        empty_path = self.root / "validation.jsonl"
+        empty_path.write_text("", encoding="utf-8")
+        summary_mod.finalize_summary(
+            self.root, disposition="finished", header=self.header,
+            final_losses=self.losses, curriculum_path=self.curriculum_path,
+            validation_records_path=empty_path,
+        )
+        payload = json.loads((self.root / "summary.json").read_text(encoding="utf-8"))
+        self.assertIsNone(payload["validation"])
+
+
+# ---------------------------------------------------------------------------
+# CR-05 closure: latest-event failure is monotonic -- never falls back
+# ---------------------------------------------------------------------------
+
+
+class LatestEventMonotonicityTests(unittest.TestCase):
+    """A later invalid (failed / nonfinite / malformed / non-mapping) event
+    is ALWAYS the reported latest and ALWAYS ineligible; an older eligible
+    record is never exposed as current (CR-05, AC-46-10-06/07)."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory(prefix="phase46-monotonic-")
+        self.root = Path(self.tmp.name)
+        (self.root / "config.yaml").write_text("run:\n  run_name: current\n")
+        self.curriculum_path = self.root / "curriculum.jsonl"
+        self.source = make_stub_split_sources()[1]
+        self.append_record = _require("_append_validation_record")
+        self.header = {
+            "run_name": "current", "start_utc": "2026-07-28T00:00:00+00:00",
+            "end_utc": "2026-07-28T00:05:00+00:00", "wall_clock_secs": 300.0,
+            "device": "cpu", "precision": "fp64", "seed": 7,
+        }
+        self.losses = {
+            "data": 1.0, "ic": 2.0, "phys": 3.0,
+            "energy": 4.0, "angmom": 5.0, "total": 15.0,
+        }
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def _publish_real_gate_record(self, step):
+        observation = vg.compute_validation_gate(
+            StubModel(), self.source, stage=0, global_step=step,
+            frame=vg.RATIFIED_VALIDATION_FRAME,
+        )
+        vg.publish_gate_sidecar(self.root, observation)
+        fields = vg.compact_validation_fields(observation, self.root)
+        path = self.root / "validation.jsonl"
+        self.append_record(
+            path, step=step, final_val_loss=2.5, previous_val_loss=None, gate_fields=fields,
+        )
+        return path, fields
+
+    def _finalize(self, validation_path):
+        summary_mod.finalize_summary(
+            self.root, disposition="finished", header=self.header,
+            final_losses=self.losses, curriculum_path=self.curriculum_path,
+            validation_records_path=validation_path,
+        )
+        payload = json.loads((self.root / "summary.json").read_text(encoding="utf-8"))
+        return payload["validation"]
+
+    def test_valid_event_followed_by_failed_gate_event_stays_ineligible_at_latest(self) -> None:
+        path, _ = self._publish_real_gate_record(step=7)
+        self.append_record(
+            path, step=8, final_val_loss=float("nan"), previous_val_loss=2.5,
+            gate_fields={
+                "gate_schema_version": vg.GATE_SIDECAR_SCHEMA_VERSION,
+                "gate_status": "failed:ValidationGateUnavailable",
+            },
+        )
+        validation = self._finalize(path)
+        self.assertEqual(validation["step"], 8, "the LATEST event must be reported, not step 7")
+        self.assertEqual(validation["gate_status"], "failed:ValidationGateUnavailable")
+        self.assertFalse(validation["eval01_precondition_iii"])
+
+    def test_valid_event_followed_by_nonfinite_loss_ok_gate_event_is_ineligible(self) -> None:
+        # A genuinely valid, fully-recomputable gate record at the LATEST
+        # step whose final_val_loss just happens to be nonfinite: eligibility
+        # must still fail, since a finite loss is jointly necessary
+        # (AC-46-10-08) even though the gate itself is otherwise perfect.
+        path, _ = self._publish_real_gate_record(step=9)
+        observation = vg.compute_validation_gate(
+            StubModel(), self.source, stage=0, global_step=10,
+            frame=vg.RATIFIED_VALIDATION_FRAME,
+        )
+        vg.publish_gate_sidecar(self.root, observation)
+        fields = vg.compact_validation_fields(observation, self.root)
+        self.append_record(
+            path, step=10, final_val_loss=float("nan"), previous_val_loss=2.5,
+            gate_fields=fields,
+        )
+        validation = self._finalize(path)
+        self.assertEqual(validation["step"], 10)
+        self.assertEqual(validation["gate_status"], "ok")
+        self.assertIsNone(validation["final_val_loss"])
+        self.assertFalse(validation["eval01_precondition_iii"])
+
+    def test_valid_event_followed_by_torn_line_never_falls_back(self) -> None:
+        path, _ = self._publish_real_gate_record(step=7)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write('{"step": 8, "final_val_loss": 1.0, "trend": "impro')
+        validation = self._finalize(path)
+        self.assertIsNone(validation["step"])
+        self.assertIsNone(validation["final_val_loss"])
+        self.assertFalse(validation["eval01_precondition_iii"])
+
+    def test_valid_event_followed_by_non_mapping_line_never_falls_back(self) -> None:
+        path, _ = self._publish_real_gate_record(step=7)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps([1, 2, 3]) + "\n")
+        validation = self._finalize(path)
+        self.assertIsNone(validation["step"])
+        self.assertFalse(validation["eval01_precondition_iii"])
+
+    def test_valid_event_followed_by_blank_only_line_never_falls_back(self) -> None:
+        path, _ = self._publish_real_gate_record(step=7)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write("   \n")
+        validation = self._finalize(path)
+        self.assertIsNone(validation["step"])
+        self.assertFalse(validation["eval01_precondition_iii"])
+
+    def test_adjacent_step_events_are_distinct_and_latest_is_reported_eligible(self) -> None:
+        path, fields7 = self._publish_real_gate_record(step=7)
+        _, fields8 = self._publish_real_gate_record(step=8)
+        self.assertNotEqual(fields7["gate_sidecar"], fields8["gate_sidecar"])
+        validation = self._finalize(path)
+        self.assertEqual(validation["step"], 8)
+        self.assertEqual(validation["gate_sidecar"], fields8["gate_sidecar"])
+        self.assertTrue(validation["eval01_precondition_iii"])
+
+
+# ---------------------------------------------------------------------------
+# CR-03 closure: cross-run / wrong-step / forged-pointer identity binding
+# ---------------------------------------------------------------------------
+
+
+class Eval01IdentityBindingTests(unittest.TestCase):
+    """The record must bind to its OWN exact same-run, same-step sidecar with
+    exactly matching compact fields (CR-03, AC-46-10-03/08)."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory(prefix="phase46-identity-")
+        self.root = Path(self.tmp.name)
+        (self.root / "config.yaml").write_text("run:\n  run_name: current\n")
+        self.curriculum_path = self.root / "curriculum.jsonl"
+        self.source = make_stub_split_sources()[1]
+        self.append_record = _require("_append_validation_record")
+        self.header = {
+            "run_name": "current", "start_utc": "2026-07-28T00:00:00+00:00",
+            "end_utc": "2026-07-28T00:05:00+00:00", "wall_clock_secs": 300.0,
+            "device": "cpu", "precision": "fp64", "seed": 7,
+        }
+        self.losses = {
+            "data": 1.0, "ic": 2.0, "phys": 3.0,
+            "energy": 4.0, "angmom": 5.0, "total": 15.0,
+        }
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def _publish_real_gate_record(self, step):
+        observation = vg.compute_validation_gate(
+            StubModel(), self.source, stage=0, global_step=step,
+            frame=vg.RATIFIED_VALIDATION_FRAME,
+        )
+        vg.publish_gate_sidecar(self.root, observation)
+        fields = vg.compact_validation_fields(observation, self.root)
+        path = self.root / "validation.jsonl"
+        self.append_record(
+            path, step=step, final_val_loss=2.5, previous_val_loss=None, gate_fields=fields,
+        )
+        return path, fields
+
+    def _finalize(self, validation_path):
+        summary_mod.finalize_summary(
+            self.root, disposition="finished", header=self.header,
+            final_losses=self.losses, curriculum_path=self.curriculum_path,
+            validation_records_path=validation_path,
+        )
+        payload = json.loads((self.root / "summary.json").read_text(encoding="utf-8"))
+        return payload["validation"]
+
+    def _overwrite_latest_record(self, path, record):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        lines[-1] = json.dumps(record, sort_keys=True)
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def test_cross_run_traversal_pointer_rejected(self) -> None:
+        path, _ = self._publish_real_gate_record(step=7)
+        record = json.loads(path.read_text(encoding="utf-8").splitlines()[-1])
+        record["gate_sidecar"] = "../donor/validation_gate/step-00000007.json"
+        self._overwrite_latest_record(path, record)
+        validation = self._finalize(path)
+        self.assertFalse(validation["eval01_precondition_iii"])
+
+    def test_wrong_step_pointer_with_renamed_donor_sidecar_rejected(self) -> None:
+        path, fields = self._publish_real_gate_record(step=7)
+        donor_rel = fields["gate_sidecar"]
+        forged_rel = vg.sidecar_relative_path(999)
+        (self.root / forged_rel).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / forged_rel).write_bytes((self.root / donor_rel).read_bytes())
+        forged_fields = dict(fields)
+        forged_fields["gate_sidecar"] = forged_rel
+        self.append_record(
+            path, step=999, final_val_loss=1.0, previous_val_loss=None,
+            gate_fields=forged_fields,
+        )
+        validation = self._finalize(path)
+        self.assertEqual(validation["step"], 999)
+        self.assertFalse(validation["eval01_precondition_iii"])
+
+    def test_one_at_a_time_gate_field_mismatch_rejected(self) -> None:
+        mutations = {
+            "gate_schema_version": lambda v: v + "-tampered",
+            "gate_eps_h": lambda v: (v + 1.0) if isinstance(v, float) else v + "-tampered",
+            "gate_scs": lambda v: (v + 1.0) if isinstance(v, float) else v + "-tampered",
+            "gate_verdict": lambda v: ("FAIL" if v == "PASS" else "PASS"),
+            "gate_status": lambda v: "tampered",
+            "gate_n_trajectories": lambda v: v + 1,
+            "gate_n_nonfinite": lambda v: v + 1,
+            "gate_sidecar": lambda v: v + ".tampered",
+        }
+        self.assertEqual(sorted(mutations), sorted(_GATE_KEYS))
+        for key, mutate in mutations.items():
+            with self.subTest(key=key):
+                tmp = tempfile.TemporaryDirectory(prefix="phase46-onemismatch-")
+                self.addCleanup(tmp.cleanup)
+                root = Path(tmp.name)
+                (root / "config.yaml").write_text("run:\n  run_name: current\n")
+                observation = vg.compute_validation_gate(
+                    StubModel(), self.source, stage=0, global_step=15,
+                    frame=vg.RATIFIED_VALIDATION_FRAME,
+                )
+                vg.publish_gate_sidecar(root, observation)
+                fields = vg.compact_validation_fields(observation, root)
+                path = root / "validation.jsonl"
+                self.append_record(
+                    path, step=15, final_val_loss=2.5, previous_val_loss=None,
+                    gate_fields=fields,
+                )
+                record = json.loads(path.read_text(encoding="utf-8").splitlines()[-1])
+                record[key] = mutate(record[key])
+                path.write_text(json.dumps(record, sort_keys=True) + "\n", encoding="utf-8")
+                summary_mod.finalize_summary(
+                    root, disposition="finished", header=self.header,
+                    final_losses=self.losses, curriculum_path=self.curriculum_path,
+                    validation_records_path=path,
+                )
+                payload = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+                self.assertFalse(
+                    payload["validation"]["eval01_precondition_iii"],
+                    f"mutating {key!r} alone must break eligibility",
+                )
 
 
 if __name__ == "__main__":  # pragma: no cover

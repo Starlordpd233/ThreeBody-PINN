@@ -80,15 +80,22 @@ def _append_validation_record(
     previous_val_loss: Optional[float],
     gate_fields: Optional[Mapping[str, Any]] = None,
 ) -> float:
-    """Persist one validation observation and its contemporaneous trend."""
+    """Persist one validation observation and its contemporaneous trend.
+
+    Every validation event leaves exactly one JSON-safe JSONL line, including
+    a non-finite ``final_val_loss`` or a failed gate pass (D-20/CR-05): a
+    later invalid event must never leave an older eligible record looking
+    like the current one, so this seam never returns early without appending
+    (T-46-10-05/06). The step is validated through
+    ``validation_gate.sidecar_relative_path`` BEFORE conversion so a
+    bool/fraction/string/negative step can never name a record (WR-01).
+    """
+    validation_gate.sidecar_relative_path(step)  # strict identity check only
     value = float(final_val_loss)
-    # PRE-EXISTING contract, preserved verbatim: a non-finite final_val_loss
-    # appends no record. A gate sidecar already published for such an event is
-    # left unreferenced, which is harmless -- D-17 forbids only the reverse
-    # direction, a pointer naming a sidecar that was never durably published.
-    if not math.isfinite(value):
-        return value
-    if previous_val_loss is None or not math.isfinite(float(previous_val_loss)):
+    previous_finite = (
+        previous_val_loss is not None and math.isfinite(float(previous_val_loss))
+    )
+    if not math.isfinite(value) or not previous_finite:
         trend = "unavailable"
     elif value < float(previous_val_loss):
         trend = "improving"
@@ -98,7 +105,7 @@ def _append_validation_record(
         trend = "flat"
     record = {
         "step": int(step),
-        "final_val_loss": value,
+        "final_val_loss": validation_gate.json_safe_float(value),
         "trend": trend,
     }
     if gate_fields is not None:

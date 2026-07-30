@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -188,65 +189,145 @@ def _read_json_mapping(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
     return dict(value) if isinstance(value, Mapping) else None
 
 
-def _read_jsonl_mappings(path: Optional[PathLike]) -> List[Dict[str, Any]]:
-    """Read persisted JSONL records in order without deriving replacement data."""
+def _read_latest_validation_event(
+    path: Optional[PathLike],
+) -> "tuple[bool, Optional[Dict[str, Any]]]":
+    """``(present, value)`` for the PHYSICAL latest validation.jsonl line.
+
+    Never falls back past an invalid latest line to an older valid one
+    (D-19/CR-05/T-46-10-07):
+
+    * a missing file, or a file with no lines at all, is the legacy
+      "missing/empty" state -- ``(False, None)``, which keeps the existing
+      ``validation=None`` projection;
+    * a present PHYSICAL latest line (the last entry ``str.splitlines()``
+      returns) that is blank-only, malformed JSON, torn, or decodes to a
+      non-mapping -- ``(True, None)``: the caller renders the existing
+      12-key block with every persisted field null and
+      ``eval01_precondition_iii`` False;
+    * a present, well-formed mapping latest line -- ``(True, <the mapping>)``.
+    """
     if path is None:
-        return []
+        return False, None
     try:
-        lines = Path(path).read_text(encoding="utf-8").splitlines()
+        text = Path(path).read_text(encoding="utf-8")
     except OSError:
-        return []
-    records: List[Dict[str, Any]] = []
-    for line in lines:
-        try:
-            value = json.loads(line)
-        except (json.JSONDecodeError, TypeError):
-            continue
-        if isinstance(value, Mapping):
-            records.append(dict(value))
-    return records
+        return False, None
+    lines = text.splitlines()
+    if not lines:
+        return False, None
+    latest = lines[-1]
+    if not latest.strip():
+        # Blank-only content IS physically present at the latest position --
+        # an invalid/ineligible event, never treated as absent.
+        return True, None
+    try:
+        value = json.loads(latest)
+    except json.JSONDecodeError:
+        return True, None
+    if not isinstance(value, Mapping):
+        return True, None
+    return True, dict(value)
+
+
+def _json_scalar_equal(a: Any, b: Any) -> bool:
+    """Type-AND-value equality for JSON-decoded scalars (T-46-10-08).
+
+    ``bool`` is a distinct JSON type from ``int``/``float``: ``False``/``0``
+    and ``True``/``1`` must never compare equal. An ``int`` is a distinct
+    JSON type from an equal-valued ``float`` (``json.loads`` never blends
+    them). A numeric string is never a number. Plain ``==`` alone cannot
+    express this because Python's ``bool``/``int``/``float`` interoperate
+    under ``==`` by design.
+    """
+    return type(a) is type(b) and a == b
 
 
 def _eval01_precondition_iii(
     record: Mapping[str, Any], path: Optional[PathLike]
 ) -> bool:
-    """True only when the gate status is ok AND its sidecar is durably valid.
+    """True only for the SAME event's exact, contained, fully valid sidecar.
 
-    Fail-closed eligibility render (D-19/D-20): this reads and validates
-    persisted bytes; it never recomputes eps_H, SCS, or the verdict. The
-    validator import is function-local on purpose — summary.py is the
-    stdlib-only honesty layer rendered under EVERY death mode, while
-    ``pinn.training.validation_gate`` transitively imports torch via
-    gate_metrics, so an ImportError degrades the flag to False instead of
-    breaking the terminal summary render.
+    Fail-closed eligibility render (D-19/D-20/CR-03): every identity, schema,
+    and value check binds the JSONL record to ONE durable, semantically
+    valid receipt at the run's own exact step-derived path -- never an
+    arbitrary, cross-run, wrong-step, or partially matching sidecar. It
+    reads and re-validates persisted bytes; it never recomputes eps_H, SCS,
+    or the verdict itself (that recomputation lives in
+    ``validation_gate.validate_sidecar_payload``). The validator import is
+    function-local on purpose — summary.py is the stdlib-only honesty layer
+    rendered under EVERY death mode, while ``pinn.training.validation_gate``
+    transitively imports torch via gate_metrics, so an ImportError degrades
+    the flag to False instead of breaking the terminal summary render. Any
+    import, read, parse, validation, identity, or equality failure renders
+    False -- never raises.
     """
-    if record.get("gate_status") != "ok":
-        return False
-    rel = record.get("gate_sidecar")
-    if not isinstance(rel, str) or not rel or path is None:
+    if path is None:
         return False
     try:
-        from pinn.training.validation_gate import validate_sidecar_payload
+        from pinn.training import validation_gate as vg
 
-        sidecar = Path(path).parent / rel
-        validate_sidecar_payload(json.loads(sidecar.read_text(encoding="utf-8")))
+        final_val_loss = record.get("final_val_loss")
+        if isinstance(final_val_loss, bool) or not isinstance(final_val_loss, (int, float)):
+            return False
+        if not math.isfinite(float(final_val_loss)):
+            return False
+
+        step = record.get("step")
+        if isinstance(step, bool) or not isinstance(step, int) or step < 0:
+            return False
+
+        if record.get("gate_status") != "ok":
+            return False
+
+        expected_rel = vg.sidecar_relative_path(step)
+        if record.get("gate_sidecar") != expected_rel:
+            return False
+
+        run_dir = Path(path).resolve().parent
+        candidate = (run_dir / expected_rel).resolve()
+        candidate.relative_to(run_dir)
+        if not candidate.is_file():
+            return False
+
+        payload = json.loads(candidate.read_text(encoding="utf-8"))
+        fields = vg.compact_validation_fields_from_payload(
+            payload,
+            expected_run_dir_name=run_dir.name,
+            expected_global_step=step,
+            expected_sidecar_path=expected_rel,
+        )
+        for key in _GATE_KEYS:
+            if not _json_scalar_equal(record.get(key), fields[key]):
+                return False
         return True
     except Exception:
         return False
 
 
 def _validation_summary(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
-    """Select the last persisted validation record; never infer a trend."""
-    records = _read_jsonl_mappings(path)
-    if not records:
+    """Project the PHYSICAL latest validation event; never fall back (D-19).
+
+    Missing/empty input keeps the legacy ``None`` projection. A present but
+    blank/malformed/torn/non-mapping latest line renders the existing 12-key
+    block with every persisted field null and eligibility False -- it is
+    NEVER skipped in favor of an older, valid record (CR-05/T-46-10-06/07).
+    """
+    present, record = _read_latest_validation_event(path)
+    if not present:
         return None
-    record = records[-1]
+    if record is None:
+        summary: Dict[str, Any] = {"final_val_loss": None, "trend": None, "step": None}
+        for key in _GATE_KEYS:
+            summary[key] = None
+        summary["eval01_precondition_iii"] = False
+        return summary
     final_val_loss = _null_if_nonfinite(record.get("final_val_loss"))
     trend = record.get("trend")
     if not isinstance(trend, str) or not trend:
         trend = None
     step = record.get("step")
-    summary: Dict[str, Any] = {
+    summary = {
         "final_val_loss": final_val_loss,
         "trend": trend,
         "step": step,
