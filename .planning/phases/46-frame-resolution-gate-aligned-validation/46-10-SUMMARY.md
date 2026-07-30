@@ -125,6 +125,11 @@ The 12 pre-existing phase43 failures (environmental, unrelated to this plan's fi
 - Phase 47's CONF-09 canonical-frame/rotation-scaling repair is explicitly out of this plan's scope and was not pulled forward; `RATIFIED_VALIDATION_FRAME` is unchanged.
 - No held-out evaluator was invoked, imported, or modified; no training run, validation probe, real-corpus access, or dependency/lockfile change occurred.
 
+## Self-Check: PASSED
+
+All 5 modified/created source files confirmed present on disk; all 3 commit
+hashes (`ad5331cd`, `35c88d7f`, `0ea7ead`) confirmed present in `git log --all`.
+
 ---
 *Phase: 46-frame-resolution-gate-aligned-validation*
 *Plan: 46-10*

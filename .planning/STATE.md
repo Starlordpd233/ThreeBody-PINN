@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 46
 current_phase_name: frame-resolution-gate-aligned-validation
 status: executing
-stopped_at: Phase 46 gap-closure Plan 46-10 planned after goal verification found two INST-01 receipt/eligibility gaps; 9/10 plans complete; ready to execute 46-10
-last_updated: "2026-07-30T02:20:45.092Z"
-last_activity: 2026-07-29
-last_activity_desc: Plan 46-10 gap closure planned and checker-verified; closes same-event sidecar binding and monotonic latest-event failure without reopening CONF-01/CONF-08 or pulling CONF-09 from Phase 47
+stopped_at: Completed 46-10-PLAN.md -- both INST-01 verifier gaps closed; all 10 Phase 46 plans executed; re-verification pending
+last_updated: "2026-07-30T03:26:38.579Z"
+last_activity: 2026-07-30
+last_activity_desc: Plan 46-10 gap closure executed and committed (`ad5331cd`, `35c88d7f`, `0ea7ead`).
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 10
-  completed_plans: 9
-  percent: 0
+  completed_plans: 10
+  percent: 14
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 46 (frame-resolution-gate-aligned-validation) — GAP CLOSURE PLANNED, ready to execute 46-10
-Plan: 9 of 10 complete (46-01..46-09 executed; 46-10 pending).
-Status: Ready to execute Plan 46-10. CONF-01 and CONF-08 remain Complete; goal verification reopened INST-01 closure because the receipt is not yet fail-closed against cross-run/semantically invalid sidecars or stale older validation events. **CONF-01 carries a mandatory qualification:** neither probe run emitted a clean `VERDICT_TARGETS_ARE_RAW`/`_SCALED` token — the pre-repair run returned `VERDICT_AMBIGUOUS` and the post-repair run returned rule-5 `VERDICT_NON_FRAME_DIVERGENCE`, the latter because CONF-08's authorized repair made rule 4's byte-identity-against-file-order condition unreachable by construction. RG-02 was settled by the owner's GAP-46-06 option-B ruling on the measured arm evidence, ratifying `("r_raw", "t_native", "ordered_raw")`. Phase 51 must read that qualification before treating EVAL-01 precondition (ii) as met.
-Last activity: 2026-07-29 — Plan 46-10 gap closure planned and checker-verified; it binds EVAL-01 precondition (iii) to the latest same-event sidecar and prevents invalid latest events from exposing an older eligible success.
+Phase: 46 (frame-resolution-gate-aligned-validation) — ALL PLANS EXECUTED, RE-VERIFICATION PENDING
+Plan: 10 of 10 complete (46-01..46-10 executed).
+Status: All Phase 46 plans executed. Plan 46-10 closed both remaining INST-01 verifier gaps: the sidecar receipt is now a strict, recomputed semantic contract bound to its own run/step/path identity, and the latest validation.jsonl event is durable and non-fallback (a failed, non-finite, malformed, or cross-run/wrong-step event can never expose an older eligible success). CONF-01 and CONF-08 remain Complete and untouched. Next: re-run goal verification against the updated 46-VERIFICATION.md gaps before closing Phase 46.
+Last activity: 2026-07-30 — Plan 46-10 gap closure executed and committed (`ad5331cd`, `35c88d7f`, `0ea7ead`).
 
 **Phase 47 scope changed 2026-07-28 (GAP-46-07, owner option A) — read before planning it.** An independent verification of the conformance handoff confirmed all six carried divergences and surfaced a seventh that no requirement owned: CONF-08 excluded the rotation gauge and the `D`/`V` scaling by design, GAP-46-06 ratified the resulting intermediate as the **validation** frame, and neither reached the **training** path, which pairs unrotated/unscaled residents with `u = t/T` — a pairing `COHERENT_FRAME_PAIRS` does not admit. New requirement **CONF-09** completes the residency transform to the locked canonical contract and is sequenced **ahead of CONF-02** (`S_H` is frame-dependent). Milestone is now **24 requirements**; Phase 47 is renamed "Frame Completion & S_H Pipeline" and runs CONF-09 → CONF-02 → CONF-03. The Phase 48 CONF-05 clip bound now waits on CONF-09 as well as CONF-04. `RATIFIED_VALIDATION_FRAME` is re-ratified by CONF-09, so GAP-46-06 is superseded **in part** — CONF-01's Complete status and its mandatory EVAL-01 precondition-(ii) qualification are unchanged. Report: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-report.md`.
 
@@ -151,6 +151,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 46 P04 | ~45min | 2 tasks | 4 files |
 | Phase 46 P05 | 58min | 2 tasks | 4 files |
 | Phase 46 P06 | ~25min | 3 tasks | 3 files |
+| Phase 46 P10 | 50min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -304,6 +305,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 46 Plan 46-06]: CONF-01 real-corpus evidence run (commit f106889b) returned VERDICT_AMBIGUOUS over 1651 GAP-46-02-Option-A trajectories -- routes D-09, not the clean D-08 continuation. 100% of eligible trajectories carry a body-permutation confound and a com_recenter_boost gauge divergence; identity_raw=true for 100% but only 66.6% (1100/1651) clear the corrected-raw residual tolerance, short of decide_verdict rule 4's unanimity requirement, so the verdict falls to the rule-6 fail-closed catch-all. 46-VERDICT.md (commit 6638204d) records the branch; Plan 46-07 and Phase 47 stay BLOCKED pending owner resolution. GAP-46-01's consequence note: the verdict selects neither of that gap's two evaluator-pairing readings cleanly, though the identity classification leans structurally toward the raw-target reading.
 - [Phase 46 GAP-46-05, 2026-07-27]: Phase 46 re-scoped by owner instruction after GAP-46-04's option-A routing proved circular — Plan 46-07 waited on a repair owned by Phases 47/48, while Phase 47 was gated on Phase 46 closing (`ROADMAP.md:103`), so neither phase could start. Option A: move the **minimum** repair (body permutation + COM-recentre/boost gauge) and its follow-up CONF-01 re-probe into Phase 46, traced as new requirement **CONF-08** (milestone 22 → 23). The `D` scaling is excluded from the repair because it is the raw-vs-scaled question CONF-01 exists to answer; rotation gauge enters only if the re-probe measures it as the new `first_diverging_step`. New plans: 46-08 (repair, wave 5), 46-09 (re-probe + verdict, wave 6, `autonomous: false`); 46-07 moves to wave 7 with its hard gate unchanged. GAP-46-04 is superseded **in part** — only on which phase performs the minimum repair; `VERDICT_AMBIGUOUS` is still not upgraded and residual conformance repair stays with Phases 47/48. Engineering basis: `S_H = median_train(K0 + Uabs0)` is mass-weighted in both terms, so computing it over the un-permuted corpus would yield an `S_H` for a different three-body system and mis-scale `ε_H = 1e-4·S_H` across the milestone. Correction recorded in the same amendment: CONF-01 and INST-01 had been marked Complete prematurely (RG-02 is measurably unresolved and sits under EVAL-01 precondition (ii); INST-01's production wiring is the unexecuted 46-07) — both reverted to Pending.
 - [Phase 46 GAP-46-06 + Plan 46-07, 2026-07-28]: **The validation frame is ratified by owner instruction, not by a machine verdict.** Plan 46-09's one post-repair probe returned rule-5 `VERDICT_NON_FRAME_DIVERGENCE`. Root cause is structural, not empirical: `decide_verdict` rule 4 requires `all_identity_raw` — a byte-match against the parsed file-order array (`target_frame_probe.py:641`) — which CONF-08's authorized repair deliberately removed, plus `all_raw_corrected_consistent`, whose unconditional inverse-permutation correction post-repair *creates* the mismatch it was written to undo (1100 → 0). **Our own repair made the clean verdict unreachable.** Orchestrator analysis of the committed `raw.json` showed option B's "only 1086/1651" caveat is a zero-margin tolerance artifact: raw-vs-provenance-control median ratio 0.999996, failing trajectories exceeding by ~0.002%, `tolerance_floor` equal to the control median for 1651/1651, and `tolerance_fp32_increment` exactly 0 for 801/1651 — while the two float64 controls agree to 8.6e-16 and the float32 resident to ~1e-6, i.e. residency quantization. The substantive raw-vs-scaled question is answered by measurement (scaled arm separated by a factor of 12.3); only the token was unobtainable. Owner ruled option B: ratify `("r_raw", "t_native", "ordered_raw")` with `conf01_evidence_ref` on the `20260728T014532Z` run. Plan 46-07 then landed `RATIFIED_VALIDATION_FRAME` (quoted from the resolution note, never inferred — D-12), the `_run_validation_gate_pass` seam inside checkpoint_hook's existing validation branch (no new cadence — D-10), sidecar-before-pointer ordering (D-17), fail-closed `failed:` conversion (D-15/D-20), and the summary projection with `eval01_precondition_iii`. Verified by inspecting a real run's artifacts, not by a passing test: 240 per-trajectory `{record_key, eps_h, scs}` rows per validation event, ratified frame embedded in the sidecar, `gate_status ok` with `gate_verdict FAIL` kept distinct.
+- [Phase 46 Plan 46-10]: Closed both remaining INST-01 verifier gaps: validate_sidecar_payload now recomputes every per-row/aggregate gate value through gate_metrics and binds compact fields via compact_validation_fields_from_payload; every validation event (finite/NaN/+Inf/-Inf loss, ok/failed gate) is durably persisted, and eval01_precondition_iii selects only the physical latest JSONL line with type-and-value-sensitive equality against the validated sidecar, so a failed/malformed/cross-run/wrong-step event can never expose an older eligible success.
 
 ### Pending Todos
 
@@ -338,8 +340,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-07-28
-Stopped at: Phase 46 complete at 9/9 plans; GAP-46-06 resolved and the validation frame ratified and wired
+Last session: 2026-07-30T03:26:38.573Z
+Stopped at: Completed 46-10-PLAN.md -- both INST-01 verifier gaps closed; all 10 Phase 46 plans executed; re-verification pending
 Next action: Run canonical verification and `$gsd-verify-work 46`, then close Phase 46 and proceed to Phase 47. When verifying, note two things: (1) `$gsd-verify-work` is plan-conformance, not spec-conformance — the load-bearing evidence for this phase is 46-08's test triage, 46-09's control-arm reproduction, and 46-07's end-to-end artifact inspection, not a passing verifier verdict; (2) the full suite is NOT green, but all 14 failures are pre-existing and environmental (see Blockers/Concerns). Phase 47 must compute `S_H` in the ratified raw/native frame over the CONF-08-repaired pairing. Phase 51 must still discharge GAP-46-01 through RUN-03, and must read CONF-01's qualification before treating EVAL-01 precondition (ii) as met.
 
 ## Operator Next Steps

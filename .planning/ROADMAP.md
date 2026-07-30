@@ -66,7 +66,7 @@
 **Goal**: The last remaining way the next run could be invalid is settled, and validation carries a conservation signal where none exists.
 **Depends on**: v2.1 archive (complete). Ungated — first v2.2 phase.
 **Requirements**: CONF-01, CONF-08, INST-01
-**Plans:** 9/10 plans executed
+**Plans:** 10/10 plans executed
 
 Plans:
 **Wave 1**
@@ -101,7 +101,7 @@ Plans:
 
 **Wave 8** *(gap closure; blocked on Wave 7 completion; added 2026-07-29 after goal verification)*
 
-- [ ] 46-10-PLAN.md — Bind EVAL-01 precondition (iii) to the latest same-event, contained, semantically valid sidecar; persist every validation event fail-closed; prevent malformed/non-finite latest events from exposing an older eligible success; reject step aliases (wave 8)
+- [x] 46-10-PLAN.md — Bind EVAL-01 precondition (iii) to the latest same-event, contained, semantically valid sidecar; persist every validation event fail-closed; prevent malformed/non-finite latest events from exposing an older eligible success; reject step aliases (wave 8)
 
 **Success Criteria** (what must be TRUE):
 
@@ -195,7 +195,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 9/9 | In Progress — all plans executed, awaiting verification and closure |  |
+| 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 10/10 | In Progress|  |
 | 47. S_H Pipeline | v2.2 | 0/? | Not started | - |
 | 48. Loss-Math Conformance | v2.2 | 0/? | Not started | - |
 | 49. Conformance Gate | v2.2 | 0/? | Not started | - |
