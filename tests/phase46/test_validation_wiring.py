@@ -538,6 +538,19 @@ class LatestEventMonotonicityTests(unittest.TestCase):
         self.assertIsNone(validation["step"])
         self.assertFalse(validation["eval01_precondition_iii"])
 
+    def test_valid_event_followed_by_undecodable_bytes_never_falls_back(self) -> None:
+        # A torn write can land invalid UTF-8 at the tail. UnicodeDecodeError
+        # is a ValueError, not an OSError, so an OSError-only guard lets it
+        # escape finalize_summary and finish_run's bare try/finally -- no
+        # summary at all, defeating presence-under-every-death-mode.
+        path, _ = self._publish_real_gate_record(step=7)
+        with path.open("ab") as handle:
+            handle.write(b'{"step": 8, "final_val_loss": \xff\xfe}\n')
+        validation = self._finalize(path)
+        self.assertIsNone(validation["step"])
+        self.assertIsNone(validation["final_val_loss"])
+        self.assertFalse(validation["eval01_precondition_iii"])
+
     def test_adjacent_step_events_are_distinct_and_latest_is_reported_eligible(self) -> None:
         path, fields7 = self._publish_real_gate_record(step=7)
         _, fields8 = self._publish_real_gate_record(step=8)

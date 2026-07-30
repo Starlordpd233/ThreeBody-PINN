@@ -213,6 +213,14 @@ def _read_latest_validation_event(
         text = Path(path).read_text(encoding="utf-8")
     except OSError:
         return False, None
+    except UnicodeDecodeError:
+        # Undecodable bytes are a TORN physical write, not an absent stream:
+        # UnicodeDecodeError is a ValueError, not an OSError, so without this
+        # branch it escapes the honesty layer entirely and no summary is
+        # written at all (finish_run wraps finalize_summary in a bare
+        # try/finally). Fail closed as present-but-invalid, which is the same
+        # projection a torn JSON line already gets (D-19/CR-05).
+        return True, None
     lines = text.splitlines()
     if not lines:
         return False, None
