@@ -4,15 +4,15 @@ milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 47
 current_phase_name: Frame Completion & S_H Pipeline
-status: planning
-stopped_at: Phase 47 context gathered
-last_updated: "2026-07-30T05:10:40.665Z"
+status: executing
+stopped_at: Phase 47 planned
+last_updated: "2026-07-30T06:13:44.508Z"
 last_activity: 2026-07-29
-last_activity_desc: Phase 46 complete, transitioned to Phase 47
+last_activity_desc: Phase 47 planned — 3 plans, waves 1-3 strictly sequential
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 10
+  total_plans: 13
   completed_plans: 10
   percent: 14
 ---
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 46 — frame-resolution-gate-aligned-validation
+**Current focus:** Phase 47 — frame-completion-s-h-pipeline
 
 ## Current Position
 
 Phase: 47 — Frame Completion & S_H Pipeline
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-29 — Phase 46 complete, transitioned to Phase 47
+Plan: 3 plans ready — 47-01 (CONF-09), 47-02 (CONF-02), 47-03 (CONF-03)
+Status: Ready to execute
+Last activity: 2026-07-29 — Phase 47 planned, waves 1-3 strictly sequential
 
 **Phase 47 scope changed 2026-07-28 (GAP-46-07, owner option A) — read before planning it.** An independent verification of the conformance handoff confirmed all six carried divergences and surfaced a seventh that no requirement owned: CONF-08 excluded the rotation gauge and the `D`/`V` scaling by design, GAP-46-06 ratified the resulting intermediate as the **validation** frame, and neither reached the **training** path, which pairs unrotated/unscaled residents with `u = t/T` — a pairing `COHERENT_FRAME_PAIRS` does not admit. New requirement **CONF-09** completes the residency transform to the locked canonical contract and is sequenced **ahead of CONF-02** (`S_H` is frame-dependent). Milestone is now **24 requirements**; Phase 47 is renamed "Frame Completion & S_H Pipeline" and runs CONF-09 → CONF-02 → CONF-03. The Phase 48 CONF-05 clip bound now waits on CONF-09 as well as CONF-04. `RATIFIED_VALIDATION_FRAME` is re-ratified by CONF-09, so GAP-46-06 is superseded **in part** — CONF-01's Complete status and its mandatory EVAL-01 precondition-(ii) qualification are unchanged. Report: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-report.md`.
 

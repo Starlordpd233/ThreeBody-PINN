@@ -60,6 +60,7 @@ Requirement-level map (task IDs bound at execution; every row must resolve to a 
 | D-17 | 47-02 | 2 | CONF-02 | — | fail-closed refusal, no fallback floor | unit/fail-closed | `pytest tests/phase47/test_conf02_s_h_pipeline.py::test_s_h_fails_closed -x` | ❌ W0 | ⬜ pending |
 | D-15/D-16/D-18 | 47-02 | 2 | CONF-02 | — | re-validate persisted value on load | unit | `pytest tests/phase47/test_conf02_s_h_pipeline.py::test_metadata_roundtrip_revalidates -x` | ❌ W0 | ⬜ pending |
 | D-19/D-20/D-21 | 47-03 | 3 | CONF-03 | — | N/A | unit (assembly boundary) | `pytest tests/phase47/test_conf03_eps_h_wiring.py::test_eps_h_assembly_value -x` | ❌ W0 | ⬜ pending |
+| assumption-delta companion invariant | 47-03 | 3 | CONF-03 | T-47-08 | every anchor sees one `eps_h`; goes red if per-anchor scaling returns | unit (invariant) | `pytest tests/phase47/test_conf03_eps_h_wiring.py::test_eps_h_uniform_across_anchors -x` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -71,7 +72,10 @@ Requirement-level map (task IDs bound at execution; every row must resolve to a 
 - [ ] `tests/phase47/test_conf09_frame_completion.py` — CONF-09 (D-01, D-02, D-04, D-05, D-08)
 - [ ] `tests/phase47/test_conf02_s_h_pipeline.py` — CONF-02 (D-09..D-18)
 - [ ] `tests/phase47/test_conf03_eps_h_wiring.py` — CONF-03 (D-19..D-21)
-- [ ] `tests/phase46/test_pairing_repair.py` — correction of the superseded pairing assertions (D-06); existing file, **two** methods affected (`test_resident_trajectory_is_not_rotation_gauged_or_globally_scaled` and `test_resident_positions_velocities_and_masses_share_one_body_order`)
+- [ ] `tests/phase46/test_pairing_repair.py` — correction of the superseded pairing assertions (D-06); existing file, **two** methods affected:
+  - `test_resident_positions_velocities_and_masses_share_one_body_order` — `_resident_fixture`'s independent oracle extended to apply the rotation gauge and `D`/`V` scaling
+  - `test_resident_trajectory_is_not_rotation_gauged_or_globally_scaled` — four `assertFalse(np.allclose(...))` assertions flipped to exact equality, and the method **renamed** to `test_resident_trajectory_is_rotation_gauged_and_globally_scaled`
+  - Left byte-unmodified: `test_resident_trajectory_preserves_com_and_zero_momentum_gauge`, `test_admission_keys_snapshot_counts_and_folder_accounting_are_unchanged`, and every `PreprocessingPairingSeamTests` method. Exactly two failures are expected pre-correction; a third is a finding to fix, not to skip.
 
 Framework install: none needed — pytest, numpy, torch already present in `.venv`.
 
