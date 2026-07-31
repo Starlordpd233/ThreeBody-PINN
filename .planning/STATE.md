@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 47
 current_phase_name: frame-completion-s-h-pipeline
 status: executing
-stopped_at: Completed 47-01-PLAN.md
-last_updated: "2026-07-31T02:05:00.000Z"
+stopped_at: Completed 47-02-PLAN.md
+last_updated: "2026-07-31T02:57:09.788Z"
 last_activity: 2026-07-31
-last_activity_desc: "47-01 executed — CONF-09 residency completed and frame re-ratified; one D-08 finding surfaced for owner ruling"
+last_activity_desc: "47-02 executed — CONF-02 S_H pipeline: component seam + float64 admission capture; fail-closed median + training_metadata artifact; both setup branches bind s_h"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 13
-  completed_plans: 11
-  percent: 21
+  completed_plans: 12
+  percent: 28
 ---
 
 # Project State
@@ -29,9 +29,28 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 47 (frame-completion-s-h-pipeline) — EXECUTING
-Plan: 2 of 3 (47-01 complete)
+Plan: 3 of 3 (47-02 complete)
 Status: Executing Phase 47
-Last activity: 2026-07-31 — 47-01 (CONF-09) executed: `2c84d161` residency + re-ratification + pairing-test correction (one commit), `1c68368d` invariant suite, `98e05193` D-22/D-23 evidence
+Last activity: 2026-07-31 — 47-02 (CONF-02) executed: `2b985eee` component seam + float64 admission capture + accessors, `2ecc53d3` run_metadata median/artifact + setup wiring (both branches bind `s_h`)
+
+### Decisions from 47-02
+
+- **CONF-02 discharged.** `_matched_plummer_components` is the single home of
+  the softened pairwise sum (D-11); `k0`/`uabs0` are captured in float64 at
+  admission at `EPS_SOFT` before the fp32 residency cast (D-09/D-10/D-12);
+  `pinn/training/run_metadata.py` computes the train-split median once at
+  setup and persists `s_h`/`eps_h`/`n_train` via `atomic_write_text` with
+  re-validate-on-load and explicit `expected_energy_floor_factor`/
+  `expected_eps_train` bindings (D-13..D-18).
+- **Both setup branches bind the same `s_h` local** — the resume helper
+  `_assert_s_h_matches_artifact` RETURNS the validated value, so the 47-03
+  `RunController` hand-off is structural, not conventional.
+- **First authoritative real-corpus `S_H`/`eps_H`/`N_train` deferred to Phase
+  50** (owner ruling 2026-07-30, Option B); Phase 47 proves the semantics
+  with deterministic fixtures. No zero-step emitter added; no training
+  launched.
+- **REQUIREMENTS.md CONF-02 checkbox deliberately NOT flipped by the
+  executor** — same phase-close/verification-act precedent as CONF-09.
 
 ### Decisions from 47-01
 
@@ -40,8 +59,10 @@ Last activity: 2026-07-31 — 47-01 (CONF-09) executed: `2c84d161` residency + r
   in the same commit; the one pairing test is corrected in place. The one-shot
   re-probe records `identity_scaled` true and a zero max difference against
   `r_gauge`/`v_gauge` for 1651/1651 — record-only, not a new CONF-01 verdict.
+
 - **`r_com_ordered`/`v_com_ordered` survive** on `PreprocessedTrajectory` (D-03);
   `pinn/data/preprocessing.py` is byte-unchanged.
+
 - **REQUIREMENTS.md CONF-09 checkbox deliberately NOT flipped by the executor** —
   that is a phase-close/verification act, and this plan does not mutate the locked
   governance docs it was planned against.
@@ -177,6 +198,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 46 P05 | 58min | 2 tasks | 4 files |
 | Phase 46 P06 | ~25min | 3 tasks | 3 files |
 | Phase 46 P10 | 50min | 2 tasks | 5 files |
+| Phase 47 P02 | ~30min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -331,6 +353,7 @@ Recent decisions affecting current work:
 - [Phase 46 GAP-46-05, 2026-07-27]: Phase 46 re-scoped by owner instruction after GAP-46-04's option-A routing proved circular — Plan 46-07 waited on a repair owned by Phases 47/48, while Phase 47 was gated on Phase 46 closing (`ROADMAP.md:103`), so neither phase could start. Option A: move the **minimum** repair (body permutation + COM-recentre/boost gauge) and its follow-up CONF-01 re-probe into Phase 46, traced as new requirement **CONF-08** (milestone 22 → 23). The `D` scaling is excluded from the repair because it is the raw-vs-scaled question CONF-01 exists to answer; rotation gauge enters only if the re-probe measures it as the new `first_diverging_step`. New plans: 46-08 (repair, wave 5), 46-09 (re-probe + verdict, wave 6, `autonomous: false`); 46-07 moves to wave 7 with its hard gate unchanged. GAP-46-04 is superseded **in part** — only on which phase performs the minimum repair; `VERDICT_AMBIGUOUS` is still not upgraded and residual conformance repair stays with Phases 47/48. Engineering basis: `S_H = median_train(K0 + Uabs0)` is mass-weighted in both terms, so computing it over the un-permuted corpus would yield an `S_H` for a different three-body system and mis-scale `ε_H = 1e-4·S_H` across the milestone. Correction recorded in the same amendment: CONF-01 and INST-01 had been marked Complete prematurely (RG-02 is measurably unresolved and sits under EVAL-01 precondition (ii); INST-01's production wiring is the unexecuted 46-07) — both reverted to Pending.
 - [Phase 46 GAP-46-06 + Plan 46-07, 2026-07-28]: **The validation frame is ratified by owner instruction, not by a machine verdict.** Plan 46-09's one post-repair probe returned rule-5 `VERDICT_NON_FRAME_DIVERGENCE`. Root cause is structural, not empirical: `decide_verdict` rule 4 requires `all_identity_raw` — a byte-match against the parsed file-order array (`target_frame_probe.py:641`) — which CONF-08's authorized repair deliberately removed, plus `all_raw_corrected_consistent`, whose unconditional inverse-permutation correction post-repair *creates* the mismatch it was written to undo (1100 → 0). **Our own repair made the clean verdict unreachable.** Orchestrator analysis of the committed `raw.json` showed option B's "only 1086/1651" caveat is a zero-margin tolerance artifact: raw-vs-provenance-control median ratio 0.999996, failing trajectories exceeding by ~0.002%, `tolerance_floor` equal to the control median for 1651/1651, and `tolerance_fp32_increment` exactly 0 for 801/1651 — while the two float64 controls agree to 8.6e-16 and the float32 resident to ~1e-6, i.e. residency quantization. The substantive raw-vs-scaled question is answered by measurement (scaled arm separated by a factor of 12.3); only the token was unobtainable. Owner ruled option B: ratify `("r_raw", "t_native", "ordered_raw")` with `conf01_evidence_ref` on the `20260728T014532Z` run. Plan 46-07 then landed `RATIFIED_VALIDATION_FRAME` (quoted from the resolution note, never inferred — D-12), the `_run_validation_gate_pass` seam inside checkpoint_hook's existing validation branch (no new cadence — D-10), sidecar-before-pointer ordering (D-17), fail-closed `failed:` conversion (D-15/D-20), and the summary projection with `eval01_precondition_iii`. Verified by inspecting a real run's artifacts, not by a passing test: 240 per-trajectory `{record_key, eps_h, scs}` rows per validation event, ratified frame embedded in the sidecar, `gate_status ok` with `gate_verdict FAIL` kept distinct.
 - [Phase 46 Plan 46-10]: Closed both remaining INST-01 verifier gaps: validate_sidecar_payload now recomputes every per-row/aggregate gate value through gate_metrics and binds compact fields via compact_validation_fields_from_payload; every validation event (finite/NaN/+Inf/-Inf loss, ok/failed gate) is durably persisted, and eval01_precondition_iii selects only the physical latest JSONL line with type-and-value-sensitive equality against the validated sidecar, so a failed/malformed/cross-run/wrong-step event can never expose an older eligible success.
+- [Phase ?]: [Phase 47 Plan 47-02]: CONF-02 S_H pipeline landed (commits 2b985eee, 2ecc53d3). _matched_plummer_components is the single home of the softened pairwise sum (D-11); k0/uabs0 captured in float64 at admission at EPS_SOFT before the fp32 cast (D-09/D-10/D-12); run_metadata.py computes the train-split median once at setup and persists s_h/eps_h/n_train via atomic_write_text with re-validate-on-load and explicit expected_energy_floor_factor/expected_eps_train bindings (D-13..D-18); _assert_s_h_matches_artifact RETURNS the validated s_h so both setup branches bind the local 47-03 threads into RunController. First authoritative real-corpus S_H/eps_H/N_train deferred to Phase 50 (owner Option B); REQUIREMENTS.md CONF-02 checkbox deliberately not flipped by the executor.
 
 ### Pending Todos
 
@@ -363,10 +386,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/47-frame-completion-s-h-pipeline/47-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-07-30T05:10:40.659Z
-Stopped at: Phase 47 context gathered
+Last session: 2026-07-31T02:57:09.780Z
+Stopped at: Completed 47-02-PLAN.md
 Next action: Run `/gsd-plan-phase 47`, consuming `47-CONTEXT.md`. **Corrected 2026-07-29 —** the note previously here said "Phase 47 must compute `S_H` in the ratified raw/native frame over the CONF-08-repaired pairing". GAP-46-07 (owner option A, 2026-07-28) superseded that in part: the raw/native frame GAP-46-06 ratified is the **validation observation** frame, and it never reached the training path. Phase 47's order is CONF-09 → CONF-02 → CONF-03 — residency moves to `pre.r_gauge`/`pre.v_gauge` and `RATIFIED_VALIDATION_FRAME` is re-ratified to the scaled contract **first**, and `S_H` is then computed in that completed frame. Per `pinn_architecture.md` §3.4:539-542, `S_H` is float64, reduced over the training split only, computed once (never per minibatch), from the matched-Plummer components at `ε_train = 1e-5` — **not** at `ε_inv = 1e-10`, which §3.4:544 (VAL-03) explicitly separates. Still true and still relevant: the full suite is NOT green, but the known failures are pre-existing and environmental (see Blockers/Concerns). Phase 51 must still discharge GAP-46-01 through RUN-03, and must read CONF-01's qualification before treating EVAL-01 precondition (ii) as met.
 
 ## Operator Next Steps
