@@ -149,8 +149,9 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
             ``D_CHARACTERISTIC_LENGTH`` (Step 1 depends on it).
         times: the reading's own ``(Nt,)`` snapshot times, in the SAME units the
             divided difference used, or ``None``. Supplied ONLY by a reading that
-            reconstructs velocity by finite differences (Step 5). The actual
-            per-node spacings are read from this array; no uniform step is ever
+            reconstructs velocity by finite differences (Step 5). Each node's own
+            divided-difference span is read from this array — centred in the
+            interior, one-sided at the two endpoints; no uniform step is ever
             assumed.
         fd_velocities: that reading's ``(Nt, 3, 3)`` reconstructed velocity
             series, or ``None``. Supplied together with ``times``.
@@ -232,33 +233,57 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
     to be raised.
 
     **Step 5 — the finite-difference velocity cancellation allowance
-    (validation-side reading ONLY).** The validation-side reading does not
-    consume stored velocities; it reconstructs them as a central divided
-    difference ``v[k] = (pos[k+1] - pos[k-1]) / (t[k+1] - t[k-1])``
-    (``gate_metrics.py:84-123``).
+    (divided-difference reading ONLY).** The validation-side reading does not
+    consume stored velocities; it reconstructs them by divided differences —
+    CENTRED on the interior, ``v[k] = (pos[k+1] - pos[k-1]) / (t[k+1] -
+    t[k-1])``, and ONE-SIDED at the two endpoints, ``v[0] = (pos[1] - pos[0]) /
+    (t[1] - t[0])`` and ``v[-1] = (pos[-1] - pos[-2]) / (t[-1] - t[-2])``
+    (``gate_metrics.py:84-123``; the endpoint stencils at ``:117-118``).
 
     In EXACT arithmetic that operator is linear in positions and scales exactly
     as stored velocities do — which is what Step 1 already argues, and Step 1 is
-    correct and unchanged. In float64 the stored position components each carry
-    an ABSOLUTE representation error of order ``u * abs(r)``, and those errors do
-    NOT cancel in the numerator. The reconstructed velocity therefore carries
-    absolute error
+    correct and unchanged. In float64 the position components entering the
+    numerator each carry an ABSOLUTE error of a few units of round-off in
+    ``abs(r)``, and those errors do NOT cancel in the subtraction. The
+    reconstructed velocity therefore carries absolute error
 
-        dv_i[k] <= 2*u*R_max/dt_k + 2*u*abs(v_i[k])
+        dv_i[k] <= 8*u*R_max/dt_k + 2*u*abs(v_i[k])
 
     with ``u = numpy.finfo(numpy.float64).eps / 2`` (the same unit round-off Step
-    4 uses); ``R_max`` the maximum over snapshots, bodies and components of
+    4 uses) and ``R_max`` the maximum over snapshots, bodies and components of
     ``abs(position)``, read from the trajectory's own geometry (the same
-    OLD-frame array Step 2 reads); and ``dt_k = t[k+1] - t[k-1]`` computed from
-    the ACTUAL supplied times at each interior node. A single assumed uniform
-    step is a DEFECT, not a simplification — Brutus sampling is not uniform —
-    which is the same constraint ``test_velocity_identity`` already imposes on
-    itself. The second term is the round-off of the division itself.
+    OLD-frame array Step 2 reads).
+
+    **The numerator count ``8``, stated in Step 4's style.** It is
+    ``2 operands x 4 units``, an OPERATION COUNT — not a tunable coefficient. The
+    two operands are the two positions the numerator subtracts. The ``4`` units
+    per operand is the round-off a position component carries by the time it is
+    differenced ON THE NEW ARM, whose positions are COMPUTED rather than stored:
+    ``r' = fl((R0 @ r_bar) / D)`` (``preprocessing.py:200,204``) is a THREE-TERM
+    ``einsum`` dot product (three units) plus ONE divide by ``D`` (one unit). The
+    OLD arm's positions ARE the stored ``r_com_ordered`` array and carry one unit
+    each, i.e. ``2 x 1``; the allowance takes the larger of the two arms because
+    this error does NOT cancel between them — only one arm computes its
+    positions. Exactly like Step 4's ``4`` and ``8``, the count is read off the
+    operations the code performs, never raised to fit an observed difference.
+
+    **``dt_k`` is per node, and the max runs over EVERY node.** ``dt_k`` is that
+    node's OWN divided-difference span, read from the ACTUAL supplied times:
+    ``t[k+1] - t[k-1]`` at an interior node, ``t[1] - t[0]`` at node ``0``, and
+    ``t[-1] - t[-2]`` at the last node. A single assumed uniform step is a
+    DEFECT, not a simplification — Brutus sampling is not uniform — which is the
+    same constraint ``test_velocity_identity`` already imposes on itself.
+    Restricting the max to interior nodes is likewise a DEFECT: ``eps_H`` is
+    evaluated at every node; the one-sided endpoint spans are the NARROWER ones,
+    so the endpoint allowance is the LARGER; and node ``0`` is required
+    STRUCTURALLY, not merely numerically, because Step 3's ``e = delta(0)`` IS
+    the perturbation at node ``0``.
 
     The first term is the cancellation amplification: since
     ``abs(v) ~ abs(dr)/dt``, the ratio of that term to ``abs(v)`` is
-    ``~ 2*u*abs(r)/abs(dr)``, i.e. the CONDITION NUMBER of the subtraction —
-    exactly the quantity Step 4 omits.
+    ``~ 8*u*abs(r)/abs(dr)``, i.e. the CONDITION NUMBER of the subtraction times
+    the operand count — exactly the quantity Step 4 omits. The second term,
+    ``2*u*abs(v_i[k])``, is the round-off of the division itself.
 
     This propagates into the kinetic term ``K = 0.5 * sum_i m_i * norm(v_i)**2``
     as ``dK_k = sum_i m_i * norm(v_i[k]) * dv_i[k]``
@@ -266,7 +291,7 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
     absolute perturbation of ``H_old``, enters exactly where ``delta_round``
     does:
 
-        delta_fd    = max over interior k of ( sum_i m_i*norm(v_i[k])*dv_i[k] )
+        delta_fd    = max over ALL k of ( sum_i m_i*norm(v_i[k])*dv_i[k] )
         delta_total = delta_max + delta_round + delta_fd
 
     Every quantity is an INPUT — masses, positions, the supplied times, the
@@ -358,12 +383,23 @@ def _finite_difference_energy_allowance(masses, positions, times, fd_velocities,
                                         unit_roundoff):
     """Step 5's ``delta_fd`` — the divided difference's cancellation allowance.
 
-    ``delta_fd = max over interior k of ( sum_i m_i*norm(v_i[k])*dv_i[k] )`` with
-    ``dv_i[k] = 2*u*R_max/dt_k + 2*u*norm(v_i[k])``. Interior nodes only: those
-    are the nodes ``gate_metrics.finite_difference_velocity`` fills with the
-    CENTRED stencil, and ``dt_k = t[k+1] - t[k-1]`` is that stencil's own
-    denominator (``gate_metrics.py:120-121``), read per node from the ACTUAL
-    supplied times.
+    ``delta_fd = max over ALL k of ( sum_i m_i*norm(v_i[k])*dv_i[k] )`` with
+    ``dv_i[k] = 8*u*R_max/dt_k + 2*u*norm(v_i[k])``.
+
+    The max covers EVERY node, because ``eps_H`` is evaluated at every node and
+    Step 3's ``e = delta(0)`` is the perturbation at node ``0`` specifically.
+    Each node contributes its OWN divided-difference span, mirroring
+    ``gate_metrics.finite_difference_velocity`` exactly: ``t[1] - t[0]`` at node
+    ``0`` and ``t[-1] - t[-2]`` at the last node, which are that function's
+    one-sided endpoint denominators (``gate_metrics.py:117-118``), and
+    ``t[k+1] - t[k-1]`` in between, its centred denominator (``:120-121``). The
+    endpoint spans are the narrower ones, so they carry the LARGER allowance —
+    which is exactly why excluding them understated the bound.
+
+    ``8`` is the numerator OPERATION COUNT of Step 5, ``2 operands x 4 units``:
+    the new arm's positions are computed as ``fl((R0 @ r_bar)/D)``, a three-term
+    ``einsum`` dot product plus one divide (``preprocessing.py:200,204``). It is
+    counted a priori from the code, not fitted, and is not to be raised.
 
     ``abs(v_i[k])`` is read as the body-``i`` speed ``norm(v_i[k])``, the same
     per-body magnitude the ``dK`` expression uses — the larger of the two
@@ -385,28 +421,34 @@ def _finite_difference_energy_allowance(masses, positions, times, fd_velocities,
             f"fd_velocities shape {velocities.shape} must match the position "
             f"array shape {positions.shape}"
         )
-    if n_snapshots < 3:
+    if n_snapshots < 2:
         raise ValueError(
-            "the Step-5 allowance is defined on the CENTRED stencil's interior "
-            f"nodes, and a {n_snapshots}-snapshot series has none; every "
-            "velocity would then be a one-sided difference this term does not "
-            "cover — a finding to surface, not a term to zero out"
+            "the Step-5 allowance needs at least two snapshots to form a "
+            f"divided difference; got {n_snapshots}"
         )
 
-    # dt_k = t[k+1] - t[k-1], per interior node. No uniform step is assumed.
-    dt = t[2:] - t[:-2]
+    # Each node's OWN span, mirroring finite_difference_velocity exactly:
+    # one-sided at the two endpoints, centred in between. No uniform step is
+    # assumed anywhere, and no node is skipped.
+    dt = np.empty(n_snapshots, dtype=np.float64)
+    dt[0] = t[1] - t[0]
+    dt[-1] = t[-1] - t[-2]
+    dt[1:-1] = t[2:] - t[:-2]
     if not np.all(np.isfinite(dt)) or not np.all(dt > 0.0):
         raise ValueError(
-            "the centred-stencil denominators t[k+1]-t[k-1] must be finite and "
-            "positive; times must be strictly increasing"
+            "the divided-difference denominators must be finite and positive; "
+            "times must be strictly increasing"
         )
 
     r_max = float(np.max(np.abs(positions)))
     if not math.isfinite(r_max):
         raise ValueError(f"R_max must be finite; got {r_max!r}")
 
-    speed = np.linalg.norm(velocities[1:-1], axis=-1)          # (Ni, 3)
-    dv = 2.0 * unit_roundoff * r_max / dt[:, None] + 2.0 * unit_roundoff * speed
+    # 8 = 2 operands x 4 units (three einsum terms + one divide by D) for the
+    # numerator; 2 units for the division's own round-off. Operation counts,
+    # not coefficients — never raised to fit an observed difference.
+    speed = np.linalg.norm(velocities, axis=-1)                # (Nt, 3)
+    dv = 8.0 * unit_roundoff * r_max / dt[:, None] + 2.0 * unit_roundoff * speed
     d_kinetic = (masses.reshape(1, 3) * speed * dv).sum(axis=-1)
     return float(np.max(d_kinetic))
 

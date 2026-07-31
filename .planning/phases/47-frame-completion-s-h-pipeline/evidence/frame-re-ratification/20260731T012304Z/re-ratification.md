@@ -691,3 +691,192 @@ manifests' shared train-or-validation Stage-0 population.
 **Verification at the time of this record** (`.venv/bin/python`, torch 2.12.0,
 pytest 9.1.1): `tests/phase47` 4 passed, 0 skipped; `tests/phase46 tests/phase47`
 155 passed + 68 subtests, 0 skipped; `tests/phase39` 264 passed + 43 subtests.
+
+### 4.5 GAP-47-01 closure: both residual sources adopted
+
+**Grounding.** The owner ruled on the two residual sources §4.4 surfaced on
+**2026-07-30**: **adopt both**. That ruling is the authority for this section.
+§4.4 measured the shortfall and changed nothing further, which is what SCOPE-29 /
+47-CONTEXT.md D-26 require; this section applies the instruction. Both
+corrections land in Step 5. Steps 1–3 remain untouched and Step 4's operation
+counts `4` and `8` remain unraised.
+
+**(1) Node coverage — a defect in the ratified Step 5, not an extension.** Step 5
+maxed over *interior* nodes only. `eps_H` is evaluated at **every** node, and
+`finite_difference_velocity` fills the two endpoints with **one-sided**
+differences (`gate_metrics.py:117-118`), so those nodes have their own, narrower
+spans: `t[1]-t[0]` at node 0 and `t[-1]-t[-2]` at the last node, versus the
+centred `t[k+1]-t[k-1]` in between (`:120-121`). Narrower span means *larger*
+allowance, so excluding the endpoints understated the bound. Node 0's inclusion
+is required **structurally**, not merely numerically: Step 3's `e = delta(0)` *is*
+the perturbation at node 0. The max now runs over all nodes, each contributing
+its own actual `dt_k`; no uniform step is assumed anywhere.
+
+**(2) The new arm's computed-position round-off — a distinct term, stated as an
+a-priori operation count in Step 4's style.** Step 5 priced the numerator at
+`2*u*R_max`, i.e. two operands each carrying one unit of representation
+round-off. That is right for the OLD arm, whose positions **are** the stored
+`r_com_ordered` array. The NEW arm's positions are **computed**:
+`r' = fl((R0 @ r_bar) / D)` (`preprocessing.py:200,204`) is a **three-term
+`einsum` dot product** (three units) plus **one divide by `D`** (one unit), so
+about `4*u*|r|` per component. The numerator allowance is therefore
+
+```
+2 operands x 4 units = 8   ->   dv_i[k] <= 8*u*R_max/dt_k + 2*u*abs(v_i[k])
+```
+
+amplified by the same `1/dt_k`, and it does **not** cancel between the arms
+because only one arm computes its positions. `8` is counted off the operations
+the code performs, exactly as Step 4 counts its `4` and `8` — it is not a tunable
+coefficient and was not fitted to any measurement. The second term stays
+`2*u*abs(v_i[k])`, the round-off of the division itself.
+
+The corrected Step 5 is therefore
+
+```
+delta_fd    = max over ALL k of ( sum_i m_i*norm(v_i[k])*dv_i[k] )
+dv_i[k]    <= 8*u*R_max/dt_k + 2*u*norm(v_i[k])
+dt_k        = t[1]-t[0] (node 0) | t[k+1]-t[k-1] (interior) | t[-1]-t[-2] (last)
+delta_total = delta_max + delta_round + delta_fd
+```
+
+**Method, population and sample rule: unchanged again.** Same committed
+`dual_arm_frame_comparison` and `frame_drift_tolerance`, same 1651-trajectory
+eligible population, same deterministic stride, same 50 trajectories — the
+re-measurement re-asserts that the stride reproduces §4.2's id list before
+measuring, and it does. The D-22 one-shot probe was **not** re-run.
+
+**Summary (same column format as §4.2 / §4.4).**
+
+| reading | eps | median `eps_H` OLD | median `eps_H` NEW | max abs difference | min derived bound | max derived bound | max difference/bound | within bound |
+|---|---|---|---|---|---|---|---|---|
+| validation-side | 1e-10 | 1.470877e-01 | 1.470877e-01 | 1.724e-14 | 6.154e-15 | 6.861e-14 | 0.3887 | **50/50** |
+| loss-side | 1e-05 | 4.942078e-10 | 1.064725e-08 | 5.687e-08 | 9.449e-09 | 1.627e-07 | 0.6693 | **50/50** |
+
+**Progression across the three records:**
+
+| reading | §4.2 (Step 4 only) | §4.4 (Step 5 as first ratified) | §4.5 (both corrections) |
+|---|---|---|---|
+| validation-side, within bound | 41/50 | 45/50 | **50/50** |
+| validation-side, worst ratio | 4.7611 | 1.7044 | **0.3887** |
+| validation-side, median ratio | 0.47 | 0.2700 | **0.0712** |
+| loss-side, within bound | 50/50 | 50/50 | **50/50** |
+| loss-side, worst ratio | 0.6693 | 0.6693 | **0.6693** |
+
+**GAP-47-01's measured symptom is closed: every sampled trajectory is now inside
+its derived bound on both readings.**
+
+**Loss-side invariance, re-verified explicitly (the required check).** `delta_fd`
+must be exactly zero for a reading that consumes stored velocities, and the
+proof is that the loss arm cannot move. All **50** loss-side rows of this
+re-measurement are **byte-for-byte identical** to §4.4's rows *and* to §4.2's
+original rows — same `eps_H old`, `eps_H new`, `abs difference` and, critically,
+the same `derived bound` (min 9.449e-09, max 1.627e-07, worst ratio 0.6693,
+50/50). Neither correction leaked into it: the loss arm supplies neither Step-5
+input, so `delta_fd` is `0.0` by construction and the bound is arithmetically the
+same expression it was before Step 5 existed. The term is reading-specific, as
+claimed.
+
+Independently, all **50** validation-side `eps_H old`, `eps_H new` and
+`abs difference` values are also identical to §4.2. Across all three records the
+only column that has ever moved is the validation-side `derived bound`.
+
+**Per-trajectory record, validation-side** (same column format; the loss-side
+rows are omitted here only because they are byte-identical to §4.4's table above
+and reprinting them would imply they were re-derived differently — they were
+not):
+
+| variant | fidelity | id | reading | eps_H old | eps_H new | abs difference | derived bound |
+|---|---|---|---|---|---|---|---|
+| hierarchical | base | 0000 | validation | 8.698750e-02 | 8.698750e-02 | 2.068e-15 | 3.250e-14 |
+| hierarchical | base | 0118 | validation | 8.496125e-02 | 8.496125e-02 | 2.595e-15 | 2.923e-14 |
+| hierarchical | base | 0210 | validation | 9.346796e-02 | 9.346796e-02 | 4.066e-15 | 3.135e-14 |
+| hierarchical | base | 0302 | validation | 3.960054e-01 | 3.960054e-01 | 8.327e-16 | 1.802e-14 |
+| hierarchical | base | 0420 | validation | 1.717153e-01 | 1.717153e-01 | 1.749e-15 | 6.303e-15 |
+| hierarchical | base | 0542 | validation | 2.508478e-01 | 2.508478e-01 | 1.277e-15 | 2.255e-14 |
+| hierarchical | base | 0661 | validation | 9.918881e-02 | 9.918881e-02 | 1.724e-14 | 5.384e-14 |
+| hierarchical | base | 0743 | validation | 3.824582e-02 | 3.824582e-02 | 2.054e-15 | 5.652e-14 |
+| hierarchical | base | 0863 | validation | 6.072469e-02 | 6.072469e-02 | 7.563e-16 | 3.338e-14 |
+| hierarchical | base | 0969 | validation | 3.673960e-01 | 3.673960e-01 | 1.887e-15 | 1.335e-14 |
+| hierarchical | base | 1089 | validation | 6.551244e-02 | 6.551244e-02 | 6.925e-15 | 2.537e-14 |
+| hierarchical | base | 1191 | validation | 4.519053e-02 | 4.519053e-02 | 4.864e-15 | 3.389e-14 |
+| hierarchical | base | 1297 | validation | 2.468056e-01 | 2.468056e-01 | 1.499e-15 | 1.767e-14 |
+| hierarchical | base | 1402 | validation | 4.199852e-01 | 4.199852e-01 | 1.166e-15 | 8.728e-15 |
+| hierarchical | base | 1510 | validation | 6.639016e-02 | 6.639016e-02 | 5.829e-16 | 3.554e-14 |
+| hierarchical | base | 1611 | validation | 1.433227e-01 | 1.433227e-01 | 6.717e-15 | 1.902e-14 |
+| hierarchical | base | 1692 | validation | 1.399537e-01 | 1.399537e-01 | 8.327e-17 | 1.271e-14 |
+| hierarchical | base | 1787 | validation | 9.738787e-02 | 9.738787e-02 | 3.234e-15 | 3.531e-14 |
+| hierarchical | base | 1888 | validation | 8.620874e-02 | 8.620874e-02 | 1.005e-14 | 3.609e-14 |
+| hierarchical | base | 1984 | validation | 1.061494e-01 | 1.061494e-01 | 5.551e-17 | 4.407e-14 |
+| hierarchical | base | 2107 | validation | 7.035847e-02 | 7.035847e-02 | 7.591e-15 | 3.447e-14 |
+| hierarchical | base | 2197 | validation | 1.231975e-01 | 1.231975e-01 | 4.718e-16 | 2.117e-14 |
+| hierarchical | base | 2300 | validation | 1.508278e-01 | 1.508278e-01 | 5.829e-16 | 1.586e-14 |
+| hierarchical | base | 2390 | validation | 1.717301e-01 | 1.717301e-01 | 4.441e-16 | 1.529e-14 |
+| hierarchical | base | 2496 | validation | 2.028867e-01 | 2.028867e-01 | 2.026e-15 | 1.932e-14 |
+| hierarchical | base | 2602 | validation | 1.587900e-01 | 1.587900e-01 | 1.055e-15 | 1.812e-14 |
+| hierarchical | base | 2687 | validation | 3.933138e-01 | 3.933138e-01 | 3.886e-16 | 1.648e-14 |
+| hierarchical | base | 2790 | validation | 2.754251e-01 | 2.754251e-01 | 0.000e+00 | 1.097e-14 |
+| hierarchical | base | 2927 | validation | 2.713511e-01 | 2.713511e-01 | 9.437e-16 | 6.154e-15 |
+| hierarchical | base | 3012 | validation | 4.822827e-02 | 4.822827e-02 | 5.065e-16 | 2.957e-14 |
+| hierarchical | base | 3119 | validation | 2.704379e-01 | 2.704379e-01 | 1.721e-15 | 1.484e-14 |
+| hierarchical | base | 3216 | validation | 2.828551e-01 | 2.828551e-01 | 1.443e-15 | 9.807e-15 |
+| hierarchical | base | 3326 | validation | 2.960013e-01 | 2.960013e-01 | 6.661e-16 | 1.589e-14 |
+| hierarchical | base | 3415 | validation | 4.333210e-02 | 4.333210e-02 | 2.165e-15 | 4.275e-14 |
+| hierarchical | base | 3508 | validation | 6.262754e-02 | 6.262754e-02 | 3.192e-15 | 2.883e-14 |
+| hierarchical | base | 3596 | validation | 1.429867e-01 | 1.429867e-01 | 8.327e-16 | 2.560e-14 |
+| hierarchical | base | 3703 | validation | 1.908436e-01 | 1.908436e-01 | 6.023e-15 | 1.549e-14 |
+| hierarchical | base | 3813 | validation | 1.898802e-02 | 1.898802e-02 | 1.461e-15 | 4.415e-14 |
+| hierarchical | base | 3906 | validation | 5.453949e-02 | 5.453949e-02 | 2.547e-15 | 2.942e-14 |
+| hierarchical | base | 4004 | validation | 1.901634e-01 | 1.901634e-01 | 6.106e-16 | 2.132e-14 |
+| hierarchical | base | 4123 | validation | 3.575128e-01 | 3.575128e-01 | 5.551e-16 | 2.388e-14 |
+| hierarchical | base | 4262 | validation | 3.891017e-01 | 3.891017e-01 | 2.109e-15 | 2.983e-14 |
+| hierarchical | base | 4357 | validation | 1.433476e-01 | 1.433476e-01 | 5.551e-16 | 2.219e-14 |
+| hierarchical | base | 4428 | validation | 9.450085e-02 | 9.450085e-02 | 2.276e-15 | 2.157e-14 |
+| hierarchical | base | 4520 | validation | 2.794586e-01 | 2.794586e-01 | 1.887e-15 | 2.367e-14 |
+| hierarchical | base | 4609 | validation | 2.250630e-01 | 2.250630e-01 | 4.718e-15 | 1.461e-14 |
+| hierarchical | base | 4717 | validation | 5.550861e-02 | 5.550861e-02 | 1.860e-15 | 3.485e-14 |
+| hierarchical | base | 4816 | validation | 2.366017e-01 | 2.366017e-01 | 3.608e-15 | 6.861e-14 |
+| hierarchical | base | 4907 | validation | 2.093957e-01 | 2.093957e-01 | 8.882e-16 | 1.239e-14 |
+| hierarchical | base | 4999 | validation | 2.220967e-01 | 2.220967e-01 | 2.581e-15 | 1.788e-14 |
+
+**What did and did not change.**
+
+*Changed:* Step 5 only — the max now covers every node with its own `dt_k`, and
+the numerator count is `8` rather than `2`. `_finite_difference_energy_allowance`
+builds a per-node span array (one-sided at both ends, centred in between) and
+maxes over the whole series; its minimum-length guard relaxes from three
+snapshots to two, because the "no interior nodes" objection that motivated the
+stricter guard no longer applies once endpoints are covered. The validation-side
+`derived bound` column, and only that column: e.g. id 0000, 7.558e-15 →
+3.250e-14.
+
+*Not changed:* every measured quantity, on both readings, on all 50 trajectories
+(verified above by direct comparison against both §4.2 and §4.4). The loss-side
+reading in its entirety. Steps 1, 2 and 3. Step 4's counts `4` and `8`. The
+`delta_total < abs(H_old(0))` precondition and its fail-loud `ValueError`. The
+`ValueError` on exactly one of `times`/`fd_velocities`. The instrument, the
+population, the sample rule and the sample. The D-22 probe, which was not re-run
+and whose `pinn/verification/target_frame_probe.py` still has no diff across this
+phase. No test was relaxed, skipped or weakened.
+
+**No third omitted source was found.** The bound is now an envelope over the
+realized differences with the margin a worst-case operation count should give:
+worst ratio 0.3887, median 0.0712, i.e. between roughly 2.5x and 14x of headroom
+rather than a bound sitting on top of the data. Nothing was tuned to achieve
+that — both counts (`8` for the numerator, all-node coverage for the max) follow
+from the operations `preprocessing.py` and `gate_metrics.py` actually perform.
+
+**Reproduction.** Unchanged from §4.2 / §4.4 — the same committed entry point,
+now returning the twice-corrected bound.
+
+**Verification at the time of this record** (`.venv/bin/python`, torch 2.12.0,
+pytest 9.1.1). Shared worktree: `tests/phase47` **11 passed, 0 skipped**;
+`tests/phase46 tests/phase47` **162 passed + 68 subtests, 0 skipped**;
+`tests/phase39` **264 passed + 43 subtests**. Independently, against a pristine
+`git archive HEAD` tree carrying only this file's change (the shared worktree was
+concurrently being edited by the 47-02 executor): **425 passed + 111 subtests**,
+with the single failure being `tests/phase39/test_adapter.py::
+ProductionRootAndBlacklistTests::test_default_root_uses_git_common_dir_not_worktree_toplevel`,
+which requires a real git directory and therefore cannot pass in a tar-extracted
+tree — an artifact of the isolation harness, not of any code change. That same
+test passes in the shared worktree.
