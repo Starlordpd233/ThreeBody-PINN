@@ -143,9 +143,60 @@ executor surfaced the finding and correctly declined to resolve it.
   appear safe to proceed while this gap is open. **Phase 47 must not close** with
   it unresolved.
 
-- **Status:** `OPEN`
+- **Status:** `OPEN` — owner ruled option A on 2026-07-30 and it was applied in
+  full (`562084e8`); the ruling **narrowed but did not close** the shortfall, and a
+  second, distinct omitted source has since been identified. A follow-on decision
+  is required. See "Resolution progress" below.
 
-- **Resolution note:** *(empty — awaiting owner instruction)*
+- **Resolution note (progress, 2026-07-30):** Owner ruled **option A** — extend the
+  derivation with an inputs-only finite-difference cancellation term. Implemented
+  as ratified in `562084e8`: `frame_drift_tolerance` gained keyword-only
+  `times`/`fd_velocities`, a new Step 5 adds
+  `delta_fd = max_k Σᵢ mᵢ·‖vᵢ[k]‖·δvᵢ[k]` with
+  `δvᵢ[k] = 2u·R_max/Δt_k + 2u·‖vᵢ[k]‖` and `Δt_k` read per interior node from the
+  actual times, and `delta_total = delta_max + delta_round + delta_fd`. Steps 1–3
+  unchanged; Step 4's operation counts `4` and `8` unchanged; no test relaxed.
+  `delta_fd` is exactly zero for the loss-side reading, whose 50 rows are
+  byte-identical before and after — the mechanical proof the term is
+  reading-specific.
+
+  **Result: validation-side 41/50 → 45/50 within bound; max ratio 4.7611 → 1.7044.
+  Loss-side unchanged at 50/50 (max 0.6693).** Five trajectories (ids 0661, 1089,
+  1611, 1888, 3703) still exceed. Two residual sources, both identified from the
+  derivation rather than from the numbers, neither implemented:
+
+  1. **Node coverage inside Step 5 itself.** Step 5 maxes over *interior* nodes,
+     but `eps_H` is evaluated at every node, and `finite_difference_velocity` fills
+     both endpoints with *one-sided* differences over `t[1]−t[0]`
+     (`gate_metrics.py:117-118`) — about half the interior span on this corpus
+     (0.08 vs 0.16), so endpoint error is roughly 2× the interior max. Node 0
+     matters structurally, not just numerically: Step 3's `e = delta(0)` is the
+     perturbation at node 0, an endpoint the interior max never sees. This reads
+     as an incompleteness in Step 5's own wording rather than a new effect.
+  2. **A genuinely second omitted source.** Step 5 prices the numerator at
+     `2u·R_max` — two operands × one representation round-off — which is right for
+     the OLD arm, whose positions *are* the stored array. The NEW arm's positions
+     are computed: `r' = fl((R0 @ r_bar)/D)` (`preprocessing.py:200,204`), a
+     three-term `einsum` (~3u) plus a divide (~1u), so ~`4u·|r|` per component,
+     amplified by the same `1/Δt` factor and present on the new arm only, so it
+     does not cancel between arms.
+
+  Measured for scale only, explicitly **not** applied: endpoint coverage alone
+  leaves 1/50 outside (id 0661 at 1.0402); endpoints plus the analytic
+  `2 operands × 4u = 8u` leaves 0/50 outside (worst 0.3887). Both are a-priori
+  operation counts in Step 4's style rather than fits, but adopting either extends
+  the derivation beyond what the owner ratified, so neither was taken.
+
+  **Orchestrator note on method risk.** This is now the second round in which the
+  derivation proved incomplete. Each added term is individually a-priori, but an
+  open-ended sequence of "add another term until the data fits" converges on the
+  behaviour SCOPE-29 exists to prevent, even when no single step is a fit. The
+  underlying difficulty is real: the bound is `O(1e-15)` on a metric of `O(1e-1)`,
+  so it is certifying agreement at the float64 noise floor, where an exhaustive
+  term-by-term operation count over a rotate → scale → difference → assemble →
+  ratio pipeline is a brittle instrument. A single conservative whole-pipeline
+  round-off model with one stated operation-count budget may be the terminating
+  form. Recorded as an observation for the owner, not a proposal adopted.
 
 ## Not recorded as gaps
 
