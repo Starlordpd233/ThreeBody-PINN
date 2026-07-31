@@ -137,9 +137,16 @@ def _as_positions(positions, *, dtype, device) -> torch.Tensor:
     return p
 
 
-def _matched_plummer_hamiltonian(positions, velocities, masses, *, dtype, device,
-                                 eps_soft=EPS_SOFT) -> torch.Tensor:
-    """Matched-Plummer H_eps = T' + V_eps per snapshot; returns (N_t,)."""
+def _matched_plummer_components(positions, velocities, masses, *, dtype, device,
+                                eps_soft=EPS_SOFT) -> tuple[torch.Tensor, torch.Tensor]:
+    """Matched-Plummer (T', V_eps) component pair per snapshot; returns ((N_t,), (N_t,)).
+
+    The ONE home of the softened pairwise sum (CONF-02 / D-11): the §3.4 S_H
+    admission capture and the L_E Hamiltonian both read their components from
+    here, so the two consumers can never drift apart on the softening.
+    ``potential`` is the signed Plummer potential (strictly negative); callers
+    needing ``Uabs = -V_eps`` take ``abs`` themselves.
+    """
     p = _as_positions(positions, dtype=dtype, device=device)
     v = _as_positions(velocities, dtype=dtype, device=device)
     m = torch.as_tensor(masses, dtype=dtype, device=device)
@@ -154,6 +161,14 @@ def _matched_plummer_hamiltonian(positions, velocities, masses, *, dtype, device
             delta = p[:, j] - p[:, i]
             r_safe = torch.sqrt((delta * delta).sum(dim=-1) + eps * eps)
             potential = potential - (m[i] * m[j] / r_safe)
+    return kinetic, potential
+
+
+def _matched_plummer_hamiltonian(positions, velocities, masses, *, dtype, device,
+                                 eps_soft=EPS_SOFT) -> torch.Tensor:
+    """Matched-Plummer H_eps = T' + V_eps per snapshot; returns (N_t,)."""
+    kinetic, potential = _matched_plummer_components(
+        positions, velocities, masses, dtype=dtype, device=device, eps_soft=eps_soft)
     return kinetic + potential
 
 

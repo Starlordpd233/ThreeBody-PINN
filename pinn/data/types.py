@@ -231,6 +231,14 @@ class AdmittedRecord:
     l_ratio: Any
     Q: float
     min_separation: float
+    # §3.4 S_H components (CONF-02, D-09/D-10/D-12), captured at admission in
+    # float64 from the completed CONF-09 frame tuple {position: r_prime,
+    # time: u, velocity: dr_prime_du, masses: ordered_raw} at snapshot 0,
+    # BEFORE the fp32 residency cast. ``k0`` is the matched-Plummer kinetic
+    # term; ``uabs0`` is the ABSOLUTE VALUE of the softened potential
+    # (``V_eps < 0``, so ``uabs0 = -V_eps`` — never the signed Hamiltonian).
+    k0: float
+    uabs0: float
     # Persisted authoritative curriculum label.
     stage_label: StageLabel
 

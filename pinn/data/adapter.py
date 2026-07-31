@@ -61,6 +61,7 @@ from pinn.data.preprocessing import (
     preprocess_trajectory,
 )
 from pinn.data.stages import classify_stage_label
+from pinn.loss_catalog import _matched_plummer_components
 
 # ---------------------------------------------------------------------------
 # Structural constants (README File Schemas / File Naming Conventions).
@@ -847,6 +848,20 @@ class AdmittedSetAdapter:
                     inv = compute_invariants(pre.masses_ordered, pre.r0_gauge, pre.v0_gauge)
                     raw_ic13 = build_raw_ic13(
                         pre.masses_ordered, pre.r0_gauge, pre.v0_gauge, inv.E)
+                    # CONF-02 (D-09/D-10/D-12): the §3.4 S_H components,
+                    # captured in float64 at admission — BEFORE the fp32
+                    # residency cast — from the completed CONF-09 frame tuple
+                    # {position: r_prime, time: u, velocity: dr_prime_du,
+                    # masses: ordered_raw} at snapshot 0. The single
+                    # loss-catalog seam supplies both components at the
+                    # training softening; ``uabs0`` is the ABSOLUTE VALUE of
+                    # the softened potential (``V_eps < 0``, so
+                    # ``uabs0 = -V_eps``), never the signed Hamiltonian.
+                    kinetic0, potential0 = _matched_plummer_components(
+                        pre.r_gauge[0], pre.v_gauge[0], pre.masses_ordered,
+                        dtype=torch.float64, device=torch.device("cpu"))
+                    k0 = float(kinetic0[0])
+                    uabs0 = float(abs(potential0[0]))
                 except (GaugeDegenerateError, PreprocessAssertionError, MassInvarianceError):
                     counts["quarantined"] += 1
                     continue
@@ -869,7 +884,7 @@ class AdmittedSetAdapter:
                     times=parsed_brutus.times, positions=pre.r_gauge,
                     velocities=pre.v_gauge,
                     masses_ordered=pre.masses_ordered, raw_ic13=raw_ic13,
-                    inv=inv, measured=measured,
+                    inv=inv, measured=measured, k0=k0, uabs0=uabs0,
                     dt_reference=reference.get("dt_out"),
                     dt_provenance=provenance.get("dt_out"),
                     n_snapshots=int(pre.r_gauge.shape[0]),
@@ -954,6 +969,7 @@ class AdmittedSetAdapter:
                 n_snapshots=cand.n_snapshots,
                 E=float(cand.inv.E), l_ratio=cand.inv.l_ratio, Q=float(cand.inv.Q),
                 min_separation=float(cand.inv.s_min),
+                k0=float(cand.k0), uabs0=float(cand.uabs0),
                 stage_label=cand.stage_label)
             self._records[cand.record_key] = record
 
@@ -1043,6 +1059,14 @@ class AdmittedSetAdapter:
 
     def snapshot_velocities(self, key):
         return self._trajectory_tensors[key][2]
+
+    def k0(self, key):
+        """Float64 §3.4 S_H kinetic component captured at admission (CONF-02)."""
+        return self._records[key].k0
+
+    def uabs0(self, key):
+        """Float64 §3.4 S_H |softened potential| captured at admission (CONF-02)."""
+        return self._records[key].uabs0
 
     def acceleration_magnitudes(self, key):
         """Finite-difference full-trajectory acceleration norms from residency.

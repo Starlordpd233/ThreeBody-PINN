@@ -232,6 +232,12 @@ class StageIndex:
     def snapshot_velocities(self, key: RecordKey):
         return self._source_value("snapshot_velocities", key)
 
+    def k0(self, key: RecordKey):
+        return self._source_value("k0", key)
+
+    def uabs0(self, key: RecordKey):
+        return self._source_value("uabs0", key)
+
     def acceleration_magnitudes(self, key: RecordKey):
         return self._source_value("acceleration_magnitudes", key)
 
