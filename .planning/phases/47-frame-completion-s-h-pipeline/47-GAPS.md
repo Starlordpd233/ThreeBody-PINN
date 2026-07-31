@@ -143,10 +143,42 @@ executor surfaced the finding and correctly declined to resolve it.
   appear safe to proceed while this gap is open. **Phase 47 must not close** with
   it unresolved.
 
-- **Status:** `OPEN` — owner ruled option A on 2026-07-30 and it was applied in
-  full (`562084e8`); the ruling **narrowed but did not close** the shortfall, and a
-  second, distinct omitted source has since been identified. A follow-on decision
-  is required. See "Resolution progress" below.
+- **Status:** `RESOLVED-WITH-INSTRUCTION` — closed 2026-07-30 by two owner rulings.
+  Ruling 1 (option A) added the finite-difference cancellation term (`562084e8`),
+  narrowing 41/50 → 45/50. Ruling 2 adopted both residual sources (`d034e215`),
+  reaching **50/50 within bound on both readings, worst ratio 0.3887**.
+
+- **Final resolution (2026-07-30, ruling 2):** The owner ruled to (1) treat Step 5's
+  interior-only maximum as a defect in the ratified term and cover **every** node
+  `eps_H` is evaluated at, and (2) adopt the new arm's computed-position round-off
+  as a distinct a-priori term. Implemented in `d034e215`:
+  - **(1)** `_finite_difference_energy_allowance` now builds a per-node span array
+    mirroring `finite_difference_velocity` exactly — `dt[0] = t[1]−t[0]`,
+    `dt[−1] = t[−1]−t[−2]`, `dt[1:−1] = t[2:]−t[:−2]` — and maximizes over the whole
+    series. Node 0 is structurally required because Step 3's `e = delta(0)` is the
+    perturbation there. The helper's minimum-length guard relaxes `< 3` → `< 2`,
+    since the "no interior nodes" objection disappears once endpoints are covered.
+  - **(2)** The numerator allowance moves from `2u·R_max/Δt` to `8u·R_max/Δt`,
+    stated in Step 4's style as `2 operands × 4 units`, the 4 being three `einsum`
+    terms plus one divide by `D` (`preprocessing.py:200,204`). The division's own
+    round-off stays `2u`. No tunable coefficient was introduced.
+
+  **Outcome — validation-side 50/50 (worst ratio 0.3887, median 0.0712); loss-side
+  50/50 (worst 0.6693), byte-identical to §4.2 across all 50 rows including the
+  bound column**, which is the mechanical proof that `delta_fd` is exactly zero for
+  a stored-velocity reading and that neither correction leaked across arms.
+
+  **Integrity check.** Across all three records (§4.2, §4.4, §4.5) the validation-side
+  `eps_H old`, `eps_H new`, and `max abs difference` (1.724e-14) are identical to
+  every printed digit. The **only** column that ever moved is the derived bound. The
+  measurement was never re-run to a different answer; only the certificate around it
+  was completed. The final margin — ~2.5× to ~14× headroom rather than a bound
+  sitting on the data — is itself evidence the envelope is conservative rather than
+  fitted, which answers the method-risk note recorded below.
+
+  No third omitted source was found. The D-22 one-shot probe was not re-run at any
+  point. Population reproduced exactly (N = 1651; the stride asserts §4.2's 50-id
+  list before measuring).
 
 - **Resolution note (progress, 2026-07-30):** Owner ruled **option A** — extend the
   derivation with an inputs-only finite-difference cancellation term. Implemented
