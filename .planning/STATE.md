@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 47
-current_phase_name: Frame Completion & S_H Pipeline
+current_phase_name: frame-completion-s-h-pipeline
 status: executing
-stopped_at: Phase 47 planned
-last_updated: "2026-07-30T06:13:44.508Z"
-last_activity: 2026-07-29
-last_activity_desc: Phase 47 planned — 3 plans, waves 1-3 strictly sequential
+stopped_at: Completed 47-01-PLAN.md
+last_updated: "2026-07-31T02:05:00.000Z"
+last_activity: 2026-07-31
+last_activity_desc: "47-01 executed — CONF-09 residency completed and frame re-ratified; one D-08 finding surfaced for owner ruling"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
-  percent: 14
+  completed_plans: 11
+  percent: 21
 ---
 
 # Project State
@@ -28,10 +28,34 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 47 — Frame Completion & S_H Pipeline
-Plan: 3 plans ready — 47-01 (CONF-09), 47-02 (CONF-02), 47-03 (CONF-03)
-Status: Ready to execute
-Last activity: 2026-07-29 — Phase 47 planned, waves 1-3 strictly sequential
+Phase: 47 (frame-completion-s-h-pipeline) — EXECUTING
+Plan: 2 of 3 (47-01 complete)
+Status: Executing Phase 47
+Last activity: 2026-07-31 — 47-01 (CONF-09) executed: `2c84d161` residency + re-ratification + pairing-test correction (one commit), `1c68368d` invariant suite, `98e05193` D-22/D-23 evidence
+
+### Decisions from 47-01
+
+- **CONF-09 discharged.** Residency is `pre.r_gauge`/`pre.v_gauge`;
+  `RATIFIED_VALIDATION_FRAME` is `(r_prime, u_t_over_T, ordered_raw)`, re-ratified
+  in the same commit; the one pairing test is corrected in place. The one-shot
+  re-probe records `identity_scaled` true and a zero max difference against
+  `r_gauge`/`v_gauge` for 1651/1651 — record-only, not a new CONF-01 verdict.
+- **`r_com_ordered`/`v_com_ordered` survive** on `PreprocessedTrajectory` (D-03);
+  `pinn/data/preprocessing.py` is byte-unchanged.
+- **REQUIREMENTS.md CONF-09 checkbox deliberately NOT flipped by the executor** —
+  that is a phase-close/verification act, and this plan does not mutate the locked
+  governance docs it was planned against.
+
+### ⚠ OPEN — surfaced for owner ruling (47-01, D-08)
+
+The D-08 derived bound is **exceeded on the validation-side reading for 9 of 50
+sampled real trajectories** (max ratio 4.76); the loss-side reading is inside the
+bound on all 50. The physics claim holds — both arms' `eps_H` agree to ~13
+significant digits — but Step 4's float64 allowance omits the cancellation
+amplification the finite-difference velocity incurs on real Brutus sampling.
+Nothing was widened or relaxed (SCOPE-29/D-26). Options: extend Step 4 with a
+finite-difference cancellation term; narrow the D-08 claim to the loss-side
+reading; or accept the record. Full record: `evidence/frame-re-ratification/20260731T012304Z/re-ratification.md` §4.2.
 
 **Phase 47 scope changed 2026-07-28 (GAP-46-07, owner option A) — read before planning it.** An independent verification of the conformance handoff confirmed all six carried divergences and surfaced a seventh that no requirement owned: CONF-08 excluded the rotation gauge and the `D`/`V` scaling by design, GAP-46-06 ratified the resulting intermediate as the **validation** frame, and neither reached the **training** path, which pairs unrotated/unscaled residents with `u = t/T` — a pairing `COHERENT_FRAME_PAIRS` does not admit. New requirement **CONF-09** completes the residency transform to the locked canonical contract and is sequenced **ahead of CONF-02** (`S_H` is frame-dependent). Milestone is now **24 requirements**; Phase 47 is renamed "Frame Completion & S_H Pipeline" and runs CONF-09 → CONF-02 → CONF-03. The Phase 48 CONF-05 clip bound now waits on CONF-09 as well as CONF-04. `RATIFIED_VALIDATION_FRAME` is re-ratified by CONF-09, so GAP-46-06 is superseded **in part** — CONF-01's Complete status and its mandatory EVAL-01 precondition-(ii) qualification are unchanged. Report: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-report.md`.
 

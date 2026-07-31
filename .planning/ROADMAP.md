@@ -210,7 +210,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 10/10 | Complete    | 2026-07-29 |
-| 47. S_H Pipeline | v2.2 | 0/? | Not started | - |
+| 47. Frame Completion & S_H Pipeline | v2.2 | 1/3 | In progress | - |
 | 48. Loss-Math Conformance | v2.2 | 0/? | Not started | - |
 | 49. Conformance Gate | v2.2 | 0/? | Not started | - |
 | 50. Valid Stage-0 Re-Run | v2.2 | 0/? | Not started | - |
