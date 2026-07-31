@@ -105,6 +105,7 @@ class SPerStepPropertyTests(unittest.TestCase):
             TorchSaveCheckpointStore(tmp_dir),
             runtime,
             rng=np.random.default_rng(0),
+            s_h=1.0,
         )
 
     def test_s_per_step_is_none_then_finite_after_steps(self):

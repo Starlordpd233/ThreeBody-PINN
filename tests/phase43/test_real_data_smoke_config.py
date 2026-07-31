@@ -366,6 +366,7 @@ class ReplayCountSelectionTests(unittest.TestCase):
             runtime,
             rng=np.random.default_rng(0),
             replay_count=replay_count,
+            s_h=1.0,
         )
         return controller
 

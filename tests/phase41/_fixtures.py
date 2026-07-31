@@ -196,6 +196,7 @@ def make_synthetic_stage0_loop(
         stage_exit_machine=stage_exit_machine,
         checkpoint_store=checkpoint_store,
         runtime=runtime,
+        s_h=1.0,
         rng=np.random.default_rng(seed),
     )
     curriculum = CurriculumController(

@@ -121,6 +121,7 @@ def _build_run_controller(
         rng=np.random.default_rng(seed),
         checkpoint_hook=checkpoint_hook,
         guard_hook=guard_hook,
+        s_h=1.0,
     )
     return controller, model, config, checkpoint_store
 
@@ -829,6 +830,7 @@ class AdamResetCompositionTests(unittest.TestCase):
                 CollocationSampler(2, np.random.default_rng(0)),
                 StageExitMachine(config), store, runtime,
                 rng=np.random.default_rng(1),
+                s_h=1.0,
             )
             _patch_cheap_loss(rc)
             return rc

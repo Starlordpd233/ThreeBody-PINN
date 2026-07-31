@@ -32,9 +32,11 @@ identity), with ``h0``/``l0`` computed from that identity's ground-truth
 snapshot-0 position/velocity via the same matched-Plummer / angular-momentum
 formulas ``pinn.loss_catalog`` uses internally (reusing the module's private
 helpers rather than duplicating the formula, to avoid a divergent second
-copy). ``eps_h`` is a provisional ``|h0| * 1e-4`` scale (mirrors the
-documented ``eps_h = 1e-4 * S_H`` form; no ``S_H`` pipeline exists yet upstream
-of this plan) with a tiny additive floor to avoid a zero denominator.
+copy). ``eps_h`` is the dataset-wide scale ``energy_floor_factor * S_H``
+(``ε_H = 1e-4 · S_H``), threaded in as the required keyword-only
+``RunController(s_h=…)`` constructor parameter from the validated
+``training_metadata.json`` pipeline (CONF-03 / D-19); the per-anchor ``abs(h0)``
+survives only in the loss denominator (``soft_energy_loss``), not as the scale.
 ``L_phys`` draws its interior collocation TIMES from ``CollocationSampler``
 only (TRAIN-04) -- ``FixedBatch.collocation_points`` is never touched for the
 physics/energy/angular-momentum terms (single collocation-point source, no
@@ -90,6 +92,7 @@ from pinn.training.checkpoint import (
     EmptyCheckpointStore,
     PromotionRefused,
 )
+from pinn.training.run_metadata import validate_s_h
 from pinn.training.slbfgs_preflight import check_stage_preflight
 from pinn.training.stage_exit import StageDisposition
 
@@ -305,6 +308,7 @@ class RunController:
         checkpoint_store,
         runtime,
         *,
+        s_h: float,
         rng: Optional[np.random.Generator] = None,
         checkpoint_hook: Optional[Callable[..., Any]] = None,
         guard_hook: Optional[Callable[..., Any]] = None,
@@ -317,6 +321,11 @@ class RunController:
                 "is defined on a held-out set (ctl_instruction.md CURR-03), so a "
                 "RunController built without one could not evaluate the gate"
             )
+        # CONF-03 / D-18: the run-level S_H crosses the trust boundary here as a
+        # REQUIRED keyword-only scalar (no default can mask a missing validated
+        # value). Re-apply the single-home fail-closed predicate (validate_s_h)
+        # at the consumption boundary -- finite AND strictly positive.
+        self._s_h = validate_s_h(s_h)
         self._model = model
         self._train_source = train_source
         self._validation_source = validation_source
@@ -475,11 +484,10 @@ class RunController:
             true_r0.unsqueeze(0), true_v0.unsqueeze(0), masses_t,
             dtype=self._dtype, device=self._device,
         )[0]
-        # WR-02: eps_h scale is the config-overridable StageConfig.energy_floor_factor
-        # (CTX-38 provisional default 1e-4 = ctl_instruction.md CURR-03 ε_H=1e-4·S_H).
-        # The +1e-12 additive floor is a numeric-safety zero-denominator guard, not
-        # the configurable scale.
-        eps_h = abs(h0) * float(self._config.stage.energy_floor_factor) + 1e-12
+        # CONF-03 / D-19: ε_H is the dataset-wide scale, energy_floor_factor times
+        # the validated run-level S_H (ε_H = 1e-4 · S_H). The per-anchor abs(h0)
+        # survives only in the loss denominator (soft_energy_loss), not as the scale.
+        eps_h = float(self._config.stage.energy_floor_factor) * self._s_h
 
         if fixed_collocation_times is None:
             colloc_times = self._collocation_sampler.uniform()

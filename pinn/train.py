@@ -1056,6 +1056,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         stage_exit_machine=stage_exit_machine,
         checkpoint_store=store,
         runtime=runtime_spec,
+        s_h=s_h,
         rng=run_rng,
         checkpoint_hook=checkpoint_hook,
         guard_hook=guard_hook,

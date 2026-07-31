@@ -98,6 +98,7 @@ def _build_controller(tmp_dir, *, max_epochs, n_adam, validation_every=10_000,
         scheduled_weights, grad_clipper, collocation_sampler,
         stage_exit_machine, checkpoint_store, runtime,
         rng=np.random.default_rng(1),
+        s_h=1.0,
     )
 
 
@@ -218,6 +219,7 @@ class RunControllerConstructionTests(unittest.TestCase):
                 model, train_source, None, config,
                 scheduled_weights, grad_clipper, collocation_sampler,
                 stage_exit_machine, checkpoint_store, runtime,
+                s_h=1.0,
             )
 
 
@@ -696,10 +698,13 @@ class ChunkedAccumulationTests(unittest.TestCase):
 
 
 class EnergyFloorFactorWiringTests(unittest.TestCase):
-    """WR-02: StageConfig.energy_floor_factor must govern eps_h.
+    """WR-02 / CONF-03: StageConfig.energy_floor_factor governs eps_h.
 
-    Pre-fix code shadows the config field with a module constant, so two
-    controllers that differ only in the factor produce the same eps_h.
+    CONF-03 (D-19) made eps_h the dataset-wide scale
+    ``energy_floor_factor * s_h`` threaded through the required
+    ``RunController(s_h=…)`` channel, deleting the per-anchor
+    ``|h0|*factor + 1e-12`` fallback. The factor still owns the scale: two
+    controllers differing only in the factor produce different eps_h.
     """
 
     def setUp(self):
@@ -726,27 +731,42 @@ class EnergyFloorFactorWiringTests(unittest.TestCase):
     def test_energy_floor_factor_override_changes_eps_h(self):
         default_factor = 1e-4
         override_factor = 1e-1  # mechanism value, not a calibrated level
-        ctx_default, _ = self._eps_h_for(energy_floor_factor=default_factor)
-        ctx_override, _ = self._eps_h_for(energy_floor_factor=override_factor)
+        ctx_default, ctrl_default = self._eps_h_for(energy_floor_factor=default_factor)
+        ctx_override, ctrl_override = self._eps_h_for(energy_floor_factor=override_factor)
 
-        expected_default = abs(ctx_default.h0) * default_factor + 1e-12
-        expected_override = abs(ctx_override.h0) * override_factor + 1e-12
-        self.assertAlmostEqual(ctx_default.eps_h, expected_default, places=12)
-        self.assertAlmostEqual(ctx_override.eps_h, expected_override, places=12)
-        # The override case is the RED assertion: pre-fix both equal 1e-4 * |h0|.
+        # CONF-03 / D-19: eps_h is the dataset-wide scale energy_floor_factor * s_h,
+        # independent of the per-anchor |h0| (which survives only in the loss
+        # denominator). The override changes eps_h through the factor.
+        self.assertAlmostEqual(
+            ctx_default.eps_h, default_factor * ctrl_default._s_h, places=12
+        )
+        self.assertAlmostEqual(
+            ctx_override.eps_h, override_factor * ctrl_override._s_h, places=12
+        )
+        # The override case is the RED assertion: differing factors produce
+        # differing eps_h (the config field governs the scale, not a shadowing
+        # module constant).
         self.assertNotAlmostEqual(
             ctx_default.eps_h, ctx_override.eps_h, places=12,
             msg="energy_floor_factor override must change eps_h (WR-02)",
         )
-        # Same h0 for both (same stub source / batch) so the ratio tracks factors.
+        # Same h0 for both (same stub source / batch); eps_h must NOT track |h0|.
         self.assertAlmostEqual(ctx_default.h0, ctx_override.h0, places=12)
+        self.assertNotAlmostEqual(
+            abs(ctx_default.h0) * default_factor, ctx_default.eps_h, places=12,
+            msg="eps_h must not track the per-anchor |h0| (CONF-03 / D-19)",
+        )
 
-    def test_default_energy_floor_factor_matches_pre_fix_scale(self):
-        """Shipped default 1e-4 must keep eps_h == |h0|*1e-4 + 1e-12."""
+    def test_default_energy_floor_factor_governs_eps_h(self):
+        """Shipped default 1e-4 sets the run-level eps_h = 1e-4 * s_h (CONF-03)."""
         ctx, controller = self._eps_h_for(energy_floor_factor=None)
         self.assertEqual(controller._config.stage.energy_floor_factor, 1e-4)
-        expected = abs(ctx.h0) * 1e-4 + 1e-12
-        self.assertAlmostEqual(ctx.eps_h, expected, places=12)
+        # eps_h is the dataset-wide scale, independent of the per-anchor |h0|.
+        self.assertAlmostEqual(ctx.eps_h, 1e-4 * controller._s_h, places=12)
+        self.assertNotAlmostEqual(
+            abs(ctx.h0) * 1e-4, ctx.eps_h, places=12,
+            msg="eps_h must not track the per-anchor |h0| (CONF-03 / D-19)",
+        )
 
 
 if __name__ == "__main__":  # pragma: no cover

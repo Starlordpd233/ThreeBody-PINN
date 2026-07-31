@@ -283,6 +283,7 @@ class RecoverRestoreBehavioralTests(unittest.TestCase):
             scheduled_weights, grad_clipper, collocation_sampler,
             stage_exit_machine, checkpoint_store, runtime,
             rng=np.random.default_rng(1),
+            s_h=1.0,
         )
         controller = self.CurriculumController(
             config, checkpoint_store, scheduled_weights,
@@ -496,6 +497,7 @@ class ComposedGateEarnedAdvanceTests(unittest.TestCase):
             scheduled_weights, grad_clipper, collocation_sampler,
             stage_exit_machine, checkpoint_store, runtime,
             rng=np.random.default_rng(1),
+            s_h=1.0,
         )
         controller = self.CurriculumController(
             config, checkpoint_store, scheduled_weights,
@@ -562,6 +564,7 @@ class StageFactorySeamTests(unittest.TestCase):
             CollocationSampler(2, np.random.default_rng(0)),
             StageExitMachine(self.config), self.checkpoint_store, self.runtime,
             rng=np.random.default_rng(1),
+            s_h=1.0,
         )
 
     def _build_curriculum(self, *, stage0_rc, stage_factory, recover_retries=0):
@@ -822,6 +825,7 @@ class LiveObjectiveStageFactoryTests(unittest.TestCase):
             CollocationSampler(2, np.random.default_rng(0)),
             StageExitMachine(config), checkpoint_store, runtime,
             rng=np.random.default_rng(1),
+            s_h=1.0,
         )
 
         def stage_factory(k):
@@ -844,6 +848,7 @@ class LiveObjectiveStageFactoryTests(unittest.TestCase):
                 CollocationSampler(2, np.random.default_rng(2 + k)),
                 StageExitMachine(config), checkpoint_store, runtime,
                 rng=np.random.default_rng(3 + k),
+                s_h=1.0,
             )
 
         controller = self.CurriculumController(
