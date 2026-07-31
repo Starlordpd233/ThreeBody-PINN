@@ -1,20 +1,43 @@
-"""Phase 46 Plan 08 — minimal resident pairing repair contract.
+"""Phase 46 Plan 08 seam contract + Phase 47 Plan 01 (CONF-09) resident contract.
 
-The repair exposes the COM-recentered, zero-momentum, canonically ordered
-trajectory before rotation or global scaling.  Expected arrays below are
-derived directly from the raw fixture equations; production preprocessing
-helpers are deliberately not reused to construct the oracle.
+Two distinct surfaces live in this one file, and the distinction is the point.
+
+``PreprocessingPairingSeamTests`` covers the ``PreprocessedTrajectory``
+INTERMEDIATE that Phase 46 added: the COM-recentered, zero-momentum,
+canonically ordered arrays before rotation or global scaling. That seam is
+unchanged by Phase 47 (47-CONTEXT.md D-03 keeps the fields in place), so every
+method in that class is byte-identical to the Phase 46 original.
+
+``AdapterPairingRepairTests`` covers the RESIDENT surface the adapter serves.
+Phase 47 CONF-09 completed the residency transform (GAP-46-07 owner ruling
+2026-07-28, option A): residents now carry the FULL canonical pipeline —
+COM/boost gauge, canonical body order, rotation gauge, and ``D``/``V`` scaling.
+This file is corrected in place rather than superseded by a parallel Phase 47
+oracle (47-CONTEXT.md D-06): two competing oracles for one property is the
+failure ``46-CONTEXT.md`` warns against.
+
+Oracle discipline. Expected arrays are derived directly from the raw fixture
+equations; production preprocessing helpers are deliberately not reused to
+construct the oracle. Because the rotation gauge is built by SELECTING and
+orthonormalizing direction vectors (``preprocessing.py:140-171``), a second
+implementation of that selection does not reproduce bit-for-bit — so the
+independent oracle asserts body ORDER and STRUCTURE with a scale-relative
+closeness, never bit-exactness. The one bit-exact resident claim lives in
+``test_resident_trajectory_is_rotation_gauged_and_globally_scaled``, where a
+single shared ``preprocess_trajectory`` call produces both sides.
 """
 
 from __future__ import annotations
 
 import hashlib
+import itertools
 import unittest
 
 import numpy as np
 
+from pinn.constants import D_CHARACTERISTIC_LENGTH, T_CHARACTERISTIC_TIME
 from pinn.data.adapter import AdmittedSetAdapter, parse_brutus_file
-from pinn.data.preprocessing import preprocess_trajectory
+from pinn.data.preprocessing import ETA_GAUGE, preprocess_trajectory
 from pinn.data.types import RecordKey
 from tests.phase39._fixtures import TinyCorpus
 from tests.phase46._fixtures import make_com_offset_trajectory
@@ -163,6 +186,109 @@ def _adapter(corpus):
     )
 
 
+def _independent_rotation_gauge(masses_ordered, r0_ordered, v0_ordered, D, T):
+    """Rebuild the §2.4 Jacobi rotation gauge INLINE for the oracle.
+
+    Deliberately does not call ``preprocess_trajectory`` or
+    ``pinn.data.preprocessing._rotation_gauge`` — reusing either would collapse
+    the oracle into the thing it checks (47-01-PLAN.md task 1(d)(i)).
+
+    All three §2.4 branches are written out, because the tiny-corpus fixture is
+    genuinely lambda-degenerate: its bodies are collinear at ``t = 0``
+    (``tests/phase39/_fixtures.py::_body_line`` places body ``i`` at
+    ``(1+i) * (1, -0.5, 0.05)``), so ``lambda_perp`` vanishes to round-off and
+    the gauge is fixed by the velocity-candidate fallback. An oracle that
+    implemented only the primary branch would be measuring a different gauge
+    than production and would report a spurious O(1) failure.
+    """
+    m1 = float(masses_ordered[0])
+    m2 = float(masses_ordered[1])
+    V = D / T
+    rho = r0_ordered[1] - r0_ordered[0]
+    lam = r0_ordered[2] - (m1 * r0_ordered[0] + m2 * r0_ordered[1]) / (m1 + m2)
+
+    rho_norm = float(np.linalg.norm(rho))
+    if rho_norm <= ETA_GAUGE * D:
+        raise AssertionError(
+            "oracle fixture is rho-degenerate; a rho-degenerate record is "
+            "quarantined by production and cannot reach the resident surface"
+        )
+    e_x = rho / rho_norm
+
+    lam_perp = lam - np.dot(lam, e_x) * e_x
+    lam_perp_norm = float(np.linalg.norm(lam_perp))
+    if lam_perp_norm > ETA_GAUGE * D:
+        e_y = lam_perp / lam_perp_norm
+    else:
+        rho_dot = v0_ordered[1] - v0_ordered[0]
+        lambda_dot = v0_ordered[2] - (
+            m1 * v0_ordered[0] + m2 * v0_ordered[1]
+        ) / (m1 + m2)
+        e_y = None
+        for candidate in (
+            rho_dot, lambda_dot, v0_ordered[0], v0_ordered[1], v0_ordered[2]
+        ):
+            candidate_perp = candidate - np.dot(candidate, e_x) * e_x
+            if float(np.linalg.norm(candidate_perp)) > ETA_GAUGE * V:
+                e_y = candidate_perp / float(np.linalg.norm(candidate_perp))
+                break
+        if e_y is None:
+            basis = np.eye(3)
+            fallback = basis[int(np.argmin(np.abs(basis @ e_x)))]
+            fallback_perp = fallback - np.dot(fallback, e_x) * e_x
+            e_y = fallback_perp / float(np.linalg.norm(fallback_perp))
+        # Deterministic sign: keep lambda_y >= 0 whenever numerically meaningful.
+        if np.dot(lam_perp, e_y) < 0:
+            e_y = -e_y
+
+    e_z = np.cross(e_x, e_y)
+    return np.stack([e_x, e_y, e_z], axis=0)
+
+
+def _oracle_scale(oracle):
+    """Largest magnitude in the oracle array — the scale the resident bound is
+    taken relative to."""
+    return float(np.max(np.abs(np.asarray(oracle, dtype=np.float64))))
+
+
+def _resident_closeness_bound(oracle):
+    """Scale-relative bound for a float64 oracle vs. an fp32 RESIDENT array.
+
+    DERIVED, not chosen. Two independent float64 implementations of the same
+    orthonormalization agree to a few hundred float64 ULP, which is invisible
+    next to the dominant term: residency is an fp32 contract
+    (``adapter.py::_materialize``), so the resident value is the float64
+    pipeline output rounded to float32 — an error of up to ``0.5 * eps32`` times
+    the element magnitude. The bound therefore rides on ``numpy.finfo(float32).eps``
+    at the array's own scale, reusing the ``32.0`` fp32 round-trip allowance this
+    file already uses in
+    ``test_resident_trajectory_preserves_com_and_zero_momentum_gauge``.
+
+    The value is deliberately NOT load-bearing: every defect this oracle exists
+    to catch — a wrong canonical body order, a missing rotation, a missing
+    ``D``/``V`` scale (the scale factor alone is ``D ≈ 4.64``) — produces an O(1)
+    RELATIVE difference, seven orders of magnitude above an fp32 round-trip. If
+    an assertion against this bound fails, fix the transform chain; never widen
+    the bound.
+    """
+    return 32.0 * float(np.finfo(np.float32).eps) * _oracle_scale(oracle)
+
+
+def _pairing_residual(resident, oracle, body_order):
+    """Max absolute deviation between the resident array and the oracle read
+    under ``body_order``.
+
+    The resident-surface analogue of the probe's
+    ``stepwise_attribution.plus_permutation`` discriminator: it is zero (within
+    the fp32 residency bound) under the IDENTITY body map and nonzero under
+    every other, which is what "the permutation is applied exactly once" means
+    at this surface.
+    """
+    resident64 = np.asarray(resident, dtype=np.float64)
+    reordered = np.asarray(oracle, dtype=np.float64)[:, list(body_order), :]
+    return float(np.max(np.abs(resident64 - reordered)))
+
+
 def _resident_fixture(corpus):
     adapter = _adapter(corpus)
     key = RecordKey("hierarchical", "base", 0)
@@ -185,18 +311,44 @@ def _resident_fixture(corpus):
     )
     velocities_com = parsed.velocities - com_velocity[None, None, :]
     permutation = np.array([0, 2, 1], dtype=np.int64)
+    positions_ordered = positions_com[:, permutation, :]
+    velocities_ordered = velocities_com[:, permutation, :]
+    masses_ordered = masses[permutation]
+
+    # CONF-09: the oracle now carries the COMPLETED canonical chain — the same
+    # rotation gauge and D/V scaling the resident surface acquired in Phase 47 —
+    # still reimplemented inline from the parsed arrays.
+    D = float(D_CHARACTERISTIC_LENGTH)
+    T = float(T_CHARACTERISTIC_TIME)
+    V = D / T
+    R0 = _independent_rotation_gauge(
+        masses_ordered, positions_ordered[0], velocities_ordered[0], D, T
+    )
+    positions_gauge = (positions_ordered @ R0.T) / D
+    velocities_gauge = (velocities_ordered @ R0.T) / V
     return (
         adapter,
         key,
         parsed,
-        positions_com[:, permutation, :],
-        velocities_com[:, permutation, :],
-        masses[permutation],
+        positions_gauge,
+        velocities_gauge,
+        masses_ordered,
     )
 
 
 class AdapterPairingRepairTests(unittest.TestCase):
     def test_resident_positions_velocities_and_masses_share_one_body_order(self):
+        """Independent oracle: BODY ORDER + STRUCTURE, scale-relatively.
+
+        The oracle reimplements the whole canonical chain inline, including the
+        rotation gauge. Two independent implementations of a
+        selection-and-orthonormalization basis do not agree bit-for-bit, and the
+        resident surface is fp32 besides, so this method deliberately uses NO
+        exact-equality assertion on the transformed arrays (the bit-exact claim
+        belongs to ``test_resident_trajectory_is_rotation_gauged_and_globally_scaled``,
+        where one shared ``preprocess_trajectory`` call feeds both sides). Masses
+        are untransformed, so they stay an exact comparison.
+        """
         with TinyCorpus() as corpus:
             (
                 adapter,
@@ -207,18 +359,59 @@ class AdapterPairingRepairTests(unittest.TestCase):
                 expected_masses,
             ) = _resident_fixture(corpus)
 
-            np.testing.assert_array_equal(
-                adapter.snapshot_positions(key).cpu().numpy(),
-                expected_positions.astype(np.float32),
+            resident_positions = adapter.snapshot_positions(key).cpu().numpy()
+            resident_velocities = adapter.snapshot_velocities(key).cpu().numpy()
+
+            position_bound = _resident_closeness_bound(expected_positions)
+            velocity_bound = _resident_closeness_bound(expected_velocities)
+
+            self.assertTrue(
+                np.allclose(
+                    resident_positions,
+                    expected_positions,
+                    rtol=0.0,
+                    atol=position_bound,
+                ),
+                "resident positions diverge from the independent canonical oracle",
             )
-            np.testing.assert_array_equal(
-                adapter.snapshot_velocities(key).cpu().numpy(),
-                expected_velocities.astype(np.float32),
+            self.assertTrue(
+                np.allclose(
+                    resident_velocities,
+                    expected_velocities,
+                    rtol=0.0,
+                    atol=velocity_bound,
+                ),
+                "resident velocities diverge from the independent canonical oracle",
             )
             np.testing.assert_array_equal(
                 adapter.get(key).masses.cpu().numpy(),
                 expected_masses.astype(np.float32),
             )
+
+            # The permutation is applied EXACTLY ONCE: the identity body map is
+            # the only one under which the resident/oracle pairing residual
+            # vanishes (the resident-surface reading of the probe's
+            # ``plus_permutation = 0.0`` discriminator). Every other body map
+            # leaves an O(scale) residual, so the separation is structural, not
+            # a matter of where the bound sits.
+            self.assertLessEqual(
+                _pairing_residual(resident_positions, expected_positions, (0, 1, 2)),
+                position_bound,
+            )
+            self.assertLessEqual(
+                _pairing_residual(resident_velocities, expected_velocities, (0, 1, 2)),
+                velocity_bound,
+            )
+            for order in itertools.permutations((0, 1, 2)):
+                if order == (0, 1, 2):
+                    continue
+                self.assertGreater(
+                    _pairing_residual(
+                        resident_positions, expected_positions, order
+                    ),
+                    position_bound,
+                    f"body map {order} also matches: resident body order is ambiguous",
+                )
 
     def test_resident_trajectory_preserves_com_and_zero_momentum_gauge(self):
         with TinyCorpus() as corpus:
@@ -269,7 +462,16 @@ class AdapterPairingRepairTests(unittest.TestCase):
                 momentum_roundoff_bound,
             )
 
-    def test_resident_trajectory_is_not_rotation_gauged_or_globally_scaled(self):
+    def test_resident_trajectory_is_rotation_gauged_and_globally_scaled(self):
+        """CONF-09: residents ARE the canonical rotation-gauged, D/V-scaled series.
+
+        Both sides come from one shared ``preprocess_trajectory`` call over the
+        same parsed arrays — the adapter's internal call and this one are the
+        same deterministic float64 computation — so the resident tensors are
+        exactly the fp32 cast of ``r_gauge``/``v_gauge``. This is the one place
+        in the file where exact equality is licensed; the independent oracle
+        above is scale-relative by necessity.
+        """
         with TinyCorpus() as corpus:
             adapter, key, parsed, *_expected = _resident_fixture(corpus)
             preprocessed = preprocess_trajectory(
@@ -281,17 +483,21 @@ class AdapterPairingRepairTests(unittest.TestCase):
             resident_positions = adapter.snapshot_positions(key).cpu().numpy()
             resident_velocities = adapter.snapshot_velocities(key).cpu().numpy()
 
-            self.assertFalse(
-                np.allclose(resident_positions, preprocessed.r_gauge)
+            np.testing.assert_array_equal(
+                resident_positions,
+                preprocessed.r_gauge.astype(np.float32),
             )
+            np.testing.assert_array_equal(
+                resident_velocities,
+                preprocessed.v_gauge.astype(np.float32),
+            )
+            # The global scale really is applied: the unscaled series is a
+            # factor of D (resp. V) away and must NOT match.
             self.assertFalse(
                 np.allclose(
                     resident_positions,
                     preprocessed.r_gauge * preprocessed.D,
                 )
-            )
-            self.assertFalse(
-                np.allclose(resident_velocities, preprocessed.v_gauge)
             )
             self.assertFalse(
                 np.allclose(

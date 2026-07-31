@@ -763,34 +763,37 @@ def compact_validation_fields(observation: ValidationGateObservation, run_dir) -
 
 
 # ---------------------------------------------------------------------------
-# Ratified production frame (46-07; D-07/D-08/D-09/D-12)
+# Ratified production frame (47-01 CONF-09; re-ratified from 46-07)
 # ---------------------------------------------------------------------------
 
-# Ratification source: GAP-46-06, Status RESOLVED-WITH-INSTRUCTION, owner ruling
-# 2026-07-28, option B -- "ratify an operational raw/native validation frame by
-# instruction". Full record:
-# .planning/phases/46-frame-resolution-gate-aligned-validation/46-GAPS.md,
-# section "## GAP-46-06".
+# The LOCKED canonical scaled contract is ratified: positions r' (rotation
+# gauged and D-scaled), time u = t/T, masses ordered_raw. Ratification source:
+# the GAP-46-07 owner ruling of 2026-07-28, option A, which re-scoped Phase 47
+# so CONF-09 completes the residency transform itself. Full record:
+# .planning/milestones/v2.2-GAPS.md (GAP-46-07).
 #
-# The D-09 branch was routed by Plan 46-09's single post-repair measurement,
-# which returned the grounded rule-5 verdict VERDICT_NON_FRAME_DIVERGENCE
-# (46-VERDICT-POSTREPAIR.md). That verdict is NOT overwritten here. The owner
-# exercised the D-09 branch on the recorded evidence and named this pair
-# explicitly, so the values below are quoted from the resolution note rather
-# than inferred from any measurement (D-12).
+# This constant tracks what the adapter actually serves. Phase 47 plan 47-01
+# moved AdmittedSetAdapter residency onto preprocess_trajectory's r_gauge /
+# v_gauge output in the SAME commit as this edit -- a tree in which residency
+# has moved and this constant has not is a tree whose COHERENT_FRAME_PAIRS
+# check is lying (47-CONTEXT.md D-05).
 #
-# The ratified convention is the CONF-08-repaired residency: canonically
-# ordered, COM-recentred and boost-corrected, raw dimensional scale, unrotated,
-# paired with masses_ordered.
+# GAP-46-06's own constant declared this staleness condition in advance ("re-
+# ratification is REQUIRED if Phase 47/48 moves residency to the locked
+# canonical scaled contract"), so this is bookkeeping on an existing ruling
+# under the same D-12 discipline -- values quoted from REQUIREMENTS.md CONF-09
+# and ROADMAP SC-2, never inferred from a measurement. CONF-01's Complete status
+# and its mandatory EVAL-01 precondition-(ii) qualification are UNCHANGED, and
+# Plan 46-09's machine verdict VERDICT_NON_FRAME_DIVERGENCE
+# (46-VERDICT-POSTREPAIR.md) is NOT overwritten (47-CONTEXT.md D-27).
 #
-# Re-ratification is REQUIRED if Phase 47/48 moves residency to the locked
-# canonical scaled contract (r' with u = t/T); this constant then goes stale.
+# The supersession record referenced below is the D-07 artifact.
 RATIFIED_VALIDATION_FRAME = FrameConvention(
-    position_frame=POSITION_FRAME_RAW,
-    time_coord=TIME_COORD_RAW,
+    position_frame=POSITION_FRAME_SCALED,
+    time_coord=TIME_COORD_NORMALIZED,
     mass_convention=MASS_CONVENTION_ORDERED_RAW,
     conf01_evidence_ref=(
-        ".planning/phases/46-frame-resolution-gate-aligned-validation/"
-        "evidence/target-frame/20260728T014532Z/raw.json"
+        ".planning/phases/47-frame-completion-s-h-pipeline/"
+        "evidence/frame-re-ratification/20260731T012304Z/re-ratification.md"
     ),
 )
