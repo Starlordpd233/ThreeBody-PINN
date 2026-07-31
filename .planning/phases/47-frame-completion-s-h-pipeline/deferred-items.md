@@ -40,3 +40,17 @@ decision about the v2.0 archive, well outside CONF-09.
 `<line_number_note>` routes the same way.
 
 **Status:** OPEN — informational, not blocking Phase 47.
+
+**Pre-existence proven at phase close (2026-07-31).** The claim was verified
+historically rather than by inference. A detached worktree was created at the
+Phase 47 branch point (`c0d4d9dd`, parent of the first phase-47 commit) and
+`tests/phase43/` was run there. With the untracked `runs/` directory symlinked in
+so both environments matched, the pre-Phase-47 tree produced **12 failed, 186
+passed, 0 skipped — byte-identical to HEAD**. (Without `runs/`, the fresh
+worktree instead reports 11 failed / 8 skipped, because `tests/phase43/test_smoke.py`
+skips when `runs/stage0-smoke/summary.json` is absent — an environment artifact,
+not a code difference.) `git log --diff-filter=D` confirms `89348b7c` as the
+deleting commit and `git merge-base --is-ancestor` confirms it predates the phase
+by six days. Control: the two `phase43` modules that DO exercise Phase 47 symbols
+pass fully (`test_evaluate_gate` 13 passed, `test_real_data_smoke_config` 29
+passed). **Phase 47 introduced zero regressions.** Routing suggestion unchanged.

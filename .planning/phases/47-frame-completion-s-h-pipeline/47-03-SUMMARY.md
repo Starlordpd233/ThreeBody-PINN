@@ -76,6 +76,12 @@ path.
   (phase40 ×7, phase41 ×3, phase43 ×2) carry an explicit `s_h=` fixture; the
   phase-40 `EnergyFloorFactorWiringTests` assertions were updated to the new
   `eps_h == factor * s_h` contract.
+  > **[Count correction, phase close 2026-07-31]** The frontmatter `provides:`
+  > line says "All 13 `RunController(` construction sites". The AST gate counts
+  > **15** at phase close — 13 plus the two sites this plan's own new
+  > `tests/phase47/test_conf03_eps_h_wiring.py` introduced. The invariant the
+  > gate enforces is unchanged and still holds: **15/15 carry an explicit
+  > `s_h=`, 0 missing.**
 - **`tests/phase47/test_conf03_eps_h_wiring.py`** (new) — `test_eps_h_assembly_value`
   (+ the `soft_energy_loss` denominator check), `test_eps_h_uniform_across_anchors`,
   `test_resume_binds_s_h_for_controller`, the constructor fail-closed tests, and

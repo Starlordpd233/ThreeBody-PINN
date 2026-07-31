@@ -179,6 +179,20 @@ is re-derivable on any checkout.
 
 ## Surfaced for owner ruling — NOT resolved here
 
+> **[SUPERSEDED 2026-07-31 — phase-close correction]** This section records the
+> state as of plan 47-01's execution and is retained as the historical record.
+> It is **no longer current**. GAP-47-01 was subsequently closed
+> `RESOLVED-WITH-INSTRUCTION` by two owner rulings (2026-07-30), applied in
+> commits `562084e8` (option A — finite-difference cancellation term) and
+> `d034e215` (cover all nodes + computed-position round-off). The outcome is
+> **50/50 within bound on both readings** (validation-side worst ratio 0.3887,
+> median 0.0712; loss-side worst 0.6693). Only the derived bound moved — the
+> measured `eps_H` values are identical to every printed digit across all three
+> records. See `47-GAPS.md` GAP-47-01 §Final resolution. Verified present in
+> code at phase close: the per-node span array
+> (`tests/phase47/test_conf09_frame_completion.py:434-436`) and the `8u`
+> numerator allowance (:451).
+
 **The D-08 derived bound is exceeded on the validation-side reading for 9 of 50
 sampled real trajectories** (max ratio 4.76; loss-side reading: 0 of 50, max
 ratio 0.67).
