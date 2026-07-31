@@ -123,7 +123,8 @@ def _corpus_records(corpus):
 
 
 def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
-                          h_old_series, eps, *, D):
+                          h_old_series, eps, *, D, times=None,
+                          fd_velocities=None):
     """Upper bound on ``|eps_h_new - eps_h_old|`` for ONE trajectory and ONE
     reading, DERIVED from inputs only.
 
@@ -146,6 +147,13 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
             no per-arm constant is ever chosen.
         D: the characteristic length, which must be the locked
             ``D_CHARACTERISTIC_LENGTH`` (Step 1 depends on it).
+        times: the reading's own ``(Nt,)`` snapshot times, in the SAME units the
+            divided difference used, or ``None``. Supplied ONLY by a reading that
+            reconstructs velocity by finite differences (Step 5). The actual
+            per-node spacings are read from this array; no uniform step is ever
+            assumed.
+        fd_velocities: that reading's ``(Nt, 3, 3)`` reconstructed velocity
+            series, or ``None``. Supplied together with ``times``.
 
     Returns:
         The bound, as a float.
@@ -155,6 +163,10 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
             ``delta_total < abs(H_old(0))`` fails. That condition means the
             softening floor dominates the trajectory's energy and the comparison
             is meaningless — a finding to surface, never a tolerance to relax.
+        ValueError: if exactly one of ``times``/``fd_velocities`` is supplied.
+            Half a Step-5 input is ambiguous — it cannot be told apart from a
+            stored-velocity reading, and defaulting it to zero would silently
+            drop the term for a reading that needs it.
 
     Derivation
     ----------
@@ -212,11 +224,60 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
     float64 terms. Both act as an extra ABSOLUTE perturbation of ``H_old``, so
     ``delta_round = 4*u*K_max + 8*u*(K_max + absV_max)`` with
     ``u = numpy.finfo(numpy.float64).eps / 2``, ``K_max = max_t K_old(t)``,
-    ``absV_max = max_t abs(V_old_at_eps(t))``, and ``delta_total = delta_max +
-    delta_round`` throughout Step 3. The literals ``4`` and ``8`` are OPERATION
-    COUNTS (one pow, one square, one divide for the ``D`` identity; three
-    pairwise potential terms, three kinetic terms, one sum and one ratio for the
-    assembly) — not fudge factors, and not to be raised.
+    ``absV_max = max_t abs(V_old_at_eps(t))``, and ``delta_round`` enters
+    ``delta_total`` (whose full composition Step 5 completes) throughout Step 3.
+    The literals ``4`` and ``8`` are OPERATION COUNTS (one pow, one square, one
+    divide for the ``D`` identity; three pairwise potential terms, three kinetic
+    terms, one sum and one ratio for the assembly) — not fudge factors, and not
+    to be raised.
+
+    **Step 5 — the finite-difference velocity cancellation allowance
+    (validation-side reading ONLY).** The validation-side reading does not
+    consume stored velocities; it reconstructs them as a central divided
+    difference ``v[k] = (pos[k+1] - pos[k-1]) / (t[k+1] - t[k-1])``
+    (``gate_metrics.py:84-123``).
+
+    In EXACT arithmetic that operator is linear in positions and scales exactly
+    as stored velocities do — which is what Step 1 already argues, and Step 1 is
+    correct and unchanged. In float64 the stored position components each carry
+    an ABSOLUTE representation error of order ``u * abs(r)``, and those errors do
+    NOT cancel in the numerator. The reconstructed velocity therefore carries
+    absolute error
+
+        dv_i[k] <= 2*u*R_max/dt_k + 2*u*abs(v_i[k])
+
+    with ``u = numpy.finfo(numpy.float64).eps / 2`` (the same unit round-off Step
+    4 uses); ``R_max`` the maximum over snapshots, bodies and components of
+    ``abs(position)``, read from the trajectory's own geometry (the same
+    OLD-frame array Step 2 reads); and ``dt_k = t[k+1] - t[k-1]`` computed from
+    the ACTUAL supplied times at each interior node. A single assumed uniform
+    step is a DEFECT, not a simplification — Brutus sampling is not uniform —
+    which is the same constraint ``test_velocity_identity`` already imposes on
+    itself. The second term is the round-off of the division itself.
+
+    The first term is the cancellation amplification: since
+    ``abs(v) ~ abs(dr)/dt``, the ratio of that term to ``abs(v)`` is
+    ``~ 2*u*abs(r)/abs(dr)``, i.e. the CONDITION NUMBER of the subtraction —
+    exactly the quantity Step 4 omits.
+
+    This propagates into the kinetic term ``K = 0.5 * sum_i m_i * norm(v_i)**2``
+    as ``dK_k = sum_i m_i * norm(v_i[k]) * dv_i[k]``
+    (``d(0.5*m*norm(v)**2) = m * dot(v, dv) <= m * norm(v) * dv``), and, being an
+    absolute perturbation of ``H_old``, enters exactly where ``delta_round``
+    does:
+
+        delta_fd    = max over interior k of ( sum_i m_i*norm(v_i[k])*dv_i[k] )
+        delta_total = delta_max + delta_round + delta_fd
+
+    Every quantity is an INPUT — masses, positions, the supplied times, the
+    reading's own reconstructed velocity series, and ``numpy.finfo``. No observed
+    metric value enters, and the term evaluates identically regardless of what
+    the comparison shows; that is why it is admissible under SCOPE-29 /
+    47-CONTEXT.md D-26 and is an EXTENSION of the derivation rather than a
+    widening of it (Step 4's counts ``4`` and ``8`` are untouched).
+
+    ``delta_fd`` is ZERO for the loss-side reading, which consumes stored
+    velocities and performs no differencing.
     """
     masses = np.asarray(masses_ordered, dtype=np.float64).reshape(3)
     positions = np.asarray(r_old, dtype=np.float64)
@@ -254,7 +315,28 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
     k_max = float(np.max(np.abs(kinetic)))
     abs_v_max = float(np.max(np.abs(potential)))
     delta_round = 4.0 * unit_roundoff * k_max + 8.0 * unit_roundoff * (k_max + abs_v_max)
-    delta_total = delta_max + delta_round
+
+    # Step 5: the finite-difference cancellation allowance. BOTH inputs or
+    # NEITHER — half of them cannot be distinguished from a stored-velocity
+    # reading, and silently pricing the term at zero for a differencing reading
+    # is the exact failure this remediation exists to remove.
+    if (times is None) != (fd_velocities is None):
+        raise ValueError(
+            "Step 5 needs BOTH `times` and `fd_velocities` or NEITHER; got "
+            f"times={'None' if times is None else 'supplied'}, "
+            f"fd_velocities={'None' if fd_velocities is None else 'supplied'}. "
+            "A reading that reconstructs velocity by divided differences must "
+            "supply both; a reading that consumes stored velocities supplies "
+            "neither"
+        )
+    if times is None:
+        delta_fd = 0.0
+    else:
+        delta_fd = _finite_difference_energy_allowance(
+            masses, positions, times, fd_velocities, unit_roundoff
+        )
+
+    delta_total = delta_max + delta_round + delta_fd
 
     # Step 3: propagation into the relative-drift ratio.
     a = float(hamiltonian[0])
@@ -270,6 +352,63 @@ def frame_drift_tolerance(masses_ordered, r_old, k_old_series, v_old_series,
             "tolerance to relax"
         )
     return delta_total * (1.0 + eps_h_old) / (abs(a) - delta_total)
+
+
+def _finite_difference_energy_allowance(masses, positions, times, fd_velocities,
+                                        unit_roundoff):
+    """Step 5's ``delta_fd`` — the divided difference's cancellation allowance.
+
+    ``delta_fd = max over interior k of ( sum_i m_i*norm(v_i[k])*dv_i[k] )`` with
+    ``dv_i[k] = 2*u*R_max/dt_k + 2*u*norm(v_i[k])``. Interior nodes only: those
+    are the nodes ``gate_metrics.finite_difference_velocity`` fills with the
+    CENTRED stencil, and ``dt_k = t[k+1] - t[k-1]`` is that stencil's own
+    denominator (``gate_metrics.py:120-121``), read per node from the ACTUAL
+    supplied times.
+
+    ``abs(v_i[k])`` is read as the body-``i`` speed ``norm(v_i[k])``, the same
+    per-body magnitude the ``dK`` expression uses — the larger of the two
+    readings the notation admits, so the allowance is never understated.
+
+    All arguments are already-coerced float64 inputs from
+    :func:`frame_drift_tolerance`; nothing here is fitted to an observed metric.
+    """
+    t = np.asarray(times, dtype=np.float64).reshape(-1)
+    velocities = np.asarray(fd_velocities, dtype=np.float64)
+    n_snapshots = int(positions.shape[0])
+    if t.shape[0] != n_snapshots:
+        raise ValueError(
+            f"times has {t.shape[0]} entries but the trajectory has "
+            f"{n_snapshots} snapshots"
+        )
+    if velocities.shape != positions.shape:
+        raise ValueError(
+            f"fd_velocities shape {velocities.shape} must match the position "
+            f"array shape {positions.shape}"
+        )
+    if n_snapshots < 3:
+        raise ValueError(
+            "the Step-5 allowance is defined on the CENTRED stencil's interior "
+            f"nodes, and a {n_snapshots}-snapshot series has none; every "
+            "velocity would then be a one-sided difference this term does not "
+            "cover — a finding to surface, not a term to zero out"
+        )
+
+    # dt_k = t[k+1] - t[k-1], per interior node. No uniform step is assumed.
+    dt = t[2:] - t[:-2]
+    if not np.all(np.isfinite(dt)) or not np.all(dt > 0.0):
+        raise ValueError(
+            "the centred-stencil denominators t[k+1]-t[k-1] must be finite and "
+            "positive; times must be strictly increasing"
+        )
+
+    r_max = float(np.max(np.abs(positions)))
+    if not math.isfinite(r_max):
+        raise ValueError(f"R_max must be finite; got {r_max!r}")
+
+    speed = np.linalg.norm(velocities[1:-1], axis=-1)          # (Ni, 3)
+    dv = 2.0 * unit_roundoff * r_max / dt[:, None] + 2.0 * unit_roundoff * speed
+    d_kinetic = (masses.reshape(1, 3) * speed * dv).sum(axis=-1)
+    return float(np.max(d_kinetic))
 
 
 # ---------------------------------------------------------------------------
@@ -342,8 +481,12 @@ def dual_arm_frame_comparison(pre, times):
         positions_new, fd_velocity_new, masses
     ).cpu().numpy()
     k_old = _kinetic_series(masses, fd_velocity_old)
+    # This reading RECONSTRUCTS velocity by divided differences, so it carries
+    # Step 5's cancellation allowance and supplies both of its inputs: the OLD
+    # arm's own native times and its own reconstructed series.
     results["validation"] = _arm_record(
-        masses, positions_old, k_old, h_old, h_new, EPS_INV, pre.D
+        masses, positions_old, k_old, h_old, h_new, EPS_INV, pre.D,
+        times=times_native, fd_velocities=fd_velocity_old,
     )
 
     # -- loss-side reading: _matched_plummer_hamiltonian at EPS_SOFT (1e-5) ----
@@ -352,21 +495,30 @@ def dual_arm_frame_comparison(pre, times):
     h_old_loss = _loss_side_hamiltonian(positions_old, velocities_old, masses)
     h_new_loss = _loss_side_hamiltonian(positions_new, velocities_new, masses)
     k_old_loss = _kinetic_series(masses, velocities_old)
+    # This reading CONSUMES stored velocities — no differencing, so Step 5's
+    # allowance is zero and NEITHER of its inputs is supplied.
     results["loss"] = _arm_record(
         masses, positions_old, k_old_loss, h_old_loss, h_new_loss, EPS_SOFT, pre.D
     )
     return results
 
 
-def _arm_record(masses, positions_old, k_old, h_old, h_new, eps, D):
-    """Assemble one reading's before/after record plus its derived bound."""
+def _arm_record(masses, positions_old, k_old, h_old, h_new, eps, D, *,
+                times=None, fd_velocities=None):
+    """Assemble one reading's before/after record plus its derived bound.
+
+    ``times``/``fd_velocities`` are forwarded verbatim to
+    :func:`frame_drift_tolerance`: both for a divided-difference reading, neither
+    for a stored-velocity reading (Step 5).
+    """
     # V_old_at_eps == H_old - K_old: recovered by subtraction so the softened
     # pairwise sum keeps exactly one home (47-CONTEXT.md D-09/D-11).
     v_old = h_old - k_old
     eps_h_old = trajectory_eps_h(torch.as_tensor(h_old))
     eps_h_new = trajectory_eps_h(torch.as_tensor(h_new))
     bound = frame_drift_tolerance(
-        masses, positions_old, k_old, v_old, h_old, eps, D=float(D)
+        masses, positions_old, k_old, v_old, h_old, eps, D=float(D),
+        times=times, fd_velocities=fd_velocities,
     )
     return {
         "eps_h_old": float(eps_h_old),
