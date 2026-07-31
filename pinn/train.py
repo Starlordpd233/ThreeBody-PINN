@@ -59,6 +59,13 @@ from pinn.training.resume import (
     resume_config_diff,
     validate_hold_stage_target,
 )
+from pinn.training.run_metadata import (
+    TRAINING_METADATA_FILENAME,
+    compute_s_h,
+    load_training_metadata,
+    validate_s_h,
+    write_training_metadata,
+)
 from pinn.training.scheduled_weights import ScheduledWeights
 from pinn.training.signals import SignalState, install_signal_handlers
 from pinn.training.stage_exit import StageExitMachine
@@ -250,7 +257,18 @@ def _synthetic_split_sources(
                 masses=np.array(
                     [1.0 + key.id / 10000.0, 2.0, 3.0], dtype=np.float64
                 ),
+                k0=self.k0(key),
+                uabs0=self.uabs0(key),
             )
+
+        def k0(self, key):
+            # Deterministic positive CONF-02 fixture components so the
+            # synthetic dev path exercises the same S_H pipeline instead of
+            # bypassing it; a source lacking the accessors refuses fail-closed.
+            return 0.5 + key.id / 10000.0
+
+        def uabs0(self, key):
+            return 2.0 + key.id / 10000.0
 
         def n_snapshots(self, key):
             return 32
@@ -422,6 +440,36 @@ def _build_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
     if config.data.source == "admitted":
         return _build_admitted_sources(config, run_dir)
     return _synthetic_split_sources()
+
+
+def _assert_s_h_matches_artifact(run_dir, train_source, *, energy_floor_factor) -> float:
+    """CONF-02 D-18 resume gate: re-derive S_H and compare with the artifact.
+
+    Loads ``run_dir/training_metadata.json`` via ``load_training_metadata``
+    (which re-validates structure, the D-17 predicate, the ``eps_h`` product,
+    the frame block, and the persisted-vs-live softening/factor bindings),
+    recomputes ``S_H`` and ``N_train`` from the LIVE train source, and refuses
+    fail-closed on any mismatch — semantic-recomputation discipline: the
+    persisted number is trusted only after a live re-derivation agrees, and a
+    refusal NEVER overwrites the artifact. Returns the validated ``s_h`` so
+    both setup branches bind the same local (plan 47-03 threads it into
+    ``RunController``).
+    """
+    metadata = load_training_metadata(run_dir, expected_energy_floor_factor=float(energy_floor_factor))
+    live_s_h, live_n_train = compute_s_h(train_source)
+    if live_s_h != metadata["s_h"]:
+        raise ValueError(
+            f"live S_H recompute {live_s_h!r} != persisted artifact "
+            f"{metadata['s_h']!r}: the train population or its admission "
+            "capture changed since training_metadata.json was written; "
+            "refusing to resume"
+        )
+    if live_n_train != metadata["n_train"]:
+        raise ValueError(
+            f"live n_train recompute {live_n_train!r} != persisted artifact "
+            f"{metadata['n_train']!r}: refusing to resume"
+        )
+    return float(metadata["s_h"])
 
 
 def _effective_runtime_labels(config: TrainingConfig) -> tuple[str, str]:
@@ -802,6 +850,42 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     except ValueError as exc:
         print(f"error: failed to build data sources: {exc}", file=sys.stderr)
         return finish_run("failed", 1)
+
+    # CONF-02 (D-13..D-18): S_H = median_train(K0 + Uabs0), computed once in
+    # float64 over the train split at setup, persisted with eps_H BEFORE any
+    # step, and re-validated on resume by live recompute-and-compare. An
+    # invalid value is a fail-closed refusal before step 1 (D-17) — never a
+    # substituted value.
+    try:
+        energy_floor_factor = float(config.stage.energy_floor_factor)
+        if (run_dir / TRAINING_METADATA_FILENAME).is_file():
+            # Resume: re-validate the artifact and match it against a live
+            # recompute; the return BINDS s_h from the checked artifact.
+            s_h = _assert_s_h_matches_artifact(
+                run_dir, train_source, energy_floor_factor=energy_floor_factor
+            )
+        else:
+            # Fresh launch: compute, validate, persist, then re-read through
+            # the same gate so the just-written artifact is proven loadable.
+            s_h, n_train = compute_s_h(train_source)
+            s_h = validate_s_h(s_h)
+            write_training_metadata(
+                run_dir,
+                s_h=s_h,
+                n_train=n_train,
+                energy_floor_factor=energy_floor_factor,
+            )
+            _assert_s_h_matches_artifact(
+                run_dir, train_source, energy_floor_factor=energy_floor_factor
+            )
+    except ValueError as exc:
+        print(
+            f"error: failed to establish S_H training metadata: {exc}",
+            file=sys.stderr,
+        )
+        return finish_run("failed", 1)
+    # Both branches bind the same s_h local; plan 47-03 threads it into the
+    # RunController(...) construction below (shared main() scope).
 
     store = TorchSaveCheckpointStore(ckpt_dir, config=config)
     step_guards = StepGuards(config, disk_root=run_dir)
