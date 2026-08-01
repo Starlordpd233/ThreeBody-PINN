@@ -90,7 +90,7 @@ Supporting evidence for all four:
   (the failure margin is ~7 orders of magnitude), but a direct effect on term
   balance in any re-run, and it is the one loss scaling that no λ can compensate.
 
-- **Status:** DEFERRED
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
 - **Resolution note:** Owner instruction 2026-07-24 (interactive session,
   AskUserQuestion): **Option C — defer to the next milestone's conformance-fix
@@ -110,6 +110,22 @@ Supporting evidence for all four:
      must not decay into ratifying the status quo by default.
   4. Whichever reading wins, the spec formula gains an explicit reduction — a spec
      edit, routed to a spec-editing milestone (out of scope for v2.1, SCOPE-24).
+
+  **Final resolution 2026-07-31 (Phase 48 owner checkpoint): Option A — mean
+  over all components.** Phase 48 presented both readings against the retained
+  Stage-0 runs. The implemented per-coordinate mean produced run-average
+  `L_data = 0.1539..0.1630`; the sum-over-components reading produced exactly
+  9× those values, `1.3852..1.4673`. The retained runs were non-conformant and
+  lacked per-term gradient statistics, so these magnitudes did not establish
+  intent. The orchestrator recommended Option A because a per-coordinate Huber
+  mean keeps `delta_r = 1` coordinate-local, remains invariant to tensor
+  cardinality, and avoids encoding a body/component-count multiplier inside
+  the one term whose coefficient is fixed at 1. The owner replied `proceed`
+  after the explicit recommendation and ratification request. The executable
+  contract is therefore
+  `mean(Huber(residual), axes=(time, body, spatial_component))`. The spec
+  formula still requires an explicit reduction amendment through VER-20; no
+  framework-spec edit is authorized in v2.2.
 
 ---
 
