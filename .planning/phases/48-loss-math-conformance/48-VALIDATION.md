@@ -50,8 +50,8 @@ pytest):**
 ## Sampling Rate
 
 - **After every task commit:** Run the directly named Phase-48 test file plus the closest impacted existing module.
-- **After every plan wave:** Run `.venv/bin/python -m pytest -q tests/phase38 tests/phase40 tests/phase41 tests/phase42 tests/phase47 tests/phase48`.
-- **Before `/gsd-verify-work`:** Run the full suite command above and `git diff --check`; all new Phase-48 tests and the existing `eps_H` assembly proof must be green.
+- **After every plan wave:** Run `.venv/bin/python -m pytest -q tests/phase38 tests/phase40 tests/phase41 tests/phase42 tests/phase46 tests/phase47 tests/phase48`.
+- **Before `/gsd-verify-work`:** Run the full suite command above and `git diff --check`; all new Phase-48 tests and the existing `eps_H` assembly proof must be green; the locked MPS probe is a named, separately recorded, non-waivable gate at phase close.
 - **Max feedback latency:** 120 seconds for the quick/targeted loop; the locked-environment MPS probe is additionally required at the CONF-05 task and phase gates.
 
 ---
@@ -65,13 +65,14 @@ PLAN set.
 |---|---|---|---|---|---|---|---|---|---|
 | D-05/D-07 | 48-01 Task 1 | 1 | CONF-04 / TEST-02 | T-48-01 | Controller-to-catalog assembly rejects the obsolete `/9` value. | assembly unit | `.venv/bin/python -m pytest -q tests/phase48/test_loss_math_conformance.py -k rbar` | ❌ W0 | ⬜ pending |
 | D-01..D-03 | 48-01 Task 2 | 1 | CONF-07 | T-48-03 | N/A | unit + regression | `.venv/bin/python -m pytest -q tests/phase48/test_loss_math_conformance.py tests/phase40/test_optimizer_phase.py -k 'data_huber or chunked_accumulation'` | ✅ existing chunk proof + ❌ W0 | ⬜ pending |
-| D-13..D-15 | 48-02 Tasks 1-2 | 1 | CONF-06 / TEST-01 | T-48-04..06 | Resolved defaults and shipped inputs cannot silently activate Stage-0 energy supervision. | config + integration | `.venv/bin/python -m pytest -q tests/phase40/test_config.py tests/phase40/test_scheduled_weights.py tests/phase41/test_config_yaml.py tests/phase48/test_stage0_energy_config.py -k 'lambda_e or stage0'` | ✅ impacted existing + ❌ W0 | ⬜ pending |
+| D-13..D-15 | 48-02 Tasks 1-2 | 2 | CONF-06 / TEST-01 | T-48-04..06 | Resolved defaults and shipped inputs cannot silently activate Stage-0 energy supervision. | config + integration | `.venv/bin/python -m pytest -q tests/phase40/test_config.py tests/phase40/test_scheduled_weights.py tests/phase41/test_config_yaml.py tests/phase48/test_stage0_energy_config.py -k 'lambda_e or stage0'` | ✅ impacted existing + ❌ W0 | ⬜ pending |
 | D-08..D-10 | 48-03 Tasks 1-2 | 2 | CONF-05 | T-48-07/T-48-09 | Backend underflow cannot erase later-time physics supervision. | unit + backend integration | `.venv/bin/python -m pytest -q tests/phase48/test_loss_math_conformance.py -k causal_clip` plus the locked dependency-free torch-2.12.1 MPS probe above | ❌ W0 | ⬜ pending |
 | D-11 | 48-03 Tasks 1-2 | 2 | CONF-05 / TEST-01 | T-48-08/T-48-10 | Clip precision, upward-rounded exponent bound, and minimum weight are atomically persisted and fail closed on mismatch. | metadata integration | `.venv/bin/python -m pytest -q tests/phase48/test_clip_metadata.py` | ❌ W0 | ⬜ pending |
 | D-16..D-19 | 48-04 Tasks 1-2 | 2 | INST-02 | T-48-11/T-48-13/T-48-14 | Diagnostic VJPs do not mutate `.grad`, clipping, optimizer updates, or graph lifetime. | unit + controller integration | `.venv/bin/python -m pytest -q tests/phase48/test_gradient_observability.py` | ❌ W0 | ⬜ pending |
 | D-20 | 48-04 Task 2 | 2 | INST-02 | T-48-12 | Missing/non-finite statistics never serialize as a complete step. | JSONL integration | `.venv/bin/python -m pytest -q tests/phase48/test_gradient_observability.py tests/phase42/test_step_log_jsonl.py -k 'missing or nonfinite or complete or step_completed'` | ✅ impacted existing + ❌ W0 | ⬜ pending |
-| D-21 | 48-02 Task 2; 48-03 Task 2 | 1/2 | TEST-01 | T-48-06/T-48-08 | Divergence-defending expectations are corrected atomically with their owner behavior. | regression | `.venv/bin/python -m pytest -q tests/phase40/test_config.py tests/phase41/test_config_yaml.py tests/phase38/test_loss_catalog.py tests/phase48/test_stage0_energy_config.py tests/phase48/test_clip_metadata.py` | ✅ impacted existing + ❌ W0 | ⬜ pending |
+| D-21 | 48-02 Task 2; 48-03 Task 2 | 2 | TEST-01 | T-48-06/T-48-08 | Divergence-defending expectations are corrected atomically with their owner behavior. | regression | `.venv/bin/python -m pytest -q tests/phase40/test_config.py tests/phase41/test_config_yaml.py tests/phase38/test_loss_catalog.py tests/phase48/test_stage0_energy_config.py tests/phase48/test_clip_metadata.py` | ✅ impacted existing + ❌ W0 | ⬜ pending |
 | D-22 | 48-01 Task 1; 48-03 Task 2 | 1/2 | TEST-02 | T-48-01/T-48-07 | Tests defend locked assembly inputs and focused clip behavior rather than divergent behavior. | assembly regression | `.venv/bin/python -m pytest -q tests/phase48/test_loss_math_conformance.py tests/phase47/test_conf03_eps_h_wiring.py -k 'rbar or eps_h_assembly_value or causal_clip'` | ✅ existing `eps_H` + ❌ W0 | ⬜ pending |
+| D-23 | 48-01 Task 1; 48-04 Task 2 | 1/2 | CONF-04 / INST-02 | T-48-02/T-48-11 | Heavily edited controller/optimizer seams keep their existing regression suites green. | regression | .venv/bin/python -m pytest -q tests/phase40/test_controllers.py tests/phase41/test_controllers_ext.py tests/phase40/test_optimizer_phase.py | ✅ existing | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
