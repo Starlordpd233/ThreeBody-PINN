@@ -5,6 +5,9 @@ created: 2026-08-01
 milestone: v2.2
 phase: 48-loss-math-conformance
 retirement_trigger: All edits applied to the Phase 48 plan set, structural verification green, revision committed with execution provenance, and Phase 48 execution has started from the revised plans.
+execution_status: executed
+executed_at: 2026-08-01 21:59 PDT
+review_status: pending
 ---
 
 # Phase 48 Plan-Set Revision — Cross-AI Review Remediation
@@ -356,4 +359,20 @@ Task D6/D7 are the phase gate for this revision: structural PASS, collect PASS, 
 
 ## Execution Log
 
-_(empty — filled at execution time with D6/D7 output and the C1/C2 hashes)_
+Executed 2026-08-01 in the `.worktrees/trainex` worktree (branch `milestone/v2.2`) by Claude Code (k3).
+
+All 24 edits (A1–A7, B1–B6, C1–C7, D1–D5) applied in place. Per-task verify greps matched the plan's expected counts: Task A 2/1; Task B `log_smallest_normal:directed_up` = 1, preflight = 1; Task C `test_optimizer_phase.py` = 4, `Phase-50 handoff` = 1, `tests/phase46` = 1; Task D `Consensus` = 1 with the placeholder line gone. One in-flight reconciliation: the Task B verify expects `test_causal_clip_controller_seam` on 3 lines ("action, behavior context, artifacts row") while the B5 bullet text prescribed no test name, so the behavior bullet names the test in parentheses — no semantic change to the prescribed behavior.
+
+D6 output (run from the worktree root):
+
+```
+structural checks: PASS — {'01': 1, '02': 2, '03': 2, '04': 2}
+gate suites collect: PASS
+```
+
+D7 output: `git diff --name-only -- .planning/phases/48-loss-math-conformance/` reported exactly the six intended files (`48-REVIEWS.md` was untracked, so it was surfaced via `git add -N` intent-to-add to appear in the diff). The repo-wide diff additionally contained only the pre-existing, unrelated `.planning/config.json` modification, which was excluded from staging. `git diff --check` clean; `48-VALIDATION.md` lifecycle fields (`status: draft`, `nyquist_compliant`, `wave_0_complete`) untouched; `.planning/STATE.md` not advanced.
+
+Commits:
+
+- C1 (work): `0d8ff0d` — `plan(48): apply cross-ai review remediation to phase 48 plan set` (6 files changed, +400/−25).
+- C2 (provenance): this commit — `docs(48): record phase 48 plan-revision execution provenance`.
