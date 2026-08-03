@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 48
 current_phase_name: loss-math-conformance
 status: executing
-stopped_at: Completed 48-01-PLAN.md
-last_updated: "2026-08-03T01:28:25.820Z"
+stopped_at: Completed 48-02-PLAN.md
+last_updated: "2026-08-03T01:53:13.635Z"
 last_activity: 2026-08-02
 last_activity_desc: Phase 48 execution started
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 17
-  completed_plans: 14
-  percent: 82
+  completed_plans: 15
+  percent: 88
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 48 (loss-math-conformance) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-02 — Phase 48 execution started
-**Progress:** [████████░░] 82% (14/17 plans complete)
+**Progress:** [█████████░] 88% (15/17 plans complete)
 
 ### Decisions from 47-02
 
@@ -205,6 +205,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 46 P10 | 50min | 2 tasks | 5 files |
 | Phase 47 P02 | ~30min | 2 tasks | 7 files |
 | Phase 48 P01 | 7 min | 2 tasks | 4 files |
+| Phase 48 P2 | 16 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -362,6 +363,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 47 Plan 47-02]: CONF-02 S_H pipeline landed (commits 2b985eee, 2ecc53d3). _matched_plummer_components is the single home of the softened pairwise sum (D-11); k0/uabs0 captured in float64 at admission at EPS_SOFT before the fp32 cast (D-09/D-10/D-12); run_metadata.py computes the train-split median once at setup and persists s_h/eps_h/n_train via atomic_write_text with re-validate-on-load and explicit expected_energy_floor_factor/expected_eps_train bindings (D-13..D-18); _assert_s_h_matches_artifact RETURNS the validated s_h so both setup branches bind the local 47-03 threads into RunController. First authoritative real-corpus S_H/eps_H/N_train deferred to Phase 50 (owner Option B); REQUIREMENTS.md CONF-02 checkbox deliberately not flipped by the executor.
 - [Phase ?]: Phase 48 Plan 48-01: Rbar is assembled as sum(residual**2, body/component)/3 before the existing causal consumer.
 - [Phase ?]: Phase 48 Plan 48-01: data_huber_loss retains .mean(), documented as sum(Huber)/(9*N_t) under GAP-45-01/D-01.
+- [Phase ?]: LossConfig.lambda_e_max defaults to exact 0.0 while retaining finite, nonnegative, <=1 validation.
+- [Phase ?]: Both shipped Stage-0 YAML entry points explicitly declare lambda_e_max: 0.0; ScheduledWeights remains generic with nonzero caps supported.
 
 ### Pending Todos
 
@@ -396,8 +399,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-03T01:28:25.811Z
-Stopped at: Completed 48-01-PLAN.md
+Last session: 2026-08-03T01:53:13.627Z
+Stopped at: Completed 48-02-PLAN.md
 Next action: Run `/gsd-plan-phase 48`, consuming `48-CONTEXT.md`.
 
 ## Operator Next Steps
