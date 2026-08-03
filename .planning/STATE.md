@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 48
-current_phase_name: Loss-Math Conformance
+current_phase_name: loss-math-conformance
 status: executing
-stopped_at: Phase 48 context gathered
-last_updated: "2026-08-01T14:38:29.832Z"
-last_activity: 2026-07-31
-last_activity_desc: Phase 47 complete, transitioned to Phase 48
+stopped_at: Completed 48-01-PLAN.md
+last_updated: "2026-08-03T01:28:25.820Z"
+last_activity: 2026-08-02
+last_activity_desc: Phase 48 execution started
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 17
-  completed_plans: 13
-  percent: 29
+  completed_plans: 14
+  percent: 82
 ---
 
 # Project State
@@ -24,14 +24,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-31)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 48 — Loss-Math Conformance
+**Current focus:** Phase 48 — loss-math-conformance
 
 ## Current Position
 
-Phase: 48 — Loss-Math Conformance
-Plan: Not started
+Phase: 48 (loss-math-conformance) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-07-31 — Phase 47 complete, transitioned to Phase 48
+Last activity: 2026-08-02 — Phase 48 execution started
+**Progress:** [████████░░] 82% (14/17 plans complete)
 
 ### Decisions from 47-02
 
@@ -203,6 +204,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 46 P06 | ~25min | 3 tasks | 3 files |
 | Phase 46 P10 | 50min | 2 tasks | 5 files |
 | Phase 47 P02 | ~30min | 2 tasks | 7 files |
+| Phase 48 P01 | 7 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -358,6 +360,8 @@ Recent decisions affecting current work:
 - [Phase 46 GAP-46-06 + Plan 46-07, 2026-07-28]: **The validation frame is ratified by owner instruction, not by a machine verdict.** Plan 46-09's one post-repair probe returned rule-5 `VERDICT_NON_FRAME_DIVERGENCE`. Root cause is structural, not empirical: `decide_verdict` rule 4 requires `all_identity_raw` — a byte-match against the parsed file-order array (`target_frame_probe.py:641`) — which CONF-08's authorized repair deliberately removed, plus `all_raw_corrected_consistent`, whose unconditional inverse-permutation correction post-repair *creates* the mismatch it was written to undo (1100 → 0). **Our own repair made the clean verdict unreachable.** Orchestrator analysis of the committed `raw.json` showed option B's "only 1086/1651" caveat is a zero-margin tolerance artifact: raw-vs-provenance-control median ratio 0.999996, failing trajectories exceeding by ~0.002%, `tolerance_floor` equal to the control median for 1651/1651, and `tolerance_fp32_increment` exactly 0 for 801/1651 — while the two float64 controls agree to 8.6e-16 and the float32 resident to ~1e-6, i.e. residency quantization. The substantive raw-vs-scaled question is answered by measurement (scaled arm separated by a factor of 12.3); only the token was unobtainable. Owner ruled option B: ratify `("r_raw", "t_native", "ordered_raw")` with `conf01_evidence_ref` on the `20260728T014532Z` run. Plan 46-07 then landed `RATIFIED_VALIDATION_FRAME` (quoted from the resolution note, never inferred — D-12), the `_run_validation_gate_pass` seam inside checkpoint_hook's existing validation branch (no new cadence — D-10), sidecar-before-pointer ordering (D-17), fail-closed `failed:` conversion (D-15/D-20), and the summary projection with `eval01_precondition_iii`. Verified by inspecting a real run's artifacts, not by a passing test: 240 per-trajectory `{record_key, eps_h, scs}` rows per validation event, ratified frame embedded in the sidecar, `gate_status ok` with `gate_verdict FAIL` kept distinct.
 - [Phase 46 Plan 46-10]: Closed both remaining INST-01 verifier gaps: validate_sidecar_payload now recomputes every per-row/aggregate gate value through gate_metrics and binds compact fields via compact_validation_fields_from_payload; every validation event (finite/NaN/+Inf/-Inf loss, ok/failed gate) is durably persisted, and eval01_precondition_iii selects only the physical latest JSONL line with type-and-value-sensitive equality against the validated sidecar, so a failed/malformed/cross-run/wrong-step event can never expose an older eligible success.
 - [Phase ?]: [Phase 47 Plan 47-02]: CONF-02 S_H pipeline landed (commits 2b985eee, 2ecc53d3). _matched_plummer_components is the single home of the softened pairwise sum (D-11); k0/uabs0 captured in float64 at admission at EPS_SOFT before the fp32 cast (D-09/D-10/D-12); run_metadata.py computes the train-split median once at setup and persists s_h/eps_h/n_train via atomic_write_text with re-validate-on-load and explicit expected_energy_floor_factor/expected_eps_train bindings (D-13..D-18); _assert_s_h_matches_artifact RETURNS the validated s_h so both setup branches bind the local 47-03 threads into RunController. First authoritative real-corpus S_H/eps_H/N_train deferred to Phase 50 (owner Option B); REQUIREMENTS.md CONF-02 checkbox deliberately not flipped by the executor.
+- [Phase ?]: Phase 48 Plan 48-01: Rbar is assembled as sum(residual**2, body/component)/3 before the existing causal consumer.
+- [Phase ?]: Phase 48 Plan 48-01: data_huber_loss retains .mean(), documented as sum(Huber)/(9*N_t) under GAP-45-01/D-01.
 
 ### Pending Todos
 
@@ -390,10 +394,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/48-loss-math-conformance/48-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-08-01T06:42:16.211Z
-Stopped at: Phase 48 context gathered
+Last session: 2026-08-03T01:28:25.811Z
+Stopped at: Completed 48-01-PLAN.md
 Next action: Run `/gsd-plan-phase 48`, consuming `48-CONTEXT.md`.
 
 ## Operator Next Steps
