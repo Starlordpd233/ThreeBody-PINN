@@ -155,6 +155,90 @@ STEP_LOG_FIELDS: dict[str, dict[str, Any]] = {
             "computation); owner-ratify before run #1"
         ),
     },
+    "grad_norm_raw_data": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: global parameter-gradient L2 norm of the unweighted "
+            "data term; owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_raw_ic": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: global parameter-gradient L2 norm of the unweighted "
+            "initial-condition term; owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_raw_phys": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: global parameter-gradient L2 norm of the unweighted "
+            "physics term; owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_raw_energy": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: global parameter-gradient L2 norm of the unweighted "
+            "energy term; owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_raw_angmom": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: global parameter-gradient L2 norm of the unweighted "
+            "angular-momentum term; owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_applied_data": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: lambda_data times raw data gradient norm; "
+            "owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_applied_ic": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: lambda_ic times raw initial-condition gradient norm; "
+            "owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_applied_phys": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: lambda_phys times raw physics gradient norm; "
+            "owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_applied_energy": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: lambda_e times raw energy gradient norm; "
+            "owner-ratify before run #1"
+        ),
+    },
+    "grad_norm_applied_angmom": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: lambda_l times raw angular-momentum gradient norm; "
+            "owner-ratify before run #1"
+        ),
+    },
+    "grad_stats_provenance": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: optimizer-graph provenance for the ten gradient norms; "
+            "owner-ratify before run #1"
+        ),
+    },
+    "grad_stats_complete": {
+        "provisional": True,
+        "provenance": (
+            "INST-02: all ten gradient norms are present and finite; "
+            "owner-ratify before run #1"
+        ),
+    },
     "w_min": {
         "provisional": True,
         "provenance": (
@@ -229,8 +313,10 @@ def step_log_fields_provisional_entry() -> dict[str, Any]:
             "vocabulary — event, step/stage/phase/epoch, five loss terms "
             "(loss_data/loss_ic/loss_phys/loss_energy/loss_angmom), total, "
             "λ vector (lambda_data/lambda_ic/lambda_phys/lambda_e/lambda_l), "
-            "grad_norm, w_n stats (w_min/w_mean/w_max/front_idx), lr, "
-            "s_per_step, eta_seconds, step_completed. Residuals_bin_* is "
+            "grad_norm plus ten INST-02 raw/applied per-term gradient norms, "
+            "their provenance/completeness metadata, w_n stats "
+            "(w_min/w_mean/w_max/front_idx), lr, s_per_step, eta_seconds, "
+            "step_completed. Residuals_bin_* is "
             "TB-only (OPS-04b). finite/nonfinite_keys are sink-added "
             "(CTX-67). Owner-ratify the final list before run #1."
         ),

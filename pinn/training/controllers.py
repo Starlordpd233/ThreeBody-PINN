@@ -125,6 +125,88 @@ _HANDOFF_FIRE_COUNT = 50
 # instead of silently corrupting the detector's state.
 _TINY_POSITIVE_LOSS = 1e-300
 
+_GRAD_STAT_TERMS: tuple[tuple[str, str], ...] = (
+    ("data", "lambda_data"),
+    ("ic", "lambda_ic"),
+    ("phys", "lambda_phys"),
+    ("energy", "lambda_e"),
+    ("angmom", "lambda_l"),
+)
+
+
+def _global_parameter_grad_norm(
+    term: Optional[torch.Tensor],
+    parameters: tuple[torch.nn.Parameter, ...],
+    *,
+    retain_graph: bool,
+) -> Optional[float]:
+    """Return a term's global parameter-gradient L2 norm without side effects.
+
+    ``autograd.grad`` returns gradients as values and therefore does not write
+    to ``parameter.grad``. Parameters unused by a connected term return
+    ``None`` and contribute zero. A graphless scalar is a legitimate
+    disconnected term and is recorded as exact zero without calling
+    ``autograd.grad`` (``allow_unused`` does not cover graphless outputs).
+    """
+    if term is None:
+        return None
+    if not isinstance(term, torch.Tensor):
+        return None
+    if not term.requires_grad or term.grad_fn is None or not parameters:
+        return 0.0
+    try:
+        gradients = torch.autograd.grad(
+            term,
+            parameters,
+            create_graph=False,
+            retain_graph=retain_graph,
+            allow_unused=True,
+            materialize_grads=False,
+        )
+    except (RuntimeError, TypeError):
+        # Diagnostics are observation-only. A released or otherwise
+        # unavailable graph is represented as missing telemetry so the sink
+        # can fail closed without changing optimizer behavior.
+        return None
+    squared = [g.detach().reshape(-1).square().sum() for g in gradients if g is not None]
+    if not squared:
+        return 0.0
+    total_squared = squared[0]
+    for value in squared[1:]:
+        total_squared = total_squared + value
+    return float(torch.sqrt(total_squared).detach())
+
+
+def _build_gradient_stats(
+    terms: Mapping[str, torch.Tensor],
+    weights: Any,
+    parameters: tuple[torch.nn.Parameter, ...],
+    *,
+    provenance: str,
+) -> dict[str, Any]:
+    """Build the canonical raw/applied five-term gradient telemetry mapping."""
+    stats: dict[str, Any] = {"grad_stats_provenance": provenance}
+    complete = True
+    for name, weight_name in _GRAD_STAT_TERMS:
+        raw = _global_parameter_grad_norm(
+            terms.get(name), parameters, retain_graph=True,
+        )
+        try:
+            weight = float(getattr(weights, weight_name))
+        except (AttributeError, TypeError, ValueError):
+            weight = float("nan")
+        applied = None if raw is None else weight * raw
+        stats[f"grad_norm_raw_{name}"] = raw
+        stats[f"grad_norm_applied_{name}"] = applied
+        try:
+            complete = complete and raw is not None and math.isfinite(float(raw))
+            complete = complete and applied is not None and math.isfinite(float(applied))
+            complete = complete and math.isfinite(weight) and weight >= 0.0
+        except (TypeError, ValueError):
+            complete = False
+    stats["grad_stats_complete"] = bool(complete)
+    return stats
+
 
 class PlateauDetector:
     """CTX-46 within-stage Adam->L-BFGS handoff detector.
@@ -707,6 +789,7 @@ class RunController:
         epoch: Optional[int] = None,
         step_completed: bool = True,
         weights: Optional[loss_catalog.LossWeights] = None,
+        gradient_stats: Optional[Mapping[str, Any]] = None,
     ) -> None:
         """CTX-52 / Phase-42 OPS-03 widened step log (canonical JSONL + TB panel).
 
@@ -792,6 +875,31 @@ class RunController:
                 f"residuals_bin_{n:02d}": r for n, r in enumerate(resolved_residuals)
             }
 
+        # Gradient telemetry is an explicit step-local mapping rather than
+        # part of ``_last_widened_details``: validation can overwrite that
+        # stash before the training event is emitted. Recompute completeness
+        # from the ten numeric fields so missing/non-finite values cannot be
+        # mislabeled as a completed optimizer step.
+        resolved_gradient_stats = gradient_stats or {}
+        grad_stats_complete = bool(
+            resolved_gradient_stats.get("grad_stats_complete", False)
+        )
+        gradient_keys: dict[str, Any] = {}
+        for term_name, _weight_name in _GRAD_STAT_TERMS:
+            for kind in ("raw", "applied"):
+                key = f"grad_norm_{kind}_{term_name}"
+                value = resolved_gradient_stats.get(key)
+                gradient_keys[key] = value
+                try:
+                    if value is None or not math.isfinite(float(value)):
+                        grad_stats_complete = False
+                except (TypeError, ValueError):
+                    grad_stats_complete = False
+        gradient_keys["grad_stats_provenance"] = resolved_gradient_stats.get(
+            "grad_stats_provenance"
+        )
+        gradient_keys["grad_stats_complete"] = bool(grad_stats_complete)
+
         extra = {
             "event": "step",
             "step": step,
@@ -806,7 +914,8 @@ class RunController:
             "eta_seconds": resolved_eta_seconds,
             "epoch": epoch,
             "stage": stage,
-            "step_completed": step_completed,
+            **gradient_keys,
+            "step_completed": bool(step_completed) and bool(grad_stats_complete),
             **res_keys,
         }
         _LOGGER.info(
@@ -884,6 +993,10 @@ class RunController:
         adam_start: int = 0,
     ) -> tuple[str, int]:
         validation_every = int(self._config.opt.validation_every)
+        parameters = tuple(
+            parameter for parameter in self._model.parameters()
+            if parameter.requires_grad
+        )
         handoff_trigger = "budget-exhausted"
         adam_epochs_used = int(adam_start)
         for epoch in range(int(adam_start), n_adam_k):
@@ -901,6 +1014,18 @@ class RunController:
 
             optimizer.zero_grad(set_to_none=True)
             loss_terms = self._compose_loss_terms(batch, anchor_ctx, weights)
+            gradient_stats = _build_gradient_stats(
+                {
+                    "data": getattr(loss_terms, "data", None),
+                    "ic": getattr(loss_terms, "ic", None),
+                    "phys": getattr(loss_terms, "phys", None),
+                    "energy": getattr(loss_terms, "energy", None),
+                    "angmom": getattr(loss_terms, "angmom", None),
+                },
+                weights,
+                parameters,
+                provenance="pre_total_backward",
+            )
 
             # ---- Guard path (cycle-2 HIGH 1 + cycle-4 MEDIUM-2): Adam ----
             # Loss/grad exist before optimizer.step(); guard runs FIRST so a
@@ -932,6 +1057,7 @@ class RunController:
                         step=self._global_step + 1, loss_terms=loss_terms, lr=None,
                         phase="2a", stage=k, grad_norm=grad_norm,
                         step_completed=False, weights=weights,
+                        gradient_stats=gradient_stats,
                     )
                     return handoff_trigger, adam_epochs_used
                 # Guard did not trip — inline checks fire as Phase 40.
@@ -941,6 +1067,7 @@ class RunController:
                         step=self._global_step + 1, loss_terms=loss_terms, lr=None,
                         phase="2a", stage=k, grad_norm=None,
                         step_completed=False, weights=weights,
+                        gradient_stats=gradient_stats,
                     )
                     return handoff_trigger, adam_epochs_used
                 if clip_outcome is None:
@@ -952,6 +1079,7 @@ class RunController:
                         step=self._global_step + 1, loss_terms=loss_terms, lr=None,
                         phase="2a", stage=k, grad_norm=grad_norm,
                         step_completed=False, weights=weights,
+                        gradient_stats=gradient_stats,
                     )
                     return handoff_trigger, adam_epochs_used
             else:
@@ -962,6 +1090,7 @@ class RunController:
                         step=self._global_step + 1, loss_terms=loss_terms, lr=None,
                         phase="2a", stage=k, grad_norm=None,
                         step_completed=False, weights=weights,
+                        gradient_stats=gradient_stats,
                     )
                     return handoff_trigger, adam_epochs_used
                 loss_terms.total.backward()
@@ -1000,6 +1129,7 @@ class RunController:
             self._log_step(
                 step=self._global_step, loss_terms=loss_terms, lr=lr_now, phase="2a",
                 stage=k, grad_norm=grad_norm, epoch=int(adam_epochs_used), weights=weights,
+                gradient_stats=gradient_stats,
             )
 
             # Checkpoint/best hook AFTER validation so _last_val_total is live.

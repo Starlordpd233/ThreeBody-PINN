@@ -9,14 +9,21 @@ and applied norms are the non-negative scheduled lambda times each raw norm.
 from __future__ import annotations
 
 import math
+import json
+import logging
+from pathlib import Path
+import tempfile
+from unittest import mock
 
 import pytest
 import torch
 
-from pinn.loss_catalog import LossWeights
+from pinn.loss_catalog import LossTerms, LossWeights
 from pinn.training.controllers import (
     _build_gradient_stats,
 )
+from pinn.training.step_log import JsonlStepHandler
+from tests.phase40.test_optimizer_phase import _build_controller
 
 
 def _terms(parameters: tuple[torch.nn.Parameter, ...]) -> dict[str, torch.Tensor]:
@@ -81,13 +88,13 @@ def test_unused_parameter_contributes_zero() -> None:
         torch.nn.Parameter(torch.tensor(9.0)),
     )
     stats = _build_gradient_stats(
-        {"data": (parameters[0] * 2.0).sum()},
-        LossWeights(),
+        _terms(parameters), _weights(),
         parameters,
         provenance="pre_total_backward",
     )
 
-    assert stats["grad_norm_raw_data"] == pytest.approx(math.sqrt(8.0))
+    assert stats["grad_norm_raw_data"] == pytest.approx(math.sqrt(5.0))
+    assert stats["grad_norm_raw_energy"] == pytest.approx(0.0)
     assert stats["grad_stats_complete"] is True
 
 
@@ -98,8 +105,12 @@ def test_disconnected_term_yields_zero_norm(monkeypatch: pytest.MonkeyPatch) -> 
         raise AssertionError("graphless terms must not call autograd.grad")
 
     monkeypatch.setattr(torch.autograd, "grad", fail_autograd_grad)
+    terms = {
+        name: torch.tensor(float(index + 1))
+        for index, name in enumerate(("data", "ic", "phys", "energy", "angmom"))
+    }
     stats = _build_gradient_stats(
-        {"energy": torch.tensor(4.0)},
+        terms,
         LossWeights(lambda_e=0.0),
         parameters,
         provenance="pre_total_backward",
@@ -150,3 +161,61 @@ def test_adam_gradient_stats_do_not_change_update() -> None:
 
     assert float(clipped_instrumented) == pytest.approx(float(clipped_control))
     assert torch.equal(instrumented, control)
+
+
+def test_adam_step_emits_complete_gradient_stats() -> None:
+    with tempfile.TemporaryDirectory(prefix="phase48-adam-stats-") as tmp:
+        controller = _build_controller(
+            tmp, max_epochs=1, n_adam=1, validation_every=10_000,
+        )
+        model = controller.model
+        dtype, device = controller._dtype, controller._device
+
+        def fake_compose(batch, anchor_ctx, weights):
+            params = tuple(parameter for parameter in model.parameters())
+            terms = {
+                "data": (params[0] ** 2).sum(),
+                "ic": (params[1] ** 2).sum(),
+                "phys": (params[2] ** 2).sum(),
+                "energy": (params[3] ** 2).sum(),
+                "angmom": (params[4] ** 2).sum(),
+            }
+            total = sum(
+                weight * terms[name]
+                for name, weight in (
+                    ("data", weights.lambda_data),
+                    ("ic", weights.lambda_ic),
+                    ("phys", weights.lambda_phys),
+                    ("energy", weights.lambda_e),
+                    ("angmom", weights.lambda_l),
+                )
+            )
+            return LossTerms(
+                data=terms["data"], ic=terms["ic"], phys=terms["phys"],
+                energy=terms["energy"], angmom=terms["angmom"], total=total,
+            )
+
+        jsonl_path = Path(tmp) / "train.log.jsonl"
+        handler = JsonlStepHandler(jsonl_path)
+        logger = logging.getLogger("pinn.training.controllers")
+        logger.setLevel(logging.INFO)
+        logger.addHandler(handler)
+        try:
+            with mock.patch.object(
+                controller, "_compose_loss_terms", side_effect=fake_compose,
+            ):
+                controller.run_stage(0)
+            handler.flush()
+        finally:
+            logger.removeHandler(handler)
+            handler.close()
+
+        records = [json.loads(line) for line in jsonl_path.read_text().splitlines()]
+        assert records
+        record = records[-1]
+        for term in ("data", "ic", "phys", "energy", "angmom"):
+            assert math.isfinite(record[f"grad_norm_raw_{term}"])
+            assert math.isfinite(record[f"grad_norm_applied_{term}"])
+        assert record["grad_stats_provenance"] == "pre_total_backward"
+        assert record["grad_stats_complete"] is True
+        assert record["step_completed"] is True
