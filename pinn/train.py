@@ -24,6 +24,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence
 import numpy as np
 
 from pinn.architecture_spec import ArchitectureSpec
+from pinn.loss_catalog import resolve_causal_clip_facts
 from pinn.network import build_network
 from pinn.runtime import RuntimeSpec, resolve_runtime
 from pinn.training import determinism, validation_gate
@@ -442,7 +443,13 @@ def _build_sources(config: TrainingConfig, run_dir: Path) -> tuple[Any, Any]:
     return _synthetic_split_sources()
 
 
-def _assert_s_h_matches_artifact(run_dir, train_source, *, energy_floor_factor) -> float:
+def _assert_s_h_matches_artifact(
+    run_dir,
+    train_source,
+    *,
+    energy_floor_factor,
+    expected_causal_clip_facts,
+) -> float:
     """CONF-02 D-18 resume gate: re-derive S_H and compare with the artifact.
 
     Loads ``run_dir/training_metadata.json`` via ``load_training_metadata``
@@ -455,7 +462,11 @@ def _assert_s_h_matches_artifact(run_dir, train_source, *, energy_floor_factor) 
     both setup branches bind the same local (plan 47-03 threads it into
     ``RunController``).
     """
-    metadata = load_training_metadata(run_dir, expected_energy_floor_factor=float(energy_floor_factor))
+    metadata = load_training_metadata(
+        run_dir,
+        expected_energy_floor_factor=float(energy_floor_factor),
+        expected_causal_clip_facts=expected_causal_clip_facts,
+    )
     live_s_h, live_n_train = compute_s_h(train_source)
     if live_s_h != metadata["s_h"]:
         raise ValueError(
@@ -802,6 +813,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Strict-CPU override (HIGH 4) — single runtime_spec for the whole run.
     try:
         runtime_spec = _resolve_runtime_spec(config)
+        causal_clip_facts = resolve_causal_clip_facts(
+            runtime_spec.dtype, runtime_spec.torch_device,
+        )
     except Exception as exc:
         print(f"error: runtime resolve failed: {exc}", file=sys.stderr)
         return finish_run("failed", 1)
@@ -862,7 +876,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             # Resume: re-validate the artifact and match it against a live
             # recompute; the return BINDS s_h from the checked artifact.
             s_h = _assert_s_h_matches_artifact(
-                run_dir, train_source, energy_floor_factor=energy_floor_factor
+                run_dir,
+                train_source,
+                energy_floor_factor=energy_floor_factor,
+                expected_causal_clip_facts=causal_clip_facts,
             )
         else:
             # Fresh launch: compute, validate, persist, then re-read through
@@ -874,9 +891,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 s_h=s_h,
                 n_train=n_train,
                 energy_floor_factor=energy_floor_factor,
+                causal_clip_facts=causal_clip_facts,
             )
             _assert_s_h_matches_artifact(
-                run_dir, train_source, energy_floor_factor=energy_floor_factor
+                run_dir,
+                train_source,
+                energy_floor_factor=energy_floor_factor,
+                expected_causal_clip_facts=causal_clip_facts,
             )
     except ValueError as exc:
         print(

@@ -42,11 +42,15 @@ from pinn.constants import (
 )
 
 __all__ = [
+    "CAUSAL_CLIP_FIELD_NAMES",
+    "CAUSAL_CLIP_FORMULA",
+    "CAUSAL_CLIP_PROVENANCE",
     "LossWeights",
     "LossTerms",
     "data_huber_loss",
     "ic_anchor_loss",
     "causal_physics_loss",
+    "resolve_causal_clip_facts",
     "soft_energy_loss",
     "angular_momentum_loss",
     "compose_total",
@@ -55,6 +59,60 @@ __all__ = [
 
 _N_BODIES = 3
 _N_DIMS = 3
+
+# These identifiers are part of the strict run-record contract.  Keep their
+# spelling and provenance in this module so loss execution, setup, and the
+# metadata validator cannot silently publish different meanings.
+CAUSAL_CLIP_FIELD_NAMES = (
+    "causal_clip_precision",
+    "causal_clip_exponent_floor",
+    "causal_clip_min_weight",
+    "causal_clip_formula",
+    "causal_clip_provenance",
+)
+CAUSAL_CLIP_FORMULA = "exp(clamp_min(x_n, causal_clip_exponent_floor))"
+CAUSAL_CLIP_PROVENANCE = "log_smallest_normal:directed_up"
+
+
+def resolve_causal_clip_facts(dtype, device) -> dict[str, object]:
+    """Derive the causal exponent floor for one active dtype/backend.
+
+    ``log(torch.finfo(dtype).tiny)`` is a mathematical bound.  It is first
+    represented in the active dtype/device and, if that rounding is below the
+    mathematical value, advanced exactly once with ``nextafter`` toward
+    positive infinity.  The returned Python scalars are the same facts used by
+    :func:`causal_physics_loss` and persisted in ``training_metadata.json``.
+    """
+    if dtype is torch.float32:
+        precision = "float32"
+    elif dtype is torch.float64:
+        precision = "float64"
+    else:
+        raise ValueError(
+            "causal clip facts require torch.float32 or torch.float64; "
+            f"got {dtype!r}"
+        )
+
+    active_device = torch.device(device)
+    mathematical_floor = math.log(torch.finfo(dtype).tiny)
+    floor_tensor = torch.as_tensor(
+        mathematical_floor, dtype=dtype, device=active_device,
+    )
+    floor_value = float(floor_tensor.detach().cpu())
+    if floor_value < mathematical_floor:
+        floor_tensor = torch.nextafter(
+            floor_tensor,
+            torch.as_tensor(math.inf, dtype=dtype, device=active_device),
+        )
+        floor_value = float(floor_tensor.detach().cpu())
+    min_weight = float(torch.exp(floor_tensor).detach().cpu())
+    return {
+        "causal_clip_precision": precision,
+        "causal_clip_exponent_floor": floor_value,
+        "causal_clip_min_weight": min_weight,
+        "causal_clip_formula": CAUSAL_CLIP_FORMULA,
+        "causal_clip_provenance": CAUSAL_CLIP_PROVENANCE,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -242,9 +300,10 @@ def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
 
     Returns ``(1/N_t) sum_n w_n Rbar_n``. The cumulative residual used for the
     weight is ``stopgrad``'d (``.detach()``) so the weight cannot become an
-    adversarial training term. The exponent is left unclipped except by the
-    natural finite range of ``exp`` (the spec defers a numeric clip bound to
-    FUT); underflow drives ``w_n -> 0``, which is correct causal gating.
+    adversarial training term. The exponent is clamped at the active
+    dtype/device's upward-directed representable ``log(finfo.tiny)`` floor
+    before exponentiation, so every finite non-negative residual sequence has
+    strictly positive causal weights.
     """
     rbar = torch.as_tensor(residuals_per_time, dtype=dtype, device=device).reshape(-1)
     if times is not None:
@@ -272,7 +331,12 @@ def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
     # Shift right by one: exclusive prefix.
     zeros = torch.zeros(1, dtype=dtype, device=device)
     cumsum_excl = torch.cat([zeros, cumsum[:-1]], dim=0)
-    weights = torch.exp(-eta * cumsum_excl)
+    clip_facts = resolve_causal_clip_facts(dtype, device)
+    exponent = -eta * cumsum_excl
+    floor = torch.as_tensor(
+        clip_facts["causal_clip_exponent_floor"], dtype=dtype, device=device,
+    )
+    weights = torch.exp(torch.clamp_min(exponent, floor))
     # w_1 is identically 1 by construction (cumsum_excl[0] = 0); pin via constant.
     _ = CAUSAL_W1
     loss = (weights * rbar).mean()

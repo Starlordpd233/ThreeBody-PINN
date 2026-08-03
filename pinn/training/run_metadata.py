@@ -29,10 +29,18 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+from typing import Mapping
 
 import numpy as np
+import torch
 
 from pinn.constants import EPS_SOFT
+from pinn.loss_catalog import (
+    CAUSAL_CLIP_FIELD_NAMES,
+    CAUSAL_CLIP_FORMULA,
+    CAUSAL_CLIP_PROVENANCE,
+    resolve_causal_clip_facts,
+)
 from pinn.training.atomic_io import atomic_write_text
 from pinn.training.validation_gate import RATIFIED_VALIDATION_FRAME
 
@@ -46,7 +54,7 @@ __all__ = [
 ]
 
 TRAINING_METADATA_FILENAME = "training_metadata.json"
-TRAINING_METADATA_SCHEMA_VERSION = 1
+TRAINING_METADATA_SCHEMA_VERSION = 2
 
 _METADATA_KEYS = frozenset(
     {
@@ -57,7 +65,7 @@ _METADATA_KEYS = frozenset(
         "eps_train",
         "energy_floor_factor",
         "frame",
-    }
+    } | set(CAUSAL_CLIP_FIELD_NAMES)
 )
 _FRAME_KEYS = frozenset({"position_frame", "time_coord", "mass_convention"})
 
@@ -125,6 +133,83 @@ def _json_number(payload: dict, key: str) -> float:
     return float(value)
 
 
+def _validate_causal_clip_facts(
+    facts: Mapping[str, object], *, context: str,
+) -> dict[str, object]:
+    """Validate one exact five-field causal clip fact mapping.
+
+    The canonical numerical derivation remains in ``loss_catalog``.  This
+    boundary checks the persisted encodings and compares them with that one
+    derivation on CPU (the dtype representation is backend-independent).
+    """
+    if not isinstance(facts, Mapping):
+        raise ValueError(
+            f"{context} causal clip facts must be a mapping; regenerate "
+            "run metadata via fresh setup"
+        )
+    keys = set(facts)
+    if keys != set(CAUSAL_CLIP_FIELD_NAMES):
+        raise ValueError(
+            f"{context} causal clip keys must be exactly "
+            f"{sorted(CAUSAL_CLIP_FIELD_NAMES)}; got {sorted(keys)}; "
+            "regenerate run metadata via fresh setup"
+        )
+
+    precision = facts["causal_clip_precision"]
+    if precision not in ("float32", "float64"):
+        raise ValueError(
+            f"{context} causal_clip_precision must be 'float32' or 'float64'; "
+            f"got {precision!r}; regenerate run metadata via fresh setup"
+        )
+    dtype = torch.float32 if precision == "float32" else torch.float64
+    canonical = resolve_causal_clip_facts(dtype, torch.device("cpu"))
+
+    floor = facts["causal_clip_exponent_floor"]
+    minimum = facts["causal_clip_min_weight"]
+    for name, value in (
+        ("causal_clip_exponent_floor", floor),
+        ("causal_clip_min_weight", minimum),
+    ):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(
+                f"{context} {name} must be a JSON number; got {value!r}; "
+                "regenerate run metadata via fresh setup"
+            )
+        if not math.isfinite(float(value)):
+            raise ValueError(
+                f"{context} {name} must be finite; got {value!r}; "
+                "regenerate run metadata via fresh setup"
+            )
+    if float(minimum) <= 0.0 or float(minimum) > 1.0:
+        raise ValueError(
+            f"{context} causal_clip_min_weight must satisfy 0 < value <= 1; "
+            f"got {minimum!r}; regenerate run metadata via fresh setup"
+        )
+    if facts["causal_clip_formula"] != CAUSAL_CLIP_FORMULA:
+        raise ValueError(
+            f"{context} causal_clip_formula must be {CAUSAL_CLIP_FORMULA!r}; "
+            f"got {facts['causal_clip_formula']!r}; regenerate run metadata "
+            "via fresh setup"
+        )
+    if facts["causal_clip_provenance"] != CAUSAL_CLIP_PROVENANCE:
+        raise ValueError(
+            f"{context} causal_clip_provenance must be "
+            f"{CAUSAL_CLIP_PROVENANCE!r}; got "
+            f"{facts['causal_clip_provenance']!r}; regenerate run metadata "
+            "via fresh setup"
+        )
+    for name in ("causal_clip_exponent_floor", "causal_clip_min_weight"):
+        if float(facts[name]) != float(canonical[name]):
+            raise ValueError(
+                f"{context} {name} does not match the canonical runtime-derived "
+                f"value; got {facts[name]!r}; regenerate run metadata via fresh "
+                "setup"
+            )
+    return {
+        name: facts[name] for name in CAUSAL_CLIP_FIELD_NAMES
+    }
+
+
 def _live_frame_block() -> dict:
     return {
         "position_frame": RATIFIED_VALIDATION_FRAME.position_frame,
@@ -133,7 +218,9 @@ def _live_frame_block() -> dict:
     }
 
 
-def write_training_metadata(run_dir, *, s_h, n_train, energy_floor_factor) -> Path:
+def write_training_metadata(
+    run_dir, *, s_h, n_train, energy_floor_factor, causal_clip_facts,
+) -> Path:
     """Validate, then atomically persist ``run_dir/training_metadata.json``.
 
     Validation precedes the write (D-17: refusal precedes artifact — a
@@ -146,6 +233,9 @@ def write_training_metadata(run_dir, *, s_h, n_train, energy_floor_factor) -> Pa
     """
     s_h = validate_s_h(s_h)
     n_train = _validate_positive_int(n_train, what="n_train")
+    causal_clip_facts = _validate_causal_clip_facts(
+        causal_clip_facts, context="write"
+    )
     factor = float(energy_floor_factor)
     if not (math.isfinite(factor) and factor > 0.0):
         raise ValueError(
@@ -160,13 +250,16 @@ def write_training_metadata(run_dir, *, s_h, n_train, energy_floor_factor) -> Pa
         "eps_train": EPS_SOFT,
         "energy_floor_factor": factor,
         "frame": _live_frame_block(),
+        **causal_clip_facts,
     }
     text = json.dumps(payload, sort_keys=True, indent=2) + "\n"
     return atomic_write_text(Path(run_dir) / TRAINING_METADATA_FILENAME, text)
 
 
-def load_training_metadata(run_dir, *, expected_energy_floor_factor,
-                           expected_eps_train=EPS_SOFT) -> dict:
+def load_training_metadata(
+    run_dir, *, expected_energy_floor_factor, expected_causal_clip_facts,
+    expected_eps_train=EPS_SOFT,
+) -> dict:
     """Parse and RE-VALIDATE the persisted training metadata (D-18).
 
     A persisted number is trusted only after re-checking, never because it is
@@ -205,6 +298,20 @@ def load_training_metadata(run_dir, *, expected_energy_floor_factor,
         )
 
     s_h = validate_s_h(payload["s_h"])
+    persisted_clip_facts = _validate_causal_clip_facts(
+        {name: payload[name] for name in CAUSAL_CLIP_FIELD_NAMES},
+        context="persisted",
+    )
+    expected_clip_facts = _validate_causal_clip_facts(
+        expected_causal_clip_facts, context="expected"
+    )
+    for name in CAUSAL_CLIP_FIELD_NAMES:
+        if persisted_clip_facts[name] != expected_clip_facts[name]:
+            raise ValueError(
+                f"persisted {name} {persisted_clip_facts[name]!r} != expected "
+                f"{expected_clip_facts[name]!r}; refusing to resume — regenerate "
+                "the run's metadata via fresh setup rather than hand-editing"
+            )
     eps_h = _json_number(payload, "eps_h")
     n_train = _validate_positive_int(payload["n_train"], what="n_train")
     factor = _json_number(payload, "energy_floor_factor")
