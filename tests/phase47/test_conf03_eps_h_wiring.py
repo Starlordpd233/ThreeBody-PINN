@@ -29,7 +29,12 @@ import torch
 
 from pinn.constants import HUBER_DELTA_ENERGY
 from pinn.data.types import RecordKey
-from pinn.loss_catalog import _huber, _matched_plummer_hamiltonian, soft_energy_loss
+from pinn.loss_catalog import (
+    _huber,
+    _matched_plummer_hamiltonian,
+    resolve_causal_clip_facts,
+    soft_energy_loss,
+)
 from pinn.runtime import resolve_runtime
 from pinn.train import _assert_s_h_matches_artifact
 from pinn.training.checkpoint import TorchSaveCheckpointStore
@@ -43,6 +48,9 @@ from pinn.training.stage_exit import StageExitMachine
 from tests.phase40._fixtures import make_stub_model, make_stub_split_sources
 
 _CPU_F64 = dict(dtype=torch.float64, device=torch.device("cpu"))
+_CPU_F64_CLIP_FACTS = resolve_causal_clip_facts(
+    torch.float64, torch.device("cpu")
+)
 
 
 # ---------------------------------------------------------------------------
@@ -266,9 +274,20 @@ def test_resume_binds_s_h_for_controller(tmp_path):
     keys = [RecordKey("hierarchical", "base", i) for i in range(4)]
     source = _SHSource({key: (1.0 + i, 2.0) for i, key in enumerate(keys)})
     s_h, n_train = compute_s_h(source)
-    write_training_metadata(run_dir, s_h=s_h, n_train=n_train, energy_floor_factor=1e-4)
+    write_training_metadata(
+        run_dir,
+        s_h=s_h,
+        n_train=n_train,
+        energy_floor_factor=1e-4,
+        causal_clip_facts=_CPU_F64_CLIP_FACTS,
+    )
 
-    resumed = _assert_s_h_matches_artifact(run_dir, source, energy_floor_factor=1e-4)
+    resumed = _assert_s_h_matches_artifact(
+        run_dir,
+        source,
+        energy_floor_factor=1e-4,
+        expected_causal_clip_facts=_CPU_F64_CLIP_FACTS,
+    )
     # (i) it returns a finite, strictly positive float (not merely a comparison).
     assert type(resumed) is float
     assert math.isfinite(resumed) and resumed > 0.0

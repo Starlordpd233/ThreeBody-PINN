@@ -47,7 +47,11 @@ from pinn.data.adapter import (
 from pinn.data.preprocessing import preprocess_trajectory
 from pinn.data.splits import StageIndex, write_split_manifest
 from pinn.data.types import RecordKey, StageLabel
-from pinn.loss_catalog import _matched_plummer_components, _matched_plummer_hamiltonian
+from pinn.loss_catalog import (
+    _matched_plummer_components,
+    _matched_plummer_hamiltonian,
+    resolve_causal_clip_facts,
+)
 from pinn.train import _assert_s_h_matches_artifact
 from pinn.training.run_metadata import (
     TRAINING_METADATA_FILENAME,
@@ -63,6 +67,9 @@ from tests.phase39._fixtures import TinyCorpus
 
 _PAIRS = ((0, 1), (0, 2), (1, 2))
 _CPU_F64 = dict(dtype=torch.float64, device=torch.device("cpu"))
+_CPU_F64_CLIP_FACTS = resolve_causal_clip_facts(
+    torch.float64, torch.device("cpu")
+)
 
 
 # ---------------------------------------------------------------------------
@@ -364,7 +371,11 @@ def test_s_h_fails_closed(tmp_path):
             validate_s_h(bad)
         with pytest.raises(ValueError, match="finite and strictly positive"):
             write_training_metadata(
-                run_dir, s_h=bad, n_train=240, energy_floor_factor=1e-4
+                run_dir,
+                s_h=bad,
+                n_train=240,
+                energy_floor_factor=1e-4,
+                causal_clip_facts=_CPU_F64_CLIP_FACTS,
             )
         # Refusal precedes artifact: a partially-completed run must not leave
         # records that read like evidence.
@@ -384,10 +395,22 @@ def test_metadata_roundtrip_revalidates(tmp_path):
     s_h = (0.2 + 0.4) / 2  # 0.30000000000000004 — float64 fidelity probe
     factor = 1e-4
     write_training_metadata(
-        run_dir, s_h=s_h, n_train=240, energy_floor_factor=factor
+        run_dir,
+        s_h=s_h,
+        n_train=240,
+        energy_floor_factor=factor,
+        causal_clip_facts=_CPU_F64_CLIP_FACTS,
     )
 
-    payload = load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+    def load_current(*, expected_energy_floor_factor=factor, expected_eps_train=EPS_SOFT):
+        return load_training_metadata(
+            run_dir,
+            expected_energy_floor_factor=expected_energy_floor_factor,
+            expected_causal_clip_facts=_CPU_F64_CLIP_FACTS,
+            expected_eps_train=expected_eps_train,
+        )
+
+    payload = load_current()
     assert set(payload) == {
         "schema_version",
         "s_h",
@@ -396,6 +419,11 @@ def test_metadata_roundtrip_revalidates(tmp_path):
         "eps_train",
         "energy_floor_factor",
         "frame",
+        "causal_clip_precision",
+        "causal_clip_exponent_floor",
+        "causal_clip_min_weight",
+        "causal_clip_formula",
+        "causal_clip_provenance",
     }
     assert payload["schema_version"] == TRAINING_METADATA_SCHEMA_VERSION
     assert payload["s_h"] == s_h  # bit-identical float64 round-trip
@@ -408,6 +436,8 @@ def test_metadata_roundtrip_revalidates(tmp_path):
         "time_coord": RATIFIED_VALIDATION_FRAME.time_coord,
         "mass_convention": RATIFIED_VALIDATION_FRAME.mass_convention,
     }
+    for name, expected in _CPU_F64_CLIP_FACTS.items():
+        assert payload[name] == expected
 
     pristine_text = metadata_path.read_text(encoding="utf-8")
     pristine = json.loads(pristine_text)
@@ -429,45 +459,45 @@ def test_metadata_roundtrip_revalidates(tmp_path):
     # A persisted number is trusted only after re-checking (D-18).
     write_payload(mutated(s_h=-1.0))
     with pytest.raises(ValueError, match="strictly positive"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     write_payload(mutated(s_h=float("inf")))
     with pytest.raises(ValueError, match="strictly positive"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     write_payload(mutated(eps_h=1.0))
     with pytest.raises(ValueError, match="eps_h"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     write_payload(mutated(n_train=_DELETE))
     with pytest.raises(ValueError, match="keys must be exactly"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     unknown = mutated()
     unknown["surprise"] = 1
     write_payload(unknown)
     with pytest.raises(ValueError, match="keys must be exactly"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     write_payload(mutated(n_train=True))
     with pytest.raises(ValueError, match="n_train"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     metadata_path.write_text(pristine_text[: len(pristine_text) // 2], encoding="utf-8")
     with pytest.raises(ValueError, match="not valid JSON"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     # Cycle-2 review MEDIUM: a persisted artifact produced under different
     # softening/factor settings than the live run refuses at the boundary.
     write_payload(mutated(eps_train=1e-10))
     with pytest.raises(ValueError, match="eps_train"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     # Factor tampered WITH the product kept consistent: the eps_h product
     # check passes, so only the live-factor cross-check can catch this.
     write_payload(mutated(energy_floor_factor=2e-4, eps_h=2e-4 * s_h))
     with pytest.raises(ValueError, match="energy_floor_factor"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)
+        load_current()
 
     # Cycle-3 review MEDIUM (codex): the expected bindings arrive as EXPLICIT
     # keyword arguments — a well-formed payload loaded against a DIFFERENT
@@ -475,17 +505,12 @@ def test_metadata_roundtrip_revalidates(tmp_path):
     # since energy_floor_factor is configurable).
     write_payload(pristine)
     with pytest.raises(ValueError, match="energy_floor_factor"):
-        load_training_metadata(run_dir, expected_energy_floor_factor=3e-4)
+        load_current(expected_energy_floor_factor=3e-4)
     with pytest.raises(ValueError, match="eps_train"):
-        load_training_metadata(
-            run_dir,
-            expected_energy_floor_factor=factor,
-            expected_eps_train=2e-5,
-        )
+        load_current(expected_eps_train=2e-5)
     # The matched call still succeeds after the tamper sequence.
     assert (
-        load_training_metadata(run_dir, expected_energy_floor_factor=factor)["s_h"]
-        == s_h
+        load_current()["s_h"] == s_h
     )
 
 
@@ -498,14 +523,23 @@ def test_resume_recompute_refuses_mismatch(tmp_path):
     source = _PoolSource({key: (1.0 + i, 2.0) for i, key in enumerate(keys)})
     s_h, n_train = compute_s_h(source)
     write_training_metadata(
-        run_dir, s_h=s_h, n_train=n_train, energy_floor_factor=1e-4
+        run_dir,
+        s_h=s_h,
+        n_train=n_train,
+        energy_floor_factor=1e-4,
+        causal_clip_facts=_CPU_F64_CLIP_FACTS,
     )
     original_bytes = metadata_path.read_bytes()
 
     # A matched live source does not raise and RETURNS the validated s_h
     # (the resume branch binds the same local the fresh branch binds).
     assert (
-        _assert_s_h_matches_artifact(run_dir, source, energy_floor_factor=1e-4)
+        _assert_s_h_matches_artifact(
+            run_dir,
+            source,
+            energy_floor_factor=1e-4,
+            expected_causal_clip_facts=_CPU_F64_CLIP_FACTS,
+        )
         == s_h
     )
     assert metadata_path.read_bytes() == original_bytes
@@ -517,7 +551,10 @@ def test_resume_recompute_refuses_mismatch(tmp_path):
     )
     with pytest.raises(ValueError, match="recompute"):
         _assert_s_h_matches_artifact(
-            run_dir, mutated_source, energy_floor_factor=1e-4
+            run_dir,
+            mutated_source,
+            energy_floor_factor=1e-4,
+            expected_causal_clip_facts=_CPU_F64_CLIP_FACTS,
         )
     assert metadata_path.read_bytes() == original_bytes
 
@@ -530,5 +567,10 @@ def test_resume_recompute_refuses_mismatch(tmp_path):
         )}
     )
     with pytest.raises(ValueError, match="n_train"):
-        _assert_s_h_matches_artifact(run_dir, drifted, energy_floor_factor=1e-4)
+        _assert_s_h_matches_artifact(
+            run_dir,
+            drifted,
+            energy_floor_factor=1e-4,
+            expected_causal_clip_facts=_CPU_F64_CLIP_FACTS,
+        )
     assert metadata_path.read_bytes() == original_bytes

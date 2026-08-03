@@ -134,7 +134,7 @@ def _json_number(payload: dict, key: str) -> float:
 
 
 def _validate_causal_clip_facts(
-    facts: Mapping[str, object], *, context: str,
+    facts: Mapping[str, object], *, context: str, enforce_canonical: bool = True,
 ) -> dict[str, object]:
     """Validate one exact five-field causal clip fact mapping.
 
@@ -198,13 +198,19 @@ def _validate_causal_clip_facts(
             f"{facts['causal_clip_provenance']!r}; regenerate run metadata "
             "via fresh setup"
         )
-    for name in ("causal_clip_exponent_floor", "causal_clip_min_weight"):
-        if float(facts[name]) != float(canonical[name]):
-            raise ValueError(
-                f"{context} {name} does not match the canonical runtime-derived "
-                f"value; got {facts[name]!r}; regenerate run metadata via fresh "
-                "setup"
-            )
+    if enforce_canonical:
+        # The representable exponent floor is dtype-defined and therefore
+        # backend-independent.  The final ``exp`` result is an active-backend
+        # fact (torch 2.12.1's CPU and MPS float32 kernels differ by one ulp),
+        # so its exact value is validated by the live expectation comparison
+        # rather than regenerated on a different backend here.
+        for name in ("causal_clip_exponent_floor",):
+            if float(facts[name]) != float(canonical[name]):
+                raise ValueError(
+                    f"{context} {name} does not match the canonical runtime-derived "
+                    f"value; got {facts[name]!r}; regenerate run metadata via fresh "
+                    "setup"
+                )
     return {
         name: facts[name] for name in CAUSAL_CLIP_FIELD_NAMES
     }
@@ -289,21 +295,25 @@ def load_training_metadata(
     if keys != set(_METADATA_KEYS):
         raise ValueError(
             f"training metadata keys must be exactly {sorted(_METADATA_KEYS)}; "
-            f"got {sorted(keys)}"
+            f"got {sorted(keys)}; regenerate run metadata via fresh setup"
         )
     if payload["schema_version"] != TRAINING_METADATA_SCHEMA_VERSION:
         raise ValueError(
             f"schema_version must be {TRAINING_METADATA_SCHEMA_VERSION}; "
-            f"got {payload['schema_version']!r}"
+            f"got {payload['schema_version']!r}; regenerate run metadata via "
+            "fresh setup"
         )
 
     s_h = validate_s_h(payload["s_h"])
     persisted_clip_facts = _validate_causal_clip_facts(
         {name: payload[name] for name in CAUSAL_CLIP_FIELD_NAMES},
         context="persisted",
+        enforce_canonical=False,
     )
     expected_clip_facts = _validate_causal_clip_facts(
-        expected_causal_clip_facts, context="expected"
+        expected_causal_clip_facts,
+        context="expected",
+        enforce_canonical=False,
     )
     for name in CAUSAL_CLIP_FIELD_NAMES:
         if persisted_clip_facts[name] != expected_clip_facts[name]:
@@ -312,6 +322,9 @@ def load_training_metadata(
                 f"{expected_clip_facts[name]!r}; refusing to resume — regenerate "
                 "the run's metadata via fresh setup rather than hand-editing"
             )
+    _validate_causal_clip_facts(
+        persisted_clip_facts, context="persisted", enforce_canonical=True,
+    )
     eps_h = _json_number(payload, "eps_h")
     n_train = _validate_positive_int(payload["n_train"], what="n_train")
     factor = _json_number(payload, "energy_floor_factor")

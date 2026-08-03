@@ -166,10 +166,18 @@ class LossCatalogTests(unittest.TestCase):
 
         # w_n stays in (0, 1] as upstream residual grows.
         large = torch.tensor([10.0, 10.0, 10.0, 10.0], dtype=dtype, device=device)
-        loss_large = causal_physics_loss(large, eta_c=CAUSAL_ETA_C,
-                                         dtype=dtype, device=device)
+        loss_large, details = causal_physics_loss(
+            large,
+            eta_c=CAUSAL_ETA_C,
+            dtype=dtype,
+            device=device,
+            return_details=True,
+        )
         self.assertTrue(torch.isfinite(loss_large).all())
-        # With large Rbar, later weights -> 0 so loss < unweighted mean.
+        weights = details["w_n"]
+        self.assertTrue(bool(torch.all((weights > 0) & (weights <= 1)).item()))
+        # With large Rbar, later weights are clipped at a positive floor, so
+        # loss remains below the unweighted mean without erasing supervision.
         self.assertLess(float(loss_large), float(large.mean()))
 
         # Unordered times -> ValueError.

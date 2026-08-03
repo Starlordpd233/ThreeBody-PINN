@@ -64,6 +64,13 @@ def _build_controller(tmp_path):
     )
 
 
+def _mps_available() -> bool:
+    return bool(
+        getattr(torch.backends, "mps", None)
+        and torch.backends.mps.is_available()
+    )
+
+
 def test_rbar_assembly_value(tmp_path):
     """The real controller seam passes sum(residual**2)/3 to the catalog."""
     controller = _build_controller(tmp_path)
@@ -181,3 +188,126 @@ def test_causal_clip_runtime_facts_drive_strict_positive_weights(precision, dtyp
     assert torch.equal(weights[:1], torch.ones(1, dtype=dtype, device=device))
     assert bool(torch.all((weights > 0) & (weights <= 1)).item())
     assert float(weights[1]) == facts["causal_clip_min_weight"]
+
+
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+def test_causal_clip_cpu_dtype_matrix(dtype):
+    """No-op and former-underflow prefixes preserve every causal invariant."""
+    device = torch.device("cpu")
+    facts = resolve_causal_clip_facts(dtype, device)
+    times = torch.tensor([0.0, 0.5, 1.0], dtype=dtype, device=device)
+
+    for label, rbar in (
+        ("no-op", torch.tensor([0.25, 0.5, 0.75], dtype=dtype, device=device)),
+        ("former-underflow", torch.tensor([1000.0, 1000.0, 1000.0], dtype=dtype, device=device)),
+    ):
+        loss, details = causal_physics_loss(
+            rbar,
+            times=times,
+            dtype=dtype,
+            device=device,
+            return_details=True,
+        )
+        weights = details["w_n"]
+        assert torch.isfinite(loss), label
+        assert bool(torch.isclose(weights[0], torch.ones((), dtype=dtype)).item())
+        assert bool(torch.all((weights > 0) & (weights <= 1)).item())
+        assert float(weights.min()) >= facts["causal_clip_min_weight"]
+
+    # A permutation of complete (time, residual) pairs is unchanged once
+    # restored to ascending time, proving the sorted-time contract.
+    base = torch.tensor([0.5, 1.0, 2.0], dtype=dtype, device=device)
+    base_loss = causal_physics_loss(
+        base, times=times, dtype=dtype, device=device,
+    )
+    permutation = torch.tensor([2, 0, 1], dtype=torch.long)
+    permuted_loss = causal_physics_loss(
+        base[permutation][torch.argsort(times[permutation])],
+        times=times[permutation][torch.argsort(times[permutation])],
+        dtype=dtype,
+        device=device,
+    )
+    assert torch.equal(base_loss, permuted_loss)
+
+    # Prefix residuals are detached from the weight path: each derivative is
+    # only its own weighted residual contribution.
+    differentiable = torch.tensor([0.25, 0.5], dtype=dtype, device=device, requires_grad=True)
+    loss = causal_physics_loss(differentiable, dtype=dtype, device=device)
+    loss.backward()
+    _, details = causal_physics_loss(
+        differentiable.detach(), dtype=dtype, device=device, return_details=True,
+    )
+    assert torch.allclose(
+        differentiable.grad,
+        details["w_n"] / differentiable.numel(),
+        rtol=0.0,
+        atol=torch.finfo(dtype).eps,
+    )
+
+
+@pytest.mark.skipif(
+    not _mps_available(),
+    reason="MPS unavailable; locked conda probe remains the non-waivable real-backend arm",
+)
+def test_causal_clip_mps_float32():
+    """Real MPS float32 retains positive weights in the former-underflow regime."""
+    dtype = torch.float32
+    device = torch.device("mps")
+    rbar = torch.tensor([1000.0, 1000.0], dtype=dtype, device=device)
+    loss, details = causal_physics_loss(
+        rbar, dtype=dtype, device=device, return_details=True,
+    )
+    weights = details["w_n"]
+    torch.mps.synchronize()
+    assert rbar.device.type == "mps" and weights.device.type == "mps"
+    assert bool(torch.isfinite(loss).item())
+    assert bool(torch.all((weights > 0) & (weights <= 1)).item())
+
+
+def test_causal_clip_controller_seam(tmp_path):
+    """The real controller composition clips a former-underflow residual."""
+    controller = _build_controller(tmp_path)
+    dtype = controller._dtype
+    device = controller._device
+    residual = torch.full((2, 3, 3), 1000.0, dtype=dtype, device=device)
+
+    def fake_componentwise_du(_traj, times):
+        n_times = int(times.numel())
+        first = torch.zeros((n_times, 3, 3), dtype=dtype, device=device)
+        second = residual.clone() if n_times == 2 else torch.zeros_like(first)
+        return first, second
+
+    def fake_acceleration(positions, _masses, *, dtype, device):
+        return torch.zeros_like(positions, dtype=dtype, device=device)
+
+    def traj(_u):
+        return torch.zeros((3, 3), dtype=dtype, device=device)
+
+    anchor_ctx = SimpleNamespace(
+        traj=traj,
+        masses=torch.ones(3, dtype=dtype, device=device),
+        true_r0=torch.zeros((3, 3), dtype=dtype, device=device),
+        true_v0=torch.zeros((3, 3), dtype=dtype, device=device),
+        h0=-1.0,
+        l0=torch.zeros(3, dtype=dtype, device=device),
+        eps_h=1e-4,
+        collocation_times=np.array([0.1, 0.2], dtype=np.float64),
+    )
+    captured = {}
+    original_causal = controllers.causal_physics_loss
+
+    def capture_clip(rbar, **kwargs):
+        loss, details = original_causal(rbar, **kwargs)
+        captured["rbar"] = rbar.detach().clone()
+        captured["weights"] = details["w_n"]
+        return loss, details
+
+    with (
+        mock.patch.object(controllers, "componentwise_du", fake_componentwise_du),
+        mock.patch.object(controllers, "softened_acceleration", fake_acceleration),
+        mock.patch.object(controllers, "causal_physics_loss", side_effect=capture_clip),
+    ):
+        controller._non_data_terms(anchor_ctx)
+
+    assert torch.equal(captured["rbar"], (residual.square().sum(dim=(-2, -1)) / 3.0))
+    assert bool(torch.all((captured["weights"] > 0) & (captured["weights"] <= 1)).item())
