@@ -312,7 +312,7 @@ opt:
   validation_every: 10
   lbfgs_chunk_size: 1024
 loss:
-  lambda_e_max: 1.0
+  lambda_e_max: 0.0
 """
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "cfg.yaml"
@@ -326,7 +326,7 @@ loss:
         self.assertEqual(cfg.stage.n_adam, 80)
         self.assertIsInstance(cfg.opt.adam_betas, tuple)
         self.assertEqual(cfg.opt.adam_betas, (0.9, 0.999))
-        self.assertEqual(cfg.loss.lambda_e_max, 1.0)
+        self.assertEqual(cfg.loss.lambda_e_max, 0.0)
 
     def test_unknown_key_raises_config_key_error_with_dotted_path(self):
         load_config = _require("load_config", YAML_MODULE)
