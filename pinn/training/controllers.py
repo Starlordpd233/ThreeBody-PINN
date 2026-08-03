@@ -177,20 +177,41 @@ def _global_parameter_grad_norm(
     return float(torch.sqrt(total_squared).detach())
 
 
+def _global_parameter_grad_norm_from_grads(
+    parameters: tuple[torch.nn.Parameter, ...],
+) -> float:
+    """Return the global L2 norm of gradients already accumulated on params."""
+    squared = [
+        parameter.grad.detach().reshape(-1).square().sum()
+        for parameter in parameters
+        if parameter.grad is not None
+    ]
+    if not squared:
+        return 0.0
+    total_squared = squared[0]
+    for value in squared[1:]:
+        total_squared = total_squared + value
+    return float(torch.sqrt(total_squared).detach())
+
+
 def _build_gradient_stats(
     terms: Mapping[str, torch.Tensor],
     weights: Any,
     parameters: tuple[torch.nn.Parameter, ...],
     *,
     provenance: str,
+    raw_overrides: Optional[Mapping[str, Optional[float]]] = None,
 ) -> dict[str, Any]:
     """Build the canonical raw/applied five-term gradient telemetry mapping."""
     stats: dict[str, Any] = {"grad_stats_provenance": provenance}
     complete = True
     for name, weight_name in _GRAD_STAT_TERMS:
-        raw = _global_parameter_grad_norm(
-            terms.get(name), parameters, retain_graph=True,
-        )
+        if raw_overrides is not None and name in raw_overrides:
+            raw = raw_overrides[name]
+        else:
+            raw = _global_parameter_grad_norm(
+                terms.get(name), parameters, retain_graph=True,
+            )
         try:
             weight = float(getattr(weights, weight_name))
         except (AttributeError, TypeError, ValueError):
@@ -450,6 +471,10 @@ class RunController:
         # scalars. None-tolerant: tests that monkeypatch `_compose_loss_terms`
         # (bypassing `_non_data_terms`) still log without error.
         self._last_widened_details: Optional[dict] = None
+        # Closure-local live non-data tensors. The weighted helper exposes
+        # this transient mapping so L-BFGS can inspect each term graph before
+        # its ordinary weighted backward; it is never persisted.
+        self._last_non_data_terms: Optional[dict[str, torch.Tensor]] = None
         # Per-step-delta wall clock (distinct from `self._wall_clock_baseline`,
         # which is the run-start baseline). Used to derive `s_per_step` (EMA of
         # per-step wall time) and `eta_seconds` (stage-remaining ETA; null until
@@ -675,6 +700,7 @@ class RunController:
 
     def _weighted_non_data_terms(self, anchor_ctx: _AnchorContext, weights) -> torch.Tensor:
         terms = self._non_data_terms(anchor_ctx)
+        self._last_non_data_terms = terms
         return (
             weights.lambda_ic * terms["ic"]
             + weights.lambda_phys * terms["phys"]
@@ -1101,6 +1127,7 @@ class RunController:
                         step=self._global_step + 1, loss_terms=loss_terms, lr=None,
                         phase="2a", stage=k, grad_norm=grad_norm,
                         step_completed=False, weights=weights,
+                        gradient_stats=gradient_stats,
                     )
                     return handoff_trigger, adam_epochs_used
 
@@ -1146,17 +1173,44 @@ class RunController:
     # Phase 2b: L-BFGS.
     # ------------------------------------------------------------------
     def _make_lbfgs_closure(self, optimizer, fixed_batch, anchor_ctx, weights, chunk_size, closure_state):
+        parameters = tuple(
+            parameter for parameter in self._model.parameters()
+            if parameter.requires_grad
+        )
+
         def closure():
             if self._should_stop is not None and self._should_stop():
                 raise _StopRequested
             optimizer.zero_grad(set_to_none=True)
+            # A closure may be evaluated repeatedly by one L-BFGS optimizer
+            # step. Never let an earlier evaluation's telemetry survive a
+            # failed or partial later evaluation.
+            closure_state["gradient_stats"] = None
             weighted_data = accumulate_chunked_data_term(
                 self._model, fixed_batch.data_points,
                 weight=weights.lambda_data, chunk_size=chunk_size,
                 dtype=self._dtype, device=self._device,
             )
+            # ``accumulate_chunked_data_term`` has fully accumulated the
+            # weighted data-only gradient and freed each chunk graph. Capture
+            # that norm before the non-data backward adds anything to .grad.
+            data_raw = _global_parameter_grad_norm_from_grads(parameters)
+            self._last_non_data_terms = None
             other_total = self._weighted_non_data_terms(anchor_ctx, weights)
-            other_total.backward()
+            non_data_terms = self._last_non_data_terms or {}
+            closure_state["gradient_stats"] = _build_gradient_stats(
+                non_data_terms,
+                weights,
+                parameters,
+                provenance="last_closure_evaluation",
+                raw_overrides={"data": data_raw},
+            )
+            try:
+                other_total.backward()
+            finally:
+                # Do not keep live term tensors (and their graph references)
+                # beyond this closure evaluation.
+                self._last_non_data_terms = None
 
             total = weighted_data + other_total.detach()
             closure_state["last_loss"] = float(total.detach())
@@ -1215,7 +1269,11 @@ class RunController:
                 return StageDisposition.HALT
             self._active_phase = "2b"
             self._active_epoch = int(_lbfgs_epoch + 1)
-            closure_state: dict[str, Any] = {"non_finite": False, "last_loss": None}
+            closure_state: dict[str, Any] = {
+                "non_finite": False,
+                "last_loss": None,
+                "gradient_stats": None,
+            }
             closure = self._make_lbfgs_closure(
                 optimizer, fixed_batch, anchor_ctx, weights_frozen, chunk_size, closure_state
             )
@@ -1254,7 +1312,8 @@ class RunController:
                         step=self._global_step,
                         loss_terms=self._lbfgs_full_loss_terms(closure_state),
                         lr=None, phase="2b", stage=k, grad_norm=None,
-                        step_completed=False,
+                        step_completed=False, weights=weights_frozen,
+                        gradient_stats=closure_state.get("gradient_stats"),
                     )
                     return guard_outcome.disposition
                 # Guard did not trip — bare RECOVER still fires if non_finite.
@@ -1264,7 +1323,8 @@ class RunController:
                         step=self._global_step,
                         loss_terms=self._lbfgs_full_loss_terms(closure_state),
                         lr=None, phase="2b", stage=k, grad_norm=None,
-                        step_completed=False,
+                        step_completed=False, weights=weights_frozen,
+                        gradient_stats=closure_state.get("gradient_stats"),
                     )
                     return StageDisposition.RECOVER
             else:
@@ -1274,7 +1334,8 @@ class RunController:
                         step=self._global_step,
                         loss_terms=self._lbfgs_full_loss_terms(closure_state),
                         lr=None, phase="2b", stage=k, grad_norm=None,
-                        step_completed=False,
+                        step_completed=False, weights=weights_frozen,
+                        gradient_stats=closure_state.get("gradient_stats"),
                     )
                     return StageDisposition.RECOVER
 
@@ -1297,6 +1358,8 @@ class RunController:
                     loss_terms=self._lbfgs_full_loss_terms(closure_state),
                     lr=None, phase="2b", stage=k,
                     epoch=int(epoch_count),
+                    weights=weights_frozen,
+                    gradient_stats=closure_state.get("gradient_stats"),
                 )
 
             if self._checkpoint_hook is not None:
