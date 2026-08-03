@@ -43,7 +43,7 @@ opt:
   validation_every: 100
 
 loss:
-  lambda_e_max: 1.0
+  lambda_e_max: 0.0
 
 data:
   source: admitted

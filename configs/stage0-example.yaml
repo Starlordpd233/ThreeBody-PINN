@@ -54,4 +54,4 @@ opt:
   # lbfgs_chunk_size: 1024
 
 loss:
-  lambda_e_max: 1.0
+  lambda_e_max: 0.0
