@@ -7,6 +7,7 @@ assembles the locked residual statistic before passing it downstream.
 
 from __future__ import annotations
 
+import math
 from types import SimpleNamespace
 from unittest import mock
 
@@ -15,7 +16,7 @@ import pytest
 import torch
 
 import pinn.training.controllers as controllers
-from pinn.loss_catalog import data_huber_loss
+from pinn.loss_catalog import causal_physics_loss, data_huber_loss, resolve_causal_clip_facts
 from pinn.runtime import resolve_runtime
 from pinn.training.checkpoint import TorchSaveCheckpointStore
 from pinn.training.collocation_sampler import CollocationSampler
@@ -150,3 +151,33 @@ def test_data_huber_mean_matches_hand_oracle(n_times):
     expected = hand_huber.sum() / (9.0 * n_times)
 
     assert torch.allclose(got, expected, rtol=1e-13, atol=1e-13)
+
+
+@pytest.mark.parametrize(
+    ("precision", "dtype"),
+    [("float32", torch.float32), ("float64", torch.float64)],
+)
+def test_causal_clip_runtime_facts_drive_strict_positive_weights(precision, dtype):
+    """The runtime-derived floor is the same value used by the causal loss."""
+    device = torch.device("cpu")
+    facts = resolve_causal_clip_facts(dtype, device)
+
+    target = math.log(torch.finfo(dtype).tiny)
+    floor = facts["causal_clip_exponent_floor"]
+    assert facts["causal_clip_precision"] == precision
+    assert math.isfinite(floor) and floor >= target
+    assert facts["causal_clip_formula"] == (
+        "exp(clamp_min(x_n, causal_clip_exponent_floor))"
+    )
+    assert facts["causal_clip_provenance"] == "log_smallest_normal:directed_up"
+
+    # The second prefix is large enough to underflow without the clip.
+    rbar = torch.tensor([1000.0, 1000.0], dtype=dtype, device=device)
+    loss, details = causal_physics_loss(
+        rbar, dtype=dtype, device=device, return_details=True,
+    )
+    weights = details["w_n"]
+    assert torch.isfinite(loss)
+    assert torch.equal(weights[:1], torch.ones(1, dtype=dtype, device=device))
+    assert bool(torch.all((weights > 0) & (weights <= 1)).item())
+    assert float(weights[1]) == facts["causal_clip_min_weight"]
