@@ -505,7 +505,7 @@ class OptConfig:
 class LossConfig:
     """Loss-side caps. Enforces λ_E^max ≤ 1 (PHYS-05)."""
 
-    lambda_e_max: float = 1.0
+    lambda_e_max: float = 0.0
 
     def __post_init__(self) -> None:
         v = float(self.lambda_e_max)
