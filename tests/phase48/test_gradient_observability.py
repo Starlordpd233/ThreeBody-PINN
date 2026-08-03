@@ -333,6 +333,7 @@ def test_lbfgs_gradient_stats_use_last_closure() -> None:
         assert last_stats["grad_norm_applied_ic"] == pytest.approx(
             weights.lambda_ic * last_stats["grad_norm_raw_ic"],
         )
+        assert last_stats["grad_norm_applied_energy"] == pytest.approx(0.0)
         assert last_stats["grad_norm_raw_data"] != first_stats["grad_norm_raw_data"]
 
 
