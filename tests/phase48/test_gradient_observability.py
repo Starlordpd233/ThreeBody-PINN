@@ -13,6 +13,7 @@ import json
 import logging
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 from unittest import mock
 
 import pytest
@@ -169,7 +170,6 @@ def test_adam_step_emits_complete_gradient_stats() -> None:
             tmp, max_epochs=1, n_adam=1, validation_every=10_000,
         )
         model = controller.model
-        dtype, device = controller._dtype, controller._device
 
         def fake_compose(batch, anchor_ctx, weights):
             params = tuple(parameter for parameter in model.parameters())
@@ -219,3 +219,210 @@ def test_adam_step_emits_complete_gradient_stats() -> None:
         assert record["grad_stats_provenance"] == "pre_total_backward"
         assert record["grad_stats_complete"] is True
         assert record["step_completed"] is True
+
+
+def _run_fake_lbfgs_closure(controller, *, instrumented: bool):
+    model = controller.model
+    parameters = tuple(model.parameters())
+    weights = LossWeights(lambda_ic=0.5, lambda_phys=2.0, lambda_e=0.0, lambda_l=0.25)
+    fixed_batch = SimpleNamespace(data_points=SimpleNamespace())
+    closure_state = {
+        "non_finite": False,
+        "last_loss": None,
+        "gradient_stats": None,
+    }
+
+    def fake_data(model_, data_points, *, weight, chunk_size, dtype, device):
+        weighted = float(weight) * (tuple(model_.parameters())[0] ** 2).sum() * 0.01
+        weighted.backward()
+        return weighted.detach()
+
+    def fake_non_data(anchor_ctx):
+        return {
+            "ic": (parameters[1] ** 2).sum() * 0.01,
+            "phys": (parameters[2] ** 2).sum() * 0.02,
+            "energy": (parameters[3] ** 2).sum() * 0.03,
+            "angmom": (parameters[4] ** 2).sum() * 0.04,
+        }
+
+    optimizer = torch.optim.LBFGS(
+        model.parameters(), max_iter=1, line_search_fn=None,
+    )
+    closure = controller._make_lbfgs_closure(
+        optimizer, fixed_batch, None, weights, 4, closure_state,
+    )
+    with mock.patch(
+        "pinn.training.controllers.accumulate_chunked_data_term",
+        side_effect=fake_data,
+    ), mock.patch.object(controller, "_non_data_terms", side_effect=fake_non_data):
+        if instrumented:
+            result = optimizer.step(closure)
+        else:
+            with mock.patch(
+                "pinn.training.controllers._build_gradient_stats",
+                return_value={},
+            ):
+                result = optimizer.step(closure)
+    return result, {key: value for key, value in closure_state.items()}, model
+
+
+def test_lbfgs_gradient_stats_use_last_closure() -> None:
+    with tempfile.TemporaryDirectory(prefix="phase48-lbfgs-stats-") as tmp:
+        controller = _build_controller(
+            tmp, max_epochs=2, n_adam=1, validation_every=1,
+        )
+        model = controller.model
+        parameters = tuple(model.parameters())
+        weights = LossWeights(lambda_ic=0.5, lambda_phys=2.0, lambda_e=0.0, lambda_l=0.25)
+        fixed_batch = SimpleNamespace(data_points=SimpleNamespace())
+        closure_state = {
+            "non_finite": False,
+            "last_loss": None,
+            "gradient_stats": None,
+        }
+        calls = {"count": 0}
+
+        def fake_data(model_, data_points, *, weight, chunk_size, dtype, device):
+            calls["count"] += 1
+            for parameter in model_.parameters():
+                parameter.grad = torch.zeros_like(parameter)
+            parameters[0].grad = torch.full_like(
+                parameters[0], float(calls["count"]),
+            )
+            return torch.tensor(
+                float(calls["count"]), dtype=dtype, device=device,
+            )
+
+        def fake_non_data(anchor_ctx):
+            scale = float(calls["count"])
+            return {
+                "ic": scale * parameters[1].sum(),
+                "phys": scale * parameters[2].sum(),
+                "energy": scale * parameters[3].sum(),
+                "angmom": scale * parameters[4].sum(),
+            }
+
+        optimizer = torch.optim.LBFGS(
+            model.parameters(), max_iter=1, line_search_fn=None,
+        )
+        closure = controller._make_lbfgs_closure(
+            optimizer, fixed_batch, None, weights, 4, closure_state,
+        )
+        with mock.patch(
+            "pinn.training.controllers.accumulate_chunked_data_term",
+            side_effect=fake_data,
+        ), mock.patch.object(
+            controller, "_non_data_terms", side_effect=fake_non_data,
+        ):
+            closure()
+            first_stats = dict(closure_state["gradient_stats"])
+            assert controller._last_non_data_terms is None
+            closure()
+            last_stats = dict(closure_state["gradient_stats"])
+            assert controller._last_non_data_terms is None
+
+        assert first_stats["grad_stats_provenance"] == "last_closure_evaluation"
+        assert last_stats["grad_stats_provenance"] == "last_closure_evaluation"
+        assert last_stats["grad_stats_complete"] is True
+        assert last_stats["grad_norm_raw_data"] == pytest.approx(
+            2.0 * math.sqrt(parameters[0].numel()),
+        )
+        assert last_stats["grad_norm_raw_ic"] == pytest.approx(
+            2.0 * math.sqrt(parameters[1].numel()),
+        )
+        assert last_stats["grad_norm_applied_ic"] == pytest.approx(
+            weights.lambda_ic * last_stats["grad_norm_raw_ic"],
+        )
+        assert last_stats["grad_norm_raw_data"] != first_stats["grad_norm_raw_data"]
+
+
+def test_gradient_stats_survive_validation_stash_overwrite() -> None:
+    with tempfile.TemporaryDirectory(prefix="phase48-validation-stats-") as tmp:
+        controller = _build_controller(tmp, max_epochs=1, n_adam=1)
+        weights = LossWeights(lambda_ic=0.5, lambda_phys=2.0, lambda_e=0.0, lambda_l=0.25)
+        stats = {
+            "grad_stats_provenance": "last_closure_evaluation",
+            "grad_stats_complete": True,
+        }
+        for term in ("data", "ic", "phys", "energy", "angmom"):
+            stats[f"grad_norm_raw_{term}"] = 1.0 + len(term)
+            stats[f"grad_norm_applied_{term}"] = 2.0 + len(term)
+        zero = torch.zeros((), dtype=controller._dtype, device=controller._device)
+        loss_terms = LossTerms(
+            data=zero, ic=zero, phys=zero, energy=zero, angmom=zero, total=zero,
+        )
+        controller._last_widened_details = {
+            "ic": 999.0, "phys": 999.0, "energy": 999.0, "angmom": 999.0,
+        }
+        path = Path(tmp) / "train.log.jsonl"
+        handler = JsonlStepHandler(path)
+        logger = logging.getLogger("pinn.training.controllers")
+        logger.setLevel(logging.INFO)
+        logger.addHandler(handler)
+        try:
+            controller._log_step(
+                step=1, loss_terms=loss_terms, lr=None, phase="2b", weights=weights,
+                gradient_stats=stats,
+            )
+            handler.flush()
+        finally:
+            logger.removeHandler(handler)
+            handler.close()
+        record = json.loads(path.read_text().splitlines()[-1])
+        assert record["grad_norm_raw_ic"] == stats["grad_norm_raw_ic"]
+        assert record["grad_norm_applied_ic"] == stats["grad_norm_applied_ic"]
+        assert record["grad_stats_provenance"] == "last_closure_evaluation"
+        assert record["step_completed"] is True
+
+
+def test_gradient_stats_missing_or_nonfinite_fail_completion() -> None:
+    with tempfile.TemporaryDirectory(prefix="phase48-missing-stats-") as tmp:
+        controller = _build_controller(tmp, max_epochs=1, n_adam=1)
+        weights = LossWeights()
+        zero = torch.zeros((), dtype=controller._dtype, device=controller._device)
+        loss_terms = LossTerms(
+            data=zero, ic=zero, phys=zero, energy=zero, angmom=zero, total=zero,
+        )
+        stats = {
+            "grad_stats_provenance": "last_closure_evaluation",
+            "grad_stats_complete": False,
+            "grad_norm_raw_data": float("nan"),
+            "grad_norm_applied_data": float("inf"),
+        }
+        path = Path(tmp) / "train.log.jsonl"
+        handler = JsonlStepHandler(path)
+        logger = logging.getLogger("pinn.training.controllers")
+        logger.setLevel(logging.INFO)
+        logger.addHandler(handler)
+        try:
+            controller._log_step(
+                step=1, loss_terms=loss_terms, lr=None, phase="2b", weights=weights,
+                step_completed=True, gradient_stats=stats,
+            )
+            handler.flush()
+        finally:
+            logger.removeHandler(handler)
+            handler.close()
+        record = json.loads(path.read_text().splitlines()[-1])
+        assert record["grad_norm_raw_data"] is None
+        assert record["grad_norm_applied_data"] is None
+        assert record["grad_stats_complete"] is False
+        assert record["step_completed"] is False
+        assert {
+            "grad_norm_raw_data", "grad_norm_applied_data",
+        } <= set(record["nonfinite_keys"])
+
+
+def test_lbfgs_gradient_stats_do_not_change_update() -> None:
+    with tempfile.TemporaryDirectory(prefix="phase48-lbfgs-equivalence-") as tmp:
+        instrumented = _build_controller(tmp, max_epochs=2, n_adam=1)
+        control = _build_controller(tmp, max_epochs=2, n_adam=1)
+        control.model.load_state_dict(instrumented.model.state_dict())
+        _, _instrumented_state, instrumented_model = _run_fake_lbfgs_closure(
+            instrumented, instrumented=True,
+        )
+        _, _control_state, control_model = _run_fake_lbfgs_closure(
+            control, instrumented=False,
+        )
+        for left, right in zip(instrumented_model.parameters(), control_model.parameters()):
+            assert torch.equal(left, right)

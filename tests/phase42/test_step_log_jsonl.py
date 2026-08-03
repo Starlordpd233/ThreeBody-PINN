@@ -220,6 +220,10 @@ class JsonlStepLogTests(unittest.TestCase):
             total=float("nan"),
             loss_phys=float("inf"),
             loss_energy=float("nan"),
+            grad_norm_raw_data=float("nan"),
+            grad_norm_applied_data=float("inf"),
+            grad_stats_complete=False,
+            step_completed=False,
         ))
         self.jsonl_handler.flush()
 
@@ -244,7 +248,10 @@ class JsonlStepLogTests(unittest.TestCase):
         # The affected fields are exactly the non-finite ones.
         self.assertEqual(
             set(diverged["nonfinite_keys"]),
-            {"total", "loss_phys", "loss_energy"},
+            {
+                "total", "loss_phys", "loss_energy",
+                "grad_norm_raw_data", "grad_norm_applied_data",
+            },
             f"unexpected nonfinite_keys: {diverged['nonfinite_keys']}",
         )
         # Non-finite fields serialize as JSON null (not string sentinels).
@@ -253,6 +260,8 @@ class JsonlStepLogTests(unittest.TestCase):
                 diverged[key],
                 f"non-finite field {key} should be JSON null, got {diverged[key]!r}",
             )
+        self.assertIs(diverged["grad_stats_complete"], False)
+        self.assertIs(diverged["step_completed"], False)
 
         # No string sentinels anywhere in either line.  Skip non-hashable
         # values (the sink-added ``nonfinite_keys`` list) when probing the
