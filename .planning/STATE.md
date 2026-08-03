@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 48
 current_phase_name: loss-math-conformance
 status: executing
-stopped_at: Completed 48-02-PLAN.md
-last_updated: "2026-08-03T01:53:13.635Z"
+stopped_at: Completed 48-03-PLAN.md
+last_updated: "2026-08-03T02:13:36.499Z"
 last_activity: 2026-08-02
 last_activity_desc: Phase 48 execution started
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 17
-  completed_plans: 15
-  percent: 88
+  completed_plans: 16
+  percent: 94
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 48 (loss-math-conformance) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-08-02 — Phase 48 execution started
-**Progress:** [█████████░] 88% (15/17 plans complete)
+**Progress:** [█████████░] 94% (16/17 plans complete)
 
 ### Decisions from 47-02
 
@@ -206,6 +206,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 47 P02 | ~30min | 2 tasks | 7 files |
 | Phase 48 P01 | 7 min | 2 tasks | 4 files |
 | Phase 48 P2 | 16 min | 2 tasks | 7 files |
+| Phase 48 P3 | 14 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -365,6 +366,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 48 Plan 48-01: data_huber_loss retains .mean(), documented as sum(Huber)/(9*N_t) under GAP-45-01/D-01.
 - [Phase ?]: LossConfig.lambda_e_max defaults to exact 0.0 while retaining finite, nonnegative, <=1 validation.
 - [Phase ?]: Both shipped Stage-0 YAML entry points explicitly declare lambda_e_max: 0.0; ScheduledWeights remains generic with nonzero caps supported.
+- [Phase ?]: CONF-05 causal weights clamp at the active dtype/backend upward-directed representable log-tiny floor, with exact five-field runtime provenance.
+- [Phase ?]: Fresh and resumed training setup derive and enforce the same causal clip facts from RuntimeSpec through strict atomic training_metadata.json.
 
 ### Pending Todos
 
@@ -399,8 +402,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-03T01:53:13.627Z
-Stopped at: Completed 48-02-PLAN.md
+Last session: 2026-08-03T02:13:36.490Z
+Stopped at: Completed 48-03-PLAN.md
 Next action: Run `/gsd-plan-phase 48`, consuming `48-CONTEXT.md`.
 
 ## Operator Next Steps
