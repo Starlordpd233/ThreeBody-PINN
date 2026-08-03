@@ -190,8 +190,10 @@ def data_huber_loss(pred_positions, true_positions, *, dtype, device):
 
     Inputs are already in the dimensionless system (r'). The catalog documents
     D via ``D_CHARACTERISTIC_LENGTH`` so callers convert raw Brutus positions
-    with ``r' = r / D`` before calling. Returns a scalar mean over N_t and all
-    components.
+    with ``r' = r / D`` before calling.  GAP-45-01 / D-01 ratifies the scalar
+    reduction as ``sum(Huber) / (9 * N_t)`` for the resident ``(N_t, 3, 3)``
+    tensor.  The mean below is intentionally retained unchanged (D-03): it
+    is exactly that reduction, with no compensating factor of nine.
     """
     # Touch D so the dimensionless conversion is load-bearing in this module
     # (tests assert the constant is referenced; callers use it to form r').
