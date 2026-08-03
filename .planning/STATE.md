@@ -4,17 +4,17 @@ milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 48
 current_phase_name: loss-math-conformance
-status: executing
-stopped_at: Completed 48-03-PLAN.md
-last_updated: "2026-08-03T02:13:36.499Z"
+status: verifying
+stopped_at: Completed 48-04-PLAN.md
+last_updated: "2026-08-03T02:40:59.121Z"
 last_activity: 2026-08-02
 last_activity_desc: Phase 48 execution started
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 17
-  completed_plans: 16
-  percent: 94
+  completed_plans: 17
+  percent: 43
 ---
 
 # Project State
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 
 Phase: 48 (loss-math-conformance) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-02 — Phase 48 execution started
-**Progress:** [█████████░] 94% (16/17 plans complete)
+**Progress:** [██████████] 100% (16/17 plans complete)
 
 ### Decisions from 47-02
 
@@ -207,6 +207,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 48 P01 | 7 min | 2 tasks | 4 files |
 | Phase 48 P2 | 16 min | 2 tasks | 7 files |
 | Phase 48 P3 | 14 min | 2 tasks | 8 files |
+| Phase 48-loss-math-conformance P04 | 20 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -368,6 +369,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Both shipped Stage-0 YAML entry points explicitly declare lambda_e_max: 0.0; ScheduledWeights remains generic with nonzero caps supported.
 - [Phase ?]: CONF-05 causal weights clamp at the active dtype/backend upward-directed representable log-tiny floor, with exact five-field runtime provenance.
 - [Phase ?]: Fresh and resumed training setup derive and enforce the same causal clip facts from RuntimeSpec through strict atomic training_metadata.json.
+- [Phase ?]: Adam and L-BFGS gradient telemetry uses non-mutating autograd.grad diagnostics with explicit pre-total-backward and last-closure provenance.
+- [Phase ?]: Missing or non-finite required gradient statistics fail closed as null telemetry with grad_stats_complete=false and step_completed=false.
 
 ### Pending Todos
 
@@ -402,8 +405,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-03T02:13:36.490Z
-Stopped at: Completed 48-03-PLAN.md
+Last session: 2026-08-03T02:40:59.112Z
+Stopped at: Completed 48-04-PLAN.md
 Next action: Run `/gsd-plan-phase 48`, consuming `48-CONTEXT.md`.
 
 ## Operator Next Steps

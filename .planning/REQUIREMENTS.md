@@ -46,7 +46,7 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 ### Instrumentation (INST) — Phases 46, 48, 49
 
 - [x] **INST-01**: Gate-aligned validation metrics: per-trajectory `ε_H`/`SCS` on the validation split, via the existing `pinn.verification.gate_metrics` functions. Currently validation records only `final_val_loss`, `step`, `trend` — no conservation signal at all. [conformance audit; EVAL-01 precondition (iii)] *(Frame-independent components shipped in plans 46-03/46-05; the production wiring landed 2026-07-28 in Plan 46-07. Verified end-to-end on a real run, not inferred: each validation event publishes a sidecar carrying 240 per-trajectory `{record_key, eps_h, scs}` rows plus the ratified frame block, the eight `gate_*` keys merge into `validation.jsonl`, and `summary.json` projects them alongside `eval01_precondition_iii`. `gate_status` and `gate_verdict` remain distinct states, so instrumentation failure never renders as a metric PASS.)*
-- [ ] **INST-02**: Log per-term gradient statistics — the precondition the locked Phase-35 contract names for any reweighting decision, never satisfied. [Phase-35 loss/energy-weight contract]
+- [x] **INST-02**: Log per-term gradient statistics — the precondition the locked Phase-35 contract names for any reweighting decision, never satisfied. [Phase-35 loss/energy-weight contract]
 - [ ] **INST-03**: Maintain the known-divergence register; the run record surfaces every open divergence so a run carries its own caveats. [conformance audit]
 
 ### Minimum Enforcement (GATE) — Phase 49
@@ -117,7 +117,7 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 | CONF-08 | Phase 46 | Complete |
 | CONF-09 | Phase 47 | Complete |
 | INST-01 | Phase 46 | Complete |
-| INST-02 | Phase 48 | Pending |
+| INST-02 | Phase 48 | Complete |
 | INST-03 | Phase 49 | Pending |
 | GATE-01 | Phase 49 | Pending |
 | GATE-02 | Phase 49 | Pending |
