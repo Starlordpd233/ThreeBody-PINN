@@ -93,6 +93,29 @@ class ScheduledWeightsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ScheduledWeights(n_adam_k=500, lambda_e_max=float("nan"))
 
+    def test_lambda_e_zero_cap_stays_exact_zero_across_ramp_and_freeze(self):
+        ScheduledWeights = _require("ScheduledWeights")
+        sched = ScheduledWeights(n_adam_k=500, lambda_e_max=0.0)
+        for epoch in [0, 25, 50, 1000]:
+            with self.subTest(state="ramp", epoch=epoch):
+                self.assertEqual(float(sched.current(epoch).lambda_e), 0.0)
+
+        sched.freeze()
+        for epoch in [25, 50, 1000]:
+            with self.subTest(state="frozen", epoch=epoch):
+                self.assertEqual(float(sched.current(epoch).lambda_e), 0.0)
+
+        sched.rewarm()
+        for epoch in [0, 25, 50, 1000]:
+            with self.subTest(state="rewarm", epoch=epoch):
+                self.assertEqual(float(sched.current(epoch).lambda_e), 0.0)
+
+    def test_lambda_e_nonzero_cap_still_ramps_normally(self):
+        ScheduledWeights = _require("ScheduledWeights")
+        sched = ScheduledWeights(n_adam_k=500, lambda_e_max=0.5)
+        self.assertAlmostEqual(float(sched.current(25).lambda_e), 0.25, places=12)
+        self.assertAlmostEqual(float(sched.current(50).lambda_e), 0.5, places=12)
+
     # -- current(epoch) returns the existing LossWeights container -----------
 
     def test_current_returns_lossweights_consumed_by_compose_total(self):

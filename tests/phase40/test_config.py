@@ -112,6 +112,9 @@ class ValidationTests(unittest.TestCase):
 
 
 class ConstructionTests(unittest.TestCase):
+    def test_loss_config_default_lambda_e_max_is_exact_zero(self):
+        self.assertEqual(LossConfig().lambda_e_max, 0.0)
+
     def test_fully_valid_constructs_four_sections(self):
         cfg = _valid_training()
         self.assertIsInstance(cfg.run, RunConfig)
