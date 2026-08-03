@@ -539,7 +539,11 @@ class RunController:
             positions, anchor_ctx.masses, dtype=self._dtype, device=self._device,
         )
         residual = accel - force
-        rbar = (residual ** 2).mean(dim=(-2, -1))
+        # CONF-04 / D-05: one vector-space average per time index.  The
+        # residual has shape (N_t, 3 bodies, 3 Cartesian components), while
+        # the locked Rbar contract averages the three body-vector energies,
+        # not all nine scalar components.
+        rbar = (residual ** 2).sum(dim=(-2, -1)) / 3.0
         times_tensor = torch.as_tensor(
             anchor_ctx.collocation_times, dtype=self._dtype, device=self._device,
         )
