@@ -160,6 +160,28 @@ Plans:
 **Depends on**: Phase 48 (the conformant loss assembly the gate asserts).
 **Requirements**: GATE-01, GATE-02, GATE-03, INST-03
 **Owner checkpoint**: N for invariant B (the front-advance window).
+**Plans:** 6 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 49-01-PLAN.md — Tracer: D-01 locked PHYS-05 table + `pinn/conformance/` table assertion + `preflight.json` artifact spine wired at both D-05 sites, D-06 stage-2 refusal preserved and tested; records the D-31/SCOPE-32 coordination decision (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 49-02-PLAN.md — GATE-03 invariants A/B + `causal_stats_missing` as HALT-family StepGuards, `InvariantsConfig` with the empty owner slot for N (record-only when unset, D-20), `guard_hook` wiring (wave 2)
+- [ ] 49-04-PLAN.md — GATE-02 placeholder census (D-07 manifest, D-09 classes) + INST-03 divergence register with D-24 initial contents and D-25 proof-test meta-run + preflight composition (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 49-03-PLAN.md — D-17 invariant-B state across resume: `CHECKPOINT_SCHEMA_VERSION` 2, additive payload key, restore path, stall-across-resume boundary proof (wave 3)
+- [ ] 49-05-PLAN.md — Run-record projection: `conformance` verbatim-passthrough block + fail-closed `eval01_precondition_i` in `summary.json`/`summary.md` (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 49-06-PLAN.md — D-30 end-to-end seam test on the real `main()` ordering, full-suite phase gate, and the blocking owner checkpoint for N with the D-19 evidence packet (wave 4; `autonomous: false` — owner checkpoint)
+
 **Success Criteria** (what must be TRUE):
 
   1. Preflight asserts the full PHYS-05 per-stage table at run start and at every stage boundary — not merely the `≤1` cap (GATE-01, per GAP-45-03).
