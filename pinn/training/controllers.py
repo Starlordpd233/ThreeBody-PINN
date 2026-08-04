@@ -905,7 +905,7 @@ class RunController:
         # part of ``_last_widened_details``: validation can overwrite that
         # stash before the training event is emitted. Recompute completeness
         # from the ten numeric fields so missing/non-finite values cannot be
-        # mislabeled as a completed optimizer step.
+        # mislabeled as a fully assembled record.
         resolved_gradient_stats = gradient_stats or {}
         grad_stats_complete = bool(
             resolved_gradient_stats.get("grad_stats_complete", False)
@@ -941,7 +941,12 @@ class RunController:
             "epoch": epoch,
             "stage": stage,
             **gradient_keys,
-            "step_completed": bool(step_completed) and bool(grad_stats_complete),
+            # ``record_complete`` asserts the STEP RECORD was fully assembled --
+            # not that the optimizer advanced. The call-site ``step_completed``
+            # argument carries the optimizer fact; ``grad_stats_complete``
+            # carries the telemetry fact; both remain separately readable in
+            # the emitted record.
+            "record_complete": bool(step_completed) and bool(grad_stats_complete),
             **res_keys,
         }
         _LOGGER.info(

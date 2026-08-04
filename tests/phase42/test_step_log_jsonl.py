@@ -81,7 +81,7 @@ def _canonical_step_record(
         "lr": 1e-3,
         "s_per_step": 0.5,
         "eta_seconds": 300.0,
-        "step_completed": True,
+        "record_complete": True,
     }
     rec.update(overrides)
     return rec
@@ -223,7 +223,7 @@ class JsonlStepLogTests(unittest.TestCase):
             grad_norm_raw_data=float("nan"),
             grad_norm_applied_data=float("inf"),
             grad_stats_complete=False,
-            step_completed=False,
+            record_complete=False,
         ))
         self.jsonl_handler.flush()
 
@@ -261,7 +261,7 @@ class JsonlStepLogTests(unittest.TestCase):
                 f"non-finite field {key} should be JSON null, got {diverged[key]!r}",
             )
         self.assertIs(diverged["grad_stats_complete"], False)
-        self.assertIs(diverged["step_completed"], False)
+        self.assertIs(diverged["record_complete"], False)
 
         # No string sentinels anywhere in either line.  Skip non-hashable
         # values (the sink-added ``nonfinite_keys`` list) when probing the

@@ -218,7 +218,7 @@ def test_adam_step_emits_complete_gradient_stats() -> None:
             assert math.isfinite(record[f"grad_norm_applied_{term}"])
         assert record["grad_stats_provenance"] == "pre_total_backward"
         assert record["grad_stats_complete"] is True
-        assert record["step_completed"] is True
+        assert record["record_complete"] is True
 
 
 def _run_fake_lbfgs_closure(controller, *, instrumented: bool):
@@ -373,7 +373,7 @@ def test_gradient_stats_survive_validation_stash_overwrite() -> None:
         assert record["grad_norm_raw_ic"] == stats["grad_norm_raw_ic"]
         assert record["grad_norm_applied_ic"] == stats["grad_norm_applied_ic"]
         assert record["grad_stats_provenance"] == "last_closure_evaluation"
-        assert record["step_completed"] is True
+        assert record["record_complete"] is True
 
 
 def test_gradient_stats_missing_or_nonfinite_fail_completion() -> None:
@@ -408,7 +408,7 @@ def test_gradient_stats_missing_or_nonfinite_fail_completion() -> None:
         assert record["grad_norm_raw_data"] is None
         assert record["grad_norm_applied_data"] is None
         assert record["grad_stats_complete"] is False
-        assert record["step_completed"] is False
+        assert record["record_complete"] is False
         assert {
             "grad_norm_raw_data", "grad_norm_applied_data",
         } <= set(record["nonfinite_keys"])

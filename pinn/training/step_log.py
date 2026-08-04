@@ -290,11 +290,16 @@ STEP_LOG_FIELDS: dict[str, dict[str, Any]] = {
         ),
     },
     # ---- emission-completeness metadata (NOT a B-2 loss/metric field) ----
-    "step_completed": {
+    "record_complete": {
         "provisional": True,
         "provenance": (
             "EMISSION-COMPLETENESS METADATA (not a B-2 loss/metric field): "
-            "boolean flag indicating the step record was fully assembled; "
+            "boolean flag indicating the step record was fully assembled -- "
+            "the call-site optimizer fact AND all ten gradient norms present "
+            "and finite. It is NOT an optimizer-advancement flag: a normally "
+            "advanced step whose telemetry is incomplete is false here. Read "
+            "the optimizer question from the guard/failure emission path and "
+            "the telemetry question from grad_stats_complete; "
             "owner-ratify before run #1"
         ),
     },
@@ -316,7 +321,7 @@ def step_log_fields_provisional_entry() -> dict[str, Any]:
             "grad_norm plus ten INST-02 raw/applied per-term gradient norms, "
             "their provenance/completeness metadata, w_n stats "
             "(w_min/w_mean/w_max/front_idx), lr, s_per_step, eta_seconds, "
-            "step_completed. Residuals_bin_* is "
+            "record_complete. Residuals_bin_* is "
             "TB-only (OPS-04b). finite/nonfinite_keys are sink-added "
             "(CTX-67). Owner-ratify the final list before run #1."
         ),
@@ -338,7 +343,7 @@ def _sanitize_step_record(record: Mapping[str, Any]) -> dict:
     separate sanitizer: do NOT import
     ``pinn.training.guards._json_safe_scalar`` (its string-sentinel policy
     is trip.json-local, Anti-Pattern #1). Non-numeric fields (``phase``,
-    ``stage``, ``step_completed``, etc.) pass through unchanged.
+    ``stage``, ``record_complete``, etc.) pass through unchanged.
     """
     out: dict[str, Any] = {}
     nonfinite_keys: list[str] = []
