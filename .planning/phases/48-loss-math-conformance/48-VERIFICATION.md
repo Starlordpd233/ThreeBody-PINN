@@ -158,3 +158,67 @@ capture advisory above; it does not change the passing must-have score.
 _Verified: 2026-08-03T02:59:23Z_
 
 _Verifier: the agent (gsd-verifier)_
+
+---
+
+## Addendum — UAT session 2026-08-04 (post-verification)
+
+This report was written at 2026-08-03T02:59:23Z. Two things happened afterwards
+that the report above does not reflect. Recorded here rather than by editing the
+findings, so the original verdict stays intact and auditable.
+
+### 1. The all-phase log-capture advisory is now CLOSED
+
+The report qualified itself: the prescribed all-phase close command "was started
+once … Its detached tool stream ended before the terminal aggregate was
+recoverable." That aggregate was captured during UAT:
+
+```
+.venv/bin/python -m pytest -q -rs tests/phase38 tests/phase40 tests/phase41 \
+    tests/phase42 tests/phase46 tests/phase47 tests/phase48
+729 passed, 3 skipped, 2 warnings, 279 subtests passed in 417.90s
+```
+
+The 3 skips are pre-existing environment-conditional `tests/phase42/
+test_residual_panel.py` cases (`pinn-train env not available`), unrelated to
+Phase 48. **The verification-log advisory is resolved; no must-have changes.**
+
+### 2. Post-verification owner-ratified change (UAT gap G-48-2)
+
+At UAT Test 2 the owner ratified renaming the emitted canonical JSONL field
+`step_completed` -> `record_complete`. The AND logic was kept unchanged — the
+field registry already declared it as emission-completeness metadata ("the step
+record was fully assembled"), so the logic was definitionally correct and the
+NAME was the liability. The field carried `provisional: True / owner-ratify
+before run #1`; this was that ratification.
+
+Files changed after the verification timestamp:
+
+| File | Change |
+|---|---|
+| `pinn/training/controllers.py` | emitted key renamed; `_log_step`'s `step_completed` PARAMETER and its 8 guard/failure call sites deliberately unchanged (that argument is the call-site optimizer fact) |
+| `pinn/training/step_log.py` | registry key renamed; provenance rewritten to state the field is NOT an optimizer-advancement flag |
+| `tests/phase42/test_step_log_jsonl.py` | emitted-field fixture/assertions |
+| `tests/phase48/test_gradient_observability.py` | emitted-field assertions |
+
+Post-rename re-run: **729 passed, 3 skipped, 279 subtests passed** — byte-
+identical to the pre-rename baseline, so the change is regression-neutral.
+
+**Impact on the verdict above: none.** Truth 4's substance (five raw + five
+applied norms, provenance, non-mutation, fail-closed completeness) is unchanged;
+only the name of one emitted field differs. Every other truth, artifact, link,
+requirement, and prohibition row is untouched.
+
+### 3. Independent re-derivation performed during UAT
+
+The verification above is plan-conformance evidence. UAT additionally re-derived
+the locked quantities from the spec text using hand oracles that import no
+Phase-48 test helper — 46 checks, all passing: `R̄ == (1/3) Σᵢ‖fᵢ‖²` (and exactly
+3× the former `/9` mean); `L_data == sum(Huber)/(9·N_t)` at `N_t ∈ {1,2,5,11}`;
+invariant A strict on CPU float32/float64 **and real MPS float32** under locked
+torch 2.12.1; `w₁ == 1.0` exact; causal weight genuinely stopgrad; `λ_E^max`
+exact `0.0` through the real loader and scheduler; and the ten gradient norms
+against independent autograd oracles including non-mutation and fail-closed
+absence. Measured clip numerics are tabulated in `48-UAT.md`.
+
+_Addendum: 2026-08-04T01:12:34Z — UAT session (gsd-verify-work)_
