@@ -5,10 +5,10 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 49
 current_phase_name: Conformance Gate
 status: planning
-stopped_at: "Completed 48 UAT (5/5 passed, G-48-2 resolved)"
-last_updated: "2026-08-04T01:12:34Z"
-last_activity: 2026-08-03
-last_activity_desc: Phase 48 UAT closed, phase fully verified, Phase 49 ready to plan
+stopped_at: Phase 49 context gathered
+last_updated: "2026-08-04T07:59:27.359Z"
+last_activity: 2026-08-04
+last_activity_desc: Phase 49 context gathered (32 decisions); N for invariant B remains the blocking owner checkpoint
 progress:
   total_phases: 7
   completed_phases: 3
@@ -404,11 +404,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/49-conformance-gate/49-CONTEXT.md
 
-Last session: 2026-08-03T02:40:59.112Z
-Stopped at: Completed 48-04-PLAN.md
-Next action: Run `/gsd-plan-phase 48`, consuming `48-CONTEXT.md`.
+Last session: 2026-08-04T07:59:27.345Z
+Stopped at: Phase 49 context gathered
+Next action: Run `/gsd-plan-phase 49`, consuming `49-CONTEXT.md`. The blocking owner checkpoint — `N`, the invariant-B front-advance window — must be surfaced with the 49-CONTEXT D-19 evidence packet; D-20 defines the fail-closed unset state, so planning does not stall waiting for it.
 
 ## Operator Next Steps
 
