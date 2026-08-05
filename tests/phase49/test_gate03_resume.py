@@ -90,3 +90,119 @@ def test_curriculum_checkpoint_uses_invariant_b_state_provider():
 
     assert store.payloads[0]["schema_version"] == CHECKPOINT_SCHEMA_VERSION
     assert store.payloads[0]["invariant_b_state"] == state
+
+
+def _advance_before_checkpoint(guards):
+    """Create a non-initial invariant-B window before taking a snapshot."""
+    guards.check(
+        0,
+        0,
+        "2a",
+        loss_terms={"total": 1.0},
+        w_n_stats={"w_min": 0.1, "w_mean": 0.5, "w_max": 0.9, "front_idx": 0},
+        n_colloc=10,
+        physics_evaluated=True,
+    )
+    guards.check(
+        1,
+        0,
+        "2a",
+        loss_terms={"total": 1.0},
+        w_n_stats={"w_min": 0.1, "w_mean": 0.5, "w_max": 0.9, "front_idx": 1},
+        n_colloc=10,
+        physics_evaluated=True,
+    )
+
+
+def test_restore_preserves_stall_window_across_resume_boundary():
+    from pinn.training.checkpoint import CHECKPOINT_SCHEMA_VERSION
+    from pinn.training.controllers import build_checkpoint_payload
+    from pinn.train import _restore_invariant_b_state
+
+    before = _make_guards(front_advance_window_n=2)
+    _advance_before_checkpoint(before)
+    payload = build_checkpoint_payload(
+        _payload_controller(), {}, {}, CHECKPOINT_SCHEMA_VERSION,
+        invariant_b_state=before.invariant_b_state_dict(),
+    )
+
+    after = _make_guards(front_advance_window_n=2)
+    _restore_invariant_b_state(after, payload)
+    assert after.invariant_b_state_dict() == {
+        "front_high_water": 1,
+        "last_advance_step": 1,
+    }
+
+    one_before_trip = after.check(
+        3,
+        0,
+        "2a",
+        loss_terms={"total": 1.0},
+        w_n_stats={"w_min": 0.1, "w_mean": 0.5, "w_max": 0.9, "front_idx": 1},
+        n_colloc=10,
+        physics_evaluated=True,
+    )
+    assert one_before_trip.disposition is None
+
+    trip = after.check(
+        4,
+        0,
+        "2a",
+        loss_terms={"total": 1.0},
+        w_n_stats={"w_min": 0.1, "w_mean": 0.5, "w_max": 0.9, "front_idx": 1},
+        n_colloc=10,
+        physics_evaluated=True,
+    )
+    assert trip.guard == "invariant_b"
+
+
+def test_restore_explicit_none_keeps_initialized_state():
+    from pinn.train import _restore_invariant_b_state
+
+    guards = _make_guards(front_advance_window_n=2)
+    _restore_invariant_b_state(guards, {"invariant_b_state": None})
+
+    assert guards.invariant_b_state_dict() == {
+        "front_high_water": -1,
+        "last_advance_step": None,
+    }
+
+
+def test_restore_rejects_v2_payload_missing_invariant_b_state():
+    from pinn.train import _restore_invariant_b_state
+
+    with pytest.raises(ValueError, match="invariant_b_state"):
+        _restore_invariant_b_state(_make_guards(), {})
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        ["not", "a", "mapping"],
+        {"last_advance_step": 2},
+        {"front_high_water": "1", "last_advance_step": 2},
+    ],
+)
+def test_restore_rejects_malformed_invariant_b_state(state):
+    from pinn.train import _restore_invariant_b_state
+
+    with pytest.raises((TypeError, ValueError)):
+        _restore_invariant_b_state(
+            _make_guards(), {"invariant_b_state": state}
+        )
+
+
+def test_schema_v1_payload_is_structurally_invalid_after_bump():
+    from pinn.training.checkpoint import (
+        CHECKPOINT_SCHEMA_VERSION,
+        _is_structurally_valid,
+    )
+    from pinn.training.controllers import build_checkpoint_payload
+
+    payload = build_checkpoint_payload(
+        _payload_controller(), {}, {}, CHECKPOINT_SCHEMA_VERSION,
+        invariant_b_state={"front_high_water": 1, "last_advance_step": 1},
+    )
+    payload["schema_version"] = 1
+
+    assert not _is_structurally_valid(payload)
