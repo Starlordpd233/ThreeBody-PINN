@@ -174,6 +174,28 @@ def _run_validation_gate_pass(
         }
 
 
+def _guard_causal_inputs(
+    controller: Any, phase: str
+) -> tuple[Optional[Mapping[str, Any]], Optional[int], bool]:
+    """Extract the controller's already-computed causal statistics for guards.
+
+    ``_compose_loss_terms`` populates ``_last_widened_details`` before the
+    Adam guard hook runs.  Missing details remain explicit inputs so
+    ``causal_stats_missing`` can HALT a physics-evaluated step instead of
+    silently treating instrumentation absence as a healthy sample.
+    """
+    details = getattr(controller, "_last_widened_details", None)
+    if not isinstance(details, Mapping):
+        return None, None, phase in {"2a", "2b"}
+    stats = details.get("w_n_stats")
+    residuals = details.get("residuals_per_bin")
+    try:
+        n_colloc = len(residuals) if residuals is not None else None
+    except TypeError:
+        n_colloc = None
+    return stats, n_colloc, phase in {"2a", "2b"}
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m pinn.train")
     parser.add_argument("--config", required=True, help="path to keyed YAML config")
@@ -1071,6 +1093,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                                 terms_map[key] = float(getattr(loss_terms, key))
                             except Exception:
                                 pass
+        w_n_stats, n_colloc, physics_evaluated = _guard_causal_inputs(
+            controller, str(phase)
+        )
         outcome = step_guards.check(
             int(global_step),
             int(stage),
@@ -1078,6 +1103,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             loss_terms=terms_map,
             grad_norm=grad_norm,
             disk_root=run_dir,
+            w_n_stats=w_n_stats,
+            n_colloc=n_colloc,
+            physics_evaluated=physics_evaluated,
         )
         last_losses_cell["losses"] = dict(terms_map or {})
         mem_fields = sample_memory_fields()
