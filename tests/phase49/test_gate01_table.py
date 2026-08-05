@@ -77,6 +77,9 @@ class _StateOnlyScheduler:
             lambda_l=0.0,
         )
 
+    def rewarm(self):
+        return None
+
 
 def test_stage0_pass_reads_caps_from_state_dict_not_current():
     scheduler = _StateOnlyScheduler(_state_for())
@@ -177,6 +180,83 @@ def test_lambda_data_trip_uses_side_effect_free_field_default(monkeypatch):
     monkeypatch.setattr(module, "LossWeights", WrongLossWeights)
     with pytest.raises(ValueError, match="lambda_data"):
         module.assert_phys05_table(_StateOnlyScheduler(_state_for()), 0)
+
+
+class _ControllerStore:
+    def save(self, _payload):
+        return None
+
+    def save_anchor(self, **_kwargs):
+        return None
+
+    def promote(self, _old, _new):
+        return None
+
+    def record_disposition(self, *_args):
+        return None
+
+
+def _forced_controller(*, scheduler, hook=None, forced=None):
+    from pinn.training.controllers import CurriculumController, StageDisposition
+
+    return CurriculumController(
+        config=SimpleNamespace(provisional_fields=lambda: []),
+        checkpoint_store=_ControllerStore(),
+        scheduled_weights=scheduler,
+        forced_disposition=forced or (lambda _stage: StageDisposition.ADVANCE),
+        conformance_hook=hook,
+    )
+
+
+def test_controller_stage2_fails_at_post_advance_site_without_factory():
+    from pinn.training.controllers import StageDisposition
+
+    scheduler = _StateOnlyScheduler(_state_for(stage=0))
+    controller = _forced_controller(
+        scheduler=scheduler,
+        hook=lambda stage, current: _table_module().assert_phys05_table(current, stage),
+        forced=lambda _stage: StageDisposition.ADVANCE,
+    )
+    controller.step()  # Stage 0 -> 1, both rows are locked at zero energy cap.
+    with pytest.raises(ValueError, match="lambda_e_max") as exc:
+        controller.step()  # Stage 1 -> 2, the un-rebound scheduler is refused.
+    assert "expected 0.01" in str(exc.value)
+    assert "actual 0.0" in str(exc.value)
+
+
+def test_controller_stage_boundary_events_follow_entered_order(tmp_path):
+    from pinn.training.controllers import StageDisposition
+
+    preflight = _preflight_module()
+    scheduler = _StateOnlyScheduler(_state_for(stage=0))
+    recorder = preflight.PreflightRecorder(tmp_path)
+    recorder.append_event(
+        event="run_start", stage=0, status="passed", checks=[
+            {"name": "phys05_table", "tier": "locked", "expected": "ok", "actual": "ok", "passed": True}
+        ]
+    )
+
+    def hook(stage, current):
+        if getattr(hook, "last_stage", None) == stage:
+            return
+        result = _table_module().assert_phys05_table(current, stage)
+        recorder.append_event(
+            event="stage_boundary", stage=stage, status="passed", checks=result["checks"]
+        )
+        hook.last_stage = stage
+
+    controller = _forced_controller(
+        scheduler=scheduler,
+        hook=hook,
+        forced=lambda stage: StageDisposition.HALT if stage == 1 else StageDisposition.ADVANCE,
+    )
+    controller.run()
+    payload = preflight.load_preflight(tmp_path)
+    assert [(event["event"], event["stage"]) for event in payload["assertions"]] == [
+        ("run_start", 0),
+        ("stage_boundary", 0),
+        ("stage_boundary", 1),
+    ]
 
 
 def test_preflight_serialization_is_deterministic(tmp_path):
