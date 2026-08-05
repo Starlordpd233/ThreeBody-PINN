@@ -160,7 +160,7 @@ Plans:
 **Depends on**: Phase 48 (the conformant loss assembly the gate asserts).
 **Requirements**: GATE-01, GATE-02, GATE-03, INST-03
 **Owner checkpoint**: N for invariant B (the front-advance window).
-**Plans:** 3/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 
@@ -175,8 +175,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 49-03-PLAN.md — D-17 invariant-B state across resume: `CHECKPOINT_SCHEMA_VERSION` 2, additive payload key, restore path, stall-across-resume boundary proof (wave 3)
-- [ ] 49-05-PLAN.md — Run-record projection: `conformance` verbatim-passthrough block + fail-closed `eval01_precondition_i` in `summary.json`/`summary.md` (wave 3)
+- [x] 49-03-PLAN.md — D-17 invariant-B state across resume: `CHECKPOINT_SCHEMA_VERSION` 2, additive payload key, restore path, stall-across-resume boundary proof (wave 3)
+- [x] 49-05-PLAN.md — Run-record projection: `conformance` verbatim-passthrough block + fail-closed `eval01_precondition_i` in `summary.json`/`summary.md` (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -234,7 +234,7 @@ Plans:
 | 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 10/10 | Complete    | 2026-07-29 |
 | 47. Frame Completion & S_H Pipeline | v2.2 | 3/3 | Complete    | 2026-07-31 |
 | 48. Loss-Math Conformance | v2.2 | 4/4 | Complete    | 2026-08-02 |
-| 49. Conformance Gate | v2.2 | 3/6 | In Progress|  |
+| 49. Conformance Gate | v2.2 | 5/6 | In Progress|  |
 | 50. Valid Stage-0 Re-Run | v2.2 | 0/? | Not started | - |
 | 51. The Authorized Evaluation | v2.2 | 0/? | Not started | - |
 | 52. Diagnosis Re-Derivation & Handoff | v2.2 | 0/? | Not started | - |
