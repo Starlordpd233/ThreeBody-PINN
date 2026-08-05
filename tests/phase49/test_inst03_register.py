@@ -33,7 +33,8 @@ def _entry(*, status: str = "open", **overrides):
 
 def _write(tmp_path: Path, payload) -> Path:
     path = tmp_path / register.DIVERGENCE_REGISTER_FILENAME
-    path.write_text(json.dumps(payload), encoding="utf-8")
+    text = payload if isinstance(payload, str) else json.dumps(payload)
+    path.write_text(text, encoding="utf-8")
     return path
 
 
@@ -138,7 +139,8 @@ def test_every_closed_register_entry_has_a_real_passing_proof_test():
 
 def test_register_serialization_is_deterministic(tmp_path):
     payload = _payload(_entry())
-    first = _write(tmp_path, payload).read_bytes()
+    first = tmp_path / "first.json"
     second = tmp_path / "second.json"
+    register.write_divergence_register(first, payload)
     register.write_divergence_register(second, payload)
-    assert first == second.read_bytes()
+    assert first.read_bytes() == second.read_bytes()
