@@ -90,6 +90,14 @@ def test_stage0_pass_reads_caps_from_state_dict_not_current():
     assert scheduler.current_called is False
 
 
+def test_conformant_stage0_pass():
+    result = _table_module().assert_phys05_table(
+        _StateOnlyScheduler(_state_for(stage=0)), 0
+    )
+    assert result["stage"] == 0
+    assert all(check["passed"] for check in result["checks"])
+
+
 def test_missing_state_key_is_loud():
     state = _state_for()
     del state["lambda_e_max"]
