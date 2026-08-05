@@ -160,7 +160,7 @@ Plans:
 **Depends on**: Phase 48 (the conformant loss assembly the gate asserts).
 **Requirements**: GATE-01, GATE-02, GATE-03, INST-03
 **Owner checkpoint**: N for invariant B (the front-advance window).
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 
@@ -170,7 +170,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 49-02-PLAN.md — GATE-03 invariants A/B + `causal_stats_missing` as HALT-family StepGuards, `InvariantsConfig` with the empty owner slot for N (record-only when unset, D-20), `guard_hook` wiring (wave 2)
+- [x] 49-02-PLAN.md — GATE-03 invariants A/B + `causal_stats_missing` as HALT-family StepGuards, `InvariantsConfig` with the empty owner slot for N (record-only when unset, D-20), `guard_hook` wiring (wave 2)
 - [ ] 49-04-PLAN.md — GATE-02 placeholder census (D-07 manifest, D-09 classes) + INST-03 divergence register with D-24 initial contents and D-25 proof-test meta-run + preflight composition (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -234,7 +234,7 @@ Plans:
 | 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 10/10 | Complete    | 2026-07-29 |
 | 47. Frame Completion & S_H Pipeline | v2.2 | 3/3 | Complete    | 2026-07-31 |
 | 48. Loss-Math Conformance | v2.2 | 4/4 | Complete    | 2026-08-02 |
-| 49. Conformance Gate | v2.2 | 1/6 | In Progress|  |
+| 49. Conformance Gate | v2.2 | 2/6 | In Progress|  |
 | 50. Valid Stage-0 Re-Run | v2.2 | 0/? | Not started | - |
 | 51. The Authorized Evaluation | v2.2 | 0/? | Not started | - |
 | 52. Diagnosis Re-Derivation & Handoff | v2.2 | 0/? | Not started | - |

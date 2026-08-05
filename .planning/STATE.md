@@ -5,15 +5,15 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 49
 current_phase_name: Conformance Gate
 status: executing
-stopped_at: Phase 49 Wave 1 complete (49-01)
-last_updated: "2026-08-05T03:47:54.796Z"
+stopped_at: Completed 49-02-PLAN.md
+last_updated: "2026-08-05T05:13:42.116Z"
 last_activity: 2026-08-04
 last_activity_desc: Phase 49 execution started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
-  completed_plans: 18
+  completed_plans: 19
   percent: 43
 ---
 
@@ -32,7 +32,7 @@ Phase: 49 (Conformance Gate) — EXECUTING
 Plan: 2 of 6
 Status: Ready to execute
 Last activity: 2026-08-04 — Phase 49 execution started
-**Progress:** [████████░░] 78% (18/23 plans complete)
+**Progress:** [████████░░] 83% (19/23 plans complete)
 
 ### Decisions from 47-02
 
@@ -210,6 +210,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 48 P3 | 14 min | 2 tasks | 8 files |
 | Phase 48-loss-math-conformance P04 | 20 min | 2 tasks | 4 files |
 | Phase 49 P01 | 50min | 3 tasks | 8 files |
+| Phase 49 P02 | 7min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -373,6 +374,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Fresh and resumed training setup derive and enforce the same causal clip facts from RuntimeSpec through strict atomic training_metadata.json.
 - [Phase ?]: Adam and L-BFGS gradient telemetry uses non-mutating autograd.grad diagnostics with explicit pre-total-backward and last-closure provenance.
 - [Phase ?]: Missing or non-finite required gradient statistics fail closed as null telemetry with grad_stats_complete=false and step_completed=false.
+- [Phase ?]: GATE-03 invariant B keeps front_advance_window_n unset by default; None is explicit record-only state until owner ratification.
+- [Phase ?]: GATE-03 invariant A, invariant B, and causal_stats_missing remain HALT-family StepGuards entries; existing step-log and failure-bundle paths are unchanged.
 
 ### Pending Todos
 
@@ -405,10 +408,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/49-conformance-gate/49-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-08-05T03:47:07.300Z
-Stopped at: Phase 49 Wave 1 complete (49-01)
+Last session: 2026-08-05T05:13:42.107Z
+Stopped at: Completed 49-02-PLAN.md
 Next action: Run `/gsd-plan-phase 49`, consuming `49-CONTEXT.md`. The blocking owner checkpoint — `N`, the invariant-B front-advance window — must be surfaced with the 49-CONTEXT D-19 evidence packet; D-20 defines the fail-closed unset state, so planning does not stall waiting for it.
 
 ## Operator Next Steps
