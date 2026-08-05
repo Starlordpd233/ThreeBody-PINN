@@ -5,15 +5,15 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 49
 current_phase_name: Conformance Gate
 status: executing
-stopped_at: Completed 49-02-PLAN.md
-last_updated: "2026-08-05T05:13:42.116Z"
+stopped_at: Completed 49-04-PLAN.md
+last_updated: "2026-08-05T05:38:51.394Z"
 last_activity: 2026-08-04
 last_activity_desc: Phase 49 execution started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
-  completed_plans: 19
+  completed_plans: 20
   percent: 43
 ---
 
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 49 (Conformance Gate) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-08-04 — Phase 49 execution started
-**Progress:** [████████░░] 83% (19/23 plans complete)
+**Progress:** [█████████░] 87% (19/23 plans complete)
 
 ### Decisions from 47-02
 
@@ -211,6 +211,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 48-loss-math-conformance P04 | 20 min | 2 tasks | 4 files |
 | Phase 49 P01 | 50min | 3 tasks | 8 files |
 | Phase 49 P02 | 7min | 3 tasks | 7 files |
+| Phase 49 P04 | 20min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -376,6 +377,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Missing or non-finite required gradient statistics fail closed as null telemetry with grad_stats_complete=false and step_completed=false.
 - [Phase ?]: GATE-03 invariant B keeps front_advance_window_n unset by default; None is explicit record-only state until owner ratification.
 - [Phase ?]: GATE-03 invariant A, invariant B, and causal_stats_missing remain HALT-family StepGuards entries; existing step-log and failure-bundle paths are unchanged.
+- [Phase ?]: Plan 49-04 uses an explicit ordered census manifest and fail-closed divergence register; preflight preserves open caveats verbatim.
+- [Phase ?]: Every closed register entry carries a passing proof-test node; waivers cite existing authority only.
 
 ### Pending Todos
 
@@ -410,8 +413,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-05T05:13:42.107Z
-Stopped at: Completed 49-02-PLAN.md
+Last session: 2026-08-05T05:38:51.385Z
+Stopped at: Completed 49-04-PLAN.md
 Next action: Run `/gsd-plan-phase 49`, consuming `49-CONTEXT.md`. The blocking owner checkpoint — `N`, the invariant-B front-advance window — must be surfaced with the 49-CONTEXT D-19 evidence packet; D-20 defines the fail-closed unset state, so planning does not stall waiting for it.
 
 ## Operator Next Steps
