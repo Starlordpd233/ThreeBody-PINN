@@ -269,3 +269,63 @@ def test_invariant_b_state_round_trips():
     target.load_invariant_b_state(source.invariant_b_state_dict())
 
     assert target.invariant_b_state_dict() == source.invariant_b_state_dict()
+
+
+def test_guard_hook_wiring_populated_stats_reaches_step_guards():
+    from pinn.train import _guard_causal_inputs
+
+    controller = SimpleNamespace(
+        _last_widened_details={
+            "w_n_stats": _healthy_stats(front_idx=0),
+            "residuals_per_bin": [1.0, 0.5, 0.25],
+        }
+    )
+    stats, n_colloc, physics_evaluated = _guard_causal_inputs(controller, "2a")
+    outcome = _make_guards().check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=stats, n_colloc=n_colloc,
+        physics_evaluated=physics_evaluated,
+    )
+
+    assert stats == _healthy_stats(front_idx=0)
+    assert n_colloc == 3
+    assert physics_evaluated is True
+    assert outcome.disposition is None
+
+
+def test_guard_hook_wiring_stripped_stats_trips_causal_stats_missing():
+    from pinn.train import _guard_causal_inputs
+    from pinn.training.stage_exit import StageDisposition
+
+    controller = SimpleNamespace(
+        _last_widened_details={"residuals_per_bin": [1.0, 0.5, 0.25]}
+    )
+    stats, n_colloc, physics_evaluated = _guard_causal_inputs(controller, "2a")
+    outcome = _make_guards().check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=stats, n_colloc=n_colloc,
+        physics_evaluated=physics_evaluated,
+    )
+
+    assert stats is None
+    assert n_colloc == 3
+    assert physics_evaluated is True
+    assert outcome.disposition is StageDisposition.HALT
+    assert outcome.guard == "causal_stats_missing"
+
+
+def test_guard_hook_halt_outcome_keeps_failure_bundle_contract(tmp_path):
+    from pinn.train import _guard_causal_inputs
+    from pinn.training.guards import write_failure_bundle
+
+    controller = SimpleNamespace(_last_widened_details=None)
+    stats, n_colloc, physics_evaluated = _guard_causal_inputs(controller, "2a")
+    outcome = _make_guards().check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=stats, n_colloc=n_colloc,
+        physics_evaluated=physics_evaluated,
+    )
+    write_failure_bundle(tmp_path, outcome)
+
+    assert (tmp_path / "failure" / "README.txt").is_file()
+    assert (tmp_path / "failure" / "trip.json").is_file()
