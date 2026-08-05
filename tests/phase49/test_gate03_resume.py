@@ -22,6 +22,22 @@ def _payload_controller():
     return FakeController()
 
 
+def _make_guards(*, front_advance_window_n=None):
+    from pinn.training.guards import StepGuards
+
+    config = SimpleNamespace(
+        guards=SimpleNamespace(
+            loss_explosion_ceiling=1.0e6,
+            disk_floor_fraction=0.05,
+            memory_watermark_fraction=0.7,
+        ),
+        invariants=SimpleNamespace(
+            front_advance_window_n=front_advance_window_n,
+        ),
+    )
+    return StepGuards(config, memory_signal=lambda: None)
+
+
 def test_build_checkpoint_payload_carries_invariant_b_state_and_schema_symbol():
     from pinn.training.checkpoint import CHECKPOINT_SCHEMA_VERSION
     from pinn.training.controllers import build_checkpoint_payload

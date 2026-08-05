@@ -674,6 +674,28 @@ def _restore_run_controller(controller: RunController, payload: Mapping[str, Any
         controller.load_state_dict(dict(payload))
 
 
+def _restore_invariant_b_state(
+    step_guards: StepGuards, payload: Mapping[str, Any]
+) -> None:
+    """Restore invariant-B state under the schema-v2 resume contract.
+
+    A missing key is distinct from an explicit ``None``: the former indicates
+    a stripped or stale checkpoint whose stall window cannot be trusted, while
+    the latter is the legitimate no-provider state used by isolated tests.
+    Mapping validation remains owned by ``StepGuards`` so malformed state is
+    rejected without coercion.
+    """
+    if "invariant_b_state" not in payload:
+        raise ValueError(
+            "resume checkpoint is missing required invariant_b_state key; "
+            "refusing to re-arm invariant-B silently"
+        )
+    state = payload["invariant_b_state"]
+    if state is None:
+        return
+    step_guards.load_invariant_b_state(state)
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """CLI entry — returns process exit code (0 success, non-zero refuse/error)."""
     args = _parser().parse_args(list(argv) if argv is not None else None)
@@ -1197,7 +1219,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(f"error: {exc}", file=sys.stderr)
             return finish_run("failed", 1)
 
-        _restore_run_controller(run_controller, payload)
+        try:
+            _restore_run_controller(run_controller, payload)
+            _restore_invariant_b_state(step_guards, payload)
+        except (TypeError, ValueError) as exc:
+            print(f"error: failed to restore resume state: {exc}", file=sys.stderr)
+            return finish_run("failed", 1)
         initial_stage, resume_ctx = _derive_resume_plan(
             payload, hold_stage=bool(args.hold_stage), resume_arg=str(args.resume)
         )
