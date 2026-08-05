@@ -1030,6 +1030,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 curriculum_state_accessor(),
                 config_identity,
                 CHECKPOINT_SCHEMA_VERSION,
+                invariant_b_state=step_guards.invariant_b_state_dict(),
             )
             store.save_rolling(payload, int(global_step))
         # best.pt producer (cycle-4 MEDIUM-1)
@@ -1066,6 +1067,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 curriculum_state_accessor(),
                 config_identity,
                 CHECKPOINT_SCHEMA_VERSION,
+                invariant_b_state=step_guards.invariant_b_state_dict(),
             )
             store.save_best(payload)
 
@@ -1137,6 +1139,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     curriculum_state_accessor(),
                     config_identity,
                     CHECKPOINT_SCHEMA_VERSION,
+                    invariant_b_state=step_guards.invariant_b_state_dict(),
                 )
                 store.save_anchor(
                     tag=f"failure-stage-{int(stage)}-step-{int(global_step)}",
@@ -1205,6 +1208,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         scheduled_weights=scheduled_weights,
         run_controller=run_controller,
         conformance_hook=conformance_hook,
+        invariant_b_state_provider=step_guards.invariant_b_state_dict,
         recover_retries=config.run.recover_retries,
         initial_stage=initial_stage,
     )
@@ -1238,6 +1242,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             curriculum_state_accessor(),
             config_identity,
             CHECKPOINT_SCHEMA_VERSION,
+            invariant_b_state=step_guards.invariant_b_state_dict(),
         )
         store.save_rolling(checkpoint_payload, int(run_controller._global_step))
         return finish_run("interrupted", signal_state.exit_code)

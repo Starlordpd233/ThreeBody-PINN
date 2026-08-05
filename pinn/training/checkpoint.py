@@ -29,7 +29,7 @@ from pinn.training.config import CheckpointCadence
 PathLike = Union[str, Path]
 
 # Single source of truth for CTX-53 payload schema version (wave-2 owned).
-CHECKPOINT_SCHEMA_VERSION: int = 1
+CHECKPOINT_SCHEMA_VERSION: int = 2
 
 # CTX-53 required top-level keys — presence check, not truthiness.
 _CTX53_REQUIRED_KEYS: tuple[str, ...] = (

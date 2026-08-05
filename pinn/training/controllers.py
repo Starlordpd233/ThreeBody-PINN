@@ -344,6 +344,7 @@ def build_checkpoint_payload(
     curriculum_state: Any,
     config_identity: Any,
     schema_version: Any,
+    invariant_b_state: Optional[Mapping[str, Any]] = None,
 ) -> dict[str, Any]:
     """Assemble the FULL CTX-53 envelope from a live RunController + live inputs.
 
@@ -368,6 +369,7 @@ def build_checkpoint_payload(
         "counters": sd.get("counters"),
         "config_identity": config_identity,
         "schema_version": schema_version,
+        "invariant_b_state": invariant_b_state,
     }
 
 
@@ -1594,6 +1596,7 @@ class CurriculumController:
         forced_disposition: Optional[Callable[[int], StageDisposition]] = None,
         stage_factory: Optional[Callable[[int], RunController]] = None,
         conformance_hook: Optional[Callable[[int, Any], None]] = None,
+        invariant_b_state_provider: Optional[Callable[[], Mapping[str, Any]]] = None,
         recover_retries: int = 0,
         initial_stage: int = 0,
     ) -> None:
@@ -1624,6 +1627,7 @@ class CurriculumController:
         self._forced_disposition = forced_disposition
         self._stage_factory = stage_factory
         self._conformance_hook = conformance_hook
+        self._invariant_b_state_provider = invariant_b_state_provider
         self._recover_retries = int(recover_retries)
         self._recover_attempts = 0
         self._stage = int(initial_stage)
@@ -1694,6 +1698,11 @@ class CurriculumController:
             self._curriculum_state(),
             self._config_identity(),
             CHECKPOINT_SCHEMA_VERSION,
+            invariant_b_state=(
+                self._invariant_b_state_provider()
+                if self._invariant_b_state_provider is not None
+                else None
+            ),
         )
         self._checkpoint_store.save_anchor(tag=tag, stage=stage, payload=payload)
 
