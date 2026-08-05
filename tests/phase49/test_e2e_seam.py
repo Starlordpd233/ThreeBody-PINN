@@ -1,8 +1,7 @@
 """Phase 49 / D-30 composed conformance seam.
 
 The test drives the production ``pinn.train.main`` composition root with its
-existing synthetic source.  It deliberately leaves invariant-B's owner value
-unset so the run remains record-only and structurally ineligible for EVAL-01.
+existing synthetic source and the owner-ratified invariant-B window.
 """
 
 from __future__ import annotations
@@ -36,9 +35,8 @@ def _write_synthetic_config(path: Path) -> Path:
                 "disk_floor_fraction": 0.01,
                 "memory_watermark_fraction": 0.99,
             },
-            # D-20: an empty mapping is the explicit record-only state.  No
-            # test fixture or shipped config may invent the owner's N.
-            "invariants": {},
+            # Match the owner-ratified Phase-50 value applied by 49-06 Task 3.
+            "invariants": {"front_advance_window_n": 500},
         },
         "stage": {
             "max_epochs": 2,
@@ -113,10 +111,9 @@ def test_real_main_orders_preflight_table_boundary_and_first_guard(
     assert all(check["passed"] for check in run_start["checks"])
     assert run_start["census"] is not None
     assert run_start["open_divergences"]
-    assert any(
+    assert not any(
         entry["id"] == "INV-B-N-UNSET"
         and entry["kind"] == "divergence"
-        and entry["status"] == "open"
         for entry in run_start["open_divergences"]
     )
 
@@ -129,7 +126,7 @@ def test_real_main_orders_preflight_table_boundary_and_first_guard(
     summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
     assert summary["disposition"] == "finished"
     assert summary["conformance"] == record
-    assert summary["eval01_precondition_i"] is False
+    assert summary["eval01_precondition_i"] is True
 
     adam_calls = [call for call in guard_calls if call["phase"] == "2a"]
     assert adam_calls

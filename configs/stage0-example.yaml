@@ -35,7 +35,9 @@ run:
   # B should enforce a window. Absent or null means record-only and carries
   # the open INV-B-N-UNSET divergence, so eval01_precondition_i is false.
   invariants:
-    # front_advance_window_n: <owner-provided positive integer>
+    # Owner ruling 2026-08-05: N = 500 (= 0.5 · N_Adam,0); retain this value
+    # verbatim unless the owner re-rules after a Phase-50 invariant-B HALT.
+    front_advance_window_n: 500
   monitor:
     heartbeat_secs: 30
     staleness_factor: 3

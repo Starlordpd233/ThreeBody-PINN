@@ -157,16 +157,16 @@
       "what_it_would_take": "A future owner-authorized platform phase must implement the stochastic L-BFGS stages and retire this deferred-scope record."
     },
     {
-      "authority": "GATE-03 D-20; owner checkpoint",
+      "authority": "Owner ruling 2026-08-05: N = 500 (= 0.5 · N_Adam,0)",
       "id": "INV-B-N-UNSET",
       "kind": "divergence",
-      "proof_test": null,
-      "rationale": "Invariant B deliberately remains record-only while the owner-controlled front-advance window N is unset; the run carries this open caveat and is not eligible for the single-look evaluation.",
+      "proof_test": "tests/phase49/test_gate03_invariants.py::test_invariant_b_trips_after_window_and_marks_threshold_nonprovisional",
+      "rationale": "The owner selected N = 500 (= 0.5 · N_Adam,0) on 2026-08-05. Invariant B now enforces the owner-ratified front-advance window; any Phase-50 HALT is owner-adjudicated and no agent may adjust N.",
       "spec_citation": "GATE-03 D-18..D-20; GAP-45-04",
-      "status": "open",
+      "status": "closed",
       "title": "invariant-B window N is unset",
       "waiver": null,
-      "what_it_would_take": "Owner ratification of N followed by an explicitly configured and verified enforcement window."
+      "what_it_would_take": "Closed by the owner ruling and the enforcing invariant-B trip test; any future re-ruling must be recorded as a new owner decision."
     },
     {
       "authority": "GATE-02 D-09 interpretation record",

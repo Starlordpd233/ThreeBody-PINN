@@ -121,7 +121,7 @@ def test_committed_register_has_mandatory_entries_and_authorized_waivers():
         "INV-B-N-UNSET",
     } <= set(by_id)
     assert by_id["INV-B-N-UNSET"]["kind"] == "divergence"
-    assert by_id["INV-B-N-UNSET"]["status"] == "open"
+    assert by_id["INV-B-N-UNSET"]["status"] == "closed"
     assert by_id["INV-B-N-UNSET"]["waiver"] is None
     assert by_id["PLAT-01-SINGLE-STAGE"]["waiver"] == "SCOPE-27"
     assert "SCOPE-27" in by_id["PLAT-02-SLBFGS"]["waiver"]
@@ -315,13 +315,13 @@ def test_surfaces_in_run_record(tmp_path):
     payload, markdown = _summary_payload(run_dir)
 
     assert payload["conformance"] == persisted
-    assert any(
+    assert not any(
         entry["id"] == "INV-B-N-UNSET"
         for entry in payload["conformance"]["assertions"][0]["open_divergences"]
     )
-    assert payload["eval01_precondition_i"] is False
+    assert payload["eval01_precondition_i"] is True
     assert "## Conformance" in markdown
-    assert "- eval01_precondition_i: False" in markdown
+    assert "- eval01_precondition_i: True" in markdown
     assert "INV-B-N-UNSET" in markdown
 
 
