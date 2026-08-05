@@ -4,15 +4,15 @@ milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 49
 current_phase_name: Conformance Gate
-status: planning
-stopped_at: Phase 49 context gathered
-last_updated: "2026-08-04T07:59:27.359Z"
+status: executing
+stopped_at: Phase 49 planned (6 plans, plan-checker passed)
+last_updated: "2026-08-05T01:18:35.633Z"
 last_activity: 2026-08-04
-last_activity_desc: Phase 49 context gathered (32 decisions); N for invariant B remains the blocking owner checkpoint
+last_activity_desc: Phase 49 planned — 6 plans across 4 waves, plan-checker VERIFICATION PASSED, 36/36 requirement + decision coverage; N for invariant B remains the blocking owner checkpoint (D-18/D-19, 49-06)
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 17
+  total_plans: 23
   completed_plans: 17
   percent: 43
 ---
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 49 — Conformance Gate
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-03 — Phase 48 UAT closed (5/5 passed), phase fully verified
-**Progress:** [██████████] 100% (17/17 plans complete)
+Plan: 6 plans across 4 waves (49-01 .. 49-06)
+Status: Ready to execute
+Last activity: 2026-08-04 — Phase 49 planned; plan-checker passed, 36/36 requirement + decision coverage
+**Progress:** [███████░░░] 74% (17/23 plans complete)
 
 ### Decisions from 47-02
 
