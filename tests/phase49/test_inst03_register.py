@@ -18,6 +18,7 @@ from pinn.conformance import register
 from pinn.loss_catalog import resolve_causal_clip_facts
 from pinn.training.run_metadata import write_training_metadata
 from pinn.training.scheduled_weights import ScheduledWeights
+from pinn.training import summary as summary_module
 
 
 def _entry(*, status: str = "open", **overrides):
@@ -265,3 +266,144 @@ def test_n_register_consistency_is_a_finding_not_a_block(tmp_path, monkeypatch, 
         _preflight_config(n), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
     )
     assert any(finding.get("kind") == "consistency" for finding in record.events[0]["findings"])
+
+
+def _write_real_preflight(run_dir: Path, *, payload=None, monkeypatch=None) -> dict:
+    """Write a schema-valid preflight artifact through the real recorder."""
+    _preflight_run_dir(run_dir)
+    if payload is None:
+        preflight.run_start_preflight(
+            _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+        )
+    else:
+        assert monkeypatch is not None
+        monkeypatch.setattr(preflight, "load_divergence_register", lambda: copy.deepcopy(payload))
+        preflight.run_start_preflight(
+            _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+        )
+    return preflight.load_preflight(run_dir)
+
+
+def _owner_n_register() -> dict:
+    """Copy the committed register and close only the owner-controlled N row."""
+    payload = copy.deepcopy(register.load_divergence_register())
+    entry = next(item for item in payload["entries"] if item["id"] == "INV-B-N-UNSET")
+    entry["status"] = "closed"
+    entry["proof_test"] = (
+        "tests/phase49/test_gate03_invariants.py::"
+        "test_invariant_b_n_unset_record_only_still_tracks_state"
+    )
+    return payload
+
+
+def _summary_payload(run_dir: Path, *, disposition: str = "failed") -> tuple[dict, str]:
+    summary_module.finalize_summary(
+        run_dir,
+        disposition=disposition,
+        header={"run_name": "phase49-projection", "seed": 42},
+        final_losses={"total": 1.0},
+        curriculum_path=None,
+    )
+    payload = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+    markdown = (run_dir / "summary.md").read_text(encoding="utf-8")
+    return payload, markdown
+
+
+def test_surfaces_in_run_record(tmp_path):
+    run_dir = tmp_path / "run"
+    persisted = _write_real_preflight(run_dir)
+    payload, markdown = _summary_payload(run_dir)
+
+    assert payload["conformance"] == persisted
+    assert any(
+        entry["id"] == "INV-B-N-UNSET"
+        for entry in payload["conformance"]["assertions"][0]["open_divergences"]
+    )
+    assert payload["eval01_precondition_i"] is False
+    assert "## Conformance" in markdown
+    assert "- eval01_precondition_i: False" in markdown
+    assert "INV-B-N-UNSET" in markdown
+
+
+def test_surfaces_in_run_record_true_with_no_open_divergence(tmp_path, monkeypatch):
+    run_dir = tmp_path / "run"
+    persisted = _write_real_preflight(
+        run_dir, payload=_owner_n_register(), monkeypatch=monkeypatch
+    )
+    payload, markdown = _summary_payload(run_dir, disposition="finished")
+
+    assert not [
+        entry
+        for entry in persisted["assertions"][0]["open_divergences"]
+        if entry.get("kind") == "divergence"
+    ]
+    assert payload["eval01_precondition_i"] is True
+    assert "- eval01_precondition_i: True" in markdown
+
+
+def test_surfaces_in_run_record_committed_register_owner_n_branch_ignores_open_qualifications(
+    tmp_path, monkeypatch
+):
+    base = register.load_divergence_register()
+    modified = _owner_n_register()
+    for before, after in zip(base["entries"], modified["entries"]):
+        if before["id"] == "INV-B-N-UNSET":
+            assert after["status"] == "closed"
+            assert after["proof_test"]
+        else:
+            assert after == before
+
+    run_dir = tmp_path / "run"
+    persisted = _write_real_preflight(run_dir, payload=modified, monkeypatch=monkeypatch)
+    payload, _ = _summary_payload(run_dir)
+    open_entries = persisted["assertions"][0]["open_divergences"]
+    assert any(entry["kind"] == "qualification" for entry in open_entries)
+    assert payload["eval01_precondition_i"] is True
+    assert payload["conformance"] == persisted
+
+
+def test_surfaces_in_run_record_open_qualification_travels_without_blocking(
+    tmp_path, monkeypatch
+):
+    modified = _owner_n_register()
+    run_dir = tmp_path / "run"
+    persisted = _write_real_preflight(run_dir, payload=modified, monkeypatch=monkeypatch)
+    payload, markdown = _summary_payload(run_dir)
+
+    qualifications = [
+        entry
+        for entry in persisted["assertions"][0]["open_divergences"]
+        if entry.get("kind") == "qualification"
+    ]
+    assert qualifications
+    assert payload["eval01_precondition_i"] is True
+    assert qualifications[0] in payload["conformance"]["assertions"][0]["open_divergences"]
+    assert qualifications[0]["id"] in markdown
+
+
+def test_surfaces_in_run_record_malformed_preflight_fails_closed_and_still_renders_conformance(
+    tmp_path,
+):
+    run_dir = tmp_path / "run"
+    _write_real_preflight(run_dir)
+    (run_dir / preflight.PREFLIGHT_FILENAME).write_text("{", encoding="utf-8")
+
+    payload, markdown = _summary_payload(run_dir)
+
+    assert payload["eval01_precondition_i"] is False
+    assert "## Conformance" in markdown
+    assert "- eval01_precondition_i: False" in markdown
+
+
+def test_surfaces_in_run_record_absent_preflight_is_none_and_renders_unavailable(
+    tmp_path,
+):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+
+    payload, markdown = _summary_payload(run_dir)
+
+    assert payload["conformance"] is None
+    assert payload["eval01_precondition_i"] is False
+    assert "## Conformance" in markdown
+    assert "- (conformance record unavailable)" in markdown
