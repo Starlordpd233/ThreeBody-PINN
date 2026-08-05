@@ -1,107 +1,163 @@
 ---
 phase: 49-conformance-gate
-reviewed: 2026-08-05T03:55:28Z
+reviewed: 2026-08-05T05:51:16Z
 depth: standard
-files_reviewed: 8
+files_reviewed: 19
 files_reviewed_list:
-  - pinn/constants.py
+  - configs/smoke.yaml
+  - configs/stage0-example.yaml
   - pinn/conformance/__init__.py
-  - pinn/conformance/table.py
+  - pinn/conformance/census.py
+  - pinn/conformance/divergence_register.json
   - pinn/conformance/preflight.py
+  - pinn/conformance/register.py
+  - pinn/conformance/table.py
+  - pinn/constants.py
   - pinn/train.py
+  - pinn/training/config.py
+  - pinn/training/config_yaml.py
   - pinn/training/controllers.py
+  - pinn/training/guards.py
   - tests/phase49/__init__.py
   - tests/phase49/test_gate01_table.py
+  - tests/phase49/test_gate02_census.py
+  - tests/phase49/test_gate03_invariants.py
+  - tests/phase49/test_inst03_register.py
 findings:
-  critical: 5
+  critical: 10
   warning: 2
   info: 0
-  total: 7
+  total: 12
 status: issues_found
 ---
 
 # Phase 49: Code Review Report
 
-**Reviewed:** 2026-08-05T03:55:28Z  
+**Reviewed:** 2026-08-05T05:51:16Z  
 **Depth:** standard  
-**Files Reviewed:** 8  
+**Files Reviewed:** 19  
 **Status:** issues_found
 
 ## Summary
 
-The focused Phase 49 suite passes (20 tests), but the gate is not fail-closed for malformed or tampered state and its artifact loader accepts semantically contradictory records. Resume launches erase prior preflight history, and the new Stage-0 lock leaves the existing Phase 41 launch suite red (16 failures). These issues affect correctness and auditability and should be fixed before shipping.
+The focused Phase 49 suite passes (70 tests), but the integrated gate has fail-closed, auditability, and configuration defects. Both shipped YAML examples fail to load, malformed inputs can escape without refusal evidence, and invalid causal statistics can suppress invariant-B enforcement. The new Stage-0 lock also leaves the existing Phase 41 launch suite at 16 failures.
 
 ## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01: Preflight loader accepts a forged passed status
+### CR-01: Documented null invariant configuration cannot be loaded
 
 **Severity:** BLOCKER  
-**File:** `pinn/conformance/preflight.py:44-110,171-182`
+**File:** `pinn/training/config_yaml.py:173-185`, `pinn/training/config.py:406-410`
 
-**Issue:** `_validate_payload` checks only JSON shape, enum membership, and `passed`'s boolean type. It never checks that `preflight_status` agrees with event statuses/checks, that the assertions array is non-empty, or that the event sequence starts with `run_start` and then follows entered stage boundaries. For example, a payload with `preflight_status: "passed"` and a failed `run_start` event is accepted by `load_preflight`. The persisted artifact is the trust boundary used by later summary/evaluation code, so a tampered file can report a failed run as conformant.
+**Issue:** The shipped YAML comments promise that an absent or explicit `null` `run.invariants` value means record-only mode, but the YAML mapper forwards `None` instead of constructing the nested dataclass. `RunConfig.__post_init__` then raises `TypeError`. Both `configs/stage0-example.yaml` and `configs/smoke.yaml` use the documented empty value and fail immediately at launch.
 
-**Fix:** Add semantic validation before returning: require a non-empty ordered event list, enforce the `run_start`/`stage_boundary` sequence, derive top-level status from locked-check failures (advisory failures remain non-blocking), and reject contradictions between event status and its checks. Validate check names and scalar values sufficiently for the downstream projection as well.
+**Fix:** Treat a `None` value for a nested dataclass field as its default instance (or omit it before construction), while retaining strict type checks for non-null values. Add tests for both omitted and explicit `invariants: null` configurations.
 
-### CR-02: Invalid scheduler state can pass the exact table gate
-
-**Severity:** BLOCKER  
-**File:** `pinn/conformance/table.py:43-61,150-168`
-
-**Issue:** `_check` relies on Python `==` without validating scalar types or domains. Consequently `True == 1.0` and `False == 0.0`, so a state dictionary containing boolean caps passes all Stage-0 locked rows. A tampered state with `n_adam_k = -1` and `warmup_length = -1` also satisfies the computed formula, despite `ScheduledWeights` rejecting negative budgets at construction. Checkpoint state is persisted input and can be loaded after construction; this lets invalid schedule state bypass the conformance claim.
-
-**Fix:** Validate every state value before comparison: reject booleans, require finite real caps/IC values with the scheduler's non-negative domain, and require non-negative integer `n_adam_k`/`warmup_length`. Normalize only after validation and then perform the exact comparisons.
-
-### CR-03: Non-ValueError gate failures skip refusal evidence
+### CR-02: Malformed `front_idx` values bypass or crash the invariant gate
 
 **Severity:** BLOCKER  
-**File:** `pinn/conformance/table.py:150-154`, `pinn/conformance/preflight.py:195-214`, `pinn/train.py:927-962`
+**File:** `pinn/training/guards.py:461-512`
 
-**Issue:** Malformed values are not normalized to `ValueError`: for example `n_adam_k = float("inf")` makes `math.floor(...)` raise `OverflowError`, and a string budget raises `TypeError`. `run_start_preflight` and the run-start call site catch only `ValueError`, so the exception escapes before `_failure_check` writes `preflight.json` (and before the normal `finish_run` path). At the stage hook, only `ValueError` is recorded; other gate failures reach the broad training catch without a failed stage-boundary record. This violates D-27 for malformed persisted state.
+**Issue:** The guard converts `front_idx` with `int()` and rejects only the `-1` sentinel. Values such as `-2`, `99`, and `1.9` are accepted; an out-of-range high-water mark (`99` with `n_colloc=4`) makes `saturated` true and permanently suppresses invariant B. `float("inf")` raises `OverflowError`, so the step has no HALT outcome or failure bundle. This allows malformed instrumentation to defeat the stall guard.
 
-**Fix:** Make table input validation convert all expected malformed-state failures into a dedicated conformance exception (or `ValueError`) carrying the failing check. Catch that gate exception at both call sites, append the structured failed event, and only then re-raise through the existing non-zero finish path. Do not let `TypeError`/`OverflowError` escape the gate.
+**Fix:** Validate the raw value as a finite, non-boolean integer and enforce the valid range/sentinel (`-1` or `0 <= front_idx < n_colloc`) before updating high-water state. Catch `OverflowError` and route every malformed value through the invariant-A refusal path. Use the contract's exact saturation condition after validation.
 
-### CR-04: Resume launches overwrite append-only preflight history
-
-**Severity:** BLOCKER  
-**File:** `pinn/conformance/preflight.py:114-163,195-214`, `pinn/train.py:697-714`
-
-**Issue:** `PreflightRecorder` always initializes `self._events` to an empty list. `main()` reuses the same run directory for `--resume`, so the next `run_start_preflight` writes a new one-event payload over the previous run's `stage_boundary` and failure records. This contradicts the recorder's append-only contract and destroys the evidence needed to explain an earlier attempt.
-
-**Fix:** On construction, load and validate an existing `preflight.json` and seed `_events` before appending the new run-start event (or use a separately versioned attempt log while preserving the canonical history). Add a resume test proving prior events remain in order.
-
-### CR-05: Existing launch contract is broken by the new gate
+### CR-03: Malformed metadata can escape without a failed preflight artifact
 
 **Severity:** BLOCKER  
-**File:** `pinn/train.py:918-933`
+**File:** `pinn/conformance/preflight.py:239-273,305-365`, `pinn/train.py:950-955`
 
-**Issue:** The new run-start assertion refuses `lambda_e_max: 1.0` for Stage 0, which is the value hard-coded by the existing Phase 41 launch fixture. Running `.venv/bin/python -m pytest -q tests/phase41/test_train_entrypoint.py` now produces **16 failed, 5 passed**, all failures occurring before training with `PHYS-05 ... lambda_e_max expected 0.0, actual 1.0`. This is a shipped regression in the composition root, not merely a new negative test.
+**Issue:** `_metadata_for_census` calls `.get()` on parsed JSON without first requiring a mapping. A syntactically valid `training_metadata.json` containing a list raises `AttributeError`, while read/encoding/backend failures can raise other exception types. `run_start_preflight` and the launch call site catch only `ValueError`, so no `preflight.json` failed event is persisted and the normal refusal path is skipped. This violates the documented “write evidence before raising” contract for malformed setup artifacts.
 
-**Fix:** Update all launch fixtures and user-facing Stage-0 examples that are intended to train to the locked Stage-0 row (`lambda_e_max: 0.0`), and add explicit refusal coverage for non-conformant values. If the old nonzero fixture is intentional, reconcile the stage/cap contract before enabling the gate; do not leave the baseline suite red.
+**Fix:** Validate the decoded metadata type and normalize expected file, encoding, device, and metadata errors to a dedicated conformance exception. Catch that exception around the complete census composition, append the failed run-start event first, then propagate through the normal non-zero finish path.
+
+### CR-04: Non-`ValueError` scheduler corruption skips refusal evidence
+
+**Severity:** BLOCKER  
+**File:** `pinn/conformance/table.py:150-154`, `pinn/conformance/preflight.py:325-365`, `pinn/train.py:963-984`
+
+**Issue:** The warmup calculation performs `math.floor()` before validating `n_adam_k`; strings raise `TypeError` and infinities raise `OverflowError`. The preflight and stage-boundary callers record failures only for `ValueError`, so these malformed schedule states escape without a failed event. The same gate accepts booleans and out-of-domain negative values because comparisons use Python `==` without scalar/domain validation.
+
+**Fix:** Validate all scheduler fields (finite numeric caps, non-negative integer counts, and non-boolean values) before arithmetic/comparison. Convert expected malformed state to one conformance exception and catch it at both preflight sites so evidence is written before propagation.
+
+### CR-05: Preflight loader accepts semantically forged “passed” artifacts
+
+**Severity:** BLOCKER  
+**File:** `pinn/conformance/preflight.py:60-146,213-224`
+
+**Issue:** `_validate_payload` checks only JSON shape and enum/type membership. It accepts an empty assertions list, a top-level `preflight_status: "passed"` paired with failed events/checks, and arbitrary event ordering. A hand-edited artifact can therefore claim conformance without a successful run-start assertion or with a failed locked check.
+
+**Fix:** Require a non-empty ordered event stream beginning with `run_start`; derive the top-level status from event/check outcomes; reject status/check contradictions and failed locked checks under a passed status; validate the required stage-boundary ordering before returning from `load_preflight`.
+
+### CR-06: Resume destroys append-only preflight history
+
+**Severity:** BLOCKER  
+**File:** `pinn/conformance/preflight.py:149-174`, `pinn/train.py:719-739,945-955`
+
+**Issue:** Every `PreflightRecorder` starts with an empty event list. `--resume` reuses the existing run directory but calls `run_start_preflight` before loading the checkpoint, so the new `_write()` replaces the prior `preflight.json` and loses earlier stage-boundary and failure records. This contradicts the recorder’s append-only contract and makes an attempted run’s audit trail non-reproducible.
+
+**Fix:** On resume, load and validate the existing artifact and seed the recorder with its assertions before appending the new event, or write a separate attempt log while retaining the canonical history. Add a resume test that checks event order and preservation.
+
+### CR-07: Closed divergence entries do not prove their proof tests exist or pass
+
+**Severity:** BLOCKER  
+**File:** `pinn/conformance/register.py:114-125,152-164`
+
+**Issue:** The loader treats any non-empty string as a valid `proof_test` for a `closed` entry; it never resolves the module/node or executes the referenced test. A committed register entry can therefore be marked closed with a nonexistent or failing proof, and `run_start_preflight` will trust that closed status. The separate test that scans the current JSON is not a runtime validation of future edits.
+
+**Fix:** Resolve each closed proof node against the repository and fail closed when the module or test node is missing; require the verification/CI command to execute the resolved proof and record its passing result before accepting a closed status.
+
+### CR-08: Census pipeline probes prove only symbol existence
+
+**Severity:** BLOCKER  
+**File:** `pinn/conformance/census.py:39-56,114-133,250-314`
+
+**Issue:** Pipeline quantities such as `target_positions` and `masses_ordered` are declared resolved when `importlib` can find the `AdmittedSetAdapter` class. The same is true for derived quantities when a private method name exists. No producer is instantiated, no admitted record is read, and no shape, ordering, or value contract is checked. A stub or broken adapter therefore yields a passing census and allows the central gate to claim all quantities resolve.
+
+**Fix:** Replace symbol-only pipeline/derived probes with fixture-backed calls that validate concrete fields, shapes, ordering, and finite values at the producer boundary. Add tests that remove or corrupt the actual quantity and require a blocked census.
+
+### CR-09: Exact table comparison accepts boolean and negative scheduler state
+
+**Severity:** BLOCKER  
+**File:** `pinn/conformance/table.py:43-61,128-168`
+
+**Issue:** `_check` uses untyped `==`, so `True == 1.0` and `False == 0.0` satisfy locked cap rows. `n_adam_k=-1` can also make the computed warmup and a negative `warmup_length` appear conformant, even though the scheduler constructor rejects negative budgets. A restored schedule is mutable state and must not be trusted merely because its values compare equal after Python coercion.
+
+**Fix:** Enforce exact scalar types and scheduler domains before comparison: reject booleans, require finite non-negative real caps, and require non-negative integer budget/warmup fields. Only then perform the locked-row comparisons.
+
+### CR-10: The new Stage-0 gate leaves the maintained launch suite red
+
+**Severity:** BLOCKER  
+**File:** `pinn/train.py:945-955`; affected fixture `tests/phase41/test_train_entrypoint.py:75`
+
+**Issue:** The run-start gate now refuses `lambda_e_max: 1.0`, while the maintained Phase 41 launch fixture still creates that value. Running `.venv/bin/python -m pytest -q tests/phase41/test_train_entrypoint.py` produces **16 failed, 5 passed**, with every failure occurring before training at the PHYS-05 refusal. Shipping with the integrated launch contract red prevents regression validation and blocks normal entrypoint behavior.
+
+**Fix:** Update launch fixtures and any training examples intended to run to the locked Stage-0 row (`lambda_e_max: 0.0`), while retaining explicit negative tests for non-conformant caps. If the old fixture is intentional, reconcile the stage/cap contract before enabling the gate.
 
 ## Warnings
 
-### WR-01: Two locked cap checks have no independent trip coverage
+### WR-01: Locked-cap trip coverage does not cover every independent check
 
 **Severity:** WARNING  
 **File:** `tests/phase49/test_gate01_table.py:148-157`
 
-**Issue:** The only one-ULP cap trip mutates `lambda_e_max`. Stage-2 refusal also fails on that same first row, so there is no test that independently proves `lambda_phys_max` or `lambda_l_max` violations reach `_raise_locked`. This falls short of D-16's requirement that every added check be driven to failure.
+**Issue:** The one-ULP refusal test mutates only `lambda_e_max`; the Stage-2 test also fails on that first locked row. There is no independent assertion that `lambda_phys_max` or `lambda_l_max` mismatches reach the locked refusal path.
 
-**Fix:** Parameterize the adjacency/trip test over all three locked cap keys and assert each field name in the raised error (plus retain the existing Stage-2 integration test).
+**Fix:** Parameterize the trip test over all three locked cap fields and assert the reported field name for each.
 
-### WR-02: Loader file-read errors are not normalized to the promised ValueError
+### WR-02: Preflight file-read failures are not consistently normalized
 
 **Severity:** WARNING  
-**File:** `pinn/conformance/preflight.py:171-182`
+**File:** `pinn/conformance/preflight.py:213-224`
 
-**Issue:** `load_preflight` catches only `FileNotFoundError` and `JSONDecodeError`. Permission errors, directory paths, and invalid UTF-8 propagate as `PermissionError`, `IsADirectoryError`, or `UnicodeDecodeError`, so the documented fail-closed loader does not provide a typed failure for all file-read cases.
+**Issue:** `load_preflight` catches only missing files and JSON syntax errors. Permission errors, directory targets, and invalid UTF-8 propagate as unrelated exception types, despite the loader’s fail-closed `ValueError` contract.
 
-**Fix:** Catch the relevant `OSError`/`UnicodeError` cases and raise a path-specific `ValueError` while preserving the original exception as the cause; add malformed-file tests for each class.
+**Fix:** Catch the relevant `OSError`/`UnicodeError` cases and raise a path-specific `ValueError` with the original exception as its cause; add coverage for each class.
 
 ---
 
-_Reviewed: 2026-08-05T03:55:28Z_  
+_Reviewed: 2026-08-05T05:51:16Z_  
 _Reviewer: the agent (gsd-code-reviewer)_  
 _Depth: standard_
