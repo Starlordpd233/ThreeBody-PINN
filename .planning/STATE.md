@@ -5,8 +5,8 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 49
 current_phase_name: Conformance Gate
 status: executing
-stopped_at: Completed 49-04-PLAN.md
-last_updated: "2026-08-05T05:38:51.394Z"
+stopped_at: Phase 49 Wave 2 complete (49-02, 49-04)
+last_updated: "2026-08-05T05:55:33.807Z"
 last_activity: 2026-08-04
 last_activity_desc: Phase 49 execution started
 progress:
@@ -411,11 +411,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/49-conformance-gate/49-CONTEXT.md
 
-Last session: 2026-08-05T05:38:51.385Z
-Stopped at: Completed 49-04-PLAN.md
-Next action: Run `/gsd-plan-phase 49`, consuming `49-CONTEXT.md`. The blocking owner checkpoint — `N`, the invariant-B front-advance window — must be surfaced with the 49-CONTEXT D-19 evidence packet; D-20 defines the fail-closed unset state, so planning does not stall waiting for it.
+Last session: 2026-08-05T05:55:33.793Z
+Stopped at: Phase 49 Wave 2 complete (49-02, 49-04)
+Next action: Run `$gsd-execute-phase 49 --wave 3`. The blocking owner checkpoint — `N`, the invariant-B front-advance window — is reserved for Wave 4; D-20 defines the fail-closed unset state, so execution does not stall waiting for it.
 
 ## Operator Next Steps
 
