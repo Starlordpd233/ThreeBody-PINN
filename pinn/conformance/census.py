@@ -171,7 +171,7 @@ def _probe(item: Mapping[str, Any], config: Any, scheduler: Any, metadata: Mappi
         value = state[name]
         if "expected" in probe and value != probe["expected"] and not probe.get("advisory"):
             return False, f"expected {probe['expected']!r}, got {value!r}"
-        if not _finite(value, positive=(name == "warmup_length")):
+        if not _finite(value) or (name == "warmup_length" and float(value) < 0.0):
             return False, f"schedule value is not finite: {value!r}"
         return True, f"schedule {name}={value!r}"
     if kind == "metadata":
@@ -199,12 +199,17 @@ def _probe(item: Mapping[str, Any], config: Any, scheduler: Any, metadata: Mappi
     raise ValueError(f"unknown census probe kind {kind!r}")
 
 
-def _findings(config: Any, entries: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+def _findings(
+    config: Any,
+    entries: Sequence[Mapping[str, Any]],
+    provisional: Sequence[Mapping[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
-    try:
-        provisional = config.provisional_fields()
-    except (AttributeError, TypeError):
-        provisional = ()
+    if provisional is None:
+        try:
+            provisional = config.provisional_fields()
+        except (AttributeError, TypeError):
+            provisional = ()
     by_quantity = {item["quantity"]: item for item in entries}
     for field in provisional:
         if not isinstance(field, Mapping):
@@ -250,7 +255,6 @@ def run_census(
 ) -> dict[str, Any]:
     """Resolve every explicit manifest entry against validated setup inputs."""
 
-    del provisional  # the config method is the canonical cross-check source
     manifest = CENSUS_MANIFEST
     if not manifest:
         raise ValueError("census manifest is empty; no quantity can pass")
@@ -269,7 +273,7 @@ def run_census(
                 "detail": detail,
             }
         )
-    findings = _findings(config, manifest)
+    findings = _findings(config, manifest, provisional)
     instrumentation_ok, instrumentation_detail = _instrumentation_finding()
     findings.append(
         {

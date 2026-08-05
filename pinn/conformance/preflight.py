@@ -6,8 +6,14 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+import torch
+
+from pinn.loss_catalog import resolve_causal_clip_facts
+from pinn.training.run_metadata import load_training_metadata
 from pinn.training.atomic_io import atomic_write_text
 
+from .census import run_census
+from .register import load_divergence_register
 from .table import assert_phys05_table
 
 __all__ = [
@@ -21,7 +27,17 @@ __all__ = [
 PREFLIGHT_FILENAME = "preflight.json"
 PREFLIGHT_SCHEMA_VERSION = 1
 _PAYLOAD_KEYS = frozenset({"schema_version", "preflight_status", "assertions"})
-_EVENT_KEYS = frozenset({"event", "stage", "status", "checks"})
+_EVENT_KEYS = frozenset(
+    {
+        "event",
+        "stage",
+        "status",
+        "checks",
+        "census",
+        "open_divergences",
+        "findings",
+    }
+)
 _CHECK_KEYS = frozenset({"name", "tier", "expected", "actual", "passed"})
 _EVENT_NAMES = frozenset({"run_start", "stage_boundary"})
 _EVENT_STATUSES = frozenset({"passed", "failed"})
@@ -108,6 +124,25 @@ def _validate_payload(payload: Any) -> dict[str, Any]:
                     f"preflight assertion {index} check {check_index} passed "
                     "must be boolean"
                 )
+        census = event["census"]
+        if census is not None and not isinstance(census, dict):
+            raise ValueError(
+                f"preflight assertion {index} census must be an object or null"
+            )
+        open_divergences = event["open_divergences"]
+        if not isinstance(open_divergences, list) or any(
+            not isinstance(entry, dict) for entry in open_divergences
+        ):
+            raise ValueError(
+                f"preflight assertion {index} open_divergences must be an object array"
+            )
+        findings = event["findings"]
+        if not isinstance(findings, list) or any(
+            not isinstance(finding, dict) for finding in findings
+        ):
+            raise ValueError(
+                f"preflight assertion {index} findings must be an object array"
+            )
     return payload
 
 
@@ -132,6 +167,7 @@ class PreflightRecorder:
             ),
             "assertions": self._events,
         }
+        _validate_payload(payload)
         atomic_write_text(
             self.run_dir / PREFLIGHT_FILENAME,
             json.dumps(payload, sort_keys=True, indent=2) + "\n",
@@ -144,12 +180,18 @@ class PreflightRecorder:
         stage: int,
         status: str,
         checks: list[dict[str, Any]],
+        census: dict[str, Any] | None = None,
+        open_divergences: list[dict[str, Any]] | None = None,
+        findings: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         record = {
             "event": event,
             "stage": stage,
             "status": status,
             "checks": checks,
+            "census": census,
+            "open_divergences": list(open_divergences or []),
+            "findings": list(findings or []),
         }
         _validate_payload(
             {
@@ -182,20 +224,98 @@ def load_preflight(run_dir: str | Path) -> dict[str, Any]:
     return _validate_payload(payload)
 
 
-def _failure_check(exc: ValueError) -> dict[str, Any]:
+def _failure_check(
+    exc: ValueError, *, name: str = "phys05_table", tier: str = "locked"
+) -> dict[str, Any]:
     return {
-        "name": "phys05_table",
-        "tier": "locked",
-        "expected": "conformant PHYS-05 row",
+        "name": name,
+        "tier": tier,
+        "expected": "conformant setup inputs",
         "actual": str(exc),
         "passed": False,
     }
 
 
+def _metadata_for_census(config: Any, run_dir: str | Path) -> dict[str, Any]:
+    """Load metadata with the live precision/backend expectations."""
+
+    path = Path(run_dir) / "training_metadata.json"
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(f"training metadata not found: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"training metadata is not valid JSON: {exc}") from exc
+    precision_name = raw.get("causal_clip_precision", "float64")
+    dtype = torch.float32 if precision_name == "float32" else torch.float64
+    run = getattr(config, "run", None)
+    device_name = getattr(run, "device", "cpu")
+    if getattr(run, "strict_cpu_determinism", False):
+        device_name = "cpu"
+    try:
+        device = torch.device(device_name)
+    except (TypeError, RuntimeError):
+        device = torch.device("cpu")
+    if device.type == "mps" and not torch.backends.mps.is_available():
+        device = torch.device("cpu")
+    facts = resolve_causal_clip_facts(dtype, device)
+    factor = float(getattr(getattr(config, "stage", None), "energy_floor_factor"))
+    return load_training_metadata(
+        run_dir,
+        expected_energy_floor_factor=factor,
+        expected_causal_clip_facts=facts,
+    )
+
+
+def _consistency_finding(config: Any, open_entries: list[dict[str, Any]]) -> dict[str, Any] | None:
+    target = next((entry for entry in open_entries if entry.get("id") == "INV-B-N-UNSET"), None)
+    closed = False
+    try:
+        register_payload = load_divergence_register()
+        target = next(
+            (entry for entry in register_payload["entries"] if entry.get("id") == "INV-B-N-UNSET"),
+            target,
+        )
+        closed = bool(target and target.get("status") == "closed")
+    except ValueError:
+        pass
+    n_value = getattr(
+        getattr(config, "invariants", None), "front_advance_window_n", None
+    )
+    if (n_value is not None and target is not None and target.get("status") == "open") or (
+        n_value is None and closed
+    ):
+        return {
+            "kind": "consistency",
+            "quantity": "front_advance_window_n",
+            "register_id": "INV-B-N-UNSET",
+            "config_value": n_value,
+            "register_status": "closed" if closed else "open",
+            "detail": "config N and register status disagree; recorded without adopting either verdict",
+        }
+    return None
+
+
 def run_start_preflight(config: Any, scheduled_weights: Any, run_dir: str | Path) -> PreflightRecorder:
-    """Run the D-05 site-1 table assertion and return its event recorder."""
-    del config  # The composition seam intentionally receives the resolved config.
+    """Compose table, census, and register evidence at run start.
+
+    A failed table/census assertion is appended and atomically written before
+    the original ``ValueError`` propagates to ``train.py``.
+    """
     recorder = PreflightRecorder(run_dir)
+    try:
+        register_payload = load_divergence_register()
+    except ValueError as exc:
+        recorder.append_event(
+            event="run_start",
+            stage=0,
+            status="failed",
+            checks=[_failure_check(exc, name="divergence_register")],
+        )
+        raise
+    open_entries = [
+        dict(entry) for entry in register_payload["entries"] if entry["status"] == "open"
+    ]
     try:
         result = assert_phys05_table(scheduled_weights, stage=0)
     except ValueError as exc:
@@ -204,12 +324,60 @@ def run_start_preflight(config: Any, scheduled_weights: Any, run_dir: str | Path
             stage=0,
             status="failed",
             checks=[_failure_check(exc)],
+            open_divergences=open_entries,
         )
         raise
+    try:
+        metadata = _metadata_for_census(config, run_dir)
+        census_report = run_census(
+            config,
+            scheduled_weights,
+            metadata,
+            getattr(config, "provisional_fields", lambda: ())(),
+        )
+    except ValueError as exc:
+        census_report = getattr(exc, "report", None)
+        checks = list(result["checks"])
+        checks.append(
+            {
+                "name": "census",
+                "tier": "locked",
+                "expected": "all manifest quantities resolve",
+                "actual": str(exc),
+                "passed": False,
+            }
+        )
+        recorder.append_event(
+            event="run_start",
+            stage=0,
+            status="failed",
+            checks=checks,
+            census=census_report,
+            open_divergences=open_entries,
+            findings=(census_report or {}).get("findings", []),
+        )
+        raise
+    findings = list(census_report.get("findings", []))
+    consistency = _consistency_finding(config, open_entries)
+    if consistency is not None:
+        findings.append(consistency)
+    checks = list(result["checks"])
+    checks.append(
+        {
+            "name": "census",
+            "tier": "locked",
+            "expected": "all manifest quantities resolve",
+            "actual": census_report["verdict"],
+            "passed": census_report["verdict"] == "passed",
+        }
+    )
     recorder.append_event(
         event="run_start",
         stage=0,
         status="passed",
-        checks=result["checks"],
+        checks=checks,
+        census=census_report,
+        open_divergences=open_entries,
+        findings=findings,
     )
     return recorder
