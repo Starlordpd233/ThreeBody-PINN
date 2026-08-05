@@ -167,8 +167,8 @@ owner checkpoint (D-19..D-21).
   is recorded; correcting a demonstrably stale classification tag is permitted
   inside this phase but is not required for the gate to pass.
 
-- **D-10 [INSTRUMENTATION PRECONDITIONS ARE IN THE CENSUS — recorded scope
-  call]:** The census also asserts that the spec-named *instrumentation*
+- **D-10 [INSTRUMENTATION PRECONDITIONS ARE IN THE CENSUS — recorded scope call]:**
+  The census also asserts that the spec-named *instrumentation*
   preconditions resolve — concretely, that `STEP_LOG_FIELDS` carries the ten
   `grad_norm_raw_*` / `grad_norm_applied_*` fields plus `grad_stats_complete`
   that Phase 48 INST-02 landed, and the `w_min`/`w_mean`/`w_max`/`front_idx`
@@ -304,8 +304,8 @@ owner checkpoint (D-19..D-21).
   above is complete without it, and the 5.32e+09 figure carried in GAP-46-07 must
   not be re-cited without stating which `R̄` convention produced it.
 
-- **D-20 [`N` UNSET IS A DEFINED, FAIL-CLOSED STATE — the phase does not
-  deadlock]:** `N` is an explicit config field (`run.invariants.front_advance_
+- **D-20 [`N` UNSET IS A DEFINED, FAIL-CLOSED STATE — the phase does not deadlock]:**
+  `N` is an explicit config field (`run.invariants.front_advance_
   window_n`) with **no default**. If it is absent or null:
   - invariant B runs in **record-only** mode (state tracked, statistics logged,
     no HALT);
