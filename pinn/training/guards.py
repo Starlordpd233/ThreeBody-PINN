@@ -46,9 +46,20 @@ _GUARD_ORDER = (
     "loss_explosion",
     "disk_floor",
     "memory_watermark",
+    "invariant_a",
+    "invariant_b",
+    "causal_stats_missing",
 )
 
-_HALT_FAMILY = frozenset({"disk_floor", "memory_watermark"})
+_HALT_FAMILY = frozenset(
+    {
+        "disk_floor",
+        "memory_watermark",
+        "invariant_a",
+        "invariant_b",
+        "causal_stats_missing",
+    }
+)
 _RECOVER_FAMILY = frozenset({"nan_inf", "loss_explosion"})
 
 _TAIL_LOG_LINES = 200
@@ -87,6 +98,29 @@ def _extract_guard_thresholds(config: Any) -> Mapping[str, float]:
             "disk_floor_fraction, and memory_watermark_fraction "
             f"(got {type(config)!r} / guards={type(guards_obj)!r})"
         ) from exc
+
+
+def _extract_invariant_window(config: Any) -> Optional[int]:
+    """Read the optional owner-owned invariant-B window from a config.
+
+    The fallback chain keeps StepGuards usable with the duck-typed test
+    configs used by Phase 41, which do not have a ``run.invariants`` section.
+    """
+    run_obj = getattr(config, "run", None)
+    if run_obj is None:
+        run_obj = config
+    invariants = getattr(run_obj, "invariants", None)
+    if invariants is None and run_obj is not config:
+        invariants = getattr(config, "invariants", None)
+    window = getattr(invariants, "front_advance_window_n", None)
+    if window is None:
+        return None
+    if not isinstance(window, int) or isinstance(window, bool) or window <= 0:
+        raise ValueError(
+            "front_advance_window_n must be a positive int or None "
+            f"(got {window!r})"
+        )
+    return int(window)
 
 
 def _is_nonfinite(value: Any) -> bool:
@@ -209,6 +243,9 @@ class StepGuards:
         memory_signal: Optional[Callable[[], Optional[int]]] = None,
     ) -> None:
         self._thresholds = dict(_extract_guard_thresholds(config))
+        self._front_advance_window_n = _extract_invariant_window(config)
+        self.front_high_water = -1
+        self.last_advance_step: Optional[int] = None
         self._disk_root = _as_path(disk_root) if disk_root is not None else Path(".")
         self._memory_total_bytes = (
             int(memory_total_bytes)
@@ -228,6 +265,44 @@ class StepGuards:
         """Read-only view of the injected ⚖ thresholds (for tests / logging)."""
         return dict(self._thresholds)
 
+    def invariant_b_state_dict(self) -> dict[str, Any]:
+        """Return JSON-serializable cross-step state for invariant B."""
+        return {
+            "front_high_water": int(self.front_high_water),
+            "last_advance_step": (
+                None
+                if self.last_advance_step is None
+                else int(self.last_advance_step)
+            ),
+        }
+
+    def load_invariant_b_state(self, state: Mapping[str, Any]) -> None:
+        """Restore invariant-B cross-step state from a checkpoint mapping."""
+        if not isinstance(state, Mapping):
+            raise TypeError(
+                f"invariant B state must be a mapping (got {type(state)!r})"
+            )
+        high_water = state.get("front_high_water")
+        last_step = state.get("last_advance_step")
+        if (
+            not isinstance(high_water, int)
+            or isinstance(high_water, bool)
+            or high_water < -1
+        ):
+            raise ValueError(
+                "invariant B front_high_water must be an int >= -1 "
+                f"(got {high_water!r})"
+            )
+        if last_step is not None and (
+            not isinstance(last_step, int) or isinstance(last_step, bool) or last_step < 0
+        ):
+            raise ValueError(
+                "invariant B last_advance_step must be a non-negative int or None "
+                f"(got {last_step!r})"
+            )
+        self.front_high_water = int(high_water)
+        self.last_advance_step = None if last_step is None else int(last_step)
+
     def check(
         self,
         step: int,
@@ -237,6 +312,9 @@ class StepGuards:
         grad_norm: Optional[float] = None,
         *,
         disk_root: Optional[PathLike] = None,
+        w_n_stats: Optional[Mapping[str, Any]] = None,
+        n_colloc: Optional[int] = None,
+        physics_evaluated: bool = False,
     ) -> GuardOutcome:
         """Evaluate Tier-1 then Tier-2 guards; return one coherent outcome.
 
@@ -348,6 +426,105 @@ class StepGuards:
                     }
                 )
 
+        # ---- GATE-03 causal statistics + invariants (HALT) ----
+        if physics_evaluated:
+            required_stats = ("w_min", "w_mean", "w_max", "front_idx")
+            if not isinstance(w_n_stats, Mapping) or any(
+                key not in w_n_stats for key in required_stats
+            ):
+                trips.append(
+                    {
+                        "guard": "causal_stats_missing",
+                        "tier": 2,
+                        "metric": "w_n_stats",
+                        "value": None,
+                        "threshold": None,
+                        "disposition": StageDisposition.HALT,
+                        "reason": (
+                            "causal statistics missing on a physics-evaluated step"
+                        ),
+                    }
+                )
+            else:
+                invalid_metric: Optional[str] = None
+                invalid_value: Any = None
+                for key in ("w_min", "w_mean", "w_max"):
+                    try:
+                        numeric = float(w_n_stats[key])
+                    except (TypeError, ValueError):
+                        numeric = float("nan")
+                    if not math.isfinite(numeric):
+                        invalid_metric = key
+                        invalid_value = w_n_stats[key]
+                        break
+                if invalid_metric is None:
+                    try:
+                        w_min = float(w_n_stats["w_min"])
+                        front_idx = int(w_n_stats["front_idx"])
+                    except (TypeError, ValueError):
+                        invalid_metric = "front_idx"
+                        invalid_value = w_n_stats["front_idx"]
+                    else:
+                        if w_min <= 0.0:
+                            invalid_metric = "w_min"
+                            invalid_value = w_min
+                        elif front_idx == -1:
+                            invalid_metric = "front_idx"
+                            invalid_value = front_idx
+                if invalid_metric is not None:
+                    threshold = 0.0 if invalid_metric == "w_min" else None
+                    if invalid_metric == "front_idx":
+                        reason = "causal front_idx sentinel/invalid value"
+                    else:
+                        reason = f"invalid causal weight statistic: {invalid_metric}"
+                    trips.append(
+                        {
+                            "guard": "invariant_a",
+                            "tier": 2,
+                            "metric": f"w_n_stats.{invalid_metric}",
+                            "value": invalid_value,
+                            "threshold": threshold,
+                            "disposition": StageDisposition.HALT,
+                            "reason": reason,
+                        }
+                    )
+                else:
+                    # Invariant B is evaluated only from a valid physics
+                    # statistics sample.  Its state is a monotone high-water
+                    # mark: transient front regressions never reset the age.
+                    if self.front_high_water < 0:
+                        self.front_high_water = front_idx
+                        self.last_advance_step = int(step)
+                    elif front_idx > self.front_high_water:
+                        self.front_high_water = front_idx
+                        self.last_advance_step = int(step)
+
+                    if (
+                        self._front_advance_window_n is not None
+                        and self.last_advance_step is not None
+                        and isinstance(n_colloc, int)
+                        and not isinstance(n_colloc, bool)
+                        and n_colloc > 0
+                    ):
+                        age = int(step) - int(self.last_advance_step)
+                        saturated = self.front_high_water >= int(n_colloc) - 1
+                        if age > self._front_advance_window_n and not saturated:
+                            trips.append(
+                                {
+                                    "guard": "invariant_b",
+                                    "tier": 2,
+                                    "metric": "steps_since_front_advance",
+                                    "value": age,
+                                    "threshold": self._front_advance_window_n,
+                                    "threshold_provisional": False,
+                                    "disposition": StageDisposition.HALT,
+                                    "reason": (
+                                        "causal front high-water mark did not advance "
+                                        f"within N={self._front_advance_window_n} steps"
+                                    ),
+                                }
+                            )
+
         gnorm = _as_optional_float(grad_norm)
 
         if not trips:
@@ -383,7 +560,7 @@ class StepGuards:
             metric=str(primary["metric"]) if primary["metric"] is not None else None,
             value=_as_optional_float(primary["value"]),
             threshold=_as_optional_float(primary["threshold"]),
-            threshold_provisional=True,
+            threshold_provisional=bool(primary.get("threshold_provisional", True)),
             step=int(step),
             stage=int(stage),
             phase=str(phase),
