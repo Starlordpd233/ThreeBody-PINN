@@ -160,13 +160,13 @@ Plans:
 **Depends on**: Phase 48 (the conformant loss assembly the gate asserts).
 **Requirements**: GATE-01, GATE-02, GATE-03, INST-03
 **Owner checkpoint**: N for invariant B (the front-advance window).
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 49-01-PLAN.md — Tracer: D-01 locked PHYS-05 table + `pinn/conformance/` table assertion + `preflight.json` artifact spine wired at both D-05 sites, D-06 stage-2 refusal preserved and tested; records the D-31/SCOPE-32 coordination decision (wave 1)
+- [x] 49-01-PLAN.md — Tracer: D-01 locked PHYS-05 table + `pinn/conformance/` table assertion + `preflight.json` artifact spine wired at both D-05 sites, D-06 stage-2 refusal preserved and tested; records the D-31/SCOPE-32 coordination decision (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -234,7 +234,7 @@ Plans:
 | 46. Frame Resolution & Gate-Aligned Validation | v2.2 | 10/10 | Complete    | 2026-07-29 |
 | 47. Frame Completion & S_H Pipeline | v2.2 | 3/3 | Complete    | 2026-07-31 |
 | 48. Loss-Math Conformance | v2.2 | 4/4 | Complete    | 2026-08-02 |
-| 49. Conformance Gate | v2.2 | 0/? | Not started | - |
+| 49. Conformance Gate | v2.2 | 1/6 | In Progress|  |
 | 50. Valid Stage-0 Re-Run | v2.2 | 0/? | Not started | - |
 | 51. The Authorized Evaluation | v2.2 | 0/? | Not started | - |
 | 52. Diagnosis Re-Derivation & Handoff | v2.2 | 0/? | Not started | - |
