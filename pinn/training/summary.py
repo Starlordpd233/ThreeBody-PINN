@@ -87,6 +87,26 @@ _GATE_MD_ORDER = (
     "gate_schema_version",
 )
 
+# Phase 49 conformance fields are projected from the validated preflight artifact
+# without borrowing Phase 46's gate_* vocabulary (D-27/D-28).  The nested
+# artifact's schema_version/preflight_status/assertions names are persisted
+# contract fields, so this tuple is intentionally a direct key list rather than
+# a recomputed summary schema.
+_CONFORMANCE_KEYS = (
+    "schema_version",
+    "preflight_status",
+    "assertions",
+)
+
+# Fixed render order keeps summary.md stable while preserving the full payload
+# in summary.json.  Assertions are rendered last because they carry the open
+# caveat records a human needs to inspect.
+_CONFORMANCE_MD_ORDER = (
+    "preflight_status",
+    "assertions",
+    "schema_version",
+)
+
 _HONESTY_NOTES = (
     "Healthy validation does not mean the model works.",
     "Run-to-run comparison does not prove progress.",
@@ -313,6 +333,67 @@ def _eval01_precondition_iii(
         return False
 
 
+def _conformance_run_dir(path: PathLike) -> Path:
+    """Resolve either a run directory or its ``preflight.json`` path."""
+    candidate = Path(path)
+    if candidate.name == "preflight.json":
+        return candidate.parent
+    return candidate
+
+
+def _conformance_record(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
+    """Load the persisted preflight payload without projecting a second schema.
+
+    The conformance artifact is optional for a run that refused before preflight
+    could write it, so absence becomes ``None``.  Import and validation failures
+    are also fail-closed here: the terminal summary must remain renderable even
+    when a hand-edited or torn artifact cannot be loaded.
+    """
+    if path is None:
+        return None
+    try:
+        from pinn.conformance import preflight
+
+        return preflight.load_preflight(_conformance_run_dir(path))
+    except Exception:
+        return None
+
+
+def _eval01_precondition_i(path: Optional[PathLike]) -> bool:
+    """Return the fail-closed EVAL-01 precondition-(i) standing.
+
+    ``True`` requires an existing, valid, passed preflight artifact, every
+    assertion event to have status ``passed``, and zero entries in
+    ``open_divergences`` whose ``kind`` is ``"divergence"`` and whose ``status``
+    is ``"open"``.  That kind filter *is* the EVAL-01 precondition-(i) scope:
+    the policy says zero unwaived divergences, while D-23 distinguishes
+    qualification (the implementation conforms and the caveat travels in the
+    conformance block) from divergence.  Counting qualifications would make
+    the permanent CONF-01-QUALIFICATION entry strand every run ineligible.
+
+    The loader import, artifact read, parse, and validation all live inside the
+    fail-closed boundary so no death mode can make summary rendering raise.
+    """
+    if path is None:
+        return False
+    try:
+        from pinn.conformance import preflight
+
+        payload = preflight.load_preflight(_conformance_run_dir(path))
+        assertions = payload["assertions"]
+        if payload["preflight_status"] != "passed" or not assertions:
+            return False
+        if any(event["status"] != "passed" for event in assertions):
+            return False
+        return not any(
+            entry.get("kind") == "divergence" and entry.get("status") == "open"
+            for event in assertions
+            for entry in event["open_divergences"]
+        )
+    except Exception:
+        return False
+
+
 def _validation_summary(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
     """Project the PHYSICAL latest validation event; never fall back (D-19).
 
@@ -420,6 +501,7 @@ def _compose(
     hdr: Mapping[str, Any] = header or {}
     success = disposition == "finished"
     preview = _test_preview(metrics_path) if success else None
+    conformance = _conformance_record(run_dir)
     payload: Dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "disposition": disposition,
@@ -438,6 +520,11 @@ def _compose(
         },
         "final_losses": _final_losses_dict(final_losses if success else None),
         "validation": _validation_summary(validation_records_path) if success else None,
+        # D-27 deliberately differs from the success-gated validation and
+        # curriculum projections: a refused run's persisted preflight evidence
+        # is exactly the caveat record INST-03 requires to travel with the run.
+        "conformance": conformance,
+        "eval01_precondition_i": _eval01_precondition_i(run_dir),
         "curriculum": curriculum if success else [],
         "test_preview": preview,
         "comparison": (
@@ -449,6 +536,30 @@ def _compose(
     return payload, _render_md(payload)
 
 
+def _render_conformance_section(
+    lines: List[str],
+    conformance: Any,
+    eval01_precondition_i: Any,
+) -> None:
+    """Append the fixed-order Conformance section to ``summary.md``."""
+    lines.append("## Conformance")
+    lines.append("")
+    if isinstance(conformance, Mapping):
+        for key in _CONFORMANCE_MD_ORDER:
+            value = conformance.get(key)
+            if value is None:
+                rendered = "null"
+            elif isinstance(value, (Mapping, list)):
+                rendered = json.dumps(value, sort_keys=True)
+            else:
+                rendered = str(value)
+            lines.append(f"- {key}: {rendered}")
+    else:
+        lines.append("- (conformance record unavailable)")
+    lines.append(f"- eval01_precondition_i: {bool(eval01_precondition_i)}")
+    lines.append("")
+
+
 def _render_md(payload: Mapping[str, Any]) -> str:
     """Render the human-readable one-pager (no env-fingerprint, no absolute paths)."""
     disposition = payload["disposition"]
@@ -456,6 +567,8 @@ def _render_md(payload: Mapping[str, Any]) -> str:
     losses: Mapping[str, Any] = payload["final_losses"]
     curriculum: List[Dict[str, Any]] = payload["curriculum"]
     validation = payload.get("validation")
+    conformance = payload.get("conformance")
+    eval01_precondition_i = payload.get("eval01_precondition_i", False)
     test_preview = payload.get("test_preview")
     comparison = payload.get("comparison")
     status_text = _STATUS_TEXT.get(disposition, str(disposition))
@@ -475,6 +588,7 @@ def _render_md(payload: Mapping[str, Any]) -> str:
         # Honest non-success early return: header only; no metric-bearing sections.
         lines.append("The run did not complete.")
         lines.append("")
+        _render_conformance_section(lines, conformance, eval01_precondition_i)
         return "\n".join(lines)
     lines.append("## Final losses")
     lines.append("")
@@ -499,6 +613,7 @@ def _render_md(payload: Mapping[str, Any]) -> str:
     else:
         lines.append("- (validation records unavailable)")
     lines.append("")
+    _render_conformance_section(lines, conformance, eval01_precondition_i)
     lines.append("## Curriculum progression")
     lines.append("")
     if curriculum:
