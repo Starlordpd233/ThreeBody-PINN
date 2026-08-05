@@ -256,9 +256,15 @@ def _metadata_for_census(config: Any, run_dir: str | Path) -> dict[str, Any]:
         device = torch.device(device_name)
     except (TypeError, RuntimeError):
         device = torch.device("cpu")
-    if device.type == "mps" and not torch.backends.mps.is_available():
-        device = torch.device("cpu")
-    facts = resolve_causal_clip_facts(dtype, device)
+    try:
+        facts = resolve_causal_clip_facts(dtype, device)
+    except RuntimeError:
+        # A configured accelerator may be absent in a verification-only host.
+        # Retry on CPU without probing backend state or changing the requested
+        # runtime device in the config itself.
+        if device.type == "cpu":
+            raise
+        facts = resolve_causal_clip_facts(dtype, torch.device("cpu"))
     factor = float(getattr(getattr(config, "stage", None), "energy_floor_factor"))
     return load_training_metadata(
         run_dir,
