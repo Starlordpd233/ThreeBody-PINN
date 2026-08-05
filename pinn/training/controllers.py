@@ -1593,6 +1593,7 @@ class CurriculumController:
         run_controller: Optional[RunController] = None,
         forced_disposition: Optional[Callable[[int], StageDisposition]] = None,
         stage_factory: Optional[Callable[[int], RunController]] = None,
+        conformance_hook: Optional[Callable[[int, Any], None]] = None,
         recover_retries: int = 0,
         initial_stage: int = 0,
     ) -> None:
@@ -1622,6 +1623,7 @@ class CurriculumController:
         self._run_controller = run_controller
         self._forced_disposition = forced_disposition
         self._stage_factory = stage_factory
+        self._conformance_hook = conformance_hook
         self._recover_retries = int(recover_retries)
         self._recover_attempts = 0
         self._stage = int(initial_stage)
@@ -1768,6 +1770,8 @@ class CurriculumController:
         advancement (T-40-09): only ADVANCE ever changes ``self.stage``.
         """
         check_stage_preflight(self._stage)
+        if self._conformance_hook is not None:
+            self._conformance_hook(self._stage, self._scheduled_weights)
         disposition = self._get_disposition(self._stage)
 
         if disposition is StageDisposition.ADVANCE:
@@ -1793,6 +1797,8 @@ class CurriculumController:
                     self._run_controller._optimizer = None
                 self._run_controller = new_controller
                 self._scheduled_weights = new_controller.scheduled_weights
+            if self._conformance_hook is not None:
+                self._conformance_hook(self._stage, self._scheduled_weights)
             # CTRL-06 composition: stage-{k+1}-init is sourced from the ENTERED
             # (post-swap) controller with self._optimizer EXPLICITLY CLEARED so
             # the anchor carries reset Adam (optimizer key None).

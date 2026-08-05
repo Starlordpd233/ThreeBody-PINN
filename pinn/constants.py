@@ -79,3 +79,23 @@ CAUSAL_W1 = 1.0
 # Encoded as the identity of the map; no free parameter beyond u = t/T.
 # (Citation retained so CTX-15 source inspection finds §5.3.1.)
 _TAU_MAP_DOC = "tau = 2u - 1; t_tau in [-1, 1] (pinn_architecture.md §5.3.1)"
+
+# ---------------------------------------------------------------------------
+# PHYS-05 conformance table (GATE-01 / D-01, D-02, D-04)
+# ---------------------------------------------------------------------------
+
+# The per-stage lambda^max table is the locked object from
+# pinn_architecture.md §4.1 (line 663), with provenance from GAP-45-03's
+# owner-ratified ruling.  Keep these as explicit literals: the gate compares
+# the live scheduler state with exact equality, while ScheduledWeights remains
+# a generic schedule with no stage-specific hard-coding (Phase 48 D-14).
+PHYS05_LAMBDA_PHYS_MAX = (1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+PHYS05_LAMBDA_E_MAX = (0.0, 0.0, 1e-2, 1e-1, 1.0, 1.0, 1.0)
+PHYS05_LAMBDA_L_MAX = (0.0, 0.0, 1e-2, 1e-1, 1.0, 1.0, 1.0)
+
+# pinn_architecture.md §3.1 (unweighted data term), §4.1 line 644 (IC
+# default, advisory under D-03), and §4.1 warmup formula.
+PHYS05_LAMBDA_DATA = 1.0
+PHYS05_LAMBDA_IC_ADVISORY = 1.0
+PHYS05_I_WARM_CAP = 2000
+PHYS05_I_WARM_FRACTION = 0.1

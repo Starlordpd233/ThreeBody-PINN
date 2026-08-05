@@ -42,6 +42,10 @@ from pinn.training.controllers import (
 )
 from pinn.training.grad_clip import GradClipper
 from pinn.training.guards import StepGuards, write_failure_bundle
+from pinn.conformance.preflight import (
+    run_start_preflight,
+)
+from pinn.conformance.table import assert_phys05_table
 from pinn.training.heartbeat import (
     HeartbeatThread,
     emit_mem_line,
@@ -915,6 +919,55 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         int(config.stage.n_adam),  # type: ignore[arg-type]
         lambda_e_max=float(config.loss.lambda_e_max),
     )
+
+    # GATE-01 / D-05 site 1: assert the live PHYS-05 row only after the
+    # validated S_H metadata and ScheduledWeights exist, but before any
+    # controller can enter a training stage.  A refusal persists evidence
+    # before finish_run emits the terminal failure status (D-27).
+    try:
+        preflight_recorder = run_start_preflight(
+            config, scheduled_weights, run_dir,
+        )
+    except ValueError as exc:
+        print(f"error: conformance preflight failed: {exc}", file=sys.stderr)
+        return finish_run("failed", 1)
+
+    # D-05 site 2: the controller passes its current (possibly rebound)
+    # scheduler into this closure.  Consecutive dispatches for one entered
+    # stage are deduplicated so the artifact records one boundary event per
+    # entered stage while retaining the run-start event first.
+    last_boundary_stage: Optional[int] = None
+
+    def conformance_hook(stage: int, current_scheduled_weights: Any) -> None:
+        nonlocal last_boundary_stage
+        if last_boundary_stage == int(stage):
+            return
+        try:
+            result = assert_phys05_table(current_scheduled_weights, int(stage))
+        except ValueError as exc:
+            preflight_recorder.append_event(
+                event="stage_boundary",
+                stage=int(stage),
+                status="failed",
+                checks=[
+                    {
+                        "name": "phys05_table",
+                        "tier": "locked",
+                        "expected": "conformant PHYS-05 row",
+                        "actual": str(exc),
+                        "passed": False,
+                    }
+                ],
+            )
+            raise
+        preflight_recorder.append_event(
+            event="stage_boundary",
+            stage=int(stage),
+            status="passed",
+            checks=result["checks"],
+        )
+        last_boundary_stage = int(stage)
+
     grad_clipper = GradClipper()
     collocation_sampler = CollocationSampler(
         collocation_count=16,
@@ -1123,6 +1176,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         checkpoint_store=store,
         scheduled_weights=scheduled_weights,
         run_controller=run_controller,
+        conformance_hook=conformance_hook,
         recover_retries=config.run.recover_retries,
         initial_stage=initial_stage,
     )
