@@ -28,6 +28,7 @@ from pinn.training.config import (
     CheckpointCadence,
     DataConfig,
     GuardConfig,
+    InvariantsConfig,
     LossConfig,
     MonitorConfig,
     OptConfig,
@@ -102,6 +103,7 @@ def _resolve_nested_cls(annotation: Any) -> Optional[Type[Any]]:
     if isinstance(annotation, str):
         known = {
             "GuardConfig": GuardConfig,
+            "InvariantsConfig": InvariantsConfig,
             "CheckpointCadence": CheckpointCadence,
             "MonitorConfig": MonitorConfig,
             "RunConfig": RunConfig,

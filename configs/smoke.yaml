@@ -28,6 +28,11 @@ run:
     # lands, violating this plan's must_have that 100/200/300 all survive.
     # Operational retention knob (not owner-carved) — see evidence/smoke/README.md.
     rolling_keep: 4
+  # GATE-03 / D-20: the owner sets front_advance_window_n here when invariant
+  # B should enforce a window. Absent or null means record-only and carries
+  # the open INV-B-N-UNSET divergence, so eval01_precondition_i is false.
+  invariants:
+    # front_advance_window_n: <owner-provided positive integer>
   monitor:
     heartbeat_secs: 30
     staleness_factor: 3

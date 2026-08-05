@@ -114,6 +114,28 @@ def _validate_run_name(value: Optional[str]) -> Optional[str]:
     return value
 
 
+def _validate_front_advance_window_n(value: Optional[int]) -> Optional[int]:
+    """Validate the owner-owned invariant-B window when it is supplied.
+
+    ``None`` is intentional: it keeps invariant B in D-20 record-only mode
+    until the owner chooses an enforcement window.  Unlike the CTX-39
+    required-int helper, this validator must preserve that unset state.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValueError(
+            "front_advance_window_n must be a positive int or None "
+            f"(got {value!r})"
+        )
+    if value <= 0:
+        raise ValueError(
+            "front_advance_window_n must be a positive int or None "
+            f"(got {value!r})"
+        )
+    return value
+
+
 # ⚖ PROVISIONAL defaults — mechanism ships; values are owner-ratified later
 # (D4-a wall-clock at run #1; R-1 guard thresholds at Phase-43 pilot).
 # Do NOT present these as ratified — EXCEPT loss_explosion_ceiling below,
@@ -309,6 +331,25 @@ class MonitorConfig:
 
 
 @dataclass(frozen=True)
+class InvariantsConfig:
+    """GATE-03 invariant controls with an owner-owned optional window.
+
+    ``front_advance_window_n`` deliberately has no default enforcement value.
+    ``None`` means invariant B records its high-water state without HALTing
+    (D-20) until the owner supplies a positive integer.
+    """
+
+    front_advance_window_n: Optional[int] = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "front_advance_window_n",
+            _validate_front_advance_window_n(self.front_advance_window_n),
+        )
+
+
+@dataclass(frozen=True)
 class RunConfig:
     """Run-level knobs: seed, logging, precision/device, ⚖ guards + cadence.
 
@@ -328,6 +369,7 @@ class RunConfig:
     recover_retries: int = 0  # R-2 controller baseline; owner-ratified later
     run_name: Optional[str] = None
     guards: GuardConfig = field(default_factory=GuardConfig)
+    invariants: InvariantsConfig = field(default_factory=InvariantsConfig)
     checkpoint: CheckpointCadence = field(default_factory=CheckpointCadence)
     monitor: MonitorConfig = field(default_factory=MonitorConfig)
 
@@ -360,6 +402,11 @@ class RunConfig:
         if not isinstance(self.guards, GuardConfig):
             raise TypeError(
                 f"run.guards must be GuardConfig (got {type(self.guards)!r})"
+            )
+        if not isinstance(self.invariants, InvariantsConfig):
+            raise TypeError(
+                "run.invariants must be InvariantsConfig "
+                f"(got {type(self.invariants)!r})"
             )
         if not isinstance(self.checkpoint, CheckpointCadence):
             raise TypeError(

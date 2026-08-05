@@ -31,6 +31,11 @@ run:
     loss_explosion_ceiling: 100000000000.0
     disk_floor_fraction: 0.05
     memory_watermark_fraction: 0.7
+  # GATE-03 / D-20: the owner sets front_advance_window_n here when invariant
+  # B should enforce a window. Absent or null means record-only and carries
+  # the open INV-B-N-UNSET divergence, so eval01_precondition_i is false.
+  invariants:
+    # front_advance_window_n: <owner-provided positive integer>
   monitor:
     heartbeat_secs: 30
     staleness_factor: 3
