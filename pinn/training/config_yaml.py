@@ -180,6 +180,15 @@ def _map_section(
             # the full dotted path (never silently dropped via **kwargs).
             child_prefix = f"{path_prefix}.{name}" if path_prefix else name
             kwargs[name] = _map_section(child_prefix, nested_cls, dict(value))
+        elif nested_cls is not None and value is None:
+            # A present-but-null nested section (a header whose body is only
+            # comments, or an explicit ``null``) is the documented defaults-only
+            # state, NOT an absent section. Every nested section is a required
+            # field carrying a default_factory, so construct the defaults here
+            # rather than forwarding None into a dataclass whose __post_init__
+            # type-checks its members. Generic on purpose: the defect is not
+            # specific to run.invariants.
+            kwargs[name] = nested_cls()
         else:
             kwargs[name] = _coerce_field_value(name, f.type, value)
     return cls(**kwargs)  # type: ignore[call-arg]
