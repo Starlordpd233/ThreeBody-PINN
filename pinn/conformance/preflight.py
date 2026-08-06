@@ -376,7 +376,13 @@ def _consistency_finding(config: Any, open_entries: list[dict[str, Any]]) -> dic
     return None
 
 
-def run_start_preflight(config: Any, scheduled_weights: Any, run_dir: str | Path) -> PreflightRecorder:
+def run_start_preflight(
+    config: Any,
+    scheduled_weights: Any,
+    run_dir: str | Path,
+    *,
+    controller: Any,
+) -> PreflightRecorder:
     """Compose table, census, and register evidence at run start.
 
     A failed table/census assertion is appended and atomically written before
@@ -414,6 +420,7 @@ def run_start_preflight(config: Any, scheduled_weights: Any, run_dir: str | Path
             scheduled_weights,
             metadata,
             getattr(config, "provisional_fields", lambda: ())(),
+            controller=controller,
         )
     except ValueError as exc:
         census_report = getattr(exc, "report", None)

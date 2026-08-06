@@ -19,6 +19,7 @@ from pinn.loss_catalog import resolve_causal_clip_facts
 from pinn.training.run_metadata import write_training_metadata
 from pinn.training.scheduled_weights import ScheduledWeights
 from pinn.training import summary as summary_module
+from tests.phase49._producer_fixture import make_producer_controller
 
 
 def _entry(*, status: str = "open", **overrides):
@@ -183,6 +184,15 @@ def _preflight_run_dir(path: Path):
     return facts
 
 
+def _run_start_preflight(config, scheduled_weights, run_dir):
+    return preflight.run_start_preflight(
+        config,
+        scheduled_weights,
+        run_dir,
+        controller=make_producer_controller(run_dir / "checkpoints"),
+    )
+
+
 def _walk_keys(value):
     if isinstance(value, dict):
         for key, child in value.items():
@@ -196,7 +206,7 @@ def _walk_keys(value):
 def test_preflight_composes_census_and_every_open_register_entry(tmp_path):
     run_dir = tmp_path / "run"
     _preflight_run_dir(run_dir)
-    record = preflight.run_start_preflight(
+    record = _run_start_preflight(
         _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
     )
     assert record.events[0]["census"]["verdict"] == "passed"
@@ -214,7 +224,7 @@ def test_refusal_writes_failing_census_artifact_before_raise(tmp_path):
     error = census.CensusBlockError("injected placeholder", failure_report)
     with mock.patch.object(preflight, "run_census", side_effect=error):
         with pytest.raises(ValueError, match="injected placeholder"):
-            preflight.run_start_preflight(
+            _run_start_preflight(
                 _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
             )
     payload = preflight.load_preflight(run_dir)
@@ -225,7 +235,7 @@ def test_refusal_writes_failing_census_artifact_before_raise(tmp_path):
 def test_no_gate_collision_in_preflight_and_register_payload(tmp_path):
     run_dir = tmp_path / "run"
     _preflight_run_dir(run_dir)
-    preflight.run_start_preflight(
+    _run_start_preflight(
         _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
     )
     payload = preflight.load_preflight(run_dir)
@@ -241,8 +251,8 @@ def test_preflight_bytes_are_idempotent_for_identical_inputs(tmp_path):
     _preflight_run_dir(second_dir)
     scheduler_a = ScheduledWeights(1000, lambda_e_max=0.0)
     scheduler_b = ScheduledWeights(1000, lambda_e_max=0.0)
-    preflight.run_start_preflight(_preflight_config(), scheduler_a, first_dir)
-    preflight.run_start_preflight(_preflight_config(), scheduler_b, second_dir)
+    _run_start_preflight(_preflight_config(), scheduler_a, first_dir)
+    _run_start_preflight(_preflight_config(), scheduler_b, second_dir)
     assert (first_dir / preflight.PREFLIGHT_FILENAME).read_bytes() == (
         second_dir / preflight.PREFLIGHT_FILENAME
     ).read_bytes()
@@ -262,7 +272,7 @@ def test_n_register_consistency_is_a_finding_not_a_block(tmp_path, monkeypatch, 
         else None
     )
     monkeypatch.setattr(preflight, "load_divergence_register", lambda: modified)
-    record = preflight.run_start_preflight(
+    record = _run_start_preflight(
         _preflight_config(n), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
     )
     assert any(finding.get("kind") == "consistency" for finding in record.events[0]["findings"])
@@ -272,13 +282,13 @@ def _write_real_preflight(run_dir: Path, *, payload=None, monkeypatch=None) -> d
     """Write a schema-valid preflight artifact through the real recorder."""
     _preflight_run_dir(run_dir)
     if payload is None:
-        preflight.run_start_preflight(
+        _run_start_preflight(
             _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
         )
     else:
         assert monkeypatch is not None
         monkeypatch.setattr(preflight, "load_divergence_register", lambda: copy.deepcopy(payload))
-        preflight.run_start_preflight(
+        _run_start_preflight(
             _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
         )
     return preflight.load_preflight(run_dir)

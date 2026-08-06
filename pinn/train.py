@@ -275,15 +275,20 @@ def _synthetic_split_sources(
             return tuple(self._s0)
 
         def get(self, key):
+            masses = np.array(
+                [1.0 + key.id / 10000.0, 2.0, 3.0], dtype=np.float64
+            )
+            ic13 = np.linspace(0.0, 1.2, 13, dtype=np.float64) + key.id / 10000.0
+            raw_ic13 = ic13.copy()
+            raw_ic13[:3] = masses
             return SimpleNamespace(
                 record_key=key,
                 physical_key=key.physical_key,
                 stage_label=StageLabel.STAGE_0,
                 n_snapshots=self.n_snapshots(key),
-                ic13=np.linspace(0.0, 1.2, 13, dtype=np.float64) + key.id / 10000.0,
-                masses=np.array(
-                    [1.0 + key.id / 10000.0, 2.0, 3.0], dtype=np.float64
-                ),
+                ic13=ic13,
+                masses=masses,
+                raw_ic13=raw_ic13,
                 k0=self.k0(key),
                 uabs0=self.uabs0(key),
             )
@@ -964,18 +969,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         lambda_e_max=float(config.loss.lambda_e_max),
     )
 
-    # GATE-01 / D-05 site 1: assert the live PHYS-05 row only after the
-    # validated S_H metadata and ScheduledWeights exist, but before any
-    # controller can enter a training stage.  A refusal persists evidence
-    # before finish_run emits the terminal failure status (D-27).
-    try:
-        preflight_recorder = run_start_preflight(
-            config, scheduled_weights, run_dir,
-        )
-    except ValueError as exc:
-        print(f"error: conformance preflight failed: {exc}", file=sys.stderr)
-        return finish_run("failed", 1)
-
     # D-05 site 2: the controller passes its current (possibly rebound)
     # scheduler into this closure.  Consecutive dispatches for one entered
     # stage are deduplicated so the artifact records one boundary event per
@@ -1191,6 +1184,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         replay_count=config.stage.replay_count,
     )
     curriculum_holder["run_controller"] = run_controller
+
+    # GATE-01 / D-05 site 1: assert the live PHYS-05 row and producer census
+    # after the controller binds the already-materialized source, but before
+    # resume restoration or any curriculum stage can begin. A refusal persists
+    # evidence before finish_run emits the terminal failure status (D-27).
+    try:
+        preflight_recorder = run_start_preflight(
+            config,
+            scheduled_weights,
+            run_dir,
+            controller=run_controller,
+        )
+    except ValueError as exc:
+        print(f"error: conformance preflight failed: {exc}", file=sys.stderr)
+        return finish_run("failed", 1)
 
     initial_stage = 0
     resume_ctx: Optional[dict[str, Any]] = None
