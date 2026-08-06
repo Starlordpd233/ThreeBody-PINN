@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -57,8 +58,74 @@ def _reject_gate_keys(value: Any, *, path: str = "payload") -> None:
             _reject_gate_keys(child, path=f"{path}[{index}]")
 
 
+def _reject_json_constant(name: str) -> Any:
+    """Refuse the non-standard JSON constants ``json.loads`` accepts by default."""
+    raise ValueError(
+        f"preflight artifact contains the non-finite JSON constant {name}"
+    )
+
+
+def _reject_non_finite(value: Any, *, path: str = "payload") -> None:
+    """Refuse NaN/Infinity anywhere in the payload, at any depth (CR-11).
+
+    This payload flows into the terminal summary, whose writer serializes with
+    ``allow_nan=False``. One non-finite leaf — in a check field or nested
+    evidence — would therefore convert a refused run's honest terminal summary
+    into an unhandled ``ValueError`` at write time, which is precisely the
+    death mode the artifact exists to survive. Refusing at load keeps the
+    failure where it can still be reported.
+
+    ``bool`` is short-circuited first because it is an ``int`` subclass.
+    """
+    if isinstance(value, bool):
+        return
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError(
+            f"preflight payload value at {path} is not finite ({value!r})"
+        )
+    if isinstance(value, Mapping):
+        for key, child in value.items():
+            _reject_non_finite(child, path=f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _reject_non_finite(child, path=f"{path}[{index}]")
+
+
+def _assert_status_consistency(payload: Mapping[str, Any]) -> None:
+    """Refuse an artifact whose declared status contradicts its own evidence.
+
+    Shape validation alone accepts ``preflight_status: "passed"`` sitting on
+    top of a failed event, or on top of an event carrying a failed LOCKED
+    check, so a hand-edited artifact could report EVAL-01 eligibility it never
+    earned. Semantics are therefore revalidated, not just shape.
+
+    The advisory tier is deliberately exempt: ``assert_phys05_table`` records
+    an advisory mismatch WITHOUT raising, so a failed advisory check is
+    evidence the run legitimately carries, not a contradiction. Treating it as
+    one would refuse honest artifacts.
+    """
+    status = payload["preflight_status"]
+    for index, event in enumerate(payload["assertions"]):
+        failed_locked = sorted(
+            str(check["name"])
+            for check in event["checks"]
+            if check["tier"] == "locked" and not check["passed"]
+        )
+        if event["status"] == "passed" and failed_locked:
+            raise ValueError(
+                f"preflight assertion {index} declares status 'passed' but "
+                f"carries failed locked check(s): {failed_locked}"
+            )
+        if status == "passed" and event["status"] != "passed":
+            raise ValueError(
+                "preflight_status is 'passed' but assertion "
+                f"{index} has status {event['status']!r}"
+            )
+
+
 def _validate_payload(payload: Any) -> dict[str, Any]:
     _reject_gate_keys(payload)
+    _reject_non_finite(payload)
     if not isinstance(payload, dict):
         raise ValueError("preflight payload must be a JSON object")
     if set(payload) != set(_PAYLOAD_KEYS):
@@ -143,6 +210,7 @@ def _validate_payload(payload: Any) -> dict[str, Any]:
             raise ValueError(
                 f"preflight assertion {index} findings must be an object array"
             )
+    _assert_status_consistency(payload)
     return payload
 
 
@@ -170,7 +238,10 @@ class PreflightRecorder:
         _validate_payload(payload)
         atomic_write_text(
             self.run_dir / PREFLIGHT_FILENAME,
-            json.dumps(payload, sort_keys=True, indent=2) + "\n",
+            # allow_nan=False is the second belt behind _reject_non_finite:
+            # this codebase must not be able to CREATE evidence the summary
+            # writer cannot serialize.
+            json.dumps(payload, sort_keys=True, indent=2, allow_nan=False) + "\n",
         )
 
     def append_event(
@@ -218,7 +289,10 @@ def load_preflight(run_dir: str | Path) -> dict[str, Any]:
     except FileNotFoundError as exc:
         raise ValueError(f"preflight artifact not found: {path}") from exc
     try:
-        payload = json.loads(text)
+        # parse_constant fires on the NaN / Infinity / -Infinity tokens that
+        # json.loads accepts by default; the hook refuses them before any
+        # non-finite value can enter the payload (CR-11).
+        payload = json.loads(text, parse_constant=_reject_json_constant)
     except json.JSONDecodeError as exc:
         raise ValueError(f"preflight artifact is not valid JSON: {exc}") from exc
     return _validate_payload(payload)
