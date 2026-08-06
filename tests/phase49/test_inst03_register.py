@@ -407,3 +407,123 @@ def test_surfaces_in_run_record_absent_preflight_is_none_and_renders_unavailable
     assert payload["eval01_precondition_i"] is False
     assert "## Conformance" in markdown
     assert "- (conformance record unavailable)" in markdown
+
+
+# --- CR-07: a closed entry's proof_test must resolve to something real ------
+#
+# The loader previously required only a non-empty string, which proves the
+# value PARSES, not that a proof exists. Static resolution closes that;
+# EXECUTION stays in test_every_closed_register_entry_has_a_real_passing_proof_test
+# above, because a training launch must never shell out to pytest.
+
+
+def _closed_payload(proof_test):
+    return _payload(_entry(status="closed", proof_test=proof_test))
+
+
+def test_closed_entry_with_missing_proof_file_fails_closed(tmp_path):
+    path = _write(
+        tmp_path,
+        _closed_payload("tests/phase49/test_no_such_module.py::test_missing"),
+    )
+
+    with pytest.raises(ValueError, match="does not resolve"):
+        register.load_divergence_register(path)
+
+
+def test_closed_entry_with_missing_proof_node_fails_closed(tmp_path):
+    path = _write(
+        tmp_path,
+        _closed_payload(
+            "tests/phase49/test_inst03_register.py::test_no_such_test_node"
+        ),
+    )
+
+    with pytest.raises(ValueError, match="is not defined in"):
+        register.load_divergence_register(path)
+
+
+@pytest.mark.parametrize(
+    "proof_test",
+    [
+        "tests/phase49/test_inst03_register.py",
+        "::test_orphan_node",
+        "tests/phase49/test_inst03_register.py::",
+        "   ::   ",
+    ],
+)
+def test_closed_entry_with_unparseable_proof_reference_fails_closed(
+    tmp_path, proof_test
+):
+    path = _write(tmp_path, _closed_payload(proof_test))
+
+    with pytest.raises(ValueError, match="proof_test must be"):
+        register.load_divergence_register(path)
+
+
+def test_closed_entry_proof_path_cannot_escape_the_repository(tmp_path):
+    path = _write(
+        tmp_path,
+        _closed_payload("../../../etc/passwd::test_escape"),
+    )
+
+    with pytest.raises(ValueError, match="escapes the repository"):
+        register.load_divergence_register(path)
+
+
+def test_closed_entry_resolving_a_class_scoped_node_is_accepted(tmp_path):
+    """The committed register uses Class::method form; it must resolve too."""
+    path = _write(
+        tmp_path,
+        _closed_payload(
+            "tests/phase40/test_slbfgs_preflight.py::PreflightRefusalTests"
+            "::test_stage_3_raises_typed_refusal"
+        ),
+    )
+
+    payload = register.load_divergence_register(path)
+
+    assert payload["entries"][0]["status"] == "closed"
+
+
+def test_committed_register_closed_entries_all_resolve_statically():
+    """The shipped register loads — INV-B-N-UNSET's closure included."""
+    payload = register.load_divergence_register()
+    closed = {
+        entry["id"]: entry["proof_test"]
+        for entry in payload["entries"]
+        if entry["status"] == "closed"
+    }
+
+    assert closed
+    assert "INV-B-N-UNSET" in closed
+
+
+def test_open_entry_proof_test_is_not_resolved(tmp_path):
+    """Only closure makes a claim about a proof; open entries carry none."""
+    path = _write(
+        tmp_path,
+        _payload(_entry(status="open", proof_test="tests/gone.py::test_gone")),
+    )
+
+    payload = register.load_divergence_register(path)
+
+    assert payload["entries"][0]["status"] == "open"
+
+
+def test_register_loader_does_not_import_pytest_machinery(tmp_path):
+    """A launch-path loader must not import or invoke pytest (CR-07 split)."""
+    import ast as _ast
+
+    source = Path(register.__file__).read_text(encoding="utf-8")
+    tree = _ast.parse(source)
+    imported = set()
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.Import):
+            imported.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, _ast.ImportFrom) and node.module:
+            imported.add(node.module.split(".")[0])
+
+    assert "pytest" not in imported
+    assert "subprocess" not in imported
+    assert "_pytest" not in imported

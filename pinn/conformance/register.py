@@ -7,9 +7,10 @@ hand-edited or stale artifact cannot silently become run evidence.
 
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional, Sequence
 
 from pinn.training.atomic_io import atomic_write_text
 
@@ -41,6 +42,7 @@ _ENTRY_KEYS = frozenset(
 _KINDS = frozenset({"divergence", "qualification", "deferred-scope"})
 _STATUSES = frozenset({"open", "closed", "waived"})
 _REGISTER_PATH = Path(__file__).with_name(DIVERGENCE_REGISTER_FILENAME)
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _nonempty_text(value: Any, *, field: str, entry_id: str) -> str:
@@ -49,6 +51,72 @@ def _nonempty_text(value: Any, *, field: str, entry_id: str) -> str:
             f"register entry {entry_id!r} {field} must be a non-empty string"
         )
     return value
+
+
+def _find_definition(body: Sequence[ast.stmt], name: str) -> Optional[ast.stmt]:
+    for node in body:
+        if (
+            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+            and node.name == name
+        ):
+            return node
+    return None
+
+
+def _resolve_proof_test(proof_test: str, *, entry_id: str) -> None:
+    """Fail closed when a closed entry's ``proof_test`` names nothing real.
+
+    Requiring a non-empty string only proved the value PARSES. A closed
+    divergence has to mean a proof that exists, so the ``path::node`` target is
+    resolved here: the file must be inside the repository and the named test
+    function (or ``Class::method``) must actually be defined in it.
+
+    Resolution is deliberately STATIC — ``ast`` over the file's source, never an
+    import. This runs inside a training launch, and a launch must never import
+    pytest machinery or execute test modules. EXECUTING each closed entry's
+    proof is a meta-test's job (see
+    tests/phase49/test_inst03_register.py::test_every_closed_register_entry_has_a_real_passing_proof_test),
+    not the launch path's.
+    """
+    parts = proof_test.split("::")
+    if len(parts) < 2 or not all(part.strip() for part in parts):
+        raise ValueError(
+            f"closed register entry {entry_id!r} proof_test must be "
+            f"'<path>::<node>'; got {proof_test!r}"
+        )
+    relative, *node_path = parts
+    target = (_REPO_ROOT / relative).resolve()
+    try:
+        target.relative_to(_REPO_ROOT)
+    except ValueError as exc:
+        raise ValueError(
+            f"closed register entry {entry_id!r} proof_test path escapes the "
+            f"repository: {relative!r}"
+        ) from exc
+    try:
+        source = target.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ValueError(
+            f"closed register entry {entry_id!r} proof_test file does not "
+            f"resolve: {relative!r}"
+        ) from exc
+    try:
+        tree = ast.parse(source, filename=str(target))
+    except SyntaxError as exc:
+        raise ValueError(
+            f"closed register entry {entry_id!r} proof_test file {relative!r} "
+            f"is not parseable: {exc}"
+        ) from exc
+
+    scope: Sequence[ast.stmt] = tree.body
+    for name in node_path:
+        found = _find_definition(scope, name)
+        if found is None:
+            raise ValueError(
+                f"closed register entry {entry_id!r} proof_test node {name!r} "
+                f"is not defined in {relative!r}"
+            )
+        scope = found.body
 
 
 def _validate_payload(payload: Any) -> dict[str, Any]:
@@ -123,6 +191,8 @@ def _validate_payload(payload: Any) -> dict[str, Any]:
             raise ValueError(
                 f"closed register entry {entry_id!r} requires a non-empty proof_test"
             )
+        if status == "closed":
+            _resolve_proof_test(proof_test, entry_id=entry_id)
 
         waiver = entry["waiver"]
         if waiver is not None and (
