@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import math
+import numbers
 import shutil
 import time
 from dataclasses import dataclass, field
@@ -121,6 +122,53 @@ def _extract_invariant_window(config: Any) -> Optional[int]:
             f"(got {window!r})"
         )
     return int(window)
+
+
+def _known_colloc_length(n_colloc: Any) -> Optional[int]:
+    """Return the collocation length when it is usable, else ``None``.
+
+    Mirrors the admissibility test the invariant-B window already applies, so
+    range validation and window evaluation agree on when the length is known.
+    """
+    if isinstance(n_colloc, bool) or not isinstance(n_colloc, int):
+        return None
+    return n_colloc if n_colloc > 0 else None
+
+
+def _validated_front_idx(value: Any, n_colloc: Any) -> int:
+    """Return a well-formed causal ``front_idx``, or raise for the caller.
+
+    Bare ``int()`` is not a validation: it accepts bools, silently truncates a
+    non-integral float, and raises an uncaught ``OverflowError`` on infinity.
+    Worse, it accepts an out-of-range index, and an index at or above
+    ``n_colloc - 1`` pins the invariant-B high-water mark at "saturated", which
+    permanently silences the stall guard. Well-formedness is therefore checked
+    here and every rejection is routed by the caller into the invariant-A
+    refusal bundle.
+
+    ``-1`` (the no-front sentinel) is well-formed; its pre-existing invariant-A
+    HALT semantics are the caller's, and are unchanged.
+    """
+    if isinstance(value, bool):
+        raise TypeError(f"front_idx must not be a bool (got {value!r})")
+    if not isinstance(value, numbers.Real):
+        raise TypeError(f"front_idx must be a real number (got {value!r})")
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        raise ValueError(f"front_idx must be finite (got {value!r})")
+    if not numeric.is_integer():
+        raise ValueError(f"front_idx must be integral (got {value!r})")
+    index = int(numeric)
+    if index < -1:
+        raise ValueError(
+            f"front_idx must be -1 or a non-negative index (got {index})"
+        )
+    limit = _known_colloc_length(n_colloc)
+    if limit is not None and index >= limit:
+        raise ValueError(
+            f"front_idx {index} is outside the collocation range [0, {limit})"
+        )
+    return index
 
 
 def _is_nonfinite(value: Any) -> bool:
@@ -246,6 +294,10 @@ class StepGuards:
         self._front_advance_window_n = _extract_invariant_window(config)
         self.front_high_water = -1
         self.last_advance_step: Optional[int] = None
+        # Set by load_invariant_b_state; cleared by the first check() that knows
+        # a collocation length, which is the earliest point a restored
+        # high-water mark can be range-checked at all.
+        self._restored_high_water_unverified = False
         self._disk_root = _as_path(disk_root) if disk_root is not None else Path(".")
         self._memory_total_bytes = (
             int(memory_total_bytes)
@@ -302,6 +354,12 @@ class StepGuards:
             )
         self.front_high_water = int(high_water)
         self.last_advance_step = None if last_step is None else int(last_step)
+        # A non-sentinel restored mark carries no proof that it is reachable in
+        # this run's collocation grid, and an unreachable one reads as
+        # permanently saturated — which silences the stall guard for the whole
+        # stage. Defer the range check to the first check() with a known
+        # n_colloc rather than trusting the checkpoint (CR-02).
+        self._restored_high_water_unverified = self.front_high_water >= 0
 
     def check(
         self,
@@ -448,6 +506,7 @@ class StepGuards:
             else:
                 invalid_metric: Optional[str] = None
                 invalid_value: Any = None
+                restored_impossible = False
                 for key in ("w_min", "w_mean", "w_max"):
                     try:
                         numeric = float(w_n_stats[key])
@@ -460,8 +519,13 @@ class StepGuards:
                 if invalid_metric is None:
                     try:
                         w_min = float(w_n_stats["w_min"])
-                        front_idx = int(w_n_stats["front_idx"])
-                    except (TypeError, ValueError):
+                        # OverflowError joins the set: int(float("inf")) raises
+                        # it, and an uncaught OverflowError would escape as a
+                        # crash instead of a HALT with a failure bundle.
+                        front_idx = _validated_front_idx(
+                            w_n_stats["front_idx"], n_colloc
+                        )
+                    except (TypeError, ValueError, OverflowError):
                         invalid_metric = "front_idx"
                         invalid_value = w_n_stats["front_idx"]
                     else:
@@ -489,6 +553,33 @@ class StepGuards:
                         }
                     )
                 else:
+                    # A high-water mark restored from a checkpoint is validated
+                    # against the FIRST collocation length this run observes —
+                    # load_invariant_b_state has no n_colloc to check it with,
+                    # so a hand-edited or corrupt value would otherwise be
+                    # trusted and read as permanently saturated.
+                    limit = _known_colloc_length(n_colloc)
+                    if self._restored_high_water_unverified and limit is not None:
+                        self._restored_high_water_unverified = False
+                        if self.front_high_water >= limit:
+                            restored_impossible = True
+                            trips.append(
+                                {
+                                    "guard": "invariant_a",
+                                    "tier": 2,
+                                    "metric": "invariant_b_state.front_high_water",
+                                    "value": self.front_high_water,
+                                    "threshold": float(limit),
+                                    "disposition": StageDisposition.HALT,
+                                    "reason": (
+                                        "restored invariant-B high-water mark "
+                                        f"{self.front_high_water} is impossible "
+                                        f"for n_colloc={limit}"
+                                    ),
+                                }
+                            )
+
+                if invalid_metric is None and not restored_impossible:
                     # Invariant B is evaluated only from a valid physics
                     # statistics sample.  Its state is a monotone high-water
                     # mark: transient front regressions never reset the age.

@@ -222,3 +222,90 @@ def test_schema_v1_payload_is_structurally_invalid_after_bump():
     payload["schema_version"] = 1
 
     assert not _is_structurally_valid(payload)
+
+
+# --- CR-02: a restored high-water mark is not trusted on faith --------------
+
+
+@pytest.mark.parametrize(
+    ("label", "high_water"),
+    [("at-limit", 10), ("above-limit", 99)],
+)
+def test_impossible_restored_high_water_is_refused(label, high_water):
+    """A corrupt or hand-edited checkpoint cannot silence the stall guard.
+
+    ``load_invariant_b_state`` has no ``n_colloc`` to range-check against, so
+    the check lands on the first step that knows a collocation length. An
+    unreachable mark reads as permanently saturated, which is exactly how
+    invariant B would be suppressed for the rest of the stage.
+    """
+    from pinn.train import _restore_invariant_b_state
+    from pinn.training.stage_exit import StageDisposition
+
+    guards = _make_guards(front_advance_window_n=2)
+    _restore_invariant_b_state(
+        guards,
+        {"invariant_b_state": {"front_high_water": high_water, "last_advance_step": 1}},
+    )
+
+    outcome = guards.check(
+        2,
+        0,
+        "2a",
+        loss_terms={"total": 1.0},
+        w_n_stats={"w_min": 0.1, "w_mean": 0.5, "w_max": 0.9, "front_idx": 1},
+        n_colloc=10,
+        physics_evaluated=True,
+    )
+
+    assert outcome.disposition is StageDisposition.HALT, label
+    assert outcome.guard == "invariant_a", label
+    assert outcome.metric == "invariant_b_state.front_high_water", label
+    assert outcome.value == high_water, label
+
+
+def test_reachable_restored_high_water_is_accepted():
+    from pinn.train import _restore_invariant_b_state
+
+    guards = _make_guards(front_advance_window_n=2)
+    _restore_invariant_b_state(
+        guards,
+        {"invariant_b_state": {"front_high_water": 9, "last_advance_step": 1}},
+    )
+
+    outcome = guards.check(
+        2,
+        0,
+        "2a",
+        loss_terms={"total": 1.0},
+        w_n_stats={"w_min": 0.1, "w_mean": 0.5, "w_max": 0.9, "front_idx": 1},
+        n_colloc=10,
+        physics_evaluated=True,
+    )
+
+    assert outcome.disposition is None
+
+
+def test_restored_high_water_is_range_checked_only_once():
+    """The deferred check consumes itself; later steps are not re-litigated."""
+    from pinn.train import _restore_invariant_b_state
+
+    guards = _make_guards(front_advance_window_n=100)
+    _restore_invariant_b_state(
+        guards,
+        {"invariant_b_state": {"front_high_water": 5, "last_advance_step": 1}},
+    )
+
+    for step in (2, 3, 4):
+        outcome = guards.check(
+            step,
+            0,
+            "2a",
+            loss_terms={"total": 1.0},
+            w_n_stats={"w_min": 0.1, "w_mean": 0.5, "w_max": 0.9, "front_idx": 1},
+            n_colloc=10,
+            physics_evaluated=True,
+        )
+        assert outcome.disposition is None
+
+    assert guards._restored_high_water_unverified is False

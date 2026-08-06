@@ -329,3 +329,138 @@ def test_guard_hook_halt_outcome_keeps_failure_bundle_contract(tmp_path):
 
     assert (tmp_path / "failure" / "README.txt").is_file()
     assert (tmp_path / "failure" / "trip.json").is_file()
+
+
+# --- CR-02: malformed front_idx cannot bypass or crash invariant B ---------
+#
+# Before this hardening the guard coerced with a bare ``int()``, which accepts
+# bools, truncates non-integral floats, admits out-of-range indices, and raises
+# an uncaught OverflowError on infinity. An index at or above ``n_colloc - 1``
+# pins the high-water mark at "saturated", which permanently silences the
+# invariant-B stall guard — so each refusal below is driven to actually trip
+# (D-16), not merely asserted to exist.
+
+
+@pytest.mark.parametrize(
+    ("label", "front_idx"),
+    [
+        ("out-of-range-high", 4),
+        ("far-out-of-range-high", 99),
+        ("below-sentinel", -2),
+        ("bool-true", True),
+        ("bool-false", False),
+        ("non-integral-float", 1.9),
+        ("positive-infinity", float("inf")),
+        ("negative-infinity", float("-inf")),
+        ("nan", float("nan")),
+        ("string", "2"),
+    ],
+)
+def test_malformed_front_idx_refuses_via_invariant_a(label, front_idx):
+    from pinn.training.stage_exit import StageDisposition
+
+    outcome = _make_guards().check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=_healthy_stats(front_idx=front_idx),
+        n_colloc=4,
+        physics_evaluated=True,
+    )
+
+    assert outcome.disposition is StageDisposition.HALT, label
+    assert outcome.guard == "invariant_a", label
+    assert outcome.metric == "w_n_stats.front_idx", label
+
+
+def test_out_of_range_front_idx_cannot_saturate_the_high_water_mark():
+    """The bypass this refusal exists to close.
+
+    ``front_idx = 99`` with ``n_colloc = 4`` used to be accepted, leaving
+    ``front_high_water >= n_colloc - 1`` forever, so the stall guard read as
+    saturated and could never trip again.
+    """
+    from pinn.training.stage_exit import StageDisposition
+
+    guards = _make_guards(front_advance_window_n=2)
+    refused = guards.check(
+        0, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=_healthy_stats(front_idx=99), n_colloc=4,
+        physics_evaluated=True,
+    )
+
+    assert refused.guard == "invariant_a"
+    # State is untouched: the impossible index never became the high-water mark.
+    assert guards.invariant_b_state_dict() == {
+        "front_high_water": -1,
+        "last_advance_step": None,
+    }
+
+    # And the stall guard still works afterwards.
+    guards.check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=_healthy_stats(front_idx=0), n_colloc=4,
+        physics_evaluated=True,
+    )
+    stalled = guards.check(
+        10, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=_healthy_stats(front_idx=0), n_colloc=4,
+        physics_evaluated=True,
+    )
+
+    assert stalled.disposition is StageDisposition.HALT
+    assert stalled.guard == "invariant_b"
+
+
+def test_non_finite_front_idx_raises_no_bare_overflow_error():
+    """``int(float("inf"))`` raises OverflowError, which used to escape."""
+    guards = _make_guards()
+
+    try:
+        outcome = guards.check(
+            1, 0, "2a", loss_terms={"total": 1.0},
+            w_n_stats=_healthy_stats(front_idx=float("inf")), n_colloc=4,
+            physics_evaluated=True,
+        )
+    except OverflowError as exc:  # pragma: no cover - the regression itself
+        pytest.fail(f"OverflowError escaped the invariant-A refusal path: {exc}")
+
+    assert outcome.guard == "invariant_a"
+    assert outcome.tier == 2
+
+
+def test_last_admissible_front_idx_is_accepted():
+    """The range is half-open: n_colloc - 1 is valid, n_colloc is not."""
+    guards = _make_guards()
+    outcome = guards.check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=_healthy_stats(front_idx=3), n_colloc=4,
+        physics_evaluated=True,
+    )
+
+    assert outcome.disposition is None
+    assert guards.invariant_b_state_dict()["front_high_water"] == 3
+
+
+def test_integral_float_front_idx_is_accepted():
+    """Instrumentation may report a float; only NON-integral floats are bad."""
+    guards = _make_guards()
+    outcome = guards.check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=_healthy_stats(front_idx=2.0), n_colloc=4,
+        physics_evaluated=True,
+    )
+
+    assert outcome.disposition is None
+    assert guards.invariant_b_state_dict()["front_high_water"] == 2
+
+
+def test_front_idx_range_unchecked_when_n_colloc_is_unknown():
+    """Without a known collocation length only well-formedness is assertable."""
+    guards = _make_guards()
+    outcome = guards.check(
+        1, 0, "2a", loss_terms={"total": 1.0},
+        w_n_stats=_healthy_stats(front_idx=99), n_colloc=None,
+        physics_evaluated=True,
+    )
+
+    assert outcome.disposition is None
+    assert guards.invariant_b_state_dict()["front_high_water"] == 99
