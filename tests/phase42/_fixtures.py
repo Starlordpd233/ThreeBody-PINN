@@ -119,7 +119,10 @@ def write_train_config(path: Path, **overrides) -> Path:
         "lbfgs_max_iter": 2,
         "lbfgs_chunk_size": 4,
     }
-    loss = {"lambda_e_max": 1.0}
+    # Stage 0 of the locked PHYS-05 table caps the energy term at 0.0
+    # (pinn.constants.PHYS05_LAMBDA_E_MAX[0]); the launch gate refuses any
+    # other value for the entered stage.
+    loss = {"lambda_e_max": 0.0}
     for key, val in overrides.items():
         if key == "run":
             run.update(val)

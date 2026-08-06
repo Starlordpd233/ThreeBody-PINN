@@ -72,7 +72,11 @@ def _write_config(path: Path, **overrides) -> Path:
         "lbfgs_max_iter": 2,
         "lbfgs_chunk_size": 4,
     }
-    loss = {"lambda_e_max": 1.0}
+    # Stage 0 of the locked PHYS-05 table caps the energy term at 0.0
+    # (pinn.constants.PHYS05_LAMBDA_E_MAX[0]).  The launch gate asserts the
+    # entered stage's row, so the maintained builder must ship the conformant
+    # cap; a non-conformant cap belongs in an explicit refusal test.
+    loss = {"lambda_e_max": 0.0}
     for key, val in overrides.items():
         if key == "run":
             run.update(val)
@@ -140,6 +144,38 @@ class LaunchContractTests(_TrainHarness):
         self.assertIn("statistical-equivalence", out)
         self.assertIn("exact-checkpoint-continuation", out)
         self.assertNotIn("bitwise", out.lower().replace("does not claim bit", ""))
+
+
+class Phys05LaunchGateTests(_TrainHarness):
+    """D-16 trip test: the fixtures moved to the locked row, the gate did not.
+
+    Correcting the stale ``lambda_e_max`` builders (CR-10) removes every
+    incidental exercise of the PHYS-05 refusal branch, so the refusal is
+    asserted here explicitly.  If this test ever passes a launch, the gate has
+    been weakened rather than the fixture repaired.
+    """
+
+    def test_non_conformant_lambda_e_max_refuses_launch(self):
+        from pinn.constants import PHYS05_LAMBDA_E_MAX
+
+        non_conformant = float(PHYS05_LAMBDA_E_MAX[0]) + 1.0
+        _write_config(
+            self.cfg_path,
+            run={"run_name": "phys05-refusal"},
+            loss={"lambda_e_max": non_conformant},
+        )
+        code, out, err = self._run(["--config", str(self.cfg_path)])
+        self.assertNotEqual(code, 0, msg=f"stdout={out}\nstderr={err}")
+        self.assertIn("conformance preflight failed", err)
+        self.assertIn("PHYS-05 conformance failed for stage 0", err)
+        self.assertIn("lambda_e_max", err)
+        self.assertIn(repr(float(PHYS05_LAMBDA_E_MAX[0])), err)
+        self.assertIn(repr(non_conformant), err)
+
+    def test_conformant_lambda_e_max_reaches_training(self):
+        code, out, err = self._run(["--config", str(self.cfg_path)])
+        self.assertEqual(code, 0, msg=f"stdout={out}\nstderr={err}")
+        self.assertNotIn("conformance preflight failed", err)
 
 
 class MissingResumePathTests(_TrainHarness):
@@ -541,12 +577,25 @@ class HoldStageTests(_TrainHarness):
             "counters": {"global_step": 0, "global_epoch": 0, "wall_clock_baseline": 0.0},
             "config_identity": identity,
             "schema_version": CHECKPOINT_SCHEMA_VERSION,
+            # Resume refuses to re-arm invariant B silently, so a synthesized
+            # anchor must carry the same key a real checkpoint writes.
+            "invariant_b_state": donor.get("invariant_b_state")
+            or donor.get("run_controller", {}).get("invariant_b_state"),
         }
+        if anchor_payload["invariant_b_state"] is None:
+            anchor_payload["invariant_b_state"] = {
+                "front_high_water": -1,
+                "last_advance_step": None,
+            }
         # Fill missing pieces from a live controller state if needed.
         if anchor_payload["scheduled_weights"] is None:
             from pinn.training.scheduled_weights import ScheduledWeights
 
-            sw = ScheduledWeights(int(cfg.stage.n_adam), lambda_e_max=1.0)
+            # Track the launched config's cap so a synthesized anchor can never
+            # reintroduce a non-conformant PHYS-05 row on resume.
+            sw = ScheduledWeights(
+                int(cfg.stage.n_adam), lambda_e_max=float(cfg.loss.lambda_e_max)
+            )
             anchor_payload["scheduled_weights"] = sw.state_dict()
         if anchor_payload["grad_clip"] is None:
             from pinn.training.grad_clip import GradClipper
