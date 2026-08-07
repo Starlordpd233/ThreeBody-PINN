@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
-current_phase: 49
-current_phase_name: Conformance Gate
-status: executing
-stopped_at: Phase 49 Wave 3 complete (49-03, 49-05)
-last_updated: "2026-08-05T06:13:39.789Z"
-last_activity: 2026-08-04
-last_activity_desc: Phase 49 execution started
+current_phase: 50
+current_phase_name: Valid Stage-0 Re-Run
+status: planning
+stopped_at: "Phase 49 complete after 49-08 blocker remediation and final gate"
+last_updated: "2026-08-07T08:03:46Z"
+last_activity: 2026-08-07
+last_activity_desc: Phase 49 complete; 943-test required gate green; Phase 50 ready to plan
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 23
-  completed_plans: 22
-  percent: 43
+  completed_phases: 4
+  total_plans: 25
+  completed_plans: 25
+  percent: 57
 ---
 
 # Project State
@@ -24,15 +24,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-31)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 49 — Conformance Gate
+**Current focus:** Phase 50 — Valid Stage-0 Re-Run
 
 ## Current Position
 
-Phase: 49 (Conformance Gate) — EXECUTING
-Plan: 5 of 6
-Status: Ready to execute
-Last activity: 2026-08-04 — Phase 49 execution started
-**Progress:** [██████████] 96% (22/23 plans complete)
+Phase: 50 (Valid Stage-0 Re-Run) — PLANNING
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-07 — Phase 49 closed after blocker remediation
+**Progress:** [██████████] 100% (25/25 planned plans complete)
+
+### Decisions from 49-08
+
+- **Phase 49 review BLOCKERs are closed.** CR-03/04/06/09 landed in Plan
+  49-08; CR-08's producer-contract repair at `7d4ffd8d` was independently
+  re-run without further code changes. The final required gate is 943 passed,
+  3 skipped, and 289 subtests passed.
+- **Invariant-B policy is owner-ratified, not inferred.** The 2026-08-05 owner
+  ruling is `N = 500 (= 0.5 * N_Adam,0)`; the shipped Stage-0 config carries
+  that exact value and `INV-B-N-UNSET` is closed by its enforcing trip test.
+- **Preflight evidence is append-only across resumed attempts.** Existing
+  artifacts are validated and retained before the next run-start event; any
+  ordinary setup/probe refusal records its failed event before controlled exit.
+- **Phase 50 is authorized to be planned, not auto-launched.** No admitted
+  corpus or held-out evaluator was touched during Phase 49 remediation.
 
 ### Decisions from 47-02
 
@@ -375,10 +390,11 @@ Recent decisions affecting current work:
 - [Phase ?]: Fresh and resumed training setup derive and enforce the same causal clip facts from RuntimeSpec through strict atomic training_metadata.json.
 - [Phase ?]: Adam and L-BFGS gradient telemetry uses non-mutating autograd.grad diagnostics with explicit pre-total-backward and last-closure provenance.
 - [Phase ?]: Missing or non-finite required gradient statistics fail closed as null telemetry with grad_stats_complete=false and step_completed=false.
-- [Phase ?]: GATE-03 invariant B keeps front_advance_window_n unset by default; None is explicit record-only state until owner ratification.
+- [Phase 49 Plan 49-06]: Owner ruling 2026-08-05 sets `front_advance_window_n = 500`; invariant B is enforcing and `INV-B-N-UNSET` is closed with a passing proof test.
 - [Phase ?]: GATE-03 invariant A, invariant B, and causal_stats_missing remain HALT-family StepGuards entries; existing step-log and failure-bundle paths are unchanged.
-- [Phase ?]: Plan 49-04 uses an explicit ordered census manifest and fail-closed divergence register; preflight preserves open caveats verbatim.
+- [Phase 49 Plans 49-04/49-08]: The ordered census manifest resolves concrete producer contracts; the fail-closed divergence register and preflight preserve open caveats verbatim.
 - [Phase ?]: Every closed register entry carries a passing proof-test node; waivers cite existing authority only.
+- [Phase 49 Plan 49-08]: Scheduler state is scalar-validated before PHYS-05 arithmetic/comparison; ordinary setup/probe failures persist refusal evidence; resume retains the validated preflight history.
 
 ### Pending Todos
 
@@ -411,14 +427,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/49-conformance-gate/49-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-08-05T06:13:39.775Z
-Stopped at: Phase 49 Wave 3 complete (49-03, 49-05)
-Next action: Run `$gsd-execute-phase 49 --wave 4`. The blocking owner checkpoint — `N`, the invariant-B front-advance window — is reserved for Wave 4; D-20 defines the fail-closed unset state, so execution does not stall waiting for it.
+Last session: 2026-08-07T08:03:46Z
+Stopped at: Phase 49 complete after Plan 49-08 remediation and final gate
+Next action: Run `$gsd-discuss-phase 50` from `.worktrees/trainex` before planning the authorized Stage-0 re-run.
 
 ## Operator Next Steps
 
+- **Plan Phase 50** — begin with `$gsd-discuss-phase 50`; Phase 49 authorizes planning but did not launch the admitted-corpus run.
 - ~~Execute Phase 44~~ — complete 2026-07-23 (qualified by `44-ERRATUM.md` 2026-07-24)
 - ~~Adjudicate GAP-44-01~~ — RESOLVED-WITH-INSTRUCTION 2026-07-23 (owner option A: the physics gate is defined over the worst-case `max` per-trajectory ε_H; headline `max = 237.2086056078468`. See `.planning/phases/44-physics-gate-forensics/44-GAPS.md` and the updated `44-DIAGNOSIS.md`.)
 - ~~Execute Phase 45~~ — complete 2026-07-24, `45-AUDIT.md` all ten checks PASS, package delivered

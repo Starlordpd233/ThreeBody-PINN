@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import math
 from pathlib import Path
@@ -20,6 +21,7 @@ from .table import assert_phys05_table
 __all__ = [
     "PREFLIGHT_FILENAME",
     "PREFLIGHT_SCHEMA_VERSION",
+    "ConformancePreflightError",
     "PreflightRecorder",
     "load_preflight",
     "run_start_preflight",
@@ -42,6 +44,16 @@ _EVENT_KEYS = frozenset(
 _CHECK_KEYS = frozenset({"name", "tier", "expected", "actual", "passed"})
 _EVENT_NAMES = frozenset({"run_start", "stage_boundary"})
 _EVENT_STATUSES = frozenset({"passed", "failed"})
+
+
+class ConformancePreflightError(ValueError):
+    """A run-start setup/probe refusal safe for ``train.main`` to report."""
+
+
+def _normalized_error(context: str, exc: Exception) -> ConformancePreflightError:
+    return ConformancePreflightError(
+        f"{context} failed with {type(exc).__name__}: {exc}"
+    )
 
 
 def _reject_gate_keys(value: Any, *, path: str = "payload") -> None:
@@ -219,7 +231,12 @@ class PreflightRecorder:
 
     def __init__(self, run_dir: str | Path):
         self.run_dir = Path(run_dir)
-        self._events: list[dict[str, Any]] = []
+        path = self.run_dir / PREFLIGHT_FILENAME
+        if path.is_file():
+            existing = load_preflight(self.run_dir)
+            self._events = copy.deepcopy(existing["assertions"])
+        else:
+            self._events: list[dict[str, Any]] = []
 
     @property
     def events(self) -> tuple[dict[str, Any], ...]:
@@ -299,7 +316,7 @@ def load_preflight(run_dir: str | Path) -> dict[str, Any]:
 
 
 def _failure_check(
-    exc: ValueError, *, name: str = "phys05_table", tier: str = "locked"
+    exc: Exception, *, name: str = "phys05_table", tier: str = "locked"
 ) -> dict[str, Any]:
     return {
         "name": name,
@@ -318,8 +335,12 @@ def _metadata_for_census(config: Any, run_dir: str | Path) -> dict[str, Any]:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
         raise ValueError(f"training metadata not found: {path}") from exc
+    except (OSError, UnicodeError) as exc:
+        raise ValueError(f"training metadata could not be read: {path}: {exc}") from exc
     except json.JSONDecodeError as exc:
         raise ValueError(f"training metadata is not valid JSON: {exc}") from exc
+    if not isinstance(raw, Mapping):
+        raise ValueError("training metadata must be a JSON object")
     precision_name = raw.get("causal_clip_precision", "float64")
     dtype = torch.float32 if precision_name == "float32" else torch.float64
     run = getattr(config, "run", None)
@@ -386,25 +407,25 @@ def run_start_preflight(
     """Compose table, census, and register evidence at run start.
 
     A failed table/census assertion is appended and atomically written before
-    the original ``ValueError`` propagates to ``train.py``.
+    a normalized ``ConformancePreflightError`` propagates to ``train.py``.
     """
     recorder = PreflightRecorder(run_dir)
     try:
         register_payload = load_divergence_register()
-    except ValueError as exc:
+    except Exception as exc:
         recorder.append_event(
             event="run_start",
             stage=0,
             status="failed",
             checks=[_failure_check(exc, name="divergence_register")],
         )
-        raise
+        raise _normalized_error("divergence register setup", exc) from exc
     open_entries = [
         dict(entry) for entry in register_payload["entries"] if entry["status"] == "open"
     ]
     try:
         result = assert_phys05_table(scheduled_weights, stage=0)
-    except ValueError as exc:
+    except Exception as exc:
         recorder.append_event(
             event="run_start",
             stage=0,
@@ -412,18 +433,49 @@ def run_start_preflight(
             checks=[_failure_check(exc)],
             open_divergences=open_entries,
         )
-        raise
+        raise _normalized_error("PHYS-05 table assertion", exc) from exc
     try:
         metadata = _metadata_for_census(config, run_dir)
-        census_report = run_census(
+        raw_census_report = run_census(
             config,
             scheduled_weights,
             metadata,
             getattr(config, "provisional_fields", lambda: ())(),
             controller=controller,
         )
-    except ValueError as exc:
-        census_report = getattr(exc, "report", None)
+        if not isinstance(raw_census_report, Mapping):
+            raise TypeError(
+                "conformance census report must be a mapping; got "
+                f"{type(raw_census_report).__name__}"
+            )
+        census_report = dict(raw_census_report)
+        findings = list(census_report.get("findings", []))
+        consistency = _consistency_finding(config, open_entries)
+        if consistency is not None:
+            findings.append(consistency)
+        checks = list(result["checks"])
+        checks.append(
+            {
+                "name": "census",
+                "tier": "locked",
+                "expected": "all manifest quantities resolve",
+                "actual": census_report["verdict"],
+                "passed": census_report["verdict"] == "passed",
+            }
+        )
+        recorder.append_event(
+            event="run_start",
+            stage=0,
+            status="passed",
+            checks=checks,
+            census=census_report,
+            open_divergences=open_entries,
+            findings=findings,
+        )
+        return recorder
+    except Exception as exc:
+        raw_report = getattr(exc, "report", None)
+        census_report = dict(raw_report) if isinstance(raw_report, Mapping) else None
         checks = list(result["checks"])
         checks.append(
             {
@@ -443,28 +495,4 @@ def run_start_preflight(
             open_divergences=open_entries,
             findings=(census_report or {}).get("findings", []),
         )
-        raise
-    findings = list(census_report.get("findings", []))
-    consistency = _consistency_finding(config, open_entries)
-    if consistency is not None:
-        findings.append(consistency)
-    checks = list(result["checks"])
-    checks.append(
-        {
-            "name": "census",
-            "tier": "locked",
-            "expected": "all manifest quantities resolve",
-            "actual": census_report["verdict"],
-            "passed": census_report["verdict"] == "passed",
-        }
-    )
-    recorder.append_event(
-        event="run_start",
-        stage=0,
-        status="passed",
-        checks=checks,
-        census=census_report,
-        open_divergences=open_entries,
-        findings=findings,
-    )
-    return recorder
+        raise _normalized_error("conformance census setup", exc) from exc

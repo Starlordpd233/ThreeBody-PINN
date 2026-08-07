@@ -232,6 +232,129 @@ def test_refusal_writes_failing_census_artifact_before_raise(tmp_path):
     assert payload["assertions"][0]["census"] == failure_report
 
 
+def test_malformed_metadata_object_writes_refusal_before_raise(tmp_path):
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+    (run_dir / "training_metadata.json").write_text("[]\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="JSON object"):
+        _run_start_preflight(
+            _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+        )
+
+    payload = preflight.load_preflight(run_dir)
+    assert payload["preflight_status"] == "failed"
+    assert payload["assertions"][0]["checks"][-1]["name"] == "census"
+
+
+def test_runtime_census_failure_is_normalized_after_refusal_is_written(tmp_path):
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+
+    with mock.patch.object(
+        preflight, "run_census", side_effect=RuntimeError("producer exploded")
+    ):
+        with pytest.raises(ValueError, match="producer exploded"):
+            _run_start_preflight(
+                _preflight_config(),
+                ScheduledWeights(1000, lambda_e_max=0.0),
+                run_dir,
+            )
+
+    payload = preflight.load_preflight(run_dir)
+    assert payload["preflight_status"] == "failed"
+    failed_check = payload["assertions"][0]["checks"][-1]
+    assert failed_check["name"] == "census"
+    assert failed_check["passed"] is False
+    assert "producer exploded" in failed_check["actual"]
+
+
+def test_non_mapping_census_result_is_normalized_after_refusal_is_written(tmp_path):
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+
+    with mock.patch.object(preflight, "run_census", return_value=[]):
+        with pytest.raises(ValueError, match="mapping"):
+            _run_start_preflight(
+                _preflight_config(),
+                ScheduledWeights(1000, lambda_e_max=0.0),
+                run_dir,
+            )
+
+    payload = preflight.load_preflight(run_dir)
+    assert payload["preflight_status"] == "failed"
+    failed_check = payload["assertions"][0]["checks"][-1]
+    assert failed_check["name"] == "census"
+    assert failed_check["passed"] is False
+    assert "mapping" in failed_check["actual"]
+
+
+def test_existing_preflight_history_is_preserved_before_new_run_start(tmp_path):
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+    recorder = preflight.PreflightRecorder(run_dir)
+    recorder.append_event(
+        event="run_start",
+        stage=0,
+        status="passed",
+        checks=[
+            {
+                "name": "initial",
+                "tier": "locked",
+                "expected": "ok",
+                "actual": "ok",
+                "passed": True,
+            }
+        ],
+    )
+    recorder.append_event(
+        event="stage_boundary",
+        stage=0,
+        status="passed",
+        checks=[
+            {
+                "name": "boundary",
+                "tier": "locked",
+                "expected": "ok",
+                "actual": "ok",
+                "passed": True,
+            }
+        ],
+    )
+    original_events = copy.deepcopy(preflight.load_preflight(run_dir)["assertions"])
+    original_event_bytes = [
+        json.dumps(event, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        for event in original_events
+    ]
+
+    _run_start_preflight(
+        _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+    )
+
+    payload = preflight.load_preflight(run_dir)
+    assert payload["assertions"][:2] == original_events
+    retained_event_bytes = [
+        json.dumps(event, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        for event in payload["assertions"][:2]
+    ]
+    assert retained_event_bytes == original_event_bytes
+    assert payload["assertions"][2]["event"] == "run_start"
+    assert payload["assertions"][2]["status"] == "passed"
+
+
+def test_existing_malformed_preflight_is_refused_without_replacement(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    artifact = run_dir / preflight.PREFLIGHT_FILENAME
+    original = b"{not-json\n"
+    artifact.write_bytes(original)
+
+    with pytest.raises(ValueError, match="not valid JSON"):
+        preflight.PreflightRecorder(run_dir)
+
+    assert artifact.read_bytes() == original
+
+
 def test_no_gate_collision_in_preflight_and_register_payload(tmp_path):
     run_dir = tmp_path / "run"
     _preflight_run_dir(run_dir)

@@ -157,6 +157,41 @@ def test_one_ulp_cap_trip():
         _table_module().assert_phys05_table(_StateOnlyScheduler(state), 0)
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("lambda_phys_max", True),
+        ("lambda_e_max", False),
+        ("lambda_l_max", False),
+        ("lambda_ic", float("inf")),
+        ("lambda_ic", -1.0),
+        ("lambda_ic", "1.0"),
+    ],
+)
+def test_corrupt_cap_scalar_is_refused_before_coercive_comparison(field, value):
+    state = _state_for(**{field: value})
+    with pytest.raises(ValueError, match=field):
+        _table_module().assert_phys05_table(_StateOnlyScheduler(state), 0)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "field"),
+    [
+        ({"n_adam_k": True, "warmup_length": 0}, "n_adam_k"),
+        ({"n_adam_k": "100", "warmup_length": 10}, "n_adam_k"),
+        ({"n_adam_k": float("inf"), "warmup_length": 10}, "n_adam_k"),
+        ({"n_adam_k": -10, "warmup_length": -1}, "n_adam_k"),
+        ({"n_adam_k": 0, "warmup_length": False}, "warmup_length"),
+        ({"n_adam_k": 10, "warmup_length": -1}, "warmup_length"),
+    ],
+)
+def test_corrupt_budget_or_warmup_is_refused_as_value_error(overrides, field):
+    with pytest.raises(ValueError, match=field):
+        _table_module().assert_phys05_table(
+            _StateOnlyScheduler(_state_for(**overrides)), 0
+        )
+
+
 def test_formula_literals_are_exact_for_k_2_3_4():
     from pinn.constants import PHYS05_LAMBDA_E_MAX, PHYS05_LAMBDA_L_MAX
 
@@ -372,3 +407,36 @@ class EntrypointTests(_EntrypointHarness):
         assert payload["preflight_status"] == "failed"
         assert payload["assertions"][0]["status"] == "failed"
         assert "lambda_e_max" in err
+
+    def test_non_finite_scheduler_budget_writes_refusal_before_nonzero_exit(self):
+        real_scheduler = self.train.ScheduledWeights
+
+        class CorruptBudgetScheduler(real_scheduler):
+            def state_dict(self):
+                state = super().state_dict()
+                state["n_adam_k"] = float("inf")
+                return state
+
+        with mock.patch.object(
+            self.train, "ScheduledWeights", CorruptBudgetScheduler
+        ):
+            code, _out, err = self._run()
+        assert code != 0
+        payload = _preflight_module().load_preflight(self.runs / "gate-run")
+        assert payload["preflight_status"] == "failed"
+        assert payload["assertions"][0]["status"] == "failed"
+        assert "n_adam_k" in err
+
+    def test_census_runtime_error_writes_refusal_and_returns_controlled_exit(self):
+        with mock.patch.object(
+            _preflight_module(),
+            "run_census",
+            side_effect=RuntimeError("producer exploded"),
+        ):
+            code, _out, err = self._run()
+        assert code != 0
+        payload = _preflight_module().load_preflight(self.runs / "gate-run")
+        assert payload["preflight_status"] == "failed"
+        assert payload["assertions"][0]["status"] == "failed"
+        assert "conformance preflight failed" in err
+        assert "producer exploded" in err

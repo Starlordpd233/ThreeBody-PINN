@@ -38,6 +38,13 @@ _STATE_KEYS = frozenset(
         "n_adam_k",
     }
 )
+_CAP_STATE_KEYS = (
+    "lambda_phys_max",
+    "lambda_e_max",
+    "lambda_l_max",
+    "lambda_ic",
+)
+_INTEGER_STATE_KEYS = ("n_adam_k", "warmup_length")
 
 
 def _check(
@@ -69,6 +76,34 @@ def _raise_locked(*, stage: int, name: str, expected: Any, actual: Any) -> None:
         f"{stage} (read its state_dict() caps and configure the entered "
         "stage before running it)"
     )
+
+
+def _validate_state_scalars(state: Mapping[str, Any]) -> None:
+    """Refuse corrupted scheduler scalars before arithmetic or comparison."""
+    for name in _CAP_STATE_KEYS:
+        value = state[name]
+        if type(value) not in (int, float):
+            raise ValueError(
+                f"PHYS-05 conformance scheduler field {name} must be a finite "
+                f"non-negative real scalar; got {value!r}"
+            )
+        try:
+            finite = math.isfinite(value)
+        except (TypeError, OverflowError):
+            finite = False
+        if not finite or value < 0:
+            raise ValueError(
+                f"PHYS-05 conformance scheduler field {name} must be a finite "
+                f"non-negative real scalar; got {value!r}"
+            )
+
+    for name in _INTEGER_STATE_KEYS:
+        value = state[name]
+        if type(value) is not int or value < 0:
+            raise ValueError(
+                f"PHYS-05 conformance scheduler field {name} must be a "
+                f"non-negative int; got {value!r}"
+            )
 
 
 def _lambda_data_default() -> Any:
@@ -124,6 +159,7 @@ def assert_phys05_table(scheduled_weights: Any, stage: int) -> dict[str, Any]:
             "PHYS-05 conformance ScheduledWeights.state_dict() is missing "
             f"required key(s): {', '.join(missing)}"
         )
+    _validate_state_scalars(state)
 
     checks: list[dict[str, Any]] = []
     locked_rows = (
@@ -148,10 +184,16 @@ def assert_phys05_table(scheduled_weights: Any, stage: int) -> dict[str, Any]:
     )
 
     n_adam_k = state["n_adam_k"]
-    expected_warmup = min(
-        PHYS05_I_WARM_CAP,
-        math.floor(PHYS05_I_WARM_FRACTION * n_adam_k),
-    )
+    try:
+        expected_warmup = min(
+            PHYS05_I_WARM_CAP,
+            math.floor(PHYS05_I_WARM_FRACTION * n_adam_k),
+        )
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(
+            "PHYS-05 conformance scheduler field n_adam_k cannot be used "
+            f"to derive warmup_length; got {n_adam_k!r}"
+        ) from exc
     actual_warmup = state["warmup_length"]
     if not _check(
         checks,

@@ -54,7 +54,7 @@
 - [x] **Phase 46: Frame Resolution & Gate-Aligned Validation** — Settle RG-02 (raw positions vs `r' = r/D` training targets) via the train-free residual-on-stored-targets check — no training run — and add per-trajectory ε_H/SCS validation metrics via the existing `pinn.verification.gate_metrics` functions, so validation carries a conservation signal where none exists. **The branch point fired** (2026-07-27, `VERDICT_AMBIGUOUS`): a 100%-prevalent mass↔position permutation + COM/boost gauge divergence is the sixth, data-path divergence, and per GAP-46-05 its *minimum* repair plus a follow-up re-probe are owned by this phase as CONF-08. (CONF-01, CONF-08, INST-01) (completed 2026-07-29)
 - [x] **Phase 47: Frame Completion & S_H Pipeline** — **First**, residency is completed to the locked canonical contract: the resident position/velocity series moves to the rotation-gauged, `D`/`V`-scaled `pre.r_gauge`/`pre.v_gauge` that the pipeline already computes, `RATIFIED_VALIDATION_FRAME` is re-ratified to `(r_prime, u_t_over_T, ordered_raw)` in the same change, and any test encoding the current pairing is corrected alongside (CONF-09, added 2026-07-28 by GAP-46-07). **Then**, on that frame, a real preprocessing stage computes the dataset-wide statistic `S_H = median_train(K0 + Uabs0)` over the admitted set, persisted in training metadata with fail-closed validation (finite, strictly positive, per spec §3.4), and the `ε_H = 1e-4 · S_H` wiring lands with the prohibited `+1e-12` fallback floor removed. The order is load-bearing: `S_H` is frame-dependent (`H' = D·H`), so computing it first means recomputing it. The largest single work item in the milestone. (CONF-09, CONF-02, CONF-03) (completed 2026-07-31)
 - [x] **Phase 48: Loss-Math Conformance** — The loss math the trainer executes becomes the loss math the specs lock: `R̄ = (1/3)Σ_i‖f_i‖²`, the causal-exponent clip (invariant A, chosen against the corrected `R̄`), `λ_E^max → 0`, and the `L_data` reduction — plus per-term gradient-statistics logging, the two divergence-defending tests corrected in the same change, and assembly-boundary conformance tests. **Blocking owner checkpoint:** GAP-45-01 `L_data` reduction with computed term magnitudes. Ordering: CONF-04 before CONF-05. (CONF-04..07, INST-02, TEST-01, TEST-02) (completed 2026-08-02)
-- [ ] **Phase 49: Conformance Gate** — The minimum enforcement subset that protects the single look: preflight asserts the full PHYS-05 per-stage table at run start and every stage boundary; the placeholder census (every spec-required loss quantity resolves real or is explicitly owner-waived); runtime invariants A/B failing loud and early; the known-divergence register surfaced in the run record. **Owner checkpoint:** N for invariant B. Coordinated with the charter workstream per SCOPE-32. (GATE-01..03, INST-03)
+- [x] **Phase 49: Conformance Gate** — The minimum enforcement subset that protects the single look: preflight asserts the full PHYS-05 per-stage table at run start and every stage boundary; the placeholder census (every spec-required loss quantity resolves real or is explicitly owner-waived); runtime invariants A/B failing loud and early; the known-divergence register surfaced in the run record. **Owner checkpoint:** N for invariant B. Coordinated with the charter workstream per SCOPE-32. (GATE-01..03, INST-03) (completed 2026-08-07)
 - [ ] **Phase 50: Valid Stage-0 Re-Run** — Stage-0 runs end-to-end under the corrected recipe across the re-established three-seed band (v2.0 protocol, comparable runs). Training authorized (SCOPE-27). Iteration is conformance-only (SCOPE-29). (RUN-01, RUN-02)
 - [ ] **Phase 51: The Authorized Evaluation** — The three EVAL-01 preconditions verified and recorded, the evaluator invoked **once**, and the owner's go / adjust / rethink verdict on the design rendered (the v2.0 ACC-06 pattern) — the first valid grade the design has ever received. (RUN-03, EVAL-01)
 - [ ] **Phase 52: Diagnosis Re-Derivation & Handoff** — The GAP-44-02 obligation discharged: the Phase 44 diagnosis re-derived against the conformant run with an acceptance check; 24/24 traceability closed; the four-item spec-amendment routing list handed off for a later spec milestone. (DIAG-05, VER-19, VER-20)
@@ -160,7 +160,7 @@ Plans:
 **Depends on**: Phase 48 (the conformant loss assembly the gate asserts).
 **Requirements**: GATE-01, GATE-02, GATE-03, INST-03
 **Owner checkpoint**: N for invariant B (the front-advance window).
-**Plans:** 5/6 plans executed
+**Plans:** 8/8 plans executed
 
 Plans:
 
@@ -180,7 +180,12 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 49-06-PLAN.md — D-30 end-to-end seam test on the real `main()` ordering, full-suite phase gate, and the blocking owner checkpoint for N with the D-19 evidence packet (wave 4; `autonomous: false` — owner checkpoint)
+- [x] 49-06-PLAN.md — D-30 end-to-end seam test on the real `main()` ordering, full-suite phase gate, and the blocking owner checkpoint for N with the D-19 evidence packet (wave 4; `autonomous: false` — owner checkpoint; owner selected N = 500)
+
+**Remediation waves**
+
+- [x] 49-07-PLAN.md — First code-review BLOCKER wave: maintained launch fixtures, null nested config, invariant-B instrumentation, preflight integrity, and register proof resolution
+- [x] 49-08-PLAN.md — Remaining BLOCKER wave: controlled setup/probe refusals, scheduler scalar validation, append-only resume history, and CR-08 re-verification
 
 **Success Criteria** (what must be TRUE):
 

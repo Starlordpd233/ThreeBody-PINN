@@ -47,13 +47,13 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 
 - [x] **INST-01**: Gate-aligned validation metrics: per-trajectory `ε_H`/`SCS` on the validation split, via the existing `pinn.verification.gate_metrics` functions. Currently validation records only `final_val_loss`, `step`, `trend` — no conservation signal at all. [conformance audit; EVAL-01 precondition (iii)] *(Frame-independent components shipped in plans 46-03/46-05; the production wiring landed 2026-07-28 in Plan 46-07. Verified end-to-end on a real run, not inferred: each validation event publishes a sidecar carrying 240 per-trajectory `{record_key, eps_h, scs}` rows plus the ratified frame block, the eight `gate_*` keys merge into `validation.jsonl`, and `summary.json` projects them alongside `eval01_precondition_iii`. `gate_status` and `gate_verdict` remain distinct states, so instrumentation failure never renders as a metric PASS.)*
 - [x] **INST-02**: Log per-term gradient statistics — the precondition the locked Phase-35 contract names for any reweighting decision, never satisfied. [Phase-35 loss/energy-weight contract]
-- [ ] **INST-03**: Maintain the known-divergence register; the run record surfaces every open divergence so a run carries its own caveats. [conformance audit]
+- [x] **INST-03**: Maintain the known-divergence register; the run record surfaces every open divergence so a run carries its own caveats. [conformance audit]
 
 ### Minimum Enforcement (GATE) — Phase 49
 
-- [ ] **GATE-01**: Preflight asserts the **full** PHYS-05 per-stage table at run start and at every stage boundary (per GAP-45-03), not merely the `≤1` cap. [GAP-45-03 owner ruling: per-stage PHYS-05 values are locked]
-- [ ] **GATE-02**: Preflight placeholder census: every spec-required quantity the loss consumes resolves to a real pipeline value, or is explicitly owner-waived for that run. This is the check that would have caught the `S_H` gap. [conformance audit]
-- [ ] **GATE-03**: Runtime invariants: no causal weight exactly zero (invariant A); the causal front advances within N steps (invariant B — N is an owner checkpoint). Fail loud, fail early. [GAP-45-04; N owner checkpoint at Phase 49]
+- [x] **GATE-01**: Preflight asserts the **full** PHYS-05 per-stage table at run start and at every stage boundary (per GAP-45-03), not merely the `≤1` cap. [GAP-45-03 owner ruling: per-stage PHYS-05 values are locked]
+- [x] **GATE-02**: Preflight placeholder census: every spec-required quantity the loss consumes resolves to a real pipeline value, or is explicitly owner-waived for that run. This is the check that would have caught the `S_H` gap. [conformance audit]
+- [x] **GATE-03**: Runtime invariants: no causal weight exactly zero (invariant A); the causal front advances within N steps (invariant B — N is an owner checkpoint). Fail loud, fail early. [GAP-45-04; N owner checkpoint at Phase 49]
 
 ### Test-Suite Correction (TEST) — Phase 48
 
@@ -118,10 +118,10 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 | CONF-09 | Phase 47 | Complete |
 | INST-01 | Phase 46 | Complete |
 | INST-02 | Phase 48 | Complete |
-| INST-03 | Phase 49 | Pending |
-| GATE-01 | Phase 49 | Pending |
-| GATE-02 | Phase 49 | Pending |
-| GATE-03 | Phase 49 | Pending |
+| INST-03 | Phase 49 | Complete |
+| GATE-01 | Phase 49 | Complete |
+| GATE-02 | Phase 49 | Complete |
+| GATE-03 | Phase 49 | Complete |
 | TEST-01 | Phase 48 | Complete |
 | TEST-02 | Phase 48 | Complete |
 | RUN-01 | Phase 50 | Pending |
