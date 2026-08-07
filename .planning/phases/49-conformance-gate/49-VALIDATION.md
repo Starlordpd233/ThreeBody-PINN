@@ -2,10 +2,11 @@
 phase: 49
 slug: conformance-gate
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-08-04
+validated: 2026-08-07
 ---
 
 # Phase 49 — Validation Strategy
@@ -22,9 +23,9 @@ created: 2026-08-04
 | **Framework** | pytest 9.1.1 (repo `.venv`) |
 | **Config file** | none dedicated — run from repo root with explicit paths and `-q` (same as Phase 48) |
 | **Quick run command** | `.venv/bin/python -m pytest -q tests/phase49` |
-| **Full suite command** | `.venv/bin/python -m pytest -q tests/phase38 tests/phase40 tests/phase41 tests/phase42 tests/phase46 tests/phase47 tests/phase48 tests/phase49` |
+| **Full suite command** | `.venv/bin/python -m pytest -q tests/phase38 tests/phase40 tests/phase41 tests/phase42 tests/phase43/test_summary_enrichment.py tests/phase43/test_summary_honesty.py tests/phase43/test_real_data_smoke_config.py tests/phase46 tests/phase47 tests/phase48 tests/phase49` |
 | **Backend probe** | `conda run -n pinn-train python -m pytest -q <target>` — only where MPS/torch-2.12.1 backend behavior is the claim (Phase 48 convention) |
-| **Estimated runtime** | ~60s quick · ~5-8 min full suite |
+| **Measured runtime** | 13.26s quick (176 passed) · 448.09s full suite (943 passed, 3 skipped, 289 subtests passed) |
 
 ---
 
@@ -45,28 +46,32 @@ Task IDs are assigned when plans are written; the requirement→behavior→comma
 
 | Task ID | Plan | Wave | Requirement | Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|----------|-----------|-------------------|-------------|--------|
-| pending | — | — | GATE-01 | Table assertion PASSES for a conformant Stage-0 `ScheduledWeights` | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate01_table.py -k pass` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-01 | Table assertion **TRIPS** for Stage-2 (no `stage_factory` — D-06's deliberate refusal) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate01_table.py -k stage2_fails` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-01 | Literal table equals the spec formula `10.0 ** (k - 4)` for k ∈ {2,3,4} (D-04) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate01_table.py -k formula` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-01 | Assertion fires at BOTH D-05 sites in a synthetic multi-step run | integration (e2e seam, D-30) | `.venv/bin/python -m pytest -q tests/phase49/test_e2e_seam.py -k table` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-02 | Census PASSES when every D-08 quantity resolves | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate02_census.py -k pass` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-02 | Census **BLOCKS** on an injected class-4 placeholder with no waiver | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate02_census.py -k placeholder_blocks` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-02 | Census **records, does not adopt**, a `provisional_fields()` disagreement (D-09) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate02_census.py -k disagreement` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-02 | Instrumentation preconditions asserted — grad-norm fields + `grad_stats_complete` (D-10) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate02_census.py -k instrumentation` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | Invariant A **TRIPS HALT** on `w_min <= 0` / non-finite `w_n` | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k invariant_a_trips` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | `front_idx == -1` sentinel is a hard invariant-A failure (D-13) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k front_idx_sentinel` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | Invariant B **TRIPS HALT** when the front stalls beyond a configured `N` | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k invariant_b_trips` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | Invariant B does NOT fire at saturation `F_t = N_colloc − 1` (D-14 property ii) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k saturation` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | High-water mark tolerates transient regression 3→2→3 (D-14 property iii) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k high_water` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | Invariant B runs **record-only** (no HALT) when `N` is unset (D-20) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k n_unset_record_only` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | `causal_stats_missing` **TRIPS HALT** when stats absent on an evaluated-physics step (D-16) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k stats_missing_trips` | ❌ W0 | ⬜ pending |
-| pending | — | — | GATE-03 | Invariant-B state survives a resume via the checkpoint payload (D-17) | integration | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_resume.py` | ❌ W0 | ⬜ pending |
-| pending | — | — | INST-03 | Register loads/validates with fail-closed schema checking (D-22) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k schema` | ❌ W0 | ⬜ pending |
-| pending | — | — | INST-03 | Every `status: closed` entry's cited `proof_test` currently passes (D-25) | integration/meta | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k proof_tests_pass` | ❌ W0 | ⬜ pending |
-| pending | — | — | INST-03 | Open entries surface into `preflight.json` and summary's `conformance` block (D-27) | integration | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k surfaces_in_run_record` | ❌ W0 | ⬜ pending |
-| pending | — | — | INST-03 | A refusal writes `preflight.json` FIRST, then exits non-zero (D-27) | integration | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k refusal_writes_artifact` | ❌ W0 | ⬜ pending |
-| pending | — | — | INST-03 | No `gate_*` key collision — every new field is `conformance_*`/`preflight_*` (D-28) | unit | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k no_gate_collision` | ❌ W0 | ⬜ pending |
-| pending | — | — | SCOPE-32 | Charter-landed-deliverable re-check documented with a date (D-31) | manual/operational | N/A — a planner-time check, re-run 2026-08-04; not a runtime test | — | ✅ done |
+| 49-01-01 | 49-01 | 1 | GATE-01 | Run-start table pass/refusal and artifact-first exit | integration | `.venv/bin/python -m pytest -q tests/phase49/test_gate01_table.py -k "run_start or state_dict or missing_key or lambda_data"` | ✅ | ✅ green |
+| 49-01-02 | 49-01 | 1 | GATE-01 | Stage-boundary assertion and deliberate Stage-2 refusal | integration | `.venv/bin/python -m pytest -q tests/phase49/test_gate01_table.py -k "stage2 or stage_boundary"` | ✅ | ✅ green |
+| 49-01-03 | 49-01 | 1 | GATE-01 | Exact formula, one-ulp, advisory-tier, and warmup checks | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate01_table.py -k "formula or ulp or advisory or warmup"` | ✅ | ✅ green |
+| 49-02-01 | 49-02 | 2 | GATE-03 | Typed invariant owner slot and fail-closed YAML | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k invariants_config` | ✅ | ✅ green |
+| 49-02-02 | 49-02 | 2 | GATE-03 | Invariant A/B and missing-stat HALT branches | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py` | ✅ | ✅ green |
+| 49-02-03 | 49-02 | 2 | GATE-03 | Guard-hook causal-statistics wiring | integration | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k guard_hook` | ✅ | ✅ green |
+| 49-03-01 | 49-03 | 3 | GATE-03 | Schema-v2 checkpoint payload and provider threading | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_resume.py -k "payload or schema"` | ✅ | ✅ green |
+| 49-03-02 | 49-03 | 3 | GATE-03 | Fail-closed restore and stall-window continuity | integration | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_resume.py` | ✅ | ✅ green |
+| 49-04-01 | 49-04 | 2 | INST-03 | Register schema, proof resolution, and initial contents | integration/meta | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py` | ✅ | ✅ green |
+| 49-04-02 | 49-04 | 2 | GATE-02 | Ordered census pass/block/disagreement/instrumentation | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate02_census.py` | ✅ | ✅ green |
+| 49-04-03 | 49-04 | 2 | GATE-02, INST-03 | Composed preflight and refusal-first evidence | integration | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k "preflight or census"` | ✅ | ✅ green |
+| 49-05-01 | 49-05 | 3 | INST-03 | Verbatim conformance projection and EVAL-01 predicate | integration | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k surfaces_in_run_record` | ✅ | ✅ green |
+| 49-05-02 | 49-05 | 3 | INST-03 | Valid/malformed/absent/refused summary rendering | integration | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k surfaces_in_run_record` | ✅ | ✅ green |
+| 49-06-01 | 49-06 | 4 | GATE-01..03, INST-03 | Real synthetic `main()` ordering seam | e2e | `.venv/bin/python -m pytest -q tests/phase49/test_e2e_seam.py` | ✅ | ✅ green |
+| 49-06-02 | 49-06 | 4 | GATE-03 | Owner-ratified `N = 500` enforcement | unit/integration | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py -k threshold_nonprovisional` | ✅ | ✅ green |
+| 49-06-03 | 49-06 | 4 | GATE-03, INST-03 | Register closure and eligible synthetic summary | e2e | `.venv/bin/python -m pytest -q tests/phase49/test_e2e_seam.py tests/phase49/test_inst03_register.py` | ✅ | ✅ green |
+| 49-07-01 | 49-07 | 5 | GATE-01 | Maintained fixtures plus explicit PHYS-05 trip | integration | `.venv/bin/python -m pytest -q tests/phase41/test_train_entrypoint.py::Phys05LaunchGateTests` | ✅ | ✅ green |
+| 49-07-02 | 49-07 | 5 | GATE-03 | Null/omitted nested config shapes | regression | `.venv/bin/python -m pytest -q tests/phase49/test_config_null_sections.py tests/phase40/test_config.py` | ✅ | ✅ green |
+| 49-07-03 | 49-07 | 5 | GATE-03 | Strict front-index and restored-state validation | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate03_invariants.py tests/phase49/test_gate03_resume.py` | ✅ | ✅ green |
+| 49-07-04 | 49-07 | 5 | INST-03 | Non-finite and self-contradicting artifact refusal | unit | `.venv/bin/python -m pytest -q tests/phase49/test_preflight_integrity.py` | ✅ | ✅ green |
+| 49-07-05 | 49-07 | 5 | INST-03 | Static and executable closed-proof validation | integration/meta | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k proof_test` | ✅ | ✅ green |
+| 49-08-01 | 49-08 | 5 | GATE-02, INST-03 | Ordinary setup/probe refusals persist evidence | integration | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k "metadata or census_result or runtime_census"` | ✅ | ✅ green |
+| 49-08-02 | 49-08 | 5 | GATE-01 | Scheduler scalar type/domain refusal | unit | `.venv/bin/python -m pytest -q tests/phase49/test_gate01_table.py -k "cap_scalar or budget_or_warmup or non_finite_scheduler"` | ✅ | ✅ green |
+| 49-08-03 | 49-08 | 5 | INST-03 | Append-only resume history and malformed-history refusal | integration | `.venv/bin/python -m pytest -q tests/phase49/test_inst03_register.py -k "history or malformed_preflight"` | ✅ | ✅ green |
+| 49-08-04 | 49-08 | 5 | GATE-02 | Concrete producer-contract re-check | integration | `.venv/bin/python -m pytest -q tests/phase49/test_gate02_census.py` | ✅ | ✅ green |
+| 49-08-05 | 49-08 | 5 | GATE-01..03, INST-03 | Phase gate and closeout consistency | regression | `.venv/bin/python -m pytest -q tests/phase49` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -74,14 +79,14 @@ Task IDs are assigned when plans are written; the requirement→behavior→comma
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase49/__init__.py` — phase package marker
-- [ ] `tests/phase49/test_gate01_table.py` — table assertion pass + Stage-2 refusal + formula equivalence
-- [ ] `tests/phase49/test_gate02_census.py` — census pass + placeholder-blocks + disagreement-recorded + instrumentation preconditions
-- [ ] `tests/phase49/test_gate03_invariants.py` — invariant A/B trip + saturation + high-water + record-only + `causal_stats_missing`
-- [ ] `tests/phase49/test_gate03_resume.py` — invariant-B checkpoint round-trip
-- [ ] `tests/phase49/test_inst03_register.py` — register schema, proof-test-currently-passes, run-record surfacing, refusal-writes-artifact, no `gate_*` collision
-- [ ] `tests/phase49/test_e2e_seam.py` — D-30 synthetic-source, real `main()` ordering, few steps, proving the D-05 ordering constraint by execution
-- [ ] `tests/phase49/_fixtures.py` (optional) — dataset-free fixtures following `tests/phase40/_fixtures.py`'s `_StubSource` / `make_stub_split_sources` shape
+- [x] `tests/phase49/__init__.py` — phase package marker
+- [x] `tests/phase49/test_gate01_table.py` — table assertion pass + Stage-2 refusal + formula equivalence
+- [x] `tests/phase49/test_gate02_census.py` — census pass + placeholder-blocks + disagreement-recorded + instrumentation preconditions
+- [x] `tests/phase49/test_gate03_invariants.py` — invariant A/B trip + saturation + high-water + record-only + `causal_stats_missing`
+- [x] `tests/phase49/test_gate03_resume.py` — invariant-B checkpoint round-trip
+- [x] `tests/phase49/test_inst03_register.py` — register schema, proof execution, run-record surfacing, refusal evidence, no `gate_*` collision
+- [x] `tests/phase49/test_e2e_seam.py` — D-30 synthetic-source real-`main()` ordering seam
+- [x] Shared fixture module not required; each suite uses bounded local dataset-free fixtures.
 
 Framework install: **none needed** — pytest/torch/numpy already present (the same baseline Phase 48 validated).
 
@@ -92,19 +97,32 @@ Framework install: **none needed** — pytest/torch/numpy already present (the s
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | SCOPE-32 coordination decision | SCOPE-32 / roadmap success criterion 5 | A planner-time repository state check, not a runtime property | Re-run the D-31 evidence check (charter directory contents, absence of `pinn/conformance/`, `git worktree list`) and record the date in the plan |
-| Owner ratification of `N` | GATE-03 / D-18 | Reserved to the owner by GAP-45-04 and the roadmap owner-checkpoint list; no agent may select it (D-21) | Surface the D-19 evidence packet; until `N` is set, invariant B is record-only and `eval01_precondition_i = false` (D-20) |
+| Owner ratification of `N` | GATE-03 / D-18 | The choice itself was correctly manual; enforcement is automated after the 2026-08-05 ruling | Closed: owner selected `N = 500`; trip proof and E2E eligibility path are green |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] **D-16 trip-coverage:** every guard and every preflight assertion has a test that drives it to fail
-- [ ] **D-25 register self-defense:** every `closed` entry's `proof_test` runs in CI
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verification or a completed owner/operational checkpoint
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all originally missing references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s (13.26s measured quick suite)
+- [x] **D-16 trip-coverage:** every guard and every preflight assertion has a test that drives it to fail
+- [x] **D-25 register self-defense:** every `closed` entry's `proof_test` resolves and executes green
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-08-07 — 176 Phase-49 tests passed on the final code tree; the required cross-phase gate recorded 943 passed, 3 skipped, and 289 subtests passed.
+
+## Validation Audit 2026-08-07
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+The audit corrected two stale selector names in the seeded strategy
+(`proof_tests_pass` and `refusal_writes_artifact`) by binding the map to current
+test nodes. No implementation or test-file gap was found, so no Nyquist auditor
+or generated test was required.
