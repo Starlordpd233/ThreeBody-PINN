@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
-current_phase: 50
-current_phase_name: Valid Stage-0 Re-Run
-status: planning
-stopped_at: "Phase 49 complete after 49-08 blocker remediation and final gate"
-last_updated: "2026-08-07T08:03:46Z"
-last_activity: 2026-08-07
-last_activity_desc: Phase 49 complete; 943-test required gate green; Phase 50 ready to plan
+current_phase: 49
+current_phase_name: Conformance Gate
+status: gaps_found
+stopped_at: "Phase 49 verification found two eligibility gaps"
+last_updated: "2026-08-10T09:43:37Z"
+last_activity: 2026-08-10
+last_activity_desc: Phase 49 verification scored 4/6; gap-closure planning required
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 3
   total_plans: 25
   completed_plans: 25
-  percent: 57
+  percent: 43
 ---
 
 # Project State
@@ -24,15 +24,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-31)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 50 — Valid Stage-0 Re-Run
+**Current focus:** Phase 49 — Conformance Gate gap closure
 
 ## Current Position
 
-Phase: 50 (Valid Stage-0 Re-Run) — PLANNING
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-07 — Phase 49 closed after blocker remediation
-**Progress:** [██████████] 100% (25/25 planned plans complete)
+Phase: 49 (Conformance Gate) — GAP CLOSURE
+Plan: 8/8 executed; remediation planning required
+Status: Verification gaps found (4/6 must-haves)
+Last activity: 2026-08-10 — Canonical goal verification reproduced two eligibility bypasses
+**Verification:** [███████░░░] 67% (4/6 truths verified)
+
+### Phase 49 verification (2026-08-10)
+
+- **Phase 49 is not closed.** `49-VERIFICATION.md` records `gaps_found`
+  with 4/6 must-haves verified despite the full Phase 49 suite passing 176 tests.
+- **Run-local invariant-B eligibility is incomplete.** A real synthetic
+  `main()` run with `front_advance_window_n = None` remained record-only but
+  emitted `eval01_precondition_i = true` after the global divergence entry was
+  closed.
+- **Run-start evidence is not required by the eligibility projection.** A
+  schema-valid, passed `stage_boundary`-only preflight with no `run_start` or
+  census loaded successfully and also yielded `eval01_precondition_i = true`.
+- **Phase 50 remains blocked.** Next action is `$gsd-plan-phase 49 --gaps`,
+  followed by gap-only execution and re-verification.
 
 ### Decisions from 49-08
 
@@ -429,9 +443,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-07T08:03:46Z
-Stopped at: Phase 49 complete after Plan 49-08 remediation and final gate
-Next action: Run `$gsd-discuss-phase 50` from `.worktrees/trainex` before planning the authorized Stage-0 re-run.
+Last session: 2026-08-10T09:43:37Z
+Stopped at: Phase 49 verification found two eligibility gaps
+Next action: Run `$gsd-plan-phase 49 --gaps` from `.worktrees/trainex`, then execute the gap-closure plan(s) and re-run verification.
 
 ## Operator Next Steps
 
