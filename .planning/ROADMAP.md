@@ -204,8 +204,16 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 50-01-PLAN.md — Land the recipe before any launch: four committed configs (smoke + three graded), pre-registration record, config-delta record + register qualification, run-ledger scaffold (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 50-02-PLAN.md — The no-commit run window: calibration smoke (tracer), then graded seeds 41→42→43 at one git head, every launch ledgered (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 50-03-PLAN.md — Evidence extraction with sha256 manifest, the D-24 band record, and the pre-registered submission-candidate reading (wave 3)
 
 **Success Criteria** (what must be TRUE — the proposal's exit criteria):
