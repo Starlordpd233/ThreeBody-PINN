@@ -160,7 +160,7 @@ Plans:
 **Depends on**: Phase 48 (the conformant loss assembly the gate asserts).
 **Requirements**: GATE-01, GATE-02, GATE-03, INST-03
 **Owner checkpoint**: N for invariant B (the front-advance window).
-**Plans:** 8/8 plans executed
+**Plans:** 9 plans (8/9 executed; 49-09 closes the two `49-VERIFICATION.md` gaps)
 
 Plans:
 
@@ -186,6 +186,7 @@ Plans:
 
 - [x] 49-07-PLAN.md — First code-review BLOCKER wave: maintained launch fixtures, null nested config, invariant-B instrumentation, preflight integrity, and register proof resolution
 - [x] 49-08-PLAN.md — Remaining BLOCKER wave: controlled setup/probe refusals, scheduler scalar validation, append-only resume history, and CR-08 re-verification
+- [ ] 49-09-PLAN.md — Gap-closure wave: bind the run-local invariant-B window to EVAL-01 precondition (i) so an N-unset run is structurally ineligible (D-20), and require the run-start table and census evidence the predicate claims to summarize (wave 6)
 
 **Success Criteria** (what must be TRUE):
 
