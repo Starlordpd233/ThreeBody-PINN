@@ -4,15 +4,15 @@ milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 49
 current_phase_name: Conformance Gate
-status: gaps_found
-stopped_at: "Phase 49 verification found two eligibility gaps"
-last_updated: "2026-08-10T09:43:37Z"
+status: planning
+stopped_at: "Phase 49 gap-closure plan 49-09 written and verified; ready to execute"
+last_updated: "2026-08-11T01:56:50Z"
 last_activity: 2026-08-10
-last_activity_desc: Phase 49 verification scored 4/6; gap-closure planning required
+last_activity_desc: Phase 49 gap-closure planned; 49-09 closes both eligibility gaps
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 25
+  total_plans: 26
   completed_plans: 25
   percent: 43
 ---
@@ -45,8 +45,13 @@ Last activity: 2026-08-10 — Canonical goal verification reproduced two eligibi
 - **Run-start evidence is not required by the eligibility projection.** A
   schema-valid, passed `stage_boundary`-only preflight with no `run_start` or
   census loaded successfully and also yielded `eval01_precondition_i = true`.
-- **Phase 50 remains blocked.** Next action is `$gsd-plan-phase 49 --gaps`,
-  followed by gap-only execution and re-verification.
+- **Phase 50 remains blocked.** `$gsd-plan-phase 49 --gaps` ran on 2026-08-10 and
+  produced `49-09-PLAN.md` (wave 6, depends on 49-08), which closes both gaps at the
+  single eligibility seam: bind the run-local invariant-B window so an N-unset run is
+  structurally ineligible (D-20), and require the run-start table + census evidence the
+  predicate claims to summarize. Plan-checker passed with 0 blockers after one revision.
+  Next action is gap-only execution of 49-09, then re-verification. The gaps remain OPEN
+  until re-verification says otherwise — the plan is forbidden from self-certifying them.
 
 ### Decisions from 49-08
 
@@ -443,9 +448,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-10T09:43:37Z
-Stopped at: Phase 49 verification found two eligibility gaps
-Next action: Run `$gsd-plan-phase 49 --gaps` from `.worktrees/trainex`, then execute the gap-closure plan(s) and re-run verification.
+Last session: 2026-08-11T01:56:50Z
+Stopped at: Phase 49 gap-closure plan 49-09 written and verified; ready to execute
+Next action: Run `$gsd-execute-phase 49` from `.worktrees/trainex` to execute `49-09-PLAN.md` (the only unexecuted plan), then re-run `$gsd-verify-work 49`. Both eligibility gaps stay OPEN until re-verification closes them.
 
 ## Operator Next Steps
 
