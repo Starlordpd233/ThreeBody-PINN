@@ -5,8 +5,8 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 50
 current_phase_name: Valid Stage-0 Re-Run
 status: planning
-stopped_at: Phase 49 gap-closure plan 49-09 written and verified; ready to execute
-last_updated: "2026-08-11T06:59:53.463Z"
+stopped_at: Phase 50 context gathered
+last_updated: "2026-08-11T08:20:41.685Z"
 last_activity: 2026-08-10
 last_activity_desc: Phase 49 complete, transitioned to Phase 50
 progress:
@@ -453,11 +453,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/50-valid-stage-0-re-run/50-CONTEXT.md
 
-Last session: 2026-08-11T01:56:50Z
-Stopped at: Phase 49 gap-closure plan 49-09 written and verified; ready to execute
-Next action: Run `$gsd-execute-phase 49` from `.worktrees/trainex` to execute `49-09-PLAN.md` (the only unexecuted plan), then re-run `$gsd-verify-work 49`. Both eligibility gaps stay OPEN until re-verification closes them.
+Last session: 2026-08-11T08:20:00.536Z
+Stopped at: Phase 50 context gathered
+Next action: Run `/gsd-plan-phase 50` from .worktrees/trainex. Phase 49 is complete (verification 6/6); 50-CONTEXT.md is committed. Planning must honour CONTEXT D-17 — no commit may land between the ACC-02 calibration smoke and the three graded runs, or every graded launch refuses.
 
 ## Operator Next Steps
 
