@@ -201,6 +201,13 @@ Plans:
 **Goal**: Stage-0 runs end-to-end under the corrected recipe — the first run that is actually the specified experiment.
 **Depends on**: Phase 49 (the gate must exist before Phase 51 spends the look).
 **Requirements**: RUN-01, RUN-02
+**Plans:** 3 plans
+
+Plans:
+- [ ] 50-01-PLAN.md — Land the recipe before any launch: four committed configs (smoke + three graded), pre-registration record, config-delta record + register qualification, run-ledger scaffold (wave 1)
+- [ ] 50-02-PLAN.md — The no-commit run window: calibration smoke (tracer), then graded seeds 41→42→43 at one git head, every launch ledgered (wave 2)
+- [ ] 50-03-PLAN.md — Evidence extraction with sha256 manifest, the D-24 band record, and the pre-registered submission-candidate reading (wave 3)
+
 **Success Criteria** (what must be TRUE — the proposal's exit criteria):
 
   1. Preflight is clean with zero unwaived divergences at run start and across stage boundaries (RUN-01).
@@ -241,7 +248,7 @@ Plans:
 | 47. Frame Completion & S_H Pipeline | v2.2 | 3/3 | Complete    | 2026-07-31 |
 | 48. Loss-Math Conformance | v2.2 | 4/4 | Complete    | 2026-08-02 |
 | 49. Conformance Gate | v2.2 | 9/9 | Complete    | 2026-08-10 |
-| 50. Valid Stage-0 Re-Run | v2.2 | 0/? | Not started | - |
+| 50. Valid Stage-0 Re-Run | v2.2 | 0/3 | Not started | - |
 | 51. The Authorized Evaluation | v2.2 | 0/? | Not started | - |
 | 52. Diagnosis Re-Derivation & Handoff | v2.2 | 0/? | Not started | - |
 
