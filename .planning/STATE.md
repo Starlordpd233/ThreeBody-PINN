@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 49
-current_phase_name: Conformance Gate
-status: planning
-stopped_at: "Phase 49 gap-closure plan 49-09 written and verified; ready to execute"
-last_updated: "2026-08-11T01:56:50Z"
+current_phase_name: conformance-gate
+status: executing
+stopped_at: Phase 49 gap-closure plan 49-09 written and verified; ready to execute
+last_updated: "2026-08-11T05:33:11.937Z"
 last_activity: 2026-08-10
-last_activity_desc: Phase 49 gap-closure planned; 49-09 closes both eligibility gaps
+last_activity_desc: Phase 49 execution started
 progress:
   total_phases: 7
   completed_phases: 3
@@ -24,27 +24,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-31)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 49 — Conformance Gate gap closure
+**Current focus:** Phase 49 — conformance-gate
 
 ## Current Position
 
-Phase: 49 (Conformance Gate) — GAP CLOSURE
-Plan: 8/8 executed; remediation planning required
-Status: Verification gaps found (4/6 must-haves)
-Last activity: 2026-08-10 — Canonical goal verification reproduced two eligibility bypasses
+Phase: 49 (conformance-gate) — EXECUTING
+Plan: 1 of 9
+Status: Executing Phase 49
+Last activity: 2026-08-10 — Phase 49 execution started
 **Verification:** [███████░░░] 67% (4/6 truths verified)
 
 ### Phase 49 verification (2026-08-10)
 
 - **Phase 49 is not closed.** `49-VERIFICATION.md` records `gaps_found`
   with 4/6 must-haves verified despite the full Phase 49 suite passing 176 tests.
+
 - **Run-local invariant-B eligibility is incomplete.** A real synthetic
   `main()` run with `front_advance_window_n = None` remained record-only but
   emitted `eval01_precondition_i = true` after the global divergence entry was
   closed.
+
 - **Run-start evidence is not required by the eligibility projection.** A
   schema-valid, passed `stage_boundary`-only preflight with no `run_start` or
   census loaded successfully and also yielded `eval01_precondition_i = true`.
+
 - **Phase 50 remains blocked.** `$gsd-plan-phase 49 --gaps` ran on 2026-08-10 and
   produced `49-09-PLAN.md` (wave 6, depends on 49-08), which closes both gaps at the
   single eligibility seam: bind the run-local invariant-B window so an N-unset run is
@@ -59,12 +62,15 @@ Last activity: 2026-08-10 — Canonical goal verification reproduced two eligibi
   49-08; CR-08's producer-contract repair at `7d4ffd8d` was independently
   re-run without further code changes. The final required gate is 943 passed,
   3 skipped, and 289 subtests passed.
+
 - **Invariant-B policy is owner-ratified, not inferred.** The 2026-08-05 owner
   ruling is `N = 500 (= 0.5 * N_Adam,0)`; the shipped Stage-0 config carries
   that exact value and `INV-B-N-UNSET` is closed by its enforcing trip test.
+
 - **Preflight evidence is append-only across resumed attempts.** Existing
   artifacts are validated and retained before the next run-start event; any
   ordinary setup/probe refusal records its failed event before controlled exit.
+
 - **Phase 50 is authorized to be planned, not auto-launched.** No admitted
   corpus or held-out evaluator was touched during Phase 49 remediation.
 
