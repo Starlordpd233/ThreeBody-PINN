@@ -206,8 +206,11 @@ def _walk_keys(value):
 def test_preflight_composes_census_and_every_open_register_entry(tmp_path):
     run_dir = tmp_path / "run"
     _preflight_run_dir(run_dir)
+    # 49-09: the fixture binds the owner-ratified 500 — exact equality against
+    # the register's open entries is only honest for a bound run; the unbound
+    # counterpart is ..._appends_run_local_n_unset_divergence_when_window_absent.
     record = _run_start_preflight(
-        _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+        _preflight_config(500), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
     )
     assert record.events[0]["census"]["verdict"] == "passed"
     expected = [entry for entry in register.load_divergence_register()["entries"] if entry["status"] == "open"]
@@ -215,6 +218,180 @@ def test_preflight_composes_census_and_every_open_register_entry(tmp_path):
     assert record.events[0]["findings"]
     payload = preflight.load_preflight(run_dir)
     assert payload["assertions"][0]["open_divergences"] == expected
+
+
+def test_preflight_appends_run_local_n_unset_divergence_when_window_absent(tmp_path):
+    """D-20: an unbound run carries exactly one open run-local INV-B-N-UNSET.
+
+    The run-local record is appended AFTER the register-derived open entries,
+    and the loaded artifact shows it in the same position.
+    """
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+    record = _run_start_preflight(
+        _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+    )
+    register_open = [
+        entry
+        for entry in register.load_divergence_register()["entries"]
+        if entry["status"] == "open"
+    ]
+    canonical = next(
+        entry
+        for entry in register.load_divergence_register()["entries"]
+        if entry["id"] == "INV-B-N-UNSET"
+    )
+    run_local = dict(canonical, status="open", proof_test=None, waiver=None)
+    expected = register_open + [run_local]
+    assert record.events[0]["open_divergences"] == expected
+    assert (
+        sum(
+            1
+            for entry in record.events[0]["open_divergences"]
+            if entry["id"] == "INV-B-N-UNSET"
+        )
+        == 1
+    )
+    payload = preflight.load_preflight(run_dir)
+    assert payload["assertions"][0]["open_divergences"] == expected
+
+
+def test_preflight_omits_run_local_divergence_when_window_is_bound(tmp_path):
+    """A bound run carries exactly the register's open entries — nothing more."""
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+    record = _run_start_preflight(
+        _preflight_config(500), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+    )
+    expected = [
+        entry
+        for entry in register.load_divergence_register()["entries"]
+        if entry["status"] == "open"
+    ]
+    assert record.events[0]["open_divergences"] == expected
+    window_checks = [
+        check
+        for check in record.events[0]["checks"]
+        if check["name"] == "invariant_b_window"
+    ]
+    assert len(window_checks) == 1
+    assert window_checks[0]["tier"] == "advisory"
+    assert window_checks[0]["passed"] is True
+    assert window_checks[0]["actual"] == 500
+
+
+def test_missing_canonical_register_entry_still_yields_open_run_local_divergence(
+    tmp_path, monkeypatch
+):
+    """INST-03 empty: absence of the canonical entry never yields eligibility."""
+    modified = copy.deepcopy(register.load_divergence_register())
+    modified["entries"] = [
+        entry for entry in modified["entries"] if entry["id"] != "INV-B-N-UNSET"
+    ]
+    monkeypatch.setattr(
+        preflight, "load_divergence_register", lambda: copy.deepcopy(modified)
+    )
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+    record = _run_start_preflight(
+        _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+    )
+    run_local = [
+        entry
+        for entry in record.events[0]["open_divergences"]
+        if entry.get("id") == "INV-B-N-UNSET"
+    ]
+    assert len(run_local) == 1
+    entry = run_local[0]
+    assert entry["kind"] == "divergence"
+    assert entry["status"] == "open"
+    assert set(entry) == {
+        "id",
+        "kind",
+        "status",
+        "title",
+        "spec_citation",
+        "authority",
+        "rationale",
+        "what_it_would_take",
+        "proof_test",
+        "waiver",
+    }
+    assert summary_module._eval01_precondition_i(run_dir) is False
+
+
+def test_run_local_divergence_position_is_deterministic(tmp_path):
+    """INST-03 ordering: identical unbound inputs give byte-identical ordering.
+
+    The run-local record occupies a deterministic terminal position after the
+    register-derived open entries.
+    """
+    first_dir = tmp_path / "first"
+    second_dir = tmp_path / "second"
+    _preflight_run_dir(first_dir)
+    _preflight_run_dir(second_dir)
+    _run_start_preflight(
+        _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), first_dir
+    )
+    _run_start_preflight(
+        _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), second_dir
+    )
+    first = preflight.load_preflight(first_dir)["assertions"][0]["open_divergences"]
+    second = preflight.load_preflight(second_dir)["assertions"][0]["open_divergences"]
+    assert first == second
+    assert any(
+        entry["id"] == "INV-B-N-UNSET" and entry["status"] == "open"
+        for entry in first
+    )
+    assert first[-1]["id"] == "INV-B-N-UNSET"
+
+
+def test_second_run_start_preserves_history_and_eligibility_verdict(tmp_path):
+    """INST-03 idempotency: a second run-start composition appends, never rewrites.
+
+    The appended second run_start is itself COMPLETE (every required check,
+    passed census), prior records survive byte-for-byte, and the eligibility
+    verdict is unchanged.
+    """
+    run_dir = tmp_path / "run"
+    _preflight_run_dir(run_dir)
+    _run_start_preflight(
+        _preflight_config(500), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+    )
+    original_events = copy.deepcopy(preflight.load_preflight(run_dir)["assertions"])
+    original_event_bytes = [
+        json.dumps(event, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        for event in original_events
+    ]
+    first_verdict = summary_module._eval01_precondition_i(run_dir)
+    assert first_verdict is True
+
+    _run_start_preflight(
+        _preflight_config(500), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+    )
+
+    payload = preflight.load_preflight(run_dir)
+    retained = payload["assertions"][: len(original_events)]
+    assert retained == original_events
+    retained_event_bytes = [
+        json.dumps(event, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        for event in retained
+    ]
+    assert retained_event_bytes == original_event_bytes
+
+    second = payload["assertions"][len(original_events)]
+    assert second["event"] == "run_start"
+    assert second["status"] == "passed"
+    names = {check["name"] for check in second["checks"]}
+    assert set(preflight.REQUIRED_RUN_START_CHECKS) <= names
+    assert all(
+        check["passed"]
+        for name in preflight.REQUIRED_RUN_START_CHECKS
+        for check in second["checks"]
+        if check["name"] == name
+    )
+    assert second["census"]["verdict"] == "passed"
+    assert summary_module._eval01_precondition_i(run_dir) is True
 
 
 def test_refusal_writes_failing_census_artifact_before_raise(tmp_path):
@@ -401,18 +578,18 @@ def test_n_register_consistency_is_a_finding_not_a_block(tmp_path, monkeypatch, 
     assert any(finding.get("kind") == "consistency" for finding in record.events[0]["findings"])
 
 
-def _write_real_preflight(run_dir: Path, *, payload=None, monkeypatch=None) -> dict:
+def _write_real_preflight(run_dir: Path, *, payload=None, monkeypatch=None, n=None) -> dict:
     """Write a schema-valid preflight artifact through the real recorder."""
     _preflight_run_dir(run_dir)
     if payload is None:
         _run_start_preflight(
-            _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+            _preflight_config(n), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
         )
     else:
         assert monkeypatch is not None
         monkeypatch.setattr(preflight, "load_divergence_register", lambda: copy.deepcopy(payload))
         _run_start_preflight(
-            _preflight_config(), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
+            _preflight_config(n), ScheduledWeights(1000, lambda_e_max=0.0), run_dir
         )
     return preflight.load_preflight(run_dir)
 
@@ -444,7 +621,10 @@ def _summary_payload(run_dir: Path, *, disposition: str = "failed") -> tuple[dic
 
 def test_surfaces_in_run_record(tmp_path):
     run_dir = tmp_path / "run"
-    persisted = _write_real_preflight(run_dir)
+    # 49-09 fixture repair: eligibility is asserted, so the fixture binds the
+    # owner-ratified 500; the pre-repair unbound fixture is exactly the state
+    # that is now structurally ineligible (the 49-07 CR-10 lesson).
+    persisted = _write_real_preflight(run_dir, n=500)
     payload, markdown = _summary_payload(run_dir)
 
     assert payload["conformance"] == persisted
@@ -455,13 +635,15 @@ def test_surfaces_in_run_record(tmp_path):
     assert payload["eval01_precondition_i"] is True
     assert "## Conformance" in markdown
     assert "- eval01_precondition_i: True" in markdown
-    assert "INV-B-N-UNSET" in markdown
+    # With N bound and the register closed, config and register agree, so no
+    # consistency finding fires; the open qualifications still surface verbatim.
+    assert "CONF-01-QUALIFICATION" in markdown
 
 
 def test_surfaces_in_run_record_true_with_no_open_divergence(tmp_path, monkeypatch):
     run_dir = tmp_path / "run"
     persisted = _write_real_preflight(
-        run_dir, payload=_owner_n_register(), monkeypatch=monkeypatch
+        run_dir, payload=_owner_n_register(), monkeypatch=monkeypatch, n=500
     )
     payload, markdown = _summary_payload(run_dir, disposition="finished")
 
@@ -487,7 +669,7 @@ def test_surfaces_in_run_record_committed_register_owner_n_branch_ignores_open_q
             assert after == before
 
     run_dir = tmp_path / "run"
-    persisted = _write_real_preflight(run_dir, payload=modified, monkeypatch=monkeypatch)
+    persisted = _write_real_preflight(run_dir, payload=modified, monkeypatch=monkeypatch, n=500)
     payload, _ = _summary_payload(run_dir)
     open_entries = persisted["assertions"][0]["open_divergences"]
     assert any(entry["kind"] == "qualification" for entry in open_entries)
@@ -500,7 +682,7 @@ def test_surfaces_in_run_record_open_qualification_travels_without_blocking(
 ):
     modified = _owner_n_register()
     run_dir = tmp_path / "run"
-    persisted = _write_real_preflight(run_dir, payload=modified, monkeypatch=monkeypatch)
+    persisted = _write_real_preflight(run_dir, payload=modified, monkeypatch=monkeypatch, n=500)
     payload, markdown = _summary_payload(run_dir)
 
     qualifications = [

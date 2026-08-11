@@ -13,6 +13,13 @@ CR-05 (semantic forgery). Validation checked shape and enum membership only, so
 ``preflight_status: "passed"`` could sit on top of a failed event or a failed
 locked check, and ``_eval01_precondition_i`` would trust it.
 
+49-09 GAP-B (evidence-hollow eligibility). The predicate trusted the SHAPE of
+the assertion list without requiring the run-start table assertion and census
+evidence it claims to summarize: a ``stage_boundary``-only artifact with
+``census: null`` reported eligible.  The default ``_event`` below is therefore
+a COMPLETE honest run_start — every negative perturbs exactly one thing, so
+each keeps failing for its originally encoded reason (D-16).
+
 Every refusal below is driven to actually trip (D-16).
 """
 
@@ -41,13 +48,34 @@ def _check(*, name="lambda_e_max", tier="locked", passed=True, actual=0.0):
     }
 
 
-def _event(*, status="passed", checks=None, open_divergences=None):
+def _honest_checks():
+    """The complete run-start check set a real composition emits (49-09)."""
+    checks = [
+        _check(name=name)
+        for name in (
+            "lambda_phys_max",
+            "lambda_e_max",
+            "lambda_l_max",
+            "warmup_length",
+            "lambda_data",
+            "census",
+        )
+    ]
+    checks.append(_check(name="invariant_b_window", tier="advisory", actual=500))
+    return checks
+
+
+_HONEST_CENSUS = {"entries": [], "findings": [], "verdict": "passed"}
+_DEFAULT = object()
+
+
+def _event(*, status="passed", checks=None, census=_DEFAULT, open_divergences=None):
     return {
         "event": "run_start",
         "stage": 0,
         "status": status,
-        "checks": [_check()] if checks is None else checks,
-        "census": None,
+        "checks": _honest_checks() if checks is None else checks,
+        "census": dict(_HONEST_CENSUS) if census is _DEFAULT else census,
         "open_divergences": list(open_divergences or []),
         "findings": [],
     }
@@ -298,3 +326,131 @@ def test_failed_status_with_a_failed_locked_check_still_loads(tmp_path):
     )
 
     assert payload["preflight_status"] == "failed"
+
+
+# --- 49-09 GAP-B: eligibility requires the run-start evidence it summarizes --
+
+
+def test_complete_run_start_artifact_is_eligible(tmp_path):
+    """The CONTROL, and the most important test in the file.
+
+    An honest, complete ``run_start`` event built by the default ``_event``
+    helper yields ``_eval01_precondition_i`` true.  Every other negative in
+    this file is only discriminating because this baseline is genuinely
+    eligible (D-16).
+    """
+    from pinn.training.summary import _eval01_precondition_i
+
+    _write_payload(tmp_path, _payload())
+
+    payload = load_preflight(tmp_path)
+    assert payload["preflight_status"] == "passed"
+    assert _eval01_precondition_i(tmp_path) is True
+
+
+def test_stage_boundary_only_history_is_refused_at_load(tmp_path):
+    """GAP B: a stage_boundary-only passed artifact is not run-start evidence.
+
+    The verifier's second heredoc probe (49-VERIFICATION.md, "Missing-run-start
+    disconfirmation") promoted to a named case: the artifact is refused at
+    load, and the summary predicate reports false.
+    """
+    from pinn.training.summary import _eval01_precondition_i
+
+    event = {
+        "event": "stage_boundary",
+        "stage": 0,
+        "status": "passed",
+        "checks": [_check()],
+        "census": None,
+        "open_divergences": [],
+        "findings": [],
+    }
+    _write_payload(tmp_path, _payload(events=[event]))
+
+    with pytest.raises(ValueError, match="run_start"):
+        load_preflight(tmp_path)
+    assert _eval01_precondition_i(tmp_path) is False
+
+
+def test_run_start_missing_required_check_is_not_eligible(tmp_path):
+    """Removing exactly one required check name denies eligibility; the artifact still loads."""
+    from pinn.training.summary import _eval01_precondition_i
+
+    checks = [c for c in _honest_checks() if c["name"] != "warmup_length"]
+    _write_payload(tmp_path, _payload(events=[_event(checks=checks)]))
+
+    payload = load_preflight(tmp_path)
+    assert payload["preflight_status"] == "passed"
+    assert _eval01_precondition_i(tmp_path) is False
+
+
+def test_run_start_with_null_census_is_not_eligible(tmp_path):
+    """A null census denies eligibility while the artifact remains loadable."""
+    from pinn.training.summary import _eval01_precondition_i
+
+    _write_payload(tmp_path, _payload(events=[_event(census=None)]))
+
+    payload = load_preflight(tmp_path)
+    assert payload["preflight_status"] == "passed"
+    assert _eval01_precondition_i(tmp_path) is False
+
+
+def test_run_start_with_blocked_census_verdict_is_not_eligible(tmp_path):
+    """The census gate is exact string equality on ``verdict == "passed"``."""
+    from pinn.training.summary import _eval01_precondition_i
+
+    blocked = {"entries": [], "findings": [], "verdict": "blocked"}
+    _write_payload(tmp_path, _payload(events=[_event(census=blocked)]))
+
+    payload = load_preflight(tmp_path)
+    assert payload["preflight_status"] == "passed"
+    assert _eval01_precondition_i(tmp_path) is False
+
+
+def test_duplicate_required_check_with_one_failure_is_not_eligible(tmp_path):
+    """GATE-01 adjacency: EVERY occurrence of a required name must pass.
+
+    The duplicate rides the advisory tier so the artifact still LOADS (the
+    status-consistency refusal targets failed LOCKED checks only); the
+    predicate is what denies eligibility.
+    """
+    from pinn.training.summary import _eval01_precondition_i
+
+    checks = _honest_checks() + [
+        _check(
+            name="invariant_b_window",
+            tier="advisory",
+            passed=False,
+            actual="unbound",
+        )
+    ]
+    _write_payload(tmp_path, _payload(events=[_event(checks=checks)]))
+
+    payload = load_preflight(tmp_path)
+    assert payload["preflight_status"] == "passed"
+    assert _eval01_precondition_i(tmp_path) is False
+
+
+def test_unreadable_preflight_artifact_raises_value_error(tmp_path):
+    """WR-02: OSError and UnicodeError read failures normalize to ValueError.
+
+    No native I/O exception escapes the fail-closed loader; the summary
+    predicate reports false either way.
+    """
+    from pinn.training.summary import _eval01_precondition_i
+
+    undecodable = tmp_path / "undecodable"
+    undecodable.mkdir()
+    (undecodable / PREFLIGHT_FILENAME).write_bytes(b"\xff\xfe not utf-8")
+
+    with pytest.raises(ValueError, match="could not be read"):
+        load_preflight(undecodable)
+    assert _eval01_precondition_i(undecodable) is False
+
+    unreadable = tmp_path / "unreadable"
+    (unreadable / PREFLIGHT_FILENAME).mkdir(parents=True)
+
+    with pytest.raises(ValueError, match="could not be read"):
+        load_preflight(unreadable)
+    assert _eval01_precondition_i(unreadable) is False

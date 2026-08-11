@@ -464,3 +464,44 @@ def test_front_idx_range_unchecked_when_n_colloc_is_unknown():
 
     assert outcome.disposition is None
     assert guards.invariant_b_state_dict()["front_high_water"] == 99
+
+
+def test_consistency_finding_reads_run_scoped_window_from_real_config(
+    tmp_path, monkeypatch
+):
+    """The consistency finding must read ``config.run.invariants`` (real path).
+
+    The verifier flagged ``preflight.py:384``: the accessor read
+    ``config.invariants``, so even the shipped owner-ratified N = 500 config
+    reported ``config_value: None``.  A real ``TrainingConfig`` carrying the
+    window under ``run.invariants`` must report 500.
+    """
+    import copy
+
+    from pinn.conformance import preflight, register
+    from pinn.training.config_yaml import load_config
+
+    path = tmp_path / "config.yaml"
+    path.write_text(
+        _minimal_yaml(invariants="invariants:\n    front_advance_window_n: 500")
+    )
+    config = load_config(path)
+    assert config.run.invariants.front_advance_window_n == 500
+
+    modified = copy.deepcopy(register.load_divergence_register())
+    entry = next(
+        item for item in modified["entries"] if item["id"] == "INV-B-N-UNSET"
+    )
+    entry["status"] = "open"
+    entry["proof_test"] = None
+    monkeypatch.setattr(preflight, "load_divergence_register", lambda: modified)
+    open_entries = [
+        dict(item) for item in modified["entries"] if item["status"] == "open"
+    ]
+
+    finding = preflight._consistency_finding(config, open_entries)
+
+    assert finding is not None
+    assert finding["config_value"] == 500
+    assert finding["register_id"] == "INV-B-N-UNSET"
+    assert finding["register_status"] == "open"

@@ -13,8 +13,13 @@ from unittest import mock
 import yaml
 
 
-def _write_synthetic_config(path: Path) -> Path:
-    """Write the smallest real-main config that still enters the Adam loop."""
+def _write_synthetic_config(path: Path, *, invariants: dict | None = None) -> Path:
+    """Write the smallest real-main config that still enters the Adam loop.
+
+    ``invariants=None`` writes the owner-ratified Phase-50 value applied by
+    49-06 Task 3; any other mapping is written verbatim (``{}`` leaves the
+    invariant-B window unset — the D-20 record-only state).
+    """
 
     payload = {
         "run": {
@@ -35,8 +40,11 @@ def _write_synthetic_config(path: Path) -> Path:
                 "disk_floor_fraction": 0.01,
                 "memory_watermark_fraction": 0.99,
             },
-            # Match the owner-ratified Phase-50 value applied by 49-06 Task 3.
-            "invariants": {"front_advance_window_n": 500},
+            "invariants": (
+                {"front_advance_window_n": 500}
+                if invariants is None
+                else dict(invariants)
+            ),
         },
         "stage": {
             "max_epochs": 2,
@@ -137,3 +145,55 @@ def test_real_main_orders_preflight_table_boundary_and_first_guard(
     # production observable that the first guard evaluation had its inputs.
     failure_dir = run_dir / "failure"
     assert not any(failure_dir.iterdir())
+
+
+def test_real_main_with_n_unset_is_structurally_ineligible(tmp_path, monkeypatch):
+    """GAP A / D-20: an N-unset run proceeds but is structurally ineligible.
+
+    The verifier's disconfirmation probe (49-VERIFICATION.md, "N-unset
+    real-main disconfirmation") promoted to a named regression: a real
+    ``main()`` run whose config carries ``run.invariants: {}`` exits 0, runs
+    invariant B record-only, and MUST report ``eval01_precondition_i`` false
+    because its own run record carries an open run-local ``INV-B-N-UNSET``
+    divergence — independent of the committed register entry's global
+    ``closed`` status.
+    """
+
+    from pinn import train
+    from pinn.conformance import preflight
+    from tests.phase41._fixtures import write_duration_gate_calibration
+
+    runs_root = tmp_path / "runs"
+    runs_root.mkdir()
+    write_duration_gate_calibration(
+        runs_root,
+        precision="float64",
+        device="cpu",
+        full_stage0_steps=2,
+    )
+    config_path = _write_synthetic_config(tmp_path / "config.yaml", invariants={})
+    monkeypatch.setattr(train, "_RUNS_ROOT", runs_root)
+
+    exit_code = train.main(["--config", str(config_path)])
+
+    # D-20 does not deadlock the phase: the run still proceeds.
+    assert exit_code == 0
+    run_dir = runs_root / "phase49-e2e-seam"
+    record = preflight.load_preflight(run_dir)
+    run_start = record["assertions"][0]
+    assert run_start["event"] == "run_start"
+    assert run_start["status"] == "passed"
+    assert run_start["census"]["verdict"] == "passed"
+
+    run_local = [
+        entry
+        for entry in run_start["open_divergences"]
+        if entry.get("id") == "INV-B-N-UNSET"
+    ]
+    assert len(run_local) == 1
+    assert run_local[0]["kind"] == "divergence"
+    assert run_local[0]["status"] == "open"
+
+    summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["disposition"] == "finished"
+    assert summary["eval01_precondition_i"] is False

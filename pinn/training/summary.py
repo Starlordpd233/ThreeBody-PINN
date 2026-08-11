@@ -362,17 +362,12 @@ def _conformance_record(path: Optional[PathLike]) -> Optional[Dict[str, Any]]:
 def _eval01_precondition_i(path: Optional[PathLike]) -> bool:
     """Return the fail-closed EVAL-01 precondition-(i) standing.
 
-    ``True`` requires an existing, valid, passed preflight artifact, every
-    assertion event to have status ``passed``, and zero entries in
-    ``open_divergences`` whose ``kind`` is ``"divergence"`` and whose ``status``
-    is ``"open"``.  That kind filter *is* the EVAL-01 precondition-(i) scope:
-    the policy says zero unwaived divergences, while D-23 distinguishes
-    qualification (the implementation conforms and the caveat travels in the
-    conformance block) from divergence.  Counting qualifications would make
-    the permanent CONF-01-QUALIFICATION entry strand every run ineligible.
-
     The loader import, artifact read, parse, and validation all live inside the
     fail-closed boundary so no death mode can make summary rendering raise.
+    The eligibility predicate itself lives behind the ``pinn/conformance/``
+    module boundary (D-32) as ``preflight.evaluate_eval01_precondition_i``;
+    summary loads fail-closed and delegates.  The divergence-vs-qualification
+    filter rationale (D-23/D-26) lives on that predicate.
     """
     if path is None:
         return False
@@ -380,16 +375,7 @@ def _eval01_precondition_i(path: Optional[PathLike]) -> bool:
         from pinn.conformance import preflight
 
         payload = preflight.load_preflight(_conformance_run_dir(path))
-        assertions = payload["assertions"]
-        if payload["preflight_status"] != "passed" or not assertions:
-            return False
-        if any(event["status"] != "passed" for event in assertions):
-            return False
-        return not any(
-            entry.get("kind") == "divergence" and entry.get("status") == "open"
-            for event in assertions
-            for entry in event["open_divergences"]
-        )
+        return bool(preflight.evaluate_eval01_precondition_i(payload))
     except Exception:
         return False
 

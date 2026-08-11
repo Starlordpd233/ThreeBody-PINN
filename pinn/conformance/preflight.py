@@ -6,13 +6,14 @@ import copy
 import json
 import math
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
 import torch
 
 from pinn.loss_catalog import resolve_causal_clip_facts
 from pinn.training.run_metadata import load_training_metadata
 from pinn.training.atomic_io import atomic_write_text
+from pinn.training.guards import _extract_invariant_window
 
 from .census import run_census
 from .register import load_divergence_register
@@ -21,14 +22,42 @@ from .table import assert_phys05_table
 __all__ = [
     "PREFLIGHT_FILENAME",
     "PREFLIGHT_SCHEMA_VERSION",
+    "INV_B_N_UNSET_ID",
+    "INVARIANT_B_WINDOW_CHECK_NAME",
+    "REQUIRED_RUN_START_CHECKS",
     "ConformancePreflightError",
     "PreflightRecorder",
+    "evaluate_eval01_precondition_i",
     "load_preflight",
     "run_start_preflight",
 ]
 
 PREFLIGHT_FILENAME = "preflight.json"
 PREFLIGHT_SCHEMA_VERSION = 1
+
+# The run-local divergence id (D-20): the committed register entry records the
+# owner ruling GLOBALLY (closed); conformance is per run, so a run whose own
+# config omits the window carries the divergence itself in its run record.
+INV_B_N_UNSET_ID = "INV-B-N-UNSET"
+
+# The affirmative run-start check proving the run-local invariant-B window was
+# actually read and bound (D-16: affirmative evidence, not absence of a
+# negative).
+INVARIANT_B_WINDOW_CHECK_NAME = "invariant_b_window"
+
+# The required run-start evidence (GAP B): the five locked PHYS-05 table check
+# names emitted by ``assert_phys05_table``, the census check, and the
+# invariant-B window check.  Eligibility requires every name present on every
+# ``run_start`` event with EVERY occurrence passed.
+REQUIRED_RUN_START_CHECKS = (
+    "lambda_phys_max",
+    "lambda_e_max",
+    "lambda_l_max",
+    "warmup_length",
+    "lambda_data",
+    "census",
+    INVARIANT_B_WINDOW_CHECK_NAME,
+)
 _PAYLOAD_KEYS = frozenset({"schema_version", "preflight_status", "assertions"})
 _EVENT_KEYS = frozenset(
     {
@@ -226,6 +255,27 @@ def _validate_payload(payload: Any) -> dict[str, Any]:
     return payload
 
 
+def _assert_history_ordering(payload: Mapping[str, Any]) -> None:
+    """Refuse an assertion history that does not begin with ``run_start``.
+
+    Only the ORDERING rule lives here; the required-evidence rules live in
+    ``evaluate_eval01_precondition_i``.  The separation is load-bearing
+    (D-27): a refused run's incomplete ``run_start`` evidence must still
+    LOAD, because the artifact IS the caveat record — but a history that never
+    opened with ``run_start`` is not evidence any run produced, so the
+    codebase must neither CREATE nor READ one.  An empty array remains
+    loadable: the predicate already denies it, and no code path can produce
+    it.  Append-only resume histories (``run_start``, ``stage_boundary``, …,
+    ``run_start``, …) stay legal (D-17 / CR-06).
+    """
+    assertions = payload["assertions"]
+    if assertions and assertions[0]["event"] != "run_start":
+        raise ValueError(
+            "preflight assertion history must begin with a run_start event; "
+            f"got {assertions[0]['event']!r}"
+        )
+
+
 class PreflightRecorder:
     """Append-only assertion events persisted after every event."""
 
@@ -253,6 +303,10 @@ class PreflightRecorder:
             "assertions": self._events,
         }
         _validate_payload(payload)
+        # The same second-belt discipline the allow_nan=False writer comment
+        # records: the codebase must not be able to CREATE a history its own
+        # loader would reject.
+        _assert_history_ordering(payload)
         atomic_write_text(
             self.run_dir / PREFLIGHT_FILENAME,
             # allow_nan=False is the second belt behind _reject_non_finite:
@@ -305,6 +359,12 @@ def load_preflight(run_dir: str | Path) -> dict[str, Any]:
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise ValueError(f"preflight artifact not found: {path}") from exc
+    except (OSError, UnicodeError) as exc:
+        # After the FileNotFoundError clause on purpose: it is an OSError
+        # subclass and its more specific message must win (WR-02).
+        raise ValueError(
+            f"preflight artifact could not be read: {path}: {exc}"
+        ) from exc
     try:
         # parse_constant fires on the NaN / Infinity / -Infinity tokens that
         # json.loads accepts by default; the hook refuses them before any
@@ -312,7 +372,9 @@ def load_preflight(run_dir: str | Path) -> dict[str, Any]:
         payload = json.loads(text, parse_constant=_reject_json_constant)
     except json.JSONDecodeError as exc:
         raise ValueError(f"preflight artifact is not valid JSON: {exc}") from exc
-    return _validate_payload(payload)
+    validated = _validate_payload(payload)
+    _assert_history_ordering(validated)
+    return validated
 
 
 def _failure_check(
@@ -369,32 +431,175 @@ def _metadata_for_census(config: Any, run_dir: str | Path) -> dict[str, Any]:
 
 
 def _consistency_finding(config: Any, open_entries: list[dict[str, Any]]) -> dict[str, Any] | None:
-    target = next((entry for entry in open_entries if entry.get("id") == "INV-B-N-UNSET"), None)
+    target = next((entry for entry in open_entries if entry.get("id") == INV_B_N_UNSET_ID), None)
     closed = False
     try:
         register_payload = load_divergence_register()
         target = next(
-            (entry for entry in register_payload["entries"] if entry.get("id") == "INV-B-N-UNSET"),
+            (entry for entry in register_payload["entries"] if entry.get("id") == INV_B_N_UNSET_ID),
             target,
         )
         closed = bool(target and target.get("status") == "closed")
     except ValueError:
         pass
-    n_value = getattr(
-        getattr(config, "invariants", None), "front_advance_window_n", None
-    )
+    n_value, _ = _run_local_invariant_window(config)
     if (n_value is not None and target is not None and target.get("status") == "open") or (
         n_value is None and closed
     ):
         return {
             "kind": "consistency",
             "quantity": "front_advance_window_n",
-            "register_id": "INV-B-N-UNSET",
+            "register_id": INV_B_N_UNSET_ID,
             "config_value": n_value,
             "register_status": "closed" if closed else "open",
             "detail": "config N and register status disagree; recorded without adopting either verdict",
         }
     return None
+
+
+def _run_local_invariant_window(config: Any) -> tuple[Optional[int], Optional[str]]:
+    """Resolve the run-local invariant-B window through the ONE accessor.
+
+    Delegates to ``pinn.training.guards._extract_invariant_window`` — the
+    single reader of ``run.invariants.front_advance_window_n`` — so the
+    guard's view of N and preflight's view cannot diverge.  That accessor
+    raises ``ValueError`` on a malformed window; preflight converts the raise
+    into a non-null ``error_text`` so a malformed or duck-typed config stays
+    fail-closed evidence instead of an exception escaping composition.
+    """
+    try:
+        return _extract_invariant_window(config), None
+    except ValueError as exc:
+        return None, str(exc)
+
+
+def _invariant_b_window_check(
+    window: Optional[int], error_text: Optional[str]
+) -> dict[str, Any]:
+    """Build the affirmative run-local invariant-B window evidence record.
+
+    The tier must be advisory, not locked: ``_assert_status_consistency``
+    refuses a ``passed`` event carrying a failed LOCKED check, and D-20
+    requires an N-unset run to remain runnable and to leave a ``passed``
+    run-start record.  ``passed`` is true only when a window is bound and no
+    error text was produced.
+    """
+    return {
+        "name": INVARIANT_B_WINDOW_CHECK_NAME,
+        "tier": "advisory",
+        "expected": (
+            "run-local run.invariants.front_advance_window_n bound to the "
+            "owner-ratified positive-int window (GATE-03 D-20)"
+        ),
+        "actual": window if error_text is None else error_text,
+        "passed": window is not None and error_text is None,
+    }
+
+
+def _run_local_n_unset_divergence(
+    register_payload: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Build the run-local open ``INV-B-N-UNSET`` record (D-20).
+
+    When the canonical entry is present its ``id``, ``kind``, ``title``,
+    ``spec_citation``, ``authority``, ``rationale``, and ``what_it_would_take``
+    are copied verbatim so the run carries a human-readable caveat; ``status``
+    is forced to ``open``, ``proof_test`` to null (the closure proof does not
+    hold for a run that omits the window), and ``waiver`` to null.  When the
+    canonical entry is absent the same ten-key record is constructed locally
+    with literal text naming D-20 as the source — absence of the canonical
+    entry never yields eligibility.
+    """
+    canonical = next(
+        (
+            entry
+            for entry in register_payload.get("entries", [])
+            if isinstance(entry, Mapping) and entry.get("id") == INV_B_N_UNSET_ID
+        ),
+        None,
+    )
+    if canonical is not None:
+        record = dict(canonical)
+        record["status"] = "open"
+        record["proof_test"] = None
+        record["waiver"] = None
+        return record
+    return {
+        "id": INV_B_N_UNSET_ID,
+        "kind": "divergence",
+        "status": "open",
+        "title": "invariant-B window N is unset",
+        "spec_citation": "GATE-03 D-18..D-20; GAP-45-04",
+        "authority": "D-20: N unset is a defined, fail-closed state",
+        "rationale": (
+            "This run's own config omits "
+            "run.invariants.front_advance_window_n; D-20 records the unset "
+            "window as an open run-local divergence independent of the "
+            "committed register entry's global status."
+        ),
+        "what_it_would_take": (
+            "Bind the owner-ratified window in this run's config "
+            "(run.invariants.front_advance_window_n)."
+        ),
+        "proof_test": None,
+        "waiver": None,
+    }
+
+
+def evaluate_eval01_precondition_i(payload: Mapping[str, Any]) -> bool:
+    """Return the fail-closed EVAL-01 precondition-(i) standing.
+
+    ``True`` requires an existing, valid, passed preflight artifact, every
+    assertion event to have status ``passed``, and zero entries in
+    ``open_divergences`` whose ``kind`` is ``"divergence"`` and whose ``status``
+    is ``"open"``.  That kind filter *is* the EVAL-01 precondition-(i) scope:
+    the policy says zero unwaived divergences, while D-23 distinguishes
+    qualification (the implementation conforms and the caveat travels in the
+    conformance block) from divergence.  Counting qualifications would make
+    the permanent CONF-01-QUALIFICATION entry strand every run ineligible.
+
+    The predicate must require the evidence it claims to summarize (GAP B):
+    the assertion history begins with a ``run_start`` event, at least one
+    ``run_start`` event exists, and EVERY ``run_start`` event carries each
+    name in ``REQUIRED_RUN_START_CHECKS`` at least once with every occurrence
+    ``passed`` — the affirmative ``invariant_b_window`` check included (D-16:
+    affirmative evidence, not absence of a negative) — plus a ``census``
+    mapping whose ``verdict`` compares exactly equal to ``"passed"``.  Anything
+    unrecognized, absent, null, or non-mapping denies eligibility: fail closed
+    on missing, malformed, or ambiguous evidence, never open.
+    """
+    assertions = payload["assertions"]
+    if payload["preflight_status"] != "passed" or not assertions:
+        return False
+    if assertions[0]["event"] != "run_start":
+        return False
+    if any(event["status"] != "passed" for event in assertions):
+        return False
+    if any(
+        entry.get("kind") == "divergence" and entry.get("status") == "open"
+        for event in assertions
+        for entry in event["open_divergences"]
+    ):
+        return False
+    run_starts = [
+        event for event in assertions if event["event"] == "run_start"
+    ]
+    if not run_starts:
+        return False
+    for event in run_starts:
+        checks = event["checks"]
+        for name in REQUIRED_RUN_START_CHECKS:
+            occurrences = [
+                check for check in checks if check["name"] == name
+            ]
+            if not occurrences or not all(
+                check["passed"] for check in occurrences
+            ):
+                return False
+        census = event["census"]
+        if not isinstance(census, Mapping) or census.get("verdict") != "passed":
+            return False
+    return True
 
 
 def run_start_preflight(
@@ -423,6 +628,14 @@ def run_start_preflight(
     open_entries = [
         dict(entry) for entry in register_payload["entries"] if entry["status"] == "open"
     ]
+    # D-20: the run-local window is read ONCE, here, through the single
+    # accessor.  An unbound or malformed window appends the run-local open
+    # INV-B-N-UNSET record immediately after the register-derived open
+    # entries, so every downstream branch — table failure, census failure,
+    # and success — carries the caveat.
+    window, window_error = _run_local_invariant_window(config)
+    if window is None:
+        open_entries.append(_run_local_n_unset_divergence(register_payload))
     try:
         result = assert_phys05_table(scheduled_weights, stage=0)
     except Exception as exc:
@@ -454,6 +667,9 @@ def run_start_preflight(
         if consistency is not None:
             findings.append(consistency)
         checks = list(result["checks"])
+        # The window check goes BEFORE the census append in both branches so
+        # census stays the terminal check (checks[-1]["name"] == "census").
+        checks.append(_invariant_b_window_check(window, window_error))
         checks.append(
             {
                 "name": "census",
@@ -477,6 +693,7 @@ def run_start_preflight(
         raw_report = getattr(exc, "report", None)
         census_report = dict(raw_report) if isinstance(raw_report, Mapping) else None
         checks = list(result["checks"])
+        checks.append(_invariant_b_window_check(window, window_error))
         checks.append(
             {
                 "name": "census",
