@@ -1,0 +1,3 @@
+{"final_val_loss": 5267027968.0, "gate_schema_version": "phase46-validation-gate/v1", "gate_status": "failed:TypeError", "step": 100, "trend": "unavailable"}
+{"final_val_loss": 2408879616.0, "gate_schema_version": "phase46-validation-gate/v1", "gate_status": "failed:TypeError", "step": 200, "trend": "improving"}
+{"final_val_loss": 772758208.0, "gate_schema_version": "phase46-validation-gate/v1", "gate_status": "failed:TypeError", "step": 300, "trend": "improving"}

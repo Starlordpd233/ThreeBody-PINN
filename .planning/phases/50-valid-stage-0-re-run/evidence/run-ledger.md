@@ -146,6 +146,173 @@ contents.
       ],
       "verify_invocations": [],
       "status": "terminal"
+    },
+    {
+      "band_generation": 2,
+      "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+      "pre_registration_commit": "abd5f8d9bc44c31abb58194e86806ea6aa39a649",
+      "committed_config_sha256_by_path": {
+        "configs/stage0-rerun-seed41.yaml": "90ccd7418211ca42ebe14e06ea0bf1f62249d87e19b71c9f670c9a9b8374f073",
+        "configs/stage0-rerun-seed42.yaml": "72db4aa458a8ae4eb8b2645a27fe0c01392ecd08050fb689e2cf939a982fa097",
+        "configs/stage0-rerun-seed43.yaml": "1c2336d8342198a417a129d3e70e7ce53609b1d28aff3fd021a92f8bd20360e6",
+        "configs/stage0-rerun-smoke.yaml": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a"
+      },
+      "committed_config_set_sha256": "e6e1fd53f93ec0b3059ff2da8eb9d27b92546b3d74fd7bffdbd0a11373a4e078",
+      "corpus_snapshot": {
+        "path": ".planning/phases/50-valid-stage-0-re-run/evidence/corpus/generation-2.json",
+        "file_sha256": "9aa291eb2692ca04584177bf61e7eea321f9c0533ea1046c344d09e1ac2c4d70",
+        "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd"
+      },
+      "environment_snapshot": {
+        "path": ".planning/phases/50-valid-stage-0-re-run/evidence/environment/generation-2.json",
+        "file_sha256": "9650cb9ab75ef59153647ed470e5cb18db998b43d1d17eeba9b3de4ecd341bc5",
+        "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
+      },
+      "timing_fingerprint": {
+        "device": "mps",
+        "dtype": "torch.float32",
+        "torch_version": "2.12.1",
+        "python_version": "3.11.15",
+        "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+        "git_head_available": true
+      },
+      "summary_env_fingerprint": {
+        "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+        "python_version": "3.11.15",
+        "torch_version": "2.12.1",
+        "torch_build": "7269437d655783a26cba32aa88195b741ff496aa"
+      },
+      "opened_utc": "2026-08-13T05:29:45.228602+00:00",
+      "closed_utc": "2026-08-13T05:46:46.377778+00:00",
+      "cleanliness_receipts": [
+        {
+          "boundary": "runtime",
+          "command": "git status --porcelain --untracked-files=all -- pinn/ configs/ scripts/train-unattended.sh pyproject.toml",
+          "external_start_utc": "2026-08-13T05:29:45.192748+00:00",
+          "external_end_utc": "2026-08-13T05:29:45.227883+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-open-runtime.json",
+          "sha256": "aedf6da1e4b94fcae8f0e8f7ad2380c1d52e3e67f2a1cb8e3c76fe619cb71ec5"
+        },
+        {
+          "boundary": "corpus",
+          "command": "band_ops.py snapshot_corpus",
+          "external_start_utc": "2026-08-13T05:30:10.941829+00:00",
+          "external_end_utc": "2026-08-13T05:30:20.187803+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-open-corpus.json",
+          "sha256": "6e2cb594ce5c2d884075a78a2ad5d110ff41621443b244a2c849e2d848fcd760"
+        },
+        {
+          "boundary": "environment",
+          "command": "band_ops.py capture_environment",
+          "external_start_utc": "2026-08-13T05:30:22.688365+00:00",
+          "external_end_utc": "2026-08-13T05:30:23.614915+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-open-environment.json",
+          "sha256": "2ee6b0f84b16cc3e0a27869c6d3100e5d6a5c0566e516755e042c83e08841093"
+        },
+        {
+          "boundary": "runtime",
+          "command": "git status --porcelain --untracked-files=all -- pinn/ configs/ scripts/train-unattended.sh pyproject.toml",
+          "external_start_utc": "2026-08-13T05:30:25.800940+00:00",
+          "external_end_utc": "2026-08-13T05:30:25.829013+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-pre-smoke-runtime.json",
+          "sha256": "ba69457657c295050b7221463ca055911c21bbd0395ccd11d3c560b69f726c0b"
+        },
+        {
+          "boundary": "runtime",
+          "command": "git status --porcelain --untracked-files=all -- pinn/ configs/ scripts/train-unattended.sh pyproject.toml",
+          "external_start_utc": "2026-08-13T05:38:08.311972+00:00",
+          "external_end_utc": "2026-08-13T05:38:08.338720+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-post-smoke-runtime.json",
+          "sha256": "745016fe8b954f631885957597384d065483824361c556489540d92f31ff7dd7"
+        },
+        {
+          "boundary": "corpus",
+          "command": "band_ops.py snapshot_corpus",
+          "external_start_utc": "2026-08-13T05:38:10.509231+00:00",
+          "external_end_utc": "2026-08-13T05:38:20.083263+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-post-smoke-corpus.json",
+          "sha256": "9eaa2d7243e4440fe681ba81d89b813e615491751c266c8305758784e7ab8c82"
+        },
+        {
+          "boundary": "environment",
+          "command": "band_ops.py capture_environment",
+          "external_start_utc": "2026-08-13T05:38:22.530997+00:00",
+          "external_end_utc": "2026-08-13T05:38:23.470088+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-post-smoke-environment.json",
+          "sha256": "50caf09e413223676d9706b0bac3642eba5bb73b627eef951b59fad5c91d39bc"
+        },
+        {
+          "boundary": "runtime",
+          "command": "git status --porcelain --untracked-files=all -- pinn/ configs/ scripts/train-unattended.sh pyproject.toml",
+          "external_start_utc": "2026-08-13T05:39:58.626388+00:00",
+          "external_end_utc": "2026-08-13T05:39:58.653706+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-pre-seed41-runtime.json",
+          "sha256": "d2ffc38662521fc253320eba013dd6745acc9dea2270b0e4a5e66424c30ab760"
+        },
+        {
+          "boundary": "runtime",
+          "command": "git status --porcelain --untracked-files=all -- pinn/ configs/ scripts/train-unattended.sh pyproject.toml",
+          "external_start_utc": "2026-08-13T05:45:37.403537+00:00",
+          "external_end_utc": "2026-08-13T05:45:37.429963+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-post-seed41-failed-runtime.json",
+          "sha256": "f04d5a07801a6dc5baa13a8d7bc6d324274957f4c3bde7447145777ba9e6810d"
+        },
+        {
+          "boundary": "corpus",
+          "command": "band_ops.py snapshot_corpus",
+          "external_start_utc": "2026-08-13T05:45:39.613668+00:00",
+          "external_end_utc": "2026-08-13T05:45:48.826566+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-post-seed41-failed-corpus.json",
+          "sha256": "f0badc0548feabfb86614a770642a13da746d35af21f9a6a34c640203525add1"
+        },
+        {
+          "boundary": "environment",
+          "command": "band_ops.py capture_environment",
+          "external_start_utc": "2026-08-13T05:45:51.191295+00:00",
+          "external_end_utc": "2026-08-13T05:45:52.132257+00:00",
+          "exit_code": 0,
+          "path": ".planning/phases/50-valid-stage-0-re-run/evidence/cleanliness/generation-2-post-seed41-failed-environment.json",
+          "sha256": "5a0c8b4b1e8df9d72f611fbc67e37612645340207bc8178eac68b1f52b743750"
+        }
+      ],
+      "verify_invocations": [
+        {
+          "invocation_ordinal": 1,
+          "status": "closed",
+          "command": "<home>/miniforge3/bin/conda run --no-capture-output -n pinn-train python -m pinn.verify",
+          "external_start_utc": "2026-08-13T05:38:42.700958+00:00",
+          "external_end_utc": "2026-08-13T05:38:55.747221+00:00",
+          "exit_code": 0,
+          "recovered_after_executor_loss": false,
+          "transcript": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/generation-2-smoke-attempt-03-invocation-01-verify.txt",
+          "transcript_sha256": "48028f7aa79a0ff9b08d05cd1e988ff3e98ba0c48c72dc7799ec78e60f4243a3",
+          "result": "green",
+          "runtime_fingerprint": {
+            "device": "mps",
+            "dtype": "torch.float32",
+            "torch_version": "2.12.1",
+            "python_version": "3.11.15",
+            "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+            "git_head_available": true
+          },
+          "marker": {
+            "path": ".planning/phases/50-valid-stage-0-re-run/evidence/verify/generation-2-smoke-attempt-03-invocation-01-marker.json",
+            "sha256": "3906629ecf3ec9346594b18b5084fb1e002d2cc4d8c5e7818d72cabb97e9d4fc",
+            "timestamp": "2026-08-13T05:38:55.167386+00:00"
+          }
+        }
+      ],
+      "status": "terminal"
     }
   ],
   "records": [
@@ -153,7 +320,7 @@ contents.
       "band_generation": 1,
       "run_name": "stage0-rerun-smoke",
       "attempt_ordinal": 1,
-      "artifact_dir": "runs/stage0-rerun-smoke",
+      "artifact_dir": "runs/stage0-rerun-smoke-attempt-01-interrupted-20260813T052918Z",
       "config": "configs/stage0-rerun-smoke.yaml",
       "source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
       "frozen_config_sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
@@ -225,7 +392,12 @@ contents.
       "ledger_disposition": "interrupted",
       "protocol_labels": [],
       "in_final_band": false,
-      "archive_move": null,
+      "archive_move": {
+        "from": "runs/stage0-rerun-smoke",
+        "to": "runs/stage0-rerun-smoke-attempt-01-interrupted-20260813T052918Z",
+        "verified_utc": "2026-08-13T05:29:18.692506+00:00",
+        "hashes_equal": true
+      },
       "terminal_artifact_sha256": {
         "config.yaml": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
         "summary.json": "74e43b90f28abbba687b05ad129867d8aa0e5c85cd07e54817ce99ab6e0554a5",
@@ -242,25 +414,304 @@ contents.
       },
       "reason": "Executor-wrapper timeout killed the launch shell; the smoke process recorded disposition=interrupted before any Adam step (status.state=interrupted, curriculum HALT at step 0 with no failure bundle). preflight_status=passed; eval01_precondition_i=True; observed training_metadata s_h=22.321729071058996 eps_h=0.0022321729071058997 n_train=1812 (setup-time values from the interrupted attempt; D-14 not discharged because the smoke did not finish and wrote no calibration). Phase 50 forbids --resume; this interruption is terminal.",
       "retry_authorization": null
+    },
+    {
+      "band_generation": 2,
+      "run_name": "stage0-rerun-smoke",
+      "attempt_ordinal": 2,
+      "artifact_dir": null,
+      "config": "configs/stage0-rerun-smoke.yaml",
+      "source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
+      "frozen_config_sha256": null,
+      "config_identity_digest": null,
+      "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+      "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34",
+      "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "status": "closed",
+          "intended_artifact_dir": "runs/stage0-rerun-smoke",
+          "launch_command": "<home>/miniforge3/bin/conda run --no-capture-output -n pinn-train bash scripts/train-unattended.sh --config configs/stage0-rerun-smoke.yaml --stage-0-only",
+          "launch_transcript": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-smoke-attempt-02-invocation-01-train.txt",
+          "transcript_sha256": "35dc70527201ea020c33b584c4b46579eef278ff27ae5dc1b65c673d34b457e0",
+          "external_start_utc": "2026-08-13T05:30:43.327347+00:00",
+          "external_end_utc": "2026-08-13T05:31:19.379274+00:00",
+          "exit_code": 127,
+          "recovered_after_executor_loss": false,
+          "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+          "source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
+          "frozen_config_sha256": null,
+          "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+          "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34",
+          "timing_fingerprint": {
+            "device": "mps",
+            "dtype": "torch.float32",
+            "torch_version": "2.12.1",
+            "python_version": "3.11.15",
+            "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+            "git_head_available": true
+          },
+          "summary_env_fingerprint": {
+            "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+            "python_version": "3.11.15",
+            "torch_version": "2.12.1",
+            "torch_build": "7269437d655783a26cba32aa88195b741ff496aa"
+          },
+          "resume_checkpoint": null,
+          "calibration_before": {
+            "path": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/pre-smoke-20260813T051154Z-d931a3fbda20.json",
+            "sha256": "d931a3fbda20ac6e8bf014268b81af05dfe2361d62396bbc7cee9de91fd2944b",
+            "timestamp": "2026-07-22T08:03:55.336764+00:00",
+            "source_path": "runs/.calibration/archive/pre-smoke-20260813T051154Z-d931a3fbda20.json"
+          },
+          "calibration_after": null,
+          "observed_summary_disposition": null,
+          "observed_guard_disposition": null,
+          "artifact_sha256_at_exit": {},
+          "invocation_snapshot": null
+        }
+      ],
+      "final_process_disposition": null,
+      "final_guard_disposition": null,
+      "ledger_disposition": "failed",
+      "protocol_labels": [],
+      "in_final_band": false,
+      "archive_move": null,
+      "terminal_artifact_sha256": {},
+      "reason": "Launcher wrapper used setsid, which is not present on this macOS host (transcript: command not found: setsid). No run directory was constructed; no training process started. Closed as a pre-construction setup failure. Fresh attempt 3 will launch with nohup only. Not a resume. Not a scientific/transient retry.",
+      "retry_authorization": null
+    },
+    {
+      "band_generation": 2,
+      "run_name": "stage0-rerun-smoke",
+      "attempt_ordinal": 3,
+      "artifact_dir": "runs/stage0-rerun-smoke",
+      "config": "configs/stage0-rerun-smoke.yaml",
+      "source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
+      "frozen_config_sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+      "config_identity_digest": "3db88b697aac2f3c",
+      "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+      "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34",
+      "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "status": "closed",
+          "intended_artifact_dir": "runs/stage0-rerun-smoke",
+          "launch_command": "<home>/miniforge3/bin/conda run --no-capture-output -n pinn-train bash scripts/train-unattended.sh --config configs/stage0-rerun-smoke.yaml --stage-0-only",
+          "launch_transcript": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-smoke-attempt-03-invocation-01-train.txt",
+          "transcript_sha256": "a72361503a9d2eb7fccdbec6e12e73179020fea16eb4945057e26f14fdf32742",
+          "external_start_utc": "2026-08-13T05:31:36.039580+00:00",
+          "external_end_utc": "2026-08-13T05:35:25.000000+00:00",
+          "exit_code": 0,
+          "recovered_after_executor_loss": false,
+          "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+          "source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
+          "frozen_config_sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+          "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+          "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34",
+          "timing_fingerprint": {
+            "device": "mps",
+            "dtype": "torch.float32",
+            "torch_version": "2.12.1",
+            "python_version": "3.11.15",
+            "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+            "git_head_available": true
+          },
+          "summary_env_fingerprint": {
+            "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+            "python_version": "3.11.15",
+            "torch_version": "2.12.1",
+            "torch_build": "7269437d655783a26cba32aa88195b741ff496aa"
+          },
+          "resume_checkpoint": null,
+          "calibration_before": {
+            "path": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/pre-smoke-20260813T051154Z-d931a3fbda20.json",
+            "sha256": "d931a3fbda20ac6e8bf014268b81af05dfe2361d62396bbc7cee9de91fd2944b",
+            "timestamp": "2026-07-22T08:03:55.336764+00:00",
+            "source_path": "runs/.calibration/archive/pre-smoke-20260813T051154Z-d931a3fbda20.json"
+          },
+          "calibration_after": {
+            "path": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/generation-2-smoke-attempt-03-invocation-01.json",
+            "sha256": "e111f020bcdfc7ccfb60352b0f4615aeaa1a4e15d46b98a2e75e7571dc215b43",
+            "timestamp": "2026-08-13T05:35:24.167120+00:00",
+            "source_path": "runs/.calibration/stage0-timing.json"
+          },
+          "observed_summary_disposition": "finished",
+          "observed_guard_disposition": null,
+          "artifact_sha256_at_exit": {
+            "config.yaml": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+            "summary.json": "df545ed947965714a2af469235b84fe6d6f2ec54691567fdb69397847ef945f8",
+            "summary.md": "edcdc0d0ab39b5fa222b6c645185382c57358c1cd74aa35ea68a5558b7467675",
+            "preflight.json": "359d2efdfb6d7e81878ee664cdd1f4a2f763b816f12a2d3bc7636d95bf947b0d",
+            "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+            "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+            "curriculum.jsonl": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b",
+            "validation.jsonl": "c918dbae7ec4331bacefa5a2ebb98a04b888657dc731f28c2c4301935aafe898",
+            "status.json": "a38256e1269e201a3a8f50cc2d0378c4371c33939e8f6544d247ef23b28ed5ae",
+            "logs/train.log.jsonl": "3028fcd3f5ce6bce59f706ae25bb38a40f40dba1712431f72ea8a7f8d763e7aa",
+            "run_start_rng.pt": "d867dc5c9a924225fd888db1df0db5607115e12e9ecb4d6ff29b64f529224c34",
+            "checkpoints/best.pt": "7b1e34cc531f20e3367b8fab928d1683cb6bff2a70c7139555a6ea768ffe6dd2",
+            "checkpoints/latest.pt": "d6468a817820504b28e434f4991e2faf7ad2e370560543e65bf27c7b35d4f85e",
+            "checkpoints/step-000300.pt": "cbaedf3090aaed06ff8ba9f5e461b6a963e83f181c8bb27a81d574b699725307"
+          },
+          "invocation_snapshot": null
+        }
+      ],
+      "final_process_disposition": "finished",
+      "final_guard_disposition": null,
+      "ledger_disposition": "finished",
+      "protocol_labels": [],
+      "in_final_band": false,
+      "archive_move": null,
+      "terminal_artifact_sha256": {
+        "config.yaml": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+        "summary.json": "df545ed947965714a2af469235b84fe6d6f2ec54691567fdb69397847ef945f8",
+        "summary.md": "edcdc0d0ab39b5fa222b6c645185382c57358c1cd74aa35ea68a5558b7467675",
+        "preflight.json": "359d2efdfb6d7e81878ee664cdd1f4a2f763b816f12a2d3bc7636d95bf947b0d",
+        "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+        "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "curriculum.jsonl": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b",
+        "validation.jsonl": "c918dbae7ec4331bacefa5a2ebb98a04b888657dc731f28c2c4301935aafe898",
+        "status.json": "a38256e1269e201a3a8f50cc2d0378c4371c33939e8f6544d247ef23b28ed5ae",
+        "logs/train.log.jsonl": "3028fcd3f5ce6bce59f706ae25bb38a40f40dba1712431f72ea8a7f8d763e7aa",
+        "run_start_rng.pt": "d867dc5c9a924225fd888db1df0db5607115e12e9ecb4d6ff29b64f529224c34",
+        "checkpoints/best.pt": "7b1e34cc531f20e3367b8fab928d1683cb6bff2a70c7139555a6ea768ffe6dd2",
+        "checkpoints/latest.pt": "d6468a817820504b28e434f4991e2faf7ad2e370560543e65bf27c7b35d4f85e",
+        "checkpoints/step-000300.pt": "cbaedf3090aaed06ff8ba9f5e461b6a963e83f181c8bb27a81d574b699725307"
+      },
+      "reason": "Calibration + first-real-corpus-contact smoke (in_final_band false; D-01/D-13/D-14). Observed training_metadata s_h=22.321729071058996 eps_h=0.0022321729071058997 n_train=1812. preflight_status=passed including affirmative invariant_b_window N=500. Calibration valid=true git_head=7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4 s_per_step=0.13972535059194488 gate_input_1000=139.7s (shipped gate input, not ETA). Curriculum journal disposition HALT at step 300 is stage-exit after Adam budget exhaustion under --stage-0-only, not a guard or invariant-B HALT (failure/ empty; final_guard_disposition null; no stage-1 artifacts). Validation-gate TypeError warnings at steps 100/200/300 left gate_status=failed:TypeError and eval01_precondition_iii=false; recorded, not used to change any rule (D-19). D-18 verify GREEN; gate_input<=1800s so graded launch is admissible.",
+      "retry_authorization": null
+    },
+    {
+      "band_generation": 2,
+      "run_name": "stage0-rerun-seed41",
+      "attempt_ordinal": 1,
+      "artifact_dir": "runs/stage0-rerun-seed41",
+      "config": "configs/stage0-rerun-seed41.yaml",
+      "source_config_sha256": "90ccd7418211ca42ebe14e06ea0bf1f62249d87e19b71c9f670c9a9b8374f073",
+      "frozen_config_sha256": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
+      "config_identity_digest": "8a7e4c8b3904da24",
+      "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+      "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34",
+      "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "status": "closed",
+          "intended_artifact_dir": "runs/stage0-rerun-seed41",
+          "launch_command": "<home>/miniforge3/bin/conda run --no-capture-output -n pinn-train bash scripts/train-unattended.sh --config configs/stage0-rerun-seed41.yaml --stage-0-only",
+          "launch_transcript": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-seed41-attempt-01-invocation-01-train.txt",
+          "transcript_sha256": "d86417c213370eb5f15e19c66ec4e56292705639904f1bf8c84052f536f2721d",
+          "external_start_utc": "2026-08-13T05:40:00.798493+00:00",
+          "external_end_utc": "2026-08-13T05:43:18.000000+00:00",
+          "exit_code": 1,
+          "recovered_after_executor_loss": false,
+          "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+          "source_config_sha256": "90ccd7418211ca42ebe14e06ea0bf1f62249d87e19b71c9f670c9a9b8374f073",
+          "frozen_config_sha256": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
+          "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+          "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34",
+          "timing_fingerprint": {
+            "device": "mps",
+            "dtype": "torch.float32",
+            "torch_version": "2.12.1",
+            "python_version": "3.11.15",
+            "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
+            "git_head_available": true
+          },
+          "summary_env_fingerprint": {
+            "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+            "python_version": "3.11.15",
+            "torch_version": "2.12.1",
+            "torch_build": "7269437d655783a26cba32aa88195b741ff496aa"
+          },
+          "resume_checkpoint": null,
+          "calibration_before": {
+            "path": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/generation-2-smoke-attempt-03-invocation-01.json",
+            "sha256": "e111f020bcdfc7ccfb60352b0f4615aeaa1a4e15d46b98a2e75e7571dc215b43",
+            "timestamp": "2026-08-13T05:35:24.167120+00:00",
+            "source_path": "runs/.calibration/stage0-timing.json"
+          },
+          "calibration_after": {
+            "path": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/generation-2-smoke-attempt-03-invocation-01.json",
+            "sha256": "e111f020bcdfc7ccfb60352b0f4615aeaa1a4e15d46b98a2e75e7571dc215b43",
+            "timestamp": "2026-08-13T05:35:24.167120+00:00",
+            "source_path": "runs/.calibration/stage0-timing.json"
+          },
+          "observed_summary_disposition": "failed",
+          "observed_guard_disposition": null,
+          "artifact_sha256_at_exit": {
+            "config.yaml": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
+            "summary.json": "91c729155dbd2be68d71c41a212e4882271f3409dbc2ec4e45bc366a80fa8884",
+            "summary.md": "876891226a733d3fe9d4722f3466732b05b50d9a3470c016d92ee4350f0e85bb",
+            "preflight.json": "808cda002d80de5e8fe7250dfdb60d664a1e0159563a071810e852e7b82cb915",
+            "training_metadata.json": "7d23db77ccbb1c381f9601b2ba5bda1a9e8bef88cf20d1cdce628f3718876c11",
+            "splits.json": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+            "status.json": "fe3df4945959d93e302be7308eb42286803601221e19a2fe7d5417b91a566155",
+            "logs/train.log.jsonl": "a647736b5bb3d370e1330f7d9da6f06aa0e581c4869d6dddb2a5ae3ba53d87bf",
+            "run_start_rng.pt": "7903d77f66db9dd0adb2f9b92d0429b420242ab31343d745492d0fb095d299ee",
+            "checkpoints/latest.pt": "06ef5e828b9a33213183c21a45c70d08ebee767dd6a2e68f0d27416a01933d30"
+          },
+          "invocation_snapshot": null
+        }
+      ],
+      "final_process_disposition": "failed",
+      "final_guard_disposition": null,
+      "ledger_disposition": "failed",
+      "protocol_labels": [],
+      "in_final_band": false,
+      "archive_move": null,
+      "terminal_artifact_sha256": {
+        "config.yaml": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
+        "summary.json": "91c729155dbd2be68d71c41a212e4882271f3409dbc2ec4e45bc366a80fa8884",
+        "summary.md": "876891226a733d3fe9d4722f3466732b05b50d9a3470c016d92ee4350f0e85bb",
+        "preflight.json": "808cda002d80de5e8fe7250dfdb60d664a1e0159563a071810e852e7b82cb915",
+        "training_metadata.json": "7d23db77ccbb1c381f9601b2ba5bda1a9e8bef88cf20d1cdce628f3718876c11",
+        "splits.json": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+        "status.json": "fe3df4945959d93e302be7308eb42286803601221e19a2fe7d5417b91a566155",
+        "logs/train.log.jsonl": "a647736b5bb3d370e1330f7d9da6f06aa0e581c4869d6dddb2a5ae3ba53d87bf",
+        "run_start_rng.pt": "7903d77f66db9dd0adb2f9b92d0429b420242ab31343d745492d0fb095d299ee",
+        "checkpoints/latest.pt": "06ef5e828b9a33213183c21a45c70d08ebee767dd6a2e68f0d27416a01933d30"
+      },
+      "reason": "Seed-41 attempt 1 failed at first validation (step 100): StageZeroUnderpopulated Stage-0 population 227 < required 240 (DATA-06 select_stage_records on the validation split replay pool; replay_count resolved to the DATA-05 default 240 because the graded config omits the field). Preflight passed; 99 finite Adam steps; failure/ empty; not disk/memory/loss-explosion/non-finite/invariant-B. Not a transient; no retry authorized; seeds 42/43 not launched. eval01_precondition_i=True; D-12 splits recorded separately. D-19 forbids lowering replay_count to the observed 227.",
+      "retry_authorization": null
     }
   ],
   "integrity_notes": {
     "closeout_mode": "terminal",
-    "terminal_reason": "interrupted-executor-wrapper-timeout",
+    "terminal_reason": "stage0-validation-underpopulated-replay-count-240",
     "d23_evaluation_directory_absent": true,
     "d23_forbidden_artifacts": [],
     "d23_no_pinn_evaluate_in_ledger_commands": true,
     "d28_GSD_DATA_ROOT_unset": true,
     "d28_GSD_ALLOW_PARTIAL_DATA_ROOT_unset": true,
-    "d22_attempt_count": 1,
-    "d22_invocation_count": 1,
+    "d22_attempt_count": 4,
+    "d22_invocation_count": 4,
     "canonical_run_dirs_enumerated": [
       "runs/stage0-rerun-smoke",
       "runs/stage0-rerun-seed41",
       "runs/stage0-rerun-seed42",
       "runs/stage0-rerun-seed43"
     ],
-    "live_process_at_closeout": false
+    "live_process_at_closeout": false,
+    "seed41_d12": "MATCH",
+    "seed41_splits_sha256": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+    "leftover_canonical_archives": [
+      {
+        "run_name": "stage0-rerun-smoke",
+        "attempt_ordinal": 1,
+        "from": "runs/stage0-rerun-smoke",
+        "to": "runs/stage0-rerun-smoke-attempt-01-interrupted-20260813T052918Z",
+        "verified_utc": "2026-08-13T05:29:18.692506+00:00",
+        "hashes_equal": true,
+        "reason": "dead leftover occupying canonical path; moved so a later generation can reuse it"
+      }
+    ]
   }
 }
 ```

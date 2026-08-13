@@ -1,0 +1,11 @@
+{
+  "generation": 2,
+  "boundary": "runtime",
+  "label": "post-seed41-failed",
+  "command": "git status --porcelain --untracked-files=all -- pinn/ configs/ scripts/train-unattended.sh pyproject.toml",
+  "external_start_utc": "2026-08-13T05:45:37.403537+00:00",
+  "external_end_utc": "2026-08-13T05:45:37.429963+00:00",
+  "exit_code": 0,
+  "stdout": "STATUS:\nDIFF:\nCACHED:\n",
+  "stderr": ""
+}

@@ -1,0 +1,7 @@
+reproducibility_scope=statistical-equivalence across fresh same-seed runs; exact-checkpoint-continuation on resume (does not claim bit-identical results across machines, torch versions, or devices)
+run_dir=<home>/Desktop/3_body_problem/.worktrees/trainex/runs/stage0-rerun-smoke
+runtime precision=float32 device=mps
+warning: validation gate pass failed at step 100: TypeError
+warning: validation gate pass failed at step 200: TypeError
+warning: validation gate pass failed at step 300: TypeError
+terminal_disposition=HALT

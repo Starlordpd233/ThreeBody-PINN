@@ -1,0 +1,11 @@
+{
+  "generation": 2,
+  "boundary": "environment",
+  "label": "post-seed41-failed",
+  "command": "band_ops.py capture_environment",
+  "external_start_utc": "2026-08-13T05:45:51.191295+00:00",
+  "external_end_utc": "2026-08-13T05:45:52.132257+00:00",
+  "exit_code": 0,
+  "stdout": "{\n  \"observed\": \"5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34\",\n  \"expected\": \"5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34\"\n}",
+  "stderr": ""
+}

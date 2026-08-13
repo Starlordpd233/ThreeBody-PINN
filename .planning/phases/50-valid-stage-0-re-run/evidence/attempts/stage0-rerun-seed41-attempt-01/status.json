@@ -1,0 +1,29 @@
+{
+  "epoch": 100,
+  "eta_seconds": null,
+  "heartbeat_interval_secs": 30,
+  "losses": {
+    "angmom": 79.60848236083984,
+    "data": 0.05505013093352318,
+    "energy": 3931.6416015625,
+    "ic": 29040.8203125,
+    "phys": 596670976.0,
+    "total": 590733312.0
+  },
+  "lr": null,
+  "memory": {
+    "current_bytes": 13828352,
+    "driver_bytes": 457326592
+  },
+  "phase": "2a",
+  "pid": 22626,
+  "run_name": "stage0-rerun-seed41",
+  "s_per_step_ema": 0.17357937696203943,
+  "schema_version": 1,
+  "stage": 0,
+  "staleness_threshold_secs": 90,
+  "state": "failed",
+  "step": 99,
+  "timestamp_epoch": 1786599797.3196979,
+  "timestamp_utc": "2026-08-13T05:43:17.319698+00:00"
+}

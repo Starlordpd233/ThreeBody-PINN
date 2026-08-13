@@ -1,113 +1,178 @@
 {
   "schema": "phase50-terminal-manifest/v1",
-  "terminal_reason": "interrupted-executor-wrapper-timeout",
+  "terminal_reason": "stage0-validation-underpopulated-replay-count-240",
   "observed_mismatch": {
     "applicable": false
   },
   "generation": {
-    "band_generation": 1,
-    "git_head": "584ffddd8e7e090200b722131aa15907732440cd",
+    "band_generation": 2,
+    "git_head": "7dd9ad929d29a1c1fa70c4f5ec354526b4f02bf4",
     "status": "terminal",
     "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
     "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
   },
   "missing_vs_inapplicable": {
-    "calibration_after": "missing \u2014 interrupted smoke wrote no stage0-timing.json",
-    "verify_marker": "inapplicable \u2014 D-18 verify not entered because smoke did not finish",
-    "graded_seed41": "inapplicable \u2014 no further launch after terminal interruption",
-    "graded_seed42": "inapplicable \u2014 no further launch after terminal interruption",
-    "graded_seed43": "inapplicable \u2014 no further launch after terminal interruption",
+    "graded_seed42": "inapplicable \u2014 no further launch after seed-41 DATA-06 terminal",
+    "graded_seed43": "inapplicable \u2014 no further launch after seed-41 DATA-06 terminal",
     "failure_tail_log": "inapplicable \u2014 no failure/ bundle files were produced",
-    "validation_jsonl": "inapplicable \u2014 no validation events were emitted",
+    "seed41_validation_jsonl": "inapplicable \u2014 exception occurred while constructing the first validation batch",
     "stage-0-final.pt": "inapplicable \u2014 Stage-0 ADVANCE never occurred"
   },
   "hashes": {
-    "run_ledger_md": "334e11ed1822228c2905a125b56ce54ff0f4be11af7d2fc9397b6ce769d43d9e",
-    "launch_transcript": "62fc24eefd4253894be87647e1999669c787404f9340b4ee05ae62869853df6b",
-    "terminal_artifact_sha256": {
+    "run_ledger_md": "1d778454d576e51eb9c27d24c69d1d606172ee2f2ce55af819d13b3a696346c5",
+    "smoke_attempt03_transcript": "a72361503a9d2eb7fccdbec6e12e73179020fea16eb4945057e26f14fdf32742",
+    "seed41_attempt01_transcript": "d86417c213370eb5f15e19c66ec4e56292705639904f1bf8c84052f536f2721d",
+    "smoke_terminal_artifact_sha256": {
       "config.yaml": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
-      "summary.json": "74e43b90f28abbba687b05ad129867d8aa0e5c85cd07e54817ce99ab6e0554a5",
-      "summary.md": "216f366164fde68ec8a498f4daa20297a0b2ca628e31d28044f73506b108180d",
+      "summary.json": "df545ed947965714a2af469235b84fe6d6f2ec54691567fdb69397847ef945f8",
+      "summary.md": "edcdc0d0ab39b5fa222b6c645185382c57358c1cd74aa35ea68a5558b7467675",
       "preflight.json": "359d2efdfb6d7e81878ee664cdd1f4a2f763b816f12a2d3bc7636d95bf947b0d",
       "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
       "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
-      "curriculum.jsonl": "e1743dda8ef75b1577352f1f8e89b26659d876e2bc5fcef790968c3ffdaf396e",
-      "status.json": "d837f467ce02402d19419289e10c03688ef98f209da62ebe4192981cce29a9d4",
-      "logs/train.log.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "run_start_rng.pt": "ebac994b484fca26b164bcf159648e1d0d35812a539b6e919673ffe2a83cc277",
-      "checkpoints/latest.pt": "cb066be1dbde5ff1411e9f8ebc9897844b89a3e2b092851ace437a680651c9b4",
-      "checkpoints/step-000000.pt": "6e0cda51706a9cdf62dc113d12d6291c439e032c1f78877b7d277fed283be9d4"
+      "curriculum.jsonl": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b",
+      "validation.jsonl": "c918dbae7ec4331bacefa5a2ebb98a04b888657dc731f28c2c4301935aafe898",
+      "status.json": "a38256e1269e201a3a8f50cc2d0378c4371c33939e8f6544d247ef23b28ed5ae",
+      "logs/train.log.jsonl": "3028fcd3f5ce6bce59f706ae25bb38a40f40dba1712431f72ea8a7f8d763e7aa",
+      "run_start_rng.pt": "d867dc5c9a924225fd888db1df0db5607115e12e9ecb4d6ff29b64f529224c34",
+      "checkpoints/best.pt": "7b1e34cc531f20e3367b8fab928d1683cb6bff2a70c7139555a6ea768ffe6dd2",
+      "checkpoints/latest.pt": "d6468a817820504b28e434f4991e2faf7ad2e370560543e65bf27c7b35d4f85e",
+      "checkpoints/step-000300.pt": "cbaedf3090aaed06ff8ba9f5e461b6a963e83f181c8bb27a81d574b699725307"
+    },
+    "seed41_terminal_artifact_sha256": {
+      "config.yaml": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
+      "summary.json": "91c729155dbd2be68d71c41a212e4882271f3409dbc2ec4e45bc366a80fa8884",
+      "summary.md": "876891226a733d3fe9d4722f3466732b05b50d9a3470c016d92ee4350f0e85bb",
+      "preflight.json": "808cda002d80de5e8fe7250dfdb60d664a1e0159563a071810e852e7b82cb915",
+      "training_metadata.json": "7d23db77ccbb1c381f9601b2ba5bda1a9e8bef88cf20d1cdce628f3718876c11",
+      "splits.json": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+      "status.json": "fe3df4945959d93e302be7308eb42286803601221e19a2fe7d5417b91a566155",
+      "logs/train.log.jsonl": "a647736b5bb3d370e1330f7d9da6f06aa0e581c4869d6dddb2a5ae3ba53d87bf",
+      "run_start_rng.pt": "7903d77f66db9dd0adb2f9b92d0429b420242ab31343d745492d0fb095d299ee",
+      "checkpoints/latest.pt": "06ef5e828b9a33213183c21a45c70d08ebee767dd6a2e68f0d27416a01933d30"
     },
     "attempt_copies": {
-      "config.yaml": {
-        "source": "runs/stage0-rerun-smoke/config.yaml",
-        "sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d"
+      "stage0-rerun-smoke-attempt-03": {
+        "config.yaml": {
+          "source": "runs/stage0-rerun-smoke/config.yaml",
+          "sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d"
+        },
+        "summary.json": {
+          "source": "runs/stage0-rerun-smoke/summary.json",
+          "sha256": "df545ed947965714a2af469235b84fe6d6f2ec54691567fdb69397847ef945f8"
+        },
+        "summary.md": {
+          "source": "runs/stage0-rerun-smoke/summary.md",
+          "sha256": "edcdc0d0ab39b5fa222b6c645185382c57358c1cd74aa35ea68a5558b7467675"
+        },
+        "preflight.json": {
+          "source": "runs/stage0-rerun-smoke/preflight.json",
+          "sha256": "359d2efdfb6d7e81878ee664cdd1f4a2f763b816f12a2d3bc7636d95bf947b0d"
+        },
+        "training_metadata.json": {
+          "source": "runs/stage0-rerun-smoke/training_metadata.json",
+          "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
+        },
+        "splits.json": {
+          "source": "runs/stage0-rerun-smoke/splits.json",
+          "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+        },
+        "curriculum.jsonl": {
+          "source": "runs/stage0-rerun-smoke/curriculum.jsonl",
+          "sha256": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b"
+        },
+        "validation.jsonl": {
+          "source": "runs/stage0-rerun-smoke/validation.jsonl",
+          "sha256": "c918dbae7ec4331bacefa5a2ebb98a04b888657dc731f28c2c4301935aafe898"
+        },
+        "status.json": {
+          "source": "runs/stage0-rerun-smoke/status.json",
+          "sha256": "a38256e1269e201a3a8f50cc2d0378c4371c33939e8f6544d247ef23b28ed5ae"
+        },
+        "logs/train.log.jsonl": {
+          "source": "runs/stage0-rerun-smoke/logs/train.log.jsonl",
+          "sha256": "3028fcd3f5ce6bce59f706ae25bb38a40f40dba1712431f72ea8a7f8d763e7aa"
+        },
+        "run_start_rng.pt": {
+          "source": "runs/stage0-rerun-smoke/run_start_rng.pt",
+          "sha256": "d867dc5c9a924225fd888db1df0db5607115e12e9ecb4d6ff29b64f529224c34"
+        },
+        "logs/train.log.txt": {
+          "source": "runs/stage0-rerun-smoke/logs/train.log",
+          "sha256": "721358eda35e5a01b69976072fa03cd619bcfd98279380b0b2dce77343ba89a8"
+        },
+        "launch-transcript.txt": {
+          "source": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-smoke-attempt-03-invocation-01-train.txt",
+          "sha256": "a72361503a9d2eb7fccdbec6e12e73179020fea16eb4945057e26f14fdf32742"
+        },
+        "corpus-generation-2.json": {
+          "source": ".planning/phases/50-valid-stage-0-re-run/evidence/corpus/generation-2.json",
+          "sha256": "9aa291eb2692ca04584177bf61e7eea321f9c0533ea1046c344d09e1ac2c4d70"
+        },
+        "environment-generation-2.json": {
+          "source": ".planning/phases/50-valid-stage-0-re-run/evidence/environment/generation-2.json",
+          "sha256": "9650cb9ab75ef59153647ed470e5cb18db998b43d1d17eeba9b3de4ecd341bc5"
+        },
+        "calibration/generation-2-smoke-attempt-03-invocation-01.json": {
+          "source": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/generation-2-smoke-attempt-03-invocation-01.json",
+          "sha256": "e111f020bcdfc7ccfb60352b0f4615aeaa1a4e15d46b98a2e75e7571dc215b43"
+        }
       },
-      "summary.json": {
-        "source": "runs/stage0-rerun-smoke/summary.json",
-        "sha256": "74e43b90f28abbba687b05ad129867d8aa0e5c85cd07e54817ce99ab6e0554a5"
-      },
-      "summary.md": {
-        "source": "runs/stage0-rerun-smoke/summary.md",
-        "sha256": "216f366164fde68ec8a498f4daa20297a0b2ca628e31d28044f73506b108180d"
-      },
-      "preflight.json": {
-        "source": "runs/stage0-rerun-smoke/preflight.json",
-        "sha256": "359d2efdfb6d7e81878ee664cdd1f4a2f763b816f12a2d3bc7636d95bf947b0d"
-      },
-      "training_metadata.json": {
-        "source": "runs/stage0-rerun-smoke/training_metadata.json",
-        "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
-      },
-      "splits.json": {
-        "source": "runs/stage0-rerun-smoke/splits.json",
-        "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
-      },
-      "curriculum.jsonl": {
-        "source": "runs/stage0-rerun-smoke/curriculum.jsonl",
-        "sha256": "e1743dda8ef75b1577352f1f8e89b26659d876e2bc5fcef790968c3ffdaf396e"
-      },
-      "status.json": {
-        "source": "runs/stage0-rerun-smoke/status.json",
-        "sha256": "d837f467ce02402d19419289e10c03688ef98f209da62ebe4192981cce29a9d4"
-      },
-      "logs/train.log.jsonl": {
-        "source": "runs/stage0-rerun-smoke/logs/train.log.jsonl",
-        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-      },
-      "logs/train.log.txt": {
-        "source": "runs/stage0-rerun-smoke/logs/train.log",
-        "sha256": "f78bb0ae80f8adf3348f7fac2456e3877f1b50dc54cd7dd965537dfe4f72d4d1"
-      },
-      "run_start_rng.pt": {
-        "source": "runs/stage0-rerun-smoke/run_start_rng.pt",
-        "sha256": "ebac994b484fca26b164bcf159648e1d0d35812a539b6e919673ffe2a83cc277"
-      },
-      "launch-transcript.txt": {
-        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-smoke-attempt-01-invocation-01-train.txt",
-        "sha256": "62fc24eefd4253894be87647e1999669c787404f9340b4ee05ae62869853df6b"
-      },
-      "corpus-generation-1.json": {
-        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/corpus/generation-1.json",
-        "sha256": "dd2de05731c359bfe41077de8ec29cdfceb63ee9787712f50cdf7f8c4aba952e"
-      },
-      "environment-generation-1.json": {
-        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/environment/generation-1.json",
-        "sha256": "183b642dbe73588fe46bcb448ce8cd5561a1b825075157a3780aa9df46705b96"
-      },
-      "calibration/pre-smoke-20260813T051154Z-d931a3fbda20.json": {
-        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/pre-smoke-20260813T051154Z-d931a3fbda20.json",
-        "sha256": "d931a3fbda20ac6e8bf014268b81af05dfe2361d62396bbc7cee9de91fd2944b"
+      "stage0-rerun-seed41-attempt-01": {
+        "config.yaml": {
+          "source": "runs/stage0-rerun-seed41/config.yaml",
+          "sha256": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da"
+        },
+        "summary.json": {
+          "source": "runs/stage0-rerun-seed41/summary.json",
+          "sha256": "91c729155dbd2be68d71c41a212e4882271f3409dbc2ec4e45bc366a80fa8884"
+        },
+        "summary.md": {
+          "source": "runs/stage0-rerun-seed41/summary.md",
+          "sha256": "876891226a733d3fe9d4722f3466732b05b50d9a3470c016d92ee4350f0e85bb"
+        },
+        "preflight.json": {
+          "source": "runs/stage0-rerun-seed41/preflight.json",
+          "sha256": "808cda002d80de5e8fe7250dfdb60d664a1e0159563a071810e852e7b82cb915"
+        },
+        "training_metadata.json": {
+          "source": "runs/stage0-rerun-seed41/training_metadata.json",
+          "sha256": "7d23db77ccbb1c381f9601b2ba5bda1a9e8bef88cf20d1cdce628f3718876c11"
+        },
+        "splits.json": {
+          "source": "runs/stage0-rerun-seed41/splits.json",
+          "sha256": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86"
+        },
+        "status.json": {
+          "source": "runs/stage0-rerun-seed41/status.json",
+          "sha256": "fe3df4945959d93e302be7308eb42286803601221e19a2fe7d5417b91a566155"
+        },
+        "logs/train.log.jsonl": {
+          "source": "runs/stage0-rerun-seed41/logs/train.log.jsonl",
+          "sha256": "a647736b5bb3d370e1330f7d9da6f06aa0e581c4869d6dddb2a5ae3ba53d87bf"
+        },
+        "run_start_rng.pt": {
+          "source": "runs/stage0-rerun-seed41/run_start_rng.pt",
+          "sha256": "7903d77f66db9dd0adb2f9b92d0429b420242ab31343d745492d0fb095d299ee"
+        },
+        "logs/train.log.txt": {
+          "source": "runs/stage0-rerun-seed41/logs/train.log",
+          "sha256": "6274473ed754c6670ef460c2ec986ec47deacc78b597b87e171e1777bbf97f94"
+        },
+        "launch-transcript.txt": {
+          "source": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-seed41-attempt-01-invocation-01-train.txt",
+          "sha256": "d86417c213370eb5f15e19c66ec4e56292705639904f1bf8c84052f536f2721d"
+        }
       }
     }
   },
   "required_non_null_hashes": {
-    "run_ledger_md": "334e11ed1822228c2905a125b56ce54ff0f4be11af7d2fc9397b6ce769d43d9e",
-    "launch_transcript": "62fc24eefd4253894be87647e1999669c787404f9340b4ee05ae62869853df6b",
-    "source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
-    "frozen_config_sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+    "run_ledger_md": "1d778454d576e51eb9c27d24c69d1d606172ee2f2ce55af819d13b3a696346c5",
+    "smoke_source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
+    "smoke_frozen_config_sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+    "seed41_source_config_sha256": "90ccd7418211ca42ebe14e06ea0bf1f62249d87e19b71c9f670c9a9b8374f073",
+    "seed41_frozen_config_sha256": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
     "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
     "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
   },
-  "closed_utc": "2026-08-13T05:18:59.477413+00:00"
+  "closed_utc": "2026-08-13T05:46:46.377778+00:00"
 }
