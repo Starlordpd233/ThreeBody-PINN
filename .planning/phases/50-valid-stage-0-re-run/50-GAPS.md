@@ -86,6 +86,26 @@ executor surfaced the finding and correctly declined to resolve it.
   RUN-02 cannot close; 50-03 must not synthesize a candidate. `final_band_generation`
   is null.
 
-- **Status:** `OPEN`
+- **Status:** `RESOLVED-WITH-INSTRUCTION`
 
-- **Resolution note:**
+- **Resolution note:** Owner delegated the ruling to the orchestrator on
+  2026-08-13 ("I don't know what's the answer here. decide on this following
+  your best reasoning"). **Option A.** Keep DATA-05 `replay_count=240`. Do not
+  set it to 227 or to the smoke's 32 because this run observed 227 (SCOPE-29 /
+  D-19). Do not start 50-03. Do not launch another 50-02 generation in this
+  wave.
+
+  What A means here, grounded in already-locked text rather than in 227:
+  DATA-06's readiness fatal is `stage0_full_split_count` (`stage_scan.py`
+  `readiness_operand`; train-split count is `diagnostic_only_phase40`). That
+  full-count check already passed (`n_train=1812`). Seed 41 died because
+  `_run_validation` calls the same DATA-05 `_stage_batch` / `select_stage_records`
+  unique-without-replacement draw on the **validation** source
+  (`train.py` documents `build_stage_batch` for both splits). On this pinned
+  split that val-side Stage-0 pool is 227, so graded 240 is structurally
+  unsatisfiable without one of: (i) a later split/admission change that makes
+  `|val ∩ D≤0| >= 240` without targeting the observed 227, or (ii) an
+  owner-ratified val-batch rule that is not the train-side unique-240 draw.
+  Neither (i) nor (ii) is authorized as a silent 50-02 edit. The next work is
+  a planned 50-01 / new-plan step to choose (i) or (ii). Wave 2 stays on the
+  generation-2 terminal record (`8847995`).
