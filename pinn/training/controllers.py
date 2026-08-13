@@ -1580,6 +1580,16 @@ class CurriculumController:
       ``None`` preserves the single-stage path byte-for-byte (PLAT-01).
       Per-stage ``n_adam`` / ``max_epochs`` / ``eps_*`` are NEVER invented
       here (SCOPE-19) -- they arrive through the seam from the caller.
+    - ``stage_0_only`` (bool, default ``False``; SCOPE-27 / 50-CONTEXT.md
+      D-01) is a fresh-run-only conformance ceiling: when a Stage-0
+      ``run_stage(0)`` returns ADVANCE, ``step()`` persists the ordinary
+      ``stage-0-final`` boundary and logs the exit, and ``run()`` then
+      returns that ADVANCE as terminal -- before any stage increment,
+      ``stage_factory`` / Stage-1 conformance call, ``stage-1-init`` write,
+      0->1 promotion, disposition record, or Stage-1 rewarm. ``False`` (the
+      default) preserves the ordinary loop byte-for-byte. Not a general
+      multi-stage platform switch -- it only enforces the Stage-0-only
+      training authorization.
 
     Owns the current stage index, the injected ``CheckpointStore``, the live
     ``RunController`` (when present), and the rebound ``ScheduledWeights``
@@ -1599,6 +1609,7 @@ class CurriculumController:
         invariant_b_state_provider: Optional[Callable[[], Mapping[str, Any]]] = None,
         recover_retries: int = 0,
         initial_stage: int = 0,
+        stage_0_only: bool = False,
     ) -> None:
         # T-40-09: forced disposition is mutually exclusive with ANY live-run
         # construct (run_controller and/or stage_factory). One guard, no assert.
@@ -1631,6 +1642,7 @@ class CurriculumController:
         self._recover_retries = int(recover_retries)
         self._recover_attempts = 0
         self._stage = int(initial_stage)
+        self._stage_0_only = bool(stage_0_only)
         self._halted = False
         # One-shot mid-stage resume context (consumed by first run_stage only).
         self._pending_resume_ctx: Optional[Mapping[str, Any]] = None
@@ -1789,6 +1801,19 @@ class CurriculumController:
             # stage-{k}-final carries the EXITING stage's state (OLD controller).
             self._checkpoint_store.save(self._checkpoint_payload(f"stage-{k}-final", k))
             self._save_ctx53_anchor(f"stage-{k}-final", k)
+            if self._stage_0_only and k == 0:
+                # SCOPE-27 / 50-CONTEXT.md D-01 fresh-run Stage-0 ceiling: the
+                # ordinary stage-0-final boundary is already persisted above;
+                # log the Stage-0 exit and terminate here -- BEFORE the stage
+                # increment, any stage_factory / Stage-1 conformance_hook
+                # call, the stage-1-init write, the 0->1 promotion, the
+                # k->k+1 disposition record, and the Stage-1 rewarm. Every
+                # persisted stage field therefore stays 0 and no Stage-1
+                # checkpoint is ever created. ``run()`` treats this ADVANCE
+                # as terminal (below) rather than looping into a second
+                # ``run_stage(0)`` call.
+                self._log_stage_exit(StageDisposition.ADVANCE, stage=k)
+                return StageDisposition.ADVANCE
             self._stage = k + 1
             # GAP-40-04 Option C: replace the live RunController before the
             # stage-{k+1}-init save so the anchor carries the ENTERED stage's
@@ -1911,6 +1936,12 @@ class CurriculumController:
             self._log_run_start()
         while True:
             disposition = self.step()
+            if self._stage_0_only and disposition is StageDisposition.ADVANCE:
+                # The guarded step() above already stopped before any Stage-1
+                # side effect, so self._stage is still 0. Terminate the
+                # curriculum normally with this ADVANCE instead of looping
+                # into a second Stage-0 run_stage() call (D-01).
+                return disposition
             if disposition in (StageDisposition.ADVANCE, StageDisposition.RECOVER):
                 continue
             return disposition

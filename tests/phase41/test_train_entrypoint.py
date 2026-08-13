@@ -691,5 +691,38 @@ class ReproHonestyTests(_TrainHarness):
         self.assertIn("does not claim bit-identical", out)
 
 
+# ---------------------------------------------------------------------------
+# SCOPE-27 / 50-CONTEXT.md D-01 -- the --stage-0-only fresh-run CLI guard.
+# The state-machine guarantees (no stage-1-init, no stage>0 record, no
+# factory/conformance call for Stage 1) are proven at the CurriculumController
+# level in tests/phase40/test_controllers.py::StageZeroOnlyGuardTests; this
+# class covers only the CLI wiring: the flag parses/is accepted for a fresh
+# launch, and --stage-0-only + --resume refuses before any construction.
+# ---------------------------------------------------------------------------
+
+class StageZeroOnlyCliTests(_TrainHarness):
+    def test_fresh_launch_accepts_stage_0_only_flag(self):
+        code, out, err = self._run(
+            ["--config", str(self.cfg_path), "--stage-0-only"]
+        )
+        self.assertEqual(code, 0, msg=f"stdout={out}\nstderr={err}")
+        run_dir = self.runs_root / "test-run"
+        self.assertTrue((run_dir / "config.yaml").is_file())
+
+    def test_stage_0_only_with_resume_refuses_before_construction(self):
+        # "latest" bypasses the earlier --resume-path-exists check (it is
+        # exempted by name) so this reaches the --stage-0-only validation
+        # rather than an unrelated "path does not exist" refusal.
+        code, out, err = self._run(
+            ["--config", str(self.cfg_path), "--resume", "latest", "--stage-0-only"]
+        )
+        self.assertEqual(code, 1, msg=f"stdout={out}\nstderr={err}")
+        self.assertIn("stage-0-only", err.lower())
+        self.assertIn("resume", err.lower())
+        # Refused before construction: no run directory was ever created.
+        run_dir = self.runs_root / "test-run"
+        self.assertFalse(run_dir.exists())
+
+
 if __name__ == "__main__":
     unittest.main()

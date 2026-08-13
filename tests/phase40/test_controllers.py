@@ -901,5 +901,146 @@ class LiveObjectiveStageFactoryTests(unittest.TestCase):
         self.assertLessEqual(abs(float(pin) - self.STAGE1_LAMBDA_PHYS), self.TOL)
 
 
+# ---------------------------------------------------------------------------
+# SCOPE-27 / 50-CONTEXT.md D-01 -- stage_0_only fresh-run Stage-0 ceiling.
+# CLI wiring (`--stage-0-only` parsing + the --resume refusal) is covered in
+# tests/phase41/test_train_entrypoint.py; this class covers the
+# CurriculumController-level guard the flag threads into.
+# ---------------------------------------------------------------------------
+
+class StageZeroOnlyGuardTests(unittest.TestCase):
+    def setUp(self):
+        self.RunController = _require("RunController")
+        self.CurriculumController = _require("CurriculumController")
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+
+    def _forced_guarded_controller(self, *, stage_0_only=True):
+        """Fast dispatch-only fixture: forced_disposition (no stage_factory --
+        the two are mutually exclusive per T-40-09) plus a spy-able
+        conformance_hook."""
+        config = _make_config()
+        checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)
+        scheduled_weights = ScheduledWeights(1)
+        conformance_hook = mock.Mock(name="conformance_hook")
+        controller = self.CurriculumController(
+            config, checkpoint_store, scheduled_weights,
+            forced_disposition=lambda k: StageDisposition.ADVANCE,
+            conformance_hook=conformance_hook,
+            stage_0_only=stage_0_only,
+        )
+        return controller, checkpoint_store, conformance_hook
+
+    def test_guarded_advance_saves_only_stage_0_final_logs_exit_and_stays_stage_0(self):
+        controller, store, conformance_hook = self._forced_guarded_controller()
+        save_spy = mock.Mock(wraps=store.save)
+        promote_spy = mock.Mock(wraps=store.promote)
+        record_spy = mock.Mock(wraps=store.record_disposition)
+        with mock.patch.object(store, "save", save_spy), \
+             mock.patch.object(store, "promote", promote_spy), \
+             mock.patch.object(store, "record_disposition", record_spy), \
+             self.assertLogs("pinn.training", level="INFO") as cm:
+            disposition = controller.step()
+
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        self.assertEqual(controller.stage, 0)
+        tags = [call.args[0]["tag"] for call in save_spy.call_args_list]
+        self.assertEqual(tags, ["stage-0-final"])
+        stages_saved = [call.args[0]["stage"] for call in save_spy.call_args_list]
+        self.assertEqual(stages_saved, [0])
+        promote_spy.assert_not_called()
+        record_spy.assert_not_called()
+        # The stage-0 preflight conformance_hook call at the top of step()
+        # still fires once; the SECOND (Stage-1) call inside the ADVANCE
+        # branch must not.
+        self.assertEqual(conformance_hook.call_count, 1)
+        self.assertEqual(conformance_hook.call_args.args[0], 0)
+        joined = "\n".join(cm.output)
+        self.assertIn("stage-exit", joined)
+        self.assertIn("stage=0", joined)
+
+    def test_guarded_run_terminates_with_advance_and_no_second_run_stage_call(self):
+        runtime = resolve_runtime("float64", "cpu")
+        model = make_stub_model(dtype=runtime.dtype, device=runtime.torch_device)
+        train_source, validation_source = make_stub_split_sources(
+            n_train=300, n_validation=300,
+        )
+        config = _make_config(max_epochs=2, n_adam=1)
+        scheduled_weights = ScheduledWeights(1, lambda_e_max=0.0, lambda_l_max=0.0)
+        checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)
+        stage0 = self.RunController(
+            model, train_source, validation_source, config,
+            scheduled_weights, GradClipper(),
+            CollocationSampler(2, np.random.default_rng(0)),
+            StageExitMachine(config), checkpoint_store, runtime,
+            rng=np.random.default_rng(1),
+            s_h=1.0,
+        )
+        controller = self.CurriculumController(
+            config, checkpoint_store, scheduled_weights,
+            run_controller=stage0,
+            stage_0_only=True,
+        )
+        with mock.patch.object(
+            stage0, "run_stage", return_value=StageDisposition.ADVANCE,
+        ) as run_stage_mock:
+            disposition = controller.run()
+
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        self.assertEqual(controller.stage, 0)
+        self.assertFalse(controller.halted)
+        self.assertEqual(run_stage_mock.call_count, 1)
+
+    def test_guarded_advance_never_invokes_stage_factory(self):
+        """A live-run construct proves the factory truly is never called --
+        forced_disposition cannot carry a stage_factory (T-40-09 guard), so
+        this mirrors StageFactorySeamTests's real-RunController pattern."""
+        runtime = resolve_runtime("float64", "cpu")
+        model = make_stub_model(dtype=runtime.dtype, device=runtime.torch_device)
+        train_source, validation_source = make_stub_split_sources(
+            n_train=300, n_validation=300,
+        )
+        config = _make_config(max_epochs=2, n_adam=1)
+        scheduled_weights = ScheduledWeights(1, lambda_e_max=0.0, lambda_l_max=0.0)
+        checkpoint_store = TorchSaveCheckpointStore(self._tmpdir.name)
+        stage0 = self.RunController(
+            model, train_source, validation_source, config,
+            scheduled_weights, GradClipper(),
+            CollocationSampler(2, np.random.default_rng(0)),
+            StageExitMachine(config), checkpoint_store, runtime,
+            rng=np.random.default_rng(1),
+            s_h=1.0,
+        )
+        factory = mock.Mock(name="stage_factory")
+        controller = self.CurriculumController(
+            config, checkpoint_store, scheduled_weights,
+            run_controller=stage0,
+            stage_factory=factory,
+            stage_0_only=True,
+        )
+        with mock.patch.object(
+            stage0, "run_stage", return_value=StageDisposition.ADVANCE,
+        ):
+            disposition = controller.step()
+
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        self.assertEqual(controller.stage, 0)
+        factory.assert_not_called()
+        self.assertIs(controller._run_controller, stage0)
+
+    def test_stage_0_only_false_default_still_advances_past_stage_zero(self):
+        """Regression: the unguarded controller advances exactly as before."""
+        controller, store, _hook = self._forced_guarded_controller(
+            stage_0_only=False,
+        )
+        save_spy = mock.Mock(wraps=store.save)
+        with mock.patch.object(store, "save", save_spy):
+            disposition = controller.step()
+        self.assertEqual(disposition, StageDisposition.ADVANCE)
+        self.assertEqual(controller.stage, 1)
+        tags = [call.args[0]["tag"] for call in save_spy.call_args_list]
+        self.assertEqual(tags, ["stage-0-final", "stage-1-init"])
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

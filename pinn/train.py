@@ -210,6 +210,16 @@ def _parser() -> argparse.ArgumentParser:
         dest="hold_stage",
         help="with --resume <stage-k-final.pt>, re-enter stage k instead of advancing",
     )
+    parser.add_argument(
+        "--stage-0-only",
+        action="store_true",
+        dest="stage_0_only",
+        help=(
+            "fresh-run-only conformance ceiling (SCOPE-27 / 50-CONTEXT.md D-01): "
+            "on a Stage-0 ADVANCE, persist stage-0-final and stop before any "
+            "Stage-1 side effect. Invalid together with --resume."
+        ),
+    )
     return parser
 
 
@@ -727,6 +737,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         except HoldStageTargetError as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
+
+    # SCOPE-27 / 50-CONTEXT.md D-01: --stage-0-only is a fresh-run-only guard.
+    # Refuse the combination with --resume BEFORE any construction, matching
+    # the --hold-stage-requires---resume validation above.
+    if args.stage_0_only and args.resume is not None:
+        print(
+            "error: --stage-0-only is a fresh-run-only guard (D-01/SCOPE-27) "
+            "and refuses combination with --resume; omit --resume for a "
+            "guarded fresh launch",
+            file=sys.stderr,
+        )
+        return 1
 
     try:
         config = load_config(args.config)
@@ -1246,6 +1268,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         invariant_b_state_provider=step_guards.invariant_b_state_dict,
         recover_retries=config.run.recover_retries,
         initial_stage=initial_stage,
+        stage_0_only=bool(args.stage_0_only),
     )
     # Stash frozen config identity for CurriculumController boundary anchors.
     curriculum._config_identity_payload = config_identity  # type: ignore[attr-defined]

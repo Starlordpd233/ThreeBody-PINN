@@ -1,0 +1,68 @@
+# Phase-50 provenance: copied verbatim from configs/stage0-example.yaml (D-01/D-04/D-06); do not edit configs/stage0-example.yaml itself.
+run:
+  seed: 43
+  precision: float32
+  device: mps
+  log_every: 50
+  run_name: stage0-rerun-seed43
+  # R-2 is OWNER-RATIFIED (2026-07-22) from the 43-07 pilot evidence.
+  # The pre-ratification slot was:
+  # recover_retries: <owner-provided non-negative integer>
+  recover_retries: 0
+  # D4-a: wall_clock_ceiling_s is OWNER-RATIFIED (2026-07-21, explicit
+  # selection at 120 s) — roughly 10x the ~9-12 s normal inter-checkpoint
+  # interval measured in the 43-06 real Stage-0 smoke, and well under the
+  # ~270-305 s production Stage-0 forecast, so it never fires in a healthy
+  # run. It forces a checkpoint once elapsed-since-last-write reaches this
+  # ceiling, OR'd with every_n_steps cadence — it bounds unsaved progress on
+  # a stall to <=2 min, it never aborts the run. See
+  # .planning/phases/43-verification-stage-0-pilot-acceptance/evidence/smoke/README.md.
+  checkpoint:
+    wall_clock_ceiling_s: 120
+  # every_n_steps and other cadence/retention knobs use their documented
+  # defaults unless overridden above.
+  # checkpoint:
+  #   every_n_steps: 100
+  # R-1 is OWNER-RATIFIED (2026-07-22) from the 43-07 pilot evidence.
+  # The run banner reprints all three values at every launch. The
+  # loss-explosion ceiling stops a diverging run early; read
+  # runs/<name>/failure/ before changing it.
+  guards:
+    loss_explosion_ceiling: 100000000000.0
+    disk_floor_fraction: 0.05
+    memory_watermark_fraction: 0.7
+  # GATE-03 / D-20: the owner sets front_advance_window_n here when invariant
+  # B should enforce a window. Absent or null means record-only and carries
+  # the open INV-B-N-UNSET divergence, so eval01_precondition_i is false.
+  invariants:
+    # Owner ruling 2026-08-05: N = 500 (= 0.5 · N_Adam,0); retain this value
+    # verbatim unless the owner re-rules after a Phase-50 invariant-B HALT.
+    front_advance_window_n: 500
+  monitor:
+    heartbeat_secs: 30
+    staleness_factor: 3
+    # tb_histogram_every: 100
+    # mem_every: 100
+
+stage:
+  max_epochs: 1000
+  n_adam: 1000
+  stagnation_window: 10000
+  percentile_10_relaxation: 0.1
+  # beta: 0.98
+  # patience: 200
+  # eps_plateau: 1.0e-5
+  # eps_phys: 1.0e-4
+  # eps_energy: 1.0e-4
+
+opt:
+  validation_every: 100
+  # lbfgs_max_iter: 20
+  # lbfgs_chunk_size: 1024
+
+loss:
+  lambda_e_max: 0.0
+
+data:
+  source: admitted
+  blacklist_path: ../Documentation/problematic_ics_blacklist.json

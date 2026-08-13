@@ -1,0 +1,65 @@
+# ACC-02 Stage-0 smoke config (43-03). A ~5-minute end-to-end run over ~32
+# admitted Stage-0 trajectories that exercises the whole mechanical surface
+# (launch -> monitor -> checkpoint -> Ctrl-C/resume -> summary) and measures the
+# per-step wall time used for the full-run duration forecast.
+#
+# The MODEL runs on MPS/float32 (D1-p); the admitted data adapter always resides
+# on CPU/float32 (a hard DATA-01 contract) and batches move to the model device
+# at sampling time — the two are intentionally independent.
+#
+# Data root (Phase-50 / D-28): `data.root` is left unset. From this trainex
+# worktree, `default_data_root()` resolves the admitted corpus directly from
+# the main-repo `simulation_data/Data` via the parent of `git rev-parse
+# --git-common-dir` (no copy step, no partial-worktree fallback). Never set
+# `GSD_DATA_ROOT` or `GSD_ALLOW_PARTIAL_DATA_ROOT` — either would bypass the
+# guard that protects this run's result.
+run:
+  seed: 42
+  precision: float32
+  device: mps
+  smoke: true
+  log_every: 50
+  run_name: stage0-rerun-smoke
+  checkpoint:
+    every_n_steps: 100      # checkpoints land at steps 100 / 200 / 300
+    # rolling_keep bumped from the class default (3) to 4 (43-06 acceptance
+    # finding): a mid-run SIGTERM interrupt writes an extra off-cadence
+    # step-*.pt rolling save alongside the 3 periodic saves (100/200/300),
+    # so the rolling pool holds 4 entries across one interrupt+resume cycle.
+    # At rolling_keep=3 the oldest (step 100) gets evicted once step 300
+    # lands, violating this plan's must_have that 100/200/300 all survive.
+    # Operational retention knob (not owner-carved) — see evidence/smoke/README.md.
+    rolling_keep: 4
+  # GATE-03 / D-20: the owner sets front_advance_window_n here when invariant
+  # B should enforce a window. Absent or null means record-only and carries
+  # the open INV-B-N-UNSET divergence, so eval01_precondition_i is false.
+  invariants:
+    # Phase-50 / D-15: N=500 is the owner-ratified 2026-08-05 value (copied,
+    # not chosen) so the smoke walks the identical affirmative
+    # invariant_b_window preflight path the graded runs take. It changes no
+    # training math -- the window cannot elapse inside 300 steps.
+    front_advance_window_n: 500
+  monitor:
+    heartbeat_secs: 30
+    staleness_factor: 3
+
+stage:
+  max_epochs: 300           # ~300 Stage-0 steps for the smoke
+  n_adam: 300
+  stagnation_window: 10000
+  percentile_10_relaxation: 0.1
+  replay_count: 32          # ~32 admitted Stage-0 replay trajectories
+
+opt:
+  validation_every: 100
+
+loss:
+  lambda_e_max: 0.0
+
+data:
+  source: admitted
+  # root: /path/to/gitignored/Stage-0/Data   # optional explicit corpus root
+  # DI-43-06-01: owner-designated Stage-0 admission blacklist (Option A,
+  # 2026-07-22) — the legacy 65-ID Documentation blacklist, resolved relative
+  # to the admitted data root so this path stays portable across machines.
+  blacklist_path: ../Documentation/problematic_ics_blacklist.json

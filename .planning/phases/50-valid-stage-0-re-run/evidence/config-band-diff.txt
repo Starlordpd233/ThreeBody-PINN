@@ -1,0 +1,26 @@
+Phase 50 D-04 receipt: the three graded configs (configs/stage0-rerun-seed41.yaml,
+configs/stage0-rerun-seed42.yaml, configs/stage0-rerun-seed43.yaml) are
+byte-identical except `run.seed` and `run.run_name`. This file captures the
+literal `diff` invocation and its complete, unedited output for each
+consecutive pair, so "the band varied only the seed" is a verified receipt
+rather than an assertion (50-CONTEXT.md D-04).
+
+$ diff configs/stage0-rerun-seed41.yaml configs/stage0-rerun-seed42.yaml
+3c3
+<   seed: 41
+---
+>   seed: 42
+7c7
+<   run_name: stage0-rerun-seed41
+---
+>   run_name: stage0-rerun-seed42
+
+$ diff configs/stage0-rerun-seed42.yaml configs/stage0-rerun-seed43.yaml
+3c3
+<   seed: 42
+---
+>   seed: 43
+7c7
+<   run_name: stage0-rerun-seed42
+---
+>   run_name: stage0-rerun-seed43
