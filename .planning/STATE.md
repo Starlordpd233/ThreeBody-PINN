@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 50
-current_phase_name: Valid Stage-0 Re-Run
+current_phase_name: valid-stage-0-re-run
 status: executing
-stopped_at: Phase 50 context gathered
-last_updated: "2026-08-11T11:40:46.783Z"
-last_activity: 2026-08-10
-last_activity_desc: Phase 49 complete, transitioned to Phase 50
+stopped_at: Completed 50-01-PLAN.md
+last_updated: "2026-08-13T04:07:26.433Z"
+last_activity: 2026-08-12
+last_activity_desc: Phase 50 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 29
-  completed_plans: 26
+  completed_plans: 27
   percent: 57
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-31)
 
 **Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 49 — conformance-gate
+**Current focus:** Phase 50 — valid-stage-0-re-run
 
 ## Current Position
 
-Phase: 50 — Valid Stage-0 Re-Run
-Plan: Not started
+Phase: 50 (valid-stage-0-re-run) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-08-10 — Phase 49 complete, transitioned to Phase 50
+Last activity: 2026-08-12 — Phase 50 execution started
 **Verification:** [███████░░░] 67% (4/6 truths verified)
 
 ### Phase 49 verification (2026-08-10)
@@ -253,6 +253,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 49 P01 | 50min | 3 tasks | 8 files |
 | Phase 49 P02 | 7min | 3 tasks | 7 files |
 | Phase 49 P04 | 20min | 3 tasks | 6 files |
+| Phase 50 P01 | ~50min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -421,6 +422,9 @@ Recent decisions affecting current work:
 - [Phase 49 Plans 49-04/49-08]: The ordered census manifest resolves concrete producer contracts; the fail-closed divergence register and preflight preserve open caveats verbatim.
 - [Phase ?]: Every closed register entry carries a passing proof-test node; waivers cite existing authority only.
 - [Phase 49 Plan 49-08]: Scheduler state is scalar-validated before PHYS-05 arithmetic/comparison; ordinary setup/probe failures persist refusal evidence; resume retains the validated preflight history.
+- [Phase ?]: Plan 50-01: --stage-0-only fresh-run Stage-0 ceiling added to CurriculumController/pinn.train (SCOPE-27); guarded ADVANCE skips stage increment, stage_factory, stage-1-init, promotion, and the k->k+1 disposition record
+- [Phase ?]: Plan 50-01: four Phase-50 configs committed with D-04 diff receipt; 50-PRE-REGISTRATION.md fixes seed-42 candidate/checkpoint/fallback order before any graded run; 50-CONFIG-DELTA.md derived by structural load_config() diff; STAGE0-BUDGET-DELTA qualification appended to divergence register via API
+- [Phase ?]: Plan 50-01: RUN-01/RUN-02 requirement checkboxes deliberately NOT flipped (D-30 reserves that to phase verification); all wave-1 files landed in one commit (abd5f8d) on milestone/v2.2 per D-17
 
 ### Pending Todos
 
@@ -453,10 +457,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/50-valid-stage-0-re-run/50-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-08-11T08:20:00.536Z
-Stopped at: Phase 50 context gathered
+Last session: 2026-08-13T04:07:26.424Z
+Stopped at: Completed 50-01-PLAN.md
 Next action: Run `/gsd-plan-phase 50` from .worktrees/trainex. Phase 49 is complete (verification 6/6); 50-CONTEXT.md is committed. Planning must honour CONTEXT D-17 — no commit may land between the ACC-02 calibration smoke and the three graded runs, or every graded launch refuses.
 
 ## Operator Next Steps

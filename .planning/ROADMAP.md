@@ -201,12 +201,12 @@ Plans:
 **Goal**: Stage-0 runs end-to-end under the corrected recipe — the first run that is actually the specified experiment.
 **Depends on**: Phase 49 (the gate must exist before Phase 51 spends the look).
 **Requirements**: RUN-01, RUN-02
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 50-01-PLAN.md — Land the recipe before any launch: four committed configs (smoke + three graded), pre-registration record, config-delta record + register qualification, run-ledger scaffold (wave 1)
+- [x] 50-01-PLAN.md — Land the recipe before any launch: four committed configs (smoke + three graded), pre-registration record, config-delta record + register qualification, run-ledger scaffold (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -256,7 +256,7 @@ Plans:
 | 47. Frame Completion & S_H Pipeline | v2.2 | 3/3 | Complete    | 2026-07-31 |
 | 48. Loss-Math Conformance | v2.2 | 4/4 | Complete    | 2026-08-02 |
 | 49. Conformance Gate | v2.2 | 9/9 | Complete    | 2026-08-10 |
-| 50. Valid Stage-0 Re-Run | v2.2 | 0/3 | Not started | - |
+| 50. Valid Stage-0 Re-Run | v2.2 | 1/3 | In Progress | - |
 | 51. The Authorized Evaluation | v2.2 | 0/? | Not started | - |
 | 52. Diagnosis Re-Derivation & Handoff | v2.2 | 0/? | Not started | - |
 
