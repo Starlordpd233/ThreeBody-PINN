@@ -1,0 +1,11 @@
+{
+  "generation": 1,
+  "boundary": "corpus",
+  "label": "open",
+  "command": "band_ops.py snapshot_corpus",
+  "external_start_utc": "2026-08-13T05:11:40.279404+00:00",
+  "external_end_utc": "2026-08-13T05:11:49.403271+00:00",
+  "exit_code": 0,
+  "stdout": "{\n  \"observed\": \"9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd\",\n  \"expected\": \"9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd\",\n  \"total_files\": 38017,\n  \"total_bytes\": 6667358966,\n  \"elapsed_seconds\": 9.109821\n}",
+  "stderr": ""
+}

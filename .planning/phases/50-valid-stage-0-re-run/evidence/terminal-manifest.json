@@ -1,0 +1,113 @@
+{
+  "schema": "phase50-terminal-manifest/v1",
+  "terminal_reason": "interrupted-executor-wrapper-timeout",
+  "observed_mismatch": {
+    "applicable": false
+  },
+  "generation": {
+    "band_generation": 1,
+    "git_head": "584ffddd8e7e090200b722131aa15907732440cd",
+    "status": "terminal",
+    "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+    "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
+  },
+  "missing_vs_inapplicable": {
+    "calibration_after": "missing \u2014 interrupted smoke wrote no stage0-timing.json",
+    "verify_marker": "inapplicable \u2014 D-18 verify not entered because smoke did not finish",
+    "graded_seed41": "inapplicable \u2014 no further launch after terminal interruption",
+    "graded_seed42": "inapplicable \u2014 no further launch after terminal interruption",
+    "graded_seed43": "inapplicable \u2014 no further launch after terminal interruption",
+    "failure_tail_log": "inapplicable \u2014 no failure/ bundle files were produced",
+    "validation_jsonl": "inapplicable \u2014 no validation events were emitted",
+    "stage-0-final.pt": "inapplicable \u2014 Stage-0 ADVANCE never occurred"
+  },
+  "hashes": {
+    "run_ledger_md": "334e11ed1822228c2905a125b56ce54ff0f4be11af7d2fc9397b6ce769d43d9e",
+    "launch_transcript": "62fc24eefd4253894be87647e1999669c787404f9340b4ee05ae62869853df6b",
+    "terminal_artifact_sha256": {
+      "config.yaml": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+      "summary.json": "74e43b90f28abbba687b05ad129867d8aa0e5c85cd07e54817ce99ab6e0554a5",
+      "summary.md": "216f366164fde68ec8a498f4daa20297a0b2ca628e31d28044f73506b108180d",
+      "preflight.json": "359d2efdfb6d7e81878ee664cdd1f4a2f763b816f12a2d3bc7636d95bf947b0d",
+      "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+      "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+      "curriculum.jsonl": "e1743dda8ef75b1577352f1f8e89b26659d876e2bc5fcef790968c3ffdaf396e",
+      "status.json": "d837f467ce02402d19419289e10c03688ef98f209da62ebe4192981cce29a9d4",
+      "logs/train.log.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "run_start_rng.pt": "ebac994b484fca26b164bcf159648e1d0d35812a539b6e919673ffe2a83cc277",
+      "checkpoints/latest.pt": "cb066be1dbde5ff1411e9f8ebc9897844b89a3e2b092851ace437a680651c9b4",
+      "checkpoints/step-000000.pt": "6e0cda51706a9cdf62dc113d12d6291c439e032c1f78877b7d277fed283be9d4"
+    },
+    "attempt_copies": {
+      "config.yaml": {
+        "source": "runs/stage0-rerun-smoke/config.yaml",
+        "sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d"
+      },
+      "summary.json": {
+        "source": "runs/stage0-rerun-smoke/summary.json",
+        "sha256": "74e43b90f28abbba687b05ad129867d8aa0e5c85cd07e54817ce99ab6e0554a5"
+      },
+      "summary.md": {
+        "source": "runs/stage0-rerun-smoke/summary.md",
+        "sha256": "216f366164fde68ec8a498f4daa20297a0b2ca628e31d28044f73506b108180d"
+      },
+      "preflight.json": {
+        "source": "runs/stage0-rerun-smoke/preflight.json",
+        "sha256": "359d2efdfb6d7e81878ee664cdd1f4a2f763b816f12a2d3bc7636d95bf947b0d"
+      },
+      "training_metadata.json": {
+        "source": "runs/stage0-rerun-smoke/training_metadata.json",
+        "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
+      },
+      "splits.json": {
+        "source": "runs/stage0-rerun-smoke/splits.json",
+        "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+      },
+      "curriculum.jsonl": {
+        "source": "runs/stage0-rerun-smoke/curriculum.jsonl",
+        "sha256": "e1743dda8ef75b1577352f1f8e89b26659d876e2bc5fcef790968c3ffdaf396e"
+      },
+      "status.json": {
+        "source": "runs/stage0-rerun-smoke/status.json",
+        "sha256": "d837f467ce02402d19419289e10c03688ef98f209da62ebe4192981cce29a9d4"
+      },
+      "logs/train.log.jsonl": {
+        "source": "runs/stage0-rerun-smoke/logs/train.log.jsonl",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "logs/train.log.txt": {
+        "source": "runs/stage0-rerun-smoke/logs/train.log",
+        "sha256": "f78bb0ae80f8adf3348f7fac2456e3877f1b50dc54cd7dd965537dfe4f72d4d1"
+      },
+      "run_start_rng.pt": {
+        "source": "runs/stage0-rerun-smoke/run_start_rng.pt",
+        "sha256": "ebac994b484fca26b164bcf159648e1d0d35812a539b6e919673ffe2a83cc277"
+      },
+      "launch-transcript.txt": {
+        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-smoke-attempt-01-invocation-01-train.txt",
+        "sha256": "62fc24eefd4253894be87647e1999669c787404f9340b4ee05ae62869853df6b"
+      },
+      "corpus-generation-1.json": {
+        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/corpus/generation-1.json",
+        "sha256": "dd2de05731c359bfe41077de8ec29cdfceb63ee9787712f50cdf7f8c4aba952e"
+      },
+      "environment-generation-1.json": {
+        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/environment/generation-1.json",
+        "sha256": "183b642dbe73588fe46bcb448ce8cd5561a1b825075157a3780aa9df46705b96"
+      },
+      "calibration/pre-smoke-20260813T051154Z-d931a3fbda20.json": {
+        "source": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/pre-smoke-20260813T051154Z-d931a3fbda20.json",
+        "sha256": "d931a3fbda20ac6e8bf014268b81af05dfe2361d62396bbc7cee9de91fd2944b"
+      }
+    }
+  },
+  "required_non_null_hashes": {
+    "run_ledger_md": "334e11ed1822228c2905a125b56ce54ff0f4be11af7d2fc9397b6ce769d43d9e",
+    "launch_transcript": "62fc24eefd4253894be87647e1999669c787404f9340b4ee05ae62869853df6b",
+    "source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
+    "frozen_config_sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+    "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+    "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
+  },
+  "closed_utc": "2026-08-13T05:18:59.477413+00:00"
+}

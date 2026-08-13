@@ -1,0 +1,16 @@
+{
+  "schema_version": "phase43-stage0-timing/v1",
+  "s_per_step": 0.10190263957890643,
+  "full_stage0_steps": 300,
+  "forecast_seconds": 30.57079187367193,
+  "timestamp": "2026-07-22T08:03:55.336764+00:00",
+  "fingerprint": {
+    "device": "mps",
+    "dtype": "torch.float32",
+    "torch_version": "2.12.1",
+    "python_version": "3.11.15",
+    "git_head": "ae250c77371b3e2f0128eb4c5e20c9419b53b2bf",
+    "git_head_available": true
+  },
+  "valid": true
+}

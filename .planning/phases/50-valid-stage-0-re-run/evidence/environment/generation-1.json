@@ -1,0 +1,249 @@
+{
+  "schema": "phase50-environment-snapshot/v1",
+  "generated_utc": "2026-08-13T05:11:00.133603+00:00",
+  "identity": {
+    "conda_packages": [
+      {
+        "name": "absl-py",
+        "version": "2.5.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "bzip2",
+        "version": "1.0.8",
+        "build": "hd037594_9",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "ca-certificates",
+        "version": "2026.6.17",
+        "build": "hbd8a1cb_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "filelock",
+        "version": "3.29.7",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "fsspec",
+        "version": "2026.6.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "grpcio",
+        "version": "1.82.1",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "h5py",
+        "version": "3.16.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "jinja2",
+        "version": "3.1.6",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "libexpat",
+        "version": "2.8.1",
+        "build": "hf6b4638_1",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "libffi",
+        "version": "3.5.2",
+        "build": "hcf2aa1b_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "liblzma",
+        "version": "5.8.3",
+        "build": "h8088a28_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "libsqlite",
+        "version": "3.53.3",
+        "build": "h1b79a29_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "libzlib",
+        "version": "1.3.2",
+        "build": "h8088a28_2",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "markdown",
+        "version": "3.10.2",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "markupsafe",
+        "version": "3.0.3",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "mpmath",
+        "version": "1.3.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "ncurses",
+        "version": "6.6",
+        "build": "h1d4f5a5_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "networkx",
+        "version": "3.6.1",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "numpy",
+        "version": "2.4.6",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "openssl",
+        "version": "3.6.3",
+        "build": "hd24854e_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "packaging",
+        "version": "26.2",
+        "build": "pyhc364b38_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "pillow",
+        "version": "12.3.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "pip",
+        "version": "26.1.2",
+        "build": "pyh8b19718_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "protobuf",
+        "version": "7.35.1",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "python",
+        "version": "3.11.15",
+        "build": "h0c9c016_1_cpython",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "pyyaml",
+        "version": "6.0.3",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "readline",
+        "version": "8.3",
+        "build": "h46df422_0",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "setuptools",
+        "version": "81.0.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "sympy",
+        "version": "1.14.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "tensorboard",
+        "version": "2.21.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "tensorboard-data-server",
+        "version": "0.7.2",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "tk",
+        "version": "8.6.13",
+        "build": "h010d191_3",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "torch",
+        "version": "2.12.1",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "typing-extensions",
+        "version": "4.16.0",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "tzdata",
+        "version": "2025c",
+        "build": "hc9c84f9_1",
+        "channel": "conda-forge"
+      },
+      {
+        "name": "werkzeug",
+        "version": "3.1.8",
+        "build": "pypi_0",
+        "channel": "pypi"
+      },
+      {
+        "name": "wheel",
+        "version": "0.47.0",
+        "build": "pyhd8ed1ab_0",
+        "channel": "conda-forge"
+      }
+    ],
+    "hardware": {
+      "hw_model": "Mac17,9",
+      "cpu_brand": "Apple M5 Pro",
+      "machine": "arm64",
+      "platform_machine": "arm64"
+    },
+    "mps_available": true,
+    "python_version": "3.11.15",
+    "runtime_env": {
+      "CONDA_DEFAULT_ENV": "pinn-train",
+      "CONDA_PREFIX": "<home>/miniforge3/envs/pinn-train",
+      "GSD_ALLOW_PARTIAL_DATA_ROOT": null,
+      "GSD_DATA_ROOT": null
+    },
+    "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+    "sys_version": "3.11.15 | packaged by conda-forge | (main, Jun 11 2026, 03:29:05) [Clang 19.1.7 ]",
+    "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+    "torch_version": "2.12.1"
+  },
+  "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
+}

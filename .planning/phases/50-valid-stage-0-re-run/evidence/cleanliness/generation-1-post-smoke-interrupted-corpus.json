@@ -1,0 +1,11 @@
+{
+  "generation": 1,
+  "boundary": "corpus",
+  "label": "post-smoke-interrupted",
+  "command": "band_ops.py snapshot_corpus",
+  "external_start_utc": "2026-08-13T05:18:48.557017+00:00",
+  "external_end_utc": "2026-08-13T05:18:58.444201+00:00",
+  "exit_code": 0,
+  "stdout": "{\n  \"observed\": \"9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd\",\n  \"expected\": \"9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd\",\n  \"total_files\": 38017,\n  \"total_bytes\": 6667358966\n}",
+  "stderr": ""
+}
