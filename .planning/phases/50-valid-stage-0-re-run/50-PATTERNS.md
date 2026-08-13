@@ -1,18 +1,21 @@
 # Phase 50: Valid Stage-0 Re-Run - Pattern Map
 
 **Mapped:** 2026-08-11
-**Files analyzed:** 12 new/modified file classes (4 configs; 4 phase-level governance/evidence
-records; 1 per-run evidence-copy bundle class, ×4 runs; 1 divergence-register append; 2
-conditional gap-register files)
-**Analogs found:** 12 / 12 — every artifact this phase produces has a same-shape precedent
-already committed in this repository.
+**Files analyzed:** 15 new/modified file classes (1 narrow Stage-0 ceiling production/test seam;
+4 configs; 4 phase-level governance/evidence records; 1 ledger-driven evidence-copy bundle class
+covering final and archived attempts; 2 deterministic evidence builder/verifier utilities; 1
+divergence-register append; 2 conditional gap-register files)
+**Analogs found:** 12 exact/role analogs plus 2 Phase-50-specific protocol extensions — the
+generation/attempt ledger and independent verifier extend, rather than merely copy, the prior
+happy-path evidence pattern.
 
 ## Framing note (read first)
 
 Phase 50 is not a typical feature-build phase, and this pattern map looks different from a
-controller/service/component map as a result. Per `50-CONTEXT.md`'s own "Reusable Assets" section,
-**the phase adds zero new `pinn/` production code** — `python -m pinn.train --config <yaml>` is
-already the complete launch interface. Every new file is one of two kinds:
+controller/service/component map as a result. One narrow production repair is required before
+the evidence workflow: `python -m pinn.train --config <yaml>` currently advances into Stage 1,
+so Plan 50-01 adds a tested fresh-run-only `--stage-0-only` ceiling to enforce SCOPE-27. Every
+other new file is one of two kinds:
 
 1. **Config YAML copies** (`configs/*.yaml`) — verbatim copies of two already-shipped templates,
    each with a 1-3 field delta (seed, run_name, log_every, one invariants line).
@@ -40,8 +43,8 @@ repaired recipe — literally the direct ancestor of Phase 50's run ledger and b
 | Config-delta record (e.g. `50-CONFIG-DELTA.md`) | governance-record | file-I/O | `pinn/conformance/divergence_register.json` qualification-entry mechanism (exact) + `44-DIAGNOSIS.md` §1 confound framing (prose precedent, partial) | partial — see "No Analog Found" |
 | Run ledger (e.g. `50-RUN-LEDGER.md` or `evidence/run-ledger.md`) | governance-record / event-log | event-driven | `43-*/evidence/pilot/README.md` `records[]` array | exact |
 | Band record (e.g. `50-BAND-RECORD.md` or `evidence/band-record.md`) | governance-record / aggregation | transform | `43-*/evidence/pilot/README.md` + `pinn/training/summary.py` `_GATE_KEYS` passthrough | exact |
-| Per-run sha256 evidence manifest (×4 runs) | provenance-manifest / utility | batch | `44-*/evidence/build_manifest.py` + `44-*/evidence/manifest.json` | exact |
-| Per-run evidence copies: `config.yaml`, `summary.json`, `summary.md`, `preflight.json`, `training_metadata.json`, `splits.json`, `curriculum.jsonl`, `validation.jsonl`, `validation_gate/step-*.json`, `status.json` (×4 runs) | evidence-copy (mirrored artifact) | file-I/O | `runs/stage0-pilot-seed4X/*` (v2.0 baseline, resident in this worktree) + producing modules | exact for copy mechanics; **no real-corpus prior instance** for 3 of 10 files (see below) |
+| Ledger-driven source/final sha256 manifests + independent builder/verifier | provenance-manifest / utility | batch | `44-*/evidence/build_manifest.py` + `44-*/evidence/manifest.json` | extension — independent re-derivation, retry enumeration, and terminal interruption evidence are Phase-50 additions |
+| Evidence copies: final smoke/seeds plus every ledgered archived attempt and invocation snapshot | evidence-copy (mirrored artifact) | file-I/O | `runs/stage0-pilot-seed4X/*` (v2.0 baseline, resident in this worktree) + producing modules | exact for copy mechanics; extended cardinality and provenance |
 | `pinn/conformance/divergence_register.json` (MODIFIED — one appended entry) | registry-entry (CRUD append) | CRUD | its own existing `CONF-01-QUALIFICATION` / `I_WARM-INTEGER-FLOOR` entries | exact |
 | `50-GAPS.md` (CONDITIONAL — only if a gap opens) | governance-record | event-driven | `46-GAPS.md`, `47-GAPS.md` | exact |
 | `.planning/milestones/v2.2-GAPS.md` (MODIFIED, CONDITIONAL — index append) | governance-index | event-driven | the file's own existing structure (already updated by Phases 46/47/49) | exact |
@@ -152,8 +155,8 @@ values stay byte-identical to the shipped template.)
 - `run.seed`: `41`, `42`, `43` respectively (line 3)
 - `run.run_name`: the phase's distinct per-seed name (line 7) — must not collide with
   `stage0-pilot-seed41/42/43` (resident v2.0 artifacts in `runs/`)
-- `run.log_every`: `100` → `50` (line 6) — the ONLY non-seed/non-name delta from the shipped
-  template, per D-05's instrumentation-density rationale
+- `run.log_every`: `100` → `50` (line 6) — protocol/config parity only; the
+  current loop does not consume it and emits JSONL step records every step
 - `data:` block is **absent** from `stage0-example.yaml` — D-02 requires it be added
   (`data.source: admitted`, same `blacklist_path: ../Documentation/problematic_ics_blacklist.json`
   used by `configs/smoke.yaml:59`) since the shipped example predates that requirement being
@@ -183,9 +186,10 @@ cp configs/stage0-example.yaml configs/stage0-local.yaml
 Phase 50's four `cp` invocations (one per config) are the same operation this runbook already
 documents as canonical — just with phase-specific destination names instead of `stage0-local.yaml`,
 and (for the smoke) `configs/smoke.yaml` as the source instead of `stage0-example.yaml`. The
-Launch section immediately below it (`runbook.md:48-60`) is the exact `python -m pinn.train
---config <yaml>` / `scripts/train-unattended.sh --config <yaml>` invocation pair Claude's
-Discretion leaves open (attended vs. unattended) — both are pre-documented, either is compliant.
+Launch section immediately below it (`runbook.md:48-60`) supplies the existing `python -m
+pinn.train --config <yaml>` / `scripts/train-unattended.sh --config <yaml>` invocation pair. Phase
+50 appends its committed `--stage-0-only` guard to the unattended form; attended versus unattended
+remains operational discretion, but omitting the guard is not compliant.
 
 ---
 
@@ -211,9 +215,9 @@ not post-hoc (same discipline as DIAG-01's D-05 criterion).
 Phase 50's pre-registration record should open the same way: state the candidate seed (42), the
 checkpoint rule (`best.pt`), and the fallback order (42→41→43) as **fixed, dated, committed text**
 — structurally the same move as DIAG-01's criterion-before-verdict and DIAG-03's
-rubric-before-ranking. The record's own commit timestamp (D-29: "must be committed before the
-first graded run, so its timestamp proves it preceded the numbers") plays the role the pre-registered
-script constant plays in `44-DIAGNOSIS.md`.
+rubric-before-ranking. Prove ordering by requiring the record's commit to be an
+ancestor of the recorded band head; Git timestamps are mutable labels and do not
+prove it preceded the numbers.
 
 **Analog 2 — identity-pinning three hashes:** `runs/stage0-pilot-seed42/evaluation/evaluation-receipt.json`
 (full file, 621 bytes):
@@ -301,8 +305,9 @@ The standalone markdown config-delta record (if the planner still wants one for 
 should then simply narrate the same fact prose-style, in the manner of `44-DIAGNOSIS.md`'s
 confound framing:
 
-> "1000 vs 300 steps means any v2.2-vs-v2.0 outcome difference is confounded between the
-> conformance repair and a 3.33× larger budget." (`50-CONTEXT.md` D-03, verbatim)
+> "The v2.2-vs-v2.0 comparison is confounded by the 300→1000 optimization path and the
+> replay_count 32→240 batch workload; the change also shifts I_warm 30→100, full-physics onset
+> 31→101, cosine horizon 300→1000, and validation opportunities 3→10." (`50-CONTEXT.md` D-03)
 
 ---
 
@@ -346,6 +351,10 @@ Tests parse this block without launching the pilots.
 ````
 (`43-*/evidence/pilot/README.md:1-21` header/reproduction; `:22-188` JSON block; `:190-194`
 integrity notes.)
+
+The command inside that quoted analog is historical v2.0 evidence, not the
+Phase-50 launch template. Every Phase-50 fresh invocation appends the committed
+`--stage-0-only` guard and records it in the ledger.
 
 **JSON schema — this IS the run ledger + band record shape, condensed to one example record**
 (`43-*/evidence/pilot/README.md:22-89`):
@@ -482,7 +491,7 @@ that indexes what lives where and how to reproduce it — apply the same table t
 
 ---
 
-### Per-run evidence copies (evidence-copy, file-I/O, ×4 runs)
+### Ledger-driven evidence copies (evidence-copy, file-I/O, final runs plus all attempts)
 
 The ten files D-29 lists are all EXISTING artifact types produced by shipped code; Phase 50 copies
 them, it does not author new formats. Each has a byte-identical v2.0 real-corpus instance already
@@ -568,8 +577,9 @@ def sidecar_relative_path(global_step) -> str:
 # scs_reject_threshold, aggregate_eps_h, aggregate_scs, verdict, gate_status
 ```
 
-Copy the file at the **latest** `global_step` only (D-29: "the latest `validation_gate/step-*.json`
-sidecar"), located by the highest 8-digit step number under `runs/<run>/validation_gate/`.
+Copy every sidecar referenced by validation.jsonl and every preserved forensic
+generation from unexpected resume history; the terminal referenced sidecar is the distribution
+source, but earlier files are required to verify the full trajectory.
 
 ---
 
@@ -665,10 +675,15 @@ explicitly).
 
 ---
 
-## Reference-only code seams (not authored, not copied — cited for planner context)
+## Production seam plus reference-only code seams
 
-These exist already and are exercised, not modified, by Phase 50; they are not "analogs" in the
-copy-from sense, but the planner needs their exact location:
+The first seam is modified narrowly to add the SCOPE-27 fresh-run ceiling; the remainder exist
+already and are exercised rather than modified:
+
+- `pinn/train.py` parser/main and `pinn/training/controllers.py`
+  `CurriculumController.run`/ADVANCE dispatch — add `--stage-0-only`, stop after the Stage-0 final
+  boundary and before every Stage-1 side effect, and leave the ordinary path unchanged. Cover in
+  `tests/phase40/test_controllers.py` and `tests/phase41/test_train_entrypoint.py`.
 
 - `pinn/train.py:576-627` `_check_duration_gate` / `DurationGateError` — the fingerprinted
   calibration refusal that makes the D-13 smoke-first sequencing mandatory, not optional.

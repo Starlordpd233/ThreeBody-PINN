@@ -32,9 +32,9 @@ here as a by-product, not as separate scope:
 
 **What this phase deliberately does NOT do.** No held-out evaluation, no
 `pinn/evaluate.py` invocation, no `evaluation/` directory, no materialization of
-the `test` split (SCOPE-28 — the single look is Phase 51's, and Phase 51 is also
-the *verifier* of the three EVAL-01 preconditions; Phase 50 only produces the run
-whose facts Phase 51 checks). No hyperparameter adjusted against an observed
+the `test` split (SCOPE-28 — the single look is Phase 51's; Phase 50 derives its
+pre-registered structural candidate from non-held-out evidence, and Phase 51
+rechecks the EVAL-01 preconditions before evaluation). No hyperparameter adjusted against an observed
 result, under any name (SCOPE-29). No framework-spec edit (SCOPE-30). No
 Stage-1+ or PLAT-01..07 work (SCOPE-27). No re-opening of any Phase 46/47/48/49
 decision, and no re-audit of the component math. No verdict on the design — that
@@ -80,6 +80,20 @@ eligible (D-11).
 
   **Not SCOPE-29 tuning:** 1000 was committed long before any conformant number
   existed and is not selected against an observed result.
+
+  **Fresh-run Stage-0 ceiling:** SCOPE-27 authorizes Stage 0 and forbids Stage
+  1+. The current ordinary fresh launch loops after a Stage-0 `ADVANCE`, creates
+  `stage-1-init`, and begins Stage 1; the existing `--hold-stage` switch is only
+  legal with a resume and therefore cannot protect this band. Before the first
+  smoke, add the narrow `--stage-0-only` conformance switch. On a fresh Stage-0
+  `ADVANCE` it saves/logs the Stage-0 final boundary and returns success before
+  incrementing the stage, invoking `stage_factory`, running a Stage-1
+  conformance hook, writing `stage-1-init`, promoting the checkpoint store, or
+  rewarming for Stage 1. It is invalid with `--resume`; ordinary invocations are
+  unchanged. Every Phase-50 launch uses it and verifies that all persisted stage
+  fields equal zero and no Stage-1 checkpoint exists. This is the minimum
+  implementation needed to enforce the already-ratified scope boundary, not
+  PLAT-01..07 work and not a recipe change.
   — **Reversibility:** reversible — a config literal; the cost of being wrong is
   re-running the band (~25 min, D-16), and no evaluation budget is at risk.
 
@@ -98,10 +112,16 @@ eligible (D-11).
   - `opt.validation_every: 100` and `run.log_every: 50`;
   - the same run-record artifact set and the same `runs/<name>/` contract.
 
-- **D-03 [THE BUDGET DELTA IS A RECORDED CONFOUND, NOT A HIDDEN ONE]:** 1000 vs
-  300 steps means any v2.2-vs-v2.0 outcome difference is confounded between the
-  conformance repair and a 3.33× larger budget. Phase 44 ranked "undertrained
-  budget" as a live hypothesis, so this matters directly to DIAG-05. The delta —
+- **D-03 [THE OPTIMIZATION-PATH AND WORKLOAD DELTAS ARE RECORDED CONFOUNDS, NOT
+  HIDDEN ONES]:** Any v2.2-vs-v2.0 outcome difference is confounded between the
+  conformance repair and more than a 3.33× step-count change. `n_adam` 300→1000
+  also moves PHYS-05 `I_warm=floor(0.1N)` from 30→100 (first logged full-physics
+  step 31→101), extends CosineAnnealingLR `T_max` 300→1000, and increases planned
+  validation opportunities 3→10. Separately, the v2.0 smoke used
+  `stage.replay_count: 32`, while omission in the Phase-50 graded configs resolves
+  to the DATA-05 default 240: a 7.5× training-batch identity/workload change.
+  Phase 44 ranked "undertrained budget" as a live hypothesis, so these intertwined
+  changes matter directly to DIAG-05 and prohibit causal attribution. The delta —
   and every other deliberate difference from the v2.0 pilot config — is
   enumerated in a committed **config-delta record**, and a register
   `qualification` entry is added so the caveat travels into every run record
@@ -119,14 +139,15 @@ eligible (D-11).
   `configs/stage0-example.yaml` and `configs/smoke.yaml` are **not edited**; they
   are copied, per the operator runbook's Configure step.
 
-- **D-05 [LOGGING DENSITY IS INSTRUMENTATION, NOT RECIPE]:** `run.log_every: 50`
-  — the v2.0 pilot value, rather than the shipped example's `100` — so DIAG-05's
-  re-derivation has step resolution comparable to the Phase-44 forensics, which
-  read `train.log.jsonl` step records. This is recorded explicitly rather than
+- **D-05 [LOGGING LITERAL IS PROTOCOL PARITY, CURRENTLY INERT]:**
+  `run.log_every: 50` — the v2.0 pilot literal rather than the shipped example's
+  `100`. The current loop emits `train.log.jsonl` every step and does not consume
+  this field, so it does not change diagnostic density in this code state. This
+  discrepancy is recorded explicitly rather than
   absorbed silently because SCOPE-29's boundary is what protects the phase, and
   the classification must be defensible: `log_every` enters no loss term, no
   optimizer state, no data selection, and no gate threshold. It changes only how
-  often a record is emitted.
+  any emitted record today.
 
 - **D-06 [EVERYTHING ELSE IS THE SHIPPED CONFIG, UNTOUCHED]:** The R-1 guard
   thresholds (`1e11` / `0.05` / `0.7`), R-2 `recover_retries: 0`, the D4-a
@@ -237,20 +258,27 @@ eligible (D-11).
 - **D-16 [`S_H` CROSS-CHECK: the smoke runs at seed 42]:** `S_H` is the median
   over the **train split** pool, and `stage.replay_count` narrows only the
   per-batch replay identity count without touching the split — so a seed-42 smoke
-  and the seed-42 graded run must produce **exactly equal** `s_h` and `n_train`.
+  and the seed-42 graded run must first have byte-identical `splits.json` (which
+  proves the complete serialized train/validation/test membership is identical)
+  and then produce **exactly equal** `s_h` and `n_train`. Equal count and median
+  alone are many-to-one and are not accepted as a membership proof.
   That equality is asserted as phase evidence. A mismatch means the statistic is
   not a function of `(corpus, seed)` alone, which is a defect to route as a gap,
   never a number to accept.
 
 - **D-17 [NO COMMIT BETWEEN THE CALIBRATION AND THE GRADED RUNS]:** Because the
   calibration fingerprint pins `git_head` (`git rev-parse HEAD` — commit identity
-  only; uncommitted edits do not invalidate it), a commit landing between the
+  only), a commit landing between the
   smoke and a graded launch invalidates the calibration and the launch refuses.
   The execution order is therefore: **land every code/config commit the phase
   needs → run the smoke → run all three graded seeds → only then commit the
-  evidence extraction.** If a commit becomes unavoidable mid-band, the smoke is
-  re-run at the new head and every graded run already taken at the old head is
-  discarded and re-run, so the whole band shares one code state. This is a real
+  evidence extraction.** Runtime paths must also be byte-clean at every boundary,
+  and corpus/environment/config identities define a band generation. If a
+  code/config commit becomes necessary mid-band, close the current generation
+  terminally and archive every attempt. Before a later full rerun, revise and
+  commit the pre-registration source-identity binding while keeping the selection
+  policy bytes unchanged; the new commit becomes that generation's ancestor.
+  Then rerun smoke and all graded seeds, so nothing is mixed or discarded. This is a real
   constraint on GSD's per-plan commit cadence and must shape the wave structure.
   — **Reversibility:** costly — a mid-band commit does not corrupt anything, but
   it invalidates the band and costs a full re-run of every completed seed.
@@ -260,9 +288,9 @@ eligible (D-11).
   If the smoke's measured `s_per_step × 1000` exceeds 1800 s, the graded launches
   additionally require a fresh GREEN full-fingerprint verify marker; the response
   is to run `python -m pinn.verify`, **never** to reduce the budget. Reducing the
-  experiment to fit an operational limit is tuning by another name. (Expected to
-  be moot: the v2.0 measurement of 0.102 s/step forecasts ~102 s, and crossing
-  1800 s would require an ~18× slowdown.)
+  experiment to fit an operational limit is tuning by another name. The scalar
+  must **not** be treated as a scientific ETA: the smoke and graded replay
+  workloads differ.
 
 ### Iteration policy — SCOPE-29 made operational
 
@@ -270,11 +298,13 @@ eligible (D-11).
   classification test, applied to every proposed change: *does this bring the
   implementation closer to a locked spec value, an owner ruling, or a Phase-46..49
   contract — justified **without reference to what a run produced**?* If yes, it
-  is a conformance repair and is allowed. If the justification requires citing an
+  is a conformance repair and is allowed only after terminal closeout and a new
+  pre-band pre-registration/source-identity commit. If the justification requires citing an
   observed number, it is tuning and is prohibited, whatever it is called
   ("obviously too small", "just to get past this", "provisional"). Any repair
-  re-runs the **full band** at the new code state (D-17); seeds are never mixed
-  across code states.
+  re-runs the **full band** at the new code state (D-17); selection-policy bytes
+  remain identical, source identities are rebound before launch, and seeds are
+  never mixed across code states.
 
 - **D-20 [AN INVARIANT-B HALT IS AN OWNER CHECKPOINT, NOT A NUMBER TO ADJUST]:**
   With `N = 500` and the v2.0 observation of `front_idx = 0` across 1,500/1,500
@@ -294,19 +324,29 @@ eligible (D-11).
   here:** Phase 49 D-26 established that the register grants no authority and
   that this milestone defines no waiver policy (that is the charter workstream,
   SCOPE-32). A Tier-1/2 guard trip (loss explosion, disk floor, memory watermark)
-  is a *run outcome*, not an interruption: the documented runbook action is taken,
-  the run is recorded as failed and re-launched fresh once the cause is
-  understood. `recover_retries` stays `0`. Resume (`--resume latest`) is reserved
-  for genuine interruptions — Ctrl-C, power, thermal — where it is the designed
-  recovery and invariant-B state survives via checkpoint schema v2.
+  is a *run outcome*, not an interruption. Loss explosion, non-finite, intrinsic
+  memory, and unknown causes STOP. Exactly one fresh retry per logical run and
+  band generation is allowed only for positively identified/remediated disk or
+  external-memory pressure, after immutable archive+hash preservation; this
+  Phase-50 rule supersedes the ordinary runbook resume response. `recover_retries`
+  stays `0`. No Phase-50 resume is admissible: CTX-53 restores model, optimizer,
+  schedule/controller, main RNG, and invariant state but omits the independent
+  CollocationSampler RNG, so even a journal-aligned checkpoint cannot prove the
+  same optimization trajectory. Every interruption closes terminally; any later
+  continuation requires an amended plan and a fresh generation from step zero.
 
 - **D-22 [NO RUN IS SILENTLY DISCARDED]:** Every launch that starts — refused,
   HALTed, failed, superseded, or graded — is listed in a committed **run ledger**
-  with its run name, `config_identity_digest`, `git_head`, disposition, and why
-  it is or is not part of the final band. The band Phase 51 sees must be the whole
-  record, not the surviving subset. The protection against a quiet retry loop is
-  that retries are visible; this is the phase-local analog of the v2.0 receipt
-  discipline.
+  with a provisional pre-spawn invocation and a closed post-exit observation:
+  exact command, timestamps/exit, transcript hash, config/corpus/environment/
+  calibration identity, per-exit artifact hashes, and why the attempt is or is
+  not part of the final band. Fresh retries are new attempts; resumes are
+  prohibited and any unexpected resume history is terminal evidence.
+  Generation-scoped cleanliness receipts and
+  `pinn.verify` invocations/markers are likewise enumerated by path and hash. The
+  band Phase 51 sees must be the whole record, not the surviving subset. The
+  protection against a quiet retry loop is that retries are visible; this is the
+  phase-local analog of the v2.0 receipt discipline.
 
 - **D-23 [THE HELD-OUT SET IS NOT TOUCHED, AND THAT IS CHECKED]:** No
   `pinn/evaluate.py` invocation, no `runs/<run>/evaluation/` directory, no
@@ -328,19 +368,24 @@ eligible (D-11).
   - the validation-`ε_H` trajectory across **all** validation events from
     `validation.jsonl` (10 events at `validation_every: 100` over 1000 steps),
     not just the terminal one;
-  - the per-trajectory distribution from each run's latest
-    `validation_gate/step-<8-digit>.json` sidecar — count, median, quantiles,
-    the tail above the `1e-5` gate, and the non-finite count — which is the
+  - every validation-referenced sidecar, plus the per-trajectory distribution
+    from each run's terminal referenced `validation_gate/step-<8-digit>.json` —
+    finite-only quantiles under an explicit method, strict finite tail above the
+    sidecar threshold, and separately visible non-finite sentinel/reject counts — which is the
     uniform-vs-tail-driven structure Phase 44 had to reconstruct by hand;
   - `s_h`, `eps_h`, `n_train` from `training_metadata.json`;
   - the `front_idx` high-water trajectory (invariant B's own state);
-  - final per-term losses and the INST-02 per-term gradient statistics;
+  - final per-term losses from `summary.json` and INST-02 per-term gradient
+    statistics from complete `train.log.jsonl` step records (summaries do not
+    carry gradient telemetry);
   - `preflight_status`, `eval01_precondition_i`, `eval01_precondition_iii`, and
     the open-divergence list.
 
-  Plus the three-seed spread on each headline number — the v2.0 protocol's own
-  comparability instrument (v2.0 measured an 88% relative cross-seed final-loss
-  spread and 2/3 worsening validation trends).
+  Plus compound descriptive three-seed variation: relative span only for finite
+  positive ratio-scale numbers with positive median, and absolute range in dex
+  for signed logarithmic SCS. Because each seed changes both split membership and
+  training randomness, n=3 spread is not isolated optimizer variance and supports
+  no CI, significance, or causal attribution.
 
 - **D-25 [CHARACTERIZATION IS DESCRIPTIVE — it grades nothing and feeds nothing]:**
   Validation `ε_H` is measured by INST-01 instrumentation **on the validation
@@ -377,9 +422,11 @@ eligible (D-11).
   (`pinn/data/adapter.py`), which derives the **main-repo** `simulation_data/Data`
   from the parent of `git rev-parse --git-common-dir` — deliberately not
   `--show-toplevel`, precisely so a linked worktree does not resolve to its own
-  partial copy. The 4.8 GB admitted corpus at the master-root checkout is
-  therefore reachable from this worktree with no copy step, and the 776 KB
-  worktree-local `simulation_data/Data/` is rejected by
+  partial copy. Direct observation on 2026-08-12 found approximately 6.3 GiB and
+  38,017 regular files under the main-root `simulation_data/Data`; that admitted
+  corpus is therefore reachable from this worktree with no copy step. The
+  worktree-local partial tree was approximately 2.7 MiB / 75 regular files on
+  the same date and is rejected by
   `DataSourceRootIncomplete` rather than silently producing a green run over a
   tiny corpus. `GSD_DATA_ROOT` and `GSD_ALLOW_PARTIAL_DATA_ROOT` are **not** set —
   setting either would bypass the guard that protects this phase's whole result.
@@ -390,15 +437,20 @@ eligible (D-11).
   `.planning/phases/50-valid-stage-0-re-run/evidence/`. Minimum per run:
   `config.yaml` (the frozen resolved copy), `summary.json`, `summary.md`,
   `preflight.json`, `training_metadata.json`, `splits.json`, `curriculum.jsonl`,
-  `validation.jsonl`, the latest `validation_gate/step-*.json` sidecar, and
+  `validation.jsonl`, every sidecar referenced by its events (plus any forensic
+  generations from unexpected resume history), and
   `status.json`; plus the run ledger (D-22), the band record (D-24), the
   config-delta record (D-03), and the pre-registration record (D-07..D-10) —
-  which must be committed **before the first graded run**, so its timestamp
-  proves it preceded the numbers. Checkpoints and TensorBoard event files stay
-  out (size). Note `*.log` is globally gitignored, so `logs/train.log` cannot be
-  committed without an explicit negation and is not retained;
+  which must be committed **before the first graded run**, proved by commit
+  ancestry to the recorded band head (timestamps are labels, not proof).
+  Checkpoints and TensorBoard event files stay
+  out (size), while small `run_start_rng.pt` is retained as provenance and all
+  checkpoint identities are hashed. Note `*.log` is globally gitignored, so
+  `logs/train.log` cannot be committed without an explicit negation and is not retained;
   `train.log.jsonl` does not match the pattern and **is** retained — it is what
-  Phase 44's forensics read. Each copied file records its source path and a
+  Phase 44's forensics read. A failure bundle's `failure/tail.log` is copied to
+  a tracked `failure/tail.log.txt` destination with source/copy hash equality.
+  Each copied file records its source path and a
   sha256, so the extraction is provably faithful.
 
 - **D-30 [GOVERNANCE — gaps, checkboxes, and the standing prohibitions]:** Any
@@ -548,19 +600,22 @@ nothing that enters a loss term, an optimizer, the data path, or a gate.
 
 ### Reusable Assets
 
-- **The whole shipped run surface already exists.** `python -m pinn.train
-  --config <yaml> [--resume latest] [--hold-stage]` plus
-  `scripts/train-unattended.sh` (the `caffeinate -is` wrapper) is the complete
-  launch interface. This phase writes configs and reads artifacts; it should not
-  need to add production code at all. A plan that grows `pinn/` is a signal to
-  re-check whether it is doing conformance repair (D-19) or scope creep.
+- **The shipped run surface needs one narrow SCOPE-27 repair.** `python -m
+  pinn.train --config <yaml>` otherwise continues from a successful Stage-0
+  `ADVANCE` into Stage 1, while the existing `--hold-stage` is resume-only. Plan
+  50-01 adds and tests a fresh-run-only `--stage-0-only` ceiling, then every
+  Phase-50 invocation passes it through `scripts/train-unattended.sh`. No other
+  production surface grows; any broader controller/platform change is a signal
+  to re-check for scope creep.
 - **`default_data_root()`** already solves the worktree/corpus problem via
   `git rev-parse --git-common-dir` — no data copy, no `GSD_DATA_ROOT`, and the
   partial worktree copy is actively refused. The stale advice in
   `configs/smoke.yaml`'s header comment ("run from the main-root checkout") is
   superseded by the code; the v2.0 pilots ran from this worktree with
   `data.root: null` and resolved correctly.
-- **`summary.json` / `summary.md`** already project everything D-24 needs:
+- **`summary.json` / `summary.md`** project the gate, conformance, final-loss, and
+  environment fields D-24 needs. INST-02 gradient telemetry and step-local state
+  come from complete `train.log.jsonl` records; summaries do not contain them:
   Phase-46 `gate_*` keys, Phase-49 `conformance` + `eval01_precondition_i`, the
   curriculum journal, final per-term losses, and the `header.env_fingerprint`
   that proves environment parity with v2.0.
@@ -603,8 +658,8 @@ nothing that enters a loss term, an optimizer, the data path, or a gate.
   first real-corpus traversal of the Phase-49 gate; this is the chain D-10 reads
   to decide eligibility.
 - **Controller `w_n_stats` → `StepGuards` → invariant A/B → failure bundle:** the
-  runtime half of the gate; invariant-B state crosses resume via checkpoint
-  schema v2.
+  runtime half of the gate. Checkpoints carry invariant-B state but omit the
+  separate CollocationSampler RNG, so Phase 50 forbids resume.
 - **Validation loop → `gate_metrics` → `validation_gate/step-*.json` sidecar →
   `validation.jsonl` `gate_*` keys → `summary.json` + `eval01_precondition_iii`:**
   the INST-01 chain producing RUN-02's characterization input. Note the v2.0
@@ -680,10 +735,13 @@ nothing that enters a loss term, an optimizer, the data path, or a gate.
   full CI integration, waiver policy, thresholds X/M — charter workstream,
   SCOPE-32.
 - **Spec-text amendments** — the four VER-20 routing items, Phase 52 (SCOPE-30).
-- **Verifying and recording the three EVAL-01 preconditions, and spending the
-  single authorized evaluation** — Phase 51. Phase 50 produces the facts and the
-  pre-registration; it verifies nothing about eligibility beyond reading
-  `eval01_precondition_i` for the D-10 fallback.
+- **Spending the single authorized evaluation** — Phase 51. Phase 50 produces the
+  facts and pre-registration, then mechanically evaluates the four D-10
+  structural-eligibility criteria without opening the held-out test split:
+  `eval01_precondition_i`, the attempt-level guard/invariant rule, final process
+  and ledger dispositions, and `eval01_precondition_iii` plus independent
+  production-sidecar validation. Phase 51 rechecks those facts before it performs
+  the one authorized evaluation.
 - **Re-deriving the Phase 44 diagnosis** — Phase 52 (DIAG-05, the GAP-44-02
   obligation). D-24 exists so that re-derivation finds its evidence already
   captured rather than reconstructing it from logs.
