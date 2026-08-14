@@ -5,15 +5,15 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 50
 current_phase_name: valid-stage-0-re-run
 status: executing
-stopped_at: Completed 50-01-PLAN.md
-last_updated: "2026-08-13T04:07:26.433Z"
-last_activity: 2026-08-12
-last_activity_desc: Phase 50 execution started
+stopped_at: Completed 50-02-PLAN.md (generation-2 terminal closeout)
+last_updated: "2026-08-13T05:48:30.000Z"
+last_activity: 2026-08-13
+last_activity_desc: Phase 50 plan 50-02 generation-2 terminal closeout
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
   percent: 57
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 50 (valid-stage-0-re-run) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
-Last activity: 2026-08-12 — Phase 50 execution started
+Plan: 2 of 3 (50-02 closed terminal; 50-03 blocked)
+Status: Executing Phase 50 — owner checkpoint after generation-2 DATA-06 terminal
+Last activity: 2026-08-13 — 50-02 generation 2 smoke finished; seed 41 DATA-06 227<240; terminal closeout 8847995
 **Verification:** [███████░░░] 67% (4/6 truths verified)
 
 ### Phase 49 verification (2026-08-10)
@@ -459,9 +459,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-13T04:07:26.424Z
-Stopped at: Completed 50-01-PLAN.md
-Next action: Run `/gsd-plan-phase 50` from .worktrees/trainex. Phase 49 is complete (verification 6/6); 50-CONTEXT.md is committed. Planning must honour CONTEXT D-17 — no commit may land between the ACC-02 calibration smoke and the three graded runs, or every graded launch refuses.
+Last session: 2026-08-13T05:48:30.000Z
+Stopped at: Completed 50-02-PLAN.md (generation-2 terminal closeout at 8847995)
+Next action: Owner must resolve the returned D-30 finding (DATA-06 validation-split Stage-0 pool 227 < replay_count 240) before any 50-03 extraction or a later full generation. Do not start 50-03. Selection-policy bytes stay identical.
 
 ## Operator Next Steps
 

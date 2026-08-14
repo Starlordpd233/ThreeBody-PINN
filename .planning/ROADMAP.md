@@ -210,7 +210,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 50-02-PLAN.md — The no-commit run window: calibration smoke (tracer), then graded seeds 41→42→43 at one git head, every launch ledgered (wave 2)
+- [x] 50-02-PLAN.md — The no-commit run window: calibration smoke (tracer), then graded seeds 41→42→43 at one git head, every launch ledgered (wave 2; generation 2 closed terminal 2026-08-13 after seed-41 DATA-06 227<240; 50-03 blocked)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
