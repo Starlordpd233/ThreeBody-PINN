@@ -109,3 +109,142 @@ executor surfaced the finding and correctly declined to resolve it.
   Neither (i) nor (ii) is authorized as a silent 50-02 edit. The next work is
   a planned 50-01 / new-plan step to choose (i) or (ii). Wave 2 stays on the
   generation-2 terminal record (`8847995`).
+
+  **Superseded in part by GAP-50-02** (2026-08-13), which is the planned step
+  this note calls for. GAP-50-01's own ruling — keep `replay_count = 240`,
+  never set from the observed 227 — stands unchanged and is preserved by
+  GAP-50-02's resolution.
+
+## GAP-50-02 — GAP-50-01 deferred the (i)/(ii) fork to a planned step. Which rule constructs the Stage-0 **validation** batch, given that DATA-05 `replay_count = 240` stays fixed?
+
+- **Decision point:** GAP-50-01 kept `replay_count = 240` and explicitly deferred
+  the operative choice: either (i) a split/admission change making
+  `|val ∩ D≤0| >= 240` without targeting the observed 227, or (ii) an
+  owner-ratified validation-batch rule that is not the train-side
+  unique-240 draw. This entry resolves that fork. It decides **what "the
+  validation set" means** to the ADVANCE success gate — not any numeric value.
+
+- **Where in artifact:**
+  `pinn/training/controllers.py:774-782` (`RunController._run_validation` calls
+  `_stage_batch` on `self._validation_source`), routing to
+  `pinn/training/controllers.py:732-770` (`_stage_batch`) and
+  `pinn/data/batches.py:66-117` (`select_stage_records`, the DATA-05 draw and the
+  DATA-06 `StageZeroUnderpopulated` raise at line 93-94).
+
+- **Task context:** Planning the continuation of Phase 50 after plan 50-02's
+  generation-2 terminal closeout (`8847995`), under `/gsd-plan-phase 50` on
+  2026-08-13. No run was launched while this was open.
+
+- **Classification:** **semantic** (which population a held-out measurement is
+  taken over), with a **cross-phase reframing** component: the answer changes
+  whether Phase 50 can produce a band at all, and therefore whether Phase 51's
+  single authorized look is reachable.
+
+- **Source silence — and where the source is NOT silent:**
+  - `ctl_instruction.md:1815-1817` is **not** silent on scope: the canonical
+    batch-construction contract opens *"For a 256-trajectory **training** batch
+    at curriculum stage k"* and defines `B_replay = 240` inside it. It says
+    nothing about validation-batch construction.
+  - `ctl_instruction.md:1938-1940` is **not** silent on the measurement
+    population: *"ADVANCE is permitted only when the approved success gate
+    passes on the **held-out validation set** (hold-out 10-20% of cumulative
+    data per stage)"*; criterion 4 (`:1976`) is `(1/N_traj) Σ_{j=1}^{N_traj}`
+    over that set.
+  - `ctl_instruction.md:1825-1831` (batch edge-case policy, GAP-34-01 option A)
+    resolves the undersized **look-ahead** pool by padding with replacement and
+    is silent on an undersized replay pool — because the replay pool is a
+    training-split object where the case does not arise (`n_train = 1812`).
+  - `50-CONTEXT.md:121, 259-260` records `replay_count` as narrowing "only the
+    per-batch replay identity count" over "the **train split** pool"; it does
+    not state a validation-batch rule.
+  - What no source states is whether SCOPE-29 permits repairing this
+    train-rule-applied-to-validation divergence **inside** v2.2 rather than
+    deferring it. That is the owner-gated part, and is why this is routed rather
+    than decided silently.
+
+- **Mathematical / engineering grounding:**
+  Two independent defects, one blocking and one silent.
+
+  1. *Blocking (set cardinality).* `select_stage_records` draws `replay_count`
+     identities **without replacement** from `records_at_or_below(stage)` of the
+     supplied source. When that source is the validation split at stage 0,
+     `|pool| = 227 < 240`, so no legal draw exists and DATA-06 fires. This is a
+     cardinality constraint, not a tuning knob. It cannot be cleared by any
+     choice that leaves a 240-wide without-replacement draw on a 227-wide pool.
+
+  2. *Silent (estimator inconsistency).* ADVANCE criterion 2 is
+     `L_val(i) <= min_{j<=i} L_val(j)`. A running minimum over a sequence is a
+     valid stage-exit signal only when each term estimates the **same**
+     quantity. Under the current construction each validation event draws a
+     *fresh* random 240-identity subset, so `L_val(i)` and `L_val(j)` are
+     estimates on different subsets; their difference mixes real improvement
+     with subset-swap noise, and a running minimum is biased downward by that
+     noise (it selects the luckiest subset, not the best model). Evaluating the
+     entire held-out pool sets the identity-sampling variance of the comparison
+     to exactly zero and makes the criterion mean what it says. The same holds
+     for criterion 3 (`L_phys^val < eps_phys`) and criterion 4's `(1/N_traj) Σ`,
+     which the spec writes as a sum over the validation set, not over a sample
+     of it.
+
+  A third, structural observation: the codebase already contains the correct
+  construction one seam away. `compute_validation_gate`
+  (`pinn/training/validation_gate.py`) — the locked Phase 46/49 INST-01 gate that
+  fires on the *same* `validation_every` branch as `_run_validation`
+  (`pinn/train.py:1075-1093`, the "gate-aligned validation seam (46-07)") —
+  evaluates `sorted(validation_source.records_at_or_below(stage))`: the full
+  pool, deterministic order, no RNG, no lookahead, empty pool fatal. The two
+  consumers of "the validation set" at one event disagree about what it is.
+
+  Cost is not a constraint. `collocation_count` is a **total** budget allocated
+  near-evenly across identities (`allocate_collocation_quota`,
+  `pinn/data/batches.py:124-150`), and validation passes `1`; so the collocation
+  work is identical under either rule, and the data-point work at stage 0 falls
+  from 256 identities (240 replay + 16 lookahead) to 227.
+
+- **Agent was tempted to:** treat the undersized-look-ahead edge rule
+  (`ctl_instruction.md:1828`, pad with replacement) as the nearest applicable
+  precedent and pad the validation replay draw to 240 from the 227-identity
+  pool. Rejected on the mathematics: with-replacement padding lets a held-out
+  identity be counted more than once inside a `(1/N_traj) Σ` mean, which the
+  spec writes over the set; it raises rather than removes the criterion-2
+  variance; and it imports a training-batch edge rule into a held-out
+  measurement, which is the very category error being repaired.
+
+- **What the user needed to decide:** A — full held-out pool; B — pad the draw
+  with replacement; C — re-split so `|val ∩ D≤0| >= 240`; D — stop Phase 50
+  graded execution.
+
+- **Confidence of impact:** **HIGH** — determines whether a band exists at all
+  (D-16, RUN-02), and touches the producer of every stage-exit decision.
+
+- **Status:** `RESOLVED-WITH-INSTRUCTION`
+
+- **Resolution note:** Owner selected **Option A** on 2026-08-13 after being
+  shown the three grounding facts above. `RunController._run_validation`
+  evaluates the **entire held-out Stage-≤k validation pool** —
+  `sorted(validation_source.records_at_or_below(k))` — with **no replay draw and
+  no lookahead set**, matching the already-locked `compute_validation_gate`
+  population and the spec's "held-out validation set" language.
+
+  Boundaries carried by this ruling:
+
+  - DATA-05 `replay_count = 240` is **unchanged** and remains the training-batch
+    contract; the graded configs still leave `stage.replay_count` unset. No
+    constant anywhere is set to 227, 240 → 227, or the smoke's 32. GAP-50-01's
+    ruling is preserved, not reversed.
+  - This is filed as a **conformance divergence repair** under SCOPE-29
+    (repairing a divergence against the spec), on the CONF-08/CONF-09 precedent
+    that magnitudes may move because the implementation becomes the specified
+    one — not because a hyperparameter was fitted to an observed result. It
+    gets a new `pinn/conformance/divergence_register.json` entry with a
+    `spec_citation` and a `proof_test`, in the established `C-0N` shape.
+  - Scope fence: `collocation_count` stays hard-coded at its current value
+    (already carried as the open `COLLOCATION-COUNT-HARD-CODE` qualification),
+    the train-side batch construction is untouched, and no threshold,
+    `validation_every`, budget, or split is changed.
+  - Sequencing: this is a runtime-source change, so per GAP-50-01's resolution
+    it requires a new source-identity commit and pre-registration amendment
+    before a **fresh full generation**. Generations 1 and 2 stay immutable
+    terminal history; the repaired band is **generation 3** and re-runs the
+    smoke plus all three seeds at one head. `--resume` remains forbidden.
+    50-03 stays blocked until generation 3 produces a band.

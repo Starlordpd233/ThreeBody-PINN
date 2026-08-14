@@ -201,7 +201,7 @@ Plans:
 **Goal**: Stage-0 runs end-to-end under the corrected recipe — the first run that is actually the specified experiment.
 **Depends on**: Phase 49 (the gate must exist before Phase 51 spends the look).
 **Requirements**: RUN-01, RUN-02
-**Plans:** 1/3 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 **Wave 1**
@@ -212,9 +212,17 @@ Plans:
 
 - [x] 50-02-PLAN.md — The no-commit run window: calibration smoke (tracer), then graded seeds 41→42→43 at one git head, every launch ledgered (wave 2; generation 2 closed terminal 2026-08-13 after seed-41 DATA-06 227<240; 50-03 blocked)
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 3** *(blocked on Wave 2 completion; added 2026-08-13 by GAP-50-02)*
 
-- [ ] 50-03-PLAN.md — Evidence extraction with sha256 manifest, the D-24 band record, and the pre-registered submission-candidate reading (wave 3)
+- [ ] 50-04-PLAN.md — The GAP-50-02 conformance repair: `_run_validation` reads the entire held-out Stage-≤k validation pool with no replay draw and no lookahead, matching `compute_validation_gate`'s population; divergence-register entry with a proof test; generation-3 pre-registration amendment and ledger scaffold (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion; added 2026-08-13 by GAP-50-02)*
+
+- [ ] 50-05-PLAN.md — The generation-3 no-commit run window: 50-02's procedure re-entered at the repaired head, owner checkpoint before the graded band, calibration smoke then seeds 41→42→43 at one head (wave 4; `autonomous: false` — one-way door)
+
+**Wave 5** *(blocked on Wave 4 completion; re-sequenced 2026-08-13 from wave 3)*
+
+- [ ] 50-03-PLAN.md — Evidence extraction with sha256 manifest, the D-24 band record, and the pre-registered submission-candidate reading (wave 5)
 
 **Success Criteria** (what must be TRUE — the proposal's exit criteria):
 
