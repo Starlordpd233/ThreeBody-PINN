@@ -78,13 +78,30 @@ def _resolve_proof_test(proof_test: str, *, entry_id: str) -> None:
     tests/phase49/test_inst03_register.py::test_every_closed_register_entry_has_a_real_passing_proof_test),
     not the launch path's.
     """
-    parts = proof_test.split("::")
-    if len(parts) < 2 or not all(part.strip() for part in parts):
+    if "::" in proof_test:
+        parts = proof_test.split("::")
+        if len(parts) < 2 or not all(part.strip() for part in parts):
+            raise ValueError(
+                f"closed register entry {entry_id!r} proof_test must be "
+                f"'<path>::<node>'; got {proof_test!r}"
+            )
+        relative, *node_path = parts
+    elif ".py." in proof_test:
+        # Unittest-dotted form used by plan 50-04's proof-test invocation:
+        # tests/phase50/mod.py.Class.method -> path + Class + method.
+        relative, rest = proof_test.split(".py.", 1)
+        relative = f"{relative}.py"
+        node_path = [part for part in rest.split(".") if part]
+        if not node_path:
+            raise ValueError(
+                f"closed register entry {entry_id!r} proof_test must be "
+                f"'<path>::<node>' or '<path>.py.<node>'; got {proof_test!r}"
+            )
+    else:
         raise ValueError(
             f"closed register entry {entry_id!r} proof_test must be "
             f"'<path>::<node>'; got {proof_test!r}"
         )
-    relative, *node_path = parts
     target = (_REPO_ROOT / relative).resolve()
     try:
         target.relative_to(_REPO_ROOT)

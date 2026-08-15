@@ -566,12 +566,13 @@ class RunControllerValidationWiringTests(unittest.TestCase):
             self._tmpdir.name, max_epochs=1, n_adam=1, validation_every=1,
         )
         captured: dict = {}
-        real_build = build_stage_batch
+        original_validation_batch = controller._validation_batch
 
-        def spy_build(source, **kwargs):
-            result = real_build(source, **kwargs)
-            if source is controller._validation_source:
-                captured["batch"] = result
+        def spy_validation_batch(*, stage, collocation_count):
+            result = original_validation_batch(
+                stage=stage, collocation_count=collocation_count
+            )
+            captured["batch"] = result
             return result
 
         original_anchor = controller._build_anchor_context
@@ -590,9 +591,13 @@ class RunControllerValidationWiringTests(unittest.TestCase):
             captured["result"] = result
             return result
 
-        with mock.patch(f"{MODULE}.build_stage_batch", side_effect=spy_build), \
-             mock.patch.object(controller, "_build_anchor_context", side_effect=spy_anchor), \
-             mock.patch.object(controller, "_run_validation", side_effect=spy_run_validation):
+        with mock.patch.object(
+            controller, "_validation_batch", side_effect=spy_validation_batch
+        ), mock.patch.object(
+            controller, "_build_anchor_context", side_effect=spy_anchor
+        ), mock.patch.object(
+            controller, "_run_validation", side_effect=spy_run_validation
+        ):
             disposition = controller.run_stage(0)
 
         self.assertEqual(disposition, StageDisposition.HALT)
