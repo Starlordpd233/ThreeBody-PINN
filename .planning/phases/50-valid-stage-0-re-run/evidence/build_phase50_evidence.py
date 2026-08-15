@@ -22,6 +22,10 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping
 
+_SCRIPT_REPO = Path(__file__).resolve().parents[4]
+if str(_SCRIPT_REPO) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_REPO))
+
 PHASE_REL = Path(".planning/phases/50-valid-stage-0-re-run")
 PHASE_EVIDENCE = PHASE_REL / "evidence"
 LEDGER_REL = PHASE_EVIDENCE / "run-ledger.md"
@@ -715,14 +719,139 @@ def cmd_band(repo: Path) -> None:
     print("BAND-RECORD-OK")
 
 
+def _structural_facts(repo: Path, record: Mapping[str, Any]) -> dict[str, bool]:
+    artifact = reject_escaping_path(repo, record["artifact_dir"], what="candidate artifact")
+    if (artifact / "evaluation").exists():
+        fail(f"{record['run_name']} contains held-out evaluation material")
+    summary = json.loads((artifact / "summary.json").read_text(encoding="utf-8"))
+    gate = summary.get("validation") or {}
+    sidecar_ok = False
+    sidecar_rel = gate.get("gate_sidecar")
+    if sidecar_rel and (artifact / sidecar_rel).is_file():
+        from pinn.training.validation_gate import validate_sidecar_payload
+
+        try:
+            validate_sidecar_payload(json.loads((artifact / sidecar_rel).read_text(encoding="utf-8")))
+            sidecar_ok = True
+        except (OSError, ValueError, json.JSONDecodeError):
+            sidecar_ok = False
+    facts = {
+        "eval01_precondition_i": summary.get("eval01_precondition_i") is True,
+        "guard_invariant_rule": record.get("final_guard_disposition") in (None, "finished")
+        and summary.get("disposition") == "finished",
+        "finished": record.get("final_process_disposition") == "finished"
+        and record.get("ledger_disposition") == "finished",
+        "eval01_precondition_iii": gate.get("eval01_precondition_iii") is True and sidecar_ok,
+    }
+    facts["eligible"] = all(facts.values())
+    return facts
+
+
 def cmd_candidate(repo: Path) -> None:
-    prepare(repo, "candidate")
-    fail("candidate requires a generation-complete band")
+    ledger = prepare(repo, "candidate")
+    generation_id, generation, records = require_complete_generation(ledger)
+    if not (repo / (PHASE_EVIDENCE / "band-record.md")).is_file():
+        fail("candidate requires a band record")
+    pre_reg = generation["pre_registration_commit"]
+    shown = subprocess.run(
+        ["git", "show", f"{pre_reg}:.planning/phases/50-valid-stage-0-re-run/50-PRE-REGISTRATION.md"],
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if shown.returncode != 0:
+        fail("cannot read selection policy from pre_registration ancestor blob")
+    match = LEDGER_JSON_RE.search(shown.stdout)
+    if match is None:
+        fail("pre-registration ancestor blob has no JSON policy")
+    policy_doc = json.loads(match.group(1))
+    policy = policy_doc["selection_policy"]
+    compact = json.dumps(policy, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    if hashlib.sha256(compact.encode("utf-8")).hexdigest() != policy_doc.get("selection_policy_sha256"):
+        fail("selection policy hash drift")
+    by_seed = {}
+    for record in records:
+        if not record.get("in_final_band"):
+            continue
+        match = re.search(r"seed(41|42|43)$", record["run_name"])
+        by_seed[int(match.group(1))] = record
+    if set(by_seed) != {41, 42, 43}:
+        fail("candidate requires a complete three-seed generation")
+    facts = {str(seed): _structural_facts(repo, by_seed[seed]) for seed in (42, 41, 43)}
+    selected = None
+    for seed in (42, 41, 43):
+        if facts[str(seed)]["eligible"]:
+            selected = seed
+            break
+    receipt: dict[str, Any] = {
+        "schema": "phase50-candidate-receipt/v1",
+        "pre_registration_commit": pre_reg,
+        "selection_policy_sha256": policy_doc["selection_policy_sha256"],
+        "band_generation": generation_id,
+        "band_git_head": generation["git_head"],
+        "facts": facts,
+        "source_manifest_sha256": sha256_file(repo / SOURCE_MANIFEST_REL),
+        "band_record_sha256": sha256_file(repo / (PHASE_EVIDENCE / "band-record.md")),
+    }
+    if selected is None:
+        receipt.update({"run_name": None, "owner_stop": True})
+    else:
+        record = by_seed[selected]
+        artifact = record["artifact_dir"]
+        best = reject_escaping_path(repo, f"{artifact}/checkpoints/best.pt", what="best.pt")
+        receipt.update(
+            {
+                "run_name": record["run_name"],
+                "attempt_ordinal": record["attempt_ordinal"],
+                "artifact_dir": artifact,
+                "source_config_sha256": record.get("source_config_sha256"),
+                "frozen_config_sha256": record.get("frozen_config_sha256"),
+                "config_identity_digest": record.get("config_identity_digest"),
+                "splits_sha256": (record.get("terminal_artifact_sha256") or {}).get("splits.json"),
+                "candidate_best_path": f"{artifact}/checkpoints/best.pt",
+                "best_pt_sha256": sha256_file(best) if best.is_file() else (record.get("terminal_artifact_sha256") or {}).get("checkpoints/best.pt"),
+                "corpus_snapshot_sha256": record.get("corpus_snapshot_sha256"),
+                "environment_snapshot_sha256": record.get("environment_snapshot_sha256"),
+                "owner_stop": False,
+            }
+        )
+    atomic_write_json(repo / (PHASE_EVIDENCE / "candidate-receipt.json"), receipt)
+    print("CANDIDATE-OK")
 
 
 def cmd_finalize(repo: Path) -> None:
-    prepare(repo, "finalize")
-    fail("finalize requires a generation-complete band")
+    ledger = prepare(repo, "finalize")
+    require_complete_generation(ledger)
+    required = [
+        SOURCE_MANIFEST_REL,
+        PHASE_EVIDENCE / "band-record.md",
+        PHASE_EVIDENCE / "candidate-receipt.json",
+        LEDGER_REL,
+        Path(__file__).resolve().relative_to(repo.resolve())
+        if str(Path(__file__).resolve()).startswith(str(repo.resolve()))
+        else PHASE_EVIDENCE / "build_phase50_evidence.py",
+    ]
+    files: dict[str, str] = {}
+    for rel in (
+        LEDGER_REL,
+        SOURCE_MANIFEST_REL,
+        PHASE_EVIDENCE / "band-record.md",
+        PHASE_EVIDENCE / "candidate-receipt.json",
+        PHASE_EVIDENCE / "build_phase50_evidence.py",
+        PHASE_EVIDENCE / "verify_phase50_evidence.py",
+    ):
+        path = repo / rel
+        if path.is_file():
+            files[str(rel)] = sha256_file(path)
+    if str(PHASE_EVIDENCE / "manifest.json") in files:
+        fail("final manifest must not hash itself")
+    payload = {
+        "schema": "phase50-evidence-manifest/v2",
+        "files": dict(sorted(files.items())),
+    }
+    atomic_write_json(repo / (PHASE_EVIDENCE / "manifest.json"), payload)
+    print("HASHES-OK")
 
 
 def build_parser() -> argparse.ArgumentParser:

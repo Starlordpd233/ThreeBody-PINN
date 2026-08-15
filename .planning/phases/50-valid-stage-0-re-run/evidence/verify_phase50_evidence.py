@@ -1421,14 +1421,69 @@ def cmd_band(repo: Path, source_manifest: str | None, band_record: str | None) -
     print("DESCRIPTIVE-OK")
 
 
-def cmd_candidate(repo: Path) -> None:
+def cmd_candidate(
+    repo: Path,
+    source_manifest: str | None,
+    band_record: str | None,
+    candidate: str | None,
+) -> None:
     refuse_if_terminal(repo, "candidate")
-    fail("candidate is reserved for a generation-complete band")
+    rel = candidate or str(EVIDENCE_REL / "candidate-receipt.json")
+    receipt = load_json(reject_escaping_path(repo, rel, what="candidate"), what="candidate")
+    if receipt.get("schema") != "phase50-candidate-receipt/v1":
+        fail("candidate schema is not phase50-candidate-receipt/v1")
+    order = ("42", "41", "43")
+    first = None
+    for seed in order:
+        facts = (receipt.get("facts") or {}).get(seed) or {}
+        if "gate_eps_h" in facts or "gate_scs" in facts or "loss" in facts:
+            fail("candidate facts contain metric values")
+        if facts.get("eligible") and first is None:
+            first = seed
+    if first is None:
+        if receipt.get("run_name") is not None or not receipt.get("owner_stop"):
+            fail("no-eligible state must be an explicit owner-stop with null candidate")
+    else:
+        expected = f"stage0-rerun-seed{first}"
+        if receipt.get("run_name") != expected:
+            fail(f"candidate {receipt.get('run_name')!r} is not first eligible {expected}")
+    print("CANDIDATE-OK")
+    print("HASHES-OK")
 
 
-def cmd_all(repo: Path, _manifest: str | None) -> None:
-    refuse_if_terminal(repo, "all")
-    fail("all is reserved for a generation-complete band")
+def cmd_all(repo: Path, manifest_rel: str | None) -> None:
+    ledger = refuse_if_terminal(repo, "all")
+    rel = manifest_rel or str(EVIDENCE_REL / "manifest.json")
+    manifest = load_json(reject_escaping_path(repo, rel, what="final manifest"), what="final manifest")
+    if manifest.get("schema") != "phase50-evidence-manifest/v2":
+        fail("final manifest schema is not phase50-evidence-manifest/v2")
+    if str(EVIDENCE_REL / "manifest.json") in (manifest.get("files") or {}):
+        fail("final manifest hashes itself")
+    generation = int(ledger["final_band_generation"])
+    for kind, seed, name in (
+        ("smoke", 42, "stage0-rerun-smoke"),
+        ("graded", 41, "stage0-rerun-seed41"),
+        ("graded", 42, "stage0-rerun-seed42"),
+        ("graded", 43, "stage0-rerun-seed43"),
+    ):
+        args = argparse.Namespace(
+            generation=generation,
+            kind=kind,
+            seed=seed,
+            attempt_root=f"runs/{name}",
+            ledger=str(LEDGER_REL),
+            pre_registration=str(PRE_REG_REL),
+        )
+        cmd_attempt(args, repo)
+    cmd_manifest(repo, str(EVIDENCE_REL / "source-manifest.json"))
+    cmd_band(repo, str(EVIDENCE_REL / "source-manifest.json"), str(EVIDENCE_REL / "band-record.md"))
+    cmd_candidate(
+        repo,
+        str(EVIDENCE_REL / "source-manifest.json"),
+        str(EVIDENCE_REL / "band-record.md"),
+        str(EVIDENCE_REL / "candidate-receipt.json"),
+    )
+    print("PHASE50-EVIDENCE-OK")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1494,7 +1549,12 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "band":
         cmd_band(repo, getattr(args, "source_manifest", None), getattr(args, "band_record", None))
     elif args.command == "candidate":
-        cmd_candidate(repo)
+        cmd_candidate(
+            repo,
+            getattr(args, "source_manifest", None),
+            getattr(args, "band_record", None),
+            getattr(args, "candidate", None),
+        )
     elif args.command == "all":
         cmd_all(repo, getattr(args, "manifest", None))
     else:
