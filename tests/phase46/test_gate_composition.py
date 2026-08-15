@@ -43,6 +43,27 @@ RAW_FRAME = vg.FrameConvention(
 )
 
 
+class _MpsFloat32Model:
+    """Callable stub that emits an actual MPS float32 prediction."""
+
+    def __init__(self):
+        self.training = True
+        self.calls = []
+
+    def eval(self):
+        self.training = False
+        return self
+
+    def train(self, mode=True):
+        self.training = bool(mode)
+        return self
+
+    def __call__(self, tau_ic13, masses):
+        n = int(tau_ic13.shape[0])
+        self.calls.append((tuple(tau_ic13.shape), tuple(masses.shape)))
+        return torch.zeros((n, 9), dtype=torch.float32, device=torch.device("mps"))
+
+
 class _NaNModel:
     """StubModel-shaped callable that emits NaN positions (genuinely non-finite)."""
 
@@ -201,6 +222,67 @@ class GateComputationTest(unittest.TestCase):
                 model, self.source, stage=0, global_step=0, frame=SCALED_FRAME
             )
         self.assertTrue(model.training)  # prior mode restored despite the exception
+
+
+class MpsPredictionNormalizationTest(unittest.TestCase):
+    """Target-host MPS conversion contract (Phase 50 plan 50-06 Task 1)."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not torch.backends.mps.is_available():
+            raise AssertionError("canonical MPS host required")
+        cls.source = make_stub_split_sources()[1]
+
+    def test_mps_float32_prediction_is_detached_cpu_then_float64_before_metric(self):
+        captured = []
+        real = gate_metrics.compute_trajectory_gate_metrics
+
+        def spy(positions, times, masses, **kw):
+            captured.append(
+                {
+                    "positions": positions,
+                    "times": times,
+                    "masses": masses,
+                }
+            )
+            return real(positions, times, masses, **kw)
+
+        model = _MpsFloat32Model()
+        model.train()
+        with patch.object(
+            vg.gate_metrics, "compute_trajectory_gate_metrics", side_effect=spy
+        ):
+            obs = vg.compute_validation_gate(
+                model,
+                self.source,
+                stage=0,
+                global_step=0,
+                frame=vg.RATIFIED_VALIDATION_FRAME,
+                dtype=torch.float32,
+                device=torch.device("mps"),
+            )
+        self.assertTrue(model.training)
+        pool = sorted(self.source.records_at_or_below(0))
+        self.assertEqual([row.record_key for row in obs.rows], pool)
+        self.assertEqual(len(captured), len(pool))
+        self.assertEqual(obs.n_trajectories, len(pool))
+        first_key = pool[0]
+        expected_t = int(self.source.n_snapshots(first_key))
+        positions = captured[0]["positions"]
+        times = captured[0]["times"]
+        masses = captured[0]["masses"]
+        self.assertEqual(positions.device.type, "cpu")
+        self.assertEqual(positions.dtype, torch.float64)
+        self.assertFalse(positions.requires_grad)
+        self.assertEqual(tuple(positions.shape), (expected_t, 3, 3))
+        self.assertEqual(times.device.type, "cpu")
+        self.assertEqual(times.dtype, torch.float64)
+        self.assertFalse(times.requires_grad)
+        self.assertEqual(tuple(times.shape), (expected_t,))
+        self.assertEqual(masses.device.type, "cpu")
+        self.assertEqual(masses.dtype, torch.float64)
+        self.assertFalse(masses.requires_grad)
+        self.assertEqual(tuple(masses.shape), (3,))
 
 
 class SidecarTest(unittest.TestCase):

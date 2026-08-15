@@ -78,6 +78,34 @@ class _RuntimeSpecStub:
     torch_device = torch.device("cpu")
 
 
+class _MpsRuntimeSpec:
+    """Production-path runtime: locked Phase-50 float32 / MPS."""
+
+    dtype = torch.float32
+    torch_device = torch.device("mps")
+
+
+class _MpsFloat32Model:
+    """Callable stub that emits an actual MPS float32 prediction."""
+
+    def __init__(self):
+        self.training = True
+        self.calls = []
+
+    def eval(self):
+        self.training = False
+        return self
+
+    def train(self, mode=True):
+        self.training = bool(mode)
+        return self
+
+    def __call__(self, tau_ic13, masses):
+        n = int(tau_ic13.shape[0])
+        self.calls.append((tuple(tau_ic13.shape), tuple(masses.shape)))
+        return torch.zeros((n, 9), dtype=torch.float32, device=torch.device("mps"))
+
+
 class _PoisonedSource:
     """Non-empty pool whose record access raises mid-pass."""
 
@@ -252,6 +280,47 @@ class ValidationGateSeamTests(unittest.TestCase):
         self.assertEqual(len(closes), 1)
         self.assertLess(opens[0], calls[0])
         self.assertLess(calls[0], closes[0])
+
+
+class MpsProductionWiringTests(unittest.TestCase):
+    """Production MPS path must publish a healthy sidecar (50-06 Task 1)."""
+
+    def setUp(self) -> None:
+        if not torch.backends.mps.is_available():
+            raise AssertionError("canonical MPS host required")
+        self.tmp = tempfile.TemporaryDirectory(prefix="phase50-mps-wiring-")
+        self.root = Path(self.tmp.name)
+        self.source = make_stub_split_sources()[1]
+        self.run_gate_pass = _require("_run_validation_gate_pass")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_production_mps_path_publishes_and_revalidates_sidecar(self) -> None:
+        model = _MpsFloat32Model()
+        model.train()
+        fields = self.run_gate_pass(
+            model,
+            self.source,
+            stage=0,
+            global_step=100,
+            run_dir=self.root,
+            runtime_spec=_MpsRuntimeSpec(),
+        )
+        self.assertTrue(model.training)
+        self.assertEqual(fields["gate_status"], "ok")
+        self.assertFalse(
+            str(fields["gate_status"]).startswith("failed:"),
+            f"failed:TypeError is not healthy evidence: {fields}",
+        )
+        self.assertEqual(fields["gate_schema_version"], vg.GATE_SIDECAR_SCHEMA_VERSION)
+        rel = fields["gate_sidecar"]
+        self.assertEqual(rel, vg.sidecar_relative_path(100))
+        sidecar = self.root / rel
+        self.assertTrue(sidecar.is_file(), "pointer returned without a durable sidecar")
+        vg.validate_sidecar_payload(json.loads(sidecar.read_text(encoding="utf-8")))
+        for key in ("gate_eps_h", "gate_scs", "gate_verdict", "gate_n_trajectories"):
+            self.assertIn(key, fields)
 
 
 # ---------------------------------------------------------------------------
