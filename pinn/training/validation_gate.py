@@ -242,8 +242,10 @@ def compute_validation_gate(
                 )
                 predicted = model(inputs, masses_batch)
                 predicted_positions = (
-                    torch.as_tensor(predicted, dtype=torch.float64, device=torch.device("cpu"))
+                    torch.as_tensor(predicted)
                     .detach()
+                    .to(device="cpu")
+                    .to(dtype=torch.float64)
                     .reshape(-1, 3, 3)
                 )
                 gate_time = gate_time_coordinate(times, frame)
