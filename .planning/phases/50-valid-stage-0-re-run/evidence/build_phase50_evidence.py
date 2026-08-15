@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -516,9 +517,202 @@ def cmd_extract(repo: Path) -> None:
     )
 
 
+def _hyndman_fan_type7(values: list[float], p: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return ordered[0]
+    position = (len(ordered) - 1) * p
+    low = int(position)
+    high = low if position == low else low + 1
+    if high >= len(ordered):
+        return ordered[-1]
+    if low == high:
+        return ordered[low]
+    return ordered[low] + (ordered[high] - ordered[low]) * (position - low)
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            rows.append(json.loads(line))
+    return rows
+
+
+def _decode_metric(value: Any) -> float:
+    if isinstance(value, str):
+        if value == "NaN":
+            return float("nan")
+        if value == "Infinity":
+            return float("inf")
+        if value == "-Infinity":
+            return float("-inf")
+    return float(value)
+
+
+def _band_seed_blob(repo: Path, record: Mapping[str, Any]) -> dict[str, Any]:
+    artifact = reject_escaping_path(repo, record["artifact_dir"], what="band artifact")
+    summary = json.loads((artifact / "summary.json").read_text(encoding="utf-8"))
+    metadata = json.loads((artifact / "training_metadata.json").read_text(encoding="utf-8"))
+    splits = artifact / "splits.json"
+    validation = _load_jsonl(artifact / "validation.jsonl")
+    steps = _load_jsonl(artifact / "logs/train.log.jsonl")
+    if summary.get("validation", {}).get("gate_status") != "ok":
+        fail(f"{record['run_name']} gate_status is not healthy")
+    if any(event.get("gate_status") != "ok" for event in validation):
+        fail(f"{record['run_name']} has an unhealthy validation event")
+    expected_steps = list(range(100, 1001, 100))
+    actual_steps = [int(event["step"]) for event in validation]
+    if actual_steps != expected_steps:
+        fail(f"{record['run_name']} validation cadence is {actual_steps}")
+    sidecar_rel = summary["validation"]["gate_sidecar"]
+    sidecar = json.loads((artifact / sidecar_rel).read_text(encoding="utf-8"))
+    finite = []
+    nonfinite = 0
+    for row in sidecar.get("rows") or []:
+        value = _decode_metric(row["eps_h"])
+        if math.isfinite(value):
+            finite.append(value)
+        else:
+            nonfinite += 1
+    threshold = float(sidecar["eps_h_reject_threshold"])
+    tail = sum(1 for value in finite if value > threshold)
+    front = []
+    high_water = []
+    water = -1
+    for row in steps:
+        if row.get("event") != "step":
+            continue
+        idx = int(row.get("front_idx") or 0)
+        front.append({"step": int(row["step"]), "front_idx": idx})
+        water = max(water, idx)
+        high_water.append({"step": int(row["step"]), "front_high_water": water})
+    gate = summary.get("validation") or {}
+    return {
+        "run_name": record["run_name"],
+        "attempt_ordinal": record["attempt_ordinal"],
+        "splits_sha256": sha256_file(splits),
+        "s_h": metadata.get("s_h"),
+        "eps_h": metadata.get("eps_h"),
+        "n_train": metadata.get("n_train"),
+        "preflight_status": (summary.get("conformance") or {}).get("preflight_status"),
+        "eval01_precondition_i": summary.get("eval01_precondition_i"),
+        "eval01_precondition_iii": gate.get("eval01_precondition_iii"),
+        "final_losses": summary.get("final_losses"),
+        "gate": {
+            "gate_eps_h": gate.get("gate_eps_h"),
+            "gate_scs": gate.get("gate_scs"),
+            "gate_verdict": gate.get("gate_verdict"),
+            "gate_status": gate.get("gate_status"),
+            "gate_n_trajectories": gate.get("gate_n_trajectories"),
+            "gate_n_nonfinite": gate.get("gate_n_nonfinite"),
+            "gate_sidecar": gate.get("gate_sidecar"),
+            "gate_schema_version": gate.get("gate_schema_version"),
+        },
+        "validation_steps": actual_steps,
+        "quantiles": {
+            "min": _hyndman_fan_type7(finite, 0.0),
+            "p10": _hyndman_fan_type7(finite, 0.10),
+            "p25": _hyndman_fan_type7(finite, 0.25),
+            "p50": _hyndman_fan_type7(finite, 0.50),
+            "p75": _hyndman_fan_type7(finite, 0.75),
+            "p90": _hyndman_fan_type7(finite, 0.90),
+            "max": _hyndman_fan_type7(finite, 1.0),
+            "finite_count": len(finite),
+            "nonfinite_count": nonfinite,
+            "finite_tail_count": tail,
+            "reject_count": tail + nonfinite,
+        },
+        "front": front,
+        "front_high_water": high_water,
+        "front_high_water_terminal": water,
+    }
+
+
 def cmd_band(repo: Path) -> None:
-    prepare(repo, "band")
-    fail("band requires a generation-complete band")
+    ledger = prepare(repo, "band")
+    _generation_id, _generation, records = require_complete_generation(ledger)
+    if not (repo / SOURCE_MANIFEST_REL).is_file():
+        fail("band requires a verified source-manifest; run extract first")
+    manifest = json.loads((repo / SOURCE_MANIFEST_REL).read_text(encoding="utf-8"))
+    for dest, entry in (manifest.get("files") or {}).items():
+        if entry.get("role") == "checkpoint-hash":
+            continue
+        source = reject_escaping_path(repo, entry["source"], what="band source")
+        copy = reject_escaping_path(repo, dest, what="band copy")
+        live = sha256_file(source)
+        if live != entry["source_sha256"] or sha256_file(copy) != entry["copy_sha256"]:
+            fail(f"band source/copy hash drift: {entry['source']}")
+    seeds: dict[str, Any] = {}
+    smoke = None
+    for record in records:
+        if str(record.get("run_name", "")).endswith("smoke") and record.get("ledger_disposition") == "finished":
+            smoke = record
+        if record.get("in_final_band"):
+            match = re.search(r"seed(41|42|43)$", record["run_name"])
+            seeds[match.group(1)] = _band_seed_blob(repo, record)
+    if set(seeds) != {"41", "42", "43"}:
+        fail("band requires finished seeds 41/42/43")
+    v2 = {
+        "41": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+        "42": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "43": "a8618b0c6d0f0f1487fe4e3f8c0409a3e3398c7e8cb8bee2b4d3d7962a576172",
+    }
+    qualifications = []
+    for seed, blob in seeds.items():
+        if blob["splits_sha256"] != v2[seed]:
+            qualifications.append(
+                {
+                    "seed": seed,
+                    "kind": "v2_split_hash_mismatch",
+                    "observed": blob["splits_sha256"],
+                    "expected_v2": v2[seed],
+                }
+            )
+    if smoke is not None:
+        smoke_meta = json.loads(
+            (reject_escaping_path(repo, smoke["artifact_dir"], what="smoke") / "training_metadata.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        smoke_splits = sha256_file(reject_escaping_path(repo, smoke["artifact_dir"], what="smoke") / "splits.json")
+        seed42 = seeds["42"]
+        if (
+            seed42["splits_sha256"] != smoke_splits
+            or seed42["s_h"] != smoke_meta.get("s_h")
+            or seed42["n_train"] != smoke_meta.get("n_train")
+        ):
+            fail("D-16 smoke vs seed-42 s_h/n_train/splits mismatch")
+    scs_values = [seeds[seed]["gate"]["gate_scs"] for seed in ("41", "42", "43")]
+    if all(isinstance(value, (int, float)) and math.isfinite(float(value)) for value in scs_values):
+        scs_range = max(scs_values) - min(scs_values)
+        scs_spread = {"status": "available", "dex_range": scs_range, "factor": 10 ** scs_range}
+    else:
+        scs_spread = {"status": "unavailable", "dex_range": None, "affected": ["41", "42", "43"]}
+    payload = {
+        "schema": "phase50-band-record/v2",
+        "n": 3,
+        "variation_label": (
+            "compound descriptive n=3 variation: run.seed changes validation/test "
+            "membership and model/training randomness; not isolated optimizer-seed variance"
+        ),
+        "seeds": seeds,
+        "scs_spread": scs_spread,
+        "split_hash_qualification": qualifications,
+    }
+    narrative = (
+        "# Phase 50 Band Record\n\n"
+        "Descriptive three-seed characterization. This record does not rank seeds, "
+        "estimate significance, or attribute causes. n=3 spread is compound "
+        "descriptive variation.\n\n"
+        + "```json\n"
+        + dumps_canonical(payload).rstrip()
+        + "\n```\n"
+    )
+    atomic_write_text(repo / (PHASE_EVIDENCE / "band-record.md"), narrative)
+    print("BAND-RECORD-OK")
 
 
 def cmd_candidate(repo: Path) -> None:

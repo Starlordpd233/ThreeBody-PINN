@@ -20,6 +20,10 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
 
+_SCRIPT_REPO = Path(__file__).resolve().parents[4]
+if str(_SCRIPT_REPO) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_REPO))
+
 PHASE_REL = Path(".planning/phases/50-valid-stage-0-re-run")
 EVIDENCE_REL = PHASE_REL / "evidence"
 LEDGER_REL = EVIDENCE_REL / "run-ledger.md"
@@ -1237,9 +1241,184 @@ def cmd_manifest(repo: Path, manifest_rel: str | None) -> None:
     )
 
 
-def cmd_band(repo: Path) -> None:
-    refuse_if_terminal(repo, "band")
-    fail("band is reserved for a generation-complete band")
+def _hyndman_fan_type7(values: list[float], p: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return ordered[0]
+    position = (len(ordered) - 1) * p
+    low = int(position)
+    high = low if position == low else low + 1
+    if high >= len(ordered):
+        return ordered[-1]
+    if low == high:
+        return ordered[low]
+    return ordered[low] + (ordered[high] - ordered[low]) * (position - low)
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _decode_metric(value: Any) -> float:
+    if isinstance(value, str):
+        if value == "NaN":
+            return float("nan")
+        if value == "Infinity":
+            return float("inf")
+        if value == "-Infinity":
+            return float("-inf")
+    return float(value)
+
+
+def _assert_no_held_out(root: Path) -> None:
+    if (root / "evaluation").exists():
+        fail(f"held-out evaluation directory present: {root / 'evaluation'}")
+    for path in root.rglob("*"):
+        if path.is_file() and path.name in EVALUATION_NAMES:
+            fail(f"held-out evaluation artifact present: {path}")
+
+
+def _attempt_health(root: Path, *, kind: str) -> dict[str, Any]:
+    _assert_no_held_out(root)
+    summary = load_json(root / "summary.json", what="attempt summary")
+    status = load_json(root / "status.json", what="attempt status")
+    metadata = load_json(root / "training_metadata.json", what="attempt metadata")
+    validation = _load_jsonl(root / "validation.jsonl")
+    steps = _load_jsonl(root / "logs/train.log.jsonl")
+    if status.get("stage") != 0:
+        fail("attempt is not Stage 0")
+    if summary.get("disposition") != "finished" or status.get("state") != "finished":
+        fail("attempt is not finished")
+    expected = [100, 200, 300] if kind == "smoke" else list(range(100, 1001, 100))
+    actual = [int(event.get("step")) for event in validation]
+    if actual != expected:
+        fail(f"attempt validation cadence {actual} != {expected}")
+    if any(event.get("gate_status") != "ok" for event in validation):
+        fail("attempt has an unhealthy validation event")
+    finished = 300 if kind == "smoke" else 1000
+    if int(status.get("step") or 0) < finished - 1 and int(summary.get("curriculum", [{}])[-1].get("step") or 0) != finished:
+        if int(status.get("step") or 0) != finished and int(status.get("step") or 0) != finished - 1:
+            fail(f"attempt did not finish {finished} steps")
+    water = -1
+    first_positive = None
+    for row in steps:
+        if row.get("event") != "step":
+            continue
+        if row.get("stage") not in (0, None):
+            fail("attempt log has a non-zero stage")
+        if row.get("w_min") is not None and float(row["w_min"]) <= 0:
+            fail("invariant A failed: non-positive w_min")
+        if int(row.get("front_idx", 0)) < 0:
+            fail("invariant A failed: invalid front_idx")
+        idx = int(row.get("front_idx") or 0)
+        if idx > water:
+            water = idx
+        if idx > 0 and first_positive is None:
+            first_positive = int(row["step"])
+    if kind == "graded":
+        if water <= 0 or first_positive is None or first_positive > 500:
+            fail("front_idx did not advance above zero by step 500")
+        if (root / "failure/trip.json").is_file():
+            trip = load_json(root / "failure/trip.json", what="trip")
+            if trip.get("guard") == "invariant_b":
+                fail("invariant B tripped")
+    sidecar_rel = (summary.get("validation") or {}).get("gate_sidecar")
+    if sidecar_rel:
+        from pinn.training.validation_gate import validate_sidecar_payload
+
+        payload = load_json(root / sidecar_rel, what="sidecar")
+        validate_sidecar_payload(payload)
+    return {
+        "summary": summary,
+        "metadata": metadata,
+        "finished": True,
+        "front_high_water": water,
+    }
+
+
+def _predecessor_name(kind: str, seed: int | None) -> str | None:
+    if kind == "smoke":
+        return None
+    if seed == 41:
+        return "stage0-rerun-smoke"
+    if seed == 42:
+        return "stage0-rerun-seed41"
+    if seed == 43:
+        return "stage0-rerun-seed42"
+    fail(f"unsupported graded seed {seed}")
+
+
+def cmd_attempt(args: argparse.Namespace, repo: Path) -> None:
+    if not args.generation or not args.kind or not args.attempt_root or not args.ledger:
+        fail("attempt requires --generation --kind --attempt-root --ledger")
+    ledger_path = reject_escaping_path(repo, args.ledger, what="attempt ledger")
+    ledger = json.loads(fence_json(ledger_path.read_text(encoding="utf-8"), what="ledger"))
+    root = reject_escaping_path(repo, args.attempt_root, what="attempt-root")
+    if not root.is_dir():
+        fail(f"attempt-root missing: {root}")
+    health = _attempt_health(root, kind=args.kind)
+    pred = _predecessor_name(args.kind, args.seed)
+    if pred:
+        pred_record = None
+        for record in ledger.get("records") or []:
+            if int(record.get("band_generation")) == int(args.generation) and record.get("run_name") == pred:
+                pred_record = record
+                break
+        if pred_record is None or not pred_record.get("artifact_dir"):
+            fail(f"predecessor {pred} is missing")
+        pred_root = reject_escaping_path(repo, pred_record["artifact_dir"], what="predecessor")
+        pred_summary = load_json(pred_root / "summary.json", what="predecessor summary")
+        if pred_summary.get("disposition") != "finished":
+            fail(f"predecessor {pred} is not finished")
+        _attempt_health(pred_root, kind="smoke" if pred.endswith("smoke") else "graded")
+    print("ATTEMPT-OK")
+
+
+def cmd_band(repo: Path, source_manifest: str | None, band_record: str | None) -> None:
+    ledger = refuse_if_terminal(repo, "band")
+    rel = band_record or str(EVIDENCE_REL / "band-record.md")
+    path = reject_escaping_path(repo, rel, what="band-record")
+    text = path.read_text(encoding="utf-8")
+    lowered = text.lower()
+    for needle in ("winner", "p-value", "confidence interval", "caused by", "design verdict", "ranked first"):
+        if needle in lowered:
+            fail(f"band record contains forbidden language: {needle}")
+    if "compound" not in lowered:
+        fail("band record is not labeled compound descriptive variation")
+    payload = json.loads(fence_json(text, what="band-record"))
+    if payload.get("schema") != "phase50-band-record/v2":
+        fail("band-record schema is not phase50-band-record/v2")
+    seeds = payload.get("seeds") or {}
+    if set(seeds) != {"41", "42", "43"}:
+        fail("band-record must contain seeds 41/42/43")
+    generation_id = int(ledger["final_band_generation"])
+    for seed, blob in seeds.items():
+        record = next(
+            item
+            for item in ledger["records"]
+            if item.get("in_final_band") and item["run_name"].endswith(f"seed{seed}")
+        )
+        artifact = reject_escaping_path(repo, record["artifact_dir"], what="band artifact")
+        sidecar = json.loads((artifact / blob["gate"]["gate_sidecar"]).read_text(encoding="utf-8"))
+        finite = []
+        nonfinite = 0
+        for row in sidecar.get("rows") or []:
+            value = _decode_metric(row["eps_h"])
+            if math.isfinite(value):
+                finite.append(value)
+            else:
+                nonfinite += 1
+        expected_p50 = _hyndman_fan_type7(finite, 0.50)
+        if blob["quantiles"]["p50"] != expected_p50:
+            fail(f"seed {seed} p50 mismatch")
+        if blob["quantiles"]["nonfinite_count"] != nonfinite:
+            fail(f"seed {seed} nonfinite count mismatch")
+        if int(record["band_generation"]) != generation_id:
+            fail("mixed generation in band")
+    print("BAND-RECORD-OK")
+    print("DESCRIPTIVE-OK")
 
 
 def cmd_candidate(repo: Path) -> None:
@@ -1250,10 +1429,6 @@ def cmd_candidate(repo: Path) -> None:
 def cmd_all(repo: Path, _manifest: str | None) -> None:
     refuse_if_terminal(repo, "all")
     fail("all is reserved for a generation-complete band")
-
-
-def cmd_attempt(repo: Path) -> None:
-    fail("attempt is reserved for Task 2")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1313,11 +1488,11 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "identity":
         cmd_identity(args, repo)
     elif args.command == "attempt":
-        cmd_attempt(repo)
+        cmd_attempt(args, repo)
     elif args.command == "manifest":
         cmd_manifest(repo, getattr(args, "manifest", None))
     elif args.command == "band":
-        cmd_band(repo)
+        cmd_band(repo, getattr(args, "source_manifest", None), getattr(args, "band_record", None))
     elif args.command == "candidate":
         cmd_candidate(repo)
     elif args.command == "all":

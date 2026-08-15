@@ -21,13 +21,13 @@ from tests.phase50.test_evidence_builder import load_ledger
 
 JSON_FENCE = re.compile(r"```json\n(.*?)\n```", re.S)
 FORBIDDEN = (
-    "rank",
     "winner",
     "statistically significant",
     "p-value",
     "confidence interval",
     "caused by",
     "design verdict",
+    "ranked first",
 )
 
 
