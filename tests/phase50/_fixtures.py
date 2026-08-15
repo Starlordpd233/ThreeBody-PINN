@@ -121,3 +121,30 @@ def make_phase50_controller(
         rng=rng,
         replay_count=replay_count,
     )
+
+
+class _MinimalPoolSource:
+    """Minimal StageQuery-shaped source for selector-level rejection tests."""
+
+    def __init__(self, keys, *, blacklisted=(), gold_numeric_stage_count=0):
+        self._keys = tuple(keys)
+        self._black = frozenset(blacklisted)
+        self.gold_numeric_stage_count = gold_numeric_stage_count
+
+    @property
+    def blacklisted_physical_keys(self):
+        return self._black
+
+    def records_at_or_below(self, stage):
+        return self._keys
+
+    def is_blacklisted(self, physical_key):
+        return physical_key in self._black
+
+
+def make_minimal_pool_source(keys, *, blacklisted=(), gold_numeric_stage_count=0):
+    return _MinimalPoolSource(
+        keys,
+        blacklisted=blacklisted,
+        gold_numeric_stage_count=gold_numeric_stage_count,
+    )

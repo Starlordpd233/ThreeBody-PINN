@@ -254,8 +254,9 @@ def _synthetic_split_sources(
 ) -> tuple[Any, Any]:
     """Dataset-free StageQuery-shaped sources (v2.0 falsifiability floor).
 
-    Defaults meet the Stage-0 population floor (240) enforced by
-    ``build_stage_batch`` for BOTH train and validation splits.
+    Defaults meet the Stage-0 population floor enforced by
+    ``build_stage_batch`` on the train split. The validation split is
+    evaluated as a full held-out pool with no floor.
     """
     # Local import keeps train import light; mirrors phase40 stub shape without
     # importing the tests package.
