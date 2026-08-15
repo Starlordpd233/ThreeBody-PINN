@@ -276,6 +276,6 @@ executor surfaced the finding and correctly declined to resolve it.
 
 - **Confidence of impact:** **HIGH** — this decides whether Phase 51 ever gets a candidate from Phase 50, and whether RUN-02 can close.
 
-- **Status:** `OPEN`
+- **Status:** `RESOLVED-WITH-INSTRUCTION`
 
-- **Resolution note:**
+- **Resolution note:** Owner selected **Option A** on 2026-08-15. Accept the generation-3 HALT record. No band. Seeds 42 and 43 stay unlaunched. `N=500` is unchanged. `final_band_generation` stays null. 50-03 remains on its terminal evidence branch only. Phase 50 does not launch another generation until the owner separately authorizes one. `--resume` remains forbidden. This does not re-rule invariant B and does not treat the observed `front_idx` trajectory as a licence to change any hyperparameter (D-20 / D-19 / SCOPE-29).
