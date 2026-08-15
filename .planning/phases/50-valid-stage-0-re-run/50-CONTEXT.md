@@ -112,8 +112,7 @@ eligible (D-11).
   - `opt.validation_every: 100` and `run.log_every: 50`;
   - the same run-record artifact set and the same `runs/<name>/` contract.
 
-- **D-03 [THE OPTIMIZATION-PATH AND WORKLOAD DELTAS ARE RECORDED CONFOUNDS, NOT
-  HIDDEN ONES]:** Any v2.2-vs-v2.0 outcome difference is confounded between the
+- **D-03 [THE OPTIMIZATION-PATH AND WORKLOAD DELTAS ARE RECORDED CONFOUNDS, NOT HIDDEN ONES]:** Any v2.2-vs-v2.0 outcome difference is confounded between the
   conformance repair and more than a 3.33× step-count change. `n_adam` 300→1000
   also moves PHYS-05 `I_warm=floor(0.1N)` from 30→100 (first logged full-physics
   step 31→101), extends CosineAnnealingLR `T_max` 300→1000, and increases planned
@@ -159,8 +158,7 @@ eligible (D-11).
 
 ### The seed band, and pre-registering everything Phase 51 will need
 
-- **D-07 [THE SPLIT IS SEED-DEPENDENT — this is why pre-registration is
-  mandatory]:** `splits.json` is partitioned with the **run seed**
+- **D-07 [THE SPLIT IS SEED-DEPENDENT — this is why pre-registration is mandatory]:** `splits.json` is partitioned with the **run seed**
   (`_partition_by_signature(records, seed, ratios)`; `SplitManifest.seed` equals
   `run.seed` in all three v2.0 pilots), at ratios `train 0.8 / validation 0.1 /
   test 0.1` over 7,606 physical-key groups — seed 42 yields train 6,085 /
