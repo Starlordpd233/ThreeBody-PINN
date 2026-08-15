@@ -248,3 +248,34 @@ executor surfaced the finding and correctly declined to resolve it.
     terminal history; the repaired band is **generation 3** and re-runs the
     smoke plus all three seeds at one head. `--resume` remains forbidden.
     50-03 stays blocked until generation 3 produces a band.
+
+## GAP-50-03 — Generation-3 seed 41 HALTed at step 501 because invariant B saw `front_idx` stay 0 for the full `N=500` window. What, if anything, happens before a later generation may continue?
+
+- **Decision point:** After the C-09 repair, generation-3 seed 41 completed its first validation event without DATA-06 `StageZeroUnderpopulated`, then HALTed at step 501 because invariant B recorded no `front_idx` advance within `N=500` (`front_idx` stayed 0 on all logged steps). Seeds 42 and 43 were not launched. `final_band_generation` is null. What, if anything, may happen before a later generation continues?
+
+- **Where in artifact:** `runs/stage0-rerun-seed41/failure/trip.json` (`guard=invariant_b`, `step=501`, `threshold=500`, `threshold_provisional=false`); generation-3 seed-41 attempt 2 in `.planning/phases/50-valid-stage-0-re-run/evidence/run-ledger.md`; `.planning/phases/50-valid-stage-0-re-run/50-05-SUMMARY.md`; appended `generation_3` section of `evidence/terminal-manifest.json`.
+
+- **Task context:** Plan 50-05 Task 4 / 50-02 Task 2, generation 3, after owner `proceed` (2026-08-15T03:02:42Z) and after the seed-41 first-validation proof. Closeout commit `7d910485`.
+
+- **Classification:** **semantic** (owner-reserved invariant-B response; D-20). Also operational coordination for whether 42/43 may ever run at this head, and whether 50-03's terminal branch is the only remaining Phase-50 work.
+
+- **Source silence:**
+  - `50-CONTEXT.md` D-20 (lines 309–319): an invariant-B HALT is recorded, preserved, gapped, and routed to the owner; **`N` is not raised, softened, re-marked provisional, or bypassed by any agent.** D-20 does not choose among accept-the-HALT / authorize-remaining-seeds / re-rule-`N`.
+  - Phase-49 D-18/D-21 lock `N=500` as owner-ratified and forbid agent edits of `N`. They do not say what Phase 50 does after the predicted ~step-501 HALT actually fires on the repaired recipe.
+  - `50-05-PLAN.md` Task 4 treats this class as intrinsic: terminal immediately, no retry, no `--resume`, no `replay_count` edit, 42/43 not launched. It does not authorize a later generation or a remaining-seed amendment.
+  - SCOPE-29 / D-19 forbid changing a hyperparameter because this run HALTed. They do not say whether a later generation may add a diagnostic or a different Stage-0 curriculum without citing the observed `front_idx` trajectory as the new recipe.
+
+- **Mathematical / engineering grounding:** Invariant B is a high-water-mark window on the causal front. If `front_idx` never leaves 0, the window expires at step `N+1` for `N=500`, i.e. step 501. That is a defined gate, not a numerical glitch. The smoke (`replay_count=32`, 300 steps) never reached this window; the graded run (`replay_count=240`, 1000-step budget, `N=500`) did. A gate that HALTs the run it was built to catch has worked. Changing `N` after seeing this HALT would be tuning from a run outcome. Launching 42/43 at the same head after this class would spend the remaining band compute on the same recipe that just failed the owner-ratified window.
+
+- **Agent was tempted to:** launch seeds 42 and 43 because DATA-06 is gone and RUN-02 still wants a three-seed band. Rejected: D-20 forbids treating this HALT as a number to walk around, and 50-05 Task 4 forbids further launches after this class.
+
+- **What the user needs to decide:**
+  - **A.** Accept the HALT record. No band. 50-03 stays on its terminal branch. Phase 50 does not launch another generation until the owner separately authorizes one.
+  - **B.** Explicitly authorize remaining seeds 42 and 43 at this head, and amend the plan/acceptance criteria first. This generation's terminal closeout still stands until that amendment exists.
+  - **C.** Re-rule `N` (owner only). Any such ruling still requires this generation to stay terminal and a new source-identity generation before another band. The agent must not propose a new `N` from the observed `front_idx` trajectory.
+
+- **Confidence of impact:** **HIGH** — this decides whether Phase 51 ever gets a candidate from Phase 50, and whether RUN-02 can close.
+
+- **Status:** `OPEN`
+
+- **Resolution note:**

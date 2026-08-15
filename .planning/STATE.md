@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 50
 current_phase_name: valid-stage-0-re-run
 status: executing
-stopped_at: Completed 50-04-PLAN.md; ready for 50-05 generation-3 run window
-last_updated: "2026-08-15T02:36:02Z"
+stopped_at: Completed 50-05 terminal closeout; GAP-50-03 OPEN; 50-03 terminal branch remains
+last_updated: "2026-08-15T03:20:00Z"
 last_activity: 2026-08-15
-last_activity_desc: 50-04 GAP-50-02 full-pool validation repair landed (C-09)
+last_activity_desc: 50-05 generation-3 closed terminal on invariant-B HALT (GAP-50-03)
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 31
-  completed_plans: 29
-  percent: 61
+  completed_plans: 30
+  percent: 63
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 50 (valid-stage-0-re-run) — EXECUTING
-Plan: 3 of 5 executed (50-01, 50-02, 50-04; 50-05 → 50-03 remain)
-Status: 50-04 complete — C-09 closed, generation-3 recipe landed, no run launched
-Last activity: 2026-08-15 — GAP-50-02 repair: full held-out validation pool; source identity 312f3080
+Plan: 4 of 5 executed (50-01, 50-02, 50-04, 50-05; 50-03 remains)
+Status: 50-05 terminal — C-09 held; seed 41 HALTed on invariant B; GAP-50-03 OPEN
+Last activity: 2026-08-15 — generation-3 closeout 7d910485; no band; 50-03 on terminal branch
 **Verification:** [███████░░░] 67% (4/6 truths verified)
 
 ### Phase 49 verification (2026-08-10)

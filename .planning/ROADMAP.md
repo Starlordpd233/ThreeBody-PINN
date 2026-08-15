@@ -218,7 +218,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion; added 2026-08-13 by GAP-50-02)*
 
-- [ ] 50-05-PLAN.md — The generation-3 no-commit run window: 50-02's procedure re-entered at the repaired head, owner checkpoint before the graded band, calibration smoke then seeds 41→42→43 at one head (wave 4; `autonomous: false` — one-way door)
+- [x] 50-05-PLAN.md — The generation-3 no-commit run window: 50-02's procedure re-entered at the repaired head, owner checkpoint before the graded band, calibration smoke then seeds 41→42→43 at one head (wave 4; `autonomous: false` — one-way door; generation 3 closed terminal 2026-08-15 after seed-41 invariant-B HALT at step 501; GAP-50-03 OPEN)
 
 **Wave 5** *(blocked on Wave 4 completion; re-sequenced 2026-08-13 from wave 3)*
 
