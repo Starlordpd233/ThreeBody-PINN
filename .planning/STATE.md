@@ -5,15 +5,15 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 50
 current_phase_name: valid-stage-0-re-run
 status: executing
-stopped_at: All Phase 50 plans summarized; awaiting verification
-last_updated: "2026-08-15T07:05:34.945Z"
+stopped_at: Completed 50-06-PLAN.md
+last_updated: "2026-08-15T13:05:44.556Z"
 last_activity: 2026-08-15
-last_activity_desc: 50-03 terminal evidence preserved; no band
+last_activity_desc: 50-06 MPS conversion and telemetry repair; no causal-front remedy
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 38
-  completed_plans: 31
+  completed_plans: 32
   percent: 57
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 50 (valid-stage-0-re-run) — EXECUTING
-Plan: 5 of 5 executed (50-01, 50-02, 50-04, 50-05, 50-03)
-Status: All plans summarized — generation 3 terminal; no band; awaiting verification
-Last activity: 2026-08-15 — 50-03 TERMINAL-EVIDENCE-OK; GAP-50-03 Option A
+Plan: 6 of 12
+Status: 50-06 complete; ready for 50-07 / 50-08
+Last activity: 2026-08-15 — 50-06 MPS conversion, telemetry snapshot, no causal-front remedy
 **Verification:** [███████░░░] 67% (4/6 truths verified)
 
 ### Phase 49 verification (2026-08-10)
@@ -254,6 +254,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 49 P02 | 7min | 3 tasks | 7 files |
 | Phase 49 P04 | 20min | 3 tasks | 6 files |
 | Phase 50 P01 | ~50min | 3 tasks | 15 files |
+| Phase 50 P06 | 11 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -425,6 +426,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Plan 50-01: --stage-0-only fresh-run Stage-0 ceiling added to CurriculumController/pinn.train (SCOPE-27); guarded ADVANCE skips stage increment, stage_factory, stage-1-init, promotion, and the k->k+1 disposition record
 - [Phase ?]: Plan 50-01: four Phase-50 configs committed with D-04 diff receipt; 50-PRE-REGISTRATION.md fixes seed-42 candidate/checkpoint/fallback order before any graded run; 50-CONFIG-DELTA.md derived by structural load_config() diff; STAGE0-BUDGET-DELTA qualification appended to divergence register via API
 - [Phase ?]: Plan 50-01: RUN-01/RUN-02 requirement checkboxes deliberately NOT flipped (D-30 reserves that to phase verification); all wave-1 files landed in one commit (abd5f8d) on milestone/v2.2 per D-17
+- [Phase 50 Plan 50-06]: MPS prediction conversion is detach then CPU then float64, matching `_as_cpu_f64`; metric/frame/population/thresholds unchanged
+- [Phase 50 Plan 50-06]: `telemetry_overwrite_proven: true` on Adam and L-BFGS validation-step logs; training causal snapshot is passed explicitly to `_log_step`
+- [Phase 50 Plan 50-06]: `grounded_causal_front_repair: none-in-current-sources`; later-generation authorization is exclusively Plan 50-08; GAP-50-03 untouched
 
 ### Pending Todos
 
@@ -459,9 +463,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-15T02:36:02Z
-Stopped at: Completed 50-04-PLAN.md
-Next action: Execute wave 4 — `/gsd-execute-phase 50 --wave 4` from .worktrees/trainex — which runs 50-05: open generation 3 at a head strictly after source identity `312f3080ab50e35be18ba87c9f0618866265b227`, owner checkpoint before the graded band (`autonomous: false`). `replay_count` stays 240 and no config byte changed. Do not start 50-03 until `final_band_generation` is non-null.
+Last session: 2026-08-15T13:05:44.541Z
+Stopped at: Completed 50-06-PLAN.md
+Next action: Execute 50-07 (normal evidence tooling) then 50-08 (owner checkpoint). Do not launch a later generation from this plan. `final_band_generation` remains null. RUN-01/RUN-02 stay unflipped.
 
 ## Operator Next Steps
 
