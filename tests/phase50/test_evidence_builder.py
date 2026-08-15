@@ -16,7 +16,9 @@ from tests.phase50._evidence_fixtures import (
     VERIFIER,
     clone_complete,
     fail_closed_message,
+    fence,
     sha256_file,
+    write_text,
 )
 
 
@@ -110,16 +112,11 @@ class ExtractManifestTests(unittest.TestCase):
         target = run_dir / "summary.json"
         linked = run_dir / "summary-link.json"
         os.symlink(target, linked)
-        ledger_path = self.fx.path(LEDGER_REL)
-        text = ledger_path.read_text(encoding="utf-8")
-        ledger_path.write_text(
-            text.replace(
-                '"summary.md":',
-                '"summary-link.json": "' + sha256_file(target) + '",\n        "summary.md":',
-                1,
-            ),
-            encoding="utf-8",
-        )
+        ledger = load_ledger(self.fx.root)
+        for record in ledger["records"]:
+            if record["run_name"] == "stage0-rerun-seed42":
+                record["terminal_artifact_sha256"]["summary-link.json"] = sha256_file(target)
+        write_text(self.fx.path(LEDGER_REL), "# Fixture run ledger\n\n" + fence(ledger))
         extracted = self.fx.extract()
         self.assertNotEqual(extracted.returncode, 0)
         self.assertFalse(self.fx.path(SOURCE_MANIFEST_REL).exists())
@@ -131,21 +128,21 @@ class ExtractManifestTests(unittest.TestCase):
         self.assertFalse(self.fx.path(SOURCE_MANIFEST_REL).exists())
 
     def test_null_required_hash_fails_closed(self) -> None:
-        ledger_path = self.fx.path(LEDGER_REL)
-        text = ledger_path.read_text(encoding="utf-8")
-        digest = sha256_file(self.fx.attempt_roots["stage0-rerun-seed43"] / "status.json")
-        ledger_path.write_text(text.replace(f'"{digest}"', "null", 1), encoding="utf-8")
+        ledger = load_ledger(self.fx.root)
+        for record in ledger["records"]:
+            if record["run_name"] == "stage0-rerun-seed43":
+                record["terminal_artifact_sha256"]["status.json"] = None
+        write_text(self.fx.path(LEDGER_REL), "# Fixture run ledger\n\n" + fence(ledger))
         extracted = self.fx.extract()
         self.assertNotEqual(extracted.returncode, 0)
         self.assertFalse(self.fx.path(SOURCE_MANIFEST_REL).exists())
 
     def test_resumed_invocation_fails_in_normal_mode(self) -> None:
-        ledger_path = self.fx.path(LEDGER_REL)
-        text = ledger_path.read_text(encoding="utf-8")
-        ledger_path.write_text(
-            text.replace('"launch_kind": "fresh"', '"launch_kind": "resume"', 1),
-            encoding="utf-8",
-        )
+        ledger = load_ledger(self.fx.root)
+        for record in ledger["records"]:
+            if record["run_name"] == "stage0-rerun-seed42":
+                record["invocations"][0]["launch_kind"] = "resume"
+        write_text(self.fx.path(LEDGER_REL), "# Fixture run ledger\n\n" + fence(ledger))
         extracted = self.fx.extract()
         self.assertNotEqual(extracted.returncode, 0)
         self.assertFalse(self.fx.path(SOURCE_MANIFEST_REL).exists())

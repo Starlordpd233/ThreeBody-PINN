@@ -1015,8 +1015,6 @@ def build_fixture(
         plan_50_07=repo.commits["50-07"],
         extra={"one_use": True, "authorizes_graded": False},
     )
-    if mode in {"run-window", "complete"}:
-        write_text(repo.path(SMOKE_AUTH_REL), smoke_auth)
 
     historical_head = repo.commits["50-08"]
     generations = [
@@ -1064,14 +1062,14 @@ def build_fixture(
 
     if mode == "run-window":
         write_text(repo.path(SMOKE_AUTH_REL), smoke_auth)
+        _write_ledger(repo, generations=generations + [gen4], records=[], final_band_generation=None)
         repo.commits["50-10"] = git_commit(
             root,
             "plan(50): record smoke owner decision",
             trailers={"Decision-Summary-SHA256": sha256_text(smoke_auth)},
         )
-        gen4["git_head"] = repo.commits["50-10"]
-        _write_ledger(repo, generations=generations + [gen4], records=[], final_band_generation=None)
-        repo.commits["HEAD"] = git_commit(root, "evidence(50): fixture opened run window")
+        # Registered source HEAD must equal the smoke-authorization commit.
+        repo.commits["HEAD"] = repo.commits["50-10"]
         return repo
 
     write_text(repo.path(SMOKE_AUTH_REL), smoke_auth)

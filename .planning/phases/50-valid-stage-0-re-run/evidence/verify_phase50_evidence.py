@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Independent Phase-50 evidence verifier.
 
-Subcommands: manifest, band, candidate, terminal, all.
+Subcommands: identity-baseline, identity, attempt, manifest, band, candidate,
+terminal, all.
 
 This module re-derives hashes and terminal facts from the ledger, live
 sources, committed copies, and terminal-manifest.json. It must not import
@@ -12,6 +13,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import subprocess
 import sys
@@ -22,7 +24,10 @@ PHASE_REL = Path(".planning/phases/50-valid-stage-0-re-run")
 EVIDENCE_REL = PHASE_REL / "evidence"
 LEDGER_REL = EVIDENCE_REL / "run-ledger.md"
 ATTEMPTS_REL = EVIDENCE_REL / "attempts"
+PRE_REG_REL = PHASE_REL / "50-PRE-REGISTRATION.md"
+AUTH_SUMMARY_REL = PHASE_REL / "50-08-SUMMARY.md"
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
 LEDGER_JSON_RE = re.compile(r"```json\n(.*?)\n```", re.S)
 ATTEMPT_DIR_RE = re.compile(r"^(?P<run>.+)-attempt-(?P<ord>\d+)$")
 MODEL_CHECKPOINT_NAME = re.compile(
@@ -41,6 +46,27 @@ NORMAL_MODE_ARTIFACTS = (
     EVIDENCE_REL / "source-manifest.json",
 )
 EVAL_COMMAND_NEEDLES = ("pinn.evaluate", "pinn/evaluate.py", "python -m pinn.evaluate")
+SCOPED_PREFIXES = (
+    "pinn/",
+    "configs/",
+    "tests/phase50/",
+    str(EVIDENCE_REL).rstrip("/") + "/",
+    str(PHASE_REL).rstrip("/") + "/",
+)
+REQUIRED_SCOPE_ACKS = {
+    "not_causal_success_forecast": True,
+    "not_smoke_or_graded_launch_authority": True,
+    "preserves_unchanged_recipe_n500_seed_order_no_held_out": True,
+    "does_not_reopen_gap_50_03": True,
+}
+LOCKED_GRADED_FIELDS = {
+    "front_advance_window_n": 500,
+    "n_adam": 1000,
+    "max_epochs": 1000,
+    "validation_every": 100,
+    "lambda_e_max": 0.0,
+}
+JSON_FENCE_RE = re.compile(r"```json\n(.*?)\n```", re.S)
 
 
 class VerifyError(SystemExit):
@@ -751,7 +777,7 @@ def cmd_terminal(repo: Path, manifest_rel: str) -> None:
     )
 
 
-def refuse_normal_mode(repo: Path, command: str) -> None:
+def refuse_if_terminal(repo: Path, command: str) -> dict[str, Any]:
     ledger = load_ledger(repo)
     if ledger.get("final_band_generation") is None:
         fail(
@@ -759,23 +785,475 @@ def refuse_normal_mode(repo: Path, command: str) -> None:
             "final_band_generation is null so MANIFEST-OK/BAND-RECORD-OK/"
             "CANDIDATE-OK/PHASE50-EVIDENCE-OK are inapplicable"
         )
-    fail(f"{command} is reserved for a generation-complete band")
+    return ledger
 
 
-def cmd_manifest(repo: Path, _manifest: str | None) -> None:
-    refuse_normal_mode(repo, "manifest")
+def git_output(repo: Path, *args: str, check: bool = True) -> str:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if check and result.returncode != 0:
+        fail(f"git {' '.join(args)} failed: {result.stderr.strip()}")
+    return result.stdout.rstrip("\n")
+
+
+def is_ancestor(repo: Path, ancestor: str, descendant: str) -> bool:
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+        cwd=str(repo),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def fence_json(text: str, *, what: str) -> str:
+    match = JSON_FENCE_RE.search(text)
+    if match is None:
+        fail(f"{what} has no fenced JSON block")
+    return match.group(1)
+
+
+def json_array_object_spans(raw: str, array_key: str) -> list[str]:
+    needle = f'"{array_key}"'
+    idx = raw.find(needle)
+    if idx < 0:
+        fail(f"JSON is missing {array_key}")
+    start = raw.find("[", idx)
+    if start < 0:
+        fail(f"{array_key} is not an array")
+    spans: list[str] = []
+    i = start + 1
+    n = len(raw)
+    while i < n:
+        while i < n and raw[i] in " \n\r\t,":
+            i += 1
+        if i < n and raw[i] == "]":
+            break
+        if i >= n or raw[i] != "{":
+            fail(f"{array_key} contains a non-object entry")
+        depth = 0
+        in_str = False
+        escape = False
+        begin = i
+        while i < n:
+            ch = raw[i]
+            if in_str:
+                if escape:
+                    escape = False
+                elif ch == "\\":
+                    escape = True
+                elif ch == '"':
+                    in_str = False
+            elif ch == '"':
+                in_str = True
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    spans.append(raw[begin : i + 1])
+                    i += 1
+                    break
+            i += 1
+        else:
+            fail(f"{array_key} object span is truncated")
+    return spans
+
+
+def collect_referenced_paths(blob: Any) -> list[str]:
+    found: list[str] = []
+    if isinstance(blob, dict):
+        for key, value in blob.items():
+            if key in {"path", "launch_transcript", "transcript", "artifact_dir"} and isinstance(value, str):
+                found.append(value)
+            found.extend(collect_referenced_paths(value))
+    elif isinstance(blob, list):
+        for item in blob:
+            found.extend(collect_referenced_paths(item))
+    return found
+
+
+def cmd_identity_baseline(repo: Path, ledger_rel: str, output_rel: str) -> None:
+    ledger_path = reject_escaping_path(repo, ledger_rel, what="ledger")
+    text = ledger_path.read_text(encoding="utf-8")
+    raw = fence_json(text, what="ledger")
+    spans = json_array_object_spans(raw, "band_generations")
+    record_spans = json_array_object_spans(raw, "records")
+    generation_hashes: dict[str, str] = {}
+    referenced: dict[str, str] = {}
+    seen_ids: set[int] = set()
+    for span in spans:
+        blob = json.loads(span)
+        number = blob.get("band_generation")
+        if number is None or not isinstance(number, int):
+            fail("generation object lacks band_generation")
+        if number in seen_ids:
+            fail(f"duplicate generation {number}")
+        seen_ids.add(number)
+        if number in {1, 2, 3}:
+            generation_hashes[str(number)] = hashlib.sha256(span.encode("utf-8")).hexdigest()
+            for raw_path in collect_referenced_paths(blob):
+                if raw_path.startswith(("runs/",)):
+                    continue
+                try:
+                    path = reject_escaping_path(repo, raw_path, what="baseline artifact")
+                except VerifyError:
+                    continue
+                if path.is_file():
+                    referenced[raw_path] = sha256_file(path)
+    for span in record_spans:
+        blob = json.loads(span)
+        number = blob.get("band_generation")
+        if number in {1, 2, 3}:
+            referenced[f"record:{blob.get('run_name')}:{blob.get('attempt_ordinal')}"] = (
+                hashlib.sha256(span.encode("utf-8")).hexdigest()
+            )
+    if set(generation_hashes) != {"1", "2", "3"}:
+        fail("identity-baseline requires generation-1/2/3 object spans")
+    source_commit = git_output(repo, "rev-parse", "HEAD")
+    source_tree = git_output(repo, "rev-parse", "HEAD^{tree}")
+    scoped = {}
+    for name, spec in (
+        ("pinn", "HEAD:pinn"),
+        ("configs", "HEAD:configs"),
+        ("tests_phase50", "HEAD:tests/phase50"),
+        ("phase50", f"HEAD:{PHASE_REL}"),
+    ):
+        scoped[name] = git_output(repo, "rev-parse", spec, check=False) or None
+    payload = {
+        "schema": "phase50-identity-baseline/v1",
+        "source_commit": source_commit,
+        "source_tree": source_tree,
+        "scoped_trees": scoped,
+        "generation_object_sha256": generation_hashes,
+        "referenced_artifact_sha256": dict(sorted(referenced.items())),
+    }
+    output_path = reject_escaping_path(repo, output_rel, what="identity baseline output")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    print("IDENTITY-BASELINE-OK")
+
+
+def show_committed(repo: Path, rel: str) -> tuple[str, str]:
+    commit = git_output(repo, "log", "-1", "--format=%H", "--", rel, check=False)
+    if not commit:
+        fail(f"{rel} is not present in HEAD ancestry")
+    result = subprocess.run(
+        ["git", "show", f"{commit}:{rel}"],
+        cwd=str(repo),
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        fail(f"cannot git show {commit}:{rel}")
+    return commit, result.stdout.decode("utf-8")
+
+
+def trailer_sha256(repo: Path, commit: str) -> str:
+    body = git_output(repo, "show", "-s", "--format=%B", commit)
+    matches = re.findall(r"^Decision-Summary-SHA256:\s*([0-9a-f]{64})\s*$", body, re.M)
+    if not matches:
+        fail(f"{commit} lacks Decision-Summary-SHA256 trailer")
+    return matches[-1]
+
+
+def parse_decision(text: str, *, what: str) -> dict[str, Any]:
+    raw = fence_json(text, what=what)
+    blob = json.loads(raw)
+    if not isinstance(blob, dict):
+        fail(f"{what} JSON is not an object")
+    return blob
+
+
+def assert_scope(blob: Mapping[str, Any], *, what: str) -> None:
+    acks = blob.get("scope_acknowledgements")
+    if not isinstance(acks, dict):
+        fail(f"{what} lacks scope_acknowledgements")
+    for key, expected in REQUIRED_SCOPE_ACKS.items():
+        if acks.get(key) is not expected:
+            fail(f"{what} scope {key} is {acks.get(key)!r}")
+
+
+def assert_not_working_tree_authority(repo: Path, rel: str) -> None:
+    status = git_output(repo, "status", "--porcelain", "--untracked-files=all", "--", rel, check=False)
+    if status.strip():
+        fail(f"{rel} has working-tree modifications; authorization must be a committed blob")
+
+
+def verify_authorization(
+    repo: Path,
+    summary_rel: str,
+    *,
+    expected_schema: str,
+    expected_option: str,
+) -> dict[str, Any]:
+    assert_not_working_tree_authority(repo, summary_rel)
+    commit, blob = show_committed(repo, summary_rel)
+    digest = hashlib.sha256(blob.encode("utf-8")).hexdigest()
+    if digest != trailer_sha256(repo, commit):
+        fail(f"{summary_rel} blob SHA-256 does not match Decision-Summary-SHA256")
+    decision = parse_decision(blob, what=summary_rel)
+    if decision.get("schema") != expected_schema:
+        fail(f"{summary_rel} schema is {decision.get('schema')!r}")
+    if decision.get("selected_option") != expected_option:
+        fail(f"{summary_rel} selected_option is {decision.get('selected_option')!r}")
+    if not decision.get("owner_response_verbatim"):
+        fail(f"{summary_rel} lacks owner_response_verbatim")
+    assert_scope(decision, what=summary_rel)
+    head = git_output(repo, "rev-parse", "HEAD")
+    for key in ("plan_50_06_commit", "plan_50_07_commit"):
+        ancestor = decision.get(key)
+        if not ancestor or not HEX40.fullmatch(str(ancestor)):
+            fail(f"{summary_rel} {key} is missing")
+        if not is_ancestor(repo, ancestor, head):
+            fail(f"{key} {ancestor} is not an ancestor of HEAD")
+    return {"commit": commit, "decision": decision, "digest": digest}
+
+
+def parse_locked_recipe(text: str) -> dict[str, Any]:
+    values: dict[str, Any] = {}
+    for line in text.splitlines():
+        if ":" not in line:
+            continue
+        key, raw = line.split(":", 1)
+        key = key.strip()
+        raw = raw.strip()
+        if key in {"front_advance_window_n", "n_adam", "max_epochs", "validation_every", "seed"}:
+            try:
+                values[key] = int(raw)
+            except ValueError:
+                continue
+        elif key == "lambda_e_max":
+            try:
+                values[key] = float(raw)
+            except ValueError:
+                continue
+    return values
+
+
+def assert_clean_tree(repo: Path, allowed: set[str]) -> None:
+    status = git_output(repo, "status", "--porcelain", "--untracked-files=all")
+    for line in status.splitlines():
+        if len(line) < 4:
+            continue
+        path = line[3:]
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        if path in allowed:
+            continue
+        if any(path == prefix.rstrip("/") or path.startswith(prefix) for prefix in SCOPED_PREFIXES):
+            fail(f"scoped drift is present: {line}")
+
+
+def load_pre_registration(repo: Path, rel: str) -> dict[str, Any]:
+    commit, blob = show_committed(repo, rel)
+    parsed = json.loads(fence_json(blob, what=rel))
+    if parsed.get("schema") != "phase50-pre-registration/v2":
+        fail(f"{rel} schema is {parsed.get('schema')!r}")
+    policy = parsed.get("selection_policy")
+    if not isinstance(policy, dict):
+        fail(f"{rel} selection_policy is missing")
+    compact = json.dumps(policy, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    digest = hashlib.sha256(compact.encode("utf-8")).hexdigest()
+    if digest != parsed.get("selection_policy_sha256"):
+        fail("selection_policy_sha256 does not match canonical policy bytes")
+    return {"commit": commit, "blob": parsed, "policy_bytes": compact, "policy_sha256": digest}
+
+
+def cmd_identity(args: argparse.Namespace, repo: Path) -> None:
+    state = args.state
+    auth_rel = args.authorization_summary or str(AUTH_SUMMARY_REL)
+    auth = verify_authorization(
+        repo,
+        auth_rel,
+        expected_schema="phase50-owner-preregistration-decision/v1",
+        expected_option="authorize-preregistration",
+    )
+    if state == "authorization":
+        print("IDENTITY-OK")
+        return
+
+    if not args.baseline or not args.pre_registration or not args.ledger:
+        fail("preregistered/run-window identity requires --baseline --pre-registration --ledger")
+    baseline_path = reject_escaping_path(repo, args.baseline, what="baseline")
+    baseline = load_json(baseline_path, what="identity baseline")
+    if baseline.get("schema") != "phase50-identity-baseline/v1":
+        fail("baseline schema is not phase50-identity-baseline/v1")
+    ledger_path = reject_escaping_path(repo, args.ledger, what="ledger")
+    text = ledger_path.read_text(encoding="utf-8")
+    raw = fence_json(text, what="ledger")
+    current_spans = {
+        str(json.loads(span)["band_generation"]): hashlib.sha256(span.encode("utf-8")).hexdigest()
+        for span in json_array_object_spans(raw, "band_generations")
+        if json.loads(span).get("band_generation") in {1, 2, 3}
+    }
+    if current_spans != baseline.get("generation_object_sha256"):
+        fail("generation 1-3 raw object spans do not match the pre-append baseline")
+    ledger = json.loads(raw)
+    generations = ledger.get("band_generations") or []
+    ids = [int(item["band_generation"]) for item in generations]
+    if len(ids) != len(set(ids)):
+        fail("ledger has duplicate generation fields")
+    if 4 not in ids:
+        fail("preregistered/run-window identity requires generation 4")
+    gen4 = next(item for item in generations if int(item["band_generation"]) == 4)
+    gen4_records = [record for record in ledger.get("records") or [] if int(record.get("band_generation")) == 4]
+    status = gen4.get("status")
+    if status not in (None, "", "open"):
+        if state == "preregistered":
+            fail("preregistered identity requires an unopened generation 4")
+    if gen4_records and any(record.get("invocations") for record in gen4_records):
+        if state == "preregistered" or status in (None, "", "open"):
+            fail("unopened generation 4 has invocations")
+    pre = load_pre_registration(repo, args.pre_registration)
+    binding = pre["blob"].get("generation_binding") or {}
+    head = git_output(repo, "rev-parse", "HEAD")
+    tree = git_output(repo, "rev-parse", "HEAD^{tree}")
+    if tree != baseline.get("source_tree"):
+        fail("source tree does not match the identity baseline")
+    for rel, digest in sorted((gen4.get("committed_config_sha256_by_path") or binding.get("committed_config_sha256_by_path") or {}).items()):
+        path = reject_escaping_path(repo, rel, what="config")
+        assert_hash_equal(path, digest, what=f"committed {rel}")
+        parsed = parse_locked_recipe(path.read_text(encoding="utf-8"))
+        if "seed41" in rel or "seed42" in rel or "seed43" in rel:
+            for key, expected in LOCKED_GRADED_FIELDS.items():
+                if parsed.get(key) != expected:
+                    fail(f"{rel} locked field {key} is {parsed.get(key)!r}")
+    expected_splits = binding.get("expected_splits_sha256") or {}
+    if set(expected_splits) != {"41", "42", "43"}:
+        fail("expected split hashes are missing")
+    for ancestor in (
+        auth["decision"]["plan_50_06_commit"],
+        auth["decision"]["plan_50_07_commit"],
+        auth["commit"],
+        gen4.get("pre_registration_commit"),
+        gen4.get("git_head"),
+    ):
+        if ancestor and not is_ancestor(repo, ancestor, head) and ancestor != head:
+            fail(f"{ancestor} is not an ancestor of HEAD")
+    allowed = {args.baseline, args.ledger, args.pre_registration, args.config_delta or ""}
+    if args.smoke_authorization_summary:
+        allowed.add(args.smoke_authorization_summary)
+    assert_clean_tree(repo, {item for item in allowed if item})
+    if state == "run-window":
+        if not args.smoke_authorization_summary:
+            fail("run-window identity requires --smoke-authorization-summary")
+        smoke = verify_authorization(
+            repo,
+            args.smoke_authorization_summary,
+            expected_schema="phase50-owner-smoke-decision/v1",
+            expected_option="authorize-smoke",
+        )
+        if head != smoke["commit"]:
+            fail("run-window HEAD must equal the authorize-smoke decision commit")
+    print("IDENTITY-OK")
+
+
+def cmd_manifest(repo: Path, manifest_rel: str | None) -> None:
+    ledger = refuse_if_terminal(repo, "manifest")
+    rel = manifest_rel or str(EVIDENCE_REL / "source-manifest.json")
+    manifest_path = reject_escaping_path(repo, rel, what="source manifest")
+    manifest = load_json(manifest_path, what="source-manifest")
+    if manifest.get("schema") != "phase50-evidence-source-manifest/v1":
+        fail(f"source-manifest schema is {manifest.get('schema')!r}")
+    generation_id = int(ledger["final_band_generation"])
+    if int(manifest.get("band_generation")) != generation_id:
+        fail("source-manifest band_generation does not match the ledger")
+    if "band_git_head" not in manifest or "extraction_git_head" not in manifest:
+        fail("source-manifest must keep band_git_head and extraction_git_head distinct")
+    records = [
+        record for record in ledger["records"] if int(record.get("band_generation")) == generation_id
+    ]
+    graded = [record for record in records if record.get("in_final_band")]
+    if len(graded) != 3:
+        fail("manifest requires exactly three final graded records")
+    files = manifest.get("files") or {}
+    if not isinstance(files, dict) or not files:
+        fail("source-manifest files are missing")
+    reject_duplicate_paths(files, what="source-manifest destinations")
+    sources = [entry.get("source") for entry in files.values()]
+    reject_duplicate_paths((item for item in sources if item), what="source-manifest sources")
+    copied_sources = {
+        entry["source"]
+        for entry in files.values()
+        if entry.get("role") != "checkpoint-hash"
+    }
+    attempts = set()
+    invocations = 0
+    file_count = 0
+    for record in records:
+        artifact_dir = record.get("artifact_dir")
+        if artifact_dir:
+            assert_no_evaluation_tree(repo, artifact_dir, what="run artifact_dir")
+        terminal_map = record.get("terminal_artifact_sha256") or {}
+        attempt_name = f"{record['run_name']}-attempt-{int(record['attempt_ordinal']):02d}"
+        attempts.add(attempt_name)
+        invocations += len(record.get("invocations") or [])
+        for rel_name, digest in terminal_map.items():
+            require_hex64(digest, what=f"{artifact_dir}/{rel_name}")
+            source_rel = f"{artifact_dir}/{rel_name}"
+            if rel_name.startswith("checkpoints/") or MODEL_CHECKPOINT_NAME.fullmatch(Path(rel_name).name):
+                if Path(rel_name).name == "run_start_rng.pt":
+                    if source_rel not in copied_sources:
+                        fail(f"run_start_rng.pt was not copied: {source_rel}")
+                else:
+                    if any(Path(dest).name == Path(rel_name).name and entry.get("role") != "checkpoint-hash" for dest, entry in files.items()):
+                        fail(f"model checkpoint bytes were copied: {rel_name}")
+                continue
+            if source_rel not in copied_sources:
+                fail(f"ledger source missing from manifest: {source_rel}")
+        command = ((record.get("invocations") or [{}])[0]).get("launch_command") or ""
+        if "--stage-0-only" not in command:
+            fail(f"{record['run_name']} lacks --stage-0-only")
+        if "--resume" in command:
+            fail(f"{record['run_name']} used --resume")
+    for dest, entry in sorted(files.items()):
+        if not isinstance(entry, dict):
+            fail(f"{dest} is not a manifest entry")
+        for key in ("ledger_sha256", "source_sha256", "copy_sha256"):
+            require_hex64(entry.get(key), what=f"{dest} {key}")
+        if entry["ledger_sha256"] != entry["source_sha256"] or entry["source_sha256"] != entry["copy_sha256"]:
+            fail(f"{dest} three-hash inequality")
+        dest_path = reject_escaping_path(repo, dest, what="manifest dest")
+        if entry.get("role") == "checkpoint-hash":
+            if dest_path.exists() and dest_path.suffix == ".pt" and dest_path.name != "run_start_rng.pt":
+                fail(f"checkpoint copy must not exist: {dest}")
+            file_count += 1
+            continue
+        assert_hash_equal(dest_path, entry["copy_sha256"], what=f"copy {dest}")
+        source_path = reject_escaping_path(repo, entry["source"], what="manifest source")
+        assert_hash_equal(source_path, entry["source_sha256"], what=f"source {entry['source']}")
+        file_count += 1
+    assert_no_evaluation(repo, ledger)
+    print(
+        "MANIFEST-OK "
+        f"attempts={len(attempts)} invocations={invocations} files={file_count}"
+    )
 
 
 def cmd_band(repo: Path) -> None:
-    refuse_normal_mode(repo, "band")
+    refuse_if_terminal(repo, "band")
+    fail("band is reserved for a generation-complete band")
 
 
 def cmd_candidate(repo: Path) -> None:
-    refuse_normal_mode(repo, "candidate")
+    refuse_if_terminal(repo, "candidate")
+    fail("candidate is reserved for a generation-complete band")
 
 
 def cmd_all(repo: Path, _manifest: str | None) -> None:
-    refuse_normal_mode(repo, "all")
+    refuse_if_terminal(repo, "all")
+    fail("all is reserved for a generation-complete band")
+
+
+def cmd_attempt(repo: Path) -> None:
+    fail("attempt is reserved for Task 2")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -786,6 +1264,27 @@ def build_parser() -> argparse.ArgumentParser:
 
     terminal = sub.add_parser("terminal", parents=[parent])
     terminal.add_argument("--manifest", required=True)
+
+    baseline = sub.add_parser("identity-baseline", parents=[parent])
+    baseline.add_argument("--ledger", required=True)
+    baseline.add_argument("--output", required=True)
+
+    identity = sub.add_parser("identity", parents=[parent])
+    identity.add_argument("--state", required=True, choices=("authorization", "preregistered", "run-window"))
+    identity.add_argument("--authorization-summary", required=False)
+    identity.add_argument("--smoke-authorization-summary", required=False)
+    identity.add_argument("--baseline", required=False)
+    identity.add_argument("--pre-registration", required=False)
+    identity.add_argument("--config-delta", required=False)
+    identity.add_argument("--ledger", required=False)
+
+    attempt = sub.add_parser("attempt", parents=[parent])
+    attempt.add_argument("--generation", required=False, type=int)
+    attempt.add_argument("--kind", required=False, choices=("smoke", "graded"))
+    attempt.add_argument("--seed", required=False, type=int)
+    attempt.add_argument("--attempt-root", required=False)
+    attempt.add_argument("--ledger", required=False)
+    attempt.add_argument("--pre-registration", required=False)
 
     manifest = sub.add_parser("manifest", parents=[parent])
     manifest.add_argument("--manifest", required=False)
@@ -809,6 +1308,12 @@ def main(argv: list[str] | None = None) -> int:
     repo = require_repo(args.repo_root)
     if args.command == "terminal":
         cmd_terminal(repo, args.manifest)
+    elif args.command == "identity-baseline":
+        cmd_identity_baseline(repo, args.ledger, args.output)
+    elif args.command == "identity":
+        cmd_identity(args, repo)
+    elif args.command == "attempt":
+        cmd_attempt(repo)
     elif args.command == "manifest":
         cmd_manifest(repo, getattr(args, "manifest", None))
     elif args.command == "band":

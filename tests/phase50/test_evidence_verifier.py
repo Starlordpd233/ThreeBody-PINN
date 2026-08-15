@@ -113,12 +113,21 @@ class IdentityAuthorizationTests(unittest.TestCase):
         self.assertIn("FAIL-CLOSED", fail_closed_message(proc))
 
     def test_trailer_mismatch_fails(self) -> None:
-        git(self.fx.root, "commit", "--allow-empty", "-m", "plan(50): bad trailer\n\nDecision-Summary-SHA256: " + ("0" * 64))
+        path = self.fx.path(AUTH_SUMMARY_REL)
+        path.write_text(path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        git(self.fx.root, "add", str(AUTH_SUMMARY_REL))
+        git(
+            self.fx.root,
+            "commit",
+            "-m",
+            "plan(50): bad trailer\n\nDecision-Summary-SHA256: " + ("0" * 64),
+        )
         proc = self.fx.verify(
             "identity",
             ["--state", "authorization", "--authorization-summary", str(AUTH_SUMMARY_REL)],
         )
         self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("FAIL-CLOSED", fail_closed_message(proc))
 
     def test_scope_mismatch_fails(self) -> None:
         text = self.fx.path(AUTH_SUMMARY_REL).read_text(encoding="utf-8")
