@@ -309,11 +309,72 @@ class IdentityRunWindowTests(unittest.TestCase):
         self.assertNotEqual(proc.returncode, 0)
 
 
-class AttemptVerifierPlaceholderTests(unittest.TestCase):
-    """Task-2 attempt cases live here so the module exists at Task 1 close."""
+class AttemptVerifierTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.fx = clone_complete(Path(self.tmp.name) / "attempt")
+        extracted = self.fx.extract()
+        self.assertEqual(extracted.returncode, 0, extracted.stderr)
 
-    def test_module_imports(self) -> None:
-        self.assertTrue(VERIFIER.is_file())
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def _attempt(self, kind: str, seed: int | None, run_name: str):
+        extra = [
+            "--generation",
+            "4",
+            "--kind",
+            kind,
+            "--attempt-root",
+            f"runs/{run_name}",
+            "--ledger",
+            str(LEDGER_REL),
+            "--pre-registration",
+            str(PRE_REG_REL),
+        ]
+        if seed is not None:
+            extra.extend(["--seed", str(seed)])
+        return self.fx.verify("attempt", extra)
+
+    def test_smoke_and_graded_predecessor_chain(self) -> None:
+        smoke = self._attempt("smoke", 42, "stage0-rerun-smoke")
+        self.assertEqual(smoke.returncode, 0, smoke.stderr)
+        self.assertIn("ATTEMPT-OK", smoke.stdout)
+        for seed in (41, 42, 43):
+            proc = self._attempt("graded", seed, f"stage0-rerun-seed{seed}")
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn("ATTEMPT-OK", proc.stdout)
+
+    def test_failed_predecessor_makes_next_ineligible(self) -> None:
+        summary = json.loads(
+            (self.fx.attempt_roots["stage0-rerun-seed41"] / "summary.json").read_text(encoding="utf-8")
+        )
+        summary["disposition"] = "halted"
+        write_text(
+            self.fx.attempt_roots["stage0-rerun-seed41"] / "summary.json",
+            json.dumps(summary, indent=2) + "\n",
+        )
+        proc = self._attempt("graded", 42, "stage0-rerun-seed42")
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("FAIL-CLOSED", fail_closed_message(proc))
+
+    def test_front_not_advanced_fails(self) -> None:
+        log = self.fx.attempt_roots["stage0-rerun-seed43"] / "logs/train.log.jsonl"
+        rewritten = []
+        for line in log.read_text(encoding="utf-8").splitlines():
+            row = json.loads(line)
+            row["front_idx"] = 0
+            rewritten.append(json.dumps(row))
+        write_text(log, "\n".join(rewritten) + "\n")
+        proc = self._attempt("graded", 43, "stage0-rerun-seed43")
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_held_out_attempt_fails(self) -> None:
+        eval_dir = self.fx.attempt_roots["stage0-rerun-seed42"] / "evaluation"
+        eval_dir.mkdir()
+        (eval_dir / "metrics.json").write_text("{}\n", encoding="utf-8")
+        proc = self._attempt("graded", 42, "stage0-rerun-seed42")
+        self.assertNotEqual(proc.returncode, 0)
 
 
 if __name__ == "__main__":
