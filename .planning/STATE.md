@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 50
 current_phase_name: valid-stage-0-re-run
 status: executing
-stopped_at: Planned 50-04 and 50-05 (GAP-50-02 repair + generation-3 run window)
-last_updated: "2026-08-13T07:30:00.000Z"
-last_activity: 2026-08-13
-last_activity_desc: Phase 50 replanned after GAP-50-02 ruling; plans 50-04/50-05 added, 50-03 re-sequenced to wave 5
+stopped_at: Completed 50-04-PLAN.md; ready for 50-05 generation-3 run window
+last_updated: "2026-08-15T02:36:02Z"
+last_activity: 2026-08-15
+last_activity_desc: 50-04 GAP-50-02 full-pool validation repair landed (C-09)
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 31
-  completed_plans: 28
-  percent: 53
+  completed_plans: 29
+  percent: 61
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 50 (valid-stage-0-re-run) — EXECUTING
-Plan: 2 of 5 executed (50-01, 50-02; 50-04 → 50-05 → 50-03 remain)
-Status: Phase 50 replanned — GAP-50-02 resolved, conformance repair planned, no run launched
-Last activity: 2026-08-13 — GAP-50-02 ruled (option A, full held-out validation pool); plans 50-04 and 50-05 written; 50-03 re-sequenced to wave 5
+Plan: 3 of 5 executed (50-01, 50-02, 50-04; 50-05 → 50-03 remain)
+Status: 50-04 complete — C-09 closed, generation-3 recipe landed, no run launched
+Last activity: 2026-08-15 — GAP-50-02 repair: full held-out validation pool; source identity 312f3080
 **Verification:** [███████░░░] 67% (4/6 truths verified)
 
 ### Phase 49 verification (2026-08-10)
@@ -459,9 +459,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-13T07:30:00.000Z
-Stopped at: Planned 50-04 and 50-05; 50-03 re-sequenced to wave 5. No run launched.
-Next action: Execute wave 3 — `/gsd-execute-phase 50 --wave 3` from .worktrees/trainex — which runs 50-04: the GAP-50-02 conformance repair (`_run_validation` reads the entire held-out Stage-≤k validation pool, no replay draw, no lookahead), its divergence-register entry and proof test, and the generation-3 pre-registration amendment. `replay_count` stays 240 and no config byte changes. Wave 4 (50-05) then opens generation 3 and carries an owner checkpoint before the graded band — it is `autonomous: false`. Do not start 50-03 until `final_band_generation` is non-null.
+Last session: 2026-08-15T02:36:02Z
+Stopped at: Completed 50-04-PLAN.md
+Next action: Execute wave 4 — `/gsd-execute-phase 50 --wave 4` from .worktrees/trainex — which runs 50-05: open generation 3 at a head strictly after source identity `312f3080ab50e35be18ba87c9f0618866265b227`, owner checkpoint before the graded band (`autonomous: false`). `replay_count` stays 240 and no config byte changed. Do not start 50-03 until `final_band_generation` is non-null.
 
 ## Operator Next Steps
 

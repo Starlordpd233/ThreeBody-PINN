@@ -240,10 +240,10 @@ before it opens a band generation; a mismatch means the committed bytes moved
 between this record's commit and generation-open, and generation-open must
 refuse. `generation_binding` also carries `required_launch_flags:
 ["--stage-0-only"]`, `forbidden_launch_flags: ["--resume"]`, and a nullable
-`parent_pre_registration_commit` (`null` here — this is Phase 50's first
-pre-registration record, so there is no prior one to reference; the run
-ledger supplies this record's own commit hash once it is known, which avoids
-this record trying to name its own not-yet-created commit).
+`parent_pre_registration_commit`. The original revision set that field to
+`null` (Phase 50's first pre-registration). The generation-3 amendment below
+sets it to the prior pre-registration revision recorded as generation 2's
+ancestor in the run ledger.
 
 On a later D-19 conformance-repair rerun (a new band generation after a
 terminal closeout), only `generation_binding` is updated to the new commit's
@@ -251,6 +251,32 @@ identities; the `selection_policy` object and its `selection_policy_sha256`
 must remain byte-identical. This JSON block is the **only** selection-policy
 input plan 50-03 parses when it extracts the band; the prose above supplies
 rationale and is not itself a second, independently mutable rule surface.
+
+## Generation-3 amendment (2026-08-15)
+
+This is a D-19 conformance-repair amendment after generation 2 closed
+terminally. Reason: GAP-50-02 Option A (2026-08-13) — `_run_validation` now
+evaluates the entire held-out Stage-<=k validation pool, matching
+`compute_validation_gate` and the spec's "held-out validation set". The
+Task-3 repair commit `312f3080ab50e35be18ba87c9f0618866265b227` is the new
+source identity; register entry `C-09` records the closed divergence.
+Generation 3 must open at a head strictly after that commit.
+
+`selection_policy` and `selection_policy_sha256` are byte-identical to the
+prior revision (recomputed as the sha256 of the canonical compact
+serialization of `selection_policy` alone and required equal). The four
+config hashes, the aggregate `committed_config_set_sha256`,
+`source_config_sha256`, and the three `expected_splits_sha256` values were
+re-derived from `git show HEAD:<path>` / `git show 312f3080:<path>` and
+matched the stored values — they were not copied forward by assumption.
+`required_launch_flags` stays `["--stage-0-only"]` and
+`forbidden_launch_flags` stays `["--resume"]`. `parent_pre_registration_commit`
+moves from `null` to `abd5f8d9bc44c31abb58194e86806ea6aa39a649` (generation
+2's `pre_registration_commit` in `evidence/run-ledger.md`).
+
+No config byte, split, seed, threshold, or hyperparameter changed between
+generation 2 and generation 3. Only the source identity and this
+generation-binding parent pointer changed.
 
 ```json
 {
@@ -270,7 +296,7 @@ rationale and is not itself a second, independently mutable rule surface.
     "forbidden_launch_flags": [
       "--resume"
     ],
-    "parent_pre_registration_commit": null,
+    "parent_pre_registration_commit": "abd5f8d9bc44c31abb58194e86806ea6aa39a649",
     "required_launch_flags": [
       "--stage-0-only"
     ],

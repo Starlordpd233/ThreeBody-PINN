@@ -313,6 +313,33 @@ contents.
         }
       ],
       "status": "terminal"
+    },
+    {
+      "band_generation": 3,
+      "git_head": null,
+      "pre_registration_commit": null,
+      "source_identity_commit": "312f3080ab50e35be18ba87c9f0618866265b227",
+      "committed_config_sha256_by_path": {
+        "configs/stage0-rerun-seed41.yaml": "90ccd7418211ca42ebe14e06ea0bf1f62249d87e19b71c9f670c9a9b8374f073",
+        "configs/stage0-rerun-seed42.yaml": "72db4aa458a8ae4eb8b2645a27fe0c01392ecd08050fb689e2cf939a982fa097",
+        "configs/stage0-rerun-seed43.yaml": "1c2336d8342198a417a129d3e70e7ce53609b1d28aff3fd021a92f8bd20360e6",
+        "configs/stage0-rerun-smoke.yaml": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a"
+      },
+      "committed_config_set_sha256": "e6e1fd53f93ec0b3059ff2da8eb9d27b92546b3d74fd7bffdbd0a11373a4e078",
+      "corpus_snapshot": {
+        "path": ".planning/phases/50-valid-stage-0-re-run/evidence/corpus/generation-3.json"
+      },
+      "environment_snapshot": {
+        "path": ".planning/phases/50-valid-stage-0-re-run/evidence/environment/generation-3.json"
+      },
+      "timing_fingerprint": null,
+      "summary_env_fingerprint": null,
+      "opened_utc": null,
+      "closed_utc": null,
+      "cleanliness_receipts": [],
+      "verify_invocations": [],
+      "calibration_path": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/generation-3.json",
+      "status": "open"
     }
   ],
   "records": [

@@ -69,6 +69,27 @@ if a tighter A/B comparison is wanted.
 
 ## `run.log_every`: protocol parity, currently inert (not a pilot-vs-Phase-50 difference)
 
+## Generation 3 (2026-08-15) — config delta verified identical to generation 2
+
+The generation 3 config delta is verified identical to generation 2. Generation 3 does **not** change any committed config byte. The four Phase-50
+configs (`configs/stage0-rerun-smoke.yaml` and
+`configs/stage0-rerun-seed{41,42,43}.yaml`) were re-hashed from
+`git show 312f3080ab50e35be18ba87c9f0618866265b227:<path>` (the Task-3
+GAP-50-02 repair commit, C-09, the generation-3 source identity) and matched
+the generation-2 `committed_config_sha256_by_path` values exactly:
+
+| Path | sha256 (unchanged) |
+|---|---|
+| `configs/stage0-rerun-seed41.yaml` | `90ccd7418211ca42ebe14e06ea0bf1f62249d87e19b71c9f670c9a9b8374f073` |
+| `configs/stage0-rerun-seed42.yaml` | `72db4aa458a8ae4eb8b2645a27fe0c01392ecd08050fb689e2cf939a982fa097` |
+| `configs/stage0-rerun-seed43.yaml` | `1c2336d8342198a417a129d3e70e7ce53609b1d28aff3fd021a92f8bd20360e6` |
+| `configs/stage0-rerun-smoke.yaml` | `a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a` |
+
+`committed_config_set_sha256` remains
+`e6e1fd53f93ec0b3059ff2da8eb9d27b92546b3d74fd7bffdbd0a11373a4e078`.
+The source changed (full-pool validation selector); the configs did not.
+This is a verified identical delta, not an unrecorded silence.
+
 `run.log_every` is **not** in the differences table above because it does
 **not** differ from the pilot: both the v2.0 pilot config and the Phase-50
 graded configs carry `log_every: 50`. It is documented here anyway because it

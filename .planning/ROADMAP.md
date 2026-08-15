@@ -201,7 +201,7 @@ Plans:
 **Goal**: Stage-0 runs end-to-end under the corrected recipe — the first run that is actually the specified experiment.
 **Depends on**: Phase 49 (the gate must exist before Phase 51 spends the look).
 **Requirements**: RUN-01, RUN-02
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 **Wave 1**
@@ -214,7 +214,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion; added 2026-08-13 by GAP-50-02)*
 
-- [ ] 50-04-PLAN.md — The GAP-50-02 conformance repair: `_run_validation` reads the entire held-out Stage-≤k validation pool with no replay draw and no lookahead, matching `compute_validation_gate`'s population; divergence-register entry with a proof test; generation-3 pre-registration amendment and ledger scaffold (wave 3)
+- [x] 50-04-PLAN.md — The GAP-50-02 conformance repair: `_run_validation` reads the entire held-out Stage-≤k validation pool with no replay draw and no lookahead, matching `compute_validation_gate`'s population; divergence-register entry with a proof test; generation-3 pre-registration amendment and ledger scaffold (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion; added 2026-08-13 by GAP-50-02)*
 
@@ -264,7 +264,7 @@ Plans:
 | 47. Frame Completion & S_H Pipeline | v2.2 | 3/3 | Complete    | 2026-07-31 |
 | 48. Loss-Math Conformance | v2.2 | 4/4 | Complete    | 2026-08-02 |
 | 49. Conformance Gate | v2.2 | 9/9 | Complete    | 2026-08-10 |
-| 50. Valid Stage-0 Re-Run | v2.2 | 1/3 | In Progress | - |
+| 50. Valid Stage-0 Re-Run | v2.2 | 2/5 | In Progress|  |
 | 51. The Authorized Evaluation | v2.2 | 0/? | Not started | - |
 | 52. Diagnosis Re-Derivation & Handoff | v2.2 | 0/? | Not started | - |
 
