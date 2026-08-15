@@ -1,0 +1,311 @@
+"""Independent identity, attempt, and terminal verifier fixtures for Plan 50-07."""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+from tests.phase50._evidence_fixtures import (
+    AUTH_SUMMARY_REL,
+    CONFIG_DELTA_REL,
+    EVIDENCE,
+    IDENTITY_BASELINE_REL,
+    LEDGER_REL,
+    PHASE,
+    PRE_REG_REL,
+    REPO_ROOT,
+    SMOKE_AUTH_REL,
+    SOURCE_MANIFEST_REL,
+    VERIFIER,
+    build_fixture,
+    clone_complete,
+    fail_closed_message,
+    git,
+    git_commit,
+    git_head,
+    sha256_text,
+    write_text,
+)
+
+
+def run_real_terminal() -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            sys.executable,
+            str(VERIFIER),
+            "terminal",
+            "--repo-root",
+            str(REPO_ROOT),
+            "--manifest",
+            ".planning/phases/50-valid-stage-0-re-run/evidence/terminal-manifest.json",
+        ],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+    )
+
+
+class TerminalCompatibilityTests(unittest.TestCase):
+    def test_historical_terminal_verifier_still_prints_ok(self) -> None:
+        proc = run_real_terminal()
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("TERMINAL-EVIDENCE-OK", proc.stdout)
+        self.assertFalse((REPO_ROOT / SOURCE_MANIFEST_REL).exists())
+        self.assertFalse((REPO_ROOT / EVIDENCE / "band-record.md").exists())
+        self.assertFalse((REPO_ROOT / EVIDENCE / "candidate-receipt.json").exists())
+        self.assertFalse((REPO_ROOT / EVIDENCE / "manifest.json").exists())
+
+
+class IdentityBaselineTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.fx = build_fixture(Path(self.tmp.name) / "prereg", mode="preregistered")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_baseline_captures_generation_spans_and_referenced_hashes(self) -> None:
+        output = self.fx.path(IDENTITY_BASELINE_REL)
+        proc = self.fx.verify(
+            "identity-baseline",
+            ["--ledger", str(LEDGER_REL), "--output", str(IDENTITY_BASELINE_REL)],
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("IDENTITY-BASELINE-OK", proc.stdout)
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(payload["schema"], "phase50-identity-baseline/v1")
+        for generation in ("1", "2", "3"):
+            self.assertRegex(payload["generation_object_sha256"][generation], r"^[0-9a-f]{64}$")
+        self.assertIn("source_commit", payload)
+        self.assertIn("source_tree", payload)
+        self.assertTrue(payload["referenced_artifact_sha256"])
+
+
+class IdentityAuthorizationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.fx = build_fixture(Path(self.tmp.name) / "auth", mode="authorization")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_authorization_reads_committed_blob_and_trailer(self) -> None:
+        proc = self.fx.verify(
+            "identity",
+            ["--state", "authorization", "--authorization-summary", str(AUTH_SUMMARY_REL)],
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("IDENTITY-OK", proc.stdout)
+
+    def test_wrong_option_fails(self) -> None:
+        text = self.fx.path(AUTH_SUMMARY_REL).read_text(encoding="utf-8")
+        write_text(self.fx.path(AUTH_SUMMARY_REL), text.replace("authorize-preregistration", "stop-incomplete"))
+        git_commit(self.fx.root, "docs: mutate authorization option")
+        proc = self.fx.verify(
+            "identity",
+            ["--state", "authorization", "--authorization-summary", str(AUTH_SUMMARY_REL)],
+        )
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("FAIL-CLOSED", fail_closed_message(proc))
+
+    def test_trailer_mismatch_fails(self) -> None:
+        git(self.fx.root, "commit", "--allow-empty", "-m", "plan(50): bad trailer\n\nDecision-Summary-SHA256: " + ("0" * 64))
+        proc = self.fx.verify(
+            "identity",
+            ["--state", "authorization", "--authorization-summary", str(AUTH_SUMMARY_REL)],
+        )
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_scope_mismatch_fails(self) -> None:
+        text = self.fx.path(AUTH_SUMMARY_REL).read_text(encoding="utf-8")
+        write_text(
+            self.fx.path(AUTH_SUMMARY_REL),
+            text.replace('"does_not_reopen_gap_50_03": true', '"does_not_reopen_gap_50_03": false'),
+        )
+        git_commit(self.fx.root, "docs: mutate scope")
+        proc = self.fx.verify(
+            "identity",
+            ["--state", "authorization", "--authorization-summary", str(AUTH_SUMMARY_REL)],
+        )
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_missing_ancestry_fails(self) -> None:
+        text = self.fx.path(AUTH_SUMMARY_REL).read_text(encoding="utf-8")
+        write_text(
+            self.fx.path(AUTH_SUMMARY_REL),
+            text.replace(self.fx.commits["50-06"], "deadbeef" * 5),
+        )
+        git_commit(self.fx.root, "docs: mutate ancestry")
+        proc = self.fx.verify(
+            "identity",
+            ["--state", "authorization", "--authorization-summary", str(AUTH_SUMMARY_REL)],
+        )
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_working_tree_authorization_is_ignored(self) -> None:
+        path = self.fx.path(AUTH_SUMMARY_REL)
+        path.write_text(path.read_text(encoding="utf-8") + "\n# dirty\n", encoding="utf-8")
+        proc = self.fx.verify(
+            "identity",
+            ["--state", "authorization", "--authorization-summary", str(AUTH_SUMMARY_REL)],
+        )
+        self.assertNotEqual(proc.returncode, 0)
+
+
+class IdentityPreregisteredTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.fx = build_fixture(Path(self.tmp.name) / "prereg", mode="preregistered")
+        baseline = self.fx.verify(
+            "identity-baseline",
+            ["--ledger", str(LEDGER_REL), "--output", str(IDENTITY_BASELINE_REL)],
+        )
+        self.assertEqual(baseline.returncode, 0, baseline.stderr)
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def _identity(self, extra=None):
+        args = [
+            "--state",
+            "preregistered",
+            "--authorization-summary",
+            str(AUTH_SUMMARY_REL),
+            "--baseline",
+            str(IDENTITY_BASELINE_REL),
+            "--pre-registration",
+            str(PRE_REG_REL),
+            "--config-delta",
+            str(CONFIG_DELTA_REL),
+            "--ledger",
+            str(LEDGER_REL),
+        ]
+        if extra:
+            args.extend(extra)
+        return self.fx.verify("identity", args)
+
+    def test_preregistered_exact_match(self) -> None:
+        proc = self._identity()
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("IDENTITY-OK", proc.stdout)
+
+    def test_recipe_mismatch_fails(self) -> None:
+        path = self.fx.path("configs/stage0-rerun-seed42.yaml")
+        path.write_text(path.read_text(encoding="utf-8").replace("n_adam: 1000", "n_adam: 999"), encoding="utf-8")
+        git_commit(self.fx.root, "docs: mutate recipe")
+        proc = self._identity()
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_source_tree_mismatch_fails(self) -> None:
+        write_text(self.fx.path("pinn/changed.py"), "print('drift')\n")
+        git_commit(self.fx.root, "docs: mutate source tree")
+        proc = self._identity()
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_policy_mismatch_fails(self) -> None:
+        text = self.fx.path(PRE_REG_REL).read_text(encoding="utf-8")
+        write_text(self.fx.path(PRE_REG_REL), text.replace('"primary_seed": 42', '"primary_seed": 41'))
+        git_commit(self.fx.root, "docs: mutate policy")
+        proc = self._identity()
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_duplicate_generation_fails(self) -> None:
+        text = self.fx.path(LEDGER_REL).read_text(encoding="utf-8")
+        write_text(self.fx.path(LEDGER_REL), text.replace('"band_generation": 3', '"band_generation": 2', 1))
+        proc = self._identity()
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_unopened_generation_invocation_fails(self) -> None:
+        text = self.fx.path(LEDGER_REL).read_text(encoding="utf-8")
+        write_text(
+            self.fx.path(LEDGER_REL),
+            text.replace('"records": []', '"records": [{"band_generation": 4, "run_name": "x", "attempt_ordinal": 1, "invocations": [{}]}]'),
+        )
+        proc = self._identity()
+        self.assertNotEqual(proc.returncode, 0)
+
+    def test_tracked_drift_fails(self) -> None:
+        write_text(self.fx.path("pinn/__init__.py"), "# dirty tracked\n")
+        proc = self._identity()
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("FAIL-CLOSED", fail_closed_message(proc))
+
+    def test_untracked_drift_fails(self) -> None:
+        write_text(self.fx.path("tests/phase50/sneak.py"), "print('untracked')\n")
+        proc = self._identity()
+        self.assertNotEqual(proc.returncode, 0)
+
+
+class IdentityRunWindowTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.fx = build_fixture(Path(self.tmp.name) / "runwin", mode="run-window")
+        baseline = self.fx.verify(
+            "identity-baseline",
+            ["--ledger", str(LEDGER_REL), "--output", str(IDENTITY_BASELINE_REL)],
+        )
+        self.assertEqual(baseline.returncode, 0, baseline.stderr)
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_run_window_accepts_smoke_authorization_at_decision_head(self) -> None:
+        proc = self.fx.verify(
+            "identity",
+            [
+                "--state",
+                "run-window",
+                "--authorization-summary",
+                str(AUTH_SUMMARY_REL),
+                "--smoke-authorization-summary",
+                str(SMOKE_AUTH_REL),
+                "--baseline",
+                str(IDENTITY_BASELINE_REL),
+                "--pre-registration",
+                str(PRE_REG_REL),
+                "--config-delta",
+                str(CONFIG_DELTA_REL),
+                "--ledger",
+                str(LEDGER_REL),
+            ],
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("IDENTITY-OK", proc.stdout)
+
+    def test_run_window_rejects_head_after_smoke_authorization(self) -> None:
+        git(self.fx.root, "commit", "--allow-empty", "-m", "docs: extra commit after smoke auth")
+        proc = self.fx.verify(
+            "identity",
+            [
+                "--state",
+                "run-window",
+                "--authorization-summary",
+                str(AUTH_SUMMARY_REL),
+                "--smoke-authorization-summary",
+                str(SMOKE_AUTH_REL),
+                "--baseline",
+                str(IDENTITY_BASELINE_REL),
+                "--pre-registration",
+                str(PRE_REG_REL),
+                "--config-delta",
+                str(CONFIG_DELTA_REL),
+                "--ledger",
+                str(LEDGER_REL),
+            ],
+        )
+        self.assertNotEqual(proc.returncode, 0)
+
+
+class AttemptVerifierPlaceholderTests(unittest.TestCase):
+    """Task-2 attempt cases live here so the module exists at Task 1 close."""
+
+    def test_module_imports(self) -> None:
+        self.assertTrue(VERIFIER.is_file())
+
+
+if __name__ == "__main__":
+    unittest.main()
