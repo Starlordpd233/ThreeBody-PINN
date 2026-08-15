@@ -5,16 +5,16 @@ milestone_name: Stage-0 Conformance Repair & Valid Re-Run
 current_phase: 50
 current_phase_name: valid-stage-0-re-run
 status: executing
-stopped_at: Completed 50-06-PLAN.md
-last_updated: "2026-08-15T13:05:44.556Z"
+stopped_at: Completed 50-07-PLAN.md
+last_updated: "2026-08-15T13:34:44Z"
 last_activity: 2026-08-15
-last_activity_desc: 50-06 MPS conversion and telemetry repair; no causal-front remedy
+last_activity_desc: 50-07 normal evidence tooling; no run launched
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 38
-  completed_plans: 32
-  percent: 57
+  completed_plans: 33
+  percent: 58
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 ## Current Position
 
 Phase: 50 (valid-stage-0-re-run) — EXECUTING
-Plan: 6 of 12
-Status: 50-06 complete; ready for 50-07 / 50-08
-Last activity: 2026-08-15 — 50-06 MPS conversion, telemetry snapshot, no causal-front remedy
+Plan: 7 of 12
+Status: 50-07 complete; ready for 50-08
+Last activity: 2026-08-15 — 50-07 normal evidence tooling, terminal path preserved, no run launched
 **Verification:** [███████░░░] 67% (4/6 truths verified)
 
 ### Phase 49 verification (2026-08-10)
@@ -255,6 +255,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 49 P04 | 20min | 3 tasks | 6 files |
 | Phase 50 P01 | ~50min | 3 tasks | 15 files |
 | Phase 50 P06 | 11 min | 3 tasks | 7 files |
+| Phase 50 P07 | 23 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -429,6 +430,9 @@ Recent decisions affecting current work:
 - [Phase 50 Plan 50-06]: MPS prediction conversion is detach then CPU then float64, matching `_as_cpu_f64`; metric/frame/population/thresholds unchanged
 - [Phase 50 Plan 50-06]: `telemetry_overwrite_proven: true` on Adam and L-BFGS validation-step logs; training causal snapshot is passed explicitly to `_log_step`
 - [Phase 50 Plan 50-06]: `grounded_causal_front_repair: none-in-current-sources`; later-generation authorization is exclusively Plan 50-08; GAP-50-03 untouched
+- [Phase 50 Plan 50-07]: Normal extract/identity-baseline/identity/attempt/band/candidate/finalize/all are fixture-tested; terminal generations 1–3 remain `TERMINAL-EVIDENCE-OK`
+- [Phase 50 Plan 50-07]: Candidate selection replays 42→41→43 eligibility-only facts and never reads a metric value; no run, smoke, or graded seed was launched
+- [Phase 50 Plan 50-07]: REQUIREMENTS.md RUN-01/RUN-02 checkboxes not flipped (D-30); `final_band_generation` remains null; GAP-50-03 untouched
 
 ### Pending Todos
 
@@ -463,9 +467,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-08-15T13:05:44.541Z
-Stopped at: Completed 50-06-PLAN.md
-Next action: Execute 50-07 (normal evidence tooling) then 50-08 (owner checkpoint). Do not launch a later generation from this plan. `final_band_generation` remains null. RUN-01/RUN-02 stay unflipped.
+Last session: 2026-08-15T13:34:44Z
+Stopped at: Completed 50-07-PLAN.md
+Next action: Execute 50-08 (owner checkpoint). Do not launch a later generation from this plan. `final_band_generation` remains null. RUN-01/RUN-02 stay unflipped.
 
 ## Operator Next Steps
 

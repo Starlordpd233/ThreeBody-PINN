@@ -201,12 +201,12 @@ Plans:
 **Goal**: Stage-0 runs end-to-end under the corrected recipe — the first run that is actually the specified experiment.
 **Depends on**: Phase 49 (the gate must exist before Phase 51 spends the look).
 **Requirements**: RUN-01, RUN-02
-**Plans:** 6/12 plans executed
+**Plans:** 7/12 plans executed
 
 Plans:
 
 - [x] 50-06-PLAN.md
-- [ ] 50-07-PLAN.md
+- [x] 50-07-PLAN.md
 - [ ] 50-08-PLAN.md
 - [ ] 50-09-PLAN.md
 - [ ] 50-10-PLAN.md
@@ -236,6 +236,7 @@ Plans:
 **Wave 6** *(gap-closure after generation-3 terminal; 2026-08-15)*
 
 - [x] 50-06-PLAN.md — MPS CPU-before-float64 validation conversion, proven training-owned causal telemetry, and a bounded diagnosis (`grounded_causal_front_repair: none-in-current-sources`; later generation is exclusively 50-08)
+- [x] 50-07-PLAN.md — Normal extract/identity/attempt/band/candidate/finalize/all evidence tooling with dataset-free fixtures; terminal generations 1–3 remain `TERMINAL-EVIDENCE-OK`; no run launched
 
 **Success Criteria** (what must be TRUE — the proposal's exit criteria):
 
