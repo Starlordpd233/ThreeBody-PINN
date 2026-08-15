@@ -824,6 +824,19 @@ class RunController:
     # ------------------------------------------------------------------
     # Minimal step log + loss-terms helper for L-BFGS guard bridge.
     # ------------------------------------------------------------------
+    def _snapshot_training_causal_details(self) -> tuple[Optional[dict], Optional[list]]:
+        """Immutable copy of the training-owned causal stash.
+
+        Validation reuses the loss composer and overwrites
+        ``_last_widened_details`` before ``_log_step``.
+        """
+        details = self._last_widened_details or {}
+        stats = details.get("w_n_stats")
+        residuals = details.get("residuals_per_bin")
+        stats_copy = dict(stats) if isinstance(stats, Mapping) else None
+        residuals_copy = list(residuals) if residuals is not None else None
+        return stats_copy, residuals_copy
+
     def _log_step(
         self,
         *,
@@ -1070,6 +1083,7 @@ class RunController:
 
             optimizer.zero_grad(set_to_none=True)
             loss_terms = self._compose_loss_terms(batch, anchor_ctx, weights)
+            causal_w_n_stats, causal_residuals = self._snapshot_training_causal_details()
             gradient_stats = _build_gradient_stats(
                 {
                     "data": getattr(loss_terms, "data", None),
@@ -1114,6 +1128,8 @@ class RunController:
                         phase="2a", stage=k, grad_norm=grad_norm,
                         step_completed=False, weights=weights,
                         gradient_stats=gradient_stats,
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return handoff_trigger, adam_epochs_used
                 # Guard did not trip — inline checks fire as Phase 40.
@@ -1124,6 +1140,8 @@ class RunController:
                         phase="2a", stage=k, grad_norm=None,
                         step_completed=False, weights=weights,
                         gradient_stats=gradient_stats,
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return handoff_trigger, adam_epochs_used
                 if clip_outcome is None:
@@ -1136,6 +1154,8 @@ class RunController:
                         phase="2a", stage=k, grad_norm=grad_norm,
                         step_completed=False, weights=weights,
                         gradient_stats=gradient_stats,
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return handoff_trigger, adam_epochs_used
             else:
@@ -1147,6 +1167,8 @@ class RunController:
                         phase="2a", stage=k, grad_norm=None,
                         step_completed=False, weights=weights,
                         gradient_stats=gradient_stats,
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return handoff_trigger, adam_epochs_used
                 loss_terms.total.backward()
@@ -1158,6 +1180,8 @@ class RunController:
                         phase="2a", stage=k, grad_norm=grad_norm,
                         step_completed=False, weights=weights,
                         gradient_stats=gradient_stats,
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return handoff_trigger, adam_epochs_used
 
@@ -1187,6 +1211,8 @@ class RunController:
                 step=self._global_step, loss_terms=loss_terms, lr=lr_now, phase="2a",
                 stage=k, grad_norm=grad_norm, epoch=int(adam_epochs_used), weights=weights,
                 gradient_stats=gradient_stats,
+                w_n_stats=causal_w_n_stats,
+                residuals_per_bin=causal_residuals,
             )
 
             # Checkpoint/best hook AFTER validation so _last_val_total is live.
@@ -1315,6 +1341,7 @@ class RunController:
             epoch_count += 1
             self._global_step += 1
             self._global_epoch += 1
+            causal_w_n_stats, causal_residuals = self._snapshot_training_causal_details()
 
             # ---- Guard path (cycle-4 MEDIUM-2): L-BFGS ----
             # Loss/grads are computed INSIDE the closure during step, so the
@@ -1344,6 +1371,8 @@ class RunController:
                         lr=None, phase="2b", stage=k, grad_norm=None,
                         step_completed=False, weights=weights_frozen,
                         gradient_stats=closure_state.get("gradient_stats"),
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return guard_outcome.disposition
                 # Guard did not trip — bare RECOVER still fires if non_finite.
@@ -1355,6 +1384,8 @@ class RunController:
                         lr=None, phase="2b", stage=k, grad_norm=None,
                         step_completed=False, weights=weights_frozen,
                         gradient_stats=closure_state.get("gradient_stats"),
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return StageDisposition.RECOVER
             else:
@@ -1366,6 +1397,8 @@ class RunController:
                         lr=None, phase="2b", stage=k, grad_norm=None,
                         step_completed=False, weights=weights_frozen,
                         gradient_stats=closure_state.get("gradient_stats"),
+                        w_n_stats=causal_w_n_stats,
+                        residuals_per_bin=causal_residuals,
                     )
                     return StageDisposition.RECOVER
 
@@ -1379,9 +1412,9 @@ class RunController:
                 state["val_phys"] = float(val_terms.phys.detach())
                 state["val_energy"] = float(val_terms.energy.detach())
 
-            # Widened step log for L-BFGS (full five-term breakdown + w_n
-            # stats + per-bin residuals via `closure_state['data_detached']`
-            # + `self._last_widened_details`; review finding #7).
+            # Widened step log for L-BFGS. Causal w_n/residuals come from the
+            # pre-validation training snapshot; five-term breakdown still uses
+            # closure_state['data_detached'] plus the last composer stash.
             if closure_state["last_loss"] is not None:
                 self._log_step(
                     step=self._global_step,
@@ -1390,6 +1423,8 @@ class RunController:
                     epoch=int(epoch_count),
                     weights=weights_frozen,
                     gradient_stats=closure_state.get("gradient_stats"),
+                    w_n_stats=causal_w_n_stats,
+                    residuals_per_bin=causal_residuals,
                 )
 
             if self._checkpoint_hook is not None:
