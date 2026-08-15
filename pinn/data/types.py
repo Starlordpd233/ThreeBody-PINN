@@ -18,6 +18,9 @@ Contract highlights (39-01-PLAN task 39-01-01; 39-PATTERNS.md ``types.py``):
   hard exception ``DataVersionHashMismatch``.
 * ``StageZeroUnderpopulated`` is a typed fatal-class exception carrying the fixed
   threshold ``240`` and the observed count.
+* ``ValidationPoolEmpty`` is a typed fail-closed exception carrying the stage
+  integer and naming the empty held-out split, so validation refuses rather
+  than producing a loss.
 * ``DataFidelityPoints`` and ``PhysicsCollocationPoints`` are visibly distinct
   point-set types; ``FixedBatch`` carries them as two separate fields and — per
   GAP-39-10 (option A) — carries NO per-record ``T`` field (τ and the
@@ -174,6 +177,22 @@ class StageZeroUnderpopulated(Exception):
         self.threshold = threshold
         super().__init__(
             f"Stage-0 population {observed} < required {threshold}"
+        )
+
+
+class ValidationPoolEmpty(Exception):
+    """Typed fail-closed signal: the held-out validation pool is empty.
+
+    Carries the stage integer and a message naming the split and stage so an
+    empty held-out pool refuses rather than producing a loss, mirroring
+    ``ValidationGateUnavailable`` for the conservation gate.
+    """
+
+    def __init__(self, stage: int, *, split: str = "validation") -> None:
+        self.stage = stage
+        self.split = split
+        super().__init__(
+            f"held-out {split} pool at stage {stage} is empty"
         )
 
 

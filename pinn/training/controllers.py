@@ -74,6 +74,7 @@ from pinn.data.batches import (
     sample_collocation_points,
     sample_data_points,
     select_stage_records,
+    select_validation_records,
 )
 from pinn.data.types import FixedBatch
 from pinn.loss_catalog import (
@@ -768,15 +769,37 @@ class RunController:
             lookahead_keys=selected.lookahead,
         )
 
+    def _validation_batch(self, *, stage: int, collocation_count: int):
+        """Build one held-out validation batch over the full Stage-<=k pool.
+
+        Identity set is ``select_validation_records`` — the entire validated
+        held-out pool, no replay draw and no lookahead. Does not consult
+        ``self._replay_count``.
+        """
+        selected = select_validation_records(self._validation_source, stage=stage)
+        data_points = sample_data_points(
+            self._validation_source, selected.replay, rng=self._rng,
+            dtype=self._dtype, device=self._device,
+        )
+        collocation_points = sample_collocation_points(
+            self._validation_source, selected.replay, rng=self._rng,
+            dtype=self._dtype, device=self._device,
+            collocation_count=collocation_count,
+        )
+        return FixedBatch(
+            data_points=data_points,
+            collocation_points=collocation_points,
+            replay_keys=selected.replay,
+            lookahead_keys=(),
+        )
+
     # ------------------------------------------------------------------
     # Validation pass (TRAIN-06 wiring -- ADVANCE criteria 2/3/4 producer).
     # ------------------------------------------------------------------
     def _run_validation(self, k: int, weights) -> LossTerms:
         self._model.eval()
         try:
-            batch = self._stage_batch(
-                self._validation_source, stage=k, collocation_count=1,
-            )
+            batch = self._validation_batch(stage=k, collocation_count=1)
             anchor_ctx = self._build_anchor_context(self._validation_source, batch, None)
             loss_terms = self._compose_loss_terms(batch, anchor_ctx, weights)
         finally:

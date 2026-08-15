@@ -20,6 +20,7 @@ from pinn.data.types import (
     PhysicsCollocationPoints,
     RecordKey,
     StageZeroUnderpopulated,
+    ValidationPoolEmpty,
 )
 
 
@@ -115,6 +116,30 @@ def select_stage_records(
     _validate_numeric_pool(source, replay, pool_name="selected replay")
     _validate_numeric_pool(source, lookahead, pool_name="selected lookahead")
     return SelectedStageRecords(replay=replay, lookahead=lookahead)
+
+
+def select_validation_records(source, *, stage: int) -> SelectedStageRecords:
+    """Select the entire held-out Stage-<=k validation pool.
+
+    The identity set is ``sorted(source.records_at_or_below(stage))`` — the
+    same population ``compute_validation_gate`` already reads. There is no
+    replay draw and no lookahead set: ``ctl_instruction.md`` scopes
+    ``B_replay = 240`` to a training batch ("Mini-Batch Construction with
+    Lookahead Sampling") and puts the ADVANCE success gate on "the held-out
+    validation set". This selector takes no ``rng``, no ``replay_count``, and
+    no ``lookahead_count``; the absence of those parameters is the contract.
+    """
+    if getattr(source, "gold_numeric_stage_count", None) != 0:
+        raise ValueError("gold_numeric_stage_count must be exactly 0 before selection")
+    if isinstance(stage, bool) or not isinstance(stage, int) or stage < 0:
+        raise TypeError(f"stage must be a non-negative int; got {stage!r}")
+
+    pool = _validate_numeric_pool(
+        source, source.records_at_or_below(stage), pool_name="validation pool"
+    )
+    if not pool:
+        raise ValidationPoolEmpty(stage, split="validation")
+    return SelectedStageRecords(replay=pool, lookahead=())
 
 
 # Frozen Wave-0 name retained as an identity alias; there is one selector.
@@ -396,4 +421,5 @@ __all__ = [
     "sample_collocation_points",
     "sample_data_points",
     "select_stage_records",
+    "select_validation_records",
 ]
