@@ -201,7 +201,7 @@ Plans:
 **Goal**: Stage-0 runs end-to-end under the corrected recipe — the first run that is actually the specified experiment.
 **Depends on**: Phase 49 (the gate must exist before Phase 51 spends the look).
 **Requirements**: RUN-01, RUN-02
-**Plans:** 3/5 plans executed
+**Plans:** 5/5 plans executed
 
 Plans:
 **Wave 1**
@@ -222,7 +222,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion; re-sequenced 2026-08-13 from wave 3)*
 
-- [ ] 50-03-PLAN.md — Evidence extraction with sha256 manifest, the D-24 band record, and the pre-registered submission-candidate reading (wave 5)
+- [x] 50-03-PLAN.md — Evidence extraction with sha256 manifest, the D-24 band record, and the pre-registered submission-candidate reading (wave 5; terminal branch 2026-08-15 — no band/candidate; TERMINAL-EVIDENCE-OK)
 
 **Success Criteria** (what must be TRUE — the proposal's exit criteria):
 
