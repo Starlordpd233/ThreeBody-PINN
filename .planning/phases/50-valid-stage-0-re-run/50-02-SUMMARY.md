@@ -84,7 +84,10 @@ coverage:
 
 duration: 19min
 completed: 2026-08-13
-status: halted
+status: complete
+halt_resolved: 2026-08-15
+halt_resolved_by: GAP-50-02
+halt_continuation: 50-04
 ---
 
 # Phase 50 Plan 02: No-Commit Stage-0 Run Window Summary
@@ -166,7 +169,9 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-**Not ready for 50-03 candidate extraction.** `final_band_generation` is null. Plan 50-03 must not synthesize a band/candidate until the owner authorizes a revised continuation. The honest next step is an owner decision on the DATA-06 227-vs-240 fact (see the returned D-30 finding). `--resume` remains forbidden. Selection-policy bytes stay identical; any later repair still requires a new 50-01 source-identity commit before a fresh full generation.
+Generation 2 remains immutable terminal history (`final_band_generation` is null; `--resume` remains forbidden). The designed DATA-06 stop is accepted, not reversed.
+
+**Halt resolution (2026-08-15):** Owner selected GAP-50-02 Option A (full held-out Stage-≤k validation pool; `replay_count` stays 240) and authorized `/gsd-execute-phase 50` to treat this SUMMARY as `complete` so GSD #2830 unblocks dependents. Continuation is **50-04** (conformance repair + generation-3 source identity), then **50-05** (fresh generation-3 run window), then **50-03** (evidence extraction). Do not synthesize a band from generation 2.
 
 ## Self-Check: PASSED
 
