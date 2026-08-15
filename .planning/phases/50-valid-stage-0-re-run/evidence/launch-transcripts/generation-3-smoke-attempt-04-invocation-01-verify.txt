@@ -1,0 +1,7 @@
+PASS  device_sanity
+PASS  componentwise_ad
+PASS  gradcheck_fp64_cpu
+PASS  residual_ground_truth
+PASS  overfit_single_trajectory
+verify marker: <home>/Desktop/3_body_problem/.worktrees/trainex/runs/.verify/latest-marker.json
+VERIFY: GREEN — all 5 rungs PASS

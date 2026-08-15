@@ -1,0 +1,11 @@
+{
+  "generation": 3,
+  "boundary": "environment",
+  "label": "post-smoke",
+  "command": "band_ops.py capture_environment",
+  "external_start_utc": "2026-08-15T02:53:21.775841+00:00",
+  "external_end_utc": "2026-08-15T02:53:22.752813+00:00",
+  "exit_code": 0,
+  "stdout": "{\n  \"observed\": \"5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34\",\n  \"expected\": \"5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34\"\n}",
+  "stderr": ""
+}

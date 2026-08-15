@@ -174,5 +174,207 @@
     "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
     "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
   },
-  "closed_utc": "2026-08-13T05:46:46.377778+00:00"
+  "closed_utc": "2026-08-13T05:46:46.377778+00:00",
+  "generation_3": {
+    "schema": "phase50-terminal-manifest/v1",
+    "terminal_reason": "invariant-b-halt-front-idx-stalled-n-500",
+    "observed_mismatch": {
+      "applicable": false
+    },
+    "generation": {
+      "band_generation": 3,
+      "git_head": "c4a1550b7bd889121128e31d7078a478b0a6ca8a",
+      "status": "terminal",
+      "source_identity_commit": "312f3080ab50e35be18ba87c9f0618866265b227",
+      "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+      "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
+    },
+    "missing_vs_inapplicable": {
+      "graded_seed42": "inapplicable \u2014 no further launch after seed-41 invariant-B HALT",
+      "graded_seed43": "inapplicable \u2014 no further launch after seed-41 invariant-B HALT",
+      "failure_tail_log": "inapplicable \u2014 failure/ produced trip.json and README.txt, not tail.log",
+      "stage-0-final.pt": "inapplicable \u2014 Stage-0 ADVANCE never occurred",
+      "in_final_band": "inapplicable \u2014 final_band_generation left null; no partial band"
+    },
+    "hashes": {
+      "run_ledger_md": "e86bf550c92457d9a1053cca70ffabdc016dd547587ff158147ab4d950d687c7",
+      "smoke_attempt04_transcript": "4c05d5e4c956efb047c1d2cbad453f0695b3e157f50c2cf9ea9af4fbabec7440",
+      "seed41_attempt02_transcript": "2902b39acbba270f875373623663f7528c15318e809348c54280d7d8fec67cb1",
+      "smoke_terminal_artifact_sha256": {
+        "config.yaml": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+        "summary.json": "46995777a52efe3be81984f51f6ad96749594dee019d011859ea4166a7665ac7",
+        "summary.md": "55a80fb945f5fb9315bc47fcd5d9b1f49f28fe9f6fc84cf7b8d0cb44ff8be811",
+        "preflight.json": "8c1e8e36703b1d78cb6ae948cf1bb4d4c19ed506a98293f5d4186942c70fd572",
+        "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+        "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "curriculum.jsonl": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b",
+        "validation.jsonl": "cca8f0e0389a52df62229e3c3356ffc797dfe5f38abb33b90cd75fb74e31d4b0",
+        "status.json": "951e4a396770ce4dd146fb4c17a1b9bd5c9e0c461e75009c9c583d9eace569a3",
+        "logs/train.log.jsonl": "fe3b748517583feadebc37074f9f316abdb1dbbe347ba390df395d068c69613d",
+        "run_start_rng.pt": "b61b74a1b77cb985bdf3d61a0170d2b5e4f7fb7d17c38cdcaeb85ccad4c8d3d2",
+        "checkpoints/best.pt": "e14a9e3187a3218dbcda9e7c60010ba1b860e2415875e0988ab7a53c1ef3436e",
+        "checkpoints/latest.pt": "69ddae7d1a29e7e53bff8d40d7390992a26591bf6bd69dc4edbd4eeee28bad5a",
+        "checkpoints/step-000300.pt": "c25254ff12700e2339ef9fe7ed2a6a2b41a128984ff0be39b92abd0fc5bbf68c"
+      },
+      "seed41_terminal_artifact_sha256": {
+        "config.yaml": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
+        "summary.json": "32dd49122ea500023b9f0fec962fd4cbd691905f5cc3ace0416fdb764e2810fb",
+        "summary.md": "6b0e8d0ce762a6ab3f3e2d8b3ecc7ea2406b36a4d726898ce3d2e11b4873314f",
+        "preflight.json": "f7729f2f160835746a644f9c5dddd29a50a93f1b11a46269132f46aca63442c1",
+        "training_metadata.json": "7d23db77ccbb1c381f9601b2ba5bda1a9e8bef88cf20d1cdce628f3718876c11",
+        "splits.json": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86",
+        "curriculum.jsonl": "369793d9362e4ffdce19e7d780bfde0b81f8e90989ddfff12fd1d8eb627008b8",
+        "validation.jsonl": "3c8d7158be141a443aa2cf8ecd1017ebe9ea5e4d0bcdbbc4969c2cafbb5f1835",
+        "status.json": "3a297d0f423949e49196bb3711e29387580473d799f34fb9c6dd85595f24180d",
+        "logs/train.log.jsonl": "25d54fb0cd9d73d5d91f0fd9621668b11231ea2b4b83f201a746073734ba22fd",
+        "run_start_rng.pt": "0d468fa2e243fee724c64b18c592e50d4007846d9ece48af2aabcd15a95a07eb",
+        "failure/README.txt": "daccc8ab99caa1e39612f4ae32fd1ba4e132493013c14b127f2420169cc85f68",
+        "failure/trip.json": "0acc1a4f2040ab0804d009e944c61b92d4fb9bbaa4ea759830a571a209b48ade",
+        "checkpoints/best.pt": "86d9f7b4dcbc6e6aef7a35844a3f32b09aa64b8ac033aaa5ebc4f4bf35024bb5",
+        "checkpoints/latest.pt": "a9afa7805272723a6e682e9b26bad29c67a3e1238b772ffd1b353ee88ccef026",
+        "checkpoints/step-000500.pt": "3a7324dc9df74d6d20d9c240b0a1d2c605627528a313d310d1c1f54c88b66d59",
+        "checkpoints/failure-stage-0-step-501.pt": "edf7d165cabcc25cfff822e4c8ed0e4bc0a02a70928aecaf00da3f8c1c58509b"
+      },
+      "attempt_copies": {
+        "stage0-rerun-smoke-attempt-04": {
+          "config.yaml": {
+            "source": "runs/stage0-rerun-smoke/config.yaml",
+            "sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d"
+          },
+          "summary.json": {
+            "source": "runs/stage0-rerun-smoke/summary.json",
+            "sha256": "46995777a52efe3be81984f51f6ad96749594dee019d011859ea4166a7665ac7"
+          },
+          "summary.md": {
+            "source": "runs/stage0-rerun-smoke/summary.md",
+            "sha256": "55a80fb945f5fb9315bc47fcd5d9b1f49f28fe9f6fc84cf7b8d0cb44ff8be811"
+          },
+          "preflight.json": {
+            "source": "runs/stage0-rerun-smoke/preflight.json",
+            "sha256": "8c1e8e36703b1d78cb6ae948cf1bb4d4c19ed506a98293f5d4186942c70fd572"
+          },
+          "training_metadata.json": {
+            "source": "runs/stage0-rerun-smoke/training_metadata.json",
+            "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
+          },
+          "splits.json": {
+            "source": "runs/stage0-rerun-smoke/splits.json",
+            "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+          },
+          "curriculum.jsonl": {
+            "source": "runs/stage0-rerun-smoke/curriculum.jsonl",
+            "sha256": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b"
+          },
+          "validation.jsonl": {
+            "source": "runs/stage0-rerun-smoke/validation.jsonl",
+            "sha256": "cca8f0e0389a52df62229e3c3356ffc797dfe5f38abb33b90cd75fb74e31d4b0"
+          },
+          "status.json": {
+            "source": "runs/stage0-rerun-smoke/status.json",
+            "sha256": "951e4a396770ce4dd146fb4c17a1b9bd5c9e0c461e75009c9c583d9eace569a3"
+          },
+          "logs/train.log.jsonl": {
+            "source": "runs/stage0-rerun-smoke/logs/train.log.jsonl",
+            "sha256": "fe3b748517583feadebc37074f9f316abdb1dbbe347ba390df395d068c69613d"
+          },
+          "run_start_rng.pt": {
+            "source": "runs/stage0-rerun-smoke/run_start_rng.pt",
+            "sha256": "b61b74a1b77cb985bdf3d61a0170d2b5e4f7fb7d17c38cdcaeb85ccad4c8d3d2"
+          },
+          "logs/train.log.txt": {
+            "source": "runs/stage0-rerun-smoke/logs/train.log",
+            "sha256": "f96d624b4fe8dc5a61d7c2355b9247fa378ca8e54af9762d297149a9b6721dae"
+          },
+          "launch-transcript.txt": {
+            "source": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-smoke-attempt-04-invocation-01-train.txt",
+            "sha256": "4c05d5e4c956efb047c1d2cbad453f0695b3e157f50c2cf9ea9af4fbabec7440"
+          },
+          "corpus-generation-3.json": {
+            "source": ".planning/phases/50-valid-stage-0-re-run/evidence/corpus/generation-3.json",
+            "sha256": "0fd40be63ec41a217b20785a96496faa762a84ceb53cd9bcb3fe8d0059d3d21e"
+          },
+          "environment-generation-3.json": {
+            "source": ".planning/phases/50-valid-stage-0-re-run/evidence/environment/generation-3.json",
+            "sha256": "883afc6c1f63ec3e289bb3a35f3234773bec6350f90d673cf058675dbb7a0631"
+          },
+          "calibration/generation-3-smoke-attempt-04-invocation-01.json": {
+            "source": ".planning/phases/50-valid-stage-0-re-run/evidence/calibration/generation-3-smoke-attempt-04-invocation-01.json",
+            "sha256": "ed30b06ae2f8303506d654d66f17bd89034b403e6671fc24cc2ce9e1454ed2a4"
+          }
+        },
+        "stage0-rerun-seed41-attempt-02": {
+          "config.yaml": {
+            "source": "runs/stage0-rerun-seed41/config.yaml",
+            "sha256": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da"
+          },
+          "summary.json": {
+            "source": "runs/stage0-rerun-seed41/summary.json",
+            "sha256": "32dd49122ea500023b9f0fec962fd4cbd691905f5cc3ace0416fdb764e2810fb"
+          },
+          "summary.md": {
+            "source": "runs/stage0-rerun-seed41/summary.md",
+            "sha256": "6b0e8d0ce762a6ab3f3e2d8b3ecc7ea2406b36a4d726898ce3d2e11b4873314f"
+          },
+          "preflight.json": {
+            "source": "runs/stage0-rerun-seed41/preflight.json",
+            "sha256": "f7729f2f160835746a644f9c5dddd29a50a93f1b11a46269132f46aca63442c1"
+          },
+          "training_metadata.json": {
+            "source": "runs/stage0-rerun-seed41/training_metadata.json",
+            "sha256": "7d23db77ccbb1c381f9601b2ba5bda1a9e8bef88cf20d1cdce628f3718876c11"
+          },
+          "splits.json": {
+            "source": "runs/stage0-rerun-seed41/splits.json",
+            "sha256": "c25568a18f3c4e31bcef5bf36f71591f0978edca4ca6cd490a28ec88ea276c86"
+          },
+          "curriculum.jsonl": {
+            "source": "runs/stage0-rerun-seed41/curriculum.jsonl",
+            "sha256": "369793d9362e4ffdce19e7d780bfde0b81f8e90989ddfff12fd1d8eb627008b8"
+          },
+          "validation.jsonl": {
+            "source": "runs/stage0-rerun-seed41/validation.jsonl",
+            "sha256": "3c8d7158be141a443aa2cf8ecd1017ebe9ea5e4d0bcdbbc4969c2cafbb5f1835"
+          },
+          "status.json": {
+            "source": "runs/stage0-rerun-seed41/status.json",
+            "sha256": "3a297d0f423949e49196bb3711e29387580473d799f34fb9c6dd85595f24180d"
+          },
+          "logs/train.log.jsonl": {
+            "source": "runs/stage0-rerun-seed41/logs/train.log.jsonl",
+            "sha256": "25d54fb0cd9d73d5d91f0fd9621668b11231ea2b4b83f201a746073734ba22fd"
+          },
+          "run_start_rng.pt": {
+            "source": "runs/stage0-rerun-seed41/run_start_rng.pt",
+            "sha256": "0d468fa2e243fee724c64b18c592e50d4007846d9ece48af2aabcd15a95a07eb"
+          },
+          "logs/train.log.txt": {
+            "source": "runs/stage0-rerun-seed41/logs/train.log",
+            "sha256": "7842038dc5d8abe0268932e03f25379516706d28f48562a952a457c610591095"
+          },
+          "failure/README.txt": {
+            "source": "runs/stage0-rerun-seed41/failure/README.txt",
+            "sha256": "daccc8ab99caa1e39612f4ae32fd1ba4e132493013c14b127f2420169cc85f68"
+          },
+          "failure/trip.json": {
+            "source": "runs/stage0-rerun-seed41/failure/trip.json",
+            "sha256": "0acc1a4f2040ab0804d009e944c61b92d4fb9bbaa4ea759830a571a209b48ade"
+          },
+          "launch-transcript.txt": {
+            "source": ".planning/phases/50-valid-stage-0-re-run/evidence/launch-transcripts/stage0-rerun-seed41-attempt-02-invocation-01-train.txt",
+            "sha256": "2902b39acbba270f875373623663f7528c15318e809348c54280d7d8fec67cb1"
+          }
+        }
+      }
+    },
+    "required_non_null_hashes": {
+      "run_ledger_md": "e86bf550c92457d9a1053cca70ffabdc016dd547587ff158147ab4d950d687c7",
+      "smoke_source_config_sha256": "a4ec6fe1e34201204fa5f958efd63bb4a4ab4b38c358afc1905f50a846620f9a",
+      "smoke_frozen_config_sha256": "3db88b697aac2f3c61075e402602fb7a447aaf9113109669dc5925934e2dd46d",
+      "seed41_source_config_sha256": "90ccd7418211ca42ebe14e06ea0bf1f62249d87e19b71c9f670c9a9b8374f073",
+      "seed41_frozen_config_sha256": "8a7e4c8b3904da24224702679bde8cfb98764eba65e1707dc609014de3b258da",
+      "corpus_snapshot_sha256": "9fdc39c478f5033a49e706a156b3fdcd517eb0dc66eab0613eded0e900dc9fdd",
+      "environment_snapshot_sha256": "5df135235418f7d09ecf5c874530a489186695b66cf5cc3ec189c69ad95c2a34"
+    },
+    "closed_utc": "2026-08-15T03:13:13.899889+00:00"
+  }
 }

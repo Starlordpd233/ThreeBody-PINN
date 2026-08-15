@@ -1,0 +1,31 @@
+{
+  "config_yaml": {
+    "path": "<home>/Desktop/3_body_problem/.worktrees/trainex/runs/stage0-rerun-seed41/config.yaml"
+  },
+  "disposition": "HALT",
+  "grad_norm": 18383500214272.0,
+  "guard": "invariant_b",
+  "loss_terms": {
+    "angmom": 29.064590454101562,
+    "data": 0.02091073989868164,
+    "energy": 6366.134765625,
+    "ic": 25982.068359375,
+    "phys": 1193646464.0,
+    "total": 1193672448.0
+  },
+  "memory_allocated_bytes": 843350016,
+  "memory_total_bytes": 25769803776,
+  "metric": "steps_since_front_advance",
+  "phase": "2a",
+  "reason": "causal front high-water mark did not advance within N=500 steps",
+  "stage": 0,
+  "step": 501,
+  "threshold": 500.0,
+  "threshold_provisional": false,
+  "tier": 2,
+  "timestamp": 1786763384.582527,
+  "tripped_guards": [
+    "invariant_b"
+  ],
+  "value": 501.0
+}

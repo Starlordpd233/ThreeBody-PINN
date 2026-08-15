@@ -1,0 +1,11 @@
+{
+  "generation": 3,
+  "boundary": "runtime",
+  "label": "pre-smoke",
+  "command": "git status --porcelain --untracked-files=all -- pinn/ configs/ scripts/train-unattended.sh pyproject.toml",
+  "external_start_utc": "2026-08-15T02:46:29.327057+00:00",
+  "external_end_utc": "2026-08-15T02:46:29.362356+00:00",
+  "exit_code": 0,
+  "stdout": "STATUS:\nDIFF:\nCACHED:\n",
+  "stderr": ""
+}

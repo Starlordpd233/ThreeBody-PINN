@@ -1,0 +1,29 @@
+{
+  "epoch": 300,
+  "eta_seconds": null,
+  "heartbeat_interval_secs": 30,
+  "losses": {
+    "angmom": 73.44908905029297,
+    "data": 0.04800160229206085,
+    "energy": 10114.064453125,
+    "ic": 33608.52734375,
+    "phys": 553551936.0,
+    "total": 553585536.0
+  },
+  "lr": null,
+  "memory": {
+    "current_bytes": 351676416,
+    "driver_bytes": 834879488
+  },
+  "phase": "2a",
+  "pid": 96436,
+  "run_name": "stage0-rerun-smoke",
+  "s_per_step_ema": 0.1721874012044463,
+  "schema_version": 1,
+  "stage": 0,
+  "staleness_threshold_secs": 90,
+  "state": "finished",
+  "step": 299,
+  "timestamp_epoch": 1786762261.318718,
+  "timestamp_utc": "2026-08-15T02:51:01.318718+00:00"
+}
