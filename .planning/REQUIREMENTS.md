@@ -163,21 +163,21 @@ it is needed.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ERW-01 | — | Pending |
-| ERW-02 | — | Pending |
-| SPEC-01 | — | Pending |
-| SPEC-02 | — | Pending |
-| SPEC-03 | — | Pending |
-| SPEC-04 | — | Pending |
-| SPEC-05 | — | Pending |
-| SPEC-06 | — | Pending |
-| INST-04 | — | Pending |
-| GATE-04 | — | Pending |
-| RUN-04 | — | Pending |
-| RUN-05 | — | Pending |
-| EVAL-02 | — | Pending |
-| DIAG-06 | — | Pending |
-| VER-21 | — | Pending |
+| ERW-01 | Phase 54 | Pending |
+| ERW-02 | Phase 54 | Pending |
+| SPEC-01 | Phase 56 | Pending |
+| SPEC-02 | Phase 53 | Pending |
+| SPEC-03 | Phase 53 | Pending |
+| SPEC-04 | Phase 53 | Pending |
+| SPEC-05 | Phase 53 | Pending |
+| SPEC-06 | Phase 56 | Pending |
+| INST-04 | Phase 55 | Pending |
+| GATE-04 | Phase 56 | Pending |
+| RUN-04 | Phase 57 | Pending |
+| RUN-05 | Phase 57 | Pending |
+| EVAL-02 | Phase 57 | Pending |
+| DIAG-06 | Phase 58 | Pending |
+| VER-21 | Phase 58 | Pending |
 
 **Namespace continuity.** `ERW` and `SPEC` are new categories beginning at 01 —
 verified against every archived milestone requirements file, no collisions.

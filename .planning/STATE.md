@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 status: planning
-last_updated: "2026-08-18T13:31:40.900Z"
+last_updated: "2026-08-18T13:38:58.000Z"
 last_activity: 2026-08-18
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-31)
+See: .planning/PROJECT.md (updated 2026-08-18)
 
-**Core value:** A thin, Stage-0-first, end-to-end training run — built from the ratified trainex-r1a decisions and the locked framework specs — that proves the CTL-PINN pipeline trains a model on the M5 Pro Mac and reaches the acceptance gate, before any effort on the full multi-stage platform.
-**Current focus:** Phase 50 — valid-stage-0-re-run
+**Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
+**Current focus:** Phase 53 — narrow-spec-codification (first of v2.3's three ungated openers: 53 ∥ 54 ∥ 55)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 53 of 58 — Narrow Spec Codification (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-08-18 — Milestone v2.3 started
+Status: Roadmap created — 6 phases (53–58), 15/15 requirements mapped; ready to plan Phase 53
+Last activity: 2026-08-18 — v2.3 roadmap created (phases 53–58; five blocking owner checkpoints; declared terminal state recorded)
 
 ### Phase 49 verification (2026-08-10)
 
