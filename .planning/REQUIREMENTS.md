@@ -62,16 +62,16 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 
 ### Re-Run & the Authorized Evaluation (RUN / EVAL) — Phases 50–51
 
-- [ ] **RUN-01**: Stage-0 re-run under the corrected recipe, with conformance-only iteration (SCOPE-29). [SCOPE-27 authorizes Stage-0 training]
-- [ ] **RUN-02**: Re-establish the three-seed band, matching the v2.0 protocol so the runs are comparable. [v2.0 pilot protocol]
-- [ ] **RUN-03**: Execute the single authorized held-out evaluation, gated on EVAL-01. Before any held-out access, prove with a dataset-free regression and pre-invocation assertion that the evaluator pairs canonical predicted `r'` with `u=t/T`; raw native time with scaled predictions is prohibited. [SCOPE-28; GAP-46-01 delegated ruling 2026-07-26]
-- [ ] **EVAL-01**: The evaluation policy above, as a binding requirement with its three preconditions checked and recorded before the evaluator is invoked. [owner-ratified 2026-07-25]
+- [x] **RUN-01**: Stage-0 re-run under the corrected recipe, with conformance-only iteration (SCOPE-29). [SCOPE-27 authorizes Stage-0 training] — **CLOSED INCOMPLETE 2026-08-17.** Owner selected `stop-incomplete` (`50-08-SUMMARY.md`) after the 2026-08-17 conformance audit found no dynamics remedy available inside v2.2. Generation-3 seed 41 HALTed at invariant B, step 501, `front_idx=0`. Unsatisfied by owner decision, not by oversight.
+- [x] **RUN-02**: Re-establish the three-seed band, matching the v2.0 protocol so the runs are comparable. [v2.0 pilot protocol] — **CLOSED INCOMPLETE 2026-08-17.** Seeds 42/43 were never launched (GAP-50-03 Option A, 2026-08-15); no band exists. Same owner decision as RUN-01.
+- [~] **RUN-03**: Execute the single authorized held-out evaluation, gated on EVAL-01. Before any held-out access, prove with a dataset-free regression and pre-invocation assertion that the evaluator pairs canonical predicted `r'` with `u=t/T`; raw native time with scaled predictions is prohibited. [SCOPE-28; GAP-46-01 delegated ruling 2026-07-26] — **NOT ATTEMPTED 2026-08-17.** No run satisfies RUN-01/RUN-02, so the evaluator preconditions cannot be met; the sole SCOPE-28 evaluation is preserved unspent for v2.3.
+- [~] **EVAL-01**: The evaluation policy above, as a binding requirement with its three preconditions checked and recorded before the evaluator is invoked. [owner-ratified 2026-07-25] — **NOT ATTEMPTED 2026-08-17.** Same disposition as RUN-03.
 
 ### Diagnosis Re-Derivation & Traceability (DIAG / VER) — Phase 52
 
-- [ ] **DIAG-05**: Re-derive the Phase 44 diagnosis from the conformant run, with an acceptance check — the GAP-44-02 mandated requirement on which Phase 44 was permitted to stay closed. [GAP-44-02 owner ruling: erratum plus mandatory re-derivation]
-- [ ] **VER-19**: Requirement traceability: every requirement maps to exactly one phase. [roadmap coverage]
-- [ ] **VER-20**: Hand off the spec-amendment routing list: (a) the misleading "default" wording on `pinn_architecture.md` §4.1's `λ_phys^max` line; (b) a convention for marking locked-vs-default values inside a spec table; (c) the explicit `L_data` reduction once CONF-07 is settled; (d) the aggregate gate statistic from GAP-44-01. [SCOPE-30 — spec prose is not edited in v2.2]
+- [x] **DIAG-05**: Re-derive the Phase 44 diagnosis from the conformant run, with an acceptance check — the GAP-44-02 mandated requirement on which Phase 44 was permitted to stay closed. [GAP-44-02 owner ruling: erratum plus mandatory re-derivation] — **Complete 2026-08-17.** `.planning/phases/52-diagnosis-re-derivation-handoff/52-DIAG-05-REDERIVATION.md`. Discharged via the design-failure branch: the v2.0 gate failure is explained by a SIREN-init/causal-weight calibration mismatch, established independent of any run's outcome.
+- [x] **VER-19**: Requirement traceability: every requirement maps to exactly one phase. [roadmap coverage] — **Complete 2026-08-17.** 24/24 mapped; no orphans, no duplicates. See `52-SUMMARY.md`.
+- [x] **VER-20**: Hand off the spec-amendment routing list: (a) the misleading "default" wording on `pinn_architecture.md` §4.1's `λ_phys^max` line; (b) a convention for marking locked-vs-default values inside a spec table; (c) the explicit `L_data` reduction once CONF-07 is settled; (d) the aggregate gate statistic from GAP-44-01. [SCOPE-30 — spec prose is not edited in v2.2] — **Complete 2026-08-17, grown to 5 items.** `.planning/phases/52-diagnosis-re-derivation-handoff/52-VER-20-ROUTING-HANDOFF.md` adds item (e): the causal-weight/SIREN-scale calibration mismatch — the substantive item, routed to v2.3.
 
 ## Scope Boundaries (owner-ratified — hard constraints)
 
@@ -124,13 +124,13 @@ This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
 | GATE-03 | Phase 49 | Complete |
 | TEST-01 | Phase 48 | Complete |
 | TEST-02 | Phase 48 | Complete |
-| RUN-01 | Phase 50 | Pending |
-| RUN-02 | Phase 50 | Pending |
-| RUN-03 | Phase 51 | Pending |
-| EVAL-01 | Phase 51 | Pending |
-| DIAG-05 | Phase 52 | Pending |
-| VER-19 | Phase 52 | Pending |
-| VER-20 | Phase 52 | Pending |
+| RUN-01 | Phase 50 | Closed incomplete (owner decision 2026-08-17) |
+| RUN-02 | Phase 50 | Closed incomplete (owner decision 2026-08-17) |
+| RUN-03 | Phase 51 | Not attempted (evaluation preserved for v2.3) |
+| EVAL-01 | Phase 51 | Not attempted (evaluation preserved for v2.3) |
+| DIAG-05 | Phase 52 | Complete |
+| VER-19 | Phase 52 | Complete |
+| VER-20 | Phase 52 | Complete (5 items handed off) |
 
 **Coverage:** 24/24 mapped (Phase 46: CONF-01, CONF-08, INST-01 · Phase 47: CONF-09, CONF-02, CONF-03 — in that order · Phase 48: CONF-04..07, INST-02, TEST-01, TEST-02 · Phase 49: GATE-01..03, INST-03 · Phase 50: RUN-01, RUN-02 · Phase 51: RUN-03, EVAL-01 · Phase 52: DIAG-05, VER-19, VER-20). No orphans; no duplicates. SCOPE-27..32 are scope-boundary annotations, not numbered requirements (v2.0 SCOPE-16..21 precedent). CONF/INST/GATE/TEST/RUN/EVAL are new categories beginning at 01; DIAG continues from v2.1's DIAG-04; VER continues from v1.6's VER-18; SCOPE continues from v2.1's SCOPE-26.
 

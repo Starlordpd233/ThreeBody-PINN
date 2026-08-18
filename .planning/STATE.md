@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Stage-0 Conformance Repair & Valid Re-Run
-current_phase: 50
-current_phase_name: valid-stage-0-re-run
-status: executing
-stopped_at: Completed 50-07-PLAN.md
-last_updated: "2026-08-15T13:34:44Z"
-last_activity: 2026-08-15
-last_activity_desc: 50-07 normal evidence tooling; no run launched
+current_phase: 52
+current_phase_name: diagnosis-re-derivation-handoff
+status: closed-incomplete
+stopped_at: Phase 52 handoff complete (adapted); v2.2 closed incomplete; routing to v2.3
+last_updated: "2026-08-17T00:00:00Z"
+last_activity: 2026-08-17
+last_activity_desc: Phase 50 closed incomplete (owner stop-incomplete, 50-08-SUMMARY.md); Phase 51 not attempted; Phase 52 DIAG-05/VER-19/VER-20 discharged adapted; v2.2 archived under milestones/v2.2-*
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 38
-  completed_plans: 33
+  completed_plans: 34
   percent: 58
 ---
 
@@ -28,11 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-31)
 
 ## Current Position
 
-Phase: 50 (valid-stage-0-re-run) — EXECUTING
-Plan: 7 of 12
-Status: 50-07 complete; ready for 50-08
-Last activity: 2026-08-15 — 50-07 normal evidence tooling, terminal path preserved, no run launched
-**Verification:** [███████░░░] 67% (4/6 truths verified)
+**v2.2 CLOSED INCOMPLETE 2026-08-17.** Phase 50 (valid-stage-0-re-run): owner selected `stop-incomplete` at the Plan 50-08 checkpoint after the 2026-08-17 residual-frame conformance audit found no dynamics remedy available inside v2.2 (SCOPE-30). RUN-01/RUN-02 closed unsatisfied. Phase 51 (the-authorized-evaluation): not attempted — the sole SCOPE-28 held-out evaluation is preserved unspent for v2.3. Phase 52 (diagnosis-re-derivation-handoff): DIAG-05/VER-19/VER-20 discharged in adapted form without Phase 51 having run. See `.planning/milestones/v2.2-GAPS.md` "Milestone close" section for the full disposition and v2.3 inherited obligations.
+
+Last activity: 2026-08-17 — Phase 50 checkpoint closed, Phase 52 adapted handoff written, v2.2 archived under `milestones/v2.2-*`.
+**Next:** v2.3 milestone proposal (recipe adjudication for the causal-weight/SIREN-scale mismatch), then `/gsd-new-milestone`.
 
 ### Phase 49 verification (2026-08-10)
 
