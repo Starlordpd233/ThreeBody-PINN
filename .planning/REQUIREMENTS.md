@@ -1,145 +1,190 @@
-# Requirements: v2.2 Stage-0 Conformance Repair & Valid Re-Run
+# Requirements: v2.3 Causal-Weight/SIREN-Scale Recipe Adjudication
 
-**Defined:** 2026-07-25
-**Core value:** A *valid* test of the Stage-0 design — repair the verified conformance divergences, prove the repair with gate-aligned instrumentation and a preflight gate, re-run Stage-0 under the corrected recipe, and spend the one authorized held-out evaluation on a run that is actually the specified experiment — never tuning the recipe against observed results.
-**Total:** 24 requirements (9 CONF + 3 INST + 3 GATE + 2 TEST + 3 RUN + 1 EVAL + 1 DIAG + 2 VER) + scope boundaries SCOPE-27..32.
+**Defined:** 2026-08-18
+**Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
+**Total:** 15 requirements (2 ERW + 6 SPEC + 1 INST + 1 GATE + 2 RUN + 1 EVAL + 1 DIAG + 1 VER) + scope boundaries SCOPE-33..38.
 
-**Source:** the owner-ratified v2.2 roadmap proposal (`docs/work/designs/cross_cutting/v2.2-milestone-proposal/2026-07-25-v2.2-roadmap-proposal.md`), consumed by `/gsd-new-milestone` on 2026-07-25. Requirement texts below are transcribed from that proposal.
+**Source:** the owner-ratified v2.3 roadmap proposal (`docs/work/designs/cross_cutting/v2.3-milestone-proposal/2026-08-17-v2.3-roadmap-proposal.md`, drafted 2026-08-17, ratified 2026-08-18 at commit `16434f50`), consumed by `/gsd-new-milestone` on 2026-08-18. Requirement texts below are transcribed from that proposal.
 
-## Evaluation Policy (owner-ratified 2026-07-25 — binding)
+## Why this milestone exists
 
-> One additional held-out evaluation is authorized for the corrected Stage-0
-> implementation, conditional on (i) preflight conformance passing with zero
-> unwaived divergences, (ii) RG-02 resolved, and (iii) validation-side gate metrics
-> recorded for the run being submitted. Any evaluation beyond this one requires a
-> new owner decision. No evaluation may be spent on a run that has not passed
-> (i)–(iii).
+v2.2 closed **incomplete** on 2026-08-17. It repaired all nine verified Stage-0
+conformance divergences (C-01..C-09) and re-ran Stage-0 under the corrected
+recipe — the first run that was actually the specified experiment. That run
+HALTed at the invariant-B causal-front gate, step 501, `front_idx=0` for the
+entire `N=500` window.
 
-This becomes requirement **EVAL-01** and scope boundary **SCOPE-28**.
+A bounded residual-frame conformance audit the same day established that this is
+**not** a further conformance defect. It is a design-calibration gap between two
+independently-locked framework-spec sections:
 
-**Related clarification, also load-bearing.** The standing "do NOT re-run" (v2.0 audit warning W-1; the exhausted-budget note) governs re-evaluating **the v2.0 seed-42 checkpoint**, protecting the integrity of the v2.0 record and its receipt-based refusal path. It is *not* a prohibition on evaluating a future model. A corrected implementation is a new question, not a re-run. Without this distinction stated here, v2.2 is impossible by construction.
+- `pinn_architecture.md` §2.2 locks a SIREN initialization (`first_omega_0 = 30`,
+  12 layers) whose **second derivative** is `O(10⁵)` in the network's own units
+  at initialization, giving `R̄ ≈ 10¹⁰`.
+- `pinn_architecture.md` §3.2 locks a causal weighting
+  `w_n = exp(−η_c · Σ_{m<n} stopgrad(R̄_m))` with `η_c = 1` on **unnormalized**
+  `R̄` — a calibration that presumes a *converged* network's residual of `O(1)`.
+
+Neither choice is wrong in isolation; they were simply never checked against each
+other. Stacked, `exp(−η_c R̄)` underflows float32 at `R̄ > 87.3`, which the run
+exceeds by 8.5 decades at step 0. The causal weighting saturates shut before
+training begins and stays saturated: 15 of 16 collocation-point weights sit at
+the numerical floor for the whole run, and the physics loss reduces to a single
+point's residual.
+
+The finding is established independent of any particular run's outcome — a
+read-only characterization of the locked architecture alone (no data, no
+optimizer, no training step) reproduces `R̄ ≈ 10¹⁰` and `front_idx = 0`
+identically across six seed/IC combinations.
+
+This is exactly the contingency v2.2's own goal statement named in advance:
+*"If the conformant run still fails, that failure is the first real evidence
+about the design, and recipe adjudication … is v2.3."*
 
 ## Grounding (authoritative inputs)
 
-1. **The locked framework specs** (`ctl_instruction.md`, `pinn_architecture.md`) as completed by v1.4/v1.5/v1.6. Hard constraints.
-2. **The five v2.1 gap rulings** (2026-07-24): GAP-45-03 per-stage PHYS-05 values are locked; GAP-45-02 λ_E provenance unrecoverable, treated as drift, reverts to 0; GAP-45-04 invariant mandated with the number deferred to the implementer; GAP-45-01 deferred with a pre-re-run condition; GAP-44-02 erratum plus mandatory re-derivation. Record: `.planning/milestones/v2.1-GAPS.md`.
-3. **The conformance audit's verified defect inventory** C-01..C-08: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-24-stage0-training-path-conformance-audit.md`. Its "verified clean" section is equally load-bearing — do not re-audit the component math.
-4. **The evaluation policy** above (new, owner-ratified 2026-07-25).
+1. **The locked framework specs** (`ctl_instruction.md`, `pinn_architecture.md`)
+   as completed by v1.4/v1.5/v1.6 — AND as amended by this milestone's own
+   VER-20-item decisions under SCOPE-38's amendment discipline. This is the one
+   milestone where editing them is the point.
+2. **v2.2's closure record**: the residual-frame conformance audit
+   (`docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md`,
+   committed `ae14a99e`); the DIAG-05 root-cause re-derivation
+   (`.planning/milestones/v2.2-phases/52-diagnosis-re-derivation-handoff/52-DIAG-05-REDERIVATION.md`);
+   the five-item routing list
+   (`.planning/milestones/v2.2-phases/52-diagnosis-re-derivation-handoff/52-VER-20-ROUTING-HANDOFF.md`);
+   and `.planning/milestones/v2.2-GAPS.md` "Milestone close".
+3. **The trainex-r2 research report**
+   (`pinn_instruction/markdown_conversion/framework-specs/trainex-r2/`) — **now
+   legally a grounding source** (SCOPE-31's own text: "it enters at v2.3 as a
+   premise-qualified candidate verdict source"), with a **mandatory premise
+   qualification that must travel with every citation of it**: that round's
+   output contract (`RESEARCH-CONTEXT-MASTER.md` §7, clause 3) reads *"Do not
+   recommend a remedy."* It contains **no decision sheet, no options menu, no
+   suggested defaults, and no one-way/two-way door classification**. Its Q3
+   frames the diagnosis and independently derived the `ω₀=30` mechanism as a
+   hypothesis (now confirmed); it does not contain the answer. v2.2 has since
+   executed two of Q3's four discriminating tests (residual-on-stored-targets →
+   CONF-01/08/09; per-term gradient statistics → INST-02) and repaired its
+   reading-2 frame hypothesis as C-09.
+4. **All prior locked decisions this milestone does not reopen**: the 14D
+   `[τ, IC₁₃]` input, Jacobi IC₁₃, mass-weighted COM projection, PHYS-03
+   softening `eps_soft = 1e-5`, the post-v1.3 SCS gate, the raw-mass
+   `D ≈ 4.6416` convention (`D³ = G T²`), and the full v1.5/v1.6/v2.0/v2.1/v2.2
+   DataLoader, validation, and conformance contracts (PIPE-01..10, VAL-01..04,
+   CONF-01..09, INST-01..03, GATE-01..03, TEST-01..02).
 
-**NOT grounding:** the trainex-r2 research report (SCOPE-31).
+## v2.3 Requirements
 
-## v2.2 Requirements
+### External Research & Decision Grounding (ERW)
 
-### Conformance Repair (CONF) — Phases 46–48
+- [ ] **ERW-01**: Assemble a **strictly non-recommending** decision packet for the causal-weight/SIREN-scale recalibration and present it at a blocking owner gate. Contents: the confirmed mechanism; the coupled remedy surfaces (`η_c`, `R̄` normalization against a reference scale, the SIREN initialization scale `ω₀`, `N_t`/`n_col`, and the causal-exponent clip's declared semantics); what v2.2's evidence has already settled from trainex-r2 Q3; and an explicit statement of which questions the assembled evidence **cannot** answer. **Acceptance:** the packet marks no default, ranks no option, and recommends no remedy — and it names its own gaps. It doubles as the `trainex-r3` `RESEARCH-CONTEXT-MASTER.md` if the round is commissioned, so neither gate branch wastes work. [SCOPE-34; ERW runbook `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`]
+- [ ] **ERW-02**: Discharge the owner gate's branch and produce **one ratified recalibration decision**. Either (a) record the owner's direct ruling with its provenance, or (b) assemble and deliver `trainex-r3` per the canonical ERW runbook — Route B (open-book) against the post-repair tree, carrying the full **Rule-7 build-design output contract** that trainex-r2 deliberately lacked (2–4 option menus with mechanical-surface trade-offs, suggested defaults clearly marked, one-way vs two-way door classification on every default and deviation, a fill-in decision sheet, and a composed first-run recipe as a cross-menu coherence check) — plus the mandatory **Rule-19** per-claim in-repo verification pass, then land its consolidated decision sheet for owner ratification. [SCOPE-34; ERW Rules 7, 16, 19, 20]
 
-- [x] **CONF-01**: Resolve RG-02: settle whether training targets are raw positions or `r' = r/D`, via the train-free residual-on-stored-targets check. No training run. **Branch point:** if the target frame *is* wrong, that is a sixth divergence and a data-path defect rather than a loss-math one — surface as an owner scope decision, never absorbed silently. [RG-02; proposal Phase 46] *(The 2026-07-27 real-corpus run returned `VERDICT_AMBIGUOUS`; the branch point fired and produced CONF-08. **Closed 2026-07-28 by owner ruling on GAP-46-06 option B, NOT by a clean machine verdict.** The post-repair re-probe returned rule-5 `VERDICT_NON_FRAME_DIVERGENCE`: rule 4 was unreachable by construction once CONF-08 landed, because it requires byte-identity against the parsed file-order array that the authorized repair deliberately removed. The owner exercised the D-09 branch on the recorded arm evidence — scaled arm median 0.9894 with 1605/1651 separated versus raw arm 0.0802249 against controls at 0.0802262, a factor of 12.3 — and ratified the operational raw/native frame `("r_raw", "t_native", "ordered_raw")`. **Anywhere CONF-01 is cited as satisfying EVAL-01 precondition (ii), this qualification MUST travel with it: RG-02 is settled by owner instruction on measured evidence, not by a `VERDICT_TARGETS_ARE_RAW` token.** See GAP-46-06.)*
-- [x] **CONF-02**: Build the `S_H` pipeline: `S_H = median_train(K0 + Uabs0)` over the admitted set, persisted in training metadata. `S_H` must be finite and strictly positive; non-finite or `≤ 0` is a preprocessing/metadata validation failure that fails closed (spec §3.4). [spec §3.4; conformance audit]
-- [x] **CONF-03**: Wire `ε_H = 1e-4 · S_H` into the loss assembly and remove the `+1e-12` additive fallback floor, which §3.4 explicitly prohibits. [spec §3.4]
-- [x] **CONF-04**: Correct `R̄` to the locked `(1/3) Σ_i ‖f_i‖²` (from the implemented `(1/9)Σ`). [locked loss contract; conformance audit]
-- [x] **CONF-05**: Implement a causal-exponent clip satisfying invariant A (no causal weight may be exactly zero), **chosen against the corrected `R̄`** — which is 3× larger and underflows sooner. Record the chosen bound in the plan and the run record. [GAP-45-04 owner ruling: invariant mandated, number deferred to the implementer with a recording obligation]
-- [x] **CONF-06**: Revert `λ_E^max` to the locked Stage-0 value `0`. [GAP-45-02 owner ruling: λ_E provenance unrecoverable, treated as drift]
-- [x] **CONF-07**: Implement the `L_data` component reduction per the owner ruling on GAP-45-01. [GAP-45-01: deferred with a pre-re-run condition; blocking owner checkpoint at Phase 48, presented with computed term magnitudes from the retained runs]
-- [x] **CONF-08**: Repair the sixth (data-path) divergence and re-verify CONF-01. The resident trajectory surface pairs `pre.masses_ordered` (`pinn/data/adapter.py:865`) with the un-permuted, un-gauged `parsed_brutus.positions` (`:863`), so mass index *i* does not address body *i* — measured at 1651/1651 trajectories, permutation `(2,0,1)`×1547 and `(0,2,1)`×104, identity never. Repair covers **exactly** the two measured transforms: apply `pre.permutation` (`pinn/data/preprocessing.py:188-189`) and the COM-recentre/boost gauge (`:186`) to the resident position and velocity series. The `D` scaling is **excluded** — it is the raw-vs-scaled question CONF-01 exists to answer, and pre-applying it would decide the verdict by construction. Rotation gauge (`:195`) enters only if the re-probe measures it as the new `first_diverging_step`. Then re-run the CONF-01 probe unchanged over the same GAP-46-02 1,651-trajectory population and record the verdict. [GAP-46-04 + GAP-46-05 owner rulings 2026-07-27; conformance audit sixth divergence] *(Complete 2026-07-28 via plans 46-08 and 46-09. The repair is exact: `stepwise_attribution.plus_permutation = 0.0` for 1651/1651 trajectories, so resident positions and `masses_ordered` address the same canonical bodies. `D` scaling and the rotation gauge were not applied, as specified. The unchanged probe was re-run once over the same 1,651-trajectory population and its verdict recorded in `46-VERDICT-POSTREPAIR.md`.)*
+### Framework-Spec Amendments (SPEC)
 
-- [x] **CONF-09**: Complete the residency transform to the locked canonical contract. Move the resident position and velocity series (`pinn/data/adapter.py:864-865`) from `pre.r_com_ordered` / `pre.v_com_ordered` to `pre.r_gauge` / `pre.v_gauge` — the rotation-gauged, `D`/`V`-scaled output `preprocess_trajectory` already computes and currently exports only to the probe. Re-ratify `RATIFIED_VALIDATION_FRAME` to `(POSITION_FRAME_SCALED, TIME_COORD_NORMALIZED, MASS_CONVENTION_ORDERED_RAW)` in the same change, as `pinn/training/validation_gate.py:526-528` requires, and correct in that same change any test encoding the current resident pairing. **Sequenced ahead of CONF-02** — `S_H` is frame-dependent (`H' = D·H`), so building it first means rebuilding it. [GAP-46-07 owner ruling 2026-07-28, option A] *(Repairs three defects in one move, because every anchor target derives from the residents. **Scale:** the training path pairs raw residents with `u = t/T`, a pairing `COHERENT_FRAME_PAIRS` does not admit, so `residual = (T²−1)·a(r)` on a perfect trajectory — `L_phys` has no zero and is minimized at zero gravity. **Velocity:** autograd returns `d/du` while the resident series is `dr/dt`, so `K_model = T²·K_raw` against `U_model = U_raw` — unit-inconsistent, absorbable by no single constant. **Rotation:** `IC₁₃` is built from `r0_gauge`/`v0_gauge` and is exactly rotation-gauge-invariant while the targets are equivariant, so the regression target is not a function of the network input. Under the swap, `dr'/du = (T/D)·v_rot = v_gauge` exactly, `h0` and `l0` become the scaled-frame invariants their loss terms expect, and `IC₁₃` already lives in this frame. Two further conformance gains: `HUBER_DELTA_DATA = 1.0` is locked for scaled positions (`loss_catalog.py:174-183`) and `EPS_SOFT = 1e-5` is a scaled-frame softening per `softened_acceleration`'s input contract — both currently applied to raw positions. Gate metrics are unchanged in value: `ε_H` is a relative drift, invariant under uniform `H → D·H`. **Not** a CONF-01 pre-emption: CONF-08 excluded the `D` scaling so the measurement could be made, it was made, and this applies its answer. **Not** recipe tuning under SCOPE-29: magnitudes move because the frame becomes the locked one, not because a hyperparameter was fitted to an observed result. Evidence and derivations: `docs/work/reviews/cross_cutting/stage0-conformance-audit/2026-07-28-conformance-divergence-verification-report.md`.)*
+- [ ] **SPEC-01**: Implement the ratified causal-weight/SIREN-scale recalibration (VER-20 item **e**) as a `pinn_architecture.md` §2.2/§3.2 amendment. **Under SCOPE-38 this is a contract amendment, not a value edit**: `η_c = 1` carries an owner-ratified Phase-35 contract marker (**LOSS-04 / D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A / AC-LOSS-04**, `pinn_architecture.md:424`, grounded in the v1.6 resolution doc §1.1 and GAP-32-01). The edit must name the superseded ruling, record the new decision's provenance, and carry a **re-issued acceptance criterion**. If the ratified remedy touches `first_omega_0` (§2.2:167, *"fixed at 30 and is not scheduled during training"*) or the causal-exponent clip (spec'd in the same contract block as *"required only to avoid underflow"*), the same discipline applies to each. `N_t`/`n_col` is decided jointly — see SPEC-06. [VER-20 item (e); SCOPE-33, SCOPE-38]
+- [ ] **SPEC-02**: Reword `pinn_architecture.md` §4.1's `λ_phys^max` line to state that the PHYS-05 per-stage table is **locked**, not defaulted. The line currently reads as though the value is a tunable default; GAP-45-03 ratified that the full table binds. [VER-20 item (a)]
+- [ ] **SPEC-03**: Add a spec convention for marking **locked-vs-default values inside a table**. No existing convention distinguishes a locked constant from an illustrative default within the same table; SPEC-02 is one instance of a systemic wording problem. [VER-20 item (b)]
+- [ ] **SPEC-04**: Make the `L_data` reduction explicit in spec prose — **mean over time, bodies, and spatial components**, as ratified by the owner on GAP-45-01 (2026-07-31, Phase 48 checkpoint, option A) — rather than leaving it inferable from code. [VER-20 item (c); CONF-07]
+- [ ] **SPEC-05**: Codify the held-out physics gate's **aggregate statistic** in spec prose: worst-case max, not mean or median, owner-ruled 2026-07-23 on GAP-44-01 and never written into the spec. [VER-20 item (d)]
+- [ ] **SPEC-06**: Dispose of the `n_col` spec/code divergence **as part of the recalibration**. `pinn/train.py:1033` hard-codes `collocation_count = 16`; `pinn_architecture.md` §3.2 specifies `n_col = 4096` with "recommended: 2048–4096" (`:433`, `:440`). Because `w_n` is an **exclusive prefix sum** over collocation points (`pinn/loss_catalog.py`), the exponent at point *n* grows with the number of preceding points, so `η_c`'s calibration is coupled to `N_t` — calibrating at 16 and later honoring 4096 moves the exponent by roughly 256×. SPEC-01 and SPEC-06 are **ratified together**, and the amended spec records the `N_t` the calibration binds to plus the re-check trigger if it ever changes. v2.2 deferred this as a recipe surface under SCOPE-29; that deferral expires here. [SCOPE-33; audit §6d]
 
-### Instrumentation (INST) — Phases 46, 48, 49
+### Reproducibility & Train-Free Acceptance (INST / GATE)
 
-- [x] **INST-01**: Gate-aligned validation metrics: per-trajectory `ε_H`/`SCS` on the validation split, via the existing `pinn.verification.gate_metrics` functions. Currently validation records only `final_val_loss`, `step`, `trend` — no conservation signal at all. [conformance audit; EVAL-01 precondition (iii)] *(Frame-independent components shipped in plans 46-03/46-05; the production wiring landed 2026-07-28 in Plan 46-07. Verified end-to-end on a real run, not inferred: each validation event publishes a sidecar carrying 240 per-trajectory `{record_key, eps_h, scs}` rows plus the ratified frame block, the eight `gate_*` keys merge into `validation.jsonl`, and `summary.json` projects them alongside `eval01_precondition_iii`. `gate_status` and `gate_verdict` remain distinct states, so instrumentation failure never renders as a metric PASS.)*
-- [x] **INST-02**: Log per-term gradient statistics — the precondition the locked Phase-35 contract names for any reweighting decision, never satisfied. [Phase-35 loss/energy-weight contract]
-- [x] **INST-03**: Maintain the known-divergence register; the run record surfaces every open divergence so a run carries its own caveats. [conformance audit]
+- [ ] **INST-04**: Land the architecture-only characterization as **committed, tested verification tooling** under `pinn/verification/`. For a given `ArchitectureSpec` at initialization — no data, no optimizer, no training step — it reports `‖r′‖`, `‖v′‖`, `‖a′‖ = ‖d²r′/du²‖`, `‖F_grav‖`, minimum pairwise separation, median `R̄`, the full causal weight vector, and `front_idx`, over a configurable seed/IC sweep. **Acceptance:** it reproduces the 2026-08-17 audit's six-row table. This closes a real hole — v2.3's central premise currently rests on an ad-hoc measurement that exists nowhere in the repository, and `pinn/verification/` has no such probe. [audit §6b; GAP-44-02 re-derivability discipline]
+- [ ] **GATE-04**: **Train-free acceptance gate on the recalibration.** Before RUN-04 may spend a Stage-0 run, INST-04's probe must show, under the SPEC-01/SPEC-06 recipe and across at least the six seed/IC combinations the audit used: (i) no causal weight pinned at the dtype clamp floor; (ii) a weight vector carrying **differential information** (not all-floor, not degenerate); (iii) `front_idx` able to advance. **Fail closed** — a probe failure blocks the run rather than warning about it. This is the check that would have spared v2.2's generation-3 run. [invariant A/B lineage from GATE-03; SCOPE-35 single-look protection]
 
-### Minimum Enforcement (GATE) — Phase 49
+### Re-Run & the Preserved Evaluation (RUN / EVAL)
 
-- [x] **GATE-01**: Preflight asserts the **full** PHYS-05 per-stage table at run start and at every stage boundary (per GAP-45-03), not merely the `≤1` cap. [GAP-45-03 owner ruling: per-stage PHYS-05 values are locked]
-- [x] **GATE-02**: Preflight placeholder census: every spec-required quantity the loss consumes resolves to a real pipeline value, or is explicitly owner-waived for that run. This is the check that would have caught the `S_H` gap. [conformance audit]
-- [x] **GATE-03**: Runtime invariants: no causal weight exactly zero (invariant A); the causal front advances within N steps (invariant B — N is an owner checkpoint). Fail loud, fail early. [GAP-45-04; N owner checkpoint at Phase 49]
+- [ ] **RUN-04**: Re-run Stage-0 under the SPEC-01/SPEC-06-corrected recipe. Invariant B must show the causal front **actually advancing** — not merely no-longer-saturated — within the owner-re-ratified window. Gated on GATE-04. Iteration is conformance-only (SCOPE-37). [SCOPE-36 authorizes Stage-0 training]
+- [ ] **RUN-05**: Re-establish the **three-seed band** under the corrected recipe, matching the v2.0/v2.2 protocol so the runs are comparable. [v2.0 pilot protocol; v2.2 RUN-02 lineage]
 
-### Test-Suite Correction (TEST) — Phase 48
+- [ ] **EVAL-02**: Spend the **sole preserved held-out evaluation** — the one v2.2 never attempted (RUN-03/EVAL-01 not attempted, preserved unspent by the 2026-08-17 owner decision). Gated on the same three-precondition structure as v2.2's EVAL-01, adapted for the new recipe, and on the **pre-registered spending seed** fixed before RUN-04/05 execute. Before any held-out access, prove with a dataset-free regression and a pre-invocation assertion that the evaluator pairs canonical predicted `r′` with `u = t/T`. [SCOPE-35; GAP-46-01 delegated ruling 2026-07-26]
 
-- [x] **TEST-01**: Correct the two tests that currently defend divergences (C-08), in the same change as the code fix, or CI fails the fix. [conformance audit C-08]
-- [x] **TEST-02**: Add assembly-boundary conformance tests: given known inputs, assert the value the loss *actually receives* equals the spec value — for `R̄` and `ε_H` at minimum. The existing tests cover the components, which are already correct. [conformance audit]
+### Verdict & Traceability (DIAG / VER)
 
-### Re-Run & the Authorized Evaluation (RUN / EVAL) — Phases 50–51
+- [ ] **DIAG-06**: The owner renders a final **go / adjust / rethink** verdict on the recalibrated design — the second attempt at the verdict v2.2's Phase 51 never reached, and the gate that governs whether Stage-1+/PLAT-01..07 re-open. [v2.0 ACC-06 pattern; SCOPE-36]
+- [ ] **VER-21**: Requirement traceability — every requirement maps to exactly one phase; no orphans, no duplicates. Re-verified at milestone close against the final requirement count, not carried forward from the roadmap-creation check. [VER-19 lineage]
 
-- [x] **RUN-01**: Stage-0 re-run under the corrected recipe, with conformance-only iteration (SCOPE-29). [SCOPE-27 authorizes Stage-0 training] — **CLOSED INCOMPLETE 2026-08-17.** Owner selected `stop-incomplete` (`50-08-SUMMARY.md`) after the 2026-08-17 conformance audit found no dynamics remedy available inside v2.2. Generation-3 seed 41 HALTed at invariant B, step 501, `front_idx=0`. Unsatisfied by owner decision, not by oversight.
-- [x] **RUN-02**: Re-establish the three-seed band, matching the v2.0 protocol so the runs are comparable. [v2.0 pilot protocol] — **CLOSED INCOMPLETE 2026-08-17.** Seeds 42/43 were never launched (GAP-50-03 Option A, 2026-08-15); no band exists. Same owner decision as RUN-01.
-- [~] **RUN-03**: Execute the single authorized held-out evaluation, gated on EVAL-01. Before any held-out access, prove with a dataset-free regression and pre-invocation assertion that the evaluator pairs canonical predicted `r'` with `u=t/T`; raw native time with scaled predictions is prohibited. [SCOPE-28; GAP-46-01 delegated ruling 2026-07-26] — **NOT ATTEMPTED 2026-08-17.** No run satisfies RUN-01/RUN-02, so the evaluator preconditions cannot be met; the sole SCOPE-28 evaluation is preserved unspent for v2.3.
-- [~] **EVAL-01**: The evaluation policy above, as a binding requirement with its three preconditions checked and recorded before the evaluator is invoked. [owner-ratified 2026-07-25] — **NOT ATTEMPTED 2026-08-17.** Same disposition as RUN-03.
-
-### Diagnosis Re-Derivation & Traceability (DIAG / VER) — Phase 52
-
-- [x] **DIAG-05**: Re-derive the Phase 44 diagnosis from the conformant run, with an acceptance check — the GAP-44-02 mandated requirement on which Phase 44 was permitted to stay closed. [GAP-44-02 owner ruling: erratum plus mandatory re-derivation] — **Complete 2026-08-17.** `.planning/phases/52-diagnosis-re-derivation-handoff/52-DIAG-05-REDERIVATION.md`. Discharged via the design-failure branch: the v2.0 gate failure is explained by a SIREN-init/causal-weight calibration mismatch, established independent of any run's outcome.
-- [x] **VER-19**: Requirement traceability: every requirement maps to exactly one phase. [roadmap coverage] — **Complete 2026-08-17.** 24/24 mapped; no orphans, no duplicates. See `52-SUMMARY.md`.
-- [x] **VER-20**: Hand off the spec-amendment routing list: (a) the misleading "default" wording on `pinn_architecture.md` §4.1's `λ_phys^max` line; (b) a convention for marking locked-vs-default values inside a spec table; (c) the explicit `L_data` reduction once CONF-07 is settled; (d) the aggregate gate statistic from GAP-44-01. [SCOPE-30 — spec prose is not edited in v2.2] — **Complete 2026-08-17, grown to 5 items.** `.planning/phases/52-diagnosis-re-derivation-handoff/52-VER-20-ROUTING-HANDOFF.md` adds item (e): the causal-weight/SIREN-scale calibration mismatch — the substantive item, routed to v2.3.
-
-## Scope Boundaries (owner-ratified — hard constraints)
+## Scope Boundaries (owner-ratified 2026-08-18 — hard constraints)
 
 | ID | Boundary |
 |----|----------|
-| SCOPE-27 | **Training runs AUTHORIZED** — Stage-0 only. No Stage-1+, no PLAT-01..07 platform work. This is the boundary v2.1 could not cross. |
-| SCOPE-28 | **Exactly ONE held-out evaluation**, gated on EVAL-01's three preconditions. Any further evaluation requires a new owner decision. |
-| SCOPE-29 | **NO recipe tuning.** Iteration inside v2.2 is *conformance-only* — repairing divergences against the spec, never adjusting hyperparameters against observed results. This is what protects the single look; violating it re-creates the leakage the budget exists to prevent. |
-| SCOPE-30 | **No framework-spec file edits.** Spec-text amendments accumulate in the VER-20 routing list for a later spec milestone. Decisions are recorded and implemented; spec prose is not touched. |
-| SCOPE-31 | **The trainex-r2 report is not a grounding source for v2.2.** Its Q1–Q6 answers reason carefully about a recipe that did not run; its value here is limited to the `[FACT-W]` findings already independently verified. It enters at v2.3 as a premise-qualified candidate verdict source. Silently consulting its tuning analysis would re-contaminate the milestone with the false premise this whole effort exists to remove. |
-| SCOPE-32 | **Coordination with the verification-enforcement workstream.** v2.2 owns the *minimum* gate needed to protect its single look (GATE-01..03). The concurrent charter workstream owns the general regime — normative-statement index, full CI integration, waiver policy, thresholds X/M. Neither duplicates the other; the charter is the authority on the general design. Charter: `docs/work/designs/cross_cutting/training-verification-regime/2026-07-24-verification-enforcement-charter.md`. |
+| SCOPE-33 | **Framework-spec edits ARE authorized**, narrowly: only the items in `52-VER-20-ROUTING-HANDOFF.md` (a)–(e), plus the `n_col`/`N_t` disposition coupled to item (e) per SPEC-06. No open-ended spec rewriting. SCOPE-30 does not carry forward. |
+| SCOPE-34 | **The recalibration decision is owner-ratified, never agent-decided.** The agent assembles and frames the decision packet (ERW-01) and, if commissioned, the `trainex-r3` round (ERW-02); it marks no default, ranks no option, and picks nothing. The STOP protocol's semantic / MUST-surface class governs every sub-question. |
+| SCOPE-35 | **Exactly ONE held-out evaluation** — the one preserved unspent from v2.2. Spent only on a run passing its preconditions, only after the recalibrated recipe actually trains (causal front advances), and only on a seed pre-registered before RUN-04/05 execute. Any further evaluation requires a new owner decision. |
+| SCOPE-36 | **Stage-0 only.** No Stage-1+, no PLAT-01..07 platform work. Unchanged from v2.2 — still blocked by the v2.0 `adjust` verdict pending a `go` verdict at DIAG-06. |
+| SCOPE-37 | **Iteration after the spec edit lands is conformance-only again.** Once the new `η_c` / normalization / SIREN-scale / `N_t` values are locked, no further tuning against observed re-run results without a new owner decision. Prevents the milestone from becoming an open-ended hyperparameter search, and keeps a second failure informative. |
+| SCOPE-38 | **Amending a locked contract requires explicit re-ratification.** Any v2.3 spec edit that changes a value or formula carrying an owner-ratified contract marker — `η_c` (LOSS-04 / D-04 / AC-LOSS-04), `first_omega_0` (§2.2 "fixed at 30"), the causal-exponent clip's underflow-only purpose — is a **formal amendment** of that contract: recorded with its provenance, naming the superseded ruling, and carrying a re-issued acceptance criterion. A changed number without a re-ratified contract is not a legal v2.3 edit. |
 
-## Future Requirements (deferred beyond v2.2)
+## Owner Checkpoints (blocking — never auto-decided)
 
-- **v2.3 recipe adjudication** — if the conformant run still fails, that failure is the first real evidence about the design; recipe adjudication follows with the trainex-r2 resolution doc as a premise-qualified candidate verdict source (SCOPE-29/31).
-- **PLAT-01..07 platform expansion and Stage-1+ curriculum work** — blocked by the v2.0 `adjust` verdict and SCOPE-27; re-opens only on a go verdict after a valid evaluation.
-- **The general verification-enforcement regime** — normative-statement index, full CI integration, waiver policy, thresholds X/M — owned by the concurrent charter workstream (SCOPE-32).
-- **Carried-forward todos** (remain in `.planning/todos/pending/`, unlinked to v2.2 phases): `trainex-r1-research-handoff` (r1b tuning round), `d-06-static-epsilon-sensitivity-check` (spec-side sensitivity question).
+1. **The ERW gate** — after ERW-01's packet is assembled: rule directly, or commission `trainex-r3`.
+2. **The recalibration decision** — the actual `η_c` / normalization / SIREN-scale / `N_t` pick, together with the SCOPE-38 re-ratification of each locked contract the pick amends.
+3. **Invariant-B window re-ratification** — `N = 500` was ratified 2026-08-05 for the old, saturated dynamics; the new recipe may need a different window, and this must not be silently carried over.
+4. **Pre-registration of the EVAL-02 spending seed** — fixed before RUN-04/05 execute. Choosing after seeing three seeds would be a selection-effect leak against a single-look budget.
+5. **The DIAG-06 go / adjust / rethink verdict** — after RUN-04/05 and EVAL-02.
+
+## Declared Terminal State
+
+If GATE-04 refuses the recalibration train-free, or RUN-04's causal front still
+fails to advance under the ratified recipe, **SCOPE-37 forbids further tuning
+without a new owner decision.** The milestone then closes on a `rethink`-flavored
+DIAG-06 verdict with the held-out evaluation preserved unspent — declared here up
+front, so that outcome is a clean close rather than a drift. This is v2.2's
+lesson written into v2.3's requirements: the terminal branch must be named before
+it is needed.
+
+## Future Requirements (deferred beyond v2.3)
+
+- **PLAT-01..07 platform expansion and Stage-1+ curriculum work** — blocked by the v2.0 `adjust` verdict and SCOPE-36; re-opens only on a `go` verdict at DIAG-06.
+- **The general verification-enforcement regime** — normative-statement index, full CI integration, waiver policy, thresholds X/M — owned by the concurrent charter workstream (`docs/work/designs/cross_cutting/training-verification-regime/2026-07-24-verification-enforcement-charter.md`), inherited unchanged from v2.2 SCOPE-32.
+- **Final Publication LaTeX Sync** — deferred until implementation, training, and research-result interpretation are complete.
+- **Carried-forward todos** (remain in `.planning/todos/pending/`): `trainex-r1-research-handoff` (the r1b tuning round), `d-06-static-epsilon-sensitivity-check` (spec-side sensitivity question, answered as trainex-r2 Q6 but not yet dispositioned).
 
 ## Out of Scope
 
 | Exclusion | Reason |
 |-----------|--------|
-| Recipe tuning / hyperparameter adjustment against observed results | SCOPE-29 — conformance-only iteration protects the single look; tuning is v2.3 |
-| Framework-spec file edits | SCOPE-30 — amendments accumulate in the VER-20 routing list for a later spec milestone |
-| Stage-1+ work, PLAT-01..07 platform expansion | SCOPE-27 — Stage-0-only training authorization |
-| Any held-out evaluation beyond the one authorized | SCOPE-28 — requires a new owner decision |
-| The trainex-r2 report's tuning analysis as grounding | SCOPE-31 — it reasons about a recipe that did not run |
-| Re-auditing the component math | The conformance audit's "verified clean" section is load-bearing — the divergences sit in assembly, wiring, and configuration seams |
-| Re-running the v2.0 seed-42 checkpoint's evaluation | The v2.0 record and its receipt-based refusal path are protected (see the evaluation-policy clarification) |
+| Re-litigating the nine v2.2 conformance repairs (C-01..C-09) | Settled and independently re-verified at Phase 49 close (176-test suite) and Phase 50. Not reopened. |
+| Re-running or re-litigating DIAG-05 | `52-DIAG-05-REDERIVATION.md` is the operative diagnosis, superseding `44-DIAGNOSIS.md`/`44-ERRATUM.md`'s under-determined rankings. Treated as settled (v2.2-GAPS obligation 4). |
+| Open-ended hyperparameter search / recipe tuning after the spec edit | SCOPE-37 — post-edit iteration is conformance-only, so a second failure is informative rather than another leak. |
+| Stage-1+ work, PLAT-01..07 platform expansion | SCOPE-36 — Stage-0-only authorization pending a `go` verdict. |
+| Any held-out evaluation beyond the one preserved | SCOPE-35 — requires a new owner decision. |
+| Agent-authored recalibration options, defaults, or picks | SCOPE-34 — the decision is owner-ratified through the governed channel; agent judgment is not a grounding source. |
+| A framework-spec value change without a re-ratified contract | SCOPE-38 — three of the candidate remedy surfaces carry owner-ratified contract markers. |
+| Re-running the v2.0 seed-42 checkpoint's evaluation | The v2.0 record and its receipt-based refusal path are protected (v2.0 audit W-1). A corrected implementation is a new question, not a re-run. |
+| The GSD 4-agent domain-research pass | External research for this milestone is routed through the governed ERW channel (ERW-01/02). A generic web-research pass would produce exactly the unratified remedy analysis SCOPE-34 and the STOP protocol forbid. |
 
 ## Traceability
 
+*(Filled by the roadmapper at roadmap creation; VER-21's binding check is at milestone close, not at roadmap creation.)*
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | Phase 46 | Complete |
-| CONF-02 | Phase 47 | Complete |
-| CONF-03 | Phase 47 | Complete |
-| CONF-04 | Phase 48 | Complete |
-| CONF-05 | Phase 48 | Complete |
-| CONF-06 | Phase 48 | Complete |
-| CONF-07 | Phase 48 | Complete |
-| CONF-08 | Phase 46 | Complete |
-| CONF-09 | Phase 47 | Complete |
-| INST-01 | Phase 46 | Complete |
-| INST-02 | Phase 48 | Complete |
-| INST-03 | Phase 49 | Complete |
-| GATE-01 | Phase 49 | Complete |
-| GATE-02 | Phase 49 | Complete |
-| GATE-03 | Phase 49 | Complete |
-| TEST-01 | Phase 48 | Complete |
-| TEST-02 | Phase 48 | Complete |
-| RUN-01 | Phase 50 | Closed incomplete (owner decision 2026-08-17) |
-| RUN-02 | Phase 50 | Closed incomplete (owner decision 2026-08-17) |
-| RUN-03 | Phase 51 | Not attempted (evaluation preserved for v2.3) |
-| EVAL-01 | Phase 51 | Not attempted (evaluation preserved for v2.3) |
-| DIAG-05 | Phase 52 | Complete |
-| VER-19 | Phase 52 | Complete |
-| VER-20 | Phase 52 | Complete (5 items handed off) |
+| ERW-01 | — | Pending |
+| ERW-02 | — | Pending |
+| SPEC-01 | — | Pending |
+| SPEC-02 | — | Pending |
+| SPEC-03 | — | Pending |
+| SPEC-04 | — | Pending |
+| SPEC-05 | — | Pending |
+| SPEC-06 | — | Pending |
+| INST-04 | — | Pending |
+| GATE-04 | — | Pending |
+| RUN-04 | — | Pending |
+| RUN-05 | — | Pending |
+| EVAL-02 | — | Pending |
+| DIAG-06 | — | Pending |
+| VER-21 | — | Pending |
 
-**Coverage:** 24/24 mapped (Phase 46: CONF-01, CONF-08, INST-01 · Phase 47: CONF-09, CONF-02, CONF-03 — in that order · Phase 48: CONF-04..07, INST-02, TEST-01, TEST-02 · Phase 49: GATE-01..03, INST-03 · Phase 50: RUN-01, RUN-02 · Phase 51: RUN-03, EVAL-01 · Phase 52: DIAG-05, VER-19, VER-20). No orphans; no duplicates. SCOPE-27..32 are scope-boundary annotations, not numbered requirements (v2.0 SCOPE-16..21 precedent). CONF/INST/GATE/TEST/RUN/EVAL are new categories beginning at 01; DIAG continues from v2.1's DIAG-04; VER continues from v1.6's VER-18; SCOPE continues from v2.1's SCOPE-26.
-
-**Amendment 2026-07-27 (GAP-46-05, owner instruction).** CONF-08 was added to Phase 46 and the milestone moved 22 → 23 requirements after the CONF-01 branch point fired: the real-corpus probe returned `VERDICT_AMBIGUOUS` on a 100%-prevalent mass↔position permutation and COM/boost gauge divergence. GAP-46-04 first routed that repair to Phases 47/48; because Phase 47 is gated on Phase 46 (`ROADMAP.md:103`) while Plan 46-07 was gated on the repair, the routing deadlocked the milestone at its first phase. GAP-46-05 moves the **minimum** repair and its re-probe into Phase 46 as CONF-08. In the same amendment, CONF-01 and INST-01 reverted from Complete to Pending: CONF-01 mandates "Resolve RG-02" and RG-02 is measurably unresolved (this sits directly under EVAL-01 precondition (ii)), and INST-01's production wiring is the unexecuted Plan 46-07. VER-19 is re-verified against 23/23 at Phase 52 close, not carried forward from the roadmap-creation check.
-
-**Amendment 2026-07-28 (GAP-46-06, owner instruction).** Phase 46's three requirements — CONF-01, CONF-08, INST-01 — moved to Complete, re-derived as 3/23 Complete and 20/23 Pending rather than carried forward. CONF-08 closed on plans 46-08/46-09; INST-01 closed on plan 46-07 and was verified by inspecting a real run's artifacts, not by a passing plan. CONF-01 closed by owner ruling on GAP-46-06 option B: the post-repair probe returned rule-5 `VERDICT_NON_FRAME_DIVERGENCE` because CONF-08's authorized repair made rule 4's byte-identity condition unreachable, so no clean token was obtainable; the owner exercised the D-09 branch on the measured arm evidence and ratified `("r_raw", "t_native", "ordered_raw")`. **The CONF-01 bullet carries a mandatory qualification that must travel with any citation of it under EVAL-01 precondition (ii).** Phase 51 must read that qualification before treating precondition (ii) as satisfied — a `Complete` checkbox is not the evidence.
-
-**Amendment 2026-07-28 (GAP-46-07, owner instruction).** **CONF-09** added to Phase 47, sequenced **ahead of CONF-02**; the milestone moves 23 → 24 requirements and coverage is re-derived as 24/24 rather than carried forward. An independent verification of the six-claim conformance handoff (report under `docs/work/reviews/cross_cutting/stage0-conformance-audit/`) confirmed all six divergences and surfaced a seventh, unrouted one: CONF-08 excluded the rotation gauge and the `D`/`V` scaling by design, and GAP-46-06 then ratified the resulting intermediate as the **validation** observation frame — neither ruling reached the **training** path, which pairs unrotated, unscaled residents with `u = t/T`. Coverage read `23/23 mapped` with no orphans throughout, which is precisely why a *missing* requirement was invisible to it; the scale half was already measured in committed CONF-01 evidence (the `scaled_hypothesis` arm **is** the training frame, median 0.98936 over 1,651 trajectories against the probe's own analytic `(T²−1)/T² ≈ 0.99`) and had simply never been inferred. **Supersedes in part** GAP-46-06's ratified `("r_raw", "t_native", "ordered_raw")` frame, whose own constant declares this staleness condition; **CONF-01's Complete status and its mandatory EVAL-01 precondition-(ii) qualification are unchanged.** Separately measured and recorded so it is not mis-assumed later: the frame error is **not** the cause of the observed causal-front collapse — at step 1 the model is at initialization, so `R̄₀ = 5.32e+09` is identical under any target-frame repair, and the cause is the absent CONF-05 clip — but it does impose an asymptotic `R̄` floor of median `8.36e+05`, `1122×` above underflow on 25/25 real trajectories, so the front could never advance at convergence either. **CONF-05's bound is therefore chosen after both CONF-04 and CONF-09**; a clip applied to an unrepaired frame yields a run that looks healthy and is just as invalid.
+**Namespace continuity.** `ERW` and `SPEC` are new categories beginning at 01 —
+verified against every archived milestone requirements file, no collisions.
+`INST` continues from v2.2's INST-03; `GATE` from GATE-03; `RUN` from RUN-03;
+`EVAL` from EVAL-01; `DIAG` from v2.2's DIAG-05; `VER` from VER-20; `SCOPE`
+from v2.2's SCOPE-32. SCOPE-33..38 are scope-boundary annotations, not numbered
+requirements (v2.0 SCOPE-16..21 and v2.2 SCOPE-27..32 precedent).
 
 ---
-*Requirements defined: 2026-07-25 via `/gsd-new-milestone`, transcribed from the owner-ratified v2.2 roadmap proposal.*
-*Last updated: 2026-07-28 — CONF-09 added to Phase 47 per GAP-46-07 (owner option A); milestone 23 → 24 requirements.*
+*Requirements defined: 2026-08-18 via `/gsd-new-milestone`, transcribed from the owner-ratified v2.3 roadmap proposal (`16434f50`).*
