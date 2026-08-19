@@ -1061,6 +1061,17 @@ The section below is weirdly formatted and written out even in the original mark
 - **Input Data**: Random uniform input tensors matching network architecture dimensions.
 - **Execution**: `.venv/bin/python .planning/milestones/v1.4-phases/21-acceptance-checks-and-handoff/probes/probe_loss_stability.py`
 
+### 10.6 Held-Out Physics-Gate Aggregate Statistic
+
+> **Phase 53 contract: held-out physics-gate aggregate statistic (SPEC-05; GAP-44-01 owner ruling 2026-07-23, option A; grounded by .planning/milestones/v2.1-phases/44-physics-gate-forensics/44-GAPS.md).** The ruling's mention of codifying this wording into `ctl_instruction.md` was availability language, not a ruling on placement; the definition is fixed here because the only held-out gate in that file is the per-stage curriculum ADVANCE gate, which is a different object. Mean and median over held-out trajectories remain quoted as distribution facts and are not gate numbers.
+
+- **Headline statistic**: the worst-case max over held-out trajectories of the per-trajectory validation-gate `eps_H`, as already defined by the locked conservation gate in `ctl_instruction.md` (Step 1A, Trajectory Admission Gate). This subsection defines only the aggregate across trajectories; the within-trajectory reduction is fixed there and is not restated here.
+- **Pass Criterion**: the gate fails if ANY held-out trajectory's `eps_H` exceeds `1e-5`. The comparison is strictly greater: a trajectory whose `eps_H` equals `1e-5` passes.
+- **Headline citation**: when the aggregate is quoted from the ruling it carries the exact constant 237.2086056078468 with no rounding, consistent with `SCS = log10(max eps_H)`.
+- **Non-gating distribution facts**: the mean and median over held-out trajectories are non-gating, reported for distribution context only; neither is a gate number.
+- **Glyph disambiguation**: this validation-gate `eps_H` is distinct from the training-loss `eps_H = 1e-4*S_H` of Section 3.4: same glyph, different quantity.
+- **Gate disambiguation**: this gate is distinct from the per-stage curriculum ADVANCE gate in `ctl_instruction.md` (Stage Transition Criteria). That gate's energy-conservation criterion is a different metric under a different reduction on both axes: a final-value reading within each trajectory and a mean across trajectories, where this gate takes a worst-case max on both.
+
 ---
 
 ## Source Issues / Notes for Future Reconciliation
