@@ -21,6 +21,7 @@ independently-locked framework-spec sections:
 - `pinn_architecture.md` §2.2 locks a SIREN initialization (`first_omega_0 = 30`,
   12 layers) whose **second derivative** is `O(10⁵)` in the network's own units
   at initialization, giving `R̄ ≈ 10¹⁰`.
+
 - `pinn_architecture.md` §3.2 locks a causal weighting
   `w_n = exp(−η_c · Σ_{m<n} stopgrad(R̄_m))` with `η_c = 1` on **unnormalized**
   `R̄` — a calibration that presumes a *converged* network's residual of `O(1)`.
@@ -47,6 +48,7 @@ about the design, and recipe adjudication … is v2.3."*
    as completed by v1.4/v1.5/v1.6 — AND as amended by this milestone's own
    VER-20-item decisions under SCOPE-38's amendment discipline. This is the one
    milestone where editing them is the point.
+
 2. **v2.2's closure record**: the residual-frame conformance audit
    (`docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md`,
    committed `ae14a99e`); the DIAG-05 root-cause re-derivation
@@ -54,6 +56,7 @@ about the design, and recipe adjudication … is v2.3."*
    the five-item routing list
    (`.planning/milestones/v2.2-phases/52-diagnosis-re-derivation-handoff/52-VER-20-ROUTING-HANDOFF.md`);
    and `.planning/milestones/v2.2-GAPS.md` "Milestone close".
+
 3. **The trainex-r2 research report**
    (`pinn_instruction/markdown_conversion/framework-specs/trainex-r2/`) — **now
    legally a grounding source** (SCOPE-31's own text: "it enters at v2.3 as a
@@ -67,6 +70,7 @@ about the design, and recipe adjudication … is v2.3."*
    executed two of Q3's four discriminating tests (residual-on-stored-targets →
    CONF-01/08/09; per-term gradient statistics → INST-02) and repaired its
    reading-2 frame hypothesis as C-09.
+
 4. **All prior locked decisions this milestone does not reopen**: the 14D
    `[τ, IC₁₃]` input, Jacobi IC₁₃, mass-weighted COM projection, PHYS-03
    softening `eps_soft = 1e-5`, the post-v1.3 SCS gate, the raw-mass
@@ -84,10 +88,10 @@ about the design, and recipe adjudication … is v2.3."*
 ### Framework-Spec Amendments (SPEC)
 
 - [ ] **SPEC-01**: Implement the ratified causal-weight/SIREN-scale recalibration (VER-20 item **e**) as a `pinn_architecture.md` §2.2/§3.2 amendment. **Under SCOPE-38 this is a contract amendment, not a value edit**: `η_c = 1` carries an owner-ratified Phase-35 contract marker (**LOSS-04 / D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A / AC-LOSS-04**, `pinn_architecture.md:424`, grounded in the v1.6 resolution doc §1.1 and GAP-32-01). The edit must name the superseded ruling, record the new decision's provenance, and carry a **re-issued acceptance criterion**. If the ratified remedy touches `first_omega_0` (§2.2:167, *"fixed at 30 and is not scheduled during training"*) or the causal-exponent clip (spec'd in the same contract block as *"required only to avoid underflow"*), the same discipline applies to each. `N_t`/`n_col` is decided jointly — see SPEC-06. [VER-20 item (e); SCOPE-33, SCOPE-38]
-- [ ] **SPEC-02**: Reword `pinn_architecture.md` §4.1's `λ_phys^max` line to state that the PHYS-05 per-stage table is **locked**, not defaulted. The line currently reads as though the value is a tunable default; GAP-45-03 ratified that the full table binds. [VER-20 item (a)]
-- [ ] **SPEC-03**: Add a spec convention for marking **locked-vs-default values inside a table**. No existing convention distinguishes a locked constant from an illustrative default within the same table; SPEC-02 is one instance of a systemic wording problem. [VER-20 item (b)]
-- [ ] **SPEC-04**: Make the `L_data` reduction explicit in spec prose — **mean over time, bodies, and spatial components**, as ratified by the owner on GAP-45-01 (2026-07-31, Phase 48 checkpoint, option A) — rather than leaving it inferable from code. [VER-20 item (c); CONF-07]
-- [ ] **SPEC-05**: Codify the held-out physics gate's **aggregate statistic** in spec prose: worst-case max, not mean or median, owner-ruled 2026-07-23 on GAP-44-01 and never written into the spec. [VER-20 item (d)]
+- [x] **SPEC-02**: Reword `pinn_architecture.md` §4.1's `λ_phys^max` line to state that the PHYS-05 per-stage table is **locked**, not defaulted. The line currently reads as though the value is a tunable default; GAP-45-03 ratified that the full table binds. [VER-20 item (a)]
+- [x] **SPEC-03**: Add a spec convention for marking **locked-vs-default values inside a table**. No existing convention distinguishes a locked constant from an illustrative default within the same table; SPEC-02 is one instance of a systemic wording problem. [VER-20 item (b)]
+- [x] **SPEC-04**: Make the `L_data` reduction explicit in spec prose — **mean over time, bodies, and spatial components**, as ratified by the owner on GAP-45-01 (2026-07-31, Phase 48 checkpoint, option A) — rather than leaving it inferable from code. [VER-20 item (c); CONF-07]
+- [x] **SPEC-05**: Codify the held-out physics gate's **aggregate statistic** in spec prose: worst-case max, not mean or median, owner-ruled 2026-07-23 on GAP-44-01 and never written into the spec. [VER-20 item (d)]
 - [ ] **SPEC-06**: Dispose of the `n_col` spec/code divergence **as part of the recalibration**. `pinn/train.py:1033` hard-codes `collocation_count = 16`; `pinn_architecture.md` §3.2 specifies `n_col = 4096` with "recommended: 2048–4096" (`:433`, `:440`). Because `w_n` is an **exclusive prefix sum** over collocation points (`pinn/loss_catalog.py`), the exponent at point *n* grows with the number of preceding points, so `η_c`'s calibration is coupled to `N_t` — calibrating at 16 and later honoring 4096 moves the exponent by roughly 256×. SPEC-01 and SPEC-06 are **ratified together**, and the amended spec records the `N_t` the calibration binds to plus the re-check trigger if it ever changes. v2.2 deferred this as a recipe surface under SCOPE-29; that deferral expires here. [SCOPE-33; audit §6d]
 
 ### Reproducibility & Train-Free Acceptance (INST / GATE)
@@ -166,10 +170,10 @@ it is needed.
 | ERW-01 | Phase 54 | Pending |
 | ERW-02 | Phase 54 | Pending |
 | SPEC-01 | Phase 56 | Pending |
-| SPEC-02 | Phase 53 | Pending |
-| SPEC-03 | Phase 53 | Pending |
-| SPEC-04 | Phase 53 | Pending |
-| SPEC-05 | Phase 53 | Pending |
+| SPEC-02 | Phase 53 | Complete |
+| SPEC-03 | Phase 53 | Complete |
+| SPEC-04 | Phase 53 | Complete |
+| SPEC-05 | Phase 53 | Complete |
 | SPEC-06 | Phase 56 | Pending |
 | INST-04 | Phase 55 | Pending |
 | GATE-04 | Phase 56 | Pending |
