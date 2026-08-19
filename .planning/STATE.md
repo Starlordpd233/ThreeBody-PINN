@@ -2,9 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
+current_phase: 53
+current_phase_name: Narrow Spec Codification
 status: planning
-last_updated: "2026-08-18T13:38:58.000Z"
+stopped_at: Phase 53 context gathered
+last_updated: "2026-08-19T11:47:53.573Z"
 last_activity: 2026-08-18
+last_activity_desc: v2.3 roadmap created (phases 53–58; five blocking owner checkpoints; declared terminal state recorded)
 progress:
   total_phases: 6
   completed_phases: 0
@@ -460,11 +464,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/53-narrow-spec-codification/53-CONTEXT.md
 
-Last session: 2026-08-15T13:34:44Z
-Stopped at: Completed 50-07-PLAN.md
-Next action: Execute 50-08 (owner checkpoint). Do not launch a later generation from this plan. `final_band_generation` remains null. RUN-01/RUN-02 stay unflipped.
+Last session: 2026-08-19T11:47:53.566Z
+Stopped at: Phase 53 context gathered
+Next action: `/gsd-plan-phase 53` (Narrow Spec Codification, SPEC-02..05). Phase 53 is ungated and runs in parallel with Phases 54 and 55. Read `53-CONTEXT.md` first — D-01..D-06 are settled under the owner's 2026-08-19 delegation and must not be re-opened. Phase 53 edits no contract-marked value and must not touch §2.2, §2.4, or §3.2 (Phase 56's territory).
 
 ## Operator Next Steps
 
