@@ -59,8 +59,7 @@ decided silently.
 
 ### Locked-vs-default convention (SPEC-03)
 
-- **D-01: Apply the convention to §4.1's PHYS-05 values ONLY. Do not sweep the
-  rest of the file. Record the un-swept tables as a routed inventory.**
+- **D-01: Apply the convention to §4.1's PHYS-05 values ONLY. Do not sweep the rest of the file. Record the un-swept tables as a routed inventory.**
 
   GAP-45-03's ruling text ends with *"Generalization to other spec tables NOT
   decided."* That is an explicit owner **withholding**, not an omission, so a
@@ -81,9 +80,7 @@ decided silently.
   — **Reversibility:** reversible — a later phase extends the sweep by adding
   markers; nothing has to be undone.
 
-- **D-02: Notation is an inline ASCII marker — `**[LOCKED]**` / `**[DEFAULT]**` —
-  declared in one short dedicated subsection, and defined as attaching to a
-  *value*, not to a table row.**
+- **D-02: Notation is an inline ASCII marker — `**[LOCKED]**` / `**[DEFAULT]**` — declared in one short dedicated subsection, and defined as attaching to a *value*, not to a table row.**
 
   Two alternatives were rejected on mechanical grounds:
   - *Add a Status column to tables.* **Structurally impossible at the one site
@@ -116,8 +113,7 @@ decided silently.
 
 ### `L_data` reduction (SPEC-04)
 
-- **D-03: Correct the displayed formula, add the prose sentence, AND land a
-  contract block. Not prose-only.**
+- **D-03: Correct the displayed formula, add the prose sentence, AND land a contract block. Not prose-only.**
 
   The formula at `pinn_architecture.md:304` currently reads
   `L_data = (1/N_t) Σ_n Σ_i Huber(...)` — mean over time, **sum** over bodies,
@@ -154,8 +150,7 @@ decided silently.
 
 ### Held-out physics gate statistic (SPEC-05)
 
-- **D-04: New `## 10.6` subsection in `pinn_architecture.md` §10 Numerical
-  Acceptance Checks. Do NOT place it at `ctl_instruction.md:1939`.**
+- **D-04: New `## 10.6` subsection in `pinn_architecture.md` §10 Numerical Acceptance Checks. Do NOT place it in `ctl_instruction.md`'s per-stage ADVANCE gate.**
 
   **This is the finding that decided it, and it is a correctness issue rather
   than a placement preference.** The only "held-out" hit in either framework spec
@@ -174,8 +169,7 @@ decided silently.
   owns methodology and total-loss assembly, `pinn_architecture.md` owns numeric
   and component contracts — an aggregate statistic over a metric is the latter.
 
-- **D-05: Write the statistic as max over held-out *trajectories*, and do not
-  define the within-trajectory reduction.**
+- **D-05: Write the statistic as max over held-out trajectories, and do not define the within-trajectory reduction.**
 
   GAP-44-01 is explicit and bounded: *"the gate fails if ANY trajectory exceeds
   `1e-5`, headline `max = 237.2086056078468` … consistent with
@@ -196,8 +190,7 @@ decided silently.
 
 ### Ratification-marker schema (all four edits)
 
-- **D-06: Use the house contract-block pattern with the requirement ID plus the
-  originating GAP ruling. Mint no new `AC-*` IDs.**
+- **D-06: Use the house contract-block pattern with the requirement ID plus the originating GAP ruling. Mint no new AC-namespace IDs.**
 
   Form:
   `> **Phase 53 contract: <topic> (<SPEC-NN>; <GAP-ID> owner ruling <date>, option <X>; grounded by <full relative path>).**`
