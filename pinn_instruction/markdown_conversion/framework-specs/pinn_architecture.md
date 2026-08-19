@@ -314,12 +314,19 @@ trajectory defined by a given set of initial conditions.
 The data fidelity loss uses a Huber contract on scaled projected
 positions:
 
-$$L_{data} = \frac{1}{N_t} \sum_n \sum_i \operatorname{Huber}_{\delta_r}(r_{\theta,i}'(u_n) - r_i'(u_n))$$
+$$L_{data} = \frac{1}{N_t \, N_b \, d} \sum_{n} \sum_{i} \sum_{c} \operatorname{Huber}_{\delta_r}(r_{\theta,i,c}'(u_n) - r_{i,c}'(u_n))$$
 
 Author Comment: again, the syntax is broken
 
 where $\delta_r = 1$ is the default Huber transition. The previous
 MAE/L1 data-loss prose is replaced by this Huber contract.
+
+The reduction is the mean over time, bodies, and spatial components: the sum
+above is normalized by $N_t \, N_b \, d$, equivalently $1/(9 N_t)$ at $N_b = 3$
+bodies and $d = 3$ spatial components. This reduction was ratified by the owner
+on 2026-07-31 at the Phase 48 checkpoint (GAP-45-01, option A).
+
+> **Phase 53 contract: $L_{data}$ component reduction (SPEC-04; GAP-45-01 owner ruling 2026-07-31, option A; grounded by .planning/milestones/v2.1-phases/45-trainex-r2-erw-package-assembly/45-GAPS.md).** The ratified reduction is the per-coordinate mean of the Huber residual over the time, body, and spatial-component axes. Both readings were presented to the owner against retained Stage-0 run magnitudes: the implemented per-coordinate mean produced run-average values of 0.1539..0.1630, where the sum-over-components reading produced 1.3852..1.4673 - exactly 9x, which is 3 bodies times 3 spatial components. This edit does not amend a contract-marked value: the adjacent Phase 35 LOSS-01 block fixes scaling, units, and component-math ownership but does not state the reduction, and the reduction was genuinely undetermined - which is precisely why GAP-45-01 had to exist - so correcting the displayed formula resolves an ambiguity rather than superseding a ruling. The shipped implementation already computes this reduction (CONF-07 Complete); this edit changes no code.
 
 > **Phase 35 contract: loss scaling and units (LOSS-01; NS-18 modified; AC-LOSS-01; grounded by the resolution doc §1.14 and `.planning/phases/35-loss-energy-weight-contracts/evidence/ns-18-loss-scaling-units.md`).** `pinn_architecture.md` is the canonical component-math home for data, physics, energy, and angular-momentum terms; `ctl_instruction.md` owns total-loss assembly and methodology cross-references by stable section heading plus AC ID. The component contract uses dimensionless `u=t/T` and `r'=r/D`, projected scaled positions for Huber data loss, ordered raw mass metadata where COM/force terms require masses, matched `epsilon_train = 1e-5` for force and Hamiltonian terms, separate data-fidelity snapshot points from physics/energy collocation points, the IC anchor, the angular-momentum regularizer, and no linear-momentum / no-linear-momentum-loss term.
 
