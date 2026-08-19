@@ -67,7 +67,10 @@
 **Goal**: The four VER-20 items that need no research are settled in the spec text, so a worst-case v2.3 still discharges four of the five routed amendments.
 **Depends on**: Nothing — ungated first v2.3 phase (ratified sequencing track A). Runs in parallel with Phases 54 and 55.
 **Requirements**: SPEC-02, SPEC-03, SPEC-04, SPEC-05
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 53-01-PLAN.md — convention preamble + PHYS-05 marking + adjudication re-key (tracer), L_data reduction correction, §10.6 aggregate-statistic subsection
 
 **Success Criteria** (what must be TRUE):
 
@@ -156,7 +159,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 53. Narrow Spec Codification | v2.3 | 0/? | Not started | - |
+| 53. Narrow Spec Codification | v2.3 | 0/1 | Not started | - |
 | 54. Recalibration Decision Grounding | v2.3 | 0/? | Not started | - |
 | 55. Architecture Characterization Probe | v2.3 | 0/? | Not started | - |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 0/? | Not started | - |
