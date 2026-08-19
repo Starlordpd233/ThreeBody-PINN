@@ -5,6 +5,20 @@ date: 2026-03-21
 
 # A Definitive Implementation Blueprint for a Hybrid SQR-SkipResNet-SIREN PINN with Soft Conservation Regularization for $\mathrm{N}$-Body Dynamics
 
+**Notation convention - locked vs. default values.** Two inline markers record the
+ratification status of a numeric value in this specification and in
+`ctl_instruction.md`. **[LOCKED]** marks a value that is owner-ratified and
+contract-fixed: the value binds as written, and overriding it is a violation
+rather than a tuning choice. **[DEFAULT]** marks an illustrative default: a value
+offered as a reasonable starting point, which a later phase may change without
+re-ratification. A marker attaches to a value, not to a table row, so the same
+convention applies to markdown table cells, prose bullets, and displayed LaTeX
+lines alike. The markers are machine-checkable status annotations, distinct from
+the preserved editorial notes recorded in SI-PINN-002, which were historically
+rendered as bold bracketed text of the same shape. This convention governs both
+framework specs; Phase 53 applies it only within Section 4.1 of this file and
+makes no marker edits in `ctl_instruction.md`.
+
 # 1. Foundational Architectural Principles: A Co-Designed Approach for Chaotic Systems
 
 The accurate and long-term simulation of $\mathrm{N}$-body gravitational
@@ -659,10 +673,12 @@ The warmup schedule is:
 
 - $I_{warm} = min(2000, 0.1 \cdot N_{Adam,k})$
 - $\lambda_{phys}(k, i) = \lambda_{phys}^{max}(k) \cdot min(1, i/I_{warm})$,
-  default $\lambda_{phys}^{max}(k) = 1$
-- $\lambda_E^{max}(k) = \lambda_L^{max}(k) = \{0 \text{ for } k \in \{0,1\}; 10^{k-4} \text{ for } k \in \{2,3,4\}; 1 \text{ for } k \in \{5,6\}\}$
+  $\lambda_{phys}^{max}(k) = 1$ **[LOCKED]**
+- $\lambda_E^{max}(k) = \lambda_L^{max}(k) = \{0 \text{ for } k \in \{0,1\}; 10^{k-4} \text{ for } k \in \{2,3,4\}; 1 \text{ for } k \in \{5,6\}\}$ **[LOCKED]**
 - $\lambda_E(k, i)$ and $\lambda_L(k, i)$ warm up linearly with
   $i/I_{warm}$
+
+> **Phase 53 contract: PHYS-05 per-stage table locked and locked-vs-default convention (SPEC-02; SPEC-03; GAP-45-03 owner ruling 2026-07-24, option A; grounded by .planning/milestones/v2.1-phases/45-trainex-r2-erw-package-assembly/45-GAPS.md).** The full PHYS-05 per-stage λ^max(k) table above binds for every stage k, boundary rows included - not merely the warmup form together with the cap at one. Preflight asserts the entire table at run start and at every stage boundary; overriding any tabulated value is a violation. The warmup form itself (the warmup-iteration count and the linear ramp) is retained under the Phase 35 LOSS-02 contract below; the locked-value markers bind the ruled per-stage values, not the ramp shape. This site is the locked-vs-default convention's first and only application in this phase; the default and recommended wordings elsewhere in this file are deliberately left unmarked and are inventoried, with per-item reasoning, in `.planning/phases/53-narrow-spec-codification/53-UNSWEPT-INVENTORY.md`. Generalization of the convention to other spec tables was explicitly NOT decided by this ruling (consequence 5), and remains open.
 
 > **Phase 35 contract: energy-loss weights (LOSS-02; M15 rejected as issue-doc replacement; AC-LOSS-02; grounded by the resolution doc §1.9 and `.planning/phases/35-loss-energy-weight-contracts/evidence/m15-energy-weight-schedule.md`).** Retain the PHYS-05 warmup schedule above with `lambda_E^max <= 1` and scheduled conservation weights at or below one. The issue-doc cap-table replacement and stale high-energy-weight premise are rejected, not adopted as a locked schedule. Before any future control law, log weighted losses, scheduled weights, and gradient statistics; automatic dominance reweighting is deferred until measured weighted-loss/gradient evidence exists.
 
