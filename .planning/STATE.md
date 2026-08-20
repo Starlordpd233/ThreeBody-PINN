@@ -5,14 +5,14 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 54
 current_phase_name: Recalibration Decision Grounding
 status: planning
-stopped_at: Phase 54 context gathered - ready to plan Phase 54
-last_updated: "2026-08-19T21:30:00.000Z"
-last_activity: 2026-08-19
-last_activity_desc: Phase 54 context gathered - 54-CONTEXT.md captures D-01..D-11 packet-assembly decisions under the SCOPE-34 boundary (no recalibration value named, defaulted, or ranked); 5 items routed to Open Items for Owner Visibility, incl. stale pinn_architecture.md line numbers in REQUIREMENTS.md/ROADMAP.md after Phase 53's edits
+stopped_at: Phase 54 planned - ready to execute Phase 54 (ERW-01 only; checkpoint (1) is blocking)
+last_updated: "2026-08-20T04:00:00.000Z"
+last_activity: 2026-08-20
+last_activity_desc: Phase 54 planned - 5 plans across 4 waves covering ERW-01 (packet + delivery note + gap anchor + ruling stub + checkpoint (1) presentation). ERW-02 deliberately unplanned until the owner discharges checkpoint (1), per roadmap SC-3 and CONTEXT.md D-11, so Phase 54 does not close in this execution pass. Decision coverage 11/11; plan-checker VERIFICATION PASSED
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 1
+  total_plans: 6
   completed_plans: 1
   percent: 17
 ---
@@ -29,10 +29,22 @@ See: .planning/PROJECT.md (updated 2026-08-18)
 ## Current Position
 
 Phase: 54 of 58 (Recalibration Decision Grounding)
-Plan: Not started
-Status: Context gathered — ready to plan
-Last activity: 2026-08-19 — Phase 54 context gathered (`54-CONTEXT.md`, `54-DISCUSSION-LOG.md`, commit `d007040e`)
-Resume file: .planning/phases/54-recalibration-decision-grounding/54-CONTEXT.md
+Plan: 0/5 complete — 54-01 (wave 1, tracer) · 54-02 ∥ 54-03 (wave 2) · 54-04 (wave 3) · 54-05 (wave 4, blocking owner gate)
+Status: Planned — ready to execute
+Last activity: 2026-08-20 — Phase 54 planned (5 plans, 13 tasks, 4 waves)
+Resume file: .planning/phases/54-recalibration-decision-grounding/54-01-PLAN.md
+
+**Scope of this execution pass (roadmap SC-3 / CONTEXT.md D-11).** The plans cover
+**ERW-01 only** — assemble the strictly non-recommending decision packet at the
+`trainex-r3` round root, create the `GAP-54-01` anchor in `54-GAPS.md` and the new
+`.planning/milestones/v2.3-GAPS.md`, and present **owner checkpoint ①**, then halt.
+ERW-02 is deliberately unplanned: authoring a plan for either gate branch is work
+proceeding on an assumed branch, which SC-3 forbids. ERW-02 becomes a post-gate
+replan once the owner rules directly or commissions `trainex-r3`.
+
+**Therefore Phase 54 will NOT close when these plans finish.** Expect Phase 54 to
+remain in progress with `GAP-54-01` OPEN and Phase 56 closed until checkpoint ② is
+discharged. That is the design working, not a stall.
 
 ### Phase 49 verification (2026-08-10)
 
