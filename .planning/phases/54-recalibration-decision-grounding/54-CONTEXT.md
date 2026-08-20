@@ -210,7 +210,7 @@ rather than decided silently.
 
 ### Evidence depth
 
-- **D-07: Transcribe the confirmed mechanism inline, with its numbers, each carrying a `file:line` citation. Not citation-only.**
+- **D-07: Transcribe the confirmed mechanism inline, with its numbers — each carrying a file-and-line citation. Not citation-only.**
 
   SC-1 requires the packet to **state** the mechanism. The owner reads it at the
   gate as a standalone document; a packet that says "see the audit" has moved the

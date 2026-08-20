@@ -86,7 +86,15 @@ Plans:
 **Goal**: Exactly one owner-ratified recalibration decision exists, reached through the governed channel — the agent framed the question, the owner answered it.
 **Depends on**: Nothing — ungated (ratified sequencing track B). Runs in parallel with Phases 53 and 55; its ratified output hard-gates Phase 56.
 **Requirements**: ERW-01, ERW-02
-**Plans**: TBD
+**Plans:** 5 plans (0/5 complete) — **ERW-01 only.** ERW-02 is deliberately unplanned until checkpoint ① is discharged: authoring a plan for either branch is work proceeding on an assumed branch, which Success Criterion 3 forbids (CONTEXT.md D-11). Phase 54 therefore does **not** close in this execution pass.
+
+Plans:
+
+- [ ] 54-01-PLAN.md — wave 1, **tracer**: create the `trainex-r3` round root, the master's full §0–§10 skeleton with `access_mode: open-book` and its `source_baseline` pin, the §0 trainex-r2 premise-qualification block, the §10 neutrality-self-audit definition, and `DELIVERY-NOTE.md` end to end; verify the four standing bars (D-01, D-02, D-03, D-04, D-06, D-09)
+- [ ] 54-02-PLAN.md — wave 2: the evidence core — §1 Orientation, §4 the confirmed mechanism transcribed inline with corrected `file:line` citations plus the five decision surfaces in no-menu form, §6 the claims register with the trainex-r2 hypothesis-to-fact transition (D-05, D-06, D-07)
+- [ ] 54-03-PLAN.md — wave 2: `54-GAPS.md` and the new `.planning/milestones/v2.3-GAPS.md` carrying the single `GAP-54-01` anchor, plus `54-RULING.md`, the checkpoint-① gate stub with zero candidate values and the `N_t` completeness rule pre-declared (D-08, D-09, D-10)
+- [ ] 54-04-PLAN.md — wave 3: §2 Manifest with the r2→r3 role map, §3 Route-B source tiering, §5 the framed questions, §7 what the assembled evidence cannot answer, §8 Provenance, §9 the ERW Rule-7 output contract (the D-04 Layer-2 carve-out)
+- [ ] 54-05-PLAN.md — wave 4, **blocking**: run the ERW-01-applicable audit battery and record every result into §10, then present **owner checkpoint ①** and halt (D-04, D-11)
 
 **Success Criteria** (what must be TRUE):
 
