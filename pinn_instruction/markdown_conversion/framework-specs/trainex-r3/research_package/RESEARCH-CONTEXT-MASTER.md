@@ -52,11 +52,29 @@ The recalibration decision is owner-ratified, never agent-decided (SCOPE-34, `.p
 
 ## 2. Manifest — what this round contains, and what it deliberately does not
 
-_Written by plan 54-04._
+What this round contains today: one authored file, this master, at `pinn_instruction/markdown_conversion/framework-specs/trainex-r3/research_package/RESEARCH-CONTEXT-MASTER.md` — plus the user-only `DELIVERY-NOTE.md` at the round root, which is never uploaded.
+
+What this round deliberately does not contain, by exact path: `research_package/RESEARCH-AGENT-PROMPT.md`, `specs/`, and `research_results/`. The runbook's own reason: a package without its prompt is incomplete, and the two always ship together — so a round root carrying a master and no prompt is, by that definition, a round that has not been commissioned. These three artifacts are authored only if the owner commissions the round at checkpoint ①, and their absence is therefore the structural proof that no branch was assumed.
+
+The r2-to-r3 role mapping (headings of the trainex-r2 round's master [r2-QUAL], quoted verbatim with their line numbers; the renumbering is deliberate so the r2 roles keep their original relative order):
+
+| trainex-r2 section [r2-QUAL] | this master's section | role |
+|---|---|---|
+| `## 1. Orientation` (r2:19) | `## 1. Orientation` | orientation |
+| `## 2. Manifest (the four attached files)` (r2:48) | `## 2. Manifest — what this round contains, and what it deliberately does not` | manifest |
+| `## 3. Source tiering (how to treat each kind of content)` (r2:57) | `## 3. Source tiering — how to treat each kind of content` | tiering |
+| `## 4. The six research questions` (r2:74) | `## 5. The framed questions` | questions |
+| `## 5. Claims register (folded in verbatim from CLAIMS-REGISTER.md)` (r2:254) | `## 6. Claims register` | claims |
+| `## 6. Provenance` (r2:297) | `## 8. Provenance` | provenance |
+| `## 7. Output contract` (r2:308) | `## 9. Output contract` | output contract |
+
+The three additional sections — §0, §4, and §7 — are the v2.3-specific additions D-03 mandates.
 
 ## 3. Source tiering — how to treat each kind of content
 
-_Written by plan 54-04._
+- **Hard constraint (relied on as ground truth):** the locked framework specs (`pinn_architecture.md`, `ctl_instruction.md`) as they stand, with their owner-ratified contract markers; the v2.2 closure record — the 2026-08-17 residual-frame conformance audit, `52-DIAG-05-REDERIVATION.md` §3 as the operative diagnosis (superseding `44-DIAGNOSIS.md` and `44-ERRATUM.md`), `52-VER-20-ROUTING-HANDOFF.md`, and `.planning/milestones/v2.2-GAPS.md`'s milestone-close section; every `F-` row in §6; and the SCOPE boundaries stated in §1.3. The operative diagnosis is treated as settled and is not re-litigated.
+- **Challengeable (to be tested rather than assumed):** every `H-` row in §6, including the trainex-r2 round's interpretive content [r2-QUAL].
+- **Repo-derived evidence (the Route-B tier):** under `access_mode: open-book` the repository is an additional evidence source and not a replacement for this package. A claim derived from the live tree arrives as a checkable assertion carrying a `file:line`, not as an established fact, and ERW Rule 19 requires every such claim to be independently verified in-repo, with the verification recorded, before it informs a decision, a roadmap, or a spec edit. `pinn/` is not a grounding source for spec decisions — it is cited in §4 only as the current divergence being disposed of.
 
 ## 4. The confirmed mechanism and the coupled decision surfaces
 
@@ -137,7 +155,31 @@ The five surfaces appear in the order `52-VER-20-ROUTING-HANDOFF.md` item (e) an
 
 ## 5. The framed questions
 
-_Written by plan 54-04._
+Each question states what a complete answer specifies — the structure of an adequate answer, never a value. No question names a candidate, a range, a form, or a direction of change. The ordering follows §4.3's transcription order and carries no precedence; no question is marked central.
+
+### 5.1 `η_c`, the causal-weight exponent coefficient (S1)
+
+What a complete answer specifies: a disposition of the exponent coefficient against the residual magnitude it consumes, stating the evidence (cited to `F-` rows and source documents) that locates the working range of the mechanism, and stating explicitly how the disposition engages the `N_t` / `n_col` question, given that SPEC-06 makes the two joint. The question: what disposition of the causal-weight exponent coefficient does the assembled evidence support, against what residual magnitude, and what evidence would establish that the mechanism is not saturated at initialization?
+
+### 5.2 The `R̄` normalization and its reference scale (S2)
+
+What a complete answer specifies: whether a normalization is to be introduced, and if so its form and its reference scale, with the evidence that fixes the scale, plus a statement of how the normalized quantity feeds the causal exponent and the clip. The question: does the assembled evidence support introducing a normalization of `R̄` before the causal exponent, and against what reference scale would any such normalization be defined?
+
+### 5.3 `ω₀` / `first_omega_0`, the SIREN initialization scale (S3)
+
+What a complete answer specifies: whether the locked initialization scale stands, and if not, what the changed scale implies for the second-derivative magnitude the causal mechanism is calibrated against — with the cited evidence for that magnitude at the candidate scale. The question: does the assembled evidence support changing the SIREN initialization scale, and what would a changed scale imply for the residual magnitude the causal weighting mechanism consumes?
+
+### 5.4 `N_t` / `n_col`, the collocation-point count (S4)
+
+What a complete answer specifies: a disposition of the collocation-point count that is stated jointly with the `η_c` disposition, because the exclusive prefix sum makes the exponent magnitude depend on the count of preceding points — the exact factor between the two fixed numbers is 256 (§4.2). The question: what collocation-point count does the assembled evidence support, stated jointly with the exponent-coefficient disposition, and what evidence fixes that count?
+
+### 5.5 The causal-exponent clip's declared semantics (S5)
+
+What a complete answer specifies: whether the underflow-only purpose stands, and if a numeric bound is to be chosen, what its form and value are and which of the other dispositions it depends on. The question: does the assembled evidence support a numeric causal-exponent clip bound, and on which of the other four dispositions would any such bound depend?
+
+### 5.6 The couplings across the surfaces (SPEC-06)
+
+What a complete answer specifies: a joint disposition of the surfaces that interact through the mechanism — the exponent coefficient and the collocation-point count through the prefix sum, the residual magnitude and the initialization scale through the second-derivative chain, and the clip through whichever of those changes — with the evidence for the joint choice, so that no surface's disposition is left under-determined by the others. The question: what joint disposition of the coupled surfaces does the assembled evidence support, and what evidence would establish that the chosen combination is coherent at initialization and through training?
 
 ## 6. Claims register
 
@@ -170,17 +212,58 @@ The register records claims. It does not order them by standing and carries no s
 
 ## 7. What the assembled evidence cannot answer
 
-_Written by plan 54-04._
+This section names the gaps the assembled evidence leaves open, one entry per decision surface plus the cross-cutting entries. It records gaps; it does not resolve them. An entry ends at the statement of absence.
+
+**S1 — `η_c`.** The evidence pins the failure signature at the locked value on unnormalized `R̄` — saturation at step 0, 15 of 16 weights floored (F-03, F-04, §4.1). It does not pin any value, form, or normalization under which the mechanism would not saturate at initialization. The silence is the sources' own: `pinn_architecture.md:445` fixes the current value and nothing else, and `52-VER-20-ROUTING-HANDOFF.md:51` declares the correct calibration a research question rather than an engineering default.
+
+**S2 — the `R̄` normalization.** The evidence pins the magnitude `R̄ ≈ 10¹⁰` at initialization and its consequence (§4.1). It does not pin whether a normalization is to be introduced, its form, or its reference scale. The silence: `pinn_architecture.md:435` consumes `R̄` unnormalized, and no normalization is specified anywhere in the spec — the absence is the fact.
+
+**S3 — `ω₀` / `first_omega_0`.** The evidence pins the second-derivative magnitudes the locked scale produces (F-02, §4.1). It does not pin anything about any other scale. The silence: `pinn_architecture.md:181` fixes the value at 30 and is silent on alternatives.
+
+**S4 — `N_t` / `n_col`.** The evidence pins the two fixed numbers and the exact 256 factor between them (F-07, §4.2). It does not pin any count a recalibrated recipe would use. The silence: `pinn_architecture.md:454` and `pinn_architecture.md:461` fix the spec's value and stated range, and no source states a disposition of the count.
+
+**S5 — the clip.** The evidence pins the underflow-only purpose (F-10). It does not pin any numeric bound. The silence: `pinn_architecture.md:668-671` states the purpose and chooses no bound, and `pinn_architecture.md:692` defers the bound to FUT.
+
+**Cross-cutting — interactions beyond the arithmetic.** §4.2 states the arithmetic coupling between the exponent and the collocation-point count. The evidence does not establish how the surfaces interact beyond that arithmetic — no source tests combined dispositions.
+
+**Cross-cutting — behavior after initialization.** Both the 2026-08-17 audit and the eventual Phase 55 INST-04 probe characterize the architecture at initialization. The evidence does not establish post-initialization behavior under any recalibrated recipe, because no such run exists.
+
+**Cross-cutting — the trainex-r2 construction limit.** That round's output contract clause 3 barred it from naming a remedy [r2-QUAL], so by construction it could not answer what the recalibrated values are; its Q3 content stands in §6's `H-` table as prior analysis.
+
+This enumeration is the surfaced content of `GAP-54-01` in `.planning/phases/54-recalibration-decision-grounding/54-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`; the register points here rather than duplicating it.
 
 ## 8. Provenance
 
-_Written by plan 54-04._
+- **Package baseline (`source_baseline`):** `6a4f9b9902ab62e1d1f57bba0e521f38120c416d` — the repository commit at package assembly, and the ERW Rule-5 pin every `file:line` citation in §4, §6, and §7 is re-derivable against.
+- **Complementary evidence pins:** the 2026-08-17 residual-frame conformance audit is committed at `ae14a99e` (as named in the roadmap's grounding list, `.planning/ROADMAP.md:47`). The operative diagnosis (`52-DIAG-05-REDERIVATION.md`) carries no separate pin of its own; it is committed in the same tree as the audit. The pins are complementary rather than superseding: the package baseline pins the state this packet was assembled against, and the audit pin fixes the evidence document itself.
+- **The ERW Rule 20 live-tree pin is not recorded here.** It belongs to the delivery note and is filled at ERW-02, because it records the tree an external agent actually saw during an engagement — and no engagement exists yet.
 
 <!-- NEUTRALITY-BAN-END -->
 
 ## 9. Output contract
 
-_Written by plan 54-04._
+This section specifies the deliverable a commissioned external research agent produces — and it is the one section of this packet that uses the vocabulary of marked defaults, door classification, and decision sheets, because ERW Rule 7 requires that deliverable to carry them. That vocabulary describes the external agent's document, never this packet's own position: this packet still marks no default and ranks no option (§1.3, §10).
+
+Produce one research report, structured as per-question sections plus a dedicated up-front findings section and a dedicated gaps section.
+
+**The Rule 7 build-design contract.** For each decision, an options menu of two to four options with their mechanical-surface trade-offs and their cross-decision interactions; a **suggested default clearly marked** on each menu; a **one-way versus two-way door classification** on every suggested default and every deviation from it; a fill-in **decision sheet** with columns for the decision, its options, the suggested default, the door type, and the owner's pick; a **composed first-run recipe** presented as a cross-menu coherence check; a "what the runbook inherits" section; and a claims-and-uncertainty register. Rule 7's own prompt requirement: suggest defaults; never decide.
+
+The door classification marks whether each suggested default is a one-way or a two-way door.
+
+**The Rule 17 premise-challenge mandate, as a duty.** Test this packet's own stated premises against the repository, and report contradictions as first-class findings up front, ahead of the per-question answers. An agent that finds a false premise and buries it has failed the round. The trainex-r2 report's "source-verification findings that bear on multiple questions" section, placed ahead of the per-question answers, is the shape to produce [r2-QUAL].
+
+**The Rule 18 read-only bars, in the imperative.**
+No file edited.
+No training run.
+No evaluation invoked.
+No command with side effects, no commit.
+This project's standing bars apply to external agents exactly as they apply to in-repo agents: no held-out evaluation, no new training runs, no framework-spec edits, and no remedy selection. Discriminating experiments are proposed as owner-gated options, never performed.
+
+**The Rule 9 gap discipline.** Where the attached materials and the repository are silent or ambiguous, record it in the gaps section — never invent. A gap is a legitimate, valued output.
+
+**The Rule 19 notice.** Every repo-derived claim arrives as a checkable assertion carrying a `file:line`, and the project verifies each one in-repo — with the verification recorded — before it informs any decision, roadmap, or spec edit.
+
+The consolidated decision sheet is presented to the owner for ratification at checkpoint ②. It is a candidate, not the ratification.
 
 ## 10. Neutrality self-audit
 
