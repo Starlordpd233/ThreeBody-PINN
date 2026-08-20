@@ -267,16 +267,23 @@ The consolidated decision sheet is presented to the owner for ratification at ch
 
 ## 10. Neutrality self-audit
 
-This section defines the neutrality checks and records their results. It sits outside the neutrality-ban region because it defines the check; a check definition that names its own tokens is not the packet's voice.
+This section defines the neutrality checks and records their results. It sits outside the neutrality-ban region because it defines the check; a check definition that names its own tokens is not the packet's voice. All results below were produced by the commands stated and recorded at phase close (2026-08-20).
 
 | Check | Scope | Method | Result |
 |---|---|---|---|
-| Bar A — D-04 Layer-1 scoped lexical ban | the `NEUTRALITY-BAN` region (§0's own voice through §8) | region-scoped case-insensitive grep for: `recommend`, `suggest`, `prefer`, `best`, `most likely`, `primary candidate`, `default to`, `should use`, `ranked`, `leading option`; expected empty | PENDING — run at phase close (plan 54-05) |
-| Bar A2 — D-04 Layer-2 Rule-7 carve-out presence | §9 Output contract | case-insensitive count of `suggested default` / `one-way` / `two-way` / `decision sheet` in §9; expected at least 4 once §9 is written | PENDING — run at phase close (plan 54-05) |
-| Bar B — D-06 tag discipline | all lines outside §0 | case-sensitive literal `trainex-r2` line match minus lines carrying `[r2-QUAL]`; expected empty | PENDING — run at phase close (plan 54-05) |
-| Bar C — D-02 branch-neutrality file absence | the trainex-r3 round root | absence of `research_package/RESEARCH-AGENT-PROMPT.md`, `specs/`, and `research_results/`; expected to print `NEUTRAL` | PENDING — run at phase close (plan 54-05) |
-| Bar D — read-only boundary | framework specs, `pinn/`, `simulation_data/`, `tests/` | `git diff --stat` over the cited paths; expected empty | PENDING — run at phase close (plan 54-05) |
-| Tree completeness (45-AUDIT Check 1) | the trainex-r3 round root | `find … -type f` prints exactly the two authored paths | PENDING — run at phase close (plan 54-05) |
+| Bar A — D-04 Layer-1 scoped lexical ban | the `NEUTRALITY-BAN` region (§0's own voice through §8) | region-scoped case-insensitive grep for: `recommend`, `suggest`, `prefer`, `best`, `most likely`, `primary candidate`, `default to`, `should use`, `ranked`, `leading option` | **PASS — empty.** The region-scoped grep over the delimited region returned no lines (exit 1). |
+| Bar A2 — D-04 Layer-2 Rule-7 carve-out presence | §9 Output contract | case-insensitive count of `suggested default` / `one-way` / `two-way` / `decision sheet` in §9; expected at least 4 | **PASS — 4** matching lines (the Rule-7 contract paragraph, the door-classification line, the opening line, the ratification line). |
+| Bar B — D-06 tag discipline | all lines outside §0 | case-sensitive literal `trainex-r2` line match minus lines carrying `[r2-QUAL]` | **PASS — empty** (no untagged mention outside §0). |
+| Bar C — D-02 branch-neutrality file absence | the trainex-r3 round root | absence of `research_package/RESEARCH-AGENT-PROMPT.md`, `specs/`, and `research_results/` | **PASS — `NEUTRAL`** (all three absent). |
+| Bar D — read-only boundary | framework specs, `pinn/`, `simulation_data/`, `tests/` | `git diff --stat` over the cited paths | **PASS — empty.** |
+| Bar E — planning-source read-only bar | `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` | `git diff --stat` over the two files | **PASS — empty** (the stale anchors are warned about, never corrected). |
+| Bar F — no cost or preference framing | `54-RULING.md` | case-insensitive grep for cost and effort vocabulary | **PASS — 0.** |
+| Tree completeness (45-AUDIT Check 1) | the trainex-r3 round root | `find … -type f | sort` | **PASS — exactly two paths**: the master and the delivery note. |
+| Pin consistency | master frontmatter, §8, delivery note | the `source_baseline` 40-character hash must be byte-identical in all three | **PASS —** `6a4f9b9902ab62e1d1f57bba0e521f38120c416d` in all three places. |
+| Boundary attestation (45-AUDIT Check 9) | all cited source trees | `git status --short` over the cited trees plus one attestation sentence per scope item | **PASS — clean.** See the attestation sentences below. |
+| Manual 1 — structural neutrality read | §4.3's five surfaces | per-surface confirmation of the five-element D-05 form and the absence of option menus | **PASS —** per-surface verdicts for S1–S5 recorded in `54-02-SUMMARY.md`; re-read at close: no sentence enumerates comparable alternatives. |
+| Manual 2 — citation-fidelity read | every `file:line` the packet cites | line-existence check plus content match against the attributed figure | **PASS — 30 distinct citations checked, 30 resolved, 0 failures.** Key figures content-verified with `sed -n` at audit `:121`, `:127`, `:142`, `52-DIAG-05-REDERIVATION.md:58`, and `52-VER-20-ROUTING-HANDOFF.md:37,:40`. |
+| Manual 3 — stale-anchor sweep | `pinn_architecture.md:<3-digit>` citations under `.planning/` | read-only resolution against the live file; nothing corrected | **RUN — 348 sites, 6 new findings recorded** in the sweep record below. |
 
 The two-layer neutrality criterion these checks enforce:
 
@@ -284,3 +291,30 @@ The two-layer neutrality criterion these checks enforce:
 - **Layer 2** is the explicit ERW Rule-7 carve-out for §9: §9 must carry the vocabulary of marked defaults, door classification, and decision sheets, because roadmap Success Criterion 4 requires this packet to specify the trainex-r3 output contract. A §9 that is lexically clean under Layer 1's vocabulary means the Rule-7 contract was gutted rather than satisfied — which is what Bar A2 exists to catch.
 
 **Excluded 45-AUDIT checks, with reasons.** Check 3 (self-containment / zero repo-path markers) is Route-A-only and does not apply to a Route-B master, whose Rules 1–2 inversion makes repository paths expected. Check 4 (snapshot fidelity) and Check 6 (pin consistency across snapshot files) presuppose the `specs/` bundle D-02 deliberately withholds. These checks are deferred to the ERW-02 audit if the round is commissioned, not waived.
+
+**Boundary attestation (one sentence per scope item).** SCOPE-33: the framework-spec edits this milestone authorizes are the VER-20 items and the coupled `N_t` disposition — this packet cites the specs and edits none (Bar D). SCOPE-34: the recalibration decision is owner-ratified, never agent-decided — this packet marks no default, ranks no option, and picks nothing (Bar A, Manual 1, §1.3). SCOPE-35: exactly one held-out evaluation exists and this packet neither spends it nor plans its spending. SCOPE-36: Stage-0 only — this packet proposes no platform work. SCOPE-37: iteration after the spec edit is conformance-only — this packet names no tuning loop. SCOPE-38: amending a locked contract requires re-ratification — the three re-ratification blocks live in `54-RULING.md`, not here, and no spec value is changed.
+
+**Requirement and success-criterion traceability (45-AUDIT Check 10).**
+
+| Requirement or success criterion | Certified by |
+|---|---|
+| ERW-01 — the packet marks no default | Bar A (empty), Manual 1 (per-surface structural read), §1.3 |
+| ERW-01 — it ranks no option and picks nothing | Bar A (empty), Manual 1 (no option menus), the no-precedence order statements in §4.3 and `54-RULING.md` |
+| ERW-01 — it names its own gaps | §7 (all five surfaces plus cross-cutting entries), `GAP-54-01` (OPEN, pointing here) |
+| ERW-01 — it doubles as the trainex-r3 `RESEARCH-CONTEXT-MASTER.md` | D-01/D-02: the packet is that file, at the round root, with the withheld artifacts named by path (Bar C, tree completeness) |
+| Roadmap SC-1 — verifiable by inspection | §10 (the criterion travels with the artifact), Bars A, A2, B |
+| Roadmap SC-2 — every trainex-r2 citation travels with its premise qualification | §0 qualification block, `[r2-QUAL]` inline tag, Bar B (empty) |
+| Roadmap SC-3 (gate half) — the packet is presented at a blocking gate; the agent selects no branch | the checkpoint presentation, `54-RULING.md` (its `Branch` field unfilled), Bar F (0) |
+| Roadmap SC-4 | **Not yet applicable** — ERW-02's, discharged after checkpoint ① (D-11) |
+| Roadmap SC-5 | **Not yet applicable** — the `N_t` completeness rule is pre-declared in `54-RULING.md` and discharges with the ruling |
+
+**Stale-anchor sweep (Manual 3, read-only; nothing corrected — Bar E proves it).** Command: `grep -rnoE 'pinn_architecture\.md:[0-9]{3}' .planning/ | grep -v '/phases/54-recalibration' | sort -u` → **348 distinct (file, anchor) sites**. Of these, **302** sit in closed-milestone archives (v1.4–v2.1) — pre-existing historical drift, counted and not individually re-attributed; the citing phases are closed, and any Phase 56 edit must re-derive every anchor by content match regardless. The remaining **46 active-scope sites** were resolved one by one. The four already-known stale anchors (recorded in `54-RULING.md`'s anchor-drift section) are confirmed stale again: `:424` (18 sites, incl. `REQUIREMENTS.md:90`, `ROADMAP.md:45,:130`, `.planning/reports/MILESTONE_SUMMARY-v1.6.md:161`) → replacement `:445`; `:167` → `:181`; `:433` → `:454`; `:440` → `:461`. **New Phase-56 findings beyond those four**, each with citing file and resolution:
+
+1. `.planning/phases/53-narrow-spec-codification/53-CONTEXT.md:68,:233` cite `pinn_architecture.md:253` for §2.4's "Recommended Value" header — live `:253` is §2.2 prose; the header is now at `:267` (Phase 53's own context record pre-dates its `spec(53)` commits).
+2. `.planning/reports/MILESTONE_SUMMARY-v1.6.md:172` cites `:537` for the Huber-δ calibration row — live `:537` is the softening-parameter prose; the cited row has moved.
+3. `.planning/milestones/v2.2-phases/49-conformance-gate/49-RESEARCH.md:1334` cites `:633` — live `:633` is a blank line.
+4. `.planning/codebase/CONCERNS.md:60` cites `:263` — live `:263` no longer carries the referenced content.
+5. `.planning/forensics/report-20260608-145000.md:84` cites `:987` — live `:987` no longer matches the cited context.
+6. `.planning/phases/53-narrow-spec-codification/53-RESEARCH.md:165` cites `:976` for the sections-6–9 numbering anomaly — live `:976` is inside a code block.
+
+Still resolving in the live tree (no action): v2.2 Phase 47's Hamiltonian/Plummer/energy-regularizer anchors (`:505`, `:531`, `:533`, `:539`, `:542`, `:544`), `53-UAT.md:144` (`:518` = the §3.4 heading), and `53-PATTERNS.md` / `53-RESEARCH.md` anchors `:292`, `:310`, `:655`, `:667`. Sweep-method note: the 3-digit pattern truncates four-digit anchors, so `53-PATTERNS.md:144`, `53-PATTERNS.md:225`, and `53-RESEARCH.md:138` render `pinn_architecture.md:1014` / `:1047` as `:101` / `:104` — pattern artifacts, not citations of lines 101/104.
