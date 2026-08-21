@@ -41,4 +41,6 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Status:** OPEN
 
-- **Resolution note:** Filled when the owner rules. The ruling itself is recorded in `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`, not here — a ruling is not a gap (D-09).
+- **Resolution note:** **Checkpoint ① discharged 2026-08-21** — the owner selected `commission trainex-r3`, recorded verbatim in `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`. The gap stays `OPEN` because checkpoint ② — the per-surface disposition and its SCOPE-38 re-ratifications — is what closes it, and that awaits the round's delivery, its Rule-19 verification, and owner ratification. The ruling itself is recorded in `54-RULING.md`, not here — a ruling is not a gap (D-09).
+
+  ERW-02 assembly (2026-08-21) widened what the round is asked to consider, without disposing of anything: item (e)'s **fourth remedy family** (redesign the curriculum mechanism so it does not require the two to agree at initialization) was transcribed verbatim into the packet's §4.3 after it was found absent from the five decision surfaces, and two further open items were added to the packet's §7 — the SQR-SkipResNet stack's contribution to the same second-derivative magnitude `first_omega_0` is credited with, and the absence of any statement of the source method's own calibration procedure. See the packet's §11 amendment record.

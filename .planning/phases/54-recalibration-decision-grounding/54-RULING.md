@@ -1,7 +1,7 @@
 ---
 phase: 54
 checkpoint: 1
-status: PENDING
+status: CHECKPOINT-1-DISCHARGED (checkpoint 2 PENDING)
 created: 2026-08-20
 ---
 
@@ -15,11 +15,13 @@ It is deliberately not the gap register — a ruling is not a gap (D-09) — and
 
 ## Checkpoint ① — the branch
 
-- **Date:** PENDING
-- **Owner instruction (verbatim):** PENDING
-- **Branch:** PENDING — rule directly, or commission `trainex-r3`. These are the two branches; nothing further is offered.
+- **Date:** 2026-08-21
+- **Owner instruction (verbatim):** *"let's do the r3 and assemble the research pacakge to be handed off to the external research agent. make sure that the information inlcuded in that package is accurate and faithful"*
+- **Branch:** **commission `trainex-r3`** — the Route-B (open-book) build-design round. Checkpoint ① is discharged; checkpoint ② remains PENDING until the round delivers and the owner ratifies.
 
-No comparative assessment of the two branches is offered here. Under SCOPE-34 the branch is the owner's to select, and cost framing at a gate is steering. Two factual lists follow.
+The owner requested and received a written agent recommendation before selecting (2026-08-21, in session). That recommendation argued for commissioning the round; the selection is the owner's and is recorded here as instructed. Under SCOPE-34 the agent still marks no default, ranks no option, and picks nothing on the five decision surfaces — checkpoint ② is untouched by this entry.
+
+The branch obligations are recorded below as they stood at the gate; the **Commission `trainex-r3`** list is the one now in force, and ERW-02 discharges it.
 
 **Rule directly:**
 

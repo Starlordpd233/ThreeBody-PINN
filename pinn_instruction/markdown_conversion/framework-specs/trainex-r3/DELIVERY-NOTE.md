@@ -11,19 +11,51 @@ access_mode: open-book
 
 **This file stays in the repository. Do NOT send it to external research agents.**
 
-## The package
+## Status: COMMISSIONED (checkpoint ①, 2026-08-21)
+
+The owner selected **commission `trainex-r3`** at checkpoint ① on 2026-08-21. The ruling record is `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`. Checkpoint ② — the recalibration ratification — remains open; this round exists to inform it.
 
 Package root: `pinn_instruction/markdown_conversion/framework-specs/trainex-r3/`.
 
-The round currently contains one authored file: `research_package/RESEARCH-CONTEXT-MASTER.md`.
+## Handoff — what to attach, what to paste
 
-**Purpose:** that file is the ERW-01 decision packet the owner reads at checkpoint ①, and it doubles, unchanged, as the trainex-r3 research context master if the round is commissioned — so neither gate branch wastes work.
+Open `research_package/RESEARCH-AGENT-PROMPT.md`. Everything above its horizontal rule is routing for you; everything below it is the prompt to paste.
 
-## What this round deliberately does not contain yet (D-02)
+**Attach these three files individually** (no folders) — ERW Rule 15 caps a sub-package at five, and this round ships three:
 
-Three artifacts are withheld, by exact path: `research_package/RESEARCH-AGENT-PROMPT.md`, `specs/`, and `research_results/`.
+| # | Attachment | What it is |
+|---|---|---|
+| 1 | `research_package/RESEARCH-CONTEXT-MASTER.md` | The agent's entry point: source tiering, the mechanism, the five decision surfaces plus item (e)'s fourth remedy family, the framed questions, the claims register, the gaps, the output contract. |
+| 2 | `specs/framework-specs-bundle.md` | Verbatim locked framework-spec excerpts (13 extraction blocks, byte-verified against the pinned commit). |
+| 3 | `research_package/v2.2-closure-evidence-bundle.md` | The 2026-08-17 conformance audit, the VER-20 routing handoff, and the DIAG-05 re-derivation — each reproduced in full. |
 
-The structural argument: the ERW runbook's own rule is that a package without its prompt is incomplete and the two always ship together. A round root carrying a master and no prompt is therefore, by the runbook's definition, a round that has not been commissioned. Their absence is the mechanically visible proof that no checkpoint-① branch was assumed. Cross-reference: 54-CONTEXT.md Open Item 1.
+Not uploaded: this delivery note (routing only), the prompt (pasted, not attached), and `research_results/` (created at delivery).
+
+**Fan out across several external agents.** Save each as `research_results/<agent>-resolution.md`.
+
+## Rule-20 live-tree pin — fill this at engagement
+
+Open-book `file:line` citations are only re-derivable against the tree the agent actually saw. Record it here **before** pasting:
+
+| Field | Value |
+|---|---|
+| Worktree | `<home>/Desktop/3_body_problem/.worktrees/trainex` |
+| Branch | `milestone/v2.3` |
+| Commit at engagement | `PENDING — stamp the HEAD hash here at the moment access is granted` |
+| Access granted by | `PENDING — how (read-only mount, clone, editor access)` |
+| Date of engagement | `PENDING` |
+
+The `source_baseline` pin below covers the attachments. It does **not** cover the live tree; that is what this table is for.
+
+## Consolidation join points (ERW Rule 11)
+
+When merging several agents' reports:
+
+- **The per-surface menus** (master §5.1–§5.6) join on the surface. Disagreement between agents on a surface is a finding, not noise — carry both into the decision sheet.
+- **The §5.7(a) capacity accounting** is the cross-check: two agents who disagree on a suggested default but agree on the scaling laws have a resolvable disagreement; two who disagree on the scaling laws have a physics dispute that must be settled before any menu is trusted.
+- **The §5.7(c) source-method identification** should converge. If agents name different source methods, or one cannot find one, that is the single most important thing to resolve first — the whole calibration question is downstream of it.
+- **Premise-challenge findings** (up-front sections) merge first, before any answers are read. A contradicted premise invalidates the answers built on it, however well argued.
+- **The composed first-run recipes** are the coherence check across menus. Compare them directly; a recipe that no agent's own menus compose into is a signal that the menus interact in a way the per-question answers missed.
 
 ## Access mode — open-book (ERW Rules 16, 20)
 
@@ -31,25 +63,21 @@ The structural argument: the ERW runbook's own rule is that a package without it
 
 Under Route B, ERW Rules 1–2 invert: repository paths in the master are expected, and the "attached files only" instruction must not appear.
 
-Rule-20 live-tree pin (worktree, branch, commit at engagement): `PENDING — filled at ERW-02, at engagement time`. The pin records the tree the agent actually saw and therefore cannot be filled before an engagement exists.
+Rule-20 live-tree pin: see the **Rule-20 live-tree pin** table above. The worktree and branch are recorded; the engagement commit and access method are stamped by the user at handoff, because the pin records the tree the agent actually saw.
 
-## Branch routing — what each branch of checkpoint ① requires
+## ERW-02 obligations — what is done and what remains
 
-No comparative assessment of the two branches is offered. Under SCOPE-34 the branch is the owner's to select, and cost framing at a gate is steering. Two factual lists follow.
-
-**Rule directly:**
-
-- `.planning/phases/54-recalibration-decision-grounding/54-RULING.md` is filled with the branch, the date, the verbatim owner instruction, the per-surface disposition, and the SCOPE-38 re-ratification lines.
-- Phase 56 then reads that file as its authorizing source.
-
-**Commission trainex-r3:**
-
-- ERW-02 authors `research_package/RESEARCH-AGENT-PROMPT.md` (ERW Rule 7 output contract, Rule 17 premise-challenge mandate, Rule 18 read-only bars).
-- The `specs/` snapshot bundle as a single `framework-specs-bundle.md` (Rule 15).
-- The Rule-20 live-tree pin in this note.
-- `research_results/<agent>-resolution.md` at delivery.
-- The Rule-19 per-claim in-repo verification report under `docs/work/reviews/milestone_v2.3/54-recalibration-decision-grounding/`.
-- The consolidated `trainex-r3-resolution-doc.md` (Rule 12).
+| Obligation | State |
+|---|---|
+| `research_package/RESEARCH-AGENT-PROMPT.md` (Rule 7 output contract, Rule 17 premise-challenge, Rule 18 read-only bars) | **done** |
+| `specs/framework-specs-bundle.md` (Rule 15 single-file bundle) | **done** — 10 verbatim excerpts, byte-verified |
+| `research_package/v2.2-closure-evidence-bundle.md` | **done** — 3 documents reproduced in full, byte-verified |
+| Master accuracy-and-faithfulness pass | **done** — see master §11 for the amendment record and audit results |
+| Rule-20 live-tree pin | **user, at engagement** — the table above |
+| `research_results/<agent>-resolution.md` | at delivery |
+| Rule-19 per-claim in-repo verification report under `docs/work/reviews/milestone_v2.3/54-recalibration-decision-grounding/` | after delivery, **before** any claim informs a decision |
+| Consolidated `trainex-r3-resolution-doc.md` (Rule 12) | after verification |
+| Checkpoint ② ratification in `54-RULING.md` | owner, after consolidation |
 
 ## The gate and the ruling record
 

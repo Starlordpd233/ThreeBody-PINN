@@ -52,9 +52,19 @@ The recalibration decision is owner-ratified, never agent-decided (SCOPE-34, `.p
 
 ## 2. Manifest — what this round contains, and what it deliberately does not
 
-What this round contains today: one authored file, this master, at `pinn_instruction/markdown_conversion/framework-specs/trainex-r3/research_package/RESEARCH-CONTEXT-MASTER.md` — plus the user-only `DELIVERY-NOTE.md` at the round root, which is never uploaded.
+**Status: commissioned.** The owner selected `commission trainex-r3` at checkpoint ① on 2026-08-21; the ruling record is `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`. Checkpoint ② — the recalibration ratification itself — remains open and is what this round informs.
 
-What this round deliberately does not contain, by exact path: `research_package/RESEARCH-AGENT-PROMPT.md`, `specs/`, and `research_results/`. The runbook's own reason: a package without its prompt is incomplete, and the two always ship together — so a round root carrying a master and no prompt is, by that definition, a round that has not been commissioned. These three artifacts are authored only if the owner commissions the round at checkpoint ①, and their absence is therefore the structural proof that no branch was assumed.
+**The three uploaded attachments** (ERW Rule 15 caps a sub-package at five; this round ships three):
+
+| # | Attachment | Treatment |
+|---|---|---|
+| 1 | `RESEARCH-CONTEXT-MASTER.md` — this file | The entry point. Read first. Its §3 fixes how to treat every other source, §5 carries the questions, §9 the output contract. |
+| 2 | `framework-specs-bundle.md` | Verbatim locked framework-spec excerpts: SIREN initialization and §2.2's fixed-at-30 sentence, the SQR-SkipResNet formulation, the architectural hyperparameters, §3.2's physics residual and causal weighting in full, the collocation-sampling contract, the clip guard, the warmup, the optimizer split, and the Stage-0 curriculum and total-loss assembly. **Hard constraint** — authoritative as a statement of what the contract currently says. |
+| 3 | `v2.2-closure-evidence-bundle.md` | Verbatim, in full: the 2026-08-17 residual-frame conformance audit, `52-VER-20-ROUTING-HANDOFF.md` (the routing authority; item (e) is this round's subject), and `52-DIAG-05-REDERIVATION.md` (the operative diagnosis). **Hard constraint** for the evidence; the *reasoning* is testable under ERW Rule 17. |
+
+Files that exist at the round root but are **not** uploaded: `DELIVERY-NOTE.md` (user-only routing), `RESEARCH-AGENT-PROMPT.md` (pasted, not attached), and `research_results/` (created at delivery).
+
+**Route B means the attachments are not the boundary.** They frame the questions and fix the baseline. The repository is an additional evidence source, and published literature is a required one (§3). Nothing here says "attached files only" — under ERW Rule 17 that instruction would contradict the mandate.
 
 The r2-to-r3 role mapping (headings of the trainex-r2 round's master [r2-QUAL], quoted verbatim with their line numbers; the renumbering is deliberate so the r2 roles keep their original relative order):
 
@@ -74,7 +84,19 @@ The three additional sections — §0, §4, and §7 — are the v2.3-specific ad
 
 - **Hard constraint (relied on as ground truth):** the locked framework specs (`pinn_architecture.md`, `ctl_instruction.md`) as they stand, with their owner-ratified contract markers; the v2.2 closure record — the 2026-08-17 residual-frame conformance audit, `52-DIAG-05-REDERIVATION.md` §3 as the operative diagnosis (superseding `44-DIAGNOSIS.md` and `44-ERRATUM.md`), `52-VER-20-ROUTING-HANDOFF.md`, and `.planning/milestones/v2.2-GAPS.md`'s milestone-close section; every `F-` row in §6; and the SCOPE boundaries stated in §1.3. The operative diagnosis is treated as settled and is not re-litigated.
 - **Challengeable (to be tested rather than assumed):** every `H-` row in §6, including the trainex-r2 round's interpretive content [r2-QUAL].
+- **External published literature (the round's own evidence tier, added at ERW-02):** the causal-weighting formula in `pinn_architecture.md` §3.2 is not original to this project, and the framework spec's `## References` section does not cite a source for it (`F-13`). Published literature is therefore an expected and required evidence source for this round, on the same footing as the repository: cited by author, title, venue, and year, with the claim it supports stated in the source's own terms. A literature claim is a checkable assertion like any other — it carries its citation precisely so the project can re-derive it. Where the literature and this project's formulation differ, the difference is itself a finding.
 - **Repo-derived evidence (the Route-B tier):** under `access_mode: open-book` the repository is an additional evidence source and not a replacement for this package. A claim derived from the live tree arrives as a checkable assertion carrying a `file:line`, not as an established fact, and ERW Rule 19 requires every such claim to be independently verified in-repo, with the verification recorded, before it informs a decision, a roadmap, or a spec edit. `pinn/` is not a grounding source for spec decisions — it is cited in §4 only as the current divergence being disposed of.
+
+**Anchor-resolution rule (Route-B hazard, added at ERW-02 — read before resolving any citation).** Four files named `pinn_architecture.md` exist in this repository, and they carry **different line numbering**:
+
+| Path | Lines | Standing |
+|---|---|---|
+| `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md` | 1098 | **The live locked spec. The only authoritative one. Every citation in this packet means this file.** |
+| `pinn_instruction/markdown_conversion/framework-specs/integrity-r1/specs/pinn_architecture.md` | 1010 | frozen snapshot of an earlier round — not authoritative |
+| `pinn_instruction/markdown_conversion/framework-specs/trainex-r1/specs/pinn_architecture.md` | 1013 | frozen snapshot of an earlier round — not authoritative |
+| `pinn_instruction/markdown_conversion/framework-specs/integrity-r2/specs/pinn_architecture.md` | 1064 | frozen snapshot of an earlier round — not authoritative |
+
+The divergence is not cosmetic: `:181` is the locked `first_omega_0` sentence in the live spec and is unrelated prose in the `integrity-r1` snapshot. The same applies to `ctl_instruction.md`. Resolve every anchor against the **live** file at the path above, and **resolve by content match, not by line number** — `pinn_architecture.md` was edited by this milestone's Phase 53, so line anchors quoted in planning documents written before those commits are stale by construction. `54-RULING.md`'s "Anchor-drift warning" records four such already-confirmed stale anchors in `.planning/REQUIREMENTS.md` and `.planning/ROADMAP.md`; treat any anchor found outside this packet as suspect until content-matched.
 
 ## 4. The confirmed mechanism and the coupled decision surfaces
 
@@ -95,13 +117,29 @@ Everything in this section is transcription from already-published, already-cite
 
 (`docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md:142` — header; `:144-149` — rows; `:151` — the parenthetical note.)
 
-**M2 — the chain.** `first_omega_0 = 30` sets the second-derivative magnitude, which sets `R̄`, which drives the causal exponent. The `‖a′‖` column values run `1.94×10⁵`–`2.79×10⁵` in network units; the `R̄` medians run `1.25×10¹⁰`–`2.60×10¹⁰` (`2026-08-17-residual-frame-conformance-audit.md:142-151` for the numbers, `:163-169` for the mechanism prose; corroborated independently at `.planning/milestones/v2.2-phases/52-diagnosis-re-derivation-handoff/52-VER-20-ROUTING-HANDOFF.md:37`).
+**M2 — the chain, and the two factors the audit attributes it to.** The physics residual is a second-derivative operator, and the audit attributes the magnitude of that second derivative to **two compounding factors**, not one. Quoted verbatim:
+
+> The physics residual is a **second-derivative operator**. A SIREN carries broadband high-frequency content by design (`first_omega_0 = 30`, ARCH-01, §2.2: "a high initial frequency injects a high-frequency Fourier basis"), and the 12-layer SQR-SkipResNet stack compounds it — the `LayerNorm(x)^p` skip branch with `p = 2` has Jacobian `2·LN(x)/std(x)` ≈ 3 per odd layer, six of them. The measured ratio `‖a′‖/‖v′‖ ≈ 650–900` is the network's effective angular frequency in `u`; differentiating twice multiplies amplitude by `ω² ≈ 10⁵–10⁶`.
+
+(`docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md:165`.)
+
+The measured effective angular frequency `650–900` therefore stands against `first_omega_0 = 30`: those are not the same number, and the audit's own account places the difference in the SQR-SkipResNet stack. The `‖a′‖` column values run `1.94×10⁵`–`2.79×10⁵` in network units; the `R̄` medians run `1.25×10¹⁰`–`2.60×10¹⁰` (`docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md:142-151` for the numbers; corroborated independently at `.planning/milestones/v2.2-phases/52-diagnosis-re-derivation-handoff/52-VER-20-ROUTING-HANDOFF.md:37`).
+
+**Correction recorded (ERW-02, 2026-08-21; see §11).** This entry previously read "`first_omega_0 = 30` sets the second-derivative magnitude," attributing the scale to `first_omega_0` alone — narrower than the audit it cites. Only the `first_omega_0` sentence carries an owner-ratified contract marker and appears among the decision surfaces in §4.3; the SQR-SkipResNet stack's contribution to the same quantity is recorded here as evidence, and its absence from the surface list is named in §7.
 
 **M3 — the float32 underflow bound, at both precisions.** The causal weight `exp(−η_c R̄)` underflows float32 at `R̄ > 87.34` — 8.46 decades below the median (`2026-08-17-residual-frame-conformance-audit.md:127`). The rounded form `87.3` appears in the routing handoff and carries its own citation (`52-VER-20-ROUTING-HANDOFF.md:40`). The audit carries the precise value; the handoff carries the rounded one; both are transcribed here at their own precision.
 
 **M4 — the floored collocation weights.** 15 of 16 collocation weights sit on the numerical floor: `w_min` is pinned at the float32 tiny clamp on 502/502 steps and `w_mean = 0.0625 = 1/16` exactly on 502/502 steps, so `w₂…w₁₆` all sit at the clamp floor and `L_phys = R̄₁/16` (`2026-08-17-residual-frame-conformance-audit.md:121`). `w₁ = 1` by construction (`pinn/loss_catalog.py:340`).
 
 **M5 — the step-501 halt.** `front_idx = 0` at step 501: invariant B (front-advance-within-N, `N = 500`, Phase 49 GATE-03) HALTed, and `front_idx = 0` held on all 502 logged steps (`.planning/milestones/v2.2-phases/52-diagnosis-re-derivation-handoff/52-DIAG-05-REDERIVATION.md:58`; `.planning/milestones/v2.2-phases/50-valid-stage-0-re-run/50-03-SUMMARY.md:84`). The 2026-08-17 audit is not a source for this fact: it carries no training-step number, and its `front_idx` entries describe the initialization-only probe and the whole retained log.
+
+**M6 — the comparison scale the audit states.** The audit gives the scale the locked formula presumes, and the measured scale a converged network reaches, in one sentence:
+
+> The causal weight `exp(−η_c R̄)` with `η_c = 1` and an **unnormalized** `R̄` presumes `R̄ = O(1)`, which is what a *converged* network gives (Gate B: residual = 0.65 % of `‖a′‖` on a true trajectory). At initialization the same quantity is ~10¹⁰.
+
+(`docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md:167`.) The `0.65 %` figure is the audit's own, measured on a true trajectory. It is transcribed because it is the only converged-regime residual scale any source in this package states; this packet takes no position on whether it is a reference scale for anything.
+
+**M7 — internal consistency of the six-row probe (ERW-02 check, 2026-08-21).** The probe's own columns are mutually consistent with the locked `R̄` definition. `pinn_architecture.md` defines `R̄_n = (1/3) Σ_{i=1}^{3} ‖f_i(u_n)‖²`, and `‖F_grav‖` is four to five decades below `‖a′‖` in every row, so `R̄ ≈ ‖a′‖² / 3`. Evaluating that against the six rows of M1: `1.37`, `2.47`, `1.61`, `2.59`, `1.25`, `1.73` (`×10¹⁰`) against the printed medians `1.37`, `2.46`, `1.62`, `2.60`, `1.25`, `1.74` (`×10¹⁰`) — agreement to three significant figures in all six rows. This is arithmetic on the packet's own transcribed numbers and adds no new source.
 
 ### 4.2 The mechanical coupling
 
@@ -153,6 +191,28 @@ The five surfaces appear in the order `52-VER-20-ROUTING-HANDOFF.md` item (e) an
 - **Coupled to:** S1 and S2 — the clip is the mechanism's defense against the exponent magnitude those surfaces produce.
 - **What the evidence pins, and does not:** the underflow-only purpose. It does not pin any numeric bound — see §7.
 
+#### The remedy families the routing authority authorizes
+
+The five surfaces above are the surfaces named by `.planning/REQUIREMENTS.md` ERW-01. Item (e)'s own statement of what it is asking for is wider than a list of surfaces, and it is transcribed here verbatim so this packet does not narrow its own routing authority:
+
+> **This is not a request to reword a spec table.** It is a request to
+> recalibrate one or more of: `η_c` / the causal-exponent form, an explicit
+> normalization of `R̄` (e.g. by a converged-scale reference), or the SIREN
+> initialization scale — or to redesign the curriculum mechanism so it does not
+> require the two to already agree at initialization.
+
+(`.planning/milestones/v2.2-phases/52-diagnosis-re-derivation-handoff/52-VER-20-ROUTING-HANDOFF.md:45-49`.)
+
+Three things in that sentence are not captured by S1–S5 as stated above, and are recorded rather than left implicit:
+
+1. **"the causal-exponent form."** Item (e) pairs `η_c` with the *form* of the exponent, not only its coefficient. S1 as stated is the coefficient.
+2. **"(e.g. by a converged-scale reference)."** Item (e) names an example of a reference scale. S2 as stated records that no reference scale is pinned anywhere in the spec; that remains true, and item (e)'s example is transcribed for completeness rather than as a pin.
+3. **"or to redesign the curriculum mechanism so it does not require the two to already agree at initialization."** A fourth remedy family, at the level of the mechanism rather than its parameters. No surface among S1–S5 corresponds to it.
+
+SCOPE-33 authorizes exactly the VER-20 items plus the coupled `N_t` disposition, so all four families sit inside this milestone's spec-edit authorization and inside this round's scope.
+
+**Correction recorded (ERW-02, 2026-08-21; see §11).** The five surfaces were assembled from the requirement text and did not transcribe item (e)'s remedy enumeration. Leaving the fourth family unstated narrowed the decision space relative to the packet's own cited routing authority. Nothing in S1–S5 is withdrawn; the enumeration is added alongside it.
+
 ## 5. The framed questions
 
 Each question states what a complete answer specifies — the structure of an adequate answer, never a value. No question names a candidate, a range, a form, or a direction of change. The ordering follows §4.3's transcription order and carries no precedence; no question is marked central.
@@ -181,6 +241,20 @@ What a complete answer specifies: whether the underflow-only purpose stands, and
 
 What a complete answer specifies: a joint disposition of the surfaces that interact through the mechanism — the exponent coefficient and the collocation-point count through the prefix sum, the residual magnitude and the initialization scale through the second-derivative chain, and the clip through whichever of those changes — with the evidence for the joint choice, so that no surface's disposition is left under-determined by the others. The question: what joint disposition of the coupled surfaces does the assembled evidence support, and what evidence would establish that the chosen combination is coherent at initialization and through training?
 
+### 5.7 Requirements every answer carries (cross-cutting, added at ERW-02)
+
+These constrain the *form* of an adequate answer. They name no value, no direction, and no candidate.
+
+**(a) Quantified capacity, per surface.** For each surface an answer dispositions, state the scaling law relating a change on that surface to the resulting change in the causal exponent at initialization; **derive it rather than assert it**; and state the magnitude of change that surface is capable of producing. State that magnitude against the two thresholds the evidence already fixes — the float32 underflow point (`F-03`) and the front-advance condition implied by the `front_idx` definition (`F-05`, and the definition itself as it stands in the repository). A disposition whose stated capacity does not reach the threshold it addresses is incomplete.
+
+**(b) Behaviour across the residual range, not only at initialization.** Every source in this package characterizes initialization; §7 records that as a gap. For each disposition, state what the causal weight vector does as `R̄` varies across the range a training run must traverse, and state what that range is with the evidence fixing it. An answer that establishes a disposition works at step 0 and is silent about later training has answered half the question.
+
+**(c) The source method, identified and cited.** Identify the published method the §3.2 causal-weighting formula derives from; cite it; and state **that method's own calibration procedure** for the exponent coefficient in the source's own terms — including whatever criterion the source uses to decide the coefficient is set correctly, and including how the source treats the number of terms entering the prefix sum. State every point at which this project's formulation departs from the source. `F-13` records what the spec's reference list does and does not cover.
+
+**(d) The mechanism-redesign family.** §4.3 records that item (e) authorizes a fourth remedy family, at the level of the mechanism rather than its parameters. It is in scope. State whether the assembled evidence and the literature bear on it, and if an answer dispositions it, disposition it under the same output contract as the rest.
+
+**(e) Independent derivation before comparison.** Where this packet transcribes an analysis — every `H-` row in §6 — derive the result independently first, then state agreement or disagreement with what is transcribed, with reasons. ERW Rule 17 makes this a duty rather than a courtesy.
+
 ## 6. Claims register
 
 Two tables, per the standing convention. `F-` rows are established evidence a reader may rely on. `H-` rows are prior analysis to challenge, and every `H-` row carries the label "agent analysis — not established fact".
@@ -199,6 +273,11 @@ Two tables, per the standing convention. `F-` rows are established evidence a re
 | F-08 | The Phase 35 causal-training contract fixes `eta_c = 1` (LOSS-04; D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A; AC-LOSS-04) | `pinn_architecture.md:445` | established |
 | F-09 | `first_omega_0` is fixed at `30` and is not scheduled during training | `pinn_architecture.md:181` | established |
 | F-10 | The causal exponent clip is required only to avoid underflow; no numeric bound is chosen in the spec | `pinn_architecture.md:668-671` (guard block `pinn_architecture.md:692`) | established |
+| F-11 | The 2026-08-17 audit attributes the initialization second-derivative magnitude to **two** compounding factors: `first_omega_0 = 30`, and the 12-layer SQR-SkipResNet stack (the `LayerNorm(x)^p` skip branch with `p = 2`, Jacobian `2·LN(x)/std(x)` ≈ 3 per odd layer, six of them). The measured effective angular frequency `‖a′‖/‖v′‖ ≈ 650–900` stands against `first_omega_0 = 30` | `docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md:165` | established (ERW-02) |
+| F-12 | The audit states the converged-regime comparison scale: `η_c = 1` on unnormalized `R̄` presumes `R̄ = O(1)`, "which is what a *converged* network gives (Gate B: residual = 0.65 % of `‖a′‖` on a true trajectory)" | `docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md:167` | established (ERW-02) |
+| F-13 | `pinn_architecture.md`'s `## References` section carries 17 numbered entries — covering the Power-Enhanced ResNet, PIG, SIREN, DeepXDE, and PINN-implementation repositories. **No entry cites a source for the causal-weighting scheme** of §3.2 | `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md:1017-1035` | established (ERW-02) |
+| F-14 | The live `R̄` construction matches the locked spec factor: `rbar = (residual ** 2).sum(dim=(-2, -1)) / 3.0` against the spec's `R̄_n = (1/3) Σ_i ‖f_i(u_n)‖²`. (The trainex-r2 round recorded a `1/9`-vs-`1/3` divergence as `RG-04` [r2-QUAL]; it is not present in the post-repair tree) | `pinn/training/controllers.py:656`; `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md:429` | established (ERW-02) |
+| F-15 | A causal-exponent clip **is** implemented in the post-repair tree: `weights = torch.exp(torch.clamp_min(exponent, floor))`, with the floor resolved per dtype and device rather than hardcoded. (The trainex-r2 round recorded `[FACT-W] No causal-exponent clip is implemented` [r2-QUAL]; that observation describes the pre-repair tree) | `pinn/loss_catalog.py:339` (floor at `:334`, `:337`; resolver at `:77`) | established (ERW-02) |
 
 One claim moved from `H-` in the trainex-r2 round to `F-` here, and the move is recorded rather than silent [r2-QUAL]: the `ω₀ = 30` second-derivative mechanism was derived by that round's Q3 as a **hypothesis**, and it was subsequently confirmed by the 2026-08-17 conformance audit — so it appears here as `F-02` with the audit as its source, and the r2 round is its prior, not its evidence [r2-QUAL].
 
@@ -227,6 +306,10 @@ This section names the gaps the assembled evidence leaves open, one entry per de
 **Cross-cutting — interactions beyond the arithmetic.** §4.2 states the arithmetic coupling between the exponent and the collocation-point count. The evidence does not establish how the surfaces interact beyond that arithmetic — no source tests combined dispositions.
 
 **Cross-cutting — behavior after initialization.** Both the 2026-08-17 audit and the eventual Phase 55 INST-04 probe characterize the architecture at initialization. The evidence does not establish post-initialization behavior under any recalibrated recipe, because no such run exists.
+
+**S3-adjacent — the SQR-SkipResNet contribution to the same quantity (added at ERW-02).** `F-11` records that the audit attributes the initialization second-derivative magnitude to `first_omega_0` **and** the 12-layer SQR-SkipResNet stack. Only `first_omega_0` carries an owner-ratified contract marker and appears among the decision surfaces. The evidence does not establish how the two factors divide the measured `‖a′‖/‖v′‖ ≈ 650–900`, and no source dispositions the stack's contribution. Whether the stack constitutes a surface of its own is not settled by anything in this package. The silence: `pinn_architecture.md` §2.3 and §2.4 fix the skip cadence and the power term `p = 2` and say nothing about their derivative-scale consequence, and the audit measures the compound effect without decomposing it.
+
+**Cross-cutting — the source method's own calibration (added at ERW-02).** `F-13` records that the framework spec cites no source for the causal-weighting scheme of §3.2. Nothing in this package states that method's calibration procedure for the exponent coefficient, its criterion for deciding the coefficient is set correctly, or how it treats the number of terms entering the prefix sum. §5.7(c) asks for exactly that. The silence recorded here is this package's, not the literature's.
 
 **Cross-cutting — the trainex-r2 construction limit.** That round's output contract clause 3 barred it from naming a remedy [r2-QUAL], so by construction it could not answer what the recalibrated values are; its Q3 content stands in §6's `H-` table as prior analysis.
 
@@ -259,6 +342,8 @@ No evaluation invoked.
 No command with side effects, no commit.
 This project's standing bars apply to external agents exactly as they apply to in-repo agents: no held-out evaluation, no new training runs, no framework-spec edits, and no remedy selection. Discriminating experiments are proposed as owner-gated options, never performed.
 
+**The literature requirement (§3's external tier, §5.7(c)).** Identify and cite the published method the §3.2 causal-weighting formula derives from, state that method's own calibration procedure for the exponent coefficient in the source's own terms, and state where this project's formulation departs from it. Cite by author, title, venue, and year. The framework spec's reference list does not cover this ground (`F-13`), so a report that answers only from the repository and the attachments has left the round's central evidence tier untouched.
+
 **The Rule 9 gap discipline.** Where the attached materials and the repository are silent or ambiguous, record it in the gaps section — never invent. A gap is a legitimate, valued output.
 
 **The Rule 19 notice.** Every repo-derived claim arrives as a checkable assertion carrying a `file:line`, and the project verifies each one in-repo — with the verification recorded — before it informs any decision, roadmap, or spec edit.
@@ -274,11 +359,11 @@ This section defines the neutrality checks and records their results. It sits ou
 | Bar A — D-04 Layer-1 scoped lexical ban | the `NEUTRALITY-BAN` region (§0's own voice through §8) | region-scoped case-insensitive grep for: `recommend`, `suggest`, `prefer`, `best`, `most likely`, `primary candidate`, `default to`, `should use`, `ranked`, `leading option` | **PASS — empty.** The region-scoped grep over the delimited region returned no lines (exit 1). |
 | Bar A2 — D-04 Layer-2 Rule-7 carve-out presence | §9 Output contract | case-insensitive count of `suggested default` / `one-way` / `two-way` / `decision sheet` in §9; expected at least 4 | **PASS — 4** matching lines (the Rule-7 contract paragraph, the door-classification line, the opening line, the ratification line). |
 | Bar B — D-06 tag discipline | all lines outside §0 | case-sensitive literal `trainex-r2` line match minus lines carrying `[r2-QUAL]` | **PASS — empty** (no untagged mention outside §0). |
-| Bar C — D-02 branch-neutrality file absence | the trainex-r3 round root | absence of `research_package/RESEARCH-AGENT-PROMPT.md`, `specs/`, and `research_results/` | **PASS — `NEUTRAL`** (all three absent). |
+| Bar C — D-02 branch-neutrality file absence | the trainex-r3 round root | absence of `research_package/RESEARCH-AGENT-PROMPT.md`, `specs/`, and `research_results/` | **PASS — `NEUTRAL`** at checkpoint ① (all three absent). **Superseded at ERW-02:** the owner commissioned the round on 2026-08-21, so the prompt and `specs/` now exist by instruction. The bar certified the pre-commission state and has discharged its purpose. |
 | Bar D — read-only boundary | framework specs, `pinn/`, `simulation_data/`, `tests/` | `git diff --stat` over the cited paths | **PASS — empty.** |
 | Bar E — planning-source read-only bar | `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` | `git diff --stat` over the two files | **PASS — empty** (the stale anchors are warned about, never corrected). |
 | Bar F — no cost or preference framing | `54-RULING.md` | case-insensitive grep for cost and effort vocabulary | **PASS — 0.** |
-| Tree completeness (45-AUDIT Check 1) | the trainex-r3 round root | `find … -type f | sort` | **PASS — exactly two paths**: the master and the delivery note. |
+| Tree completeness (45-AUDIT Check 1) | the trainex-r3 round root | `find … -type f | sort` | **PASS — exactly two paths** at checkpoint ①: the master and the delivery note. **Superseded at ERW-02** — see the ERW-02 table below for the commissioned tree. |
 | Pin consistency | master frontmatter, §8, delivery note | the `source_baseline` 40-character hash must be byte-identical in all three | **PASS —** `6a4f9b9902ab62e1d1f57bba0e521f38120c416d` in all three places. |
 | Boundary attestation (45-AUDIT Check 9) | all cited source trees | `git status --short` over the cited trees plus one attestation sentence per scope item | **PASS — clean.** See the attestation sentences below. |
 | Manual 1 — structural neutrality read | §4.3's five surfaces | per-surface confirmation of the five-element D-05 form and the absence of option menus | **PASS —** per-surface verdicts for S1–S5 recorded in `54-02-SUMMARY.md`; re-read at close: no sentence enumerates comparable alternatives. |
@@ -290,7 +375,7 @@ The two-layer neutrality criterion these checks enforce:
 - **Layer 1** is the scoped lexical ban binding the packet's own voice in §0 through §8 — the region delimited by the two region markers defined in the section map.
 - **Layer 2** is the explicit ERW Rule-7 carve-out for §9: §9 must carry the vocabulary of marked defaults, door classification, and decision sheets, because roadmap Success Criterion 4 requires this packet to specify the trainex-r3 output contract. A §9 that is lexically clean under Layer 1's vocabulary means the Rule-7 contract was gutted rather than satisfied — which is what Bar A2 exists to catch.
 
-**Excluded 45-AUDIT checks, with reasons.** Check 3 (self-containment / zero repo-path markers) is Route-A-only and does not apply to a Route-B master, whose Rules 1–2 inversion makes repository paths expected. Check 4 (snapshot fidelity) and Check 6 (pin consistency across snapshot files) presuppose the `specs/` bundle D-02 deliberately withholds. These checks are deferred to the ERW-02 audit if the round is commissioned, not waived.
+**Excluded 45-AUDIT checks, with reasons.** Check 3 (self-containment / zero repo-path markers) is Route-A-only and does not apply to a Route-B master, whose Rules 1–2 inversion makes repository paths expected. Check 4 (snapshot fidelity) and Check 6 (pin consistency across snapshot files) presuppose the `specs/` bundle D-02 deliberately withholds. These checks were deferred to the ERW-02 audit, not waived — **and they are now run**: see Check 4 and Check 6 in the ERW-02 table below.
 
 **Boundary attestation (one sentence per scope item).** SCOPE-33: the framework-spec edits this milestone authorizes are the VER-20 items and the coupled `N_t` disposition — this packet cites the specs and edits none (Bar D). SCOPE-34: the recalibration decision is owner-ratified, never agent-decided — this packet marks no default, ranks no option, and picks nothing (Bar A, Manual 1, §1.3). SCOPE-35: exactly one held-out evaluation exists and this packet neither spends it nor plans its spending. SCOPE-36: Stage-0 only — this packet proposes no platform work. SCOPE-37: iteration after the spec edit is conformance-only — this packet names no tuning loop. SCOPE-38: amending a locked contract requires re-ratification — the three re-ratification blocks live in `54-RULING.md`, not here, and no spec value is changed.
 
@@ -318,3 +403,33 @@ The two-layer neutrality criterion these checks enforce:
 6. `.planning/phases/53-narrow-spec-codification/53-RESEARCH.md:165` cites `:976` for the sections-6–9 numbering anomaly — live `:976` is inside a code block.
 
 Still resolving in the live tree (no action): v2.2 Phase 47's Hamiltonian/Plummer/energy-regularizer anchors (`:505`, `:531`, `:533`, `:539`, `:542`, `:544`), `53-UAT.md:144` (`:518` = the §3.4 heading), and `53-PATTERNS.md` / `53-RESEARCH.md` anchors `:292`, `:310`, `:655`, `:667`. Sweep-method note: the 3-digit pattern truncates four-digit anchors, so `53-PATTERNS.md:144`, `53-PATTERNS.md:225`, and `53-RESEARCH.md:138` render `pinn_architecture.md:1014` / `:1047` as `:101` / `:104` — pattern artifacts, not citations of lines 101/104.
+
+## 11. ERW-02 amendment record (2026-08-21)
+
+The owner commissioned the round at checkpoint ① on 2026-08-21 with the instruction *"make sure that the information inlcuded in that package is accurate and faithful."* This section records every change made to this master after the gate, with its reason, so the pre-gate and post-gate states are distinguishable. Nothing recorded at checkpoint ① is withdrawn; every change is an addition, a correction of a transcription against its own cited source, or a status update.
+
+| # | Change | Class | Reason |
+|---|---|---|---|
+| A-1 | §4.1 `M2` rewritten to quote the audit's two-factor attribution verbatim; `F-11` added | **correction** | The entry read "`first_omega_0 = 30` sets the second-derivative magnitude." The audit it cites attributes the magnitude to `first_omega_0` **and** the 12-layer SQR-SkipResNet stack (`:165`). The packet was narrower than its source, in a direction that overstates one decision surface. |
+| A-2 | §4.3 gains a verbatim transcription of item (e)'s remedy enumeration, and names the three elements S1–S5 do not capture — including the **fourth remedy family** (mechanism redesign) | **correction** | The five surfaces were assembled from the requirement text. Item (e), the packet's own cited routing authority, authorizes a wider remedy space; omitting it narrowed the decision relative to its source. |
+| A-3 | §4.1 gains `M6` (the audit's converged-regime comparison scale, `R̄ = O(1)`, residual 0.65 % of `‖a′‖` on a true trajectory) | addition | The only converged-regime residual scale any source in this package states. Transcribed because §5.2 asks about reference scales and the datum existed unused. |
+| A-4 | §4.1 gains `M7` (internal consistency of the six-row probe against the locked `R̄` definition) | verification | `R̄ ≈ ‖a′‖²/3` reproduces all six printed medians to three significant figures — an independent check that the probe's columns are mutually consistent. Arithmetic on already-transcribed numbers; no new source. |
+| A-5 | §3 gains the **external published literature** evidence tier; §5.7(c) and §9 require the source method be identified, cited, and its own calibration procedure stated | addition | `F-13`: the spec's 17-entry reference list cites no source for the §3.2 causal-weighting scheme. Without this tier the round could return a repository-only answer and leave its central evidence base untouched. |
+| A-6 | §3 gains the **anchor-resolution rule** | **correction** | Four files named `pinn_architecture.md` exist with different line numbering (1098 / 1010 / 1013 / 1064); `:181` is the locked `first_omega_0` sentence in the live spec and unrelated prose in the `integrity-r1` snapshot. A Route-B agent resolving a bare filename could silently read the wrong file. |
+| A-7 | §5 gains §5.7 — cross-cutting requirements on the *form* of an answer (quantified per-surface capacity with a derived scaling law; behaviour across the residual range, not only at initialization; the source method and its calibration; the mechanism-redesign family; independent derivation before comparison) | addition | The §5.1–§5.6 questions ask what the evidence supports. §7 records that the evidence characterizes initialization only. Without §5.7 the round could answer within that limit and reproduce it. §5.7(e) exists so the round derives independently rather than ratifying what this packet transcribes. |
+| A-8 | §6 gains `F-11`…`F-15`; §7 gains two entries (the SQR-SkipResNet contribution; the source method's own calibration) | addition | New verified facts and the gaps they expose. `F-14` and `F-15` retire two trainex-r2 observations [r2-QUAL] that describe the pre-repair tree and no longer hold. |
+| A-9 | §2 manifest rewritten from the withheld-artifact statement to the commissioned three-attachment list | status | The round is commissioned; the checkpoint-① manifest is no longer true. |
+| A-10 | §10 Bar C and Tree completeness marked superseded; Checks 4 and 6 run | status / verification | Both bars certified the pre-commission state. The two deferred checks are now discharged. |
+
+### ERW-02 audit results
+
+| Check | Method | Result |
+|---|---|---|
+| Bar A — Layer-1 scoped lexical ban | region-scoped case-insensitive scan of the `NEUTRALITY-BAN` region for the ten banned tokens | **PASS — 0 hits** across the region. |
+| Bar A2 — Layer-2 Rule-7 carve-out | line-anchored count of `suggested default` / `one-way` / `two-way` / `decision sheet` in §9 | **PASS — 11** (≥ 4 required). |
+| Bar B — `[r2-QUAL]` tag discipline | literal `trainex-r2` line match outside §0, minus tagged lines | **PASS — 0 untagged.** |
+| **Check 4 — snapshot fidelity** (deferred from checkpoint ①) | every `BEGIN/END VERBATIM` block in both bundles re-extracted from the pinned commit and compared byte-for-byte | **PASS — 13 excerpts, 0 mismatches.** |
+| **Check 6 — pin consistency across snapshot files** (deferred from checkpoint ①) | the 40-character `source_baseline` must be the only 40-hex string, and identical, in all four round files | **PASS —** `6a4f9b9902ab62e1d1f57bba0e521f38120c416d` in the master, the delivery note, and both bundles; no other hash present. |
+| Baseline still current | `git diff --stat 6a4f9b99..HEAD` over every cited source path | **PASS — empty.** No cited file changed between the pin and the commissioning commit, so every anchor in this packet remains re-derivable at the pin. |
+| Citation resolution | all 49 distinct `file:line` citations in this master resolved against the live tree | **PASS — 49/49 resolve, 0 out of range.** Eleven cite `pinn_architecture.md` by bare filename, which is why the §3 anchor-resolution rule was added. |
+| Attachment cap (Rule 15) | count of uploaded attachments for this sub-package | **PASS — 3 of at most 5.** |
