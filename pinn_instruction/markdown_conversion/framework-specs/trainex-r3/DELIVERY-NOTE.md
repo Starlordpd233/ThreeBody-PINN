@@ -41,8 +41,8 @@ Open-book `file:line` citations are only re-derivable against the tree the agent
 |---|---|
 | Worktree | `<home>/Desktop/3_body_problem/.worktrees/trainex` |
 | Branch | `milestone/v2.3` |
-| Commit at engagement | `PENDING — stamp the HEAD hash here at the moment access is granted` |
-| Access granted by | `PENDING — how (read-only mount, clone, editor access)` |
+| Commit at engagement | `11b4e0c1` — the ERW-02 assembly commit, which is the state of the tree as this package was completed. **Re-stamp with the actual `git rev-parse HEAD` if the branch has moved before you grant access.** |
+| Access granted by | `PENDING — how access was granted (read-only mount, clone, editor access)` |
 | Date of engagement | `PENDING` |
 
 The `source_baseline` pin below covers the attachments. It does **not** cover the live tree; that is what this table is for.
