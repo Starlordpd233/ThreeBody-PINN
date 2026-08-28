@@ -26,7 +26,7 @@ Open `research_package/RESEARCH-AGENT-PROMPT.md`. Everything above its horizonta
 | # | Attachment | What it is |
 |---|---|---|
 | 1 | `research_package/RESEARCH-CONTEXT-MASTER.md` | The agent's entry point: source tiering, the mechanism, the five decision surfaces plus item (e)'s fourth remedy family, the framed questions, the claims register, the gaps, the output contract. |
-| 2 | `specs/framework-specs-bundle.md` | Verbatim locked framework-spec excerpts (13 extraction blocks, byte-verified against the pinned commit). |
+| 2 | `specs/framework-specs-bundle.md` | Verbatim locked framework-spec excerpts (10 extraction blocks, byte-verified against the pinned commit). |
 | 3 | `research_package/v2.2-closure-evidence-bundle.md` | The 2026-08-17 conformance audit, the VER-20 routing handoff, and the DIAG-05 re-derivation — each reproduced in full. |
 
 Not uploaded: this delivery note (routing only), the prompt (pasted, not attached), and `research_results/` (created at delivery).

@@ -5,14 +5,14 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 54
 current_phase_name: Recalibration Decision Grounding
 status: executing
-stopped_at: Phase 54 ERW-01 execution pass complete (5/5 plans) - halted at owner checkpoint (1), which is blocking; Phase 54 remains in progress and ERW-02 is the post-gate replan
-last_updated: "2026-08-20T08:00:00.000Z"
-last_activity: 2026-08-20
-last_activity_desc: Phase 54 execution pass complete: the trainex-r3 decision packet (master + delivery note) committed at the ERW round root, GAP-54-01 anchored OPEN in 54-GAPS.md and v2.3-GAPS.md, 54-RULING.md gate stub written (all dispositions unfilled), the §10 self-audit recorded with all bars green (A empty / A2=4 / B empty / C NEUTRAL / D empty / E empty / F=0; 30/30 citations resolve), and owner checkpoint (1) presented as a blocking gate. No branch was selected and no ERW-02 artifact exists (D-11, roadmap SC-3). Phase 54 stays in progress until checkpoint (2) is discharged.
+stopped_at: Phase 54 reconciliation in progress (54-06) — checkpoint ① discharged 2026-08-21 (commission trainex-r3); ERW-02 partially discharged; Phase 54 remains in progress
+last_updated: "2026-08-28T05:08:32.000Z"
+last_activity: 2026-08-28
+last_activity_desc: Phase 54 plan 54-06 reconciling the 2026-08-21 out-of-band assembly pass (commits 11b4e0c1 and ad51968e recorded, not retroactively authorized). ERW-01 is complete. Checkpoint ① is discharged. ERW-02 is partially discharged — the trainex-r3 package is assembled and the handoff is certified, while delivery, the ERW Rule-19 per-claim in-repo verification, the ERW Rule-12 consolidation, and owner checkpoint ② remain outstanding. GAP-54-01 stays OPEN. Phase 54 stays in progress until checkpoint ② is discharged. STATE.md updated by hand because gsd-tools mutating verbs emit malformed output in this checkout.
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 6
+  total_plans: 8
   completed_plans: 6
   percent: 17
 ---
@@ -29,20 +29,20 @@ See: .planning/PROJECT.md (updated 2026-08-18)
 ## Current Position
 
 Phase: 54 of 58 (Recalibration Decision Grounding)
-Plan: 5/5 executed — 54-01 (wave 1, tracer) · 54-02 ∥ 54-03 (wave 2) · 54-04 (wave 3) · 54-05 (wave 4, blocking owner gate)
-Status: Execution pass complete — halted at owner checkpoint ① (blocking); phase remains in progress
-Last activity: 2026-08-20 — Phase 54 ERW-01 delivered (commits f765974a, b49d0b4, cd176284, da7a415e, 7fca4d3e); checkpoint ① presented
+Plan: 5/7 executed with SUMMARY (54-01..54-05); 54-06 (wave 5, reconciliation) in progress; 54-07 (wave 6, handoff) not yet summarized
+Status: Checkpoint ① discharged 2026-08-21 (commission `trainex-r3`); ERW-02 partially discharged; phase remains in progress
+Last activity: 2026-08-28 — plan 54-06 reconciling the 2026-08-21 out-of-band assembly pass
 Resume file: .planning/phases/54-recalibration-decision-grounding/54-RULING.md
 
-**Scope of this execution pass (roadmap SC-3 / CONTEXT.md D-11).** The plans cover
-**ERW-01 only** — assemble the strictly non-recommending decision packet at the
-`trainex-r3` round root, create the `GAP-54-01` anchor in `54-GAPS.md` and the new
-`.planning/milestones/v2.3-GAPS.md`, and present **owner checkpoint ①**, then halt.
-ERW-02 is deliberately unplanned: authoring a plan for either gate branch is work
-proceeding on an assumed branch, which SC-3 forbids. ERW-02 becomes a post-gate
-replan once the owner rules directly or commissions `trainex-r3`.
+**Scope of this execution pass (roadmap SC-3 / CONTEXT.md D-11).** ERW-01 is
+complete — the strictly non-recommending decision packet sits at the
+`trainex-r3` round root, `GAP-54-01` is anchored OPEN in `54-GAPS.md` and
+`.planning/milestones/v2.3-GAPS.md`, and owner checkpoint ① is discharged.
+ERW-02 is **partially discharged**: the package is assembled and the handoff is
+certified. Remaining: delivery, the ERW Rule-19 per-claim in-repo verification
+report, the ERW Rule-12 consolidation, and owner checkpoint ②.
 
-**Therefore Phase 54 will NOT close when these plans finish.** Expect Phase 54 to
+**Therefore Phase 54 will NOT close when 54-06 and 54-07 finish.** Expect Phase 54 to
 remain in progress with `GAP-54-01` OPEN and Phase 56 closed until checkpoint ② is
 discharged. That is the design working, not a stall.
 
@@ -480,13 +480,13 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`
 
-Last session: 2026-08-20
-Stopped at: Phase 54 ERW-01 execution pass complete; halted at owner checkpoint ① (blocking)
-Next action: Owner rules at checkpoint ① — fill `54-RULING.md`'s `Branch` field or reply naming it. Then either (a) the ERW-02 post-gate replan (commission `trainex-r3`), or (b) the direct ruling recorded in `54-RULING.md`. Phase 56 opens only after checkpoint ② is discharged; `GAP-54-01` stays OPEN until then.
+Last session: 2026-08-28
+Stopped at: Phase 54 plan 54-06 reconciliation; checkpoint ① already discharged
+Next action: Plan 54-07 certifies the commissioned handoff and presents the blocking owner handoff for delivery. Phase 56 opens only after checkpoint ② is discharged; `GAP-54-01` stays OPEN until then.
 
 ## Operator Next Steps
 
-- **Ruling at checkpoint ① (blocking).** Read the ERW-01 packet at `pinn_instruction/markdown_conversion/framework-specs/trainex-r3/research_package/RESEARCH-CONTEXT-MASTER.md` and fill `54-RULING.md`'s `Branch` field — rule directly, or commission `trainex-r3`. No branch was selected by the agent, and no ERW-02 work exists.
+- **Handoff of the commissioned `trainex-r3` package (blocking, 54-07).** Checkpoint ① is already discharged (`commission trainex-r3`, 2026-08-21). Remaining ERW-02 items are delivery, the Rule-19 verification report, the Rule-12 consolidation, and owner checkpoint ②. No candidate value is offered for any decision surface.
 - **Plan Phase 50** — begin with `$gsd-discuss-phase 50`; Phase 49 authorizes planning but did not launch the admitted-corpus run.
 - ~~Execute Phase 44~~ — complete 2026-07-23 (qualified by `44-ERRATUM.md` 2026-07-24)
 - ~~Adjudicate GAP-44-01~~ — RESOLVED-WITH-INSTRUCTION 2026-07-23 (owner option A: the physics gate is defined over the worst-case `max` per-trajectory ε_H; headline `max = 237.2086056078468`. See `.planning/phases/44-physics-gate-forensics/44-GAPS.md` and the updated `44-DIAGNOSIS.md`.)

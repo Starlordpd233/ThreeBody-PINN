@@ -16,9 +16,12 @@ created: 2026-08-19
 > Markdown and writes no code. It is one step lighter than Phase 53: it does not
 > even edit a framework spec, it only *cites* one.
 >
-> **Scope note (CONTEXT.md D-11):** this contract covers the ERW-01 execution
-> pass (packet + delivery note + gate presentation) only. ERW-02's assertions are
-> written at the post-gate replan, once the owner's branch is known.
+> **Scope note (CONTEXT.md D-11, updated 2026-08-28):** this contract covers the
+> ERW-01 execution pass (packet + delivery note + gate presentation) and the
+> 54-06/54-07 reconciliation and handoff-readiness plans. ERW-02 is **partially
+> discharged** — the package is assembled and the handoff is certified. Delivery,
+> the ERW Rule-19 per-claim in-repo verification, the ERW Rule-12 consolidation,
+> and owner checkpoint ② remain outstanding. Phase 54 does not close here.
 
 ---
 
@@ -68,15 +71,23 @@ created: 2026-08-19
 | 54-04-03 | 04 | 3 | ERW-01 (D-03, D-04 Layer 2), SC-4 | T-54-09, T-54-10 | Rule-7 contract not gutted to pass a lexical sweep | inverse-polarity assertion | **Bar A2** — §9 Rule-7 vocabulary (`suggested default|one-way|two-way|decision sheet`) **≥ 4**; a lexically clean §9 FAILS. All six Rule-7 elements named; `never decide` present; `Rule 9` / `Rule 17` / `Rule 18` / `Rule 19` each ≥ 1; ≥ 3 read-only bars in the imperative. §8 records the baseline pin and defers the Rule-20 live-tree pin. `<!-- NEUTRALITY-BAN-END -->` line number **<** `## 9.` line number. **Bar A** still empty. Whole-file `grep -c 'Written by plan 54-'` = **0** | ✅ (post-write) | ⬜ pending |
 | 54-05-01 | 05 | 4 | ERW-01 (D-04, SC-1) | T-54-11, T-54-06 | The self-audit's own claims are re-derivable | self-audit assertion | `sed -n '/^## 10\./,$p' <master> | grep -c 'PENDING'` = **0**; every Bar A/A2/B/C/D/E/F recorded by name with its producing command and outcome; the three excluded `45-AUDIT.md` checks (self-containment = Route-A-only; snapshot fidelity + snapshot pin half = presuppose the withheld `specs/`) named with reasons and marked **deferred, not waived**; per-surface structural verdicts × 5; citation-fidelity counts + every failure; `source_baseline` byte-identical across master frontmatter, §8, and the delivery note; `find …/trainex-r3 -type f` = 2 paths; SCOPE-33..38 boundary attestation; traceability table mapping ERW-01 and SC-1/SC-2/SC-3-gate, with SC-4/SC-5 marked not-yet-applicable | ✅ (post-write) | ⬜ pending |
 | 54-05-02 | 05 | 4 | ERW-01 → checkpoint ① (D-08, D-11), SC-3 | T-54-03, T-54-12 | The agent does not select the branch | halt assertion | Blocking `checkpoint:decision` presented; `54-RULING.md`'s `Branch` still `PENDING` at presentation; **Bar C** passes and `find …/trainex-r3 -type f` = 2 (no ERW-02 artifact created pre-gate); no plan file numbered above `54-05`; `docs/work/reviews/milestone_v2.3/` does not exist; `GAP-54-01` still `OPEN` in both registers; **Bar F** → **0**; summary records Phase 54 **in progress**, not complete | ✅ | ⬜ pending |
+| 54-06-01 | 06 | 5 | ERW-02 (reconciliation) | T-54-12, T-54-13, T-54-14 | Out-of-band commits recorded not authorized; Checks R1/R2 replace the two-path guard | textual assertion | `54-RECONCILIATION.md` exists; `grep -cF 'does not retroactively authorize'` ≥ 1; Check R1 prints `MANIFEST-OK`; Check R2 table matches introducing dates; four-path fail-demo prints `MANIFEST-FAIL` | ✅ (post-write) | ⬜ pending |
+| 54-06-02 | 06 | 5 | ERW-02 (re-derivation) | T-54-11, T-54-15 | Every hand-run audit result re-derived with its command | textual assertion | Re-derivation table rows carry Command and Re-derived cells; empty-cell awk exits 0; A-1 through A-10 each present as first cell; new `A-` entries record at-source repairs; Bar D empty; `54-RULING.md` / gap registers byte-unchanged vs HEAD | ✅ (post-write) | ⬜ pending |
+| 54-06-03 | 06 | 5 | ERW-02 (accounting + Bar G) | T-54-16, T-54-17 | ROADMAP/STATE/VALIDATION derived from disk; plan-file neutrality holds | textual assertion | Section 7 listings recorded; ROADMAP contains `partially discharged`; Bar G prints `BAR-G-CLEAN` or `BAR-G-CLEAN-NO-SURFACE-NAMED` with region cardinality; narrowed Bar E over REQUIREMENTS.md empty | ✅ (post-write) | ⬜ pending |
+| 54-07-01 | 07 | 6 | ERW-02 (H1–H8) | T-54-12 | Round-root artifacts certified against ERW Rules 7, 15, 16, 17, 18, 20 and Rules 1–2 inversion | textual assertion | `54-HANDOFF-READINESS.md` has eight H1–H8 rows; Check R1 still `MANIFEST-OK` | ✅ (post-write) | ⬜ pending |
+| 54-07-02 | 07 | 6 | ERW-02 (routing note) | T-54-08 | Deferred-replan routing names destinations and rules without cost framing | textual assertion | Routing note names `research_results/`, `docs/work/reviews/milestone_v2.3/54-recalibration-decision-grounding/`, `trainex-r3-resolution-doc.md`, Rule 19, Rule 12; Bar F analog 0 | ✅ (post-write) | ⬜ pending |
+| 54-07-03 | 07 | 6 | ERW-02 → owner handoff | T-54-03 | Execution halts at the blocking-human gate; no candidate value | halt assertion | Blocking `gate="blocking-human"` presented; Phase 54 remains in progress; `GAP-54-01` OPEN; checkpoint ② unfilled; Phase 56 closed; `research_results/` absent; `docs/work/reviews/milestone_v2.3/` absent | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ### Scope note on this map (CONTEXT.md D-11)
 
-Roadmap Success Criteria **4 and 5 have no row above** — they are ERW-02's, and
-ERW-02 is a deliberate post-gate replan. Their absence here is the same
-branch-neutrality property D-02 asserts structurally, not a coverage gap. Task
-`54-05-02` is the last task of this execution pass.
+Roadmap Success Criteria **4 and 5 have no row above** — they discharge at
+delivery, the ERW Rule-19 per-claim in-repo verification, the ERW Rule-12
+consolidation, and owner checkpoint ②, all still outstanding. ERW-02 is
+**partially discharged** (package assembled; handoff certified). Tasks `54-06-*`
+and `54-07-*` follow `54-05-02`; this execution pass continues through the 54-07
+owner handoff and does not close the phase.
 
 ---
 
@@ -105,4 +116,4 @@ Existing infrastructure covers all phase requirements — no test framework, fix
 - [ ] Feedback latency < 15s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** pending — not granted. Plan 54-06 does not close the phase. What is established: ERW-01 complete; checkpoint ① discharged; the round-root package assembled; Checks R1/R2 and Bar G defined. What is not established: delivery, Rule-19 verification, Rule-12 consolidation, checkpoint ②, Success Criteria 4 and 5, `nyquist_compliant`.
