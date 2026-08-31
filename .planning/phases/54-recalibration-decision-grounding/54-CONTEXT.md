@@ -322,6 +322,58 @@ and are **not folded**. See Deferred Ideas.
 </decisions>
 
 <canonical_refs>
+## Post-delivery decisions (D-12 … D-18), recorded 2026-08-31
+
+`trainex-r3` delivered on 2026-08-30 and two external agents responded. The
+post-delivery plans `54-08` through `54-13` carry seven further assembly-mechanics
+decisions. They sit under the same delegation boundary recorded at the head of
+this section: each governs *how* the returned evidence is verified, structured and
+presented. **None names, defaults, ranks, narrows or orders a value of `η_c`, the
+`R̄` normalization, `ω₀`, `N_t`/`n_col`, or the clip semantics** — SCOPE-34
+reserves those to the owner, and checkpoint two remains untouched by every one of
+them. Each is stated in full in the plan that owns it; this registry exists so a
+reader of `.planning/ROADMAP.md` can resolve the citation without opening a plan.
+
+- **D-12: One verification report file, written across two sequential plans.** ERW
+  Rule 19 asks for a verification report and the worked example the runbook cites
+  is a single file. The two returned reports carry substantially different evidence
+  bases, so their verification passes are separated into two plans that write the
+  same file in sequence — the second pass's cross-report reasoning has to sit
+  beside the first pass's verdicts to be readable at all. (`54-09`, `54-10`)
+- **D-13: The verdict vocabulary is a closed set extending the precedent's own.**
+  The Phase 45 worked example used `CONFIRMED`, a sharpened variant, and a "not
+  verifiable here" section. This pass fixes an explicit closed vocabulary so no row
+  invents a verdict and verdicts can be counted by class. Extending a precedent's
+  vocabulary is mechanical; inventing an unprecedented adjudication category would
+  not be, and none is introduced. (`54-09`)
+- **D-14: Agreement counts as corroboration only within a claim class both agents
+  could evidence.** The direct consequence of the ERW Rule-16 access-mode
+  divergence, and the single most consequential thing the verification establishes:
+  only one engagement could read the repository, so a matching repository statement
+  from the other is evidence about attachment fidelity, not a second reading.
+  (`54-08`, `54-10`, `54-12`)
+- **D-15: Post-upload learning is never written back into an uploaded file.** The
+  attachment baseline pin exists so a reader can reconstruct what the external
+  agents actually read; editing an attachment after upload silently destroys that.
+  Everything learned at intake lands in the delivery note, which is never uploaded,
+  or in the phase-local intake record. (`54-08`)
+- **D-16: Premise adjudication is a separate plan ahead of the consolidation.** The
+  runbook's handoff quick reference is explicit that a verified claim contradicting
+  a package premise re-frames the round before its answers are used. Putting that
+  determination inside the consolidation plan would have an executor discover a
+  fatal contradiction part-way through writing the consolidated document. (`54-11`)
+- **D-17: A decision point outside the anchor gap's scope gets its own gap
+  identifier, and the granularity choice is offered back rather than assumed.**
+  D-10 chose one anchor gap covering both owner checkpoints rather than one record
+  per recalibration sub-question, and Open Item 2 below keeps the alternative
+  available on request. A decision point that is not a sub-question of the anchor
+  gap is not covered by that choice. (`54-11`)
+- **D-18: The governance record receives pointers, never menus.** Candidate menus
+  and marked defaults are the round's contracted output and live in the round's
+  consolidated document, attributed to the agent that produced them. `54-RULING.md`
+  names where they are and what the owner must dispose of, and carries no candidate
+  of its own. (`54-12`, `54-13`)
+
 ## Canonical References
 
 **Downstream agents MUST read these before planning or implementing.**

@@ -16,12 +16,23 @@ created: 2026-08-19
 > Markdown and writes no code. It is one step lighter than Phase 53: it does not
 > even edit a framework spec, it only *cites* one.
 >
-> **Scope note (CONTEXT.md D-11, updated 2026-08-28):** this contract covers the
-> ERW-01 execution pass (packet + delivery note + gate presentation) and the
-> 54-06/54-07 reconciliation and handoff-readiness plans. ERW-02 is **partially
-> discharged** — the package is assembled and the handoff is certified. Delivery,
-> the ERW Rule-19 per-claim in-repo verification, the ERW Rule-12 consolidation,
-> and owner checkpoint ② remain outstanding. Phase 54 does not close here.
+> **Scope note (CONTEXT.md D-11, updated 2026-08-31):** this contract covers the
+> ERW-01 execution pass (packet + delivery note + gate presentation), the
+> 54-06/54-07 reconciliation and handoff-readiness plans, **and the post-delivery
+> plans 54-08 through 54-13** — intake certification, the ERW Rule-19 per-claim
+> verification across both engagements, the premise adjudication and re-frame
+> determination, the ERW Rule-12 consolidation, and the checkpoint-② presentation.
+>
+> The round delivered on 2026-08-30 with two responding agents, so delivery is no
+> longer outstanding. Validation for the post-delivery plans remains **textual**
+> with one addition: because the returned reports' claims are verified by
+> re-derivation against the repository, the Rule-19 plans run real read-only
+> repository commands and record their output, and their gates assert that the
+> tree was not modified by the act of verifying it.
+>
+> ERW-02 remains **partially discharged** until owner checkpoint ② is filled.
+> Phase 54 does not close here, and a `REFRAME-REQUIRED` or `UNDETERMINED`
+> determination at 54-11 legitimately halts the pass before consolidation.
 
 ---
 

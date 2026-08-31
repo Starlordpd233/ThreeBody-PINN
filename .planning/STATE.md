@@ -5,15 +5,15 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 54
 current_phase_name: Recalibration Decision Grounding
 status: executing
-stopped_at: Phase 54 reconciliation in progress (54-06) — checkpoint ① discharged 2026-08-21 (commission trainex-r3); ERW-02 partially discharged; Phase 54 remains in progress
-last_updated: "2026-08-28T05:08:32.000Z"
-last_activity: 2026-08-28
-last_activity_desc: Phase 54 plan 54-06 reconciling the 2026-08-21 out-of-band assembly pass (commits 11b4e0c1 and ad51968e recorded, not retroactively authorized). ERW-01 is complete. Checkpoint ① is discharged. ERW-02 is partially discharged — the trainex-r3 package is assembled and the handoff is certified, while delivery, the ERW Rule-19 per-claim in-repo verification, the ERW Rule-12 consolidation, and owner checkpoint ② remain outstanding. GAP-54-01 stays OPEN. Phase 54 stays in progress until checkpoint ② is discharged. STATE.md updated by hand because gsd-tools mutating verbs emit malformed output in this checkout.
+stopped_at: Phase 54 post-delivery replan authored (54-08..54-13) — trainex-r3 delivered 2026-08-30 with two responding agents; checkpoint ① discharged 2026-08-21; checkpoint ② still PENDING; Phase 54 remains in progress
+last_updated: "2026-08-31T06:30:00.000Z"
+last_activity: 2026-08-31
+last_activity_desc: Phase 54 post-delivery replan. The trainex-r3 round delivered on 2026-08-30; two external agents responded (claude-resolution.md, chatgpt-resolution.md). Plans 54-08 through 54-13 are authored and plan-checked: intake certification, the ERW Rule-19 per-claim verification across two engagements of differing access mode, the premise adjudication and re-frame determination, the ERW Rule-12 consolidation, and the blocking checkpoint-② presentation. 54-01..54-07 are all executed and summarized. ERW-02 stays partially discharged; GAP-54-01 stays OPEN; checkpoint ② is PENDING. STATE.md updated by hand because gsd-tools mutating verbs emit malformed output in this checkout.
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 8
-  completed_plans: 6
+  total_plans: 14
+  completed_plans: 8
   percent: 17
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-08-18)
 ## Current Position
 
 Phase: 54 of 58 (Recalibration Decision Grounding)
-Plan: 5/7 executed with SUMMARY (54-01..54-05); 54-06 (wave 5, reconciliation) in progress; 54-07 (wave 6, handoff) not yet summarized
-Status: Checkpoint ① discharged 2026-08-21 (commission `trainex-r3`); ERW-02 partially discharged; phase remains in progress
-Last activity: 2026-08-28 — plan 54-06 reconciling the 2026-08-21 out-of-band assembly pass
+Plan: 7/13 executed with SUMMARY (54-01..54-07); 54-08..54-13 authored 2026-08-31 (post-delivery replan), not yet executed
+Status: Checkpoint ① discharged 2026-08-21 (commission `trainex-r3`); round delivered 2026-08-30; ERW-02 partially discharged; phase remains in progress
+Last activity: 2026-08-31 — post-delivery replan authored and plan-checked
 Resume file: .planning/phases/54-recalibration-decision-grounding/54-RULING.md
 
 **Scope of this execution pass (roadmap SC-3 / CONTEXT.md D-11).** ERW-01 is
