@@ -113,8 +113,10 @@ A determination is recorded for each of the five enumerated surfaces separately,
 
 | Task | Name | Commit | Files |
 |------|------|--------|-------|
-| 1–3 | Adjudication, gap routing, and the re-frame determination — one commit at the end of Task 3, per the plan's own commit protocol | `<recorded below>` | `54-PREMISE-ADJUDICATION.md`, `54-GAPS.md`, `.planning/milestones/v2.3-GAPS.md`, `54-11-SUMMARY.md` |
+| 1–3 | Adjudication, gap routing, and the re-frame determination — one commit at the end of Task 3, per the plan's own commit protocol | `83447250` — `docs(54-11): adjudicate the trainex-r3 premise challenges and re-frame call` | `54-PREMISE-ADJUDICATION.md`, `54-GAPS.md`, `.planning/milestones/v2.3-GAPS.md`, `54-11-SUMMARY.md` — 4 files changed, 1356 insertions, **0 deletions** |
 | 4 | Conditional owner gate — did not fire | none | none — the task's acceptance criteria require zero file edits and no commit |
+
+One further commit follows the work commit and is **not** part of the plan's deliverable: the hand repair of `STATE.md`, which state tooling overwrote with placeholders at the start of this pass. It is kept separate for the reason `54-10` kept it separate — a repair of someone else's damaged artifact does not belong inside the commit that carries this plan's work. It also carries the one-line fill of this commit's own hash into the table above, which could not be written before the commit it names existed.
 
 ## Files Created / Modified
 
