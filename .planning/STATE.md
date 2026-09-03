@@ -5,15 +5,15 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 54
 current_phase_name: Recalibration Decision Grounding
 status: executing
-stopped_at: Completed 54-08-PLAN.md — trainex-r3 intake certified (RESPONSE-COUNT=2), ERW Rule-16 access-mode divergence recorded, Rule-20 live-tree pin stamped per engagement; checkpoint ② still PENDING; Phase 54 remains in progress
-last_updated: "2026-09-02T13:50:00.000Z"
-last_activity: 2026-09-02
-last_activity_desc: Phase 54 plan 54-08 executed. `54-INTAKE.md` created carrying the I1–I8 intake battery over the two returned trainex-r3 reports, with the response cardinality derived (RESPONSE-COUNT=2) rather than assumed. The ERW Rule-16 divergence is recorded — the round declared open-book in all three required places (54-07 check H2 certified that correctly) but one of the two engagements ran without live repository access; the defect is in the round's declaration, not in either agent's conduct, and both agents declared their own access up front. Two per-report verification burdens are derived, and the four-class claim independence taxonomy (D-14) is fixed: agreement on a repository fact is bundle-fidelity evidence, not a second reading of the tree. The ERW Rule-20 live-tree pin is stamped per engagement at `efe8e590d6c6b2a77cc92abb0b93d625e2b92c49`, and the 21-path citable set is proven byte-identical between that commit and the verifying tree. Bars at close — D empty, E empty, F 0, G `BAR-G-CLEAN-NO-SURFACE-NAMED` with `G1-REGION=0`. ERW-02 stays partially discharged; GAP-54-01 stays OPEN; checkpoint ② is PENDING; ROADMAP.md was NOT updated because 54-08 prohibits editing it and Bar E enforces that. STATE.md updated by hand because gsd-tools mutating verbs emit malformed output in this checkout.
+stopped_at: Completed 54-09-PLAN.md — the mandatory ERW Rule-19 verification report exists with the open-book claim ledger built, all 56 repository-settleable rows re-derived independently, and all 21 unchecked rows routed; the closed-book half follows in wave 3; checkpoint ② still PENDING; Phase 54 remains in progress
+last_updated: "2026-09-03T08:10:00.000Z"
+last_activity: 2026-09-03
+last_activity_desc: Phase 54 plan 54-09 executed. The mandatory ERW Rule-19 verification report now exists at `docs/work/reviews/milestone_v2.3/54-recalibration-decision-grounding/2026-09-02-trainex-r3-rule19-claim-verification.md`, created before any returned claim informs a decision, a roadmap or a spec edit. The open-book claim ledger carries 73 rows whose coverage is derived from the returned report rather than asserted — 15 register rows, 9 premise findings split into 36 sub-rows, 7 departures rows split into 15, and 7 supplementary rows so that all 18 distinct cited paths land somewhere with 0 uncovered. All 56 repository-settleable rows were re-derived independently against the pinned tree, each recording its command, that command's output, and content resolution and line resolution as two separate findings. Verdicts across 79 occurrences — 43 CONFIRMED, 5 CONFIRMED-SHARPER, 7 CONFIRMED-NARROWER, 0 REFUTED, 3 UNSUPPORTED, 21 NOT-VERIFIABLE-HERE — with the declared partition 56/15/2 reconciling exactly against the executed one. Three unsupported findings the returned report does not carry are recorded in full with their reach; twenty per-claim sections cover every row that is not a plain confirmation; all 21 unchecked rows are routed with what would settle each and who may authorize that, and routing is stated not to be authorization. Six candidate gap rows are proposed and NOT filed — the routing decision belongs to the wave-4 plan. Bars at close — D empty in both anchorings, E empty, F 0, G `BAR-G-CLEAN-NO-SURFACE-NAMED` with `G1-REGION=0`, Check R1-w `MANIFEST-OK-W`, identity proof re-run against the current tip as `PIN-TREE-IDENTICAL`. ERW-02 stays partially discharged; GAP-54-01 stays OPEN in both registers; checkpoint ② is PENDING; ROADMAP.md and REQUIREMENTS.md were NOT edited because 54-09 prohibits it and Bar E enforces that. STATE.md updated by hand because gsd-tools mutating verbs emit malformed output in this checkout. Prior entry (54-08, 2026-09-02) — `54-INTAKE.md` created carrying the I1–I8 intake battery over the two returned trainex-r3 reports, with the response cardinality derived (RESPONSE-COUNT=2) rather than assumed. The ERW Rule-16 divergence is recorded — the round declared open-book in all three required places (54-07 check H2 certified that correctly) but one of the two engagements ran without live repository access; the defect is in the round's declaration, not in either agent's conduct, and both agents declared their own access up front. Two per-report verification burdens are derived, and the four-class claim independence taxonomy (D-14) is fixed: agreement on a repository fact is bundle-fidelity evidence, not a second reading of the tree. The ERW Rule-20 live-tree pin is stamped per engagement at `efe8e590d6c6b2a77cc92abb0b93d625e2b92c49`, and the 21-path citable set is proven byte-identical between that commit and the verifying tree. Bars at close — D empty, E empty, F 0, G `BAR-G-CLEAN-NO-SURFACE-NAMED` with `G1-REGION=0`. ERW-02 stays partially discharged; GAP-54-01 stays OPEN; checkpoint ② is PENDING; ROADMAP.md was NOT updated because 54-08 prohibits editing it and Bar E enforces that. STATE.md updated by hand because gsd-tools mutating verbs emit malformed output in this checkout.
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 14
-  completed_plans: 9
+  completed_plans: 10
   percent: 17
 ---
 
@@ -29,17 +29,17 @@ See: .planning/PROJECT.md (updated 2026-08-18)
 ## Current Position
 
 Phase: 54 of 58 (Recalibration Decision Grounding)
-Plan: 8/13 executed with SUMMARY (54-01..54-08); 54-09..54-13 authored 2026-08-31 (post-delivery replan), not yet executed
-Status: Checkpoint ① discharged 2026-08-21 (commission `trainex-r3`); round delivered 2026-08-30; intake certified 2026-09-02; ERW-02 partially discharged; phase remains in progress
-Last activity: 2026-09-02 — 54-08 executed: intake battery, Rule-16 divergence, Rule-20 pin stamped
-Resume file: .planning/phases/54-recalibration-decision-grounding/54-INTAKE.md
+Plan: 9/13 executed with SUMMARY (54-01..54-09); 54-10..54-13 authored 2026-08-31 (post-delivery replan), not yet executed
+Status: Checkpoint ① discharged 2026-08-21 (commission `trainex-r3`); round delivered 2026-08-30; intake certified 2026-09-02; the open-book half of the Rule-19 verification discharged 2026-09-03; ERW-02 partially discharged; phase remains in progress
+Last activity: 2026-09-03 — 54-09 executed: Rule-19 report created, open-book ledger built and re-derived, unchecked rows routed
+Resume file: docs/work/reviews/milestone_v2.3/54-recalibration-decision-grounding/2026-09-02-trainex-r3-rule19-claim-verification.md
 
-**Note on the ROADMAP row.** `.planning/ROADMAP.md`'s Phase 54 block still reads
-`7/13 complete` and leaves `54-08` unchecked. That is deliberate, not drift:
-`54-08-PLAN.md` prohibits editing `.planning/ROADMAP.md` and enforces the
-prohibition with Bar E, whose canonical two-path form must return empty at plan
-close. The roadmap row should be advanced by whoever next holds authority to edit
-it, outside 54-08's scope.
+**Note on the ROADMAP row.** `.planning/ROADMAP.md`'s Phase 54 block still carries
+its pre-`54-08` counts and leaves `54-08` and `54-09` unchecked. That is deliberate,
+not drift: `54-08-PLAN.md` and `54-09-PLAN.md` both prohibit editing
+`.planning/ROADMAP.md` and enforce the prohibition with Bar E, whose canonical
+two-path form must return empty at plan close. The roadmap row should be advanced
+by whoever next holds authority to edit it, outside those plans' scope.
 
 **Scope of this execution pass (roadmap SC-3 / CONTEXT.md D-11).** ERW-01 is
 complete — the strictly non-recommending decision packet sits at the
