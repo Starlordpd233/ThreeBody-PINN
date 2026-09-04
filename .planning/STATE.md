@@ -5,10 +5,11 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 55
 current_phase_name: Architecture Characterization Probe
 status: planning
-stopped_at: Phase 54 complete — checkpoint ② discharged by the owner's 2026-09-04 delegation; ready to discuss and plan Phase 55. The ruling is A1 + B2 residual-wide + C1 + D3 + E1; ten Phase-54 gaps resolved and GAP-54-06 explicitly deferred to checkpoint ③ before RUN-04; UAT 10/10, verification 10/10, Nyquist 5/5, security 55/55; Phase 56 remains closed pending Phase 55
-last_updated: "2026-09-04T03:15:29.171Z"
+stopped_at: Phase 55 context gathered
+last_updated: "2026-09-04T14:00:30.286Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 54 completed after owner checkpoint ②. The owner expressly delegated the final adjudication to the Codex primary agent; `54-RULING.md` records A1 + B2 residual-wide + C1 + D3 + E1, including the repository-wide source-trace correction that restores GAP-39-12's existing 4096-total-per-batch authority, a four-block re-ratification, fixed-monitor semantics for checkpoint ③, and terminal dispositions for all 11 Phase-54 gaps (10 resolved, GAP-54-06 deferred to checkpoint ③). Canonical UAT and verification passed; validation and security enforcement passed. No framework spec, production code, dataset, test, source report, Rule-19 verification report or candidate document changed. The documented `gsd-tools` state-mutation defect remains the reason ROADMAP/STATE were advanced by hand after the shared stale-aware completion predicate returned passed.
+state_head: 2a3f1f5b277dab4b562fde339878729971f97333
 progress:
   total_phases: 6
   completed_phases: 2
@@ -503,10 +504,10 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/55-architecture-characterization-probe/55-CONTEXT.md
 
-Last session: 2026-09-04
-Stopped at: Phase 54 complete; checkpoint ② discharged and verified; ready to discuss and plan Phase 55
+Last session: 2026-09-04T14:00:30.194Z
+Stopped at: Phase 55 context gathered
 Next action: `$gsd-discuss-phase 55` for the Architecture Characterization Probe. Its instrument must reproduce the old six-case baseline and support the new ruling's 4096-total/16-bin reference and GATE-04 vectors without editing the ratified recipe. Phase 56 remains closed until Phase 55 verifies.
 
 ## Operator Next Steps
