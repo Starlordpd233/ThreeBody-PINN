@@ -82,8 +82,8 @@ about the design, and recipe adjudication … is v2.3."*
 
 ### External Research & Decision Grounding (ERW)
 
-- [ ] **ERW-01**: Assemble a **strictly non-recommending** decision packet for the causal-weight/SIREN-scale recalibration and present it at a blocking owner gate. Contents: the confirmed mechanism; the coupled remedy surfaces (`η_c`, `R̄` normalization against a reference scale, the SIREN initialization scale `ω₀`, `N_t`/`n_col`, and the causal-exponent clip's declared semantics); what v2.2's evidence has already settled from trainex-r2 Q3; and an explicit statement of which questions the assembled evidence **cannot** answer. **Acceptance:** the packet marks no default, ranks no option, and recommends no remedy — and it names its own gaps. It doubles as the `trainex-r3` `RESEARCH-CONTEXT-MASTER.md` if the round is commissioned, so neither gate branch wastes work. [SCOPE-34; ERW runbook `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`]
-- [ ] **ERW-02**: Discharge the owner gate's branch and produce **one ratified recalibration decision**. Either (a) record the owner's direct ruling with its provenance, or (b) assemble and deliver `trainex-r3` per the canonical ERW runbook — Route B (open-book) against the post-repair tree, carrying the full **Rule-7 build-design output contract** that trainex-r2 deliberately lacked (2–4 option menus with mechanical-surface trade-offs, suggested defaults clearly marked, one-way vs two-way door classification on every default and deviation, a fill-in decision sheet, and a composed first-run recipe as a cross-menu coherence check) — plus the mandatory **Rule-19** per-claim in-repo verification pass, then land its consolidated decision sheet for owner ratification. [SCOPE-34; ERW Rules 7, 16, 19, 20]
+- [x] **ERW-01**: Assemble a **strictly non-recommending** decision packet for the causal-weight/SIREN-scale recalibration and present it at a blocking owner gate. Contents: the confirmed mechanism; the coupled remedy surfaces (`η_c`, `R̄` normalization against a reference scale, the SIREN initialization scale `ω₀`, `N_t`/`n_col`, and the causal-exponent clip's declared semantics); what v2.2's evidence has already settled from trainex-r2 Q3; and an explicit statement of which questions the assembled evidence **cannot** answer. **Acceptance:** the packet marks no default, ranks no option, and recommends no remedy — and it names its own gaps. It doubles as the `trainex-r3` `RESEARCH-CONTEXT-MASTER.md` if the round is commissioned, so neither gate branch wastes work. [SCOPE-34; ERW runbook `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`]
+- [x] **ERW-02**: Discharge the owner gate's branch and produce **one ratified recalibration decision**. Either (a) record the owner's direct ruling with its provenance, or (b) assemble and deliver `trainex-r3` per the canonical ERW runbook — Route B (open-book) against the post-repair tree, carrying the full **Rule-7 build-design output contract** that trainex-r2 deliberately lacked (2–4 option menus with mechanical-surface trade-offs, suggested defaults clearly marked, one-way vs two-way door classification on every default and deviation, a fill-in decision sheet, and a composed first-run recipe as a cross-menu coherence check) — plus the mandatory **Rule-19** per-claim in-repo verification pass, then land its consolidated decision sheet for owner ratification. [SCOPE-34; ERW Rules 7, 16, 19, 20]
 
 ### Framework-Spec Amendments (SPEC)
 
@@ -116,7 +116,7 @@ about the design, and recipe adjudication … is v2.3."*
 | ID | Boundary |
 |----|----------|
 | SCOPE-33 | **Framework-spec edits ARE authorized**, narrowly: only the items in `52-VER-20-ROUTING-HANDOFF.md` (a)–(e), plus the `n_col`/`N_t` disposition coupled to item (e) per SPEC-06. No open-ended spec rewriting. SCOPE-30 does not carry forward. |
-| SCOPE-34 | **The recalibration decision is owner-ratified, never agent-decided.** The agent assembles and frames the decision packet (ERW-01) and, if commissioned, the `trainex-r3` round (ERW-02); it marks no default, ranks no option, and picks nothing. The STOP protocol's semantic / MUST-surface class governs every sub-question. |
+| SCOPE-34 | **The recalibration decision is owner-ratified, never agent-decided absent express delegation.** The agent assembles and frames the decision packet (ERW-01) and, if commissioned, the `trainex-r3` round (ERW-02); it marks no default, ranks no option, and picks nothing. **Checkpoint-② exception, owner instruction 2026-09-04:** the owner expressly delegated the final adjudication to the Codex primary agent using its best mathematical and scientific reasoning. That delegation is recorded verbatim in `54-RULING.md` and applies only to checkpoint ②; all later owner gates and SCOPE-37's no-retuning rule remain unchanged. The STOP protocol's semantic / MUST-surface class governs every non-delegated sub-question. |
 | SCOPE-35 | **Exactly ONE held-out evaluation** — the one preserved unspent from v2.2. Spent only on a run passing its preconditions, only after the recalibrated recipe actually trains (causal front advances), and only on a seed pre-registered before RUN-04/05 execute. Any further evaluation requires a new owner decision. |
 | SCOPE-36 | **Stage-0 only.** No Stage-1+, no PLAT-01..07 platform work. Unchanged from v2.2 — still blocked by the v2.0 `adjust` verdict pending a `go` verdict at DIAG-06. |
 | SCOPE-37 | **Iteration after the spec edit lands is conformance-only again.** Once the new `η_c` / normalization / SIREN-scale / `N_t` values are locked, no further tuning against observed re-run results without a new owner decision. Prevents the milestone from becoming an open-ended hyperparameter search, and keeps a second failure informative. |
@@ -167,8 +167,8 @@ it is needed.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ERW-01 | Phase 54 | Pending |
-| ERW-02 | Phase 54 | Pending |
+| ERW-01 | Phase 54 | Complete |
+| ERW-02 | Phase 54 | Complete |
 | SPEC-01 | Phase 56 | Pending |
 | SPEC-02 | Phase 53 | Complete |
 | SPEC-03 | Phase 53 | Complete |

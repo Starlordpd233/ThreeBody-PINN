@@ -1,7 +1,7 @@
 ---
 phase: 54
-checkpoint: 1
-status: CHECKPOINT-1-DISCHARGED (checkpoint 2 PENDING)
+checkpoint: 2
+status: CHECKPOINT-2-DISCHARGED
 created: 2026-08-20
 ---
 
@@ -41,13 +41,17 @@ The branch obligations are recorded below as they stood at the gate; the **Commi
 
 The five surfaces appear in the same transcription order the packet's §4.3 uses, and that order carries no precedence, no priority, and no sequencing implication.
 
+- **Date:** 2026-09-04
+- **Owner instruction (verbatim):** *"You're going to act as the decision-maker here and proceed with the checkpoint to rule on these items. use your best mathematical and scientific reasoning. tackle this with care."*
+- **Authority:** The owner expressly delegated this checkpoint's adjudication to the Codex primary agent. That direct instruction supersedes SCOPE-34's earlier no-agent-pick constraint for this checkpoint only; it does not relax SCOPE-34 for later tuning or any other owner gate.
+
 | Surface | Where it is specified today | Marker | Disposition |
 |---|---|---|---|
-| `η_c`, the causal-weight exponent coefficient | `pinn_architecture.md:435` (the `w_n` formula) | Phase 35 contract block at `pinn_architecture.md:445` (LOSS-04; D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A; AC-LOSS-04): "This file keeps the per-time causal weighting component as the default: `w_1 = 1`, `w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))`, and `eta_c = 1`." | PENDING |
-| The `R̄` normalization and its reference scale | no normalization is specified anywhere in the spec; `pinn_architecture.md:435` consumes `R̄` unnormalized | none | PENDING |
-| `ω₀` / `first_omega_0`, the SIREN initialization scale | `pinn_architecture.md:181` (§2.2: "`first_omega_0` is fixed at `30` and is not scheduled during training.") | the fixed-at-30 sentence at `pinn_architecture.md:181` | PENDING |
-| `N_t` / `n_col`, the collocation-point count | `pinn_architecture.md:454` (`n_col=4096`), `pinn_architecture.md:461` (range 2048–4096); current run `pinn/train.py:1033` (`collocation_count=16`) | none of its own; bound to `η_c` by SPEC-06's joint-ratification requirement | PENDING |
-| The causal-exponent clip's declared semantics | `pinn_architecture.md:668-671` | the underflow-only purpose at `pinn_architecture.md:668-671`, plus the Phase 35 guard block at `pinn_architecture.md:692` deferring the numeric bound | PENDING |
+| `η_c`, the causal-weight exponent coefficient | `pinn_architecture.md:435` (the `w_n` formula) | Phase 35 contract block at `pinn_architecture.md:445` (LOSS-04; D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A; AC-LOSS-04): "This file keeps the per-time causal weighting component as the default: `w_1 = 1`, `w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))`, and `eta_c = 1`." | **RATIFIED — `A1`.** Retain the fixed value `η_c = 1`; do not add coefficient continuation. Amend what the exponent consumes from raw per-point `R̄` to the frozen-reference, 16-bin residual `R̃_b = R̄_b / R_ref`. Block 1 is re-ratified in kind, not in numeric value. |
+| The `R̄` normalization and its reference scale | no normalization is specified anywhere in the spec; `pinn_architecture.md:435` consumes `R̄` unnormalized | none | **RATIFIED — `B2`, residual-wide.** Define one finite positive `R_ref` as the median of the 96 raw bin means produced at initialization by the fixed six-case GATE-04 seed/IC probe (`6` cases × `M=16` bins). Each case uses the recorded probe seed and exactly 4096 stratified times, 256 per fixed bin; all 96 bin means and the sampling/config provenance are retained. Detach and freeze `R_ref` for all of Stage 0. Use `R̃_b` both in the causal exponent and in the outer training physics loss; never update the reference online. Persist its value, cases, statistic, tree/config identity, and invalidation inputs. Log raw and normalized residual/loss views; every pre-existing absolute acceptance or safety threshold keeps its raw-unit meaning and is either evaluated on the raw view or transformed explicitly by `1/R_ref`. |
+| `ω₀` / `first_omega_0`, the SIREN initialization scale | `pinn_architecture.md:181` (§2.2: "`first_omega_0` is fixed at `30` and is not scheduled during training.") | the fixed-at-30 sentence at `pinn_architecture.md:181` | **RATIFIED — `C1` / `D3-A`; NOT AMENDED.** Retain `first_omega_0 = 30`, with no in-run scheduler and the existing fresh-initialization rule for any future ablation. The unresolved stack-level scaling law is non-blocking for this ruling because this surface does not change and `R_ref` is measured on the actual initialized recipe. |
+| `N_t` / `n_col`, the collocation-point count | `pinn_architecture.md:454` (`n_col=4096`), `pinn_architecture.md:461` (range 2048–4096); current run `pinn/train.py:1033` (`collocation_count=16`) | GAP-39-12 RESOLVED-WITH-INSTRUCTION / owner-delegated Option C fixes 4096 total per training batch with near-even selected-slot quotas; SPEC-06 binds the causal prefix length jointly to `η_c` | **RATIFIED — `D3`, jointly with `A1`, preserving GAP-39-12's total-budget unit.** `n_col = 4096` is the **total per training batch**, not a per-trajectory count. For a 256-slot replay-plus-lookahead batch, every selected trajectory slot contributes one independently drawn point within each of `M = 16` fixed equal bins in normalized time `u`, giving exactly 256 rows per bin and 4096 total. The batch-global causal prefix has 16 terms and is taken over the 16 per-bin mean residuals, never over all 4096 rows and never across a flattened point order. Replacement-padded occurrences remain distinct selected slots. The replay-only 240-slot allocation follows the deterministic remainder rule in the checkpoint-② discharge section. Microbatching may not reset or truncate the 16-bin aggregate/prefix. Any change to the total, slot semantics, `M`, or bin/allocation rule triggers re-measurement of `R_ref` and a fresh GATE-04 pass. |
+| The causal-exponent clip's declared semantics | `pinn_architecture.md:668-671` | the underflow-only purpose at `pinn_architecture.md:668-671`, plus the Phase 35 guard block at `pinn_architecture.md:692` deferring the numeric bound | **RATIFIED — `E1` / `D5-A`; NOT AMENDED.** Retain the underflow-only purpose and the active dtype/device normal-floor guard `B = -log(finfo(dtype).tiny)`; choose no tighter semantic cap and do not use wider precision as a calibration remedy. Reject non-finite residuals/prefixes before clipping. Log the normalized unclipped exponent and a per-step binding count; any binding at initialization fails GATE-04. |
 
 This section is filled either directly by the owner at checkpoint ① or after `trainex-r3` delivers. In the latter case the round's consolidated decision sheet is a candidate presented for ratification — not the ratification itself.
 
@@ -107,6 +111,83 @@ This block selects nothing, marks nothing, ranks nothing and disposes of nothing
 
 END-CHECKPOINT-2-PREPARED
 
+## Checkpoint ② discharge — scientific basis and downstream reading
+
+The prepared block above is a timestamped record of what was presented before
+the ruling. Its statements that fields were `PENDING` were true at presentation;
+the filled table and re-ratification blocks in this file are now authoritative.
+
+The ruling adopts the open-book report's coherent `J1` family, with the count
+unit and optimizer-phase semantics made explicit by this owner-authorized
+adjudication. The decisive mechanics are:
+
+1. With `R̃_b ≈ 1`, `η_c = 1`, and a 16-term exclusive prefix, a flat profile has
+   endpoint exponent about `15`, endpoint weight `exp(-15) ≈ 3.06e-7`, and a
+   float32 normal-floor margin `87.33654 / 15 ≈ 5.82`. The fixed reference leaves
+   the weights sensitive to genuine residual descent; an online reference could
+   divide that descent back out. This flat-profile calculation is illustrative,
+   not a guarantee; GATE-04 evaluates every actual 16-term probe vector and its
+   maximum unclipped prefix.
+2. Applying the same frozen normalization to the training physics loss addresses
+   the established severe physics/data conditioning mismatch. The stronger claim
+   that every data-gradient component disappeared is not relied on. Raw diagnostics
+   remain mandatory so normalization cannot make physical acceptance look better.
+3. Both reports retain `first_omega_0 = 30`. Their incompatible stack-level
+   scaling arguments do not justify a frequency change: even the optimistic
+   fourth-power estimate says the enumerated reductions are insufficient alone,
+   while the frozen measured reference removes raw initialization magnitude from
+   the causal calibration.
+4. Separating 4096 total batch samples from a 16-term causal prefix prevents
+   sample count from multiplying causal strength and makes `front_idx` denote a
+   fixed time bin. A front from a resampled training batch remains a stochastic
+   diagnostic, not persistent advancement evidence. This retains GAP-39-12's
+   owner-ratified total-budget and
+   balanced-identity semantics; stratified exact allocation supersedes only its
+   independent full-domain time-draw clause and supplies the bin-edge and
+   empty-bin policy the candidate record left for ratification.
+5. The clip remains a numerical guard, never a way to manufacture front progress.
+
+**Optimizer-phase boundary — explicitly deferred.** This checkpoint does not
+amend the optimizer contract: SCOPE-33 authorizes the five recalibration surfaces
+and coupled count disposition, not new L-BFGS semantics. The conditional risk
+about recomputing detached causal weights inside a line search remains real, but
+`GAP-54-06` defers its disposition to owner checkpoint ③ in Phase 57, before any
+RUN-04 execution. Phase 56 may implement and gate the five ratified surfaces; it
+may not silently choose either second-optimizer-phase behavior.
+
+**Front-monitoring boundary.** Adam's training-batch `front_idx` is diagnostic
+only: selected slots and within-bin times can change, so a high-water mark over
+those samples is upward-biased and cannot prove learning. Owner checkpoint ③
+must define invariant-B advancement on a fixed, pre-registered monitoring
+context (fixed IC slots and fixed within-bin times, reevaluated as model
+parameters change), or ratify another estimator that separates parameter
+improvement from resampling. The exact monitoring aggregation remains checkpoint
+③'s decision and is not invented here.
+
+**Batch allocation and bin policy.** The fixed bins are
+`[b/16,(b+1)/16)` for `b=0…14` and `[15/16,1]` for the last. In a 256-slot
+batch, draw one point per selected slot inside every bin. In a replay-only
+240-slot batch, first draw one point per slot in every bin (`3840` rows), then
+use one canonical seeded permutation of the 240 slots: bins 0–14 each give a
+second draw to the next disjoint 16-slot slice of that permutation, and bin 15
+gives a second draw to its first 16 slots. Each bin therefore has exactly 256
+rows; 224 slots have 17 rows and 16 slots have 18, matching GAP-39-12's
+near-even quota. A bin residual is the mean over its 256 rows. Empty bins are
+impossible, and the causal prefix is one batch-global 16-bin prefix. This
+re-ratifies the time allocation only; energy continues to reuse the physics set.
+
+**Reference invalidation.** Re-measure `R_ref` and re-run GATE-04 after any change
+to `first_omega_0`, depth, width, power-skip exponent, LayerNorm placement or
+stabilizer, initialization bounds, `D`, `T`, `epsilon_soft`, IC13 normalization,
+`n_col`, `M`, count unit, selected-slot semantics, or bin/allocation semantics.
+A resource failure at the ratified total batch count is a fail-closed result,
+not permission to reduce the count silently.
+
+**Scope and sequencing.** The authorized surface set is not widened. The
+power-skip stack remains a future ablation, and this ruling does not claim the
+recipe will train or achieve trajectory accuracy. Phase 54 closes after its own
+verification; Phase 56 remains closed until independent Phase 55 also completes.
+
 ## Completeness rule (pre-declared)
 
 A ruling that does not dispose of `N_t` / `n_col` is **incomplete**: it leaves SPEC-06's joint-ratification requirement unmet, is routed back to the owner as a gap, and is never completed by an agent choice.
@@ -122,26 +203,34 @@ A changed number without a re-ratified contract is not a legal v2.3 edit. Each b
 - **Contract marker:** "This file keeps the per-time causal weighting component as the default: `w_1 = 1`, `w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))`, and `eta_c = 1`."
 - **Location:** `pinn_architecture.md:445`
 - **Superseded ruling:** Phase 35 D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A (LOSS-04; AC-LOSS-04)
-- **New decision provenance:** PENDING
-- **Re-issued acceptance criterion:** PENDING
+- **New decision provenance:** Owner instruction on 2026-09-04 expressly delegated checkpoint-② adjudication to the Codex primary agent using its best mathematical and scientific reasoning. After reading the trainex-r3 candidate document, Rule-19 verification report, premise adjudication, intake record, and routed gaps, that adjudication ratified `A1 + B2 (residual-wide) + C1 + D3 + E1`. This supersedes the Phase 35 ruling only as to the exponent's raw-residual argument and one-point-per-prefix-term structure; `η_c = 1` remains fixed.
+- **Re-issued acceptance criterion:** AC-LOSS-04 is re-issued without a new identifier: the default Stage-0 causal loss uses exactly `η_c = 1`, `n_col = 4096` total per training batch, `M = 16` fixed equal-`u` bins with exactly 256 rows per bin, `R̃_b = R̄_b/R_ref`, one batch-global exclusive 16-bin prefix, and residual-wide normalization. Each of the fixed six initialization-probe cases uses exactly 4096 recorded-seed stratified times (256 per bin); `R_ref` is the finite positive median of the resulting 96 raw bin means, is detached and frozen, all 96 constituents and provenance are retained, and every trigger named in the checkpoint-② discharge section invalidates it. Raw and normalized diagnostics are both recorded; raw-unit thresholds are never silently applied to normalized values. GATE-04 must evaluate the actual full vectors and fail closed on any non-finite input, any floor-bound initialization weight, a degenerate weight vector, or a front that cannot respond to controlled residual reduction. A resampled training-batch front is diagnostic only; invariant-B evidence follows the fixed-monitor boundary above. GAP-54-06's L-BFGS question is not part of this criterion and must be settled at checkpoint ③ before RUN-04.
 
 **Block 2 — the `first_omega_0` fixed-at-30 sentence**
 
 - **Contract marker:** "`first_omega_0` is fixed at `30` and is not scheduled during training."
 - **Location:** `pinn_architecture.md:181`
 - **Superseded ruling:** Phase 20 ARCH-01 (locked SIREN initialization; no omega0 scheduler)
-- **New decision provenance:** PENDING
-- **Re-issued acceptance criterion:** PENDING
+- **New decision provenance:** **NOT AMENDED** — checkpoint ② ratifies `C1` / `D3-A`, retaining `first_omega_0 = 30` and the existing no-scheduler/fresh-reinitialization contract.
+- **Re-issued acceptance criterion:** **NOT AMENDED** — Phase 20 ARCH-01 remains the acceptance criterion; any future frequency change remains a separately ratified fresh-initialization ablation and invalidates `R_ref`.
 
 **Block 3 — the causal-exponent clip's underflow-only purpose**
 
 - **Contract marker:** "Clip the causal exponent to avoid underflow, but do not choose a numeric clipping bound in Phase 19; surface a gap if one is needed. The causal exponent clip is required only to avoid underflow."
 - **Location:** `pinn_architecture.md:668-671`
 - **Superseded ruling:** the Phase 35 guard block (numeric bound deferred to FUT)
-- **New decision provenance:** PENDING
-- **Re-issued acceptance criterion:** PENDING
+- **New decision provenance:** **NOT AMENDED** — checkpoint ② ratifies `E1` / `D5-A`, retaining the clip's underflow-only purpose and dtype/device-derived normal-floor guard. Added logging and GATE-04 refusal behavior are observability, not a repurposing of the clip.
+- **Re-issued acceptance criterion:** **NOT AMENDED** — the Phase 35 underflow-only criterion remains; implementations additionally reject non-finite values before clipping, log the unclipped exponent and binding count, and fail GATE-04 if the guard binds at initialization.
 
-Note: §2.4's hyperparameter-table row for `first_omega_0` (`pinn_architecture.md:274`, header `:267`) is already routed to Phase 56 by Phase 53's unswept inventory and is outside this file's three blocks.
+**Block 4 — the DATA-05 collocation allocation and time-draw contract**
+
+- **Contract marker:** GAP-39-12 Option C fixes a provisional total `C = 4096` per training batch, near-even quotas over the canonically ordered selected-slot multiset, and independent continuous time draws over the full domain for each allocated row.
+- **Location:** `.planning/milestones/v2.0-phases/39-data-ingestion-stage-0-population-scan/39-GAPS.md:524-608`
+- **Superseded ruling:** GAP-39-12 RESOLVED-WITH-INSTRUCTION, owner-delegated Option C (2026-07-14), **only as to its independent full-domain time-draw clause**. Its total-budget, selected-slot multiplicity, exact-cardinality, near-even identity weighting, seeded determinism, and shared physics/energy-set requirements remain in force.
+- **New decision provenance:** Owner instruction on 2026-09-04 delegated checkpoint-② adjudication to the Codex primary agent. The subsequent repository-wide unit trace found GAP-39-12, which the Phase-54 packet's narrower consulted-source search had missed. The ruling retains that grounded unit and re-ratifies D3's fixed-bin stratification as the minimum amendment needed to separate estimator count from causal-prefix length.
+- **Re-issued acceptance criterion:** A full 256-slot batch emits exactly 4096 physics rows as one independently sampled time in each of 16 fixed bins for every selected slot. A 240-slot replay-only batch uses the seeded 3840-plus-256 remainder construction stated above, yielding exactly 256 rows per bin and per-slot totals 17 or 18. Replacement multiplicity is preserved; every bin is non-empty by construction; each bin residual is the mean of exactly 256 rows; one batch-global exclusive prefix is formed over the 16 bin means; energy reuses the same set; and microbatching preserves complete bin aggregates and never resets the prefix.
+
+Note: §2.4's hyperparameter-table row for `first_omega_0` (`pinn_architecture.md:274`, header `:267`) is already routed to Phase 56 by Phase 53's unswept inventory and is outside this file's four blocks.
 
 ## Anchor-drift warning (for Phase 56)
 

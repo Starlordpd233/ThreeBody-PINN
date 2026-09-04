@@ -2,37 +2,37 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
-current_phase: 54
-current_phase_name: Recalibration Decision Grounding
-status: executing
-stopped_at: Completed 54-13-PLAN.md — the checkpoint-② ruling record is PREPARED and the blocking owner gate is PRESENTED; execution HALTED. `54-RULING.md` gained an additive 53-line `CHECKPOINT-2-PREPARED` block (pointers only, zero candidates; gate `DISPOSITIONS-UNFILLED=5 BLOCKS=3/3 COMPANION-ROWS=6 BARF=0` re-run identical after commit); closing bars re-run clean (D/E empty both anchorings, F=0, G `BAR-G-CLEAN-NO-SURFACE-NAMED` with fences 10/8/8/8/10/10 even and 4233-line stream, H 230/230 with empty untagged scan, I clean over the 53-line region with zero `{src:` hits, R1-w2 `MANIFEST-OK-W2`); whole-file structural read verdict CLEAN; no STOP-protocol gap hit. One commit `cdcbef1a` (Task 1+2 outputs + `54-13-SUMMARY.md`, 160 insertions, 0 deletions, owned paths only). Checkpoint ② PENDING owner ruling (rule-now / settle-first / reframe-and-rerun, neutrality terms preserved); Phase 54 remains in progress; GAP-54-01 OPEN; downstream Phase 56 closed
-last_updated: "2026-09-03T11:56:00.000Z"
-last_activity: 2026-09-03
-last_activity_desc: Phase 54 plan 54-13 executed (gsd-executor, model opus, xhigh reasoning, spawned by watchdog-chain position 5 of the "phase-54-work" chain as tail after position 4 completed 54-12). The checkpoint-② ruling record is prepared: `54-RULING.md` gained one additive 53-line `CHECKPOINT-2-PREPARED` block (pointers only, zero candidates; per-surface companion table in existing row order; complete-ruling requirements; what-this-is-not; exact unfilled counts 5/3/3; Bar F unchanged; no out-of-scope edits), committed together with `54-13-SUMMARY.md` in one pre-gate commit `cdcbef1a` (160 insertions, 0 deletions, owned phase-dir paths only). Closing bars re-run clean: D/E empty both anchorings, F=0, G `BAR-G-CLEAN-NO-SURFACE-NAMED` (G1-REGION=0, fences 10/8/8/8/10/10 even, 4233-line retained stream), H 230/230 with empty untagged scan, I clean over the 53-line region with zero `{src:` hits, R1-w2 `MANIFEST-OK-W2`; whole-file manual structural read verdict CLEAN. No STOP-protocol gap was hit — writing the preparation block required deciding nothing about the recalibration. Task 3 (`checkpoint:decision`, gate blocking, AUTO_MODE false) was NOT approved or bypassed: the owner gate (rule-now / settle-first / reframe-and-rerun, neutrality terms verbatim, resume-signal "reply with the ruling, or with what you need first; execution stops either way") is presented and execution is HALTED. ROADMAP.md (54-13 checked, "12/13" -> "13/13") and this STATE.md entry were updated by the orchestrator after the executor returned, per the executor's explicit non-scope. Prior entries for 54-12 and earlier are recorded in full in this file at commits `7f25fb9f`/`1ca3f299` and are not re-emitted here: `gsd-tools` mutating verbs emit malformed output in this checkout, so this file continues to be maintained by hand. `completed_plans` was incremented by one (13 -> 14), consistent with the 13 phase-54 plans now summarized (54-01..54-13) plus phase 53's 1.
+current_phase: 55
+current_phase_name: Architecture Characterization Probe
+status: planning
+stopped_at: Phase 54 complete — checkpoint ② discharged by the owner's 2026-09-04 delegation; ready to discuss and plan Phase 55. The ruling is A1 + B2 residual-wide + C1 + D3 + E1; ten Phase-54 gaps resolved and GAP-54-06 explicitly deferred to checkpoint ③ before RUN-04; UAT 10/10, verification 10/10, Nyquist 5/5, security 55/55; Phase 56 remains closed pending Phase 55
+last_updated: "2026-09-04T03:15:29.171Z"
+last_activity: 2026-09-04
+last_activity_desc: Phase 54 completed after owner checkpoint ②. The owner expressly delegated the final adjudication to the Codex primary agent; `54-RULING.md` records A1 + B2 residual-wide + C1 + D3 + E1, including the repository-wide source-trace correction that restores GAP-39-12's existing 4096-total-per-batch authority, a four-block re-ratification, fixed-monitor semantics for checkpoint ③, and terminal dispositions for all 11 Phase-54 gaps (10 resolved, GAP-54-06 deferred to checkpoint ③). Canonical UAT and verification passed; validation and security enforcement passed. No framework spec, production code, dataset, test, source report, Rule-19 verification report or candidate document changed. The documented `gsd-tools` state-mutation defect remains the reason ROADMAP/STATE were advanced by hand after the shared stale-aware completion predicate returned passed.
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 14
   completed_plans: 14
-  percent: 17
+  percent: 33
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-18)
+See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** Phase 54 — recalibration-decision-grounding (v2.3 openers 53 ∥ 54 ∥ 55; Phase 53 closed 2026-08-19)
+**Current focus:** Phase 55 — architecture-characterization-probe (the remaining v2.3 opener; Phases 53 and 54 closed)
 
 ## Current Position
 
-Phase: 54 of 58 (Recalibration Decision Grounding)
-Plan: 13/13 executed with SUMMARY (54-01..54-13); checkpoint ② prepared and PRESENTED, awaiting owner ruling — execution halted at the Task 3 blocking gate
-Status: Checkpoint ① discharged 2026-08-21 (commission `trainex-r3`); round delivered 2026-08-30; intake certified 2026-09-02; the ERW Rule-19 verification COMPLETE 2026-09-03; the premise adjudication COMPLETE 2026-09-03 with `REFRAME-PARTIAL` and `CONSOLIDATION-AUTHORIZED=YES`; the ERW Rule-12 consolidation COMPLETE 2026-09-03 (`trainex-r3-resolution-doc.md`, SOURCE-METHOD=PARTIAL, one disputed surface S3 carried unresolved); the checkpoint-② ruling record PREPARED 2026-09-03 (`54-RULING.md` additive pointer-only block, zero candidates, all disposition cells still PENDING); ERW-02 partially discharged; checkpoint ② PRESENTED and still PENDING owner ruling; phase remains in progress
-Last activity: 2026-09-03 — 54-13 executed: ruling record checkpoint-② section prepared additively (53-line block, pointers only, zero candidates); closing bars all clean; whole-file structural read CLEAN; no STOP gap; blocking owner gate presented, execution halted — phase open, GAP-54-01 OPEN, downstream closed
-Resume file: pinn_instruction/markdown_conversion/framework-specs/trainex-r3/trainex-r3-resolution-doc.md (54-13 presents this at owner checkpoint ②)
+Phase: 55 of 58 (Architecture Characterization Probe)
+Plan: Not started
+Status: Ready to discuss and plan. Phase 54 is verified complete; Phase 56 remains hard-gated on this phase.
+Last activity: 2026-09-04 — Phase 54 checkpoint ② discharged and verified; ERW-01/02 Complete; 10 routed gaps resolved and GAP-54-06 deferred to checkpoint ③
+Resume file: None
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -52,24 +52,16 @@ them re-derivably where re-typing several thousand characters by hand would not.
 two v2.3 phase directories) rather than incremented from the value the tooling
 left.
 
-**Note on the ROADMAP row.** `.planning/ROADMAP.md`'s Phase 54 block still carries
-its pre-`54-08` counts and leaves `54-08` and `54-09` unchecked. That is deliberate,
-not drift: `54-08-PLAN.md` and `54-09-PLAN.md` both prohibit editing
-`.planning/ROADMAP.md` and enforce the prohibition with Bar E, whose canonical
-two-path form must return empty at plan close. The roadmap row should be advanced
-by whoever next holds authority to edit it, outside those plans' scope.
-
-**Scope of this execution pass (roadmap SC-3 / CONTEXT.md D-11).** ERW-01 is
-complete — the strictly non-recommending decision packet sits at the
-`trainex-r3` round root, `GAP-54-01` is anchored OPEN in `54-GAPS.md` and
-`.planning/milestones/v2.3-GAPS.md`, and owner checkpoint ① is discharged.
-ERW-02 is **partially discharged**: the package is assembled and the handoff is
-certified. Remaining: delivery, the ERW Rule-19 per-claim in-repo verification
-report, the ERW Rule-12 consolidation, and owner checkpoint ②.
-
-**Therefore Phase 54 will NOT close when 54-06 and 54-07 finish.** Expect Phase 54 to
-remain in progress with `GAP-54-01` OPEN and Phase 56 closed until checkpoint ② is
-discharged. That is the design working, not a stall.
+**Phase-54 transition note.** The ROADMAP row is now derived from the completed
+artifact set: 13 plans, 13 summaries, passing UAT and canonical verification.
+The historical pre-gate records remain unchanged; the terminal ruling and gap
+outcomes are additive governance records. `gsd-tools query phase.complete` was
+not used because this checkout repeatedly records that mutating state verbs
+overwrite STATE.md with malformed generic placeholders. The shared stale-aware
+completion predicate was run instead and returned `passed: true` with no blockers;
+the exact command and assertions are retained in `54-CLOSE-CHECK.sh`, whose
+terminal literal is `PHASE54-CLOSE-PASS`. ROADMAP, REQUIREMENTS, PROJECT and this
+state file were then updated explicitly.
 
 ### Phase 49 verification (2026-08-10)
 
@@ -195,7 +187,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 873 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 886 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -261,6 +253,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 48 | 4 | - | - |
 | 49 | 9 | - | - |
 | 53 | 1 | - | - |
+| 54 | 13 | 6 waves + 6 post-delivery waves | complete 2026-09-04 |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -371,6 +364,9 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 Recent decisions affecting current work:
 
+- [Phase 54 checkpoint ②, 2026-09-04]: **Owner-authorized recalibration `A1 + B2 (residual-wide) + C1 + D3 + E1`.** Retain `eta_c=1`; define a finite positive `R_ref` as the median of 96 raw bin means from six fixed initialization-probe cases and freeze it for Stage 0; normalize both the causal exponent and training physics loss; retain `first_omega_0=30`; retain the dtype-derived underflow-only clip and make binding observable.
+- [Phase 54 checkpoint ②, 2026-09-04]: **GAP-39-12 remains the count-unit authority.** `n_col=4096` is total per training batch, not per trajectory. D3 re-ratifies only the time-allocation clause: 16 fixed equal-`u` bins, exactly 256 rows per bin, one batch-global 16-bin prefix. The single-anchor 16-point controller is a divergence Phase 56 must replace, not the calibration target.
+- [Phase 54 checkpoint ②, 2026-09-04]: **Resampled training fronts are diagnostics, not invariant evidence.** Checkpoint ③ must pre-register a fixed monitoring context and re-ratify the advancement window. GAP-54-06 defers the conditional L-BFGS detached-weight/line-search question to that checkpoint because SCOPE-33 does not authorize an optimizer-contract amendment in Phase 56. Ten Phase-54 gaps are resolved and one is explicitly deferred; Phase 56 remains closed until Phase 55 completes.
 - [Phase 54 Plan 54-11, 2026-09-03]: **`REFRAME-DETERMINATION=REFRAME-PARTIAL`** and **`CONSOLIDATION-AUTHORIZED=YES`** (commit 83447250). Three packet premises are contradicted and eleven qualified, but none of the three reaches the round's framing, and the one finding that would have — that a pathology survives disposing of all five enumerated surfaces — carries `NOT-VERIFIABLE-HERE` rather than a contradicting verdict, so the premise it bears on is `UNSETTLED` and not `CONTRADICTED`. `UNDETERMINED` was rejected because the choice among the four values is answerable from confirmed verdicts and the packet's own text; `NO-REFRAME` was rejected because eleven qualifications reach answers the round returned. The same value is recorded for each of the five enumerated surfaces separately. Wave 5 may proceed, carrying every premise finding attached to the answers it reaches.
 - [Phase 54 Plan 54-11, 2026-09-03]: **`ANSWERS-NOT-USABLE=0`, and the reason is a finding rather than an absence.** Both returned reports discharged the ERW Rule-17 premise-challenge duty, so they answered against the corrected readings rather than the contradicted ones — two of the three contradictions were found and reported by the reports themselves, and the third was found by one and resolved by the verification pass computing the arithmetic a third time.
 - [Phase 54 Plan 54-11, 2026-09-03]: **Ten owner decisions routed as `GAP-54-02`..`GAP-54-11`; one routed to the anchor; seven disposed of as operational coordination.** Nineteen candidates were assessed, none grounded, and all ten surfacing candidates passed the STOP protocol's step-2 understanding test. Whether the authorized decision-surface set is complete is classified **cross-phase reframing** and handed over unresolved — the enumeration is the owner's to widen. Where a normalization of the residual belongs is inside `GAP-54-01`'s scope and was routed there by appending rather than duplicated under a new identifier (D-17 boundary applied, D-10 unchanged, granularity offered back).
@@ -507,18 +503,17 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** `.planning/phases/54-recalibration-decision-grounding/54-PREMISE-ADJUDICATION.md`
+**Resume file:** None
 
-Last session: 2026-09-03
-Stopped at: Completed 54-11-PLAN.md — the premise adjudication is complete, the re-frame determination is `REFRAME-PARTIAL` at round level and for all five enumerated surfaces, `CONSOLIDATION-AUTHORIZED=YES`, and ten owner decisions are routed as `GAP-54-02`..`GAP-54-11` in both registers; Phase 54 still in progress
-Next action: Plan 54-12 (wave 5) performs the ERW Rule-12 consolidation into `trainex-r3-resolution-doc.md`, running the delivery note's Rule-11 join points in their recorded order. It is authorized to proceed by the determination, and it inherits four obligations: every premise finding travels attached to the answers it reaches with its consequence value; the three contradicted premises travel with the corrections this pass recorded and attributed; the routed gaps travel by identifier to the menus and answers they bear on; and the delivery note's join rule at `:142` binds independently, so the menus downstream of the round's one scaling-law disagreement are not presented as trusted while `GAP-54-04` is OPEN. The verification report's entitlement column governs what may be claimed as two-agent support. Phase 56 opens only after checkpoint ② is discharged; `GAP-54-01` and all ten new gaps stay OPEN until the owner rules.
+Last session: 2026-09-04
+Stopped at: Phase 54 complete; checkpoint ② discharged and verified; ready to discuss and plan Phase 55
+Next action: `$gsd-discuss-phase 55` for the Architecture Characterization Probe. Its instrument must reproduce the old six-case baseline and support the new ruling's 4096-total/16-bin reference and GATE-04 vectors without editing the ratified recipe. Phase 56 remains closed until Phase 55 verifies.
 
 ## Operator Next Steps
 
-- **The ERW Rule-19 verification pass (54-09, then 54-10).** The two returned reports carry different evidence bases and therefore different burdens, both derived and recorded in `54-INTAKE.md`: the open-book report attracts the runbook's Route-B burden unchanged (plus, at its own request, its clean-room `[OWN]` set); the closed-book report attracts a three-way provenance triage of every repository anchor followed by content resolution against the tree. No candidate value is offered for any decision surface.
-- **Advance the ROADMAP Phase 54 row** from `7/13` to `11/13` and check `54-08`, `54-09`, `54-10` and `54-11`. Deliberately left to a later pass — every plan of this pass forbids editing `.planning/ROADMAP.md` and Bar E enforces it, so the accounting is corrected by whichever plan is authorized to touch the file, exactly as `54-06` corrected the earlier pass's accounting from disk.
-- **Ten new owner decisions await ruling — `GAP-54-02` … `GAP-54-11`**, routed 2026-09-03 by the premise adjudication and recorded in full in `54-GAPS.md` with index rows in `.planning/milestones/v2.3-GAPS.md`. Four carry HIGH confidence of impact: whether the authorized decision-surface set is widened (cross-phase reframing); which of the packet's two descriptions of the reference probe governs; whether the round's one scaling-law disagreement is settled before the menus downstream of it are read; and whether and where the collocation budget's unit is settled. A fifth, whether the round's characterization holds in both optimizer phases, bears on the invariant-window re-ratification chartered for Phase 57. None is agent-resolvable and none names a candidate value.
-- **Plan Phase 50** — begin with `$gsd-discuss-phase 50`; Phase 49 authorizes planning but did not launch the admitted-corpus run.
+- **Discuss and plan Phase 55** — build the committed architecture-characterization probe that Phase 56's fail-closed gate consumes. It must support the ratified total-batch/bin structure and retain complete raw vectors/provenance.
+- **Do not open Phase 56 yet.** Its Phase-54 decision dependency is satisfied, but Phase 55 remains a hard dependency.
+- **Carry checkpoint ③ forward explicitly.** A fixed pre-registered monitor and the advancement window must be owner-ratified before RUN-04; resampled training `front_idx` cannot satisfy invariant B.
 - ~~Execute Phase 44~~ — complete 2026-07-23 (qualified by `44-ERRATUM.md` 2026-07-24)
 - ~~Adjudicate GAP-44-01~~ — RESOLVED-WITH-INSTRUCTION 2026-07-23 (owner option A: the physics gate is defined over the worst-case `max` per-trajectory ε_H; headline `max = 237.2086056078468`. See `.planning/phases/44-physics-gate-forensics/44-GAPS.md` and the updated `44-DIAGNOSIS.md`.)
 - ~~Execute Phase 45~~ — complete 2026-07-24, `45-AUDIT.md` all ten checks PASS, package delivered

@@ -39,7 +39,7 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **HIGH** — Phase 56 (SPEC-01 + SPEC-06) may not open without checkpoint ② being discharged, and Phases 57 and 58 follow from it.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
 - **Resolution note:** **Checkpoint ① discharged 2026-08-21** — the owner selected `commission trainex-r3`, recorded verbatim in `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`. The gap stays `OPEN` because checkpoint ② — the per-surface disposition and its SCOPE-38 re-ratifications — is what closes it, and that awaits the round's delivery, its Rule-19 verification, and owner ratification. The ruling itself is recorded in `54-RULING.md`, not here — a ruling is not a gap (D-09).
 
@@ -67,6 +67,17 @@ Open Item 2 and can be expanded into per-surface records without rework.)
   `GAP-54-11` under D-17; the granularity choice is offered back rather than assumed, per
   54-CONTEXT.md Open Item 2.
 
+  **Checkpoint ② discharged 2026-09-04 — RESOLVED-WITH-INSTRUCTION.** The owner
+  expressly delegated the final checkpoint adjudication to the Codex primary
+  agent with the instruction to use its best mathematical and scientific
+  reasoning. The resulting owner-authorized ruling is recorded in
+  `54-RULING.md`: `A1 + B2 (residual-wide) + C1 + D3 + E1`, with `eta_c = 1`, a
+  fixed six-case-probe-derived `R_ref`, `first_omega_0 = 30`, `n_col = 4096`
+  total per training batch aggregated into `M = 16` fixed equal-time bin means,
+  and the underflow-only dtype guard retained with binding made observable.
+  Block 1 is re-ratified in kind; Blocks 2 and 3 are explicitly not amended.
+  This final paragraph supersedes this entry's earlier OPEN standing.
+
 ## GAP-54-02 — Whether the authorized decision-surface set is complete, given a verified-locus finding that the capacity attributed to an authorized surface sits outside the authorized set and an unsettled finding that a failure mode survives disposing of all five
 
 - **Decision point:** Whether the authorized decision-surface set for the recalibration is widened, and if so by what process — given (i) a verified finding that the architectural section carrying the capacity the packet attributes to one authorized surface is not inside SCOPE-33's enumeration, and (ii) an unsettled finding that a failure mode survives disposing of all five enumerated surfaces as the packet scopes them. No surface is proposed, named or scoped by this record.
@@ -93,9 +104,16 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **HIGH** — it changes what Phase 56 may legally write, what GATE-04 must measure, and therefore whether Phase 57 may spend the single preserved Stage-0 run against a recipe the gate cannot refuse.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Owner-authorized option B, 2026-09-04 — do not widen the
+  authorized surface set for this ruling.** Residual-wide `B2` addresses the
+  established physics/data conditioning concern inside enumerated surface S2;
+  `first_omega_0` and the power-skip stack remain unchanged, and the stack is a
+  future ablation rather than a Phase-56 amendment surface. This does not claim
+  the IC term or trajectory accuracy is solved; GATE-04 remains a train-free
+  causal-mechanism gate and a passing run may still fail honestly under the
+  milestone's declared terminal branch.
 
 ## GAP-54-03 — The packet describes the same reference probe two incompatible ways, and one decision surface's reference scale is calibrated against it
 
@@ -123,9 +141,13 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **HIGH** — the package's only converged-regime datum is what one whole decision surface's question is framed around, and Phase 56 would cite whatever the ratification rests on.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Owner-authorized option C, 2026-09-04.** Withdraw the
+  disputed Gate-B datum from use as a converged-network residual reference. Keep
+  both historical descriptions in their source records; neither is corrected by
+  inference here. The ratified `R_ref` instead comes from the fixed six-case
+  GATE-04 initialization probe defined in `54-RULING.md`.
 
 ## GAP-54-04 — The round's one scaling-law disagreement, which the delivery note's own join rule says must be settled before the menus downstream of it are trusted
 
@@ -147,9 +169,16 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **HIGH** — the delivery note names this exact case as the one that invalidates downstream menus, and the verification report located those menus across both reports.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Owner-authorized option C, 2026-09-04 — the scaling-law
+  dispute does not block this ruling.** Both reports retain
+  `first_omega_0 = 30`, even though their explanations differ, and neither
+  supports an enumerated frequency reduction as a sufficient standalone repair.
+  The selected frozen `R_ref` is measured on the actual initialized recipe, so
+  the causal calibration does not rely on either disputed scaling exponent.
+  Phase 55 may characterize the law as evidence, but its result cannot change the
+  ratified frequency without a new owner decision.
 
 ## GAP-54-05 — The collocation budget's unit is fixed by no consulted source, while the pre-declared completeness rule makes disposing of the count mandatory
 
@@ -176,9 +205,20 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **HIGH** — the count's disposition is jointly ratifiable with the exponent coefficient's, and an undefined unit under-determines the exponent by the same factor the joint requirement exists to fix.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Resolved from prior owner instruction plus the
+  owner-delegated checkpoint ruling, 2026-09-04.** The repository-wide trace found
+  that GAP-39-12 already fixes `4096` as the total per training batch and chooses
+  near-even quotas over selected trajectory slots; the Phase-54 negative search
+  had consulted too narrow a source set. Ratified `D3` retains that total and
+  identity weighting, and supersedes only GAP-39-12's independent full-domain
+  time draws: a 256-slot batch contributes one point per slot to each of 16 fixed
+  equal-`u` bins, each bin mean has exactly 256 rows, and the batch-global causal
+  prefix has 16 terms. The deterministic 240-slot remainder policy is recorded
+  in `54-RULING.md`. Empty bins are impossible; microbatching may not reset the
+  aggregate or prefix. Any change to total, selected-slot unit, bin count, or
+  allocation invalidates `R_ref` and requires a fresh GATE-04 pass.
 
 ## GAP-54-06 — The round's characterization does not distinguish the two optimizer phases, and two separate mechanisms differ between them
 
@@ -205,9 +245,19 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **HIGH** — it bears directly on the invariant a later owner checkpoint is chartered to re-ratify, and on the coherence of any composed recipe that carries a second optimizer phase.
 
-- **Status:** OPEN
+- **Status:** DEFERRED
 
-- **Resolution note:**
+- **Resolution note:** **DEFERRED by the owner-authorized checkpoint ruling on
+  2026-09-04.** The two optimizer phases must be distinguished, but SCOPE-33 does
+  not authorize checkpoint ② or Phase 56 to add an L-BFGS objective contract.
+  The conditional detached-weight/line-search consistency risk therefore moves
+  to Phase 57 owner checkpoint ③ and must be settled **before RUN-04 executes**;
+  no current candidate behavior is silently selected. Independently, the
+  checkpoint-② ruling establishes that a front measured on a resampled Adam
+  training batch is diagnostic only, not persistent advancement evidence.
+  Checkpoint ③ must bind invariant B to a fixed, pre-registered monitoring
+  context or another explicitly ratified estimator that separates parameter
+  improvement from resampling.
 
 ## GAP-54-07 — Whether the reported gradient-norm ratio establishes that the data term's gradient disappears, or only that the imbalance is severe
 
@@ -229,9 +279,14 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **MEDIUM** — it changes what the diagnosis can be said to have established and what a later amendment may cite, not what any spec currently says.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Owner-authorized option B, 2026-09-04.** Retain the
+  verified conclusion that the physics/data gradient-norm imbalance is severe.
+  Downgrade the componentwise-disappearance statement to unproven and do not rely
+  on it in the amendment rationale; a ratio of global norms cannot establish
+  componentwise rounding. Raw and normalized per-term gradient telemetry remains
+  required so the proposed run can measure what actually survives.
 
 ## GAP-54-08 — The invariance a premise finding's scaling argument rests on is exact only in a limit, as implemented
 
@@ -253,9 +308,13 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **MEDIUM** — it qualifies a mechanism rather than a conclusion, and the mechanism is the one the round's single physics dispute is argued through.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Owner-authorized option A, 2026-09-04.** Carry the
+  finite-stabilizer qualification everywhere the LayerNorm mechanism is cited:
+  positive-scale invariance is approximate while activation variance dominates
+  the stabilizer and exact only in the zero-stabilizer limit. It is not used as a
+  quantitative scaling law for the ratified recipe.
 
 ## GAP-54-09 — A headline derived figure is bounded at one end by a threshold the round stipulates and no source fixes
 
@@ -277,9 +336,14 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **MEDIUM** — it governs how a prominent figure may be cited, not what any surface should become; the figure is read by the capacity accounting a ratification would rest on.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Owner-authorized option C, 2026-09-04.** Do not cite the
+  stipulated 3.24-decade informative-window width as a measured fact or use it to
+  set a value. Retain only the fully grounded directional conclusion that a fixed
+  unnormalized exponential has finite dynamic range, and use the hard
+  `log(2)` front threshold and dtype-derived normal-floor boundary where exact
+  thresholds are needed.
 
 ## GAP-54-10 — A declared evidence label and the evidence's actual provenance disagree, in a taxonomy that makes the label decide entitlement
 
@@ -301,9 +365,13 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **MEDIUM** — it affects one row's entitlement in a taxonomy built precisely to stop that entitlement being assumed, and it sets the convention every later row is read under.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
+- **Resolution note:** **Owner-authorized option A, 2026-09-04.** Record both a
+  returned report's declared evidence label and the independently established
+  provenance; downstream entitlement follows the established provenance when
+  they disagree. The Rule-19 verification report's treatment of this round is
+  adopted. No returned report is rewritten.
 
 ## GAP-54-11 — The closed-book verification burden's provenance-bucket vocabulary has no value for a reproduction supplied whole
 
@@ -325,7 +393,10 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **MEDIUM** — it changes published counts a later document quotes and changes no verdict.
 
-- **Status:** OPEN
+- **Status:** RESOLVED-WITH-INSTRUCTION
 
-- **Resolution note:**
-
+- **Resolution note:** **Owner-authorized option A, 2026-09-04.** A document
+  reproduced whole, or an attachment that is the cited file, is accounted-for
+  reconstructed coverage with an offset of zero and belongs in bucket 2. The
+  receiving burden's wording is read to include a range declared by whole-file
+  reproduction; the verification report's published counts therefore stand.
