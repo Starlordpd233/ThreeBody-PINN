@@ -59,8 +59,7 @@ and API-scope choices the discuss-phase philosophy places in Claude's lane.
 
 ### Sweep generality (SC1)
 
-- **D-02: General config-driven sweep, six audited cases as the built-in
-  default.** The tool accepts an arbitrary list of `(seed, masses, IC13-mode)`
+- **D-02: General config-driven sweep, six audited cases as the built-in default.** The tool accepts an arbitrary list of `(seed, masses, IC13-mode)`
   cases via a Python API and CLI/config surface (matching the established
   `pinn/verification/*_probe.py` argparse `main(argv)` convention); calling it
   with no arguments reproduces exactly the six audited rows. This is not just

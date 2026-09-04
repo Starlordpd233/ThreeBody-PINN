@@ -117,7 +117,13 @@ Plans:
 **Goal**: The measurement v2.3's central premise rests on stops being ad-hoc and becomes committed, tested tooling that anyone can re-run against any candidate recipe.
 **Depends on**: Nothing — ungated (ratified sequencing track C). Runs in parallel with Phases 53 and 54; it is the instrument GATE-04 fires in Phase 56.
 **Requirements**: INST-04
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 55-01-PLAN.md — wave 1: tracer slice measuring one seed end-to-end through the trainer's own AD / force / causal-weight chain to all seven INST-04 quantities, then the six audited default cases and the Tier-1 invariant-bound regression net, plus the SC3 mutation proof (D-01 tier 1, D-02 Python surface)
+- [ ] 55-02-PLAN.md — wave 2: the `argparse` CLI whose zero-argument invocation reproduces the six audited rows, the `--cases-config` surface, the re-derivable evidence writer with git tree-state provenance, and the one documented `_EXCLUDE_SUFFIXES` entry the defaulted precision flag requires in `tests/phase38/test_prohibitions.py` (D-02 CLI surface)
+- [ ] 55-03-PLAN.md — wave 3, **checkpoint-gated**: the ratified 4096-total / 256-per-bin / 16-bin stratification and bin-mean helpers, unit-tested against synthetic arrays only, with two mechanical containment tests proving they are unreachable from the default sweep (D-03)
+- [ ] 55-04-PLAN.md — wave 4: the committed Tier-2 exact-value baseline with its regeneration provenance and byte-stability proof, and the one committed evidence run cross-checked row by row against the 2026-08-17 audit §6b table (D-01 tier 2, ROADMAP SC2)
 
 **Success Criteria** (what must be TRUE):
 
