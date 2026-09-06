@@ -12,6 +12,9 @@ import importlib
 import json
 import math
 import pathlib
+import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -474,7 +477,198 @@ class PublicContractTests(unittest.TestCase):
             "R_REF_SCHEMA_VERSION",
             "R_REF_ARTIFACT_PATH",
             "INVALIDATION_TRIGGERS",
+            "condition_ii_verdict",
+            "condition_ii_diagnostics",
+            "condition_iii_diagnostics",
+            "CONDITION_III_DIAGNOSTIC_FACTORS",
+            "main",
+            "EVIDENCE_SCHEMA_VERSION",
+            "EVIDENCE_TOP_LEVEL_KEYS",
         ):
             assert hasattr(gate, name), name
         assert gate.R_REF_ARTIFACT_PATH.name == "r_ref_stage0.json"
         assert gate.R_REF_ARTIFACT_PATH.parent.name == "artifacts"
+
+
+class Gate04CLIDefaultRunTests(unittest.TestCase):
+    """One real, no-argument CLI invocation proves the zero-argument
+    contract, provenance completeness, and the printed verdict/INCOMPLETE
+    line together — a shared ``setUpClass`` run so the ~200s six-case
+    measurement is paid once, not once per assertion group."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.TemporaryDirectory(prefix="phase56-gate04-cli-default-")
+        cls.tmp = pathlib.Path(cls._tmp.name)
+        cls.evidence_root = cls.tmp / "evidence" / "default"
+        cls.completed = subprocess.run(
+            [sys.executable, "-m", MODULE, "--evidence-root", str(cls.evidence_root)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        cls.raw_paths = (
+            sorted(cls.evidence_root.glob("*/raw.json"))
+            if cls.evidence_root.is_dir()
+            else []
+        )
+        cls.raw = (
+            json.loads(cls.raw_paths[0].read_text(encoding="utf-8"))
+            if len(cls.raw_paths) == 1
+            else None
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._tmp.cleanup()
+
+    def test_exits_zero(self):
+        assert self.completed.returncode == 0, self.completed.stderr
+
+    def test_writes_exactly_one_evidence_directory_with_six_default_labels_in_order(self):
+        gate = _load_gate()
+        assert len(self.raw_paths) == 1, self.raw_paths
+        assert self.raw is not None
+        assert [c["label"] for c in self.raw["cases"]] == [
+            c.label for c in gate.DEFAULT_CASES
+        ]
+
+    def test_frozen_top_level_key_set(self):
+        gate = _load_gate()
+        assert self.raw is not None
+        assert set(self.raw) == gate.EVIDENCE_TOP_LEVEL_KEYS, sorted(self.raw)
+        assert self.raw["failure"] is None
+
+    def test_provenance_block_complete(self):
+        assert self.raw is not None
+        provenance = self.raw["provenance"]
+        for key in (
+            "argv",
+            "command",
+            "git_sha",
+            "git_available",
+            "git_worktree_dirty",
+            "git_worktree_dirty_available",
+            "torch_version",
+            "numpy_version",
+            "timestamp",
+        ):
+            assert key in provenance, key
+
+    def test_printed_summary_names_verdict_and_incomplete_token(self):
+        stdout = self.completed.stdout
+        assert "verdict=" in stdout, stdout
+        # GAP-56-01 is OPEN: unratified_conditions is non-empty, so a PASS
+        # must never read as a complete GATE-04 clearance.
+        assert "INCOMPLETE" in stdout, stdout
+        assert "GAP-56-01" in stdout, stdout
+        assert any(line.startswith("evidence=") for line in stdout.splitlines()), stdout
+
+
+class Gate04CLIEvidenceDirectoryTests(unittest.TestCase):
+    """Non-overwriting evidence directories, proven with a minimal 1-case
+    config so the collision test does not pay the six-case measurement cost
+    twice."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory(prefix="phase56-gate04-evdir-")
+        self.addCleanup(self._tmp.cleanup)
+        self.tmp = pathlib.Path(self._tmp.name)
+
+    def _one_case_config(self) -> pathlib.Path:
+        path = self.tmp / "one-case.json"
+        path.write_text(
+            json.dumps(
+                [{"label": "single", "seed": 41, "masses": [1.0, 1.0, 1.0], "ic13_mode": "zero"}]
+            ),
+            encoding="utf-8",
+        )
+        return path
+
+    def test_two_runs_allocate_distinct_directories(self):
+        root = self.tmp / "evidence"
+        config = self._one_case_config()
+        for _ in range(2):
+            completed = subprocess.run(
+                [sys.executable, "-m", MODULE, "--cases-config", str(config),
+                 "--evidence-root", str(root)],
+                cwd=ROOT, text=True, capture_output=True, check=False,
+            )
+            assert completed.returncode == 0, completed.stderr
+        run_dirs = [p for p in root.iterdir() if p.is_dir()]
+        assert len(run_dirs) == 2, run_dirs
+
+
+class Gate04CLIFailureModeTests(unittest.TestCase):
+    """Malformed input and a hostile evidence root fail closed, cheaply
+    (before any six-case measurement is attempted)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory(prefix="phase56-gate04-fail-")
+        self.addCleanup(self._tmp.cleanup)
+        self.tmp = pathlib.Path(self._tmp.name)
+
+    def test_malformed_json_cases_config_fails_closed(self):
+        config = self.tmp / "bad.json"
+        config.write_text("{not valid json", encoding="utf-8")
+        root = self.tmp / "evidence"
+        completed = subprocess.run(
+            [sys.executable, "-m", MODULE, "--cases-config", str(config),
+             "--evidence-root", str(root)],
+            cwd=ROOT, text=True, capture_output=True, check=False,
+        )
+        assert completed.returncode != 0, completed.stdout
+        raw_paths = sorted(root.glob("*/raw.json"))
+        assert len(raw_paths) == 1, raw_paths
+        raw = json.loads(raw_paths[0].read_text(encoding="utf-8"))
+        assert raw["failure"] is not None
+        assert raw["verdict"] != "PASS"
+
+    def test_unknown_ic13_mode_fails_closed(self):
+        config = self.tmp / "bad_mode.json"
+        config.write_text(
+            json.dumps([{"label": "x", "seed": 1, "masses": [1.0, 1.0, 1.0], "ic13_mode": "bogus"}]),
+            encoding="utf-8",
+        )
+        root = self.tmp / "evidence"
+        completed = subprocess.run(
+            [sys.executable, "-m", MODULE, "--cases-config", str(config),
+             "--evidence-root", str(root)],
+            cwd=ROOT, text=True, capture_output=True, check=False,
+        )
+        assert completed.returncode != 0, completed.stdout
+        raw_paths = sorted(root.glob("*/raw.json"))
+        assert len(raw_paths) == 1, raw_paths
+        raw = json.loads(raw_paths[0].read_text(encoding="utf-8"))
+        assert raw["failure"] is not None
+        assert raw["verdict"] != "PASS"
+
+    def test_dataset_evidence_root_rejected_before_any_write(self):
+        gate = _load_gate()
+        root = ROOT / "simulation_data" / "phase56-cli-should-not-write"
+        assert not root.exists(), "test precondition: path must not pre-exist"
+        try:
+            exit_code = gate.main(["--evidence-root", str(root)])
+            assert exit_code != 0
+            assert not root.exists(), "evidence root must not be created for a rejected path"
+        finally:
+            if root.exists():
+                shutil.rmtree(root)
+
+
+class Gate04CLINoBypassTests(unittest.TestCase):
+    """The CLI adds no way to force a PASS or skip the gate (threat T-56-08/09).
+
+    The sibling "registered in no CI/verify config" acceptance check is a
+    literal repo-wide grep (56-02-PLAN.md acceptance criteria) run directly
+    during verification, not duplicated here as a pytest test — a rglob over
+    the whole repository is unnecessary suite weight for a check that has
+    one specified, authoritative command."""
+
+    def test_module_defines_no_bypass_vocabulary(self):
+        source = pathlib.Path(
+            importlib.import_module(MODULE).__file__
+        ).read_text(encoding="utf-8")
+        for word in ("force", "skip_gate", "allow_block", "ignore_verdict"):
+            assert word not in source, word
