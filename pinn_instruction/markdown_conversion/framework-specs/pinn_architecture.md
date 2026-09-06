@@ -185,6 +185,8 @@ layers.
     ever retuned, it is changed only as a stage-boundary ablation with a
     fresh re-initialization between runs — never mutated inside a run.
 
+> **Phase 56 contract: `first_omega_0` fixed-at-30 sentence NOT AMENDED (SPEC-01; SCOPE-38; `54-RULING.md` checkpoint ② Block 2; grounded by `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`).** This contract was reviewed as part of the checkpoint-② recalibration adjudication and is **NOT AMENDED**: the ratified disposition is the retain option the ruling records (C1/D3-A), keeping `first_omega_0` fixed at `30` under the existing no-scheduler / fresh-reinitialization contract exactly as stated in the paragraph above. Phase 20 ARCH-01 remains this contract's acceptance criterion, unchanged, and the value carries forward byte-identical — no numeric change, no rewording, no added numeric bound. This record does not decide the treatment of §2.4 Table 1's Recommended-Value column heading or its `first_omega_0` row: that reconciliation is an open item tracked as GAP-56-02 and is deliberately left untouched by Phase 56.
+
 2.  **Subsequent Hidden Layers (for Trainability):** For all other
     hidden layers, the weights $\mathrm{W}$ are initialized from a
     different uniform distribution,
@@ -678,6 +680,9 @@ where:
   causal exponent to avoid underflow, but do not choose a numeric
   clipping bound in Phase 19; surface a gap if one is needed.
   The causal exponent clip is required only to avoid underflow.
+
+> **Phase 56 contract: causal-exponent clip underflow-only purpose NOT AMENDED (SPEC-01; SCOPE-38; GATE-04; `54-RULING.md` checkpoint ② Block 3; grounded by `.planning/phases/54-recalibration-decision-grounding/54-RULING.md`).** This contract is **NOT AMENDED**: the ratified disposition is the retain option the ruling records (E1/D5-A), keeping the causal exponent clip's underflow-only purpose exactly as stated above. The dtype- and device-derived normal-floor guard (resolved at runtime by `resolve_causal_clip_facts`, never a copied literal) and the Phase 35 deferred-numeric-bound guard both stand unchanged; no numeric clipping bound is chosen by this record, and that deferral stands. The ruling's observability addendum is transcribed here: implementations additionally reject non-finite values before clipping, log the unclipped exponent and a per-step guard-binding count, and fail the train-free gate (GATE-04) if the guard binds at initialization. This added logging and gate-refusal behaviour is observability, not a repurposing of the clip as a floor-raiser.
+
 - $L_{E}$: Soft energy conservation regularizer,
   see §3.4.
 - $L_{L}$: Angular momentum conservation loss, see §3.5.
