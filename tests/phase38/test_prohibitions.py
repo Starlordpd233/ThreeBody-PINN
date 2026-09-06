@@ -61,11 +61,19 @@ KNOWN_PHASE38_MODULES = {
 
 # Glob exclude list: v1.3-era banned files + Phase-37 substrate already covered
 # by tests/phase37 and legitimately owning the precision seam.
+# pinn/verification/architecture_characterization_probe.py is excluded because
+# it legitimately owns a phase-scoped defaulted precision seam: Phase 55 D-02
+# requires a zero-argument invocation to reproduce the six audited rows, so
+# --precision is defaulted rather than required. The two non-precision
+# guarantees this glob otherwise supplies for that file (no set_default_dtype /
+# is_available, no v1.3-era imports) are re-homed in
+# tests/phase55/test_architecture_characterization.py.
 _EXCLUDE_SUFFIXES = (
     "pinn/basic_architecture.py",
     "pinn/data-processing-pipeline-full.py",
     "pinn/runtime.py",
     "pinn/verification/componentwise_ad.py",
+    "pinn/verification/architecture_characterization_probe.py",
 )
 
 
