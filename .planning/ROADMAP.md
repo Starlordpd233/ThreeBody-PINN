@@ -122,7 +122,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 55-01-PLAN.md — wave 1: tracer slice measuring one seed end-to-end through the trainer's own AD / force / causal-weight chain to all seven INST-04 quantities, then the six audited default cases and the Tier-1 invariant-bound regression net, plus the SC3 mutation proof (D-01 tier 1, D-02 Python surface)
+- [x] 55-01-PLAN.md — wave 1: tracer slice measuring one seed end-to-end through the trainer's own AD / force / causal-weight chain to all seven INST-04 quantities, then the six audited default cases and the Tier-1 invariant-bound regression net, plus the SC3 mutation proof (D-01 tier 1, D-02 Python surface)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -195,7 +195,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 53. Narrow Spec Codification | v2.3 | 1/1 | Complete    | 2026-08-19 |
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
-| 55. Architecture Characterization Probe | v2.3 | 0/? | Not started | - |
+| 55. Architecture Characterization Probe | v2.3 | 1/4 | In Progress | - |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 0/? | Not started | - |
 | 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 0/? | Not started | - |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |

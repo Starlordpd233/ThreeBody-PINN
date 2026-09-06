@@ -4,12 +4,12 @@ milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 55
 current_phase_name: Architecture Characterization Probe
-status: planning
-stopped_at: Phase 55 context gathered
-last_updated: "2026-09-04T15:00:06.809Z"
-last_activity: 2026-09-04
-last_activity_desc: Phase 54 completed after owner checkpoint ②. The owner expressly delegated the final adjudication to the Codex primary agent; `54-RULING.md` records A1 + B2 residual-wide + C1 + D3 + E1, including the repository-wide source-trace correction that restores GAP-39-12's existing 4096-total-per-batch authority, a four-block re-ratification, fixed-monitor semantics for checkpoint ③, and terminal dispositions for all 11 Phase-54 gaps (10 resolved, GAP-54-06 deferred to checkpoint ③). Canonical UAT and verification passed; validation and security enforcement passed. No framework spec, production code, dataset, test, source report, Rule-19 verification report or candidate document changed. The documented `gsd-tools` state-mutation defect remains the reason ROADMAP/STATE were advanced by hand after the shared stale-aware completion predicate returned passed.
-state_head: a75d90abe4394798f12bddad8f39d6924146ec25
+status: executing
+stopped_at: Completed 55-01-PLAN.md
+last_updated: "2026-09-06T03:11:03Z"
+last_activity: 2026-09-06
+last_activity_desc: Phase 55 plan 55-01 complete; architecture characterization probe core landed
+state_head: 0c0edd9cc69ecc2f060c0a317220c36fa253a461
 progress:
   total_phases: 6
   completed_phases: 2
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** Phase 55 — architecture-characterization-probe (the remaining v2.3 opener; Phases 53 and 54 closed)
+**Current focus:** Phase 55 — Architecture Characterization Probe
 
 ## Current Position
 
-Phase: 55 (Architecture Characterization Probe) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to discuss and plan. Phase 54 is verified complete; Phase 56 remains hard-gated on this phase.
-Last activity: 2026-09-04 — Phase 54 checkpoint ② discharged and verified; ERW-01/02 Complete; 10 routed gaps resolved and GAP-54-06 deferred to checkpoint ③
+Phase: 55 (Architecture Characterization Probe) — EXECUTING
+Plan: 2 of 4
+Status: Plan 55-01 complete; ready for 55-02
+Last activity: 2026-09-06 — 55-01 measurement core landed (measure_case/run_sweep, Tier-1 invariant net, SC3 mutation proof)
 Resume file: None
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
@@ -504,11 +504,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/55-architecture-characterization-probe/55-CONTEXT.md
+**Resume file:** None
 
-Last session: 2026-09-04T14:00:30.194Z
-Stopped at: Phase 55 context gathered
-Next action: `$gsd-discuss-phase 55` for the Architecture Characterization Probe. Its instrument must reproduce the old six-case baseline and support the new ruling's 4096-total/16-bin reference and GATE-04 vectors without editing the ratified recipe. Phase 56 remains closed until Phase 55 verifies.
+Last session: 2026-09-06T03:11:03Z
+Stopped at: Completed 55-01-PLAN.md
+Next action: Execute 55-02 (CLI / evidence writer / Phase-38 `_EXCLUDE_SUFFIXES` entry). Phase 56 remains closed until Phase 55 verifies.
 
 ## Operator Next Steps
 
