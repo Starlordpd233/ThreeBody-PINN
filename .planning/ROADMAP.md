@@ -117,7 +117,7 @@ Plans:
 **Goal**: The measurement v2.3's central premise rests on stops being ad-hoc and becomes committed, tested tooling that anyone can re-run against any candidate recipe.
 **Depends on**: Nothing — ungated (ratified sequencing track C). Runs in parallel with Phases 53 and 54; it is the instrument GATE-04 fires in Phase 56.
 **Requirements**: INST-04
-**Plans**: 4 plans (4/4 complete) — verification 12/12 (`55-VERIFICATION.md`, status passed). Code review recorded 2 warnings / 2 info (`55-REVIEW.md`, advisory). Nyquist and security enforcement remain as `/gsd-validate-phase 55` and `/gsd-secure-phase 55`.
+**Plans**: 4 plans (4/4 complete) — verification 12/12 (`55-VERIFICATION.md`, status passed; re-verified at HEAD 2026-09-06 after closeout). Code review recorded 2 warnings / 2 info (`55-REVIEW.md`, advisory). Nyquist `/gsd-validate-phase 55` discharged (`55-VALIDATION.md`, `nyquist_compliant: true`, 14/14 rows COVERED, 0 gaps); security `/gsd-secure-phase 55` discharged (`55-SECURITY.md`, `status: verified`, `threats_open: 0`, 21 threats); UAT `/gsd-verify-work 55` complete (`55-UAT.md`, 20/20 coverage-auto-covered, 0 issues). `55-COVERAGE.md` records the no-external-API declaration (`api-coverage.verify-pre` false positive on the module's own "public API" phrasing). `gsd-tools phase uat-passed 55 --require-verification` → `passed: true`; `ready_to_transition: true`. Closed 2026-09-06 (`55-CLOSE-CHECK.sh` → `PHASE55-CLOSE-PASS`).
 
 Plans:
 **Wave 1**

@@ -5,11 +5,11 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
 status: ready
-stopped_at: Phase 55 verified complete
-last_updated: "2026-09-06T04:30:00Z"
+stopped_at: Phase 55 closed — verified, secured, validated, UAT complete
+last_updated: "2026-09-06T10:19:46Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 55 Architecture Characterization Probe executed and verified (12/12 must-haves). INST-04 is committed, tested tooling under pinn/verification/; the 2026-08-17 six-row table is reproduced at decade resolution with a re-derivable evidence run. D-03 helpers exist and are contained. Code review recorded two warnings (advisory). Nyquist validation and security enforcement were not run in execute-phase closeout. phase.complete was not used because mutating state verbs overwrite STATE.md historical notes in this checkout.
-state_head: 48e3e2fa
+last_activity_desc: Phase 55 Architecture Characterization Probe CLOSED. INST-04 is committed, tested tooling under pinn/verification/; the 2026-08-17 six-row table is reproduced at decade resolution with a re-derivable evidence run; D-03 helpers exist and are AST-contained. Retroactive closeout discharged the steps execute-phase skipped — /gsd-secure-phase 55 (55-SECURITY.md, status verified, threats_open 0, 21 STRIDE threats, ASVS L1), /gsd-validate-phase 55 (55-VALIDATION.md, nyquist_compliant true, 14/14 rows COVERED, 0 gaps), /gsd-verify-work 55 (55-UAT.md, 20/20 coverage-auto-covered, 0 issues; 55-COVERAGE.md no-external-API declaration for the api-coverage gate false positive) — and re-verified at HEAD (55-VERIFICATION.md re-verification block; every code/test/evidence covered file byte-identical to initial verification 48e3e2fa; covered_digest refreshed). gsd-tools phase uat-passed 55 --require-verification -> passed: true; ready_to_transition: true. 55-CLOSE-CHECK.sh -> PHASE55-CLOSE-PASS. phase.complete NOT used (mutating state verbs corrupt STATE.md in this checkout — same as Phase 54); STATE/ROADMAP/REQUIREMENTS/PROJECT updated by hand.
+state_head: 03741de6
 progress:
   total_phases: 6
   completed_phases: 3
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** Phase 56 — contract-amendment-train-free-gate (hard-gated on Phases 54 and 55, both now verified complete)
+**Current focus:** Phase 56 — contract-amendment-train-free-gate. Both hard gates are now clear: Phase 54 (`54-RULING.md`) and Phase 55 (INST-04 probe) are complete and closed.
 
 ## Current Position
 
 Phase: 56 (Contract Amendment & Train-Free Gate) — NOT STARTED
 Plan: Not started
-Status: Phase 55 verified complete (12/12). Phase 56 remains hard-gated on the ratified 54-RULING and the INST-04 probe; SCOPE-38 amendment discipline and GATE-04 are in-phase. Nyquist (`/gsd-validate-phase 55`) and security (`/gsd-secure-phase 55`) were not discharged during execute-phase closeout.
-Last activity: 2026-09-06 — Phase 55 executed (55-01..04), verified, INST-04 marked complete
+Status: Phase 55 CLOSED — verification 12/12 (re-verified at HEAD 03741de6), Nyquist compliant, security `threats_open: 0`, UAT 20/20; `55-CLOSE-CHECK.sh` → `PHASE55-CLOSE-PASS`; `ready_to_transition: true`. Phase 56 is unblocked on both hard gates (the ratified 54-RULING and the INST-04 probe GATE-04 fires); SCOPE-38 amendment discipline and GATE-04 are in-phase. Next action: `/gsd-spec-phase 56` or `/gsd-plan-phase 56` (chain `phase-55-56-work-4e71db4b036eb883` position 2).
+Last activity: 2026-09-06 — Phase 55 retroactive closeout: secure + validate + UAT + re-verify, all committed; STATE/ROADMAP/REQUIREMENTS/PROJECT updated
 Resume file: None
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
