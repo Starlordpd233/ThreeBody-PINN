@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import ast
 import importlib
+import json
 import math
 import pathlib
+import subprocess
+import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -266,3 +270,166 @@ def test_module_has_no_v1_3_era_imports():
     )
     for token in banned_tokens:
         assert token not in executable
+
+
+_MALFORMED_CASES_CONFIG = (
+    ({"label": "x", "seed": -1, "masses": [1.0, 1.0, 1.0], "ic13_mode": "zero"}, "seed"),
+    ({"label": "x", "seed": True, "masses": [1.0, 1.0, 1.0], "ic13_mode": "zero"}, "seed"),
+    ({"label": "x", "seed": 1, "masses": [1.0, 1.0], "ic13_mode": "zero"}, "masses"),
+    ({"label": "x", "seed": 1, "masses": [1.0, 1.0, 0.0], "ic13_mode": "zero"}, "masses"),
+    ({"label": "x", "seed": 1, "masses": [1.0, 1.0, 1.0], "ic13_mode": "bogus"}, "ic13_mode"),
+)
+
+
+@pytest.mark.parametrize("payload,field", _MALFORMED_CASES_CONFIG)
+def test_malformed_cases_config_raises_value_error(payload, field, tmp_path):
+    probe = _load_probe()
+    config_path = tmp_path / "cases.json"
+    config_path.write_text(json.dumps([payload]), encoding="utf-8")
+    evidence_root = tmp_path / "evidence"
+    evidence_root.mkdir()
+    with pytest.raises(ValueError, match=field):
+        probe.load_cases_config(config_path)
+    assert list(evidence_root.iterdir()) == []
+
+
+class ArchitectureCharacterizationCLITests(unittest.TestCase):
+    """CLI-subprocess contract: module entry point, evidence, non-verdict exit."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory(prefix="phase55-probe-")
+        self.addCleanup(self._tmp.cleanup)
+        self.tmp = pathlib.Path(self._tmp.name)
+
+    def _evidence_root(self, name: str) -> pathlib.Path:
+        return self.tmp / "evidence" / name
+
+    def _run_cli(self, evidence_root: pathlib.Path, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, "-m", MODULE, *args, "--evidence-root", str(evidence_root)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+    @staticmethod
+    def _only_raw(evidence_root: pathlib.Path) -> dict:
+        raw_paths = sorted(evidence_root.glob("*/raw.json"))
+        if len(raw_paths) != 1:
+            raise AssertionError(
+                f"expected one evidence run under {evidence_root}, found {raw_paths}"
+            )
+        return json.loads(raw_paths[0].read_text(encoding="utf-8"))
+
+    def test_zero_argument_cli_reproduces_six_rows(self):
+        probe = _load_probe()
+        root = self._evidence_root("zero-arg")
+        completed = self._run_cli(root)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        raw = self._only_raw(root)
+        self.assertEqual(
+            [case["label"] for case in raw["cases"]],
+            [case.label for case in probe.DEFAULT_CASES],
+        )
+        self.assertTrue((next(root.glob("*/raw.json")).parent / "summary.md").is_file())
+
+    def test_cases_config_drives_arbitrary_case_list(self):
+        _load_probe()
+        root = self._evidence_root("two-cases")
+        config_path = self.tmp / "two.json"
+        entries = [
+            {
+                "label": "custom-a",
+                "seed": 41,
+                "masses": [1.0, 1.0, 1.0],
+                "ic13_mode": "zero",
+            },
+            {
+                "label": "custom-b",
+                "seed": 7,
+                "masses": [1.0, 0.8, 0.6],
+                "ic13_mode": "random_tanh",
+            },
+        ]
+        config_path.write_text(json.dumps(entries), encoding="utf-8")
+        completed = self._run_cli(root, "--cases-config", str(config_path))
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        raw = self._only_raw(root)
+        self.assertEqual(len(raw["cases"]), 2)
+        for recorded, expected in zip(raw["cases"], entries):
+            self.assertEqual(recorded["label"], expected["label"])
+            self.assertEqual(recorded["seed"], expected["seed"])
+            self.assertEqual(list(recorded["masses"]), expected["masses"])
+            self.assertEqual(recorded["ic13_mode"], expected["ic13_mode"])
+
+    def test_cli_writes_provenance_evidence(self):
+        probe = _load_probe()
+        root = self._evidence_root("provenance")
+        extra = ("--n-col", "16")
+        completed = self._run_cli(root, *extra)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        raw = self._only_raw(root)
+        self.assertEqual(set(raw), probe.EVIDENCE_TOP_LEVEL_KEYS)
+        provenance = raw["provenance"]
+        for key in (
+            "argv",
+            "command",
+            "git_sha",
+            "git_available",
+            "git_worktree_dirty",
+            "git_worktree_dirty_available",
+            "torch_version",
+            "numpy_version",
+            "timestamp",
+            "median_convention",
+            "ic13_rng_scheme",
+            "causal_clip_facts",
+        ):
+            self.assertIn(key, provenance)
+        expected_argv = [*extra, "--evidence-root", str(root)]
+        self.assertEqual(provenance["argv"], expected_argv)
+
+    def test_cli_allocates_non_overwriting_run_dirs(self):
+        _load_probe()
+        root = self._evidence_root("non-overwrite")
+        first = self._run_cli(root)
+        second = self._run_cli(root)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(second.returncode, 0, second.stderr)
+        raw_paths = sorted(root.glob("*/raw.json"))
+        self.assertEqual(len(raw_paths), 2)
+        self.assertTrue(all(path.is_relative_to(self.tmp) for path in raw_paths))
+        for path in raw_paths:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            self.assertIn("cases", payload)
+            self.assertTrue((path.parent / "summary.md").is_file())
+
+    def test_evidence_root_inside_simulation_data_is_rejected(self):
+        probe = _load_probe()
+        target = ROOT / "simulation_data" / "p55-cli-reject"
+        with self.assertRaises(ValueError) as raised:
+            probe._reject_dataset_evidence_root(target)
+        self.assertIn("simulation_data", str(raised.exception))
+        code = probe.main(["--evidence-root", str(target)])
+        self.assertNotEqual(code, 0)
+        self.assertFalse(target.exists())
+
+    def test_cli_exit_code_is_not_a_recipe_verdict(self):
+        probe = _load_probe()
+        root = self._evidence_root("completed")
+        code = probe.main(["--evidence-root", str(root)])
+        self.assertEqual(code, 0)
+        raw = self._only_raw(root)
+        self.assertEqual(set(raw), probe.EVIDENCE_TOP_LEVEL_KEYS)
+        self.assertIsNone(raw["failure"])
+
+        failed_root = self._evidence_root("failed")
+        with mock.patch.object(probe, "measure_case", side_effect=RuntimeError("boom")):
+            failed_code = probe.main(["--evidence-root", str(failed_root)])
+        self.assertNotEqual(failed_code, 0)
+        failed_raw = self._only_raw(failed_root)
+        self.assertEqual(set(failed_raw), probe.EVIDENCE_TOP_LEVEL_KEYS)
+        self.assertIsNotNone(failed_raw["failure"])
+        self.assertEqual(failed_raw["failure"]["type"], "RuntimeError")
+        self.assertIn("boom", failed_raw["failure"]["message"])
