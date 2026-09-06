@@ -130,7 +130,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 55-03-PLAN.md — wave 3, **checkpoint-gated**: the ratified 4096-total / 256-per-bin / 16-bin stratification and bin-mean helpers, unit-tested against synthetic arrays only, with two mechanical containment tests proving they are unreachable from the default sweep (D-03)
+- [x] 55-03-PLAN.md — wave 3, **checkpoint-gated**: the ratified 4096-total / 256-per-bin / 16-bin stratification and bin-mean helpers, unit-tested against synthetic arrays only, with two mechanical containment tests proving they are unreachable from the default sweep (D-03)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -195,7 +195,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 53. Narrow Spec Codification | v2.3 | 1/1 | Complete    | 2026-08-19 |
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
-| 55. Architecture Characterization Probe | v2.3 | 2/4 | In Progress | - |
+| 55. Architecture Characterization Probe | v2.3 | 3/4 | In Progress | - |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 0/? | Not started | - |
 | 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 0/? | Not started | - |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |
