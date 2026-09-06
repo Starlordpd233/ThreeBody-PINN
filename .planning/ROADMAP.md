@@ -126,7 +126,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 55-02-PLAN.md — wave 2: the `argparse` CLI whose zero-argument invocation reproduces the six audited rows, the `--cases-config` surface, the re-derivable evidence writer with git tree-state provenance, and the one documented `_EXCLUDE_SUFFIXES` entry the defaulted precision flag requires in `tests/phase38/test_prohibitions.py` (D-02 CLI surface)
+- [x] 55-02-PLAN.md — wave 2: the `argparse` CLI whose zero-argument invocation reproduces the six audited rows, the `--cases-config` surface, the re-derivable evidence writer with git tree-state provenance, and the one documented `_EXCLUDE_SUFFIXES` entry the defaulted precision flag requires in `tests/phase38/test_prohibitions.py` (D-02 CLI surface)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -195,7 +195,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 53. Narrow Spec Codification | v2.3 | 1/1 | Complete    | 2026-08-19 |
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
-| 55. Architecture Characterization Probe | v2.3 | 1/4 | In Progress | - |
+| 55. Architecture Characterization Probe | v2.3 | 2/4 | In Progress | - |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 0/? | Not started | - |
 | 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 0/? | Not started | - |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |

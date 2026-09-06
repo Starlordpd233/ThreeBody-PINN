@@ -5,10 +5,10 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 55
 current_phase_name: Architecture Characterization Probe
 status: executing
-stopped_at: Completed 55-01-PLAN.md
-last_updated: "2026-09-06T03:11:03Z"
+stopped_at: Completed 55-02-PLAN.md
+last_updated: "2026-09-06T03:27:36Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 55 plan 55-01 complete; architecture characterization probe core landed
+last_activity_desc: Phase 55 plan 55-02 complete; CLI, cases-config, evidence writer, and Phase-38 exclusion landed
 state_head: 0c0edd9cc69ecc2f060c0a317220c36fa253a461
 progress:
   total_phases: 6
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 55 (Architecture Characterization Probe) — EXECUTING
-Plan: 2 of 4
-Status: Plan 55-01 complete; ready for 55-02
-Last activity: 2026-09-06 — 55-01 measurement core landed (measure_case/run_sweep, Tier-1 invariant net, SC3 mutation proof)
+Plan: 3 of 4
+Status: Plan 55-02 complete; ready for 55-03
+Last activity: 2026-09-06 — 55-02 CLI, --cases-config, evidence writer, and Phase-38 exclusion landed
 Resume file: None
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
