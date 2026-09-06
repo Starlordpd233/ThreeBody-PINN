@@ -134,7 +134,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 55-04-PLAN.md — wave 4: the committed Tier-2 exact-value baseline with its regeneration provenance and byte-stability proof, and the one committed evidence run cross-checked row by row against the 2026-08-17 audit §6b table (D-01 tier 2, ROADMAP SC2)
+- [x] 55-04-PLAN.md — wave 4: the committed Tier-2 exact-value baseline with its regeneration provenance and byte-stability proof, and the one committed evidence run cross-checked row by row against the 2026-08-17 audit §6b table (D-01 tier 2, ROADMAP SC2)
 
 **Success Criteria** (what must be TRUE):
 
@@ -195,7 +195,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 53. Narrow Spec Codification | v2.3 | 1/1 | Complete    | 2026-08-19 |
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
-| 55. Architecture Characterization Probe | v2.3 | 3/4 | In Progress | - |
+| 55. Architecture Characterization Probe | v2.3 | 4/4 | Complete | 2026-09-06 |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 0/? | Not started | - |
 | 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 0/? | Not started | - |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |

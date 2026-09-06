@@ -5,16 +5,16 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 55
 current_phase_name: Architecture Characterization Probe
 status: executing
-stopped_at: Completed 55-03-PLAN.md
-last_updated: "2026-09-06T03:41:30Z"
+stopped_at: Completed 55-04-PLAN.md
+last_updated: "2026-09-06T04:05:00Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 55 plan 55-03 complete; contained 4096-bin helpers with mechanical unreachability tests
+last_activity_desc: Phase 55 plan 55-04 complete; Tier-2 six-row fixture and committed zero-argument evidence run
 state_head: 0c0edd9cc69ecc2f060c0a317220c36fa253a461
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 18
-  completed_plans: 14
+  completed_plans: 15
   percent: 33
 ---
 
@@ -31,8 +31,8 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 Phase: 55 (Architecture Characterization Probe) — EXECUTING
 Plan: 4 of 4
-Status: Plan 55-03 complete; ready for 55-04
-Last activity: 2026-09-06 — 55-03 contained 4096-bin helpers with mechanical unreachability tests
+Status: Plan 55-04 complete; phase ready for verification
+Last activity: 2026-09-06 — 55-04 pinned the six-row exact-value fixture and committed the zero-argument evidence run
 Resume file: None
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
@@ -506,9 +506,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-09-06T03:41:30Z
-Stopped at: Completed 55-03-PLAN.md
-Next action: Execute 55-04 (Tier-2 exact-value fixture and the one committed evidence run). Phase 56 remains closed until Phase 55 verifies.
+Last session: 2026-09-06T04:05:00Z
+Stopped at: Completed 55-04-PLAN.md
+Next action: `/gsd-verify-work 55`. Phase 56 remains closed until Phase 55 verifies.
 
 ## Operator Next Steps
 
