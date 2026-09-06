@@ -67,6 +67,12 @@ from pinn.verify import git_head
 
 
 DEFAULT_N_COL = 16
+# 54-RULING.md rows B2 and D3: 16 fixed equal-u bins, 256 rows per bin,
+# 4096 total stratified times. Built here as capability; exercised as a
+# real measurement only in Phase 56 (CONTEXT.md D-03).
+RATIFIED_N_BINS = 16
+RATIFIED_PER_BIN = 256
+RATIFIED_TOTAL = RATIFIED_N_BINS * RATIFIED_PER_BIN
 IC13_DIM = 13
 IC13_RNG_OFFSET = 10_000_000
 MEDIAN_CONVENTION = (
@@ -106,6 +112,8 @@ __all__ = [
     "run_sweep",
     "load_cases_config",
     "main",
+    "stratified_collocation_times",
+    "bin_mean_residuals",
 ]
 
 
@@ -398,6 +406,106 @@ def run_sweep(
         measure_case(case, n_col=n_col, precision=precision, device=device)
         for case in cases
     )
+
+
+def stratified_collocation_times(
+    *,
+    n_bins: int = RATIFIED_N_BINS,
+    per_bin: int = RATIFIED_PER_BIN,
+    rng,
+    t_max: float = T_CHARACTERISTIC_TIME,
+):
+    """Draw the ratified 16-bin / 256-per-bin stratified times.
+
+    Bin edges follow ``54-RULING.md`` "Batch allocation and bin policy":
+    ``[b/n_bins, (b+1)/n_bins)`` of ``t_max`` for ``b = 0 .. n_bins-2``, and
+    ``[(n_bins-1)/n_bins, 1]`` inclusive of the right endpoint for the last
+    bin. Per-bin cardinality is exact by construction, not by rejection.
+
+    Phase 55 exercises this helper against synthetic arrays only. Wiring it
+    into a real six-case measurement, together with the ratified
+    reference-scale computation and its provenance record, is Phase 56's
+    requirement under CONTEXT.md D-03. This function must not be reached
+    from ``run_sweep``, ``measure_case``, or ``main``.
+    """
+    if not isinstance(rng, np.random.Generator):
+        raise TypeError(
+            "rng must be a caller-owned numpy.random.Generator; "
+            f"got {type(rng).__name__}"
+        )
+    if isinstance(n_bins, bool) or not isinstance(n_bins, int) or n_bins < 1:
+        raise ValueError(
+            f"n_bins must be a positive int; got {n_bins!r}"
+        )
+    if isinstance(per_bin, bool) or not isinstance(per_bin, int) or per_bin < 1:
+        raise ValueError(
+            f"per_bin must be a positive int; got {per_bin!r}"
+        )
+
+    times_parts = []
+    bin_parts = []
+    t_max = float(t_max)
+    for bin_id in range(n_bins):
+        lo = (bin_id / n_bins) * t_max
+        if bin_id < n_bins - 1:
+            hi = ((bin_id + 1) / n_bins) * t_max
+            samples = rng.uniform(lo, hi, size=per_bin)
+        else:
+            # Closed last bin [lo, t_max]. numpy.uniform is [low, high);
+            # nextafter then clip admits the right endpoint without
+            # exceeding t_max.
+            if lo >= t_max:
+                samples = np.full(per_bin, t_max, dtype=np.float64)
+            else:
+                samples = rng.uniform(lo, np.nextafter(t_max, np.inf), size=per_bin)
+                samples = np.minimum(samples, t_max)
+        times_parts.append(np.asarray(samples, dtype=np.float64))
+        bin_parts.append(np.full(per_bin, bin_id, dtype=np.int64))
+
+    times = np.concatenate(times_parts)
+    bin_index = np.concatenate(bin_parts)
+    order = np.argsort(times)
+    times_sorted = times[order]
+    bin_index_sorted = bin_index[order]
+    expected = n_bins * per_bin
+    if times_sorted.size != expected:
+        raise AssertionError(
+            f"stratified sample cardinality mismatch: expected {expected}, "
+            f"got {times_sorted.size}"
+        )
+    return times_sorted, bin_index_sorted
+
+
+def bin_mean_residuals(rbar_per_point, bin_assignment, *, n_bins: int = RATIFIED_N_BINS):
+    """Arithmetic mean of residuals in each ratified time bin.
+
+    Entry ``b`` is the unweighted mean of the residuals whose assignment
+    equals ``b`` — the ``54-RULING.md`` bin-residual definition.
+
+    Phase 55 exercises this helper against synthetic arrays only. Wiring it
+    into a real measurement, together with the ratified reference-scale
+    computation and its provenance record, is Phase 56's requirement under
+    CONTEXT.md D-03. This function must not be reached from ``run_sweep``,
+    ``measure_case``, or ``main``.
+    """
+    rbar = np.asarray(rbar_per_point, dtype=np.float64).reshape(-1)
+    bins = np.asarray(bin_assignment).reshape(-1)
+    if rbar.size != bins.size:
+        raise ValueError(
+            f"residual and bin-assignment lengths differ: "
+            f"{rbar.size} vs {bins.size}"
+        )
+    if np.any(bins < 0) or np.any(bins >= n_bins):
+        raise ValueError(
+            f"bin index outside [0, {n_bins})"
+        )
+    means = np.empty(n_bins, dtype=np.float64)
+    for bin_id in range(n_bins):
+        members = rbar[bins == bin_id]
+        if members.size == 0:
+            raise ValueError(f"empty bin {bin_id}")
+        means[bin_id] = float(np.mean(members))
+    return means
 
 
 def _validated_label(value) -> str:

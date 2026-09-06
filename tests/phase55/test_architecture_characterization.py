@@ -433,3 +433,76 @@ class ArchitectureCharacterizationCLITests(unittest.TestCase):
         self.assertIsNotNone(failed_raw["failure"])
         self.assertEqual(failed_raw["failure"]["type"], "RuntimeError")
         self.assertIn("boom", failed_raw["failure"]["message"])
+
+
+def test_stratified_bins_synthetic():
+    """Ratified 16-bin / 256-per-bin structure on synthetic draws only (D-03)."""
+    from pinn.constants import T_CHARACTERISTIC_TIME
+
+    probe = _load_probe()
+    rng = np.random.default_rng(0)
+    times, bin_index = probe.stratified_collocation_times(rng=rng)
+
+    assert times.shape == (probe.RATIFIED_TOTAL,)
+    assert bin_index.shape == (probe.RATIFIED_TOTAL,)
+    assert times.size == 4096
+    assert np.bincount(bin_index, minlength=16).tolist() == [256] * 16
+    assert bool(np.all(np.diff(times) >= 0))
+
+    t_max = T_CHARACTERISTIC_TIME
+    n_bins = 16
+    for bin_id in range(n_bins):
+        members = times[bin_index == bin_id]
+        assert members.size == 256
+        lo = (bin_id / n_bins) * t_max
+        hi = ((bin_id + 1) / n_bins) * t_max
+        if bin_id < n_bins - 1:
+            assert np.all(members >= lo)
+            assert np.all(members < hi)
+        else:
+            assert np.all(members >= lo)
+            assert np.all(members <= t_max)
+
+    first_times, first_bins = probe.stratified_collocation_times(
+        rng=np.random.default_rng(0),
+    )
+    second_times, second_bins = probe.stratified_collocation_times(
+        rng=np.random.default_rng(0),
+    )
+    assert np.array_equal(first_times, second_times)
+    assert np.array_equal(first_bins, second_bins)
+
+    global_before = np.random.get_state()
+    probe.stratified_collocation_times(rng=np.random.default_rng(1))
+    global_after = np.random.get_state()
+    assert global_before[0] == global_after[0]
+    assert np.array_equal(global_before[1], global_after[1])
+    assert global_before[2:] == global_after[2:]
+
+    with pytest.raises(TypeError, match="Generator"):
+        probe.stratified_collocation_times(rng=0)
+    with pytest.raises(ValueError, match="n_bins"):
+        probe.stratified_collocation_times(n_bins=0, rng=np.random.default_rng(0))
+    with pytest.raises(ValueError, match="per_bin"):
+        probe.stratified_collocation_times(per_bin=0, rng=np.random.default_rng(0))
+
+
+def test_bin_mean_residuals_synthetic():
+    """Arithmetic bin means against a closed-form synthetic residual (D-03)."""
+    probe = _load_probe()
+    assignment = np.repeat(np.arange(16), 256)
+    residuals = np.arange(4096, dtype=float)
+    means = probe.bin_mean_residuals(residuals, assignment, n_bins=16)
+
+    expected = 256 * np.arange(16) + 127.5
+    assert means.shape == (16,)
+    assert np.array_equal(means, expected)
+
+    with pytest.raises(ValueError, match="length"):
+        probe.bin_mean_residuals(residuals[:10], assignment)
+    with pytest.raises(ValueError, match="bin index"):
+        bad_range = assignment.copy()
+        bad_range[0] = 16
+        probe.bin_mean_residuals(residuals, bad_range)
+    with pytest.raises(ValueError, match="empty bin"):
+        probe.bin_mean_residuals(residuals, np.zeros(4096, dtype=int))
