@@ -43,8 +43,13 @@ import os as _os
 
 _PRE_IMPORT_FALLBACK = _os.environ.get("PYTORCH_ENABLE_MPS_FALLBACK") or None
 
+import argparse
+import datetime as dt
+import json
 import math
-from dataclasses import dataclass
+import subprocess
+import sys
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import numpy as np
@@ -56,7 +61,9 @@ from pinn.loss_catalog import causal_physics_loss, resolve_causal_clip_facts
 from pinn.network import build_network
 from pinn.physics_residual import componentwise_du, softened_acceleration
 from pinn.runtime import resolve_runtime
+from pinn.training.atomic_io import atomic_write_text
 from pinn.training.collocation_sampler import CollocationSampler
+from pinn.verify import git_head
 
 
 DEFAULT_N_COL = 16
@@ -73,14 +80,32 @@ _IC13_RNG_SCHEME_RANDOM_TANH = (
     "then elementwise tanh"
 )
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+_DEFAULT_EVIDENCE_ROOT = (
+    _REPO_ROOT / ".planning" / "phases" /
+    "55-architecture-characterization-probe" / "evidence" / "probe"
+)
+_GIT_TIMEOUT_S = 10.0
+_MODULE_PROG = "python -m pinn.verification.architecture_characterization_probe"
+EVIDENCE_SCHEMA_VERSION = 1
+EVIDENCE_TOP_LEVEL_KEYS = frozenset({
+    "schema_version",
+    "provenance",
+    "configuration",
+    "cases",
+    "failure",
+})
 
 __all__ = [
     "SweepCase",
     "ArchitectureCharacterizationResult",
     "DEFAULT_CASES",
     "DEFAULT_N_COL",
+    "EVIDENCE_SCHEMA_VERSION",
+    "EVIDENCE_TOP_LEVEL_KEYS",
     "measure_case",
     "run_sweep",
+    "load_cases_config",
+    "main",
 ]
 
 
@@ -373,3 +398,378 @@ def run_sweep(
         measure_case(case, n_col=n_col, precision=precision, device=device)
         for case in cases
     )
+
+
+def _validated_label(value) -> str:
+    if not isinstance(value, str) or value == "":
+        raise ValueError(f"label must be a non-empty str; got {value!r}")
+    return value
+
+
+def _validated_seed(value) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(
+            f"seed must be a non-negative int (not bool); got {value!r}"
+        )
+    return value
+
+
+def _validated_masses(value) -> tuple[float, float, float]:
+    try:
+        raw = tuple(value)
+    except TypeError as exc:
+        raise ValueError(
+            f"masses must be exactly three finite strictly positive floats; "
+            f"got {value!r}"
+        ) from exc
+    if len(raw) != 3:
+        raise ValueError(
+            f"masses must be exactly three finite strictly positive floats; "
+            f"got {value!r}"
+        )
+    converted: list[float] = []
+    for mass in raw:
+        if isinstance(mass, bool):
+            raise ValueError(
+                f"masses must be exactly three finite strictly positive floats; "
+                f"got {value!r}"
+            )
+        try:
+            number = float(mass)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"masses must be exactly three finite strictly positive floats; "
+                f"got {value!r}"
+            ) from exc
+        if not math.isfinite(number) or number <= 0.0:
+            raise ValueError(
+                f"masses must be exactly three finite strictly positive floats; "
+                f"got {value!r}"
+            )
+        converted.append(number)
+    return (converted[0], converted[1], converted[2])
+
+
+def _validated_ic13_mode(value) -> str:
+    if not isinstance(value, str) or value not in _ALLOWED_IC13_MODES:
+        raise ValueError(
+            f"ic13_mode must be one of {sorted(_ALLOWED_IC13_MODES)}; got {value!r}"
+        )
+    return value
+
+
+def load_cases_config(path) -> tuple[SweepCase, ...]:
+    """Validate-before-construct JSON case-list parser.
+
+    Every entry is checked through the per-field validators before any
+    ``SweepCase`` is built, and ``SweepCase.__post_init__`` re-checks the
+    same invariants as a second independent net. No tensor, path, or run
+    directory is allocated here.
+    """
+    text = Path(path).read_text(encoding="utf-8")
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"cases-config is not valid JSON: {exc}") from exc
+    if not isinstance(payload, list) or not payload:
+        raise ValueError(
+            "cases-config must be a non-empty list of objects; "
+            f"got {type(payload).__name__}"
+        )
+    cases: list[SweepCase] = []
+    for index, entry in enumerate(payload):
+        if not isinstance(entry, dict):
+            raise ValueError(
+                f"cases-config[{index}] must be an object; "
+                f"got {type(entry).__name__}"
+            )
+        cases.append(
+            SweepCase(
+                label=_validated_label(entry.get("label")),
+                seed=_validated_seed(entry.get("seed")),
+                masses=_validated_masses(entry.get("masses")),
+                ic13_mode=_validated_ic13_mode(entry.get("ic13_mode")),
+            )
+        )
+    return tuple(cases)
+
+
+def _reject_dataset_evidence_root(evidence_root: Path) -> None:
+    """Prevent an untrusted evidence-root from writing into simulation_data."""
+    dataset_root = (_REPO_ROOT / "simulation_data").resolve()
+    try:
+        evidence_root.resolve().relative_to(dataset_root)
+    except ValueError:
+        return
+    raise ValueError("evidence-root must not be inside simulation_data")
+
+
+def _new_run_dir(evidence_root: Path) -> Path:
+    """Allocate a non-overwriting UTC run directory, including same-second runs."""
+    _reject_dataset_evidence_root(evidence_root)
+    run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    for suffix in range(1000):
+        name = run_id if suffix == 0 else f"{run_id}-{suffix:03d}"
+        candidate = evidence_root / name
+        try:
+            candidate.mkdir(parents=True, exist_ok=False)
+        except FileExistsError:
+            continue
+        return candidate
+    raise FileExistsError(
+        f"could not allocate exclusive evidence directory under {evidence_root}"
+    )
+
+
+def _git_worktree_dirty() -> tuple[bool | None, bool]:
+    """Return ``(dirty_or_None, available)`` from bounded ``git status --porcelain``.
+
+    Mirrors ``pinn.verify.git_head``: a missing binary, a non-repository
+    directory, a non-zero exit, and a timeout all degrade to
+    ``(None, False)`` rather than raising.
+    """
+    try:
+        completed = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=str(_REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=_GIT_TIMEOUT_S,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None, False
+    if completed.returncode != 0:
+        return None, False
+    return bool(completed.stdout.strip()), True
+
+
+def _command_string(argv) -> str:
+    parts = [_MODULE_PROG, *(str(item) for item in argv)]
+    return " ".join(parts) if argv else _MODULE_PROG
+
+
+def _configuration(args) -> dict:
+    cases_config = args.cases_config
+    return {
+        "precision": args.precision,
+        "device": args.device,
+        "n_col": int(args.n_col),
+        "cases_config": None if cases_config is None else str(cases_config),
+        "evidence_root": str(args.evidence_root),
+    }
+
+
+def _provenance(argv, args, runtime) -> dict:
+    git_sha, git_available = git_head()
+    dirty, dirty_available = _git_worktree_dirty()
+    if runtime is not None:
+        clip_facts = resolve_causal_clip_facts(runtime.dtype, runtime.torch_device)
+        precision = runtime.precision
+        device = runtime.requested_device
+    else:
+        clip_facts = None
+        precision = args.precision
+        device = args.device
+    return {
+        "argv": [str(item) for item in argv],
+        "command": _command_string(argv),
+        "git_sha": git_sha,
+        "git_available": git_available,
+        "git_worktree_dirty": dirty,
+        "git_worktree_dirty_available": dirty_available,
+        "torch_version": torch.__version__,
+        "numpy_version": np.__version__,
+        "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "precision": precision,
+        "device": device,
+        "n_col": int(args.n_col),
+        "median_convention": MEDIAN_CONVENTION,
+        "ic13_rng_scheme": (
+            f"zero: {_IC13_RNG_SCHEME_ZERO}; "
+            f"random_tanh: {_IC13_RNG_SCHEME_RANDOM_TANH}"
+        ),
+        "causal_clip_facts": clip_facts,
+    }
+
+
+def _result_record(result: ArchitectureCharacterizationResult) -> dict:
+    return asdict(result)
+
+
+def _fmt_quantity(value: float) -> str:
+    absolute = abs(value)
+    if absolute >= 1.0e4 or (absolute != 0.0 and absolute < 1.0e-2):
+        return f"{value:.3e}"
+    return f"{value:.4g}"
+
+
+def _summary_markdown(raw: dict) -> str:
+    """Human-readable table mirroring the 2026-08-17 audit §6b layout.
+
+    Reports measured values only. Makes no claim about whether any value
+    is acceptable.
+    """
+    provenance = raw.get("provenance") or {}
+    lines = [
+        "# Architecture characterization probe",
+        "",
+        "## Provenance",
+        "",
+        f"- command: `{provenance.get('command', '')}`",
+        f"- git_sha: `{provenance.get('git_sha')}` "
+        f"(available={provenance.get('git_available')})",
+        f"- git_worktree_dirty: `{provenance.get('git_worktree_dirty')}` "
+        f"(available={provenance.get('git_worktree_dirty_available')})",
+        f"- timestamp: `{provenance.get('timestamp', '')}`",
+        f"- precision/device: `{provenance.get('precision')}` / "
+        f"`{provenance.get('device')}`",
+        f"- n_col: `{provenance.get('n_col')}`",
+        f"- median_convention: {provenance.get('median_convention', '')}",
+        f"- ic13_rng_scheme: {provenance.get('ic13_rng_scheme', '')}",
+        "",
+    ]
+    failure = raw.get("failure")
+    if failure is not None:
+        lines.extend(
+            [
+                "## Failure",
+                "",
+                "Measurement did not complete.",
+                "",
+                f"- type: `{failure.get('type', '')}`",
+                f"- message: {failure.get('message', '')}",
+                "",
+            ]
+        )
+        return "\n".join(lines)
+    lines.extend(
+        [
+            "## Cases",
+            "",
+            "| seed / IC | ‖r′‖ | ‖v′‖ | ‖a′‖ = ‖d²r′/du²‖ | ‖F_grav‖ | "
+            "min pairwise sep | `R̄` median | `front_idx` |",
+            "|---|---|---|---|---|---|---|---|",
+        ]
+    )
+    for case in raw.get("cases") or []:
+        seed = case.get("seed")
+        label = case.get("label")
+        masses = case.get("masses")
+        ic13_mode = case.get("ic13_mode")
+        identity = f"{label} (seed={seed}, m={masses}, IC13={ic13_mode})"
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    identity,
+                    _fmt_quantity(float(case["r_norm_median"])),
+                    _fmt_quantity(float(case["v_norm_median"])),
+                    _fmt_quantity(float(case["a_norm_median"])),
+                    _fmt_quantity(float(case["f_grav_norm_median"])),
+                    _fmt_quantity(float(case["min_pairwise_separation_median"])),
+                    _fmt_quantity(float(case["rbar_median"])),
+                    str(int(case["front_idx"])),
+                ]
+            )
+            + " |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _write_evidence(raw: dict, evidence_root: Path) -> Path:
+    run_dir = _new_run_dir(Path(evidence_root))
+    atomic_write_text(
+        run_dir / "raw.json",
+        json.dumps(raw, sort_keys=True, indent=2) + "\n",
+    )
+    atomic_write_text(run_dir / "summary.md", _summary_markdown(raw))
+    return run_dir
+
+
+def _failed_record(argv, args, exc: Exception) -> dict:
+    """Retain a structured failed invocation instead of swallowing its cause."""
+    runtime = None
+    try:
+        runtime = resolve_runtime(args.precision, args.device)
+    except Exception:
+        runtime = None
+    return {
+        "schema_version": EVIDENCE_SCHEMA_VERSION,
+        "provenance": _provenance(argv, args, runtime),
+        "configuration": _configuration(args),
+        "cases": [],
+        "failure": {"type": type(exc).__name__, "message": str(exc)},
+    }
+
+
+def _parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        prog=_MODULE_PROG,
+        description=(
+            "Measure SQR-SkipResNet-SIREN residual and causal-weight behaviour "
+            "at initialization. Reports quantities; does not judge the recipe."
+        ),
+    )
+    parser.add_argument(
+        "--precision",
+        default="float64",
+        choices=("float32", "float64"),
+    )
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        choices=("mps", "cpu"),
+    )
+    parser.add_argument("--n-col", type=int, default=DEFAULT_N_COL)
+    parser.add_argument("--cases-config", type=Path, default=None)
+    parser.add_argument(
+        "--evidence-root",
+        type=Path,
+        default=_DEFAULT_EVIDENCE_ROOT,
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = _parse_args(argv)
+    recorded_argv = list(argv) if argv is not None else sys.argv[1:]
+    if args.cases_config is not None:
+        cases = load_cases_config(args.cases_config)
+    else:
+        cases = DEFAULT_CASES
+
+    try:
+        runtime = resolve_runtime(args.precision, args.device)
+        results = run_sweep(
+            cases,
+            n_col=args.n_col,
+            precision=args.precision,
+            device=args.device,
+        )
+        raw = {
+            "schema_version": EVIDENCE_SCHEMA_VERSION,
+            "provenance": _provenance(recorded_argv, args, runtime),
+            "configuration": _configuration(args),
+            "cases": [_result_record(item) for item in results],
+            "failure": None,
+        }
+        completed = True
+    except Exception as exc:  # noqa: BLE001 - fail evidence must preserve runtime errors
+        raw = _failed_record(recorded_argv, args, exc)
+        completed = False
+
+    try:
+        run_dir = _write_evidence(raw, args.evidence_root)
+    except Exception:
+        return 1
+
+    summary = _summary_markdown(raw)
+    print(summary, end="" if summary.endswith("\n") else "\n")
+    print(f"evidence={run_dir}")
+    return 0 if completed else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
