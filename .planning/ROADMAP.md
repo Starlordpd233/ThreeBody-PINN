@@ -148,7 +148,7 @@ Plans:
 **Goal**: The ratified recalibration is law in the framework specs under SCOPE-38's amendment discipline, and a train-free gate refuses to let a Stage-0 run be spent on a recipe whose causal weighting is still saturated shut.
 **Depends on**: Phase 54 (the ratified decision — SCOPE-34 forbids opening this phase without it, including its `N_t` disposition) **and** Phase 55 (the probe GATE-04 fires). Both are hard gates, not preferences.
 **Requirements**: SPEC-01, SPEC-06, GATE-04
-**Plans**: 2/6 plans executed (0/6 complete) — planned 2026-09-06. Two owner gaps remain OPEN and are deliberately unresolved by these plans: GAP-56-01 (GATE-04 condition (ii)'s pass criterion and the controlled-reduction test design) is wired as a structurally-present, never-satisfiable slot; GAP-56-02 (§2.4 Table 1 locked-vs-default convention scope) is left entirely untouched. Both are recorded in `56-OPEN-ITEMS.md` at phase close.
+**Plans**: 3/6 plans executed (0/6 complete) — planned 2026-09-06. Two owner gaps remain OPEN and are deliberately unresolved by these plans: GAP-56-01 (GATE-04 condition (ii)'s pass criterion and the controlled-reduction test design) is wired as a structurally-present, never-satisfiable slot; GAP-56-02 (§2.4 Table 1 locked-vs-default convention scope) is left entirely untouched. Both are recorded in `56-OPEN-ITEMS.md` at phase close.
 
 Plans:
 **Wave 1**
@@ -158,7 +158,7 @@ Plans:
 
 **Wave 2**
 
-- [ ] 56-02-PLAN.md — GATE-04 expansion: condition (iii) front-capability structure, condition (ii)'s never-satisfiable unratified slot, and the operator CLI with its provenance-complete evidence record (GATE-04)
+- [x] 56-02-PLAN.md — GATE-04 expansion: condition (iii) front-capability structure, condition (ii)'s never-satisfiable unratified slot, and the operator CLI with its provenance-complete evidence record (GATE-04)
 - [ ] 56-05-PLAN.md — spec amendment completion: both NOT AMENDED contracts recorded separately by name, the three secondary wordings (`collocation_count` reconciliation, recommended-range, `η_c` cross-reference), render-oracle re-adjudication, and the committed content-match guard (SPEC-01, SPEC-06)
 
 **Wave 3**
@@ -215,7 +215,7 @@ Plans:
 | 53. Narrow Spec Codification | v2.3 | 1/1 | Complete    | 2026-08-19 |
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
 | 55. Architecture Characterization Probe | v2.3 | 4/4 | Complete | 2026-09-06 |
-| 56. Contract Amendment & Train-Free Gate | v2.3 | 2/6 | In Progress|  |
+| 56. Contract Amendment & Train-Free Gate | v2.3 | 3/6 | In Progress|  |
 | 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 0/? | Not started | - |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |
 

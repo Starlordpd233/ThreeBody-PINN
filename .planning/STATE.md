@@ -5,17 +5,17 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
 status: executing
-stopped_at: Completed 56-04-PLAN.md
-last_updated: "2026-09-06T13:43:27.212Z"
+stopped_at: Completed 56-02-PLAN.md
+last_updated: "2026-09-06T17:00:27.312Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 56 plan 56-04 complete — §3.2 SCOPE-38 amendment core (Block 1 causal-exponent amendment + frozen R_ref reference + Block 4 collocation/time-draw; all verbatim passages byte-exact vs 54-RULING.md; render oracle 0 DEFINITE)
-state_head: e53ff47dd0f469e357dea1c971b179e01377fe46
+last_activity_desc: Phase 56 execution resumed (wave continue)
+state_head: 6e4853110e75bf041d6b92c62617790e0e323678
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 2
   total_plans: 24
-  completed_plans: 20
-  percent: 53
+  completed_plans: 21
+  percent: 33
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 56 (Contract Amendment & Train-Free Gate) — EXECUTING
-Plan: 3 of 6 (56-01 and 56-04 complete 2026-09-06)
-Status: Executing Phase 56 — 56-01 (GATE-04 condition-(i) slice) and 56-04 (§3.2 amendment core) complete; next: 56-02 and 56-05 (wave 2)
-Last activity: 2026-09-06 — Phase 56 plan 56-04 complete (§3.2 SCOPE-38 amendment core landed; Blocks 1+4 amended additively, frozen R_ref reference defined, all verbatim passages byte-exact)
-Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-04-SUMMARY.md
+Plan: 4 of 6 (56-01, 56-04, and 56-02 complete 2026-09-06; 56-05 remains in wave 2)
+Status: Ready to execute
+Last activity: 2026-09-06 — Plan 56-02 executed (condition (ii)/(iii) slots + operator CLI)
+Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-02-SUMMARY.md
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -291,6 +291,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 54 P11 | 37 min | 4 tasks | 4 files |
 | Phase 56 P01 | 42 min | 2 tasks | 5 files |
 | Phase 56 P04 | 15 min | 3 tasks | 1 files |
+| Phase 56 P02 | 52 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -476,6 +477,8 @@ Recent decisions affecting current work:
 - [Phase 50 Plan 50-07]: REQUIREMENTS.md RUN-01/RUN-02 checkboxes not flipped (D-30); `final_band_generation` remains null; GAP-50-03 untouched
 - [Phase 56]: [Phase 56 Plan 56-01]: GATE-04's Phase-57-facing public contract frozen by owner answer "confirmed" (2026-09-06, option accept-proposed) — the ratified_causal_weights probe-helper signature, the Gate04Verdict/Gate04CaseResult/VERDICT_PASS/VERDICT_BLOCK/gate04_verdict surface, and the r_ref_stage0.json artifact path with schema phase56-r-ref-stage0/v1 are accepted exactly as proposed in 56-01-PLAN.md Task 1; no name was amended. — Phase 57's RUN-04 imports these names and reads this JSON schema as a hard precondition on spending the milestone's single Stage-0 run, so the contract was frozen by an explicit checkpoint before any of it was written (one-way-door naming freeze; 56-CONTEXT.md D-04/D-05/D-07/D-09 delegated the exact names to Claude's discretion with owner confirmation).
 - [Phase 56]: [Phase 56 Plan 56-04]: The SCOPE-38 core amendment landed in pinn_architecture.md section 3.2 as three additive blockquotes after the retained-byte-identical Phase 35 contract: Block 1 (causal exponent amended to the frozen-reference normalized bin residual, AC-LOSS-04 re-issued verbatim), the frozen residual reference (median-of-96-raw-bin-means procedure, two-central-order-statistics convention, detached/frozen for Stage 0, residual-wide application, the fifteen-trigger invalidation list transcribed verbatim, no numeric value fixed), and Block 4 (4096 rows total per training batch exact, 16 fixed equal-u bins with the half-open/closed boundary convention, 256 rows per bin, one batch-global exclusive 16-term prefix, the 240-slot replay-only construction and its re-issued acceptance criterion verbatim, GAP-39-12 Option C superseded only as to its independent full-domain time-draw clause, SPEC-06 binding + re-check trigger). All verbatim passages byte-exact-verified against 54-RULING.md; zero removed lines in the plan diff; render oracle 0 DEFINITE. — 54-RULING.md checkpoint 2 (owner delegation 2026-09-04, ratified surface set A1 + B2 residual-wide + C1 + D3 + E1) is the authorizing source; SCOPE-38 requires amendment-not-value-edit with named superseded rulings and re-issued acceptance criteria. Transcription (not composition) eliminates spec drift; additive placement keeps the partially superseded Phase 35 text readable so the supersession stays meaningful.
+- [Phase 56]: 56-02: condition_ii_verdict always raises NotImplementedError naming GAP-56-01; condition_ii/iii diagnostics are descriptive-statistics-only with status UNRATIFIED, no verdict-shaped field
+- [Phase 56]: 56-02: main() refreshes the governed r_ref_stage0.json artifact only for the default six-case run (args.cases_config is None), since a custom case list fails the artifact's own DEFAULT_CASES identity check
 
 ### Pending Todos
 
@@ -510,8 +513,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-09-06T13:43:27.151Z
-Stopped at: Completed 56-04-PLAN.md
+Last session: 2026-09-06T17:00:27.251Z
+Stopped at: Completed 56-02-PLAN.md
 Next action: execute 56-02 (wave 2, GATE-04 conditions ii/iii slots + CLI) and 56-05 (wave 2, amendment completion: NOT-AMENDED records, secondary wordings, render-oracle re-adjudication), then 56-03 (wave 3, SC5 demonstration) and 56-06 (wave 4, close-out). GAP-56-01 and GAP-56-02 remain OPEN.
 
 ## Operator Next Steps
