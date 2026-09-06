@@ -56,7 +56,7 @@ import numpy as np
 import torch
 
 from pinn.architecture_spec import ArchitectureSpec
-from pinn.constants import T_CHARACTERISTIC_TIME
+from pinn.constants import CAUSAL_ETA_C, T_CHARACTERISTIC_TIME
 from pinn.loss_catalog import causal_physics_loss, resolve_causal_clip_facts
 from pinn.network import build_network
 from pinn.physics_residual import componentwise_du, softened_acceleration
@@ -114,6 +114,7 @@ __all__ = [
     "main",
     "stratified_collocation_times",
     "bin_mean_residuals",
+    "ratified_causal_weights",
 ]
 
 
@@ -506,6 +507,74 @@ def bin_mean_residuals(rbar_per_point, bin_assignment, *, n_bins: int = RATIFIED
             raise ValueError(f"empty bin {bin_id}")
         means[bin_id] = float(np.mean(members))
     return means
+
+
+def ratified_causal_weights(
+    raw_bin_means,
+    r_ref,
+    *,
+    eta_c=CAUSAL_ETA_C,
+    dtype,
+    device,
+    t_max=T_CHARACTERISTIC_TIME,
+):
+    """Sixteen ratified-recipe causal weights from raw bin-mean residuals.
+
+    Implements the ``54-RULING.md`` Block 1 recipe: normalize the sixteen raw
+    bin-mean residuals by the frozen reference scale (``R̃_b = R̄_b / R_ref``)
+    and evaluate the causal weight vector over one batch-global exclusive
+    16-bin prefix. The exponential / exclusive-prefix / clamp arithmetic is
+    DELEGATED to ``pinn.loss_catalog.causal_physics_loss`` — called unmodified
+    with the normalized means as input and a strictly ascending bin-centre
+    array as its ordering proxy — so a probe result measures exactly what the
+    trainer computes; the arithmetic exists in exactly one place in the
+    repository.
+
+    Fail-closed validation runs BEFORE any tensor is constructed: a length
+    other than ``RATIFIED_N_BINS``, a non-finite or non-positive ``r_ref``, or
+    any non-finite bin mean raises ``ValueError`` naming the field and the
+    received value (non-finite input is rejected before the exponent clamp,
+    per ``54-RULING.md`` Block 3's re-issued acceptance criterion).
+
+    Returns the ``w_n`` vector as a float64 ``numpy.ndarray`` of shape
+    ``(RATIFIED_N_BINS,)``.
+    """
+    means = np.asarray(raw_bin_means, dtype=np.float64).reshape(-1)
+    if means.size != RATIFIED_N_BINS:
+        raise ValueError(
+            f"raw_bin_means must have exactly {RATIFIED_N_BINS} entries "
+            f"(the ratified {RATIFIED_N_BINS}-bin structure); "
+            f"got length {means.size}"
+        )
+    try:
+        r_ref_value = float(r_ref)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"r_ref must be a finite positive scalar; got {r_ref!r}"
+        ) from exc
+    if not math.isfinite(r_ref_value) or r_ref_value <= 0.0:
+        raise ValueError(
+            f"r_ref must be a finite positive scalar; got {r_ref!r}"
+        )
+    if not bool(np.all(np.isfinite(means))):
+        bad = int(np.argmin(np.isfinite(means)))
+        raise ValueError(
+            f"raw_bin_means[{bad}] must be finite; got {means[bad]!r}"
+        )
+    r_tilde = means / r_ref_value
+    bin_centres = (
+        np.arange(RATIFIED_N_BINS, dtype=np.float64) + 0.5
+    ) / RATIFIED_N_BINS
+    times = bin_centres * float(t_max)
+    _loss, details = causal_physics_loss(
+        r_tilde,
+        eta_c=eta_c,
+        times=times,
+        dtype=dtype,
+        device=device,
+        return_details=True,
+    )
+    return np.asarray(details["w_n"].detach().cpu(), dtype=np.float64)
 
 
 def _validated_label(value) -> str:
