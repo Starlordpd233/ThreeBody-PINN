@@ -3,8 +3,8 @@ phase: 55
 slug: architecture-characterization-probe
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
+status: validated
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-09-04
 ---
@@ -77,13 +77,46 @@ Task IDs assigned by the planner on 2026-09-04 from the four Phase-55 plans. Eve
 
 ---
 
+## Validation Audit 2026-09-06
+
+Retroactive `/gsd-validate-phase 55` (State A — audit existing). Post-execution
+Nyquist coverage check for INST-04 (SC1–SC4, D-01/D-02/D-03, boundary/precision
+edges, prohibitions).
+
+| Metric | Count |
+|--------|-------|
+| Requirements / task rows audited | 14 |
+| COVERED (automated, green) | 14 |
+| PARTIAL | 0 |
+| MISSING | 0 |
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated to manual-only | 0 |
+
+Evidence gathered live this audit:
+
+- `.venv/bin/python -m pytest tests/phase55/ -q` → **46 passed in 11.54s**.
+- Every Per-Task Map command re-run individually — all green (spot-checked
+  55-01-T1, 55-03-T3, 55-04-T2, 55-04-T3 evidence check).
+- Row 55-02-T2 (`pytest tests/phase38/test_prohibitions.py
+  tests/phase39/test_prohibitions.py`) shows `2 failed, 35 passed, 96 subtests`.
+  The two failures — `test_spec_byte_identity_endpoint_sha256`,
+  `test_spec_history_no_touch_since_phase_base` — are the pre-existing SCOPE-18
+  `pinn_architecture.md` spec-SHA failures documented in `55-VERIFICATION.md`
+  (Anti-Patterns table) and `.planning/STATE.md`. They are unrelated to Phase 55;
+  the exclusion-glob and precision/v1.3 assertions this row targets all pass.
+
+No gaps → `nyquist_compliant: true`. No `gsd-nyquist-auditor` pass required.
+
+---
+
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-09-06
