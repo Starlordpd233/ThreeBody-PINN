@@ -93,13 +93,27 @@ INVALIDATION_TRIGGERS: tuple[str, ...] = (
 
 _CONDITIONS = ("i", "ii", "iii")
 # GAP-56-01 (OPEN, owner-routed): condition (ii)'s pass criterion is
-# unratified, and condition (iii)'s controlled-reduction response test is
-# inseparable from it (56-RESEARCH.md A.6). Both are carried as
-# structurally-present, never-satisfiable slots — a PASS from this plan's
-# gate is an INCOMPLETE result (see gate04_verdict's docstring).
-_UNRATIFIED_CONDITIONS: tuple[str, str] = ("ii", "iii")
+# unratified — no source in this repository defines a numeric or structural
+# test for a weight vector "carrying differential information (not
+# all-floor, not degenerate)". Condition (iii) is now wired as the capability
+# structure 54-RULING.md specifies (see condition_iii_diagnostics), so only
+# condition (ii) remains a structurally-present, never-satisfiable slot — a
+# PASS from this plan's gate is still an INCOMPLETE result while it is open
+# (see gate04_verdict's docstring).
+_UNRATIFIED_CONDITIONS: tuple[str] = ("ii",)
+
+# 56-RESEARCH.md section b.4's sensitivity-sweep ladder, reproduced here so it
+# travels with the code: the factor by which condition_iii_diagnostics scales
+# the normalized bin residuals (uniformly, or bins late_bin_start.. only) to
+# record the front index's response. This is a DIAGNOSTIC INSTRUMENT ONLY —
+# GAP-56-01 (OPEN) covers both the reduction magnitude and the response
+# margin a healthy recipe must meet; neither is fixed by this ladder.
+CONDITION_III_DIAGNOSTIC_FACTORS: tuple[float, ...] = (
+    1.0, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05, 0.01, 0.001,
+)
 
 __all__ = [
+    "CONDITION_III_DIAGNOSTIC_FACTORS",
     "Gate04CaseResult",
     "Gate04Verdict",
     "INVALIDATION_TRIGGERS",
@@ -108,6 +122,9 @@ __all__ = [
     "VERDICT_BLOCK",
     "VERDICT_PASS",
     "compute_r_ref",
+    "condition_ii_diagnostics",
+    "condition_ii_verdict",
+    "condition_iii_diagnostics",
     "evaluate_case",
     "gate04_verdict",
     "run_gate",
@@ -339,9 +356,12 @@ def gate04_verdict(case_results, *, causal_clip_min_weight: float) -> str:
 
     Rules, in order (the full rule text lives in :func:`_blocking_reasons`):
     (1) an empty ``case_results`` sequence yields BLOCK; (2) any non-finite
-    residual, prefix, or weight entry yields BLOCK; (3) any weight less than
-    or equal to ``causal_clip_min_weight`` — the dtype clamp floor read from
-    the runtime by the caller, never a copied literal — yields BLOCK
+    residual, prefix, or weight entry yields BLOCK — this is also condition
+    (iii)'s only wired rule: a weight vector so degenerate that its front
+    index cannot be trusted (a non-finite entry) is already caught here, so
+    no separate condition-(iii) check is added; (3) any weight less than or
+    equal to ``causal_clip_min_weight`` — the dtype clamp floor read from the
+    runtime by the caller, never a copied literal — yields BLOCK
     (strict-inequality reject: a weight exactly at the floor is pinned);
     otherwise PASS.
 
@@ -350,15 +370,183 @@ def gate04_verdict(case_results, *, causal_clip_min_weight: float) -> str:
     two independently-driftable booleans. The verdict vocabulary is exactly
     two values (D-04); no third state exists.
 
-    A PASS from this plan's gate evaluates condition (i) and the finiteness
-    pre-checks ONLY: ``Gate04Verdict.unratified_conditions`` is ``("ii",
-    "iii")``. A PASS carrying a non-empty ``unratified_conditions`` is an
-    INCOMPLETE result — whether RUN-04 may proceed on one is an open owner
-    question tracked as GAP-56-01, not a decision this module makes.
+    A PASS from this plan's gate evaluates condition (i), condition (iii)'s
+    grounded finiteness rule, and the non-finite pre-checks: condition (iii)'s
+    CAPABILITY structure (:func:`condition_iii_diagnostics`) is measured and
+    recorded on every case but carries no pass threshold of its own —
+    GAP-56-01 makes that threshold inseparable from condition (ii).
+    ``Gate04Verdict.unratified_conditions`` is therefore ``("ii",)``. A PASS
+    carrying a non-empty ``unratified_conditions`` is an INCOMPLETE result —
+    whether RUN-04 may proceed on one is an open owner question tracked as
+    GAP-56-01, not a decision this module makes.
     """
     if _blocking_reasons(case_results, causal_clip_min_weight=causal_clip_min_weight):
         return VERDICT_BLOCK
     return VERDICT_PASS
+
+
+def condition_ii_verdict(weights) -> None:
+    """Never returns: condition (ii)'s pass criterion is unratified (GAP-56-01).
+
+    ``54-RULING.md``'s re-issued AC-LOSS-04 requires GATE-04 to fail closed on
+    a degenerate weight vector, but neither that ruling nor any other source
+    in this repository defines what "degenerate" or "carrying differential
+    information" means numerically. That decision is GAP-56-01, status OPEN,
+    awaiting the owner.
+
+    This function raises ``NotImplementedError`` UNCONDITIONALLY, for every
+    ``weights`` input, so the slot cannot be filled by accident in either
+    direction (a false PASS or a false BLOCK). Nothing else in this module
+    calls it: :func:`condition_ii_diagnostics` reports descriptive statistics
+    with no comparison and no threshold, and :func:`gate04_verdict` never
+    references condition (ii) at all.
+    """
+    raise NotImplementedError(
+        "GATE-04 condition (ii)'s pass criterion is unratified (GAP-56-01, "
+        "status OPEN): no source in this repository defines a numeric or "
+        "structural test for a weight vector 'carrying differential "
+        "information (not all-floor, not degenerate)'. See "
+        ".planning/phases/56-contract-amendment-train-free-gate/56-GAPS.md "
+        "for the four candidate options the owner has not yet ruled on: "
+        "(A) a dispersion floor on the non-boundary weights, (B) a "
+        "controlled-residual-reduction response test only, (C) both A and "
+        "B, or (D) deferring the numeric bound to Phase 57 checkpoint (3) "
+        "with condition (ii) logged as a non-blocking diagnostic until "
+        "then. This function must not be filled in without an owner ruling."
+    )
+
+
+def condition_ii_diagnostics(weights, causal_clip_min_weight: float) -> dict:
+    """Descriptive statistics for condition (ii) — measured, never adjudicated.
+
+    Returns the statistics 56-RESEARCH.md Part (b) computed for the six
+    audited cases under the ratified recipe: the coefficient of variation of
+    the tail entries ``weights[1:]`` (index 0 is fixed at ``1.0`` by
+    construction — the exclusive prefix into bin 0 is empty — so it carries
+    no dispersion information of its own), whether the full 16-entry vector
+    is monotone non-increasing, the base-10 span
+    (``log10(max) - log10(min)``) between the largest and smallest entry, and
+    the count of entries strictly above ``causal_clip_min_weight``.
+
+    These are recorded so the owner's eventual GAP-56-01 ruling has real
+    post-amendment data to rule against. GATE-04 currently treats condition
+    (ii) as measured-but-not-adjudicated rather than as satisfied: this
+    function performs NO comparison against any constant and returns NO
+    verdict-shaped field (no key named or implying a threshold, a pass, or an
+    "ok" state) — :func:`condition_ii_verdict` is the only place a pass/fail
+    call for condition (ii) could be made, and it always raises.
+    """
+    values = np.asarray([float(w) for w in weights], dtype=np.float64)
+    if values.size != RATIFIED_N_BINS:
+        raise ValueError(
+            f"condition_ii_diagnostics requires exactly {RATIFIED_N_BINS} "
+            f"weight entries; got {values.size}"
+        )
+    floor = float(causal_clip_min_weight)
+    tail = values[1:]
+    tail_mean = float(np.mean(tail))
+    cv_tail = float(np.std(tail) / tail_mean) if tail_mean != 0.0 else float("nan")
+    monotone_non_increasing = bool(np.all(np.diff(values) <= 0.0))
+    dynamic_range_decades = float(np.log10(np.max(values)) - np.log10(np.min(values)))
+    distinct_non_floor_count = int(np.sum(values > floor))
+    return {
+        "coefficient_of_variation_tail": cv_tail,
+        "monotone_non_increasing": monotone_non_increasing,
+        "dynamic_range_decades": dynamic_range_decades,
+        "distinct_non_floor_count": distinct_non_floor_count,
+        "status": "UNRATIFIED",
+    }
+
+
+def condition_iii_diagnostics(
+    raw_bin_means,
+    r_ref,
+    *,
+    eta_c=CAUSAL_ETA_C,
+    dtype,
+    device,
+    t_max=T_CHARACTERISTIC_TIME,
+    factors: "tuple[float, ...]" = CONDITION_III_DIAGNOSTIC_FACTORS,
+    late_bin_start: int = 8,
+) -> dict:
+    """Condition (iii)'s front-CAPABILITY record — never a fixed front check.
+
+    Two structural findings, established by direct computation
+    (56-RESEARCH.md Part b.3-b.5) and re-asserted here so they travel with
+    the code, not only with the planning artifacts:
+
+    1. All six audited cases produce an unperturbed front index of 0 at
+       initialization under the healthy, amended recipe — every case's
+       second weight already falls below 0.5 — so a fixed positive-front
+       check (the front index compared against zero) would reject every
+       healthy case. A front index of 0 here is EXPECTED, not a failure
+       signal.
+    2. A reduction confined to bins ``late_bin_start`` onward cannot move
+       ``front_idx`` at any magnitude, because the weight at bin ``n``
+       depends only on the exclusive prefix over bins ``0..n-1``: nothing
+       that happens at or after bin ``n`` can change it. A no-response
+       result from a late-bin-only perturbation is therefore a structural
+       artifact of the formula, not evidence about recipe health.
+
+    For each entry of ``factors`` (default
+    :data:`CONDITION_III_DIAGNOSTIC_FACTORS`), this scales the normalized bin
+    residuals ``r_tilde = raw_bin_means / r_ref`` uniformly — equivalently,
+    scales ``raw_bin_means`` by the same factor since ``r_ref`` is held
+    fixed, the two are exactly proportional — and recomputes the weight
+    vector through :func:`ratified_causal_weights`, never a second
+    implementation, recording the resulting front index via the probe
+    module's own front-index helper (the trainer formula: the largest
+    0-indexed ``n`` with ``w_n`` strictly greater than 0.5, so ``w_n == 0.5``
+    does not advance the front). It separately records the front index under
+    a reduction applied ONLY to bins ``late_bin_start`` through the end
+    (bins before ``late_bin_start`` are left unperturbed), for the same
+    factors.
+
+    Applies NO pass threshold — this is a measurement record only, carrying
+    ``status: "UNRATIFIED"``. GAP-56-01 (OPEN) covers both the reduction
+    magnitude and the response margin a healthy recipe must meet; neither is
+    invented here.
+    """
+    means = np.asarray([float(v) for v in raw_bin_means], dtype=np.float64)
+    if means.size != RATIFIED_N_BINS:
+        raise ValueError(
+            f"condition_iii_diagnostics requires exactly {RATIFIED_N_BINS} "
+            f"raw bin means; got {means.size}"
+        )
+    if (
+        isinstance(late_bin_start, bool)
+        or not isinstance(late_bin_start, int)
+        or not (0 <= late_bin_start <= RATIFIED_N_BINS)
+    ):
+        raise ValueError(
+            f"late_bin_start must be an int in [0, {RATIFIED_N_BINS}]; "
+            f"got {late_bin_start!r}"
+        )
+    factors_tuple = tuple(float(f) for f in factors)
+
+    def _front_for(scaled_means: np.ndarray) -> int:
+        weights = ratified_causal_weights(
+            scaled_means, r_ref, eta_c=eta_c, dtype=dtype, device=device, t_max=t_max,
+        )
+        return _front_idx(weights.tolist())
+
+    unperturbed_front_idx = _front_for(means)
+    uniform_response_front_idx = []
+    late_bin_only_response_front_idx = []
+    for factor in factors_tuple:
+        uniform_response_front_idx.append(_front_for(means * factor))
+        late_scaled = means.copy()
+        late_scaled[late_bin_start:] = late_scaled[late_bin_start:] * factor
+        late_bin_only_response_front_idx.append(_front_for(late_scaled))
+
+    return {
+        "factors": factors_tuple,
+        "late_bin_start": int(late_bin_start),
+        "unperturbed_front_idx": unperturbed_front_idx,
+        "uniform_response_front_idx": tuple(uniform_response_front_idx),
+        "late_bin_only_response_front_idx": tuple(late_bin_only_response_front_idx),
+        "status": "UNRATIFIED",
+    }
 
 
 def _measure_raw_bin_means(case, *, dtype, torch_device) -> np.ndarray:
@@ -462,8 +650,10 @@ def evaluate_case(case, r_ref: float, *, precision: str, device: str) -> Gate04C
     probe helper, never forked here. ``condition_i_satisfied`` records whether
     every weight clears the runtime clamp floor strictly; the verdict function
     re-derives that comparison from the recorded weights and never trusts this
-    field. The condition-(ii)/(iii) diagnostic slots are present but ``None``;
-    plan 56-02 fills them once GAP-56-01 is ratified.
+    field. The condition-(ii)/(iii) diagnostic fields are populated from
+    :func:`condition_ii_diagnostics` and :func:`condition_iii_diagnostics` —
+    measured records only; neither carries a pass/fail verdict, and GAP-56-01
+    remains OPEN.
     """
     runtime = resolve_runtime(precision, device)
     clip_facts = resolve_causal_clip_facts(runtime.dtype, runtime.torch_device)
@@ -494,8 +684,10 @@ def evaluate_case(case, r_ref: float, *, precision: str, device: str) -> Gate04C
         front_idx=_front_idx(weight_tuple),
         min_weight=min(weight_tuple),
         condition_i_satisfied=all(w > floor for w in weight_tuple),
-        condition_ii_diagnostics=None,
-        condition_iii_diagnostics=None,
+        condition_ii_diagnostics=condition_ii_diagnostics(weight_tuple, floor),
+        condition_iii_diagnostics=condition_iii_diagnostics(
+            raw, r_ref_value, dtype=runtime.dtype, device=runtime.torch_device,
+        ),
     )
 
 
