@@ -506,3 +506,107 @@ def test_bin_mean_residuals_synthetic():
         probe.bin_mean_residuals(residuals, bad_range)
     with pytest.raises(ValueError, match="empty bin"):
         probe.bin_mean_residuals(residuals, np.zeros(4096, dtype=int))
+
+
+def _probe_call_graph_closure():
+    """AST call-graph from run_sweep/measure_case/main, including defaults."""
+    probe = _load_probe()
+    tree = ast.parse(
+        pathlib.Path(probe.__file__).read_text(encoding="utf-8"),
+        filename=probe.__file__,
+    )
+    functions = {
+        node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)
+    }
+
+    def names_in(node) -> set[str]:
+        found: set[str] = set()
+        if node is None:
+            return found
+        for child in ast.walk(node):
+            if isinstance(child, ast.Name):
+                found.add(child.id)
+        return found
+
+    def called_from(fn_node) -> set[str]:
+        names: set[str] = set()
+        roots = list(fn_node.body)
+        roots.extend(fn_node.args.defaults)
+        roots.extend(d for d in fn_node.args.kw_defaults if d is not None)
+        for root in roots:
+            for child in ast.walk(root):
+                if not isinstance(child, ast.Call):
+                    continue
+                callee = child.func
+                if isinstance(callee, ast.Name):
+                    names.add(callee.id)
+                elif isinstance(callee, ast.Attribute):
+                    names.add(callee.attr)
+        return names
+
+    seed: set[str] = {"run_sweep", "measure_case", "main"}
+    for node in tree.body:
+        if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.Expr)):
+            seed |= names_in(node)
+    for entry_name in ("run_sweep", "measure_case", "main"):
+        fn_node = functions[entry_name]
+        for default in fn_node.args.defaults:
+            seed |= names_in(default)
+        for default in fn_node.args.kw_defaults:
+            seed |= names_in(default)
+
+    reachable: set[str] = set()
+    closure: set[str] = set(seed)
+    stack = list(seed)
+    while stack:
+        name = stack.pop()
+        if name in reachable or name not in functions:
+            continue
+        reachable.add(name)
+        called = called_from(functions[name])
+        closure |= called
+        stack.extend(called)
+    return probe, reachable, closure
+
+
+def test_new_structure_helpers_unreachable_from_default_sweep():
+    """D-03: default measurement path must not reach the 4096-bin helpers."""
+    _probe, reachable, closure = _probe_call_graph_closure()
+    assert reachable, "call-graph closure is empty — parser would green a vacuous gate"
+    assert "_ic13_for_case" in reachable, (
+        "known-reachable helper _ic13_for_case missing from the closure; "
+        "a broken parser cannot satisfy D-03 by finding nothing"
+    )
+    forbidden = ("stratified_collocation_times", "bin_mean_residuals")
+    leaked = [name for name in forbidden if name in closure or name in reachable]
+    assert not leaked, (
+        "CONTEXT.md D-03: new-structure helpers must stay unreachable from "
+        f"run_sweep/measure_case/main; leaked {leaked}. Wiring them into a "
+        "real measurement is Phase 56's requirement, not Phase 55's."
+    )
+
+
+def test_default_sweep_never_exceeds_sixteen_causal_points(tmp_path):
+    """Default path must feed causal_physics_loss exactly DEFAULT_N_COL residuals."""
+    probe = _load_probe()
+    recorded: list[int] = []
+    original = probe.causal_physics_loss
+
+    def recorder(residuals_per_time, *args, **kwargs):
+        if torch.is_tensor(residuals_per_time):
+            count = int(residuals_per_time.reshape(-1).numel())
+        else:
+            count = int(np.asarray(residuals_per_time).reshape(-1).size)
+        recorded.append(count)
+        return original(residuals_per_time, *args, **kwargs)
+
+    evidence_root = tmp_path / "evidence"
+    with mock.patch.object(probe, "causal_physics_loss", side_effect=recorder):
+        probe.run_sweep()
+        code = probe.main(["--evidence-root", str(evidence_root)])
+    assert recorded, "expected at least one causal_physics_loss call"
+    assert all(count == probe.DEFAULT_N_COL for count in recorded), (
+        f"default path passed residual counts {recorded} to causal_physics_loss; "
+        f"every call must receive exactly DEFAULT_N_COL={probe.DEFAULT_N_COL}"
+    )
+    assert code == 0
