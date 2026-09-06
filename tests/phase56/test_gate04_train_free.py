@@ -1,0 +1,318 @@
+"""Contract tests for the Phase 56 GATE-04 train-free gate (condition (i) path).
+
+The public surface under test was frozen by the plan 56-01 Task 1 decision
+checkpoint (owner answer "confirmed", 2026-09-06): the probe helper
+``ratified_causal_weights``, the gate module's verdict dataclasses and single
+verdict function, and the persisted ``r_ref_stage0.json`` schema.
+"""
+
+from __future__ import annotations
+
+import importlib
+import json
+import math
+import pathlib
+import tempfile
+import unittest
+from unittest import mock
+
+import numpy as np
+import pytest
+import torch
+
+from pinn.loss_catalog import resolve_causal_clip_facts
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+MODULE = "pinn.verification.gate04_train_free"
+PROBE_MODULE = "pinn.verification.architecture_characterization_probe"
+FROZEN_TOP_LEVEL_KEYS = frozenset({
+    "schema_version",
+    "r_ref",
+    "statistic",
+    "statistic_convention",
+    "cases",
+    "raw_bin_means",
+    "configuration",
+    "provenance",
+    "invalidation_triggers",
+    "valid",
+})
+
+
+def _load_gate():
+    """Defer production import so the RED suite skips before the module exists."""
+    try:
+        return importlib.import_module(MODULE)
+    except ImportError as exc:
+        raise unittest.SkipTest(f"{MODULE} has not landed yet: {exc}") from exc
+
+
+def _load_ratified_weights():
+    """Fail (never skip) while the probe helper is absent — the RED target.
+
+    The probe module itself is committed (Phase 55); the planned behaviour is a
+    NEW public function on it. Its absence must read as a failing assertion for
+    the planned behaviour, so the RED suite proves it can go red on this seam.
+    """
+    probe = importlib.import_module(PROBE_MODULE)
+    try:
+        return probe.ratified_causal_weights
+    except AttributeError as exc:
+        raise AssertionError(
+            f"ratified_causal_weights has not landed yet in {PROBE_MODULE} "
+            "(56-01 Task 2 step 3)"
+        ) from exc
+
+
+def _clip_floor():
+    facts = resolve_causal_clip_facts(torch.float64, torch.device("cpu"))
+    return float(facts["causal_clip_min_weight"])
+
+
+def _graded_weights():
+    """A healthy 16-entry weight vector (w_1 = 1, strictly graded, above the floor)."""
+    return tuple(math.exp(-index) for index in range(16))
+
+
+def _synthetic_case(gate, *, label="synthetic", seed=999, raw=None, r_tilde=None,
+                    weights=None, min_weight=None, condition_i_satisfied=None):
+    """Build a Gate04CaseResult directly — the verdict must audit values, not trust flags."""
+    floor = _clip_floor()
+    raw = tuple(1.0 for _ in range(16)) if raw is None else tuple(raw)
+    r_tilde = tuple(1.0 for _ in range(16)) if r_tilde is None else tuple(r_tilde)
+    weights = _graded_weights() if weights is None else tuple(weights)
+    if min_weight is None:
+        finite = [w for w in weights if math.isfinite(w)]
+        min_weight = min(finite) if finite else float("nan")
+    if condition_i_satisfied is None:
+        condition_i_satisfied = all(math.isfinite(w) and w > floor for w in weights)
+    return gate.Gate04CaseResult(
+        label=label,
+        seed=seed,
+        raw_bin_means=raw,
+        r_tilde=r_tilde,
+        weights=weights,
+        front_idx=0,
+        min_weight=min_weight,
+        condition_i_satisfied=condition_i_satisfied,
+        condition_ii_diagnostics=None,
+        condition_iii_diagnostics=None,
+    )
+
+
+class RatifiedCausalWeightsTests(unittest.TestCase):
+    """The D-05 probe helper: ratified-recipe weights via the trainer's own loss."""
+
+    def test_flat_profile_matches_exclusive_prefix(self):
+        ratified_causal_weights = _load_ratified_weights()
+        raw = np.full(16, 3.5, dtype=np.float64)
+        weights = ratified_causal_weights(
+            raw, 3.5, dtype=torch.float64, device=torch.device("cpu"),
+        )
+        expected = np.exp(-np.arange(16, dtype=np.float64))
+        assert isinstance(weights, np.ndarray)
+        assert weights.shape == (16,)
+        assert weights.dtype == np.float64
+        # The exclusive prefix of bin 0 is empty, so w_1 = exp(0) = 1 exactly.
+        assert weights[0] == 1.0
+        assert bool(np.all(np.diff(weights) < 0.0)), "weights must strictly decrease"
+        np.testing.assert_allclose(weights, expected, rtol=1e-12, atol=0.0)
+
+    def test_rejects_wrong_length(self):
+        ratified_causal_weights = _load_ratified_weights()
+        for length in (0, 15, 17):
+            with self.subTest(length=length):
+                with pytest.raises(ValueError, match="raw_bin_means"):
+                    ratified_causal_weights(
+                        np.ones(length), 1.0,
+                        dtype=torch.float64, device=torch.device("cpu"),
+                    )
+
+    def test_rejects_bad_r_ref(self):
+        ratified_causal_weights = _load_ratified_weights()
+        for bad in (0.0, -1.0, float("nan"), float("inf")):
+            with self.subTest(r_ref=bad):
+                with pytest.raises(ValueError, match="r_ref"):
+                    ratified_causal_weights(
+                        np.ones(16), bad,
+                        dtype=torch.float64, device=torch.device("cpu"),
+                    )
+
+    def test_rejects_non_finite_entry(self):
+        ratified_causal_weights = _load_ratified_weights()
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            raw = np.ones(16, dtype=np.float64)
+            raw[7] = bad
+            with self.subTest(entry=bad):
+                with pytest.raises(ValueError, match="raw_bin_means"):
+                    ratified_causal_weights(
+                        raw, 2.0,
+                        dtype=torch.float64, device=torch.device("cpu"),
+                    )
+
+
+class Gate04VerdictTests(unittest.TestCase):
+    """gate04_verdict is the single source of the PASS/BLOCK decision."""
+
+    def test_strict_floor_boundary_blocks_and_passes(self):
+        gate = _load_gate()
+        floor = _clip_floor()
+        weights = list(_graded_weights())
+        weights[11] = floor  # exactly AT the floor: pinned by definition
+        pinned = _synthetic_case(gate, weights=weights)
+        assert gate.gate04_verdict([pinned], causal_clip_min_weight=floor) == gate.VERDICT_BLOCK
+
+        weights[11] = float(np.nextafter(floor, math.inf))  # strictly above the floor
+        cleared = _synthetic_case(gate, weights=weights)
+        assert gate.gate04_verdict([cleared], causal_clip_min_weight=floor) == gate.VERDICT_PASS
+
+    def test_blocks_non_finite_entries(self):
+        gate = _load_gate()
+        floor = _clip_floor()
+        nan_residual = [1.0] * 16
+        nan_residual[3] = float("nan")
+        huge = [1e308] * 16  # finite entries whose exclusive prefix overflows
+        inf_weights = list(_graded_weights())
+        inf_weights[5] = float("inf")
+        variants = {
+            "residual": _synthetic_case(gate, raw=nan_residual),
+            "prefix": _synthetic_case(gate, r_tilde=huge),
+            "weights": _synthetic_case(gate, weights=inf_weights),
+        }
+        for name, case in variants.items():
+            with self.subTest(non_finite=name):
+                assert gate.gate04_verdict([case], causal_clip_min_weight=floor) == gate.VERDICT_BLOCK
+
+    def test_non_finite_reason_named_in_verdict_object(self):
+        gate = _load_gate()
+        weights = list(_graded_weights())
+        weights[9] = float("nan")
+        bad = _synthetic_case(gate, label="41", seed=41, weights=weights)
+        with mock.patch.object(gate, "compute_r_ref", return_value=(2.0, (bad.raw_bin_means,))), \
+             mock.patch.object(gate, "evaluate_case", return_value=bad):
+            verdict = gate.run_gate(cases=gate.DEFAULT_CASES[:1], precision="float64", device="cpu")
+        assert verdict.verdict == gate.VERDICT_BLOCK
+        assert any(
+            "non-finite" in reason and "weights" in reason
+            for reason in verdict.blocking_reasons
+        ), verdict.blocking_reasons
+
+    def test_empty_case_set_blocks(self):
+        gate = _load_gate()
+        floor = _clip_floor()
+        assert gate.gate04_verdict([], causal_clip_min_weight=floor) == gate.VERDICT_BLOCK
+        verdict = gate.run_gate(cases=(), precision="float64", device="cpu")
+        assert verdict.verdict == gate.VERDICT_BLOCK
+        assert verdict.cases == ()
+        assert any("empty" in reason for reason in verdict.blocking_reasons)
+
+
+class RunGateEndToEndTests(unittest.TestCase):
+    """The tracer slice: the six audited cases through the ratified recipe."""
+
+    def test_run_gate_six_default_cases_pass(self):
+        gate = _load_gate()
+        floor = _clip_floor()
+        verdict = gate.run_gate()
+        assert verdict.verdict == gate.VERDICT_PASS, verdict.blocking_reasons
+        assert verdict.blocking_reasons == ()
+        assert verdict.unratified_conditions == ("ii", "iii")
+        assert [case.label for case in verdict.cases] == [case.label for case in gate.DEFAULT_CASES]
+        for case in verdict.cases:
+            assert len(case.raw_bin_means) == 16
+            assert len(case.r_tilde) == 16
+            assert len(case.weights) == 16
+            assert case.min_weight > verdict.causal_clip_min_weight
+            assert case.condition_i_satisfied is True
+            assert case.condition_ii_diagnostics is None
+            assert case.condition_iii_diagnostics is None
+        assert verdict.causal_clip_min_weight == floor
+        assert math.isfinite(verdict.r_ref) and verdict.r_ref > 0.0
+        all_means = np.concatenate([np.asarray(case.raw_bin_means) for case in verdict.cases])
+        assert all_means.size == 96
+        assert math.isclose(
+            verdict.r_ref, float(np.median(all_means)), rel_tol=1e-12, abs_tol=0.0,
+        )
+
+
+class RRefArtifactTests(unittest.TestCase):
+    """The persisted R_ref artifact carries the frozen schema, written atomically."""
+
+    def _synthetic_verdict(self, gate):
+        floor = _clip_floor()
+        cases = tuple(
+            _synthetic_case(
+                gate, label=case.label, seed=case.seed,
+                raw=[2.0] * 16, r_tilde=[1.0] * 16,
+            )
+            for case in gate.DEFAULT_CASES
+        )
+        return gate.Gate04Verdict(
+            verdict=gate.VERDICT_PASS,
+            blocking_reasons=(),
+            unratified_conditions=("ii", "iii"),
+            cases=cases,
+            r_ref=2.0,
+            causal_clip_min_weight=floor,
+            precision="float64",
+            device="cpu",
+        )
+
+    def test_write_r_ref_artifact_frozen_schema(self):
+        gate = _load_gate()
+        verdict = self._synthetic_verdict(gate)
+        with tempfile.TemporaryDirectory(prefix="phase56-rref-") as tmp:
+            path = pathlib.Path(tmp) / "nested" / "r_ref_stage0.json"
+            written = gate.write_r_ref_artifact(verdict, path=path)
+            assert written == path
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            assert set(payload) == FROZEN_TOP_LEVEL_KEYS, sorted(payload)
+            assert payload["schema_version"] == "phase56-r-ref-stage0/v1"
+            assert payload["schema_version"] == gate.R_REF_SCHEMA_VERSION
+            assert payload["r_ref"] == 2.0
+            assert payload["statistic"] == "median"
+            assert payload["statistic_convention"]
+            assert [entry["label"] for entry in payload["cases"]] == [
+                case.label for case in gate.DEFAULT_CASES
+            ]
+            assert len(payload["raw_bin_means"]) == 6
+            assert all(len(row) == 16 for row in payload["raw_bin_means"])
+            assert all(
+                all(math.isfinite(value) for value in row)
+                for row in payload["raw_bin_means"]
+            )
+            assert len(payload["invalidation_triggers"]) > 0
+            assert payload["valid"] is True
+            assert payload["configuration"]["precision"] == "float64"
+            assert payload["configuration"]["device"] == "cpu"
+            assert not list(pathlib.Path(tmp).rglob("*.tmp.*")), (
+                "the atomic writer must leave no temp residue"
+            )
+
+
+class PublicContractTests(unittest.TestCase):
+    """The Task-1-frozen names Phase 57 imports (owner answer: "confirmed")."""
+
+    def test_probe_helper_exported(self):
+        probe = importlib.import_module(PROBE_MODULE)
+        assert "ratified_causal_weights" in probe.__all__
+
+    def test_gate_public_surface(self):
+        gate = _load_gate()
+        assert gate.VERDICT_PASS == "PASS"
+        assert gate.VERDICT_BLOCK == "BLOCK"
+        for name in (
+            "Gate04Verdict",
+            "Gate04CaseResult",
+            "gate04_verdict",
+            "run_gate",
+            "write_r_ref_artifact",
+            "compute_r_ref",
+            "evaluate_case",
+            "R_REF_SCHEMA_VERSION",
+            "R_REF_ARTIFACT_PATH",
+            "INVALIDATION_TRIGGERS",
+        ):
+            assert hasattr(gate, name), name
+        assert gate.R_REF_ARTIFACT_PATH.name == "r_ref_stage0.json"
+        assert gate.R_REF_ARTIFACT_PATH.parent.name == "artifacts"
