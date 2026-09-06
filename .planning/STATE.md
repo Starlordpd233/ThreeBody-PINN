@@ -5,11 +5,11 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
 status: ready
-stopped_at: Phase 55 closed — verified, secured, validated, UAT complete
-last_updated: "2026-09-06T10:19:46Z"
+stopped_at: Phase 56 context gathered (discuss step) — two owner gaps open
+last_updated: "2026-09-06T10:40:00Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 55 Architecture Characterization Probe CLOSED. INST-04 is committed, tested tooling under pinn/verification/; the 2026-08-17 six-row table is reproduced at decade resolution with a re-derivable evidence run; D-03 helpers exist and are AST-contained. Retroactive closeout discharged the steps execute-phase skipped — /gsd-secure-phase 55 (55-SECURITY.md, status verified, threats_open 0, 21 STRIDE threats, ASVS L1), /gsd-validate-phase 55 (55-VALIDATION.md, nyquist_compliant true, 14/14 rows COVERED, 0 gaps), /gsd-verify-work 55 (55-UAT.md, 20/20 coverage-auto-covered, 0 issues; 55-COVERAGE.md no-external-API declaration for the api-coverage gate false positive) — and re-verified at HEAD (55-VERIFICATION.md re-verification block; every code/test/evidence covered file byte-identical to initial verification 48e3e2fa; covered_digest refreshed). gsd-tools phase uat-passed 55 --require-verification -> passed: true; ready_to_transition: true. 55-CLOSE-CHECK.sh -> PHASE55-CLOSE-PASS. phase.complete NOT used (mutating state verbs corrupt STATE.md in this checkout — same as Phase 54); STATE/ROADMAP/REQUIREMENTS/PROJECT updated by hand.
-state_head: 03741de6
+last_activity_desc: Phase 56 discuss step complete (watchdog chain phase-55-56-work-4e71db4b036eb883 position 2, autonomous mode per owner instruction 2026-09-06). 56-CONTEXT.md + 56-DISCUSSION-LOG.md written (commit 61d7c6e8): every gray area dispositioned from 54-RULING.md — the amendment is transcription of the four SCOPE-38 blocks (Block 1 eta_c AMENDED to R_tilde_b = R_bar_b/R_ref; Blocks 2/3 first_omega_0 + clip NOT AMENDED; Block 4 n_col=4096-total/16-bin); GATE-04 as a new standalone pinn/verification/gate04_train_free.py driven by the Phase 55 probe; R_ref as a committed provenance JSON. Two decisions surfaced under the CLAUDE.md STOP protocol (not waived by the autonomous directive): GAP-56-01 HIGH (GATE-04 condition-(ii) 'differential information / non-degenerate' threshold + 'controlled residual reduction' test — governs the SCOPE-35 single-look budget) and GAP-56-02 MEDIUM (§2.4 locked-vs-default table convention scope). Both in 56-GAPS.md + v2.3-GAPS.md; blocking is dependency-scoped (core §2.2/§3.2 transcription + GATE-04 scaffolding proceed). phase.complete / mutating state verbs NOT used (corrupt STATE.md in this checkout); STATE updated by hand.
+state_head: 61d7c6e8
 progress:
   total_phases: 6
   completed_phases: 3
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: 56 (Contract Amendment & Train-Free Gate) — NOT STARTED
+Phase: 56 (Contract Amendment & Train-Free Gate) — CONTEXT GATHERED
 Plan: Not started
-Status: Phase 55 CLOSED — verification 12/12 (re-verified at HEAD 03741de6), Nyquist compliant, security `threats_open: 0`, UAT 20/20; `55-CLOSE-CHECK.sh` → `PHASE55-CLOSE-PASS`; `ready_to_transition: true`. Phase 56 is unblocked on both hard gates (the ratified 54-RULING and the INST-04 probe GATE-04 fires); SCOPE-38 amendment discipline and GATE-04 are in-phase. Next action: `/gsd-spec-phase 56` or `/gsd-plan-phase 56` (chain `phase-55-56-work-4e71db4b036eb883` position 2).
-Last activity: 2026-09-06 — Phase 55 retroactive closeout: secure + validate + UAT + re-verify, all committed; STATE/ROADMAP/REQUIREMENTS/PROJECT updated
-Resume file: None
+Status: Discuss step complete (61d7c6e8). 56-CONTEXT.md is ready for planning with two owner decisions open — GAP-56-01 (HIGH, GATE-04 condition-(ii) acceptance threshold + controlled-reduction test) and GAP-56-02 (MEDIUM, §2.4 table-convention scope); see 56-GAPS.md and v2.3-GAPS.md. Blocking is dependency-scoped: the §2.2/§3.2 amendment transcription and the GATE-04 structural scaffolding are unblocked; GAP-56-01 blocks the condition-(ii) numeric wiring + SC5 margin, GAP-56-02 blocks only the §2.4 cosmetic edit. Next action: owner rules on GAP-56-01 / GAP-56-02, then `/gsd-plan-phase 56` (chain `phase-55-56-work-4e71db4b036eb883` position 2 → downstream positions handle spec/plan/execute).
+Last activity: 2026-09-06 — Phase 56 discuss step: 56-CONTEXT.md + 56-DISCUSSION-LOG.md + 56-GAPS.md written; v2.3-GAPS.md updated with GAP-56-01/02
+Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-CONTEXT.md
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
