@@ -5,17 +5,17 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
 status: executing
-stopped_at: Completed 56-02-PLAN.md
-last_updated: "2026-09-06T17:00:27.312Z"
+stopped_at: Completed 56-05-PLAN.md
+last_updated: "2026-09-06T17:31:23.000Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 56 execution resumed (wave continue)
-state_head: 6e4853110e75bf041d6b92c62617790e0e323678
+last_activity_desc: Plan 56-05 executed (spec amendment completion — NOT-AMENDED records, secondary wordings, render-oracle re-adjudication, committed test guard)
+state_head: 499ca8bf0be707f09fc36053c75f6583697d93f4
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 24
-  completed_plans: 21
-  percent: 33
+  completed_plans: 22
+  percent: 50
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 56 (Contract Amendment & Train-Free Gate) — EXECUTING
-Plan: 4 of 6 (56-01, 56-04, and 56-02 complete 2026-09-06; 56-05 remains in wave 2)
+Plan: 5 of 6 (56-01, 56-04, 56-02, and 56-05 complete 2026-09-06; 56-03 (wave 3) and 56-06 (wave 4) remain)
 Status: Ready to execute
-Last activity: 2026-09-06 — Plan 56-02 executed (condition (ii)/(iii) slots + operator CLI)
-Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-02-SUMMARY.md
+Last activity: 2026-09-06 — Plan 56-05 executed (spec amendment completion: NOT-AMENDED records, secondary wordings, render-oracle re-adjudication, committed test guard)
+Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-05-SUMMARY.md
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -292,6 +292,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 56 P01 | 42 min | 2 tasks | 5 files |
 | Phase 56 P04 | 15 min | 3 tasks | 1 files |
 | Phase 56 P02 | 52 min | 2 tasks | 3 files |
+| Phase 56 P05 | 15 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -479,6 +480,7 @@ Recent decisions affecting current work:
 - [Phase 56]: [Phase 56 Plan 56-04]: The SCOPE-38 core amendment landed in pinn_architecture.md section 3.2 as three additive blockquotes after the retained-byte-identical Phase 35 contract: Block 1 (causal exponent amended to the frozen-reference normalized bin residual, AC-LOSS-04 re-issued verbatim), the frozen residual reference (median-of-96-raw-bin-means procedure, two-central-order-statistics convention, detached/frozen for Stage 0, residual-wide application, the fifteen-trigger invalidation list transcribed verbatim, no numeric value fixed), and Block 4 (4096 rows total per training batch exact, 16 fixed equal-u bins with the half-open/closed boundary convention, 256 rows per bin, one batch-global exclusive 16-term prefix, the 240-slot replay-only construction and its re-issued acceptance criterion verbatim, GAP-39-12 Option C superseded only as to its independent full-domain time-draw clause, SPEC-06 binding + re-check trigger). All verbatim passages byte-exact-verified against 54-RULING.md; zero removed lines in the plan diff; render oracle 0 DEFINITE. — 54-RULING.md checkpoint 2 (owner delegation 2026-09-04, ratified surface set A1 + B2 residual-wide + C1 + D3 + E1) is the authorizing source; SCOPE-38 requires amendment-not-value-edit with named superseded rulings and re-issued acceptance criteria. Transcription (not composition) eliminates spec drift; additive placement keeps the partially superseded Phase 35 text readable so the supersession stays meaningful.
 - [Phase 56]: 56-02: condition_ii_verdict always raises NotImplementedError naming GAP-56-01; condition_ii/iii diagnostics are descriptive-statistics-only with status UNRATIFIED, no verdict-shaped field
 - [Phase 56]: 56-02: main() refreshes the governed r_ref_stage0.json artifact only for the default six-case run (args.cases_config is None), since a custom case list fails the artifact's own DEFAULT_CASES identity check
+- [Phase 56]: [Phase 56 Plan 56-05]: The two NOT-AMENDED contracts (§2.2 first_omega_0 fixed-at-30, §4.1 causal-exponent clip underflow-only purpose) are recorded separately and by name, each immediately adjacent to its own locked sentence, with Phase 20 ARCH-01 and GAP-56-02 named for the SIREN block and the ruling's observability addendum (reject non-finite before clipping, log unclipped exponent + guard-binding count, fail GATE-04 on init-time binding — explicitly stated as observability, not a repurposing of the clip) transcribed for the clip block. Three secondary reconciliation sentences land in prose only: the run-driver collocation_count=16 vs ratified 4096-total divergence (SPEC-06, D-03, no pinn/ file touched), the Listing-3 recommended-range wording reconciled as historical (D-11, closes 53-UNSWEPT-INVENTORY item 5, listing byte-unchanged), and the §4.1 eta_c=1 default bullet now cross-references the §3.2 re-issued AC-LOSS-04 instead of standing beside the still-displayed raw-residual formula (D-10, coefficient value byte-preserved). The render oracle was re-adjudicated (6 pre-existing entries corrected for a +2 line shift caused by the §2.2 insertion, re-verified by content match per 54-RULING.md's anchor-drift warning rather than assumed; 1 new entry for the NOT-AMENDED blockquote's first_omega_0 citations; the 12 pre-existing unrelated Phase 34/35 REVIEW findings left untouched) and a 13-test committed pytest guard (tests/phase56/test_spec_amendment_contract.py) now protects the whole transcription after the plan closes, with genuine RED/GREEN proven for its line/token-position check. Whole-plan diff carries exactly one removed line (the authorized eta_c cross-reference edit); render oracle 0 DEFINITE; no pinn/ file touched; §2.4 table untouched. ROADMAP Phase 56 success criteria 2 and 3 are now met.
 
 ### Pending Todos
 
@@ -513,9 +515,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-09-06T17:00:27.251Z
-Stopped at: Completed 56-02-PLAN.md
-Next action: execute 56-02 (wave 2, GATE-04 conditions ii/iii slots + CLI) and 56-05 (wave 2, amendment completion: NOT-AMENDED records, secondary wordings, render-oracle re-adjudication), then 56-03 (wave 3, SC5 demonstration) and 56-06 (wave 4, close-out). GAP-56-01 and GAP-56-02 remain OPEN.
+Last session: 2026-09-06T17:31:23.000Z
+Stopped at: Completed 56-05-PLAN.md
+Next action: execute 56-03 (wave 3, SC5 demonstration: pre-amendment recipe frozen as a fixture, GATE-04 proven to return BLOCK on all six audited cases) and 56-06 (wave 4, phase close-out: 56-OPEN-ITEMS.md + authoritative GATE-04 run and its evidence). GAP-56-01 and GAP-56-02 remain OPEN.
 
 ## Operator Next Steps
 
