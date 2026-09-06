@@ -5,7 +5,7 @@ slug: architecture-characterization-probe
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-09-04
 ---
 
@@ -53,9 +53,9 @@ Task IDs assigned by the planner on 2026-09-04 from the four Phase-55 plans. Eve
 | 55-02-T3 | 55-02 | 2 | INST-04 prohibition (no recipe verdict) | — | `main` returns 0 on a completed measurement and non-zero only when the measurement did not complete; the record's key set is fixed so no verdict field can be added silently | unit | `pytest tests/phase55/test_architecture_characterization.py -k exit_code_is_not_a_recipe_verdict -x -q` | ✅ exists | ✅ green |
 | 55-03-T2 | 55-03 | 3 | D-03 (capability) | T-55-13, T-55-14 | the ratified 16-bin / 256-per-bin stratification and the arithmetic bin-mean reduction are correct against synthetic arrays with closed-form expectations, including every rejection case | unit (synthetic) | `pytest tests/phase55/test_architecture_characterization.py -k "stratified_bins_synthetic or bin_mean_residuals_synthetic" -x -q` | ✅ exists | ✅ green |
 | 55-03-T3 | 55-03 | 3 | D-03 (containment) | T-55-12, T-55-15 | an AST call-graph closure from `run_sweep`/`measure_case`/`main` reaches neither new-structure helper (with a non-vacuity guard); every default-path `causal_physics_loss` call receives exactly `DEFAULT_N_COL` values | unit (AST + call recorder) | `pytest tests/phase55/test_architecture_characterization.py -k "unreachable_from_default_sweep or never_exceeds_sixteen" -x -q` | ✅ exists | ✅ green |
-| 55-04-T2 | 55-04 | 4 | INST-04 (SC2, Tier 2) + D-01 | T-55-16 | the full six-row output matches the committed baseline field-for-field at the fixture's recorded relative tolerance; the comparison goes red on a perturbed copy; the on-disk baseline is byte-stable across the whole suite run | unit (regression fixture) | `pytest tests/phase55/test_architecture_characterization.py -k "exact_value_fixture or perturbed_baseline or never_written" -x -q` | ❌ W0 | ⬜ pending |
+| 55-04-T2 | 55-04 | 4 | INST-04 (SC2, Tier 2) + D-01 | T-55-16 | the full six-row output matches the committed baseline field-for-field at the fixture's recorded relative tolerance; the comparison goes red on a perturbed copy; the on-disk baseline is byte-stable across the whole suite run | unit (regression fixture) | `pytest tests/phase55/test_architecture_characterization.py -k "exact_value_fixture or perturbed_baseline or never_written" -x -q` | ✅ exists | ✅ green |
 | 55-04-T3 | 55-04 | 4 | INST-04 (SC2 committed run) | T-55-17, T-55-18, T-55-19 | exactly one committed evidence run under `evidence/probe/` carries the command, tree state and full six-row output; the run is cross-checked against the 2026-08-17 audit §6b table at decade resolution and the comparison is recorded in `55-04-SUMMARY.md` | integration (real CLI run) | `.venv/bin/python -c "import json,glob; ps=sorted(glob.glob('.planning/phases/55-architecture-characterization-probe/evidence/probe/*/raw.json')); assert len(ps)==1; raw=json.load(open(ps[0])); assert len(raw['cases'])==6 and all(c['front_idx']==0 for c in raw['cases']); print('evidence-ok')"` | ❌ W0 | ⬜ pending |
-| all | 55-01..04 | 1-4 | INST-04 (SC4) | — | SC4 is a property of the rows above existing and being bound-checked or exact — mutating any reported quantity, the sweep configuration, or the six-row baseline fails the suite | (covered by the rows above) | `pytest tests/phase55/ -q` | ❌ W0 | ⬜ pending |
+| all | 55-01..04 | 1-4 | INST-04 (SC4) | — | SC4 is a property of the rows above existing and being bound-checked or exact — mutating any reported quantity, the sweep configuration, or the six-row baseline fails the suite | (covered by the rows above) | `pytest tests/phase55/ -q` | ✅ exists | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -63,10 +63,10 @@ Task IDs assigned by the planner on 2026-09-04 from the four Phase-55 plans. Eve
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase55/__init__.py` — empty, matches `tests/phase38/`, `tests/phase49/`
-- [ ] `tests/phase55/test_architecture_characterization.py` — the full suite from the Phase Requirements → Test Map above; no existing test covers any part of this phase
-- [ ] `pinn/verification/architecture_characterization_probe.py` — the module itself; no existing module implements any part of SC1-SC4
-- [ ] Committed exact-value fixture JSON (Tier 2, D-01) — generated once the module is correct and reviewed
+- [x] `tests/phase55/__init__.py` — empty, matches `tests/phase38/`, `tests/phase49/`
+- [x] `tests/phase55/test_architecture_characterization.py` — the full suite from the Phase Requirements → Test Map above; no existing test covers any part of this phase
+- [x] `pinn/verification/architecture_characterization_probe.py` — the module itself; no existing module implements any part of SC1-SC4
+- [x] Committed exact-value fixture JSON (Tier 2, D-01) — generated once the module is correct and reviewed
 - Framework install: none — `pytest` already installed in `.venv`
 
 ---

@@ -25,6 +25,18 @@ from pinn.loss_catalog import resolve_causal_clip_facts
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODULE = "pinn.verification.architecture_characterization_probe"
 FIXTURE_PATH = pathlib.Path(__file__).resolve().parent / "fixtures" / "six_case_baseline.json"
+_STRING_FIELDS = ("label", "ic13_mode", "precision", "device", "median_convention")
+_INT_FIELDS = ("seed", "n_col", "front_idx")
+_SCALAR_REL_FIELDS = (
+    "r_norm_median",
+    "v_norm_median",
+    "a_norm_median",
+    "f_grav_norm_median",
+    "min_pairwise_separation_median",
+    "rbar_median",
+    "causal_clip_min_weight",
+)
+_SEQUENCE_REL_FIELDS = ("masses", "causal_weights", "collocation_times")
 
 
 def _load_probe():
@@ -41,6 +53,70 @@ def _tracer_case(probe):
         seed=41,
         masses=(1.0, 1.0, 1.0),
         ic13_mode="zero",
+    )
+
+
+def _load_fixture():
+    with FIXTURE_PATH.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _fixture_version_suffix():
+    meta = _load_fixture()["_meta"]
+    return (
+        f"recorded torch={meta['torch_version']} numpy={meta['numpy_version']}; "
+        f"running torch={torch.__version__} numpy={np.__version__}"
+    )
+
+
+def _mismatch(label, field, expected, observed):
+    raise AssertionError(
+        f"case {label!r} field {field}: expected {expected!r}, observed {observed!r}; "
+        f"{_fixture_version_suffix()}"
+    )
+
+
+def _compare_scalar_rel(label, field, observed, expected, rel):
+    observed_value = float(observed)
+    expected_value = float(expected)
+    if not math.isclose(observed_value, expected_value, rel_tol=rel, abs_tol=0.0):
+        _mismatch(label, field, expected_value, observed_value)
+
+
+def _compare_sequence_rel(label, field, observed, expected, rel):
+    observed_seq = tuple(observed)
+    expected_seq = tuple(expected)
+    if len(observed_seq) != len(expected_seq):
+        _mismatch(label, f"{field}.len", len(expected_seq), len(observed_seq))
+    for index, (observed_item, expected_item) in enumerate(zip(observed_seq, expected_seq)):
+        _compare_scalar_rel(label, f"{field}[{index}]", observed_item, expected_item, rel)
+
+
+def _compare_case_to_fixture(result, expected, rel):
+    label = expected.get("label", getattr(result, "label", "<unknown>"))
+    for field in _STRING_FIELDS:
+        observed = getattr(result, field)
+        wanted = expected[field]
+        if observed != wanted:
+            _mismatch(label, field, wanted, observed)
+    for field in _INT_FIELDS:
+        observed = int(getattr(result, field))
+        wanted = int(expected[field])
+        if observed != wanted:
+            _mismatch(label, field, wanted, observed)
+    for field in _SCALAR_REL_FIELDS:
+        _compare_scalar_rel(label, field, getattr(result, field), expected[field], rel)
+    for field in _SEQUENCE_REL_FIELDS:
+        _compare_sequence_rel(label, field, getattr(result, field), expected[field], rel)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _assert_baseline_sha256_unchanged():
+    digest = hashlib.sha256(FIXTURE_PATH.read_bytes()).hexdigest()
+    yield
+    assert hashlib.sha256(FIXTURE_PATH.read_bytes()).hexdigest() == digest, (
+        "tests/phase55/fixtures/six_case_baseline.json was rewritten during the "
+        "suite; the Tier-2 net must never heal its own baseline"
     )
 
 
