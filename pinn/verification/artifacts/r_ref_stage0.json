@@ -2,6 +2,51 @@
   "cases": [
     {
       "condition_i_satisfied": true,
+      "condition_ii_diagnostics": {
+        "coefficient_of_variation_tail": 1.9879212511727313,
+        "distinct_non_floor_count": 16,
+        "dynamic_range_decades": 5.881645645060258,
+        "monotone_non_increasing": true,
+        "status": "UNRATIFIED"
+      },
+      "condition_iii_diagnostics": {
+        "factors": [
+          1.0,
+          0.9,
+          0.75,
+          0.5,
+          0.25,
+          0.1,
+          0.05,
+          0.01,
+          0.001
+        ],
+        "late_bin_only_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "late_bin_start": 8,
+        "status": "UNRATIFIED",
+        "uniform_response_front_idx": [
+          0,
+          0,
+          0,
+          1,
+          3,
+          8,
+          15,
+          15,
+          15
+        ],
+        "unperturbed_front_idx": 0
+      },
       "front_idx": 0,
       "ic13_mode": "zero",
       "label": "41",
@@ -15,6 +60,51 @@
     },
     {
       "condition_i_satisfied": true,
+      "condition_ii_diagnostics": {
+        "coefficient_of_variation_tail": 3.0987841717460562,
+        "distinct_non_floor_count": 16,
+        "dynamic_range_decades": 10.677772453593917,
+        "monotone_non_increasing": true,
+        "status": "UNRATIFIED"
+      },
+      "condition_iii_diagnostics": {
+        "factors": [
+          1.0,
+          0.9,
+          0.75,
+          0.5,
+          0.25,
+          0.1,
+          0.05,
+          0.01,
+          0.001
+        ],
+        "late_bin_only_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "late_bin_start": 8,
+        "status": "UNRATIFIED",
+        "uniform_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          3,
+          9,
+          15,
+          15
+        ],
+        "unperturbed_front_idx": 0
+      },
       "front_idx": 0,
       "ic13_mode": "zero",
       "label": "42",
@@ -28,6 +118,51 @@
     },
     {
       "condition_i_satisfied": true,
+      "condition_ii_diagnostics": {
+        "coefficient_of_variation_tail": 2.5917240689408936,
+        "distinct_non_floor_count": 16,
+        "dynamic_range_decades": 6.618713549316107,
+        "monotone_non_increasing": true,
+        "status": "UNRATIFIED"
+      },
+      "condition_iii_diagnostics": {
+        "factors": [
+          1.0,
+          0.9,
+          0.75,
+          0.5,
+          0.25,
+          0.1,
+          0.05,
+          0.01,
+          0.001
+        ],
+        "late_bin_only_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "late_bin_start": 8,
+        "status": "UNRATIFIED",
+        "uniform_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          5,
+          13,
+          15,
+          15
+        ],
+        "unperturbed_front_idx": 0
+      },
       "front_idx": 0,
       "ic13_mode": "zero",
       "label": "43",
@@ -41,6 +176,51 @@
     },
     {
       "condition_i_satisfied": true,
+      "condition_ii_diagnostics": {
+        "coefficient_of_variation_tail": 2.6175924678018343,
+        "distinct_non_floor_count": 16,
+        "dynamic_range_decades": 7.292270502941423,
+        "monotone_non_increasing": true,
+        "status": "UNRATIFIED"
+      },
+      "condition_iii_diagnostics": {
+        "factors": [
+          1.0,
+          0.9,
+          0.75,
+          0.5,
+          0.25,
+          0.1,
+          0.05,
+          0.01,
+          0.001
+        ],
+        "late_bin_only_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "late_bin_start": 8,
+        "status": "UNRATIFIED",
+        "uniform_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          4,
+          12,
+          15,
+          15
+        ],
+        "unperturbed_front_idx": 0
+      },
       "front_idx": 0,
       "ic13_mode": "zero",
       "label": "0",
@@ -54,6 +234,51 @@
     },
     {
       "condition_i_satisfied": true,
+      "condition_ii_diagnostics": {
+        "coefficient_of_variation_tail": 2.771402192903864,
+        "distinct_non_floor_count": 16,
+        "dynamic_range_decades": 6.716071094416404,
+        "monotone_non_increasing": true,
+        "status": "UNRATIFIED"
+      },
+      "condition_iii_diagnostics": {
+        "factors": [
+          1.0,
+          0.9,
+          0.75,
+          0.5,
+          0.25,
+          0.1,
+          0.05,
+          0.01,
+          0.001
+        ],
+        "late_bin_only_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "late_bin_start": 8,
+        "status": "UNRATIFIED",
+        "uniform_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          4,
+          13,
+          15,
+          15
+        ],
+        "unperturbed_front_idx": 0
+      },
       "front_idx": 0,
       "ic13_mode": "zero",
       "label": "7",
@@ -67,6 +292,51 @@
     },
     {
       "condition_i_satisfied": true,
+      "condition_ii_diagnostics": {
+        "coefficient_of_variation_tail": 2.347558373523804,
+        "distinct_non_floor_count": 16,
+        "dynamic_range_decades": 7.143149212311859,
+        "monotone_non_increasing": true,
+        "status": "UNRATIFIED"
+      },
+      "condition_iii_diagnostics": {
+        "factors": [
+          1.0,
+          0.9,
+          0.75,
+          0.5,
+          0.25,
+          0.1,
+          0.05,
+          0.01,
+          0.001
+        ],
+        "late_bin_only_response_front_idx": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "late_bin_start": 8,
+        "status": "UNRATIFIED",
+        "uniform_response_front_idx": [
+          0,
+          0,
+          1,
+          1,
+          3,
+          6,
+          12,
+          15,
+          15
+        ],
+        "unperturbed_front_idx": 0
+      },
       "front_idx": 0,
       "ic13_mode": "random_tanh",
       "label": "41-variable-mass",
@@ -137,10 +407,10 @@
   ],
   "provenance": {
     "git_available": true,
-    "git_sha": "62f94880774176ddccbe7a742aedd0d825b618a6",
+    "git_sha": "5009fff6d18992a3b0c43abe85ae452dfcc22cda",
     "git_worktree_dirty": true,
     "git_worktree_dirty_available": true,
-    "timestamp": "2026-09-06T13:04:03.329578+00:00"
+    "timestamp": "2026-09-06T16:53:27.025097+00:00"
   },
   "r_ref": 19749775821.24417,
   "raw_bin_means": [

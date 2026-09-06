@@ -8,10 +8,11 @@ recipe and renders exactly one verdict: PASS or BLOCK.
 This module is import-only tooling in the ``pinn/verification/`` family: it is
 deliberately NOT registered in any CI or verify ladder (no sibling probe is).
 Phase 57's RUN-04 imports it and calls :func:`run_gate` as a hard
-precondition. The operator CLI, the evidence-directory writer, and the
-condition-(ii)/(iii) surfaces land in plan 56-02; this module is the
-condition-(i) + finiteness slice, composed end-to-end so every later surface
-builds on a proven path.
+precondition. Running this module as a script (``python -m
+pinn.verification.gate04_train_free``) is the operator CLI: it renders the
+verdict over the six default cases (or a supplied ``--cases-config`` list)
+and writes a provenance-complete evidence record, mirroring the Phase 55
+probe's own ``main`` shape.
 
 The causal-weight arithmetic lives in exactly one place in the repository —
 ``pinn.loss_catalog.causal_physics_loss`` — reached here only through
@@ -30,9 +31,11 @@ import os as _os
 
 _PRE_IMPORT_FALLBACK = _os.environ.get("PYTORCH_ENABLE_MPS_FALLBACK") or None
 
+import argparse
 import datetime as dt
 import json
 import math
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -51,10 +54,14 @@ from pinn.verification.architecture_characterization_probe import (
     MEDIAN_CONVENTION,
     RATIFIED_N_BINS,
     RATIFIED_PER_BIN,
+    _REPO_ROOT,
     _front_idx,
     _git_worktree_dirty,
     _ic13_for_case,
+    _new_run_dir,
+    _reject_dataset_evidence_root,
     bin_mean_residuals,
+    load_cases_config,
     ratified_causal_weights,
     stratified_collocation_times,
 )
@@ -65,6 +72,24 @@ VERDICT_BLOCK = "BLOCK"
 
 R_REF_SCHEMA_VERSION = "phase56-r-ref-stage0/v1"
 R_REF_ARTIFACT_PATH = Path(__file__).resolve().parent / "artifacts" / "r_ref_stage0.json"
+
+# The operator CLI's own evidence record (distinct from the governed
+# R_ref artifact above): one per invocation, written to a non-overwriting
+# timestamped run directory under --evidence-root.
+EVIDENCE_SCHEMA_VERSION = "phase56-gate04-cli-evidence/v1"
+EVIDENCE_TOP_LEVEL_KEYS = frozenset({
+    "schema_version",
+    "provenance",
+    "configuration",
+    "verdict",
+    "cases",
+    "failure",
+})
+_GATE04_PROG = "python -m pinn.verification.gate04_train_free"
+_DEFAULT_EVIDENCE_ROOT = (
+    _REPO_ROOT / ".planning" / "phases" /
+    "56-contract-amendment-train-free-gate" / "evidence" / "gate04"
+)
 
 # 54-RULING.md "Reference invalidation" — transcribed verbatim, one entry per
 # named surface, in the ruling's order (56-CONTEXT.md D-02 enumerates the same
@@ -114,6 +139,8 @@ CONDITION_III_DIAGNOSTIC_FACTORS: tuple[float, ...] = (
 
 __all__ = [
     "CONDITION_III_DIAGNOSTIC_FACTORS",
+    "EVIDENCE_SCHEMA_VERSION",
+    "EVIDENCE_TOP_LEVEL_KEYS",
     "Gate04CaseResult",
     "Gate04Verdict",
     "INVALIDATION_TRIGGERS",
@@ -127,6 +154,7 @@ __all__ = [
     "condition_iii_diagnostics",
     "evaluate_case",
     "gate04_verdict",
+    "main",
     "run_gate",
     "write_r_ref_artifact",
 ]
@@ -777,7 +805,10 @@ def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Pa
     ``valid`` is true exactly when the verdict is PASS. Case identities are
     enriched from ``DEFAULT_CASES`` (masses, IC13 mode); a case that no
     ``DEFAULT_CASES`` entry matches by ``(label, seed)`` raises — the
-    governed artifact never records an unidentified case.
+    governed artifact never records an unidentified case. Each case entry
+    also carries its ``condition_ii_diagnostics`` / ``condition_iii_diagnostics``
+    records (56-02 Task 2) — the descriptive statistics and front-response
+    series alongside the value, never a verdict for either condition.
     """
     if not isinstance(verdict, Gate04Verdict):
         raise TypeError(
@@ -827,6 +858,8 @@ def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Pa
                 "min_weight": case.min_weight,
                 "front_idx": case.front_idx,
                 "condition_i_satisfied": case.condition_i_satisfied,
+                "condition_ii_diagnostics": case.condition_ii_diagnostics,
+                "condition_iii_diagnostics": case.condition_iii_diagnostics,
             }
         )
     git_sha, git_available = git_head()
@@ -868,3 +901,187 @@ def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Pa
     }
     text = json.dumps(payload, sort_keys=True, indent=2) + "\n"
     return atomic_write_text(path, text)
+
+
+def _command_string(argv) -> str:
+    parts = [_GATE04_PROG, *(str(item) for item in argv)]
+    return " ".join(parts) if argv else _GATE04_PROG
+
+
+def _cli_provenance(argv, args) -> dict:
+    git_sha, git_available = git_head()
+    dirty, dirty_available = _git_worktree_dirty()
+    return {
+        "argv": [str(item) for item in argv],
+        "command": _command_string(argv),
+        "git_sha": git_sha,
+        "git_available": git_available,
+        "git_worktree_dirty": dirty,
+        "git_worktree_dirty_available": dirty_available,
+        "torch_version": torch.__version__,
+        "numpy_version": np.__version__,
+        "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+    }
+
+
+def _cli_configuration(args) -> dict:
+    return {
+        "precision": args.precision,
+        "device": args.device,
+        "cases_config": None if args.cases_config is None else str(args.cases_config),
+        "evidence_root": str(args.evidence_root),
+        "r_ref_path": str(args.r_ref_path),
+    }
+
+
+def _case_record(case: Gate04CaseResult) -> dict:
+    return {
+        "label": case.label,
+        "seed": case.seed,
+        "raw_bin_means": list(case.raw_bin_means),
+        "r_tilde": list(case.r_tilde),
+        "weights": list(case.weights),
+        "front_idx": case.front_idx,
+        "min_weight": case.min_weight,
+        "condition_i_satisfied": case.condition_i_satisfied,
+        "condition_ii_diagnostics": case.condition_ii_diagnostics,
+        "condition_iii_diagnostics": case.condition_iii_diagnostics,
+    }
+
+
+def _verdict_record(verdict: Gate04Verdict) -> dict:
+    return {
+        "verdict": verdict.verdict,
+        "blocking_reasons": list(verdict.blocking_reasons),
+        "unratified_conditions": list(verdict.unratified_conditions),
+        "r_ref": verdict.r_ref,
+        "causal_clip_min_weight": verdict.causal_clip_min_weight,
+        "precision": verdict.precision,
+        "device": verdict.device,
+    }
+
+
+def _parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        prog=_GATE04_PROG,
+        description=(
+            "GATE-04: the fail-closed train-free acceptance gate on the "
+            "ratified recalibration. Renders exactly one verdict (PASS or "
+            "BLOCK) over the six audited cases or a supplied case list, and "
+            "writes a provenance-complete evidence record. Does not judge "
+            "condition (ii) — GAP-56-01 is OPEN."
+        ),
+    )
+    parser.add_argument(
+        "--precision",
+        default="float64",
+        choices=("float32", "float64"),
+    )
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        choices=("mps", "cpu"),
+    )
+    parser.add_argument("--cases-config", type=Path, default=None)
+    parser.add_argument(
+        "--evidence-root",
+        type=Path,
+        default=_DEFAULT_EVIDENCE_ROOT,
+    )
+    parser.add_argument(
+        "--r-ref-path",
+        type=Path,
+        default=R_REF_ARTIFACT_PATH,
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    """Operator CLI entry point: run GATE-04 and write its evidence record.
+
+    Mirrors the Phase 55 probe's own ``main`` shape and its separation of
+    "did the tool run" from "what did it find": the process exit code
+    reports whether the tool COMPLETED (0) or did not (1) — an unreadable
+    ``--cases-config`` is "did not complete"; a rendered BLOCK verdict is
+    "completed, and found BLOCK" (still exit 0). The printed verdict line is
+    the only place the verdict itself is surfaced, and it appends the token
+    ``INCOMPLETE`` plus the GAP-56-01 reference whenever
+    ``unratified_conditions`` is non-empty, so no reader can mistake a PASS
+    for a complete GATE-04 clearance.
+
+    The case list resolves through the probe module's own
+    ``load_cases_config`` when ``--cases-config`` is supplied, and through
+    ``DEFAULT_CASES`` otherwise (D-07) — no second parser, no second case
+    list. The evidence root is checked against the probe's
+    dataset-evidence-root rejection BEFORE anything else runs, so a hostile
+    path is refused before the (potentially minutes-long) measurement is
+    even attempted, and before any directory is created.
+    """
+    args = _parse_args(argv)
+    recorded_argv = list(argv) if argv is not None else sys.argv[1:]
+
+    try:
+        _reject_dataset_evidence_root(args.evidence_root)
+    except Exception as exc:  # noqa: BLE001 - reported to the operator, not raised
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    verdict_obj = None
+    try:
+        cases = (
+            load_cases_config(args.cases_config)
+            if args.cases_config is not None
+            else DEFAULT_CASES
+        )
+        verdict_obj = run_gate(cases, precision=args.precision, device=args.device)
+        raw = {
+            "schema_version": EVIDENCE_SCHEMA_VERSION,
+            "provenance": _cli_provenance(recorded_argv, args),
+            "configuration": _cli_configuration(args),
+            "verdict": _verdict_record(verdict_obj),
+            "cases": [_case_record(case) for case in verdict_obj.cases],
+            "failure": None,
+        }
+        completed = True
+    except Exception as exc:  # noqa: BLE001 - a gate that cannot run records why, not silently
+        raw = {
+            "schema_version": EVIDENCE_SCHEMA_VERSION,
+            "provenance": _cli_provenance(recorded_argv, args),
+            "configuration": _cli_configuration(args),
+            "verdict": None,
+            "cases": [],
+            "failure": {"type": type(exc).__name__, "message": str(exc)},
+        }
+        completed = False
+
+    try:
+        run_dir = _new_run_dir(args.evidence_root)
+        atomic_write_text(
+            run_dir / "raw.json", json.dumps(raw, sort_keys=True, indent=2) + "\n",
+        )
+        # Refresh the governed R_ref artifact only for the canonical
+        # six-case default run (D-09): a custom --cases-config cannot match
+        # DEFAULT_CASES by construction, and write_r_ref_artifact's own
+        # fail-closed rule refuses to record an unidentified case.
+        if args.cases_config is None and verdict_obj is not None and verdict_obj.cases:
+            write_r_ref_artifact(verdict_obj, path=args.r_ref_path)
+    except Exception:
+        return 1
+
+    if verdict_obj is not None:
+        line = f"verdict={verdict_obj.verdict}"
+        if verdict_obj.unratified_conditions:
+            line += (
+                " INCOMPLETE (unratified: "
+                + ",".join(verdict_obj.unratified_conditions)
+                + "; GAP-56-01 OPEN, see 56-GAPS.md)"
+            )
+    else:
+        line = "verdict=NONE (GATE-04 did not complete)"
+    print(line)
+    print(f"evidence={run_dir}")
+    return 0 if completed else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
