@@ -96,7 +96,7 @@ about the design, and recipe adjudication … is v2.3."*
 
 ### Reproducibility & Train-Free Acceptance (INST / GATE)
 
-- [ ] **INST-04**: Land the architecture-only characterization as **committed, tested verification tooling** under `pinn/verification/`. For a given `ArchitectureSpec` at initialization — no data, no optimizer, no training step — it reports `‖r′‖`, `‖v′‖`, `‖a′‖ = ‖d²r′/du²‖`, `‖F_grav‖`, minimum pairwise separation, median `R̄`, the full causal weight vector, and `front_idx`, over a configurable seed/IC sweep. **Acceptance:** it reproduces the 2026-08-17 audit's six-row table. This closes a real hole — v2.3's central premise currently rests on an ad-hoc measurement that exists nowhere in the repository, and `pinn/verification/` has no such probe. [audit §6b; GAP-44-02 re-derivability discipline]
+- [x] **INST-04**: Land the architecture-only characterization as **committed, tested verification tooling** under `pinn/verification/`. For a given `ArchitectureSpec` at initialization — no data, no optimizer, no training step — it reports `‖r′‖`, `‖v′‖`, `‖a′‖ = ‖d²r′/du²‖`, `‖F_grav‖`, minimum pairwise separation, median `R̄`, the full causal weight vector, and `front_idx`, over a configurable seed/IC sweep. **Acceptance:** it reproduces the 2026-08-17 audit's six-row table. This closes a real hole — v2.3's central premise currently rests on an ad-hoc measurement that exists nowhere in the repository, and `pinn/verification/` has no such probe. [audit §6b; GAP-44-02 re-derivability discipline]
 - [ ] **GATE-04**: **Train-free acceptance gate on the recalibration.** Before RUN-04 may spend a Stage-0 run, INST-04's probe must show, under the SPEC-01/SPEC-06 recipe and across at least the six seed/IC combinations the audit used: (i) no causal weight pinned at the dtype clamp floor; (ii) a weight vector carrying **differential information** (not all-floor, not degenerate); (iii) `front_idx` able to advance. **Fail closed** — a probe failure blocks the run rather than warning about it. This is the check that would have spared v2.2's generation-3 run. [invariant A/B lineage from GATE-03; SCOPE-35 single-look protection]
 
 ### Re-Run & the Preserved Evaluation (RUN / EVAL)
@@ -175,7 +175,7 @@ it is needed.
 | SPEC-04 | Phase 53 | Complete |
 | SPEC-05 | Phase 53 | Complete |
 | SPEC-06 | Phase 56 | Pending |
-| INST-04 | Phase 55 | Pending |
+| INST-04 | Phase 55 | Complete |
 | GATE-04 | Phase 56 | Pending |
 | RUN-04 | Phase 57 | Pending |
 | RUN-05 | Phase 57 | Pending |

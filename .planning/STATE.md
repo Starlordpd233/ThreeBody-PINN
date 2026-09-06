@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
-current_phase: 55
-current_phase_name: Architecture Characterization Probe
-status: executing
-stopped_at: Completed 55-04-PLAN.md
-last_updated: "2026-09-06T04:05:00Z"
+current_phase: 56
+current_phase_name: Contract Amendment & Train-Free Gate
+status: ready
+stopped_at: Phase 55 verified complete
+last_updated: "2026-09-06T04:30:00Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 55 plan 55-04 complete; Tier-2 six-row fixture and committed zero-argument evidence run
-state_head: 0c0edd9cc69ecc2f060c0a317220c36fa253a461
+last_activity_desc: Phase 55 Architecture Characterization Probe executed and verified (12/12 must-haves). INST-04 is committed, tested tooling under pinn/verification/; the 2026-08-17 six-row table is reproduced at decade resolution with a re-derivable evidence run. D-03 helpers exist and are contained. Code review recorded two warnings (advisory). Nyquist validation and security enforcement were not run in execute-phase closeout. phase.complete was not used because mutating state verbs overwrite STATE.md historical notes in this checkout.
+state_head: 48e3e2fa
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 18
-  completed_plans: 15
-  percent: 33
+  completed_plans: 18
+  percent: 50
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** Phase 55 — Architecture Characterization Probe
+**Current focus:** Phase 56 — contract-amendment-train-free-gate (hard-gated on Phases 54 and 55, both now verified complete)
 
 ## Current Position
 
-Phase: 55 (Architecture Characterization Probe) — EXECUTING
-Plan: 4 of 4
-Status: Plan 55-04 complete; phase ready for verification
-Last activity: 2026-09-06 — 55-04 pinned the six-row exact-value fixture and committed the zero-argument evidence run
+Phase: 56 (Contract Amendment & Train-Free Gate) — NOT STARTED
+Plan: Not started
+Status: Phase 55 verified complete (12/12). Phase 56 remains hard-gated on the ratified 54-RULING and the INST-04 probe; SCOPE-38 amendment discipline and GATE-04 are in-phase. Nyquist (`/gsd-validate-phase 55`) and security (`/gsd-secure-phase 55`) were not discharged during execute-phase closeout.
+Last activity: 2026-09-06 — Phase 55 executed (55-01..04), verified, INST-04 marked complete
 Resume file: None
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
