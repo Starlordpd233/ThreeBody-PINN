@@ -8,42 +8,49 @@
   },
   {
     "file": "pinn_architecture.md",
-    "line": 202,
+    "line": 188,
+    "token": "first_omega_0",
+    "verdict": "code-identifier-kept",
+    "rationale": "SIREN parameter name cited three times in the Phase 56 NOT-AMENDED contract blockquote (governance prose naming the code identifier, not a math expression)"
+  },
+  {
+    "file": "pinn_architecture.md",
+    "line": 204,
     "token": "\\text{xxx}",
     "verdict": "code-identifier-kept",
     "rationale": "Placeholder literal inside Author Comment text (not math to render)"
   },
   {
     "file": "pinn_architecture.md",
-    "line": 250,
+    "line": 252,
     "token": "elementwise_affine=False",
     "verdict": "code-identifier-kept",
     "rationale": "torch.nn.LayerNorm keyword argument (Python code identifier, not math expression)"
   },
   {
     "file": "pinn_architecture.md",
-    "line": 252,
+    "line": 254,
     "token": "elementwise_affine=True",
     "verdict": "code-identifier-kept",
     "rationale": "torch.nn.LayerNorm keyword argument (Python code identifier, not math expression)"
   },
   {
     "file": "pinn_architecture.md",
-    "line": 273,
+    "line": 275,
     "token": "elementwise_affine",
     "verdict": "code-identifier-kept",
     "rationale": "PyTorch LayerNorm parameter name in hyperparameter table cell (code identifier in prose)"
   },
   {
     "file": "pinn_architecture.md",
-    "line": 274,
+    "line": 276,
     "token": "first_omega_0",
     "verdict": "code-identifier-kept",
     "rationale": "SIREN parameter name in hyperparameter table cell (code identifier in prose)"
   },
   {
     "file": "pinn_architecture.md",
-    "line": 275,
+    "line": 277,
     "token": "hidden_omega_0",
     "verdict": "code-identifier-kept",
     "rationale": "SIREN parameter name in hyperparameter table cell (code identifier in prose)"
