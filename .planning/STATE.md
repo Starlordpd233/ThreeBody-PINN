@@ -1,19 +1,19 @@
 ---
-gsd_state_version: 1.0
+gsd_state_version: "1.0"
 milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
 status: ready
-stopped_at: Phase 56 context gathered (discuss step) — two owner gaps open
-last_updated: "2026-09-06T10:40:00Z"
+stopped_at: Phase 56 planned — 6 plans / 4 waves, gsd-plan-checker VERIFICATION PASSED; two owner gaps remain open by design
+last_updated: "2026-09-06T11:40:02.195Z"
 last_activity: 2026-09-06
-last_activity_desc: Phase 56 discuss step complete (watchdog chain phase-55-56-work-4e71db4b036eb883 position 2, autonomous mode per owner instruction 2026-09-06). 56-CONTEXT.md + 56-DISCUSSION-LOG.md written (commit 61d7c6e8): every gray area dispositioned from 54-RULING.md — the amendment is transcription of the four SCOPE-38 blocks (Block 1 eta_c AMENDED to R_tilde_b = R_bar_b/R_ref; Blocks 2/3 first_omega_0 + clip NOT AMENDED; Block 4 n_col=4096-total/16-bin); GATE-04 as a new standalone pinn/verification/gate04_train_free.py driven by the Phase 55 probe; R_ref as a committed provenance JSON. Two decisions surfaced under the CLAUDE.md STOP protocol (not waived by the autonomous directive): GAP-56-01 HIGH (GATE-04 condition-(ii) 'differential information / non-degenerate' threshold + 'controlled residual reduction' test — governs the SCOPE-35 single-look budget) and GAP-56-02 MEDIUM (§2.4 locked-vs-default table convention scope). Both in 56-GAPS.md + v2.3-GAPS.md; blocking is dependency-scoped (core §2.2/§3.2 transcription + GATE-04 scaffolding proceed). phase.complete / mutating state verbs NOT used (corrupt STATE.md in this checkout); STATE updated by hand.
-state_head: 61d7c6e8
+last_activity_desc: "Phase 56 planning complete (watchdog chain phase-55-56-work-4e71db4b036eb883 position 3, gsd-plan-phase). 56-RESEARCH.md computed the six audited cases' actual post-amendment causal-weight vectors as GAP-56-01 grounding data and surfaced a structural finding (front_idx=0 at init for all six cases under the amended recipe; late-bin perturbation cannot move it, by construction of the exclusive-prefix-sum design) without resolving the gap; 56-PATTERNS.md mapped codebase analogs (commit 002a7dbf). gsd-planner produced 6 plans / 4 waves / 14 tasks (commit 22da54ef): 56-01 tracer (GATE-04 condition i) + 56-04 (SPEC-01/06 amendment Blocks 1/4) in wave 1; 56-02 (GATE-04 condition iii + unratified condition-ii slot) + 56-05 (amendment completion + render-oracle) in wave 2; 56-03 (SC5 pre-amendment refusal demo) in wave 3; 56-06 (closeout + 56-OPEN-ITEMS.md) in wave 4. GAP-56-01 wired as a structurally-present NotImplementedError placeholder — condition (ii) never evaluated, never blocking, no invented threshold; GAP-56-02's §2.4 Table 1 left completely untouched. gsd-plan-checker returned VERIFICATION PASSED, including an explicit BLOCKER-severity check confirming neither gap was silently resolved and that sampling_method.md/data_quality_assessment.md were not touched. Requirements coverage 3/3 (SPEC-01, SPEC-06, GATE-04); decision coverage 11/11 D-NN decisions referenced (the automated check.decision-coverage-plan gate false-blocked with covered:0/uncovered:[] — known parser bug on '**D-NN: text.**' bold-wraps-the-colon bullets, per project memory; verified manually via grep instead). phase.complete / mutating state verbs regress this file's counters and prose in this checkout (see note below); ran state.planned-phase without a pre-snapshot this time, diffed the result, and hand-corrected the current_phase_name regression (slug instead of title) and the stale Current Position narrative it left behind."
+state_head: 002a7dbf
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 18
+  total_plans: 24
   completed_plans: 18
   percent: 50
 ---
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: 56 (Contract Amendment & Train-Free Gate) — CONTEXT GATHERED
-Plan: Not started
-Status: Discuss step complete (61d7c6e8). 56-CONTEXT.md is ready for planning with two owner decisions open — GAP-56-01 (HIGH, GATE-04 condition-(ii) acceptance threshold + controlled-reduction test) and GAP-56-02 (MEDIUM, §2.4 table-convention scope); see 56-GAPS.md and v2.3-GAPS.md. Blocking is dependency-scoped: the §2.2/§3.2 amendment transcription and the GATE-04 structural scaffolding are unblocked; GAP-56-01 blocks the condition-(ii) numeric wiring + SC5 margin, GAP-56-02 blocks only the §2.4 cosmetic edit. Next action: owner rules on GAP-56-01 / GAP-56-02, then `/gsd-plan-phase 56` (chain `phase-55-56-work-4e71db4b036eb883` position 2 → downstream positions handle spec/plan/execute).
-Last activity: 2026-09-06 — Phase 56 discuss step: 56-CONTEXT.md + 56-DISCUSSION-LOG.md + 56-GAPS.md written; v2.3-GAPS.md updated with GAP-56-01/02
+Phase: 56 (Contract Amendment & Train-Free Gate) — READY TO EXECUTE
+Plan: 6 plans created (56-01..56-06), 4 waves — not yet executed
+Status: Planning complete (commit 22da54ef; gsd-plan-checker VERIFICATION PASSED). 6 plans / 4 waves / 14 tasks cover SPEC-01, SPEC-06, GATE-04. GAP-56-01 (HIGH, GATE-04 condition-(ii) threshold) and GAP-56-02 (MEDIUM, §2.4 table-convention scope) remain OPEN BY DESIGN — planning did not resolve them, per the CLAUDE.md STOP protocol; see 56-GAPS.md and v2.3-GAPS.md. Next action: `/gsd-execute-phase 56` (chain `phase-55-56-work-4e71db4b036eb883` position 3 → hand off to position 4).
+Last activity: 2026-09-06 — Phase 56 planning: 56-RESEARCH.md + 56-PATTERNS.md + 56-VALIDATION.md (commit 002a7dbf), 6 PLAN.md files (commit 22da54ef); gsd-plan-checker VERIFICATION PASSED
 Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-CONTEXT.md
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
