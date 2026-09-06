@@ -78,6 +78,7 @@ __all__ = [
     "SweepCase",
     "ArchitectureCharacterizationResult",
     "DEFAULT_CASES",
+    "DEFAULT_N_COL",
     "measure_case",
     "run_sweep",
 ]
