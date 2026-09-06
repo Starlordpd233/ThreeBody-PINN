@@ -4,17 +4,17 @@ milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
-status: ready
-stopped_at: Phase 56 planned — 6 plans / 4 waves, gsd-plan-checker VERIFICATION PASSED; two owner gaps remain open by design
-last_updated: "2026-09-06T11:40:02.195Z"
+status: executing
+stopped_at: Completed 56-01-PLAN.md
+last_updated: "2026-09-06T13:19:12.143Z"
 last_activity: 2026-09-06
-last_activity_desc: "Phase 56 planning complete (watchdog chain phase-55-56-work-4e71db4b036eb883 position 3, gsd-plan-phase). 56-RESEARCH.md computed the six audited cases' actual post-amendment causal-weight vectors as GAP-56-01 grounding data and surfaced a structural finding (front_idx=0 at init for all six cases under the amended recipe; late-bin perturbation cannot move it, by construction of the exclusive-prefix-sum design) without resolving the gap; 56-PATTERNS.md mapped codebase analogs (commit 002a7dbf). gsd-planner produced 6 plans / 4 waves / 14 tasks (commit 22da54ef): 56-01 tracer (GATE-04 condition i) + 56-04 (SPEC-01/06 amendment Blocks 1/4) in wave 1; 56-02 (GATE-04 condition iii + unratified condition-ii slot) + 56-05 (amendment completion + render-oracle) in wave 2; 56-03 (SC5 pre-amendment refusal demo) in wave 3; 56-06 (closeout + 56-OPEN-ITEMS.md) in wave 4. GAP-56-01 wired as a structurally-present NotImplementedError placeholder — condition (ii) never evaluated, never blocking, no invented threshold; GAP-56-02's §2.4 Table 1 left completely untouched. gsd-plan-checker returned VERIFICATION PASSED, including an explicit BLOCKER-severity check confirming neither gap was silently resolved and that sampling_method.md/data_quality_assessment.md were not touched. Requirements coverage 3/3 (SPEC-01, SPEC-06, GATE-04); decision coverage 11/11 D-NN decisions referenced (the automated check.decision-coverage-plan gate false-blocked with covered:0/uncovered:[] — known parser bug on '**D-NN: text.**' bold-wraps-the-colon bullets, per project memory; verified manually via grep instead). phase.complete / mutating state verbs regress this file's counters and prose in this checkout (see note below); ran state.planned-phase without a pre-snapshot this time, diffed the result, and hand-corrected the current_phase_name regression (slug instead of title) and the stale Current Position narrative it left behind."
-state_head: 002a7dbf
+last_activity_desc: Phase 56 plan 56-01 complete — GATE-04 condition-(i) tracer slice (owner-confirmed contract; probe helper + gate module + R_ref artifact; 12/12 tests, 0 skips)
+state_head: bbb572bc6525a587fe55687f044923b95b083247
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 24
-  completed_plans: 18
+  completed_plans: 19
   percent: 50
 ---
 
@@ -25,15 +25,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** Phase 56 — contract-amendment-train-free-gate. Both hard gates are now clear: Phase 54 (`54-RULING.md`) and Phase 55 (INST-04 probe) are complete and closed.
+**Current focus:** Phase 56 — Contract Amendment & Train-Free Gate
 
 ## Current Position
 
-Phase: 56 (Contract Amendment & Train-Free Gate) — READY TO EXECUTE
-Plan: 6 plans created (56-01..56-06), 4 waves — not yet executed
-Status: Planning complete (commit 22da54ef; gsd-plan-checker VERIFICATION PASSED). 6 plans / 4 waves / 14 tasks cover SPEC-01, SPEC-06, GATE-04. GAP-56-01 (HIGH, GATE-04 condition-(ii) threshold) and GAP-56-02 (MEDIUM, §2.4 table-convention scope) remain OPEN BY DESIGN — planning did not resolve them, per the CLAUDE.md STOP protocol; see 56-GAPS.md and v2.3-GAPS.md. Next action: `/gsd-execute-phase 56` (chain `phase-55-56-work-4e71db4b036eb883` position 3 → hand off to position 4).
-Last activity: 2026-09-06 — Phase 56 planning: 56-RESEARCH.md + 56-PATTERNS.md + 56-VALIDATION.md (commit 002a7dbf), 6 PLAN.md files (commit 22da54ef); gsd-plan-checker VERIFICATION PASSED
-Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-CONTEXT.md
+Phase: 56 (Contract Amendment & Train-Free Gate) — EXECUTING
+Plan: 2 of 6 (56-01 complete 2026-09-06)
+Status: Executing Phase 56 — 56-01 complete; next: 56-04 (wave-1 sibling), then 56-02 (wave 2)
+Last activity: 2026-09-06 — Phase 56 plan 56-01 complete (GATE-04 condition-(i) tracer slice PASS; R_ref artifact committed)
+Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-01-SUMMARY.md
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -289,6 +289,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 50 P06 | 11 min | 3 tasks | 7 files |
 | Phase 50 P07 | 23 min | 3 tasks | 8 files |
 | Phase 54 P11 | 37 min | 4 tasks | 4 files |
+| Phase 56 P01 | 42 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -472,6 +473,7 @@ Recent decisions affecting current work:
 - [Phase 50 Plan 50-07]: Normal extract/identity-baseline/identity/attempt/band/candidate/finalize/all are fixture-tested; terminal generations 1–3 remain `TERMINAL-EVIDENCE-OK`
 - [Phase 50 Plan 50-07]: Candidate selection replays 42→41→43 eligibility-only facts and never reads a metric value; no run, smoke, or graded seed was launched
 - [Phase 50 Plan 50-07]: REQUIREMENTS.md RUN-01/RUN-02 checkboxes not flipped (D-30); `final_band_generation` remains null; GAP-50-03 untouched
+- [Phase 56]: [Phase 56 Plan 56-01]: GATE-04's Phase-57-facing public contract frozen by owner answer "confirmed" (2026-09-06, option accept-proposed) — the ratified_causal_weights probe-helper signature, the Gate04Verdict/Gate04CaseResult/VERDICT_PASS/VERDICT_BLOCK/gate04_verdict surface, and the r_ref_stage0.json artifact path with schema phase56-r-ref-stage0/v1 are accepted exactly as proposed in 56-01-PLAN.md Task 1; no name was amended. — Phase 57's RUN-04 imports these names and reads this JSON schema as a hard precondition on spending the milestone's single Stage-0 run, so the contract was frozen by an explicit checkpoint before any of it was written (one-way-door naming freeze; 56-CONTEXT.md D-04/D-05/D-07/D-09 delegated the exact names to Claude's discretion with owner confirmation).
 
 ### Pending Todos
 
@@ -506,9 +508,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-09-06T04:05:00Z
-Stopped at: Completed 55-04-PLAN.md
-Next action: `/gsd-verify-work 55`. Phase 56 remains closed until Phase 55 verifies.
+Last session: 2026-09-06T13:18:45.226Z
+Stopped at: Completed 56-01-PLAN.md
+Next action: execute 56-04 (wave-1 sibling, SPEC-01/06 §3.2 amendment), then 56-02 (wave 2, GATE-04 conditions ii/iii slots + CLI). GAP-56-01 and GAP-56-02 remain OPEN.
 
 ## Operator Next Steps
 
