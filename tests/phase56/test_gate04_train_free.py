@@ -75,7 +75,8 @@ def _graded_weights():
 
 
 def _synthetic_case(gate, *, label="synthetic", seed=999, raw=None, r_tilde=None,
-                    weights=None, min_weight=None, condition_i_satisfied=None):
+                    weights=None, min_weight=None, condition_i_satisfied=None,
+                    front_idx=0):
     """Build a Gate04CaseResult directly — the verdict must audit values, not trust flags."""
     floor = _clip_floor()
     raw = tuple(1.0 for _ in range(16)) if raw is None else tuple(raw)
@@ -92,7 +93,7 @@ def _synthetic_case(gate, *, label="synthetic", seed=999, raw=None, r_tilde=None
         raw_bin_means=raw,
         r_tilde=r_tilde,
         weights=weights,
-        front_idx=0,
+        front_idx=front_idx,
         min_weight=min_weight,
         condition_i_satisfied=condition_i_satisfied,
         condition_ii_diagnostics=None,
@@ -206,6 +207,22 @@ class Gate04VerdictTests(unittest.TestCase):
         assert verdict.cases == ()
         assert any("empty" in reason for reason in verdict.blocking_reasons)
 
+    def test_blocks_when_front_index_uncomputable_from_non_finite_weight(self):
+        """Condition (iii)'s finiteness tie (56-02 D-06): a front index derived
+        from a weight vector containing a non-finite entry cannot be trusted
+        as a capability signal, so GATE-04 blocks even though ``_front_idx``
+        itself never raises on a NaN entry (NaN fails every ``> 0.5``
+        comparison and is silently excluded from the max, rather than
+        detected as an error) — the actual protection is condition (i)'s
+        existing finiteness rule over the weight vector."""
+        gate = _load_gate()
+        floor = _clip_floor()
+        weights = list(_graded_weights())
+        weights[6] = float("nan")
+        front_idx = gate._front_idx(weights)
+        case = _synthetic_case(gate, weights=weights, front_idx=front_idx)
+        assert gate.gate04_verdict([case], causal_clip_min_weight=floor) == gate.VERDICT_BLOCK
+
 
 class RunGateEndToEndTests(unittest.TestCase):
     """The tracer slice: the six audited cases through the ratified recipe."""
@@ -216,7 +233,10 @@ class RunGateEndToEndTests(unittest.TestCase):
         verdict = gate.run_gate()
         assert verdict.verdict == gate.VERDICT_PASS, verdict.blocking_reasons
         assert verdict.blocking_reasons == ()
-        assert verdict.unratified_conditions == ("ii", "iii")
+        # 56-02 Task 1: condition (iii)'s capability structure is now wired
+        # with its grounded fail-closed rule; only condition (ii) remains
+        # unratified (GAP-56-01).
+        assert verdict.unratified_conditions == ("ii",)
         assert [case.label for case in verdict.cases] == [case.label for case in gate.DEFAULT_CASES]
         for case in verdict.cases:
             assert len(case.raw_bin_means) == 16
@@ -224,8 +244,25 @@ class RunGateEndToEndTests(unittest.TestCase):
             assert len(case.weights) == 16
             assert case.min_weight > verdict.causal_clip_min_weight
             assert case.condition_i_satisfied is True
-            assert case.condition_ii_diagnostics is None
-            assert case.condition_iii_diagnostics is None
+            cond_ii = case.condition_ii_diagnostics
+            assert cond_ii is not None and cond_ii["status"] == "UNRATIFIED", cond_ii
+            cond_iii = case.condition_iii_diagnostics
+            assert cond_iii is not None and cond_iii["status"] == "UNRATIFIED", cond_iii
+            # 56-RESEARCH.md Pitfall 3 / b.3: front_idx == 0 at init is the
+            # EXPECTED, healthy result for every one of the six cases — never
+            # a failure signal. A fixed positive-front check would reject
+            # every case in this loop.
+            assert cond_iii["unperturbed_front_idx"] == 0, (case.label, cond_iii)
+            # Pitfall 4 / b.5: a reduction confined to bins 8-15 cannot move
+            # front_idx at any magnitude — the whole response series must sit
+            # constant at the unperturbed value.
+            assert set(cond_iii["late_bin_only_response_front_idx"]) == {0}, (
+                case.label, cond_iii["late_bin_only_response_front_idx"],
+            )
+            # b.4: front_idx must never DECREASE as the uniform factor shrinks
+            # (CONDITION_III_DIAGNOSTIC_FACTORS is ordered 1.0 -> 0.001).
+            uniform = cond_iii["uniform_response_front_idx"]
+            assert all(a <= b for a, b in zip(uniform, uniform[1:])), (case.label, uniform)
         assert verdict.causal_clip_min_weight == floor
         assert math.isfinite(verdict.r_ref) and verdict.r_ref > 0.0
         all_means = np.concatenate([np.asarray(case.raw_bin_means) for case in verdict.cases])
@@ -233,6 +270,131 @@ class RunGateEndToEndTests(unittest.TestCase):
         assert math.isclose(
             verdict.r_ref, float(np.median(all_means)), rel_tol=1e-12, abs_tol=0.0,
         )
+
+
+class ConditionIIUnratifiedSlotTests(unittest.TestCase):
+    """GAP-56-01: condition (ii) is structurally present, measurable, and
+    impossible to satisfy or fail without an owner ruling."""
+
+    def test_condition_ii_verdict_raises_not_implemented(self):
+        gate = _load_gate()
+        with pytest.raises(NotImplementedError, match="GAP-56-01"):
+            gate.condition_ii_verdict(_graded_weights())
+
+    def test_condition_ii_verdict_raises_for_every_input(self):
+        gate = _load_gate()
+        for bad in (None, [], "not-a-vector", [float("nan")] * 16, list(_graded_weights())):
+            with self.subTest(weights=bad):
+                with pytest.raises(NotImplementedError, match="GAP-56-01"):
+                    gate.condition_ii_verdict(bad)
+
+    def test_condition_ii_diagnostics_returns_exact_key_set(self):
+        gate = _load_gate()
+        floor = _clip_floor()
+        diag = gate.condition_ii_diagnostics(_graded_weights(), floor)
+        assert set(diag) == {
+            "coefficient_of_variation_tail",
+            "monotone_non_increasing",
+            "dynamic_range_decades",
+            "distinct_non_floor_count",
+            "status",
+        }
+        assert diag["status"] == "UNRATIFIED"
+        assert diag["monotone_non_increasing"] is True
+        assert isinstance(diag["coefficient_of_variation_tail"], float)
+        assert isinstance(diag["dynamic_range_decades"], float)
+        assert isinstance(diag["distinct_non_floor_count"], int)
+        # _graded_weights() clears the dtype floor at every one of 16 entries.
+        assert diag["distinct_non_floor_count"] == 16
+
+    def test_condition_ii_diagnostics_carries_no_verdict_shaped_field(self):
+        gate = _load_gate()
+        floor = _clip_floor()
+        diag = gate.condition_ii_diagnostics(_graded_weights(), floor)
+        forbidden = ("threshold", "passed", "satisfied", "ok")
+        for key in diag:
+            lowered = key.lower()
+            for word in forbidden:
+                assert word not in lowered, (key, word)
+
+    def test_condition_ii_diagnostics_rejects_wrong_length(self):
+        gate = _load_gate()
+        floor = _clip_floor()
+        for length in (0, 15, 17):
+            with self.subTest(length=length):
+                with pytest.raises(ValueError, match="16"):
+                    gate.condition_ii_diagnostics([1.0] * length, floor)
+
+
+class ConditionIIIDiagnosticsStructureTests(unittest.TestCase):
+    """Condition (iii)'s capability record: structure and no-threshold checks
+    on synthetic data. The REAL six-case physical behaviour (universal zero
+    front index; late-bin-only non-response; monotone uniform response) is
+    asserted in RunGateEndToEndTests, reusing that test's own run_gate()
+    measurement rather than paying for a second one here."""
+
+    @staticmethod
+    def _synthetic_raw_means():
+        # Illustrative only: this class proves the RECORD'S STRUCTURE, not
+        # the ratified recipe's real physical behaviour.
+        return np.linspace(1.0e10, 2.0e10, 16)
+
+    def test_returns_exact_key_set_and_unratified_status(self):
+        gate = _load_gate()
+        diag = gate.condition_iii_diagnostics(
+            self._synthetic_raw_means(), 1.5e10,
+            dtype=torch.float64, device=torch.device("cpu"),
+        )
+        assert set(diag) == {
+            "factors",
+            "late_bin_start",
+            "unperturbed_front_idx",
+            "uniform_response_front_idx",
+            "late_bin_only_response_front_idx",
+            "status",
+        }
+        assert diag["status"] == "UNRATIFIED"
+        assert diag["late_bin_start"] == 8
+        assert len(diag["uniform_response_front_idx"]) == len(diag["factors"])
+        assert len(diag["late_bin_only_response_front_idx"]) == len(diag["factors"])
+
+    def test_carries_no_verdict_shaped_field(self):
+        gate = _load_gate()
+        diag = gate.condition_iii_diagnostics(
+            self._synthetic_raw_means(), 1.5e10,
+            dtype=torch.float64, device=torch.device("cpu"),
+        )
+        forbidden = ("threshold", "passed", "satisfied", "ok")
+        for key in diag:
+            lowered = key.lower()
+            for word in forbidden:
+                assert word not in lowered, (key, word)
+
+    def test_uses_default_factors_constant(self):
+        gate = _load_gate()
+        assert gate.CONDITION_III_DIAGNOSTIC_FACTORS[0] == 1.0
+        assert gate.CONDITION_III_DIAGNOSTIC_FACTORS[-1] < 0.01
+        diag = gate.condition_iii_diagnostics(
+            self._synthetic_raw_means(), 1.5e10,
+            dtype=torch.float64, device=torch.device("cpu"),
+        )
+        assert tuple(diag["factors"]) == gate.CONDITION_III_DIAGNOSTIC_FACTORS
+
+    def test_docstring_states_both_structural_findings(self):
+        gate = _load_gate()
+        doc = gate.condition_iii_diagnostics.__doc__ or ""
+        assert "front index of 0" in doc
+        assert "exclusive prefix" in doc
+
+    def test_rejects_wrong_length(self):
+        gate = _load_gate()
+        for length in (0, 15, 17):
+            with self.subTest(length=length):
+                with pytest.raises(ValueError, match="16"):
+                    gate.condition_iii_diagnostics(
+                        [1.0] * length, 1.5e10,
+                        dtype=torch.float64, device=torch.device("cpu"),
+                    )
 
 
 class RRefArtifactTests(unittest.TestCase):
