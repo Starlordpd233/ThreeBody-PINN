@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import ast
+import copy
+import hashlib
 import importlib
 import json
 import math
@@ -22,6 +24,7 @@ from pinn.loss_catalog import resolve_causal_clip_facts
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODULE = "pinn.verification.architecture_characterization_probe"
+FIXTURE_PATH = pathlib.Path(__file__).resolve().parent / "fixtures" / "six_case_baseline.json"
 
 
 def _load_probe():
@@ -610,3 +613,36 @@ def test_default_sweep_never_exceeds_sixteen_causal_points(tmp_path):
         f"every call must receive exactly DEFAULT_N_COL={probe.DEFAULT_N_COL}"
     )
     assert code == 0
+
+
+def test_exact_value_fixture(default_sweep):
+    _probe, results = default_sweep
+    fixture = _load_fixture()
+    expected_cases = fixture["cases"]
+    assert [case["label"] for case in expected_cases] == [item.label for item in results]
+    rel = fixture["_meta"]["relative_tolerance"]
+    for result, expected in zip(results, expected_cases):
+        _compare_case_to_fixture(result, expected, rel)
+
+
+def test_fixture_comparison_fails_on_a_perturbed_baseline(default_sweep):
+    _probe, results = default_sweep
+    fixture = _load_fixture()
+    perturbed = copy.deepcopy(fixture)
+    perturbed["cases"][0]["rbar_median"] *= 1.01
+    rel = fixture["_meta"]["relative_tolerance"]
+    with pytest.raises(AssertionError):
+        _compare_case_to_fixture(results[0], perturbed["cases"][0], rel)
+
+
+def test_fixture_file_is_never_written_by_the_suite(default_sweep):
+    _probe, results = default_sweep
+    before = hashlib.sha256(FIXTURE_PATH.read_bytes()).hexdigest()
+    fixture = _load_fixture()
+    perturbed = copy.deepcopy(fixture)
+    perturbed["cases"][0]["rbar_median"] *= 1.01
+    rel = fixture["_meta"]["relative_tolerance"]
+    with pytest.raises(AssertionError):
+        _compare_case_to_fixture(results[0], perturbed["cases"][0], rel)
+    after = hashlib.sha256(FIXTURE_PATH.read_bytes()).hexdigest()
+    assert after == before
