@@ -148,7 +148,26 @@ Plans:
 **Goal**: The ratified recalibration is law in the framework specs under SCOPE-38's amendment discipline, and a train-free gate refuses to let a Stage-0 run be spent on a recipe whose causal weighting is still saturated shut.
 **Depends on**: Phase 54 (the ratified decision — SCOPE-34 forbids opening this phase without it, including its `N_t` disposition) **and** Phase 55 (the probe GATE-04 fires). Both are hard gates, not preferences.
 **Requirements**: SPEC-01, SPEC-06, GATE-04
-**Plans**: TBD
+**Plans**: 6 plans (0/6 complete) — planned 2026-09-06. Two owner gaps remain OPEN and are deliberately unresolved by these plans: GAP-56-01 (GATE-04 condition (ii)'s pass criterion and the controlled-reduction test design) is wired as a structurally-present, never-satisfiable slot; GAP-56-02 (§2.4 Table 1 locked-vs-default convention scope) is left entirely untouched. Both are recorded in `56-OPEN-ITEMS.md` at phase close.
+
+Plans:
+**Wave 1**
+
+- [ ] 56-01-PLAN.md — tracer slice: GATE-04's fail-closed condition (i) path end to end (probe helper → trainer loss function → verdict → persisted `R_ref` artifact → committed test), behind a `checkpoint:decision` freezing the Phase-57-facing public contract (GATE-04)
+- [ ] 56-04-PLAN.md — spec amendment §3.2: Block 1 (causal-exponent contract, AMENDED additively), the frozen `R_ref` definition and its verbatim invalidation-trigger list, and Block 4 (collocation allocation and time-draw contract, AMENDED) (SPEC-01, SPEC-06)
+
+**Wave 2**
+
+- [ ] 56-02-PLAN.md — GATE-04 expansion: condition (iii) front-capability structure, condition (ii)'s never-satisfiable unratified slot, and the operator CLI with its provenance-complete evidence record (GATE-04)
+- [ ] 56-05-PLAN.md — spec amendment completion: both NOT AMENDED contracts recorded separately by name, the three secondary wordings (`collocation_count` reconciliation, recommended-range, `η_c` cross-reference), render-oracle re-adjudication, and the committed content-match guard (SPEC-01, SPEC-06)
+
+**Wave 3**
+
+- [ ] 56-03-PLAN.md — SC5 demonstration: the pre-amendment recipe frozen as a committed fixture, and the same verdict function proven to return BLOCK on all six audited cases (GATE-04)
+
+**Wave 4**
+
+- [ ] 56-06-PLAN.md — phase close-out: `56-OPEN-ITEMS.md` (GAP-56-01, GAP-56-02, the two `front_idx` structural findings, and the `tests/phase38` stale-guard scoping decision), plus the authoritative GATE-04 run and its evidence (GATE-04, SPEC-01)
 
 **Success Criteria** (what must be TRUE):
 
