@@ -7,7 +7,8 @@
 **Phase:** 57-Corrected Re-Run & the Preserved Evaluation
 **Mode:** `--all`, serviced autonomously per owner instruction 2026-09-07 (best-reasoned
 option chosen for every mechanical/operational/sequencing gray area; STOP protocol
-NOT waived — one cross-phase-scope call surfaced as GAP-57-01).
+NOT waived — one cross-phase-scope call surfaced as GAP-57-01 and was subsequently
+resolved by the owner on 2026-09-07).
 **Areas discussed:** Amended-recipe implementation, Owner checkpoints ③/④, GATE-04
 completeness precondition, Three-seed band & budget, Calibration smoke & no-commit-mid-band,
 EVAL-02 evaluator assembly & pairing proof, EVAL-02 three preconditions, Conformance-only
@@ -19,22 +20,28 @@ iteration, Execution environment, Evidence contract.
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| A — Phase 57 bounded `pinn/` conformance patch to the causal-loss + collocation path | Read RUN-04 as code-to-spec conformance (v2.2 Phases 46–49 precedent; SCOPE-37 "conformance" language) | |
+| A — Phase 57 bounded `pinn/` conformance patch to the causal-loss + collocation path, with separate verification before RUN-04 | Read RUN-04 as code-to-spec conformance (v2.2 Phases 46–49 precedent; SCOPE-37 "conformance" language); inventory follows the behavior through loss/sampler/controller/config wiring, not two filenames | ✓ owner 2026-09-07 |
 | B — Insert a dedicated implementation phase before RUN-04 | New requirement/plan/verification; RUN/EVAL shift phase number | |
-| C — Pull the full FUT-01 trainer rebuild into v2.3 | The amended recipe is one of the specs FUT-01 builds from | |
+| C — Commission a new wholesale trainer rebuild in v2.3 | Corrected after surfacing: FUT-01 shipped in v2.0 (`PROJECT.md:344`), so another rebuild would require new justification | |
 | D — Milestone blocks pending a new owner scope decision | | |
-| **Surface as gap** | Proposal scoped implementation into Phase D; roadmap mapping dropped it; Phase 56 executed spec-only → FUT-01 (deferred). No source authorizes the code change or names its owner. | ✓ |
+| **Surface as gap** | Proposal scoped implementation into Phase D; roadmap mapping dropped it; Phase 56 executed spec-only and left the amended-recipe implementation unassigned. No source then authorized the code change or named its owner. | ✓ initial discuss step |
 
-**Choice:** Surfaced as **GAP-57-01** (HIGH, cross-phase reframing + semantic + scope).
-Not decided by the agent — routed to the owner with options A–D. Dependency-scoped:
-independent work (checkpoint packets, EVAL-02 pairing characterization, evidence design)
-proceeds.
+**Choice:** Surfaced as **GAP-57-01** (HIGH, cross-phase reframing + semantic + scope),
+then resolved by owner instruction on 2026-09-07 with **Option A**. Phase 57 owns an
+explicit bounded implementation wave and a separate production-path verification wave
+before RUN-04. The scope includes the causal loss, all-selected-slot collocation allocation,
+sampler/controller/config wiring, exact §3.2 normalization and diagnostics, and focused
+tests. It excludes retuning, redesign, data-policy changes, Stage-1+, PLAT-01..07, and a
+wholesale rebuild; resource failure at 4096 rows fails closed. Remaining owner gates are
+unchanged.
 **Notes:** The proposal-vs-executed discrepancy (`2026-08-17-v2.3-roadmap-proposal.md:267`
 "Phase D | SPEC-01 + SPEC-06 amendment **and implementation**" vs `ROADMAP.md:59` Phase 56
 = "SPEC-01, SPEC-06, GATE-04") is itself part of what the owner needs to see. The change
 touches loss math, the optimizer path, the data path, and the duration-gate calibration —
 exactly the class v2.2 Phase 50's CONTEXT and `ROADMAP.md` "Gap discipline" require be
-surfaced.
+surfaced. The resolution expressly supersedes the Phase-56 implementation deferral for
+this bounded path. `.planning/PROJECT.md:344` corrects the original option-C premise:
+FUT-01 shipped in v2.0.
 
 ---
 
@@ -117,8 +124,8 @@ follows the ③ ruling, not a fresh agent choice.
 | Trust `pinn/evaluate.py` as-is | | |
 | Characterize `pinn/evaluate.py` (Phase-43 vintage, pre-CONF-09) against the canonical `(r′, u = t/T)` contract; add a dataset-free assembly regression + a pre-access assertion before the single invocation | GAP-46-01 delegated ruling 2026-07-26: EVAL-02 is for the corrected conformant model, canonical frame only | ✓ |
 
-**Choice:** D-12, D-13. If `evaluate.py`'s frame is not canonical, the fix folds into
-GAP-57-01's scope question.
+**Choice:** D-12, D-13. If `evaluate.py`'s frame is not canonical, its bounded repair is
+governed by GAP-46-01 / D-12, independently of the resolved causal-path authorization.
 
 ---
 
@@ -179,7 +186,8 @@ under `.planning/phases/57-*/evidence/`.
 
 ## Deferred Ideas
 
-- The full FUT-01 trainer rebuild (GAP-57-01 asks only about a bounded subset).
+- Any new wholesale trainer rebuild (FUT-01 shipped in v2.0; GAP-57-01 authorizes
+  only the bounded amended-recipe path).
 - Stage-1+ / PLAT-01..07 (SCOPE-36).
 - The DIAG-06 verdict + VER-21 close (Phase 58, checkpoint ⑤).
 - Any second held-out evaluation (SCOPE-35).

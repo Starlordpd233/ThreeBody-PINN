@@ -1,10 +1,11 @@
 # Phase 57: Corrected Re-Run & the Preserved Evaluation - Context
 
 **Gathered:** 2026-09-07
-**Status:** Ready for planning — with one HIGH gap open (GAP-57-01) and three
-blocking owner items (checkpoint ③, checkpoint ④, and the inherited GAP-54-06)
-that must discharge before any run executes. See "Open Decisions" below and
-`57-GAPS.md`.
+**Status:** Ready for planning — GAP-57-01 is RESOLVED-WITH-INSTRUCTION (owner
+Option A, 2026-09-07). Three blocking decision gates still must discharge
+before any run executes: GAP-56-01 plus a complete GATE-04 PASS; checkpoint ③
+(monitoring/window plus inherited GAP-54-06); and checkpoint ④. See
+"Owner-Routed Decisions" below and `57-GAPS.md`.
 
 > **Discussion mode.** Serviced autonomously per owner instruction (2026-09-07):
 > every gray area below is dispositioned with the best-reasoned option, grounded
@@ -14,10 +15,12 @@ that must discharge before any run executes. See "Open Decisions" below and
 > (v2.3 adjudication milestone; the autonomous best-judgment directive does not
 > waive the semantic / cross-phase-reframing MUST-surface class). One decision —
 > whether and how the amended (SPEC-01/SPEC-06) recipe is implemented in `pinn/`
-> code so RUN-04 can run it — is a cross-phase-scope call fixed by no source and
-> is surfaced as **GAP-57-01**, not invented. The five owner checkpoints ③–⑤
-> remain owner-only. Everything else below is a mechanical, operational, or
-> sequencing call in the discuss-phase's own lane.
+> code so RUN-04 can run it — was a cross-phase-scope call fixed by no source and
+> was surfaced as **GAP-57-01**, not invented. The owner resolved it on
+> 2026-09-07 by selecting bounded Option A with separate pre-RUN-04
+> verification. Owner checkpoints ③–⑤ remain owner-only. Everything
+> else below is a mechanical, operational, or sequencing call in the
+> discuss-phase's own lane.
 
 <domain>
 ## Phase Boundary
@@ -93,12 +96,12 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
 <decisions>
 ## Implementation Decisions
 
-### 1. The amended-recipe implementation — GAP-57-01 (blocked, dependency-scoped)
+### 1. The amended-recipe implementation — GAP-57-01 (✅ LOCKED: owner Option A)
 
-- **D-01: RUN-04 cannot execute "under the SPEC-01/SPEC-06-corrected recipe"
-  until the amended §3.2 recipe exists in `pinn/` code, and no source authorizes
-  that code change or names its owner. This is surfaced as GAP-57-01, not
-  decided here.** The ratified v2.3 roadmap proposal put implementation in its
+- **D-01: Phase 57 owns a bounded amended-recipe conformance patch as an explicit
+  first implementation wave, followed by separate verification before RUN-04.**
+  Owner instruction 2026-09-07 resolved GAP-57-01 with Option A. The ratified
+  v2.3 roadmap proposal put implementation in its
   Phase D scope ("SPEC-01 + SPEC-06 amendment **and implementation**";
   `2026-08-17-v2.3-roadmap-proposal.md:267`), but the roadmap as ratified maps
   Phase 56 to `SPEC-01, SPEC-06, GATE-04` only, and Phase 56 executed the
@@ -107,29 +110,40 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   forms a raw per-point 16-term prefix over unnormalized `R̄`, there is no
   `R_ref` normalization of either the causal exponent or the outer physics loss,
   and `56-VERIFICATION.md` truth 3 confirms "no production file edited … the
-  trainer rebuild is FUT-01." FUT-01 (full trainer rebuild from specs) is a
-  **Future Requirement deferred beyond v2.3** (`REQUIREMENTS.md` "Future
-  Requirements"). The gap: who implements the amended recipe in code, is Phase
-  57 authorized to do it, and how large a `pinn/` change is in-grant — a bounded
-  conformance patch to the causal-loss + collocation path, or FUT-01 territory.
-  Options A–D are framed for the owner in `57-GAPS.md` (GAP-57-01).
-  — **Reversibility:** the *code change itself* would be `costly` (it restructures
-  `causal_physics_loss`, the collocation sampler, and the outer `L_phys`
-  normalization — call sites in `pinn/train.py` and `pinn/loss_catalog.py`); the
-  *scope decision* is one-way in effect — it sets what "conformance-only
-  iteration" (SCOPE-37) even means for this milestone and what RUN-04's risk
-  surface is.
+  trainer rebuild is FUT-01." `.planning/PROJECT.md:344` corrects that shorthand:
+  FUT-01 shipped in v2.0; only PLAT-01..07 / Stage-1+ remain deferred. This later
+  owner instruction expressly supersedes Phase 56's deferral and
+  `pinn_architecture.md:458`'s no-production-edit sentence **only for the bounded
+  amended-recipe path**.
 
-- **D-02: Dependency-scoped blocking.** GAP-57-01 blocks only the RUN-04
-  *implementation* and everything gated on "the amended recipe actually running":
-  the RUN-04 launch, the invariant-B advancement observation, the RUN-05 band,
-  and EVAL-02. **Independent work proceeds while GAP-57-01 is open:** assembling
-  the checkpoint-③ and checkpoint-④ owner packets (Section 2); characterizing
-  `pinn/evaluate.py` against the GAP-46-01 canonical-pairing obligation and
-  designing the dataset-free regression + pre-invocation assertion (Section 5);
-  the evidence-contract and pre-registration-record design (Section 8); and
-  confirming the calibration-smoke / no-commit-mid-band / `--stage-0-only`
-  operating surface (Section 4).
+  Scope follows the behavior, not a closed file list. The patch reaches every
+  necessary production call site in the causal loss, collocation sampler and
+  allocation, controller, and config wiring. In particular, it replaces the
+  current one-anchor physics execution with contributions from all selected
+  slots and implements the exact §3.2 allocation, batch-global 16-bin prefix,
+  frozen-`R_ref` exponent and residual-wide `L_phys` normalization,
+  microbatch-preserved aggregates, gradients, and raw/normalized diagnostics.
+  `pinn/loss_catalog.py` and `pinn/train.py` are examples, not a sufficient
+  inventory. Focused tests and production-path verification are part of the
+  authorization. Resource failure at 4096 rows fails closed rather than
+  authorizing a reduced count.
+
+  The boundary excludes retuning, architecture redesign, data-policy changes,
+  Stage-1+, PLAT-01..07, and a new wholesale trainer rebuild. Any required
+  expansion stops for a new owner decision.
+  — **Reversibility:** the code change is `costly`; the scope ruling is one-way
+  in effect because it sets what SCOPE-37 conformance means and what RUN-04 may
+  test.
+
+- **D-02: Implementation authorization is not run authorization.** The first
+  wave implements the bounded path; a separate verification wave must prove the
+  production training path's allocation, normalization, gradients, and
+  diagnostics before RUN-04. RUN-04 remains blocked until GAP-56-01 is resolved,
+  GATE-04 records a complete PASS, checkpoint ③ resolves the monitoring/window
+  and GAP-54-06 semantics, and checkpoint ④ pre-registers the evaluation seed.
+  No choice for those gates is inferred from Option A. Packet, evaluator-pairing,
+  evidence-contract, and operating-surface work may proceed in parallel with the
+  bounded implementation and verification work.
 
 ### 2. Owner checkpoints ③ and ④ — the packets, not the picks
 
@@ -235,8 +249,8 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
 - **D-08: The graded configs are derived from the existing
   `configs/stage0-rerun-seed4{1,2,3}.yaml`** (tracked; built in v2.2 Phase 50
   plan 50-01, `abd5f8d9`), updated **only** for: the re-ratified `N` and its
-  provenance (checkpoint ③); whatever the amended-recipe implementation
-  (GAP-57-01) requires (collocation count, `R_ref` path, normalization flags);
+  provenance (checkpoint ③); what the resolved Option-A amended-recipe
+  implementation requires (collocation count, `R_ref` path, normalization flags);
   and distinct run names that do **not** collide with the v2.2
   `stage0-rerun-seed4X` artifacts (preserve the v2.2 HALT record intact — use a
   v2.3-distinct name, e.g. `stage0-v23-seed4X`). No other change. The
@@ -250,10 +264,10 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   launch without a valid persisted timing calibration
   (`runs/.calibration/stage0-timing.json`) matching the launch's **full**
   fingerprint — device, dtype, torch version, python version, **and `git_head`**
-  (`git rev-parse HEAD`). The amended-recipe implementation commit (GAP-57-01)
+  (`git rev-parse HEAD`). The Option-A amended-recipe implementation commit
   changes `git_head`, so the persisted v2.0-era calibration cannot match and a
   fresh smoke is mandatory. The amended recipe's larger collocation count
-  (`n_col` 16 → 4096, subject to GAP-57-01) also changes per-step wall time
+  (`n_col` 16 → 4096) also changes per-step wall time
   materially, so the calibration must be measured on the amended recipe, not
   assumed. **A commit landing between the smoke and any graded launch
   invalidates the calibration** (project memory
@@ -302,8 +316,9 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   `metrics.json` + `evaluation-receipt.json`. It uses the
   `tau = 2·(t/T) − 1` map (`pinn/evaluate.py:267`). The researcher confirms
   whether its prediction frame is the CONF-09 canonical residency and whether
-  its target construction matches — **if it does not, the fix is another `pinn/`
-  code change and folds into GAP-57-01's scope question.** Note this dependency.
+  its target construction matches — **if it does not, its bounded fix is
+  governed separately by D-12 / GAP-46-01, not by the causal-path authorization
+  in resolved GAP-57-01.** Note this independent Phase-57 code path.
 
 - **D-14: The EVAL-02 three preconditions are the v2.2 EVAL-01 structure,
   adapted (roadmap SC5; v2.2 `REQUIREMENTS.md` "Evaluation Policy"):**
@@ -392,27 +407,24 @@ held-out access, runnable under `unittest`, committed); and the placement of
 evidence directories under `.planning/phases/57-*/evidence/<category>/<timestamp>/`.
 Those choices must preserve every decision above, add no dependency, introduce
 no new threshold or selection rule, and change nothing that enters a loss term,
-an optimizer, the data path, or a gate beyond what GAP-57-01 resolves.
+an optimizer, the data path, or a gate beyond resolved GAP-57-01 and the other
+explicitly grounded Phase-57 obligations.
 
-### Open Decisions surfaced to the owner (STOP protocol — not invented)
+### Owner-Routed Decisions (STOP protocol — not invented)
 
 Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
 
-- **GAP-57-01 (HIGH) — the amended-recipe implementation is homeless.** The
-  ratified proposal's Phase D scope included "**and implementation**"; Phase 56
-  executed the amendment spec-only and routed implementation to FUT-01, which
-  v2.3 defers. RUN-04 needs the amended §3.2 recipe in `pinn/` code
-  (collocation 16→4096, 16-bin bin-mean prefix, frozen `R_ref` normalization of
-  both the causal exponent and the outer `L_phys`). SCOPE-33 authorizes only
-  spec edits. Owner decides: **(A)** Phase 57 makes a bounded `pinn/`
-  conformance patch to the causal-loss + collocation path (SCOPE-37
-  "conformance-only iteration" reading; v2.2 Phases 46–49 code-to-spec
-  precedent); **(B)** insert a dedicated implementation phase before RUN-04;
-  **(C)** pull the full FUT-01 trainer rebuild into v2.3; **(D)** milestone
-  blocks pending a new scope decision. HIGH — blocks RUN-04 entirely, and the
-  change touches loss terms / optimizer / data path (the exact class v2.2 Phase
-  50 required be surfaced). Dependency-scoped: checkpoint-③/④ packet prep and
-  the EVAL-02 pairing-proof characterization proceed.
+- **GAP-57-01 (HIGH) — RESOLVED-WITH-INSTRUCTION, owner Option A
+  (2026-09-07).** Phase 57 owns the bounded amended-recipe conformance patch and
+  a separate production-path verification step before RUN-04. The functional
+  boundary includes the causal loss, all-selected-slot collocation allocation,
+  sampler/controller/config wiring, exact §3.2 normalization and diagnostics,
+  and focused tests; it is not limited to two named files. It excludes retuning,
+  redesign, data-policy changes, Stage-1+, PLAT-01..07, and a wholesale rebuild.
+  A 4096-row resource failure fails closed. This later instruction supersedes
+  the earlier implementation deferral for this bounded path only. FUT-01 itself
+  shipped in v2.0 (`PROJECT.md:344`). The resolution does not discharge any
+  remaining owner gate below.
 
 - **Checkpoint ③ (owner-only) — invariant-B window `N` + fixed monitoring
   context + GAP-54-06 L-BFGS semantics.** Blocking, before any run. Not a gap
@@ -444,8 +456,8 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
   iteration is conformance-only), SCOPE-38 (amend-a-locked-contract discipline);
   "Owner Checkpoints" 3 & 4; "Declared Terminal State".
 - `.planning/milestones/v2.3-GAPS.md` — GAP-54-06 (DEFERRED to checkpoint ③
-  before RUN-04), GAP-56-01 (GATE-04 condition ii, OPEN), and the GAP-57-01
-  entry this discussion adds.
+  before RUN-04), GAP-56-01 (GATE-04 condition ii, OPEN), and GAP-57-01
+  (RESOLVED-WITH-INSTRUCTION, owner Option A).
 - `docs/work/designs/cross_cutting/v2.3-milestone-proposal/2026-08-17-v2.3-roadmap-proposal.md`
   — the ratified proposal; **line 267** ("Phase D: SPEC-01 + SPEC-06 amendment
   **and implementation**; GATE-04") is the source of the GAP-57-01
@@ -503,7 +515,7 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
   §10.6 (SPEC-05, worst-case-max aggregate), §3.1 (SPEC-04, `L_data` reduction),
   `:567` (`ε_H` within-trajectory reduction).
 
-### Operating surface (read, do not modify beyond GAP-57-01's resolution)
+### Operating surface (modify only within resolved decisions)
 - `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md` — the
   five entry points (Setup / Configure / Launch / Monitor / Resume), the error
   surface table, the M5-Pro notes.
@@ -597,8 +609,9 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
 - **RUN-04 → `gate04_train_free`** — the import edge Phase 56 built to;
   precondition call before any launch, verdict must be complete PASS.
 - **RUN-04 implementation → `pinn_architecture.md` §3.2** — the amended spec is
-  the contract the GAP-57-01 code change (whatever its authorized size) must
-  honour.
+  the exact contract the bounded GAP-57-01 Option-A code change must honour;
+  `57-GAPS.md` records the later owner authorization that supersedes §3.2's
+  Phase-56 implementation deferral for this path.
 - **EVAL-02 → `pinn/evaluate.py` → the pre-registered run's `checkpoints/best.pt`**
   — single invocation; the pre-access assertion (D-12) fires before any `test`
   split materialization.
@@ -639,10 +652,10 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
 <deferred>
 ## Deferred Ideas
 
-- **The full FUT-01 trainer rebuild** — a Future Requirement deferred beyond
-  v2.3 (`REQUIREMENTS.md` "Future Requirements"). GAP-57-01 asks the owner
-  whether a *bounded* subset of it (the causal-loss + collocation path) is
-  pulled forward to make RUN-04 possible; the full rebuild is not v2.3 scope.
+- **Any new wholesale trainer rebuild** — FUT-01 itself shipped in v2.0
+  (`PROJECT.md:344`). GAP-57-01 authorizes only the bounded causal-loss and
+  collocation-path conformance patch; it does not authorize rebuilding the
+  package again.
 - **Stage-1+ / PLAT-01..07 platform work** — SCOPE-36; re-opens only on a `go`
   verdict at DIAG-06 (Phase 58).
 - **The DIAG-06 go / adjust / rethink verdict and VER-21 traceability close** —

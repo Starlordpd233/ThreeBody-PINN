@@ -15,10 +15,11 @@ during Phase 57 work. The milestone-wide index is
 
 GAP-57-01 was surfaced during the Phase 57 **discuss** step, before any plan or
 run, so it is visible to the researcher and planner rather than hit by an
-executor. Blocking is **dependency-scoped**: the checkpoint-③ and checkpoint-④
-owner packets, the EVAL-02 evaluator-pairing characterization (GAP-46-01), and
-the evidence-contract design all proceed; only the RUN-04 implementation and
-everything gated on the amended recipe actually running wait.
+executor. Its initial blocking was **dependency-scoped**: the checkpoint-③ and
+checkpoint-④ owner packets, the EVAL-02 evaluator-pairing characterization
+(GAP-46-01), and the evidence-contract design could proceed. The owner resolved
+the implementation responsibility on 2026-09-07; RUN-04 still waits on the
+separate verification and owner gates recorded in the resolution note.
 
 ---
 
@@ -92,10 +93,14 @@ everything gated on the amended recipe actually running wait.
     further tuning against observed re-run results …" This **presumes** the code
     already implements the ratified recipe (it governs *tuning*, not initial
     implementation); it neither authorizes nor forbids the implementing change.
-  - `.planning/REQUIREMENTS.md` "Future Requirements" — "**PLAT-01..07 …**" and
-    "**Carried-forward todos**"; FUT-01 (trainer rebuild) is treated as
-    post-v2.3 throughout v1.4/v1.6 governance and is not listed as a v2.3
-    requirement.
+  - `.planning/PROJECT.md:344` — FUT-01 is **already shipped in v2.0**: the
+    production `pinn/` package was rebuilt from the framework specs. This
+    corrects the Phase-56 shorthand that points the new §3.2 divergence to a
+    future FUT-01 rebuild, but it still does not assign the post-v2.0 amended
+    recipe implementation to a v2.3 phase.
+  - `.planning/REQUIREMENTS.md` "Future Requirements" — defers PLAT-01..07 and
+    Stage-1+ work, not FUT-01. It neither authorizes a new wholesale trainer
+    rebuild nor assigns the bounded §3.2 conformance patch.
   - `.planning/ROADMAP.md:59` (Phase 56 line) — maps Phase 56 to "SPEC-01,
     SPEC-06, GATE-04"; the word "implementation" from the proposal's Phase D is
     absent.
@@ -112,8 +117,9 @@ everything gated on the amended recipe actually running wait.
     implementation: "Do not edit `pinn/train.py` (SCOPE-33; live code is not a
     v2.3 grounding source or edit target)"; "the trainer rebuild is FUT-01";
     "`pinn/train.py` confirmed unedited. `git status --porcelain -- pinn/` =
-    empty." It does not say which phase or requirement picks the implementation
-    back up.
+    empty." The FUT-01 pointer conflicts with `.planning/PROJECT.md:344`'s
+    shipped-v2.0 record, and these Phase-56 artifacts do not say which phase or
+    requirement picks the new amendment's implementation back up.
   - `.planning/phases/54-recalibration-decision-grounding/54-RULING.md` — ratifies
     the recipe's *content*; is silent on code implementation (it explicitly
     scopes itself to framework-spec re-ratification and defers even the
@@ -153,8 +159,8 @@ everything gated on the amended recipe actually running wait.
   - **Milestone traceability (VER-21).** Options B and C change the phase count
     and the requirement→phase mapping VER-21 re-verifies at close; option A
     keeps the mapping but expands Phase 57's `pinn/`-edit surface beyond
-    anything v2.3 has done, risking a "conformance patch" becoming a de-facto
-    partial FUT-01 rebuild under a name that hides it.
+    anything v2.3 has done, risking a "conformance patch" becoming an unscoped
+    wholesale rebuild under a name that hides it.
   - **The v2.2 precedent cuts both ways.** v2.2 Phases 46–49 *were* exactly
     code-to-spec conformance work on `pinn/` (nine C-01..C-09 divergences
     repaired) — precedent for option A. But v2.2 did that under a milestone
@@ -186,9 +192,10 @@ everything gated on the amended recipe actually running wait.
     the amended-recipe code, before RUN-04, with its own requirement, plan, and
     verification; RUN-04/05/EVAL-02 shift to a later phase number. Updates the
     requirement→phase mapping (VER-21).
-  - **C — Pull the full FUT-01 trainer rebuild into v2.3** as an explicit
-    requirement, since the amended recipe is one of the specs FUT-01 was always
-    going to build from.
+  - **C — Commission a new wholesale trainer rebuild in v2.3** as an explicit
+    requirement. The originally surfaced "pull FUT-01" description was
+    factually incorrect: `.planning/PROJECT.md:344` records FUT-01 as shipped in
+    v2.0. A new rebuild would therefore require its own concrete justification.
   - **D — The milestone blocks** pending a separate owner scope decision (e.g.
     an ERW round on the implementation approach, or a new milestone).
 
@@ -197,6 +204,41 @@ everything gated on the amended recipe actually running wait.
   terminal state at all, and the authorized code-change size is RUN-04's primary
   risk lever.
 
-- **Status.** OPEN.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-07).
 
-- **Resolution note.** _(empty — awaiting owner instruction)_
+- **Resolution note.** Owner selected **Option A** on 2026-09-07: Phase 57 owns
+  a bounded code-to-spec conformance patch as an explicit first implementation
+  wave, followed by a **separate verification step that must pass before
+  RUN-04**. This instruction repairs the proposal-to-roadmap omission and
+  expressly supersedes the earlier Phase-56 / `pinn_architecture.md:458`
+  implementation deferral and "no production Python file" statement **only for
+  this bounded amended-recipe path**.
+
+  The patch inventory is defined by the ratified behavior, not by the two
+  example files named in Option A. It includes every necessary production-path
+  change in the causal loss, collocation allocation/sampler, controller, and
+  configuration wiring—including replacing the current one-anchor physics-loss
+  execution with contributions from all selected slots—plus focused tests and
+  verification evidence. The implementation must reproduce §3.2 exactly:
+  `4096` physics rows per batch; `16` fixed equal-`u` bins with `256` rows each;
+  one batch-global exclusive prefix over the bin means; the detached, frozen
+  `R_ref` applied to both the exponent and residual-wide outer `L_phys`; the
+  ratified full-batch and replay-only allocation; energy-set reuse;
+  microbatch-preserved bin aggregates; valid gradient behavior; and raw plus
+  normalized diagnostics. Verification must exercise the actual production
+  training path and demonstrate the allocation, normalization, gradients, and
+  diagnostics before RUN-04 is eligible.
+
+  This is **not** authorization for retuning, architecture redesign, a data-policy
+  change, Stage-1+, PLAT-01..07, or a new wholesale trainer rebuild. Any required
+  expansion stops for a new owner decision. A resource failure at the exact
+  ratified `4096`-row batch is fail-closed evidence; it never permits silently
+  reducing the sample count. FUT-01 itself shipped in v2.0
+  (`.planning/PROJECT.md:344`), correcting the gap's original option-C
+  characterization.
+
+  This resolution authorizes implementation only. RUN-04 remains blocked until
+  GAP-56-01 is resolved and GATE-04 records a complete PASS, checkpoint ③ fixes
+  the monitoring/window and GAP-54-06 L-BFGS semantics, and checkpoint ④ records
+  the evaluation-seed pre-registration. No value or behavior for those owner
+  decisions is inferred here.
