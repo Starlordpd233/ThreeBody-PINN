@@ -407,10 +407,10 @@
   ],
   "provenance": {
     "git_available": true,
-    "git_sha": "be823429215c6576ee05b86a44e0e9503743cbf0",
+    "git_sha": "737d70fc8aadb8ffd36b70cdcc4078983fa39f88",
     "git_worktree_dirty": true,
     "git_worktree_dirty_available": true,
-    "timestamp": "2026-09-07T03:34:09.825812+00:00"
+    "timestamp": "2026-09-07T04:58:06.868104+00:00"
   },
   "r_ref": 19749775821.24417,
   "raw_bin_means": [
