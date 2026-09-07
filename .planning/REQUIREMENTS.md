@@ -87,17 +87,17 @@ about the design, and recipe adjudication … is v2.3."*
 
 ### Framework-Spec Amendments (SPEC)
 
-- [ ] **SPEC-01**: Implement the ratified causal-weight/SIREN-scale recalibration (VER-20 item **e**) as a `pinn_architecture.md` §2.2/§3.2 amendment. **Under SCOPE-38 this is a contract amendment, not a value edit**: `η_c = 1` carries an owner-ratified Phase-35 contract marker (**LOSS-04 / D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A / AC-LOSS-04**, `pinn_architecture.md:424`, grounded in the v1.6 resolution doc §1.1 and GAP-32-01). The edit must name the superseded ruling, record the new decision's provenance, and carry a **re-issued acceptance criterion**. If the ratified remedy touches `first_omega_0` (§2.2:167, *"fixed at 30 and is not scheduled during training"*) or the causal-exponent clip (spec'd in the same contract block as *"required only to avoid underflow"*), the same discipline applies to each. `N_t`/`n_col` is decided jointly — see SPEC-06. [VER-20 item (e); SCOPE-33, SCOPE-38]
+- [x] **SPEC-01**: Implement the ratified causal-weight/SIREN-scale recalibration (VER-20 item **e**) as a `pinn_architecture.md` §2.2/§3.2 amendment. **Under SCOPE-38 this is a contract amendment, not a value edit**: `η_c = 1` carries an owner-ratified Phase-35 contract marker (**LOSS-04 / D-04 RESOLVED-WITH-INSTRUCTION / owner-ratified Option A / AC-LOSS-04**, `pinn_architecture.md:424`, grounded in the v1.6 resolution doc §1.1 and GAP-32-01). The edit must name the superseded ruling, record the new decision's provenance, and carry a **re-issued acceptance criterion**. If the ratified remedy touches `first_omega_0` (§2.2:167, *"fixed at 30 and is not scheduled during training"*) or the causal-exponent clip (spec'd in the same contract block as *"required only to avoid underflow"*), the same discipline applies to each. `N_t`/`n_col` is decided jointly — see SPEC-06. [VER-20 item (e); SCOPE-33, SCOPE-38]
 - [x] **SPEC-02**: Reword `pinn_architecture.md` §4.1's `λ_phys^max` line to state that the PHYS-05 per-stage table is **locked**, not defaulted. The line currently reads as though the value is a tunable default; GAP-45-03 ratified that the full table binds. [VER-20 item (a)]
 - [x] **SPEC-03**: Add a spec convention for marking **locked-vs-default values inside a table**. No existing convention distinguishes a locked constant from an illustrative default within the same table; SPEC-02 is one instance of a systemic wording problem. [VER-20 item (b)]
 - [x] **SPEC-04**: Make the `L_data` reduction explicit in spec prose — **mean over time, bodies, and spatial components**, as ratified by the owner on GAP-45-01 (2026-07-31, Phase 48 checkpoint, option A) — rather than leaving it inferable from code. [VER-20 item (c); CONF-07]
 - [x] **SPEC-05**: Codify the held-out physics gate's **aggregate statistic** in spec prose: worst-case max, not mean or median, owner-ruled 2026-07-23 on GAP-44-01 and never written into the spec. [VER-20 item (d)]
-- [ ] **SPEC-06**: Dispose of the `n_col` spec/code divergence **as part of the recalibration**. `pinn/train.py:1033` hard-codes `collocation_count = 16`; `pinn_architecture.md` §3.2 specifies `n_col = 4096` with "recommended: 2048–4096" (`:433`, `:440`). Because `w_n` is an **exclusive prefix sum** over collocation points (`pinn/loss_catalog.py`), the exponent at point *n* grows with the number of preceding points, so `η_c`'s calibration is coupled to `N_t` — calibrating at 16 and later honoring 4096 moves the exponent by roughly 256×. SPEC-01 and SPEC-06 are **ratified together**, and the amended spec records the `N_t` the calibration binds to plus the re-check trigger if it ever changes. v2.2 deferred this as a recipe surface under SCOPE-29; that deferral expires here. [SCOPE-33; audit §6d]
+- [x] **SPEC-06**: Dispose of the `n_col` spec/code divergence **as part of the recalibration**. `pinn/train.py:1033` hard-codes `collocation_count = 16`; `pinn_architecture.md` §3.2 specifies `n_col = 4096` with "recommended: 2048–4096" (`:433`, `:440`). Because `w_n` is an **exclusive prefix sum** over collocation points (`pinn/loss_catalog.py`), the exponent at point *n* grows with the number of preceding points, so `η_c`'s calibration is coupled to `N_t` — calibrating at 16 and later honoring 4096 moves the exponent by roughly 256×. SPEC-01 and SPEC-06 are **ratified together**, and the amended spec records the `N_t` the calibration binds to plus the re-check trigger if it ever changes. v2.2 deferred this as a recipe surface under SCOPE-29; that deferral expires here. [SCOPE-33; audit §6d]
 
 ### Reproducibility & Train-Free Acceptance (INST / GATE)
 
 - [x] **INST-04**: Land the architecture-only characterization as **committed, tested verification tooling** under `pinn/verification/`. For a given `ArchitectureSpec` at initialization — no data, no optimizer, no training step — it reports `‖r′‖`, `‖v′‖`, `‖a′‖ = ‖d²r′/du²‖`, `‖F_grav‖`, minimum pairwise separation, median `R̄`, the full causal weight vector, and `front_idx`, over a configurable seed/IC sweep. **Acceptance:** it reproduces the 2026-08-17 audit's six-row table. This closes a real hole — v2.3's central premise currently rests on an ad-hoc measurement that exists nowhere in the repository, and `pinn/verification/` has no such probe. [audit §6b; GAP-44-02 re-derivability discipline]
-- [ ] **GATE-04**: **Train-free acceptance gate on the recalibration.** Before RUN-04 may spend a Stage-0 run, INST-04's probe must show, under the SPEC-01/SPEC-06 recipe and across at least the six seed/IC combinations the audit used: (i) no causal weight pinned at the dtype clamp floor; (ii) a weight vector carrying **differential information** (not all-floor, not degenerate); (iii) `front_idx` able to advance. **Fail closed** — a probe failure blocks the run rather than warning about it. This is the check that would have spared v2.2's generation-3 run. [invariant A/B lineage from GATE-03; SCOPE-35 single-look protection]
+- [x] **GATE-04**: **Train-free acceptance gate on the recalibration.** Before RUN-04 may spend a Stage-0 run, INST-04's probe must show, under the SPEC-01/SPEC-06 recipe and across at least the six seed/IC combinations the audit used: (i) no causal weight pinned at the dtype clamp floor; (ii) a weight vector carrying **differential information** (not all-floor, not degenerate); (iii) `front_idx` able to advance. **Fail closed** — a probe failure blocks the run rather than warning about it. This is the check that would have spared v2.2's generation-3 run. [invariant A/B lineage from GATE-03; SCOPE-35 single-look protection]
 
 ### Re-Run & the Preserved Evaluation (RUN / EVAL)
 
@@ -169,14 +169,14 @@ it is needed.
 |-------------|-------|--------|
 | ERW-01 | Phase 54 | Complete |
 | ERW-02 | Phase 54 | Complete |
-| SPEC-01 | Phase 56 | Pending |
+| SPEC-01 | Phase 56 | Complete |
 | SPEC-02 | Phase 53 | Complete |
 | SPEC-03 | Phase 53 | Complete |
 | SPEC-04 | Phase 53 | Complete |
 | SPEC-05 | Phase 53 | Complete |
-| SPEC-06 | Phase 56 | Pending |
+| SPEC-06 | Phase 56 | Complete |
 | INST-04 | Phase 55 | Complete |
-| GATE-04 | Phase 56 | Pending |
+| GATE-04 | Phase 56 | Complete |
 | RUN-04 | Phase 57 | Pending |
 | RUN-05 | Phase 57 | Pending |
 | EVAL-02 | Phase 57 | Pending |

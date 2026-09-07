@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
-current_phase: 56
-current_phase_name: Contract Amendment & Train-Free Gate
-status: executing
-stopped_at: Completed 56-06-PLAN.md
-last_updated: "2026-09-07T03:40:10.000Z"
+current_phase: 57
+current_phase_name: Corrected Re-Run & the Preserved Evaluation
+status: planning
+stopped_at: Phase 56 complete, ready to plan Phase 57
+last_updated: "2026-09-07T04:51:12.507Z"
 last_activity: 2026-09-07
-last_activity_desc: Plan 56-06 executed (phase close-out — 56-OPEN-ITEMS.md records GAP-56-01 and GAP-56-02 as still OPEN with their structural findings, and the accepted Phase 38 pre-existing spec-freeze-guard failure with its four reasons; the finished GATE-04 gate was run once for the record — verdict PASS INCOMPLETE, unratified: ii, GAP-56-01 OPEN — and its evidence plus the regenerated authoritative r_ref_stage0.json artifact are committed; all six Phase 56 plans are now executed, phase verification pending)
-state_head: 48f52995b4ccb7fe7e57ce95afc550e63ed6d4dc
+last_activity_desc: Phase 56 complete, transitioned to Phase 57
+state_head: f4f6ac989daba00ae5739b28b8f92c7950071703
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 24
   completed_plans: 24
-  percent: 50
+  percent: 67
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: 56 (Contract Amendment & Train-Free Gate) — ALL PLANS EXECUTED, PHASE VERIFICATION PENDING
-Plan: 6 of 6 (56-01, 56-04, 56-02, 56-05, 56-03, and 56-06 all complete 2026-09-06/07)
-Status: All six plans executed; phase-close verification (`/gsd-verify-work` or equivalent) not yet run — REQUIREMENTS.md GATE-04/SPEC-01/SPEC-06 checkboxes and ROADMAP's Phase 56 completion marker are deliberately left for that separate act, per this milestone's established phase-close/verification-act precedent (Phases 49, 53, 55; plans 56-01/56-02/56-03/56-04/56-05)
-Last activity: 2026-09-07 — Plan 56-06 executed (phase close-out: `56-OPEN-ITEMS.md` records GAP-56-01 and GAP-56-02 as still OPEN with their structural findings and the accepted Phase 38 pre-existing failure; the finished GATE-04 gate was run once for the record — PASS INCOMPLETE, unratified: ii — and its evidence plus the regenerated authoritative `r_ref_stage0.json` artifact are committed)
-Resume file: None — next action is Phase 56 verification, not a further plan
+Phase: 57 — Corrected Re-Run & the Preserved Evaluation
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-07 — Phase 56 verified (56-VERIFICATION.md, passed 6/6) and marked complete; transitioned to Phase 57
+Resume file: None — next action is Phase 57 planning (/gsd-plan-phase 57 or equivalent)
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -188,7 +188,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 
 **Velocity:**
 
-- Total plans completed: 886 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
+- Total plans completed: 892 (v1.0: 10, v1.1: 5, v1.2: 3, v1.3: 21, v1.4: 26)
 - Average duration: ~10 minutes per plan (v1.1)
 
 **By Phase:**
@@ -255,6 +255,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 49 | 9 | - | - |
 | 53 | 1 | - | - |
 | 54 | 13 | 6 waves + 6 post-delivery waves | complete 2026-09-04 |
+| 56 | 6 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -516,9 +517,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-09-07T03:40:10.000Z
-Stopped at: Completed 56-06-PLAN.md
-Next action: Phase 56 verification (all six plans executed; `56-OPEN-ITEMS.md`, the authoritative GATE-04 evidence run, and the regenerated `r_ref_stage0.json` are committed). Once verified, Phase 57 (Corrected Re-Run & the Preserved Evaluation) is hard-gated on GATE-04 passing, which this phase's own run confirms on the amended recipe — subject to condition (ii) remaining unratified. GAP-56-01 and GAP-56-02 remain OPEN, owner-routed, and untouched by this phase.
+Last session: 2026-09-07T04:51:12.507Z
+Stopped at: Phase 56 complete, ready to plan Phase 57
+Next action: Plan Phase 57 (Corrected Re-Run & the Preserved Evaluation), hard-gated on GATE-04 passing — which Phase 56's own authoritative run confirms on the amended recipe, subject to condition (ii) remaining unratified (GAP-56-01). GAP-56-01 and GAP-56-02 remain OPEN, owner-routed, and untouched by Phase 56; see `56-OPEN-ITEMS.md`.
 
 ## Operator Next Steps
 
