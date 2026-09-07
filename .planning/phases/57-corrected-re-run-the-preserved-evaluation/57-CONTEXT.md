@@ -1,0 +1,669 @@
+# Phase 57: Corrected Re-Run & the Preserved Evaluation - Context
+
+**Gathered:** 2026-09-07
+**Status:** Ready for planning — with one HIGH gap open (GAP-57-01) and three
+blocking owner items (checkpoint ③, checkpoint ④, and the inherited GAP-54-06)
+that must discharge before any run executes. See "Open Decisions" below and
+`57-GAPS.md`.
+
+> **Discussion mode.** Serviced autonomously per owner instruction (2026-09-07):
+> every gray area below is dispositioned with the best-reasoned option, grounded
+> in `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `54-RULING.md`, the
+> v2.2 Phase 50 CONTEXT (the direct analog), and the shipped `pinn/` operating
+> surface. **The CLAUDE.md STOP protocol is NOT waived for this milestone**
+> (v2.3 adjudication milestone; the autonomous best-judgment directive does not
+> waive the semantic / cross-phase-reframing MUST-surface class). One decision —
+> whether and how the amended (SPEC-01/SPEC-06) recipe is implemented in `pinn/`
+> code so RUN-04 can run it — is a cross-phase-scope call fixed by no source and
+> is surfaced as **GAP-57-01**, not invented. The five owner checkpoints ③–⑤
+> remain owner-only. Everything else below is a mechanical, operational, or
+> sequencing call in the discuss-phase's own lane.
+
+<domain>
+## Phase Boundary
+
+Phase 57 owns **RUN-04, RUN-05, EVAL-02** — the corrected Stage-0 re-run and the
+single preserved held-out evaluation. It is the second attempt at the run v2.2's
+Phase 50 could not complete: v2.2 re-ran Stage-0 under the conformance-corrected
+recipe and it HALTed at the invariant-B causal-front gate (step 501,
+`front_idx = 0` for the full `N = 500` window) because the SIREN `ω₀ = 30`
+second-derivative scale collided with the unnormalized `η_c = 1` causal-weight
+calibration. v2.3 Phases 54–56 produced and landed the owner-ratified
+recalibration (`A1 + B2 residual-wide + C1 + D3 + E1`) as a framework-spec
+**contract amendment** and built GATE-04, the train-free gate that refuses a run
+whose causal weighting is still saturated shut.
+
+**What this phase delivers:**
+
+- **RUN-04** — Stage-0 runs end-to-end under the SPEC-01/SPEC-06-corrected
+  recipe, and invariant B records the causal front **actually advancing**
+  (`front_idx` increasing within the owner-re-ratified window, not merely off
+  the floor). Gated on GATE-04 passing to a **complete** verdict. Iteration is
+  conformance-only (SCOPE-37).
+- **RUN-05** — the three-seed band is re-established under the same corrected
+  recipe, matching the v2.0/v2.2 protocol so the runs are comparable.
+- **EVAL-02** — the **sole preserved held-out evaluation** (the one v2.2 never
+  attempted — RUN-03/EVAL-01 preserved unspent by the 2026-08-17 owner
+  decision) is spent **exactly once**, on the pre-registered spending seed,
+  only after its three preconditions (the v2.2 EVAL-01 structure, adapted for
+  the new recipe) are verified and recorded, and only after a dataset-free
+  regression **and** a pre-invocation assertion prove the evaluator pairs
+  canonical predicted `r′` with `u = t/T` (GAP-46-01's delegated ruling,
+  2026-07-26).
+
+**Blocking owner checkpoints, all discharged BEFORE any run executes:**
+
+- **Checkpoint ③** — invariant-B front-advance window `N` re-ratified for the
+  new dynamics (with provenance recorded in the run config), **plus** the
+  fixed pre-registered monitoring context that defines "advancement" (fixed IC
+  slots + fixed within-bin times, re-evaluated as parameters change — or another
+  ratified estimator), **plus** the inherited GAP-54-06 L-BFGS
+  second-optimizer-phase / detached-causal-weight / line-search semantics
+  (DEFERRED to checkpoint ③ by `54-RULING.md`). `N = 500` was ratified
+  2026-08-05 against the old saturated dynamics and is **not carried over by
+  default**.
+- **Checkpoint ④** — the EVAL-02 spending seed is **pre-registered in writing,
+  committed with a timestamp, before RUN-04/05 execute**, so it cannot be
+  chosen after the three-seed band is visible (SCOPE-35 single-look protection).
+
+**Declared terminal state (carried explicitly — roadmap SC5, SCOPE-35/37):** if
+GATE-04 refused the recalibration train-free, **or** RUN-04's causal front still
+fails to advance under the ratified recipe, the evaluation is **not** spent — it
+is preserved unspent, that fact is recorded, and the phase closes there rather
+than iterating. SCOPE-37 forbids any further tuning without a new owner decision.
+
+**Out of the phase (grounded boundaries, not gray areas):**
+
+- **No re-tuning of any ratified value.** `η_c`, the `R̄` normalization / `R_ref`,
+  `ω₀`, `N_t`/`n_col` are locked by `54-RULING.md`. Any pressure to change one
+  against an observed run result routes to the owner as a **new** decision
+  (SCOPE-37). Iteration inside the phase is conformance-only.
+- **No Stage-1+ / PLAT-01..07 work.** SCOPE-36 — still blocked pending a `go`
+  verdict at DIAG-06 (Phase 58). Enforced by the `--stage-0-only` switch.
+- **No framework-spec edit.** SCOPE-33's spec-edit authorization was for the
+  VER-20 items + the `n_col`/`N_t` disposition, all landed in Phases 53/56.
+- **No second held-out evaluation.** SCOPE-35 — exactly one; any further
+  evaluation requires a new owner decision.
+- **No DIAG-06 verdict.** That is Phase 58, checkpoint ⑤.
+- **No re-litigation** of the nine v2.2 conformance repairs (C-01..C-09), of
+  DIAG-05, or of the `54-RULING.md` recalibration.
+
+</domain>
+
+<decisions>
+## Implementation Decisions
+
+### 1. The amended-recipe implementation — GAP-57-01 (blocked, dependency-scoped)
+
+- **D-01: RUN-04 cannot execute "under the SPEC-01/SPEC-06-corrected recipe"
+  until the amended §3.2 recipe exists in `pinn/` code, and no source authorizes
+  that code change or names its owner. This is surfaced as GAP-57-01, not
+  decided here.** The ratified v2.3 roadmap proposal put implementation in its
+  Phase D scope ("SPEC-01 + SPEC-06 amendment **and implementation**";
+  `2026-08-17-v2.3-roadmap-proposal.md:267`), but the roadmap as ratified maps
+  Phase 56 to `SPEC-01, SPEC-06, GATE-04` only, and Phase 56 executed the
+  amendment **spec-only** — `pinn/train.py:1033` still reads
+  `collocation_count = 16`, `pinn/loss_catalog.py::causal_physics_loss` still
+  forms a raw per-point 16-term prefix over unnormalized `R̄`, there is no
+  `R_ref` normalization of either the causal exponent or the outer physics loss,
+  and `56-VERIFICATION.md` truth 3 confirms "no production file edited … the
+  trainer rebuild is FUT-01." FUT-01 (full trainer rebuild from specs) is a
+  **Future Requirement deferred beyond v2.3** (`REQUIREMENTS.md` "Future
+  Requirements"). The gap: who implements the amended recipe in code, is Phase
+  57 authorized to do it, and how large a `pinn/` change is in-grant — a bounded
+  conformance patch to the causal-loss + collocation path, or FUT-01 territory.
+  Options A–D are framed for the owner in `57-GAPS.md` (GAP-57-01).
+  — **Reversibility:** the *code change itself* would be `costly` (it restructures
+  `causal_physics_loss`, the collocation sampler, and the outer `L_phys`
+  normalization — call sites in `pinn/train.py` and `pinn/loss_catalog.py`); the
+  *scope decision* is one-way in effect — it sets what "conformance-only
+  iteration" (SCOPE-37) even means for this milestone and what RUN-04's risk
+  surface is.
+
+- **D-02: Dependency-scoped blocking.** GAP-57-01 blocks only the RUN-04
+  *implementation* and everything gated on "the amended recipe actually running":
+  the RUN-04 launch, the invariant-B advancement observation, the RUN-05 band,
+  and EVAL-02. **Independent work proceeds while GAP-57-01 is open:** assembling
+  the checkpoint-③ and checkpoint-④ owner packets (Section 2); characterizing
+  `pinn/evaluate.py` against the GAP-46-01 canonical-pairing obligation and
+  designing the dataset-free regression + pre-invocation assertion (Section 5);
+  the evidence-contract and pre-registration-record design (Section 8); and
+  confirming the calibration-smoke / no-commit-mid-band / `--stage-0-only`
+  operating surface (Section 4).
+
+### 2. Owner checkpoints ③ and ④ — the packets, not the picks
+
+- **D-03: Checkpoint ③ bundles three sub-decisions into one blocking owner
+  gate, discharged before any run.** The plan assembles a **strictly
+  non-recommending** packet (STOP-protocol / SCOPE-34 discipline — no candidate
+  values, no ranked options, gaps named) covering:
+  1. **The invariant-B window `N`.** `N = 500 (= 0.5 · N_Adam,0)` was ratified
+     2026-08-05 against the old, saturated dynamics (`configs/stage0-example.yaml`
+     `run.invariants.front_advance_window_n`). The packet records that the new
+     recipe's front behaviour is different in kind and that `N` is not carried
+     over by default; it presents the Phase-49 D-19-style run-length anchors
+     (shipped `N_Adam,0 = 1000`, `max_epochs = 1000`) and the terminal-state
+     consequence of the choice, and picks nothing.
+  2. **The fixed pre-registered monitoring context.** `54-RULING.md`
+     "Front-monitoring boundary": a resampled training-batch `front_idx` is a
+     stochastic diagnostic and is **upward-biased** (selected slots + within-bin
+     times change between steps), so it "cannot prove learning." The owner must
+     define invariant-B advancement on a **fixed monitoring context** (fixed IC
+     slots + fixed within-bin times, re-evaluated only as model parameters
+     change) or ratify another estimator that separates parameter improvement
+     from resampling. The exact aggregation is the owner's; the packet frames
+     the estimator choice and names it as un-invented.
+  3. **GAP-54-06 — L-BFGS second-optimizer-phase semantics (inherited, now
+     due).** `54-RULING.md` explicitly did **not** amend the optimizer contract
+     (SCOPE-33 does not authorize it) and deferred to checkpoint ③, before
+     RUN-04: whether the detached causal weights are recomputed inside the
+     second-phase (L-BFGS) line searches, and how the second phase re-draws
+     collocation points. The conditional risk (recomputing detached weights
+     inside a line search) is real. The packet presents the two behaviours
+     `54-RULING.md` says Phase 56 "may not silently choose" and picks neither.
+  — **Reversibility:** one-way — these values enter the run configuration and
+  govern whether RUN-04's outcome is interpretable; a window or estimator chosen
+  after a run is a selection-effect leak against the single-look budget.
+
+- **D-04: Checkpoint ④ — EVAL-02 spending-seed pre-registration structure
+  (grounded by v2.2 Phase 50 D-07..D-12; the pick is the owner's).** The plan
+  writes a **pre-registration record** — committed with a timestamp, **before
+  the first graded run starts** — that fixes, in writing: the spending seed; the
+  checkpoint rule (`runs/<run>/checkpoints/best.pt`, the run's own in-flight
+  retention policy — an automatic rule that predates every Phase-57 number, not
+  a chart read afterwards); an **ineligibility-only** fallback order; and the
+  rule that **no eligible seed → owner checkpoint, phase closes without a
+  candidate** (Phase 57 does not manufacture one, relax a precondition, or waive
+  an entry). The seed choice itself is checkpoint ④; the packet MAY note, for
+  continuity, that v2.0 spent its single look on seed 42 and v2.2 pre-registered
+  seed 42 as its candidate (same held-out population as `ε_H = 237.2086`,
+  strongest DIAG re-derivation basis) — as context, not a recommendation.
+  **The split is seed-dependent** (`_partition_by_signature(records, seed,
+  ratios)`, `train 0.8 / val 0.1 / test 0.1`), so one seed's test keys are
+  another seed's training keys — this is the structural reason pre-registration
+  is mandatory and cannot be honestly done after the band is visible.
+  — **Reversibility:** one-way — the single authorized evaluation is spent on
+  the pre-registered run; a candidate chosen after numbers exist is not
+  recoverable because the leakage cannot be un-seen.
+
+- **D-05: The GATE-04 precondition must be a *complete* PASS — GAP-56-01
+  (condition ii) must resolve first.** Phase 56 shipped GATE-04 with conditions
+  (i) and (iii) wired and condition (ii) — "a weight vector carrying
+  differential information (not all-floor, not degenerate)" and the re-issued
+  AC's "a front that cannot respond to controlled residual reduction" — as a
+  **structurally-present, never-satisfiable slot** (`condition_ii_verdict`
+  raises `NotImplementedError`; every verdict carries
+  `unratified_conditions = ("ii",)` and prints `INCOMPLETE`). GAP-56-01 is the
+  SCOPE-35 single-look protection. RUN-04 may not spend a run on an `INCOMPLETE`
+  GATE-04 verdict. **GAP-56-01 (owner, `56-GAPS.md`) must be ratified and GATE-04
+  re-run to a complete PASS before RUN-04.** GAP-56-01 option D explicitly
+  routes the condition-(ii) numeric bound "to Phase 57 checkpoint ③" — so if the
+  owner took option D, GAP-56-01 joins the checkpoint-③ agenda (D-03). Two
+  structural findings from `56-OPEN-ITEMS.md` §2 that the owner's condition-(ii)
+  ruling MUST account for: (1) `front_idx = 0` at initialization is the
+  **expected healthy** result under the amended recipe (each case's `w_2` is
+  already below the half-threshold), so a fixed positive-front check rejects
+  every healthy case; (2) a residual reduction confined to late bins cannot move
+  `front_idx` at any magnitude (exclusive-prefix structure), so a
+  controlled-reduction test that perturbs only late bins reports a
+  non-response that says nothing about recipe health.
+
+### 3. RUN-05 — the three-seed band, budget, and comparability
+
+- **D-06: The band is seeds 41 / 42 / 43, matching the v2.0/v2.2 protocol.**
+  RUN-05's comparability requirement is at the **protocol layer, not
+  byte-identity of config** (v2.2 Phase 50 D-02): same seeds, same admitted
+  corpus, same environment, same artifact set; the three graded configs differ
+  only in `run.seed` / `run.run_name`. Grounding: the v2.0 pilot and v2.2 Phase
+  50 both used 41/42/43; DIAG re-derivation and the v2.0 `ε_H = 237.2086`
+  baseline are per-seed-42 held-out population.
+
+- **D-07: Budget is the shipped Stage-0 config — `stage.max_epochs = 1000`,
+  `stage.n_adam = 1000` — NOT the v2.0 300-step smoke** (v2.2 Phase 50 D-01,
+  three-fold grounding carried forward): (a) invariant-B `N` was ratified
+  *explicitly as `0.5 · N_Adam,0`* against `N_Adam,0 = 1000` — a shorter budget
+  makes the window arithmetically unreachable and converts a ratified gate into
+  decoration; (b) the v2.0 pilot config carries `run.smoke: true` — it is the
+  ACC-02 mechanical smoke budget; (c) `ctl_instruction.md` marks `MAX_EPOCHS`
+  etc. "provisional pending FUT Stage-0 pilot calibration (SCOPE-14)" — it
+  assigns the value to the calibrated artifact, and `configs/stage0-example.yaml`
+  is that artifact. **Not SCOPE-37 tuning** — 1000 was committed long before any
+  conformant number existed. If checkpoint ③ re-ratifies `N` to a value that
+  implies a different `N_Adam,0`, the budget follows the owner's ③ ruling, not a
+  fresh agent choice.
+
+- **D-08: The graded configs are derived from the existing
+  `configs/stage0-rerun-seed4{1,2,3}.yaml`** (tracked; built in v2.2 Phase 50
+  plan 50-01, `abd5f8d9`), updated **only** for: the re-ratified `N` and its
+  provenance (checkpoint ③); whatever the amended-recipe implementation
+  (GAP-57-01) requires (collocation count, `R_ref` path, normalization flags);
+  and distinct run names that do **not** collide with the v2.2
+  `stage0-rerun-seed4X` artifacts (preserve the v2.2 HALT record intact — use a
+  v2.3-distinct name, e.g. `stage0-v23-seed4X`). No other change. The
+  `stage0-rerun-smoke.yaml` is the calibration-smoke base (D-09).
+
+### 4. First contact — the calibration smoke is a hard precondition
+
+- **D-09: The phase opens with a calibration smoke on the final code state, and
+  the plan's wave decomposition MUST honour "no commit between the smoke and the
+  graded runs."** `_check_duration_gate` (`pinn/train.py`) refuses any non-smoke
+  launch without a valid persisted timing calibration
+  (`runs/.calibration/stage0-timing.json`) matching the launch's **full**
+  fingerprint — device, dtype, torch version, python version, **and `git_head`**
+  (`git rev-parse HEAD`). The amended-recipe implementation commit (GAP-57-01)
+  changes `git_head`, so the persisted v2.0-era calibration cannot match and a
+  fresh smoke is mandatory. The amended recipe's larger collocation count
+  (`n_col` 16 → 4096, subject to GAP-57-01) also changes per-step wall time
+  materially, so the calibration must be measured on the amended recipe, not
+  assumed. **A commit landing between the smoke and any graded launch
+  invalidates the calibration** (project memory
+  `reference-train-duration-gate-git-head.md`) — the plan sequences the amended
+  code commit, then the smoke, then all three graded runs, then EVAL-02, with no
+  intervening commit; per-plan GSD commit cadence is adapted accordingly.
+
+- **D-10: The smoke is also the amended recipe's first real-corpus contact and
+  the `S_H` cross-check** (v2.2 Phase 50 D-14/D-16). Run the smoke at **seed 42**;
+  the seed-42 smoke and the seed-42 graded run must produce byte-identical
+  `splits.json` and then **exactly equal** `s_h` / `n_train` — asserted as phase
+  evidence. A mismatch is a defect to route as a gap, never a number to accept.
+  The smoke carries the re-ratified `front_advance_window_n` (checkpoint ③),
+  copied not chosen, so first contact walks the identical preflight path the
+  graded runs will (`REQUIRED_RUN_START_CHECKS` `invariant_b_window`).
+
+- **D-11: Reuse the `--stage-0-only` switch** (`pinn/train.py:214`,
+  `pinn/training/controllers.py:1670` — shipped in v2.2 Phase 50). It is a
+  fresh-run-only guard (invalid with `--resume`) that returns success after a
+  Stage-0 `ADVANCE` before incrementing the stage / invoking `stage_factory` /
+  writing `stage-1-init`. This is the mechanism that enforces SCOPE-36; every
+  graded run and the smoke pass it. Re-verify it behaves correctly against the
+  amended code state.
+
+### 5. EVAL-02 — evaluator assembly, the pairing proof, and the three preconditions
+
+- **D-12: The GAP-46-01 obligation is a hard gate before EVAL-02 and is
+  RUN-04-mapped, not a fourth eligibility precondition.** GAP-46-01 (delegated
+  ruling 2026-07-26, refined option A): EVAL-02 is for the **corrected
+  conformant model**, so the held-out evaluator must pair **canonical predicted
+  `r′` with `u = t/T`**. Phase 57 must add (a) a **dataset-free assembly
+  regression** — proves, with no held-out access, that the evaluator's
+  prediction/target pairing is the canonical `(r′, u = t/T)` contract
+  (CONF-09's `RATIFIED_VALIDATION_FRAME` re-ratified 2026-07-31) — and (b) a
+  **pre-access assertion** in the EVAL-02 invocation path that fails closed
+  before any `test`-split materialization if the pairing is wrong. A raw-target
+  CONF-01 verdict "diagnoses the historical path but does not authorize a
+  raw-frame EVAL-01 run" — EVAL-02 is canonical-frame only.
+
+- **D-13: `pinn/evaluate.py` must be characterized against the canonical
+  contract before it is trusted.** It is **Phase 43 vintage** (pre-CONF-09):
+  it reconstructs the persisted held-out `test` split from a checkpoint's owning
+  run (frozen `config.yaml` + `splits.json`), runs one forward pass under
+  `.eval()` + `torch.no_grad()`, and renders `pinn.verification.gate_metrics`
+  (the post-v1.3 binary gate — worst-case-max aggregate per SPEC-05) to
+  `metrics.json` + `evaluation-receipt.json`. It uses the
+  `tau = 2·(t/T) − 1` map (`pinn/evaluate.py:267`). The researcher confirms
+  whether its prediction frame is the CONF-09 canonical residency and whether
+  its target construction matches — **if it does not, the fix is another `pinn/`
+  code change and folds into GAP-57-01's scope question.** Note this dependency.
+
+- **D-14: The EVAL-02 three preconditions are the v2.2 EVAL-01 structure,
+  adapted (roadmap SC5; v2.2 `REQUIREMENTS.md` "Evaluation Policy"):**
+  (i) **preflight conformance passes with zero unwaived divergences** — for
+  v2.3 this **includes** a complete GATE-04 PASS (D-05) on the amended recipe;
+  (ii) **the frame question is resolved** — for v2.3 this is CONF-09's canonical
+  `(r′, u = t/T)` contract, with the GAP-46-01 pairing proof (D-12) as its
+  evidence (the v2.2 CONF-01 / RG-02 operational raw/native frame was for the
+  historical diagnosis and does **not** carry into an EVAL-02 run); (iii)
+  **validation-side gate metrics are recorded** for the run being submitted.
+  No evaluation may be spent on a run that has not passed (i)–(iii). Phase 57 is
+  the **verifier** of the three preconditions; it re-checks them immediately
+  before the single invocation.
+
+- **D-15: The single invocation is exactly once, on the pre-registered seed's
+  run, on `checkpoints/best.pt`.** `pinn/evaluate.py`'s attempt/receipt
+  single-use claim is per owning run; the phase does not invoke it twice, does
+  not re-run on a fallback seed after a value is seen, and does not evaluate any
+  run other than the pre-registered one unless that run is **structurally
+  ineligible** (D-04 fallback).
+
+### 6. Conformance-only iteration (SCOPE-37) operationalized
+
+- **D-16: A change made during Phase 57 is "conformance-only" iff its
+  justification does NOT cite what a run produced.** (v2.2 Phase 50 iteration
+  policy, adapted from SCOPE-29 to SCOPE-37.) Fixing a code/spec mismatch
+  against the amended `pinn_architecture.md` §3.2, a preflight-divergence repair,
+  or an environment fix is conformance. Adjusting `η_c`, the `R_ref` /
+  normalization, `ω₀`, `N_t`/`n_col`, the LR schedule, the loss weights, or the
+  budget **because a run looked bad** is SCOPE-37-forbidden and routes to the
+  owner as a new decision. An honest invariant-B HALT is a **deliverable**, not
+  a failure to fix — the failure mode to guard against is an agent quietly
+  raising `N` and reporting a clean run.
+
+### 7. Execution environment
+
+- **D-17: Phase 57 runs inline on the data-bearing checkout — not via
+  worktree-isolated `gsd-executor` subagents.** (Project memory
+  `project-trainex-gitignored-data-inline-execution.md`: phases reading
+  gitignored `runs/` / `brutus_output/` / `ic_final/` cannot use fresh
+  worktrees — they lack the data; STOP-protocol phases also favour inline so the
+  parent owns gaps.) `config.json` already has `use_worktrees: false`.
+
+- **D-18: The training environment is the `pinn-train` conda env, invoked
+  off-PATH** (project memory `project-pinn-train-conda-env.md`):
+  `<home>/miniforge3/bin/conda run -n pinn-train ...`. The env has
+  **no pytest** — the dataset-free regression (D-12) and any GATE-04 re-run must
+  be runnable under `unittest`; do **not** install pytest during the run band
+  (it perturbs the env fingerprint the duration gate pins).
+
+- **D-19: The admitted-corpus data root is a run precondition the plan
+  resolves.** `pinn/data/adapter.py` (`default_data_root` / `DATA_ROOT_ENV` /
+  `ALLOW_PARTIAL_ENV`, `DataSourceRootMissing` / `DataSourceRootIncomplete`)
+  resolves the `simulation_data/` admitted set. Worktrees may lack the full
+  gitignored payload (project memory `project-dataset-payload-master-root-only.md`)
+  — the plan confirms the full admitted corpus is reachable (env var or
+  location) before the smoke, and the partial-copy guard is respected.
+
+### 8. Evidence contract
+
+- **D-20: Carry the v2.2 Phase 50 evidence contract forward** (format is
+  Claude's discretion, following the established layout): a **run ledger**, a
+  **band record** (per-seed validation `ε_H` distribution, quantiles), the
+  **pre-registration record** (D-04), a **config-delta record** proving the band
+  varied only `seed` / `run_name` (v2.2 D-04 — do not assert "the band varied
+  only the seed" without diffing the configs), the **checkpoint-③/④ packets and
+  their discharge records**, the **GATE-04 complete-PASS evidence** on the
+  amended recipe, the **GAP-46-01 pairing-proof artifacts**, and `sha256`
+  manifests for every extracted artifact. Two "checks that cannot fail" are
+  forbidden by the Phase-49 lesson and must be real: asserting "no evaluation
+  was spent" without checking for the `evaluation/` directory, and asserting
+  "the band varied only the seed" without diffing the configs.
+
+### Claude's Discretion
+
+The planner and executor own, without re-opening anything above: the wave
+decomposition and how D-09's no-commit-mid-band constraint is expressed in it;
+whether the smoke and the band extraction are one plan or several; attended
+(`python -m pinn.train`) versus unattended (`scripts/train-unattended.sh`)
+launch; the file format and layout of the run ledger, band record,
+pre-registration record, config-delta record, and evidence manifests; which
+quantiles the band distribution reports; the exact v2.3-distinct run names
+(only locked property: distinct from the v2.2 `stage0-rerun-seed4X` names);
+the dataset-free regression test's exact shape (only locked properties: no
+held-out access, runnable under `unittest`, committed); and the placement of
+evidence directories under `.planning/phases/57-*/evidence/<category>/<timestamp>/`.
+Those choices must preserve every decision above, add no dependency, introduce
+no new threshold or selection rule, and change nothing that enters a loss term,
+an optimizer, the data path, or a gate beyond what GAP-57-01 resolves.
+
+### Open Decisions surfaced to the owner (STOP protocol — not invented)
+
+Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
+
+- **GAP-57-01 (HIGH) — the amended-recipe implementation is homeless.** The
+  ratified proposal's Phase D scope included "**and implementation**"; Phase 56
+  executed the amendment spec-only and routed implementation to FUT-01, which
+  v2.3 defers. RUN-04 needs the amended §3.2 recipe in `pinn/` code
+  (collocation 16→4096, 16-bin bin-mean prefix, frozen `R_ref` normalization of
+  both the causal exponent and the outer `L_phys`). SCOPE-33 authorizes only
+  spec edits. Owner decides: **(A)** Phase 57 makes a bounded `pinn/`
+  conformance patch to the causal-loss + collocation path (SCOPE-37
+  "conformance-only iteration" reading; v2.2 Phases 46–49 code-to-spec
+  precedent); **(B)** insert a dedicated implementation phase before RUN-04;
+  **(C)** pull the full FUT-01 trainer rebuild into v2.3; **(D)** milestone
+  blocks pending a new scope decision. HIGH — blocks RUN-04 entirely, and the
+  change touches loss terms / optimizer / data path (the exact class v2.2 Phase
+  50 required be surfaced). Dependency-scoped: checkpoint-③/④ packet prep and
+  the EVAL-02 pairing-proof characterization proceed.
+
+- **Checkpoint ③ (owner-only) — invariant-B window `N` + fixed monitoring
+  context + GAP-54-06 L-BFGS semantics.** Blocking, before any run. Not a gap
+  (a standing owner checkpoint) — but named here so planning wires the packet
+  and the halt. The inherited **GAP-54-06** (`54-RULING.md`, DEFERRED to
+  checkpoint ③) is due here.
+
+- **Checkpoint ④ (owner-only) — EVAL-02 spending seed.** Blocking, pre-registered
+  in writing before RUN-04/05 execute.
+
+- **GAP-56-01 (owner, Phase-56-local) — GATE-04 condition (ii).** Must be
+  ratified and GATE-04 re-run to a complete PASS before RUN-04 may spend a run
+  (D-05). If the owner took option D, it joins the checkpoint-③ agenda.
+
+</decisions>
+
+<canonical_refs>
+## Canonical References
+
+**Downstream agents MUST read these before planning or implementing.**
+
+### Phase scope, owner checkpoints, and the terminal state
+- `.planning/ROADMAP.md` "Phase 57: Corrected Re-Run & the Preserved Evaluation"
+  — goal, dependency (Phase 56 GATE-04), the 5 success criteria, and the
+  "Adjudication discipline" block (owner checkpoints ③–⑤, the declared terminal
+  state, the gap-discipline rule).
+- `.planning/REQUIREMENTS.md` — RUN-04, RUN-05, EVAL-02 (verbatim); SCOPE-35
+  (single held-out evaluation), SCOPE-36 (Stage-0 only), SCOPE-37 (post-edit
+  iteration is conformance-only), SCOPE-38 (amend-a-locked-contract discipline);
+  "Owner Checkpoints" 3 & 4; "Declared Terminal State".
+- `.planning/milestones/v2.3-GAPS.md` — GAP-54-06 (DEFERRED to checkpoint ③
+  before RUN-04), GAP-56-01 (GATE-04 condition ii, OPEN), and the GAP-57-01
+  entry this discussion adds.
+- `docs/work/designs/cross_cutting/v2.3-milestone-proposal/2026-08-17-v2.3-roadmap-proposal.md`
+  — the ratified proposal; **line 267** ("Phase D: SPEC-01 + SPEC-06 amendment
+  **and implementation**; GATE-04") is the source of the GAP-57-01
+  proposal-vs-executed discrepancy.
+
+### The ratified recalibration and its downstream boundaries
+- `.planning/phases/54-recalibration-decision-grounding/54-RULING.md` — read in
+  full: the checkpoint-② ruling (`A1 + B2 residual-wide + C1 + D3 + E1`), the
+  "Checkpoint ② discharge — scientific basis" section, the **"Optimizer-phase
+  boundary — explicitly deferred"** paragraph (GAP-54-06), the **"Front-monitoring
+  boundary"** paragraph (checkpoint ③'s fixed-monitor requirement), the "Batch
+  allocation and bin policy" section, and the four SCOPE-38 re-ratification
+  blocks.
+- `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
+  §3.2 — the **amended** causal-weight / collocation / `R_ref` contract Phase 56
+  landed (Block 1 causal exponent, Block 4 collocation allocation, the frozen
+  `R_ref` definition + invalidation-trigger list, the re-issued AC-LOSS-04).
+  This is the spec of record the RUN-04 implementation must honour. Anchors are
+  line-drifted — re-derive by content.
+- `.planning/phases/56-contract-amendment-train-free-gate/56-CONTEXT.md` and
+  `56-OPEN-ITEMS.md` — D-01/D-02/D-03 (the amendment is transcription; `pinn/`
+  is not edited; the trainer rebuild is FUT-01); `56-OPEN-ITEMS.md` §1
+  (GAP-56-01 slot), §2 (the two `front_idx` structural findings the owner's
+  condition-(ii) ruling must account for), §3 (GAP-56-02).
+- `.planning/phases/56-contract-amendment-train-free-gate/56-VERIFICATION.md`
+  truth 3 — "no production file edited"; `pinn/train.py:1033` still
+  `collocation_count = 16`.
+
+### The direct analog — v2.2's Stage-0 re-run
+- `.planning/milestones/v2.2-phases/50-valid-stage-0-re-run/50-CONTEXT.md` —
+  **the pattern this phase adapts**: D-01 (budget = shipped config, not the
+  smoke), D-02 (comparability = protocol layer), D-04 (config-delta discipline),
+  D-07..D-12 (the pre-registration structure, seed-dependent split, ineligibility
+  -only fallback, no-eligible-seed → owner), D-13..D-17 (the calibration smoke as
+  a hard precondition, `S_H` cross-check, no-commit-mid-band), the iteration
+  policy, the evidence contract, and the "Specific Ideas" (one-job-one-temptation,
+  pre-registration expires, honest HALT is a deliverable, checks that cannot
+  fail).
+- `.planning/milestones/v2.2-REQUIREMENTS.md` "Evaluation Policy" — the EVAL-01
+  three preconditions (i)–(iii) verbatim, and the "corrected implementation is a
+  new question, not a re-run" clarification.
+- `.planning/milestones/v2.2-GAPS.md` — GAP-46-01 (the evaluator-pairing
+  obligation: canonical `r′` ↔ `u = t/T`, dataset-free assembly regression +
+  pre-access assertion), GAP-46-06 (the CONF-01 qualification), GAP-50-01..03
+  (the v2.2 band's DATA-06 / invariant-B HALT history), and "Milestone close".
+- `docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md`
+  — §6a/§6b/§6c: the retained seed-41 HALT log, the six-row initialization
+  table, the mechanism narrative.
+
+### Frame / residency contracts EVAL-02 depends on
+- `.planning/phases/47-frame-completion-s-h-pipeline/47-CONTEXT.md` — CONF-09's
+  `RATIFIED_VALIDATION_FRAME = (r_prime, u_t_over_T, ordered_raw)`, re-ratified
+  2026-07-31; the `S_H` / `ε_H` pipeline.
+- `pinn_instruction/markdown_conversion/framework-specs/ctl_instruction.md`
+  §10.6 (SPEC-05, worst-case-max aggregate), §3.1 (SPEC-04, `L_data` reduction),
+  `:567` (`ε_H` within-trajectory reduction).
+
+### Operating surface (read, do not modify beyond GAP-57-01's resolution)
+- `docs/runbooks/training/2026-07-18-stage0-training-operator-runbook.md` — the
+  five entry points (Setup / Configure / Launch / Monitor / Resume), the error
+  surface table, the M5-Pro notes.
+- `configs/stage0-example.yaml` (the shipped recipe: R-1, R-2, D4-a,
+  `front_advance_window_n: 500`), `configs/stage0-rerun-seed4{1,2,3}.yaml` +
+  `configs/stage0-rerun-smoke.yaml` (the v2.2 Phase 50 band configs — the
+  derivation base per D-08), `configs/smoke.yaml`.
+- `pinn/train.py` — `_check_duration_gate` (the `git_head`-pinned calibration
+  refusal), `--stage-0-only` (`:214`), `collocation_count = 16` (`:1033`, the
+  GAP-57-01 site).
+- `pinn/loss_catalog.py` — `causal_physics_loss(..., return_details=True)`,
+  `resolve_causal_clip_facts`; the raw per-point prefix that the amended recipe
+  restructures (GAP-57-01).
+- `pinn/verification/gate04_train_free.py` — GATE-04; `condition_ii_verdict`
+  (the GAP-56-01 slot), `condition_iii_diagnostics`, `Gate04Verdict`.
+- `pinn/verification/architecture_characterization_probe.py` — the INST-04
+  probe + `ratified_causal_weights` / `stratified_collocation_times` /
+  `bin_mean_residuals` helpers (the *specified* recipe arithmetic, as a
+  reference for the RUN-04 implementation).
+- `pinn/verification/artifacts/r_ref_stage0.json` — the frozen `R_ref` (written
+  by Phase 56 GATE-04); the amended recipe consumes this value.
+- `pinn/evaluate.py` — the EVAL-02 entry point (`--checkpoint`, `--output`
+  canonical-`evaluation/` guard, `tau = 2·(t/T) − 1` at `:267`); Phase-43
+  vintage, characterize against CONF-09 (D-13).
+- `pinn/data/splits.py` (`_partition_by_signature`, `SplitManifest`),
+  `pinn/data/adapter.py` (`default_data_root`, `DATA_ROOT_ENV`),
+  `pinn/training/run_metadata.py` (`compute_s_h` / `validate_s_h`),
+  `pinn/training/controllers.py` (invariant-B state, `front_idx`, `stage_0_only`),
+  `pinn/training/{guards,checkpoint,summary}.py`,
+  `pinn/conformance/{preflight,census,table,register}.py` +
+  `divergence_register.json` (the gate RUN-04 runs against real data;
+  `evaluate_eval01_precondition_i`).
+
+### Governance
+- `.worktrees/trainex/CLAUDE.md` "CRITICAL GOVERNANCE" — the STOP protocol
+  (v2.3 applicability), the git branch-awareness / destructive-op / commit
+  protocol, the docs placement rules.
+
+</canonical_refs>
+
+<code_context>
+## Existing Code Insights
+
+### Reusable Assets
+- **`configs/stage0-rerun-seed4{1,2,3}.yaml` + `stage0-rerun-smoke.yaml`** —
+  the v2.2 Phase 50 band configs (tracked, `abd5f8d9`). Copied verbatim from
+  `stage0-example.yaml`; the D-08 derivation base. Update only for the
+  re-ratified `N`, the GAP-57-01 recipe requirements, and v2.3-distinct run
+  names.
+- **`--stage-0-only` switch** (`pinn/train.py:214`,
+  `pinn/training/controllers.py:1670`) — shipped in v2.2 Phase 50; the SCOPE-36
+  enforcement mechanism. Fresh-run-only (rejects `--resume`).
+- **`_check_duration_gate`** (`pinn/train.py`) + `runs/.calibration/stage0-timing.json`
+  — the `git_head`-pinned calibration refusal; forces the D-09 calibration smoke.
+- **`pinn/evaluate.py`** — the one-time held-out gate: split reconstruction from
+  the owning run, single `.eval()` forward pass, `gate_metrics` render,
+  attempt/receipt single-use claim. Phase-43 vintage — needs D-13 characterization.
+- **`pinn/verification/gate04_train_free.py`** — GATE-04; RUN-04 imports and
+  calls it as a hard precondition (`56-CONTEXT.md` integration point). Its
+  verdict must be a **complete** PASS (not `INCOMPLETE`).
+- **`pinn/verification/architecture_characterization_probe.py`** — the
+  INST-04 probe and the `ratified_causal_weights` / `stratified_collocation_times`
+  / `bin_mean_residuals` / `RATIFIED_N_BINS` helpers: the specified recipe
+  arithmetic, available as a reference implementation for the GAP-57-01 patch.
+- **`pinn/verification/artifacts/r_ref_stage0.json`** — the frozen `R_ref`
+  (Phase 56 GATE-04 authoritative run, `20260907T033409Z`); the amended recipe
+  reads it, never recomputes online.
+- **The v2.2 Phase 50 evidence layout** (`.planning/milestones/v2.2-phases/50-*/evidence/{calibration,corpus,attempts,...}/`)
+  — the D-20 evidence-contract pattern.
+
+### Established Patterns
+- **Pre-registration is the cheapest protection and it expires** — seed,
+  checkpoint, and fallback order committed with a timestamp *before* the first
+  graded run are a receipt; the same choices written after are a rationalization
+  (the split is seed-dependent).
+- **The calibration smoke is a discovered precondition of the shipped code**, not
+  a discretionary de-risk step — every graded launch refuses without a matching
+  persisted calibration, and any commit between smoke and graded run invalidates
+  it.
+- **An honest invariant-B HALT is a deliverable.** The failure mode to guard is
+  an agent quietly raising `N` and reporting a clean run.
+- **STOP protocol** — v2.3 adjudication milestone; any source-silent
+  physics/spec/scope adjudication call is recorded in `57-GAPS.md` **and**
+  `.planning/milestones/v2.3-GAPS.md` and routed to the owner, never decided
+  inline. Subagents return findings; the parent decides gap status.
+- **Inline execution** (`use_worktrees: false`), conda `pinn-train` off-PATH, no
+  pytest in the env, per-phase test dirs (`tests/phase57/`), `agent-commit` with
+  `GIT_AGENT_ID` + `GIT_AGENT_OWNED_PATHS`, two-digit phase scope `57`.
+
+### Integration Points
+- **RUN-04 → `gate04_train_free`** — the import edge Phase 56 built to;
+  precondition call before any launch, verdict must be complete PASS.
+- **RUN-04 implementation → `pinn_architecture.md` §3.2** — the amended spec is
+  the contract the GAP-57-01 code change (whatever its authorized size) must
+  honour.
+- **EVAL-02 → `pinn/evaluate.py` → the pre-registered run's `checkpoints/best.pt`**
+  — single invocation; the pre-access assertion (D-12) fires before any `test`
+  split materialization.
+- **Checkpoint-③ ruling → the run configs** — the re-ratified `N` and the
+  fixed-monitor context enter `run.invariants` (and possibly a new monitor
+  block); the GAP-54-06 ruling governs the L-BFGS closure path in
+  `pinn/training/controllers.py`.
+- **Phase 58 (DIAG-06)** consumes the band record, the EVAL-02 result (or the
+  recorded terminal branch), and the checkpoint-③ provenance.
+
+</code_context>
+
+<specifics>
+## Specific Ideas
+
+- **The phase has one job and one temptation.** The job: produce a run that is
+  the specified experiment under the ratified recipe, and — only if it trains —
+  spend the one evaluation. The temptation: after the first number appears,
+  adjust a ratified value. Every decision above is answerable to that — if a
+  change's justification cites what a run produced, it is a new owner decision,
+  not this phase's work (SCOPE-37).
+- **This is v2.2's Phase 50 with a recipe that (should) train and an evaluation
+  that (may) be spent.** The v2.2 phase HALTed before pre-registration mattered;
+  this phase reaches the evaluation, so checkpoint ④ and the single-look
+  discipline are load-bearing, not precautionary.
+- **The declared terminal state is a clean close, not a failure.** GATE-04
+  refusing, or the front still not advancing, routes straight to a
+  `rethink`-flavoured DIAG-06 with the evaluation preserved unspent. Naming it
+  up front (roadmap SC5) is what keeps that outcome from becoming a drift into
+  an un-authorized tuning pass.
+- **Two "checks that cannot fail" are forbidden by the Phase-49 lesson** and
+  must be real here: asserting "no evaluation was spent" without checking for
+  the `evaluation/` directory, and asserting "the band varied only the seed"
+  without diffing the configs.
+
+</specifics>
+
+<deferred>
+## Deferred Ideas
+
+- **The full FUT-01 trainer rebuild** — a Future Requirement deferred beyond
+  v2.3 (`REQUIREMENTS.md` "Future Requirements"). GAP-57-01 asks the owner
+  whether a *bounded* subset of it (the causal-loss + collocation path) is
+  pulled forward to make RUN-04 possible; the full rebuild is not v2.3 scope.
+- **Stage-1+ / PLAT-01..07 platform work** — SCOPE-36; re-opens only on a `go`
+  verdict at DIAG-06 (Phase 58).
+- **The DIAG-06 go / adjust / rethink verdict and VER-21 traceability close** —
+  Phase 58, owner checkpoint ⑤.
+- **Any second held-out evaluation** — SCOPE-35; requires a new owner decision.
+- **Re-tuning `η_c` / `R_ref` / `ω₀` / `N_t` against an observed result** —
+  SCOPE-37; a new owner decision, not Phase 57 work.
+
+### Reviewed Todos (not folded)
+- **d-06-static-epsilon-sensitivity-check** (score 0.6, keyword-only match) — a
+  spec-side `epsilon_soft` dual-context sensitivity question with no VER-20
+  routing; folding it would breach SCOPE-33's narrow spec-edit authorization
+  (which in v2.3 is spent, Phases 53/56). Phases 55 and 56 both reviewed and did
+  not fold it — same disposition. Remains in `.planning/todos/pending/`; revisit
+  at milestone close.
+- **trainex-r1-research-handoff** (the r1b tuning round, score 0.6,
+  keyword-only) — unrelated to RUN/EVAL scope; not folded (same as Phases 55/56).
+
+</deferred>
+
+---
+
+*Phase: 57-Corrected Re-Run & the Preserved Evaluation*
+*Context gathered: 2026-09-07*
