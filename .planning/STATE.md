@@ -22,10 +22,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-04)
+See: .planning/PROJECT.md (updated 2026-09-07)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** Phase 56 — Contract Amendment & Train-Free Gate
+**Current focus:** Phase 57 — Corrected Re-Run & the Preserved Evaluation
 
 ## Current Position
 
