@@ -148,7 +148,7 @@ Plans:
 **Goal**: The ratified recalibration is law in the framework specs under SCOPE-38's amendment discipline, and a train-free gate refuses to let a Stage-0 run be spent on a recipe whose causal weighting is still saturated shut.
 **Depends on**: Phase 54 (the ratified decision — SCOPE-34 forbids opening this phase without it, including its `N_t` disposition) **and** Phase 55 (the probe GATE-04 fires). Both are hard gates, not preferences.
 **Requirements**: SPEC-01, SPEC-06, GATE-04
-**Plans**: 4/6 plans executed (0/6 complete) — planned 2026-09-06. Two owner gaps remain OPEN and are deliberately unresolved by these plans: GAP-56-01 (GATE-04 condition (ii)'s pass criterion and the controlled-reduction test design) is wired as a structurally-present, never-satisfiable slot; GAP-56-02 (§2.4 Table 1 locked-vs-default convention scope) is left entirely untouched. Both are recorded in `56-OPEN-ITEMS.md` at phase close.
+**Plans**: 6/6 plans executed (0/6 complete) — planned 2026-09-06; all six executed 2026-09-06/07. Two owner gaps remain OPEN and are deliberately unresolved by these plans: GAP-56-01 (GATE-04 condition (ii)'s pass criterion and the controlled-reduction test design) is wired as a structurally-present, never-satisfiable slot; GAP-56-02 (§2.4 Table 1 locked-vs-default convention scope) is left entirely untouched. Both, plus the two `front_idx` structural findings and the accepted Phase 38 spec-freeze-guard scoping decision, are recorded in `56-OPEN-ITEMS.md`. The finished GATE-04 gate was run once for the record over the six default cases (PASS, unratified: ii) and its evidence plus the regenerated authoritative `r_ref_stage0.json` are committed (`.planning/phases/56-contract-amendment-train-free-gate/evidence/gate04/20260907T033409Z/`). Phase verification (the act that flips this line's "complete" count and the GATE-04/SPEC-01/SPEC-06 requirement checkboxes) has not yet run.
 
 Plans:
 **Wave 1**
@@ -167,7 +167,7 @@ Plans:
 
 **Wave 4**
 
-- [ ] 56-06-PLAN.md — phase close-out: `56-OPEN-ITEMS.md` (GAP-56-01, GAP-56-02, the two `front_idx` structural findings, and the `tests/phase38` stale-guard scoping decision), plus the authoritative GATE-04 run and its evidence (GATE-04, SPEC-01)
+- [x] 56-06-PLAN.md — phase close-out: `56-OPEN-ITEMS.md` (GAP-56-01, GAP-56-02, the two `front_idx` structural findings, and the `tests/phase38` stale-guard scoping decision), plus the authoritative GATE-04 run and its evidence (GATE-04, SPEC-01)
 
 **Success Criteria** (what must be TRUE):
 

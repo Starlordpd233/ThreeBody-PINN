@@ -5,16 +5,16 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
 status: executing
-stopped_at: Completed 56-03-PLAN.md
-last_updated: "2026-09-07T03:16:32.031Z"
+stopped_at: Completed 56-06-PLAN.md
+last_updated: "2026-09-07T03:40:10.000Z"
 last_activity: 2026-09-07
-last_activity_desc: Plan 56-03 executed (SC5 demonstration — gate04_verdict proven to BLOCK the pre-amendment recipe naming condition (i) on all six audited cases, and PASS the amended recipe; executor recovered manually after a provider API error, see 56-03-SUMMARY.md)
-state_head: c99a341ccca896b4232a44b0b8cc6e02cc1af007
+last_activity_desc: Plan 56-06 executed (phase close-out — 56-OPEN-ITEMS.md records GAP-56-01 and GAP-56-02 as still OPEN with their structural findings, and the accepted Phase 38 pre-existing spec-freeze-guard failure with its four reasons; the finished GATE-04 gate was run once for the record — verdict PASS INCOMPLETE, unratified: ii, GAP-56-01 OPEN — and its evidence plus the regenerated authoritative r_ref_stage0.json artifact are committed; all six Phase 56 plans are now executed, phase verification pending)
+state_head: 48f52995b4ccb7fe7e57ce95afc550e63ed6d4dc
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
   percent: 50
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: 56 (Contract Amendment & Train-Free Gate) — EXECUTING
-Plan: 6 of 6 (56-01, 56-04, 56-02, 56-05, and 56-03 complete 2026-09-06/07; 56-06 (wave 4) remains)
-Status: Ready to execute
-Last activity: 2026-09-07 — Plan 56-03 executed (SC5 demonstration: gate04_verdict BLOCKs the pre-amendment recipe naming condition (i) on all six cases, PASSes the amended recipe; recovered manually after the dispatched executor was killed by a provider API error mid-task)
-Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-03-SUMMARY.md
+Phase: 56 (Contract Amendment & Train-Free Gate) — ALL PLANS EXECUTED, PHASE VERIFICATION PENDING
+Plan: 6 of 6 (56-01, 56-04, 56-02, 56-05, 56-03, and 56-06 all complete 2026-09-06/07)
+Status: All six plans executed; phase-close verification (`/gsd-verify-work` or equivalent) not yet run — REQUIREMENTS.md GATE-04/SPEC-01/SPEC-06 checkboxes and ROADMAP's Phase 56 completion marker are deliberately left for that separate act, per this milestone's established phase-close/verification-act precedent (Phases 49, 53, 55; plans 56-01/56-02/56-03/56-04/56-05)
+Last activity: 2026-09-07 — Plan 56-06 executed (phase close-out: `56-OPEN-ITEMS.md` records GAP-56-01 and GAP-56-02 as still OPEN with their structural findings and the accepted Phase 38 pre-existing failure; the finished GATE-04 gate was run once for the record — PASS INCOMPLETE, unratified: ii — and its evidence plus the regenerated authoritative `r_ref_stage0.json` artifact are committed)
+Resume file: None — next action is Phase 56 verification, not a further plan
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -481,6 +481,7 @@ Recent decisions affecting current work:
 - [Phase 56]: 56-02: condition_ii_verdict always raises NotImplementedError naming GAP-56-01; condition_ii/iii diagnostics are descriptive-statistics-only with status UNRATIFIED, no verdict-shaped field
 - [Phase 56]: 56-02: main() refreshes the governed r_ref_stage0.json artifact only for the default six-case run (args.cases_config is None), since a custom case list fails the artifact's own DEFAULT_CASES identity check
 - [Phase 56]: [Phase 56 Plan 56-05]: The two NOT-AMENDED contracts (§2.2 first_omega_0 fixed-at-30, §4.1 causal-exponent clip underflow-only purpose) are recorded separately and by name, each immediately adjacent to its own locked sentence, with Phase 20 ARCH-01 and GAP-56-02 named for the SIREN block and the ruling's observability addendum (reject non-finite before clipping, log unclipped exponent + guard-binding count, fail GATE-04 on init-time binding — explicitly stated as observability, not a repurposing of the clip) transcribed for the clip block. Three secondary reconciliation sentences land in prose only: the run-driver collocation_count=16 vs ratified 4096-total divergence (SPEC-06, D-03, no pinn/ file touched), the Listing-3 recommended-range wording reconciled as historical (D-11, closes 53-UNSWEPT-INVENTORY item 5, listing byte-unchanged), and the §4.1 eta_c=1 default bullet now cross-references the §3.2 re-issued AC-LOSS-04 instead of standing beside the still-displayed raw-residual formula (D-10, coefficient value byte-preserved). The render oracle was re-adjudicated (6 pre-existing entries corrected for a +2 line shift caused by the §2.2 insertion, re-verified by content match per 54-RULING.md's anchor-drift warning rather than assumed; 1 new entry for the NOT-AMENDED blockquote's first_omega_0 citations; the 12 pre-existing unrelated Phase 34/35 REVIEW findings left untouched) and a 13-test committed pytest guard (tests/phase56/test_spec_amendment_contract.py) now protects the whole transcription after the plan closes, with genuine RED/GREEN proven for its line/token-position check. Whole-plan diff carries exactly one removed line (the authorized eta_c cross-reference edit); render oracle 0 DEFINITE; no pinn/ file touched; §2.4 table untouched. ROADMAP Phase 56 success criteria 2 and 3 are now met.
+- [Phase 56]: [Phase 56 Plan 56-06]: Phase close-out. `56-OPEN-ITEMS.md` records, without resolving: GAP-56-01 (GATE-04 condition (ii) — `condition_ii_verdict` always raises naming the gap, `condition_ii_diagnostics` reports descriptive statistics only under `status: "UNRATIFIED"`, no numeric threshold anywhere in this phase's output, the four candidate options pointed at `56-GAPS.md` without ranking); the two structural findings the owner's ruling will need (all six audited cases show `front_idx=0` at init under the healthy amended recipe because each case's second weight already falls below the half threshold, and a residual reduction confined to the late bins cannot move `front_idx` at any magnitude because a weight depends only on the exclusive prefix over the bins before it); GAP-56-02 (§2.4 table scope, still untouched, three candidate mechanisms pointed at `56-GAPS.md`); and the accepted pre-existing Phase 38 spec-freeze-guard failure, with all four scoping reasons (outside SCOPE-33's grant on a plain reading; re-baselining would be self-certification; Phase 55 set the precedent; the base-reference choice is a governance decision, not a phase-scoped one) and the expected failure signature (exactly two failures, both naming the superseded SCOPE-18 prohibition) so a future red suite reads as this known condition rather than a new regression. Separately, the finished `gate04_train_free.py` (every Phase 56 plan landed) was run once for the record over the six default cases: verdict PASS (`unratified: ii`, GAP-56-01 OPEN), all six cases satisfy condition (i) (min weights 2.100040e-11 to 1.313271e-06, orders of magnitude above the float64 clamp floor), `front_idx=0` on all six as expected. `R_ref = 19749775821.24417` (numpy.median of 96 raw bin means) is numerically identical to every prior run in this phase (fully deterministic computation) but the regenerated, committed `pinn/verification/artifacts/r_ref_stage0.json` now carries this run's own provenance (commit `be823429`) rather than the 56-01 tracer's — the artifact that gates Phase 57's RUN-04 should carry the finished code path's provenance. The full command, tree state, verdict, per-case table, and reference value are recorded re-derivably in `.planning/phases/56-contract-amendment-train-free-gate/evidence/gate04/20260907T033409Z/` (raw.json + summary.md). Neither GAP-56-01 nor GAP-56-02 was resolved, narrowed, or pre-empted; the Phase 38 guard was not edited (`git status --porcelain -- tests/phase38/` empty); the Phase 38 spec-freeze baseline was not regenerated. REQUIREMENTS.md GATE-04/SPEC-01/SPEC-06 checkboxes and ROADMAP's Phase 56 completion marker deliberately NOT flipped by this executor — reserved for the phase-close/verification act, per this milestone's established precedent (Phases 49/53/55; every prior Phase 56 plan).
 
 ### Pending Todos
 
@@ -515,9 +516,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-09-06T17:31:23.000Z
-Stopped at: Completed 56-05-PLAN.md
-Next action: execute 56-03 (wave 3, SC5 demonstration: pre-amendment recipe frozen as a fixture, GATE-04 proven to return BLOCK on all six audited cases) and 56-06 (wave 4, phase close-out: 56-OPEN-ITEMS.md + authoritative GATE-04 run and its evidence). GAP-56-01 and GAP-56-02 remain OPEN.
+Last session: 2026-09-07T03:40:10.000Z
+Stopped at: Completed 56-06-PLAN.md
+Next action: Phase 56 verification (all six plans executed; `56-OPEN-ITEMS.md`, the authoritative GATE-04 evidence run, and the regenerated `r_ref_stage0.json` are committed). Once verified, Phase 57 (Corrected Re-Run & the Preserved Evaluation) is hard-gated on GATE-04 passing, which this phase's own run confirms on the amended recipe — subject to condition (ii) remaining unratified. GAP-56-01 and GAP-56-02 remain OPEN, owner-routed, and untouched by this phase.
 
 ## Operator Next Steps
 
