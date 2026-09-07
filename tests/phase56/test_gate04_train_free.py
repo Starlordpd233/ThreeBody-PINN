@@ -682,6 +682,20 @@ class Gate04CLIFailureModeTests(unittest.TestCase):
             if root.exists():
                 shutil.rmtree(root)
 
+    def test_dataset_r_ref_path_rejected_before_any_write(self):
+        gate = _load_gate()
+        path = ROOT / "simulation_data" / "phase56-cli-should-not-write" / "r_ref.json"
+        assert not path.parent.exists(), "test precondition: path must not pre-exist"
+        try:
+            exit_code = gate.main(["--r-ref-path", str(path)])
+            assert exit_code != 0
+            assert not path.parent.exists(), (
+                "r-ref-path's parent must not be created for a rejected path"
+            )
+        finally:
+            if path.parent.exists():
+                shutil.rmtree(path.parent)
+
 
 class Gate04CLINoBypassTests(unittest.TestCase):
     """The CLI adds no way to force a PASS or skip the gate (threat T-56-08/09).

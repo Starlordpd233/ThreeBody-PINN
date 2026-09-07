@@ -509,12 +509,19 @@ def condition_iii_diagnostics(
        check (the front index compared against zero) would reject every
        healthy case. A front index of 0 here is EXPECTED, not a failure
        signal.
-    2. A reduction confined to bins ``late_bin_start`` onward cannot move
-       ``front_idx`` at any magnitude, because the weight at bin ``n``
-       depends only on the exclusive prefix over bins ``0..n-1``: nothing
-       that happens at or after bin ``n`` can change it. A no-response
-       result from a late-bin-only perturbation is therefore a structural
-       artifact of the formula, not evidence about recipe health.
+    2. The weight at bin ``late_bin_start`` itself is guaranteed unaffected
+       by a reduction confined to bins ``late_bin_start`` onward, because it
+       depends only on the exclusive prefix over bins ``0..late_bin_start-1``
+       — strictly before the perturbed range. Weights at LATER indices are
+       not covered by this guarantee: their own exclusive prefixes include
+       the perturbed bins, so they can respond to a late-bin-only
+       perturbation in principle. For the six audited cases under the
+       amended recipe, the un-perturbed early-bin prefix already suppresses
+       every later weight far below the 0.5 front threshold, so no observed
+       ``front_idx`` change under this diagnostic is a fact about the
+       current residual magnitudes for these cases — not an algebraic
+       guarantee that holds for arbitrary ``late_bin_start`` or arbitrary
+       residual magnitudes.
 
     For each entry of ``factors`` (default
     :data:`CONDITION_III_DIAGNOSTIC_FACTORS`), this scales the normalized bin
@@ -921,6 +928,7 @@ def _cli_provenance(argv, args) -> dict:
         "torch_version": torch.__version__,
         "numpy_version": np.__version__,
         "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "pre_import_fallback": _PRE_IMPORT_FALLBACK,
     }
 
 
@@ -1012,16 +1020,18 @@ def main(argv=None):
     The case list resolves through the probe module's own
     ``load_cases_config`` when ``--cases-config`` is supplied, and through
     ``DEFAULT_CASES`` otherwise (D-07) — no second parser, no second case
-    list. The evidence root is checked against the probe's
-    dataset-evidence-root rejection BEFORE anything else runs, so a hostile
-    path is refused before the (potentially minutes-long) measurement is
-    even attempted, and before any directory is created.
+    list. Both CLI-supplied write targets — ``--evidence-root`` and
+    ``--r-ref-path`` — are checked against the probe's dataset-evidence-root
+    rejection BEFORE anything else runs, so a hostile path pointed at either
+    one is refused before the (potentially minutes-long) measurement is even
+    attempted, and before any directory is created.
     """
     args = _parse_args(argv)
     recorded_argv = list(argv) if argv is not None else sys.argv[1:]
 
     try:
         _reject_dataset_evidence_root(args.evidence_root)
+        _reject_dataset_evidence_root(args.r_ref_path)
     except Exception as exc:  # noqa: BLE001 - reported to the operator, not raised
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -1059,14 +1069,23 @@ def main(argv=None):
         atomic_write_text(
             run_dir / "raw.json", json.dumps(raw, sort_keys=True, indent=2) + "\n",
         )
-        # Refresh the governed R_ref artifact only for the canonical
-        # six-case default run (D-09): a custom --cases-config cannot match
-        # DEFAULT_CASES by construction, and write_r_ref_artifact's own
-        # fail-closed rule refuses to record an unidentified case.
-        if args.cases_config is None and verdict_obj is not None and verdict_obj.cases:
-            write_r_ref_artifact(verdict_obj, path=args.r_ref_path)
     except Exception:
         return 1
+
+    # Refresh the governed R_ref artifact only for the canonical six-case
+    # default run (D-09): a custom --cases-config cannot match DEFAULT_CASES
+    # by construction, and write_r_ref_artifact's own fail-closed rule
+    # refuses to record an unidentified case. This write is caught
+    # separately from the raw.json write above so a failure here (e.g. its
+    # own re-derivation consistency check) never suppresses the verdict line
+    # / evidence path already earned by a completed run — the operator must
+    # see the real verdict even when the governed artifact refresh fails.
+    r_ref_artifact_error = None
+    if args.cases_config is None and verdict_obj is not None and verdict_obj.cases:
+        try:
+            write_r_ref_artifact(verdict_obj, path=args.r_ref_path)
+        except Exception as exc:  # noqa: BLE001 - reported, never silently swallowed
+            r_ref_artifact_error = exc
 
     if verdict_obj is not None:
         line = f"verdict={verdict_obj.verdict}"
@@ -1080,6 +1099,12 @@ def main(argv=None):
         line = "verdict=NONE (GATE-04 did not complete)"
     print(line)
     print(f"evidence={run_dir}")
+    if r_ref_artifact_error is not None:
+        print(
+            f"error: failed to persist R_ref artifact: {r_ref_artifact_error}",
+            file=sys.stderr,
+        )
+        return 1
     return 0 if completed else 1
 
 
