@@ -5,16 +5,16 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 56
 current_phase_name: Contract Amendment & Train-Free Gate
 status: executing
-stopped_at: Completed 56-05-PLAN.md
-last_updated: "2026-09-06T17:31:23.000Z"
-last_activity: 2026-09-06
-last_activity_desc: Plan 56-05 executed (spec amendment completion — NOT-AMENDED records, secondary wordings, render-oracle re-adjudication, committed test guard)
-state_head: 499ca8bf0be707f09fc36053c75f6583697d93f4
+stopped_at: Completed 56-03-PLAN.md
+last_updated: "2026-09-07T03:16:32.031Z"
+last_activity: 2026-09-07
+last_activity_desc: Plan 56-03 executed (SC5 demonstration — gate04_verdict proven to BLOCK the pre-amendment recipe naming condition (i) on all six audited cases, and PASS the amended recipe; executor recovered manually after a provider API error, see 56-03-SUMMARY.md)
+state_head: c99a341ccca896b4232a44b0b8cc6e02cc1af007
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 24
-  completed_plans: 22
+  completed_plans: 23
   percent: 50
 ---
 
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 ## Current Position
 
 Phase: 56 (Contract Amendment & Train-Free Gate) — EXECUTING
-Plan: 5 of 6 (56-01, 56-04, 56-02, and 56-05 complete 2026-09-06; 56-03 (wave 3) and 56-06 (wave 4) remain)
+Plan: 6 of 6 (56-01, 56-04, 56-02, 56-05, and 56-03 complete 2026-09-06/07; 56-06 (wave 4) remains)
 Status: Ready to execute
-Last activity: 2026-09-06 — Plan 56-05 executed (spec amendment completion: NOT-AMENDED records, secondary wordings, render-oracle re-adjudication, committed test guard)
-Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-05-SUMMARY.md
+Last activity: 2026-09-07 — Plan 56-03 executed (SC5 demonstration: gate04_verdict BLOCKs the pre-amendment recipe naming condition (i) on all six cases, PASSes the amended recipe; recovered manually after the dispatched executor was killed by a provider API error mid-task)
+Resume file: .planning/phases/56-contract-amendment-train-free-gate/56-03-SUMMARY.md
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution

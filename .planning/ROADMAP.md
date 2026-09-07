@@ -163,7 +163,7 @@ Plans:
 
 **Wave 3**
 
-- [ ] 56-03-PLAN.md — SC5 demonstration: the pre-amendment recipe frozen as a committed fixture, and the same verdict function proven to return BLOCK on all six audited cases (GATE-04)
+- [x] 56-03-PLAN.md — SC5 demonstration: the pre-amendment recipe frozen as a committed fixture, and the same verdict function proven to return BLOCK on all six audited cases (GATE-04)
 
 **Wave 4**
 
