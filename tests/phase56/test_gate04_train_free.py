@@ -8,6 +8,7 @@ verdict function, and the persisted ``r_ref_stage0.json`` schema.
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import json
 import math
@@ -40,6 +41,13 @@ FROZEN_TOP_LEVEL_KEYS = frozenset({
     "invalidation_triggers",
     "valid",
 })
+# SC5 demonstration fixture (56-03 Task 1): the pre-amendment recipe's
+# recorded, known-degenerate six-case output. A second, independent fixture
+# path from the RatifiedCausalWeightsTests/Gate04VerdictTests suite above,
+# each protected by its own SHA-256 integrity guard.
+PRE_AMENDMENT_FIXTURE_PATH = (
+    pathlib.Path(__file__).resolve().parent / "fixtures" / "pre_amendment_baseline.json"
+)
 
 
 def _load_gate():
@@ -65,6 +73,12 @@ def _load_ratified_weights():
             f"ratified_causal_weights has not landed yet in {PROBE_MODULE} "
             "(56-01 Task 2 step 3)"
         ) from exc
+
+
+def _load_pre_amendment_fixture():
+    """Load the committed SC5 fixture (56-03 Task 1) — never regenerated here."""
+    with PRE_AMENDMENT_FIXTURE_PATH.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
 
 
 def _clip_floor():
@@ -101,6 +115,18 @@ def _synthetic_case(gate, *, label="synthetic", seed=999, raw=None, r_tilde=None
         condition_i_satisfied=condition_i_satisfied,
         condition_ii_diagnostics=None,
         condition_iii_diagnostics=None,
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _assert_pre_amendment_baseline_sha256_unchanged():
+    """SC5 integrity guard (56-03 Task 2) — separate from any guard 56-01 or
+    56-02 added, protecting this specific committed fixture only."""
+    digest = hashlib.sha256(PRE_AMENDMENT_FIXTURE_PATH.read_bytes()).hexdigest()
+    yield
+    assert hashlib.sha256(PRE_AMENDMENT_FIXTURE_PATH.read_bytes()).hexdigest() == digest, (
+        "tests/phase56/fixtures/pre_amendment_baseline.json was rewritten during "
+        "the suite; the SC5 demonstration baseline must never heal itself"
     )
 
 
@@ -672,3 +698,103 @@ class Gate04CLINoBypassTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         for word in ("force", "skip_gate", "allow_block", "ignore_verdict"):
             assert word not in source, word
+
+
+class Gate04PreAmendmentDemonstrationTests(unittest.TestCase):
+    """SC5 (ROADMAP Phase 56 success criterion 5): ``gate04_verdict`` — the
+    SAME function ``run_gate`` calls for the amended recipe — BLOCKs the
+    pre-amendment recipe's six recorded cases (naming condition (i) for
+    every one) and PASSes the amended recipe's six live cases. Two inputs,
+    one verdict function, opposite outcomes: that pairing is what makes this
+    a demonstration rather than a tautology (T-56-15). No demonstration-only
+    verdict path is defined in this file — every assertion below calls
+    ``gate.gate04_verdict`` or ``gate._blocking_reasons``, the exact private
+    audit ``gate04_verdict`` itself calls internally (mirrors how
+    ``run_gate`` assembles a ``Gate04Verdict`` from those same two calls).
+
+    Case construction reuses ``_synthetic_case`` (not a parallel builder):
+    each pre-amendment case's real recorded ``causal_weights`` and
+    ``front_idx`` (56-03 Task 1 fixture) are fed through the module's own
+    frozen ``Gate04CaseResult`` dataclass, so the inputs travel the same
+    validation path a live measurement takes. ``raw_bin_means``/``r_tilde``
+    are not part of this fixture's schema (only the per-case median is) and
+    play no role in condition (i)'s floor check (``_blocking_reasons`` reads
+    only ``weights`` for that rule), so ``_synthetic_case``'s finite
+    placeholder default is used for both, exactly as the existing
+    ``Gate04VerdictTests`` floor-boundary tests already do.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.gate = _load_gate()
+        cls.floor = _clip_floor()
+        fixture = _load_pre_amendment_fixture()
+        cls.fixture_cases = fixture["cases"]
+        assert len(cls.fixture_cases) == 6, cls.fixture_cases
+        cls.pre_amendment_cases = tuple(
+            _synthetic_case(
+                cls.gate,
+                label=entry["label"],
+                seed=entry["seed"],
+                weights=entry["causal_weights"],
+                front_idx=entry["front_idx"],
+            )
+            for entry in cls.fixture_cases
+        )
+        # The paired positive: one real, live amended-recipe six-case run,
+        # paid once for the whole class (mirrors Gate04CLIDefaultRunTests'
+        # own ~200s-once-per-class amortization, not a second measurement).
+        cls.amended_verdict = cls.gate.run_gate()
+
+    def test_pre_amendment_recipe_blocks_every_case_individually(self):
+        for entry, case in zip(self.fixture_cases, self.pre_amendment_cases):
+            with self.subTest(label=entry["label"]):
+                verdict = self.gate.gate04_verdict(
+                    [case], causal_clip_min_weight=self.floor,
+                )
+                assert verdict == self.gate.VERDICT_BLOCK, entry["label"]
+
+    def test_pre_amendment_recipe_blocking_reasons_name_condition_i(self):
+        for entry, case in zip(self.fixture_cases, self.pre_amendment_cases):
+            with self.subTest(label=entry["label"]):
+                reasons = self.gate._blocking_reasons(
+                    [case], causal_clip_min_weight=self.floor,
+                )
+                assert reasons, entry["label"]
+                assert any(
+                    "clamp floor" in reason and "condition (i)" in reason
+                    for reason in reasons
+                ), (entry["label"], reasons)
+
+    def test_pre_amendment_recipe_blocks_all_six_at_once(self):
+        verdict = self.gate.gate04_verdict(
+            self.pre_amendment_cases, causal_clip_min_weight=self.floor,
+        )
+        assert verdict == self.gate.VERDICT_BLOCK
+        reasons = self.gate._blocking_reasons(
+            self.pre_amendment_cases, causal_clip_min_weight=self.floor,
+        )
+        # Exact "case <label!r>:" prefix match — plain substring containment
+        # would let label "41" false-match inside "41-variable-mass"'s reasons.
+        named = {
+            entry["label"]
+            for entry in self.fixture_cases
+            if any(
+                reason.startswith(f"case {entry['label']!r}:")
+                and "condition (i)" in reason
+                for reason in reasons
+            )
+        }
+        assert named == {entry["label"] for entry in self.fixture_cases}, (named, reasons)
+
+    def test_pre_amendment_paired_amended_recipe_passes(self):
+        verdict = self.amended_verdict
+        assert verdict.verdict == self.gate.VERDICT_PASS, verdict.blocking_reasons
+        # Re-invoke gate04_verdict directly on the live verdict's own case
+        # results: the SAME function the BLOCK assertions above call, fed the
+        # amended recipe's real measured cases -- not a second, demonstration-
+        # only path.
+        replayed = self.gate.gate04_verdict(
+            verdict.cases, causal_clip_min_weight=verdict.causal_clip_min_weight,
+        )
+        assert replayed == self.gate.VERDICT_PASS
