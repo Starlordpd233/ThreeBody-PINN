@@ -5,11 +5,11 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 57
 current_phase_name: Corrected Re-Run & the Preserved Evaluation
 status: planning
-stopped_at: Phase 56 complete, ready to plan Phase 57
-last_updated: "2026-09-07T04:51:12.507Z"
+stopped_at: Phase 57 context gathered (57-CONTEXT.md); GAP-57-01 open + checkpoints 3/4 blocking before any run
+last_updated: "2026-09-07T12:40:00.000Z"
 last_activity: 2026-09-07
-last_activity_desc: Phase 56 complete, transitioned to Phase 57
-state_head: f4f6ac989daba00ae5739b28b8f92c7950071703
+last_activity_desc: Phase 57 discuss step complete; 57-CONTEXT.md + 57-GAPS.md (GAP-57-01 HIGH) committed c752fb65
+state_head: c752fb65
 progress:
   total_phases: 6
   completed_phases: 4
@@ -31,9 +31,9 @@ See: .planning/PROJECT.md (updated 2026-09-07)
 
 Phase: 57 — Corrected Re-Run & the Preserved Evaluation
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-09-07 — Phase 56 verified (56-VERIFICATION.md, passed 6/6) and marked complete; transitioned to Phase 57
-Resume file: None — next action is Phase 57 planning (/gsd-plan-phase 57 or equivalent)
+Status: Context gathered — planning may begin on the independent (dependency-scoped-unblocked) surfaces; RUN-04 implementation blocked on GAP-57-01
+Last activity: 2026-09-07 — Phase 57 discuss step complete (`57-CONTEXT.md`, `57-DISCUSSION-LOG.md`, `57-GAPS.md`); GAP-57-01 (HIGH, the amended-recipe implementation is homeless) surfaced to the owner; v2.3-GAPS.md updated
+Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-CONTEXT.md — next action is `/gsd-plan-phase 57`; the owner must rule on GAP-57-01 and discharge checkpoints ③ (window N + fixed monitor + GAP-54-06) and ④ (EVAL-02 seed) before any run executes
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
