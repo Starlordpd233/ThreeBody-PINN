@@ -122,6 +122,8 @@ Follow-up commits required to keep the committed evidence current and wording ac
 4. **Align the resolved Gate diagnostic wording** — `dda7cf7c` (`fix(57-04)`)
 5. **Refresh production evidence on the final code HEAD** — `87e50573` (`verify(57-04)`)
 
+**Plan metadata:** `ccadbea9` (`docs(57-04)`)
+
 ## Validation Evidence
 
 - Exact Gate command under `pinn-train` — **PASS COMPLETE**; fresh raw evidence and governed R_ref provenance match.
