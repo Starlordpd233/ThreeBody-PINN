@@ -4,18 +4,18 @@ milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 57
 current_phase_name: Corrected Re-Run & the Preserved Evaluation
-status: ready
-stopped_at: Phase 57 planned — 6 plans / 6 waves / 18 tasks; implementation and complete GATE-04 remain pre-run
-last_updated: "2026-09-08T04:21:40.167Z"
+status: in_progress
+stopped_at: Plan 57-01 complete — 46 focused stdlib-unittest tests committed, all RED for the missing bounded amended-recipe conformance patch; no production code changed; plans 57-02..57-06 remain
+last_updated: "2026-09-08T05:33:42Z"
 last_activity: 2026-09-08
-last_activity_desc: Phase 57 planning complete — 57-RESEARCH.md maps the bounded production seams; 57-01..57-06 define six dependency-ordered waves and 18 tasks; 57-VALIDATION.md maps 18 tasks to 19 commands. The independent gsd-plan-checker passed after one revision, canonical decision coverage passed 20/20, and the post-planning gap check passed 23/23 requirements plus decisions. No implementation, training, or held-out evaluation has started.
-state_head: 7ec4f54b
+last_activity_desc: Plan 57-01 executed — three task commits added tests/phase57/ (46 tests across test_recipe_production_path.py, test_runtime_freeze.py, test_gate_and_evaluation.py, plus _fixtures.py) encoding the exact §3.2 allocation/normalization, invariant-B monitor, L-BFGS freeze, GATE-04 condition-(ii), and EVAL-02 canonical-frame contracts. Full tests/phase57/ discovery: 46 tests, 40 fail (29 failures + 11 errors), 6 legitimate protective pins pass; zero import/syntax/fixture/data/environment errors. No production code, training, or held-out evaluation touched.
+state_head: 4d51ba67
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 30
-  completed_plans: 24
-  percent: 67
+  completed_plans: 25
+  percent: 83
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-09-07)
 ## Current Position
 
 Phase: 57 — Corrected Re-Run & the Preserved Evaluation
-Plan: 6 plans created (57-01..57-06), 6 waves / 18 tasks — not yet executed
-Status: Ready to execute. Plans 57-01 through 57-04 implement and independently verify the bounded amended-recipe path, produce a fresh complete GATE-04 result, and harden the evaluation boundary without starting training. Plans 57-05 and 57-06 are non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
-Last activity: 2026-09-08 — Phase 57 research, six execution plans, and the Nyquist validation strategy completed; gsd-plan-checker passed and decision coverage passed 20/20.
-Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-01-PLAN.md — next action is `/gsd-execute-phase 57`; execution begins with Wave-0 tests, not training.
+Plan: 57-01 of 6 complete (57-01..57-06); 6 waves / 18 tasks total for the phase
+Status: In progress. Plan 57-01 (Wave 0) landed the complete, focused, dataset-free/held-out-free `tests/phase57/` contract (46 tests across 3 modules; see `57-01-SUMMARY.md`) — all RED against current production code for the missing bounded amended-recipe conformance, never for an import/syntax/fixture/data/environment reason. No production code, training, or held-out evaluation has started. Plans 57-02/57-03 implement and independently verify the bounded amended-recipe path and produce a fresh complete GATE-04 result; plans 57-05/57-06 remain non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
+Last activity: 2026-09-08 — Plan 57-01 executed: `tests/phase57/{__init__.py,_fixtures.py,test_recipe_production_path.py,test_runtime_freeze.py,test_gate_and_evaluation.py}` committed across 3 task commits (`21e05bab`, `53eba812`, `4d51ba67`); full-suite discovery run 46 tests / 40 non-ok, verified before each commit.
+Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-02-PLAN.md — next action is the bounded production-conformance implementation wave (57-RESEARCH.md wave 2), driving the tests/phase57/ suite this plan committed to green through the exact API shapes recorded in 57-01-SUMMARY.md's key-decisions.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -52,6 +52,38 @@ them re-derivably where re-typing several thousand characters by hand would not.
 `completed_plans` was re-derived from disk (twelve `*-SUMMARY.md` files across the
 two v2.3 phase directories) rather than incremented from the value the tooling
 left.
+
+### Decisions from 57-01 (2026-09-08)
+
+- **RED-only wave, no production code.** Plan 57-01 committed 46 focused
+  stdlib-unittest tests across `tests/phase57/{test_recipe_production_path,
+  test_runtime_freeze,test_gate_and_evaluation}.py` plus `_fixtures.py`; zero
+  `pinn/` files created or modified. `workflow.tdd_mode` is not set in
+  `.planning/config.json`, so the plan's `type: tdd` frontmatter carries no
+  enforced GREEN/REFACTOR gate in this checkout — see `57-01-SUMMARY.md`
+  "TDD Gate Compliance".
+- **The bounded conformance API contract is now fixed by test, not prose.**
+  `causal_physics_loss` must gain keyword-only `r_ref` (required) and
+  `frozen_weights` (optional); `condition_ii_verdict` changes from
+  `(weights) -> None-always-raises` to `(raw_bin_means, r_ref, ...) ->
+  Mapping`; `build_checkpoint_payload`/`RunController.state_dict()` need new
+  `front_monitor`/`lbfgs_segment_state` keys; `pinn.evaluate` needs a new
+  `assert_canonical_frame_precondition()` called before
+  `StageIndex.from_split`; a new `pinn.verification.candidate_eligibility`
+  module hosts the ported Phase-50 four-fact eligibility/selection pattern
+  and a terminal-vs-blocking run-outcome classifier. Full detail and
+  rationale: `57-01-SUMMARY.md` frontmatter `key-decisions`.
+- **`condition_ii_verdict`'s six-case check replays real committed Phase-56
+  evidence, not a fresh network measurement.** A full `compute_r_ref` over
+  `DEFAULT_CASES` timed at 167s — too slow for a routine unit suite. The
+  sha256-pinned `.planning/phases/56-contract-amendment-train-free-gate/
+  evidence/gate04/20260907T033409Z/raw.json` is the six-case data source
+  instead; the real production-path re-measurement is explicitly a later,
+  separate verification wave's job (57-RESEARCH.md wave 4).
+- **`completed_plans` corrected to 25/30 (83%), not the stale 24/30 shown as
+  "67%".** The prior `percent: 67` did not match its own paired counts
+  (24/30 = 80%, not 67%) — a pre-existing STATE.md data error, corrected
+  here as the same field is updated (Rule 1), not a separate cleanup pass.
 
 ### Phase 57 owner decisions (2026-09-08)
 
@@ -270,6 +302,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | 53 | 1 | - | - |
 | 54 | 13 | 6 waves + 6 post-delivery waves | complete 2026-09-04 |
 | 56 | 6 | - | - |
+| 57 | 6 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -308,6 +341,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 56 P04 | 15 min | 3 tasks | 1 files |
 | Phase 56 P02 | 52 min | 2 tasks | 3 files |
 | Phase 56 P05 | 15 min | 3 tasks | 3 files |
+| Phase 57 P01 | 63 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
