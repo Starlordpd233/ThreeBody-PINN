@@ -182,7 +182,40 @@ Plans:
 **Goal**: Stage-0 is re-run under the corrected recipe and — only if it actually trains — the single preserved held-out evaluation is spent, once, on a seed fixed before anyone saw a result.
 **Depends on**: Phase 56 — GATE-04 must pass before a Stage-0 run may be spent (SCOPE-35's single-look protection).
 **Requirements**: RUN-04, RUN-05, EVAL-02
-**Plans**: TBD
+**Plans**: 6 plans (0/6 complete) — planned 2026-09-08. Plans 57-01 through 57-04 are the bounded conformance, verification, and pre-run authorization work; 57-05 and 57-06 are non-autonomous and retain explicit operator checkpoints before expensive training and before the sole held-out evaluation.
+
+Plans:
+
+**Wave 1**
+
+- [ ] 57-01-PLAN.md — Wave-0 stdlib `unittest` contracts for the real production path, normalization and gradients, monitor/window and L-BFGS freeze semantics, exact GATE-04, immutable band evidence, and the one-look boundary (RUN-04, RUN-05, EVAL-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 57-02-PLAN.md — exact 4096-row / 16-bin all-slot allocation, frozen-`R_ref` causal normalization, controller integration, live model gradients, energy-point reuse, and raw/normalized diagnostics (RUN-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 57-03-PLAN.md — strict runtime configuration, one frozen training-only invariant-B monitor distinct from the 500-accepted-step deadline, segment-frozen L-BFGS samples/weights with exact resume, and derived smoke/band configs (RUN-04, RUN-05)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 57-04-PLAN.md — fresh exact six-case GATE-04 and governed `R_ref`, separate final-artifact-bound production conformance, canonical evaluator pre-access assertion, and Phase-57 evidence tooling (RUN-04, RUN-05, EVAL-02)
+
+**Wave 5** *(blocked on Wave 4 completion; operator checkpoint before compute)*
+
+- [ ] 57-05-PLAN.md — immutable-HEAD seed-42 smoke and seeds 41/42/43 Stage-0 band, or the ratified scientific terminal-unspent state; resource and operational failures remain incomplete rather than being normalized into success (RUN-04, RUN-05)
+
+**Wave 6** *(blocked on Wave 5 completion; operator checkpoint before the held-out look)*
+
+- [ ] 57-06-PLAN.md — structural-only candidate selection in order 42, 41, 43; immediate three-precondition and canonical-frame proof; exactly one evaluation invocation or a durable authorized unspent record (EVAL-02)
+
+Cross-cutting constraints:
+
+- The production and verification paths require exactly 4096 physics rows in 16 equal-time bins, contributions from every selected slot, and the one frozen governed `R_ref`; resource failure blocks rather than reducing the sample count.
+- The invariant-B monitor is one frozen training-only context and is independent of the re-ratified 500-accepted-step no-advance deadline; L-BFGS samples and detached causal weights remain frozen for the full segment and across resume.
+- No Stage-0 run starts without both a fresh complete six-case GATE-04 PASS and separate production-path conformance bound to the same final `R_ref` provenance.
+- The smoke and every attempted graded run share one immutable fingerprinted HEAD, and the held-out evaluation remains inaccessible until structural selection and all three preconditions pass immediately before its sole invocation.
 
 **Success Criteria** (what must be TRUE):
 
@@ -216,7 +249,7 @@ Plans:
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
 | 55. Architecture Characterization Probe | v2.3 | 4/4 | Complete | 2026-09-06 |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 6/6 | Complete    | 2026-09-07 |
-| 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 0/? | Not started | - |
+| 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 0/6 | Planned | - |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |
 
 ---

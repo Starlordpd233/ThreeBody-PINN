@@ -159,8 +159,8 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   candidate exists, the evaluation remains unspent. `57-RULING.md` and its
   commit ancestry are the pre-run registration.
 
-- **D-05: The GATE-04 precondition must be a *complete* PASS — GAP-56-01 is
-  resolved, but production wiring and a fresh gate run remain.** Phase 56
+- **D-05:** The GATE-04 precondition must be a *complete* PASS — GAP-56-01 is
+  resolved, but production wiring and a fresh gate run remain. Phase 56
   shipped GATE-04 with conditions
   (i) and (iii) wired and condition (ii) — "a weight vector carrying
   differential information (not all-floor, not degenerate)" and the re-issued
@@ -279,8 +279,8 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   governed separately by D-12 / GAP-46-01, not by the causal-path authorization
   in resolved GAP-57-01.** Note this independent Phase-57 code path.
 
-- **D-14: The EVAL-02 three preconditions are the v2.2 EVAL-01 structure,
-  adapted (roadmap SC5; v2.2 `REQUIREMENTS.md` "Evaluation Policy"):**
+- **D-14:** The EVAL-02 three preconditions are the v2.2 EVAL-01 structure,
+  adapted (roadmap SC5; v2.2 `REQUIREMENTS.md` "Evaluation Policy"):
   (i) **preflight conformance passes with zero unwaived divergences** — for
   v2.3 this **includes** a complete GATE-04 PASS (D-05) on the amended recipe;
   (ii) **the frame question is resolved** — for v2.3 this is CONF-09's canonical

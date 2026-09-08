@@ -4,16 +4,16 @@ milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 57
 current_phase_name: Corrected Re-Run & the Preserved Evaluation
-status: planning
-stopped_at: Phase 57 decisions ratified; ready for research and planning, with implementation and complete GATE-04 still pre-run
-last_updated: "2026-09-08T02:05:10.000Z"
+status: ready
+stopped_at: Phase 57 planned — 6 plans / 6 waves / 18 tasks; implementation and complete GATE-04 remain pre-run
+last_updated: "2026-09-08T04:21:40.167Z"
 last_activity: 2026-09-08
-last_activity_desc: GAP-56-01, GAP-54-06, and checkpoints 3/4 resolved by direct owner instruction; exact record in 57-RULING.md
-state_head: 6ad6c5b9
+last_activity_desc: Phase 57 planning complete — 57-RESEARCH.md maps the bounded production seams; 57-01..57-06 define six dependency-ordered waves and 18 tasks; 57-VALIDATION.md maps 18 tasks to 19 commands. The independent gsd-plan-checker passed after one revision, canonical decision coverage passed 20/20, and the post-planning gap check passed 23/23 requirements plus decisions. No implementation, training, or held-out evaluation has started.
+state_head: 7ec4f54b
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 24
+  total_plans: 30
   completed_plans: 24
   percent: 67
 ---
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-09-07)
 ## Current Position
 
 Phase: 57 — Corrected Re-Run & the Preserved Evaluation
-Plan: Not started
-Status: Context and all pre-planning owner decisions gathered — ready for Phase 57 research and planning. RUN-04 remains blocked on bounded production implementation, separate verification, and a new complete GATE-04 PASS.
-Last activity: 2026-09-08 — owner directly resolved GAP-56-01 (`2:1` non-anchor spread plus fixed full-residual response), checkpoint ③/GAP-54-06 (`N = 500`, one frozen training-only monitor, segment-frozen L-BFGS samples/weights), and checkpoint ④ (seed 42; fallback 41 then 43 only for structural ineligibility).
-Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-CONTEXT.md — next action is `/gsd-plan-phase 57`; `57-RULING.md` is the exact governing decision and pre-registration record.
+Plan: 6 plans created (57-01..57-06), 6 waves / 18 tasks — not yet executed
+Status: Ready to execute. Plans 57-01 through 57-04 implement and independently verify the bounded amended-recipe path, produce a fresh complete GATE-04 result, and harden the evaluation boundary without starting training. Plans 57-05 and 57-06 are non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
+Last activity: 2026-09-08 — Phase 57 research, six execution plans, and the Nyquist validation strategy completed; gsd-plan-checker passed and decision coverage passed 20/20.
+Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-01-PLAN.md — next action is `/gsd-execute-phase 57`; execution begins with Wave-0 tests, not training.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
