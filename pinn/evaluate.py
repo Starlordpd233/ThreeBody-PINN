@@ -47,6 +47,7 @@ import json
 import math
 import os
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -64,6 +65,7 @@ from pinn.train import _resolve_blacklist_path
 from pinn.training.atomic_io import atomic_write_text
 from pinn.training.config_yaml import load_config
 from pinn.training.summary import refresh_completed_summary
+from pinn.training import validation_gate
 from pinn.verification import gate_metrics
 
 __all__ = [
@@ -75,6 +77,7 @@ __all__ = [
     "EmptyTestSetError",
     "EvaluationReceiptExistsError",
     "EvaluationOutcome",
+    "assert_canonical_frame_precondition",
     "evaluate_run",
     "main",
 ]
@@ -106,6 +109,49 @@ class EvaluationReceiptExistsError(RuntimeError):
     automatic rerun is authorized unless an explicit new milestone procedure
     changes the contract.
     """
+
+
+def assert_canonical_frame_precondition(frame=None):
+    """Require the ratified ``(r_prime, u_t_over_T, ordered_raw)`` frame.
+
+    This is deliberately a cheap, dataset-free assertion.  ``evaluate_run``
+    calls it before constructing ``SplitManifest``, ``AdmittedSetAdapter``, or
+    ``StageIndex`` so a future evaluator assembly cannot materialize held-out
+    records under a raw/native or otherwise incoherent pairing.
+    """
+    expected = validation_gate.RATIFIED_VALIDATION_FRAME
+    if frame is None:
+        actual = expected
+    elif isinstance(frame, Mapping):
+        try:
+            actual = validation_gate.FrameConvention(**dict(frame))
+        except (TypeError, ValueError) as exc:
+            raise validation_gate.IncoherentFrameError(
+                f"canonical frame mapping is invalid: {exc}"
+            ) from exc
+    else:
+        actual = frame
+    required = (
+        validation_gate.POSITION_FRAME_SCALED,
+        validation_gate.TIME_COORD_NORMALIZED,
+        validation_gate.MASS_CONVENTION_ORDERED_RAW,
+    )
+    observed = (
+        getattr(actual, "position_frame", None),
+        getattr(actual, "time_coord", None),
+        getattr(actual, "mass_convention", None),
+    )
+    if observed != required:
+        raise validation_gate.IncoherentFrameError(
+            "EVAL-02 requires the canonical validation frame "
+            f"(r_prime, u_t_over_T, ordered_raw); got {observed!r}"
+        )
+    evidence_ref = getattr(actual, "conf01_evidence_ref", None)
+    if not isinstance(evidence_ref, str) or not evidence_ref.strip():
+        raise validation_gate.IncoherentFrameError(
+            "canonical validation frame is missing its CONF-09 evidence reference"
+        )
+    return actual
 
 
 # ---------------------------------------------------------------------------
@@ -335,6 +381,9 @@ def evaluate_run(
     no-grad forward pass -> gate metrics -> atomic artifact writes -> completed
     attempt marker. No admitted-corpus access occurs before the claim.
     """
+    # D-12/GAP-46-01: this must remain the first evaluator-boundary action,
+    # before even the persisted held-out split object is constructed.
+    canonical_frame = assert_canonical_frame_precondition()
     checkpoint_path = Path(checkpoint_path)
     run_dir = _resolve_owning_run(checkpoint_path)
     resolved_output = _validate_output_dir(output_dir, runs_root=runs_root)
@@ -421,7 +470,11 @@ def evaluate_run(
                 positions = predicted.reshape(-1, 3, 3).detach()
 
                 trajectory_metrics = gate_metrics.compute_trajectory_gate_metrics(
-                    positions, times_t.detach(), masses_row.reshape(3).detach(),
+                    positions,
+                    validation_gate.gate_time_coordinate(
+                        times_t.detach(), canonical_frame,
+                    ),
+                    masses_row.reshape(3).detach(),
                 )
                 per_trajectory.append(
                     {"record_key": key, "eps_h": trajectory_metrics.eps_h}

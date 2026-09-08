@@ -1,0 +1,54 @@
+# Phase 57 Evidence Contract
+
+This directory is the append-only evidence surface for RUN-04, RUN-05, and
+EVAL-02.  The fresh GATE-04 raw record and the independent production
+conformance record are committed before any expensive run window.  Run
+outputs may be added later, but the fingerprinted source/config/test/plan
+inputs must not be changed between the smoke and graded band.
+
+## Required records
+
+- `gate04/<UTC>/raw.json` — one fresh six-case GATE-04 invocation.  The
+  governed `pinn/verification/artifacts/r_ref_stage0.json` records this exact
+  path and SHA-256 digest and is valid only for a complete `PASS` with empty
+  blocking and unratified arrays.
+- `production-conformance.json` — independent CPU proof of the public
+  `FixedBatch`/`RunController`/loss/checkpoint seams, bound to the Gate raw
+  digest and final `R_ref` digest.  It is dataset-free and held-out-free.
+- `run-ledger.md` — append-only smoke/band launch history.  Every attempted
+  launch gets a record; retries are new records, never replacements.
+- `source-manifest.json`, `band-record.md`, and `candidate-receipt.json` —
+  normal-mode artifacts built only after a complete three-seed band.
+- `terminal-state.json` or `blocked-state.json` — mutually exclusive outcome
+  records.  Only `gate04_block` and `invariant_b_halt_no_advance` may be
+  terminal; resource, guard, and operational failures remain incomplete.
+
+## Verification commands
+
+Run from the repository root under the `pinn-train` environment:
+
+```text
+python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py admit-run-window
+python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py run-window
+python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py candidate
+python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py pre-evaluation
+python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py final
+```
+
+`admit-run-window` is expected to pass before the operator authorizes the
+smoke.  The later commands fail closed until their corresponding run or
+evaluation artifacts exist.  They never launch training or materialize a
+held-out split.
+
+## Selection and frame rules
+
+Candidate selection recomputes only the four Phase-50 structural facts:
+`eval01_precondition_i`, `guard_invariant_rule`, `finished`, and
+`eval01_precondition_iii`, in the fixed order `42`, `41`, `43`.  Loss, SCS,
+front trajectories, and other scientific values are descriptive only and
+cannot trigger fallback.
+
+The evaluator boundary is canonical-only: predicted `r_prime`, normalized
+time `u_t_over_T`, and ordered raw masses.  The pre-access assertion must run
+before any test-split object is constructed.  The attempt/receipt marker is
+single-use; once claimed, no retry or fallback is legal.
