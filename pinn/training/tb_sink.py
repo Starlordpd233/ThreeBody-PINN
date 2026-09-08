@@ -21,6 +21,15 @@ propagation-front stall), and ``add_scalar`` accepts NaN and 0.0 floats.
 reading an operator needs (cycle-2 agy HIGH); only ``None`` (field absent
 this step) is skipped.
 
+Phase 56/57 amended recipe (Task 3): ``residuals/bin_{n:02d}`` is now the
+NORMALIZED (``Rtilde = Rbar / R_ref``) per-bin family; a second, equally
+TB-only ``raw_residuals/bin_{n:02d}`` family (from ``raw_residuals_bin_
+{n:02d}`` record fields) carries the RAW un-normalized counterpart, and
+``causal/r_ref`` carries the frozen reference both were normalized by —
+allocation counts (``n_collocation_rows``/``n_bins``) also mirror into the
+plain scalar namespace via ``_SCALAR_TAGS``, so a run's TB dashboard alone
+can distinguish the amended complete-batch path from the old anchor-only one.
+
 Monitoring must never abort training (CTX-69): SummaryWriter construction
 and every ``add_scalar``/``flush``/``close`` call are wrapped in a warn-once
 guard — the first failure logs ONE warning to ``pinn.training.tb_sink`` and
@@ -62,13 +71,25 @@ _SCALAR_TAGS = (
     "lr",
     "s_per_step",
     "eta_seconds",
+    # Phase 56/57 amended-recipe allocation provenance (Task 3): "so the
+    # separate verifier can reject the old anchor-only path" -- the exact
+    # row/bin counts the causal loss was computed over, this step.
+    "n_collocation_rows",
+    "n_bins",
 )
 
-# OPS-04b causal-weight stats → ``causal/*`` TB namespace (CTX-70).
-_CAUSAL_FIELDS = ("w_min", "w_mean", "w_max", "front_idx")
+# OPS-04b causal-weight stats → ``causal/*`` TB namespace (CTX-70). Phase
+# 56/57 adds ``r_ref`` -- the frozen reference this step's exponent and
+# outer physics loss normalized by (Task 3: "R_ref identity/value").
+_CAUSAL_FIELDS = ("w_min", "w_mean", "w_max", "front_idx", "r_ref")
 
 # Record-field prefix for the per-bin residual family (OPS-04b, TB-only).
+# ``_RESIDUALS_PREFIX`` is the NORMALIZED (Rtilde = Rbar / R_ref) family
+# under the Phase 56/57 amended recipe; ``_RAW_RESIDUALS_PREFIX`` (Task 3)
+# is its RAW, un-normalized counterpart -- both TB-only, mirroring the same
+# JSONL-exclusion discipline (pinn.training.step_log.STEP_LOG_FIELDS).
 _RESIDUALS_PREFIX = "residuals_bin_"
+_RAW_RESIDUALS_PREFIX = "raw_residuals_bin_"
 
 
 class TbSink(logging.Handler):
@@ -136,9 +157,19 @@ class TbSink(logging.Handler):
             # OPS-03 secondary view: canonical widened scalars.
             for key in _SCALAR_TAGS:
                 self._add_scalar(key, d.get(key), step)
-            # OPS-04b panel: per-bin residuals + causal-weight stats.
+            # OPS-04b panel: per-bin residuals (normalized + raw) + causal-
+            # weight stats. Checked in raw-first order: "raw_residuals_bin_*"
+            # does not share a prefix with "residuals_bin_*" (different
+            # leading characters), but ordering raw first keeps the intent
+            # explicit regardless.
             for key, value in d.items():
-                if key.startswith(_RESIDUALS_PREFIX):
+                if key.startswith(_RAW_RESIDUALS_PREFIX):
+                    self._add_scalar(
+                        f"raw_residuals/bin_{key[len(_RAW_RESIDUALS_PREFIX):]}",
+                        value,
+                        step,
+                    )
+                elif key.startswith(_RESIDUALS_PREFIX):
                     self._add_scalar(
                         f"residuals/bin_{key[len(_RESIDUALS_PREFIX):]}",
                         value,

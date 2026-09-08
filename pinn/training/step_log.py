@@ -15,6 +15,12 @@ Parity exceptions (deliberately absent from this registry):
     JSONL serialization by 42-04's handler, and consumed by 42-05's TB
     sink.  Deliberately absent so the 42-04 parity check on a JSONL line
     holds without a dynamic-key carve-out (cycle-2 review finding HIGH-1).
+    Under the Phase 56/57 amended recipe this is the NORMALIZED
+    (``Rtilde = Rbar / R_ref``) per-bin residual family.
+  * ``raw_residuals_bin_{n:02d}`` — Phase 57 Task 3, the RAW (un-normalized)
+    counterpart to ``residuals_bin_{n:02d}`` above.  Same TB-only filtering
+    discipline: excluded from this registry so it is dropped from the JSONL
+    line and consumed only by the TB sink's ``raw_residuals/bin_*`` panel.
 """
 
 from __future__ import annotations
@@ -267,6 +273,34 @@ STEP_LOG_FIELDS: dict[str, dict[str, Any]] = {
             "max{n : w_n > 0.5}; owner-ratify before run #1"
         ),
     },
+    # ---- Phase 56/57 amended-recipe R_ref / allocation provenance ----
+    "r_ref": {
+        "provisional": True,
+        "provenance": (
+            "Phase 56/57 (SPEC-01/SPEC-06; 54-RULING.md): the frozen R_ref "
+            "that normalized this step's causal exponent and outer physics "
+            "loss (residuals_bin_* is the resulting NORMALIZED per-bin "
+            "residual family; raw_residuals_bin_* is the RAW, un-normalized "
+            "TB-only counterpart); owner-ratify before run #1"
+        ),
+    },
+    "n_collocation_rows": {
+        "provisional": True,
+        "provenance": (
+            "Phase 56/57: exact physics collocation row count this step's "
+            "causal loss was computed over (the ratified recipe is exactly "
+            "4096); a separate verifier uses this to reject the old "
+            "anchor-only path; owner-ratify before run #1"
+        ),
+    },
+    "n_bins": {
+        "provisional": True,
+        "provenance": (
+            "Phase 56/57: the fixed bin count (ratified M=16) the physics "
+            "residual was reduced to before the causal loss consumed it; "
+            "owner-ratify before run #1"
+        ),
+    },
     # ---- timing / optimizer ----
     "lr": {
         "provisional": True,
@@ -320,8 +354,10 @@ def step_log_fields_provisional_entry() -> dict[str, Any]:
             "λ vector (lambda_data/lambda_ic/lambda_phys/lambda_e/lambda_l), "
             "grad_norm plus ten INST-02 raw/applied per-term gradient norms, "
             "their provenance/completeness metadata, w_n stats "
-            "(w_min/w_mean/w_max/front_idx), lr, s_per_step, eta_seconds, "
-            "record_complete. Residuals_bin_* is "
+            "(w_min/w_mean/w_max/front_idx), the Phase 56/57 amended-recipe "
+            "r_ref/n_collocation_rows/n_bins allocation provenance, lr, "
+            "s_per_step, eta_seconds, record_complete. Residuals_bin_* "
+            "(NORMALIZED) and raw_residuals_bin_* (RAW) are both "
             "TB-only (OPS-04b). finite/nonfinite_keys are sink-added "
             "(CTX-67). Owner-ratify the final list before run #1."
         ),
