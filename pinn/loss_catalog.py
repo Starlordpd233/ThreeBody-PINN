@@ -73,6 +73,20 @@ CAUSAL_CLIP_FIELD_NAMES = (
 CAUSAL_CLIP_FORMULA = "exp(clamp_min(x_n, causal_clip_exponent_floor))"
 CAUSAL_CLIP_PROVENANCE = "log_smallest_normal:directed_up"
 
+# Phase 56 contract (SPEC-01/SPEC-06; 54-RULING.md "Batch allocation and bin
+# policy"): the ratified M=16 fixed-bin structure. A length check against
+# this fires only when a caller EXPLICITLY supplies ``r_ref`` (see
+# ``_R_REF_UNSET`` below) -- a caller relying on the identity default keeps
+# operating on whatever length it always has (e.g. Phase 55's
+# architecture_characterization_probe.measure_case, whose n_col is a
+# configurable sweep parameter, not fixed at 16).
+_RATIFIED_M_BINS = 16
+
+# Sentinel distinguishing "caller did not pass r_ref" from "caller passed
+# r_ref=1.0" -- both must reach a defined, finite-positive r_ref_value, but
+# only the former is exempt from the M=16 length check below.
+_R_REF_UNSET = object()
+
 
 def resolve_causal_clip_facts(dtype, device) -> dict[str, object]:
     """Derive the causal exponent floor for one active dtype/backend.
@@ -280,8 +294,8 @@ def ic_anchor_loss(pred_r0, true_r0, pred_v0, true_v0, *, beta_v=1.0, dtype, dev
     return l_r + beta * l_v
 
 
-def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
-                        dtype, device, return_details: bool = False):
+def causal_physics_loss(residuals_per_time, *, r_ref=_R_REF_UNSET, eta_c=CAUSAL_ETA_C,
+                        times=None, dtype, device, return_details: bool = False):
     """§3.2 causally-weighted physics residual energy.
 
     Preconditions
@@ -290,7 +304,7 @@ def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
     ascending collocation time. The prefix-cumsum weight
 
         w_1 = 1
-        w_n = exp(-eta_c * sum_{m<n} stopgrad(Rbar_m))
+        w_n = exp(-eta_c * sum_{m<n} stopgrad(Rtilde_m))
 
     is only meaningful on a time-sorted sequence. When the optional ``times``
     (or collocation ``u``) argument is supplied, this function asserts
@@ -298,20 +312,58 @@ def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
     input BEFORE any weight is computed — a shuffled input is rejected, not
     silently mis-weighted.
 
-    Returns ``(1/N_t) sum_n w_n Rbar_n``. The cumulative residual used for the
-    weight is ``stopgrad``'d (``.detach()``) so the weight cannot become an
-    adversarial training term. The exponent is clamped at the active
-    dtype/device's upward-directed representable ``log(finfo.tiny)`` floor
-    before exponentiation, so every finite non-negative residual sequence has
-    strictly positive causal weights.
+    ``R_ref`` normalization (Phase 56 contract: causal-exponent argument
+    amended; SPEC-01/SPEC-06; 54-RULING.md checkpoint ② Block 1)
+    -----------------------------------------------------------------------
+    When the caller supplies ``r_ref`` (a finite positive scalar), every
+    ``Rbar_n`` is normalized to ``Rtilde_n = Rbar_n / r_ref`` BEFORE both the
+    exclusive-prefix exponent AND the outer mean reduction consume it — the
+    residual-wide application 54-RULING.md ratifies. ``r_ref`` is frozen: it
+    is never recomputed inside this call, only accepted. Supplying ``r_ref``
+    ALSO activates the ratified ``M = 16``-bin length check (a length other
+    than 16 is refused) since the amended recipe fixes the bin count exactly.
+    Omitting ``r_ref`` (the default) is equivalent to ``r_ref = 1`` — an
+    identity normalization preserving every pre-amendment caller's exact
+    byte-for-byte behavior, with no length restriction.
+
+    Returns ``(1/N_t) sum_n w_n Rtilde_n``. The cumulative residual used for
+    the weight is ``stopgrad``'d (``.detach()``) so the weight cannot become
+    an adversarial training term; the OUTER reduction is NOT detached, so
+    gradients flow to the raw ``residuals_per_time`` input. The exponent is
+    clamped at the active dtype/device's upward-directed representable
+    ``log(finfo.tiny)`` floor before exponentiation, so every finite
+    non-negative normalized residual sequence has strictly positive causal
+    weights.
+
+    ``return_details=True`` additionally exposes ``raw_rbar`` (the
+    UN-normalized input) and ``r_ref`` (the value actually used) alongside
+    the existing ``w_n``/``rbar`` (now the NORMALIZED ``Rtilde``) keys, so a
+    caller can publish both raw and normalized diagnostics from one
+    computation and never silently apply a raw-unit threshold to a
+    normalized value (or vice versa).
     """
-    rbar = torch.as_tensor(residuals_per_time, dtype=dtype, device=device).reshape(-1)
+    raw_rbar = torch.as_tensor(residuals_per_time, dtype=dtype, device=device).reshape(-1)
+    r_ref_explicit = r_ref is not _R_REF_UNSET
+    if r_ref_explicit:
+        try:
+            r_ref_value = float(r_ref)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"causal_physics_loss requires a finite positive r_ref; got {r_ref!r}"
+            ) from exc
+        if not math.isfinite(r_ref_value) or r_ref_value <= 0.0:
+            raise ValueError(
+                f"causal_physics_loss requires a finite positive r_ref; got {r_ref!r}"
+            )
+    else:
+        r_ref_value = 1.0
+
     if times is not None:
         t = torch.as_tensor(times, dtype=dtype, device=device).reshape(-1)
-        if t.numel() != rbar.numel():
+        if t.numel() != raw_rbar.numel():
             raise ValueError(
                 f"causal_physics_loss: times length {t.numel()} != "
-                f"residuals_per_time length {rbar.numel()}"
+                f"residuals_per_time length {raw_rbar.numel()}"
             )
         if t.numel() > 1 and bool((t[1:] < t[:-1]).any()):
             raise ValueError(
@@ -319,14 +371,22 @@ def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
                 "got unordered times (the causal prefix weight is only "
                 "meaningful on a time-sorted sequence)"
             )
-    n_t = rbar.numel()
+    n_t = raw_rbar.numel()
     if n_t == 0:
         raise ValueError("causal_physics_loss: empty residuals_per_time")
+    if r_ref_explicit and n_t != _RATIFIED_M_BINS:
+        raise ValueError(
+            f"causal_physics_loss requires exactly {_RATIFIED_M_BINS} bin "
+            f"means (the ratified §3.2 M={_RATIFIED_M_BINS} fixed-bin "
+            f"structure) when r_ref is supplied; got length {n_t}"
+        )
+
+    r_tilde = raw_rbar / r_ref_value
 
     eta = torch.as_tensor(eta_c, dtype=dtype, device=device)
-    # Prefix sum of stopgrad(Rbar) for the STRICTLY preceding points.
-    # cumsum_excl[0] = 0; cumsum_excl[n] = sum_{m<n} Rbar_m.detach()
-    detached = rbar.detach()
+    # Prefix sum of stopgrad(Rtilde) for the STRICTLY preceding points.
+    # cumsum_excl[0] = 0; cumsum_excl[n] = sum_{m<n} Rtilde_m.detach()
+    detached = r_tilde.detach()
     cumsum = torch.cumsum(detached, dim=0)
     # Shift right by one: exclusive prefix.
     zeros = torch.zeros(1, dtype=dtype, device=device)
@@ -339,11 +399,16 @@ def causal_physics_loss(residuals_per_time, *, eta_c=CAUSAL_ETA_C, times=None,
     weights = torch.exp(torch.clamp_min(exponent, floor))
     # w_1 is identically 1 by construction (cumsum_excl[0] = 0); pin via constant.
     _ = CAUSAL_W1
-    loss = (weights * rbar).mean()
+    loss = (weights * r_tilde).mean()
     if return_details:
         # CTX-70: detach so the autograd graph is NOT retained across steps
         # (retaining it would be a self-inflicted per-step memory DoS).
-        return loss, {"w_n": weights.detach(), "rbar": rbar.detach()}
+        return loss, {
+            "w_n": weights.detach(),
+            "rbar": r_tilde.detach(),
+            "raw_rbar": raw_rbar.detach(),
+            "r_ref": r_ref_value,
+        }
     return loss
 
 

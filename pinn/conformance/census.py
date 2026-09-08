@@ -432,8 +432,16 @@ def _producer_contracts(controller: Any) -> dict[str, tuple[bool, str]]:
             details = controller._last_widened_details
             if not isinstance(details, Mapping):
                 raise _ProducerContractViolation("non-data producer omitted residual details")
+            # Phase 56/57 amended recipe (pinn_architecture.md "Phase 56
+            # contract: collocation allocation and time draw amended";
+            # 54-RULING.md "Batch allocation and bin policy"): Rbar is now
+            # ALWAYS the ratified 16 batch-global bin means, regardless of
+            # how many raw collocation rows fed the anchor context (this
+            # probe's own two-point `fixed_times` included) -- never a
+            # per-time residual vector sized by the probe's collocation
+            # count.
             residuals = _as_finite_array(
-                details.get("residuals_per_bin"), name="Rbar", shape=(2,)
+                details.get("residuals_per_bin"), name="Rbar", shape=(16,)
             )
             results["Rbar"] = (
                 True,

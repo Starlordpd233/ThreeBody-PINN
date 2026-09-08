@@ -626,7 +626,22 @@ class RunControllerValidationWiringTests(unittest.TestCase):
                 controller._run_validation(0, controller._scheduled_weights.current(0))
         self.assertTrue(model.training)
 
-    def test_physics_term_uses_collocation_sampler_only(self):
+    def test_physics_term_now_consumes_batch_collocation_points(self):
+        """Phase 57 amends this Phase-40 contract (do not re-widen).
+
+        The Phase-56 contract ("collocation allocation and time draw
+        amended", pinn_architecture.md §3.2; 57-RESEARCH.md "removes
+        anchor-only physics from the production causal path") makes
+        ``FixedBatch.collocation_points`` -- not a separate anchor-only
+        ``CollocationSampler`` draw -- the physics term's time source when
+        ``_build_anchor_context`` is called with ``fixed_collocation_times
+        =None`` (the real Adam/validation call shape). This test used to
+        prove the OPPOSITE (poisoning ``batch.collocation_points.times`` had
+        no effect); it now proves the amended wiring by asserting the
+        poison DOES propagate -- as the PHYS-02 fail-loud ``ValueError``
+        ``componentwise_du`` raises on a non-finite ``u`` leaf, since the
+        poisoned NaN times now reach the physics forward pass.
+        """
         controller = _build_controller(
             self._tmpdir.name, max_epochs=1, n_adam=1,
         )
@@ -636,9 +651,6 @@ class RunControllerValidationWiringTests(unittest.TestCase):
             train_source, stage=0, rng=rng,
             dtype=controller._dtype, device=controller._device, collocation_count=1,
         )
-        # Poison batch.collocation_points.times -- if the physics/energy/angmom
-        # terms ever read it, the result would be non-finite. CollocationSampler
-        # is the sole physics-point source, so poisoning this must have no effect.
         poisoned_times = batch.collocation_points.times.clone()
         poisoned_times[:] = float("nan")
         poisoned_batch = replace(
@@ -646,9 +658,12 @@ class RunControllerValidationWiringTests(unittest.TestCase):
         )
         anchor_ctx = controller._build_anchor_context(train_source, poisoned_batch, None)
         weights = controller._scheduled_weights.current(0)
-        loss_terms = controller._compose_loss_terms(poisoned_batch, anchor_ctx, weights)
-        self.assertTrue(bool(torch.isfinite(loss_terms.total)))
-        self.assertTrue(bool(torch.isfinite(loss_terms.phys)))
+        with self.assertRaises(
+            ValueError,
+            msg="physics must now read batch.collocation_points.times -- a "
+            "poisoned batch must fail loud (PHYS-02), not silently ignore it",
+        ):
+            controller._compose_loss_terms(poisoned_batch, anchor_ctx, weights)
 
 
 # ---------------------------------------------------------------------------

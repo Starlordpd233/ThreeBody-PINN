@@ -58,10 +58,12 @@ literal ``torch.no_grad()`` context.
 
 from __future__ import annotations
 
+import json
 import logging
 import math
 import time
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Any, Callable, Mapping, Optional, Sequence
 
 import numpy as np
@@ -133,6 +135,93 @@ _GRAD_STAT_TERMS: tuple[tuple[str, str], ...] = (
     ("energy", "lambda_e"),
     ("angmom", "lambda_l"),
 )
+
+# ---------------------------------------------------------------------------
+# Phase 56/57 amended causal-loss recipe (SPEC-01/SPEC-06; 54-RULING.md;
+# 57-RULING.md): the ratified M=16 fixed-bin structure and the frozen R_ref
+# artifact GATE-04 writes.
+# ---------------------------------------------------------------------------
+
+_RATIFIED_N_BINS = 16
+
+# The governed, already-validated Phase-56 GATE-04 artifact (54-RULING.md
+# "frozen residual reference"; 57-CONTEXT.md canonical refs: "the amended
+# recipe consumes this value, never recomputes online"). Derived from this
+# module's own location rather than imported from
+# ``pinn.verification.gate04_train_free`` -- that module pulls in the whole
+# architecture-characterization/physics-residual/network import chain, which
+# this training-side seam does not otherwise need; the path itself is a
+# stable repo-relative fact both modules independently compute (matching the
+# "re-derive by content, not by import" convention ``tests/phase57/
+# _fixtures.py`` already documents for the identical bin-edge contract).
+_R_REF_ARTIFACT_PATH = (
+    Path(__file__).resolve().parents[1] / "verification" / "artifacts" / "r_ref_stage0.json"
+)
+
+
+def _resolve_r_ref(r_ref: Optional[float]) -> float:
+    """Resolve and validate ONE frozen, already-validated positive R_ref.
+
+    An explicit ``r_ref`` is validated (finite, positive) and returned as-is
+    -- Task 2's "accept one already-validated finite positive frozen R_ref."
+    ``None`` (the default -- e.g. every existing test-fixture construction
+    predating this parameter) reads the governed Phase-56 GATE-04 artifact
+    exactly once, at construction, and freezes the result for the
+    controller's lifetime: the amended recipe never recomputes R_ref online.
+    """
+    if r_ref is None:
+        try:
+            payload = json.loads(_R_REF_ARTIFACT_PATH.read_text(encoding="utf-8"))
+            r_ref = payload["r_ref"]
+        except (OSError, ValueError, KeyError) as exc:
+            raise ValueError(
+                f"RunController could not resolve a frozen R_ref from "
+                f"{_R_REF_ARTIFACT_PATH}: {exc!r}. Pass r_ref explicitly, or "
+                f"ensure the governed GATE-04 artifact exists."
+            ) from exc
+    try:
+        value = float(r_ref)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"RunController requires a finite positive r_ref; got {r_ref!r}"
+        ) from exc
+    if not math.isfinite(value) or value <= 0.0:
+        raise ValueError(
+            f"RunController requires a finite positive r_ref; got {r_ref!r}"
+        )
+    return value
+
+
+def _bin_mean_residuals(
+    rbar: torch.Tensor, times: torch.Tensor, *, n_bins: int, t_max: float,
+) -> torch.Tensor:
+    """Differentiable per-bin mean reduction over the ratified fixed-time bins.
+
+    Bin ``b`` covers ``[b/n_bins, (b+1)/n_bins)`` of ``t_max`` for
+    ``b = 0 .. n_bins - 2``, and ``[(n_bins-1)/n_bins, 1]`` closed on both
+    ends for the last bin (54-RULING.md "Batch allocation and bin policy" --
+    an independent pure-torch re-derivation of the same convention
+    ``tests/phase57/_fixtures.py``'s ``bin_index_for_time`` encodes, so the
+    two agree by content).
+
+    Row-to-bin aggregation uses ``index_add`` (the functional, differentiable
+    form) so gradients flow from every contributing row's ``rbar`` entry back
+    to the model parameters that produced it -- "every selected slot
+    contributes physics gradients." An empty bin's mean is exactly ``0.0``
+    (never NaN/inf): the ratified 4096-row / 256-per-bin allocation makes an
+    empty bin impossible by construction, so this fallback is reached only
+    by a caller supplying fewer than ``n_bins`` distinct collocation rows (a
+    legacy, non-ratified draw), never by the conformant production path.
+    """
+    u = times / t_max
+    bin_idx = torch.clamp(
+        torch.floor(torch.clamp(u, min=0.0) * n_bins).to(torch.int64),
+        max=n_bins - 1,
+    )
+    zeros = torch.zeros(n_bins, dtype=rbar.dtype, device=rbar.device)
+    bin_sums = zeros.index_add(0, bin_idx, rbar)
+    bin_counts = zeros.index_add(0, bin_idx, torch.ones_like(rbar))
+    return bin_sums / bin_counts.clamp(min=1.0)
 
 
 def _global_parameter_grad_norm(
@@ -420,6 +509,7 @@ class RunController:
         guard_hook: Optional[Callable[..., Any]] = None,
         should_stop: Optional[Callable[[], bool]] = None,
         replay_count: Optional[int] = None,
+        r_ref: Optional[float] = None,
     ) -> None:
         if validation_source is None:
             raise ValueError(
@@ -432,6 +522,11 @@ class RunController:
         # value). Re-apply the single-home fail-closed predicate (validate_s_h)
         # at the consumption boundary -- finite AND strictly positive.
         self._s_h = validate_s_h(s_h)
+        # Phase 56/57 amended recipe (SPEC-01/SPEC-06; 54-RULING.md; Task 2
+        # "accept one already-validated finite positive frozen R_ref"):
+        # resolved and frozen ONCE at construction -- an explicit override is
+        # validated as-is, otherwise the governed GATE-04 artifact is read.
+        self._r_ref = _resolve_r_ref(r_ref)
         self._model = model
         self._train_source = train_source
         self._validation_source = validation_source
@@ -600,7 +695,17 @@ class RunController:
         eps_h = float(self._config.stage.energy_floor_factor) * self._s_h
 
         if fixed_collocation_times is None:
-            colloc_times = self._collocation_sampler.uniform()
+            # Phase 56/57 amended recipe: consume the batch's OWN §3.2
+            # physics collocation set (DATA-05's ``FixedBatch.collocation_
+            # points``, already exactly allocated by ``sample_collocation_
+            # points``) rather than a separate, anchor-only
+            # ``CollocationSampler`` draw -- "removes anchor-only physics
+            # from the production causal path" (57-RESEARCH.md). Only the
+            # TIME dimension is consumed here: energy/IC/angular-momentum
+            # remain anchored on this one identity's own ground truth
+            # (h0/l0/masses_t above), unchanged per D-01/D-16 -- §3.2's
+            # amendment "re-ratifies the TIME allocation only."
+            colloc_times = batch.collocation_points.times.detach().cpu().numpy()
         else:
             colloc_times = fixed_collocation_times
         colloc_times = np.asarray(colloc_times, dtype=np.float64)
@@ -657,13 +762,29 @@ class RunController:
         times_tensor = torch.as_tensor(
             anchor_ctx.collocation_times, dtype=self._dtype, device=self._device,
         )
+
+        # Phase 56/57 amended recipe (SPEC-01/SPEC-06; 54-RULING.md "Batch
+        # allocation and bin policy"): reduce the complete-batch per-row
+        # residual to the ratified 16 batch-global bin means BEFORE the
+        # causal loss consumes it -- never a per-anchor per-time residual
+        # vector sized by CollocationSampler. Differentiable (index_add), so
+        # every selected row that landed in this anchor_ctx.collocation_times
+        # set contributes a physics gradient.
+        raw_bin_means = _bin_mean_residuals(
+            rbar, times_tensor, n_bins=_RATIFIED_N_BINS, t_max=T_CHARACTERISTIC_TIME,
+        )
+        bin_centres = (
+            torch.arange(_RATIFIED_N_BINS, dtype=self._dtype, device=self._device)
+            + torch.as_tensor(0.5, dtype=self._dtype, device=self._device)
+        ) / _RATIFIED_N_BINS * T_CHARACTERISTIC_TIME
         # CTX-70 / OPS-04b: `return_details=True` exposes the detached causal
-        # weights `w_n` and per-bin residuals `Rbar_n` without altering the
-        # scalar `phys_term` (the default return is byte-for-byte unchanged, so
-        # `_weighted_non_data_terms` and Phase 38/40 tests are untouched).
+        # weights `w_n`, the NORMALIZED per-bin residuals `Rtilde` (`rbar`),
+        # the RAW per-bin residuals (`raw_rbar`), and the frozen `r_ref`
+        # used -- one production computation supplying both raw and
+        # normalized diagnostics (57-RESEARCH.md "Component and Symbol Map").
         phys_term, phys_details = causal_physics_loss(
-            rbar, times=times_tensor, dtype=self._dtype, device=self._device,
-            return_details=True,
+            raw_bin_means, r_ref=self._r_ref, times=bin_centres,
+            dtype=self._dtype, device=self._device, return_details=True,
         )
 
         energy_term = soft_energy_loss(
@@ -682,7 +803,8 @@ class RunController:
         # `default=-1` so a collapsed causal-weight vector (no `w_n > 0.5`)
         # returns -1 instead of raising on an empty sequence (cycle-2 agy HIGH).
         w_n = phys_details["w_n"]
-        rbar_det = phys_details["rbar"]
+        normalized_rbar = phys_details["rbar"]
+        raw_rbar_detached = phys_details["raw_rbar"]
         w_n_list = w_n.tolist()
         self._last_widened_details = {
             "w_n_stats": {
@@ -693,7 +815,17 @@ class RunController:
                     [n for n, w in enumerate(w_n_list) if w > 0.5], default=-1,
                 ),
             },
-            "residuals_per_bin": [float(r) for r in rbar_det.tolist()],
+            # NORMALIZED (Rtilde = Rbar / r_ref) per-bin residuals -- the
+            # existing field name, now amended semantics per the Phase-56
+            # contract's residual-wide normalization.
+            "residuals_per_bin": [float(r) for r in normalized_rbar.tolist()],
+            # RAW (un-normalized) per-bin residuals -- NEW: so a consumer
+            # never silently applies a raw-unit threshold to a normalized
+            # value, or vice versa.
+            "raw_residuals_per_bin": [float(r) for r in raw_rbar_detached.tolist()],
+            "r_ref": float(phys_details["r_ref"]),
+            "n_collocation_rows": int(rbar.numel()),
+            "n_bins": int(_RATIFIED_N_BINS),
             "ic": float(ic_term.detach()),
             "phys": float(phys_term.detach()),
             "energy": float(energy_term.detach()),
@@ -824,18 +956,28 @@ class RunController:
     # ------------------------------------------------------------------
     # Minimal step log + loss-terms helper for L-BFGS guard bridge.
     # ------------------------------------------------------------------
-    def _snapshot_training_causal_details(self) -> tuple[Optional[dict], Optional[list]]:
+    def _snapshot_training_causal_details(
+        self,
+    ) -> tuple[Optional[dict], Optional[list], Optional[list], Optional[float]]:
         """Immutable copy of the training-owned causal stash.
 
         Validation reuses the loss composer and overwrites
-        ``_last_widened_details`` before ``_log_step``.
+        ``_last_widened_details`` before ``_log_step``. Returns
+        ``(w_n_stats, residuals_per_bin, raw_residuals_per_bin, r_ref)`` --
+        the same training-owned-snapshot discipline now also covers the
+        Phase-57 raw/normalized diagnostic pair (Task 3: "raw bin means,
+        normalized bin means... R_ref identity/value").
         """
         details = self._last_widened_details or {}
         stats = details.get("w_n_stats")
         residuals = details.get("residuals_per_bin")
+        raw_residuals = details.get("raw_residuals_per_bin")
+        r_ref = details.get("r_ref")
         stats_copy = dict(stats) if isinstance(stats, Mapping) else None
         residuals_copy = list(residuals) if residuals is not None else None
-        return stats_copy, residuals_copy
+        raw_residuals_copy = list(raw_residuals) if raw_residuals is not None else None
+        r_ref_copy = float(r_ref) if r_ref is not None else None
+        return stats_copy, residuals_copy, raw_residuals_copy, r_ref_copy
 
     def _log_step(
         self,
@@ -848,6 +990,8 @@ class RunController:
         grad_norm: Optional[float] = None,
         w_n_stats: Optional[Mapping] = None,
         residuals_per_bin: Optional[Sequence[float]] = None,
+        raw_residuals_per_bin: Optional[Sequence[float]] = None,
+        r_ref: Optional[float] = None,
         s_per_step: Optional[float] = None,
         eta_seconds: Optional[float] = None,
         epoch: Optional[int] = None,
@@ -884,6 +1028,20 @@ class RunController:
         stash = self._last_widened_details or {}
         resolved_w_n_stats = w_n_stats if w_n_stats is not None else stash.get("w_n_stats")
         resolved_residuals = residuals_per_bin if residuals_per_bin is not None else stash.get("residuals_per_bin")
+        # Phase 57 Task 3: the raw (un-normalized) per-bin residual family and
+        # the frozen R_ref used this step follow the SAME training-owned
+        # override discipline as w_n_stats/residuals_per_bin above (explicit
+        # kwarg wins over the possibly validation-overwritten stash).
+        resolved_raw_residuals = (
+            raw_residuals_per_bin if raw_residuals_per_bin is not None
+            else stash.get("raw_residuals_per_bin")
+        )
+        resolved_r_ref = r_ref if r_ref is not None else stash.get("r_ref")
+        # Allocation counts are not train/validation-sensitive (both compose
+        # the same widened stash shape), so they are read straight from the
+        # current stash rather than threaded as a per-call override.
+        resolved_n_collocation_rows = stash.get("n_collocation_rows")
+        resolved_n_bins = stash.get("n_bins")
 
         # Per-step-delta wall clock (distinct from `self._wall_clock_baseline`,
         # the run-start baseline). `s_per_step` is an EMA of per-step wall
@@ -939,6 +1097,17 @@ class RunController:
                 f"residuals_bin_{n:02d}": r for n, r in enumerate(resolved_residuals)
             }
 
+        # Phase 57 Task 3 — RAW (un-normalized) per-bin residuals, the
+        # TB-only counterpart to `residuals_bin_*` above (same OPS-04b
+        # filtering discipline: excluded from STEP_LOG_FIELDS so 42-04's
+        # JSONL handler drops it, 42-05's TB sink is the sole consumer).
+        raw_res_keys: dict[str, float] = {}
+        if resolved_raw_residuals is not None:
+            raw_res_keys = {
+                f"raw_residuals_bin_{n:02d}": r
+                for n, r in enumerate(resolved_raw_residuals)
+            }
+
         # Gradient telemetry is an explicit step-local mapping rather than
         # part of ``_last_widened_details``: validation can overwrite that
         # stash before the training event is emitted. Recompute completeness
@@ -974,6 +1143,12 @@ class RunController:
             **lambda_keys,
             "grad_norm": grad_norm,
             **w_keys,
+            # Phase 57 Task 3: R_ref identity/value and exact allocation
+            # counts, so a separate verifier can reject the old anchor-only
+            # path from the canonical JSONL record alone.
+            "r_ref": resolved_r_ref,
+            "n_collocation_rows": resolved_n_collocation_rows,
+            "n_bins": resolved_n_bins,
             "s_per_step": resolved_s_per_step,
             "eta_seconds": resolved_eta_seconds,
             "epoch": epoch,
@@ -986,6 +1161,7 @@ class RunController:
             # the emitted record.
             "record_complete": bool(step_completed) and bool(grad_stats_complete),
             **res_keys,
+            **raw_res_keys,
         }
         _LOGGER.info(
             "step=%s phase=%s total=%s lr=%s terms=%s",
@@ -1083,7 +1259,10 @@ class RunController:
 
             optimizer.zero_grad(set_to_none=True)
             loss_terms = self._compose_loss_terms(batch, anchor_ctx, weights)
-            causal_w_n_stats, causal_residuals = self._snapshot_training_causal_details()
+            (
+                causal_w_n_stats, causal_residuals,
+                causal_raw_residuals, causal_r_ref,
+            ) = self._snapshot_training_causal_details()
             gradient_stats = _build_gradient_stats(
                 {
                     "data": getattr(loss_terms, "data", None),
@@ -1130,6 +1309,8 @@ class RunController:
                         gradient_stats=gradient_stats,
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return handoff_trigger, adam_epochs_used
                 # Guard did not trip — inline checks fire as Phase 40.
@@ -1142,6 +1323,8 @@ class RunController:
                         gradient_stats=gradient_stats,
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return handoff_trigger, adam_epochs_used
                 if clip_outcome is None:
@@ -1156,6 +1339,8 @@ class RunController:
                         gradient_stats=gradient_stats,
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return handoff_trigger, adam_epochs_used
             else:
@@ -1169,6 +1354,8 @@ class RunController:
                         gradient_stats=gradient_stats,
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return handoff_trigger, adam_epochs_used
                 loss_terms.total.backward()
@@ -1182,6 +1369,8 @@ class RunController:
                         gradient_stats=gradient_stats,
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return handoff_trigger, adam_epochs_used
 
@@ -1213,6 +1402,8 @@ class RunController:
                 gradient_stats=gradient_stats,
                 w_n_stats=causal_w_n_stats,
                 residuals_per_bin=causal_residuals,
+                raw_residuals_per_bin=causal_raw_residuals,
+                r_ref=causal_r_ref,
             )
 
             # Checkpoint/best hook AFTER validation so _last_val_total is live.
@@ -1341,7 +1532,10 @@ class RunController:
             epoch_count += 1
             self._global_step += 1
             self._global_epoch += 1
-            causal_w_n_stats, causal_residuals = self._snapshot_training_causal_details()
+            (
+                causal_w_n_stats, causal_residuals,
+                causal_raw_residuals, causal_r_ref,
+            ) = self._snapshot_training_causal_details()
 
             # ---- Guard path (cycle-4 MEDIUM-2): L-BFGS ----
             # Loss/grads are computed INSIDE the closure during step, so the
@@ -1373,6 +1567,8 @@ class RunController:
                         gradient_stats=closure_state.get("gradient_stats"),
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return guard_outcome.disposition
                 # Guard did not trip — bare RECOVER still fires if non_finite.
@@ -1386,6 +1582,8 @@ class RunController:
                         gradient_stats=closure_state.get("gradient_stats"),
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return StageDisposition.RECOVER
             else:
@@ -1399,6 +1597,8 @@ class RunController:
                         gradient_stats=closure_state.get("gradient_stats"),
                         w_n_stats=causal_w_n_stats,
                         residuals_per_bin=causal_residuals,
+                        raw_residuals_per_bin=causal_raw_residuals,
+                        r_ref=causal_r_ref,
                     )
                     return StageDisposition.RECOVER
 
@@ -1425,6 +1625,8 @@ class RunController:
                     gradient_stats=closure_state.get("gradient_stats"),
                     w_n_stats=causal_w_n_stats,
                     residuals_per_bin=causal_residuals,
+                    raw_residuals_per_bin=causal_raw_residuals,
+                    r_ref=causal_r_ref,
                 )
 
             if self._checkpoint_hook is not None:
