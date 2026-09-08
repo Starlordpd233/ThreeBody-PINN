@@ -33,7 +33,11 @@ from pinn.training.checkpoint import (
     TorchSaveCheckpointStore,
 )
 from pinn.training.collocation_sampler import CollocationSampler
-from pinn.training.config import TrainingConfig
+from pinn.training.config import (
+    RATIFIED_COLLOCATION_COUNT,
+    TrainingConfig,
+    load_frozen_r_ref_artifact,
+)
 from pinn.training.config_yaml import freeze_resolved_config, load_config
 from pinn.training.controllers import (
     CurriculumController,
@@ -184,7 +188,17 @@ def _guard_causal_inputs(
     ``causal_stats_missing`` can HALT a physics-evaluated step instead of
     silently treating instrumentation absence as a healthy sample.
     """
-    details = getattr(controller, "_last_widened_details", None)
+    # Checkpoint ③: invariant B observes the one frozen training-only monitor,
+    # not whichever resampled training batch happened to run immediately before
+    # this guard callback.  The monitor stats are refreshed only when model
+    # parameters change; its row/bin cardinality remains independent of the
+    # accepted-step deadline.
+    monitor_details = getattr(controller, "_last_front_monitor_stats", None)
+    details = (
+        monitor_details
+        if isinstance(monitor_details, Mapping)
+        else getattr(controller, "_last_widened_details", None)
+    )
     if not isinstance(details, Mapping):
         return None, None, phase in {"2a", "2b"}
     stats = details.get("w_n_stats")
@@ -228,6 +242,45 @@ def _derive_run_name(config: TrainingConfig) -> str:
         return str(config.run.run_name)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     return f"run-{stamp}-seed{int(config.run.seed)}"
+
+
+def _resolve_amended_recipe(
+    config: TrainingConfig, *, config_path: Path
+) -> tuple[Optional[int], Optional[float]]:
+    """Resolve the strict Phase-57 recipe opt-in before run construction.
+
+    Legacy configs omit both fields and retain their existing synthetic/test
+    behavior.  Once either amended field is present, both become mandatory:
+    the collocation count is exactly the ratified 4096 rows and the frozen
+    ``R_ref`` is loaded once from the explicitly named provenance artifact.
+    No flag or fallback can disable normalization on that path.
+    """
+    count = config.stage.collocation_count
+    artifact = config.loss.r_ref_artifact_path
+    if count is None and artifact is None:
+        return None, None
+    if count != RATIFIED_COLLOCATION_COUNT:
+        raise ValueError(
+            "amended Phase-57 recipe requires exactly "
+            f"{RATIFIED_COLLOCATION_COUNT} physics rows; got {count!r}"
+        )
+    if artifact is None:
+        raise ValueError(
+            "amended Phase-57 recipe requires an explicit "
+            "loss.r_ref_artifact_path; refusing unnormalized training"
+        )
+    artifact_path = Path(artifact)
+    if not artifact_path.is_absolute():
+        # Config values are repository-relative, so a launch from another
+        # working directory cannot accidentally resolve a different artifact.
+        artifact_path = Path(__file__).resolve().parents[1] / artifact_path
+    try:
+        r_ref = load_frozen_r_ref_artifact(artifact_path)
+    except ValueError as exc:
+        raise ValueError(
+            f"invalid frozen R_ref artifact for config {config_path}: {exc}"
+        ) from exc
+    return RATIFIED_COLLOCATION_COUNT, r_ref
 
 
 def _resolve_run_dir(name: str, runs_root: Path) -> Path:
@@ -757,6 +810,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"error: failed to load config: {exc}", file=sys.stderr)
         return 1
 
+    # Phase-57 amended-recipe construction gate.  This runs immediately after
+    # YAML parsing, before run-directory creation, model construction, adapter
+    # admission, or optimizer setup.  A malformed R_ref or reduced row count
+    # therefore cannot leave a run that appears to have started under a
+    # different recipe; legacy configs with neither opt-in field retain their
+    # established behavior for older synthetic/unit-test callers.
+    try:
+        amended_collocation_count, frozen_r_ref = _resolve_amended_recipe(
+            config, config_path=Path(args.config)
+        )
+    except ValueError as exc:
+        print(f"error: amended recipe refused: {exc}", file=sys.stderr)
+        return 1
+
     # Run-folder name + path-traversal + collision check.
     try:
         run_name = _derive_run_name(config)
@@ -1030,7 +1097,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     grad_clipper = GradClipper()
     collocation_sampler = CollocationSampler(
-        collocation_count=16,
+        collocation_count=(
+            int(amended_collocation_count)
+            if amended_collocation_count is not None
+            else 16
+        ),
         rng=np.random.default_rng(int(config.run.seed)),
     )
     stage_exit_machine = StageExitMachine(config)
@@ -1205,6 +1276,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         guard_hook=guard_hook,
         should_stop=lambda: signal_state.stop_requested,
         replay_count=config.stage.replay_count,
+        r_ref=frozen_r_ref,
     )
     curriculum_holder["run_controller"] = run_controller
 

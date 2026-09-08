@@ -16,10 +16,21 @@ rejects wrong types / empty strings. YAML parsing lives in ``config_yaml.py``.
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
+
+
+# Phase 57 amended-recipe constants (SPEC-01/SPEC-06; 57-RULING.md).  The
+# fields below are optional so pre-Phase-57 callers retain their established
+# small synthetic/test draws; ``pinn.train`` requires the exact values when a
+# config opts into the amended path.
+RATIFIED_COLLOCATION_COUNT = 4096
+R_REF_ARTIFACT_SCHEMA_VERSION = "phase56-r-ref-stage0/v1"
+R_REF_ARTIFACT_RELATIVE_PATH = "pinn/verification/artifacts/r_ref_stage0.json"
 
 
 class ConfigRequiredError(ValueError):
@@ -134,6 +145,134 @@ def _validate_front_advance_window_n(value: Optional[int]) -> Optional[int]:
             f"(got {value!r})"
         )
     return value
+
+
+def _validate_optional_positive_int(name: str, value: Optional[int]) -> Optional[int]:
+    """Validate an optional positive integer without inventing a default."""
+    if value is None:
+        return None
+    if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+        raise ValueError(f"{name} must be a positive int or None (got {value!r})")
+    return int(value)
+
+
+def _validate_optional_path(name: str, value: Optional[str]) -> Optional[str]:
+    """Validate an optional non-empty path carried by a frozen config."""
+    if value is None:
+        return None
+    return _require_nonempty_str(name, value)
+
+
+def load_frozen_r_ref_artifact(path: str | Path) -> float:
+    """Load and validate one governed Phase-56 ``R_ref`` artifact.
+
+    The amended run path is allowed to consume only a provenance-complete
+    artifact: schema/version, valid marker, six 16-entry raw-bin rows, the
+    ratified 16×256 configuration, and non-empty source provenance are all
+    checked before the finite-positive reference is returned.  This function
+    performs one read and never recomputes or writes the artifact.
+    """
+    artifact_path = Path(path)
+    try:
+        payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(f"R_ref artifact does not exist: {artifact_path}") from exc
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"R_ref artifact is unreadable JSON: {artifact_path}") from exc
+    if not isinstance(payload, Mapping):
+        raise ValueError("R_ref artifact payload must be a JSON object")
+    required = {
+        "schema_version",
+        "valid",
+        "r_ref",
+        "raw_bin_means",
+        "configuration",
+        "provenance",
+        "statistic",
+        "statistic_convention",
+    }
+    missing = sorted(required.difference(payload))
+    if missing:
+        raise ValueError(f"R_ref artifact missing required keys: {missing}")
+    if payload["schema_version"] != R_REF_ARTIFACT_SCHEMA_VERSION:
+        raise ValueError(
+            "R_ref artifact schema_version must be "
+            f"{R_REF_ARTIFACT_SCHEMA_VERSION!r}; got {payload['schema_version']!r}"
+        )
+    if payload["valid"] is not True:
+        raise ValueError("R_ref artifact valid marker is not true")
+    if payload["statistic"] != "median" or not isinstance(
+        payload["statistic_convention"], str
+    ) or not payload["statistic_convention"].strip():
+        raise ValueError("R_ref artifact median provenance is missing or invalid")
+
+    configuration = payload["configuration"]
+    if not isinstance(configuration, Mapping):
+        raise ValueError("R_ref artifact configuration must be a JSON object")
+    expected_config = {"n_bins": 16, "per_bin": 256, "total_points": 4096}
+    for name, expected in expected_config.items():
+        if configuration.get(name) != expected:
+            raise ValueError(
+                f"R_ref artifact configuration.{name} must be {expected}; "
+                f"got {configuration.get(name)!r}"
+            )
+
+    provenance = payload["provenance"]
+    if not isinstance(provenance, Mapping):
+        raise ValueError("R_ref artifact provenance must be a JSON object")
+    for name in ("git_sha", "timestamp"):
+        value = provenance.get(name)
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(
+                f"R_ref artifact provenance.{name} must be a non-empty string"
+            )
+
+    raw_rows = payload["raw_bin_means"]
+    if not isinstance(raw_rows, (list, tuple)) or len(raw_rows) != 6:
+        raise ValueError(
+            "R_ref artifact raw_bin_means must contain exactly six case rows"
+        )
+    values: list[float] = []
+    for row_index, row in enumerate(raw_rows):
+        if not isinstance(row, (list, tuple)) or len(row) != 16:
+            raise ValueError(
+                "R_ref artifact raw_bin_means[{}] must contain exactly 16 "
+                "bin means".format(row_index)
+            )
+        for value in row:
+            if isinstance(value, bool):
+                raise ValueError("R_ref artifact raw bin means must be numeric")
+            try:
+                number = float(value)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    "R_ref artifact raw bin means must be numeric"
+                ) from exc
+            if not math.isfinite(number) or number < 0.0:
+                raise ValueError(
+                    "R_ref artifact raw bin means must be finite and non-negative"
+                )
+            values.append(number)
+
+    raw_r_ref = payload["r_ref"]
+    if isinstance(raw_r_ref, bool):
+        raise ValueError("R_ref artifact r_ref must be numeric")
+    try:
+        r_ref = float(raw_r_ref)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("R_ref artifact r_ref must be numeric") from exc
+    if not math.isfinite(r_ref) or r_ref <= 0.0:
+        raise ValueError(
+            f"R_ref artifact r_ref must be finite and positive; got {raw_r_ref!r}"
+        )
+    ordered = sorted(values)
+    midpoint = (ordered[47] + ordered[48]) / 2.0
+    if midpoint != r_ref:
+        raise ValueError(
+            "R_ref artifact r_ref does not equal the recorded six-case median; "
+            f"got {r_ref!r}, expected {midpoint!r}"
+        )
+    return r_ref
 
 
 # ⚖ PROVISIONAL defaults — mechanism ships; values are owner-ratified later
@@ -447,6 +586,11 @@ class StageConfig:
     # adapter/data selection algorithm.
     replay_count: Optional[int] = None
 
+    # Phase-57 amended-recipe opt-in. ``None`` preserves legacy synthetic and
+    # unit-test draws; ``pinn.train`` requires the ratified 4096 value when a
+    # corrected-run config supplies this field.
+    collocation_count: Optional[int] = None
+
     # CTX-38 provisional stage-exit thresholds.
     beta: float = 0.98
     patience: int = 200
@@ -493,6 +637,13 @@ class StageConfig:
                 "43-03 DATA-05 replay-budget override",
             )
             object.__setattr__(self, "replay_count", rc)
+        object.__setattr__(
+            self,
+            "collocation_count",
+            _validate_optional_positive_int(
+                "collocation_count", self.collocation_count
+            ),
+        )
         # Re-bind validated ints through object.__setattr__ (frozen).
         object.__setattr__(self, "max_epochs", me)
         object.__setattr__(self, "n_adam", na)
@@ -550,9 +701,10 @@ class OptConfig:
 
 @dataclass(frozen=True)
 class LossConfig:
-    """Loss-side caps. Enforces λ_E^max ≤ 1 (PHYS-05)."""
+    """Loss-side caps and optional Phase-57 frozen-reference binding."""
 
     lambda_e_max: float = 0.0
+    r_ref_artifact_path: Optional[str] = None
 
     def __post_init__(self) -> None:
         v = float(self.lambda_e_max)
@@ -565,6 +717,13 @@ class LossConfig:
         if v < 0.0:
             raise ValueError(f"lambda_e_max must be non-negative (got {v!r})")
         object.__setattr__(self, "lambda_e_max", v)
+        object.__setattr__(
+            self,
+            "r_ref_artifact_path",
+            _validate_optional_path(
+                "loss.r_ref_artifact_path", self.r_ref_artifact_path
+            ),
+        )
 
 
 @dataclass(frozen=True)
