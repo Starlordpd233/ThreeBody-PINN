@@ -59,6 +59,7 @@ literal ``torch.no_grad()`` context.
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import math
 import time
@@ -78,7 +79,12 @@ from pinn.data.batches import (
     select_stage_records,
     select_validation_records,
 )
-from pinn.data.types import FixedBatch
+from pinn.data.types import (
+    DataFidelityPoints,
+    FixedBatch,
+    PhysicsCollocationPoints,
+    RecordKey,
+)
 from pinn.loss_catalog import (
     LossTerms,
     angular_momentum_loss,
@@ -94,6 +100,10 @@ from pinn.training.checkpoint import (
     CHECKPOINT_SCHEMA_VERSION,
     EmptyCheckpointStore,
     PromotionRefused,
+)
+from pinn.training.config import (
+    RATIFIED_COLLOCATION_COUNT,
+    load_frozen_r_ref_artifact,
 )
 from pinn.training.run_metadata import validate_s_h
 from pinn.training.slbfgs_preflight import check_stage_preflight
@@ -143,6 +153,8 @@ _GRAD_STAT_TERMS: tuple[tuple[str, str], ...] = (
 # ---------------------------------------------------------------------------
 
 _RATIFIED_N_BINS = 16
+_FRONT_MONITOR_SCHEMA_VERSION = "phase57-front-monitor/v1"
+_LBFGS_SEGMENT_SCHEMA_VERSION = "phase57-lbfgs-segment/v1"
 
 # The governed, already-validated Phase-56 GATE-04 artifact (54-RULING.md
 # "frozen residual reference"; 57-CONTEXT.md canonical refs: "the amended
@@ -171,8 +183,7 @@ def _resolve_r_ref(r_ref: Optional[float]) -> float:
     """
     if r_ref is None:
         try:
-            payload = json.loads(_R_REF_ARTIFACT_PATH.read_text(encoding="utf-8"))
-            r_ref = payload["r_ref"]
+            r_ref = load_frozen_r_ref_artifact(_R_REF_ARTIFACT_PATH)
         except (OSError, ValueError, KeyError) as exc:
             raise ValueError(
                 f"RunController could not resolve a frozen R_ref from "
@@ -222,6 +233,181 @@ def _bin_mean_residuals(
     bin_sums = zeros.index_add(0, bin_idx, rbar)
     bin_counts = zeros.index_add(0, bin_idx, torch.ones_like(rbar))
     return bin_sums / bin_counts.clamp(min=1.0)
+
+
+def _record_key_payload(key: RecordKey) -> list[Any]:
+    """Represent one identity using only weights-only-safe primitives."""
+    return [str(key.variant), str(key.fidelity), int(key.id)]
+
+
+def _record_key_from_payload(value: Any) -> RecordKey:
+    if not isinstance(value, (list, tuple)) or len(value) != 3:
+        raise ValueError(f"invalid checkpoint record key payload: {value!r}")
+    variant, fidelity, identifier = value
+    if (
+        not isinstance(variant, str)
+        or not isinstance(fidelity, str)
+        or isinstance(identifier, bool)
+        or not isinstance(identifier, int)
+    ):
+        raise ValueError(f"invalid checkpoint record key payload: {value!r}")
+    return RecordKey(variant, fidelity, identifier)
+
+
+def _tensor_hash(value: torch.Tensor) -> str:
+    """Hash tensor dtype/shape/bytes after CPU normalization."""
+    tensor = value.detach().cpu().contiguous()
+    descriptor = json.dumps(
+        {"dtype": str(tensor.dtype), "shape": list(tensor.shape)},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(descriptor + b"\0" + tensor.numpy().tobytes()).hexdigest()
+
+
+def _keys_hash(keys: Sequence[RecordKey]) -> str:
+    encoded = json.dumps(
+        [_record_key_payload(key) for key in keys],
+        sort_keys=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _clone_checkpoint_value(value: Any) -> Any:
+    """Clone nested checkpoint tensors without retaining a live autograd graph."""
+    if isinstance(value, torch.Tensor):
+        return value.detach().cpu().clone()
+    if isinstance(value, Mapping):
+        return {key: _clone_checkpoint_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_clone_checkpoint_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_clone_checkpoint_value(item) for item in value]
+    return value
+
+
+def _serialize_point_batch(batch: FixedBatch) -> dict[str, Any]:
+    """Serialize a fixed batch with no custom classes for ``weights_only``."""
+    data = batch.data_points
+    collocation = batch.collocation_points
+    if data is None or collocation is None:
+        raise ValueError("cannot serialize an incomplete fixed batch")
+    data_keys = tuple(data.record_keys)
+    collocation_keys = tuple(collocation.record_keys)
+    return {
+        "data": {
+            "tau_ic13": data.tau_ic13.detach().cpu().clone(),
+            "masses": data.masses.detach().cpu().clone(),
+            "targets": data.targets.detach().cpu().clone(),
+            "times": data.times.detach().cpu().clone(),
+            "record_keys": [_record_key_payload(key) for key in data_keys],
+            "snapshot_indices": [int(index) for index in data.snapshot_indices],
+            "sampling_kinds": [str(kind) for kind in data.sampling_kinds],
+        },
+        "collocation": {
+            "times": collocation.times.detach().cpu().clone(),
+            "tau_ic13": collocation.tau_ic13.detach().cpu().clone(),
+            "masses": collocation.masses.detach().cpu().clone(),
+            "record_keys": [_record_key_payload(key) for key in collocation_keys],
+        },
+        "replay_keys": [_record_key_payload(key) for key in batch.replay_keys],
+        "lookahead_keys": [_record_key_payload(key) for key in batch.lookahead_keys],
+        "data_keys_hash": _keys_hash(data_keys),
+        "collocation_keys_hash": _keys_hash(collocation_keys),
+        "data_tau_hash": _tensor_hash(data.tau_ic13),
+        "data_masses_hash": _tensor_hash(data.masses),
+        "data_targets_hash": _tensor_hash(data.targets),
+        "data_times_hash": _tensor_hash(data.times),
+        "collocation_times_hash": _tensor_hash(collocation.times),
+        "collocation_tau_hash": _tensor_hash(collocation.tau_ic13),
+        "collocation_masses_hash": _tensor_hash(collocation.masses),
+    }
+
+
+def _point_batch_state_hash(batch_state: Mapping[str, Any]) -> str:
+    """Hash the serialized batch's identity and tensor hashes."""
+    fields = {
+        "data_keys": batch_state.get("data_keys_hash"),
+        "collocation_keys": batch_state.get("collocation_keys_hash"),
+        "data_tau": batch_state.get("data_tau_hash"),
+        "data_masses": batch_state.get("data_masses_hash"),
+        "data_targets": batch_state.get("data_targets_hash"),
+        "data_times": batch_state.get("data_times_hash"),
+        "collocation_times": batch_state.get("collocation_times_hash"),
+        "collocation_tau": batch_state.get("collocation_tau_hash"),
+        "collocation_masses": batch_state.get("collocation_masses_hash"),
+    }
+    return hashlib.sha256(
+        json.dumps(fields, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _deserialize_point_batch(
+    state: Mapping[str, Any], *, dtype: torch.dtype, device: torch.device,
+) -> FixedBatch:
+    """Validate and restore the serialized fixed-batch carrier."""
+    if not isinstance(state, Mapping):
+        raise ValueError("checkpoint fixed batch must be a mapping")
+    data = state.get("data")
+    collocation = state.get("collocation")
+    if not isinstance(data, Mapping) or not isinstance(collocation, Mapping):
+        raise ValueError("checkpoint fixed batch is missing data/collocation sections")
+    data_keys = tuple(_record_key_from_payload(value) for value in data.get("record_keys", ()))
+    collocation_keys = tuple(
+        _record_key_from_payload(value) for value in collocation.get("record_keys", ())
+    )
+    replay_keys = tuple(_record_key_from_payload(value) for value in state.get("replay_keys", ()))
+    lookahead_keys = tuple(
+        _record_key_from_payload(value) for value in state.get("lookahead_keys", ()))
+
+    def tensor(section: Mapping[str, Any], name: str) -> torch.Tensor:
+        value = section.get(name)
+        if not isinstance(value, torch.Tensor):
+            raise ValueError(f"checkpoint fixed batch {name} is not a tensor")
+        return value.detach().to(dtype=dtype, device=device).clone()
+
+    restored_data = DataFidelityPoints(
+        tau_ic13=tensor(data, "tau_ic13"),
+        masses=tensor(data, "masses"),
+        targets=tensor(data, "targets"),
+        times=tensor(data, "times"),
+        record_keys=data_keys,
+        snapshot_indices=tuple(int(index) for index in data.get("snapshot_indices", ())),
+        sampling_kinds=tuple(str(kind) for kind in data.get("sampling_kinds", ())),
+    )
+    restored_collocation = PhysicsCollocationPoints(
+        times=tensor(collocation, "times"),
+        tau_ic13=tensor(collocation, "tau_ic13"),
+        masses=tensor(collocation, "masses"),
+        record_keys=collocation_keys,
+    )
+    if len(collocation_keys) != restored_collocation.times.numel():
+        raise ValueError("checkpoint collocation key count does not match its rows")
+    if len(data_keys) != restored_data.tau_ic13.shape[0]:
+        raise ValueError("checkpoint data key count does not match its rows")
+    if state.get("data_keys_hash") != _keys_hash(data_keys):
+        raise ValueError("checkpoint data identity hash mismatch")
+    if state.get("collocation_keys_hash") != _keys_hash(collocation_keys):
+        raise ValueError("checkpoint collocation identity hash mismatch")
+    hash_pairs = (
+        ("data_tau_hash", restored_data.tau_ic13),
+        ("data_masses_hash", restored_data.masses),
+        ("data_targets_hash", restored_data.targets),
+        ("data_times_hash", restored_data.times),
+        ("collocation_times_hash", restored_collocation.times),
+        ("collocation_tau_hash", restored_collocation.tau_ic13),
+        ("collocation_masses_hash", restored_collocation.masses),
+    )
+    for name, value in hash_pairs:
+        if state.get(name) != _tensor_hash(value):
+            raise ValueError(f"checkpoint fixed-batch tensor hash mismatch: {name}")
+    return FixedBatch(
+        data_points=restored_data,
+        collocation_points=restored_collocation,
+        replay_keys=replay_keys,
+        lookahead_keys=lookahead_keys,
+    )
 
 
 def _global_parameter_grad_norm(
@@ -460,6 +646,12 @@ def build_checkpoint_payload(
         "config_identity": config_identity,
         "schema_version": schema_version,
         "invariant_b_state": invariant_b_state,
+        # Checkpoint ③ owns these two runtime-freeze surfaces separately from
+        # the derived invariant-B high-water counters.
+        "front_monitor": _clone_checkpoint_value(sd.get("front_monitor")),
+        "lbfgs_segment_state": _clone_checkpoint_value(
+            sd.get("lbfgs_segment_state")
+        ),
     }
 
 
@@ -580,6 +772,43 @@ class RunController:
         self._last_step_wall: Optional[float] = None
         self._s_per_step_ema: Optional[float] = None
 
+        # Phase-57 checkpoint ③ state.  Legacy callers that omit the amended
+        # ``stage.collocation_count`` remain on their small test draw; the
+        # corrected config binds the ratified 4096-row monitor explicitly.
+        configured_collocation_count = getattr(
+            getattr(config, "stage", None), "collocation_count", None
+        )
+        if configured_collocation_count is None:
+            self._collocation_count = 1
+            self._amended_recipe = False
+        else:
+            if (
+                isinstance(configured_collocation_count, bool)
+                or not isinstance(configured_collocation_count, int)
+                or configured_collocation_count <= 0
+            ):
+                raise ValueError(
+                    "stage.collocation_count must be a positive int or None"
+                )
+            self._collocation_count = int(configured_collocation_count)
+            self._amended_recipe = (
+                self._collocation_count == RATIFIED_COLLOCATION_COUNT
+            )
+        self._front_monitor_batch: Optional[FixedBatch] = None
+        self._last_front_monitor_stats: Optional[dict[str, Any]] = None
+        self._lbfgs_segment_batch: Optional[FixedBatch] = None
+        self._lbfgs_segment_anchor_ctx: Optional[_AnchorContext] = None
+        self._lbfgs_segment_weights: Optional[torch.Tensor] = None
+        self._lbfgs_segment_state: Optional[dict[str, Any]] = None
+        self._front_monitor_state: dict[str, Any] = {
+            "schema_version": _FRONT_MONITOR_SCHEMA_VERSION,
+            "enabled": bool(self._amended_recipe),
+            "split": "train",
+            "status": "not-built",
+        }
+        if self._amended_recipe:
+            self._build_front_monitor(stage=0)
+
     # ------------------------------------------------------------------
     # Public checkpoint surface (CTX-44 -- composes model + schedule + clipper
     # + Phase-41 optimizer / rng / counters).
@@ -598,6 +827,8 @@ class RunController:
                 "global_epoch": int(self._global_epoch),
                 "wall_clock_baseline": float(self._wall_clock_baseline),
             },
+            "front_monitor": _clone_checkpoint_value(self._front_monitor_state),
+            "lbfgs_segment_state": _clone_checkpoint_value(self._lbfgs_segment_state),
         }
 
     def load_state_dict(self, state: dict[str, Any]) -> None:
@@ -625,6 +856,10 @@ class RunController:
                 self._global_epoch = int(counters["global_epoch"])
             if "wall_clock_baseline" in counters:
                 self._wall_clock_baseline = float(counters["wall_clock_baseline"])
+        if "front_monitor" in state:
+            self._restore_front_monitor_state(state["front_monitor"])
+        if "lbfgs_segment_state" in state:
+            self._restore_lbfgs_segment_state(state["lbfgs_segment_state"])
 
     @property
     def checkpoint_store(self):
@@ -648,6 +883,155 @@ class RunController:
         the persisted timing calibration records — never an invented duration.
         """
         return self._s_per_step_ema
+
+    @property
+    def front_monitor_state(self) -> dict[str, Any]:
+        """Return a detached copy of the frozen training-only monitor state."""
+        return _clone_checkpoint_value(self._front_monitor_state)
+
+    def _build_front_monitor(self, *, stage: int) -> None:
+        """Select one training-only monitor before the first optimizer update."""
+        if not self._amended_recipe:
+            return
+        batch = self._stage_batch(
+            self._train_source,
+            stage=int(stage),
+            collocation_count=RATIFIED_COLLOCATION_COUNT,
+        )
+        collocation = batch.collocation_points
+        if collocation.times.numel() != RATIFIED_COLLOCATION_COUNT:
+            raise ValueError(
+                "front monitor construction did not produce the ratified "
+                f"{RATIFIED_COLLOCATION_COUNT} rows"
+            )
+        times = collocation.times.detach().cpu().clone()
+        normalized_times = times / float(T_CHARACTERISTIC_TIME)
+        bins = torch.clamp(
+            torch.floor(normalized_times * _RATIFIED_N_BINS).to(torch.int64),
+            min=0,
+            max=_RATIFIED_N_BINS - 1,
+        )
+        batch_state = _serialize_point_batch(batch)
+        self._front_monitor_batch = batch
+        self._front_monitor_state = {
+            "schema_version": _FRONT_MONITOR_SCHEMA_VERSION,
+            "enabled": True,
+            "split": "train",
+            "stage": int(stage),
+            "n_bins": _RATIFIED_N_BINS,
+            "n_collocation_rows": RATIFIED_COLLOCATION_COUNT,
+            "record_keys": [
+                _record_key_payload(key) for key in collocation.record_keys
+            ],
+            "collocation_times": times,
+            "normalized_times": normalized_times,
+            "bin_assignments": bins,
+            "batch": batch_state,
+            "batch_hash": _point_batch_state_hash(batch_state),
+        }
+        self._front_monitor_state["monitor_hash"] = hashlib.sha256(
+            (
+                self._front_monitor_state["batch_hash"]
+                + _tensor_hash(times)
+                + _tensor_hash(normalized_times)
+                + _tensor_hash(bins)
+            ).encode("utf-8")
+        ).hexdigest()
+
+    def _restore_front_monitor_state(self, state: Any) -> None:
+        """Restore the monitor and refuse incomplete or tampered state."""
+        if not isinstance(state, Mapping):
+            raise ValueError("front_monitor checkpoint state must be a mapping")
+        if state.get("schema_version") != _FRONT_MONITOR_SCHEMA_VERSION:
+            raise ValueError("front_monitor checkpoint schema mismatch")
+        if state.get("enabled") is not True:
+            if self._amended_recipe:
+                raise ValueError(
+                    "amended recipe resume checkpoint cannot disable front monitor"
+                )
+            self._front_monitor_batch = None
+            self._last_front_monitor_stats = None
+            self._front_monitor_state = _clone_checkpoint_value(dict(state))
+            return
+        if state.get("split") != "train":
+            raise ValueError("front_monitor must be sourced from the training split")
+        if state.get("n_bins") != _RATIFIED_N_BINS:
+            raise ValueError("front_monitor bin count mismatch")
+        if state.get("n_collocation_rows") != RATIFIED_COLLOCATION_COUNT:
+            raise ValueError("front_monitor row count mismatch")
+        batch = _deserialize_point_batch(
+            state.get("batch"), dtype=self._dtype, device=self._device,
+        )
+        collocation = batch.collocation_points
+        if collocation.times.numel() != RATIFIED_COLLOCATION_COUNT:
+            raise ValueError("front_monitor collocation rows are incomplete")
+        expected_keys = tuple(
+            _record_key_from_payload(value) for value in state.get("record_keys", ())
+        )
+        if expected_keys != tuple(collocation.record_keys):
+            raise ValueError("front_monitor record identity mismatch")
+        times = state.get("collocation_times")
+        normalized = state.get("normalized_times")
+        assignments = state.get("bin_assignments")
+        if not all(isinstance(value, torch.Tensor) for value in (times, normalized, assignments)):
+            raise ValueError("front_monitor time/bin state must be tensors")
+        expected_times = collocation.times.detach().cpu()
+        expected_normalized = expected_times / float(T_CHARACTERISTIC_TIME)
+        expected_assignments = torch.clamp(
+            torch.floor(expected_normalized * _RATIFIED_N_BINS).to(torch.int64),
+            min=0,
+            max=_RATIFIED_N_BINS - 1,
+        )
+        if not torch.equal(times.detach().cpu(), expected_times):
+            raise ValueError("front_monitor collocation time bytes mismatch")
+        if not torch.equal(normalized.detach().cpu(), expected_normalized):
+            raise ValueError("front_monitor normalized time bytes mismatch")
+        if not torch.equal(assignments.detach().cpu(), expected_assignments):
+            raise ValueError("front_monitor bin assignments mismatch")
+        expected_batch_state = _serialize_point_batch(batch)
+        if state.get("batch_hash") != _point_batch_state_hash(expected_batch_state):
+            raise ValueError("front_monitor batch hash mismatch")
+        expected_monitor_hash = hashlib.sha256(
+            (
+                str(state.get("batch_hash"))
+                + _tensor_hash(expected_times)
+                + _tensor_hash(expected_normalized)
+                + _tensor_hash(expected_assignments)
+            ).encode("utf-8")
+        ).hexdigest()
+        if state.get("monitor_hash") != expected_monitor_hash:
+            raise ValueError("front_monitor hash mismatch")
+        # Keep the exact checkpoint representation while using a live carrier
+        # for AD evaluation; all tensors are detached clones.
+        self._front_monitor_batch = batch
+        self._front_monitor_state = _clone_checkpoint_value(dict(state))
+        self._last_front_monitor_stats = None
+
+    def _evaluate_front_monitor(self) -> Optional[dict[str, Any]]:
+        """Re-evaluate the frozen monitor at the current model parameters."""
+        if not self._amended_recipe:
+            return None
+        if self._front_monitor_batch is None:
+            raise ValueError("front monitor is missing from the amended run state")
+        anchor_ctx = self._build_anchor_context(
+            self._train_source, self._front_monitor_batch, None,
+        )
+        self._non_data_terms(anchor_ctx)
+        details = self._last_widened_details
+        if not isinstance(details, Mapping):
+            raise ValueError("front monitor evaluation produced no causal details")
+        stats = {
+            "w_n_stats": dict(details.get("w_n_stats") or {}),
+            "residuals_per_bin": list(details.get("residuals_per_bin") or ()),
+            "raw_residuals_per_bin": list(
+                details.get("raw_residuals_per_bin") or ()
+            ),
+            "r_ref": details.get("r_ref"),
+            "n_collocation_rows": RATIFIED_COLLOCATION_COUNT,
+            "n_bins": _RATIFIED_N_BINS,
+        }
+        self._last_front_monitor_stats = stats
+        return stats
 
     # ------------------------------------------------------------------
     # Anchor-identity selection + ground-truth conserved quantities.
@@ -731,7 +1115,12 @@ class RunController:
         true_pos = data_points.targets.reshape(-1, 3, 3)
         return data_huber_loss(pred_pos, true_pos, dtype=self._dtype, device=self._device)
 
-    def _non_data_terms(self, anchor_ctx: _AnchorContext) -> dict[str, torch.Tensor]:
+    def _non_data_terms(
+        self,
+        anchor_ctx: _AnchorContext,
+        *,
+        frozen_causal_weights: Optional[torch.Tensor] = None,
+    ) -> dict[str, torch.Tensor]:
         zero_u = torch.zeros((), dtype=self._dtype, device=self._device)
         pred_r0 = anchor_ctx.traj(zero_u)
         first0, _second0 = componentwise_du(anchor_ctx.traj, zero_u)
@@ -784,6 +1173,7 @@ class RunController:
         # normalized diagnostics (57-RESEARCH.md "Component and Symbol Map").
         phys_term, phys_details = causal_physics_loss(
             raw_bin_means, r_ref=self._r_ref, times=bin_centres,
+            frozen_weights=frozen_causal_weights,
             dtype=self._dtype, device=self._device, return_details=True,
         )
 
@@ -815,6 +1205,9 @@ class RunController:
                     [n for n, w in enumerate(w_n_list) if w > 0.5], default=-1,
                 ),
             },
+            # Detached handoff vector for the active L-BFGS segment. This is
+            # internal state, not an independently recomputed diagnostic.
+            "weights": [float(weight) for weight in w_n_list],
             # NORMALIZED (Rtilde = Rbar / r_ref) per-bin residuals -- the
             # existing field name, now amended semantics per the Phase-56
             # contract's residual-wide normalization.
@@ -833,8 +1226,29 @@ class RunController:
         }
         return {"ic": ic_term, "phys": phys_term, "energy": energy_term, "angmom": angmom_term}
 
-    def _weighted_non_data_terms(self, anchor_ctx: _AnchorContext, weights) -> torch.Tensor:
-        terms = self._non_data_terms(anchor_ctx)
+    def _weighted_non_data_terms(
+        self,
+        anchor_ctx: _AnchorContext,
+        weights,
+        *,
+        frozen_causal_weights: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        if frozen_causal_weights is None:
+            terms = self._non_data_terms(anchor_ctx)
+        else:
+            try:
+                terms = self._non_data_terms(
+                    anchor_ctx, frozen_causal_weights=frozen_causal_weights,
+                )
+            except TypeError as exc:
+                # Preserve the established test/instrumentation seam where a
+                # caller wraps ``_non_data_terms(anchor_ctx)`` without the new
+                # keyword. Production RunController always accepts the frozen
+                # vector; only this compatibility wrapper may use the legacy
+                # call shape.
+                if "frozen_causal_weights" not in str(exc):
+                    raise
+                terms = self._non_data_terms(anchor_ctx)
         self._last_non_data_terms = terms
         return (
             weights.lambda_ic * terms["ic"]
@@ -1251,8 +1665,13 @@ class RunController:
             adam_epochs_used = epoch + 1
             self._active_phase = "2a"
             self._active_epoch = int(adam_epochs_used)
+            # Checkpoint ③: refresh only the model evaluation of the one
+            # frozen monitor. Its identities/times/bins are never re-sampled.
+            self._evaluate_front_monitor()
             batch = self._stage_batch(
-                self._train_source, stage=k, collocation_count=1,
+                self._train_source,
+                stage=k,
+                collocation_count=self._collocation_count,
             )
             anchor_ctx = self._build_anchor_context(self._train_source, batch, None)
             weights = self._scheduled_weights.current(epoch)
@@ -1419,6 +1838,150 @@ class RunController:
     # ------------------------------------------------------------------
     # Phase 2b: L-BFGS.
     # ------------------------------------------------------------------
+    def _start_lbfgs_segment(
+        self, k: int, *, lbfgs_start: int,
+    ) -> tuple[FixedBatch, _AnchorContext, torch.Tensor]:
+        """Create or restore one immutable L-BFGS sample/weight segment."""
+        if self._lbfgs_segment_state is None:
+            if int(lbfgs_start) > 0:
+                raise ValueError(
+                    "resume checkpoint is missing active L-BFGS segment state; "
+                    "refusing to redraw samples or causal weights"
+                )
+            fixed_batch = self._stage_batch(
+                self._train_source,
+                stage=int(k),
+                collocation_count=self._collocation_count,
+            )
+            anchor_ctx = self._build_anchor_context(
+                self._train_source, fixed_batch, None,
+            )
+            # The first causal evaluation at handoff determines the detached
+            # segment weights. Future closures use only these bytes.
+            self._non_data_terms(anchor_ctx)
+            details = self._last_widened_details or {}
+            raw_weights = details.get("w_n")
+            if raw_weights is None:
+                # ``_non_data_terms`` stores JSON-safe stats, so recover the
+                # exact vector from the causal loss stash only when available.
+                raw_weights = details.get("weights")
+            if raw_weights is None:
+                # Recompute from the detached normalized bin means solely at
+                # handoff; no closure or outer call can reach this branch.
+                normalized = details.get("residuals_per_bin")
+                if normalized is None:
+                    raise ValueError(
+                        "L-BFGS handoff produced no causal weight vector"
+                    )
+                _unused_loss, handoff_details = causal_physics_loss(
+                    normalized,
+                    r_ref=1.0,
+                    dtype=self._dtype,
+                    device=self._device,
+                    return_details=True,
+                )
+                raw_weights = handoff_details["w_n"]
+            frozen_weights = torch.as_tensor(
+                raw_weights, dtype=self._dtype, device=self._device,
+            ).reshape(-1).detach().clone()
+            if frozen_weights.numel() != _RATIFIED_N_BINS:
+                raise ValueError(
+                    "L-BFGS handoff causal weights must contain exactly "
+                    f"{_RATIFIED_N_BINS} bins"
+                )
+            if not bool(torch.isfinite(frozen_weights).all()) or not bool(
+                (frozen_weights > 0.0).all()
+            ):
+                raise ValueError("L-BFGS handoff causal weights are invalid")
+            batch_state = _serialize_point_batch(fixed_batch)
+            self._lbfgs_segment_state = {
+                "schema_version": _LBFGS_SEGMENT_SCHEMA_VERSION,
+                "stage": int(k),
+                "n_bins": _RATIFIED_N_BINS,
+                "n_collocation_rows": int(
+                    fixed_batch.collocation_points.times.numel()
+                ),
+                "batch": batch_state,
+                "frozen_weights": frozen_weights.detach().cpu().clone(),
+                "frozen_weights_hash": _tensor_hash(frozen_weights),
+                "weights_hash": _tensor_hash(frozen_weights),
+                "samples_hash": _point_batch_state_hash(batch_state),
+                "handoff_global_step": int(self._global_step),
+                "outer_calls": 0,
+                "resume_epoch": int(lbfgs_start),
+            }
+            self._lbfgs_segment_batch = fixed_batch
+            self._lbfgs_segment_anchor_ctx = anchor_ctx
+            self._lbfgs_segment_weights = frozen_weights
+        else:
+            if self._lbfgs_segment_state.get("stage") != int(k):
+                raise ValueError(
+                    "active L-BFGS segment belongs to a different stage; "
+                    "refusing resume with mismatched samples"
+                )
+            if self._lbfgs_segment_batch is None or self._lbfgs_segment_anchor_ctx is None:
+                raise ValueError("active L-BFGS segment has no restored batch carrier")
+            if self._lbfgs_segment_weights is None:
+                raise ValueError("active L-BFGS segment has no restored weights")
+        return (
+            self._lbfgs_segment_batch,
+            self._lbfgs_segment_anchor_ctx,
+            self._lbfgs_segment_weights,
+        )
+
+    def _end_lbfgs_segment(self) -> None:
+        """Drop active L-BFGS state after a segment reaches its disposition."""
+        self._lbfgs_segment_batch = None
+        self._lbfgs_segment_anchor_ctx = None
+        self._lbfgs_segment_weights = None
+        self._lbfgs_segment_state = None
+
+    def _restore_lbfgs_segment_state(self, state: Any) -> None:
+        """Restore and validate an active L-BFGS segment from a checkpoint."""
+        if state is None:
+            self._lbfgs_segment_batch = None
+            self._lbfgs_segment_anchor_ctx = None
+            self._lbfgs_segment_weights = None
+            self._lbfgs_segment_state = None
+            return
+        if not isinstance(state, Mapping):
+            raise ValueError("lbfgs_segment_state checkpoint must be a mapping or None")
+        if state.get("schema_version") != _LBFGS_SEGMENT_SCHEMA_VERSION:
+            raise ValueError("lbfgs_segment_state checkpoint schema mismatch")
+        stage = state.get("stage")
+        if isinstance(stage, bool) or not isinstance(stage, int) or stage < 0:
+            raise ValueError("lbfgs_segment_state stage is invalid")
+        batch_state = state.get("batch")
+        batch = _deserialize_point_batch(
+            batch_state, dtype=self._dtype, device=self._device,
+        )
+        n_rows = int(batch.collocation_points.times.numel())
+        if state.get("n_collocation_rows") != n_rows:
+            raise ValueError("lbfgs_segment_state row count mismatch")
+        if self._amended_recipe and n_rows != RATIFIED_COLLOCATION_COUNT:
+            raise ValueError("amended L-BFGS segment does not contain 4096 rows")
+        if state.get("n_bins") != _RATIFIED_N_BINS:
+            raise ValueError("lbfgs_segment_state bin count mismatch")
+        frozen = state.get("frozen_weights")
+        if not isinstance(frozen, torch.Tensor):
+            raise ValueError("lbfgs_segment_state frozen weights are missing")
+        frozen = frozen.detach().to(dtype=self._dtype, device=self._device).reshape(-1).clone()
+        if frozen.numel() != _RATIFIED_N_BINS:
+            raise ValueError("lbfgs_segment_state frozen weights have wrong length")
+        if not bool(torch.isfinite(frozen).all()) or not bool((frozen > 0.0).all()):
+            raise ValueError("lbfgs_segment_state frozen weights are invalid")
+        if state.get("frozen_weights_hash") != _tensor_hash(frozen):
+            raise ValueError("lbfgs_segment_state frozen weight hash mismatch")
+        if state.get("weights_hash") != _tensor_hash(frozen):
+            raise ValueError("lbfgs_segment_state weights hash mismatch")
+        if state.get("samples_hash") != _point_batch_state_hash(batch_state):
+            raise ValueError("lbfgs_segment_state samples hash mismatch")
+        anchor_ctx = self._build_anchor_context(self._train_source, batch, None)
+        self._lbfgs_segment_batch = batch
+        self._lbfgs_segment_anchor_ctx = anchor_ctx
+        self._lbfgs_segment_weights = frozen
+        self._lbfgs_segment_state = _clone_checkpoint_value(dict(state))
+
     def _make_lbfgs_closure(self, optimizer, fixed_batch, anchor_ctx, weights, chunk_size, closure_state):
         parameters = tuple(
             parameter for parameter in self._model.parameters()
@@ -1443,7 +2006,11 @@ class RunController:
             # that norm before the non-data backward adds anything to .grad.
             data_raw = _global_parameter_grad_norm_from_grads(parameters)
             self._last_non_data_terms = None
-            other_total = self._weighted_non_data_terms(anchor_ctx, weights)
+            other_total = self._weighted_non_data_terms(
+                anchor_ctx,
+                weights,
+                frozen_causal_weights=self._lbfgs_segment_weights,
+            )
             non_data_terms = self._last_non_data_terms or {}
             closure_state["gradient_stats"] = _build_gradient_stats(
                 non_data_terms,
@@ -1491,12 +2058,11 @@ class RunController:
         cfg = self._config
         self._scheduled_weights.freeze()
         weights_frozen = self._scheduled_weights.current(0)
-
-        fixed_batch = self._stage_batch(
-            self._train_source, stage=k, collocation_count=1,
+        fixed_batch, anchor_ctx, _frozen_causal_weights = self._start_lbfgs_segment(
+            k, lbfgs_start=int(lbfgs_start),
         )
-        fixed_collocation_times = self._collocation_sampler.uniform()
-        anchor_ctx = self._build_anchor_context(self._train_source, fixed_batch, fixed_collocation_times)
+        # The batch and causal weights above are segment state. Never replace
+        # them inside the outer loop or in a line-search closure.
 
         optimizer = torch.optim.LBFGS(
             self._model.parameters(),
@@ -1510,6 +2076,7 @@ class RunController:
 
         epoch_count = epoch_count_start
         # lbfgs_start is the number of L-BFGS epochs already consumed (resume).
+        self._evaluate_front_monitor()
         for _lbfgs_epoch in range(int(lbfgs_start), remaining_budget):
             if self._should_stop is not None and self._should_stop():
                 self._scheduled_weights.rewarm()
@@ -1532,6 +2099,13 @@ class RunController:
             epoch_count += 1
             self._global_step += 1
             self._global_epoch += 1
+            if self._lbfgs_segment_state is not None:
+                self._lbfgs_segment_state["outer_calls"] = int(
+                    self._lbfgs_segment_state.get("outer_calls", 0)
+                ) + 1
+                self._lbfgs_segment_state["last_outer_global_step"] = int(
+                    self._global_step
+                )
             (
                 causal_w_n_stats, causal_residuals,
                 causal_raw_residuals, causal_r_ref,
@@ -1632,6 +2206,11 @@ class RunController:
             if self._checkpoint_hook is not None:
                 self._checkpoint_hook(self, self._global_step)
 
+            # Re-evaluate the same monitor only after the accepted outer
+            # L-BFGS state is in place; the next closure/guard observes this
+            # snapshot while the segment samples/weights remain unchanged.
+            self._evaluate_front_monitor()
+
             outcome = self._stage_exit_machine.evaluate(
                 train_loss_history, val_loss_history,
                 state["val_phys"], state["val_energy"],
@@ -1639,6 +2218,7 @@ class RunController:
             )
             if outcome.disposition is not None:
                 self._scheduled_weights.rewarm()
+                self._end_lbfgs_segment()
                 return outcome.disposition
 
         # Bounded loop exhausted without a disposition -- defensive backstop
@@ -1660,6 +2240,11 @@ class RunController:
         if resume_ctx is not None:
             resume_phase = resume_ctx.get("phase")  # "2a" | "2b"
             resume_epoch = int(resume_ctx.get("epoch", 0) or 0)
+            if resume_phase == "2b" and self._lbfgs_segment_state is None:
+                raise ValueError(
+                    "resume checkpoint is missing active L-BFGS segment state; "
+                    "refusing to redraw samples or causal weights"
+                )
 
         optimizer = torch.optim.Adam(
             self._model.parameters(),

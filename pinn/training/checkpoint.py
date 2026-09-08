@@ -42,6 +42,15 @@ _CTX53_REQUIRED_KEYS: tuple[str, ...] = (
     "schema_version",
 )
 
+# Phase-57 runtime-freeze keys are additive to the v2 envelope.  Legacy
+# checkpoints that predate the amended recipe remain loadable when neither key
+# is present; once either key is emitted, both must be present so an amended
+# resume can never silently regenerate a monitor or L-BFGS segment.
+_PHASE57_FREEZE_KEYS: tuple[str, ...] = (
+    "front_monitor",
+    "lbfgs_segment_state",
+)
+
 _STEP_RE = re.compile(r"^step-(\d+)\.pt$")
 _STAGE_ANCHOR_RE = re.compile(r"^stage-\d+-(?:final|init)\.pt$")
 _FAILURE_RE = re.compile(r"^failure-stage-\d+-step-(\d+)\.pt$")
@@ -168,6 +177,26 @@ def _is_structurally_valid(payload: Any) -> bool:
             return False
     if payload.get("schema_version") != CHECKPOINT_SCHEMA_VERSION:
         return False
+    freeze_present = [key in payload for key in _PHASE57_FREEZE_KEYS]
+    if any(freeze_present):
+        if not all(freeze_present):
+            return False
+        monitor = payload.get("front_monitor")
+        if monitor is not None and (
+            not isinstance(monitor, dict)
+            or monitor.get("schema_version") != "phase57-front-monitor/v1"
+        ):
+            return False
+        segment = payload.get("lbfgs_segment_state")
+        if segment is not None and (
+            not isinstance(segment, dict)
+            or segment.get("schema_version") != "phase57-lbfgs-segment/v1"
+            or "batch" not in segment
+            or "frozen_weights" not in segment
+            or "frozen_weights_hash" not in segment
+            or "samples_hash" not in segment
+        ):
+            return False
     return True
 
 
