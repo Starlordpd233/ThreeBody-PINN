@@ -114,7 +114,7 @@ Each task was committed atomically:
 2. **Task 2: Persist one monitor and immutable L-BFGS segment state** — `ac53a5e6` (`feat(57-03)`)
 3. **Task 3: Derive the final smoke and three graded configs** — `b671e4ad` (`feat(57-03)`)
 
-## Verification
+## Validation Evidence
 
 - `python -m unittest tests.phase57.test_runtime_freeze tests.phase57.test_recipe_production_path tests.phase50.test_causal_telemetry tests.phase50.test_validation_full_pool tests.phase41.test_controllers_ext -v` — **56/56 passed**.
 - `python -m unittest tests.phase57.test_runtime_freeze.ConfigProtocolTests tests.phase57.test_recipe_production_path.ProductionPathContractTests -v` — **6/6 passed**.
