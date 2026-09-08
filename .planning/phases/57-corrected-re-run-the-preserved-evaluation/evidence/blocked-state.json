@@ -1,0 +1,87 @@
+{
+  "schema": "phase57-blocked-state/v1",
+  "phase": 57,
+  "milestone": "v2.3",
+  "status": "blocked",
+  "terminal": false,
+  "authorized_terminal_reason": null,
+  "blocked_reason": "guard-memory-watermark",
+  "evaluation": "preserved-unspent",
+  "run_name": "stage0-v23-smoke",
+  "seed": 42,
+  "git_head": "285bc64431eb26556826d0315123da81716204f9",
+  "command": "<home>/miniforge3/bin/conda run -n pinn-train bash scripts/train-unattended.sh --config configs/stage0-v23-smoke.yaml --stage-0-only",
+  "launch_started_utc": "2026-09-08T15:00:56.422668+00:00",
+  "completion_utc": "2026-09-08T15:15:08.361196+00:00",
+  "wall_clock_secs": 851.938528,
+  "process": {
+    "pid": 54461,
+    "exit_code": 1,
+    "disposition": "HALT",
+    "step": 0,
+    "stage": 0,
+    "phase": "2a"
+  },
+  "recipe": {
+    "stage_0_only": true,
+    "collocation_count": 4096,
+    "replay_count": 240,
+    "front_advance_window_n": 500,
+    "max_epochs": 300,
+    "n_adam": 300,
+    "device": "mps",
+    "precision": "float32",
+    "monitor": "training-only frozen monitor; no optimizer update completed"
+  },
+  "config": {
+    "source_path": "configs/stage0-v23-smoke.yaml",
+    "source_sha256": "668ea42f2f162fc4e06b53e02af0075c13ee12acbf281038fdcafa0ea74113f5",
+    "resolved_path": "runs/stage0-v23-smoke/config.yaml",
+    "resolved_sha256": "6b1069eb9912e8f4ed52cb7623c8e9fcf3bb039bb343a3a7a3f0b314aa90e93f",
+    "identity_digest": "6b1069eb9912e8f4"
+  },
+  "corpus": {
+    "splits_sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+    "s_h": 22.321729071058996,
+    "eps_h": 0.0022321729071058997,
+    "n_train": 1812
+  },
+  "r_ref": {
+    "value": 19749775821.24417,
+    "artifact_path": "pinn/verification/artifacts/r_ref_stage0.json",
+    "artifact_sha256": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff"
+  },
+  "environment": {
+    "python_version": "3.11.15",
+    "torch_version": "2.12.1",
+    "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+    "platform": "macOS 26.5.1",
+    "device": "mps",
+    "precision": "float32"
+  },
+  "failure": {
+    "guard": "memory_watermark",
+    "metric": "memory_fraction",
+    "value": 0.968756357828776,
+    "threshold": 0.7,
+    "threshold_provisional": true,
+    "memory_allocated_bytes": 24964661248,
+    "memory_total_bytes": 25769803776,
+    "grad_norm": 627404864.0,
+    "reason": "memory fraction 0.968756357828776 > ⚖ watermark 0.7",
+    "trip_path": "runs/stage0-v23-smoke/failure/trip.json",
+    "trip_sha256": "f4f34a47a8f66c6ea91128a5c59ba5540b2cac9cea6fb852bee71f27556f064a"
+  },
+  "run_artifact_hashes": {
+    "preflight.json": "3dd845c5800d5848249e66282264558747edf352f6cd009933ddb6e752ddfc89",
+    "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+    "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+    "summary.json": "4c2ef451d07c1ed3f5538dd1219ae82a71d72804c6757f3c87dce2769aa813b8",
+    "status.json": "3643cee92d98281e5e86aeeb56dc94f67653c37e6bd494026b10b4bb93368637",
+    "failure/trip.json": "f4f34a47a8f66c6ea91128a5c59ba5540b2cac9cea6fb852bee71f27556f064a"
+  },
+  "graded_launches": [],
+  "held_out_evaluation_launched": false,
+  "note": "The smoke completed preflight and halted at the first optimization step on the memory watermark. This is a blocked/incomplete operational guard outcome, not the authorized invariant-B no-advance terminal closure. No graded seed was launched.",
+  "recorded_at_utc": "2026-09-08T15:16:15Z"
+}
