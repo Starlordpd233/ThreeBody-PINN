@@ -17,6 +17,7 @@ implementation. No production file is edited by this module.
 from __future__ import annotations
 
 import inspect
+import math
 import tempfile
 import unittest
 from collections import Counter
@@ -24,7 +25,9 @@ from collections import Counter
 import numpy as np
 import torch
 
+from pinn.constants import T_CHARACTERISTIC_TIME
 from pinn.data.batches import select_stage_records, sample_collocation_points
+from pinn.loss_catalog import causal_physics_loss
 from pinn.training.controllers import RunController
 
 from tests.phase57._fixtures import (
@@ -279,6 +282,138 @@ class AllocationContractTests(unittest.TestCase):
             sample_collocation_points(
                 source, selected.replay, rng=rng, dtype=torch.float64,
                 device=torch.device("cpu"), collocation_count=RATIFIED_TOTAL,
+            )
+
+
+class LossNormalizationTests(unittest.TestCase):
+    """§3.2's frozen-``R_ref`` residual-wide normalization contract.
+
+    ``pinn.loss_catalog.causal_physics_loss`` currently forms its exclusive
+    prefix and outer mean directly over whatever ``residuals_per_time`` it is
+    given -- it has NO ``r_ref`` parameter and therefore cannot normalize a
+    raw bin-mean residual by the frozen reference before either the exponent
+    or the outer loss consumes it (57-RESEARCH.md "Component and Symbol
+    Map": "Accept 16 raw bin means plus frozen positive R_ref; normalize
+    exponent and outer residual term; expose raw/normalized diagnostics;
+    retain residual gradients."). This module targets the bounded signature
+    ``causal_physics_loss(raw_bin_means, *, r_ref, eta_c=..., times=...,
+    dtype=..., device=..., return_details=False)``. Expected values are an
+    INDEPENDENT closed-form reference (plain Python floats) -- never
+    production code used as its own oracle.
+    """
+
+    ETA_C = 1.0
+
+    @staticmethod
+    def _bin_centre_times() -> list:
+        return [
+            (b + 0.5) / RATIFIED_N_BINS * T_CHARACTERISTIC_TIME
+            for b in range(RATIFIED_N_BINS)
+        ]
+
+    @staticmethod
+    def _independent_reference(raw_means, r_ref, eta_c=1.0):
+        x = [float(m) / float(r_ref) for m in raw_means]
+        n = len(x)
+        weights = []
+        prefix = 0.0
+        for value in x:
+            weights.append(math.exp(-eta_c * prefix))
+            prefix += value
+        loss = sum(w * xv for w, xv in zip(weights, x)) / n
+        return weights, loss
+
+    def test_exclusive_prefix_weights_and_normalized_outer_loss(self) -> None:
+        raw_means = [float(v) for v in range(1, RATIFIED_N_BINS + 1)]  # 1..16
+        r_ref = 4.0
+        expected_weights, expected_loss = self._independent_reference(
+            raw_means, r_ref, self.ETA_C,
+        )
+
+        loss, details = causal_physics_loss(
+            raw_means, r_ref=r_ref, eta_c=self.ETA_C,
+            times=self._bin_centre_times(),
+            dtype=torch.float64, device=torch.device("cpu"),
+            return_details=True,
+        )
+        self.assertTrue(bool(torch.isfinite(loss)))
+        self.assertAlmostEqual(float(loss), expected_loss, places=9)
+        got_weights = details["w_n"].tolist()
+        for got, expected in zip(got_weights, expected_weights):
+            self.assertAlmostEqual(got, expected, places=9)
+
+    def test_r_ref_normalizes_both_exponent_and_outer_loss(self) -> None:
+        """Two different ``R_ref`` values on the SAME raw means must move
+        BOTH the weight vector AND the loss scale -- a bug that normalizes
+        only the exponent (or only the outer term) would leave one of the
+        two insensitive to ``R_ref``.
+        """
+        raw_means = [1e9 * (b + 1) for b in range(RATIFIED_N_BINS)]
+        loss_small_ref, details_small = causal_physics_loss(
+            raw_means, r_ref=1e9, eta_c=self.ETA_C,
+            times=self._bin_centre_times(),
+            dtype=torch.float64, device=torch.device("cpu"), return_details=True,
+        )
+        loss_large_ref, details_large = causal_physics_loss(
+            raw_means, r_ref=1e12, eta_c=self.ETA_C,
+            times=self._bin_centre_times(),
+            dtype=torch.float64, device=torch.device("cpu"), return_details=True,
+        )
+        self.assertNotAlmostEqual(
+            float(loss_small_ref), float(loss_large_ref), places=3,
+        )
+        self.assertFalse(
+            torch.allclose(details_small["w_n"], details_large["w_n"]),
+            "the exponent must also respond to a changed R_ref",
+        )
+        # A large enough R_ref must bring the loss down to an O(1) scale even
+        # though the raw residuals are O(1e9-1e10) -- the "final loss scale"
+        # 57-01-PLAN.md's LossNormalizationTests behavior line names.
+        self.assertLess(
+            float(loss_large_ref), 1e3,
+            "the residual-wide-normalized loss must be O(1)-scaled, not "
+            "carry the raw O(1e9+) residual magnitude forward",
+        )
+
+    def test_raw_and_normalized_diagnostics_are_both_exposed(self) -> None:
+        raw_means = [float(v) for v in range(1, RATIFIED_N_BINS + 1)]
+        r_ref = 4.0
+        _loss, details = causal_physics_loss(
+            raw_means, r_ref=r_ref, eta_c=self.ETA_C,
+            times=self._bin_centre_times(),
+            dtype=torch.float64, device=torch.device("cpu"), return_details=True,
+        )
+        self.assertIn("raw_rbar", details)
+        self.assertIn("r_ref", details)
+        expected_raw = torch.tensor(raw_means, dtype=torch.float64)
+        self.assertTrue(torch.allclose(details["raw_rbar"], expected_raw))
+        expected_normalized = expected_raw / r_ref
+        self.assertTrue(torch.allclose(details["rbar"], expected_normalized))
+        self.assertEqual(float(details["r_ref"]), r_ref)
+
+    def test_gradients_flow_to_the_raw_bin_means(self) -> None:
+        raw_means = torch.tensor(
+            [float(v) for v in range(1, RATIFIED_N_BINS + 1)],
+            dtype=torch.float64, requires_grad=True,
+        )
+        loss, _details = causal_physics_loss(
+            raw_means, r_ref=4.0, eta_c=self.ETA_C,
+            times=self._bin_centre_times(),
+            dtype=torch.float64, device=torch.device("cpu"), return_details=True,
+        )
+        loss.backward()
+        self.assertIsNotNone(raw_means.grad)
+        self.assertTrue(bool(torch.isfinite(raw_means.grad).all()))
+
+    def test_requires_exactly_sixteen_bin_means_when_r_ref_supplied(self) -> None:
+        with self.assertRaises(
+            ValueError,
+            msg="the ratified recipe fixes M=16 bins; a length other than "
+            "16 must be refused, not silently accepted",
+        ):
+            causal_physics_loss(
+                [1.0, 2.0, 3.0], r_ref=1.0, eta_c=self.ETA_C,
+                dtype=torch.float64, device=torch.device("cpu"),
             )
 
 
