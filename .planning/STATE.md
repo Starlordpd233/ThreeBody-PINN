@@ -5,11 +5,11 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 57
 current_phase_name: Corrected Re-Run & the Preserved Evaluation
 status: planning
-stopped_at: Phase 57 context gathered (57-CONTEXT.md); GAP-57-01 open + checkpoints 3/4 blocking before any run
-last_updated: "2026-09-07T12:40:00.000Z"
-last_activity: 2026-09-07
-last_activity_desc: Phase 57 discuss step complete; 57-CONTEXT.md + 57-GAPS.md (GAP-57-01 HIGH) committed c752fb65
-state_head: c752fb65
+stopped_at: Phase 57 decisions ratified; ready for research and planning, with implementation and complete GATE-04 still pre-run
+last_updated: "2026-09-08T02:05:10.000Z"
+last_activity: 2026-09-08
+last_activity_desc: GAP-56-01, GAP-54-06, and checkpoints 3/4 resolved by direct owner instruction; exact record in 57-RULING.md
+state_head: 6ad6c5b9
 progress:
   total_phases: 6
   completed_phases: 4
@@ -31,9 +31,9 @@ See: .planning/PROJECT.md (updated 2026-09-07)
 
 Phase: 57 — Corrected Re-Run & the Preserved Evaluation
 Plan: Not started
-Status: Context gathered — planning may begin on the independent (dependency-scoped-unblocked) surfaces; RUN-04 implementation blocked on GAP-57-01
-Last activity: 2026-09-07 — Phase 57 discuss step complete (`57-CONTEXT.md`, `57-DISCUSSION-LOG.md`, `57-GAPS.md`); GAP-57-01 (HIGH, the amended-recipe implementation is homeless) surfaced to the owner; v2.3-GAPS.md updated
-Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-CONTEXT.md — next action is `/gsd-plan-phase 57`; the owner must rule on GAP-57-01 and discharge checkpoints ③ (window N + fixed monitor + GAP-54-06) and ④ (EVAL-02 seed) before any run executes
+Status: Context and all pre-planning owner decisions gathered — ready for Phase 57 research and planning. RUN-04 remains blocked on bounded production implementation, separate verification, and a new complete GATE-04 PASS.
+Last activity: 2026-09-08 — owner directly resolved GAP-56-01 (`2:1` non-anchor spread plus fixed full-residual response), checkpoint ③/GAP-54-06 (`N = 500`, one frozen training-only monitor, segment-frozen L-BFGS samples/weights), and checkpoint ④ (seed 42; fallback 41 then 43 only for structural ineligibility).
+Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-CONTEXT.md — next action is `/gsd-plan-phase 57`; `57-RULING.md` is the exact governing decision and pre-registration record.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -52,6 +52,20 @@ them re-derivably where re-typing several thousand characters by hand would not.
 `completed_plans` was re-derived from disk (twelve `*-SUMMARY.md` files across the
 two v2.3 phase directories) rather than incremented from the value the tooling
 left.
+
+### Phase 57 owner decisions (2026-09-08)
+
+- **GAP-56-01 resolved.** GATE-04 requires a `2:1` non-anchor spread and the
+  fixed all-residual reduction `alpha = log(2)/(2 * P_15)`, followed by
+  `front_idx = 15` and every perturbed weight `>= 0.70`.
+- **Checkpoint ③ / GAP-54-06 resolved.** `N = 500` is explicitly re-ratified;
+  invariant B uses one frozen training-only monitor; L-BFGS samples and
+  detached causal weights are frozen for the entire segment.
+- **Checkpoint ④ resolved.** Seed 42 is pre-registered, with fallback 41 then
+  43 only for structural ineligibility.
+- **No run authorization yet.** `57-RULING.md` is the exact record. Phase 57
+  still requires plans, bounded implementation, production-path verification,
+  and a new complete GATE-04 PASS before RUN-04.
 
 **Phase-54 transition note.** The ROADMAP row is now derived from the completed
 artifact set: 13 plans, 13 summaries, passing UAT and canonical verification.
@@ -517,15 +531,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** None
 
-Last session: 2026-09-07T04:51:12.507Z
-Stopped at: Phase 56 complete, ready to plan Phase 57
-Next action: Plan Phase 57 (Corrected Re-Run & the Preserved Evaluation), hard-gated on GATE-04 passing — which Phase 56's own authoritative run confirms on the amended recipe, subject to condition (ii) remaining unratified (GAP-56-01). GAP-56-01 and GAP-56-02 remain OPEN, owner-routed, and untouched by Phase 56; see `56-OPEN-ITEMS.md`.
+Last session: 2026-09-08T02:05:10.000Z
+Stopped at: Phase 57 owner decisions recorded; ready for research and planning
+Next action: Plan Phase 57 (Corrected Re-Run & the Preserved Evaluation). GAP-56-01 and checkpoint ③/GAP-54-06 are resolved, and checkpoint ④ is pre-registered; bounded production implementation, separate verification, and a new complete GATE-04 PASS remain hard pre-run gates. GAP-56-02 remains open and independent.
 
 ## Operator Next Steps
 
-- **Discuss and plan Phase 55** — build the committed architecture-characterization probe that Phase 56's fail-closed gate consumes. It must support the ratified total-batch/bin structure and retain complete raw vectors/provenance.
-- **Do not open Phase 56 yet.** Its Phase-54 decision dependency is satisfied, but Phase 55 remains a hard dependency.
-- **Carry checkpoint ③ forward explicitly.** A fixed pre-registered monitor and the advancement window must be owner-ratified before RUN-04; resampled training `front_idx` cannot satisfy invariant B.
+- **Plan Phase 57.** Begin with the bounded production conformance patch and its separate verification wave; do not launch RUN-04 until a new complete GATE-04 PASS exists.
+- **Keep checkpoint ④'s selection rule fixed.** Seed 42, then 41 and 43 only for structural ineligibility; no observed scientific metric may trigger fallback.
+- **Keep checkpoint ⑤ owner-only.** The DIAG-06 go / adjust / rethink verdict remains downstream of RUN-04/05 and EVAL-02.
 - ~~Execute Phase 44~~ — complete 2026-07-23 (qualified by `44-ERRATUM.md` 2026-07-24)
 - ~~Adjudicate GAP-44-01~~ — RESOLVED-WITH-INSTRUCTION 2026-07-23 (owner option A: the physics gate is defined over the worst-case `max` per-trajectory ε_H; headline `max = 237.2086056078468`. See `.planning/phases/44-physics-gate-forensics/44-GAPS.md` and the updated `44-DIAGNOSIS.md`.)
 - ~~Execute Phase 45~~ — complete 2026-07-24, `45-AUDIT.md` all ten checks PASS, package delivered

@@ -23,26 +23,23 @@ separate verification and owner gates recorded in the resolution note.
 
 ---
 
-## Inherited items due in Phase 57 (not new gaps — carried forward)
+## Inherited items resolved for Phase 57 (not new gaps — carried forward)
 
 - **GAP-54-06** (`.planning/phases/54-recalibration-decision-grounding/54-GAPS.md`;
-  `.planning/milestones/v2.3-GAPS.md`) — `DEFERRED (2026-09-04; must resolve at
-  checkpoint ③ before RUN-04)`. The L-BFGS second-optimizer-phase semantics:
-  whether the detached causal weights are recomputed inside the second phase's
-  line searches, and how the second phase re-draws collocation points.
-  `54-RULING.md` "Optimizer-phase boundary — explicitly deferred": Phase 56 "may
-  not silently choose either second-optimizer-phase behavior." **Due at Phase 57
-  checkpoint ③, before any RUN-04 execution.** Routed to the owner as part of
-  the checkpoint-③ packet (`57-CONTEXT.md` D-03.3). Not re-adjudicated here.
+  `.planning/milestones/v2.3-GAPS.md`) — `RESOLVED-WITH-INSTRUCTION
+  (2026-09-08)`. The owner fixed the L-BFGS behavior at checkpoint ③: freeze
+  the segment's collocation samples and detached causal weights for the entire
+  L-BFGS segment, including every line-search closure and outer call. Use one
+  separate frozen training-only monitor for invariant B and explicitly
+  re-ratify `N = 500`. Exact record: `57-RULING.md`.
 
 - **GAP-56-01** (`.planning/phases/56-contract-amendment-train-free-gate/56-GAPS.md`;
-  `.planning/milestones/v2.3-GAPS.md`) — `OPEN`. GATE-04 condition (ii)'s pass
-  criterion and the controlled-reduction test design. GATE-04 currently renders
-  `PASS (INCOMPLETE, unratified: ii)`; RUN-04 may not spend a run on an
-  `INCOMPLETE` verdict (`57-CONTEXT.md` D-05). **Must be owner-ratified and
-  GATE-04 re-run to a complete PASS before RUN-04.** If the owner takes GAP-56-01
-  option D, the condition-(ii) numeric bound joins the checkpoint-③ agenda.
-  Phase-56-local; not re-adjudicated here.
+  `.planning/milestones/v2.3-GAPS.md`) — `RESOLVED-WITH-INSTRUCTION
+  (2026-09-08)`. The owner requires a `2:1` non-anchor spread and one uniform
+  residual reduction with `alpha = log(2)/(2 * P_15)`, followed by
+  `front_idx = 15` and every perturbed weight `>= 0.70`. Exact record:
+  `57-RULING.md`. The current `PASS INCOMPLETE` remains historical; production
+  implementation and a new complete GATE-04 PASS still block RUN-04.
 
 ---
 
@@ -237,8 +234,8 @@ separate verification and owner gates recorded in the resolution note.
   (`.planning/PROJECT.md:344`), correcting the gap's original option-C
   characterization.
 
-  This resolution authorizes implementation only. RUN-04 remains blocked until
-  GAP-56-01 is resolved and GATE-04 records a complete PASS, checkpoint ③ fixes
-  the monitoring/window and GAP-54-06 L-BFGS semantics, and checkpoint ④ records
-  the evaluation-seed pre-registration. No value or behavior for those owner
-  decisions is inferred here.
+  This resolution authorizes implementation only. The owner subsequently
+  resolved GAP-56-01, checkpoint ③/GAP-54-06, and checkpoint ④ on 2026-09-08;
+  `57-RULING.md` is the exact governing record. RUN-04 remains blocked until
+  the bounded production wiring, separate verification, and a new complete
+  GATE-04 PASS are finished.

@@ -245,7 +245,7 @@ Open Item 2 and can be expanded into per-surface records without rework.)
 
 - **Confidence of impact:** **HIGH** — it bears directly on the invariant a later owner checkpoint is chartered to re-ratify, and on the coherence of any composed recipe that carries a second optimizer phase.
 
-- **Status:** DEFERRED
+- **Status:** RESOLVED-WITH-INSTRUCTION (2026-09-08)
 
 - **Resolution note:** **DEFERRED by the owner-authorized checkpoint ruling on
   2026-09-04.** The two optimizer phases must be distinguished, but SCOPE-33 does
@@ -258,6 +258,17 @@ Open Item 2 and can be expanded into per-surface records without rework.)
   Checkpoint ③ must bind invariant B to a fixed, pre-registered monitoring
   context or another explicitly ratified estimator that separates parameter
   improvement from resampling.
+
+  **Final checkpoint-③ resolution, owner instruction 2026-09-08.** Use one
+  frozen training-only monitor for invariant B and explicitly re-ratify
+  `N = 500`. For the entire Stage-0 L-BFGS segment, freeze the segment's
+  collocation samples and detached causal weights: select/compute them at the
+  Adam-to-L-BFGS handoff and do not redraw or recompute them in line-search
+  closures or between outer calls. Trial closures re-evaluate residuals at the
+  trial parameters against that fixed surrogate. The separate frozen monitor
+  continues to recompute its monitoring weights as model parameters change.
+  Exact governing text is in
+  `../57-corrected-re-run-the-preserved-evaluation/57-RULING.md`.
 
 ## GAP-54-07 — Whether the reported gradient-norm ratio establishes that the data term's gradient disappears, or only that the imbalance is severe
 

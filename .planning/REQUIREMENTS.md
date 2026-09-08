@@ -97,7 +97,7 @@ about the design, and recipe adjudication … is v2.3."*
 ### Reproducibility & Train-Free Acceptance (INST / GATE)
 
 - [x] **INST-04**: Land the architecture-only characterization as **committed, tested verification tooling** under `pinn/verification/`. For a given `ArchitectureSpec` at initialization — no data, no optimizer, no training step — it reports `‖r′‖`, `‖v′‖`, `‖a′‖ = ‖d²r′/du²‖`, `‖F_grav‖`, minimum pairwise separation, median `R̄`, the full causal weight vector, and `front_idx`, over a configurable seed/IC sweep. **Acceptance:** it reproduces the 2026-08-17 audit's six-row table. This closes a real hole — v2.3's central premise currently rests on an ad-hoc measurement that exists nowhere in the repository, and `pinn/verification/` has no such probe. [audit §6b; GAP-44-02 re-derivability discipline]
-- [x] **GATE-04**: **Train-free acceptance gate on the recalibration.** Before RUN-04 may spend a Stage-0 run, INST-04's probe must show, under the SPEC-01/SPEC-06 recipe and across at least the six seed/IC combinations the audit used: (i) no causal weight pinned at the dtype clamp floor; (ii) a weight vector carrying **differential information** (not all-floor, not degenerate); (iii) `front_idx` able to advance. **Fail closed** — a probe failure blocks the run rather than warning about it. This is the check that would have spared v2.2's generation-3 run. [invariant A/B lineage from GATE-03; SCOPE-35 single-look protection]
+- [x] **GATE-04**: **Train-free acceptance gate on the recalibration.** Before RUN-04 may spend a Stage-0 run, INST-04's probe must show, under the SPEC-01/SPEC-06 recipe and across at least the six seed/IC combinations the audit used: (i) no causal weight pinned at the dtype clamp floor; (ii) at least a `2:1` spread among the non-anchor weights; and (iii) under the fixed all-residual reduction `alpha = log(2)/(2 * P_15)` (holding `R_ref` fixed), expected final weight `1/sqrt(2)`, `front_idx = 15`, and every perturbed weight `>= 0.70`. **Fail closed** — a probe failure blocks the run rather than warning about it. The Phase-56 `PASS INCOMPLETE` is historical; the production rule and a new complete PASS are required before RUN-04. [owner ruling 2026-09-08; invariant A/B lineage from GATE-03; SCOPE-35 single-look protection]
 
 ### Re-Run & the Preserved Evaluation (RUN / EVAL)
 
@@ -126,8 +126,8 @@ about the design, and recipe adjudication … is v2.3."*
 
 1. **The ERW gate** — after ERW-01's packet is assembled: rule directly, or commission `trainex-r3`.
 2. **The recalibration decision** — the actual `η_c` / normalization / SIREN-scale / `N_t` pick, together with the SCOPE-38 re-ratification of each locked contract the pick amends.
-3. **Invariant-B window re-ratification** — `N = 500` was ratified 2026-08-05 for the old, saturated dynamics; the new recipe may need a different window, and this must not be silently carried over.
-4. **Pre-registration of the EVAL-02 spending seed** — fixed before RUN-04/05 execute. Choosing after seeing three seeds would be a selection-effect leak against a single-look budget.
+3. **Invariant-B window re-ratification — DISCHARGED 2026-09-08.** Explicitly re-ratify `N = 500`; use one frozen training-only monitor; freeze the L-BFGS segment's samples and detached causal weights for its entire segment. Exact record: `57-RULING.md`.
+4. **Pre-registration of the EVAL-02 spending seed — DISCHARGED 2026-09-08.** Seed 42, with fallback order 41 then 43 only for structural ineligibility, fixed before RUN-04/05 execute. Exact timestamped record: `57-RULING.md`.
 5. **The DIAG-06 go / adjust / rethink verdict** — after RUN-04/05 and EVAL-02.
 
 ## Declared Terminal State

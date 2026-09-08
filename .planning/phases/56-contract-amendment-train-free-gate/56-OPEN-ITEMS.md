@@ -8,14 +8,11 @@ created: 2026-09-07
 
 This document is the durable register of every decision Phase 56 deliberately
 did **not** make, and of the one pre-existing test failure it deliberately
-did not fix. Its purpose is narrow: so that an omitted decision is never
-later mistaken for a forgotten one, and a surfaced gap is never later
-mistaken for a resolved one. It resolves nothing. Where a decision belongs to
-the owner, this document points at the authoritative blocking record
-(`56-GAPS.md`) rather than restating, ranking, or recommending among the
-options recorded there.
+did not fix. GAP-56-01 was subsequently resolved by direct owner instruction
+on 2026-09-08; the historical implementation state and the later disposition
+are both retained below. GAP-56-02 remains open.
 
-## Section 1 — GAP-56-01 (GATE-04 condition (ii)): still OPEN
+## Section 1 — GAP-56-01 (GATE-04 condition (ii)): RESOLVED 2026-09-08
 
 Phase 56 did not resolve GAP-56-01. What the phase built instead of a
 resolution is a structurally-present, never-satisfiable slot:
@@ -35,12 +32,13 @@ resolution is a structurally-present, never-satisfiable slot:
   `GAP-56-01` reference whenever `unratified_conditions` is non-empty, so no
   reader of a PASS verdict can mistake it for a complete GATE-04 clearance.
 
-No numeric threshold, comparison constant, or controlled-reduction pass
-margin exists anywhere in this phase's output — not in the module, not in
-its tests, not in this document. The four candidate options the owner may
-choose among remain exactly as `56-GAPS.md` records them under GAP-56-01.
-This document points at that file as the authoritative blocking record and
-does not restate, rank, or recommend among them.
+That remains the historical shipped state. The owner has now fixed the missing
+rule: require a `2:1` spread among non-anchor weights; uniformly reduce all
+residual-bin means using `alpha = log(2) / (2 * P_15)` so the expected final
+weight is `1/sqrt(2)`; then require `front_idx = 15` and every perturbed weight
+to be at least `0.70`. The exact record is `56-GAPS.md` and Phase 57's
+`57-RULING.md`. Production implementation, focused tests, and a new complete
+GATE-04 PASS remain required before RUN-04.
 
 ## Section 2 — Structural findings that must survive into the owner's ruling
 
@@ -71,9 +69,9 @@ health.
 
 Both findings are mechanistic facts about the ratified formula, verified by
 direct computation (`56-RESEARCH.md` Part b.3 through b.5, and the code's own
-sensitivity-sweep tables). They are recorded as inputs the owner's eventual
-ruling will need — never as a recommendation about what that ruling should
-be.
+sensitivity-sweep tables). The owner's uniform all-bin reduction rule respects
+both: it permits a healthy initial front of zero and does not use a late-bin-
+only perturbation.
 
 ## Section 3 — GAP-56-02 (section 2.4 table scope): still OPEN
 
@@ -157,11 +155,11 @@ investigation.
 
 ## Section 5 — STOP protocol classification note
 
-The two gaps recorded in Section 1 and Section 3 (GAP-56-01, GAP-56-02) are
-MUST-surface decisions under the CLAUDE.md STOP protocol, left with the owner
-and not invented by this phase or by this document. The scoping decision
-recorded in Section 4 (the Phase 38 guard) is a mechanical scoping call, made
-deliberately and recorded here rather than taken silently.
+The two gaps recorded in Section 1 and Section 3 (GAP-56-01, GAP-56-02) were
+MUST-surface decisions under the CLAUDE.md STOP protocol. GAP-56-01 is now
+RESOLVED-WITH-INSTRUCTION; GAP-56-02 remains with the owner. The scoping
+decision recorded in Section 4 (the Phase 38 guard) is a mechanical scoping
+call, made deliberately and recorded here rather than taken silently.
 
 Two further presentation-only choices made during the amendment (plan 56-04)
 are recorded in their own plan summary as mechanical choices, not repeated

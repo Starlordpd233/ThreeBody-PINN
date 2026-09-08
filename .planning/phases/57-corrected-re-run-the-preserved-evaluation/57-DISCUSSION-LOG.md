@@ -16,6 +16,29 @@ iteration, Execution environment, Evidence contract.
 
 ---
 
+## Post-discussion owner rulings — 2026-09-08
+
+The owner subsequently resolved every decision that the discussion left in a
+packet-only or inherited-open state. These later rulings supersede the earlier
+"packet-only" rows below without rewriting the historical discussion:
+
+- **GAP-56-01 / GATE-04:** require a `2:1` spread among non-anchor weights;
+  apply the fixed uniform residual-bin scale
+  `alpha = log(2) / (2 * P_15)`, which gives expected
+  `w'_15 = 1/sqrt(2)`; require `front_idx = 15` and every perturbed weight
+  `>= 0.70`.
+- **Checkpoint ③ / GAP-54-06:** explicitly re-ratify `N = 500`; use one frozen
+  training-only invariant-B monitor; freeze L-BFGS samples and detached causal
+  weights for its entire segment.
+- **Checkpoint ④:** pre-register seed 42, with fallback 41 then 43 only for
+  structural ineligibility.
+
+The authoritative exact record is `57-RULING.md`. It adds no `w_15 <= 0.45`,
+`64*eps`, fixed-0.1 probe, monitor cadence, front margin, or persistence-count
+criterion.
+
+---
+
 ## Amended-recipe implementation (SPEC-01/SPEC-06 → `pinn/` code)
 
 | Option | Description | Selected |

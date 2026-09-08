@@ -12,7 +12,9 @@ during Phase 56 work. The milestone-wide index is
 (v2.3 adjudication milestone). The autonomous best-judgment directive
 (2026-09-06) does **not** waive the semantic / process-artifact-schema
 MUST-surface class — both entries below are acceptance-check-schema / spec-
-convention decisions, not mechanical or test-design calls.
+convention decisions, not mechanical or test-design calls. **2026-09-08 update:**
+the owner directly fixed GAP-56-01 and checkpoints ③/④; GAP-56-01 is now
+RESOLVED-WITH-INSTRUCTION below. GAP-56-02 remains OPEN and independent.
 
 Both gaps were surfaced during the Phase 56 **discuss** step, before any plan or
 edit, so they are visible to the researcher and planner rather than hit by the
@@ -139,9 +141,40 @@ proceed; only the items named in each entry wait.
   one preserved held-out evaluation is spent; a mis-set bound either wastes it
   (too loose) or produces a false `rethink` terminal state (too tight).
 
-- **Status.** OPEN.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-08).
 
-- **Resolution note.** _(empty — awaiting owner instruction)_
+- **Resolution note.** The owner fixed the rule directly on 2026-09-08. The
+  original illustrative CV/count/decade proposal above is not adopted.
+
+  Evaluate every required initialization case independently, using 0-based bins
+  `b = 0..15`; `w_0 = 1` is the forced anchor. After the existing condition-(i)
+  finite/non-floor checks, condition (ii) requires at least a `2:1` spread
+  among the non-anchor weights:
+  `max(w_1, ..., w_15) / min(w_1, ..., w_15) >= 2`.
+
+  **Controlled reduction, jointly operationalizing (ii)/(iii).** Let
+  `x_b = Rbar_b / R_ref` and `P_15 = sum(x_b for b = 0..14)`. For finite
+  positive `P_15`, calculate once
+  `alpha = log(2) / (2 * P_15)`. Hold the frozen `R_ref` fixed, multiply all 16
+  squared-residual bin means by `alpha`, and recompute the weights through the
+  path under test. Scaling residual amplitudes before squaring uses
+  `sqrt(alpha)`. Do not scale returned weights, refit `R_ref`, search over
+  perturbations, or perturb only late bins. The expected endpoint is exactly
+  `w'_15 = exp(-alpha * P_15) = 1/sqrt(2)`.
+
+  **Pass rule.** Require `front_idx = 15` under the existing half-threshold
+  definition and every perturbed weight `>= 0.70`, in addition to the existing
+  finite/non-floor checks.
+
+  No coefficient-of-variation, distinct-count, decade-range, additional
+  baseline endpoint, numerical-oracle, monitoring-cadence, or persistence
+  threshold was authorized. The full governing record is
+  `../57-corrected-re-run-the-preserved-evaluation/57-RULING.md`.
+
+  This resolves the acceptance decision only. The production rule and focused
+  tests must be implemented and GATE-04 must be re-run over all required cases
+  to a complete PASS before RUN-04. The earlier `PASS INCOMPLETE` evidence does
+  not become run authorization by documentation.
 
 ---
 

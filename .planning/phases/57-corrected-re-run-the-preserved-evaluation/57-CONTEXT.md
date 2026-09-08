@@ -1,11 +1,11 @@
 # Phase 57: Corrected Re-Run & the Preserved Evaluation - Context
 
 **Gathered:** 2026-09-07
-**Status:** Ready for planning — GAP-57-01 is RESOLVED-WITH-INSTRUCTION (owner
-Option A, 2026-09-07). Three blocking decision gates still must discharge
-before any run executes: GAP-56-01 plus a complete GATE-04 PASS; checkpoint ③
-(monitoring/window plus inherited GAP-54-06); and checkpoint ④. See
-"Owner-Routed Decisions" below and `57-GAPS.md`.
+**Status:** Ready for planning — GAP-57-01 was resolved on 2026-09-07;
+GAP-56-01, GAP-54-06, and owner checkpoints ③/④ were resolved by direct owner
+instruction on 2026-09-08 and are recorded in `57-RULING.md`. Before any run,
+the bounded implementation, separate production-path verification, and a new
+complete GATE-04 PASS still must finish.
 
 > **Discussion mode.** Serviced autonomously per owner instruction (2026-09-07):
 > every gray area below is dispositioned with the best-reasoned option, grounded
@@ -18,9 +18,10 @@ before any run executes: GAP-56-01 plus a complete GATE-04 PASS; checkpoint ③
 > code so RUN-04 can run it — was a cross-phase-scope call fixed by no source and
 > was surfaced as **GAP-57-01**, not invented. The owner resolved it on
 > 2026-09-07 by selecting bounded Option A with separate pre-RUN-04
-> verification. Owner checkpoints ③–⑤ remain owner-only. Everything
-> else below is a mechanical, operational, or sequencing call in the
-> discuss-phase's own lane.
+> verification. On 2026-09-08 the owner directly fixed GAP-56-01 and
+> checkpoints ③/④; `57-RULING.md` supersedes the packet-only descriptions below
+> where they conflict. Checkpoint ⑤ remains owner-only. Everything else below
+> is a mechanical, operational, or sequencing call in the discuss-phase's lane.
 
 <domain>
 ## Phase Boundary
@@ -54,20 +55,13 @@ whose causal weighting is still saturated shut.
   canonical predicted `r′` with `u = t/T` (GAP-46-01's delegated ruling,
   2026-07-26).
 
-**Blocking owner checkpoints, all discharged BEFORE any run executes:**
+**Owner checkpoints ③/④, discharged on 2026-09-08 before any run:**
 
-- **Checkpoint ③** — invariant-B front-advance window `N` re-ratified for the
-  new dynamics (with provenance recorded in the run config), **plus** the
-  fixed pre-registered monitoring context that defines "advancement" (fixed IC
-  slots + fixed within-bin times, re-evaluated as parameters change — or another
-  ratified estimator), **plus** the inherited GAP-54-06 L-BFGS
-  second-optimizer-phase / detached-causal-weight / line-search semantics
-  (DEFERRED to checkpoint ③ by `54-RULING.md`). `N = 500` was ratified
-  2026-08-05 against the old saturated dynamics and is **not carried over by
-  default**.
-- **Checkpoint ④** — the EVAL-02 spending seed is **pre-registered in writing,
-  committed with a timestamp, before RUN-04/05 execute**, so it cannot be
-  chosen after the three-seed band is visible (SCOPE-35 single-look protection).
+- **Checkpoint ③** — `N = 500` is explicitly re-ratified; invariant B uses one
+  frozen training-only monitor; and the L-BFGS samples and detached causal
+  weights remain frozen for the entire L-BFGS segment.
+- **Checkpoint ④** — seed 42 is pre-registered, with fallback order 41 then 43
+  only for structural ineligibility. `57-RULING.md` is the timestamped record.
 
 **Declared terminal state (carried explicitly — roadmap SC5, SCOPE-35/37):** if
 GATE-04 refused the recalibration train-free, **or** RUN-04's causal front still
@@ -138,81 +132,46 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
 - **D-02: Implementation authorization is not run authorization.** The first
   wave implements the bounded path; a separate verification wave must prove the
   production training path's allocation, normalization, gradients, and
-  diagnostics before RUN-04. RUN-04 remains blocked until GAP-56-01 is resolved,
-  GATE-04 records a complete PASS, checkpoint ③ resolves the monitoring/window
-  and GAP-54-06 semantics, and checkpoint ④ pre-registers the evaluation seed.
-  No choice for those gates is inferred from Option A. Packet, evaluator-pairing,
-  evidence-contract, and operating-surface work may proceed in parallel with the
-  bounded implementation and verification work.
+  diagnostics before RUN-04. The decision gates are now resolved in
+  `57-RULING.md`, but RUN-04 remains blocked until their production wiring is
+  verified and GATE-04 records a new complete PASS. Evaluator-pairing,
+  evidence-contract, and operating-surface work may proceed in parallel with
+  the bounded implementation and verification work.
 
-### 2. Owner checkpoints ③ and ④ — the packets, not the picks
+### 2. Owner checkpoints ③ and ④ — ✅ LOCKED by `57-RULING.md`
 
-- **D-03: Checkpoint ③ bundles three sub-decisions into one blocking owner
-  gate, discharged before any run.** The plan assembles a **strictly
-  non-recommending** packet (STOP-protocol / SCOPE-34 discipline — no candidate
-  values, no ranked options, gaps named) covering:
-  1. **The invariant-B window `N`.** `N = 500 (= 0.5 · N_Adam,0)` was ratified
-     2026-08-05 against the old, saturated dynamics (`configs/stage0-example.yaml`
-     `run.invariants.front_advance_window_n`). The packet records that the new
-     recipe's front behaviour is different in kind and that `N` is not carried
-     over by default; it presents the Phase-49 D-19-style run-length anchors
-     (shipped `N_Adam,0 = 1000`, `max_epochs = 1000`) and the terminal-state
-     consequence of the choice, and picks nothing.
-  2. **The fixed pre-registered monitoring context.** `54-RULING.md`
-     "Front-monitoring boundary": a resampled training-batch `front_idx` is a
-     stochastic diagnostic and is **upward-biased** (selected slots + within-bin
-     times change between steps), so it "cannot prove learning." The owner must
-     define invariant-B advancement on a **fixed monitoring context** (fixed IC
-     slots + fixed within-bin times, re-evaluated only as model parameters
-     change) or ratify another estimator that separates parameter improvement
-     from resampling. The exact aggregation is the owner's; the packet frames
-     the estimator choice and names it as un-invented.
-  3. **GAP-54-06 — L-BFGS second-optimizer-phase semantics (inherited, now
-     due).** `54-RULING.md` explicitly did **not** amend the optimizer contract
-     (SCOPE-33 does not authorize it) and deferred to checkpoint ③, before
-     RUN-04: whether the detached causal weights are recomputed inside the
-     second-phase (L-BFGS) line searches, and how the second phase re-draws
-     collocation points. The conditional risk (recomputing detached weights
-     inside a line search) is real. The packet presents the two behaviours
-     `54-RULING.md` says Phase 56 "may not silently choose" and picks neither.
-  — **Reversibility:** one-way — these values enter the run configuration and
-  govern whether RUN-04's outcome is interpretable; a window or estimator chosen
-  after a run is a selection-effect leak against the single-look budget.
+- **D-03: Checkpoint ③ is discharged before any run.** `N = 500` is explicitly
+  re-ratified for the amended recipe. Each run uses one frozen training-only
+  monitoring context for invariant B; resampled training-batch fronts remain
+  diagnostic-only. The existing front/high-water/window semantics continue
+  without a new margin, cadence, or persistence threshold. For the full
+  Stage-0 L-BFGS segment, freeze the segment's samples and detached causal
+  weights at handoff; do not redraw or recompute them in line-search closures
+  or between outer calls. Exact resume and provenance obligations are in
+  `57-RULING.md`. This resolves inherited GAP-54-06.
 
-- **D-04: Checkpoint ④ — EVAL-02 spending-seed pre-registration structure
-  (grounded by v2.2 Phase 50 D-07..D-12; the pick is the owner's).** The plan
-  writes a **pre-registration record** — committed with a timestamp, **before
-  the first graded run starts** — that fixes, in writing: the spending seed; the
-  checkpoint rule (`runs/<run>/checkpoints/best.pt`, the run's own in-flight
-  retention policy — an automatic rule that predates every Phase-57 number, not
-  a chart read afterwards); an **ineligibility-only** fallback order; and the
-  rule that **no eligible seed → owner checkpoint, phase closes without a
-  candidate** (Phase 57 does not manufacture one, relax a precondition, or waive
-  an entry). The seed choice itself is checkpoint ④; the packet MAY note, for
-  continuity, that v2.0 spent its single look on seed 42 and v2.2 pre-registered
-  seed 42 as its candidate (same held-out population as `ε_H = 237.2086`,
-  strongest DIAG re-derivation basis) — as context, not a recommendation.
-  **The split is seed-dependent** (`_partition_by_signature(records, seed,
-  ratios)`, `train 0.8 / val 0.1 / test 0.1`), so one seed's test keys are
-  another seed's training keys — this is the structural reason pre-registration
-  is mandatory and cannot be honestly done after the band is visible.
-  — **Reversibility:** one-way — the single authorized evaluation is spent on
-  the pre-registered run; a candidate chosen after numbers exist is not
-  recoverable because the leakage cannot be un-seen.
+- **D-04: Checkpoint ④ is discharged by timestamped pre-registration.** The
+  spending seed is 42. Fallback order is 41 then 43, only for structural
+  ineligibility and never for observed scientific metrics. The v2.2 Phase-50
+  structural-eligibility and `best.pt` candidate structure carries forward,
+  subject to Phase 57's stricter GATE-04, invariant-B, terminal-state, and
+  canonical-frame preconditions. If the terminal branch fires or no eligible
+  candidate exists, the evaluation remains unspent. `57-RULING.md` and its
+  commit ancestry are the pre-run registration.
 
-- **D-05: The GATE-04 precondition must be a *complete* PASS — GAP-56-01
-  (condition ii) must resolve first.** Phase 56 shipped GATE-04 with conditions
+- **D-05: The GATE-04 precondition must be a *complete* PASS — GAP-56-01 is
+  resolved, but production wiring and a fresh gate run remain.** Phase 56
+  shipped GATE-04 with conditions
   (i) and (iii) wired and condition (ii) — "a weight vector carrying
   differential information (not all-floor, not degenerate)" and the re-issued
   AC's "a front that cannot respond to controlled residual reduction" — as a
   **structurally-present, never-satisfiable slot** (`condition_ii_verdict`
   raises `NotImplementedError`; every verdict carries
-  `unratified_conditions = ("ii",)` and prints `INCOMPLETE`). GAP-56-01 is the
-  SCOPE-35 single-look protection. RUN-04 may not spend a run on an `INCOMPLETE`
-  GATE-04 verdict. **GAP-56-01 (owner, `56-GAPS.md`) must be ratified and GATE-04
-  re-run to a complete PASS before RUN-04.** GAP-56-01 option D explicitly
-  routes the condition-(ii) numeric bound "to Phase 57 checkpoint ③" — so if the
-  owner took option D, GAP-56-01 joins the checkpoint-③ agenda (D-03). Two
+  `unratified_conditions = ("ii",)` and prints `INCOMPLETE`). The owner now
+  requires a `2:1` non-anchor spread and the fixed all-residual reduction from
+  `57-RULING.md`, ending at expected `w'_15 = 1/sqrt(2)`, with
+  `front_idx = 15` and every perturbed weight `>= 0.70`. RUN-04 may not spend a
+  run until this is implemented and GATE-04 is re-run to a complete PASS. Two
   structural findings from `56-OPEN-ITEMS.md` §2 that the owner's condition-(ii)
   ruling MUST account for: (1) `front_idx = 0` at initialization is the
   **expected healthy** result under the amended recipe (each case's `w_2` is
@@ -220,7 +179,8 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   every healthy case; (2) a residual reduction confined to late bins cannot move
   `front_idx` at any magnitude (exclusive-prefix structure), so a
   controlled-reduction test that perturbs only late bins reports a
-  non-response that says nothing about recipe health.
+  non-response that says nothing about recipe health. The owner's all-bin
+  reduction respects both findings.
 
 ### 3. RUN-05 — the three-seed band, budget, and comparability
 
@@ -242,9 +202,8 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   etc. "provisional pending FUT Stage-0 pilot calibration (SCOPE-14)" — it
   assigns the value to the calibrated artifact, and `configs/stage0-example.yaml`
   is that artifact. **Not SCOPE-37 tuning** — 1000 was committed long before any
-  conformant number existed. If checkpoint ③ re-ratifies `N` to a value that
-  implies a different `N_Adam,0`, the budget follows the owner's ③ ruling, not a
-  fresh agent choice.
+  conformant number existed, and checkpoint ③ now explicitly re-ratifies
+  `N = 500` against that budget.
 
 - **D-08: The graded configs are derived from the existing
   `configs/stage0-rerun-seed4{1,2,3}.yaml`** (tracked; built in v2.2 Phase 50
@@ -426,18 +385,19 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
   shipped in v2.0 (`PROJECT.md:344`). The resolution does not discharge any
   remaining owner gate below.
 
-- **Checkpoint ③ (owner-only) — invariant-B window `N` + fixed monitoring
-  context + GAP-54-06 L-BFGS semantics.** Blocking, before any run. Not a gap
-  (a standing owner checkpoint) — but named here so planning wires the packet
-  and the halt. The inherited **GAP-54-06** (`54-RULING.md`, DEFERRED to
-  checkpoint ③) is due here.
+- **Checkpoint ③ — RESOLVED-WITH-INSTRUCTION (2026-09-08).** Explicitly
+  re-ratify `N = 500`; use one frozen training-only invariant-B monitor; freeze
+  L-BFGS samples and detached causal weights for the entire segment. This also
+  resolves inherited GAP-54-06. Exact record: `57-RULING.md`.
 
-- **Checkpoint ④ (owner-only) — EVAL-02 spending seed.** Blocking, pre-registered
-  in writing before RUN-04/05 execute.
+- **Checkpoint ④ — RESOLVED-WITH-INSTRUCTION (2026-09-08).** Seed 42 is
+  pre-registered, with fallback 41 then 43 only for structural ineligibility.
+  Exact timestamped record: `57-RULING.md`.
 
-- **GAP-56-01 (owner, Phase-56-local) — GATE-04 condition (ii).** Must be
-  ratified and GATE-04 re-run to a complete PASS before RUN-04 may spend a run
-  (D-05). If the owner took option D, it joins the checkpoint-③ agenda.
+- **GAP-56-01 — RESOLVED-WITH-INSTRUCTION (2026-09-08).** Require a `2:1`
+  spread among non-anchor weights, then the fixed all-residual reduction from
+  `57-RULING.md`; require `front_idx = 15` and all perturbed weights `>= 0.70`.
+  Implementation and a new complete GATE-04 PASS still block RUN-04.
 
 </decisions>
 
@@ -455,8 +415,8 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
   (single held-out evaluation), SCOPE-36 (Stage-0 only), SCOPE-37 (post-edit
   iteration is conformance-only), SCOPE-38 (amend-a-locked-contract discipline);
   "Owner Checkpoints" 3 & 4; "Declared Terminal State".
-- `.planning/milestones/v2.3-GAPS.md` — GAP-54-06 (DEFERRED to checkpoint ③
-  before RUN-04), GAP-56-01 (GATE-04 condition ii, OPEN), and GAP-57-01
+- `.planning/milestones/v2.3-GAPS.md` — GAP-54-06 and GAP-56-01
+  (RESOLVED-WITH-INSTRUCTION 2026-09-08), and GAP-57-01
   (RESOLVED-WITH-INSTRUCTION, owner Option A).
 - `docs/work/designs/cross_cutting/v2.3-milestone-proposal/2026-08-17-v2.3-roadmap-proposal.md`
   — the ratified proposal; **line 267** ("Phase D: SPEC-01 + SPEC-06 amendment
@@ -471,6 +431,9 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
   boundary"** paragraph (checkpoint ③'s fixed-monitor requirement), the "Batch
   allocation and bin policy" section, and the four SCOPE-38 re-ratification
   blocks.
+- `.planning/phases/57-corrected-re-run-the-preserved-evaluation/57-RULING.md`
+  — the later governing record for resolved GAP-56-01, checkpoint ③/GAP-54-06,
+  and checkpoint ④; where it conflicts with an earlier deferral, it controls.
 - `pinn_instruction/markdown_conversion/framework-specs/pinn_architecture.md`
   §3.2 — the **amended** causal-weight / collocation / `R_ref` contract Phase 56
   landed (Block 1 causal exponent, Block 4 collocation allocation, the frozen
@@ -481,7 +444,7 @@ Full records in `57-GAPS.md` and `.planning/milestones/v2.3-GAPS.md`.
   `56-OPEN-ITEMS.md` — D-01/D-02/D-03 (the amendment is transcription; `pinn/`
   is not edited; the trainer rebuild is FUT-01); `56-OPEN-ITEMS.md` §1
   (GAP-56-01 slot), §2 (the two `front_idx` structural findings the owner's
-  condition-(ii) ruling must account for), §3 (GAP-56-02).
+  condition-(ii) ruling accounts for), §3 (GAP-56-02).
 - `.planning/phases/56-contract-amendment-train-free-gate/56-VERIFICATION.md`
   truth 3 — "no production file edited"; `pinn/train.py:1033` still
   `collocation_count = 16`.
