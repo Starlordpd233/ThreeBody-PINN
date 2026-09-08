@@ -5,17 +5,17 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 57
 current_phase_name: Corrected Re-Run & the Preserved Evaluation
 status: in_progress
-stopped_at: Plan 57-01 complete — 46 focused stdlib-unittest tests committed, all RED for the missing bounded amended-recipe conformance patch; no production code changed; plans 57-02..57-06 remain
-last_updated: "2026-09-08T05:33:42Z"
+stopped_at: Plan 57-02 complete — exact amended allocation, frozen-R_ref causal normalization, controller integration, and raw/normalized diagnostics committed; plans 57-03..57-06 remain
+last_updated: "2026-09-08T08:26:38Z"
 last_activity: 2026-09-08
-last_activity_desc: Plan 57-01 executed — three task commits added tests/phase57/ (46 tests across test_recipe_production_path.py, test_runtime_freeze.py, test_gate_and_evaluation.py, plus _fixtures.py) encoding the exact §3.2 allocation/normalization, invariant-B monitor, L-BFGS freeze, GATE-04 condition-(ii), and EVAL-02 canonical-frame contracts. Full tests/phase57/ discovery: 46 tests, 40 fail (29 failures + 11 errors), 6 legitimate protective pins pass; zero import/syntax/fixture/data/environment errors. No production code, training, or held-out evaluation touched.
-state_head: 4d51ba67
+last_activity_desc: Plan 57-02 reconciled from three existing implementation commits after an interrupted executor handoff; focused allocation (20/20), production-path/normalization/telemetry (9/9), and controller diagnostics (2/2) checks pass. The broader 46-test Phase-57 suite remains intentionally red only for later-wave monitor, checkpoint, GATE-04, config, and evaluation-boundary contracts; no Stage-0 or held-out evaluation run was started.
+state_head: a0c0955d
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 30
-  completed_plans: 25
-  percent: 83
+  completed_plans: 26
+  percent: 87
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-09-07)
 ## Current Position
 
 Phase: 57 — Corrected Re-Run & the Preserved Evaluation
-Plan: 57-01 of 6 complete (57-01..57-06); 6 waves / 18 tasks total for the phase
-Status: In progress. Plan 57-01 (Wave 0) landed the complete, focused, dataset-free/held-out-free `tests/phase57/` contract (46 tests across 3 modules; see `57-01-SUMMARY.md`) — all RED against current production code for the missing bounded amended-recipe conformance, never for an import/syntax/fixture/data/environment reason. No production code, training, or held-out evaluation has started. Plans 57-02/57-03 implement and independently verify the bounded amended-recipe path and produce a fresh complete GATE-04 result; plans 57-05/57-06 remain non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
-Last activity: 2026-09-08 — Plan 57-01 executed: `tests/phase57/{__init__.py,_fixtures.py,test_recipe_production_path.py,test_runtime_freeze.py,test_gate_and_evaluation.py}` committed across 3 task commits (`21e05bab`, `53eba812`, `4d51ba67`); full-suite discovery run 46 tests / 40 non-ok, verified before each commit.
-Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-02-PLAN.md — next action is the bounded production-conformance implementation wave (57-RESEARCH.md wave 2), driving the tests/phase57/ suite this plan committed to green through the exact API shapes recorded in 57-01-SUMMARY.md's key-decisions.
+Plan: 57-02 of 6 complete (57-01..57-06); 6 waves / 18 tasks total for the phase
+Status: In progress. Plan 57-01 landed the focused, dataset-free/held-out-free `tests/phase57/` contract; Plan 57-02 now implements the bounded amended recipe through the real training path: exact 4096-row/16-bin allocation, frozen `R_ref` normalization, complete-batch gradients, shared energy collocation, and raw/normalized telemetry. Plans 57-03/57-04 remain bounded conformance and GATE-04 work; plans 57-05/57-06 remain non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
+Last activity: 2026-09-08 — Plan 57-02 completed with commits `04f23868`, `c0259aa8`, and `a0c0955d`; its focused verification passed 20/20 allocation tests, 9/9 production-path/normalization/telemetry tests, and 2/2 diagnostics tests. The full Phase-57 suite is expected to remain red for later-wave contracts until Plans 57-03/57-04 land.
+Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-03-PLAN.md — next action is runtime monitor, L-BFGS freeze, checkpoint, and derived config implementation.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution

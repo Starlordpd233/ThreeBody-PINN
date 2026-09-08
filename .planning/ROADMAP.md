@@ -182,7 +182,7 @@ Plans:
 **Goal**: Stage-0 is re-run under the corrected recipe and — only if it actually trains — the single preserved held-out evaluation is spent, once, on a seed fixed before anyone saw a result.
 **Depends on**: Phase 56 — GATE-04 must pass before a Stage-0 run may be spent (SCOPE-35's single-look protection).
 **Requirements**: RUN-04, RUN-05, EVAL-02
-**Plans**: 6 plans (1/6 complete) — planned 2026-09-08. Plans 57-01 through 57-04 are the bounded conformance, verification, and pre-run authorization work; 57-05 and 57-06 are non-autonomous and retain explicit operator checkpoints before expensive training and before the sole held-out evaluation.
+**Plans**: 6 plans (2/6 complete) — planned 2026-09-08. Plans 57-01 through 57-04 are the bounded conformance, verification, and pre-run authorization work; 57-05 and 57-06 are non-autonomous and retain explicit operator checkpoints before expensive training and before the sole held-out evaluation.
 
 Plans:
 
@@ -192,7 +192,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 57-02-PLAN.md — exact 4096-row / 16-bin all-slot allocation, frozen-`R_ref` causal normalization, controller integration, live model gradients, energy-point reuse, and raw/normalized diagnostics (RUN-04)
+- [x] 57-02-PLAN.md — exact 4096-row / 16-bin all-slot allocation, frozen-`R_ref` causal normalization, controller integration, live model gradients, energy-point reuse, and raw/normalized diagnostics (RUN-04) — complete 2026-09-08, `57-02-SUMMARY.md`
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
