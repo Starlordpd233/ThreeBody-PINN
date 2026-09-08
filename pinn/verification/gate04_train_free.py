@@ -127,9 +127,8 @@ _UNRATIFIED_CONDITIONS: tuple[str, ...] = ()
 # 56-RESEARCH.md section b.4's sensitivity-sweep ladder, reproduced here so it
 # travels with the code: the factor by which condition_iii_diagnostics scales
 # the normalized bin residuals (uniformly, or bins late_bin_start.. only) to
-# record the front index's response. This is a DIAGNOSTIC INSTRUMENT ONLY —
-# GAP-56-01 (OPEN) covers both the reduction magnitude and the response
-# margin a healthy recipe must meet; neither is fixed by this ladder.
+# record the front index's response. This remains a descriptive companion to
+# the fixed all-residual reduction ratified in 57-RULING.md.
 CONDITION_III_DIAGNOSTIC_FACTORS: tuple[float, ...] = (
     1.0, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05, 0.01, 0.001,
 )
