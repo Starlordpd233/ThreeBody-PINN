@@ -45,7 +45,7 @@
     ],
     "restored_monitor_hash": "c5066711686c066a55cd3712f013afd6098a31327f88574c02abe793e2f5262f",
     "restored_segment_hash": "e2f9e7aaee132c4c439a7bcc3fd1b2779f96f2af93eb001ba23162341c4fa475",
-    "restored_state_digest": "378032bedf2dc6a733d8ece0b034f8a945d09ad7bf46b0cb7e02ebc1b3a613ac",
+    "restored_state_digest": "3a473530fe272b288a38cc98aea3baf469d6b935c2fbad7b837cbb13467ead92",
     "schema_version": 2,
     "segment_hash": "e2f9e7aaee132c4c439a7bcc3fd1b2779f96f2af93eb001ba23162341c4fa475"
   },
@@ -186,8 +186,8 @@
     ]
   },
   "provenance": {
-    "created_at": "2026-09-08T09:46:17.065690+00:00",
-    "git_head": "0ccfe8559b354671765326624a5eb53a787c3780",
+    "created_at": "2026-09-08T10:01:02.756926+00:00",
+    "git_head": "0640347cf0c5d9777d41c9f5e790831676d08b1d",
     "held_out_evaluation_launched": false,
     "numpy": "2.4.6",
     "python": "3.11.15",
