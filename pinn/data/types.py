@@ -298,7 +298,21 @@ class DataFidelityPoints:
 @dataclass(frozen=True)
 class PhysicsCollocationPoints:
     """Physics collocation point set: continuous times drawn from the global
-    ``[0, T]`` interval, with the aligned ``[tau, IC13]`` and raw masses."""
+    ``[0, T]`` interval, with the aligned ``[tau, IC13]`` and raw masses.
+
+    Under the ratified §3.2 recalibration (``pinn_architecture.md`` "Phase 56
+    contract: collocation allocation and time draw amended"; 54-RULING.md
+    "Batch allocation and bin policy"), a batch requesting the ratified total
+    (``pinn.data.batches.RATIFIED_TOTAL = 4096``) stratifies these times
+    across 16 fixed equal-``u`` bins with exactly 256 rows per bin. Bin
+    membership is a pure function of ``times`` alone (``[b/16, (b+1)/16)`` of
+    ``T_CHARACTERISTIC_TIME`` for ``b = 0..14``, closed on both ends for
+    ``b = 15``) — no separate bin-index field is carried here, and
+    ``record_keys`` already carries the per-row slot/replacement provenance a
+    bin/slot audit needs (``pinn.data.batches.sample_collocation_points``). A
+    non-ratified ``collocation_count`` retains the legacy near-even
+    per-slot uniform draw over the full domain.
+    """
 
     times: Any
     tau_ic13: Any

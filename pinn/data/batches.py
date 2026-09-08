@@ -8,7 +8,7 @@ iteration nor Phase-40 adaptive/residual-aware collocation density.
 
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import NamedTuple, Sequence
 
 import numpy as np
 import torch
@@ -22,6 +22,20 @@ from pinn.data.types import (
     StageZeroUnderpopulated,
     ValidationPoolEmpty,
 )
+
+# ---------------------------------------------------------------------------
+# Ratified §3.2 allocation constants (pinn_architecture.md "Phase 56 contract:
+# collocation allocation and time draw amended"; 54-RULING.md "Batch
+# allocation and bin policy"). Independently defined here (by content, not by
+# import) rather than imported from ``pinn.verification.architecture_
+# characterization_probe`` -- the data layer does not depend on verification
+# tooling, and ``tests/phase57/_fixtures.py`` documents this same
+# independent-re-derivation convention.
+RATIFIED_N_BINS = 16
+RATIFIED_PER_BIN = 256
+RATIFIED_TOTAL = RATIFIED_N_BINS * RATIFIED_PER_BIN
+FULL_BATCH_SLOTS = 256
+REPLAY_ONLY_SLOTS = 240
 
 
 class SelectedStageRecords(NamedTuple):
@@ -311,6 +325,87 @@ def sample_data_points(
     )
 
 
+def _uniform_time_in_bin(
+    rng: np.random.Generator, bin_id: int, *, n_bins: int, t_max: float,
+) -> float:
+    """One §3.2 fixed-bin uniform draw.
+
+    Bins ``0 .. n_bins - 2`` are half-open on the upper edge
+    (``[lo, hi)`` via ``numpy``'s own ``[low, high)`` convention); bin
+    ``n_bins - 1`` is CLOSED on both ends, admitted via the same
+    ``nextafter``-then-clip construction ``stratified_collocation_times``
+    (Phase 55) already uses for the identical bin-edge contract.
+    """
+    lo = (bin_id / n_bins) * t_max
+    if bin_id < n_bins - 1:
+        hi = ((bin_id + 1) / n_bins) * t_max
+        return float(rng.uniform(lo, hi))
+    if lo >= t_max:
+        return float(t_max)
+    return float(min(rng.uniform(lo, np.nextafter(t_max, np.inf)), t_max))
+
+
+def _stratified_full_slot_rows(
+    record_keys: Sequence[RecordKey],
+    *,
+    rng: np.random.Generator,
+    n_bins: int = RATIFIED_N_BINS,
+    t_max: float = T_CHARACTERISTIC_TIME,
+) -> list[tuple[RecordKey, float]]:
+    """54-RULING.md 256-slot rule: one row per selected slot inside every bin.
+
+    Iterates ``record_keys`` BY POSITION (not by unique value) so a repeated
+    key occupying two distinct slots is treated as two independent slots,
+    preserving replacement/duplicate multiplicity exactly as the input
+    selection produced it.
+    """
+    rows: list[tuple[RecordKey, float]] = []
+    for bin_id in range(n_bins):
+        for key in record_keys:
+            rows.append((key, _uniform_time_in_bin(rng, bin_id, n_bins=n_bins, t_max=t_max)))
+    return rows
+
+
+def _stratified_replay_only_rows(
+    record_keys: Sequence[RecordKey],
+    *,
+    rng: np.random.Generator,
+    n_bins: int = RATIFIED_N_BINS,
+    t_max: float = T_CHARACTERISTIC_TIME,
+) -> list[tuple[RecordKey, float]]:
+    """54-RULING.md replay-only rule: the 3840-plus-256-remainder construction.
+
+    Pass one is :func:`_stratified_full_slot_rows` (one row per slot per bin).
+    Pass two draws ONE canonical seeded permutation of the slot POSITIONS;
+    bins ``0 .. n_bins - 2`` each take the next disjoint slice of that
+    permutation (sized so the slices exactly partition every slot), and the
+    last bin reuses the FIRST slice -- giving every slot exactly one extra
+    row, and the first slice's slots a second extra row (the ratified
+    17-rows / 18-rows split for the 240-slot shape).
+    """
+    n_slots = len(record_keys)
+    rows = _stratified_full_slot_rows(record_keys, rng=rng, n_bins=n_bins, t_max=t_max)
+
+    slice_size, remainder = divmod(n_slots, n_bins - 1)
+    if remainder != 0:
+        raise ValueError(
+            f"sample_collocation_points: {n_slots} replay-only slots do not "
+            f"evenly divide into {n_bins - 1} canonical-permutation slices; "
+            f"the ratified replay-only construction requires an exact division"
+        )
+    permutation = rng.permutation(n_slots)
+    for bin_id in range(n_bins - 1):
+        recipients = permutation[bin_id * slice_size : (bin_id + 1) * slice_size]
+        for slot_index in recipients:
+            key = record_keys[int(slot_index)]
+            rows.append((key, _uniform_time_in_bin(rng, bin_id, n_bins=n_bins, t_max=t_max)))
+    last_bin = n_bins - 1
+    for slot_index in permutation[:slice_size]:
+        key = record_keys[int(slot_index)]
+        rows.append((key, _uniform_time_in_bin(rng, last_bin, n_bins=n_bins, t_max=t_max)))
+    return rows
+
+
 def sample_collocation_points(
     source,
     record_keys,
@@ -318,29 +413,39 @@ def sample_collocation_points(
     rng: np.random.Generator,
     dtype,
     device,
-    collocation_count: int = 4096,
+    collocation_count: int = RATIFIED_TOTAL,
 ) -> PhysicsCollocationPoints:
-    """Draw global-[0,10] physics points under balanced per-slot quotas.
+    """Draw physics collocation points for one fixed batch.
 
-    The canonical identities are the sorted selected-slot multiset, not a
-    unique-key set: ``allocate_collocation_quota`` divides ``collocation_count``
-    over the ``M = len(record_keys)`` selected slots (one quota per slot). A
-    RecordKey that occupies ``k`` selected slots therefore accumulates ``k``
-    per-slot quotas of collocation rows, preserving the replacement-padded
-    replay/lookahead weighting through the two-point-set batch. Because the
-    quotas sum to ``collocation_count`` over slots, the emitted total is always
-    exactly ``collocation_count`` regardless of key repetition.
+    At the ratified total (``collocation_count == RATIFIED_TOTAL == 4096``)
+    this implements the exact §3.2 stratified allocation
+    (``pinn_architecture.md`` "Phase 56 contract: collocation allocation and
+    time draw amended"; 54-RULING.md "Batch allocation and bin policy"): a
+    256-slot batch emits one row per selected slot inside every one of the 16
+    fixed equal-``u`` bins, and a 240-slot replay-only batch uses the
+    canonical seeded 3840-plus-256-remainder construction. A slot count that
+    is neither 256 nor 240 at the ratified total has no defined stratified
+    construction and is a fail-closed refusal -- never a silently
+    non-stratified fallback (a resource failure at the ratified count is not
+    permission to reduce it).
+
+    For any OTHER ``collocation_count`` (a non-ratified, ad-hoc request --
+    e.g. a small anchor-only physics draw predating this amendment), the
+    legacy near-even per-slot-quota draw is preserved byte-for-byte: the
+    canonical identities are the sorted selected-slot multiset, and
+    ``allocate_collocation_quota`` divides ``collocation_count`` over the
+    ``M = len(record_keys)`` selected slots (one quota per slot). A RecordKey
+    that occupies ``k`` selected slots therefore accumulates ``k`` per-slot
+    quotas of collocation rows, preserving the replacement-padded
+    replay/lookahead weighting through the two-point-set batch.
     """
     rng = _require_local_rng(rng)
     if collocation_count <= 0:
         raise ValueError("collocation_count must be positive")
 
-    # One near-even quota per selected slot (the multiset). Repeated keys
-    # naturally accumulate multiple per-slot quotas; the total is always exact.
-    per_slot_quotas = allocate_collocation_quota(len(record_keys), collocation_count, rng)
-
-    assigned: list[tuple[RecordKey, float]] = []
-    for key, per_slot_count in zip(record_keys, per_slot_quotas):
+    # Every selected slot's key is validated up front, before any draw --
+    # unchanged defense-in-depth regardless of which allocation path runs.
+    for key in record_keys:
         if not isinstance(key, RecordKey):
             raise TypeError(f"collocation member must be RecordKey; got {key!r}")
         if (key.variant, key.fidelity) != ("hierarchical", "base"):
@@ -349,9 +454,34 @@ def sample_collocation_points(
             )
         if _is_blacklisted(source, key):
             raise ValueError(f"collocation contains blacklisted physical key {key.physical_key!r}")
-        for value in rng.uniform(0.0, T_CHARACTERISTIC_TIME, size=per_slot_count):
-            assigned.append((key, float(value)))
-    assigned.sort(key=lambda item: (item[0], item[1]))
+
+    if collocation_count == RATIFIED_TOTAL:
+        n_slots = len(record_keys)
+        if n_slots == FULL_BATCH_SLOTS:
+            assigned = _stratified_full_slot_rows(record_keys, rng=rng)
+        elif n_slots == REPLAY_ONLY_SLOTS:
+            assigned = _stratified_replay_only_rows(record_keys, rng=rng)
+        else:
+            raise ValueError(
+                f"sample_collocation_points: the ratified §3.2 16-bin stratified "
+                f"allocation has no defined construction for {n_slots} selected "
+                f"slots at the ratified total {RATIFIED_TOTAL} (only "
+                f"{FULL_BATCH_SLOTS} full-slot or {REPLAY_ONLY_SLOTS} "
+                f"replay-only are defined); refusing rather than falling back "
+                f"to a non-stratified draw -- a resource failure is "
+                f"fail-closed, never permission to reduce the ratified count "
+                f"(pinn_architecture.md Phase-56 contract)"
+            )
+    else:
+        # Legacy near-even per-slot quota draw, preserved byte-for-byte for
+        # any caller requesting a non-ratified total.
+        per_slot_quotas = allocate_collocation_quota(len(record_keys), collocation_count, rng)
+        assigned = []
+        for key, per_slot_count in zip(record_keys, per_slot_quotas):
+            for value in rng.uniform(0.0, T_CHARACTERISTIC_TIME, size=per_slot_count):
+                assigned.append((key, float(value)))
+        assigned.sort(key=lambda item: (item[0], item[1]))
+
     if len(assigned) != collocation_count:
         raise AssertionError("collocation allocation did not preserve total cardinality")
 
@@ -384,7 +514,7 @@ def build_stage_batch(
     rng: np.random.Generator,
     dtype,
     device,
-    collocation_count: int = 4096,
+    collocation_count: int = RATIFIED_TOTAL,
 ) -> FixedBatch:
     """Build one DATA-05 fixed batch without owning epochs or adaptive density."""
     selected = select_stage_records(source, stage=stage, rng=rng)
@@ -415,6 +545,11 @@ def build_stage_batch(
 
 
 __all__ = [
+    "FULL_BATCH_SLOTS",
+    "RATIFIED_N_BINS",
+    "RATIFIED_PER_BIN",
+    "RATIFIED_TOTAL",
+    "REPLAY_ONLY_SLOTS",
     "SelectedStageRecords",
     "allocate_collocation_quota",
     "build_stage_batch",
