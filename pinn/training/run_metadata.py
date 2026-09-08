@@ -51,6 +51,7 @@ __all__ = [
     "validate_s_h",
     "write_training_metadata",
     "load_training_metadata",
+    "assert_smoke_matches_graded",
 ]
 
 TRAINING_METADATA_FILENAME = "training_metadata.json"
@@ -115,6 +116,92 @@ def validate_s_h(value: float) -> float:
     if not (math.isfinite(number) and number > 0.0):
         raise ValueError(f"S_H must be finite and strictly positive; got {value!r}")
     return number
+
+
+def _split_bytes_from_metadata(metadata: Mapping[str, object], *, label: str) -> bytes:
+    """Extract the persisted split bytes used by the smoke/graded cross-check."""
+    candidates = (
+        "splits_bytes",
+        "split_bytes",
+        "splits_json_bytes",
+        "split_json_bytes",
+    )
+    for name in candidates:
+        value = metadata.get(name)
+        if isinstance(value, bytes):
+            return value
+        if isinstance(value, bytearray):
+            return bytes(value)
+    for name in ("splits_path", "split_path", "splits_file", "split_file"):
+        value = metadata.get(name)
+        if value is None:
+            continue
+        path = Path(value)
+        try:
+            return path.read_bytes()
+        except OSError as exc:
+            raise ValueError(f"{label} split artifact is unreadable: {path}") from exc
+    raise ValueError(
+        f"{label} metadata must provide splits_bytes or a persisted splits_path"
+    )
+
+
+def _metadata_scalar(metadata: Mapping[str, object], name: str, *, label: str):
+    value = metadata.get(name)
+    if value is None and isinstance(metadata.get("training_metadata"), Mapping):
+        value = metadata["training_metadata"].get(name)  # type: ignore[index]
+    if value is None:
+        raise ValueError(f"{label} metadata is missing {name}")
+    return value
+
+
+def assert_smoke_matches_graded(
+    smoke_metadata: Mapping[str, object], graded_metadata: Mapping[str, object],
+) -> bool:
+    """Assert the seed-42 smoke and graded run share split/S_H provenance.
+
+    The split comparison is byte-for-byte (not a parsed/re-serialized mapping),
+    and ``s_h``/``n_train`` are exact equality checks.  This helper is intended
+    for the D-10 evidence seam; it returns ``True`` on success and raises a
+    descriptive ``ValueError`` instead of allowing a mismatch to be treated as
+    an accepted calibration detail.
+    """
+    if not isinstance(smoke_metadata, Mapping) or not isinstance(graded_metadata, Mapping):
+        raise ValueError("smoke and graded metadata must both be mappings")
+    smoke_split = _split_bytes_from_metadata(smoke_metadata, label="smoke")
+    graded_split = _split_bytes_from_metadata(graded_metadata, label="graded")
+    if smoke_split != graded_split:
+        raise ValueError(
+            "seed-42 smoke and graded splits.json bytes differ; refusing "
+            "to accept the calibration cross-check"
+        )
+    smoke_s_h = _metadata_scalar(smoke_metadata, "s_h", label="smoke")
+    graded_s_h = _metadata_scalar(graded_metadata, "s_h", label="graded")
+    if isinstance(smoke_s_h, bool) or isinstance(graded_s_h, bool):
+        raise ValueError("smoke and graded s_h values must be numeric")
+    try:
+        if float(smoke_s_h) != float(graded_s_h):
+            raise ValueError(
+                f"seed-42 smoke/graded s_h mismatch: {smoke_s_h!r} != "
+                f"{graded_s_h!r}"
+            )
+    except (TypeError, ValueError) as exc:
+        if isinstance(exc, ValueError) and "mismatch" in str(exc):
+            raise
+        raise ValueError("smoke and graded s_h values must be numeric") from exc
+    smoke_n = _metadata_scalar(smoke_metadata, "n_train", label="smoke")
+    graded_n = _metadata_scalar(graded_metadata, "n_train", label="graded")
+    if (
+        isinstance(smoke_n, bool)
+        or isinstance(graded_n, bool)
+        or not isinstance(smoke_n, (int, np.integer))
+        or not isinstance(graded_n, (int, np.integer))
+        or int(smoke_n) != int(graded_n)
+    ):
+        raise ValueError(
+            f"seed-42 smoke/graded n_train mismatch: {smoke_n!r} != {graded_n!r}"
+        )
+    return True
 
 
 def _validate_positive_int(value, *, what: str) -> int:
