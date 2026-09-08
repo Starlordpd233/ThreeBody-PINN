@@ -3,11 +3,36 @@
     {
       "condition_i_satisfied": true,
       "condition_ii_diagnostics": {
-        "coefficient_of_variation_tail": 1.9879212511727313,
-        "distinct_non_floor_count": 16,
-        "dynamic_range_decades": 5.881645645060258,
-        "monotone_non_increasing": true,
-        "status": "UNRATIFIED"
+        "alpha": 0.025590626657082217,
+        "baseline_max_weight": 0.39466806609649463,
+        "baseline_min_weight": 1.313271002349086e-06,
+        "baseline_spread": 300522.94262992206,
+        "expected_w_prime_15": 0.7071067811865475,
+        "failure_reasons": [],
+        "front_idx": 15,
+        "min_perturbed_weight": 0.7071067811865476,
+        "p15": 13.5429895845891,
+        "perturbed_weights": [
+          1.0,
+          0.9764889283838658,
+          0.9638423631001866,
+          0.9456420977567789,
+          0.9286940341848986,
+          0.9050515399633174,
+          0.8830826567951209,
+          0.8515861534472515,
+          0.8380982412906515,
+          0.8134063559439866,
+          0.8013646392520969,
+          0.7920098948708871,
+          0.7639723646636831,
+          0.7398048699651798,
+          0.7152702076448707,
+          0.7071067811865476
+        ],
+        "reduction": "all 16 raw bin means scaled by alpha with frozen r_ref",
+        "satisfied": true,
+        "w_prime_15": 0.7071067811865476
       },
       "condition_iii_diagnostics": {
         "factors": [
@@ -33,7 +58,7 @@
           0
         ],
         "late_bin_start": 8,
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
         "uniform_response_front_idx": [
           0,
           0,
@@ -61,11 +86,36 @@
     {
       "condition_i_satisfied": true,
       "condition_ii_diagnostics": {
-        "coefficient_of_variation_tail": 3.0987841717460562,
-        "distinct_non_floor_count": 16,
-        "dynamic_range_decades": 10.677772453593917,
-        "monotone_non_increasing": true,
-        "status": "UNRATIFIED"
+        "alpha": 0.014096104640376594,
+        "baseline_max_weight": 0.0752983742943571,
+        "baseline_min_weight": 2.1000399007514202e-11,
+        "baseline_spread": 3585568744.0707393,
+        "expected_w_prime_15": 0.7071067811865475,
+        "failure_reasons": [],
+        "front_idx": 15,
+        "min_perturbed_weight": 0.7071067811865476,
+        "p15": 24.58647967802781,
+        "perturbed_weights": [
+          1.0,
+          0.9641998337867008,
+          0.9389202046770329,
+          0.9217824395273145,
+          0.9008724829442721,
+          0.8833485937236456,
+          0.8680086182339606,
+          0.8581623165281455,
+          0.851412866849075,
+          0.8419843720126767,
+          0.821056993362192,
+          0.810359837478333,
+          0.8036097033194939,
+          0.7894612488432986,
+          0.7509742347858718,
+          0.7071067811865476
+        ],
+        "reduction": "all 16 raw bin means scaled by alpha with frozen r_ref",
+        "satisfied": true,
+        "w_prime_15": 0.7071067811865476
       },
       "condition_iii_diagnostics": {
         "factors": [
@@ -91,7 +141,7 @@
           0
         ],
         "late_bin_start": 8,
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
         "uniform_response_front_idx": [
           0,
           0,
@@ -119,11 +169,36 @@
     {
       "condition_i_satisfied": true,
       "condition_ii_diagnostics": {
-        "coefficient_of_variation_tail": 2.5917240689408936,
-        "distinct_non_floor_count": 16,
-        "dynamic_range_decades": 6.618713549316107,
-        "monotone_non_increasing": true,
-        "status": "UNRATIFIED"
+        "alpha": 0.022740823682805077,
+        "baseline_max_weight": 0.20280772837237843,
+        "baseline_min_weight": 2.405949185703172e-07,
+        "baseline_spread": 842942.6921296555,
+        "expected_w_prime_15": 0.7071067811865475,
+        "failure_reasons": [],
+        "front_idx": 15,
+        "min_perturbed_weight": 0.7071067811865475,
+        "p15": 15.240151153452981,
+        "perturbed_weights": [
+          1.0,
+          0.9643674221478857,
+          0.9387466939960596,
+          0.9154594359481052,
+          0.8960056446374514,
+          0.8711923489880867,
+          0.8489055552132039,
+          0.8386823870831842,
+          0.8248842854306979,
+          0.8095972191386559,
+          0.7932254385008172,
+          0.7817199540154237,
+          0.7606625612682563,
+          0.7465614915807167,
+          0.7217929711742576,
+          0.7071067811865475
+        ],
+        "reduction": "all 16 raw bin means scaled by alpha with frozen r_ref",
+        "satisfied": true,
+        "w_prime_15": 0.7071067811865475
       },
       "condition_iii_diagnostics": {
         "factors": [
@@ -149,7 +224,7 @@
           0
         ],
         "late_bin_start": 8,
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
         "uniform_response_front_idx": [
           0,
           0,
@@ -177,11 +252,36 @@
     {
       "condition_i_satisfied": true,
       "condition_ii_diagnostics": {
-        "coefficient_of_variation_tail": 2.6175924678018343,
-        "distinct_non_floor_count": 16,
-        "dynamic_range_decades": 7.292270502941423,
-        "monotone_non_increasing": true,
-        "status": "UNRATIFIED"
+        "alpha": 0.020640347580534568,
+        "baseline_max_weight": 0.18579695709740077,
+        "baseline_min_weight": 5.1018712785701094e-08,
+        "baseline_spread": 3641741.371990743,
+        "expected_w_prime_15": 0.7071067811865475,
+        "failure_reasons": [],
+        "front_idx": 15,
+        "min_perturbed_weight": 0.7071067811865476,
+        "p15": 16.791073354153113,
+        "perturbed_weights": [
+          1.0,
+          0.9658567128592843,
+          0.9437762661100586,
+          0.9215244194989711,
+          0.8945711682655929,
+          0.8622633720320709,
+          0.8484324030873037,
+          0.839780680215822,
+          0.8273138358545565,
+          0.8091319157670048,
+          0.7940711974657854,
+          0.7796718148069123,
+          0.7661408074789261,
+          0.7407382264024263,
+          0.7295088859825546,
+          0.7071067811865476
+        ],
+        "reduction": "all 16 raw bin means scaled by alpha with frozen r_ref",
+        "satisfied": true,
+        "w_prime_15": 0.7071067811865476
       },
       "condition_iii_diagnostics": {
         "factors": [
@@ -207,7 +307,7 @@
           0
         ],
         "late_bin_start": 8,
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
         "uniform_response_front_idx": [
           0,
           0,
@@ -235,11 +335,36 @@
     {
       "condition_i_satisfied": true,
       "condition_ii_diagnostics": {
-        "coefficient_of_variation_tail": 2.771402192903864,
-        "distinct_non_floor_count": 16,
-        "dynamic_range_decades": 6.716071094416404,
-        "monotone_non_increasing": true,
-        "status": "UNRATIFIED"
+        "alpha": 0.022411168035002715,
+        "baseline_max_weight": 0.06676993325006172,
+        "baseline_min_weight": 1.922776942745979e-07,
+        "baseline_spread": 347257.8215687643,
+        "expected_w_prime_15": 0.7071067811865475,
+        "failure_reasons": [],
+        "front_idx": 15,
+        "min_perturbed_weight": 0.7071067811865476,
+        "p15": 15.464325185491417,
+        "perturbed_weights": [
+          1.0,
+          0.9411470514947997,
+          0.9081242515078884,
+          0.890153914513932,
+          0.8628038661062942,
+          0.8553841240920574,
+          0.8478512032762334,
+          0.8390455364568998,
+          0.8323739828950196,
+          0.8226669409885307,
+          0.8156042709914847,
+          0.8082501339543198,
+          0.7791033566610783,
+          0.7442691883554254,
+          0.729496951828818,
+          0.7071067811865476
+        ],
+        "reduction": "all 16 raw bin means scaled by alpha with frozen r_ref",
+        "satisfied": true,
+        "w_prime_15": 0.7071067811865476
       },
       "condition_iii_diagnostics": {
         "factors": [
@@ -265,7 +390,7 @@
           0
         ],
         "late_bin_start": 8,
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
         "uniform_response_front_idx": [
           0,
           0,
@@ -293,11 +418,36 @@
     {
       "condition_i_satisfied": true,
       "condition_ii_diagnostics": {
-        "coefficient_of_variation_tail": 2.347558373523804,
-        "distinct_non_floor_count": 16,
-        "dynamic_range_decades": 7.143149212311859,
-        "monotone_non_increasing": true,
-        "status": "UNRATIFIED"
+        "alpha": 0.02107123809937562,
+        "baseline_max_weight": 0.4040398185045669,
+        "baseline_min_weight": 7.192018364663119e-08,
+        "baseline_spread": 5617891.918765874,
+        "expected_w_prime_15": 0.7071067811865475,
+        "failure_reasons": [],
+        "front_idx": 15,
+        "min_perturbed_weight": 0.7071067811865476,
+        "p15": 16.447708893301446,
+        "perturbed_weights": [
+          1.0,
+          0.9810855289960042,
+          0.9655413328694169,
+          0.9455622558258692,
+          0.917316836847198,
+          0.8904115190950628,
+          0.8651360213182038,
+          0.8529383943854559,
+          0.8362925055304088,
+          0.8002180693845845,
+          0.7847095267117381,
+          0.7751374974489578,
+          0.7563186560422543,
+          0.7446629215642336,
+          0.7316338772288569,
+          0.7071067811865476
+        ],
+        "reduction": "all 16 raw bin means scaled by alpha with frozen r_ref",
+        "satisfied": true,
+        "w_prime_15": 0.7071067811865476
       },
       "condition_iii_diagnostics": {
         "factors": [
@@ -323,7 +473,7 @@
           0
         ],
         "late_bin_start": 8,
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
         "uniform_response_front_idx": [
           0,
           0,
@@ -381,11 +531,11 @@
     "device": "cpu",
     "eta_c": 1.0,
     "n_bins": 16,
-    "numpy_version": "2.2.0",
+    "numpy_version": "2.4.6",
     "per_bin": 256,
     "precision": "float64",
     "t_max": 10.0,
-    "torch_version": "2.12.0",
+    "torch_version": "2.12.1",
     "total_points": 4096
   },
   "invalidation_triggers": [
@@ -406,11 +556,25 @@
     "bin/allocation semantics"
   ],
   "provenance": {
+    "gate_case_count": 6,
+    "gate_case_labels": [
+      "41",
+      "42",
+      "43",
+      "0",
+      "7",
+      "41-variable-mass"
+    ],
+    "gate_evidence_path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/gate04/20260908T093626Z/raw.json",
+    "gate_evidence_schema_version": "phase56-gate04-cli-evidence/v1",
+    "gate_evidence_sha256": "f58ea8f5b60b9b650ec7c958fffb25b117a93cd67abe941dfcda4d1d07986507",
+    "gate_unratified_conditions": [],
+    "gate_verdict": "PASS",
     "git_available": true,
-    "git_sha": "737d70fc8aadb8ffd36b70cdcc4078983fa39f88",
+    "git_sha": "daefd71a12b83b3aebefe97327f08f2cdd679b63",
     "git_worktree_dirty": true,
     "git_worktree_dirty_available": true,
-    "timestamp": "2026-09-07T04:58:06.868104+00:00"
+    "timestamp": "2026-09-08T09:36:26.476424+00:00"
   },
   "r_ref": 19749775821.24417,
   "raw_bin_means": [

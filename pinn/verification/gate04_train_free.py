@@ -33,9 +33,11 @@ _PRE_IMPORT_FALLBACK = _os.environ.get("PYTORCH_ENABLE_MPS_FALLBACK") or None
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import math
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -117,15 +119,10 @@ INVALIDATION_TRIGGERS: tuple[str, ...] = (
 )
 
 _CONDITIONS = ("i", "ii", "iii")
-# GAP-56-01 (OPEN, owner-routed): condition (ii)'s pass criterion is
-# unratified — no source in this repository defines a numeric or structural
-# test for a weight vector "carrying differential information (not
-# all-floor, not degenerate)". Condition (iii) is now wired as the capability
-# structure 54-RULING.md specifies (see condition_iii_diagnostics), so only
-# condition (ii) remains a structurally-present, never-satisfiable slot — a
-# PASS from this plan's gate is still an INCOMPLETE result while it is open
-# (see gate04_verdict's docstring).
-_UNRATIFIED_CONDITIONS: tuple[str] = ("ii",)
+# GAP-56-01 is resolved by the owner ruling in 57-RULING.md. Keep this field
+# because it is part of the persisted gate contract, but a complete Phase-57
+# pass must carry no unratified conditions.
+_UNRATIFIED_CONDITIONS: tuple[str, ...] = ()
 
 # 56-RESEARCH.md section b.4's sensitivity-sweep ladder, reproduced here so it
 # travels with the code: the factor by which condition_iii_diagnostics scales
@@ -170,9 +167,9 @@ class Gate04CaseResult:
     construction so :func:`gate04_verdict` can see it and BLOCK. Finiteness
     and floor checks live in the verdict function, not here.
 
-    ``condition_ii_diagnostics`` and ``condition_iii_diagnostics`` are
-    present-but-``None`` slots in this plan; 56-02 fills them once GAP-56-01
-    is ratified. No threshold is invented here.
+    ``condition_ii_diagnostics`` carries the owner-ratified spread/reduction
+    result for a complete Phase-57 case; ``condition_iii_diagnostics`` retains
+    the descriptive front-response series.
     """
 
     label: str
@@ -326,7 +323,11 @@ def _blocking_reasons(case_results, *, causal_clip_min_weight: float) -> tuple[s
        prefix audit recomputes the running sums as plain Python floats — a
        finiteness inspection of the intermediates the trainer's formula
        consumes, never a second implementation of that formula.
-    3. Per case, in input order: any finite weight less than or equal to
+    3. Per case, in input order: the owner-ratified condition-(ii) verdict
+       must be satisfied when the case carries that mapping. Legacy hand-built
+       case objects without the new mapping remain useful to lower-level
+       verdict tests; they do not claim to be a complete GATE-04 run.
+    4. Per case, in input order: any finite weight less than or equal to
        ``causal_clip_min_weight`` blocks — a strict-inequality reject: a
        weight exactly at the floor is pinned, and only strictly-greater
        weights satisfy condition (i). Non-finite weights are already named by
@@ -367,6 +368,15 @@ def _blocking_reasons(case_results, *, causal_clip_min_weight: float) -> tuple[s
                     f"case {case.label!r}: non-finite weight entry "
                     f"weights[{index}]={value!r}"
                 )
+        condition_ii = case.condition_ii_diagnostics
+        if isinstance(condition_ii, Mapping) and "satisfied" in condition_ii:
+            if condition_ii.get("satisfied") is not True:
+                details = condition_ii.get("failure_reasons") or ()
+                suffix = "; ".join(str(item) for item in details)
+                reasons.append(
+                    f"case {case.label!r}: GATE-04 condition (ii) failed"
+                    + (f": {suffix}" if suffix else "")
+                )
     for case in cases:
         for index, value in enumerate(case.weights):
             if math.isfinite(value) and value <= floor:
@@ -391,57 +401,168 @@ def gate04_verdict(case_results, *, causal_clip_min_weight: float) -> str:
     equal to ``causal_clip_min_weight`` — the dtype clamp floor read from the
     runtime by the caller, never a copied literal — yields BLOCK
     (strict-inequality reject: a weight exactly at the floor is pinned);
-    otherwise PASS.
+    otherwise PASS. A complete Phase-57 case carries the owner-ratified
+    condition-(ii) mapping; its ``satisfied`` field is included in this same
+    rule-ordered blocking audit rather than treated as a second verdict source.
 
     Deliberately the ONLY source of the verdict string, in the
     ``gate_metrics.gate_verdict`` convention, so the gate is never rendered as
     two independently-driftable booleans. The verdict vocabulary is exactly
     two values (D-04); no third state exists.
 
-    A PASS from this plan's gate evaluates condition (i), condition (iii)'s
-    grounded finiteness rule, and the non-finite pre-checks: condition (iii)'s
-    CAPABILITY structure (:func:`condition_iii_diagnostics`) is measured and
-    recorded on every case but carries no pass threshold of its own —
-    GAP-56-01 makes that threshold inseparable from condition (ii).
-    ``Gate04Verdict.unratified_conditions`` is therefore ``("ii",)``. A PASS
-    carrying a non-empty ``unratified_conditions`` is an INCOMPLETE result —
-    whether RUN-04 may proceed on one is an open owner question tracked as
-    GAP-56-01, not a decision this module makes.
+    A complete Phase-57 PASS evaluates condition (i), the owner-ratified
+    spread/reduction rule, condition (iii)'s grounded finiteness rule, and the
+    non-finite pre-checks. ``Gate04Verdict.unratified_conditions`` is empty;
+    an unratified entry is never silently carried into run authorization.
     """
     if _blocking_reasons(case_results, causal_clip_min_weight=causal_clip_min_weight):
         return VERDICT_BLOCK
     return VERDICT_PASS
 
 
-def condition_ii_verdict(weights) -> None:
-    """Never returns: condition (ii)'s pass criterion is unratified (GAP-56-01).
+_CONDITION_II_MISSING_R_REF = object()
 
-    ``54-RULING.md``'s re-issued AC-LOSS-04 requires GATE-04 to fail closed on
-    a degenerate weight vector, but neither that ruling nor any other source
-    in this repository defines what "degenerate" or "carrying differential
-    information" means numerically. That decision is GAP-56-01, status OPEN,
-    awaiting the owner.
 
-    This function raises ``NotImplementedError`` UNCONDITIONALLY, for every
-    ``weights`` input, so the slot cannot be filled by accident in either
-    direction (a false PASS or a false BLOCK). Nothing else in this module
-    calls it: :func:`condition_ii_diagnostics` reports descriptive statistics
-    with no comparison and no threshold, and :func:`gate04_verdict` never
-    references condition (ii) at all.
+def condition_ii_verdict(
+    raw_bin_means,
+    r_ref=_CONDITION_II_MISSING_R_REF,
+    *,
+    eta_c=CAUSAL_ETA_C,
+    dtype=torch.float64,
+    device=torch.device("cpu"),
+    t_max=T_CHARACTERISTIC_TIME,
+) -> Mapping[str, object]:
+    """Evaluate the owner-ratified GATE-04 condition-(ii) rule.
+
+    The rule is evaluated from raw 16-bin means and the frozen ``R_ref``. It
+    first recomputes the baseline weights through the trainer's
+    ``ratified_causal_weights`` helper and requires a ``2:1`` spread over
+    non-anchor entries. It then computes ``P_15`` from the normalized means,
+    applies the one fixed all-residual scale
+    ``alpha = log(2) / (2 * P_15)``, and recomputes the perturbed weights
+    through the same production arithmetic. No returned weight is scaled or
+    refitted, and no search over perturbations is performed.
+
+    A one-argument call remains an explicit compatibility refusal for the
+    superseded Phase-56 slot: without ``R_ref`` there is no legal way to
+    evaluate this rule. Proper Phase-57 callers always provide both inputs.
     """
-    raise NotImplementedError(
-        "GATE-04 condition (ii)'s pass criterion is unratified (GAP-56-01, "
-        "status OPEN): no source in this repository defines a numeric or "
-        "structural test for a weight vector 'carrying differential "
-        "information (not all-floor, not degenerate)'. See "
-        ".planning/phases/56-contract-amendment-train-free-gate/56-GAPS.md "
-        "for the four candidate options the owner has not yet ruled on: "
-        "(A) a dispersion floor on the non-boundary weights, (B) a "
-        "controlled-residual-reduction response test only, (C) both A and "
-        "B, or (D) deferring the numeric bound to Phase 57 checkpoint (3) "
-        "with condition (ii) logged as a non-blocking diagnostic until "
-        "then. This function must not be filled in without an owner ruling."
+    if r_ref is _CONDITION_II_MISSING_R_REF:
+        raise NotImplementedError(
+            "condition_ii_verdict requires raw_bin_means and a frozen r_ref; "
+            "the superseded one-argument GAP-56-01 slot cannot be evaluated"
+        )
+
+    raw = np.asarray(raw_bin_means, dtype=np.float64).reshape(-1)
+    if raw.size != RATIFIED_N_BINS:
+        raise ValueError(
+            f"condition_ii_verdict requires exactly {RATIFIED_N_BINS} "
+            f"raw_bin_means; got {raw.size}"
+        )
+    if not bool(np.all(np.isfinite(raw))):
+        bad = int(np.flatnonzero(~np.isfinite(raw))[0])
+        raise ValueError(
+            f"condition_ii_verdict raw_bin_means[{bad}] must be finite; "
+            f"got {raw[bad]!r}"
+        )
+    if bool(np.any(raw < 0.0)):
+        bad = int(np.flatnonzero(raw < 0.0)[0])
+        raise ValueError(
+            f"condition_ii_verdict raw_bin_means[{bad}] must be non-negative; "
+            f"got {raw[bad]!r}"
+        )
+
+    baseline_weights = np.asarray(
+        ratified_causal_weights(
+            raw, r_ref, eta_c=eta_c, dtype=dtype, device=device, t_max=t_max,
+        ),
+        dtype=np.float64,
+    ).reshape(-1)
+    if baseline_weights.size != RATIFIED_N_BINS:
+        raise ValueError(
+            "condition_ii_verdict production weights have the wrong length: "
+            f"{baseline_weights.size}"
+        )
+    failure_reasons: list[str] = []
+    if not bool(np.all(np.isfinite(baseline_weights))):
+        failure_reasons.append("baseline weights contain a non-finite entry")
+    if bool(np.any(baseline_weights <= 0.0)):
+        failure_reasons.append("baseline weights must be strictly positive")
+
+    non_anchor = baseline_weights[1:]
+    baseline_min = float(np.min(non_anchor))
+    baseline_max = float(np.max(non_anchor))
+    baseline_spread = (
+        float(baseline_max / baseline_min)
+        if math.isfinite(baseline_min) and baseline_min > 0.0
+        else float("nan")
     )
+    if not math.isfinite(baseline_spread) or baseline_spread < 2.0:
+        failure_reasons.append(
+            f"non-anchor spread {baseline_spread!r} is below the required 2:1"
+        )
+
+    normalized = raw / float(r_ref)
+    p15 = float(np.sum(normalized[: RATIFIED_N_BINS - 1], dtype=np.float64))
+    alpha = float("nan")
+    expected_w_prime_15 = 1.0 / math.sqrt(2.0)
+    w_prime_15 = float("nan")
+    front_idx = -1
+    min_perturbed_weight = float("nan")
+    perturbed_weights: tuple[float, ...] = ()
+    if not math.isfinite(p15) or p15 <= 0.0:
+        failure_reasons.append(
+            f"P_15 must be finite and positive for the fixed reduction; got {p15!r}"
+        )
+    else:
+        alpha = math.log(2.0) / (2.0 * p15)
+        perturbed_raw = raw * alpha
+        recomputed = np.asarray(
+            ratified_causal_weights(
+                perturbed_raw,
+                r_ref,
+                eta_c=eta_c,
+                dtype=dtype,
+                device=device,
+                t_max=t_max,
+            ),
+            dtype=np.float64,
+        ).reshape(-1)
+        perturbed_weights = tuple(float(value) for value in recomputed)
+        if recomputed.size != RATIFIED_N_BINS or not bool(np.all(np.isfinite(recomputed))):
+            failure_reasons.append(
+                "controlled-reduction weights contain a non-finite entry"
+            )
+        else:
+            w_prime_15 = float(recomputed[RATIFIED_N_BINS - 1])
+            front_idx = _front_idx(perturbed_weights)
+            min_perturbed_weight = float(np.min(recomputed))
+            if front_idx != RATIFIED_N_BINS - 1:
+                failure_reasons.append(
+                    f"controlled reduction reached front_idx={front_idx}, "
+                    f"expected {RATIFIED_N_BINS - 1}"
+                )
+            if min_perturbed_weight < 0.70:
+                failure_reasons.append(
+                    "controlled-reduction minimum weight "
+                    f"{min_perturbed_weight!r} is below 0.70"
+                )
+
+    return {
+        "satisfied": not failure_reasons,
+        "baseline_spread": baseline_spread,
+        "baseline_min_weight": baseline_min,
+        "baseline_max_weight": baseline_max,
+        "p15": p15,
+        "alpha": alpha,
+        "expected_w_prime_15": expected_w_prime_15,
+        "w_prime_15": w_prime_15,
+        "front_idx": front_idx,
+        "min_perturbed_weight": min_perturbed_weight,
+        "perturbed_weights": perturbed_weights,
+        "reduction": "all 16 raw bin means scaled by alpha with frozen r_ref",
+        "failure_reasons": tuple(failure_reasons),
+    }
 
 
 def condition_ii_diagnostics(weights, causal_clip_min_weight: float) -> dict:
@@ -456,13 +577,10 @@ def condition_ii_diagnostics(weights, causal_clip_min_weight: float) -> dict:
     (``log10(max) - log10(min)``) between the largest and smallest entry, and
     the count of entries strictly above ``causal_clip_min_weight``.
 
-    These are recorded so the owner's eventual GAP-56-01 ruling has real
-    post-amendment data to rule against. GATE-04 currently treats condition
-    (ii) as measured-but-not-adjudicated rather than as satisfied: this
-    function performs NO comparison against any constant and returns NO
-    verdict-shaped field (no key named or implying a threshold, a pass, or an
-    "ok" state) — :func:`condition_ii_verdict` is the only place a pass/fail
-    call for condition (ii) could be made, and it always raises.
+    These descriptive fields remain available for historical diagnostics. The
+    owner-ratified pass/fail rule lives in :func:`condition_ii_verdict`; this
+    helper intentionally remains verdict-free for callers that only need the
+    older descriptive statistics.
     """
     values = np.asarray([float(w) for w in weights], dtype=np.float64)
     if values.size != RATIFIED_N_BINS:
@@ -482,7 +600,7 @@ def condition_ii_diagnostics(weights, causal_clip_min_weight: float) -> dict:
         "monotone_non_increasing": monotone_non_increasing,
         "dynamic_range_decades": dynamic_range_decades,
         "distinct_non_floor_count": distinct_non_floor_count,
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
     }
 
 
@@ -537,10 +655,9 @@ def condition_iii_diagnostics(
     (bins before ``late_bin_start`` are left unperturbed), for the same
     factors.
 
-    Applies NO pass threshold — this is a measurement record only, carrying
-    ``status: "UNRATIFIED"``. GAP-56-01 (OPEN) covers both the reduction
-    magnitude and the response margin a healthy recipe must meet; neither is
-    invented here.
+    The owner-ratified pass/fail decision for the fixed reduction is returned
+    by :func:`condition_ii_verdict`. This remains a descriptive companion
+    record and carries no independent threshold.
     """
     means = np.asarray([float(v) for v in raw_bin_means], dtype=np.float64)
     if means.size != RATIFIED_N_BINS:
@@ -580,7 +697,7 @@ def condition_iii_diagnostics(
         "unperturbed_front_idx": unperturbed_front_idx,
         "uniform_response_front_idx": tuple(uniform_response_front_idx),
         "late_bin_only_response_front_idx": tuple(late_bin_only_response_front_idx),
-        "status": "UNRATIFIED",
+        "status": "DESCRIPTIVE",
     }
 
 
@@ -685,10 +802,8 @@ def evaluate_case(case, r_ref: float, *, precision: str, device: str) -> Gate04C
     probe helper, never forked here. ``condition_i_satisfied`` records whether
     every weight clears the runtime clamp floor strictly; the verdict function
     re-derives that comparison from the recorded weights and never trusts this
-    field. The condition-(ii)/(iii) diagnostic fields are populated from
-    :func:`condition_ii_diagnostics` and :func:`condition_iii_diagnostics` —
-    measured records only; neither carries a pass/fail verdict, and GAP-56-01
-    remains OPEN.
+    field. The condition-(ii)/(iii) fields carry the owner-ratified
+    spread/reduction verdict and its descriptive front-response companion.
     """
     runtime = resolve_runtime(precision, device)
     clip_facts = resolve_causal_clip_facts(runtime.dtype, runtime.torch_device)
@@ -719,7 +834,9 @@ def evaluate_case(case, r_ref: float, *, precision: str, device: str) -> Gate04C
         front_idx=_front_idx(weight_tuple),
         min_weight=min(weight_tuple),
         condition_i_satisfied=all(w > floor for w in weight_tuple),
-        condition_ii_diagnostics=condition_ii_diagnostics(weight_tuple, floor),
+        condition_ii_diagnostics=condition_ii_verdict(
+            raw, r_ref_value, dtype=runtime.dtype, device=runtime.torch_device,
+        ),
         condition_iii_diagnostics=condition_iii_diagnostics(
             raw, r_ref_value, dtype=runtime.dtype, device=runtime.torch_device,
         ),
@@ -792,7 +909,13 @@ def run_gate(cases=DEFAULT_CASES, *, precision: str = "float64", device: str = "
     )
 
 
-def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Path:
+def write_r_ref_artifact(
+    verdict: Gate04Verdict,
+    path=R_REF_ARTIFACT_PATH,
+    *,
+    gate_evidence_path: str | Path | None = None,
+    gate_evidence_sha256: str | None = None,
+) -> Path:
     """Persist the governed ``R_ref`` artifact through the atomic writer.
 
     The payload carries exactly the frozen top-level key set (the Task-1
@@ -809,7 +932,7 @@ def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Pa
     the verdict must carry at least one case, every recorded bin mean must be
     finite, and ``r_ref`` must equal ``numpy.median`` of the recorded means
     exactly (the artifact claims the value IS the median of THESE numbers).
-    ``valid`` is true exactly when the verdict is PASS. Case identities are
+    ``valid`` is true exactly when the verdict is a complete PASS. Case identities are
     enriched from ``DEFAULT_CASES`` (masses, IC13 mode); a case that no
     ``DEFAULT_CASES`` entry matches by ``(label, seed)`` raises — the
     governed artifact never records an unidentified case. Each case entry
@@ -821,6 +944,30 @@ def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Pa
         raise TypeError(
             f"write_r_ref_artifact expects a Gate04Verdict; "
             f"got {type(verdict).__name__}"
+        )
+    if verdict.verdict != VERDICT_PASS or verdict.unratified_conditions:
+        raise ValueError(
+            "cannot persist an R_ref artifact unless GATE-04 is a complete PASS"
+        )
+    expected_cases = tuple((case.label, case.seed) for case in DEFAULT_CASES)
+    actual_cases = tuple((case.label, case.seed) for case in verdict.cases)
+    if actual_cases != expected_cases:
+        raise ValueError(
+            "cannot persist an R_ref artifact unless exactly the six default "
+            f"cases are present in order; got {actual_cases!r}"
+        )
+    if gate_evidence_path is not None:
+        if not isinstance(gate_evidence_sha256, str) or not gate_evidence_sha256:
+            raise ValueError(
+                "gate_evidence_sha256 is required when gate_evidence_path is supplied"
+            )
+        if len(gate_evidence_sha256) != 64 or any(
+            char not in "0123456789abcdef" for char in gate_evidence_sha256
+        ):
+            raise ValueError("gate_evidence_sha256 must be a lowercase SHA-256 digest")
+    elif gate_evidence_sha256 is not None:
+        raise ValueError(
+            "gate_evidence_path is required when gate_evidence_sha256 is supplied"
         )
     if not verdict.cases:
         raise ValueError(
@@ -906,6 +1053,18 @@ def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Pa
         "invalidation_triggers": list(INVALIDATION_TRIGGERS),
         "valid": verdict.verdict == VERDICT_PASS,
     }
+    if gate_evidence_path is not None:
+        payload["provenance"].update(
+            {
+                "gate_evidence_path": str(gate_evidence_path),
+                "gate_evidence_sha256": gate_evidence_sha256,
+                "gate_evidence_schema_version": EVIDENCE_SCHEMA_VERSION,
+                "gate_case_count": len(verdict.cases),
+                "gate_case_labels": [case.label for case in verdict.cases],
+                "gate_verdict": verdict.verdict,
+                "gate_unratified_conditions": list(verdict.unratified_conditions),
+            }
+        )
     text = json.dumps(payload, sort_keys=True, indent=2) + "\n"
     return atomic_write_text(path, text)
 
@@ -913,6 +1072,47 @@ def write_r_ref_artifact(verdict: Gate04Verdict, path=R_REF_ARTIFACT_PATH) -> Pa
 def _command_string(argv) -> str:
     parts = [_GATE04_PROG, *(str(item) for item in argv)]
     return " ".join(parts) if argv else _GATE04_PROG
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _write_terminal_state(
+    path: Path,
+    *,
+    raw_path: Path,
+    verdict: Gate04Verdict | None,
+    status: str,
+    authorized_terminal_reason: str | None,
+) -> Path:
+    """Record the gate outcome without ever representing an operational block as terminal."""
+    if status not in ("terminal", "incomplete"):
+        raise ValueError(f"invalid terminal-state status: {status!r}")
+    if status == "terminal" and not authorized_terminal_reason:
+        raise ValueError("terminal state requires an authorized reason")
+    payload = {
+        "schema_version": "phase57-terminal-state/v1",
+        "status": status,
+        "authorized_terminal_reason": authorized_terminal_reason,
+        "evaluation": "preserved-unspent",
+        "gate_evidence_path": str(raw_path),
+        "gate_evidence_sha256": _sha256_file(raw_path),
+        "gate_verdict": None if verdict is None else verdict.verdict,
+        "gate_blocking_reasons": (
+            [] if verdict is None else list(verdict.blocking_reasons)
+        ),
+        "gate_unratified_conditions": (
+            [] if verdict is None else list(verdict.unratified_conditions)
+        ),
+        "case_count": 0 if verdict is None else len(verdict.cases),
+        "created_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+    }
+    return atomic_write_text(path, json.dumps(payload, sort_keys=True, indent=2) + "\n")
 
 
 def _cli_provenance(argv, args) -> dict:
@@ -976,8 +1176,7 @@ def _parse_args(argv=None):
             "GATE-04: the fail-closed train-free acceptance gate on the "
             "ratified recalibration. Renders exactly one verdict (PASS or "
             "BLOCK) over the six audited cases or a supplied case list, and "
-            "writes a provenance-complete evidence record. Does not judge "
-            "condition (ii) — GAP-56-01 is OPEN."
+            "writes a provenance-complete evidence record."
         ),
     )
     parser.add_argument(
@@ -1010,12 +1209,10 @@ def main(argv=None):
     Mirrors the Phase 55 probe's own ``main`` shape and its separation of
     "did the tool run" from "what did it find": the process exit code
     reports whether the tool COMPLETED (0) or did not (1) — an unreadable
-    ``--cases-config`` is "did not complete"; a rendered BLOCK verdict is
-    "completed, and found BLOCK" (still exit 0). The printed verdict line is
-    the only place the verdict itself is surfaced, and it appends the token
-    ``INCOMPLETE`` plus the GAP-56-01 reference whenever
-    ``unratified_conditions`` is non-empty, so no reader can mistake a PASS
-    for a complete GATE-04 clearance.
+    ``--cases-config`` is "did not complete"; a rendered scientific BLOCK is
+    "completed, and found BLOCK" (still exit 0). The latter is the declared
+    terminal-unspent branch only for the canonical six-case run; runtime,
+    schema, write, and provenance failures remain nonzero/incomplete.
 
     The case list resolves through the probe module's own
     ``load_cases_config`` when ``--cases-config`` is supplied, and through
@@ -1069,43 +1266,88 @@ def main(argv=None):
         atomic_write_text(
             run_dir / "raw.json", json.dumps(raw, sort_keys=True, indent=2) + "\n",
         )
-    except Exception:
+    except Exception as exc:
+        print(f"error: failed to persist GATE-04 raw evidence: {exc}", file=sys.stderr)
         return 1
 
-    # Refresh the governed R_ref artifact only for the canonical six-case
-    # default run (D-09): a custom --cases-config cannot match DEFAULT_CASES
-    # by construction, and write_r_ref_artifact's own fail-closed rule
-    # refuses to record an unidentified case. This write is caught
-    # separately from the raw.json write above so a failure here (e.g. its
-    # own re-derivation consistency check) never suppresses the verdict line
-    # / evidence path already earned by a completed run — the operator must
-    # see the real verdict even when the governed artifact refresh fails.
+    raw_path = run_dir / "raw.json"
+    default_case_ids = tuple((case.label, case.seed) for case in DEFAULT_CASES)
+    observed_case_ids = (
+        tuple((case.label, case.seed) for case in verdict_obj.cases)
+        if verdict_obj is not None
+        else ()
+    )
+    canonical_six_case_run = (
+        args.cases_config is None and observed_case_ids == default_case_ids
+    )
+    complete_pass = bool(
+        canonical_six_case_run
+        and verdict_obj is not None
+        and verdict_obj.verdict == VERDICT_PASS
+        and not verdict_obj.blocking_reasons
+        and not verdict_obj.unratified_conditions
+    )
+
+    # Refresh the governed R_ref artifact ONLY after the canonical six-case
+    # run has rendered a complete PASS. A scientific BLOCK must preserve the
+    # previous governed artifact and record the declared unspent terminal
+    # branch instead; a tool/runtime failure records an incomplete block.
     r_ref_artifact_error = None
-    if args.cases_config is None and verdict_obj is not None and verdict_obj.cases:
+    terminal_state_error = None
+    if complete_pass:
         try:
-            write_r_ref_artifact(verdict_obj, path=args.r_ref_path)
+            write_r_ref_artifact(
+                verdict_obj,
+                path=args.r_ref_path,
+                gate_evidence_path=raw_path,
+                gate_evidence_sha256=_sha256_file(raw_path),
+            )
         except Exception as exc:  # noqa: BLE001 - reported, never silently swallowed
             r_ref_artifact_error = exc
+    elif canonical_six_case_run and verdict_obj is not None and verdict_obj.verdict == VERDICT_BLOCK:
+        scientific_block = bool(verdict_obj.cases) and bool(verdict_obj.blocking_reasons)
+        state = "terminal" if scientific_block else "incomplete"
+        reason = "gate04_block" if scientific_block else None
+        try:
+            _write_terminal_state(
+                args.evidence_root.parent / "terminal-state.json",
+                raw_path=raw_path,
+                verdict=verdict_obj,
+                status=state,
+                authorized_terminal_reason=reason,
+            )
+        except Exception as exc:  # noqa: BLE001 - report and leave incomplete
+            terminal_state_error = exc
 
     if verdict_obj is not None:
         line = f"verdict={verdict_obj.verdict}"
-        if verdict_obj.unratified_conditions:
-            line += (
-                " INCOMPLETE (unratified: "
-                + ",".join(verdict_obj.unratified_conditions)
-                + "; GAP-56-01 OPEN, see 56-GAPS.md)"
-            )
+        if complete_pass:
+            line += " COMPLETE"
+        elif canonical_six_case_run and verdict_obj.verdict == VERDICT_BLOCK and verdict_obj.cases:
+            line += " TERMINAL (evaluation=preserved-unspent)"
+        else:
+            line += " INCOMPLETE (evaluation=preserved-unspent)"
     else:
         line = "verdict=NONE (GATE-04 did not complete)"
     print(line)
     print(f"evidence={run_dir}")
     if r_ref_artifact_error is not None:
         print(
-            f"error: failed to persist R_ref artifact: {r_ref_artifact_error}",
+            f"error: failed to persist complete-PASS R_ref artifact: {r_ref_artifact_error}",
             file=sys.stderr,
         )
         return 1
-    return 0 if completed else 1
+    if terminal_state_error is not None:
+        print(
+            f"error: failed to persist terminal-state evidence: {terminal_state_error}",
+            file=sys.stderr,
+        )
+        return 1
+    # Custom case sweeps retain the operator CLI's historical "tool completed"
+    # exit semantics; only the canonical six-case run can refresh the governed
+    # artifact or declare the Phase-57 terminal branch.
+    custom_completed = bool(completed and verdict_obj is not None and verdict_obj.cases)
+    return 0 if completed and (complete_pass or custom_completed) else 1
 
 
 if __name__ == "__main__":
