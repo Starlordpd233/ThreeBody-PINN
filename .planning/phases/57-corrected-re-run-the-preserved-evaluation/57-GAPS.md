@@ -239,3 +239,250 @@ separate verification and owner gates recorded in the resolution note.
   `57-RULING.md` is the exact governing record. RUN-04 remains blocked until
   the bounded production wiring, separate verification, and a new complete
   GATE-04 PASS are finished.
+
+---
+
+## GAP-57-02 — the ratified 4096-row recipe exceeds this machine's memory and throughput, and no source authorizes any of the available remedies
+
+- **Decision point.** Band generation 1 halted on the Tier-2 `memory_watermark`
+  guard at stage 0 / step 0 / phase `2a`, before any optimizer update. The
+  ratified 4096-row batch cannot be executed to completion on the current
+  machine under the current guard configuration and instrumentation contract.
+  Four mutually non-exclusive remedies exist (recalibrate the guard, reduce the
+  in-step transient peak, change the execution environment, or accept the
+  observed schedule). No source selects among them, and every one of them
+  changes either an owner-carved threshold, a declared telemetry contract, the
+  execution environment, or the phase's cost basis.
+
+- **Where in artifact.**
+  `.planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state.json`
+  (`failure.guard = memory_watermark`, `failure.value = 0.968756357828776`);
+  `runs/stage0-v23-smoke/failure/trip.json`; ledger record
+  `evidence/run-ledger.md` `band_generations[0].status = "blocked"`.
+
+- **Task context.** Post-Wave-6 preparation for a band generation 2 run window.
+  Wave 5 attempted the smoke and blocked; Wave 6 correctly refused to run,
+  because plan `57-06` Task 1 forbids candidate selection on an operational
+  block. Preparing re-admission requires knowing which remedy is authorized.
+
+- **Classification.** **Semantic** for the guard threshold and the
+  transient-peak remedy (both change values or contracts the sources reserve to
+  the owner); **operational coordination** for the environment choice. Not
+  mechanical under any reading.
+
+- **Source silence.**
+  - `pinn/training/config.py:291-297` — `memory_watermark_fraction` is
+    `_PROVISIONAL_MEMORY_WATERMARK_FRACTION = 0.7`, with the in-code comment
+    stating that `disk_floor_fraction / memory_watermark_fraction` "remain
+    owner-carved and uncalibrated". The value is a placeholder, never
+    calibrated; the run-start log line repeats this as
+    "owner-calibrate-at-Phase-43-pilot".
+  - `57-GAPS.md` GAP-57-01 resolution note — "A resource failure at the exact
+    ratified `4096`-row batch is fail-closed evidence; it never permits
+    silently reducing the sample count." This forecloses the row-count remedy
+    but selects none of the others.
+  - `57-05-PLAN.md` Task 3 — requires an "exact-4096 resource preflight" before
+    optimization and instructs the executor to "abort rather than reduce it if
+    resource preflight fails". No such preflight exists:
+    `pinn/conformance/preflight.py` contains no memory/resource/watermark
+    reference, and `evidence/verify_phase57_evidence.py:247` mentions "resource"
+    only when classifying a failure after the fact.
+  - `pinn/training/step_log.py:164-234` and `pinn/conformance/census.py:75-79`
+    — the ten per-term raw/applied gradient-norm fields are a declared
+    contract; the run-start log flags `step_log_fields_registry='PROVISIONAL'`
+    with "Owner-ratify the final list before run #1". No source says whether
+    that telemetry may be reduced, deferred, or made conditional.
+  - No `.planning/REQUIREMENTS.md` requirement, `57-RULING.md` clause, or
+    framework-spec section addresses per-step wall-clock cost or the total
+    compute budget for the graded band.
+
+- **Mathematical / engineering grounding.** The physics residual compares a
+  predicted acceleration against Newtonian force, so it requires a
+  *second-order* autograd graph — the graph is constructed with
+  `create_graph=True` (`pinn/physics_residual.py:174,176`) so that the first
+  derivative is itself differentiable. That graph is built over 4096
+  collocation rows in 16 equal-`u` bins. Its memory cost is not the model's
+  parameters but the retained intermediate activations needed to differentiate
+  a derivative, which scale with rows × depth.
+
+  The decisive measurement is that the two memory signals disagree by a factor
+  of ~2,700. The run logged `driver_bytes = 24,964,661,248` (23.25 GiB, the
+  Metal allocator's reserved high-water pool) against
+  `current_bytes = 9,193,984` (8.8 MiB of live tensors). Live state — the
+  parameters, their gradients, and the optimizer moments — is therefore
+  negligible, and nothing is retained between steps. The entire 23.25 GiB is
+  transient allocation *inside one step*.
+
+  The reason that transient peak is so large is that the graph is traversed six
+  times before a single parameter update.
+  `_build_gradient_stats` (`pinn/training/controllers.py:482-496`) calls
+  `_global_parameter_grad_norm(..., retain_graph=True)` once per loss term to
+  produce the five `grad_norm_raw_*` diagnostics, and only then does
+  `loss_terms.total.backward()` run (`controllers.py:1706`). Because every
+  diagnostic pass sets `retain_graph=True`, no part of the second-order graph
+  can be freed until the last traversal completes, so the allocator's pool grows
+  to approximately the union of all six working sets rather than the maximum of
+  any one. This is a property of the instrumentation schedule, not of the
+  physics.
+
+  A related observation sharpens the consequence: at step 0 the physics weight
+  is `lambda_phys = 0.0` (PHYS-05 warm-up, `I_warm = floor(0.1 · n_adam) = 30`).
+  The physics term therefore contributes nothing to the loss actually optimized
+  at this step, yet its full 4096-row second-order graph is constructed and
+  traversed twice — once for the `grad_norm_raw_phys` telemetry value (recorded
+  as 440.33) and once inside `total.backward()`.
+
+  The guard's denominator is `_DEFAULT_MEMORY_TOTAL_BYTES = 24 * (1024 ** 3)`
+  (`pinn/training/guards.py:41`), a hard-coded constant that coincidentally
+  equals this machine's `hw.memsize` exactly (25,769,803,776 bytes, Apple M5
+  Pro). Because the ratio is measured against *physical* RAM rather than a GPU
+  working-set budget, 0.969 means the process was within ~800 MiB of the
+  machine's total, and macOS would have been paging. Raising the threshold
+  therefore does not release headroom that exists — it permits the run to
+  proceed into swap. This is corroborated by the throughput measurement: file
+  mtimes split the 852 s run into 181 s of preflight and **671 s for the single
+  Adam step**. At that observed rate the three-seed graded band
+  (3 × 1000 steps) projects to ~559 h ≈ 23 days. That figure is an upper bound
+  measured under paging, not a prediction for a memory-repaired run; but it
+  establishes that a guard-threshold change alone does not yield a usable band,
+  which is what makes this a genuine multi-option decision rather than a
+  one-line recalibration.
+
+- **Agent was tempted to.** Raise `memory_watermark_fraction` from its
+  self-declared placeholder 0.7 to something above the observed 0.969 and
+  re-launch, on the reasoning that the threshold is explicitly uncalibrated,
+  that Phase 57 is the pilot at which the sources say to calibrate it, and that
+  the guard is the only thing standing between the run and a completed band.
+  This was not done. It would have selected a semantic value the sources
+  reserve to the owner, and — on the throughput evidence — would have converted
+  a clean 14-minute block into a multi-week paging run with no better prospect
+  of completing.
+
+- **What the user needs to decide.** Which remedy (or combination) authorizes a
+  band generation 2 window:
+  - **(A) Recalibrate the guard only.** Set `memory_watermark_fraction` to an
+    owner-chosen value above 0.969 and re-launch unchanged. Cheapest; contradicted
+    by the throughput evidence and runs into physical-RAM paging.
+  - **(B) Reduce the in-step transient peak.** Make the five per-term
+    `retain_graph=True` diagnostic traversals conditional, batched, or
+    deferred, and/or skip the physics graph while `lambda_phys == 0`. Preserves
+    the 4096-row recipe and the guard exactly. Requires owner ratification
+    because `STEP_LOG_FIELDS` / INST-02 / the conformance census declare those
+    ten fields, and the registry is flagged owner-ratify-before-run-#1.
+  - **(C) Change the execution environment.** A machine with materially more
+    memory, or a CUDA device. Also requires deciding what `guards.py:41`'s
+    hard-coded 24 GiB denominator becomes, and re-establishing the
+    environment fingerprint that the run window admits.
+  - **(D) Accept the observed cost** and authorize a multi-week band on the
+    current machine with an owner-chosen threshold.
+  - **(E) Build the missing resource preflight first** (orthogonal, combinable
+    with any of A–D): implement the "exact-4096 resource preflight" that
+    `57-05-PLAN.md` Task 3 already requires, so the next window predicts the
+    ceiling in seconds instead of discovering it in 14 minutes.
+
+- **Confidence of impact.** **HIGH** — RUN-04, RUN-05, and EVAL-02 are all
+  gated on obtaining a completed band or an authorized terminal closure. No
+  generation 2 window can be admitted until this is resolved, and options B, C,
+  and E each change what the next wave's plan must contain.
+
+- **Status.** OPEN.
+
+- **Resolution note.** _(empty — awaiting owner instruction)_
+
+---
+
+## GAP-57-03 — generation-1 evidence is single-copy and gitignored, and clearing the re-admission blocker is the action that would destroy it
+
+- **Decision point.** `verify_phase57_evidence.py admit-run-window` fails closed
+  on exactly one condition: the target run directory already exists. The
+  simplest way to clear it — removing `runs/stage0-v23-smoke/` — is also the
+  only way to permanently destroy the generation-1 evidence, because `runs/` is
+  covered by a blanket `.gitignore` rule. Where that evidence goes, and whether
+  any of it enters git, is not specified by any source.
+
+- **Where in artifact.** `.gitignore:339` (`runs/`); read-only output of
+  `evidence/verify_phase57_evidence.py admit-run-window`; the 18 hashed paths in
+  `evidence/run-ledger.md` `records[0].artifact_hashes`, every one of which is
+  relative to `runs/stage0-v23-smoke/`.
+
+- **Task context.** Post-Wave-6 preparation. Establishing what must happen
+  before a generation 2 window can be admitted.
+
+- **Classification.** **Process-artifact schema** — it decides the retention
+  location and tracking status of terminal-adjacent run evidence, and the
+  run-name namespace for subsequent band generations. Governance reserves this
+  class to the owner.
+
+- **Source silence.**
+  - `.gitignore:337-339` — `runs/<name>/` is described as "produced at runtime";
+    the rule makes no exception for a run whose artifacts are hashed into a
+    committed ledger.
+  - `git ls-files runs/stage0-v23-smoke` returns 0 against 18 files on disk
+    (23 MB), so no precedent exists in-tree: no prior generation's run directory
+    was ever tracked.
+  - `evidence/README.md` and `57-05-PLAN.md` specify what the ledger and
+    blocked state must contain, but neither says where the run directory itself
+    is retained, nor whether a blocked generation's directory may be moved.
+  - No source assigns run names for a second band generation;
+    `57-CONFIG-DELTA.md` fixes the four v2.3 names for generation 1 only and
+    notes only that they "do not overwrite the preserved v2.2
+    `stage0-rerun-seed4X` directories".
+
+- **Mathematical / engineering grounding.** The integrity argument for this
+  phase rests on content addressing: the ledger records a sha256 for each of the
+  18 artifacts, so any later reader can re-derive that the evidence is the
+  evidence. That guarantee is only as durable as the bytes it addresses. A
+  sha256 of a deleted file is not evidence of anything — it is an unfalsifiable
+  claim. Because the ledger is now committed and the referenced bytes are not,
+  the phase is currently in a state where its own integrity claim can silently
+  become unverifiable through an ordinary housekeeping action.
+
+  Verification performed during this preparation: all 18 files were re-hashed
+  and compared against both `run-ledger.md` and `blocked-state.json`. 17 of 18
+  matched on first check. The exception was
+  `artifact_hashes["config.yaml"]`, recorded as a **62-character** string — two
+  characters dropped from the middle of a sha256. The correct 64-character value
+  was independently attested in `blocked-state.json` `config.resolved_sha256`
+  and matched recomputation from disk, so the ledger was corrected to the
+  dual-attested value before commit; all 18 now match. That defect is noted here
+  because it demonstrates the failure mode concretely: had the bytes been
+  deleted first, the truncated hash could never have been adjudicated against
+  anything, and the entire generation-1 record would have been permanently
+  suspect.
+
+  The run-name question is coupled to this and cannot be settled independently.
+  `run.run_name` is a field of the fingerprinted config, so choosing new names
+  for generation 2 is a config change that alters the admitted identity; keeping
+  the names requires relocating the generation-1 directory, which requires
+  deciding where it goes.
+
+- **Agent was tempted to.** Force-add the small non-checkpoint artifacts
+  (JSON, logs, `summary.md` — well under 1 MB in total) into the tracked phase
+  evidence tree with `git add -f`, leaving the 23 MB of `.pt` checkpoints on
+  disk, on the reasoning that this is mechanical preservation of bytes the
+  ledger already addresses rather than an invention. This was not done. It would
+  select a retention location, a tracking policy, and a partial-preservation
+  boundary, all of which are process-artifact schema decisions; and the split
+  would silently make four of the eighteen hashed artifacts unverifiable, which
+  is the precise failure this gap exists to prevent.
+
+- **What the user needs to decide.** Both parts, together:
+  1. *Preservation:* **(A)** force-add all 18 artifacts (23 MB, includes four
+     `.pt` checkpoints) into the tracked phase evidence tree; **(B)** force-add
+     only the non-checkpoint artifacts and accept that four hashes become
+     unverifiable; **(C)** relocate the whole directory to an untracked but
+     durable archive path outside `runs/`; **(D)** leave it exactly where it is.
+  2. *Namespace:* **(E)** generation 2 uses new run names (e.g. a `g2` suffix),
+     which leaves generation 1 untouched and clears the blocker without moving
+     anything, at the cost of a fingerprinted config edit; or **(F)**
+     generation 2 reuses the existing names, which requires the directory to be
+     moved first per the preservation choice.
+
+- **Confidence of impact.** **HIGH** for irreversibility — option D combined
+  with any later cleanup destroys the only copy, and the loss is silent and
+  permanent. **MEDIUM** for schedule — it blocks the next window but any of the
+  listed choices unblocks it quickly once selected.
+
+- **Status.** OPEN.
+
+- **Resolution note.** _(empty — awaiting owner instruction)_
