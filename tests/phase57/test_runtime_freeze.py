@@ -24,11 +24,14 @@ from __future__ import annotations
 import inspect
 import tempfile
 import unittest
+from pathlib import Path
 
 import torch
 
+import pinn.training.run_metadata as run_metadata
 from pinn.loss_catalog import causal_physics_loss
 from pinn.training.config import InvariantsConfig
+from pinn.training.config_yaml import ConfigLoadError, load_config
 from pinn.training.controllers import RunController, build_checkpoint_payload
 
 from tests.phase57._fixtures import (
@@ -37,6 +40,9 @@ from tests.phase57._fixtures import (
     make_full_slot_source,
     make_stub_source,
 )
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_CONFIGS_DIR = _REPO_ROOT / "configs"
 
 
 class MonitorContractTests(unittest.TestCase):
@@ -254,3 +260,94 @@ class LbfgsFreezeTests(unittest.TestCase):
                 f"them (GAP-54-06 / 57-RULING.md checkpoint 3); got keys "
                 f"{sorted(state.keys())!r}",
             )
+
+
+class ConfigProtocolTests(unittest.TestCase):
+    """D-06/D-07/D-08/D-10/D-11: the immutable v2.3 Checkpoint-③ config band.
+
+    ``configs/stage0-v23-seed4{1,2,3}.yaml`` and ``stage0-v23-smoke.yaml``
+    (D-08's own example naming; distinct from the v2.2
+    ``stage0-rerun-seed4X`` artifacts, which are preserved untouched) do not
+    exist yet -- they are derived from ``configs/stage0-rerun-seed4{1,2,3}.yaml``
+    updated ONLY for the re-ratified ``N``, the amended-recipe requirements,
+    and the distinct run names. The window field
+    (``run.invariants.front_advance_window_n``) must remain a step-count
+    deadline, never a monitor row/bin count (checked in
+    ``WindowContractTests`` above; the two classes intentionally probe the
+    SAME separation-of-concerns invariant from two different production
+    seams -- config band vs. guard module).
+    """
+
+    SEEDS = (41, 42, 43)
+
+    def test_graded_seed_configs_exist_with_ratified_seed_and_budget(self) -> None:
+        for seed in self.SEEDS:
+            path = _CONFIGS_DIR / f"stage0-v23-seed{seed}.yaml"
+            try:
+                cfg = load_config(path)
+            except ConfigLoadError:
+                self.fail(
+                    f"expected a v2.3-distinct graded config at {path} "
+                    "(D-08: derived from configs/stage0-rerun-seed"
+                    f"{seed}.yaml, updated only for the re-ratified N, the "
+                    "amended-recipe requirements, and a distinct run name)"
+                )
+                continue
+            self.assertEqual(cfg.run.seed, seed)
+            self.assertEqual(
+                cfg.stage.max_epochs, 1000,
+                "D-07: the shipped Stage-0 budget, not the v2.0 300-step "
+                "smoke",
+            )
+            self.assertEqual(cfg.stage.n_adam, 1000)
+            self.assertEqual(
+                cfg.run.invariants.front_advance_window_n, 500,
+                "D-03: N is explicitly re-ratified for the amended recipe",
+            )
+            self.assertEqual(cfg.run.run_name, f"stage0-v23-seed{seed}")
+            self.assertNotEqual(
+                cfg.run.run_name, f"stage0-rerun-seed{seed}",
+                "D-08: must not collide with the preserved v2.2 HALT "
+                "record's run name",
+            )
+
+    def test_smoke_config_exists_and_is_seed_42(self) -> None:
+        path = _CONFIGS_DIR / "stage0-v23-smoke.yaml"
+        try:
+            cfg = load_config(path)
+        except ConfigLoadError:
+            self.fail(
+                f"expected the D-09 calibration-smoke config at {path} "
+                "(D-10: the smoke runs at seed 42, the amended recipe's "
+                "first real-corpus contact and the S_H cross-check)"
+            )
+            return
+        self.assertEqual(cfg.run.seed, 42)
+        self.assertTrue(cfg.run.smoke)
+        self.assertEqual(
+            cfg.run.invariants.front_advance_window_n, 500,
+            "D-10: the smoke carries the re-ratified front_advance_window_n "
+            "copied, not chosen -- it walks the identical preflight path "
+            "the graded runs will",
+        )
+
+    def test_smoke_matches_graded_consistency_helper_exists(self) -> None:
+        self.assertTrue(
+            hasattr(run_metadata, "assert_smoke_matches_graded"),
+            "pinn.training.run_metadata must expose "
+            "assert_smoke_matches_graded(smoke_meta, graded_meta) -- D-10 "
+            "requires the seed-42 smoke and the seed-42 graded run to "
+            "produce byte-identical splits.json and then EXACTLY EQUAL "
+            "s_h/n_train, asserted as phase evidence rather than trusted",
+        )
+
+    def test_stage_0_only_switch_signature_is_reused_unchanged(self) -> None:
+        """D-11: reuse the existing ``--stage-0-only`` mechanism
+        (``CurriculumController(stage_0_only=...)``) rather than a new
+        multi-stage platform switch.
+        """
+        from pinn.training.controllers import CurriculumController
+
+        sig = inspect.signature(CurriculumController.__init__)
+        self.assertIn("stage_0_only", sig.parameters)
+        self.assertEqual(sig.parameters["stage_0_only"].default, False)
