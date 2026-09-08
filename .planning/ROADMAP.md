@@ -182,7 +182,7 @@ Plans:
 **Goal**: Stage-0 is re-run under the corrected recipe and — only if it actually trains — the single preserved held-out evaluation is spent, once, on a seed fixed before anyone saw a result.
 **Depends on**: Phase 56 — GATE-04 must pass before a Stage-0 run may be spent (SCOPE-35's single-look protection).
 **Requirements**: RUN-04, RUN-05, EVAL-02
-**Plans**: 6 plans (2/6 complete) — planned 2026-09-08. Plans 57-01 through 57-04 are the bounded conformance, verification, and pre-run authorization work; 57-05 and 57-06 are non-autonomous and retain explicit operator checkpoints before expensive training and before the sole held-out evaluation.
+**Plans**: 3/6 plans executed (3/6 complete) — planned 2026-09-08. Plans 57-01 through 57-04 are the bounded conformance, verification, and pre-run authorization work; 57-05 and 57-06 are non-autonomous and retain explicit operator checkpoints before expensive training and before the sole held-out evaluation.
 
 Plans:
 
@@ -196,7 +196,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 57-03-PLAN.md — strict runtime configuration, one frozen training-only invariant-B monitor distinct from the 500-accepted-step deadline, segment-frozen L-BFGS samples/weights with exact resume, and derived smoke/band configs (RUN-04, RUN-05)
+- [x] 57-03-PLAN.md — strict runtime configuration, one frozen training-only invariant-B monitor distinct from the 500-accepted-step deadline, segment-frozen L-BFGS samples/weights with exact resume, and derived smoke/band configs (RUN-04, RUN-05)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -249,7 +249,7 @@ Cross-cutting constraints:
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
 | 55. Architecture Characterization Probe | v2.3 | 4/4 | Complete | 2026-09-06 |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 6/6 | Complete    | 2026-09-07 |
-| 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 1/6 | In progress | - |
+| 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 3/6 | In Progress|  |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |
 
 ---

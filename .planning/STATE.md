@@ -4,18 +4,19 @@ milestone: v2.3
 milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 57
 current_phase_name: Corrected Re-Run & the Preserved Evaluation
+current_plan: 4
 status: in_progress
-stopped_at: Plan 57-02 complete — exact amended allocation, frozen-R_ref causal normalization, controller integration, and raw/normalized diagnostics committed; plans 57-03..57-06 remain
-last_updated: "2026-09-08T08:26:38Z"
+stopped_at: Plan 57-03 complete — strict amended recipe construction, frozen monitor/L-BFGS resume state, and derived smoke/graded configs committed; plans 57-04..57-06 remain
+last_updated: "2026-09-08T09:06:16.580Z"
 last_activity: 2026-09-08
-last_activity_desc: Plan 57-02 reconciled from three existing implementation commits after an interrupted executor handoff; focused allocation (20/20), production-path/normalization/telemetry (9/9), and controller diagnostics (2/2) checks pass. The broader 46-test Phase-57 suite remains intentionally red only for later-wave monitor, checkpoint, GATE-04, config, and evaluation-boundary contracts; no Stage-0 or held-out evaluation run was started.
-state_head: a0c0955d
+last_activity_desc: Plan 57-03 completed with task commits 96d9a9a3, ac53a5e6, and b671e4ad; 56 focused Phase-57/Phase-50/Phase-41 tests pass, the four configs and governed R_ref artifact strict-load, and no Stage-0 or held-out evaluation run was started. The full Phase-57 suite remains intentionally red only for later Plan-57-04 gate/evaluation contracts.
+state_head: b671e4ad
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 30
-  completed_plans: 26
-  percent: 87
+  completed_plans: 27
+  percent: 90
 ---
 
 # Project State
@@ -29,11 +30,14 @@ See: .planning/PROJECT.md (updated 2026-09-07)
 
 ## Current Position
 
+Current Plan: 4
+Total Plans in Phase: 6
+
 Phase: 57 — Corrected Re-Run & the Preserved Evaluation
-Plan: 57-02 of 6 complete (57-01..57-06); 6 waves / 18 tasks total for the phase
-Status: In progress. Plan 57-01 landed the focused, dataset-free/held-out-free `tests/phase57/` contract; Plan 57-02 now implements the bounded amended recipe through the real training path: exact 4096-row/16-bin allocation, frozen `R_ref` normalization, complete-batch gradients, shared energy collocation, and raw/normalized telemetry. Plans 57-03/57-04 remain bounded conformance and GATE-04 work; plans 57-05/57-06 remain non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
-Last activity: 2026-09-08 — Plan 57-02 completed with commits `04f23868`, `c0259aa8`, and `a0c0955d`; its focused verification passed 20/20 allocation tests, 9/9 production-path/normalization/telemetry tests, and 2/2 diagnostics tests. The full Phase-57 suite is expected to remain red for later-wave contracts until Plans 57-03/57-04 land.
-Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-03-PLAN.md — next action is runtime monitor, L-BFGS freeze, checkpoint, and derived config implementation.
+Plan: 57-03 of 6 complete (57-01..57-06); 6 waves / 18 tasks total for the phase
+Status: In progress. Plan 57-01 landed the focused, dataset-free/held-out-free `tests/phase57/` contract; Plan 57-02 implemented the amended allocation/loss/diagnostics path; Plan 57-03 now binds strict 4096-row/R_ref construction, persists the frozen monitor and L-BFGS segment across resume, and derives the v2.3 smoke/graded config band. Plans 57-04 remains bounded gate/evaluation verification; plans 57-05/57-06 remain non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
+Last activity: 2026-09-08 — Plan 57-03 completed with commits `96d9a9a3`, `ac53a5e6`, and `b671e4ad`; its focused verification passed 56/56, and all four v2.3 configs plus the governed R_ref artifact strict-load. The full Phase-57 suite remains red only for later Plan-57-04 contracts.
+Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-04-PLAN.md — next action is fresh complete GATE-04/production-path verification and canonical evaluator-boundary work.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -98,6 +102,22 @@ left.
 - **No run authorization yet.** `57-RULING.md` is the exact record. Phase 57
   still requires plans, bounded implementation, production-path verification,
   and a new complete GATE-04 PASS before RUN-04.
+
+### Decisions from 57-03 (2026-09-08)
+
+- **Strict recipe is an explicit opt-in.** v2.3 configs bind
+  `stage.collocation_count=4096` and
+  `loss.r_ref_artifact_path=pinn/verification/artifacts/r_ref_stage0.json`;
+  run construction rejects partial opt-ins, reduced rows, and invalid or
+  provenance-incomplete artifacts while legacy test configs remain compatible.
+- **Checkpoint ③ state is additive and fail-closed.** One training-only
+  monitor and active L-BFGS samples/detached weights are separate from the
+  derived `invariant_b_state`, carry hashes/counters, and restore exact bytes
+  or refuse rather than redraw.
+- **Config comparability is explicit.** The seed-42 smoke and seed-41/42/43
+  graded configs use the full 240-row Stage-0 replay pool, corrected recipe,
+  and distinct v2.3 run names; `57-CONFIG-DELTA.md` records the recursive
+  predecessor/final scalar diff.
 
 **Phase-54 transition note.** The ROADMAP row is now derived from the completed
 artifact set: 13 plans, 13 summaries, passing UAT and canonical verification.
@@ -342,6 +362,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 | Phase 56 P02 | 52 min | 2 tasks | 3 files |
 | Phase 56 P05 | 15 min | 3 tasks | 3 files |
 | Phase 57 P01 | 63 min | 3 tasks | 5 files |
+| Phase 57 P03 | 45min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -563,15 +584,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** None
+**Resume file:** .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-04-PLAN.md
 
-Last session: 2026-09-08T02:05:10.000Z
-Stopped at: Phase 57 owner decisions recorded; ready for research and planning
-Next action: Plan Phase 57 (Corrected Re-Run & the Preserved Evaluation). GAP-56-01 and checkpoint ③/GAP-54-06 are resolved, and checkpoint ④ is pre-registered; bounded production implementation, separate verification, and a new complete GATE-04 PASS remain hard pre-run gates. GAP-56-02 remains open and independent.
+Last session: 2026-09-08T09:06:16.503Z
+Stopped at: Completed 57-03-PLAN.md
+Next action: Execute Plan 57-04's fresh complete GATE-04/production-path verification and canonical evaluator-boundary work. RUN-04 remains blocked until those gates pass; no Stage-0 or held-out evaluation run has started.
 
 ## Operator Next Steps
 
-- **Plan Phase 57.** Begin with the bounded production conformance patch and its separate verification wave; do not launch RUN-04 until a new complete GATE-04 PASS exists.
+- **Execute Plan 57-04.** Run the fresh complete GATE-04 and separate production-path/evaluator-boundary verification; do not launch RUN-04 until the new complete GATE-04 PASS exists.
 - **Keep checkpoint ④'s selection rule fixed.** Seed 42, then 41 and 43 only for structural ineligibility; no observed scientific metric may trigger fallback.
 - **Keep checkpoint ⑤ owner-only.** The DIAG-06 go / adjust / rethink verdict remains downstream of RUN-04/05 and EVAL-02.
 - ~~Execute Phase 44~~ — complete 2026-07-23 (qualified by `44-ERRATUM.md` 2026-07-24)
