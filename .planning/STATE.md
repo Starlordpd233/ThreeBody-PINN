@@ -9,8 +9,8 @@ status: in_progress
 stopped_at: Plan 57-03 complete — strict amended recipe construction, frozen monitor/L-BFGS resume state, and derived smoke/graded configs committed; plans 57-04..57-06 remain
 last_updated: "2026-09-08T09:06:16.580Z"
 last_activity: 2026-09-08
-last_activity_desc: Plan 57-03 completed with task commits 96d9a9a3, ac53a5e6, and b671e4ad; 56 focused Phase-57/Phase-50/Phase-41 tests pass, the four configs and governed R_ref artifact strict-load, and no Stage-0 or held-out evaluation run was started. The full Phase-57 suite remains intentionally red only for later Plan-57-04 gate/evaluation contracts.
-state_head: b671e4ad
+last_activity_desc: Plan 57-03 completed with task commits 96d9a9a3, ac53a5e6, b671e4ad, plus resume-safety fix 2ddd89ef; 56 focused Phase-57/Phase-50/Phase-41 tests pass, the four configs and governed R_ref artifact strict-load, and no Stage-0 or held-out evaluation run was started. The full Phase-57 suite remains intentionally red only for later Plan-57-04 gate/evaluation contracts.
+state_head: 2ddd89ef
 progress:
   total_phases: 6
   completed_phases: 4
@@ -36,7 +36,7 @@ Total Plans in Phase: 6
 Phase: 57 — Corrected Re-Run & the Preserved Evaluation
 Plan: 57-03 of 6 complete (57-01..57-06); 6 waves / 18 tasks total for the phase
 Status: In progress. Plan 57-01 landed the focused, dataset-free/held-out-free `tests/phase57/` contract; Plan 57-02 implemented the amended allocation/loss/diagnostics path; Plan 57-03 now binds strict 4096-row/R_ref construction, persists the frozen monitor and L-BFGS segment across resume, and derives the v2.3 smoke/graded config band. Plans 57-04 remains bounded gate/evaluation verification; plans 57-05/57-06 remain non-autonomous and stop for explicit operator authorization before the expensive run window and before the sole held-out evaluation.
-Last activity: 2026-09-08 — Plan 57-03 completed with commits `96d9a9a3`, `ac53a5e6`, and `b671e4ad`; its focused verification passed 56/56, and all four v2.3 configs plus the governed R_ref artifact strict-load. The full Phase-57 suite remains red only for later Plan-57-04 contracts.
+Last activity: 2026-09-08 — Plan 57-03 completed with commits `96d9a9a3`, `ac53a5e6`, `b671e4ad`, and `2ddd89ef`; its focused verification passed 56/56, and all four v2.3 configs plus the governed R_ref artifact strict-load. The full Phase-57 suite remains red only for later Plan-57-04 contracts.
 Resume file: .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-04-PLAN.md — next action is fresh complete GATE-04/production-path verification and canonical evaluator-boundary work.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the

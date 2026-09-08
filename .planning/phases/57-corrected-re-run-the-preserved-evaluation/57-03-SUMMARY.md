@@ -16,11 +16,11 @@ provides:
 affects: [57-04, 57-05, RUN-04, RUN-05]
 
 actuals:
-  tokens: 17312
+  tokens: 17583
   tasks: 3
-  commits: 3
+  commits: 4
 plan_head_before: 47ff3418add8fb18d6e0a79b7aefb90f72ec6874
-commits: 3
+commits: 4
 
 tech-stack:
   added: []
@@ -114,6 +114,8 @@ Each task was committed atomically:
 2. **Task 2: Persist one monitor and immutable L-BFGS segment state** — `ac53a5e6` (`feat(57-03)`)
 3. **Task 3: Derive the final smoke and three graded configs** — `b671e4ad` (`feat(57-03)`)
 
+The post-summary resume-safety correction is `2ddd89ef` (`fix(57-03)`).
+
 ## Validation Evidence
 
 - `python -m unittest tests.phase57.test_runtime_freeze tests.phase57.test_recipe_production_path tests.phase50.test_causal_telemetry tests.phase50.test_validation_full_pool tests.phase41.test_controllers_ext -v` — **56/56 passed**.
@@ -171,7 +173,16 @@ The complete `tests/phase57` discovery currently reports 15 failures and 4 error
 - **Verification:** Summary/commit self-check passed; roadmap reports 3/6 Phase-57 plans complete and the state frontmatter matches the on-disk summary count.
 - **Committed in:** final metadata commit
 
-**Total deviations:** 4 auto-fixed (Rules 2–3)
+**5. [Rule 1 - Resume-safety bug] Reject incomplete amended runtime state**
+
+- **Found during:** post-summary checkpoint audit
+- **Issue:** An amended controller could accept a checkpoint missing the new monitor/segment keys and retain freshly constructed state instead of refusing resume.
+- **Fix:** Require both additive keys for amended resumes and validate the persisted segment counters before rebuilding its carrier.
+- **Files modified:** `pinn/training/controllers.py`
+- **Verification:** The 56-test focused suite passed after the fix.
+- **Committed in:** `2ddd89ef`
+
+**Total deviations:** 5 auto-fixed (Rules 1–3)
 **Impact on plan:** Each addition was required by an explicit task behavior or by the ratified 4096-row allocation; no scientific value was retuned and no run/evaluation was launched.
 
 ## TDD Gate Compliance
@@ -199,5 +210,5 @@ Plan 57-04 can proceed. The run path now binds exact collocation/R_ref configura
 ## Self-Check: PASSED
 
 - Summary and all five Task-3 artifacts exist.
-- Task commits `96d9a9a3`, `ac53a5e6`, and `b671e4ad` are present in git history.
+- Task commits `96d9a9a3`, `ac53a5e6`, `b671e4ad`, and resume-safety fix `2ddd89ef` are present in git history.
 - `git diff --check` reports no whitespace errors.
