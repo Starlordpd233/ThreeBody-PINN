@@ -832,6 +832,13 @@ class RunController:
         }
 
     def load_state_dict(self, state: dict[str, Any]) -> None:
+        if self._amended_recipe and (
+            "front_monitor" not in state or "lbfgs_segment_state" not in state
+        ):
+            raise ValueError(
+                "amended resume checkpoint is missing front_monitor or "
+                "lbfgs_segment_state; refusing to regenerate runtime state"
+            )
         self._model.load_state_dict(state["model"])
         self._scheduled_weights.load_state_dict(state["scheduled_weights"])
         # Phase-40 nested payloads use ``clipper``; CTX-53 envelopes use
@@ -1976,6 +1983,14 @@ class RunController:
             raise ValueError("lbfgs_segment_state weights hash mismatch")
         if state.get("samples_hash") != _point_batch_state_hash(batch_state):
             raise ValueError("lbfgs_segment_state samples hash mismatch")
+        for name in ("handoff_global_step", "outer_calls", "resume_epoch"):
+            value = state.get(name)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ValueError(f"lbfgs_segment_state {name} is invalid")
+        if "last_outer_global_step" in state:
+            value = state.get("last_outer_global_step")
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ValueError("lbfgs_segment_state last_outer_global_step is invalid")
         anchor_ctx = self._build_anchor_context(self._train_source, batch, None)
         self._lbfgs_segment_batch = batch
         self._lbfgs_segment_anchor_ctx = anchor_ctx
