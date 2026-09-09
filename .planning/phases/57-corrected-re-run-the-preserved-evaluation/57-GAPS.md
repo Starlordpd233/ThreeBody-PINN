@@ -387,7 +387,22 @@ separate verification and owner gates recorded in the resolution note.
 
 - **Status.** OPEN.
 
-- **Resolution note.** _(empty — awaiting owner instruction)_
+- **Resolution note.** _Interim direction (owner, 2026-09-09):_ option **(A)
+  recalibrate-only is rejected** and the **probe-first** path is selected —
+  measure the memory attribution before committing to a remedy, then implement
+  the smallest change that clears the guard, together with **(E)** the resource
+  preflight that `57-05-PLAN.md` Task 3 already requires. The measurement is
+  bounded, writes no Phase-57 evidence, and touches no admitted config: it holds
+  every scientific input identical to generation 1 and varies only the
+  instrumentation, by routing the production `_build_gradient_stats` through its
+  existing `raw_overrides` parameter so the five `retain_graph=True` traversals
+  are not performed. Condition A is already measured by generation 1
+  (`driver_bytes` = 24,964,661,248). **The final remedy remains OPEN**: if
+  condition B falls well below the 0.7 watermark the cause is the instrumentation
+  schedule and a telemetry-contract ratification suffices; if it stays high, the
+  single second-order backward over 4096 rows is itself the ceiling and the
+  decision moves to option (C) environment. Nothing is ratified until that number
+  exists.
 
 ---
 
@@ -483,6 +498,30 @@ separate verification and owner gates recorded in the resolution note.
   permanent. **MEDIUM** for schedule — it blocks the next window but any of the
   listed choices unblocks it quickly once selected.
 
-- **Status.** OPEN.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-09).
 
-- **Resolution note.** _(empty — awaiting owner instruction)_
+- **Resolution note.** Owner selected **preservation option (A) with namespace
+  option (E)**: track all 18 generation-1 artifacts, and give band generation 2
+  new run names so nothing has to move.
+
+  Executed 2026-09-09. The 18 artifacts are force-added **in place** under
+  `runs/stage0-v23-smoke/` rather than copied into `.planning/`, because the
+  committed ledger records `artifact_dir = runs/stage0-v23-smoke` with 18 paths
+  relative to it; tracking them where they already are keeps the committed
+  ledger literally correct and requires no amendment of committed evidence,
+  whereas copying would duplicate 23 MB and invalidate the recorded relative
+  paths. All 18 re-hash to their ledger values.
+
+  The staged-path policy blocks `runs/*` by design, so the 18 **exact** paths
+  were added to `ALLOWED_BLOCKED_PATHS` in
+  `scripts/git_policy/validate_staged_paths.py`, which already carried per-path
+  precedent. No wildcard was introduced — `runs/` remains blocked for ordinary
+  runtime output and any future run directory is still refused. The largest
+  blob is 4.86 MB, within the 10 MiB cap, so `ALLOW_LARGE_PATTERNS` is
+  unchanged.
+
+  Generation 2 will use `stage0-v23g2-{smoke,seed41,seed42,seed43}`. This
+  clears the sole `admit-run-window` fail-closed condition (the existing target
+  directory) without touching preserved evidence. `run.run_name` is a
+  fingerprinted config field, so the four new configs are a config change that
+  belongs to the next wave's plan, not to this preparation.
