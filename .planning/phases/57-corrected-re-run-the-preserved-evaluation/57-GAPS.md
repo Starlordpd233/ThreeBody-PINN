@@ -385,7 +385,7 @@ separate verification and owner gates recorded in the resolution note.
   generation 2 window can be admitted until this is resolved, and options B, C,
   and E each change what the next wave's plan must contain.
 
-- **Status.** OPEN.
+- **Status.** RESOLVED-WITH-INSTRUCTION (owner-delegated, 2026-09-09).
 
 - **Resolution note.** _Interim direction (owner, 2026-09-09):_ option **(A)
   recalibrate-only is rejected** and the **probe-first** path is selected —
@@ -448,6 +448,52 @@ separate verification and owner gates recorded in the resolution note.
   combinable with either. Full working:
   `docs/work/reviews/milestone_v2.3/57-corrected-re-run-the-preserved-evaluation/2026-09-09-stage0-4096-row-resource-diagnosis.md`
   sections 11-14.
+
+  **Status change — RESOLVED-WITH-INSTRUCTION (owner-delegated, 2026-09-09).**
+  The owner delegated the adjudication expressly ("decide on the previous
+  questions yourself; you have control and decision making over this"), the same
+  mechanism that ratified the R-1 `loss_explosion_ceiling` on 2026-07-21 and
+  discharged Phase 54's checkpoint (2) on 2026-09-04. The delegation is read
+  narrowly: it covers engineering scope and conformance judgement, and expressly
+  does **not** cover spending EVAL-02's single held-out look, the Phase-58
+  verdict (checkpoint (5)), or any ratified scientific value.
+
+  Ruled:
+
+  - **(A) Memory-bounded microbatch execution is in-scope conformance.** The
+    ratified spec writes the constraint microbatching must satisfy, twice, inside
+    its acceptance criterion; GAP-57-01's authorized inventory names
+    "microbatch-preserved aggregates"; and the delivered `index_add` aggregation
+    was built microbatch-safe for exactly this purpose. Two passes — bin means
+    then detached weights, then per-microbatch gradient accumulation — compute
+    the same loss and change no recipe value, satisfying SCOPE-37. Default
+    microbatch is 256 rows (one bin), configurable. The residual risk that
+    "preserved aggregates" meant only a correctness property is recorded and
+    accepted, mitigated by a **blocking** loss/gradient equivalence test against
+    the monolithic path across multiple microbatch sizes including one that does
+    not divide 4096 evenly. The guard stays at 0.7: this reduces the peak rather
+    than moving the alarm, and a peak still above 0.7 afterwards is a new fact
+    requiring a new decision.
+  - **(B) Per-term gradient telemetry becomes periodic**, on the `run.log_every`
+    cadence plus every guard trip and failure bundle. All ten `STEP_LOG_FIELDS`
+    names are retained; non-cadence steps emit `null` with
+    `grad_stats_complete: false` and an explicit skip provenance, reusing the
+    schema's existing `Optional` fields rather than inventing new ones. This is a
+    cadence ratification, not a contract reduction. Justified because the
+    traversals cost 4.4x wall clock and are provably observation-only
+    (bit-identical `grad_norm`), while remaining the instrument that shows which
+    loss term drives the front — so they are kept, not deleted. Must be verified
+    that the guard's `grad_norm` path (`clip_outcome.total_norm`, independent of
+    `_build_gradient_stats`) keeps full per-step fidelity, and that no census,
+    validation-gate, or TB consumer depends on per-step availability.
+  - **(E) The resource preflight is in scope** — it is already required by
+    `57-05-PLAN.md` Task 3 and simply does not exist.
+  - **(C) Environment change is not taken**, and is preserved as the fallback if
+    the equivalence test or the post-fix peak fails.
+
+  Scope brief with the full reasoning, required shapes, constraints, and
+  ordering:
+  `docs/work/plans/milestone_v2.3/57-corrected-re-run-the-preserved-evaluation/2026-09-09-band-generation-2-scope.md`.
 
 ---
 
