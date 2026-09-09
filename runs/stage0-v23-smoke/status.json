@@ -1,0 +1,29 @@
+{
+  "epoch": 1,
+  "eta_seconds": null,
+  "heartbeat_interval_secs": 30,
+  "losses": {
+    "angmom": 90.29850769042969,
+    "data": 0.07205518335103989,
+    "energy": 8932.2822265625,
+    "ic": 41058.73828125,
+    "phys": 0.16198287904262543,
+    "total": 41058.80859375
+  },
+  "lr": null,
+  "memory": {
+    "current_bytes": 9193984,
+    "driver_bytes": 24964661248
+  },
+  "phase": "2a",
+  "pid": 54461,
+  "run_name": "stage0-v23-smoke",
+  "s_per_step_ema": null,
+  "schema_version": 1,
+  "stage": 0,
+  "staleness_threshold_secs": 90,
+  "state": "failed",
+  "step": 0,
+  "timestamp_epoch": 1788880508.361648,
+  "timestamp_utc": "2026-09-08T15:15:08.361648+00:00"
+}

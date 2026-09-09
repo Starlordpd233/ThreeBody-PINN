@@ -1,0 +1,31 @@
+{
+  "config_yaml": {
+    "path": "<home>/Desktop/3_body_problem/.worktrees/trainex/runs/stage0-v23-smoke/config.yaml"
+  },
+  "disposition": "HALT",
+  "grad_norm": 627404864.0,
+  "guard": "memory_watermark",
+  "loss_terms": {
+    "angmom": 90.29850769042969,
+    "data": 0.07205518335103989,
+    "energy": 8932.2822265625,
+    "ic": 41058.73828125,
+    "phys": 0.16198287904262543,
+    "total": 41058.80859375
+  },
+  "memory_allocated_bytes": 24964661248,
+  "memory_total_bytes": 25769803776,
+  "metric": "memory_fraction",
+  "phase": "2a",
+  "reason": "memory fraction 0.968756357828776 > \u2696 watermark 0.7",
+  "stage": 0,
+  "step": 0,
+  "threshold": 0.7,
+  "threshold_provisional": true,
+  "tier": 2,
+  "timestamp": 1788880508.0455282,
+  "tripped_guards": [
+    "memory_watermark"
+  ],
+  "value": 0.968756357828776
+}

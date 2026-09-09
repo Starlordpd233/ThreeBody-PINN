@@ -29,6 +29,29 @@ BLOCKED_PATTERNS = (
 ALLOWED_BLOCKED_PATHS = {
     ".planning/tmp/docs-work-manifest.json",
     ".planning/tmp/verify-Phase-9-consistency.json",
+    # Phase 57 band generation 1 (blocked smoke). runs/ stays blocked for
+    # ordinary runtime output; these 18 exact paths are the artifacts the
+    # committed Phase-57 run ledger addresses by sha256, so they are tracked
+    # in place to keep those integrity claims verifiable. Owner ruling
+    # 2026-09-09 on GAP-57-03. Exact paths only — never a runs/ wildcard.
+    "runs/stage0-v23-smoke/checkpoints/ckpt-223666118608.pt",
+    "runs/stage0-v23-smoke/checkpoints/failure-stage-0-step-0.pt",
+    "runs/stage0-v23-smoke/checkpoints/latest.pt",
+    "runs/stage0-v23-smoke/checkpoints/stage-0-init.pt",
+    "runs/stage0-v23-smoke/config.yaml",
+    "runs/stage0-v23-smoke/curriculum.jsonl",
+    "runs/stage0-v23-smoke/failure/README.txt",
+    "runs/stage0-v23-smoke/failure/trip.json",
+    "runs/stage0-v23-smoke/logs/train.log",
+    "runs/stage0-v23-smoke/logs/train.log.jsonl",
+    "runs/stage0-v23-smoke/preflight.json",
+    "runs/stage0-v23-smoke/run_start_rng.pt",
+    "runs/stage0-v23-smoke/splits.json",
+    "runs/stage0-v23-smoke/status.json",
+    "runs/stage0-v23-smoke/summary.json",
+    "runs/stage0-v23-smoke/summary.md",
+    "runs/stage0-v23-smoke/tb/<host>.54461.0",
+    "runs/stage0-v23-smoke/training_metadata.json",
 }
 
 ALLOW_LARGE_PATTERNS = (
