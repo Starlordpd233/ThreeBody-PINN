@@ -404,6 +404,51 @@ separate verification and owner gates recorded in the resolution note.
   decision moves to option (C) environment. Nothing is ratified until that number
   exists.
 
+  _Probe result (2026-09-09) — the second branch obtained._ Condition B measured
+  `driver_bytes = 22,812,983,296` (21.25 GiB), `memory_fraction = 0.8853`, which
+  **still trips** the 0.7 watermark. Removing five of the six traversals recovered
+  2.00 GiB (8.6%). Two controls confirm the measurement isolated one variable:
+  the step record carries
+  `grad_stats_provenance = "pre_total_backward|PROBE-B-no-per-term-traversal"`,
+  and `grad_norm` is bit-identical to generation 1 (627404864.0), so the
+  diagnostic traversals are observation-only exactly as designed.
+
+  **The section-4 instrumentation hypothesis is therefore refuted.** The peak is
+  set by the single `total.backward()` over the 4096-row second-order graph,
+  which alone needs ~21.25 GiB on this machine. Ratifying the telemetry-contract
+  change on its own would not have cleared the guard — which is what the
+  probe-first direction was for.
+
+  The probe did return a large **throughput** result: step 0 took **153 s** under
+  condition B versus **671 s** in generation 1, a 4.4x speedup, revising the
+  three-seed band projection from ~23.3 days to ~5.3 days (both still measured
+  under memory pressure, so both remain upper bounds). Memory and throughput
+  therefore have different causes and different remedies.
+
+  _Narrowed decision._ The ratified spec already contemplates the memory
+  mechanism: `pinn_architecture.md:456` states verbatim, twice, "Microbatching
+  preserves complete bin aggregates and never resets the prefix", the GAP-57-01
+  resolution names "microbatch-preserved aggregates" among what the authorized
+  bounded patch must implement, and `57-02-SUMMARY.md` records that the built
+  `index_add` aggregation is microbatch-safe by construction
+  (`controllers.py:233-234`). The measurement says the path is microbatch-safe
+  but not microbatch-**executed** — 4096 rows enter one graph. Bounding the peak
+  requires two passes (compute bin means and hence weights, then walk
+  microbatches with those weights fixed and accumulate gradients), which is exact
+  only because the causal weights are detached; the codebase already implements
+  that pattern for the data term (`accumulate_chunked_data_term`,
+  `controllers.py:567`).
+
+  **Whether "microbatch-preserved aggregates" — a correctness property the code
+  already satisfies — also authorizes memory-bounded microbatch execution, a
+  change to how the step runs, is an inference the agent will not make.** That is
+  now the open question, against option (C) environment as the alternative.
+  Options (A) recalibrate-only and (B) telemetry-only are both closed by the
+  measurement. Option (E), the missing resource preflight, remains open and
+  combinable with either. Full working:
+  `docs/work/reviews/milestone_v2.3/57-corrected-re-run-the-preserved-evaluation/2026-09-09-stage0-4096-row-resource-diagnosis.md`
+  sections 11-14.
+
 ---
 
 ## GAP-57-03 — generation-1 evidence is single-copy and gitignored, and clearing the re-admission blocker is the action that would destroy it

@@ -281,3 +281,111 @@ Every number above is derived from committed or on-disk artifacts:
 | Re-admission blocker | `verify_phase57_evidence.py admit-run-window`, read-only |
 | Missing resource preflight | `pinn/conformance/preflight.py`; `verify_phase57_evidence.py:247` |
 | `runs/` untracked | `.gitignore:339`; `git ls-files runs/stage0-v23-smoke` → 0 |
+
+---
+
+# Amendment — 2026-09-09: the probe result
+
+Nothing in this amendment changes a config, a threshold, or a recipe value. The owner
+selected the probe-first path on GAP-57-02; this records what the measurement returned.
+**Section 4's hypothesis is refuted by it**, and that is the amendment's main point.
+
+## 11. What was measured
+
+Condition A was already in the record from band generation 1. Condition B held every
+scientific input identical and varied exactly one thing: the five `retain_graph=True`
+per-term diagnostic traversals in `_build_gradient_stats` were bypassed by routing the
+production function through its own existing `raw_overrides` parameter, so no production
+code was edited or reimplemented. The probe config differed from
+`configs/stage0-v23-smoke.yaml` in exactly two fields — `run_name` (to `probe-mem-b`) and
+`log_every` (50 → 1, to get a memory reading every step). Same seed 42, same 4096 rows,
+same 240 replay, same 16 bins, same frozen `r_ref`, same guard at 0.7.
+
+| | Condition A (gen 1) | Condition B (probe) | Δ |
+|---|---:|---:|---:|
+| `driver_bytes` | 24,964,661,248 (23.25 GiB) | 22,812,983,296 (21.25 GiB) | **−2.00 GiB, −8.6%** |
+| `memory_fraction` | 0.9688 | **0.8853** | still **> 0.7** |
+| `current_bytes` (live) | 9,193,984 | 9,193,984 | identical |
+| Preflight | 181 s | 177 s | consistent |
+| **Step 0 wall clock** | **671 s** | **153 s** | **−77%, 4.4× faster** |
+| `grad_norm` | 627404864.0 | 627404864.0 | **bit-identical** |
+
+Two controls confirm the experiment was clean. The step record carries
+`grad_stats_provenance = "pre_total_backward|PROBE-B-no-per-term-traversal"`, proving the
+patch took effect. And `grad_norm` is bit-identical across the two runs, proving the
+diagnostic traversals are observation-only — removing them moved the memory and the clock
+without perturbing the optimization by a single bit.
+
+## 12. What it means
+
+**The instrumentation is not the memory bottleneck.** Section 4 reasoned that six retained
+traversals of a second-order graph would make the peak roughly the union of six working
+sets. That was wrong. Removing five of the six recovered 2.00 GiB — 8.6% — and the run
+still tripped, at 0.885. The peak is set by the **single `total.backward()` over the
+4096-row second-order graph**, which by itself needs ~21.25 GiB on this machine.
+
+This is precisely the outcome that justified measuring first. Had the telemetry-contract
+change been ratified straight from section 4's reasoning, the project would have spent an
+owner ratification on a contract change that does not clear the guard.
+
+**But the instrumentation is very much the time bottleneck.** The same five traversals cost
+**4.4× in wall clock** — 671 s → 153 s per step. Section 5's projections revise accordingly:
+
+| Workload | Steps | At 671 s/step (A) | At 153 s/step (B) |
+|---|---:|---:|---:|
+| Smoke | 300 | 55.9 h | **12.8 h** |
+| One graded seed | 1,000 | 186.4 h | **42.5 h** |
+| Full graded band | 3,000 | 559.2 h (23.3 d) | **127.5 h (5.3 d)** |
+
+Both B figures are still measured under memory pressure (0.885), so they remain upper
+bounds rather than predictions for a memory-repaired run.
+
+So the memory question and the throughput question have **different answers and different
+remedies**, which section 5 could not distinguish.
+
+## 13. Where the memory remedy actually lives
+
+The ratified spec already contemplates the mechanism. `pinn_architecture.md:456` — the
+Phase-56 amended-recipe contract — states verbatim, twice:
+
+> "Microbatching preserves complete bin aggregates and never resets the prefix."
+
+and repeats it in the re-issued acceptance criterion. The GAP-57-01 resolution likewise
+names "microbatch-preserved aggregates" among the things the authorized bounded patch must
+implement, and `57-02-SUMMARY.md` records that the built aggregation uses differentiable
+`index_add` specifically "so microbatch accumulation preserves counts, loss, and
+gradients" (`controllers.py:233-234`).
+
+So the implementation is microbatch-**safe**. The measurement says it is not microbatch-
+**executed**: 4096 rows enter one graph, and one backward over that graph is the 21.25 GiB.
+
+The engineering subtlety, stated plainly because it decides whether this is cheap or hard:
+the causal weight for a row depends on a batch-global exclusive prefix over all sixteen bin
+means, so every row's loss depends on every other row's residual. Splitting the forward pass
+alone saves nothing, because a single backward at the end still retains the whole graph.
+Bounding memory requires two passes — one to compute the bin means and hence the weights,
+then a second that walks microbatches with those weights held fixed and accumulates
+gradients per microbatch. That is only exact if the causal weights are detached, which
+`57-02-PLAN.md` indicates the contract requires ("keep causal weights detached where the
+contract requires without detaching model residuals"). The codebase already has this exact
+gradient-accumulation pattern implemented for the data term
+(`accumulate_chunked_data_term`, `controllers.py:567`).
+
+**Whether "microbatch-preserved aggregates" (a correctness property the code already
+satisfies) also authorizes memory-bounded microbatch execution (a change to how the step
+runs) is an inference, and it is not the agent's to make.** It is put to the owner as the
+narrowed GAP-57-02 decision rather than assumed. Section 8's D-2 is superseded by this
+section; D-1 is superseded by section 12's finding that recalibration alone still faces a
+5.3-day band; D-5 (environment) is unchanged and now the clearest alternative if
+microbatch execution is judged out of scope.
+
+## 14. Probe provenance
+
+- Driver: `probe_mem_b.py` (scratchpad, not committed) — inserts the worktree on
+  `sys.path`, wraps `controllers._build_gradient_stats` to force
+  `raw_overrides={term: 0.0}` for all five terms, then calls `pinn.train.main`.
+- Config: `configs/stage0-v23-smoke.yaml` with `run_name: probe-mem-b` and
+  `log_every: 1`. Removed after the run so the admitted config set is untouched.
+- Output: `runs/probe-mem-b/` (gitignored, retained on disk; not Phase-57 evidence).
+- Wrote no Phase-57 evidence file, touched no admitted config, spent no evaluation, and
+  did not collide with any `stage0-v23-*` run name.
