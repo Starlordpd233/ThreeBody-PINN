@@ -2770,7 +2770,7 @@ class CurriculumController:
       Per-stage ``n_adam`` / ``max_epochs`` / ``eps_*`` are NEVER invented
       here (SCOPE-19) -- they arrive through the seam from the caller.
     - ``stage_0_only`` (bool, default ``False``; SCOPE-27 / 50-CONTEXT.md
-      D-01) is a fresh-run-only conformance ceiling: when a Stage-0
+      D-01) is the Stage-0-only conformance ceiling: when a Stage-0
       ``run_stage(0)`` returns ADVANCE, ``step()`` persists the ordinary
       ``stage-0-final`` boundary and logs the exit, and ``run()`` then
       returns that ADVANCE as terminal -- before any stage increment,
@@ -2778,7 +2778,10 @@ class CurriculumController:
       0->1 promotion, disposition record, or Stage-1 rewarm. ``False`` (the
       default) preserves the ordinary loop byte-for-byte. Not a general
       multi-stage platform switch -- it only enforces the Stage-0-only
-      training authorization.
+      training authorization. Because the ceiling fires at Stage-0 EXIT it
+      is orthogonal to how the run was launched, so it composes with a
+      Stage-0 resume (57-08 owner ruling 2026-09-12); the CLI refuses only a
+      Stage-1+ resume target (see "57-08 stage-0-only resume gate").
 
     Owns the current stage index, the injected ``CheckpointStore``, the live
     ``RunController`` (when present), and the rebound ``ScheduledWeights``

@@ -243,13 +243,25 @@ than iterating. SCOPE-37 forbids any further tuning without a new owner decision
   copied not chosen, so first contact walks the identical preflight path the
   graded runs will (`REQUIRED_RUN_START_CHECKS` `invariant_b_window`).
 
-- **D-11: Reuse the `--stage-0-only` switch** (`pinn/train.py:214`,
-  `pinn/training/controllers.py:1670` — shipped in v2.2 Phase 50). It is a
-  fresh-run-only guard (invalid with `--resume`) that returns success after a
-  Stage-0 `ADVANCE` before incrementing the stage / invoking `stage_factory` /
-  writing `stage-1-init`. This is the mechanism that enforces SCOPE-36; every
-  graded run and the smoke pass it. Re-verify it behaves correctly against the
-  amended code state.
+- **D-11: Reuse the `--stage-0-only` switch** (`pinn/train.py:229`,
+  `pinn/training/controllers.py:2772` — shipped in v2.2 Phase 50). It returns
+  success after a Stage-0 `ADVANCE` before incrementing the stage / invoking
+  `stage_factory` / writing `stage-1-init`. This is the mechanism that enforces
+  SCOPE-36; every graded run and the smoke pass it. Re-verify it behaves
+  correctly against the amended code state.
+
+  **Amended 2026-09-12 (57-08 owner ruling).** As originally written this
+  entry described the switch as "a fresh-run-only guard (invalid with
+  `--resume`)". That property is superseded: the owner ruled that a Stage-0
+  run may be stopped and resumed, so `--stage-0-only` no longer refuses
+  `--resume` outright. The ceiling fires at Stage-0 **exit**, so it is
+  orthogonal to how the run was launched; the blanket refusal forced every
+  ~11 h graded seed into one uninterrupted window on hardware that cannot
+  hold one. The refusal is narrowed, not removed — it moved to the
+  resume-plan site and stays fail-closed against a Stage-1+ target
+  (`pinn/train.py:1360`). SCOPE-36 is unchanged. A stop-and-resume cycle was
+  verified bit-identical to an uninterrupted run across all 8 steps and all
+  five final loss terms.
 
 ### 5. EVAL-02 — evaluator assembly, the pairing proof, and the three preconditions
 

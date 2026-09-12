@@ -230,9 +230,11 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="stage_0_only",
         help=(
-            "fresh-run-only conformance ceiling (SCOPE-27 / 50-CONTEXT.md D-01): "
+            "Stage-0-only conformance ceiling (SCOPE-27 / 50-CONTEXT.md D-01): "
             "on a Stage-0 ADVANCE, persist stage-0-final and stop before any "
-            "Stage-1 side effect. Invalid together with --resume."
+            "Stage-1 side effect. May be combined with --resume as long as the "
+            "resume target is itself Stage 0 (57-08 owner ruling 2026-09-12); "
+            "a Stage-1+ target is refused."
         ),
     )
     return parser
