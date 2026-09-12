@@ -113,6 +113,53 @@ def current_head() -> str:
     return result.stdout.strip()
 
 
+FINGERPRINTED_RELS: tuple[str, ...] = (
+    "pinn",
+    "configs",
+    "tests",
+    "scripts",
+    str(PHASE_REL),
+)
+
+
+def assert_fingerprint_inputs_clean() -> None:
+    """57-08: the missing half of Task 1's admission contract.
+
+    Task 1 requires the admission to confirm that "fingerprinted source/
+    config/test/plan/environment inputs are committed and clean", but no such
+    check existed anywhere in this file. On 2026-09-10 `admit-run-window`
+    therefore printed ADMIT-RUN-WINDOW-OK over a tree carrying 733 uncommitted
+    lines across 11 files, and the calibration smoke ran against code the
+    admitted HEAD did not describe -- exactly threat T-57-13 ("any mutation
+    between smoke and band would destroy comparability"), unguarded.
+
+    `runs/` is deliberately NOT fingerprinted: Task 1 permits governed run and
+    evidence output writes through the window; what must not move is the code,
+    config, test, plan, and script inputs the HEAD claims to pin.
+    """
+    result = subprocess.run(
+        ["git", "status", "--porcelain", "--", *FINGERPRINTED_RELS],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        fail(
+            "cannot read git status for the fingerprinted inputs: "
+            f"{result.stderr.strip()}"
+        )
+    dirty = [line for line in result.stdout.splitlines() if line.strip()]
+    if dirty:
+        shown = "\n  ".join(dirty[:20])
+        more = "" if len(dirty) <= 20 else f"\n  ... and {len(dirty) - 20} more"
+        fail(
+            "fingerprinted inputs are not committed and clean, so the admitted "
+            "HEAD would not describe the code that runs (D-09 / T-57-13):\n  "
+            f"{shown}{more}"
+        )
+
+
 def is_ancestor(ancestor: str, descendant: str) -> bool:
     result = subprocess.run(
         ["git", "merge-base", "--is-ancestor", ancestor, descendant],
@@ -178,11 +225,16 @@ def _gate_chain() -> tuple[Path, dict[str, Any], Path, dict[str, Any], dict[str,
 
 
 def _assert_config_contract() -> None:
+    # 57-07 band-generation-2 scope brief §4: generation 1's configs remain
+    # untouched at their original paths (preserved evidence, never re-run);
+    # this contract check moves to the currently-admissible band so it
+    # validates the recipe bindings that will ACTUALLY be used, not stale
+    # files nothing will read again.
     paths = (
-        REPO_ROOT / "configs/stage0-v23-smoke.yaml",
-        REPO_ROOT / "configs/stage0-v23-seed41.yaml",
-        REPO_ROOT / "configs/stage0-v23-seed42.yaml",
-        REPO_ROOT / "configs/stage0-v23-seed43.yaml",
+        REPO_ROOT / "configs/stage0-v23g2-smoke.yaml",
+        REPO_ROOT / "configs/stage0-v23g2-seed41.yaml",
+        REPO_ROOT / "configs/stage0-v23g2-seed42.yaml",
+        REPO_ROOT / "configs/stage0-v23g2-seed43.yaml",
     )
     for path in paths:
         if not path.is_file():
@@ -198,7 +250,14 @@ def _assert_config_contract() -> None:
 
 
 def _target_runs() -> tuple[Path, ...]:
-    return tuple(REPO_ROOT / f"runs/stage0-v23-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
+    # 57-07: generation 1's runs/stage0-v23-* directories are preserved,
+    # hash-verified evidence (GAP-57-03) and never re-targeted; the currently
+    # admissible band is generation 2. NOTE: `cmd_candidate()`'s receipt
+    # `run_name` assertion below still literally expects `stage0-v23-seed{N}`
+    # -- that check is Wave-6/EVAL-02 candidate-selection machinery, outside
+    # this session's delegated scope, and is intentionally left for the
+    # owner (or an explicitly authorized session) to update at Wave-6 time.
+    return tuple(REPO_ROOT / f"runs/stage0-v23g2-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
 
 
 def _assert_ancestry(*commits: Any) -> None:
@@ -211,6 +270,7 @@ def _assert_ancestry(*commits: Any) -> None:
 def cmd_admit_run_window() -> None:
     raw_path, raw, conformance_path, conformance, artifact = _gate_chain()
     _assert_config_contract()
+    assert_fingerprint_inputs_clean()
     ruling = REPO_ROOT / PHASE_REL / "57-RULING.md"
     if not ruling.is_file() or "status: ratified" not in ruling.read_text(encoding="utf-8"):
         fail("57-RULING.md is not the ratified owner record")
@@ -218,8 +278,23 @@ def cmd_admit_run_window() -> None:
         if run_dir.exists():
             fail(f"target run directory already exists: {run_dir}")
     ledger = load_ledger()
-    if ledger.get("final_band_generation") is not None or ledger.get("records"):
-        fail("run ledger already contains a band; immutable admission must occur before runs")
+    # 57-07: admission must refuse a COMPLETED or IN-FLIGHT band (the
+    # invariant this check protects), not merely "any record exists at
+    # all" -- generation 1's ledger entry is a `blocked` (operational
+    # failure, evaluation preserved-unspent) record, not a success, so it
+    # does not itself bar a second admission.
+    if ledger.get("final_band_generation") is not None:
+        fail(
+            "run ledger already has a final band generation; immutable "
+            "admission must occur before runs"
+        )
+    for generation in ledger.get("band_generations", []):
+        if generation.get("status") != "blocked":
+            fail(
+                f"run ledger band generation {generation.get('band_generation')!r} "
+                f"has status {generation.get('status')!r} (not 'blocked'); "
+                "immutable admission must occur before runs"
+            )
     gate_head = (raw.get("provenance") or {}).get("git_sha")
     conformance_head = (conformance.get("provenance") or {}).get("git_head")
     _assert_ancestry(gate_head, conformance_head)
