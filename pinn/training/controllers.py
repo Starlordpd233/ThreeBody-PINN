@@ -58,6 +58,7 @@ literal ``torch.no_grad()`` context.
 
 from __future__ import annotations
 
+import gc
 import json
 import hashlib
 import logging
@@ -203,17 +204,30 @@ def _resolve_r_ref(r_ref: Optional[float]) -> float:
     return value
 
 
+def _bin_index_for_times(
+    times: torch.Tensor, *, n_bins: int, t_max: float,
+) -> torch.Tensor:
+    """Shared bin-index formula (54-RULING.md "Batch allocation and bin policy").
+
+    Bin ``b`` covers ``[b/n_bins, (b+1)/n_bins)`` of ``t_max`` for
+    ``b = 0 .. n_bins - 2``, and ``[(n_bins-1)/n_bins, 1]`` closed on both
+    ends for the last bin -- an independent pure-torch re-derivation of the
+    same convention ``tests/phase57/_fixtures.py``'s ``bin_index_for_time``
+    encodes, so the two agree by content. Extracted so the monolithic and
+    microbatched (57-07) bin aggregations use the identical formula by
+    construction rather than by two hand-kept copies.
+    """
+    u = times / t_max
+    return torch.clamp(
+        torch.floor(torch.clamp(u, min=0.0) * n_bins).to(torch.int64),
+        max=n_bins - 1,
+    )
+
+
 def _bin_mean_residuals(
     rbar: torch.Tensor, times: torch.Tensor, *, n_bins: int, t_max: float,
 ) -> torch.Tensor:
     """Differentiable per-bin mean reduction over the ratified fixed-time bins.
-
-    Bin ``b`` covers ``[b/n_bins, (b+1)/n_bins)`` of ``t_max`` for
-    ``b = 0 .. n_bins - 2``, and ``[(n_bins-1)/n_bins, 1]`` closed on both
-    ends for the last bin (54-RULING.md "Batch allocation and bin policy" --
-    an independent pure-torch re-derivation of the same convention
-    ``tests/phase57/_fixtures.py``'s ``bin_index_for_time`` encodes, so the
-    two agree by content).
 
     Row-to-bin aggregation uses ``index_add`` (the functional, differentiable
     form) so gradients flow from every contributing row's ``rbar`` entry back
@@ -224,11 +238,7 @@ def _bin_mean_residuals(
     by a caller supplying fewer than ``n_bins`` distinct collocation rows (a
     legacy, non-ratified draw), never by the conformant production path.
     """
-    u = times / t_max
-    bin_idx = torch.clamp(
-        torch.floor(torch.clamp(u, min=0.0) * n_bins).to(torch.int64),
-        max=n_bins - 1,
-    )
+    bin_idx = _bin_index_for_times(times, n_bins=n_bins, t_max=t_max)
     zeros = torch.zeros(n_bins, dtype=rbar.dtype, device=rbar.device)
     bin_sums = zeros.index_add(0, bin_idx, rbar)
     bin_counts = zeros.index_add(0, bin_idx, torch.ones_like(rbar))
@@ -1643,6 +1653,347 @@ class RunController:
             self._pending_optimizer_state = None
 
     # ------------------------------------------------------------------
+    # 57-07 band-generation-2 scope brief §1: memory-bounded Adam-phase
+    # microbatch execution. Two passes over the SAME ratified 4096-row
+    # collocation batch -- Pass 1 derives the frozen batch-global causal
+    # weights from microbatch-accumulated bin sums/counts (no parameter
+    # graph retained past each chunk); Pass 2 recomputes each chunk WITH
+    # its parameter graph and backward()s the chunk's weighted
+    # contribution immediately, mirroring ``accumulate_chunked_data_term``'s
+    # existing linearity discipline. No recipe value moves: this changes
+    # only how the identical loss/gradient is computed, never what batch,
+    # bins, prefix, or R_ref it is computed from. Scope: the Adam step
+    # only (RUN-04's actual generation-1 block site); ``_non_data_terms``
+    # itself, validation (collocation_count=1, already cheap), and the
+    # L-BFGS closure/segment-start paths are untouched by this change --
+    # see the 2026-09-09 band-generation-2 scope brief §1 for why.
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _release_chunk_memory() -> None:
+        """Force-release a just-finished microbatch's autograd graph.
+
+        57-07 empirical finding: a real production run's ``driver_bytes``
+        did NOT drop under chunking alone (0.9707 vs generation 1's 0.9689,
+        despite bit-identical ``grad_norm`` proving the chunked math is
+        correct) -- because an autograd graph's ``Tensor``/``Node``
+        back-references form a REFERENCE CYCLE. Letting a chunk's local
+        variables go out of scope drops their refcount but does not free
+        them: CPython's refcounting collector cannot break a cycle, only
+        the generational cyclic collector can, and it runs on its own
+        schedule, not deterministically between chunks. Meanwhile
+        ``torch.mps.driver_allocated_memory()`` reports the CACHING
+        ALLOCATOR'S reserved pool, which only shrinks when a block is
+        actually freed back -- so an uncollected chunk graph keeps
+        inflating the same "peak" the memory-watermark guard reads,
+        regardless of how small each chunk's own tensors are. ``gc.collect()``
+        breaks the cycles; ``torch.mps.empty_cache()`` then returns the
+        resulting free blocks to the driver so the NEXT chunk starts from a
+        genuinely smaller pool, not merely fewer live tensors within an
+        already-inflated one.
+
+        57-08 correction: the collector must be GENERATION-0 ONLY. A full
+        ``gc.collect()`` sweeps all three generations, touching every object
+        on a multi-GB Python heap; at 33 calls per step that repeatedly
+        forced the whole heap resident and defeated the OS's ability to page
+        cold objects out. Measured on the production path (real SIREN/MPS/
+        float32, 4096 rows, 256 microbatch), a 2x2 over {full vs gen-0
+        collect} x {``empty_cache`` every chunk vs never}:
+
+            full  + empty_cache : GPU 394 MB, host RAM peak 23.0 GB (mean
+                                  17.2 GB, 71% of samples >10 GB) -- the run
+                                  churned ~4.4 GB of swap per step
+            gen-0 + empty_cache : GPU 394 MB, host RAM peak 1.7 GB  <-- this
+            full  - empty_cache : MPS pool 23.95 GB -> memory_watermark HALT
+            gen-0 - empty_cache : MPS pool 23.95 GB -> memory_watermark HALT
+
+        So the two calls fix DIFFERENT things and both are load-bearing:
+        ``empty_cache()`` bounds the MPS pool (without it the guard trips at
+        step 0 either way), while the collector generation bounds host RAM.
+        Gen-0 is sufficient for correctness here because a just-finished
+        chunk's graph is by construction newly allocated, so the cycle we
+        need broken has not yet been promoted out of generation 0.
+        """
+        gc.collect(0)
+        if hasattr(torch, "mps"):
+            try:
+                torch.mps.empty_cache()
+            except Exception:
+                pass
+
+    def _collocation_chunk_raw(
+        self, anchor_ctx: _AnchorContext, times_chunk_np: np.ndarray,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """One microbatch's positions/velocities/rbar for ``times_chunk_np``.
+
+        Mirrors ``_non_data_terms``'s per-row physics computation exactly
+        (same ``componentwise_du`` + ``vmap`` + ``softened_acceleration``
+        calls), restricted to the rows in ``times_chunk_np`` -- the ONLY
+        difference between this and the monolithic path is the size of the
+        ``u_leaf`` batch passed to ``componentwise_du``.
+        """
+        u_leaf = torch.as_tensor(
+            times_chunk_np / T_CHARACTERISTIC_TIME, dtype=self._dtype, device=self._device,
+        )
+        first, second = componentwise_du(anchor_ctx.traj, u_leaf)
+        positions = torch.func.vmap(lambda s: anchor_ctx.traj(s).reshape(-1))(u_leaf)
+        positions = positions.reshape(-1, 3, 3)
+        velocities = first.reshape(-1, 3, 3)
+        accel = second.reshape(-1, 3, 3)
+        force = softened_acceleration(
+            positions, anchor_ctx.masses, dtype=self._dtype, device=self._device,
+        )
+        residual = accel - force
+        rbar = (residual ** 2).sum(dim=(-2, -1)) / 3.0
+        return positions, velocities, rbar
+
+    def _adam_frozen_causal_weights(
+        self, anchor_ctx: _AnchorContext, *, microbatch_size: int,
+    ) -> tuple[dict[str, Any], torch.Tensor]:
+        """Pass 1: derive this step's frozen ``w_n`` without retaining a
+        parameter graph past any one microbatch.
+
+        Accumulates the SAME bin sums/counts ``_bin_mean_residuals`` would
+        produce in one shot, just over microbatch slices with each chunk's
+        ``rbar`` detached before accumulation -- so no chunk's graph survives
+        past its own iteration. Feeds the resulting ``raw_bin_means`` through
+        the unmodified, already-tested ``causal_physics_loss`` (the same call
+        ``_non_data_terms`` makes) so the weight FORMULA is untouched; only
+        how ``raw_bin_means`` was computed differs.
+        """
+        times_np = anchor_ctx.collocation_times
+        n_total = int(times_np.shape[0])
+        if microbatch_size <= 0:
+            raise ValueError(f"microbatch_size must be positive; got {microbatch_size!r}")
+        bin_sums = torch.zeros(_RATIFIED_N_BINS, dtype=self._dtype, device=self._device)
+        bin_counts = torch.zeros(_RATIFIED_N_BINS, dtype=self._dtype, device=self._device)
+        start = 0
+        while start < n_total:
+            end = min(start + microbatch_size, n_total)
+            chunk_times_np = times_np[start:end]
+            positions_chunk, velocities_chunk, rbar_chunk = self._collocation_chunk_raw(
+                anchor_ctx, chunk_times_np,
+            )
+            rbar_chunk = rbar_chunk.detach().clone()
+            times_tensor_chunk = torch.as_tensor(
+                chunk_times_np, dtype=self._dtype, device=self._device,
+            )
+            bin_idx_chunk = _bin_index_for_times(
+                times_tensor_chunk, n_bins=_RATIFIED_N_BINS, t_max=T_CHARACTERISTIC_TIME,
+            )
+            bin_sums = bin_sums.index_add(0, bin_idx_chunk, rbar_chunk)
+            bin_counts = bin_counts.index_add(0, bin_idx_chunk, torch.ones_like(rbar_chunk))
+            del positions_chunk, velocities_chunk, rbar_chunk, bin_idx_chunk, times_tensor_chunk
+            self._release_chunk_memory()
+            start = end
+        raw_bin_means = bin_sums / bin_counts.clamp(min=1.0)
+        bin_centres = (
+            torch.arange(_RATIFIED_N_BINS, dtype=self._dtype, device=self._device)
+            + torch.as_tensor(0.5, dtype=self._dtype, device=self._device)
+        ) / _RATIFIED_N_BINS * T_CHARACTERISTIC_TIME
+        _discard_loss, phys_details = causal_physics_loss(
+            raw_bin_means, r_ref=self._r_ref, times=bin_centres,
+            dtype=self._dtype, device=self._device, return_details=True,
+        )
+        return phys_details, bin_counts.detach()
+
+    def _run_adam_step_microbatched(
+        self,
+        batch,
+        anchor_ctx: _AnchorContext,
+        weights,
+        parameters: tuple[torch.nn.Parameter, ...],
+        *,
+        microbatch_size: int,
+        want_diagnostics: bool,
+    ) -> tuple[LossTerms, dict[str, Any]]:
+        """One memory-bounded Adam step: Pass 1 weights, Pass 2 gradients.
+
+        Every microbatch's graph is backward()'d and freed before the next
+        is built, so peak memory is bounded by ``microbatch_size`` rather
+        than the full 4096-row batch. The combined gradient this leaves in
+        ``.grad`` is identical (to float tolerance) to a single full-batch
+        backward by linearity of the gradient of a sum -- the SAME
+        discipline ``accumulate_chunked_data_term`` already relies on for
+        ``L_data``; see the mandatory blocking equivalence test.
+
+        ``want_diagnostics`` gates the five-term raw/applied gradient-norm
+        breakdown (Decision B cadence): when ``False``, those ten fields are
+        ``None`` and ``grad_stats_complete`` is ``False``, but the loss
+        VALUES (data/ic/phys/energy/angmom/total) and the causal-weight/
+        bin-residual telemetry are ALWAYS fully populated regardless of
+        this flag -- only the per-term gradient-norm decomposition is
+        cadence-limited.
+        """
+        phys_details, bin_counts = self._adam_frozen_causal_weights(
+            anchor_ctx, microbatch_size=microbatch_size,
+        )
+        w_n = phys_details["w_n"]
+        r_ref = float(phys_details["r_ref"])
+        n_bins = _RATIFIED_N_BINS
+
+        zero_u = torch.zeros((), dtype=self._dtype, device=self._device)
+        pred_r0 = anchor_ctx.traj(zero_u)
+        first0, _second0 = componentwise_du(anchor_ctx.traj, zero_u)
+        pred_v0 = first0.reshape(3, 3)
+        ic_term = ic_anchor_loss(
+            pred_r0, anchor_ctx.true_r0, pred_v0, anchor_ctx.true_v0,
+            dtype=self._dtype, device=self._device,
+        )
+        data_term = self._data_term(batch.data_points)
+
+        raw_grads: dict[str, list[torch.Tensor]] = {}
+        if want_diagnostics:
+            raw_grads = {
+                name: [torch.zeros_like(p) for p in parameters]
+                for name, _weight_name in _GRAD_STAT_TERMS
+            }
+
+        def _accumulate_raw_grad(
+            name: str, term_scalar: torch.Tensor, *, retain_graph: bool,
+        ) -> None:
+            grads = torch.autograd.grad(
+                term_scalar, parameters, create_graph=False, retain_graph=retain_graph,
+                allow_unused=True, materialize_grads=False,
+            )
+            acc = raw_grads[name]
+            for i, g in enumerate(grads):
+                if g is not None:
+                    acc[i] = acc[i] + g.detach()
+
+        data_scaled = weights.lambda_data * data_term
+        ic_scaled = weights.lambda_ic * ic_term
+        if want_diagnostics:
+            _accumulate_raw_grad("data", data_term, retain_graph=True)
+            _accumulate_raw_grad("ic", ic_term, retain_graph=True)
+        (data_scaled + ic_scaled).backward()
+        del data_scaled, ic_scaled
+        self._release_chunk_memory()
+
+        times_np = anchor_ctx.collocation_times
+        n_total = int(times_np.shape[0])
+        phys_total = torch.zeros((), dtype=self._dtype, device=self._device)
+        energy_total = torch.zeros((), dtype=self._dtype, device=self._device)
+        angmom_total = torch.zeros((), dtype=self._dtype, device=self._device)
+        start = 0
+        while start < n_total:
+            end = min(start + microbatch_size, n_total)
+            chunk_times_np = times_np[start:end]
+            positions_chunk, velocities_chunk, rbar_chunk = self._collocation_chunk_raw(
+                anchor_ctx, chunk_times_np,
+            )
+            times_tensor_chunk = torch.as_tensor(
+                chunk_times_np, dtype=self._dtype, device=self._device,
+            )
+            bin_idx_chunk = _bin_index_for_times(
+                times_tensor_chunk, n_bins=n_bins, t_max=T_CHARACTERISTIC_TIME,
+            )
+            # Detached constant per row: w_n[bin(i)] / (n_bins * r_ref *
+            # count[bin(i)]) -- by construction this reproduces EXACTLY
+            # causal_physics_loss's (weights * r_tilde).mean() once summed
+            # over every row of every microbatch (band-generation-2 scope
+            # brief derivation; see the equivalence test for the check).
+            row_weight_chunk = (
+                w_n[bin_idx_chunk]
+                / (float(n_bins) * r_ref * bin_counts[bin_idx_chunk])
+            )
+            phys_chunk = (row_weight_chunk * rbar_chunk).sum()
+            chunk_frac = float(end - start) / float(n_total)
+            energy_chunk = chunk_frac * soft_energy_loss(
+                positions_chunk, velocities_chunk, anchor_ctx.h0, anchor_ctx.eps_h,
+                masses=anchor_ctx.masses, dtype=self._dtype, device=self._device,
+            )
+            angmom_chunk = chunk_frac * angular_momentum_loss(
+                positions_chunk, velocities_chunk, anchor_ctx.l0,
+                masses=anchor_ctx.masses, dtype=self._dtype, device=self._device,
+            )
+            weighted_chunk = (
+                weights.lambda_phys * phys_chunk
+                + weights.lambda_e * energy_chunk
+                + weights.lambda_l * angmom_chunk
+            )
+            if want_diagnostics:
+                _accumulate_raw_grad("phys", phys_chunk, retain_graph=True)
+                _accumulate_raw_grad("energy", energy_chunk, retain_graph=True)
+                _accumulate_raw_grad("angmom", angmom_chunk, retain_graph=True)
+            weighted_chunk.backward()
+            phys_total = phys_total + phys_chunk.detach()
+            energy_total = energy_total + energy_chunk.detach()
+            angmom_total = angmom_total + angmom_chunk.detach()
+            del (
+                positions_chunk, velocities_chunk, rbar_chunk, bin_idx_chunk,
+                times_tensor_chunk, row_weight_chunk, phys_chunk, energy_chunk,
+                angmom_chunk, weighted_chunk,
+            )
+            self._release_chunk_memory()
+            start = end
+
+        data_value = data_term.detach()
+        ic_value = ic_term.detach()
+        total_value = (
+            weights.lambda_data * data_value + weights.lambda_ic * ic_value
+            + weights.lambda_phys * phys_total + weights.lambda_e * energy_total
+            + weights.lambda_l * angmom_total
+        )
+        loss_terms = LossTerms(
+            data=data_value, ic=ic_value, phys=phys_total,
+            energy=energy_total, angmom=angmom_total, total=total_value,
+        )
+
+        w_n_list = w_n.tolist()
+        r_tilde = phys_details["rbar"]
+        raw_rbar = phys_details["raw_rbar"]
+        self._last_widened_details = {
+            "w_n_stats": {
+                "w_min": float(w_n.min()),
+                "w_mean": float(w_n.mean()),
+                "w_max": float(w_n.max()),
+                "front_idx": max(
+                    [n for n, w in enumerate(w_n_list) if w > 0.5], default=-1,
+                ),
+            },
+            "weights": [float(w) for w in w_n_list],
+            "residuals_per_bin": [float(r) for r in r_tilde.tolist()],
+            "raw_residuals_per_bin": [float(r) for r in raw_rbar.tolist()],
+            "r_ref": r_ref,
+            "n_collocation_rows": n_total,
+            "n_bins": int(n_bins),
+            "ic": float(ic_value),
+            "phys": float(phys_total),
+            "energy": float(energy_total),
+            "angmom": float(angmom_total),
+        }
+        # The microbatched Adam path never populates the L-BFGS-only
+        # closure-diagnostic stash (``_weighted_non_data_terms`` is not on
+        # this call path).
+        self._last_non_data_terms = None
+
+        gradient_stats: dict[str, Any] = {
+            "grad_stats_provenance": (
+                "microbatch_pass2_diagnostic"
+                if want_diagnostics else "microbatch_pass2_cadence_skipped"
+            ),
+        }
+        complete = True
+        for name, weight_name in _GRAD_STAT_TERMS:
+            if want_diagnostics:
+                squared = [g.reshape(-1).square().sum() for g in raw_grads[name]]
+                raw: Optional[float] = float(torch.sqrt(sum(squared))) if squared else 0.0
+            else:
+                raw = None
+            weight = float(getattr(weights, weight_name))
+            applied = None if raw is None else weight * raw
+            gradient_stats[f"grad_norm_raw_{name}"] = raw
+            gradient_stats[f"grad_norm_applied_{name}"] = applied
+            try:
+                complete = complete and raw is not None and math.isfinite(float(raw))
+                complete = complete and applied is not None and math.isfinite(float(applied))
+                complete = complete and math.isfinite(weight) and weight >= 0.0
+            except (TypeError, ValueError):
+                complete = False
+        gradient_stats["grad_stats_complete"] = bool(complete and want_diagnostics)
+        return loss_terms, gradient_stats
+
+    # ------------------------------------------------------------------
     # Phase 2a: Adam.
     # ------------------------------------------------------------------
     def _run_adam_phase(
@@ -1684,37 +2035,49 @@ class RunController:
             weights = self._scheduled_weights.current(epoch)
 
             optimizer.zero_grad(set_to_none=True)
-            loss_terms = self._compose_loss_terms(batch, anchor_ctx, weights)
+            # 57-07 band-generation-2 Decision A: memory-bounded two-pass
+            # microbatch execution replaces the monolithic 4096-row
+            # `_compose_loss_terms` + single `total.backward()`. Every
+            # microbatch's graph is backward()'d and freed before the next
+            # is built (see `_run_adam_step_microbatched`), so `.grad` is
+            # ALWAYS fully populated by the time this call returns -- there
+            # is no "loss finite, so backward" branch to preserve; this
+            # mirrors the existing `_make_lbfgs_closure` precedent (backward
+            # unconditionally, check finiteness after) rather than inventing
+            # a new discipline.
+            #
+            # Decision B: the five-term gradient-norm breakdown is cadence-
+            # gated on `run.log_every` (plus unconditionally on a step that
+            # is about to end in a guard trip -- the memory-watermark guard
+            # in particular never consults per-term gradients, only
+            # `driver_allocated_memory()` and the combined `grad_norm` this
+            # call always produces, so it is unaffected either way). Loss
+            # VALUES and causal-weight/bin-residual telemetry are always
+            # complete regardless of this flag.
+            log_every = int(self._config.run.log_every)
+            want_diagnostics = ((self._global_step + 1) % max(1, log_every) == 0)
+            microbatch_size = int(self._config.opt.adam_microbatch_size)
+            loss_terms, gradient_stats = self._run_adam_step_microbatched(
+                batch, anchor_ctx, weights, parameters,
+                microbatch_size=microbatch_size, want_diagnostics=want_diagnostics,
+            )
             (
                 causal_w_n_stats, causal_residuals,
                 causal_raw_residuals, causal_r_ref,
             ) = self._snapshot_training_causal_details()
-            gradient_stats = _build_gradient_stats(
-                {
-                    "data": getattr(loss_terms, "data", None),
-                    "ic": getattr(loss_terms, "ic", None),
-                    "phys": getattr(loss_terms, "phys", None),
-                    "energy": getattr(loss_terms, "energy", None),
-                    "angmom": getattr(loss_terms, "angmom", None),
-                },
-                weights,
-                parameters,
-                provenance="pre_total_backward",
-            )
+            clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
+            try:
+                grad_norm: Optional[float] = float(clip_outcome.total_norm)
+            except Exception:
+                grad_norm = None
 
             # ---- Guard path (cycle-2 HIGH 1 + cycle-4 MEDIUM-2): Adam ----
-            # Loss/grad exist before optimizer.step(); guard runs FIRST so a
-            # NaN/Inf writes the failure bundle rather than the bare RECOVER.
-            clip_outcome = None
-            grad_norm: Optional[float] = None
+            # `.grad` is already fully populated above; the guard/finite
+            # checks below run against that completed state, exactly the
+            # order the memory-watermark guard needs (it reads process
+            # memory AFTER the step's real computation, which chunking is
+            # what bounds).
             if self._guard_hook is not None:
-                if self._loss_finite(loss_terms.total):
-                    loss_terms.total.backward()
-                    clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
-                    try:
-                        grad_norm = float(clip_outcome.total_norm)
-                    except Exception:
-                        grad_norm = None
                 guard_outcome = self._guard_hook(
                     self, loss_terms, grad_norm, self._global_step, k, "2a",
                 )
@@ -1739,66 +2102,32 @@ class RunController:
                         r_ref=causal_r_ref,
                     )
                     return handoff_trigger, adam_epochs_used
-                # Guard did not trip — inline checks fire as Phase 40.
-                if not self._loss_finite(loss_terms.total):
-                    state["disposition"] = StageDisposition.RECOVER
-                    self._log_step(
-                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
-                        phase="2a", stage=k, grad_norm=None,
-                        step_completed=False, weights=weights,
-                        gradient_stats=gradient_stats,
-                        w_n_stats=causal_w_n_stats,
-                        residuals_per_bin=causal_residuals,
-                        raw_residuals_per_bin=causal_raw_residuals,
-                        r_ref=causal_r_ref,
-                    )
-                    return handoff_trigger, adam_epochs_used
-                if clip_outcome is None:
-                    loss_terms.total.backward()
-                    clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
-                if clip_outcome.non_finite:
-                    state["disposition"] = StageDisposition.RECOVER
-                    self._log_step(
-                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
-                        phase="2a", stage=k, grad_norm=grad_norm,
-                        step_completed=False, weights=weights,
-                        gradient_stats=gradient_stats,
-                        w_n_stats=causal_w_n_stats,
-                        residuals_per_bin=causal_residuals,
-                        raw_residuals_per_bin=causal_raw_residuals,
-                        r_ref=causal_r_ref,
-                    )
-                    return handoff_trigger, adam_epochs_used
-            else:
-                # Phase-40 path: inline non-finite checks only.
-                if not self._loss_finite(loss_terms.total):
-                    state["disposition"] = StageDisposition.RECOVER
-                    self._log_step(
-                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
-                        phase="2a", stage=k, grad_norm=None,
-                        step_completed=False, weights=weights,
-                        gradient_stats=gradient_stats,
-                        w_n_stats=causal_w_n_stats,
-                        residuals_per_bin=causal_residuals,
-                        raw_residuals_per_bin=causal_raw_residuals,
-                        r_ref=causal_r_ref,
-                    )
-                    return handoff_trigger, adam_epochs_used
-                loss_terms.total.backward()
-                clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
-                if clip_outcome.non_finite:
-                    state["disposition"] = StageDisposition.RECOVER
-                    self._log_step(
-                        step=self._global_step + 1, loss_terms=loss_terms, lr=None,
-                        phase="2a", stage=k, grad_norm=grad_norm,
-                        step_completed=False, weights=weights,
-                        gradient_stats=gradient_stats,
-                        w_n_stats=causal_w_n_stats,
-                        residuals_per_bin=causal_residuals,
-                        raw_residuals_per_bin=causal_raw_residuals,
-                        r_ref=causal_r_ref,
-                    )
-                    return handoff_trigger, adam_epochs_used
+            if not self._loss_finite(loss_terms.total):
+                state["disposition"] = StageDisposition.RECOVER
+                self._log_step(
+                    step=self._global_step + 1, loss_terms=loss_terms, lr=None,
+                    phase="2a", stage=k, grad_norm=grad_norm,
+                    step_completed=False, weights=weights,
+                    gradient_stats=gradient_stats,
+                    w_n_stats=causal_w_n_stats,
+                    residuals_per_bin=causal_residuals,
+                    raw_residuals_per_bin=causal_raw_residuals,
+                    r_ref=causal_r_ref,
+                )
+                return handoff_trigger, adam_epochs_used
+            if clip_outcome.non_finite:
+                state["disposition"] = StageDisposition.RECOVER
+                self._log_step(
+                    step=self._global_step + 1, loss_terms=loss_terms, lr=None,
+                    phase="2a", stage=k, grad_norm=grad_norm,
+                    step_completed=False, weights=weights,
+                    gradient_stats=gradient_stats,
+                    w_n_stats=causal_w_n_stats,
+                    residuals_per_bin=causal_residuals,
+                    raw_residuals_per_bin=causal_raw_residuals,
+                    r_ref=causal_r_ref,
+                )
+                return handoff_trigger, adam_epochs_used
 
             optimizer.step()
             scheduler.step()

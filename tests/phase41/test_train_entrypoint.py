@@ -697,7 +697,8 @@ class ReproHonestyTests(_TrainHarness):
 # factory/conformance call for Stage 1) are proven at the CurriculumController
 # level in tests/phase40/test_controllers.py::StageZeroOnlyGuardTests; this
 # class covers only the CLI wiring: the flag parses/is accepted for a fresh
-# launch, and --stage-0-only + --resume refuses before any construction.
+# launch, and (57-08 owner ruling 2026-09-12) --stage-0-only now ACCEPTS a
+# Stage-0 resume target while still refusing a Stage-1+ one.
 # ---------------------------------------------------------------------------
 
 class StageZeroOnlyCliTests(_TrainHarness):
@@ -709,19 +710,54 @@ class StageZeroOnlyCliTests(_TrainHarness):
         run_dir = self.runs_root / "test-run"
         self.assertTrue((run_dir / "config.yaml").is_file())
 
-    def test_stage_0_only_with_resume_refuses_before_construction(self):
-        # "latest" bypasses the earlier --resume-path-exists check (it is
-        # exempted by name) so this reaches the --stage-0-only validation
-        # rather than an unrelated "path does not exist" refusal.
+    def test_stage_0_only_accepts_a_stage_0_resume_target(self):
+        """57-08 owner ruling (2026-09-12) narrowing the former blanket refusal.
+
+        The SCOPE-36 ceiling fires at Stage-0 EXIT -- it returns a Stage-0
+        ADVANCE as terminal before any 0->1 promotion -- so it is orthogonal
+        to how the run was launched. Refusing every resume forced each graded
+        seed into one ~11 h uninterrupted window; an operator must be able to
+        stop and resume their own Stage-0 run.
+        """
+        code, out, err = self._run(
+            ["--config", str(self.cfg_path), "--stage-0-only"]
+        )
+        self.assertEqual(code, 0, msg=f"stdout={out}\nstderr={err}")
         code, out, err = self._run(
             ["--config", str(self.cfg_path), "--resume", "latest", "--stage-0-only"]
         )
+        self.assertEqual(code, 0, msg=f"stdout={out}\nstderr={err}")
+
+    def test_stage_0_only_still_refuses_a_stage_1_resume_target(self):
+        """The half of the old refusal that survives, still fail-closed.
+
+        The Stage-0-only ceiling may not govern a Stage-1+ re-entry. The
+        target's stage is only knowable after the payload loads, which is why
+        the check now lives at the resume-plan site rather than in argv
+        validation.
+        """
+        import torch
+
+        code, out, err = self._run(
+            ["--config", str(self.cfg_path), "--stage-0-only"]
+        )
+        self.assertEqual(code, 0, msg=f"stdout={out}\nstderr={err}")
+
+        ckpt = self.runs_root / "test-run" / "checkpoints" / "latest.pt"
+        payload = torch.load(ckpt, map_location="cpu", weights_only=False)
+        curriculum = dict(payload.get("curriculum") or {})
+        curriculum["stage"] = 1
+        payload["curriculum"] = curriculum
+        forged = ckpt.parent / "forged-stage-1.pt"
+        torch.save(payload, forged)
+
+        code, out, err = self._run(
+            ["--config", str(self.cfg_path), "--resume", str(forged),
+             "--stage-0-only"]
+        )
         self.assertEqual(code, 1, msg=f"stdout={out}\nstderr={err}")
         self.assertIn("stage-0-only", err.lower())
-        self.assertIn("resume", err.lower())
-        # Refused before construction: no run directory was ever created.
-        run_dir = self.runs_root / "test-run"
-        self.assertFalse(run_dir.exists())
+        self.assertIn("stage 1", err.lower())
 
 
 if __name__ == "__main__":

@@ -127,7 +127,19 @@ def _build_run_controller(
 
 
 def _patch_cheap_loss(controller, *, phys=1.0, total_seq=None):
-    """Replace expensive physics with a cheap params-only loss."""
+    """Replace expensive physics with a cheap params-only loss.
+
+    57-07: Adam's real step no longer routes through ``_compose_loss_terms``
+    (Decision A microbatched execution backward()s per chunk internally), so
+    this also overrides ``_run_adam_step_microbatched`` with an equivalent
+    fake that performs the SAME backward -- unconditionally for the default
+    graph-connected constant total, and never for an explicit ``total_seq``
+    override (matching ``_canned_loss_terms``'s pre-57-07 "isfinite before
+    backward" guarantee, e.g. the NaN-in-Adam RECOVER tests). Both seams stay
+    patched: validation (unaffected by 57-07) still calls
+    ``_compose_loss_terms`` for real, so the shared ``call_count`` continues
+    to reflect every composition regardless of which seam served it.
+    """
     dtype, device = controller._dtype, controller._device
     call_count = {"n": 0}
     seq = list(total_seq) if total_seq is not None else None
@@ -143,7 +155,23 @@ def _patch_cheap_loss(controller, *, phys=1.0, total_seq=None):
         call_count["n"] += 1
         return _canned_loss_terms(controller._model, phys, dtype, device)
 
+    def fake_adam_step(batch, anchor_ctx, weights, parameters, **_kwargs):
+        loss_terms = fake_compose(batch, anchor_ctx, weights)
+        if seq is None:
+            loss_terms.total.backward()
+        gradient_stats = {
+            "grad_stats_provenance": "test-fake-cheap-loss",
+            "grad_stats_complete": False,
+        }
+        detached = LossTerms(
+            data=loss_terms.data.detach(), ic=loss_terms.ic.detach(),
+            phys=loss_terms.phys.detach(), energy=loss_terms.energy.detach(),
+            angmom=loss_terms.angmom.detach(), total=loss_terms.total.detach(),
+        )
+        return detached, gradient_stats
+
     controller._compose_loss_terms = fake_compose  # type: ignore[method-assign]
+    controller._run_adam_step_microbatched = fake_adam_step  # type: ignore[method-assign]
     return call_count
 
 

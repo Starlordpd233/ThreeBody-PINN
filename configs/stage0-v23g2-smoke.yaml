@@ -1,0 +1,42 @@
+# Phase-57 band-generation-2 calibration smoke. Derived from
+# stage0-v23-smoke.yaml (generation 1, preserved untouched at
+# runs/stage0-v23-smoke/) with the memory-bounded microbatched Adam step
+# (Decision A) and periodic gradient telemetry (Decision B) from the
+# 2026-09-09 band-generation-2 scope brief. No ratified recipe value moves:
+# 4096 rows, 16 bins x 256, batch-global prefix, frozen R_ref, the N=500
+# window, and the 1000/1000 budget are all unchanged from generation 1.
+run:
+  seed: 42
+  precision: float32
+  device: mps
+  smoke: true
+  log_every: 50
+  run_name: stage0-v23g2-smoke
+  checkpoint:
+    every_n_steps: 100
+    rolling_keep: 4
+  invariants:
+    front_advance_window_n: 500
+  monitor:
+    heartbeat_secs: 30
+    staleness_factor: 3
+
+stage:
+  max_epochs: 300
+  n_adam: 300
+  stagnation_window: 10000
+  percentile_10_relaxation: 0.1
+  replay_count: 240
+  collocation_count: 4096
+
+opt:
+  validation_every: 100
+  adam_microbatch_size: 256
+
+loss:
+  lambda_e_max: 0.0
+  r_ref_artifact_path: pinn/verification/artifacts/r_ref_stage0.json
+
+data:
+  source: admitted
+  blacklist_path: ../Documentation/problematic_ics_blacklist.json

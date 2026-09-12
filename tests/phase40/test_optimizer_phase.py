@@ -244,7 +244,29 @@ class RunControllerControlFlowTests(unittest.TestCase):
         def fake_compose(batch, anchor_ctx, weights):
             return _canned_loss_terms(model, 1.0, dtype, device)
 
+        # 57-07: Adam's real step no longer calls `_compose_loss_terms`; the
+        # plateau detector reads `loss_terms.phys`, so the fake Adam step
+        # must return the SAME constant-`phys` canned terms (and back-
+        # propagate a real, zero-cost graph-connected total so optimizer
+        # mechanics still run) for the plateau math below to hold.
+        def fake_adam_step(batch, anchor_ctx, weights, parameters, **_kwargs):
+            loss_terms = fake_compose(batch, anchor_ctx, weights)
+            loss_terms.total.backward()
+            detached = LossTerms(
+                data=loss_terms.data.detach(), ic=loss_terms.ic.detach(),
+                phys=loss_terms.phys.detach(), energy=loss_terms.energy.detach(),
+                angmom=loss_terms.angmom.detach(), total=loss_terms.total.detach(),
+            )
+            gradient_stats = {
+                "grad_stats_provenance": "test-fake-flat-phys",
+                "grad_stats_complete": False,
+            }
+            return detached, gradient_stats
+
         with mock.patch.object(controller, "_compose_loss_terms", side_effect=fake_compose), \
+             mock.patch.object(
+                 controller, "_run_adam_step_microbatched", side_effect=fake_adam_step,
+             ), \
              mock.patch(f"{MODULE}.accumulate_chunked_data_term", side_effect=_fake_chunked_data_term), \
              mock.patch.object(controller, "_weighted_non_data_terms",
                                side_effect=_make_fake_non_data_terms(controller)):
@@ -319,7 +341,19 @@ class RunControllerControlFlowTests(unittest.TestCase):
         def fake_compose(batch, anchor_ctx, weights):
             return _canned_loss_terms(model, 1.0, dtype, device, total_override=float("nan"))
 
-        with mock.patch.object(controller, "_compose_loss_terms", side_effect=fake_compose):
+        # 57-07: the mock seam for Adam's real step moved off
+        # `_compose_loss_terms` (see module-level note above `_fake_adam_step`).
+        def fake_adam_step(batch, anchor_ctx, weights, parameters, **_kwargs):
+            gradient_stats = {
+                "grad_stats_provenance": "test-fake-nan",
+                "grad_stats_complete": False,
+            }
+            return fake_compose(batch, anchor_ctx, weights), gradient_stats
+
+        with mock.patch.object(controller, "_compose_loss_terms", side_effect=fake_compose), \
+             mock.patch.object(
+                 controller, "_run_adam_step_microbatched", side_effect=fake_adam_step,
+             ):
             disposition = controller.run_stage(0)
         self.assertEqual(disposition, StageDisposition.RECOVER)
 
@@ -512,7 +546,30 @@ class RunControllerControlFlowTests(unittest.TestCase):
                 angmom=zero, total=total,
             )
 
-        with mock.patch.object(controller, "_compose_loss_terms", side_effect=fake_compose):
+        # 57-07: Adam's real step no longer calls `_compose_loss_terms`
+        # (Decision A microbatched execution backward()s per chunk
+        # internally), so this seam must move to `_run_adam_step_microbatched`
+        # for the mock to take effect. The graph-connected zero-gradient
+        # `total` (backward -> `.grad` all zeros -> params never move) is
+        # preserved exactly; only who calls `.backward()` on it changes.
+        def fake_adam_step(batch, anchor_ctx, weights, parameters, **_kwargs):
+            loss_terms = fake_compose(batch, anchor_ctx, weights)
+            loss_terms.total.backward()
+            detached = LossTerms(
+                data=loss_terms.data.detach(), ic=loss_terms.ic.detach(),
+                phys=loss_terms.phys.detach(), energy=loss_terms.energy.detach(),
+                angmom=loss_terms.angmom.detach(), total=loss_terms.total.detach(),
+            )
+            gradient_stats = {
+                "grad_stats_provenance": "test-fake-zero-grad",
+                "grad_stats_complete": False,
+            }
+            return detached, gradient_stats
+
+        with mock.patch.object(controller, "_compose_loss_terms", side_effect=fake_compose), \
+             mock.patch.object(
+                 controller, "_run_adam_step_microbatched", side_effect=fake_adam_step,
+             ):
             disposition = controller.run_stage(0)
 
         self.assertEqual(disposition, StageDisposition.ADVANCE)

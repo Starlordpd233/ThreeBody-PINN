@@ -47,6 +47,7 @@ from pinn.training.controllers import (
 from pinn.training.grad_clip import GradClipper
 from pinn.training.guards import StepGuards, write_failure_bundle
 from pinn.conformance.preflight import (
+    run_microbatch_memory_preflight,
     run_start_preflight,
 )
 from pinn.conformance.table import assert_phys05_table
@@ -792,17 +793,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(f"error: {exc}", file=sys.stderr)
             return 1
 
-    # SCOPE-27 / 50-CONTEXT.md D-01: --stage-0-only is a fresh-run-only guard.
-    # Refuse the combination with --resume BEFORE any construction, matching
-    # the --hold-stage-requires---resume validation above.
-    if args.stage_0_only and args.resume is not None:
-        print(
-            "error: --stage-0-only is a fresh-run-only guard (D-01/SCOPE-27) "
-            "and refuses combination with --resume; omit --resume for a "
-            "guarded fresh launch",
-            file=sys.stderr,
-        )
-        return 1
+    # SCOPE-27 / 50-CONTEXT.md D-01: --stage-0-only is the Stage-0-only
+    # training-authorization ceiling (SCOPE-36).
+    #
+    # 57-08 owner ruling (2026-09-12) NARROWS the former blanket refusal of
+    # --resume. Superseded rule: "--stage-0-only is a fresh-run-only guard ...
+    # and refuses combination with --resume". Rationale: the ceiling fires at
+    # Stage-0 EXIT -- on a Stage-0 ADVANCE it returns that ADVANCE as terminal
+    # before any stage increment, stage_factory call, stage-1-init write, or
+    # 0->1 promotion -- so it is orthogonal to how the run was launched. The
+    # blanket refusal forced every graded seed into one ~11 h uninterrupted
+    # window on operator hardware that cannot hold one. What the refusal DOES
+    # legitimately protect against is pairing the Stage-0 ceiling with a
+    # Stage-1+ resume target; that needs the checkpoint's own stage, which is
+    # unknown until _derive_resume_plan. Re-issued criterion: the check moves
+    # to that site (search "57-08 stage-0-only resume gate") and stays
+    # fail-closed -- a non-Stage-0 target is still refused.
 
     try:
         config = load_config(args.config)
@@ -1295,6 +1301,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"error: conformance preflight failed: {exc}", file=sys.stderr)
         return finish_run("failed", 1)
 
+    # 57-07 band-generation-2 scope brief §3: exercise the real Adam step
+    # once at the configured microbatch size before any real optimizer step,
+    # and refuse fast if it would trip the memory watermark. Placed right
+    # after `run_start_preflight`, same rationale (before resume restoration
+    # or any curriculum stage can begin) -- 57-05-PLAN.md Task 3 already
+    # requires this check and no prior phase implemented it.
+    try:
+        run_microbatch_memory_preflight(
+            run_controller, config, step_guards=step_guards,
+        )
+    except ValueError as exc:
+        print(f"error: resource preflight failed: {exc}", file=sys.stderr)
+        return finish_run("failed", 1)
+
     initial_stage = 0
     resume_ctx: Optional[dict[str, Any]] = None
     from_resume = False
@@ -1331,6 +1351,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         initial_stage, resume_ctx = _derive_resume_plan(
             payload, hold_stage=bool(args.hold_stage), resume_arg=str(args.resume)
         )
+        # 57-08 stage-0-only resume gate (owner ruling 2026-09-12) -- the
+        # relocated, narrowed form of the former blanket D-01/SCOPE-27 CLI
+        # refusal. SCOPE-36's Stage-0 ceiling may only govern a Stage-0
+        # re-entry; anything else is refused fail-closed.
+        if args.stage_0_only and int(initial_stage) != 0:
+            print(
+                "error: --stage-0-only refuses a resume target outside Stage 0 "
+                f"(target resolves to stage {int(initial_stage)}); the "
+                "Stage-0-only ceiling (SCOPE-36) cannot govern a Stage-1+ "
+                "re-entry",
+                file=sys.stderr,
+            )
+            return finish_run("failed", 1)
 
     curriculum = CurriculumController(
         config=config,

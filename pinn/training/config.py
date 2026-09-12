@@ -322,6 +322,12 @@ _PROVISIONAL: tuple[tuple[str, Any, str], ...] = (
     ("stage.energy_floor_factor", 1e-4, "ctl_instruction.md CURR-03 ε_H=1e-4·S_H (CTX-38)"),
     ("opt.lbfgs_max_iter", 20, "CTX-47 L-BFGS max_iter open 20-50 range"),
     ("opt.lbfgs_chunk_size", 1024, "RESEARCH Open Question 2 accumulate-in-closure chunk"),
+    (
+        "opt.adam_microbatch_size", 256,
+        "57-07 band-generation-2 scope brief §1.2: memory-bounded Adam-phase "
+        "physics microbatch; hardware-dependent, provably result-invariant "
+        "once the equivalence test passes (no ratified recipe value moves)",
+    ),
     ("opt.validation_every", 10, "CTX-49 validation_every provisional"),
     ("opt.adam_lr_base", 1e-3, "ctl_instruction.md consolidated schedule LR 1e-3·0.7^k"),
     ("opt.adam_lr_decay", 0.7, "ctl_instruction.md consolidated schedule LR 1e-3·0.7^k"),
@@ -664,6 +670,7 @@ class OptConfig:
     lbfgs_line_search: str = "strong_wolfe"
     validation_every: int = 10  # CTX-49
     lbfgs_chunk_size: int = 1024  # RESEARCH OQ2 provisional
+    adam_microbatch_size: int = 256  # 57-07 band-generation-2 scope brief §1.2
 
     def __post_init__(self) -> None:
         if (
@@ -685,6 +692,7 @@ class OptConfig:
             ("lbfgs_max_iter", self.lbfgs_max_iter),
             ("validation_every", self.validation_every),
             ("lbfgs_chunk_size", self.lbfgs_chunk_size),
+            ("adam_microbatch_size", self.adam_microbatch_size),
         ):
             if not isinstance(val, int) or isinstance(val, bool) or val < 1:
                 raise ValueError(f"opt.{name} must be a positive int (got {val!r})")
@@ -839,6 +847,7 @@ class TrainingConfig:
             "stage.energy_floor_factor": self.stage.energy_floor_factor,
             "opt.lbfgs_max_iter": self.opt.lbfgs_max_iter,
             "opt.lbfgs_chunk_size": self.opt.lbfgs_chunk_size,
+            "opt.adam_microbatch_size": self.opt.adam_microbatch_size,
             "opt.validation_every": self.opt.validation_every,
             "opt.adam_lr_base": self.opt.adam_lr_base,
             "opt.adam_lr_decay": self.opt.adam_lr_decay,

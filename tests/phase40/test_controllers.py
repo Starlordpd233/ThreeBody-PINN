@@ -307,6 +307,33 @@ class RecoverRestoreBehavioralTests(unittest.TestCase):
 
         return fake_compose
 
+    @staticmethod
+    def _nan_adam_step(run_controller):
+        """57-07: the Adam-phase mock seam, since Adam no longer routes its
+        real (unmocked) step through ``_compose_loss_terms`` (Decision A
+        microbatched execution backward()s internally, per-chunk). NaN never
+        reaches ``.grad`` here -- matching the pre-57-07 "loss finite before
+        backward" guarantee -- so a RECOVER path restores from a clean
+        checkpoint rather than one poisoned by a NaN-gradient step.
+        """
+        dtype, device = run_controller._dtype, run_controller._device
+        zero = torch.zeros((), dtype=dtype, device=device)
+
+        def fake_step(batch, anchor_ctx, weights, parameters, **_kwargs):
+            loss_terms = LossTerms(
+                data=zero, ic=zero,
+                phys=torch.tensor(1.0, dtype=dtype, device=device),
+                energy=zero, angmom=zero,
+                total=torch.tensor(float("nan"), dtype=dtype, device=device),
+            )
+            gradient_stats = {
+                "grad_stats_provenance": "test-fake-nan",
+                "grad_stats_complete": False,
+            }
+            return loss_terms, gradient_stats
+
+        return fake_step
+
     def test_recover_with_retries_restores_model_params_from_checkpoint(self):
         controller, run_controller, model = self._build_live_curriculum(
             recover_retries=1,
@@ -329,6 +356,9 @@ class RecoverRestoreBehavioralTests(unittest.TestCase):
         with mock.patch.object(
             run_controller, "_compose_loss_terms",
             side_effect=self._nan_compose(run_controller),
+        ), mock.patch.object(
+            run_controller, "_run_adam_step_microbatched",
+            side_effect=self._nan_adam_step(run_controller),
         ):
             disposition = controller.step()
         # (5) Retry authorized at recover_retries=1 → RECOVER, and params
@@ -356,6 +386,9 @@ class RecoverRestoreBehavioralTests(unittest.TestCase):
         with mock.patch.object(
             run_controller, "_compose_loss_terms",
             side_effect=self._nan_compose(run_controller),
+        ), mock.patch.object(
+            run_controller, "_run_adam_step_microbatched",
+            side_effect=self._nan_adam_step(run_controller),
         ):
             disposition = controller.step()
 
@@ -746,8 +779,21 @@ class StageFactorySeamTests(unittest.TestCase):
                 total=torch.tensor(float("nan"), dtype=dtype, device=device),
             )
 
+        def nan_adam_step(batch, anchor_ctx, weights, parameters, **_kwargs):
+            gradient_stats = {
+                "grad_stats_provenance": "test-fake-nan",
+                "grad_stats_complete": False,
+            }
+            return nan_compose(batch, anchor_ctx, weights), gradient_stats
+
+        # 57-07: Adam no longer routes through ``_compose_loss_terms`` for its
+        # real (unmocked) step, so the NaN injection must ALSO patch the
+        # microbatched Adam-step seam -- otherwise the just-mutated (+1.0)
+        # live parameters would drive a REAL, uncontrolled physics forward.
         with mock.patch.object(
             stage1, "_compose_loss_terms", side_effect=nan_compose,
+        ), mock.patch.object(
+            stage1, "_run_adam_step_microbatched", side_effect=nan_adam_step,
         ):
             disposition = controller.step()
 

@@ -133,6 +133,27 @@ def _stamp_distinct_composer_results(controller):
 
     controller._non_data_terms = stamped
 
+    # 57-07: the real (unmocked) Adam step no longer reaches
+    # ``_non_data_terms`` at all -- Decision A's microbatched execution sets
+    # ``_last_widened_details`` itself from its own Pass 1/Pass 2 computation.
+    # Stamp that seam too, identically (overwrite after the real call, same
+    # TRAIN_W sentinel since Adam is always in training mode on this path).
+    original_adam_step = controller._run_adam_step_microbatched
+
+    def stamped_adam_step(batch, anchor_ctx, weights, parameters, **kwargs):
+        loss_terms, gradient_stats = original_adam_step(
+            batch, anchor_ctx, weights, parameters, **kwargs,
+        )
+        details = controller._last_widened_details
+        if details is None:
+            details = {}
+            controller._last_widened_details = details
+        details["w_n_stats"] = dict(TRAIN_W)
+        details["residuals_per_bin"] = list(TRAIN_RESIDUALS)
+        return loss_terms, gradient_stats
+
+    controller._run_adam_step_microbatched = stamped_adam_step
+
 
 class CausalTelemetryOwnershipTests(unittest.TestCase):
     def setUp(self):

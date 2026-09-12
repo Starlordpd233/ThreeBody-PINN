@@ -30,6 +30,7 @@ __all__ = [
     "evaluate_eval01_precondition_i",
     "load_preflight",
     "run_start_preflight",
+    "run_microbatch_memory_preflight",
 ]
 
 PREFLIGHT_FILENAME = "preflight.json"
@@ -713,3 +714,84 @@ def run_start_preflight(
             findings=(census_report or {}).get("findings", []),
         )
         raise _normalized_error("conformance census setup", exc) from exc
+
+
+def run_microbatch_memory_preflight(
+    controller: Any,
+    config: Any,
+    *,
+    step_guards: Any,
+    stage: int = 0,
+) -> dict[str, Any]:
+    """Exercise the real Adam step once, at the configured microbatch size,
+    before the first optimizer step -- 2026-09-09 band-generation-2 scope
+    brief §3. ``57-05-PLAN.md`` Task 3 already requires this ("abort rather
+    than reduce it if resource preflight fails"); no such check previously
+    existed, so generation 1 discovered its ceiling by spending 851.9s of
+    real wall clock inside the training loop (``blocked-state.json``). This
+    makes that discovery a typed, fast refusal instead.
+
+    Reads the memory signal through ``step_guards`` (the SAME accessor and
+    total-bytes the run's own memory-watermark guard checks every step), so
+    the preflight and the guard can never silently disagree about what
+    "the watermark" means.
+
+    The controller's own RNG stream is snapshotted and restored byte-for-
+    byte in a ``finally`` block, so this probe changes NOTHING about which
+    records the real run subsequently draws: band generation 2 remains
+    bit-reproducible relative to a hypothetical run without this preflight.
+    Model gradients accumulated by the probe step are zeroed before return
+    for the same reason -- the real first step must start from a clean
+    ``.grad``, exactly as if this preflight had not run.
+    """
+    rng = controller._rng
+    saved_rng_state = copy.deepcopy(rng.bit_generator.state)
+    parameters = tuple(
+        parameter for parameter in controller._model.parameters()
+        if parameter.requires_grad
+    )
+    try:
+        microbatch_size = int(config.opt.adam_microbatch_size)
+        collocation_count = int(controller._collocation_count)
+        batch = controller._stage_batch(
+            controller._train_source, stage=stage, collocation_count=collocation_count,
+        )
+        anchor_ctx = controller._build_anchor_context(
+            controller._train_source, batch, None,
+        )
+        weights = controller._scheduled_weights.current(0)
+        for parameter in parameters:
+            parameter.grad = None
+        controller._run_adam_step_microbatched(
+            batch, anchor_ctx, weights, parameters,
+            microbatch_size=microbatch_size, want_diagnostics=False,
+        )
+        allocated = step_guards.read_memory_signal()
+        if allocated is None:
+            return {
+                "passed": True,
+                "microbatch_size": microbatch_size,
+                "reason": "memory signal unavailable on this platform; skipped",
+            }
+        total_bytes = int(step_guards.memory_total_bytes)
+        threshold = float(step_guards.thresholds["memory_watermark_fraction"])
+        fraction = float(allocated) / float(total_bytes)
+        if fraction > threshold:
+            raise ConformancePreflightError(
+                "resource preflight: exercising the configured microbatch "
+                f"({microbatch_size} rows) allocated {allocated} of "
+                f"{total_bytes} watermark bytes (fraction {fraction:.4f}), "
+                f"exceeding the {threshold} memory_watermark_fraction "
+                "threshold; refusing rather than silently reducing the "
+                "ratified sample count (GAP-57-01 fail-closed evidence)"
+            )
+        return {
+            "passed": True,
+            "microbatch_size": microbatch_size,
+            "measured_fraction": fraction,
+            "threshold": threshold,
+        }
+    finally:
+        for parameter in parameters:
+            parameter.grad = None
+        rng.bit_generator.state = saved_rng_state

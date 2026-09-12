@@ -317,6 +317,20 @@ class StepGuards:
         """Read-only view of the injected ⚖ thresholds (for tests / logging)."""
         return dict(self._thresholds)
 
+    @property
+    def memory_total_bytes(self) -> int:
+        """The injected (or default) memory total this guard checks against.
+
+        57-07: exposed so ``pinn.conformance.preflight``'s resource preflight
+        reads the SAME total/signal the run's own memory-watermark guard
+        will use, rather than re-deriving them independently.
+        """
+        return self._memory_total_bytes
+
+    def read_memory_signal(self) -> Optional[int]:
+        """Read the current memory signal via the injected (or default) accessor."""
+        return self._memory_signal()
+
     def invariant_b_state_dict(self) -> dict[str, Any]:
         """Return JSON-serializable cross-step state for invariant B."""
         return {

@@ -1,0 +1,45 @@
+# Phase-57 band-generation-2 graded config. Derived from
+# stage0-v23-seed42.yaml (generation 1, preserved untouched at
+# runs/stage0-v23-seed42/) with the memory-bounded microbatched Adam
+# step (Decision A) and periodic gradient telemetry (Decision B) from the
+# 2026-09-09 band-generation-2 scope brief. No ratified recipe value moves:
+# 4096 rows, 16 bins x 256, batch-global prefix, frozen R_ref, the N=500
+# window, and the 1000/1000 budget are all unchanged from generation 1.
+run:
+  seed: 42
+  precision: float32
+  device: mps
+  log_every: 50
+  run_name: stage0-v23g2-seed42
+  recover_retries: 0
+  checkpoint:
+    wall_clock_ceiling_s: 120
+  guards:
+    loss_explosion_ceiling: 100000000000.0
+    disk_floor_fraction: 0.05
+    memory_watermark_fraction: 0.7
+  invariants:
+    front_advance_window_n: 500
+  monitor:
+    heartbeat_secs: 30
+    staleness_factor: 3
+
+stage:
+  max_epochs: 1000
+  n_adam: 1000
+  stagnation_window: 10000
+  percentile_10_relaxation: 0.1
+  replay_count: 240
+  collocation_count: 4096
+
+opt:
+  validation_every: 100
+  adam_microbatch_size: 256
+
+loss:
+  lambda_e_max: 0.0
+  r_ref_artifact_path: pinn/verification/artifacts/r_ref_stage0.json
+
+data:
+  source: admitted
+  blacklist_path: ../Documentation/problematic_ics_blacklist.json
