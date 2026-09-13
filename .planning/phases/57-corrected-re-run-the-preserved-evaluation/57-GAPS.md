@@ -616,3 +616,100 @@ separate verification and owner gates recorded in the resolution note.
   directory) without touching preserved evidence. `run.run_name` is a
   fingerprinted config field, so the four new configs are a config change that
   belongs to the next wave's plan, not to this preparation.
+
+---
+
+## GAP-57-04 — a governed pause is legal but has no run-ledger representation, and the closeout validator still rejects resumed launches
+
+- **Decision point.** The 57-08 owner ruling makes a deliberate operator stop
+  followed by `--stage-0-only --resume latest` "a governed pause of the same
+  run". No source says how the run ledger records such a run: every v1 record
+  field that describes an invocation is single-valued, and `run-window` still
+  fails closed on any record whose `launch_kind` is `"resume"`.
+
+- **Where in artifact.** `evidence/run-ledger.md` `records[]` (schema
+  `phase57-run-ledger/v1`: single-valued `command`, `process_pid`, `exit_code`,
+  `launch_started_utc`, `completion_utc`, `wall_clock_secs`);
+  `evidence/verify_phase57_evidence.py:345-346` (`cmd_run_window`);
+  `57-05-PLAN.md:98` (the 57-08 amendment).
+
+- **Task context.** Pre-launch check for the band generation 2 calibration
+  smoke (`configs/stage0-v23g2-smoke.yaml`), which the owner asked on
+  2026-09-13 to start as a run that is interruptible at any time. Surfaced
+  before `admit-run-window` because the phase directory is a fingerprinted
+  input and cannot be edited once the window opens. Blocking is
+  dependency-scoped: this blocks only the ledger record of a run that is
+  actually paused, and the `run-window` closeout of a band that contains one.
+  Launching the smoke or any graded run, and recording an uninterrupted run, do
+  not depend on it.
+
+- **Classification.** **Process-artifact schema** — it fixes the record format
+  for a run that spans more than one process, and the pass criterion of the
+  `run-window` closeout check.
+
+- **Source silence.**
+  - `57-05-PLAN.md:98` grounds four things: a deliberate stop is not an
+    operational failure, it is "a governed pause of the same run", it writes no
+    blocked-state, and it continues with `--stage-0-only --resume latest`. It is
+    silent on the ledger.
+  - `evidence/run-ledger.md` writes one record per run at its outcome (history:
+    the scaffold in `0640347c`, then the generation-1 record in `9b4f6e05`, with
+    no launch-only intermediate). No field holds a stop step, a boundary
+    checkpoint, or a second command, PID, or exit code.
+  - `verify_phase57_evidence.py:345` fails `launch_kind == "resume"` with "run
+    window contains a resumed launch". The check predates 57-08 and was not
+    amended with it; nothing says whether it now forbids a governed pause or
+    only an unrecorded restart.
+  - Phase 50 modelled invocations as a per-record `invocations[]` list with
+    `launch_kind` `fresh`/`resume` (`tests/phase50/_evidence_fixtures.py:849`)
+    and refused to build a band from a resumed invocation
+    (`tests/phase50/test_band_record.py:101-110`) — the pre-57-08 rule. The
+    Phase 57 v1 schema did not adopt `invocations[]`; its record-level
+    `launch_kind` carries `smoke`, a different meaning of the same key.
+
+- **Mathematical / engineering grounding.** The ledger binds each run's outcome
+  to its HEAD, config, command, process, and artifact hashes, so a later reader
+  can re-derive that the evidence is the evidence. A governed pause splits one
+  optimization trajectory across two OS processes. Numerically that is inert —
+  57-08 verified the resumed trajectory bit-identical to an uninterrupted one —
+  so no science is at stake. The defect is representational, and it fails in
+  either direction. Recorded as a separate `launch_kind: "resume"` record, the
+  pause makes `run-window` fail, so a band the owner ruled legitimate could not
+  close as RUN-WINDOW-OK: a false blocked outcome. Folded silently into one
+  record, the single-valued fields misstate provenance: the first process's
+  exit code is the interrupt code 130 rather than the run's outcome,
+  `wall_clock_secs` either counts or drops the paused interval, and the
+  boundary checkpoint carrying `invariant_b_state` — the artifact whose
+  correctness is what makes the pause governed — is addressed by no field.
+  Either reading changes what the closeout validator certifies.
+
+- **Agent was tempted to.** Record a paused run as one record with
+  `launch_kind` unchanged: take the launch fields from the first invocation and
+  the outcome fields from the last, and add a `pauses[]` list holding the stop
+  step, boundary-checkpoint sha256, continuation command, PID, and UTC times.
+  The reasoning was that "the same run" means one record, and that this keeps
+  `run-window` passing with no validator edit. Not done: it adds fields to a
+  versioned schema and decides what the single-valued fields describe.
+
+- **What the user needs to decide.**
+  - **(A)** One record per run plus a `pauses[]` list (stop step,
+    boundary-checkpoint sha256, continuation command, PID, UTC times).
+    Single-valued launch fields describe the first launch, outcome fields the
+    final process, and `wall_clock_secs` counts active time only. `run-window`
+    is unchanged.
+  - **(B)** Adopt the Phase 50 `invocations[]` pattern (one entry per process,
+    `launch_kind` `fresh`/`resume`), bump the schema to v2, and amend
+    `run-window` to accept a resume invocation only when it continues from a
+    boundary checkpoint carrying `invariant_b_state`. The validator edit
+    touches a fingerprinted path, which the plan forbids mutating during the
+    window, so it would land between the last run and closeout.
+  - **(C)** One record with no schema change; describe the pause in free text.
+  - **(D)** Defer until a pause actually occurs; nothing changes until then.
+
+- **Confidence of impact.** **MEDIUM** — no effect on training or on any run's
+  scientific validity. It bites only if a pause occurs, and in that branch it
+  decides whether closeout certifies the band correctly (HIGH).
+
+- **Status.** OPEN (surfaced 2026-09-13).
+
+- **Resolution note.**
