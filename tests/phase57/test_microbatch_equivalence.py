@@ -13,12 +13,20 @@ used for a graded band-generation-2 run.
 
 from __future__ import annotations
 
+import dataclasses
 import tempfile
 import unittest
 
 import torch
 
+from pinn.training.config import RATIFIED_COLLOCATION_COUNT
 from tests.phase40.test_optimizer_phase import _build_controller
+from tests.phase57._fixtures import (
+    build_run_controller,
+    make_full_slot_source,
+    make_stub_source,
+    make_training_config,
+)
 
 
 class MicrobatchEquivalenceTests(unittest.TestCase):
@@ -116,6 +124,85 @@ class MicrobatchEquivalenceTests(unittest.TestCase):
         shipped default microbatch size (256, one bin) -- the exact
         configuration band generation 2 will run under."""
         self._run_case(collocation_count=4096, microbatch_sizes=[256])
+
+
+class FrontMonitorChunkingEquivalenceTests(unittest.TestCase):
+    """GAP-57-05 (owner ruling 2026-09-16): the chunked frozen-monitor
+    evaluation must give the same bin means, weights and front as the
+    full-batch ``_non_data_terms`` evaluation it replaced.
+
+    Exact equality, not a tolerance: both paths run the identical per-row
+    physics and accumulate bin sums in the same row order, and the chunked
+    statistics measured bitwise-identical on this CPU/float64 fixture at
+    microbatch sizes 100, 256 and 4096 before this test was written.
+    """
+
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self.controller = build_run_controller(
+            make_full_slot_source(),
+            make_stub_source(n_stage0=50, id_offset=90_000),
+            tmp_dir=self._tmpdir.name,
+            config=make_training_config(collocation_count=RATIFIED_COLLOCATION_COUNT),
+        )
+
+    def _full_batch_reference(self):
+        controller = self.controller
+        anchor_ctx = controller._build_anchor_context(
+            controller._train_source, controller._front_monitor_batch, None,
+        )
+        controller._non_data_terms(anchor_ctx)
+        details = controller._last_widened_details
+        return {
+            "w_n_stats": dict(details["w_n_stats"]),
+            "residuals_per_bin": list(details["residuals_per_bin"]),
+            "raw_residuals_per_bin": list(details["raw_residuals_per_bin"]),
+            "r_ref": details["r_ref"],
+        }
+
+    def _assert_monitor_matches_full_batch(self, *, microbatch_sizes):
+        controller = self.controller
+        reference = self._full_batch_reference()
+        for microbatch_size in microbatch_sizes:
+            with self.subTest(microbatch_size=microbatch_size):
+                controller._config = dataclasses.replace(
+                    controller._config,
+                    opt=dataclasses.replace(
+                        controller._config.opt, adam_microbatch_size=microbatch_size,
+                    ),
+                )
+                stats = controller._evaluate_front_monitor()
+                for key, expected in reference.items():
+                    self.assertEqual(
+                        stats[key], expected,
+                        f"chunked monitor {key} differs from the full-batch "
+                        f"evaluation at microbatch_size={microbatch_size}",
+                    )
+                self.assertEqual(stats["n_bins"], len(reference["residuals_per_bin"]))
+                self.assertEqual(stats["n_collocation_rows"], RATIFIED_COLLOCATION_COUNT)
+        return reference
+
+    def test_chunked_monitor_matches_full_batch_across_microbatch_sizes(self):
+        self._assert_monitor_matches_full_batch(microbatch_sizes=(256, 100, 4096))
+
+    def test_chunked_monitor_matches_full_batch_with_an_interior_front(self):
+        # The fixture's own R_ref leaves the front at bin 0, which a wrong
+        # front computation could also produce; ten times R_ref moves it inside.
+        self.controller._r_ref = float(self.controller._r_ref) * 10.0
+        reference = self._assert_monitor_matches_full_batch(microbatch_sizes=(256,))
+        front = reference["w_n_stats"]["front_idx"]
+        self.assertTrue(
+            0 < front < len(reference["residuals_per_bin"]) - 1,
+            f"fixture no longer yields an interior front (front_idx={front}); "
+            "rescale R_ref so this case keeps exercising the front computation",
+        )
+
+    def test_monitor_leaves_the_training_stash_untouched(self):
+        sentinel = {"w_n_stats": {"front_idx": -7}}
+        self.controller._last_widened_details = sentinel
+        self.controller._evaluate_front_monitor()
+        self.assertIs(self.controller._last_widened_details, sentinel)
 
 
 class GuardFidelityTests(unittest.TestCase):

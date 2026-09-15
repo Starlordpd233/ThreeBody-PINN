@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import copy
+import ctypes
 import json
 import math
+import os
+import sys
+import threading
 from pathlib import Path
-from typing import Any, Mapping, Optional
+from typing import Any, Callable, Mapping, Optional
 
 import torch
 
@@ -716,12 +720,98 @@ def run_start_preflight(
         raise _normalized_error("conformance census setup", exc) from exc
 
 
+class _RusageInfoV2(ctypes.Structure):
+    """``struct rusage_info_v2`` from macOS ``<sys/resource.h>``."""
+
+    _fields_ = [("ri_uuid", ctypes.c_uint8 * 16)] + [
+        (name, ctypes.c_uint64)
+        for name in (
+            "ri_user_time", "ri_system_time", "ri_pkg_idle_wkups",
+            "ri_interrupt_wkups", "ri_pageins", "ri_wired_size",
+            "ri_resident_size", "ri_phys_footprint", "ri_proc_start_abstime",
+            "ri_proc_exit_abstime", "ri_child_user_time", "ri_child_system_time",
+            "ri_child_pkg_idle_wkups", "ri_child_interrupt_wkups",
+            "ri_child_pageins", "ri_child_elapsed_abstime", "ri_diskio_bytesread",
+            "ri_diskio_byteswritten",
+        )
+    ]
+
+
+_RUSAGE_INFO_V2 = 2
+
+
+def _process_phys_footprint_bytes() -> Optional[int]:
+    """This process's current physical footprint; ``None`` off macOS.
+
+    ``phys_footprint`` is the figure ``top``'s MEM column and ``footprint``
+    report. Unlike ``ru_maxrss`` it counts unified MPS allocations and does
+    not shrink when pages are compressed or swapped out, which is how a
+    ``ru_maxrss`` reading hid the band-generation-2 thrash (GAP-57-05).
+    Any failure reads as "unavailable".
+    """
+    if sys.platform != "darwin":
+        return None
+    try:
+        info = _RusageInfoV2()
+        libproc = ctypes.CDLL("/usr/lib/libproc.dylib")
+        if libproc.proc_pid_rusage(os.getpid(), _RUSAGE_INFO_V2, ctypes.byref(info)) != 0:
+            return None
+        return int(info.ri_phys_footprint)
+    except Exception:
+        return None
+
+
+class _FootprintPeakSampler:
+    """The highest footprint a reader reports across one code window.
+
+    Samples on entry, every ``interval_s`` from a daemon thread, and on exit.
+    The window's peak therefore does not depend on anything the process did
+    before it. The kernel's lifetime maximum does, and a long-lived process
+    such as a test runner can pin it far above what the window allocates.
+    A reader that is unavailable on entry disables sampling.
+    """
+
+    def __init__(
+        self, read_footprint: Callable[[], Optional[int]], *, interval_s: float = 0.05,
+    ) -> None:
+        self._read_footprint = read_footprint
+        self._interval_s = float(interval_s)
+        self._stop = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+        self.peak_bytes: Optional[int] = None
+
+    def _sample(self) -> None:
+        value = self._read_footprint()
+        if value is not None and (self.peak_bytes is None or value > self.peak_bytes):
+            self.peak_bytes = int(value)
+
+    def _run(self) -> None:
+        while not self._stop.wait(self._interval_s):
+            self._sample()
+
+    def __enter__(self) -> "_FootprintPeakSampler":
+        self._sample()
+        if self.peak_bytes is not None:
+            self._thread = threading.Thread(
+                target=self._run, name="footprint-peak-sampler", daemon=True,
+            )
+            self._thread.start()
+        return self
+
+    def __exit__(self, *exc_info: Any) -> None:
+        if self._thread is not None:
+            self._stop.set()
+            self._thread.join()
+            self._sample()
+
+
 def run_microbatch_memory_preflight(
     controller: Any,
     config: Any,
     *,
     step_guards: Any,
     stage: int = 0,
+    footprint_signal: Optional[Callable[[], Optional[int]]] = None,
 ) -> dict[str, Any]:
     """Exercise the real Adam step once, at the configured microbatch size,
     before the first optimizer step -- 2026-09-09 band-generation-2 scope
@@ -743,9 +833,25 @@ def run_microbatch_memory_preflight(
     Model gradients accumulated by the probe step are zeroed before return
     for the same reason -- the real first step must start from a clean
     ``.grad``, exactly as if this preflight had not run.
+
+    GAP-57-05 (owner ruling 2026-09-16): the probe also scores the frozen
+    invariant-B monitor, which the real loop evaluates at the top of every
+    Adam epoch, and checks the PEAK physical footprint sampled across the
+    probed step and monitor against the same watermark fraction and total
+    bytes. The MPS driver counter is read after the probed work has released
+    its memory, so on its own it could not see the full-batch monitor's
+    1.5 -> 22.8 GB per-epoch spike that thrashed the band-generation-2 smoke.
+    ``footprint_signal`` reads the current footprint and is injectable for
+    tests: ``None`` uses the real macOS counter, and a signal returning
+    ``None`` skips that check. The monitor stash is restored afterwards, like
+    the RNG and gradients.
     """
     rng = controller._rng
     saved_rng_state = copy.deepcopy(rng.bit_generator.state)
+    saved_monitor_stats = controller._last_front_monitor_stats
+    read_footprint = (
+        footprint_signal if footprint_signal is not None else _process_phys_footprint_bytes
+    )
     parameters = tuple(
         parameter for parameter in controller._model.parameters()
         if parameter.requires_grad
@@ -753,45 +859,59 @@ def run_microbatch_memory_preflight(
     try:
         microbatch_size = int(config.opt.adam_microbatch_size)
         collocation_count = int(controller._collocation_count)
-        batch = controller._stage_batch(
-            controller._train_source, stage=stage, collocation_count=collocation_count,
-        )
-        anchor_ctx = controller._build_anchor_context(
-            controller._train_source, batch, None,
-        )
-        weights = controller._scheduled_weights.current(0)
-        for parameter in parameters:
-            parameter.grad = None
-        controller._run_adam_step_microbatched(
-            batch, anchor_ctx, weights, parameters,
-            microbatch_size=microbatch_size, want_diagnostics=False,
-        )
-        allocated = step_guards.read_memory_signal()
-        if allocated is None:
-            return {
-                "passed": True,
-                "microbatch_size": microbatch_size,
-                "reason": "memory signal unavailable on this platform; skipped",
-            }
         total_bytes = int(step_guards.memory_total_bytes)
         threshold = float(step_guards.thresholds["memory_watermark_fraction"])
-        fraction = float(allocated) / float(total_bytes)
-        if fraction > threshold:
-            raise ConformancePreflightError(
-                "resource preflight: exercising the configured microbatch "
-                f"({microbatch_size} rows) allocated {allocated} of "
-                f"{total_bytes} watermark bytes (fraction {fraction:.4f}), "
-                f"exceeding the {threshold} memory_watermark_fraction "
-                "threshold; refusing rather than silently reducing the "
-                "ratified sample count (GAP-57-01 fail-closed evidence)"
+        result: dict[str, Any] = {"passed": True, "microbatch_size": microbatch_size}
+        with _FootprintPeakSampler(read_footprint) as footprint:
+            batch = controller._stage_batch(
+                controller._train_source, stage=stage, collocation_count=collocation_count,
             )
-        return {
-            "passed": True,
-            "microbatch_size": microbatch_size,
-            "measured_fraction": fraction,
-            "threshold": threshold,
-        }
+            anchor_ctx = controller._build_anchor_context(
+                controller._train_source, batch, None,
+            )
+            weights = controller._scheduled_weights.current(0)
+            for parameter in parameters:
+                parameter.grad = None
+            controller._run_adam_step_microbatched(
+                batch, anchor_ctx, weights, parameters,
+                microbatch_size=microbatch_size, want_diagnostics=False,
+            )
+            allocated = step_guards.read_memory_signal()
+            if allocated is not None:
+                fraction = float(allocated) / float(total_bytes)
+                if fraction > threshold:
+                    raise ConformancePreflightError(
+                        "resource preflight: exercising the configured microbatch "
+                        f"({microbatch_size} rows) allocated {allocated} of "
+                        f"{total_bytes} watermark bytes (fraction {fraction:.4f}), "
+                        f"exceeding the {threshold} memory_watermark_fraction "
+                        "threshold; refusing rather than silently reducing the "
+                        "ratified sample count (GAP-57-01 fail-closed evidence)"
+                    )
+                result["measured_fraction"] = fraction
+                result["threshold"] = threshold
+            controller._evaluate_front_monitor()
+        peak = footprint.peak_bytes
+        if peak is not None:
+            peak_fraction = float(peak) / float(total_bytes)
+            if peak_fraction > threshold:
+                raise ConformancePreflightError(
+                    "resource preflight: the configured microbatch "
+                    f"({microbatch_size} rows) and the frozen invariant-B "
+                    f"monitor reached a peak physical footprint of {peak} "
+                    f"of {total_bytes} watermark bytes (fraction "
+                    f"{peak_fraction:.4f}), exceeding the {threshold} "
+                    "memory_watermark_fraction threshold; the host would page "
+                    "on every epoch, so refusing rather than thrashing (GAP-57-05)"
+                )
+            result["peak_footprint_bytes"] = peak
+            result["peak_footprint_fraction"] = peak_fraction
+            result["threshold"] = threshold
+        if allocated is None and peak is None:
+            result["reason"] = "memory signal unavailable on this platform; skipped"
+        return result
     finally:
         for parameter in parameters:
             parameter.grad = None
         rng.bit_generator.state = saved_rng_state
+        controller._last_front_monitor_stats = saved_monitor_stats

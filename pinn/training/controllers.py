@@ -1025,7 +1025,18 @@ class RunController:
         self._last_front_monitor_stats = None
 
     def _evaluate_front_monitor(self) -> Optional[dict[str, Any]]:
-        """Re-evaluate the frozen monitor at the current model parameters."""
+        """Re-evaluate the frozen monitor at the current model parameters.
+
+        GAP-57-05 (owner ruling 2026-09-16): the monitor is scored in
+        microbatches through the same Pass-1 accumulation the Adam step uses
+        (``_adam_frozen_causal_weights``), so its peak memory is bounded by
+        ``opt.adam_microbatch_size`` rather than by all 4096 monitor rows. The
+        full-batch ``_non_data_terms`` call it replaces built every physics
+        term's autograd graph at once, measured on the production path at
+        1.5 -> 22.8 GB of process footprint at the top of every Adam epoch.
+        Only the causal statistics invariant B reads are computed, and the
+        training stash ``_last_widened_details`` is left untouched.
+        """
         if not self._amended_recipe:
             return None
         if self._front_monitor_batch is None:
@@ -1033,17 +1044,25 @@ class RunController:
         anchor_ctx = self._build_anchor_context(
             self._train_source, self._front_monitor_batch, None,
         )
-        self._non_data_terms(anchor_ctx)
-        details = self._last_widened_details
-        if not isinstance(details, Mapping):
-            raise ValueError("front monitor evaluation produced no causal details")
+        phys_details, _bin_counts = self._adam_frozen_causal_weights(
+            anchor_ctx, microbatch_size=int(self._config.opt.adam_microbatch_size),
+        )
+        w_n = phys_details["w_n"]
+        w_n_list = w_n.tolist()
         stats = {
-            "w_n_stats": dict(details.get("w_n_stats") or {}),
-            "residuals_per_bin": list(details.get("residuals_per_bin") or ()),
-            "raw_residuals_per_bin": list(
-                details.get("raw_residuals_per_bin") or ()
-            ),
-            "r_ref": details.get("r_ref"),
+            "w_n_stats": {
+                "w_min": float(w_n.min()),
+                "w_mean": float(w_n.mean()),
+                "w_max": float(w_n.max()),
+                "front_idx": max(
+                    [n for n, w in enumerate(w_n_list) if w > 0.5], default=-1,
+                ),
+            },
+            "residuals_per_bin": [float(r) for r in phys_details["rbar"].tolist()],
+            "raw_residuals_per_bin": [
+                float(r) for r in phys_details["raw_rbar"].tolist()
+            ],
+            "r_ref": float(phys_details["r_ref"]),
             "n_collocation_rows": RATIFIED_COLLOCATION_COUNT,
             "n_bins": _RATIFIED_N_BINS,
         }
@@ -1691,27 +1710,20 @@ class RunController:
         genuinely smaller pool, not merely fewer live tensors within an
         already-inflated one.
 
-        57-08 correction: the collector must be GENERATION-0 ONLY. A full
-        ``gc.collect()`` sweeps all three generations, touching every object
-        on a multi-GB Python heap; at 33 calls per step that repeatedly
-        forced the whole heap resident and defeated the OS's ability to page
-        cold objects out. Measured on the production path (real SIREN/MPS/
-        float32, 4096 rows, 256 microbatch), a 2x2 over {full vs gen-0
-        collect} x {``empty_cache`` every chunk vs never}:
-
-            full  + empty_cache : GPU 394 MB, host RAM peak 23.0 GB (mean
-                                  17.2 GB, 71% of samples >10 GB) -- the run
-                                  churned ~4.4 GB of swap per step
-            gen-0 + empty_cache : GPU 394 MB, host RAM peak 1.7 GB  <-- this
-            full  - empty_cache : MPS pool 23.95 GB -> memory_watermark HALT
-            gen-0 - empty_cache : MPS pool 23.95 GB -> memory_watermark HALT
-
-        So the two calls fix DIFFERENT things and both are load-bearing:
-        ``empty_cache()`` bounds the MPS pool (without it the guard trips at
-        step 0 either way), while the collector generation bounds host RAM.
-        Gen-0 is sufficient for correctness here because a just-finished
-        chunk's graph is by construction newly allocated, so the cycle we
-        need broken has not yet been promoted out of generation 0.
+        57-08 choice, corrected by GAP-57-05 (2026-09-16): the collector is
+        GENERATION-0 ONLY. That keeps each of the ~33 per-step calls cheap
+        (the gen-0 smoke stepped about twice as fast as the full-collect
+        run), but it does NOT bound host memory. The 57-08 probe credited
+        gen-0 with cutting the host peak from 23.0 GB to 1.7 GB, but it
+        compared one variant's ``ru_maxrss`` with the others'
+        ``phys_footprint``; its own footprint samples show the gen-0 variant
+        peaking at 23 GB too. The spike was the full-batch frozen-monitor
+        evaluation, now chunked in ``_evaluate_front_monitor``.
+        ``empty_cache()`` stays: in that probe, dropping it left the MPS pool
+        at 23.95 GB and tripped the memory-watermark guard at step 0
+        (measured before the monitor was chunked). Gen-0 is sufficient here
+        because a just-finished chunk's graph is newly allocated, so the
+        cycle to break has not yet been promoted out of generation 0.
         """
         gc.collect(0)
         if hasattr(torch, "mps"):
