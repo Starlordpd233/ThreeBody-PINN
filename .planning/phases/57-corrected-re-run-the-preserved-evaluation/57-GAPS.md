@@ -713,3 +713,99 @@ separate verification and owner gates recorded in the resolution note.
 - **Status.** OPEN (surfaced 2026-09-13).
 
 - **Resolution note.**
+
+---
+
+## GAP-57-06 — the interrupted generation-2 smoke occupies the final-run target after the code HEAD changed
+
+The GAP-57-05 identifier appears in commit 63cb8616 for the chunked-monitor
+ruling and is not reused here.
+
+- **Decision point.** How should the interrupted stage0-v23g2-smoke attempt be
+  classified and preserved, and which run-name namespace should the final-HEAD
+  smoke and band use? Its directory makes Plan 57-05 admission fail, while the
+  attempt ran before the current code HEAD and cannot supply D-09's final-HEAD
+  smoke.
+
+- **Where in artifact.** 57-05-PLAN.md:24-44,64-73,94-103 (one unchanged HEAD,
+  fresh target directories, and the smoke/band sequence);
+  evidence/verify_phase57_evidence.py:252-279 (generation-2 target names and
+  directory refusal); evidence/run-ledger.md:20-35 (only generation 1 is
+  recorded); ignored runs/stage0-v23g2-smoke/status.json (interrupted at step
+  30 on 2026-09-13).
+
+- **Task context.** Plan 57-05 Task 1, run on 2026-09-27 from the data-bearing
+  milestone/v2.3 worktree. The read-only admit-run-window command exited 1:
+  "FAIL-CLOSED: target run directory already exists:
+  .../runs/stage0-v23g2-smoke". No training or held-out evaluation was started
+  in this attempt. Task 2's operator checkpoint was not reached.
+
+- **Classification.** **Process-artifact schema** — the decision assigns a
+  durable identity and provenance record to the prior run and fixes the target
+  names and pass criteria for the next admitted window. It also affects Plan
+  57-06's candidate and evaluation paths.
+
+- **Source silence.**
+  - 57-CONTEXT.md:220-235 and 57-05-PLAN.md:24-44,64-73 require a final-code
+    smoke and one commit-free HEAD through the graded runs. Neither says how
+    to handle an earlier smoke under the same target name after a fingerprinted
+    code change. Commit 63cb8616 changed the frozen monitor and resource
+    preflight after the September 13 smoke.
+  - 57-GAPS.md:592-618 records the owner's paired decision to retain all
+    generation-1 artifacts in place and use new generation-2 names. It fixes
+    that collision only; it does not grant a standing policy for another
+    generation or choose a retention location for this generation-2 attempt.
+  - 57-GAPS.md:622-715 (GAP-57-04) leaves the paused-run ledger schema OPEN.
+    It does not decide whether this particular "interrupted" status was a
+    deliberate operator pause, how to classify an attempt that cannot join
+    the current-HEAD band, or whether the next window uses generation 2 or 3.
+  - evidence/README.md:18-19 requires a record for every attempted launch,
+    with retries as new records. evidence/run-ledger.md:20-35 has only the
+    blocked generation-1 entry. The generation-2 status and summary say
+    "interrupted", but the retained log does not establish who requested the
+    stop; no source supplies its ledger disposition.
+
+- **Mathematical / engineering grounding.** D-09 makes the smoke a measurement
+  of the exact code, configuration, environment, and data that the graded runs
+  will use. Its timing calibration includes git_head, so a smoke under the
+  pre-63cb8616 code cannot calibrate or validate graded runs under the current
+  HEAD, even if a boundary checkpoint can reproduce its earlier trajectory.
+  The 31 completed optimizer updates are also short of the 300-step smoke
+  budget. Reusing the existing directory would risk overwriting the sole
+  local bytes that could verify the interrupted attempt; merely retaining a
+  hash in a ledger would not preserve the evidence. A new namespace changes
+  the fingerprinted run configs, Plan 57-05 targets, and downstream candidate
+  paths; relocating the old directory instead changes the location that a
+  provenance record must address. Either choice must be fixed and committed
+  before admission, then kept unchanged across the new smoke and band. The
+  held-out evaluation remains unspent under every option.
+
+- **Agent was tempted to.** Repeat the prior GAP-57-03 pattern: retain and
+  record the interrupted generation-2 attempt in place, allocate generation-3
+  names, amend the plan/config/verifier references, and rerun admission. That
+  preserves bytes and avoids a name collision, but the owner authorized the
+  prior pattern for generation 1 specifically. Applying it again would
+  silently decide a new evidence schema and run identity.
+
+- **What the user needs to decide.** First, say whether the September 13
+  interruption was a deliberate operator stop under the 57-08 pause ruling,
+  an unintended process loss, or unknown. A deliberate-pause record also
+  requires a ruling on OPEN GAP-57-04. Then select one disposition:
+  - **(A)** Preserve generation 2 in place, record the attempt with an
+    owner-approved disposition, and allocate generation-3 names for a fresh
+    final-HEAD smoke and band. Amend configs, plan, verifier, and downstream
+    paths before readmission.
+  - **(B)** Preserve generation 2 under an explicitly named durable archive
+    location with a verified manifest, record its original and new locations,
+    then reuse the generation-2 target names for a fresh final-HEAD smoke and
+    band. Amend plan and verifier references before readmission.
+  - **(C)** Stop Plan 57-05 incomplete. Preserve the existing directory and
+    held-out evaluation without admitting another run window.
+
+- **Confidence of impact.** **HIGH** — admission demonstrably exits 1, and
+  choosing a run identity or moving evidence without a ruling would change
+  what the later run-window validator claims to certify.
+
+- **Status.** OPEN (surfaced 2026-09-27).
+
+- **Resolution note.**
