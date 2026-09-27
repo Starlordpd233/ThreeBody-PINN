@@ -13,8 +13,10 @@ import argparse
 import hashlib
 import json
 import re
+import shlex
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -38,7 +40,9 @@ GATE_ROOT = EVIDENCE_REL / "gate04"
 R_REF_REL = Path("pinn/verification/artifacts/r_ref_stage0.json")
 CONFORMANCE_REL = EVIDENCE_REL / "production-conformance.json"
 GATE_SCHEMA = "phase56-gate04-cli-evidence/v1"
-LEDGER_SCHEMA = "phase57-run-ledger/v1"
+LEDGER_SCHEMA = "phase57-run-ledger/v2"
+RETENTION_REL = EVIDENCE_REL / "generation-2-retention.json"
+FINAL_GENERATION = 3
 EVALUATION_NAMES = frozenset({
     "evaluation-attempt.json",
     "evaluation-receipt.json",
@@ -64,7 +68,8 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def repo_path(raw: str | Path, *, what: str, root: Path = REPO_ROOT) -> Path:
+def repo_path(raw: str | Path, *, what: str, root: Path | None = None) -> Path:
+    root = REPO_ROOT if root is None else root
     value = str(raw)
     supplied = Path(value)
     resolved = (root / supplied).resolve() if not supplied.is_absolute() else supplied.resolve()
@@ -97,7 +102,48 @@ def load_ledger() -> dict[str, Any]:
         fail(f"unexpected run ledger schema: {ledger.get('schema') if isinstance(ledger, dict) else None!r}")
     if not isinstance(ledger.get("band_generations"), list) or not isinstance(ledger.get("records"), list):
         fail("run ledger band_generations/records are not lists")
+    for record in ledger["records"]:
+        if not isinstance(record, Mapping) or not isinstance(record.get("invocations"), list) or not record["invocations"]:
+            fail("version-2 run ledger record lacks invocations")
     return ledger
+
+
+def assert_generation_two_retained() -> None:
+    """Re-derive the owner-approved historical retention claim from Git and disk."""
+    manifest = load_json(REPO_ROOT / RETENTION_REL, what="generation-2 retention manifest")
+    if not isinstance(manifest, Mapping) or manifest.get("run_name") != "stage0-v23g2-smoke":
+        fail("generation-2 retention manifest has the wrong run identity")
+    entries = manifest.get("files")
+    if not isinstance(entries, list) or len(entries) != 16 or manifest.get("file_count") != 16:
+        fail("generation-2 retention manifest must enumerate exactly 16 files")
+    tracked_result = subprocess.run(
+        ["git", "ls-files", "--cached", "--", "runs/stage0-v23g2-smoke"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, check=False,
+    )
+    if tracked_result.returncode != 0:
+        fail("cannot verify generation-2 tracked artifact paths")
+    tracked = set(tracked_result.stdout.splitlines())
+    observed: set[str] = set()
+    total_bytes = 0
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("generation-2 retention entry is not a mapping")
+        relative = entry.get("path")
+        digest = entry.get("sha256")
+        size = entry.get("size_bytes")
+        if not isinstance(relative, str) or not relative.startswith("runs/stage0-v23g2-smoke/"):
+            fail("generation-2 retention entry has an invalid path")
+        if relative in observed or not isinstance(digest, str) or not HEX64.fullmatch(digest):
+            fail(f"generation-2 retention entry is duplicate or lacks SHA-256: {relative}")
+        if not isinstance(size, int) or size < 0:
+            fail(f"generation-2 retention entry lacks a byte size: {relative}")
+        path = repo_path(relative, what="generation-2 retained artifact")
+        if not path.is_file() or path.stat().st_size != size or sha256_file(path) != digest:
+            fail(f"generation-2 retained artifact differs from manifest: {relative}")
+        observed.add(relative)
+        total_bytes += size
+    if observed != tracked or total_bytes != manifest.get("total_bytes"):
+        fail("generation-2 retained paths or total bytes differ from the committed manifest")
 
 
 def current_head() -> str:
@@ -225,24 +271,18 @@ def _gate_chain() -> tuple[Path, dict[str, Any], Path, dict[str, Any], dict[str,
 
 
 def _assert_config_contract() -> None:
-    # 57-07 band-generation-2 scope brief §4: generation 1's configs remain
-    # untouched at their original paths (preserved evidence, never re-run);
-    # this contract check moves to the currently-admissible band so it
-    # validates the recipe bindings that will ACTUALLY be used, not stale
-    # files nothing will read again.
-    paths = (
-        REPO_ROOT / "configs/stage0-v23g2-smoke.yaml",
-        REPO_ROOT / "configs/stage0-v23g2-seed41.yaml",
-        REPO_ROOT / "configs/stage0-v23g2-seed42.yaml",
-        REPO_ROOT / "configs/stage0-v23g2-seed43.yaml",
-    )
-    for path in paths:
+    # GAP-57-06 preserves earlier configs and admits only generation 3.
+    names = ("smoke", "seed41", "seed42", "seed43")
+    paths = tuple(REPO_ROOT / f"configs/stage0-v23g3-{name}.yaml" for name in names)
+    for name, path in zip(names, paths):
         if not path.is_file():
             fail(f"required Phase-57 config is missing: {path}")
         text = path.read_text(encoding="utf-8")
         for needle in ("collocation_count: 4096", "front_advance_window_n: 500", "r_ref_artifact_path: pinn/verification/artifacts/r_ref_stage0.json"):
             if needle not in text:
                 fail(f"{path} is missing required recipe binding {needle!r}")
+        if f"run_name: stage0-v23g3-{name}" not in text:
+            fail(f"{path} has the wrong generation-3 run name")
     seed_paths = {41: paths[1], 42: paths[2], 43: paths[3]}
     for seed, path in seed_paths.items():
         if f"seed: {seed}" not in path.read_text(encoding="utf-8"):
@@ -250,14 +290,7 @@ def _assert_config_contract() -> None:
 
 
 def _target_runs() -> tuple[Path, ...]:
-    # 57-07: generation 1's runs/stage0-v23-* directories are preserved,
-    # hash-verified evidence (GAP-57-03) and never re-targeted; the currently
-    # admissible band is generation 2. NOTE: `cmd_candidate()`'s receipt
-    # `run_name` assertion below still literally expects `stage0-v23-seed{N}`
-    # -- that check is Wave-6/EVAL-02 candidate-selection machinery, outside
-    # this session's delegated scope, and is intentionally left for the
-    # owner (or an explicitly authorized session) to update at Wave-6 time.
-    return tuple(REPO_ROOT / f"runs/stage0-v23g2-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
+    return tuple(REPO_ROOT / f"runs/stage0-v23g3-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
 
 
 def _assert_ancestry(*commits: Any) -> None:
@@ -278,6 +311,23 @@ def cmd_admit_run_window() -> None:
         if run_dir.exists():
             fail(f"target run directory already exists: {run_dir}")
     ledger = load_ledger()
+    assert_generation_two_retained()
+    historical = {
+        (generation.get("band_generation"), generation.get("status"))
+        for generation in ledger["band_generations"]
+    }
+    if historical != {(1, "blocked"), (2, "historical-incomplete")}:
+        fail("run ledger does not contain exactly the two preserved prior generations")
+    old_attempts = [record for record in ledger["records"] if record.get("band_generation") == 2]
+    if len(old_attempts) != 1 or old_attempts[0].get("run_name") != "stage0-v23g2-smoke" or old_attempts[0].get("in_final_band") is not False:
+        fail("interrupted generation-2 smoke is not recorded as historical and ineligible")
+    manifest = load_json(REPO_ROOT / RETENTION_REL, what="generation-2 retention manifest")
+    manifest_hashes = {
+        entry["path"].removeprefix("runs/stage0-v23g2-smoke/"): entry["sha256"]
+        for entry in manifest["files"]
+    }
+    if old_attempts[0].get("artifact_hashes") != manifest_hashes:
+        fail("generation-2 historical ledger hashes differ from retention manifest")
     # 57-07: admission must refuse a COMPLETED or IN-FLIGHT band (the
     # invariant this check protects), not merely "any record exists at
     # all" -- generation 1's ledger entry is a `blocked` (operational
@@ -288,13 +338,6 @@ def cmd_admit_run_window() -> None:
             "run ledger already has a final band generation; immutable "
             "admission must occur before runs"
         )
-    for generation in ledger.get("band_generations", []):
-        if generation.get("status") != "blocked":
-            fail(
-                f"run ledger band generation {generation.get('band_generation')!r} "
-                f"has status {generation.get('status')!r} (not 'blocked'); "
-                "immutable admission must occur before runs"
-            )
     gate_head = (raw.get("provenance") or {}).get("git_sha")
     conformance_head = (conformance.get("provenance") or {}).get("git_head")
     _assert_ancestry(gate_head, conformance_head)
@@ -315,10 +358,112 @@ def _blocked_state() -> dict[str, Any] | None:
     return load_json(path, what="blocked state") if path.is_file() else None
 
 
+def _assert_resume_checkpoint(raw: Any, artifact_dir: Path) -> None:
+    if not isinstance(raw, Mapping):
+        fail("resumed invocation lacks a boundary checkpoint record")
+    relative, expected = raw.get("path"), raw.get("sha256")
+    if not isinstance(relative, str) or not isinstance(expected, str) or not HEX64.fullmatch(expected):
+        fail("resumed invocation has an invalid boundary checkpoint path/digest")
+    path = repo_path(relative, what="resume boundary checkpoint")
+    try:
+        path.relative_to(artifact_dir)
+    except ValueError:
+        fail("resume boundary checkpoint is outside its run directory")
+    if not path.is_file() or sha256_file(path) != expected:
+        fail("resume boundary checkpoint bytes differ from the ledger")
+    try:
+        import torch
+        payload = torch.load(path, map_location="cpu", weights_only=True)
+    except Exception as exc:  # noqa: BLE001 - a bad checkpoint must fail closed
+        fail(f"resume boundary checkpoint cannot be read safely: {exc}")
+    state = payload.get("invariant_b_state") if isinstance(payload, Mapping) else None
+    if not isinstance(state, Mapping) or not {"front_high_water", "last_advance_step"} <= set(state):
+        fail("resume boundary checkpoint lacks invariant_b_state")
+
+
+def _assert_invocations(record: Mapping[str, Any], expected_head: str) -> Mapping[str, Any]:
+    """Verify every process of one final-HEAD run before certifying the band."""
+    invocations = record.get("invocations")
+    if not isinstance(invocations, list) or not invocations:
+        fail(f"run {record.get('run_name')!r} lacks invocation history")
+    if record.get("git_head") != expected_head or not isinstance(expected_head, str) or not expected_head:
+        fail("run invocation history does not match the band HEAD")
+    config_sha = record.get("config_sha256")
+    if not isinstance(config_sha, str) or not HEX64.fullmatch(config_sha):
+        fail("run record lacks a source config digest")
+    config = repo_path(record.get("config_path"), what="source run config")
+    if not config.is_file() or sha256_file(config) != config_sha:
+        fail("source run config changed after the run")
+    artifact_dir = repo_path(record.get("artifact_dir"), what="run artifact directory")
+    if not artifact_dir.is_dir() or artifact_dir.name != record.get("run_name"):
+        fail("run artifact directory does not match its ledger identity")
+    previous: Mapping[str, Any] | None = None
+    previous_end: datetime | None = None
+    for ordinal, invocation in enumerate(invocations, 1):
+        if not isinstance(invocation, Mapping) or invocation.get("invocation_ordinal") != ordinal:
+            fail("run invocations are not consecutively numbered")
+        kind = invocation.get("launch_kind")
+        if kind != ("fresh" if ordinal == 1 else "resume"):
+            fail("run must start fresh and use resume only for later invocations")
+        if invocation.get("git_head") != expected_head or invocation.get("config_sha256") != config_sha:
+            fail("resumed process changed the run HEAD or config identity")
+        command = invocation.get("command")
+        if not isinstance(command, str):
+            fail("run invocation lacks its exact launch command")
+        try:
+            argv = shlex.split(command)
+        except ValueError:
+            fail("run invocation command cannot be parsed")
+        if "--stage-0-only" not in argv or "--config" not in argv:
+            fail("run invocation lacks Stage-0-only or config binding")
+        config_arg = argv.index("--config")
+        if config_arg + 1 >= len(argv) or argv[config_arg + 1] != record.get("config_path"):
+            fail("run invocation names a different source config")
+        if type(invocation.get("process_pid")) is not int or invocation["process_pid"] <= 0:
+            fail("run invocation lacks a process PID")
+        if type(invocation.get("exit_code")) is not int:
+            fail("run invocation lacks an exit code")
+        elapsed = invocation.get("wall_clock_secs")
+        if not isinstance(elapsed, (int, float)) or elapsed < 0:
+            fail("run invocation lacks nonnegative active wall time")
+        try:
+            started = datetime.fromisoformat(invocation["start_utc"])
+            ended = datetime.fromisoformat(invocation["end_utc"])
+        except (KeyError, TypeError, ValueError):
+            fail("run invocation has invalid start/end UTC times")
+        if started.tzinfo is None or ended.tzinfo is None or ended < started or (previous_end is not None and started < previous_end):
+            fail("run invocation timestamps are missing zones or out of order")
+        if ordinal == 1:
+            if "--resume" in argv or invocation.get("resume_checkpoint") is not None:
+                fail("fresh invocation must not resume from a checkpoint")
+        else:
+            assert previous is not None
+            if previous.get("disposition") != "interrupted" or previous.get("exit_code") != 130:
+                fail("resume does not follow a governed interrupted process")
+            if "--resume" not in argv or argv.index("--resume") + 1 >= len(argv) or argv[argv.index("--resume") + 1] != "latest":
+                fail("resumed invocation lacks --resume latest")
+            boundary = previous.get("boundary_checkpoint")
+            if invocation.get("resume_checkpoint") != boundary:
+                fail("resume checkpoint differs from the preceding boundary")
+            _assert_resume_checkpoint(boundary, artifact_dir)
+        previous = invocation
+        previous_end = ended
+    return invocations[-1]
+
+
 def cmd_run_window() -> None:
     _gate_chain()
+    assert_generation_two_retained()
+    ledger = load_ledger()
+    current_records = [record for record in ledger["records"] if record.get("band_generation") == FINAL_GENERATION]
+    current_generations = [generation for generation in ledger["band_generations"] if generation.get("band_generation") == FINAL_GENERATION]
+    if current_records:
+        if len(current_generations) != 1:
+            fail("generation-3 run records lack one generation header")
+        for record in current_records:
+            _assert_invocations(record, current_generations[0].get("git_head"))
     blocked = _blocked_state()
-    if blocked is not None:
+    if blocked is not None and blocked.get("run_name") != "stage0-v23-smoke":
         fail("operational/resource/guard blocked-state is incomplete and cannot close the run window")
     terminal = _terminal_state()
     if terminal is not None:
@@ -329,21 +474,34 @@ def cmd_run_window() -> None:
             _assert_no_evaluation(run_dir)
         print("RUN-WINDOW-TERMINAL-OK")
         return
-    ledger = load_ledger()
     final = ledger.get("final_band_generation")
     if final is None:
         fail("run window is neither complete nor an authorized terminal closure")
+    if final != FINAL_GENERATION:
+        fail("final band generation is not the admitted generation 3")
     records = [record for record in ledger["records"] if int(record.get("band_generation", -1)) == int(final)]
-    if len([record for record in records if record.get("in_final_band")]) != 3:
-        fail("complete run window does not contain three in-band seeds")
+    graded = [record for record in records if record.get("in_final_band") is True]
+    smoke = [record for record in records if record.get("run_name") == "stage0-v23g3-smoke"]
+    expected_names = {"stage0-v23g3-smoke", "stage0-v23g3-seed41", "stage0-v23g3-seed42", "stage0-v23g3-seed43"}
+    if (
+        len(records) != 4 or len(smoke) != 1 or smoke[0].get("in_final_band") is not False
+        or len(graded) != 3 or sorted(record.get("seed") for record in graded) != [41, 42, 43]
+        or {record.get("run_name") for record in records} != expected_names
+        or any(record.get("run_name") != f"stage0-v23g3-seed{record.get('seed')}" for record in graded)
+    ):
+        fail("complete run window has wrong run names or lacks one smoke and three in-band seeds")
     for run_dir in _target_runs():
         _assert_no_evaluation(run_dir)
-    generation = next(item for item in ledger["band_generations"] if int(item.get("band_generation", -1)) == int(final))
+    generation = current_generations[0]
     run_heads = {record.get("git_head") for record in records if record.get("git_head")}
     if generation.get("git_head") not in run_heads or len(run_heads) != 1:
         fail("run records do not share one immutable HEAD")
-    if any(record.get("launch_kind") == "resume" for record in records):
-        fail("run window contains a resumed launch")
+    for record in records:
+        if record.get("final_process_disposition") != "finished" or record.get("ledger_disposition") != "finished":
+            fail("final band contains an unfinished run")
+        final_invocation = _assert_invocations(record, generation["git_head"])
+        if final_invocation.get("disposition") != "finished" or final_invocation.get("exit_code") != 0:
+            fail("final band invocation did not finish cleanly")
     print("RUN-WINDOW-OK")
 
 
@@ -392,7 +550,7 @@ def cmd_candidate() -> None:
         if receipt.get("run_name") is not None or receipt.get("owner_stop") is not True:
             fail("no-candidate state must be explicit and preserve the evaluation")
     else:
-        if receipt.get("run_name") != f"stage0-v23-seed{first}" or receipt.get("seed") != first:
+        if receipt.get("run_name") != f"stage0-v23g3-seed{first}" or receipt.get("seed") != first:
             fail("candidate is not the first eligible seed in 42/41/43 order")
         best = receipt.get("candidate_best_sha256")
         if not isinstance(best, str) or not HEX64.fullmatch(best):

@@ -16,6 +16,7 @@ from __future__ import annotations
 import dataclasses
 import tempfile
 import unittest
+from unittest import mock
 
 import torch
 
@@ -160,6 +161,12 @@ class FrontMonitorChunkingEquivalenceTests(unittest.TestCase):
             "raw_residuals_per_bin": list(details["raw_residuals_per_bin"]),
             "r_ref": details["r_ref"],
         }
+
+    def test_cpu_chunk_release_does_not_call_mps_cache(self):
+        self.assertEqual(self.controller._device.type, "cpu")
+        with mock.patch.object(torch.mps, "empty_cache") as empty_cache:
+            self.controller._release_chunk_memory()
+        empty_cache.assert_not_called()
 
     def _assert_monitor_matches_full_batch(self, *, microbatch_sizes):
         controller = self.controller

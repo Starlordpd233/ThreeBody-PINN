@@ -52,10 +52,31 @@ ALLOWED_BLOCKED_PATHS = {
     "runs/stage0-v23-smoke/summary.md",
     "runs/stage0-v23-smoke/tb/<host>.54461.0",
     "runs/stage0-v23-smoke/training_metadata.json",
+    # GAP-57-06 option A (owner ruling 2026-09-27): retain the interrupted
+    # generation-2 smoke in place. These are its 16 observed files only.
+    "runs/stage0-v23g2-smoke/checkpoints/ckpt-61163069181.pt",
+    "runs/stage0-v23g2-smoke/checkpoints/latest.pt",
+    "runs/stage0-v23g2-smoke/checkpoints/stage-0-init.pt",
+    "runs/stage0-v23g2-smoke/checkpoints/step-000031.pt",
+    "runs/stage0-v23g2-smoke/config.yaml",
+    "runs/stage0-v23g2-smoke/curriculum.jsonl",
+    "runs/stage0-v23g2-smoke/logs/train.log",
+    "runs/stage0-v23g2-smoke/logs/train.log.jsonl",
+    "runs/stage0-v23g2-smoke/preflight.json",
+    "runs/stage0-v23g2-smoke/run_start_rng.pt",
+    "runs/stage0-v23g2-smoke/splits.json",
+    "runs/stage0-v23g2-smoke/status.json",
+    "runs/stage0-v23g2-smoke/summary.json",
+    "runs/stage0-v23g2-smoke/summary.md",
+    "runs/stage0-v23g2-smoke/tb/events.out.tfevents.1789304466.<host>.91780.0",
+    "runs/stage0-v23g2-smoke/training_metadata.json",
 }
 
 ALLOW_LARGE_PATTERNS = (
     "simulation_data/Documentation/*",
+    # Exact exceptions for the two preserved generation-2 checkpoints >10 MiB.
+    "runs/stage0-v23g2-smoke/checkpoints/latest.pt",
+    "runs/stage0-v23g2-smoke/checkpoints/step-000031.pt",
 )
 
 

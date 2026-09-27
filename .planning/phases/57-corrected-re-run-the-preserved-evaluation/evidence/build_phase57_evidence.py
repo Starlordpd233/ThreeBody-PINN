@@ -133,7 +133,7 @@ def load_ledger(repo: Path) -> dict[str, Any]:
         ledger = json.loads(text[start:end])
     except json.JSONDecodeError as exc:
         fail(f"run-ledger.md JSON is malformed: {exc}")
-    if not isinstance(ledger, dict) or ledger.get("schema") != "phase57-run-ledger/v1":
+    if not isinstance(ledger, dict) or ledger.get("schema") != "phase57-run-ledger/v2":
         fail(f"unexpected Phase-57 ledger schema: {ledger.get('schema') if isinstance(ledger, dict) else None!r}")
     if not isinstance(ledger.get("band_generations"), list) or not isinstance(ledger.get("records"), list):
         fail("run-ledger band_generations and records must be lists")
@@ -156,15 +156,18 @@ def require_complete_generation(ledger: Mapping[str, Any]) -> tuple[int, dict[st
         final_id = int(final)
     except (TypeError, ValueError):
         fail(f"final_band_generation is invalid: {final!r}")
+    if final_id != 3:
+        fail("normal evidence requires the admitted generation-3 band")
     generations = [item for item in ledger["band_generations"] if int(item.get("band_generation", -1)) == final_id]
     if len(generations) != 1:
         fail(f"final generation {final_id} is not uniquely present in the ledger")
     generation = generations[0]
     records = [item for item in ledger["records"] if int(item.get("band_generation", -1)) == final_id]
     graded = [item for item in records if item.get("in_final_band") is True]
+    smoke = [item for item in records if item.get("run_name") == "stage0-v23g3-smoke"]
     seeds = sorted(int(item.get("seed")) for item in graded if item.get("seed") is not None)
-    if len(graded) != 3 or seeds != [41, 42, 43]:
-        fail("final generation requires exactly one finished in-band record for seeds 41/42/43")
+    if len(records) != 4 or len(smoke) != 1 or len(graded) != 3 or seeds != [41, 42, 43]:
+        fail("final generation requires one smoke and finished in-band seeds 41/42/43")
     return final_id, dict(generation), records
 
 

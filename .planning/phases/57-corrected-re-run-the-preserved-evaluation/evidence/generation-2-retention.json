@@ -1,0 +1,90 @@
+{
+  "classification": "historical-incomplete",
+  "classification_source": "Owner recalled a deliberate stop on 2026-09-27; retained status and summary establish interrupted only.",
+  "file_count": 16,
+  "files": [
+    {
+      "path": "runs/stage0-v23g2-smoke/checkpoints/ckpt-61163069181.pt",
+      "sha256": "a4ca637ed0ececf609e4a90e6a0830b27b57587f7f219f51cad9a8800509d968",
+      "size_bytes": 4859851
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/checkpoints/latest.pt",
+      "sha256": "dcf369b053e91b3fa371c66255d359551aac8a27f84cb6adf7ba03fc92ea3031",
+      "size_bytes": 11251219
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/checkpoints/stage-0-init.pt",
+      "sha256": "b9f9ba949f92a77bada5e138b897b98f6e5ee7281c2db22a46b31c972ee2e6a7",
+      "size_bytes": 4862483
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/checkpoints/step-000031.pt",
+      "sha256": "084f89b27acda814f10b0e2e2a58c2a562126e025f371c7b5c9c1706dfd0d28b",
+      "size_bytes": 11251933
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/config.yaml",
+      "sha256": "fef189da3567e04c3d79e9696f1e474496784704c05abbedad832a7fa94ced33",
+      "size_bytes": 1267
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/curriculum.jsonl",
+      "sha256": "2642a9cc6aa167ba059b92f761f2d7ce1c8bbdb66a779cba7d65bc431b2a8c43",
+      "size_bytes": 68
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/logs/train.log",
+      "sha256": "505322958f3cce766ff0e63e28b99ae574fb5b465884476533d2daf70fa16547",
+      "size_bytes": 8977
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/logs/train.log.jsonl",
+      "sha256": "bab871cfd597c50f2fc789184e7e7dc17e9b959b683de86bcf3e277915825717",
+      "size_bytes": 33671
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/preflight.json",
+      "sha256": "3dd845c5800d5848249e66282264558747edf352f6cd009933ddb6e752ddfc89",
+      "size_bytes": 18544
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/run_start_rng.pt",
+      "sha256": "de1bb06f90f746ebd169dedc861f6f6639f3c022efb0bfb4652ddfd6dd3551fe",
+      "size_bytes": 11149
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/splits.json",
+      "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+      "size_bytes": 4159982
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/status.json",
+      "sha256": "00ed5e98f3710ca73ec03dfc73e7b74d404736293290c8157628989d7fba8def",
+      "size_bytes": 681
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/summary.json",
+      "sha256": "c9e9f0d64143f75a93862e4c2cbbfc27ab0982f8d65fc3513121379287cb2376",
+      "size_bytes": 20353
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/summary.md",
+      "sha256": "172a164697c0fc91195183c6591e0293283cb1a2e619056a40aa68f4bddff1d8",
+      "size_bytes": 14345
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/tb/events.out.tfevents.1789304466.<host>.91780.0",
+      "sha256": "bd399da083f1805e62cc148974e01f351f42423ccbd16229112f737294a8771e",
+      "size_bytes": 86809
+    },
+    {
+      "path": "runs/stage0-v23g2-smoke/training_metadata.json",
+      "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+      "size_bytes": 564
+    }
+  ],
+  "observed_date": "2026-09-27",
+  "run_name": "stage0-v23g2-smoke",
+  "total_bytes": 36581896
+}

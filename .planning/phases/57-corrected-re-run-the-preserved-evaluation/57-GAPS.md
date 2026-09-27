@@ -710,9 +710,19 @@ separate verification and owner gates recorded in the resolution note.
   scientific validity. It bites only if a pause occurs, and in that branch it
   decides whether closeout certifies the band correctly (HIGH).
 
-- **Status.** OPEN (surfaced 2026-09-13).
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-27).
 
-- **Resolution note.**
+- **Resolution note.** The owner confirmed option B on 2026-09-27:
+  represent each process of a governed pause as one entry in a version-2
+  `invocations[]` ledger record. Each entry carries its own command, process,
+  timing, exit status, and `fresh` or `resume` launch kind. Amend the verifier
+  before admitting the next run window so that it accepts a resume only from a
+  boundary checkpoint containing `invariant_b_state`, and verifies that
+  checkpoint and the resumed invocation. The September 13 generation-2 smoke
+  is historical and incomplete; this ruling does not make it a calibration
+  for the final-HEAD generation-3 window. The owner recalled deliberately
+  stopping it because they had to cut it off, while the retained log by itself
+  establishes only an interrupted status.
 
 ---
 
@@ -805,6 +815,98 @@ ruling and is not reused here.
 - **Confidence of impact.** **HIGH** — admission demonstrably exits 1, and
   choosing a run identity or moving evidence without a ruling would change
   what the later run-window validator claims to certify.
+
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-27).
+
+- **Resolution note.** The owner confirmed option A on 2026-09-27 and reported
+  that the September 13 interruption was a deliberate operator stop, though
+  the logs establish only that the process was interrupted. Treat the
+  generation-2 smoke as an incomplete historical attempt, retain all 16 files
+  at `runs/stage0-v23g2-smoke/`, and record its identity, hashes, and
+  disposition. Do not resume that pre-final-HEAD attempt into the new window.
+  Use `stage0-v23g3-{smoke,seed41,seed42,seed43}` for the next fresh smoke and
+  band, and retarget the verifier, configs, Plan 57-05, and downstream Plan
+  57-06 paths before admission. The owner also confirmed exact-path Git
+  exceptions for those 16 preserved files and exact size exceptions for the
+  two checkpoints above the repository's 10 MiB limit. These are limited to
+  the preserved generation-2 attempt; no future run directory is authorized
+  by that exception. The separate Plan 57-05 compute checkpoint and Plan
+  57-06 one-look evaluation checkpoint remain in force.
+
+---
+
+## GAP-57-07 — a generation-3 operational block would overwrite generation-1 blocked evidence
+
+- **Decision point.** Where should a generation-3 resource, guard, or
+  operational blocked-state record be written if that branch occurs? Plan
+  57-05 names the already-tracked singleton blocked-state.json, whose exact
+  bytes are hash-bound as generation-1 evidence.
+
+- **Where in artifact.** 57-05-PLAN.md:94-103 and its files_modified
+  frontmatter (the failure branch writes evidence/blocked-state.json);
+  evidence/README.md:22-25 (one blocked-state path);
+  evidence/run-ledger.md:43,119-120 (generation-1 path and SHA-256);
+  evidence/verify_phase57_evidence.py:_blocked_state (singleton reader).
+
+- **Task context.** Pre-admission review of the owner-approved generation-3
+  preparation on 2026-09-27. The historical blocked-state.json is tracked;
+  its on-disk SHA-256 is
+  2d0e43343f84bf18df571b8f1fd2e1e14b9cd7c8ee416ad6f50ae2bacea1260b,
+  matching the generation-1 ledger. No generation-3 run or evaluation has
+  begun. The failure branch must be decidable before D-09 freezes the HEAD.
+
+- **Classification.** **Process-artifact schema** — this fixes the path and
+  verification rule for a later generation's failure record without erasing
+  an earlier generation's evidence.
+
+- **Source silence.**
+  - 57-05-PLAN.md:94-103 requires blocked-state.json on any operational
+    failure but does not state how a second generation writes it when the
+    singleton is already occupied.
+  - evidence/run-ledger.md:43,119-120 binds generation 1 to the current
+    blocked-state.json path and digest. evidence/README.md:18-25 requires
+    append-only run history and a blocked-state record, but gives no
+    generation-scoped naming or replacement rule.
+  - 57-GAPS.md:592-618 (GAP-57-03) records the owner's instruction to retain
+    generation-1 evidence. It does not authorize moving or overwriting its
+    blocked-state file. The 2026-09-27 GAP-57-04/06 rulings cover invocation
+    history and preservation of generation-2 run files, not blocked-state
+    path reuse.
+  - evidence/verify_phase57_evidence.py:_blocked_state reads only the
+    singleton. It does not establish an alternative path or a rule for
+    selecting the blocked record of the active generation.
+
+- **Mathematical / engineering grounding.** The generation-1 ledger's
+  SHA-256 claim is re-derivable only while the referenced bytes remain.
+  Writing a generation-3 failure to the same path would invalidate that
+  claim and erase the earlier failure record. Leaving the old file in place
+  without another location would fail to record a generation-3 operational
+  block, while treating the old file as the new block would misclassify the
+  current run. A generation-scoped record can preserve both histories, but
+  the plan and verifier must agree on its path before admission. D-09 forbids
+  editing those fingerprinted inputs after the new smoke begins.
+
+- **Agent was tempted to.** Keep the generation-1 singleton untouched and
+  add evidence/blocked-state-g3.json for a generation-3 failure, with the
+  Plan 57-05 failure path and verifier updated before admission. This is the
+  smallest additive change, but choosing a new evidence-file name and
+  closeout criterion is an owner-routed schema decision.
+
+- **What the user needs to decide.**
+  - **(A)** Retain generation-1 blocked-state.json at its current path; use
+    blocked-state-g3.json only if generation 3 has an operational block.
+    Amend Plan 57-05, README, and verifier before admission to select the
+    current generation's block while preserving the historical digest.
+  - **(B)** Preserve generation-1 blocked-state.json under a new durable
+    generation-specific path with verified identical bytes, amend the ledger
+    reference, then reuse the singleton path for a possible generation-3
+    block. This changes a historical path before admission.
+  - **(C)** Do not admit generation 3 until a failure-record path is chosen.
+
+- **Confidence of impact.** **HIGH** if generation 3 blocks, because the
+  current plan would either invalidate a committed SHA-256 or fail to record
+  the new failure. The branch is conditional, but the path choice must
+  precede the immutable run window.
 
 - **Status.** OPEN (surfaced 2026-09-27).
 

@@ -15,8 +15,11 @@ inputs must not be changed between the smoke and graded band.
 - `production-conformance.json` — independent CPU proof of the public
   `FixedBatch`/`RunController`/loss/checkpoint seams, bound to the Gate raw
   digest and final `R_ref` digest.  It is dataset-free and held-out-free.
-- `run-ledger.md` — append-only smoke/band launch history.  Every attempted
-  launch gets a record; retries are new records, never replacements.
+- `run-ledger.md` — append-only smoke/band history. Each attempted run has
+  one record with an `invocations[]` entry for every process; a continuation
+  stays in that run record, while a new attempt gets a new record.
+- `generation-2-retention.json` — all 16 preserved files from the interrupted
+  historical smoke, with byte sizes and SHA-256 digests.
 - `source-manifest.json`, `band-record.md`, and `candidate-receipt.json` —
   normal-mode artifacts built only after a complete three-seed band.
 - `terminal-state.json` or `blocked-state.json` — mutually exclusive outcome
@@ -52,3 +55,25 @@ The evaluator boundary is canonical-only: predicted `r_prime`, normalized
 time `u_t_over_T`, and ordered raw masses.  The pre-access assertion must run
 before any test-split object is constructed.  The attempt/receipt marker is
 single-use; once claimed, no retry or fallback is legal.
+
+## Version-2 invocation contract
+
+GAP-57-04 option B makes process provenance explicit in the version-2 run
+ledger. For an admitted final run, the first invocation is `fresh`. Each
+later invocation is `resume`,
+uses `--stage-0-only --resume latest`, and references the prior process's
+SHA-256-pinned boundary checkpoint. The independent verifier loads that
+checkpoint with `weights_only=True` and requires `invariant_b_state`. Each
+invocation records its own command, PID, start/end times, exit status, Git
+HEAD, and source-config digest. All processes in one run share the same HEAD
+and config identity. An interrupted process can be followed by a resume only
+when its boundary checkpoint is present and valid.
+
+Generation 1 is the preserved blocked smoke. Generation 2 is the retained,
+operator-reported deliberate stop from 2026-09-13; its original command, exit
+code, Git HEAD, and exact launch kind are not independently recorded and remain
+null. It is
+historical and incomplete, not a calibration for the next band. Generation 3
+uses fresh `stage0-v23g3-{smoke,seed41,seed42,seed43}` names and is the only
+currently admissible final band. The two earlier generations remain in the
+append-only ledger and their run artifacts must not be moved or overwritten.

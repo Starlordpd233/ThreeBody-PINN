@@ -172,6 +172,44 @@ class CommitMessagePolicyTests(unittest.TestCase):
 
 
 class StagedPathPolicyTests(unittest.TestCase):
+    def test_allows_exact_retained_generation_two_files(self):
+        manifest = json.loads((
+            ROOT / ".planning/phases/57-corrected-re-run-the-preserved-evaluation"
+            / "evidence/generation-2-retention.json"
+        ).read_text())
+        files = manifest["files"]
+        self.assertEqual(len(files), 16)
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={
+                "GIT_POLICY_STAGED_FILES": "\n".join(item["path"] for item in files) + "\n",
+                "GIT_POLICY_STAGED_SIZES": json.dumps({
+                    item["path"]: item["size_bytes"] for item in files
+                }),
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_other_generation_two_runtime_output(self):
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={"GIT_POLICY_STAGED_FILES": "runs/stage0-v23g2-smoke/extra.pt\n"},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("generated", result.stderr)
+
+    def test_large_exception_does_not_extend_to_other_checkpoints(self):
+        path = "runs/stage0-v23-smoke/checkpoints/stage-0-init.pt"
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={
+                "GIT_POLICY_STAGED_FILES": path + "\n",
+                "GIT_POLICY_STAGED_SIZES": json.dumps({path: 12 * 1024 * 1024}),
+            },
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("10 MiB", result.stderr)
+
     def test_allows_approved_planning_tmp_metadata(self):
         result = run_python(
             STAGED_VALIDATOR,

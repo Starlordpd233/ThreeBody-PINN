@@ -1687,8 +1687,7 @@ class RunController:
     # L-BFGS closure/segment-start paths are untouched by this change --
     # see the 2026-09-09 band-generation-2 scope brief §1 for why.
     # ------------------------------------------------------------------
-    @staticmethod
-    def _release_chunk_memory() -> None:
+    def _release_chunk_memory(self) -> None:
         """Force-release a just-finished microbatch's autograd graph.
 
         57-07 empirical finding: a real production run's ``driver_bytes``
@@ -1726,7 +1725,7 @@ class RunController:
         cycle to break has not yet been promoted out of generation 0.
         """
         gc.collect(0)
-        if hasattr(torch, "mps"):
+        if self._device.type == "mps" and hasattr(torch, "mps"):
             try:
                 torch.mps.empty_cache()
             except Exception:

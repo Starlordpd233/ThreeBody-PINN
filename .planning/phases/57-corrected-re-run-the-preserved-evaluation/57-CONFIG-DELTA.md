@@ -63,3 +63,23 @@ budget. The smoke is seed 42 and retains the same corpus/allocation inputs;
 All four launches are fresh Stage-0-only commands and require the existing
 `--stage-0-only` switch. The v2.3 run names do not overwrite the preserved
 v2.2 `stage0-rerun-seed4X` directories.
+
+## Generation-3 admission identity (2026-09-27)
+
+The tables above are the preserved generation-1 derivation. GAP-57-06
+authorized fresh generation-3 run names because the interrupted generation-2
+smoke occupies its original directory and ran before the current code HEAD.
+The four generation-2 configs remain unchanged. A line-by-line comparison
+after replacing the run-name value and excluding comments found no other
+config difference between each generation-2 and generation-3 pair.
+
+| Config pair | Only changed key | Generation 2 | Generation 3 |
+|---|---|---|---|
+| smoke | `run.run_name` | `stage0-v23g2-smoke` | `stage0-v23g3-smoke` |
+| seed 41 | `run.run_name` | `stage0-v23g2-seed41` | `stage0-v23g3-seed41` |
+| seed 42 | `run.run_name` | `stage0-v23g2-seed42` | `stage0-v23g3-seed42` |
+| seed 43 | `run.run_name` | `stage0-v23g2-seed43` | `stage0-v23g3-seed43` |
+
+Generation 3 retains the 300/300 smoke, 1000/1000 graded budgets, exact
+4096-row collocation count, 240-row replay pool, and N=500 front deadline.
+All four generation-3 launches remain fresh and Stage-0-only.
