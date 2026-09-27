@@ -7,6 +7,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -36,6 +37,34 @@ class GenerationThreeConfigTests(unittest.TestCase):
                 self.assertEqual(old["run"].pop("run_name"), f"stage0-v23g2-{suffix}")
                 self.assertEqual(new["run"].pop("run_name"), f"stage0-v23g3-{suffix}")
                 self.assertEqual(new, old)
+
+
+class AdmissionConfigTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        (self.root / "configs").mkdir()
+        for suffix in ("smoke", "seed41", "seed42", "seed43"):
+            name = f"stage0-v23g3-{suffix}.yaml"
+            shutil.copyfile(ROOT / "configs" / name, self.root / "configs" / name)
+        patcher = mock.patch.object(verifier, "REPO_ROOT", self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_admission_rejects_config_that_fails_strict_load(self) -> None:
+        smoke = self.root / "configs/stage0-v23g3-smoke.yaml"
+        smoke.write_text(smoke.read_text() + "\nunknown_top_level: true\n")
+        with self.assertRaisesRegex(verifier.VerifyError, "strict-load"):
+            verifier._assert_config_contract()
+
+    def test_admission_rejects_unreachable_admitted_corpus(self) -> None:
+        smoke = self.root / "configs/stage0-v23g3-smoke.yaml"
+        smoke.write_text(
+            smoke.read_text() + f"\n  root: {self.root / 'missing-corpus'}\n"
+        )
+        with self.assertRaisesRegex(verifier.VerifyError, "corpus"):
+            verifier._assert_config_contract()
 
 
 class InvocationEvidenceTests(unittest.TestCase):

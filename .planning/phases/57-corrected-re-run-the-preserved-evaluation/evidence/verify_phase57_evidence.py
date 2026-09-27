@@ -270,23 +270,43 @@ def _gate_chain() -> tuple[Path, dict[str, Any], Path, dict[str, Any], dict[str,
     return raw_path, dict(raw), conformance_path, dict(conformance), dict(artifact)
 
 
-def _assert_config_contract() -> None:
+def _assert_config_contract() -> Path:
     # GAP-57-06 preserves earlier configs and admits only generation 3.
+    from pinn.train import _admitted_data_preflight
+    from pinn.training.config_yaml import load_config
+
     names = ("smoke", "seed41", "seed42", "seed43")
     paths = tuple(REPO_ROOT / f"configs/stage0-v23g3-{name}.yaml" for name in names)
+    corpus_roots: set[Path] = set()
     for name, path in zip(names, paths):
         if not path.is_file():
             fail(f"required Phase-57 config is missing: {path}")
-        text = path.read_text(encoding="utf-8")
-        for needle in ("collocation_count: 4096", "front_advance_window_n: 500", "r_ref_artifact_path: pinn/verification/artifacts/r_ref_stage0.json"):
-            if needle not in text:
-                fail(f"{path} is missing required recipe binding {needle!r}")
-        if f"run_name: stage0-v23g3-{name}" not in text:
-            fail(f"{path} has the wrong generation-3 run name")
-    seed_paths = {41: paths[1], 42: paths[2], 43: paths[3]}
-    for seed, path in seed_paths.items():
-        if f"seed: {seed}" not in path.read_text(encoding="utf-8"):
-            fail(f"{path} has the wrong seed")
+        try:
+            config = load_config(path)
+        except Exception as exc:  # noqa: BLE001 - any config refusal blocks admission
+            fail(f"required Phase-57 config does not strict-load: {path}: {exc}")
+        expected_seed = 42 if name == "smoke" else int(name.removeprefix("seed"))
+        expected_budget = 300 if name == "smoke" else 1000
+        if (
+            config.run.run_name != f"stage0-v23g3-{name}"
+            or config.run.seed != expected_seed
+            or config.run.smoke is not (name == "smoke")
+            or config.stage.max_epochs != expected_budget
+            or config.stage.n_adam != expected_budget
+            or config.stage.collocation_count != 4096
+            or config.stage.replay_count != 240
+            or config.run.invariants.front_advance_window_n != 500
+            or config.loss.r_ref_artifact_path != str(R_REF_REL)
+            or config.data.source != "admitted"
+        ):
+            fail(f"{path} differs from the ratified generation-3 recipe")
+        try:
+            corpus_roots.add(_admitted_data_preflight(config))
+        except Exception as exc:  # noqa: BLE001 - missing data fails before a run
+            fail(f"admitted corpus is unreachable for {path}: {exc}")
+    if len(corpus_roots) != 1:
+        fail("generation-3 configs resolve different admitted corpus roots")
+    return corpus_roots.pop()
 
 
 def _target_runs() -> tuple[Path, ...]:
@@ -302,7 +322,7 @@ def _assert_ancestry(*commits: Any) -> None:
 
 def cmd_admit_run_window() -> None:
     raw_path, raw, conformance_path, conformance, artifact = _gate_chain()
-    _assert_config_contract()
+    corpus_root = _assert_config_contract()
     assert_fingerprint_inputs_clean()
     ruling = REPO_ROOT / PHASE_REL / "57-RULING.md"
     if not ruling.is_file() or "status: ratified" not in ruling.read_text(encoding="utf-8"):
@@ -346,6 +366,7 @@ def cmd_admit_run_window() -> None:
     print(f"gate_raw={raw_path.relative_to(REPO_ROOT)}")
     print(f"conformance={conformance_path.relative_to(REPO_ROOT)}")
     print(f"r_ref_sha256={sha256_file(REPO_ROOT / R_REF_REL)}")
+    print(f"corpus_root={corpus_root}")
 
 
 def _terminal_state() -> dict[str, Any] | None:
