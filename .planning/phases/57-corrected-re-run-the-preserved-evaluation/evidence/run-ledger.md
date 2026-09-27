@@ -3,7 +3,10 @@
 The ledger is append-only during the smoke and graded run window.
 Generations 1 and 2 are retained historical attempts; neither belongs to the
 final band. The final generation is set only after a complete generation-3
-band or the authorized scientific terminal branch is recorded.
+band or the authorized scientific terminal branch is recorded. The generation-1
+`blocked-state.json` path and digest are historical evidence and remain
+immutable. If generation 3 reaches an operational block, its record is written
+to `blocked-state-g3.json` instead.
 
 <!-- phase57-run-ledger-schema: phase57-run-ledger/v2 -->
 ```json

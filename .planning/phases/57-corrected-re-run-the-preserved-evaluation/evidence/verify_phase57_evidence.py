@@ -42,7 +42,15 @@ CONFORMANCE_REL = EVIDENCE_REL / "production-conformance.json"
 GATE_SCHEMA = "phase56-gate04-cli-evidence/v1"
 LEDGER_SCHEMA = "phase57-run-ledger/v2"
 RETENTION_REL = EVIDENCE_REL / "generation-2-retention.json"
+HISTORICAL_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state.json"
+CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g3.json"
 FINAL_GENERATION = 3
+FINAL_RUN_NAMES = frozenset({
+    "stage0-v23g3-smoke",
+    "stage0-v23g3-seed41",
+    "stage0-v23g3-seed42",
+    "stage0-v23g3-seed43",
+})
 EVALUATION_NAMES = frozenset({
     "evaluation-attempt.json",
     "evaluation-receipt.json",
@@ -144,6 +152,26 @@ def assert_generation_two_retained() -> None:
         total_bytes += size
     if observed != tracked or total_bytes != manifest.get("total_bytes"):
         fail("generation-2 retained paths or total bytes differ from the committed manifest")
+
+
+def assert_generation_one_blocked_state_retained(ledger: Mapping[str, Any]) -> None:
+    """Keep the tracked generation-1 blocked evidence byte-for-byte stable."""
+    records = [
+        record for record in ledger.get("records", [])
+        if isinstance(record, Mapping) and record.get("band_generation") == 1
+    ]
+    if len(records) != 1:
+        fail("run ledger must contain exactly one generation-1 record")
+    record = records[0]
+    expected_path = record.get("blocked_state_path")
+    expected_digest = record.get("blocked_state_sha256")
+    if expected_path != str(HISTORICAL_BLOCKED_STATE_REL):
+        fail("generation-1 blocked-state path no longer points to the historical file")
+    if not isinstance(expected_digest, str) or not HEX64.fullmatch(expected_digest):
+        fail("generation-1 blocked-state ledger digest is invalid")
+    path = REPO_ROOT / HISTORICAL_BLOCKED_STATE_REL
+    if not path.is_file() or sha256_file(path) != expected_digest:
+        fail("generation-1 blocked-state bytes differ from the ledger")
 
 
 def current_head() -> str:
@@ -331,6 +359,7 @@ def cmd_admit_run_window() -> None:
         if run_dir.exists():
             fail(f"target run directory already exists: {run_dir}")
     ledger = load_ledger()
+    assert_generation_one_blocked_state_retained(ledger)
     assert_generation_two_retained()
     historical = {
         (generation.get("band_generation"), generation.get("status"))
@@ -375,8 +404,8 @@ def _terminal_state() -> dict[str, Any] | None:
 
 
 def _blocked_state() -> dict[str, Any] | None:
-    path = REPO_ROOT / EVIDENCE_REL / "blocked-state.json"
-    return load_json(path, what="blocked state") if path.is_file() else None
+    path = REPO_ROOT / CURRENT_BLOCKED_STATE_REL
+    return load_json(path, what="generation-3 blocked state") if path.is_file() else None
 
 
 def _assert_resume_checkpoint(raw: Any, artifact_dir: Path) -> None:
@@ -484,8 +513,15 @@ def cmd_run_window() -> None:
         for record in current_records:
             _assert_invocations(record, current_generations[0].get("git_head"))
     blocked = _blocked_state()
-    if blocked is not None and blocked.get("run_name") != "stage0-v23-smoke":
-        fail("operational/resource/guard blocked-state is incomplete and cannot close the run window")
+    if blocked is not None and (
+        blocked.get("band_generation") != FINAL_GENERATION
+        or blocked.get("run_name") not in FINAL_RUN_NAMES
+        or blocked.get("evaluation") != "preserved-unspent"
+        or blocked.get("terminal") is not False
+    ):
+        fail("generation-3 operational/resource/guard blocked-state is incomplete and cannot close the run window")
+    if blocked is not None:
+        fail("generation-3 operational/resource/guard blocked-state is incomplete and cannot close the run window")
     terminal = _terminal_state()
     if terminal is not None:
         reason = terminal.get("authorized_terminal_reason")

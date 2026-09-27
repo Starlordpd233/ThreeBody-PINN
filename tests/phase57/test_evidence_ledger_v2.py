@@ -67,6 +67,36 @@ class AdmissionConfigTests(unittest.TestCase):
             verifier._assert_config_contract()
 
 
+class BlockedStateContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        evidence = self.root / verifier.EVIDENCE_REL
+        evidence.mkdir(parents=True)
+        patcher = mock.patch.object(verifier, "REPO_ROOT", self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_generation_one_blocked_state_is_verified_from_ledger_digest(self) -> None:
+        historical = self.root / verifier.HISTORICAL_BLOCKED_STATE_REL
+        historical.write_text('{"run_name":"stage0-v23-smoke"}\n')
+        ledger = {
+            "records": [{
+                "band_generation": 1,
+                "blocked_state_path": str(verifier.HISTORICAL_BLOCKED_STATE_REL),
+                "blocked_state_sha256": verifier.sha256_file(historical),
+            }]
+        }
+        verifier.assert_generation_one_blocked_state_retained(ledger)
+
+    def test_current_blocked_state_reader_ignores_historical_singleton(self) -> None:
+        (self.root / verifier.HISTORICAL_BLOCKED_STATE_REL).write_text("not-json")
+        current = self.root / verifier.CURRENT_BLOCKED_STATE_REL
+        current.write_text('{"band_generation":3,"run_name":"stage0-v23g3-smoke"}\n')
+        self.assertEqual(verifier._blocked_state()["band_generation"], 3)
+
+
 class InvocationEvidenceTests(unittest.TestCase):
     def setUp(self) -> None:
         temporary = tempfile.TemporaryDirectory()
@@ -215,9 +245,7 @@ class InvocationEvidenceTests(unittest.TestCase):
             mock.patch.object(verifier, "load_ledger", return_value={
                 "records": [], "band_generations": [], "final_band_generation": None
             }),
-            mock.patch.object(verifier, "_blocked_state", return_value={
-                "run_name": "stage0-v23-smoke"
-            }),
+            mock.patch.object(verifier, "_blocked_state", return_value=None),
             mock.patch.object(verifier, "_terminal_state", return_value=terminal),
             mock.patch.object(verifier, "_target_runs", return_value=()),
             contextlib.redirect_stdout(io.StringIO()) as output,
@@ -273,9 +301,7 @@ class InvocationEvidenceTests(unittest.TestCase):
             mock.patch.object(verifier, "_gate_chain"),
             mock.patch.object(verifier, "assert_generation_two_retained"),
             mock.patch.object(verifier, "load_ledger", return_value=ledger),
-            mock.patch.object(verifier, "_blocked_state", return_value={
-                "run_name": "stage0-v23-smoke"
-            }),
+            mock.patch.object(verifier, "_blocked_state", return_value=None),
             mock.patch.object(verifier, "_terminal_state", return_value=None),
             contextlib.redirect_stdout(io.StringIO()) as output,
         ):
@@ -290,7 +316,10 @@ class InvocationEvidenceTests(unittest.TestCase):
                 "records": [], "band_generations": [], "final_band_generation": None
             }),
             mock.patch.object(verifier, "_blocked_state", return_value={
-                "run_name": "stage0-v23g3-smoke"
+                "band_generation": 3,
+                "run_name": "stage0-v23g3-smoke",
+                "evaluation": "preserved-unspent",
+                "terminal": False,
             }),
         ):
             with self.assertRaisesRegex(verifier.VerifyError, "blocked-state"):
@@ -327,9 +356,7 @@ class InvocationEvidenceTests(unittest.TestCase):
             mock.patch.object(verifier, "_assert_invocations", return_value={
                 "disposition": "finished", "exit_code": 0
             }),
-            mock.patch.object(verifier, "_blocked_state", return_value={
-                "run_name": "stage0-v23-smoke"
-            }),
+            mock.patch.object(verifier, "_blocked_state", return_value=None),
             mock.patch.object(verifier, "_terminal_state", return_value=None),
             mock.patch.object(verifier, "_target_runs", return_value=()),
             contextlib.redirect_stdout(io.StringIO()),

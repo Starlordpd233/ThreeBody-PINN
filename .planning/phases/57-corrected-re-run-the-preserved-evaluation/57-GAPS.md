@@ -908,6 +908,13 @@ ruling and is not reused here.
   the new failure. The branch is conditional, but the path choice must
   precede the immutable run window.
 
-- **Status.** OPEN (surfaced 2026-09-27).
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-27).
 
-- **Resolution note.**
+- **Resolution note.** Owner selected **Option A** on 2026-09-27: preserve the
+  generation-1 `evidence/blocked-state.json` at its current path and verify its
+  ledger-bound SHA-256 before admission. Generation-3 operational/resource/
+  guard failures use the additive `evidence/blocked-state-g3.json` path with
+  `band_generation=3`, the affected generation-3 `run_name`,
+  `evaluation=preserved-unspent`, and `terminal=false`. Plan 57-05, the
+  evidence README/ledger contract, verifier, and focused tests were amended
+  before admission. The historical singleton is never overwritten.

@@ -22,9 +22,12 @@ inputs must not be changed between the smoke and graded band.
   historical smoke, with byte sizes and SHA-256 digests.
 - `source-manifest.json`, `band-record.md`, and `candidate-receipt.json` —
   normal-mode artifacts built only after a complete three-seed band.
-- `terminal-state.json` or `blocked-state.json` — mutually exclusive outcome
-  records.  Only `gate04_block` and `invariant_b_halt_no_advance` may be
-  terminal; resource, guard, and operational failures remain incomplete.
+- `terminal-state.json` or `blocked-state-g3.json` — mutually exclusive
+  generation-3 outcome records.  Only `gate04_block` and
+  `invariant_b_halt_no_advance` may be terminal; resource, guard, and
+  operational failures remain incomplete.  The historical generation-1
+  `blocked-state.json` is retained at its original path and must not be
+  overwritten.
 
 ## Verification commands
 
@@ -75,5 +78,7 @@ code, Git HEAD, and exact launch kind are not independently recorded and remain
 null. It is
 historical and incomplete, not a calibration for the next band. Generation 3
 uses fresh `stage0-v23g3-{smoke,seed41,seed42,seed43}` names and is the only
-currently admissible final band. The two earlier generations remain in the
-append-only ledger and their run artifacts must not be moved or overwritten.
+currently admissible final band. A generation-3 operational block is written
+to `blocked-state-g3.json`; the generation-1 blocked-state path and digest
+remain historical. The two earlier generations remain in the append-only
+ledger and their run artifacts must not be moved or overwritten.
