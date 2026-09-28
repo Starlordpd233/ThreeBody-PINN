@@ -43,13 +43,13 @@ GATE_SCHEMA = "phase56-gate04-cli-evidence/v1"
 LEDGER_SCHEMA = "phase57-run-ledger/v2"
 RETENTION_REL = EVIDENCE_REL / "generation-2-retention.json"
 HISTORICAL_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state.json"
-CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g4.json"
-FINAL_GENERATION = 4
+CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g5.json"
+FINAL_GENERATION = 5
 FINAL_RUN_NAMES = frozenset({
-    "stage0-v23g4-smoke",
-    "stage0-v23g4-seed41",
-    "stage0-v23g4-seed42",
-    "stage0-v23g4-seed43",
+    "stage0-v23g5-smoke",
+    "stage0-v23g5-seed41",
+    "stage0-v23g5-seed42",
+    "stage0-v23g5-seed43",
 })
 EVALUATION_NAMES = frozenset({
     "evaluation-attempt.json",
@@ -201,6 +201,58 @@ def assert_generation_three_blocked_state_retained(ledger: Mapping[str, Any]) ->
     _assert_invocations(record, record.get("git_head"))
 
 
+def assert_generation_four_blocked_state_retained(ledger: Mapping[str, Any]) -> None:
+    """Keep the non-resumable generation-4 operator stop append-only."""
+    generations = [
+        generation for generation in ledger.get("band_generations", [])
+        if isinstance(generation, Mapping) and generation.get("band_generation") == 4
+    ]
+    if len(generations) != 1 or generations[0].get("status") != "blocked":
+        fail("run ledger must retain one blocked generation-4 header")
+    records = [
+        record for record in ledger.get("records", [])
+        if isinstance(record, Mapping) and record.get("band_generation") == 4
+    ]
+    if len(records) != 1 or records[0].get("run_name") != "stage0-v23g4-smoke":
+        fail("run ledger must retain the generation-4 operator-stop smoke record")
+    record = records[0]
+    path_value = record.get("blocked_state_path")
+    digest = record.get("blocked_state_sha256")
+    if path_value != str(EVIDENCE_REL / "blocked-state-g4.json"):
+        fail("generation-4 blocked-state path changed unexpectedly")
+    if not isinstance(digest, str) or not HEX64.fullmatch(digest):
+        fail("generation-4 blocked-state ledger digest is invalid")
+    path = REPO_ROOT / path_value
+    if not path.is_file() or sha256_file(path) != digest:
+        fail("generation-4 blocked-state bytes differ from the ledger")
+    blocked = load_json(path, what="generation-4 blocked state")
+    if (
+        blocked.get("band_generation") != 4
+        or blocked.get("run_name") != "stage0-v23g4-smoke"
+        or blocked.get("evaluation") != "preserved-unspent"
+        or blocked.get("terminal") is not False
+    ):
+        fail("generation-4 blocked-state identity or disposition is invalid")
+    ledger_hashes = record.get("artifact_hashes")
+    blocked_hashes = blocked.get("run_artifact_hashes")
+    if not isinstance(ledger_hashes, Mapping) or not isinstance(blocked_hashes, Mapping):
+        fail("generation-4 blocked-state artifact hashes are missing")
+    if dict(ledger_hashes) != dict(blocked_hashes):
+        fail("generation-4 blocked-state and ledger artifact hashes differ")
+    artifact_dir = repo_path(record.get("artifact_dir"), what="generation-4 retained artifact")
+    observed = {
+        str(file.relative_to(artifact_dir)): sha256_file(file)
+        for file in sorted(artifact_dir.rglob("*"))
+        if file.is_file()
+    }
+    if observed != dict(blocked_hashes):
+        fail("generation-4 retained artifact bytes differ from the blocked-state hashes")
+    source_config = repo_path(record.get("config_path"), what="generation-4 source config")
+    if blocked.get("config", {}).get("source_sha256") != sha256_file(source_config):
+        fail("generation-4 blocked-state source config digest is stale")
+    _assert_invocations(record, record.get("git_head"))
+
+
 def current_head() -> str:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -326,12 +378,12 @@ def _gate_chain() -> tuple[Path, dict[str, Any], Path, dict[str, Any], dict[str,
 
 
 def _assert_config_contract() -> Path:
-    # GAP-57-06/08 preserve earlier attempts and admit only generation 4.
+    # GAP-57-06/08 preserve earlier attempts and admit only generation 5.
     from pinn.train import _admitted_data_preflight
     from pinn.training.config_yaml import load_config
 
     names = ("smoke", "seed41", "seed42", "seed43")
-    paths = tuple(REPO_ROOT / f"configs/stage0-v23g4-{name}.yaml" for name in names)
+    paths = tuple(REPO_ROOT / f"configs/stage0-v23g5-{name}.yaml" for name in names)
     corpus_roots: set[Path] = set()
     for name, path in zip(names, paths):
         if not path.is_file():
@@ -343,7 +395,7 @@ def _assert_config_contract() -> Path:
         expected_seed = 42 if name == "smoke" else int(name.removeprefix("seed"))
         expected_budget = 300 if name == "smoke" else 1000
         if (
-            config.run.run_name != f"stage0-v23g4-{name}"
+            config.run.run_name != f"stage0-v23g5-{name}"
             or config.run.seed != expected_seed
             or config.run.smoke is not (name == "smoke")
             or config.stage.max_epochs != expected_budget
@@ -354,18 +406,45 @@ def _assert_config_contract() -> Path:
             or config.loss.r_ref_artifact_path != str(R_REF_REL)
             or config.data.source != "admitted"
         ):
-            fail(f"{path} differs from the ratified generation-4 recipe")
+            fail(f"{path} differs from the ratified generation-5 recipe")
         try:
             corpus_roots.add(_admitted_data_preflight(config))
         except Exception as exc:  # noqa: BLE001 - missing data fails before a run
             fail(f"admitted corpus is unreachable for {path}: {exc}")
     if len(corpus_roots) != 1:
-        fail("generation-4 configs resolve different admitted corpus roots")
+        fail("generation-5 configs resolve different admitted corpus roots")
     return corpus_roots.pop()
 
 
+def _assert_mps_runtime() -> dict[str, Any]:
+    """Prove the admitted host can allocate one MPS tensor before a run."""
+    try:
+        import torch
+        available = bool(torch.backends.mps.is_available())
+        count = int(torch.mps.device_count())
+        if not available or count < 1:
+            fail(f"host MPS runtime is unavailable at admission: available={available}, device_count={count}")
+        probe = torch.ones(1, dtype=torch.float32, device="mps")
+        if hasattr(torch.mps, "synchronize"):
+            torch.mps.synchronize()
+        result = {
+            "torch_version": torch.__version__,
+            "mps_available": available,
+            "mps_device_count": count,
+            "probe": str(probe),
+        }
+        del probe
+        if hasattr(torch.mps, "empty_cache"):
+            torch.mps.empty_cache()
+        return result
+    except VerifyError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - allocation must fail closed
+        fail(f"host MPS allocation failed at admission: {exc}")
+
+
 def _target_runs() -> tuple[Path, ...]:
-    return tuple(REPO_ROOT / f"runs/stage0-v23g4-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
+    return tuple(REPO_ROOT / f"runs/stage0-v23g5-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
 
 
 def _assert_ancestry(*commits: Any) -> None:
@@ -378,6 +457,7 @@ def _assert_ancestry(*commits: Any) -> None:
 def cmd_admit_run_window() -> None:
     raw_path, raw, conformance_path, conformance, artifact = _gate_chain()
     corpus_root = _assert_config_contract()
+    mps_runtime = _assert_mps_runtime()
     assert_fingerprint_inputs_clean()
     ruling = REPO_ROOT / PHASE_REL / "57-RULING.md"
     if not ruling.is_file() or "status: ratified" not in ruling.read_text(encoding="utf-8"):
@@ -388,13 +468,14 @@ def cmd_admit_run_window() -> None:
     ledger = load_ledger()
     assert_generation_one_blocked_state_retained(ledger)
     assert_generation_three_blocked_state_retained(ledger)
+    assert_generation_four_blocked_state_retained(ledger)
     assert_generation_two_retained()
     historical = {
         (generation.get("band_generation"), generation.get("status"))
         for generation in ledger["band_generations"]
     }
-    if historical != {(1, "blocked"), (2, "historical-incomplete"), (3, "blocked")}:
-        fail("run ledger does not contain exactly the three preserved prior generations")
+    if historical != {(1, "blocked"), (2, "historical-incomplete"), (3, "blocked"), (4, "blocked")}:
+        fail("run ledger does not contain exactly the four preserved prior generations")
     old_attempts = [record for record in ledger["records"] if record.get("band_generation") == 2]
     if len(old_attempts) != 1 or old_attempts[0].get("run_name") != "stage0-v23g2-smoke" or old_attempts[0].get("in_final_band") is not False:
         fail("interrupted generation-2 smoke is not recorded as historical and ineligible")
@@ -424,6 +505,7 @@ def cmd_admit_run_window() -> None:
     print(f"conformance={conformance_path.relative_to(REPO_ROOT)}")
     print(f"r_ref_sha256={sha256_file(REPO_ROOT / R_REF_REL)}")
     print(f"corpus_root={corpus_root}")
+    print(f"mps_runtime={json.dumps(mps_runtime, sort_keys=True)}")
 
 
 def _terminal_state() -> dict[str, Any] | None:
@@ -433,7 +515,7 @@ def _terminal_state() -> dict[str, Any] | None:
 
 def _blocked_state() -> dict[str, Any] | None:
     path = REPO_ROOT / CURRENT_BLOCKED_STATE_REL
-    return load_json(path, what="generation-4 blocked state") if path.is_file() else None
+    return load_json(path, what="generation-5 blocked state") if path.is_file() else None
 
 
 def _assert_resume_checkpoint(raw: Any, artifact_dir: Path) -> None:
@@ -537,7 +619,7 @@ def cmd_run_window() -> None:
     current_generations = [generation for generation in ledger["band_generations"] if generation.get("band_generation") == FINAL_GENERATION]
     if current_records:
         if len(current_generations) != 1:
-            fail("generation-4 run records lack one generation header")
+            fail("generation-5 run records lack one generation header")
         for record in current_records:
             _assert_invocations(record, current_generations[0].get("git_head"))
     blocked = _blocked_state()
@@ -547,9 +629,9 @@ def cmd_run_window() -> None:
         or blocked.get("evaluation") != "preserved-unspent"
         or blocked.get("terminal") is not False
     ):
-        fail("generation-4 operational/resource/guard blocked-state is incomplete and cannot close the run window")
+        fail("generation-5 operational/resource/guard blocked-state is incomplete and cannot close the run window")
     if blocked is not None:
-        fail("generation-4 operational/resource/guard blocked-state is incomplete and cannot close the run window")
+        fail("generation-5 operational/resource/guard blocked-state is incomplete and cannot close the run window")
     terminal = _terminal_state()
     if terminal is not None:
         reason = terminal.get("authorized_terminal_reason")
@@ -563,16 +645,16 @@ def cmd_run_window() -> None:
     if final is None:
         fail("run window is neither complete nor an authorized terminal closure")
     if final != FINAL_GENERATION:
-        fail("final band generation is not the admitted generation 4")
+        fail("final band generation is not the admitted generation 5")
     records = [record for record in ledger["records"] if int(record.get("band_generation", -1)) == int(final)]
     graded = [record for record in records if record.get("in_final_band") is True]
-    smoke = [record for record in records if record.get("run_name") == "stage0-v23g4-smoke"]
-    expected_names = {"stage0-v23g4-smoke", "stage0-v23g4-seed41", "stage0-v23g4-seed42", "stage0-v23g4-seed43"}
+    smoke = [record for record in records if record.get("run_name") == "stage0-v23g5-smoke"]
+    expected_names = {"stage0-v23g5-smoke", "stage0-v23g5-seed41", "stage0-v23g5-seed42", "stage0-v23g5-seed43"}
     if (
         len(records) != 4 or len(smoke) != 1 or smoke[0].get("in_final_band") is not False
         or len(graded) != 3 or sorted(record.get("seed") for record in graded) != [41, 42, 43]
         or {record.get("run_name") for record in records} != expected_names
-        or any(record.get("run_name") != f"stage0-v23g4-seed{record.get('seed')}" for record in graded)
+        or any(record.get("run_name") != f"stage0-v23g5-seed{record.get('seed')}" for record in graded)
     ):
         fail("complete run window has wrong run names or lacks one smoke and three in-band seeds")
     for run_dir in _target_runs():
@@ -635,7 +717,7 @@ def cmd_candidate() -> None:
         if receipt.get("run_name") is not None or receipt.get("owner_stop") is not True:
             fail("no-candidate state must be explicit and preserve the evaluation")
     else:
-        if receipt.get("run_name") != f"stage0-v23g4-seed{first}" or receipt.get("seed") != first:
+        if receipt.get("run_name") != f"stage0-v23g5-seed{first}" or receipt.get("seed") != first:
             fail("candidate is not the first eligible seed in 42/41/43 order")
         best = receipt.get("candidate_best_sha256")
         if not isinstance(best, str) or not HEX64.fullmatch(best):

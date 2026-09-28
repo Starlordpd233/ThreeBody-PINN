@@ -1054,6 +1054,11 @@ ruling and is not reused here.
   resume unverifiable and controls whether a later attempt can share the
   generation-4 provenance.
 
-- **Status.** OPEN (surfaced 2026-09-28).
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-28).
 
-- **Resolution note.**
+- **Resolution note.** Owner selected **Option C** on 2026-09-28: preserve
+  generation 4 as the incomplete operator-stop attempt and admit a fresh
+  generation-5 smoke without attempting interruption. Generation 5 must use
+  the direct pinned environment interpreter under `caffeinate -is` so signals
+  reach the trainer if an unexpected stop occurs. No recipe, precision,
+  row-count, data-policy, or held-out evaluation change is authorized.

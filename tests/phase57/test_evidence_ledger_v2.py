@@ -33,9 +33,9 @@ class GenerationThreeConfigTests(unittest.TestCase):
         for suffix in ("smoke", "seed41", "seed42", "seed43"):
             with self.subTest(suffix=suffix):
                 old = yaml.safe_load((ROOT / f"configs/stage0-v23g2-{suffix}.yaml").read_text())
-                new = yaml.safe_load((ROOT / f"configs/stage0-v23g4-{suffix}.yaml").read_text())
+                new = yaml.safe_load((ROOT / f"configs/stage0-v23g5-{suffix}.yaml").read_text())
                 self.assertEqual(old["run"].pop("run_name"), f"stage0-v23g2-{suffix}")
-                self.assertEqual(new["run"].pop("run_name"), f"stage0-v23g4-{suffix}")
+                self.assertEqual(new["run"].pop("run_name"), f"stage0-v23g5-{suffix}")
                 self.assertEqual(new, old)
 
 
@@ -46,20 +46,20 @@ class AdmissionConfigTests(unittest.TestCase):
         self.root = Path(temporary.name)
         (self.root / "configs").mkdir()
         for suffix in ("smoke", "seed41", "seed42", "seed43"):
-            name = f"stage0-v23g4-{suffix}.yaml"
+            name = f"stage0-v23g5-{suffix}.yaml"
             shutil.copyfile(ROOT / "configs" / name, self.root / "configs" / name)
         patcher = mock.patch.object(verifier, "REPO_ROOT", self.root)
         patcher.start()
         self.addCleanup(patcher.stop)
 
     def test_admission_rejects_config_that_fails_strict_load(self) -> None:
-        smoke = self.root / "configs/stage0-v23g4-smoke.yaml"
+        smoke = self.root / "configs/stage0-v23g5-smoke.yaml"
         smoke.write_text(smoke.read_text() + "\nunknown_top_level: true\n")
         with self.assertRaisesRegex(verifier.VerifyError, "strict-load"):
             verifier._assert_config_contract()
 
     def test_admission_rejects_unreachable_admitted_corpus(self) -> None:
-        smoke = self.root / "configs/stage0-v23g4-smoke.yaml"
+        smoke = self.root / "configs/stage0-v23g5-smoke.yaml"
         smoke.write_text(
             smoke.read_text() + f"\n  root: {self.root / 'missing-corpus'}\n"
         )
@@ -93,8 +93,46 @@ class BlockedStateContractTests(unittest.TestCase):
     def test_current_blocked_state_reader_ignores_historical_singleton(self) -> None:
         (self.root / verifier.HISTORICAL_BLOCKED_STATE_REL).write_text("not-json")
         current = self.root / verifier.CURRENT_BLOCKED_STATE_REL
-        current.write_text('{"band_generation":4,"run_name":"stage0-v23g4-smoke"}\n')
-        self.assertEqual(verifier._blocked_state()["band_generation"], 4)
+        current.write_text('{"band_generation":5,"run_name":"stage0-v23g5-smoke"}\n')
+        self.assertEqual(verifier._blocked_state()["band_generation"], 5)
+
+    def test_generation_four_blocked_state_is_verified_from_ledger_digest(self) -> None:
+        historical = self.root / verifier.EVIDENCE_REL / "blocked-state-g4.json"
+        source = self.root / "configs/stage0-v23g4-smoke.yaml"
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("run:\n  run_name: stage0-v23g4-smoke\n")
+        artifact = self.root / "runs/stage0-v23g4-smoke"
+        artifact.mkdir(parents=True)
+        (artifact / "config.yaml").write_text("run:\n  run_name: stage0-v23g4-smoke\n")
+        artifact_hashes = {"config.yaml": verifier.sha256_file(artifact / "config.yaml")}
+        historical.write_text(json.dumps({
+            "band_generation": 4,
+            "run_name": "stage0-v23g4-smoke",
+            "evaluation": "preserved-unspent",
+            "terminal": False,
+            "config": {"source_sha256": verifier.sha256_file(source)},
+            "run_artifact_hashes": artifact_hashes,
+        }))
+        ledger = {
+            "band_generations": [{"band_generation": 4, "status": "blocked"}],
+            "records": [{
+                "band_generation": 4,
+                "run_name": "stage0-v23g4-smoke",
+                "git_head": "a" * 40,
+                "config_path": "configs/stage0-v23g4-smoke.yaml",
+                "config_sha256": verifier.sha256_file(source),
+                "artifact_dir": "runs/stage0-v23g4-smoke",
+                "blocked_state_path": str(verifier.EVIDENCE_REL / "blocked-state-g4.json"),
+                "blocked_state_sha256": verifier.sha256_file(historical),
+                "artifact_hashes": artifact_hashes,
+                "invocations": [{}],
+            }],
+        }
+        with mock.patch.object(verifier, "_assert_invocations"):
+            verifier.assert_generation_four_blocked_state_retained(ledger)
+            (artifact / "config.yaml").write_text("tampered\n")
+            with self.assertRaisesRegex(verifier.VerifyError, "retained artifact bytes"):
+                verifier.assert_generation_four_blocked_state_retained(ledger)
 
 
 class InvocationEvidenceTests(unittest.TestCase):
@@ -105,12 +143,12 @@ class InvocationEvidenceTests(unittest.TestCase):
         patcher = mock.patch.object(verifier, "REPO_ROOT", self.root)
         patcher.start()
         self.addCleanup(patcher.stop)
-        self.config_rel = "configs/stage0-v23g4-seed42.yaml"
+        self.config_rel = "configs/stage0-v23g5-seed42.yaml"
         self.config = self.root / self.config_rel
         self.config.parent.mkdir(parents=True)
-        self.config.write_text("run:\n  run_name: stage0-v23g4-seed42\n")
+        self.config.write_text("run:\n  run_name: stage0-v23g5-seed42\n")
         self.config_sha = verifier.sha256_file(self.config)
-        self.run_rel = "runs/stage0-v23g4-seed42"
+        self.run_rel = "runs/stage0-v23g5-seed42"
         self.run = self.root / self.run_rel
         self.run.mkdir(parents=True)
         self.head = "a" * 40
@@ -265,14 +303,14 @@ class InvocationEvidenceTests(unittest.TestCase):
         resumed["resume_checkpoint"] = boundary
         seed42 = self.record([first, resumed])
         seed42.update({
-            "band_generation": 4, "seed": 42, "in_final_band": True,
+            "band_generation": 5, "seed": 42, "in_final_band": True,
             "final_process_disposition": "finished", "ledger_disposition": "finished",
         })
         records = [seed42]
         for name, seed, in_band in (
             ("smoke", 42, False), ("seed41", 41, True), ("seed43", 43, True)
         ):
-            run_name = f"stage0-v23g4-{name}"
+            run_name = f"stage0-v23g5-{name}"
             config_rel = f"configs/{run_name}.yaml"
             config = self.root / config_rel
             config.write_text(f"run:\n  run_name: {run_name}\n")
@@ -285,7 +323,7 @@ class InvocationEvidenceTests(unittest.TestCase):
             )
             invocation["config_sha256"] = config_sha
             records.append({
-                "band_generation": 4, "run_name": run_name, "seed": seed,
+                "band_generation": 5, "run_name": run_name, "seed": seed,
                 "in_final_band": in_band, "git_head": self.head,
                 "config_path": config_rel, "config_sha256": config_sha,
                 "artifact_dir": run_rel, "invocations": [invocation],
@@ -294,8 +332,8 @@ class InvocationEvidenceTests(unittest.TestCase):
             })
         ledger = {
             "records": records,
-            "band_generations": [{"band_generation": 4, "git_head": self.head}],
-            "final_band_generation": 4,
+            "band_generations": [{"band_generation": 5, "git_head": self.head}],
+            "final_band_generation": 5,
         }
         with (
             mock.patch.object(verifier, "_gate_chain"),
@@ -316,8 +354,8 @@ class InvocationEvidenceTests(unittest.TestCase):
                 "records": [], "band_generations": [], "final_band_generation": None
             }),
             mock.patch.object(verifier, "_blocked_state", return_value={
-                "band_generation": 4,
-                "run_name": "stage0-v23g4-smoke",
+                "band_generation": 5,
+                "run_name": "stage0-v23g5-smoke",
                 "evaluation": "preserved-unspent",
                 "terminal": False,
             }),
@@ -329,8 +367,8 @@ class InvocationEvidenceTests(unittest.TestCase):
         head = "a" * 40
         records = [
             {
-                "band_generation": 4,
-                "run_name": f"stage0-v23g4-{name}",
+                "band_generation": 5,
+                "run_name": f"stage0-v23g5-{name}",
                 "seed": seed,
                 "in_final_band": in_band,
                 "git_head": head,
@@ -346,8 +384,8 @@ class InvocationEvidenceTests(unittest.TestCase):
         ]
         ledger = {
             "records": records,
-            "band_generations": [{"band_generation": 4, "git_head": head}],
-            "final_band_generation": 4,
+            "band_generations": [{"band_generation": 5, "git_head": head}],
+            "final_band_generation": 5,
         }
         with (
             mock.patch.object(verifier, "_gate_chain"),

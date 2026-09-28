@@ -84,11 +84,11 @@ Generation 3 retains the 300/300 smoke, 1000/1000 graded budgets, exact
 4096-row collocation count, 240-row replay pool, and N=500 front deadline.
 All four generation-3 launches remain fresh and Stage-0-only.
 
-## Generation-4 retry identity (GAP-57-08, owner option A)
+## Generation-5 retry identity (GAP-57-09, owner option C)
 
 The generation-3 smoke was preserved as a sandbox-blocked pre-optimization
-attempt. Generation 4 is the fresh host-level retry; its four configs differ
+attempt. Generation 5 is the fresh host-level retry; its four configs differ
 from generation 3 only by `run.run_name` and use
-`stage0-v23g4-{smoke,seed41,seed42,seed43}`. The launch executor must expose
+`stage0-v23g5-{smoke,seed41,seed42,seed43}`. The launch executor must expose
 the host Metal device to PyTorch; no row-count, precision, or recipe change is
 authorized.

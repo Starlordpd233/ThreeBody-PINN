@@ -22,8 +22,8 @@ inputs must not be changed between the smoke and graded band.
   historical smoke, with byte sizes and SHA-256 digests.
 - `source-manifest.json`, `band-record.md`, and `candidate-receipt.json` —
   normal-mode artifacts built only after a complete three-seed band.
-- `terminal-state.json` or `blocked-state-g4.json` — mutually exclusive
-  generation-4 outcome records.  Only `gate04_block` and
+- `terminal-state.json` or `blocked-state-g5.json` — mutually exclusive
+  generation-5 outcome records.  Only `gate04_block` and
   `invariant_b_halt_no_advance` may be terminal; resource, guard, and
   operational failures remain incomplete.  The historical generation-1
   `blocked-state.json` is retained at its original path and must not be
@@ -77,13 +77,14 @@ operator-reported deliberate stop from 2026-09-13; its original command, exit
 code, Git HEAD, and exact launch kind are not independently recorded and remain
 null. It is
 historical and incomplete, not a calibration for the next band. Generation 3
-is the preserved sandbox-blocked retry attempt. Generation 4 uses fresh
-`stage0-v23g4-{smoke,seed41,seed42,seed43}` names and is the only currently
-admissible final band. A generation-4 operational block is written to
-`blocked-state-g4.json`; the generation-1 and generation-3 blocked-state paths
-and digests remain historical. The earlier generations remain in the
+is the preserved sandbox-blocked retry attempt. Generation 4 is the preserved
+operator-stop attempt without a resumable boundary checkpoint. Generation 5
+uses fresh `stage0-v23g5-{smoke,seed41,seed42,seed43}` names and is the only
+currently admissible final band. A generation-5 operational block is written
+to `blocked-state-g5.json`; the generation-1, generation-3, and generation-4
+blocked-state paths and digests remain historical. The earlier generations remain in the
 append-only ledger and their run artifacts must not be moved or overwritten.
 
-The generation-4 launch must run with host-level Metal access. A sandboxed
+The generation-5 launch must run with host-level Metal access. A sandboxed
 process can report `torch.backends.mps.is_available() == False` and expose zero
 Metal devices even when the host-level process reports one available device.
