@@ -918,3 +918,79 @@ ruling and is not reused here.
   `evaluation=preserved-unspent`, and `terminal=false`. Plan 57-05, the
   evidence README/ledger contract, verifier, and focused tests were amended
   before admission. The historical singleton is never overwritten.
+
+---
+
+## GAP-57-08 — the sandbox-blocked generation-3 smoke needs a retry identity
+
+- **Decision point.** How should an elevated-host retry be represented after the
+  admitted generation-3 smoke directory already exists from a sandboxed
+  process that failed before optimization? The failed attempt and its hashes
+  must remain append-only while the host-level MPS probe now passes.
+
+- **Where in artifact.** `57-05-PLAN.md` generation-3 target names and fresh
+  directory precondition; `evidence/run-ledger.md` generation-3 blocked header
+  and smoke record; `evidence/blocked-state-g3.json`.
+
+- **Task context.** Post-run diagnosis on 2026-09-27. The exact generation-3
+  smoke command failed in the sandbox because Metal exposed zero devices to
+  the process. The same `torch 2.12.1` MPS allocation succeeds with host-level
+  access (`mps_available=True`, `device_count=1`). The existing
+  `runs/stage0-v23g3-smoke/` directory is therefore a real, recorded
+  pre-optimization attempt and cannot be silently reused as a fresh launch.
+
+- **Classification.** **Process-artifact schema** — this chooses how a retry
+  after an execution-context failure is named and linked without overwriting a
+  governed run record.
+
+- **Source silence.**
+  - `57-05-PLAN.md` requires fresh generation-3 target directories but says
+    nothing about retrying after a launch-context failure has materialized one.
+  - `57-GAPS.md` GAP-57-06 fixes generation-2 preservation and fresh
+    generation-3 names, but does not define a same-generation retry identity.
+  - `57-GAPS.md` GAP-57-07 fixes generation-scoped blocked-state paths, but
+    does not authorize overwriting a current generation's run directory or
+    changing its recorded process identity.
+  - `evidence/README.md` and `run-ledger.md` require append-only per-process
+    provenance and do not define an elevated-context retry generation.
+
+- **Mathematical / engineering grounding.** The run directory contains the
+  frozen config, process timestamps, PID, status, and artifact hashes for the
+  sandbox attempt. Overwriting it would erase the evidence needed to explain
+  why that process did not reach an optimizer step. Reusing the same name for a
+  host-level process would make two distinct launches appear to be one run and
+  would break the one-record/one-config/process provenance invariant. A fresh
+  generation preserves the failed attempt and gives the successful-context
+  retry a unique immutable identity.
+
+- **Agent was tempted to.** Preserve the generation-3 block in the ledger,
+  increment the final admissible generation to 4, create fresh
+  `stage0-v23g4-{smoke,seed41,seed42,seed43}` configs, and rerun only after a
+  new admission check under elevated host access. This is the cleanest
+  append-only repair, but the generation increment is an owner-routed schema
+  decision.
+
+- **What the user needs to decide.**
+  - **(A)** Preserve generation 3 as the sandbox-blocked attempt and admit a
+    fresh generation 4 for the host-level retry. Amend the plan, configs,
+    ledger, verifier, and tests before launching.
+  - **(B)** Keep generation 3 as the active identity by relocating the failed
+    run directory under a verified archival path, updating all hashes and
+    ledger links, then recreate the generation-3 target. This changes the
+    current evidence paths before retry.
+  - **(C)** Stop without retrying; the MPS host-access diagnosis remains
+    recorded and evaluation stays unspent.
+
+- **Confidence of impact.** **HIGH** — silently replacing the existing run
+  directory would destroy process provenance, while a new generation changes
+  the final-band admission contract.
+
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-27).
+
+- **Resolution note.** Owner selected **Option A** on 2026-09-27: preserve the
+  generation-3 sandbox-blocked attempt and admit a fresh generation-4 retry
+  with `stage0-v23g4-{smoke,seed41,seed42,seed43}` names. The plan, configs,
+  config delta, validation table, README, verifier, and focused tests now
+  treat generation 4 as the only admissible final band. The retry must execute
+  with host-level Metal access; no recipe, precision, row-count, or data-policy
+  change is authorized.
