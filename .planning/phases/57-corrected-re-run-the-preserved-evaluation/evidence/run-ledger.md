@@ -78,6 +78,23 @@ operational block, its record is written to `blocked-state-g4.json` instead.
       ],
       "evaluation": "preserved-unspent",
       "blocked_state": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g3.json"
+    },
+    {
+      "band_generation": 4,
+      "status": "blocked",
+      "git_head": "f0855a20762367da012ff9a3c8476c37c1d04729",
+      "extraction_git_head": null,
+      "launch_order": [
+        "stage0-v23g4-smoke",
+        "stage0-v23g4-seed41",
+        "stage0-v23g4-seed42",
+        "stage0-v23g4-seed43"
+      ],
+      "launched_runs": [
+        "stage0-v23g4-smoke"
+      ],
+      "evaluation": "preserved-unspent",
+      "blocked_state": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g4.json"
     }
   ],
   "records": [
@@ -333,6 +350,93 @@ operational block, its record is written to `blocked-state-g4.json` instead.
           "git_head": "ad96e6f46b5c7fd5ac7faa8b23c438974373dc38",
           "config_sha256": "e06d2f0c7f6a3d89b464e3463eabdf5308e0c10d351c479a7ba7aa3363cd7471",
           "disposition": "blocked",
+          "boundary_checkpoint": null,
+          "resume_checkpoint": null
+        }
+      ]
+    },
+    {
+      "band_generation": 4,
+      "launch_kind": "smoke",
+      "run_name": "stage0-v23g4-smoke",
+      "seed": 42,
+      "git_head": "f0855a20762367da012ff9a3c8476c37c1d04729",
+      "config_path": "configs/stage0-v23g4-smoke.yaml",
+      "config_sha256": "e324817a69a28c1bffa18f49ae9c60f549f373ecd3e43880ba76ea228e6df1b0",
+      "resolved_config_path": "runs/stage0-v23g4-smoke/config.yaml",
+      "resolved_config_sha256": "19ebe5dd3ea144ebc88264af89d53a86935e5a355e1d097ed6eadb9bc0623d3c",
+      "config_identity_digest": "782016b67d321682",
+      "artifact_dir": "runs/stage0-v23g4-smoke",
+      "command": "<home>/miniforge3/bin/conda run -n pinn-train bash scripts/train-unattended.sh --config configs/stage0-v23g4-smoke.yaml --stage-0-only",
+      "stage_0_only": true,
+      "collocation_count": 4096,
+      "replay_count": 240,
+      "front_advance_window_n": 500,
+      "max_epochs": 300,
+      "n_adam": 300,
+      "monitor": "training-only frozen monitor; no optimizer update boundary was written for resume",
+      "r_ref": 19749775821.24417,
+      "r_ref_artifact_path": "pinn/verification/artifacts/r_ref_stage0.json",
+      "r_ref_artifact_sha256": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff",
+      "corpus": {
+        "splits_sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "s_h": 22.321729071058996,
+        "eps_h": 0.0022321729071058997,
+        "n_train": 1812
+      },
+      "environment": {
+        "python_version": "3.11.15",
+        "torch_version": "2.12.1",
+        "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+        "platform": "macOS 26.5.1",
+        "device": "mps",
+        "precision": "float32",
+        "mps_available_at_launch": true,
+        "mps_device_count_at_launch": 1
+      },
+      "launch_started_utc": "2026-09-28T04:25:33.509000+00:00",
+      "completion_utc": "2026-09-28T04:37:00Z",
+      "wall_clock_secs": 1886.5,
+      "process_pid": 13784,
+      "exit_code": 1,
+      "final_process_disposition": "interrupted",
+      "ledger_disposition": "blocked",
+      "final_guard_disposition": null,
+      "guard": null,
+      "evaluation": "preserved-unspent",
+      "in_final_band": false,
+      "terminal": false,
+      "blocked_state_path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g4.json",
+      "blocked_state_sha256": "b04723243240b51c502573bbd2b6198646cc8d84f46caf636be35ac1baec25fd",
+      "artifact_hashes": {
+        "checkpoints/ckpt-492755433024.pt": "7cf028729559315413d4685d7b516b4494e8bb8ed7fc762e80e819c25b6ebc7b",
+        "checkpoints/latest.pt": "329fd439c556d3767d524faf99c67b7e746d4fb8e7273eeb461a565bd3f72899",
+        "checkpoints/stage-0-init.pt": "c3fdae172a25006edfd1d55847e813f62c1029e9997fc71968f36a750ef56845",
+        "config.yaml": "19ebe5dd3ea144ebc88264af89d53a86935e5a355e1d097ed6eadb9bc0623d3c",
+        "logs/train.log": "a988c0fcdfc6ccf48d2bdd3c5388a849a8eb276fa045c8ac6cb04f9e7d526a1b",
+        "logs/train.log.jsonl": "279b83eb94f139077848e12729f5aa51ab620f064a9e868429d91102b5c65c79",
+        "preflight.json": "3dd845c5800d5848249e66282264558747edf352f6cd009933ddb6e752ddfc89",
+        "run_start_rng.pt": "7ab0e3192b262790a3e7e07c23555930420af7abe24081a38c98acce7fac7c5e",
+        "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "status.json": "229bb849513e97773674889e4f6ce768a133207fd7f3c4432d8881e6daa1dc8b",
+        "summary.json": "54f4d039ad731038943475ad9962f91686608bdf24fcc42c302eae08f7489388",
+        "summary.md": "e1a786fb03271d128cc798f29335ad4934bce9b7ceee9327100f4f8d161760c4",
+        "tb/<host>.13784.0": "7ea00210c4c16b239bad5ee779ecae1fcf34b646b4b283dcf7accc09c328d9eb",
+        "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
+      },
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "command": "<home>/miniforge3/bin/conda run -n pinn-train bash scripts/train-unattended.sh --config configs/stage0-v23g4-smoke.yaml --stage-0-only",
+          "process_pid": 13784,
+          "start_utc": "2026-09-28T04:25:33.509000+00:00",
+          "end_utc": "2026-09-28T04:37:00Z",
+          "wall_clock_secs": 1886.5,
+          "exit_code": 1,
+          "git_head": "f0855a20762367da012ff9a3c8476c37c1d04729",
+          "config_sha256": "e324817a69a28c1bffa18f49ae9c60f549f373ecd3e43880ba76ea228e6df1b0",
+          "disposition": "interrupted",
           "boundary_checkpoint": null,
           "resume_checkpoint": null
         }

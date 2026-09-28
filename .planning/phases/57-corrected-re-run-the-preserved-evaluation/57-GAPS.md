@@ -994,3 +994,66 @@ ruling and is not reused here.
   treat generation 4 as the only admissible final band. The retry must execute
   with host-level Metal access; no recipe, precision, row-count, or data-policy
   change is authorized.
+
+---
+
+## GAP-57-09 — the operator stop did not produce a resumable boundary checkpoint
+
+- **Decision point.** How should the interrupted generation-4 smoke be handled
+  after the operator requested a pause but the outer `conda` wrapper received
+  `KeyboardInterrupt` before the trainer wrote its required boundary
+  checkpoint? The run reached step 40, but `latest.pt` remains the initial
+  checkpoint at global step 0 and cannot resume that trajectory.
+
+- **Where in artifact.** `evidence/blocked-state-g4.json`, the generation-4
+  record in `evidence/run-ledger.md`, and `runs/stage0-v23g4-smoke/status.json`.
+
+- **Task context.** Operator-requested stop on 2026-09-28. `caffeinate` and the
+  outer `conda run` wrapper were launched as the shell command; Ctrl-C caused
+  `CondaError: KeyboardInterrupt`, the trainer process exited, and no
+  `invariant_b_state` boundary checkpoint was produced.
+
+- **Classification.** **Process-artifact schema** — this determines whether a
+  non-boundary operator stop is a resumable invocation or an incomplete
+  operational block, and which fresh identity is authorized for later work.
+
+- **Source silence.**
+  - `57-05-PLAN.md` permits a deliberate stop only when the in-flight step
+    completes and a boundary checkpoint carrying `invariant_b_state` is
+    written; it does not define the disposition when the wrapper intercepts
+    the signal first.
+  - `evidence/README.md` and the v2 invocation verifier require a resume to
+    reference a verified boundary checkpoint; they do not authorize synthesizing
+    one from the initial checkpoint or from status/log rows.
+  - GAP-57-08 resolves the generation identity for the sandbox failure but does
+    not cover a later failed pause inside the host-level retry.
+
+- **Mathematical / engineering grounding.** A resume checkpoint is the state
+  vector for the optimizer, model, RNG, frozen monitor, and invariant-B
+  high-water mark at one completed boundary. The initial checkpoint has
+  `global_step=0`; substituting it for the step-40 state would replay a
+  different optimization trajectory while claiming same-run continuation.
+  Without a boundary checkpoint, the only provenance-safe disposition is an
+  incomplete block; a later attempt needs a fresh run identity and admission.
+
+- **Agent was tempted to.** Treat the operator's intent alone as sufficient,
+  mark generation 4 paused, and resume with `--resume latest`. That would make
+  the verifier accept a checkpoint that does not describe the interrupted
+  process, so it is not authorized.
+
+- **What the user needs to decide.**
+  - **(A)** Keep generation 4 as an incomplete operational block and create a
+    fresh generation-5 identity after fixing signal delivery so the trainer
+    receives the interrupt and writes its boundary checkpoint.
+  - **(B)** Stop without retrying; preserve generation 4 and the evaluation
+    budget with no further run.
+  - **(C)** Authorize a fresh generation-5 run but do not attempt interruption;
+    let the smoke finish before any pause decision.
+
+- **Confidence of impact.** **HIGH** — the missing checkpoint makes same-run
+  resume unverifiable and controls whether a later attempt can share the
+  generation-4 provenance.
+
+- **Status.** OPEN (surfaced 2026-09-28).
+
+- **Resolution note.**
