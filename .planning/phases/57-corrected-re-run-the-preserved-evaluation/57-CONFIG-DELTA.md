@@ -4,9 +4,11 @@
 **Source configs:** `configs/stage0-rerun-smoke.yaml`,
 `configs/stage0-rerun-seed41.yaml`, `configs/stage0-rerun-seed42.yaml`, and
 `configs/stage0-rerun-seed43.yaml`
-**Final configs:** `configs/stage0-v23-smoke.yaml`,
+**Original final configs (generation 1):** `configs/stage0-v23-smoke.yaml`,
 `configs/stage0-v23-seed41.yaml`, `configs/stage0-v23-seed42.yaml`, and
 `configs/stage0-v23-seed43.yaml`
+**Planned active configs (generation 6):**
+`configs/stage0-v23g6-{smoke,seed41,seed42,seed43}.yaml`
 
 ## Derivation method
 
@@ -54,9 +56,10 @@ differences:
 
 Thus the graded band carries the same corrected recipe, 4096-row count,
 frozen-reference path, 240-row replay pool, N=500 deadline, and 1000/1000
-budget. The smoke is seed 42 and retains the same corpus/allocation inputs;
-`assert_smoke_matches_graded` performs the required byte-level split and exact
-`s_h`/`n_train` check after both runs produce their metadata.
+budget. The smoke is seed 42 and retains the same corpus/allocation inputs.
+For the active generation-6 window, `seed42-setup` verifies actual smoke and
+graded seed-42 `splits.json` bytes and exact `s_h`/`n_train` as soon as the
+graded setup artifacts exist, before seeds 41 or 43 launch.
 
 ## Launch constraint
 
@@ -92,3 +95,18 @@ from generation 3 only by `run.run_name` and use
 `stage0-v23g5-{smoke,seed41,seed42,seed43}`. The launch executor must expose
 the host Metal device to PyTorch; no row-count, precision, or recipe change is
 authorized.
+
+## Generation-6 admission identity (GAP-57-10/11, owner options B/A)
+
+The completed generation-5 smoke and its calibration/verify snapshots are
+historical evidence recorded by `evidence/generation-5-retention.json`; it
+cannot calibrate a changed final HEAD. The fresh generation-6 configs use
+`stage0-v23g6-{smoke,seed41,seed42,seed43}` run names. Comparing each
+generation-5/generation-6 YAML pair line by line, excluding comments, finds
+only `run.run_name` changed. The 300/300 smoke and 1000/1000 graded budgets,
+4096-row collocation count, 240-row replay pool, N=500 front deadline,
+precision, and scientific recipe are unchanged. Pairwise generation-6 graded
+configs differ only in `run.seed` and `run.run_name`. The generation-6 smoke and
+graded seed 42 must share the immutable admitted HEAD and pass the
+produced-artifact `seed42-setup` assertion before graded seeds 41 and 43
+launch. The evaluation candidate order remains 42, 41, 43.

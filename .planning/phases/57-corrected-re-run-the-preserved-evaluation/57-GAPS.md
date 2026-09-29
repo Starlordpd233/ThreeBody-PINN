@@ -1062,3 +1062,167 @@ ruling and is not reused here.
   the direct pinned environment interpreter under `caffeinate -is` so signals
   reach the trainer if an unexpected stop occurs. No recipe, precision,
   row-count, data-policy, or held-out evaluation change is authorized.
+
+---
+
+## GAP-57-10 — D-10 produced-artifact comparison conflicts with graded launch order
+
+- **Decision point.** When must the seed-42 smoke/graded split-byte, `s_h`, and
+  `n_train` equality be asserted? Plan 57-05 requires the produced-artifact
+  comparison before *any* graded seed and also launches seed 41 before seed 42.
+  The seed-42 graded artifacts do not exist before its run setup.
+
+- **Where in artifact.** `57-05-PLAN.md:26-27,100`; `57-CONTEXT.md:237-245`;
+  `pinn/training/run_metadata.py:158-204`.
+
+- **Task context.** The generation-5 seed-42 calibration smoke finished on
+  2026-09-28 at admitted HEAD `b151e02d25bd954409ab0dec6a0fda6d9a5d3cb3`.
+  It produced `splits.json` SHA-256
+  `5846ae5b55104e55a85d644875c3d521f52a9298876d656c6d8903`,
+  `s_h=22.321729071058996`, and `n_train=1812`. Its timing calibration is
+  valid and the five-rung verify marker is fresh and green. No generation-5
+  graded run has launched, so the required graded artifacts do not exist.
+
+- **Classification.** **Process-artifact schema** — this determines the
+  timing and pass criterion of a hard prelaunch evidence check. It also affects
+  the execution order of the graded band if seed 42 must run first.
+
+- **Source silence.**
+  - `57-CONTEXT.md:237-245` requires the smoke and graded seed-42 *runs* to
+    produce byte-identical `splits.json` and exactly equal `s_h`/`n_train`, but
+    does not say how to prove that result before the graded run exists.
+  - `57-05-PLAN.md:26-27,100` requires the comparison before seeds 41/42/43
+    are graded while prescribing launch order 41, 42, 43; the two instructions
+    are in conflict for produced artifacts.
+  - `57-RULING.md:126-138` fixes **evaluation candidate** order 42, 41, 43,
+    not the timing of this prelaunch check or the graded training launch order.
+  - `pinn/training/run_metadata.py:158-204` checks persisted split bytes and
+    metadata scalars; it does not authorize a prospective config-only check
+    as a substitute. `pinn/train.py` has no setup-only CLI mode that writes
+    graded seed-42 artifacts before training.
+
+- **Mathematical / engineering grounding.** The smoke and graded configs have
+  the same seed and admitted-data inputs, so deterministic split construction
+  predicts equality. A prediction is weaker than comparing the actual bytes
+  produced by both runs. The exact `S_H` and `n_train` values depend on the
+  realized train split and admitted corpus. Starting seed 41 first spends a
+  long graded run before the mandated seed-42 equality can be observed.
+  Changing the plan or verifier after this smoke also changes the fingerprinted
+  HEAD, which invalidates the current timing calibration and requires a fresh
+  admission and smoke under D-09.
+
+- **Agent was tempted to.** Treat matching seed/data config fields as a pass
+  and launch seed 41. That would replace a byte/value assertion with an
+  inference and silently relax the prelaunch gate.
+
+- **What the user needs to decide.**
+  - **(A)** Keep graded launch order 41, 42, 43. Treat matching config/data
+    inputs as the prelaunch check, then assert actual produced-artifact equality
+    as soon as seed 42 writes both files; do not launch seed 43 on mismatch.
+  - **(B)** Launch graded seed 42 first, assert actual equality immediately
+    after its setup artifacts exist, then launch seeds 41 and 43 only if it
+    passes. This changes the training launch order but preserves the fixed
+    evaluation-candidate order.
+  - **(C)** Stop the graded band; preserve the smoke and evaluation budget
+    while the plan's timing requirement is adjudicated separately.
+
+- **Confidence of impact.** **HIGH** — the current plan cannot establish its
+  literal produced-artifact precondition before seed 41, and either change to
+  that rule must be committed before a new immutable run window.
+
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-28).
+
+- **Resolution note.** Owner selected **Option B** on 2026-09-28: launch
+  graded seed 42 first, assert its actual `splits.json` bytes and exact
+  `s_h`/`n_train` against the smoke as soon as those setup artifacts exist,
+  and launch 41 and 43 only after that comparison passes. The evaluation
+  candidate order remains 42, 41, 43 and cannot use metric values for
+  fallback. The owner also approved repairing the validation-step telemetry
+  defect before a fresh immutable run window; the changed HEAD requires a new
+  smoke. No scientific recipe tuning or held-out evaluation is authorized by
+  this ruling.
+
+---
+
+## GAP-57-11 — preserving completed generation-5 smoke requires new run-artifact policy
+
+- **Decision point.** How should the completed generation-5 smoke be retained
+  before the next immutable run window? Its run directory has 23 ignored files
+  totaling 71,532,678 bytes, including five checkpoints above the repository's
+  10 MiB staged-blob limit. Its timing calibration (455 bytes) and green verify
+  marker (863 bytes) are separate ignored singleton files that a new smoke and
+  verifier invocation can overwrite. Full retention covers 25 files totaling
+  71,533,996 bytes. The exact Git exceptions approved for generations 1 and 2
+  do not cover this generation.
+
+- **Where in artifact.** `runs/stage0-v23g5-smoke/` (23 files),
+  `runs/.calibration/stage0-timing.json`, and
+  `runs/.verify/latest-marker.json`; `evidence/run-ledger.md` (append-only
+  generations); `scripts/git_policy/validate_staged_paths.py:9,29-81` (exact
+  allowed paths and blob-size exceptions); `.gitignore:339` (`runs/`).
+
+- **Task context.** After the owner selected GAP-57-10 Option B and approved a
+  conformance repair, the generation-5 smoke must become historical evidence
+  for the future generation-6 admission. It finished at HEAD
+  `b151e02d25bd954409ab0dec6a0fda6d9a5d3cb3`, with valid calibration,
+  a recorded validation gate FAIL, and the held-out evaluation unspent. A code
+  commit will change the HEAD, so that smoke cannot calibrate the new window.
+
+- **Classification.** **Process-artifact schema** — the retention location,
+  exact path exceptions, and future verifier hash contract determine whether
+  the historical run remains independently re-derivable.
+
+- **Source silence.**
+  - `57-GAPS.md` GAP-57-06 Resolution note expressly limits its 16 exact Git
+    path exceptions and two size exceptions to the generation-2 attempt;
+    future run directories are not covered.
+  - `57-GAPS.md` GAP-57-08/09 authorize fresh run identities and preserving
+    earlier attempts, but do not select Git tracking or a durable external
+    archive for a completed generation-5 run.
+  - `57-05-PLAN.md` and `evidence/README.md` require append-only history but
+    do not grant a new large-file policy exception for 23 generated artifacts.
+  - `scripts/git_policy/validate_staged_paths.py` rejects `runs/*` and files
+    over 10 MiB absent exact exceptions.
+
+- **Mathematical / engineering grounding.** A SHA-256 claim is verifiable only
+  while the referenced bytes remain available. The run is gitignored, so a
+  ledger entry or manifest alone cannot preserve its checkpoint, split,
+  validation, and process evidence across worktree cleanup or migration. The
+  current calibration and verify marker both bind to the generation-5 HEAD;
+  their singleton paths are overwritten by the next successful smoke/verify.
+  Tracking every file in Git makes the claim self-contained but adds about
+  71.5 MB of immutable blobs to repository history; a separate durable archive
+  requires a specified location and a hash-verified restore path before the
+  next admission can claim retention.
+
+- **Agent was tempted to.** Follow the generation-2 precedent: add 23 exact
+  run-path exceptions, five exact large-checkpoint exceptions, make two
+  byte-identical governed snapshots of the timing calibration and verify
+  marker, commit a SHA-256/size manifest, and track all 25 files before
+  generation-6 admission. The prior ruling's explicit generation-2 limit
+  prevents treating that as standing authorization.
+
+- **What the user needs to decide.**
+  - **(A)** Track all 23 run-directory files in place, with exact path and
+    five checkpoint size exceptions, and commit byte-identical snapshots of
+    the calibration and verify marker at governed generation-specific paths.
+    Commit a hash/size manifest. This adds 71,533,996 artifact bytes to Git
+    history before the new smoke.
+  - **(B)** Preserve all 25 files in a specified durable external archive and
+    commit a manifest plus restore/verification instructions; identify the
+    archive destination before admission.
+  - **(C)** Stop generation-6 admission until a retention location is chosen.
+
+- **Confidence of impact.** **HIGH** — without retained bytes, the completed
+  smoke's scientific and provenance claims become unverifiable after cleanup;
+  with Git tracking, repository history grows by the exact artifact size.
+
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-09-28).
+
+- **Resolution note.** Owner selected **Option A** on 2026-09-28: track the
+  23 exact `runs/stage0-v23g5-smoke/` files in place, add five exact large
+  checkpoint exceptions, and commit byte-identical generation-specific
+  snapshots of `runs/.calibration/stage0-timing.json` and
+  `runs/.verify/latest-marker.json`. The committed
+  `evidence/generation-5-retention.json` lists all 25 exact paths, byte sizes,
+  and SHA-256 digests. No wildcard exception extends to future runs.

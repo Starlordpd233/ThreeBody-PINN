@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import shlex
 import subprocess
@@ -42,15 +43,20 @@ CONFORMANCE_REL = EVIDENCE_REL / "production-conformance.json"
 GATE_SCHEMA = "phase56-gate04-cli-evidence/v1"
 LEDGER_SCHEMA = "phase57-run-ledger/v2"
 RETENTION_REL = EVIDENCE_REL / "generation-2-retention.json"
+G5_RETENTION_REL = EVIDENCE_REL / "generation-5-retention.json"
 HISTORICAL_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state.json"
-CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g5.json"
-FINAL_GENERATION = 5
+CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g6.json"
+FINAL_GENERATION = 6
 FINAL_RUN_NAMES = frozenset({
-    "stage0-v23g5-smoke",
-    "stage0-v23g5-seed41",
-    "stage0-v23g5-seed42",
-    "stage0-v23g5-seed43",
+    "stage0-v23g6-smoke",
+    "stage0-v23g6-seed41",
+    "stage0-v23g6-seed42",
+    "stage0-v23g6-seed43",
 })
+FINAL_LAUNCH_ORDER = (
+    "stage0-v23g6-smoke", "stage0-v23g6-seed42",
+    "stage0-v23g6-seed41", "stage0-v23g6-seed43",
+)
 EVALUATION_NAMES = frozenset({
     "evaluation-attempt.json",
     "evaluation-receipt.json",
@@ -253,6 +259,106 @@ def assert_generation_four_blocked_state_retained(ledger: Mapping[str, Any]) -> 
     _assert_invocations(record, record.get("git_head"))
 
 
+def assert_generation_five_retained(ledger: Mapping[str, Any]) -> None:
+    """Re-derive the completed generation-5 smoke retention from Git and disk."""
+    manifest = load_json(REPO_ROOT / G5_RETENTION_REL, what="generation-5 retention manifest")
+    if (
+        not isinstance(manifest, Mapping)
+        or manifest.get("schema") != "phase57-generation-retention/v1"
+        or manifest.get("band_generation") != 5
+        or manifest.get("run_name") != "stage0-v23g5-smoke"
+        or manifest.get("file_count") != 25
+        or manifest.get("run_file_count") != 23
+    ):
+        fail("generation-5 retention manifest identity or counts differ")
+    entries = manifest.get("files")
+    if not isinstance(entries, list) or len(entries) != 25:
+        fail("generation-5 retention manifest must enumerate 25 files")
+    expected_snapshots = {
+        "timing-calibration": (
+            EVIDENCE_REL / "generation-5-timing-calibration.json",
+            "runs/.calibration/stage0-timing.json",
+        ),
+        "verify-marker": (
+            EVIDENCE_REL / "generation-5-verify-marker.json",
+            "runs/.verify/latest-marker.json",
+        ),
+    }
+    observed_paths: set[str] = set()
+    run_hashes: dict[str, str] = {}
+    snapshot_roles: set[str] = set()
+    total_bytes = 0
+    run_dir = REPO_ROOT / "runs/stage0-v23g5-smoke"
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("generation-5 retention entry is not a mapping")
+        relative, role = entry.get("path"), entry.get("role")
+        digest, size = entry.get("sha256"), entry.get("size_bytes")
+        if (
+            not isinstance(relative, str) or relative in observed_paths
+            or not isinstance(digest, str) or not HEX64.fullmatch(digest)
+            or type(size) is not int or size < 0
+        ):
+            fail("generation-5 retention entry has duplicate or invalid path, size, or SHA-256")
+        if role == "run-artifact":
+            if not relative.startswith("runs/stage0-v23g5-smoke/"):
+                fail("generation-5 run artifact escaped its directory")
+            run_hashes[relative.removeprefix("runs/stage0-v23g5-smoke/")] = digest
+        elif role in expected_snapshots:
+            expected_path, original = expected_snapshots[role]
+            if relative != str(expected_path) or entry.get("original_path") != original:
+                fail("generation-5 snapshot path or source changed")
+            snapshot_roles.add(role)
+        else:
+            fail("generation-5 retention entry has an unknown role")
+        path = repo_path(relative, what="generation-5 retained artifact")
+        if not path.is_file() or path.stat().st_size != size or sha256_file(path) != digest:
+            fail(f"generation-5 retained artifact bytes differ from manifest: {relative}")
+        observed_paths.add(relative)
+        total_bytes += size
+    if len(run_hashes) != 23 or snapshot_roles != set(expected_snapshots):
+        fail("generation-5 retention manifest lacks exact run/snapshot roles")
+    disk_run_paths = {
+        str(path.relative_to(REPO_ROOT))
+        for path in run_dir.rglob("*") if path.is_file()
+    }
+    if disk_run_paths != {path for path in observed_paths if path.startswith("runs/")}:
+        fail("generation-5 run directory contains missing or extra artifacts")
+    if total_bytes != manifest.get("total_bytes"):
+        fail("generation-5 retained total bytes differ from manifest")
+    tracked_result = subprocess.run(
+        ["git", "ls-files", "--cached", "--", str(run_dir.relative_to(REPO_ROOT)),
+         *(str(value[0]) for value in expected_snapshots.values())],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, check=False,
+    )
+    if tracked_result.returncode != 0 or set(tracked_result.stdout.splitlines()) != observed_paths:
+        fail("generation-5 retained paths differ from committed Git paths")
+    generations = [g for g in ledger["band_generations"] if g.get("band_generation") == 5]
+    records = [r for r in ledger["records"] if r.get("band_generation") == 5]
+    if (
+        len(generations) != 1 or generations[0].get("status") != "historical-complete-smoke"
+        or generations[0].get("retention_manifest") != str(G5_RETENTION_REL)
+        or len(records) != 1 or records[0].get("run_name") != "stage0-v23g5-smoke"
+    ):
+        fail("generation-5 completed smoke is not historical in the run ledger")
+    record = records[0]
+    if (
+        record.get("artifact_hashes") != run_hashes
+        or record.get("in_final_band") is not False
+        or record.get("ledger_disposition") != "historical-complete-smoke"
+        or record.get("evaluation") != "preserved-unspent"
+    ):
+        fail("generation-5 historical ledger hashes or disposition differ from retention")
+    final_invocation = _assert_invocations(record, record.get("git_head"))
+    if final_invocation.get("disposition") != "finished" or final_invocation.get("exit_code") != 0:
+        fail("generation-5 historical smoke invocation did not finish")
+    for role, (snapshot_path, _original) in expected_snapshots.items():
+        snapshot = load_json(REPO_ROOT / snapshot_path, what=f"generation-5 {role}")
+        if not isinstance(snapshot, Mapping) or (snapshot.get("fingerprint") or {}).get("git_head") != record.get("git_head"):
+            fail(f"generation-5 {role} snapshot has a different HEAD")
+    _assert_no_evaluation(run_dir)
+
+
 def current_head() -> str:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -383,7 +489,7 @@ def _assert_config_contract() -> Path:
     from pinn.training.config_yaml import load_config
 
     names = ("smoke", "seed41", "seed42", "seed43")
-    paths = tuple(REPO_ROOT / f"configs/stage0-v23g5-{name}.yaml" for name in names)
+    paths = tuple(REPO_ROOT / f"configs/stage0-v23g6-{name}.yaml" for name in names)
     corpus_roots: set[Path] = set()
     for name, path in zip(names, paths):
         if not path.is_file():
@@ -395,7 +501,7 @@ def _assert_config_contract() -> Path:
         expected_seed = 42 if name == "smoke" else int(name.removeprefix("seed"))
         expected_budget = 300 if name == "smoke" else 1000
         if (
-            config.run.run_name != f"stage0-v23g5-{name}"
+            config.run.run_name != f"stage0-v23g6-{name}"
             or config.run.seed != expected_seed
             or config.run.smoke is not (name == "smoke")
             or config.stage.max_epochs != expected_budget
@@ -406,13 +512,13 @@ def _assert_config_contract() -> Path:
             or config.loss.r_ref_artifact_path != str(R_REF_REL)
             or config.data.source != "admitted"
         ):
-            fail(f"{path} differs from the ratified generation-5 recipe")
+            fail(f"{path} differs from the ratified generation-6 recipe")
         try:
             corpus_roots.add(_admitted_data_preflight(config))
         except Exception as exc:  # noqa: BLE001 - missing data fails before a run
             fail(f"admitted corpus is unreachable for {path}: {exc}")
     if len(corpus_roots) != 1:
-        fail("generation-5 configs resolve different admitted corpus roots")
+        fail("generation-6 configs resolve different admitted corpus roots")
     return corpus_roots.pop()
 
 
@@ -444,7 +550,84 @@ def _assert_mps_runtime() -> dict[str, Any]:
 
 
 def _target_runs() -> tuple[Path, ...]:
-    return tuple(REPO_ROOT / f"runs/stage0-v23g5-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
+    return tuple(REPO_ROOT / f"runs/stage0-v23g6-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
+
+
+def _assert_seed42_setup(*, before_other_seeds: bool) -> dict[str, Any]:
+    """Compare produced seed-42 smoke/graded setup without reading metrics."""
+    smoke = REPO_ROOT / "runs/stage0-v23g6-smoke"
+    graded = REPO_ROOT / "runs/stage0-v23g6-seed42"
+    if before_other_seeds and any(
+        (REPO_ROOT / f"runs/stage0-v23g6-seed{seed}").exists()
+        for seed in (41, 43)
+    ):
+        fail("seed-42 setup comparison must pass before seeds 41 or 43 launch")
+    smoke_status = load_json(smoke / "status.json", what="seed-42 smoke status")
+    smoke_summary = load_json(smoke / "summary.json", what="seed-42 smoke summary")
+    if (
+        smoke_status.get("state") != "finished"
+        or smoke_summary.get("disposition") != "finished"
+        or smoke_summary.get("run_name") != "stage0-v23g6-smoke"
+    ):
+        fail("seed-42 smoke did not finish under the admitted run identity")
+    graded_status = load_json(graded / "status.json", what="graded seed-42 status")
+    if graded_status.get("run_name") != "stage0-v23g6-seed42":
+        fail("graded seed-42 setup has the wrong run identity")
+    graded_preflight = load_json(graded / "preflight.json", what="graded seed-42 preflight")
+    if graded_preflight.get("preflight_status") != "passed":
+        fail("graded seed-42 preflight has not passed")
+    split_paths = (smoke / "splits.json", graded / "splits.json")
+    try:
+        smoke_splits, graded_splits = (path.read_bytes() for path in split_paths)
+    except OSError as exc:
+        fail(f"seed-42 setup split artifacts are missing or unreadable: {exc}")
+    if smoke_splits != graded_splits:
+        fail("seed-42 smoke and graded splits.json bytes differ")
+    smoke_metadata = load_json(smoke / "training_metadata.json", what="seed-42 smoke metadata")
+    graded_metadata = load_json(graded / "training_metadata.json", what="graded seed-42 metadata")
+    for field in ("s_h", "n_train"):
+        left, right = smoke_metadata.get(field), graded_metadata.get(field)
+        valid = (
+            type(left) in (int, float) and type(right) in (int, float)
+            if field == "s_h" else type(left) is int and type(right) is int
+        )
+        if not valid or left != right:
+            fail(f"seed-42 smoke and graded {field} differ or are invalid")
+        if field == "s_h" and not (math.isfinite(float(left)) and left > 0):
+            fail(f"seed-42 smoke and graded {field} differ or are invalid")
+        if field == "n_train" and left <= 0:
+            fail(f"seed-42 smoke and graded {field} differ or are invalid")
+    return {
+        "splits_sha256": sha256_file(split_paths[0]),
+        "s_h": smoke_metadata["s_h"],
+        "n_train": smoke_metadata["n_train"],
+    }
+
+
+def cmd_seed42_setup() -> None:
+    ledger = load_ledger()
+    generation = [item for item in ledger["band_generations"] if item.get("band_generation") == FINAL_GENERATION]
+    if len(generation) != 1 or generation[0].get("git_head") != current_head():
+        fail("seed-42 setup is outside the admitted immutable band HEAD")
+    result = _assert_seed42_setup(before_other_seeds=True)
+    print("SEED42-SETUP-OK")
+    print(f"head={current_head()}")
+    print(f"splits_sha256={result['splits_sha256']}")
+    print(f"s_h={result['s_h']}")
+    print(f"n_train={result['n_train']}")
+
+
+def _assert_launch_order(generation: Mapping[str, Any], records: list[Mapping[str, Any]]) -> None:
+    if generation.get("launch_order") != list(FINAL_LAUNCH_ORDER):
+        fail("generation-6 graded launch order is not smoke, 42, 41, 43")
+    ordered = sorted(records, key=lambda record: record["invocations"][0]["start_utc"])
+    if [record.get("run_name") for record in ordered] != list(FINAL_LAUNCH_ORDER):
+        fail("generation-6 process timestamps violate graded launch order")
+    for previous, following in zip(ordered, ordered[1:]):
+        previous_end = datetime.fromisoformat(previous["invocations"][-1]["end_utc"])
+        following_start = datetime.fromisoformat(following["invocations"][0]["start_utc"])
+        if following_start < previous_end:
+            fail("generation-6 runs overlap instead of following sequential launch order")
 
 
 def _assert_ancestry(*commits: Any) -> None:
@@ -469,13 +652,14 @@ def cmd_admit_run_window() -> None:
     assert_generation_one_blocked_state_retained(ledger)
     assert_generation_three_blocked_state_retained(ledger)
     assert_generation_four_blocked_state_retained(ledger)
+    assert_generation_five_retained(ledger)
     assert_generation_two_retained()
     historical = {
         (generation.get("band_generation"), generation.get("status"))
         for generation in ledger["band_generations"]
     }
-    if historical != {(1, "blocked"), (2, "historical-incomplete"), (3, "blocked"), (4, "blocked")}:
-        fail("run ledger does not contain exactly the four preserved prior generations")
+    if historical != {(1, "blocked"), (2, "historical-incomplete"), (3, "blocked"), (4, "blocked"), (5, "historical-complete-smoke")}:
+        fail("run ledger does not contain exactly the five preserved prior generations")
     old_attempts = [record for record in ledger["records"] if record.get("band_generation") == 2]
     if len(old_attempts) != 1 or old_attempts[0].get("run_name") != "stage0-v23g2-smoke" or old_attempts[0].get("in_final_band") is not False:
         fail("interrupted generation-2 smoke is not recorded as historical and ineligible")
@@ -515,7 +699,7 @@ def _terminal_state() -> dict[str, Any] | None:
 
 def _blocked_state() -> dict[str, Any] | None:
     path = REPO_ROOT / CURRENT_BLOCKED_STATE_REL
-    return load_json(path, what="generation-5 blocked state") if path.is_file() else None
+    return load_json(path, what="generation-6 blocked state") if path.is_file() else None
 
 
 def _assert_resume_checkpoint(raw: Any, artifact_dir: Path) -> None:
@@ -615,11 +799,15 @@ def cmd_run_window() -> None:
     _gate_chain()
     assert_generation_two_retained()
     ledger = load_ledger()
+    assert_generation_one_blocked_state_retained(ledger)
+    assert_generation_three_blocked_state_retained(ledger)
+    assert_generation_four_blocked_state_retained(ledger)
+    assert_generation_five_retained(ledger)
     current_records = [record for record in ledger["records"] if record.get("band_generation") == FINAL_GENERATION]
     current_generations = [generation for generation in ledger["band_generations"] if generation.get("band_generation") == FINAL_GENERATION]
     if current_records:
         if len(current_generations) != 1:
-            fail("generation-5 run records lack one generation header")
+            fail("generation-6 run records lack one generation header")
         for record in current_records:
             _assert_invocations(record, current_generations[0].get("git_head"))
     blocked = _blocked_state()
@@ -629,9 +817,9 @@ def cmd_run_window() -> None:
         or blocked.get("evaluation") != "preserved-unspent"
         or blocked.get("terminal") is not False
     ):
-        fail("generation-5 operational/resource/guard blocked-state is incomplete and cannot close the run window")
+        fail("generation-6 operational/resource/guard blocked-state is incomplete and cannot close the run window")
     if blocked is not None:
-        fail("generation-5 operational/resource/guard blocked-state is incomplete and cannot close the run window")
+        fail("generation-6 operational/resource/guard blocked-state is incomplete and cannot close the run window")
     terminal = _terminal_state()
     if terminal is not None:
         reason = terminal.get("authorized_terminal_reason")
@@ -639,6 +827,8 @@ def cmd_run_window() -> None:
             fail("terminal-state is not an authorized scientific unspent closure")
         for run_dir in _target_runs():
             _assert_no_evaluation(run_dir)
+        if (REPO_ROOT / "runs/stage0-v23g6-seed42").exists():
+            _assert_seed42_setup(before_other_seeds=False)
         print("RUN-WINDOW-TERMINAL-OK")
         return
     final = ledger.get("final_band_generation")
@@ -648,18 +838,20 @@ def cmd_run_window() -> None:
         fail("final band generation is not the admitted generation 5")
     records = [record for record in ledger["records"] if int(record.get("band_generation", -1)) == int(final)]
     graded = [record for record in records if record.get("in_final_band") is True]
-    smoke = [record for record in records if record.get("run_name") == "stage0-v23g5-smoke"]
-    expected_names = {"stage0-v23g5-smoke", "stage0-v23g5-seed41", "stage0-v23g5-seed42", "stage0-v23g5-seed43"}
+    smoke = [record for record in records if record.get("run_name") == "stage0-v23g6-smoke"]
+    expected_names = {"stage0-v23g6-smoke", "stage0-v23g6-seed41", "stage0-v23g6-seed42", "stage0-v23g6-seed43"}
     if (
         len(records) != 4 or len(smoke) != 1 or smoke[0].get("in_final_band") is not False
         or len(graded) != 3 or sorted(record.get("seed") for record in graded) != [41, 42, 43]
         or {record.get("run_name") for record in records} != expected_names
-        or any(record.get("run_name") != f"stage0-v23g5-seed{record.get('seed')}" for record in graded)
+        or any(record.get("run_name") != f"stage0-v23g6-seed{record.get('seed')}" for record in graded)
     ):
         fail("complete run window has wrong run names or lacks one smoke and three in-band seeds")
+    _assert_seed42_setup(before_other_seeds=False)
     for run_dir in _target_runs():
         _assert_no_evaluation(run_dir)
     generation = current_generations[0]
+    _assert_launch_order(generation, records)
     run_heads = {record.get("git_head") for record in records if record.get("git_head")}
     if generation.get("git_head") not in run_heads or len(run_heads) != 1:
         fail("run records do not share one immutable HEAD")
@@ -717,7 +909,7 @@ def cmd_candidate() -> None:
         if receipt.get("run_name") is not None or receipt.get("owner_stop") is not True:
             fail("no-candidate state must be explicit and preserve the evaluation")
     else:
-        if receipt.get("run_name") != f"stage0-v23g5-seed{first}" or receipt.get("seed") != first:
+        if receipt.get("run_name") != f"stage0-v23g6-seed{first}" or receipt.get("seed") != first:
             fail("candidate is not the first eligible seed in 42/41/43 order")
         best = receipt.get("candidate_best_sha256")
         if not isinstance(best, str) or not HEX64.fullmatch(best):
@@ -775,7 +967,7 @@ def cmd_final() -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("admit-run-window", "run-window", "candidate", "pre-evaluation", "final"))
+    parser.add_argument("command", choices=("admit-run-window", "seed42-setup", "run-window", "candidate", "pre-evaluation", "final"))
     return parser
 
 
@@ -784,6 +976,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         {
             "admit-run-window": cmd_admit_run_window,
+            "seed42-setup": cmd_seed42_setup,
             "run-window": cmd_run_window,
             "candidate": cmd_candidate,
             "pre-evaluation": cmd_pre_evaluation,

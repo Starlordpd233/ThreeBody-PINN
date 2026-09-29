@@ -1,0 +1,162 @@
+{
+  "schema": "phase57-generation-retention/v1",
+  "band_generation": 5,
+  "run_name": "stage0-v23g5-smoke",
+  "run_file_count": 23,
+  "file_count": 25,
+  "total_bytes": 71533996,
+  "files": [
+    {
+      "path": "runs/stage0-v23g5-smoke/checkpoints/best.pt",
+      "role": "run-artifact",
+      "size_bytes": 11251727,
+      "sha256": "e77da792b4443bf59d4564d4e118b44c1712d364e9472e3f9715e38c25ee1efb"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/checkpoints/ckpt-18887573397.pt",
+      "role": "run-artifact",
+      "size_bytes": 4859915,
+      "sha256": "5c5d0ae8d9c8f268965dd3025fff2f61e8a03863c7922a153c4e73574bae5344"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/checkpoints/latest.pt",
+      "role": "run-artifact",
+      "size_bytes": 11251987,
+      "sha256": "ef4f58e24ed58120616f746f00300a8a593d49c382fdbf75d7fb97680e5831f7"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/checkpoints/stage-0-init.pt",
+      "role": "run-artifact",
+      "size_bytes": 4862547,
+      "sha256": "72e26128e0190d8723815a12e459b9892cf0607d71855cb6ca636dc6a16b008d"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/checkpoints/step-000100.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252637,
+      "sha256": "d4f5c3f9efb7b4a832cb71105997109ac397204aa3712ff7c2dfce08ca9907f8"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/checkpoints/step-000200.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252637,
+      "sha256": "dd76c79a3a67d8fcbda92f8d0e61c0bfb93b5918684fc343d468ab97de8b2693"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/checkpoints/step-000300.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252637,
+      "sha256": "c4b487c2ff0a770beb2ff8238d538d81688a047aa9d3c915515654faead9c721"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/config.yaml",
+      "role": "run-artifact",
+      "size_bytes": 1267,
+      "sha256": "12c2fe4fcab05c878f4e0414115a35b64fe48451dfcfe6b4bc9079b8c1c5d0cd"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/curriculum.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 69,
+      "sha256": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/logs/train.log",
+      "role": "run-artifact",
+      "size_bytes": 51512,
+      "sha256": "c196484f60042415313e53fe4b78c36deb65b57cc380b185e8cee5aa13538473"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/logs/train.log.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 325001,
+      "sha256": "aba2c3a934b9d059123c18d84719649e543941e5b1652b8ca4069aea4009250d"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/preflight.json",
+      "role": "run-artifact",
+      "size_bytes": 18544,
+      "sha256": "3dd845c5800d5848249e66282264558747edf352f6cd009933ddb6e752ddfc89"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/run_start_rng.pt",
+      "role": "run-artifact",
+      "size_bytes": 11213,
+      "sha256": "da6983b3f34492cb9547afda77fe349e3844da2bd76fc4bbd4a17960531765eb"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/splits.json",
+      "role": "run-artifact",
+      "size_bytes": 4159982,
+      "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/status.json",
+      "role": "run-artifact",
+      "size_bytes": 686,
+      "sha256": "81155c8b5bd94ee85f87af5fbe4bedceaada09b3ca8f76a3ab05d0cfa243e3af"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/summary.json",
+      "role": "run-artifact",
+      "size_bytes": 20951,
+      "sha256": "ac181c526636b8a05902fc52ba671673bf89c578484664c198dad9ecc11029a9"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/summary.md",
+      "role": "run-artifact",
+      "size_bytes": 15209,
+      "sha256": "777422ad845b22b3c859074a9df9e112f944ae6ab3667f595290e4d430f4c7ec"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/tb/<host>.56068.0",
+      "role": "run-artifact",
+      "size_bytes": 848909,
+      "sha256": "d1e8ae48a7cacf3f9255fca7ce6eb2f363ead3204a3dab5c41caa777a116d1c3"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/training_metadata.json",
+      "role": "run-artifact",
+      "size_bytes": 564,
+      "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/validation.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 1015,
+      "sha256": "eac23d62246746090e9c81870e5c6dfb28a65913b99fc19df7ae803b91a360d1"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/validation_gate/step-00000100.json",
+      "role": "run-artifact",
+      "size_bytes": 31255,
+      "sha256": "f1fc4261af050f6db61fd42ec5f4b08090f4fdf8d7027b7814732ec1f29d562b"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/validation_gate/step-00000200.json",
+      "role": "run-artifact",
+      "size_bytes": 31212,
+      "sha256": "889938db42703f21effb29cff9eb5f7cf0f59199ffd6a87314510263cca0413f"
+    },
+    {
+      "path": "runs/stage0-v23g5-smoke/validation_gate/step-00000300.json",
+      "role": "run-artifact",
+      "size_bytes": 31202,
+      "sha256": "546b2edb38b34812a1b17f2f79a209291d10ad78358396fc116358b59936d85b"
+    },
+    {
+      "path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-5-timing-calibration.json",
+      "original_path": "runs/.calibration/stage0-timing.json",
+      "role": "timing-calibration",
+      "size_bytes": 455,
+      "sha256": "606e650a1c969cdd8d300acddb7474d61923fed233fb3b0c1092f4764f94920c"
+    },
+    {
+      "path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-5-verify-marker.json",
+      "original_path": "runs/.verify/latest-marker.json",
+      "role": "verify-marker",
+      "size_bytes": 863,
+      "sha256": "92d60fec4e24acf370d6d7915d29ba917fa6682b632ce8758e06031d7d0bdd95"
+    }
+  ]
+}

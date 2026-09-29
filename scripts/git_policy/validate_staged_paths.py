@@ -70,6 +70,31 @@ ALLOWED_BLOCKED_PATHS = {
     "runs/stage0-v23g2-smoke/summary.md",
     "runs/stage0-v23g2-smoke/tb/events.out.tfevents.1789304466.<host>.91780.0",
     "runs/stage0-v23g2-smoke/training_metadata.json",
+    # GAP-57-11 option A: retain the 23 observed generation-5 smoke files.
+    # Exact paths only; future run directories remain blocked.
+    "runs/stage0-v23g5-smoke/checkpoints/best.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/ckpt-18887573397.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/latest.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/stage-0-init.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/step-000100.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/step-000200.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/step-000300.pt",
+    "runs/stage0-v23g5-smoke/config.yaml",
+    "runs/stage0-v23g5-smoke/curriculum.jsonl",
+    "runs/stage0-v23g5-smoke/logs/train.log",
+    "runs/stage0-v23g5-smoke/logs/train.log.jsonl",
+    "runs/stage0-v23g5-smoke/preflight.json",
+    "runs/stage0-v23g5-smoke/run_start_rng.pt",
+    "runs/stage0-v23g5-smoke/splits.json",
+    "runs/stage0-v23g5-smoke/status.json",
+    "runs/stage0-v23g5-smoke/summary.json",
+    "runs/stage0-v23g5-smoke/summary.md",
+    "runs/stage0-v23g5-smoke/tb/<host>.56068.0",
+    "runs/stage0-v23g5-smoke/training_metadata.json",
+    "runs/stage0-v23g5-smoke/validation.jsonl",
+    "runs/stage0-v23g5-smoke/validation_gate/step-00000100.json",
+    "runs/stage0-v23g5-smoke/validation_gate/step-00000200.json",
+    "runs/stage0-v23g5-smoke/validation_gate/step-00000300.json",
 }
 
 ALLOW_LARGE_PATTERNS = (
@@ -77,6 +102,12 @@ ALLOW_LARGE_PATTERNS = (
     # Exact exceptions for the two preserved generation-2 checkpoints >10 MiB.
     "runs/stage0-v23g2-smoke/checkpoints/latest.pt",
     "runs/stage0-v23g2-smoke/checkpoints/step-000031.pt",
+    # Exact >10 MiB exceptions for the retained generation-5 smoke.
+    "runs/stage0-v23g5-smoke/checkpoints/best.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/latest.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/step-000100.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/step-000200.pt",
+    "runs/stage0-v23g5-smoke/checkpoints/step-000300.pt",
 )
 
 

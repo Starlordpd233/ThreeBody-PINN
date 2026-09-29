@@ -20,10 +20,14 @@ inputs must not be changed between the smoke and graded band.
   stays in that run record, while a new attempt gets a new record.
 - `generation-2-retention.json` — all 16 preserved files from the interrupted
   historical smoke, with byte sizes and SHA-256 digests.
+- `generation-5-retention.json` — the 23 completed generation-5 smoke files
+  retained in place and committed byte-identical snapshots of its timing
+  calibration and verify marker, with byte sizes and SHA-256 digests for all
+  25 files. Verify these retained bytes before generation-6 admission.
 - `source-manifest.json`, `band-record.md`, and `candidate-receipt.json` —
   normal-mode artifacts built only after a complete three-seed band.
-- `terminal-state.json` or `blocked-state-g5.json` — mutually exclusive
-  generation-5 outcome records.  Only `gate04_block` and
+- `terminal-state.json` or `blocked-state-g6.json` — mutually exclusive
+  generation-6 outcome records.  Only `gate04_block` and
   `invariant_b_halt_no_advance` may be terminal; resource, guard, and
   operational failures remain incomplete.  The historical generation-1
   `blocked-state.json` is retained at its original path and must not be
@@ -35,6 +39,7 @@ Run from the repository root under the `pinn-train` environment:
 
 ```text
 python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py admit-run-window
+python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py seed42-setup
 python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py run-window
 python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py candidate
 python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py pre-evaluation
@@ -42,9 +47,13 @@ python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/ve
 ```
 
 `admit-run-window` is expected to pass before the operator authorizes the
-smoke.  The later commands fail closed until their corresponding run or
-evaluation artifacts exist.  They never launch training or materialize a
-held-out split.
+fresh generation-6 smoke and fixes the immutable run-window HEAD.
+`seed42-setup` compares the actual generation-6 smoke and graded seed-42
+`splits.json` bytes and exact `s_h`/`n_train` as soon as the graded setup
+artifacts exist; seeds 41 and 43 cannot launch before it passes. The
+evaluation candidate order remains `42`, `41`, `43`. The later commands fail
+closed until their corresponding run or evaluation artifacts exist. They
+never launch training or materialize a held-out split.
 
 ## Selection and frame rules
 
@@ -62,7 +71,7 @@ single-use; once claimed, no retry or fallback is legal.
 ## Version-2 invocation contract
 
 GAP-57-04 option B makes process provenance explicit in the version-2 run
-ledger. For an admitted final run, the first invocation is `fresh`. Each
+ledger. For an admitted generation-6 run, the first invocation is `fresh`. Each
 later invocation is `resume`,
 uses `--stage-0-only --resume latest`, and references the prior process's
 SHA-256-pinned boundary checkpoint. The independent verifier loads that
@@ -79,12 +88,15 @@ null. It is
 historical and incomplete, not a calibration for the next band. Generation 3
 is the preserved sandbox-blocked retry attempt. Generation 4 is the preserved
 operator-stop attempt without a resumable boundary checkpoint. Generation 5
-uses fresh `stage0-v23g5-{smoke,seed41,seed42,seed43}` names and is the only
-currently admissible final band. A generation-5 operational block is written
-to `blocked-state-g5.json`; the generation-1, generation-3, and generation-4
-blocked-state paths and digests remain historical. The earlier generations remain in the
-append-only ledger and their run artifacts must not be moved or overwritten.
+is the completed host-level smoke at `stage0-v23g5-smoke`; its 23 run files
+and two governed singleton snapshots remain historical under
+`generation-5-retention.json`. Generation 6 uses fresh
+`stage0-v23g6-{smoke,seed41,seed42,seed43}` names and is the active band.
+A generation-6 operational block is written to `blocked-state-g6.json`;
+the generation-1, generation-3, and generation-4 blocked-state paths and
+digests remain historical. Earlier generations remain in the append-only
+ledger and their run artifacts must not be moved or overwritten.
 
-The generation-5 launch must run with host-level Metal access. A sandboxed
+The generation-6 launch must run with host-level Metal access. A sandboxed
 process can report `torch.backends.mps.is_available() == False` and expose zero
 Metal devices even when the host-level process reports one available device.

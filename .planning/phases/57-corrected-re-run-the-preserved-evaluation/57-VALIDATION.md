@@ -44,7 +44,7 @@ No package installation is required.
 - **After each implementation wave:** run the quick Phase-57 discovery command; after Waves 2-4 also run the adjacent regression command.
 - **Before RUN-04:** run the full validation command, the fresh exact GATE-04 CLI and persisted-artifact check, then the final-R_ref-bound production verifier.
 - **Before EVAL-02:** rerun the pre-evaluation artifact verifier immediately before the one evaluator invocation.
-- **Feedback expectation:** C01-C19 are designed for under-60-second feedback except the once-per-phase six-case Gate execution named in the runtime table. Record measured times during execution; no watch mode is permitted.
+- **Feedback expectation:** C01-C19 and C14a are designed for under-60-second feedback except the once-per-phase six-case Gate execution named in the runtime table. Record measured times during execution; no watch mode is permitted.
 
 ## Command Catalog
 
@@ -63,8 +63,9 @@ No package installation is required.
 | C11 | `<home>/miniforge3/bin/conda run -n pinn-train python -m unittest tests.phase57.test_gate_and_evaluation.Gate04RulingTests.test_persisted_complete_pass_and_r_ref_provenance -v` | Exit 0 over the persisted Phase-57 Gate/R_ref pair. |
 | C12 | `<home>/miniforge3/bin/conda run -n pinn-train python -m pinn.verification.phase57_production_conformance --r-ref-path pinn/verification/artifacts/r_ref_stage0.json --gate-evidence-root .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/gate04 --output .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/production-conformance.json` | Exit 0 with final R_ref/Gate provenance. |
 | C13 | `<home>/miniforge3/bin/conda run -n pinn-train python -m unittest tests.phase57.test_gate_and_evaluation.EvaluationBoundaryTests tests.phase57.test_gate_and_evaluation.EvidenceSelectionTests tests.phase50.test_candidate_finalization.CandidateFinalizationTests tests.phase50.test_evidence_builder.ExtractManifestTests tests.phase50.test_band_record.BandRecordTests -v` | Exit 0. |
-| C14 | `<home>/miniforge3/bin/conda run -n pinn-train python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py admit-run-window` | Exit 0 only for immutable generation-5 inputs, preserved blocked generations 1–3, absent target directories, the version-2 historical ledger, and all retained artifact hashes; governed outputs remain writable. |
-| C15 | `<home>/miniforge3/bin/conda run -n pinn-train python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py run-window` | Exit 0 only for a complete generation-5 band or invariant-B-no-advance authorized terminal; every resumed invocation must match a hashed boundary checkpoint carrying invariant_b_state, while operational blocks remain nonzero/incomplete. |
+| C14 | `<home>/miniforge3/bin/conda run -n pinn-train python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py admit-run-window` | Exit 0 only for a clean immutable generation-6 HEAD and inputs, absent generation-6 target directories, the version-2 historical ledger, preserved earlier attempts, and all 25 generation-5 files matching the committed retention manifest; governed outputs remain writable. |
+| C14a | `<home>/miniforge3/bin/conda run -n pinn-train python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py seed42-setup` | Exit 0 only when actual generation-6 smoke and graded seed-42 `splits.json` bytes plus exact `s_h`/`n_train` match on the admitted HEAD, before seeds 41 or 43 launch. A config-only prediction cannot pass. |
+| C15 | `<home>/miniforge3/bin/conda run -n pinn-train python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py run-window` | Exit 0 only for a complete generation-6 band with C14a passed before seeds 41/43, or invariant-B-no-advance authorized terminal; every resumed invocation must match a hashed boundary checkpoint carrying invariant_b_state, while operational blocks remain nonzero/incomplete. |
 | C16 | `<home>/miniforge3/bin/conda run -n pinn-train python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py candidate` | Exit 0 for structural candidate or authorized unspent outcome, never an operational block. |
 | C17 | `<home>/miniforge3/bin/conda run -n pinn-train python -m unittest tests.phase57.test_gate_and_evaluation.EvidenceSelectionTests tests.phase50.test_candidate_finalization.CandidateFinalizationTests tests.phase50.test_evidence_verifier.AttemptVerifierTests -v` | Exit 0. |
 | C18 | `<home>/miniforge3/bin/conda run -n pinn-train python .planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/verify_phase57_evidence.py pre-evaluation` | Exit 0 immediately before evaluation. |
@@ -88,7 +89,7 @@ No package installation is required.
 | 57-04-03 | 57-04 | 4 | RUN-05, EVAL-02 | T-57-11/12 | Evaluator pre-access and Phase-50 evidence semantics | integration/regression | C13 | ❌ W0 | ⬜ pending |
 | 57-05-01 | 57-05 | 5 | RUN-04, RUN-05 | T-57-13/15 | Immutable run-window admission | artifact/preflight | C14 | ❌ W0 | ⬜ pending |
 | 57-05-02 | 57-05 | 5 | RUN-04, RUN-05 | T-57-13 | Recheck unchanged admission at operator checkpoint | artifact/preflight | C14 | ❌ W0 | ⬜ pending |
-| 57-05-03 | 57-05 | 5 | RUN-04, RUN-05 | T-57-13..16 | Complete band versus authorized terminal versus incomplete block | runtime/artifact | C15 | ❌ W0 | ⬜ pending |
+| 57-05-03 | 57-05 | 5 | RUN-04, RUN-05 | T-57-13..16 | Fresh smoke, seed-42 produced-artifact gate before seeds 41/43, then complete band versus authorized terminal versus incomplete block | runtime/artifact | C14a, C15 | ❌ W0 | ⬜ pending |
 | 57-06-01 | 57-06 | 6 | EVAL-02 | T-57-17 | Four-fact 42/41/43 selection and block refusal | artifact/regression | C16, C17 | ❌ W0 | ⬜ pending |
 | 57-06-02 | 57-06 | 6 | EVAL-02 | T-57-18/20 | Three preconditions and canonical frame immediately before spend | artifact/preflight | C18 | ❌ W0 | ⬜ pending |
 | 57-06-03 | 57-06 | 6 | EVAL-02 | T-57-18..20 | Exactly one selected-best.pt receipt | artifact | C19 | ❌ W0 | ⬜ pending |
@@ -115,6 +116,7 @@ Wave 0 is complete only when Plan 57-01 has created these tests and recorded its
 | Resource preflight | Plan 57-05 exact-4096 allocation probe | Exact 4096 rows allocate | Block incomplete; never reduce count; evaluation preserved. |
 | Invariant B | Frozen training-only monitor plus separate `front_advance_window_n = 500` | Front advances inside 500 accepted steps | No-advance is authorized terminal/unspent; other guard failures block incomplete/unspent. |
 | Run fingerprint | C14 before smoke and operator authorization | No commit or fingerprinted input/environment mutation; governed run/evidence outputs allowed | Block incomplete/unspent. |
+| Seed-42 setup equality | C14a as soon as graded seed-42 setup artifacts exist | Actual generation-6 smoke/graded `splits.json` bytes and exact `s_h`/`n_train` match under one immutable HEAD before seeds 41 or 43 launch | Stop later launches; route a mismatch as a gap. |
 | Evaluation readiness | C18 immediately before evaluator | Exact three preconditions, canonical frame, selected best.pt hash, no prior claim | Block/unspent. |
 | Sole evaluation | One direct `python -m pinn.evaluate` command, then C19 | Exactly one selected-run claim/directory/receipt | Once claimed, no retry/fallback; record attempted/spent failure. |
 
@@ -122,7 +124,7 @@ Wave 0 is complete only when Plan 57-01 has created these tests and recorded its
 
 | Behavior | Requirement | Why Manual | Verification |
 |----------|-------------|------------|--------------|
-| Authorize expensive smoke/band window | RUN-04, RUN-05 | Operator compute authorization only; scientific/config decisions are already fixed | Review C14 receipt and exact four commands; reply `proceed` or `stop`. |
+| Authorize expensive smoke/band window | RUN-04, RUN-05 | Operator compute authorization only; scientific/config decisions are already fixed | Review C14 receipt and exact four commands in order: fresh generation-6 smoke, graded 42, graded 41, graded 43; C14a gates launches 41/43. Reply `proceed` or `stop`. |
 | Authorize sole evaluation spend | EVAL-02 | The protected one-look action is irreversible once claimed | Review C18 receipt and pinned best.pt; reply `approved` only if every machine fact passes. |
 
 ## Validation Sign-Off

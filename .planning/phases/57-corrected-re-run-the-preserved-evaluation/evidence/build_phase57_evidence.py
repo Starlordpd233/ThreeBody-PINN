@@ -156,15 +156,15 @@ def require_complete_generation(ledger: Mapping[str, Any]) -> tuple[int, dict[st
         final_id = int(final)
     except (TypeError, ValueError):
         fail(f"final_band_generation is invalid: {final!r}")
-    if final_id != 4:
-        fail("normal evidence requires the admitted generation-5 band")
+    if final_id != 6:
+        fail("normal evidence requires the admitted generation-6 band")
     generations = [item for item in ledger["band_generations"] if int(item.get("band_generation", -1)) == final_id]
     if len(generations) != 1:
         fail(f"final generation {final_id} is not uniquely present in the ledger")
     generation = generations[0]
     records = [item for item in ledger["records"] if int(item.get("band_generation", -1)) == final_id]
     graded = [item for item in records if item.get("in_final_band") is True]
-    smoke = [item for item in records if item.get("run_name") == "stage0-v23g5-smoke"]
+    smoke = [item for item in records if item.get("run_name") == "stage0-v23g6-smoke"]
     seeds = sorted(int(item.get("seed")) for item in graded if item.get("seed") is not None)
     if len(records) != 4 or len(smoke) != 1 or len(graded) != 3 or seeds != [41, 42, 43]:
         fail("final generation requires one smoke and finished in-band seeds 41/42/43")

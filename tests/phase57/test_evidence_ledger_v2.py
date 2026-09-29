@@ -28,14 +28,14 @@ verifier = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(verifier)
 
 
-class GenerationThreeConfigTests(unittest.TestCase):
-    def test_generation_three_changes_only_the_run_identity(self) -> None:
+class GenerationSixConfigTests(unittest.TestCase):
+    def test_generation_six_changes_only_the_run_identity(self) -> None:
         for suffix in ("smoke", "seed41", "seed42", "seed43"):
             with self.subTest(suffix=suffix):
-                old = yaml.safe_load((ROOT / f"configs/stage0-v23g2-{suffix}.yaml").read_text())
-                new = yaml.safe_load((ROOT / f"configs/stage0-v23g5-{suffix}.yaml").read_text())
-                self.assertEqual(old["run"].pop("run_name"), f"stage0-v23g2-{suffix}")
-                self.assertEqual(new["run"].pop("run_name"), f"stage0-v23g5-{suffix}")
+                old = yaml.safe_load((ROOT / f"configs/stage0-v23g5-{suffix}.yaml").read_text())
+                new = yaml.safe_load((ROOT / f"configs/stage0-v23g6-{suffix}.yaml").read_text())
+                self.assertEqual(old["run"].pop("run_name"), f"stage0-v23g5-{suffix}")
+                self.assertEqual(new["run"].pop("run_name"), f"stage0-v23g6-{suffix}")
                 self.assertEqual(new, old)
 
 
@@ -46,20 +46,20 @@ class AdmissionConfigTests(unittest.TestCase):
         self.root = Path(temporary.name)
         (self.root / "configs").mkdir()
         for suffix in ("smoke", "seed41", "seed42", "seed43"):
-            name = f"stage0-v23g5-{suffix}.yaml"
+            name = f"stage0-v23g6-{suffix}.yaml"
             shutil.copyfile(ROOT / "configs" / name, self.root / "configs" / name)
         patcher = mock.patch.object(verifier, "REPO_ROOT", self.root)
         patcher.start()
         self.addCleanup(patcher.stop)
 
     def test_admission_rejects_config_that_fails_strict_load(self) -> None:
-        smoke = self.root / "configs/stage0-v23g5-smoke.yaml"
+        smoke = self.root / "configs/stage0-v23g6-smoke.yaml"
         smoke.write_text(smoke.read_text() + "\nunknown_top_level: true\n")
         with self.assertRaisesRegex(verifier.VerifyError, "strict-load"):
             verifier._assert_config_contract()
 
     def test_admission_rejects_unreachable_admitted_corpus(self) -> None:
-        smoke = self.root / "configs/stage0-v23g5-smoke.yaml"
+        smoke = self.root / "configs/stage0-v23g6-smoke.yaml"
         smoke.write_text(
             smoke.read_text() + f"\n  root: {self.root / 'missing-corpus'}\n"
         )
@@ -93,8 +93,8 @@ class BlockedStateContractTests(unittest.TestCase):
     def test_current_blocked_state_reader_ignores_historical_singleton(self) -> None:
         (self.root / verifier.HISTORICAL_BLOCKED_STATE_REL).write_text("not-json")
         current = self.root / verifier.CURRENT_BLOCKED_STATE_REL
-        current.write_text('{"band_generation":5,"run_name":"stage0-v23g5-smoke"}\n')
-        self.assertEqual(verifier._blocked_state()["band_generation"], 5)
+        current.write_text('{"band_generation":6,"run_name":"stage0-v23g6-smoke"}\n')
+        self.assertEqual(verifier._blocked_state()["band_generation"], 6)
 
     def test_generation_four_blocked_state_is_verified_from_ledger_digest(self) -> None:
         historical = self.root / verifier.EVIDENCE_REL / "blocked-state-g4.json"
@@ -135,6 +135,67 @@ class BlockedStateContractTests(unittest.TestCase):
                 verifier.assert_generation_four_blocked_state_retained(ledger)
 
 
+class Seed42SetupTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        patcher = mock.patch.object(verifier, "REPO_ROOT", self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.smoke = self.root / "runs/stage0-v23g6-smoke"
+        self.graded = self.root / "runs/stage0-v23g6-seed42"
+        for run in (self.smoke, self.graded):
+            run.mkdir(parents=True)
+            (run / "splits.json").write_text('{"seed":42,"groups":[]}\n')
+            (run / "training_metadata.json").write_text(
+                json.dumps({"s_h": 22.321729071058996, "n_train": 1812})
+            )
+            (run / "status.json").write_text(json.dumps({
+                "state": "finished" if run == self.smoke else "initializing",
+                "run_name": run.name,
+            }))
+        (self.smoke / "summary.json").write_text(json.dumps({
+            "disposition": "finished", "run_name": self.smoke.name,
+        }))
+        (self.graded / "preflight.json").write_text('{"preflight_status":"passed"}\n')
+
+    def test_passes_only_actual_byte_and_scalar_equality(self) -> None:
+        result = verifier._assert_seed42_setup(before_other_seeds=True)
+        self.assertEqual(result["n_train"], 1812)
+        self.assertEqual(result["s_h"], 22.321729071058996)
+        self.assertEqual(result["splits_sha256"], verifier.sha256_file(self.smoke / "splits.json"))
+
+    def test_rejects_same_parsed_split_with_different_bytes(self) -> None:
+        (self.graded / "splits.json").write_text('{ "seed": 42, "groups": [] }\n')
+        with self.assertRaisesRegex(verifier.VerifyError, "splits.json bytes differ"):
+            verifier._assert_seed42_setup(before_other_seeds=True)
+
+    def test_rejects_metadata_mismatch(self) -> None:
+        for field, value in (("s_h", 23.0), ("n_train", 1813)):
+            with self.subTest(field=field):
+                metadata = {"s_h": 22.321729071058996, "n_train": 1812}
+                metadata[field] = value
+                (self.graded / "training_metadata.json").write_text(json.dumps(metadata))
+                with self.assertRaisesRegex(verifier.VerifyError, field):
+                    verifier._assert_seed42_setup(before_other_seeds=True)
+
+    def test_rejects_missing_graded_setup(self) -> None:
+        (self.graded / "training_metadata.json").unlink()
+        with self.assertRaisesRegex(verifier.VerifyError, "graded seed-42 metadata"):
+            verifier._assert_seed42_setup(before_other_seeds=True)
+
+    def test_rejects_prior_launch_of_other_graded_seed(self) -> None:
+        (self.root / "runs/stage0-v23g6-seed41").mkdir()
+        with self.assertRaisesRegex(verifier.VerifyError, "before seeds 41 or 43"):
+            verifier._assert_seed42_setup(before_other_seeds=True)
+
+    def test_rejects_unpassed_preflight(self) -> None:
+        (self.graded / "preflight.json").write_text('{"preflight_status":"failed"}\n')
+        with self.assertRaisesRegex(verifier.VerifyError, "preflight has not passed"):
+            verifier._assert_seed42_setup(before_other_seeds=True)
+
+
 class InvocationEvidenceTests(unittest.TestCase):
     def setUp(self) -> None:
         temporary = tempfile.TemporaryDirectory()
@@ -143,12 +204,26 @@ class InvocationEvidenceTests(unittest.TestCase):
         patcher = mock.patch.object(verifier, "REPO_ROOT", self.root)
         patcher.start()
         self.addCleanup(patcher.stop)
-        self.config_rel = "configs/stage0-v23g5-seed42.yaml"
+        # These cases exercise the current run's process contract; historical
+        # retention has its own focused tests.
+        for name in (
+            "assert_generation_one_blocked_state_retained",
+            "assert_generation_three_blocked_state_retained",
+            "assert_generation_four_blocked_state_retained",
+            "assert_generation_five_retained",
+        ):
+            retention_patcher = mock.patch.object(verifier, name)
+            retention_patcher.start()
+            self.addCleanup(retention_patcher.stop)
+        setup_patcher = mock.patch.object(verifier, "_assert_seed42_setup")
+        setup_patcher.start()
+        self.addCleanup(setup_patcher.stop)
+        self.config_rel = "configs/stage0-v23g6-seed42.yaml"
         self.config = self.root / self.config_rel
         self.config.parent.mkdir(parents=True)
-        self.config.write_text("run:\n  run_name: stage0-v23g5-seed42\n")
+        self.config.write_text("run:\n  run_name: stage0-v23g6-seed42\n")
         self.config_sha = verifier.sha256_file(self.config)
-        self.run_rel = "runs/stage0-v23g5-seed42"
+        self.run_rel = "runs/stage0-v23g6-seed42"
         self.run = self.root / self.run_rel
         self.run.mkdir(parents=True)
         self.head = "a" * 40
@@ -291,26 +366,30 @@ class InvocationEvidenceTests(unittest.TestCase):
             verifier.cmd_run_window()
         self.assertIn("RUN-WINDOW-TERMINAL-OK", output.getvalue())
 
-    def test_complete_generation_three_band_accepts_verified_resume(self) -> None:
+    def test_complete_generation_six_band_accepts_verified_resume(self) -> None:
         boundary = self.checkpoint({
             "invariant_b_state": {"front_high_water": 0, "last_advance_step": 0}
         })
         first = self.invocation(
             1, kind="fresh", disposition="interrupted", exit_code=130
         )
+        first["start_utc"] = "2026-09-27T12:02:00+00:00"
+        first["end_utc"] = "2026-09-27T12:03:00+00:00"
         first["boundary_checkpoint"] = boundary
         resumed = self.invocation(2, kind="resume", command_suffix=" --resume latest")
+        resumed["start_utc"] = "2026-09-27T12:04:00+00:00"
+        resumed["end_utc"] = "2026-09-27T12:05:00+00:00"
         resumed["resume_checkpoint"] = boundary
         seed42 = self.record([first, resumed])
         seed42.update({
-            "band_generation": 5, "seed": 42, "in_final_band": True,
+            "band_generation": 6, "seed": 42, "in_final_band": True,
             "final_process_disposition": "finished", "ledger_disposition": "finished",
         })
         records = [seed42]
         for name, seed, in_band in (
             ("smoke", 42, False), ("seed41", 41, True), ("seed43", 43, True)
         ):
-            run_name = f"stage0-v23g5-{name}"
+            run_name = f"stage0-v23g6-{name}"
             config_rel = f"configs/{run_name}.yaml"
             config = self.root / config_rel
             config.write_text(f"run:\n  run_name: {run_name}\n")
@@ -318,12 +397,15 @@ class InvocationEvidenceTests(unittest.TestCase):
             (self.root / run_rel).mkdir()
             config_sha = verifier.sha256_file(config)
             invocation = self.invocation(1, kind="fresh")
+            minute = {"smoke": 0, "seed41": 6, "seed43": 8}[name]
+            invocation["start_utc"] = f"2026-09-27T12:{minute:02d}:00+00:00"
+            invocation["end_utc"] = f"2026-09-27T12:{minute + 1:02d}:00+00:00"
             invocation["command"] = (
                 f"python -m pinn.train --config {config_rel} --stage-0-only"
             )
             invocation["config_sha256"] = config_sha
             records.append({
-                "band_generation": 5, "run_name": run_name, "seed": seed,
+                "band_generation": 6, "run_name": run_name, "seed": seed,
                 "in_final_band": in_band, "git_head": self.head,
                 "config_path": config_rel, "config_sha256": config_sha,
                 "artifact_dir": run_rel, "invocations": [invocation],
@@ -332,8 +414,11 @@ class InvocationEvidenceTests(unittest.TestCase):
             })
         ledger = {
             "records": records,
-            "band_generations": [{"band_generation": 5, "git_head": self.head}],
-            "final_band_generation": 5,
+            "band_generations": [{
+                "band_generation": 6, "git_head": self.head,
+                "launch_order": list(verifier.FINAL_LAUNCH_ORDER),
+            }],
+            "final_band_generation": 6,
         }
         with (
             mock.patch.object(verifier, "_gate_chain"),
@@ -346,6 +431,22 @@ class InvocationEvidenceTests(unittest.TestCase):
             verifier.cmd_run_window()
         self.assertIn("RUN-WINDOW-OK", output.getvalue())
 
+    def test_band_rejects_seed41_before_seed42(self) -> None:
+        records = [{
+            "run_name": name,
+            "invocations": [{
+                "start_utc": f"2026-09-27T12:{ordinal * 2:02d}:00+00:00",
+                "end_utc": f"2026-09-27T12:{ordinal * 2 + 1:02d}:00+00:00",
+            }],
+        } for ordinal, name in enumerate((
+            "stage0-v23g6-smoke", "stage0-v23g6-seed41",
+            "stage0-v23g6-seed42", "stage0-v23g6-seed43",
+        ))]
+        with self.assertRaisesRegex(verifier.VerifyError, "timestamps violate"):
+            verifier._assert_launch_order(
+                {"launch_order": list(verifier.FINAL_LAUNCH_ORDER)}, records
+            )
+
     def test_current_generation_blocked_state_still_refuses_closeout(self) -> None:
         with (
             mock.patch.object(verifier, "_gate_chain"),
@@ -354,8 +455,8 @@ class InvocationEvidenceTests(unittest.TestCase):
                 "records": [], "band_generations": [], "final_band_generation": None
             }),
             mock.patch.object(verifier, "_blocked_state", return_value={
-                "band_generation": 5,
-                "run_name": "stage0-v23g5-smoke",
+                "band_generation": 6,
+                "run_name": "stage0-v23g6-smoke",
                 "evaluation": "preserved-unspent",
                 "terminal": False,
             }),
@@ -367,8 +468,8 @@ class InvocationEvidenceTests(unittest.TestCase):
         head = "a" * 40
         records = [
             {
-                "band_generation": 5,
-                "run_name": f"stage0-v23g5-{name}",
+                "band_generation": 6,
+                "run_name": f"stage0-v23g6-{name}",
                 "seed": seed,
                 "in_final_band": in_band,
                 "git_head": head,
@@ -384,8 +485,8 @@ class InvocationEvidenceTests(unittest.TestCase):
         ]
         ledger = {
             "records": records,
-            "band_generations": [{"band_generation": 5, "git_head": head}],
-            "final_band_generation": 5,
+            "band_generations": [{"band_generation": 6, "git_head": head}],
+            "final_band_generation": 6,
         }
         with (
             mock.patch.object(verifier, "_gate_chain"),
@@ -402,7 +503,7 @@ class InvocationEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(verifier.VerifyError, "run names"):
                 verifier.cmd_run_window()
 
-    def test_candidate_accepts_generation_three_name(self) -> None:
+    def test_candidate_accepts_generation_six_name(self) -> None:
         best = self.run / "checkpoints" / "best.pt"
         best.parent.mkdir(parents=True)
         best.write_bytes(b"model")

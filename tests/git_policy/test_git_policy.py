@@ -172,6 +172,40 @@ class CommitMessagePolicyTests(unittest.TestCase):
 
 
 class StagedPathPolicyTests(unittest.TestCase):
+    def test_allows_exact_retained_generation_five_files(self):
+        manifest = json.loads((
+            ROOT / ".planning/phases/57-corrected-re-run-the-preserved-evaluation"
+            / "evidence/generation-5-retention.json"
+        ).read_text())
+        files = [item for item in manifest["files"] if item["role"] == "run-artifact"]
+        self.assertEqual(len(files), 23)
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={
+                "GIT_POLICY_STAGED_FILES": "\n".join(item["path"] for item in files) + "\n",
+                "GIT_POLICY_STAGED_SIZES": json.dumps({
+                    item["path"]: item["size_bytes"] for item in files
+                }),
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_unlisted_generation_five_file_and_large_checkpoint(self):
+        for path, size, expected in (
+            ("runs/stage0-v23g5-smoke/extra.pt", 1, "generated"),
+            ("runs/stage0-v23g5-smoke/checkpoints/stage-0-init.pt", 12 * 1024 * 1024, "10 MiB"),
+        ):
+            with self.subTest(path=path):
+                result = run_python(
+                    STAGED_VALIDATOR,
+                    env={
+                        "GIT_POLICY_STAGED_FILES": path + "\n",
+                        "GIT_POLICY_STAGED_SIZES": json.dumps({path: size}),
+                    },
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected, result.stderr)
+
     def test_allows_exact_retained_generation_two_files(self):
         manifest = json.loads((
             ROOT / ".planning/phases/57-corrected-re-run-the-preserved-evaluation"
