@@ -63,12 +63,15 @@ class _ExtraCapture(logging.Handler):
                 "w_mean": getattr(record, "w_mean", None),
                 "w_max": getattr(record, "w_max", None),
                 "front_idx": getattr(record, "front_idx", None),
+                "n_collocation_rows": getattr(record, "n_collocation_rows", None),
+                "n_bins": getattr(record, "n_bins", None),
                 "residuals_per_bin": [getattr(record, key) for key in residual_keys],
             }
         )
 
 
-def _build_controller(run_dir, *, n_adam, max_epochs, validation_every, guard_hook):
+def _build_controller(run_dir, *, n_adam, max_epochs, validation_every, guard_hook,
+                      collocation_count=None):
     runtime = resolve_runtime("float64", "cpu")
     config = TrainingConfig(
         stage=StageConfig(
@@ -82,6 +85,7 @@ def _build_controller(run_dir, *, n_adam, max_epochs, validation_every, guard_ho
             eps_phys=1e-4,
             eps_energy=1e-4,
             energy_floor_factor=1e-4,
+            collocation_count=collocation_count,
         ),
         opt=OptConfig(validation_every=validation_every, lbfgs_max_iter=2),
     )
@@ -179,6 +183,10 @@ class CausalTelemetryOwnershipTests(unittest.TestCase):
                 "phase": str(phase),
                 "w_n_stats": dict(stats or {}),
                 "n_colloc": n_colloc,
+                "n_collocation_rows": (controller._last_widened_details or {}).get(
+                    "n_collocation_rows"
+                ),
+                "n_bins": (controller._last_widened_details or {}).get("n_bins"),
             }
         )
         return None
@@ -202,6 +210,7 @@ class CausalTelemetryOwnershipTests(unittest.TestCase):
             max_epochs=1,
             validation_every=1,
             guard_hook=self._guard_hook,
+            collocation_count=2,
         )
         _stamp_distinct_composer_results(controller)
         controller.run_stage(0)
@@ -211,6 +220,11 @@ class CausalTelemetryOwnershipTests(unittest.TestCase):
         self.assertEqual(len(adam_guards), 1)
         self.assertEqual(len(adam_logs), 1)
         self.assertEqual(adam_guards[0]["w_n_stats"], TRAIN_W)
+        self.assertEqual(adam_guards[0]["n_collocation_rows"], 2)
+        self.assertEqual(
+            adam_logs[0]["n_collocation_rows"], adam_guards[0]["n_collocation_rows"]
+        )
+        self.assertEqual(adam_logs[0]["n_bins"], adam_guards[0]["n_bins"])
         self._assert_training_owned(
             {
                 "w_min": adam_logs[0]["w_min"],
@@ -234,6 +248,7 @@ class CausalTelemetryOwnershipTests(unittest.TestCase):
             max_epochs=2,
             validation_every=1,
             guard_hook=self._guard_hook,
+            collocation_count=2,
         )
         _stamp_distinct_composer_results(controller)
         controller.run_stage(0)
@@ -243,6 +258,12 @@ class CausalTelemetryOwnershipTests(unittest.TestCase):
         self.assertEqual(len(lbfgs_guards), 1)
         self.assertEqual(len(lbfgs_logs), 1)
         self.assertEqual(lbfgs_guards[0]["w_n_stats"], TRAIN_W)
+        self.assertEqual(lbfgs_guards[0]["n_collocation_rows"], 2)
+        self.assertEqual(
+            lbfgs_logs[0]["n_collocation_rows"],
+            lbfgs_guards[0]["n_collocation_rows"],
+        )
+        self.assertEqual(lbfgs_logs[0]["n_bins"], lbfgs_guards[0]["n_bins"])
         self._assert_training_owned(
             {
                 "w_min": lbfgs_logs[0]["w_min"],

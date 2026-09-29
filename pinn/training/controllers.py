@@ -1408,12 +1408,14 @@ class RunController:
     # ------------------------------------------------------------------
     def _snapshot_training_causal_details(
         self,
-    ) -> tuple[Optional[dict], Optional[list], Optional[list], Optional[float]]:
+    ) -> tuple[Optional[dict], Optional[list], Optional[list], Optional[float],
+               Optional[int], Optional[int]]:
         """Immutable copy of the training-owned causal stash.
 
         Validation reuses the loss composer and overwrites
         ``_last_widened_details`` before ``_log_step``. Returns
-        ``(w_n_stats, residuals_per_bin, raw_residuals_per_bin, r_ref)`` --
+        ``(w_n_stats, residuals_per_bin, raw_residuals_per_bin, r_ref,
+        n_collocation_rows, n_bins)`` --
         the same training-owned-snapshot discipline now also covers the
         Phase-57 raw/normalized diagnostic pair (Task 3: "raw bin means,
         normalized bin means... R_ref identity/value").
@@ -1423,11 +1425,17 @@ class RunController:
         residuals = details.get("residuals_per_bin")
         raw_residuals = details.get("raw_residuals_per_bin")
         r_ref = details.get("r_ref")
+        n_collocation_rows = details.get("n_collocation_rows")
+        n_bins = details.get("n_bins")
         stats_copy = dict(stats) if isinstance(stats, Mapping) else None
         residuals_copy = list(residuals) if residuals is not None else None
         raw_residuals_copy = list(raw_residuals) if raw_residuals is not None else None
         r_ref_copy = float(r_ref) if r_ref is not None else None
-        return stats_copy, residuals_copy, raw_residuals_copy, r_ref_copy
+        return (
+            stats_copy, residuals_copy, raw_residuals_copy, r_ref_copy,
+            int(n_collocation_rows) if n_collocation_rows is not None else None,
+            int(n_bins) if n_bins is not None else None,
+        )
 
     def _log_step(
         self,
@@ -1442,6 +1450,8 @@ class RunController:
         residuals_per_bin: Optional[Sequence[float]] = None,
         raw_residuals_per_bin: Optional[Sequence[float]] = None,
         r_ref: Optional[float] = None,
+        n_collocation_rows: Optional[int] = None,
+        n_bins: Optional[int] = None,
         s_per_step: Optional[float] = None,
         eta_seconds: Optional[float] = None,
         epoch: Optional[int] = None,
@@ -1487,11 +1497,13 @@ class RunController:
             else stash.get("raw_residuals_per_bin")
         )
         resolved_r_ref = r_ref if r_ref is not None else stash.get("r_ref")
-        # Allocation counts are not train/validation-sensitive (both compose
-        # the same widened stash shape), so they are read straight from the
-        # current stash rather than threaded as a per-call override.
-        resolved_n_collocation_rows = stash.get("n_collocation_rows")
-        resolved_n_bins = stash.get("n_bins")
+        # Validation composes its own one-row batch before some training step
+        # records are emitted. Use the training-owned snapshot when supplied.
+        resolved_n_collocation_rows = (
+            n_collocation_rows if n_collocation_rows is not None
+            else stash.get("n_collocation_rows")
+        )
+        resolved_n_bins = n_bins if n_bins is not None else stash.get("n_bins")
 
         # Per-step-delta wall clock (distinct from `self._wall_clock_baseline`,
         # the run-start baseline). `s_per_step` is an EMA of per-step wall
@@ -2075,6 +2087,7 @@ class RunController:
             (
                 causal_w_n_stats, causal_residuals,
                 causal_raw_residuals, causal_r_ref,
+                causal_n_collocation_rows, causal_n_bins,
             ) = self._snapshot_training_causal_details()
             clip_outcome = self._grad_clipper.clip(self._model.parameters(), stage=k)
             try:
@@ -2111,6 +2124,8 @@ class RunController:
                         residuals_per_bin=causal_residuals,
                         raw_residuals_per_bin=causal_raw_residuals,
                         r_ref=causal_r_ref,
+                        n_collocation_rows=causal_n_collocation_rows,
+                        n_bins=causal_n_bins,
                     )
                     return handoff_trigger, adam_epochs_used
             if not self._loss_finite(loss_terms.total):
@@ -2124,6 +2139,8 @@ class RunController:
                     residuals_per_bin=causal_residuals,
                     raw_residuals_per_bin=causal_raw_residuals,
                     r_ref=causal_r_ref,
+                    n_collocation_rows=causal_n_collocation_rows,
+                    n_bins=causal_n_bins,
                 )
                 return handoff_trigger, adam_epochs_used
             if clip_outcome.non_finite:
@@ -2137,6 +2154,8 @@ class RunController:
                     residuals_per_bin=causal_residuals,
                     raw_residuals_per_bin=causal_raw_residuals,
                     r_ref=causal_r_ref,
+                    n_collocation_rows=causal_n_collocation_rows,
+                    n_bins=causal_n_bins,
                 )
                 return handoff_trigger, adam_epochs_used
 
@@ -2170,6 +2189,8 @@ class RunController:
                 residuals_per_bin=causal_residuals,
                 raw_residuals_per_bin=causal_raw_residuals,
                 r_ref=causal_r_ref,
+                n_collocation_rows=causal_n_collocation_rows,
+                n_bins=causal_n_bins,
             )
 
             # Checkpoint/best hook AFTER validation so _last_val_total is live.
@@ -2464,6 +2485,7 @@ class RunController:
             (
                 causal_w_n_stats, causal_residuals,
                 causal_raw_residuals, causal_r_ref,
+                causal_n_collocation_rows, causal_n_bins,
             ) = self._snapshot_training_causal_details()
 
             # ---- Guard path (cycle-4 MEDIUM-2): L-BFGS ----
@@ -2498,6 +2520,8 @@ class RunController:
                         residuals_per_bin=causal_residuals,
                         raw_residuals_per_bin=causal_raw_residuals,
                         r_ref=causal_r_ref,
+                        n_collocation_rows=causal_n_collocation_rows,
+                        n_bins=causal_n_bins,
                     )
                     return guard_outcome.disposition
                 # Guard did not trip — bare RECOVER still fires if non_finite.
@@ -2513,6 +2537,8 @@ class RunController:
                         residuals_per_bin=causal_residuals,
                         raw_residuals_per_bin=causal_raw_residuals,
                         r_ref=causal_r_ref,
+                        n_collocation_rows=causal_n_collocation_rows,
+                        n_bins=causal_n_bins,
                     )
                     return StageDisposition.RECOVER
             else:
@@ -2528,6 +2554,8 @@ class RunController:
                         residuals_per_bin=causal_residuals,
                         raw_residuals_per_bin=causal_raw_residuals,
                         r_ref=causal_r_ref,
+                        n_collocation_rows=causal_n_collocation_rows,
+                        n_bins=causal_n_bins,
                     )
                     return StageDisposition.RECOVER
 
@@ -2556,6 +2584,8 @@ class RunController:
                     residuals_per_bin=causal_residuals,
                     raw_residuals_per_bin=causal_raw_residuals,
                     r_ref=causal_r_ref,
+                    n_collocation_rows=causal_n_collocation_rows,
+                    n_bins=causal_n_bins,
                 )
 
             if self._checkpoint_hook is not None:
