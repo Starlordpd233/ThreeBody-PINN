@@ -101,15 +101,15 @@ about the design, and recipe adjudication … is v2.3."*
 
 ### Re-Run & the Preserved Evaluation (RUN / EVAL)
 
-- [ ] **RUN-04**: Re-run Stage-0 under the SPEC-01/SPEC-06-corrected recipe. Invariant B must show the causal front **actually advancing** — not merely no-longer-saturated — within the owner-re-ratified window. Gated on GATE-04. Iteration is conformance-only (SCOPE-37). [SCOPE-36 authorizes Stage-0 training]
-- [ ] **RUN-05**: Re-establish the **three-seed band** under the corrected recipe, matching the v2.0/v2.2 protocol so the runs are comparable. [v2.0 pilot protocol; v2.2 RUN-02 lineage]
+- [x] **RUN-04**: Re-run Stage-0 under the SPEC-01/SPEC-06-corrected recipe. Invariant B must show the causal front **actually advancing** — not merely no-longer-saturated — within the owner-re-ratified window. Gated on GATE-04. Iteration is conformance-only (SCOPE-37). [SCOPE-36 authorizes Stage-0 training] — **CLOSED INCOMPLETE 2026-10-03.** Owner decision at checkpoint ⑤ (`58-VERDICT.md`): generation-7 graded seed 42 tripped invariant B at step 951 (front high-water 2 since step 450), so the front did not keep advancing within the re-ratified window (`57-VERIFICATION.md` SC3).
+- [x] **RUN-05**: Re-establish the **three-seed band** under the corrected recipe, matching the v2.0/v2.2 protocol so the runs are comparable. [v2.0 pilot protocol; v2.2 RUN-02 lineage] — **CLOSED INCOMPLETE 2026-10-03.** Seeds 41/43 were not launched under the declared terminal branch; no band exists. Same owner decision as RUN-04.
 
-- [ ] **EVAL-02**: Spend the **sole preserved held-out evaluation** — the one v2.2 never attempted (RUN-03/EVAL-01 not attempted, preserved unspent by the 2026-08-17 owner decision). Gated on the same three-precondition structure as v2.2's EVAL-01, adapted for the new recipe, and on the **pre-registered spending seed** fixed before RUN-04/05 execute. Before any held-out access, prove with a dataset-free regression and a pre-invocation assertion that the evaluator pairs canonical predicted `r′` with `u = t/T`. [SCOPE-35; GAP-46-01 delegated ruling 2026-07-26]
+- [~] **EVAL-02**: Spend the **sole preserved held-out evaluation** — the one v2.2 never attempted (RUN-03/EVAL-01 not attempted, preserved unspent by the 2026-08-17 owner decision). Gated on the same three-precondition structure as v2.2's EVAL-01, adapted for the new recipe, and on the **pre-registered spending seed** fixed before RUN-04/05 execute. Before any held-out access, prove with a dataset-free regression and a pre-invocation assertion that the evaluator pairs canonical predicted `r′` with `u = t/T`. [SCOPE-35; GAP-46-01 delegated ruling 2026-07-26] — **NOT ATTEMPTED 2026-10-03.** The declared terminal branch preserved the sole held-out evaluation unspent (`no-candidate.json`; verifier `final` → `FINAL-UNSPENT-OK`); it remains available to a future milestone.
 
 ### Verdict & Traceability (DIAG / VER)
 
-- [ ] **DIAG-06**: The owner renders a final **go / adjust / rethink** verdict on the recalibrated design — the second attempt at the verdict v2.2's Phase 51 never reached, and the gate that governs whether Stage-1+/PLAT-01..07 re-open. [v2.0 ACC-06 pattern; SCOPE-36]
-- [ ] **VER-21**: Requirement traceability — every requirement maps to exactly one phase; no orphans, no duplicates. Re-verified at milestone close against the final requirement count, not carried forward from the roadmap-creation check. [VER-19 lineage]
+- [x] **DIAG-06**: The owner renders a final **go / adjust / rethink** verdict on the recalibrated design — the second attempt at the verdict v2.2's Phase 51 never reached, and the gate that governs whether Stage-1+/PLAT-01..07 re-open. [v2.0 ACC-06 pattern; SCOPE-36] — **COMPLETE 2026-10-03:** owner verdict `rethink` (`58-VERDICT.md`); Stage-1+/PLAT-01..07 stay blocked; next milestone routes to ERW round `trainex-r4`.
+- [x] **VER-21**: Requirement traceability — every requirement maps to exactly one phase; no orphans, no duplicates. Re-verified at milestone close against the final requirement count, not carried forward from the roadmap-creation check. [VER-19 lineage] — **COMPLETE 2026-10-03:** 15/15 mapped to exactly one phase, no orphans, no duplicates, re-verified at close (`58-SUMMARY.md`).
 
 ## Scope Boundaries (owner-ratified 2026-08-18 — hard constraints)
 
@@ -177,11 +177,11 @@ it is needed.
 | SPEC-06 | Phase 56 | Complete |
 | INST-04 | Phase 55 | Complete |
 | GATE-04 | Phase 56 | Complete |
-| RUN-04 | Phase 57 | Pending |
-| RUN-05 | Phase 57 | Pending |
-| EVAL-02 | Phase 57 | Pending |
-| DIAG-06 | Phase 58 | Pending |
-| VER-21 | Phase 58 | Pending |
+| RUN-04 | Phase 57 | Closed incomplete |
+| RUN-05 | Phase 57 | Closed incomplete |
+| EVAL-02 | Phase 57 | Not attempted |
+| DIAG-06 | Phase 58 | Complete |
+| VER-21 | Phase 58 | Complete |
 
 **Namespace continuity.** `ERW` and `SPEC` are new categories beginning at 01 —
 verified against every archived milestone requirements file, no collisions.
