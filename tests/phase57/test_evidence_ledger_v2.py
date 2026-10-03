@@ -176,6 +176,31 @@ class GenerationSixRetentionTests(unittest.TestCase):
             verifier.assert_generation_six_retained(ledger)
 
 
+class GenerationSevenRetentionTests(unittest.TestCase):
+    """GAP-57-13 A: the terminal generation-7 band re-derives from Git and disk."""
+
+    @staticmethod
+    def terminal() -> dict:
+        return json.loads((ROOT / verifier.EVIDENCE_REL / "terminal-state.json").read_text())
+
+    def test_committed_generation_seven_band_rederives(self) -> None:
+        verifier.assert_generation_seven_retained(verifier.load_ledger(), self.terminal())
+
+    def test_rejects_ledger_hash_drift(self) -> None:
+        ledger = verifier.load_ledger()
+        for record in ledger["records"]:
+            if record.get("run_name") == "stage0-v23g7-smoke":
+                record["artifact_hashes"]["status.json"] = "0" * 64
+        with self.assertRaisesRegex(verifier.VerifyError, "ledger hashes"):
+            verifier.assert_generation_seven_retained(ledger, self.terminal())
+
+    def test_rejects_terminal_state_pointing_at_other_bytes(self) -> None:
+        terminal = self.terminal()
+        terminal["guard_trip"]["sha256"] = "0" * 64
+        with self.assertRaisesRegex(verifier.VerifyError, "trip or checkpoint hashes"):
+            verifier.assert_generation_seven_retained(verifier.load_ledger(), terminal)
+
+
 class Seed42SetupTests(unittest.TestCase):
     def setUp(self) -> None:
         temporary = tempfile.TemporaryDirectory()

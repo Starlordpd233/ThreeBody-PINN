@@ -32,7 +32,7 @@ operational block, its record is written to `blocked-state-g7.json` instead.
     "front_advance_window_n": 500,
     "evaluation": "preserved-unspent-until-three-preconditions-pass"
   },
-  "final_band_generation": null,
+  "final_band_generation": 7,
   "band_generations": [
     {
       "band_generation": 1,
@@ -137,6 +137,24 @@ operational block, its record is written to `blocked-state-g7.json` instead.
       "evaluation": "preserved-unspent",
       "blocked_state": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g6.json",
       "retention_manifest": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-6-retention.json"
+    },
+    {
+      "band_generation": 7,
+      "status": "terminal",
+      "git_head": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+      "extraction_git_head": null,
+      "launch_order": [
+        "stage0-v23g7-smoke",
+        "stage0-v23g7-seed42",
+        "stage0-v23g7-seed41",
+        "stage0-v23g7-seed43"
+      ],
+      "launched_runs": [
+        "stage0-v23g7-smoke",
+        "stage0-v23g7-seed42"
+      ],
+      "evaluation": "preserved-unspent",
+      "terminal_state": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/terminal-state.json"
     }
   ],
   "records": [
@@ -793,6 +811,239 @@ operational block, its record is written to `blocked-state-g7.json` instead.
         },
         "kind": "rolling-not-governed-stop-boundary"
       }
+    },
+    {
+      "band_generation": 7,
+      "launch_kind": "smoke",
+      "run_name": "stage0-v23g7-smoke",
+      "seed": 42,
+      "git_head": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+      "config_path": "configs/stage0-v23g7-smoke.yaml",
+      "config_sha256": "9f967786a90831f0f08357f28973a0dfaf0b4dfe47fb20aebbff08fe2e104033",
+      "resolved_config_path": "runs/stage0-v23g7-smoke/config.yaml",
+      "resolved_config_sha256": "6f58fd4b4166b2e975b4fac9c7ed763b4fc2b84d0f9d21e52fe6b11fa820e27f",
+      "config_identity_digest": "6f58fd4b4166b2e9",
+      "artifact_dir": "runs/stage0-v23g7-smoke",
+      "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g7-smoke.yaml --stage-0-only",
+      "stage_0_only": true,
+      "collocation_count": 4096,
+      "replay_count": 240,
+      "front_advance_window_n": 500,
+      "max_epochs": 300,
+      "n_adam": 300,
+      "monitor": {
+        "schema_version": "phase57-front-monitor/v1",
+        "split": "train",
+        "n_bins": 16,
+        "n_collocation_rows": 4096,
+        "invariant_b_state": {
+          "front_high_water": 1,
+          "last_advance_step": 93
+        }
+      },
+      "r_ref": 19749775821.24417,
+      "r_ref_artifact_path": "pinn/verification/artifacts/r_ref_stage0.json",
+      "r_ref_artifact_sha256": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff",
+      "corpus": {
+        "splits_sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "s_h": 22.321729071058996,
+        "eps_h": 0.0022321729071058997,
+        "n_train": 1812
+      },
+      "environment": {
+        "device": "mps",
+        "precision": "float32",
+        "python_version": "3.11.15",
+        "torch_version": "2.12.1",
+        "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+        "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80"
+      },
+      "launch_started_utc": "2026-10-03T03:31:45.471033+00:00",
+      "completion_utc": "2026-10-03T04:36:04.057427+00:00",
+      "wall_clock_secs": 3858.589245167008,
+      "process_pid": 64794,
+      "exit_code": 0,
+      "final_process_disposition": "finished",
+      "ledger_disposition": "finished",
+      "final_guard_disposition": "finished",
+      "guard": null,
+      "evaluation": "preserved-unspent",
+      "in_final_band": false,
+      "terminal": false,
+      "artifact_hashes": {
+        "checkpoints/best.pt": "d7181094787e46615f0346149d2bbd46338d15449b15b8aa9269be834ed24674",
+        "checkpoints/ckpt-154400428230.pt": "55d84b1fb4b502bea7252bbb60490995cada43e7b641880cba3129270fa7c756",
+        "checkpoints/latest.pt": "fd66081808b8ada4436ded6627451b896828b0c3911fadfe0f9d1e0076d39412",
+        "checkpoints/stage-0-init.pt": "9d2a0721483c73584227e160afc5c4d83e26bd18751f71795465233b956b0f3d",
+        "checkpoints/step-000100.pt": "7de5f69129cbf2c25347ab1b9e408dcdacdcd68cd398b6c2bcb00956d4c93646",
+        "checkpoints/step-000200.pt": "db5fac7bb3b4e2cdd6a6b778d024c288583b4ac5eccce324c1e83c443cfb167d",
+        "checkpoints/step-000300.pt": "5e3d804ba4528f91320414f424e7b761dcc97fe8f36931d23760eaaf78b52826",
+        "config.yaml": "6f58fd4b4166b2e975b4fac9c7ed763b4fc2b84d0f9d21e52fe6b11fa820e27f",
+        "curriculum.jsonl": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b",
+        "logs/train.log": "83f7171229739e2b7d1405c3abfc4dcc83ef764a75f8d6fd4861811d101425ce",
+        "logs/train.log.jsonl": "f373b17e2a23c26c4a37d3d8d23b1c968657c8256019b066d21a436482a2eab6",
+        "preflight.json": "3dd845c5800d5848249e66282264558747edf352f6cd009933ddb6e752ddfc89",
+        "run_start_rng.pt": "06f1b9c296dda63ec3c8d3f5fea545a18af8ddf87f886a7467e24c4d3772a259",
+        "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "status.json": "8d5904f15325ccdc3e43bce62d82b92e41abeda6a6693e4550bb7fd720eaf86f",
+        "summary.json": "43815bc37e46aebe552d298034a7dd4e5e66cc3cb7804400b59cc401603d1706",
+        "summary.md": "96350e0f5cf8ab4ad0d2c8e0eecac56751ae39f3942a22a3e88265c5f618b793",
+        "tb/<host>.64794.0": "1ae586a2f365f15013b4c7aa992884c03d9f56f3613a28735413d2584337268d",
+        "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+        "validation.jsonl": "eac23d62246746090e9c81870e5c6dfb28a65913b99fc19df7ae803b91a360d1",
+        "validation_gate/step-00000100.json": "e3939d5b62fca364f582d0bfa0ab87dd83291202748e50ca2dac172c77242e1c",
+        "validation_gate/step-00000200.json": "4e4c9463595e6f9ba5438f74e15c311a50ed818a31e75c8231031d2752187bd3",
+        "validation_gate/step-00000300.json": "558ba4b8552acfc1f0cbba6db6bfc72db4e088f74c506a12c59cee20d5044754"
+      },
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g7-smoke.yaml --stage-0-only",
+          "process_pid": 64794,
+          "start_utc": "2026-10-03T03:31:45.471033+00:00",
+          "end_utc": "2026-10-03T04:36:04.057427+00:00",
+          "wall_clock_secs": 3858.589245167008,
+          "exit_code": 0,
+          "git_head": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+          "config_sha256": "9f967786a90831f0f08357f28973a0dfaf0b4dfe47fb20aebbff08fe2e104033",
+          "disposition": "finished",
+          "boundary_checkpoint": null,
+          "resume_checkpoint": null,
+          "launch": {
+            "mode": "detached-session",
+            "directory": "runs/.launch/stage0-v23g7-smoke/invocation-1",
+            "files": {
+              "launch.json": "dc00e05150cb934e8a3534c56ae4d5417288c5b0a049911903edec5043d6dcd7",
+              "process.json": "6e65ef84c97ae004e5a613aa7ae43e4af9b3763b1f36a8b03b3896b3fe5534d5",
+              "output.log": "ef13c62bf9bdaadc52612924521c1c4722f45486ec38731010f0584f66c2fee3",
+              "exit.json": "3ab224c6f5428f3b90fe6393348d6affcf922480372eae380f71f024d7e8c1bc"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "band_generation": 7,
+      "launch_kind": "graded",
+      "run_name": "stage0-v23g7-seed42",
+      "seed": 42,
+      "git_head": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+      "config_path": "configs/stage0-v23g7-seed42.yaml",
+      "config_sha256": "43c4dd8b6d162865eab987b393bb47d95d8ca0a8c22dd03e92727d45e7053308",
+      "resolved_config_path": "runs/stage0-v23g7-seed42/config.yaml",
+      "resolved_config_sha256": "f68cc6a7dbea08018f797d2267a4b7f9b7b570bb7ac61d797812a991d100c492",
+      "config_identity_digest": "f68cc6a7dbea0801",
+      "artifact_dir": "runs/stage0-v23g7-seed42",
+      "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g7-seed42.yaml --stage-0-only",
+      "stage_0_only": true,
+      "collocation_count": 4096,
+      "replay_count": 240,
+      "front_advance_window_n": 500,
+      "max_epochs": 1000,
+      "n_adam": 1000,
+      "monitor": {
+        "schema_version": "phase57-front-monitor/v1",
+        "split": "train",
+        "n_bins": 16,
+        "n_collocation_rows": 4096,
+        "invariant_b_state": {
+          "front_high_water": 2,
+          "last_advance_step": 450
+        }
+      },
+      "r_ref": 19749775821.24417,
+      "r_ref_artifact_path": "pinn/verification/artifacts/r_ref_stage0.json",
+      "r_ref_artifact_sha256": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff",
+      "corpus": {
+        "splits_sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "s_h": 22.321729071058996,
+        "eps_h": 0.0022321729071058997,
+        "n_train": 1812
+      },
+      "environment": {
+        "device": "mps",
+        "precision": "float32",
+        "python_version": "3.11.15",
+        "torch_version": "2.12.1",
+        "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+        "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80"
+      },
+      "launch_started_utc": "2026-10-03T04:38:08.379369+00:00",
+      "completion_utc": "2026-10-03T07:52:30.426759+00:00",
+      "wall_clock_secs": 11661.948187875008,
+      "process_pid": 98760,
+      "exit_code": 1,
+      "final_process_disposition": "HALT",
+      "ledger_disposition": "terminal",
+      "final_guard_disposition": "HALT",
+      "guard": "invariant_b",
+      "evaluation": "preserved-unspent",
+      "in_final_band": true,
+      "terminal": true,
+      "artifact_hashes": {
+        "checkpoints/best.pt": "21c69f2d9f975689ea3cb6a94d5c8ee85567da3268aefa2a67ffc61d07feade5",
+        "checkpoints/ckpt-158375347798.pt": "eb579d840b0f0e3b28b57a763ac5995ded41c3647ac1c6ad522bf9a5c3f66bb2",
+        "checkpoints/failure-stage-0-step-951.pt": "d94516f3315fcda11cd343bdca3f4f361ff39dc9d76f3ee546411d27af9f5041",
+        "checkpoints/latest.pt": "2ef786a44f23f93d2d2fc28d89c8794575299294b738772b2496b2160c4cb320",
+        "checkpoints/stage-0-init.pt": "c8eab3e7a8e894da4dc994b91a13189cbdd2109ff4d6ca433a54f24418bfaf7e",
+        "checkpoints/step-000931.pt": "1983092ecb6b47b78f2021f03be6a7af0be890bbb5d2d910515296f365f3001b",
+        "checkpoints/step-000941.pt": "1d9cad46a660e3ab16a49742952aeccc2e45f10e77ed728ef6267b848ab9ee30",
+        "checkpoints/step-000951.pt": "810235516ffdd304160cd759cfd9c5c03dbdda5ffcb2e3d07e8034aa5e98ae66",
+        "config.yaml": "f68cc6a7dbea08018f797d2267a4b7f9b7b570bb7ac61d797812a991d100c492",
+        "curriculum.jsonl": "6525047dc2ee25d092a22b195c68ec6ea707e375705cf9785a7c7209f4ccdd8c",
+        "failure/README.txt": "5a95089b8839120c165c8752d3ec1a0e010b58e3b527b6ba6d233ee7770a0417",
+        "failure/trip.json": "eb350b2985c7f7ee58f21716dd958bd9b4806ecb56474de58a0852fec04863a8",
+        "logs/train.log": "ed3b769a741034bbf05df0c62066da85cc6940deb165ac5487af782a58265457",
+        "logs/train.log.jsonl": "36460a19523e588dc616ef7e270911eeb29d84a8b9f41f293223ad605745b99a",
+        "preflight.json": "a167ea15855219e524011b3de8f32406fbf39f5663d9fa351b0f64d762871794",
+        "run_start_rng.pt": "27eaa6b0aafe140c0aa2d98b6734c3346abb19ae67ea37415dac59cd525c8263",
+        "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "status.json": "e7f43b9af426ac92e88489c27be8bc12a08644a2bb0748148534c9f818183f69",
+        "summary.json": "b78e0686138de122e48ec3f7fd3d28839ac2885d7dd7b859b1e86cbc48a6fdba",
+        "summary.md": "033df642b563e18c584ec070c102b43ba57a7365d366dfe8a5856491f4fe664c",
+        "tb/<host>.98760.0": "881c41c02ca864db0f7ed8252877db87df710b0689c3c428eefd5d1c338e0411",
+        "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+        "validation.jsonl": "0388e5ebef98510d9630432ab77edd5b5aa81619cf9efe8631206191a3a3ff54",
+        "validation_gate/step-00000100.json": "2dc032ea4e7453fb61bf390273802a263dca1e6a8f4dd0e1262809717a23d943",
+        "validation_gate/step-00000200.json": "56080c6ad5de6409973e9e63ec6d9274e1fe2393437facb8829252443227dfe0",
+        "validation_gate/step-00000300.json": "7f38a52c802810738e72a11430470ed5fadf3bd43d4bab9165ea2664eec7d5a5",
+        "validation_gate/step-00000400.json": "bf4fecbaa6a8be32eb1ecb4475d65b656e703bad105a37ab559f3965fe1d79f8",
+        "validation_gate/step-00000500.json": "63120cfcb454b6e3450650c47f3ff93058f9856f173a583cf5fb9502805fb5a9",
+        "validation_gate/step-00000600.json": "10b337d565a2498593337020ccf152fd5449c462f73369218ffec0dd505794a2",
+        "validation_gate/step-00000700.json": "0e99feccefcce76ffcb9490256817b41835c6707607fca7b3240c9b8cb5b93b1",
+        "validation_gate/step-00000800.json": "d16ac3f6a2f0f5f9064778d3d9e247d73ca021f5867e755919a7396489c6bc81",
+        "validation_gate/step-00000900.json": "d53445ee5f4d2184801b5954337da6d199e69c5f3abc82ee88c109f33ec8cbcf"
+      },
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g7-seed42.yaml --stage-0-only",
+          "process_pid": 98760,
+          "start_utc": "2026-10-03T04:38:08.379369+00:00",
+          "end_utc": "2026-10-03T07:52:30.426759+00:00",
+          "wall_clock_secs": 11661.948187875008,
+          "exit_code": 1,
+          "git_head": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+          "config_sha256": "43c4dd8b6d162865eab987b393bb47d95d8ca0a8c22dd03e92727d45e7053308",
+          "disposition": "HALT",
+          "boundary_checkpoint": null,
+          "resume_checkpoint": null,
+          "launch": {
+            "mode": "detached-session",
+            "directory": "runs/.launch/stage0-v23g7-seed42/invocation-1",
+            "files": {
+              "launch.json": "4e121b975e0778c4e8201434ec63b5ea31470ece64dcab95ed049e114db81611",
+              "process.json": "dc1d726783a580397116e7b8c9aa6c2175c1b6a7aa35480fa55ace03c5915bab",
+              "output.log": "6e58f72f7ff030a4f7fee021958dcac7bb8ca27ca6f6da6c9ecc82bbbd7e752c",
+              "exit.json": "9074dbe0bdb205590a4c4ea171dbcdc8d34105a48076fc7e3f02a645c574cd76"
+            }
+          }
+        }
+      ],
+      "terminal_state_path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/terminal-state.json",
+      "terminal_state_sha256": "35fe3afd19ded9b2714c0ee45ab806fe2e19211c8897a5cab608be6bb6b7d941"
     }
   ]
 }

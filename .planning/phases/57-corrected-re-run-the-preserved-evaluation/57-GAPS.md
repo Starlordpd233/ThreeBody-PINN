@@ -1381,3 +1381,67 @@ ruling and is not reused here.
     GAP-57-11 option-A pattern.
 
   No same-run resume, recipe change, or held-out evaluation is authorized.
+
+---
+
+## GAP-57-13 — the generation-7 terminal band needs a retention policy before its evidence is committed
+
+- **Decision point.** How should the generation-7 run evidence be retained now
+  that the band closed on the authorized invariant-B terminal branch? The
+  ledger and `terminal-state.json` address the run files by SHA-256, but those
+  files are gitignored and single-copy.
+
+- **Where in artifact.** `runs/stage0-v23g7-smoke/` (23 files, 71,532,415
+  bytes, 5 over 10 MiB); `runs/stage0-v23g7-seed42/` (32 files, 85,648,371
+  bytes, 6 over 10 MiB, including `failure/trip.json` and
+  `checkpoints/failure-stage-0-step-951.pt`); `runs/.launch/stage0-v23g7-*/`
+  (10 small files); singletons `runs/.calibration/stage0-timing.json` and
+  `runs/.verify/latest-marker.json` (both bound to HEAD `629b1a6c`);
+  `evidence/run-ledger.md` and `evidence/terminal-state.json` (uncommitted);
+  `scripts/git_policy/validate_staged_paths.py`.
+
+- **Task context.** 57-05 Task 3 on 2026-10-03. The smoke finished. Graded seed
+  42 tripped the invariant-B guard at step 951: high-water 2 from step 450, 501
+  steps without an advance against N=500. `run-window` returns
+  `RUN-WINDOW-TERMINAL-OK`. Seeds 41 and 43 were not launched.
+
+- **Classification.** **Process-artifact schema.** This sets the retention
+  location and exact Git exceptions for the run bytes that the terminal
+  closure's hashes point at.
+
+- **Source silence.** GAP-57-11 and GAP-57-12 R1 authorized exact retention
+  for generations 5 and 6 only and said that no wildcard extends to future runs.
+  57-05 and 57-06 require append-only evidence but grant no new path or size
+  exception. The staged-path validator rejects `runs/*` and blobs over 10 MiB
+  unless an exact exception covers them.
+
+- **Mathematical / engineering grounding.** A SHA-256 claim can be re-derived
+  only while the bytes still exist. The terminal closure is now Phase 57's
+  scientific result. Its trip record, failure checkpoint, and launcher exit
+  record are what let a later reader verify the invariant-B halt. Git tracking
+  makes that self-contained at a cost of about 157 MB of history. An external
+  archive keeps history small but depends on the archive surviving.
+
+- **Agent was tempted to.** Apply the GAP-57-11/12 R1 pattern: track all 65
+  run and launch files in place with exact path and size exceptions, snapshot
+  the two singletons, and commit a generation-7 retention manifest.
+
+- **What the user needs to decide.**
+  - **(A)** Git-track in place with exact exceptions, singleton snapshots, and
+    a size/SHA-256 manifest, as for generations 5 and 6.
+  - **(B)** Keep them in a named external archive and commit a manifest with
+    restore instructions.
+  - **(C)** Commit only the ledger and terminal state now and decide retention
+    later. The run bytes stay single-copy until then.
+
+- **Confidence of impact.** **HIGH.** These bytes back the phase's terminal
+  scientific outcome.
+
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-10-03).
+
+- **Resolution note.** On 2026-10-03 the owner selected **Option A**:
+  Git-track the generation-7 run and launch files in place with exact path
+  and size exceptions, snapshot the timing calibration and verify marker,
+  and commit a size/SHA-256 retention manifest, as for generations 5 and 6.
+  The owner also approved closing Phase 57 on the terminal result: 57-06
+  Task 1 writes `no-candidate.json` and stops before any evaluation step.

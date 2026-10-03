@@ -1,0 +1,418 @@
+{
+  "schema": "phase57-generation-retention/v1",
+  "band_generation": 7,
+  "run_names": [
+    "stage0-v23g7-smoke",
+    "stage0-v23g7-seed42"
+  ],
+  "run_file_count": 55,
+  "launch_file_count": 10,
+  "file_count": 67,
+  "total_bytes": 157184954,
+  "files": [
+    {
+      "path": "runs/stage0-v23g7-smoke/checkpoints/best.pt",
+      "role": "run-artifact",
+      "size_bytes": 11251663,
+      "sha256": "d7181094787e46615f0346149d2bbd46338d15449b15b8aa9269be834ed24674"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/checkpoints/ckpt-154400428230.pt",
+      "role": "run-artifact",
+      "size_bytes": 4859961,
+      "sha256": "55d84b1fb4b502bea7252bbb60490995cada43e7b641880cba3129270fa7c756"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/checkpoints/latest.pt",
+      "role": "run-artifact",
+      "size_bytes": 11251923,
+      "sha256": "fd66081808b8ada4436ded6627451b896828b0c3911fadfe0f9d1e0076d39412"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/checkpoints/stage-0-init.pt",
+      "role": "run-artifact",
+      "size_bytes": 4862547,
+      "sha256": "9d2a0721483c73584227e160afc5c4d83e26bd18751f71795465233b956b0f3d"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/checkpoints/step-000100.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252573,
+      "sha256": "7de5f69129cbf2c25347ab1b9e408dcdacdcd68cd398b6c2bcb00956d4c93646"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/checkpoints/step-000200.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252573,
+      "sha256": "db5fac7bb3b4e2cdd6a6b778d024c288583b4ac5eccce324c1e83c443cfb167d"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/checkpoints/step-000300.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252573,
+      "sha256": "5e3d804ba4528f91320414f424e7b761dcc97fe8f36931d23760eaaf78b52826"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/config.yaml",
+      "role": "run-artifact",
+      "size_bytes": 1267,
+      "sha256": "6f58fd4b4166b2e975b4fac9c7ed763b4fc2b84d0f9d21e52fe6b11fa820e27f"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/curriculum.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 69,
+      "sha256": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/logs/train.log",
+      "role": "run-artifact",
+      "size_bytes": 51517,
+      "sha256": "83f7171229739e2b7d1405c3abfc4dcc83ef764a75f8d6fd4861811d101425ce"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/logs/train.log.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 325008,
+      "sha256": "f373b17e2a23c26c4a37d3d8d23b1c968657c8256019b066d21a436482a2eab6"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/preflight.json",
+      "role": "run-artifact",
+      "size_bytes": 18544,
+      "sha256": "3dd845c5800d5848249e66282264558747edf352f6cd009933ddb6e752ddfc89"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/run_start_rng.pt",
+      "role": "run-artifact",
+      "size_bytes": 11213,
+      "sha256": "06f1b9c296dda63ec3c8d3f5fea545a18af8ddf87f886a7467e24c4d3772a259"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/splits.json",
+      "role": "run-artifact",
+      "size_bytes": 4159982,
+      "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/status.json",
+      "role": "run-artifact",
+      "size_bytes": 685,
+      "sha256": "8d5904f15325ccdc3e43bce62d82b92e41abeda6a6693e4550bb7fd720eaf86f"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/summary.json",
+      "role": "run-artifact",
+      "size_bytes": 20951,
+      "sha256": "43815bc37e46aebe552d298034a7dd4e5e66cc3cb7804400b59cc401603d1706"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/summary.md",
+      "role": "run-artifact",
+      "size_bytes": 15209,
+      "sha256": "96350e0f5cf8ab4ad0d2c8e0eecac56751ae39f3942a22a3e88265c5f618b793"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/tb/<host>.64794.0",
+      "role": "run-artifact",
+      "size_bytes": 848909,
+      "sha256": "1ae586a2f365f15013b4c7aa992884c03d9f56f3613a28735413d2584337268d"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/training_metadata.json",
+      "role": "run-artifact",
+      "size_bytes": 564,
+      "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/validation.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 1015,
+      "sha256": "eac23d62246746090e9c81870e5c6dfb28a65913b99fc19df7ae803b91a360d1"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/validation_gate/step-00000100.json",
+      "role": "run-artifact",
+      "size_bytes": 31255,
+      "sha256": "e3939d5b62fca364f582d0bfa0ab87dd83291202748e50ca2dac172c77242e1c"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/validation_gate/step-00000200.json",
+      "role": "run-artifact",
+      "size_bytes": 31212,
+      "sha256": "4e4c9463595e6f9ba5438f74e15c311a50ed818a31e75c8231031d2752187bd3"
+    },
+    {
+      "path": "runs/stage0-v23g7-smoke/validation_gate/step-00000300.json",
+      "role": "run-artifact",
+      "size_bytes": 31202,
+      "sha256": "558ba4b8552acfc1f0cbba6db6bfc72db4e088f74c506a12c59cee20d5044754"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/best.pt",
+      "role": "run-artifact",
+      "size_bytes": 11251663,
+      "sha256": "21c69f2d9f975689ea3cb6a94d5c8ee85567da3268aefa2a67ffc61d07feade5"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/ckpt-158375347798.pt",
+      "role": "run-artifact",
+      "size_bytes": 4859961,
+      "sha256": "eb579d840b0f0e3b28b57a763ac5995ded41c3647ac1c6ad522bf9a5c3f66bb2"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/failure-stage-0-step-951.pt",
+      "role": "run-artifact",
+      "size_bytes": 11254455,
+      "sha256": "d94516f3315fcda11cd343bdca3f4f361ff39dc9d76f3ee546411d27af9f5041"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/latest.pt",
+      "role": "run-artifact",
+      "size_bytes": 11251923,
+      "sha256": "2ef786a44f23f93d2d2fc28d89c8794575299294b738772b2496b2160c4cb320"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/stage-0-init.pt",
+      "role": "run-artifact",
+      "size_bytes": 4862547,
+      "sha256": "c8eab3e7a8e894da4dc994b91a13189cbdd2109ff4d6ca433a54f24418bfaf7e"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/step-000931.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252637,
+      "sha256": "1983092ecb6b47b78f2021f03be6a7af0be890bbb5d2d910515296f365f3001b"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/step-000941.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252637,
+      "sha256": "1d9cad46a660e3ab16a49742952aeccc2e45f10e77ed728ef6267b848ab9ee30"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/step-000951.pt",
+      "role": "run-artifact",
+      "size_bytes": 11252637,
+      "sha256": "810235516ffdd304160cd759cfd9c5c03dbdda5ffcb2e3d07e8034aa5e98ae66"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/config.yaml",
+      "role": "run-artifact",
+      "size_bytes": 1270,
+      "sha256": "f68cc6a7dbea08018f797d2267a4b7f9b7b570bb7ac61d797812a991d100c492"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/curriculum.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 69,
+      "sha256": "6525047dc2ee25d092a22b195c68ec6ea707e375705cf9785a7c7209f4ccdd8c"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/failure/README.txt",
+      "role": "run-artifact",
+      "size_bytes": 106,
+      "sha256": "5a95089b8839120c165c8752d3ec1a0e010b58e3b527b6ba6d233ee7770a0417"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/failure/trip.json",
+      "role": "run-artifact",
+      "size_bytes": 839,
+      "sha256": "eb350b2985c7f7ee58f21716dd958bd9b4806ecb56474de58a0852fec04863a8"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/logs/train.log",
+      "role": "run-artifact",
+      "size_bytes": 155578,
+      "sha256": "ed3b769a741034bbf05df0c62066da85cc6940deb165ac5487af782a58265457"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/logs/train.log.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 1033740,
+      "sha256": "36460a19523e588dc616ef7e270911eeb29d84a8b9f41f293223ad605745b99a"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/preflight.json",
+      "role": "run-artifact",
+      "size_bytes": 18550,
+      "sha256": "a167ea15855219e524011b3de8f32406fbf39f5663d9fa351b0f64d762871794"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/run_start_rng.pt",
+      "role": "run-artifact",
+      "size_bytes": 11213,
+      "sha256": "27eaa6b0aafe140c0aa2d98b6734c3346abb19ae67ea37415dac59cd525c8263"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/splits.json",
+      "role": "run-artifact",
+      "size_bytes": 4159982,
+      "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/status.json",
+      "role": "run-artifact",
+      "size_bytes": 692,
+      "sha256": "e7f43b9af426ac92e88489c27be8bc12a08644a2bb0748148534c9f818183f69"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/summary.json",
+      "role": "run-artifact",
+      "size_bytes": 20358,
+      "sha256": "b78e0686138de122e48ec3f7fd3d28839ac2885d7dd7b859b1e86cbc48a6fdba"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/summary.md",
+      "role": "run-artifact",
+      "size_bytes": 14349,
+      "sha256": "033df642b563e18c584ec070c102b43ba57a7365d366dfe8a5856491f4fe664c"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/tb/<host>.98760.0",
+      "role": "run-artifact",
+      "size_bytes": 2708372,
+      "sha256": "881c41c02ca864db0f7ed8252877db87df710b0689c3c428eefd5d1c338e0411"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/training_metadata.json",
+      "role": "run-artifact",
+      "size_bytes": 564,
+      "sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation.jsonl",
+      "role": "run-artifact",
+      "size_bytes": 3039,
+      "sha256": "0388e5ebef98510d9630432ab77edd5b5aa81619cf9efe8631206191a3a3ff54"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000100.json",
+      "role": "run-artifact",
+      "size_bytes": 31221,
+      "sha256": "2dc032ea4e7453fb61bf390273802a263dca1e6a8f4dd0e1262809717a23d943"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000200.json",
+      "role": "run-artifact",
+      "size_bytes": 31235,
+      "sha256": "56080c6ad5de6409973e9e63ec6d9274e1fe2393437facb8829252443227dfe0"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000300.json",
+      "role": "run-artifact",
+      "size_bytes": 31237,
+      "sha256": "7f38a52c802810738e72a11430470ed5fadf3bd43d4bab9165ea2664eec7d5a5"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000400.json",
+      "role": "run-artifact",
+      "size_bytes": 31255,
+      "sha256": "bf4fecbaa6a8be32eb1ecb4475d65b656e703bad105a37ab559f3965fe1d79f8"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000500.json",
+      "role": "run-artifact",
+      "size_bytes": 31248,
+      "sha256": "63120cfcb454b6e3450650c47f3ff93058f9856f173a583cf5fb9502805fb5a9"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000600.json",
+      "role": "run-artifact",
+      "size_bytes": 31258,
+      "sha256": "10b337d565a2498593337020ccf152fd5449c462f73369218ffec0dd505794a2"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000700.json",
+      "role": "run-artifact",
+      "size_bytes": 31227,
+      "sha256": "0e99feccefcce76ffcb9490256817b41835c6707607fca7b3240c9b8cb5b93b1"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000800.json",
+      "role": "run-artifact",
+      "size_bytes": 31245,
+      "sha256": "d16ac3f6a2f0f5f9064778d3d9e247d73ca021f5867e755919a7396489c6bc81"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/validation_gate/step-00000900.json",
+      "role": "run-artifact",
+      "size_bytes": 31264,
+      "sha256": "d53445ee5f4d2184801b5954337da6d199e69c5f3abc82ee88c109f33ec8cbcf"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-smoke/invocation-1/exit.json",
+      "role": "launch-record",
+      "size_bytes": 171,
+      "sha256": "3ab224c6f5428f3b90fe6393348d6affcf922480372eae380f71f024d7e8c1bc"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-smoke/invocation-1/launch.json",
+      "role": "launch-record",
+      "size_bytes": 759,
+      "sha256": "dc00e05150cb934e8a3534c56ae4d5417288c5b0a049911903edec5043d6dcd7"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-smoke/invocation-1/output.log",
+      "role": "launch-record",
+      "size_bytes": 352,
+      "sha256": "ef13c62bf9bdaadc52612924521c1c4722f45486ec38731010f0584f66c2fee3"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-smoke/invocation-1/process.json",
+      "role": "launch-record",
+      "size_bytes": 154,
+      "sha256": "6e65ef84c97ae004e5a613aa7ae43e4af9b3763b1f36a8b03b3896b3fe5534d5"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-smoke/invocation-1/supervisor.err",
+      "role": "launch-record",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-seed42/invocation-1/exit.json",
+      "role": "launch-record",
+      "size_bytes": 172,
+      "sha256": "9074dbe0bdb205590a4c4ea171dbcdc8d34105a48076fc7e3f02a645c574cd76"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-seed42/invocation-1/launch.json",
+      "role": "launch-record",
+      "size_bytes": 762,
+      "sha256": "4e121b975e0778c4e8201434ec63b5ea31470ece64dcab95ed049e114db81611"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-seed42/invocation-1/output.log",
+      "role": "launch-record",
+      "size_bytes": 327,
+      "sha256": "6e58f72f7ff030a4f7fee021958dcac7bb8ca27ca6f6da6c9ecc82bbbd7e752c"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-seed42/invocation-1/process.json",
+      "role": "launch-record",
+      "size_bytes": 154,
+      "sha256": "dc1d726783a580397116e7b8c9aa6c2175c1b6a7aa35480fa55ace03c5915bab"
+    },
+    {
+      "path": "runs/.launch/stage0-v23g7-seed42/invocation-1/supervisor.err",
+      "role": "launch-record",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-7-timing-calibration.json",
+      "role": "timing-calibration",
+      "original_path": "runs/.calibration/stage0-timing.json",
+      "size_bytes": 454,
+      "sha256": "3cacd818bd34b17894503e2e32e70f5f48b46a1076d4d4b99fcbe62df95535f9"
+    },
+    {
+      "path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-7-verify-marker.json",
+      "role": "verify-marker",
+      "original_path": "runs/.verify/latest-marker.json",
+      "size_bytes": 863,
+      "sha256": "9867c5405f2c1c3e960c3ac9e298023b122deaf160fd592ebf0e1e5bbbd513c8"
+    }
+  ]
+}

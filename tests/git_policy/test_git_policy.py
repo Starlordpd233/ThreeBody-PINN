@@ -224,12 +224,31 @@ class StagedPathPolicyTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_allows_exact_retained_generation_seven_files(self):
+        manifest = json.loads((
+            ROOT / ".planning/phases/57-corrected-re-run-the-preserved-evaluation"
+            / "evidence/generation-7-retention.json"
+        ).read_text())
+        files = [item for item in manifest["files"] if item["role"] in ("run-artifact", "launch-record")]
+        self.assertEqual(len(files), 65)
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={
+                "GIT_POLICY_STAGED_FILES": "\n".join(item["path"] for item in files) + "\n",
+                "GIT_POLICY_STAGED_SIZES": json.dumps({
+                    item["path"]: item["size_bytes"] for item in files
+                }),
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_rejects_unlisted_generation_six_and_seven_runtime_output(self):
         for path, size, expected in (
             ("runs/stage0-v23g6-seed42/extra.pt", 1, "generated"),
             ("runs/stage0-v23g6-seed42/checkpoints/stage-0-init.pt", 12 * 1024 * 1024, "10 MiB"),
-            ("runs/stage0-v23g7-seed42/checkpoints/latest.pt", 1, "generated"),
-            ("runs/.launch/stage0-v23g7-seed42/invocation-1/output.log", 1, "generated"),
+            ("runs/stage0-v23g7-seed41/checkpoints/latest.pt", 1, "generated"),
+            ("runs/.launch/stage0-v23g7-seed41/invocation-1/output.log", 1, "generated"),
+            ("runs/stage0-v23g7-seed42/checkpoints/extra.pt", 1, "generated"),
         ):
             with self.subTest(path=path):
                 result = run_python(

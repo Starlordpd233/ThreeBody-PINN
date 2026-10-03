@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "/usr/bin/caffeinate",
+    "-is",
+    "<home>/miniforge3/envs/pinn-train/bin/python",
+    "-m",
+    "pinn.train",
+    "--config",
+    "configs/stage0-v23g7-smoke.yaml",
+    "--stage-0-only"
+  ],
+  "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g7-smoke.yaml --stage-0-only",
+  "cwd": "<home>/Desktop/3_body_problem/.worktrees/trainex",
+  "git_head": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+  "invocation_ordinal": 1,
+  "launch_kind": "fresh",
+  "launcher_pid": 64789,
+  "mode": "detached-session",
+  "requested_utc": "2026-10-03T03:31:45.451956+00:00",
+  "run_name": "stage0-v23g7-smoke",
+  "schema": "phase57-detached-launch/v1"
+}

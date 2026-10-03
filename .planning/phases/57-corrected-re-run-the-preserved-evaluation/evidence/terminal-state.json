@@ -1,0 +1,54 @@
+{
+  "authorized_terminal_reason": "invariant_b_halt_no_advance",
+  "band_generation": 7,
+  "checkpoints": {
+    "failure": {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/failure-stage-0-step-951.pt",
+      "sha256": "d94516f3315fcda11cd343bdca3f4f361ff39dc9d76f3ee546411d27af9f5041"
+    },
+    "latest": {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/latest.pt",
+      "sha256": "2ef786a44f23f93d2d2fc28d89c8794575299294b738772b2496b2160c4cb320"
+    }
+  },
+  "created_at": "2026-10-03T07:55:07.012552+00:00",
+  "evaluation": "preserved-unspent",
+  "front_advance_window_n": 500,
+  "git_head": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+  "graded_launches": [
+    "stage0-v23g7-seed42"
+  ],
+  "guard_trip": {
+    "guard": "invariant_b",
+    "metric": "steps_since_front_advance",
+    "path": "runs/stage0-v23g7-seed42/failure/trip.json",
+    "reason": "causal front high-water mark did not advance within N=500 steps",
+    "sha256": "eb350b2985c7f7ee58f21716dd958bd9b4806ecb56474de58a0852fec04863a8",
+    "step": 951,
+    "threshold": 500.0,
+    "value": 501.0
+  },
+  "held_out_evaluation_launched": false,
+  "invariant_b_state": {
+    "front_high_water": 2,
+    "last_advance_step": 450
+  },
+  "not_launched": [
+    "stage0-v23g7-seed41",
+    "stage0-v23g7-seed43"
+  ],
+  "note": "Graded seed 42 tripped the invariant-B guard: the frozen training-only monitor's causal-front high-water mark stayed at 2 from step 450 through step 951 (501 > N=500). 57-05 Task 3 makes this the authorized terminal closure: later launches stop and the held-out evaluation stays unspent. It authorizes no tuning.",
+  "process": {
+    "end_utc": "2026-10-03T07:52:30.426759+00:00",
+    "exit_code": 1,
+    "exit_record_sha256": "9074dbe0bdb205590a4c4ea171dbcdc8d34105a48076fc7e3f02a645c574cd76",
+    "launch_directory": "runs/.launch/stage0-v23g7-seed42/invocation-1",
+    "start_utc": "2026-10-03T04:38:08.379369+00:00",
+    "trainer_pid": 98760,
+    "wall_clock_secs": 11661.948187875008
+  },
+  "run_name": "stage0-v23g7-seed42",
+  "schema_version": "phase57-terminal-state/v1",
+  "seed": 42,
+  "status": "terminal"
+}

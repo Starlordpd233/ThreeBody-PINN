@@ -47,6 +47,7 @@ G5_RETENTION_REL = EVIDENCE_REL / "generation-5-retention.json"
 HISTORICAL_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state.json"
 G6_RETENTION_REL = EVIDENCE_REL / "generation-6-retention.json"
 G6_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g6.json"
+G7_RETENTION_REL = EVIDENCE_REL / "generation-7-retention.json"
 CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g7.json"
 FINAL_GENERATION = 7
 FINAL_RUN_NAMES = frozenset({
@@ -500,6 +501,96 @@ def assert_generation_six_retained(ledger: Mapping[str, Any]) -> None:
             fail(f"generation-6 {role} snapshot has a different HEAD")
     for run_dir in run_dirs:
         _assert_no_evaluation(run_dir)
+
+
+def assert_generation_seven_retained(ledger: Mapping[str, Any], terminal: Mapping[str, Any]) -> None:
+    """Re-derive the GAP-57-13 retention of the generation-7 terminal band."""
+    run_names = ("stage0-v23g7-smoke", "stage0-v23g7-seed42")
+    manifest = load_json(REPO_ROOT / G7_RETENTION_REL, what="generation-7 retention manifest")
+    if (
+        not isinstance(manifest, Mapping)
+        or manifest.get("schema") != "phase57-generation-retention/v1"
+        or manifest.get("band_generation") != 7
+        or manifest.get("run_names") != list(run_names)
+        or (manifest.get("run_file_count"), manifest.get("launch_file_count"), manifest.get("file_count")) != (55, 10, 67)
+    ):
+        fail("generation-7 retention manifest identity or counts differ")
+    entries = manifest.get("files")
+    if not isinstance(entries, list) or len(entries) != 67:
+        fail("generation-7 retention manifest must enumerate 67 files")
+    roots = {
+        "run-artifact": {name: f"runs/{name}/" for name in run_names},
+        "launch-record": {name: f"{LAUNCH_ROOT_REL}/{name}/" for name in run_names},
+    }
+    snapshots = {
+        "timing-calibration": (str(EVIDENCE_REL / "generation-7-timing-calibration.json"), "runs/.calibration/stage0-timing.json"),
+        "verify-marker": (str(EVIDENCE_REL / "generation-7-verify-marker.json"), "runs/.verify/latest-marker.json"),
+    }
+    digests: dict[str, str] = {}
+    run_hashes: dict[str, dict[str, str]] = {name: {} for name in run_names}
+    snapshot_roles: set[str] = set()
+    total_bytes = 0
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("generation-7 retention entry is not a mapping")
+        relative, role = entry.get("path"), entry.get("role")
+        digest, size = entry.get("sha256"), entry.get("size_bytes")
+        if (
+            not isinstance(relative, str) or relative in digests
+            or not isinstance(digest, str) or not HEX64.fullmatch(digest)
+            or type(size) is not int or size < 0
+        ):
+            fail("generation-7 retention entry has duplicate or invalid path, size, or SHA-256")
+        if role in roots:
+            owners = [name for name, prefix in roots[role].items() if relative.startswith(prefix)]
+            if len(owners) != 1:
+                fail("generation-7 retained file escaped its directories")
+            if role == "run-artifact":
+                run_hashes[owners[0]][relative.removeprefix(roots[role][owners[0]])] = digest
+        elif role in snapshots:
+            if (relative, entry.get("original_path")) != snapshots[role]:
+                fail("generation-7 snapshot path or source changed")
+            snapshot_roles.add(role)
+        else:
+            fail("generation-7 retention entry has an unknown role")
+        path = repo_path(relative, what="generation-7 retained artifact")
+        if not path.is_file() or path.stat().st_size != size or sha256_file(path) != digest:
+            fail(f"generation-7 retained artifact bytes differ from manifest: {relative}")
+        digests[relative] = digest
+        total_bytes += size
+    if snapshot_roles != set(snapshots) or total_bytes != manifest.get("total_bytes"):
+        fail("generation-7 retention manifest lacks its snapshots or total bytes differ")
+    tracked_roots = [prefix.rstrip("/") for by_run in roots.values() for prefix in by_run.values()]
+    disk_paths = {
+        str(path.relative_to(REPO_ROOT))
+        for root in tracked_roots for path in (REPO_ROOT / root).rglob("*") if path.is_file()
+    }
+    if disk_paths != {path for path in digests if path.startswith("runs/")}:
+        fail("generation-7 run or launch directories contain missing or extra artifacts")
+    tracked_result = subprocess.run(
+        ["git", "ls-files", "--cached", "--", *tracked_roots, *(value[0] for value in snapshots.values())],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, check=False,
+    )
+    if tracked_result.returncode != 0 or set(tracked_result.stdout.splitlines()) != set(digests):
+        fail("generation-7 retained paths differ from committed Git paths")
+    records = {r.get("run_name"): r for r in ledger["records"] if r.get("band_generation") == 7}
+    if set(records) != set(run_names):
+        fail("generation-7 ledger records differ from the retained runs")
+    for name in run_names:
+        if records[name].get("artifact_hashes") != run_hashes[name]:
+            fail(f"generation-7 ledger hashes differ from retention: {name}")
+    terminal_path = REPO_ROOT / EVIDENCE_REL / "terminal-state.json"
+    graded = records["stage0-v23g7-seed42"]
+    if graded.get("terminal_state_sha256") != sha256_file(terminal_path):
+        fail("generation-7 terminal record is not bound to terminal-state.json")
+    bound = [terminal.get("guard_trip", {})] + list((terminal.get("checkpoints") or {}).values())
+    if any(not isinstance(item, Mapping) or digests.get(item.get("path")) != item.get("sha256") for item in bound):
+        fail("terminal-state trip or checkpoint hashes differ from the retained bytes")
+    band_head = graded.get("git_head")
+    for role, (snapshot_path, _original) in snapshots.items():
+        snapshot = load_json(REPO_ROOT / snapshot_path, what=f"generation-7 {role}")
+        if (snapshot.get("fingerprint") or {}).get("git_head") != band_head:
+            fail(f"generation-7 {role} snapshot has a different HEAD")
 
 
 def current_head() -> str:
@@ -1012,6 +1103,8 @@ def cmd_run_window() -> None:
         reason = terminal.get("authorized_terminal_reason")
         if terminal.get("status") != "terminal" or reason not in TERMINAL_OUTCOMES or terminal.get("evaluation") != "preserved-unspent":
             fail("terminal-state is not an authorized scientific unspent closure")
+        if current_records:
+            assert_generation_seven_retained(ledger, terminal)
         for run_dir in _target_runs():
             _assert_no_evaluation(run_dir)
         if (REPO_ROOT / "runs/stage0-v23g7-seed42").exists():

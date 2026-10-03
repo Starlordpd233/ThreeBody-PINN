@@ -1,0 +1,4 @@
+reproducibility_scope=statistical-equivalence across fresh same-seed runs; exact-checkpoint-continuation on resume (does not claim bit-identical results across machines, torch versions, or devices)
+run_dir=<home>/Desktop/3_body_problem/.worktrees/trainex/runs/stage0-v23g7-smoke
+runtime precision=float32 device=mps
+terminal_disposition=HALT

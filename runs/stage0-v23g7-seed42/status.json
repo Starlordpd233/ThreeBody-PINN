@@ -1,0 +1,29 @@
+{
+  "epoch": 952,
+  "eta_seconds": null,
+  "heartbeat_interval_secs": 30,
+  "losses": {
+    "angmom": 18.237672805786133,
+    "data": 0.016323251649737358,
+    "energy": 2055.7275390625,
+    "ic": 1905.421630859375,
+    "phys": 0.07937221229076385,
+    "total": 1905.517333984375
+  },
+  "lr": null,
+  "memory": {
+    "current_bytes": 265308672,
+    "driver_bytes": 369360896
+  },
+  "phase": "2a",
+  "pid": 98760,
+  "run_name": "stage0-v23g7-seed42",
+  "s_per_step_ema": 12.31781584770918,
+  "schema_version": 1,
+  "stage": 0,
+  "staleness_threshold_secs": 90,
+  "state": "failed",
+  "step": 951,
+  "timestamp_epoch": 1791013949.933287,
+  "timestamp_utc": "2026-10-03T07:52:29.933287+00:00"
+}
