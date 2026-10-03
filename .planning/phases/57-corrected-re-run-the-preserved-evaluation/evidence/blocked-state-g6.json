@@ -1,0 +1,103 @@
+{
+  "authorized_terminal_reason": null,
+  "band_generation": 6,
+  "blocked_reason": "unexpected-process-loss",
+  "checkpoint": {
+    "curriculum": {
+      "disposition_log_pointer": null,
+      "epoch": 510,
+      "phase": "2a",
+      "stage": 0,
+      "step": 510
+    },
+    "global_step": 510,
+    "invariant_b_state": {
+      "front_high_water": 2,
+      "last_advance_step": 353
+    },
+    "kind": "rolling-not-governed-stop-boundary",
+    "path": "runs/stage0-v23g6-seed42/checkpoints/latest.pt",
+    "sha256": "27c537a18568ca499eee768f2013402635ed797154bf6b842df84b0e20917de0"
+  },
+  "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g6-seed42.yaml --stage-0-only",
+  "completion_utc": null,
+  "config": {
+    "resolved_path": "runs/stage0-v23g6-seed42/config.yaml",
+    "resolved_sha256": "97c959a5c4042826bc112bc7b679840b81c80dfaf5d44f9d190533e1aa8fb796",
+    "source_path": "configs/stage0-v23g6-seed42.yaml",
+    "source_sha256": "d1efdcf7ee709b18622d8a2f8d37b8df13ba126fc930696cb7caf4817cfa4dda"
+  },
+  "corpus": {
+    "eps_h": 0.0022321729071058997,
+    "n_train": 1812,
+    "s_h": 22.321729071058996,
+    "splits_sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+  },
+  "evaluation": "preserved-unspent",
+  "failure": {
+    "kind": "process_loss",
+    "reason": "Trainer and caffeinate are absent; exec session is unavailable, heartbeat remains stale/running and summary in_progress. Exact cause, signal, exit status, end time and active wall time were not observed. No guard trip or authorized terminal artifact exists."
+  },
+  "git_head": "ef4764f92d9ad23fa90c936166137944dc5e4aea",
+  "graded_launches": [
+    "stage0-v23g6-seed42"
+  ],
+  "held_out_evaluation_launched": false,
+  "launch_started_utc": "2026-09-29T03:46:14.276381+00:00",
+  "milestone": "v2.3",
+  "note": "The smoke finished and D-10 actual seed-42 setup comparison passed. The graded run logged step513, but its latest full checkpoint is step510. This process loss leaves Phase57 incomplete and does not authorize later seeds, tuning, or an automatic same-run resume.",
+  "phase": 57,
+  "process": {
+    "detected_absent_utc": "2026-09-29T12:59:31.821563+00:00",
+    "disposition": "process-lost",
+    "exit_code": null,
+    "last_heartbeat_utc": "2026-09-29T05:33:21.581195+00:00",
+    "last_logged_step": 513,
+    "phase": "2a",
+    "pid": 25061,
+    "stage": 0
+  },
+  "recipe": {
+    "collocation_count": 4096,
+    "device": "mps",
+    "front_advance_window_n": 500,
+    "max_epochs": 1000,
+    "n_adam": 1000,
+    "precision": "float32",
+    "replay_count": 240,
+    "stage_0_only": true
+  },
+  "recorded_at_utc": "2026-09-29T12:59:31.821563+00:00",
+  "run_artifact_hashes": {
+    "checkpoints/best.pt": "f33aa849a80dd21834a9feded038cea02916107611fbcf55e4501c3735de7508",
+    "checkpoints/ckpt-38043381130.pt": "80920c36767df41b112268ed6fb15dd98ad7e22e4c2fc552778274fac3358466",
+    "checkpoints/latest.pt": "27c537a18568ca499eee768f2013402635ed797154bf6b842df84b0e20917de0",
+    "checkpoints/stage-0-init.pt": "3f096b6a96fe8927cbb474eda4f83c84251cbb1f081da2adad0ffb63298cf899",
+    "checkpoints/step-000490.pt": "24739182a1d7f343eb3ead1f9661b7098937a906eb9e8efc5c273ebff9c4eac2",
+    "checkpoints/step-000500.pt": "4d8e07bdb410926e2745dd730fd0c2947ec8effbf698575637dcb69be7c59ea0",
+    "checkpoints/step-000510.pt": "649acdc9416426deebe96bcb93ac1119aa4a8cc5bfc7caf84fcbe25e4c26db5c",
+    "config.yaml": "97c959a5c4042826bc112bc7b679840b81c80dfaf5d44f9d190533e1aa8fb796",
+    "logs/train.log": "e272d446e6a5f9a8a65ea61b374261b436edc9198fe54d17340283b4e95464af",
+    "logs/train.log.jsonl": "e4f8b0bd929895658e2e50b684225db7652dea6ddb224e8cb62ee5d13cee25b3",
+    "preflight.json": "a167ea15855219e524011b3de8f32406fbf39f5663d9fa351b0f64d762871794",
+    "run_start_rng.pt": "7f147d4565f9640366f4f1c933a7cf2482a69bec15bcd267878565adf5fe1d1c",
+    "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+    "status.json": "710f0e61d02533c54171fe7525100e84d60030c55d331ef58eea0de7df6a47be",
+    "summary.json": "e373c48c4d997766340a260078c90b15cf31d89818754d7fa9ad04aa48004e5e",
+    "summary.md": "575778ca70c6ada3d05377985f1275cc2a2b67b7a4a888e270307c692d5d2317",
+    "tb/<host>.25061.0": "bc2048ad6623dc18cb107fe080459d0087bae54912628c2cacc269a2b69ed1a0",
+    "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+    "validation.jsonl": "60f608c779db55c656bd4ecb69bc82c22e70cb368f109c52e5c2220bcafabc49",
+    "validation_gate/step-00000100.json": "5b2fb4bcc770a1879a0a4da67cada3ab9d57977a5bd62938531246536fbc7bf4",
+    "validation_gate/step-00000200.json": "b2487dd9c90cf62ed29257d8cbf67062f3dd3f64c653c17eb225623b16c4800f",
+    "validation_gate/step-00000300.json": "285702873de30445fd6142fe7af6dd024eb39e14b7a4c3c10bb071b2f3eb9bec",
+    "validation_gate/step-00000400.json": "5693aeef04fd270e43404a51675268b11306cb4e6016bd4bbe10b6d85b921391",
+    "validation_gate/step-00000500.json": "38b58f05d25c9f41b2798732c9b9d4df14bca93ddf77ce91dd0cc9861b5b0742"
+  },
+  "run_name": "stage0-v23g6-seed42",
+  "schema": "phase57-blocked-state/v1",
+  "seed": 42,
+  "status": "blocked",
+  "terminal": false,
+  "wall_clock_secs": null
+}

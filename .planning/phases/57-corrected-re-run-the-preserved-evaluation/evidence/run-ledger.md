@@ -114,6 +114,24 @@ its record is written to `blocked-state-g6.json` instead.
       ],
       "evaluation": "preserved-unspent",
       "retention_manifest": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-5-retention.json"
+    },
+    {
+      "band_generation": 6,
+      "status": "blocked",
+      "git_head": "ef4764f92d9ad23fa90c936166137944dc5e4aea",
+      "extraction_git_head": null,
+      "launch_order": [
+        "stage0-v23g6-smoke",
+        "stage0-v23g6-seed42",
+        "stage0-v23g6-seed41",
+        "stage0-v23g6-seed43"
+      ],
+      "launched_runs": [
+        "stage0-v23g6-smoke",
+        "stage0-v23g6-seed42"
+      ],
+      "evaluation": "preserved-unspent",
+      "blocked_state": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g6.json"
     }
   ],
   "records": [
@@ -559,6 +577,217 @@ its record is written to `blocked-state-g6.json` instead.
           "resume_checkpoint": null
         }
       ]
+    },
+    {
+      "band_generation": 6,
+      "launch_kind": "smoke",
+      "run_name": "stage0-v23g6-smoke",
+      "seed": 42,
+      "git_head": "ef4764f92d9ad23fa90c936166137944dc5e4aea",
+      "config_path": "configs/stage0-v23g6-smoke.yaml",
+      "config_sha256": "f6f6835ee18efee5bd8c08865e4d7d3a63ee1dfcd890675d4cfebea45fa15781",
+      "resolved_config_path": "runs/stage0-v23g6-smoke/config.yaml",
+      "resolved_config_sha256": "26771ae8ef9205622d0a04cdb55f4b9db0590f89fa2531e01612ace761e39860",
+      "config_identity_digest": "26771ae8ef920562",
+      "artifact_dir": "runs/stage0-v23g6-smoke",
+      "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g6-smoke.yaml --stage-0-only",
+      "stage_0_only": true,
+      "collocation_count": 4096,
+      "replay_count": 240,
+      "front_advance_window_n": 500,
+      "max_epochs": 300,
+      "n_adam": 300,
+      "monitor": {
+        "schema_version": "phase57-front-monitor/v1",
+        "split": "train",
+        "n_bins": 16,
+        "n_collocation_rows": 4096,
+        "invariant_b_state": {
+          "front_high_water": 1,
+          "last_advance_step": 93
+        }
+      },
+      "r_ref": 19749775821.24417,
+      "r_ref_artifact_path": "pinn/verification/artifacts/r_ref_stage0.json",
+      "r_ref_artifact_sha256": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff",
+      "corpus": {
+        "splits_sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "s_h": 22.321729071058996,
+        "eps_h": 0.0022321729071058997,
+        "n_train": 1812
+      },
+      "environment": {
+        "device": "mps",
+        "precision": "float32",
+        "python_version": "3.11.15",
+        "torch_version": "2.12.1",
+        "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+        "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80"
+      },
+      "launch_started_utc": "2026-09-29T02:38:47.359565+00:00",
+      "completion_utc": "2026-09-29T03:44:26.327917+00:00",
+      "wall_clock_secs": 3938.968352,
+      "process_pid": 87113,
+      "exit_code": 0,
+      "final_process_disposition": "finished",
+      "ledger_disposition": "finished",
+      "final_guard_disposition": "finished",
+      "guard": null,
+      "evaluation": "preserved-unspent",
+      "in_final_band": false,
+      "terminal": false,
+      "artifact_hashes": {
+        "checkpoints/best.pt": "59ff27eb54b45967a44e1aa26dfe802751da0599ee41843e4d21a5679ed634f9",
+        "checkpoints/ckpt-33998509856.pt": "3420ababf36da4b32562577c7aa552a7792b35ba8afb8c0403afac8051fad17c",
+        "checkpoints/latest.pt": "ebb27c6fa08b9dd1ad040ebec4188c2d9a7851424df80e5f8d637a3e3aecbf80",
+        "checkpoints/stage-0-init.pt": "a362dd7489fe5e93ca2e70f66c78f7205cd9f0b1b4fddb8296a09ddb97bd5052",
+        "checkpoints/step-000100.pt": "f96d164a7b2a037afb8f90ba3e1a7a5b754cd13360aa78f75f42fc466abe4bed",
+        "checkpoints/step-000200.pt": "81d9a7c6918d2d4ab7d485ecc3948beda79d623abe9779a628fecee936c7b320",
+        "checkpoints/step-000300.pt": "4b44cc8780ef7a6774913b36ac41b8dc91fb9152b6b49d27754ddafc29b8d29b",
+        "config.yaml": "26771ae8ef9205622d0a04cdb55f4b9db0590f89fa2531e01612ace761e39860",
+        "curriculum.jsonl": "7439572cb2940ce8a440b22796315c552c8dea725c70297c169ef9f065c4b68b",
+        "logs/train.log": "2d37ff4e0225b8af4437da65a89c8fac2ae316df429f38b0e1a31798a3a3fe1b",
+        "logs/train.log.jsonl": "a1e33362cd86b66cc427a635b6bf4ea34a53f11f59231ff18c114b312266182a",
+        "preflight.json": "3dd845c5800d5848249e66282264558747edf352f6cd009933ddb6e752ddfc89",
+        "run_start_rng.pt": "b408644f117176e535ac6db01f44877bcd90557af709bc6090805ad006917a73",
+        "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "status.json": "5b17dc3042ed250d6e8b158c771742533c19784b0c7a45aef30b9cd0f375687b",
+        "summary.json": "d5c0ab25df0e4b5aef64695f57792141b754118e55bf5e969708b26a0ece075a",
+        "summary.md": "dcdf0583275079542ac11648f0f642e39d867145cbf1c3d9534317b143dcc8fb",
+        "tb/<host>.87113.0": "7e7dfbaaad0ac403c81edf1749d079f8d4666690756559c5ab4fff78e596cb51",
+        "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+        "validation.jsonl": "eac23d62246746090e9c81870e5c6dfb28a65913b99fc19df7ae803b91a360d1",
+        "validation_gate/step-00000100.json": "4ae798bfe52984d975d6f6033d9f6e836adb709f95e2387731cb669ac0ec282a",
+        "validation_gate/step-00000200.json": "79ba8356dfac2a1447027fbe66eba1c04e47b774e1d1b366086878d876b50547",
+        "validation_gate/step-00000300.json": "6ea12bc111137d764cb2de534aa057514424013f1d34d9000091e84ab7cadace"
+      },
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g6-smoke.yaml --stage-0-only",
+          "process_pid": 87113,
+          "start_utc": "2026-09-29T02:38:47.359565+00:00",
+          "end_utc": "2026-09-29T03:44:26.327917+00:00",
+          "wall_clock_secs": 3938.968352,
+          "exit_code": 0,
+          "git_head": "ef4764f92d9ad23fa90c936166137944dc5e4aea",
+          "config_sha256": "f6f6835ee18efee5bd8c08865e4d7d3a63ee1dfcd890675d4cfebea45fa15781",
+          "disposition": "finished",
+          "boundary_checkpoint": null,
+          "resume_checkpoint": null
+        }
+      ]
+    },
+    {
+      "band_generation": 6,
+      "launch_kind": "graded",
+      "run_name": "stage0-v23g6-seed42",
+      "seed": 42,
+      "git_head": "ef4764f92d9ad23fa90c936166137944dc5e4aea",
+      "config_path": "configs/stage0-v23g6-seed42.yaml",
+      "config_sha256": "d1efdcf7ee709b18622d8a2f8d37b8df13ba126fc930696cb7caf4817cfa4dda",
+      "artifact_dir": "runs/stage0-v23g6-seed42",
+      "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g6-seed42.yaml --stage-0-only",
+      "stage_0_only": true,
+      "collocation_count": 4096,
+      "replay_count": 240,
+      "front_advance_window_n": 500,
+      "max_epochs": 1000,
+      "n_adam": 1000,
+      "environment": {
+        "python_version": "3.11.15",
+        "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+        "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+        "torch_version": "2.12.1"
+      },
+      "corpus": {
+        "splits_sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "s_h": 22.321729071058996,
+        "eps_h": 0.0022321729071058997,
+        "n_train": 1812
+      },
+      "monitor": null,
+      "r_ref": 19749775821.24417,
+      "r_ref_artifact_path": "pinn/verification/artifacts/r_ref_stage0.json",
+      "r_ref_artifact_sha256": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff",
+      "launch_started_utc": "2026-09-29T03:46:14.276381+00:00",
+      "completion_utc": null,
+      "wall_clock_secs": null,
+      "process_pid": 25061,
+      "exit_code": null,
+      "final_process_disposition": "process-lost",
+      "ledger_disposition": "blocked",
+      "final_guard_disposition": null,
+      "guard": null,
+      "evaluation": "preserved-unspent",
+      "in_final_band": true,
+      "terminal": false,
+      "artifact_hashes": {
+        "checkpoints/best.pt": "f33aa849a80dd21834a9feded038cea02916107611fbcf55e4501c3735de7508",
+        "checkpoints/ckpt-38043381130.pt": "80920c36767df41b112268ed6fb15dd98ad7e22e4c2fc552778274fac3358466",
+        "checkpoints/latest.pt": "27c537a18568ca499eee768f2013402635ed797154bf6b842df84b0e20917de0",
+        "checkpoints/stage-0-init.pt": "3f096b6a96fe8927cbb474eda4f83c84251cbb1f081da2adad0ffb63298cf899",
+        "checkpoints/step-000490.pt": "24739182a1d7f343eb3ead1f9661b7098937a906eb9e8efc5c273ebff9c4eac2",
+        "checkpoints/step-000500.pt": "4d8e07bdb410926e2745dd730fd0c2947ec8effbf698575637dcb69be7c59ea0",
+        "checkpoints/step-000510.pt": "649acdc9416426deebe96bcb93ac1119aa4a8cc5bfc7caf84fcbe25e4c26db5c",
+        "config.yaml": "97c959a5c4042826bc112bc7b679840b81c80dfaf5d44f9d190533e1aa8fb796",
+        "logs/train.log": "e272d446e6a5f9a8a65ea61b374261b436edc9198fe54d17340283b4e95464af",
+        "logs/train.log.jsonl": "e4f8b0bd929895658e2e50b684225db7652dea6ddb224e8cb62ee5d13cee25b3",
+        "preflight.json": "a167ea15855219e524011b3de8f32406fbf39f5663d9fa351b0f64d762871794",
+        "run_start_rng.pt": "7f147d4565f9640366f4f1c933a7cf2482a69bec15bcd267878565adf5fe1d1c",
+        "splits.json": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+        "status.json": "710f0e61d02533c54171fe7525100e84d60030c55d331ef58eea0de7df6a47be",
+        "summary.json": "e373c48c4d997766340a260078c90b15cf31d89818754d7fa9ad04aa48004e5e",
+        "summary.md": "575778ca70c6ada3d05377985f1275cc2a2b67b7a4a888e270307c692d5d2317",
+        "tb/<host>.25061.0": "bc2048ad6623dc18cb107fe080459d0087bae54912628c2cacc269a2b69ed1a0",
+        "training_metadata.json": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+        "validation.jsonl": "60f608c779db55c656bd4ecb69bc82c22e70cb368f109c52e5c2220bcafabc49",
+        "validation_gate/step-00000100.json": "5b2fb4bcc770a1879a0a4da67cada3ab9d57977a5bd62938531246536fbc7bf4",
+        "validation_gate/step-00000200.json": "b2487dd9c90cf62ed29257d8cbf67062f3dd3f64c653c17eb225623b16c4800f",
+        "validation_gate/step-00000300.json": "285702873de30445fd6142fe7af6dd024eb39e14b7a4c3c10bb071b2f3eb9bec",
+        "validation_gate/step-00000400.json": "5693aeef04fd270e43404a51675268b11306cb4e6016bd4bbe10b6d85b921391",
+        "validation_gate/step-00000500.json": "38b58f05d25c9f41b2798732c9b9d4df14bca93ddf77ce91dd0cc9861b5b0742"
+      },
+      "invocations": [
+        {
+          "invocation_ordinal": 1,
+          "launch_kind": "fresh",
+          "command": "/usr/bin/caffeinate -is <home>/miniforge3/envs/pinn-train/bin/python -m pinn.train --config configs/stage0-v23g6-seed42.yaml --stage-0-only",
+          "process_pid": 25061,
+          "start_utc": "2026-09-29T03:46:14.276381+00:00",
+          "end_utc": null,
+          "wall_clock_secs": null,
+          "exit_code": null,
+          "git_head": "ef4764f92d9ad23fa90c936166137944dc5e4aea",
+          "config_sha256": "d1efdcf7ee709b18622d8a2f8d37b8df13ba126fc930696cb7caf4817cfa4dda",
+          "disposition": "process-lost",
+          "boundary_checkpoint": null,
+          "resume_checkpoint": null
+        }
+      ],
+      "blocked_state_path": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g6.json",
+      "blocked_state_sha256": "8982868e87f9dead400257d17e51dc9d1d2ff8b211adfd61d63344891498faec",
+      "last_logged_step": 513,
+      "last_heartbeat_utc": "2026-09-29T05:33:21.581195+00:00",
+      "process_loss_detected_utc": "2026-09-29T12:59:31.821563+00:00",
+      "latest_checkpoint": {
+        "path": "runs/stage0-v23g6-seed42/checkpoints/latest.pt",
+        "sha256": "27c537a18568ca499eee768f2013402635ed797154bf6b842df84b0e20917de0",
+        "global_step": 510,
+        "curriculum": {
+          "stage": 0,
+          "phase": "2a",
+          "epoch": 510,
+          "step": 510,
+          "disposition_log_pointer": null
+        },
+        "invariant_b_state": {
+          "front_high_water": 2,
+          "last_advance_step": 353
+        },
+        "kind": "rolling-not-governed-stop-boundary"
+      }
     }
   ]
 }

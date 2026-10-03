@@ -1226,3 +1226,158 @@ ruling and is not reused here.
   `runs/.verify/latest-marker.json`. The committed
   `evidence/generation-5-retention.json` lists all 25 exact paths, byte sizes,
   and SHA-256 digests. No wildcard exception extends to future runs.
+
+---
+
+## GAP-57-12 — the generation-6 graded seed-42 process was lost without a boundary checkpoint or a retained cause
+
+- **Decision point.** What follows the generation-6 operational block? The
+  graded `stage0-v23g6-seed42` process died silently after logging step 513 of
+  1000. Its newest checkpoint is the rolling step-510 `latest.pt`, not a
+  governed stop-boundary checkpoint. The cause cannot be determined from any
+  retained artifact. Three linked choices are open: how the attempt continues
+  (same-run resume, fresh generation, or stop), how the next process is
+  launched, and how the generation-6 run directories are retained.
+
+- **Where in artifact.** `evidence/blocked-state-g6.json` and the
+  generation-6 header and records in `evidence/run-ledger.md` (both written by
+  the prior session and still uncommitted at HEAD
+  `ef4764f92d9ad23fa90c936166137944dc5e4aea`);
+  `runs/stage0-v23g6-seed42/{status.json,logs/train.log,checkpoints/latest.pt}`;
+  `evidence/verify_phase57_evidence.py:705-725,733-753,786` (resume
+  admission); `evidence/README.md` "Version-2 invocation contract".
+
+- **Task context.** Session resume on 2026-10-02. The prior session recorded
+  the block (`blocked_reason: unexpected-process-loss`) on 2026-09-29 and
+  stopped without committing. This session gathered read-only forensics only.
+  No run was launched, resumed, moved, or deleted.
+
+- **Observed facts (read-only, 2026-10-02).**
+  - The process was launched at `2026-09-29T03:46:14Z` (trainer PID 25061,
+    `caffeinate` PID 25062). The last heartbeat was at `05:33:21.58Z`
+    (`state: running`, step 512, epoch 513). The last logged row is step 513
+    and has no traceback. `runs/stage0-v23g6-seed42/failure/` is empty.
+  - `pmset -g log` records `PID 25062(caffeinate) ClientDied` at
+    `2026-09-29 00:33:25 -0500` (= `05:33:25Z`), with an assertion age of
+    `01:47:12`. That entry is not a failure signature. The generation-6 smoke's
+    normal exit also logged `ClientDied`, at `22:44:26 -0500` (= `03:44:26Z`),
+    matching its ledger `completion_utc`. The entry therefore fixes the end
+    time within seconds (active wall time about 6,431 s) but not the cause. No
+    sleep, wake, or shutdown entry appears in that minute.
+  - The macOS unified log for `00:33:20–00:33:30 -0500` has rotated out (no
+    entries returned).
+  - The trainer's stdout/stderr were attached to the launching agent exec
+    session, which no longer exists (`blocked-state-g6.json` `failure.reason`).
+    No session transcript in `~/.codex*/sessions` contains the launch: the two
+    files that mention `v23g6-seed42` are 2026-09-28 planning sessions that end
+    at `02:29Z`, before the launch.
+  - The last `status.json` memory reading is 265 MB current and 361 MB driver
+    on MPS. Nothing points to memory pressure.
+  - `latest.pt` (sha256 `27c537a1…20917de0`) has kind
+    `rolling-not-governed-stop-boundary`, `global_step` 510, and
+    `invariant_b_state {front_high_water: 2, last_advance_step: 353}`.
+  - Run-directory sizes: `stage0-v23g6-smoke` has 23 files, 71,532,876 bytes,
+    5 over 10 MiB. `stage0-v23g6-seed42` has 24 files, 72,433,219 bytes, 5 over
+    10 MiB. Both are gitignored, single-copy, and finished/lost respectively.
+
+- **Classification.** **Process-artifact schema.** The choice decides whether
+  a process loss without a boundary checkpoint can be a resumable invocation,
+  which identity a retry uses, how launch provenance is captured, and how
+  historical run bytes are kept re-derivable.
+
+- **Source silence.**
+  - `57-05-PLAN.md` Task 3 sends a process interruption to a blocked state with
+    Phase 57 incomplete (done). It does not say what may follow.
+  - GAP-57-04's Resolution note and the verifier (`:786` "resume does not
+    follow a governed interrupted process"; `:705-725` boundary checkpoint
+    with `invariant_b_state`) admit a resume only after a governed stop that
+    wrote a boundary checkpoint. A `process-lost` invocation with
+    `boundary_checkpoint: null` is outside that rule.
+  - The 2026-09-12 Stage-0 resume ruling covers deliberate operator stops. In
+    those, `train.py` writes a fresh checkpoint at the stop step. Its
+    bit-identical proof (8 steps, SIGINT at step 6) used that stop checkpoint,
+    not a rolling one.
+  - GAP-57-08 and GAP-57-09 authorize fresh generations 4 and 5 for their own
+    failures only. GAP-57-09 fixes the launch command (direct pinned
+    interpreter under `caffeinate -is`) but not the parent session or where
+    stdout/stderr are retained.
+  - GAP-57-11 limits its Git retention exceptions to generation 5 and states
+    that no wildcard exception extends to future runs.
+
+- **Mathematical / engineering grounding.**
+  - *Resume fidelity.* A resume checkpoint is the full state at one completed
+    step: model, optimizer moments, RNG streams, frozen monitor, and the
+    invariant-B high-water mark. If the rolling step-510 payload carries all of
+    them, replaying steps 511-513 on the same HEAD and device should be
+    deterministic. That holds for the governed-stop payload and has not been
+    shown for the rolling one. Rows 511-513 already exist in `train.log` and
+    `train.log.jsonl`, so a resume would give those steps two telemetry
+    sources.
+  - *Invariant B timing.* The front last advanced at step 353 with
+    `front_advance_window_n = 500`, so the no-advance deadline would fall at
+    step 853. A resume from step 510 does not move that deadline.
+  - *HEAD binding.* Every invocation of a run must share the band HEAD and
+    config digest (`:733-753`), and the seed-42 setup check compares against
+    the current HEAD (`:610`). Committing the generation-6 evidence moves
+    HEAD. A same-run resume would therefore need that evidence to stay
+    uncommitted for the rest of the band, about 9 more hours. The verifier
+    change it needs is on a fingerprinted path, which may not change inside the
+    window, so the change could only land between the last run and closeout,
+    as GAP-57-04 option B already anticipated.
+  - *Launch robustness.* `caffeinate -is` only blocks sleep. The trainer's life
+    and its error stream were both tied to the agent session that launched it,
+    so a session ending can kill the run and leave no trace, which is what
+    happened. A launch in its own session (detached from the launching shell or
+    agent), with stdout/stderr written to a retained file, removes that failure
+    path and makes any future crash diagnosable. Signalling the Python PID
+    still delivers a deliberate stop.
+  - *Retention.* Without retained bytes, the SHA-256 claims in
+    `blocked-state-g6.json` and the ledger cannot be re-derived once the
+    worktree is cleaned. Git tracking would add about 144 MB to history, with
+    10 files over the 10 MiB staged-blob limit.
+
+- **Agent was tempted to.** Commit the generation-6 block as evidence. Retain
+  both generation-6 run directories the GAP-57-11 option-A way. Admit a fresh
+  generation 7 (`stage0-v23g7-{smoke,seed41,seed42,seed43}`) with the same
+  recipe. Launch every process in its own session with stdout/stderr redirected
+  to a retained file. This mirrors the GAP-57-08/09 precedent and needs no
+  verifier rule for resuming after a process loss. However, the identity,
+  launch-mode, and retention choices are owner-routed.
+
+- **What the user needs to decide.**
+  - **Continuation.**
+    - **(A)** Preserve generation 6 as blocked and admit a fresh generation 7:
+      smoke, then 42, then 41/43 after the D-10 check.
+    - **(B)** Resume `stage0-v23g6-seed42` from the rolling step-510 checkpoint
+      as invocation 2. This needs a new verifier rule for a process-lost
+      invocation followed by a resume from a rolling checkpoint, a
+      rolling-checkpoint equivalence check, and the generation-6 evidence kept
+      uncommitted until the band ends.
+    - **(C)** Stop. Preserve generation 6 and the unspent evaluation, with no
+      further run.
+  - **Launch mode** (A or B). **(L1)** Own session plus stdout/stderr to a
+    retained file. **(L2)** The operator launches interactively in a terminal
+    with the same command. **(L3)** Unchanged from generation 6.
+  - **Retention of the generation-6 run directories.** **(R1)** Git-track in
+    place with exact path and size exceptions plus a manifest (GAP-57-11 A
+    pattern). **(R2)** External archive plus a committed manifest. **(R3)**
+    Leave them ignored in place.
+
+- **Confidence of impact.** **HIGH.** Option B changes the resume-admission
+  contract, the launch mode decides whether the next loss can be diagnosed,
+  and retention decides whether generation 6's hashed claims stay verifiable.
+
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-10-02).
+
+- **Resolution note.** On 2026-10-02 the owner selected three options.
+  - **Continuation (A).** Preserve generation 6 as the blocked attempt and
+    admit a fresh generation-7 band with the same recipe: smoke, then seed 42,
+    then seeds 41 and 43 once the D-10 setup comparison passes.
+  - **Launch mode (L1).** Launch each process detached in its own session,
+    using the same trainer command, with stdout/stderr written to a retained
+    file. Any verifier or test update this requires lands before admission.
+  - **Retention (R1).** Track the generation-6 run directories in Git with
+    exact path and size exceptions plus a size/SHA-256 manifest, following the
+    GAP-57-11 option-A pattern.
+
+  No same-run resume, recipe change, or held-out evaluation is authorized.
