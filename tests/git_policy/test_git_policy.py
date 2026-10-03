@@ -206,6 +206,42 @@ class StagedPathPolicyTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(expected, result.stderr)
 
+    def test_allows_exact_retained_generation_six_files(self):
+        manifest = json.loads((
+            ROOT / ".planning/phases/57-corrected-re-run-the-preserved-evaluation"
+            / "evidence/generation-6-retention.json"
+        ).read_text())
+        files = [item for item in manifest["files"] if item["role"] == "run-artifact"]
+        self.assertEqual(len(files), 47)
+        result = run_python(
+            STAGED_VALIDATOR,
+            env={
+                "GIT_POLICY_STAGED_FILES": "\n".join(item["path"] for item in files) + "\n",
+                "GIT_POLICY_STAGED_SIZES": json.dumps({
+                    item["path"]: item["size_bytes"] for item in files
+                }),
+            },
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_unlisted_generation_six_and_seven_runtime_output(self):
+        for path, size, expected in (
+            ("runs/stage0-v23g6-seed42/extra.pt", 1, "generated"),
+            ("runs/stage0-v23g6-seed42/checkpoints/stage-0-init.pt", 12 * 1024 * 1024, "10 MiB"),
+            ("runs/stage0-v23g7-seed42/checkpoints/latest.pt", 1, "generated"),
+            ("runs/.launch/stage0-v23g7-seed42/invocation-1/output.log", 1, "generated"),
+        ):
+            with self.subTest(path=path):
+                result = run_python(
+                    STAGED_VALIDATOR,
+                    env={
+                        "GIT_POLICY_STAGED_FILES": path + "\n",
+                        "GIT_POLICY_STAGED_SIZES": json.dumps({path: size}),
+                    },
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected, result.stderr)
+
     def test_allows_exact_retained_generation_two_files(self):
         manifest = json.loads((
             ROOT / ".planning/phases/57-corrected-re-run-the-preserved-evaluation"

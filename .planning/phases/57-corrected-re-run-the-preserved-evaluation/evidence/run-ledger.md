@@ -1,14 +1,18 @@
 # Phase 57 Run Ledger
 
 The ledger is append-only during the smoke and graded run window.
-Generations 1 through 5 are retained historical attempts; none belongs to the
-final band. The final generation is set only after a complete generation-6
+Generations 1 through 6 are retained historical attempts; none belongs to the
+final band. The final generation is set only after a complete generation-7
 band or the authorized scientific terminal branch is recorded. The generation-1
-`blocked-state.json`, generation-3 `blocked-state-g3.json`, and generation-4
-`blocked-state-g4.json` paths and digests are historical evidence and remain
-immutable. The generation-5 completed smoke is retained under
-`generation-5-retention.json`. If generation 6 reaches an operational block,
-its record is written to `blocked-state-g6.json` instead.
+`blocked-state.json`, generation-3 `blocked-state-g3.json`, generation-4
+`blocked-state-g4.json`, and generation-6 `blocked-state-g6.json` paths and
+digests are historical evidence and remain immutable. The generation-5
+completed smoke is retained under `generation-5-retention.json`, and the
+generation-6 smoke and lost graded seed 42 under `generation-6-retention.json`
+(GAP-57-12). Every generation-7 process is started by `launch_phase57_run.py`,
+and its invocation entry carries a `launch` object binding it to the launcher's
+`runs/.launch/<run>/invocation-<n>/` files. If generation 7 reaches an
+operational block, its record is written to `blocked-state-g7.json` instead.
 
 <!-- phase57-run-ledger-schema: phase57-run-ledger/v2 -->
 ```json
@@ -131,7 +135,8 @@ its record is written to `blocked-state-g6.json` instead.
         "stage0-v23g6-seed42"
       ],
       "evaluation": "preserved-unspent",
-      "blocked_state": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g6.json"
+      "blocked_state": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g6.json",
+      "retention_manifest": ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-6-retention.json"
     }
   ],
   "records": [

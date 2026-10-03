@@ -7,8 +7,8 @@
 **Original final configs (generation 1):** `configs/stage0-v23-smoke.yaml`,
 `configs/stage0-v23-seed41.yaml`, `configs/stage0-v23-seed42.yaml`, and
 `configs/stage0-v23-seed43.yaml`
-**Planned active configs (generation 6):**
-`configs/stage0-v23g6-{smoke,seed41,seed42,seed43}.yaml`
+**Planned active configs (generation 7):**
+`configs/stage0-v23g7-{smoke,seed41,seed42,seed43}.yaml`
 
 ## Derivation method
 
@@ -57,7 +57,7 @@ differences:
 Thus the graded band carries the same corrected recipe, 4096-row count,
 frozen-reference path, 240-row replay pool, N=500 deadline, and 1000/1000
 budget. The smoke is seed 42 and retains the same corpus/allocation inputs.
-For the active generation-6 window, `seed42-setup` verifies actual smoke and
+For the active generation-7 window, `seed42-setup` verifies actual smoke and
 graded seed-42 `splits.json` bytes and exact `s_h`/`n_train` as soon as the
 graded setup artifacts exist, before seeds 41 or 43 launch.
 
@@ -110,3 +110,20 @@ configs differ only in `run.seed` and `run.run_name`. The generation-6 smoke and
 graded seed 42 must share the immutable admitted HEAD and pass the
 produced-artifact `seed42-setup` assertion before graded seeds 41 and 43
 launch. The evaluation candidate order remains 42, 41, 43.
+
+## Generation-7 admission identity (GAP-57-12, owner options A/L1/R1)
+
+The generation-6 graded seed 42 was lost at step 513 with no boundary
+checkpoint and no retained stderr. The generation-6 smoke, the lost graded run,
+and their calibration/verify snapshots are historical evidence recorded by
+`evidence/generation-6-retention.json` and `evidence/blocked-state-g6.json`.
+The fresh generation-7 configs use `stage0-v23g7-{smoke,seed41,seed42,seed43}`
+run names. Comparing each generation-6/generation-7 YAML pair line by line,
+excluding comments, finds only `run.run_name` changed. Budgets, the 4096-row
+collocation count, the 240-row replay pool, the N=500 front deadline,
+precision, and the scientific recipe are unchanged. The only operational change
+is the launch path: every generation-7 process starts through
+`evidence/launch_phase57_run.py`, which runs the unchanged trainer command in
+its own session and retains its output and exit record. The seed-42-first
+order, the `seed42-setup` assertion, and the 42, 41, 43 evaluation candidate
+order are unchanged.

@@ -1,0 +1,58 @@
+data:
+  blacklist_path: ../Documentation/problematic_ics_blacklist.json
+  root: null
+  source: admitted
+loss:
+  lambda_e_max: 0.0
+  r_ref_artifact_path: pinn/verification/artifacts/r_ref_stage0.json
+opt:
+  adam_betas:
+  - 0.9
+  - 0.999
+  adam_eps: 1.0e-08
+  adam_lr_base: 0.001
+  adam_lr_decay: 0.7
+  adam_microbatch_size: 256
+  lbfgs_chunk_size: 1024
+  lbfgs_history_size: 10
+  lbfgs_line_search: strong_wolfe
+  lbfgs_max_iter: 20
+  validation_every: 100
+run:
+  checkpoint:
+    every_n_steps: 100
+    failure_keep: 10
+    rolling_keep: 3
+    wall_clock_ceiling_s: 120.0
+  device: mps
+  guards:
+    disk_floor_fraction: 0.05
+    loss_explosion_ceiling: 100000000000.0
+    memory_watermark_fraction: 0.7
+  invariants:
+    front_advance_window_n: 500
+  log_every: 50
+  monitor:
+    heartbeat_secs: 30
+    mem_every: 100
+    staleness_factor: 3
+    tb_histogram_every: 100
+  precision: float32
+  recover_retries: 0
+  run_name: stage0-v23g6-seed42
+  seed: 42
+  smoke: false
+  strict_cpu_determinism: false
+stage:
+  beta: 0.98
+  collocation_count: 4096
+  energy_floor_factor: 0.0001
+  eps_energy: 0.0001
+  eps_phys: 0.0001
+  eps_plateau: 1.0e-05
+  max_epochs: 1000
+  n_adam: 1000
+  patience: 200
+  percentile_10_relaxation: 0.1
+  replay_count: 240
+  stagnation_window: 10000

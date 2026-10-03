@@ -1,0 +1,41 @@
+{
+  "schema_version": "phase43-verify-marker/v1",
+  "timestamp": "2026-09-29T03:44:53.906173+00:00",
+  "verdict": "green",
+  "first_failed_rung": null,
+  "rungs": [
+    {
+      "name": "device_sanity",
+      "passed": true,
+      "reason": null
+    },
+    {
+      "name": "componentwise_ad",
+      "passed": true,
+      "reason": null
+    },
+    {
+      "name": "gradcheck_fp64_cpu",
+      "passed": true,
+      "reason": null
+    },
+    {
+      "name": "residual_ground_truth",
+      "passed": true,
+      "reason": null
+    },
+    {
+      "name": "overfit_single_trajectory",
+      "passed": true,
+      "reason": null
+    }
+  ],
+  "fingerprint": {
+    "device": "mps",
+    "dtype": "torch.float32",
+    "torch_version": "2.12.1",
+    "python_version": "3.11.15",
+    "git_head": "ef4764f92d9ad23fa90c936166137944dc5e4aea",
+    "git_head_available": true
+  }
+}

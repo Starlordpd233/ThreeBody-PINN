@@ -45,18 +45,22 @@ LEDGER_SCHEMA = "phase57-run-ledger/v2"
 RETENTION_REL = EVIDENCE_REL / "generation-2-retention.json"
 G5_RETENTION_REL = EVIDENCE_REL / "generation-5-retention.json"
 HISTORICAL_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state.json"
-CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g6.json"
-FINAL_GENERATION = 6
+G6_RETENTION_REL = EVIDENCE_REL / "generation-6-retention.json"
+G6_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g6.json"
+CURRENT_BLOCKED_STATE_REL = EVIDENCE_REL / "blocked-state-g7.json"
+FINAL_GENERATION = 7
 FINAL_RUN_NAMES = frozenset({
-    "stage0-v23g6-smoke",
-    "stage0-v23g6-seed41",
-    "stage0-v23g6-seed42",
-    "stage0-v23g6-seed43",
+    "stage0-v23g7-smoke",
+    "stage0-v23g7-seed41",
+    "stage0-v23g7-seed42",
+    "stage0-v23g7-seed43",
 })
 FINAL_LAUNCH_ORDER = (
-    "stage0-v23g6-smoke", "stage0-v23g6-seed42",
-    "stage0-v23g6-seed41", "stage0-v23g6-seed43",
+    "stage0-v23g7-smoke", "stage0-v23g7-seed42",
+    "stage0-v23g7-seed41", "stage0-v23g7-seed43",
 )
+LAUNCH_ROOT_REL = Path("runs/.launch")
+LAUNCH_MODE = "detached-session"
 EVALUATION_NAMES = frozenset({
     "evaluation-attempt.json",
     "evaluation-receipt.json",
@@ -359,6 +363,145 @@ def assert_generation_five_retained(ledger: Mapping[str, Any]) -> None:
     _assert_no_evaluation(run_dir)
 
 
+def assert_generation_six_retained(ledger: Mapping[str, Any]) -> None:
+    """Re-derive the GAP-57-12 R1 retention of the generation-6 attempt."""
+    run_names = ("stage0-v23g6-smoke", "stage0-v23g6-seed42")
+    manifest = load_json(REPO_ROOT / G6_RETENTION_REL, what="generation-6 retention manifest")
+    if (
+        not isinstance(manifest, Mapping)
+        or manifest.get("schema") != "phase57-generation-retention/v1"
+        or manifest.get("band_generation") != 6
+        or manifest.get("run_names") != list(run_names)
+        or manifest.get("file_count") != 49
+        or manifest.get("run_file_count") != 47
+    ):
+        fail("generation-6 retention manifest identity or counts differ")
+    entries = manifest.get("files")
+    if not isinstance(entries, list) or len(entries) != 49:
+        fail("generation-6 retention manifest must enumerate 49 files")
+    expected_snapshots = {
+        "timing-calibration": (
+            EVIDENCE_REL / "generation-6-timing-calibration.json",
+            "runs/.calibration/stage0-timing.json",
+        ),
+        "verify-marker": (
+            EVIDENCE_REL / "generation-6-verify-marker.json",
+            "runs/.verify/latest-marker.json",
+        ),
+    }
+    observed_paths: set[str] = set()
+    run_hashes: dict[str, dict[str, str]] = {name: {} for name in run_names}
+    snapshot_roles: set[str] = set()
+    total_bytes = 0
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("generation-6 retention entry is not a mapping")
+        relative, role = entry.get("path"), entry.get("role")
+        digest, size = entry.get("sha256"), entry.get("size_bytes")
+        if (
+            not isinstance(relative, str) or relative in observed_paths
+            or not isinstance(digest, str) or not HEX64.fullmatch(digest)
+            or type(size) is not int or size < 0
+        ):
+            fail("generation-6 retention entry has duplicate or invalid path, size, or SHA-256")
+        if role == "run-artifact":
+            owners = [name for name in run_names if relative.startswith(f"runs/{name}/")]
+            if len(owners) != 1:
+                fail("generation-6 run artifact escaped its directories")
+            run_hashes[owners[0]][relative.removeprefix(f"runs/{owners[0]}/")] = digest
+        elif role in expected_snapshots:
+            expected_path, original = expected_snapshots[role]
+            if relative != str(expected_path) or entry.get("original_path") != original:
+                fail("generation-6 snapshot path or source changed")
+            snapshot_roles.add(role)
+        else:
+            fail("generation-6 retention entry has an unknown role")
+        path = repo_path(relative, what="generation-6 retained artifact")
+        if not path.is_file() or path.stat().st_size != size or sha256_file(path) != digest:
+            fail(f"generation-6 retained artifact bytes differ from manifest: {relative}")
+        observed_paths.add(relative)
+        total_bytes += size
+    if sum(map(len, run_hashes.values())) != 47 or snapshot_roles != set(expected_snapshots):
+        fail("generation-6 retention manifest lacks exact run/snapshot roles")
+    run_dirs = [REPO_ROOT / "runs" / name for name in run_names]
+    disk_run_paths = {
+        str(path.relative_to(REPO_ROOT))
+        for run_dir in run_dirs for path in run_dir.rglob("*") if path.is_file()
+    }
+    if disk_run_paths != {path for path in observed_paths if path.startswith("runs/")}:
+        fail("generation-6 run directories contain missing or extra artifacts")
+    if total_bytes != manifest.get("total_bytes"):
+        fail("generation-6 retained total bytes differ from manifest")
+    tracked_result = subprocess.run(
+        ["git", "ls-files", "--cached", "--", *(str(run_dir.relative_to(REPO_ROOT)) for run_dir in run_dirs),
+         *(str(value[0]) for value in expected_snapshots.values())],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, check=False,
+    )
+    if tracked_result.returncode != 0 or set(tracked_result.stdout.splitlines()) != observed_paths:
+        fail("generation-6 retained paths differ from committed Git paths")
+    generations = [g for g in ledger["band_generations"] if g.get("band_generation") == 6]
+    records = {r.get("run_name"): r for r in ledger["records"] if r.get("band_generation") == 6}
+    if (
+        len(generations) != 1 or generations[0].get("status") != "blocked"
+        or generations[0].get("blocked_state") != str(G6_BLOCKED_STATE_REL)
+        or generations[0].get("retention_manifest") != str(G6_RETENTION_REL)
+        or set(records) != set(run_names)
+    ):
+        fail("generation-6 attempt is not recorded as one blocked generation with its retention")
+    band_head = generations[0].get("git_head")
+    for name in run_names:
+        if records[name].get("artifact_hashes") != run_hashes[name] or records[name].get("evaluation") != "preserved-unspent":
+            fail(f"generation-6 ledger hashes or evaluation differ from retention: {name}")
+    smoke = records["stage0-v23g6-smoke"]
+    final_invocation = _assert_invocations(smoke, band_head)
+    if (
+        smoke.get("ledger_disposition") != "finished"
+        or final_invocation.get("disposition") != "finished" or final_invocation.get("exit_code") != 0
+    ):
+        fail("generation-6 historical smoke invocation did not finish")
+    # The lost process has no exit code or end time by definition, so it is
+    # checked structurally rather than through _assert_invocations.
+    graded = records["stage0-v23g6-seed42"]
+    invocations = graded.get("invocations")
+    if (
+        graded.get("git_head") != band_head
+        or graded.get("ledger_disposition") != "blocked"
+        or graded.get("final_process_disposition") != "process-lost"
+        or not isinstance(invocations, list) or len(invocations) != 1
+        or invocations[0].get("launch_kind") != "fresh"
+        or invocations[0].get("disposition") != "process-lost"
+        or invocations[0].get("exit_code") is not None
+        or invocations[0].get("git_head") != band_head
+        or invocations[0].get("config_sha256") != graded.get("config_sha256")
+    ):
+        fail("generation-6 lost graded process is not recorded as one fresh process-lost invocation")
+    source_config = repo_path(graded.get("config_path"), what="generation-6 graded source config")
+    if not source_config.is_file() or sha256_file(source_config) != graded.get("config_sha256"):
+        fail("generation-6 graded source config changed after the run")
+    blocked_path = REPO_ROOT / G6_BLOCKED_STATE_REL
+    if (
+        graded.get("blocked_state_path") != str(G6_BLOCKED_STATE_REL)
+        or not blocked_path.is_file() or sha256_file(blocked_path) != graded.get("blocked_state_sha256")
+    ):
+        fail("generation-6 blocked-state bytes differ from the ledger")
+    blocked = load_json(blocked_path, what="generation-6 blocked state")
+    if (
+        blocked.get("band_generation") != 6
+        or blocked.get("run_name") != "stage0-v23g6-seed42"
+        or blocked.get("evaluation") != "preserved-unspent"
+        or blocked.get("terminal") is not False
+        or blocked.get("run_artifact_hashes") != run_hashes["stage0-v23g6-seed42"]
+        or blocked.get("config", {}).get("source_sha256") != graded.get("config_sha256")
+    ):
+        fail("generation-6 blocked-state identity, disposition, or hashes are invalid")
+    for role, (snapshot_path, _original) in expected_snapshots.items():
+        snapshot = load_json(REPO_ROOT / snapshot_path, what=f"generation-6 {role}")
+        if not isinstance(snapshot, Mapping) or (snapshot.get("fingerprint") or {}).get("git_head") != band_head:
+            fail(f"generation-6 {role} snapshot has a different HEAD")
+    for run_dir in run_dirs:
+        _assert_no_evaluation(run_dir)
+
+
 def current_head() -> str:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -484,12 +627,12 @@ def _gate_chain() -> tuple[Path, dict[str, Any], Path, dict[str, Any], dict[str,
 
 
 def _assert_config_contract() -> Path:
-    # GAP-57-06/08 preserve earlier attempts and admit only generation 5.
+    # GAP-57-06/08/12 preserve earlier attempts and admit only generation 7.
     from pinn.train import _admitted_data_preflight
     from pinn.training.config_yaml import load_config
 
     names = ("smoke", "seed41", "seed42", "seed43")
-    paths = tuple(REPO_ROOT / f"configs/stage0-v23g6-{name}.yaml" for name in names)
+    paths = tuple(REPO_ROOT / f"configs/stage0-v23g7-{name}.yaml" for name in names)
     corpus_roots: set[Path] = set()
     for name, path in zip(names, paths):
         if not path.is_file():
@@ -501,7 +644,7 @@ def _assert_config_contract() -> Path:
         expected_seed = 42 if name == "smoke" else int(name.removeprefix("seed"))
         expected_budget = 300 if name == "smoke" else 1000
         if (
-            config.run.run_name != f"stage0-v23g6-{name}"
+            config.run.run_name != f"stage0-v23g7-{name}"
             or config.run.seed != expected_seed
             or config.run.smoke is not (name == "smoke")
             or config.stage.max_epochs != expected_budget
@@ -512,13 +655,13 @@ def _assert_config_contract() -> Path:
             or config.loss.r_ref_artifact_path != str(R_REF_REL)
             or config.data.source != "admitted"
         ):
-            fail(f"{path} differs from the ratified generation-6 recipe")
+            fail(f"{path} differs from the ratified generation-7 recipe")
         try:
             corpus_roots.add(_admitted_data_preflight(config))
         except Exception as exc:  # noqa: BLE001 - missing data fails before a run
             fail(f"admitted corpus is unreachable for {path}: {exc}")
     if len(corpus_roots) != 1:
-        fail("generation-6 configs resolve different admitted corpus roots")
+        fail("generation-7 configs resolve different admitted corpus roots")
     return corpus_roots.pop()
 
 
@@ -550,15 +693,15 @@ def _assert_mps_runtime() -> dict[str, Any]:
 
 
 def _target_runs() -> tuple[Path, ...]:
-    return tuple(REPO_ROOT / f"runs/stage0-v23g6-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
+    return tuple(REPO_ROOT / f"runs/stage0-v23g7-{name}" for name in ("smoke", "seed41", "seed42", "seed43"))
 
 
 def _assert_seed42_setup(*, before_other_seeds: bool) -> dict[str, Any]:
     """Compare produced seed-42 smoke/graded setup without reading metrics."""
-    smoke = REPO_ROOT / "runs/stage0-v23g6-smoke"
-    graded = REPO_ROOT / "runs/stage0-v23g6-seed42"
+    smoke = REPO_ROOT / "runs/stage0-v23g7-smoke"
+    graded = REPO_ROOT / "runs/stage0-v23g7-seed42"
     if before_other_seeds and any(
-        (REPO_ROOT / f"runs/stage0-v23g6-seed{seed}").exists()
+        (REPO_ROOT / f"runs/stage0-v23g7-seed{seed}").exists()
         for seed in (41, 43)
     ):
         fail("seed-42 setup comparison must pass before seeds 41 or 43 launch")
@@ -567,11 +710,11 @@ def _assert_seed42_setup(*, before_other_seeds: bool) -> dict[str, Any]:
     if (
         smoke_status.get("state") != "finished"
         or smoke_summary.get("disposition") != "finished"
-        or smoke_summary.get("run_name") != "stage0-v23g6-smoke"
+        or smoke_summary.get("run_name") != "stage0-v23g7-smoke"
     ):
         fail("seed-42 smoke did not finish under the admitted run identity")
     graded_status = load_json(graded / "status.json", what="graded seed-42 status")
-    if graded_status.get("run_name") != "stage0-v23g6-seed42":
+    if graded_status.get("run_name") != "stage0-v23g7-seed42":
         fail("graded seed-42 setup has the wrong run identity")
     graded_preflight = load_json(graded / "preflight.json", what="graded seed-42 preflight")
     if graded_preflight.get("preflight_status") != "passed":
@@ -619,15 +762,15 @@ def cmd_seed42_setup() -> None:
 
 def _assert_launch_order(generation: Mapping[str, Any], records: list[Mapping[str, Any]]) -> None:
     if generation.get("launch_order") != list(FINAL_LAUNCH_ORDER):
-        fail("generation-6 graded launch order is not smoke, 42, 41, 43")
+        fail("generation-7 graded launch order is not smoke, 42, 41, 43")
     ordered = sorted(records, key=lambda record: record["invocations"][0]["start_utc"])
     if [record.get("run_name") for record in ordered] != list(FINAL_LAUNCH_ORDER):
-        fail("generation-6 process timestamps violate graded launch order")
+        fail("generation-7 process timestamps violate graded launch order")
     for previous, following in zip(ordered, ordered[1:]):
         previous_end = datetime.fromisoformat(previous["invocations"][-1]["end_utc"])
         following_start = datetime.fromisoformat(following["invocations"][0]["start_utc"])
         if following_start < previous_end:
-            fail("generation-6 runs overlap instead of following sequential launch order")
+            fail("generation-7 runs overlap instead of following sequential launch order")
 
 
 def _assert_ancestry(*commits: Any) -> None:
@@ -653,13 +796,14 @@ def cmd_admit_run_window() -> None:
     assert_generation_three_blocked_state_retained(ledger)
     assert_generation_four_blocked_state_retained(ledger)
     assert_generation_five_retained(ledger)
+    assert_generation_six_retained(ledger)
     assert_generation_two_retained()
     historical = {
         (generation.get("band_generation"), generation.get("status"))
         for generation in ledger["band_generations"]
     }
-    if historical != {(1, "blocked"), (2, "historical-incomplete"), (3, "blocked"), (4, "blocked"), (5, "historical-complete-smoke")}:
-        fail("run ledger does not contain exactly the five preserved prior generations")
+    if historical != {(1, "blocked"), (2, "historical-incomplete"), (3, "blocked"), (4, "blocked"), (5, "historical-complete-smoke"), (6, "blocked")}:
+        fail("run ledger does not contain exactly the six preserved prior generations")
     old_attempts = [record for record in ledger["records"] if record.get("band_generation") == 2]
     if len(old_attempts) != 1 or old_attempts[0].get("run_name") != "stage0-v23g2-smoke" or old_attempts[0].get("in_final_band") is not False:
         fail("interrupted generation-2 smoke is not recorded as historical and ineligible")
@@ -699,7 +843,7 @@ def _terminal_state() -> dict[str, Any] | None:
 
 def _blocked_state() -> dict[str, Any] | None:
     path = REPO_ROOT / CURRENT_BLOCKED_STATE_REL
-    return load_json(path, what="generation-6 blocked state") if path.is_file() else None
+    return load_json(path, what="generation-7 blocked state") if path.is_file() else None
 
 
 def _assert_resume_checkpoint(raw: Any, artifact_dir: Path) -> None:
@@ -723,6 +867,46 @@ def _assert_resume_checkpoint(raw: Any, artifact_dir: Path) -> None:
     state = payload.get("invariant_b_state") if isinstance(payload, Mapping) else None
     if not isinstance(state, Mapping) or not {"front_high_water", "last_advance_step"} <= set(state):
         fail("resume boundary checkpoint lacks invariant_b_state")
+
+
+def _assert_detached_launch(record: Mapping[str, Any], invocation: Mapping[str, Any]) -> None:
+    """GAP-57-12 L1: bind a final-band process record to its detached-launch files."""
+    launch = invocation.get("launch")
+    if not isinstance(launch, Mapping) or launch.get("mode") != LAUNCH_MODE:
+        fail("final-band invocation was not launched in a detached session")
+    expected_dir = LAUNCH_ROOT_REL / str(record.get("run_name")) / f"invocation-{invocation.get('invocation_ordinal')}"
+    if launch.get("directory") != str(expected_dir):
+        fail("final-band invocation launch directory does not match its identity")
+    files = launch.get("files")
+    names = ("launch.json", "process.json", "output.log", "exit.json")
+    if not isinstance(files, Mapping) or set(files) != set(names):
+        fail("final-band invocation does not hash exactly its four launch files")
+    launch_dir = repo_path(expected_dir, what="launch directory")
+    for name in names:
+        path = launch_dir / name
+        if not path.is_file() or not HEX64.fullmatch(str(files[name])) or sha256_file(path) != files[name]:
+            fail(f"launch file bytes differ from the ledger: {expected_dir / name}")
+    launched = load_json(launch_dir / "launch.json", what="launch record")
+    process = load_json(launch_dir / "process.json", what="launch process record")
+    exited = load_json(launch_dir / "exit.json", what="launch exit record")
+    if (
+        launched.get("mode") != LAUNCH_MODE
+        or launched.get("run_name") != record.get("run_name")
+        or launched.get("invocation_ordinal") != invocation.get("invocation_ordinal")
+        or launched.get("launch_kind") != invocation.get("launch_kind")
+        or launched.get("command") != invocation.get("command")
+        or launched.get("git_head") != invocation.get("git_head")
+    ):
+        fail("launch record differs from the ledger invocation identity or command")
+    if process.get("trainer_pid") != invocation.get("process_pid") or process.get("start_utc") != invocation.get("start_utc"):
+        fail("launch process record differs from the ledger PID or start time")
+    if (
+        exited.get("trainer_pid") != invocation.get("process_pid")
+        or exited.get("exit_code") != invocation.get("exit_code")
+        or exited.get("end_utc") != invocation.get("end_utc")
+        or exited.get("wall_clock_secs") != invocation.get("wall_clock_secs")
+    ):
+        fail("launch exit record differs from the ledger exit code, end time, or wall time")
 
 
 def _assert_invocations(record: Mapping[str, Any], expected_head: str) -> Mapping[str, Any]:
@@ -777,6 +961,8 @@ def _assert_invocations(record: Mapping[str, Any], expected_head: str) -> Mappin
             fail("run invocation has invalid start/end UTC times")
         if started.tzinfo is None or ended.tzinfo is None or ended < started or (previous_end is not None and started < previous_end):
             fail("run invocation timestamps are missing zones or out of order")
+        if record.get("band_generation") == FINAL_GENERATION:
+            _assert_detached_launch(record, invocation)
         if ordinal == 1:
             if "--resume" in argv or invocation.get("resume_checkpoint") is not None:
                 fail("fresh invocation must not resume from a checkpoint")
@@ -803,11 +989,12 @@ def cmd_run_window() -> None:
     assert_generation_three_blocked_state_retained(ledger)
     assert_generation_four_blocked_state_retained(ledger)
     assert_generation_five_retained(ledger)
+    assert_generation_six_retained(ledger)
     current_records = [record for record in ledger["records"] if record.get("band_generation") == FINAL_GENERATION]
     current_generations = [generation for generation in ledger["band_generations"] if generation.get("band_generation") == FINAL_GENERATION]
     if current_records:
         if len(current_generations) != 1:
-            fail("generation-6 run records lack one generation header")
+            fail("generation-7 run records lack one generation header")
         for record in current_records:
             _assert_invocations(record, current_generations[0].get("git_head"))
     blocked = _blocked_state()
@@ -817,9 +1004,9 @@ def cmd_run_window() -> None:
         or blocked.get("evaluation") != "preserved-unspent"
         or blocked.get("terminal") is not False
     ):
-        fail("generation-6 operational/resource/guard blocked-state is incomplete and cannot close the run window")
+        fail("generation-7 operational/resource/guard blocked-state is incomplete and cannot close the run window")
     if blocked is not None:
-        fail("generation-6 operational/resource/guard blocked-state is incomplete and cannot close the run window")
+        fail("generation-7 operational/resource/guard blocked-state is incomplete and cannot close the run window")
     terminal = _terminal_state()
     if terminal is not None:
         reason = terminal.get("authorized_terminal_reason")
@@ -827,7 +1014,7 @@ def cmd_run_window() -> None:
             fail("terminal-state is not an authorized scientific unspent closure")
         for run_dir in _target_runs():
             _assert_no_evaluation(run_dir)
-        if (REPO_ROOT / "runs/stage0-v23g6-seed42").exists():
+        if (REPO_ROOT / "runs/stage0-v23g7-seed42").exists():
             _assert_seed42_setup(before_other_seeds=False)
         print("RUN-WINDOW-TERMINAL-OK")
         return
@@ -835,16 +1022,16 @@ def cmd_run_window() -> None:
     if final is None:
         fail("run window is neither complete nor an authorized terminal closure")
     if final != FINAL_GENERATION:
-        fail("final band generation is not the admitted generation 5")
+        fail(f"final band generation is not the admitted generation {FINAL_GENERATION}")
     records = [record for record in ledger["records"] if int(record.get("band_generation", -1)) == int(final)]
     graded = [record for record in records if record.get("in_final_band") is True]
-    smoke = [record for record in records if record.get("run_name") == "stage0-v23g6-smoke"]
-    expected_names = {"stage0-v23g6-smoke", "stage0-v23g6-seed41", "stage0-v23g6-seed42", "stage0-v23g6-seed43"}
+    smoke = [record for record in records if record.get("run_name") == "stage0-v23g7-smoke"]
+    expected_names = {"stage0-v23g7-smoke", "stage0-v23g7-seed41", "stage0-v23g7-seed42", "stage0-v23g7-seed43"}
     if (
         len(records) != 4 or len(smoke) != 1 or smoke[0].get("in_final_band") is not False
         or len(graded) != 3 or sorted(record.get("seed") for record in graded) != [41, 42, 43]
         or {record.get("run_name") for record in records} != expected_names
-        or any(record.get("run_name") != f"stage0-v23g6-seed{record.get('seed')}" for record in graded)
+        or any(record.get("run_name") != f"stage0-v23g7-seed{record.get('seed')}" for record in graded)
     ):
         fail("complete run window has wrong run names or lacks one smoke and three in-band seeds")
     _assert_seed42_setup(before_other_seeds=False)
@@ -909,7 +1096,7 @@ def cmd_candidate() -> None:
         if receipt.get("run_name") is not None or receipt.get("owner_stop") is not True:
             fail("no-candidate state must be explicit and preserve the evaluation")
     else:
-        if receipt.get("run_name") != f"stage0-v23g6-seed{first}" or receipt.get("seed") != first:
+        if receipt.get("run_name") != f"stage0-v23g7-seed{first}" or receipt.get("seed") != first:
             fail("candidate is not the first eligible seed in 42/41/43 order")
         best = receipt.get("candidate_best_sha256")
         if not isinstance(best, str) or not HEX64.fullmatch(best):

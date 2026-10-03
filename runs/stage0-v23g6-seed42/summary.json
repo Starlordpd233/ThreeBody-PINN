@@ -1,0 +1,35 @@
+{
+  "comparison": null,
+  "conformance": null,
+  "curriculum": [],
+  "disposition": "in_progress",
+  "eval01_precondition_i": false,
+  "final_losses": {
+    "angmom": null,
+    "data": null,
+    "energy": null,
+    "ic": null,
+    "phys": null,
+    "total": null
+  },
+  "header": {
+    "config_identity_digest": null,
+    "device": "mps",
+    "end_utc": null,
+    "env_fingerprint": {
+      "python_version": "3.11.15",
+      "sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+      "torch_build": "7269437d655783a26cba32aa88195b741ff496aa",
+      "torch_version": "2.12.1"
+    },
+    "precision": "float32",
+    "run_name": "stage0-v23g6-seed42",
+    "seed": 42,
+    "start_utc": "2026-09-29T03:46:14.276381+00:00",
+    "wall_clock_secs": null
+  },
+  "run_name": "stage0-v23g6-seed42",
+  "schema_version": 1,
+  "test_preview": null,
+  "validation": null
+}
