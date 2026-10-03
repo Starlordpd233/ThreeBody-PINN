@@ -5,15 +5,15 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 58
 current_phase_name: Verdict & Traceability Close
 current_plan: 0
-status: in_progress
-stopped_at: Phase 57 closed on its declared terminal branch; Phase 58 not yet planned (owner checkpoint ⑤ pending)
+status: phases-complete
+stopped_at: All six v2.3 phases complete; owner verdict rethink recorded; milestone archival and the trainex-r4 round not yet started
 last_updated: "2026-10-03T00:00:00Z"
 last_activity: 2026-10-03
-last_activity_desc: Phase 57 closed on the declared terminal branch. Generation-7 graded seed 42 tripped invariant B at step 951 (front high-water 2 since step 450; 501 > N=500); seeds 41/43 were not launched; no-candidate.json records the held-out evaluation preserved unspent. 57-VERIFICATION.md records SC3 unmet via the terminal branch (SC5). RUN-04/RUN-05/EVAL-02 dispositions are left for the Phase-58 owner verdict.
-state_head: 8363af14362dc7613347f354ab92322130a49188
+last_activity_desc: Phase 58 closed (adapted). The owner rendered the DIAG-06 verdict rethink at checkpoint five; RUN-04/RUN-05 closed incomplete and EVAL-02 not attempted, with the held-out evaluation preserved unspent; VER-21 re-verified 15/15. The next milestone routes to ERW round trainex-r4.
+state_head: ca6d8fc6
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 30
   completed_plans: 30
   percent: 100
@@ -26,18 +26,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-07)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** Phase 58 — Verdict & Traceability Close (owner checkpoint ⑤)
+**Current focus:** v2.3 milestone close, then the next milestone's ERW round `trainex-r4`
 
 ## Current Position
 
-Current Plan: none (Phase 58 not yet planned)
-Total Plans in Phase: TBD
+Current Plan: none
+Total Plans in Phase: n/a (Phase 58 used an adapted closeout)
 
-Phase: 58 — Verdict & Traceability Close
-Plan: not started; `progress.total_plans` counts plans planned so far, so 100% does not include Phase 58
-Status: Phase 57 closed 2026-10-03 on the roadmap's declared terminal branch. Generation-7 graded seed 42 tripped invariant B at step 951; seeds 41/43 were not launched; the sole held-out evaluation is preserved unspent (`no-candidate.json`; verifier `final` → FINAL-UNSPENT-OK). Phase 58 renders the owner's go / adjust / rethink verdict (`rethink`-flavored per ROADMAP Phase 58 SC3) and closes VER-21 traceability. RUN-04, RUN-05 and EVAL-02 dispositions are owner decisions at that verdict.
-Last activity: 2026-10-03 — Phase-57 closeout commits `86957639`, `629b1a6c`, `e0ec85f6`, `280f6efd`, `8363af14`; GAP-57-12 and GAP-57-13 resolved; `57-VERIFICATION.md` written.
-Resume file: .planning/ROADMAP.md Phase 58 — next action is the verdict evidence packet (including a read-only replay of the frozen monitor on retained generation-7 checkpoints), then owner checkpoint ⑤.
+Phase: 58 — Verdict & Traceability Close (complete 2026-10-03)
+Plan: all six v2.3 phases complete (53–58)
+Status: The owner's DIAG-06 verdict is **rethink** (`58-VERDICT.md`). RUN-04 and RUN-05 closed incomplete; EVAL-02 not attempted, so the sole held-out evaluation remains preserved unspent. VER-21 15/15 (`58-SUMMARY.md`). Stage-1+/PLAT-01..07 stay blocked (SCOPE-36), and SCOPE-37 bars tuning without a new owner decision.
+Last activity: 2026-10-03 — Phase 57 verification `dabd9ad7`; Phase-58 verdict packet `ca6d8fc6` (frozen-monitor replay: not a near miss); verdict and traceability recorded.
+Resume file: .planning/phases/58-verdict-traceability-close/58-VERDICT.md — next actions are v2.3 milestone archival (check that force-added run evidence stays tracked) and assembling the `trainex-r4` package per `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution

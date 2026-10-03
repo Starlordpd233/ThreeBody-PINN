@@ -230,7 +230,7 @@ Cross-cutting constraints:
 **Goal**: The owner grades the recalibrated design, and the milestone's traceability obligation closes against what the milestone actually became.
 **Depends on**: Phase 57 (the corrected re-run and the evaluation — or the recorded terminal branch in which the evaluation was preserved unspent).
 **Requirements**: DIAG-06, VER-21
-**Plans**: TBD
+**Plans**: adapted closeout (no discuss/plan cycle, the v2.2 Phase 52 precedent) — **complete 2026-10-03**. Owner verdict **`rethink`** at checkpoint ⑤ (`58-VERDICT.md`); RUN-04/RUN-05 closed incomplete and EVAL-02 not attempted (evaluation preserved unspent); VER-21 15/15 with no orphans or duplicates (`58-SUMMARY.md`); next milestone routes to ERW round `trainex-r4`.
 
 **Success Criteria** (what must be TRUE):
 
@@ -250,7 +250,7 @@ Cross-cutting constraints:
 | 55. Architecture Characterization Probe | v2.3 | 4/4 | Complete | 2026-09-06 |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 6/6 | Complete    | 2026-09-07 |
 | 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 6/6 | Complete (terminal branch) | 2026-10-03 |
-| 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |
+| 58. Verdict & Traceability Close | v2.3 | adapted | Complete (verdict `rethink`) | 2026-10-03 |
 
 ---
 *v2.3 created 2026-08-18 (`/gsd-new-milestone`, roadmap generated inline from the owner-ratified v2.3 roadmap proposal `docs/work/designs/cross_cutting/v2.3-milestone-proposal/2026-08-17-v2.3-roadmap-proposal.md`, ratified 2026-08-18 at `16434f50` — the v2.0/v2.1/v2.2 precedent; no GSD domain-research spawn, since external research for this milestone is routed through the governed ERW channel (ERW-01/02) and a generic web-research pass would produce exactly the unratified remedy analysis SCOPE-34 and the STOP protocol forbid). 6 phases (53–58) continuing numbering from v2.2's Phase 52; 15/15 requirements mapped (SPEC-02..05→53, ERW-01/02→54, INST-04→55, SPEC-01+SPEC-06+GATE-04→56, RUN-04/05+EVAL-02→57, DIAG-06+VER-21→58) — a one-to-one mapping onto the proposal's ratified A–F sequencing, with no merges, splits, or reordering. Grounded in the locked framework specs, v2.2's closure record, and the premise-qualified trainex-r2 report; scope boundaries SCOPE-33..38 are hard constraints and the five owner checkpoints are blocking. v2.2 archived under [`milestones/v2.2-*`](milestones/) (roadmap, requirements, gaps, phase dirs); its four inherited obligations are covered by SPEC-01 (obligation 1), EVAL-02 (2), SPEC-02..05 (3), and the "not reopened" grounding clause (4).*
