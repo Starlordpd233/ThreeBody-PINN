@@ -182,7 +182,7 @@ Plans:
 **Goal**: Stage-0 is re-run under the corrected recipe and — only if it actually trains — the single preserved held-out evaluation is spent, once, on a seed fixed before anyone saw a result.
 **Depends on**: Phase 56 — GATE-04 must pass before a Stage-0 run may be spent (SCOPE-35's single-look protection).
 **Requirements**: RUN-04, RUN-05, EVAL-02
-**Plans**: 4/6 plans executed (4/6 complete) — planned 2026-09-08. Plans 57-01 through 57-04 are the bounded conformance, verification, and pre-run authorization work; 57-05 and 57-06 are non-autonomous and retain explicit operator checkpoints before expensive training and before the sole held-out evaluation.
+**Plans**: 6/6 plans executed — planned 2026-09-08; **closed 2026-10-03 on the declared terminal branch** (SC5). Band generations 1–6 ended in owner-ruled operational blocks or historical attempts (GAP-57-02..12). On generation 7 (HEAD `629b1a6c`) the smoke finished, the seed-42 setup check passed, and graded seed 42 tripped invariant B at step 951 (front high-water 2 since step 450; 501 > N=500). Seeds 41/43 were not launched and the sole held-out evaluation is preserved unspent. See `57-05-SUMMARY.md`, `57-06-SUMMARY.md`, and `57-VERIFICATION.md` (SC3 unmet via the terminal branch).
 
 Plans:
 
@@ -204,11 +204,11 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion; operator checkpoint before compute)*
 
-- [ ] 57-05-PLAN.md — immutable-HEAD seed-42 smoke and seeds 41/42/43 Stage-0 band, or the ratified scientific terminal-unspent state; resource and operational failures remain incomplete rather than being normalized into success (RUN-04, RUN-05)
+- [x] 57-05-PLAN.md — immutable-HEAD seed-42 smoke and seeds 41/42/43 Stage-0 band, or the ratified scientific terminal-unspent state; resource and operational failures remain incomplete rather than being normalized into success (RUN-04, RUN-05) — complete 2026-10-03 on the terminal branch (`invariant_b_halt_no_advance`, generation 7, seed 42 step 951)
 
 **Wave 6** *(blocked on Wave 5 completion; operator checkpoint before the held-out look)*
 
-- [ ] 57-06-PLAN.md — structural-only candidate selection in order 42, 41, 43; immediate three-precondition and canonical-frame proof; exactly one evaluation invocation or a durable authorized unspent record (EVAL-02)
+- [x] 57-06-PLAN.md — structural-only candidate selection in order 42, 41, 43; immediate three-precondition and canonical-frame proof; exactly one evaluation invocation or a durable authorized unspent record (EVAL-02) — complete 2026-10-03: `no-candidate.json`, evaluation preserved unspent
 
 Cross-cutting constraints:
 
@@ -249,7 +249,7 @@ Cross-cutting constraints:
 | 54. Recalibration Decision Grounding | v2.3 | 13/13 | Complete | 2026-09-04 |
 | 55. Architecture Characterization Probe | v2.3 | 4/4 | Complete | 2026-09-06 |
 | 56. Contract Amendment & Train-Free Gate | v2.3 | 6/6 | Complete    | 2026-09-07 |
-| 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 4/6 | In Progress|  |
+| 57. Corrected Re-Run & the Preserved Evaluation | v2.3 | 6/6 | Complete (terminal branch) | 2026-10-03 |
 | 58. Verdict & Traceability Close | v2.3 | 0/? | Not started | - |
 
 ---
