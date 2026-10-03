@@ -1,0 +1,7 @@
+{
+  "evaluation": "preserved-unspent",
+  "owner_stop": true,
+  "reason": "invariant_b_halt_no_advance",
+  "schema": "phase57-no-candidate/v1",
+  "terminal_state_sha256": "35fe3afd19ded9b2714c0ee45ab806fe2e19211c8897a5cab608be6bb6b7d941"
+}
