@@ -236,6 +236,48 @@
 
 ---
 
+## Milestone: v2.3 — Causal-Weight/SIREN-Scale Recipe Adjudication
+
+**Closed:** 2026-10-04 on the declared terminal state (owner verdict `rethink`, 2026-10-03)
+**Phases:** 6 (53–58) | **Plans:** 30
+
+### What Was Built
+- The four research-free VER-20 items codified in `pinn_architecture.md` (SPEC-02..05)
+- The governed recalibration decision: a non-recommending packet, the `trainex-r3` ERW round with Rule-19 verification of both returned reports, and an owner-delegated ruling (`54-RULING.md`), written into §3.2 as a SCOPE-38 contract amendment (SPEC-01/06)
+- INST-04, the architecture-only characterization probe, and GATE-04, a fail-closed train-free gate shown to BLOCK the pre-amendment recipe and to PASS the amended one with a governed `R_ref`
+- Production-trainer conformance to the amended recipe (4096 rows in 16 bins, frozen-`R_ref` normalization, one frozen invariant-B monitor, frozen L-BFGS segments), a version-2 per-invocation run ledger, Git-retained run evidence with size/SHA-256 manifests, and a detached run launcher
+- The Phase-58 verdict packet, with a frozen-monitor replay of the generation-7 stall
+
+### What Worked
+- Declaring the terminal state in the roadmap: when the front stalled, the milestone closed cleanly with the evaluation unspent and no pressure to tune
+- Proving the gate refuses (Phase 56 SC5) made the GATE-04 PASS evidence rather than a no-op
+- Gap discipline under repeated operational failure: each of generations 1–6 got an owner ruling and preserved evidence instead of a silent retry (GAP-57-02..12)
+- The verifier failed closed after the terminal branch: re-admission of a new run window is refused
+
+### What Was Inefficient
+- Six of seven band generations ended for operational reasons (memory guard, interrupted smoke, sandbox block, operator stop, telemetry fix, silent process loss) before one produced a graded result; Phase 57 ran from 2026-09-08 to 2026-10-03
+- Process-lifetime infrastructure arrived last: the detached launcher with retained output came only after generation 6 died with no recoverable cause
+- GSD state tooling again mangled STATE.md at close (`milestone.complete` regressed `completed_phases` 6→3 and wiped the position block); restored from a snapshot and edited by hand
+- Archive moves keep breaking hardcoded test paths (`tests/phase43`, `tests/phase50`); v2.3 left its phase folders in place rather than repeat it
+
+### Patterns Established
+- A roadmap-declared terminal state, carried explicitly by the phases that can reach it
+- A train-free gate with a demonstrated refusal, required before any run is spent
+- Per-invocation run ledgers plus exact-path Git retention with size/SHA-256 manifests for run evidence
+- Detached, supervised launch for long runs (own session, retained output, exit record)
+
+### Key Lessons
+1. A train-free gate at initialization is necessary but not sufficient: GATE-04 passed and the front left the floor, yet it stalled at 2 under training. Initialization health does not establish front advance.
+2. Settle run infrastructure (process lifetime, logging, memory bounds) before opening a single-look run window; operational losses cost more wall-clock time than the science.
+3. Naming the failure branch in advance turns a negative result into a clean close instead of a drift.
+
+### Cost Observations
+- Model mix: not captured reliably
+- Sessions: many (a multi-session run window across about four weeks)
+- Notable: 172 commits, 2026-08-18 → 2026-10-03; the generation-7 window took 4 h 21 min (smoke 64 min, graded seed 42 194 min). Master merge and tag push deliberately NOT performed — owner-controlled integration.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -248,6 +290,7 @@
 | v1.6 | many (relay) | 7 | Third adjudication milestone (curriculum + training loop); specwork-only with implementation routed to trainex; multi-agent closure relay via cross-session watchdog |
 | v2.0 | many (watchdog waves) | 7 | First build milestone (trainex track): production `pinn/` from specs, owner-carved seams ratified at designed moments, one-time budget-bound held-out evaluation, honest FAIL → `adjust` verdict |
 | v2.1 | several (inline + closeout chain) | 2 | Diagnose-then-hand-off investigation: read-only forensics over retained artifacts + trainex-r2 ERW package; conformance audit reframed the FAIL as an assembly divergence, seeding conformance-first v2.2 |
+| v2.3 | many (multi-session run window) | 6 | Recipe adjudication through the governed ERW channel, a SCOPE-38 contract amendment, and a train-free gate; first milestone to close on a roadmap-declared terminal state (`rethink`, evaluation preserved) |
 
 ### Cumulative Quality
 
@@ -259,6 +302,7 @@
 | v1.6 | 30 | 32/32 requirements; 7/7 phases; 26/26 acceptance probes PASS; ledger 18/18 VERIFIED | 0 open at close |
 | v2.0 | 60 | 42/42 requirements; 7/7 phases; integration 6/6 WIRED; held-out gate honestly FAIL | 0 open at close (10 acknowledged deferrals) |
 | v2.1 | 9 | 7/7 requirements; 2/2 phases; integration 3/3 WIRED; package audited PASS (ten checks) | 0 open at close (6 obligations inherited by v2.2) |
+| v2.3 | 30 | 12/15 requirements (2 closed incomplete, 1 not attempted); 6/6 phases; VER-21 15/15; GATE-04 PASS | 0 open gaps at close (GAP-56-02 deferred; 5 obligations inherited) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -268,3 +312,4 @@
 4. Source-silent semantic decisions must stop for user instruction rather than being inferred
 5. Executable acceptance evidence is part of the specification closure contract
 6. Verify what actually executed against the spec before trusting any result derived from it — a failing gate over a non-conformant run is evidence about the assembly, not the design (v2.1)
+7. Declare the failure branch before it is needed: a pre-named terminal state lets a negative result close cleanly and keeps a single-look evaluation unspent (v2.3)

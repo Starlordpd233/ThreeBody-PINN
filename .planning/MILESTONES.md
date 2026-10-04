@@ -1,5 +1,28 @@
 # Milestones
 
+## v2.3 Causal-Weight/SIREN-Scale Recipe Adjudication (Closed on the declared terminal state: 2026-10-04)
+
+**Phases completed:** 6 phases (53–58), 30 plans, 73 tasks (Phase 58 was an adapted closeout with no plans); 172 commits, 2026-08-18 → 2026-10-03
+
+**Owner verdict:** `rethink` (checkpoint ⑤, 2026-10-03). Requirements: 12/15 Complete; RUN-04 and RUN-05 closed incomplete; EVAL-02 not attempted, with the held-out evaluation preserved unspent.
+
+**Key accomplishments:**
+
+- Codified the four VER-20 items that needed no research (Phase 53): the locked PHYS-05 `λ_phys^max` values, a locked-vs-default marker convention for tables, the `L_data` mean reduction, and the worst-case-max held-out gate statistic (SPEC-02..05).
+- Took the causal-weight/SIREN-scale recalibration through the governed channel (Phase 54): a non-recommending packet, the `trainex-r3` ERW round with Rule-19 verification of both returned reports, and an owner-delegated ruling, `A1 + B2 (residual-wide) + C1 + D3 + E1` (`54-RULING.md`).
+- Landed INST-04, the architecture-only characterization probe, as tested tooling that reproduces the 2026-08-17 audit's six-row table (Phase 55).
+- Wrote the ruling into `pinn_architecture.md` §3.2 as a SCOPE-38 contract amendment, with the `first_omega_0` and clip contracts recorded as NOT AMENDED. Built GATE-04, the fail-closed train-free gate, which blocks the pre-amendment recipe and passes the amended one with a governed `R_ref = 1.9749775821244170e+10` (Phase 56).
+- Wired the amended recipe into the production trainer (4096 rows in 16 bins, frozen-`R_ref` normalization, one frozen invariant-B monitor, frozen L-BFGS segments) and re-ran Stage-0 (Phase 57). Generations 1–6 produced no graded result and were each handled by an owner ruling. On generation 7, graded seed 42 tripped invariant B at step 951 (front stuck at 2 since step 450), which is the declared terminal state. Seeds 41/43 were not launched and the evaluation was not spent.
+- Rendered the DIAG-06 verdict on a packet whose frozen-monitor replay showed the stall was not a near miss (bins 0–2 sum 1.189 against the 0.693 bar). Re-verified VER-21 at 15/15, and routed the next milestone to ERW round `trainex-r4` (Phase 58).
+
+**Known gaps:** RUN-04 (the causal front did not keep advancing), RUN-05 (no three-seed band), EVAL-02 (not attempted; evaluation preserved). GAP-56-02 DEFERRED to the milestone after `trainex-r4`.
+
+**Close type:** override closeout. Phases 55 and 56 were flagged stale only because closeout files were added after their verification. Phase 58 has no VERIFICATION.md because it used an adapted closeout. There is no milestone audit file (v2.2 precedent). Known verification overrides: 18 open-artifact items carried forward and recorded in STATE.md Deferred Items rather than acknowledged in the archived files (owner decision, 2026-10-04); 0 previously acknowledged.
+
+**Archive:** [roadmap](milestones/v2.3-ROADMAP.md), [requirements](milestones/v2.3-REQUIREMENTS.md), [gaps](milestones/v2.3-GAPS.md). Phase folders 53–58 stay in `.planning/phases/` (owner decision, 2026-10-04).
+
+---
+
 ## v2.1 Physics-Gate Investigation & trainex-r2 Research Package (Shipped: 2026-07-24)
 
 **Phases completed:** 2 phases (44–45), 9 plans

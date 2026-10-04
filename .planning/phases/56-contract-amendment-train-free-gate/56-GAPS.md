@@ -15,6 +15,8 @@ MUST-surface class — both entries below are acceptance-check-schema / spec-
 convention decisions, not mechanical or test-design calls. **2026-09-08 update:**
 the owner directly fixed GAP-56-01 and checkpoints ③/④; GAP-56-01 is now
 RESOLVED-WITH-INSTRUCTION below. GAP-56-02 remains OPEN and independent.
+**2026-10-04 update:** at the v2.3 milestone close the owner deferred
+GAP-56-02 to the milestone after `trainex-r4`; see its resolution note.
 
 Both gaps were surfaced during the Phase 56 **discuss** step, before any plan or
 edit, so they are visible to the researcher and planner rather than hit by the
@@ -252,6 +254,12 @@ proceed; only the items named in each entry wait.
   the locked-vs-default convention propagates through the framework spec, which
   is a cross-cutting documentation-governance question.
 
-- **Status.** OPEN.
+- **Status.** DEFERRED (2026-10-04).
 
-- **Resolution note.** _(empty — awaiting owner instruction)_
+- **Resolution note.** At the v2.3 milestone close (2026-10-04) the owner
+  deferred this decision to the milestone that follows the `trainex-r4`
+  External Research Workflow round. None of options A, B, or C was chosen.
+  `pinn_architecture.md` §2.4 stays untouched until then. The agent's reason
+  for recommending deferral is that `trainex-r4` carries SIREN `ω₀` as an
+  open question (`58-VERDICT.md`), so marking or footnoting `first_omega_0`
+  as locked now could anticipate its outcome.

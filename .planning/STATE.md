@@ -5,12 +5,12 @@ milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
 current_phase: 58
 current_phase_name: Verdict & Traceability Close
 current_plan: 0
-status: phases-complete
-stopped_at: All six v2.3 phases complete; owner verdict rethink recorded; milestone archival and the trainex-r4 round not yet started
-last_updated: "2026-10-03T00:00:00Z"
-last_activity: 2026-10-03
-last_activity_desc: Phase 58 closed (adapted). The owner rendered the DIAG-06 verdict rethink at checkpoint five; RUN-04/RUN-05 closed incomplete and EVAL-02 not attempted, with the held-out evaluation preserved unspent; VER-21 re-verified 15/15. The next milestone routes to ERW round trainex-r4.
-state_head: ca6d8fc6
+status: milestone-closed
+stopped_at: "v2.3 archived 2026-10-04 (verdict rethink); next milestone ERW round trainex-r4 not yet started"
+last_updated: "2026-10-04T00:00:00Z"
+last_activity: 2026-10-04
+last_activity_desc: v2.3 milestone closed and archived (override closeout). Roadmap, requirements, and gap index archived under milestones/v2.3-*; phase folders 53-58 left in place by owner decision; GAP-56-02 deferred; 18 inherited open-artifact items recorded below. The next milestone routes to ERW round trainex-r4.
+state_head: 0f216177
 progress:
   total_phases: 6
   completed_phases: 6
@@ -23,21 +23,18 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-07)
+See: .planning/PROJECT.md (updated 2026-10-04)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** v2.3 milestone close, then the next milestone's ERW round `trainex-r4`
+**Current focus:** the next milestone's ERW round `trainex-r4` (v2.3 closed 2026-10-04)
 
 ## Current Position
 
-Current Plan: none
-Total Plans in Phase: n/a (Phase 58 used an adapted closeout)
+**v2.3 CLOSED 2026-10-04 on the declared terminal state (owner verdict `rethink`, 2026-10-03).**
+All six phases (53–58) complete; 12/15 requirements Complete, RUN-04/RUN-05 closed incomplete, EVAL-02 not attempted (the sole held-out evaluation remains preserved unspent). Archived under `milestones/v2.3-*` (roadmap, requirements, gap index with a "Milestone close" section). The phase folders 53–58 stay in `.planning/phases/` because the Phase 57 verifier and its tests hardcode that path (owner decision 2026-10-04). GAP-56-02 DEFERRED to the milestone after `trainex-r4`.
 
-Phase: 58 — Verdict & Traceability Close (complete 2026-10-03)
-Plan: all six v2.3 phases complete (53–58)
-Status: The owner's DIAG-06 verdict is **rethink** (`58-VERDICT.md`). RUN-04 and RUN-05 closed incomplete; EVAL-02 not attempted, so the sole held-out evaluation remains preserved unspent. VER-21 15/15 (`58-SUMMARY.md`). Stage-1+/PLAT-01..07 stay blocked (SCOPE-36), and SCOPE-37 bars tuning without a new owner decision.
-Last activity: 2026-10-03 — Phase 57 verification `dabd9ad7`; Phase-58 verdict packet `ca6d8fc6` (frozen-monitor replay: not a near miss); verdict and traceability recorded.
-Resume file: .planning/phases/58-verdict-traceability-close/58-VERDICT.md — next actions are v2.3 milestone archival (check that force-added run evidence stays tracked) and assembling the `trainex-r4` package per `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`.
+Last activity: 2026-10-04 — v2.3 archived via `/gsd-complete-milestone` (override closeout; see Deferred Items).
+**Next:** assemble the `trainex-r4` ERW package per `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`, carrying the open questions in `58-VERDICT.md`; then initialize the next milestone. No run is authorized until the round returns and the owner rules.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -222,6 +219,30 @@ reading; or accept the record. Full record: `evidence/frame-re-ratification/2026
 
 ## Deferred Items
 
+Items deferred at milestone close on 2026-10-04 (v2.3). Owner decision: record them here only. The GSD acknowledge tool was not run, because it writes markers into the archived files, so these items will reappear in the next `audit-open` scan.
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | phase39-collocation-slot-multiplicity | Carried from the v2.0 close; session record [diagnosed], never formally closed |
+| debug | phase39-memory-guard-validation | Carried from the v2.0 close; session record [investigating], never formally closed |
+| uat | 38-UAT partial (v2.0) | Carried from the v2.0 close; stale-satisfied, frontmatter never updated |
+| uat | 24-UAT, 25-UAT (v1.5) | Flagged by the scanner with status `passed` and 0 pending scenarios; no outstanding item found |
+| verification | 41-VERIFICATION, 42-VERIFICATION human_needed (v2.0) | Carried from the v2.0 close (41 stale-satisfied; 42 non-blocking manual checks) |
+| verification | 50-VERIFICATION gaps_found (v2.2) | v2.2 Phase 50 closed incomplete by owner decision (`stop-incomplete`, 2026-08-17) |
+| pending_todo | trainex-r1-research-handoff, d-06-static-epsilon-sensitivity-check | Carried from the v1.6 and v2.0 closes; deliberate carry-forwards |
+| deferred_items | Phase 57: Phase-50 adjacent tests expect `.planning/phases/50-…` | v2.3's own item. Pre-existing path breakage from the v2.2 archive move; the fix edits archived evidence and needs an owner decision |
+| deferred_items | Phase 46 DI-46-04-01, Phase 47 ×4: `tests/phase43` path failures (v2.2) | Carried; `tests/phase43` still points at pre-archive v2.0 paths |
+| deferred_items | Phase 46 DI-46-05-01: `tests/watchdog/test_global_packaging.py` (v2.2) | Carried; watchdog repo source vs global deploy drift |
+| deferred_items | Phase 43 DI-43-04-02: `tests/phase42` launch-gate failures (v2.0) | Carried; informational |
+| verification_flag | Phases 55 and 56 `stale` | Closeout files added after verification (55: UAT and coverage; 56: GATE-04 re-run and gap rulings). Both VERIFICATION.md files are `passed`; Phase 57 re-confirmed GATE-04 PASS |
+| verification_flag | Phase 58 has no VERIFICATION.md | Adapted closeout, the v2.2 Phase 52 precedent; VER-21 re-verified 15/15 in `58-SUMMARY.md` |
+| gap | GAP-56-02 | DEFERRED by the owner to the milestone after `trainex-r4` |
+
+Closeout type: `override_closeout`. The scan reported 18 open items (2 debug, 3 uat, 3 verification, 2 todos, 8 deferred_items; rows above group them), with 0 acknowledged by a prior close. There is no v2.3 milestone audit file (v2.2 precedent). Milestone verdict: owner-signed `rethink` (`58-VERDICT.md`).
+
+<details>
+<summary>Prior close (v2.0, 2026-07-23)</summary>
+
 Items acknowledged and deferred at milestone close on 2026-07-23 (v2.0):
 
 | Category | Item | Status |
@@ -238,6 +259,8 @@ Items acknowledged and deferred at milestone close on 2026-07-23 (v2.0):
 | audit_warning | W-3 ACC-05 spread location | Spread lives in 43-CALIBRATION.md, not pilot summary.md; substance complete and ratified |
 
 Closeout type: `override_closeout` — all 7 v2.0 phases verification-scored in full and 42/42 requirements Complete; overrides are the acknowledged items above (see `.planning/v2.0-MILESTONE-AUDIT.md`, status `tech_debt`). Milestone verdict: owner-signed `adjust` (43-VERDICT.md).
+
+</details>
 
 <details>
 <summary>Prior close (v1.6, 2026-07-02)</summary>
@@ -588,15 +611,19 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/phases/57-corrected-re-run-the-preserved-evaluation/57-05-PLAN.md
+**Resume file:** .planning/milestones/v2.3-GAPS.md ("Milestone close" — inherited obligations)
 
-Last session: 2026-09-08T10:08:00Z
-Stopped at: Completed 57-04-PLAN.md
-Next action: Run Plan 57-05's immutable run-window admission and wait for explicit operator authorization before the seed-42 smoke and graded band. RUN-04 remains unspent; no Stage-0 or held-out evaluation run has started.
+Last session: 2026-10-04
+Stopped at: v2.3 archived (verdict `rethink`)
+Next action: assemble the `trainex-r4` ERW package (runbook `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`), seeded by the open questions in `58-VERDICT.md` and the Phase-58 verdict packet.
 
 ## Operator Next Steps
 
-- **Execute Plan 57-05 only after its precondition is checked.** The fresh complete GATE-04, final-R_ref production conformance, and `admit-run-window` receipt now pass; the next action is the explicit operator authorization before any smoke/band compute.
+- **Assemble the `trainex-r4` ERW package** — carrying the open questions in `58-VERDICT.md`; no run is authorized until the round returns and the owner rules.
+- **Owner decisions still open:** whether the Phase-50 (and Phase-43) test paths may be repaired by editing archived evidence; where the v2.3 phase folders should live once the next milestone starts.
+- **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.
+- ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
+- ~~Execute Plan 57-05 only after its precondition is checked.~~ Done 2026-10-03 (generation-7 terminal branch). The fresh complete GATE-04, final-R_ref production conformance, and `admit-run-window` receipt now pass; the next action is the explicit operator authorization before any smoke/band compute.
 - **Keep checkpoint ④'s selection rule fixed.** Seed 42, then 41 and 43 only for structural ineligibility; no observed scientific metric may trigger fallback.
 - **Keep checkpoint ⑤ owner-only.** The DIAG-06 go / adjust / rethink verdict remains downstream of RUN-04/05 and EVAL-02.
 - ~~Execute Phase 44~~ — complete 2026-07-23 (qualified by `44-ERRATUM.md` 2026-07-24)
