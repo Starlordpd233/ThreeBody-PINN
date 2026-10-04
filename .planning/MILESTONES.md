@@ -23,6 +23,29 @@
 
 ---
 
+## v2.2 Stage-0 Conformance Repair & Valid Re-Run (Closed incomplete: 2026-08-17)
+
+**Phases:** 7 planned (46–52). Phases 46–49 are complete, Phase 50 closed incomplete, Phase 51 was not attempted, and Phase 52 was an adapted closeout. 38 plans, 34 executed. 211 commits, 2026-07-25 → 2026-08-17.
+
+**Owner decision:** `stop-incomplete` at the Plan 50-08 checkpoint (2026-08-17).
+
+**Requirements:** 20/24 Complete. RUN-01 and RUN-02 closed incomplete. RUN-03 and EVAL-01 were not attempted; the held-out evaluation was preserved unspent.
+
+**Key accomplishments:**
+
+- **Settled the frame question (Phase 46).** The CONF-01 branch point fired `VERDICT_AMBIGUOUS` and was owner-settled under GAP-46-06. CONF-08 repaired the mass↔position permutation and the COM/boost gauge. INST-01 added per-trajectory `ε_H`/SCS validation metrics as a fail-closed receipt.
+- **Completed the canonical frame and the `S_H` pipeline (Phase 47).** CONF-09 moved residency to `pre.r_gauge`/`pre.v_gauge` and re-ratified the validation frame. CONF-02 built `S_H = median_train(K0 + Uabs0)`. CONF-03 wired `ε_H = 1e-4 · S_H` and removed the additive fallback floor.
+- **Made the executed loss math match the specs (Phase 48).** This covered `R̄ = (1/3)Σ‖f_i‖²`, the causal-exponent clip, `λ_E^max → 0`, and the `L_data` reduction (GAP-45-01 owner checkpoint). It also added per-term gradient statistics (CONF-04..07, INST-02, TEST-01/02).
+- **Built the conformance gate (Phase 49).** The PHYS-05 table is asserted at run start and at stage boundaries. The phase added a placeholder census, runtime invariants A and B with invariant-B `N = 500` ratified 2026-08-05, and a divergence register (GATE-01..03, INST-03).
+- **Re-ran Stage-0 under the corrected recipe (Phase 50).** Generation 3, seed 41, halted at invariant B at step 501, with `front_idx = 0` throughout. A same-day residual-frame conformance audit traced the halt to the SIREN `ω₀ = 30` second-derivative scale against an unnormalized `η_c = 1` causal-weight calibration. That is a property of the locked architecture at initialization, and v2.2 could not fix it (SCOPE-30).
+- **Discharged DIAG-05, VER-19, and VER-20 in adapted form (Phase 52).** This superseded the Phase 44 diagnosis rankings and routed five spec-amendment items. The substantive one, the causal-weight/SIREN-scale calibration, went to v2.3.
+
+**Known gaps:** RUN-01 and RUN-02 (no completed conformant band). RUN-03 and EVAL-01 (not attempted; the evaluation was preserved for v2.3).
+
+**Archive:** [roadmap](milestones/v2.2-ROADMAP.md), [requirements](milestones/v2.2-REQUIREMENTS.md), [gaps](milestones/v2.2-GAPS.md), [phase archive](milestones/v2.2-phases/). The phase folders moved at the v2.3 start (`12e16d7b`). There is no `v2.2` tag. This entry was backfilled on 2026-10-04, because the v2.2 close recorded no MILESTONES.md entry.
+
+---
+
 ## v2.1 Physics-Gate Investigation & trainex-r2 Research Package (Shipped: 2026-07-24)
 
 **Phases completed:** 2 phases (44–45), 9 plans

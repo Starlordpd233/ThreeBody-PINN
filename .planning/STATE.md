@@ -230,8 +230,8 @@ Items deferred at milestone close on 2026-10-04 (v2.3). Owner decision: record t
 | verification | 41-VERIFICATION, 42-VERIFICATION human_needed (v2.0) | Carried from the v2.0 close (41 stale-satisfied; 42 non-blocking manual checks) |
 | verification | 50-VERIFICATION gaps_found (v2.2) | v2.2 Phase 50 closed incomplete by owner decision (`stop-incomplete`, 2026-08-17) |
 | pending_todo | trainex-r1-research-handoff, d-06-static-epsilon-sensitivity-check | Carried from the v1.6 and v2.0 closes; deliberate carry-forwards |
-| deferred_items | Phase 57: Phase-50 adjacent tests expect `.planning/phases/50-…` | v2.3's own item. Pre-existing path breakage from the v2.2 archive move; the fix edits archived evidence and needs an owner decision |
-| deferred_items | Phase 46 DI-46-04-01, Phase 47 ×4: `tests/phase43` path failures (v2.2) | Carried; `tests/phase43` still points at pre-archive v2.0 paths |
+| deferred_items | Phase 57: Phase-50 adjacent tests expect `.planning/phases/50-…` | **Resolved 2026-10-04** (owner instruction): test-only fix, with the archived evidence unchanged; `tests/phase50` 52/52 OK |
+| deferred_items | Phase 46 DI-46-04-01, Phase 47 ×4: `tests/phase43` path failures (v2.2) | **Resolved 2026-10-04**: the tests read from `milestones/v2.0-phases/`; `tests/phase43` 198/198 OK |
 | deferred_items | Phase 46 DI-46-05-01: `tests/watchdog/test_global_packaging.py` (v2.2) | Carried; watchdog repo source vs global deploy drift |
 | deferred_items | Phase 43 DI-43-04-02: `tests/phase42` launch-gate failures (v2.0) | Carried; informational |
 | verification_flag | Phases 55 and 56 `stale` | Closeout files added after verification (55: UAT and coverage; 56: GATE-04 re-run and gap rulings). Both VERIFICATION.md files are `passed`; Phase 57 re-confirmed GATE-04 PASS |
@@ -620,7 +620,7 @@ Next action: owner hands the package to external agents (attach three files, pas
 ## Operator Next Steps
 
 - **Hand off `trainex-r4`** — the package is assembled and audited (2026-10-04); follow its `DELIVERY-NOTE.md`. Returned reports land in `research_results/` and need the Rule-19 verification report before any claim is used. No run is authorized until the round returns and the owner rules.
-- **Owner decisions still open:** whether the Phase-50 (and Phase-43) test paths may be repaired by editing archived evidence; where the v2.3 phase folders should live once the next milestone starts.
+- **Owner decision still open:** where the v2.3 phase folders should live once the next milestone starts. (The Phase-50 and Phase-43 test paths were fixed on 2026-10-04 without editing archived evidence.)
 - **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.
 - ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
 - ~~Execute Plan 57-05 only after its precondition is checked.~~ Done 2026-10-03 (generation-7 terminal branch). The fresh complete GATE-04, final-R_ref production conformance, and `admit-run-window` receipt now pass; the next action is the explicit operator authorization before any smoke/band compute.

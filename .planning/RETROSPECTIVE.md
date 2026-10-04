@@ -236,6 +236,51 @@
 
 ---
 
+## Milestone: v2.2 — Stage-0 Conformance Repair & Valid Re-Run
+
+**Closed incomplete:** 2026-08-17 (owner decision `stop-incomplete`)
+**Phases:** 7 (46–52) | **Plans:** 38 (34 executed)
+
+*Backfilled 2026-10-04: the v2.2 close recorded no retrospective section. Drawn only from the v2.2 archive and the v2.3 roadmap's own statements about v2.2.*
+
+### What Was Built
+- Repairs for all nine verified Stage-0 conformance divergences (C-01..C-09):
+  - frame and gauge (Phases 46–47);
+  - the `S_H` pipeline and `ε_H` wiring (Phase 47);
+  - the loss math, including `R̄`, the clip, `λ_E`, and the `L_data` reduction (Phase 48).
+- Gate-aligned instrumentation: per-trajectory `ε_H`/SCS validation receipts, per-term gradient statistics, and a preflight conformance gate with runtime invariants A/B and a divergence register (Phase 49).
+- The first conformant Stage-0 re-run (Phase 50), which halted at invariant B at step 501 with `front_idx = 0`.
+- The bounded 2026-08-17 residual-frame conformance audit, which attributed the halt to the locked architecture at initialization.
+
+### What Worked
+- Train-free checks before spending a run:
+  - RG-02 was tested by a residual-on-stored-targets check with no training run, and the owner settled it from that check's measured evidence;
+  - the 2026-08-17 audit characterized the architecture at initialization without data or an optimizer.
+- Owner checkpoints at designed moments: the CONF-01 branch point, GAP-45-01's `L_data` reduction, and invariant-B `N`.
+- Preserving the single held-out evaluation instead of spending it on a run known not to have trained.
+
+### What Was Inefficient
+- Phase 49's first verification found gaps (4/6), and the phase needed three remediation waves (49-07, 49-08, 49-09).
+- Phase 50 used three band generations before the halt. The cause sat in the spec calibration itself, which no v2.2 phase was authorized to change (SCOPE-30).
+- Moving the phase folders at the v2.3 start broke the `tests/phase50` path assumptions. This was found during v2.3 and fixed on 2026-10-04.
+
+### Patterns Established
+- Conformance-first: repair verified divergences and prove the repair before re-running or tuning.
+- A preflight conformance gate and a machine-readable divergence register as run preconditions.
+- Fail-closed, run-bound receipts for validation-side gate metrics.
+
+### Key Lessons
+1. A conformant implementation can still fail by design. Once the divergences were repaired, the remaining failure was a calibration mismatch between two independently locked spec sections.
+2. Name the terminal branch before it is needed. v2.3 wrote this into its roadmap as "v2.2's lesson".
+3. A gate at initialization can catch a saturated causal weighting before a run is spent. v2.3's GATE-04 demonstration is recorded as "the check that would have spared v2.2's generation-3 run".
+
+### Cost Observations
+- Model mix: not captured reliably.
+- Sessions: many.
+- Notable: 211 commits, 2026-07-25 → 2026-08-17. The milestone closed without MILESTONES.md or RETROSPECTIVE.md entries; both were backfilled on 2026-10-04.
+
+---
+
 ## Milestone: v2.3 — Causal-Weight/SIREN-Scale Recipe Adjudication
 
 **Closed:** 2026-10-04 on the declared terminal state (owner verdict `rethink`, 2026-10-03)
@@ -290,6 +335,7 @@
 | v1.6 | many (relay) | 7 | Third adjudication milestone (curriculum + training loop); specwork-only with implementation routed to trainex; multi-agent closure relay via cross-session watchdog |
 | v2.0 | many (watchdog waves) | 7 | First build milestone (trainex track): production `pinn/` from specs, owner-carved seams ratified at designed moments, one-time budget-bound held-out evaluation, honest FAIL → `adjust` verdict |
 | v2.1 | several (inline + closeout chain) | 2 | Diagnose-then-hand-off investigation: read-only forensics over retained artifacts + trainex-r2 ERW package; conformance audit reframed the FAIL as an assembly divergence, seeding conformance-first v2.2 |
+| v2.2 | many | 7 | Conformance-first repair of nine verified divergences plus a preflight conformance gate; the first conformant Stage-0 re-run halted at initialization; closed `stop-incomplete` with the evaluation preserved |
 | v2.3 | many (multi-session run window) | 6 | Recipe adjudication through the governed ERW channel, a SCOPE-38 contract amendment, and a train-free gate; first milestone to close on a roadmap-declared terminal state (`rethink`, evaluation preserved) |
 
 ### Cumulative Quality
@@ -302,6 +348,7 @@
 | v1.6 | 30 | 32/32 requirements; 7/7 phases; 26/26 acceptance probes PASS; ledger 18/18 VERIFIED | 0 open at close |
 | v2.0 | 60 | 42/42 requirements; 7/7 phases; integration 6/6 WIRED; held-out gate honestly FAIL | 0 open at close (10 acknowledged deferrals) |
 | v2.1 | 9 | 7/7 requirements; 2/2 phases; integration 3/3 WIRED; package audited PASS (ten checks) | 0 open at close (6 obligations inherited by v2.2) |
+| v2.2 | 38 (34 executed) | 20/24 requirements (2 closed incomplete, 2 not attempted); phases 46–49 verified; Phase 50 closed incomplete | 0 open gaps at close (4 obligations inherited by v2.3) |
 | v2.3 | 30 | 12/15 requirements (2 closed incomplete, 1 not attempted); 6/6 phases; VER-21 15/15; GATE-04 PASS | 0 open gaps at close (GAP-56-02 deferred; 5 obligations inherited) |
 
 ### Top Lessons (Verified Across Milestones)
