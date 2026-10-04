@@ -15,6 +15,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import unittest
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Mapping
@@ -36,8 +37,12 @@ FINAL_MANIFEST_REL = EVIDENCE / "manifest.json"
 IDENTITY_BASELINE_REL = EVIDENCE / "identity-baseline-generation-4.json"
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-BUILDER = REPO_ROOT / EVIDENCE / "build_phase50_evidence.py"
-VERIFIER = REPO_ROOT / EVIDENCE / "verify_phase50_evidence.py"
+# The v2.3 milestone start (12e16d7b) archived Phase 50 under milestones/. Only
+# the scripts' own location moved: they still resolve PHASE relative to the
+# --repo-root they are given, and the fixture repositories keep that layout.
+ARCHIVED_PHASE = Path(".planning/milestones/v2.2-phases/50-valid-stage-0-re-run")
+BUILDER = REPO_ROOT / ARCHIVED_PHASE / "evidence" / "build_phase50_evidence.py"
+VERIFIER = REPO_ROOT / ARCHIVED_PHASE / "evidence" / "verify_phase50_evidence.py"
 PYTHON = sys.executable
 
 CONFIG_PATHS = (
@@ -131,6 +136,62 @@ def write_json(path: Path, payload: Mapping[str, Any]) -> None:
 
 def encode_metric(value: float) -> Any:
     return validation_gate.json_safe_float(value)
+
+
+def script_env() -> dict[str, str]:
+    """Environment for running the archived scripts.
+
+    Each script puts ``Path(__file__).parents[4]`` on ``sys.path`` to import
+    ``pinn``; from the archived location that is ``.planning/``, not the
+    repository root, so the root is supplied through ``PYTHONPATH`` instead.
+    """
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        p for p in (str(REPO_ROOT), env.get("PYTHONPATH", "")) if p
+    )
+    return env
+
+
+def _link_or_copy(src: str, dst: str) -> str:
+    try:
+        os.link(src, dst)
+    except OSError:
+        shutil.copy2(src, dst)
+    return dst
+
+
+def build_historical_repo(dest: Path, *, with_runs: bool) -> Path:
+    """Rebuild Phase 50's pre-archive layout around the archived bytes.
+
+    The terminal manifest and ledger record repository-relative paths under
+    PHASE, so the historical record only verifies in that layout. This copies
+    the archived phase folder as it exists on disk to PHASE, plus the committed
+    run configs, and commits them. With ``with_runs`` it also hard-links (or
+    copies) the local ``runs/stage0-rerun-*`` directories. Nothing in the real
+    repository is written.
+
+    The record also depends on files Git has never tracked (``*.pt`` is
+    ignored): the run directories and the five ``run_start_rng.pt`` attempt
+    copies. The test skips, naming them, when they are absent from this checkout.
+    """
+    archived = REPO_ROOT / ARCHIVED_PHASE
+    runs = sorted((REPO_ROOT / "runs").glob("stage0-rerun-*"))
+    rng_copies = sorted((archived / "evidence" / "attempts").glob("*/run_start_rng.pt"))
+    if with_runs and not (runs and rng_copies):
+        raise unittest.SkipTest(
+            "local-only v2.2 evidence is absent from this checkout "
+            "(runs/stage0-rerun-* and the archived attempts/*/run_start_rng.pt copies)"
+        )
+    shutil.copytree(archived, dest / PHASE, ignore=shutil.ignore_patterns("__pycache__"))
+    for rel in CONFIG_PATHS:
+        (dest / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPO_ROOT / rel, dest / rel)
+    git(dest, "init", "-q")
+    git_commit(dest, "phase50 pre-archive layout")
+    if with_runs:
+        for run in runs:
+            shutil.copytree(run, dest / "runs" / run.name, copy_function=_link_or_copy)
+    return dest
 
 
 def git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -657,6 +718,7 @@ class EvidenceRepo:
             cwd=str(self.root),
             capture_output=True,
             text=True,
+            env=script_env(),
         )
 
     def extract(self) -> subprocess.CompletedProcess[str]:

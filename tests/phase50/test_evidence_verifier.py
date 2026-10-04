@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 from tests.phase50._evidence_fixtures import (
+    ARCHIVED_PHASE,
     AUTH_SUMMARY_REL,
     CONFIG_DELTA_REL,
     EVIDENCE,
@@ -22,42 +23,53 @@ from tests.phase50._evidence_fixtures import (
     SOURCE_MANIFEST_REL,
     VERIFIER,
     build_fixture,
+    build_historical_repo,
     clone_complete,
     fail_closed_message,
     git,
     git_commit,
     git_head,
+    script_env,
     sha256_text,
     write_text,
 )
 
 
-def run_real_terminal() -> subprocess.CompletedProcess[str]:
+def run_real_terminal(repo: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
             sys.executable,
             str(VERIFIER),
             "terminal",
             "--repo-root",
-            str(REPO_ROOT),
+            str(repo),
             "--manifest",
             ".planning/phases/50-valid-stage-0-re-run/evidence/terminal-manifest.json",
         ],
-        cwd=str(REPO_ROOT),
+        cwd=str(repo),
         capture_output=True,
         text=True,
+        env=script_env(),
     )
 
 
 class TerminalCompatibilityTests(unittest.TestCase):
     def test_historical_terminal_verifier_still_prints_ok(self) -> None:
-        proc = run_real_terminal()
-        self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn("TERMINAL-EVIDENCE-OK", proc.stdout)
-        self.assertFalse((REPO_ROOT / SOURCE_MANIFEST_REL).exists())
-        self.assertFalse((REPO_ROOT / EVIDENCE / "band-record.md").exists())
-        self.assertFalse((REPO_ROOT / EVIDENCE / "candidate-receipt.json").exists())
-        self.assertFalse((REPO_ROOT / EVIDENCE / "manifest.json").exists())
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = build_historical_repo(Path(tmp), with_runs=True)
+            proc = run_real_terminal(repo)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn("TERMINAL-EVIDENCE-OK", proc.stdout)
+            for rel in (
+                SOURCE_MANIFEST_REL,
+                EVIDENCE / "band-record.md",
+                EVIDENCE / "candidate-receipt.json",
+                EVIDENCE / "manifest.json",
+            ):
+                self.assertFalse((repo / rel).exists())
+                self.assertFalse(
+                    (REPO_ROOT / ARCHIVED_PHASE / rel.relative_to(PHASE)).exists()
+                )
 
 
 class IdentityBaselineTests(unittest.TestCase):

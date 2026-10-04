@@ -4,19 +4,25 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from tests.phase50._evidence_fixtures import (
+    ARCHIVED_PHASE,
     BUILDER,
     LEDGER_REL,
+    PHASE,
     REPO_ROOT,
     SOURCE_MANIFEST_REL,
     VERIFIER,
+    build_historical_repo,
     clone_complete,
     fail_closed_message,
     fence,
+    script_env,
     sha256_file,
     write_text,
 )
@@ -178,15 +184,21 @@ class ExtractManifestTests(unittest.TestCase):
         self.assertFalse(self.fx.path(SOURCE_MANIFEST_REL).exists())
 
     def test_real_terminal_builder_still_refuses_without_writing_normal_artifacts(self) -> None:
-        proc = __import__("subprocess").run(
-            [__import__("sys").executable, str(BUILDER), "extract", "--repo-root", str(REPO_ROOT)],
-            cwd=str(REPO_ROOT),
-            capture_output=True,
-            text=True,
-        )
-        self.assertNotEqual(proc.returncode, 0)
-        self.assertIn("final_band_generation is null", fail_closed_message(proc))
-        self.assertFalse((REPO_ROOT / SOURCE_MANIFEST_REL).exists())
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = build_historical_repo(Path(tmp), with_runs=False)
+            proc = subprocess.run(
+                [sys.executable, str(BUILDER), "extract", "--repo-root", str(repo)],
+                cwd=str(repo),
+                capture_output=True,
+                text=True,
+                env=script_env(),
+            )
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertIn("final_band_generation is null", fail_closed_message(proc))
+            self.assertFalse((repo / SOURCE_MANIFEST_REL).exists())
+            self.assertFalse(
+                (REPO_ROOT / ARCHIVED_PHASE / SOURCE_MANIFEST_REL.relative_to(PHASE)).exists()
+            )
 
 
 if __name__ == "__main__":

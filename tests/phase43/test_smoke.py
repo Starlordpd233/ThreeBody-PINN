@@ -4,7 +4,7 @@ Skip-guarded real-data integration test. Validates the artifacts the ORDINARY
 ``python -m pinn.train --config configs/smoke.yaml`` command actually produced
 in ``runs/stage0-smoke/`` (and the timing calibration it would persist on a
 terminal-success smoke) against the evidence recorded in
-``.planning/phases/43-verification-stage-0-pilot-acceptance/evidence/smoke/README.md``.
+``.planning/milestones/v2.0-phases/43-verification-stage-0-pilot-acceptance/evidence/smoke/README.md``.
 Never substitutes synthetic data for a real-corpus check, and never asserts a
 fabricated success (SPEC edge R2).
 
@@ -48,7 +48,8 @@ _RUNS_ROOT = _REPO_ROOT / "runs"
 _SMOKE_README = (
     _REPO_ROOT
     / ".planning"
-    / "phases"
+    / "milestones"
+    / "v2.0-phases"
     / "43-verification-stage-0-pilot-acceptance"
     / "evidence"
     / "smoke"

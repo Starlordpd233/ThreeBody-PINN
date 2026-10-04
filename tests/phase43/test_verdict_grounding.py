@@ -15,9 +15,12 @@ except ModuleNotFoundError:  # pragma: no cover - dependency guard
 
 
 ROOT = Path(__file__).resolve().parents[2]
+# The v2.0 archive moved Phase 43 under milestones/. The verdict's citation
+# fields keep their original paths (REQUIRED_CITATIONS below), so only the
+# location the verdict file is read from changes.
 VERDICT_PATH = (
     ROOT
-    / ".planning/phases/43-verification-stage-0-pilot-acceptance/43-VERDICT.md"
+    / ".planning/milestones/v2.0-phases/43-verification-stage-0-pilot-acceptance/43-VERDICT.md"
 )
 
 REQUIRED_CITATIONS = {

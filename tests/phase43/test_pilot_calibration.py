@@ -19,7 +19,8 @@ _TRAIN_SOURCE = _REPO_ROOT / "pinn" / "train.py"
 _CALIBRATION = (
     _REPO_ROOT
     / ".planning"
-    / "phases"
+    / "milestones"
+    / "v2.0-phases"
     / "43-verification-stage-0-pilot-acceptance"
     / "43-CALIBRATION.md"
 )
