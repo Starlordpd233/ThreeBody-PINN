@@ -6,7 +6,7 @@ current_phase: 58
 current_phase_name: Verdict & Traceability Close
 current_plan: 0
 status: milestone-closed
-stopped_at: "v2.3 archived 2026-10-04 (verdict rethink); next milestone ERW round trainex-r4 not yet started"
+stopped_at: "v2.3 archived 2026-10-04 (verdict rethink); trainex-r4 package assembled and audited, awaiting owner handoff"
 last_updated: "2026-10-04T00:00:00Z"
 last_activity: 2026-10-04
 last_activity_desc: v2.3 milestone closed and archived (override closeout). Roadmap, requirements, and gap index archived under milestones/v2.3-*; phase folders 53-58 left in place by owner decision; GAP-56-02 deferred; 18 inherited open-artifact items recorded below. The next milestone routes to ERW round trainex-r4.
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-10-04)
 All six phases (53–58) complete; 12/15 requirements Complete, RUN-04/RUN-05 closed incomplete, EVAL-02 not attempted (the sole held-out evaluation remains preserved unspent). Archived under `milestones/v2.3-*` (roadmap, requirements, gap index with a "Milestone close" section). The phase folders 53–58 stay in `.planning/phases/` because the Phase 57 verifier and its tests hardcode that path (owner decision 2026-10-04). GAP-56-02 DEFERRED to the milestone after `trainex-r4`.
 
 Last activity: 2026-10-04 — v2.3 archived via `/gsd-complete-milestone` (override closeout; see Deferred Items).
-**Next:** assemble the `trainex-r4` ERW package per `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`, carrying the open questions in `58-VERDICT.md`; then initialize the next milestone. No run is authorized until the round returns and the owner rules.
+**Next:** hand off the `trainex-r4` package (assembled and audited 2026-10-04: `pinn_instruction/markdown_conversion/framework-specs/trainex-r4/`, start at its `DELIVERY-NOTE.md`; audit `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md`). When reports return: Rule-19 verification, consolidation, owner ruling, then initialize the next milestone. No run is authorized until the round returns and the owner rules.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -611,15 +611,15 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** .planning/milestones/v2.3-GAPS.md ("Milestone close" — inherited obligations)
+**Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/DELIVERY-NOTE.md (handoff steps; v2.3 obligations in .planning/milestones/v2.3-GAPS.md "Milestone close")
 
 Last session: 2026-10-04
-Stopped at: v2.3 archived (verdict `rethink`)
-Next action: assemble the `trainex-r4` ERW package (runbook `docs/runbooks/external-research/2026-06-11-external-research-workflow.md`), seeded by the open questions in `58-VERDICT.md` and the Phase-58 verdict packet.
+Stopped at: trainex-r4 package assembled (d3a6e61b) and audited (2427ec94)
+Next action: owner hands the package to external agents (attach three files, paste the prompt, stamp the Rule-20 pin per engagement in DELIVERY-NOTE.md).
 
 ## Operator Next Steps
 
-- **Assemble the `trainex-r4` ERW package** — carrying the open questions in `58-VERDICT.md`; no run is authorized until the round returns and the owner rules.
+- **Hand off `trainex-r4`** — the package is assembled and audited (2026-10-04); follow its `DELIVERY-NOTE.md`. Returned reports land in `research_results/` and need the Rule-19 verification report before any claim is used. No run is authorized until the round returns and the owner rules.
 - **Owner decisions still open:** whether the Phase-50 (and Phase-43) test paths may be repaired by editing archived evidence; where the v2.3 phase folders should live once the next milestone starts.
 - **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.
 - ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
