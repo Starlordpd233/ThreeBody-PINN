@@ -30,6 +30,46 @@ On 2026-10-04 the owner made two decisions about the round:
 
 Package root: `pinn_instruction/markdown_conversion/framework-specs/trainex-r4/`.
 
+## Corrections before handoff (2026-10-04)
+
+An independent double-check of the assembled package
+(`docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-double-check-findings.md`)
+found four issues in the master. The in-repo assessment found further
+statements of the same kind. No agent had received the package (owner
+confirmation, 2026-10-04), so the attachments were corrected in place rather
+than through an erratum.
+
+**What changed:**
+
+- **Master F-07:** the tabulated `loss_data` lower bound is 0.016 (step 931).
+  The trip record's loss values belong to the halted iteration logged as record
+  952, not to completed step 951. Full-run ranges were added.
+- **Master F-13:** generation 6's high-water mark was 2 at its last
+  checkpoint (step 510), and the replay found its instantaneous front at 1. The
+  description of how the two seed-42 runs diverge is corrected; the earlier
+  "seventh or eighth significant figure from step 9" was wrong.
+- **Master F-01, F-05, F-09, and §4.2:** clarified the step-951/952 semantics.
+  The physics-term range now matches the digest (its tabulated maximum is
+  0.192, not 0.19), and the IC dominance is stated as measured (at least 236
+  times).
+- **Master §1.1 and §4.2:** the verdict packet's "not a near miss" and "flat"
+  readings are restated as the measured sums, consistent with listing those
+  readings as challengeable (`H-02`).
+- **Master §7 Q5:** the replay scored five generation-7 checkpoints, not four.
+  The monitor's state lives in the checkpoints and the terminal record, and
+  the TensorBoard file holds per-step training-batch traces.
+- **Master §2:** added where each attachment sits in the repository.
+- **Prompt:** "several orders of magnitude" is replaced by the measured factors.
+- **Evidence bundle Part G:** the digest now also checks the trip record
+  against the log, gives full-run ranges, and compares the two seed-42 runs.
+  Its reading notes explain record 952, when `lr` is logged, and the replay's
+  checkpoint count.
+
+**What did not change:** the `source_baseline` and the 20 verbatim blocks.
+The re-audit is recorded in the audit report's addendum. Hand off the
+corrected version: stamp the Rule-20 pin with the commit at engagement, which
+is after the correction commit.
+
 ## Handoff — what to attach, what to paste
 
 Open `research_package/RESEARCH-AGENT-PROMPT.md`. Everything above its
@@ -112,7 +152,7 @@ are expected, and the "attached files only" instruction must not appear.
 | `research_package/RESEARCH-AGENT-PROMPT.md` (Rule 17 premise challenge, Rule 18 read-only bars, the diagnosis-then-options contract) | **done** |
 | `specs/framework-specs-bundle.md` (Rule 15 single-file bundle) | **done**: 11 excerpts, byte-verified |
 | `research_package/v2.3-closure-evidence-bundle.md` | **done**: 9 verbatim parts plus one derived digest, byte-verified |
-| Package self-audit | **done**: `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md` |
+| Package self-audit | **done**: `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md`; re-audited after the pre-handoff corrections (its addendum) |
 | Rule-20 live-tree pin | at each engagement (template above) |
 | `research_results/<agent>-resolution.md` | at delivery |
 | Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | after delivery, **before** any claim informs a decision |

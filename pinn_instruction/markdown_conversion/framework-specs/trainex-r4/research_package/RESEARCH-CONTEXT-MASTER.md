@@ -52,7 +52,9 @@ the floor. It then stopped advancing. In generation 7, graded seed 42, the
 frozen training-only monitor's front reached bin 2 by step 450 and did not
 advance again. Invariant B tripped at step 951, when 501 steps had passed
 without a new high-water mark against its `N = 500` window (`F-01`). A replay of
-the frozen monitor showed the stall was not a near miss (`F-02`, `F-03`).
+the frozen monitor put the normalized residual summed over bins 0–2 at 1.189 at
+the trip, against the 0.693 needed to advance (`F-02`, `F-03`); the verdict
+packet reads that as not a near miss (`H-02`).
 
 Under the run's pre-registered rules, seeds 41 and 43 were not launched, and
 the single held-out evaluation remains unspent (`F-17`, `F-18`). The owner
@@ -95,6 +97,12 @@ replacement for the package.
 | 1 | `RESEARCH-CONTEXT-MASTER.md` — this file | The entry point. §3 fixes how to treat each source, §5 carries the questions, §9 the output contract. |
 | 2 | `framework-specs-bundle.md` | Eleven verbatim excerpts of the locked framework specs at the baseline commit: SIREN initialization and the `first_omega_0` record, the skip/power stack, the hyperparameter table, §3.2 with its three Phase 56 contract blocks, the IC loss, the warmup and clip guard, the optimizer split and clipping, Stage 0, the total-loss assembly, the Adam and L-BFGS phases, and the stage transition criteria. **Hard constraint** as a statement of what the contract currently says. |
 | 3 | `v2.3-closure-evidence-bundle.md` | Verbatim: the owner verdict (A), the verdict packet with its frozen-monitor replay (B), the recalibration ruling (C), the checkpoint ③/④ ruling (D), the Phase 56 front-index findings (E), and the terminal, trip, and config records (F1–F4). Plus one **derived** digest of the Git-tracked training logs (G), with its exact script and output. |
+
+Each attachment is named here as it arrives on upload. In the repository all
+three sit under the round root,
+`pinn_instruction/markdown_conversion/framework-specs/trainex-r4/`: this file
+and the evidence bundle in `research_package/`, and the specs bundle in
+`specs/`.
 
 Files at the round root that are **not** uploaded: `DELIVERY-NOTE.md`
 (user-only routing), `RESEARCH-AGENT-PROMPT.md` (pasted, not attached), and
@@ -190,16 +198,20 @@ Invariant B reads one frozen training-only monitor:
   at the trip it sat at 2, and earlier it had dropped back to 1 (`F-02`).
   - Moving from front `k` to `k+1` requires the normalized residual summed
     over bins `0..k` to fall below `ln 2 ≈ 0.693`.
-  - At the trip that sum over bins 0–2 was 1.189 and flat over the last 20
-    steps.
+  - That sum over bins 0–2 was 1.192, 1.182, and 1.189 at steps 931, 941,
+    and 951.
 - **Overall progress.** The median normalized bin residual fell 1.7× over the
   run (`F-03`).
 - **Learning rate.** It fell from `5.78 × 10⁻⁴` at step 450 to
   `6.16 × 10⁻⁶` at step 950 (`F-04`).
-- **Loss terms.** The logged total loss is dominated by the IC term, which
-  ranged from about `10²` to about `10⁵` across the tabulated steps and moved
-  sharply from step to step. The normalized physics term stayed between
-  0.073 and 0.19 (`F-07`).
+- **Loss terms.** The IC term dominates the logged total loss at every
+  completed step: it is at least 236 times the weighted physics and data terms
+  combined (`F-07`).
+  - It ranged from about `10²` to about `10⁵` across the tabulated steps, and
+    from 25.7 to `1.77 × 10⁵` over all 951 completed steps. It moved sharply
+    from step to step.
+  - The normalized physics term ranged from 0.0733 to 0.192 at the
+    tabulated steps, and from 0.0723 to 0.257 over all completed steps.
 - **Gradients.** On the 19 steps with complete gradient statistics, the
   applied IC gradient norm exceeded the applied physics gradient norm by
   factors between `2.78 × 10⁴` and `2.62 × 10⁶` (`F-08`).
@@ -320,19 +332,19 @@ refer to `v2.3-closure-evidence-bundle.md`.
 
 | ID | Claim (numbers verbatim) | Source | Status |
 |---|---|---|---|
-| F-01 | Generation-7 graded seed 42 tripped invariant B at step 951: `metric: steps_since_front_advance`, `value: 501.0`, `threshold: 500.0`, `threshold_provisional: false`; frozen-monitor `front_high_water: 2`, `last_advance_step: 450`; `not_launched`: seeds 41 and 43; `evaluation: preserved-unspent`; run at HEAD `629b1a6c…` | `runs/stage0-v23g7-seed42/failure/trip.json`; `.planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/terminal-state.json` (Parts F1, F2) | established |
+| F-01 | Generation-7 graded seed 42 tripped invariant B at step 951: `metric: steps_since_front_advance`, `value: 501.0`, `threshold: 500.0`, `threshold_provisional: false`; frozen-monitor `front_high_water: 2`, `last_advance_step: 450`; `not_launched`: seeds 41 and 43; `evaluation: preserved-unspent`; run at HEAD `629b1a6c…`. The trip record's `step: 951` is the number of completed Adam updates. The guard tripped on the next iteration, after its forward and backward pass and before its update; that halted iteration is logged as record 952 (`F-07`) | `runs/stage0-v23g7-seed42/failure/trip.json`; `.planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/terminal-state.json` (Parts F1, F2); `pinn/training/controllers.py:2105-2130` | established |
 | F-02 | Frozen-monitor replay. Gen 7 step 0: front 0, bin 0 = 0.875, next weight 0.42. Step 900: front 1 (back from 2), bins 0–1 = 0.728, next weight 0.48. Steps 931 / 941 / 951: front 2, bins 0–2 = 1.192 / 1.182 / 1.189, next weight 0.30 / 0.31 / 0.30. Gen 6 steps 490 / 500 / 510: front 1 (back from 2), bins 0–1 = 0.954 / 0.805 / 0.789. Advancing from `k` to `k+1` needs the sum over bins `0..k` below 0.693 | verdict packet §3 and Appendix A (Part B) | established |
 | F-03 | From initialization to step 951, per-bin normalized residuals in bins 0–5 fell 3.5×, 2.7×, 3.2×, 2.2×, 2.1×, 1.5×; the 16-bin median fell 1.7× (1.11 → 0.66); raw bin-0 residual went from `1.7 × 10¹⁰` to `4.9 × 10⁹`; bins 0–5 sum to 3.88 at step 951 | verdict packet §3 (Part B) | established |
 | F-04 | The learning rate follows `CosineAnnealingLR` with `T_max = n_adam` and `n_adam: 1000`; logged `lr` 0.001 at step 1, `5.78e-4` at 450, `2.45e-5` at 900, `6.16e-6` at 950, `5.91e-6` at 951. The spec sets `LR_k = 10⁻³ × (0.7)^k` and "a cosine annealing scheduler to decay the learning rate over the phase" | `pinn/training/controllers.py:2658-2660`; `pinn/training/config.py:574`; `configs/stage0-v23g7-seed42.yaml` (Part F3); Part G; `ctl_instruction.md:1803`, `:1805` | established |
-| F-05 | The spec hands off to L-BFGS "when the physics loss plateaus". The code hands off at Adam-budget exhaustion or at plateau detection on the physics loss. All 952 logged generation-7 graded steps are phase `2a` (Adam); L-BFGS never ran | `ctl_instruction.md:1894`; `pinn/training/controllers.py:2040-2042`, `:2169`, `:2201`; Part G | established |
+| F-05 | The spec hands off to L-BFGS "when the physics loss plateaus". The code hands off at Adam-budget exhaustion or at plateau detection on the physics loss. All 952 generation-7 graded log records (951 completed Adam steps and the halted iteration logged as step 952) are phase `2a` (Adam); L-BFGS never ran | `ctl_instruction.md:1894`; `pinn/training/controllers.py:2040-2042`, `:2169`, `:2201`; Part G | established |
 | F-06 | `I_warm = min(2000, 0.1 · N_Adam,k)` and `λ_phys^max(k) = 1` **[LOCKED]**. Logged `lambda_phys` is 0.0 at step 1 and first reaches 1.0 at step 101 (graded) and step 31 (smoke, `n_adam: 300`). `lambda_data` and `lambda_ic` are 1.0 and `lambda_e` and `lambda_l` are 0.0 on every logged step. On every record, `total` equals the λ-weighted sum of the five loss terms | `pinn_architecture.md:699-701`; Part G | established |
-| F-07 | Generation-7 graded logged loss terms at the tabulated steps: `loss_ic` from 84.3 (step 900) to `8.2e+04` (step 200), changing by more than 10× between neighbouring tabulated steps (e.g. 84.3 at 900, 1.54e+03 at 931, 1.91e+04 at 941, 110 at 950). `loss_phys` (after `R_ref` normalization) from 0.0733 to 0.192. `loss_data` from 0.0164 to 0.0721. At the trip: `ic 1905.42`, `phys 0.0794`, `data 0.0163` | Part G; `runs/stage0-v23g7-seed42/failure/trip.json` (Part F2) | established |
+| F-07 | Generation-7 graded logged loss terms. At the tabulated steps: `loss_ic` from 84.3 (step 900) to `8.2e+04` (step 200), changing by more than 10× between neighbouring tabulated steps (e.g. 84.3 at 900, 1.54e+03 at 931, 1.91e+04 at 941, 110 at 950); `loss_phys` (after `R_ref` normalization) from 0.0733 (step 951) to 0.192 (step 300); `loss_data` from 0.016 (step 931) to 0.0721 (step 1). Over all 951 completed steps: `loss_ic` from 25.7 (step 947) to `1.77e+05` (step 92), `loss_phys` from 0.0723 to 0.257, `loss_data` from 0.0158 to 0.0769, and `loss_ic` is at least 236 times `λ_phys · loss_phys + λ_data · loss_data` (the smallest ratio, 236.6, is at step 947). The trip record's values, `ic 1905.42`, `phys 0.0794`, `data 0.0163`, belong to the halted iteration logged as record 952, not to completed step 951 (`ic 2.83e+03`, `phys 0.0733`, `data 0.0164`) | Part G and its reading notes; `runs/stage0-v23g7-seed42/failure/trip.json` (Part F2); `pinn/training/controllers.py:2105-2130` | established |
 | F-08 | On the 19 generation-7 graded steps with complete gradient statistics (every 50 steps), `applied_ic / applied_phys` ranges from `2.78e+04` (step 900) to `2.62e+06` (step 50); `applied_data` ranges from 1.45 to 5.78. `raw` is the global parameter-gradient L2 norm of the unweighted term; `applied = λ × raw` | Part G; `pinn/training/controllers.py:483-507` (canonical builder), `:1993-2009` (the microbatched Adam path these steps used, provenance `microbatch_pass2_diagnostic`) | established |
-| F-09 | Generation-7 graded training-batch `front_idx` histogram `{0: 342, 1: 381, 2: 194, 3: 35}`, 492 step-to-step changes, first value 3 at step 677. The frozen monitor's high-water mark never exceeded 2. By ruling, a resampled training-batch front is diagnostic only and cannot satisfy invariant B | Part G; `terminal-state.json` (Part F1); `54-RULING.md` "Front-monitoring boundary" (Part C); `57-RULING.md` §2 (Part D) | established |
+| F-09 | Generation-7 graded training-batch `front_idx` histogram over all 952 log records, including the halted record 952: `{0: 342, 1: 381, 2: 194, 3: 35}`, 492 step-to-step changes, first value 3 at step 677. The frozen monitor's high-water mark never exceeded 2. By ruling, a resampled training-batch front is diagnostic only and cannot satisfy invariant B | Part G; `terminal-state.json` (Part F1); `54-RULING.md` "Front-monitoring boundary" (Part C); `57-RULING.md` §2 (Part D) | established |
 | F-10 | `front_idx` is the largest `n` with `w_n > 0.5`, computed in code for the frozen monitor and for training batches. Neither locked spec defines `front_idx`, its threshold, or invariant B's window: `pinn_architecture.md` mentions the front only inside the Phase 56 contract block at `:452` (GATE-04's front condition; training-batch front diagnostic only), and `ctl_instruction.md` has no occurrence. `N = 500` and the frozen training-only monitor are an owner ruling | `pinn/training/controllers.py:1058` (monitor), `:1241`, `:1974` (training batch); `pinn_architecture.md:452`; `57-RULING.md` §2 (Part D) | established |
 | F-11 | Under the ratified formula, front 0 at initialization is the expected healthy result, and a residual reduction confined to late bins cannot move the front at any magnitude | `56-OPEN-ITEMS.md` Section 2 (Part E) | established |
 | F-12 | The ratified recipe `A1 + B2 (residual-wide) + C1 + D3 + E1`: `η_c = 1` on `R̃_b = R̄_b / R_ref`; one frozen `R_ref` = median of 96 initialization bin means from the six-case GATE-04 probe, also applied to the training physics loss; `first_omega_0 = 30`; 4096 rows per batch in 16 equal bins (256 per bin) with one batch-global 16-term prefix; clip unchanged. Governed `R_ref = 1.9749775821244170e+10` (logged `r_ref` `19749775821.24417`). GATE-04 passed on the amended recipe | `54-RULING.md` disposition table (Part C); `pinn_architecture.md:452`, `:454`, `:456`; `pinn/verification/artifacts/r_ref_stage0.json`; Part G | established |
-| F-13 | Generation-6 and generation-7 seed 42 share the seed and the configuration apart from `run.run_name`, and ran at commits `ef4764f9…` and `629b1a6c…`. Logged values are identical through step 8, differ from step 9 in the seventh or eighth significant figure, agree to three significant figures at every tabulated step through 200, and differ visibly by step 300. Generation 6's monitor reached front 2 at step 353 and was still 2 when the process died at step 513 | Part G and its reading notes; `.planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g6.json`; `.planning/phases/57-corrected-re-run-the-preserved-evaluation/57-05-SUMMARY.md` "Descriptive record" | established |
+| F-13 | Generation-6 and generation-7 seed 42 share the seed and the configuration apart from `run.run_name`, and ran at commits `ef4764f9…` and `629b1a6c…`. Over steps 1–513: every compared logged field is bit-identical through step 8. At step 9, `w_min` and `loss_phys` differ (first differing digit 5 and 7). Through step 269, differences appear on only 68 steps and only in `loss_phys`, `loss_data`, `w_min`, and `w_mean`; `loss_ic`, `total`, and `grad_norm` stay bit-identical. Every step from 270 onward differs, and the first difference visible at three significant figures is at step 275. Generation 6's monitor high-water mark first reached 2 at step 353 and was still 2 at its last checkpoint, step 510; the process died at step 513. The verdict packet's replay of its checkpoints at steps 490, 500, and 510 found the monitor's instantaneous front back at 1 (`F-02`) | Part G comparison section and reading notes; `.planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/blocked-state-g6.json` (`invariant_b_state` of the step-510 checkpoint); verdict packet §3 (Part B) | established |
 | F-14 | The generation-7 smoke (`n_adam: 300`) finished. Its monitor reached front 1 at step 93, the same as generation 6's smoke. Its training-batch front never exceeded 1 | `57-05-SUMMARY.md` "Descriptive record"; `configs/stage0-v23g7-smoke.yaml` (Part F4); Part G | established |
 | F-15 | The spec records the per-stage `MAX_EPOCHS` table, the stagnation window, and the percentile-10 relaxation as **claimed-unverified** and "provisional pending Stage-0 pilot calibration". The run used `max_epochs: 1000`, `n_adam: 1000` | `ctl_instruction.md:1994-1997`; `configs/stage0-v23g7-seed42.yaml` (Part F3) | established |
 | F-16 | `first_omega_0` is fixed at 30 and not scheduled during training, recorded by Phase 56 as NOT AMENDED. The power-skip stack is a future ablation outside the ratified surface set | `pinn_architecture.md:181`, `:188`; `54-RULING.md` "Scope and sequencing" (Part C); `.planning/milestones/v2.3-GAPS.md` GAP-54-02 disposition | established |
@@ -377,11 +389,15 @@ dispute recorded in `H-03` is unresolved.
 phase never ran, and the per-stage budget is provisional by the spec's own
 statement (`F-15`).
 
-**Q5 — oscillation.** The frozen monitor is scored only at four generation-7
-checkpoints and three generation-6 checkpoints (`F-02`); the run logs record
-its high-water mark and last-advance step, not a per-step monitor trace. The
-relation between the IC term's step-to-step swings (`F-07`) and the monitor's
-movement is not measured.
+**Q5 — oscillation.** The frozen monitor is scored only at five generation-7
+checkpoints (steps 0, 900, 931, 941, 951) and three generation-6 checkpoints
+(steps 490, 500, 510) (`F-02`). Its high-water mark and last-advance step are
+kept in the checkpoints and the terminal record, and no per-step monitor trace
+exists. The Git-tracked TensorBoard file under `runs/stage0-v23g7-seed42/tb/`
+holds per-step training-batch values (the batch front, and the raw and
+normalized per-bin residuals), not the monitor's. The relation between the IC
+term's step-to-step swings (`F-07`) and the monitor's movement is not
+measured.
 
 **Cross-cutting — seeds and independence.** One graded seed exists (`F-17`),
 and the two graded trajectories share that seed and their first few hundred

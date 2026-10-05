@@ -85,10 +85,12 @@ moved from bin 0 to bin 2 by step 450. It then made no further progress, and
 a guard requiring a new front high-water mark within 500 steps halted the run
 at step 951.
 
-In the same window, the cosine learning rate fell about 100×. The
-initial-condition loss term dominated the total loss and the gradient norm by
-several orders of magnitude, and the front measured on the resampled training
-batches moved between 0 and 3 while the frozen monitor stayed at or below 2.
+In the same window, the cosine learning rate fell about 100×. Throughout the
+run, the initial-condition loss term was at least 236 times the rest of the
+loss. On the steps where gradients were measured per term, its gradient norm
+was 2.78 × 10⁴ to 2.62 × 10⁶ times the physics term's. The front measured on
+the resampled training batches moved between 0 and 3, while the frozen
+monitor stayed at or below 2.
 
 Which of these, if any, explains the stall is unknown. That is what you are
 asked to work out, before anyone changes the recipe.
