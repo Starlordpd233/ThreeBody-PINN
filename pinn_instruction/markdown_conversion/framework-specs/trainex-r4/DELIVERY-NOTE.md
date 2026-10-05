@@ -12,7 +12,7 @@ source_baseline: 735e2ae8d5ec30b9915ec9172ac06965fbaa8afb
 
 **This file stays in the repository. Do NOT send it to external research agents.**
 
-## Status: ASSEMBLED, awaiting handoff (2026-10-04)
+## Status: Codex result received, independent verification pending (2026-10-04)
 
 The owner routed the next milestone to this round at checkpoint ⑤ on
 2026-10-03 (`.planning/phases/58-verdict-traceability-close/58-VERDICT.md`,
@@ -98,6 +98,23 @@ engagement and fill it at the time access is granted. If an agent works
 without repository access, write **not applicable** for worktree, branch, and
 commit, and never invent a pin for it.
 
+### Codex engagement (2026-10-04)
+
+| Field | Value |
+|---|---|
+| Report file | `research_results/codex-resolution.md` |
+| Worktree | `<home>/Desktop/3_body_problem/.worktrees/trainex` |
+| Branch | `milestone/v2.3` |
+| Commit at engagement | `LIVE-TREE-PIN=b09c4c8cfd22429e0d14482c355719f862a54e6f` |
+| How access was granted | The owner directed Codex to follow `research_package/RESEARCH-AGENT-PROMPT.md` and explicitly granted codebase access in this chat. |
+| Date of engagement | 2026-10-04, America/Chicago |
+
+The report was returned in chat after a read-only investigation. The owner then
+explicitly requested saving it in the result folder. That delivery write does
+not authorize experiments, recipe changes, or evaluation. Independent Rule-19
+verification, consolidation, and the owner's ruling remain pending. Additional
+agent engagements and returns may be recorded separately.
+
 ### Engagement template
 
 | Field | Value |
@@ -153,8 +170,8 @@ are expected, and the "attached files only" instruction must not appear.
 | `specs/framework-specs-bundle.md` (Rule 15 single-file bundle) | **done**: 11 excerpts, byte-verified |
 | `research_package/v2.3-closure-evidence-bundle.md` | **done**: 9 verbatim parts plus one derived digest, byte-verified |
 | Package self-audit | **done**: `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md`; re-audited after the pre-handoff corrections (its addendum) |
-| Rule-20 live-tree pin | at each engagement (template above) |
-| `research_results/<agent>-resolution.md` | at delivery |
+| Rule-20 live-tree pin | Codex engagement recorded above; record each additional engagement separately |
+| `research_results/<agent>-resolution.md` | Codex result received as `research_results/codex-resolution.md`; additional returns pending |
 | Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | after delivery, **before** any claim informs a decision |
 | Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | after verification |
 | Owner ruling on the decision sheet, plus any authorized experiments | owner, after consolidation; picks recorded as project Key Decisions (Rule 13) and carried into the next milestone |
