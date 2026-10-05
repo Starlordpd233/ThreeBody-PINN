@@ -6,7 +6,7 @@ current_phase: 58
 current_phase_name: Verdict & Traceability Close
 current_plan: 0
 status: milestone-closed
-stopped_at: "v2.3 archived 2026-10-04 (verdict rethink); trainex-r4 package assembled and audited, awaiting owner handoff"
+stopped_at: "v2.3 archived 2026-10-04 (verdict rethink); trainex-r4 package assembled, corrected after a double-check, and re-audited; awaiting owner handoff"
 last_updated: "2026-10-04T00:00:00Z"
 last_activity: 2026-10-04
 last_activity_desc: v2.3 milestone closed and archived (override closeout). Roadmap, requirements, and gap index archived under milestones/v2.3-*; phase folders 53-58 left in place by owner decision; GAP-56-02 deferred; 18 inherited open-artifact items recorded below. The next milestone routes to ERW round trainex-r4.
@@ -614,12 +614,12 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/DELIVERY-NOTE.md (handoff steps; v2.3 obligations in .planning/milestones/v2.3-GAPS.md "Milestone close")
 
 Last session: 2026-10-04
-Stopped at: trainex-r4 package assembled (d3a6e61b) and audited (2427ec94)
+Stopped at: trainex-r4 package assembled (d3a6e61b), audited (2427ec94), corrected after the double-check review (c4887da2), and re-audited (86958a65)
 Next action: owner hands the package to external agents (attach three files, paste the prompt, stamp the Rule-20 pin per engagement in DELIVERY-NOTE.md).
 
 ## Operator Next Steps
 
-- **Hand off `trainex-r4`** — the package is assembled and audited (2026-10-04); follow its `DELIVERY-NOTE.md`. Returned reports land in `research_results/` and need the Rule-19 verification report before any claim is used. No run is authorized until the round returns and the owner rules.
+- **Hand off `trainex-r4`** — the package is assembled, corrected, and re-audited (2026-10-04; see the delivery note's correction record); follow its `DELIVERY-NOTE.md`. Returned reports land in `research_results/` and need the Rule-19 verification report before any claim is used. No run is authorized until the round returns and the owner rules.
 - **Owner decision still open:** where the v2.3 phase folders should live once the next milestone starts. (The Phase-50 and Phase-43 test paths were fixed on 2026-10-04 without editing archived evidence.)
 - **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.
 - ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
