@@ -73,6 +73,8 @@ agents to test. None is resolved here, and none changes the five questions.
    - **Where it is recorded:** master `F-13`, with the packet's reading listed
      as challengeable (`H-02`). The packet itself is not edited; it is
      reproduced verbatim as evidence.
+   - **Corrected later:** the description of how the two runs differ is wrong.
+     See the addendum below.
 2. **The locked specs do not define the causal front.**
    - **What was found:** `front_idx`, its `0.5` threshold, and invariant B's
      500-step window come from code and owner rulings, not from
@@ -180,3 +182,78 @@ hdr = P[:P.index("\n---\n", P.index("## FOR THE USER"))]
 att = re.findall(r"^\d+\. `([^`]+)`", hdr, re.M)
 print("BAR-G", "PASS" if 0 < len(att) <= 5 and all((R / a).exists() for a in att) else "FAIL", att)
 ```
+
+## Addendum — re-audit after the pre-handoff corrections (2026-10-04)
+
+**Trigger.** An independent double-check of the package
+(`docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-double-check-findings.md`,
+committed unchanged in `58fcb079`) reported four findings in the master. Each
+finding was re-derived in-repo before anything changed. The owner confirmed
+that no agent had received the package, so the attachments were corrected in
+place, in `c4887da2`. The sections above are left as the record of the first
+audit, except for the pointer added to Findings item 1.
+
+### The review's four findings, assessed
+
+| Finding | Assessment | Action in `c4887da2` |
+|---|---|---|
+| 1. F-07 `loss_data` lower bound | **Confirmed.** The tabulated minimum is 0.016 at step 931 (unrounded 0.0159758), not 0.0164. | Corrected, written as the digest prints it ("0.016"). |
+| 2. F-13 "still 2" for generation 6 | **Confirmed in substance; the proposed wording overstates.** <ul><li>The step 490, 500, and 510 checkpoints (`latest.pt` = 510) record `front_high_water: 2`, `last_advance_step: 353`.</li><li>The verdict packet's replay found the instantaneous front at 1 at those three checkpoints. No checkpoint stores an instantaneous front.</li><li>The process died at step 513 and no record holds the front at 513, so the proposed "had dropped back to 1" at death is not supported.</li></ul> | Restated: high-water 2 at the last checkpoint (510); the replay's instantaneous front was 1 at 490, 500, and 510. |
+| 3. Trip values versus step 951 | **Confirmed against the code.** <ul><li>`trip.json` records `step: 951`, the count of completed Adam updates (`pinn/training/controllers.py:2105-2106`).</li><li>The 952nd iteration's forward and backward pass tripped the guard before any update, and it is logged as record 952 with `lr` and `epoch` null (`:2118-2121`).</li><li>Its five loss terms and `grad_norm` equal `trip.json` exactly.</li><li>The review's replication command 3 reads a `step_completed` field the log does not contain, so it would print `True` for both records.</li></ul> | F-01, F-05, F-07, and F-09 clarified. Part G now checks the equality and tabulates record 952. |
+| 4. §2 lists `framework-specs-bundle.md` without `specs/` | **Not adopted as proposed.** §2 names all three attachments by their upload names, as trainex-r3's master did. Prefixing only the second would make it inconsistent with the other two. | Added one sentence giving each attachment's repository location. |
+
+### Further corrections found during the assessment
+
+None of these was in the review.
+
+1. **The seed-42 divergence.** This report's Findings item 1, master F-13, and
+   the Part G notes all said the two runs differ "in the seventh or eighth
+   significant figure from step 9". In fact:
+   - every compared field is bit-identical through step 8;
+   - at step 9, `w_min` differs in the fifth digit and `loss_phys` in the
+     seventh;
+   - `loss_ic`, `total`, and `grad_norm` stay bit-identical through step 269;
+   - every step from 270 onward differs;
+   - the first difference visible at three significant figures is at step
+     275.
+
+   Part G's new comparison section prints all of this.
+2. **The physics-term range.** Master §4.2 said the physics term "stayed
+   between 0.073 and 0.19". The tabulated maximum is 0.192 (step 300), and
+   the full-run range is 0.0723 to 0.257.
+3. **"Several orders of magnitude."** The prompt used this phrase for the IC
+   term's dominance. The smallest ratio of the IC term to the rest of the
+   loss is 236.6 (step 947), so the text now says "at least 236 times". The
+   digest prints this ratio to four figures, because at three figures it reads
+   237 and would have made "at least 237" false.
+4. **Tier inconsistency.** Master §1.1 and §4.2 stated the verdict packet's
+   "not a near miss" and "flat" readings in the packet's own voice, while §6
+   lists them as challengeable (`H-02`). They are now restated as the measured
+   sums.
+5. **The replay's checkpoint count.** Master §7 Q5 and the Part G notes said
+   the replay scored four generation-7 checkpoints; it scored five (steps 0,
+   900, 931, 941, 951). §7 also said the run logs record the monitor's
+   high-water mark, but they do not; the checkpoints and the terminal record
+   do. The Git-tracked TensorBoard file holds per-step training-batch traces:
+   its `causal/front_idx` equals the log's batch front at all 952 points, and
+   it has no monitor tags.
+6. **Learning-rate timing.** The Part G notes now say that `lr` is logged
+   after the scheduler steps, so it is the rate for the next update
+   (`pinn/training/controllers.py:2162-2185`).
+
+### Re-audit results (after `c4887da2`, baseline `735e2ae8`)
+
+| Check | Result |
+|---|---|
+| Bar A | **PASS**: no banned term in the master's §0–§8 |
+| Bar A2 | **PASS**: 6 lines |
+| Bar B | **PASS**: 5 of 5 questions verbatim |
+| Bar C | **PASS**: `c4887da2` touches only the round root |
+| Bar D | **PASS**: `source_baseline` `735e2ae8…` in all five files |
+| Bar E | **PASS**: <ul><li>20 verbatim blocks are byte-identical to `git show 735e2ae8:<path>`, with fenced blocks compared exactly;</li><li>the regenerated digest script hashes to `d28c7d9281dfcc6c8d7ab25538e4e17d8007d5f54cd9c60819dd55223f803065`;</li><li>a fresh run reproduces the embedded output byte-for-byte.</li></ul> |
+| Bar F | **PASS**: 21 `path:line` citations resolve at the baseline, adding `pinn/training/controllers.py:2105-2130` |
+| Bar G | **PASS**: 3 attachments |
+
+The audit script is unchanged (SHA-256
+`d840a9685c714fb0e4ecd93b384a1bf4d238a49ab7398ce7e6534f3e53edb78a`).
+None of the reproduced sources changed between `735e2ae8` and `c4887da2`.
