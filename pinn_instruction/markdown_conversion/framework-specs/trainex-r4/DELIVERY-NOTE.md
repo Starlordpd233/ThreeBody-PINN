@@ -12,7 +12,12 @@ source_baseline: 735e2ae8d5ec30b9915ec9172ac06965fbaa8afb
 
 **This file stays in the repository. Do NOT send it to external research agents.**
 
-## Status: Codex and Claude results received, independent verification pending (2026-10-06)
+## Status: re-framed after Rule-19 verification Part 1; fan-out closed (2026-10-07)
+
+Codex (2026-10-04) and Claude (2026-10-06) returned reports. Part 1 of the
+Rule-19 verification checked every premise-challenge finding in both, and
+refuted none. The round was then re-framed (ruling below). Part 2 of the
+verification and the consolidation are next.
 
 The owner routed the next milestone to this round at checkpoint ⑤ on
 2026-10-03 (`.planning/phases/58-verdict-traceability-close/58-VERDICT.md`,
@@ -29,6 +34,120 @@ On 2026-10-04 the owner made two decisions about the round:
   decision sheet).
 
 Package root: `pinn_instruction/markdown_conversion/framework-specs/trainex-r4/`.
+
+## Re-framing ruling (2026-10-07)
+
+**Provenance.**
+
+- **Who rules.** On 2026-10-07 the owner delegated this decision to the in-repo
+  agent, Claude Code (`claude-opus-5-5`).
+- **What it rests on.** Part 1 of the Rule-19 verification, which re-derived
+  every premise-challenge finding in both reports and refuted none
+  (`docs/work/reviews/cross_cutting/trainex-r4/2026-10-07-trainex-r4-rule19-claim-verification.md`,
+  commits `b4b975e9` and `d97328d4`).
+- **No second check.** A second, independent check of that layer was briefed
+  but not run. The facts this ruling rests on are proved mechanically, by the
+  code and by a replay of the run's random-number stream that matches every
+  retained checkpoint.
+- **What it decides.** How the round's returned answers may be used. The ERW
+  runbook's "Handoff" step 6 requires this whenever a verified claim
+  contradicts a package premise.
+- **What it does not do.** It selects no option, changes no recipe value,
+  authorizes no run or evaluation, and reverses no owner ruling.
+
+**R-1. The round is re-framed, not re-commissioned.**
+
+- **The false premise.** The package premise that generation 7 executed the
+  ratified recipe is false:
+  - its physics term ran on one trajectory per step;
+  - its invariant-B monitor scored one trajectory;
+  - L-BFGS could not run in its configuration;
+  - generations 6 and 7 are one experiment.
+- **Why the answers are still usable.** Both reports found this themselves and
+  built their diagnoses on the corrected premise. Their answers are read
+  through the re-framed question: *what did the executed run show, and what
+  must change, starting with conformance, before a run can test the ratified
+  recipe?*
+- **No new round now.** No corrected package goes out. A new research round,
+  if any, waits for evidence from a conformant run.
+
+**R-2. How each kind of answer may be used.**
+
+- **Structural findings are usable as findings.** These are properties of the
+  configuration, code, specs, or guard that hold whichever trajectories the
+  loss evaluates. Examples:
+  - L-BFGS is unreachable when `max_epochs == n_adam`;
+  - the cosine schedule and the guard window interact;
+  - an `R_ref`-relative front cannot certify absolute accuracy;
+  - the guard is a high-water record statistic;
+  - the conformance verifier tested the sampler, not the loss;
+  - the IC gradient dominates under residual-wide normalization. This is a
+    design concern, to be re-measured once the run conforms.
+- **Empirical rates and magnitudes from generations 6 and 7 describe the
+  single-anchor run.** These include front pace, residual reductions, budget
+  estimates, oscillation statistics, and the natural experiment. They may
+  motivate hypotheses and experiments. They may not set or justify any recipe
+  value.
+- **Answers about the ratified recipe's own behavior are void as answers.**
+  These are the Q4 step budget, and Q5's oscillation as a property of the
+  recipe. They are carried forward as open questions.
+
+**R-3. Conformance leads the decision sheet.**
+
+- **The governing default.** The owner's 2026-09-07 Option A instruction
+  stands: physics contributions come from every selected slot
+  (`.planning/phases/57-corrected-re-run-the-preserved-evaluation/57-GAPS.md:214-218`).
+  The consolidation presents conformance as decision D0 with that instruction
+  as its default. Ratifying the one-trajectory behavior instead is possible
+  only as the owner's explicit reversal of Option A.
+- **Consequences, not choices.**
+  - Any fix to selected-slot semantics triggers re-measuring `R_ref` and
+    re-running GATE-04 (`pinn_architecture.md:454`).
+  - A graded run before conformance is restored would again not test the
+    recipe.
+  - The next conformance gate must test what the loss evaluates, not what the
+    sampler emits.
+- **The IC term's batch behavior is its own decision.** It also runs on one
+  trajectory, but Phase 57 kept that on purpose (`57-02-PLAN.md:87`), and the
+  spec's `L_IC` states no batch rule. It goes to the decision sheet as its own
+  item, because it carries the dominant gradient.
+
+**R-4. The v2.3 record is annotated, not rewritten.**
+
+- **The verdict stands.** The owner's v2.3 verdict `rethink` is unchanged.
+- **Its rationale is not supported.** The recorded rationale is that "the
+  corrected recipe's causal front failed to keep advancing"
+  (`.planning/phases/58-verdict-traceability-close/58-VERDICT.md:19-20`). The
+  corrected recipe's physics term did not run, so generation 7's stall is
+  evidence about the executed run, not about the recipe.
+- **The annotation.** It lives in `.planning/milestones/v2.3-GAPS.md` ("Post-close
+  finding") and in `.planning/STATE.md`. The archived phase files stay as they
+  are.
+
+**R-5. Claude's training- and validation-data reads (its gap G-11) are
+permitted.**
+
+- The read-only bar protects the unspent held-out evaluation and forbids side
+  effects.
+- Reading training- and validation-split files spends nothing, and no
+  test-split file was opened.
+- Future prompts should state this boundary explicitly.
+
+**R-6. Fan-out is closed.** The package goes to no further agents. The two
+returned reports are the round's evidence.
+
+**R-7. Next steps.**
+
+1. Part 2 of the Rule-19 verification: the diagnoses, the facts each option
+   rests on, the gaps, and the claims registers.
+2. Consolidation into `trainex-r4-resolution-doc.md`, under R-2 and R-3.
+3. The owner's ruling on the decision sheet.
+4. The next milestone.
+
+The verification also found a residual error in the delivered evidence bundle.
+Part G's lead-in says the replay scored "four checkpoints"; the correct count
+is five generation-7 plus three generation-6. It is recorded in the
+verification report and left as delivered (D-15).
 
 ## Corrections before handoff (2026-10-04)
 
@@ -87,7 +206,8 @@ Not uploaded: this delivery note, the prompt (pasted, not attached), and
 `research_results/` (filled at delivery).
 
 **Fan out across several external agents.** Save each report as
-`research_results/<agent>-resolution.md`.
+`research_results/<agent>-resolution.md`. *Closed on 2026-10-07 by ruling R-6:
+the Codex and Claude reports are the round's returns.*
 
 ## Rule-20 live-tree pin — stamp one block per engagement
 
@@ -204,10 +324,11 @@ are expected, and the "attached files only" instruction must not appear.
 | `specs/framework-specs-bundle.md` (Rule 15 single-file bundle) | **done**: 11 excerpts, byte-verified |
 | `research_package/v2.3-closure-evidence-bundle.md` | **done**: 9 verbatim parts plus one derived digest, byte-verified |
 | Package self-audit | **done**: `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md`; re-audited after the pre-handoff corrections (its addendum) |
-| Rule-20 live-tree pin | Codex and Claude engagements recorded above; record each additional engagement separately |
-| `research_results/<agent>-resolution.md` | Codex result received as `research_results/codex-resolution.md` (2026-10-04); Claude result received as `research_results/claude-resolution.md` (2026-10-06); additional returns pending |
-| Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | after delivery, **before** any claim informs a decision |
-| Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | after verification |
+| Rule-20 live-tree pin | Codex and Claude engagements recorded above; fan-out closed 2026-10-07 (R-6) |
+| `research_results/<agent>-resolution.md` | Codex result received as `research_results/codex-resolution.md` (2026-10-04); Claude result received as `research_results/claude-resolution.md` (2026-10-06); no further returns (R-6) |
+| Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | **Part 1 done** 2026-10-07: the premise-challenge findings, 122 rows, none refuted (`2026-10-07-trainex-r4-rule19-claim-verification.md`; `b4b975e9`, `d97328d4`). **Part 2 pending**: diagnoses, option facts, gaps, registers |
+| Re-framing ruling (ERW runbook "Handoff" step 6) | **done** 2026-10-07, owner-delegated; see "Re-framing ruling" above |
+| Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | after Part 2, under rulings R-2 and R-3 |
 | Owner ruling on the decision sheet, plus any authorized experiments | owner, after consolidation; picks recorded as project Key Decisions (Rule 13) and carried into the next milestone |
 
 ## Provenance

@@ -6,10 +6,10 @@ current_phase: 58
 current_phase_name: Verdict & Traceability Close
 current_plan: 0
 status: milestone-closed
-stopped_at: "v2.3 archived 2026-10-04 (verdict rethink); trainex-r4 package assembled, corrected after a double-check, and re-audited; awaiting owner handoff"
-last_updated: "2026-10-04T00:00:00Z"
-last_activity: 2026-10-04
-last_activity_desc: v2.3 milestone closed and archived (override closeout). Roadmap, requirements, and gap index archived under milestones/v2.3-*; phase folders 53-58 left in place by owner decision; GAP-56-02 deferred; 18 inherited open-artifact items recorded below. The next milestone routes to ERW round trainex-r4.
+stopped_at: "trainex-r4 re-framed 2026-10-07 after Rule-19 Part 1 (gen 7 ran single-anchor physics); fan-out closed; Rule-19 Part 2 and consolidation next"
+last_updated: "2026-10-07T00:00:00Z"
+last_activity: 2026-10-07
+last_activity_desc: trainex-r4 reports from Codex (2026-10-04) and Claude (2026-10-06) saved; Rule-19 verification Part 1 (premise findings, 122 rows, none refuted) committed b4b975e9 and d97328d4; owner-delegated re-framing ruling R-1..R-7 recorded in the trainex-r4 DELIVERY-NOTE; v2.3-GAPS.md carries a post-close finding that generation 7 did not execute the ratified physics term.
 state_head: 0f216177
 progress:
   total_phases: 6
@@ -33,8 +33,8 @@ See: .planning/PROJECT.md (updated 2026-10-04)
 **v2.3 CLOSED 2026-10-04 on the declared terminal state (owner verdict `rethink`, 2026-10-03).**
 All six phases (53–58) complete; 12/15 requirements Complete, RUN-04/RUN-05 closed incomplete, EVAL-02 not attempted (the sole held-out evaluation remains preserved unspent). Archived under `milestones/v2.3-*` (roadmap, requirements, gap index with a "Milestone close" section). The phase folders 53–58 stay in `.planning/phases/` because the Phase 57 verifier and its tests hardcode that path (owner decision 2026-10-04). GAP-56-02 DEFERRED to the milestone after `trainex-r4`.
 
-Last activity: 2026-10-04 — v2.3 archived via `/gsd-complete-milestone` (override closeout; see Deferred Items).
-**Next:** hand off the `trainex-r4` package (assembled and audited 2026-10-04: `pinn_instruction/markdown_conversion/framework-specs/trainex-r4/`, start at its `DELIVERY-NOTE.md`; audit `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md`). When reports return: Rule-19 verification, consolidation, owner ruling, then initialize the next milestone. No run is authorized until the round returns and the owner rules.
+Last activity: 2026-10-07 — `trainex-r4` re-framed after Rule-19 verification Part 1 (see the ruling below). Earlier: v2.3 archived 2026-10-04 via `/gsd-complete-milestone` (override closeout; see Deferred Items).
+**Next:** Rule-19 verification Part 2 (diagnoses, option facts, gaps, registers), extending `docs/work/reviews/cross_cutting/trainex-r4/2026-10-07-trainex-r4-rule19-claim-verification.md`; then the consolidated `trainex-r4-resolution-doc.md` under rulings R-2 and R-3; then the owner's ruling on its decision sheet; then initialize the next milestone. No run is authorized before that ruling.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -53,6 +53,28 @@ them re-derivably where re-typing several thousand characters by hand would not.
 `completed_plans` was re-derived from disk (twelve `*-SUMMARY.md` files across the
 two v2.3 phase directories) rather than incremented from the value the tooling
 left.
+
+### trainex-r4 re-framing ruling (2026-10-07, owner-delegated)
+
+The owner delegated the round's re-framing decision to the in-repo agent on
+2026-10-07. The ruling is recorded in full in
+`pinn_instruction/markdown_conversion/framework-specs/trainex-r4/DELIVERY-NOTE.md`
+("Re-framing ruling"). In brief:
+
+- **The premise was false.** Generation 7 did not execute the ratified
+  recipe's physics term: it ran on one trajectory per step, and the monitor
+  scored one trajectory. The round is re-framed, not re-commissioned (R-1).
+- **How the answers may be used (R-2).**
+  - Structural findings are usable.
+  - The run's empirical rates and magnitudes may not set recipe values.
+  - The Q4 budget answer is void.
+- **Conformance leads the decision sheet (R-3).** The default is the owner's
+  GAP-57-01 Option A instruction. Any fix re-triggers `R_ref` and GATE-04. The
+  IC term's batch behavior is its own decision.
+- **The v2.3 verdict `rethink` stands (R-4).** Its rationale is annotated as
+  unsupported in `.planning/milestones/v2.3-GAPS.md` ("Post-close finding").
+- **Claude's training- and validation-data reads are permitted (R-5).**
+- **Fan-out is closed (R-6).**
 
 ### Decisions from 57-01 (2026-09-08)
 
@@ -611,15 +633,16 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/DELIVERY-NOTE.md (handoff steps; v2.3 obligations in .planning/milestones/v2.3-GAPS.md "Milestone close")
+**Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/DELIVERY-NOTE.md (status, the re-framing ruling, obligations; v2.3 obligations and the post-close finding in .planning/milestones/v2.3-GAPS.md)
 
-Last session: 2026-10-04
-Stopped at: trainex-r4 package assembled (d3a6e61b), audited (2427ec94), corrected after the double-check review (c4887da2), and re-audited (86958a65)
-Next action: owner hands the package to external agents (attach three files, paste the prompt, stamp the Rule-20 pin per engagement in DELIVERY-NOTE.md).
+Last session: 2026-10-07
+Stopped at: trainex-r4 Rule-19 verification Part 1 committed (b4b975e9, d97328d4); re-framing ruling recorded (owner-delegated)
+Next action: Rule-19 verification Part 2, extending docs/work/reviews/cross_cutting/trainex-r4/2026-10-07-trainex-r4-rule19-claim-verification.md; then the consolidation.
 
 ## Operator Next Steps
 
-- **Hand off `trainex-r4`** — the package is assembled, corrected, and re-audited (2026-10-04; see the delivery note's correction record); follow its `DELIVERY-NOTE.md`. Returned reports land in `research_results/` and need the Rule-19 verification report before any claim is used. No run is authorized until the round returns and the owner rules.
+- **Finish `trainex-r4`** — Codex and Claude returned (2026-10-04, 2026-10-06); fan-out closed and the round re-framed (2026-10-07, see the delivery note's ruling). Remaining: Rule-19 verification Part 2, the consolidated `trainex-r4-resolution-doc.md`, and the owner's ruling on its decision sheet. No run is authorized before that ruling.
+- ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
 - **Owner decision still open:** where the v2.3 phase folders should live once the next milestone starts. (The Phase-50 and Phase-43 test paths were fixed on 2026-10-04 without editing archived evidence.)
 - **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.
 - ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
