@@ -6,10 +6,10 @@ current_phase: 58
 current_phase_name: Verdict & Traceability Close
 current_plan: 0
 status: milestone-closed
-stopped_at: "trainex-r4 re-framed 2026-10-07 after Rule-19 Part 1 (gen 7 ran single-anchor physics); fan-out closed; Rule-19 Part 2 and consolidation next"
+stopped_at: "trainex-r4 Rule-19 verification complete 2026-10-07 (Parts 1 and 2); round re-framed; fan-out closed; consolidation next"
 last_updated: "2026-10-07T00:00:00Z"
 last_activity: 2026-10-07
-last_activity_desc: trainex-r4 reports from Codex (2026-10-04) and Claude (2026-10-06) saved; Rule-19 verification Part 1 (premise findings, 122 rows, none refuted) committed b4b975e9 and d97328d4; owner-delegated re-framing ruling R-1..R-7 recorded in the trainex-r4 DELIVERY-NOTE; v2.3-GAPS.md carries a post-close finding that generation 7 did not execute the ratified physics term.
+last_activity_desc: trainex-r4 reports from Codex (2026-10-04) and Claude (2026-10-06) saved; Rule-19 verification Part 1 (premise findings, 122 rows, none refuted) committed b4b975e9 and d97328d4, Part 2 (diagnoses, options, registers, 137 rows, 1 refuted, 13 narrowed) committed 654d6ffe; owner-delegated re-framing ruling R-1..R-7 recorded in the trainex-r4 DELIVERY-NOTE; v2.3-GAPS.md carries a post-close finding that generation 7 did not execute the ratified physics term.
 state_head: 0f216177
 progress:
   total_phases: 6
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-10-04)
 All six phases (53–58) complete; 12/15 requirements Complete, RUN-04/RUN-05 closed incomplete, EVAL-02 not attempted (the sole held-out evaluation remains preserved unspent). Archived under `milestones/v2.3-*` (roadmap, requirements, gap index with a "Milestone close" section). The phase folders 53–58 stay in `.planning/phases/` because the Phase 57 verifier and its tests hardcode that path (owner decision 2026-10-04). GAP-56-02 DEFERRED to the milestone after `trainex-r4`.
 
 Last activity: 2026-10-07 — `trainex-r4` re-framed after Rule-19 verification Part 1 (see the ruling below). Earlier: v2.3 archived 2026-10-04 via `/gsd-complete-milestone` (override closeout; see Deferred Items).
-**Next:** Rule-19 verification Part 2 (diagnoses, option facts, gaps, registers), extending `docs/work/reviews/cross_cutting/trainex-r4/2026-10-07-trainex-r4-rule19-claim-verification.md`; then the consolidated `trainex-r4-resolution-doc.md` under rulings R-2 and R-3; then the owner's ruling on its decision sheet; then initialize the next milestone. No run is authorized before that ruling.
+**Next:** the consolidated `trainex-r4-resolution-doc.md` under rulings R-2 and R-3 (the Rule-19 verification is complete: `docs/work/reviews/cross_cutting/trainex-r4/2026-10-07-trainex-r4-rule19-claim-verification.md`, Parts 1 and 2); then the owner's ruling on its decision sheet; then initialize the next milestone. No run is authorized before that ruling.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -636,12 +636,12 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/DELIVERY-NOTE.md (status, the re-framing ruling, obligations; v2.3 obligations and the post-close finding in .planning/milestones/v2.3-GAPS.md)
 
 Last session: 2026-10-07
-Stopped at: trainex-r4 Rule-19 verification Part 1 committed (b4b975e9, d97328d4); re-framing ruling recorded (owner-delegated)
-Next action: Rule-19 verification Part 2, extending docs/work/reviews/cross_cutting/trainex-r4/2026-10-07-trainex-r4-rule19-claim-verification.md; then the consolidation.
+Stopped at: trainex-r4 Rule-19 verification complete (Part 1 b4b975e9/d97328d4, Part 2 654d6ffe); re-framing ruling recorded (owner-delegated, 4174f4f6)
+Next action: write the consolidated trainex-r4-resolution-doc.md (Rule 11 join points, rulings R-2/R-3), then the owner rules on its decision sheet.
 
 ## Operator Next Steps
 
-- **Finish `trainex-r4`** — Codex and Claude returned (2026-10-04, 2026-10-06); fan-out closed and the round re-framed (2026-10-07, see the delivery note's ruling). Remaining: Rule-19 verification Part 2, the consolidated `trainex-r4-resolution-doc.md`, and the owner's ruling on its decision sheet. No run is authorized before that ruling.
+- **Finish `trainex-r4`** — Codex and Claude returned (2026-10-04, 2026-10-06); fan-out closed and the round re-framed (2026-10-07, see the delivery note's ruling). Remaining: the consolidated `trainex-r4-resolution-doc.md` and the owner's ruling on its decision sheet (Rule-19 verification complete 2026-10-07). No run is authorized before that ruling.
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
 - **Owner decision still open:** where the v2.3 phase folders should live once the next milestone starts. (The Phase-50 and Phase-43 test paths were fixed on 2026-10-04 without editing archived evidence.)
 - **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.

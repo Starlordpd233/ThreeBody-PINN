@@ -12,12 +12,19 @@ source_baseline: 735e2ae8d5ec30b9915ec9172ac06965fbaa8afb
 
 **This file stays in the repository. Do NOT send it to external research agents.**
 
-## Status: re-framed after Rule-19 verification Part 1; fan-out closed (2026-10-07)
+## Status: Rule-19 verification complete; re-framed; fan-out closed (2026-10-07)
 
-Codex (2026-10-04) and Claude (2026-10-06) returned reports. Part 1 of the
-Rule-19 verification checked every premise-challenge finding in both, and
-refuted none. The round was then re-framed (ruling below). Part 2 of the
-verification and the consolidation are next.
+Codex (2026-10-04) and Claude (2026-10-06) returned reports.
+
+- **Part 1** of the Rule-19 verification checked every premise-challenge
+  finding in both reports and refuted none. The round was then re-framed
+  (ruling below).
+- **Part 2** checked the diagnoses, the facts behind each option, the gaps, and
+  the registers. One numeric claim was refuted, and its error strengthens its
+  own conclusion. Thirteen were narrowed. The literature is routed to a
+  primary-source reading.
+
+The consolidation is next.
 
 The owner routed the next milestone to this round at checkpoint ⑤ on
 2026-10-03 (`.planning/phases/58-verdict-traceability-close/58-VERDICT.md`,
@@ -326,9 +333,9 @@ are expected, and the "attached files only" instruction must not appear.
 | Package self-audit | **done**: `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md`; re-audited after the pre-handoff corrections (its addendum) |
 | Rule-20 live-tree pin | Codex and Claude engagements recorded above; fan-out closed 2026-10-07 (R-6) |
 | `research_results/<agent>-resolution.md` | Codex result received as `research_results/codex-resolution.md` (2026-10-04); Claude result received as `research_results/claude-resolution.md` (2026-10-06); no further returns (R-6) |
-| Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | **Part 1 done** 2026-10-07: the premise-challenge findings, 122 rows, none refuted (`2026-10-07-trainex-r4-rule19-claim-verification.md`; `b4b975e9`, `d97328d4`). **Part 2 pending**: diagnoses, option facts, gaps, registers |
+| Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | **done** 2026-10-07 (`2026-10-07-trainex-r4-rule19-claim-verification.md`). Part 1, the premise findings: 122 rows, none refuted (`b4b975e9`, `d97328d4`). Part 2, the diagnoses, option facts, gaps, and registers: 137 rows, 1 refuted, 13 narrowed, literature routed (`654d6ffe`) |
 | Re-framing ruling (ERW runbook "Handoff" step 6) | **done** 2026-10-07, owner-delegated; see "Re-framing ruling" above |
-| Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | after Part 2, under rulings R-2 and R-3 |
+| Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | **next**, under rulings R-2 and R-3; includes a primary-source reading of the source-method facts both reports state |
 | Owner ruling on the decision sheet, plus any authorized experiments | owner, after consolidation; picks recorded as project Key Decisions (Rule 13) and carried into the next milestone |
 
 ## Provenance
