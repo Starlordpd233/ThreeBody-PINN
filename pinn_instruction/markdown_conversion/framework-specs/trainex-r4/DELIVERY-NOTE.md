@@ -12,7 +12,7 @@ source_baseline: 735e2ae8d5ec30b9915ec9172ac06965fbaa8afb
 
 **This file stays in the repository. Do NOT send it to external research agents.**
 
-## Status: Codex result received, independent verification pending (2026-10-04)
+## Status: Codex and Claude results received, independent verification pending (2026-10-06)
 
 The owner routed the next milestone to this round at checkpoint ⑤ on
 2026-10-03 (`.planning/phases/58-verdict-traceability-close/58-VERDICT.md`,
@@ -115,6 +115,40 @@ not authorize experiments, recipe changes, or evaluation. Independent Rule-19
 verification, consolidation, and the owner's ruling remain pending. Additional
 agent engagements and returns may be recorded separately.
 
+### Claude engagement (2026-10-06)
+
+| Field | Value |
+|---|---|
+| Report file | `research_results/claude-resolution.md` |
+| Worktree | `<home>/Desktop/3_body_problem/.worktrees/trainex` |
+| Branch | `milestone/v2.3` |
+| Commit at engagement | `LIVE-TREE-PIN=9bebe667b520e25e0bea5b84eeb0a4fc7168a9e5` |
+| How access was granted | The owner directed Claude Code (`claude-opus-5-5`) to follow `research_package/RESEARCH-AGENT-PROMPT.md` and granted codebase access in this chat. The owner later authorized read-only sub-agents (Opus tier). |
+| Date of engagement | 2026-10-06, America/Chicago |
+
+The report was returned in chat after a read-only investigation, in which no
+repository file was edited, no training was run, no evaluation was invoked, and
+no commit was made. The owner then explicitly requested saving the report in the
+result folder and recording this pin. That delivery write does not authorize
+experiments, recipe changes, or evaluation.
+
+The report's §0 records four disclosures:
+
+- **Data files read.** It read training- and validation-split trajectory files:
+  row counts, and the Stage-0 training positions, velocities and masses for
+  physical scales. It opened no test-split file. Whether this counts as permitted
+  read-only analysis is the report's gap G-11.
+- **One forward-pass measurement.** A read-only sub-agent re-scored the frozen
+  monitor from checkpoint contents only (CPU float32). This is the same class of
+  measurement as the package's Part B replay.
+- **Independence.** It did not read `research_results/codex-resolution.md`.
+- **Uncommitted working files.** Its analysis scripts and sub-agent working files
+  stayed in the session scratchpad and are not part of the delivery commit. The
+  report records their SHA-256 digests.
+
+Independent Rule-19 verification, consolidation, and the owner's ruling remain
+pending.
+
 ### Engagement template
 
 | Field | Value |
@@ -170,8 +204,8 @@ are expected, and the "attached files only" instruction must not appear.
 | `specs/framework-specs-bundle.md` (Rule 15 single-file bundle) | **done**: 11 excerpts, byte-verified |
 | `research_package/v2.3-closure-evidence-bundle.md` | **done**: 9 verbatim parts plus one derived digest, byte-verified |
 | Package self-audit | **done**: `docs/work/reviews/cross_cutting/trainex-r4/2026-10-04-trainex-r4-package-audit.md`; re-audited after the pre-handoff corrections (its addendum) |
-| Rule-20 live-tree pin | Codex engagement recorded above; record each additional engagement separately |
-| `research_results/<agent>-resolution.md` | Codex result received as `research_results/codex-resolution.md`; additional returns pending |
+| Rule-20 live-tree pin | Codex and Claude engagements recorded above; record each additional engagement separately |
+| `research_results/<agent>-resolution.md` | Codex result received as `research_results/codex-resolution.md` (2026-10-04); Claude result received as `research_results/claude-resolution.md` (2026-10-06); additional returns pending |
 | Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | after delivery, **before** any claim informs a decision |
 | Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | after verification |
 | Owner ruling on the decision sheet, plus any authorized experiments | owner, after consolidation; picks recorded as project Key Decisions (Rule 13) and carried into the next milestone |
