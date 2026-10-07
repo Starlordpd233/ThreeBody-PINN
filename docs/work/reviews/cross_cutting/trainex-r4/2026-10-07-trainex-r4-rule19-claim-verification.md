@@ -37,10 +37,11 @@ This file verifies. It rules on nothing. Whether and how the round is re-framed 
 a separate record.
 
 **Independence.** Several of the challenged premises are statements the in-repo
-agent wrote into the package. For that reason a second, independent check of the
-same layer was commissioned in parallel on 2026-10-07. It works from a written
-brief and blind to this file. This file was written without reading that check's
-report.
+agent wrote into the package: the master's F-rows and the prompt. A second,
+independent check of this layer was briefed on 2026-10-07 for that reason, but it
+was not run. The facts the re-framing ruling rests on are proved mechanically, by
+the code and by the replay in Appendix A.2, and no narrower verdict on the in-repo
+agent's own statements changes that ruling. Weigh those verdicts with this in mind.
 
 ## Scope of Part 1
 
