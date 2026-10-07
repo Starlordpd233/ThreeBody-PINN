@@ -157,7 +157,7 @@ verdicts separated by `·`.
 | B-PC1a | The sampler is conformant: each of the 4096 rows carries its own slot's `tau_ic13`, `masses`, and key | `batches.py:488-507` | `CONFIRMED` | |
 | B-PC1b | The loss keeps only the times: anchor `keys[0]`; trajectory from the anchor's `ic13` and `masses`; the comment says so | `controllers.py:1075-1079`, `:1081-1095`, `:1117-1128` | `CONFIRMED` | |
 | B-PC1c | Every physics row is evaluated on the anchor's trajectory in the monolithic and microbatched paths, and production ran the microbatched one | `controllers.py:1169-1181`, `:1746-1770`; config `adam_microbatch_size: 256`; the diagnostic steps' provenance is `microbatch_pass2_diagnostic` | `CONFIRMED` | |
-| B-PC1d | The IC term is the anchor's IC | `controllers.py:1857-1864` | `CONFIRMED` | The data term is not anchored: `_data_term(batch.data_points)` (`:1865`) fits all 256 selected slots' data points (`:603-612`, `:1149`) |
+| B-PC1d | The IC term is the anchor's IC | `controllers.py:1857-1864` | `CONFIRMED` | This is pre-existing behavior that Phase 57 deliberately kept (`57-02-PLAN.md:87`: "Preserve IC … behavior outside this bounded seam"). The data term is not anchored: `_data_term(batch.data_points)` (`:1865`) fits all 256 selected slots' data points (`:603-612`, `:1149`) |
 | B-PC1e | The per-row `tau_ic13` and `masses` are only serialized and hashed; no loss reads them | A search of `pinn/` finds the collocation `tau_ic13` and `masses` only at `controllers.py:320-321`, `:333-334`, `:391`, `:409-410` (serialize, hash, restore). The loss reads only `.times` (`:1128`) | `CONFIRMED` | |
 | B-PC1f | The anchor is the lowest ID among the step's 240 replay draws | `batches.py:76-78` (sorted), `controllers.py:1075-1079` | `CONFIRMED` | |
 | B-PC1g | With N₀ = 1,812: P(rank 1) = 13.25 %, mean rank 7.5, effective number of anchors 14.1 | N₀ from `splits.json` (train, stage 0) and `training_metadata.json` `n_train`; A.3: 0.1325, 7.523, 14.07 | `CONFIRMED` | |
@@ -173,7 +173,7 @@ verdicts separated by `·`.
 | B-PC1q | Anchor identity explains 51 / 28 / 21 % of the detrended variance of log R̃ in bins 0 / 1 / 2; resampling the times of one trajectory at fixed parameters moves S₁ and S₂ by about 4–8 % | A.4: 50–52 / 27 / 19–20 % across three detrending windows; step 901 S₁ 0.779 against the monitor's 0.728 at `best.pt` (7.0 %); step 943 S₂ 1.120 against 1.182 and 1.189 (5.3–5.8 %) | `CONFIRMED` | The report does not state its detrending method. Results agree within 1–2 points under rolling-median detrending |
 | B-PC1r | The IC term's swings depend on exposure: ID 0 ended at IC loss 26–59; trajectory 28 at 2.3 × 10³ – 2.2 × 10⁴; the run minimum 25.7 (step 947) is ID 0 | A.3: ID 0's last five appearances 59.1, 40.0, 34.0, 27.4, 25.7; trajectory 28 at steps 892, 901, 908, 943: 22,083 / 2,342 / 12,180 / 5,870; minimum at step 947, anchor 0 | `CONFIRMED` | |
 | B-PC1s | `R_ref` and GATE-04 were measured on single-trajectory cases, so a per-slot fix triggers re-measurement under the named invalidation list | `pinn/verification/gate04_train_free.py:703-754` (one network, one IC13, one mass vector per case); `pinn/verification/artifacts/r_ref_stage0.json` (six cases); the spec `:454` lists "count unit, selected-slot semantics" | `CONFIRMED` | |
-| B-PC1t | This is an implementation non-conformance; the owner may still choose to ratify anchor semantics | A-P1f | `CONFIRMED` | The second half is an option, not a claim |
+| B-PC1t | This is an implementation non-conformance; the owner may still choose to ratify anchor semantics | A-P1f; `57-02-PLAN.md:87`; the spec §3.3 (`:509-515`) | `CONFIRMED-NARROWER` | Established for the physics term, and so for the monitor. The IC term's one-trajectory evaluation is kept by plan, and the spec's `L_IC` states no batch rule, so whether it must cover every slot is open, not a verified non-conformance. The second half of the assertion is an option, not a claim |
 | B-PC2a | The applied IC gradient exceeded the applied physics gradient by 2.78 × 10⁴ – 2.62 × 10⁶ on every diagnostic step | A.1, over the 19 steps | `CONFIRMED` | |
 | B-PC2b | Under Adam, a component 10⁻⁴ – 10⁻⁶ of the dominant one contributes the same tiny fraction of the update | Analysis | `CONFIRMED-NARROWER` | The logged ratio is between global norms. Adam normalizes per parameter, and the logs do not show per-parameter dominance. B-PC2e is the direct evidence |
 | B-PC2c | At step 951, median \|m̂\|/√v̂ = 0.039 (p90 0.115); gradient clipping never bound (peak norm/threshold 0.73) | A.5: median 0.0389, p90 0.1147 over all 795,657 parameters; peak clip ratio 0.741 at step 941 | `CONFIRMED` | The peak differs in the second digit, within how the clip window was reconstructed. It never approaches 1 |
@@ -277,7 +277,7 @@ appendix scripts; their output is quoted here.
 | P4 — L-BFGS unreachable at Adam exhaustion | **Holds** | — |
 | P5 — generations 6 and 7 not independent | **Holds, sharper** | Identical batches, anchors, and validation draws for all 513 shared steps |
 | P6 — two numeric interpretations need qualification | **Holds** | The maximum discrepancy is at log line 53, not 57 |
-| PC-1 (Claude) — single trajectory per step; monitor likewise | **Holds** | The data term is per-slot; only the IC and physics terms are anchored. The monitor's numeric reproduction was not re-run |
+| PC-1 (Claude) — single trajectory per step; monitor likewise | **Holds, narrower** | The verified non-conformance is the physics term (and so the monitor). The IC term is also anchored, but by preserved design, with no spec batch rule. The data term is per-slot. The monitor's numeric reproduction was not re-run |
 | PC-2 — the causal physics term was effectively not trained | **Holds, narrower** | The data term trained on all selected slots, so the run was "single-anchor IC, per-slot data". The amplitude-shrinkage account omits the input layer's 8 % growth. Norm dominance is global, not shown per parameter |
 | PC-3 — L-BFGS unreachable | **Holds** | — |
 | PC-4 — generations 6 and 7 not independent; generation 6 never ran a full window | **Holds** | The smoke differs from the graded run in logged `total` and `lr` from step 1–2; its loss terms first differ at step 3 |
@@ -297,9 +297,9 @@ No finding fails. No assertion was refuted.
 
 | Verdict | Group A | Group B | Group C | Total |
 |---|---|---|---|---|
-| `CONFIRMED` | 25 | 60 | 19 | 104 |
+| `CONFIRMED` | 25 | 59 | 19 | 103 |
 | `CONFIRMED-SHARPER` | 1 | 0 | 0 | 1 |
-| `CONFIRMED-NARROWER` | 0 | 13 | 1 | 14 |
+| `CONFIRMED-NARROWER` | 0 | 14 | 1 | 15 |
 | `CONFIRMED` · `NOT-VERIFIABLE-HERE` | 0 | 1 | 1 | 2 |
 | `CONFIRMED-NARROWER` · `NOT-VERIFIABLE-HERE` | 0 | 0 | 1 | 1 |
 | **Total** | 26 | 74 | 22 | 122 |
@@ -319,14 +319,19 @@ No finding fails. No assertion was refuted.
    - From `stage-0-init.pt` to step 951, the input-layer weight norm grew ×1.080 while the output layer shrank ×0.668 (A.5). Hidden layers changed ×1.000–1.018.
    - The first layer feeds the `first_omega_0 = 30` sinusoid. Its growth raises the input frequency, which raises curvature. That works against the "amplitude shrinkage" account in PC-2 item 3.
    - The account remains plausible, since the observed per-bin drop (×2.3–5.6) exceeds the 0.45 the head alone predicts. But it is not the whole mechanism. This bears on Q3.
+4. **The IC term's anchoring is preserved design, not part of the verified defect.**
+   - Phase 57's plan refactored the physics path to the complete batch and told the executor to "Preserve IC, angular-momentum, optimizer, and curriculum behavior outside this bounded seam per D-01/D-16" (`57-02-PLAN.md:87`).
+   - The spec's `L_IC` (`pinn_architecture.md` §3.3, `:509-515`) is written for one trajectory: a sum over the three bodies with no batch average.
+   - So the IC term's one-trajectory evaluation predates Phase 57 and is spec-silent. Whether the IC term should cover every selected slot (it carries the dominant gradient, PC-2) is an open decision, not part of the verified non-conformance. Claude's PC-1 and headline group it with the physics term.
 
 ## What the verified premise layer establishes
 
 These are facts, not rulings.
 
 1. **The ratified causal objective did not run.**
-   - Generation 7 computed its physics and IC terms on one trajectory per step: the lowest-ID of that step's 240 replay draws. The run saw 40 distinct trajectories, and three-quarters of its steps used one of the 10 lowest IDs.
-   - Only the collocation times came from the per-slot allocation. The owner's Phase-57 Option A instruction and the 57-02 must-have required every selected slot to contribute.
+   - Generation 7 computed its physics term on one trajectory per step: the lowest-ID of that step's 240 replay draws. The run saw 40 distinct trajectories, and three-quarters of its steps used one of the 10 lowest IDs.
+   - Only the collocation times came from the per-slot allocation. The owner's Phase-57 Option A instruction and the 57-02 must-have required every selected slot to contribute physics gradients.
+   - The IC term also runs on that one trajectory. That is pre-existing behavior Phase 57 kept on purpose, and the spec gives `L_IC` no batch rule, so it is an open question rather than a verified defect.
 2. **The invariant-B monitor scored one trajectory (ID 28)**, which was the training anchor on 31 of 951 steps. Validation physics is one time point on one trajectory (ID 12).
 3. **The Phase-57 conformance verifier could not detect this.** Its anchor check tests the sampler's keys, and its `anchor_only` field is a constant.
 4. **L-BFGS could not run in this configuration.** At budget exhaustion its budget is zero, and the plateau trigger's longest qualifying streak was 6 of the required 50.
