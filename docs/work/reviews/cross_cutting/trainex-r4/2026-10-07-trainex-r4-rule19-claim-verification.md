@@ -7,6 +7,7 @@ phase: cross-cutting
 retirement_trigger: the trainex-r4 round is consumed — its reports are verified (Rule 19), consolidated, and the owner has ruled on the decision sheet
 verifier: Claude Code (claude-opus-5-5), the in-repo agent
 live_tree_pin: 296c6526fe49807f6e0267847c21f119aeac178a
+part2_live_tree_pin: 4174f4f6e0569600783bf970bf08f0172b6eeac1
 reports_verified: research_results/codex-resolution.md (report_body_sha256 634c5fdd…); research_results/claude-resolution.md (report_body_sha256 58051ae1…)
 ---
 
@@ -16,8 +17,8 @@ reports_verified: research_results/codex-resolution.md (report_body_sha256 634c5
 
 | Part | Covers | State |
 |---|---|---|
-| 1 | The premise-challenge findings: Codex §1 (P1–P6); Claude §2 (PC-1 to PC-12) and its §2.13 table of F-01 to F-18 | **complete in this commit** |
-| 2 | The diagnoses, the facts each option rests on, the gaps, and the claims registers | pending; it will extend this file |
+| 1 | The premise-challenge findings: Codex §1 (P1–P6); Claude §2 (PC-1 to PC-12) and its §2.13 table of F-01 to F-18 | **complete** (commits `b4b975e9`, `d97328d4`, `6c2adcda`) |
+| 2 | The diagnoses, the facts each option rests on, the gaps, and the claims registers | **complete** ("Part 2" below; Appendix B) |
 
 ## Why this exists
 
@@ -344,7 +345,326 @@ These are facts, not rulings.
    - The imbalance was on record at initialization, in the production-conformance evidence.
 7. **The baseline must be redone after any fix.** `R_ref` and GATE-04 were measured on single-trajectory cases, five of six of them synthetic. Any change to selected-slot semantics is a named trigger to re-measure `R_ref` and re-run GATE-04.
 
-## Appendix A — scripts and outputs
+## Part 2 — the diagnoses, options, gaps, and registers
+
+### Scope of Part 2
+
+| # | Source section | Extracted | Rows |
+|---|---|---|---|
+| 1 | `codex-resolution.md` §2–5 (lines 81–445): diagnosis, options, gaps, register, and its note on its own checks | every repository-derived, arithmetic, or literature claim | 36 rows |
+| 2 | `claude-resolution.md` §1 (lines 116–190): headline facts not already covered in Part 1 | the same | 7 rows |
+| 3 | `claude-resolution.md` §3.0–3.5 and §3.7–3.9 (lines 638–950, 1165–1374): diagnosis, H-row derivations, evidence limits, experiments | the same | 59 rows |
+| 4 | `claude-resolution.md` §3.6 (lines 951–1163): the source method and the project's departures from it | the same; literature content routed | 9 rows |
+| 5 | `claude-resolution.md` §4–6 and Appendix A (lines 1377–1748): options, gaps, register, reproduction notes | the facts each option rests on; the register is cross-referenced rather than re-ledgered | 26 rows |
+
+**Total Part 2 ledger rows: 137.**
+
+**What is not a row.**
+- **Option merits, door classifications, and defaults.** These are proposals for the owner, not claims about the tree. Part 2 verifies the facts each option states or rests on.
+- **Pure analysis with no checkable content.** It is recorded only where it asserts something the tree can settle.
+- **Claims verified in Part 1.** These are cited by their Part 1 row (for example "= B-PC2a"), not re-derived.
+
+### Method additions for Part 2
+
+**Pin.** Part 2 read the tree at `4174f4f6e0569600783bf970bf08f0172b6eeac1`.
+`git diff --stat 296c6526 HEAD` over `pinn/`, `configs/`, `runs/`, and both live
+specs is empty, so everything Part 1 established still describes the same files.
+
+**Data reads.** One script (Appendix B.3) opened trajectory files, under these
+rules:
+
+- **Which files.** The 1,812 Stage-0 training trajectories only.
+- **How they were selected.** By identity from `runs/stage0-v23g7-seed42/splits.json`,
+  after asserting that no selected identity is in the test split.
+- **What it read.** Names in the data folder were listed, but only the selected
+  files were opened, with the repository's own `parse_brutus_file`. No
+  validation- or test-split file was opened.
+- **Where they live.** The files are on-disk corpus data outside Git
+  (`simulation_data/Data/brutus_output/brutus_hierarchical/` in the main
+  checkout, resolved by `pinn.data.adapter.default_data_root()`).
+
+**Forward passes.** None. Claims that need a model forward pass carry
+`NOT-VERIFIABLE-HERE`, as in Part 1.
+
+**Literature.** Statements about published papers and the authors' code cannot be
+settled in the repository. They carry `NOT-VERIFIABLE-HERE`, following the
+trainex-r3 check. Each such row notes whether the two reports, written
+independently, agree. The source-method facts that drive options are flagged for
+a primary-source reading during consolidation.
+
+**Scripts.** Five scripts and their outputs are in Appendix B. Short inline
+checks are quoted where they are used.
+
+### Ledger — Part 2
+
+#### Group D — Codex §2–5
+
+| Row | Assertion | Evidence | Verdict | Note |
+|---|---|---|---|---|
+| D-L1 | The source method is Wang, Sankaran & Perdikaris, *Respecting causality for training physics-informed neural networks*, CMAME 421, 116813 (2024); preprint arXiv:2203.07404 (2022) | The vendored PINA code cites the same paper and DOI (`reference-code/reference_NNs/PINA-master/pina/solver/physics_informed_solver/causal_pinn.py:55-60`) | `CONFIRMED` · `NOT-VERIFIABLE-HERE` | Claude gives the same identification independently (G-1); so did trainex-r3 |
+| D-L2 | The 2022 preprint uses exclusive-prefix exponential weights with detached gradients, the ε sequence [0.01, 0.1, 1, 10, 100], ends each stage when the minimum weight exceeds 0.99, and decays the rate exponentially (no cosine, no timeout) | Literature | `NOT-VERIFIABLE-HERE` | Agrees with Claude C-40 and C-43. Settle by reading Algorithm 1 and §5 of arXiv:2203.07404 |
+| D-L3 | The authors' code puts the IC loss inside the causal exponent and uses Adam at 10⁻³, decayed by 0.9 every 5,000 iterations | Literature (code) | `NOT-VERIFIABLE-HERE` | The decay agrees with Claude C-43. Claude does not discuss the IC-in-exponent point |
+| D-L4 | The Expert's Guide (arXiv:2308.08468, 2023) uses a fixed causal tolerance of 1 with 16 chunks and gradient-norm balancing, and advises reducing ε when weights cannot approach one; so a fixed `η_c = 1` does not by itself violate the method family | Literature | `NOT-VERIFIABLE-HERE` | Agrees with Claude C-41 and its E2.9 quotation |
+| D-A1 | The coefficient acts on `R_ref`-normalized residuals, so its effective raw value is 1/`R_ref` ≈ 5.06 × 10⁻¹¹ | `pinn/loss_catalog.py:385-395` (R̃ = raw/`R_ref`; η_c multiplies the detached exclusive prefix of R̃); 1/1.97498 × 10¹⁰ = 5.063 × 10⁻¹¹ | `CONFIRMED` | Cited at `:391` |
+| D-Q1a | The learning rate falls about 94-fold from logged step 450 to 950 | B.2: 93.9 | `CONFIRMED` | |
+| D-Q1b | All 19 diagnostic gradients are overwhelmingly IC-directed before Adam | = B-PC2a | `CONFIRMED` | |
+| D-Q1c | Clipping never binds; the largest norm/threshold ratio is 0.741 | = B-PC2c (0.741 at step 941); `pinn/training/grad_clip.py:240-246` (append-then-median window) | `CONFIRMED` | |
+| D-Q1d | The IC term exceeds the other active loss terms by at least 236.6× | The evidence bundle's Part G digest, re-run in the package audit addendum (`86958a65`) | `CONFIRMED` | |
+| D-Q1e | The IC gradient exceeds the physics gradient by 27,797× to 2,616,396× | B.2 | `CONFIRMED` | |
+| D-Q1f | ‖g_phys + g_data‖/‖g_IC‖ ≤ 3.65 × 10⁻⁵ at the diagnostic steps | B.2: (applied_phys + applied_data)/applied_ic peaks at 3.65 × 10⁻⁵; by the triangle inequality this bounds the vector ratio | `CONFIRMED` | |
+| D-Q1g | This shows domination before Adam, not zero physics influence after Adam's per-coordinate normalization | Analysis; consistent with B-PC2b | `CONFIRMED` | |
+| D-Q1h | At the trip, entering bin 3 needs the prefix to fall from 1.1891 to below ln 2, a further 41.7 % | = B-PC11b; verdict packet raw row `:274` (`step-000951.pt`) | `CONFIRMED` | |
+| D-Q1i | At the recorded runtime, 500 updates per arm cost about 100 minutes | B.2: median 12.04 s/step × 500 = 100 min | `CONFIRMED` | |
+| D-Q2a | front ≥ k + 1 ⟺ Σ_{b≤k} R̄_b < `R_ref` ln 2 | Algebra on the weight definition (the spec `:452`; `loss_catalog.py:385-395`): weights do not increase with n, so w_{k+1} > 0.5 implies every earlier weight exceeds 0.5 | `CONFIRMED` | |
+| D-Q2b | A full front implies only (1/15)Σ_{b≤14} R̄_b < 9.1263 × 10⁸ | `R_ref` ln 2/15 = 9.1263 × 10⁸ | `CONFIRMED` | |
+| D-Q2c | It bounds neither bin 15's residual, nor the IC error, nor trajectory error; re-measuring `R_ref` moves the raw tolerance | Algebra: w₁₅ depends on bins 0–14 only | `CONFIRMED` | |
+| D-Q3a | The AD path differentiates τ = 2u − 1 correctly and the IC reduction matches the spec; no stray factor of 2 or 4 and no missing body average explains the large IC term | `controllers.py:1091-1092`; `pinn/physics_residual.py:128-135` (nested `jacrev` in u); `ic_anchor_loss` in `pinn/loss_catalog.py` ((1/3)Σ‖Δr‖² + β_v(1/3)Σ‖Δv‖², as the spec `:511-515`); residency velocities are v·T/D (`pinn/data/preprocessing.py`, V = D/T) | `CONFIRMED` | |
+| D-Q3b | Sitzmann et al., SIREN, NeurIPS 2020 supports sine representations and their initialization, not a fourth-power law for this stack | Literature | `NOT-VERIFIABLE-HERE` | |
+| D-Q3c | y″ = J_G h″ + H_G[h′, h′]; LN(ωa) = ω(a − ā)/√(ω²Var(a) + ε) nearly cancels the scale when ε is negligible | Calculus; LayerNorm without affine parameters (checkpoint identity `layernorm_elementwise_affine: false`) | `CONFIRMED` | |
+| D-Q4a | At step 951 the first six normalized bins sum to 3.8827, so they need more than 5.60× further reduction | B.1 (verdict packet rows): 3.8827; 3.8827/ln 2 = 5.60 | `CONFIRMED` | |
+| D-Q4b | The budget is explicitly provisional, and the configuration leaves no refinement headroom after Adam exhaustion | `ctl_instruction.md:1994-1997` ("provisional pending Stage-0 pilot calibration"); = A-P4b | `CONFIRMED` | |
+| D-Q4c | Published benchmark budgets are much larger (causal paper, Appendix C) | Literature | `NOT-VERIFIABLE-HERE` | Agrees with Claude F-Q4c |
+| D-Q5a | At step 900 the bin-2 prefix is 0.7277, 0.0346 above ln 2; at step 951 it is 0.5505; the bin-3 prefix stays 1.1891 | B.1 (verdict packet rows) | `CONFIRMED` | |
+| D-Q5b | The batch front changes 492 times; no per-step anchor identity or frozen-monitor trace exists in the scalar logs | Package F-09 (492); the step-log field list (Part 1 Method); the TensorBoard sink writes no monitor series (`pinn/training/tb_sink.py`: the scalar, `causal/*`, and per-bin residual families only; Part 1 A.4 reads 53 tags); `controllers.py:1598-1602` builds the record | `CONFIRMED` | |
+| D-H1 | e⁻¹⁵ = 3.059 × 10⁻⁷; the float32 normal-floor exponent margin is about 5.82 | 87.3365/15 = 5.82 | `CONFIRMED` | |
+| D-H2 | H-02's "two independent stalled runs" is wrong | = B-PC4b | `CONFIRMED` | |
+| D-H3 | A flat order-one profile needs a 21.64× reduction for a full front | 15/ln 2 = 21.64 | `CONFIRMED` | |
+| D-O1 | Lowering λ_IC to 0.1 alone would leave the IC/physics ratio at about 2,780 or more | 27,797 × 0.1 | `CONFIRMED` | |
+| D-O2 | At initialization the scheduled λ_phys is 0 | Logged λ_phys at step 1 is 0 (B-PC11d) | `CONFIRMED` | |
+| D-O3 | Raising the locked physics cap is not available | The spec `:700-701` (λ_phys^max = 1 **[LOCKED]**) | `CONFIRMED` | |
+| D-O4 | A longer timeout alone does not fix the zero refinement budget | = A-P4b | `CONFIRMED` | |
+| D-O5 | The composed recipe's controls match the executed configuration (seed 42; 12 layers; ω₀ 30, hidden ω₀ 1; 4096 rows in 16 bins of 256; η_c 1; six-case `R_ref`; Adam 10⁻³ with cosine over `n_adam` 1000; 100-step warm-up; `max_epochs` 1000; 500-step timeout) | `configs/stage0-v23g7-seed42.yaml`; checkpoint identity fields (Part 1 A.5); the logged rate law (B-PC11c); I_warm = min(2000, 0.1 × 1000) = 100 | `CONFIRMED` | |
+| D-G1 | Its gaps 2 (no IC position/velocity split) and 8 (sparse monitor snapshots) match the records | The step-log fields have one `loss_ic`; the monitor was replayed at 8 checkpoints | `CONFIRMED` | The other gaps are research statements |
+| D-V1 | Its own check diffed `controllers.py`, `pinn/training/losses.py`, `config.py`, and the verifier against the run commit | `pinn/training/losses.py` does not exist, and `git diff` over a missing path prints nothing | `CONFIRMED-NARROWER` | The check covered three files, not four. Part 1's whole-directory diff covers the claim it supports |
+| D-V2 | All 11 spec excerpts and 9 evidence excerpts matched their baseline and live sources | The package audit and its addendum: 20 verbatim blocks byte-identical | `CONFIRMED` | |
+
+#### Group E — Claude §1 (headline facts beyond Part 1)
+
+| Row | Assertion | Evidence | Verdict | Note |
+|---|---|---|---|---|
+| E-1 | Between blocks 401–500 and 901–951 the population median S₂ fell 2.33 → 0.99 while the learning rate fell about 40× | = B-PC6c; B.2: median rate ratio 42.9 | `CONFIRMED` | |
+| E-2 | The window held 23.6 % of the run's cumulative learning-rate mass | B.2: 118.0 of 499.5 full-rate steps | `CONFIRMED` | |
+| E-3 | The high-water mark of 2 was set at step 450, during a high-volatility phase | `invariant_b_state` (last advance 450); the rate at 450 is 5.78 × 10⁻⁴, inside the band where B.2 finds the largest S₂ volatility (median \|Δlog₁₀ S₂\| 0.088) | `CONFIRMED` | |
+| E-4 | `R_ref` corresponds to an RMS residual about 890× the median true acceleration | B.3: √`R_ref`/158.9 = 884 | `CONFIRMED` | |
+| E-5 | The initial velocity error was about 170, against true speeds of about 2 | B.2: √(IC loss) is 202.6 at step 1 and 82–203 over steps 1–5; B.3: true median ‖v′(0)‖ 2.033 | `CONFIRMED-NARROWER` | The order of magnitude holds; 170 is not reproduced. Reading √(IC loss) as velocity error assumes the position part is negligible, which is true at initialization (‖r′‖ ≈ 1 against ‖v′‖ ≈ 240–330) |
+| E-6 | A fully advanced front still allows an RMS residual of about 3.0 × 10⁴, 190× the median true acceleration | B.3: 3.021 × 10⁴/158.9 = 190 | `CONFIRMED` | |
+| E-7 | On identical batches, trajectory 28's S₁ differed 3× by step 409 between generations 6 and 7 | = B-PC4e | `CONFIRMED` | |
+
+#### Group F — Claude §3.0–3.5 and §3.7–3.9
+
+| Row | Assertion | Evidence | Verdict | Note |
+|---|---|---|---|---|
+| F-E1 | E-B: the front recomputed from the TensorBoard bins equals the logged `front_idx` on every record, and raw/`R_ref` equals the normalized series to 8 × 10⁻⁸ | B.2: 0 mismatches in 952; maximum relative difference 8.2 × 10⁻⁸ | `CONFIRMED` | |
+| F-E2 | E-E: median per-body ‖a′‖ 159 (p99 2,070), median ‖v′(0)‖ 2.03, every `t_end` = 10 | B.3 (1,812 Stage-0 training files): 158.9, 2,070, 2.033; `t_end` = 10 and 126 snapshots in every file | `CONFIRMED` | |
+| F-E3 | E-F: global parameter drift 18 %; first-layer τ-frequency RMS 1.22 → 1.35 | B.1: 0.1835; 1.2239 → 1.3462 | `CONFIRMED` | |
+| F-N1 | N_eff over 1,000 steps is 499.4: 381.4 (76.4 %) before step 450 and 118.0 (23.6 %) in 450–951 | B.2: 499.50, 381.41 (76.4 %), 118.00 (23.6 %) | `CONFIRMED` | The total differs in the first decimal with the summation convention |
+| F-Q1a | The schedule holds about 500 full-rate steps in total; a window opening at 450 holds 118 | = F-N1 | `CONFIRMED` | |
+| F-Q1b | Against lr starvation: per unit of cumulative learning rate, trajectory 28's d ln S₂/d(Σlr) went −0.06 → −4.4 → −16.2 across the three thirds, and anchors 1 and 9 behaved alike | B.2 (thirds by step): trajectory 28 −0.06 / −3.37 / −15.74; anchor 1 −1.87 / −6.16 / −4.98; anchor 9 −3.38 / +0.04 / −36.68 | `CONFIRMED-NARROWER` | Trajectory 28's steepening reproduces; its middle value depends on the method. Anchor 9 is steepest last, but anchor 1 peaks in the middle third, so "alike" holds for anchor 9 only |
+| F-Q1c | For lr starvation: the decline slowed in the last block (median S₂ 1.05 → 0.99 from 801–900 to 901–951) | B.2: 1.051 → 0.991 | `CONFIRMED` | |
+| F-Q1d | Trajectory 28's fresh-time S₁ read 1.30 at step 409 and 0.95–1.17 at steps 470–481, a ≥ 30 % excursion from the monitor's front-2 state | Part 1 A.4; 0.949/0.693 = 1.37 | `CONFIRMED` | |
+| F-Q1e | S₂ volatility per recurrence ≤ 10 steps apart: median \|Δlog₁₀\| 0.088 at lr > 5 × 10⁻⁴ and 0.013 at lr < 10⁻⁴ | B.2: 0.088 and 0.014 | `CONFIRMED` | The intermediate bands give 0.045 and 0.028 |
+| F-Q1f | IC error scales with exposure: anchor 0 ended at \|Δv′\| ≈ 5.8, trajectory 28 at ≈ 107 | B.2: the median of √(IC loss) over each anchor's last five appearances is 5.8 and 106.7 | `CONFIRMED-NARROWER` | The figures are √(IC loss). Treating them as velocity error assumes a negligible position part, which no retained record splits late in the run |
+| F-Q1g | At the trip, the monitor's S₁ = 0.5505 (0.14 below ln 2) and S₂ = 1.1891 | B.1 | `CONFIRMED` | |
+| F-Q1h | Late volatility (≈ 0.013, about 3 % per occurrence) cannot close a 41.7 % gap | B.2: 0.014; 10^0.014 = 1.03 | `CONFIRMED` | |
+| F-Q1i | Trajectory 28's mid-window trend is about −0.0015 per step in ln S₂, needing about 340 more steps at that rate | B.2: −0.00149 per step; ln(1.15/0.693)/0.0015 = 338 | `CONFIRMED` | |
+| F-Q1j | The schedule holds 0.6 full-rate steps after step 951 | B.2: Σ over steps 952–1000 is 0.09 | `REFUTED` | 0.09, not 0.6. The conclusion it supports, that the schedule cannot supply about 340 more steps, holds more strongly |
+| F-Q1k | The same anchor's IC loss changes by a median factor ≈ 2 between recurrences ≤ 10 steps apart, at every learning rate (0.30 / 0.28 / 0.35 / 0.30 across four bands) | B.2: 0.296 / 0.311 / 0.260 / 0.321 for bands > 5 × 10⁻⁴, (2.5–5] × 10⁻⁴, (1–2.5] × 10⁻⁴, ≤ 10⁻⁴; 0.295 overall (×1.97) | `CONFIRMED-NARROWER` | The factor ≈ 2 holds in every band. The per-band values depend on band edges the report does not state |
+| F-Q2a | The arithmetic table: initialization RMS 1.41 × 10⁵ ≈ 890× the median ‖a′‖ (68× p99); full-front RMS < 3.0 × 10⁴ ≈ 190× (15× p99); a physically meaningful R̄ ≲ 2.5 × 10² | B.3 and arithmetic: 884×, 68×, 190×, 14.6×; (0.1 × 158.9)² = 252 | `CONFIRMED` | |
+| F-Q2b | In R̃ units a physically meaningful residual is about 10⁻⁸, and the full-front bound 0.046 sits 6–7 orders above it | 252/`R_ref` = 1.28 × 10⁻⁸; 0.0462/1.28 × 10⁻⁸ = 3.6 × 10⁶ | `CONFIRMED` | |
+| F-Q2c | GATE-04's stored condition-(iii) diagnostics: scaling the residuals by 0.05 gives front 9–15, and by 0.01 gives front 15 in all six cases | B.1: at 0.05, fronts 15, 9, 13, 12, 13, 12; at 0.01, 15 in all six | `CONFIRMED` | |
+| F-Q2d | R2.1: R̄ ≈ ‖a′‖²/3 at initialization to four figures | = B-PC2i | `CONFIRMED` | |
+| F-Q2e | R2.2: `eps_H` stayed at 0.983–0.990 while the front went 0 → 2 | = B-PC2j | `CONFIRMED` | |
+| F-Q3a | The initial ‖v′‖ is about 240–330 | B.1: Phase-55 probe medians 239.4–327.4 | `CONFIRMED` | |
+| F-Q3b | Under the spec's U[−1/n_in, 1/n_in] bound with n_in = 14, the τ column's angular frequency is at most 30/14 = 2.14 per unit τ; its RMS at initialization is 1.22, about 2.4 per unit u | `pinn/network.py:81-82` (bound 1/`in_features`); B.1: maximum 2.1425, RMS 1.2239 | `CONFIRMED` | |
+| F-Q3c | The measured ‖a′‖/‖v′‖ is about 585–847 per unit u, and ‖v′‖/‖r′‖ about 230–330 | B.1: 585–847; 221–359 | `CONFIRMED-NARROWER` | The second range is 221–359 |
+| F-Q3d | The 2026-08-17 audit estimated, without measuring it, a LayerNorm-squared Jacobian of about 3 per odd layer across six layers (≈ 3⁶ ≈ 729) | `docs/work/reviews/milestone_v2.2/50-valid-stage-0-re-run/2026-08-17-residual-frame-conformance-audit.md:165` ("≈ 3 per odd layer, six of them") | `CONFIRMED` | 3⁶ = 729 is the report's own arithmetic |
+| F-Q3e | Training raised the first-layer τ-frequency: RMS 1.22 → 1.35, maximum 2.14 → 3.28 | B.1 | `CONFIRMED` | |
+| F-Q3f | `ArchitectureSpec` rejects every non-default depth, width, p, ω₀, and LayerNorm setting | `pinn/architecture_spec.py:71-130`: 11 fail-closed checks (dimensions, depth 12, width 256, p 2, LayerNorm affine and ε, first and hidden ω₀) | `CONFIRMED` | |
+| F-Q3g | M3.1: median `grad_norm` 1.34 × 10⁸; at initialization the raw IC gradient was 3.80 × 10⁸ against physics 215 | B.2: 1.34 × 10⁸; = B-PC2d | `CONFIRMED` | |
+| F-Q3h | M3.3: the measured 585–847 against at most 4.3 per unit u from the first layer | 2.14 × 2 = 4.28 | `CONFIRMED` | |
+| F-Q3i | The initial IC loss of about 4 × 10⁴ is the squared v′ error | B.2: `loss_ic` 4.106 × 10⁴ at step 1; with ‖r′‖ ≈ 1 against ‖v′‖ ≈ 240–330 (B.1) the position part is negligible at initialization | `CONFIRMED` | |
+| F-Q3j | Any change here means a fresh re-initialization ablation, invalidating `R_ref` and needing owner ratification | The spec `:184-186` (retune only as a stage-boundary ablation with fresh re-initialization); `:454` (`first_omega_0` is an invalidation trigger) | `CONFIRMED` | |
+| F-Q4a | About 12 s/step (mean 12.07 over 951 records); the 951 steps took 11,662 s; 10⁴ steps ≈ 1.4 days and 10⁵ ≈ 2 weeks | B.2: mean 12.07; `terminal-state.json:48` 11,661.9 s; arithmetic | `CONFIRMED` | |
+| F-Q4b | The population median S₁₄ fell 28.9 → 9.08 (blocks 1–100, 852–951), about −0.00136 per step in ln, so about 1,900 more steps to reach ln 2 at that rate | B.2: 28.94 → 9.08; 0.00136; 1,888 | `CONFIRMED` | |
+| F-Q4c | Literature budgets are 10⁵–3 × 10⁵ iterations per ε stage; one jaxpi configuration uses 2 × 10⁴ | Literature | `NOT-VERIFIABLE-HERE` | Agrees with Codex D-Q4c on the order of magnitude |
+| F-Q5a | Trajectory 28's S₁: 0.728 at step 900; 0.549–0.551 at 931–951; fresh-time samples 0.53–0.94 over steps 738–943 | B.1: 0.7277; 0.5532 / 0.5486 / 0.5505; Part 1 A.4: 0.533–0.943 | `CONFIRMED-NARROWER` | The 931–951 range is 0.549–0.553 |
+| F-Q5b | M5.2: other anchors took 97 % of the steps | 1 − 31/951 = 96.7 % | `CONFIRMED` | |
+| F-H1a | GATE-04's stored P₁₅ were 13.5–24.6, so the minimum initialization weights were 1.3 × 10⁻⁶ to 2.1 × 10⁻¹¹ | B.1: 13.543–24.586; stored minimum weights 1.31 × 10⁻⁶ to 2.1 × 10⁻¹¹ | `CONFIRMED` | |
+| F-H1b | The smallest logged weight was 9.84 × 10⁻²³ at step 231 in both generations, an exponent of 50.7 against the 87.3 floor | B.2 | `CONFIRMED` | |
+| F-H1c | The 2026-08-17 audit measured a median raw physics/data gradient ratio of 6.3 × 10¹² on a v2.2 seed-41 run | The audit `:132` (6.3 × 10¹², 12.8 decades, from the retained seed-41 log) | `CONFIRMED` | |
+| F-H1d | After B2, raw physics 91–758 against applied data 1.45–5.78, a ratio of about 16–520; the physics/data mismatch shrank by about 10 orders | = B-PC10a: raw physics 88.8–758, per-step ratio 21.6–243×; 12.8 decades → 1.3–2.4 decades | `CONFIRMED-NARROWER` | As B-PC10a |
+| F-H1e | Point 3: the ruling's quoted words; the IC term's ‖Δv′‖ ≈ 170 at the start | `54-RULING.md:135-139`; = E-5 | `CONFIRMED-NARROWER` | The quotation is exact; the 170 figure is narrowed as in E-5 |
+| F-H1f | Point 4: the ruling's quoted words ("fixed time bin"; "a front from a resampled training batch remains a stochastic diagnostic") | `54-RULING.md:141-142` | `CONFIRMED` | |
+| F-H2a | Step 93 is the smoke's monitor, not the graded run's, and the graded run's first front-1 step is unrecorded | Package F-14; the graded run's checkpoints store only the last advance (450), and `train.log` records no advance events (its only "front" match is the run-start threshold line) | `CONFIRMED` | |
+| F-H2b | The smoke's front-1 at step 93 was transient (front 0 at steps 100/200/300) | Needs a forward pass | `NOT-VERIFIABLE-HERE` | As C-F14 |
+| F-H2c | 5.78 × 10⁻⁴ → 6.16 × 10⁻⁶ is 94× | B.2: 93.9 | `CONFIRMED` | |
+| F-H4a | The vendored PINA implementation cites the same paper and defaults `eps = 100` | `causal_pinn.py:55-60`, `:76` | `CONFIRMED` | |
+| F-H4b | trainex-r3's Rule-19 pass routed every published-content claim as `NOT-VERIFIABLE-HERE` | B.5: the r3 verification `:255-259`, `:1436` | `CONFIRMED` | |
+| F-H4c | The trainex-r3 record states no source learning-rate schedule or iteration count | B.5: no line in the r3 open-book report, closed-book report, or resolution doc states one | `CONFIRMED` | |
+| F-H4d | The r3 open-book report derived the LayerNorm scale-invariance argument and measured, on a re-implementation, R̄ ∝ ω₀^0.5 (1.63 decades for a 1000× cut; ratios 0.265/0.206/0.238 at ω₀ 10/3/1; 1.44 decades per block), routed `NOT-VERIFIABLE-HERE` | B.5: OB `:65-76`, `:78-91`; the r3 verification `:255-259` | `CONFIRMED` | |
+| F-H4e | The r3 closed-book report kept R̄ ∝ ω₀⁴ as a conditional heuristic; GAP-54-08 qualified the invariance as approximate | B.5: CB `:338-360`; `54-GAPS.md:324-328` | `CONFIRMED` | |
+| F-H4f | The predictions table's r3 quotations: OB `:709`, `:712-716`, `:684`, the G-8 Adam remark, `:770-774`, `:899-903`; CB `:537`, `:561` | B.5 | `CONFIRMED` | The "two decades" phrase sits at `:716-717` |
+| F-H4g | Observed physics/data imbalance about 1.2–2.7 decades (16–520×) | Per-step 21.6–243× = 1.33–2.39 decades (B-PC10a) | `CONFIRMED-NARROWER` | |
+| F-H4h | IC exceeded physics by 4.4–6.4 decades and data by about 7–8 decades | B.2: IC/physics 4.44–6.42 decades; IC/data 2.08 × 10⁶ – 2.05 × 10⁸ = 6.3–8.3 decades | `CONFIRMED-NARROWER` | IC/data spans 6.3–8.3 decades |
+| F-H4i | 57-RULING re-ratified N = 500 as "a new owner decision" with no stated quantitative rationale | `57-RULING.md:95-96` | `CONFIRMED` | |
+| F-H4j | 54-RULING point 2's basis mentions physics/data only; the r3 IC caveat (G-9) and the λ_phys warning (OB `:684`) did not reach it | = B-PC10c; F-H4f | `CONFIRMED` | |
+| F-L1 | Evidence limits: one batch/anchor/monitor sequence across smoke, generation 6 and generation 7; 3× divergence within about 140 steps; n = 57 and 32; 40 anchors; 5 + 3 monitor checkpoints; per-term gradients only as global norms every 50 steps | = B-PC4b; B-PC4e (409 − 270 = 139); B-PC2e; B-PC1i; C-N2; Part 1 A.1 | `CONFIRMED` | |
+| F-L2 | The physical scales come from Brutus positions and masses of the 1,812 Stage-0 training trajectories via the analytic Newtonian acceleration; maximum ‖a′‖ 2.9 × 10⁴ | B.3 | `CONFIRMED` | |
+| F-X1 | Experiment costs: E6 about 1.7 h; E7 about 3.3 h per 1,000-step replicate; E8 10⁴ steps ≈ 1.4 days | 500 × 12.07 s = 1.68 h; 1,000 × 12.07 s = 3.35 h; 10⁴ × 12.07 s = 1.40 days | `CONFIRMED` | |
+| F-X2 | E3 takes about 45 s per trajectory-checkpoint (replay timing) | No retained timing record in the repository | `NOT-VERIFIABLE-HERE` | Settle by timing one checkpoint-only replay |
+| F-X3 | E5 needs a code path `ArchitectureSpec` currently rejects | = F-Q3f | `CONFIRMED` | |
+
+#### Group G — Claude §3.6 (the source method and the project's departures)
+
+| Row | Assertion | Evidence | Verdict | Note |
+|---|---|---|---|---|
+| G-1 | The method is Wang, Sankaran & Perdikaris, arXiv:2203.07404 (2022), published in CMAME 421 (2024) 116813 | = F-H4a (the vendored PINA code cites the CMAME version and DOI) | `CONFIRMED` · `NOT-VERIFIABLE-HERE` | Agrees with Codex D-L1 and trainex-r3 |
+| G-2 | The project's specification cites none of these sources | A search of both live specs for the authors, the arXiv identifier, and the title finds nothing | `CONFIRMED` | |
+| G-3 | §3.6.2 on the source method: the ε definition; the sensitivity and annealing quotations; Algorithm 1's ε sequence, δ = 0.99 and λ_ic = 10³; the later fixed tolerance 1.0 with 16–32 chunks; ε on raw residuals; Adam with exponential decay 0.9 per 5,000 steps; budgets of 10⁵–3 × 10⁵; no cosine, L-BFGS hand-off, or 10³-step budgets | Literature | `NOT-VERIFIABLE-HERE` | The facts both reports state independently agree: the ε sequence and δ = 0.99 (D-L2), the 0.9-per-5,000 decay (D-L3), the fixed tolerance 1 and the advice to reduce ε (D-L4), and large budgets (D-Q4c). Settle by reading the cited pages |
+| G-4 | On the published schedule, a 500-step window changes the rate by 0.9^(500/5000) ≈ 0.99 and 10⁵ steps by 0.9²⁰ ≈ 0.12, while generation 7's cosine fell about 94× inside its window | 0.9895; 0.1216; B.2: 93.9 | `CONFIRMED` · `NOT-VERIFIABLE-HERE` | The arithmetic and the project side are confirmed; the published schedule is literature |
+| G-5 | L-1, project side: `η_c` = 1 fixed, continuation explicitly declined | `54-RULING.md:50` ("Retain the fixed value `η_c = 1`; do not add coefficient continuation") | `CONFIRMED` · `NOT-VERIFIABLE-HERE` | |
+| G-6 | L-2: w > 0.5 ⇔ Σ R̄ < 0.693·`R_ref` ≈ 1.37 × 10¹⁰; the effective raw ε 1/`R_ref` ≈ 5.1 × 10⁻¹¹ is "8–9 orders" below the smallest published values (10⁻³ in the Lorenz code, 10⁻² in the paper) | 1.369 × 10¹⁰; 5.06 × 10⁻¹¹; 10⁻³/5.06 × 10⁻¹¹ = 2.0 × 10⁷ (7.3 orders), 10⁻²/5.06 × 10⁻¹¹ = 2.0 × 10⁸ (8.3 orders) | `CONFIRMED-NARROWER` · `NOT-VERIFIABLE-HERE` | 7.3–8.3 orders, not 8–9. The published values are literature |
+| G-7 | L-3 to L-10, project side: the front is max{n : w_n > 0.5} with a 500-step failure guard; cosine to zero over 1,000 steps with unreachable L-BFGS; λ_IC = 1 on an un-normalized IC term; one IC-conditioned network over many trajectories, executed on one anchor; a Huber data term on 256 trajectories' snapshots; a second-order ODE; SIREN ω₀ 30, 12 layers, LN(x)² power skip; M = 16 | Package F-10; = A-P4b; logged λ_ic = 1 and `ic_anchor_loss` (no `R_ref` division); = B-PC1d; the data term in `pinn/loss_catalog.py` (Huber, δ = 1); the spec and the configuration | `CONFIRMED` · `NOT-VERIFIABLE-HERE` | The source sides are literature |
+| G-8 | §3.6.4, project side: the six LN(x)² branches are fully active at initialization; LayerNorm is the project's own addition; τ is one of 14 inputs under a U[−1/14, 1/14] bound | `pinn/network.py:104-122` (`siren(x_prev) + layernorm(x_prev) ** power_p`, no gate); the spec `:209-214`; `network.py:81-82` | `CONFIRMED` · `NOT-VERIFIABLE-HERE` | The cited papers (Wang–Teng–Perdikaris 2021, Steger et al. 2022, PirateNets 2024, Sitzmann et al. 2020, Noorizadegan et al. 2024, Krishnapriyan et al. 2021, Penwarden et al. 2023, Breen et al. 2020, Greydanus et al. 2019) are literature |
+| G-9 | At about 12 s/step, 10⁵ steps take about 14 days | 10⁵ × 12.07 s = 14.0 days | `CONFIRMED` | |
+
+#### Group H — Claude §4–6 and Appendix A
+
+| Row | Assertion | Evidence | Verdict | Note |
+|---|---|---|---|---|
+| H-D0 | D0-A: the batch already carries every slot's IC13 and masses | = B-PC1a | `CONFIRMED` | The option's cost estimate is engineering judgment, not a claim about the tree |
+| H-D1a | D1-A: λ_phys^max = 1 and λ_data = 1 are locked or fixed | The spec `:700-701`; `pinn/loss_catalog.py:169-173` (raises unless λ_data = 1.0) | `CONFIRMED` | |
+| H-D1b | D1-A: a balancing λ_IC would sit 3–5 orders below the [0.1, 10] ablation range | 1/27,797 = 3.6 × 10⁻⁵ (3.4 orders below 0.1); 1/2,616,396 = 3.8 × 10⁻⁷ (5.4 orders); the spec §3.3 states the range | `CONFIRMED` | |
+| H-D1c | D1-A needs an amendment of Phase 35's "automatic dominance reweighting is deferred until measured … gradient evidence exists" | `pinn_architecture.md:708`; `ctl_instruction.md:1759` | `CONFIRMED` | |
+| H-D1d | D1-B: normalizing the IC term by its initialization value would still leave it about 50× physics in gradient at initialization | 3.80 × 10⁸/4.106 × 10⁴ = 9.3 × 10³; against physics 215, 43× | `CONFIRMED` | |
+| H-D2a | D2-A: the ADVANCE thresholds are provisional pending Stage-0 pilot calibration | `ctl_instruction.md:1994-1997`; package F-15 | `CONFIRMED` | |
+| H-D2b | D2-B reopens A1 ("do not add coefficient continuation") and B2 | `54-RULING.md:50` | `CONFIRMED` | |
+| H-D4a | D4-A stays inside the spec's "decay the learning rate over the phase", with `n_adam` and `max_epochs` provisional | `ctl_instruction.md:1805-1806` ("Initialize a cosine annealing scheduler to decay the learning rate over the phase"); `:1994-1997` | `CONFIRMED` | |
+| H-D4b | Smoothing the plateau input is a code change to a CTX-46 detail | `controllers.py:131` (the CTX-46 hand-off detector header) | `CONFIRMED` | |
+| H-D6 | D6-C weakens SIREN's spectral-bias rationale | The spec `:180-186` ("helps the network overcome spectral bias") | `CONFIRMED` | |
+| H-D7 | D7-A's items address verified facts: no slot identity or monitor trace in the logs, the `train.log` hand-off message, the spec cross-reference at `:452` | = D-Q5b, C-F05, C-F10 | `CONFIRMED` | |
+| H-R1 | §4.2: λ_E = λ_L = 0 at Stage 0 under the locked PHYS-05 table | The spec `:702` (0 for k ∈ {0, 1}, **[LOCKED]**); logged λ_e = λ_l = 0 | `CONFIRMED` | |
+| H-R2 | §4.3: the per-step training identity can be rebuilt exactly from `splits.json`, snapshot counts, and the seed | Part 1 A.2; `run_start_rng.pt` equals `numpy.random.default_rng(42)` (inline check) | `CONFIRMED` | |
+| H-R3 | §4.3: the configuration traps and the code paths that do not match their names | = A-P4b, B-PC3c, C-F05, B-PC1b, A-P2b, B-PC1o | `CONFIRMED` | |
+| H-R4 | §4.3: about 12 s/step on MPS float32 at 4,096 rows and a 256-row microbatch | B.2; config `precision: float32`, `device: mps`, `adam_microbatch_size: 256` | `CONFIRMED` | |
+| H-G1 | G-1: the spec defines `L_IC` for one trajectory without a batch reduction, and `57-02-SUMMARY.md:122` records a preserved choice | The spec §3.3 (`:509-515`); `57-02-SUMMARY.md:122` | `CONFIRMED` | |
+| H-G2 | G-2: Phase-56 Block 4 says "This re-ratifies the time allocation only", while the project's own documents read it per-slot | The spec `:456`; = B-PC1l | `CONFIRMED` | The owner's GAP-57-01 Option A note (A-P1f) also settles the reading; G-2 does not cite it |
+| H-G3 | G-3: `ArchitectureSpec` refuses non-default values, and no `R_ref` exists for any alternative | = F-Q3f; the only reference artifact is `pinn/verification/artifacts/r_ref_stage0.json` | `CONFIRMED` | |
+| H-G4 | G-4: the specs are silent on the 0.5 threshold and on N = 500 | Package F-10, verified at assembly | `CONFIRMED` | |
+| H-G6 | G-6: "epoch" is undefined for replay batching | = B-PC9c | `CONFIRMED-NARROWER` | The Phase-34 once-per-epoch replay rule presupposes a coverage reading |
+| H-G8 | G-8: five of six GATE-04 cases use synthetic zero IC13 and unit masses, and the spec fixes "the fixed six-case GATE-04 probe" without relating it to training ICs | = C-F12; the spec `:454` | `CONFIRMED` | |
+| H-G13 | G-13: the authors' Lorenz code differs from the printed settings | Literature | `NOT-VERIFIABLE-HERE` | |
+| H-G15 | G-15: the monitor contract lives only in 57-RULING, and the spec's cross-reference dangles | = C-F10 | `CONFIRMED` | |
+| H-C21 | C-21: one training batch consumes exactly 40,575 RNG draws, and the monitor hash is `e4fa6a9d…` | B.4: 40,575 PCG64 outputs; `step-000951.pt` `front_monitor.monitor_hash` | `CONFIRMED` | |
+| H-A1 | Appendix A: the scripts ran under the `pinn-train` environment with torch 2.12.1, numpy 2.4.6, tensorboard 2.21.0 | The environment named in `blocked-state-g6.json`'s command reports those versions (inline check) | `CONFIRMED` | |
+| H-A2 | Appendix A: the scripts' SHA-256 digests and `anchor_sequence.json` | The files are in another session's scratchpad, not in the repository | `NOT-VERIFIABLE-HERE` | Settled instead by independent re-derivation (Part 1 A.2–A.5; Part 2 B.1–B.5) |
+
+**Inline checks used above.**
+
+- **`run_start_rng.pt` (H-R2).** Its numpy state equals
+  `numpy.random.default_rng(42).bit_generator.state`: `equal: True`.
+- **The `pinn-train` environment (H-A1).**
+  `<home>/miniforge3/envs/pinn-train/bin/python` reports `2.12.1 2.4.6 2.21.0`.
+- **`train.log` (F-H2a).** It holds 965 lines. The only line matching
+  `advance|high.water|front` is line 1, the run-start provisional-threshold banner.
+- **Spec citations (G-2).** A case-insensitive search of both live specs for
+  `perdikaris|sankaran|2203.07404|respecting causality|wang et al` finds nothing.
+
+### Register cross-reference (not counted as ledger rows)
+
+Claude's §6 register restates claims verified elsewhere in this file. Each row maps
+to its verification:
+
+| Register rows | Verified at | Outcome |
+|---|---|---|
+| `C-01` | B-PC1b to B-PC1d, B-PC1t | Holds for the physics term; the IC anchoring is preserved design (B-PC1t narrower) |
+| `C-02`, `C-03`, `C-04`, `C-05`, `C-06` | B-PC1e, B-PC1f, B-PC1g, B-PC1h, B-PC1i | Hold |
+| `C-07` | B-PC1j, B-PC1k | Holds; the numeric monitor recompute needs a forward pass |
+| `C-08`, `C-09`, `C-10` | B-PC1o, B-PC1l, B-PC1n | Hold |
+| `C-11`, `C-12` | B-PC1q | Hold |
+| `C-13`, `C-14`, `C-15`, `C-16` | B-PC2a, B-PC2d, B-PC2c, B-PC2e | Hold |
+| `C-17` | B-PC2b, B-PC2k | Holds narrower: the evidence is global norms plus the natural experiment, and the data term trained on all slots |
+| `C-18`, `C-19`, `C-20` | B-PC2f and B-PC2h, B-PC2j, B-PC3a to B-PC3c | Hold (`C-18`'s norm detail narrower: the input layer grew 8 %) |
+| `C-21`, `C-22`, `C-23`, `C-24`, `C-25` | B-PC4b and H-C21, B-PC4e, F-N1, B-PC6c, B-PC6b | Hold |
+| `C-26` | F-Q1e, F-Q1k | Holds; per-band IC values depend on band edges |
+| `C-27`, `C-28` | F-E2, F-Q2a | Hold |
+| `C-29` | F-Q1f | Narrower: √(IC loss), position part not split |
+| `C-30`, `C-31` | F-Q3b and F-Q3e, F-Q3c | Hold (`C-31`'s companion v′/r′ range is 221–359) |
+| `C-32`, `C-33` | F-H4d, F-Q3h | Analysis consistent with the evidence; unsettled until E5 |
+| `C-34`, `C-35` | B-PC1s and C-F12, B-PC8a | Hold |
+| `C-36` | F-H2b | Needs a forward pass |
+| `C-37`, `C-38` | C-F05, C-F10 | Hold |
+| `C-39` to `C-49` | G-1, G-3, G-8 | Literature; the facts both reports state agree |
+| `C-50`, `C-51`, `C-52`, `C-53` | B-PC10c and F-H4j, B-PC4b, F-H4f and F-H4j, F-Q4a | Hold |
+| `C-54` | F-Q1d, F-Q1e, B-PC4e | Analysis resting on confirmed facts |
+| Codex §5 rows F-01 to F-18 and H-01 to H-03 | Part 1 Groups A to C | Consistent with Part 1's verdicts |
+| Codex §5 "clipping causes the stall: contradicted" | B-PC2c | Holds |
+| Codex §5 "IC imbalance contributes", "LR decay contributes", "identity failure causes", "ω₀ causes" | B-PC2a, F-Q1b and F-Q1c; analysis | The cited facts hold; the causal readings are analysis |
+
+### Roll-up per question (Part 2)
+
+| Topic | Codex | Claude |
+|---|---|---|
+| Source method | Facts agree with Claude's; literature not checked here | Facts agree with Codex's. One arithmetic slip: 7.3–8.3 orders, not 8–9 (G-6) |
+| Q1 window vs schedule | Holds | Holds, with corrections: 0.09 full-rate steps after step 951, not 0.6 (F-Q1j, refuted); anchor 1 does not share the late steepening (F-Q1b) |
+| Q2 relative vs absolute front | Holds | Holds; the physical-scale figures (190×) reproduce exactly from the training data |
+| Q3 SIREN scale and skip stack | Holds | Holds, with one corrected range (v′/r′ 221–359) |
+| Q4 budget | Holds | Holds; the 1,900-step figure is an amplitude-shedding extrapolation, as the report says |
+| Q5 oscillation | Holds | Holds, with one corrected range (S₁ 0.549–0.553 at 931–951) |
+| The H-row derivations | Hold | Hold; two r3-comparison ranges narrowed (F-H4g, F-H4h) |
+| Options' factual premises | Hold | Hold |
+| Gaps and registers | Hold | Hold; the IC "velocity error" figures are √(IC loss) |
+
+**One assertion was refuted (F-Q1j).** Its error makes the report's own
+conclusion stronger. No refuted or narrowed claim changes a suggested default in
+either report.
+
+### Verdict counts (Part 2)
+
+| Verdict | Group D | Group E | Group F | Group G | Group H | Total |
+|---|---|---|---|---|---|---|
+| `CONFIRMED` | 29 | 6 | 46 | 2 | 23 | 106 |
+| `CONFIRMED-NARROWER` | 1 | 1 | 9 | 0 | 1 | 12 |
+| `REFUTED` | 0 | 0 | 1 | 0 | 0 | 1 |
+| `NOT-VERIFIABLE-HERE` | 5 | 0 | 3 | 1 | 2 | 11 |
+| `CONFIRMED` · `NOT-VERIFIABLE-HERE` | 1 | 0 | 0 | 5 | 0 | 6 |
+| `CONFIRMED-NARROWER` · `NOT-VERIFIABLE-HERE` | 0 | 0 | 0 | 1 | 0 | 1 |
+| **Total** | 36 | 7 | 59 | 9 | 26 | 137 |
+
+### Found by this check, not by either report (Part 2)
+
+None beyond the qualifications recorded in the ledger rows.
+
+### What the verified Part 2 establishes
+
+These are facts, not rulings.
+
+1. **Both diagnoses rest on facts that hold.**
+   - The corrections are numerical and small: one refuted figure, and ranges
+     narrowed in 13 rows across both reports.
+   - The literature content is not checked here. On the source method, the two
+     reports agree point for point.
+2. **The quantitative case that the relative front cannot certify physics holds
+   exactly.**
+   - From the 1,812 Stage-0 training trajectories themselves, a fully advanced
+     front still allows an RMS residual 190× the median true acceleration (15× its
+     99th percentile).
+   - GATE-04's own stored diagnostics show the effect directly. Uniformly scaling
+     the initialization residuals by 0.05 already advances the front to bins 9–15;
+     scaling by 0.01 completes it in every case, with no physics learned.
+3. **The schedule accounting holds.**
+   - The guard window held 118 of about 500 full-rate steps (23.6 %).
+   - At the trip, trajectory 28's trend would have needed about 340 more steps at
+     the mid-window rate, and the schedule had 0.09 left.
+4. **The architecture measurements hold.**
+   - The first layer's τ-frequency is at most 2.14 per unit τ at initialization,
+     and training raised its maximum to 3.28.
+   - The network's effective frequency at initialization is 585–847 per unit u.
+   - `ArchitectureSpec` currently blocks any decomposition of the two.
+5. **The facts behind every suggested default hold** in both reports. Which
+   default to take is for the consolidation and the owner.
+
+## Appendix A — scripts and outputs (Part 1)
 
 Each script is reproduced byte for byte. Its SHA-256 is the digest of the code
 block's content plus one trailing newline. Outputs are the complete standard
@@ -1060,4 +1380,522 @@ Output:
   all 28 model tensors identical: True; failure counters {'global_step': 951, 'global_epoch': 951, 'wall_clock_baseline': 158362.682789208}; curriculum {'stage': 0, 'phase': '2a', 'epoch': 952, 'step': 951, 'disposition_log_pointer': None}
 == PC-2 item 1: gradient clipping, logged pre-clip norm / (8.5 x torch-median of the last <=100 norms incl. current)
   peak ratio 0.741 at step 941 (clipping binds only above 1.0)
+```
+
+## Appendix B — scripts and outputs (Part 2)
+
+Same conventions as Appendix A. Run conditions, from the repository root:
+
+- B.1, B.4: `.venv/bin/python -B`. B.4 imports the definitions of
+  `r4v_anchor_replay.py` (A.2) from the same directory.
+- B.3: `PYTHONPATH=<repository root> .venv/bin/python -B`.
+- B.2, B.5: `python3 -B` (standard library). B.2 reads the
+  `r4v_anchors_stage0-v23g7-seed42.json` file that A.2 writes.
+
+### B.1 `r4v2_records.py` — checkpoint tensors and stored records
+
+SHA-256 `1cab8312a93797891a47726fa934bc6f04d0d7457efc3d97edb92d71d84eabe9`
+
+```python
+"""Rule-19 Part 2: checkpoint tensors and stored records behind the trainex-r4 diagnoses.
+
+Tensor reads only (torch.load(..., weights_only=True)); JSON reads of the GATE-04,
+Phase-55 probe and verdict-packet records. No model is built and no forward pass is run.
+Run from the repository root:  .venv/bin/python -B r4v2_records.py
+"""
+import json
+import math
+from pathlib import Path
+
+import torch
+
+R = Path("runs/stage0-v23g7-seed42/checkpoints")
+init = torch.load(R / "stage-0-init.pt", map_location="cpu", weights_only=True)["model"]
+s951 = torch.load(R / "step-000951.pt", map_location="cpu", weights_only=True)["model"]
+
+print("== first layer (input_layer.weight, columns [tau, IC13]); angular frequency = 30 * W")
+for name, m in (("init", init), ("951", s951)):
+    w = m["input_layer.weight"]
+    tau = 30.0 * w[:, 0]
+    print(f"  {name}: tau-column RMS {tau.pow(2).mean().sqrt().item():.4f}, max |.| {tau.abs().max().item():.4f}; "
+          f"all-weights max |W| {w.abs().max().item():.5f} (1/14 = {1 / 14:.5f})")
+print(f"  bias max |b| at init {init['input_layer.bias'].abs().max().item():.5f}")
+
+num = sum((s951[k] - init[k]).pow(2).sum().item() for k in init)
+den = sum(init[k].pow(2).sum().item() for k in init)
+print(f"== global parameter drift ||theta_951 - theta_0|| / ||theta_0|| = {math.sqrt(num / den):.4f}")
+
+print("== GATE-04 record used before generation 7 (Phase 57, 20260908T093626Z)")
+g = json.loads(Path(".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/gate04/20260908T093626Z/raw.json").read_text())
+fac = g["cases"][0]["condition_iii_diagnostics"]["factors"]
+for c in g["cases"]:
+    rt = c["r_tilde"]
+    p15 = sum(rt[:15])
+    iii = c["condition_iii_diagnostics"]
+    print(f"  case {c['label']:>3} seed {c['seed']}: P15 {p15:.3f} (stored {c['condition_ii_diagnostics']['p15']:.3f}); "
+          f"exp(-P15) {math.exp(-p15):.3g}, stored min_weight {c['min_weight']:.3g}; "
+          f"uniform-scaling fronts {dict(zip(fac, iii['uniform_response_front_idx']))}")
+
+print("== Phase-55 probe (initialization, 16-point medians)")
+p = json.loads(Path(".planning/phases/55-architecture-characterization-probe/evidence/probe/20260906T035209Z/raw.json").read_text())
+for c in p["cases"]:
+    print(f"  seed {c['seed']:>2} {c['ic13_mode']:11s}: |r'| {c['r_norm_median']:.3f}  |v'| {c['v_norm_median']:.1f}  "
+          f"|a'| {c['a_norm_median']:.4g}  a/v {c['a_norm_median'] / c['v_norm_median']:.0f}  v/r {c['v_norm_median'] / c['r_norm_median']:.0f}")
+
+print("== verdict-packet replay rows (monitor S1 = R0 + R1, S2 = S1 + R2)")
+V = Path("docs/work/designs/milestone_v2.3/58-verdict-traceability-close/2026-10-03-phase-58-diag-06-verdict-packet.md")
+for line in V.read_text().splitlines():
+    if line.startswith('{"run"'):
+        r = json.loads(line)
+        b = r["rtilde_bins_0_5"]
+        print(f"  {r['run'][-11:]} {r['checkpoint']:16s} step {r['global_step']:>3}: front {r['front_idx']}, "
+              f"S1 {b[0] + b[1]:.4f}, S2 {b[0] + b[1] + b[2]:.4f}, S5 {sum(b):.4f}")
+```
+
+Output:
+
+```
+== first layer (input_layer.weight, columns [tau, IC13]); angular frequency = 30 * W
+  init: tau-column RMS 1.2239, max |.| 2.1425; all-weights max |W| 0.07142 (1/14 = 0.07143)
+  951: tau-column RMS 1.3462, max |.| 3.2830; all-weights max |W| 0.10969 (1/14 = 0.07143)
+  bias max |b| at init 0.07138
+== global parameter drift ||theta_951 - theta_0|| / ||theta_0|| = 0.1835
+== GATE-04 record used before generation 7 (Phase 57, 20260908T093626Z)
+  case  41 seed 41: P15 13.543 (stored 13.543); exp(-P15) 1.31e-06, stored min_weight 1.31e-06; uniform-scaling fronts {1.0: 0, 0.9: 0, 0.75: 0, 0.5: 1, 0.25: 3, 0.1: 8, 0.05: 15, 0.01: 15, 0.001: 15}
+  case  42 seed 42: P15 24.586 (stored 24.586); exp(-P15) 2.1e-11, stored min_weight 2.1e-11; uniform-scaling fronts {1.0: 0, 0.9: 0, 0.75: 0, 0.5: 0, 0.25: 1, 0.1: 3, 0.05: 9, 0.01: 15, 0.001: 15}
+  case  43 seed 43: P15 15.240 (stored 15.240); exp(-P15) 2.41e-07, stored min_weight 2.41e-07; uniform-scaling fronts {1.0: 0, 0.9: 0, 0.75: 0, 0.5: 0, 0.25: 1, 0.1: 5, 0.05: 13, 0.01: 15, 0.001: 15}
+  case   0 seed 0: P15 16.791 (stored 16.791); exp(-P15) 5.1e-08, stored min_weight 5.1e-08; uniform-scaling fronts {1.0: 0, 0.9: 0, 0.75: 0, 0.5: 0, 0.25: 1, 0.1: 4, 0.05: 12, 0.01: 15, 0.001: 15}
+  case   7 seed 7: P15 15.464 (stored 15.464); exp(-P15) 1.92e-07, stored min_weight 1.92e-07; uniform-scaling fronts {1.0: 0, 0.9: 0, 0.75: 0, 0.5: 0, 0.25: 1, 0.1: 4, 0.05: 13, 0.01: 15, 0.001: 15}
+  case 41-variable-mass seed 41: P15 16.448 (stored 16.448); exp(-P15) 7.19e-08, stored min_weight 7.19e-08; uniform-scaling fronts {1.0: 0, 0.9: 0, 0.75: 1, 0.5: 1, 0.25: 3, 0.1: 6, 0.05: 12, 0.01: 15, 0.001: 15}
+== Phase-55 probe (initialization, 16-point medians)
+  seed 41 zero       : |r'| 1.085  |v'| 251.8  |a'| 1.975e+05  a/v 784  v/r 232
+  seed 42 zero       : |r'| 1.009  |v'| 313.5  |a'| 2.411e+05  a/v 769  v/r 311
+  seed 43 zero       : |r'| 0.830  |v'| 297.9  |a'| 2.078e+05  a/v 698  v/r 359
+  seed  0 zero       : |r'| 0.976  |v'| 301.8  |a'| 2.04e+05  a/v 676  v/r 309
+  seed  7 zero       : |r'| 1.083  |v'| 239.4  |a'| 2.027e+05  a/v 847  v/r 221
+  seed 41 random_tanh: |r'| 1.124  |v'| 327.4  |a'| 1.917e+05  a/v 585  v/r 291
+== verdict-packet replay rows (monitor S1 = R0 + R1, S2 = S1 + R2)
+  23g7-seed42 stage-0-init.pt  step   0: front 0, S1 1.6975, S2 3.7513, S5 9.0945
+  23g7-seed42 best.pt          step 900: front 1, S1 0.7277, S2 1.3443, S5 3.8493
+  23g7-seed42 step-000931.pt   step 931: front 2, S1 0.5532, S2 1.1922, S5 3.8569
+  23g7-seed42 step-000941.pt   step 941: front 2, S1 0.5486, S2 1.1815, S5 3.8520
+  23g7-seed42 step-000951.pt   step 951: front 2, S1 0.5505, S2 1.1891, S5 3.8827
+  23g6-seed42 step-000490.pt   step 490: front 1, S1 0.9538, S2 1.2516, S5 3.0102
+  23g6-seed42 step-000500.pt   step 500: front 1, S1 0.8052, S2 1.0886, S5 3.4869
+  23g6-seed42 step-000510.pt   step 510: front 1, S1 0.7893, S2 1.0769, S5 2.7041
+```
+
+### B.2 `r4v2_logs_tb.py` — log and TensorBoard quantities
+
+SHA-256 `2467ae5545791fccbd6e8a1287cb15091cd8c3201176ad330e528242ebffa74e`
+
+```python
+"""Rule-19 Part 2: log- and TensorBoard-derived claims in the trainex-r4 diagnoses.
+
+Standard library only. Reads runs/<run>/logs/train.log.jsonl, the TensorBoard event
+files (minimal TFRecord + protobuf reader, as in r4v_tb.py), and the replayed anchor
+sequence written by r4v_anchor_replay.py. Read-only.
+Run from the repository root:  python3 -B r4v2_logs_tb.py
+"""
+import collections
+import json
+import math
+import statistics
+import struct
+from pathlib import Path
+
+HERE = Path(__file__).parent
+R_REF = 1.9749775821244170e10
+LN2 = math.log(2.0)
+
+
+def varint(b, i):
+    shift = result = 0
+    while True:
+        c = b[i]
+        i += 1
+        result |= (c & 0x7F) << shift
+        if not c & 0x80:
+            return result, i
+        shift += 7
+
+
+def fields(b):
+    i = 0
+    while i < len(b):
+        key, i = varint(b, i)
+        num, wt = key >> 3, key & 7
+        if wt == 0:
+            v, i = varint(b, i)
+        elif wt == 1:
+            v, i = b[i:i + 8], i + 8
+        elif wt == 2:
+            n, i = varint(b, i)
+            v, i = b[i:i + n], i + n
+        elif wt == 5:
+            v, i = b[i:i + 4], i + 4
+        else:
+            raise ValueError(wt)
+        yield num, wt, v
+
+
+def scalars(run):
+    out = collections.defaultdict(dict)
+    for path in sorted((Path("runs") / run / "tb").glob("events.out.tfevents.*")):
+        data, i = path.read_bytes(), 0
+        while i < len(data):
+            (n,) = struct.unpack("<Q", data[i:i + 8])
+            rec, i = data[i + 12:i + 12 + n], i + 12 + n + 4
+            step = summary = None
+            for num, wt, v in fields(rec):
+                if num == 2 and wt == 0:
+                    step = v
+                elif num == 5 and wt == 2:
+                    summary = v
+            if summary is None:
+                continue
+            for num, _wt, v in fields(summary):
+                if num != 1:
+                    continue
+                tag = val = None
+                for n2, w2, v2 in fields(v):
+                    if n2 == 1:
+                        tag = v2.decode()
+                    elif n2 == 2 and w2 == 5:
+                        (val,) = struct.unpack("<f", v2)
+                if tag is not None and val is not None:
+                    out[tag][step] = val
+    return out
+
+
+def log(run):
+    rows = [json.loads(l) for l in (Path("runs") / run / "logs" / "train.log.jsonl").read_text().splitlines() if l.strip()]
+    return rows, {r["step"]: r for r in rows if r["lr"] is not None}
+
+
+rows7, g7 = log("stage0-v23g7-seed42")
+rows6, g6 = log("stage0-v23g6-seed42")
+tb7 = scalars("stage0-v23g7-seed42")
+anc = {int(k): v for k, v in json.loads((HERE / "r4v_anchors_stage0-v23g7-seed42.json").read_text())["anchors"].items()}
+steps = sorted(g7)
+bins = lambda s: [tb7[f"residuals/bin_{b:02d}"][s] for b in range(16)]
+S = lambda s, k: sum(bins(s)[:k + 1])
+
+print("== N_eff: full-learning-rate-equivalent steps under the cosine law lr(s) = 1e-3 (1 + cos(pi s / 1000)) / 2")
+law = {s: (1 + math.cos(math.pi * s / 1000)) / 2 for s in range(0, 1001)}
+for label, idx in (("sum over s = 1..1000", range(1, 1001)), ("sum over s = 0..999 (rate used by update s+1)", range(0, 1000))):
+    tot = sum(law[s] for s in idx)
+    pre = sum(law[s] for s in idx if s < 450)
+    win = sum(law[s] for s in idx if 450 <= s <= 951)
+    post = sum(law[s] for s in idx if s > 951)
+    print(f"  {label}: total {tot:.2f}; s<450 {pre:.2f} ({100 * pre / tot:.1f} %); 450<=s<=951 {win:.2f} ({100 * win / tot:.1f} %); s>951 {post:.2f}")
+print(f"  lr(450)/lr(950) logged = {g7[450]['lr'] / g7[950]['lr']:.1f}; median lr 401-500 / 901-951 = "
+      f"{statistics.median(g7[s]['lr'] for s in steps if 401 <= s <= 500) / statistics.median(g7[s]['lr'] for s in steps if 901 <= s <= 951):.1f}")
+
+print("== population medians of prefix sums (training batch, completed steps)")
+blk = lambda lo, hi, k: statistics.median(S(s, k) for s in steps if lo <= s <= hi)
+print(f"  S2: 801-900 {blk(801, 900, 2):.3f}, 901-951 {blk(901, 951, 2):.3f};  S14: 1-100 {blk(1, 100, 14):.2f}, 852-951 {blk(852, 951, 14):.2f}")
+a, b = blk(1, 100, 14), blk(852, 951, 14)
+rate = math.log(a / b) / (statistics.mean(range(852, 952)) - statistics.mean(range(1, 101)))
+print(f"  ln-rate of S14 between block centres {rate:.5f} per step; steps to ln 2 from {b:.2f} at that rate: {math.log(b / LN2) / rate:.0f}")
+
+print("== same-anchor recurrences <= 10 steps apart: median |dlog10 S2| and |dlog10 IC| by learning-rate band (lr at the later step)")
+last, pairs = {}, []
+for s in steps:
+    k = anc[s]
+    if k in last and s - last[k] <= 10:
+        p = last[k]
+        pairs.append((g7[s]["lr"], abs(math.log10(S(s, 2) / S(p, 2))), abs(math.log10(g7[s]["loss_ic"] / g7[p]["loss_ic"]))))
+    last[k] = s
+bands = [(5e-4, 1), (2.5e-4, 5e-4), (1e-4, 2.5e-4), (0, 1e-4)]
+for lo, hi in bands:
+    sel = [p for p in pairs if lo < p[0] <= hi]
+    print(f"  lr in ({lo:g}, {hi:g}]: n {len(sel)}; S2 {statistics.median(x[1] for x in sel):.3f}; IC {statistics.median(x[2] for x in sel):.3f}")
+print(f"  all {len(pairs)} recurrences: IC median {statistics.median(x[2] for x in pairs):.3f} (factor {10 ** statistics.median(x[2] for x in pairs):.2f})")
+
+print("== trajectory 28: slope of ln S2 against cumulative logged lr (Sigma lr in lr units), by thirds of the run")
+cum, run = {}, 0.0
+for s in steps:
+    run += g7[s]["lr"]
+    cum[s] = run
+
+
+def slope(points):
+    xs, ys = [p[0] for p in points], [p[1] for p in points]
+    mx, my = statistics.fmean(xs), statistics.fmean(ys)
+    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sum((x - mx) ** 2 for x in xs)
+
+
+for anchor in (28, 1, 9):
+    occ = [s for s in steps if anc[s] == anchor]
+    thirds = [[s for s in occ if s <= 317], [s for s in occ if 317 < s <= 634], [s for s in occ if s > 634]]
+    print(f"  anchor {anchor}: " + ", ".join(f"third {i + 1} (n {len(t)}): {slope([(cum[s], math.log(S(s, 2))) for s in t]):.2f}" for i, t in enumerate(thirds) if len(t) > 2))
+m28 = [s for s in steps if anc[s] == 28 and 470 <= s <= 943]
+print(f"  trajectory 28, ln S2 slope per step over its appearances 470..943: {slope([(s, math.log(S(s, 2))) for s in m28]):.5f}")
+
+print("== TensorBoard consistency")
+mismatch, worst = 0, 0.0
+for r in rows7:
+    s = r["step"]
+    rt = bins(s)
+    pref, front = 0.0, 0
+    for n in range(16):
+        if math.exp(-pref) > 0.5:
+            front = n
+        pref += rt[n]
+    mismatch += front != r["front_idx"]
+    for bb in range(16):
+        raw = tb7[f"raw_residuals/bin_{bb:02d}"][s]
+        worst = max(worst, abs(raw / R_REF - rt[bb]) / rt[bb])
+print(f"  front recomputed from residuals/bin_XX differs from logged front_idx on {mismatch} of {len(rows7)} records; "
+      f"max |raw/R_ref - normalized| / normalized = {worst:.2g}")
+
+print("== other logged quantities")
+for name, rows in (("g7", rows7), ("g6", rows6)):
+    m = min(rows, key=lambda r: r["w_min"])
+    print(f"  {name}: minimum w_min {m['w_min']:.3g} at step {m['step']} (exponent {-math.log(m['w_min']):.1f})")
+sps = [r["s_per_step"] for r in rows7 if r.get("s_per_step") is not None]
+print(f"  g7 s_per_step: n {len(sps)}, mean {statistics.fmean(sps):.2f}, median {statistics.median(sps):.2f}")
+print(f"  g7 median grad_norm over completed steps {statistics.median(g7[s]['grad_norm'] for s in steps):.3g}")
+print(f"  loss_ic at step 1: {g7[1]['loss_ic']:.4g} (sqrt {math.sqrt(g7[1]['loss_ic']):.1f}); "
+      f"max loss_ic over steps 1-10 {max(g7[s]['loss_ic'] for s in range(1, 11)):.4g}")
+d = [g7[s] for s in steps if g7[s]["grad_stats_complete"]]
+print(f"  diagnostic steps: applied_ic/applied_phys {min(r['grad_norm_applied_ic'] / r['grad_norm_applied_phys'] for r in d):,.0f} .. "
+      f"{max(r['grad_norm_applied_ic'] / r['grad_norm_applied_phys'] for r in d):,.0f}; "
+      f"max (applied_phys + applied_data) / applied_ic {max((r['grad_norm_applied_phys'] + r['grad_norm_applied_data']) / r['grad_norm_applied_ic'] for r in d):.3g}")
+for k in (0, 28):
+    tail = [(s, g7[s]["loss_ic"]) for s in steps if anc[s] == k][-5:]
+    print(f"  anchor {k}: last five appearances, sqrt(loss_ic): " + ", ".join(f"{s}:{math.sqrt(v):.1f}" for s, v in tail))
+```
+
+Output:
+
+```
+== N_eff: full-learning-rate-equivalent steps under the cosine law lr(s) = 1e-3 (1 + cos(pi s / 1000)) / 2
+  sum over s = 1..1000: total 499.50; s<450 381.41 (76.4 %); 450<=s<=951 118.00 (23.6 %); s>951 0.09
+  sum over s = 0..999 (rate used by update s+1): total 500.50; s<450 382.41 (76.4 %); 450<=s<=951 118.00 (23.6 %); s>951 0.09
+  lr(450)/lr(950) logged = 93.9; median lr 401-500 / 901-951 = 42.9
+== population medians of prefix sums (training batch, completed steps)
+  S2: 801-900 1.051, 901-951 0.991;  S14: 1-100 28.94, 852-951 9.08
+  ln-rate of S14 between block centres 0.00136 per step; steps to ln 2 from 9.08 at that rate: 1888
+== same-anchor recurrences <= 10 steps apart: median |dlog10 S2| and |dlog10 IC| by learning-rate band (lr at the later step)
+  lr in (0.0005, 1]: n 234; S2 0.088; IC 0.296
+  lr in (0.00025, 0.0005]: n 80; S2 0.045; IC 0.311
+  lr in (0.0001, 0.00025]: n 57; S2 0.028; IC 0.260
+  lr in (0, 0.0001]: n 73; S2 0.014; IC 0.321
+  all 444 recurrences: IC median 0.295 (factor 1.97)
+== trajectory 28: slope of ln S2 against cumulative logged lr (Sigma lr in lr units), by thirds of the run
+  anchor 28: third 1 (n 8): -0.06, third 2 (n 11): -3.37, third 3 (n 12): -15.74
+  anchor 1: third 1 (n 37): -1.87, third 2 (n 38): -6.16, third 3 (n 36): -4.98
+  anchor 9: third 1 (n 21): -3.38, third 2 (n 20): 0.04, third 3 (n 29): -36.68
+  trajectory 28, ln S2 slope per step over its appearances 470..943: -0.00149
+== TensorBoard consistency
+  front recomputed from residuals/bin_XX differs from logged front_idx on 0 of 952 records; max |raw/R_ref - normalized| / normalized = 8.2e-08
+== other logged quantities
+  g7: minimum w_min 9.84e-23 at step 231 (exponent 50.7)
+  g6: minimum w_min 9.84e-23 at step 231 (exponent 50.7)
+  g7 s_per_step: n 951, mean 12.07, median 12.04
+  g7 median grad_norm over completed steps 1.34e+08
+  loss_ic at step 1: 4.106e+04 (sqrt 202.6); max loss_ic over steps 1-10 1.023e+05
+  diagnostic steps: applied_ic/applied_phys 27,797 .. 2,616,396; max (applied_phys + applied_data) / applied_ic 3.65e-05
+  anchor 0: last five appearances, sqrt(loss_ic): 915:7.7, 923:6.3, 927:5.8, 929:5.2, 947:5.1
+  anchor 28: last five appearances, sqrt(loss_ic): 813:106.7, 892:148.6, 901:48.4, 908:110.4, 943:76.6
+```
+
+### B.3 `r4v2_scales.py` — physical scales of the Stage-0 training trajectories
+
+SHA-256 `10a61b53f98c2c21e62bfa815966da8191a57ba6857f202837517cd5375192c9`
+
+```python
+"""Rule-19 Part 2: physical scales of the Stage-0 training trajectories (Claude report E-E).
+
+Selects the Stage-0 TRAINING identities from runs/stage0-v23g7-seed42/splits.json, maps
+file names to identities with the repository's own record_key_from_brutus (names only),
+and opens only those files with the repository's parse_brutus_file. No validation- or
+test-split file is opened.
+
+Dimensionless frame of the physics residual (pinn/physics_residual.py:193-207):
+r' = r / D, u = t / T, and a'_i = sum_j m_j (r'_j - r'_i) / (|r'_ij|^2 + eps^2)^(3/2),
+with D = 100^(1/3), T = 10, eps = 1e-5 (pinn/constants.py). Velocities: v' = (T / D) v,
+taken relative to the mass-weighted centre-of-mass velocity.
+Run from the repository root:  .venv/bin/python -B r4v2_scales.py
+"""
+import json
+from pathlib import Path
+
+import numpy as np
+
+from pinn.constants import D_CHARACTERISTIC_LENGTH as D, T_CHARACTERISTIC_TIME as T
+from pinn.data.adapter import BRUTUS_SUBDIR, default_data_root, parse_brutus_file, record_key_from_brutus
+
+EPS = 1e-5
+manifest = json.loads(Path("runs/stage0-v23g7-seed42/splits.json").read_text())
+train0 = {r["id"] for g in manifest["groups"] if g["split"] == "train" for r in g["records"]
+          if r["variant"] == "hierarchical" and r["fidelity"] == "base" and r["stage"] == 0}
+test_ids = {r["id"] for g in manifest["groups"] if g["split"] == "test" for r in g["records"] if r["variant"] == "hierarchical"}
+assert not (train0 & test_ids)
+root = default_data_root()
+folder = root / BRUTUS_SUBDIR / "brutus_hierarchical"
+chosen = []
+for name in sorted(p.name for p in folder.iterdir() if p.suffix == ".txt"):
+    key = record_key_from_brutus("brutus_hierarchical", name)
+    if key.id in train0:
+        chosen.append((key.id, folder / name))
+assert len(chosen) == len(train0) == 1812, (len(chosen), len(train0))
+assert not ({i for i, _ in chosen} & test_ids)
+
+acc, v0, t_end, n_snap, per_traj_med = [], [], [], [], []
+for ident, path in chosen:
+    pb = parse_brutus_file(path, root=root)
+    t, r, v, m = np.asarray(pb.times), np.asarray(pb.positions), np.asarray(pb.velocities), np.asarray(pb.masses)
+    ok = np.isfinite(r).all(axis=(1, 2)) & np.isfinite(v).all(axis=(1, 2))
+    t, r, v = t[ok], r[ok], v[ok]
+    rp = r / D
+    diff = rp[:, None, :, :] - rp[:, :, None, :]          # [t, i, j, :] = r'_j - r'_i
+    inv = (np.einsum("tijk,tijk->tij", diff, diff) + EPS * EPS) ** -1.5
+    for i in range(3):
+        inv[:, i, i] = 0.0
+    a = np.einsum("tij,j,tijk->tik", inv, m, diff)          # (Nt, 3 bodies, 3)
+    an = np.linalg.norm(a, axis=-1).ravel()
+    acc.append(an)
+    per_traj_med.append(np.median(an))
+    vcom = (m[:, None] * v[0]).sum(axis=0) / m.sum()
+    v0.extend(np.linalg.norm((T / D) * (v[0] - vcom), axis=-1))
+    t_end.append(t[-1])
+    n_snap.append(len(t))
+
+acc = np.concatenate(acc)
+print(f"files opened: {len(chosen)} (Stage-0 training only); data root {root}")
+print(f"per-body |a'| over all snapshots, bodies, trajectories (n {acc.size}): median {np.median(acc):.1f}, "
+      f"p99 {np.percentile(acc, 99):.0f}, max {acc.max():.3g}")
+print(f"median of per-trajectory median |a'|: {np.median(per_traj_med):.1f}")
+print(f"per-body |v'(0)| (COM frame): median {np.median(v0):.3f}")
+print(f"t_end: min {min(t_end)}, max {max(t_end)}; snapshots per trajectory: {sorted(set(n_snap))[:5]}")
+print(f"sqrt(R_ref) = {np.sqrt(1.9749775821244170e10):.4g} -> / median |a'| = {np.sqrt(1.9749775821244170e10) / np.median(acc):.0f}; "
+      f"full-front RMS bound sqrt(R_ref ln2 / 15) = {np.sqrt(1.9749775821244170e10 * np.log(2) / 15):.4g} -> / median {np.sqrt(1.9749775821244170e10 * np.log(2) / 15) / np.median(acc):.0f}, / p99 {np.sqrt(1.9749775821244170e10 * np.log(2) / 15) / np.percentile(acc, 99):.1f}")
+```
+
+Output:
+
+```
+files opened: 1812 (Stage-0 training only); data root <home>/Desktop/3_body_problem/simulation_data/Data
+per-body |a'| over all snapshots, bodies, trajectories (n 684936): median 158.9, p99 2070, max 2.9e+04
+median of per-trajectory median |a'|: 176.4
+per-body |v'(0)| (COM frame): median 2.033
+t_end: min 10.000000000000007, max 10.000000000000007; snapshots per trajectory: [126]
+sqrt(R_ref) = 1.405e+05 -> / median |a'| = 884; full-front RMS bound sqrt(R_ref ln2 / 15) = 3.021e+04 -> / median 190, / p99 14.6
+```
+
+### B.4 `r4v2_draws.py` — random draws per training batch
+
+SHA-256 `b40548e8dc01b2ffa893c5deed396ff7dbdf3ed840561c09d7e61d6c5b775185`
+
+```python
+"""Rule-19 Part 2: PCG64 outputs consumed by one Stage-0 training batch (Claude C-21: 40,575).
+
+Replays one batch with r4v_anchor_replay.py's train_batch from the generation-7
+stage-0-init.pt state, then checks which advance(k) of an identical generator lands on
+the same state. Read-only. Run from the repository root with the project venv:
+    .venv/bin/python -B r4v2_draws.py
+"""
+import importlib.util
+import sys
+from pathlib import Path
+
+import numpy as np
+import torch
+
+here = Path(__file__).parent
+sys.argv = [sys.argv[0], "stage0-v23g7-seed42"]
+src = (here / "r4v_anchor_replay.py").read_text().split("ckpts = {}")[0]   # definitions only, no replay loop
+ns = {"__file__": str(here / "r4v_anchor_replay.py")}
+exec(compile(src, "r4v_anchor_replay_defs", "exec"), ns)
+state = torch.load("runs/stage0-v23g7-seed42/checkpoints/stage-0-init.pt", map_location="cpu", weights_only=True)["rng"]["numpy"]
+a = ns["gen_from"](state)
+ns["train_batch"](a)
+for k in range(40000, 41500):
+    b = ns["gen_from"](state)
+    b.bit_generator.advance(k)
+    if b.bit_generator.state["state"] == a.bit_generator.state["state"]:
+        print(f"one training batch advances PCG64 by {k} outputs (has_uint32 after: {a.bit_generator.state['has_uint32']})")
+        break
+else:
+    print("no k in 40000..41499 matches")
+```
+
+Output:
+
+```
+one training batch advances PCG64 by 40575 outputs (has_uint32 after: 0)
+```
+
+### B.5 `r4v2_r3lines.py` — the trainex-r3 record lines
+
+SHA-256 `0d14e2538a7081d54e74f83e6712639eddb2d866bef0833af0d9bd3f237ee826`
+
+```python
+"""Rule-19 Part 2: the trainex-r3 record lines Claude's report cites (§3.7.4, C-52, G-3).
+
+Prints, for each cited line range, whether the quoted content is present (line breaks
+inside a range are joined with spaces). Read-only. Run from the repository root:
+    python3 -B r4v2_r3lines.py
+"""
+import re
+from pathlib import Path
+
+R3 = Path("pinn_instruction/markdown_conversion/framework-specs/trainex-r3")
+FILES = {
+    "OB": R3 / "research_results/claude-resolution.md",
+    "CB": R3 / "research_results/chatgpt-resolution.md",
+    "RD": R3 / "trainex-r3-resolution-doc.md",
+    "V": Path("docs/work/reviews/milestone_v2.3/54-recalibration-decision-grounding/2026-09-02-trainex-r3-rule19-claim-verification.md"),
+    "54-GAPS": Path(".planning/phases/54-recalibration-decision-grounding/54-GAPS.md"),
+}
+L = {k: p.read_text().splitlines() for k, p in FILES.items()}
+
+CHECKS = [
+    ("OB", 65, 76, [r"LayerNorm|scale.invarian"]),
+    ("OB", 78, 91, [r"1\.63", r"0\.265", r"0\.206", r"0\.238", r"1\.44"]),
+    ("OB", 684, 684, [r"5\.9", r"equivalent"]),
+    ("OB", 709, 709, [r"12\.8", r"2\.6"]),
+    ("OB", 712, 717, [r"untouched", r"two decades"]),
+    ("OB", 770, 774, [r"re-ratified|carried over", r"fixed initialization scale"]),
+    ("OB", 899, 903, [r"X-4|segment"]),
+    ("CB", 338, 360, [r"\^4", r"conditional"]),
+    ("CB", 537, 537, [r"imbalance"]),
+    ("CB", 561, 561, [r"four separate meanings|None automatically"]),
+    ("V", 255, 259, [r"NOT-VERIFIABLE-HERE"]),
+    ("V", 1436, 1436, [r"NOT-VERIFIABLE-HERE|published"]),
+    ("54-GAPS", 324, 328, [r"approximat|stabiliz|invarian"]),
+]
+for name, a, b, pats in CHECKS:
+    seg = " ".join(L[name][a - 1:b])
+    print(f"{name}:{a}-{b} -> " + ", ".join(f"{p}: {bool(re.search(p, seg, re.I))}" for p in pats))
+
+g8 = [i + 1 for i, line in enumerate(L["OB"]) if "G-8" in line]
+adam = any(re.search(r"Adam.{0,40}scale.invarian|scale.invarian.{0,40}Adam", line, re.I) for line in L["OB"])
+print(f"OB lines mentioning G-8: {g8[:6]}; an 'Adam ... scale invariance' statement present: {adam}")
+pat = r"5,?000 (training )?iterations|decay.rate of 0\.9|exponential (learning.rate )?decay"
+hits = [(k, i + 1) for k in ("OB", "CB", "RD") for i, line in enumerate(L[k]) if re.search(pat, line, re.I)]
+print(f"r3 OB/CB/RD lines stating the source method's decay schedule or iteration counts: {hits}")
+```
+
+Output:
+
+```
+OB:65-76 -> LayerNorm|scale.invarian: True
+OB:78-91 -> 1\.63: True, 0\.265: True, 0\.206: True, 0\.238: True, 1\.44: True
+OB:684-684 -> 5\.9: True, equivalent: True
+OB:709-709 -> 12\.8: True, 2\.6: True
+OB:712-717 -> untouched: True, two decades: True
+OB:770-774 -> re-ratified|carried over: True, fixed initialization scale: True
+OB:899-903 -> X-4|segment: True
+CB:338-360 -> \^4: True, conditional: True
+CB:537-537 -> imbalance: True
+CB:561-561 -> four separate meanings|None automatically: True
+V:255-259 -> NOT-VERIFIABLE-HERE: True
+V:1436-1436 -> NOT-VERIFIABLE-HERE|published: True
+54-GAPS:324-328 -> approximat|stabiliz|invarian: True
+OB lines mentioning G-8: [841, 872]; an 'Adam ... scale invariance' statement present: True
+r3 OB/CB/RD lines stating the source method's decay schedule or iteration counts: []
 ```
