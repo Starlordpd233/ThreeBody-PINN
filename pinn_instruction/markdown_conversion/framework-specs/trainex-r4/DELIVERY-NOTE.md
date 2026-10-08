@@ -12,7 +12,7 @@ source_baseline: 735e2ae8d5ec30b9915ec9172ac06965fbaa8afb
 
 **This file stays in the repository. Do NOT send it to external research agents.**
 
-## Status: consolidated; awaiting the owner's ruling on the decision sheet (2026-10-07)
+## Status: ruled; the next milestone is next (2026-10-07)
 
 Codex (2026-10-04) and Claude (2026-10-06) returned reports.
 
@@ -34,8 +34,17 @@ Codex (2026-10-04) and Claude (2026-10-06) returned reports.
   - **The literature.** The primary-source reading confirms every
     source-method fact the reports state, narrows one citation, and could
     not read four items.
+- **The ruling** (`trainex-r4-ruling.md`, commit `c4bea18a`) was made on
+  2026-10-07 by the in-repo agent under the owner's delegation.
+  - **The next run** is the corrected control: the ratified recipe executed as
+    specified, Adam-only for 1,000 steps on seeds 42, 41 and 43. The guard and
+    the plateau handoff only record what they would have done, and telemetry is
+    complete. It is not graded.
+  - **The order.** Read-only checkpoint measurements come first, then
+    conformance and its gates, then the run. The readout branches are fixed
+    before the run.
 
-The owner's ruling on the decision sheet is next.
+The next milestone is next. It follows the ruling's "Order of work".
 
 The owner routed the next milestone to this round at checkpoint ⑤ on
 2026-10-03 (`.planning/phases/58-verdict-traceability-close/58-VERDICT.md`,
@@ -347,7 +356,8 @@ are expected, and the "attached files only" instruction must not appear.
 | Rule-19 per-claim in-repo verification report under `docs/work/reviews/cross_cutting/trainex-r4/` | **done** 2026-10-07 (`2026-10-07-trainex-r4-rule19-claim-verification.md`). Part 1, the premise findings: 122 rows, none refuted (`b4b975e9`, `d97328d4`). Part 2, the diagnoses, option facts, gaps, and registers: 137 rows, 1 refuted, 13 narrowed, literature routed (`654d6ffe`) |
 | Re-framing ruling (ERW runbook "Handoff" step 6) | **done** 2026-10-07, owner-delegated; see "Re-framing ruling" above |
 | Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | **done** 2026-10-07 (`53b7c008`), under rulings R-2 and R-3. Twelve decisions and five owner questions, picks empty. Its JOIN-2 holds the primary-source reading: every source-method fact the reports state confirmed, one citation narrowed, four items not read |
-| Owner ruling on the decision sheet, plus any authorized experiments | **next** (owner): picks recorded as project Key Decisions (Rule 13) and carried into the next milestone |
+| Owner ruling on the decision sheet, plus any authorized experiments | **done** 2026-10-07, owner-delegated (`trainex-r4-ruling.md`, `c4bea18a`). Recorded as a project Key Decision (Rule 13). It authorizes the read-only experiments and, once its gates pass, the control run |
+| The next milestone | **next**: read-only measurements, conformance, gates, the control run, the readout (`trainex-r4-ruling.md`, "Order of work") |
 
 ## Provenance
 

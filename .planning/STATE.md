@@ -6,10 +6,10 @@ current_phase: 58
 current_phase_name: Verdict & Traceability Close
 current_plan: 0
 status: milestone-closed
-stopped_at: "trainex-r4 consolidated 2026-10-07 (53b7c008); owner ruling on the candidate decision sheet next"
+stopped_at: "trainex-r4 decision sheet ruled 2026-10-07 under owner delegation (c4bea18a); next milestone next"
 last_updated: "2026-10-07T00:00:00Z"
 last_activity: 2026-10-07
-last_activity_desc: trainex-r4 reports from Codex (2026-10-04) and Claude (2026-10-06) saved; Rule-19 verification Part 1 (premise findings, 122 rows, none refuted) committed b4b975e9 and d97328d4, Part 2 (diagnoses, options, registers, 137 rows, 1 refuted, 13 narrowed) committed 654d6ffe; owner-delegated re-framing ruling R-1..R-7 recorded in the trainex-r4 DELIVERY-NOTE; v2.3-GAPS.md carries a post-close finding that generation 7 did not execute the ratified physics term; consolidated trainex-r4-resolution-doc.md committed 53b7c008 (twelve decisions JD-0..JD-11 and five owner questions, picks empty; JOIN-2 primary-source literature reading).
+last_activity_desc: trainex-r4 reports from Codex (2026-10-04) and Claude (2026-10-06) saved; Rule-19 verification Part 1 (premise findings, 122 rows, none refuted) committed b4b975e9 and d97328d4, Part 2 (diagnoses, options, registers, 137 rows, 1 refuted, 13 narrowed) committed 654d6ffe; owner-delegated re-framing ruling R-1..R-7 recorded in the trainex-r4 DELIVERY-NOTE; v2.3-GAPS.md carries a post-close finding that generation 7 did not execute the ratified physics term; consolidated trainex-r4-resolution-doc.md committed 53b7c008 (twelve decisions JD-0..JD-11 and five owner questions, picks empty; JOIN-2 primary-source literature reading); decision sheet ruled under owner delegation in trainex-r4-ruling.md committed c4bea18a (corrected control first: read-only measurements, conformance and gates, then an observe-only Adam-only run on seeds 42, 41 and 43).
 state_head: 0f216177
 progress:
   total_phases: 6
@@ -26,15 +26,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-04)
 
 **Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** the next milestone's ERW round `trainex-r4` (v2.3 closed 2026-10-04)
+**Current focus:** opening the next milestone from the `trainex-r4` ruling (v2.3 closed 2026-10-04)
 
 ## Current Position
 
 **v2.3 CLOSED 2026-10-04 on the declared terminal state (owner verdict `rethink`, 2026-10-03).**
 All six phases (53–58) complete; 12/15 requirements Complete, RUN-04/RUN-05 closed incomplete, EVAL-02 not attempted (the sole held-out evaluation remains preserved unspent). Archived under `milestones/v2.3-*` (roadmap, requirements, gap index with a "Milestone close" section). The phase folders 53–58 stay in `.planning/phases/` because the Phase 57 verifier and its tests hardcode that path (owner decision 2026-10-04). GAP-56-02 DEFERRED to the milestone after `trainex-r4`.
 
-Last activity: 2026-10-07 — `trainex-r4` consolidated into `trainex-r4-resolution-doc.md` (`53b7c008`), after the Rule-19 verification and the re-framing ruling below. Earlier: v2.3 archived 2026-10-04 via `/gsd-complete-milestone` (override closeout; see Deferred Items).
-**Next:** the owner's ruling on the candidate decision sheet in `pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-resolution-doc.md`: decisions `JD-0`..`JD-11`, owner questions `OQ-1`..`OQ-5`, and which experiments `JX-1`..`JX-10` to authorize. Then record the picks as Key Decisions and initialize the next milestone, whose first work is conformance (`JD-0`, R-3). No run is authorized before that ruling.
+Last activity: 2026-10-07 — the `trainex-r4` decision sheet ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`), after the consolidation (`53b7c008`), the Rule-19 verification and the re-framing ruling below. Earlier: v2.3 archived 2026-10-04 via `/gsd-complete-milestone` (override closeout; see Deferred Items).
+**Next:** initialize the next milestone from `pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md` ("Order of work"): read-only measurements on retained checkpoints first (`JX-1` executed half, `JX-2`..`JX-5`, `JX-10`), then conformance (`JD-0`, `JD-1`, `JD-10`) and its gates (`R_ref`, GATE-04, the `OQ-1` check), then the corrected control run (seeds 42, 41, 43; not graded) and the pre-registered readout. No training before those gates pass; the held-out evaluation stays unspent.
 
 **Note on this file's own history.** The frontmatter's `last_activity_desc` and the
 block above were found overwritten with generic placeholders (`Phase 54 execution
@@ -633,15 +633,16 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-resolution-doc.md (the candidate decision sheet; the delivery note holds status, the re-framing ruling and obligations; v2.3 obligations and the post-close finding are in .planning/milestones/v2.3-GAPS.md)
+**Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md (the decision-sheet ruling and the next milestone's order of work; the consolidated sheet is trainex-r4-resolution-doc.md; the delivery note holds status, the re-framing ruling and obligations; v2.3 obligations and the post-close finding are in .planning/milestones/v2.3-GAPS.md)
 
 Last session: 2026-10-07
-Stopped at: trainex-r4 consolidated (trainex-r4-resolution-doc.md, 53b7c008) after Rule-19 verification (Part 1 b4b975e9/d97328d4, Part 2 654d6ffe) and the owner-delegated re-framing ruling (4174f4f6)
-Next action: the owner rules on the candidate decision sheet (JD-0..JD-11, OQ-1..OQ-5, experiment authorizations); picks become Key Decisions; then the next milestone.
+Stopped at: trainex-r4 decision sheet ruled under owner delegation (trainex-r4-ruling.md, c4bea18a), after the consolidation (53b7c008), Rule-19 verification (Part 1 b4b975e9/d97328d4, Part 2 654d6ffe) and the owner-delegated re-framing ruling (4174f4f6)
+Next action: initialize the next milestone from the ruling's order of work (read-only measurements, conformance and gates, the corrected control run, the readout), on the owner's go-ahead.
 
 ## Operator Next Steps
 
-- **Finish `trainex-r4`** — Codex and Claude returned (2026-10-04, 2026-10-06); fan-out closed and the round re-framed (2026-10-07, see the delivery note's ruling). Consolidated 2026-10-07 (`trainex-r4-resolution-doc.md`, `53b7c008`). Remaining: the owner's ruling on its candidate decision sheet. The reports dispute four points the owner must settle: whether the guard may halt the next run (`JD-4`), whether that run exercises L-BFGS (`JD-6`), its seed design (`JD-7`), and whether a balancing remedy is named before measurement (`JD-2`). No run is authorized before that ruling.
+- ~~Finish `trainex-r4`~~ — done 2026-10-07: consolidated (`53b7c008`) and ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`; Key Decision in `PROJECT.md`). The four disputes were settled by making the next run the corrected control with an observe-only guard and plateau handoff, Adam-only, on seeds 42, 41 and 43.
+- **Open the next milestone** from the ruling's "Order of work": read-only measurements first, then conformance and its gates, then the corrected control run and the pre-registered readout. Three clarifying spec amendments ride with the conformance work (the IC batch rule, "epoch" as one optimizer step, the `pinn_architecture.md:452` cross-reference).
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
 - **Owner decision still open:** where the v2.3 phase folders should live once the next milestone starts. (The Phase-50 and Phase-43 test paths were fixed on 2026-10-04 without editing archived evidence.)
 - **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.
