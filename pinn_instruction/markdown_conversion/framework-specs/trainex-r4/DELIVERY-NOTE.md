@@ -12,7 +12,7 @@ source_baseline: 735e2ae8d5ec30b9915ec9172ac06965fbaa8afb
 
 **This file stays in the repository. Do NOT send it to external research agents.**
 
-## Status: ruled; the next milestone is next (2026-10-07)
+## Status: ruled; executed by milestone v2.4 (opened 2026-10-09)
 
 Codex (2026-10-04) and Claude (2026-10-06) returned reports.
 
@@ -44,7 +44,12 @@ Codex (2026-10-04) and Claude (2026-10-06) returned reports.
     conformance and its gates, then the run. The readout branches are fixed
     before the run.
 
-The next milestone is next. It follows the ruling's "Order of work".
+The next milestone opened on 2026-10-09 as v2.4, the Stage-0 Feasibility
+Checkpoint (`milestone/v2.4`). It keeps the ruling's picks, composed control
+and readout. It adds a learnability ladder to the "Order of work": single
+systems with data only and from physics, then a 16-system family, all before
+the control. Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`
+(`0b400dfa`), ratified under owner delegation.
 
 The owner routed the next milestone to this round at checkpoint ⑤ on
 2026-10-03 (`.planning/phases/58-verdict-traceability-close/58-VERDICT.md`,
@@ -357,7 +362,7 @@ are expected, and the "attached files only" instruction must not appear.
 | Re-framing ruling (ERW runbook "Handoff" step 6) | **done** 2026-10-07, owner-delegated; see "Re-framing ruling" above |
 | Consolidated `trainex-r4-resolution-doc.md` (Rule 12) | **done** 2026-10-07 (`53b7c008`), under rulings R-2 and R-3. Twelve decisions and five owner questions, picks empty. Its JOIN-2 holds the primary-source reading: every source-method fact the reports state confirmed, one citation narrowed, four items not read |
 | Owner ruling on the decision sheet, plus any authorized experiments | **done** 2026-10-07, owner-delegated (`trainex-r4-ruling.md`, `c4bea18a`). Recorded as a project Key Decision (Rule 13). It authorizes the read-only experiments and, once its gates pass, the control run |
-| The next milestone | **next**: read-only measurements, conformance, gates, the control run, the readout (`trainex-r4-ruling.md`, "Order of work") |
+| The next milestone | **opened** 2026-10-09 as v2.4, Phases 59–64 (proposal `0b400dfa`, start `5be02066`, requirements `56741dc5`, roadmap `6ce484c8`). It runs the ruling's order of work with the learnability ladder added; the control is Phase 63 and its readout is DIAG-08 |
 
 ## Provenance
 
