@@ -613,6 +613,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ### Blockers/Concerns
 
+- **The memory-footprint reader test fails on this machine (found 2026-10-09, at the v2.4 start).** The failing test is `tests/phase57/test_resource_preflight.py::FootprintReaderTests::test_current_footprint_rises_and_falls_with_a_touched_allocation`. After a ≥200 MiB allocation is freed, macOS `phys_footprint` drops by only 8,421,400 bytes (the assertion needs ≥ 209,715,200). The failure reproduces in isolation.
+  - **Not a v2.4 regression.** The v2.4 commits changed only Markdown (`git diff b8632832 HEAD -- tests pinn scripts` is empty). The rest of the run was green: `tests/phase57` plus `tests/phase37/test_componentwise_ad.py` gave 116 passed, 1 skipped, and this 1 failed in 174.5 s; `tests/git_policy` gave 77 passed.
+  - **Why it matters.** The generation-7 launcher's resource preflight and memory guard read this counter.
+  - **Action.** Phase 61 or 63 planning must check how the guard behaves on this OS before any long run.
+
 - **Build execution branch:** v2.0 code work happens in `.worktrees/trainex` on `milestone/v2.0`. Alignment completed at merge commit `89daf842`, preserving the trainex-only history and the master planning/spec updates. Do NOT commit v2.0 build code to `master`. Every session surfaces `git status --short --branch` before any file mutation.
 - **Owner-carved decisions are NOT invented:** D1-p (precision), D4-a (checkpoint ceiling), the RECOVER retry budget + HALT/guard thresholds (R-1/R-2), and the B-5 resume-field list are built as seams with safe defaults and calibrated/ratified by the owner at their designed moments (probe / smoke test / Stage-0 pilot / before run #1). The agent surfaces evidence; it does not pick these values.
 - **`pinn/` ban lifted for v2.0:** FUT-01 rebuilds `pinn/` FROM the specs; v2.0 is the first milestone to write production `pinn/` code. The v1.3-era `basic_architecture.py` / `data-processing-pipeline-full.py` are reference-only and replaced wholesale.
