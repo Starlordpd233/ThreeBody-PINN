@@ -1,58 +1,51 @@
 ---
 gsd_state_version: "1.0"
-milestone: v2.3
-milestone_name: Causal-Weight/SIREN-Scale Recipe Adjudication
-current_phase: 58
-current_phase_name: Verdict & Traceability Close
-current_plan: 0
-status: milestone-closed
-stopped_at: "trainex-r4 decision sheet ruled 2026-10-07 under owner delegation (c4bea18a); next milestone next"
-last_updated: "2026-10-07T00:00:00Z"
-last_activity: 2026-10-07
-last_activity_desc: trainex-r4 reports from Codex (2026-10-04) and Claude (2026-10-06) saved; Rule-19 verification Part 1 (premise findings, 122 rows, none refuted) committed b4b975e9 and d97328d4, Part 2 (diagnoses, options, registers, 137 rows, 1 refuted, 13 narrowed) committed 654d6ffe; owner-delegated re-framing ruling R-1..R-7 recorded in the trainex-r4 DELIVERY-NOTE; v2.3-GAPS.md carries a post-close finding that generation 7 did not execute the ratified physics term; consolidated trainex-r4-resolution-doc.md committed 53b7c008 (twelve decisions JD-0..JD-11 and five owner questions, picks empty; JOIN-2 primary-source literature reading); decision sheet ruled under owner delegation in trainex-r4-ruling.md committed c4bea18a (corrected control first: read-only measurements, conformance and gates, then an observe-only Adam-only run on seeds 42, 41 and 43).
-state_head: 0f216177
+milestone: v2.4
+milestone_name: Stage-0 Feasibility Checkpoint
+status: planning
+stopped_at: "milestone v2.4 started 2026-10-09 from the proposal ratified under owner delegation (0b400dfa); defining requirements and roadmap"
+last_updated: "2026-10-10T02:11:24.047Z"
+last_activity: 2026-10-09
+last_activity_desc: milestone v2.4 Stage-0 Feasibility Checkpoint started on branch milestone/v2.4 (from milestone/v2.3 at b8632832); proposal docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md ratified under owner delegation (0b400dfa) — a learnability ladder (one system with data only, the same from physics, a 16-system family) in front of the trainex-r4 corrected control, scored in physical units, ending in a go / pivot-training / rethink-representation verdict.
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-04)
+See: .planning/PROJECT.md (updated 2026-10-09)
 
-**Core value:** A *grounded* recalibration of the two locked spec choices that collide at initialization — obtained through the governed decision channel rather than agent judgment, landed as a framework-spec contract amendment, proven train-free before a run is spent, and then tested by a Stage-0 re-run and the single preserved held-out evaluation.
-**Current focus:** opening the next milestone from the `trainex-r4` ruling (v2.3 closed 2026-10-04)
+**Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
+**Current focus:** Milestone v2.4 started — defining requirements and roadmap (Phases 59–64)
 
 ## Current Position
 
-**v2.3 CLOSED 2026-10-04 on the declared terminal state (owner verdict `rethink`, 2026-10-03).**
-All six phases (53–58) complete; 12/15 requirements Complete, RUN-04/RUN-05 closed incomplete, EVAL-02 not attempted (the sole held-out evaluation remains preserved unspent). Archived under `milestones/v2.3-*` (roadmap, requirements, gap index with a "Milestone close" section). The phase folders 53–58 stay in `.planning/phases/` because the Phase 57 verifier and its tests hardcode that path (owner decision 2026-10-04). GAP-56-02 DEFERRED to the milestone after `trainex-r4`.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-10-09 — Milestone v2.4 started
 
-Last activity: 2026-10-07 — the `trainex-r4` decision sheet ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`), after the consolidation (`53b7c008`), the Rule-19 verification and the re-framing ruling below. Earlier: v2.3 archived 2026-10-04 via `/gsd-complete-milestone` (override closeout; see Deferred Items).
-**Next:** initialize the next milestone from `pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md` ("Order of work"): read-only measurements on retained checkpoints first (`JX-1` executed half, `JX-2`..`JX-5`, `JX-10`), then conformance (`JD-0`, `JD-1`, `JD-10`) and its gates (`R_ref`, GATE-04, the `OQ-1` check), then the corrected control run (seeds 42, 41, 43; not graded) and the pre-registered readout. No training before those gates pass; the held-out evaluation stays unspent.
+v2.4 opened 2026-10-09 from the proposal ratified under owner delegation
+(`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`,
+`0b400dfa`), on branch `milestone/v2.4`, created from `milestone/v2.3` at
+`b8632832`. Before it: v2.3 closed 2026-10-04 on its declared terminal state
+(owner verdict `rethink`; archived under `milestones/v2.3-*`), and the
+`trainex-r4` round was ruled on 2026-10-07 under owner delegation
+(`trainex-r4-ruling.md`, `c4bea18a`). The v2.3 phase folders 53–58 stay in
+`.planning/phases/` through v2.4 (decided in the proposal; the Phase-57
+verifier and its tests hardcode that path).
 
-**Note on this file's own history.** The frontmatter's `last_activity_desc` and the
-block above were found overwritten with generic placeholders (`Phase 54 execution
-started`, `Plan: 1 of 13`) by state tooling at the start of the `54-10` execution
-pass, together with a spurious `state_head` key — and then found overwritten the
-same way again at the start of the `54-11` pass. On both occasions they were
-repaired by hand, in a commit of their own, under deviation Rule 1 — see
-`54-10-SUMMARY.md` deviation 5 and `54-11-SUMMARY.md`'s Issues section. The
-`gsd-tools` mutating verbs emit malformed output in this checkout and this file is
-maintained by hand, as `54-08` and `54-09` both recorded. **The `54-11` repair
-carries one deliberate compaction, recorded rather than silent:** the prior
-`last_activity_desc` entries for `54-10`, `54-09` and `54-08` are not re-emitted
-in the field and are recorded in full in this file at commit `887774b7`, because
-the tooling destroyed the field in this checkout and a commit pointer preserves
-them re-derivably where re-typing several thousand characters by hand would not.
-`completed_plans` was re-derived from disk (twelve `*-SUMMARY.md` files across the
-two v2.3 phase directories) rather than incremented from the value the tooling
-left.
+**This file is maintained by hand in this checkout.** The `gsd-tools`
+mutating verbs have corrupted it before (the full note, "Note on this file's
+own history", is in this file at commit `b8632832`). `state.milestone-switch`
+was used for the v2.4 start and its diff was reviewed; it dropped that note,
+which this pointer replaces.
 
 ### trainex-r4 re-framing ruling (2026-10-07, owner-delegated)
 
@@ -633,19 +626,20 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md (the decision-sheet ruling and the next milestone's order of work; the consolidated sheet is trainex-r4-resolution-doc.md; the delivery note holds status, the re-framing ruling and obligations; v2.3 obligations and the post-close finding are in .planning/milestones/v2.3-GAPS.md)
+**Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps)
 
-Last session: 2026-10-07
-Stopped at: trainex-r4 decision sheet ruled under owner delegation (trainex-r4-ruling.md, c4bea18a), after the consolidation (53b7c008), Rule-19 verification (Part 1 b4b975e9/d97328d4, Part 2 654d6ffe) and the owner-delegated re-framing ruling (4174f4f6)
-Next action: initialize the next milestone from the ruling's order of work (read-only measurements, conformance and gates, the corrected control run, the readout), on the owner's go-ahead.
+Last session: 2026-10-09
+Stopped at: milestone v2.4 started from the proposal ratified under owner delegation (0b400dfa), branch milestone/v2.4 from milestone/v2.3 at b8632832; requirements and roadmap next
+Next action: define the v2.4 requirements and roadmap (Phases 59–64), then plan Phase 59 (read-only baseline and scorecard).
 
 ## Operator Next Steps
 
 - ~~Finish `trainex-r4`~~ — done 2026-10-07: consolidated (`53b7c008`) and ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`; Key Decision in `PROJECT.md`). The four disputes were settled by making the next run the corrected control with an observe-only guard and plateau handoff, Adam-only, on seeds 42, 41 and 43.
-- **Open the next milestone** from the ruling's "Order of work": read-only measurements first, then conformance and its gates, then the corrected control run and the pre-registered readout. Three clarifying spec amendments ride with the conformance work (the IC batch rule, "epoch" as one optimizer step, the `pinn_architecture.md:452` cross-reference).
+- ~~Open the next milestone~~ — v2.4 Stage-0 Feasibility Checkpoint started 2026-10-09 (`0b400dfa`; branch `milestone/v2.4`). It keeps the ruling's order of work and adds the learnability ladder in front of the corrected control.
+- **Plan Phase 59** (read-only baseline and scorecard): freeze the feasibility scorecard (FEAS-01) before any rung runs, run the Stage-0 difficulty census and panel selection (FEAS-02), and the ruling's read-only checkpoint experiments (DIAG-07).
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
-- **Owner decision still open:** where the v2.3 phase folders should live once the next milestone starts. (The Phase-50 and Phase-43 test paths were fixed on 2026-10-04 without editing archived evidence.)
-- **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` to master; pushing tag `v2.3`.
+- ~~Owner decision still open: where the v2.3 phase folders should live~~ — decided in the v2.4 proposal under owner delegation: they stay in `.planning/phases/` through v2.4; revisit at the v2.4 close.
+- **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` or `milestone/v2.4` to master; pushing tag `v2.3`.
 - ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
 - ~~Execute Plan 57-05 only after its precondition is checked.~~ Done 2026-10-03 (generation-7 terminal branch). The fresh complete GATE-04, final-R_ref production conformance, and `admit-run-window` receipt now pass; the next action is the explicit operator authorization before any smoke/band compute.
 - **Keep checkpoint ④'s selection rule fixed.** Seed 42, then 41 and 43 only for structural ineligibility; no observed scientific metric may trigger fallback.

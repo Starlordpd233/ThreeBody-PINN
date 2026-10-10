@@ -60,7 +60,21 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 <!-- Current scope. Building toward these. -->
 
-- **Next (not yet initialized, 2026-10-04):** External Research Workflow round `trainex-r4`, routed by the v2.3 `rethink` verdict. It carries the Phase-58 verdict packet's §6 open questions: the invariant-B window against a learning-rate schedule that decays inside it, a front criterion relative to `R_ref` or absolute, SIREN `ω₀` and the deferred power-skip ablation, a realistic Stage-0 step budget, and the front's 1↔2 oscillation. No run is authorized until the round returns and the owner rules. The sole held-out evaluation remains preserved unspent. Inherited obligations: `.planning/milestones/v2.3-GAPS.md` "Milestone close".
+- **v2.4 Stage-0 Feasibility Checkpoint (started 2026-10-09).** Answer whether the CTL-PINN approach can learn three-body motion at all. A ladder of experiments, each scored in physical units against a scorecard frozen before any of them runs (FEAS-01, FEAS-02):
+  - one Stage-0 system with data only, the ceiling (FEAS-03);
+  - the same systems from physics plus IC, and from the full ratified loss (FEAS-04);
+  - a 16-system family on the corrected trainer (FEAS-05);
+  - the `trainex-r4` corrected control (RUN-06, readout DIAG-08).
+
+  It ends in a go / pivot-training / rethink-representation verdict (FEAS-06). Around the ladder:
+  - the ruling's read-only checkpoint experiments (DIAG-07);
+  - the learnability harness (INST-05);
+  - conformance and instrumentation (CONF-10/11, INST-06/07);
+  - four clarifying amendments (SPEC-07..10);
+  - the gates (GATE-05);
+  - traceability (VER-22).
+
+  No graded run, no held-out evaluation, no test split (SCOPE-39..44). The inherited obligations from `.planning/milestones/v2.3-GAPS.md` "Milestone close" are discharged as the v2.4 proposal records.
 
 ### Deferred
 
@@ -87,7 +101,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
 
 **Closed incomplete:** v2.2 Stage-0 Conformance Repair & Valid Re-Run on 2026-08-17 (owner verdict **`stop-incomplete`**).
 
-**Active:** none. The next milestone is ERW round `trainex-r4` (not yet initialized).
+**Active:** v2.4 Stage-0 Feasibility Checkpoint (started 2026-10-09; Phases 59–64; see "Current Milestone").
+
+**v2.4 initialization (2026-10-09):** started via `/gsd-new-milestone` from the proposal ratified under owner delegation (`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`, `0b400dfa`). Branch `milestone/v2.4` was created from `milestone/v2.3` at `b8632832`, and phases continue from 58. Between the milestones, the `trainex-r4` round ran from 2026-10-04 to 2026-10-07: two external reports, the Rule-19 verification, the re-framing ruling, the consolidation, and the owner-delegated decision-sheet ruling (`c4bea18a`). The v2.3 phase folders 53–58 stay in `.planning/phases/` through v2.4.
 
 **v2.3 (closed 2026-10-04):** all six phases (53–58) complete. Phase 53 codified the four research-free VER-20 items. Phase 54 ran the governed channel (non-recommending packet → `trainex-r3` → owner-delegated ruling `A1 + B2 (residual-wide) + C1 + D3 + E1`). Phase 55 shipped INST-04. Phase 56 amended `pinn_architecture.md` §3.2 under SCOPE-38 and built GATE-04, which passed the amended recipe with `R_ref = 1.9749775821244170e+10`. Phase 57 wired the amended recipe into the production trainer and re-ran Stage-0: generations 1–6 produced no graded result (each handled by an owner ruling, GAP-57-02..12), and on generation 7 graded seed 42 tripped invariant B at step 951 with the frozen-monitor front stuck at 2 since step 450 — the declared terminal state — so seeds 41/43 were not launched and the evaluation was not spent (`terminal-state.json`, `no-candidate.json`). Phase 58's verdict packet replayed the frozen monitor and found no near miss (bins 0–2 sum 1.189 against the 0.693 bar); the owner rendered **`rethink`**. RUN-04/RUN-05 closed incomplete, EVAL-02 not attempted, 12/15 requirements Complete, VER-21 15/15. GAP-56-02 DEFERRED. Archived under `milestones/v2.3-*`; phase folders 53–58 stay in `.planning/phases/` because the Phase 57 verifier and its tests hardcode that path (owner decision, 2026-10-04).
 
@@ -268,21 +284,60 @@ v1.5 closed 36/36 requirements across eight verified phases (23–29, including 
 **v1.0 Codebase Cleanup** (shipped 2026-03-20)
 - Phases 1-4: Code rewrites, documentation, data deletion, stale references
 
-## Current Milestone: v2.3 Causal-Weight/SIREN-Scale Recipe Adjudication
+## Current Milestone: v2.4 Stage-0 Feasibility Checkpoint
 
-**Goal:** Get an owner-ratified recalibration for the causal-weight/SIREN-scale mismatch that halted v2.2's conformant Stage-0 re-run, land it as a framework-spec *contract amendment*, prove it train-free before spending a run, re-run Stage-0 under the corrected recipe, and spend the single preserved held-out evaluation on a run that actually trains.
+**Goal:** Find out whether the CTL-PINN approach can learn three-body motion at all, using the cheapest experiments that can settle it, in this order:
 
-**Why it exists:** v2.2 repaired all nine verified Stage-0 conformance divergences and re-ran Stage-0 — the first run that was actually the specified experiment. It HALTed at the invariant-B causal-front gate (step 501, `front_idx=0` for the full `N=500` window). A bounded 2026-08-17 audit established this is not a further conformance defect but a design-calibration gap between two independently-locked spec sections: §2.2's `ω₀=30` SIREN produces an `O(10⁵)` second derivative at initialization, while §3.2's `w_n = exp(−η_c·Σ R̄_m)` with `η_c=1` on unnormalized `R̄` was calibrated for a converged network's `O(1)` residual. Stacked, the causal gate is saturated shut from step 0 and stays saturated. Framework-spec edits — forbidden in v2.2 by SCOPE-30 — are the point of this milestone.
+1. one Stage-0 system with the answer shown;
+2. the same system learned from the physics;
+3. a 16-system family;
+4. the full Stage-0 control.
+
+The milestone ends with an evidence-backed go / pivot-training / rethink-representation verdict, on which the owner decides whether the project continues.
+
+**Why it exists:** After v2.0–v2.3, no run has executed the specified recipe. The v2.0 pilot diverged from the specs in five ways, and generation 7 evaluated the physics on one trajectory per step. The only accuracy measured in physical units for any trained network is the energy-error gate, and only on non-conformant runs:
+
+- v2.0 held-out `ε_H = 237.2`;
+- generation 7's worst-case validation `ε_H`: 15.65 at step 100, then 50.63 at step 900, while its validation loss fell.
+
+The bar is 10⁻⁵. The `trainex-r4` ruling (`c4bea18a`) designed a corrected control. That control shows whether the causal front advances at scale. It does not show whether the network can reach useful accuracy, or where it breaks. The owner's 2026-10-09 instruction asks for that answer: *"I have not yet obtained any kinds of assurance as to is this actually doable"*.
 
 **Target features:**
 
-- **Staged decision grounding (ERW-01/02).** A strictly non-recommending decision packet, a blocking owner gate, then either a recorded direct ruling or a commissioned `trainex-r3` Route-B round carrying the full ERW Rule-7 output contract (option menus, suggested defaults, door-type classification, decision sheet) that trainex-r2 deliberately lacked.
-- **Six framework-spec amendments (SPEC-01..06).** The causal-weight/SIREN recalibration, the four narrow VER-20 wording/codification items, and the `n_col`/`N_t` disposition ratified jointly with `η_c`.
-- **Reproducibility and a train-free acceptance gate (INST-04, GATE-04).** Commit the architecture-only characterization probe — currently ad-hoc and absent from the repository despite carrying the milestone's central premise — and require it to show a non-saturated, information-carrying causal weight vector before RUN-04 spends a Stage-0 run.
-- **Corrected re-run and the preserved evaluation (RUN-04/05, EVAL-02).**
-- **The verdict and traceability (DIAG-06, VER-21).**
+- **Read-only baseline and scorecard (FEAS-01, FEAS-02, DIAG-07).**
+  - A scorecard in physical units, frozen with its decision rule before any rung runs. It measures position error (including the inner pair's separation), the valid-horizon fraction and the gate's own `ε_H`, on tiers 0–3; Tier 3 is the locked 10⁻⁵ bar.
+  - A Stage-0 difficulty census from Brutus data, and the panels selected from it.
+  - The ruling's read-only checkpoint experiments.
+- **Single-system learnability (INST-05, FEAS-03, FEAS-04).**
+  - A diagnostic harness built on the trainer's own loss functions.
+  - Rung 1: data only, which measures the representation ceiling.
+  - Rung 2: physics + IC only, and the full ratified loss.
+  - Both rungs run on three systems that span the census.
+- **Conformance and instrumentation (CONF-10, CONF-11, INST-06, INST-07, SPEC-07..10).**
+  - The ruling's per-slot physics, monitor and validation.
+  - The IC term as a mean over slots.
+  - Full telemetry.
+  - Observe-only diagnostic modes.
+  - Four clarifying amendments, including the inherited GAP-56-02.
+- **Gates and the small-family rung (GATE-05, FEAS-05).**
+  - Re-measure `R_ref`, re-run GATE-04, run the `OQ-1` check, and run `JX-1`'s conformant half.
+  - Rung 3: the corrected trainer on 16 systems.
+- **The corrected control (RUN-06, DIAG-08).** Seeds 42, 41 and 43, 1,000 Adam steps each, with the pre-registered readout (a)–(d).
+- **The feasibility verdict (FEAS-06, VER-22).**
 
-**Governance:** 15 requirements; scope boundaries SCOPE-33..38 (SCOPE-38 new — amending a locked contract requires explicit re-ratification with a re-issued acceptance criterion); five owner checkpoints (ERW gate · recalibration decision · invariant-B window re-ratification · EVAL-02 spending-seed pre-registration · DIAG-06 verdict); and a **declared terminal state** — if GATE-04 or RUN-04 refuses the recalibration, SCOPE-37 bars further tuning and the milestone closes on a `rethink` verdict with the held-out evaluation preserved. Source: the owner-ratified proposal `docs/work/designs/cross_cutting/v2.3-milestone-proposal/2026-08-17-v2.3-roadmap-proposal.md` (ratified 2026-08-18, commit `16434f50`).
+**Governance:**
+
+- **20 requirements.**
+- **Scope boundaries SCOPE-39..44:**
+  - Stage-0 only;
+  - every run diagnostic, with no graded run, no held-out evaluation and no test split;
+  - pre-registration before every rung;
+  - locked values move only by amendment;
+  - compute budgets fixed before launch.
+- **Three owner checkpoints:** the verdict; a veto on each amendment; any result outside a pre-registered branch.
+- **Every exit path ends at the verdict.** An early stop goes straight to Phase 64.
+
+Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`, ratified under owner delegation on 2026-10-09 (commit `0b400dfa`).
 
 ## Context
 
@@ -358,6 +413,7 @@ v1.5 closed 36/36 requirements across eight verified phases (23–29, including 
 | v2.3 recalibration ruled under express owner delegation (2026-09-04) | At checkpoint ② the owner delegated the final adjudication of the causal-weight/SIREN-scale recalibration to the primary agent after the `trainex-r3` round and its Rule-19 verification. The ruling `A1 + B2 (residual-wide) + C1 + D3 + E1` normalizes the causal exponent by a frozen `R_ref`, keeps `first_omega_0 = 30` and the clip's underflow-only purpose NOT AMENDED, and fixes 4096 collocation rows in 16 bins (`54-RULING.md`). The delegation was checkpoint-specific and relaxed no later gate. | ✓ Implemented in `pinn_architecture.md` §3.2 and the production trainer; GATE-04 PASS train-free. ⚠️ Under training the causal front left the floor (0→2) but then stalled at 2 (Phase 57 terminal state), so the recipe fixes the initialization saturation but does not keep the front advancing. Open questions routed to `trainex-r4`. |
 | v2.3 closes on its declared terminal state with verdict `rethink` (2026-10-03) | The roadmap named the terminal branch up front: if the front still failed to advance, SCOPE-37 forbids further tuning without a new owner decision and the evaluation stays unspent. Generation-7 graded seed 42 tripped invariant B at step 951, and the Phase-58 replay showed no near miss. | — Active; governs the next milestone: ERW round `trainex-r4` before any further run; Stage-1+/PLAT-01..07 stay blocked (SCOPE-36); the held-out evaluation remains available for a run that actually trains. |
 | `trainex-r4` decision sheet ruled under owner delegation (2026-10-07) | The owner handed the ruling to the in-repo agent ("I shouldn't be ruling on anything"; recorded verbatim in `trainex-r4-ruling.md`). Both reports agree on the diagnosis, and their disputes reduce to what the next run is for. The ruling makes it the corrected control: the ratified recipe executed as specified (per-slot physics, the IC term averaged over the selected slots, a 256-identity monitor, conformant validation, then `R_ref` and GATE-04 redone). It is Adam-only for 1,000 steps on seeds 42, 41 and 43. The guard and the plateau handoff only record what they would have done: a run with an active guard is the same run cut short, so nothing is lost. Telemetry is complete, and read-only checkpoint measurements come first. No locked value moves; three clarifying amendments are queued (the IC batch rule, "epoch" as one optimizer step, the `pinn_architecture.md:452` cross-reference). | — Active; governs the next milestone (`trainex-r4-ruling.md`, "Order of work"). Readout branches are pre-registered: the front advances → stage 2 (budget from the measured rate, L-BFGS, the guard statistic, tolerances); it stalls with physics a passenger → adaptive `λ_IC`; it stalls as the learning rate decays → a constant-rate arm; otherwise discriminate first. Not graded; the held-out evaluation stays unspent; Stage-1+ stays blocked. |
+| v2.4 opens as a Stage-0 feasibility checkpoint with a learnability ladder (2026-10-09) | The owner asked whether the project can be achieved at all ("I have not yet obtained any kinds of assurance as to is this actually doable"; verbatim in the v2.4 proposal) and re-confirmed the delegation. The ruling's control shows whether the causal front advances at full scale. It does not show whether the network can reach useful accuracy, or where it breaks. The record holds only a wiring check (the Phase-38 loss ratio, with IC13 set to zero) and energy gates on non-conformant runs. The cheaper rungs therefore run first: one system with data only (the ceiling), the same from physics, a 16-system family, then the control. All are scored in physical units against a scorecard frozen before any rung runs. The ruling's picks and readout are kept; its order of work gains the ladder. The v2.3 phase folders stay in `.planning/phases/`, because moving them would break the Phase-57 verifier and its tests. | — Active; governs v2.4. Verdict rule: rethink-representation if the data-only ceiling fails on 2 of 3 systems; go if the full recipe learns 2 of 3 single systems and 12 of 16 in the family, and the control readout is branch (a); otherwise pivot-training. The owner decides at the verdict, including whether the 10⁻⁵ held-out bar stays the success criterion. |
 
 ## Evolution
 
@@ -377,4 +433,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-04 after the v2.3 milestone close (`/gsd-complete-milestone`): verdict `rethink`, 12/15 requirements Complete, evaluation preserved unspent, archived under `milestones/v2.3-*` with phase folders left in place, next milestone ERW round `trainex-r4`. Prior detailed updates remain in Git history, including the Phase-56 close (2026-09-07) and v2.3 initialization at 16434f50.*
+*Last updated: 2026-10-09 at the v2.4 start (`/gsd-new-milestone`): Stage-0 Feasibility Checkpoint, Phases 59–64, 20 requirements, from the proposal ratified under owner delegation (`0b400dfa`). Before that: 2026-10-04, after the v2.3 milestone close (verdict `rethink`, archived under `milestones/v2.3-*`). Earlier detailed updates remain in Git history.*
