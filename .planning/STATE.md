@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
 status: planning
-stopped_at: "milestone v2.4 started 2026-10-09 from the proposal ratified under owner delegation (0b400dfa); defining requirements and roadmap"
+stopped_at: "v2.4 roadmap created 2026-10-09 (6 phases 59-64, 20/20 requirements mapped); Phase 59 ready to plan"
 last_updated: "2026-10-10T02:11:24.047Z"
 last_activity: 2026-10-09
-last_activity_desc: milestone v2.4 Stage-0 Feasibility Checkpoint started on branch milestone/v2.4 (from milestone/v2.3 at b8632832); proposal docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md ratified under owner delegation (0b400dfa) — a learnability ladder (one system with data only, the same from physics, a 16-system family) in front of the trainex-r4 corrected control, scored in physical units, ending in a go / pivot-training / rethink-representation verdict.
+last_activity_desc: milestone v2.4 Stage-0 Feasibility Checkpoint started on branch milestone/v2.4 (from milestone/v2.3 at b8632832); proposal docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md ratified under owner delegation (0b400dfa) — a learnability ladder (one system with data only, the same from physics, a 16-system family) in front of the trainex-r4 corrected control, scored in physical units, ending in a go / pivot-training / rethink-representation verdict. Requirements defined (20; 56741dc5) and roadmap created (Phases 59–64, 20/20 mapped).
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-10-09)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 59 of 59–64 (Read-Only Baseline & Scorecard)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-09 — Milestone v2.4 started
+Status: Ready to plan
+Last activity: 2026-10-09 — v2.4 started; requirements defined (20) and roadmap created (6 phases, 20/20 mapped)
 
 v2.4 opened 2026-10-09 from the proposal ratified under owner delegation
 (`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`,
@@ -416,6 +416,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 - v1.6: Resolving 03 Curriculum and Training Loop (Phases 30-36) — roadmap created 2026-06-17. 32/32 requirements mapped; standard granularity; 7 phases (no inserted decimal). Phase 30 (research package) first and ungated; its delivery opens the external resolution-doc gate. Phase 31 (resolution-doc readiness verification, operational, 0 IDs) gates Phases 32-36. Phase 32 stands up the evidence ledger and adjudicates the headline conflicts (D-04/D-05/D-06 + `D=6.694` + M14) before the contract phases transcribe verdicts: Phase 33 (CURR), Phase 34 (LOOP), Phase 35 (LOSS). Phase 36 (VER) executes acceptance checks + handoff. Specwork-only (SCOPE-13/14/15); `pinn/` never grounding (SCOPE-10). Branch `milestone/v1.6` (worktree) cut from the v1.5 deliverable tip `88aa1e4f`; rebased onto completed master 2026-06-17 once v1.5 shipped.
 - v2.0: CTL-PINN Training Viability Slice (Phases 37–43) — roadmap created 2026-07-06. The project's first **build** milestone, opening the trainex track. 42 requirements mapped; standard granularity; 7 phases continuing from v1.6's Phase 36 (no reset). Dependency-ordered, no external gate: 37 ENV (dev env + D1-p probe) → 38 NET (`pinn/` rebuild, FUT-01) → 39 DATA (in-memory adapter + Stage-0 scan) → 40 TRAIN (Adam→L-BFGS Stage-0 loop, FUT-04) → 41 CTRL (config/checkpoint/guards/determinism) → 42 OPS (operator runbook + monitoring) → 43 ACC (verify + Stage-0 pilot + go/adjust/rethink verdict). Grounded in the ratified trainex-r1a decision set (2026-07-05); `pinn/` ban lifted; owner-carved decisions built as seams. Planning on `master`; build in `.worktrees/trainex`.
 - v2.1: Physics-Gate Investigation & trainex-r2 Research Package (Phases 44-45) — roadmap created 2026-07-23; both phases complete 2026-07-24, 7/7 requirements delivered; close PENDING five open gaps. Small granularity, 2 phases, no external gate inside the milestone (the gate opens at close). Phase 44 (DIAG-01..04) read-only forensics from retained v2.0 artifacts → `44-DIAGNOSIS.md`; Phase 45 (PKG-09..11) the trainex-r2 ERW package, delivered and audited PASS. SCOPE-22..26 held throughout: no evaluation, no training, no spec edits, no remedy chosen. **Post-delivery:** the returned report (Route B / open-book) established that the v2.0 Stage-0 pilot diverged from the locked specs in five verified respects, qualifying Phase 44's DIAG-04 rankings (`44-ERRATUM.md`) and opening GAP-44-02 + GAP-45-01..04. Branch `milestone/v2.1` in `.worktrees/trainex`.
+- v2.4: Stage-0 Feasibility Checkpoint (Phases 59–64) — roadmap created 2026-10-09, inline from the proposal ratified under owner delegation (`0b400dfa`). 20 requirements; standard granularity; 6 phases continuing from v2.3's Phase 58. A learnability ladder in front of the `trainex-r4` corrected control: 59 read-only baseline and scorecard (G1) → 60 single-system rungs, data only then physics (G2 can exit to the verdict) → 61 conformance and instrumentation → 62 gates and the 16-system rung (G3) → 63 the corrected control and its readout → 64 the feasibility verdict (owner decides). SCOPE-39..44: Stage-0 only, every run diagnostic, no graded run or held-out evaluation, pre-registration, amendment discipline, compute budgets. Branch `milestone/v2.4` in `.worktrees/trainex`. (v2.2 and v2.3 bullets were never added here; their records are in `MILESTONES.md`.)
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15); completed execution 2026-06-07.
 
@@ -629,8 +630,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps)
 
 Last session: 2026-10-09
-Stopped at: milestone v2.4 started from the proposal ratified under owner delegation (0b400dfa), branch milestone/v2.4 from milestone/v2.3 at b8632832; requirements and roadmap next
-Next action: define the v2.4 requirements and roadmap (Phases 59–64), then plan Phase 59 (read-only baseline and scorecard).
+Stopped at: v2.4 initialized: proposal 0b400dfa, milestone start 5be02066, requirements 56741dc5, roadmap created (6 phases, 59–64; 20/20 requirements mapped); branch milestone/v2.4 from milestone/v2.3 at b8632832
+Next action: plan Phase 59 (read-only baseline and scorecard: FEAS-01 scorecard frozen before any rung, FEAS-02 difficulty census and panels, DIAG-07 read-only checkpoint experiments) via /gsd-discuss-phase 59 or /gsd-plan-phase 59.
 
 ## Operator Next Steps
 
