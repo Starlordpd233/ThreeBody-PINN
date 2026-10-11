@@ -19,7 +19,14 @@
   - a 16-system family on the corrected trainer;
   - the `trainex-r4` corrected control (seeds 42, 41 and 43; observe-only; Adam-only).
 
-  It ends in a go / pivot-training / rethink-representation verdict on which the owner decides. 20 requirements (FEAS-01..06, DIAG-07/08, INST-05..07, CONF-10/11, SPEC-07..10, GATE-05, RUN-06, VER-22); scope boundaries SCOPE-39..44; no graded run and no held-out evaluation. Branch `milestone/v2.4`.
+  It ends in a go / pivot-training / rethink-representation verdict on which the owner decides. Amended 2026-10-11 after a re-examination, with owner approval. The amendment adds:
+  - comparison points, against which every score is read;
+  - a read-only survey of the whole dataset;
+  - two probes on harder stages;
+  - a readiness ladder and cost model in the verdict;
+  - a project charter.
+
+  24 requirements (FEAS-01..10, DIAG-07/08, INST-05..07, CONF-10/11, SPEC-07..10, GATE-05, RUN-06, VER-22); scope boundaries SCOPE-39..44; no graded run and no held-out evaluation. Branch `milestone/v2.4`.
 - 🔮 **Final Publication LaTeX Sync** — deferred until implementation, network/training design, training, and research-result interpretation are complete
 
 ## Deferred: Final Publication LaTeX Sync
@@ -56,14 +63,14 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
 - open Stage-1+ or PLAT-01..07;
 - re-litigate the `trainex-r4` picks it executes.
 
-**Granularity:** standard. 6 phases, 20 requirements: FEAS-01..06, DIAG-07..08, INST-05..07, CONF-10..11, SPEC-07..10, GATE-05, RUN-06, VER-22.
-**Coverage:** 20/20 v2.4 requirements mapped at roadmap creation. VER-22's binding check is at Phase 64 close, against the final requirement count.
+**Granularity:** standard. 6 phases, 24 requirements: FEAS-01..10, DIAG-07..08, INST-05..07, CONF-10..11, SPEC-07..10, GATE-05, RUN-06, VER-22.
+**Coverage:** 20/20 mapped at roadmap creation; 24/24 after the 2026-10-11 amendment. VER-22's binding check is at Phase 64 close, against the final requirement count.
 **Branch:** work continues in `.worktrees/trainex` on `milestone/v2.4`, created 2026-10-09 from `milestone/v2.3` at `b8632832` (the commit that records the `trainex-r4` ruling).
 - The ratified proposal is the branch's first commit (`0b400dfa`).
 - Commits are per-plan and atomic, via `scripts/agent-commit` with `GIT_AGENT_ID` and `GIT_AGENT_OWNED_PATHS` set.
 - No push to protected branches. `master` stays governance-only, and integration is user-controlled.
 
-**Source:** `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`, ratified under owner delegation 2026-10-09 (`0b400dfa`). The roadmap is generated inline from it, following the v2.0–v2.3 precedent.
+**Source:** `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`, ratified under owner delegation 2026-10-09 (`0b400dfa`). The roadmap is generated inline from it, following the v2.0–v2.3 precedent. It is amended by `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md` (owner-approved 2026-10-11), which governs where the two differ.
 
 ### Feasibility discipline (applies to all phases)
 
@@ -80,6 +87,11 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   - the gate's own `ε_H`.
 
   Loss values are context, not scores. Each result is read against the locked `10⁻⁵` bar.
+- **Read every score against comparison points** (FEAS-07): the two-Kepler formula, which uses no learning; on validation, a copy of the nearest training system; and published results. A system counts toward the decision rule only if it is at Tier ≥ 1 **and** beats the formula.
+- **Never fail an experiment for the wrong reason.**
+  - Every single-system arm gets the spec's L-BFGS polish after Adam, and its result is the better of the two states.
+  - Before any RETHINK-REPRESENTATION, the G2 settings sweep checks whether a locked setting, rather than the representation, is at fault.
+- **Watch accuracy during training,** not only at the end: Rung 3's and the control's checkpoints are scored at a fixed cadence.
 - **Gates and pivots.** Every phase ends at a gate with a pre-registered consequence.
   - A gate may skip, re-order or insert later phases when its condition fires. Later phases are provisional until their gate.
   - **Every exit path ends at Phase 64:** the normal path, the early exit at G2 (RETHINK-REPRESENTATION), and the early exit at G3 (an unfixable gate failure).
@@ -94,9 +106,10 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
 
     Those go to the owner.
 - **Owner checkpoints:**
-  1. the verdict (FEAS-06, Phase 64);
+  1. the verdict and the project charter (FEAS-06, FEAS-10, Phase 64);
   2. a veto on each spec amendment (SPEC-07..10, Phase 61);
-  3. any result outside a pre-registered branch.
+  3. any result outside a pre-registered branch;
+  4. a G2 sweep rescue, which would move a locked setting (FEAS-03, Phase 60).
 - **Verification lesson.** Code is checked against the spec mechanically. A passing plan verification is not evidence of spec conformance: v2.0's pilot and generation 7 both passed their verifications while diverging.
 
 ## Phases
@@ -104,18 +117,21 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
 **Phase Numbering:** integer phases 59–64 continue from v2.3's Phase 58 (numbering does not reset). Decimal phases are reserved for urgent insertions. The v2.3 phase folders 53–58 stay in `.planning/phases/` beside them.
 
 - [ ] **Phase 59: Read-Only Baseline & Scorecard** — Before anything trains:
-  - freeze the feasibility scorecard and its scorer;
+  - freeze the feasibility scorecard and its scorer, with known-error tests;
   - count how hard the Stage-0 target is, with a census of inner and outer revolutions per window from Brutus data, and choose the panels from it;
+  - score the comparison points: the two-Kepler formula and the nearest-neighbour copy;
+  - survey every stage read-only, with the predictability envelope;
   - run the ruling's read-only experiments on generation 7's retained checkpoints.
 
-  No training. Gate G1 governs Phase 61. (FEAS-01, FEAS-02, DIAG-07)
+  No training. Gate G1 governs Phase 61. (FEAS-01, FEAS-02, FEAS-07, FEAS-08, DIAG-07)
 - [ ] **Phase 60: Single-System Learnability** — The project's first real answer to "can it learn?":
-  - a diagnostic harness on the trainer's own loss functions;
+  - a diagnostic harness on the trainer's own loss functions, with Adam then an L-BFGS polish;
   - Rung 1, data only (the representation ceiling);
   - Rung 2, physics + IC only, and the full ratified loss;
-  - all on three census-spanning systems.
+  - all on three census-spanning systems;
+  - then, if G2 passes, two probes on a Stage-4b and a Stage-6 system.
 
-  It needs no conformance work: with one system, every slot is the same trajectory. Gate G2 can end the training phases with RETHINK-REPRESENTATION. (INST-05, FEAS-03, FEAS-04)
+  It needs no conformance work: with one system, every slot is the same trajectory. Gate G2 can end the training phases with RETHINK-REPRESENTATION, but only after a settings sweep finds no rescue. (INST-05, FEAS-03, FEAS-04, FEAS-09)
 - [ ] **Phase 61: Conformance & Instrumentation** — The ruling's step 2:
   - per-slot physics, monitor and validation, proven by an identity-dependent assertion;
   - the IC term as a mean over the selected slots;
@@ -133,34 +149,64 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   - not graded.
 
   The pre-registered readout takes exactly one branch, (a)–(d). (RUN-06, DIAG-08)
-- [ ] **Phase 64: Feasibility Verdict** — A plain-language verdict, by the pre-registered rule: GO, PIVOT-TRAINING or RETHINK-REPRESENTATION, with the distance to the locked bar and the next milestone named. The owner decides whether the project continues. Traceability is re-verified at close. **Owner checkpoint ①.** (FEAS-06, VER-22)
+- [ ] **Phase 64: Feasibility Verdict** — A plain-language verdict, by the pre-registered rule: GO, PIVOT-TRAINING or RETHINK-REPRESENTATION. It states:
+  - the level reached on the readiness ladder;
+  - every result beside the comparison points;
+  - the distance to the locked bar;
+  - the cost so far, and to the next level and the finish;
+  - the next milestone.
+
+  With it comes a one-page project charter: purpose, definition of done, pass bars per stage, budget and stop rule. The owner decides whether the project continues. Traceability is re-verified at close. **Owner checkpoint ①.** (FEAS-06, FEAS-10, VER-22)
 
 ## Phase Details
 
 ### Phase 59: Read-Only Baseline & Scorecard
 
-**Goal**: Before anything trains, the project knows three things: exactly what it will measure, how hard the target is, and whether generation 7's checkpoints contradict the plan.
+**Goal**: Before anything trains, the project knows five things:
+- exactly what it will measure;
+- what a no-learning formula and a copy of the nearest training system already score;
+- how hard the Stage-0 target is;
+- how hard every later stage is;
+- whether generation 7's checkpoints contradict the plan.
+
 **Depends on**: Nothing. This is the first v2.4 phase.
-**Requirements**: FEAS-01, FEAS-02, DIAG-07
+**Requirements**: FEAS-01, FEAS-02, FEAS-07, FEAS-08, DIAG-07
 **Gate G1** (gates Phase 61, not Phase 60): if `JX-1` shows physics took a share of `10⁻²` or more of generation 7's Adam-preconditioned update, the reading that "physics was a passenger" weakens. The conformance-first premise of Phases 61–63 is then re-examined before Phase 61 opens. Otherwise, proceed.
 **Success Criteria** (what must be TRUE):
-  1. The scorecard and its scorer are committed: metrics, tiers 0–3, the budget rule and the decision rule. Scoring the Brutus reference against itself returns zero position error and the reference's own `ε_H`.
-  2. The difficulty census over the 1,812 Stage-0 training systems is committed and re-derivable. The three panels are committed with their selection rule before any rung runs: 3 single systems, the 16-system family, and the validation panel.
-  3. Each of `JX-1` (executed half), `JX-2`, `JX-3`, `JX-4`, `JX-5` (split) and `JX-10` has a recorded result with its command, its checkpoint provenance (including the stand-in for the ruling's checkpoint 900), and the reading it supports or falsifies. Gate G1's outcome is recorded.
-  4. No training step ran, and no test-split file was opened. The tooling asserts this.
+  1. The scorecard and its scorer are committed, before any rung runs:
+     - metrics and tiers 0–3;
+     - the budget rule and the amended decision rule, including the counting rule;
+     - the L-BFGS polish budget, the G2 settings-sweep grid and the accuracy-reading cadence.
+
+     The known-error tests pass: the reference against itself, a known displacement, known velocity scaling, and an inner-pair-only error.
+  2. The difficulty census over the 1,812 Stage-0 training systems is committed and re-derivable, with the phase-accuracy figure. The three panels are committed with their selection rule before any rung runs: 3 single systems, the 16-system family, and the validation panel.
+  3. The two-Kepler formula is scored on every panel system, and the nearest-neighbour copy on the validation panel, before any rung runs.
+  4. The whole-dataset survey, with its predictability envelope and stage difficulty ordering, is committed and re-derivable. The two hard-stage probe systems are selected by their pre-declared rule.
+  5. Each of `JX-1` (executed half), `JX-2`, `JX-3`, `JX-4`, `JX-5` (split) and `JX-10` has a recorded result with its command, its checkpoint provenance (including the stand-in for the ruling's checkpoint 900), and the reading it supports or falsifies. Gate G1's outcome is recorded.
+  6. No training step ran, and no test-split file was opened. The tooling asserts this.
 **Plans**: TBD
 
 ### Phase 60: Single-System Learnability
 
 **Goal**: For the first time, the project learns whether the network can learn one Stage-0 system to physical accuracy: first when shown the answer, then from the physics.
 **Depends on**: Phase 59 (the frozen scorecard and the panels). It does not depend on Phase 61, because with one system every slot is the same trajectory and the single-anchor defect cannot arise.
-**Requirements**: INST-05, FEAS-03, FEAS-04
-**Gate G2**: if Rung 1 (data only) is below Tier 1 on 2 or more of the 3 systems, the network cannot represent a Stage-0 trajectory even when shown the answer. The verdict is then RETHINK-REPRESENTATION, Phases 61–63 are skipped, and Phase 64 follows. Otherwise, continue. The Rung-2 pattern is carried to the verdict.
+**Requirements**: INST-05, FEAS-03, FEAS-04, FEAS-09
+**Gate G2**: Rung 1 runs at the locked settings, with the polish. If it is below Tier 1 on 2 or more of the 3 systems, the G2 settings sweep runs, data-only:
+- **No configuration rescues it:** the network cannot represent a Stage-0 trajectory even when shown the answer. The verdict is RETHINK-REPRESENTATION, Phases 61–63 are skipped, and Phase 64 follows.
+- **A non-locked configuration rescues it:** owner checkpoint ④. The owner decides whether to amend that setting formally and continue the ladder on it.
+
+Otherwise, continue, and run the hard-stage probes. The Rung-2 pattern is carried to the verdict.
 **Success Criteria** (what must be TRUE):
-  1. The learnability harness is committed and tested. Its loss functions are the trainer's own (mutation-proven), it refuses test-split paths, and the graded-run and evaluator paths refuse its run records.
-  2. Rung 1 has a scored result on each of the three panel systems, within the pre-registered budget rule: tier, valid-horizon fraction, `ε_H`, and trace.
-  3. Rung 2 has scored results on the same systems for arm (a), physics + IC only, and arm (b), the full ratified loss, with the comparison against Rung 1 recorded.
-  4. Gate G2 is evaluated against the pre-registered rule, and its outcome is recorded with the evidence.
+  1. The learnability harness is committed and tested:
+     - its loss functions are the trainer's own (mutation-proven);
+     - it runs Adam, then the L-BFGS polish, scoring both states;
+     - it records settings overrides for the sweep's data-only arms only;
+     - it refuses test-split paths;
+     - the graded-run and evaluator paths refuse its run records.
+  2. Rung 1 has a scored result on each of the three panel systems, within the pre-registered budget rule: tier, valid-horizon fraction, `ε_H`, trace, and the comparison with the formula.
+  3. Rung 2 has scored results on the same systems for arm (a), physics + IC only, and arm (b), the full ratified loss. The comparison against Rung 1 and the formula is recorded, along with whether each system counts.
+  4. Gate G2 is evaluated against the pre-registered rule, including the settings sweep if it fires, and its outcome is recorded with the evidence.
+  5. If G2 passed, the two hard-stage probes have scored Rung-1 and Rung-2b results. If G2 fired, the probes are recorded as skipped.
 **Plans**: TBD
 
 ### Phase 61: Conformance & Instrumentation
@@ -186,7 +232,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   1. `R_ref` is re-measured by the ratified six-case procedure on the corrected code, and GATE-04 re-runs to a complete PASS, with provenance-bound artifacts.
   2. The `OQ-1` check passes: at initialization, the frozen monitor's 256 training identities give neither floor-bound nor degenerate weights. If the check fails, the probe is amended to training-split ICs before any run.
   3. `JX-1`'s conformant half at initialization is recorded as structural evidence.
-  4. Rung 3 has scored results on its 16 training systems and on the validation panel, and the count at Tier 1 or above is compared with the decision rule.
+  4. Rung 3 has scored results on its 16 training systems and on the validation panel, both at the end and as an accuracy curve over its checkpoints. The count of systems that count (Tier ≥ 1 and beating the formula) is compared with the decision rule, and the validation scores are read beside the formula and the nearest-neighbour copy.
 **Plans**: TBD
 
 ### Phase 63: Corrected Control
@@ -203,23 +249,31 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
 
      Alternatively, seed 42 exposes an implementation defect, which is recorded and fixed first.
   2. For every seed, the record shows the step at which the ratified invariant-B rule would have halted the run, and the steps at which the plateau detector would have fired.
-  3. The readout takes exactly one branch, (a)–(d), with its evidence. It is read together with the scorecard's absolute measures on the validation panel.
+  3. For every seed, the weights kept at the pre-registered cadence are scored offline on the validation panel, giving an accuracy curve. Keeping them changes nothing in the run.
+  4. The readout takes exactly one branch, (a)–(d), with its evidence. It is read together with the scorecard's absolute measures and the accuracy curves on the validation panel.
 **Plans**: TBD
 
 ### Phase 64: Feasibility Verdict
 
-**Goal**: The owner gets a plain-language, evidence-backed answer to "can this work?" and decides whether the project continues, changes course or stops.
+**Goal**: The owner gets a plain-language, evidence-backed answer to "can this work?", with where the project stands, what the next level costs, and a charter for the rest. The owner then decides whether the project continues, changes course or stops.
 **Depends on**: Phase 63, or an early exit at gate G2 or G3.
-**Requirements**: FEAS-06, VER-22
+**Requirements**: FEAS-06, FEAS-10, VER-22
 **Success Criteria** (what must be TRUE):
   1. The verdict document leads in plain language. It states:
      - the tier each rung reached, and where along the window each broke;
      - the control's readout branch, if the control ran;
      - the best `ε_H` against the locked bar;
      - the result under the pre-registered rule.
-  2. It names the next milestone the result routes to.
-  3. The owner's decision is recorded verbatim: continue, change course or stop, and whether the `10⁻⁵` bar stays the success criterion.
-  4. Every v2.4 requirement maps to exactly one phase. This is re-verified against the final requirement count.
+  2. It places the project on the readiness ladder (levels 0–9) with the evidence for each level. It reads every result beside the comparison points, the accuracy curves, the survey and the hard-stage probes.
+  3. It states the machine hours spent, and the estimated cost to the next level and to the finish, on this Mac and on a rented GPU, with every assumption stated.
+  4. It names the next milestone the result routes to.
+  5. The one-page charter is drafted:
+     - purpose and definition of done;
+     - pass bars per stage, each with a position and an energy criterion, fixed before any held-out exam;
+     - budget and stop rule.
+
+     The owner's decision and choices are recorded verbatim, including whether the `10⁻⁵` bar stays. Items left open are recorded as open.
+  6. Every v2.4 requirement maps to exactly one phase. This is re-verified against the final requirement count.
 **Plans**: TBD
 
 ## Progress
@@ -237,5 +291,6 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
 *v2.4 created 2026-10-09 (`/gsd-new-milestone`). The roadmap was generated inline from the v2.4 proposal, ratified under owner delegation at `0b400dfa`.*
 - No GSD domain-research spawn, following the v2.0–v2.3 precedent; this milestone's research is the `trainex-r4` round.
 - 6 phases (59–64), continuing from v2.3's Phase 58.
-- 20/20 requirements mapped: FEAS-01, FEAS-02, DIAG-07→59; INST-05, FEAS-03, FEAS-04→60; CONF-10, CONF-11, INST-06, INST-07, SPEC-07..10→61; GATE-05, FEAS-05→62; RUN-06, DIAG-08→63; FEAS-06, VER-22→64.
+- 20/20 requirements mapped at creation: FEAS-01, FEAS-02, DIAG-07→59; INST-05, FEAS-03, FEAS-04→60; CONF-10, CONF-11, INST-06, INST-07, SPEC-07..10→61; GATE-05, FEAS-05→62; RUN-06, DIAG-08→63; FEAS-06, VER-22→64.
+- Amended 2026-10-11 with owner approval (`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md`): FEAS-07, FEAS-08→59; FEAS-09→60; FEAS-10→64. 24/24 mapped.
 - v2.3 is archived under [`milestones/v2.3-*`](milestones/). Its inherited obligations are discharged as the proposal records.

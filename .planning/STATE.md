@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
 status: planning
-stopped_at: "v2.4 roadmap created 2026-10-09 (6 phases 59-64, 20/20 requirements mapped); Phase 59 ready to plan"
-last_updated: "2026-10-10T02:11:24.047Z"
-last_activity: 2026-10-09
-last_activity_desc: milestone v2.4 Stage-0 Feasibility Checkpoint started on branch milestone/v2.4 (from milestone/v2.3 at b8632832); proposal docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md ratified under owner delegation (0b400dfa) — a learnability ladder (one system with data only, the same from physics, a 16-system family) in front of the trainex-r4 corrected control, scored in physical units, ending in a go / pivot-training / rethink-representation verdict. Requirements defined (20; 56741dc5) and roadmap created (Phases 59–64, 20/20 mapped).
+stopped_at: "v2.4 amended 2026-10-11 after the owner-approved feasibility re-examination (24/24 requirements mapped); Phase 59 ready to plan"
+last_updated: "2026-10-11T05:38:13.000Z"
+last_activity: 2026-10-11
+last_activity_desc: v2.4 amended with owner approval (docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md) — FEAS-07 comparison points (two-Kepler formula, nearest-neighbour copy), FEAS-08 read-only survey of every stage, FEAS-09 two hard-stage probes, FEAS-10 project charter; counting rule (Tier 1 and beats the formula), L-BFGS polish on single-system arms, G2 settings sweep before rethink-representation, accuracy curves, known-error scorer tests, readiness ladder and cost model in the verdict. 24 requirements, 24/24 mapped.
 progress:
   total_phases: 6
   completed_phases: 0
@@ -19,17 +19,41 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-09)
+See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Milestone v2.4 started — defining requirements and roadmap (Phases 59–64)
+**Current focus:** Milestone v2.4 — Phase 59 (read-only baseline, scorecard, comparison points, whole-dataset survey)
 
 ## Current Position
 
 Phase: 59 of 59–64 (Read-Only Baseline & Scorecard)
 Plan: —
 Status: Ready to plan
-Last activity: 2026-10-09 — v2.4 started; requirements defined (20) and roadmap created (6 phases, 20/20 mapped)
+Last activity: 2026-10-11 — v2.4 amended after the owner-approved feasibility re-examination (24 requirements, 24/24 mapped)
+
+**v2.4 amendment (2026-10-11, owner-approved).** The owner asked what else
+v2.4 should achieve and what is needed to judge where the project stands.
+The re-examination
+(`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md`)
+added four requirements:
+- FEAS-07, comparison points: a two-Kepler formula and a nearest-neighbour copy;
+- FEAS-08, a read-only survey of every stage;
+- FEAS-09, two probes on a Stage-4b and a Stage-6 system, run only if G2 passes;
+- FEAS-10, a project charter at the verdict.
+
+It also changed the rules:
+- a system counts only if it is at Tier ≥ 1 and beats the formula;
+- single-system arms get the spec's L-BFGS polish;
+- G2 runs a settings sweep before any RETHINK-REPRESENTATION, and a rescue
+  is owner checkpoint ④;
+- Rung 3 and the control are scored along the way, as accuracy curves;
+- the scorer must pass known-error tests;
+- the verdict places the project on a readiness ladder (levels 0–9), with
+  costs.
+
+The owner leans toward a looser `10⁻⁵` bar, to be decided later with evidence.
+It is set in the charter, never by energy alone, and before any held-out
+exam.
 
 v2.4 opened 2026-10-09 from the proposal ratified under owner delegation
 (`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`,
@@ -416,7 +440,7 @@ Closeout type: `override_closeout` — the only override is the acknowledged tra
 - v1.6: Resolving 03 Curriculum and Training Loop (Phases 30-36) — roadmap created 2026-06-17. 32/32 requirements mapped; standard granularity; 7 phases (no inserted decimal). Phase 30 (research package) first and ungated; its delivery opens the external resolution-doc gate. Phase 31 (resolution-doc readiness verification, operational, 0 IDs) gates Phases 32-36. Phase 32 stands up the evidence ledger and adjudicates the headline conflicts (D-04/D-05/D-06 + `D=6.694` + M14) before the contract phases transcribe verdicts: Phase 33 (CURR), Phase 34 (LOOP), Phase 35 (LOSS). Phase 36 (VER) executes acceptance checks + handoff. Specwork-only (SCOPE-13/14/15); `pinn/` never grounding (SCOPE-10). Branch `milestone/v1.6` (worktree) cut from the v1.5 deliverable tip `88aa1e4f`; rebased onto completed master 2026-06-17 once v1.5 shipped.
 - v2.0: CTL-PINN Training Viability Slice (Phases 37–43) — roadmap created 2026-07-06. The project's first **build** milestone, opening the trainex track. 42 requirements mapped; standard granularity; 7 phases continuing from v1.6's Phase 36 (no reset). Dependency-ordered, no external gate: 37 ENV (dev env + D1-p probe) → 38 NET (`pinn/` rebuild, FUT-01) → 39 DATA (in-memory adapter + Stage-0 scan) → 40 TRAIN (Adam→L-BFGS Stage-0 loop, FUT-04) → 41 CTRL (config/checkpoint/guards/determinism) → 42 OPS (operator runbook + monitoring) → 43 ACC (verify + Stage-0 pilot + go/adjust/rethink verdict). Grounded in the ratified trainex-r1a decision set (2026-07-05); `pinn/` ban lifted; owner-carved decisions built as seams. Planning on `master`; build in `.worktrees/trainex`.
 - v2.1: Physics-Gate Investigation & trainex-r2 Research Package (Phases 44-45) — roadmap created 2026-07-23; both phases complete 2026-07-24, 7/7 requirements delivered; close PENDING five open gaps. Small granularity, 2 phases, no external gate inside the milestone (the gate opens at close). Phase 44 (DIAG-01..04) read-only forensics from retained v2.0 artifacts → `44-DIAGNOSIS.md`; Phase 45 (PKG-09..11) the trainex-r2 ERW package, delivered and audited PASS. SCOPE-22..26 held throughout: no evaluation, no training, no spec edits, no remedy chosen. **Post-delivery:** the returned report (Route B / open-book) established that the v2.0 Stage-0 pilot diverged from the locked specs in five verified respects, qualifying Phase 44's DIAG-04 rankings (`44-ERRATUM.md`) and opening GAP-44-02 + GAP-45-01..04. Branch `milestone/v2.1` in `.worktrees/trainex`.
-- v2.4: Stage-0 Feasibility Checkpoint (Phases 59–64) — roadmap created 2026-10-09, inline from the proposal ratified under owner delegation (`0b400dfa`). 20 requirements; standard granularity; 6 phases continuing from v2.3's Phase 58. A learnability ladder in front of the `trainex-r4` corrected control: 59 read-only baseline and scorecard (G1) → 60 single-system rungs, data only then physics (G2 can exit to the verdict) → 61 conformance and instrumentation → 62 gates and the 16-system rung (G3) → 63 the corrected control and its readout → 64 the feasibility verdict (owner decides). SCOPE-39..44: Stage-0 only, every run diagnostic, no graded run or held-out evaluation, pre-registration, amendment discipline, compute budgets. Branch `milestone/v2.4` in `.worktrees/trainex`. (v2.2 and v2.3 bullets were never added here; their records are in `MILESTONES.md`.)
+- v2.4: Stage-0 Feasibility Checkpoint (Phases 59–64) — roadmap created 2026-10-09, inline from the proposal ratified under owner delegation (`0b400dfa`). 20 requirements; standard granularity; 6 phases continuing from v2.3's Phase 58. A learnability ladder in front of the `trainex-r4` corrected control: 59 read-only baseline and scorecard (G1) → 60 single-system rungs, data only then physics (G2 can exit to the verdict) → 61 conformance and instrumentation → 62 gates and the 16-system rung (G3) → 63 the corrected control and its readout → 64 the feasibility verdict (owner decides). SCOPE-39..44: Stage-0 only, every run diagnostic, no graded run or held-out evaluation, pre-registration, amendment discipline, compute budgets. Branch `milestone/v2.4` in `.worktrees/trainex`. Amended 2026-10-11 with owner approval: FEAS-07..10 added (24 requirements, 24/24 mapped: FEAS-07/08→59, FEAS-09→60, FEAS-10→64), SCOPE-39/41/44 widened, owner checkpoint ④ added. (v2.2 and v2.3 bullets were never added here; their records are in `MILESTONES.md`.)
 - Phase 15.1 inserted (URGENT) after Phase 15: Fix milestone v1.3 markdown conversion issues
 - Phase 20.5 (Sampling Coordinate Allocation) design+plan locked (2026-05-20, commit b727b15); completed execution 2026-06-07.
 
@@ -632,17 +656,33 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps)
+**Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
-Last session: 2026-10-09
-Stopped at: v2.4 initialized: proposal 0b400dfa, milestone start 5be02066, requirements 56741dc5, roadmap created (6 phases, 59–64; 20/20 requirements mapped); branch milestone/v2.4 from milestone/v2.3 at b8632832
-Next action: plan Phase 59 (read-only baseline and scorecard: FEAS-01 scorecard frozen before any rung, FEAS-02 difficulty census and panels, DIAG-07 read-only checkpoint experiments) via /gsd-discuss-phase 59 or /gsd-plan-phase 59.
+Last session: 2026-10-11
+Stopped at: v2.4 amended with owner approval (FEAS-07..10 added; 24/24 requirements mapped); before that, v2.4 initialized: proposal 0b400dfa, milestone start 5be02066, requirements 56741dc5, roadmap 6ce484c8; branch milestone/v2.4 from milestone/v2.3 at b8632832
+Next action: plan Phase 59 via /gsd-plan-phase 59. The phase covers five requirements:
+- FEAS-01: the scorecard, with the counting rule, polish budget, sweep grid, reading cadence and known-error tests, frozen before any rung;
+- FEAS-02: the difficulty census and panels;
+- FEAS-07: the comparison points;
+- FEAS-08: the survey of every stage;
+- DIAG-07: the read-only checkpoint experiments.
 
 ## Operator Next Steps
 
 - ~~Finish `trainex-r4`~~ — done 2026-10-07: consolidated (`53b7c008`) and ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`; Key Decision in `PROJECT.md`). The four disputes were settled by making the next run the corrected control with an observe-only guard and plateau handoff, Adam-only, on seeds 42, 41 and 43.
 - ~~Open the next milestone~~ — v2.4 Stage-0 Feasibility Checkpoint started 2026-10-09 (`0b400dfa`; branch `milestone/v2.4`). It keeps the ruling's order of work and adds the learnability ladder in front of the corrected control.
-- **Plan Phase 59** (read-only baseline and scorecard): freeze the feasibility scorecard (FEAS-01) before any rung runs, run the Stage-0 difficulty census and panel selection (FEAS-02), and the ruling's read-only checkpoint experiments (DIAG-07).
+- ~~Re-examine v2.4~~ — done 2026-10-11: the owner approved the ten amendments ("go"), which are folded into REQUIREMENTS/ROADMAP/PROJECT (`2026-10-11-v2.4-feasibility-amendments.md`).
+- **Plan Phase 59** (read-only baseline and scorecard):
+  - freeze the feasibility scorecard (FEAS-01) before any rung runs, including the counting rule, polish budget, sweep grid, reading cadence and known-error tests;
+  - run the Stage-0 difficulty census and panel selection (FEAS-02);
+  - score the comparison points (FEAS-07);
+  - survey every stage read-only (FEAS-08);
+  - run the ruling's read-only checkpoint experiments (DIAG-07).
+- **Owner decisions due at the verdict, no rush** (FEAS-10 charter):
+  - the project's purpose: a paper, a fast predictor, or learning;
+  - the budget, including whether rented GPU time is an option;
+  - the pass bar per stage;
+  - approval to rewrite `PROJECT.md`'s "What This Is", which still describes the LLM project.
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
 - ~~Owner decision still open: where the v2.3 phase folders should live~~ — decided in the v2.4 proposal under owner delegation: they stay in `.planning/phases/` through v2.4; revisit at the v2.4 close.
 - **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` or `milestone/v2.4` to master; pushing tag `v2.3`.

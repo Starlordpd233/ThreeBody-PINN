@@ -66,7 +66,9 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
   - a 16-system family on the corrected trainer (FEAS-05);
   - the `trainex-r4` corrected control (RUN-06, readout DIAG-08).
 
-  It ends in a go / pivot-training / rethink-representation verdict (FEAS-06). Around the ladder:
+  It ends in a go / pivot-training / rethink-representation verdict (FEAS-06), with the project's level on a readiness ladder and the cost to the next level, plus a one-page project charter for the owner (FEAS-10). Around the ladder:
+  - comparison points, a two-Kepler formula and a nearest-neighbour copy (FEAS-07);
+  - a read-only survey of every stage (FEAS-08), and two probes on harder-stage systems (FEAS-09);
   - the ruling's read-only checkpoint experiments (DIAG-07);
   - the learnability harness (INST-05);
   - conformance and instrumentation (CONF-10/11, INST-06/07);
@@ -74,7 +76,7 @@ The simulation dataset and data pipeline must be clean, well-validated, and corr
   - the gates (GATE-05);
   - traceability (VER-22).
 
-  No graded run, no held-out evaluation, no test split (SCOPE-39..44). The inherited obligations from `.planning/milestones/v2.3-GAPS.md` "Milestone close" are discharged as the v2.4 proposal records.
+  No graded run, no held-out evaluation, no test split (SCOPE-39..44). The inherited obligations from `.planning/milestones/v2.3-GAPS.md` "Milestone close" are discharged as the v2.4 proposal records. Amended 2026-10-11 with owner approval (`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md`).
 
 ### Deferred
 
@@ -304,15 +306,18 @@ The bar is 10⁻⁵. The `trainex-r4` ruling (`c4bea18a`) designed a corrected c
 
 **Target features:**
 
-- **Read-only baseline and scorecard (FEAS-01, FEAS-02, DIAG-07).**
-  - A scorecard in physical units, frozen with its decision rule before any rung runs. It measures position error (including the inner pair's separation), the valid-horizon fraction and the gate's own `ε_H`, on tiers 0–3; Tier 3 is the locked 10⁻⁵ bar.
+- **Read-only baseline and scorecard (FEAS-01, FEAS-02, FEAS-07, FEAS-08, DIAG-07).**
+  - A scorecard in physical units, frozen with its decision rule before any rung runs, and tested against known errors. It measures position error (including the inner pair's separation), the valid-horizon fraction and the gate's own `ε_H`, on tiers 0–3; Tier 3 is the locked 10⁻⁵ bar. A system counts only if it also beats a two-Kepler formula.
   - A Stage-0 difficulty census from Brutus data, and the panels selected from it.
+  - Comparison points: the two-Kepler formula on every panel, and a nearest-neighbour copy on the validation panel.
+  - A read-only survey of every stage, with its predictability envelope.
   - The ruling's read-only checkpoint experiments.
-- **Single-system learnability (INST-05, FEAS-03, FEAS-04).**
-  - A diagnostic harness built on the trainer's own loss functions.
-  - Rung 1: data only, which measures the representation ceiling.
+- **Single-system learnability (INST-05, FEAS-03, FEAS-04, FEAS-09).**
+  - A diagnostic harness built on the trainer's own loss functions, with Adam, then the spec's L-BFGS polish.
+  - Rung 1: data only, which measures the representation ceiling. If it fails, a small settings sweep runs before any RETHINK-REPRESENTATION.
   - Rung 2: physics + IC only, and the full ratified loss.
   - Both rungs run on three systems that span the census.
+  - If Rung 1 passes, two probes run on a Stage-4b and a Stage-6 system.
 - **Conformance and instrumentation (CONF-10, CONF-11, INST-06, INST-07, SPEC-07..10).**
   - The ruling's per-slot physics, monitor and validation.
   - The IC term as a mean over slots.
@@ -323,21 +328,26 @@ The bar is 10⁻⁵. The `trainex-r4` ruling (`c4bea18a`) designed a corrected c
   - Re-measure `R_ref`, re-run GATE-04, run the `OQ-1` check, and run `JX-1`'s conformant half.
   - Rung 3: the corrected trainer on 16 systems.
 - **The corrected control (RUN-06, DIAG-08).** Seeds 42, 41 and 43, 1,000 Adam steps each, with the pre-registered readout (a)–(d).
-- **The feasibility verdict (FEAS-06, VER-22).**
+- **The feasibility verdict and project charter (FEAS-06, FEAS-10, VER-22).** It covers:
+  - the level reached on a readiness ladder (levels 0–9);
+  - every result beside the comparison points;
+  - the cost so far, and to the next level and the finish.
+
+  It also drafts a one-page charter: purpose, definition of done, per-stage pass bars with a position and an energy criterion, budget and stop rule.
 
 **Governance:**
 
-- **20 requirements.**
+- **24 requirements.**
 - **Scope boundaries SCOPE-39..44:**
-  - Stage-0 only;
+  - Stage-0 only, except the read-only survey of every stage and the two hard-stage probes;
   - every run diagnostic, with no graded run, no held-out evaluation and no test split;
   - pre-registration before every rung;
   - locked values move only by amendment;
   - compute budgets fixed before launch.
-- **Three owner checkpoints:** the verdict; a veto on each amendment; any result outside a pre-registered branch.
+- **Four owner checkpoints:** the verdict and charter; a veto on each amendment; any result outside a pre-registered branch; a G2 sweep rescue that would move a locked setting.
 - **Every exit path ends at the verdict.** An early stop goes straight to Phase 64.
 
-Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`, ratified under owner delegation on 2026-10-09 (commit `0b400dfa`).
+Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md`, ratified under owner delegation on 2026-10-09 (commit `0b400dfa`), as amended by `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md` (owner-approved 2026-10-11).
 
 ## Context
 
@@ -414,6 +424,7 @@ Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4
 | v2.3 closes on its declared terminal state with verdict `rethink` (2026-10-03) | The roadmap named the terminal branch up front: if the front still failed to advance, SCOPE-37 forbids further tuning without a new owner decision and the evaluation stays unspent. Generation-7 graded seed 42 tripped invariant B at step 951, and the Phase-58 replay showed no near miss. | — Active; governs the next milestone: ERW round `trainex-r4` before any further run; Stage-1+/PLAT-01..07 stay blocked (SCOPE-36); the held-out evaluation remains available for a run that actually trains. |
 | `trainex-r4` decision sheet ruled under owner delegation (2026-10-07) | The owner handed the ruling to the in-repo agent ("I shouldn't be ruling on anything"; recorded verbatim in `trainex-r4-ruling.md`). Both reports agree on the diagnosis, and their disputes reduce to what the next run is for. The ruling makes it the corrected control: the ratified recipe executed as specified (per-slot physics, the IC term averaged over the selected slots, a 256-identity monitor, conformant validation, then `R_ref` and GATE-04 redone). It is Adam-only for 1,000 steps on seeds 42, 41 and 43. The guard and the plateau handoff only record what they would have done: a run with an active guard is the same run cut short, so nothing is lost. Telemetry is complete, and read-only checkpoint measurements come first. No locked value moves; three clarifying amendments are queued (the IC batch rule, "epoch" as one optimizer step, the `pinn_architecture.md:452` cross-reference). | — Active; governs the next milestone (`trainex-r4-ruling.md`, "Order of work"). Readout branches are pre-registered: the front advances → stage 2 (budget from the measured rate, L-BFGS, the guard statistic, tolerances); it stalls with physics a passenger → adaptive `λ_IC`; it stalls as the learning rate decays → a constant-rate arm; otherwise discriminate first. Not graded; the held-out evaluation stays unspent; Stage-1+ stays blocked. |
 | v2.4 opens as a Stage-0 feasibility checkpoint with a learnability ladder (2026-10-09) | The owner asked whether the project can be achieved at all ("I have not yet obtained any kinds of assurance as to is this actually doable"; verbatim in the v2.4 proposal) and re-confirmed the delegation. The ruling's control shows whether the causal front advances at full scale. It does not show whether the network can reach useful accuracy, or where it breaks. The record holds only a wiring check (the Phase-38 loss ratio, with IC13 set to zero) and energy gates on non-conformant runs. The cheaper rungs therefore run first: one system with data only (the ceiling), the same from physics, a 16-system family, then the control. All are scored in physical units against a scorecard frozen before any rung runs. The ruling's picks and readout are kept; its order of work gains the ladder. The v2.3 phase folders stay in `.planning/phases/`, because moving them would break the Phase-57 verifier and its tests. | — Active; governs v2.4. Verdict rule: rethink-representation if the data-only ceiling fails on 2 of 3 systems; go if the full recipe learns 2 of 3 single systems and 12 of 16 in the family, and the control readout is branch (a); otherwise pivot-training. The owner decides at the verdict, including whether the 10⁻⁵ held-out bar stays the success criterion. |
+| v2.4 amended after a re-examination (owner-approved 2026-10-11) | The owner asked what else v2.4 should achieve and what is needed to judge where the project stands; the owner leans toward a looser pass bar, decided later with evidence. The re-examination found four ways the ladder could mislead: a locked setting read as "can't be done"; a "go" no better than a textbook formula; arms failed for want of the spec's L-BFGS polish; and no look past Stage 0. It also found missing comparison points, capability map, cost estimate and stop rule. Added FEAS-07..10: comparison points, a read-only survey of every stage, two hard-stage probes, and a project charter. A system now counts only if it is at Tier ≥ 1 and beats the formula. G2 runs a settings sweep before RETHINK-REPRESENTATION. Single-system arms get the L-BFGS polish. The verdict places the project on a readiness ladder with costs. | — Active; governs v2.4. The bar is set in the charter, from purpose and comparison points, with a position and an energy criterion, before any held-out exam. A G2 sweep rescue is owner checkpoint ④. |
 
 ## Evolution
 
@@ -433,4 +444,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-09 at the v2.4 start (`/gsd-new-milestone`): Stage-0 Feasibility Checkpoint, Phases 59–64, 20 requirements, from the proposal ratified under owner delegation (`0b400dfa`). Before that: 2026-10-04, after the v2.3 milestone close (verdict `rethink`, archived under `milestones/v2.3-*`). Earlier detailed updates remain in Git history.*
+*Last updated: 2026-10-11, folding in the owner-approved v2.4 feasibility amendment (24 requirements; FEAS-07..10 added). Before that: 2026-10-09 at the v2.4 start (`/gsd-new-milestone`): Stage-0 Feasibility Checkpoint, Phases 59–64, 20 requirements, from the proposal ratified under owner delegation (`0b400dfa`). Before that: 2026-10-04, after the v2.3 milestone close (verdict `rethink`, archived under `milestones/v2.3-*`). Earlier detailed updates remain in Git history.*
