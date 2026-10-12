@@ -851,16 +851,18 @@ Memory: all pure-numpy work is well under 1 GB. The unchunked monitor evaluation
 | A9 | For the nearest-neighbour copy, `ε_H` uses the neighbour's own masses (moot at Tier 0 everywhere in the preview) | Q6 | Low. |
 | A10 | The preview baseline numbers and panel IDs will be reproduced by the committed code | Summary, Q11 | Low: they are checks on the code, not inputs. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Gate G1: share formula and checkpoint rule.** Known: threshold `10⁻²`; Claude's wording; checkpoint 0 has no moments. Unclear: primary formula, which checkpoints. Recommendation: pre-register the primary and secondary formulas of Q8 and "fires if the primary share is at least `10⁻²` at checkpoint 900 or 951" in `59-GAPS.md` before the experiment runs.
-2. **Scoring grid.** Known: D-02 uses the base output times; 1.5% to 7.8% of systems are aliased on it. Unclear: whether a dense-grid `E_dense` is gating. Recommendation: reported, with the aliasing flag, and single-system picks required to have at least 3 samples per inner period.
-3. **IC13 normalizer source.** Recommendation: recovered from the retained checkpoint, with the residual assertion; fallback is a recorded deviation.
-4. **DIAG-07 execution path.** Duck-typed allowlisted source with `RunController` (Pattern 7) versus direct helper calls. Recommendation: the `RunController` path, because the ruling asks for the code that produced the run, with the bitwise monitor-batch equivalence test as its acceptance gate.
-5. **Device.** Recommendation: MPS float32 (the run's own runtime; available in this shell) as the primary and a float64 CPU cross-check on JX-1 and JX-10.
-6. **`τ_L` rule.** Recommendation: spec defaults (`dt = 0.01`, `d = 5`, `delay = 10`, `Theiler = 100`) with linear resampling; divergence averaged over all pairs in range; fit over the "half-pairs" range; sensitivity columns for fixed windows of 1, 2 and 3 time units; the FEAS-09 pick follows the primary rule and reports whether it changes under the sensitivity windows.
-7. **Candidate gap entries** (resolvable under the delegation, none moves a locked value): GAP-59-01 `best.pt` is checkpoint 900 (D-22); GAP-59-02 `ε_H` velocity source (C-3); GAP-59-03 stage precedence and the empty Stage 3 (C-5); GAP-59-04 `τ_L` parameters and fit-window rule; GAP-59-05 G1 share formula (C-11); GAP-59-06 IC13 normalizer source; GAP-59-07 dense-grid column (C-4).
-8. **Allowlist edit.** Editing `tests/phase39/test_prohibitions.py` is a cross-phase test edit with precedent (plan 46-04). Recommendation: do it for exactly one module, with a comment.
+Each question below was resolved before planning; the pointer after it names where (orchestrator, 2026-10-11).
+
+1. **Gate G1: share formula and checkpoint rule.** Known: threshold `10⁻²`; Claude's wording; checkpoint 0 has no moments. Unclear: primary formula, which checkpoints. Recommendation: pre-register the primary and secondary formulas of Q8 and "fires if the primary share is at least `10⁻²` at checkpoint 900 or 951" in `59-GAPS.md` before the experiment runs. **RESOLVED:** GAP-59-05 and D-34.
+2. **Scoring grid.** Known: D-02 uses the base output times; 1.5% to 7.8% of systems are aliased on it. Unclear: whether a dense-grid `E_dense` is gating. Recommendation: reported, with the aliasing flag, and single-system picks required to have at least 3 samples per inner period. **RESOLVED:** GAP-59-07 and D-31. The dense grid was made tier-defining, which is stricter than this recommendation.
+3. **IC13 normalizer source.** Recommendation: recovered from the retained checkpoint, with the residual assertion; fallback is a recorded deviation. **RESOLVED:** GAP-59-06 and D-35.
+4. **DIAG-07 execution path.** Duck-typed allowlisted source with `RunController` (Pattern 7) versus direct helper calls. Recommendation: the `RunController` path, because the ruling asks for the code that produced the run, with the bitwise monitor-batch equivalence test as its acceptance gate. **RESOLVED:** the RunController path is adopted (D-36; plan 59-07), with the bitwise monitor-batch equivalence test as its acceptance gate.
+5. **Device.** Recommendation: MPS float32 (the run's own runtime; available in this shell) as the primary and a float64 CPU cross-check on JX-1 and JX-10. **RESOLVED:** D-36: MPS float32 primary, CPU float64 cross-check.
+6. **`τ_L` rule.** Recommendation: spec defaults (`dt = 0.01`, `d = 5`, `delay = 10`, `Theiler = 100`) with linear resampling; divergence averaged over all pairs in range; fit over the "half-pairs" range; sensitivity columns for fixed windows of 1, 2 and 3 time units; the FEAS-09 pick follows the primary rule and reports whether it changes under the sensitivity windows. **RESOLVED:** GAP-59-04 and D-33.
+7. **Candidate gap entries** (resolvable under the delegation, none moves a locked value): GAP-59-01 `best.pt` is checkpoint 900 (D-22); GAP-59-02 `ε_H` velocity source (C-3); GAP-59-03 stage precedence and the empty Stage 3 (C-5); GAP-59-04 `τ_L` parameters and fit-window rule; GAP-59-05 G1 share formula (C-11); GAP-59-06 IC13 normalizer source; GAP-59-07 dense-grid column (C-4). **RESOLVED:** all recorded as GAP-59-01..07 in 59-GAPS.md.
+8. **Allowlist edit.** Editing `tests/phase39/test_prohibitions.py` is a cross-phase test edit with precedent (plan 46-04). Recommendation: do it for exactly one module, with a comment. **RESOLVED:** D-35: exactly one module.
 
 ## Environment Availability
 

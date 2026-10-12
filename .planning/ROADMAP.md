@@ -182,9 +182,21 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   2. The difficulty census over the 1,812 Stage-0 training systems is committed and re-derivable, with the phase-accuracy figure. The three panels are committed with their selection rule before any rung runs: 3 single systems, the 16-system family, and the validation panel.
   3. The two-Kepler formula is scored on every panel system, and the nearest-neighbour copy on the validation panel, before any rung runs.
   4. The whole-dataset survey, with its predictability envelope and stage difficulty ordering, is committed and re-derivable. The two hard-stage probe systems are selected by their pre-declared rule.
-  5. Each of `JX-1` (executed half), `JX-2`, `JX-3`, `JX-4`, `JX-5` (split) and `JX-10` has a recorded result with its command, its checkpoint provenance (including the stand-in for the ruling's checkpoint 900), and the reading it supports or falsifies. Gate G1's outcome is recorded.
+  5. Each of `JX-1` (executed half), `JX-2`, `JX-3`, `JX-4`, `JX-5` (split) and `JX-10` has a recorded result with its command, its checkpoint provenance (the ruling's checkpoint 900 is `best.pt`, `global_step` 900; GAP-59-01), and the reading it supports or falsifies. Gate G1's outcome is recorded.
   6. No training step ran, and no test-split file was opened. The tooling asserts this.
-**Plans**: TBD
+**Plans**: 10 plans in 5 waves
+
+Plans:
+- [ ] 59-01-PLAN.md — Wave 1: freeze the feasibility scorecard (machine file, strict loader, rule functions, plain-language document, SHA-256 freeze record) before any real-data result (FEAS-01, SCOPE-42)
+- [ ] 59-02-PLAN.md — Wave 2: the scorer and its known-error tests; autograd velocities for networks, finite differences only as a labelled context column (FEAS-01)
+- [ ] 59-03-PLAN.md — Wave 2: the corpus choke point (hash-checked train/validation allowlist, refusal before any path, audit-hook attestation, production reference trajectories, normalizer recovery) and the static guards (FEAS-02, FEAS-07, FEAS-08, DIAG-07)
+- [ ] 59-04-PLAN.md — Wave 2: the evidence writer and the independent verifier, including the SCOPE-42 commit-order check (all five requirements)
+- [ ] 59-05-PLAN.md — Wave 3: reader acceptance, the Stage-0 difficulty census and the panels (FEAS-02)
+- [ ] 59-06-PLAN.md — Wave 4: the read-only whole-dataset survey with tau_L and the FEAS-09 picks (FEAS-08)
+- [ ] 59-07-PLAN.md — Wave 3: the DIAG-07 harness on the generation-7 snapshot, JX-10, JX-1 (executed half) and Gate G1 (DIAG-07)
+- [ ] 59-08-PLAN.md — Wave 4: the two-Kepler formula and the nearest-neighbour copy (FEAS-07)
+- [ ] 59-09-PLAN.md — Wave 4: JX-5, JX-2, JX-4 and JX-3 (DIAG-07)
+- [ ] 59-10-PLAN.md — Wave 5: the plain-language findings (formula Tier-1 answer, census, panels, survey, Gate G1, GAP-59-08 reported and not fixed) and the final evidence check (all five requirements)
 
 ### Phase 60: Single-System Learnability
 
@@ -280,7 +292,7 @@ Otherwise, continue, and run the hard-stage probes. The Rung-2 pattern is carrie
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 59. Read-Only Baseline & Scorecard | 0/TBD | Not started | - |
+| 59. Read-Only Baseline & Scorecard | 0/10 | Planned | - |
 | 60. Single-System Learnability | 0/TBD | Not started | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |

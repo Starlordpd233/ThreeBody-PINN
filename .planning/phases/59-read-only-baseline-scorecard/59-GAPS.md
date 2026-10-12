@@ -327,3 +327,86 @@ does not block Phase 59.
   FEAS-10 pass-bar choice, and nothing in v2.4's ladder, which uses the
   scorecard's autograd `ε_H` (GAP-59-02).
 - **Resolution note.** —
+
+## GAP-59-09 — parameters and reading rules the planner pre-registered in the 59-01 scorecard
+
+- **Decision point.** Eight groups of choices that no source fixes, which plan
+  59-01 writes into the frozen scorecard contract:
+  1. JX-3's 20 trajectories (7 most-anchored, 7 never-anchored with seed
+     59031, 6 validation with seed 59032), read by a factor-of-two comparison
+     of group medians;
+  2. JX-2 "parameter motion": the change from 900 to 951 exceeds the range
+     of the 20 draws at both checkpoints (seeds 59020–59039);
+  3. JX-4: fixtures are the three single systems plus the monitor anchor; the
+     physical scale is the mean squared true acceleration; draw seed 59040;
+  4. JX-5: "mixed derivatives" is read as d(dr′/du)/d(IC13), and "skip
+     contributions" as each odd block's SIREN and skip branch scales;
+  5. numeric limits: the DIAG-07 tolerances, gold-base agreement within 1e-6
+     of system size, an unwrap step below π, and a 2% base-grid cross-check
+     flag;
+  6. the survey:
+     - records whose `τ_L` cannot be computed go to "unlabelled", not to
+       Stage 6;
+     - Stage 1 carries 1a and 1b sub-labels;
+     - `τ_L` uses COM-ordered positions in raw time;
+     - ties between base and gold records go to base;
+  7. panel singles: percentiles are taken over all 1,812 systems, then the
+     pick is restricted to systems with at least 3 samples per inner period;
+  8. the budget:
+     - seconds per step is the timing run's wall time divided by its steps;
+     - with no finite reading before the 75% mark, the arm counts as "still
+       improving";
+     - a formula that does not apply to a counted system goes to the owner.
+- **Where in artifact.** `59-01-PLAN.md`, the scorecard contract; listed in
+  the planner's return of 2026-10-11.
+- **Task context.** Phase-59 planning, before any code runs.
+- **Classification.** Process-artifact schema: acceptance-check and reading
+  rules for diagnostics.
+- **Source silence.**
+  - `trainex-r4-resolution-doc.md:644-655` and `trainex-r4-ruling.md:124-137`
+    give each experiment's purpose and cost, but no sample seeds, group
+    sizes or reading thresholds.
+  - FEAS-01 and D-06 give the budget rule's structure but not these edge
+    cases.
+  - D-31, D-32 and D-33 give the grid, the panel and the survey rules, but
+    not these tolerances.
+- **Grounding.**
+  - Each choice is a measurement or reading convention for a non-gating
+    diagnostic, or a conservative edge-case rule. Item 8's "still improving
+    without readings" avoids calling an unmeasured arm failed.
+  - JX-3's group sizes match the resolution doc's "about 40
+    trajectory-checkpoints" (20 trajectories at checkpoints 0 and 951).
+  - The 1e-6 agreement limit sits about 175 times above the largest
+    measured disagreement (5.7e-9, 59-RESEARCH C-4).
+  - The only gating rule in Phase 59 is Gate G1, whose formula is GAP-59-05.
+    None of these choices changes it.
+  - Fixing the choices before any result is seen is what SCOPE-42 requires.
+- **Agent was tempted to** leave them to execution time, which would let a
+  result shape its own reading rule.
+- **What the user needs to decide.** A: accept all eight as written in 59-01.
+  B: change specific items before 59-01 executes. C: drop the reading rules
+  and report raw numbers only.
+- **Confidence of impact.** LOW: none gates the milestone or moves a locked
+  value. Item 7 shapes which three systems Rung 1 sees.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-10-11, owner delegation; reviewed
+  by the orchestrator before 59-01 executes).
+- **Governance basis.** In the trainex STOP protocol, a process-artifact
+  schema is a MUST-surface class. For v2.4, the owner's delegation covers it:
+  under ROADMAP "Feasibility discipline → Delegation and gaps", a
+  source-silent decision may be resolved under the delegation unless it would
+  move a locked value, spend the evaluation or pre-empt the verdict. None of
+  the eight items does any of those, so no separate owner confirmation is
+  required. The record above is the surfacing.
+- **Resolution note.** Option A. Also accepted: dropping the legacy v1.3
+  Rosenstein cross-check. D-18 and D-33 permit it but do not require it, and
+  running it needs `sklearn` in an unpinned `.venv`; the spec's own loop is
+  the test oracle.
+- **Addendum (2026-10-11, after plan-check iteration 2).** The same
+  disposition covers the operational parameters the revised plans fix:
+  - the memory-preflight floors: 2 GiB before the detached survey pass (plan
+    06) and 6 GiB before the DIAG-07 run (plan 07), checked with `vm_stat`;
+  - the evidence schema names (`phase59-*/v1`) and the completion-marker
+    token strings.
+
+  None gates a result. The floors only refuse to launch on a memory-starved
+  machine.

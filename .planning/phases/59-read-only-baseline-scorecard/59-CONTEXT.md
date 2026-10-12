@@ -157,6 +157,42 @@ and a later decision differ, this section governs.
   baselines evidence says so.
 - **D-39: L-BFGS `max_iter = 50`** is frozen for the harness polish. It is
   inside the spec's 20–50; the production config's default is 20.
+- **D-40: Which splits each piece reads** (from the plan checker's note I-8).
+  - **The FEAS-02 census proper** (lap counts, difficulty measures, panel
+    selection) uses training-split records only, as FEAS-02 says.
+  - **Validation records** (the 227 Stage-0 validation systems) are read only
+    for two purposes: the D-31 gold-base agreement check, and the validation
+    panel that FEAS-02 itself names and FEAS-07 scores.
+  - **The test split** is never read.
+  - **Scope of this rule.** D-40 governs FEAS-02, FEAS-07 and FEAS-08 (the
+    census, the baselines and the survey). DIAG-07 may also read
+    validation-split records:
+    - JX-3's validation group, which the ruling explicitly allows
+      (`trainex-r4-ruling.md:124-137`);
+    - the Stage-0 and Stage-1 validation records the generation-7
+      controller's validation source needs at construction, built as in
+      Phase 58.
+
+    These reads are validation only, never test (SCOPE-40). The orchestrator
+    clarified this on 2026-10-11, in answer to the planner's query.
+- **D-41: DIAG-07 is not a SCOPE-44 run, but long steps run detached** (from
+  the plan checker's note I-6).
+  - **Why SCOPE-44 does not apply.** It governs training runs. DIAG-07
+    performs read-only forward and backward passes on retained checkpoints,
+    with no optimizer step.
+  - **Detached launch.** Generation 6 was lost with its agent session. Any
+    single DIAG-07 or survey step expected to exceed about 10 minutes (JX-2,
+    JX-3, the survey's `τ_L` pass) is therefore launched detached
+    (`nohup …`), with output to a log under `evidence/`.
+  - **Memory preflight.** Before launch, available memory is checked with
+    `vm_stat`, not the footprint reader (Pitfall 12). `ru_maxrss` is recorded
+    as the high-water mark.
+  - **Completion.** The step writes a completion marker, and its result is
+    accepted only if that marker and the result hash are present.
+- **Plan size (plan checker W-4).** Six plans exceed the estimator's
+  smart-zone budget by 5–30%, at low confidence. This is accepted as
+  advisory, with no re-slice: each plan is one coherent measurement, and
+  splitting adds hand-offs without reducing risk.
 - **Open, and not blocking this phase: GAP-59-08.** The validation gate and
   held-out evaluator compute `ε_H` from finite differences, which fail even
   the exact answer. This is owner-routed. Phase 59 reports it, and does not
