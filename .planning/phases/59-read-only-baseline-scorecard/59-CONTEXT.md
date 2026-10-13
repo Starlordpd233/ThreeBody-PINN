@@ -190,7 +190,8 @@ and a later decision differ, this section governs.
   - **Completion.** The step writes a completion marker, and its result is
     accepted only if that marker and the result hash are present.
 - **Plan size (plan checker W-4).** Six plans exceed the estimator's
-  smart-zone budget by 5–30%, at low confidence. This is accepted as
+  smart-zone budget by 5–40% (plan 04 is the largest, at 140k after
+  revision 2), at low confidence. This is accepted as
   advisory, with no re-slice: each plan is one coherent measurement, and
   splitting adds hand-offs without reducing risk.
 - **Open, and not blocking this phase: GAP-59-08.** The validation gate and

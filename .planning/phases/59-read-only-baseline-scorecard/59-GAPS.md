@@ -410,3 +410,16 @@ does not block Phase 59.
 
   None gates a result. The floors only refuse to launch on a memory-starved
   machine.
+- **Addendum 2 (2026-10-12, after plan-check iteration 2's revision).** The
+  same disposition covers:
+  - the 600 s wall-time gate on inline steps (census and baselines; measured
+    at seconds, 59-RESEARCH Q12);
+  - the one-launch lock and the failure record (`phase59-launch-lock/v1`,
+    `phase59-launch-failure/v1`), the `LAUNCH-REFUSED` token and exit code 6;
+  - the two decision-source check modes in `scorecard-freeze.json`:
+    59-CONTEXT.md and 59-RESEARCH.md are checked against their pinned
+    blobs, and 59-GAPS.md and 59-VALIDATION.md only at the freeze commit,
+    so that gaps recorded mid-phase stay possible.
+
+  After the freeze, mid-phase rulings are recorded in 59-GAPS.md, never by
+  editing 59-CONTEXT.md or 59-RESEARCH.md.
