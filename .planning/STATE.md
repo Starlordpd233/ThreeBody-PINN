@@ -2,15 +2,15 @@
 gsd_state_version: "1.0"
 milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
-status: planning
-stopped_at: "v2.4 amended 2026-10-11 after the owner-approved feasibility re-examination (24/24 requirements mapped); Phase 59 ready to plan"
-last_updated: "2026-10-11T05:38:13.000Z"
-last_activity: 2026-10-11
-last_activity_desc: v2.4 amended with owner approval (docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md) — FEAS-07 comparison points (two-Kepler formula, nearest-neighbour copy), FEAS-08 read-only survey of every stage, FEAS-09 two hard-stage probes, FEAS-10 project charter; counting rule (Tier 1 and beats the formula), L-BFGS polish on single-system arms, G2 settings sweep before rethink-representation, accuracy curves, known-error scorer tests, readiness ladder and cost model in the verdict. 24 requirements, 24/24 mapped.
+status: ready_to_execute
+stopped_at: "Phase 59 planned 2026-10-12: 10 plans in 5 waves, plan-checker passed after 2 revisions (0 blockers, 0 warnings); ready to execute"
+last_updated: "2026-10-13T03:38:08.000Z"
+last_activity: 2026-10-12
+last_activity_desc: Phase 59 planned — context (D-01..D-41), research, gap register GAP-59-01..09 (08 OPEN, owner-routed - the production energy check uses finite differences and fails even exact answers), validation map and 10 plans in 5 waves (scorecard freeze first). Plan checker passed on iteration 3 with 0 blockers and 0 warnings. Commits 805de014, ca2621b0, b04ee680 and the final plan commit.
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 10
   completed_plans: 0
   percent: 0
 ---
@@ -22,14 +22,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Milestone v2.4 — Phase 59 (read-only baseline, scorecard, comparison points, whole-dataset survey)
+**Current focus:** Milestone v2.4 — Phase 59 planned; execute it next (/gsd-execute-phase 59)
 
 ## Current Position
 
 Phase: 59 of 59–64 (Read-Only Baseline & Scorecard)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-10-11 — v2.4 amended after the owner-approved feasibility re-examination (24 requirements, 24/24 mapped)
+Plan: 0 of 10 (5 waves)
+Status: Ready to execute
+Last activity: 2026-10-12 — Phase 59 planned; the plan checker passed after two revisions (0 blockers, 0 warnings)
 
 **v2.4 amendment (2026-10-11, owner-approved).** The owner asked what else
 v2.4 should achieve and what is needed to judge where the project stands.
@@ -658,26 +658,26 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
-Last session: 2026-10-11
-Stopped at: v2.4 amended with owner approval (FEAS-07..10 added; 24/24 requirements mapped); before that, v2.4 initialized: proposal 0b400dfa, milestone start 5be02066, requirements 56741dc5, roadmap 6ce484c8; branch milestone/v2.4 from milestone/v2.3 at b8632832
-Next action: plan Phase 59 via /gsd-plan-phase 59. The phase covers five requirements:
-- FEAS-01: the scorecard, with the counting rule, polish budget, sweep grid, reading cadence and known-error tests, frozen before any rung;
-- FEAS-02: the difficulty census and panels;
-- FEAS-07: the comparison points;
-- FEAS-08: the survey of every stage;
-- DIAG-07: the read-only checkpoint experiments.
+Last session: 2026-10-12
+Stopped at: Phase 59 planned: 10 plans in 5 waves in .planning/phases/59-read-only-baseline-scorecard/. Plan 59-01 freezes the scorecard before any real-data result. The plan checker passed on iteration 3 (0 blockers, 0 warnings, 9 info advisories). GAP-59-01..07 and 09 are resolved under the delegation; GAP-59-08 is open for the owner.
+Next action: /gsd-execute-phase 59 from .worktrees/trainex. Commit nothing ahead of 59-01: its Task 3 refuses to freeze if 59-CONTEXT, -GAPS, -RESEARCH or -VALIDATION is dirty. Once the freeze has happened, record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md.
 
 ## Operator Next Steps
 
 - ~~Finish `trainex-r4`~~ — done 2026-10-07: consolidated (`53b7c008`) and ruled under owner delegation (`trainex-r4-ruling.md`, `c4bea18a`; Key Decision in `PROJECT.md`). The four disputes were settled by making the next run the corrected control with an observe-only guard and plateau handoff, Adam-only, on seeds 42, 41 and 43.
 - ~~Open the next milestone~~ — v2.4 Stage-0 Feasibility Checkpoint started 2026-10-09 (`0b400dfa`; branch `milestone/v2.4`). It keeps the ruling's order of work and adds the learnability ladder in front of the corrected control.
 - ~~Re-examine v2.4~~ — done 2026-10-11: the owner approved the ten amendments ("go"), which are folded into REQUIREMENTS/ROADMAP/PROJECT (`2026-10-11-v2.4-feasibility-amendments.md`).
-- **Plan Phase 59** (read-only baseline and scorecard):
+- ~~Plan Phase 59~~ — planned 2026-10-12 (10 plans, 5 waves; plan checker passed).
+- **Execute Phase 59** (`/gsd-execute-phase 59`). It covers:
   - freeze the feasibility scorecard (FEAS-01) before any rung runs, including the counting rule, polish budget, sweep grid, reading cadence and known-error tests;
   - run the Stage-0 difficulty census and panel selection (FEAS-02);
   - score the comparison points (FEAS-07);
   - survey every stage read-only (FEAS-08);
   - run the ruling's read-only checkpoint experiments (DIAG-07).
+- **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
+  - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
+  - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.
+  - **Scope.** It blocks any held-out spend, not v2.4.
 - **Owner decisions due at the verdict, no rush** (FEAS-10 charter):
   - the project's purpose: a paper, a fast predictor, or learning;
   - the budget, including whether rented GPU time is an option;
