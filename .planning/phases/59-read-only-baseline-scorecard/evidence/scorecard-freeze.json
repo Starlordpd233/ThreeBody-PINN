@@ -1,0 +1,67 @@
+{
+  "decision_sources": {
+    ".planning/phases/59-read-only-baseline-scorecard/59-CONTEXT.md": {
+      "git_blob": "d1e42612fe028273489bce1851d2684153debd84",
+      "last_commit": "b04ee6808047dd1da1348448f9cd1ffffb43555f",
+      "sha256": "85096f833ec8379844620ca908b84bab4f4f8319c4c1aa5c1ac866a71dbec2bd",
+      "verify": "unchanged"
+    },
+    ".planning/phases/59-read-only-baseline-scorecard/59-GAPS.md": {
+      "git_blob": "4050fa21d990a75b91b3d73a7055eb23023a7c2d",
+      "last_commit": "b04ee6808047dd1da1348448f9cd1ffffb43555f",
+      "sha256": "60284a3eed468eb70c0f8e90a83a7eb3800cdce16ec21b3b000792ccf6b53b46",
+      "verify": "ancestor_state"
+    },
+    ".planning/phases/59-read-only-baseline-scorecard/59-RESEARCH.md": {
+      "git_blob": "9698bea4b03aea89cb903d78bd6d4da9c6ab8c87",
+      "last_commit": "ca2621b06c6be29f8e1e53051f85d28c9df5ff85",
+      "sha256": "f31f6b1bf2609f960a0c166011fbb20280d739f660f4c980d8d15f47b265ff08",
+      "verify": "unchanged"
+    },
+    ".planning/phases/59-read-only-baseline-scorecard/59-VALIDATION.md": {
+      "git_blob": "ff5a32a49b36d8b5b951394a2fd0651eecf5c059",
+      "last_commit": "b04ee6808047dd1da1348448f9cd1ffffb43555f",
+      "sha256": "e9ba9b32a08ad07084d641424f7be46f0d19be67e6d89b95ba38a98316dff250",
+      "verify": "ancestor_state"
+    }
+  },
+  "decisions_frozen": [
+    "D-01",
+    "D-02",
+    "D-03",
+    "D-04",
+    "D-05",
+    "D-06",
+    "D-07",
+    "D-08",
+    "D-09",
+    "D-11",
+    "D-13",
+    "D-14",
+    "D-20",
+    "D-24",
+    "D-29",
+    "D-30",
+    "D-31",
+    "D-32",
+    "D-33",
+    "D-34",
+    "D-36",
+    "D-38",
+    "D-39"
+  ],
+  "head_at_freeze": "0aac08d878baee03e0b5f02f5400588c3ffacc49",
+  "note": "Frozen before any Phase-59 real-data result; verify with verify_phase59_evidence.py scorecard-frozen",
+  "phase_start_head": "f3d2f42044ec7d53c8b42dc264866a3a5daab432",
+  "plain_doc_path": ".planning/phases/59-read-only-baseline-scorecard/59-SCORECARD.md",
+  "plain_doc_sha256": "7142dfc62354923117e44dbbda9d5b210741ff8e6f189082635b7e32a294653e",
+  "plain_doc_size_bytes": 18272,
+  "schema": "phase59-scorecard-freeze/v1",
+  "scorecard_module_path": "pinn/verification/feasibility_scorecard.py",
+  "scorecard_module_sha256": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+  "scorecard_module_size_bytes": 32624,
+  "scorecard_path": "pinn/verification/artifacts/feasibility_scorecard_v1.json",
+  "scorecard_schema_version": "phase59-feasibility-scorecard/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "scorecard_size_bytes": 17966
+}
