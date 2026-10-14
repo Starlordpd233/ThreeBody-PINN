@@ -1017,7 +1017,7 @@ class FinalTests(AreaFixture):
         self._run(["manifest", "--area", "survey", "--write"])
         checkpoint = self._checkpoint_for_final()
         for name in ("jx01.json", "jx02.json", "jx03.json", "jx04.json", "jx05.json", "jx10.json"):
-            self._jx(name, checkpoint)
+            Diag07Tests._jx(self, name, checkpoint)
         from pinn.verification.feasibility_scorecard import g1_fires
 
         expected = g1_fires({900: 0.0, 951: 0.0}, scorecard=self.card)

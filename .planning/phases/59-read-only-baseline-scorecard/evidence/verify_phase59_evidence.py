@@ -9,6 +9,7 @@ Re-derivation, when a later subcommand asks for it, is a subprocess --check.
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
 import hashlib
 import json
@@ -16,6 +17,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
 
@@ -714,6 +716,190 @@ def cmd_diag07(args: argparse.Namespace) -> None:
     print("DIAG07-OK")
 
 
+_RUN_DIRS = ("stage0-v23g7-seed42", "stage0-v23g7-smoke")
+_FINDING_HEADINGS = (
+    "## In plain language",
+    "## Does the two-Kepler formula already reach Tier 1 on Stage 0?",
+    "## How hard Stage 0 is",
+    "## The panels",
+    "## The comparison points",
+    "## The whole-dataset survey",
+    "## The checkpoint experiments (DIAG-07)",
+    "## Gate G1",
+    "## GAP-59-08 (reported, not fixed)",
+    "## Evidence index",
+)
+
+
+def cmd_guardrails(_args: argparse.Namespace) -> None:
+    """Re-hash retained run files and refuse home paths in tracked evidence."""
+    assert_scorecard_frozen()
+    retained = _retention()
+    for run in _RUN_DIRS:
+        prefix = f"runs/{run}/"
+        listed = {path for path in retained if path.startswith(prefix)}
+        disk_root = REPO_ROOT / "runs" / run
+        disk: set[str] = set()
+        if disk_root.exists():
+            for path in disk_root.rglob("*"):
+                if path.is_file() and not path.is_symlink():
+                    disk.add(path.relative_to(REPO_ROOT).as_posix())
+        if disk != listed:
+            extra = sorted(disk - listed)
+            missing = sorted(listed - disk)
+            shown = ", ".join((extra + missing)[:6]) or run
+            fail(f"run directory {run} file set differs: {shown}")
+        for relative in sorted(listed):
+            entry = retained[relative]
+            path = repo_path(relative, what="retained run file")
+            if path.stat().st_size != entry.get("size_bytes") or sha256_file(path) != entry.get("sha256"):
+                fail(f"retained bytes differ: {relative}")
+    for area in AREAS:
+        _check_opened(area)
+    home = str(Path.home())
+    data_root = ""
+    try:
+        from pinn.data.adapter import default_data_root
+
+        data_root = str(Path(default_data_root()).resolve())
+    except (OSError, subprocess.SubprocessError):
+        data_root = ""
+    listed_proc = _git("ls-files", "--", EVIDENCE_REL.as_posix())
+    if listed_proc.returncode != 0:
+        fail(f"cannot list tracked evidence: {listed_proc.stderr.strip()}")
+    for relative in [line for line in listed_proc.stdout.splitlines() if line.strip()]:
+        path = REPO_ROOT / relative
+        if not path.is_file():
+            continue
+        raw = path.read_bytes()
+        if b"\0" in raw:
+            continue
+        text = raw.decode("utf-8", errors="replace")
+        if home and home in text:
+            fail(f"tracked evidence contains the home directory: {relative}")
+        if data_root and data_root in text:
+            fail(f"tracked evidence contains the data root: {relative}")
+    status = _git("status", "--porcelain", "--", "simulation_data")
+    if status.returncode != 0:
+        fail(f"cannot read simulation_data status: {status.stderr.strip()}")
+    if status.stdout.strip():
+        fail("simulation_data is dirty")
+    print("GUARDRAILS-OK")
+
+
+def phase59_files() -> list[str]:
+    """Read PHASE59_FILES from the static-guard module without importing it."""
+    path = REPO_ROOT / "tests/phase59/test_static_guards.py"
+    if not path.is_file():
+        fail(f"missing phase59 file {path.relative_to(REPO_ROOT).as_posix()}")
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == "PHASE59_FILES":
+                value = ast.literal_eval(node.value)
+                return [str(item) for item in value]
+    fail("PHASE59_FILES assignment is missing")
+    return []
+
+
+def _validation_modules() -> list[str]:
+    path = REPO_ROOT / PHASE_REL / "59-VALIDATION.md"
+    if not path.is_file():
+        fail("59-VALIDATION.md is missing")
+    text = path.read_text(encoding="utf-8")
+    found: list[str] = []
+    seen: set[str] = set()
+    for match in re.finditer(r"tests(?:\.[A-Za-z_][A-Za-z0-9_]*)+", text):
+        parts = match.group(0).split(".")
+        module: list[str] = []
+        for part in parts:
+            if part[:1].isupper():
+                break
+            module.append(part)
+        if len(module) >= 4 and module[3].startswith("test_"):
+            module = module[:3]
+        if len(module) < 3:
+            continue
+        name = ".".join(module)
+        if name not in seen:
+            seen.add(name)
+            found.append(name)
+    return found
+
+
+def _check_findings() -> None:
+    path = REPO_ROOT / PHASE_REL / "59-FINDINGS.md"
+    if not path.is_file():
+        fail("59-FINDINGS.md is missing")
+    text = path.read_text(encoding="utf-8")
+    headings = re.findall(r"^## .+$", text, re.M)
+    if not headings or headings[0] != "## In plain language":
+        fail("59-FINDINGS.md does not open with ## In plain language")
+    for heading in _FINDING_HEADINGS:
+        if heading not in headings:
+            fail(f"59-FINDINGS.md lacks heading {heading}")
+    if SCORECARD_SHA256 not in text:
+        fail("59-FINDINGS.md lacks the scorecard SHA-256")
+    gate = load_json(REPO_ROOT / EVIDENCE_REL / "diag07" / "g1.json", what="g1")
+    outcome = str(gate.get("outcome") or "")
+    if not outcome or outcome not in text:
+        fail("59-FINDINGS.md lacks the Gate G1 outcome")
+    panels = load_json(REPO_ROOT / EVIDENCE_REL / "census" / "panels.json", what="panels")
+    for row in panels["singles"]:
+        ident = str(row["id"])
+        if re.search(rf"(?<!\d){re.escape(ident)}(?!\d)", text) is None:
+            fail(f"59-FINDINGS.md lacks single panel id {ident}")
+    if "GAP-59-08" not in text:
+        fail("59-FINDINGS.md lacks GAP-59-08")
+
+
+def _final_namespace(**overrides: Any) -> argparse.Namespace:
+    values: dict[str, Any] = {
+        "command": "final",
+        "pre_commit": False,
+        "area": None,
+        "write": False,
+        "skip_rederive": False,
+        "require_committed": True,
+        "require": None,
+    }
+    values.update(overrides)
+    return argparse.Namespace(**values)
+
+
+def _timed(name: str, action) -> None:
+    started = time.perf_counter()
+    action()
+    print(f"elapsed {name} {time.perf_counter() - started:.3f}")
+
+
+def cmd_final(_args: argparse.Namespace) -> None:
+    """Run every evidence check and the findings-page contract."""
+    _timed("scorecard-frozen", assert_scorecard_frozen)
+    _timed("audit", lambda: cmd_audit(_final_namespace()))
+    _timed("census", lambda: cmd_census(_final_namespace()))
+    _timed("survey", lambda: cmd_survey(_final_namespace()))
+    _timed("baselines", lambda: cmd_baselines(_final_namespace()))
+    _timed("diag07", lambda: cmd_diag07(_final_namespace(require="all")))
+    _timed("guardrails", lambda: cmd_guardrails(_final_namespace()))
+    _timed("manifest", lambda: cmd_manifest(_final_namespace(area="all", write=False, require_committed=False)))
+    _timed("phase59-files", lambda: _require_phase_files())
+    _timed("findings", _check_findings)
+    print("PHASE59-EVIDENCE-OK")
+
+
+def _require_phase_files() -> None:
+    for relative in phase59_files():
+        if not (REPO_ROOT / relative).is_file():
+            fail(f"missing phase59 file {relative}")
+    for module in _validation_modules():
+        relative = module.replace(".", "/") + ".py"
+        if not (REPO_ROOT / relative).is_file():
+            fail(f"missing validation module {relative}")
+
+
 COMMANDS = {
     "scorecard-frozen": cmd_scorecard_frozen,
     "manifest": cmd_manifest,
@@ -722,6 +908,8 @@ COMMANDS = {
     "survey": cmd_survey,
     "baselines": cmd_baselines,
     "diag07": cmd_diag07,
+    "guardrails": cmd_guardrails,
+    "final": cmd_final,
 }
 
 
