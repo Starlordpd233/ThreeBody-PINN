@@ -781,7 +781,7 @@ class FreezeInAreaTests(AreaFixture):
         self.assertEqual(code, 1)
         self.assertIn("sha256", err)
         self.assertNotIn("panel_rule", err)
-        module.write_bytes(ROOT / "pinn/verification/feasibility_scorecard.py")
+        module.write_bytes((ROOT / "pinn/verification/feasibility_scorecard.py").read_bytes())
         code, out, err = self._run(["manifest", "--area", "census", "--write"])
         self.assertEqual(code, 0, err)
         manifest = json.loads((self.root / f"{PHASE}/evidence/census/MANIFEST.json").read_text(encoding="utf-8"))
