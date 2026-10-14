@@ -1,22 +1,28 @@
 """Phase 59 (FEAS-01): the feasibility scorer.
 
-The module is read-only. It opens no file, writes nothing, constructs no
-optimizer, and keeps no module-level mutable state. Imports are limited to
-the standard library, numpy, torch, and ``pinn.*`` (D-37). Tier-defining
-``eps_H`` uses the gate's own Hamiltonian and ``trajectory_eps_h`` on caller-
-supplied velocities. ``finite_difference_context`` is refused here; it is not
-a tier-defining velocity source (D-30).
+The module is read-only. It writes nothing, constructs no optimizer, and
+keeps no module-level mutable state. The only file it opens is the governed
+R_ref artifact, read through ``load_frozen_r_ref_artifact``. Imports are
+limited to the standard library, numpy, torch, and ``pinn.*`` (D-37).
+Tier-defining ``eps_H`` uses the gate's own Hamiltonian and
+``trajectory_eps_h`` on caller-supplied velocities.
+``finite_difference_context`` is refused as a tier source (D-30). The
+finite-difference value and the R_ref-normalized physics residual are
+labelled context columns and are not arguments of ``tier_of``.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Mapping
 
 import numpy as np
 import torch
 
-from pinn.constants import T_CHARACTERISTIC_TIME
+from pinn.constants import EPS_SOFT, T_CHARACTERISTIC_TIME
+from pinn.physics_residual import componentwise_du, softened_acceleration
+from pinn.training.config import R_REF_ARTIFACT_RELATIVE_PATH, load_frozen_r_ref_artifact
 from pinn.training.validation_gate import json_safe_float
 from pinn.verification import gate_metrics
 from pinn.verification.feasibility_scorecard import tier_of
@@ -32,6 +38,11 @@ __all__ = [
     "valid_horizon",
     "eps_h_from_velocities",
     "score_trajectory",
+    "network_trajectory",
+    "score_network",
+    "fd_context_eps_h",
+    "physics_residual_context",
+    "load_governed_r_ref",
 ]
 
 FRAME_NAME = "r_prime_u"
@@ -51,6 +62,12 @@ class ScoringInputError(ValueError):
 
 def _json_number(value: float):
     return json_safe_float(float(value))
+
+
+def _json_optional(value):
+    if value is None:
+        return None
+    return _json_number(value)
 
 
 def _max_with_nan(values: np.ndarray) -> float:
@@ -120,8 +137,8 @@ def _as_times(times, n_times: int) -> np.ndarray:
 class ScoreResult:
     """One scored trajectory. ``h`` follows the scorecard's delta order.
 
-    ``physics_residual_mean`` and ``physics_residual_max`` are not part of
-    this core result. Plan 59-02 task 3 adds them as labelled context only.
+    ``physics_residual_mean`` and ``physics_residual_max`` are labelled
+    context only. ``tier_of`` and ``score_trajectory`` never read them.
     """
 
     E: float
@@ -135,6 +152,8 @@ class ScoreResult:
     frame: str
     n_times: int
     R_sys: float
+    physics_residual_mean: float | None = None
+    physics_residual_max: float | None = None
 
     @property
     def h_by_delta(self) -> Mapping[float, float]:
@@ -156,6 +175,8 @@ class ScoreResult:
             "frame": self.frame,
             "n_times": int(self.n_times),
             "R_sys": _json_number(self.R_sys),
+            "physics_residual_mean": _json_optional(self.physics_residual_mean),
+            "physics_residual_max": _json_optional(self.physics_residual_max),
         }
 
 
@@ -301,3 +322,172 @@ def score_trajectory(
         n_times=int(pred.shape[0]),
         R_sys=float(r_sys),
     )
+
+
+def load_governed_r_ref() -> float:
+    """Read the governed Stage-0 ``R_ref``. One read, no rewrite."""
+    root = Path(__file__).resolve().parents[2]
+    return float(load_frozen_r_ref_artifact(root / R_REF_ARTIFACT_RELATIVE_PATH))
+
+
+def physics_residual_context(positions, accelerations, masses, *, r_ref) -> dict:
+    """Mean and max of the trainer's body-averaged squared residual over ``r_ref``.
+
+    The force is ``softened_acceleration`` with ``EPS_SOFT`` and the scored
+    system's ordered masses, in the same frame as ``positions``. Context only.
+    """
+    pos = np.asarray(positions, dtype=np.float64)
+    acc = torch.as_tensor(accelerations, dtype=torch.float64, device=torch.device("cpu"))
+    mass = np.asarray(masses, dtype=np.float64).reshape(-1)
+    force = softened_acceleration(
+        pos,
+        mass,
+        eps_soft=EPS_SOFT,
+        dtype=torch.float64,
+        device=torch.device("cpu"),
+    )
+    residual = acc - force
+    rbar = (residual**2).sum(dim=(-2, -1)) / 3.0
+    normalized = rbar / float(r_ref)
+    return {"mean": float(normalized.mean()), "max": float(normalized.max())}
+
+
+def _trainer_closure(model, ic13, masses, *, dtype, device):
+    ic13_t = torch.as_tensor(np.asarray(ic13, dtype=np.float64), dtype=dtype, device=device)
+    masses_t = torch.as_tensor(np.asarray(masses, dtype=np.float64), dtype=dtype, device=device)
+    ic13_t = ic13_t.reshape(-1)
+    masses_t = masses_t.reshape(-1)
+    if ic13_t.shape != (13,):
+        raise ScoringInputError(f"ic13 must have shape (13,); got {tuple(ic13_t.shape)}")
+    if masses_t.shape != (3,):
+        raise ScoringInputError(f"masses must have shape (3,); got {tuple(masses_t.shape)}")
+
+    def traj(u_scalar):
+        tau = (2.0 * u_scalar - 1.0).reshape(1)
+        tau_ic13 = torch.cat([tau, ic13_t], dim=0).unsqueeze(0)
+        pos = model(tau_ic13, masses_t.unsqueeze(0))
+        return pos.reshape(3, 3)
+
+    def flat_traj(u_scalar):
+        return traj(u_scalar).reshape(-1)
+
+    return traj, flat_traj
+
+
+def network_trajectory(
+    model,
+    ic13,
+    masses,
+    times,
+    *,
+    dtype,
+    device,
+    microbatch_size=256,
+    want_acceleration=False,
+):
+    """Positions and autograd ``dr'/du`` on the trainer's trajectory closure.
+
+    ``u = t / T``. Each chunk is at most ``microbatch_size`` times. Velocities
+    are ``vmap(jacrev)`` of the flattened closure, not a summed-output VJP.
+    Accelerations, when requested, are ``componentwise_du``'s second derivative.
+    The prior ``model.training`` mode is restored. No backward call is made.
+    """
+    if isinstance(microbatch_size, bool) or not isinstance(microbatch_size, int) or microbatch_size < 1:
+        raise ScoringInputError("microbatch_size must be a positive int")
+    time_array = np.asarray(times, dtype=np.float64).reshape(-1)
+    if time_array.shape[0] < 2:
+        raise ScoringInputError(
+            f"times must cover at least two scoring times; got {time_array.shape[0]}"
+        )
+    u_all = time_array / float(T_CHARACTERISTIC_TIME)
+    traj, flat_traj = _trainer_closure(model, ic13, masses, dtype=dtype, device=device)
+    prior_training = bool(model.training)
+    position_chunks = []
+    velocity_chunks = []
+    acceleration_chunks = []
+    try:
+        model.eval()
+        for start in range(0, int(u_all.shape[0]), microbatch_size):
+            u_chunk = torch.as_tensor(
+                u_all[start : start + microbatch_size], dtype=dtype, device=device
+            )
+            positions = torch.func.vmap(flat_traj)(u_chunk)
+            velocities = torch.func.vmap(torch.func.jacrev(flat_traj))(u_chunk)
+            position_chunks.append(
+                positions.detach().to(device="cpu", dtype=torch.float64).numpy().reshape(-1, 3, 3)
+            )
+            velocity_chunks.append(
+                velocities.detach().to(device="cpu", dtype=torch.float64).numpy().reshape(-1, 3, 3)
+            )
+            if want_acceleration:
+                _first, second = componentwise_du(traj, u_chunk)
+                acceleration_chunks.append(
+                    second.detach().to(device="cpu", dtype=torch.float64).numpy().reshape(-1, 3, 3)
+                )
+    finally:
+        if prior_training:
+            model.train()
+        else:
+            model.eval()
+    positions_out = np.concatenate(position_chunks, axis=0)
+    velocities_out = np.concatenate(velocity_chunks, axis=0)
+    if want_acceleration:
+        return positions_out, velocities_out, np.concatenate(acceleration_chunks, axis=0)
+    return positions_out, velocities_out
+
+
+def score_network(
+    model,
+    ic13,
+    masses,
+    ref_positions,
+    inner_pair,
+    times,
+    *,
+    scorecard,
+    dtype,
+    device,
+    grid,
+    microbatch_size=256,
+):
+    """Score a network with autograd velocities and the residual context column."""
+    positions, velocities, accelerations = network_trajectory(
+        model,
+        ic13,
+        masses,
+        times,
+        dtype=dtype,
+        device=device,
+        microbatch_size=microbatch_size,
+        want_acceleration=True,
+    )
+    result = score_trajectory(
+        positions,
+        velocities,
+        ref_positions,
+        masses,
+        inner_pair,
+        times,
+        velocity_source="autograd",
+        scorecard=scorecard,
+        grid=grid,
+    )
+    context = physics_residual_context(
+        positions, accelerations, masses, r_ref=load_governed_r_ref()
+    )
+    return replace(
+        result,
+        physics_residual_mean=context["mean"],
+        physics_residual_max=context["max"],
+    )
+
+
+def fd_context_eps_h(positions, times_u, masses) -> float:
+    """Finite-difference ``eps_H`` labelled ``finite_difference_context``.
+
+    Continuity with generation 7 only. Never tier-defining. GAP-59-08 owns
+    the production-evaluator question and is not fixed here.
+    """
+    velocity = gate_metrics.finite_difference_velocity(positions, times_u)
+    series = gate_metrics.matched_plummer_hamiltonian_series(positions, velocity, masses)
+    return float(gate_metrics.trajectory_eps_h(series))
