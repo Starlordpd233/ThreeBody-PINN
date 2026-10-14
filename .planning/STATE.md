@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-02-PLAN.md"
-last_updated: "2026-10-14T02:35:20Z"
+stopped_at: "Completed 59-03-PLAN.md"
+last_updated: "2026-10-14T03:06:30Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 59-02 built the feasibility scorer
-state_head: 4cd70812d1cf2efdca1e1174f4a9e8786dd70c1a
+last_activity_desc: Plan 59-03 built the corpus choke point
+state_head: ef8d2783fbf343c15f9efdc7ff24d94b43dac690
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 2
-  percent: 20
+  completed_plans: 3
+  percent: 30
 ---
 
 # Project State
@@ -30,9 +30,15 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 2 of 10 complete (59-02)
-Status: Ready for 59-03
-Last activity: 2026-10-14 — Plan 59-02 feasibility scorer committed
+Plan: 3 of 10 complete (59-03)
+Status: Ready for 59-04
+Last activity: 2026-10-14 — Plan 59-03 corpus choke point committed
+
+### Decisions from 59-03 (2026-10-14)
+
+- Corpus reads go through one hash-checked allowlist. A test-split key raises `SplitRefused` before any path is built.
+- Checkpoint record keys are the three-element list the trainer serializes. The stage-0-init normalizer residual is `1.192e-7` over 256 keys.
+- FEAS-02, FEAS-07, FEAS-08, and DIAG-07 stay pending. Later plans also declare them.
 
 ### Decisions from 59-02 (2026-10-14)
 
@@ -677,9 +683,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
-Last session: 2026-10-12
-Stopped at: Phase 59 planned: 10 plans in 5 waves in .planning/phases/59-read-only-baseline-scorecard/. Plan 59-01 freezes the scorecard before any real-data result. The plan checker passed on iteration 3 (0 blockers, 0 warnings, 9 info advisories). GAP-59-01..07 and 09 are resolved under the delegation; GAP-59-08 is open for the owner.
-Next action: /gsd-execute-phase 59 from .worktrees/trainex. Commit nothing ahead of 59-01: its Task 3 refuses to freeze if 59-CONTEXT, -GAPS, -RESEARCH or -VALIDATION is dirty. Once the freeze has happened, record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md.
+Last session: 2026-10-14
+Stopped at: Completed 59-03-PLAN.md. The corpus choke point, production reference path, and static guards are committed. Ready for 59-04.
+Next action: /gsd-execute-phase 59 from .worktrees/trainex, plan 59-04. Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
 
 ## Operator Next Steps
 
