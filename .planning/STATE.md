@@ -5,11 +5,11 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "59-05 halted at reader acceptance: monitor IC13 residual 1.192e-7 exceeds frozen 1e-7"
-last_updated: "2026-10-14T04:10:27Z"
+stopped_at: "59-07 halted at the 6 GiB preflight: vm_stat available 4899373056"
+last_updated: "2026-10-14T04:37:16Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 59-05 halted before the census on the frozen IC13 tolerance
-state_head: b56ae50a10bb88617fb4b63bf1fa1c9412cc53fd
+last_activity_desc: Plan 59-07 halted before JX-10 because free memory was under 6 GiB
+state_head: 12c5420d3dd2c4e9d94cf8818f02c0538e1b1966
 progress:
   total_phases: 6
   completed_phases: 0
@@ -30,9 +30,15 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — BLOCKED
-Plan: 4 of 10 complete (59-04). Plan 59-05 halted at task 2.
-Status: Blocked on the frozen monitor IC13 tolerance
-Last activity: 2026-10-14 — Plan 59-05 reader acceptance halted; census not run
+Plan: 4 of 10 complete (59-04). Plan 59-05 halted at task 2. Plan 59-07 halted before JX-10.
+Status: Blocked on the frozen 6 GiB DIAG-07 preflight, and still blocked on the frozen monitor IC13 tolerance
+Last activity: 2026-10-14 — Plan 59-07 JX-10 launch refused by vm_stat; Gate G1 was not computed
+
+### Blocker from 59-07 (2026-10-14)
+
+- The JX-10 driver is committed (`16f5f0db` tests, `12c5420d` driver). Eight driver tests and the static guards pass.
+- The detached launch exited 4 with `DIAG07-PREFLIGHT`. Available memory was `4899373056` bytes. The frozen requirement is `6442450944` (6 GiB). The launch lock was released. No `jx10.json` was written. The requirement was not lowered.
+- JX-1 and Gate G1 were not run. There is no Gate G1 outcome. DIAG-07 stays pending.
 
 ### Blocker from 59-05 (2026-10-14)
 
