@@ -43,10 +43,14 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 # CONF-01 probe exception (D-01/D-03, plan 46-04): it reads parsed corpus
 # arrays as provenance/positive-control arms through the adapter module's own
 # containment-enforcing parse seams, never as a second training-data path.
+# Phase 59 D-35: the one allowlist-bound per-file reader.
+# It calls the adapter module's per-file parse seams behind a hash-checked train-plus-validation allowlist and refuses before any path is built.
+# It never instantiates the adapter.
 ALLOWED_CORPUS_READERS = {
     "pinn/data/adapter.py",
     "pinn/verification/fixture_loader.py",
     "pinn/verification/target_frame_probe.py",
+    "pinn/verification/split_allowlist.py",
 }
 
 # Every Wave-1+ production module the discovered set must eventually cover.
