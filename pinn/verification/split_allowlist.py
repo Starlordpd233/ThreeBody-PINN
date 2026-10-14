@@ -259,6 +259,8 @@ class AllowlistedCorpusReader:
             return self.allowlist.require(key)
         except SplitRefused:
             self._refusals += 1
+            if _ATTESTATION is not None:
+                _ATTESTATION.refused_before_open += 1
             raise
 
     def _brutus_path(self, key: RecordKey) -> Path:
@@ -308,6 +310,108 @@ class AllowlistedCorpusReader:
             "validation": self._reads["validation"],
             "refusals": self._refusals,
         }
+
+
+class OpenAttestation:
+    """In-process count of corpus opens. Audit hooks cannot be removed."""
+
+    def __init__(self, data_root_source):
+        self.data_root_source = data_root_source
+        self.opened = {"train": 0, "validation": 0, "other_under_root": 0}
+        self.blocked_attempts = 0
+        self.refused_before_open = 0
+        self.test_split_opened = 0
+
+    def summary(self):
+        return {
+            "schema": "phase59-files-opened/v1",
+            "data_root_source": self.data_root_source,
+            "opened": {
+                "train": self.opened["train"],
+                "validation": self.opened["validation"],
+                "other_under_root": self.opened["other_under_root"],
+            },
+            "test_split_opened": self.test_split_opened,
+            "blocked_attempts": self.blocked_attempts,
+            "refused_before_open": self.refused_before_open,
+        }
+
+
+_ATTESTATION = None
+_ATTESTATION_ROOT = None
+_IN_HOOK = False
+
+
+def _open_path_text(raw):
+    if isinstance(raw, int) or raw is None:
+        return None
+    if isinstance(raw, os.PathLike):
+        raw = os.fspath(raw)
+    if isinstance(raw, bytes):
+        return os.fsdecode(raw)
+    if isinstance(raw, str):
+        return raw
+    return None
+
+
+def install_open_attestation(*, data_root, data_root_source, withheld_basenames,
+                              split_by_basename):
+    """Count opens under the data root and block withheld basenames.
+
+    A second install for a different root raises. The same root returns the
+    attestation already installed. The hook is process-global and is never
+    removed.
+    """
+    global _ATTESTATION, _ATTESTATION_ROOT
+    root = os.path.realpath(os.path.abspath(os.fspath(data_root)))
+    if _ATTESTATION is not None:
+        if _ATTESTATION_ROOT != root:
+            raise RuntimeError(
+                "open attestation is already installed for a different data root"
+            )
+        return _ATTESTATION
+    raw_root = os.path.abspath(os.fspath(data_root))
+    prefixes = tuple(
+        item if item.endswith(os.sep) else item + os.sep
+        for item in (raw_root, root)
+    )
+    root_prefix = prefixes[1]
+    withheld = frozenset(withheld_basenames)
+    by_name = dict(split_by_basename)
+    attestation = OpenAttestation(data_root_source)
+
+    def hook(event, args):
+        global _IN_HOOK
+        if event != "open" or not args or _IN_HOOK:
+            return
+        text = _open_path_text(args[0])
+        if not text:
+            return
+        _IN_HOOK = True
+        try:
+            absolute = os.path.isabs(text)
+            if absolute and not any(
+                text.startswith(prefix) or text == prefix[:-1] for prefix in prefixes
+            ):
+                return
+            resolved = os.path.realpath(os.path.abspath(text))
+            if resolved != root and not resolved.startswith(root_prefix):
+                return
+            name = os.path.basename(resolved)
+            if name in withheld:
+                attestation.blocked_attempts += 1
+                raise SplitRefused(f"{_REFUSAL}: {name}")
+            bucket = by_name.get(name, "other_under_root")
+            if bucket not in attestation.opened:
+                bucket = "other_under_root"
+            attestation.opened[bucket] += 1
+        finally:
+            _IN_HOOK = False
+
+    sys.addaudithook(hook)
+    _ATTESTATION = attestation
+    _ATTESTATION_ROOT = root
+    return attestation
 
 
 def _lowest_key(manifest, split, variant, fidelity):
@@ -394,9 +498,11 @@ __all__ = [
     "AdmittedRead",
     "AllowlistedCorpusReader",
     "NotAdmitted",
+    "OpenAttestation",
     "SplitAllowlist",
     "SplitRefused",
     "expected_splits_sha256",
+    "install_open_attestation",
     "main",
     "probe",
     "resolve_data_root",
