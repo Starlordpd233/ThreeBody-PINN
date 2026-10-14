@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-03-PLAN.md"
-last_updated: "2026-10-14T03:06:30Z"
+stopped_at: "Completed 59-04-PLAN.md"
+last_updated: "2026-10-14T03:44:29Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 59-03 built the corpus choke point
-state_head: ef8d2783fbf343c15f9efdc7ff24d94b43dac690
+last_activity_desc: Plan 59-04 built the evidence writer and verifier
+state_head: b56ae50a10bb88617fb4b63bf1fa1c9412cc53fd
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 3
-  percent: 30
+  completed_plans: 4
+  percent: 40
 ---
 
 # Project State
@@ -30,9 +30,16 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 3 of 10 complete (59-03)
-Status: Ready for 59-04
-Last activity: 2026-10-14 — Plan 59-03 corpus choke point committed
+Plan: 4 of 10 complete (59-04)
+Status: Ready for 59-05
+Last activity: 2026-10-14 — Plan 59-04 evidence writer and verifier committed
+
+### Decisions from 59-04 (2026-10-14)
+
+- Evidence is canonical JSON written atomically. A payload that contains the home directory or the data root is refused, and a target under `simulation_data` is refused.
+- The verifier does not import the writer. It re-derives only by running each tool's `--check`. Gate G1 is recomputed with the frozen `g1_fires` rule.
+- The main-checkout corpus guard is `data_root`'s parent when that directory is named `simulation_data`. Refusing the grandparent would refuse the whole worktree.
+- FEAS-01, FEAS-02, FEAS-07, FEAS-08, and DIAG-07 stay pending. Later plans also declare them.
 
 ### Decisions from 59-03 (2026-10-14)
 
@@ -684,8 +691,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
 Last session: 2026-10-14
-Stopped at: Completed 59-03-PLAN.md. The corpus choke point, production reference path, and static guards are committed. Ready for 59-04.
-Next action: /gsd-execute-phase 59 from .worktrees/trainex, plan 59-04. Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
+Stopped at: Completed 59-04-PLAN.md. The evidence writer, the independent verifier, and the evidence README are committed. Ready for 59-05.
+Next action: /gsd-execute-phase 59 from .worktrees/trainex, plan 59-05. Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
 
 ## Operator Next Steps
 
