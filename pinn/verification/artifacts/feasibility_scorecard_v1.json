@@ -1,0 +1,643 @@
+{
+  "accuracy_cadence": {
+    "control_panels": [
+      "validation227"
+    ],
+    "every_steps": 100,
+    "include_final": true,
+    "include_initial": true,
+    "rung3_panels": [
+      "family16",
+      "validation227"
+    ]
+  },
+  "budget_rule": {
+    "after_extension": "inconclusive_with_rate",
+    "cap_hours_rung3": 8.0,
+    "cap_hours_single_system": 3.0,
+    "control_adam_steps": 1000,
+    "extension_factor": 2.0,
+    "extensions_max": 1,
+    "scoring_cadence_max_fraction": 0.05,
+    "seconds_per_step": "timing_run_wall_seconds_over_steps",
+    "still_improving_final_fraction": 0.25,
+    "still_improving_min_relative_drop": 0.1,
+    "still_improving_reference_fraction": 0.75,
+    "still_improving_statistic": "best_E",
+    "timing_run_min_steps": 50
+  },
+  "census_rules": {
+    "acceleration": "softened_acceleration_eps_soft_1e-5_in_r_prime_frame",
+    "base_cross_check": "mean_motion_assisted_unwrap_on_base_grid",
+    "base_cross_check_flag_relative": 0.02,
+    "gold_base_agreement": "all_stage0_train_and_validation",
+    "inner_normal": "unit_cross_of_s0_and_sdot0",
+    "on_check_failure": "halt_before_panels_owner_routed",
+    "outer_vector": "r_c_minus_inner_pair_com",
+    "pair_tracking": "tracked_pair_equals_closest_pair_at_t0_on_all_stage0_train_and_validation",
+    "phase_accuracy_deltas": [
+      0.01,
+      0.1
+    ],
+    "population_signature": [
+      "hierarchical",
+      0,
+      "UNASSIGNED"
+    ],
+    "unwrap_max_step_rad": 3.141592653589793
+  },
+  "counting_rule": {
+    "formula_comparison": "strictly_less",
+    "formula_not_applicable": "owner_routed",
+    "min_tier": 1
+  },
+  "decision_rule": {
+    "control_branch_for_go": "a",
+    "control_branches": [
+      "a",
+      "b",
+      "c",
+      "d"
+    ],
+    "reported_not_gating": [
+      "rung2a",
+      "validation_panel_vs_baselines",
+      "hard_stage_probes",
+      "survey",
+      "distance_to_1e-5"
+    ],
+    "rung1_representation_qualifier_min_count": 2,
+    "rung2b_min_count": 2,
+    "rung2b_panel_size": 3,
+    "rung3_min_count": 12,
+    "rung3_panel_size": 16
+  },
+  "diag07": {
+    "checkpoint_load": "sha256_equals_generation_7_retention_then_weights_only",
+    "checkpoints": {
+      "stage0-v23g7-seed42": {
+        "best.pt": 900,
+        "failure-stage-0-step-951.pt": 951,
+        "latest.pt": 951,
+        "stage-0-init.pt": 0,
+        "step-000931.pt": 931,
+        "step-000941.pt": 941,
+        "step-000951.pt": 951
+      },
+      "stage0-v23g7-smoke": {
+        "step-000100.pt": 100,
+        "step-000200.pt": 200,
+        "step-000300.pt": 300
+      }
+    },
+    "code_commit": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+    "code_snapshot": "git_archive_of_pinn_and_configs_with_blob_hashes_verified",
+    "cross_check_runtime": [
+      "float64",
+      "cpu"
+    ],
+    "cross_checked": [
+      "JX-1",
+      "JX-10"
+    ],
+    "jx1": {
+      "batch": "frozen_monitor_batch",
+      "checkpoints": [
+        0,
+        900,
+        951
+      ],
+      "cosine_pairs": [
+        [
+          "ic",
+          "phys"
+        ],
+        [
+          "ic",
+          "data"
+        ],
+        [
+          "phys",
+          "data"
+        ]
+      ],
+      "ic_split": [
+        "position",
+        "velocity"
+      ],
+      "overstated_share_ge": 0.01,
+      "passenger_share_le": 0.0001,
+      "shares_need_moments": true,
+      "terms": [
+        "data",
+        "ic",
+        "phys",
+        "energy",
+        "angmom"
+      ]
+    },
+    "jx10": {
+      "otherwise": "falsifies",
+      "phase58_packet": {
+        "best.pt": {
+          "front_idx": 1,
+          "prefix_through_front": 0.7277,
+          "prefix_to_cross_next": 1.3443,
+          "raw_rbar_bin0": 6120390144.0,
+          "rtilde_bins_0_5": [
+            0.3099,
+            0.4178,
+            0.6166,
+            1.0578,
+            0.8126,
+            0.6346
+          ],
+          "rtilde_median_all_bins": 0.6363
+        },
+        "stage-0-init.pt": {
+          "front_idx": 0,
+          "prefix_through_front": 0.8754,
+          "prefix_to_cross_next": 1.6975,
+          "raw_rbar_bin0": 17288675328.0,
+          "rtilde_bins_0_5": [
+            0.8754,
+            0.8221,
+            2.0538,
+            2.7849,
+            1.4951,
+            1.0632
+          ],
+          "rtilde_median_all_bins": 1.1058
+        },
+        "step-000931.pt": {
+          "front_idx": 2,
+          "prefix_through_front": 1.1922,
+          "prefix_to_cross_next": 2.4369,
+          "raw_rbar_bin0": 4832969216.0,
+          "rtilde_bins_0_5": [
+            0.2447,
+            0.3085,
+            0.639,
+            1.2448,
+            0.7146,
+            0.7053
+          ],
+          "rtilde_median_all_bins": 0.6473
+        },
+        "step-000941.pt": {
+          "front_idx": 2,
+          "prefix_through_front": 1.1815,
+          "prefix_to_cross_next": 2.4272,
+          "raw_rbar_bin0": 4827524608.0,
+          "rtilde_bins_0_5": [
+            0.2444,
+            0.3042,
+            0.6329,
+            1.2457,
+            0.7103,
+            0.7145
+          ],
+          "rtilde_median_all_bins": 0.6404
+        },
+        "step-000951.pt": {
+          "front_idx": 2,
+          "prefix_through_front": 1.1891,
+          "prefix_to_cross_next": 2.452,
+          "raw_rbar_bin0": 4929262080.0,
+          "rtilde_bins_0_5": [
+            0.2496,
+            0.3009,
+            0.6386,
+            1.263,
+            0.7274,
+            0.7032
+          ],
+          "rtilde_median_all_bins": 0.6578
+        }
+      },
+      "seed42_reproduction": [
+        "stage-0-init.pt",
+        "best.pt",
+        "step-000931.pt",
+        "step-000941.pt",
+        "step-000951.pt"
+      ],
+      "smoke_checkpoints": [
+        100,
+        200,
+        300
+      ],
+      "smoke_expected_front": 0,
+      "supports_if": "smoke_front_0_at_all_three_and_seed42_within_tolerance"
+    },
+    "jx2": {
+      "checkpoints": [
+        0,
+        900,
+        931,
+        941,
+        951
+      ],
+      "draw": "stratified_collocation_times_16_bins_256_per_bin",
+      "draw_seed_base": 59020,
+      "draws": 20,
+      "otherwise": "estimator_noise_not_excluded",
+      "parameter_motion_if": "frozen_change_900_to_951_exceeds_draw_range_at_both_checkpoints",
+      "statistic": "prefix_through_bin",
+      "statistic_bin": "max_of_frozen_front_at_900_and_951",
+      "trajectory": "frozen_monitor_anchor"
+    },
+    "jx3": {
+      "anchor_replay": "rule19_a2_batch_stream_replay_proven_against_checkpoint_rng",
+      "anchor_steps": [
+        1,
+        951
+      ],
+      "checkpoints": [
+        0,
+        951
+      ],
+      "exposure_specific_if": "group_a_median_ratio_below_half_of_both_b_and_c",
+      "global_if": "group_b_and_c_median_ratios_within_factor_2_of_a",
+      "high_exposure_count": 7,
+      "never_anchored_count": 7,
+      "never_anchored_seed": 59031,
+      "otherwise": "inconclusive",
+      "statistics": [
+        "L_IC",
+        "sum_rtilde"
+      ],
+      "times": "frozen_monitor_collocation_times",
+      "validation_count": 6,
+      "validation_seed": 59032
+    },
+    "jx4": {
+      "accuracy_with_descent_if": "front_951_gt_front_0_and_any_fixture_tier_ge_1_with_E_951_le_0.9_E_0",
+      "checkpoints": [
+        0,
+        900,
+        951
+      ],
+      "draw_seed": 59040,
+      "fixtures": [
+        "panel_single_p10",
+        "panel_single_p50",
+        "panel_single_p90",
+        "frozen_monitor_anchor"
+      ],
+      "informs": "JD-3_scale_only",
+      "otherwise": "inconclusive",
+      "physical_front": "causal_physics_loss_with_r_ref_replaced_by_physical_scale",
+      "physical_scale": "mean_over_gold_snapshots_t_le_10_of_body_averaged_squared_true_softened_acceleration",
+      "relative_descent_without_accuracy_if": "front_951_gt_front_0_and_every_fixture_tier_0_at_951"
+    },
+    "jx5": {
+      "checkpoint": "stage-0-init.pt",
+      "components": [
+        "r_prime",
+        "v_prime",
+        "a_prime",
+        "force",
+        "residual",
+        "rbar_bins",
+        "ic_position_error",
+        "ic_velocity_error",
+        "mixed_derivative_dv_d_ic13",
+        "skip_vs_siren_branch_values_and_du"
+      ],
+      "reading": "structural_descriptive_not_a_decision_input",
+      "subset": "every_16th_row_of_time_sorted_times",
+      "times": "frozen_monitor_collocation_times",
+      "trajectory": "frozen_monitor_anchor"
+    },
+    "memory_high_water": "ru_maxrss",
+    "microbatch_size": 256,
+    "overlay_modules": [
+      "pinn.verification.evidence_io",
+      "pinn.verification.feasibility_scorecard",
+      "pinn.verification.feasibility_scorer",
+      "pinn.verification.production_reference",
+      "pinn.verification.split_allowlist"
+    ],
+    "primary_runtime": [
+      "float32",
+      "mps"
+    ],
+    "tolerances": {
+      "cpu_vs_mps_front_idx": "exact",
+      "cpu_vs_mps_g1_outcome": "identical",
+      "cpu_vs_mps_grad_norm_rel": 0.001,
+      "cpu_vs_mps_rtilde_and_prefix_rel": 0.001,
+      "cpu_vs_mps_share_abs_floor": 1e-07,
+      "cpu_vs_mps_share_rel": 0.001,
+      "driver_vs_trainer_grad_norm_rel": 1e-05,
+      "monitor_reproduction_ic13_abs": 1e-07,
+      "monitor_reproduction_targets_times_masses": "bitwise_float32",
+      "normalizer_recovery_max_abs": 1e-06,
+      "on_failure": "stop_and_surface_owner_routed",
+      "phase58_packet_front_idx": "exact",
+      "phase58_packet_raw_rbar_bin0_rel": 0.0001,
+      "phase58_packet_rounded_abs": 0.0001
+    }
+  },
+  "frame": {
+    "D": 4.641588833612778,
+    "T": 10.0,
+    "masses": "ordered_raw",
+    "name": "r_prime_u",
+    "position": "r_prime",
+    "time": "u_t_over_T",
+    "velocity": "dr_prime_du"
+  },
+  "frozen": true,
+  "gate_g1": {
+    "batch": "frozen_monitor_batch",
+    "checkpoint_files": {
+      "0": "stage-0-init.pt",
+      "900": "best.pt",
+      "951": "step-000951.pt"
+    },
+    "checkpoints": [
+      900,
+      951
+    ],
+    "comparison": "ge",
+    "fires_if": "any_checkpoint",
+    "m_hat": "exp_avg_over_one_minus_beta1_pow_step",
+    "non_finite_share": "not_determinable_owner_routed",
+    "on_fire": "re-examine the Phase 61 premise before Phase 61 opens",
+    "on_no_fire": "proceed",
+    "physics_vector": "lambda_phys_times_grad_L_phys",
+    "preconditioner": "inverse_of_sqrt_v_hat_plus_eps",
+    "primary": "projection_of_preconditioned_physics_on_preconditioned_total",
+    "secondary": "same_projection_with_m_hat_as_total",
+    "threshold": 0.01,
+    "total_vector": "sum_over_terms_of_lambda_times_grad",
+    "v_hat": "exp_avg_sq_over_one_minus_beta2_pow_step",
+    "weights": "restored_scheduled_weights_current_global_step"
+  },
+  "gate_g2": {
+    "arm": "data_only",
+    "confirm_system": "next_failing_panel_system_by_inner_laps",
+    "first_system": "failing_panel_system_with_fewest_inner_laps",
+    "grid": [
+      60.0,
+      120.0,
+      240.0,
+      480.0
+    ],
+    "locked_value": 30.0,
+    "on_no_rescue": "RETHINK-REPRESENTATION",
+    "on_rescue": "owner_checkpoint_4",
+    "panel_size": 3,
+    "parameter": "first_omega_0",
+    "rescue_tier": 1,
+    "trigger_below_tier": 1,
+    "trigger_min_systems": 2
+  },
+  "lbfgs_polish": {
+    "applies_to": "every_single_system_arm",
+    "full_batch": true,
+    "lbfgs_history_size": 10,
+    "lbfgs_line_search": "strong_wolfe",
+    "lbfgs_max_iter": 50,
+    "physics_arm_freeze": "57-RULING.md:112-124",
+    "report_both_states": true,
+    "result_rule": "lexicographic_E_then_eps_h_non_finite_last_tie_keeps_adam",
+    "stop_after_outer_calls_without_improvement": 5,
+    "stop_at_fraction_of_adam_wall_time": 0.25
+  },
+  "metrics": {
+    "e_in_pair": "ic_file_bodies_1_and_2_tracked_through_preprocessing_permutation",
+    "e_sys_normalizer": "max_over_scoring_times_and_bodies_of_reference_radius_com_frame",
+    "eps_h_eps_inv": 1e-10,
+    "eps_h_formula": "max_t_abs_H_t_minus_H_0_over_H_0",
+    "eps_h_hamiltonian": "gate_metrics.matched_plummer_hamiltonian_series_and_trajectory_eps_h",
+    "physics_residual_acceleration_sources": {
+      "network": "autograd_second_derivative",
+      "nn_copy": "neighbour_newtonian_own_positions_and_masses_eps_1e-12",
+      "two_kepler": "analytic_kepler"
+    },
+    "physics_residual_definition": "acceleration_minus_trainer_softened_force_eps_1e-5_with_scored_system_ordered_masses_in_r_prime_u_frame",
+    "physics_residual_r_ref_artifact": "pinn/verification/artifacts/r_ref_stage0.json",
+    "physics_residual_role": "context_only_normalized_by_r_ref",
+    "physics_residual_statistic": "mean_and_max_over_scoring_times_of_body_averaged_squared_residual_over_r_ref",
+    "position_error_forms": [
+      "e_sys",
+      "e_in"
+    ],
+    "tier_defining_error": "max_over_scoring_times_of_max_e_sys_e_in",
+    "valid_horizon_deltas": [
+      0.01,
+      0.1
+    ],
+    "valid_horizon_rule": "first_scoring_time_with_max_error_above_delta_over_T_else_1"
+  },
+  "panel_rule": {
+    "difficulty_measure": "N_in",
+    "distance": "abs_N_in_minus_target",
+    "family_bin_sizes": [
+      114,
+      114,
+      114,
+      114,
+      113,
+      113,
+      113,
+      113,
+      113,
+      113,
+      113,
+      113,
+      113,
+      113,
+      113,
+      113
+    ],
+    "family_pick": "nearest_numpy_median_of_bin_excluding_singles_lowest_id",
+    "family_size": 16,
+    "family_sort": "N_in_then_id",
+    "family_split": "numpy_array_split",
+    "n_in_estimator": "gold_grid_unwrap_t_le_10",
+    "percentile_method": "numpy_percentile_linear",
+    "population": "stage0_training",
+    "population_size": 1812,
+    "singles_min_samples_per_inner_period": 3.0,
+    "singles_percentile_population": "all_stage0_training",
+    "singles_percentiles": [
+      10,
+      50,
+      90
+    ],
+    "tie_break": "lowest_id",
+    "validation_panel": "all_stage0_validation",
+    "validation_panel_size": 227
+  },
+  "provenance": {
+    "decisions": [
+      "D-01",
+      "D-02",
+      "D-03",
+      "D-04",
+      "D-05",
+      "D-06",
+      "D-07",
+      "D-08",
+      "D-09",
+      "D-11",
+      "D-13",
+      "D-14",
+      "D-20",
+      "D-24",
+      "D-29",
+      "D-30",
+      "D-31",
+      "D-32",
+      "D-33",
+      "D-34",
+      "D-36",
+      "D-38",
+      "D-39"
+    ],
+    "owner_routing": "SCOPE-42: no value in this file is re-set after a result is seen; any change after a rung has run goes to the owner",
+    "phase": "59-read-only-baseline-scorecard",
+    "requirement": "FEAS-01",
+    "sources": [
+      "59-CONTEXT.md",
+      "59-GAPS.md GAP-59-01..07",
+      "2026-10-11-v2.4-feasibility-amendments.md",
+      "ctl_instruction.md:567",
+      "ctl_instruction.md:1894-1912",
+      "pinn_architecture.md:181",
+      "57-RULING.md:112-124",
+      "trainex-r4-resolution-doc.md:628-674",
+      "trainex-r4-ruling.md:124-137",
+      "v2.3-closure-evidence-bundle.md:400-408"
+    ],
+    "superseded": {
+      "D-02 grid": "D-31",
+      "D-04 velocity source": "D-30",
+      "D-14 rule details": "D-32",
+      "D-18 precedence and tau_L": "D-33",
+      "D-22 stand-in": "D-29"
+    }
+  },
+  "schema_version": "phase59-feasibility-scorecard/v1",
+  "scoring_grid": {
+    "base_dt": 0.08,
+    "gold_base_agreement_max": 1e-06,
+    "gold_dt": 0.01,
+    "reported_beside": [
+      "base"
+    ],
+    "samples_per_inner_period": "T_over_N_in_over_measured_base_dt",
+    "t_max": 10.0,
+    "tier_defining": "gold_sibling"
+  },
+  "survey_rules": {
+    "error_growth": "exp_T_over_tau_L_with_T_10_and_1_when_tau_L_infinite",
+    "labels_are_diagnostic": true,
+    "official_mapping": "owner_pending",
+    "ordering_agreement": "spearman_rank_with_average_ties",
+    "ordering_statistic": "stage_median",
+    "picks": {
+      "empty_stage": "record_no_substitute_without_owner",
+      "nearest": "abs_value_minus_numpy_median",
+      "sensitivity_report": "whether_4b_pick_changes_under_each_window",
+      "stage4b": "median_tau_L_primary",
+      "stage6": "median_s_min_invariant_at_t0",
+      "tie_break": "lowest_id_then_base_before_gold"
+    },
+    "population": "training_split_all_records",
+    "precedence": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4a",
+      "4b",
+      "5",
+      "6"
+    ],
+    "stage0_1_source": "splits_manifest_record_stage",
+    "stage1_substages": {
+      "1a": "E_ge_minus_0.5_and_E_lt_minus_0.1",
+      "1b": "E_lt_minus_0.5_and_l_ratio_ge_0.1_and_l_ratio_lt_0.5"
+    },
+    "stage2_source": "hierarchical_gold_records",
+    "stage3": {
+      "E_comparison": "le",
+      "E_percentile": 25,
+      "Q_max": 1.1,
+      "Q_min": 0.9,
+      "l_ratio_comparison": "ge",
+      "l_ratio_percentile": 75,
+      "percentile_population": "training_split_standard_base",
+      "source": "standard_base"
+    },
+    "stage4": {
+      "a_tau_L_gt": 5.0,
+      "b_tau_L_gt": 2.0,
+      "b_tau_L_le": 5.0,
+      "source": "standard_base_not_stage3"
+    },
+    "stage5": {
+      "criteria": "tau_L_gt_2",
+      "source": "standard_gold"
+    },
+    "stage6": {
+      "clause_recorded": "s_min_lt_0.5_or_abs_E_lt_0.01",
+      "rule": "residual"
+    },
+    "tau_L": {
+      "delay": 10,
+      "dt": 0.01,
+      "embedding_dim": 5,
+      "min_distance": 1e-09,
+      "min_fit_points": 2,
+      "non_positive_slope": "infinite",
+      "positions": "r_com_ordered",
+      "primary_fit": "half_pairs",
+      "resample": "linear",
+      "sensitivity_fit_windows": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "t_max": 10.0,
+      "theiler_window": 100,
+      "time": "raw_t"
+    },
+    "tau_not_computable": "unlabelled_with_reason"
+  },
+  "tiers": {
+    "comparison": "inclusive_le",
+    "levels": [
+      {
+        "E_max": 0.01,
+        "eps_h_max": 1e-05,
+        "tier": 3
+      },
+      {
+        "E_max": 0.01,
+        "eps_h_max": 0.001,
+        "tier": 2
+      },
+      {
+        "E_max": 0.1,
+        "eps_h_max": null,
+        "tier": 1
+      }
+    ],
+    "non_finite_E_tier": 0,
+    "otherwise": 0
+  },
+  "velocity_sources": {
+    "context_only": [
+      "finite_difference_context"
+    ],
+    "network": "autograd",
+    "nn_copy": "brutus",
+    "two_kepler": "analytic"
+  }
+}
