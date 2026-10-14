@@ -220,6 +220,39 @@ class GoldenValueTests(unittest.TestCase):
         self.assertEqual(seed42["stage-0-init.pt"], 0)
 
 
+class PublicSurfaceTests(unittest.TestCase):
+    """Names the Phase-60 harness imports from the scorecard module."""
+
+    def test_exports_every_pre_registered_name(self):
+        import pinn.verification.feasibility_scorecard as mod
+
+        names = (
+            "load_scorecard",
+            "Scorecard",
+            "ScorecardError",
+            "OwnerRouted",
+            "SCORECARD_SHA256",
+            "SCORECARD_SCHEMA_VERSION",
+            "SCORECARD_RELATIVE_PATH",
+            "tier_of",
+            "counts",
+            "g2_fires",
+            "decision_verdict",
+            "steps_budget",
+            "still_improving",
+            "budget_outcome",
+            "scoring_cadence_ok",
+            "polish_should_stop",
+            "better_state",
+            "g1_fires",
+            "jx1_reading",
+        )
+        self.assertEqual(len(names), 19)
+        for name in names:
+            self.assertTrue(hasattr(mod, name), name)
+            self.assertIn(name, mod.__all__)
+
+
 class TierTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
