@@ -25,6 +25,17 @@ __all__ = [
     "SCORECARD_SCHEMA_VERSION",
     "SCORECARD_RELATIVE_PATH",
     "tier_of",
+    "counts",
+    "g2_fires",
+    "decision_verdict",
+    "steps_budget",
+    "still_improving",
+    "budget_outcome",
+    "scoring_cadence_ok",
+    "polish_should_stop",
+    "better_state",
+    "g1_fires",
+    "jx1_reading",
 ]
 
 SCORECARD_SCHEMA_VERSION = "phase59-feasibility-scorecard/v1"
@@ -604,3 +615,330 @@ def tier_of(E: float, eps_h: float, *, scorecard: Scorecard) -> int:
         if math.isfinite(energy_error) and energy_error <= _as_real(bound, "eps_h_max"):
             return int(level["tier"])
     return int(tiers["otherwise"])
+
+
+def _require_scorecard(scorecard: Scorecard) -> Scorecard:
+    if not isinstance(scorecard, Scorecard):
+        raise TypeError("scorecard must be a Scorecard")
+    return scorecard
+
+
+def _require_int(value: Any, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{name} must be an integer")
+    return value
+
+
+def _require_bools(values: Any, name: str, size: int) -> list[bool]:
+    if not isinstance(values, (list, tuple)) or len(values) != size:
+        raise ValueError(f"{name} must have length {size}")
+    if any(not isinstance(item, bool) for item in values):
+        raise ValueError(f"{name} must contain only booleans")
+    return list(values)
+
+
+def _best_windows(
+    readings: Any,
+    budget_steps: Any,
+    scorecard: Scorecard,
+) -> tuple[float | None, float | None, int]:
+    budget = _require_int(budget_steps, "budget_steps")
+    if budget < 0:
+        raise ValueError("budget_steps must be non-negative")
+    if not isinstance(readings, (list, tuple)):
+        raise ValueError("readings must be a sequence of (step, E) pairs")
+    cut = float(scorecard.section("budget_rule")["still_improving_reference_fraction"]) * budget
+    reference: list[float] = []
+    final: list[float] = []
+    for item in readings:
+        if not isinstance(item, (list, tuple)) or len(item) != 2:
+            raise ValueError("each reading must be a (step, E) pair")
+        step = _require_int(item[0], "step")
+        if step < 0 or step > budget:
+            raise ValueError(f"step {step} is outside 0..{budget}")
+        error = _as_real(item[1], "E")
+        if not math.isfinite(error):
+            continue
+        if step <= cut:
+            reference.append(error)
+        else:
+            final.append(error)
+    return (
+        min(reference) if reference else None,
+        min(final) if final else None,
+        budget,
+    )
+
+
+def _state_key(state: Any, name: str) -> tuple[float, float]:
+    if not isinstance(state, Mapping) or "E" not in state or "eps_h" not in state:
+        raise ValueError(f"{name} must include E and eps_h")
+    position = _as_real(state["E"], f"{name}.E")
+    energy = _as_real(state["eps_h"], f"{name}.eps_h")
+    return (
+        position if math.isfinite(position) else math.inf,
+        energy if math.isfinite(energy) else math.inf,
+    )
+
+
+def counts(
+    tier: int,
+    E: float,
+    E_formula: float | None,
+    *,
+    scorecard: Scorecard,
+) -> bool:
+    """True when the tier counts and ``E`` is strictly below the formula."""
+    rule = _require_scorecard(scorecard).section("counting_rule")
+    if E_formula is None:
+        raise OwnerRouted("two-Kepler formula not applicable on a counted system")
+    tier_value = _require_int(tier, "tier")
+    position = _as_real(E, "E")
+    formula = _as_real(E_formula, "E_formula")
+    return (
+        tier_value >= int(rule["min_tier"])
+        and math.isfinite(position)
+        and math.isfinite(formula)
+        and position < formula
+    )
+
+
+def g2_fires(rung1_tiers: Any, *, scorecard: Scorecard) -> bool:
+    """True when enough Rung-1 tiers sit strictly below the trigger tier."""
+    gate = _require_scorecard(scorecard).section("gate_g2")
+    panel = int(gate["panel_size"])
+    if not isinstance(rung1_tiers, (list, tuple)) or len(rung1_tiers) != panel:
+        raise ValueError(f"rung1_tiers must have length {panel}")
+    below = int(gate["trigger_below_tier"])
+    needed = int(gate["trigger_min_systems"])
+    count = sum(1 for tier in rung1_tiers if _require_int(tier, "tier") < below)
+    return count >= needed
+
+
+def decision_verdict(
+    *,
+    g2_fired: bool,
+    sweep_rescued: bool,
+    rung2b_counts: Any,
+    rung3_counts: Any,
+    control_branch: str | None,
+    rung1_beats_formula: Any,
+    scorecard: Scorecard,
+) -> dict[str, Any]:
+    """Apply the amended decision rule. Constants come from the scorecard."""
+    card = _require_scorecard(scorecard)
+    if not isinstance(g2_fired, bool) or not isinstance(sweep_rescued, bool):
+        raise ValueError("g2_fired and sweep_rescued must be booleans")
+    gate = card.section("gate_g2")
+    decision = card.section("decision_rule")
+    if g2_fired:
+        if sweep_rescued:
+            raise OwnerRouted("owner checkpoint 4")
+        later = {
+            "rung2b_counts": rung2b_counts,
+            "rung3_counts": rung3_counts,
+            "control_branch": control_branch,
+            "rung1_beats_formula": rung1_beats_formula,
+        }
+        present = [name for name, value in later.items() if value is not None]
+        if present:
+            raise ValueError(
+                "later-rung inputs must be None when G2 fired: " + ", ".join(present)
+            )
+        return {
+            "verdict": gate["on_no_rescue"],
+            "representation_limit_qualifier": False,
+            "reasons": ["G2 fired and the sweep rescued nothing"],
+        }
+    rung2b_size = int(decision["rung2b_panel_size"])
+    rung3_size = int(decision["rung3_panel_size"])
+    rung2b = _require_bools(rung2b_counts, "rung2b_counts", rung2b_size)
+    rung3 = _require_bools(rung3_counts, "rung3_counts", rung3_size)
+    rung1 = _require_bools(rung1_beats_formula, "rung1_beats_formula", rung2b_size)
+    branches = decision["control_branches"]
+    if control_branch not in branches:
+        raise ValueError(f"unknown control branch: {control_branch!r}")
+    reasons: list[str] = []
+    rung2b_min = int(decision["rung2b_min_count"])
+    rung3_min = int(decision["rung3_min_count"])
+    go_branch = decision["control_branch_for_go"]
+    if sum(rung2b) < rung2b_min:
+        reasons.append(f"Rung 2b counts on fewer than {rung2b_min} of {rung2b_size}")
+    if sum(rung3) < rung3_min:
+        reasons.append(f"Rung 3 counts on fewer than {rung3_min} of {rung3_size}")
+    if control_branch != go_branch:
+        reasons.append(f"the control's readout is not branch ({go_branch})")
+    qualifier_min = int(decision["rung1_representation_qualifier_min_count"])
+    return {
+        "verdict": "GO" if not reasons else "PIVOT-TRAINING",
+        "representation_limit_qualifier": sum(rung1) < qualifier_min,
+        "reasons": reasons,
+    }
+
+
+def steps_budget(
+    cap_hours: float,
+    timing_wall_seconds: float,
+    timing_steps: int,
+    *,
+    scorecard: Scorecard,
+) -> int:
+    """Floor of the step budget implied by a timing run and an hour cap."""
+    rule = _require_scorecard(scorecard).section("budget_rule")
+    steps = _require_int(timing_steps, "timing_steps")
+    minimum = int(rule["timing_run_min_steps"])
+    if steps < minimum:
+        raise ValueError(f"timing_steps must be >= {minimum}")
+    wall = _as_real(timing_wall_seconds, "timing_wall_seconds")
+    cap = _as_real(cap_hours, "cap_hours")
+    if not math.isfinite(wall) or wall <= 0.0:
+        raise ValueError("timing_wall_seconds must be finite and positive")
+    if not math.isfinite(cap) or cap < 0.0:
+        raise ValueError("cap_hours must be finite and non-negative")
+    seconds_per_step = wall / steps
+    return math.floor(cap * 3600.0 / seconds_per_step)
+
+
+def still_improving(readings: Any, budget_steps: int, *, scorecard: Scorecard) -> bool:
+    """True when the final window improves on the reference window by the frozen drop."""
+    card = _require_scorecard(scorecard)
+    best_ref, best_final, _budget = _best_windows(readings, budget_steps, card)
+    if best_final is None:
+        return False
+    if best_ref is None:
+        return True
+    drop = float(card.section("budget_rule")["still_improving_min_relative_drop"])
+    return best_final <= (1.0 - drop) * best_ref
+
+
+def budget_outcome(
+    readings: Any,
+    budget_steps: int,
+    *,
+    extended: bool,
+    scorecard: Scorecard,
+) -> dict[str, Any]:
+    """Extend once, otherwise report complete or an inconclusive rate."""
+    card = _require_scorecard(scorecard)
+    if not isinstance(extended, bool):
+        raise ValueError("extended must be a boolean")
+    best_ref, best_final, budget = _best_windows(readings, budget_steps, card)
+    if not still_improving(readings, budget_steps, scorecard=card):
+        return {"outcome": "complete"}
+    rule = card.section("budget_rule")
+    if not extended:
+        scaled = float(rule["extension_factor"]) * budget
+        new_budget: int | float = int(scaled) if float(scaled).is_integer() else scaled
+        return {"outcome": "extend", "new_budget_steps": new_budget}
+    if best_ref is None or best_final is None or best_ref == 0.0:
+        raise OwnerRouted(
+            "improvement rate is not determinable without a finite reference-window reading"
+        )
+    final_fraction = float(rule["still_improving_final_fraction"])
+    rate = (best_ref - best_final) / (best_ref * final_fraction * budget)
+    return {"outcome": "inconclusive", "rate_per_step": rate}
+
+
+def scoring_cadence_ok(
+    reading_steps: Any,
+    budget_steps: int,
+    *,
+    scorecard: Scorecard,
+) -> bool:
+    """True when readings include both ends and no gap exceeds the frozen fraction."""
+    card = _require_scorecard(scorecard)
+    budget = _require_int(budget_steps, "budget_steps")
+    if budget < 0:
+        raise ValueError("budget_steps must be non-negative")
+    if not isinstance(reading_steps, (list, tuple)):
+        raise ValueError("reading_steps must be a sequence")
+    steps: list[int] = []
+    for step in reading_steps:
+        value = _require_int(step, "step")
+        if value < 0 or value > budget:
+            raise ValueError(f"step {value} is outside 0..{budget}")
+        steps.append(value)
+    ordered = sorted(set(steps))
+    if not ordered or ordered[0] != 0 or ordered[-1] != budget:
+        return False
+    limit = float(card.section("budget_rule")["scoring_cadence_max_fraction"]) * budget
+    return all(right - left <= limit for left, right in zip(ordered, ordered[1:]))
+
+
+def polish_should_stop(
+    outer_calls_without_improvement: int,
+    polish_wall_seconds: float,
+    adam_wall_seconds: float,
+    *,
+    scorecard: Scorecard,
+) -> bool:
+    """True once the call limit or the Adam-wall fraction is reached."""
+    polish = _require_scorecard(scorecard).section("lbfgs_polish")
+    calls = _require_int(outer_calls_without_improvement, "outer_calls_without_improvement")
+    if calls < 0:
+        raise ValueError("outer_calls_without_improvement must be non-negative")
+    polish_wall = _as_real(polish_wall_seconds, "polish_wall_seconds")
+    adam_wall = _as_real(adam_wall_seconds, "adam_wall_seconds")
+    if not math.isfinite(polish_wall) or polish_wall < 0.0:
+        raise ValueError("polish_wall_seconds must be finite and non-negative")
+    if not math.isfinite(adam_wall) or adam_wall <= 0.0:
+        raise ValueError("adam_wall_seconds must be finite and positive")
+    call_limit = int(polish["stop_after_outer_calls_without_improvement"])
+    fraction = float(polish["stop_at_fraction_of_adam_wall_time"])
+    return calls >= call_limit or polish_wall >= fraction * adam_wall
+
+
+_POLISH_RESULT_RULE = "lexicographic_E_then_eps_h_non_finite_last_tie_keeps_adam"
+
+
+def better_state(
+    adam_state: Mapping[str, Any],
+    polish_state: Mapping[str, Any],
+    *,
+    scorecard: Scorecard,
+) -> str:
+    """Return ``polish`` only when it is strictly better on (E, eps_h)."""
+    rule = _require_scorecard(scorecard).section("lbfgs_polish")["result_rule"]
+    if rule != _POLISH_RESULT_RULE:
+        raise ScorecardError(f"unsupported polish result rule: {rule}")
+    if _state_key(polish_state, "polish_state") < _state_key(adam_state, "adam_state"):
+        return "polish"
+    return "adam"
+
+
+def g1_fires(primary_shares: Mapping[Any, Any], *, scorecard: Scorecard) -> dict[str, Any]:
+    """Fire when any primary share reaches the frozen threshold at a named checkpoint."""
+    gate = _require_scorecard(scorecard).section("gate_g1")
+    expected = tuple(gate["checkpoints"])
+    if not isinstance(primary_shares, Mapping) or set(primary_shares) != set(expected):
+        raise ValueError("primary_shares keys must equal gate_g1.checkpoints")
+    values = [
+        _as_real(primary_shares[checkpoint], f"share[{checkpoint}]")
+        for checkpoint in expected
+    ]
+    checked = tuple(expected)
+    if any(not math.isfinite(share) for share in values):
+        return {
+            "fires": None,
+            "outcome": "not determinable (owner-routed)",
+            "checked_checkpoints": checked,
+        }
+    fires = any(share >= float(gate["threshold"]) for share in values)
+    return {
+        "fires": fires,
+        "outcome": gate["on_fire"] if fires else gate["on_no_fire"],
+        "checked_checkpoints": checked,
+    }
+
+
+def jx1_reading(share: float, *, scorecard: Scorecard) -> str:
+    """Name the pre-registered JX-1 reading for one physics share."""
+    bounds = _require_scorecard(scorecard).section("diag07")["jx1"]
+    value = _as_real(share, "share")
+    if not math.isfinite(value):
+        return "not determinable"
+    if value <= float(bounds["passenger_share_le"]):
+        return "supports: physics was a passenger (PC-2)"
+    if value >= float(bounds["overstated_share_ge"]):
+        return "falsifies: PC-2 overstated (Gate G1 fires)"
+    return "neither: between 1e-4 and 1e-2"
