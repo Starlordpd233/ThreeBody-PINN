@@ -455,7 +455,7 @@ class AreaFixture(unittest.TestCase):
     def _write_census_tree(self) -> None:
         area = self.root / f"{PHASE}/evidence/census"
         ids = list(range(1, 1813))
-        singles = [{"percentile": p, "target": p, "id": i, "N_in": 1.0, "samples_per_inner_period": 3.0} for p, i in zip((10, 50, 90), (1, 2, 3))]
+        singles = [{"percentile": p, "target": p, "id": i, "N_in": 1.0, "samples_per_inner_period": 3.0} for p, i in zip((10, 50, 90), (101, 102, 103))]
         family = [{"bin": i, "size": 113, "median": 1.0, "id": 4 + i, "N_in": 2.0} for i in range(16)]
         validation = list(range(20001, 20228))
         csv_text = "id\n" + "\n".join(str(i) for i in ids) + "\n"
@@ -909,6 +909,272 @@ class CompletionMarkerTests(AreaFixture):
 
 
 from typing import Mapping  # noqa: E402  (helpers above use Mapping)
+
+
+class GuardrailTests(unittest.TestCase):
+    def test_real_worktree_guardrails_ok(self) -> None:
+        module = load_verifier()
+        self.assertIsNotNone(module)
+        self.assertIn("guardrails", module.COMMANDS)
+        code, out, err = run_main(module, ["guardrails"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("GUARDRAILS-OK", out)
+        self.assertNotIn("FAIL-CLOSED", err)
+
+    def test_guardrails_fail_on_run_drift_home_paths_and_opened_counts(self) -> None:
+        module = load_verifier()
+        self.assertIsNotNone(module)
+        self.assertIn("guardrails", module.COMMANDS)
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        FrozenRepo(root)
+        (root / ".gitignore").write_text("*.log\n", encoding="utf-8")
+        commit_all(root, "gitignore")
+        checkpoint = root / "runs/stage0-v23g7-seed42/checkpoints/best.pt"
+        checkpoint.parent.mkdir(parents=True)
+        checkpoint.write_bytes(b"checkpoint")
+        _dump(
+            root / ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-7-retention.json",
+            {
+                "schema": "phase57-generation-retention/v1",
+                "files": [{
+                    "path": "runs/stage0-v23g7-seed42/checkpoints/best.pt",
+                    "sha256": _sha(checkpoint),
+                    "size_bytes": checkpoint.stat().st_size,
+                    "role": "run-artifact",
+                }],
+            },
+        )
+        with mock.patch.object(module, "REPO_ROOT", root):
+            code, out, err = run_main(module, ["guardrails"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("GUARDRAILS-OK", out)
+        extra = checkpoint.parent / "extra.pt"
+        extra.write_bytes(b"extra")
+        with mock.patch.object(module, "REPO_ROOT", root):
+            code, _out, err = run_main(module, ["guardrails"])
+        self.assertEqual(code, 1)
+        self.assertIn("extra.pt", err)
+        extra.unlink()
+        checkpoint.write_bytes(b"changed")
+        with mock.patch.object(module, "REPO_ROOT", root):
+            code, _out, err = run_main(module, ["guardrails"])
+        self.assertEqual(code, 1)
+        self.assertIn("best.pt", err)
+        checkpoint.write_bytes(b"checkpoint")
+        note = root / f"{PHASE}/evidence/audit/note.txt"
+        note.parent.mkdir(parents=True, exist_ok=True)
+        note.write_text(str(Path.home()) + "\n", encoding="utf-8")
+        commit_all(root, "home path")
+        with mock.patch.object(module, "REPO_ROOT", root):
+            code, _out, err = run_main(module, ["guardrails"])
+        self.assertEqual(code, 1)
+        self.assertIn("home", err)
+        note.write_text("redacted\n", encoding="utf-8")
+        commit_all(root, "redacted")
+        log = root / f"{PHASE}/evidence/audit/logs/step.log"
+        log.parent.mkdir(parents=True, exist_ok=True)
+        log.write_text(str(Path.home()) + "\n", encoding="utf-8")
+        opened = root / f"{PHASE}/evidence/audit/files_opened.json"
+        _dump(opened, {
+            "schema": "phase59-files-opened/v1",
+            "tool": "audit",
+            "test_split_opened": 0,
+            "blocked_attempts": 1,
+            "refused_before_open": 0,
+        })
+        with mock.patch.object(module, "REPO_ROOT", root):
+            code, _out, err = run_main(module, ["guardrails"])
+        self.assertEqual(code, 1)
+        self.assertIn("blocked_attempts", err)
+        opened.unlink()
+        with mock.patch.object(module, "REPO_ROOT", root):
+            code, out, err = run_main(module, ["guardrails"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("GUARDRAILS-OK", out)
+
+
+class FinalTests(AreaFixture):
+    def test_final_accepts_a_complete_tree_and_rejects_gaps(self) -> None:
+        self._ready()
+        self.assertIn("final", self.module.COMMANDS)
+        self.assertIn("baselines", self.module.COMMANDS)
+        self._write_census_tree()
+        self._write_audit_tree()
+        area = self.root / f"{PHASE}/evidence/survey"
+        _dump(area / "survey.json", self._producer_payload("phase59-survey/v1"))
+        _dump(
+            area / "picks.json",
+            self._producer_payload(
+                "phase59-feas09-picks/v1",
+                stage4b={"no_pick": "empty"},
+                stage6={"record": "a", "value": 1, "rule": "nearest", "sensitivity": "low"},
+            ),
+        )
+        _dump(area / "files_opened.json", self._files_opened(tool="survey"))
+        self._marker("survey", "survey", ["survey.json", "picks.json"])
+        self._run(["manifest", "--area", "survey", "--write"])
+        checkpoint = self._checkpoint_for_final()
+        for name in ("jx01.json", "jx02.json", "jx03.json", "jx04.json", "jx05.json", "jx10.json"):
+            self._jx(name, checkpoint)
+        from pinn.verification.feasibility_scorecard import g1_fires
+
+        expected = g1_fires({900: 0.0, 951: 0.0}, scorecard=self.card)
+        names = ["jx01.json", "jx02.json", "jx03.json", "jx04.json", "jx05.json", "jx10.json", "g1.json"]
+        _dump(
+            self.root / f"{PHASE}/evidence/diag07/g1.json",
+            self._producer_payload(
+                "phase59-gate-g1/v1",
+                threshold=0.01,
+                primary_share={"900": 0.0, "951": 0.0},
+                secondary_share={"900": 0.0, "951": 0.0},
+                fires=expected["fires"],
+                outcome=expected["outcome"],
+                source_sha256="e" * 64,
+            ),
+        )
+        self._marker("diag07", "diag07", names)
+        _dump(self.root / f"{PHASE}/evidence/diag07/files_opened.json", self._files_opened(tool="diag07"))
+        self._run(["manifest", "--area", "diag07", "--write"])
+        panel_ids = [101, 102, 103, *range(4, 20), *range(20001, 20228)]
+        base = self.root / f"{PHASE}/evidence/baselines"
+        _dump(base / "two_kepler.json", self._producer_payload("phase59-two-kepler/v1", ids=panel_ids))
+        _dump(
+            base / "nn_copy.json",
+            self._producer_payload(
+                "phase59-nn-copy/v1",
+                rows=[{"neighbour_id": 1} for _ in range(227)],
+            ),
+        )
+        _dump(base / "baselines.json", self._producer_payload("phase59-baselines/v1", feas09={"stage4b": "no_pick"}))
+        _dump(base / "files_opened.json", self._files_opened(tool="baselines"))
+        self._run(["manifest", "--area", "baselines", "--write"])
+        findings = self.root / f"{PHASE}/59-FINDINGS.md"
+        singles = "101, 102, and 103"
+        text = "\n".join([
+            "# Findings",
+            "## In plain language",
+            SCORECARD_SHA256,
+            "## Does the two-Kepler formula already reach Tier 1 on Stage 0?",
+            "## How hard Stage 0 is",
+            "## The panels",
+            f"The single panels are {singles}.",
+            "## The comparison points",
+            "## The whole-dataset survey",
+            "## The checkpoint experiments (DIAG-07)",
+            "## Gate G1",
+            str(expected["outcome"]),
+            "## GAP-59-08 (reported, not fixed)",
+            "GAP-59-08 stays open.",
+            "## Evidence index",
+            "",
+        ])
+        findings.write_text(text, encoding="utf-8")
+        validation = self.root / f"{PHASE}/59-VALIDATION.md"
+        validation.write_text("See tests.phase59.test_evidence_io.CanonicalJsonTests.\n", encoding="utf-8")
+        stub = self.root / "tests/phase59/test_evidence_io.py"
+        stub.parent.mkdir(parents=True, exist_ok=True)
+        stub.write_text("pass\n", encoding="utf-8")
+        present = self.root / "pinn/verification/present.py"
+        present.write_text("pass\n", encoding="utf-8")
+        self._run(["manifest", "--area", "all", "--write"])
+        commit_all(self.root, "evidence")
+        tokens = {
+            area: token for area, (_tail, token) in self.module.REDERIVE.items()
+        }
+        patched = {
+            area: (["-c", f"print({token!r})"], token) for area, token in tokens.items()
+        }
+
+        def files():
+            return ["pinn/verification/present.py"]
+
+        with mock.patch.dict(self.module.REDERIVE, patched), mock.patch.object(
+            self.module, "phase59_files", files
+        ):
+            code, out, err = self._run(["final"])
+            self.assertEqual(code, 0, err)
+            self.assertIn("PHASE59-EVIDENCE-OK", out)
+            broken = findings.read_text(encoding="utf-8").replace("## Evidence index", "## Evidence")
+            findings.write_text(broken, encoding="utf-8")
+            code, _out, err = self._run(["final"])
+            self.assertEqual(code, 1)
+            self.assertIn("Evidence index", err)
+            findings.write_text(text, encoding="utf-8")
+            findings.write_text(text.replace(str(expected["outcome"]), "other"), encoding="utf-8")
+            code, _out, err = self._run(["final"])
+            self.assertEqual(code, 1)
+            self.assertIn("outcome", err)
+            findings.write_text(text.replace(singles, "9, 8, and 7"), encoding="utf-8")
+            code, _out, err = self._run(["final"])
+            self.assertEqual(code, 1)
+            self.assertIn("panel id", err)
+            findings.write_text(text.replace(SCORECARD_SHA256, "0" * 64), encoding="utf-8")
+            code, _out, err = self._run(["final"])
+            self.assertEqual(code, 1)
+            self.assertIn("SHA-256", err)
+            findings.write_text(text, encoding="utf-8")
+
+            def missing():
+                return ["pinn/verification/missing.py"]
+
+            with mock.patch.object(self.module, "phase59_files", missing):
+                code, _out, err = self._run(["final"])
+            self.assertEqual(code, 1)
+            self.assertIn("missing.py", err)
+
+    def _checkpoint_for_final(self) -> dict:
+        path = self.root / "runs/stage0-v23g7-seed42/checkpoints/best.pt"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"checkpoint")
+        splits = self.root / "runs/stage0-v23g7-seed42/splits.json"
+        entry_ckpt = {
+            "path": "runs/stage0-v23g7-seed42/checkpoints/best.pt",
+            "sha256": _sha(path),
+            "size_bytes": path.stat().st_size,
+            "role": "run-artifact",
+        }
+        entry_splits = {
+            "path": "runs/stage0-v23g7-seed42/splits.json",
+            "sha256": _sha(splits),
+            "size_bytes": splits.stat().st_size,
+            "role": "run-artifact",
+        }
+        self._write_retention([entry_ckpt, entry_splits])
+        return {
+            "run": "stage0-v23g7-seed42",
+            "file": "best.pt",
+            "path": entry_ckpt["path"],
+            "sha256": entry_ckpt["sha256"],
+            "size_bytes": entry_ckpt["size_bytes"],
+            "global_step": 900,
+            "adam_step": 900,
+        }
+
+    def test_readme_opens_in_plain_language_and_lists_commands(self) -> None:
+        readme = ROOT / f"{PHASE}/evidence/README.md"
+        self.assertTrue(readme.is_file())
+        text = readme.read_text(encoding="utf-8")
+        headings = __import__("re").findall(r"^## .+$", text, __import__("re").M)
+        self.assertEqual(headings[0], "## In plain language")
+        for token in (
+            "SCORECARD-FROZEN-OK",
+            "MANIFEST-CENSUS-OK",
+            "AUDIT-OK",
+            "CENSUS-OK",
+            "SURVEY-OK",
+            "BASELINES-OK",
+            "DIAG07-OK",
+            "GUARDRAILS-OK",
+            "PHASE59-EVIDENCE-OK",
+        ):
+            self.assertIn(token, text)
+        for command in (
+            "scorecard-frozen", "manifest", "audit", "census", "survey",
+            "baselines", "diag07", "guardrails", "final",
+        ):
+            self.assertIn(command, text)
 
 
 if __name__ == "__main__":
