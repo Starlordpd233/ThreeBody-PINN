@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-01-PLAN.md"
-last_updated: "2026-10-14T02:02:24Z"
+stopped_at: "Completed 59-02-PLAN.md"
+last_updated: "2026-10-14T02:35:20Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 59-01 froze the feasibility scorecard
-state_head: 54818b02e9d8b4cd2847eb702101d2c877531a49
+last_activity_desc: Plan 59-02 built the feasibility scorer
+state_head: 4cd70812d1cf2efdca1e1174f4a9e8786dd70c1a
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 1
-  percent: 10
+  completed_plans: 2
+  percent: 20
 ---
 
 # Project State
@@ -30,9 +30,16 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 1 of 10 complete (59-01)
-Status: Ready for 59-02
-Last activity: 2026-10-14 — Plan 59-01 scorecard freeze committed
+Plan: 2 of 10 complete (59-02)
+Status: Ready for 59-03
+Last activity: 2026-10-14 — Plan 59-02 feasibility scorer committed
+
+### Decisions from 59-02 (2026-10-14)
+
+- The scorer tiers only `autograd`, `analytic`, and `brutus` velocities. Finite-difference eps_H is `fd_context_eps_h`, a labelled context column.
+- The physics residual mean and max are context fields. `tier_of` does not read them.
+- A constant 5% scale of the rigid orbit is vacuous for eps_H, so the frame test applies that 1.05 factor on the later half of the native times. No new tolerance was added.
+- FEAS-01 stays pending. Plans 59-04 and 59-10 also declare it.
 
 ### Decisions from 59-01 (2026-10-14)
 
