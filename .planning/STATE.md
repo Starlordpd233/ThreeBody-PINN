@@ -5,10 +5,10 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-04-PLAN.md"
-last_updated: "2026-10-14T03:44:29Z"
+stopped_at: "59-05 halted at reader acceptance: monitor IC13 residual 1.192e-7 exceeds frozen 1e-7"
+last_updated: "2026-10-14T04:10:27Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 59-04 built the evidence writer and verifier
+last_activity_desc: Plan 59-05 halted before the census on the frozen IC13 tolerance
 state_head: b56ae50a10bb88617fb4b63bf1fa1c9412cc53fd
 progress:
   total_phases: 6
@@ -29,10 +29,16 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 
 ## Current Position
 
-Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 4 of 10 complete (59-04)
-Status: Ready for 59-05
-Last activity: 2026-10-14 — Plan 59-04 evidence writer and verifier committed
+Phase: 59 (Read-Only Baseline & Scorecard) — BLOCKED
+Plan: 4 of 10 complete (59-04). Plan 59-05 halted at task 2.
+Status: Blocked on the frozen monitor IC13 tolerance
+Last activity: 2026-10-14 — Plan 59-05 reader acceptance halted; census not run
+
+### Blocker from 59-05 (2026-10-14)
+
+- Task 1 committed the census module (`f54eded0`). Tracer ids 1632, 851, and 4658 match the research preview laps.
+- Reader acceptance halted. Targets, times, and masses match on all 8,192 rows. The IC13 max abs is `1.1920928955078125e-07`, which is above the frozen `monitor_reproduction_ic13_abs` of `1e-7` by `1.92e-08`. The normalizer recovery residual is the same value and is inside the `1e-6` recovery tolerance. No audit file was written. The full census was not run. The tolerance was not changed.
+- FEAS-02 stays pending.
 
 ### Decisions from 59-04 (2026-10-14)
 
