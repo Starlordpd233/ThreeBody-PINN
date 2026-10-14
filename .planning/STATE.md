@@ -2,17 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
-status: ready_to_execute
-stopped_at: "Phase 59 planned 2026-10-12: 10 plans in 5 waves, plan-checker passed after 2 revisions (0 blockers, 0 warnings); ready to execute"
-last_updated: "2026-10-13T03:38:08.000Z"
-last_activity: 2026-10-12
-last_activity_desc: Phase 59 planned — context (D-01..D-41), research, gap register GAP-59-01..09 (08 OPEN, owner-routed - the production energy check uses finite differences and fails even exact answers), validation map and 10 plans in 5 waves (scorecard freeze first). Plan checker passed on iteration 3 with 0 blockers and 0 warnings. Commits 805de014, ca2621b0, b04ee680 and the final plan commit.
+current_phase: 59
+current_phase_name: Read-Only Baseline & Scorecard
+status: executing
+stopped_at: "Completed 59-01-PLAN.md"
+last_updated: "2026-10-14T02:02:24Z"
+last_activity: 2026-10-14
+last_activity_desc: Plan 59-01 froze the feasibility scorecard
+state_head: 54818b02e9d8b4cd2847eb702101d2c877531a49
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 10
 ---
 
 # Project State
@@ -22,26 +25,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Milestone v2.4 — Phase 59 planned; execute it next (/gsd-execute-phase 59)
+**Current focus:** Phase 59 — Read-Only Baseline & Scorecard
 
 ## Current Position
 
-Phase: 59 of 59–64 (Read-Only Baseline & Scorecard)
-Plan: 0 of 10 (5 waves)
-Status: Ready to execute
-Last activity: 2026-10-12 — Phase 59 planned; the plan checker passed after two revisions (0 blockers, 0 warnings)
+Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
+Plan: 1 of 10 complete (59-01)
+Status: Ready for 59-02
+Last activity: 2026-10-14 — Plan 59-01 scorecard freeze committed
+
+### Decisions from 59-01 (2026-10-14)
+
+- The feasibility scorecard is frozen before any real-data result. `phase_start_head` is `f3d2f42044ec7d53c8b42dc264866a3a5daab432`. The JSON SHA-256 is `f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b`.
+- Task 1 landed as one tracer commit so that parent stays the commit before the first execution commit. Task 2 followed RED (`04980af4`) then GREEN (`0aac08d8`).
+- An improvement rate with no finite reference-window reading raises `OwnerRouted`. No new threshold was added.
+- FEAS-01 stays pending. Plans 59-02, 59-04, and 59-10 also declare it.
 
 **v2.4 amendment (2026-10-11, owner-approved).** The owner asked what else
 v2.4 should achieve and what is needed to judge where the project stands.
 The re-examination
 (`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md`)
 added four requirements:
+
 - FEAS-07, comparison points: a two-Kepler formula and a nearest-neighbour copy;
 - FEAS-08, a read-only survey of every stage;
 - FEAS-09, two probes on a Stage-4b and a Stage-6 system, run only if G2 passes;
 - FEAS-10, a project charter at the verdict.
 
 It also changed the rules:
+
 - a system counts only if it is at Tier ≥ 1 and beats the formula;
 - single-system arms get the spec's L-BFGS polish;
 - G2 runs a settings sweep before any RETHINK-REPRESENTATION, and a rescue

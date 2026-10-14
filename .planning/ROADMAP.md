@@ -184,13 +184,13 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   4. The whole-dataset survey, with its predictability envelope and stage difficulty ordering, is committed and re-derivable. The two hard-stage probe systems are selected by their pre-declared rule.
   5. Each of `JX-1` (executed half), `JX-2`, `JX-3`, `JX-4`, `JX-5` (split) and `JX-10` has a recorded result with its command, its checkpoint provenance (the ruling's checkpoint 900 is `best.pt`, `global_step` 900; GAP-59-01), and the reading it supports or falsifies. Gate G1's outcome is recorded.
   6. No training step ran, and no test-split file was opened. The tooling asserts this.
-**Plans**: 10 plans in 5 waves
+**Plans**: 1/10 plans executed in 5 waves
 
 Plans:
 
 **Wave 1**
 
-- [ ] 59-01-PLAN.md — Wave 1: freeze the feasibility scorecard (machine file, strict loader, rule functions, plain-language document, SHA-256 freeze record) before any real-data result (FEAS-01, SCOPE-42)
+- [x] 59-01-PLAN.md — Wave 1: freeze the feasibility scorecard (machine file, strict loader, rule functions, plain-language document, SHA-256 freeze record) before any real-data result (FEAS-01, SCOPE-42)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -307,7 +307,7 @@ Otherwise, continue, and run the hard-stage probes. The Rung-2 pattern is carrie
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 59. Read-Only Baseline & Scorecard | 0/10 | Planned | - |
+| 59. Read-Only Baseline & Scorecard | 1/10 | In Progress |  |
 | 60. Single-System Learnability | 0/TBD | Not started | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
