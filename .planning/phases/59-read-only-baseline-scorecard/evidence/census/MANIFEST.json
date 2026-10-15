@@ -1,0 +1,33 @@
+{
+  "area": "census",
+  "files": {
+    "census.csv": {
+      "sha256": "f73c91b3803ff62606c8a4e97eeb76b6a461a5e0fff286e8d31f8627e321a175",
+      "size_bytes": 589890
+    },
+    "census.json": {
+      "sha256": "cf68e32d2a8b919dd1536a363aee2c6865b2841026263a3130e6edf8466dd034",
+      "size_bytes": 4840
+    },
+    "files_opened.json": {
+      "sha256": "34f334c7d971fad6eb64becd9b65f8dd626893d9f067552e158cbaf752132b7a",
+      "size_bytes": 283
+    },
+    "panels.json": {
+      "sha256": "56ad5185148fca7e72b21f4fc1dbaaaf8eea7aa9ecdf498653af98ad88d6aa92",
+      "size_bytes": 6862
+    },
+    "provenance.json": {
+      "sha256": "a0a60818d3cd0289791e7b4a60a17f64928b651fcdee654e906679a89a3a50df",
+      "size_bytes": 538
+    },
+    "summary.md": {
+      "sha256": "f9a0d989864b429152a97cc6083806e88b63563fd8b91066f1a93ca6ba3f8803",
+      "size_bytes": 1574
+    }
+  },
+  "freeze_commit": "4ea3b1bc95e2dc3794fec4fb2047b9d32b5e889f",
+  "produced_at_head": "24f47296d72ba4b6f95a548d1504a664d0175205",
+  "schema": "phase59-area-manifest/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+}
