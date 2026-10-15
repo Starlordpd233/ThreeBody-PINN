@@ -94,6 +94,15 @@ PRODUCER_MODULES = (
     "pinn/verification/evidence_io.py",
     "pinn/verification/feasibility_scorecard.py",
 )
+# GAP-59-10 (owner ruling 2026-10-14, option A). The frozen monitor tolerance stays 1e-7.
+# A monitor IC13 residual above it, up to exactly this ceiling (2**-23), continues as a
+# recorded deviation. Nothing else is accepted.
+_GAP_59_10_DEVIATION = {
+    "gap": "GAP-59-10",
+    "frozen_tolerance": 1e-07,
+    "accepted_ic13_max_abs": 1.1920928955078125e-07,
+    "resolved": "2026-10-14",
+}
 
 
 class CensusHalt(RuntimeError):
@@ -800,6 +809,42 @@ def _presence_or_halt(presence):
             )
 
 
+def _reproduction_failure(report, reason=None):
+    text = (
+        "monitor batch reproduction failed: "
+        f"rows {report['rows']}, identities {report['identities']}, "
+        f"targets {report['mismatches_targets']}, "
+        f"times {report['mismatches_times']}, "
+        f"masses {report['mismatches_masses']}, "
+        f"ic13 {report['ic13_max_abs']}"
+    )
+    return f"{text}; {reason}" if reason else text
+
+
+def _accept_ic13_deviation(report, *, ic13_tolerance, normalizer_deviation):
+    """GAP-59-10: the owner's block when the only miss is the accepted IC13 residual."""
+    ruling = dict(_GAP_59_10_DEVIATION)
+    ic13 = float(report["ic13_max_abs"])
+    tolerance = float(ic13_tolerance)
+    if normalizer_deviation:
+        reason = "the normalizer was not recovered from the checkpoint, so GAP-59-10 does not apply"
+    elif tolerance != ruling["frozen_tolerance"]:
+        reason = (
+            f"the frozen tolerance is {tolerance!r}, not the "
+            f"{ruling['frozen_tolerance']!r} that GAP-59-10 ruled on"
+        )
+    elif ic13 <= tolerance:
+        reason = "the IC13 residual is inside the frozen tolerance, so another check failed"
+    elif ic13 > ruling["accepted_ic13_max_abs"]:
+        reason = (
+            f"ic13 {ic13!r} is above the GAP-59-10 ceiling "
+            f"{ruling['accepted_ic13_max_abs']!r}"
+        )
+    else:
+        return ruling
+    raise CensusHalt(_reproduction_failure(report, reason))
+
+
 def run_acceptance(args):
     """Prove the allowlisted reader matches the retained monitor batch."""
     scorecard, allowlist, reader, attestation, data_root, source = _open_context(args)
@@ -857,20 +902,17 @@ def run_acceptance(args):
         payload, references, stats, ic13_tolerance=ic13_tolerance
     )
     if (
-        report["passed"] is not True
-        or int(report["rows"]) != 8192
+        int(report["rows"]) != 8192
         or int(report["identities"]) != 256
         or int(report["mismatches_targets"]) != 0
         or int(report["mismatches_times"]) != 0
         or int(report["mismatches_masses"]) != 0
     ):
-        raise CensusHalt(
-            "monitor batch reproduction failed: "
-            f"rows {report['rows']}, identities {report['identities']}, "
-            f"targets {report['mismatches_targets']}, "
-            f"times {report['mismatches_times']}, "
-            f"masses {report['mismatches_masses']}, "
-            f"ic13 {report['ic13_max_abs']}"
+        raise CensusHalt(_reproduction_failure(report))
+    accepted = None
+    if report["passed"] is not True:
+        accepted = _accept_ic13_deviation(
+            report, ic13_tolerance=ic13_tolerance, normalizer_deviation=deviation
         )
     reproduction = {
         "checkpoint": checkpoint["path"],
@@ -883,15 +925,23 @@ def run_acceptance(args):
         "mismatches_masses": int(report["mismatches_masses"]),
         "ic13_max_abs": float(report["ic13_max_abs"]),
         "ic13_tolerance": float(ic13_tolerance),
-        "passed": True,
+        "passed": report["passed"] is True,
     }
+    plain_language = (
+        "The allowlisted reader reproduced the trainer's resident monitor "
+        f"batch ({reproduction['rows']} rows, {reproduction['identities']} identities) "
+        f"with normalizer residual {residual!r} and deviation {str(deviation).lower()}."
+    )
+    if accepted is not None:
+        reproduction["owner_accepted_deviation"] = accepted
+        plain_language += (
+            f" The IC13 difference {reproduction['ic13_max_abs']!r} is above the frozen "
+            f"{reproduction['ic13_tolerance']!r}; the owner accepted it as a recorded "
+            f"deviation ({accepted['gap']}) up to {accepted['accepted_ic13_max_abs']!r}."
+        )
     acceptance = {
         "schema": "phase59-reader-acceptance/v1",
-        "plain_language": (
-            "The allowlisted reader reproduced the trainer's resident monitor "
-            f"batch ({reproduction['rows']} rows, {reproduction['identities']} identities) "
-            f"with normalizer residual {residual!r} and deviation {str(deviation).lower()}."
-        ),
+        "plain_language": plain_language,
         "scorecard_sha256": scorecard.sha256,
         "producer_sha256": _producer(),
         "data_root_source": source,
@@ -922,21 +972,37 @@ def _acceptance_summary(acceptance):
     normalizer = acceptance["normalizer"]
     report = acceptance["monitor_batch_reproduction"]
     deviation = "true" if normalizer["deviation"] else "false"
-    return "\n".join(
+    lines = [
+        "## In plain language",
+        "",
+        "This check asks whether the allowlisted reader sees the same numbers "
+        "the trainer stored in its Stage-0 monitor batch.",
+        f"The reader matched the trainer's own resident numbers: {report['rows']} rows, "
+        f"{report['identities']} identities, and no mismatch in targets, times, or masses. "
+        f"The largest IC13 difference is {report['ic13_max_abs']!r}.",
+    ]
+    accepted = report.get("owner_accepted_deviation")
+    if accepted is not None:
+        lines.append(
+            f"Owner-accepted deviation ({accepted['gap']}). That IC13 difference is above "
+            f"the frozen tolerance of {report['ic13_tolerance']!r}, so the frozen check is "
+            "not met as measured, and the frozen value was not changed. On "
+            f"{accepted['resolved']} the owner accepted this result as a recorded deviation, "
+            f"with a ceiling of exactly {accepted['accepted_ic13_max_abs']!r} (2**-23). "
+            "A larger IC13 difference, any mismatch in targets, times, or masses, or a "
+            f"normalizer residual over {normalizer['tolerance']!r} would still have "
+            "stopped the run."
+        )
+    lines.extend(
         [
-            "## In plain language",
-            "",
-            "This check asks whether the allowlisted reader sees the same numbers "
-            "the trainer stored in its Stage-0 monitor batch.",
-            f"The reader matched the trainer's own resident numbers: {report['rows']} rows, "
-            f"{report['identities']} identities, and no mismatch in targets, times, or masses. "
-            f"The largest IC13 difference is {report['ic13_max_abs']!r}.",
             f"The normalizer residual is {normalizer['max_abs_residual']!r} "
-            f"against tolerance {normalizer['tolerance']!r}. Deviation is {deviation}.",
+            f"against tolerance {normalizer['tolerance']!r}. "
+            f"The normalizer fallback deviation is {deviation}.",
             "No held-out file was opened. The test split was not read.",
             "",
         ]
     )
+    return "\n".join(lines)
 
 
 def _compare(path, raw, label):

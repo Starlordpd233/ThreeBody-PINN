@@ -526,6 +526,57 @@ def _retention() -> dict[str, Mapping[str, Any]]:
     }
 
 
+# GAP-59-10 (owner ruling 2026-10-14, option A): the monitor IC13 residual the owner accepted
+# above the frozen value. The ceiling is exactly 2**-23. Kept here, not read from the record,
+# so an edited record cannot raise it.
+GAP_59_10 = {
+    "gap": "GAP-59-10",
+    "accepted_ic13_max_abs": 1.1920928955078125e-07,
+    "resolved": "2026-10-14",
+}
+
+
+def _check_ic13_deviation(
+    monitor: Mapping[str, Any],
+    normalizer: Mapping[str, Any],
+    *,
+    ic13: float,
+    tolerance: float,
+    limit: float,
+) -> None:
+    """An IC13 residual above the frozen value passes only with the owner's GAP-59-10 block."""
+    block = monitor.get("owner_accepted_deviation")
+    if not isinstance(block, Mapping) or block.get("gap") != GAP_59_10["gap"]:
+        fail(
+            "ic13_max_abs exceeds the scorecard tolerance without an "
+            "owner-accepted deviation naming GAP-59-10"
+        )
+    if block.get("frozen_tolerance") != tolerance:
+        fail("owner_accepted_deviation frozen_tolerance is not the scorecard monitor tolerance")
+    ceiling = GAP_59_10["accepted_ic13_max_abs"]
+    if block.get("accepted_ic13_max_abs") != ceiling:
+        fail("owner_accepted_deviation accepted_ic13_max_abs is not the GAP-59-10 ceiling")
+    if block.get("resolved") != GAP_59_10["resolved"]:
+        fail("owner_accepted_deviation resolved is not the GAP-59-10 ruling date")
+    if ic13 > ceiling:
+        fail(f"ic13_max_abs {ic13!r} exceeds the GAP-59-10 accepted ceiling {ceiling!r}")
+    if normalizer.get("deviation") is True or float(normalizer["max_abs_residual"]) > limit:
+        fail(
+            "GAP-59-10 applies only with the normalizer recovered from the "
+            "checkpoint inside its tolerance"
+        )
+    if monitor.get("passed") is not False:
+        fail(
+            "monitor_batch_reproduction.passed must record the frozen comparison "
+            "as measured (false) beside an owner-accepted deviation"
+        )
+    print(
+        f"AUDIT-DEVIATION: GAP-59-10 owner-accepted ic13_max_abs {ic13!r} is above the "
+        f"frozen {tolerance!r} and within the accepted ceiling {ceiling!r} "
+        f"(resolved {GAP_59_10['resolved']})"
+    )
+
+
 def _check_audit() -> None:
     area = REPO_ROOT / EVIDENCE_REL / "audit"
     audit = load_json(area / "reader_acceptance.json", what="reader acceptance")
@@ -534,18 +585,20 @@ def _check_audit() -> None:
     if retained is None or audit.get("splits", {}).get("sha256") != retained.get("sha256"):
         fail("splits sha256 does not match generation-7 retention")
     monitor = audit["monitor_batch_reproduction"]
-    if monitor.get("passed") is not True:
+    tolerance = float(card.section("diag07")["tolerances"]["monitor_reproduction_ic13_abs"])
+    ic13 = float(monitor["ic13_max_abs"])
+    above = ic13 > tolerance
+    if monitor.get("passed") is not True and not above:
         fail("monitor_batch_reproduction.passed is false")
     for key in ("mismatches_targets", "mismatches_times", "mismatches_masses"):
         if monitor.get(key) != 0:
             fail(f"monitor {key} is not 0")
-    tolerance = float(card.section("diag07")["tolerances"]["monitor_reproduction_ic13_abs"])
-    if float(monitor["ic13_max_abs"]) > tolerance:
-        fail("ic13_max_abs exceeds the scorecard tolerance")
     normalizer = audit["normalizer"]
     limit = float(card.section("diag07")["tolerances"]["normalizer_recovery_max_abs"])
     if float(normalizer["max_abs_residual"]) > limit and normalizer.get("deviation") is not True:
         fail("normalizer residual exceeds tolerance without deviation true")
+    if above:
+        _check_ic13_deviation(monitor, normalizer, ic13=ic13, tolerance=tolerance, limit=limit)
 
 
 def _check_census() -> None:
