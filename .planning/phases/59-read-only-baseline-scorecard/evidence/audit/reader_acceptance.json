@@ -1,0 +1,110 @@
+{
+  "data_root_source": "git_common_dir_default",
+  "file_presence": {
+    "train/hierarchical/base": {
+      "existing": 3886,
+      "manifest": 3886
+    },
+    "train/hierarchical/gold": {
+      "existing": 3886,
+      "manifest": 3886
+    },
+    "train/standard/base": {
+      "existing": 2199,
+      "manifest": 2199
+    },
+    "train/standard/gold": {
+      "existing": 2052,
+      "manifest": 2052
+    },
+    "validation/hierarchical/base": {
+      "existing": 486,
+      "manifest": 486
+    },
+    "validation/hierarchical/gold": {
+      "existing": 486,
+      "manifest": 486
+    },
+    "validation/standard/base": {
+      "existing": 276,
+      "manifest": 276
+    },
+    "validation/standard/gold": {
+      "existing": 257,
+      "manifest": 257
+    }
+  },
+  "monitor_batch_reproduction": {
+    "checkpoint": "runs/stage0-v23g7-seed42/checkpoints/stage-0-init.pt",
+    "checkpoint_sha256": "c8eab3e7a8e894da4dc994b91a13189cbdd2109ff4d6ca433a54f24418bfaf7e",
+    "global_step": 0,
+    "ic13_max_abs": 1.1920928955078125e-07,
+    "ic13_tolerance": 1e-07,
+    "identities": 256,
+    "mismatches_masses": 0,
+    "mismatches_targets": 0,
+    "mismatches_times": 0,
+    "owner_accepted_deviation": {
+      "accepted_ic13_max_abs": 1.1920928955078125e-07,
+      "frozen_tolerance": 1e-07,
+      "gap": "GAP-59-10",
+      "resolved": "2026-10-14"
+    },
+    "passed": false,
+    "rows": 8192
+  },
+  "normalizer": {
+    "checkpoint": "stage-0-init.pt",
+    "deviation": false,
+    "e_scale": 8.778436470147714,
+    "max_abs_residual": 1.1920928955078125e-07,
+    "slot_means": [
+      1.408781722178502,
+      0.9273683256354444,
+      0.6638499482114608,
+      0.34503156421217546,
+      0.11805771676269261,
+      0.09054794133838961,
+      0.0024313757644049286,
+      -0.015019727221543445,
+      -0.8802818811076367,
+      -0.011613578779204088,
+      0.007260999922357371,
+      0.3200121495080877
+    ],
+    "slot_stds": [
+      0.3682344926947733,
+      0.17187128733409726,
+      0.29175840167585587,
+      0.13814320407118058,
+      0.12589763034870086,
+      0.11828332279324923,
+      0.22132599603122302,
+      2.978675481174636,
+      3.2942565906459356,
+      0.20717827528128574,
+      1.7043465546632433,
+      1.9218389386788435
+    ],
+    "source": "recovered_from_checkpoint",
+    "stats_sha256": "77526e53c394bbac4d4a0e8fdd5a7688f0bda108d41c56277b55ad426a7a79f6",
+    "tolerance": 1e-06
+  },
+  "plain_language": "The allowlisted reader reproduced the trainer's resident monitor batch (8192 rows, 256 identities) with normalizer residual 1.1920928955078125e-07 and deviation false. The IC13 difference 1.1920928955078125e-07 is above the frozen 1e-07; the owner accepted it as a recorded deviation (GAP-59-10) up to 1.1920928955078125e-07.",
+  "producer_sha256": {
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/production_reference.py": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+    "pinn/verification/split_allowlist.py": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a",
+    "pinn/verification/stage0_census.py": "4b34c33a88bc15537af6568d124446f72cff9a6ed6d135cbd1b416b47ae7ce79"
+  },
+  "schema": "phase59-reader-acceptance/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "splits": {
+    "allowed_physical_keys": 6847,
+    "expected_from": "generation-7-retention",
+    "groups": 7606,
+    "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903",
+    "withheld_physical_keys": 759
+  }
+}

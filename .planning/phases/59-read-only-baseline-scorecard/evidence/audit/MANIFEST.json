@@ -1,0 +1,25 @@
+{
+  "area": "audit",
+  "files": {
+    "files_opened.json": {
+      "sha256": "5f9919b269dfa0484307ffe5ba21bfb9b164aa2a338c78e4a83f9b32b578c8f8",
+      "size_bytes": 293
+    },
+    "provenance.json": {
+      "sha256": "00d2d8771349b4080ae8c19e5199bfa625b00fa4c9e3da0280a8eed202b37b43",
+      "size_bytes": 564
+    },
+    "reader_acceptance.json": {
+      "sha256": "11a6cf7bc3342a5ccee5bb30bb85fc94429faeeb1bc9ea58e5ff51e9b12522c0",
+      "size_bytes": 3727
+    },
+    "summary.md": {
+      "sha256": "2af7b31777468eb5b259ce34a2514d76a26eaec1d7c759259fdc7231ae4bc362",
+      "size_bytes": 949
+    }
+  },
+  "freeze_commit": "4ea3b1bc95e2dc3794fec4fb2047b9d32b5e889f",
+  "produced_at_head": "f77c3490874b6ef157c9070d3494db8347d67cde",
+  "schema": "phase59-area-manifest/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+}

@@ -1,0 +1,15 @@
+{
+  "command": "~/Desktop/3_body_problem/.worktrees/trainex/pinn/verification/stage0_census.py --acceptance",
+  "data_root_source": "git_common_dir_default",
+  "elapsed_seconds": 2.6035915419925004,
+  "git_head": "f77c3490874b6ef157c9070d3494db8347d67cde",
+  "numpy": "2.4.6",
+  "python": "3.11.15",
+  "ru_maxrss_bytes": 261029888,
+  "schema": "phase59-provenance/v1",
+  "tool": "stage0_census --acceptance",
+  "torch": "2.12.1",
+  "utc_finished": "2026-10-15T03:21:27.421247+00:00",
+  "utc_started": "2026-10-15T03:21:24.817554+00:00",
+  "worktree_dirty": true
+}
