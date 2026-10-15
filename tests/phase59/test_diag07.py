@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import importlib.util
 import json
@@ -20,6 +21,10 @@ ROOT = Path(__file__).resolve().parents[2]
 COMMON = (
     ROOT
     / ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/diag07_common.py"
+)
+DRIVER = (
+    ROOT
+    / ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/jx01_jx10.py"
 )
 GEN7 = "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b"
 SEED42 = "stage0-v23g7-seed42"
@@ -43,6 +48,18 @@ def load_common():
 def _require_common(test):
     test.assertTrue(COMMON.is_file(), "diag07_common.py is required")
     return load_common()
+
+
+def load_driver():
+    """Load the JX driver by path with its sibling library already bound."""
+    common = load_common()
+    with mock.patch.dict(sys.modules, {"diag07_common": common}):
+        spec = importlib.util.spec_from_file_location("phase59_jx01_jx10", DRIVER)
+        if spec is None or spec.loader is None:
+            raise AssertionError(f"cannot load {DRIVER}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    return module
 
 
 class SnapshotIdentityTests(unittest.TestCase):
@@ -421,6 +438,35 @@ class MonitorFieldsTests(unittest.TestCase):
         self.assertAlmostEqual(fields["rtilde_median_all_bins"], 0.0)
         self.assertEqual(len(fields["prefix"]), 17)
         self.assertEqual(fields["rounded"]["prefix_through_front"], 0.7)
+
+
+class RuntimePairTests(unittest.TestCase):
+    def test_each_runtime_builds_with_a_pair_generation_7_permits(self) -> None:
+        # Generation 7's resolve_runtime accepts only (float32, mps) and
+        # (float64, cpu). The float64 run is promoted after a float32 restore;
+        # it is never built as the refused (float32, cpu) pair.
+        common = _require_common(self)
+        driver = load_driver()
+        from pinn.verification.feasibility_scorecard import load_scorecard
+
+        class _Stop(Exception):
+            pass
+
+        seen = []
+
+        def record(_code_root, _repo_root, _run, _sources, pair):
+            seen.append(tuple(pair))
+            raise _Stop
+
+        for runtimes in ("mps", "cpu"):
+            args = argparse.Namespace(code_root="unused", runtimes=runtimes)
+            with mock.patch.object(common, "build_controller", record):
+                with self.assertRaises(_Stop):
+                    driver._run_jx10(
+                        args, {}, {}, load_scorecard(), Path("."), Path("."),
+                        ["jx01_jx10.py"],
+                    )
+        self.assertEqual(seen, [("float32", "mps"), ("float64", "cpu")])
 
 
 class ModuleProvenanceTests(unittest.TestCase):

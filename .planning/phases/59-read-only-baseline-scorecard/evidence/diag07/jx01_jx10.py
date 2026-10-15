@@ -294,14 +294,13 @@ def _run_jx10(args, identity, sources, scorecard, evidence_root, data_root, comm
     flags = {"parameters": True, "grads": True, "files": True, "optimizer": True}
     writes = 0
     for key, pair in _runtime_pairs(args.runtimes):
-        build_pair = ("float32", "cpu") if pair[0] == "float64" else pair
         seed = diag07_common.build_controller(
             args.code_root, diag07_common.REPO_ROOT, diag07_common.SEED42,
-            sources, build_pair,
+            sources, pair,
         )
         smoke = diag07_common.build_controller(
             args.code_root, diag07_common.REPO_ROOT, diag07_common.SMOKE,
-            sources, build_pair,
+            sources, pair,
         )
         seed_rows, seed_info = _measure_run(
             seed, diag07_common.REPO_ROOT, diag07_common.SEED42, seed_files,
