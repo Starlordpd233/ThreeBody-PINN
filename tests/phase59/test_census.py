@@ -5,15 +5,19 @@ Synthetic orbits only. No test in this module reads the real corpus.
 
 from __future__ import annotations
 
+import json
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 
 from pinn.constants import T_CHARACTERISTIC_TIME
+from pinn.verification import evidence_io, stage0_census
 from pinn.verification.evidence_io import FreezeNotEstablished
 from pinn.verification.feasibility_scorecard import load_scorecard
+from pinn.verification.production_reference import NormalizerRecoveryError
 from pinn.verification.stage0_census import (
     CensusHalt,
     assisted_base_revolutions,
@@ -353,6 +357,160 @@ class FreezeGuardCallTests(unittest.TestCase):
             ):
                 code = main(argv)
             self.assertNotEqual(code, 0, argv)
+
+
+CEILING = 2.0**-23  # 1.1920928955078125e-07, the monitor IC13 residual GAP-59-10 accepts
+FROZEN_IC13 = 1e-07
+ACCEPTED_BLOCK = {
+    "gap": "GAP-59-10",
+    "frozen_tolerance": 1e-07,
+    "accepted_ic13_max_abs": 1.1920928955078125e-07,
+    "resolved": "2026-10-14",
+}
+
+
+class _Stats:
+    slot_means = np.zeros(13)
+    slot_stds = np.ones(13)
+    e_scale = 1.0
+
+
+class _Allowlist:
+    manifest = SimpleNamespace(groups=range(7606))
+    manifest_sha256 = "0" * 64
+    allowed = range(6847)
+    withheld = range(759)
+
+
+def _monitor_report(ic13, *, targets=0, times=0, masses=0, rows=8192, identities=256):
+    """What monitor_batch_reproduction returns, with the frozen 1e-7 tolerance applied."""
+    clean = targets == 0 and times == 0 and masses == 0
+    return {
+        "rows": rows,
+        "identities": identities,
+        "mismatches_targets": targets,
+        "mismatches_times": times,
+        "mismatches_masses": masses,
+        "ic13_max_abs": ic13,
+        "passed": clean and ic13 <= FROZEN_IC13,
+    }
+
+
+def _acceptance_result(report, *, scorecard=None, recovery_error=None):
+    """Run the real run_acceptance with the corpus, checkpoint and reproduction faked."""
+    presence = {
+        "train/hierarchical/base": {"manifest": 3000, "existing": 3000},
+        "train/standard/base": {"manifest": 3085, "existing": 3085},
+        "validation/hierarchical/base": {"manifest": 400, "existing": 400},
+        "validation/standard/base": {"manifest": 362, "existing": 362},
+    }
+    checkpoint = {"path": "checkpoints/stage-0-init.pt", "sha256": "1" * 64, "global_step": 0}
+    recovered = {"stats": _Stats(), "residual": CEILING, "source": "recovered_from_checkpoint"}
+    fallback = {
+        "stats": _Stats(),
+        "source": "fallback_train_validation (deviation, GAP-59-06 option B)",
+    }
+    context = (
+        scorecard or load_scorecard(),
+        _Allowlist(),
+        object(),
+        object(),
+        Path("data-root"),
+        "test",
+    )
+    recover = Mock(side_effect=recovery_error) if recovery_error else Mock(return_value=recovered)
+    with patch.multiple(
+        "pinn.verification.stage0_census",
+        _open_context=Mock(return_value=context),
+        load_retained_checkpoint=Mock(return_value=({}, checkpoint)),
+        recover_normalizer_from_checkpoint=recover,
+        fallback_normalizer_from_allowlist=Mock(return_value=fallback),
+        _batch_keys=Mock(return_value=()),
+        monitor_batch_reproduction=Mock(return_value=report),
+    ), patch(
+        "pinn.verification.production_reference.allowlisted_file_presence",
+        return_value=presence,
+    ):
+        return stage0_census.run_acceptance(SimpleNamespace(data_root=None, evidence_root=None))
+
+
+class AcceptanceDeviationTests(unittest.TestCase):
+    """GAP-59-10: an IC13 residual above the frozen 1e-7, up to exactly 2**-23, continues."""
+
+    def _accepted(self, report, **kwargs):
+        try:
+            return _acceptance_result(report, **kwargs)
+        except CensusHalt as exc:
+            self.fail(f"the acceptance should have continued, but halted: {exc}")
+
+    def test_ruled_ceiling_is_exactly_two_to_the_minus_23(self):
+        self.assertEqual(ACCEPTED_BLOCK["accepted_ic13_max_abs"], CEILING)
+
+    def test_residual_at_the_ceiling_continues_and_records_the_block(self):
+        result = self._accepted(_monitor_report(CEILING))
+        recorded = json.loads(evidence_io.canonical_json_bytes(result["acceptance"]))
+        reproduction = recorded["monitor_batch_reproduction"]
+        self.assertEqual(reproduction["owner_accepted_deviation"], ACCEPTED_BLOCK)
+        self.assertEqual(reproduction["ic13_max_abs"], CEILING)
+        self.assertEqual(reproduction["ic13_tolerance"], FROZEN_IC13)
+        self.assertIs(reproduction["passed"], False)
+        self.assertEqual(reproduction["rows"], 8192)
+        self.assertEqual(reproduction["identities"], 256)
+        for key in ("mismatches_targets", "mismatches_times", "mismatches_masses"):
+            self.assertEqual(reproduction[key], 0)
+        self.assertIs(recorded["normalizer"]["deviation"], False)
+
+    def test_summary_and_plain_language_state_the_deviation(self):
+        result = self._accepted(_monitor_report(CEILING))
+        summary = result["summary"]
+        self.assertTrue(summary.startswith("## In plain language"))
+        for word in ("GAP-59-10", "owner", "deviation", "1e-07", "1.1920928955078125e-07"):
+            self.assertIn(word, summary)
+        self.assertIn("GAP-59-10", result["acceptance"]["plain_language"])
+
+    def test_residual_inside_the_frozen_value_needs_no_block(self):
+        result = self._accepted(_monitor_report(9e-08))
+        reproduction = result["acceptance"]["monitor_batch_reproduction"]
+        self.assertIs(reproduction["passed"], True)
+        self.assertNotIn("owner_accepted_deviation", reproduction)
+        self.assertNotIn("GAP-59-10", result["summary"])
+        self.assertNotIn("GAP-59-10", result["acceptance"]["plain_language"])
+
+    def test_one_float64_step_above_the_ceiling_halts(self):
+        above = float(np.nextafter(CEILING, 1.0))
+        self.assertGreater(above, CEILING)
+        with self.assertRaises(CensusHalt):
+            _acceptance_result(_monitor_report(above))
+
+    def test_any_mismatch_or_short_population_still_halts_at_the_ceiling(self):
+        cases = {
+            "targets": {"targets": 1},
+            "times": {"times": 1},
+            "masses": {"masses": 1},
+            "rows": {"rows": 8191},
+            "identities": {"identities": 255},
+        }
+        for name, change in cases.items():
+            with self.subTest(name), self.assertRaises(CensusHalt):
+                _acceptance_result(_monitor_report(CEILING, **change))
+
+    def test_normalizer_fallback_still_halts_at_the_ceiling(self):
+        error = NormalizerRecoveryError("normalizer recovery residual 2e-06 exceeds 1e-06")
+        with self.assertRaises(CensusHalt):
+            _acceptance_result(_monitor_report(CEILING), recovery_error=error)
+
+    def test_a_moved_frozen_value_is_no_longer_the_one_the_owner_ruled_on(self):
+        moved = SimpleNamespace(
+            sha256="f" * 64,
+            section=lambda _name: {
+                "tolerances": {
+                    "normalizer_recovery_max_abs": 1e-06,
+                    "monitor_reproduction_ic13_abs": 5e-08,
+                }
+            },
+        )
+        with self.assertRaises(CensusHalt):
+            _acceptance_result(_monitor_report(CEILING), scorecard=moved)
 
 
 if __name__ == "__main__":

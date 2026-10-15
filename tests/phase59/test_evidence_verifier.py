@@ -7,6 +7,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import math
 import subprocess
 import tempfile
 import unittest
@@ -676,6 +677,79 @@ class AuditTests(AreaFixture):
         code, _out, err = self._run(["audit", "--skip-rederive"])
         self.assertEqual(code, 1)
         self.assertIn("normalizer", err)
+
+
+class AuditDeviationTests(AreaFixture):
+    """GAP-59-10: a monitor IC13 residual above the frozen 1e-7, up to exactly 2**-23, with the block."""
+
+    CEILING = 2.0**-23
+
+    def _block(self, **overrides) -> dict:
+        block = {
+            "gap": "GAP-59-10",
+            "frozen_tolerance": 1e-07,
+            "accepted_ic13_max_abs": 1.1920928955078125e-07,
+            "resolved": "2026-10-14",
+        }
+        block.update(overrides)
+        return block
+
+    def _tree(self, *, ic13=None, passed=False, block="ruling", monitor=None, normalizer=None) -> None:
+        self._ready()
+        self._write_audit_tree()
+        path = self.root / f"{PHASE}/evidence/audit/reader_acceptance.json"
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        reproduction = payload["monitor_batch_reproduction"]
+        reproduction["ic13_max_abs"] = self.CEILING if ic13 is None else ic13
+        reproduction["passed"] = passed
+        if block == "ruling":
+            reproduction["owner_accepted_deviation"] = self._block()
+        elif block is not None:
+            reproduction["owner_accepted_deviation"] = block
+        reproduction.update(monitor or {})
+        payload["normalizer"].update(normalizer or {})
+        _dump(path, payload)
+        code, _out, err = self._run(["manifest", "--area", "audit", "--write"])
+        self.assertEqual(code, 0, err)
+
+    def test_owner_accepted_residual_passes_and_prints_the_deviation(self) -> None:
+        self._tree()
+        code, out, err = self._run(["audit", "--skip-rederive"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("AUDIT-OK", out)
+        self.assertIn("GAP-59-10", out)
+        self.assertIn("deviation", out.lower())
+
+    def test_residual_above_the_frozen_value_is_refused_without_the_ruling(self) -> None:
+        above_ceiling = math.nextafter(self.CEILING, 1.0)
+        cases = (
+            ("no block, passed recorded true", {"block": None, "passed": True}, "ic13_max_abs"),
+            ("no block, passed recorded false", {"block": None}, "ic13_max_abs"),
+            ("wrong gap id", {"block": self._block(gap="GAP-59-11")}, "GAP-59-10"),
+            ("gap id missing", {"block": {"frozen_tolerance": 1e-07}}, "GAP-59-10"),
+            ("one float64 step above the ceiling", {"ic13": above_ceiling}, "ceiling"),
+            (
+                "ceiling raised in the block",
+                {"ic13": 2e-07, "block": self._block(accepted_ic13_max_abs=2e-07)},
+                "accepted_ic13_max_abs",
+            ),
+            ("frozen value moved in the block", {"block": self._block(frozen_tolerance=5e-08)}, "frozen_tolerance"),
+            ("other resolution date", {"block": self._block(resolved="2026-10-15")}, "resolved"),
+            ("passed recorded true beside the block", {"passed": True}, "passed"),
+            ("target mismatch beside the block", {"monitor": {"mismatches_targets": 1}}, "mismatches_targets"),
+            (
+                "normalizer fell back",
+                {"normalizer": {"deviation": True, "max_abs_residual": 1.0}},
+                "normalizer",
+            ),
+        )
+        for name, change, expected in cases:
+            with self.subTest(name):
+                self._tree(**change)
+                code, out, err = self._run(["audit", "--skip-rederive"])
+                self.assertEqual(code, 1, name)
+                self.assertNotIn("AUDIT-OK", out)
+                self.assertIn(expected, err)
 
 
 class Diag07Tests(AreaFixture):
