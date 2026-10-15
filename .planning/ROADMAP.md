@@ -184,7 +184,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   4. The whole-dataset survey, with its predictability envelope and stage difficulty ordering, is committed and re-derivable. The two hard-stage probe systems are selected by their pre-declared rule.
   5. Each of `JX-1` (executed half), `JX-2`, `JX-3`, `JX-4`, `JX-5` (split) and `JX-10` has a recorded result with its command, its checkpoint provenance (the ruling's checkpoint 900 is `best.pt`, `global_step` 900; GAP-59-01), and the reading it supports or falsifies. Gate G1's outcome is recorded.
   6. No training step ran, and no test-split file was opened. The tooling asserts this.
-**Plans**: 4/10 plans executed in 5 waves
+**Plans**: 5/10 plans executed in 5 waves
 
 Plans:
 
@@ -200,7 +200,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 59-05-PLAN.md — Wave 3: reader acceptance, the Stage-0 difficulty census and the panels (FEAS-02)
+- [x] 59-05-PLAN.md — Wave 3: reader acceptance, the Stage-0 difficulty census and the panels (FEAS-02)
 - [ ] 59-07-PLAN.md — Wave 3: the DIAG-07 harness on the generation-7 snapshot, JX-10, JX-1 (executed half) and Gate G1 (DIAG-07)
 
 **Wave 4** *(blocked on Wave 3 completion)*

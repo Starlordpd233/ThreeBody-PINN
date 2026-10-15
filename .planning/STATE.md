@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "59-07 halted at the JX-10 acceptance: 1 of 54 frozen checks fails at the 1e-4 boundary (stage-0-init.pt bin 2)"
-last_updated: "2026-10-15T02:56:07Z"
+stopped_at: "Completed 59-05-PLAN.md; 59-07 stays halted at the JX-10 packet-tolerance boundary (GAP-59-11 ruled, resume pending)"
+last_updated: "2026-10-15T03:31:06Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 59-07 JX-10 ran on MPS and CPU, 53 of 54 checks pass, one rounding-boundary case is owner-routed
-state_head: a0fc5edf9a8b2035e44ec1e58ba299ff3bf73da0
+last_activity_desc: Plan 59-05 recorded the reader acceptance under the GAP-59-10 deviation, the Stage-0 census, and the frozen-rule panels
+state_head: af13a180855755d11c3b673eed6f71bde9e2f2ae
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 4
-  percent: 40
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 
 ## Current Position
 
-Phase: 59 (Read-Only Baseline & Scorecard) — BLOCKED
-Plan: 4 of 10 complete (59-04). Plan 59-05 halted at task 2. Plan 59-07 halted at the JX-10 acceptance.
-Status: Blocked on the frozen monitor IC13 tolerance (59-05) and on the boundary reading of the frozen packet tolerance (59-07)
-Last activity: 2026-10-14 — Plan 59-07 JX-10 ran on MPS and CPU, 53 of 54 checks pass; Gate G1 was not computed
+Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
+Plan: 5 of 10 complete (59-05). Plan 59-07 is halted at the JX-10 acceptance; the owner ruled GAP-59-11 (option A, exact decimal units) in `59-GAPS.md` and the plan resumes next.
+Status: Ready to resume 59-07, then Wave 4 (59-06, 59-08, 59-09)
+Last activity: 2026-10-14 — Plan 59-05 reader acceptance, Stage-0 census, and panels committed
 
 ### Blocker from 59-07 (2026-10-14)
 
@@ -43,11 +43,12 @@ Last activity: 2026-10-14 — Plan 59-07 JX-10 ran on MPS and CPU, 53 of 54 chec
 - Owner ruling needed: how `phase58_packet_rounded_abs = 1e-4` is evaluated at its boundary. A (recommended): exact decimal units, one step passes. B: compare unrounded values, largest gap 6.67e-5. C: a one-step difference fails. A and B pass all 54; neither changes a frozen value. Then fix the comparison with a regression test, rerun JX-10 (about 2 minutes), run the Task 1 verify chain, and continue to Tasks 2 and 3.
 - JX-1 and Gate G1 were not run. There is no Gate G1 outcome. DIAG-07 stays pending. The unaccepted `jx10.json` and its three siblings sit untracked in `evidence/diag07/`; the next run overwrites them.
 
-### Blocker from 59-05 (2026-10-14)
+### Decisions from 59-05 (2026-10-14)
 
-- Task 1 committed the census module (`f54eded0`). Tracer ids 1632, 851, and 4658 match the research preview laps.
-- Reader acceptance halted. Targets, times, and masses match on all 8,192 rows. The IC13 max abs is `1.1920928955078125e-07`, which is above the frozen `monitor_reproduction_ic13_abs` of `1e-7` by `1.92e-08`. The normalizer recovery residual is the same value and is inside the `1e-6` recovery tolerance. No audit file was written. The full census was not run. The tolerance was not changed.
-- FEAS-02 stays pending.
+- The owner ruled GAP-59-10 option A. The frozen `monitor_reproduction_ic13_abs` stays `1e-7`; the measured IC13 residual `1.1920928955078125e-07` (`2**-23`) is a recorded deviation and is also the ceiling. The acceptance records `passed` false against the frozen value as measured, carries an `owner_accepted_deviation` block, and the verifier prints an `AUDIT-DEVIATION` line. A larger residual, any target, time, or mass mismatch, a normalizer fallback, or a moved frozen value still halts.
+- The acceptance (8,192 rows, 256 identities, zero mismatches) and the census (1,812 training and 227 validation systems) are committed after the freeze, re-derive byte for byte, and open no test-split file. Pair-tracking failures 0; gold-base maximum deviation `9.68e-07` against `1e-6`.
+- Panels come from the frozen rule only: singles 1632, 851, and 4658 (N_in 10.47, 18.61, 39.35), a 16-system family, and all 227 validation systems. The median phase-accuracy figure is about 1 part in 1,169 at 10% and 1 part in 11,692 at 1%. 148 training systems have fewer than 3 base samples per inner period.
+- FEAS-02 stays pending. Plans 59-03, 59-04, and 59-10 also declare it.
 
 ### Decisions from 59-04 (2026-10-14)
 
@@ -706,8 +707,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
 Last session: 2026-10-14
-Stopped at: Completed 59-04-PLAN.md. The evidence writer, the independent verifier, and the evidence README are committed. Ready for 59-05.
-Next action: /gsd-execute-phase 59 from .worktrees/trainex, plan 59-05. Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
+Stopped at: Completed 59-05-PLAN.md. The reader acceptance (GAP-59-10 deviation), the Stage-0 census, and the panels are committed. Plan 59-07 stays halted at the JX-10 packet-tolerance boundary; the owner ruled GAP-59-11 (option A) and it resumes next.
+Next action: /gsd-execute-phase 59 from .worktrees/trainex: resume plan 59-07 under the GAP-59-11 ruling, then Wave 4 (59-06, 59-08, 59-09). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
 
 ## Operator Next Steps
 
