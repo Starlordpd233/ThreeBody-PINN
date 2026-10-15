@@ -5,11 +5,11 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "59-07 halted at the 6 GiB preflight: vm_stat available 4899373056"
-last_updated: "2026-10-14T04:37:16Z"
+stopped_at: "59-07 halted at the JX-10 acceptance: 1 of 54 frozen checks fails at the 1e-4 boundary (stage-0-init.pt bin 2)"
+last_updated: "2026-10-15T02:56:07Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 59-07 halted before JX-10 because free memory was under 6 GiB
-state_head: 12c5420d3dd2c4e9d94cf8818f02c0538e1b1966
+last_activity_desc: Plan 59-07 JX-10 ran on MPS and CPU, 53 of 54 checks pass, one rounding-boundary case is owner-routed
+state_head: a0fc5edf9a8b2035e44ec1e58ba299ff3bf73da0
 progress:
   total_phases: 6
   completed_phases: 0
@@ -30,15 +30,18 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — BLOCKED
-Plan: 4 of 10 complete (59-04). Plan 59-05 halted at task 2. Plan 59-07 halted before JX-10.
-Status: Blocked on the frozen 6 GiB DIAG-07 preflight, and still blocked on the frozen monitor IC13 tolerance
-Last activity: 2026-10-14 — Plan 59-07 JX-10 launch refused by vm_stat; Gate G1 was not computed
+Plan: 4 of 10 complete (59-04). Plan 59-05 halted at task 2. Plan 59-07 halted at the JX-10 acceptance.
+Status: Blocked on the frozen monitor IC13 tolerance (59-05) and on the boundary reading of the frozen packet tolerance (59-07)
+Last activity: 2026-10-14 — Plan 59-07 JX-10 ran on MPS and CPU, 53 of 54 checks pass; Gate G1 was not computed
 
 ### Blocker from 59-07 (2026-10-14)
 
-- The JX-10 driver is committed (`16f5f0db` tests, `12c5420d` driver). Eight driver tests and the static guards pass.
-- The detached launch exited 4 with `DIAG07-PREFLIGHT`. Available memory was `4899373056` bytes. The frozen requirement is `6442450944` (6 GiB). The launch lock was released. No `jx10.json` was written. The requirement was not lowered.
-- JX-1 and Gate G1 were not run. There is no Gate G1 outcome. DIAG-07 stays pending.
+- The memory halt cleared: the owner freed memory, and the 6 GiB preflight (`6442450944`, unchanged) passed at both relaunches.
+- The first run exposed a CPU-only driver bug (a `(float32, cpu)` controller that generation 7 refuses). Fixed in `a0fc5edf` with a regression test; 24 driver and static-guard tests pass.
+- JX-10 then finished on MPS float32 and CPU float64 in 112.6 s (`ru_maxrss` 3.36 GiB): seed-42 fronts 0, 1, 2, 2, 2 and smoke fronts 0, 0, 0, CPU equal to MPS, no checkpoint written, no optimizer built, test split not opened.
+- One of 54 frozen checks failed and the driver exited 3 with `DIAG07-TOLERANCE-FAIL: phase58.stage-0-init.pt.rtilde_bins_0_5`. Bin 2 of `stage-0-init.pt` measures 2.0538578 (rounds to 2.0539) against the packet's 2.0538; the unrounded gap is 5.78e-5 and CPU float64 gives 2.0538. The rounded pair differs by exactly one decimal step, and `2.0539 - 2.0538` evaluates to `1.0000000000021103e-4` in doubles, just over the `1e-4` bound. Four more comparisons are one step apart and passed by landing just under it. No frozen value and no comparison code was changed after the result.
+- Owner ruling needed: how `phase58_packet_rounded_abs = 1e-4` is evaluated at its boundary. A (recommended): exact decimal units, one step passes. B: compare unrounded values, largest gap 6.67e-5. C: a one-step difference fails. A and B pass all 54; neither changes a frozen value. Then fix the comparison with a regression test, rerun JX-10 (about 2 minutes), run the Task 1 verify chain, and continue to Tasks 2 and 3.
+- JX-1 and Gate G1 were not run. There is no Gate G1 outcome. DIAG-07 stays pending. The unaccepted `jx10.json` and its three siblings sit untracked in `evidence/diag07/`; the next run overwrites them.
 
 ### Blocker from 59-05 (2026-10-14)
 
