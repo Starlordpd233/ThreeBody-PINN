@@ -24,6 +24,9 @@ does not block Phase 59.
 | 06 | How to normalize the starting-condition inputs without opening test files | Recover the production statistics from a saved checkpoint |
 | 07 | Which time grid the scorecard measures on | The dense grid, so a fit that is right only at its training samples does not pass |
 | 08 | **The existing energy check fails even a perfect answer** | **Owner decision; it does not block v2.4** |
+| 10 | The reader's IC13 values are one float32 rounding step over the frozen 1e-7 | Owner accepted it as a recorded deviation; the 1e-7 value is unchanged |
+| 11 | Whether "within 1e-4" passes a difference of exactly one fourth-decimal step | Owner: compare the rounded copies in exact decimal units, so it passes |
+| 12 | A JX-10 dev result goes stale when Task 2 edits the driver | Rerun JX-10 as a dev run after Task 2's code lands |
 
 ---
 
@@ -423,3 +426,120 @@ does not block Phase 59.
 
   After the freeze, mid-phase rulings are recorded in 59-GAPS.md, never by
   editing 59-CONTEXT.md or 59-RESEARCH.md.
+
+---
+
+## GAP-59-10 — the reader acceptance's IC13 residual is one float32 step over 1e-7 (OWNER-ROUTED)
+
+- **Decision point.** Plan 59-05's reader acceptance measured a monitor IC13
+  max abs of `1.1920928955078125e-07` (`2**-23`) against the frozen
+  `diag07.tolerances.monitor_reproduction_ic13_abs` of `1e-7`. Should the
+  census proceed?
+- **Where in artifact.** `pinn/verification/stage0_census.py` (`--acceptance`,
+  around `:831-906`); the audit check in
+  `evidence/verify_phase59_evidence.py:543-544`; `59-SCORECARD.md` (diag07
+  tolerances).
+- **Task context.** 59-05 Task 2, the first real acceptance run (2026-10-14).
+- **Classification.** Semantic. Moving or reinterpreting a frozen value is
+  owner-routed (SCOPE-42, `on_failure: stop_and_surface_owner_routed`).
+- **Source silence.** The scorecard fixes the value but not how a residual at
+  the float32 resolution floor is read. 59-03 had already recorded a
+  normalizer residual of `1.192e-7` over 256 keys, after the 59-01 freeze set
+  `1e-7`.
+- **Grounding.**
+  - Targets, times and masses matched bitwise on all 8,192 rows, with zero
+    mismatches over 256 identities.
+  - The IC13 residual equals the normalizer recovery residual. That one is
+    inside its own `1e-6` tolerance, so the gap is the round-off of
+    recovering the statistics, not a reader defect.
+  - Normalized IC13 lies in (−1, 1), where one float32 step is `2**-24` or
+    `2**-23`. So `1e-7` sits below two rounding steps.
+- **Agent was tempted to** call it round-off and continue. It did not, because
+  the value is frozen.
+- **What the user needed to decide.**
+  - A: accept the run as a recorded deviation, with the frozen value unchanged.
+  - B: amend the tolerance and re-freeze.
+  - C: stay halted and investigate first.
+- **Confidence of impact.** HIGH for scheduling, since 59-06, 59-08, 59-09 and
+  59-10 wait on the census. LOW for the physics.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-10-14, owner chose A).
+- **Resolution note.**
+  - The scorecard byte stays `1e-7`. This is not a re-freeze.
+  - The acceptance records `passed` against the frozen value exactly as
+    measured. It adds an `owner_accepted_deviation` block:
+    - `gap`: "GAP-59-10";
+    - `frozen_tolerance`: `1e-7`;
+    - `accepted_ic13_max_abs`: `1.1920928955078125e-07`;
+    - `resolved`: "2026-10-14".
+  - With that block, the acceptance continues instead of raising
+    `CensusHalt`.
+  - The accepted ceiling is exactly the observed `2**-23`. A larger IC13
+    residual, any target, time or mass mismatch, or a normalizer residual over
+    `1e-6` still halts.
+  - The audit's `summary.md` states the deviation in plain words.
+  - The verifier's audit check accepts an `ic13_max_abs` above the frozen
+    value only when that block names GAP-59-10 and the residual is at most the
+    accepted ceiling, and it prints the deviation line.
+  - The five DIAG-07 overlay modules are not edited, including
+    `production_reference.py`.
+
+## GAP-59-11 — whether "within 1e-4" passes exactly one fourth-decimal step (OWNER-ROUTED)
+
+- **Decision point.** JX-10 compares the Phase-58 packet's 4-decimal fields
+  with the measured values rounded to 4 decimals, using
+  `phase58_packet_rounded_abs = 1e-4`.
+  - In doubles, `2.0539 - 2.0538` is `1.0000000000021103e-4`. So
+    `stage-0-init.pt` bin 2 failed: measured 2.0538578 rounds to 2.0539,
+    against the packet's 2.0538.
+  - Four other cases exactly one step apart passed at `9.999999999998899e-05`.
+- **Where in artifact.**
+  `evidence/diag07/jx01_jx10.py::_compare_packet` (`:167-192`).
+- **Task context.** The 59-07 Task 1 acceptance run (2026-10-14, exit 3,
+  run_id `061eb7a1782e4fdba7b1ae3e3bc18282`).
+- **Classification.** Semantic. It governs how a frozen tolerance is read.
+- **Source silence.** The plan says "rounded fields within 1e-4". It does not
+  say whether that difference is taken in exact decimal or binary floating
+  point.
+- **Grounding.**
+  - The packet values are decimal strings to 4 places.
+  - In exact decimal units the difference is `1e-4`, and "within" includes the
+    bound.
+  - The unrounded gap is `5.8e-5`, and CPU float64 measures exactly 2.0538.
+  - The largest unrounded gap anywhere is `6.67e-5`.
+- **What the user needed to decide.**
+  - A: exact decimal units.
+  - B: compare unrounded values.
+  - C: count one step as a miss, so five checks fail and JX-10 reads
+    "falsifies".
+- **Confidence of impact.** HIGH. It flips the JX-10 reading.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-10-14, owner chose A).
+- **Resolution note.**
+  - `phase58_packet_rounded_abs` stays `1e-4`.
+  - Every rounded-field packet comparison takes
+    `|Decimal(repr(actual)) - Decimal(repr(expected))| <= Decimal(repr(1e-4))`
+    on the 4-decimal rounded copies. Exactly one step passes, and two steps
+    fail.
+  - The `raw_rbar_bin0` relative check, the exact front-index check and the
+    CPU-versus-MPS checks are unchanged.
+  - A regression test pins the observed pair (2.0539 against 2.0538 passes,
+    2.0540 against 2.0538 fails) and one of the `9.999999999998899e-05` pairs.
+  - The same rule applies wherever the verifier recomputes a packet
+    comparison.
+
+## GAP-59-12 — a JX-10 development result goes stale when Task 2 edits the driver
+
+- **Decision point.** `verify_phase59_evidence.py diag07` checks each result's
+  `producer_sha256` against the current driver files. 59-07 Task 2 edits
+  both driver files, so Task 1's development `jx10.json` would fail Task 2's
+  `--require jx01,jx10,g1` verify.
+- **Where in artifact.** 59-07-PLAN.md Task 2 `<verify>`.
+- **Classification.** Operational coordination, resolved by the orchestrator
+  under the delegation.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-10-14).
+- **Resolution note.**
+  - After Task 2's GREEN commit, run `--experiment jx1` and then
+    `--experiment jx10` as development runs. Each is detached, holds the
+    launch lock, and is accepted only on `EXIT=0`.
+  - Then run Task 2's verify.
+  - Task 3's single `--experiment all` run still produces the committed files,
+    as planned.
