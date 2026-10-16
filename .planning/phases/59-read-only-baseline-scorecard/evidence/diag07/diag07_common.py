@@ -466,12 +466,26 @@ def file_hashes(paths) -> dict:
 
 
 def _flat_float64(tensors):
-    """Concatenate tensors into one flat CPU float64 vector."""
+    """Concatenate tensors into one flat CPU float64 vector.
+
+    The move to the CPU comes first: the MPS framework has no float64, so one
+    .to(device, dtype) call that widens an MPS tensor fails.
+    """
     import torch
 
     return torch.cat([
-        tensor.detach().reshape(-1).to(device="cpu", dtype=torch.float64)
+        tensor.detach().reshape(-1).to("cpu").to(torch.float64)
         for tensor in tensors
+    ])
+
+
+def populated_gradient(parameters):
+    """Flat CPU float64 vector of each parameter's .grad, zeros where it is None."""
+    import torch
+
+    return _flat_float64([
+        parameter.grad if parameter.grad is not None else torch.zeros_like(parameter)
+        for parameter in parameters
     ])
 
 

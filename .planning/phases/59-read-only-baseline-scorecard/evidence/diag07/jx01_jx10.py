@@ -448,8 +448,6 @@ def _trainer_cross_check(controller, batch, anchor_ctx, weights, vectors, microb
     The trainer path is backward only. Its populated .grad is read and then set
     back to None, so no gradient survives the measurement.
     """
-    import torch
-
     parameters = tuple(p for p in controller.model.parameters() if p.requires_grad)
     for parameter in parameters:
         parameter.grad = None
@@ -457,11 +455,7 @@ def _trainer_cross_check(controller, batch, anchor_ctx, weights, vectors, microb
         batch, anchor_ctx, weights, parameters,
         microbatch_size=microbatch, want_diagnostics=True,
     )
-    populated = torch.cat([
-        (parameter.grad if parameter.grad is not None else torch.zeros_like(parameter))
-        .detach().reshape(-1).to(device="cpu", dtype=torch.float64)
-        for parameter in parameters
-    ])
+    populated = diag07_common.populated_gradient(parameters)
     for parameter in parameters:
         parameter.grad = None
     norms = {}
