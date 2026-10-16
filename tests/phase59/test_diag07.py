@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import hashlib
 import importlib.util
 import json
+import math
 import subprocess
 import sys
 import tempfile
@@ -49,6 +51,12 @@ def load_common():
 def _require_common(test):
     test.assertTrue(COMMON.is_file(), "diag07_common.py is required")
     return load_common()
+
+
+def _require_function(test, name):
+    module = _require_common(test)
+    test.assertTrue(hasattr(module, name), f"diag07_common.{name} is required")
+    return module
 
 
 def load_driver():
@@ -594,6 +602,197 @@ class PacketDecimalBoundaryTests(unittest.TestCase):
                     driver, scorecard, rows, "phase58.best.pt.raw_rbar_bin0",
                 )
                 self.assertEqual(passed, wanted)
+
+
+class ShareFormulaTests(unittest.TestCase):
+    def test_shares_match_the_hand_computed_projections(self) -> None:
+        # Toy two-parameter case. v_hat = exp_avg_sq / (1 - beta2**step) and
+        # m_hat = exp_avg / (1 - beta1**step) with step 1; P = 1/(sqrt(v_hat)+eps).
+        module = _require_function(self, "preconditioned_shares")
+        beta1, beta2, eps, step = 0.9, 0.999, 1e-8, 1.0
+        exp_avg, exp_avg_sq = [0.5, -0.25], [4.0, 1.0]
+        weighted = {"phys": [1.0, 0.0], "ic": [0.0, 2.0]}
+        total = [1.0, 2.0]
+        got = module.preconditioned_shares(
+            weighted, total, exp_avg, exp_avg_sq, step,
+            beta1=beta1, beta2=beta2, eps=eps,
+        )
+        v_hat = [value / (1.0 - beta2 ** step) for value in exp_avg_sq]
+        m_hat = [value / (1.0 - beta1 ** step) for value in exp_avg]
+        precond = [1.0 / (math.sqrt(value) + eps) for value in v_hat]
+
+        def project(vector, onto):
+            left = [p * x for p, x in zip(precond, vector)]
+            right = [p * x for p, x in zip(precond, onto)]
+            return sum(a * b for a, b in zip(left, right)) / sum(b * b for b in right)
+
+        for name, vector in weighted.items():
+            self.assertAlmostEqual(got["primary"][name], project(vector, total), places=12)
+            self.assertAlmostEqual(got["secondary"][name], project(vector, m_hat), places=12)
+        self.assertAlmostEqual(got["primary_sum"], 1.0, places=12)
+        self.assertGreater(got["primary"]["phys"], 0.0)
+
+    def test_vectors_of_different_lengths_are_refused(self) -> None:
+        module = _require_function(self, "preconditioned_shares")
+        with self.assertRaises(ValueError):
+            module.preconditioned_shares(
+                {"phys": [1.0, 0.0, 0.0]}, [1.0, 2.0], [0.5, -0.25], [4.0, 1.0], 1.0,
+                beta1=0.9, beta2=0.999, eps=1e-8,
+            )
+
+
+class FlattenTests(unittest.TestCase):
+    @staticmethod
+    def _model_and_payload():
+        model = torch.nn.Linear(2, 1)
+        state = {
+            0: {
+                "step": torch.tensor(7.0),
+                "exp_avg": torch.tensor([[1.0, 2.0]]),
+                "exp_avg_sq": torch.tensor([[3.0, 4.0]]),
+            },
+            1: {
+                "step": torch.tensor(7.0),
+                "exp_avg": torch.tensor([5.0]),
+                "exp_avg_sq": torch.tensor([6.0]),
+            },
+        }
+        return model, {"optimizer": {"state": state, "param_groups": [{"params": [0, 1]}]}}
+
+    def test_state_follows_model_parameter_order(self) -> None:
+        module = _require_function(self, "flatten_optimizer_state")
+        model, payload = self._model_and_payload()
+        exp_avg, exp_avg_sq, step = module.flatten_optimizer_state(payload, model)
+        self.assertEqual(exp_avg.tolist(), [1.0, 2.0, 5.0])
+        self.assertEqual(exp_avg_sq.tolist(), [3.0, 4.0, 6.0])
+        self.assertEqual(exp_avg.dtype, torch.float64)
+        self.assertEqual(step, 7.0)
+
+    def test_a_missing_entry_a_different_shape_or_no_state_is_refused(self) -> None:
+        module = _require_function(self, "flatten_optimizer_state")
+        model, payload = self._model_and_payload()
+        del payload["optimizer"]["state"][1]
+        with self.assertRaises(ValueError):
+            module.flatten_optimizer_state(payload, model)
+        model, payload = self._model_and_payload()
+        payload["optimizer"]["state"][1]["exp_avg"] = torch.tensor([5.0, 9.0])
+        with self.assertRaises(ValueError):
+            module.flatten_optimizer_state(payload, model)
+        model, payload = self._model_and_payload()
+        payload["optimizer"] = None
+        with self.assertRaises(ValueError):
+            module.flatten_optimizer_state(payload, model)
+
+
+class _DecompositionFixture(unittest.TestCase):
+    """A tiny CPU float64 controller with a refusing store and non-zero lambdas."""
+
+    TERMS = ("data", "ic", "phys", "energy", "angmom")
+
+    def setUp(self) -> None:
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+
+    def build(self, module):
+        from tests.phase40.test_optimizer_phase import _build_controller
+
+        controller = _build_controller(
+            self._tmpdir.name, max_epochs=1, n_adam=1, collocation_count=64,
+        )
+        store = module.RefusingCheckpointStore()
+        controller._checkpoint_store = store
+        parameters = tuple(p for p in controller.model.parameters() if p.requires_grad)
+        batch = controller._stage_batch(
+            controller._train_source, stage=0, collocation_count=64,
+        )
+        anchor_ctx = controller._build_anchor_context(
+            controller._train_source, batch, None,
+        )
+        weights = dataclasses.replace(
+            controller.scheduled_weights.current(0),
+            lambda_phys=0.7, lambda_e=0.3, lambda_l=0.2,
+        )
+        return controller, store, parameters, batch, anchor_ctx, weights
+
+    @staticmethod
+    def norm(vector) -> float:
+        return float(torch.linalg.vector_norm(vector))
+
+
+class DecompositionTests(_DecompositionFixture):
+    def test_norms_and_weighted_sum_match_the_trainer_and_nothing_changes(self) -> None:
+        module = _require_function(self, "per_term_gradients")
+        controller, store, parameters, batch, anchor_ctx, weights = self.build(module)
+        before = [parameter.detach().clone() for parameter in parameters]
+        vectors = module.per_term_gradients(
+            controller, batch, anchor_ctx, weights, microbatch_size=20,
+        )
+        self.assertTrue(all(parameter.grad is None for parameter in parameters))
+        _terms, stats = controller._run_adam_step_microbatched(
+            batch, anchor_ctx, weights, parameters,
+            microbatch_size=20, want_diagnostics=True,
+        )
+        trainer_grad = torch.cat([
+            (p.grad if p.grad is not None else torch.zeros_like(p))
+            .detach().reshape(-1).to(torch.float64)
+            for p in parameters
+        ])
+        for parameter in parameters:
+            parameter.grad = None
+        for name in self.TERMS:
+            with self.subTest(term=name):
+                trainer = float(stats[f"grad_norm_raw_{name}"])
+                self.assertGreater(trainer, 0.0)
+                self.assertLessEqual(
+                    abs(self.norm(vectors[name]) - trainer), 1e-10 * trainer,
+                )
+        difference = self.norm(trainer_grad - vectors["total_weighted"])
+        self.assertLessEqual(difference, 1e-10 * self.norm(trainer_grad))
+        self.assertEqual(vectors["total_weighted"].dtype, torch.float64)
+        for parameter, original in zip(parameters, before):
+            self.assertTrue(torch.equal(parameter.detach(), original))
+        self.assertEqual(store.write_attempts, 0)
+        self.assertIsNone(controller._optimizer)
+
+
+class MicrobatchEquivalenceTests(_DecompositionFixture):
+    def test_per_term_vectors_do_not_depend_on_the_microbatch_size(self) -> None:
+        module = _require_function(self, "per_term_gradients")
+        controller, _store, _parameters, batch, anchor_ctx, weights = self.build(module)
+        reference = module.per_term_gradients(
+            controller, batch, anchor_ctx, weights, microbatch_size=1000,
+        )
+        for size in (3, 64):
+            other = module.per_term_gradients(
+                controller, batch, anchor_ctx, weights, microbatch_size=size,
+            )
+            for name, vector in reference.items():
+                with self.subTest(size=size, term=name):
+                    self.assertLessEqual(
+                        self.norm(other[name] - vector), 1e-6 * self.norm(vector),
+                    )
+
+
+class IcSplitTests(_DecompositionFixture):
+    def test_the_ic_gradient_is_the_position_half_plus_the_velocity_half(self) -> None:
+        module = _require_function(self, "per_term_gradients")
+        controller, _store, _parameters, batch, anchor_ctx, weights = self.build(module)
+        vectors = module.per_term_gradients(
+            controller, batch, anchor_ctx, weights, microbatch_size=20,
+        )
+        self.assertGreater(self.norm(vectors["ic_position"]), 0.0)
+        self.assertGreater(self.norm(vectors["ic_velocity"]), 0.0)
+        residual = vectors["ic"] - vectors["ic_position"] - vectors["ic_velocity"]
+        self.assertLessEqual(self.norm(residual), 1e-10 * self.norm(vectors["ic"]))
+
+
+class CosineTests(unittest.TestCase):
+    def test_cosine_of_parallel_orthogonal_and_zero_vectors(self) -> None:
+        module = _require_function(self, "cosine")
+        self.assertAlmostEqual(module.cosine([1.0, 2.0], [2.0, 4.0]), 1.0, places=12)
+        self.assertAlmostEqual(module.cosine([1.0, 0.0], [0.0, 3.0]), 0.0, places=12)
+        self.assertAlmostEqual(module.cosine([1.0, 0.0], [-2.0, 0.0]), -1.0, places=12)
+        self.assertIsNone(module.cosine([0.0, 0.0], [1.0, 1.0]))
 
 
 class ModuleProvenanceTests(unittest.TestCase):
