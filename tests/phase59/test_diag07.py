@@ -11,6 +11,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from decimal import Decimal
 from pathlib import Path
 from unittest import mock
 
@@ -467,6 +468,132 @@ class RuntimePairTests(unittest.TestCase):
                         ["jx01_jx10.py"],
                     )
         self.assertEqual(seen, [("float32", "mps"), ("float64", "cpu")])
+
+
+class PacketDecimalBoundaryTests(unittest.TestCase):
+    """GAP-59-11: a rounded packet field passes at exactly one fourth-decimal step.
+
+    The frozen bound phase58_packet_rounded_abs stays 1e-4. The 4-decimal copies
+    are compared in exact decimal units, so one step passes whichever way binary
+    floating point rounds the difference, and two steps fail.
+    """
+
+    STEP = Decimal("0.0001")
+    SCALARS = ("prefix_through_front", "prefix_to_cross_next", "rtilde_median_all_bins")
+
+    @staticmethod
+    def _scorecard():
+        from pinn.verification.feasibility_scorecard import load_scorecard
+
+        return load_scorecard()
+
+    @staticmethod
+    def _rows(scorecard, name=None, key=None, index=None, value=None):
+        """Rows that equal the packet, with one rounded field replaced when asked."""
+        packet = scorecard.section("diag07")["jx10"]["phase58_packet"]
+        rows = {}
+        for run_name, expected in packet.items():
+            rows[run_name] = {
+                "front_idx": expected["front_idx"],
+                "raw_rbar_bin0": expected["raw_rbar_bin0"],
+                "rounded": {
+                    "prefix_through_front": expected["prefix_through_front"],
+                    "prefix_to_cross_next": expected["prefix_to_cross_next"],
+                    "rtilde_median_all_bins": expected["rtilde_median_all_bins"],
+                    "rtilde_bins_0_5": list(expected["rtilde_bins_0_5"]),
+                },
+            }
+        if name is not None:
+            rounded = rows[name]["rounded"]
+            if index is None:
+                rounded[key] = value
+            else:
+                rounded[key][index] = value
+        return rows
+
+    @staticmethod
+    def _passed(driver, scorecard, rows, check_name):
+        checks = []
+        supports = driver._compare_packet(rows, scorecard, checks)
+        by_name = {item["name"]: item["passed"] for item in checks}
+        return supports, by_name[check_name]
+
+    def test_the_observed_one_step_pair_passes(self) -> None:
+        # stage-0-init.pt bin 2: measured 2.0539 against the packet's 2.0538.
+        # In doubles the gap is a hair over 1e-4; in decimal it is one step.
+        self.assertGreater(2.0539 - 2.0538, 1e-4)
+        driver = load_driver()
+        scorecard = self._scorecard()
+        rows = self._rows(scorecard, "stage-0-init.pt", "rtilde_bins_0_5", 2, 2.0539)
+        supports, passed = self._passed(
+            driver, scorecard, rows, "phase58.stage-0-init.pt.rtilde_bins_0_5",
+        )
+        self.assertTrue(passed)
+        self.assertTrue(supports)
+
+    def test_two_steps_fail(self) -> None:
+        driver = load_driver()
+        scorecard = self._scorecard()
+        rows = self._rows(scorecard, "stage-0-init.pt", "rtilde_bins_0_5", 2, 2.0540)
+        supports, passed = self._passed(
+            driver, scorecard, rows, "phase58.stage-0-init.pt.rtilde_bins_0_5",
+        )
+        self.assertFalse(passed)
+        self.assertFalse(supports)
+
+    def test_a_pair_with_a_binary_gap_just_under_the_bound_passes(self) -> None:
+        # best.pt bin 2: measured 0.6165 against the packet's 0.6166.
+        self.assertEqual(0.6166 - 0.6165, 9.999999999998899e-05)
+        driver = load_driver()
+        scorecard = self._scorecard()
+        rows = self._rows(scorecard, "best.pt", "rtilde_bins_0_5", 2, 0.6165)
+        supports, passed = self._passed(
+            driver, scorecard, rows, "phase58.best.pt.rtilde_bins_0_5",
+        )
+        self.assertTrue(passed)
+        self.assertTrue(supports)
+
+    def test_every_packet_value_passes_one_step_and_fails_two_either_way(self) -> None:
+        driver = load_driver()
+        scorecard = self._scorecard()
+        packet = scorecard.section("diag07")["jx10"]["phase58_packet"]
+        for name, expected in packet.items():
+            sites = [(key, None, expected[key]) for key in self.SCALARS]
+            sites += [
+                ("rtilde_bins_0_5", index, value)
+                for index, value in enumerate(expected["rtilde_bins_0_5"])
+            ]
+            for key, index, value in sites:
+                for steps in (-2, -1, 1, 2):
+                    with self.subTest(name=name, key=key, index=index, steps=steps):
+                        moved = float(Decimal(repr(value)) + steps * self.STEP)
+                        rows = self._rows(scorecard, name, key, index, moved)
+                        _supports, passed = self._passed(
+                            driver, scorecard, rows, f"phase58.{name}.{key}",
+                        )
+                        self.assertEqual(passed, abs(steps) == 1)
+
+    def test_front_index_and_raw_rbar_checks_keep_their_own_rules(self) -> None:
+        driver = load_driver()
+        scorecard = self._scorecard()
+        packet = scorecard.section("diag07")["jx10"]["phase58_packet"]
+        base = self._rows(scorecard)
+        base["best.pt"]["front_idx"] = packet["best.pt"]["front_idx"] + 1
+        supports, passed = self._passed(
+            driver, scorecard, base, "phase58.best.pt.front_idx",
+        )
+        self.assertFalse(passed)
+        self.assertFalse(supports)
+        for factor, wanted in ((1.00005, True), (1.00015, False)):
+            with self.subTest(factor=factor):
+                rows = self._rows(scorecard)
+                rows["best.pt"]["raw_rbar_bin0"] = (
+                    packet["best.pt"]["raw_rbar_bin0"] * factor
+                )
+                _supports, passed = self._passed(
+                    driver, scorecard, rows, "phase58.best.pt.raw_rbar_bin0",
+                )
+                self.assertEqual(passed, wanted)
 
 
 class ModuleProvenanceTests(unittest.TestCase):
