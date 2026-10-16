@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import gc
 import sys
+from decimal import Decimal
 from pathlib import Path
 
 import diag07_common
@@ -126,6 +127,19 @@ def _relative_ok(actual, expected, rel) -> bool:
     return abs(actual - expected) <= float(rel) * scale
 
 
+def _rounded_within(actual, expected, bound) -> bool:
+    """GAP-59-11: compare 4-decimal copies in exact decimal units.
+
+    The repr of a float is its shortest decimal string, so Decimal(repr(x))
+    recovers the rounded value. Doubles cannot hold 2.0539 or 2.0538 exactly,
+    so their binary difference can land a hair over 1e-4 when the decimal
+    difference is exactly one step. The bound is inclusive: one step passes
+    and two fail.
+    """
+    gap = abs(Decimal(repr(float(actual))) - Decimal(repr(float(expected))))
+    return gap <= Decimal(repr(float(bound)))
+
+
 def _checkpoint_names(scorecard):
     diag = scorecard.section("diag07")
     seed_files = [str(name) for name in diag["jx10"]["seed42_reproduction"]]
@@ -188,7 +202,7 @@ def _compare_packet(rows, scorecard, checks) -> bool:
             "rtilde_median_all_bins",
         ):
             actual = fields["rounded"][key]
-            ok = abs(float(actual) - float(expected[key])) <= rounded_abs
+            ok = _rounded_within(actual, expected[key], rounded_abs)
             checks.append({
                 "name": f"phase58.{name}.{key}",
                 "passed": ok,
@@ -197,7 +211,7 @@ def _compare_packet(rows, scorecard, checks) -> bool:
             supports &= ok
         actual_bins = fields["rounded"]["rtilde_bins_0_5"]
         bins_ok = len(actual_bins) == len(expected["rtilde_bins_0_5"]) and all(
-            abs(float(got) - float(want)) <= rounded_abs
+            _rounded_within(got, want, rounded_abs)
             for got, want in zip(actual_bins, expected["rtilde_bins_0_5"])
         )
         checks.append({
