@@ -899,6 +899,30 @@ class Jx1FlowTests(_DecompositionFixture):
         self.assertFalse(share_out["jx1.cpu_vs_mps.900.shares"])
 
 
+class Float64FlattenTests(unittest.TestCase):
+    @unittest.skipUnless(torch.backends.mps.is_available(), "MPS is not available")
+    def test_an_mps_float32_tensor_is_moved_to_the_cpu_before_it_is_widened(self) -> None:
+        # The MPS framework has no float64, so one .to(device, dtype) call fails.
+        module = _require_function(self, "per_term_gradients")
+        source = torch.arange(6, dtype=torch.float32, device="mps").reshape(2, 3)
+        try:
+            flat = module._flat_float64([source, source])
+        except TypeError as exc:
+            self.fail(f"an MPS tensor could not be flattened to float64: {exc}")
+        self.assertEqual(flat.dtype, torch.float64)
+        self.assertEqual(flat.device.type, "cpu")
+        self.assertEqual(flat.tolist(), [0.0, 1.0, 2.0, 3.0, 4.0, 5.0] * 2)
+
+    def test_populated_gradient_is_zero_where_a_parameter_has_no_grad(self) -> None:
+        module = _require_function(self, "populated_gradient")
+        first = torch.nn.Parameter(torch.tensor([1.0, 2.0]))
+        second = torch.nn.Parameter(torch.tensor([3.0]))
+        first.grad = torch.tensor([0.5, -0.5])
+        flat = module.populated_gradient([first, second])
+        self.assertEqual(flat.dtype, torch.float64)
+        self.assertEqual(flat.tolist(), [0.5, -0.5, 0.0])
+
+
 class CosineTests(unittest.TestCase):
     def test_cosine_of_parallel_orthogonal_and_zero_vectors(self) -> None:
         module = _require_function(self, "cosine")
