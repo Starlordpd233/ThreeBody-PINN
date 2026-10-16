@@ -293,12 +293,7 @@ def _json_fields(fields) -> dict:
 
 
 def _run_jx10(args, identity, sources, scorecard, evidence_root, data_root, command):
-    from pinn.verification.evidence_io import (
-        files_opened_record,
-        redacted_command,
-        ru_maxrss_bytes,
-        write_json,
-    )
+    from pinn.verification.evidence_io import redacted_command, ru_maxrss_bytes
     from pinn.verification.feasibility_scorecard import SCORECARD_SHA256
 
     seed_files, smoke_files = _checkpoint_names(scorecard)
@@ -410,20 +405,416 @@ def _run_jx10(args, identity, sources, scorecard, evidence_root, data_root, comm
     diag07_common.write_result(
         evidence_root, "jx10.json", payload, data_root=data_root,
     )
-    write_json(
-        Path(evidence_root) / "files_opened_jx01_jx10.json",
-        files_opened_record("jx01_jx10.py", sources["attestation"].summary()),
-        data_root=data_root,
-    )
     return outcome, failed
+
+
+_TERMS = ("data", "ic", "phys", "energy", "angmom")
+_LAMBDA = {
+    "data": "lambda_data",
+    "ic": "lambda_ic",
+    "phys": "lambda_phys",
+    "energy": "lambda_e",
+    "angmom": "lambda_l",
+}
+# Plan 59-07: the primary shares of the five terms sum to 1 within 1e-6.
+_PRIMARY_SUM_TOLERANCE = 1e-6
+
+
+def _vector_norm(vector) -> float:
+    import torch
+
+    return float(torch.linalg.vector_norm(vector))
+
+
+def _weight(weights, term) -> float:
+    return float(getattr(weights, _LAMBDA[term]))
+
+
+def _jx1_steps(scorecard):
+    steps = [int(step) for step in scorecard.section("diag07")["jx1"]["checkpoints"]]
+    files = {
+        int(step): str(name)
+        for step, name in scorecard.section("gate_g1")["checkpoint_files"].items()
+    }
+    missing = [step for step in steps if step not in files]
+    if missing:
+        raise RuntimeError(f"gate_g1.checkpoint_files has no file for steps {missing}")
+    return steps, files
+
+
+def _trainer_cross_check(controller, batch, anchor_ctx, weights, vectors, microbatch, rel):
+    """Compare the driver's vectors with the trainer's own microbatched step.
+
+    The trainer path is backward only. Its populated .grad is read and then set
+    back to None, so no gradient survives the measurement.
+    """
+    import torch
+
+    parameters = tuple(p for p in controller.model.parameters() if p.requires_grad)
+    for parameter in parameters:
+        parameter.grad = None
+    terms, stats = controller._run_adam_step_microbatched(
+        batch, anchor_ctx, weights, parameters,
+        microbatch_size=microbatch, want_diagnostics=True,
+    )
+    populated = torch.cat([
+        (parameter.grad if parameter.grad is not None else torch.zeros_like(parameter))
+        .detach().reshape(-1).to(device="cpu", dtype=torch.float64)
+        for parameter in parameters
+    ])
+    for parameter in parameters:
+        parameter.grad = None
+    norms = {}
+    for term in _TERMS:
+        driver = _vector_norm(vectors[term])
+        trainer = float(stats[f"grad_norm_raw_{term}"])
+        norms[term] = {
+            "driver": driver,
+            "trainer": trainer,
+            "passed": _relative_ok(driver, trainer, rel),
+        }
+    difference = _vector_norm(populated - vectors["total_weighted"])
+    reference = _vector_norm(populated)
+    return {
+        "norms": norms,
+        "grad_difference_over_norm": difference / reference if reference else None,
+        "grad_passed": difference <= float(rel) * reference,
+        "losses": {
+            name: float(getattr(terms, name))
+            for name in ("data", "ic", "phys", "energy", "angmom", "total")
+        },
+    }
+
+
+def _measure_jx1(controller, repo_root, steps, files, scorecard, pair, microbatch,
+                 rel, label, checks, flags):
+    from pinn.verification.feasibility_scorecard import jx1_reading
+
+    diag = scorecard.section("diag07")
+    records = {}
+    provenance = []
+    for step in steps:
+        name = files[step]
+        path = repo_root / "runs" / diag07_common.SEED42 / "checkpoints" / name
+        before = diag07_common.file_hashes([path])
+        payload, info = diag07_common.load_registry_checkpoint(
+            repo_root, diag07_common.SEED42, name, scorecard=scorecard,
+        )
+        moments = None
+        if payload.get("optimizer") is not None:
+            moments = diag07_common.flatten_optimizer_state(payload, controller.model)
+        _load_into(controller, payload, pair)
+        global_step = int(payload["counters"]["global_step"])
+        if global_step != step:
+            raise RuntimeError(f"{name} global_step {global_step} != {step}")
+        fingerprints = diag07_common.param_fingerprints(controller.model)
+        batch = controller._front_monitor_batch
+        anchor_ctx = controller._build_anchor_context(
+            controller._train_source, batch, None,
+        )
+        weights = controller.scheduled_weights.current(global_step)
+        vectors = diag07_common.per_term_gradients(
+            controller, batch, anchor_ctx, weights, microbatch_size=microbatch,
+        )
+        flags["grads"] &= _grads_clear(controller.model)
+        cross = _trainer_cross_check(
+            controller, batch, anchor_ctx, weights, vectors, microbatch, rel,
+        )
+        raw = {term: _vector_norm(vectors[term]) for term in _TERMS}
+        record = {
+            "file": name,
+            "global_step": global_step,
+            "weights": {term: _weight(weights, term) for term in _TERMS},
+            "grad_norm_raw": raw,
+            "grad_norm_weighted": {term: _weight(weights, term) * raw[term] for term in _TERMS},
+            "total_weighted_norm": _vector_norm(vectors["total_weighted"]),
+            "cosines": {
+                f"{left}_{right}": diag07_common.cosine(vectors[left], vectors[right])
+                for left, right in diag["jx1"]["cosine_pairs"]
+            },
+            "ic_split": {
+                "position_norm": _vector_norm(vectors["ic_position"]),
+                "velocity_norm": _vector_norm(vectors["ic_velocity"]),
+            },
+            "trainer_cross_check": cross,
+        }
+        prefix = f"jx1.{label}.{step}"
+        for term in _TERMS:
+            checks.append({
+                "name": f"{prefix}.{term}.driver_vs_trainer_norm",
+                "passed": cross["norms"][term]["passed"],
+                "detail": f"{cross['norms'][term]['driver']} vs {cross['norms'][term]['trainer']}",
+            })
+        checks.append({
+            "name": f"{prefix}.driver_vs_trainer_grad",
+            "passed": cross["grad_passed"],
+            "detail": f"difference over norm {cross['grad_difference_over_norm']}",
+        })
+        if moments is None:
+            record["shares"] = "not computable: no stored moments"
+        else:
+            exp_avg, exp_avg_sq, adam_step = moments
+            beta1, beta2 = (float(value) for value in controller._config.opt.adam_betas)
+            eps = float(controller._config.opt.adam_eps)
+            weighted = {term: _weight(weights, term) * vectors[term] for term in _TERMS}
+            shares = diag07_common.preconditioned_shares(
+                weighted, vectors["total_weighted"], exp_avg, exp_avg_sq, adam_step,
+                beta1=beta1, beta2=beta2, eps=eps,
+            )
+            group = payload["optimizer"]["param_groups"][0]
+            record["shares"] = {
+                "adam_step": adam_step,
+                "beta1": beta1,
+                "beta2": beta2,
+                "eps": eps,
+                "primary": shares["primary"],
+                "secondary": shares["secondary"],
+                "primary_sum": shares["primary_sum"],
+                "reading": jx1_reading(shares["primary"]["phys"], scorecard=scorecard),
+            }
+            checks.append({
+                "name": f"{prefix}.primary_sum",
+                "passed": abs(shares["primary_sum"] - 1.0) <= _PRIMARY_SUM_TOLERANCE,
+                "detail": f"{shares['primary_sum']}",
+            })
+            checks.append({
+                "name": f"{prefix}.adam_hyperparameters_match_checkpoint",
+                "passed": (
+                    tuple(float(value) for value in group["betas"]) == (beta1, beta2)
+                    and float(group["eps"]) == eps
+                ),
+                "detail": f"{tuple(group['betas'])} {group['eps']}",
+            })
+        flags["parameters"] &= fingerprints == diag07_common.param_fingerprints(controller.model)
+        flags["grads"] &= _grads_clear(controller.model)
+        flags["files"] &= before == diag07_common.file_hashes([path])
+        flags["optimizer"] &= controller._optimizer is None
+        records[step] = record
+        provenance.append(info)
+        del vectors
+        print(
+            f"{label} jx1 step {step} phys primary share "
+            + (
+                f"{record['shares']['primary']['phys']:.6e}"
+                if isinstance(record["shares"], dict) else "n/a"
+            ),
+            file=sys.stderr,
+        )
+    return records, provenance
+
+
+def _compare_jx1_cpu(mps_records, cpu_records, scorecard, checks) -> None:
+    tolerances = scorecard.section("diag07")["tolerances"]
+    norm_rel = float(tolerances["cpu_vs_mps_grad_norm_rel"])
+    share_rel = float(tolerances["cpu_vs_mps_share_rel"])
+    share_abs = float(tolerances["cpu_vs_mps_share_abs_floor"])
+    for step, cpu in cpu_records.items():
+        mps = mps_records[step]
+        norms_ok = all(
+            _relative_ok(cpu["grad_norm_raw"][term], mps["grad_norm_raw"][term], norm_rel)
+            for term in _TERMS
+        )
+        checks.append({
+            "name": f"jx1.cpu_vs_mps.{step}.grad_norms",
+            "passed": norms_ok,
+            "detail": "relative tolerance",
+        })
+        if isinstance(mps["shares"], dict):
+            shares_ok = isinstance(cpu["shares"], dict) and all(
+                abs(cpu["shares"][kind][term] - mps["shares"][kind][term])
+                <= max(share_abs, share_rel * abs(mps["shares"][kind][term]))
+                for kind in ("primary", "secondary")
+                for term in _TERMS
+            )
+            checks.append({
+                "name": f"jx1.cpu_vs_mps.{step}.shares",
+                "passed": shares_ok,
+                "detail": "relative or absolute-floor tolerance",
+            })
+
+
+def _jx1_plain(results_mps, gate_steps, readings) -> str:
+    pieces = [
+        f"at step {step} the physics term supplied "
+        f"{results_mps[step]['shares']['primary']['phys']:.3e} of the "
+        f"Adam-preconditioned update direction ({readings[str(step)]})"
+        for step in gate_steps
+    ]
+    return (
+        "JX-1 measured how strongly each part of the loss pushed generation 7's "
+        "network and what share of the actual Adam update the physics term "
+        "received: " + "; ".join(pieces) + ". At step 0 no Adam moments are "
+        "stored, so no share is computable there. A share of 1e-4 or less reads "
+        "as physics being a passenger, and 1e-2 or more reads that claim as "
+        "overstated."
+    )
+
+
+def _g1_plain(gate, g1, shares) -> str:
+    steps = [int(step) for step in gate["checkpoints"]]
+    measured = " and ".join(f"{shares[step]:.3e} at step {step}" for step in steps)
+    threshold = float(gate["threshold"])
+    if g1["fires"] is None:
+        return (
+            f"Gate G1 is not determinable: a physics share was not finite. "
+            f"Outcome: {g1['outcome']}."
+        )
+    if g1["fires"]:
+        return (
+            f"Gate G1 fired. The physics term supplied {measured} of the Adam update, "
+            f"at or above the {threshold:g} threshold. Outcome: {g1['outcome']}. "
+            "The conformance-first premise of Phase 61 is re-examined before "
+            "Phase 61 opens. Phase 59 itself is unaffected."
+        )
+    return (
+        f"Gate G1 did not fire. The physics term supplied {measured} of the Adam "
+        f"update, below the {threshold:g} threshold at both checkpoints. "
+        f"Outcome: {g1['outcome']}."
+    )
+
+
+def _run_jx1(args, identity, sources, scorecard, evidence_root, data_root, command):
+    import hashlib
+
+    from pinn.verification.evidence_io import redacted_command, ru_maxrss_bytes, write_json
+    from pinn.verification.feasibility_scorecard import SCORECARD_SHA256, g1_fires
+
+    steps, files = _jx1_steps(scorecard)
+    diag = scorecard.section("diag07")
+    rel = float(diag["tolerances"]["driver_vs_trainer_grad_norm_rel"])
+    microbatch = int(diag["microbatch_size"])
+    results = {}
+    checkpoints = []
+    checks = []
+    flags = {"parameters": True, "grads": True, "files": True, "optimizer": True}
+    writes = 0
+    for key, pair in _runtime_pairs(args.runtimes):
+        controller = diag07_common.build_controller(
+            args.code_root, diag07_common.REPO_ROOT, diag07_common.SEED42,
+            sources, pair,
+        )
+        records, provenance = _measure_jx1(
+            controller, diag07_common.REPO_ROOT, steps, files, scorecard, pair,
+            microbatch, rel, key, checks, flags,
+        )
+        writes += controller._checkpoint_store.write_attempts
+        results[key] = records
+        if key == "mps":
+            checkpoints.extend(provenance)
+        del controller
+        gc.collect()
+    if "mps" not in results:
+        raise RuntimeError("JX-1 requires the mps runtime")
+    if "cpu" in results:
+        _compare_jx1_cpu(results["mps"], results["cpu"], scorecard, checks)
+
+    gate = scorecard.section("gate_g1")
+    gate_steps = [int(step) for step in gate["checkpoints"]]
+    mps_primary = {
+        step: results["mps"][step]["shares"]["primary"]["phys"] for step in gate_steps
+    }
+    mps_g1 = g1_fires(mps_primary, scorecard=scorecard)
+    checks.append({
+        "name": "jx1.g1_determinable",
+        "passed": mps_g1["fires"] is not None,
+        "detail": str(mps_g1["outcome"]),
+    })
+    cpu_primary = None
+    cpu_g1 = None
+    if "cpu" in results:
+        cpu_primary = {
+            step: results["cpu"][step]["shares"]["primary"]["phys"] for step in gate_steps
+        }
+        cpu_g1 = g1_fires(cpu_primary, scorecard=scorecard)
+        checks.append({
+            "name": "jx1.g1_outcome_cpu_vs_mps",
+            "passed": (
+                cpu_g1["fires"] == mps_g1["fires"]
+                and cpu_g1["outcome"] == mps_g1["outcome"]
+            ),
+            "detail": f"{cpu_g1['outcome']} vs {mps_g1['outcome']}",
+        })
+    for label, passed in (
+        ("parameters_unchanged", flags["parameters"]),
+        ("grads_none", flags["grads"]),
+        ("optimizer_not_built", flags["optimizer"]),
+        ("checkpoint_writes", writes == 0),
+        ("runs_hashes_unchanged", flags["files"]),
+    ):
+        checks.append({"name": f"jx1.{label}", "passed": bool(passed), "detail": "non-interference"})
+    failed = [item["name"] for item in checks if not item["passed"]]
+
+    readings = {str(step): results["mps"][step]["shares"]["reading"] for step in gate_steps}
+    plain = _jx1_plain(results["mps"], gate_steps, readings)
+    if failed:
+        plain += " A frozen tolerance check failed, so this run is not accepted."
+    diag07_common.assert_module_provenance(
+        args.code_root, diag07_common.REPO_ROOT, identity["overlay_modules"],
+    )
+    payload = {
+        "schema": "phase59-diag07-result/v1",
+        "experiment": "JX-1",
+        "plain_language": plain,
+        "command": redacted_command(command, data_root=data_root),
+        "code_identity": identity,
+        "runtimes": [list(pair) for _key, pair in _runtime_pairs(args.runtimes)],
+        "checkpoints": checkpoints,
+        "scorecard_sha256": SCORECARD_SHA256,
+        "results": {
+            key: {str(step): record for step, record in records.items()}
+            for key, records in results.items()
+        },
+        "reading": {
+            "question": "Was physics a passenger in generation 7's Adam update?",
+            "supports": "PC-2 (physics was a passenger)",
+            "falsifies": "PC-2",
+            "outcome": "; ".join(f"{step}: {readings[str(step)]}" for step in gate_steps),
+            "outcome_by_checkpoint": readings,
+        },
+        "tolerance_checks": checks,
+        "memory": {"ru_maxrss_bytes": ru_maxrss_bytes()},
+        "non_interference": {
+            "parameters_unchanged": bool(flags["parameters"]),
+            "grads_none": bool(flags["grads"]),
+            "optimizer_constructed": bool(flags["optimizer"]),
+            "checkpoint_writes": int(writes),
+            "runs_hashes_unchanged": bool(flags["files"]),
+        },
+        "files_opened": sources["attestation"].summary(),
+        "producer_sha256": diag07_common.producer_hashes(Path(__file__).resolve()),
+        "normalizer": sources["normalizer"],
+    }
+    diag07_common.write_result(evidence_root, "jx01.json", payload, data_root=data_root)
+    source_sha256 = hashlib.sha256((Path(evidence_root) / "jx01.json").read_bytes()).hexdigest()
+    g1_plain = _g1_plain(gate, mps_g1, mps_primary)
+    if failed:
+        g1_plain += " A frozen tolerance check failed, so this run is not accepted."
+    record = {
+        "schema": "phase59-gate-g1/v1",
+        "plain_language": g1_plain,
+        "scorecard_sha256": SCORECARD_SHA256,
+        "threshold": float(gate["threshold"]),
+        "checkpoints": gate_steps,
+        "primary_share": {str(step): mps_primary[step] for step in gate_steps},
+        "secondary_share": {
+            str(step): results["mps"][step]["shares"]["secondary"]["phys"]
+            for step in gate_steps
+        },
+        "fires": mps_g1["fires"],
+        "outcome": mps_g1["outcome"],
+        "source_sha256": source_sha256,
+        "producer_sha256": diag07_common.producer_hashes(Path(__file__).resolve()),
+    }
+    if cpu_g1 is not None:
+        record["cpu_primary_share"] = {str(step): cpu_primary[step] for step in gate_steps}
+        record["cpu_outcome"] = cpu_g1["outcome"]
+    write_json(Path(evidence_root) / "g1.json", record, data_root=data_root)
+    return failed
 
 
 def main(argv=None) -> int:
     args = _parse(argv)
     command = list(sys.argv if argv is None else [sys.argv[0], *list(argv)])
-    if args.experiment != "jx10":
-        print("JX-1 is not in this driver revision", file=sys.stderr)
-        return 2
     identity = diag07_common.bootstrap(
         args.code_root, diag07_common.REPO_ROOT,
     )
@@ -431,6 +822,7 @@ def main(argv=None) -> int:
         FreezeNotEstablished,
         LaunchRefused,
         MemoryPreflightError,
+        files_opened_record,
         provenance_record,
         write_json,
     )
@@ -469,8 +861,20 @@ def main(argv=None) -> int:
             + str(sources["normalizer"]["deviation"]).lower(),
             file=sys.stderr,
         )
-        _outcome, failed = _run_jx10(
-            args, identity, sources, scorecard, evidence_root, data_root, command,
+        failed = []
+        if args.experiment in ("jx10", "all"):
+            _outcome, failed_jx10 = _run_jx10(
+                args, identity, sources, scorecard, evidence_root, data_root, command,
+            )
+            failed.extend(failed_jx10)
+        if args.experiment in ("jx1", "all") and not failed:
+            failed.extend(_run_jx1(
+                args, identity, sources, scorecard, evidence_root, data_root, command,
+            ))
+        write_json(
+            evidence_root / "files_opened_jx01_jx10.json",
+            files_opened_record("jx01_jx10.py", sources["attestation"].summary()),
+            data_root=data_root,
         )
         record = provenance_record(
             "jx01_jx10.py",

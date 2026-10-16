@@ -786,6 +786,119 @@ class IcSplitTests(_DecompositionFixture):
         self.assertLessEqual(self.norm(residual), 1e-10 * self.norm(vectors["ic"]))
 
 
+class Jx1FlowTests(_DecompositionFixture):
+    """The driver's JX-1 measurement on the tiny controller, with a synthetic payload."""
+
+    def test_one_measurement_records_norms_cosines_and_shares_without_side_effects(self) -> None:
+        common = _require_function(self, "per_term_gradients")
+        driver = load_driver()
+        self.assertTrue(hasattr(driver, "_measure_jx1"), "_measure_jx1 is required")
+        from pinn.verification.feasibility_scorecard import load_scorecard
+
+        scorecard = load_scorecard()
+        controller, store, parameters, batch, _anchor_ctx, _weights = self.build(common)
+        controller._front_monitor_batch = batch
+        generator = torch.Generator().manual_seed(0)
+        state = {
+            index: {
+                "step": torch.tensor(900.0),
+                "exp_avg": torch.randn(parameter.shape, generator=generator) * 1e-3,
+                "exp_avg_sq": torch.rand(parameter.shape, generator=generator) * 1e-6 + 1e-9,
+            }
+            for index, parameter in enumerate(parameters)
+        }
+        payload = {
+            "counters": {"global_step": 900},
+            "optimizer": {
+                "state": state,
+                "param_groups": [{
+                    "params": list(range(len(parameters))),
+                    "betas": (0.9, 0.999),
+                    "eps": 1e-8,
+                }],
+            },
+        }
+        before = [parameter.detach().clone() for parameter in parameters]
+        checks, flags = [], {"parameters": True, "grads": True, "files": True, "optimizer": True}
+        with mock.patch.object(
+            common, "load_registry_checkpoint", return_value=(payload, {"file": "best.pt"}),
+        ), mock.patch.object(common, "file_hashes", return_value={}), mock.patch.object(
+            driver, "_load_into",
+        ):
+            records, provenance = driver._measure_jx1(
+                controller, ROOT, [900], {900: "best.pt"}, scorecard,
+                ("float64", "cpu"), 20, 1e-5, "cpu", checks, flags,
+            )
+        record = records[900]
+        json.dumps(record)
+        self.assertEqual(provenance, [{"file": "best.pt"}])
+        self.assertTrue(all(item["passed"] for item in checks), checks)
+        self.assertTrue(all(flags.values()), flags)
+        self.assertEqual(set(record["grad_norm_raw"]), set(driver._TERMS))
+        self.assertEqual(
+            set(record["cosines"]), {"ic_phys", "ic_data", "phys_data"},
+        )
+        self.assertGreater(record["ic_split"]["position_norm"], 0.0)
+        shares = record["shares"]
+        self.assertAlmostEqual(shares["primary_sum"], 1.0, places=6)
+        self.assertEqual(shares["adam_step"], 900.0)
+        self.assertIn("physics", shares["reading"])
+        self.assertTrue(all(parameter.grad is None for parameter in parameters))
+        for parameter, original in zip(parameters, before):
+            self.assertTrue(torch.equal(parameter.detach(), original))
+        self.assertEqual(store.write_attempts, 0)
+        self.assertIsNone(controller._optimizer)
+
+    def test_a_checkpoint_without_moments_records_that_no_share_is_computable(self) -> None:
+        common = _require_function(self, "per_term_gradients")
+        driver = load_driver()
+        self.assertTrue(hasattr(driver, "_measure_jx1"), "_measure_jx1 is required")
+        from pinn.verification.feasibility_scorecard import load_scorecard
+
+        scorecard = load_scorecard()
+        controller, _store, _parameters, batch, _anchor_ctx, _weights = self.build(common)
+        controller._front_monitor_batch = batch
+        payload = {"counters": {"global_step": 0}, "optimizer": None}
+        checks, flags = [], {"parameters": True, "grads": True, "files": True, "optimizer": True}
+        with mock.patch.object(
+            common, "load_registry_checkpoint", return_value=(payload, {"file": "init.pt"}),
+        ), mock.patch.object(common, "file_hashes", return_value={}), mock.patch.object(
+            driver, "_load_into",
+        ):
+            records, _provenance = driver._measure_jx1(
+                controller, ROOT, [0], {0: "init.pt"}, scorecard,
+                ("float64", "cpu"), 20, 1e-5, "cpu", checks, flags,
+            )
+        self.assertEqual(records[0]["shares"], "not computable: no stored moments")
+        self.assertTrue(all(item["passed"] for item in checks), checks)
+
+    def test_cpu_against_mps_uses_the_frozen_relative_and_absolute_floor_rules(self) -> None:
+        driver = load_driver()
+        self.assertTrue(hasattr(driver, "_compare_jx1_cpu"), "_compare_jx1_cpu is required")
+        from pinn.verification.feasibility_scorecard import load_scorecard
+
+        scorecard = load_scorecard()
+        terms = driver._TERMS
+
+        def record(norm, share):
+            kinds = {kind: {term: share for term in terms} for kind in ("primary", "secondary")}
+            return {"grad_norm_raw": {term: norm for term in terms}, "shares": kinds}
+
+        def outcome(cpu_norm, cpu_share):
+            checks = []
+            driver._compare_jx1_cpu(
+                {900: record(1.0, 0.0)}, {900: record(cpu_norm, cpu_share)}, scorecard, checks,
+            )
+            return {item["name"]: item["passed"] for item in checks}
+
+        inside = outcome(1.0009, 9e-8)
+        self.assertTrue(all(inside.values()), inside)
+        norm_out = outcome(1.0011, 0.0)
+        self.assertFalse(norm_out["jx1.cpu_vs_mps.900.grad_norms"])
+        share_out = outcome(1.0, 2e-7)
+        self.assertFalse(share_out["jx1.cpu_vs_mps.900.shares"])
+
+
 class CosineTests(unittest.TestCase):
     def test_cosine_of_parallel_orthogonal_and_zero_vectors(self) -> None:
         module = _require_function(self, "cosine")

@@ -465,6 +465,210 @@ def file_hashes(paths) -> dict:
     return {str(path): _sha256_file(Path(path)) for path in paths}
 
 
+def _flat_float64(tensors):
+    """Concatenate tensors into one flat CPU float64 vector."""
+    import torch
+
+    return torch.cat([
+        tensor.detach().reshape(-1).to(device="cpu", dtype=torch.float64)
+        for tensor in tensors
+    ])
+
+
+def cosine(a, b):
+    """Cosine of two flat vectors in float64, or None when either has zero norm."""
+    import torch
+
+    left = torch.as_tensor(a, dtype=torch.float64)
+    right = torch.as_tensor(b, dtype=torch.float64)
+    scale = float(torch.linalg.vector_norm(left)) * float(torch.linalg.vector_norm(right))
+    if scale == 0.0:
+        return None
+    return float(torch.dot(left, right)) / scale
+
+
+def per_term_gradients(controller, batch, anchor_ctx, weights, *, microbatch_size) -> dict:
+    """Flat CPU float64 gradient of each loss term, in model.parameters() order.
+
+    Mirrors RunController._run_adam_step_microbatched (Pass 1 for the causal
+    weights, then Pass 2 per chunk of collocation times) but takes
+    torch.autograd.grad per term, so it never writes .grad and builds no
+    optimizer. "ic_position" is the gradient of the IC loss with beta_v 0 and
+    "ic_velocity" is the IC gradient minus that half. "total_weighted" is the
+    sum of lambda_k * g_k over data, ic, phys, energy and angmom.
+    """
+    import torch
+    from pinn.constants import T_CHARACTERISTIC_TIME
+    from pinn.loss_catalog import angular_momentum_loss, ic_anchor_loss, soft_energy_loss
+    from pinn.physics_residual import componentwise_du
+    from pinn.training.controllers import _RATIFIED_N_BINS, _bin_index_for_times
+
+    parameters = tuple(p for p in controller.model.parameters() if p.requires_grad)
+    dtype, device = controller._dtype, controller._device
+    size = sum(parameter.numel() for parameter in parameters)
+    names = ("data", "ic", "ic_position", "ic_velocity", "phys", "energy", "angmom")
+    vectors = {name: torch.zeros(size, dtype=torch.float64) for name in names}
+
+    def gradient(term, *, retain):
+        return _flat_float64(torch.autograd.grad(
+            term, parameters, retain_graph=retain,
+            allow_unused=True, materialize_grads=True,
+        ))
+
+    phys_details, bin_counts = controller._adam_frozen_causal_weights(
+        anchor_ctx, microbatch_size=microbatch_size,
+    )
+    w_n = phys_details["w_n"]
+    r_ref = float(phys_details["r_ref"])
+
+    zero_u = torch.zeros((), dtype=dtype, device=device)
+    pred_r0 = anchor_ctx.traj(zero_u)
+    first0, _second0 = componentwise_du(anchor_ctx.traj, zero_u)
+    pred_v0 = first0.reshape(3, 3)
+    ic_term = ic_anchor_loss(
+        pred_r0, anchor_ctx.true_r0, pred_v0, anchor_ctx.true_v0,
+        dtype=dtype, device=device,
+    )
+    ic_position_term = ic_anchor_loss(
+        pred_r0, anchor_ctx.true_r0, pred_v0, anchor_ctx.true_v0,
+        beta_v=0.0, dtype=dtype, device=device,
+    )
+    ic_velocity_term = ic_term - ic_position_term
+    data_term = controller._data_term(batch.data_points)
+    vectors["data"] += gradient(data_term, retain=False)
+    vectors["ic"] += gradient(ic_term, retain=True)
+    vectors["ic_position"] += gradient(ic_position_term, retain=True)
+    vectors["ic_velocity"] += gradient(ic_velocity_term, retain=False)
+    del data_term, ic_term, ic_position_term, ic_velocity_term, pred_r0, pred_v0, first0
+    controller._release_chunk_memory()
+
+    times_np = anchor_ctx.collocation_times
+    n_total = int(times_np.shape[0])
+    start = 0
+    while start < n_total:
+        end = min(start + microbatch_size, n_total)
+        chunk_times = times_np[start:end]
+        positions, velocities, rbar = controller._collocation_chunk_raw(
+            anchor_ctx, chunk_times,
+        )
+        times_tensor = torch.as_tensor(chunk_times, dtype=dtype, device=device)
+        bin_index = _bin_index_for_times(
+            times_tensor, n_bins=_RATIFIED_N_BINS, t_max=T_CHARACTERISTIC_TIME,
+        )
+        row_weight = w_n[bin_index] / (
+            float(_RATIFIED_N_BINS) * r_ref * bin_counts[bin_index]
+        )
+        phys_chunk = (row_weight * rbar).sum()
+        chunk_fraction = float(end - start) / float(n_total)
+        energy_chunk = chunk_fraction * soft_energy_loss(
+            positions, velocities, anchor_ctx.h0, anchor_ctx.eps_h,
+            masses=anchor_ctx.masses, dtype=dtype, device=device,
+        )
+        angmom_chunk = chunk_fraction * angular_momentum_loss(
+            positions, velocities, anchor_ctx.l0,
+            masses=anchor_ctx.masses, dtype=dtype, device=device,
+        )
+        vectors["phys"] += gradient(phys_chunk, retain=True)
+        vectors["energy"] += gradient(energy_chunk, retain=True)
+        vectors["angmom"] += gradient(angmom_chunk, retain=False)
+        del positions, velocities, rbar, times_tensor, bin_index, row_weight
+        del phys_chunk, energy_chunk, angmom_chunk
+        controller._release_chunk_memory()
+        start = end
+
+    vectors["total_weighted"] = (
+        weights.lambda_data * vectors["data"]
+        + weights.lambda_ic * vectors["ic"]
+        + weights.lambda_phys * vectors["phys"]
+        + weights.lambda_e * vectors["energy"]
+        + weights.lambda_l * vectors["angmom"]
+    )
+    return vectors
+
+
+def flatten_optimizer_state(payload, model):
+    """Flatten Adam exp_avg, exp_avg_sq and the common step in model.parameters() order.
+
+    Returns (exp_avg, exp_avg_sq, step) with flat CPU float64 vectors. A missing
+    state entry, a shape that differs from its parameter, an index order that
+    is not model.parameters() order, or differing steps raise ValueError.
+    """
+    optimizer = payload.get("optimizer")
+    if not isinstance(optimizer, dict):
+        raise ValueError("payload has no optimizer state")
+    state = optimizer.get("state") or {}
+    parameters = list(model.parameters())
+    indices = [
+        index
+        for group in (optimizer.get("param_groups") or [])
+        for index in group.get("params", [])
+    ]
+    if indices != list(range(len(parameters))):
+        raise ValueError("optimizer parameter indices do not follow model.parameters() order")
+    if len(state) != len(parameters):
+        raise ValueError("optimizer state length differs from the number of parameters")
+    exp_avg, exp_avg_sq, steps = [], [], set()
+    for index, parameter in enumerate(parameters):
+        entry = state.get(index)
+        if entry is None:
+            raise ValueError(f"optimizer state is missing parameter {index}")
+        for key, bucket in (("exp_avg", exp_avg), ("exp_avg_sq", exp_avg_sq)):
+            value = entry[key]
+            if tuple(value.shape) != tuple(parameter.shape):
+                raise ValueError(f"optimizer {key} shape differs for parameter {index}")
+            bucket.append(value)
+        steps.add(_as_step(entry["step"]))
+    if len(steps) != 1:
+        raise ValueError("optimizer steps differ across parameters")
+    return _flat_float64(exp_avg), _flat_float64(exp_avg_sq), steps.pop()
+
+
+def preconditioned_shares(
+    weighted_vectors, total, exp_avg, exp_avg_sq, step, *, beta1, beta2, eps,
+) -> dict:
+    """Adam-preconditioned share of each weighted term in the update direction.
+
+    P = 1 / (sqrt(v_hat) + eps) with v_hat = exp_avg_sq / (1 - beta2**step) and
+    m_hat = exp_avg / (1 - beta1**step). primary[k] = <P w_k, P total> / |P total|^2
+    and secondary[k] = <P w_k, P m_hat> / |P m_hat|^2. All in float64.
+    """
+    import torch
+
+    f64 = torch.float64
+    total = torch.as_tensor(total, dtype=f64)
+    exp_avg = torch.as_tensor(exp_avg, dtype=f64)
+    exp_avg_sq = torch.as_tensor(exp_avg_sq, dtype=f64)
+    vectors = {
+        name: torch.as_tensor(vector, dtype=f64)
+        for name, vector in weighted_vectors.items()
+    }
+    shapes = {tuple(tensor.shape) for tensor in (total, exp_avg, exp_avg_sq, *vectors.values())}
+    if len(shapes) != 1 or total.dim() != 1:
+        raise ValueError("share vectors must be flat and of one length")
+    step = float(step)
+    if not step > 0.0:
+        raise ValueError("adam step must be positive")
+    v_hat = exp_avg_sq / (1.0 - beta2 ** step)
+    m_hat = exp_avg / (1.0 - beta1 ** step)
+    precond = 1.0 / (torch.sqrt(v_hat) + eps)
+    p_total = precond * total
+    p_momentum = precond * m_hat
+    total_norm_sq = float(torch.dot(p_total, p_total))
+    momentum_norm_sq = float(torch.dot(p_momentum, p_momentum))
+    if total_norm_sq == 0.0 or momentum_norm_sq == 0.0:
+        raise ValueError("preconditioned vector is zero, so the share is undefined")
+    primary, secondary = {}, {}
+    for name, vector in vectors.items():
+        p_vector = precond * vector
+        primary[name] = float(torch.dot(p_vector, p_total)) / total_norm_sq
+        secondary[name] = float(torch.dot(p_vector, p_momentum)) / momentum_norm_sq
+    return {
+        "primary": primary,
+        "secondary": secondary,
+        "primary_sum": sum(primary.values()),
+    }
+
+
 def producer_hashes(driver_path) -> dict:
     """SHA-256 of this library, the driver, and the five overlay modules."""
     from pinn.verification import evidence_io
