@@ -256,6 +256,165 @@ def _bins(controller, anchor_ctx) -> dict:
     }
 
 
+def fixture_anchor_context(controller, source, key, times):
+    """The trainer's own anchor context for an arbitrary trajectory and times."""
+    from types import SimpleNamespace
+
+    batch = SimpleNamespace(
+        replay_keys=(key,),
+        lookahead_keys=(),
+        data_points=SimpleNamespace(record_keys=(key,)),
+        collocation_points=None,
+    )
+    return controller._build_anchor_context(
+        source, batch, fixed_collocation_times=np.asarray(times, dtype=np.float64),
+    )
+
+
+def prefix_profile(controller, anchor_ctx) -> dict:
+    """Bin means, causal weights, the prefix of normalized means and the front."""
+    bins = _bins(controller, anchor_ctx)
+    prefix = [0.0]
+    for value in bins["rtilde"]:
+        prefix.append(prefix[-1] + float(value))
+    bins["prefix"] = prefix
+    return bins
+
+
+def physical_scale(gold_reference) -> float:
+    """Mean over gold samples with t <= 10 of the body-averaged squared true force."""
+    import torch
+    from pinn.constants import T_CHARACTERISTIC_TIME
+    from pinn.physics_residual import softened_acceleration
+
+    times = np.asarray(gold_reference.times, dtype=np.float64).reshape(-1)
+    keep = times <= float(T_CHARACTERISTIC_TIME) + 1e-9
+    positions = np.asarray(gold_reference.positions, dtype=np.float64)[keep]
+    force = softened_acceleration(
+        positions,
+        np.asarray(gold_reference.masses, dtype=np.float64),
+        dtype=torch.float64,
+        device=torch.device("cpu"),
+    )
+    return float(((force ** 2).sum(dim=(-2, -1)) / 3.0).mean())
+
+
+def physical_front(raw_rbar, scale, *, dtype, device) -> int:
+    """The causal front with R_ref replaced by a physical scale."""
+    import torch
+    from pinn.constants import T_CHARACTERISTIC_TIME
+    from pinn.loss_catalog import causal_physics_loss
+
+    n_bins = 16
+    centres = (np.arange(n_bins) + 0.5) / n_bins * float(T_CHARACTERISTIC_TIME)
+    _loss, details = causal_physics_loss(
+        torch.as_tensor(np.asarray(raw_rbar, dtype=np.float64), dtype=dtype, device=device),
+        r_ref=float(scale),
+        times=torch.as_tensor(centres, dtype=dtype, device=device),
+        dtype=dtype,
+        device=device,
+        return_details=True,
+    )
+    weights = [float(value) for value in _cpu64(details["w_n"]).tolist()]
+    return max([n for n, w in enumerate(weights) if w > 0.5], default=-1)
+
+
+def jx2_reading(frozen_900, frozen_951, draws_900, draws_951) -> str:
+    """Parameter motion only if the frozen change exceeds both 20-draw ranges."""
+    change = abs(float(frozen_951) - float(frozen_900))
+    range_900 = float(np.max(draws_900) - np.min(draws_900))
+    range_951 = float(np.max(draws_951) - np.min(draws_951))
+    if change > range_900 and change > range_951:
+        return "parameter motion"
+    return "estimator noise not excluded"
+
+
+def jx4_reading(front_0, front_951, fixture_rows) -> str:
+    """The frozen JX-4 rule on the relative front and the fixtures' tiers."""
+    if not int(front_951) > int(front_0):
+        return "inconclusive"
+    if all(int(row["tier_951"]) == 0 for row in fixture_rows):
+        return "relative descent without useful accuracy"
+    if any(
+        int(row["tier_951"]) >= 1 and float(row["E_951"]) <= 0.9 * float(row["E_0"])
+        for row in fixture_rows
+    ):
+        return "useful accuracy with relative descent"
+    return "inconclusive"
+
+
+def _network_trajectory(model, ic13, masses, times, *, dtype, device, microbatch_size):
+    """feasibility_scorer.network_trajectory with an MPS-safe float64 widening.
+
+    GAP-59-13: the scorer widens with one .to(device="cpu", dtype=float64) call,
+    which MPS refuses. This copy differs only in moving to the CPU first. The
+    scorer itself stays byte-unchanged because its SHA-256 is pinned by the
+    committed Plan-07 results.
+    """
+    import torch
+    from pinn.constants import T_CHARACTERISTIC_TIME
+    from pinn.physics_residual import componentwise_du
+    from pinn.verification.feasibility_scorer import _trainer_closure
+
+    time_array = np.asarray(times, dtype=np.float64).reshape(-1)
+    u_all = time_array / float(T_CHARACTERISTIC_TIME)
+    traj, flat_traj = _trainer_closure(model, ic13, masses, dtype=dtype, device=device)
+    prior_training = bool(model.training)
+    position_chunks, velocity_chunks, acceleration_chunks = [], [], []
+    try:
+        model.eval()
+        for start in range(0, int(u_all.shape[0]), microbatch_size):
+            u_chunk = torch.as_tensor(
+                u_all[start : start + microbatch_size], dtype=dtype, device=device
+            )
+            positions = torch.func.vmap(flat_traj)(u_chunk)
+            velocities = torch.func.vmap(torch.func.jacrev(flat_traj))(u_chunk)
+            _first, second = componentwise_du(traj, u_chunk)
+            position_chunks.append(_cpu64(positions).numpy().reshape(-1, 3, 3))
+            velocity_chunks.append(_cpu64(velocities).numpy().reshape(-1, 3, 3))
+            acceleration_chunks.append(_cpu64(second).numpy().reshape(-1, 3, 3))
+            del positions, velocities, second, _first, u_chunk
+            gc.collect(0)
+    finally:
+        if prior_training:
+            model.train()
+        else:
+            model.eval()
+    return (
+        np.concatenate(position_chunks, axis=0),
+        np.concatenate(velocity_chunks, axis=0),
+        np.concatenate(acceleration_chunks, axis=0),
+    )
+
+
+def network_score(model, ic13, masses, ref_positions, inner_pair, times, *,
+                  scorecard, dtype, device, grid, microbatch_size=MICROBATCH):
+    """feasibility_scorer.score_network through the MPS-safe trajectory (GAP-59-13)."""
+    from dataclasses import replace
+
+    from pinn.verification.feasibility_scorer import (
+        load_governed_r_ref,
+        physics_residual_context,
+        score_trajectory,
+    )
+
+    positions, velocities, accelerations = _network_trajectory(
+        model, ic13, masses, times, dtype=dtype, device=device, microbatch_size=microbatch_size,
+    )
+    result = score_trajectory(
+        positions, velocities, ref_positions, masses, inner_pair, times,
+        velocity_source="autograd", scorecard=scorecard, grid=grid,
+    )
+    context = physics_residual_context(
+        positions, accelerations, masses, r_ref=load_governed_r_ref(),
+    )
+    return replace(
+        result,
+        physics_residual_mean=context["mean"],
+        physics_residual_max=context["max"],
+    )
+
+
 def _key_json(key) -> dict:
     return {"variant": key.variant, "fidelity": key.fidelity, "id": int(key.id)}
 
@@ -443,6 +602,267 @@ def _run_jx5(session, identity, evidence_root, data_root, command):
     return failed
 
 
+_STEP_FILES = {
+    0: "stage-0-init.pt",
+    900: "best.pt",
+    931: "step-000931.pt",
+    941: "step-000941.pt",
+    951: "step-000951.pt",
+}
+_PANELS_REL = Path(".planning/phases/59-read-only-baseline-scorecard/evidence/census/panels.json")
+
+
+def _checkpoint_files(scorecard, steps) -> dict:
+    """Map each frozen step to its file (D-29: 951 is step-000951.pt)."""
+    registry = scorecard.section("diag07")["checkpoints"][diag07_common.SEED42]
+    files = {}
+    for step in steps:
+        name = _STEP_FILES.get(int(step))
+        if name is None or int(registry[name]) != int(step):
+            raise ToleranceFailure(f"no registered checkpoint for step {step}")
+        files[int(step)] = name
+    return files
+
+
+def _stratified(seed):
+    from pinn.verification.architecture_characterization_probe import stratified_collocation_times
+
+    times, _bins = stratified_collocation_times(
+        n_bins=16, per_bin=256, rng=np.random.default_rng(int(seed)),
+    )
+    return times
+
+
+def _check_anchor(session, checks, prefix):
+    key = session.monitor_anchor()
+    checks.append({
+        "name": f"{prefix}.monitor_anchor",
+        "passed": int(key.id) == EXPECTED_MONITOR_ANCHOR,
+        "detail": f"{key.id} vs {EXPECTED_MONITOR_ANCHOR}",
+    })
+    return key
+
+
+def _run_jx2(session, identity, evidence_root, data_root, command):
+    rules = session.scorecard.section("diag07")["jx2"]
+    files = _checkpoint_files(session.scorecard, rules["checkpoints"])
+    seeds = [int(rules["draw_seed_base"]) + k for k in range(int(rules["draws"]))]
+    draw_times = [_stratified(seed) for seed in seeds]
+    controller = session.controller
+    checks = []
+    per_step = {}
+    for step, name in files.items():
+        info = session.load(name)
+        frozen = diag07_common.monitor_fields(controller)
+        key = _check_anchor(session, checks, f"jx2.{step}")
+        prefixes, fronts = [], []
+        for seed, times in zip(seeds, draw_times):
+            ctx = fixture_anchor_context(controller, controller._train_source, key, times)
+            profile = prefix_profile(controller, ctx)
+            prefixes.append(profile["prefix"])
+            fronts.append(profile["front_idx"])
+            del ctx
+            print(f"jx2 step {step} seed {seed} front {profile['front_idx']}", file=sys.stderr, flush=True)
+        session.release()
+        per_step[step] = {
+            "file": name,
+            "global_step": int(info["global_step"]),
+            "frozen_front_idx": int(frozen["front_idx"]),
+            "frozen_prefix": frozen["prefix"],
+            "draw_seeds": seeds,
+            "draw_prefixes": prefixes,
+            "draw_front_idx": fronts,
+        }
+    statistic_bin = max(per_step[900]["frozen_front_idx"], per_step[951]["frozen_front_idx"])
+    if statistic_bin < 0:
+        raise ToleranceFailure("JX-2 statistic bin is undefined: both frozen fronts are -1")
+    for record in per_step.values():
+        values = [prefix[statistic_bin + 1] for prefix in record["draw_prefixes"]]
+        counts = {}
+        for front in record["draw_front_idx"]:
+            counts[str(front)] = counts.get(str(front), 0) + 1
+        record["frozen_statistic"] = float(record["frozen_prefix"][statistic_bin + 1])
+        record["draws"] = {
+            "values": [float(value) for value in values],
+            "min": float(np.min(values)),
+            "median": float(np.median(values)),
+            "max": float(np.max(values)),
+            "std": float(np.std(values)),
+            "range": float(np.max(values) - np.min(values)),
+            "front_idx_counts": dict(sorted(counts.items(), key=lambda item: int(item[0]))),
+        }
+    change = abs(per_step[951]["frozen_statistic"] - per_step[900]["frozen_statistic"])
+    outcome = jx2_reading(
+        per_step[900]["frozen_statistic"], per_step[951]["frozen_statistic"],
+        per_step[900]["draws"]["values"], per_step[951]["draws"]["values"],
+    )
+    checks.extend(session.interference_checks("jx2"))
+    results = {
+        "trajectory": _key_json(key),
+        "statistic": str(rules["statistic"]),
+        "statistic_bin": int(statistic_bin),
+        "frozen_change_900_to_951": float(change),
+        "checkpoints": {str(step): record for step, record in per_step.items()},
+    }
+    plain = (
+        "JX-2 asked whether the run's progress monitor moved between steps 900 and "
+        "951 by more than its own sampling noise. On the monitor's own trajectory, "
+        f"the prefix through bin {statistic_bin} changed by {change:.3e}, while 20 "
+        "fresh draws of collocation times spread it over "
+        f"{per_step[900]['draws']['range']:.3e} at step 900 and "
+        f"{per_step[951]['draws']['range']:.3e} at step 951. Reading: {outcome}."
+    )
+    reading = {
+        "question": "Is the monitor's movement from step 900 to 951 larger than its own estimator noise?",
+        "supports": "parameter motion (J1.c, J5.a)",
+        "falsifies": "parameter motion (J1.c, J5.a)",
+        "outcome": outcome,
+        "rule": str(rules["parameter_motion_if"]),
+    }
+    payload, failed = _payload(
+        "JX-2", plain, session, identity, results, reading, checks, command, data_root,
+    )
+    diag07_common.write_result(evidence_root, "jx02.json", payload, data_root=data_root)
+    return failed
+
+
+def _run_jx4(session, identity, evidence_root, data_root, command):
+    import hashlib
+    import json
+
+    import torch
+    from pinn.constants import T_CHARACTERISTIC_TIME
+    from pinn.data.types import RecordKey
+    from pinn.verification.feasibility_scorecard import SCORECARD_SHA256
+    from pinn.verification.production_reference import load_reference
+
+    rules = session.scorecard.section("diag07")["jx4"]
+    files = _checkpoint_files(session.scorecard, rules["checkpoints"])
+    panels_path = diag07_common.REPO_ROOT / _PANELS_REL
+    panels_bytes = panels_path.read_bytes()
+    panels = json.loads(panels_bytes.decode("utf-8"))
+    if panels.get("scorecard_sha256") != SCORECARD_SHA256:
+        raise ToleranceFailure("panels.json scorecard_sha256 is not the frozen scorecard")
+    singles = {int(row["percentile"]): int(row["id"]) for row in panels["singles"]}
+    controller = session.controller
+    dtype, device = controller._dtype, controller._device
+    times = _stratified(rules["draw_seed"])
+    checks = []
+    fixtures = None
+    references = {}
+    rows = {}
+    monitor = {}
+    for step, name in files.items():
+        session.load(name)
+        anchor = _check_anchor(session, checks, f"jx4.{step}")
+        if fixtures is None:
+            fixtures = [
+                ("panel_single_p10", RecordKey("hierarchical", "base", singles[10])),
+                ("panel_single_p50", RecordKey("hierarchical", "base", singles[50])),
+                ("panel_single_p90", RecordKey("hierarchical", "base", singles[90])),
+                ("frozen_monitor_anchor", anchor),
+            ]
+            if [label for label, _key in fixtures] != list(rules["fixtures"]):
+                raise ToleranceFailure("JX-4 fixture labels differ from the scorecard")
+            for label, key in fixtures:
+                gold = load_reference(
+                    session.sources["reader"], RecordKey("hierarchical", "gold", int(key.id)),
+                )
+                keep = np.asarray(gold.times, dtype=np.float64) <= float(T_CHARACTERISTIC_TIME) + 1e-9
+                references[label] = {
+                    "times": np.asarray(gold.times, dtype=np.float64)[keep],
+                    "positions": np.asarray(gold.positions, dtype=np.float64)[keep],
+                    "inner_pair": tuple(gold.inner_pair),
+                    "scale": physical_scale(gold),
+                }
+                del gold
+        fields = diag07_common.monitor_fields(controller)
+        monitor[step] = {
+            "relative_front_idx": int(fields["front_idx"]),
+            "raw_rbar": fields["raw_rbar"],
+            "physical_front_idx": physical_front(
+                fields["raw_rbar"], references["frozen_monitor_anchor"]["scale"],
+                dtype=torch.float64, device=torch.device("cpu"),
+            ),
+        }
+        for label, key in fixtures:
+            reference = references[label]
+            ctx = fixture_anchor_context(controller, controller._train_source, key, times)
+            profile = prefix_profile(controller, ctx)
+            errors = ic_errors(ctx, dtype=dtype, device=device)
+            del ctx
+            record = controller._train_source.get(key)
+            score = network_score(
+                controller.model, np.asarray(record.ic13, dtype=np.float64),
+                np.asarray(record.masses, dtype=np.float64),
+                reference["positions"], reference["inner_pair"], reference["times"],
+                scorecard=session.scorecard, dtype=dtype, device=device, grid="gold",
+            )
+            controller._release_chunk_memory()
+            rows.setdefault(label, {"record": _key_json(key), "physical_scale": reference["scale"]})
+            rows[label][str(step)] = {
+                "relative_front_idx": profile["front_idx"],
+                "physical_front_idx": physical_front(
+                    profile["raw_rbar"], reference["scale"],
+                    dtype=torch.float64, device=torch.device("cpu"),
+                ),
+                "raw_rbar": profile["raw_rbar"],
+                "rtilde": profile["rtilde"],
+                "ic_errors": errors,
+                "score": score.to_json_dict(),
+            }
+            print(
+                f"jx4 step {step} {label} E {score.E:.3e} tier {score.tier} "
+                f"front {profile['front_idx']}",
+                file=sys.stderr, flush=True,
+            )
+        session.release()
+    fixture_rows = [
+        {
+            "fixture": label,
+            "tier_0": rows[label]["0"]["score"]["tier"],
+            "tier_951": rows[label]["951"]["score"]["tier"],
+            "E_0": rows[label]["0"]["score"]["E"],
+            "E_951": rows[label]["951"]["score"]["E"],
+        }
+        for label, _key in fixtures
+    ]
+    front_0 = monitor[0]["relative_front_idx"]
+    front_951 = monitor[951]["relative_front_idx"]
+    outcome = jx4_reading(front_0, front_951, fixture_rows)
+    checks.extend(session.interference_checks("jx4"))
+    results = {
+        "draw_seed": int(rules["draw_seed"]),
+        "monitor": {str(step): value for step, value in monitor.items()},
+        "fixtures": rows,
+        "reading_inputs": {
+            "front_0": front_0,
+            "front_951": front_951,
+            "fixture_rows": fixture_rows,
+        },
+    }
+    tiers = ", ".join(f"{row['fixture']} tier {row['tier_951']}" for row in fixture_rows)
+    plain = (
+        "JX-4 compared the run's own relative progress signal with real orbit "
+        f"accuracy. The monitor's front moved from {front_0} at step 0 to "
+        f"{front_951} at step 951. At step 951 the fixtures score: {tiers}. "
+        f"Reading: {outcome}. It informs the scale question of JD-3 only (R-2)."
+    )
+    reading = {
+        "question": "Does the run's relative descent come with useful absolute accuracy?",
+        "supports": "relative descent without useful accuracy",
+        "falsifies": "useful accuracy with relative descent",
+        "outcome": outcome,
+        "informs": "JD-3 scale only",
+    }
+    payload, failed = _payload(
+        "JX-4", plain, session, identity, results, reading, checks, command, data_root,
+    )
+    payload["panels_sha256"] = hashlib.sha256(panels_bytes).hexdigest()
+    diag07_common.write_result(evidence_root, "jx04.json", payload, data_root=data_root)
+    return failed
+
+
 def main(argv=None) -> int:
     args = _parse(argv)
     command = list(sys.argv if argv is None else [sys.argv[0], *list(argv)])
@@ -484,7 +904,7 @@ def main(argv=None) -> int:
             diag07_common.REPO_ROOT, data_root, "explicit", scorecard,
         )
         session = _Session(args, sources, scorecard)
-        runners = {"jx5": _run_jx5}
+        runners = {"jx5": _run_jx5, "jx2": _run_jx2, "jx4": _run_jx4}
         order = ("jx5", "jx2", "jx4", "jx3")
         selected = order if args.experiment == "all" else (args.experiment,)
         failed = []
