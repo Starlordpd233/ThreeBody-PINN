@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-05-PLAN.md; 59-07 stays halted at the JX-10 packet-tolerance boundary (GAP-59-11 ruled, resume pending)"
-last_updated: "2026-10-15T03:31:06Z"
-last_activity: 2026-10-14
-last_activity_desc: Plan 59-05 recorded the reader acceptance under the GAP-59-10 deviation, the Stage-0 census, and the frozen-rule panels
-state_head: af13a180855755d11c3b673eed6f71bde9e2f2ae
+stopped_at: "Completed 59-07-PLAN.md; JX-10 and JX-1 are committed and Gate G1 did not fire (outcome proceed)"
+last_updated: "2026-10-17T00:12:00Z"
+last_activity: 2026-10-16
+last_activity_desc: Plan 59-07 committed JX-10 (54 of 54 checks), JX-1 and Gate G1 (physics share 7.19e-07 and 2.60e-08, outcome proceed)
+state_head: 41dee29a2b210db215e4c1ea2a30f8608cf33616
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 5
-  percent: 50
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State
@@ -30,18 +30,18 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 5 of 10 complete (59-05). Plan 59-07 is halted at the JX-10 acceptance; the owner ruled GAP-59-11 (option A, exact decimal units) in `59-GAPS.md` and the plan resumes next.
-Status: Ready to resume 59-07, then Wave 4 (59-06, 59-08, 59-09)
-Last activity: 2026-10-14 — Plan 59-05 reader acceptance, Stage-0 census, and panels committed
+Plan: 6 of 10 complete (59-07). Waves 1 to 3 are done and Wave 4 (59-06, 59-08, 59-09) is next.
+Status: Ready for Wave 4 (59-06, 59-08, 59-09)
+Last activity: 2026-10-16 — Plan 59-07 JX-10, JX-1 and Gate G1 committed (G1 did not fire)
 
-### Blocker from 59-07 (2026-10-14)
+### Decisions from 59-07 (2026-10-16)
 
-- The memory halt cleared: the owner freed memory, and the 6 GiB preflight (`6442450944`, unchanged) passed at both relaunches.
-- The first run exposed a CPU-only driver bug (a `(float32, cpu)` controller that generation 7 refuses). Fixed in `a0fc5edf` with a regression test; 24 driver and static-guard tests pass.
-- JX-10 then finished on MPS float32 and CPU float64 in 112.6 s (`ru_maxrss` 3.36 GiB): seed-42 fronts 0, 1, 2, 2, 2 and smoke fronts 0, 0, 0, CPU equal to MPS, no checkpoint written, no optimizer built, test split not opened.
-- One of 54 frozen checks failed and the driver exited 3 with `DIAG07-TOLERANCE-FAIL: phase58.stage-0-init.pt.rtilde_bins_0_5`. Bin 2 of `stage-0-init.pt` measures 2.0538578 (rounds to 2.0539) against the packet's 2.0538; the unrounded gap is 5.78e-5 and CPU float64 gives 2.0538. The rounded pair differs by exactly one decimal step, and `2.0539 - 2.0538` evaluates to `1.0000000000021103e-4` in doubles, just over the `1e-4` bound. Four more comparisons are one step apart and passed by landing just under it. No frozen value and no comparison code was changed after the result.
-- Owner ruling needed: how `phase58_packet_rounded_abs = 1e-4` is evaluated at its boundary. A (recommended): exact decimal units, one step passes. B: compare unrounded values, largest gap 6.67e-5. C: a one-step difference fails. A and B pass all 54; neither changes a frozen value. Then fix the comparison with a regression test, rerun JX-10 (about 2 minutes), run the Task 1 verify chain, and continue to Tasks 2 and 3.
-- JX-1 and Gate G1 were not run. There is no Gate G1 outcome. DIAG-07 stays pending. The unaccepted `jx10.json` and its three siblings sit untracked in `evidence/diag07/`; the next run overwrites them.
+- The owner ruled GAP-59-11 option A. A rounded packet field is compared in exact decimal units, so exactly one fourth-decimal step passes and two steps fail. The frozen `phase58_packet_rounded_abs` stays `1e-4`, and every other tolerance and the scorecard are unchanged. Under the float comparison 15 of the 90 one-step cases would have failed, not only the one seen. The evidence verifier does not recompute a packet comparison and was not changed.
+- JX-10 reproduces the Phase 58 packet on MPS float32 and CPU float64: 54 of 54 frozen checks pass (seed-42 fronts 0, 1, 2, 2, 2; smoke fronts 0 at steps 100, 200, 300). The reading supports C-F14 and F-H2b.
+- JX-1 at checkpoint 900 (`best.pt`) and 951: the physics term supplied a primary share of 7.19e-07 and 2.60e-08 of the Adam-preconditioned update, and both read "physics was a passenger (PC-2)". The IC term supplied almost all of it (primary share about 1.0), the data term about 3e-06 and 6e-06, and energy and angular momentum 0 because Stage 0 sets their weights to 0. CPU float64 agrees (6.94e-07 and 2.59e-08).
+- Gate G1 did not fire. Its outcome is `proceed`, identical on CPU float64, so the conformance-first premise of Phase 61 is not re-examined on this evidence. Phase 59 itself was unaffected either way.
+- The committed files come from one detached `--experiment all` run (365.7 s, `ru_maxrss` 3.58 GiB, vm_stat preflight 7.48 GB against the unchanged 6 GiB bar). Evidence commit `41dee29a`. `diag07 --require jx01,jx10,g1 --require-committed` prints DIAG07-OK and the guardrails print GUARDRAILS-OK. Plan 59-09 rewrites the diag07 manifest and records this version's SHA-256 as superseded.
+- DIAG-07 stays pending. Plans 59-01, 59-03, 59-04, 59-06, 59-09, and 59-10 also declare it.
 
 ### Decisions from 59-05 (2026-10-14)
 
@@ -706,9 +706,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
-Last session: 2026-10-14
-Stopped at: Completed 59-05-PLAN.md. The reader acceptance (GAP-59-10 deviation), the Stage-0 census, and the panels are committed. Plan 59-07 stays halted at the JX-10 packet-tolerance boundary; the owner ruled GAP-59-11 (option A) and it resumes next.
-Next action: /gsd-execute-phase 59 from .worktrees/trainex: resume plan 59-07 under the GAP-59-11 ruling, then Wave 4 (59-06, 59-08, 59-09). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
+Last session: 2026-10-16
+Stopped at: Completed 59-07-PLAN.md. JX-10, JX-1 and Gate G1 are committed under the GAP-59-11 ruling; Gate G1 did not fire (outcome proceed).
+Next action: /gsd-execute-phase 59 from .worktrees/trainex: Wave 4 (59-06, 59-08, 59-09), then Wave 5 (59-10). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
 
 ## Operator Next Steps
 
