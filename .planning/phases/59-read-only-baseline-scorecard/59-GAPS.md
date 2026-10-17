@@ -27,6 +27,7 @@ does not block Phase 59.
 | 10 | The reader's IC13 values are one float32 rounding step over the frozen 1e-7 | Owner accepted it as a recorded deviation; the 1e-7 value is unchanged |
 | 11 | Whether "within 1e-4" passes a difference of exactly one fourth-decimal step | Owner: compare the rounded copies in exact decimal units, so it passes |
 | 12 | A JX-10 dev result goes stale when Task 2 edits the driver | Rerun JX-10 as a dev run after Task 2's code lands |
+| 13 | The scorer's network scoring crashes on the GPU (MPS) runtime | The 59-09 driver scores through a byte-equivalent MPS-safe copy; the shared scorer is fixed before Phase 60 uses it on MPS |
 
 ---
 
@@ -543,3 +544,54 @@ does not block Phase 59.
   - Then run Task 2's verify.
   - Task 3's single `--experiment all` run still produces the committed files,
     as planned.
+
+## GAP-59-13 — the scorer's network scoring crashes on the MPS runtime
+
+- **Decision point.** `feasibility_scorer.network_trajectory` (used by
+  `score_network`) widens each chunk with one
+  `.to(device="cpu", dtype=torch.float64)` call. On an MPS tensor that call
+  raises `TypeError: Cannot convert a MPS Tensor to float64 dtype`, the same
+  defect 59-07 fixed in its own flatten helper (`936f7f56`). JX-4 must score
+  the network on the run's own MPS float32 runtime (D-36), so it cannot call
+  `score_network` as written.
+- **Where in artifact.** `pinn/verification/feasibility_scorer.py::network_trajectory`
+  (the two `.detach().to(device="cpu", dtype=torch.float64)` lines). Found
+  while writing 59-09 Task 2. Reproduced on 2026-10-16 with a one-line probe.
+- **Task context.** 59-09 Task 2 (JX-4 trajectory errors through
+  `score_network`).
+- **Classification.** Operational coordination. It is a code defect with one
+  correct numeric answer, not a semantic choice, and it is resolved under the
+  delegation.
+- **Source silence.** The 59-09 plan names `score_network` for JX-4 and the
+  MPS runtime for every JX run. It does not anticipate that the scorer cannot
+  run on MPS: the scorer's tests run on the CPU only.
+- **Grounding.**
+  - Fixing the scorer in place would change its SHA-256. That hash is pinned
+    as `producer_sha256` in the committed Plan-07 `jx01.json`, `jx10.json`
+    and `g1.json`, so `verify_phase59_evidence.py diag07` would fail until
+    those were re-run. 59-09's I-2 requires those files to stay byte-unchanged.
+  - Moving to the CPU before widening gives the same float64 numbers as the
+    one-call form on a CPU tensor, so a copy differing only there scores
+    identically.
+- **Agent was tempted to.** Fix the scorer in place and re-run JX-1 and
+  JX-10. Rejected because it rewrites committed Plan-07 evidence.
+- **Options.**
+  - A: an MPS-safe copy of `network_trajectory` in the 59-09 driver.
+    `network_score` calls the scorer's own `score_trajectory` and
+    `physics_residual_context`.
+  - B: fix the scorer and re-run 59-07's JX-1 and JX-10.
+  - C: score JX-4 on a CPU copy of the model.
+- **Confidence of impact.** MEDIUM. JX-4 cannot run without one of these.
+  Phase 60 will hit the same defect when it scores networks on MPS.
+- **Status.** RESOLVED-WITH-INSTRUCTION (2026-10-16, delegation; option A).
+- **Resolution note.**
+  - `jx02_jx05.py::network_score` and `_network_trajectory` mirror the scorer
+    line for line, except that each chunk is moved to the CPU before it is
+    widened.
+  - `NetworkScoreTests` pins `network_score` equal to `score_network` field
+    for field on a CPU float64 network.
+  - The shared scorer stays byte-unchanged in Phase 59.
+  - **Forward item for Phase 60:** fix `network_trajectory` in place, with an
+    MPS regression test, before the first rung scores a network on MPS. That
+    fix changes the scorer's SHA-256, so Phase 60 records the change and does
+    not re-run the Phase-59 evidence that pins the old hash.
