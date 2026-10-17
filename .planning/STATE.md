@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-07-PLAN.md; JX-10 and JX-1 are committed and Gate G1 did not fire (outcome proceed)"
-last_updated: "2026-10-17T00:12:00Z"
+stopped_at: "Completed 59-06-PLAN.md; the training-split survey and the FEAS-09 picks are committed"
+last_updated: "2026-10-17T01:40:00Z"
 last_activity: 2026-10-16
-last_activity_desc: Plan 59-07 committed JX-10 (54 of 54 checks), JX-1 and Gate G1 (physics share 7.19e-07 and 2.60e-08, outcome proceed)
-state_head: 41dee29a2b210db215e4c1ea2a30f8608cf33616
+last_activity_desc: Plan 59-06 committed the survey of 12,023 training-split records and the FEAS-09 picks (standard/base/2279 for Stage 4b, standard/base/3418 for Stage 6)
+state_head: 04e17dacb333f5c74b052d668c3772910f0d3032
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 6
-  percent: 60
+  completed_plans: 7
+  percent: 70
 ---
 
 # Project State
@@ -30,9 +30,17 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 6 of 10 complete (59-07). Waves 1 to 3 are done and Wave 4 (59-06, 59-08, 59-09) is next.
-Status: Ready for Wave 4 (59-06, 59-08, 59-09)
-Last activity: 2026-10-16 — Plan 59-07 JX-10, JX-1 and Gate G1 committed (G1 did not fire)
+Plan: 7 of 10 complete (59-06). Waves 1 to 3 are done; in Wave 4, 59-06 is done and 59-08 and 59-09 remain.
+Status: Ready for 59-08 and 59-09 (Wave 4), then 59-10
+Last activity: 2026-10-16 — Plan 59-06 survey and FEAS-09 picks committed
+
+### Decisions from 59-06 (2026-10-16)
+
+- The survey covers all 12,023 training-split records and opened no test-split file. Its detached pass (457.6 s, `ru_maxrss` 507 MB, 2 GiB preflight unchanged) and detached `--check` (byte-identical, SURVEY-CHECK-OK) both ended EXIT=0. Evidence commit `04e17dac`; `survey --skip-rederive --require-committed` prints SURVEY-OK.
+- Diagnostic stage counts: 0 = 1,812, 1 = 2,074, 2 = 3,886, 3 = 0 (standard base Q spans only 0.0006 to 0.119), 4a = 1,404, 4b = 654, 5 = 1,923, 6 = 269, unlabelled = 1 (`standard/base/3362` ends at t = 9.86). The labels and tau_L are diagnostic, and the official mapping stays owner-pending.
+- Envelope medians: Stage 4b tau_L 2.98 (error growth 28.5 by t = 10); Stage 6 tau_L 1.71 (growth 352). Plan 59-10 writes the 1e-5 plausibility reading from these and labels it a judgment.
+- FEAS-09 picks by the frozen median rule: `standard/base/2279` (Stage 4b) and `standard/base/3418` (Stage 6). Every sensitivity window moves both picks. This is reported and not acted on (D-20).
+- FEAS-08 stays pending until Plan 59-10.
 
 ### Decisions from 59-07 (2026-10-16)
 
@@ -707,8 +715,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
 Last session: 2026-10-16
-Stopped at: Completed 59-07-PLAN.md. JX-10, JX-1 and Gate G1 are committed under the GAP-59-11 ruling; Gate G1 did not fire (outcome proceed).
-Next action: /gsd-execute-phase 59 from .worktrees/trainex: Wave 4 (59-06, 59-08, 59-09), then Wave 5 (59-10). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
+Stopped at: Completed 59-06-PLAN.md. The training-split survey and the FEAS-09 picks are committed (04e17dac).
+Next action: /gsd-execute-phase 59 from .worktrees/trainex: the rest of Wave 4 (59-08, 59-09), then Wave 5 (59-10). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
 
 ## Operator Next Steps
 
