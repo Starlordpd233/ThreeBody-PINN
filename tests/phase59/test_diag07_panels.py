@@ -33,6 +33,7 @@ def load_driver():
         spec = importlib.util.spec_from_file_location("phase59_jx02_jx05", DRIVER)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+    _LOADED["common"] = common
     _LOADED["driver"] = module
     return module
 
@@ -151,6 +152,153 @@ class SkipBranchTests(unittest.TestCase):
         h = 1e-6
         numeric = (hidden(u_tensor + h) - hidden(u_tensor - h)) / (2.0 * h)
         torch.testing.assert_close(derivatives[0, :, 2], numeric, rtol=1e-5, atol=1e-6)
+
+
+def _tiny_controller(tmp_dir):
+    """The Phase-40 tiny CPU float64 controller with a refusing store."""
+    from tests.phase40.test_optimizer_phase import _build_controller
+
+    load_driver()
+    controller = _build_controller(tmp_dir, max_epochs=1, n_adam=1, collocation_count=64)
+    controller._checkpoint_store = _LOADED["common"].RefusingCheckpointStore()
+    return controller
+
+
+class FixtureContextTests(unittest.TestCase):
+    def test_the_trainer_builds_the_anchor_for_an_arbitrary_key_and_times(self) -> None:
+        import tempfile
+
+        driver = load_driver()
+        with tempfile.TemporaryDirectory() as tmp:
+            controller = _tiny_controller(tmp)
+            batch = controller._stage_batch(
+                controller._train_source, stage=0, collocation_count=64,
+            )
+            key = batch.replay_keys[-1]
+            times = np.array([7.5, 0.25, 3.0, 9.9, 1.0])
+            ctx = driver.fixture_anchor_context(controller, controller._train_source, key, times)
+            np.testing.assert_array_equal(ctx.collocation_times, np.sort(times))
+            record = controller._train_source.get(key)
+            ic13 = torch.as_tensor(np.asarray(record.ic13, dtype=np.float64), dtype=F64)
+            masses = torch.as_tensor(np.asarray(record.masses, dtype=np.float64), dtype=F64)
+            u = torch.as_tensor(0.3, dtype=F64)
+            tau = (2.0 * u - 1.0).reshape(1)
+            expected = controller.model(
+                torch.cat([tau, ic13]).unsqueeze(0), masses.unsqueeze(0),
+            ).reshape(3, 3)
+            torch.testing.assert_close(ctx.traj(u), expected, rtol=0.0, atol=0.0)
+            positions = np.asarray(controller._train_source.snapshot_positions(key), dtype=np.float64)
+            np.testing.assert_allclose(
+                ctx.true_r0.detach().numpy(), positions[0], rtol=0.0, atol=0.0,
+            )
+
+
+class Jx2ReadingTests(unittest.TestCase):
+    def test_the_frozen_change_must_exceed_both_draw_ranges(self) -> None:
+        driver = load_driver()
+        draws_900 = [1.0, 1.2, 1.1]
+        draws_951 = [2.0, 2.5, 2.1]
+        self.assertEqual(
+            driver.jx2_reading(1.0, 1.5, draws_900, draws_951),
+            "estimator noise not excluded",
+        )
+        self.assertEqual(
+            driver.jx2_reading(1.0, 1.6, draws_900, draws_951),
+            "parameter motion",
+        )
+        self.assertEqual(
+            driver.jx2_reading(1.0, 1.3, draws_900, draws_951),
+            "estimator noise not excluded",
+        )
+        self.assertEqual(
+            driver.jx2_reading(1.6, 1.0, draws_900, draws_951),
+            "parameter motion",
+        )
+
+
+class Jx4ReadingTests(unittest.TestCase):
+    @staticmethod
+    def row(tier_0, tier_951, e_0, e_951):
+        return {"tier_0": tier_0, "tier_951": tier_951, "E_0": e_0, "E_951": e_951}
+
+    def test_the_three_pre_registered_readings(self) -> None:
+        driver = load_driver()
+        tier0 = [self.row(0, 0, 1.0, 0.5), self.row(0, 0, 2.0, 1.0)]
+        self.assertEqual(
+            driver.jx4_reading(0, 2, tier0),
+            "relative descent without useful accuracy",
+        )
+        useful = [self.row(0, 1, 1.0, 0.9), self.row(0, 0, 2.0, 1.0)]
+        self.assertEqual(
+            driver.jx4_reading(0, 2, useful),
+            "useful accuracy with relative descent",
+        )
+        no_drop = [self.row(0, 1, 1.0, 0.95), self.row(0, 0, 2.0, 1.0)]
+        self.assertEqual(driver.jx4_reading(0, 2, no_drop), "inconclusive")
+        self.assertEqual(driver.jx4_reading(2, 2, tier0), "inconclusive")
+        self.assertEqual(driver.jx4_reading(2, 1, useful), "inconclusive")
+
+
+class PhysicalFrontTests(unittest.TestCase):
+    def test_the_front_under_the_physical_scale_is_causal_physics_loss_with_that_r_ref(self) -> None:
+        from pinn.loss_catalog import causal_physics_loss
+
+        driver = load_driver()
+        centres = (np.arange(16) + 0.5) / 16 * 10.0
+        for scale, raw in (
+            (0.37, np.full(16, 0.37)),
+            (2.0, np.linspace(0.01, 0.6, 16)),
+            (1e-3, np.geomspace(1e-6, 1e-2, 16)),
+        ):
+            with self.subTest(scale=scale):
+                _loss, details = causal_physics_loss(
+                    torch.as_tensor(raw, dtype=F64), r_ref=scale, times=centres,
+                    dtype=F64, device=CPU, return_details=True,
+                )
+                weights = details["w_n"].tolist()
+                expected = max([n for n, w in enumerate(weights) if w > 0.5], default=-1)
+                self.assertEqual(driver.physical_front(raw, scale, dtype=F64, device=CPU), expected)
+
+    def test_the_physical_scale_is_the_mean_body_averaged_squared_force(self) -> None:
+        from types import SimpleNamespace
+
+        from pinn.physics_residual import softened_acceleration
+
+        driver = load_driver()
+        rng = np.random.default_rng(5)
+        times = np.linspace(0.0, 10.5, 22)
+        positions = rng.normal(size=(22, 3, 3))
+        reference = SimpleNamespace(times=times, positions=positions, masses=MASSES)
+        keep = times <= 10.0
+        force = softened_acceleration(
+            positions[keep], MASSES, dtype=F64, device=CPU,
+        )
+        expected = float(((force ** 2).sum(dim=(-2, -1)) / 3.0).mean())
+        self.assertAlmostEqual(driver.physical_scale(reference), expected, places=12)
+
+
+class NetworkScoreTests(unittest.TestCase):
+    """GAP-59-13: the MPS-safe network score equals the scorer's own on CPU float64."""
+
+    def test_network_score_equals_score_network_on_cpu(self) -> None:
+        from pinn.verification.feasibility_scorecard import load_scorecard
+        from pinn.verification.feasibility_scorer import score_network
+
+        driver = load_driver()
+        model = _network()
+        ic13 = _ic13()
+        times = np.linspace(0.0, 10.0, 40)
+        ref = np.random.default_rng(9).normal(scale=0.5, size=(40, 3, 3))
+        scorecard = load_scorecard()
+        expected = score_network(
+            model, ic13, MASSES, ref, (0, 1), times,
+            scorecard=scorecard, dtype=F64, device=CPU, grid="gold", microbatch_size=16,
+        )
+        actual = driver.network_score(
+            model, ic13, MASSES, ref, (0, 1), times,
+            scorecard=scorecard, dtype=F64, device=CPU, grid="gold", microbatch_size=16,
+        )
+        self.assertEqual(actual.to_json_dict(), expected.to_json_dict())
 
 
 if __name__ == "__main__":
