@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-09-PLAN.md; all six DIAG-07 experiments and Gate G1 are committed; Wave 5 (59-10) is next"
-last_updated: "2026-10-17T04:30:00Z"
+stopped_at: "Completed 59-10-PLAN.md; all 10 Phase 59 plans are done and the final evidence check is green; phase verification is next"
+last_updated: "2026-10-17T05:40:00Z"
 last_activity: 2026-10-16
-last_activity_desc: Plan 59-09 committed JX-5, JX-2, JX-4 and JX-3 (noise not excluded; relative descent without useful accuracy; mixed exposure-specific / global)
-state_head: ce1e6104f2d54e4c14b63d2f32f3bc4059f0fd0c
+last_activity_desc: Plan 59-10 committed the plain-language findings and the top-level evidence manifest; verify_phase59_evidence.py final printed PHASE59-EVIDENCE-OK
+state_head: 69bd0cad00b9657035c16ad8289eca1bcdd6139d
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -30,9 +30,16 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 9 of 10 complete (59-09). Waves 1 to 4 are done; Wave 5 (59-10) is next.
-Status: Ready for 59-10 (the plain-language findings and the final evidence check)
-Last activity: 2026-10-16 — Plan 59-09 DIAG-07 experiments committed
+Plan: 10 of 10 complete (59-10). All five waves are done.
+Status: Plans complete; phase verification is next
+Last activity: 2026-10-16 — Plan 59-10 findings and final evidence check committed
+
+### Decisions from 59-10 (2026-10-16)
+
+- `59-FINDINGS.md` is the owner-facing page (commit `087e4179`). It records the formula's Tier-1 result (1 of 1812 training, 0 of 227 validation), Gate G1 "proceed", and GAP-59-08 reported and not fixed. The Stage-4b and Stage-6 energy-bar reading is labelled a judgment, not a gate.
+- `evidence/manifest.json` hashes 49 files. The detached `verify_phase59_evidence.py final` printed PHASE59-EVIDENCE-OK with EXIT=0 in 644 s.
+- `59-VALIDATION.md` is signed off (`69bd0cad`), except for feedback latency: `test_evidence_verifier` takes 69.7 s and `test_diag07` 13.6 s.
+- FEAS-01, FEAS-02, FEAS-07, FEAS-08 and DIAG-07 are complete.
 
 ### Decisions from 59-09 (2026-10-16)
 
@@ -731,8 +738,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
 Last session: 2026-10-16
-Stopped at: Completed 59-09-PLAN.md. All six DIAG-07 experiments and Gate G1 are committed (ce1e6104).
-Next action: /gsd-execute-phase 59 from .worktrees/trainex: Wave 5 (59-10). Do not edit the frozen scorecard. GAP-59-08 stays open for the owner; GAP-59-13's scorer fix is a Phase-60 item. Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
+Stopped at: Completed 59-10-PLAN.md. All 10 Phase 59 plans are done and the final evidence check is green (69bd0cad).
+Next action: verify Phase 59 (gsd-verifier goal-backward check, then close the phase) from .worktrees/trainex. The owner reads 59-FINDINGS.md. GAP-59-08 stays open for the owner. GAP-59-13's scorer fix is a Phase-60 item. Do not edit the frozen scorecard.
 
 ## Operator Next Steps
 

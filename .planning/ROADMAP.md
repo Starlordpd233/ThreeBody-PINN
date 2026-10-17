@@ -211,7 +211,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 59-10-PLAN.md — Wave 5: the plain-language findings (formula Tier-1 answer, census, panels, survey, Gate G1, GAP-59-08 reported and not fixed) and the final evidence check (all five requirements)
+- [x] 59-10-PLAN.md — Wave 5: the plain-language findings (formula Tier-1 answer, census, panels, survey, Gate G1, GAP-59-08 reported and not fixed) and the final evidence check (all five requirements)
 
 ### Phase 60: Single-System Learnability
 
@@ -307,7 +307,7 @@ Otherwise, continue, and run the hard-stage probes. The Rung-2 pattern is carrie
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 59. Read-Only Baseline & Scorecard | 9/10 | In Progress |  |
+| 59. Read-Only Baseline & Scorecard | 10/10 | Executed (verification pending) |  |
 | 60. Single-System Learnability | 0/TBD | Not started | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |

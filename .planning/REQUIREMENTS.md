@@ -83,7 +83,7 @@ at any rung shows which part is the bottleneck.
 
 ### Feasibility Ladder & Verdict (FEAS)
 
-- [ ] **FEAS-01**: **Pre-register the feasibility scorecard before any rung runs.** It has four parts.
+- [x] **FEAS-01**: **Pre-register the feasibility scorecard before any rung runs.** It has four parts.
   - **(i) Metrics in physical units,** each over the whole window against the Brutus reference:
     - the position error of the network's trajectory, both for the three bodies (normalized by the system's size) and for the inner pair's separation vector (normalized by the inner separation), so that a good outer orbit cannot hide a wrong inner binary;
     - the valid-horizon fraction `h_δ` for `δ` = 1% and 10%;
@@ -105,7 +105,7 @@ at any rung shows which part is the bottleneck.
     - velocities scaled by a known factor give the analytically expected `ε_H`;
     - a case where only the inner pair is wrong (its phase shifted) shows a small system-normalized error and a large inner-pair error.
   - No threshold is set after any result is seen (SCOPE-42). [proposal "The feasibility scorecard"; amendment items 1–3, 7, 8]
-- [ ] **FEAS-02**: **A Stage-0 difficulty census, and the panels drawn from it.** The census uses Brutus training-split data alone.
+- [x] **FEAS-02**: **A Stage-0 difficulty census, and the panels drawn from it.** The census uses Brutus training-split data alone.
   - **Per system:** inner and outer revolutions per window, minimum and maximum pairwise separation, and the acceleration range.
   - **The phase-accuracy figure:** from the inner revolutions per window `N`, the relative lap-timing accuracy needed to keep the inner-pair error within `δ` at the window's end, about `δ / (2πN)`, for `δ` = 1% and 10%.
   - **Panel selection** follows a deterministic rule declared before the census runs:
@@ -157,7 +157,7 @@ at any rung shows which part is the bottleneck.
   **Acceptance:**
   - The owner's decision is recorded verbatim: continue, change course or stop. Whether the `10⁻⁵` held-out bar stays the success criterion is decided within the charter (FEAS-10).
   - Every exit path reaches this requirement, including an early exit at G2 or an unfixable gate. [proposal Phase 64; amendment item 9]
-- [ ] **FEAS-07**: **Comparison points.** Read-only, with no training, committed before any rung runs.
+- [x] **FEAS-07**: **Comparison points.** Read-only, with no training, committed before any rung runs.
   - **The two-Kepler formula** is scored on every panel system: the three single systems, the 16-system family, the validation panel, and the FEAS-09 systems wherever a hierarchical split exists.
     - Bodies 1 and 2 are the inner pair by construction (`sampling_method.md:23`, `:47-50`). Their relative orbit is a Kepler orbit with mass `m₁ + m₂`, from their initial relative state.
     - Body 3 follows a Kepler orbit about the inner pair's centre of mass, with mass `m₁ + m₂ + m₃`.
@@ -168,7 +168,7 @@ at any rung shows which part is the bottleneck.
   **Acceptance:**
   - The baseline code and outputs are committed and re-derivable.
   - Only training- and validation-split files are opened, and this is asserted. [amendment items 2, 4]
-- [ ] **FEAS-08**: **The whole-dataset survey and predictability envelope.** Read-only, over training-split Brutus data for every stage, 0 to 6.
+- [x] **FEAS-08**: **The whole-dataset survey and predictability envelope.** Read-only, over training-split Brutus data for every stage, 0 to 6.
   - **Per stage:**
     - system count;
     - inner and outer revolutions per window, and the phase-accuracy figure (hierarchical systems);
@@ -211,7 +211,7 @@ at any rung shows which part is the bottleneck.
 
 ### Diagnostics & Readout (DIAG)
 
-- [ ] **DIAG-07**: **The ruling's read-only experiments on retained generation-7 checkpoints,** run against the code that produced them:
+- [x] **DIAG-07**: **The ruling's read-only experiments on retained generation-7 checkpoints,** run against the code that produced them:
   - **`JX-1` executed half:** per-term gradient decomposition, Adam-preconditioned shares, and the IC position/velocity split;
   - **`JX-2`:** monitor-estimator noise;
   - **`JX-3`:** the exposure panel, including validation-split trajectories;
@@ -386,11 +386,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FEAS-01 | Phase 59 | Pending |
-| FEAS-02 | Phase 59 | Pending |
-| FEAS-07 | Phase 59 | Pending |
-| FEAS-08 | Phase 59 | Pending |
-| DIAG-07 | Phase 59 | Pending |
+| FEAS-01 | Phase 59 | Complete |
+| FEAS-02 | Phase 59 | Complete |
+| FEAS-07 | Phase 59 | Complete |
+| FEAS-08 | Phase 59 | Complete |
+| DIAG-07 | Phase 59 | Complete |
 | INST-05 | Phase 60 | Pending |
 | FEAS-03 | Phase 60 | Pending |
 | FEAS-04 | Phase 60 | Pending |
