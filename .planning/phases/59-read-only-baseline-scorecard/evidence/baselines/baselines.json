@@ -1,0 +1,86 @@
+{
+  "feas09": {
+    "hierarchical_records_all_stage_0_or_1": true,
+    "stage4b": "not applicable: no hierarchical split",
+    "stage6": "not applicable: no hierarchical split",
+    "training_hierarchical_base_records": 3886
+  },
+  "formula_reaches_tier1_on_stage0": {
+    "train": "1 of 1812",
+    "validation": "0 of 227"
+  },
+  "formula_tier_counts": {
+    "family": {
+      "0": 16,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "not_applicable": 0
+    },
+    "singles": {
+      "0": 3,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "not_applicable": 0
+    },
+    "train": {
+      "0": 1811,
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "not_applicable": 0
+    },
+    "validation": {
+      "0": 227,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "not_applicable": 0
+    },
+    "validation_population": {
+      "0": 227,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "not_applicable": 0
+    }
+  },
+  "median_E": {
+    "copy_validation": 2.135396659314407,
+    "formula_train": 0.9890032980038623,
+    "formula_validation": 0.940265743143744
+  },
+  "nn_copy_reaches_tier1_on_validation": "0 of 227",
+  "nn_copy_tier_counts": {
+    "0": 227,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "not_applicable": 0
+  },
+  "normalizer_stats_sha256": "77526e53c394bbac4d4a0e8fdd5a7688f0bda108d41c56277b55ad426a7a79f6",
+  "physics_residual": {
+    "median_physics_residual_mean": {
+      "copy_validation": 1.9350031148535206e-08,
+      "formula_train": 2.771254543290091e-10,
+      "formula_validation": 2.6256406447299417e-10
+    },
+    "r_ref": 19749775821.24417,
+    "r_ref_artifact": "pinn/verification/artifacts/r_ref_stage0.json",
+    "role": "context only, never tier-defining"
+  },
+  "plain_language": "The two-Kepler formula reaches Tier 1 or better on 1 of 1812 Stage-0 training systems and 0 of 227 validation systems. The nearest-neighbour copy reaches Tier 1 or better on 0 of 227 validation systems.",
+  "producer_sha256": {
+    "pinn/verification/baselines.py": "b16ca9f5577df5ef289ab768a52e288ea19234121f561ba2a2713df38da4e847",
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/feasibility_scorer.py": "cd5019a2ba5604f39d5c6e01763ff3f0e53547920a57bbf174ebc3bb0a73870b",
+    "pinn/verification/nn_copy.py": "713365a2328cb92401dfcd121fa10087be8b93113ac3b4adcc8fbb438b3f74a0",
+    "pinn/verification/production_reference.py": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+    "pinn/verification/split_allowlist.py": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a",
+    "pinn/verification/two_kepler.py": "dab3b28083041bc58cb12fe6a768f0efd8deda3d036b60b695702d8df988082e"
+  },
+  "schema": "phase59-baselines/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+}

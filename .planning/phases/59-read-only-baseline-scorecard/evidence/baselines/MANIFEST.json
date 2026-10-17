@@ -1,0 +1,37 @@
+{
+  "area": "baselines",
+  "files": {
+    "baselines.json": {
+      "sha256": "3d7b7a687091cf9b1b0d803849c227990e1d45aa82888bd3e91980e62fc92d9e",
+      "size_bytes": 2954
+    },
+    "files_opened.json": {
+      "sha256": "ab686f5a5c12b463e978d54cda1cfcac6396f68de9f334c398ed00f7580b733d",
+      "size_bytes": 279
+    },
+    "nn_copy.json": {
+      "sha256": "4334fc04c91cd5c8521f1d2805ac30f2a92fd498e6d3f5c9d6dad0ca22956deb",
+      "size_bytes": 125459
+    },
+    "provenance.json": {
+      "sha256": "a4fd95db0e38d5be94363168fdff2409a71d3b0862843ab59c31bc2b914f442e",
+      "size_bytes": 529
+    },
+    "summary.md": {
+      "sha256": "73fa326c0baaa5958d53e6cd85ca6470976285b91350369d24caa3a90422e149",
+      "size_bytes": 1498
+    },
+    "two_kepler.json": {
+      "sha256": "05a347a65e01ea6a9cde1c6cff4b53d0d17333db9c3672a460931e2323b4c80e",
+      "size_bytes": 223181
+    },
+    "two_kepler_population.csv": {
+      "sha256": "4995d65a042993764ccf4f44a98807b8b42690674e5c8108a9809bf59a23b59a",
+      "size_bytes": 293120
+    }
+  },
+  "freeze_commit": "4ea3b1bc95e2dc3794fec4fb2047b9d32b5e889f",
+  "produced_at_head": "d5c246a8820b7f303f00dbfe95988f6a93af565a",
+  "schema": "phase59-area-manifest/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+}
