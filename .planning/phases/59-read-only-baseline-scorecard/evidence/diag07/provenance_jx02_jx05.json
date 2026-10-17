@@ -1,0 +1,15 @@
+{
+  "command": ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/jx02_jx05.py --code-root /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/tmp.xa5zzEJdhT/gen7-629b1a6c --data-root <DATA_ROOT> --experiment all",
+  "data_root_source": "explicit",
+  "elapsed_seconds": 576.456231542048,
+  "git_head": null,
+  "numpy": "2.4.6",
+  "python": "3.11.15",
+  "ru_maxrss_bytes": 513097728,
+  "schema": "phase59-provenance/v1",
+  "tool": "jx02_jx05.py",
+  "torch": "2.12.1",
+  "utc_finished": "2026-10-17T04:15:35.988823+00:00",
+  "utc_started": "2026-10-17T04:05:59.528045+00:00",
+  "worktree_dirty": true
+}

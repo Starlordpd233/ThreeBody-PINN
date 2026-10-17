@@ -9,6 +9,10 @@
       "sha256": "296685e8eb10ae4ec5217da9fadaa9e4453a0156a3ad3a0131a0297bb4214844",
       "size_bytes": 268
     },
+    "files_opened_jx02_jx05.json": {
+      "sha256": "8295d48fd291a5298290e762a0b4214e99110a1d80c3f78a0664d89853d46138",
+      "size_bytes": 268
+    },
     "g1.json": {
       "sha256": "3c94131ca4f205dedbe3a7d49b41251af27712cdf4da2af42890f4f24245b5e8",
       "size_bytes": 1743
@@ -25,6 +29,30 @@
       "sha256": "d391a87cb5b6f54221ab7bab7a41741e6aed412fa12f9b47968161dc42a25dd2",
       "size_bytes": 35595
     },
+    "jx02.json": {
+      "sha256": "1853be8936a15b2bc9400f4c69b9746c59708032464a159fff9080c38e70c903",
+      "size_bytes": 72629
+    },
+    "jx02_jx05.done.json": {
+      "sha256": "272ef640d88885dd3b1f6fb06670db4b93c1e809684052f2816873edcff3710d",
+      "size_bytes": 1010
+    },
+    "jx02_jx05.py": {
+      "sha256": "db5b6871632b6cf587ebfd49f925c6e8f56293cd0007da2045e4e2f0b23bd6ae",
+      "size_bytes": 55079
+    },
+    "jx03.json": {
+      "sha256": "ec529371210d866c64cf38c4d6e496f7f33872d36c9382609510acee66059278",
+      "size_bytes": 97536
+    },
+    "jx04.json": {
+      "sha256": "c3baae248567742ebddceaafe778652be38090af478bd06bdebe72d6d027ebec",
+      "size_bytes": 33492
+    },
+    "jx05.json": {
+      "sha256": "c74ab3cb494d92ef17138d3880a3830f1cd8ea2544630fbe6df7437ec2dca343",
+      "size_bytes": 16894
+    },
     "jx10.json": {
       "sha256": "1b895e8ae7415cf433f9d4e0e2b385ee8d4a61af417b9a191742e9447e9139c9",
       "size_bytes": 53683
@@ -33,13 +61,17 @@
       "sha256": "1e68dcd3998bef0196b04ebfb9a9529ad783885d4fef636d86ca38cc23021d16",
       "size_bytes": 616
     },
+    "provenance_jx02_jx05.json": {
+      "sha256": "da785055a01501272d348678e399490b466ed8e7233be4d1c3463cd50d58c3c7",
+      "size_bytes": 613
+    },
     "summary.md": {
-      "sha256": "2979ab05734c30eadfa0dca10f16d0b4bfdf8292c792b7a9d1be0e7aac3a9c9e",
-      "size_bytes": 1354
+      "sha256": "5c51b14b7358c267e13f4e29c370fe7a2ddf0a9c1fc801005d6d30d7565804ab",
+      "size_bytes": 3450
     }
   },
   "freeze_commit": "4ea3b1bc95e2dc3794fec4fb2047b9d32b5e889f",
-  "produced_at_head": "936f7f56881306fc27fc2c3f192e95e9c10b494e",
+  "produced_at_head": "c4296a1679fad7e50eb8a873d15dcb05672b1c97",
   "schema": "phase59-area-manifest/v1",
   "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
 }
