@@ -1,0 +1,928 @@
+{
+  "checkpoints": [
+    {
+      "adam_step": null,
+      "file": "stage-0-init.pt",
+      "global_step": 0,
+      "path": "runs/stage0-v23g7-seed42/checkpoints/stage-0-init.pt",
+      "run": "stage0-v23g7-seed42",
+      "sha256": "c8eab3e7a8e894da4dc994b91a13189cbdd2109ff4d6ca433a54f24418bfaf7e",
+      "size_bytes": 4862547
+    },
+    {
+      "adam_step": 900.0,
+      "file": "best.pt",
+      "global_step": 900,
+      "path": "runs/stage0-v23g7-seed42/checkpoints/best.pt",
+      "run": "stage0-v23g7-seed42",
+      "sha256": "21c69f2d9f975689ea3cb6a94d5c8ee85567da3268aefa2a67ffc61d07feade5",
+      "size_bytes": 11251663
+    },
+    {
+      "adam_step": 951.0,
+      "file": "step-000951.pt",
+      "global_step": 951,
+      "path": "runs/stage0-v23g7-seed42/checkpoints/step-000951.pt",
+      "run": "stage0-v23g7-seed42",
+      "sha256": "810235516ffdd304160cd759cfd9c5c03dbdda5ffcb2e3d07e8034aa5e98ae66",
+      "size_bytes": 11252637
+    }
+  ],
+  "code_identity": {
+    "commit": "629b1a6ca4462915b6340a59b8d4e3ad8df75d8b",
+    "overlay_modules": {
+      "pinn.verification.evidence_io": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+      "pinn.verification.feasibility_scorecard": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+      "pinn.verification.feasibility_scorer": "cd5019a2ba5604f39d5c6e01763ff3f0e53547920a57bbf174ebc3bb0a73870b",
+      "pinn.verification.production_reference": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+      "pinn.verification.split_allowlist": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a"
+    },
+    "pinn_module_root": "code_root",
+    "snapshot_digest": "b50e143a3f03dfc509f04c2dbf767384b98a0deedbeaa2bf4ac93d1831fb10b9",
+    "snapshot_files": 114
+  },
+  "command": ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/jx01_jx10.py --code-root /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/tmp.oQwgCVZLcx/gen7-629b1a6c --data-root <DATA_ROOT> --experiment all",
+  "experiment": "JX-1",
+  "files_opened": {
+    "blocked_attempts": 0,
+    "data_root_source": "explicit",
+    "opened": {
+      "other_under_root": 0,
+      "train": 4142,
+      "validation": 486
+    },
+    "refused_before_open": 0,
+    "schema": "phase59-files-opened/v1",
+    "test_split_opened": 0
+  },
+  "memory": {
+    "ru_maxrss_bytes": 3841966080
+  },
+  "non_interference": {
+    "checkpoint_writes": 0,
+    "grads_none": true,
+    "optimizer_constructed": true,
+    "parameters_unchanged": true,
+    "runs_hashes_unchanged": true
+  },
+  "normalizer": {
+    "deviation": false,
+    "residual": 1.1920928955078125e-07,
+    "source": "recovered_from_checkpoint",
+    "stats_digest": "77526e53c394bbac4d4a0e8fdd5a7688f0bda108d41c56277b55ad426a7a79f6"
+  },
+  "plain_language": "JX-1 measured how strongly each part of the loss pushed generation 7's network and what share of the actual Adam update the physics term received: at step 900 the physics term supplied 7.187e-07 of the Adam-preconditioned update direction (supports: physics was a passenger (PC-2)); at step 951 the physics term supplied 2.605e-08 of the Adam-preconditioned update direction (supports: physics was a passenger (PC-2)). At step 0 no Adam moments are stored, so no share is computable there. A share of 1e-4 or less reads as physics being a passenger, and 1e-2 or more reads that claim as overstated.",
+  "producer_sha256": {
+    ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/diag07_common.py": "6b7631e25d70495c7d5414cb7235323cd962be44aff5f21a5be932c806e8d223",
+    ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/jx01_jx10.py": "d391a87cb5b6f54221ab7bab7a41741e6aed412fa12f9b47968161dc42a25dd2",
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/feasibility_scorer.py": "cd5019a2ba5604f39d5c6e01763ff3f0e53547920a57bbf174ebc3bb0a73870b",
+    "pinn/verification/production_reference.py": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+    "pinn/verification/split_allowlist.py": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a"
+  },
+  "reading": {
+    "falsifies": "PC-2",
+    "outcome": "900: supports: physics was a passenger (PC-2); 951: supports: physics was a passenger (PC-2)",
+    "outcome_by_checkpoint": {
+      "900": "supports: physics was a passenger (PC-2)",
+      "951": "supports: physics was a passenger (PC-2)"
+    },
+    "question": "Was physics a passenger in generation 7's Adam update?",
+    "supports": "PC-2 (physics was a passenger)"
+  },
+  "results": {
+    "cpu": {
+      "0": {
+        "cosines": {
+          "ic_data": -0.01574713336591563,
+          "ic_phys": 0.18763052878083972,
+          "phys_data": -0.022225644848478335
+        },
+        "file": "stage-0-init.pt",
+        "global_step": 0,
+        "grad_norm_raw": {
+          "angmom": 185128.56404198348,
+          "data": 6.753252902493155,
+          "energy": 1669630.632468408,
+          "ic": 410722098.3036146,
+          "phys": 244.65356590079674
+        },
+        "grad_norm_weighted": {
+          "angmom": 0.0,
+          "data": 6.753252902493155,
+          "energy": 0.0,
+          "ic": 410722098.3036146,
+          "phys": 0.0
+        },
+        "ic_split": {
+          "position_norm": 2911.5273215256793,
+          "velocity_norm": 410721904.5688729
+        },
+        "shares": "not computable: no stored moments",
+        "total_weighted_norm": 410722098.1972759,
+        "trainer_cross_check": {
+          "grad_difference_over_norm": 3.620523612796024e-20,
+          "grad_passed": true,
+          "losses": {
+            "angmom": 165.7132645634252,
+            "data": 0.07206609518075162,
+            "energy": 2005.1807143637193,
+            "ic": 14877.087064674017,
+            "phys": 0.10388661570486434,
+            "total": 14877.159130769198
+          },
+          "norms": {
+            "angmom": {
+              "driver": 185128.56404198348,
+              "passed": true,
+              "trainer": 185128.56404198412
+            },
+            "data": {
+              "driver": 6.753252902493155,
+              "passed": true,
+              "trainer": 6.753252902493172
+            },
+            "energy": {
+              "driver": 1669630.632468408,
+              "passed": true,
+              "trainer": 1669630.6324684042
+            },
+            "ic": {
+              "driver": 410722098.3036146,
+              "passed": true,
+              "trainer": 410722098.3036218
+            },
+            "phys": {
+              "driver": 244.65356590079674,
+              "passed": true,
+              "trainer": 244.6535659007978
+            }
+          }
+        },
+        "weights": {
+          "angmom": 0.0,
+          "data": 1.0,
+          "energy": 0.0,
+          "ic": 1.0,
+          "phys": 0.0
+        }
+      },
+      "900": {
+        "cosines": {
+          "ic_data": 0.025126389010171658,
+          "ic_phys": 0.02733990981121458,
+          "phys_data": -0.021902735814772582
+        },
+        "file": "best.pt",
+        "global_step": 900,
+        "grad_norm_raw": {
+          "angmom": 32954.72289031688,
+          "data": 1.5087855343453853,
+          "energy": 448682.9317018473,
+          "ic": 51313179.89492251,
+          "phys": 109.09265718831136
+        },
+        "grad_norm_weighted": {
+          "angmom": 0.0,
+          "data": 1.5087855343453853,
+          "energy": 0.0,
+          "ic": 51313179.89492251,
+          "phys": 109.09265718831136
+        },
+        "ic_split": {
+          "position_norm": 233.46443649098157,
+          "velocity_norm": 51313096.12156432
+        },
+        "shares": {
+          "adam_step": 900.0,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "eps": 1e-08,
+          "primary": {
+            "angmom": 0.0,
+            "data": 3.2633529793780746e-06,
+            "energy": 0.0,
+            "ic": 0.9999960431209661,
+            "phys": 6.935260546138997e-07
+          },
+          "primary_sum": 1.0000000000000002,
+          "reading": "supports: physics was a passenger (PC-2)",
+          "secondary": {
+            "angmom": 0.0,
+            "data": 2.317817916503864e-05,
+            "energy": 0.0,
+            "ic": -0.09011531222217707,
+            "phys": 3.8282718744953284e-06
+          }
+        },
+        "total_weighted_norm": 51313182.91553323,
+        "trainer_cross_check": {
+          "grad_difference_over_norm": 1.887263103686472e-16,
+          "grad_passed": true,
+          "losses": {
+            "angmom": 38.55290834702529,
+            "data": 0.01636802063656439,
+            "energy": 588.2163650963756,
+            "ic": 2341.7922904226216,
+            "phys": 0.08260852598892866,
+            "total": 2341.891266969247
+          },
+          "norms": {
+            "angmom": {
+              "driver": 32954.72289031688,
+              "passed": true,
+              "trainer": 32954.72289031693
+            },
+            "data": {
+              "driver": 1.5087855343453853,
+              "passed": true,
+              "trainer": 1.5087855343453769
+            },
+            "energy": {
+              "driver": 448682.9317018473,
+              "passed": true,
+              "trainer": 448682.93170185
+            },
+            "ic": {
+              "driver": 51313179.89492251,
+              "passed": true,
+              "trainer": 51313179.89492325
+            },
+            "phys": {
+              "driver": 109.09265718831136,
+              "passed": true,
+              "trainer": 109.0926571883109
+            }
+          }
+        },
+        "weights": {
+          "angmom": 0.0,
+          "data": 1.0,
+          "energy": 0.0,
+          "ic": 1.0,
+          "phys": 1.0
+        }
+      },
+      "951": {
+        "cosines": {
+          "ic_data": -0.013722432433436927,
+          "ic_phys": 0.005122096951998253,
+          "phys_data": -0.021263470674305923
+        },
+        "file": "step-000951.pt",
+        "global_step": 951,
+        "grad_norm_raw": {
+          "angmom": 35321.46007638564,
+          "data": 1.5127172461282508,
+          "energy": 424578.864034845,
+          "ic": 34529059.14671695,
+          "phys": 113.46877332229424
+        },
+        "grad_norm_weighted": {
+          "angmom": 0.0,
+          "data": 1.5127172461282508,
+          "energy": 0.0,
+          "ic": 34529059.14671695,
+          "phys": 113.46877332229424
+        },
+        "ic_split": {
+          "position_norm": 786.5606574434026,
+          "velocity_norm": 34529112.308547
+        },
+        "shares": {
+          "adam_step": 951.0,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "eps": 1e-08,
+          "primary": {
+            "angmom": 0.0,
+            "data": 5.929544586771753e-06,
+            "energy": 0.0,
+            "ic": 0.9999940445083986,
+            "phys": 2.5947014413325266e-08
+          },
+          "primary_sum": 0.9999999999999998,
+          "reading": "supports: physics was a passenger (PC-2)",
+          "secondary": {
+            "angmom": 0.0,
+            "data": 2.7253578299184894e-05,
+            "energy": 0.0,
+            "ic": -0.18035613603319922,
+            "phys": 2.2115006200653508e-07
+          }
+        },
+        "total_weighted_norm": 34529059.70734407,
+        "trainer_cross_check": {
+          "grad_difference_over_norm": 1.906128061297162e-16,
+          "grad_passed": true,
+          "losses": {
+            "angmom": 36.44636116373524,
+            "data": 0.016337360468585187,
+            "energy": 566.2408735664537,
+            "ic": 1895.5919191729606,
+            "phys": 0.08498949000632022,
+            "total": 1895.6932460234357
+          },
+          "norms": {
+            "angmom": {
+              "driver": 35321.46007638564,
+              "passed": true,
+              "trainer": 35321.46007638453
+            },
+            "data": {
+              "driver": 1.5127172461282508,
+              "passed": true,
+              "trainer": 1.512717246128276
+            },
+            "energy": {
+              "driver": 424578.864034845,
+              "passed": true,
+              "trainer": 424578.8640348477
+            },
+            "ic": {
+              "driver": 34529059.14671695,
+              "passed": true,
+              "trainer": 34529059.14671705
+            },
+            "phys": {
+              "driver": 113.46877332229424,
+              "passed": true,
+              "trainer": 113.46877332229438
+            }
+          }
+        },
+        "weights": {
+          "angmom": 0.0,
+          "data": 1.0,
+          "energy": 0.0,
+          "ic": 1.0,
+          "phys": 1.0
+        }
+      }
+    },
+    "mps": {
+      "0": {
+        "cosines": {
+          "ic_data": -0.015746556738803315,
+          "ic_phys": 0.18761711021089963,
+          "phys_data": -0.02222693351116058
+        },
+        "file": "stage-0-init.pt",
+        "global_step": 0,
+        "grad_norm_raw": {
+          "angmom": 185133.26433244732,
+          "data": 6.7532415676061675,
+          "energy": 1669637.077611557,
+          "ic": 410737056.7954681,
+          "phys": 244.65400617558885
+        },
+        "grad_norm_weighted": {
+          "angmom": 0.0,
+          "data": 6.7532415676061675,
+          "energy": 0.0,
+          "ic": 410737056.7954681,
+          "phys": 0.0
+        },
+        "ic_split": {
+          "position_norm": 2911.6624487723593,
+          "velocity_norm": 410736863.6515684
+        },
+        "shares": "not computable: no stored moments",
+        "total_weighted_norm": 410737056.689126,
+        "trainer_cross_check": {
+          "grad_difference_over_norm": 2.4842240718042143e-08,
+          "grad_passed": true,
+          "losses": {
+            "angmom": 165.71365356445312,
+            "data": 0.07206609845161438,
+            "energy": 2005.19189453125,
+            "ic": 14877.787109375,
+            "phys": 0.1038869172334671,
+            "total": 14877.859375
+          },
+          "norms": {
+            "angmom": {
+              "driver": 185133.26433244732,
+              "passed": true,
+              "trainer": 185133.265625
+            },
+            "data": {
+              "driver": 6.7532415676061675,
+              "passed": true,
+              "trainer": 6.753242492675781
+            },
+            "energy": {
+              "driver": 1669637.077611557,
+              "passed": true,
+              "trainer": 1669637.125
+            },
+            "ic": {
+              "driver": 410737056.7954681,
+              "passed": true,
+              "trainer": 410736992.0
+            },
+            "phys": {
+              "driver": 244.65400617558885,
+              "passed": true,
+              "trainer": 244.6540069580078
+            }
+          }
+        },
+        "weights": {
+          "angmom": 0.0,
+          "data": 1.0,
+          "energy": 0.0,
+          "ic": 1.0,
+          "phys": 0.0
+        }
+      },
+      "900": {
+        "cosines": {
+          "ic_data": 0.025122376500777463,
+          "ic_phys": 0.027327227818921183,
+          "phys_data": -0.021859901218212508
+        },
+        "file": "best.pt",
+        "global_step": 900,
+        "grad_norm_raw": {
+          "angmom": 32954.30748158675,
+          "data": 1.508798023542964,
+          "energy": 448681.39446560276,
+          "ic": 51314733.685493365,
+          "phys": 109.14038883380712
+        },
+        "grad_norm_weighted": {
+          "angmom": 0.0,
+          "data": 1.508798023542964,
+          "energy": 0.0,
+          "ic": 51314733.685493365,
+          "phys": 109.14038883380712
+        },
+        "ic_split": {
+          "position_norm": 233.46769884617234,
+          "velocity_norm": 51314649.953843564
+        },
+        "shares": {
+          "adam_step": 900.0,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "eps": 1e-08,
+          "primary": {
+            "angmom": 0.0,
+            "data": 3.2665511792194593e-06,
+            "energy": 0.0,
+            "ic": 0.99999601471283,
+            "phys": 7.187359909327031e-07
+          },
+          "primary_sum": 1.0,
+          "reading": "supports: physics was a passenger (PC-2)",
+          "secondary": {
+            "angmom": 0.0,
+            "data": 2.3178177099972258e-05,
+            "energy": 0.0,
+            "ic": -0.09011992484392012,
+            "phys": 3.926976956144698e-06
+          }
+        },
+        "total_weighted_norm": 51314736.70601766,
+        "trainer_cross_check": {
+          "grad_difference_over_norm": 7.325958071454287e-08,
+          "grad_passed": true,
+          "losses": {
+            "angmom": 38.55284118652344,
+            "data": 0.016368016600608826,
+            "energy": 588.2174072265625,
+            "ic": 2342.013916015625,
+            "phys": 0.08260870724916458,
+            "total": 2342.11279296875
+          },
+          "norms": {
+            "angmom": {
+              "driver": 32954.30748158675,
+              "passed": true,
+              "trainer": 32954.30859375
+            },
+            "data": {
+              "driver": 1.508798023542964,
+              "passed": true,
+              "trainer": 1.5087978839874268
+            },
+            "energy": {
+              "driver": 448681.39446560276,
+              "passed": true,
+              "trainer": 448681.4375
+            },
+            "ic": {
+              "driver": 51314733.685493365,
+              "passed": true,
+              "trainer": 51314728.0
+            },
+            "phys": {
+              "driver": 109.14038883380712,
+              "passed": true,
+              "trainer": 109.14038848876953
+            }
+          }
+        },
+        "weights": {
+          "angmom": 0.0,
+          "data": 1.0,
+          "energy": 0.0,
+          "ic": 1.0,
+          "phys": 1.0
+        }
+      },
+      "951": {
+        "cosines": {
+          "ic_data": -0.013717788927991094,
+          "ic_phys": 0.005144312390859681,
+          "phys_data": -0.021265614379033366
+        },
+        "file": "step-000951.pt",
+        "global_step": 951,
+        "grad_norm_raw": {
+          "angmom": 35322.19120804514,
+          "data": 1.512717353616936,
+          "energy": 424581.8438808754,
+          "ic": 34531757.198644325,
+          "phys": 113.46866699761253
+        },
+        "grad_norm_weighted": {
+          "angmom": 0.0,
+          "data": 1.512717353616936,
+          "energy": 0.0,
+          "ic": 34531757.198644325,
+          "phys": 113.46866699761253
+        },
+        "ic_split": {
+          "position_norm": 786.5579649412131,
+          "velocity_norm": 34531810.40071576
+        },
+        "shares": {
+          "adam_step": 951.0,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "eps": 1e-08,
+          "primary": {
+            "angmom": 0.0,
+            "data": 5.92877414178363e-06,
+            "energy": 0.0,
+            "ic": 0.9999940451769551,
+            "phys": 2.6048903279476128e-08
+          },
+          "primary_sum": 1.0000000000000002,
+          "reading": "supports: physics was a passenger (PC-2)",
+          "secondary": {
+            "angmom": 0.0,
+            "data": 2.7253557161121837e-05,
+            "energy": 0.0,
+            "ic": -0.18037079915491405,
+            "phys": 2.208795775702267e-07
+          }
+        },
+        "total_weighted_norm": 34531757.76179843,
+        "trainer_cross_check": {
+          "grad_difference_over_norm": 7.715496284323824e-08,
+          "grad_passed": true,
+          "losses": {
+            "angmom": 36.44638442993164,
+            "data": 0.01633734442293644,
+            "energy": 566.2428588867188,
+            "ic": 1895.962646484375,
+            "phys": 0.08498955518007278,
+            "total": 1896.06396484375
+          },
+          "norms": {
+            "angmom": {
+              "driver": 35322.19120804514,
+              "passed": true,
+              "trainer": 35322.1875
+            },
+            "data": {
+              "driver": 1.512717353616936,
+              "passed": true,
+              "trainer": 1.5127172470092773
+            },
+            "energy": {
+              "driver": 424581.8438808754,
+              "passed": true,
+              "trainer": 424581.84375
+            },
+            "ic": {
+              "driver": 34531757.198644325,
+              "passed": true,
+              "trainer": 34531760.0
+            },
+            "phys": {
+              "driver": 113.46866699761253,
+              "passed": true,
+              "trainer": 113.46866607666016
+            }
+          }
+        },
+        "weights": {
+          "angmom": 0.0,
+          "data": 1.0,
+          "energy": 0.0,
+          "ic": 1.0,
+          "phys": 1.0
+        }
+      }
+    }
+  },
+  "runtimes": [
+    [
+      "float32",
+      "mps"
+    ],
+    [
+      "float64",
+      "cpu"
+    ]
+  ],
+  "schema": "phase59-diag07-result/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "tolerance_checks": [
+    {
+      "detail": "6.7532415676061675 vs 6.753242492675781",
+      "name": "jx1.mps.0.data.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "410737056.7954681 vs 410736992.0",
+      "name": "jx1.mps.0.ic.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "244.65400617558885 vs 244.6540069580078",
+      "name": "jx1.mps.0.phys.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "1669637.077611557 vs 1669637.125",
+      "name": "jx1.mps.0.energy.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "185133.26433244732 vs 185133.265625",
+      "name": "jx1.mps.0.angmom.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "difference over norm 2.4842240718042143e-08",
+      "name": "jx1.mps.0.driver_vs_trainer_grad",
+      "passed": true
+    },
+    {
+      "detail": "1.508798023542964 vs 1.5087978839874268",
+      "name": "jx1.mps.900.data.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "51314733.685493365 vs 51314728.0",
+      "name": "jx1.mps.900.ic.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "109.14038883380712 vs 109.14038848876953",
+      "name": "jx1.mps.900.phys.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "448681.39446560276 vs 448681.4375",
+      "name": "jx1.mps.900.energy.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "32954.30748158675 vs 32954.30859375",
+      "name": "jx1.mps.900.angmom.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "difference over norm 7.325958071454287e-08",
+      "name": "jx1.mps.900.driver_vs_trainer_grad",
+      "passed": true
+    },
+    {
+      "detail": "1.0",
+      "name": "jx1.mps.900.primary_sum",
+      "passed": true
+    },
+    {
+      "detail": "(0.9, 0.999) 1e-08",
+      "name": "jx1.mps.900.adam_hyperparameters_match_checkpoint",
+      "passed": true
+    },
+    {
+      "detail": "1.512717353616936 vs 1.5127172470092773",
+      "name": "jx1.mps.951.data.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "34531757.198644325 vs 34531760.0",
+      "name": "jx1.mps.951.ic.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "113.46866699761253 vs 113.46866607666016",
+      "name": "jx1.mps.951.phys.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "424581.8438808754 vs 424581.84375",
+      "name": "jx1.mps.951.energy.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "35322.19120804514 vs 35322.1875",
+      "name": "jx1.mps.951.angmom.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "difference over norm 7.715496284323824e-08",
+      "name": "jx1.mps.951.driver_vs_trainer_grad",
+      "passed": true
+    },
+    {
+      "detail": "1.0000000000000002",
+      "name": "jx1.mps.951.primary_sum",
+      "passed": true
+    },
+    {
+      "detail": "(0.9, 0.999) 1e-08",
+      "name": "jx1.mps.951.adam_hyperparameters_match_checkpoint",
+      "passed": true
+    },
+    {
+      "detail": "6.753252902493155 vs 6.753252902493172",
+      "name": "jx1.cpu.0.data.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "410722098.3036146 vs 410722098.3036218",
+      "name": "jx1.cpu.0.ic.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "244.65356590079674 vs 244.6535659007978",
+      "name": "jx1.cpu.0.phys.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "1669630.632468408 vs 1669630.6324684042",
+      "name": "jx1.cpu.0.energy.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "185128.56404198348 vs 185128.56404198412",
+      "name": "jx1.cpu.0.angmom.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "difference over norm 3.620523612796024e-20",
+      "name": "jx1.cpu.0.driver_vs_trainer_grad",
+      "passed": true
+    },
+    {
+      "detail": "1.5087855343453853 vs 1.5087855343453769",
+      "name": "jx1.cpu.900.data.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "51313179.89492251 vs 51313179.89492325",
+      "name": "jx1.cpu.900.ic.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "109.09265718831136 vs 109.0926571883109",
+      "name": "jx1.cpu.900.phys.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "448682.9317018473 vs 448682.93170185",
+      "name": "jx1.cpu.900.energy.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "32954.72289031688 vs 32954.72289031693",
+      "name": "jx1.cpu.900.angmom.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "difference over norm 1.887263103686472e-16",
+      "name": "jx1.cpu.900.driver_vs_trainer_grad",
+      "passed": true
+    },
+    {
+      "detail": "1.0000000000000002",
+      "name": "jx1.cpu.900.primary_sum",
+      "passed": true
+    },
+    {
+      "detail": "(0.9, 0.999) 1e-08",
+      "name": "jx1.cpu.900.adam_hyperparameters_match_checkpoint",
+      "passed": true
+    },
+    {
+      "detail": "1.5127172461282508 vs 1.512717246128276",
+      "name": "jx1.cpu.951.data.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "34529059.14671695 vs 34529059.14671705",
+      "name": "jx1.cpu.951.ic.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "113.46877332229424 vs 113.46877332229438",
+      "name": "jx1.cpu.951.phys.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "424578.864034845 vs 424578.8640348477",
+      "name": "jx1.cpu.951.energy.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "35321.46007638564 vs 35321.46007638453",
+      "name": "jx1.cpu.951.angmom.driver_vs_trainer_norm",
+      "passed": true
+    },
+    {
+      "detail": "difference over norm 1.906128061297162e-16",
+      "name": "jx1.cpu.951.driver_vs_trainer_grad",
+      "passed": true
+    },
+    {
+      "detail": "0.9999999999999998",
+      "name": "jx1.cpu.951.primary_sum",
+      "passed": true
+    },
+    {
+      "detail": "(0.9, 0.999) 1e-08",
+      "name": "jx1.cpu.951.adam_hyperparameters_match_checkpoint",
+      "passed": true
+    },
+    {
+      "detail": "relative tolerance",
+      "name": "jx1.cpu_vs_mps.0.grad_norms",
+      "passed": true
+    },
+    {
+      "detail": "relative tolerance",
+      "name": "jx1.cpu_vs_mps.900.grad_norms",
+      "passed": true
+    },
+    {
+      "detail": "relative or absolute-floor tolerance",
+      "name": "jx1.cpu_vs_mps.900.shares",
+      "passed": true
+    },
+    {
+      "detail": "relative tolerance",
+      "name": "jx1.cpu_vs_mps.951.grad_norms",
+      "passed": true
+    },
+    {
+      "detail": "relative or absolute-floor tolerance",
+      "name": "jx1.cpu_vs_mps.951.shares",
+      "passed": true
+    },
+    {
+      "detail": "proceed",
+      "name": "jx1.g1_determinable",
+      "passed": true
+    },
+    {
+      "detail": "proceed vs proceed",
+      "name": "jx1.g1_outcome_cpu_vs_mps",
+      "passed": true
+    },
+    {
+      "detail": "non-interference",
+      "name": "jx1.parameters_unchanged",
+      "passed": true
+    },
+    {
+      "detail": "non-interference",
+      "name": "jx1.grads_none",
+      "passed": true
+    },
+    {
+      "detail": "non-interference",
+      "name": "jx1.optimizer_not_built",
+      "passed": true
+    },
+    {
+      "detail": "non-interference",
+      "name": "jx1.checkpoint_writes",
+      "passed": true
+    },
+    {
+      "detail": "non-interference",
+      "name": "jx1.runs_hashes_unchanged",
+      "passed": true
+    }
+  ]
+}

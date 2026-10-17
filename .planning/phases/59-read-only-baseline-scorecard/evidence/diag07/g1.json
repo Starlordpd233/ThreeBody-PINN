@@ -1,0 +1,35 @@
+{
+  "checkpoints": [
+    900,
+    951
+  ],
+  "cpu_outcome": "proceed",
+  "cpu_primary_share": {
+    "900": 6.935260546138997e-07,
+    "951": 2.5947014413325266e-08
+  },
+  "fires": false,
+  "outcome": "proceed",
+  "plain_language": "Gate G1 did not fire. The physics term supplied 7.187e-07 at step 900 and 2.605e-08 at step 951 of the Adam update, below the 0.01 threshold at both checkpoints. Outcome: proceed.",
+  "primary_share": {
+    "900": 7.187359909327031e-07,
+    "951": 2.6048903279476128e-08
+  },
+  "producer_sha256": {
+    ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/diag07_common.py": "6b7631e25d70495c7d5414cb7235323cd962be44aff5f21a5be932c806e8d223",
+    ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/jx01_jx10.py": "d391a87cb5b6f54221ab7bab7a41741e6aed412fa12f9b47968161dc42a25dd2",
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/feasibility_scorer.py": "cd5019a2ba5604f39d5c6e01763ff3f0e53547920a57bbf174ebc3bb0a73870b",
+    "pinn/verification/production_reference.py": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+    "pinn/verification/split_allowlist.py": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a"
+  },
+  "schema": "phase59-gate-g1/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "secondary_share": {
+    "900": 3.926976956144698e-06,
+    "951": 2.208795775702267e-07
+  },
+  "source_sha256": "7b8fff8042e629096407d4d805ba39ffc16782d816fc8627acb5e3c2ec45af35",
+  "threshold": 0.01
+}

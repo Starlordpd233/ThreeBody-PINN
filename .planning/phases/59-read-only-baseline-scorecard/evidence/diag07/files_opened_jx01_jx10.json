@@ -1,0 +1,13 @@
+{
+  "blocked_attempts": 0,
+  "data_root_source": "explicit",
+  "opened": {
+    "other_under_root": 0,
+    "train": 4142,
+    "validation": 486
+  },
+  "refused_before_open": 0,
+  "schema": "phase59-files-opened/v1",
+  "test_split_opened": 0,
+  "tool": "jx01_jx10.py"
+}

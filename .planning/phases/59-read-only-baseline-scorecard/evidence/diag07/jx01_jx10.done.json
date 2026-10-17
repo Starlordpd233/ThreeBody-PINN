@@ -1,0 +1,20 @@
+{
+  "command": ".planning/phases/59-read-only-baseline-scorecard/evidence/diag07/jx01_jx10.py --code-root /var/folders/kx/gq3tx75x04jf50z_d17fn1yc0000gn/T/tmp.oQwgCVZLcx/gen7-629b1a6c --data-root ~/Desktop/3_body_problem/simulation_data/Data --experiment all",
+  "elapsed_seconds": 365.6583687919774,
+  "preflight": {
+    "available_bytes": 7477002240,
+    "required_bytes": 6442450944,
+    "source": "vm_stat"
+  },
+  "result_files": {
+    "g1.json": "3c94131ca4f205dedbe3a7d49b41251af27712cdf4da2af42890f4f24245b5e8",
+    "jx01.json": "7b8fff8042e629096407d4d805ba39ffc16782d816fc8627acb5e3c2ec45af35",
+    "jx10.json": "1b895e8ae7415cf433f9d4e0e2b385ee8d4a61af417b9a191742e9447e9139c9"
+  },
+  "ru_maxrss_bytes": 3841966080,
+  "schema": "phase59-completion-marker/v1",
+  "status": "complete",
+  "step": "jx01_jx10",
+  "utc_finished": "2026-10-17T00:06:18.813946+00:00",
+  "utc_started": "2026-10-17T00:00:13.162954+00:00"
+}

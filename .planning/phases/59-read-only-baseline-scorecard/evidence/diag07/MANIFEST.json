@@ -1,0 +1,45 @@
+{
+  "area": "diag07",
+  "files": {
+    "diag07_common.py": {
+      "sha256": "6b7631e25d70495c7d5414cb7235323cd962be44aff5f21a5be932c806e8d223",
+      "size_bytes": 30672
+    },
+    "files_opened_jx01_jx10.json": {
+      "sha256": "296685e8eb10ae4ec5217da9fadaa9e4453a0156a3ad3a0131a0297bb4214844",
+      "size_bytes": 268
+    },
+    "g1.json": {
+      "sha256": "3c94131ca4f205dedbe3a7d49b41251af27712cdf4da2af42890f4f24245b5e8",
+      "size_bytes": 1743
+    },
+    "jx01.json": {
+      "sha256": "7b8fff8042e629096407d4d805ba39ffc16782d816fc8627acb5e3c2ec45af35",
+      "size_bytes": 28717
+    },
+    "jx01_jx10.done.json": {
+      "sha256": "63ab97da4364114075b55a5785e37ce339a7fffe1906d33c301b7c1564bcd7f2",
+      "size_bytes": 925
+    },
+    "jx01_jx10.py": {
+      "sha256": "d391a87cb5b6f54221ab7bab7a41741e6aed412fa12f9b47968161dc42a25dd2",
+      "size_bytes": 35595
+    },
+    "jx10.json": {
+      "sha256": "1b895e8ae7415cf433f9d4e0e2b385ee8d4a61af417b9a191742e9447e9139c9",
+      "size_bytes": 53683
+    },
+    "provenance_jx01_jx10.json": {
+      "sha256": "1e68dcd3998bef0196b04ebfb9a9529ad783885d4fef636d86ca38cc23021d16",
+      "size_bytes": 616
+    },
+    "summary.md": {
+      "sha256": "2979ab05734c30eadfa0dca10f16d0b4bfdf8292c792b7a9d1be0e7aac3a9c9e",
+      "size_bytes": 1354
+    }
+  },
+  "freeze_commit": "4ea3b1bc95e2dc3794fec4fb2047b9d32b5e889f",
+  "produced_at_head": "936f7f56881306fc27fc2c3f192e95e9c10b494e",
+  "schema": "phase59-area-manifest/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+}
