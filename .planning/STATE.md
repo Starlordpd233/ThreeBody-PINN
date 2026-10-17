@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-08-PLAN.md; the two-Kepler and nearest-neighbour baselines are committed; 59-09 code is committed and its runs wait for 6 GiB of free memory"
-last_updated: "2026-10-17T03:40:00Z"
+stopped_at: "Completed 59-09-PLAN.md; all six DIAG-07 experiments and Gate G1 are committed; Wave 5 (59-10) is next"
+last_updated: "2026-10-17T04:30:00Z"
 last_activity: 2026-10-16
-last_activity_desc: Plan 59-08 committed the comparison points (formula Tier 1 on 1 of 1812 training and 0 of 227 validation systems; copy 0 of 227)
-state_head: f101c36e9c6ef5c1f04f435b561d78c98db1d466
+last_activity_desc: Plan 59-09 committed JX-5, JX-2, JX-4 and JX-3 (noise not excluded; relative descent without useful accuracy; mixed exposure-specific / global)
+state_head: ce1e6104f2d54e4c14b63d2f32f3bc4059f0fd0c
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -30,9 +30,18 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 8 of 10 complete (59-08). In Wave 4, 59-06 and 59-08 are done; 59-09 has all its code committed and its detached runs wait for 6 GiB of free memory.
-Status: 59-09 runs pending (memory), then 59-10
-Last activity: 2026-10-16 — Plan 59-08 comparison points committed
+Plan: 9 of 10 complete (59-09). Waves 1 to 4 are done; Wave 5 (59-10) is next.
+Status: Ready for 59-10 (the plain-language findings and the final evidence check)
+Last activity: 2026-10-16 — Plan 59-09 DIAG-07 experiments committed
+
+### Decisions from 59-09 (2026-10-16)
+
+- One detached `--experiment all` run (576.5 s, 513 MB, preflight 7.09 GB) produced every committed jx02-jx05 result. Evidence commit `ce1e6104`; `diag07 --require all --require-committed` prints DIAG07-OK. The manifest supersedes the Plan-07 version (`a2e8d488`), and the Plan-07 files keep their hashes.
+- JX-2: estimator noise not excluded. The bin-2 prefix moved 0.155 from step 900 to 951, against 20-draw ranges of 0.172 and 0.141. Every draw gives the frozen front.
+- JX-4: relative descent without useful accuracy. The front went 0 to 2, but every fixture is Tier 0 at step 951 (E 13 to 62) and the physical front stays 0. It informs JD-3 only.
+- JX-3: mixed, exposure-specific by IC loss (median ratio 0.0052 on the 7 most-anchored systems against 0.33 and 0.27) and global by the residual sum (0.37, 0.45, 0.33). The batch replay is proven on every checkpoint, with 40 distinct anchors.
+- JX-5 (structural only): at initialization the acceleration RMS is 2.9e5 against a force RMS of 44, and the skip-branch du-derivative roughly doubles per skip block.
+- DIAG-07 readings from single-anchor checkpoints must not set a recipe value (R-2). DIAG-07 stays pending until 59-10.
 
 ### Decisions from 59-08 (2026-10-16)
 
@@ -722,8 +731,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
 Last session: 2026-10-16
-Stopped at: Completed 59-08-PLAN.md. 59-09 code is committed (f101c36e). Its development runs (jx5, jx2, jx4) and the single committed --experiment all run wait for 6 GiB of free memory.
-Next action: /gsd-execute-phase 59 from .worktrees/trainex: run 59-09's detached runs once memory allows, then Wave 5 (59-10). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
+Stopped at: Completed 59-09-PLAN.md. All six DIAG-07 experiments and Gate G1 are committed (ce1e6104).
+Next action: /gsd-execute-phase 59 from .worktrees/trainex: Wave 5 (59-10). Do not edit the frozen scorecard. GAP-59-08 stays open for the owner; GAP-59-13's scorer fix is a Phase-60 item. Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
 
 ## Operator Next Steps
 
