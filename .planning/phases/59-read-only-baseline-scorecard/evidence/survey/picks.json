@@ -1,0 +1,77 @@
+{
+  "formula_applicability": {
+    "stage4b": "not applicable: no hierarchical split",
+    "stage6": "not applicable: no hierarchical split"
+  },
+  "plain_language": "The two FEAS-09 probe systems chosen by the frozen rule: the training-split record nearest the median tau_L of Stage 4b and nearest the median t = 0 minimum separation of Stage 6, with the pick repeated under each tau_L sensitivity window. The stage labels are diagnostic and the official mapping is owner-pending.",
+  "producer_sha256": {
+    "pinn/verification/dataset_survey.py": "c54ac52a700ca34d81835f100cc3d03c6fc31bfdf64405af185498e44582aa23",
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/production_reference.py": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+    "pinn/verification/split_allowlist.py": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a",
+    "pinn/verification/stage0_census.py": "4b34c33a88bc15537af6568d124446f72cff9a6ed6d135cbd1b416b47ae7ce79"
+  },
+  "schema": "phase59-feas09-picks/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "stage4b": {
+    "median": 2.9841872722235117,
+    "n_candidates": 654,
+    "record": "standard/base/2279",
+    "rule": "median_tau_L_primary; nearest=abs_value_minus_numpy_median; tie_break=lowest_id_then_base_before_gold",
+    "sensitivity": {
+      "1": {
+        "differs_from_primary": true,
+        "median": 2.3063910304264152,
+        "n_candidates": 143,
+        "record": "standard/base/1916",
+        "value": 2.3063910304264152
+      },
+      "2": {
+        "differs_from_primary": true,
+        "median": 2.482605468753676,
+        "n_candidates": 589,
+        "record": "standard/base/281",
+        "value": 2.482605468753676
+      },
+      "3": {
+        "differs_from_primary": true,
+        "median": 3.148757234102912,
+        "n_candidates": 772,
+        "record": "standard/base/73",
+        "value": 3.148757234102912
+      }
+    },
+    "value": 2.9841872722235117
+  },
+  "stage6": {
+    "median": 0.26574084739868387,
+    "n_candidates": 269,
+    "record": "standard/base/3418",
+    "rule": "median_s_min_invariant_at_t0; nearest=abs_value_minus_numpy_median; tie_break=lowest_id_then_base_before_gold",
+    "sensitivity": {
+      "1": {
+        "differs_from_primary": true,
+        "median": 0.2872858381957566,
+        "n_candidates": 2667,
+        "record": "standard/base/512",
+        "value": 0.2872858381957566
+      },
+      "2": {
+        "differs_from_primary": true,
+        "median": 0.28105973352847563,
+        "n_candidates": 1689,
+        "record": "standard/base/1074",
+        "value": 0.28105973352847563
+      },
+      "3": {
+        "differs_from_primary": true,
+        "median": 0.27495748292360517,
+        "n_candidates": 355,
+        "record": "standard/base/509",
+        "value": 0.27495748292360517
+      }
+    },
+    "value": 0.26574084739868387
+  }
+}

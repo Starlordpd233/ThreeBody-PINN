@@ -1,0 +1,1066 @@
+{
+  "difficulty_ordering": {
+    "agreement": "spearman_rank_with_average_ties",
+    "measures": {
+      "N_in": {
+        "harder_is": "larger",
+        "order_hardest_to_easiest": [
+          "1",
+          "2",
+          "0"
+        ],
+        "spearman_with_curriculum": 0.5,
+        "stage_medians": {
+          "0": 18.6086833244856,
+          "1": 25.016124398724806,
+          "2": 21.526367446296923
+        },
+        "stages_compared": [
+          "0",
+          "1",
+          "2"
+        ]
+      },
+      "acc_max": {
+        "harder_is": "larger",
+        "order_hardest_to_easiest": [
+          "5",
+          "6",
+          "4a",
+          "4b",
+          "1",
+          "2",
+          "0"
+        ],
+        "spearman_with_curriculum": 0.8928571428571429,
+        "stage_medians": {
+          "0": 582.4117372894796,
+          "1": 787.3695763086496,
+          "2": 685.9360927510561,
+          "4a": 3965.545077924205,
+          "4b": 3503.825598951872,
+          "5": 29804.305966215477,
+          "6": 19934.468989091947
+        },
+        "stages_compared": [
+          "0",
+          "1",
+          "2",
+          "4a",
+          "4b",
+          "5",
+          "6"
+        ]
+      },
+      "closest_approach": {
+        "harder_is": "smaller",
+        "order_hardest_to_easiest": [
+          "5",
+          "6",
+          "4a",
+          "4b",
+          "1",
+          "2",
+          "0"
+        ],
+        "spearman_with_curriculum": 0.8928571428571429,
+        "stage_medians": {
+          "0": 0.0392914088678715,
+          "1": 0.03801195049782409,
+          "2": 0.038590415205436095,
+          "4a": 0.015942936721890098,
+          "4b": 0.017006605454232777,
+          "5": 0.005792975029179827,
+          "6": 0.007082942508734341
+        },
+        "stages_compared": [
+          "0",
+          "1",
+          "2",
+          "4a",
+          "4b",
+          "5",
+          "6"
+        ]
+      },
+      "error_growth": {
+        "harder_is": "larger",
+        "order_hardest_to_easiest": [
+          "6",
+          "4b",
+          "5",
+          "0",
+          "2",
+          "1",
+          "4a"
+        ],
+        "spearman_with_curriculum": 0.6428571428571429,
+        "stage_medians": {
+          "0": 1.2203913302561127,
+          "1": 1.1023037532677495,
+          "2": 1.1514142786394048,
+          "4a": 1.0,
+          "4b": 28.5311402138236,
+          "5": 2.143806549399161,
+          "6": 351.57597614613377
+        },
+        "stages_compared": [
+          "0",
+          "1",
+          "2",
+          "4a",
+          "4b",
+          "5",
+          "6"
+        ]
+      },
+      "phase_accuracy_0.1": {
+        "harder_is": "smaller",
+        "order_hardest_to_easiest": [
+          "1",
+          "2",
+          "0"
+        ],
+        "spearman_with_curriculum": 0.5,
+        "stage_medians": {
+          "0": 0.0008552724850066929,
+          "1": 0.000636209473301832,
+          "2": 0.0007393488375114456
+        },
+        "stages_compared": [
+          "0",
+          "1",
+          "2"
+        ]
+      },
+      "tau_L_primary": {
+        "harder_is": "smaller",
+        "order_hardest_to_easiest": [
+          "6",
+          "4b",
+          "5",
+          "4a",
+          "2",
+          "0",
+          "1"
+        ],
+        "spearman_with_curriculum": 0.9285714285714286,
+        "stage_medians": {
+          "0": 21.405284725023755,
+          "1": 24.63558397947107,
+          "2": 21.252554901446054,
+          "4a": 10.737720340545122,
+          "4b": 2.9841872722235117,
+          "5": 5.0203804057997345,
+          "6": 1.7057785086457438
+        },
+        "stages_compared": [
+          "0",
+          "1",
+          "2",
+          "4a",
+          "4b",
+          "5",
+          "6"
+        ]
+      }
+    },
+    "statistic": "stage_median"
+  },
+  "labels_are_diagnostic": true,
+  "official_mapping": "owner_pending",
+  "per_stage": {
+    "0": {
+      "count": 1812,
+      "label_source": "splits manifest (record stage 0)",
+      "measures": {
+        "N_in": {
+          "max": 101.74446545578989,
+          "median": 18.6086833244856,
+          "min": 2.8158937820261007,
+          "n": 1812,
+          "p10": 10.473417966600184,
+          "p90": 39.34918653008248
+        },
+        "N_out": {
+          "max": 12.019362619480354,
+          "median": 1.8233879839448366,
+          "min": 0.4366430782739456,
+          "n": 1812,
+          "p10": 0.8940659669778249,
+          "p90": 4.022051766698118
+        },
+        "acc_max": {
+          "max": 28972.59162334319,
+          "median": 582.4117372894796,
+          "min": 112.90698905780049,
+          "n": 1812,
+          "p10": 241.7263659911661,
+          "p90": 1923.7362596673547
+        },
+        "acc_min": {
+          "max": 276.56040443486864,
+          "median": 14.749010896634193,
+          "min": 0.9663216815283461,
+          "n": 1812,
+          "p10": 5.554357198372456,
+          "p90": 43.734274625033606
+        },
+        "closest_approach": {
+          "max": 0.08286391255660613,
+          "median": 0.0392914088678715,
+          "min": 0.00546605847803717,
+          "n": 1812,
+          "p10": 0.02250182749404881,
+          "p90": 0.060037823202211585
+        },
+        "error_growth": {
+          "max": 36551.81629738648,
+          "median": 1.2203913302561127,
+          "min": 1.0,
+          "n": 1812,
+          "n_infinite": 0,
+          "p10": 1.0,
+          "p90": 30.78009768476649
+        },
+        "phase_accuracy_0.01": {
+          "max": 0.0005652022249837125,
+          "median": 8.552724850066928e-05,
+          "min": 1.5642614306234818e-05,
+          "n": 1812,
+          "p10": 4.0446819141169675e-05,
+          "p90": 0.0001519608689793754
+        },
+        "phase_accuracy_0.1": {
+          "max": 0.005652022249837126,
+          "median": 0.0008552724850066929,
+          "min": 0.0001564261430623482,
+          "n": 1812,
+          "p10": 0.00040446819141169677,
+          "p90": 0.0015196086897937542
+        },
+        "tau_L_primary": {
+          "max": 73674.17949348249,
+          "median": 21.405284725023755,
+          "min": 0.9517930019749349,
+          "n": 1495,
+          "n_infinite": 317,
+          "p10": 2.634456819437523,
+          "p90": 1170.5952512466138
+        }
+      },
+      "tau_L_counts": {
+        "finite": 1495,
+        "infinite": 317,
+        "not_computable": 0
+      }
+    },
+    "1": {
+      "count": 2074,
+      "label_source": "splits manifest (record stage 1)",
+      "measures": {
+        "N_in": {
+          "max": 158.60830316244133,
+          "median": 25.016124398724806,
+          "min": 7.558737235286552,
+          "n": 2074,
+          "p10": 13.708825529898485,
+          "p90": 56.149209388108574
+        },
+        "N_out": {
+          "max": 11.211876584837865,
+          "median": 1.4402079103760017,
+          "min": 0.4152316051045535,
+          "n": 2074,
+          "p10": 0.7159079074628377,
+          "p90": 3.3029076527291648
+        },
+        "acc_max": {
+          "max": 10957.094119719937,
+          "median": 787.3695763086496,
+          "min": 114.61567097225625,
+          "n": 2074,
+          "p10": 313.8813365476735,
+          "p90": 2629.6828397543145
+        },
+        "acc_min": {
+          "max": 279.95114277887944,
+          "median": 15.515605363168376,
+          "min": 1.9420677750464197,
+          "n": 2074,
+          "p10": 5.042941675225916,
+          "p90": 51.49116835287467
+        },
+        "closest_approach": {
+          "max": 0.08233600830093704,
+          "median": 0.03801195049782409,
+          "min": 0.00862123201009548,
+          "n": 2074,
+          "p10": 0.020717379202721615,
+          "p90": 0.057832486990579884
+        },
+        "error_growth": {
+          "max": 26593.8646855806,
+          "median": 1.1023037532677495,
+          "min": 1.0,
+          "n": 2074,
+          "n_infinite": 0,
+          "p10": 1.0,
+          "p90": 52.026071116840534
+        },
+        "phase_accuracy_0.01": {
+          "max": 0.00021055758142895912,
+          "median": 6.36209473301832e-05,
+          "min": 1.0034464773820458e-05,
+          "n": 2074,
+          "p10": 2.8345177705201076e-05,
+          "p90": 0.00011609670271392193
+        },
+        "phase_accuracy_0.1": {
+          "max": 0.002105575814289591,
+          "median": 0.000636209473301832,
+          "min": 0.00010034464773820457,
+          "n": 2074,
+          "p10": 0.00028345177705201073,
+          "p90": 0.0011609670271392194
+        },
+        "tau_L_primary": {
+          "max": 249486.93730325904,
+          "median": 24.63558397947107,
+          "min": 0.981504931607975,
+          "n": 1660,
+          "n_infinite": 414,
+          "p10": 2.3069159008494475,
+          "p90": 1530.6604966191574
+        }
+      },
+      "tau_L_counts": {
+        "finite": 1660,
+        "infinite": 414,
+        "not_computable": 0
+      }
+    },
+    "2": {
+      "count": 3886,
+      "label_source": "spec criterion: hierarchical gold records are the Stage 2 data source",
+      "measures": {
+        "N_in": {
+          "max": 158.60830316244133,
+          "median": 21.526367446296923,
+          "min": 2.8158937820261007,
+          "n": 3886,
+          "p10": 11.85762338786596,
+          "p90": 48.50815067549451
+        },
+        "N_out": {
+          "max": 12.019362619480354,
+          "median": 1.6047194849960564,
+          "min": 0.4152316051045535,
+          "n": 3886,
+          "p10": 0.779660549726302,
+          "p90": 3.7048146924295517
+        },
+        "acc_max": {
+          "max": 131879.7057563076,
+          "median": 685.9360927510561,
+          "min": 113.0143461109415,
+          "n": 3886,
+          "p10": 271.9116017401758,
+          "p90": 2362.0631861500956
+        },
+        "acc_min": {
+          "max": 279.4754385109668,
+          "median": 15.152245226566805,
+          "min": 0.9663216826874157,
+          "n": 3886,
+          "p10": 5.232769176233472,
+          "p90": 47.935532507793624
+        },
+        "closest_approach": {
+          "max": 0.08283480803263342,
+          "median": 0.038590415205436095,
+          "min": 0.003302494827331182,
+          "n": 3886,
+          "p10": 0.02131957871343535,
+          "p90": 0.058891934893829725
+        },
+        "error_growth": {
+          "max": 43528.74971570971,
+          "median": 1.1514142786394048,
+          "min": 1.0,
+          "n": 3886,
+          "n_infinite": 0,
+          "p10": 1.0,
+          "p90": 42.865809839660606
+        },
+        "phase_accuracy_0.01": {
+          "max": 0.0005652022249837125,
+          "median": 7.393488375114456e-05,
+          "min": 1.0034464773820458e-05,
+          "n": 3886,
+          "p10": 3.2809963902504936e-05,
+          "p90": 0.00013422162088311948
+        },
+        "phase_accuracy_0.1": {
+          "max": 0.005652022249837126,
+          "median": 0.0007393488375114456,
+          "min": 0.00010034464773820457,
+          "n": 3886,
+          "p10": 0.00032809963902504934,
+          "p90": 0.001342216208831195
+        },
+        "tau_L_primary": {
+          "max": 771556.9228892229,
+          "median": 21.252554901446054,
+          "min": 0.9362264179873419,
+          "n": 3125,
+          "n_infinite": 761,
+          "p10": 2.4084521613839507,
+          "p90": 1005.6260588093271
+        }
+      },
+      "tau_L_counts": {
+        "finite": 3125,
+        "infinite": 761,
+        "not_computable": 0
+      }
+    },
+    "3": {
+      "count": 0,
+      "label_source": "spec criterion: Stage 3 percentile gating on standard base records",
+      "measures": {
+        "N_in": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "N_out": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "acc_max": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "p10": null,
+          "p90": null
+        },
+        "acc_min": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "p10": null,
+          "p90": null
+        },
+        "closest_approach": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "p10": null,
+          "p90": null
+        },
+        "error_growth": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "n_infinite": 0,
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.01": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.1": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "tau_L_primary": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "n_infinite": 0,
+          "p10": null,
+          "p90": null
+        }
+      },
+      "tau_L_counts": {
+        "finite": 0,
+        "infinite": 0,
+        "not_computable": 0
+      }
+    },
+    "4a": {
+      "count": 1404,
+      "label_source": "spec criterion: tau_L above 5 on standard base records",
+      "measures": {
+        "N_in": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "N_out": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "acc_max": {
+          "max": 327251.9843908228,
+          "median": 3965.545077924205,
+          "min": 289.8601621586124,
+          "n": 1404,
+          "p10": 812.5027705759759,
+          "p90": 34643.357965774936
+        },
+        "acc_min": {
+          "max": 21.00070418475157,
+          "median": 1.9857289091166808,
+          "min": 0.017816751871995915,
+          "n": 1404,
+          "p10": 0.13053679446158228,
+          "p90": 11.056507685831178
+        },
+        "closest_approach": {
+          "max": 0.06250223427747308,
+          "median": 0.015942936721890098,
+          "min": 0.0017480923107756584,
+          "n": 1404,
+          "p10": 0.005372944484657593,
+          "p90": 0.035215861520473964
+        },
+        "error_growth": {
+          "max": 7.314902594484761,
+          "median": 1.0,
+          "min": 1.0,
+          "n": 1404,
+          "n_infinite": 0,
+          "p10": 1.0,
+          "p90": 4.339091371973184
+        },
+        "phase_accuracy_0.01": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.1": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "tau_L_primary": {
+          "max": 585.8335588370275,
+          "median": 10.737720340545122,
+          "min": 5.025343514602137,
+          "n": 655,
+          "n_infinite": 749,
+          "p10": 5.452688035177661,
+          "p90": 54.310154555824916
+        }
+      },
+      "tau_L_counts": {
+        "finite": 655,
+        "infinite": 749,
+        "not_computable": 0
+      }
+    },
+    "4b": {
+      "count": 654,
+      "label_source": "spec criterion: tau_L above 2 and at most 5 on standard base records",
+      "measures": {
+        "N_in": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "N_out": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "acc_max": {
+          "max": 218476.54159419512,
+          "median": 3503.825598951872,
+          "min": 379.02591013418805,
+          "n": 654,
+          "p10": 898.9720237248216,
+          "p90": 20928.24587877768
+        },
+        "acc_min": {
+          "max": 17.647522279209884,
+          "median": 4.403642119905921,
+          "min": 0.1324191706689913,
+          "n": 654,
+          "p10": 1.257180312908561,
+          "p90": 10.853243998262723
+        },
+        "closest_approach": {
+          "max": 0.051456151329564666,
+          "median": 0.017006605454232777,
+          "min": 0.0021393950774185426,
+          "n": 654,
+          "p10": 0.0069130571064419995,
+          "p90": 0.03352974223130203
+        },
+        "error_growth": {
+          "max": 141.40186731246905,
+          "median": 28.5311402138236,
+          "min": 7.452993675860374,
+          "n": 654,
+          "n_infinite": 0,
+          "p10": 9.007210227450226,
+          "p90": 85.70661421427215
+        },
+        "phase_accuracy_0.01": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.1": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "tau_L_primary": {
+          "max": 4.978552923318407,
+          "median": 2.9841872722235117,
+          "min": 2.019546806080909,
+          "n": 654,
+          "n_infinite": 0,
+          "p10": 2.246722584323144,
+          "p90": 4.549631819488407
+        }
+      },
+      "tau_L_counts": {
+        "finite": 654,
+        "infinite": 0,
+        "not_computable": 0
+      }
+    },
+    "5": {
+      "count": 1923,
+      "label_source": "spec criterion: tau_L above 2 on standard gold records",
+      "measures": {
+        "N_in": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "N_out": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "acc_max": {
+          "max": 13977061.396574413,
+          "median": 29804.305966215477,
+          "min": 1204.8347800531405,
+          "n": 1923,
+          "p10": 8182.737420804942,
+          "p90": 199661.2301861263
+        },
+        "acc_min": {
+          "max": 19.619134195729437,
+          "median": 3.1886922525399526,
+          "min": 0.01723098178162412,
+          "n": 1923,
+          "p10": 0.1647297498375954,
+          "p90": 10.503664747778727
+        },
+        "closest_approach": {
+          "max": 0.030173165571185857,
+          "median": 0.005792975029179827,
+          "min": 0.0002671998219591423,
+          "n": 1923,
+          "p10": 0.0022379306884369025,
+          "p90": 0.01106942575299155
+        },
+        "error_growth": {
+          "max": 142.56743265202036,
+          "median": 2.143806549399161,
+          "min": 1.0,
+          "n": 1923,
+          "n_infinite": 0,
+          "p10": 1.0,
+          "p90": 56.10767108934085
+        },
+        "phase_accuracy_0.01": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.1": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "tau_L_primary": {
+          "max": 7387.85031064832,
+          "median": 5.0203804057997345,
+          "min": 2.0162041930283046,
+          "n": 1225,
+          "n_infinite": 698,
+          "p10": 2.3532963815389234,
+          "p90": 35.01416931311264
+        }
+      },
+      "tau_L_counts": {
+        "finite": 1225,
+        "infinite": 698,
+        "not_computable": 0
+      }
+    },
+    "6": {
+      "count": 269,
+      "label_source": "spec criterion: residual, all remaining data (ctl_instruction.md:252-253)",
+      "measures": {
+        "N_in": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "N_out": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "acc_max": {
+          "max": 1942194.9046996532,
+          "median": 19934.468989091947,
+          "min": 728.7538441350143,
+          "n": 269,
+          "p10": 2206.6398545115417,
+          "p90": 249713.5282717093
+        },
+        "acc_min": {
+          "max": 15.6592359817532,
+          "median": 6.241289917253676,
+          "min": 0.32577635066868676,
+          "n": 269,
+          "p10": 3.053127675160964,
+          "p90": 10.386524895970494
+        },
+        "closest_approach": {
+          "max": 0.03730459446193391,
+          "median": 0.007082942508734341,
+          "min": 0.000717454661891449,
+          "n": 269,
+          "p10": 0.002051825627927205,
+          "p90": 0.021468004541412598
+        },
+        "error_growth": {
+          "max": 373148.65947090636,
+          "median": 351.57597614613377,
+          "min": 150.49848703134114,
+          "n": 269,
+          "n_infinite": 0,
+          "p10": 179.69693444055153,
+          "p90": 13674.38336638342
+        },
+        "phase_accuracy_0.01": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.1": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "tau_L_primary": {
+          "max": 1.9944343191475062,
+          "median": 1.7057785086457438,
+          "min": 0.7794394978342696,
+          "n": 269,
+          "n_infinite": 0,
+          "p10": 1.0500584346023325,
+          "p90": 1.9263102591755141
+        }
+      },
+      "tau_L_counts": {
+        "finite": 269,
+        "infinite": 0,
+        "not_computable": 0
+      }
+    },
+    "unlabelled": {
+      "count": 1,
+      "label_source": "none: tau_L could not be computed, so the record is not pushed into a stage",
+      "measures": {
+        "N_in": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "N_out": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "acc_max": {
+          "max": 5972.68127322372,
+          "median": 5972.68127322372,
+          "min": 5972.68127322372,
+          "n": 1,
+          "p10": 5972.68127322372,
+          "p90": 5972.68127322372
+        },
+        "acc_min": {
+          "max": 0.0861970230885429,
+          "median": 0.0861970230885429,
+          "min": 0.0861970230885429,
+          "n": 1,
+          "p10": 0.0861970230885429,
+          "p90": 0.0861970230885429
+        },
+        "closest_approach": {
+          "max": 0.012939433735204288,
+          "median": 0.012939433735204288,
+          "min": 0.012939433735204288,
+          "n": 1,
+          "p10": 0.012939433735204288,
+          "p90": 0.012939433735204288
+        },
+        "error_growth": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "n_infinite": 0,
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.01": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "phase_accuracy_0.1": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "not_applicable": "not applicable: no hierarchical split",
+          "p10": null,
+          "p90": null
+        },
+        "tau_L_primary": {
+          "max": null,
+          "median": null,
+          "min": null,
+          "n": 0,
+          "n_infinite": 0,
+          "p10": null,
+          "p90": null
+        }
+      },
+      "tau_L_counts": {
+        "finite": 0,
+        "infinite": 0,
+        "not_computable": 1
+      }
+    }
+  },
+  "plain_language": "Read-only survey of all 12023 training-split records. Each record has a diagnostic stage label with its rule and source, and each stage is measured for inner laps, closest approach, acceleration, the Lyapunov time tau_L and the error growth exp(10 / tau_L). The labels and tau_L are diagnostic, the official stage mapping beyond Stages 0 and 1 is owner-pending, and nothing here gates a result.",
+  "population": {
+    "by_variant_and_fidelity": {
+      "hierarchical/base": 3886,
+      "hierarchical/gold": 3886,
+      "standard/base": 2199,
+      "standard/gold": 2052
+    },
+    "total": 12023
+  },
+  "precedence": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4a",
+    "4b",
+    "5",
+    "6"
+  ],
+  "producer_sha256": {
+    "pinn/verification/dataset_survey.py": "c54ac52a700ca34d81835f100cc3d03c6fc31bfdf64405af185498e44582aa23",
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/production_reference.py": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+    "pinn/verification/split_allowlist.py": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a",
+    "pinn/verification/stage0_census.py": "4b34c33a88bc15537af6568d124446f72cff9a6ed6d135cbd1b416b47ae7ce79"
+  },
+  "schema": "phase59-survey/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "sensitivity": {
+    "primary": {
+      "3": 0,
+      "4a": 1404,
+      "4b": 654,
+      "5": 1923,
+      "6": 269,
+      "unlabelled": 1
+    },
+    "w1": {
+      "3": 0,
+      "4a": 679,
+      "4b": 143,
+      "5": 761,
+      "6": 2667,
+      "unlabelled": 1
+    },
+    "w2": {
+      "3": 0,
+      "4a": 719,
+      "4b": 589,
+      "5": 1253,
+      "6": 1689,
+      "unlabelled": 1
+    },
+    "w3": {
+      "3": 0,
+      "4a": 1239,
+      "4b": 772,
+      "5": 1884,
+      "6": 355,
+      "unlabelled": 1
+    }
+  },
+  "stage1_substages": {
+    "1-none": 0,
+    "1a": 0,
+    "1b": 2074
+  },
+  "stage3": {
+    "E25": -9.7396575109993,
+    "E_population": 2199,
+    "L75": 0.04075990550913975,
+    "Q_range_of_standard_base": [
+      0.0006319450099921443,
+      0.11921435767142627
+    ],
+    "Q_window": [
+      0.9,
+      1.1
+    ],
+    "count": 0,
+    "l_ratio_population": 2199
+  },
+  "tau_L_settings": {
+    "delay": 10,
+    "dt": 0.01,
+    "embedding_dim": 5,
+    "min_distance": 1e-09,
+    "min_fit_points": 2,
+    "non_positive_slope": "infinite",
+    "positions": "r_com_ordered",
+    "primary_fit": "half_pairs",
+    "resample": "linear",
+    "sensitivity_fit_windows": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "t_max": 10.0,
+    "theiler_window": 100,
+    "time": "raw_t"
+  }
+}

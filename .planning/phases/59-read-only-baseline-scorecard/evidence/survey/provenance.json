@@ -1,0 +1,15 @@
+{
+  "command": "python -m pinn.verification.dataset_survey",
+  "data_root_source": "git_common_dir_default",
+  "elapsed_seconds": 457.6345198750496,
+  "git_head": "e858628a6dd6ed11502e552a808971e2d454f748",
+  "numpy": "2.4.6",
+  "python": "3.11.15",
+  "ru_maxrss_bytes": 506839040,
+  "schema": "phase59-provenance/v1",
+  "tool": "dataset_survey",
+  "torch": "2.12.1",
+  "utc_finished": "2026-10-17T00:49:09.520943+00:00",
+  "utc_started": "2026-10-17T00:41:31.881916+00:00",
+  "worktree_dirty": true
+}

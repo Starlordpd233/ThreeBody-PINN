@@ -1,0 +1,22 @@
+{
+  "command": "python -m pinn.verification.dataset_survey",
+  "elapsed_seconds": 457.6352836250444,
+  "preflight": {
+    "available_bytes": 7905935360,
+    "required_bytes": 2147483648,
+    "source": "vm_stat"
+  },
+  "result_files": {
+    "files_opened.json": "859ea4a5eefb326c353a01f658778061db128baafb0189b51bb6bb4ecf814d5c",
+    "picks.json": "b6836d5095edc12b9b7af873bfd5b6cb82fdeeb2e5c34e1c75b608810cda7317",
+    "summary.md": "4de907a8b4afc84ce1637f0340f42872b6c1554d44b1425ee9f881e070d1f83f",
+    "survey.json": "0e3295edff60c8e09c8e629b4b2a2d63a7e62d66d405e4c08db805120fa720a1",
+    "survey_records.csv": "88bb2cb6d4cb915e631a0b39ac371d2d7c273e8f41526b4ccdb85cb696f015d0"
+  },
+  "ru_maxrss_bytes": 506839040,
+  "schema": "phase59-completion-marker/v1",
+  "status": "complete",
+  "step": "survey",
+  "utc_finished": "2026-10-17T00:49:09.521730+00:00",
+  "utc_started": "2026-10-17T00:41:31.881916+00:00"
+}

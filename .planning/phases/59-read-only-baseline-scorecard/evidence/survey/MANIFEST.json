@@ -1,0 +1,37 @@
+{
+  "area": "survey",
+  "files": {
+    "files_opened.json": {
+      "sha256": "859ea4a5eefb326c353a01f658778061db128baafb0189b51bb6bb4ecf814d5c",
+      "size_bytes": 283
+    },
+    "picks.json": {
+      "sha256": "b6836d5095edc12b9b7af873bfd5b6cb82fdeeb2e5c34e1c75b608810cda7317",
+      "size_bytes": 3123
+    },
+    "provenance.json": {
+      "sha256": "ddb403b3563e409711ade12f8fa888bcd0f7c3b885369da1e67d496e5fa81cfe",
+      "size_bytes": 502
+    },
+    "summary.md": {
+      "sha256": "4de907a8b4afc84ce1637f0340f42872b6c1554d44b1425ee9f881e070d1f83f",
+      "size_bytes": 4831
+    },
+    "survey.done.json": {
+      "sha256": "861693b81c91e4653ba74c52eb6f201f673d5c4d017bb90fe7ad0d837094d123",
+      "size_bytes": 914
+    },
+    "survey.json": {
+      "sha256": "0e3295edff60c8e09c8e629b4b2a2d63a7e62d66d405e4c08db805120fa720a1",
+      "size_bytes": 28637
+    },
+    "survey_records.csv": {
+      "sha256": "88bb2cb6d4cb915e631a0b39ac371d2d7c273e8f41526b4ccdb85cb696f015d0",
+      "size_bytes": 4220428
+    }
+  },
+  "freeze_commit": "4ea3b1bc95e2dc3794fec4fb2047b9d32b5e889f",
+  "produced_at_head": "e858628a6dd6ed11502e552a808971e2d454f748",
+  "schema": "phase59-area-manifest/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+}
