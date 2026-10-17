@@ -863,6 +863,388 @@ def _run_jx4(session, identity, evidence_root, data_root, command):
     return failed
 
 
+_N_SNAP = 126
+_REPLAY_COUNT = 240
+_LOOKAHEAD_COUNT = 16
+_BATCH_KEYS = 256
+_DATA_POINTS_PER_KEY = 16
+_N_BINS = 16
+_PER_BIN = 256
+_T_MAX = 10.0
+_RETENTION_REL = Path(
+    ".planning/phases/57-corrected-re-run-the-preserved-evaluation/evidence/generation-7-retention.json"
+)
+
+
+def _retention_sha256(repo_root, relative):
+    import json
+
+    payload = json.loads((Path(repo_root) / _RETENTION_REL).read_text(encoding="utf-8"))
+    for entry in payload["files"]:
+        if entry.get("path") == str(relative):
+            return entry["sha256"]
+    raise ToleranceFailure(f"{relative} is not in generation-7 retention")
+
+
+def _pinned_bytes(repo_root, relative):
+    import hashlib
+
+    raw = (Path(repo_root) / relative).read_bytes()
+    expected = _retention_sha256(repo_root, relative)
+    digest = hashlib.sha256(raw).hexdigest()
+    if digest != expected:
+        raise ToleranceFailure(f"{relative} sha256 {digest} != retention {expected}")
+    return raw, digest
+
+
+def _generator(state):
+    bit_generator = np.random.PCG64()
+    bit_generator.state = state
+    return np.random.Generator(bit_generator)
+
+
+def _same_state(rng, state) -> bool:
+    current = rng.bit_generator.state
+    return (
+        int(current["state"]["state"]) == int(state["state"]["state"])
+        and int(current["state"]["inc"]) == int(state["state"]["inc"])
+        and int(current["has_uint32"]) == int(state["has_uint32"])
+    )
+
+
+def _replay_key_id(item) -> int:
+    if isinstance(item, dict):
+        return int(item["id"])
+    if isinstance(item, (list, tuple)):
+        return int(item[2])
+    return int(getattr(item, "id", item))
+
+
+class _BatchStream:
+    """A call-for-call port of the Rule-19 A.2 replay of pinn/data/batches.py draws."""
+
+    def __init__(self, rng, pool0, pool1, pool_v):
+        self.rng = rng
+        self.pool0 = pool0
+        self.pool1 = pool1
+        self.pool_v = pool_v
+
+    def _data_points(self, n_keys):
+        for _ in range(n_keys):
+            self.rng.gumbel(size=_N_SNAP)
+            self.rng.choice(np.arange(_N_SNAP - _DATA_POINTS_PER_KEY), size=_DATA_POINTS_PER_KEY, replace=False)
+
+    def _uniform_in_bin(self, b):
+        low = (b / _N_BINS) * _T_MAX
+        if b < _N_BINS - 1:
+            self.rng.uniform(low, ((b + 1) / _N_BINS) * _T_MAX)
+        else:
+            self.rng.uniform(low, np.nextafter(_T_MAX, np.inf))
+
+    def train_batch(self):
+        picked = np.atleast_1d(self.rng.choice(len(self.pool0), size=_REPLAY_COUNT, replace=False))
+        replay = sorted(self.pool0[int(index)] for index in picked)
+        self.rng.choice(
+            len(self.pool1), size=_LOOKAHEAD_COUNT, replace=len(self.pool1) < _LOOKAHEAD_COUNT,
+        )
+        self._data_points(_BATCH_KEYS)
+        for b in range(_N_BINS):
+            for _ in range(_PER_BIN):
+                self._uniform_in_bin(b)
+        return replay
+
+    def validation_batch(self):
+        self._data_points(len(self.pool_v))
+        recipients = self.rng.permutation(len(self.pool_v))[:1]
+        for index in range(len(self.pool_v)):
+            self.rng.uniform(0.0, _T_MAX, size=1 if index in recipients else 0)
+
+
+def replay_anchor_stream(repo_root, allowlist, *, run=diag07_common.SEED42, scorecard=None,
+                         resident=None) -> dict:
+    """Replay generation 7's batch random stream and prove it on every checkpoint.
+
+    A faithful port of the Rule-19 A.2 replay (metadata only). The start state,
+    the step log and every checkpoint are SHA-256-checked against
+    generation-7-retention.json before use. ``resident`` (train and validation
+    sources), when given, must report 126 snapshots for every pooled record.
+    """
+    import json
+
+    import torch
+    from pinn.verification.feasibility_scorecard import load_scorecard
+
+    scorecard = scorecard or load_scorecard()
+    repo_root = Path(repo_root)
+
+    def pool(split, stage):
+        return sorted(
+            int(key.id)
+            for key in allowlist.records(split, variant="hierarchical", fidelity="base", stage=stage)
+        )
+
+    pool0, pool1, pool_v = pool("train", 0), pool("train", 1), pool("validation", 0)
+    if resident is not None:
+        from pinn.data.types import RecordKey
+
+        train_source, validation_source = resident
+        for source, identifiers in ((train_source, pool0 + pool1), (validation_source, pool_v)):
+            for identifier in identifiers:
+                count = int(source.n_snapshots(RecordKey("hierarchical", "base", identifier)))
+                if count != _N_SNAP:
+                    raise ToleranceFailure(f"record {identifier} has {count} snapshots, not {_N_SNAP}")
+    run_dir = Path("runs") / run
+    start_raw, start_sha = _pinned_bytes(repo_root, run_dir / "run_start_rng.pt")
+    log_raw, log_sha = _pinned_bytes(repo_root, run_dir / "logs" / "train.log.jsonl")
+    import io
+
+    start = torch.load(io.BytesIO(start_raw), map_location="cpu", weights_only=True)
+    start_state = start["numpy"] if "numpy" in start else start["rng"]["numpy"]
+    log = [json.loads(line) for line in log_raw.decode("utf-8").splitlines() if line.strip()]
+    completed = {int(record["step"]) for record in log if record.get("lr") is not None}
+    last = int(log[-1]["step"])
+
+    checkpoints = {}
+    for name, step in scorecard.section("diag07")["checkpoints"][run].items():
+        payload, info = diag07_common.load_registry_checkpoint(
+            repo_root, run, name, scorecard=scorecard,
+        )
+        replay_keys = payload.get("front_monitor", {}).get("batch", {}).get("replay_keys", [])
+        checkpoints[name] = {
+            "rng": payload["rng"]["numpy"],
+            "step": int(step),
+            "monitor_replay": [_replay_key_id(item) for item in replay_keys][:5],
+            "sha256": info["sha256"],
+        }
+        del payload
+
+    stream = _BatchStream(_generator(start_state), pool0, pool1, pool_v)
+    monitor = stream.train_batch()
+    states = {"monitor": dict(stream.rng.bit_generator.state)}
+    anchors = {}
+    for step in range(1, last + 1):
+        replay = stream.train_batch()
+        anchors[step] = int(replay[0])
+        if step in completed and step % 100 == 0:
+            stream.validation_batch()
+        states[step] = dict(stream.rng.bit_generator.state)
+
+    proofs = []
+    for name in sorted(checkpoints):
+        record = checkpoints[name]
+        if name == "stage-0-init.pt":
+            point, after = "monitor", "monitor draw"
+        elif name.startswith("failure-"):
+            point, after = record["step"] + 1, f"step {record['step'] + 1} draw"
+        else:
+            point, after = record["step"], f"step {record['step']}"
+        proof = point in states and _same_state(_generator(states[point]), record["rng"])
+        proofs.append({
+            "file": name, "global_step": record["step"], "after": after,
+            "sha256": record["sha256"], "proof": bool(proof),
+        })
+    counts = {}
+    for step in sorted(completed):
+        if 1 <= step <= last:
+            counts[anchors[step]] = counts.get(anchors[step], 0) + 1
+    ordered = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    init_monitor = checkpoints.get("stage-0-init.pt", {}).get("monitor_replay")
+    return {
+        "run": run,
+        "pools": {"train_stage0": len(pool0), "train_stage1": len(pool1), "validation_stage0": len(pool_v)},
+        "pool_train_stage0": pool0,
+        "pool_validation_stage0": pool_v,
+        "monitor_replay": [int(value) for value in monitor],
+        "monitor_matches_checkpoint": init_monitor == [int(value) for value in monitor[:5]],
+        "anchors": {step: anchors[step] for step in sorted(completed)},
+        "anchor_counts": [[int(identifier), int(count)] for identifier, count in ordered],
+        "distinct_anchors": len(counts),
+        "completed_steps": len(completed),
+        "proofs": proofs,
+        "inputs": {
+            "run_start_rng_sha256": start_sha,
+            "train_log_sha256": log_sha,
+        },
+    }
+
+
+def jx3_groups(anchor_counts, train_stage0_ids, validation_ids, *, rules) -> dict:
+    """The three exposure groups by the frozen diag07.jx3 rule."""
+    counts = {int(key): int(value) for key, value in dict(anchor_counts).items() if int(value) > 0}
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    high = [identifier for identifier, _count in ranked[: int(rules["high_exposure_count"])]]
+    never = sorted(set(int(value) for value in train_stage0_ids) - set(counts))
+    never_pick = np.random.default_rng(int(rules["never_anchored_seed"])).choice(
+        never, size=int(rules["never_anchored_count"]), replace=False,
+    )
+    validation = sorted(int(value) for value in validation_ids)
+    validation_pick = np.random.default_rng(int(rules["validation_seed"])).choice(
+        validation, size=int(rules["validation_count"]), replace=False,
+    )
+    return {
+        "high_exposure": high,
+        "never_anchored": sorted(int(value) for value in never_pick),
+        "validation": sorted(int(value) for value in validation_pick),
+    }
+
+
+_JX3_GROUPS = ("high_exposure", "never_anchored", "validation")
+
+
+def _jx3_statistic_reading(medians) -> str:
+    a, b, c = (medians[name] for name in _JX3_GROUPS)
+    if a < 0.5 * b and a < 0.5 * c:
+        return "exposure-specific"
+    if all(0.5 * a <= other <= 2.0 * a for other in (b, c)):
+        return "global"
+    return "inconclusive"
+
+
+def jx3_reading(rows) -> dict:
+    """The frozen factor-of-two rule on group medians of value(951) / value(0)."""
+    readings = {}
+    medians = {}
+    for statistic in ("L_IC", "sum_rtilde"):
+        by_group = {}
+        for row in rows:
+            ratio = float(row[f"{statistic}_951"]) / float(row[f"{statistic}_0"])
+            by_group.setdefault(row["group"], []).append(ratio)
+        medians[statistic] = {name: float(np.median(by_group[name])) for name in _JX3_GROUPS}
+        readings[statistic] = _jx3_statistic_reading(medians[statistic])
+    if readings["L_IC"] == readings["sum_rtilde"]:
+        outcome = readings["L_IC"]
+    else:
+        outcome = f"mixed: {readings['L_IC']} / {readings['sum_rtilde']}"
+    return {**readings, "group_medians": medians, "outcome": outcome}
+
+
+def _run_jx3(session, identity, evidence_root, data_root, command):
+    from pinn.data.types import RecordKey
+
+    rules = session.scorecard.section("diag07")["jx3"]
+    files = _checkpoint_files(session.scorecard, rules["checkpoints"])
+    controller = session.controller
+    dtype, device = controller._dtype, controller._device
+    replay = replay_anchor_stream(
+        diag07_common.REPO_ROOT, session.sources["allowlist"], scorecard=session.scorecard,
+        resident=(session.sources["train_index"], session.sources["validation_index"]),
+    )
+    checks = [
+        {"name": f"jx3.replay.{item['file']}", "passed": item["proof"], "detail": item["after"]}
+        for item in replay["proofs"]
+    ]
+    checks.append({
+        "name": "jx3.replay.monitor_batch",
+        "passed": bool(replay["monitor_matches_checkpoint"]),
+        "detail": str(replay["monitor_replay"][:5]),
+    })
+    failed = [item["name"] for item in checks if not item["passed"]]
+    if failed:
+        raise ToleranceFailure(f"replay proof failed: {failed[0]}")
+    groups = jx3_groups(
+        dict(replay["anchor_counts"]), replay["pool_train_stage0"],
+        replay["pool_validation_stage0"], rules=rules,
+    )
+    print(f"jx3 groups {groups}", file=sys.stderr, flush=True)
+    sources = {
+        "high_exposure": controller._train_source,
+        "never_anchored": controller._train_source,
+        "validation": session.sources["validation_index"],
+    }
+    profiles = {}
+    times_bytes = None
+    for step, name in files.items():
+        session.load(name)
+        _check_anchor(session, checks, f"jx3.{step}")
+        times = _cpu64(controller._front_monitor_batch.collocation_points.times).numpy()
+        times = np.sort(times.reshape(-1))
+        if times_bytes is None:
+            times_bytes = times.tobytes()
+        checks.append({
+            "name": f"jx3.{step}.monitor_times_identical",
+            "passed": times.tobytes() == times_bytes,
+            "detail": f"{times.size} times",
+        })
+        for group in _JX3_GROUPS:
+            for identifier in groups[group]:
+                key = RecordKey("hierarchical", "base", identifier)
+                ctx = fixture_anchor_context(controller, sources[group], key, times)
+                profile = prefix_profile(controller, ctx)
+                errors = ic_errors(ctx, dtype=dtype, device=device)
+                del ctx
+                profiles.setdefault(identifier, {"group": group, "record": _key_json(key)})
+                profiles[identifier][str(step)] = {
+                    "rtilde": profile["rtilde"],
+                    "raw_rbar": profile["raw_rbar"],
+                    "prefix": profile["prefix"],
+                    "front_idx": profile["front_idx"],
+                    "ic_errors": errors,
+                }
+                print(
+                    f"jx3 step {step} {group} {identifier} front {profile['front_idx']} "
+                    f"L_IC {errors['l_ic']:.3e}",
+                    file=sys.stderr, flush=True,
+                )
+        session.release()
+    rows = []
+    for identifier, record in profiles.items():
+        rows.append({
+            "group": record["group"],
+            "id": identifier,
+            "L_IC_0": record["0"]["ic_errors"]["l_ic"],
+            "L_IC_951": record["951"]["ic_errors"]["l_ic"],
+            "sum_rtilde_0": float(sum(record["0"]["rtilde"])),
+            "sum_rtilde_951": float(sum(record["951"]["rtilde"])),
+        })
+    rows.sort(key=lambda row: (_JX3_GROUPS.index(row["group"]), row["id"]))
+    reading_values = jx3_reading(rows)
+    checks.extend(session.interference_checks("jx3"))
+    results = {
+        "replay": {
+            key: replay[key]
+            for key in (
+                "run", "pools", "monitor_replay", "monitor_matches_checkpoint",
+                "anchor_counts", "distinct_anchors", "completed_steps", "proofs", "inputs",
+            )
+        },
+        "groups": groups,
+        "profiles": {str(identifier): profiles[identifier] for identifier in sorted(profiles)},
+        "ratio_rows": rows,
+        "group_medians": reading_values["group_medians"],
+        "statistic_readings": {
+            "L_IC": reading_values["L_IC"],
+            "sum_rtilde": reading_values["sum_rtilde"],
+        },
+    }
+    medians = reading_values["group_medians"]
+    plain = (
+        "JX-3 asked whether generation 7 improved everywhere or only on the "
+        "trajectories it kept anchoring on. The replay of the run's batch random "
+        "stream matched every retained checkpoint's state, so the anchors are "
+        f"known: {replay['distinct_anchors']} distinct anchors over "
+        f"{replay['completed_steps']} steps. From step 0 to step 951 the IC loss "
+        "changed by a median factor of "
+        f"{medians['L_IC']['high_exposure']:.3g} on the 7 most-anchored training "
+        f"trajectories, {medians['L_IC']['never_anchored']:.3g} on 7 never-anchored "
+        f"ones and {medians['L_IC']['validation']:.3g} on 6 validation ones; the "
+        "residual sum changed by "
+        f"{medians['sum_rtilde']['high_exposure']:.3g}, "
+        f"{medians['sum_rtilde']['never_anchored']:.3g} and "
+        f"{medians['sum_rtilde']['validation']:.3g}. Reading: {reading_values['outcome']}."
+    )
+    reading = {
+        "question": "Was generation 7's improvement global or specific to the trajectories it anchored on?",
+        "supports": "global improvement (amplitude shedding)",
+        "falsifies": "exposure-specific fitting",
+        "outcome": reading_values["outcome"],
+    }
+    payload, failed = _payload(
+        "JX-3", plain, session, identity, results, reading, checks, command, data_root,
+    )
+    diag07_common.write_result(evidence_root, "jx03.json", payload, data_root=data_root)
+    return failed
+
+
 def main(argv=None) -> int:
     args = _parse(argv)
     command = list(sys.argv if argv is None else [sys.argv[0], *list(argv)])
@@ -904,13 +1286,11 @@ def main(argv=None) -> int:
             diag07_common.REPO_ROOT, data_root, "explicit", scorecard,
         )
         session = _Session(args, sources, scorecard)
-        runners = {"jx5": _run_jx5, "jx2": _run_jx2, "jx4": _run_jx4}
+        runners = {"jx5": _run_jx5, "jx2": _run_jx2, "jx4": _run_jx4, "jx3": _run_jx3}
         order = ("jx5", "jx2", "jx4", "jx3")
         selected = order if args.experiment == "all" else (args.experiment,)
         failed = []
         for name in selected:
-            if name not in runners:
-                raise RuntimeError(f"{name} is not implemented yet")
             session.checkpoints = []
             failed.extend(runners[name](session, identity, evidence_root, data_root, command))
             gc.collect()
