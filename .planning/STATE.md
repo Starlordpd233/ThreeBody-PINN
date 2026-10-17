@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 59
 current_phase_name: Read-Only Baseline & Scorecard
 status: executing
-stopped_at: "Completed 59-06-PLAN.md; the training-split survey and the FEAS-09 picks are committed"
-last_updated: "2026-10-17T01:40:00Z"
+stopped_at: "Completed 59-08-PLAN.md; the two-Kepler and nearest-neighbour baselines are committed; 59-09 code is committed and its runs wait for 6 GiB of free memory"
+last_updated: "2026-10-17T03:40:00Z"
 last_activity: 2026-10-16
-last_activity_desc: Plan 59-06 committed the survey of 12,023 training-split records and the FEAS-09 picks (standard/base/2279 for Stage 4b, standard/base/3418 for Stage 6)
-state_head: 04e17dacb333f5c74b052d668c3772910f0d3032
+last_activity_desc: Plan 59-08 committed the comparison points (formula Tier 1 on 1 of 1812 training and 0 of 227 validation systems; copy 0 of 227)
+state_head: f101c36e9c6ef5c1f04f435b561d78c98db1d466
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -30,9 +30,16 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 7 of 10 complete (59-06). Waves 1 to 3 are done; in Wave 4, 59-06 is done and 59-08 and 59-09 remain.
-Status: Ready for 59-08 and 59-09 (Wave 4), then 59-10
-Last activity: 2026-10-16 — Plan 59-06 survey and FEAS-09 picks committed
+Plan: 8 of 10 complete (59-08). In Wave 4, 59-06 and 59-08 are done; 59-09 has all its code committed and its detached runs wait for 6 GiB of free memory.
+Status: 59-09 runs pending (memory), then 59-10
+Last activity: 2026-10-16 — Plan 59-08 comparison points committed
+
+### Decisions from 59-08 (2026-10-16)
+
+- The two-Kepler formula does not already reach Tier 1 on Stage 0: Tier 1 or better on 1 of 1812 training and 0 of 227 validation systems, median E 0.989 and 0.940. Its error starts at zero and grows with the third body's pull (inner pair 6% off at t = 1, 43% at t = 10 on one system).
+- The nearest-neighbour copy reaches Tier 1 on 0 of 227 validation systems, median E 2.14, so 1,812 systems do not cover Stage 0 densely enough for lookup.
+- FEAS-09: the formula reads not applicable on both probes (no hierarchical split, D-38). The normalizer matched the audit stats_sha256. The run took 64.6 s and its --check 65.9 s (BASELINES-CHECK-OK). Evidence commit `c5c6cd18`; `baselines --require-committed` prints BASELINES-OK.
+- GAP-59-13 (59-09, delegation): the scorer's `network_trajectory` crashes on MPS. 59-09 scores JX-4 through a byte-equivalent MPS-safe copy. Phase 60 must fix the scorer in place before it scores a network on MPS.
 
 ### Decisions from 59-06 (2026-10-16)
 
@@ -715,8 +722,8 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
 Last session: 2026-10-16
-Stopped at: Completed 59-06-PLAN.md. The training-split survey and the FEAS-09 picks are committed (04e17dac).
-Next action: /gsd-execute-phase 59 from .worktrees/trainex: the rest of Wave 4 (59-08, 59-09), then Wave 5 (59-10). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
+Stopped at: Completed 59-08-PLAN.md. 59-09 code is committed (f101c36e). Its development runs (jx5, jx2, jx4) and the single committed --experiment all run wait for 6 GiB of free memory.
+Next action: /gsd-execute-phase 59 from .worktrees/trainex: run 59-09's detached runs once memory allows, then Wave 5 (59-10). Do not edit the frozen scorecard. Record any mid-phase ruling in 59-GAPS.md, never in 59-CONTEXT.md or 59-RESEARCH.md. GAP-59-08 stays open for the owner.
 
 ## Operator Next Steps
 
