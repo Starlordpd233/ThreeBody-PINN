@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
-current_phase: 59
-current_phase_name: Read-Only Baseline & Scorecard
-status: executing
-stopped_at: "Completed 59-10-PLAN.md; all 10 Phase 59 plans are done and the final evidence check is green; phase verification is next"
-last_updated: "2026-10-17T05:40:00Z"
-last_activity: 2026-10-16
-last_activity_desc: Plan 59-10 committed the plain-language findings and the top-level evidence manifest; verify_phase59_evidence.py final printed PHASE59-EVIDENCE-OK
-state_head: 69bd0cad00b9657035c16ad8289eca1bcdd6139d
+current_phase: 60
+current_phase_name: Single-System Learnability
+status: planning
+stopped_at: "Phase 59 closed (verification passed, 6/6 success criteria); Phase 60 not yet planned"
+last_updated: "2026-10-17T16:45:00Z"
+last_activity: 2026-10-17
+last_activity_desc: Phase 59 verified and closed; 59-VERIFICATION.md records all six success criteria met and Gate G1 proceed; GAP-59-08 stays open for the owner
+state_head: e6c3a3e5
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 10
   completed_plans: 10
   percent: 100
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 59 — Read-Only Baseline & Scorecard
+**Current focus:** Phase 60 — Single-System Learnability
 
 ## Current Position
 
-Phase: 59 (Read-Only Baseline & Scorecard) — EXECUTING
-Plan: 10 of 10 complete (59-10). All five waves are done.
-Status: Plans complete; phase verification is next
-Last activity: 2026-10-16 — Plan 59-10 findings and final evidence check committed
+Phase: 60 (Single-System Learnability) — NOT YET PLANNED
+Plan: none (Phase 60 not yet planned)
+Status: Phase 59 closed (`59-VERIFICATION.md`, `e6c3a3e5`); Phase 60 is ready to plan
+Last activity: 2026-10-17 — Phase 59 verified and closed
 
 ### Decisions from 59-10 (2026-10-16)
 
@@ -737,9 +737,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
-Last session: 2026-10-16
-Stopped at: Completed 59-10-PLAN.md. All 10 Phase 59 plans are done and the final evidence check is green (69bd0cad).
-Next action: verify Phase 59 (gsd-verifier goal-backward check, then close the phase) from .worktrees/trainex. The owner reads 59-FINDINGS.md. GAP-59-08 stays open for the owner. GAP-59-13's scorer fix is a Phase-60 item. Do not edit the frozen scorecard.
+Last session: 2026-10-17
+Stopped at: Phase 59 closed. 59-VERIFICATION.md (e6c3a3e5) records all six success criteria met and Gate G1 proceed.
+Next action: plan Phase 60 when the owner starts it (/gsd-discuss-phase 60 or /gsd-plan-phase 60) from .worktrees/trainex. GAP-59-13's scorer fix (MPS) comes before any network is scored. GAP-59-08 stays open for the owner and does not block Phase 60. The owner reads 59-FINDINGS.md. Do not edit the frozen scorecard.
 
 ## Operator Next Steps
 
@@ -747,12 +747,8 @@ Next action: verify Phase 59 (gsd-verifier goal-backward check, then close the p
 - ~~Open the next milestone~~ — v2.4 Stage-0 Feasibility Checkpoint started 2026-10-09 (`0b400dfa`; branch `milestone/v2.4`). It keeps the ruling's order of work and adds the learnability ladder in front of the corrected control.
 - ~~Re-examine v2.4~~ — done 2026-10-11: the owner approved the ten amendments ("go"), which are folded into REQUIREMENTS/ROADMAP/PROJECT (`2026-10-11-v2.4-feasibility-amendments.md`).
 - ~~Plan Phase 59~~ — planned 2026-10-12 (10 plans, 5 waves; plan checker passed).
-- **Execute Phase 59** (`/gsd-execute-phase 59`). It covers:
-  - freeze the feasibility scorecard (FEAS-01) before any rung runs, including the counting rule, polish budget, sweep grid, reading cadence and known-error tests;
-  - run the Stage-0 difficulty census and panel selection (FEAS-02);
-  - score the comparison points (FEAS-07);
-  - survey every stage read-only (FEAS-08);
-  - run the ruling's read-only checkpoint experiments (DIAG-07).
+- ~~Execute Phase 59~~ — done and verified 2026-10-17 (10/10 plans; `59-VERIFICATION.md` 6/6 success criteria; Gate G1 proceed). Owner page: `59-FINDINGS.md`.
+- **Plan Phase 60** (`/gsd-discuss-phase 60` or `/gsd-plan-phase 60`): the INST-05 learnability harness, Rung 1 and Rung 2 on the three single systems, Gate G2, and the FEAS-09 hard-stage probes if G2 passes. Fix GAP-59-13 (the scorer's MPS crash) before scoring any network.
 - **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
   - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
   - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.

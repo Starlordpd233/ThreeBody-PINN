@@ -116,7 +116,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
 
 **Phase Numbering:** integer phases 59–64 continue from v2.3's Phase 58 (numbering does not reset). Decimal phases are reserved for urgent insertions. The v2.3 phase folders 53–58 stay in `.planning/phases/` beside them.
 
-- [ ] **Phase 59: Read-Only Baseline & Scorecard** — Before anything trains:
+- [x] **Phase 59: Read-Only Baseline & Scorecard** (completed 2026-10-17, Gate G1 proceed) — Before anything trains:
   - freeze the feasibility scorecard and its scorer, with known-error tests;
   - count how hard the Stage-0 target is, with a census of inner and outer revolutions per window from Brutus data, and choose the panels from it;
   - score the comparison points: the two-Kepler formula and the nearest-neighbour copy;
@@ -184,7 +184,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   4. The whole-dataset survey, with its predictability envelope and stage difficulty ordering, is committed and re-derivable. The two hard-stage probe systems are selected by their pre-declared rule.
   5. Each of `JX-1` (executed half), `JX-2`, `JX-3`, `JX-4`, `JX-5` (split) and `JX-10` has a recorded result with its command, its checkpoint provenance (the ruling's checkpoint 900 is `best.pt`, `global_step` 900; GAP-59-01), and the reading it supports or falsifies. Gate G1's outcome is recorded.
   6. No training step ran, and no test-split file was opened. The tooling asserts this.
-**Plans**: 9/10 plans executed in 5 waves
+**Plans**: 10/10 plans executed in 5 waves — **closed 2026-10-17**. All six success criteria are met (`59-VERIFICATION.md`); Gate G1's outcome is proceed. GAP-59-08 stays open for the owner.
 
 Plans:
 
@@ -307,7 +307,7 @@ Otherwise, continue, and run the hard-stage probes. The Rung-2 pattern is carrie
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 59. Read-Only Baseline & Scorecard | 10/10 | Executed (verification pending) |  |
+| 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
 | 60. Single-System Learnability | 0/TBD | Not started | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
