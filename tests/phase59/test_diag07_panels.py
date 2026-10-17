@@ -301,5 +301,122 @@ class NetworkScoreTests(unittest.TestCase):
         self.assertEqual(actual.to_json_dict(), expected.to_json_dict())
 
 
+def _allowlist():
+    from pinn.verification.split_allowlist import (
+        GENERATION7_SPLITS_REL,
+        SplitAllowlist,
+        expected_splits_sha256,
+    )
+
+    return SplitAllowlist.from_manifest(
+        ROOT / GENERATION7_SPLITS_REL, expected_sha256=expected_splits_sha256(ROOT),
+    )
+
+
+class ReplayProofTests(unittest.TestCase):
+    """Real run metadata only. No trajectory file of any split is opened."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.result = load_driver().replay_anchor_stream(ROOT, _allowlist())
+
+    def test_the_monitor_batch_and_every_checkpoint_proof(self) -> None:
+        result = self.result
+        self.assertEqual(result["monitor_replay"][:5], [28, 90, 104, 147, 167])
+        proofs = {item["file"]: item for item in result["proofs"]}
+        self.assertEqual(
+            set(proofs),
+            {
+                "stage-0-init.pt", "best.pt", "step-000931.pt", "step-000941.pt",
+                "step-000951.pt", "latest.pt", "failure-stage-0-step-951.pt",
+            },
+        )
+        for name, item in proofs.items():
+            with self.subTest(checkpoint=name):
+                self.assertTrue(item["proof"])
+        self.assertEqual(proofs["stage-0-init.pt"]["after"], "monitor draw")
+        self.assertEqual(proofs["best.pt"]["after"], "step 900")
+        self.assertEqual(proofs["failure-stage-0-step-951.pt"]["after"], "step 952 draw")
+
+    def test_the_anchor_statistics_over_steps_1_to_951(self) -> None:
+        result = self.result
+        self.assertEqual(sorted(result["anchors"]), list(range(1, 952)))
+        self.assertEqual(result["distinct_anchors"], 40)
+        self.assertEqual(result["anchor_counts"][:2], [[0, 132], [1, 111]])
+        self.assertEqual(sum(count for _id, count in result["anchor_counts"]), 951)
+
+
+class Jx3GroupTests(unittest.TestCase):
+    RULES = {
+        "high_exposure_count": 7,
+        "never_anchored_count": 7,
+        "never_anchored_seed": 59031,
+        "validation_count": 6,
+        "validation_seed": 59032,
+    }
+
+    def test_groups_are_ordered_seeded_sorted_and_disjoint(self) -> None:
+        driver = load_driver()
+        counts = {5: 9, 3: 9, 8: 4, 1: 12, 2: 4, 13: 1, 21: 2, 34: 2, 55: 1}
+        train = list(range(0, 80))
+        validation = list(range(200, 230))
+        first = driver.jx3_groups(counts, train, validation, rules=self.RULES)
+        second = driver.jx3_groups(counts, train, validation, rules=self.RULES)
+        self.assertEqual(first, second)
+        self.assertEqual(first["high_exposure"], [1, 3, 5, 2, 8, 21, 34])
+        for name, size in (("never_anchored", 7), ("validation", 6)):
+            with self.subTest(group=name):
+                self.assertEqual(len(first[name]), size)
+                self.assertEqual(first[name], sorted(first[name]))
+        self.assertTrue(set(first["never_anchored"]).isdisjoint(counts))
+        self.assertTrue(set(first["never_anchored"]) <= set(train))
+        self.assertTrue(set(first["validation"]) <= set(validation))
+        never = sorted(set(train) - set(counts))
+        expected = sorted(
+            int(value) for value in
+            np.random.default_rng(59031).choice(never, size=7, replace=False)
+        )
+        self.assertEqual(first["never_anchored"], expected)
+
+
+class Jx3ReadingTests(unittest.TestCase):
+    @staticmethod
+    def rows(ratios_ic, ratios_res):
+        rows = []
+        for group, ic, res in zip(
+            ("high_exposure", "never_anchored", "validation"), ratios_ic, ratios_res,
+        ):
+            for value_ic, value_res in zip(ic, res):
+                rows.append({
+                    "group": group,
+                    "L_IC_0": 1.0, "L_IC_951": value_ic,
+                    "sum_rtilde_0": 2.0, "sum_rtilde_951": 2.0 * value_res,
+                })
+        return rows
+
+    def test_exposure_specific_global_inconclusive_and_mixed(self) -> None:
+        driver = load_driver()
+        specific = [[0.1, 0.1], [0.5, 0.5], [0.6, 0.6]]
+        global_ = [[0.2, 0.2], [0.3, 0.3], [0.4, 0.4]]
+        between = [[0.2, 0.2], [0.3, 0.3], [0.45, 0.45]]
+        self.assertEqual(driver.jx3_reading(self.rows(specific, specific))["outcome"], "exposure-specific")
+        self.assertEqual(driver.jx3_reading(self.rows(global_, global_))["outcome"], "global")
+        self.assertEqual(driver.jx3_reading(self.rows(between, between))["outcome"], "inconclusive")
+        mixed = driver.jx3_reading(self.rows(specific, global_))
+        self.assertEqual(mixed["outcome"], "mixed: exposure-specific / global")
+        self.assertEqual(mixed["L_IC"], "exposure-specific")
+        self.assertEqual(mixed["sum_rtilde"], "global")
+
+    def test_factor_two_bounds(self) -> None:
+        driver = load_driver()
+        edge = [[0.2], [0.4], [0.1]]
+        self.assertEqual(driver.jx3_reading(self.rows(edge, edge))["outcome"], "global")
+        just_below_half = [[0.2], [0.40000001], [0.40000001]]
+        self.assertEqual(
+            driver.jx3_reading(self.rows(just_below_half, just_below_half))["outcome"],
+            "exposure-specific",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
