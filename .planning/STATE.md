@@ -5,10 +5,10 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: planning
-stopped_at: "Phase 60 SPEC.md written; discuss-phase not started"
-last_updated: "2026-10-18T01:40:00Z"
-last_activity: 2026-10-17
-last_activity_desc: Phase 60 SPEC.md locked the gold data-only ceiling, the G2 sweep rule, and the no-rescue skip; SCOPE-39, FEAS-04, FEAS-09, SCOPE-44, and the roadmap were amended to match
+stopped_at: "Phase 60 context gathered"
+last_updated: "2026-10-18T16:10:00Z"
+last_activity: 2026-10-18
+last_activity_desc: Phase 60 CONTEXT.md locks the Adam schedule, no self-halt, the continue-path R_ref re-measure, the scorer successor hash, plain-git weights, and the checkpoint ④ ruling file
 state_head: e6c3a3e5
 progress:
   total_phases: 6
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — SPEC WRITTEN, NOT YET DISCUSSED
-Plan: none (Phase 60 not yet planned)
-Status: `60-SPEC.md` written 2026-10-17 (8 requirements, ambiguity 0.07). The same commit amends SCOPE-39, FEAS-04, FEAS-09, SCOPE-44, and the Phase 60 roadmap text. Discuss-phase has not started.
-Last activity: 2026-10-17 — Phase 60 specification locked
+Phase: 60 (Single-System Learnability) — CONTEXT GATHERED, NOT YET PLANNED
+Plan: none
+Status: `60-SPEC.md` (8 requirements) and `60-CONTEXT.md` are written. Ready to plan.
+Last activity: 2026-10-18 — Phase 60 implementation decisions locked
 
 ### Decisions from 59-10 (2026-10-16)
 
@@ -739,7 +739,7 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 Last session: 2026-10-17
 Stopped at: Phase 59 closed. 59-VERIFICATION.md (e6c3a3e5) records all six success criteria met and Gate G1 proceed.
-Next action: /gsd-discuss-phase 60 from .worktrees/trainex. 60-SPEC.md is the locked what. GAP-59-13's scorer fix (MPS) is inside that spec, before any network is scored. GAP-59-08 stays open for the owner and does not block Phase 60. Do not edit the frozen scorecard.
+Next action: /gsd-plan-phase 60 from .worktrees/trainex. Read 60-SPEC.md and 60-CONTEXT.md first. GAP-59-13's scorer fix is inside the spec, before any network is scored. GAP-59-08 stays open for the owner and does not block Phase 60. Do not edit the frozen scorecard.
 
 ## Operator Next Steps
 
@@ -748,7 +748,7 @@ Next action: /gsd-discuss-phase 60 from .worktrees/trainex. 60-SPEC.md is the lo
 - ~~Re-examine v2.4~~ — done 2026-10-11: the owner approved the ten amendments ("go"), which are folded into REQUIREMENTS/ROADMAP/PROJECT (`2026-10-11-v2.4-feasibility-amendments.md`).
 - ~~Plan Phase 59~~ — planned 2026-10-12 (10 plans, 5 waves; plan checker passed).
 - ~~Execute Phase 59~~ — done and verified 2026-10-17 (10/10 plans; `59-VERIFICATION.md` 6/6 success criteria; Gate G1 proceed). Owner page: `59-FINDINGS.md`.
-- **Discuss Phase 60** (`/gsd-discuss-phase 60`): `60-SPEC.md` is written. Discuss implementation only. The spec already locks the gold data-only ceiling, seed 42 on MPS float32, the sweep confirmation rule, the no-rescue skip, and the GAP-59-13 scorer fix before any network is scored.
+- **Plan Phase 60** (`/gsd-plan-phase 60`): `60-SPEC.md` and `60-CONTEXT.md` are written. Read both before planning. Do not edit the frozen scorecard.
 - **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
   - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
   - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.
