@@ -123,7 +123,7 @@ at any rung shows which part is the bottleneck.
   - Each system has its tier, `h_δ`, `ε_H`, convergence trace and formula comparison recorded.
   - Gate G2 is evaluated and recorded. If Rung 1 is below Tier 1 on 2 or more of 3, the G2 settings sweep (FEAS-01 (vii)) runs data-only on one failing system, and a configuration that reaches Tier 1 there is confirmed on a second failing system:
     - **no rescue:** RETHINK-REPRESENTATION, and the milestone skips to Phase 64;
-    - **rescue:** owner checkpoint ④. A locked setting is the bottleneck, and the owner decides whether it is formally amended (SCOPE-43) and the ladder continues on it, or the milestone goes to the verdict. [proposal Phase 60; amendment item 1]
+    - **rescue:** owner checkpoint ④. A locked setting is the bottleneck, and the owner decides whether to continue the ladder on that setting, or to go to the verdict. Phase 60 does not edit `pinn_architecture.md`. If the owner continues, one data-only Rung 1 arm runs at the approved `first_omega_0` on the panel system that neither the sweep nor the confirmation covered, and every remaining Phase 60 arm uses that setting. While checkpoint ④ is unanswered, Rung 2 and the probes are neither run nor skipped. [proposal Phase 60; amendment item 1; 2026-10-17 spec amendment]
 - [ ] **FEAS-04**: **Rung 2, learning from the physics.** Two arms run on the same three systems, each with the L-BFGS polish:
   - **(a) physics + IC only:** the ratified causal physics term with `R_ref` normalization, plus the IC term, and no data term;
   - **(b) the full ratified loss.**
@@ -131,7 +131,8 @@ at any rung shows which part is the bottleneck.
   **Acceptance:**
   - Each arm and system has its tier, `h_δ`, `ε_H`, trace and formula comparison recorded, and whether it counts (FEAS-01 (v)).
   - The comparison against Rung 1 is recorded.
-  - Arm (a) is reported and does not gate. It decides how the method is described: a solver that learns from the equations, or a surrogate that physics regularizes. [proposal Phase 60; amendment items 2–3]
+  - Arm (a) is reported and does not gate. It decides how the method is described: a solver that learns from the equations, or a surrogate that physics regularizes.
+  - Rung 2 runs only if the ladder continues past G2: G2 passed, or the owner continued at checkpoint ④. Otherwise FEAS-04 is recorded as skipped, with one of the pre-registered reasons: no rescue, or checkpoint ④ answered go to the verdict. [proposal Phase 60; amendment items 2–3; 2026-10-17 spec amendment]
 - [ ] **FEAS-05**: **Rung 3, the small family.** The corrected trainer runs in diagnostic mode (INST-07) on the 16-system panel, within FEAS-01's budget rule. It is Adam-only, like the control (`JD-6` A), so its result is read as an Adam-phase result. It is scored on the 16 training systems and on the validation panel, at the end and at FEAS-01 (viii)'s checkpoint cadence.
 
   **Acceptance:**
@@ -183,7 +184,7 @@ at any rung shows which part is the bottleneck.
   - The survey script and its output are committed and re-derivable.
   - No test-split file is opened, and this is asserted.
   - Its findings are reported, not gating. [amendment items 5–6]
-- [ ] **FEAS-09**: **Hard-stage probes.** These run only after G2 passes.
+- [ ] **FEAS-09**: **Hard-stage probes.** These run only if the ladder continues past G2: G2 passed, or the owner continued at checkpoint ④. On a continue they use the approved setting.
   - **What runs:** on the two FEAS-08 systems, a Rung-1 arm (data only) and a Rung-2b arm (the full ratified loss, with that stage's locked weights), on the INST-05 harness, with the L-BFGS polish.
   - **Budget:** each arm runs under the single-system budget rule, about 12 hours in all.
   - **Purpose:** an early warning of whether the harder stages are reachable at all.
@@ -191,7 +192,7 @@ at any rung shows which part is the bottleneck.
   **Acceptance:**
   - Each arm has its tier, `h_δ`, `ε_H` and trace recorded, with the formula comparison where it applies.
   - The results are reported in the verdict and do not gate.
-  - If G2 fires, FEAS-09 is recorded as skipped, with the reason. [amendment item 5]
+  - If the ladder stopped at G2, FEAS-09 is recorded as skipped, with one of the pre-registered reasons: no rescue, or checkpoint ④ answered go to the verdict. [amendment item 5; 2026-10-17 spec amendment]
 - [ ] **FEAS-10**: **The project charter.** One page, plain language first, drafted for the owner at the verdict:
   - **the purpose:** a research paper, a practical fast predictor, or learning;
   - **the definition of done;**
@@ -315,12 +316,12 @@ The owner sees each and may veto it (owner checkpoint ②; SCOPE-43).
 
 | ID | Boundary |
 |---|---|
-| SCOPE-39 | **Stage-0 only, with two read-only or diagnostic exceptions:** FEAS-08's survey of training-split data for every stage, and FEAS-09's two single-system diagnostic probes on Stage-4b and Stage-6 systems. No curriculum training beyond Stage 0, no PLAT-01..07. SCOPE-36 is carried forward. |
+| SCOPE-39 | **Stage-0 only, with three read-only or diagnostic exceptions:** FEAS-08's survey of training-split data for every stage; FEAS-09's two single-system diagnostic probes on Stage-4b and Stage-6 systems; and the data-only arms (Rung 1, the G2 sweep and its confirmation, and the probes' Rung-1 arms), which train on their own system's gold record, the record the frozen scorecard grades them on. Arms with a physics term train on the data their stage's recipe assigns. No data-only arm's weights start another run. No curriculum training beyond Stage 0, no PLAT-01..07. SCOPE-36 is carried forward. [2026-10-17 spec amendment] |
 | SCOPE-40 | **Nothing graded, nothing held out.** No graded run and no held-out evaluation in v2.4. No experiment opens a test-split file. The single preserved evaluation stays unspent (SCOPE-35 is carried forward; v2.4 spends nothing). |
 | SCOPE-41 | **Every training run is diagnostic.** It runs in a configuration the graded-run path refuses, and it never alters the ratified recipe. The ladder's loss arms are measurement configurations, not recipe proposals. Recipe tuning stays out of scope (SCOPE-37's rule is carried forward). The G2 settings sweep is likewise a measurement of the representation: its configurations run data-only on the harness, and a configuration that rescues Rung 1 moves the locked value only by a formal amendment the owner decides (checkpoint ④). |
 | SCOPE-42 | **Pre-registration.** Each rung's metrics, tiers, budget and consequences are committed before it runs, and a threshold is never re-set after a result is seen. A result outside the pre-registered branches goes to the owner. |
 | SCOPE-43 | **Locked values move only by formal amendment** (SCOPE-38 discipline). v2.4's spec edits are SPEC-07..10 only: clarifications the owner can veto, with no recipe value changed. |
-| SCOPE-44 | **Compute discipline.** Budgets are fixed from a measured seconds-per-step before launch, with at most one extension per arm. Runs execute one at a time, detached, with the generation-7 launcher's safeguards. Two conditional budgets: the G2 sweep runs only if G2 fires (at most four configurations plus one confirmation, each under the single-system budget, about 15 hours in all), and the hard-stage probes run only if G2 passes (four arms, about 12 hours). |
+| SCOPE-44 | **Compute discipline.** Budgets are fixed from a measured seconds-per-step before launch, with at most one extension per arm. Runs execute one at a time, detached, with the generation-7 launcher's safeguards. Two conditional budgets: the G2 sweep runs only if G2 fires (at most four configurations plus one confirmation, each under the single-system budget, about 15 hours in all), and the hard-stage probes run only if the ladder continues past G2 (four arms, about 12 hours). [2026-10-17 spec amendment] |
 
 ## Owner Checkpoints
 
@@ -334,8 +335,9 @@ The owner sees each and may veto it (owner checkpoint ②; SCOPE-43).
 3. **Off-script results.** Any result outside a pre-registered branch blocks
    only the work that depends on it (the ruling's "Later decisions" rule).
 4. **A G2 sweep rescue (FEAS-03, Phase 60).** If a configuration other than
-   the locked one rescues Rung 1, the owner decides whether that setting is
-   formally amended and the ladder continues on it. This blocks Phases 61–63.
+   the locked one rescues Rung 1, the phase holds until the owner answers.
+   Continue runs the remaining Phase 60 arms at the approved setting. Go to
+   the verdict skips Rung 2 and the probes. This blocks Phases 61–63.
 
 Everything else proceeds under the owner's delegation (2026-10-07, re-confirmed
 2026-10-09) and is reported at each phase gate.
@@ -345,8 +347,8 @@ Everything else proceeds under the owner's delegation (2026-10-07, re-confirmed
 | Exit | Trigger | What happens |
 |---|---|---|
 | Normal | Phases 59–63 complete | Phase 64 applies the decision rule to all the evidence |
-| Early, at G2 | Rung 1, at the locked settings and after the polish, is below Tier 1 on 2 or more of 3 systems, **and** the G2 settings sweep rescues none | Phases 61–63 are skipped. Phase 64 records RETHINK-REPRESENTATION with the ladder and sweep evidence |
-| Owner checkpoint ④, at G2 | The G2 sweep rescues Rung 1 with a non-locked setting | The owner decides: amend the setting formally and continue the ladder on it, or go to Phase 64 |
+| Early, at G2 | Rung 1, at the locked settings and after the polish, is below Tier 1 on 2 or more of 3 systems, **and** the G2 settings sweep rescues none | Rung 2 and FEAS-09 are recorded as skipped with reason no rescue. Level 3 is not tested. Phases 61–63 are skipped, not failed. Phase 64 records RETHINK-REPRESENTATION with the ladder and sweep evidence |
+| Owner checkpoint ④, at G2 | The G2 sweep rescues Rung 1 with a non-locked setting | The phase holds until the owner answers. Continue runs the remaining Phase 60 arms at the approved setting, including the uncovered system's data-only Rung 1, Rung 2, and the probes. Go to the verdict records Rung 2 and FEAS-09 as skipped with that reason |
 | Early, at G3 | A GATE-05 failure that cannot be fixed within the milestone | Phase 64 decides on the ladder evidence (Rungs 1–2, and Rung 3 if it ran) |
 | Re-examination, at G1 | `JX-1` shows a physics share of `10⁻²` or more in generation 7 | The conformance-first premise of Phases 61–63 is re-examined before Phase 61 opens. If the plan changes, the change is recorded |
 

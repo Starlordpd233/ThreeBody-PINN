@@ -129,7 +129,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   - Rung 1, data only (the representation ceiling);
   - Rung 2, physics + IC only, and the full ratified loss;
   - all on three census-spanning systems;
-  - then, if G2 passes, two probes on a Stage-4b and a Stage-6 system.
+  - then, if the ladder continues past G2, two probes on a Stage-4b and a Stage-6 system.
 
   It needs no conformance work: with one system, every slot is the same trajectory. Gate G2 can end the training phases with RETHINK-REPRESENTATION, but only after a settings sweep finds no rescue. (INST-05, FEAS-03, FEAS-04, FEAS-09)
 - [ ] **Phase 61: Conformance & Instrumentation** — The ruling's step 2:
@@ -220,9 +220,9 @@ Plans:
 **Requirements**: INST-05, FEAS-03, FEAS-04, FEAS-09
 **Gate G2**: Rung 1 runs at the locked settings, with the polish. If it is below Tier 1 on 2 or more of the 3 systems, the G2 settings sweep runs, data-only:
 - **No configuration rescues it:** the network cannot represent a Stage-0 trajectory even when shown the answer. The verdict is RETHINK-REPRESENTATION, Phases 61–63 are skipped, and Phase 64 follows.
-- **A non-locked configuration rescues it:** owner checkpoint ④. The owner decides whether to amend that setting formally and continue the ladder on it.
+- **A non-locked configuration rescues it:** owner checkpoint ④. The phase holds until the owner answers. Continue runs the remaining Phase 60 arms at the approved setting, including one data-only Rung 1 on the panel system the sweep did not cover. Go to the verdict records Rung 2 and the probes as skipped.
 
-Otherwise, continue, and run the hard-stage probes. The Rung-2 pattern is carried to the verdict.
+Otherwise G2 did not fire: continue, run Rung 2, and run the hard-stage probes. The Rung-2 pattern is carried to the verdict. If the ladder stopped at G2, Rung 2 is recorded as skipped.
 **Success Criteria** (what must be TRUE):
   1. The learnability harness is committed and tested:
      - its loss functions are the trainer's own (mutation-proven);
@@ -231,9 +231,9 @@ Otherwise, continue, and run the hard-stage probes. The Rung-2 pattern is carrie
      - it refuses test-split paths;
      - the graded-run and evaluator paths refuse its run records.
   2. Rung 1 has a scored result on each of the three panel systems, within the pre-registered budget rule: tier, valid-horizon fraction, `ε_H`, trace, and the comparison with the formula.
-  3. Rung 2 has scored results on the same systems for arm (a), physics + IC only, and arm (b), the full ratified loss. The comparison against Rung 1 and the formula is recorded, along with whether each system counts.
+  3. Rung 2 has scored results on the same systems for arm (a), physics + IC only, and arm (b), the full ratified loss. The comparison against Rung 1 and the formula is recorded, along with whether each system counts. If the ladder stopped at G2, Rung 2 is recorded as skipped.
   4. Gate G2 is evaluated against the pre-registered rule, including the settings sweep if it fires, and its outcome is recorded with the evidence.
-  5. If G2 passed, the two hard-stage probes have scored Rung-1 and Rung-2b results. If G2 fired, the probes are recorded as skipped.
+  5. If the ladder continues past G2, the two hard-stage probes have scored Rung-1 and Rung-2b results at the setting the ladder is using. If the ladder stopped at G2, the probes are recorded as skipped.
 **Plans**: TBD
 
 ### Phase 61: Conformance & Instrumentation
