@@ -31,7 +31,7 @@ Tracked-source gate (#3645): every analog path named in this file was checked wi
 | 10 | `pinn/verification/feasibility_scorer.py` (EDIT, 3 sites) | service (metrics) | transform | `.planning/phases/59-.../evidence/diag07/jx02_jx05.py::_cpu64` + `_network_trajectory` | exact | 60-02 |
 | 11 | `pinn/verification/gate04_train_free.py` (EDIT, optional `first_omega_0`) | service (train-free gate) | transform | itself, plus row 6 | role-match | 60-09 |
 | 12 | `verify_phase59_evidence.py` (EDIT) + `evidence/manifest.json` rewrite | verifier CLI | batch | itself, plus `evidence/scorecard-freeze.json` | exact | 60-04 |
-| 13 | `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` (EDIT) | planning documents | docs | themselves; target text is in `60-SPEC.md` "Amendment text" | exact | 60-03 |
+| 13 | `.planning/REQUIREMENTS.md` (EDIT); `.planning/ROADMAP.md` (read only: criterion 3 is already verbatim, so 60-03 checks it and does not edit it) | planning documents | docs | themselves; target text is in `60-SPEC.md` "Amendment text" | exact | 60-03 |
 | 14 | `evidence/scorer-successor.json` | pinned record | file-I/O | `evidence/scorecard-freeze.json` (Phase 59) | exact | 60-02 |
 | 15 | `60-RUN-PROTOCOL.md` + `evidence/run-protocol.json` | pre-registration pair | file-I/O | `59-SCORECARD.md` + `evidence/scorecard-freeze.json` | exact | 60-13 |
 | 16 | `evidence/preflight/records.json` | preflight manifest | file-I/O | `baselines/files_opened.json` + `audit/reader_acceptance.json` (Phase 59) | role-match | 60-13 |
