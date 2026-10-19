@@ -4,18 +4,18 @@ milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
-status: planning
-stopped_at: "Phase 60 context gathered"
-last_updated: "2026-10-18T16:10:00Z"
+status: ready_to_execute
+stopped_at: "Phase 60 planned 2026-10-18: 23 plans in 22 waves; the third plan check found 0 blockers, and its 3 warnings were fixed in a targeted pass the owner chose; ready to execute"
+last_updated: "2026-10-19T04:00:45Z"
 last_activity: 2026-10-18
-last_activity_desc: Phase 60 CONTEXT.md locks the Adam schedule, no self-halt, the continue-path R_ref re-measure, the scorer successor hash, plain-git weights, and the checkpoint ④ ruling file
+last_activity_desc: Phase 60 planned — research, gap register GAP-60-01..13 (all resolved under the delegation), pattern map, validation map with one row per auto task, and 23 plans in 22 waves. Plan checks went from 3 blockers and 9 warnings, to 0 and 5, to 0 and 3; the last 3 were fixed in an owner-chosen targeted pass. Commits 05f28af5, 21794013 and the final plan commit.
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 10
+  total_plans: 33
   completed_plans: 10
-  percent: 100
+  percent: 30
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability
+**Current focus:** Phase 60 — Single-System Learnability planned; execute it next (/gsd-execute-phase 60)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — CONTEXT GATHERED, NOT YET PLANNED
-Plan: none
-Status: `60-SPEC.md` (8 requirements) and `60-CONTEXT.md` are written. Ready to plan.
-Last activity: 2026-10-18 — Phase 60 implementation decisions locked
+Phase: 60 (Single-System Learnability) — PLANNED, READY TO EXECUTE
+Plan: 0 of 23 (22 waves)
+Status: Ready to execute
+Last activity: 2026-10-18 — Phase 60 planned; the third plan check found 0 blockers, and its 3 warnings were fixed in a targeted pass
 
 ### Decisions from 59-10 (2026-10-16)
 
@@ -737,9 +737,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
-Last session: 2026-10-17
-Stopped at: Phase 59 closed. 59-VERIFICATION.md (e6c3a3e5) records all six success criteria met and Gate G1 proceed.
-Next action: /gsd-plan-phase 60 from .worktrees/trainex. Read 60-SPEC.md and 60-CONTEXT.md first. GAP-59-13's scorer fix is inside the spec, before any network is scored. GAP-59-08 stays open for the owner and does not block Phase 60. Do not edit the frozen scorecard.
+Last session: 2026-10-18
+Stopped at: Phase 60 planned: 23 plans in 22 waves in .planning/phases/60-single-system-learnability/. Plan 60-01 is the tracer arm and static guard; 60-13 commits the run protocol; 60-14 to 60-21 run Rung 1, the G2 branches, Rung 2 and the probes (60-15 to 60-21 are conditional branch plans); 60-22 closes out. Plan checks: iteration 1 found 3 blockers and 9 warnings, iteration 2 found 0 and 5, iteration 3 found 0 and 3. The owner chose a targeted fix pass for the last 3, verified by orchestrator checks rather than a fourth plan check. Closing gates: requirements 4 of 4, decisions 11 of 11, post-planning gap analysis 15 of 15 covered.
+Next action: /gsd-execute-phase 60 from .worktrees/trainex. From wave 3 on, plans run one at a time. 60-13, 60-14, 60-15, 60-16, 60-17, 60-20 and 60-21 stop for the owner: answers on GAP-60-03 (clipping veto) and GAP-60-09 (pre-answer) before the run protocol is committed, a memory confirmation before each multi-hour arm, and checkpoint ④. Executors return STOP fields; the orchestrator writes 60-GAPS.md and v2.4-GAPS.md. Do not edit the frozen scorecard. GAP-59-08 stays open for the owner and does not block Phase 60.
 
 ## Operator Next Steps
 
@@ -748,7 +748,8 @@ Next action: /gsd-plan-phase 60 from .worktrees/trainex. Read 60-SPEC.md and 60-
 - ~~Re-examine v2.4~~ — done 2026-10-11: the owner approved the ten amendments ("go"), which are folded into REQUIREMENTS/ROADMAP/PROJECT (`2026-10-11-v2.4-feasibility-amendments.md`).
 - ~~Plan Phase 59~~ — planned 2026-10-12 (10 plans, 5 waves; plan checker passed).
 - ~~Execute Phase 59~~ — done and verified 2026-10-17 (10/10 plans; `59-VERIFICATION.md` 6/6 success criteria; Gate G1 proceed). Owner page: `59-FINDINGS.md`.
-- **Plan Phase 60** (`/gsd-plan-phase 60`): `60-SPEC.md` and `60-CONTEXT.md` are written. Read both before planning. Do not edit the frozen scorecard.
+- ~~Plan Phase 60~~ — planned 2026-10-18 (23 plans, 22 waves; the third plan check found 0 blockers, and its 3 warnings were fixed in an owner-chosen targeted pass).
+- **Execute Phase 60** (`/gsd-execute-phase 60`): the learnability ladder on one Stage-0 system (Rung 1 on 1632, 851 and 4658; Gate G2; Rung 2; the two hard-stage probes). Expect owner stops before the protocol commit, before each multi-hour arm, and at checkpoint ④. Machine time for the arms is roughly 30 to 71 hours, one arm at a time.
 - **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
   - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
   - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.

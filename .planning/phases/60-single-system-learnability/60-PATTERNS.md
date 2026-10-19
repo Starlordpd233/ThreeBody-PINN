@@ -745,7 +745,7 @@ def is_clean(relative: str) -> bool:
 ```
 and parse a strict machine block (finite positive `approved_first_omega_0`, a literal answer) with the "literal value only" discipline of `structural_facts` (row 1). The owner's quote is opaque text: never executed, formatted into a path, or evaluated. Cite the ruling file's SHA-256 in every continue-path record.
 
-**Skip writer:** the two reasons are module constants and tested byte for byte, including the circled digit U+2464 in `checkpoint ④ answered go to the verdict`; refuse once any Rung-2 arm has a state file; the Level-3 handoff text is `not tested (skipped at G2)`. The probe formula field is the literal `not applicable: no hierarchical split`, already defined at `two_kepler.py:25` and `dataset_survey.py:73`; reuse it by value, do not import a private name.
+**Skip writer:** the two reasons are module constants and tested byte for byte, including the circled digit U+2463 in `checkpoint ④ answered go to the verdict`; refuse once any Rung-2 arm has a state file; the Level-3 handoff text is `not tested (skipped at G2)`. The probe formula field is the literal `not applicable: no hierarchical split`, already defined at `two_kepler.py:25` and `dataset_survey.py:73`; reuse it by value, do not import a private name.
 
 **Sweep pair and confirmation:** no repository analog (pinned lap counts 1632: 10.47, 851: 18.61, 4658: 39.35; four SPEC cases). Sketch source: `60-RESEARCH.md` Pattern 6 and its code example.
 
