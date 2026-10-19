@@ -669,56 +669,58 @@ self.assertEqual(hashlib.sha256(scorecard_path.read_bytes()).hexdigest(), SCOREC
 | A9 | The protocol should fix timing-run length 500 steps for data-only arms and the 50-step minimum for physics arms. | OQ-9 | Smaller or larger budgets than intended; pre-registration makes it explicit. |
 | A10 | Gold, base and standard record counts and the within-T windows are stable (the corpus is frozen). | Finding G | Preflight catches any change. |
 
-## Open Questions (owner/planner)
+## Open Questions (owner/planner) (RESOLVED)
+
+All twelve were resolved on 2026-10-18 under the v2.4 delegation; each item below names the `60-GAPS.md` entry that holds its resolution.
 
 Each item is NOT grounded in the SPEC, CONTEXT, ratified specs or code. Per the v2.4 delegation rule each is to be recorded in `60-GAPS.md` and `.planning/milestones/v2.4-GAPS.md` with the STOP fields, and resolved under the delegation unless it moves a locked value, spends the evaluation or pre-empts the verdict (then it goes to the owner). The recommendation is advice, not a decision.
 
-1. **OQ-1: D-09 completeness (operational coordination).**
+1. **OQ-1: D-09 completeness (operational coordination).** RESOLVED: GAP-60-02.
    - Known: the verifier edit alone leaves `baselines --check` and the manifest red (Finding F).
    - Options: (A) normalized-copy re-derivation, keeping all other digests checked; (B) skip the baselines re-derivation inside `final` with a documented exception; (C) edit `baselines.py` (a second successor, contradicts D-09's "exactly one").
    - Recommendation: A, plus the manifest rewrite and a detached `final` run. Route: planner under delegation; mention in the closeout.
 
-2. **OQ-2: D-07/D-08 on a continue path (semantic).**
+2. **OQ-2: D-07/D-08 on a continue path (semantic).** RESOLVED: GAP-60-10.
    - Known: D-08 says probes "reuse the committed Stage-0 `R_ref`"; the committed value is the omega=30 measurement; the ratified invalidation list names `first_omega_0`; D-07 re-measures before "any physics arm" at the approved omega. `gate04_train_free` cannot take an omega (Finding D).
    - Options: (i) probes on a continue use the committed omega=30 value (literal D-08; applies an invalidated reference); (ii) "the Stage-0 R_ref in force" = committed at omega=30, the D-07 re-measured value after a continue.
    - Recommendation: (ii), recorded in each probe record ("Stage-0 reference in force, applied unchanged", with the artifact path and SHA-256). Also add the omega seam to the GATE-04 helpers and write the re-measure to a Phase 60 path. Route: planner under delegation; state it in the checkpoint ④ question text.
 
-3. **OQ-3: gradient clipping in harness arms (semantic).**
+3. **OQ-3: gradient clipping in harness arms (semantic).** RESOLVED: GAP-60-03.
    - Known: the trainer clips every Adam step with `GradClipper` (`controllers.py:2092`); table `{0: 8.5, 1: 8.5, 2: 5.0, 3: 5.0, 4: 3.0, 5: 3.0, 6: 3.0}` and median floor 1e-6, all marked provisional (`grad_clip.py:89-97`). D-01 lists the schedule constants but not clipping; the Phase 38 probe did not clip.
    - Options: (A) clip every Adam step in every arm with the trainer's `GradClipper` at the arm's stage (0 for data-only and Stage-0 arms, 4 and 6 for probe 2b); (B) clip physics arms only; (C) no clipping anywhere.
    - Recommendation: A (SCOPE-41: the ladder measures the ratified recipe; D-04's logic that data-only arms share the Rung 2 schedule applies equally here); checkpoint the clipper state. Route: planner under delegation; owner told because it affects Rung 1.
 
-4. **OQ-4: polish semantics (semantic).**
+4. **OQ-4: polish semantics (semantic).** RESOLVED: GAP-60-05.
    - Known: the scorecard stops "after 5 outer calls without improvement" or at 25 percent of Adam wall time; it does not define improvement, the polish state, or which wall time counts (`feasibility_scorecard_v1.json:398-409`, `polish_should_stop`).
    - Options for improvement: (A) the full-batch objective the closure returns, strictly below the best so far (the Adam-final objective is the baseline); (B) the scored `E` after each outer call. Polish state: final iterate (recommended, literal) vs best iterate. Adam wall: all-inclusive monotonic time of the Adam phase summed across segments, excluding interruptions (recommended) vs step time only.
    - Recommendation: A; final iterate; all-inclusive wall; log `E` at each outer call for data-only arms. Pre-register in the protocol. Route: planner under delegation.
 
-5. **OQ-5: what a failed confirmation means (semantic; could pre-empt the verdict).**
+5. **OQ-5: what a failed confirmation means (semantic; could pre-empt the verdict).** RESOLVED: GAP-60-09.
    - Known: SPEC Req 6 says the confirmation is the highest Tier >= 1 setting and "a confirmed rescue raises the frozen `OwnerRouted`"; it never says what happens if the confirmation run is below Tier 1. `decision_verdict` raises only for `sweep_rescued=True`.
    - Options: (A) failed confirmation = no rescue -> RETHINK-REPRESENTATION; (B) any Tier >= 1 sweep result = rescue; (C) stop and route to the owner as an off-script result (SCOPE-42, Owner Checkpoint ③).
    - Recommendation: pre-register C. It neither declares RETHINK nor a rescue by itself. Route: owner if it ever occurs; the protocol rule can be committed under delegation because it decides nothing.
 
-6. **OQ-6: divergence rule (semantic).**
+6. **OQ-6: divergence rule (semantic).** RESOLVED: GAP-60-06.
    - Known: the trainer checks finiteness before `optimizer.step()` and returns RECOVER (`controllers.py:2131-2160`); the harness has no recovery; SPEC says a silent restart is not a result.
    - Options: (A) stop Adam at the last finite state, score it as the Adam state, still run the polish if the weights are finite, and let `better_state` choose; (B) mark the arm Tier 0 without scoring; (C) stop for the owner.
    - Recommendation: A, recorded with `diverged_at_step`; no restart. Route: planner under delegation.
 
-7. **OQ-7: energy-term scale for probe Rung 2b (semantic).**
+7. **OQ-7: energy-term scale for probe Rung 2b (semantic).** RESOLVED: GAP-60-12.
    - Known: `eps_H = 1e-4 * S_H`, `S_H = median_train(K0 + Uabs0)` over the training split (`pinn_architecture.md:567-575`); the only recorded value is the Stage-0 run's `s_h = 22.321729071058996`, `eps_h = 0.0022321729071058997` (`runs/stage0-v23g7-seed42/training_metadata.json` `[VERIFIED: read]`). Probe 2b at k=4 and k=6 has `lambda_E = lambda_L = 1`, so the term is active.
    - Options: reuse the Stage-0 `S_H` (recommended, parallel to D-08); recompute over a larger split (a new number with no ratified owner).
    - Recommendation: reuse, record it as applied unchanged. Route: planner under delegation; non-gating arm.
 
-8. **OQ-8: probe IC13 normalizer (semantic, low).** Reuse the Stage-0-recovered stats for all arms, including standard-variant probes (consistent with D-08; IC13 normalization is on the `R_ref` invalidation list, so changing it would force a re-measure). Route: planner; record the stats digest in every record.
+8. **OQ-8: probe IC13 normalizer (semantic, low).** RESOLVED: GAP-60-13. Reuse the Stage-0-recovered stats for all arms, including standard-variant probes (consistent with D-08; IC13 normalization is on the `R_ref` invalidation list, so changing it would force a re-measure). Route: planner; record the stats digest in every record.
 
-9. **OQ-9: timing-run definition (process-artifact).**
+9. **OQ-9: timing-run definition (process-artifact).** RESOLVED: GAP-60-04.
    - Known: at least 50 steps, discarded weights (CONTEXT); seconds per step is `wall/steps` of the whole run (`steps_budget`).
    - Choices to fix before the first arm: step count (recommend 500 for data-only arms so MPS first-step compilation is amortized, 50 for physics arms), what is timed (all steps, warm-up included; no exclusions), a throwaway RNG so the arm's seed-42 stream starts fresh, and no concurrent heavy jobs. Route: planner, in the run protocol.
 
-10. **OQ-10: weights file format and hash (operational).** `.weights` extension (not ignored), `torch.save` of a CPU float32 `OrderedDict`, canonical per-tensor digest in the record plus the file SHA-256. Route: planner.
+10. **OQ-10: weights file format and hash (operational).** RESOLVED: GAP-60-08. `.weights` extension (not ignored), `torch.save` of a CPU float32 `OrderedDict`, canonical per-tensor digest in the record plus the file SHA-256. Route: planner.
 
-11. **OQ-11: cross-check scope (operational).** Cross-check both scored states of every real arm; stop on any tier or counts-boolean difference with a dedicated owner-routed exception. Route: planner.
+11. **OQ-11: cross-check scope (operational).** RESOLVED: GAP-60-07. Cross-check both scored states of every real arm; stop on any tier or counts-boolean difference with a dedicated owner-routed exception. Route: planner.
 
-12. **OQ-12: an approved omega outside the swept grid (low).** The ruling file may name any positive finite value. Recommend accepting it, recording whether it equals the confirmed omega and whether it is in the grid, and running D-07 at that value. Route: planner.
+12. **OQ-12: an approved omega outside the swept grid (low).** RESOLVED: GAP-60-11. The ruling file may name any positive finite value. Recommend accepting it, recording whether it equals the confirmed omega and whether it is in the grid, and running D-07 at that value. Route: planner.
 
 ## Environment Availability
 

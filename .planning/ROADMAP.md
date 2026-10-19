@@ -234,7 +234,95 @@ Otherwise G2 did not fire: continue, run Rung 2, and run the hard-stage probes. 
   3. Rung 2 has scored results on the same systems for arm (a), physics + IC only, and arm (b), the full ratified loss. The comparison against Rung 1 and the formula is recorded, along with whether each system counts. If the ladder stopped at G2, Rung 2 is recorded as skipped.
   4. Gate G2 is evaluated against the pre-registered rule, including the settings sweep if it fires, and its outcome is recorded with the evidence.
   5. If the ladder continues past G2, the two hard-stage probes have scored Rung-1 and Rung-2b results at the setting the ladder is using. If the ladder stopped at G2, the probes are recorded as skipped.
-**Plans**: TBD
+**Plans**: 23 plans in 21 waves. Plans 60-15 to 60-21 are conditional branch plans: each opens with a read-only branch query and, off its path, records "branch not taken" and ends cleanly. Plans 60-13 to 60-17 and 60-20 to 60-21 are non-autonomous (the owner's two questions before the protocol is sealed, owner memory confirmations, checkpoint ④, and detached multi-hour arms whose end is confirmed by the owner in a later session). Only Waves 2 and 3 run two plans at once. From Wave 4 on, plans run one at a time, because each one's checks scan files the others edit in the shared working tree.
+
+Plans:
+
+**Wave 1**
+
+- [ ] 60-01-PLAN.md — Wave 1: tracer, one data-only fixture arm end to end, and the Phase 60 static guard (INST-05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 60-02-PLAN.md — Wave 2: the scorer's MPS fix at all three widening sites, the single successor digest (D-09), and the MPS L-BFGS smoke (INST-05, FEAS-03)
+- [ ] 60-03-PLAN.md — Wave 2: the 2026-10-17 scope amendment text and its SPEC-parsed containment test; the scorecard unchanged (FEAS-04, FEAS-09)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 60-04-PLAN.md — Wave 3: the Phase 59 verifier accepts the one scorer successor; digest-substituted baselines re-derivation; manifest; detached final (INST-05)
+- [ ] 60-23-PLAN.md — Wave 3: the override record end to end, the closed arm catalog and override refusal, test-split refusal and the record preflight (INST-05)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 60-05-PLAN.md — Wave 4: the physics step composed from the trainer's functions, with oracle, mutation and identity proofs and the frozen-monitor log (INST-05, FEAS-04)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 60-06-PLAN.md — Wave 5: G2, the sweep pair, the confirmation, rescue and failed confirmation, the skip writer, the stop handoff, the D-11 rulings and the branch state (FEAS-03, FEAS-04, FEAS-09)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 60-07-PLAN.md — Wave 6: the detached one-at-a-time sequence launcher with the governed resume gate (INST-05, FEAS-03)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 60-08-PLAN.md — Wave 7: the frozen budget rule, the timing run, the ratified schedule, the second cosine, the clipper and divergence (INST-05, FEAS-03)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 60-09-PLAN.md — Wave 8: the GATE-04 omega seam and the D-07 re-measure entry (FEAS-04, FEAS-09)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 60-10-PLAN.md — Wave 9: the run-protocol builder and drift check, the preflight writer and real-arm admission (INST-05, FEAS-03, FEAS-04, FEAS-09)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 60-11-PLAN.md — Wave 10: physics arms in the runner, the CPU float64 cross-check, counting, and validated records with every result field (INST-05, FEAS-03, FEAS-04, FEAS-09)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 60-12-PLAN.md — Wave 11: the arm command line, the one-launch lock, graceful stop and exact resume (INST-05, FEAS-03)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [ ] 60-13-PLAN.md — Wave 12: the Phase 60 evidence verifier; the preflight; the owner's pre-seal answers on clipping (GAP-60-03) and a failed confirmation (GAP-60-09); the run protocol committed before any arm (INST-05, FEAS-03, FEAS-04, FEAS-09)
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [ ] 60-14-PLAN.md — Wave 13: Rung 1 on 1632, 851 and 4658, and Gate G2 (FEAS-03)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [ ] 60-15-PLAN.md — Wave 14: branch G2 fired, the four-setting sweep (FEAS-03)
+
+**Wave 15** *(blocked on Wave 14 completion)*
+
+- [ ] 60-16-PLAN.md — Wave 15: branch Tier-1 setting found, the single confirmation run (FEAS-03)
+
+**Wave 16** *(blocked on Wave 15 completion)*
+
+- [ ] 60-17-PLAN.md — Wave 16: branch rescue or failed confirmation, owner checkpoint ④ and the ruling file (FEAS-03)
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [ ] 60-18-PLAN.md — Wave 17: branch stop, skip records and the Phase 64 handoff (FEAS-04, FEAS-09)
+
+**Wave 18** *(blocked on Wave 17 completion)*
+
+- [ ] 60-19-PLAN.md — Wave 18: branch continue, the R_ref re-measure and GATE-04 at the approved setting (FEAS-04, FEAS-09)
+
+**Wave 19** *(blocked on Wave 18 completion)*
+
+- [ ] 60-20-PLAN.md — Wave 19: branch ladder, Rung 2 (and the uncovered system's Rung 1 on a continue) (FEAS-04, FEAS-03)
+
+**Wave 20** *(blocked on Wave 19 completion)*
+
+- [ ] 60-21-PLAN.md — Wave 20: branch ladder, the two hard-stage probes (FEAS-09)
+
+**Wave 21** *(blocked on Wave 20 completion)*
+
+- [ ] 60-22-PLAN.md — Wave 21: closeout, final evidence checks, re-derivation by re-scoring, findings and progress records (INST-05, FEAS-03, FEAS-04, FEAS-09)
 
 ### Phase 61: Conformance & Instrumentation
 
@@ -308,7 +396,7 @@ Otherwise G2 did not fire: continue, run Rung 2, and run the hard-stage probes. 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 0/TBD | Not started | - |
+| 60. Single-System Learnability | 0/23 | Planned | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
