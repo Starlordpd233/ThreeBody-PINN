@@ -237,6 +237,12 @@ None - no external service configuration required.
 - **Plan 60-17 (writing the rulings).** The files are `60-CHECKPOINT-4-RULING.md` and `60-GAP-60-09-RULING.md` in the phase directory. One fenced block with info string `phase60-ruling` holding `ruling: checkpoint-4` and `answer: continue` plus `approved_first_omega_0: <plain decimal>` (or `answer: go-to-verdict` with no value), or `ruling: gap-60-09` and `reading: no_rescue` or `rescue`; one fenced block with info string `owner-quote` fenced longer than anything inside it; key lines at column 0 with a space after the colon; the file committed before any query reads it.
 - **Open for the owner or verifier:** coverage item D8, the readings listed under Decisions Made.
 
+## Post-execution fix (orchestrator, 2026-10-20)
+
+The chain closeout ran the four-module verify command once and it failed with one error: `shutil.copytree` in `Tree.scenario` raised ENOENT on 18 entries under `.git/objects` of a cached template repository (nothing outside `.git/objects` failed). Every `git commit` starts a detached `git maintenance run --auto`, which can run `git repack -d` and delete loose objects mid-copy; a traced run of the module spawned 310 maintenance processes and 2 repacks. The same command passed on an immediate rerun (357 tests), so the failure is intermittent.
+
+Commit `08ea9a2a` turns off `maintenance.auto` and `gc.auto` in the fixture's repositories and adds `FixtureRepoTests` (one test, which fails if the fixture goes back to plain `init_repo`). `test_g2` now has 146 tests and `tests/phase60` discovery 579. A traced run after the change spawned no maintenance process. Only `tests/phase60/test_g2.py` changed; no module under `pinn/` did. The mechanism is established, but the one observed failure was not reproduced on demand. Other fixtures that copy a live git repository would have the same exposure; they were not audited.
+
 ---
 *Phase: 60-single-system-learnability*
 *Completed: 2026-10-20*
