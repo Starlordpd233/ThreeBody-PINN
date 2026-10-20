@@ -67,6 +67,7 @@ from pinn.verification.architecture_characterization_probe import (
     ratified_causal_weights,
     stratified_collocation_times,
 )
+from pinn.verification.diagnostic_architecture import build_network_with_first_omega
 from pinn.verify import git_head
 
 VERDICT_PASS = "PASS"
@@ -700,7 +701,7 @@ def condition_iii_diagnostics(
     }
 
 
-def _measure_raw_bin_means(case, *, dtype, torch_device) -> np.ndarray:
+def _measure_raw_bin_means(case, *, dtype, torch_device, first_omega_0=None) -> np.ndarray:
     """One case's sixteen raw bin-mean residuals at initialization.
 
     The session-verified composition (56-RESEARCH.md "Code Examples"): the
@@ -713,7 +714,13 @@ def _measure_raw_bin_means(case, *, dtype, torch_device) -> np.ndarray:
     raises ``ValueError`` here — before the weight computation reaches the
     exponent clamp (54-RULING.md Block 3's re-issued acceptance criterion).
     """
-    model = build_network(ArchitectureSpec(seed=case.seed), dtype=dtype, device=torch_device)
+    if first_omega_0 is None:
+        model = build_network(ArchitectureSpec(seed=case.seed), dtype=dtype, device=torch_device)
+    else:
+        # Phase 60 (D-07): an owner-approved first-layer frequency; ArchitectureSpec stays omega-locked.
+        model = build_network_with_first_omega(
+            first_omega_0, seed=case.seed, dtype=dtype, device=torch_device,
+        )
     model.eval()
     ic13 = _ic13_for_case(case, dtype=dtype, device=torch_device)
     masses_t = torch.as_tensor(case.masses, dtype=dtype, device=torch_device)
@@ -754,7 +761,9 @@ def _measure_raw_bin_means(case, *, dtype, torch_device) -> np.ndarray:
     return means
 
 
-def compute_r_ref(cases, *, precision: str, device: str) -> tuple[float, tuple[tuple[float, ...], ...]]:
+def compute_r_ref(
+    cases, *, precision: str, device: str, first_omega_0=None,
+) -> tuple[float, tuple[tuple[float, ...], ...]]:
     """The ratified reference scale: the median of all raw bin means.
 
     Measures every case's sixteen raw bin means, concatenates them (six cases
@@ -775,7 +784,8 @@ def compute_r_ref(cases, *, precision: str, device: str) -> tuple[float, tuple[t
     runtime = resolve_runtime(precision, device)
     per_case = tuple(
         _measure_raw_bin_means(
-            case, dtype=runtime.dtype, torch_device=runtime.torch_device
+            case, dtype=runtime.dtype, torch_device=runtime.torch_device,
+            first_omega_0=first_omega_0,
         )
         for case in case_tuple
     )
@@ -791,7 +801,9 @@ def compute_r_ref(cases, *, precision: str, device: str) -> tuple[float, tuple[t
     )
 
 
-def evaluate_case(case, r_ref: float, *, precision: str, device: str) -> Gate04CaseResult:
+def evaluate_case(
+    case, r_ref: float, *, precision: str, device: str, first_omega_0=None,
+) -> Gate04CaseResult:
     """Measure one case under the ratified recipe and assemble its evidence.
 
     Recomputes the case's raw bin means (the same deterministic construction
@@ -818,7 +830,8 @@ def evaluate_case(case, r_ref: float, *, precision: str, device: str) -> Gate04C
             f"evaluate_case requires a finite positive r_ref; got {r_ref!r}"
         )
     raw = _measure_raw_bin_means(
-        case, dtype=runtime.dtype, torch_device=runtime.torch_device
+        case, dtype=runtime.dtype, torch_device=runtime.torch_device,
+        first_omega_0=first_omega_0,
     )
     weights = ratified_causal_weights(
         raw, r_ref_value, dtype=runtime.dtype, device=runtime.torch_device
@@ -842,7 +855,10 @@ def evaluate_case(case, r_ref: float, *, precision: str, device: str) -> Gate04C
     )
 
 
-def run_gate(cases=DEFAULT_CASES, *, precision: str = "float64", device: str = "cpu") -> Gate04Verdict:
+def run_gate(
+    cases=DEFAULT_CASES, *, precision: str = "float64", device: str = "cpu",
+    first_omega_0=None,
+) -> Gate04Verdict:
     """Run GATE-04 over ``cases`` and return the single verdict object.
 
     Resolves the runtime, reads the dtype clamp floor from
@@ -874,10 +890,14 @@ def run_gate(cases=DEFAULT_CASES, *, precision: str = "float64", device: str = "
         )
     try:
         r_ref, _per_case_means = compute_r_ref(
-            case_tuple, precision=precision, device=device
+            case_tuple, precision=precision, device=device,
+            first_omega_0=first_omega_0,
         )
         results = tuple(
-            evaluate_case(case, r_ref, precision=precision, device=device)
+            evaluate_case(
+                case, r_ref, precision=precision, device=device,
+                first_omega_0=first_omega_0,
+            )
             for case in case_tuple
         )
         reasons = _blocking_reasons(results, causal_clip_min_weight=floor)
