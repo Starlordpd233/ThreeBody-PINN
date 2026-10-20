@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-7 complete 2026-10-20 (60-01 to 60-07 and 60-23 done, 8 of 23 plans); wave 8 (60-08) is next. Position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c ran waves 5-7 and hands off after wave 7"
-last_updated: "2026-10-20T09:05:38Z"
+stopped_at: "Phase 60 waves 1-8 complete 2026-10-20 (60-01 to 60-08 and 60-23 done, 9 of 23 plans); wave 9 (60-09) is next, run by position 3 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 8-10)"
+last_updated: "2026-10-20T09:54:17Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 60 wave 7 executed — 60-07 built the launcher that keeps every long arm alive and accountable: it detaches a sequence of arms from the terminal and the agent session, runs them one at a time under caffeinate, records every exit, and allows a resume only after a governed stop (commits ba8d30f6, e1f64139, ffbda06b). No real arm was started. The wave gate passed (578 + 31 + 4 + 139 tests). Waves 1-7 are done. Open for the owner or verifier before the first real arm: the 60-07 readings (coverage item D9), the 60-06 readings (its D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
+last_activity_desc: Phase 60 wave 8 executed — 60-08 gave real arms the frozen budget rule: a timing run of the arm's own configuration sets its step budget under the 3-hour cap, Adam runs the ratified schedule over exactly that budget, readings follow the frozen cadence, at most one doubling runs as a second cosine, divergence ends Adam at the last finite state with no restart, and an undeterminable improvement rate goes to the owner as owner-stop.json (commits 37a76a90, 9b18d8da, c1909e77, ad15d86b, 2c23f4b9, 4ac6b558, b914dc75). No real arm was started. The wave gate passed (229 focused tests re-run by the orchestrator; the executor's full 657-test Phase 60 discovery reused). Waves 1-8 are done. Open for the owner or verifier before the first real arm: the 60-08 readings (coverage items D10 and D11), the 60-07 readings (D9), the 60-06 readings (D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 18
-  percent: 55
+  completed_plans: 19
+  percent: 58
 ---
 
 # Project State
@@ -25,14 +25,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-7 complete; wave 8 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-8 complete; wave 9 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-7 complete; wave 8 and later continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c after position 2's waves 5-7)
-Plan: 8 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-8 complete; waves 9 and 10 continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 3 running waves 8-10)
+Plan: 9 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-20 — Wave 7 complete (60-07); waves 1-7 are done and wave 8 (60-08) is next
+Last activity: 2026-10-20 — Wave 8 complete (60-08); waves 1-8 are done and wave 9 (60-09) is next
+
+### Decisions from 60-08 (2026-10-20)
+
+- `learnability_run.py` now gives real arms the frozen budget rule. A timing run of the arm's exact configuration sets B through the frozen `steps_budget` (3-hour cap); Adam runs the ratified schedule over exactly B (D-01, D-04, D-05: `OptConfig().lr_for_stage(k)` with no literal rate, cosine to zero over B, `lambda_ic` = `PHYS05_LAMBDA_IC_ADVISORY` = 1.0); readings follow the frozen cadence; `drive_adam` branches only on the frozen `budget_outcome` and on divergence (its only numeric constants are 0.0 and 1, checked by AST). At most one extension runs as a second cosine on the same optimizer (D-03: every group's lr reset to `initial_lr`, moments kept, no re-ramp of the physics weights). Every Adam step goes through the trainer's `GradClipper` before `optimizer.step()` (GAP-60-03); a non-finite loss, clip outcome or gradient skips the step and ends Adam at the last finite state with no restart (GAP-60-06); the one `except OwnerRouted` in the file writes `adam.weights` and `owner-stop.json` and re-raises. Commits `37a76a90` (tracer), `9b18d8da` and `c1909e77` (schedule, test-first), `ad15d86b` and `2c23f4b9` (guards, test-first), `4ac6b558` and `b914dc75` (summary).
+- Wave 8 gate, re-run by the orchestrator: 229 tests across the schedule, budget-driver, run-short, Phase 38/39 prohibition and Phase 59 scorer suites pass in 56 s. The executor's retained full `tests/phase60` discovery (657 tests, OK, 1 by-design platform-probe skip, 256 s) is reused, not rerun; the broadest check runs once after wave 10. No real arm was started.
+- DEVIATIONS (the SUMMARY lists them): a gradient-finiteness check when clipping is off (Rule 2); extra keywords `fixture_timing_steps`, `enforce_cadence`, and `data` and `clock` on `timing_run`; seven commits instead of the single commit the plan names (test-first flow); the Sonnet 5.5 co-author trailer instead of the Opus 5.5 the plan text names.
+- PLAN-TEXT MISMATCH: Task 3 says an all-non-finite reference window gives `OwnerRouted`. The frozen `budget_outcome` (`feasibility_scorecard.py` 814-839) returns "extend" for that case when the run is not yet extended and raises `OwnerRouted` only once extended, when the reference minimum is not finite or exactly 0.0. The tests cover the reachable form against the real frozen function and the same-object propagation.
+- OPEN for the owner or verifier (60-08's coverage items D10 and D11): D10, Adam weights that are not finite after the driver returns (unreachable by construction, since a non-finite step is skipped) stop the arm with `HarnessHalt` and write nothing, because no source says what result such an arm has and the scorer refuses non-finite networks; D11, a "clipped" step is a pre-clip norm strictly above that step's clip value and a fixture arm's timing run defaults to the frozen 50-step minimum (neither can change training, only the audit field). Real-arm `formula`, counting and the complete record stay with Plan 60-11, and the real-arm CLI and resume with Plan 60-12.
 
 ### Decisions from 60-07 (2026-10-20)
 

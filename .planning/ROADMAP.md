@@ -269,7 +269,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 60-08-PLAN.md — Wave 8: the frozen budget rule, the timing run, the ratified schedule, the second cosine, the clipper and divergence (INST-05, FEAS-03)
+- [x] 60-08-PLAN.md — Wave 8: the frozen budget rule, the timing run, the ratified schedule, the second cosine, the clipper and divergence (INST-05, FEAS-03)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 8/23 | In Progress | - |
+| 60. Single-System Learnability | 9/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
