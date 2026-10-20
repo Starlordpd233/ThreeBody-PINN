@@ -29,6 +29,7 @@ import hashlib
 import itertools
 import json
 import math
+import os
 import re
 import subprocess
 from dataclasses import dataclass
@@ -57,20 +58,47 @@ from pinn.verification.learnability_arms import (
     PHASE_REL,
     PROBE_STAGES,
     REAL_RUNTIME,
+    RUNS_REL,
     SEED,
     SEQUENCES,
     TIMING_STEPS,
     FirstResultExists,
+    OverrideRefused,
+    UnknownArm,
+    arm_evidence_dir,
+    arm_run_dir,
+    arm_spec,
     catalog,
+    check_override,
+    resolve_first_omega_0,
+    write_record_exclusive,
 )
-from pinn.verification.learnability_data import EXPECTED_STATS_SHA256, HarnessHalt
+from pinn.verification.learnability_data import (
+    EXPECTED_STATS_SHA256,
+    HarnessHalt,
+    open_real_context,
+    preflight_records,
+)
 from pinn.verification.learnability_g2 import (
     NOT_CONFIRMED_LABEL,
     PRE_ANSWERS,
+    REMEASURE_REL,
+    R_REF_APPROVED_REL,
     SKIP_REASONS,
+    TAKEN,
+    G2Halt,
+    G2Pending,
+    branch_state,
+    parse_remeasure,
     sweep_plan,
 )
-from pinn.verification.learnability_ruling import RULING4_REL, tracked_and_clean
+from pinn.verification.learnability_ruling import (
+    RULING4_REL,
+    RulingError,
+    load_checkpoint4_ruling,
+    ruling_grid_facts,
+    tracked_and_clean,
+)
 
 __all__ = [
     "PINNED_MODULES",
@@ -82,9 +110,11 @@ __all__ = [
     "AdmissionRefused",
     "LoadedProtocol",
     "ProtocolDrift",
+    "admit_arm",
     "build_protocol",
     "load_protocol",
     "main",
+    "write_preflight",
     "write_protocol",
 ]
 
@@ -147,6 +177,18 @@ PINNED_MODULES = (
     R_REF_GOVERNED_REL,
     (EVIDENCE_REL / "launch_phase60_arm.py").as_posix(),
 )
+
+# SPEC Requirement 8 and 60-RESEARCH Finding G: the number of samples within T = 10 of each
+# assigned record, by variant and fidelity (gold 1,001, hierarchical base 126, standard
+# base 59). A record whose window holds another count is not the record that was verified.
+EXPECTED_WITHIN_T = {
+    "hierarchical/gold": 1001,
+    "hierarchical/base": 126,
+    "standard/gold": 1001,
+    "standard/base": 59,
+}
+# SPEC Requirement 5 and INST-05(b): zero opens of any test-split file, none blocked or refused.
+_OPEN_COUNTERS = ("test_split_opened", "blocked_attempts", "refused_before_open")
 
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -937,6 +979,382 @@ def load_protocol(*, repo_root=None, evidence_root=None, require_committed=True)
 
 
 # ---------------------------------------------------------------------------
+# The record preflight (SPEC Requirement 8).
+# ---------------------------------------------------------------------------
+
+def _assigned_keys():
+    """Every distinct train, score and beside key of the closed catalog, ``label -> RecordKey``."""
+    keys = {}
+    for spec in catalog().values():
+        for key in (spec.train_key, spec.score_key, spec.beside_key):
+            keys.setdefault(evidence_io.record_key_str(key), key)
+    return keys
+
+
+def _expected_within_t(label):
+    variant, fidelity, _identifier = label.split("/")
+    return EXPECTED_WITHIN_T[f"{variant}/{fidelity}"]
+
+
+def _key_blocked(entry):
+    """A key is usable only when it was read (``ok``) and its window holds the verified count."""
+    return entry.get("status") != "ok" or entry.get("count_ok") is not True
+
+
+def _open_attestation(context):
+    """The context's open-attestation summary, if it shows no test-split file was touched."""
+    attestation = getattr(context, "attestation", None)
+    if attestation is None:
+        raise HarnessHalt(
+            "the context has no open attestation, so zero test-split opens cannot be shown"
+        )
+    summary = dict(attestation.summary())
+    for counter in _OPEN_COUNTERS:
+        if summary.get(counter) != 0:
+            raise HarnessHalt(
+                f"the open attestation reports {counter} = {summary.get(counter)!r}; it must be 0"
+            )
+    return summary
+
+
+def write_preflight(*, repo_root=None, evidence_root=None, context=None, key_map=None):
+    """Check every assigned record once, before the first arm, and write ``preflight/records.json``.
+
+    The records are the distinct train, score and beside keys of the closed catalog (the
+    ten records of 60-RESEARCH Finding G). Each is read through the allowlist by
+    ``preflight_records`` and reported as ``ok``, ``missing``, ``empty``, ``unreadable``
+    or ``refused``, with the number of samples within T beside the verified count. A
+    record that is not ``ok`` with the verified count blocks the arms that use it and no
+    others, and nothing is read in its place. The open attestation must show zero opens
+    of a test-split file, else ``HarnessHalt`` and nothing is written. The file is created
+    once (``FirstResultExists`` on a second write), holds no data root, and the
+    function returns ``(payload, SHA-256 of the file)``.
+
+    ``context`` is opened with ``open_real_context`` when it is not injected.
+    ``key_map`` maps a catalog key to the key actually read; it is for tests that run on a
+    fixture corpus, and the file is still keyed by the catalog key.
+    """
+    root, evidence = _roots(repo_root, evidence_root)
+    card = load_scorecard()
+    if context is None:
+        context = open_real_context(repo_root=root)
+    mapping = {} if key_map is None else dict(key_map)
+    assigned = _assigned_keys()
+    read_keys = {label: mapping.get(key, key) for label, key in assigned.items()}
+    report = preflight_records(list(read_keys.values()), context, scorecard=card)
+    records = {}
+    for label, read_key in read_keys.items():
+        entry = dict(report[evidence_io.record_key_str(read_key)])
+        expected = _expected_within_t(label)
+        entry["expected_within_t"] = expected
+        entry["count_ok"] = entry.get("status") == "ok" and entry.get("n_within_t") == expected
+        records[label] = entry
+    arms = {}
+    for arm_id, spec in catalog().items():
+        roles = {
+            "train_key": evidence_io.record_key_str(spec.train_key),
+            "score_key": evidence_io.record_key_str(spec.score_key),
+            "beside_key": evidence_io.record_key_str(spec.beside_key),
+        }
+        blocked_by = []
+        for label in roles.values():
+            if _key_blocked(records[label]) and label not in blocked_by:
+                blocked_by.append(label)
+        arms[arm_id] = {"status": "blocked" if blocked_by else "ok", **roles, "blocked_by": blocked_by}
+    payload = _json_form(
+        {
+            "schema": PREFLIGHT_SCHEMA,
+            "plain_language": "Every record an arm trains on, is scored on or reports beside is "
+            "checked once, before the first arm. A record is ok, missing, empty, unreadable or "
+            "refused, and its sample count within T is compared with the count that was "
+            "verified. A record that is not ok blocks the arms that use it and no others, and "
+            "nothing is read in its place.",
+            "scorecard_sha256": card.sha256,
+            "t_max": card.section("scoring_grid")["t_max"],
+            "data_root_source": context.data_root_source,
+            "records": records,
+            "arms": arms,
+            "blocked_arms": sorted(arm for arm, row in arms.items() if row["status"] == "blocked"),
+            "attestation": _open_attestation(context),
+        }
+    )
+    path = evidence / PREFLIGHT_REL.relative_to(EVIDENCE_REL)
+    digest = write_record_exclusive(
+        path, payload, data_root=getattr(getattr(context, "reader", None), "data_root", None)
+    )
+    return payload, digest
+
+
+# ---------------------------------------------------------------------------
+# Admission of a real arm.
+# ---------------------------------------------------------------------------
+
+# What turns into a refusal: an arm may not start, and the reason is the message. A
+# frozen OwnerRouted is never in this list; admission never calls the rules that raise it.
+_REFUSABLE = (
+    ProtocolDrift, UnknownArm, OverrideRefused, G2Halt, G2Pending, RulingError,
+    KeyError, TypeError, ValueError, OSError,
+)
+
+
+def _committed_json(root, path, what):
+    """``(object, SHA-256, repo-relative path)`` of a JSON file that is tracked and clean in git."""
+    relative = _relative(root, path)
+    if relative is None:
+        raise AdmissionRefused(f"{what} lies outside the repository")
+    path = Path(path)
+    if path.is_symlink() or not path.is_file():
+        raise AdmissionRefused(f"{what} is not recorded ({relative})")
+    if not tracked_and_clean(root, relative):
+        raise AdmissionRefused(f"{what} {relative} is not tracked and clean in git")
+    raw = path.read_bytes()
+    try:
+        payload = json.loads(raw)
+    except ValueError as exc:
+        raise AdmissionRefused(f"{what} {relative} is not JSON") from exc
+    if not isinstance(payload, dict):
+        raise AdmissionRefused(f"{what} {relative} is not a JSON object")
+    return payload, _sha256(raw), relative
+
+
+def _check_preflight(spec, protocol, root, evidence):
+    """The arm's three records are cleared in the committed preflight the protocol pins."""
+    path = evidence / PREFLIGHT_REL.relative_to(EVIDENCE_REL)
+    payload, digest, relative = _committed_json(root, path, "the preflight")
+    pinned = protocol.payload["preflight_sha256"]
+    if pinned is None:
+        raise AdmissionRefused("the run protocol pins no preflight")
+    if digest != pinned:
+        raise AdmissionRefused(
+            f"the committed preflight {relative} is not the one the run protocol pins"
+        )
+    if payload.get("schema") != PREFLIGHT_SCHEMA:
+        raise AdmissionRefused(f"{relative} does not carry the schema {PREFLIGHT_SCHEMA}")
+    attestation = payload.get("attestation")
+    for counter in _OPEN_COUNTERS:
+        found = attestation.get(counter) if isinstance(attestation, dict) else None
+        if found != 0:
+            raise AdmissionRefused(f"the preflight reports {counter} = {found!r}; it must be 0")
+    records = payload.get("records")
+    for role in ("train", "score", "beside"):
+        label = evidence_io.record_key_str(getattr(spec, f"{role}_key"))
+        entry = records.get(label) if isinstance(records, dict) else None
+        if not isinstance(entry, dict) or _key_blocked(entry):
+            status = entry.get("status", "unrecorded") if isinstance(entry, dict) else "unrecorded"
+            reason = status if status != "ok" else "an unexpected window count"
+            raise AdmissionRefused(
+                f"the preflight does not clear the {role} record {label} ({reason})"
+            )
+    return digest
+
+
+def _check_pins(protocol, root):
+    """The amendment is in the history, and the scorer and scorecard are the registered files."""
+    payload = protocol.payload
+    commit = payload["amendment_commit"]
+    if not evidence_io.is_ancestor(commit, "HEAD", root):
+        raise AdmissionRefused(f"the amendment commit {commit} is not an ancestor of HEAD")
+    if _file_sha256(root / SCORER_REL) != payload["scorer_sha256"]:
+        raise AdmissionRefused(
+            "the scorer on disk does not match the scorer digest the run protocol records"
+        )
+    if (
+        payload["scorecard_sha256"] != SCORECARD_SHA256
+        or _file_sha256(root / SCORECARD_REL) != payload["scorecard_sha256"]
+    ):
+        raise AdmissionRefused(
+            "the scorecard on disk does not match the scorecard digest the run protocol records"
+        )
+
+
+def _check_run_state(spec, root, evidence, resume):
+    """No result exists for the arm; a fresh start has no run directory and a resume has one."""
+    for name in ("record.json", "owner-stop.json"):
+        if os.path.lexists(arm_evidence_dir(spec.arm_id, evidence_root=evidence) / name):
+            raise AdmissionRefused(
+                f"{spec.arm_id} already has a {name}; the first completed run is the result"
+            )
+    shown = (RUNS_REL / spec.arm_id).as_posix()
+    run_dir = arm_run_dir(spec.arm_id, repo_root=root)
+    if resume:
+        if not run_dir.is_dir():
+            raise AdmissionRefused(f"a resume needs the run directory {shown} and there is none")
+    elif os.path.lexists(run_dir):
+        raise AdmissionRefused(f"{shown} already exists; a fresh start needs none")
+
+
+def _g2_json(root, evidence, name):
+    return _committed_json(root, evidence / "g2" / name, f"g2/{name}")[0]
+
+
+def _require_taken(name, root, evidence, card):
+    state = branch_state(name, evidence_root=evidence, repo_root=root, scorecard=card)
+    if state.status != TAKEN:
+        raise AdmissionRefused(f"branch {name} is {state.status}: {state.reason}")
+    return state
+
+
+def _check_branch(spec, root, evidence, card):
+    """The branch the committed G2 records have taken must allow this arm.
+
+    Returns ``(branch state or None, checkpoint 4 ruling or None)``.
+    """
+    if spec.path == "rung1":
+        return None, None
+    if spec.path == "g2_sweep":
+        state = _require_taken("sweep", root, evidence, card)
+        sweep = _g2_json(root, evidence, "g2-outcome.json")["sweep_system"]
+        if spec.system_id != sweep:
+            raise AdmissionRefused(f"{spec.arm_id} is not on the recorded sweep system {sweep}")
+        return state, None
+    if spec.path == "g2_confirmation":
+        state = _require_taken("confirmation", root, evidence, card)
+        confirmation = _g2_json(root, evidence, "sweep-curve.json")["confirmation_arm"]
+        if spec.arm_id != confirmation:
+            raise AdmissionRefused(
+                f"{spec.arm_id} is not the recorded confirmation arm {confirmation}"
+            )
+        return state, None
+    state = _require_taken("ladder", root, evidence, card)
+    if spec.path == "g2_passed":
+        if state.omega_provenance != "locked":
+            raise AdmissionRefused(
+                "the ladder is taken by an owner continue, so a plain Rung-2 or probe arm does not run"
+            )
+        return state, None
+    if spec.path != "continue":
+        raise AdmissionRefused(f"{spec.arm_id} has the unknown path {spec.path}")
+    if state.omega_provenance != "owner_approved":
+        raise AdmissionRefused(
+            "the ladder runs at the locked setting, so a continue-path arm does not run"
+        )
+    ruling = load_checkpoint4_ruling(repo_root=root)
+    if state.first_omega_0 != ruling.approved_first_omega_0:
+        raise AdmissionRefused(
+            "the ladder's setting is not the first_omega_0 the committed ruling names"
+        )
+    if spec.rung == "1":
+        uncovered = _g2_json(root, evidence, "g2-outcome.json")["uncovered_system"]
+        if spec.system_id != uncovered:
+            raise AdmissionRefused(f"{spec.arm_id} is not on the recorded uncovered system {uncovered}")
+    return state, ruling
+
+
+def _reference_in_force(protocol, root, evidence, owner_approved):
+    """``(Stage-0 reference in force, governed reference for the scorer's context column)``."""
+    governed = protocol.payload["r_ref_governed"]
+    governed_path = root / governed["path"]
+    if _file_sha256(governed_path) != governed["sha256"]:
+        raise AdmissionRefused(f"the governed reference {governed['path']} is not the registered file")
+    try:
+        value = load_frozen_r_ref_artifact(governed_path)
+    except ValueError as exc:
+        raise AdmissionRefused(f"the governed reference {governed['path']} does not load") from exc
+    if value != governed["value"]:
+        raise AdmissionRefused(f"the governed reference {governed['path']} no longer holds its value")
+    context = {"path": governed["path"], "sha256": governed["sha256"]}
+    if not owner_approved:
+        return {**context, "value": value, "note": _REFERENCE_NOTE}, context
+    path = evidence / REMEASURE_REL.relative_to(EVIDENCE_REL)
+    recorded, _digest, relative = _committed_json(root, path, "the re-measure record")
+    remeasure = parse_remeasure(recorded, path=relative)
+    cited = remeasure.r_ref_artifact
+    approved = R_REF_APPROVED_REL.as_posix()
+    if remeasure.verdict != "PASS" or cited is None:
+        raise AdmissionRefused(f"the re-measure record {relative} is not a PASS")
+    if cited["path"] != approved:
+        raise AdmissionRefused(f"the re-measure record cites {cited['path']}, not {approved}")
+    if not tracked_and_clean(root, approved):
+        raise AdmissionRefused(f"{approved} is not tracked and clean in git")
+    if _file_sha256(root / approved) != cited["sha256"]:
+        raise AdmissionRefused(f"{approved} is not the file the re-measure record cites")
+    try:
+        approved_value = load_frozen_r_ref_artifact(root / approved)
+    except ValueError as exc:
+        raise AdmissionRefused(f"{approved} does not load") from exc
+    return {"path": approved, "sha256": cited["sha256"], "value": approved_value,
+            "note": _REFERENCE_NOTE}, context
+
+
+def _admit(arm_id, root, evidence, resume):
+    protocol = load_protocol(repo_root=root, evidence_root=evidence, require_committed=True)
+    spec = arm_spec(arm_id)
+    card = load_scorecard()
+    preflight_sha256 = _check_preflight(spec, protocol, root, evidence)
+    _check_pins(protocol, root)
+    _check_run_state(spec, root, evidence, resume)
+    state, ruling = _check_branch(spec, root, evidence, card)
+    value = resolve_first_omega_0(spec, scorecard=card, ruling=ruling)
+    check_override(spec, value, scorecard=card, ruling=ruling)
+    if state is not None and state.first_omega_0 is not None and state.first_omega_0 != value:
+        raise AdmissionRefused(f"{arm_id} would run at {value}, not at the ladder's {state.first_omega_0}")
+    ruling_facts = None
+    if ruling is not None:
+        confirmed = _g2_json(root, evidence, "sweep-curve.json").get("confirmed_first_omega_0")
+        facts = ruling_grid_facts(ruling, scorecard=card, confirmed_first_omega_0=confirmed)
+        ruling_facts = {
+            "path": ruling.path,
+            "sha256": ruling.sha256,
+            "answer": ruling.answer,
+            "approved_first_omega_0": ruling.approved_first_omega_0,
+            "on_grid": facts["on_grid"],
+            "equals_confirmed": facts["equals_confirmed"],
+        }
+    physics = spec.loss_arm != "data_only"
+    reference = context_reference = None
+    if physics:
+        reference, context_reference = _reference_in_force(
+            protocol, root, evidence, spec.omega_provenance == "owner_approved"
+        )
+    s_h = None
+    if spec.rung == "probe-2b":
+        recorded = protocol.payload["s_h"]
+        s_h = {name: recorded[name] for name in ("value", "eps_h", "source_sha256")}
+    return {
+        "arm_id": spec.arm_id,
+        "protocol_sha256": protocol.sha256,
+        "preflight_sha256": preflight_sha256,
+        "first_omega_0": value,
+        "omega_provenance": spec.omega_provenance,
+        "ruling": ruling_facts,
+        "r_ref_in_force": reference,
+        "scorer_context_r_ref": context_reference,
+        "s_h": s_h,
+        "clip_enabled": True if physics else protocol.payload["clip"]["clip_data_only_arms"],
+        "failed_confirmation_pre_answer": protocol.payload["g2"]["failed_confirmation_pre_answer"],
+    }
+
+
+def admit_arm(arm_id, *, repo_root=None, evidence_root=None, resume=False):
+    """May this real arm start now? Returns what it must cite, or raises ``AdmissionRefused``.
+
+    In order: the run protocol loads without drift; the arm is in the closed catalog; its
+    train, score and beside records are cleared in the committed preflight that the
+    protocol pins; the amendment commit is an ancestor of HEAD; the scorer and scorecard on
+    disk are the registered ones; no ``record.json`` or ``owner-stop.json`` exists for the
+    arm, and a fresh start has no ``runs/phase60/<arm-id>`` while a resume has one; and the
+    branch that the committed G2 records have taken allows the arm (Rung 1 always; a sweep
+    arm only on the recorded sweep system; the confirmation only as the recorded
+    confirmation arm; Rung 2 and the probes only on a ladder taken at the locked setting; a
+    continue arm only on a ladder taken at the committed ruling's setting, and the uncovered
+    Rung 1 only for the recorded uncovered system).
+
+    The result holds the setting and its provenance, the committed ruling's facts for a
+    continue arm (D-11, GAP-60-11), the Stage-0 reference in force for a physics arm
+    (D-08, GAP-60-10) and the governed reference the scorer's context column uses, S_H for
+    a probe Rung-2b arm (GAP-60-12), the clipping flag, and the protocol's pre-answer to a
+    failed confirmation. Nothing is read from the corpus and nothing is written.
+    """
+    root, evidence = _roots(repo_root, evidence_root)
+    try:
+        return _admit(arm_id, root, evidence, bool(resume))
+    except AdmissionRefused:
+        raise
+    except _REFUSABLE as exc:
+        raise AdmissionRefused(_one_line(exc)) from exc
+
+
+# ---------------------------------------------------------------------------
 # The command line.
 # ---------------------------------------------------------------------------
 
@@ -999,6 +1417,28 @@ def _cli_check(root, evidence):
     return f"PROTOCOL-OK: {loaded.path} sha256 {loaded.sha256}", EXIT_OK
 
 
+def _cli_preflight(root, evidence):
+    payload, digest = write_preflight(repo_root=root, evidence_root=evidence)
+    shown = _relative(root, evidence / PREFLIGHT_REL.relative_to(EVIDENCE_REL)) or PREFLIGHT_REL.name
+    blocked = payload["blocked_arms"]
+    if blocked:
+        return (
+            f"PREFLIGHT-BLOCKED: {len(blocked)} arms blocked ({', '.join(blocked)}); "
+            f"{shown} sha256 {digest}",
+            EXIT_REFUSED,
+        )
+    return (
+        f"PREFLIGHT-OK: {shown} sha256 {digest} "
+        f"({len(payload['records'])} records ok, {len(payload['arms'])} arms ok)",
+        EXIT_OK,
+    )
+
+
+def _cli_admit(args, root, evidence):
+    admit_arm(args.arm_id, repo_root=root, evidence_root=evidence)
+    return f"ADMIT-OK {args.arm_id}", EXIT_OK
+
+
 def _build_parser():
     parser = argparse.ArgumentParser(
         prog="learnability_protocol",
@@ -1018,7 +1458,20 @@ def _build_parser():
     write.add_argument("--evidence-root", default=None)
     check = commands.add_parser("check", help="is the committed protocol free of drift?")
     check.add_argument("--evidence-root", default=None)
+    preflight = commands.add_parser("preflight", help="write evidence/preflight/records.json")
+    preflight.add_argument("--evidence-root", default=None)
+    admit = commands.add_parser("admit", help="may this arm start now?")
+    admit.add_argument("arm_id")
+    admit.add_argument("--evidence-root", default=None)
     return parser
+
+
+_REFUSED_TOKEN = {
+    "write": "PROTOCOL-REFUSED",
+    "check": "PROTOCOL-REFUSED",
+    "preflight": "PREFLIGHT-REFUSED",
+    "admit": "ADMIT-REFUSED",
+}
 
 
 def main(argv=None):
@@ -1028,13 +1481,17 @@ def main(argv=None):
         root, evidence = _cli_roots(args.evidence_root)
         if args.command == "write":
             line, code = _cli_write(args, root, evidence)
-        else:
+        elif args.command == "check":
             line, code = _cli_check(root, evidence)
+        elif args.command == "preflight":
+            line, code = _cli_preflight(root, evidence)
+        else:
+            line, code = _cli_admit(args, root, evidence)
     except ProtocolDrift as exc:
         print(f"PROTOCOL-DRIFT: {_one_line(exc)}")
         return EXIT_REFUSED
-    except (HarnessHalt, FirstResultExists, ValueError, OSError) as exc:
-        print(f"PROTOCOL-REFUSED: {_one_line(exc)}")
+    except (AdmissionRefused, HarnessHalt, FirstResultExists, ValueError, OSError) as exc:
+        print(f"{_REFUSED_TOKEN[args.command]}: {_one_line(exc)}")
         return EXIT_REFUSED
     print(line)
     return code

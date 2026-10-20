@@ -604,7 +604,7 @@ class AdmissionRung1Tests(unittest.TestCase):
         after = subprocess.run(["git", "status", "--porcelain"], cwd=tree.root,
                                capture_output=True, text=True, check=True).stdout
         self.assertEqual(before, after)
-        self.assertFalse((tree.root / "runs").exists())
+        self.assertFalse((tree.root / "runs" / "phase60").exists())
 
     def test_an_existing_record_or_owner_stop_refuses_the_arm(self):
         for name in ("record.json", "owner-stop.json"):
