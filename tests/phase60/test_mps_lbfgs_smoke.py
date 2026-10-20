@@ -4,8 +4,9 @@ No repository test or committed run had exercised ``torch.optim.LBFGS`` on the
 MPS device, and the SPEC fixes MPS float32 for the polish. This smoke runs the
 optimizer exactly as the frozen scorecard configures it (history size, outer-call
 iteration cap and strong-Wolfe line search all read from the ``lbfgs_polish``
-section) on a tiny network and on one outer call of the production network, and
-proves that the optimizer state survives ``torch.save`` and
+section) on a tiny network and on one outer call of the production network, with
+the trainer's Huber loss and with the harness's own chunked polish closure on a
+gold-sized batch, and proves that the optimizer state survives ``torch.save`` and
 ``torch.load(..., weights_only=True)``.
 
 A failure here is not repaired in this test. The line search, the dtype and the
@@ -20,6 +21,7 @@ import math
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 import torch
 
@@ -28,9 +30,12 @@ from pinn.loss_catalog import data_huber_loss
 from pinn.network import build_network
 from pinn.verification.feasibility_scorecard import load_scorecard
 from pinn.verification.learnability_arms import SEED
+from pinn.verification.learnability_losses import data_polish_objective
 from tests.phase60.test_scorer_mps import mps_device_or_stop
 
 POINTS = 64
+GOLD_SIZED_POINTS = 1001  # one gold record: T = 10 at step 0.01
+POLISH_CHUNK = 256  # several chunks, so the gradient accumulation is exercised
 OUTER_CALLS = 3
 TINY_SEED = 1234
 MASSES = (1.0, 0.8, 0.6)
@@ -84,22 +89,22 @@ def _tiny_problem(device):
     return grid.contiguous().to(device), target.contiguous().to(device)
 
 
-def _production_problem(device):
-    """64 points of a smooth three-body path with its mass-weighted centre removed.
+def _production_problem(device, points=POINTS):
+    """``points`` rows of a smooth three-body path with its mass-weighted centre removed.
 
     Returns ``(tau_ic13, masses, targets)``: the network input rows ``[tau, IC13]``,
-    the masses per row and the ``(64, 3, 3)`` target positions.
+    the masses per row and the ``(points, 3, 3)`` target positions.
     """
-    u = torch.linspace(0.0, 1.0, POINTS)
+    u = torch.linspace(0.0, 1.0, points)
     tau = (2.0 * u - 1.0).reshape(-1, 1)
-    ic13 = torch.linspace(-0.9, 0.9, 13).reshape(1, 13).expand(POINTS, 13)
+    ic13 = torch.linspace(-0.9, 0.9, 13).reshape(1, 13).expand(points, 13)
     tau_ic13 = torch.cat([tau, ic13], dim=1)
-    masses = torch.tensor(MASSES).reshape(1, 3).expand(POINTS, 3)
+    masses = torch.tensor(MASSES).reshape(1, 3).expand(points, 3)
     angle = 2.0 * math.pi * u.reshape(-1, 1) + torch.tensor([0.0, 2.0, 4.0]).reshape(1, 3)
     positions = torch.stack(
         [torch.cos(angle), torch.sin(angle), 0.1 * torch.sin(angle)], dim=-1
     )
-    weights = masses.reshape(POINTS, 3, 1)
+    weights = masses.reshape(points, 3, 1)
     positions = positions - (weights * positions).sum(dim=1, keepdim=True) / weights.sum(
         dim=1, keepdim=True
     )
@@ -214,6 +219,27 @@ class ProductionNetworkLbfgsTests(unittest.TestCase):
         start = _outer_call(optimizer, _closure(network, objective))
         with torch.no_grad():
             end = float(objective())
+        self.assertTrue(math.isfinite(start), start)
+        self.assertTrue(math.isfinite(end), end)
+        self.assertLess(end, start)
+        self.assertTrue(_parameters_are_finite(network))
+
+    def test_the_harness_polish_closure_on_a_gold_sized_batch_stays_finite(self):
+        # The closure a real data-only arm hands to L-BFGS: Plan 60-01's
+        # data_polish_objective, which accumulates the gradient chunk by chunk.
+        device = mps_device_or_stop(self)
+        network = build_network(ArchitectureSpec(seed=SEED), dtype=torch.float32, device=device)
+        tau_ic13, masses, targets = _production_problem(device, GOLD_SIZED_POINTS)
+        data = SimpleNamespace(tau_ic13=tau_ic13, masses=masses, targets=targets)
+
+        def closure():
+            return data_polish_objective(
+                network, data, chunk_size=POLISH_CHUNK, dtype=torch.float32, device=device
+            )
+
+        optimizer = _lbfgs(network.parameters())
+        start = _outer_call(optimizer, closure)
+        end = float(closure())
         self.assertTrue(math.isfinite(start), start)
         self.assertTrue(math.isfinite(end), end)
         self.assertLess(end, start)
