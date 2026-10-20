@@ -257,7 +257,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 60-05-PLAN.md — Wave 5: the physics step composed from the trainer's functions, with oracle, mutation and identity proofs and the frozen-monitor log (INST-05, FEAS-04)
+- [x] 60-05-PLAN.md — Wave 5: the physics step composed from the trainer's functions, with oracle, mutation and identity proofs and the frozen-monitor log (INST-05, FEAS-04)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 5/23 | In Progress | - |
+| 60. Single-System Learnability | 6/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |

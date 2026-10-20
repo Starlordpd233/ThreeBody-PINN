@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-4 complete 2026-10-19 (60-01 to 60-04 and 60-23 done, 5 of 23 plans); wave 5 (60-05) is next, handed to position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
-last_updated: "2026-10-19T04:00:45Z"
+stopped_at: "Phase 60 waves 1-5 complete 2026-10-19 (60-01 to 60-05 and 60-23 done, 6 of 23 plans); wave 6 (60-06) is next, still run by position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 5-7)"
+last_updated: "2026-10-20T03:35:21Z"
 last_activity: 2026-10-19
-last_activity_desc: Phase 60 wave 4 executed — 60-23 closed the refusal contracts that need no physics: the override record end to end, the closed 42-arm catalog, test-split refusal and the assigned-record preflight (commits b913e5a0, e15c32eb, 64c843eb, c0810079, 2e7c34d6). The wave gate passed (221 + 31 + 4 + 139 tests). Waves 1-4 are done. Two GAP-60-05 polish-stopping readings and the 60-23 contract details (coverage item D8) stay open for the owner or verifier before the first real arm.
+last_activity_desc: Phase 60 wave 5 executed — 60-05 gave the learnability harness its physics terms by composing the trainer's own functions, so one harness step equals the trainer's memory-bounded step on every loss term and all 28 parameter gradients, and patching any of eight trainer functions moves the harness output (commits 4fc9f60f, 042ed09d, 1e9a948a). The wave gate passed (285 + 31 + 4 + 139 tests). Waves 1-5 are done. Two GAP-60-05 polish-stopping readings, the 60-23 contract details (coverage item D8) and the 60-05 monitor-log item (coverage item D7) stay open for the owner or verifier before the first real arm.
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 15
-  percent: 45
+  completed_plans: 16
+  percent: 48
 ---
 
 # Project State
@@ -25,14 +25,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-4 complete; wave 5 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-5 complete; wave 6 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-4 complete; waves 5+ run by positions 2-4 of watchdog chain phase-60-work-8ffbf6ffd8616f5c)
-Plan: 5 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-5 complete; waves 6+ continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 2 running waves 5-7)
+Plan: 6 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-19 — Wave 4 complete (60-23); waves 1-4 are done and the chain hands off to position 2 (waves 5-7)
+Last activity: 2026-10-19 — Wave 5 complete (60-05); waves 1-5 are done and wave 6 (60-06) is next
+
+### Decisions from 60-05 (2026-10-19)
+
+- `learnability_losses.py` composes the harness physics step from the production trainer's own functions, in the trainer's order (pass 1 freezes the causal weights, `(data + IC)` backward, then the pass-2 chunk loop). One harness step equals `RunController._run_adam_step_microbatched` on `data`, `ic`, `phys`, `energy`, `angmom`, `total` and on all 28 parameter gradients (rtol 1e-10, atol 1e-12; the difference is 0.0) for the Stage-0 weights and for `lambda_e = lambda_l = 1`. Twelve trainer objects are identical to the trainer's, and patching any of eight named trainer functions (plus `compose_total`) moves the harness output. Every evaluation path stays at 256 rows or fewer; the frozen monitor logs and never halts; the polish objective uses only the frozen rows, causal weights and loss weights. Commits `4fc9f60f`, `042ed09d`, `1e9a948a`.
+- The committed oracle uses 400 collocation rows (chunks of 256 and 144), not 4,096, because one production-shape step takes about 29 s on this CPU and would use most of the plan's 30 s module budget. A one-off production-shape run (4,096 rows in 16 chunks, both weight cases) was also exact; it is not a committed test. 25 injected faults were all caught (6 in the oracle, 19 elsewhere). Wave 5 gate: 285 Phase 60 tests, 31 + 4 prohibition tests and 139 Phase 59 scorer-suite tests pass, with the one by-design platform-probe skip.
+- OPEN for the owner or verifier before the first real arm (coverage item D7): `frozen_monitor_log` returns exactly the seven keys the plan and Plan 60-11 name, so the 16 causal weights are not themselves logged although D-06's wording says "per-bin causal weights". They follow from the logged normalized residuals, so nothing is lost. If the owner wants the vector written out, it is one added `w_n` key plus Plan 60-11's key test.
+- READING for the verifier: the plan's "energy and angular momentum evaluated only when `weights.lambda_e` or `weights.lambda_l` is above zero" is read as each term on its own weight. A skipped term reports exactly 0.0, which changes no gradient. No other semantic choice beyond the plan's text was made, and no gap was raised.
 
 ### Decisions from 60-23 (2026-10-19)
 
