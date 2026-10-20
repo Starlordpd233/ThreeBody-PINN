@@ -16,13 +16,20 @@ evidence tree, and the unpatched command line is never invoked.
 
 from __future__ import annotations
 
+import ast
 import builtins
+import contextlib
+import dataclasses
 import hashlib
 import importlib
 import inspect
+import io
 import json
 import os
 import re
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -36,7 +43,9 @@ from pinn.verification import gate04_train_free as gate04
 from pinn.verification import learnability_g2 as g2
 from pinn.verification.architecture_characterization_probe import DEFAULT_CASES
 from pinn.verification.learnability_arms import EVIDENCE_REL, PHASE_REL
-from tests.phase60.test_g2 import ONE_AT_120, rescued_tree
+from pinn.verification.learnability_ruling import Checkpoint4Ruling
+from tests.phase39.test_prohibitions import executable_source_from_text
+from tests.phase60.test_g2 import ONE_AT_120, Tree, rescued_tree
 
 MODULE = "pinn.verification.gate04_omega_remeasure"
 ROOT = Path(__file__).resolve().parents[2]
@@ -313,6 +322,39 @@ class RemeasureCase(unittest.TestCase):
                 evidence_root=tree.evidence, repo_root=tree.root, **kwargs)
         return record, spy
 
+    def main_function(self):
+        main = getattr(self.module, "main", None)
+        if main is None:
+            self.fail(f"{MODULE} has no main yet")
+        return main
+
+    def cli(self, tree, verdict, *extra):
+        """``main`` over ``tree`` with ``run_gate`` returning ``verdict``; ``(exit code, stdout, run_gate spy)``."""
+        main = self.main_function()
+        buffer = io.StringIO()
+        with mock.patch.object(self.module, "run_gate", return_value=verdict) as spy:
+            with contextlib.redirect_stdout(buffer):
+                code = main(["--evidence-root", str(tree.evidence), *extra])
+        return code, buffer.getvalue(), spy
+
+    def assert_refused(self, tree, *, fragment=None):
+        """Both entries refuse before the gate runs and write nothing."""
+        before = snapshot(tree.root)
+        with mock.patch.object(
+                self.module, "run_gate", return_value=recorded_pass_verdict()) as spy:
+            with self.assertRaises(self.module.RemeasureRefused) as raised:
+                self.module.remeasure(evidence_root=tree.evidence, repo_root=tree.root)
+        spy.assert_not_called()
+        if fragment is not None:
+            self.assertIn(fragment, str(raised.exception))
+        code, out, spy = self.cli(tree, recorded_pass_verdict())
+        self.assertEqual(code, self.module.EXIT_REFUSED)
+        self.assertEqual(code, 2)
+        self.assertTrue(out.startswith("GATE04-REFUSED"), out)
+        spy.assert_not_called()
+        self.assertEqual(snapshot(tree.root), before)
+        self.assertFalse(self.continue_dir(tree).exists())
+
     @staticmethod
     def continue_dir(tree):
         return tree.evidence / "continue"
@@ -440,6 +482,319 @@ class RemeasureTracerTests(RemeasureCase):
                 self.assertNotIn(str(Path.home()), text)
                 self.assertNotIn(str(tree.root), text)
                 self.assertIsNone(self.ABSOLUTE.search(text))
+
+
+# ---------------------------------------------------------------------------
+# Task 2: the command line, BLOCK, refusals, non-canonical runs, a second run, the branch link.
+# ---------------------------------------------------------------------------
+
+class CommandLineTests(RemeasureCase):
+    def test_a_complete_pass_prints_the_pass_token_and_exits_0(self):
+        tree = self.make_tree()
+        code, out, spy = self.cli(tree, recorded_pass_verdict())
+        self.assertEqual(code, self.module.EXIT_PASS)
+        self.assertEqual(code, 0)
+        self.assertTrue(out.startswith("GATE04-PASS"), out)
+        spy.assert_called_once()
+        self.assertEqual(self.continue_names(tree), [EVIDENCE_NAME, RECORD_NAME, APPROVED_NAME])
+
+    def test_the_command_line_takes_only_an_evidence_root(self):
+        tree = self.make_tree()
+        main = self.main_function()
+        for flag in (
+            "--r-ref-path", "--cases-config", "--ruling", "--precision", "--device",
+            "--first-omega-0",
+        ):
+            with self.subTest(flag=flag), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit):
+                    main([flag, "value", "--evidence-root", str(tree.evidence)])
+        self.assertEqual(self.continue_names(tree), [])
+
+    def test_help_lists_the_evidence_root_and_nothing_that_could_aim_at_the_governed_file(self):
+        self.main_function()
+        completed = subprocess.run(
+            [sys.executable, "-B", "-m", MODULE, "--help"],
+            cwd=str(ROOT), capture_output=True, text=True, timeout=300,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("--evidence-root", completed.stdout)
+        for flag in ("--r-ref-path", "--cases-config", "--precision", "--device"):
+            self.assertNotIn(flag, completed.stdout)
+
+
+class BlockTests(RemeasureCase):
+    REASON = "synthetic GATE-04 block for the tests"
+
+    def test_main_exits_5_and_prints_the_block_token(self):
+        tree = self.make_tree()
+        code, out, spy = self.cli(tree, block_verdict(self.REASON))
+        self.assertEqual(code, self.module.EXIT_BLOCK)
+        self.assertEqual(code, 5)
+        self.assertTrue(out.startswith("GATE04-BLOCK"), out)
+        self.assertIn(self.REASON, out)
+        spy.assert_called_once()
+        self.assertEqual(spy.call_args.kwargs["first_omega_0"], 120.0)
+
+    def test_the_record_says_block_with_the_reasons_and_no_reference_is_written(self):
+        tree = self.make_tree()
+        self.cli(tree, block_verdict(self.REASON))
+        self.assertEqual(self.continue_names(tree), [EVIDENCE_NAME, RECORD_NAME])
+        record = tree.read(f"continue/{RECORD_NAME}")
+        governed = sha256_file(GOVERNED)
+        self.assertEqual(record["schema"], g2.REMEASURE_SCHEMA)
+        self.assertEqual(record["verdict"], "BLOCK")
+        self.assertIs(record["complete_pass"], False)
+        self.assertEqual(record["blocking_reasons"], [self.REASON])
+        self.assertIsNone(record["r_ref_artifact"])
+        self.assertEqual(record["r_ref"], "NaN")
+        self.assertEqual(record["first_omega_0"], 120.0)
+        self.assertEqual(record["ruling_sha256"], tree.ruling_sha())
+        self.assertIs(record["on_grid"], True)
+        self.assertIs(record["equals_confirmed"], True)
+        self.assertEqual(record["governed_r_ref_sha256"], {"before": governed, "after": governed})
+        document = tree.read(f"continue/{EVIDENCE_NAME}")
+        self.assertEqual(document["verdict"]["verdict"], "BLOCK")
+        self.assertEqual(document["cases"], [])
+        self.assertEqual(list(tree.root.rglob("terminal-state.json")), [])
+
+    def test_the_ladder_stays_pending_for_the_owner_after_a_block(self):
+        tree = self.make_tree()
+        self.cli(tree, block_verdict(self.REASON))
+        tree.commit("gate 04 re-measure block")
+        ladder = tree.state("ladder")
+        self.assertEqual((ladder.status, ladder.reason), ("PENDING", "GATE-04 BLOCK at 120.0; owner"))
+        code, out = tree.cli("branch", "ladder")
+        self.assertEqual(code, 4)
+        self.assertEqual(out, "BRANCH-PENDING: ladder (GATE-04 BLOCK at 120.0; owner)")
+        self.assertEqual(tree.state("continue-gate").status, "TAKEN")
+
+
+class RefusalTests(RemeasureCase):
+    def test_a_go_to_verdict_ruling_is_refused(self):
+        self.assert_refused(self.make_tree("go-to-verdict", None), fragment="go-to-verdict")
+
+    def test_an_uncommitted_ruling_is_refused(self):
+        self.assert_refused(self.make_tree(commit=False), fragment="uncommitted")
+
+    def test_a_missing_ruling_is_refused(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1)
+        self.assert_refused(tree, fragment=RULING_NAME)
+
+    def test_a_ruling_value_the_loader_rejects_is_refused(self):
+        for value in ("0", "-5", "1e3", "nan"):
+            with self.subTest(value=value):
+                self.assert_refused(self.make_tree("continue", value))
+
+    def test_a_value_that_fails_the_validation_is_refused_before_the_gate_runs(self):
+        tree = self.make_tree()
+        for value in (float("nan"), float("inf"), float("-inf"), 0.0, -30.0, True, "120", None):
+            ruling = Checkpoint4Ruling(
+                answer="continue", approved_first_omega_0=value,
+                sha256=tree.ruling_sha(), path=(PHASE_REL / RULING_NAME).as_posix(),
+            )
+            with self.subTest(value=value):
+                with mock.patch.object(self.module, "load_checkpoint4_ruling", return_value=ruling):
+                    self.assert_refused(tree, fragment="first_omega_0")
+
+    def test_a_missing_sweep_curve_is_refused(self):
+        tree = Tree(self)
+        tree.with_checkpoint4("continue", "120")
+        self.assert_refused(tree, fragment="sweep-curve.json")
+
+    def test_an_uncommitted_sweep_curve_is_refused(self):
+        tree = self.make_tree()
+        curve = tree.path("g2/sweep-curve.json")
+        curve.write_text(curve.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        self.assert_refused(tree, fragment="uncommitted")
+
+
+class NonCanonicalTests(RemeasureCase):
+    def assert_not_complete(self, record, tree, cases):
+        self.assertIs(record["complete_pass"], False)
+        self.assertEqual(record["verdict"], "BLOCK")
+        self.assertIsNone(record["r_ref_artifact"])
+        self.assertTrue(any("not a complete pass" in item for item in record["blocking_reasons"]))
+        self.assertEqual(self.continue_names(tree), [EVIDENCE_NAME, RECORD_NAME])
+        self.assertEqual(tree.read(f"continue/{RECORD_NAME}")["complete_pass"], False)
+
+    def test_a_two_case_set_is_not_a_complete_pass_even_when_the_gate_says_pass(self):
+        two = DEFAULT_CASES[:2]
+        full = recorded_pass_verdict()
+        for label, verdict in (
+            ("a six-case verdict", full),
+            ("a two-case verdict", dataclasses.replace(full, cases=full.cases[:2])),
+        ):
+            with self.subTest(case=label):
+                tree = self.make_tree()
+                record, spy = self.remeasure(tree, verdict, cases=two)
+                self.assertEqual(tuple(spy.call_args.args[0]), two)
+                self.assert_not_complete(record, tree, two)
+
+    def test_unratified_conditions_are_not_a_complete_pass(self):
+        tree = self.make_tree()
+        verdict = dataclasses.replace(recorded_pass_verdict(), unratified_conditions=("ii",))
+        record, _spy = self.remeasure(tree, verdict)
+        self.assert_not_complete(record, tree, DEFAULT_CASES)
+        self.assertEqual(record["unratified_conditions"], ["ii"])
+
+    def test_the_default_cases_passed_explicitly_are_still_a_complete_pass(self):
+        tree = self.make_tree()
+        record, _spy = self.remeasure(tree, recorded_pass_verdict(), cases=DEFAULT_CASES)
+        self.assertIs(record["complete_pass"], True)
+        self.assertEqual(record["verdict"], "PASS")
+
+
+class SecondRunTests(RemeasureCase):
+    def test_a_second_run_refuses_before_measuring_and_writes_nothing(self):
+        tree = self.make_tree()
+        self.remeasure(tree, recorded_pass_verdict())
+        before = snapshot(tree.root)
+        raised = None
+        with mock.patch.object(
+                self.module, "run_gate", return_value=recorded_pass_verdict()) as spy:
+            try:
+                self.module.remeasure(evidence_root=tree.evidence, repo_root=tree.root)
+            except Exception as exc:  # the type is asserted below, so a late failure reads as one
+                raised = exc
+        self.assertIsInstance(raised, self.module.RemeasureRefused)
+        self.assertIn(RECORD_NAME, str(raised))
+        spy.assert_not_called()
+        self.assertEqual(snapshot(tree.root), before)
+
+    def test_a_second_run_through_the_command_line_exits_2(self):
+        tree = self.make_tree()
+        self.cli(tree, recorded_pass_verdict())
+        before = snapshot(tree.root)
+        code, out, spy = self.cli(tree, recorded_pass_verdict())
+        self.assertEqual(code, 2)
+        self.assertTrue(out.startswith("GATE04-REFUSED"), out)
+        spy.assert_not_called()
+        self.assertEqual(snapshot(tree.root), before)
+
+    def test_a_recorded_block_is_also_the_result_and_is_not_replaced_by_a_pass(self):
+        tree = self.make_tree()
+        self.cli(tree, block_verdict())
+        before = snapshot(tree.root)
+        code, out, spy = self.cli(tree, recorded_pass_verdict())
+        self.assertEqual(code, 2)
+        self.assertTrue(out.startswith("GATE04-REFUSED"), out)
+        spy.assert_not_called()
+        self.assertEqual(snapshot(tree.root), before)
+
+    def test_a_leftover_output_without_a_record_refuses_and_is_left_alone(self):
+        for name in (EVIDENCE_NAME, APPROVED_NAME):
+            with self.subTest(leftover=name):
+                tree = self.make_tree()
+                leftover = tree.path(f"continue/{name}")
+                leftover.parent.mkdir(parents=True, exist_ok=True)
+                leftover.write_text("{}\n", encoding="utf-8")
+                before = snapshot(tree.root)
+                with mock.patch.object(
+                        self.module, "run_gate", return_value=recorded_pass_verdict()) as spy:
+                    with self.assertRaises(self.module.RemeasureRefused):
+                        self.module.remeasure(evidence_root=tree.evidence, repo_root=tree.root)
+                spy.assert_not_called()
+                self.assertEqual(snapshot(tree.root), before)
+
+
+class GovernedReferenceTests(RemeasureCase):
+    def test_a_change_to_the_governed_file_during_the_run_halts_and_records_nothing(self):
+        tree = self.make_tree()
+        with tempfile.TemporaryDirectory(prefix="phase60-governed-") as scratch:
+            stand_in = Path(scratch) / "r_ref_stage0.json"
+            stand_in.write_bytes(GOVERNED.read_bytes())
+
+            def tamper(*args, **kwargs):
+                stand_in.write_bytes(stand_in.read_bytes() + b" ")
+                return recorded_pass_verdict()
+
+            with mock.patch.object(self.module, "R_REF_ARTIFACT_PATH", stand_in), \
+                    mock.patch.object(self.module, "run_gate", side_effect=tamper):
+                with self.assertRaises(self.module.RemeasureHalt):
+                    self.module.remeasure(evidence_root=tree.evidence, repo_root=tree.root)
+        self.assertNotIn(RECORD_NAME, self.continue_names(tree))
+
+
+class BranchLinkTests(RemeasureCase):
+    def test_a_pass_record_opens_the_ladder_at_the_approved_setting(self):
+        tree = self.make_tree()
+        self.remeasure(tree, recorded_pass_verdict())
+        tree.commit("gate 04 re-measure")
+        ladder = tree.state("ladder")
+        self.assertEqual(
+            (ladder.status, ladder.first_omega_0, ladder.omega_provenance),
+            ("TAKEN", 120.0, "owner_approved"),
+        )
+        code, out = tree.cli("branch", "ladder")
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "BRANCH-TAKEN: ladder (continue; first_omega_0 120.0; owner_approved)")
+        self.assertEqual(tree.state("continue-gate").status, "TAKEN")
+
+    def test_both_records_parse_under_the_ladders_reader(self):
+        for label, verdict in (("PASS", recorded_pass_verdict()), ("BLOCK", block_verdict())):
+            with self.subTest(verdict=label):
+                tree = self.make_tree()
+                record, _spy = self.remeasure(tree, verdict)
+                parsed = g2.parse_remeasure(tree.read(f"continue/{RECORD_NAME}"))
+                self.assertEqual(parsed.verdict, label)
+                self.assertEqual(parsed.complete_pass, label == "PASS")
+                self.assertEqual(parsed.first_omega_0, 120.0)
+                self.assertEqual(parsed.ruling_sha256, tree.ruling_sha())
+                self.assertEqual(parsed.r_ref_artifact, record["r_ref_artifact"])
+
+    def test_settings_off_the_grid_or_not_confirmed_are_recorded_and_accepted(self):
+        for value, on_grid, equals_confirmed in (
+            ("37.5", False, False), ("240", True, False), ("120", True, True),
+        ):
+            with self.subTest(first_omega_0=value):
+                tree = self.make_tree("continue", value)
+                record, spy = self.remeasure(tree, recorded_pass_verdict())
+                self.assertEqual(spy.call_args.kwargs["first_omega_0"], float(value))
+                self.assertEqual(record["first_omega_0"], float(value))
+                self.assertIs(record["on_grid"], on_grid)
+                self.assertIs(record["equals_confirmed"], equals_confirmed)
+                tree.commit("gate 04 re-measure")
+                ladder = tree.state("ladder")
+                self.assertEqual((ladder.status, ladder.first_omega_0), ("TAKEN", float(value)))
+
+
+class ModuleContractTests(unittest.TestCase):
+    def setUp(self):
+        self.module = remeasure_module(self)
+
+    def test_the_plan_names_are_exported(self):
+        for name in ("remeasure", "main", "EXIT_PASS", "EXIT_BLOCK", "EXIT_REFUSED", "REMEASURE_SCHEMA"):
+            with self.subTest(name=name):
+                self.assertTrue(hasattr(self.module, name))
+                self.assertIn(name, self.module.__all__)
+        self.assertEqual(
+            (self.module.EXIT_PASS, self.module.EXIT_REFUSED, self.module.EXIT_BLOCK), (0, 2, 5))
+        self.assertEqual(self.module.REMEASURE_SCHEMA, "phase60-gate04-remeasure/v1")
+        self.assertEqual(self.module.REMEASURE_SCHEMA, g2.REMEASURE_SCHEMA)
+
+    def test_the_docstring_carries_the_phase_60_marker(self):
+        self.assertEqual(
+            self.module.__doc__.splitlines()[0],
+            "Phase 60 (D-07): re-measure R_ref and re-run GATE-04 at an owner-approved first_omega_0.",
+        )
+
+    def test_the_module_never_imports_the_gate_command_line_or_the_arm_runner(self):
+        source = Path(self.module.__file__).read_text(encoding="utf-8")
+        imported_modules = set()
+        gate_names = set()
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.ImportFrom) and node.module:
+                imported_modules.add(node.module)
+                for alias in node.names:
+                    imported_modules.add(f"{node.module}.{alias.name}")
+                if node.module == "pinn.verification.gate04_train_free":
+                    gate_names.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.Import):
+                imported_modules.update(alias.name for alias in node.names)
+        self.assertTrue(gate_names)
+        self.assertFalse({"main", "_write_terminal_state"} & gate_names)
+        self.assertNotIn("pinn.verification.learnability_run", imported_modules)
+        self.assertNotIn("terminal-state", executable_source_from_text(source))
 
 
 if __name__ == "__main__":
