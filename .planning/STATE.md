@@ -4,18 +4,18 @@ milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
-status: ready_to_execute
-stopped_at: "Phase 60 planned 2026-10-18: 23 plans in 22 waves; the third plan check found 0 blockers, and its 3 warnings were fixed in a targeted pass the owner chose; ready to execute"
+status: executing
+stopped_at: "Phase 60 wave 1 complete 2026-10-19 (60-01 done, 1 of 23 plans); waves 2-4 next (60-02, 60-03, 60-04, 60-23), run by position 1 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
 last_updated: "2026-10-19T04:00:45Z"
-last_activity: 2026-10-18
-last_activity_desc: Phase 60 planned — research, gap register GAP-60-01..13 (all resolved under the delegation), pattern map, validation map with one row per auto task, and 23 plans in 22 waves. Plan checks went from 3 blockers and 9 warnings, to 0 and 5, to 0 and 3; the last 3 were fixed in an owner-chosen targeted pass. Commits 05f28af5, 21794013 and the final plan commit.
+last_activity: 2026-10-19
+last_activity_desc: Phase 60 wave 1 executed — 60-01 built the data-only fixture arm tracer and the Phase 60 static guard (commits 5e31f46a, a9cc3c14, 015f03b3); the wave gate passed (64 + 31 + 4 + 139 tests). Two GAP-60-05 polish-stopping readings are open for the owner or verifier before the first real arm.
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 10
-  percent: 30
+  completed_plans: 11
+  percent: 33
 ---
 
 # Project State
@@ -25,14 +25,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability planned; execute it next (/gsd-execute-phase 60)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-4 first)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — PLANNED, READY TO EXECUTE
-Plan: 0 of 23 (22 waves)
-Status: Ready to execute
-Last activity: 2026-10-18 — Phase 60 planned; the third plan check found 0 blockers, and its 3 warnings were fixed in a targeted pass
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-4 under watchdog chain phase-60-work-8ffbf6ffd8616f5c)
+Plan: 1 of 23 (22 waves)
+Status: Executing
+Last activity: 2026-10-19 — Wave 1 complete (60-01); waves 2-4 (plans 60-02, 60-03, 60-04, 60-23) run next, then the chain hands off
+
+### Decisions from 60-01 (2026-10-19)
+
+- The data-only fixture arm now runs end to end in `pinn/verification/learnability_{arms,data,losses,run}.py`: allowlisted read, Stage-0 cosine Adam, the frozen L-BFGS polish, both states scored, one exclusive record, plain-git weights. Commits `5e31f46a`, `a9cc3c14`, `015f03b3`. The Phase 60 static guard (`tests/phase60/test_static_guards.py`) finds modules by their "Phase 60" docstring marker, so later modules join the scan without a list edit.
+- Fixture runs record `cadence_ok: false` without enforcing it, because whole-step gaps cannot meet a 0.5-step limit below a 20-step budget. Real arms are refused in this plan.
+- OPEN for the owner or verifier before the first real arm (coverage item D8): two GAP-60-05 readings are not stated in the sources and change when the polish stops. A polish call's objective is taken at the iterate the call ends with (`LBFGS.step` returns the start-of-call objective), and polish wall time includes the per-call scoring time.
+- Wave 1 gate: 64 Phase 60 tests, 31 + 4 prohibition tests and 139 Phase 59 scorer-suite tests all pass, with no skips.
 
 ### Decisions from 59-10 (2026-10-16)
 

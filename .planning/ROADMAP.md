@@ -240,7 +240,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 60-01-PLAN.md — Wave 1: tracer, one data-only fixture arm end to end, and the Phase 60 static guard (INST-05)
+- [x] 60-01-PLAN.md — Wave 1: tracer, one data-only fixture arm end to end, and the Phase 60 static guard (INST-05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 0/23 | Planned | - |
+| 60. Single-System Learnability | 1/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
