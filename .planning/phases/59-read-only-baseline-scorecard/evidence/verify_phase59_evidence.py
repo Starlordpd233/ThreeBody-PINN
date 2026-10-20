@@ -15,8 +15,10 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
@@ -39,6 +41,17 @@ EVIDENCE_REL = PHASE_REL / "evidence"
 FREEZE_REL = EVIDENCE_REL / "scorecard-freeze.json"
 AREAS = ("audit", "census", "survey", "baselines", "diag07")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
+# Phase 60 D-09 and GAP-60-02: the one committed successor of the scorer's digest.
+# Only this path may differ from the digest a Phase 59 result recorded, and only by
+# the pair named in the record; the record is read at call time, tracked and clean.
+SCORER_REL = "pinn/verification/feasibility_scorer.py"
+SCORER_SUCCESSOR_REL = (
+    ".planning/phases/60-single-system-learnability/evidence/scorer-successor.json"
+)
+_SUCCESSOR_SCHEMA = "phase60-scorer-successor/v1"
+_SUCCESSOR_KEYS = frozenset(
+    {"schema", "path", "predecessor_sha256", "successor_sha256", "reason", "note"}
+)
 _DECISION_MODES = {
     f"{PHASE_REL.as_posix()}/59-CONTEXT.md": "unchanged",
     f"{PHASE_REL.as_posix()}/59-GAPS.md": "ancestor_state",
@@ -421,6 +434,35 @@ def _result_paths(area: str) -> list[Path]:
     return found
 
 
+def _scorer_successor() -> Optional[dict[str, str]]:
+    """The committed D-09 scorer successor, or None when no record exists.
+
+    A record that exists must be tracked, clean, a regular file inside the
+    repository, and exactly the six string fields of phase60-scorer-successor/v1
+    naming the scorer path and two lowercase SHA-256 digests. Anything else, such
+    as a list of paths or of successors, an extra key or a dirty file, fails
+    closed; the pair it names is checked by the caller.
+    """
+    path = repo_path(SCORER_SUCCESSOR_REL, what="scorer successor record")
+    if not path.is_file():
+        return None
+    if not is_tracked(SCORER_SUCCESSOR_REL) or not is_clean(SCORER_SUCCESSOR_REL):
+        fail("scorer successor record is not tracked and clean")
+    record = load_json(path, what="scorer successor record")
+    if not isinstance(record, Mapping) or set(record) != _SUCCESSOR_KEYS:
+        fail(f"scorer successor record does not have exactly the keys of {_SUCCESSOR_SCHEMA}")
+    if any(not isinstance(value, str) for value in record.values()):
+        fail("scorer successor record has a field that is not a string")
+    if record["schema"] != _SUCCESSOR_SCHEMA:
+        fail(f"scorer successor record schema is not {_SUCCESSOR_SCHEMA}")
+    if record["path"] != SCORER_REL:
+        fail(f"scorer successor record names {record['path']!r}, not {SCORER_REL}")
+    for key in ("predecessor_sha256", "successor_sha256"):
+        if HEX64.fullmatch(record[key]) is None:
+            fail(f"scorer successor record {key} is not 64 lowercase hex digits")
+    return {key: record[key] for key in ("path", "predecessor_sha256", "successor_sha256")}
+
+
 def _check_result(path: Path) -> dict[str, Any]:
     payload = load_json(path, what=path.name)
     if not isinstance(payload, Mapping):
@@ -436,8 +478,17 @@ def _check_result(path: Path) -> dict[str, Any]:
         fail(f"{path.name} producer_sha256 is missing")
     for relative, digest in producers.items():
         current = sha256_file(repo_path(str(relative), what=str(relative)))
-        if current != digest:
-            fail(f"{path.name} producer_sha256 does not match {relative}")
+        if current == digest:
+            continue
+        successor = _scorer_successor()
+        if (
+            successor is not None
+            and relative == successor["path"]
+            and digest == successor["predecessor_sha256"]
+            and current == successor["successor_sha256"]
+        ):
+            continue
+        fail(f"{path.name} producer_sha256 does not match {relative}")
     return dict(payload)
 
 
@@ -496,10 +547,33 @@ def _require_committed(area: str, manifest: Mapping[str, Any]) -> None:
         fail(f"manifest produced_at_head {produced} is not an ancestor of {last}")
 
 
-def _rederive(area: str) -> None:
-    if area not in REDERIVE:
-        return
-    tail, token = REDERIVE[area]
+def _substituted_baselines(root: Path, successor: Mapping[str, str]) -> None:
+    """Copy the committed baselines/ files under ``root`` with the scorer digest swapped.
+
+    GAP-60-02, option A. The baselines payloads embed the live scorer digest, so
+    re-rendering them can only match the committed bytes once the predecessor digest
+    is replaced by the successor digest. The swap is same-length and touches nothing
+    else; only the copy is written, never the committed files.
+    """
+    shutil.copytree(
+        REPO_ROOT / EVIDENCE_REL / "baselines",
+        root / "baselines",
+        ignore=shutil.ignore_patterns("logs", "__pycache__"),
+    )
+    old = successor["predecessor_sha256"].encode("ascii")
+    new = successor["successor_sha256"].encode("ascii")
+    for copied in sorted((root / "baselines").rglob("*")):
+        if not copied.is_file():
+            continue
+        raw = copied.read_bytes()
+        swapped = raw.replace(old, new)
+        if len(swapped) != len(raw):
+            fail(f"scorer digest substitution changed the length of {copied.name}")
+        if swapped != raw:
+            copied.write_bytes(swapped)
+
+
+def _run_rederive(area: str, tail: Sequence[str], token: str) -> None:
     proc = subprocess.run(
         [sys.executable, "-B", *list(tail)],
         cwd=str(REPO_ROOT),
@@ -512,6 +586,19 @@ def _rederive(area: str) -> None:
         fail(f"{area} re-derivation exited {proc.returncode}")
     if token not in proc.stdout:
         fail(f"{area} re-derivation did not print {token}")
+
+
+def _rederive(area: str) -> None:
+    if area not in REDERIVE:
+        return
+    tail, token = REDERIVE[area]
+    successor = _scorer_successor() if area == "baselines" else None
+    if successor is None:
+        _run_rederive(area, tail, token)
+        return
+    with tempfile.TemporaryDirectory(prefix="phase59-baselines-successor-") as temporary:
+        _substituted_baselines(Path(temporary), successor)
+        _run_rederive(area, [*tail, "--evidence-root", temporary], token)
 
 
 def _retention() -> dict[str, Mapping[str, Any]]:
