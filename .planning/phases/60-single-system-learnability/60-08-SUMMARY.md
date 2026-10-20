@@ -181,13 +181,13 @@ The tracer feedback gate ran after `37a76a90`: not auto mode (`_auto_chain_activ
 
 ## Files Created/Modified
 
-- `pinn/verification/learnability_run.py` - timing run, budget, reading plan, `drive_adam`, `write_owner_stop`, the schedule and clipper helpers, the shared Adam step, and the reworked `run_arm` (+569 lines, -48)
+- `pinn/verification/learnability_run.py` - timing run, budget, reading plan, `drive_adam`, `write_owner_stop`, the schedule and clipper helpers, the shared Adam step, and the reworked `run_arm` (+521 lines, -48)
 - `tests/phase60/test_schedule.py` - LR_k, cosine, second cosine, warmup, clipper, step guard, extension in a run, timing parity (27 tests)
 - `tests/phase60/test_budget_driver.py` - tracer, timing run, real-arm budget, reading steps, driver branches with fakes, divergence, owner stop, tier edges (51 tests)
 
 ## Decisions Made
 
-- **Fixture arms use the same driver.** Plan 60-01's fixture runs still end complete at 2, 3, 10 and 12 steps (measured before and after), so `test_run_short.py` is untouched. A fixture whose readings keep improving would extend like a real arm; at 20 steps the recorded readings do extend (`extend` to 40), which is why the new fixture tests read their expectations from the record and the frozen function instead of fixing an outcome.
+- **Fixture arms use the same driver.** Plan 60-01's fixture runs end complete at 2, 3, 10 and 12 steps (I applied the frozen `budget_outcome` to their recorded readings on the Plan 60-01 code before changing anything), and the unchanged `test_run_short.py` still passes, so it is untouched. A fixture whose readings keep improving would extend like a real arm; the 20-step fixture readings do give `extend` to 40, which is why the new fixture tests read their expectations from the record and the frozen function instead of fixing an outcome.
 - **`fixture_timing_steps` and its default.** The tracer needs a 50-step timing run on a fixture and the plan names no knob. I used `fixture_timing_steps`, the name Plan 60-11 already uses, defaulting to the frozen minimum. Both fixture knobs are refused for a real arm, and a real arm on a fixture context (or the reverse) is refused.
 - **Cadence is enforced for real arms only.** A budget below 20 steps cannot meet a 5% gap with whole steps, so `reading_steps` and `drive_adam` take `enforce_cadence` (True by default) and a fixture passes False. This continues Plan 60-01's recorded deviation.
 - **Clipped-step count.** A step counts as clipped when its pre-clip total norm is strictly above that step's clip value. The timing run's steps are not counted.
@@ -227,7 +227,7 @@ The tracer feedback gate ran after `37a76a90`: not auto mode (`_auto_chain_activ
 ## TDD Gate Compliance
 
 - **Task 1** is a tracer (not test-first). Its tests landed with its code in `37a76a90`.
-- **Task 2:** RED `9b18d8da`, GREEN `c1909e77`. RED run: `python -B -m unittest tests.phase60.test_schedule` exited 1, 27 tests, 27 failures counted by unittest (25 failing tests, one of them with two failing sub-tests, and the catalog characterization test passing by design). Every failure was an assertion that a named runner function is missing (`make_adam`, `make_clipper`, `make_scheduled_weights`, `start_second_cosine`). GREEN run: 27 tests, OK.
+- **Task 2:** RED `9b18d8da`, GREEN `c1909e77`. RED run: `python -B -m unittest tests.phase60.test_schedule` exited 1 with `Ran 27 tests`, `FAILED (failures=27)`: 26 tests failed (25 with one failure each and one with two failing sub-tests, which unittest counts as 27 failures) and the catalog characterization test passed by design (the RED commit message `9b18d8da` words this loosely as "27 failures in 27 tests"; these are the exact counts). Every failure was an assertion that a named runner function is missing (`make_adam`, `make_clipper`, `make_scheduled_weights`, `start_second_cosine`). GREEN run: 27 tests, OK.
 - **Task 3:** RED `ad15d86b`, GREEN `2c23f4b9`. RED run: 50 tests, 1 failure and 2 errors, for the three behaviors Task 3 adds (the stop record's `extended` field, the second-launch refusal, the non-finite-weights halt). The other 47 already passed because Tasks 1 and 2 delivered the driver and the step guard as the plan's action text assigns them, so they are characterization tests. Each of those was proven by mutation instead (below).
 - **Mutation evidence.** 28 single-line source mutations were applied one at a time, each followed by the targeted tests and a byte-for-byte restore checked by SHA-256: 10 for Task 2 (no lr reset, literal rate, no clip call, fixed clip stage, fixed warmup, no loss check, no second cosine, no unread-state score, clip at equality, timing ignoring the veto) and 18 for Tasks 1 and 3 (driver never extends, `on_extend` dropped, skip ignored, reading time left out of the Adam wall, reading plan not widened, `B` left out of the readings, owner-stop handler swallowing, wrong schema string, owner-stop not blocking, no weights guard, off-by-one `diverged_at_step`, `steps_taken` counting the skipped step, physics timed at 500, a literal cadence fraction, a literal in `drive_adam`, the arm reusing the timed network, a changed timing step count, a literal cap). All 28 were caught.
 - `gsd_run check tdd-red-evidence` parses Node TAP output and does not apply to Python `unittest` output, so the RED evidence is recorded here from the retained logs.
@@ -244,7 +244,7 @@ Logs are retained outside the repository under the session scratchpad `/private/
 | `python -B -m unittest tests.phase39.test_prohibitions` plus the four named `tests.phase38.test_prohibitions.ProhibitionTests` tests `-v` | Ran 35 tests in 1.677 s, OK, exit 0 (`final_cmd4.log`) |
 | `git diff --quiet f1dcabf5 HEAD -- <scorecard module and JSON, pinn/training, network, architecture spec, evaluator, trainer entry, arms, data and losses modules, test_run_short, both prohibition suites>` | exit 0 (unchanged) |
 
-The full discovery ran once, on the three changed files at the digests committed in `2c23f4b9` (verified by `sha256sum -c` after the run), and was not repeated. Commands 1, 2 and 4 each took under 25 s and were run once more on that tree. The only earlier runs of the discovery's contents were narrower targeted runs during development.
+The full discovery ran once, on the three changed files at the digests committed in `2c23f4b9` (verified by `sha256sum -c` after the run), and was not repeated; its elapsed time was 258 s, so it is the one expensive command and its complete output is retained. Commands 1, 2 and 4 each took under 25 s and were run on that same tree. Earlier runs during development were narrower targeted runs.
 
 ## Known Stubs
 
