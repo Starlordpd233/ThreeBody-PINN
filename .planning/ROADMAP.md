@@ -261,7 +261,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 60-06-PLAN.md — Wave 6: G2, the sweep pair, the confirmation, rescue and failed confirmation, the skip writer, the stop handoff, the D-11 rulings and the branch state (FEAS-03, FEAS-04, FEAS-09)
+- [x] 60-06-PLAN.md — Wave 6: G2, the sweep pair, the confirmation, rescue and failed confirmation, the skip writer, the stop handoff, the D-11 rulings and the branch state (FEAS-03, FEAS-04, FEAS-09)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 6/23 | In Progress | - |
+| 60. Single-System Learnability | 7/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |

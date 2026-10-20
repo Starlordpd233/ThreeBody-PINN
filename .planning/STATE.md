@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-5 complete 2026-10-19 (60-01 to 60-05 and 60-23 done, 6 of 23 plans); wave 6 (60-06) is next, still run by position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 5-7)"
-last_updated: "2026-10-20T03:35:21Z"
-last_activity: 2026-10-19
-last_activity_desc: Phase 60 wave 5 executed — 60-05 gave the learnability harness its physics terms by composing the trainer's own functions, so one harness step equals the trainer's memory-bounded step on every loss term and all 28 parameter gradients, and patching any of eight trainer functions moves the harness output (commits 4fc9f60f, 042ed09d, 1e9a948a). The wave gate passed (285 + 31 + 4 + 139 tests). Waves 1-5 are done. Two GAP-60-05 polish-stopping readings, the 60-23 contract details (coverage item D8) and the 60-05 monitor-log item (coverage item D7) stay open for the owner or verifier before the first real arm.
+stopped_at: "Phase 60 waves 1-6 complete 2026-10-20 (60-01 to 60-06 and 60-23 done, 7 of 23 plans); wave 7 (60-07) is next, still run by position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 5-7)"
+last_updated: "2026-10-20T08:00:38Z"
+last_activity: 2026-10-20
+last_activity_desc: Phase 60 wave 6 executed — 60-06 turned the decision that follows Rung 1 into pure, tested code: Gate G2 from the three committed Rung-1 results, the sweep pair and confirmation, the rescue and failed-confirmation outcomes, the skip records, the stop handoff to Phase 64, the strict owner-ruling loaders and the six-name branch-state query (commits f3780d6d, ba4df889, be5ed70f, ff042094). The wave gate passed (488 + 31 + 4 + 139 tests). Waves 1-6 are done. Open for the owner or verifier before the first real arm: the 60-06 readings (that plan's coverage item D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 16
-  percent: 48
+  completed_plans: 17
+  percent: 52
 ---
 
 # Project State
@@ -25,14 +25,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-5 complete; wave 6 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-6 complete; wave 7 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-5 complete; waves 6+ continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 2 running waves 5-7)
-Plan: 6 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-6 complete; wave 7 and later continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 2 running waves 5-7)
+Plan: 7 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-19 — Wave 5 complete (60-05); waves 1-5 are done and wave 6 (60-06) is next
+Last activity: 2026-10-20 — Wave 6 complete (60-06); waves 1-6 are done and wave 7 (60-07) is next
+
+### Decisions from 60-06 (2026-10-20)
+
+- `learnability_g2.py` and `learnability_ruling.py` hold the rules that decide what runs after Rung 1, as pure functions with small fail-closed writers. Gate G2 calls the frozen `g2_fires` and the sweep and verdict rules call the frozen scorecard functions; none is re-implemented. The ruling loaders accept a file only when it is tracked and clean, holds exactly one machine block and one opaque owner quote, and cites a SHA-256. No ruling text was written, paraphrased or fabricated; the test rulings are synthetic and live in temporary directories. The six-name branch query (`sweep`, `confirmation`, `owner-decision`, `stop`, `continue-gate`, `ladder`) answers TAKEN, NOT-TAKEN or PENDING from committed records and recomputes from the underlying arm records. Commits `f3780d6d`, `ba4df889`, `be5ed70f` (one per task) and `ff042094` (summary). Wave 6 gate: 488 Phase 60 tests, 31 + 4 prohibition tests and 139 Phase 59 scorer-suite tests pass, with the one by-design platform-probe skip.
+- 144 one-at-a-time mutants were run against the new modules; 141 are caught and 3 are equivalent (another check refuses the same input). Eleven test gaps the first batches exposed were closed before the commits. The work was interrupted once by a session limit and resumed from the saved state; the resume re-checked that all four owned files still matched the hashes in the retained verify log.
+- DEVIATION (not listed under the SUMMARY's "Deviations", which says none; it is recorded there under its decisions): the plan shows `repo_root` as a required keyword for `branch_state`, `write_skip_records` and `stop_handoff`. The code gives `repo_root` and `scorecard` a default everywhere (`repo_root` defaults to the git top level above the evidence root). Every call written to the plan's signature still works; the change only adds callable forms.
+- OPEN for the owner or verifier before the first real arm (60-06's coverage item D8, not to be confused with 60-23's D8): readings of the plan text that the sources leave open. Each fails closed and moves no locked value, but together they fix record and refusal shapes that Plans 60-09, 60-10, 60-13 and 60-14 to 60-22 read, so they need confirming or a gap entry first. They are: a go-to-verdict ruling that also names `approved_first_omega_0` is refused; a non-null protocol pre-answer is final and the GAP-60-09 file is then ignored; a confirmed rescue always goes to checkpoint 4 and so needs the committed run protocol; `branch_state` recomputes from arm records, so later fixtures need committed arm records; a missing deciding file exits 4, an uncommitted one is PENDING in a query and exit 2 in a writer; `owner-decision` and `confirmation` stay TAKEN once taken; skip and ladder interplay, including a skip with the wrong reason on a stop path halting; `stop-handoff` refuses once a ladder arm has started and requires `wall.hours`; the JSON field names and writer command-line tokens beyond those the plan names; `R_REF_APPROVED_REL` is exported but only the shape of `r_ref_artifact` is checked, since Plan 60-09 owns that file; and the ruling-parser fence and key-line rules. The full list is in `60-06-SUMMARY.md` under Decisions Made.
+- Three commits (one per task) replace the single commit the Task 3 action names, because `learnability_g2.py` now imports `learnability_ruling` and a split would leave a commit that cannot import.
 
 ### Decisions from 60-05 (2026-10-19)
 
