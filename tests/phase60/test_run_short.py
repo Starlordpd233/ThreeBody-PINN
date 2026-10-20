@@ -26,7 +26,7 @@ import torch
 from pinn.data.adapter import EvidenceRedactionError
 from pinn.evaluate import CheckpointOwnershipError, evaluate_run
 from pinn.training.config import OptConfig
-from pinn.verification import evidence_io, learnability_data, learnability_run
+from pinn.verification import evidence_io, learnability_arms, learnability_data, learnability_run
 from pinn.verification.feasibility_scorecard import better_state, load_scorecard, polish_should_stop
 from pinn.verification.learnability_arms import (
     FIXTURE_FORMULA_NOTE,
@@ -431,14 +431,15 @@ class FixtureGatingTests(_FixtureRunCase):
                     self._run_arm(dataclasses.replace(spec, loss_arm=loss_arm), context)
         self._assert_nothing_written()
 
-    def test_an_omega_override_is_not_routed_by_this_runner(self):
+    def test_a_spec_with_an_unauthorized_omega_is_refused_before_anything_is_written(self):
+        # Plan 60-23 routes the first-layer frequency, so this refusal now comes from
+        # the override check (INST-05(e)). Plan 60-01 had a runner that halted on any
+        # non-locked setting and a builder that built the locked network only.
         spec, context = _arm_and_context(self.fixture)
         for changes in ({"grid_omega": 60.0}, {"omega_provenance": "g2_sweep_override"}):
             with self.subTest(changes=changes):
-                with self.assertRaises(HarnessHalt):
+                with self.assertRaises(learnability_arms.OverrideRefused):
                     self._run_arm(dataclasses.replace(spec, **changes), context)
-        with self.assertRaises(HarnessHalt):
-            build_arm_network(60.0, dtype=torch.float64, device=torch.device("cpu"))
         self._assert_nothing_written()
 
     def test_the_runtime_is_a_named_pair_with_no_availability_probe(self):

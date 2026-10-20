@@ -1,22 +1,25 @@
-"""Phase 60 (INST-05): arm specification, evidence paths and the exclusive record writer.
+"""Phase 60 (INST-05): arm specification, evidence paths, the override refusal and the exclusive record writer.
 
 An arm is one training run of the learnability harness on one named system.
-This module holds plain data, the path rules for an arm's directories, and the
-one writer that creates a record file exactly once. It imports nothing heavier
-than ``pinn.verification.evidence_io``, so the gate, ruling and protocol
-modules can write evidence without importing the runner (no import cycle).
-Plan 60-23 completes the closed arm catalog, the sequences, the exit codes and
-the override refusal.
+This module holds plain data, the path rules for an arm's directories, the
+rule that decides whether an arm may run at a first-layer frequency other than
+the locked one (INST-05(e)), and the one writer that creates a record file
+exactly once. It imports nothing heavier than ``pinn.verification.evidence_io``
+and two constants, so the gate, ruling and protocol modules can write evidence
+without importing the runner (no import cycle).
 """
 
 from __future__ import annotations
 
 import hashlib
+import math
+import numbers
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from pinn.constants import SIREN_FIRST_OMEGA_0
 from pinn.data.types import RecordKey
 from pinn.verification import evidence_io
 
@@ -36,9 +39,12 @@ __all__ = [
     "TIMING_STEPS",
     "ArmSpec",
     "FirstResultExists",
+    "OverrideRefused",
     "arm_evidence_dir",
     "arm_run_dir",
+    "check_override",
     "fixture_arm",
+    "resolve_first_omega_0",
     "write_record_exclusive",
 ]
 
@@ -155,6 +161,115 @@ def arm_evidence_dir(arm_id, *, evidence_root):
 def arm_run_dir(arm_id, *, repo_root):
     """``<repo_root>/runs/phase60/<arm_id>`` (the ignored resume tree)."""
     return Path(repo_root) / RUNS_REL / _check_arm_id(arm_id)
+
+
+class OverrideRefused(RuntimeError):
+    """This arm may not run at that first-layer frequency (INST-05(e)). Nothing was built."""
+
+
+def _positive_real(value, what):
+    """A finite, positive real number that is not a bool; anything else is no setting at all."""
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise OverrideRefused(f"{what} must be a finite positive real number; got {value!r}")
+    number = float(value)
+    if not math.isfinite(number) or number <= 0.0:
+        raise OverrideRefused(f"{what} must be a finite positive real number; got {value!r}")
+    return number
+
+
+def _locked_value(scorecard):
+    """The frozen scorecard's locked setting, checked against the architecture constant."""
+    locked = float(scorecard.section("gate_g2")["locked_value"])
+    if locked != float(SIREN_FIRST_OMEGA_0):
+        raise OverrideRefused(
+            f"the scorecard's locked first_omega_0 {locked} is not the architecture "
+            f"constant {SIREN_FIRST_OMEGA_0}"
+        )
+    return locked
+
+
+def _approved_value(ruling):
+    """The setting a committed continue ruling names (D-11). No ruling, or any other answer, is none."""
+    if ruling is None:
+        raise OverrideRefused("owner_approved needs the committed D-11 ruling and none was supplied")
+    if getattr(ruling, "answer", None) != "continue":
+        raise OverrideRefused("the committed D-11 ruling does not answer continue")
+    return _positive_real(
+        getattr(ruling, "approved_first_omega_0", None), "the ruling's approved_first_omega_0"
+    )
+
+
+def resolve_first_omega_0(spec, *, scorecard, ruling=None):
+    """The first-layer frequency this arm asks for, by its provenance.
+
+    ``locked`` gives the scorecard's locked value, ``g2_sweep_override`` and
+    ``confirmation_override`` give the arm's ``grid_omega``, and
+    ``owner_approved`` gives the value the committed D-11 ruling names (it need
+    not be on the sweep grid, GAP-60-11). ``ruling`` is duck-typed: ``answer``,
+    ``approved_first_omega_0`` and ``sha256``. Whether the arm may use the value
+    is ``check_override``'s decision, not this function's.
+    """
+    locked = _locked_value(scorecard)
+    provenance = spec.omega_provenance
+    if provenance == "locked":
+        return locked
+    if provenance == "owner_approved":
+        return _approved_value(ruling)
+    if spec.grid_omega is None:
+        raise OverrideRefused(
+            f"arm {spec.arm_id} has provenance {provenance} but names no grid_omega"
+        )
+    return _positive_real(spec.grid_omega, "grid_omega")
+
+
+def check_override(spec, first_omega_0, *, scorecard, ruling=None):
+    """Refuse a first-layer frequency this arm is not entitled to (INST-05(e)). Returns ``None``.
+
+    Only literal values are compared; there is no range and no tolerance.
+
+    * ``locked`` provenance passes only at the locked value, and carries no
+      ``grid_omega``.
+    * ``owner_approved`` passes only at the exact value the committed D-11
+      ruling names, for any arm and on or off the grid (GAP-60-11); without a
+      ruling that answers continue it never passes.
+    * ``g2_sweep_override`` and ``confirmation_override`` pass only on a
+      data-only arm, only when ``grid_omega`` equals the value, and only for one
+      of the four scorecard grid values. An arm with a physics term never passes.
+
+    Callers run this before reading any data or building any network.
+    """
+    locked = _locked_value(scorecard)
+    value = _positive_real(first_omega_0, "first_omega_0")
+    provenance = spec.omega_provenance
+    if provenance == "locked":
+        if spec.grid_omega is not None:
+            raise OverrideRefused(
+                f"arm {spec.arm_id} runs at the locked setting and so carries no grid_omega"
+            )
+        if value != locked:
+            raise OverrideRefused(
+                f"arm {spec.arm_id} has the locked provenance and may run only at {locked}; "
+                f"got {value}"
+            )
+        return None
+    if provenance == "owner_approved":
+        approved = _approved_value(ruling)
+        if value != approved:
+            raise OverrideRefused(
+                f"arm {spec.arm_id} may run only at the {approved} the committed D-11 ruling "
+                f"names; got {value}"
+            )
+        return None
+    if spec.loss_arm != "data_only":
+        raise OverrideRefused(
+            f"arm {spec.arm_id} has a physics term, so a {provenance} setting is refused"
+        )
+    grid = tuple(float(item) for item in scorecard.section("gate_g2")["grid"])
+    if spec.grid_omega is None or float(spec.grid_omega) != value or value not in grid:
+        raise OverrideRefused(
+            f"arm {spec.arm_id} may run only at its own grid_omega, one of {grid}; got {value}"
+        )
+    return None
 
 
 def write_record_exclusive(path, payload, *, data_root=None):

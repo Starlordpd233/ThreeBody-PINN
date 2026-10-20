@@ -37,6 +37,7 @@ from pinn.verification.feasibility_scorecard import (
     polish_should_stop,
     scoring_cadence_ok,
 )
+from pinn.verification.diagnostic_architecture import build_network_with_first_omega
 from pinn.verification.feasibility_scorer import score_network
 from pinn.verification.learnability_arms import (
     FIXTURE_FORMULA_NOTE,
@@ -44,6 +45,8 @@ from pinn.verification.learnability_arms import (
     SEED,
     FirstResultExists,
     arm_evidence_dir,
+    check_override,
+    resolve_first_omega_0,
     write_record_exclusive,
 )
 from pinn.verification.learnability_data import HarnessHalt, load_arm_data
@@ -75,13 +78,16 @@ def _resolve_runtime(runtime):
 
 
 def build_arm_network(first_omega_0, *, dtype, device):
-    """The production network, seed 42. Only the locked first-layer frequency is built here."""
-    if float(first_omega_0) != float(SIREN_FIRST_OMEGA_0):
-        raise HarnessHalt(
-            f"first_omega_0 {first_omega_0!r} is not the locked {SIREN_FIRST_OMEGA_0}; "
-            "this builder constructs only the locked network"
-        )
-    return build_network(ArchitectureSpec(seed=SEED), dtype=dtype, device=device)
+    """The production network, seed 42, at the requested first-layer frequency.
+
+    The locked value is built by the production ``build_network``. Any other value
+    comes from ``build_network_with_first_omega``, which leaves ``ArchitectureSpec``
+    omega-locked. Whether an arm may use a non-locked value is decided earlier, by
+    ``check_override`` in ``run_arm``; this function only builds.
+    """
+    if first_omega_0 == SIREN_FIRST_OMEGA_0:
+        return build_network(ArchitectureSpec(seed=SEED), dtype=dtype, device=device)
+    return build_network_with_first_omega(first_omega_0, seed=SEED, dtype=dtype, device=device)
 
 
 def weights_digest(state_dict):
@@ -247,14 +253,24 @@ def run_arm(
     runtime,
     evidence_root,
     fixture_budget_steps=None,
+    ruling=None,
     clock=time.monotonic,
 ):
     """Run one data-only arm end to end and return the record it wrote.
 
     ``runtime`` is a ``(dtype name, device name)`` pair. A ``fixture_budget_steps``
     value is legal only when both the context and the arm are fixtures; the
-    frozen budget rule for real arms is added by the budget driver.
+    frozen budget rule for real arms is added by the budget driver. ``ruling`` is
+    the committed D-11 ruling an ``owner_approved`` arm needs (duck-typed: ``answer``
+    and ``approved_first_omega_0``); without one that arm is refused.
+
+    The first-layer frequency is resolved and authorized before anything else
+    (INST-05(e)): an arm that is not entitled to its setting raises
+    ``OverrideRefused`` before any data is read, any network is built or any file
+    is written.
     """
+    first_omega_0 = resolve_first_omega_0(spec, scorecard=scorecard, ruling=ruling)
+    check_override(spec, first_omega_0, scorecard=scorecard, ruling=ruling)
     dtype, device = _resolve_runtime(runtime)
     fixture = spec.run_kind == "fixture" and context.run_kind == "fixture"
     if fixture_budget_steps is not None and not fixture:
@@ -268,8 +284,6 @@ def run_arm(
         raise HarnessHalt(
             f"this runner trains data-only arms; loss_arm {spec.loss_arm!r} has no physics step here"
         )
-    if spec.grid_omega is not None or spec.omega_provenance != "locked":
-        raise HarnessHalt("this runner builds only the locked first_omega_0; no override is routed")
     arm_dir = arm_evidence_dir(spec.arm_id, evidence_root=evidence_root)
     record_path = arm_dir / "record.json"
     if record_path.exists():
@@ -279,7 +293,6 @@ def run_arm(
         )
     total_started = clock()
     torch.manual_seed(SEED)
-    first_omega_0 = float(SIREN_FIRST_OMEGA_0)
     model = build_arm_network(first_omega_0, dtype=dtype, device=device)
     data = load_arm_data(spec, context, scorecard=scorecard, dtype=dtype, device=device)
 
@@ -367,6 +380,7 @@ def run_arm(
         "records": data.records,
         "first_omega_0": first_omega_0,
         "omega_provenance": spec.omega_provenance,
+        "grid_omega": spec.grid_omega,
         "seed": SEED,
         "runtime": {"dtype": runtime[0], "device": runtime[1]},
         "normalizer": {
