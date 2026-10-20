@@ -126,6 +126,20 @@ def _template_home():
     return Path(_TEMPLATE_HOME[0].name).resolve()
 
 
+def init_quiet_repo(root):
+    """``init_repo``, then switch off git's detached post-commit maintenance.
+
+    Every ``git commit`` starts ``git maintenance run --auto --detach`` in the background,
+    and that can run ``git repack -d``, which deletes loose objects while a test is still
+    reading or copying the repository. ``Tree.scenario`` copies cached template
+    repositories with ``shutil.copytree``, so a repack in mid-copy fails with ENOENT
+    under ``.git/objects``.
+    """
+    init_repo(root)
+    for key, value in (("maintenance.auto", "false"), ("gc.auto", "0")):
+        subprocess.run(["git", "config", key, value], cwd=root, check=True, capture_output=True)
+
+
 class Tree:
     """A temporary git repository holding a synthetic Phase 60 evidence tree."""
 
@@ -135,7 +149,7 @@ class Tree:
             tmp = tempfile.TemporaryDirectory(prefix="phase60-g2-")
             test.addCleanup(tmp.cleanup)
             root = Path(tmp.name).resolve()
-            init_repo(root)
+            init_quiet_repo(root)
             (root / "README.md").write_text("synthetic repository for the G2 tests\n")
             commit_all(root, "init")
         self.root = Path(root)
@@ -153,7 +167,7 @@ class Tree:
         if template is None:
             template = _template_home() / f"scenario-{len(_TEMPLATES)}"
             template.mkdir()
-            init_repo(template)
+            init_quiet_repo(template)
             (template / "README.md").write_text("synthetic repository for the G2 tests\n")
             commit_all(template, "init")
             build(cls(test, root=template))
@@ -369,6 +383,16 @@ def rescued_tree(test, tiers, grid, confirmation_tier, pre_answer=None, **hours)
     key = ("rescued", tuple(tiers), tuple(grid.items()), confirmation_tier, pre_answer,
            tuple(sorted(hours.items())))
     return Tree.scenario(test, key, build)
+
+
+class FixtureRepoTests(unittest.TestCase):
+    def test_fixture_repositories_run_no_background_git_maintenance(self):
+        scenario = Tree.scenario(self, "fixture-repo-check", lambda tree: None)
+        for tree in (Tree(self), scenario):
+            for key, value in (("maintenance.auto", "false"), ("gc.auto", "0")):
+                got = subprocess.run(["git", "config", "--get", key], cwd=tree.root,
+                                     capture_output=True, text=True, check=True).stdout.strip()
+                self.assertEqual(got, value, key)
 
 
 # ---------------------------------------------------------------------------
