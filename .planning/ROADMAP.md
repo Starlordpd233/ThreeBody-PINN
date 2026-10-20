@@ -281,7 +281,7 @@ Plans:
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 60-11-PLAN.md — Wave 11: physics arms in the runner, the CPU float64 cross-check, counting, and validated records with every result field (INST-05, FEAS-03, FEAS-04, FEAS-09)
+- [x] 60-11-PLAN.md — Wave 11: physics arms in the runner, the CPU float64 cross-check, counting, and validated records with every result field (INST-05, FEAS-03, FEAS-04, FEAS-09)
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 11/23 | In Progress | - |
+| 60. Single-System Learnability | 12/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |

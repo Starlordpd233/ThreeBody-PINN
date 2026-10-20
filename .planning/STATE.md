@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-10 complete 2026-10-20 (60-01 to 60-10 and 60-23 done, 11 of 23 plans); wave 11 (60-11) is next, run by position 4 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 11-12)"
-last_updated: "2026-10-20T15:52:19Z"
+stopped_at: "Phase 60 waves 1-11 complete 2026-10-20 (60-01 to 60-11 and 60-23 done, 12 of 23 plans); wave 12 (60-12) is next, run by position 4 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 11-12)"
+last_updated: "2026-10-20T17:26:00Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 60 wave 10 executed — 60-10 wrote the pre-registration machinery, not the pre-registration itself: a run-protocol builder that fingerprints (SHA-256) the 33 modules and artifacts a real arm runs or reads and refuses any drift, a preflight writer that checks every assigned data record before the first arm, and an admission check every real arm must pass (right branch of the committed G2 records, no earlier result, scorer and scorecard as registered) (commits 108ca2e8, 304742bf, 763fc8c8, 2d78ab9d, af81ac24, 51cfb094, 83974900). No real protocol, preflight or arm record was written, and no real-repository write, preflight or admit command was run. The wave gate passed (263 focused tests re-run by the orchestrator; the executor's full 842-test Phase 60 discovery at the final code reused). Waves 1-10 are done. Open for the owner or verifier before the first real arm: the eight 60-10 readings (coverage item D8), the 60-09 readings (D7), the 60-08 readings (D10 and D11), the 60-07 readings (D9), the 60-06 readings (D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
+last_activity_desc: Phase 60 wave 11 executed — 60-11 completed the runner: both physics loss arms (Rung 2a, Rung 2b, probe Rung-2b) train on the trainer's memory-bounded step with the PHYS-05 warmup and a fresh 4,096-row collocation draw each Adam step, one frozen monitor set is logged at every budget reading, and the handoff (rows, pass-1 causal weights, bin counts, loss weights) is frozen for the polish; both scored states are re-scored on the CPU in float64 with a tier or counts difference writing owner-stop.json and raising CrossCheckDisagreement; counted arms compare against the committed two-Kepler rows while probes never call counts; and build_real_record, validate_record (54 dotted fields) and REQUIRED_REAL_FIELDS gate the real-arm write (commit b5f47fac, summary a60fff5d). Verification: 21 + 41 + 911 + 35 tests pass (one by-design platform-probe skip); the full tests/phase60 discovery was run once at the final code. Waves 1-11 are done. Open for the owner or verifier before the first real arm: the 60-11 readings (coverage items D9 and D10) beside the earlier ones from 60-10 (D8), 60-09 (D7), 60-08 (D10 and D11), 60-07 (D9), 60-06 (D8), 60-05 (D7), the two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 21
-  percent: 64
+  completed_plans: 22
+  percent: 67
 ---
 
 # Project State
@@ -25,14 +25,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-10 complete; wave 11 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-11 complete; wave 12 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-10 complete; wave 11 continues under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 4 running waves 11-12)
-Plan: 11 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-11 complete; wave 12 continues under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 4 running waves 11-12)
+Plan: 12 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-20 — Wave 10 complete (60-10); waves 1-10 are done and wave 11 (60-11) is next
+Last activity: 2026-10-20 — Wave 11 complete (60-11); waves 1-11 are done and wave 12 (60-12) is next
+
+### Decisions from 60-11 (2026-10-20)
+
+- `learnability_run.py` (SPEC Requirements 3-5 and 7, D-01, D-05, D-06, D-08, D-10, GAP-60-05, GAP-60-07, GAP-60-10, GAP-60-12) now runs arms with a physics term. `run_arm` builds the arm's own `np.random.default_rng(SEED)` after the timing run (the timing run keeps its own throwaway generator), draws the frozen monitor set before step 1, then draws a fresh 16-bin, 4,096-row stratified collocation set every Adam step and calls the trainer's memory-bounded `physics_adam_step` with `ScheduledWeights.current(step)` and the PHYS-05 warmup of the arm's own budget. `physics_ic` passes `data_points=None`, so Rung 2a never evaluates a data term. `frozen_monitor_log` runs only at the budget readings (D-06) and the runner never names `front_idx`. At the handoff `scheduled.freeze()` / `current(0)`, one row set, one pass-1 evaluation and the frozen `LossWeights` feed `physics_polish_objective` for the whole polish; a recorder test proves the polish redraws nothing. The record gains `r_ref` (with the ratified "Stage-0 reference in force, applied unchanged" note), `scorer_context_r_ref`, `s_h` for the probe Rung-2b arms, `schedule.warmup_steps`, `monitor_log`, `handoff` and the D-05 readout note. Commit `b5f47fac`; summary `a60fff5d`.
+- Both scored states are re-scored on the CPU in float64 (GAP-60-07): the saved weights move to the CPU and then widen, the same float32-rounded IC13 is fed back, and `score_network` runs at float64 on the CPU. A tier or counts difference writes `owner-stop.json` (stage `cross_check`, both scores and both counts) and raises `CrossCheckDisagreement`; a spy shows `better_state` is never called, so the better of the two scores is never taken. Counted arms call the frozen `counts` against the committed Phase 59 two-Kepler rows (recorded with the file's SHA-256); a missing formula goes through the one module-level owner-routed clause, which writes `owner-stop.json` (stage `counts`) and re-raises the same exception object; a probe calls `counts` zero times and records `not applicable: no hierarchical split`.
+- The real-arm record is now a contract: `REQUIRED_REAL_FIELDS` lists 54 dotted paths and each one is proven by removal; `validate_record` also checks the literals (seed 42, MPS float32, schema, diagnostic, `run_kind`, the weights file names, zero attestation counters, tier 0..3, both horizons, non-finite values only as the JSON sentinels) and the continue-arm ruling block; `build_real_record` fills versions, code, `config_sha256`, the four protocol digests, the attestation, the normalizer digest and `wall.hours` from the admission, the protocol and the context. `run_arm` writes nothing it has not validated (SPEC Requirements 4 and 5, D-10).
+- Two existing tests were rewritten in place because this plan supersedes their premises: `test_run_short`'s "only the data-only loss arm is trained here" now pins the new `fixture_r_ref` gate, and `test_budget_driver`'s "only handler" test now pins that every owner-routed handler ends in a bare raise. A fixture arm with a physics term must pass `fixture_r_ref` explicitly (the plan says fixtures pass r_ref but names no keyword); a real arm without an admission keeps the Plan 60-08 record shape, while the admitted path (the one Plan 60-12 launches) is the strict, validated one.
+- Wave 11 gate: 21 tests (the tracer gate, re-run on the committed tree), 41 tests (cross-check and static guards), 911 tests (the full Phase 60 discovery, run once at the final code, one by-design platform-probe skip) and 35 prohibition tests all pass. No real arm record, no `runs/phase60` directory, no protocol and no preflight was written; the governed `r_ref_stage0.json` (`c3a14924...`) and the frozen scorecard (`f4b17688...`) are unchanged; the evidence directory still holds exactly `launch_phase60_arm.py` and `scorer-successor.json`.
+- OPEN for the owner or verifier (60-11 coverage items D9 and D10): the unadmitted real-arm record shape, the `fixture_r_ref` keyword, the probe formula keyed on the rung, the inert `epsilon_H` where the stage's energy weight is zero, the five `counts` calls for a counted two-state arm, `module_sha256` as the protocol's pin mapping, and the two rewritten test files.
 
 ### Decisions from 60-10 (2026-10-20)
 
