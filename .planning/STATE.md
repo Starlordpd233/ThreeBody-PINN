@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 wave 3 complete 2026-10-19 (60-01 to 60-04 done, 4 of 23 plans); wave 4 next (60-23), run by position 1 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
+stopped_at: "Phase 60 waves 1-4 complete 2026-10-19 (60-01 to 60-04 and 60-23 done, 5 of 23 plans); wave 5 (60-05) is next, handed to position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
 last_updated: "2026-10-19T04:00:45Z"
 last_activity: 2026-10-19
-last_activity_desc: Phase 60 wave 3 executed — 60-04 taught the Phase 59 verifier to accept exactly the one scorer successor digest and re-derived the baselines against a digest-substituted copy; Phase 59 final passed at HEAD 4df5d4a8 (PHASE59-EVIDENCE-OK, 604 s, EXIT=0). Commits ec8bd4e8, 4df5d4a8, 8d422955. The wave gate passed (138 + 31 + 4 + 139 tests). Two GAP-60-05 polish-stopping readings stay open for the owner or verifier before the first real arm.
+last_activity_desc: Phase 60 wave 4 executed — 60-23 closed the refusal contracts that need no physics: the override record end to end, the closed 42-arm catalog, test-split refusal and the assigned-record preflight (commits b913e5a0, e15c32eb, 64c843eb, c0810079, 2e7c34d6). The wave gate passed (221 + 31 + 4 + 139 tests). Waves 1-4 are done. Two GAP-60-05 polish-stopping readings and the 60-23 contract details (coverage item D8) stay open for the owner or verifier before the first real arm.
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 14
-  percent: 42
+  completed_plans: 15
+  percent: 45
 ---
 
 # Project State
@@ -25,14 +25,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-4 first)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-4 complete; wave 5 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-4 under watchdog chain phase-60-work-8ffbf6ffd8616f5c)
-Plan: 4 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-4 complete; waves 5+ run by positions 2-4 of watchdog chain phase-60-work-8ffbf6ffd8616f5c)
+Plan: 5 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-19 — Wave 3 complete (60-04); wave 4 (plan 60-23) runs next, then the chain hands off
+Last activity: 2026-10-19 — Wave 4 complete (60-23); waves 1-4 are done and the chain hands off to position 2 (waves 5-7)
+
+### Decisions from 60-23 (2026-10-19)
+
+- `run_arm` resolves and checks the `first_omega_0` setting first, before runtime resolution, fixture gating, the first-result test, any data read and any network build. `resolve_first_omega_0` and `check_override` compare literal values only; an unauthorized setting raises `OverrideRefused`; a non-locked value routes to `build_network_with_first_omega`. A fixture arm at `first_omega_0 = 60` records `first_omega_0` 60, `grid_omega` 60 and `g2_sweep_override`, and the evaluator and the production checkpoint store both refuse its weights. Commits `b913e5a0`, `e15c32eb`, `64c843eb`, `c0810079`, `2e7c34d6`.
+- The closed 42-arm catalog, `SEQUENCES`, `catalog()` and the `EXIT_*` codes are final. A test-split key in any role is refused before any file is opened (zero-open spies and a subprocess attestation). `preflight_records` classifies the assigned records. Wave 4 gate: 221 Phase 60 tests, 31 + 4 prohibition tests and 139 Phase 59 scorer-suite tests pass.
+- DEVIATION 1: the executor replaced one Plan 60-01 test in `tests/phase60/test_run_short.py` (not in the plan's `files_modified`) because it pinned the locked-only behavior this plan reverses; the Task 1 commit therefore lists that file too.
+- DEVIATION 2: the plan's preflight handler cannot label an empty file, because the production admission gate (`pinn/data/admission.py`) raises `IndexError` on a file with no complete snapshot block. The preflight classifies exactly that error as `empty`. The gate bug is pre-existing and was not fixed (deferred).
+- OPEN for the owner or verifier before the first real arm (coverage item D8): contract details the plan leaves implicit were settled conservatively. A locked-provenance arm that carries a `grid_omega` is refused; the catalog's rung and path labels are inferred from arm names; every arm is scored on gold with the base record beside it; `OverrideRefused` and `UnknownArm` are not `HarnessHalt`, so launchers must map them to `EXIT_REFUSED`; `inner_pair` is in ok preflight entries; `run_arm` gained `ruling=None`. They move no locked value but set the record and refusal shapes that Plans 60-06 to 60-13 read.
 
 ### Decisions from 60-04 (2026-10-19)
 

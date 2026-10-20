@@ -253,7 +253,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 60-23-PLAN.md — Wave 4: the override record end to end, the closed arm catalog and override refusal, test-split refusal and the record preflight (INST-05)
+- [x] 60-23-PLAN.md — Wave 4: the override record end to end, the closed arm catalog and override refusal, test-split refusal and the record preflight (INST-05)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 4/23 | In Progress | - |
+| 60. Single-System Learnability | 5/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
