@@ -732,6 +732,9 @@ class OwnerStopTests(_FixtureCase):
         # Plan 60-11 adds the second owner-routed site (a counted system whose formula row
         # is missing, SPEC Requirement 7). Plan 60-08's module had one; the rule it pins is
         # that every one of them writes its stop and then re-raises the same exception.
+        # Plan 60-12 adds the command line's single top-level mapper, which is the one
+        # handler that must NOT re-raise: it prints OWNER-ROUTED and exits 3, and it writes
+        # no stop record of its own.
         source = inspect.getsource(learnability_run)
         tree = ast.parse(source)
         found = []
@@ -741,10 +744,12 @@ class OwnerStopTests(_FixtureCase):
             for node in ast.walk(function):
                 if isinstance(node, ast.ExceptHandler) and "OwnerRouted" in ast.dump(node.type or ast.Constant(0)):
                     found.append((function.name, node.body[-1]))
-        self.assertEqual(sorted(name for name, _ in found), ["_official_counts", "run_arm"])
-        for _name, last in found:
+        re_raisers = [(name, last) for name, last in found if name != "main"]
+        self.assertEqual(sorted(name for name, _ in re_raisers), ["_official_counts", "run_arm"])
+        for _name, last in re_raisers:
             self.assertIsInstance(last, ast.Raise)
             self.assertIsNone(last.exc)
+        self.assertEqual(sorted(name for name, _ in found), ["_official_counts", "main", "run_arm"])
 
 
 class DivergenceRunTests(_FixtureCase):

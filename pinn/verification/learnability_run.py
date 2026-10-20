@@ -51,15 +51,20 @@ import os as _os
 
 _PRE_IMPORT_FALLBACK = _os.environ.get("PYTORCH_ENABLE_MPS_FALLBACK") or None
 
+import copy
 import hashlib
 import json
 import math
+import os
 import platform
+import signal
 import subprocess
+import sys
 import time
 from collections import OrderedDict
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -78,14 +83,21 @@ from pinn.network import build_network
 from pinn.training.atomic_io import atomic_write_torch
 from pinn.training.config import R_REF_ARTIFACT_RELATIVE_PATH, OptConfig
 from pinn.training.controllers import _tensor_hash
+from pinn.training.determinism import capture_rng_state, restore_rng_state
 from pinn.training.grad_clip import DEFAULT_C_STAGE_TABLE, DEFAULT_MEDIAN_FLOOR, GradClipper
-from pinn.training.scheduled_weights import ScheduledWeights
+from pinn.training.scheduled_weights import LossWeights, ScheduledWeights
 from pinn.verification import evidence_io
+from pinn.verification.learnability_protocol import (
+    AdmissionRefused,
+    admit_arm,
+    load_protocol,
+)
 from pinn.verification.feasibility_scorecard import (
     OwnerRouted,
     better_state,
     budget_outcome,
     counts,
+    load_scorecard,
     polish_should_stop,
     scoring_cadence_ok,
     steps_budget,
@@ -93,20 +105,31 @@ from pinn.verification.feasibility_scorecard import (
 from pinn.verification.diagnostic_architecture import build_network_with_first_omega
 from pinn.verification.feasibility_scorer import score_network
 from pinn.verification.learnability_arms import (
+    EVIDENCE_REL,
+    EXIT_OK,
+    EXIT_OWNER,
+    EXIT_REFUSED,
+    EXIT_SIGHUP,
+    EXIT_SIGINT,
+    EXIT_SIGTERM,
     FIXTURE_FORMULA_NOTE,
     FORMULA_NOT_APPLICABLE,
     LOSS_ARMS,
     REAL_RUNTIME,
     RUN_SCHEMA,
+    RUNS_REL,
     SEED,
     TIMING_STEPS,
     FirstResultExists,
+    UnknownArm,
     arm_evidence_dir,
+    arm_run_dir,
+    arm_spec,
     check_override,
     resolve_first_omega_0,
     write_record_exclusive,
 )
-from pinn.verification.learnability_data import HarnessHalt, load_arm_data
+from pinn.verification.learnability_data import HarnessHalt, load_arm_data, open_real_context
 from pinn.verification.learnability_losses import (
     data_only_loss,
     data_polish_objective,
@@ -120,25 +143,38 @@ from pinn.verification.learnability_losses import (
 )
 
 __all__ = [
+    "CLAIM_FILE",
+    "ClaimExists",
     "CrossCheckDisagreement",
+    "GovernedStop",
     "OWNER_STOP_FILE",
     "OWNER_STOP_SCHEMA",
+    "PROCESS_FILE",
     "REQUIRED_REAL_FIELDS",
+    "RESUME_FILE",
+    "RESUME_SCHEMA",
     "R_REF_NOTE",
+    "ResumeRefused",
     "budget_from_timing",
     "build_arm_network",
     "build_real_record",
     "cross_check_state",
     "drive_adam",
     "formula_reference",
+    "install_stop_handlers",
+    "load_resume_checkpoint",
+    "main",
     "make_adam",
     "make_clipper",
     "make_cosine",
     "make_scheduled_weights",
     "reading_steps",
+    "request_stop",
     "run_arm",
+    "save_resume_checkpoint",
     "save_weights",
     "start_second_cosine",
+    "stop_requested",
     "timing_run",
     "timing_steps_for",
     "validate_record",
@@ -169,6 +205,106 @@ TWO_KEPLER_REL = Path(
 _SLOTS = 256
 _HEX64 = frozenset("0123456789abcdef")
 _MISSING = object()
+
+# The ignored resume tree of one arm (SPEC Requirement 8, SCOPE-44).
+RESUME_SCHEMA = "phase60-resume/v1"
+RESUME_FILE = "resume.pt"
+CLAIM_SCHEMA = "phase60-arm-claim/v1"
+CLAIM_FILE = "claim.json"
+STOP_SCHEMA = "phase60-arm-stop/v1"
+STOP_PREFIX = "stop-"
+PROCESS_FILE = "process.json"
+_RESUME_PHASES = ("timing", "adam", "polish")
+# SIGHUP, SIGINT and SIGTERM: the three signals a checkpointed stop may resume from.
+_GOVERNED_CODES = {
+    signal.SIGHUP: EXIT_SIGHUP,
+    signal.SIGINT: EXIT_SIGINT,
+    signal.SIGTERM: EXIT_SIGTERM,
+}
+# Module state a signal handler writes and the runner reads at its safe boundaries.
+_STOP = {"requested": False, "signum": None, "exit_code": None}
+
+
+class GovernedStop(BaseException):
+    """A governed signal asked the arm to stop and its checkpoint is already on disk.
+
+    A ``BaseException`` for the same reason the trainer's ``_StopRequested`` is: no
+    ordinary ``except Exception`` inside a run may swallow a stop.
+    """
+
+    def __init__(self, exit_code, *, signal_name=None, phase=None, step=None):
+        super().__init__(f"governed stop after {signal_name or 'a signal'}: exit {exit_code}")
+        self.exit_code = int(exit_code)
+        self.signal_name = signal_name
+        self.phase = phase
+        self.step = step
+
+
+class _StopRequested(BaseException):
+    """Abort an in-progress L-BFGS outer call at its next closure evaluation."""
+
+
+class ResumeRefused(RuntimeError):
+    """The run tree cannot be resumed exactly. The arm goes to the owner."""
+
+
+class ClaimExists(RuntimeError):
+    """The arm's run tree is already claimed by an earlier invocation."""
+
+
+def request_stop(signum):
+    """Record a governed stop request for SIGHUP, SIGINT or SIGTERM. The first one wins.
+
+    A signal handler may only set this flag: ``run_arm`` checkpoints at its next safe
+    boundary (an Adam step boundary, a reading, or between polish outer calls) and then
+    raises ``GovernedStop``. Returns the exit code (129, 130 or 143).
+    """
+    code = _GOVERNED_CODES.get(signum if isinstance(signum, int) else None)
+    if code is None:
+        raise ValueError(f"{signum!r} is not one of the governed stop signals")
+    if not _STOP["requested"]:
+        _STOP.update(requested=True, signum=int(signum), exit_code=code)
+    return int(_STOP["exit_code"])
+
+
+def stop_requested():
+    """True when a governed stop has been requested and not yet acted on."""
+    return bool(_STOP["requested"])
+
+
+def _reset_stop():
+    """Forget a stop request. Tests and a fresh command-line invocation start clean."""
+    _STOP.update(requested=False, signum=None, exit_code=None)
+
+
+def _signal_name(signum):
+    try:
+        return signal.Signals(int(signum)).name
+    except (TypeError, ValueError):
+        return "UNKNOWN"
+
+
+def install_stop_handlers():
+    """Install SIGHUP, SIGINT and SIGTERM handlers that only request a governed stop.
+
+    ``pinn/training/signals.py`` has no SIGHUP handler and escalates a second SIGINT, so
+    the arm carries its own three handlers here; that module is not edited. Returns a
+    callable that restores the previous handlers.
+    """
+    previous = {number: signal.getsignal(number) for number in _GOVERNED_CODES}
+
+    def handler(signum, _frame):
+        request_stop(signum)
+
+    for number in _GOVERNED_CODES:
+        signal.signal(number, handler)
+
+    def restore():
+        for number, old in previous.items():
+            if old is not None:
+                signal.signal(number, old)
+
+    return restore
 
 
 def _resolve_runtime(runtime):
@@ -468,6 +604,7 @@ def timing_run(
     data=None,
     physics=None,
     clock=time.monotonic,
+    stop_fn=None,
 ):
     """GAP-60-04: time ``steps`` Adam steps of the exact arm configuration, then discard everything.
 
@@ -478,7 +615,9 @@ def timing_run(
     dropped on return and the arm starts from its own seed-42 initialization. ``data`` may
     be passed to reuse the arm's already-loaded record. An arm with a physics term passes a
     ``_PhysicsInputs`` whose ``rng`` is the timing run's own throwaway generator and whose
-    ``weights`` schedule covers ``steps``. Returns ``{steps, wall_seconds, seconds_per_step}``.
+    ``weights`` schedule covers ``steps``. Returns ``{steps, wall_seconds, seconds_per_step}``,
+    or ``None`` when ``stop_fn`` asked for a governed stop at a step boundary: an
+    interrupted timing run has no budget and is repeated from its start on resume.
     """
     dtype, device = _resolve_runtime(runtime)
     minimum = _timing_minimum(scorecard)
@@ -496,12 +635,18 @@ def timing_run(
     )
     _synchronize(device)
     started = clock()
+    stopped = False
     for index in range(1, steps + 1):
+        if stop_fn is not None and stop_fn():
+            stopped = True
+            break
         stepper.step(index)
     _synchronize(device)
     wall = clock() - started
     del stepper, clipper, scheduler, optimizer, model
     release_chunk_memory(device)
+    if stopped:
+        return None
     return {"steps": steps, "wall_seconds": wall, "seconds_per_step": wall / steps}
 
 
@@ -552,8 +697,10 @@ def drive_adam(
     on_extend,
     clock,
     enforce_cadence=True,
+    stop_fn=None,
+    resume_state=None,
 ):
-    """The budget driver. It branches only on ``budget_outcome`` and on divergence.
+    """The budget driver. It branches only on ``budget_outcome``, divergence and a stop.
 
     ``step_fn(step)`` takes Adam step number ``step`` and returns ``None``, or a short name
     for the non-finite quantity that made it skip the optimizer step (GAP-60-06).
@@ -564,26 +711,49 @@ def drive_adam(
     unchanged. A skipped step ends Adam at the last finite state: ``budget_outcome`` is not
     called and no reading is invented. Adam's wall time is the sum of every step and every
     reading (GAP-60-05).
+
+    ``resume_state`` continues a stopped driver: its step, readings, extension flag and
+    summed wall seconds, with the budget unchanged (SPEC Requirement 8). ``stop_fn`` is
+    consulted at every step boundary a checkpoint may be taken at; when it fires the driver
+    returns with ``stopped`` true and the next step to take, and no budget outcome is
+    decided.
     """
     if isinstance(budget, bool) or not isinstance(budget, int) or budget < 1:
         raise HarnessHalt(f"the Adam budget must be a positive integer; got {budget!r}")
     horizon = budget
-    planned = frozenset(
-        reading_steps(budget, scorecard=scorecard, through=horizon, enforce_cadence=enforce_cadence)
-    )
     readings = []
     adam_seconds = 0.0
     step = 0
     extended = False
     new_budget_steps = None
+    if resume_state is not None:
+        step = int(resume_state["step"])
+        readings = [list(item) for item in resume_state["readings"]]
+        adam_seconds = float(resume_state["adam_seconds"])
+        extended = bool(resume_state["extended"])
+        new_budget_steps = resume_state["new_budget_steps"]
+        if new_budget_steps is not None:
+            horizon = int(new_budget_steps)
+        if step > horizon:
+            raise HarnessHalt(
+                f"the resume checkpoint stopped at step {step}, past the horizon {horizon}"
+            )
+    planned = frozenset(
+        reading_steps(budget, scorecard=scorecard, through=horizon, enforce_cadence=enforce_cadence)
+    )
     rate_per_step = None
     diverged_at_step = None
     diverged_by = None
     outcome = None
-    started = clock()
-    readings.append([step, read_fn(step)])
-    adam_seconds += clock() - started
+    stopped = False
+    if resume_state is None:
+        started = clock()
+        readings.append([step, read_fn(step)])
+        adam_seconds += clock() - started
     while outcome is None:
+        if stop_fn is not None and stop_fn():
+            stopped = True
+            break
         if step == horizon:
             verdict = budget_outcome(readings, horizon, extended=extended, scorecard=scorecard)
             if verdict["outcome"] == "extend":
@@ -626,6 +796,9 @@ def drive_adam(
         "readings": readings,
         "reading_steps": [item[0] for item in readings],
         "adam_seconds": adam_seconds,
+        "stopped": stopped,
+        "stopped_at_step": step if stopped else None,
+        "step": step,
     }
 
 
@@ -645,6 +818,264 @@ def write_owner_stop(arm_dir, *, stage, reason, details, data_root=None):
         "details": details,
     }
     return write_record_exclusive(Path(arm_dir) / OWNER_STOP_FILE, payload, data_root=data_root)
+
+
+# ---------------------------------------------------------------------------
+# The resume tree: one claim, one checkpoint, one marker per governed stop.
+# ---------------------------------------------------------------------------
+
+
+def _stop_markers(run_dir):
+    """The governed stop markers of one run tree."""
+    return sorted(Path(run_dir).glob(f"{STOP_PREFIX}*.json"))
+
+
+def _stop_entry(*, phase, step):
+    """The record's entry for one governed stop: signal, exit code, phase and step."""
+    return {
+        "signal": _signal_name(_STOP["signum"]),
+        "exit_code": int(_STOP["exit_code"]),
+        "phase": str(phase),
+        "step": int(step),
+    }
+
+
+def _write_stop_marker(run_dir, spec, entry):
+    """Write ``stop-<n>.json`` for one governed stop and return its path.
+
+    Every stop is kept: a resumed arm that stops again writes the next number, so the
+    ``launch.stops`` history in the record has one marker per entry (T-60-07).
+    """
+    number = len(_stop_markers(run_dir)) + 1
+    path = Path(run_dir) / f"{STOP_PREFIX}{number}.json"
+    payload = {
+        "schema": STOP_SCHEMA,
+        "diagnostic": True,
+        "arm_id": spec.arm_id,
+        "utc": datetime.now(timezone.utc).isoformat(),
+        **entry,
+    }
+    write_record_exclusive(path, payload)
+    return path
+
+
+def _claim_run(run_dir, spec):
+    """Claim an arm's run tree exactly once. A claimed tree refuses a fresh start."""
+    directory = Path(run_dir)
+    if (directory / CLAIM_FILE).exists():
+        raise ClaimExists(
+            f"arm {spec.arm_id} already claims {directory.name}; a stopped arm resumes with "
+            "--resume and a fresh start needs an unclaimed tree"
+        )
+    payload = {
+        "schema": CLAIM_SCHEMA,
+        "arm_id": spec.arm_id,
+        "pid": os.getpid(),
+        "utc_started": datetime.now(timezone.utc).isoformat(),
+        "resume": False,
+    }
+    return write_record_exclusive(directory / CLAIM_FILE, payload)
+
+
+def _cpu_state_dict(model):
+    """A model's state dict on the CPU, so a checkpoint restores on any device."""
+    return OrderedDict(
+        (name, tensor.detach().cpu().clone()) for name, tensor in model.state_dict().items()
+    )
+
+
+@dataclass
+class _SavedScore:
+    """A scored state restored from a checkpoint: its JSON block and the fields read."""
+
+    payload: dict
+    E: float
+    eps_h: float
+    tier: int
+
+    def to_json_dict(self):
+        return dict(self.payload)
+
+
+_JSON_SENTINELS = {"NaN": math.nan, "Infinity": math.inf, "-Infinity": -math.inf}
+
+
+def _number(value):
+    """A recorded JSON number, with the three non-finite sentinels widened back to floats."""
+    if isinstance(value, str):
+        return _JSON_SENTINELS.get(value, math.nan)
+    return float(value)
+
+
+def _saved_score(payload):
+    """Rebuild one scored state from the JSON block a checkpoint holds."""
+    if not isinstance(payload, Mapping) or "E" not in payload:
+        raise ResumeRefused("the resume checkpoint holds no scored state")
+    return _SavedScore(
+        payload=dict(payload),
+        E=_number(payload["E"]),
+        eps_h=_number(payload["eps_h"]),
+        tier=int(payload["tier"]),
+    )
+
+
+def _resume_payload(
+    *,
+    spec,
+    phase,
+    invocations,
+    stops,
+    timing_runs,
+    timing=None,
+    budget=None,
+    frozen_budget=None,
+    driver=None,
+    adam_complete=False,
+    adam=None,
+    trace=None,
+    monitor_log=None,
+    model=None,
+    optimizer=None,
+    scheduler=None,
+    clipper=None,
+    scheduled=None,
+    rng_state=None,
+    frozen_monitor_times=None,
+    clipped_steps=0,
+    adam_seconds=0.0,
+    polish_seconds=0.0,
+    total_seconds=0.0,
+    segment=None,
+    lbfgs=None,
+    polish=None,
+    first_omega_0=None,
+    runtime=None,
+    protocol_sha256=None,
+    module_sha256=None,
+):
+    """One resume checkpoint: every component the arm needs to continue exactly.
+
+    Tensors, numbers, strings, lists and dicts only, so ``torch.load`` can read it with
+    ``weights_only=True`` (T-60-02). ``segment`` is the frozen L-BFGS segment: the
+    collocation rows, causal weights and bin counts of a physics arm, or a data-only
+    marker, and its absence makes a polish checkpoint un-resumable.
+    """
+    return {
+        "arm_id": spec.arm_id,
+        "loss_arm": spec.loss_arm,
+        "run_kind": spec.run_kind,
+        "phase": phase,
+        "invocations": int(invocations),
+        "stops": [dict(item) for item in stops],
+        "timing_runs": int(timing_runs),
+        "timing": None if timing is None else dict(timing),
+        "budget_steps": None if budget is None else int(budget),
+        "frozen_budget_steps": None if frozen_budget is None else int(frozen_budget),
+        "driver": None if driver is None else copy.deepcopy(driver),
+        "adam_complete": bool(adam_complete),
+        "adam": None if adam is None else copy.deepcopy(adam),
+        "trace": copy.deepcopy(trace or []),
+        "monitor_log": copy.deepcopy(monitor_log or []),
+        "model": None if model is None else _cpu_state_dict(model),
+        "optimizer": None if optimizer is None else copy.deepcopy(optimizer.state_dict()),
+        "scheduler": None if scheduler is None else copy.deepcopy(scheduler.state_dict()),
+        "clipper": None if clipper is None else copy.deepcopy(clipper.state_dict()),
+        "scheduled_weights": None if scheduled is None else copy.deepcopy(scheduled.state_dict()),
+        "rng": None if rng_state is None else copy.deepcopy(rng_state),
+        "clipped_steps": int(clipped_steps),
+        "frozen_monitor_times": (
+            None
+            if frozen_monitor_times is None
+            else torch.as_tensor(
+                np.ascontiguousarray(frozen_monitor_times, dtype=np.float64)
+            ).clone()
+        ),
+        "adam_seconds": float(adam_seconds),
+        "polish_seconds": float(polish_seconds),
+        "total_seconds": float(total_seconds),
+        "segment": segment,
+        "lbfgs": lbfgs,
+        "polish": None if polish is None else copy.deepcopy(polish),
+        "first_omega_0": None if first_omega_0 is None else float(first_omega_0),
+        "runtime": None if runtime is None else [runtime[0], runtime[1]],
+        "protocol_sha256": protocol_sha256,
+        "module_sha256": None if module_sha256 is None else dict(module_sha256),
+    }
+
+
+def save_resume_checkpoint(run_dir, payload):
+    """Write one resume checkpoint atomically under ``run_dir`` and return its path."""
+    if not isinstance(payload, Mapping):
+        raise ResumeRefused("a resume checkpoint must be a mapping")
+    body = dict(payload)
+    body["schema"] = RESUME_SCHEMA
+    path = Path(run_dir) / RESUME_FILE
+    atomic_write_torch(path, body)
+    return path
+
+
+def load_resume_checkpoint(run_dir, *, arm_id, protocol_sha256, module_sha256):
+    """Load and vet the checkpoint of an interrupted arm; refuse anything not restorable.
+
+    Refused (``ResumeRefused``): no checkpoint or no governed stop marker; another arm;
+    another run protocol or a changed pinned module digest (T-60-12); an unknown phase;
+    and a polish-phase checkpoint without its frozen segment state, in the trainer's own
+    wording (``controllers.py`` lines 845-850 and 2213-2218).
+    """
+    directory = Path(run_dir)
+    path = directory / RESUME_FILE
+    if not path.is_file():
+        raise ResumeRefused(
+            f"a resume needs {RESUME_FILE} in {directory.name} and there is none; the arm "
+            "goes to the owner"
+        )
+    if not _stop_markers(directory):
+        raise ResumeRefused(
+            f"a resume needs a {STOP_PREFIX}<n>.json marker in {directory.name} and there is "
+            "none; only a governed stop is resumed"
+        )
+    payload = torch.load(path, map_location="cpu", weights_only=True)
+    if not isinstance(payload, Mapping) or payload.get("schema") != RESUME_SCHEMA:
+        raise ResumeRefused(
+            f"the resume checkpoint in {directory.name} is not a {RESUME_SCHEMA} record"
+        )
+    if payload.get("arm_id") != arm_id:
+        raise ResumeRefused(
+            f"the resume checkpoint names arm {payload.get('arm_id')!r}, not {arm_id!r}"
+        )
+    if payload.get("protocol_sha256") != protocol_sha256:
+        raise ResumeRefused(
+            "the run protocol changed since this arm stopped; the arm cannot resume and "
+            "goes to the owner"
+        )
+    if dict(payload.get("module_sha256") or {}) != dict(module_sha256 or {}):
+        raise ResumeRefused(
+            "a pinned module changed since this arm stopped; the arm cannot resume and goes "
+            "to the owner"
+        )
+    if payload.get("phase") not in _RESUME_PHASES:
+        raise ResumeRefused(
+            f"the resume checkpoint has the unknown phase {payload.get('phase')!r}"
+        )
+    if payload.get("phase") == "polish" and payload.get("segment") is None:
+        raise ResumeRefused(
+            "resume checkpoint is missing active L-BFGS segment state; refusing to redraw "
+            "samples or causal weights"
+        )
+    if payload.get("phase") == "polish" and payload.get("lbfgs") is None:
+        raise ResumeRefused("the resume checkpoint is missing the L-BFGS state of the polish")
+    for name in ("invocations", "stops", "timing_runs"):
+        if name not in payload:
+            raise ResumeRefused(f"the resume checkpoint is missing {name}")
+    return payload
+
+
+def _pin_facts(protocol):
+    """``(protocol SHA-256, pinned module digests)``. A fixture arm has no protocol."""
+    if protocol is None:
+        return None, {}
+    facts = _protocol_facts(protocol)
+    return facts["protocol_sha256"], dict(facts["module_sha256"])
 
 
 def _score(model, data, view, *, scorecard, dtype, device):
@@ -709,7 +1140,7 @@ def _physics_objective(model, run, *, dtype, device):
 
 
 def _polish(model, data, *, scorecard, adam_seconds, adam_gold, dtype, device, clock,
-            objective=None):
+            objective=None, resume=None, stop_fn=None):
     """The frozen full-batch L-BFGS polish (GAP-60-05).
 
     One outer call is one ``LBFGS.step(closure)``. A call improves when the
@@ -721,8 +1152,16 @@ def _polish(model, data, *, scorecard, adam_seconds, adam_gold, dtype, device, c
     ``objective`` is a zero-argument closure; it defaults to the data-only
     objective, and an arm with a physics term passes the frozen-handoff one.
 
-    Returns ``(stop_reason, outer_calls, trace, gold_result)`` where
-    ``gold_result`` is the scored-grid result of the polish state.
+    A ``stop_fn`` that fires is surfaced by raising ``_StopRequested`` from the
+    closure, so a long outer call aborts at its next evaluation. The parameters
+    are restored to the state from before that call, and the L-BFGS state copied
+    before it is returned for the checkpoint: nothing is redrawn (SPEC
+    Requirement 8). ``resume`` continues a stopped polish from its counters, its
+    trace and its summed wall seconds.
+
+    Returns a dict: ``stop_reason``, ``outer_calls``, ``trace``, ``gold``,
+    ``stopped``, ``lbfgs``, ``best_objective``, ``without_improvement`` and
+    ``elapsed_seconds``.
     """
     settings = scorecard.section("lbfgs_polish")
     parameters = list(model.parameters())
@@ -734,27 +1173,65 @@ def _polish(model, data, *, scorecard, adam_seconds, adam_gold, dtype, device, c
     )
     if objective is None:
         objective = _data_objective(model, data, dtype=dtype, device=device)
-    closure = objective
+    inner = objective
 
-    started = clock()
-    best = float(closure())
-    state_result = adam_gold
-    without_improvement = 0
-    outer_calls = 0
-    trace = []
+    def closure():
+        if stop_fn is not None and stop_fn():
+            raise _StopRequested()
+        return inner()
+
+    if resume is None:
+        best = float(closure())
+        state_result = adam_gold
+        without_improvement = 0
+        outer_calls = 0
+        trace = []
+        prior_seconds = 0.0
+        started = clock()
+    else:
+        optimizer.load_state_dict(resume["lbfgs"])
+        best = float(resume["best_objective"])
+        saved_state = resume.get("state")
+        state_result = adam_gold if saved_state is None else _saved_score(saved_state)
+        without_improvement = int(resume["without_improvement"])
+        outer_calls = int(resume["outer_calls"])
+        trace = [dict(entry) for entry in resume["trace"]]
+        prior_seconds = float(resume["elapsed_seconds"])
+        started = clock() - prior_seconds
     while True:
         before = [parameter.detach().clone() for parameter in parameters]
-        returned = float(optimizer.step(closure))
+        snapshot = copy.deepcopy(optimizer.state_dict())
+        try:
+            returned = float(optimizer.step(closure))
+        except _StopRequested:
+            # The aborted call is not part of the polish: restore the parameters from
+            # before it and keep the state dict copied before it.
+            with torch.no_grad():
+                for parameter, saved in zip(parameters, before):
+                    parameter.copy_(saved)
+            return {
+                "stop_reason": None,
+                "outer_calls": outer_calls,
+                "trace": trace,
+                "gold": state_result,
+                "stopped": True,
+                "lbfgs": snapshot,
+                "best_objective": best,
+                "without_improvement": without_improvement,
+                "elapsed_seconds": (
+                    trace[-1]["elapsed_seconds"] if trace else prior_seconds
+                ),
+            }
         outer_calls += 1
-        objective = float(closure())
-        if not (math.isfinite(returned) and math.isfinite(objective) and _all_finite(parameters)):
+        objective_value = float(closure())
+        if not (math.isfinite(returned) and math.isfinite(objective_value) and _all_finite(parameters)):
             with torch.no_grad():
                 for parameter, saved in zip(parameters, before):
                     parameter.copy_(saved)
             trace.append(
                 {
                     "call": outer_calls,
-                    "objective": objective,
+                    "objective": objective_value,
                     "best_objective": best,
                     "improved": False,
                     "calls_without_improvement": without_improvement,
@@ -769,10 +1246,20 @@ def _polish(model, data, *, scorecard, adam_seconds, adam_gold, dtype, device, c
                 f"non_finite: outer call {outer_calls} gave a non-finite objective or "
                 "parameters; the parameters from before that call are the polish state"
             )
-            return reason, outer_calls, trace, state_result
-        improved = objective < best
+            return {
+                "stop_reason": reason,
+                "outer_calls": outer_calls,
+                "trace": trace,
+                "gold": state_result,
+                "stopped": False,
+                "lbfgs": None,
+                "best_objective": best,
+                "without_improvement": without_improvement,
+                "elapsed_seconds": trace[-1]["elapsed_seconds"],
+            }
+        improved = objective_value < best
         if improved:
-            best = objective
+            best = objective_value
             without_improvement = 0
         else:
             without_improvement += 1
@@ -784,7 +1271,7 @@ def _polish(model, data, *, scorecard, adam_seconds, adam_gold, dtype, device, c
         trace.append(
             {
                 "call": outer_calls,
-                "objective": objective,
+                "objective": objective_value,
                 "best_objective": best,
                 "improved": improved,
                 "calls_without_improvement": without_improvement,
@@ -806,7 +1293,17 @@ def _polish(model, data, *, scorecard, adam_seconds, adam_gold, dtype, device, c
                     f"adam_wall_fraction: polish wall {polish_seconds:.6f} s reached the "
                     f"frozen fraction of the summed Adam wall {adam_seconds:.6f} s"
                 )
-            return reason, outer_calls, trace, state_result
+            return {
+                "stop_reason": reason,
+                "outer_calls": outer_calls,
+                "trace": trace,
+                "gold": state_result,
+                "stopped": False,
+                "lbfgs": None,
+                "best_objective": best,
+                "without_improvement": without_improvement,
+                "elapsed_seconds": polish_seconds,
+            }
 
 
 def _checked_steps(value, name, minimum):
@@ -1564,6 +2061,8 @@ def run_arm(
     ruling=None,
     admission=None,
     protocol=None,
+    resume=False,
+    run_dir=None,
     clock=time.monotonic,
 ):
     """Run one arm end to end and return the record it wrote.
@@ -1598,6 +2097,17 @@ def run_arm(
     written. The first-layer frequency is resolved and authorized before anything else
     (INST-05(e)): an arm that is not entitled to its setting raises ``OverrideRefused``
     before any data is read, any network is built or any file is written.
+
+    ``resume=True`` continues the arm from ``runs/phase60/<arm-id>/resume.pt`` (SPEC
+    Requirement 8). Every component is restored exactly - the model, Adam, the scheduler
+    and its cosine index, the scheduled weights, the clipper, the four RNG streams, the
+    readings, the trace, the monitor log, B, the extension flag and the summed wall
+    seconds - and the step budget is never re-timed. A stop during the timing run is the
+    one case that repeats it, recorded as a second timing run. A checkpoint that cannot
+    be restored raises ``ResumeRefused`` and goes to the owner; nothing is restarted
+    silently. ``run_dir`` is the ignored run tree; the command line passes the canonical
+    ``runs/phase60/<arm-id>`` and a direct caller defaults to a tree beside its evidence
+    root, so a test writes nothing into the repository.
     """
     first_omega_0 = resolve_first_omega_0(spec, scorecard=scorecard, ruling=ruling)
     check_override(spec, first_omega_0, scorecard=scorecard, ruling=ruling)
@@ -1673,7 +2183,46 @@ def run_arm(
             f"arm {spec.arm_id} stopped for the owner and has {OWNER_STOP_FILE}; the owner "
             "decides what happens next, and a second run never replaces that stop"
         )
-    total_started = clock()
+
+    # SPEC Requirement 8: one claim, one checkpoint, one marker per governed stop.
+    if not isinstance(resume, bool):
+        raise HarnessHalt(f"resume must be a boolean; got {resume!r}")
+    run_root = (
+        # The launcher passes the canonical ``runs/phase60/<arm-id>``. Any direct caller
+        # gets a tree beside the evidence root it already isolated, so a fixture or a test
+        # leaves nothing in the repository.
+        Path(run_dir) if run_dir is not None else Path(evidence_root) / RUNS_REL / spec.arm_id
+    )
+    protocol_sha256, module_sha256 = _pin_facts(protocol)
+    if resume:
+        saved = load_resume_checkpoint(
+            run_root,
+            arm_id=spec.arm_id,
+            protocol_sha256=protocol_sha256,
+            module_sha256=module_sha256,
+        )
+        invocations = int(saved["invocations"]) + 1
+        stops = [dict(item) for item in saved["stops"]]
+        timing_runs = int(saved["timing_runs"])
+        resumed_from = saved["phase"]
+        prior_total = float(saved["total_seconds"])
+        recorded_omega = saved.get("first_omega_0")
+        if recorded_omega is not None and float(recorded_omega) != float(first_omega_0):
+            raise ResumeRefused(
+                f"the resume checkpoint ran at first_omega_0 {recorded_omega!r}, not the "
+                f"arm's resolved {first_omega_0}"
+            )
+    else:
+        saved = None
+        invocations = 1
+        stops = []
+        timing_runs = 0
+        resumed_from = None
+        prior_total = 0.0
+        _claim_run(run_root, spec)
+    total_started = clock() - prior_total
+    adam_resume = resumed_from in ("adam", "polish")
+    polish_resume = resumed_from == "polish"
     data = load_arm_data(spec, context, scorecard=scorecard, dtype=dtype, device=device)
     microbatch_size = int(OptConfig().adam_microbatch_size)
     ic13_t = torch.as_tensor(data.ic13, dtype=dtype, device=device).reshape(-1)
@@ -1712,32 +2261,74 @@ def run_arm(
     # D-02, GAP-60-04: the budget comes from this arm's own timing run. The timing network
     # is gone by the time the arm builds its own, from the seed-42 initialization. A physics
     # timing run draws its rows from its own throwaway generator, never the arm's.
-    timing_physics = (
-        physics_inputs(make_scheduled_weights(timing_steps, spec.lr_stage), np.random.default_rng(SEED))
-        if physics_arm else None
-    )
-    timing = timing_run(
-        spec,
-        context=context,
-        scorecard=scorecard,
-        runtime=runtime,
-        first_omega_0=first_omega_0,
-        steps=timing_steps,
-        clip_enabled=clip_enabled,
-        data=data,
-        physics=timing_physics,
-        clock=clock,
-    )
-    frozen_budget = budget_from_timing(timing, scorecard=scorecard)
-    if budget is None:
-        budget = frozen_budget
+    if adam_resume:
+        # SPEC Requirement 8: a resume is never re-timed. The checkpoint's budget is B.
+        timing = dict(saved["timing"])
+        budget = int(saved["budget_steps"])
+        frozen_budget = int(saved["frozen_budget_steps"])
+        if budget < 1:
+            raise ResumeRefused(
+                f"the resume checkpoint holds the budget {budget}; an arm cannot resume "
+                "without a positive step budget"
+            )
+    else:
+        # A timing run interrupted by a governed stop has no budget; the resume repeats it
+        # from its start and the record counts the second attempt.
+        timing_runs += 1
+        timing_physics = (
+            physics_inputs(
+                make_scheduled_weights(timing_steps, spec.lr_stage), np.random.default_rng(SEED)
+            )
+            if physics_arm else None
+        )
+        timing = timing_run(
+            spec,
+            context=context,
+            scorecard=scorecard,
+            runtime=runtime,
+            first_omega_0=first_omega_0,
+            steps=timing_steps,
+            clip_enabled=clip_enabled,
+            data=data,
+            physics=timing_physics,
+            clock=clock,
+            stop_fn=stop_requested,
+        )
+        if timing is None:
+            entry = _stop_entry(phase="timing", step=0)
+            stops.append(entry)
+            save_resume_checkpoint(
+                run_root,
+                _resume_payload(
+                    spec=spec,
+                    phase="timing",
+                    invocations=invocations,
+                    stops=stops,
+                    timing_runs=timing_runs,
+                    budget=budget,
+                    first_omega_0=first_omega_0,
+                    runtime=runtime,
+                    protocol_sha256=protocol_sha256,
+                    module_sha256=module_sha256,
+                    total_seconds=clock() - total_started,
+                ),
+            )
+            _write_stop_marker(run_root, spec, entry)
+            raise GovernedStop(
+                entry["exit_code"], signal_name=entry["signal"], phase="timing", step=0
+            )
+        frozen_budget = budget_from_timing(timing, scorecard=scorecard)
+        if budget is None:
+            budget = frozen_budget
     if budget < 1:
         raise HarnessHalt(
             f"the frozen budget for arm {spec.arm_id} is {budget} steps; no arm can be run"
         )
 
     # D-06: the arm's own stream. The frozen monitor set is drawn first, before step 1.
-    rng = np.random.default_rng(SEED) if physics_arm else None
+    # A data-only arm carries the generator too, so one checkpoint format holds all four
+    # RNG streams and exact continuation is the same code path for every arm.
+    rng = np.random.default_rng(SEED)
     frozen_monitor_times = (
         draw_collocation_times(spec.train_key, rng, n_slots=n_slots) if physics_arm else None
     )
@@ -1757,7 +2348,38 @@ def run_arm(
     )
     monitor_traj = make_trajectory(model, ic13_t, masses_t) if physics_arm else None
 
-    stopped = {"extended": False}
+    # SPEC Requirement 8: restore every component of a stopped arm exactly. Every
+    # optimizer and scheduler state is loaded after the objects are rebuilt, so the
+    # cosine continues at its own index rather than at a fresh one.
+    if adam_resume:
+        model.load_state_dict(saved["model"])
+        optimizer.load_state_dict(saved["optimizer"])
+        scheduler.load_state_dict(saved["scheduler"])
+        if clipper is not None and saved.get("clipper") is not None:
+            clipper.load_state_dict(saved["clipper"])
+        if scheduled is not None and saved.get("scheduled_weights") is not None:
+            scheduled.load_state_dict(saved["scheduled_weights"])
+        if saved.get("rng") is None:
+            raise ResumeRefused("the resume checkpoint holds no RNG state")
+        restore_rng_state(saved["rng"], rng)
+        stepper.clipped_steps = int(saved["clipped_steps"])
+        if physics_arm and saved.get("frozen_monitor_times") is not None:
+            frozen_monitor_times = saved["frozen_monitor_times"].numpy()
+        trace = [dict(entry) for entry in saved["trace"]]
+        monitor_log = [dict(entry) for entry in saved["monitor_log"]]
+        driver_state = None if saved.get("driver") is None else dict(saved["driver"])
+        adam_complete = bool(saved["adam_complete"])
+        driven = driver_state if adam_complete else None
+    else:
+        driver_state = None
+        adam_complete = False
+        driven = None
+        trace = []
+        monitor_log = []
+
+    stopped = {
+        "extended": bool(driver_state["extended"]) if driver_state is not None else False
+    }
 
     def on_extend():
         # D-03: the second cosine, on the same optimizer so Adam's moments are kept.
@@ -1767,8 +2389,6 @@ def run_arm(
     # A fixture budget below 20 steps cannot meet the frozen 5% cadence with whole
     # steps, so it is recorded against the rule but not held to it. A real arm is.
     enforce_cadence = not fixture
-    trace = []
-    monitor_log = []
     adam_started = clock()
     latest = {}
 
@@ -1804,15 +2424,18 @@ def run_arm(
         return float(result.E)
 
     try:
-        driven = drive_adam(
-            budget=budget,
-            step_fn=stepper.step,
-            read_fn=take_reading,
-            scorecard=scorecard,
-            on_extend=on_extend,
-            clock=clock,
-            enforce_cadence=enforce_cadence,
-        )
+        if driven is None:
+            driven = drive_adam(
+                budget=budget,
+                step_fn=stepper.step,
+                read_fn=take_reading,
+                scorecard=scorecard,
+                on_extend=on_extend,
+                clock=clock,
+                enforce_cadence=enforce_cadence,
+                stop_fn=stop_requested,
+                resume_state=driver_state,
+            )
     except OwnerRouted as stop:
         weights_file_sha, weights_tensor_digest = save_weights(arm_dir / "adam.weights", model)
         write_owner_stop(
@@ -1834,6 +2457,49 @@ def run_arm(
             data_root=context.reader.data_root,
         )
         raise
+    if not adam_complete and driven["stopped"]:
+        # SPEC Requirement 8: an Adam step boundary, after the checkpoint, is where a
+        # governed stop leaves the arm. Nothing else is scored and nothing is written.
+        entry = _stop_entry(phase="adam", step=driven["stopped_at_step"])
+        stops.append(entry)
+        save_resume_checkpoint(
+            run_root,
+            _resume_payload(
+                spec=spec,
+                phase="adam",
+                invocations=invocations,
+                stops=stops,
+                timing_runs=timing_runs,
+                timing=timing,
+                budget=budget,
+                frozen_budget=frozen_budget,
+                driver=driven,
+                adam_complete=False,
+                trace=trace,
+                monitor_log=monitor_log,
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                clipper=clipper,
+                scheduled=scheduled,
+                rng_state=capture_rng_state(rng),
+                frozen_monitor_times=frozen_monitor_times,
+                clipped_steps=stepper.clipped_steps,
+                adam_seconds=driven["adam_seconds"],
+                total_seconds=clock() - total_started,
+                first_omega_0=first_omega_0,
+                runtime=runtime,
+                protocol_sha256=protocol_sha256,
+                module_sha256=module_sha256,
+            ),
+        )
+        _write_stop_marker(run_root, spec, entry)
+        raise GovernedStop(
+            entry["exit_code"],
+            signal_name=entry["signal"],
+            phase="adam",
+            step=driven["stopped_at_step"],
+        )
     if not _all_finite(model.parameters()):
         # GAP-60-06: Adam ends at the last finite state, so this should not happen. If the
         # weights are not finite there is no polish, and the scorer refuses a non-finite
@@ -1842,12 +2508,21 @@ def run_arm(
             f"the Adam weights of arm {spec.arm_id} are not finite after step "
             f"{driven['steps_taken']}; no result can be scored and no polish is run"
         )
-    adam_gold = latest["result"]
-    if latest["step"] != driven["steps_taken"]:
-        # GAP-60-06: Adam ended in a state no reading covered (a step was skipped between
-        # two readings). That last finite state is scored now. It is not a budget reading.
-        adam_gold = _score(model, data, data.score, scorecard=scorecard, dtype=dtype, device=device)
-    adam_seconds = driven["adam_seconds"]
+    if adam_complete:
+        adam_gold = _saved_score(saved["adam"]["score_gold"])
+        adam_block = dict(saved["adam"])
+        adam_seconds = float(saved["adam_seconds"])
+    else:
+        adam_gold = latest["result"]
+        if latest["step"] != driven["steps_taken"]:
+            # GAP-60-06: Adam ended in a state no reading covered (a step was skipped
+            # between two readings). That last finite state is scored now. It is not a
+            # budget reading.
+            adam_gold = _score(
+                model, data, data.score, scorecard=scorecard, dtype=dtype, device=device
+            )
+        adam_seconds = driven["adam_seconds"]
+        adam_block = None
     diverged = driven["outcome"] == "diverged"
     final_budget = budget if driven["new_budget_steps"] is None else driven["new_budget_steps"]
     cadence_ok = (
@@ -1911,29 +2586,107 @@ def run_arm(
             raise CrossCheckDisagreement(reason)
         return block
 
-    adam_base = _score(model, data, data.beside, scorecard=scorecard, dtype=dtype, device=device)
-    adam_file_sha, adam_tensor_digest = save_weights(arm_dir / "adam.weights", model)
-    adam_counts = official_counts("adam", adam_gold)
-    adam_cross = cross_check("adam", adam_gold, adam_counts)
+    if adam_block is None:
+        adam_base = _score(model, data, data.beside, scorecard=scorecard, dtype=dtype, device=device)
+        adam_file_sha, adam_tensor_digest = save_weights(arm_dir / "adam.weights", model)
+        adam_counts = official_counts("adam", adam_gold)
+        adam_cross = cross_check("adam", adam_gold, adam_counts)
+        adam_block = {
+            "score_gold": adam_gold.to_json_dict(),
+            "score_base": adam_base.to_json_dict(),
+            "cross_check": adam_cross,
+            "weights": {
+                "file": "adam.weights",
+                "sha256": adam_file_sha,
+                "tensor_digest": adam_tensor_digest,
+            },
+        }
+    if not adam_complete and stop_requested():
+        # The Adam-to-polish boundary is an Adam boundary too. The checkpoint says Adam
+        # finished, so a resume goes straight to the handoff without repeating a step.
+        entry = _stop_entry(phase="adam", step=driven["steps_taken"])
+        stops.append(entry)
+        save_resume_checkpoint(
+            run_root,
+            _resume_payload(
+                spec=spec,
+                phase="adam",
+                invocations=invocations,
+                stops=stops,
+                timing_runs=timing_runs,
+                timing=timing,
+                budget=budget,
+                frozen_budget=frozen_budget,
+                driver=driven,
+                adam_complete=True,
+                adam=adam_block,
+                trace=trace,
+                monitor_log=monitor_log,
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                clipper=clipper,
+                scheduled=scheduled,
+                rng_state=capture_rng_state(rng),
+                frozen_monitor_times=frozen_monitor_times,
+                clipped_steps=stepper.clipped_steps,
+                adam_seconds=adam_seconds,
+                total_seconds=clock() - total_started,
+                first_omega_0=first_omega_0,
+                runtime=runtime,
+                protocol_sha256=protocol_sha256,
+                module_sha256=module_sha256,
+            ),
+        )
+        _write_stop_marker(run_root, spec, entry)
+        raise GovernedStop(
+            entry["exit_code"],
+            signal_name=entry["signal"],
+            phase="adam",
+            step=driven["steps_taken"],
+        )
 
     # GAP-60-05, 57-RULING.md:112-124: the rows, the pass-1 causal weights, the bin counts
-    # and the loss weights are frozen once, at the Adam-to-L-BFGS handoff.
+    # and the loss weights are frozen once, at the Adam-to-L-BFGS handoff. A resumed polish
+    # restores that frozen segment instead of drawing anything again.
     handoff_block = None
     polish_objective = None
+    segment_block = None
     if physics_arm:
-        scheduled.freeze()
-        frozen_weights = scheduled.current(0)
-        handoff_times = draw_collocation_times(spec.train_key, rng, n_slots=n_slots)
-        details, bin_counts = physics_pass1(
-            make_trajectory(model, ic13_t, masses_t),
-            masses_t,
-            handoff_times,
-            r_ref=r_ref,
-            microbatch_size=microbatch_size,
-            dtype=dtype,
-            device=device,
-        )
-        frozen_w_n = details["w_n"]
+        if polish_resume:
+            segment_block = dict(saved["segment"])
+            handoff_times = segment_block["times"].numpy()
+            frozen_w_n = segment_block["w_n"].to(device=device, dtype=dtype)
+            bin_counts = segment_block["bin_counts"].to(device=device, dtype=dtype)
+            frozen_weights = LossWeights(**dict(segment_block["weights"]))
+        else:
+            scheduled.freeze()
+            frozen_weights = scheduled.current(0)
+            handoff_times = draw_collocation_times(spec.train_key, rng, n_slots=n_slots)
+            details, bin_counts = physics_pass1(
+                make_trajectory(model, ic13_t, masses_t),
+                masses_t,
+                handoff_times,
+                r_ref=r_ref,
+                microbatch_size=microbatch_size,
+                dtype=dtype,
+                device=device,
+            )
+            frozen_w_n = details["w_n"]
+            segment_block = {
+                "times": torch.as_tensor(
+                    np.ascontiguousarray(handoff_times, dtype=np.float64)
+                ).clone(),
+                "w_n": frozen_w_n.detach().cpu().clone(),
+                "bin_counts": bin_counts.detach().cpu().clone(),
+                "weights": {
+                    "lambda_data": frozen_weights.lambda_data,
+                    "lambda_ic": frozen_weights.lambda_ic,
+                    "lambda_phys": frozen_weights.lambda_phys,
+                    "lambda_e": frozen_weights.lambda_e,
+                    "lambda_l": frozen_weights.lambda_l,
+                },
+            }
         polish_objective = _physics_objective(
             model,
             _PhysicsRun(
@@ -1968,8 +2721,16 @@ def run_arm(
                 "lambda_l": frozen_weights.lambda_l,
             },
         }
+    else:
+        # A data-only polish has no drawn segment: the full-batch set is fixed. The marker
+        # keeps a polish checkpoint's segment state present and checkable.
+        segment_block = {"kind": "data_only"}
 
-    stop_reason, outer_calls, polish_trace, polish_gold = _polish(
+    polish_resume_state = None
+    if polish_resume:
+        polish_resume_state = dict(saved["polish"])
+        polish_resume_state["lbfgs"] = saved["lbfgs"]
+    polish_result = _polish(
         model,
         data,
         scorecard=scorecard,
@@ -1979,8 +2740,72 @@ def run_arm(
         device=device,
         clock=clock,
         objective=polish_objective,
+        resume=polish_resume_state,
+        stop_fn=stop_requested,
     )
-    polish_seconds = polish_trace[-1]["elapsed_seconds"]
+    if polish_result["stopped"]:
+        # SPEC Requirement 8: between polish outer calls, after restoring the parameters
+        # from before the aborted call and keeping its pre-call L-BFGS state.
+        entry = _stop_entry(phase="polish", step=polish_result["outer_calls"])
+        stops.append(entry)
+        save_resume_checkpoint(
+            run_root,
+            _resume_payload(
+                spec=spec,
+                phase="polish",
+                invocations=invocations,
+                stops=stops,
+                timing_runs=timing_runs,
+                timing=timing,
+                budget=budget,
+                frozen_budget=frozen_budget,
+                driver=driven,
+                adam_complete=True,
+                adam=adam_block,
+                trace=trace,
+                monitor_log=monitor_log,
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                clipper=clipper,
+                scheduled=scheduled,
+                rng_state=capture_rng_state(rng),
+                frozen_monitor_times=frozen_monitor_times,
+                clipped_steps=stepper.clipped_steps,
+                adam_seconds=adam_seconds,
+                polish_seconds=polish_result["elapsed_seconds"],
+                total_seconds=clock() - total_started,
+                segment=segment_block,
+                lbfgs=polish_result["lbfgs"],
+                polish={
+                    "outer_calls": polish_result["outer_calls"],
+                    "trace": polish_result["trace"],
+                    "state": (
+                        None if polish_result["gold"] is None
+                        else polish_result["gold"].to_json_dict()
+                    ),
+                    "best_objective": polish_result["best_objective"],
+                    "without_improvement": polish_result["without_improvement"],
+                    "elapsed_seconds": polish_result["elapsed_seconds"],
+                },
+                first_omega_0=first_omega_0,
+                runtime=runtime,
+                protocol_sha256=protocol_sha256,
+                module_sha256=module_sha256,
+            ),
+        )
+        _write_stop_marker(run_root, spec, entry)
+        raise GovernedStop(
+            entry["exit_code"],
+            signal_name=entry["signal"],
+            phase="polish",
+            step=polish_result["outer_calls"],
+        )
+    stop_reason = polish_result["stop_reason"]
+    outer_calls = polish_result["outer_calls"]
+    polish_trace = polish_result["trace"]
+    polish_gold = polish_result["gold"]
+    polish_seconds = polish_result["elapsed_seconds"]
     polish_base = _score(model, data, data.beside, scorecard=scorecard, dtype=dtype, device=device)
     polish_file_sha, polish_tensor_digest = save_weights(arm_dir / "polish.weights", model)
     polish_counts = official_counts("polish", polish_gold)
@@ -2072,16 +2897,7 @@ def run_arm(
         },
         "trace": trace,
         "states": {
-            "adam": {
-                "score_gold": adam_gold.to_json_dict(),
-                "score_base": adam_base.to_json_dict(),
-                "cross_check": adam_cross,
-                "weights": {
-                    "file": "adam.weights",
-                    "sha256": adam_file_sha,
-                    "tensor_digest": adam_tensor_digest,
-                },
-            },
+            "adam": adam_block,
             "polish": {
                 "score_gold": polish_gold.to_json_dict(),
                 "score_base": polish_base.to_json_dict(),
@@ -2111,6 +2927,11 @@ def run_arm(
             "polish_seconds": polish_seconds,
             "total_seconds": clock() - total_started,
         },
+        "launch": {
+            "invocations": invocations,
+            "stops": [dict(item) for item in stops],
+        },
+        "timing_runs": timing_runs,
         "attestation": None if context.attestation is None else context.attestation.summary(),
         "mps_fallback_env": _PRE_IMPORT_FALLBACK,
         "readout_notes": readout_notes,
@@ -2137,3 +2958,164 @@ def run_arm(
         validate_record(record)
     write_record_exclusive(record_path, record, data_root=context.reader.data_root)
     return record
+
+
+# ---------------------------------------------------------------------------
+# The real-arm command line (SPEC Requirement 8, SCOPE-44).
+# ---------------------------------------------------------------------------
+
+_USAGE = (
+    "usage: python -B -m pinn.verification.learnability_run <arm-id> "
+    "[--resume | --admit-only]"
+)
+
+
+def _parse_argv(argv):
+    """``(arm_id, resume, admit_only)`` from one positional id and the two flags.
+
+    The runner takes no runtime, precision or path argument: a real arm is seed 42 at
+    MPS float32, and its records and setting come from the catalog and the admission.
+    """
+    arm_id = None
+    resume = False
+    admit_only = False
+    for token in argv:
+        if token == "--resume":
+            if resume or admit_only:
+                raise ValueError(
+                    "--resume and --admit-only are mutually exclusive and appear once"
+                )
+            resume = True
+        elif token == "--admit-only":
+            if resume or admit_only:
+                raise ValueError(
+                    "--resume and --admit-only are mutually exclusive and appear once"
+                )
+            admit_only = True
+        elif not isinstance(token, str) or token.startswith("-"):
+            raise ValueError(f"{token!r} is not a flag of this runner")
+        elif arm_id is None:
+            arm_id = token
+        else:
+            raise ValueError("the runner takes exactly one arm id")
+    if arm_id is None:
+        raise ValueError("the runner takes one catalog arm id")
+    return arm_id, resume, admit_only
+
+
+def _write_process(run_dir, payload):
+    """Write the arm's process record. A resume replaces the previous invocation's file."""
+    path = Path(run_dir) / PROCESS_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
+def _available_memory():
+    """The advisory free-memory figure, or ``None`` when ``vm_stat`` cannot be read.
+
+    It is logged for the audit and never gates a launch: the footprint preflight is
+    unreliable on this macOS (CONTEXT, Claude's Discretion).
+    """
+    try:
+        return int(evidence_io.available_memory_bytes())
+    except (evidence_io.MemoryPreflightError, OSError):
+        return None
+
+
+def main(argv=None):
+    """The real-arm command line: admission first, one launch lock, the governed exits.
+
+    ``python -B -m pinn.verification.learnability_run <arm-id> [--resume | --admit-only]``.
+    ``admit_arm`` runs before anything else; ``--admit-only`` prints ``ADMIT-OK <id>`` and
+    exits 0, or ``ADMIT-REFUSED: <reason>`` and exits 2, and creates nothing. A run takes
+    the one-launch lock, records its own PID in ``runs/phase60/<arm-id>/process.json``,
+    installs the three stop handlers and calls ``run_arm`` at the real runtime with the
+    admission and the loaded protocol. The single top-level handler maps ``OwnerRouted``
+    and ``CrossCheckDisagreement`` to ``OWNER-ROUTED`` with exit 3, once and without a
+    retry, and a ``GovernedStop`` to its own 129, 130 or 143.
+    """
+    argv = list(sys.argv[1:] if argv is None else argv)
+    _reset_stop()
+    try:
+        arm_id, resume, admit_only = _parse_argv(argv)
+    except ValueError as exc:
+        print(f"USAGE-REFUSED: {exc}", file=sys.stderr)
+        print(_USAGE, file=sys.stderr)
+        return EXIT_REFUSED
+    try:
+        spec = arm_spec(arm_id)
+    except UnknownArm as exc:
+        print(f"ADMIT-REFUSED: {exc}")
+        return EXIT_REFUSED
+    root = _repo_root()
+    evidence = root / EVIDENCE_REL
+    try:
+        admission = admit_arm(
+            arm_id, repo_root=root, evidence_root=evidence, resume=bool(resume)
+        )
+    except AdmissionRefused as exc:
+        print(f"ADMIT-REFUSED: {exc}")
+        return EXIT_REFUSED
+    print(f"ADMIT-OK {arm_id}")
+    if admit_only:
+        return EXIT_OK
+    run_root = arm_run_dir(arm_id, repo_root=root)
+    _write_process(
+        run_root,
+        {
+            "pid": os.getpid(),
+            "utc_started": datetime.now(timezone.utc).isoformat(),
+            "arm_id": arm_id,
+            "resume": bool(resume),
+            # Advisory only: the footprint preflight is unreliable on this macOS and no
+            # memory value ever gates a run (CONTEXT, Claude's Discretion).
+            "available_memory_bytes": _available_memory(),
+        },
+    )
+    restore = install_stop_handlers()
+    run_id = None
+    try:
+        try:
+            run_id = evidence_io.begin_long_step(
+                "phase60",
+                arm_id,
+                command=[
+                    sys.executable, "-B", "-m", "pinn.verification.learnability_run", *argv,
+                ],
+                evidence_root=evidence,
+            )
+        except evidence_io.LaunchRefused as exc:
+            print(str(exc))
+            return EXIT_REFUSED
+        context = open_real_context(repo_root=root)
+        protocol = load_protocol(repo_root=root, evidence_root=evidence)
+        run_arm(
+            spec,
+            context=context,
+            scorecard=load_scorecard(),
+            runtime=REAL_RUNTIME,
+            evidence_root=evidence,
+            admission=admission,
+            protocol=protocol,
+            clip_enabled=bool(admission["clip_enabled"]),
+            resume=bool(resume),
+            run_dir=run_root,
+        )
+        return EXIT_OK
+    except (OwnerRouted, CrossCheckDisagreement) as exc:
+        print(f"OWNER-ROUTED: {exc}")
+        return EXIT_OWNER
+    except GovernedStop as stop:
+        return int(stop.exit_code)
+    finally:
+        restore()
+        if run_id is not None:
+            try:
+                evidence_io.end_long_step(run_id, evidence_root=evidence)
+            except evidence_io.LaunchRefused as exc:
+                print(f"LAUNCH-LOCK-NOT-RELEASED: {exc}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
