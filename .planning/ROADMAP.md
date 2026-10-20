@@ -273,7 +273,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 60-09-PLAN.md — Wave 9: the GATE-04 omega seam and the D-07 re-measure entry (FEAS-04, FEAS-09)
+- [x] 60-09-PLAN.md — Wave 9: the GATE-04 omega seam and the D-07 re-measure entry (FEAS-04, FEAS-09)
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 9/23 | In Progress | - |
+| 60. Single-System Learnability | 10/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |

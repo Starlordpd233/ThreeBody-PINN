@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-8 complete 2026-10-20 (60-01 to 60-08 and 60-23 done, 9 of 23 plans); wave 9 (60-09) is next, run by position 3 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 8-10)"
-last_updated: "2026-10-20T09:54:17Z"
+stopped_at: "Phase 60 waves 1-9 complete 2026-10-20 (60-01 to 60-09 and 60-23 done, 10 of 23 plans); wave 10 (60-10) is next, run by position 3 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 8-10)"
+last_updated: "2026-10-20T10:37:19Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 60 wave 8 executed — 60-08 gave real arms the frozen budget rule: a timing run of the arm's own configuration sets its step budget under the 3-hour cap, Adam runs the ratified schedule over exactly that budget, readings follow the frozen cadence, at most one doubling runs as a second cosine, divergence ends Adam at the last finite state with no restart, and an undeterminable improvement rate goes to the owner as owner-stop.json (commits 37a76a90, 9b18d8da, c1909e77, ad15d86b, 2c23f4b9, 4ac6b558, b914dc75). No real arm was started. The wave gate passed (229 focused tests re-run by the orchestrator; the executor's full 657-test Phase 60 discovery reused). Waves 1-8 are done. Open for the owner or verifier before the first real arm: the 60-08 readings (coverage items D10 and D11), the 60-07 readings (D9), the 60-06 readings (D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
+last_activity_desc: Phase 60 wave 9 executed — 60-09 prepared the step an owner "continue" requires before any physics arm: GATE-04 gained an optional first_omega_0 setting whose default path is unchanged, and a new entry re-measures the reference residual scale and re-runs the train-free gate at the owner-approved value, writing only Phase 60 evidence and never the governed Stage-0 reference (commits da946364, c9b3f597, 7f7088b5, b4fd949c, 56c3dcba). The real six-case re-measure was not run; it runs only on the continue path (Plan 60-19). The wave gate passed (123 focused tests re-run by the orchestrator; the executor's full 698-test Phase 60 discovery reused). Waves 1-9 are done. Open for the owner or verifier before the first real arm: the 60-09 readings (coverage item D7), the 60-08 readings (D10 and D11), the 60-07 readings (D9), the 60-06 readings (D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 19
-  percent: 58
+  completed_plans: 20
+  percent: 61
 ---
 
 # Project State
@@ -25,14 +25,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-8 complete; wave 9 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-9 complete; wave 10 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-8 complete; waves 9 and 10 continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 3 running waves 8-10)
-Plan: 9 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-9 complete; wave 10 continues under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 3 running waves 8-10)
+Plan: 10 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-20 — Wave 8 complete (60-08); waves 1-8 are done and wave 9 (60-09) is next
+Last activity: 2026-10-20 — Wave 9 complete (60-09); waves 1-9 are done and wave 10 (60-10) is next
+
+### Decisions from 60-09 (2026-10-20)
+
+- `gate04_train_free.py` gained an optional keyword `first_omega_0=None` on `_measure_raw_bin_means`, `compute_r_ref`, `evaluate_case` and `run_gate`. `None` keeps the original `build_network(ArchitectureSpec(seed=case.seed), ...)` call with the same arguments; a value builds the network through `diagnostic_architecture.build_network_with_first_omega`, and `ArchitectureSpec` stays omega-locked. The orchestrator read `git diff f1238d9e -- gate04_train_free.py`: it is one import, the four signatures, the threading and the construction branch, and nothing else.
+- `gate04_omega_remeasure.py` (new, D-07) loads the committed D-11 ruling, refuses unless the answer is continue and the approved value is finite and positive, runs the GATE-04 re-measure at that value, and writes only under the Phase 60 evidence root: `continue/gate04-remeasure.json` (schema `phase60-gate04-remeasure/v1`), and on a complete PASS `continue/r-ref-approved.json`. A BLOCK prints `GATE04-BLOCK` and exits 5 so the continue path stops for the owner; a refusal exits 2. It never calls the GATE-04 CLI `main` and never writes `terminal-state.json`. Commits `da946364` and `c9b3f597` (tracer, test-first), `7f7088b5` and `b4fd949c` (command line and second-run refusal, test-first), `56c3dcba` (summary).
+- The real six-case re-measure was NOT run; it runs only on the owner's continue path (Plan 60-19). Guardrails verified independently by the orchestrator after the executor: the governed `r_ref_stage0.json` still has SHA-256 `c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff` (git blob `f78084543dbb4e42d6c56bc7922782cf8f61a8af`, unchanged since the plan's reference commit `0d0ec297`), the only `terminal-state.json` is the existing Phase 57 file, and no `evidence/continue/` directory exists.
+- Wave 9 gate, re-run by the orchestrator: 123 tests (the re-measure, Phase 57 gate and evaluation, Phase 60 static guards, Phase 38/39 prohibitions) pass in 43 s. The executor's retained full `tests/phase60` discovery (698 tests, OK, 1 by-design platform-probe skip, 332 s, run after the last code change) is reused, not rerun; the broadest check runs once after wave 10.
+- DEVIATIONS (two Rule 2 fail-closed input checks, the SUMMARY lists them): a missing or uncommitted sweep curve is refused before any measurement, because `equals_confirmed` needs the committed confirmed value; and a second run refuses before measuring if any of the three outputs already exists, not only the record. Also: a gate PASS over a case set other than the six defaults is recorded as BLOCK with an added reason, because the record schema pairs PASS with `complete_pass` true; the plan's baseline commit `0d0ec297` is cited but the governed artifact was verified against the starting HEAD `f1238d9e` and is byte-identical to both.
+- OPEN for the owner or verifier (60-09's coverage item D7): the three choices the plan and the gap register leave open, namely the missing-sweep-curve refusal, the non-canonical-case-set PASS recorded as BLOCK, and the stop-on-any-existing-output rule. Each fails closed and none changes a frozen value, schema field, threshold or default.
 
 ### Decisions from 60-08 (2026-10-20)
 
