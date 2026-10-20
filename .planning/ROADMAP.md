@@ -265,7 +265,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 60-07-PLAN.md — Wave 7: the detached one-at-a-time sequence launcher with the governed resume gate (INST-05, FEAS-03)
+- [x] 60-07-PLAN.md — Wave 7: the detached one-at-a-time sequence launcher with the governed resume gate (INST-05, FEAS-03)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 7/23 | In Progress | - |
+| 60. Single-System Learnability | 8/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |

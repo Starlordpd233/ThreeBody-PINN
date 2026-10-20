@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-6 complete 2026-10-20 (60-01 to 60-06 and 60-23 done, 7 of 23 plans); wave 7 (60-07) is next, still run by position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 5-7)"
-last_updated: "2026-10-20T08:00:38Z"
+stopped_at: "Phase 60 waves 1-7 complete 2026-10-20 (60-01 to 60-07 and 60-23 done, 8 of 23 plans); wave 8 (60-08) is next. Position 2 of watchdog chain phase-60-work-8ffbf6ffd8616f5c ran waves 5-7 and hands off after wave 7"
+last_updated: "2026-10-20T08:44:04Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 60 wave 6 executed — 60-06 turned the decision that follows Rung 1 into pure, tested code: Gate G2 from the three committed Rung-1 results, the sweep pair and confirmation, the rescue and failed-confirmation outcomes, the skip records, the stop handoff to Phase 64, the strict owner-ruling loaders and the six-name branch-state query (commits f3780d6d, ba4df889, be5ed70f, ff042094). The wave gate passed (488 + 31 + 4 + 139 tests). Waves 1-6 are done. Open for the owner or verifier before the first real arm: the 60-06 readings (that plan's coverage item D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
+last_activity_desc: Phase 60 wave 7 executed — 60-07 built the launcher that keeps every long arm alive and accountable: it detaches a sequence of arms from the terminal and the agent session, runs them one at a time under caffeinate, records every exit, and allows a resume only after a governed stop (commits ba8d30f6, e1f64139, ffbda06b). No real arm was started. The wave gate passed (578 + 31 + 4 + 139 tests). Waves 1-7 are done. Open for the owner or verifier before the first real arm: the 60-07 readings (coverage item D9), the 60-06 readings (its D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 17
-  percent: 52
+  completed_plans: 18
+  percent: 55
 ---
 
 # Project State
@@ -25,14 +25,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-6 complete; wave 7 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-7 complete; wave 8 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-6 complete; wave 7 and later continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 2 running waves 5-7)
-Plan: 7 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-7 complete; wave 8 and later continue under watchdog chain phase-60-work-8ffbf6ffd8616f5c after position 2's waves 5-7)
+Plan: 8 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-20 — Wave 6 complete (60-06); waves 1-6 are done and wave 7 (60-07) is next
+Last activity: 2026-10-20 — Wave 7 complete (60-07); waves 1-7 are done and wave 8 (60-08) is next
+
+### Decisions from 60-07 (2026-10-20)
+
+- `evidence/launch_phase60_arm.py` is the detached, one-at-a-time sequence launcher. It resolves a sequence only through `learnability_arms.SEQUENCES`, starts a supervisor that detaches from the terminal and the agent session, runs the arms under `caffeinate`, writes `exit.json` for every arm, and allows a resume only after a governed stop. Commits `ba8d30f6` (tracer), `e1f64139` (launcher), `ffbda06b` (summary). Wave 7 gate: 578 Phase 60 tests, 31 + 4 prohibition tests and 139 Phase 59 scorer-suite tests pass, with the one by-design platform-probe skip.
+- No real arm was started. Every test used a stub under a temporary directory and patched `caffeinate`; the real `--sequence rung1 --status` printed `SEQUENCE-NOT-LAUNCHED` and created nothing; no `runs/` directory exists, and no launcher or runner process was left running after the executor or the gate. 81 injected faults were run; 80 are caught and 1 is equivalent (the membership check in `resume_arm_ids` refuses the same input).
+- DEVIATIONS (the SUMMARY lists two process notes): two task commits instead of the single commit Task 2's action names, and the Sonnet 5.5 co-author trailer instead of the Opus 5.5 the plan text names. Also disclosed under its readings: `start(invocation_dir, argvs, *, cwd, identity)` keeps the plan's signature but requires `identity["arm_ids"]` (one id per command) because the signature has no other channel, so a call without that key is refused; `status`, `main`, `resume_argvs` and `launch` gained optional keyword-only test seams, and `status` also returns the lines it prints. Calls written to the plan's signatures still work, apart from the `arm_ids` requirement.
+- OPEN for the owner or verifier before the first real arm (60-07's coverage item D9): readings of the plan text that fix the launcher's refusal and output shapes that Plans 60-12 to 60-22 read. Each fails closed. The chief ones: any death by a signal refuses the resume, even SIGTERM, because the runner's handler never ran and no checkpoint exists; a supervisor that is gone with no `exit.json` makes `--status` and the resume gate exit 1 with "owner decides" rather than report RUNNING; `--dry-run` runs without caffeinate, probes every arm and needs exit 0 as well as an `ADMIT-OK` line, which is stricter than the plan's wording. Others: the gate checks `exit.json` only and leaves checkpoint validity to Plan 60-12; extra refusals for ids outside the catalog, a stopped arm not in the sequence, a gap in invocation numbers and an unreadable record. Two limits: liveness is `kill(pid, 0)`, which cannot detect a reused PID, and the launcher does not itself stop two sequences running at once (the runner's lock in Plan 60-12 does). The full list is in `60-07-SUMMARY.md` under Readings of the plan text.
 
 ### Decisions from 60-06 (2026-10-20)
 
