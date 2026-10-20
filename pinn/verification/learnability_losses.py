@@ -18,6 +18,12 @@ chunk of collocation rows with a constant row weight. Every residual evaluation
 uses chunks of at most ``microbatch_size`` rows (256 in production) and
 releases each chunk before the next, so no 4,096-row graph is ever built.
 
+The frozen monitor is a log (D-06): ``frozen_monitor_log`` evaluates a fixed set of
+collocation rows through pass 1 when the runner asks and returns the causal-weight
+statistics; it has no threshold and no halt. The physics polish objective uses the
+rows, causal weights, bin counts and loss weights frozen at the Adam-to-L-BFGS
+handoff (GAP-60-05) and the same chunked pass 2, never a full-batch evaluation.
+
 ``r_ref`` is an explicit argument everywhere. The runner passes the Stage-0
 reference in force; these functions never read the governed artifact.
 """
@@ -55,6 +61,8 @@ __all__ = [
     "ic_term",
     "physics_pass2_backward",
     "physics_adam_step",
+    "physics_polish_objective",
+    "frozen_monitor_log",
     "release_chunk_memory",
     "data_only_loss",
     "data_polish_objective",
@@ -358,6 +366,114 @@ def physics_adam_step(
         "angmom": terms.angmom,
         "total": terms.total,
     }
+
+
+def frozen_monitor_log(traj, masses_t, frozen_times, *, r_ref, microbatch_size, dtype, device):
+    """The frozen monitor's statistics at the current parameters (D-06).
+
+    Runs the chunked pass 1 on the frozen collocation rows and returns plain
+    floats and lists: the minimum, mean and maximum causal weight, the front
+    index (the largest bin whose weight exceeds one half, else -1), the
+    normalized and raw residual of each of the 16 bins, and ``r_ref``. The runner
+    calls it only at the budget-rule readings. It is a log: it has no threshold,
+    no halt and no return code, and nothing here decides anything from a front
+    value.
+    """
+    details, _bin_counts = physics_pass1(
+        traj,
+        masses_t,
+        frozen_times,
+        r_ref=r_ref,
+        microbatch_size=microbatch_size,
+        dtype=dtype,
+        device=device,
+    )
+    w_n = details["w_n"]
+    w_n_list = w_n.tolist()
+    return {
+        "w_min": float(w_n.min()),
+        "w_mean": float(w_n.mean()),
+        "w_max": float(w_n.max()),
+        "front_idx": max([n for n, w in enumerate(w_n_list) if w > 0.5], default=-1),
+        "residuals_per_bin": [float(r) for r in details["rbar"].tolist()],
+        "raw_residuals_per_bin": [float(r) for r in details["raw_rbar"].tolist()],
+        "r_ref": float(details["r_ref"]),
+    }
+
+
+def physics_polish_objective(
+    model,
+    *,
+    frozen_times,
+    frozen_w_n,
+    frozen_bin_counts,
+    frozen_weights,
+    data_points,
+    ic13_t,
+    masses_t,
+    true_r0,
+    true_v0,
+    r_ref,
+    h0,
+    eps_h,
+    l0,
+    data_chunk_size,
+    microbatch_size,
+    dtype,
+    device,
+):
+    """The physics polish objective: one L-BFGS closure evaluation on frozen inputs.
+
+    The collocation rows, the causal weights, the bin counts and the loss weights
+    are the ones frozen at the Adam-to-L-BFGS handoff. They are never redrawn or
+    recomputed between closure evaluations (GAP-60-05, 57-RULING.md). Gradients
+    are cleared, the data term (when the arm has one) is accumulated by the
+    trainer's chunked function, the initial-condition term is back-propagated,
+    and the chunked pass 2 adds the physics, energy and angular-momentum
+    gradients. The trainer's own closure builds all 4,096 rows at once, so the
+    harness never calls it. Returns the detached weighted total.
+    """
+    _require_weights(frozen_weights)
+    model.zero_grad(set_to_none=True)
+    if data_points is None:
+        weighted_data = torch.zeros((), dtype=dtype, device=device)
+    else:
+        weighted_data = accumulate_chunked_data_term(
+            model,
+            data_points,
+            weight=frozen_weights.lambda_data,
+            chunk_size=data_chunk_size,
+            dtype=dtype,
+            device=device,
+        )
+    traj = make_trajectory(model, ic13_t, masses_t)
+    weighted_ic = frozen_weights.lambda_ic * ic_term(
+        traj, true_r0, true_v0, dtype=dtype, device=device
+    )
+    weighted_ic.backward()
+    release_chunk_memory(device)
+    phys, energy, angmom = physics_pass2_backward(
+        traj,
+        masses_t,
+        frozen_times,
+        w_n=frozen_w_n,
+        bin_counts=frozen_bin_counts,
+        r_ref=r_ref,
+        weights=frozen_weights,
+        h0=h0,
+        eps_h=eps_h,
+        l0=l0,
+        microbatch_size=microbatch_size,
+        dtype=dtype,
+        device=device,
+    )
+    other_total = (
+        weighted_ic.detach()
+        + frozen_weights.lambda_phys * phys
+        + frozen_weights.lambda_e * energy
+        + frozen_weights.lambda_l * angmom
+    )
+    return (weighted_data + other_total).detach()
 
 
 def data_only_loss(model, data_points, *, dtype, device):
