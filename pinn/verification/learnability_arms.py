@@ -1,12 +1,15 @@
-"""Phase 60 (INST-05): arm specification, evidence paths, the override refusal and the exclusive record writer.
+"""Phase 60 (INST-05): the closed arm catalog, the override refusal, evidence paths and the record writer.
 
 An arm is one training run of the learnability harness on one named system.
-This module holds plain data, the path rules for an arm's directories, the
+This module holds plain data: the closed catalog of 42 arms (each holding
+``RecordKey`` values, never a path), the closed sequences a launcher may run,
+the exit codes, and the path rules for an arm's directories. It also holds the
 rule that decides whether an arm may run at a first-layer frequency other than
 the locked one (INST-05(e)), and the one writer that creates a record file
 exactly once. It imports nothing heavier than ``pinn.verification.evidence_io``
-and two constants, so the gate, ruling and protocol modules can write evidence
-without importing the runner (no import cycle).
+and the plain-data modules ``pinn.constants`` and ``pinn.data.types``, so the
+gate, ruling and protocol modules can write evidence without importing the
+runner (no import cycle).
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 
 from pinn.constants import SIREN_FIRST_OMEGA_0
 from pinn.data.types import RecordKey
@@ -37,11 +41,24 @@ __all__ = [
     "FORMULA_NOT_APPLICABLE",
     "FIXTURE_FORMULA_NOTE",
     "TIMING_STEPS",
+    "PANEL_SYSTEMS",
+    "PANEL_INNER_LAPS",
+    "PROBE_STAGES",
+    "EXIT_OK",
+    "EXIT_REFUSED",
+    "EXIT_OWNER",
+    "EXIT_SIGHUP",
+    "EXIT_SIGINT",
+    "EXIT_SIGTERM",
+    "SEQUENCES",
     "ArmSpec",
     "FirstResultExists",
     "OverrideRefused",
+    "UnknownArm",
     "arm_evidence_dir",
     "arm_run_dir",
+    "arm_spec",
+    "catalog",
     "check_override",
     "fixture_arm",
     "resolve_first_omega_0",
@@ -67,12 +84,40 @@ FORMULA_NOT_APPLICABLE = "not applicable: no hierarchical split"
 FIXTURE_FORMULA_NOTE = "not applicable: fixture record"
 # GAP-60-04: steps of the separate timing run before each real arm.
 TIMING_STEPS = {"data_only": 500, "physics": 50}
+# The three panel systems (hierarchical) and the pinned inner-lap counts that order
+# the settings-sweep pair (SPEC Requirement 6).
+PANEL_SYSTEMS = (1632, 851, 4658)
+PANEL_INNER_LAPS = {1632: 10.47, 851: 18.61, 4658: 39.35}
+# FEAS-09 probe systems (standard) and the curriculum stage whose learning rate and
+# clip each Rung-2b probe takes (D-05).
+PROBE_STAGES = {2279: 4, 3418: 6}
+# Process exit codes of a launched arm: a refusal, an owner stop, and the three
+# signals that allow a governed resume (SIGHUP, SIGINT, SIGTERM).
+EXIT_OK = 0
+EXIT_REFUSED = 2
+EXIT_OWNER = 3
+EXIT_SIGHUP = 129
+EXIT_SIGINT = 130
+EXIT_SIGTERM = 143
 
 _ARM_ID = re.compile(r"[a-z0-9-]+")
+# The four sweep settings, written into arm ids as w060, w120, w240 and w480. A test
+# pins them to the frozen scorecard's gate_g2 grid, and check_override reads that grid.
+_GRID_SETTINGS = (60, 120, 240, 480)
+# The pinned lap counts put the sweep on 1632 or 851 and the one confirmation on 851 or
+# 4658 (SPEC Requirement 6): 4658 is never swept and 1632 is never the confirmation.
+_SWEEP_SYSTEMS = (1632, 851)
+_CONFIRMATION_SYSTEMS = (851, 4658)
+# Probe Rung-2b trains on the standard base record for 2279 and the standard gold for 3418.
+_PROBE_2B_TRAIN = {2279: "base", 3418: "gold"}
 
 
 class FirstResultExists(RuntimeError):
     """A record already exists for this arm. The first completed run is the result."""
+
+
+class UnknownArm(ValueError):
+    """The id names no arm in the closed catalog, so nothing runs."""
 
 
 def _check_arm_id(arm_id):
@@ -134,6 +179,9 @@ def fixture_arm(
     grid_omega=None,
 ):
     """An uncounted fixture arm. Its record is marked ``fixture`` and is never a rung result."""
+    for name, key in (("train_key", train_key), ("score_key", score_key), ("beside_key", beside_key)):
+        if not isinstance(key, RecordKey):
+            raise TypeError(f"{name} must be a RecordKey, never a path; got {type(key).__name__}")
     return ArmSpec(
         arm_id=f"fixture-{train_key.variant}-{train_key.fidelity}-{train_key.id}",
         rung="fixture",
@@ -161,6 +209,118 @@ def arm_evidence_dir(arm_id, *, evidence_root):
 def arm_run_dir(arm_id, *, repo_root):
     """``<repo_root>/runs/phase60/<arm_id>`` (the ignored resume tree)."""
     return Path(repo_root) / RUNS_REL / _check_arm_id(arm_id)
+
+
+def _arm(arm_id, *, rung, path, loss_arm, system, train, stage=0, provenance="locked", grid_omega=None):
+    """One catalog arm. Every arm is scored on its system's gold record, with the base grid beside."""
+    variant = "hierarchical" if system in PANEL_SYSTEMS else "standard"
+    return ArmSpec(
+        arm_id=arm_id,
+        rung=rung,
+        path=path,
+        loss_arm=loss_arm,
+        system_id=system,
+        variant=variant,
+        train_key=RecordKey(variant, train, system),
+        score_key=RecordKey(variant, "gold", system),
+        beside_key=RecordKey(variant, "base", system),
+        lr_stage=stage,
+        clip_stage=stage,
+        omega_provenance=provenance,
+        grid_omega=grid_omega,
+        counted=system in PANEL_SYSTEMS,
+        run_kind="real",
+    )
+
+
+def _ladder_arms(prefix, path, provenance):
+    """Rung 2a, Rung 2b and the four probe arms of one path (``prefix`` is ``""`` or ``"c-"``)."""
+    arms = []
+    for system in PANEL_SYSTEMS:
+        arms.append(_arm(f"{prefix}r2a-{system}", rung="2a", path=path, loss_arm="physics_ic",
+                         system=system, train="base", provenance=provenance))
+    for system in PANEL_SYSTEMS:
+        arms.append(_arm(f"{prefix}r2b-{system}", rung="2b", path=path, loss_arm="full",
+                         system=system, train="base", provenance=provenance))
+    for system in PROBE_STAGES:
+        arms.append(_arm(f"{prefix}p1-{system}", rung="probe-1", path=path, loss_arm="data_only",
+                         system=system, train="gold", provenance=provenance))
+    for system, stage in PROBE_STAGES.items():
+        arms.append(_arm(f"{prefix}p2b-{system}", rung="probe-2b", path=path, loss_arm="full",
+                         system=system, train=_PROBE_2B_TRAIN[system], stage=stage,
+                         provenance=provenance))
+    return arms
+
+
+def _build_catalog():
+    arms = []
+    for system in PANEL_SYSTEMS:
+        arms.append(_arm(f"r1-{system}", rung="1", path="rung1", loss_arm="data_only",
+                         system=system, train="gold"))
+    for system in _SWEEP_SYSTEMS:
+        for setting in _GRID_SETTINGS:
+            arms.append(_arm(f"g2s-{system}-w{setting:03d}", rung="g2-sweep", path="g2_sweep",
+                             loss_arm="data_only", system=system, train="gold",
+                             provenance="g2_sweep_override", grid_omega=float(setting)))
+    for system in _CONFIRMATION_SYSTEMS:
+        for setting in _GRID_SETTINGS:
+            arms.append(_arm(f"g2c-{system}-w{setting:03d}", rung="g2-confirmation",
+                             path="g2_confirmation", loss_arm="data_only", system=system,
+                             train="gold", provenance="confirmation_override",
+                             grid_omega=float(setting)))
+    arms.extend(_ladder_arms("", "g2_passed", "locked"))
+    for system in PANEL_SYSTEMS:
+        arms.append(_arm(f"c-r1u-{system}", rung="1", path="continue", loss_arm="data_only",
+                         system=system, train="gold", provenance="owner_approved"))
+    arms.extend(_ladder_arms("c-", "continue", "owner_approved"))
+    return {spec.arm_id: spec for spec in arms}
+
+
+def _build_sequences(specs):
+    sweeps = {
+        system: tuple(f"g2s-{system}-w{setting:03d}" for setting in _GRID_SETTINGS)
+        for system in _SWEEP_SYSTEMS
+    }
+    continue_ladder = (
+        tuple(f"c-r2b-{system}" for system in PANEL_SYSTEMS)
+        + tuple(f"c-r2a-{system}" for system in PANEL_SYSTEMS)
+    )
+    table = {
+        "rung1": tuple(f"r1-{system}" for system in PANEL_SYSTEMS),
+        "sweep-1632": sweeps[1632],
+        "sweep-851": sweeps[851],
+        # Rung 2b first: FEAS-04's counts use 2b.
+        "rung2": (
+            tuple(f"r2b-{system}" for system in PANEL_SYSTEMS)
+            + tuple(f"r2a-{system}" for system in PANEL_SYSTEMS)
+        ),
+        "probes": ("p1-2279", "p1-3418", "p2b-2279", "p2b-3418"),
+    }
+    # After a continue, the system neither the sweep nor the confirmation covered gets its
+    # own data-only Rung 1 first; which one that is depends on the recorded G2 outcome.
+    for uncovered in PANEL_SYSTEMS:
+        table[f"continue-rung2-{uncovered}"] = (f"c-r1u-{uncovered}",) + continue_ladder
+    table["continue-probes"] = ("c-p1-2279", "c-p1-3418", "c-p2b-2279", "c-p2b-3418")
+    for arm_id in specs:
+        table[f"arm:{arm_id}"] = (arm_id,)
+    return MappingProxyType(table)
+
+
+_CATALOG = _build_catalog()
+# The closed sequence names a launcher may run, each mapped to its arm ids in run order.
+SEQUENCES = _build_sequences(_CATALOG)
+
+
+def catalog():
+    """The 42 catalog arms, ``arm_id -> ArmSpec``, as a read-only mapping in a fixed order."""
+    return MappingProxyType(_CATALOG)
+
+
+def arm_spec(arm_id):
+    """The catalog arm for ``arm_id``. Any other value, including a path, raises ``UnknownArm``."""
+    if not isinstance(arm_id, str) or arm_id not in _CATALOG:
+        raise UnknownArm(f"{arm_id!r} is not an arm in the closed catalog of {len(_CATALOG)} arms")
+    return _CATALOG[arm_id]
 
 
 class OverrideRefused(RuntimeError):
