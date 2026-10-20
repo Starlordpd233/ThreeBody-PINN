@@ -1197,31 +1197,31 @@ def _require_taken(name, root, evidence, card):
 def _check_branch(spec, root, evidence, card):
     """The branch the committed G2 records have taken must allow this arm.
 
-    Returns ``(branch state or None, checkpoint 4 ruling or None)``.
+    Returns the committed checkpoint 4 ruling for a continue-path arm, else ``None``.
     """
     if spec.path == "rung1":
-        return None, None
+        return None
     if spec.path == "g2_sweep":
-        state = _require_taken("sweep", root, evidence, card)
+        _require_taken("sweep", root, evidence, card)
         sweep = _g2_json(root, evidence, "g2-outcome.json")["sweep_system"]
         if spec.system_id != sweep:
             raise AdmissionRefused(f"{spec.arm_id} is not on the recorded sweep system {sweep}")
-        return state, None
+        return None
     if spec.path == "g2_confirmation":
-        state = _require_taken("confirmation", root, evidence, card)
+        _require_taken("confirmation", root, evidence, card)
         confirmation = _g2_json(root, evidence, "sweep-curve.json")["confirmation_arm"]
         if spec.arm_id != confirmation:
             raise AdmissionRefused(
                 f"{spec.arm_id} is not the recorded confirmation arm {confirmation}"
             )
-        return state, None
+        return None
     state = _require_taken("ladder", root, evidence, card)
     if spec.path == "g2_passed":
         if state.omega_provenance != "locked":
             raise AdmissionRefused(
                 "the ladder is taken by an owner continue, so a plain Rung-2 or probe arm does not run"
             )
-        return state, None
+        return None
     if spec.path != "continue":
         raise AdmissionRefused(f"{spec.arm_id} has the unknown path {spec.path}")
     if state.omega_provenance != "owner_approved":
@@ -1237,7 +1237,7 @@ def _check_branch(spec, root, evidence, card):
         uncovered = _g2_json(root, evidence, "g2-outcome.json")["uncovered_system"]
         if spec.system_id != uncovered:
             raise AdmissionRefused(f"{spec.arm_id} is not on the recorded uncovered system {uncovered}")
-    return state, ruling
+    return ruling
 
 
 def _reference_in_force(protocol, root, evidence, owner_approved):
@@ -1260,8 +1260,6 @@ def _reference_in_force(protocol, root, evidence, owner_approved):
     remeasure = parse_remeasure(recorded, path=relative)
     cited = remeasure.r_ref_artifact
     approved = R_REF_APPROVED_REL.as_posix()
-    if remeasure.verdict != "PASS" or cited is None:
-        raise AdmissionRefused(f"the re-measure record {relative} is not a PASS")
     if cited["path"] != approved:
         raise AdmissionRefused(f"the re-measure record cites {cited['path']}, not {approved}")
     if not tracked_and_clean(root, approved):
@@ -1283,11 +1281,9 @@ def _admit(arm_id, root, evidence, resume):
     preflight_sha256 = _check_preflight(spec, protocol, root, evidence)
     _check_pins(protocol, root)
     _check_run_state(spec, root, evidence, resume)
-    state, ruling = _check_branch(spec, root, evidence, card)
+    ruling = _check_branch(spec, root, evidence, card)
     value = resolve_first_omega_0(spec, scorecard=card, ruling=ruling)
     check_override(spec, value, scorecard=card, ruling=ruling)
-    if state is not None and state.first_omega_0 is not None and state.first_omega_0 != value:
-        raise AdmissionRefused(f"{arm_id} would run at {value}, not at the ladder's {state.first_omega_0}")
     ruling_facts = None
     if ruling is not None:
         confirmed = _g2_json(root, evidence, "sweep-curve.json").get("confirmed_first_omega_0")

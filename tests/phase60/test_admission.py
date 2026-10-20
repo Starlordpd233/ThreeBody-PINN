@@ -19,6 +19,7 @@ have these functions yet fails on the planned behavior instead of at import.
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import hashlib
 import io
 import json
@@ -34,8 +35,9 @@ from pinn.data.adapter import EvidenceRedactionError
 from pinn.data.types import RecordKey
 from pinn.verification import evidence_io
 from pinn.verification.feasibility_scorecard import load_scorecard
-from pinn.verification.learnability_arms import FirstResultExists, catalog
+from pinn.verification.learnability_arms import FirstResultExists, arm_spec, catalog
 from pinn.verification.learnability_data import HarnessHalt, fixture_context
+from pinn.verification.learnability_ruling import load_checkpoint4_ruling
 from tests.phase59.test_evidence_verifier import commit_all
 from tests.phase60._fixtures import gold_corpus_fixture
 from tests.phase60.test_g2 import ONE_AT_120, ZERO_GRID, Tree, remeasure_payload
@@ -169,6 +171,8 @@ PREFLIGHT_TWEAKS = {
 PROTOCOL_TWEAKS = {
     "scorer": lambda payload: payload.update(scorer_sha256="0" * 64),
     "scorecard": lambda payload: payload.update(scorecard_sha256="0" * 64),
+    "refvalue": lambda payload: payload["r_ref_governed"].update(value=123.0),
+    "refsha": lambda payload: payload["r_ref_governed"].update(sha256="0" * 64),
 }
 
 
@@ -431,6 +435,9 @@ class PreflightWriterTests(unittest.TestCase):
             self.arms_blocked(payload), ["c-p1-2279", "c-p2b-2279", "p1-2279", "p2b-2279"]
         )
         self.assertEqual(payload["arms"]["p1-2279"]["blocked_by"], ["standard/base/2279"])
+        self.assertEqual(
+            payload["blocked_arms"], ["c-p1-2279", "c-p2b-2279", "p1-2279", "p2b-2279"]
+        )
         self.assertEqual(payload["arms"]["r1-1632"]["status"], "ok")
         self.assertEqual(payload["records"]["standard/base/2279"]["status"], "missing")
         self.assertIs(payload["records"]["standard/base/2279"]["count_ok"], False)
@@ -753,9 +760,9 @@ class AdmissionBranchTests(unittest.TestCase):
 
     def test_no_sweep_arm_runs_when_g2_did_not_fire(self):
         tree = registered(self, "quiet", lambda t: t.with_outcome((1, 1, 1)))
-        tree.refusal("g2s-1632-w060", "sweep")
-        tree.refusal("g2s-851-w060", "sweep")
-        tree.refusal("g2c-851-w120", "confirmation")
+        tree.refusal("g2s-1632-w060", "branch sweep is NOT-TAKEN")
+        tree.refusal("g2s-851-w060", "branch sweep is NOT-TAKEN")
+        tree.refusal("g2c-851-w120", "branch confirmation is NOT-TAKEN")
 
     def test_the_confirmation_runs_only_as_the_recorded_confirmation_arm(self):
         tree = registered(self, "curve-000", build_curve)
@@ -846,6 +853,22 @@ class AdmissionBranchTests(unittest.TestCase):
         self.assertIs(admission["ruling"]["on_grid"], True)
         self.assertIs(admission["ruling"]["equals_confirmed"], False)
 
+    def test_an_arm_that_would_run_at_a_setting_it_is_not_entitled_to_is_refused(self):
+        tree = registered(self, "quiet", lambda t: t.with_outcome((1, 1, 1)))
+        spec = dataclasses.replace(
+            arm_spec("r2b-1632"), omega_provenance="g2_sweep_override", grid_omega=60.0
+        )
+        with mock.patch.object(self.P, "arm_spec", return_value=spec):
+            tree.refusal("r2b-1632", "physics term")
+
+    def test_a_ruling_that_differs_from_the_ladders_setting_refuses_the_arm(self):
+        tree = registered(self, "continue-120", build_continue("120", 120.0))
+        other = dataclasses.replace(
+            load_checkpoint4_ruling(repo_root=tree.root), approved_first_omega_0=240.0
+        )
+        with mock.patch.object(self.P, "load_checkpoint4_ruling", return_value=other):
+            tree.refusal("c-r2b-1632", "ruling")
+
     def test_a_continue_waits_for_a_passed_re_measure_at_the_approved_setting(self):
         pending = registered(
             self, "continue-no-remeasure",
@@ -935,7 +958,10 @@ class ReferenceInForceTests(unittest.TestCase):
         original = artifact.read_bytes()
         artifact.write_bytes(original + b" ")
         tree.refusal("c-r2b-1632", "r-ref-approved.json")
+        tree.commit("a different artifact, committed")
+        tree.refusal("c-r2b-1632", "r-ref-approved.json", "not the file")
         artifact.write_bytes(original)
+        tree.commit("the cited artifact again")
         tree.admit("c-r2b-1632")
         subprocess.run(["git", "rm", "--cached", "-q", APPROVED_PATH], cwd=tree.root, check=True)
         tree.refusal("c-r2b-1632", "r-ref-approved.json")
@@ -946,10 +972,20 @@ class ReferenceInForceTests(unittest.TestCase):
         tree = registered(self, "continue-120", build_continue("120", 120.0))
         payload = json.loads(tree.path("continue/gate04-remeasure.json").read_text(encoding="utf-8"))
         payload["r_ref_artifact"]["path"] = R_REF
-        payload["r_ref_artifact"]["sha256"] = GOVERNED_SHA
+        payload["r_ref_artifact"]["sha256"] = sha256_file(tree.path("continue/r-ref-approved.json"))
         write_json(tree.path("continue/gate04-remeasure.json"), payload)
         tree.commit("a re-measure that cites the governed file")
         tree.refusal("c-r2b-1632", "r-ref-approved.json")
+
+    def test_a_governed_reference_that_differs_from_the_protocols_record_refuses_a_physics_arm(self):
+        for tweak in ("refvalue", "refsha"):
+            with self.subTest(tweak=tweak):
+                tree = registered(
+                    self, f"quiet-{tweak}", lambda t: t.with_outcome((1, 1, 1)), protocol_tweak=tweak
+                )
+                tree.refusal("r2b-1632", "governed reference")
+                tree.refusal("p2b-2279", "governed reference")
+                tree.admit("p1-2279")
 
     def test_clipping_follows_the_protocol_for_data_only_arms_and_never_for_physics_arms(self):
         tree = registered(self, "quiet-noclip", lambda t: t.with_outcome((1, 1, 1)), clip=False)
