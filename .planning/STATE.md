@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 wave 1 complete 2026-10-19 (60-01 done, 1 of 23 plans); waves 2-4 next (60-02, 60-03, 60-04, 60-23), run by position 1 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
+stopped_at: "Phase 60 wave 2 complete 2026-10-19 (60-01 to 60-03 done, 3 of 23 plans); waves 3-4 next (60-04, 60-23), run by position 1 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
 last_updated: "2026-10-19T04:00:45Z"
 last_activity: 2026-10-19
-last_activity_desc: Phase 60 wave 1 executed — 60-01 built the data-only fixture arm tracer and the Phase 60 static guard (commits 5e31f46a, a9cc3c14, 015f03b3); the wave gate passed (64 + 31 + 4 + 139 tests). Two GAP-60-05 polish-stopping readings are open for the owner or verifier before the first real arm.
+last_activity_desc: Phase 60 wave 2 executed — 60-02 made the scorer MPS-safe and passed the MPS L-BFGS smoke (commits 57f48478, 2c84d43a, 08189ab1, 2734f4c9); 60-03 applied the scope amendment in REQUIREMENTS.md (spec commit dc3edac0, summary f9d0b439). The wave gate passed (104 + 31 + 4 + 139 tests). Two GAP-60-05 polish-stopping readings stay open for the owner or verifier before the first real arm.
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 11
-  percent: 33
+  completed_plans: 13
+  percent: 39
 ---
 
 # Project State
@@ -30,9 +30,22 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-4 under watchdog chain phase-60-work-8ffbf6ffd8616f5c)
-Plan: 1 of 23 (22 waves)
+Plan: 3 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-19 — Wave 1 complete (60-01); waves 2-4 (plans 60-02, 60-03, 60-04, 60-23) run next, then the chain hands off
+Last activity: 2026-10-19 — Wave 2 complete (60-02, 60-03); waves 3-4 (plans 60-04, 60-23) run next, then the chain hands off
+
+### Decisions from 60-03 (2026-10-19)
+
+- `REQUIREMENTS.md` carries the locked scope amendment word for word after whitespace collapse: four edits (the SCOPE-39 row, the FEAS-09 opening line, the SCOPE-44 row and Owner Checkpoint ④). Inside Owner Checkpoint ④ the amendment was 0 of 3 present, not "1 of 3" as GAP-60-01 says (the one existing sentence sat in the FEAS-03 rescue bullet, outside the designated section). No requirement was ticked.
+- `tests/phase60/test_amendment.py` (21 tests) parses the six paragraphs from `60-SPEC.md` itself. The frozen scorecard SHA-256 `f4b17688…444b` is unchanged.
+- The amendment commit is `dc3edac0` (summary `f9d0b439`). Plan 60-13 should pin that hash in the run protocol.
+
+### Decisions from 60-02 (2026-10-19)
+
+- `network_trajectory` widens on the CPU and then to float64 at all three sites (position, velocity, acceleration), so a float32 network on this Mac's MPS device is scored end to end. CPU float64 behaviour is unchanged. Commits `57f48478`, `2c84d43a`, `08189ab1`, `2734f4c9`.
+- D-09 scorer digests: predecessor `cd5019a2ba5604f39d5c6e01763ff3f0e53547920a57bbf174ebc3bb0a73870b`, successor `00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7`, recorded in `evidence/scorer-successor.json`. `verify_phase59_evidence.py` stays red on the scorer digest until Plan 60-04 lands, as planned.
+- The MPS L-BFGS smoke passed (tiny and production network, the harness's chunked polish closure on a 1001-point gold batch), so no owner stop is needed before Plan 60-08.
+- DEVIATION for the owner or verifier: the plan's element-wise float32 tolerance (rtol 1e-4, atol 1e-5) cannot hold for the production network, whose first SIREN layer runs at frequency 30 (17%, 41% and 42% of the position, velocity and acceleration elements fall outside). The test uses a bound of 1e-3 of each array's largest magnitude instead; measured agreement is 4.7e-5, 8.7e-5 and 9.5e-5 of that magnitude.
 
 ### Decisions from 60-01 (2026-10-19)
 

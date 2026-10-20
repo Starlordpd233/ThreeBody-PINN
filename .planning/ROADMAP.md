@@ -244,8 +244,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 60-02-PLAN.md — Wave 2: the scorer's MPS fix at all three widening sites, the single successor digest (D-09), and the MPS L-BFGS smoke (INST-05, FEAS-03)
-- [ ] 60-03-PLAN.md — Wave 2: the 2026-10-17 scope amendment text and its SPEC-parsed containment test; the scorecard unchanged (FEAS-04, FEAS-09)
+- [x] 60-02-PLAN.md — Wave 2: the scorer's MPS fix at all three widening sites, the single successor digest (D-09), and the MPS L-BFGS smoke (INST-05, FEAS-03)
+- [x] 60-03-PLAN.md — Wave 2: the 2026-10-17 scope amendment text and its SPEC-parsed containment test; the scorecard unchanged (FEAS-04, FEAS-09)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 1/23 | In Progress | - |
+| 60. Single-System Learnability | 3/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
