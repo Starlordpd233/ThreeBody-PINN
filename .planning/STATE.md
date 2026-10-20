@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-9 complete 2026-10-20 (60-01 to 60-09 and 60-23 done, 10 of 23 plans); wave 10 (60-10) is next, run by position 3 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 8-10)"
-last_updated: "2026-10-20T10:37:19Z"
+stopped_at: "Phase 60 waves 1-10 complete 2026-10-20 (60-01 to 60-10 and 60-23 done, 11 of 23 plans); wave 11 (60-11) is next, run by position 4 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 11-12)"
+last_updated: "2026-10-20T15:52:19Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 60 wave 9 executed — 60-09 prepared the step an owner "continue" requires before any physics arm: GATE-04 gained an optional first_omega_0 setting whose default path is unchanged, and a new entry re-measures the reference residual scale and re-runs the train-free gate at the owner-approved value, writing only Phase 60 evidence and never the governed Stage-0 reference (commits da946364, c9b3f597, 7f7088b5, b4fd949c, 56c3dcba). The real six-case re-measure was not run; it runs only on the continue path (Plan 60-19). The wave gate passed (123 focused tests re-run by the orchestrator; the executor's full 698-test Phase 60 discovery reused). Waves 1-9 are done. Open for the owner or verifier before the first real arm: the 60-09 readings (coverage item D7), the 60-08 readings (D10 and D11), the 60-07 readings (D9), the 60-06 readings (D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
+last_activity_desc: Phase 60 wave 10 executed — 60-10 wrote the pre-registration machinery, not the pre-registration itself: a run-protocol builder that fingerprints (SHA-256) the 33 modules and artifacts a real arm runs or reads and refuses any drift, a preflight writer that checks every assigned data record before the first arm, and an admission check every real arm must pass (right branch of the committed G2 records, no earlier result, scorer and scorecard as registered) (commits 108ca2e8, 304742bf, 763fc8c8, 2d78ab9d, af81ac24, 51cfb094, 83974900). No real protocol, preflight or arm record was written, and no real-repository write, preflight or admit command was run. The wave gate passed (263 focused tests re-run by the orchestrator; the executor's full 842-test Phase 60 discovery at the final code reused). Waves 1-10 are done. Open for the owner or verifier before the first real arm: the eight 60-10 readings (coverage item D8), the 60-09 readings (D7), the 60-08 readings (D10 and D11), the 60-07 readings (D9), the 60-06 readings (D8), the 60-05 monitor-log item (D7), two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 20
-  percent: 61
+  completed_plans: 21
+  percent: 64
 ---
 
 # Project State
@@ -25,14 +25,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-9 complete; wave 10 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-10 complete; wave 11 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-9 complete; wave 10 continues under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 3 running waves 8-10)
-Plan: 10 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-10 complete; wave 11 continues under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 4 running waves 11-12)
+Plan: 11 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-20 — Wave 9 complete (60-09); waves 1-9 are done and wave 10 (60-10) is next
+Last activity: 2026-10-20 — Wave 10 complete (60-10); waves 1-10 are done and wave 11 (60-11) is next
+
+### Decisions from 60-10 (2026-10-20)
+
+- `learnability_protocol.py` (new, SPEC Requirements 4 and 8, D-08, D-11, GAP-60-03 to GAP-60-13) holds three things and a command line. `build_protocol`, `write_protocol` and `load_protocol` produce and re-check the run protocol (`phase60-run-protocol/v1`): every value comes from the code's own constants, the frozen scorecard or committed Phase 59 and Phase 60 evidence, and the SHA-256 of each of the 33 `PINNED_MODULES` entries is recorded so `load_protocol` raises `ProtocolDrift` naming any changed file. `write_preflight` checks all ten assigned records (`phase60-preflight/v1`) with no substitute for a missing, empty, unreadable or wrongly counted record. `admit_arm` is the check every real arm passes before it starts. The module never imports `learnability_run` (the runner imports it). Commits `108ca2e8` and `304742bf` (tracer, test-first), `763fc8c8`, `2d78ab9d` and `af81ac24` (preflight and admission, test-first, then a hardening pass), `51cfb094` and `83974900` (summary).
+- Nothing real was written. No `run-protocol.json`, `60-RUN-PROTOCOL.md`, `preflight/records.json` or arm record exists; the evidence directory still holds exactly `launch_phase60_arm.py` and `scorer-successor.json`, and `runs/phase60` does not exist. Guardrails verified independently by the orchestrator: `r_ref_stage0.json` is still SHA-256 `c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff`, the scorecard JSON is still `f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b`, the only `terminal-state.json` is the existing Phase 57 file, `git diff --name-only 31467d7e HEAD` lists only the three owned files and the SUMMARY, and `git diff --check` is clean. The executor's one read-only smoke of `write_preflight` against the real corpus (writer replaced by a capture) found all ten keys ok with counts 126, 1,001 and 59 and zero test-split opens.
+- Literals checked by the orchestrator: `EXPECTED_S_H` 22.321729071058996 and `EXPECTED_EPS_H` 0.0022321729071058997 equal the values in the tracked `runs/stage0-v23g7-seed42/training_metadata.json`; the within-T counts 1,001, 126 and 59 are the plan's (60-RESEARCH Finding G).
+- Wave 10 gate, re-run by the orchestrator: the contract verify command (schedule, budget driver, re-measure, protocol and admission suites) ran 263 tests, OK, in 519 s. The executor's retained full `tests/phase60` discovery (842 tests, OK, 1 by-design platform-probe skip, 876 s of tests, run once at the final code `af81ac24`; later commits changed only the SUMMARY) is reused, not rerun. The executor's 80 single-line mutations of the module were read from its retained logs: 29 of 29 and 51 of 51 caught on the final code.
+- DEVIATIONS (the SUMMARY lists them): five code commits instead of the plan's one (test-first); the Sonnet 5.5 co-author trailer instead of the Opus 5.5 the plan text names; the `af81ac24` body says "seven uncaught" where the exact figure is eight (not amended, no history rewrite); two checks that could never trigger were removed; Rule 2 hardening (`load_protocol` also checks the recorded source digests, and `write` requires an existing preflight and an amendment commit that is an ancestor of HEAD).
+- OPEN for the owner or verifier (60-10's coverage item D8; the protocol is sealed in Plan 60-13): (1) a window count other than 1,001, 126 or 59 blocks the arm, although SPEC Requirement 8 names only missing, empty and unreadable records; (3) `load_protocol` also compares the recorded digests of the Phase 59 panels, picks and two-Kepler files, the Stage-0 metadata and the scorer successor record; (6) the data-only Rung 1 arm on the uncovered system waits for the re-measure, because the ladder is taken only after a passed re-measure. The other five readings (one exception type for every unusable protocol; extra protocol sections; admission result extras; extra command-line tokens; `write_protocol` refusing with `HarnessHalt` after a result) are listed in the SUMMARY.
+- FOR PLANS 60-11, 60-12 AND 60-13: `PINNED_MODULES` includes `learnability_run.py` and `learnability_protocol.py`, which Plans 60-11 and 60-12 still edit. Any edit to a pinned file after the real protocol is written is drift, so Plan 60-13 writes the protocol only after every such edit. `admit_arm(arm_id, repo_root=None, evidence_root=None, resume=False)` returns what the arm must cite and creates nothing, so `--admit-only` can call it before touching `runs/`.
 
 ### Decisions from 60-09 (2026-10-20)
 
