@@ -423,12 +423,17 @@ class FixtureGatingTests(_FixtureRunCase):
                     self._run_arm(spec, context, fixture_budget_steps=bad)
         self._assert_nothing_written()
 
-    def test_only_the_data_only_loss_arm_is_trained_here(self):
+    def test_a_physics_loss_arm_needs_its_reference_supplied_explicitly(self):
+        # Plan 60-11 trains both physics loss arms; the Plan 60-01 refusal of any loss
+        # other than data_only is superseded. A fixture arm with a physics term passes
+        # fixture_r_ref explicitly, and without it nothing is read or written. The full
+        # physics behaviour is covered by tests.phase60.test_physics_arm.
         spec, context = _arm_and_context(self.fixture)
         for loss_arm in ("physics_ic", "full"):
             with self.subTest(loss_arm=loss_arm):
-                with self.assertRaises(HarnessHalt):
+                with self.assertRaises(HarnessHalt) as caught:
                     self._run_arm(dataclasses.replace(spec, loss_arm=loss_arm), context)
+                self.assertIn("fixture_r_ref", str(caught.exception))
         self._assert_nothing_written()
 
     def test_a_spec_with_an_unauthorized_omega_is_refused_before_anything_is_written(self):

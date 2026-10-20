@@ -728,20 +728,23 @@ class OwnerStopTests(_FixtureCase):
                 with self.assertRaises(HarnessHalt):
                     write_owner_stop(self.arm_dir, stage=bad, reason="x", details={})
 
-    def test_the_only_handler_for_an_owner_stop_re_raises(self):
+    def test_every_handler_for_an_owner_stop_re_raises(self):
+        # Plan 60-11 adds the second owner-routed site (a counted system whose formula row
+        # is missing, SPEC Requirement 7). Plan 60-08's module had one; the rule it pins is
+        # that every one of them writes its stop and then re-raises the same exception.
         source = inspect.getsource(learnability_run)
         tree = ast.parse(source)
         found = []
-        for function in ast.walk(tree):
+        for function in tree.body:
             if not isinstance(function, ast.FunctionDef):
                 continue
             for node in ast.walk(function):
                 if isinstance(node, ast.ExceptHandler) and "OwnerRouted" in ast.dump(node.type or ast.Constant(0)):
                     found.append((function.name, node.body[-1]))
-        self.assertEqual([name for name, _ in found], ["run_arm"])
-        last = found[0][1]
-        self.assertIsInstance(last, ast.Raise)
-        self.assertIsNone(last.exc)
+        self.assertEqual(sorted(name for name, _ in found), ["_official_counts", "run_arm"])
+        for _name, last in found:
+            self.assertIsInstance(last, ast.Raise)
+            self.assertIsNone(last.exc)
 
 
 class DivergenceRunTests(_FixtureCase):
