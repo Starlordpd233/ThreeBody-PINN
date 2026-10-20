@@ -1,0 +1,8 @@
+{
+  "note": "D-09: the Phase 59 verifier accepts exactly this one successor for this one path; Phase 59 evidence is not re-run",
+  "path": "pinn/verification/feasibility_scorer.py",
+  "predecessor_sha256": "cd5019a2ba5604f39d5c6e01763ff3f0e53547920a57bbf174ebc3bb0a73870b",
+  "reason": "GAP-59-13: MPS-safe widening at the three network_trajectory sites (CPU, then float64)",
+  "schema": "phase60-scorer-successor/v1",
+  "successor_sha256": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7"
+}

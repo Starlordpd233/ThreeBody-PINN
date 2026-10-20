@@ -374,6 +374,11 @@ def _trainer_closure(model, ic13, masses, *, dtype, device):
     return traj, flat_traj
 
 
+def _to_cpu_float64(tensor):
+    """GAP-59-13: MPS has no float64, so move to the CPU first and then widen."""
+    return tensor.detach().to("cpu").to(torch.float64)
+
+
 def network_trajectory(
     model,
     ic13,
@@ -413,17 +418,11 @@ def network_trajectory(
             )
             positions = torch.func.vmap(flat_traj)(u_chunk)
             velocities = torch.func.vmap(torch.func.jacrev(flat_traj))(u_chunk)
-            position_chunks.append(
-                positions.detach().to(device="cpu", dtype=torch.float64).numpy().reshape(-1, 3, 3)
-            )
-            velocity_chunks.append(
-                velocities.detach().to(device="cpu", dtype=torch.float64).numpy().reshape(-1, 3, 3)
-            )
+            position_chunks.append(_to_cpu_float64(positions).numpy().reshape(-1, 3, 3))
+            velocity_chunks.append(_to_cpu_float64(velocities).numpy().reshape(-1, 3, 3))
             if want_acceleration:
                 _first, second = componentwise_du(traj, u_chunk)
-                acceleration_chunks.append(
-                    second.detach().to(device="cpu", dtype=torch.float64).numpy().reshape(-1, 3, 3)
-                )
+                acceleration_chunks.append(_to_cpu_float64(second).numpy().reshape(-1, 3, 3))
     finally:
         if prior_training:
             model.train()
