@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-11 complete 2026-10-20 (60-01 to 60-11 and 60-23 done, 12 of 23 plans); wave 12 (60-12) is next, run by position 4 of watchdog chain phase-60-work-8ffbf6ffd8616f5c (waves 11-12)"
-last_updated: "2026-10-20T17:26:00Z"
+stopped_at: "Phase 60 waves 1-12 complete 2026-10-20 (60-01 to 60-12 and 60-23 done, 13 of 23 plans); wave 13 (60-13) is next"
+last_updated: "2026-10-20T18:02:00Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 60 wave 11 executed — 60-11 completed the runner: both physics loss arms (Rung 2a, Rung 2b, probe Rung-2b) train on the trainer's memory-bounded step with the PHYS-05 warmup and a fresh 4,096-row collocation draw each Adam step, one frozen monitor set is logged at every budget reading, and the handoff (rows, pass-1 causal weights, bin counts, loss weights) is frozen for the polish; both scored states are re-scored on the CPU in float64 with a tier or counts difference writing owner-stop.json and raising CrossCheckDisagreement; counted arms compare against the committed two-Kepler rows while probes never call counts; and build_real_record, validate_record (54 dotted fields) and REQUIRED_REAL_FIELDS gate the real-arm write (commit b5f47fac, summary a60fff5d). Verification: 21 + 41 + 911 + 35 tests pass (one by-design platform-probe skip); the full tests/phase60 discovery was run once at the final code. Waves 1-11 are done. Open for the owner or verifier before the first real arm: the 60-11 readings (coverage items D9 and D10) beside the earlier ones from 60-10 (D8), 60-09 (D7), 60-08 (D10 and D11), 60-07 (D9), 60-06 (D8), 60-05 (D7), the two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
-state_head: e6c3a3e5
+last_activity_desc: Phase 60 wave 12 executed — 60-12 gave the runner its real-arm command line and exact resume. `python -B -m pinn.verification.learnability_run <arm-id> [--resume | --admit-only]` calls admit_arm first (ADMIT-OK / ADMIT-REFUSED, exit 2), takes the Phase 60 one-launch lock with begin_long_step, writes runs/phase60/<arm-id>/process.json with its own PID before run_arm, installs SIGHUP/SIGINT/SIGTERM handlers, and maps OwnerRouted and CrossCheckDisagreement to OWNER-ROUTED with exit 3 once, GovernedStop to 129/130/143 (commit 2da19abe, summary 911beebd). A stop checkpoints phase60-resume/v1 (model, Adam, scheduler and cosine index, ScheduledWeights, GradClipper, four RNG streams, readings, trace, monitor log, B, extension flag, summed Adam and polish seconds, timing record, frozen monitor rows, handoff segment, L-BFGS state, polish counters, Adam scores, protocol SHA-256 and module digests) and a resume restores it exactly without re-timing B; an unrestorable arm raises ResumeRefused with the trainer's segment wording. Verification: 25 + 960 + 43 tests pass (one by-design platform-probe skip); the real `r1-1632 --admit-only` exits 2 with one ADMIT-REFUSED line and creates nothing under runs/. Waves 1-12 are done. Open for the owner or verifier before the first real arm: the 60-12 readings (coverage item D11) beside the earlier ones from 60-11 (D9 and D10), 60-10 (D8), 60-09 (D7), 60-08 (D10 and D11), 60-07 (D9), 60-06 (D8), 60-05 (D7), the two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
+state_head: 911beebd
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 22
-  percent: 67
+  completed_plans: 23
+  percent: 70
 ---
 
 # Project State
@@ -25,14 +25,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-11 complete; wave 12 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-12 complete; wave 13 next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-11 complete; wave 12 continues under watchdog chain phase-60-work-8ffbf6ffd8616f5c, position 4 running waves 11-12)
-Plan: 12 of 23 (22 waves)
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-12 complete; wave 13, the real protocol and preflight, is next)
+Plan: 13 of 23 (23 waves)
 Status: Executing
-Last activity: 2026-10-20 — Wave 11 complete (60-11); waves 1-11 are done and wave 12 (60-12) is next
+Last activity: 2026-10-20 — Wave 12 complete (60-12); waves 1-12 are done and wave 13 (60-13) is next
+
+### Decisions from 60-12 (2026-10-20)
+
+- `learnability_run.py` (SPEC Requirement 8, SCOPE-44) now carries the real-arm command line and exact resume. `python -B -m pinn.verification.learnability_run <arm-id> [--resume | --admit-only]` parses only a catalog arm id and the two mutually exclusive flags (any runtime, precision, seed or path argument is a usage refusal), calls `admit_arm` before anything else and prints `ADMIT-OK` / `ADMIT-REFUSED: <reason>` (exit 2), and `--admit-only` returns there without opening the corpus or creating a run tree. A run writes `runs/phase60/<arm-id>/process.json` with its own PID before `run_arm`, takes the Phase 60 one-launch lock with `begin_long_step("phase60", arm_id, ...)`, releases it in a `finally` on every path, and installs SIGHUP, SIGINT and SIGTERM handlers (`pinn/training/signals.py` is not edited). One top-level handler maps `OwnerRouted` and `CrossCheckDisagreement` to `OWNER-ROUTED: <message>` with exit 3 exactly once and `GovernedStop` to 129, 130 or 143; the codes are 0 ok, 2 refused, 3 owner-routed, 129, 130, 143. Commit `2da19abe`; summary `911beebd`.
+- Exact resume. `request_stop(signum)` only sets a flag and a code, and `run_arm` checkpoints at an Adam step boundary (through a `stop_fn` the budget driver consults), at the Adam-to-polish boundary and between polish outer calls, where the closure raises `_StopRequested(BaseException)` so a long outer call aborts at its next evaluation and the parameters plus the pre-call L-BFGS `state_dict` are restored. The `phase60-resume/v1` checkpoint in `resume.pt` holds the model, Adam, the scheduler and its cosine index, `ScheduledWeights`, `GradClipper`, the four RNG streams from `determinism.capture_rng_state`, the readings, trace and monitor log, B, the extension flag, the summed Adam and polish wall seconds, the timing record, the frozen monitor rows, the frozen handoff segment, the L-BFGS state during the polish, the polish counters, the Adam state's scores, and the protocol SHA-256 with the pinned module digests. A resume restores every component after the objects are rebuilt, continues the budget driver from its saved step and readings (so the extension decision at B is made once by the frozen function), never re-runs the timing run unless the stop came during it (the record then says `timing_runs` 2), never re-times B, and adds each segment's time. `stop-<n>.json` is written with `write_record_exclusive` per stop and the record's `launch {invocations, stops}` block carries the exit history. Both `torch.load` calls pass the literal `weights_only=True`.
+- The refusals. `ResumeRefused` covers a missing checkpoint or stop marker, another arm id, a changed protocol SHA-256, a changed pinned module digest, an unknown phase and a polish checkpoint without its segment state, in the trainer's words ("resume checkpoint is missing active L-BFGS segment state; refusing to redraw samples or causal weights", mirroring `controllers.py` lines 845-850 and 2213-2218). `ClaimExists` refuses a fresh start over an owned run tree, and a polish checkpoint without its L-BFGS state or a checkpoint at another `first_omega_0` is refused as well. `tests/phase60/test_resume.py` (25 tests) proves exact continuation in Adam, at the extension boundary and in the polish, the same collocation draws on a physics arm, the refusals, a repeated timing run and real SIGHUP/SIGINT/SIGTERM/SIGKILL in a child process; `tests/phase60/test_cli.py` (24 tests) proves the argv surface, admit-only, the lock and `process.json` and the exit mapping.
+- Wave 12 gate: 25 tests (Task 1 verify), 960 tests (the full Phase 60 discovery, run once at the final code, one by-design platform-probe skip), 43 tests (signals plus the phase38/39 prohibition suite), and the real `python -B -m pinn.verification.learnability_run r1-1632 --admit-only` exits 2 with one `ADMIT-REFUSED:` line and creates nothing under `runs/`. No real arm record, no `runs/phase60` directory and no protocol or preflight was written. The full discovery was run once at the final code and its complete log is retained.
+- DEVIATIONS (the SUMMARY lists them): one Rule 3 rewrite of `test_budget_driver`'s owner-stop handler test, because `main` adds the one handler that must not re-raise; one code commit for both tasks as the plan prescribes, so the RED evidence for Task 2 is retained from a log instead of committed; the Sonnet 5.5 co-author trailer instead of the Opus 5.5 the plan text names.
+- OPEN for the owner or verifier (60-12 coverage item D11): the per-evidence-root default run tree (the command line passes the canonical `runs/phase60/<arm-id>`), the first-signal-wins rule, the Adam-to-polish boundary checkpoint, `ClaimExists`, `timing_run` returning `None` when stopped, the two extra refusals, the nullable memory field and the data-only arm's unused generator. Each fails closed and moves no locked value, but together they fix the shapes Plan 60-13 seals into the protocol.
+- FOR PLAN 60-13: `learnability_run.py` is final for this phase at SHA-256 `a031b9373db7dbd7a15429f7e699fb1743b7f33f2563b6f01ac3166a63bf711c` (the pre-plan file was `dad7e218...0a55`). `PINNED_MODULES` pins it, so any later edit is drift and the protocol is written after every such edit.
 
 ### Decisions from 60-11 (2026-10-20)
 

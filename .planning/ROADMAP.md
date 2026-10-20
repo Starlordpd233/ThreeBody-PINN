@@ -285,7 +285,7 @@ Plans:
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
-- [ ] 60-12-PLAN.md — Wave 12: the arm command line, the one-launch lock, graceful stop and exact resume (INST-05, FEAS-03)
+- [x] 60-12-PLAN.md — Wave 12: the arm command line, the one-launch lock, graceful stop and exact resume (INST-05, FEAS-03)
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 12/23 | In Progress | - |
+| 60. Single-System Learnability | 13/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
