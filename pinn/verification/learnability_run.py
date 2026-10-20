@@ -37,11 +37,19 @@ from pathlib import Path
 import torch
 
 from pinn.architecture_spec import ArchitectureSpec
-from pinn.constants import SIREN_FIRST_OMEGA_0
+from pinn.constants import (
+    PHYS05_LAMBDA_E_MAX,
+    PHYS05_LAMBDA_IC_ADVISORY,
+    PHYS05_LAMBDA_L_MAX,
+    PHYS05_LAMBDA_PHYS_MAX,
+    SIREN_FIRST_OMEGA_0,
+)
 from pinn.network import build_network
 from pinn.training.atomic_io import atomic_write_torch
 from pinn.training.config import OptConfig
 from pinn.training.controllers import _tensor_hash
+from pinn.training.grad_clip import DEFAULT_C_STAGE_TABLE, DEFAULT_MEDIAN_FLOOR, GradClipper
+from pinn.training.scheduled_weights import ScheduledWeights
 from pinn.verification.feasibility_scorecard import (
     OwnerRouted,
     better_state,
@@ -76,9 +84,14 @@ __all__ = [
     "budget_from_timing",
     "build_arm_network",
     "drive_adam",
+    "make_adam",
+    "make_clipper",
+    "make_cosine",
+    "make_scheduled_weights",
     "reading_steps",
     "run_arm",
     "save_weights",
+    "start_second_cosine",
     "timing_run",
     "timing_steps_for",
     "weights_digest",
@@ -173,16 +186,86 @@ def _synchronize(device):
         torch.mps.synchronize()
 
 
-class _AdamStepper:
-    """One Adam step of a data-only arm. The timing run and the arm take the same step."""
+def make_adam(model, lr_stage):
+    """D-01: Adam on ``LR_k = 1e-3 x 0.7^k`` with the trainer's betas and epsilon.
 
-    def __init__(self, model, data, optimizer, scheduler, *, dtype, device):
+    Every constant comes from the trainer's ``OptConfig``; there is no literal rate here.
+    """
+    opt = OptConfig()
+    return torch.optim.Adam(
+        model.parameters(), lr=opt.lr_for_stage(lr_stage), betas=opt.adam_betas, eps=opt.adam_eps
+    )
+
+
+def make_cosine(optimizer, t_max, *, last_epoch=-1):
+    """D-01, D-02: cosine annealing to zero over ``t_max`` steps, as the trainer builds it."""
+    return torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=max(t_max, 1), last_epoch=last_epoch
+    )
+
+
+def start_second_cosine(optimizer, t_max):
+    """D-03: the one extension, a second cosine of length ``t_max`` on the same optimizer.
+
+    Every parameter group's rate goes back to its initial rate and a new cosine starts
+    from there, so the rate trace over ``[B, 2B)`` equals the trace over ``[0, B)``. The
+    optimizer is not rebuilt, so Adam's moments and step count carry on. Continuing the
+    first scheduler would climb back up, and a new scheduler without the reset would stay
+    at zero.
+    """
+    for group in optimizer.param_groups:
+        group["lr"] = group["initial_lr"]
+    return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(t_max, 1))
+
+
+def make_scheduled_weights(budget, lr_stage):
+    """D-01: the PHYS-05 warmup for an arm with a physics term, over the arm's budget.
+
+    The warmup length is ``min(2000, floor(0.1 B))``. The stage maxima are the PHYS-05
+    table entries. The extension never calls ``rewarm()``, so the ramp is not repeated.
+    """
+    return ScheduledWeights(
+        budget,
+        lambda_phys_max=PHYS05_LAMBDA_PHYS_MAX[lr_stage],
+        lambda_e_max=PHYS05_LAMBDA_E_MAX[lr_stage],
+        lambda_l_max=PHYS05_LAMBDA_L_MAX[lr_stage],
+        lambda_ic=PHYS05_LAMBDA_IC_ADVISORY,
+    )
+
+
+def make_clipper():
+    """GAP-60-03: the trainer's median-based Adam clipper with its stage table and median floor."""
+    return GradClipper(c_stage_table=dict(DEFAULT_C_STAGE_TABLE), median_floor=DEFAULT_MEDIAN_FLOOR)
+
+
+def _gradients_finite(parameters):
+    return all(
+        parameter.grad is None or bool(torch.isfinite(parameter.grad).all())
+        for parameter in parameters
+    )
+
+
+class _AdamStepper:
+    """One Adam step of a data-only arm. The timing run and the arm take the same step.
+
+    Every step zeroes the gradients, computes the loss and clips with the trainer's clipper
+    at the arm's clip stage when clipping is on (GAP-60-03). It then checks the loss and the
+    clip outcome before ``optimizer.step()`` (GAP-60-06): on a non-finite value the step is
+    skipped and its name is returned, so Adam ends at the last finite state. With clipping
+    off there is no clip outcome, so the gradients themselves are checked.
+    """
+
+    def __init__(self, model, data, optimizer, scheduler, clipper, clip_stage, *, dtype, device):
         self.model = model
         self.data = data
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.clipper = clipper
+        self.clip_stage = clip_stage
         self.dtype = dtype
         self.device = device
+        self.clipped_steps = 0
+        self._parameters = list(model.parameters())
 
     def step(self, _index):
         """Take one step. Returns ``None``, or the name of a non-finite quantity that skipped it."""
@@ -191,19 +274,21 @@ class _AdamStepper:
             self.model, self.data.data_points, dtype=self.dtype, device=self.device
         )
         loss.backward()
+        outcome = None
+        if self.clipper is not None:
+            outcome = self.clipper.clip(self._parameters, stage=self.clip_stage)
+        if not math.isfinite(float(loss)):
+            return "non_finite_loss"
+        if outcome is None:
+            if not _gradients_finite(self._parameters):
+                return "non_finite_gradient"
+        elif outcome.non_finite:
+            return "non_finite_clip_outcome"
+        elif float(outcome.total_norm) > outcome.clip_value:
+            self.clipped_steps += 1
         self.optimizer.step()
         self.scheduler.step()
         return None
-
-
-def _adam_for(model, lr_stage, t_max):
-    """Adam on the ratified rate for ``lr_stage`` and the cosine over ``t_max`` steps."""
-    opt = OptConfig()
-    optimizer = torch.optim.Adam(
-        model.parameters(), lr=opt.lr_for_stage(lr_stage), betas=opt.adam_betas, eps=opt.adam_eps
-    )
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(t_max, 1))
-    return optimizer, scheduler
 
 
 def timing_run(
@@ -214,17 +299,19 @@ def timing_run(
     runtime,
     first_omega_0,
     steps,
+    clip_enabled=True,
     data=None,
     clock=time.monotonic,
 ):
     """GAP-60-04: time ``steps`` Adam steps of the exact arm configuration, then discard everything.
 
-    A fresh network, optimizer and cosine are built for the arm's record, loss, first-layer
-    frequency and stage. Every step is timed, the first one included. MPS work is
-    synchronized before the clock is first read and again after the last step, before it
-    is read for the second time. The network and optimizer are dropped on return and the
-    arm starts from its own seed-42 initialization. ``data`` may be passed to reuse the
-    arm's already-loaded record. Returns ``{steps, wall_seconds, seconds_per_step}``.
+    A fresh network, optimizer, cosine and clipper are built for the arm's record, loss,
+    first-layer frequency, stage and clipping setting. Every step is timed, the first one
+    included. MPS work is synchronized before the clock is first read and again after the
+    last step, before it is read for the second time. The network, optimizer and clipper are
+    dropped on return and the arm starts from its own seed-42 initialization. ``data`` may
+    be passed to reuse the arm's already-loaded record. Returns
+    ``{steps, wall_seconds, seconds_per_step}``.
     """
     dtype, device = _resolve_runtime(runtime)
     minimum = _timing_minimum(scorecard)
@@ -233,15 +320,19 @@ def timing_run(
     if data is None:
         data = load_arm_data(spec, context, scorecard=scorecard, dtype=dtype, device=device)
     model = build_arm_network(first_omega_0, dtype=dtype, device=device)
-    optimizer, scheduler = _adam_for(model, spec.lr_stage, steps)
-    stepper = _AdamStepper(model, data, optimizer, scheduler, dtype=dtype, device=device)
+    optimizer = make_adam(model, spec.lr_stage)
+    scheduler = make_cosine(optimizer, steps)
+    clipper = make_clipper() if clip_enabled else None
+    stepper = _AdamStepper(
+        model, data, optimizer, scheduler, clipper, spec.clip_stage, dtype=dtype, device=device
+    )
     _synchronize(device)
     started = clock()
     for index in range(1, steps + 1):
         stepper.step(index)
     _synchronize(device)
     wall = clock() - started
-    del stepper, scheduler, optimizer, model
+    del stepper, clipper, scheduler, optimizer, model
     release_chunk_memory(device)
     return {"steps": steps, "wall_seconds": wall, "seconds_per_step": wall / steps}
 
@@ -522,6 +613,7 @@ def run_arm(
     evidence_root,
     fixture_budget_steps=None,
     fixture_timing_steps=None,
+    clip_enabled=True,
     ruling=None,
     clock=time.monotonic,
 ):
@@ -533,7 +625,9 @@ def run_arm(
     rule. A fixture arm (both the arm and the context are fixtures) names its own small
     ``fixture_budget_steps`` and may name ``fixture_timing_steps`` (default: the frozen
     minimum). The record then holds the budget the frozen rule would have given, beside
-    the fixture's. A real arm refuses both fixture knobs. ``ruling`` is the committed D-11
+    the fixture's. A real arm refuses both fixture knobs. ``clip_enabled`` turns the
+    trainer's gradient clipper on for the timing run and the arm (GAP-60-03); the launcher
+    passes the run protocol's ``clip_data_only_arms``. ``ruling`` is the committed D-11
     ruling an ``owner_approved`` arm needs (duck-typed: ``answer`` and
     ``approved_first_omega_0``); without one that arm is refused.
 
@@ -590,6 +684,7 @@ def run_arm(
         runtime=runtime,
         first_omega_0=first_omega_0,
         steps=timing_steps,
+        clip_enabled=clip_enabled,
         data=data,
         clock=clock,
     )
@@ -605,17 +700,16 @@ def run_arm(
     model = build_arm_network(first_omega_0, dtype=dtype, device=device)
     opt = OptConfig()
     learning_rate = opt.lr_for_stage(spec.lr_stage)
-    optimizer, scheduler = _adam_for(model, spec.lr_stage, budget)
-    stepper = _AdamStepper(model, data, optimizer, scheduler, dtype=dtype, device=device)
+    optimizer = make_adam(model, spec.lr_stage)
+    scheduler = make_cosine(optimizer, budget)
+    clipper = make_clipper() if clip_enabled else None
+    stepper = _AdamStepper(
+        model, data, optimizer, scheduler, clipper, spec.clip_stage, dtype=dtype, device=device
+    )
 
     def on_extend():
-        # D-03: a second cosine of the same length from the stage's initial rate, on the
-        # same optimizer, so Adam's moments are kept.
-        for group in optimizer.param_groups:
-            group["lr"] = group["initial_lr"]
-        stepper.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=max(budget, 1)
-        )
+        # D-03: the second cosine, on the same optimizer so Adam's moments are kept.
+        stepper.scheduler = start_second_cosine(optimizer, budget)
 
     # A fixture budget below 20 steps cannot meet the frozen 5% cadence with whole
     # steps, so it is recorded against the rule but not held to it. A real arm is.
@@ -636,7 +730,7 @@ def run_arm(
                 "elapsed_seconds": clock() - adam_started,
             }
         )
-        latest["result"] = result
+        latest["result"], latest["step"] = result, step
         return float(result.E)
 
     try:
@@ -670,6 +764,10 @@ def run_arm(
         )
         raise
     adam_gold = latest["result"]
+    if latest["step"] != driven["steps_taken"]:
+        # GAP-60-06: Adam ended in a state no reading covered (a step was skipped between
+        # two readings). That last finite state is scored now. It is not a budget reading.
+        adam_gold = _score(model, data, data.score, scorecard=scorecard, dtype=dtype, device=device)
     adam_seconds = driven["adam_seconds"]
     diverged = driven["outcome"] == "diverged"
     final_budget = budget if driven["new_budget_steps"] is None else driven["new_budget_steps"]
@@ -677,6 +775,8 @@ def run_arm(
         None if diverged
         else scoring_cadence_ok(driven["reading_steps"], final_budget, scorecard=scorecard)
     )
+
+    clip_settings = (clipper if clipper is not None else make_clipper()).state_dict()
 
     adam_base = _score(model, data, data.beside, scorecard=scorecard, dtype=dtype, device=device)
     adam_file_sha, adam_tensor_digest = save_weights(arm_dir / "adam.weights", model)
@@ -746,8 +846,16 @@ def run_arm(
             "new_budget_steps": driven["new_budget_steps"],
             "rate_per_step": driven["rate_per_step"],
             "diverged_at_step": driven["diverged_at_step"],
+            "diverged_by": driven["diverged_by"],
             "cadence_ok": cadence_ok,
             "cadence_enforced": enforce_cadence,
+        },
+        "clip": {
+            "stage": spec.clip_stage,
+            "multiplier": clip_settings["c_stage_table"][spec.clip_stage],
+            "median_floor": clip_settings["median_floor"],
+            "enabled": clip_enabled,
+            "clipped_steps": stepper.clipped_steps,
         },
         "trace": trace,
         "states": {
