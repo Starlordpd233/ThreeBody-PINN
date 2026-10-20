@@ -13,20 +13,31 @@ and are never re-implemented here; the tests compare the module's output with th
 
 from __future__ import annotations
 
+import ast
+import atexit
 import contextlib
 import dataclasses
 import hashlib
 import io
 import itertools
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 from pinn.verification import learnability_g2 as g2
-from pinn.verification.feasibility_scorecard import g2_fires, load_scorecard
+from pinn.verification.feasibility_scorecard import (
+    OwnerRouted,
+    decision_verdict,
+    g2_fires,
+    load_scorecard,
+)
 from pinn.verification.learnability_arms import EVIDENCE_REL, PANEL_SYSTEMS, RUN_SCHEMA
 from tests.phase59.test_evidence_verifier import commit_all, init_repo
 
@@ -74,18 +85,56 @@ def fake_records(tiers):
     ]
 
 
+_TEMPLATES = {}
+_TEMPLATE_HOME = []
+
+
+def _template_home():
+    """One temporary directory for the whole process, holding the cached scenario repositories."""
+    if not _TEMPLATE_HOME:
+        home = tempfile.TemporaryDirectory(prefix="phase60-g2-templates-")
+        atexit.register(home.cleanup)
+        _TEMPLATE_HOME.append(home)
+    return Path(_TEMPLATE_HOME[0].name).resolve()
+
+
 class Tree:
     """A temporary git repository holding a synthetic Phase 60 evidence tree."""
 
-    def __init__(self, test):
-        self._tmp = tempfile.TemporaryDirectory(prefix="phase60-g2-")
-        test.addCleanup(self._tmp.cleanup)
+    def __init__(self, test, *, root=None):
         self.test = test
-        self.root = Path(self._tmp.name).resolve()
-        init_repo(self.root)
-        (self.root / "README.md").write_text("synthetic repository for the G2 tests\n")
-        commit_all(self.root, "init")
+        if root is None:
+            tmp = tempfile.TemporaryDirectory(prefix="phase60-g2-")
+            test.addCleanup(tmp.cleanup)
+            root = Path(tmp.name).resolve()
+            init_repo(root)
+            (root / "README.md").write_text("synthetic repository for the G2 tests\n")
+            commit_all(root, "init")
+        self.root = Path(root)
         self.evidence = self.root / EVIDENCE_REL
+
+    @classmethod
+    def scenario(cls, test, key, build):
+        """A private copy of a scenario that is built once per process.
+
+        ``build(tree)`` must be deterministic. The copy is an ordinary repository the
+        test may change freely; the records hold repo-relative paths only, so a copy
+        reads exactly like the original.
+        """
+        template = _TEMPLATES.get(key)
+        if template is None:
+            template = _template_home() / f"scenario-{len(_TEMPLATES)}"
+            template.mkdir()
+            init_repo(template)
+            (template / "README.md").write_text("synthetic repository for the G2 tests\n")
+            commit_all(template, "init")
+            build(cls(test, root=template))
+            _TEMPLATES[key] = template
+        tmp = tempfile.TemporaryDirectory(prefix="phase60-g2-")
+        test.addCleanup(tmp.cleanup)
+        copy = Path(tmp.name).resolve()
+        shutil.copytree(template, copy, symlinks=True, dirs_exist_ok=True)
+        return cls(test, root=copy)
 
     # -- files -----------------------------------------------------------------
     def path(self, relative):
@@ -103,9 +152,12 @@ class Tree:
     def write_record(self, arm_id, **kwargs):
         return self.write_json(self.record_path(arm_id), record_payload(arm_id, **kwargs))
 
-    def write_rung1(self, tiers, **kwargs):
-        for system, tier in zip(PANEL_SYSTEMS, tiers):
-            self.write_record(f"r1-{system}", tier=tier, **kwargs)
+    def write_rung1(self, tiers, *, hours=None, **kwargs):
+        for index, (system, tier) in enumerate(zip(PANEL_SYSTEMS, tiers)):
+            extra = dict(kwargs)
+            if hours is not None:
+                extra["hours"] = hours[index]
+            self.write_record(f"r1-{system}", tier=tier, **extra)
 
     def commit(self, message="fixture"):
         return commit_all(self.root, message)
@@ -141,6 +193,120 @@ class Tree:
         self.test.assertEqual(code, 0, out)
         self.commit("g2 outcome")
         return self
+
+    def sweep_system(self):
+        return self.read("g2/g2-outcome.json")["sweep_system"]
+
+    def with_sweep(self, tiers_by_omega, *, hours=None):
+        """Write and commit the four sweep records of the recorded sweep system."""
+        system = self.sweep_system()
+        for index, (omega, tier) in enumerate(tiers_by_omega.items()):
+            self.write_record(
+                f"g2s-{system}-w{int(omega):03d}", tier=tier, omega=float(omega),
+                provenance="g2_sweep_override",
+                hours=1.0 if hours is None else hours[index],
+            )
+        self.commit("sweep records")
+        return self
+
+    def with_curve(self, tiers_by_omega, **kwargs):
+        """Write the sweep records, run ``sweep-curve`` and commit the curve."""
+        self.with_sweep(tiers_by_omega, **kwargs)
+        code, out = self.cli("sweep-curve")
+        self.test.assertEqual(code, 0, out)
+        self.commit("sweep curve")
+        return self
+
+    def with_confirmation(self, tier, *, hours=1.0):
+        """Write and commit the one confirmation record the curve names."""
+        curve = self.read("g2/sweep-curve.json")
+        self.write_record(
+            curve["confirmation_arm"], tier=tier, omega=curve["confirmed_first_omega_0"],
+            provenance="confirmation_override", hours=hours,
+        )
+        self.commit("confirmation record")
+        return self
+
+    def with_protocol(self, pre_answer):
+        """Commit a run protocol whose g2 section holds the failed-confirmation pre-answer."""
+        self.write_json(
+            self.path("run-protocol.json"),
+            {"schema": "phase60-run-protocol/v1",
+             "g2": {"failed_confirmation_pre_answer": pre_answer}},
+        )
+        self.commit("run protocol")
+        return self
+
+    def with_rescue(self, tier, *, pre_answer=None, hours=1.0):
+        """Confirmation record, protocol, then ``rescue``; commit rescue.json. Returns (code, out)."""
+        self.with_confirmation(tier, hours=hours)
+        self.with_protocol(pre_answer)
+        result = self.cli("rescue")
+        self.commit("rescue")
+        return result
+
+
+def outcome_tree(test, tiers, *, hours=None):
+    """Three committed Rung-1 records and a committed outcome (built once per process)."""
+    return Tree.scenario(
+        test, ("outcome", tuple(tiers), hours),
+        lambda tree: tree.with_outcome(tiers, **({} if hours is None else {"hours": hours})),
+    )
+
+
+def curve_tree(test, tiers, grid, *, rung1_hours=None, sweep_hours=None):
+    """... and four committed sweep records and a committed sweep curve."""
+
+    def build(tree):
+        tree.with_outcome(tiers, **({} if rung1_hours is None else {"hours": rung1_hours}))
+        tree.with_curve(grid, **({} if sweep_hours is None else {"hours": sweep_hours}))
+
+    return Tree.scenario(
+        test, ("curve", tuple(tiers), tuple(grid.items()), rung1_hours, sweep_hours), build
+    )
+
+
+def protocol_tree(test, tiers, grid, pre_answer):
+    """... and a committed run protocol holding ``pre_answer``."""
+    return Tree.scenario(
+        test, ("protocol", tuple(tiers), tuple(grid.items()), pre_answer),
+        lambda tree: (
+            tree.with_outcome(tiers).with_curve(grid).with_protocol(pre_answer)
+        ),
+    )
+
+
+def confirmed_tree(test, tiers, grid, confirmation_tier, pre_answer=None, *, protocol=True,
+                   **hours):
+    """... and the one committed confirmation record (``rescue`` has not been run).
+
+    ``protocol=False`` leaves the run protocol out.
+    """
+
+    def build(tree):
+        tree.with_outcome(tiers, **({"hours": hours["rung1"]} if "rung1" in hours else {}))
+        tree.with_curve(grid, **({"hours": hours["sweep"]} if "sweep" in hours else {}))
+        tree.with_confirmation(confirmation_tier, hours=hours.get("confirmation", 1.0))
+        if protocol:
+            tree.with_protocol(pre_answer)
+
+    key = ("confirmed", tuple(tiers), tuple(grid.items()), confirmation_tier, pre_answer,
+           protocol, tuple(sorted(hours.items())))
+    return Tree.scenario(test, key, build)
+
+
+def rescued_tree(test, tiers, grid, confirmation_tier, pre_answer=None, **hours):
+    """... and ``rescue`` run and its file committed (whatever its exit code was)."""
+
+    def build(tree):
+        tree.with_outcome(tiers, **({"hours": hours["rung1"]} if "rung1" in hours else {}))
+        tree.with_curve(grid, **({"hours": hours["sweep"]} if "sweep" in hours else {}))
+        tree.with_rescue(confirmation_tier, pre_answer=pre_answer,
+                         hours=hours.get("confirmation", 1.0))
+
+    key = ("rescued", tuple(tiers), tuple(grid.items()), confirmation_tier, pre_answer,
+           tuple(sorted(hours.items())))
+    return Tree.scenario(test, key, build)
 
 
 # ---------------------------------------------------------------------------
@@ -291,7 +457,7 @@ class OutcomeWriterTests(unittest.TestCase):
         }
         for tiers, expected in cases.items():
             with self.subTest(tiers=tiers):
-                tree = Tree(self).with_outcome(tiers)
+                tree = outcome_tree(self, tiers)
                 outcome = tree.read("g2/g2-outcome.json")
                 self.assertEqual(
                     (outcome["sweep_system"], outcome["confirmation_system"],
@@ -300,7 +466,7 @@ class OutcomeWriterTests(unittest.TestCase):
                 )
 
     def test_a_quiet_outcome_has_no_pair(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         outcome = tree.read("g2/g2-outcome.json")
         self.assertFalse(outcome["g2_fired"])
         self.assertNotIn("sweep_system", outcome)
@@ -317,7 +483,7 @@ class OutcomeWriterTests(unittest.TestCase):
         self.assertTrue(tree.path("g2/g2-outcome.json").is_file())
 
     def test_a_second_call_exits_two_and_leaves_the_file_unchanged(self):
-        tree = Tree(self).with_outcome((0, 0, 1))
+        tree = outcome_tree(self, (0, 0, 1))
         target = tree.path("g2/g2-outcome.json")
         before = target.read_bytes()
         code, out = tree.cli("outcome")
@@ -409,7 +575,7 @@ class OutcomeWriterTests(unittest.TestCase):
                 self.assertFalse(tree.path("g2/g2-outcome.json").exists())
 
     def test_the_outcome_holds_no_home_or_absolute_path(self):
-        tree = Tree(self).with_outcome((0, 0, 1))
+        tree = outcome_tree(self, (0, 0, 1))
         text = tree.path("g2/g2-outcome.json").read_text(encoding="utf-8")
         self.assertNotIn(str(Path.home()), text)
         self.assertNotIn(str(tree.root), text)
@@ -430,7 +596,7 @@ class BranchTracerTests(unittest.TestCase):
                 self.assertTrue(out.startswith(f"BRANCH-PENDING: {name}"), out)
 
     def test_a_fired_outcome_takes_the_sweep_branch(self):
-        tree = Tree(self).with_outcome((0, 0, 1))
+        tree = outcome_tree(self, (0, 0, 1))
         state = tree.state("sweep")
         self.assertEqual(state.status, "TAKEN")
         self.assertIsNone(state.first_omega_0)
@@ -440,14 +606,14 @@ class BranchTracerTests(unittest.TestCase):
         self.assertEqual(len(out.splitlines()), 1)
 
     def test_a_quiet_outcome_leaves_the_sweep_branch_not_taken(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         self.assertEqual(tree.state("sweep").status, "NOT-TAKEN")
         code, out = tree.cli("branch", "sweep")
         self.assertEqual(code, 0)
         self.assertTrue(out.startswith("BRANCH-NOT-TAKEN: sweep"), out)
 
     def test_a_quiet_outcome_takes_the_ladder_at_the_locked_setting(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         state = tree.state("ladder")
         self.assertEqual(state.status, "TAKEN")
         self.assertEqual(state.first_omega_0, 30.0)
@@ -455,7 +621,7 @@ class BranchTracerTests(unittest.TestCase):
         self.assertEqual(state.reason, "g2 passed; first_omega_0 30.0")
 
     def test_the_command_line_prints_the_ladder_token_in_a_subprocess(self):
-        tree = Tree(self).with_outcome((1, 1, 1))
+        tree = outcome_tree(self, (1, 1, 1))
         code, out, err = tree.cli_subprocess("branch", "ladder")
         self.assertEqual(code, 0, out + err)
         self.assertEqual(out, "BRANCH-TAKEN: ladder (g2 passed; first_omega_0 30.0)")
@@ -464,7 +630,7 @@ class BranchTracerTests(unittest.TestCase):
         self.assertTrue(out.startswith("BRANCH-NOT-TAKEN: sweep"), out)
 
     def test_a_fired_outcome_leaves_the_ladder_pending(self):
-        tree = Tree(self).with_outcome((0, 0, 1))
+        tree = outcome_tree(self, (0, 0, 1))
         state = tree.state("ladder")
         self.assertEqual(state.status, "PENDING")
         code, out = tree.cli("branch", "ladder")
@@ -484,7 +650,7 @@ class BranchTracerTests(unittest.TestCase):
                 self.assertEqual(state.reason, f"uncommitted {relative}")
 
     def test_an_edited_outcome_makes_the_branch_pending(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         target = tree.path("g2/g2-outcome.json")
         payload = json.loads(target.read_text())
         payload["g2_fired"] = True
@@ -494,7 +660,7 @@ class BranchTracerTests(unittest.TestCase):
         self.assertTrue(state.reason.startswith("uncommitted "))
 
     def test_a_committed_outcome_that_disagrees_with_the_records_halts(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         target = tree.path("g2/g2-outcome.json")
         payload = json.loads(target.read_text())
         payload["g2_fired"] = True
@@ -508,21 +674,21 @@ class BranchTracerTests(unittest.TestCase):
         self.assertTrue(out.startswith("G2-HALT:"), out)
 
     def test_a_committed_outcome_whose_record_changed_halts(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         tree.write_record("r1-4658", tier=3)  # tier changes after the outcome
         tree.commit("rewrite a record")
         with self.assertRaises(g2.G2Halt):
             tree.state("ladder")
 
     def test_a_committed_outcome_whose_record_is_gone_halts(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         tree.record_path("r1-851").unlink()
         tree.commit("remove a record")
         with self.assertRaises(g2.G2Halt):
             tree.state("sweep")
 
     def test_the_state_is_a_frozen_value_with_a_closed_vocabulary(self):
-        tree = Tree(self).with_outcome((1, 1, 0))
+        tree = outcome_tree(self, (1, 1, 0))
         state = tree.state("ladder")
         with self.assertRaises(dataclasses.FrozenInstanceError):
             state.status = "PENDING"
@@ -536,6 +702,938 @@ class BranchTracerTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             with contextlib.redirect_stderr(io.StringIO()):
                 tree.cli("branch", "rung3")
+
+
+# ---------------------------------------------------------------------------
+# Task 2: the confirmation choice, the sweep curve, the rescue outcome, the skip
+# records, the stop handoff and the sweep-related branch states.
+# ---------------------------------------------------------------------------
+
+LATER = ("rung2b_counts", "rung3_counts", "control_branch", "rung1_beats_formula")
+NO_RESCUE = "no rescue"
+GO_TO_VERDICT = "checkpoint \u2463 answered go to the verdict"
+ZERO_GRID = {60: 0, 120: 0, 240: 0, 480: 0}
+ONE_AT_120 = {60: 0, 120: 1, 240: 0, 480: 0}
+
+
+class VerdictSpy:
+    """Stands in for ``decision_verdict``: records each call's keywords, then calls the frozen rule."""
+
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, **kwargs):
+        self.calls.append(dict(kwargs))
+        return decision_verdict(**kwargs)
+
+
+class ConfirmedOmegaTests(unittest.TestCase):
+    @staticmethod
+    def rows(tiers_by_omega):
+        return [{"first_omega_0": float(o), "tier": t} for o, t in tiers_by_omega.items()]
+
+    def test_the_highest_setting_that_reached_tier_one_is_confirmed(self):
+        cases = (
+            ({60: 0, 120: 1, 240: 0, 480: 0}, 120.0),
+            ({60: 1, 120: 2, 240: 1, 480: 0}, 240.0),
+            ({60: 1, 120: 1, 240: 1, 480: 1}, 480.0),
+            ({60: 3, 120: 0, 240: 0, 480: 0}, 60.0),
+            ({60: 0, 120: 3, 240: 0, 480: 1}, 480.0),
+        )
+        for tiers, expected in cases:
+            with self.subTest(tiers=tiers):
+                self.assertEqual(g2.confirmed_omega(self.rows(tiers), scorecard=CARD), expected)
+
+    def test_no_setting_at_tier_one_confirms_nothing(self):
+        self.assertIsNone(g2.confirmed_omega(self.rows(ZERO_GRID), scorecard=CARD))
+
+    def test_tier_exactly_one_counts_as_reaching(self):
+        self.assertEqual(g2.confirmed_omega(self.rows({60: 1, 120: 0, 240: 0, 480: 0}),
+                                            scorecard=CARD), 60.0)
+
+    def test_row_order_does_not_matter(self):
+        base = self.rows({60: 1, 120: 2, 240: 1, 480: 0})
+        for ordering in itertools.permutations(base):
+            self.assertEqual(g2.confirmed_omega(list(ordering), scorecard=CARD), 240.0)
+
+    def test_the_answer_is_always_one_of_the_recorded_settings(self):
+        for tiers in itertools.product(range(4), repeat=4):
+            rows = self.rows(dict(zip((60, 120, 240, 480), tiers)))
+            answer = g2.confirmed_omega(rows, scorecard=CARD)
+            self.assertTrue(answer is None or answer in (60.0, 120.0, 240.0, 480.0))
+            reaching = [r["first_omega_0"] for r in rows if r["tier"] >= 1]
+            self.assertEqual(answer, max(reaching) if reaching else None)
+
+    def test_the_rescue_tier_is_read_from_the_scorecard(self):
+        stand_in = SimpleNamespace(section=lambda name: {"rescue_tier": 2})
+        rows = self.rows({60: 1, 120: 2, 240: 1, 480: 0})
+        self.assertEqual(g2.confirmed_omega(rows, scorecard=stand_in), 120.0)
+
+    def test_duplicate_or_malformed_rows_are_refused(self):
+        for label, rows in (
+            ("repeated setting", [{"first_omega_0": 60.0, "tier": 1}, {"first_omega_0": 60.0, "tier": 0}]),
+            ("bool tier", [{"first_omega_0": 60.0, "tier": True}]),
+            ("float tier", [{"first_omega_0": 60.0, "tier": 1.0}]),
+            ("zero setting", [{"first_omega_0": 0.0, "tier": 1}]),
+            ("nan setting", [{"first_omega_0": float("nan"), "tier": 1}]),
+            ("bool setting", [{"first_omega_0": True, "tier": 1}]),
+            ("missing tier", [{"first_omega_0": 60.0}]),
+        ):
+            with self.subTest(case=label):
+                with self.assertRaises(ValueError):
+                    g2.confirmed_omega(rows, scorecard=CARD)
+
+
+class SweepCurveTests(unittest.TestCase):
+    def test_the_curve_needs_all_four_records_of_the_recorded_sweep_system(self):
+        for present in (0, 3):
+            with self.subTest(present=present):
+                tree = outcome_tree(self, (0, 0, 1))
+                for omega, tier in list(ONE_AT_120.items())[:present]:
+                    tree.write_record(f"g2s-1632-w{omega:03d}", tier=tier, omega=float(omega),
+                                      provenance="g2_sweep_override")
+                if present:
+                    tree.commit("some sweep records")
+                code, out = tree.cli("sweep-curve")
+                self.assertEqual(code, 4)
+                self.assertTrue(out.startswith("BRANCH-PENDING:"), out)
+                self.assertFalse(tree.path("g2/sweep-curve.json").exists())
+
+    def test_rows_carry_setting_arm_hash_tier_error_energy_and_horizons(self):
+        tree = outcome_tree(self, (0, 0, 1))
+        for index, omega in enumerate((60, 120, 240, 480)):
+            tree.write_record(
+                f"g2s-1632-w{omega:03d}", tier=index % 2, omega=float(omega),
+                provenance="g2_sweep_override", E=0.1 + index, eps_h=0.01 * (index + 1),
+                h=[[0.01, 0.1 * (index + 1)], [0.1, 0.2 * (index + 1)]],
+            )
+        tree.commit("sweep records")
+        code, out = tree.cli("sweep-curve")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(len(out.splitlines()), 1)
+        self.assertTrue(out.startswith("SWEEP-CURVE-WRITTEN:"), out)
+        curve = tree.read("g2/sweep-curve.json")
+        self.assertEqual(curve["schema"], "phase60-sweep-curve/v1")
+        self.assertEqual([r["first_omega_0"] for r in curve["rows"]], [60.0, 120.0, 240.0, 480.0])
+        self.assertEqual([r["arm_id"] for r in curve["rows"]],
+                         [f"g2s-1632-w{w:03d}" for w in (60, 120, 240, 480)])
+        for index, row in enumerate(curve["rows"]):
+            raw = tree.record_path(row["arm_id"]).read_bytes()
+            self.assertEqual(row["record_sha256"], hashlib.sha256(raw).hexdigest())
+            self.assertEqual(row["tier"], index % 2)
+            self.assertEqual(row["E"], 0.1 + index)
+            self.assertEqual(row["eps_h"], 0.01 * (index + 1))
+            self.assertEqual(row["h"], [[0.01, 0.1 * (index + 1)], [0.1, 0.2 * (index + 1)]])
+        outcome = tree.read("g2/g2-outcome.json")
+        self.assertEqual(curve["sweep_system"], outcome["sweep_system"])
+        self.assertEqual(curve["confirmation_system"], outcome["confirmation_system"])
+        self.assertEqual(curve["uncovered_system"], outcome["uncovered_system"])
+        self.assertEqual(curve["grid"], [60.0, 120.0, 240.0, 480.0])
+        self.assertEqual(
+            curve["g2_outcome_sha256"],
+            hashlib.sha256(tree.path("g2/g2-outcome.json").read_bytes()).hexdigest(),
+        )
+
+    def test_the_selected_row_and_the_other_labels(self):
+        tree = curve_tree(self, (0, 0, 1), {60: 1, 120: 2, 240: 1, 480: 0})
+        curve = tree.read("g2/sweep-curve.json")
+        self.assertEqual(curve["outcome"], "confirmation_pending")
+        self.assertEqual(curve["confirmed_first_omega_0"], 240.0)
+        self.assertEqual(curve["confirmation_arm"], "g2c-851-w240")
+        labels = {row["first_omega_0"]: row["label"] for row in curve["rows"]}
+        self.assertEqual(labels, {
+            60.0: "reached Tier 1, not confirmed (one-confirmation budget)",
+            120.0: "reached Tier 1, not confirmed (one-confirmation budget)",
+            240.0: "selected for confirmation",
+            480.0: "below Tier 1",
+        })
+        self.assertEqual(labels[60.0], g2.NOT_CONFIRMED_LABEL)
+
+    def test_no_setting_at_tier_one_means_no_rescue_and_no_confirmation(self):
+        tree = curve_tree(self, (0, 0, 1), ZERO_GRID)
+        curve = tree.read("g2/sweep-curve.json")
+        self.assertEqual(curve["outcome"], "no_rescue")
+        self.assertIsNone(curve["confirmation_arm"])
+        self.assertIsNone(curve["confirmed_first_omega_0"])
+        self.assertEqual({row["label"] for row in curve["rows"]}, {"below Tier 1"})
+
+    def test_the_confirmation_names_the_pinned_system_for_each_failing_pair(self):
+        cases = (
+            ((0, 0, 1), 1632, "g2c-851-w120"),
+            ((1, 0, 0), 851, "g2c-4658-w120"),
+            ((0, 1, 0), 1632, "g2c-4658-w120"),
+            ((0, 0, 0), 1632, "g2c-851-w120"),
+        )
+        for rung1, sweep_system, confirmation_arm in cases:
+            with self.subTest(rung1=rung1):
+                tree = curve_tree(self, rung1, ONE_AT_120)
+                curve = tree.read("g2/sweep-curve.json")
+                self.assertEqual(curve["sweep_system"], sweep_system)
+                self.assertEqual(curve["confirmation_arm"], confirmation_arm)
+                self.assertEqual([row["arm_id"] for row in curve["rows"]],
+                                 [f"g2s-{sweep_system}-w{w:03d}" for w in (60, 120, 240, 480)])
+
+    def test_only_the_recorded_sweep_systems_arms_are_read(self):
+        tree = outcome_tree(self, (0, 0, 1))
+        for omega in (60, 120, 240, 480):  # another system's sweep arms must not count
+            tree.write_record(f"g2s-851-w{omega:03d}", tier=3, omega=float(omega),
+                              provenance="g2_sweep_override")
+        tree.with_curve(ZERO_GRID)
+        self.assertEqual(tree.read("g2/sweep-curve.json")["outcome"], "no_rescue")
+
+    def test_a_record_run_at_another_setting_or_provenance_halts(self):
+        for label, kwargs in (
+            ("another setting", {"omega": 240.0}),
+            ("locked provenance", {"provenance": "locked"}),
+            ("confirmation provenance", {"provenance": "confirmation_override"}),
+        ):
+            with self.subTest(case=label):
+                tree = outcome_tree(self, (0, 0, 1))
+                for omega in (60, 240, 480):
+                    tree.write_record(f"g2s-1632-w{omega:03d}", tier=0, omega=float(omega),
+                                      provenance="g2_sweep_override")
+                options = {"omega": 120.0, "provenance": "g2_sweep_override"}
+                options.update(kwargs)
+                tree.write_record("g2s-1632-w120", tier=1, **options)
+                tree.commit("sweep records")
+                code, out = tree.cli("sweep-curve")
+                self.assertEqual(code, 2)
+                self.assertIn("g2s-1632-w120", out)
+                self.assertFalse(tree.path("g2/sweep-curve.json").exists())
+
+    def test_a_record_without_the_scorecard_horizons_halts(self):
+        for label, horizons in (
+            ("another first horizon", [[0.02, 0.3], [0.1, 0.9]]),
+            ("one horizon only", [[0.01, 0.3]]),
+            ("not a list of pairs", "0.01"),
+        ):
+            with self.subTest(case=label):
+                tree = outcome_tree(self, (0, 0, 1))
+                for omega in (60, 240, 480):
+                    tree.write_record(f"g2s-1632-w{omega:03d}", tier=0, omega=float(omega),
+                                      provenance="g2_sweep_override")
+                tree.write_record("g2s-1632-w120", tier=1, omega=120.0,
+                                  provenance="g2_sweep_override", h=horizons)
+                tree.commit("sweep records")
+                code, out = tree.cli("sweep-curve")
+                self.assertEqual(code, 2, out)
+                self.assertIn("result.h", out)
+                self.assertFalse(tree.path("g2/sweep-curve.json").exists())
+
+    def test_an_uncommitted_sweep_record_halts(self):
+        tree = outcome_tree(self, (0, 0, 1))
+        for omega in (60, 120, 240):
+            tree.write_record(f"g2s-1632-w{omega:03d}", tier=0, omega=float(omega),
+                              provenance="g2_sweep_override")
+        tree.commit("three of four")
+        tree.write_record("g2s-1632-w480", tier=1, omega=480.0, provenance="g2_sweep_override")
+        code, out = tree.cli("sweep-curve")
+        self.assertEqual(code, 2)
+        self.assertIn("uncommitted", out)
+        self.assertFalse(tree.path("g2/sweep-curve.json").exists())
+
+    def test_a_quiet_outcome_has_no_sweep(self):
+        tree = outcome_tree(self, (1, 1, 0))
+        code, out = tree.cli("sweep-curve")
+        self.assertEqual(code, 2)
+        self.assertIn("did not fire", out)
+
+    def test_an_uncommitted_outcome_is_not_a_basis_for_a_curve(self):
+        tree = Tree(self)
+        tree.write_rung1((0, 0, 1))
+        tree.commit("rung 1 records")
+        self.assertEqual(tree.cli("outcome")[0], 0)  # not committed
+        code, out = tree.cli("sweep-curve")
+        self.assertEqual(code, 2)
+        self.assertIn("uncommitted", out)
+
+    def test_a_second_call_exits_two_and_leaves_the_file_unchanged(self):
+        tree = curve_tree(self, (0, 0, 1), ONE_AT_120)
+        target = tree.path("g2/sweep-curve.json")
+        before = target.read_bytes()
+        code, out = tree.cli("sweep-curve")
+        self.assertEqual(code, 2)
+        self.assertTrue(out.startswith("G2-HALT:"), out)
+        self.assertEqual(target.read_bytes(), before)
+
+    def test_the_curve_holds_no_home_or_absolute_path(self):
+        tree = curve_tree(self, (0, 0, 1), ONE_AT_120)
+        text = tree.path("g2/sweep-curve.json").read_text(encoding="utf-8")
+        self.assertNotIn(str(Path.home()), text)
+        self.assertNotIn(str(tree.root), text)
+
+
+class RescueTests(unittest.TestCase):
+    @staticmethod
+    def spied(tree, *argv):
+        spy = VerdictSpy()
+        with mock.patch.object(g2, "decision_verdict", spy):
+            code, out = tree.cli(*argv)
+        return code, out, spy
+
+    def confirmed(self, confirmation_tier, pre_answer=None, **kwargs):
+        return confirmed_tree(self, (0, 0, 1), ONE_AT_120, confirmation_tier, pre_answer, **kwargs)
+
+    def assert_no_later_rung_inputs(self, spy):
+        for call in spy.calls:
+            for name in LATER:
+                self.assertIsNone(call[name], name)
+            self.assertIs(call["g2_fired"], True)
+
+    def test_a_confirmed_rescue_writes_the_file_then_routes_to_checkpoint_four(self):
+        for tier in (1, 2, 3):
+            with self.subTest(tier=tier):
+                tree = self.confirmed(tier)
+                code, out, spy = self.spied(tree, "rescue")
+                self.assertEqual(code, 3)
+                self.assertEqual(out, "OWNER-ROUTED: owner checkpoint 4")
+                self.assertEqual(len(spy.calls), 1)  # reached the handler once, never retried
+                self.assertIs(spy.calls[0]["sweep_rescued"], True)
+                self.assert_no_later_rung_inputs(spy)
+                rescue = tree.read("g2/rescue.json")
+                self.assertEqual(rescue["schema"], "phase60-rescue/v1")
+                self.assertEqual(rescue["outcome"], "rescue")
+                self.assertEqual(rescue["tier"], tier)
+                self.assertEqual(rescue["confirmation_arm"], "g2c-851-w120")
+                self.assertEqual(rescue["confirmed_first_omega_0"], 120.0)
+                self.assertIsNone(rescue["pre_answer"])
+
+    def test_the_record_hashes_and_results_are_carried(self):
+        tree = self.confirmed(1)
+        self.assertEqual(self.spied(tree, "rescue")[0], 3)
+        rescue = tree.read("g2/rescue.json")
+        raw = tree.record_path("g2c-851-w120").read_bytes()
+        self.assertEqual(rescue["record"]["sha256"], hashlib.sha256(raw).hexdigest())
+        self.assertEqual(rescue["record"]["path"],
+                         tree.record_path("g2c-851-w120").relative_to(tree.root).as_posix())
+        self.assertEqual(rescue["sweep_curve_sha256"],
+                         hashlib.sha256(tree.path("g2/sweep-curve.json").read_bytes()).hexdigest())
+        self.assertEqual((rescue["E"], rescue["eps_h"], rescue["h"]),
+                         (0.05, 0.001, [[0.01, 0.5], [0.1, 0.9]]))
+
+    def test_a_confirmed_rescue_is_a_rescue_whatever_the_pre_answer(self):
+        for pre in (None, "no_rescue", "rescue"):
+            with self.subTest(pre=pre):
+                tree = self.confirmed(1, pre_answer=pre)
+                code, out, spy = self.spied(tree, "rescue")
+                self.assertEqual((code, out), (3, "OWNER-ROUTED: owner checkpoint 4"))
+                self.assertEqual(tree.read("g2/rescue.json")["outcome"], "rescue")
+                self.assertEqual(tree.read("g2/rescue.json")["pre_answer"], pre)
+
+    def test_a_failed_confirmation_with_no_pre_answer_stops_for_the_owner(self):
+        tree = self.confirmed(0)
+        code, out, spy = self.spied(tree, "rescue")
+        self.assertEqual(code, 3)
+        self.assertEqual(out, "OWNER-ROUTED: failed confirmation (GAP-60-09)")
+        self.assertEqual(spy.calls, [])  # decision_verdict is not called
+        rescue = tree.read("g2/rescue.json")
+        self.assertEqual(rescue["outcome"], "failed_confirmation")
+        self.assertEqual(rescue["tier"], 0)
+        self.assertIsNone(rescue["pre_answer"])
+
+    def test_a_failed_confirmation_pre_answered_no_rescue_goes_to_the_stop_path(self):
+        tree = self.confirmed(0, pre_answer="no_rescue")
+        code, out, spy = self.spied(tree, "rescue")
+        self.assertEqual(code, 0)
+        self.assertTrue(out.startswith("RESCUE-WRITTEN:"), out)
+        self.assertEqual(spy.calls, [])
+        rescue = tree.read("g2/rescue.json")
+        self.assertEqual((rescue["outcome"], rescue["pre_answer"]), ("failed_confirmation", "no_rescue"))
+
+    def test_a_failed_confirmation_pre_answered_rescue_goes_to_checkpoint_four(self):
+        tree = self.confirmed(0, pre_answer="rescue")
+        code, out, spy = self.spied(tree, "rescue")
+        self.assertEqual((code, out), (3, "OWNER-ROUTED: owner checkpoint 4"))
+        self.assertEqual(len(spy.calls), 1)
+        self.assertIs(spy.calls[0]["sweep_rescued"], True)
+        self.assert_no_later_rung_inputs(spy)
+        rescue = tree.read("g2/rescue.json")
+        self.assertEqual((rescue["outcome"], rescue["pre_answer"]), ("failed_confirmation", "rescue"))
+
+    def test_the_functions_raise_the_owner_stops_and_return_the_stop_path_normally(self):
+        raising = self.confirmed(1)
+        with self.assertRaises(OwnerRouted) as caught:
+            g2.rescue_outcome(evidence_root=raising.evidence, repo_root=raising.root,
+                              scorecard=CARD, pre_answer=None)
+        self.assertIn("owner checkpoint 4", str(caught.exception))
+        failed = self.confirmed(0)
+        with self.assertRaises(g2.FailedConfirmationOwnerStop) as caught:
+            g2.rescue_outcome(evidence_root=failed.evidence, repo_root=failed.root,
+                              scorecard=CARD, pre_answer=None)
+        self.assertEqual(str(caught.exception), "failed confirmation (GAP-60-09)")
+        self.assertNotIsInstance(caught.exception, OwnerRouted)
+        quiet = self.confirmed(0, pre_answer="no_rescue")
+        payload = g2.rescue_outcome(evidence_root=quiet.evidence, repo_root=quiet.root,
+                                    scorecard=CARD, pre_answer="no_rescue")
+        self.assertEqual(payload["outcome"], "failed_confirmation")
+
+    def test_an_invalid_pre_answer_is_refused_before_anything_is_written(self):
+        tree = self.confirmed(0)
+        for bad in ("maybe", "", "No_Rescue", 0, False, ["rescue"]):
+            with self.subTest(pre=bad):
+                with self.assertRaises(ValueError):
+                    g2.rescue_outcome(evidence_root=tree.evidence, repo_root=tree.root,
+                                      scorecard=CARD, pre_answer=bad)
+        self.assertFalse(tree.path("g2/rescue.json").exists())
+
+    def test_the_protocol_must_be_committed_and_hold_the_pre_answer_key(self):
+        def fresh():
+            return self.confirmed(0, protocol=False)
+
+        missing = fresh()
+        cases = [("missing protocol", missing)]
+        no_key = fresh()
+        no_key.write_json(no_key.path("run-protocol.json"), {"g2": {}})
+        no_key.commit("protocol without the key")
+        cases.append(("no key", no_key))
+        no_section = fresh()
+        no_section.write_json(no_section.path("run-protocol.json"), {"schema": "x"})
+        no_section.commit("protocol without a g2 section")
+        cases.append(("no g2 section", no_section))
+        bad_value = fresh()
+        bad_value.with_protocol("maybe")
+        cases.append(("bad value", bad_value))
+        untracked = fresh()
+        untracked.write_json(
+            untracked.path("run-protocol.json"),
+            {"g2": {"failed_confirmation_pre_answer": "no_rescue"}},
+        )
+        cases.append(("untracked", untracked))
+        dirty = fresh().with_protocol(None)
+        dirty.write_json(dirty.path("run-protocol.json"),
+                         {"g2": {"failed_confirmation_pre_answer": "no_rescue"}})
+        cases.append(("edited", dirty))
+        for label, tree in cases:
+            with self.subTest(case=label):
+                code, out, spy = self.spied(tree, "rescue")
+                self.assertEqual(code, 2, out)
+                self.assertTrue(out.startswith("G2-HALT:"), out)
+                self.assertEqual(spy.calls, [])
+                self.assertFalse(tree.path("g2/rescue.json").exists())
+
+    def test_the_confirmation_record_must_be_there_committed_and_the_one_named(self):
+        pending = protocol_tree(self, (0, 0, 1), ONE_AT_120, None)
+        code, out = pending.cli("rescue")
+        self.assertEqual(code, 4)
+        self.assertTrue(out.startswith("BRANCH-PENDING:"), out)
+        self.assertFalse(pending.path("g2/rescue.json").exists())
+
+        uncommitted = protocol_tree(self, (0, 0, 1), ONE_AT_120, None)
+        uncommitted.write_record("g2c-851-w120", tier=1, omega=120.0,
+                                 provenance="confirmation_override")
+        code, out = uncommitted.cli("rescue")
+        self.assertEqual(code, 2)
+        self.assertIn("uncommitted", out)
+
+        for label, kwargs in (
+            ("another setting", {"omega": 240.0}),
+            ("sweep provenance", {"provenance": "g2_sweep_override"}),
+        ):
+            with self.subTest(case=label):
+                wrong = protocol_tree(self, (0, 0, 1), ONE_AT_120, None)
+                options = {"omega": 120.0, "provenance": "confirmation_override"}
+                options.update(kwargs)
+                wrong.write_record("g2c-851-w120", tier=1, **options)
+                wrong.commit("confirmation record")
+                code, out = wrong.cli("rescue")
+                self.assertEqual(code, 2)
+                self.assertFalse(wrong.path("g2/rescue.json").exists())
+
+    def test_a_sweep_with_no_tier_one_setting_has_nothing_to_confirm(self):
+        tree = protocol_tree(self, (0, 0, 1), ZERO_GRID, None)
+        code, out, spy = self.spied(tree, "rescue")
+        self.assertEqual(code, 2)
+        self.assertIn("no confirmation", out)
+        self.assertEqual(spy.calls, [])
+        self.assertFalse(tree.path("g2/rescue.json").exists())
+
+    def test_a_second_run_exits_two_and_does_not_route_again(self):
+        tree = self.confirmed(1)
+        self.assertEqual(self.spied(tree, "rescue")[0], 3)
+        target = tree.path("g2/rescue.json")
+        before = target.read_bytes()
+        code, out, spy = self.spied(tree, "rescue")
+        self.assertEqual(code, 2)
+        self.assertTrue(out.startswith("G2-HALT:"), out)
+        self.assertEqual(spy.calls, [])
+        self.assertEqual(target.read_bytes(), before)
+
+    def test_the_command_line_exits_three_in_a_subprocess(self):
+        tree = self.confirmed(1)
+        code, out, err = tree.cli_subprocess("rescue")
+        self.assertEqual(code, 3, out + err)
+        self.assertEqual(out, "OWNER-ROUTED: owner checkpoint 4")
+
+
+class SkipWriterTests(unittest.TestCase):
+    LADDER_IDS = tuple(
+        [f"{family}-{system}" for family in ("r2a", "r2b") for system in PANEL_SYSTEMS]
+        + [f"{family}-{system}" for family in ("p1", "p2b") for system in (2279, 3418)]
+        + [f"{family}-{system}" for family in ("c-r1u", "c-r2a", "c-r2b") for system in PANEL_SYSTEMS]
+        + [f"{family}-{system}" for family in ("c-p1", "c-p2b") for system in (2279, 3418)]
+    )
+
+    def no_rescue_tree(self):
+        return curve_tree(self, (0, 0, 1), ZERO_GRID)
+
+    def write(self, tree, reason):
+        return tree.cli("skip", "--reason", reason)
+
+    def test_the_two_reasons_are_byte_exact(self):
+        self.assertEqual(g2.SKIP_REASONS, (NO_RESCUE, GO_TO_VERDICT))
+        self.assertEqual(g2.SKIP_REASONS[1].encode("utf-8"),
+                         b"checkpoint \xe2\x91\xa3 answered go to the verdict")
+        self.assertIn("\u2463", g2.SKIP_REASONS[1])
+        self.assertEqual(g2.LEVEL3_SKIPPED, "not tested (skipped at G2)")
+
+    def test_only_the_two_exact_strings_are_accepted(self):
+        tree = self.no_rescue_tree()
+        for bad in (
+            "no rescue ", " no rescue", "No rescue", "no  rescue", "no_rescue", "norescue",
+            "checkpoint 4 answered go to the verdict",
+            "checkpoint \u2463 answered go to the verdict ",
+            "checkpoint \u2463 answered go to the Verdict",
+            "checkpoint \u2462 answered go to the verdict",
+            "a third reason", "", "skipped at G2",
+        ):
+            with self.subTest(reason=bad):
+                with self.assertRaises(g2.G2Halt):
+                    g2.write_skip_records(bad, evidence_root=tree.evidence, repo_root=tree.root)
+                self.assertFalse(tree.path("g2/skip-records.json").exists())
+        for bad in (None, 7, b"no rescue", ["no rescue"]):
+            with self.subTest(reason=bad):
+                with self.assertRaises(g2.G2Halt):
+                    g2.write_skip_records(bad, evidence_root=tree.evidence, repo_root=tree.root)
+
+    def test_a_no_rescue_skip_writes_entries_for_both_requirements(self):
+        tree = self.no_rescue_tree()
+        code, out = self.write(tree, NO_RESCUE)
+        self.assertEqual(code, 0, out)
+        self.assertTrue(out.startswith("SKIP-RECORDS-WRITTEN:"), out)
+        record = tree.read("g2/skip-records.json")
+        self.assertEqual(record["schema"], "phase60-skip-records/v1")
+        self.assertEqual(record["reason"], NO_RESCUE)
+        for requirement in ("FEAS-04", "FEAS-09"):
+            self.assertIs(record["entries"][requirement]["skipped"], True)
+            self.assertEqual(record["entries"][requirement]["reason"], NO_RESCUE)
+        self.assertEqual(record["level3"], "not tested (skipped at G2)")
+        self.assertNotIn("not reached", json.dumps(record))
+        cited = {entry["path"] for entry in record["basis"]}
+        self.assertIn(tree.path("g2/g2-outcome.json").relative_to(tree.root).as_posix(), cited)
+        self.assertIn(tree.path("g2/sweep-curve.json").relative_to(tree.root).as_posix(), cited)
+
+    def test_the_reason_must_match_the_path_the_records_imply(self):
+        tree = self.no_rescue_tree()
+        code, out = self.write(tree, GO_TO_VERDICT)
+        self.assertEqual(code, 2)
+        self.assertIn("G2-HALT", out)
+        self.assertFalse(tree.path("g2/skip-records.json").exists())
+        self.assertEqual(self.write(tree, NO_RESCUE)[0], 0)
+
+    def test_a_failed_confirmation_pre_answered_no_rescue_is_a_no_rescue_skip(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, "no_rescue")
+        self.assertTrue(tree.path("g2/rescue.json").is_file())
+        self.assertEqual(self.write(tree, NO_RESCUE)[0], 0)
+
+    def test_no_skip_when_the_ladder_continues_or_is_undecided(self):
+        passed = outcome_tree(self, (1, 1, 0))
+        undecided = outcome_tree(self, (0, 0, 1))
+        awaiting = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1)
+        for label, tree, expected in (
+            ("g2 passed", passed, 2), ("no sweep curve", undecided, 4), ("rescue awaiting", awaiting, 4),
+        ):
+            with self.subTest(case=label):
+                for reason in g2.SKIP_REASONS:
+                    code, out = self.write(tree, reason)
+                    self.assertEqual(code, expected, out)
+                    self.assertFalse(tree.path("g2/skip-records.json").exists())
+
+    def test_any_started_ladder_arm_refuses_the_write(self):
+        self.assertEqual(len(self.LADDER_IDS), 23)
+        tree = self.no_rescue_tree()
+        for arm_id in self.LADDER_IDS:
+            for label, directory in (
+                ("evidence", tree.evidence / "arms" / arm_id),
+                ("run", tree.root / "runs" / "phase60" / arm_id),
+            ):
+                with self.subTest(arm=arm_id, kind=label):
+                    directory.mkdir(parents=True)
+                    try:
+                        code, out = self.write(tree, NO_RESCUE)
+                        self.assertEqual(code, 2, out)
+                        self.assertIn(arm_id, out)
+                        self.assertFalse(tree.path("g2/skip-records.json").exists())
+                    finally:
+                        directory.rmdir()
+        self.assertEqual(self.write(tree, NO_RESCUE)[0], 0)
+
+    def test_the_rung_one_sweep_and_confirmation_directories_do_not_refuse(self):
+        tree = self.no_rescue_tree()
+        (tree.root / "runs" / "phase60" / "r1-1632").mkdir(parents=True)
+        (tree.root / "runs" / "phase60" / "g2s-1632-w060").mkdir(parents=True)
+        (tree.evidence / "arms" / "g2c-851-w120").mkdir(parents=True)
+        self.assertEqual(self.write(tree, NO_RESCUE)[0], 0)
+
+    def test_a_second_write_is_refused_and_leaves_the_file_unchanged(self):
+        tree = self.no_rescue_tree()
+        self.assertEqual(self.write(tree, NO_RESCUE)[0], 0)
+        target = tree.path("g2/skip-records.json")
+        before = target.read_bytes()
+        code, out = self.write(tree, NO_RESCUE)
+        self.assertEqual(code, 2)
+        self.assertEqual(target.read_bytes(), before)
+
+    def test_the_skip_holds_no_home_or_absolute_path(self):
+        tree = self.no_rescue_tree()
+        self.write(tree, NO_RESCUE)
+        text = tree.path("g2/skip-records.json").read_text(encoding="utf-8")
+        self.assertNotIn(str(Path.home()), text)
+        self.assertNotIn(str(tree.root), text)
+        self.assertNotIn("\u2463", text)  # canonical JSON is ASCII; the digit is escaped
+
+    def test_the_command_line_takes_the_circled_digit_reason_through_argv(self):
+        tree = self.no_rescue_tree()
+        code, out, err = tree.cli_subprocess("skip", "--reason", GO_TO_VERDICT)
+        self.assertEqual(code, 2, out + err)  # the records imply no rescue, not this reason
+        code, out, err = tree.cli_subprocess("skip", "--reason", NO_RESCUE)
+        self.assertEqual(code, 0, out + err)
+
+
+class StopHandoffTests(unittest.TestCase):
+    ARMS = ("r1-1632", "r1-851", "r1-4658",
+            "g2s-1632-w060", "g2s-1632-w120", "g2s-1632-w240", "g2s-1632-w480")
+
+    def seven_arm_tree(self):
+        return curve_tree(self, (0, 0, 1), ZERO_GRID, rung1_hours=(1.5, 2.25, 3.0),
+                          sweep_hours=(0.5, 0.75, 1.25, 2.0))
+
+    @staticmethod
+    def expected_verdict():
+        return decision_verdict(g2_fired=True, sweep_rescued=False, rung2b_counts=None,
+                                rung3_counts=None, control_branch=None,
+                                rung1_beats_formula=None, scorecard=CARD)
+
+    def test_the_no_rescue_handoff_holds_the_frozen_verdict_and_the_hours(self):
+        tree = self.seven_arm_tree()
+        spy = VerdictSpy()
+        with mock.patch.object(g2, "decision_verdict", spy):
+            code, out = tree.cli("stop-handoff")
+        self.assertEqual(code, 0, out)
+        self.assertTrue(out.startswith("STOP-HANDOFF-WRITTEN:"), out)
+        self.assertEqual(len(spy.calls), 1)
+        self.assertIs(spy.calls[0]["sweep_rescued"], False)
+        for name in LATER:
+            self.assertIsNone(spy.calls[0][name])
+        handoff = tree.read("g2/stop-handoff.json")
+        self.assertEqual(handoff["schema"], "phase60-stop-handoff/v1")
+        self.assertEqual(handoff["stop_reason"], NO_RESCUE)
+        self.assertEqual(handoff["verdict"], self.expected_verdict())
+        self.assertEqual(handoff["verdict"]["verdict"], "RETHINK-REPRESENTATION")
+        self.assertEqual(handoff["level3"], "not tested (skipped at G2)")
+        self.assertNotEqual(handoff["level3"], "not reached")
+        self.assertEqual(handoff["phases_61_63"], "skipped at G2, not failed")
+        self.assertEqual(handoff["next_phase"], 64)
+        self.assertEqual([arm["arm_id"] for arm in handoff["arms"]], list(self.ARMS))
+        self.assertEqual([arm["wall_hours"] for arm in handoff["arms"]],
+                         [1.5, 2.25, 3.0, 0.5, 0.75, 1.25, 2.0])
+        self.assertAlmostEqual(handoff["total_wall_hours"], 11.25, places=12)
+        self.assertEqual([arm["seconds_per_step"] for arm in handoff["arms"]], [2.0] * 7)
+        for arm in handoff["arms"]:
+            raw = tree.record_path(arm["arm_id"]).read_bytes()
+            self.assertEqual(arm["record"]["sha256"], hashlib.sha256(raw).hexdigest())
+
+    def test_a_confirmation_run_adds_its_hours_as_the_eighth_arm(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, "no_rescue", rung1=(1.5, 2.25, 3.0),
+                            sweep=(0.5, 0.75, 1.25, 2.0), confirmation=4.5)
+        code, out = tree.cli("stop-handoff")
+        self.assertEqual(code, 0, out)
+        handoff = tree.read("g2/stop-handoff.json")
+        self.assertEqual(handoff["stop_reason"], NO_RESCUE)
+        self.assertEqual([arm["arm_id"] for arm in handoff["arms"]],
+                         list(self.ARMS) + ["g2c-851-w120"])
+        self.assertAlmostEqual(handoff["total_wall_hours"], 15.75, places=12)
+
+    def test_a_record_without_wall_hours_halts_the_handoff(self):
+        tree = outcome_tree(self, (0, 0, 1))
+        tree.with_sweep(ZERO_GRID)
+        payload = json.loads(tree.record_path("g2s-1632-w060").read_text())
+        del payload["wall"]
+        tree.write_json(tree.record_path("g2s-1632-w060"), payload)
+        tree.commit("a record without hours")
+        self.assertEqual(tree.cli("sweep-curve")[0], 0)
+        tree.commit("curve")
+        code, out = tree.cli("stop-handoff")
+        self.assertEqual(code, 2)
+        self.assertIn("wall", out)
+        self.assertFalse(tree.path("g2/stop-handoff.json").exists())
+
+    def test_the_handoff_is_refused_unless_the_records_stop_the_ladder(self):
+        passed = outcome_tree(self, (1, 1, 0))
+        awaiting = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1)
+        for label, tree, expected in (("g2 passed", passed, 2), ("rescue awaiting", awaiting, 4)):
+            with self.subTest(case=label):
+                spy = VerdictSpy()
+                with mock.patch.object(g2, "decision_verdict", spy):
+                    code, out = tree.cli("stop-handoff")
+                self.assertEqual(code, expected, out)
+                self.assertEqual(spy.calls, [])
+                self.assertFalse(tree.path("g2/stop-handoff.json").exists())
+
+    def test_a_started_ladder_arm_refuses_the_handoff(self):
+        tree = self.seven_arm_tree()
+        (tree.evidence / "arms" / "r2b-1632").mkdir(parents=True)
+        code, out = tree.cli("stop-handoff")
+        self.assertEqual(code, 2)
+        self.assertIn("r2b-1632", out)
+
+    def test_a_second_handoff_is_refused(self):
+        tree = self.seven_arm_tree()
+        self.assertEqual(tree.cli("stop-handoff")[0], 0)
+        target = tree.path("g2/stop-handoff.json")
+        before = target.read_bytes()
+        self.assertEqual(tree.cli("stop-handoff")[0], 2)
+        self.assertEqual(target.read_bytes(), before)
+
+    def test_the_handoff_holds_no_home_or_absolute_path(self):
+        tree = self.seven_arm_tree()
+        tree.cli("stop-handoff")
+        text = tree.path("g2/stop-handoff.json").read_text(encoding="utf-8")
+        self.assertNotIn(str(Path.home()), text)
+        self.assertNotIn(str(tree.root), text)
+
+
+class BranchSweepTests(unittest.TestCase):
+    NAMES = BranchTracerTests.NAMES
+
+    def states(self, tree):
+        return {name: tree.state(name) for name in self.NAMES}
+
+    def statuses(self, tree):
+        return {name: state.status for name, state in self.states(tree).items()}
+
+    def test_a_sweep_with_no_tier_one_setting_stops_with_no_rescue(self):
+        tree = curve_tree(self, (0, 0, 1), ZERO_GRID)
+        self.assertEqual(self.statuses(tree), {
+            "sweep": "TAKEN", "confirmation": "NOT-TAKEN", "owner-decision": "NOT-TAKEN",
+            "stop": "TAKEN", "continue-gate": "NOT-TAKEN", "ladder": "NOT-TAKEN",
+        })
+        self.assertIn(NO_RESCUE, tree.state("stop").reason)
+        code, out = tree.cli("branch", "stop")
+        self.assertEqual(code, 0)
+        self.assertTrue(out.startswith("BRANCH-TAKEN: stop"), out)
+
+    def test_a_tier_one_setting_takes_the_confirmation_and_leaves_the_rest_pending(self):
+        tree = curve_tree(self, (0, 0, 1), ONE_AT_120)
+        statuses = self.statuses(tree)
+        self.assertEqual(statuses["confirmation"], "TAKEN")
+        self.assertIn("g2c-851-w120", tree.state("confirmation").reason)
+        for name in ("owner-decision", "stop", "continue-gate", "ladder"):
+            self.assertEqual(statuses[name], "PENDING", name)
+
+    def test_the_confirmation_branch_follows_the_curve_not_the_arms(self):
+        pending = outcome_tree(self, (0, 0, 1))
+        self.assertEqual(pending.state("confirmation").status, "PENDING")
+        quiet = outcome_tree(self, (1, 1, 1))
+        self.assertEqual(quiet.state("confirmation").status, "NOT-TAKEN")
+
+    def test_a_confirmed_rescue_takes_the_owner_decision(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1)
+        statuses = self.statuses(tree)
+        self.assertEqual(statuses["owner-decision"], "TAKEN")
+        for name in ("stop", "continue-gate", "ladder"):
+            self.assertEqual(statuses[name], "PENDING", name)
+        self.assertIn("checkpoint 4", tree.state("stop").reason)
+
+    def test_a_failed_confirmation_pre_answered_no_rescue_takes_the_stop(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, "no_rescue")
+        self.assertEqual(self.statuses(tree), {
+            "sweep": "TAKEN", "confirmation": "TAKEN", "owner-decision": "NOT-TAKEN",
+            "stop": "TAKEN", "continue-gate": "NOT-TAKEN", "ladder": "NOT-TAKEN",
+        })
+        self.assertIn(NO_RESCUE, tree.state("stop").reason)
+
+    def test_a_failed_confirmation_without_or_with_a_rescue_pre_answer_asks_the_owner(self):
+        for pre in (None, "rescue"):
+            with self.subTest(pre=pre):
+                tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, pre)
+                statuses = self.statuses(tree)
+                self.assertEqual(statuses["owner-decision"], "TAKEN")
+                for name in ("stop", "continue-gate", "ladder"):
+                    self.assertEqual(statuses[name], "PENDING", name)
+
+    def test_a_confirmed_rescue_still_asks_the_owner_whatever_the_pre_answer(self):
+        for pre in ("no_rescue", "rescue", None):
+            with self.subTest(pre=pre):
+                tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1, pre)
+                self.assertEqual(tree.state("owner-decision").status, "TAKEN")
+                for name in ("stop", "continue-gate", "ladder"):
+                    self.assertEqual(tree.state(name).status, "PENDING", name)
+
+    def test_a_quiet_outcome_leaves_every_other_branch_not_taken(self):
+        tree = outcome_tree(self, (1, 1, 0))
+        self.assertEqual(self.statuses(tree), {
+            "sweep": "NOT-TAKEN", "confirmation": "NOT-TAKEN", "owner-decision": "NOT-TAKEN",
+            "stop": "NOT-TAKEN", "continue-gate": "NOT-TAKEN", "ladder": "TAKEN",
+        })
+
+    def test_a_skip_beside_a_ladder_taken_state_halts(self):
+        tree = outcome_tree(self, (1, 1, 0))
+        tree.write_json(tree.path("g2/skip-records.json"),
+                        {"schema": "phase60-skip-records/v1", "reason": NO_RESCUE})
+        tree.commit("a skip beside a passed gate")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("ladder")
+        code, out = tree.cli("branch", "ladder")
+        self.assertEqual(code, 2)
+        self.assertTrue(out.startswith("G2-HALT:"), out)
+
+    def test_a_skip_keeps_the_ladder_not_taken_on_a_stop(self):
+        tree = curve_tree(self, (0, 0, 1), ZERO_GRID)
+        self.assertEqual(tree.cli("skip", "--reason", NO_RESCUE)[0], 0)
+        tree.commit("skip records")
+        state = tree.state("ladder")
+        self.assertEqual(state.status, "NOT-TAKEN")
+        self.assertEqual(tree.state("stop").status, "TAKEN")
+
+    def test_a_skip_with_the_wrong_reason_beside_a_stop_halts(self):
+        tree = curve_tree(self, (0, 0, 1), ZERO_GRID)
+        tree.write_json(tree.path("g2/skip-records.json"),
+                        {"schema": "phase60-skip-records/v1", "reason": GO_TO_VERDICT})
+        tree.commit("a skip with another reason")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("ladder")
+
+    def test_a_skip_keeps_the_ladder_closed_while_the_records_are_undecided(self):
+        tree = curve_tree(self, (0, 0, 1), ONE_AT_120)
+        tree.write_json(tree.path("g2/skip-records.json"),
+                        {"schema": "phase60-skip-records/v1", "reason": NO_RESCUE})
+        tree.commit("a skip before the confirmation ran")
+        self.assertEqual(tree.state("ladder").status, "NOT-TAKEN")
+
+    def test_an_uncommitted_skip_makes_the_ladder_pending(self):
+        tree = curve_tree(self, (0, 0, 1), ZERO_GRID)
+        self.assertEqual(tree.cli("skip", "--reason", NO_RESCUE)[0], 0)  # written, not committed
+        state = tree.state("ladder")
+        self.assertEqual(state.status, "PENDING")
+        self.assertTrue(state.reason.startswith("uncommitted "), state.reason)
+        self.assertTrue(state.reason.endswith("skip-records.json"), state.reason)
+
+    def test_an_uncommitted_curve_makes_the_downstream_branches_pending(self):
+        tree = outcome_tree(self, (0, 0, 1)).with_sweep(ZERO_GRID)
+        self.assertEqual(tree.cli("sweep-curve")[0], 0)  # written, not committed
+        for name in ("confirmation", "owner-decision", "stop", "continue-gate", "ladder"):
+            state = tree.state(name)
+            self.assertEqual(state.status, "PENDING", name)
+            self.assertTrue(state.reason.startswith("uncommitted "), state.reason)
+        self.assertEqual(tree.state("sweep").status, "TAKEN")
+
+    def test_a_curve_that_disagrees_with_its_records_halts(self):
+        tree = curve_tree(self, (0, 0, 1), ONE_AT_120)
+        curve = tree.read("g2/sweep-curve.json")
+        curve["confirmation_arm"] = "g2c-851-w480"
+        curve["confirmed_first_omega_0"] = 480.0
+        tree.write_json(tree.path("g2/sweep-curve.json"), curve)
+        tree.commit("tamper with the curve")
+        for name in ("confirmation", "stop", "ladder"):
+            with self.subTest(name=name):
+                with self.assertRaises(g2.G2Halt):
+                    tree.state(name)
+
+    def test_a_curve_whose_sweep_record_changed_halts(self):
+        tree = curve_tree(self, (0, 0, 1), ZERO_GRID)
+        tree.write_record("g2s-1632-w240", tier=3, omega=240.0, provenance="g2_sweep_override")
+        tree.commit("rewrite a sweep record")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("stop")
+
+    def test_a_rescue_file_that_disagrees_with_the_confirmation_record_halts(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1)
+        rescue = tree.read("g2/rescue.json")
+        rescue["outcome"] = "failed_confirmation"
+        tree.write_json(tree.path("g2/rescue.json"), rescue)
+        tree.commit("tamper with the rescue")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("owner-decision")
+
+    def test_a_rescue_file_recorded_under_another_pre_answer_halts(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, "no_rescue")
+        tree.with_protocol("rescue")  # the protocol now says something else
+        with self.assertRaises(g2.G2Halt):
+            tree.state("stop")
+
+    def test_the_rescue_file_without_a_protocol_halts(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, "no_rescue")
+        tree.path("run-protocol.json").unlink()
+        tree.commit("remove the protocol")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("stop")
+
+
+class ModuleContractTests(unittest.TestCase):
+    """What the module's source promises about owner stops and the frozen verdict rule."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.source = Path(g2.__file__).read_text(encoding="utf-8")
+        cls.tree = ast.parse(cls.source)
+
+    @staticmethod
+    def handler_names(handler):
+        node = handler.type
+        if node is None:
+            return {"<bare>"}
+        elements = node.elts if isinstance(node, ast.Tuple) else [node]
+        names = set()
+        for element in elements:
+            if isinstance(element, ast.Name):
+                names.add(element.id)
+            elif isinstance(element, ast.Attribute):
+                names.add(element.attr)
+        return names
+
+    def test_owner_stops_are_handled_in_main_and_nowhere_else(self):
+        stops = {"OwnerRouted", "FailedConfirmationOwnerStop"}
+        outside, inside = [], []
+
+        class Scan(ast.NodeVisitor):
+            def __init__(self):
+                self.stack = []
+
+            def visit_FunctionDef(self, node):
+                self.stack.append(node.name)
+                self.generic_visit(node)
+                self.stack.pop()
+
+            def visit_ExceptHandler(self, node):
+                if ModuleContractTests.handler_names(node) & stops:
+                    (inside if self.stack == ["main"] else outside).append(node.lineno)
+                self.generic_visit(node)
+
+        Scan().visit(self.tree)
+        self.assertEqual(outside, [])
+        self.assertGreaterEqual(len(inside), 2)  # both stops are handled in main
+
+    def test_every_decision_verdict_call_passes_none_for_each_later_rung_input(self):
+        calls = [node for node in ast.walk(self.tree)
+                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                 and node.func.id == "decision_verdict"]
+        self.assertGreaterEqual(len(calls), 2)
+        for call in calls:
+            keywords = {keyword.arg: keyword.value for keyword in call.keywords}
+            self.assertTrue(keywords["g2_fired"].value is True)
+            for name in LATER:
+                self.assertIsInstance(keywords[name], ast.Constant, name)
+                self.assertIsNone(keywords[name].value, name)
+
+    def test_the_module_does_not_import_the_runner(self):
+        names = set()
+        for node in ast.walk(self.tree):
+            if isinstance(node, ast.Import):
+                names.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                names.add(node.module or "")
+        self.assertFalse([n for n in names if n.endswith("learnability_run")], names)
+        self.assertFalse([n for n in names if n.startswith("pinn.train") or n.startswith("pinn.evaluate")])
 
 
 if __name__ == "__main__":
