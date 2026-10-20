@@ -250,8 +250,8 @@ class ModuleContractTests(unittest.TestCase):
     def test_the_planned_names_are_exported(self):
         for name in (
             "PROTOCOL_SCHEMA", "PROTOCOL_REL", "PROTOCOL_DOC_REL", "PREFLIGHT_REL",
-            "PINNED_MODULES", "ProtocolDrift", "AdmissionRefused", "build_protocol",
-            "write_protocol", "load_protocol", "write_preflight", "admit_arm", "main",
+            "PREFLIGHT_SCHEMA", "PINNED_MODULES", "ProtocolDrift", "AdmissionRefused",
+            "build_protocol", "write_protocol", "load_protocol", "main",
         ):
             with self.subTest(name=name):
                 self.assertIn(name, self.P.__all__)
@@ -675,6 +675,24 @@ class PinCheckTests(unittest.TestCase):
         edit_json(self.root, R_REF, lambda payload: payload.update(valid=False))
         self.assertDrift(R_REF)
 
+    def test_an_input_that_is_missing_unreadable_or_not_an_object_is_refused(self):
+        for label, damage in (
+            ("missing", lambda path: path.unlink()),
+            ("not json", lambda path: path.write_text("{not json", encoding="utf-8")),
+            ("a list", lambda path: path.write_text("[]\n", encoding="utf-8")),
+        ):
+            for relative in INPUTS:
+                with self.subTest(case=label, path=relative):
+                    root, _ = mirror(self)
+                    damage(root / relative)
+                    with self.assertRaises(self.P.ProtocolDrift) as caught:
+                        self.P.build_protocol(repo_root=root, amendment_commit=real_head())
+                    self.assertIn(relative, list(caught.exception.paths))
+
+    def test_a_missing_pinned_module_is_refused_by_name(self):
+        (self.root / PLAN_PINNED[2]).unlink()
+        self.assertDrift(PLAN_PINNED[2])
+
     def test_an_amendment_commit_that_is_not_a_full_lowercase_hash_is_refused(self):
         for value in ("", "abc", "A" * 40, "g" * 40, "a" * 39, "a" * 41, None, 7):
             with self.subTest(value=value):
@@ -772,6 +790,13 @@ class RoundTripTests(unittest.TestCase):
         with self.assertRaises(self.P.ProtocolDrift):
             self.P.load_protocol(repo_root=ROOT, evidence_root=self.evidence)
 
+    def test_only_a_run_protocol_can_be_written(self):
+        for payload in ({}, {"schema": "other/v1"}, [1], None, "text"):
+            with self.subTest(payload=payload):
+                with self.assertRaises(ValueError):
+                    self.P.write_protocol(payload, evidence_root=self.evidence)
+        self.assertFalse((self.evidence / "run-protocol.json").exists())
+
     def test_writing_twice_with_no_record_is_allowed(self):
         _protocol, first = self.write()
         second = self.P.write_protocol(real_protocol(self), evidence_root=self.evidence)
@@ -836,6 +861,20 @@ class DriftTests(unittest.TestCase):
                     path.write_bytes(original)
         self.load()
 
+    def test_each_recorded_source_file_changed_is_named(self):
+        for relative in INPUTS:
+            with self.subTest(path=relative):
+                path = self.root / relative
+                original = path.read_bytes()
+                try:
+                    path.write_bytes(original + b"\n")
+                    with self.assertRaises(self.P.ProtocolDrift) as caught:
+                        self.load()
+                    self.assertEqual(list(caught.exception.paths), [relative])
+                finally:
+                    path.write_bytes(original)
+        self.load()
+
     def test_several_changed_files_are_all_named(self):
         changed = [PLAN_PINNED[0], PLAN_PINNED[10], PLAN_PINNED[31]]
         originals = {relative: (self.root / relative).read_bytes() for relative in changed}
@@ -878,6 +917,31 @@ class DriftTests(unittest.TestCase):
         with self.assertRaises(self.P.ProtocolDrift) as caught:
             self.load()
         self.assertIn("pinn/extra.py", list(caught.exception.paths))
+
+    def test_a_protocol_without_a_field_admission_reads_is_refused(self):
+        original = (self.evidence / "run-protocol.json").read_bytes()
+        cases = (
+            ("no clip section", lambda payload: payload.pop("clip")),
+            ("a clip flag that is not a boolean",
+             lambda payload: payload["clip"].update(clip_data_only_arms="yes")),
+            ("no pre-answer key", lambda payload: payload["g2"].pop("failed_confirmation_pre_answer")),
+            ("a pre-answer that is neither of the two",
+             lambda payload: payload["g2"].update(failed_confirmation_pre_answer="maybe")),
+            ("no preflight key", lambda payload: payload.pop("preflight_sha256")),
+            ("no scorer digest", lambda payload: payload.pop("scorer_sha256")),
+            ("no governed reference", lambda payload: payload.pop("r_ref_governed")),
+            ("no S_H", lambda payload: payload.pop("s_h")),
+            ("no panel source", lambda payload: payload["panel"].pop("source")),
+        )
+        for label, change in cases:
+            with self.subTest(case=label):
+                self.rewrite(change)
+                with self.assertRaises(self.P.ProtocolDrift) as caught:
+                    self.load()
+                self.assertEqual(list(caught.exception.paths), [PROTOCOL_PATH])
+                (self.evidence / "run-protocol.json").write_bytes(original)
+                commit_all(self.root, "restore the protocol")
+        self.load()
 
     def test_a_wrong_schema_or_a_non_object_is_refused(self):
         self.rewrite(lambda payload: payload.update(schema="phase60-run-protocol/v0"))
