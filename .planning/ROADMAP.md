@@ -249,7 +249,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 60-04-PLAN.md — Wave 3: the Phase 59 verifier accepts the one scorer successor; digest-substituted baselines re-derivation; manifest; detached final (INST-05)
+- [x] 60-04-PLAN.md — Wave 3: the Phase 59 verifier accepts the one scorer successor; digest-substituted baselines re-derivation; manifest; detached final (INST-05)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 3/23 | In Progress | - |
+| 60. Single-System Learnability | 4/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |

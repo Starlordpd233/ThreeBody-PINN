@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 wave 2 complete 2026-10-19 (60-01 to 60-03 done, 3 of 23 plans); waves 3-4 next (60-04, 60-23), run by position 1 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
+stopped_at: "Phase 60 wave 3 complete 2026-10-19 (60-01 to 60-04 done, 4 of 23 plans); wave 4 next (60-23), run by position 1 of watchdog chain phase-60-work-8ffbf6ffd8616f5c"
 last_updated: "2026-10-19T04:00:45Z"
 last_activity: 2026-10-19
-last_activity_desc: Phase 60 wave 2 executed — 60-02 made the scorer MPS-safe and passed the MPS L-BFGS smoke (commits 57f48478, 2c84d43a, 08189ab1, 2734f4c9); 60-03 applied the scope amendment in REQUIREMENTS.md (spec commit dc3edac0, summary f9d0b439). The wave gate passed (104 + 31 + 4 + 139 tests). Two GAP-60-05 polish-stopping readings stay open for the owner or verifier before the first real arm.
+last_activity_desc: Phase 60 wave 3 executed — 60-04 taught the Phase 59 verifier to accept exactly the one scorer successor digest and re-derived the baselines against a digest-substituted copy; Phase 59 final passed at HEAD 4df5d4a8 (PHASE59-EVIDENCE-OK, 604 s, EXIT=0). Commits ec8bd4e8, 4df5d4a8, 8d422955. The wave gate passed (138 + 31 + 4 + 139 tests). Two GAP-60-05 polish-stopping readings stay open for the owner or verifier before the first real arm.
 state_head: e6c3a3e5
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 13
-  percent: 39
+  completed_plans: 14
+  percent: 42
 ---
 
 # Project State
@@ -30,9 +30,16 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-4 under watchdog chain phase-60-work-8ffbf6ffd8616f5c)
-Plan: 3 of 23 (22 waves)
+Plan: 4 of 23 (22 waves)
 Status: Executing
-Last activity: 2026-10-19 — Wave 2 complete (60-02, 60-03); waves 3-4 (plans 60-04, 60-23) run next, then the chain hands off
+Last activity: 2026-10-19 — Wave 3 complete (60-04); wave 4 (plan 60-23) runs next, then the chain hands off
+
+### Decisions from 60-04 (2026-10-19)
+
+- `verify_phase59_evidence.py` accepts a scorer mismatch only for `pinn/verification/feasibility_scorer.py`, only when the result records the predecessor digest `cd5019a2…3870b` and the file has the successor digest `00edf81d…c7`, both taken from the committed `scorer-successor.json` (tracked, clean, exactly the six v1 string keys). Every other fingerprint is still checked. Commits `ec8bd4e8`, `4df5d4a8` (manifest rehash: the verifier's digest and size plus `produced_at_head`, 3 lines), `8d422955`.
+- The baselines re-derivation runs against a temporary copy of the committed baselines with only the digest string swapped, and passed (`BASELINES-OK`, 61 s). The scorer fix therefore changed no CPU float64 baseline number, and the GAP-60-02 stop condition did not trigger.
+- Phase 59 `final` passed at HEAD `4df5d4a8`: `PHASE59-EVIDENCE-OK`, 604 s, `EXIT=0`. The log is `$HOME/.cache/3bp-phase60-logs/phase59-final-60-04.log` (outside the repository). Plan 60-22 can reuse this evidence while no Phase 59 input changes after `4df5d4a8`.
+- `tests/phase60/test_verifier_successor.py` (34 tests) was run RED first, and a mutation check caught 13 of 13 injected faults. Wave 3 gate: 138 Phase 60 tests, 31 + 4 prohibition tests and 139 Phase 59 scorer-suite tests pass.
 
 ### Decisions from 60-03 (2026-10-19)
 
