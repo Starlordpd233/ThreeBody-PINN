@@ -9,6 +9,16 @@ optimizer step. A harness weights file is a plain state dict. It is not a
 production checkpoint, no run directory is created for it, and the evaluator
 refuses it. The frozen rules (cadence, polish stop, better state) are called
 from the scorecard module and never re-implemented.
+
+A real arm sizes itself (D-02, GAP-60-04): a separate timing run of the exact arm
+configuration measures seconds per step, ``steps_budget`` turns that into the arm's
+step budget B at the frozen 3-hour cap, and the cosine runs over exactly B. The
+timing network is discarded and the arm starts from its own seed-42 initialization.
+``drive_adam`` reads the scorer at the frozen cadence and branches only on what
+``budget_outcome`` returns (complete, one extension, or inconclusive with a rate)
+and on divergence (GAP-60-06). An improvement rate that cannot be determined raises
+``OwnerRouted``: the runner writes ``owner-stop.json`` and the Adam weights and then
+re-raises it, and nothing catches it and retries (T-60-11).
 """
 
 from __future__ import annotations
@@ -33,9 +43,12 @@ from pinn.training.atomic_io import atomic_write_torch
 from pinn.training.config import OptConfig
 from pinn.training.controllers import _tensor_hash
 from pinn.verification.feasibility_scorecard import (
+    OwnerRouted,
     better_state,
+    budget_outcome,
     polish_should_stop,
     scoring_cadence_ok,
+    steps_budget,
 )
 from pinn.verification.diagnostic_architecture import build_network_with_first_omega
 from pinn.verification.feasibility_scorer import score_network
@@ -43,6 +56,7 @@ from pinn.verification.learnability_arms import (
     FIXTURE_FORMULA_NOTE,
     RUN_SCHEMA,
     SEED,
+    TIMING_STEPS,
     FirstResultExists,
     arm_evidence_dir,
     check_override,
@@ -50,15 +64,30 @@ from pinn.verification.learnability_arms import (
     write_record_exclusive,
 )
 from pinn.verification.learnability_data import HarnessHalt, load_arm_data
-from pinn.verification.learnability_losses import data_only_loss, data_polish_objective
+from pinn.verification.learnability_losses import (
+    data_only_loss,
+    data_polish_objective,
+    release_chunk_memory,
+)
 
 __all__ = [
+    "OWNER_STOP_FILE",
+    "OWNER_STOP_SCHEMA",
+    "budget_from_timing",
     "build_arm_network",
+    "drive_adam",
+    "reading_steps",
     "run_arm",
     "save_weights",
+    "timing_run",
+    "timing_steps_for",
     "weights_digest",
+    "write_owner_stop",
 ]
 
+OWNER_STOP_SCHEMA = "phase60-owner-stop/v1"
+OWNER_STOP_FILE = "owner-stop.json"
+_BUDGET_OUTCOME_STAGE = "budget_outcome"
 _DTYPES = {"float32": torch.float32, "float64": torch.float64}
 _D04_NOTE = (
     "D-04: every data-only arm uses the Stage-0 cosine (k = 0), so the 75%-100% window "
@@ -118,11 +147,244 @@ def save_weights(path, model):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest(), weights_digest(state)
 
 
-def _reading_steps(budget, scorecard):
-    """Steps 0, every ``max(1, floor(f * B))`` steps, and ``B``."""
+def _timing_minimum(scorecard):
+    """The frozen minimum number of timing-run steps."""
+    return int(scorecard.section("budget_rule")["timing_run_min_steps"])
+
+
+def timing_steps_for(spec, *, scorecard):
+    """GAP-60-04: 500 timing steps for a data-only arm, 50 for an arm with a physics term.
+
+    Both counts must be at least the frozen minimum. A count below it is a
+    harness error, not a value to clamp.
+    """
+    minimum = _timing_minimum(scorecard)
+    for name, count in TIMING_STEPS.items():
+        if count < minimum:
+            raise HarnessHalt(
+                f"the {name} timing run is {count} steps; the frozen minimum is {minimum}"
+            )
+    return TIMING_STEPS["data_only" if spec.loss_arm == "data_only" else "physics"]
+
+
+def _synchronize(device):
+    """Wait for queued MPS work. It acts only on an MPS device and probes nothing."""
+    if device.type == "mps" and hasattr(torch, "mps") and hasattr(torch.mps, "synchronize"):
+        torch.mps.synchronize()
+
+
+class _AdamStepper:
+    """One Adam step of a data-only arm. The timing run and the arm take the same step."""
+
+    def __init__(self, model, data, optimizer, scheduler, *, dtype, device):
+        self.model = model
+        self.data = data
+        self.optimizer = optimizer
+        self.scheduler = scheduler
+        self.dtype = dtype
+        self.device = device
+
+    def step(self, _index):
+        """Take one step. Returns ``None``, or the name of a non-finite quantity that skipped it."""
+        self.optimizer.zero_grad(set_to_none=True)
+        loss = data_only_loss(
+            self.model, self.data.data_points, dtype=self.dtype, device=self.device
+        )
+        loss.backward()
+        self.optimizer.step()
+        self.scheduler.step()
+        return None
+
+
+def _adam_for(model, lr_stage, t_max):
+    """Adam on the ratified rate for ``lr_stage`` and the cosine over ``t_max`` steps."""
+    opt = OptConfig()
+    optimizer = torch.optim.Adam(
+        model.parameters(), lr=opt.lr_for_stage(lr_stage), betas=opt.adam_betas, eps=opt.adam_eps
+    )
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(t_max, 1))
+    return optimizer, scheduler
+
+
+def timing_run(
+    spec,
+    *,
+    context,
+    scorecard,
+    runtime,
+    first_omega_0,
+    steps,
+    data=None,
+    clock=time.monotonic,
+):
+    """GAP-60-04: time ``steps`` Adam steps of the exact arm configuration, then discard everything.
+
+    A fresh network, optimizer and cosine are built for the arm's record, loss, first-layer
+    frequency and stage. Every step is timed, the first one included. MPS work is
+    synchronized before the clock is first read and again after the last step, before it
+    is read for the second time. The network and optimizer are dropped on return and the
+    arm starts from its own seed-42 initialization. ``data`` may be passed to reuse the
+    arm's already-loaded record. Returns ``{steps, wall_seconds, seconds_per_step}``.
+    """
+    dtype, device = _resolve_runtime(runtime)
+    minimum = _timing_minimum(scorecard)
+    if isinstance(steps, bool) or not isinstance(steps, int) or steps < minimum:
+        raise HarnessHalt(f"a timing run takes an integer of at least {minimum} steps; got {steps!r}")
+    if data is None:
+        data = load_arm_data(spec, context, scorecard=scorecard, dtype=dtype, device=device)
+    model = build_arm_network(first_omega_0, dtype=dtype, device=device)
+    optimizer, scheduler = _adam_for(model, spec.lr_stage, steps)
+    stepper = _AdamStepper(model, data, optimizer, scheduler, dtype=dtype, device=device)
+    _synchronize(device)
+    started = clock()
+    for index in range(1, steps + 1):
+        stepper.step(index)
+    _synchronize(device)
+    wall = clock() - started
+    del stepper, scheduler, optimizer, model
+    release_chunk_memory(device)
+    return {"steps": steps, "wall_seconds": wall, "seconds_per_step": wall / steps}
+
+
+def budget_from_timing(timing, *, scorecard):
+    """D-02: the arm's step budget B, the frozen 3-hour cap over the timing run's seconds per step."""
+    cap_hours = float(scorecard.section("budget_rule")["cap_hours_single_system"])
+    return steps_budget(
+        cap_hours, timing["wall_seconds"], timing["steps"], scorecard=scorecard
+    )
+
+
+def reading_steps(budget, *, scorecard, through=None, enforce_cadence=True):
+    """Steps 0, every ``max(1, floor(f * B))`` steps, and ``B``; the same interval on to ``through``.
+
+    ``through`` is ``B`` until the frozen rule grants the one extension, and then its
+    ``new_budget_steps``. With ``enforce_cadence`` the readings must meet
+    ``scoring_cadence_ok`` for ``B`` and for ``through``, else ``HarnessHalt``. A fixture
+    budget below 20 steps cannot meet a 5% gap with whole steps, so a fixture passes False.
+    """
+    horizon = budget if through is None else through
+    for name, value in (("budget", budget), ("through", horizon)):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise HarnessHalt(f"{name} must be a positive integer; got {value!r}")
+    if horizon < budget:
+        raise HarnessHalt(f"through ({horizon}) must not be below the budget ({budget})")
     fraction = float(scorecard.section("budget_rule")["scoring_cadence_max_fraction"])
     stride = max(1, math.floor(fraction * budget))
-    return sorted(set(range(0, budget, stride)) | {budget})
+    steps = sorted(set(range(0, horizon, stride)) | {budget, horizon})
+    if enforce_cadence:
+        first = [step for step in steps if step <= budget]
+        if not (
+            scoring_cadence_ok(first, budget, scorecard=scorecard)
+            and scoring_cadence_ok(steps, horizon, scorecard=scorecard)
+        ):
+            raise HarnessHalt(
+                f"readings every {stride} steps cannot meet the frozen scoring cadence at a "
+                f"budget of {budget} (through {horizon})"
+            )
+    return steps
+
+
+def drive_adam(
+    *,
+    budget,
+    step_fn,
+    read_fn,
+    scorecard,
+    on_extend,
+    clock,
+    enforce_cadence=True,
+):
+    """The budget driver. It branches only on ``budget_outcome`` and on divergence.
+
+    ``step_fn(step)`` takes Adam step number ``step`` and returns ``None``, or a short name
+    for the non-finite quantity that made it skip the optimizer step (GAP-60-06).
+    ``read_fn(step)`` scores the current network and returns ``E``. ``on_extend()`` is called
+    once, when the frozen rule grants the extension. At the end of the budget the frozen
+    ``budget_outcome`` decides: complete, extend once to its ``new_budget_steps``, or (after
+    the extension) inconclusive with a rate. An ``OwnerRouted`` it raises propagates
+    unchanged. A skipped step ends Adam at the last finite state: ``budget_outcome`` is not
+    called and no reading is invented. Adam's wall time is the sum of every step and every
+    reading (GAP-60-05).
+    """
+    if isinstance(budget, bool) or not isinstance(budget, int) or budget < 1:
+        raise HarnessHalt(f"the Adam budget must be a positive integer; got {budget!r}")
+    horizon = budget
+    planned = frozenset(
+        reading_steps(budget, scorecard=scorecard, through=horizon, enforce_cadence=enforce_cadence)
+    )
+    readings = []
+    adam_seconds = 0.0
+    step = 0
+    extended = False
+    new_budget_steps = None
+    rate_per_step = None
+    diverged_at_step = None
+    diverged_by = None
+    outcome = None
+    started = clock()
+    readings.append([step, read_fn(step)])
+    adam_seconds += clock() - started
+    while outcome is None:
+        if step == horizon:
+            verdict = budget_outcome(readings, horizon, extended=extended, scorecard=scorecard)
+            if verdict["outcome"] == "extend":
+                new_budget_steps = verdict["new_budget_steps"]
+                horizon = new_budget_steps
+                extended = True
+                on_extend()
+                planned = frozenset(
+                    reading_steps(
+                        budget, scorecard=scorecard, through=horizon,
+                        enforce_cadence=enforce_cadence,
+                    )
+                )
+            else:
+                outcome = verdict["outcome"]
+                rate_per_step = verdict.get("rate_per_step")
+            continue
+        step += 1
+        started = clock()
+        skipped_for = step_fn(step)
+        adam_seconds += clock() - started
+        if skipped_for is not None:
+            outcome = "diverged"
+            diverged_at_step = step
+            diverged_by = skipped_for
+            continue
+        if step in planned:
+            started = clock()
+            readings.append([step, read_fn(step)])
+            adam_seconds += clock() - started
+    return {
+        "outcome": outcome,
+        "budget_steps": budget,
+        "extended": extended,
+        "new_budget_steps": new_budget_steps,
+        "rate_per_step": rate_per_step,
+        "diverged_at_step": diverged_at_step,
+        "diverged_by": diverged_by,
+        "steps_taken": step if diverged_at_step is None else diverged_at_step - 1,
+        "readings": readings,
+        "reading_steps": [item[0] for item in readings],
+        "adam_seconds": adam_seconds,
+    }
+
+
+def write_owner_stop(arm_dir, *, stage, reason, details, data_root=None):
+    """Write ``owner-stop.json`` for an owner-routed stop. It is created once and never replaced.
+
+    Returns the SHA-256 of the bytes written.
+    """
+    if not isinstance(stage, str) or not stage:
+        raise HarnessHalt(f"an owner stop names the stage it stopped in; got {stage!r}")
+    payload = {
+        "schema": OWNER_STOP_SCHEMA,
+        "diagnostic": True,
+        "stage": stage,
+        "reason": str(reason),
+        "details": details,
+    }
+    return write_record_exclusive(Path(arm_dir) / OWNER_STOP_FILE, payload, data_root=data_root)
 
 
 def _score(model, data, view, *, scorecard, dtype, device):
@@ -245,6 +507,12 @@ def _polish(model, data, *, scorecard, adam_seconds, adam_gold, dtype, device, c
             return reason, outer_calls, trace, state_result
 
 
+def _checked_steps(value, name, minimum):
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise HarnessHalt(f"{name} must be an integer of at least {minimum}; got {value!r}")
+    return value
+
+
 def run_arm(
     spec,
     *,
@@ -253,33 +521,52 @@ def run_arm(
     runtime,
     evidence_root,
     fixture_budget_steps=None,
+    fixture_timing_steps=None,
     ruling=None,
     clock=time.monotonic,
 ):
     """Run one data-only arm end to end and return the record it wrote.
 
-    ``runtime`` is a ``(dtype name, device name)`` pair. A ``fixture_budget_steps``
-    value is legal only when both the context and the arm are fixtures; the
-    frozen budget rule for real arms is added by the budget driver. ``ruling`` is
-    the committed D-11 ruling an ``owner_approved`` arm needs (duck-typed: ``answer``
-    and ``approved_first_omega_0``); without one that arm is refused.
+    ``runtime`` is a ``(dtype name, device name)`` pair. A real arm sizes itself: its own
+    timing run (``timing_steps_for`` steps) gives seconds per step, ``budget_from_timing``
+    gives the budget B, and ``drive_adam`` runs the cosine over B under the frozen budget
+    rule. A fixture arm (both the arm and the context are fixtures) names its own small
+    ``fixture_budget_steps`` and may name ``fixture_timing_steps`` (default: the frozen
+    minimum). The record then holds the budget the frozen rule would have given, beside
+    the fixture's. A real arm refuses both fixture knobs. ``ruling`` is the committed D-11
+    ruling an ``owner_approved`` arm needs (duck-typed: ``answer`` and
+    ``approved_first_omega_0``); without one that arm is refused.
 
     The first-layer frequency is resolved and authorized before anything else
     (INST-05(e)): an arm that is not entitled to its setting raises
     ``OverrideRefused`` before any data is read, any network is built or any file
-    is written.
+    is written. An ``OwnerRouted`` from the budget outcome writes ``owner-stop.json`` and
+    the Adam weights, then propagates unchanged (T-60-11).
     """
     first_omega_0 = resolve_first_omega_0(spec, scorecard=scorecard, ruling=ruling)
     check_override(spec, first_omega_0, scorecard=scorecard, ruling=ruling)
     dtype, device = _resolve_runtime(runtime)
-    fixture = spec.run_kind == "fixture" and context.run_kind == "fixture"
-    if fixture_budget_steps is not None and not fixture:
-        raise HarnessHalt("fixture_budget_steps is legal only for a fixture arm on a fixture context")
-    if not fixture:
-        raise HarnessHalt("a real arm needs the frozen budget rule, which is not available here")
-    budget = fixture_budget_steps
-    if isinstance(budget, bool) or not isinstance(budget, int) or budget < 1:
-        raise HarnessHalt(f"fixture_budget_steps must be a positive integer; got {budget!r}")
+    if spec.run_kind != context.run_kind:
+        raise HarnessHalt(
+            f"arm {spec.arm_id} is a {spec.run_kind} arm but its data context is a "
+            f"{context.run_kind} context"
+        )
+    fixture = spec.run_kind == "fixture"
+    if fixture:
+        budget = _checked_steps(fixture_budget_steps, "fixture_budget_steps", 1)
+        timing_steps = (
+            _timing_minimum(scorecard)
+            if fixture_timing_steps is None
+            else _checked_steps(fixture_timing_steps, "fixture_timing_steps", _timing_minimum(scorecard))
+        )
+    else:
+        if fixture_budget_steps is not None or fixture_timing_steps is not None:
+            raise HarnessHalt(
+                "fixture_budget_steps and fixture_timing_steps are legal only for a fixture "
+                "arm on a fixture context"
+            )
+        budget = None
+        timing_steps = timing_steps_for(spec, scorecard=scorecard)
     if spec.loss_arm != "data_only":
         raise HarnessHalt(
             f"this runner trains data-only arms; loss_arm {spec.loss_arm!r} has no physics step here"
@@ -292,26 +579,50 @@ def run_arm(
             "result and a second run never replaces it"
         )
     total_started = clock()
-    torch.manual_seed(SEED)
-    model = build_arm_network(first_omega_0, dtype=dtype, device=device)
     data = load_arm_data(spec, context, scorecard=scorecard, dtype=dtype, device=device)
 
+    # D-02, GAP-60-04: the budget comes from this arm's own timing run. The timing network
+    # is gone by the time the arm builds its own, from the seed-42 initialization.
+    timing = timing_run(
+        spec,
+        context=context,
+        scorecard=scorecard,
+        runtime=runtime,
+        first_omega_0=first_omega_0,
+        steps=timing_steps,
+        data=data,
+        clock=clock,
+    )
+    frozen_budget = budget_from_timing(timing, scorecard=scorecard)
+    if budget is None:
+        budget = frozen_budget
+    if budget < 1:
+        raise HarnessHalt(
+            f"the frozen budget for arm {spec.arm_id} is {budget} steps; no arm can be run"
+        )
+
+    torch.manual_seed(SEED)
+    model = build_arm_network(first_omega_0, dtype=dtype, device=device)
     opt = OptConfig()
     learning_rate = opt.lr_for_stage(spec.lr_stage)
-    optimizer = torch.optim.Adam(
-        model.parameters(), lr=learning_rate, betas=opt.adam_betas, eps=opt.adam_eps
-    )
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(budget, 1))
-    reading_steps = _reading_steps(budget, scorecard)
-    # The frozen cadence allows a gap of 5% of the budget, which whole steps cannot
-    # meet below 20 steps. A fixture budget is therefore recorded against the rule
-    # but not held to it; the budget driver enforces it for real arms.
-    cadence_ok = scoring_cadence_ok(reading_steps, budget, scorecard=scorecard)
+    optimizer, scheduler = _adam_for(model, spec.lr_stage, budget)
+    stepper = _AdamStepper(model, data, optimizer, scheduler, dtype=dtype, device=device)
 
-    scheduled = frozenset(reading_steps)
-    readings = []
+    def on_extend():
+        # D-03: a second cosine of the same length from the stage's initial rate, on the
+        # same optimizer, so Adam's moments are kept.
+        for group in optimizer.param_groups:
+            group["lr"] = group["initial_lr"]
+        stepper.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=max(budget, 1)
+        )
+
+    # A fixture budget below 20 steps cannot meet the frozen 5% cadence with whole
+    # steps, so it is recorded against the rule but not held to it. A real arm is.
+    enforce_cadence = not fixture
     trace = []
     adam_started = clock()
+    latest = {}
 
     def take_reading(step):
         result = _score(model, data, data.score, scorecard=scorecard, dtype=dtype, device=device)
@@ -325,19 +636,47 @@ def run_arm(
                 "elapsed_seconds": clock() - adam_started,
             }
         )
-        readings.append([step, float(result.E)])
-        return result
+        latest["result"] = result
+        return float(result.E)
 
-    adam_gold = take_reading(0)
-    for step in range(1, budget + 1):
-        optimizer.zero_grad(set_to_none=True)
-        loss = data_only_loss(model, data.data_points, dtype=dtype, device=device)
-        loss.backward()
-        optimizer.step()
-        scheduler.step()
-        if step in scheduled:
-            adam_gold = take_reading(step)
-    adam_seconds = clock() - adam_started
+    try:
+        driven = drive_adam(
+            budget=budget,
+            step_fn=stepper.step,
+            read_fn=take_reading,
+            scorecard=scorecard,
+            on_extend=on_extend,
+            clock=clock,
+            enforce_cadence=enforce_cadence,
+        )
+    except OwnerRouted as stop:
+        weights_file_sha, weights_tensor_digest = save_weights(arm_dir / "adam.weights", model)
+        write_owner_stop(
+            arm_dir,
+            stage=_BUDGET_OUTCOME_STAGE,
+            reason=str(stop),
+            details={
+                "arm_id": spec.arm_id,
+                "budget_steps": budget,
+                "readings": [[entry["step"], entry["E"]] for entry in trace],
+                "timing": timing,
+                "weights": {
+                    "file": "adam.weights",
+                    "sha256": weights_file_sha,
+                    "tensor_digest": weights_tensor_digest,
+                },
+            },
+            data_root=context.reader.data_root,
+        )
+        raise
+    adam_gold = latest["result"]
+    adam_seconds = driven["adam_seconds"]
+    diverged = driven["outcome"] == "diverged"
+    final_budget = budget if driven["new_budget_steps"] is None else driven["new_budget_steps"]
+    cadence_ok = (
+        None if diverged
+        else scoring_cadence_ok(driven["reading_steps"], final_budget, scorecard=scorecard)
+    )
 
     adam_base = _score(model, data, data.beside, scorecard=scorecard, dtype=dtype, device=device)
     adam_file_sha, adam_tensor_digest = save_weights(arm_dir / "adam.weights", model)
@@ -393,14 +732,22 @@ def run_arm(
             "betas": list(opt.adam_betas),
             "eps": opt.adam_eps,
             "cosine_t_max": max(budget, 1),
+            "cosines": 2 if driven["extended"] else 1,
         },
+        "timing": timing,
         "budget": {
-            "rule": "fixture",
+            "rule": "fixture" if fixture else "frozen",
             "budget_steps": budget,
-            "reading_steps": reading_steps,
-            "readings": readings,
+            "frozen_budget_steps": frozen_budget,
+            "reading_steps": driven["reading_steps"],
+            "readings": driven["readings"],
+            "outcome": driven["outcome"],
+            "extended": driven["extended"],
+            "new_budget_steps": driven["new_budget_steps"],
+            "rate_per_step": driven["rate_per_step"],
+            "diverged_at_step": driven["diverged_at_step"],
             "cadence_ok": cadence_ok,
-            "cadence_enforced": False,
+            "cadence_enforced": enforce_cadence,
         },
         "trace": trace,
         "states": {
