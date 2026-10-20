@@ -19,6 +19,10 @@ What it does, in order:
 * ``skip`` and ``stop-handoff`` record the stop at G2: Rung 2 and the hard-stage
   probes are skipped for one of two pre-registered reasons, and Phase 64 receives
   the evidence and the machine hours.
+* The owner's answers (checkpoint 4, and GAP-60-09 when it is asked) are read only
+  from the committed ruling files, through ``learnability_ruling``. A continue needs
+  a committed GATE-04 re-measure that passed at the approved setting before the
+  ladder is taken (D-07, D-11).
 * ``branch <name>`` is one read-only query that every later plan runs before it acts.
   It answers TAKEN, NOT-TAKEN or PENDING from the committed records alone.
 
@@ -45,6 +49,7 @@ import json
 import math
 import numbers
 import os
+import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -72,6 +77,14 @@ from pinn.verification.learnability_arms import (
     catalog,
     write_record_exclusive,
 )
+from pinn.verification.learnability_ruling import (
+    RulingError,
+    RulingMissing,
+    RulingUncommitted,
+    load_checkpoint4_ruling,
+    load_gap6009_ruling,
+    tracked_and_clean,
+)
 
 __all__ = [
     "BRANCH_NAMES",
@@ -82,12 +95,16 @@ __all__ = [
     "NOT_TAKEN",
     "OUTCOME_SCHEMA",
     "PENDING",
+    "REMEASURE_REL",
+    "REMEASURE_SCHEMA",
+    "R_REF_APPROVED_REL",
     "SKIP_REASONS",
     "TAKEN",
     "BranchState",
     "FailedConfirmationOwnerStop",
     "G2Halt",
     "G2Pending",
+    "Remeasure",
     "Rung1Record",
     "UncommittedInput",
     "branch_state",
@@ -95,6 +112,7 @@ __all__ = [
     "g2_outcome",
     "load_rung1_records",
     "main",
+    "parse_remeasure",
     "rescue_outcome",
     "stop_handoff",
     "sweep_curve",
@@ -112,6 +130,11 @@ RESCUE_NAME = "rescue.json"
 SKIP_NAME = "skip-records.json"
 HANDOFF_NAME = "stop-handoff.json"
 PROTOCOL_NAME = "run-protocol.json"
+# D-07 / GAP-60-10: the GATE-04 re-measure after an owner continue. Plan 60-09 writes both
+# files under the continue evidence directory; this module only reads the record.
+REMEASURE_REL = EVIDENCE_REL / "continue" / "gate04-remeasure.json"
+R_REF_APPROVED_REL = EVIDENCE_REL / "continue" / "r-ref-approved.json"
+REMEASURE_SCHEMA = "phase60-gate04-remeasure/v1"
 OUTCOME_SCHEMA = "phase60-g2-outcome/v1"
 CURVE_SCHEMA = "phase60-sweep-curve/v1"
 RESCUE_SCHEMA = "phase60-rescue/v1"
@@ -210,9 +233,10 @@ class _Loaded:
 class _Route:
     """Where the committed records send the ladder: past G2, or into a stop."""
 
-    kind: str  # "passed" or "stop"
+    kind: str  # "passed", "stop" or "continue"
     reason: str
     basis: tuple = ()
+    ruling: object = None  # the checkpoint 4 ruling, on a go-to-verdict stop or a continue
 
 
 # ---------------------------------------------------------------------------
@@ -223,14 +247,6 @@ def _git(repo_root, *args):
     return subprocess.run(
         ["git", *args], cwd=str(repo_root), capture_output=True, text=True, check=False
     )
-
-
-def _tracked_and_clean(repo_root, relative):
-    """True when ``relative`` is tracked and has no change, staged or not (Phase 59 pattern)."""
-    if _git(repo_root, "ls-files", "--error-unmatch", "--", relative).returncode != 0:
-        return False
-    status = _git(repo_root, "status", "--porcelain", "--", relative)
-    return status.returncode == 0 and status.stdout.strip() == ""
 
 
 def _repo_root_of(path):
@@ -290,7 +306,7 @@ class _Inputs:
             raise G2Pending(f"{relative} is not recorded")
         if not path.is_file():
             raise G2Halt(f"{relative} is not a regular file")
-        if not _tracked_and_clean(self.repo_root, relative):
+        if not tracked_and_clean(self.repo_root, relative):
             raise UncommittedInput(relative)
         self._bytes[key] = (path.read_bytes(), relative)
         return self._bytes[key]
@@ -749,11 +765,93 @@ def _verified_rescue(inputs, card, curve):
 
 
 # ---------------------------------------------------------------------------
+# The GATE-04 re-measure record and the owner's rulings.
+# ---------------------------------------------------------------------------
+
+_SHA256 = re.compile(r"[0-9a-f]{64}")
+
+
+@dataclass(frozen=True)
+class Remeasure:
+    """The fields of ``gate04-remeasure.json`` that the ladder reads."""
+
+    verdict: str
+    complete_pass: bool
+    first_omega_0: float
+    ruling_sha256: str
+    r_ref_artifact: dict | None
+
+
+def parse_remeasure(payload, *, path="the re-measure record"):
+    """Validate a GATE-04 re-measure record and return the fields the ladder reads.
+
+    A PASS must be a complete pass and cite the re-measured reference (``path`` and
+    ``sha256``); a BLOCK must not claim a complete pass. Anything else is a ``G2Halt``.
+    """
+
+    def refuse(reason):
+        raise G2Halt(f"{path} {reason}")
+
+    if not isinstance(payload, dict) or payload.get("schema") != REMEASURE_SCHEMA:
+        refuse(f"does not carry the schema {REMEASURE_SCHEMA}")
+    verdict = payload.get("verdict")
+    if verdict not in ("PASS", "BLOCK"):
+        refuse("has a verdict other than PASS or BLOCK")
+    complete = payload.get("complete_pass")
+    if not isinstance(complete, bool):
+        refuse("has no boolean complete_pass")
+    omega = payload.get("first_omega_0")
+    if (
+        isinstance(omega, bool)
+        or not isinstance(omega, numbers.Real)
+        or not math.isfinite(omega)
+        or omega <= 0
+    ):
+        refuse("has no finite positive first_omega_0")
+    ruling_sha = payload.get("ruling_sha256")
+    if not isinstance(ruling_sha, str) or _SHA256.fullmatch(ruling_sha) is None:
+        refuse("has no ruling_sha256")
+    artifact = None
+    if verdict == "PASS":
+        if complete is not True:
+            refuse("is a PASS that is not a complete pass")
+        cited = payload.get("r_ref_artifact")
+        if (
+            not isinstance(cited, dict)
+            or not isinstance(cited.get("path"), str)
+            or not cited["path"]
+            or not isinstance(cited.get("sha256"), str)
+            or _SHA256.fullmatch(cited["sha256"]) is None
+        ):
+            refuse("is a PASS without a re-measured reference (path and sha256)")
+        artifact = {"path": cited["path"], "sha256": cited["sha256"]}
+    elif complete is not False:
+        refuse("is a BLOCK that claims a complete pass")
+    return Remeasure(verdict, complete, float(omega), ruling_sha, artifact)
+
+
+def _load_ruling(inputs, loader, what):
+    """A committed owner ruling, or the reason it cannot be used yet."""
+    try:
+        return loader(repo_root=inputs.repo_root)
+    except RulingMissing as exc:
+        raise G2Pending(f"{what} is unanswered: no committed ruling") from exc
+    except RulingUncommitted as exc:
+        raise UncommittedInput(exc.relative) from exc
+    except RulingError as exc:
+        raise G2Halt(f"the {what} ruling cannot be used: {exc}") from exc
+
+
+def _cite_ruling(ruling):
+    return {"path": ruling.path, "sha256": ruling.sha256}
+
+
+# ---------------------------------------------------------------------------
 # Where the committed records send the ladder.
 # ---------------------------------------------------------------------------
 
 def _route(inputs, card):
-    """``passed`` when G2 did not fire, ``stop`` with its reason, or a pending/halt exception."""
+    """``passed`` when G2 did not fire, ``stop`` with its reason, ``continue`` with the ruling, or a pending/halt exception."""
     outcome = _verified_outcome(inputs, card)
     if not outcome.payload["g2_fired"]:
         return _Route("passed", "g2 did not fire", (_cite(outcome),))
@@ -764,11 +862,23 @@ def _route(inputs, card):
     rescue = _verified_rescue(inputs, card, curve)
     pre_answer, protocol = _protocol_pre_answer(inputs)
     basis += (_cite(rescue), _cite(protocol))
-    if rescue.payload["outcome"] == "failed_confirmation" and pre_answer == "no_rescue":
-        return _Route("stop", REASON_NO_RESCUE, basis)
-    if rescue.payload["outcome"] == "failed_confirmation" and pre_answer is None:
-        raise G2Pending("failed confirmation (GAP-60-09) awaits the owner")
-    raise G2Pending("owner checkpoint 4 is unanswered")
+    if rescue.payload["outcome"] == "failed_confirmation":
+        if pre_answer == "no_rescue":
+            return _Route("stop", REASON_NO_RESCUE, basis)
+        if pre_answer is None:
+            # GAP-60-09: with no pre-answer the owner says what a failed confirmation means.
+            reading = _load_ruling(inputs, load_gap6009_ruling, "failed confirmation (GAP-60-09)")
+            basis += (_cite_ruling(reading),)
+            if reading.reading == "no_rescue":
+                return _Route("stop", REASON_NO_RESCUE, basis)
+    # A confirmed rescue, or a failed confirmation read as a rescue: checkpoint 4.
+    ruling = _load_ruling(inputs, load_checkpoint4_ruling, "owner checkpoint 4")
+    basis += (_cite_ruling(ruling),)
+    if ruling.answer == "go-to-verdict":
+        return _Route("stop", REASON_GO_TO_VERDICT, basis, ruling)
+    return _Route(
+        "continue", f"continue at first_omega_0 {ruling.approved_first_omega_0}", basis, ruling
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -864,23 +974,37 @@ def _write_stop_handoff(inputs, card):
     route = _route(inputs, card)
     if route.kind != "stop":
         raise G2Halt(f"the committed records do not stop the ladder at G2 ({route.reason})")
-    # On the no-rescue path the frozen rule gets g2_fired and no rescue, and nothing
-    # else: every later-rung input is None, so no skipped result enters the verdict.
-    verdict = decision_verdict(
-        g2_fired=True,
-        sweep_rescued=False,
-        rung2b_counts=None,
-        rung3_counts=None,
-        control_branch=None,
-        rung1_beats_formula=None,
-        scorecard=card,
-    )
+    verdict = owner_answer = note = None
+    if route.reason == REASON_GO_TO_VERDICT:
+        # The owner chose the verdict at checkpoint 4: their answer stands, and the
+        # verdict rule is not called at all on this path.
+        owner_answer = {
+            "checkpoint": 4,
+            "answer": route.ruling.answer,
+            "ruling_path": route.ruling.path,
+            "ruling_sha256": route.ruling.sha256,
+        }
+        note = f"{REASON_GO_TO_VERDICT}; no decision_verdict call is made on this path"
+    else:
+        # On the no-rescue path the frozen rule gets g2_fired and no rescue, and nothing
+        # else: every later-rung input is None, so no skipped result enters the verdict.
+        verdict = decision_verdict(
+            g2_fired=True,
+            sweep_rescued=False,
+            rung2b_counts=None,
+            rung3_counts=None,
+            control_branch=None,
+            rung1_beats_formula=None,
+            scorecard=card,
+        )
     arms = [_arm_hours(inputs, arm_id) for arm_id in _stop_arm_ids(inputs, card)]
     payload = {
         "schema": HANDOFF_SCHEMA,
         "stop_reason": route.reason,
         "basis": list(route.basis),
         "verdict": verdict,
+        "owner_answer": owner_answer,
+        "verdict_note": note,
         "level3": LEVEL3_SKIPPED,
         "phases_61_63": PHASES_61_63_SKIPPED,
         "next_phase": 64,
@@ -961,7 +1085,34 @@ def _branch_stop(inputs, card):
 
 def _branch_continue_gate(inputs, card):
     route = _route(inputs, card)
+    if route.kind == "continue":
+        return BranchState(
+            "continue-gate", TAKEN, route.reason,
+            first_omega_0=route.ruling.approved_first_omega_0, omega_provenance="owner_approved",
+        )
     return BranchState("continue-gate", NOT_TAKEN, route.reason)
+
+
+def _continue_ladder(inputs, route):
+    """The ladder after an owner continue: taken once GATE-04 passed at the approved setting."""
+    ruling = route.ruling
+    omega = ruling.approved_first_omega_0
+    try:
+        loaded = inputs.json(inputs.under_evidence(*REMEASURE_REL.relative_to(EVIDENCE_REL).parts))
+    except G2Pending as exc:
+        raise G2Pending(f"the GATE-04 re-measure at first_omega_0 {omega} is not recorded") from exc
+    record = parse_remeasure(loaded.payload, path=loaded.path)
+    if record.first_omega_0 != omega or record.ruling_sha256 != ruling.sha256:
+        raise G2Halt(
+            f"{loaded.path} was measured at another setting or under another ruling "
+            "than the committed checkpoint 4 ruling"
+        )
+    if record.verdict == "BLOCK":
+        raise G2Pending(f"GATE-04 BLOCK at {omega}; owner")
+    return BranchState(
+        "ladder", TAKEN, f"continue; first_omega_0 {omega}; owner_approved",
+        first_omega_0=omega, omega_provenance="owner_approved",
+    )
 
 
 def _branch_ladder(inputs, card):
@@ -979,6 +1130,8 @@ def _branch_ladder(inputs, card):
         return BranchState("ladder", NOT_TAKEN, f"the ladder stopped at G2: {route.reason}")
     if skip is not None:
         raise G2Halt(f"{skip.path} records a skip although the committed records take the ladder")
+    if route.kind == "continue":
+        return _continue_ladder(inputs, route)
     locked = float(card.section("gate_g2")["locked_value"])
     return BranchState(
         "ladder", TAKEN, f"g2 passed; first_omega_0 {locked}",

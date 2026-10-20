@@ -38,8 +38,14 @@ from pinn.verification.feasibility_scorecard import (
     g2_fires,
     load_scorecard,
 )
-from pinn.verification.learnability_arms import EVIDENCE_REL, PANEL_SYSTEMS, RUN_SCHEMA
+from pinn.verification.learnability_arms import (
+    EVIDENCE_REL,
+    PANEL_SYSTEMS,
+    PHASE_REL,
+    RUN_SCHEMA,
+)
 from tests.phase59.test_evidence_verifier import commit_all, init_repo
+from tests.phase60.test_ruling import checkpoint4, gap6009
 
 ROOT = Path(__file__).resolve().parents[2]
 CARD = load_scorecard()
@@ -83,6 +89,28 @@ def fake_records(tiers):
         )
         for system, tier in zip(PANEL_SYSTEMS, tiers)
     ]
+
+
+def remeasure_payload(*, verdict="PASS", first_omega_0=120.0, ruling_sha256, complete_pass=None):
+    """A synthetic GATE-04 re-measure record with the fields the branch query reads."""
+    complete = (verdict == "PASS") if complete_pass is None else complete_pass
+    payload = {
+        "schema": "phase60-gate04-remeasure/v1",
+        "verdict": verdict,
+        "complete_pass": complete,
+        "first_omega_0": first_omega_0,
+        "ruling_sha256": ruling_sha256,
+        "on_grid": first_omega_0 in (60.0, 120.0, 240.0, 480.0),
+        "equals_confirmed": first_omega_0 == 120.0,
+    }
+    if verdict == "PASS":
+        payload["r_ref_artifact"] = {
+            "path": (EVIDENCE_REL / "continue" / "r-ref-approved.json").as_posix(),
+            "sha256": "ab" * 32,
+        }
+    else:
+        payload["blocking_reasons"] = ["synthetic fixture block"]
+    return payload
 
 
 _TEMPLATES = {}
@@ -235,6 +263,40 @@ class Tree:
              "g2": {"failed_confirmation_pre_answer": pre_answer}},
         )
         self.commit("run protocol")
+        return self
+
+    # -- the owner's rulings and the GATE-04 re-measure (synthetic stand-ins) ------
+    CHECKPOINT4_NAME = "60-CHECKPOINT-4-RULING.md"
+    GAP6009_NAME = "60-GAP-60-09-RULING.md"
+
+    def put_ruling(self, name, text):
+        target = self.root / PHASE_REL / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+        return target
+
+    def with_checkpoint4(self, answer, value=None, *, commit=True, **kwargs):
+        self.put_ruling(self.CHECKPOINT4_NAME, checkpoint4(answer, value, **kwargs))
+        if commit:
+            self.commit("checkpoint 4 ruling")
+        return self
+
+    def with_gap6009(self, reading, *, commit=True):
+        self.put_ruling(self.GAP6009_NAME, gap6009(reading))
+        if commit:
+            self.commit("gap 60-09 ruling")
+        return self
+
+    def ruling_sha(self, name=CHECKPOINT4_NAME):
+        return hashlib.sha256((self.root / PHASE_REL / name).read_bytes()).hexdigest()
+
+    def with_remeasure(self, *, commit=True, **overrides):
+        """Write the GATE-04 re-measure record (PASS at 120 under the committed ruling by default)."""
+        options = {"ruling_sha256": self.ruling_sha()}
+        options.update(overrides)
+        self.write_json(self.path("continue/gate04-remeasure.json"), remeasure_payload(**options))
+        if commit:
+            self.commit("gate 04 re-measure")
         return self
 
     def with_rescue(self, tier, *, pre_answer=None, hours=1.0):
@@ -1634,6 +1696,403 @@ class ModuleContractTests(unittest.TestCase):
                 names.add(node.module or "")
         self.assertFalse([n for n in names if n.endswith("learnability_run")], names)
         self.assertFalse([n for n in names if n.startswith("pinn.train") or n.startswith("pinn.evaluate")])
+
+
+# ---------------------------------------------------------------------------
+# Task 3: the owner's committed rulings, the continue gate and the ladder.
+# ---------------------------------------------------------------------------
+
+class RemeasureRecordTests(unittest.TestCase):
+    SHA = "cd" * 32
+
+    def payload(self, **overrides):
+        return {**remeasure_payload(ruling_sha256=self.SHA), **overrides}
+
+    def test_the_constants_name_the_continue_evidence(self):
+        self.assertEqual(g2.REMEASURE_REL, EVIDENCE_REL / "continue" / "gate04-remeasure.json")
+        self.assertEqual(g2.R_REF_APPROVED_REL, EVIDENCE_REL / "continue" / "r-ref-approved.json")
+        self.assertEqual(g2.REMEASURE_SCHEMA, "phase60-gate04-remeasure/v1")
+
+    def test_a_pass_record_reads_its_fields(self):
+        record = g2.parse_remeasure(self.payload())
+        self.assertEqual((record.verdict, record.complete_pass, record.first_omega_0,
+                          record.ruling_sha256), ("PASS", True, 120.0, self.SHA))
+        self.assertEqual(record.r_ref_artifact["sha256"], "ab" * 32)
+
+    def test_a_block_record_reads_its_fields(self):
+        record = g2.parse_remeasure(remeasure_payload(verdict="BLOCK", ruling_sha256=self.SHA))
+        self.assertEqual((record.verdict, record.complete_pass), ("BLOCK", False))
+        self.assertIsNone(record.r_ref_artifact)
+
+    def test_a_record_that_is_not_a_clean_pass_or_block_is_refused(self):
+        def without(key):
+            payload = self.payload()
+            del payload[key]
+            return payload
+
+        cases = {
+            "another schema": self.payload(schema="phase60-gate04-remeasure/v0"),
+            "no schema": without("schema"),
+            "verdict maybe": self.payload(verdict="MAYBE"),
+            "verdict lower case": self.payload(verdict="pass"),
+            "verdict maybe with no complete pass": self.payload(verdict="MAYBE", complete_pass=False),
+            "no verdict": without("verdict"),
+            "complete_pass missing": without("complete_pass"),
+            "complete_pass not a bool": self.payload(complete_pass=1),
+            "pass without a complete pass": self.payload(complete_pass=False),
+            "block with a complete pass": remeasure_payload(
+                verdict="BLOCK", ruling_sha256=self.SHA, complete_pass=True),
+            "no setting": without("first_omega_0"),
+            "zero setting": self.payload(first_omega_0=0.0),
+            "negative setting": self.payload(first_omega_0=-60.0),
+            "nan setting": self.payload(first_omega_0=float("nan")),
+            "bool setting": self.payload(first_omega_0=True),
+            "string setting": self.payload(first_omega_0="120"),
+            "no ruling hash": without("ruling_sha256"),
+            "short ruling hash": self.payload(ruling_sha256="cd" * 31),
+            "upper case ruling hash": self.payload(ruling_sha256="CD" * 32),
+            "pass without an artifact": without("r_ref_artifact"),
+            "artifact is not an object": self.payload(r_ref_artifact="x"),
+            "artifact without a path": self.payload(r_ref_artifact={"sha256": "ab" * 32}),
+            "artifact with an empty path": self.payload(r_ref_artifact={"path": "", "sha256": "ab" * 32}),
+            "artifact without a hash": self.payload(r_ref_artifact={"path": "x"}),
+            "artifact with a short hash": self.payload(r_ref_artifact={"path": "x", "sha256": "ab"}),
+        }
+        for label, payload in cases.items():
+            with self.subTest(case=label):
+                with self.assertRaises(g2.G2Halt):
+                    g2.parse_remeasure(payload)
+        with self.assertRaises(g2.G2Halt):
+            g2.parse_remeasure(["not", "an", "object"])
+
+
+class BranchOwnerTests(unittest.TestCase):
+    """The full branch table: rulings, the GATE-04 gate and the ladder."""
+
+    NAMES = BranchTracerTests.NAMES
+
+    def statuses(self, tree):
+        return {name: tree.state(name).status for name in self.NAMES}
+
+    def rescue_tree(self, pre_answer=None):
+        return rescued_tree(self, (0, 0, 1), ONE_AT_120, 1, pre_answer)
+
+    def failed_tree(self, pre_answer=None):
+        return rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, pre_answer)
+
+    def test_an_unanswered_checkpoint_holds_the_ladder(self):
+        tree = self.rescue_tree()
+        statuses = self.statuses(tree)
+        self.assertEqual(statuses["owner-decision"], "TAKEN")
+        for name in ("stop", "continue-gate", "ladder"):
+            self.assertEqual(statuses[name], "PENDING", name)
+            self.assertIn("checkpoint 4", tree.state(name).reason)
+        code, out = tree.cli("branch", "ladder")
+        self.assertEqual(code, 4)
+        self.assertTrue(out.startswith("BRANCH-PENDING: ladder"), out)
+
+    def test_go_to_verdict_takes_the_stop(self):
+        tree = self.rescue_tree().with_checkpoint4("go-to-verdict")
+        self.assertEqual(self.statuses(tree), {
+            "sweep": "TAKEN", "confirmation": "TAKEN", "owner-decision": "TAKEN",
+            "stop": "TAKEN", "continue-gate": "NOT-TAKEN", "ladder": "NOT-TAKEN",
+        })
+        self.assertEqual(tree.state("stop").reason, GO_TO_VERDICT)
+        code, out = tree.cli("branch", "stop")
+        self.assertEqual(code, 0)
+        self.assertEqual(out, f"BRANCH-TAKEN: stop ({GO_TO_VERDICT})")
+
+    def test_continue_takes_the_continue_gate_at_the_named_setting(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "120")
+        gate = tree.state("continue-gate")
+        self.assertEqual((gate.status, gate.first_omega_0, gate.omega_provenance),
+                         ("TAKEN", 120.0, "owner_approved"))
+        self.assertEqual(gate.reason, "continue at first_omega_0 120.0")
+        self.assertEqual(tree.state("stop").status, "NOT-TAKEN")
+        self.assertEqual(tree.state("stop").reason, "continue at first_omega_0 120.0")
+        ladder = tree.state("ladder")
+        self.assertEqual(ladder.status, "PENDING")
+        self.assertIn("re-measure", ladder.reason)
+        self.assertIsNone(ladder.first_omega_0)
+
+    def test_a_setting_off_the_sweep_grid_is_accepted_and_carried(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "37.5")
+        gate = tree.state("continue-gate")
+        self.assertEqual((gate.status, gate.first_omega_0), ("TAKEN", 37.5))
+        tree.with_remeasure(first_omega_0=37.5)
+        ladder = tree.state("ladder")
+        self.assertEqual((ladder.status, ladder.first_omega_0), ("TAKEN", 37.5))
+        self.assertEqual(ladder.reason, "continue; first_omega_0 37.5; owner_approved")
+
+    def test_the_ladder_waits_for_a_gate_04_pass_at_the_approved_setting(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "120")
+        self.assertEqual(tree.state("ladder").status, "PENDING")
+        tree.with_remeasure(first_omega_0=120.0)
+        ladder = tree.state("ladder")
+        self.assertEqual((ladder.status, ladder.first_omega_0, ladder.omega_provenance),
+                         ("TAKEN", 120.0, "owner_approved"))
+        self.assertEqual(ladder.reason, "continue; first_omega_0 120.0; owner_approved")
+        code, out = tree.cli("branch", "ladder")
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "BRANCH-TAKEN: ladder (continue; first_omega_0 120.0; owner_approved)")
+        self.assertEqual(tree.state("stop").status, "NOT-TAKEN")
+        self.assertEqual(tree.state("continue-gate").status, "TAKEN")
+
+    def test_a_gate_04_block_keeps_the_ladder_pending_for_the_owner(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "120")
+        tree.with_remeasure(verdict="BLOCK", first_omega_0=120.0)
+        ladder = tree.state("ladder")
+        self.assertEqual(ladder.status, "PENDING")
+        self.assertEqual(ladder.reason, "GATE-04 BLOCK at 120.0; owner")
+        code, out = tree.cli("branch", "ladder")
+        self.assertEqual(code, 4)
+        self.assertEqual(out, "BRANCH-PENDING: ladder (GATE-04 BLOCK at 120.0; owner)")
+        self.assertEqual(tree.state("continue-gate").status, "TAKEN")
+
+    def test_a_remeasure_at_another_setting_or_under_another_ruling_halts(self):
+        for verdict in ("PASS", "BLOCK"):
+            for label, overrides in (
+                ("another setting", {"first_omega_0": 240.0}),
+                ("a slightly different setting", {"first_omega_0": 120.0000001}),
+                ("another ruling", {"ruling_sha256": "0" * 64}),
+            ):
+                with self.subTest(verdict=verdict, case=label):
+                    tree = self.rescue_tree().with_checkpoint4("continue", "120")
+                    tree.with_remeasure(verdict=verdict, **overrides)
+                    with self.assertRaises(g2.G2Halt):
+                        tree.state("ladder")
+                    code, out = tree.cli("branch", "ladder")
+                    self.assertEqual(code, 2)
+                    self.assertTrue(out.startswith("G2-HALT:"), out)
+
+    def test_a_changed_ruling_leaves_an_old_remeasure_stale(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "120").with_remeasure()
+        self.assertEqual(tree.state("ladder").status, "TAKEN")
+        tree.with_checkpoint4("continue", "240")  # the owner re-answers
+        with self.assertRaises(g2.G2Halt):
+            tree.state("ladder")
+
+    def test_a_malformed_remeasure_record_halts(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "120")
+        payload = remeasure_payload(ruling_sha256=tree.ruling_sha())
+        payload["verdict"] = "MAYBE"
+        tree.write_json(tree.path("continue/gate04-remeasure.json"), payload)
+        tree.commit("a malformed re-measure")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("ladder")
+
+    def test_an_uncommitted_remeasure_makes_the_ladder_pending(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "120")
+        tree.with_remeasure(commit=False)
+        ladder = tree.state("ladder")
+        self.assertEqual(ladder.status, "PENDING")
+        self.assertTrue(ladder.reason.startswith("uncommitted "), ladder.reason)
+        self.assertTrue(ladder.reason.endswith("gate04-remeasure.json"), ladder.reason)
+
+    def test_a_skip_beside_a_continued_ladder_halts(self):
+        tree = self.rescue_tree().with_checkpoint4("continue", "120").with_remeasure()
+        tree.write_json(tree.path("g2/skip-records.json"),
+                        {"schema": "phase60-skip-records/v1", "reason": NO_RESCUE})
+        tree.commit("a skip beside a continue")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("ladder")
+
+    def test_a_gap_60_09_reading_of_no_rescue_takes_the_stop(self):
+        tree = self.failed_tree().with_gap6009("no_rescue")
+        self.assertEqual(self.statuses(tree), {
+            "sweep": "TAKEN", "confirmation": "TAKEN", "owner-decision": "TAKEN",
+            "stop": "TAKEN", "continue-gate": "NOT-TAKEN", "ladder": "NOT-TAKEN",
+        })
+        self.assertEqual(tree.state("stop").reason, NO_RESCUE)
+
+    def test_a_failed_confirmation_with_no_pre_answer_waits_for_the_owner(self):
+        tree = self.failed_tree()
+        for name in ("stop", "continue-gate", "ladder"):
+            state = tree.state(name)
+            self.assertEqual(state.status, "PENDING", name)
+            self.assertIn("GAP-60-09", state.reason)
+
+    def test_a_gap_60_09_reading_of_rescue_then_needs_the_checkpoint_4_ruling(self):
+        tree = self.failed_tree().with_gap6009("rescue")
+        for name in ("stop", "continue-gate", "ladder"):
+            state = tree.state(name)
+            self.assertEqual(state.status, "PENDING", name)
+            self.assertIn("checkpoint 4", state.reason)
+        tree.with_checkpoint4("go-to-verdict")
+        self.assertEqual(tree.state("stop").reason, GO_TO_VERDICT)
+        self.assertEqual(tree.state("stop").status, "TAKEN")
+
+    def test_a_gap_60_09_reading_of_rescue_can_continue(self):
+        tree = self.failed_tree().with_gap6009("rescue").with_checkpoint4("continue", "240")
+        gate = tree.state("continue-gate")
+        self.assertEqual((gate.status, gate.first_omega_0), ("TAKEN", 240.0))
+        self.assertEqual(tree.state("stop").status, "NOT-TAKEN")
+
+    def test_a_protocol_pre_answer_decides_before_any_gap_60_09_file(self):
+        rescue_pre = self.failed_tree("rescue").with_gap6009("no_rescue")
+        self.assertEqual(rescue_pre.state("stop").status, "PENDING")  # still needs checkpoint 4
+        self.assertIn("checkpoint 4", rescue_pre.state("stop").reason)
+        no_rescue_pre = self.failed_tree("no_rescue").with_gap6009("rescue")
+        self.assertEqual(no_rescue_pre.state("stop").status, "TAKEN")
+        self.assertEqual(no_rescue_pre.state("stop").reason, NO_RESCUE)
+
+    def test_a_stray_continue_ruling_cannot_open_the_ladder(self):
+        cases = {
+            "sweep with no rescue": curve_tree(self, (0, 0, 1), ZERO_GRID),
+            "failed confirmation pre-answered no rescue": self.failed_tree("no_rescue"),
+        }
+        for label, tree in cases.items():
+            with self.subTest(case=label):
+                tree.with_checkpoint4("continue", "120").with_remeasure()
+                self.assertEqual(tree.state("stop").status, "TAKEN")
+                self.assertEqual(tree.state("continue-gate").status, "NOT-TAKEN")
+                self.assertEqual(tree.state("ladder").status, "NOT-TAKEN")
+
+    def test_a_passed_gate_runs_the_ladder_at_the_locked_setting_whatever_the_rulings(self):
+        tree = outcome_tree(self, (1, 1, 0)).with_checkpoint4("continue", "120")
+        tree.with_gap6009("rescue")
+        self.assertEqual(self.statuses(tree), {
+            "sweep": "NOT-TAKEN", "confirmation": "NOT-TAKEN", "owner-decision": "NOT-TAKEN",
+            "stop": "NOT-TAKEN", "continue-gate": "NOT-TAKEN", "ladder": "TAKEN",
+        })
+        ladder = tree.state("ladder")
+        self.assertEqual((ladder.first_omega_0, ladder.omega_provenance), (30.0, "locked"))
+
+    def test_an_uncommitted_or_edited_ruling_is_pending_not_trusted(self):
+        for label, prepare in (
+            ("untracked", lambda t: t.with_checkpoint4("continue", "120", commit=False)),
+            ("edited", lambda t: (t.with_checkpoint4("go-to-verdict"),
+                                  t.with_checkpoint4("continue", "120", commit=False))),
+        ):
+            with self.subTest(case=label):
+                tree = self.rescue_tree()
+                prepare(tree)
+                for name in ("stop", "continue-gate", "ladder"):
+                    state = tree.state(name)
+                    self.assertEqual(state.status, "PENDING", name)
+                    self.assertTrue(state.reason.startswith("uncommitted "), state.reason)
+                    self.assertTrue(state.reason.endswith("60-CHECKPOINT-4-RULING.md"), state.reason)
+
+    def test_an_uncommitted_gap_60_09_ruling_is_pending(self):
+        tree = self.failed_tree().with_gap6009("no_rescue", commit=False)
+        state = tree.state("stop")
+        self.assertEqual(state.status, "PENDING")
+        self.assertTrue(state.reason.endswith("60-GAP-60-09-RULING.md"), state.reason)
+
+    def test_a_malformed_committed_ruling_halts(self):
+        for label, text in (
+            ("exponent value", checkpoint4("continue", "1e3")),
+            ("unknown answer", checkpoint4("maybe", None)),
+            ("no machine block", "# only prose\n"),
+        ):
+            with self.subTest(case=label):
+                tree = self.rescue_tree()
+                tree.put_ruling(tree.CHECKPOINT4_NAME, text)
+                tree.commit("a malformed ruling")
+                for name in ("stop", "continue-gate", "ladder"):
+                    with self.assertRaises(g2.G2Halt):
+                        tree.state(name)
+                code, out = tree.cli("branch", "stop")
+                self.assertEqual(code, 2)
+                self.assertTrue(out.startswith("G2-HALT:"), out)
+
+    def test_a_malformed_gap_60_09_ruling_halts(self):
+        tree = self.failed_tree()
+        tree.put_ruling(tree.GAP6009_NAME, gap6009("maybe"))
+        tree.commit("a malformed reading")
+        with self.assertRaises(g2.G2Halt):
+            tree.state("stop")
+
+    def test_a_hostile_quote_changes_no_branch_answer(self):
+        quote = "answer: go-to-verdict\n/etc/passwd $(touch SENTINEL) approved_first_omega_0: 9999"
+        tree = self.rescue_tree().with_checkpoint4("continue", "120", quote=quote,
+                                                   quote_fence="~~~~~~")
+        gate = tree.state("continue-gate")
+        self.assertEqual((gate.status, gate.first_omega_0), ("TAKEN", 120.0))
+        self.assertEqual(tree.state("stop").status, "NOT-TAKEN")
+
+
+class OwnerStopPathTests(unittest.TestCase):
+    """The skip records and the Phase 64 handoff on the stops that need a ruling."""
+
+    def go_to_verdict_tree(self):
+        return rescued_tree(self, (0, 0, 1), ONE_AT_120, 1, rung1=(1.5, 2.25, 3.0),
+                            sweep=(0.5, 0.75, 1.25, 2.0), confirmation=4.5).with_checkpoint4(
+                                "go-to-verdict")
+
+    def test_the_go_to_verdict_skip_takes_its_own_reason_only(self):
+        tree = self.go_to_verdict_tree()
+        code, out = tree.cli("skip", "--reason", NO_RESCUE)
+        self.assertEqual(code, 2, out)
+        self.assertFalse(tree.path("g2/skip-records.json").exists())
+        code, out = tree.cli("skip", "--reason", GO_TO_VERDICT)
+        self.assertEqual(code, 0, out)
+        record = tree.read("g2/skip-records.json")
+        self.assertEqual(record["reason"], GO_TO_VERDICT)
+        self.assertEqual(record["entries"]["FEAS-04"]["reason"], GO_TO_VERDICT)
+        self.assertEqual(record["entries"]["FEAS-09"]["reason"], GO_TO_VERDICT)
+        cited = {entry["path"]: entry["sha256"] for entry in record["basis"]}
+        ruling_path = (PHASE_REL / "60-CHECKPOINT-4-RULING.md").as_posix()
+        self.assertEqual(cited[ruling_path], tree.ruling_sha())
+        self.assertIn("\\u2463", tree.path("g2/skip-records.json").read_text(encoding="utf-8"))
+
+    def test_the_go_to_verdict_handoff_holds_no_verdict_and_cites_the_ruling(self):
+        tree = self.go_to_verdict_tree()
+        spy = VerdictSpy()
+        with mock.patch.object(g2, "decision_verdict", spy):
+            code, out = tree.cli("stop-handoff")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(spy.calls, [])  # the verdict rule is not called on this path
+        handoff = tree.read("g2/stop-handoff.json")
+        self.assertEqual(handoff["stop_reason"], GO_TO_VERDICT)
+        self.assertIsNone(handoff["verdict"])
+        answer = handoff["owner_answer"]
+        self.assertEqual((answer["checkpoint"], answer["answer"]), (4, "go-to-verdict"))
+        self.assertEqual(answer["ruling_sha256"], tree.ruling_sha())
+        self.assertEqual(answer["ruling_path"], (PHASE_REL / "60-CHECKPOINT-4-RULING.md").as_posix())
+        self.assertIn("no decision_verdict call", handoff["verdict_note"])
+        self.assertEqual(handoff["level3"], "not tested (skipped at G2)")
+        self.assertEqual(handoff["phases_61_63"], "skipped at G2, not failed")
+        self.assertEqual(len(handoff["arms"]), 8)
+        self.assertAlmostEqual(handoff["total_wall_hours"], 15.75, places=12)
+
+    def test_the_handoff_never_copies_the_owner_quote(self):
+        marker = "UNIQUE-QUOTE-MARKER-5512"
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1).with_checkpoint4(
+            "go-to-verdict", quote=marker)
+        self.assertEqual(tree.cli("stop-handoff")[0], 0)
+        self.assertEqual(tree.cli("skip", "--reason", GO_TO_VERDICT)[0], 0)
+        for name in ("stop-handoff.json", "skip-records.json"):
+            self.assertNotIn(marker, tree.path(f"g2/{name}").read_text(encoding="utf-8"))
+
+    def test_a_gap_60_09_no_rescue_handoff_uses_the_frozen_verdict(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 0, None).with_gap6009("no_rescue")
+        spy = VerdictSpy()
+        with mock.patch.object(g2, "decision_verdict", spy):
+            code, out = tree.cli("stop-handoff")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(len(spy.calls), 1)
+        handoff = tree.read("g2/stop-handoff.json")
+        self.assertEqual(handoff["stop_reason"], NO_RESCUE)
+        self.assertEqual(handoff["verdict"], StopHandoffTests.expected_verdict())
+        cited = {entry["path"]: entry["sha256"] for entry in handoff["basis"]}
+        gap_path = (PHASE_REL / "60-GAP-60-09-RULING.md").as_posix()
+        self.assertEqual(cited[gap_path], tree.ruling_sha(tree.GAP6009_NAME))
+        self.assertEqual(tree.cli("skip", "--reason", NO_RESCUE)[0], 0)
+
+    def test_a_continue_path_has_no_skip_and_no_handoff(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1).with_checkpoint4(
+            "continue", "120").with_remeasure()
+        for reason in g2.SKIP_REASONS:
+            self.assertEqual(tree.cli("skip", "--reason", reason)[0], 2)
+        self.assertEqual(tree.cli("stop-handoff")[0], 2)
+        for name in ("skip-records.json", "stop-handoff.json"):
+            self.assertFalse(tree.path(f"g2/{name}").exists())
+
+    def test_an_unanswered_checkpoint_has_no_skip_and_no_handoff_yet(self):
+        tree = rescued_tree(self, (0, 0, 1), ONE_AT_120, 1)
+        self.assertEqual(tree.cli("skip", "--reason", GO_TO_VERDICT)[0], 4)
+        self.assertEqual(tree.cli("stop-handoff")[0], 4)
 
 
 if __name__ == "__main__":
