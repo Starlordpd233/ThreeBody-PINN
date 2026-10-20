@@ -464,6 +464,7 @@ def drive_adam(
 def write_owner_stop(arm_dir, *, stage, reason, details, data_root=None):
     """Write ``owner-stop.json`` for an owner-routed stop. It is created once and never replaced.
 
+    ``run_arm`` refuses to start an arm that has one, so the stop stays in front of the owner.
     Returns the SHA-256 of the bytes written.
     """
     if not isinstance(stage, str) or not stage:
@@ -672,6 +673,11 @@ def run_arm(
             f"a record already exists for arm {spec.arm_id}; the first completed run is the "
             "result and a second run never replaces it"
         )
+    if (arm_dir / OWNER_STOP_FILE).exists():
+        raise FirstResultExists(
+            f"arm {spec.arm_id} stopped for the owner and has {OWNER_STOP_FILE}; the owner "
+            "decides what happens next, and a second run never replaces that stop"
+        )
     total_started = clock()
     data = load_arm_data(spec, context, scorecard=scorecard, dtype=dtype, device=device)
 
@@ -707,8 +713,11 @@ def run_arm(
         model, data, optimizer, scheduler, clipper, spec.clip_stage, dtype=dtype, device=device
     )
 
+    stopped = {"extended": False}
+
     def on_extend():
         # D-03: the second cosine, on the same optimizer so Adam's moments are kept.
+        stopped["extended"] = True
         stepper.scheduler = start_second_cosine(optimizer, budget)
 
     # A fixture budget below 20 steps cannot meet the frozen 5% cadence with whole
@@ -752,6 +761,7 @@ def run_arm(
             details={
                 "arm_id": spec.arm_id,
                 "budget_steps": budget,
+                "extended": stopped["extended"],
                 "readings": [[entry["step"], entry["E"]] for entry in trace],
                 "timing": timing,
                 "weights": {
@@ -763,6 +773,14 @@ def run_arm(
             data_root=context.reader.data_root,
         )
         raise
+    if not _all_finite(model.parameters()):
+        # GAP-60-06: Adam ends at the last finite state, so this should not happen. If the
+        # weights are not finite there is no polish, and the scorer refuses a non-finite
+        # network, so no result can be formed. The arm stops and nothing is written.
+        raise HarnessHalt(
+            f"the Adam weights of arm {spec.arm_id} are not finite after step "
+            f"{driven['steps_taken']}; no result can be scored and no polish is run"
+        )
     adam_gold = latest["result"]
     if latest["step"] != driven["steps_taken"]:
         # GAP-60-06: Adam ended in a state no reading covered (a step was skipped between

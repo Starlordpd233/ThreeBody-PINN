@@ -260,6 +260,15 @@ class TimingRunTests(unittest.TestCase):
             with self.assertRaises(HarnessHalt):
                 steps_for(self.spec, scorecard=self.scorecard)
 
+    def test_the_cap_is_read_from_the_scorecard_not_written_into_the_runner(self):
+        from_timing = _fn(self, "budget_from_timing")
+        other_card = SimpleNamespace(section=lambda name: {"cap_hours_single_system": 1.5})
+        timing = {"steps": 50, "wall_seconds": 600.0, "seconds_per_step": 12.0}
+        with mock.patch.object(learnability_run, "steps_budget", return_value=7) as frozen:
+            self.assertEqual(from_timing(timing, scorecard=other_card), 7)
+        self.assertEqual(frozen.call_args.args, (1.5, 600.0, 50))
+        self.assertEqual(frozen.call_args.kwargs, {"scorecard": other_card})
+
     def test_the_budget_is_the_frozen_steps_budget_at_the_scorecard_cap(self):
         from_timing = _fn(self, "budget_from_timing")
         timing = {"steps": 50, "wall_seconds": 600.0, "seconds_per_step": 12.0}
