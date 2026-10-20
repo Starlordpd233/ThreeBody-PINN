@@ -193,12 +193,12 @@
       "size_bytes": 4220428
     },
     "verify_phase59_evidence.py": {
-      "sha256": "faac504c1c96a1e61d8a4dfebebf07f636293438ccfcfae4aa9e31c16052bd5d",
-      "size_bytes": 39214
+      "sha256": "82f5ddf44e80e2f227667efc701fe5119a9e69777547159b78b51d9c69e92620",
+      "size_bytes": 43392
     }
   },
   "freeze_commit": "4ea3b1bc95e2dc3794fec4fb2047b9d32b5e889f",
-  "produced_at_head": "e371040c824dda37481a675b398215e52b0ba256",
+  "produced_at_head": "ec8bd4e889181d680d7ce768bf0666a0da8911da",
   "schema": "phase59-evidence-manifest/v1",
   "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
 }
