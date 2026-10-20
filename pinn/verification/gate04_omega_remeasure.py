@@ -8,15 +8,19 @@ files, so it cannot overwrite the Stage-0 reference that the trainer, the scorer
 baselines read (GAP-60-10, Pitfall 9).
 
 ``remeasure`` does the following, in order, and stops at the first refusal with nothing
-measured:
+measured and nothing written:
 
+0. Refuses to start when ``gate04-remeasure.json`` or either of the other two outputs
+   already exists under ``<evidence root>/continue/``. The first re-measure is the result: a
+   second run never replaces it, and a partial earlier run is for the owner to clear.
 1. Loads the committed checkpoint 4 ruling through ``learnability_ruling`` (tracked, clean,
    strict block). Only ``continue`` goes on. The approved value is checked again here to be
    finite and positive, because ``run_gate`` turns every exception into a BLOCK verdict and a
    bad frequency would otherwise read as a scientific result (Hazard 5).
 2. Reads the setting the committed sweep curve confirmed, and records whether the approved
    setting is on the sweep grid and whether it equals the confirmed one (GAP-60-11). Any
-   finite positive setting the owner names is accepted.
+   finite positive setting the owner names is accepted. A sweep curve that is missing or not
+   committed is a refusal, because a continue is only possible after the sweep.
 3. Hashes the governed ``r_ref_stage0.json``, runs ``run_gate`` over the six default cases at
    the approved setting on the CPU in float64, and hashes the governed file again.
 4. Writes, under ``<evidence root>/continue/``: the gate evidence (the case records and the
@@ -29,6 +33,13 @@ no blocking reasons and no unratified conditions. Its pass rule is the ratified 
 reduction. Anything else is recorded as BLOCK, with no reference written; a BLOCK stops the
 work for the owner.
 
+``main`` is the command line, ``python -B -m pinn.verification.gate04_omega_remeasure``. It
+takes only ``--evidence-root`` (default: this repository's Phase 60 evidence tree), so no
+option can aim a write at the governed file, change the case set or choose a setting. It
+prints one token line and returns its exit code: ``GATE04-PASS`` (0), ``GATE04-REFUSED`` (2,
+a precondition failed) or ``GATE04-BLOCK`` (5, the gate did not pass at the approved setting).
+It is run once, detached, on the continue path only (Plan 60-19).
+
 What it never does: it never calls the GATE-04 command line, which overwrites the governed
 reference on a PASS and writes a Phase 57 terminal state on a BLOCK; it never writes the
 governed file or a terminal state; it never imports the arm runner; and no absolute path
@@ -37,11 +48,13 @@ enters any file it writes (every recorded path is relative to the repository).
 
 from __future__ import annotations
 
+import argparse
 import datetime as dt
 import hashlib
 import json
 import math
 import numbers
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -79,6 +92,7 @@ __all__ = [
     "REMEASURE_SCHEMA",
     "RemeasureHalt",
     "RemeasureRefused",
+    "main",
     "remeasure",
 ]
 
@@ -147,6 +161,17 @@ def _relative(root, path):
 
 def _sha256_file(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _refuse_existing_outputs(evidence):
+    """The first re-measure is the result: any output already in place stops a new run."""
+    for parts in (_RECORD_PARTS, _EVIDENCE_PARTS, _APPROVED_PARTS):
+        path = evidence.joinpath(*parts)
+        if os.path.lexists(path):
+            raise RemeasureRefused(
+                f"{path.name} already exists; the first re-measure is the result, a second run "
+                "never replaces it, and a partial earlier run is for the owner to clear"
+            )
 
 
 def _approved_setting(root, ruling_path):
@@ -230,8 +255,11 @@ def _blocking_reasons(verdict, *, canonical):
     return reasons
 
 
-def _gate_evidence(verdict, *, omega, ruling, evidence_root_rel, approved_rel):
-    """The case records and the verdict, in the shape GATE-04's own command line records them."""
+def _gate_evidence(verdict, *, omega, ruling, evidence_root_rel, reference_rel):
+    """The case records and the verdict, in the shape GATE-04's own command line records them.
+
+    ``reference_rel`` is where the re-measured reference is written, or None when none is.
+    """
     git_sha, git_available = git_head()
     return {
         "schema_version": EVIDENCE_SCHEMA_VERSION,
@@ -252,7 +280,7 @@ def _gate_evidence(verdict, *, omega, ruling, evidence_root_rel, approved_rel):
             "cases_config": None,
             "first_omega_0": omega,
             "evidence_root": evidence_root_rel,
-            "r_ref_path": approved_rel,
+            "r_ref_path": reference_rel,
         },
         "verdict": _verdict_record(verdict),
         "cases": [_case_record(case) for case in verdict.cases],
@@ -271,6 +299,7 @@ def remeasure(*, ruling_path=None, evidence_root=None, repo_root=None, cases=Non
     """
     root, evidence = _resolve_roots(repo_root, evidence_root)
     case_tuple = tuple(DEFAULT_CASES if cases is None else cases)
+    _refuse_existing_outputs(evidence)
     ruling, omega = _approved_setting(root, ruling_path)
     confirmed = _confirmed_first_omega_0(root, evidence)
     facts = ruling_grid_facts(ruling, scorecard=load_scorecard(), confirmed_first_omega_0=confirmed)
@@ -291,7 +320,8 @@ def remeasure(*, ruling_path=None, evidence_root=None, repo_root=None, cases=Non
         evidence_path,
         _gate_evidence(
             verdict, omega=omega, ruling=ruling,
-            evidence_root_rel=_relative(root, evidence), approved_rel=approved_rel,
+            evidence_root_rel=_relative(root, evidence),
+            reference_rel=approved_rel if complete else None,
         ),
     )
     artifact = None
@@ -326,3 +356,48 @@ def remeasure(*, ruling_path=None, evidence_root=None, repo_root=None, cases=Non
     }
     write_record_exclusive(record_path, record)
     return record
+
+
+# ---------------------------------------------------------------------------
+# The command line.
+# ---------------------------------------------------------------------------
+
+def _build_parser():
+    parser = argparse.ArgumentParser(
+        prog="gate04_omega_remeasure",
+        description=(
+            "Phase 60 (D-07): re-measure R_ref and re-run GATE-04 at the first_omega_0 of the "
+            "committed checkpoint 4 ruling. Writes only under <evidence root>/continue/."
+        ),
+    )
+    parser.add_argument(
+        "--evidence-root", default=None,
+        help="the Phase 60 evidence root (default: this repository's Phase 60 evidence tree)",
+    )
+    return parser
+
+
+def main(argv=None):
+    """Run the re-measure once; print one token line and return its exit code."""
+    args = _build_parser().parse_args(argv)
+    evidence_root = None if args.evidence_root is None else Path(args.evidence_root)
+    try:
+        record = remeasure(evidence_root=evidence_root)
+    except RemeasureRefused as exc:
+        print(f"GATE04-REFUSED: {exc}")
+        return EXIT_REFUSED
+    omega = record["first_omega_0"]
+    if record["complete_pass"]:
+        print(
+            f"GATE04-PASS: first_omega_0 {omega}; r_ref {record['r_ref']!r}; "
+            f"reference {record['r_ref_artifact']['path']}"
+        )
+        return EXIT_PASS
+    print(f"GATE04-BLOCK: first_omega_0 {omega}; the work stops for the owner (D-07)")
+    for reason in record["blocking_reasons"]:
+        print(f"  - {reason}")
+    return EXIT_BLOCK
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

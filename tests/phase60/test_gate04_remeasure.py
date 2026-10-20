@@ -442,6 +442,8 @@ class RemeasureTracerTests(RemeasureCase):
         self.assertEqual(document["schema_version"], gate04.EVIDENCE_SCHEMA_VERSION)
         self.assertEqual(set(document), set(gate04.EVIDENCE_TOP_LEVEL_KEYS))
         self.assertEqual(document["verdict"]["verdict"], "PASS")
+        self.assertEqual(document["configuration"]["r_ref_path"], self.approved_rel())
+        self.assertEqual(document["configuration"]["first_omega_0"], 120.0)
         self.assertEqual(len(document["cases"]), len(DEFAULT_CASES))
         self.assertIsNone(document["failure"])
 
@@ -555,6 +557,7 @@ class BlockTests(RemeasureCase):
         document = tree.read(f"continue/{EVIDENCE_NAME}")
         self.assertEqual(document["verdict"]["verdict"], "BLOCK")
         self.assertEqual(document["cases"], [])
+        self.assertIsNone(document["configuration"]["r_ref_path"])
         self.assertEqual(list(tree.root.rglob("terminal-state.json")), [])
 
     def test_the_ladder_stays_pending_for_the_owner_after_a_block(self):
@@ -609,7 +612,7 @@ class RefusalTests(RemeasureCase):
 
 
 class NonCanonicalTests(RemeasureCase):
-    def assert_not_complete(self, record, tree, cases):
+    def assert_not_complete(self, record, tree):
         self.assertIs(record["complete_pass"], False)
         self.assertEqual(record["verdict"], "BLOCK")
         self.assertIsNone(record["r_ref_artifact"])
@@ -617,24 +620,27 @@ class NonCanonicalTests(RemeasureCase):
         self.assertEqual(self.continue_names(tree), [EVIDENCE_NAME, RECORD_NAME])
         self.assertEqual(tree.read(f"continue/{RECORD_NAME}")["complete_pass"], False)
 
-    def test_a_two_case_set_is_not_a_complete_pass_even_when_the_gate_says_pass(self):
+    def test_a_case_set_that_is_not_the_six_defaults_is_not_a_complete_pass(self):
         two = DEFAULT_CASES[:2]
         full = recorded_pass_verdict()
-        for label, verdict in (
-            ("a six-case verdict", full),
-            ("a two-case verdict", dataclasses.replace(full, cases=full.cases[:2])),
+        short = dataclasses.replace(full, cases=full.cases[:2])
+        for label, cases, verdict in (
+            ("two cases asked, a six-case pass", two, full),
+            ("two cases asked, a two-case pass", two, short),
+            ("the defaults asked, a two-case pass", None, short),
         ):
             with self.subTest(case=label):
                 tree = self.make_tree()
-                record, spy = self.remeasure(tree, verdict, cases=two)
-                self.assertEqual(tuple(spy.call_args.args[0]), two)
-                self.assert_not_complete(record, tree, two)
+                record, spy = self.remeasure(tree, verdict, cases=cases)
+                self.assertEqual(
+                    tuple(spy.call_args.args[0]), DEFAULT_CASES if cases is None else cases)
+                self.assert_not_complete(record, tree)
 
     def test_unratified_conditions_are_not_a_complete_pass(self):
         tree = self.make_tree()
         verdict = dataclasses.replace(recorded_pass_verdict(), unratified_conditions=("ii",))
         record, _spy = self.remeasure(tree, verdict)
-        self.assert_not_complete(record, tree, DEFAULT_CASES)
+        self.assert_not_complete(record, tree)
         self.assertEqual(record["unratified_conditions"], ["ii"])
 
     def test_the_default_cases_passed_explicitly_are_still_a_complete_pass(self):
