@@ -8,11 +8,17 @@ record keeps 1,001 points, not 1,002), and the network input is the real
 normalized IC13, normalized the way the trainer normalized it: the statistics
 are recovered from the retention-pinned generation-7 checkpoint and must match
 a pinned digest (GAP-60-13). The fallback normalizer is never used.
+
+``preflight_records`` applies the same allowlist and reader to every assigned
+record before the first arm launches and reports, per record, whether it is
+usable (SPEC Requirement 8). It never reads another record in place of a blocked
+one, and its report holds no path.
 """
 
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
@@ -34,7 +40,9 @@ from pinn.verification.production_reference import (
 from pinn.verification.split_allowlist import (
     GENERATION7_SPLITS_REL,
     AllowlistedCorpusReader,
+    NotAdmitted,
     SplitAllowlist,
+    SplitRefused,
     expected_splits_sha256,
     install_open_attestation,
     resolve_data_root,
@@ -51,6 +59,7 @@ __all__ = [
     "fixture_context",
     "load_arm_data",
     "open_real_context",
+    "preflight_records",
     "window",
 ]
 
@@ -61,6 +70,11 @@ EXPECTED_STATS_SHA256 = "77526e53c394bbac4d4a0e8fdd5a7688f0bda108d41c56277b55ad4
 NORMALIZER_RUN = "stage0-v23g7-seed42"
 NORMALIZER_FILE = "stage-0-init.pt"
 _HORIZON_TOLERANCE = 1e-9
+# The preflight keeps an unreadable record's reason short and free of local paths. An
+# absolute path starts a token, so the "/base/7" inside a key such as "hierarchical/base/7"
+# is left alone.
+_MESSAGE_LIMIT = 200
+_ABSOLUTE_PATH = re.compile(r"(?<![\w.-])/[^\s'\"]+")
 
 
 class HarnessHalt(RuntimeError):
@@ -282,3 +296,76 @@ def load_arm_data(spec, context, *, scorecard, dtype, device):
         beside=beside,
         records=records,
     )
+
+
+def _redacted(text, reader):
+    """Exception text with the data root, the home directory and any absolute path removed."""
+    text = str(text)
+    for private, label in ((Path(reader.data_root), "<data-root>"), (Path.home(), "<home>")):
+        if private.is_absolute() and len(private.parts) > 1:
+            text = text.replace(str(private), label)
+    return _ABSOLUTE_PATH.sub("<path>", text)[:_MESSAGE_LIMIT]
+
+
+def _preflight_entry(key, context, t_max):
+    try:
+        split = context.allowlist.require(key)
+    except SplitRefused:
+        return {"status": "refused"}
+    if not context.reader.exists(key):
+        return {"status": "missing", "split": split}
+    try:
+        reference = load_reference(context.reader, key)
+    except IndexError:
+        # The production admission gate raises IndexError, not NotAdmitted, for a file
+        # with no complete snapshot block, so that is how an empty file reaches here.
+        return {"status": "empty", "split": split, "n_snapshots": 0}
+    except (NotAdmitted, ValueError, OSError) as exc:
+        return {
+            "status": "unreadable",
+            "split": split,
+            "error_type": type(exc).__name__,
+            "message": _redacted(exc, context.reader),
+        }
+    if reference.n_snapshots == 0:
+        return {"status": "empty", "split": split, "n_snapshots": 0}
+    view = _view(reference, t_max)
+    summary = _summary(key, reference, view)
+    entry = {"status": "ok"}
+    entry.update((name, value) for name, value in summary.items() if name != "record_key")
+    entry["inner_pair"] = list(view.inner_pair)
+    return entry
+
+
+def preflight_records(keys, context, *, scorecard):
+    """Check each assigned record before any arm starts. Returns ``{record_key_str: entry}``.
+
+    Every key must be a ``RecordKey`` (anything else raises ``TypeError`` before a
+    record is touched). For each key, in order:
+
+    * ``refused``: the allowlist does not admit it (a test-split or unknown key).
+      Nothing is opened, and the reader is not called.
+    * ``missing``: allowlisted, but the corpus has no file for it.
+    * ``empty``: the file holds no complete snapshot.
+    * ``unreadable``: the reader or the admission gate rejects the file. The entry
+      names the exception type and a short message with no path in it.
+    * ``ok``: read through the production chain. The entry carries ``split``,
+      ``n_snapshots``, ``n_within_t`` (the scorecard horizon window), the measured
+      ``dt_out_measured``, the ``inner_pair`` and ``windowed_sha256``, the same
+      digest an arm's record carries for that record.
+
+    A blocked key is only reported. No other fidelity, variant or id is read in its
+    place, and the report holds no path. An error this function does not classify
+    propagates.
+    """
+    keys = tuple(keys)
+    for key in keys:
+        if not isinstance(key, RecordKey):
+            raise TypeError(f"a preflight key must be a RecordKey; got {key!r}")
+    t_max = float(scorecard.section("scoring_grid")["t_max"])
+    report = {}
+    for key in keys:
+        label = evidence_io.record_key_str(key)
+        if label not in report:
+            report[label] = _preflight_entry(key, context, t_max)
+    return report
