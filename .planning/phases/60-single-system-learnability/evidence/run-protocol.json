@@ -1,0 +1,1249 @@
+{
+  "amendment_commit": "dc3edac0e9ae737b42be276dd9b67e12b8ab8926",
+  "approved_omega_rule": {
+    "rule": "A continue-path arm may run at any finite positive first_omega_0 that the committed checkpoint 4 ruling names, on or off the sweep grid. D-07 runs at that value. Every continue-path record cites the ruling file's SHA-256 and states on_grid and equals_confirmed. A physics arm refuses any other value.",
+    "ruling_file": ".planning/phases/60-single-system-learnability/60-CHECKPOINT-4-RULING.md",
+    "source": "GAP-60-11 and D-11"
+  },
+  "budget": {
+    "after_extension": "inconclusive_with_rate",
+    "cap_hours_rung3": 8.0,
+    "cap_hours_single_system": 3.0,
+    "control_adam_steps": 1000,
+    "extension_factor": 2.0,
+    "extensions_max": 1,
+    "scoring_cadence_max_fraction": 0.05,
+    "seconds_per_step": "timing_run_wall_seconds_over_steps",
+    "still_improving_final_fraction": 0.25,
+    "still_improving_min_relative_drop": 0.1,
+    "still_improving_reference_fraction": 0.75,
+    "still_improving_statistic": "best_E",
+    "timing_run_min_steps": 50
+  },
+  "cadence": {
+    "max_fraction": 0.05,
+    "rule": "The scorer is read at step 0, every floor(0.05 B) steps and at B, and on to 2B after the one extension, so that no gap is larger than 5% of the step budget. A physics arm logs the frozen monitor's per-bin causal weights and front at these readings and never halts on them (D-06).",
+    "source": "D-06 and the frozen budget rule"
+  },
+  "catalog": {
+    "c-p1-2279": {
+      "beside_key": "standard/base/2279",
+      "clip_stage": 0,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "probe-1",
+      "score_key": "standard/gold/2279",
+      "system_id": 2279,
+      "train_key": "standard/gold/2279",
+      "variant": "standard"
+    },
+    "c-p1-3418": {
+      "beside_key": "standard/base/3418",
+      "clip_stage": 0,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "probe-1",
+      "score_key": "standard/gold/3418",
+      "system_id": 3418,
+      "train_key": "standard/gold/3418",
+      "variant": "standard"
+    },
+    "c-p2b-2279": {
+      "beside_key": "standard/base/2279",
+      "clip_stage": 4,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 4,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "probe-2b",
+      "score_key": "standard/gold/2279",
+      "system_id": 2279,
+      "train_key": "standard/base/2279",
+      "variant": "standard"
+    },
+    "c-p2b-3418": {
+      "beside_key": "standard/base/3418",
+      "clip_stage": 6,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 6,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "probe-2b",
+      "score_key": "standard/gold/3418",
+      "system_id": 3418,
+      "train_key": "standard/gold/3418",
+      "variant": "standard"
+    },
+    "c-r1u-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "1",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/gold/1632",
+      "variant": "hierarchical"
+    },
+    "c-r1u-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "1",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/gold/4658",
+      "variant": "hierarchical"
+    },
+    "c-r1u-851": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "1",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "c-r2a-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "physics_ic",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "2a",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/base/1632",
+      "variant": "hierarchical"
+    },
+    "c-r2a-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "physics_ic",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "2a",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/base/4658",
+      "variant": "hierarchical"
+    },
+    "c-r2a-851": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "physics_ic",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "2a",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/base/851",
+      "variant": "hierarchical"
+    },
+    "c-r2b-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "2b",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/base/1632",
+      "variant": "hierarchical"
+    },
+    "c-r2b-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "2b",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/base/4658",
+      "variant": "hierarchical"
+    },
+    "c-r2b-851": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 0,
+      "omega_provenance": "owner_approved",
+      "path": "continue",
+      "run_kind": "real",
+      "rung": "2b",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/base/851",
+      "variant": "hierarchical"
+    },
+    "g2c-4658-w060": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 60.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/gold/4658",
+      "variant": "hierarchical"
+    },
+    "g2c-4658-w120": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 120.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/gold/4658",
+      "variant": "hierarchical"
+    },
+    "g2c-4658-w240": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 240.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/gold/4658",
+      "variant": "hierarchical"
+    },
+    "g2c-4658-w480": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 480.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/gold/4658",
+      "variant": "hierarchical"
+    },
+    "g2c-851-w060": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 60.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "g2c-851-w120": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 120.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "g2c-851-w240": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 240.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "g2c-851-w480": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 480.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "confirmation_override",
+      "path": "g2_confirmation",
+      "run_kind": "real",
+      "rung": "g2-confirmation",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "g2s-1632-w060": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 60.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/gold/1632",
+      "variant": "hierarchical"
+    },
+    "g2s-1632-w120": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 120.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/gold/1632",
+      "variant": "hierarchical"
+    },
+    "g2s-1632-w240": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 240.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/gold/1632",
+      "variant": "hierarchical"
+    },
+    "g2s-1632-w480": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 480.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/gold/1632",
+      "variant": "hierarchical"
+    },
+    "g2s-851-w060": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 60.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "g2s-851-w120": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 120.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "g2s-851-w240": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 240.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "g2s-851-w480": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": 480.0,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "g2_sweep_override",
+      "path": "g2_sweep",
+      "run_kind": "real",
+      "rung": "g2-sweep",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "p1-2279": {
+      "beside_key": "standard/base/2279",
+      "clip_stage": 0,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "probe-1",
+      "score_key": "standard/gold/2279",
+      "system_id": 2279,
+      "train_key": "standard/gold/2279",
+      "variant": "standard"
+    },
+    "p1-3418": {
+      "beside_key": "standard/base/3418",
+      "clip_stage": 0,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "probe-1",
+      "score_key": "standard/gold/3418",
+      "system_id": 3418,
+      "train_key": "standard/gold/3418",
+      "variant": "standard"
+    },
+    "p2b-2279": {
+      "beside_key": "standard/base/2279",
+      "clip_stage": 4,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 4,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "probe-2b",
+      "score_key": "standard/gold/2279",
+      "system_id": 2279,
+      "train_key": "standard/base/2279",
+      "variant": "standard"
+    },
+    "p2b-3418": {
+      "beside_key": "standard/base/3418",
+      "clip_stage": 6,
+      "counted": false,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 6,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "probe-2b",
+      "score_key": "standard/gold/3418",
+      "system_id": 3418,
+      "train_key": "standard/gold/3418",
+      "variant": "standard"
+    },
+    "r1-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "rung1",
+      "run_kind": "real",
+      "rung": "1",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/gold/1632",
+      "variant": "hierarchical"
+    },
+    "r1-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "rung1",
+      "run_kind": "real",
+      "rung": "1",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/gold/4658",
+      "variant": "hierarchical"
+    },
+    "r1-851": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "data_only",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "rung1",
+      "run_kind": "real",
+      "rung": "1",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/gold/851",
+      "variant": "hierarchical"
+    },
+    "r2a-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "physics_ic",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "2a",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/base/1632",
+      "variant": "hierarchical"
+    },
+    "r2a-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "physics_ic",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "2a",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/base/4658",
+      "variant": "hierarchical"
+    },
+    "r2a-851": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "physics_ic",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "2a",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/base/851",
+      "variant": "hierarchical"
+    },
+    "r2b-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "2b",
+      "score_key": "hierarchical/gold/1632",
+      "system_id": 1632,
+      "train_key": "hierarchical/base/1632",
+      "variant": "hierarchical"
+    },
+    "r2b-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "2b",
+      "score_key": "hierarchical/gold/4658",
+      "system_id": 4658,
+      "train_key": "hierarchical/base/4658",
+      "variant": "hierarchical"
+    },
+    "r2b-851": {
+      "beside_key": "hierarchical/base/851",
+      "clip_stage": 0,
+      "counted": true,
+      "grid_omega": null,
+      "loss_arm": "full",
+      "lr_stage": 0,
+      "omega_provenance": "locked",
+      "path": "g2_passed",
+      "run_kind": "real",
+      "rung": "2b",
+      "score_key": "hierarchical/gold/851",
+      "system_id": 851,
+      "train_key": "hierarchical/base/851",
+      "variant": "hierarchical"
+    }
+  },
+  "clip": {
+    "adam_only": true,
+    "clip_data_only_arms": true,
+    "median_floor": 1e-06,
+    "rule": "Every Adam step is clipped by the trainer's median-based GradClipper at the arm's stage (0 for data-only and Stage-0 arms, 4 and 6 for probe Rung 2b), in the timing run and in the arm, and never in the polish. The record carries the stage, the multiplier and the arm's count of clipped steps, and the clipper state is checkpointed for resume. clip_data_only_arms is true unless the owner vetoes clipping for the data-only arms before this protocol is committed; physics arms always clip. A non-finite clip outcome is the divergence case of GAP-60-06.",
+    "source": "GAP-60-03",
+    "table": {
+      "0": 8.5,
+      "4": 3.0,
+      "6": 3.0
+    }
+  },
+  "cross_check": {
+    "cadence_readings": "MPS only",
+    "disagreement": "Any difference in tier or in the counts boolean between the official MPS score and the CPU float64 re-score raises a dedicated owner-routed stop.",
+    "runtime": {
+      "device": "cpu",
+      "dtype": "float64"
+    },
+    "scope": "both scored states of every real arm",
+    "source": "GAP-60-07",
+    "take_the_better": false
+  },
+  "cross_check_runtime": {
+    "device": "cpu",
+    "dtype": "float64"
+  },
+  "decisions": {
+    "D-06": "A physics arm never halts on invariant B or any other causal-front rule. At the budget-rule readings it logs the frozen monitor's per-bin causal weights and front. It does not run a live 256-identity monitor every step. Phase 61 builds the observe-only guard.",
+    "D-07": "If the owner continues at checkpoint 4, R_ref is re-measured and GATE-04 is re-run at the approved first_omega_0 before any physics arm. Neither step trains. GATE-04 is the complete-pass rule of 57-RULING.md (GAP-56-01). A fail stops for the owner.",
+    "D-08": "Probe physics arms reuse the Stage-0 R_ref in force and do not re-measure it. The run record says the value is the Stage-0 reference applied unchanged.",
+    "D-09": "The Phase 59 verifier accepts exactly one successor SHA-256 for pinn/verification/feasibility_scorer.py, named in the committed scorer-successor.json. Every other producer hash is still checked against the Phase 59 result files.",
+    "D-10": "Both scored states of every real arm are committed in plain git, not Git LFS. Resume checkpoints and timing-run weights stay out of git. Re-deriving a result re-scores the committed weights.",
+    "D-11": "A continue-path arm is legal only when a committed ruling file quotes the owner's message and names the approved first_omega_0. Every continue-path arm record cites it. A physics arm refuses any other value."
+  },
+  "divergence": {
+    "budget_outcome_called": false,
+    "restart": false,
+    "rule": "The loss and the clip outcome are checked before optimizer.step(). On a non-finite value that step is skipped and Adam ends at the last finite state, which is scored as the Adam state. The polish runs if its weights are finite, and better_state chooses. diverged_at_step is recorded and the budget outcome is diverged. The arm's result enters G2 at its tier like any other.",
+    "source": "GAP-60-06"
+  },
+  "first_result": {
+    "fresh_runs": "Fresh same-seed runs are statistically similar, not bit-identical.",
+    "re_derive": "Re-deriving a result re-scores the committed weights and does not retrain.",
+    "rule": "The first completed run is the result. A second seed, a second fresh training run or a silent restart is not the result.",
+    "seeds": "One seed per arm. Extra seeds are not added after a result.",
+    "source": "SPEC Requirement 4 and its constraints"
+  },
+  "formula": {
+    "E_formula": {
+      "1632": 0.916813577071981,
+      "4658": 1.9697113677004474,
+      "851": 0.4312413103776787
+    },
+    "comparison": "a counted arm counts only if its position error is strictly less than E_formula and it is Tier 1 or better; a probe system has no formula",
+    "counting_rule": {
+      "formula_comparison": "strictly_less",
+      "formula_not_applicable": "owner_routed",
+      "min_tier": 1
+    },
+    "source": {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/baselines/two_kepler.json",
+      "sha256": "05a347a65e01ea6a9cde1c6cff4b53d0d17333db9c3672a460931e2323b4c80e"
+    }
+  },
+  "g2": {
+    "confirmation_rule": "The confirmation is the highest first_omega_0 that reached Tier 1: one run, same seed, runtime, gold grid, budget rule and polish. Zero settings at Tier 1 or higher means no confirmation and no rescue. The other settings that reached Tier 1 are listed with the label below. The four-setting curve (tier, E, eps_H, valid horizon) is part of the checkpoint 4 record.",
+    "failed_confirmation_pre_answer": null,
+    "failed_confirmation_rule": "GAP-60-09: if the confirmation run ends below Tier 1, the harness writes the sweep curve and the confirmation record and raises an owner-routed stop. It then runs or skips nothing further, and decision_verdict is not called until the owner answers. The owner may pre-answer no_rescue or rescue before this protocol is committed; null means the owner is asked at the time. GAP-60-09 resolves the procedure only.",
+    "grid": [
+      60.0,
+      120.0,
+      240.0,
+      480.0
+    ],
+    "inner_laps": {
+      "1632": 10.47,
+      "4658": 39.35,
+      "851": 18.61
+    },
+    "locked_value": 30.0,
+    "other_settings_label": "reached Tier 1, not confirmed (one-confirmation budget)",
+    "rescue_rule": "A confirmed rescue raises the frozen OwnerRouted (owner checkpoint 4) and does not continue by itself. While checkpoint 4 is unanswered, Rung 2 and the probes are neither run nor skipped.",
+    "rescue_tier": 1,
+    "sweep_pairs": [
+      {
+        "confirmation": 851,
+        "failing": [
+          1632,
+          851,
+          4658
+        ],
+        "sweep": 1632,
+        "uncovered": 4658
+      },
+      {
+        "confirmation": 851,
+        "failing": [
+          1632,
+          851
+        ],
+        "sweep": 1632,
+        "uncovered": 4658
+      },
+      {
+        "confirmation": 4658,
+        "failing": [
+          1632,
+          4658
+        ],
+        "sweep": 1632,
+        "uncovered": 851
+      },
+      {
+        "confirmation": 4658,
+        "failing": [
+          851,
+          4658
+        ],
+        "sweep": 851,
+        "uncovered": 1632
+      }
+    ],
+    "sweep_rule": "If G2 fires, all four data-only settings run in grid order, even after a success. 'Reaches Tier 1' means the arm result, the better of Adam and polish by the frozen rule, is Tier 1 or higher. No setting between the grid points is run.",
+    "trigger_below_tier": 1,
+    "trigger_min_systems": 2
+  },
+  "module_sha256": {
+    ".planning/phases/60-single-system-learnability/evidence/launch_phase60_arm.py": "03ebf55553492fd7ade2047a5331e8567d59048a9ed8708e91586be083f16ad2",
+    "pinn/architecture_spec.py": "3cc1b9c21c6a483b6acfa4be551ea533784aee1872d46b365e66fc50806f5085",
+    "pinn/constants.py": "3edb6372166d2b5d604068193d1b456589674a508c65fc5437aac2e329c8cc87",
+    "pinn/data/batches.py": "03830d681422ede0b9e44d0ab74b0e538a8581b12fdba4a7004d7370192b11fd",
+    "pinn/data/preprocessing.py": "44d5a5c3a0ca866065d78b4e43a55711f451f7f30278fa36297ca476bc62386b",
+    "pinn/data/types.py": "aa20088f551b033f538244de9c40f6425cb69bc90f7f1d0015b1147c0f44b20f",
+    "pinn/loss_catalog.py": "6659ef120c10261ae0fbeb9d3664fd8b537ee838b0511f4e9d5bf197ad68fbda",
+    "pinn/network.py": "af993b79c7ebeab4b28adcd58dfa6febfa75ef9186b57a6aa67487f40a980a81",
+    "pinn/physics_residual.py": "9c343b1a066fd516dcf3ddec8b590ad3dfd9c8956de02f3895a4af25d887f2db",
+    "pinn/training/atomic_io.py": "2c5c8d1e801d6093344c92bb430c111afb825b62fe533afd4fafb3189aba3bb8",
+    "pinn/training/config.py": "40627fe6ab49e5b0d400732ebc26b8433eb0a580a2e4044454430e0561cd9b18",
+    "pinn/training/controllers.py": "0bdc85ed9479aa29cce7d8bbe077f603288618f1e0aa7b3bb25d90cef5512750",
+    "pinn/training/determinism.py": "1c76aed15513146d22382f24f8e90900f6816cdc1424692e18993bf1a66a5cd7",
+    "pinn/training/grad_clip.py": "e7b6a5121c413eb964324d6138a4d031a1d35c878bd14f4235e41d180b17901d",
+    "pinn/training/scheduled_weights.py": "8ddaccb643c83c14b0eafeec1044b12f22122c8c616b5e1a8ffb91e3846dd3ca",
+    "pinn/training/signals.py": "ff1d8b425a46d2d3eaade35bf1510cb6e6d81190955d772e08ba1e47fa5a8d65",
+    "pinn/verification/artifacts/feasibility_scorecard_v1.json": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+    "pinn/verification/artifacts/r_ref_stage0.json": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff",
+    "pinn/verification/diagnostic_architecture.py": "d2c1f450c13779bee3ed4e68445491b5f9c2ceb55d5a304e193b048ac23a6eef",
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/feasibility_scorer.py": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7",
+    "pinn/verification/gate04_omega_remeasure.py": "81ade6f2821fb40928eeaf1d6185d8ad51de871a587c4115c806ca111b301318",
+    "pinn/verification/gate04_train_free.py": "cc6504a7985f034f3aa7651c6250c6b58a3006b87bccd93af15324fc451c0849",
+    "pinn/verification/learnability_arms.py": "1543c1ed25e7be8e1ffd3622f9f6d8c201571eaf53c7a73fcca4aa53f8f91d88",
+    "pinn/verification/learnability_data.py": "1fb28a8f7774ca00f82b5006028e1f4193d56406bdf1b6afb112d5553a6de737",
+    "pinn/verification/learnability_g2.py": "3104be6b29be802cdd7176f05154e1e1dbb05d2cbacfa4e4f2cc3ed929dfbd89",
+    "pinn/verification/learnability_losses.py": "fb8bacc34367169761e46a14399fda8626ca829c9ba8463575b583dd77f1c4da",
+    "pinn/verification/learnability_protocol.py": "03a391895180f2bf8a0b573b96d0d4a6653544b75feea1e9c867ea60560df51e",
+    "pinn/verification/learnability_ruling.py": "1f7da2b2925e1876dfd128f16e4626793ea4393cea39240f05792b97bfbf9826",
+    "pinn/verification/learnability_run.py": "a031b9373db7dbd7a15429f7e699fb1743b7f33f2563b6f01ac3166a63bf711c",
+    "pinn/verification/production_reference.py": "0db10bc6c35ccad56074a659cf098ecb3b034d973dec13d75d70bcf1c6145b72",
+    "pinn/verification/split_allowlist.py": "456322fac12e0fe0f19c87b672c07047e1d37b95406cb3bacb22fe9f2e76bf3a"
+  },
+  "normalizer_rule": "GAP-60-13: every arm uses the IC13 statistics recovered from the retained generation-7 checkpoint, including the standard-variant probes. Every record carries the statistics digest, and a mismatch fails closed. The fallback normalizer is never used silently.",
+  "normalizer_stats_sha256": "77526e53c394bbac4d4a0e8fdd5a7688f0bda108d41c56277b55ad426a7a79f6",
+  "owner_stops": [
+    {
+      "id": "missing_formula_on_counted_system",
+      "source": "SPEC Requirement 7 and the frozen counting_rule",
+      "when": "A counted panel system has no two-Kepler formula, so counts() raises the frozen OwnerRouted."
+    },
+    {
+      "id": "rescue",
+      "source": "SPEC Requirement 6",
+      "when": "A confirmed G2 rescue raises the frozen OwnerRouted (owner checkpoint 4)."
+    },
+    {
+      "id": "undeterminable_improvement_rate",
+      "source": "SPEC Requirement 8",
+      "when": "An extended arm's improvement rate cannot be computed, so budget_outcome raises the frozen OwnerRouted."
+    },
+    {
+      "id": "cross_check_disagreement",
+      "source": "GAP-60-07 and SPEC Requirement 3",
+      "when": "The CPU float64 cross-check of a scored state differs from the official score in tier or in the counts boolean."
+    },
+    {
+      "id": "failed_confirmation_without_pre_answer",
+      "source": "GAP-60-09",
+      "when": "The G2 confirmation ends below Tier 1 and this protocol holds no pre-answer."
+    },
+    {
+      "id": "arm_cannot_resume_or_non_governed_exit",
+      "source": "SPEC Requirement 8",
+      "when": "An arm cannot be restored from its checkpoint, or ends by an exit that is not a governed stop (129, 130 or 143)."
+    },
+    {
+      "id": "blocked_record",
+      "source": "SPEC Requirement 8",
+      "when": "An assigned train, score or beside record is missing, empty, unreadable or refused, or has an unexpected window count. No arm runs and nothing is substituted. A blocked Rung-1 record makes G2 impossible."
+    },
+    {
+      "id": "gate04_block_on_continue",
+      "source": "D-07",
+      "when": "The GATE-04 re-measure at the approved first_omega_0 blocks."
+    },
+    {
+      "id": "protocol_drift_after_real_record",
+      "source": "SCOPE-42 and SPEC Requirement 4",
+      "when": "A pinned module or artifact differs from this protocol after a real record exists. An amendment after a result is an owner matter."
+    }
+  ],
+  "panel": {
+    "inner_laps": {
+      "1632": 10.47,
+      "4658": 39.35,
+      "851": 18.61
+    },
+    "source": {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/census/panels.json",
+      "sha256": "56ad5185148fca7e72b21f4fc1dbaaaf8eea7aa9ecdf498653af98ad88d6aa92"
+    },
+    "systems": [
+      1632,
+      851,
+      4658
+    ]
+  },
+  "plain_language": "Before the first real experiment the project writes down exactly how every experiment will run and fingerprints the code that will run it. Each experiment then refuses to start if anything changed, if its data file is missing, or if the earlier results say it should not run.",
+  "polish": {
+    "adam_wall": "Adam's running time is the whole Adam phase (steps plus scoring readings) summed across segments, without interruptions. The polish cap is 25% of it.",
+    "applies_to": "every_single_system_arm",
+    "e_never_steers": "The scored position error E may be logged at each outer call for the trace, but it never steers the polish.",
+    "full_batch": true,
+    "improvement": "After each outer call its full-batch objective is compared with the best so far: a strictly lower value resets the count of calls without improvement, otherwise the count goes up. The starting value is the objective at the Adam result. Then polish_should_stop is called.",
+    "lbfgs_history_size": 10,
+    "lbfgs_line_search": "strong_wolfe",
+    "lbfgs_max_iter": 50,
+    "non_finite": "If an outer call returns a non-finite objective or leaves non-finite parameters, the polish stops and the polish state is the parameters from before that call.",
+    "outer_call": "One outer call is one LBFGS step(closure) with the frozen max_iter, history size and strong Wolfe line search.",
+    "physics_arm_freeze": "57-RULING.md:112-124",
+    "physics_freeze": "Physics arms freeze the collocation rows, causal weights and loss weights at the handoff (57-RULING.md:112-124).",
+    "polish_state": "The polish state is the iterate after the last outer call.",
+    "report_both_states": true,
+    "result_rule": "lexicographic_E_then_eps_h_non_finite_last_tie_keeps_adam",
+    "source": "GAP-60-05",
+    "stop_after_outer_calls_without_improvement": 5,
+    "stop_at_fraction_of_adam_wall_time": 0.25
+  },
+  "preflight_sha256": "7f4fffe8702da3da8307582310221ccc0d4b1abab1156dd48b2c6103c89892cd",
+  "probes": {
+    "formula": "not applicable: no hierarchical split",
+    "picks": {
+      "stage4b": "standard/base/2279",
+      "stage6": "standard/base/3418"
+    },
+    "source": {
+      "path": ".planning/phases/59-read-only-baseline-scorecard/evidence/survey/picks.json",
+      "sha256": "b6836d5095edc12b9b7af873bfd5b6cb82fdeeb2e5c34e1c75b608810cda7317"
+    },
+    "stages": {
+      "2279": 4,
+      "3418": 6
+    }
+  },
+  "r_ref_governed": {
+    "path": "pinn/verification/artifacts/r_ref_stage0.json",
+    "sha256": "c3a14924524ec94ad633d7dabe1027d277ba2c1c94d74ad01af2c448b50d73ff",
+    "value": 19749775821.24417
+  },
+  "r_ref_rule": {
+    "note": "Stage-0 reference in force, applied unchanged",
+    "rule": "A physics arm normalizes its causal term by the Stage-0 reference in force: the governed r_ref_stage0.json when the ladder runs at the locked setting, and the reference re-measured at the approved setting (evidence/continue/r-ref-approved.json) after an owner continue. Probe arms reuse it unchanged and never re-measure it. The scorer's context column always uses the governed artifact. The re-measure writes to a Phase 60 evidence path and never overwrites r_ref_stage0.json.",
+    "source": "D-08 with GAP-60-10"
+  },
+  "readout_notes": [
+    "D-04: every data-only arm uses the Stage-0 cosine (k = 0), so the 75%-100% window of the frozen still-improving test is the low-rate tail of that cosine.",
+    "D-05: probe Rung-2b starts from scratch while the 0.7 factor assumes weights carried forward from the previous stage.",
+    "D-08 with GAP-60-10: Stage-0 reference in force, applied unchanged (the governed artifact at the locked setting, the re-measured one after a continue).",
+    "One seed per arm is a stated limit for the verdict, not a reason to add seeds."
+  ],
+  "runtime": {
+    "device": "mps",
+    "dtype": "float32"
+  },
+  "runtime_rule": "Seed 42 and MPS float32 for Adam and the polish on every real arm: Rung 1, Rung 2a, Rung 2b, the four sweep arms, the confirmation, the uncovered-system Rung 1 and both probe arms. The production runtime resolver is not consulted. Arms run one at a time on this Mac.",
+  "s_h": {
+    "eps_h": 0.0022321729071058997,
+    "rule": "The two probe physics arms use the persisted generation-7 S_H and eps_H as they stand and record them with this source file. Nothing is recomputed.",
+    "source": "GAP-60-12",
+    "source_path": "runs/stage0-v23g7-seed42/training_metadata.json",
+    "source_sha256": "a7011e77a5f7c91720f924117de06b8892e316e35c19531ba8617c4c1236a095",
+    "value": 22.321729071058996
+  },
+  "schedule": {
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "budget_rule": "B is the frozen 3-hour cap divided by the arm's own timing-run seconds per step. The timing run is not part of the cosine (D-02).",
+    "data_only_rule": "Every data-only arm uses the Stage-0 cosine (k = 0), not the Phase 38 constant rate (D-04).",
+    "data_only_stage": 0,
+    "eps": 1e-08,
+    "extension": "second cosine of length B from LR_k, Adam state kept, no re-ramp",
+    "lr_base": 0.001,
+    "lr_by_stage": {
+      "0": 0.001,
+      "4": 0.00024009999999999995,
+      "6": 0.00011764899999999997
+    },
+    "lr_decay": 0.7,
+    "lr_rule": "LR_k = lr_base x lr_decay^k with cosine annealing to zero over the arm's step budget B. Stage 0 uses k = 0, Stage 4b uses k = 4 and Stage 6 uses k = 6 (D-01).",
+    "probe_rule": "Probe Rung-2b arms use that stage's LR_k, not Stage 0's rate (D-05).",
+    "probe_stages": {
+      "2279": 4,
+      "3418": 6
+    },
+    "source": "D-01, D-02, D-03, D-04, D-05",
+    "warmup": "min(2000, floor(0.1 B))"
+  },
+  "schema": "phase60-run-protocol/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "scorer_sha256": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7",
+  "scorer_successor": {
+    "path": "pinn/verification/feasibility_scorer.py",
+    "predecessor_sha256": "cd5019a2ba5604f39d5c6e01763ff3f0e53547920a57bbf174ebc3bb0a73870b",
+    "record_path": ".planning/phases/60-single-system-learnability/evidence/scorer-successor.json",
+    "record_sha256": "feee49e33f2fb975bab5ea929e01062e527bf3015454101e5a51f1fafe17c882",
+    "successor_sha256": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7"
+  },
+  "seed": 42,
+  "sequences": {
+    "arm:c-p1-2279": [
+      "c-p1-2279"
+    ],
+    "arm:c-p1-3418": [
+      "c-p1-3418"
+    ],
+    "arm:c-p2b-2279": [
+      "c-p2b-2279"
+    ],
+    "arm:c-p2b-3418": [
+      "c-p2b-3418"
+    ],
+    "arm:c-r1u-1632": [
+      "c-r1u-1632"
+    ],
+    "arm:c-r1u-4658": [
+      "c-r1u-4658"
+    ],
+    "arm:c-r1u-851": [
+      "c-r1u-851"
+    ],
+    "arm:c-r2a-1632": [
+      "c-r2a-1632"
+    ],
+    "arm:c-r2a-4658": [
+      "c-r2a-4658"
+    ],
+    "arm:c-r2a-851": [
+      "c-r2a-851"
+    ],
+    "arm:c-r2b-1632": [
+      "c-r2b-1632"
+    ],
+    "arm:c-r2b-4658": [
+      "c-r2b-4658"
+    ],
+    "arm:c-r2b-851": [
+      "c-r2b-851"
+    ],
+    "arm:g2c-4658-w060": [
+      "g2c-4658-w060"
+    ],
+    "arm:g2c-4658-w120": [
+      "g2c-4658-w120"
+    ],
+    "arm:g2c-4658-w240": [
+      "g2c-4658-w240"
+    ],
+    "arm:g2c-4658-w480": [
+      "g2c-4658-w480"
+    ],
+    "arm:g2c-851-w060": [
+      "g2c-851-w060"
+    ],
+    "arm:g2c-851-w120": [
+      "g2c-851-w120"
+    ],
+    "arm:g2c-851-w240": [
+      "g2c-851-w240"
+    ],
+    "arm:g2c-851-w480": [
+      "g2c-851-w480"
+    ],
+    "arm:g2s-1632-w060": [
+      "g2s-1632-w060"
+    ],
+    "arm:g2s-1632-w120": [
+      "g2s-1632-w120"
+    ],
+    "arm:g2s-1632-w240": [
+      "g2s-1632-w240"
+    ],
+    "arm:g2s-1632-w480": [
+      "g2s-1632-w480"
+    ],
+    "arm:g2s-851-w060": [
+      "g2s-851-w060"
+    ],
+    "arm:g2s-851-w120": [
+      "g2s-851-w120"
+    ],
+    "arm:g2s-851-w240": [
+      "g2s-851-w240"
+    ],
+    "arm:g2s-851-w480": [
+      "g2s-851-w480"
+    ],
+    "arm:p1-2279": [
+      "p1-2279"
+    ],
+    "arm:p1-3418": [
+      "p1-3418"
+    ],
+    "arm:p2b-2279": [
+      "p2b-2279"
+    ],
+    "arm:p2b-3418": [
+      "p2b-3418"
+    ],
+    "arm:r1-1632": [
+      "r1-1632"
+    ],
+    "arm:r1-4658": [
+      "r1-4658"
+    ],
+    "arm:r1-851": [
+      "r1-851"
+    ],
+    "arm:r2a-1632": [
+      "r2a-1632"
+    ],
+    "arm:r2a-4658": [
+      "r2a-4658"
+    ],
+    "arm:r2a-851": [
+      "r2a-851"
+    ],
+    "arm:r2b-1632": [
+      "r2b-1632"
+    ],
+    "arm:r2b-4658": [
+      "r2b-4658"
+    ],
+    "arm:r2b-851": [
+      "r2b-851"
+    ],
+    "continue-probes": [
+      "c-p1-2279",
+      "c-p1-3418",
+      "c-p2b-2279",
+      "c-p2b-3418"
+    ],
+    "continue-rung2-1632": [
+      "c-r1u-1632",
+      "c-r2b-1632",
+      "c-r2b-851",
+      "c-r2b-4658",
+      "c-r2a-1632",
+      "c-r2a-851",
+      "c-r2a-4658"
+    ],
+    "continue-rung2-4658": [
+      "c-r1u-4658",
+      "c-r2b-1632",
+      "c-r2b-851",
+      "c-r2b-4658",
+      "c-r2a-1632",
+      "c-r2a-851",
+      "c-r2a-4658"
+    ],
+    "continue-rung2-851": [
+      "c-r1u-851",
+      "c-r2b-1632",
+      "c-r2b-851",
+      "c-r2b-4658",
+      "c-r2a-1632",
+      "c-r2a-851",
+      "c-r2a-4658"
+    ],
+    "probes": [
+      "p1-2279",
+      "p1-3418",
+      "p2b-2279",
+      "p2b-3418"
+    ],
+    "rung1": [
+      "r1-1632",
+      "r1-851",
+      "r1-4658"
+    ],
+    "rung2": [
+      "r2b-1632",
+      "r2b-851",
+      "r2b-4658",
+      "r2a-1632",
+      "r2a-851",
+      "r2a-4658"
+    ],
+    "sweep-1632": [
+      "g2s-1632-w060",
+      "g2s-1632-w120",
+      "g2s-1632-w240",
+      "g2s-1632-w480"
+    ],
+    "sweep-851": [
+      "g2s-851-w060",
+      "g2s-851-w120",
+      "g2s-851-w240",
+      "g2s-851-w480"
+    ]
+  },
+  "skip_reasons": [
+    "no rescue",
+    "checkpoint \u2463 answered go to the verdict"
+  ],
+  "timing": {
+    "all_steps_timed": true,
+    "data_only_steps": 500,
+    "minimum_steps": 50,
+    "physics_steps": 50,
+    "rule": "Every arm has its own timing run of the exact arm configuration (record, loss arm, first_omega_0, stage, batch, chunking and clipper), immediately before the arm: 500 steps for a data-only arm and 50 for an arm with a physics term, every step timed, warm-up included. The arm then starts from its own seed-42 initialization and RNG streams, and its cosine covers only the budgeted steps. No other heavy job runs during a timing run or an arm. The timing weights are discarded and not committed; the timing wall time and step count go in the arm record.",
+    "source": "GAP-60-04"
+  },
+  "weights": {
+    "directory": "evidence/arms/<arm-id>/",
+    "files": [
+      "adam.weights",
+      "polish.weights"
+    ],
+    "format": "torch.save of a CPU state dict in the runtime dtype (float32), one file per scored state",
+    "git": "Both scored states of every real arm are committed in plain git, not Git LFS.",
+    "kept_out_of_git": "Resume checkpoints and timing-run weights stay under the ignored runs/ tree.",
+    "load": "torch.load(..., weights_only=True)",
+    "record_digests": "Each record carries the file's SHA-256 and a canonical per-tensor digest (name, dtype, shape and bytes, in sorted-name order).",
+    "source": "D-10, GAP-60-08"
+  }
+}
