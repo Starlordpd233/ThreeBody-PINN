@@ -1,0 +1,458 @@
+{
+  "arms": {
+    "c-p1-2279": {
+      "beside_key": "standard/base/2279",
+      "blocked_by": [],
+      "score_key": "standard/gold/2279",
+      "status": "ok",
+      "train_key": "standard/gold/2279"
+    },
+    "c-p1-3418": {
+      "beside_key": "standard/base/3418",
+      "blocked_by": [],
+      "score_key": "standard/gold/3418",
+      "status": "ok",
+      "train_key": "standard/gold/3418"
+    },
+    "c-p2b-2279": {
+      "beside_key": "standard/base/2279",
+      "blocked_by": [],
+      "score_key": "standard/gold/2279",
+      "status": "ok",
+      "train_key": "standard/base/2279"
+    },
+    "c-p2b-3418": {
+      "beside_key": "standard/base/3418",
+      "blocked_by": [],
+      "score_key": "standard/gold/3418",
+      "status": "ok",
+      "train_key": "standard/gold/3418"
+    },
+    "c-r1u-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/gold/1632"
+    },
+    "c-r1u-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/gold/4658"
+    },
+    "c-r1u-851": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "c-r2a-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/base/1632"
+    },
+    "c-r2a-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/base/4658"
+    },
+    "c-r2a-851": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/base/851"
+    },
+    "c-r2b-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/base/1632"
+    },
+    "c-r2b-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/base/4658"
+    },
+    "c-r2b-851": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/base/851"
+    },
+    "g2c-4658-w060": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/gold/4658"
+    },
+    "g2c-4658-w120": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/gold/4658"
+    },
+    "g2c-4658-w240": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/gold/4658"
+    },
+    "g2c-4658-w480": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/gold/4658"
+    },
+    "g2c-851-w060": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "g2c-851-w120": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "g2c-851-w240": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "g2c-851-w480": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "g2s-1632-w060": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/gold/1632"
+    },
+    "g2s-1632-w120": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/gold/1632"
+    },
+    "g2s-1632-w240": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/gold/1632"
+    },
+    "g2s-1632-w480": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/gold/1632"
+    },
+    "g2s-851-w060": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "g2s-851-w120": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "g2s-851-w240": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "g2s-851-w480": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "p1-2279": {
+      "beside_key": "standard/base/2279",
+      "blocked_by": [],
+      "score_key": "standard/gold/2279",
+      "status": "ok",
+      "train_key": "standard/gold/2279"
+    },
+    "p1-3418": {
+      "beside_key": "standard/base/3418",
+      "blocked_by": [],
+      "score_key": "standard/gold/3418",
+      "status": "ok",
+      "train_key": "standard/gold/3418"
+    },
+    "p2b-2279": {
+      "beside_key": "standard/base/2279",
+      "blocked_by": [],
+      "score_key": "standard/gold/2279",
+      "status": "ok",
+      "train_key": "standard/base/2279"
+    },
+    "p2b-3418": {
+      "beside_key": "standard/base/3418",
+      "blocked_by": [],
+      "score_key": "standard/gold/3418",
+      "status": "ok",
+      "train_key": "standard/gold/3418"
+    },
+    "r1-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/gold/1632"
+    },
+    "r1-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/gold/4658"
+    },
+    "r1-851": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/gold/851"
+    },
+    "r2a-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/base/1632"
+    },
+    "r2a-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/base/4658"
+    },
+    "r2a-851": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/base/851"
+    },
+    "r2b-1632": {
+      "beside_key": "hierarchical/base/1632",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/1632",
+      "status": "ok",
+      "train_key": "hierarchical/base/1632"
+    },
+    "r2b-4658": {
+      "beside_key": "hierarchical/base/4658",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/4658",
+      "status": "ok",
+      "train_key": "hierarchical/base/4658"
+    },
+    "r2b-851": {
+      "beside_key": "hierarchical/base/851",
+      "blocked_by": [],
+      "score_key": "hierarchical/gold/851",
+      "status": "ok",
+      "train_key": "hierarchical/base/851"
+    }
+  },
+  "attestation": {
+    "blocked_attempts": 0,
+    "data_root_source": "git_common_dir_default",
+    "opened": {
+      "other_under_root": 0,
+      "train": 266,
+      "validation": 0
+    },
+    "refused_before_open": 0,
+    "schema": "phase59-files-opened/v1",
+    "test_split_opened": 0
+  },
+  "blocked_arms": [],
+  "data_root_source": "git_common_dir_default",
+  "plain_language": "Every record an arm trains on, is scored on or reports beside is checked once, before the first arm. A record is ok, missing, empty, unreadable or refused, and its sample count within T is compared with the count that was verified. A record that is not ok blocks the arms that use it and no others, and nothing is read in its place.",
+  "records": {
+    "hierarchical/base/1632": {
+      "count_ok": true,
+      "dt_out_measured": 0.08000000000000007,
+      "expected_within_t": 126,
+      "inner_pair": [
+        1,
+        2
+      ],
+      "n_snapshots": 126,
+      "n_within_t": 126,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "dfe19dc9873d3babf58fe51a9d01d1a12aca8514ca9ae5af0ae0e5e6cba46bc1"
+    },
+    "hierarchical/base/4658": {
+      "count_ok": true,
+      "dt_out_measured": 0.08000000000000007,
+      "expected_within_t": 126,
+      "inner_pair": [
+        0,
+        2
+      ],
+      "n_snapshots": 126,
+      "n_within_t": 126,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "a280adc899063b077c844e6ab5256b82ac74b76045c561fbe0d7c39082c1bb9d"
+    },
+    "hierarchical/base/851": {
+      "count_ok": true,
+      "dt_out_measured": 0.08000000000000007,
+      "expected_within_t": 126,
+      "inner_pair": [
+        1,
+        2
+      ],
+      "n_snapshots": 126,
+      "n_within_t": 126,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "428db8e04166077839260a904f5903490717e202939447c307974114a96163a3"
+    },
+    "hierarchical/gold/1632": {
+      "count_ok": true,
+      "dt_out_measured": 0.009999999999999787,
+      "expected_within_t": 1001,
+      "inner_pair": [
+        1,
+        2
+      ],
+      "n_snapshots": 1002,
+      "n_within_t": 1001,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "9d9aa6c66259007aa99aa63c28c96294842daaa42e56869a0593d3b0b5537c63"
+    },
+    "hierarchical/gold/4658": {
+      "count_ok": true,
+      "dt_out_measured": 0.009999999999999787,
+      "expected_within_t": 1001,
+      "inner_pair": [
+        0,
+        2
+      ],
+      "n_snapshots": 1002,
+      "n_within_t": 1001,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "4db856baba1b19cda87e9bfa6a8751112b25a69d8efecb51a2a5be411955d050"
+    },
+    "hierarchical/gold/851": {
+      "count_ok": true,
+      "dt_out_measured": 0.009999999999999787,
+      "expected_within_t": 1001,
+      "inner_pair": [
+        1,
+        2
+      ],
+      "n_snapshots": 1002,
+      "n_within_t": 1001,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "de2d509b3389ba4cb69afd253329cce1b2e5c44aeefa3a2ca5204e10a6181751"
+    },
+    "standard/base/2279": {
+      "count_ok": true,
+      "dt_out_measured": 0.16999999999999993,
+      "expected_within_t": 59,
+      "inner_pair": [
+        1,
+        2
+      ],
+      "n_snapshots": 60,
+      "n_within_t": 59,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "a71b7d76851a4c0b6afdb78e620a05baf2aa8c3fccec1ee8d13dab1a77d244cb"
+    },
+    "standard/base/3418": {
+      "count_ok": true,
+      "dt_out_measured": 0.16999999999999993,
+      "expected_within_t": 59,
+      "inner_pair": [
+        0,
+        2
+      ],
+      "n_snapshots": 60,
+      "n_within_t": 59,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "90a0901c71ea7e529688e41a6e104660a8a1fd490391cb3c944c8be4dc931d4f"
+    },
+    "standard/gold/2279": {
+      "count_ok": true,
+      "dt_out_measured": 0.009999999999999787,
+      "expected_within_t": 1001,
+      "inner_pair": [
+        1,
+        2
+      ],
+      "n_snapshots": 1002,
+      "n_within_t": 1001,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "62ccca142f757ecb834234f76aefe4139be831ba7bf7f50313cc22537e1b0a66"
+    },
+    "standard/gold/3418": {
+      "count_ok": true,
+      "dt_out_measured": 0.009999999999999787,
+      "expected_within_t": 1001,
+      "inner_pair": [
+        0,
+        2
+      ],
+      "n_snapshots": 1002,
+      "n_within_t": 1001,
+      "split": "train",
+      "status": "ok",
+      "windowed_sha256": "9fa3f65f1dd6b29cdba1816f5325821b8551ee0357a94920a040aa5b218af9e7"
+    }
+  },
+  "schema": "phase60-preflight/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b",
+  "t_max": 10.0
+}
