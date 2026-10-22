@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-13 complete 2026-10-21 (60-01 to 60-13 and 60-23 done, 14 of 23 plans); wave 14 (60-14) is running: the Rung-1 sequence launched 2026-10-21 21:29 CDT, Tasks 1-3 are done and Task 4 waits for the owner's finished"
-last_updated: "2026-10-22T02:36:00Z"
-last_activity: 2026-10-21
-last_activity_desc: Phase 60 wave 13 recorded complete and wave 14 launched. 60-13 sealed the run protocol (SHA-256 93486d24...0383, summary 7293ef2a) with the owner's GAP-60-03 and GAP-60-09 answers. 60-14 Task 1 admitted the window at 768ade36 (PROTOCOL-OK, PREFLIGHT-OK, SCORECARD-FROZEN-OK, SEQUENCE-NOT-LAUNCHED, ADMIT-OK for r1-1632, r1-851 and r1-4658). The owner waived the 6 GiB free-memory figure and replied "start" at the Task 2 checkpoint. Task 3 printed LAUNCHED rung1 invocation-1 at 21:29:01 CDT, --status showed SEQUENCE-RUNNING with ARM-PID 2179, and the power guard runs as pid 2553. Pause and resume only with scripts/phase60-pause.sh and scripts/phase60-resume.sh rung1.
-state_head: 7293ef2a
+stopped_at: "Phase 60 waves 1-14 complete 2026-10-22 (60-01 to 60-14 and 60-23 done, 15 of 23 plans); Gate G2 fired on Rung-1 tiers 0 0 0, so wave 15 (60-15, the four-setting sweep on system 1632) is next and waits for the owner's go-ahead"
+last_updated: "2026-10-22T16:10:00Z"
+last_activity: 2026-10-22
+last_activity_desc: Phase 60 wave 14 recorded complete. The Rung-1 sequence ran from 2026-10-21 21:29 to 2026-10-22 08:35 CDT (11.11 h) with no pause, stop or resume. r1-1632, r1-851 and r1-4658 all ended at Tier 0 (E 1.157, 1.238 and 1.143; valid horizon 0.0), and only r1-4658 earned its budget doubling. Records and weights are in 0a135eca, Gate G2 fired (g2-outcome.json, ee739e64) and the summary is b25c4b88. Next is wave 15, the first_omega_0 sweep (60, 120, 240 and 480) on system 1632.
+state_head: b25c4b88
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 24
-  percent: 73
+  completed_plans: 25
+  percent: 76
 ---
 
 # Project State
@@ -25,26 +25,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-13 complete; wave 14, the Rung-1 sequence, running detached since 2026-10-21 21:29 CDT)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-14 complete; Gate G2 fired, so wave 15, the four-setting sweep on system 1632, is next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-13 complete; wave 14, the Rung-1 sequence, is running detached)
-Plan: 14 of 23 (22 waves)
-Status: Executing — 60-14 Tasks 1-3 done; Task 4 waits for the sequence to end and the owner's "finished"
-Last activity: 2026-10-21 — Wave 13 complete (60-13); wave 14 (60-14) launched Rung 1 at 21:29 CDT
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-14 complete; Gate G2 fired)
+Plan: 15 of 23 (22 waves)
+Status: Executing — 60-14 complete (Rung-1 tiers 0 0 0, G2 fired); wave 15 (60-15, the sweep) waits for the owner's go-ahead
+Last activity: 2026-10-22 — Wave 14 complete (60-14): Rung 1 recorded on all three panel systems and Gate G2 committed
 
-### Wave 14 in progress (60-14, 2026-10-21)
+### Decisions from 60-14 (2026-10-22)
 
-- The Rung-1 sequence runs detached on the sealed protocol (SHA-256 `93486d240f129bb5947cddb56d2eb18936ac0cbad7ac0bceeb0af0372b850383`), one arm at a time: r1-1632, r1-851, r1-4658. It takes about 3.75 hours per arm and 11-12 hours in all, up to about 22.5 hours if every arm earns its doubling. The 09:00 power-guard pause will probably land in the third arm.
-- Task 1 (2026-10-22T02:14Z, HEAD 768ade36): PROTOCOL-OK, PREFLIGHT-OK, SCORECARD-FROZEN-OK, SEQUENCE-NOT-LAUNCHED, ADMIT-OK r1-1632, ADMIT-OK r1-851, ADMIT-OK r1-4658; no competing jobs. Advisory memory was 3.891 GiB (21:14:36 CDT), 4.051 GiB (21:17:55) and 4.084 GiB (21:28:20), with about 9.9 GB of swap in use at launch.
-- Task 2: the owner waived the 6 GiB figure, verbatim: "I'm fine with less memory avaialble than than 6GB expected. I don't know who came up with that number, but I don't think the PINn needs that much RAM and memory to run these tests for. go agead and proceed on the next wave". After seeing the protocol's plain-language summary and SHA-256, the owner replied, verbatim: "start".
-- Task 3: `LAUNCHED rung1 invocation-1` at 21:29:01 CDT (02:29:01Z). `--status` at 21:29:07 printed `SEQUENCE-RUNNING` and `ARM-PID 2179`, with supervisor pid 2178. The power guard started at 21:29:11 as pid 2553. The sealed protocol files are clean in git. The launch files are in `runs/.launch/phase60/rung1/invocation-1/` (ignored). A Gemini.app CPU spike (98.7%) was seen at 21:28:20, just before the first arm's timing run, and was gone by 21:28:53.
-- Task 4 (later session): no 60-14-SUMMARY.md exists by design, because any SUMMARY marks the plan complete in GSD's plan index; these lines are the Task 1-3 record the SUMMARY will carry. When the owner says "finished", continue plan 60-14 at Task 4 with a continuation executor. Do not re-run Task 1, whose SEQUENCE-NOT-LAUNCHED check fails by design once launched. Start with a read-only `launch_phase60_arm.py --sequence rung1 --status`, then:
-  - Codes 129, 130 or 143: run `scripts/phase60-resume.sh rung1` (on AC), record its LAUNCHED line and wait again.
-  - Any other stop: relaunch nothing, record the owner stop and report it.
-  - SEQUENCE-COMPLETE: verify and commit the three records, then write and commit G2.
-- When the owner says "pause" (before unplugging), run `scripts/phase60-pause.sh` and wait for its result: 0 means safe to unplug, 1 means the owner must look, and 3 means still stopping, so run it again. Never signal an arm by hand. Until the sequence ends, do not edit the 33 pinned files or the protocol, and do not run long test suites.
+- Rung 1 ran once on each panel system, seed 42 and MPS float32, in one invocation with no pause, stop or resume. It launched at 21:29:01 CDT on 2026-10-21 and ended at 08:35:40 CDT, 11.11 hours in all. The power guard never paused it and exited on its own at 08:46:04. The owner's replies are in the SUMMARY verbatim: the 6 GiB waiver, "start" (taken as "ready") and "go ahead and check it now" (taken as "finished").
+- All three arms ended at Tier 0, on the gold grid and on the base grid beside it. Valid horizon was 0.0 at both 1% and 10%, and no arm counts against the two-Kepler formula. The worst error is the inner pair's in every arm.
+  - r1-1632: E 1.1574 (polish), not extended, 2.573 h.
+  - r1-851: E 1.2375 (adam), not extended, 2.842 h.
+  - r1-4658: E 1.1432 (adam), doubled once (980,623 to 1,961,246 steps) with no gain, 5.693 h.
+  - The CPU float64 cross-check agreed on every arm. Records and weights: commit `0a135eca`.
+- Gate G2 fired on tiers 0 0 0. By the pinned lap-count rule:
+  - sweep system 1632 (10.47 inner laps);
+  - confirmation system 851;
+  - uncovered system 4658.
+  - `evidence/g2/g2-outcome.json` (SHA-256 `3e71568fe6d243f16dc930c7b8d49d028967b625e134cf5ba52d4c48b579c529`) was written once, after the records were committed. Commit `ee739e64`; summary `b25c4b88`. A G2 fire is a recorded branch, not an owner checkpoint by itself.
+- Timing against the plan: polish stopped after about 4.5 s per arm on its five-calls-without-improvement rule, not up to 45 minutes. Sustained Adam ran 5-14% faster than each timing run, so each budget finished under 3 hours. Expect about 2.6 hours per data-only arm on system 1632, plus 2.6 more for each arm that earns its doubling.
+- FOR PLAN 60-15:
+  - Task 1 runs `learnability_g2 branch sweep` (expect BRANCH-TAKEN) and admits the four sweep arms on 1632: first_omega_0 60, 120, 240 and 480, all four, in that order.
+  - Its Task 2 checkpoint repeats the 6 GiB request and quotes about 15 hours (up to 30). The 60-14 waiver was given for wave 14, so ask the owner again.
+  - Its Task 2 text also describes a hand SIGINT pause and a launcher-direct `--resume`. Use `scripts/phase60-pause.sh`, `scripts/phase60-resume.sh` and `scripts/phase60-power-guard.sh` instead, as 60-14 did after `768ade36`.
+- Wave 14 close: `execute:wave:post` ran `verify.schema-drift` and `ui.safety-gate`, and neither blocked. The non-blocking `verify.codebase-drift` advisory reports 210 structural elements since the last codebase map (pre-existing `configs/`, `runs/` and root files, none from this wave); `/gsd-map-codebase` would refresh it.
 
 ### Decisions from 60-13 (2026-10-21)
 

@@ -293,7 +293,7 @@ Plans:
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
-- [ ] 60-14-PLAN.md — Wave 14: Rung 1 on 1632, 851 and 4658, and Gate G2 (FEAS-03)
+- [x] 60-14-PLAN.md — Wave 14: Rung 1 on 1632, 851 and 4658, and Gate G2 (FEAS-03)
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 14/23 | In Progress | - |
+| 60. Single-System Learnability | 15/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
