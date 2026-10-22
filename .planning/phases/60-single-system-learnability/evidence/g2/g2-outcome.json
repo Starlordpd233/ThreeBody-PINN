@@ -1,0 +1,46 @@
+{
+  "confirmation_system": 851,
+  "failing_systems": [
+    1632,
+    851,
+    4658
+  ],
+  "g2_fired": true,
+  "panel_systems": [
+    1632,
+    851,
+    4658
+  ],
+  "records": [
+    {
+      "arm_id": "r1-1632",
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+      "sha256": "a87273674785128714f5eae4981dcee31fe4c2332dbd84213b7aeaa0098da0b7",
+      "system_id": 1632,
+      "tier": 0
+    },
+    {
+      "arm_id": "r1-851",
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+      "sha256": "3152470de1b34f8e1aa4fe3c0a7f825c32da385eb7636db56a92da50a88baa8a",
+      "system_id": 851,
+      "tier": 0
+    },
+    {
+      "arm_id": "r1-4658",
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+      "sha256": "dbba558ab41b9b1ba080b8346fc4834dcd0987e046d151a4d443a8e5d94f1ab8",
+      "system_id": 4658,
+      "tier": 0
+    }
+  ],
+  "schema": "phase60-g2-outcome/v1",
+  "sweep_system": 1632,
+  "tiers": [
+    0,
+    0,
+    0
+  ],
+  "trigger_below_tier": 1,
+  "uncovered_system": 4658
+}
