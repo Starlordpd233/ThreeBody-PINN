@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-12 complete 2026-10-20 (60-01 to 60-12 and 60-23 done, 13 of 23 plans); wave 13 (60-13) is next"
-last_updated: "2026-10-20T18:02:00Z"
-last_activity: 2026-10-20
-last_activity_desc: Phase 60 wave 12 executed — 60-12 gave the runner its real-arm command line and exact resume. `python -B -m pinn.verification.learnability_run <arm-id> [--resume | --admit-only]` calls admit_arm first (ADMIT-OK / ADMIT-REFUSED, exit 2), takes the Phase 60 one-launch lock with begin_long_step, writes runs/phase60/<arm-id>/process.json with its own PID before run_arm, installs SIGHUP/SIGINT/SIGTERM handlers, and maps OwnerRouted and CrossCheckDisagreement to OWNER-ROUTED with exit 3 once, GovernedStop to 129/130/143 (commit 2da19abe, summary 911beebd). A stop checkpoints phase60-resume/v1 (model, Adam, scheduler and cosine index, ScheduledWeights, GradClipper, four RNG streams, readings, trace, monitor log, B, extension flag, summed Adam and polish seconds, timing record, frozen monitor rows, handoff segment, L-BFGS state, polish counters, Adam scores, protocol SHA-256 and module digests) and a resume restores it exactly without re-timing B; an unrestorable arm raises ResumeRefused with the trainer's segment wording. Verification: 25 + 960 + 43 tests pass (one by-design platform-probe skip); the real `r1-1632 --admit-only` exits 2 with one ADMIT-REFUSED line and creates nothing under runs/. Waves 1-12 are done. Open for the owner or verifier before the first real arm: the 60-12 readings (coverage item D11) beside the earlier ones from 60-11 (D9 and D10), 60-10 (D8), 60-09 (D7), 60-08 (D10 and D11), 60-07 (D9), 60-06 (D8), 60-05 (D7), the two GAP-60-05 polish-stopping readings and the 60-23 contract details (D8).
-state_head: 911beebd
+stopped_at: "Phase 60 waves 1-13 complete 2026-10-21 (60-01 to 60-13 and 60-23 done, 14 of 23 plans); wave 14 (60-14) is running: the Rung-1 sequence launched 2026-10-21 21:29 CDT, Tasks 1-3 are done and Task 4 waits for the owner's finished"
+last_updated: "2026-10-22T02:36:00Z"
+last_activity: 2026-10-21
+last_activity_desc: Phase 60 wave 13 recorded complete and wave 14 launched. 60-13 sealed the run protocol (SHA-256 93486d24...0383, summary 7293ef2a) with the owner's GAP-60-03 and GAP-60-09 answers. 60-14 Task 1 admitted the window at 768ade36 (PROTOCOL-OK, PREFLIGHT-OK, SCORECARD-FROZEN-OK, SEQUENCE-NOT-LAUNCHED, ADMIT-OK for r1-1632, r1-851 and r1-4658). The owner waived the 6 GiB free-memory figure and replied "start" at the Task 2 checkpoint. Task 3 printed LAUNCHED rung1 invocation-1 at 21:29:01 CDT, --status showed SEQUENCE-RUNNING with ARM-PID 2179, and the power guard runs as pid 2553. Pause and resume only with scripts/phase60-pause.sh and scripts/phase60-resume.sh rung1.
+state_head: 7293ef2a
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 23
-  percent: 70
+  completed_plans: 24
+  percent: 73
 ---
 
 # Project State
@@ -25,14 +25,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-12 complete; wave 13 next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-13 complete; wave 14, the Rung-1 sequence, running detached since 2026-10-21 21:29 CDT)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-12 complete; wave 13, the real protocol and preflight, is next)
-Plan: 13 of 23 (23 waves)
-Status: Executing
-Last activity: 2026-10-20 — Wave 12 complete (60-12); waves 1-12 are done and wave 13 (60-13) is next
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-13 complete; wave 14, the Rung-1 sequence, is running detached)
+Plan: 14 of 23 (22 waves)
+Status: Executing — 60-14 Tasks 1-3 done; Task 4 waits for the sequence to end and the owner's "finished"
+Last activity: 2026-10-21 — Wave 13 complete (60-13); wave 14 (60-14) launched Rung 1 at 21:29 CDT
+
+### Wave 14 in progress (60-14, 2026-10-21)
+
+- The Rung-1 sequence runs detached on the sealed protocol (SHA-256 `93486d240f129bb5947cddb56d2eb18936ac0cbad7ac0bceeb0af0372b850383`), one arm at a time: r1-1632, r1-851, r1-4658. It takes about 3.75 hours per arm and 11-12 hours in all, up to about 22.5 hours if every arm earns its doubling. The 09:00 power-guard pause will probably land in the third arm.
+- Task 1 (2026-10-22T02:14Z, HEAD 768ade36): PROTOCOL-OK, PREFLIGHT-OK, SCORECARD-FROZEN-OK, SEQUENCE-NOT-LAUNCHED, ADMIT-OK r1-1632, ADMIT-OK r1-851, ADMIT-OK r1-4658; no competing jobs. Advisory memory was 3.891 GiB (21:14:36 CDT), 4.051 GiB (21:17:55) and 4.084 GiB (21:28:20), with about 9.9 GB of swap in use at launch.
+- Task 2: the owner waived the 6 GiB figure, verbatim: "I'm fine with less memory avaialble than than 6GB expected. I don't know who came up with that number, but I don't think the PINn needs that much RAM and memory to run these tests for. go agead and proceed on the next wave". After seeing the protocol's plain-language summary and SHA-256, the owner replied, verbatim: "start".
+- Task 3: `LAUNCHED rung1 invocation-1` at 21:29:01 CDT (02:29:01Z). `--status` at 21:29:07 printed `SEQUENCE-RUNNING` and `ARM-PID 2179`, with supervisor pid 2178. The power guard started at 21:29:11 as pid 2553. The sealed protocol files are clean in git. The launch files are in `runs/.launch/phase60/rung1/invocation-1/` (ignored). A Gemini.app CPU spike (98.7%) was seen at 21:28:20, just before the first arm's timing run, and was gone by 21:28:53.
+- Task 4 (later session): no 60-14-SUMMARY.md exists by design, because any SUMMARY marks the plan complete in GSD's plan index; these lines are the Task 1-3 record the SUMMARY will carry. When the owner says "finished", continue plan 60-14 at Task 4 with a continuation executor. Do not re-run Task 1, whose SEQUENCE-NOT-LAUNCHED check fails by design once launched. Start with a read-only `launch_phase60_arm.py --sequence rung1 --status`, then:
+  - Codes 129, 130 or 143: run `scripts/phase60-resume.sh rung1` (on AC), record its LAUNCHED line and wait again.
+  - Any other stop: relaunch nothing, record the owner stop and report it.
+  - SEQUENCE-COMPLETE: verify and commit the three records, then write and commit G2.
+- When the owner says "pause" (before unplugging), run `scripts/phase60-pause.sh` and wait for its result: 0 means safe to unplug, 1 means the owner must look, and 3 means still stopping, so run it again. Never signal an arm by hand. Until the sequence ends, do not edit the 33 pinned files or the protocol, and do not run long test suites.
+
+### Decisions from 60-13 (2026-10-21)
+
+- `verify_phase60_evidence.py` (new) is the fail-closed evidence verifier, independent of the runner, with `protocol`, `preflight`, `records`, `g2`, `rescore` and `final` subcommands. `tests/phase60/test_verifier_phase60.py` holds its 26 tests. Commit `a264d2e8`.
+- The assigned-record preflight checked all ten assigned records (hierarchical 1632, 851 and 4658, gold and base; standard 2279 and 3418, gold and base). Counts were 1,001 within T on gold, 126 on hierarchical base and 59 on standard base, with zero attestation opens. The result is `evidence/preflight/records.json`, SHA-256 `7f4fffe8702da3da8307582310221ccc0d4b1abab1156dd48b2c6103c89892cd`, and `PREFLIGHT-OK`. Commit `fb15e438`.
+- The owner's pre-seal answers, verbatim. GAP-60-03: "Keep clipping in data-only arms (delegated default: Adam limits unusually large gradient steps using GradClipper at Stage 0 multiplier 8.5)". GAP-60-09: "No pre-answer: ask me if it happens (stop the phase and prompt for decision if a failed confirmation occurs)".
+- The run protocol is sealed: `evidence/run-protocol.json`, SHA-256 `93486d240f129bb5947cddb56d2eb18936ac0cbad7ac0bceeb0af0372b850383`, with its plain-language twin `60-RUN-PROTOCOL.md`, written with `--amendment-commit dc3edac0`. The verifier printed `PROTOCOL-OK`, and the dry run admitted all three Rung-1 arms. Commit `52d98211`; summary `7293ef2a`.
+- After 60-13 (2026-10-21): `scripts/phase60_run_control.py` and its wrappers `phase60-pause.sh`, `phase60-resume.sh` and `phase60-power-guard.sh` add a governed pause, a pre-checked resume and a battery / 09:00 power guard for Phase 60 runs (commit `91f53e58`). Plan 60-14 points its pause and resume steps at them (commit `768ade36`). Plans 60-15, 60-16, 60-20 and 60-21 still describe a launcher-direct `--resume`; use `scripts/phase60-resume.sh` there the same way.
 
 ### Decisions from 60-12 (2026-10-20)
 

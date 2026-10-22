@@ -289,7 +289,7 @@ Plans:
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
-- [ ] 60-13-PLAN.md — Wave 13: the Phase 60 evidence verifier; the preflight; the owner's pre-seal answers on clipping (GAP-60-03) and a failed confirmation (GAP-60-09); the run protocol committed before any arm (INST-05, FEAS-03, FEAS-04, FEAS-09)
+- [x] 60-13-PLAN.md — Wave 13: the Phase 60 evidence verifier; the preflight; the owner's pre-seal answers on clipping (GAP-60-03) and a failed confirmation (GAP-60-09); the run protocol committed before any arm (INST-05, FEAS-03, FEAS-04, FEAS-09)
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 13/23 | In Progress | - |
+| 60. Single-System Learnability | 14/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
