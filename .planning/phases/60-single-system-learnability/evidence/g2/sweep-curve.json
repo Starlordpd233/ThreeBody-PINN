@@ -1,0 +1,95 @@
+{
+  "confirmation_arm": null,
+  "confirmation_system": 851,
+  "confirmed_first_omega_0": null,
+  "g2_outcome_sha256": "3e71568fe6d243f16dc930c7b8d49d028967b625e134cf5ba52d4c48b579c529",
+  "grid": [
+    60.0,
+    120.0,
+    240.0,
+    480.0
+  ],
+  "outcome": "no_rescue",
+  "rescue_tier": 1,
+  "rows": [
+    {
+      "E": 1.1568902471907625,
+      "arm_id": "g2s-1632-w060",
+      "eps_h": 4052.307884590454,
+      "first_omega_0": 60.0,
+      "h": [
+        [
+          0.01,
+          0.0
+        ],
+        [
+          0.1,
+          0.0
+        ]
+      ],
+      "label": "below Tier 1",
+      "record_sha256": "cf1bc1fac780c21e26c917f4573c4845ccd36ed88136e23658f5a0eb5c960c42",
+      "tier": 0
+    },
+    {
+      "E": 1.1561271988298742,
+      "arm_id": "g2s-1632-w120",
+      "eps_h": 1342.8990081795432,
+      "first_omega_0": 120.0,
+      "h": [
+        [
+          0.01,
+          0.0
+        ],
+        [
+          0.1,
+          0.0
+        ]
+      ],
+      "label": "below Tier 1",
+      "record_sha256": "893cbcefbda4c8cb061071c6d12044620112750644d68987a3b57d55ea245900",
+      "tier": 0
+    },
+    {
+      "E": 1.1538869568817232,
+      "arm_id": "g2s-1632-w240",
+      "eps_h": 123.61725046233964,
+      "first_omega_0": 240.0,
+      "h": [
+        [
+          0.01,
+          0.0
+        ],
+        [
+          0.1,
+          0.0
+        ]
+      ],
+      "label": "below Tier 1",
+      "record_sha256": "391e3f1728b3de287849ca4a7e48ae17da92e8ca48c8f77562caf377d56e4ca1",
+      "tier": 0
+    },
+    {
+      "E": 1.1574991563427022,
+      "arm_id": "g2s-1632-w480",
+      "eps_h": 4170.097273374068,
+      "first_omega_0": 480.0,
+      "h": [
+        [
+          0.01,
+          0.0
+        ],
+        [
+          0.1,
+          0.0
+        ]
+      ],
+      "label": "below Tier 1",
+      "record_sha256": "b75905c954728001c27a4f9c649281feb7f404358d88a2cdd58822d94909639e",
+      "tier": 0
+    }
+  ],
+  "schema": "phase60-sweep-curve/v1",
+  "sweep_system": 1632,
+  "uncovered_system": 4658
+}
