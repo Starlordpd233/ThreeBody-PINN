@@ -5,11 +5,11 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-17 complete 2026-10-23 (60-01 to 60-17 and 60-23 done, 18 of 23 plans); the Gate G2 sweep on system 1632 found no rescue (all four settings Tier 0), so waves 16 and 17 recorded branch not taken; wave 18 (60-18, the stop path) is next, and the owner has said to run until Phase 60 is closed"
-last_updated: "2026-10-23T20:50:00Z"
+stopped_at: "Phase 60 waves 1-18 complete 2026-10-23 (60-01 to 60-18 and 60-23 done, 19 of 23 plans); the Gate G2 sweep found no rescue, so waves 16 and 17 recorded branch not taken and wave 18 recorded Rung 2 and the probes as skipped with the reason no rescue and wrote the Phase 64 handoff; waves 19-22 remain (60-19, 60-20 and 60-21 should record branch not taken; 60-22 closes the phase), and the owner has said to run until Phase 60 is closed"
+last_updated: "2026-10-23T21:10:00Z"
 last_activity: 2026-10-23
-last_activity_desc: Phase 60 waves 16 and 17 complete as branch not taken (d2ab99e6, 6d164a7e). Before that, wave 15 complete. The sweep-1632 sequence ended SEQUENCE-COMPLETE at 23:18 CDT on 2026-10-22 (four arms, 11.27 h, no pause). All four settings (first_omega_0 60, 120, 240 and 480) ended at Tier 0 (E 1.1569, 1.1561, 1.1539 and 1.1575), and sweep-curve.json records no_rescue. The owner's "should be done now?" was taken as Task 4's finished. A crash in the verifier's sweep-curve check was fixed (e3841c73). Records 003009a3, curve e091916a, summary 42289790.
-state_head: 6d164a7e
+last_activity_desc: Phase 60 wave 18 complete (the stop path, branch taken, reason no rescue). skip-records.json 9f67d687 and stop-handoff.json 8bfa9875 are committed; the handoff verdict is RETHINK-REPRESENTATION with Level 3 not tested (skipped at G2), and 22.38 machine hours across the seven arms that ran. Phases 61-63 are marked skipped at G2, not failed (d54627d8); summary 4a0dbd9e. Before that, waves 16 and 17 recorded branch not taken (d2ab99e6, 6d164a7e) and wave 15 recorded the no_rescue sweep.
+state_head: 4a0dbd9e
 progress:
   total_phases: 6
   completed_phases: 1
@@ -25,7 +25,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-17 complete; Gate G2 fired and the sweep found no rescue, so waves 16 and 17 recorded branch not taken; wave 18, the stop path, is next)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-18 complete; Gate G2 fired, the sweep found no rescue, and the stop path is recorded; Phases 61-63 skipped at G2; waves 19-22 remain to close Phase 60, then Phase 64)
 
 ## Current Position
 
@@ -33,6 +33,15 @@ Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-18 complete; Gate 
 Plan: 19 of 23 (22 waves)
 Status: Phase 64 next (Phase 60 stopped at G2: no rescue), once Phase 60 closes. Waves 19-22 (60-19 to 60-22) still run to close Phase 60: 60-19, 60-20 and 60-21 should each record branch not taken (`branch continue-gate` and `branch ladder` print BRANCH-NOT-TAKEN), and 60-22 closes the phase. The owner's go-ahead covers waves 16-22
 Last activity: 2026-10-23 — Wave 18 (60-18) took the stop branch (no rescue): skip records (`9f67d687`) and the Phase 64 handoff (`8bfa9875`) committed; Phases 61-63 marked skipped at G2
+
+### Decisions from 60-18 (2026-10-23)
+
+- Wave 18 took the stop branch: `learnability_g2 branch stop` printed `BRANCH-TAKEN: stop (no rescue)`. The skip writer recorded FEAS-04 (Rung 2) and FEAS-09 (the hard-stage probes) as skipped with the exact reason `no rescue`, once: `evidence/g2/skip-records.json`, SHA-256 `e15ad37d95e452637014f18c0eeb5d1795589717b6b82af14691bc3edd580bf8`, commit `9f67d687`. No Rung-2, probe or continue arm has any file.
+- The handoff writer wrote `evidence/g2/stop-handoff.json` once, from the committed records: SHA-256 `7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5`, commit `8bfa9875`. Its verdict is `RETHINK-REPRESENTATION` (G2 fired and the sweep rescued nothing), computed with no later-rung inputs. Level 3 reads "not tested (skipped at G2)", Phases 61-63 read "skipped at G2, not failed", and the next phase is 64. The verdict is Phase 64's to confirm; Phase 60 only hands over the evidence.
+- Machine hours carried into the handoff: 22.38 h across seven arms (r1-1632 2.573, r1-851 2.842, r1-4658 5.693, and the four sweep arms 2.730, 2.903, 3.046 and 2.591). Timed seconds per step ran 0.0109 to 0.0136.
+- The verifier's skip-records and stop-handoff checks ran on real artifacts for the first time and printed `G2-OK` in both the required-token and full modes. I had checked beforehand, read-only, that the verdict dict survives a JSON round trip unchanged, since the wave-15 crash was a shape mismatch of this kind. The rescue check has still never run on a real rescue.
+- ROADMAP: Phases 61, 62 and 63 read "Skipped at G2 (no rescue), not failed" in the list and the Progress table; their checkboxes stay unticked. STATE: the position names Phase 64 next, once Phase 60 closes. Edits `d54627d8`; summary `4a0dbd9e`.
+- NEXT: 60-19 (continue gate), 60-20 (Rung 2) and 60-21 (probes) print BRANCH-NOT-TAKEN, checked read-only after the commits (`branch continue-gate`, `branch ladder`). Then 60-22 closes the phase: the full tests, the evidence check, the re-scoring from committed weights, `60-FINDINGS.md` and the requirement marks.
 
 ### Decisions from 60-16 and 60-17 (2026-10-23)
 
