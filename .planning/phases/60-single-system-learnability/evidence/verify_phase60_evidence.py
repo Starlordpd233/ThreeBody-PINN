@@ -560,7 +560,9 @@ def cmd_g2(args: argparse.Namespace) -> None:
             if r is not None:
                 curve_points.append((w, r["result"]["tier"]))
         if len(curve_points) == 4:
-            expected_conf = confirmed_omega(curve_points)
+            card = load_scorecard()
+            rows = [{"first_omega_0": w, "tier": t} for w, t in curve_points]
+            expected_conf = confirmed_omega(rows, scorecard=card)
             if curve_data.get("confirmed_first_omega_0") != expected_conf:
                 fail("sweep-curve.json confirmed_first_omega_0 mismatch")
 

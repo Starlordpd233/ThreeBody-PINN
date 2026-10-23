@@ -510,6 +510,44 @@ class G2CheckTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("FAIL-CLOSED", err)
 
+    def commit_sweep(self, tiers, confirmed):
+        # Four committed sweep arms of system 1632 (first_omega_0 60, 120, 240, 480) and a curve naming `confirmed`.
+        for omega, tier in zip((60, 120, 240, 480), tiers):
+            d = self.arms_dir / f"g2s-1632-w{omega:03d}"
+            d.mkdir(parents=True, exist_ok=True)
+            rec = {"arm_id": d.name, "result": {"tier": tier, "E": 0.2 if tier == 0 else 0.05}}
+            (d / "record.json").write_text(json.dumps(rec) + "\n", encoding="utf-8")
+        curve = {
+            "schema": self.module.CURVE_SCHEMA,
+            "sweep_system": 1632,
+            "confirmed_first_omega_0": confirmed,
+        }
+        (self.g2_dir / "sweep-curve.json").write_text(json.dumps(curve) + "\n", encoding="utf-8")
+        commit_all(self.root, "add the sweep arms and the sweep curve")
+
+    # The curve check recomputes the confirmed setting from the four sweep records. It only runs
+    # when all four are committed, which no test built before these three.
+    def test_sweep_curve_with_no_tier_one_setting_confirms_none(self):
+        self.commit_sweep((0, 0, 0, 0), None)
+        code, out, err = run_main(self.module, ["g2", "--require", "outcome,sweep-curve"])
+        self.assertEqual(code, 0, f"stderr: {err}")
+        self.assertIn("G2-OK", out)
+
+    def test_sweep_curve_confirmed_setting_mismatch_fails(self):
+        # Negative control: no setting reached Tier 1, so a curve that confirms 240.0 is wrong.
+        self.commit_sweep((0, 0, 0, 0), 240.0)
+        code, out, err = run_main(self.module, ["g2", "--require", "outcome,sweep-curve"])
+        self.assertEqual(code, 1)
+        self.assertIn("confirmed_first_omega_0 mismatch", err)
+        self.assertNotIn("G2-OK", out)
+
+    def test_sweep_curve_confirms_the_highest_tier_one_setting(self):
+        # Tiers 0 1 1 0: the highest setting at Tier 1 or better is 240.0 (neither the lowest, 120.0, nor the top of the grid, 480.0).
+        self.commit_sweep((0, 1, 1, 0), 240.0)
+        code, out, err = run_main(self.module, ["g2", "--require", "outcome,sweep-curve"])
+        self.assertEqual(code, 0, f"stderr: {err}")
+        self.assertIn("G2-OK", out)
+
 
 class G2TokenTests(unittest.TestCase):
     def setUp(self):
