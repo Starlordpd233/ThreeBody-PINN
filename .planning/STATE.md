@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
-current_phase: 60
-current_phase_name: Single-System Learnability
-status: executing
-stopped_at: "Phase 60 waves 1-21 complete 2026-10-23 (60-01 to 60-21 and 60-23 done, 22 of 23 plans); the Gate G2 sweep found no rescue, waves 16, 17, 19, 20 and 21 recorded branch not taken, and wave 18 recorded Rung 2 and the probes as skipped (reason no rescue) and wrote the Phase 64 handoff; wave 22 (60-22, the closeout) is the last plan, and the owner has said to run until Phase 60 is closed"
-last_updated: "2026-10-23T21:25:00Z"
+current_phase: 64
+current_phase_name: Feasibility Verdict
+status: planning
+stopped_at: "Phase 60 closed 2026-10-23 (verification passed, 5/5 success criteria; the ladder stopped at Gate G2 with no rescue); Phases 61-63 skipped at G2, not failed; Phase 64 (Feasibility Verdict) not yet planned"
+last_updated: "2026-10-23T23:05:00Z"
 last_activity: 2026-10-23
-last_activity_desc: Phase 60 waves 19, 20 and 21 complete as branch not taken (24716b7f, fb36ee4b, 0c74ab68); the continue gate, Rung 2 and the probes do not apply because the ladder stopped at G2 (reason no rescue). Before that, wave 18 recorded the stop path (skip-records.json 9f67d687, stop-handoff.json 8bfa9875, RETHINK-REPRESENTATION handoff, Phases 61-63 skipped at G2), waves 16 and 17 recorded branch not taken, and wave 15 recorded the no_rescue sweep.
-state_head: 0c74ab68
+last_activity_desc: Phase 60 verified and closed. An independent gsd-verifier pass (60-VERIFICATION.md) found all five success criteria met on the stop-at-G2 path and no gaps. The closeout (60-22) re-scored all seven arms from their committed weights (RESCORE-OK) after a first-use fix to the verifier (2ca6a821), ran 992 tests OK, and wrote 60-FINDINGS.md. The verifier also found that every trained network is a time-constant predictor; Phase 64 should state that beside the RETHINK-REPRESENTATION label. GAP-59-08 stays open for the owner.
+state_head: 93cb1bcf
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 33
   completed_plans: 33
   percent: 100
@@ -25,14 +25,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-21 complete; Gate G2 fired, the sweep found no rescue, and the stop path is recorded; only wave 22, the closeout, remains; then Phase 64)
+**Current focus:** Phase 64 — Feasibility Verdict, not yet planned. Phase 60 is closed (verified; the ladder stopped at Gate G2 with no rescue) and Phases 61-63 are skipped at G2. Phase 64 reads `evidence/g2/stop-handoff.json` and should state the time-constant-predictor observation (see "Decisions from the Phase 60 verification") beside the RETHINK-REPRESENTATION label.
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — COMPLETE (all 23 plans in 22 waves; Gate G2 fired and the sweep found no rescue, so the ladder stopped at G2). Phase 64 next (Phase 60 stopped at G2: no rescue); Phases 61-63 skipped at G2, not failed
+Phase: 60 (Single-System Learnability) — CLOSED (verified 2026-10-23; all 23 plans in 22 waves; Gate G2 fired and the sweep found no rescue, so the ladder stopped at G2). Phase 64 next, not yet planned; Phases 61-63 skipped at G2, not failed
 Plan: 23 of 23 (22 waves)
-Status: Phase 60 complete, stopped at G2 (no rescue). Phase 64 next, the feasibility verdict; it reads `evidence/g2/stop-handoff.json`. Wave 22 (60-22) closed the phase: the evidence check passed, the committed weights were re-scored on all seven arms, and `60-FINDINGS.md` is written.
-Last activity: 2026-10-23 — Wave 22 (60-22) closed Phase 60: findings written, progress marks set
+Status: Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`). Phase 64, the feasibility verdict, is next and has not been planned; it reads `evidence/g2/stop-handoff.json`.
+Last activity: 2026-10-23 — Phase 60 verified (gsd-verifier, independent pass) and closed
+
+### Decisions from the Phase 60 verification (2026-10-23)
+
+- An independent `gsd-verifier` pass wrote `60-VERIFICATION.md` (status passed, 5/5 success criteria, no gaps, `human_verification` empty), judged against the stop-at-G2 contract: the harness is real and tested, the pre-registered rules were followed, the records verify and re-derive, and FEAS-04 and FEAS-09 are recorded as skipped with the exact reason `no rescue`. Nothing that should be absent exists (no r2a, r2b, p1, p2b or c- arm, no rescue.json, no ruling file, no `evidence/continue/`).
+- Observation for Phase 64, not a Phase 60 gap. Every trained network is a time-constant predictor: its output varies in time by about 0.3% of the real orbit's variation, and its error equals that of predicting each body's average position (RMS error over the RMS of the orbit about its own mean is 0.9999 to 1.0001; the final training loss is within 4e-4 relative of the mean predictor's). The frozen scorer grades the constant mean predictor Tier 0 with E 1.1538, 1.2337 and 1.1396 on 1632, 851 and 4658, against the trained 1.1574, 1.2375 and 1.1432. That is why E sits in a narrow band and does not move with the first-layer setting. The verifier found no harness defect; the weights moved 5 to 14 times their initial norm. The records cannot say whether this is a representation limit or an outcome of the fixed recipe (Adam at 1e-3 on a cosine, median clipping, 12 layers of 256), because the pre-registered sweep varied only `first_omega_0`. I re-ran the verifier's two scripts and reproduced the figures above. RETHINK-REPRESENTATION is the frozen rule's mechanical label for "G2 fired and no rescue"; Phase 64 should state this observation beside it. The details and table are in `60-VERIFICATION.md`.
+- Minor open items, none blocking: `60-VALIDATION.md` is still `status: draft` (Phase 59's was too); the plan and VALIDATION.md say the tests/phase60 discovery takes "under about 60 s" and it takes about 13 minutes; plan 60-22's literal clause `tail -n 1 ... | grep -qx 'EXIT=0'` does not hold because the rescore log ends with an `END=` line after `EXIT=0` (RESCORE-OK and EXIT=0 are both present); the `plan_head_before` in `60-13-SUMMARY.md` is malformed (the verifier read it as `8df69886cb360ff0424eb8b830d4ba3042718a3e`) and was left alone because the verification fingerprint covers the SUMMARY files. The verifier's rescue check has still never run on a real rescue.
+- Not run: `/gsd-secure-phase 60` (security enforcement is on; Phases 54 and 55 have a SECURITY.md, Phase 59 had none) and `/gsd-validate-phase 60`. Both are user-invoked follow-ups.
+- The generic regression gate was not run as such: it finds no Makefile, pyproject or requirements.txt here and would pass on `true` (memory: execute-phase-wave-gate-vacuous-trainex). The real gate ran in 60-22 and again in the verification: tests/phase60 992 OK, the Phase 59 scorer suites 139 OK, the prohibition suites 35 OK.
 
 ### Decisions from 60-22 (2026-10-23)
 
@@ -908,9 +916,9 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 **Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
 
-Last session: 2026-10-18
-Stopped at: Phase 60 planned: 23 plans in 22 waves in .planning/phases/60-single-system-learnability/. Plan 60-01 is the tracer arm and static guard; 60-13 commits the run protocol; 60-14 to 60-21 run Rung 1, the G2 branches, Rung 2 and the probes (60-15 to 60-21 are conditional branch plans); 60-22 closes out. Plan checks: iteration 1 found 3 blockers and 9 warnings, iteration 2 found 0 and 5, iteration 3 found 0 and 3. The owner chose a targeted fix pass for the last 3, verified by orchestrator checks rather than a fourth plan check. Closing gates: requirements 4 of 4, decisions 11 of 11, post-planning gap analysis 15 of 15 covered.
-Next action: /gsd-execute-phase 60 from .worktrees/trainex. From wave 3 on, plans run one at a time. 60-13, 60-14, 60-15, 60-16, 60-17, 60-20 and 60-21 stop for the owner: answers on GAP-60-03 (clipping veto) and GAP-60-09 (pre-answer) before the run protocol is committed, a memory confirmation before each multi-hour arm, and checkpoint ④. Executors return STOP fields; the orchestrator writes 60-GAPS.md and v2.4-GAPS.md. Do not edit the frozen scorecard. GAP-59-08 stays open for the owner and does not block Phase 60.
+Last session: 2026-10-23
+Stopped at: Phase 60 closed and verified 2026-10-23 (stopped at Gate G2: no rescue; Phases 61-63 skipped). Phase 64 (Feasibility Verdict) is not yet planned.
+Next action: plan Phase 64 (/gsd-plan-phase 64 from .worktrees/trainex). Before it, the owner may want to read `.planning/phases/60-single-system-learnability/60-FINDINGS.md` and the observation in `60-VERIFICATION.md` ("Independent observation for Phase 64"). GAP-59-08 is still open for the owner.
 
 ## Operator Next Steps
 
