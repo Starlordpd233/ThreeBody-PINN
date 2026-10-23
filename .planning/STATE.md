@@ -14,8 +14,8 @@ progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 28
-  percent: 85
+  completed_plans: 29
+  percent: 88
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-17 complete; Gate G2 fired; the sweep found no rescue)
-Plan: 18 of 23 (22 waves)
-Status: Ready to execute — wave 18 (60-18, the stop path) is next; the owner's go-ahead covers waves 16-22
-Last activity: 2026-10-23 — Waves 16 and 17 (60-16, 60-17) recorded branch not taken
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-18 complete; Gate G2 fired and the sweep found no rescue). Phase 64 next (Phase 60 stopped at G2: no rescue); Phases 61-63 skipped at G2, not failed
+Plan: 19 of 23 (22 waves)
+Status: Phase 64 next (Phase 60 stopped at G2: no rescue), once Phase 60 closes. Waves 19-22 (60-19 to 60-22) still run to close Phase 60: 60-19, 60-20 and 60-21 should each record branch not taken (`branch continue-gate` and `branch ladder` print BRANCH-NOT-TAKEN), and 60-22 closes the phase. The owner's go-ahead covers waves 16-22
+Last activity: 2026-10-23 — Wave 18 (60-18) took the stop branch (no rescue): skip records (`9f67d687`) and the Phase 64 handoff (`8bfa9875`) committed; Phases 61-63 marked skipped at G2
 
 ### Decisions from 60-16 and 60-17 (2026-10-23)
 

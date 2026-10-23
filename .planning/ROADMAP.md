@@ -132,7 +132,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   - then, if the ladder continues past G2, two probes on a Stage-4b and a Stage-6 system.
 
   It needs no conformance work: with one system, every slot is the same trajectory. Gate G2 can end the training phases with RETHINK-REPRESENTATION, but only after a settings sweep finds no rescue. (INST-05, FEAS-03, FEAS-04, FEAS-09)
-- [ ] **Phase 61: Conformance & Instrumentation** — The ruling's step 2:
+- [ ] **Phase 61: Conformance & Instrumentation** — **Skipped at G2 (no rescue), not failed.** The ruling's step 2:
   - per-slot physics, monitor and validation, proven by an identity-dependent assertion;
   - the IC term as a mean over the selected slots;
   - the full telemetry;
@@ -140,8 +140,8 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   - four clarifying amendments, including the inherited GAP-56-02.
 
   Owner veto on each amendment. (CONF-10, CONF-11, INST-06, INST-07, SPEC-07, SPEC-08, SPEC-09, SPEC-10)
-- [ ] **Phase 62: Gates & the Small-Family Rung** — `R_ref` re-measured, GATE-04 re-run, the `OQ-1` check on the 256 training identities, and `JX-1`'s conformant half. Then Rung 3: the corrected trainer on a 16-system family, scored on it and on the validation panel. Gate G3. (GATE-05, FEAS-05)
-- [ ] **Phase 63: Corrected Control** — The ruling's composed control at full Stage-0 scale:
+- [ ] **Phase 62: Gates & the Small-Family Rung** — **Skipped at G2 (no rescue), not failed.** `R_ref` re-measured, GATE-04 re-run, the `OQ-1` check on the 256 training identities, and `JX-1`'s conformant half. Then Rung 3: the corrected trainer on a 16-system family, scored on it and on the validation panel. Gate G3. (GATE-05, FEAS-05)
+- [ ] **Phase 63: Corrected Control** — **Skipped at G2 (no rescue), not failed.** The ruling's composed control at full Stage-0 scale:
   - seeds 42, then 41 and 43;
   - 1,000 Adam steps each;
   - observe-only;
@@ -223,6 +223,7 @@ Plans:
 - **A non-locked configuration rescues it:** owner checkpoint ④. The phase holds until the owner answers. Continue runs the remaining Phase 60 arms at the approved setting, including one data-only Rung 1 on the panel system the sweep did not cover. Go to the verdict records Rung 2 and the probes as skipped.
 
 Otherwise G2 did not fire: continue, run Rung 2, and run the hard-stage probes. The Rung-2 pattern is carried to the verdict. If the ladder stopped at G2, Rung 2 is recorded as skipped.
+**Outcome:** the G2 settings sweep found no rescue (all four settings, 60, 120, 240 and 480, ended at Tier 0 on system 1632), so Rung 2 and the hard-stage probes are recorded as skipped with the reason "no rescue", and the handoff to Phase 64 is `.planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json`.
 **Success Criteria** (what must be TRUE):
   1. The learnability harness is committed and tested:
      - its loss functions are the trainer's own (mutation-proven);
@@ -309,7 +310,7 @@ Plans:
 
 **Wave 18** *(blocked on Wave 17 completion)*
 
-- [ ] 60-18-PLAN.md — Wave 18: branch stop, skip records and the Phase 64 handoff (FEAS-04, FEAS-09)
+- [x] 60-18-PLAN.md — Wave 18: branch stop, skip records and the Phase 64 handoff (FEAS-04, FEAS-09) — branch taken (no rescue)
 
 **Wave 19** *(blocked on Wave 18 completion)*
 
@@ -399,10 +400,10 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 18/23 | In Progress | - |
-| 61. Conformance & Instrumentation | 0/TBD | Not started | - |
-| 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
-| 63. Corrected Control | 0/TBD | Not started | - |
+| 60. Single-System Learnability | 19/23 | In Progress | - |
+| 61. Conformance & Instrumentation | 0/TBD | Skipped at G2 (no rescue), not failed | - |
+| 62. Gates & the Small-Family Rung | 0/TBD | Skipped at G2 (no rescue), not failed | - |
+| 63. Corrected Control | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 64. Feasibility Verdict | 0/TBD | Not started | - |
 
 ---
