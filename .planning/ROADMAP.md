@@ -124,7 +124,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   - run the ruling's read-only experiments on generation 7's retained checkpoints.
 
   No training. Gate G1 governs Phase 61. (FEAS-01, FEAS-02, FEAS-07, FEAS-08, DIAG-07)
-- [ ] **Phase 60: Single-System Learnability** — The project's first real answer to "can it learn?":
+- [x] **Phase 60: Single-System Learnability** (completed 2026-10-23, stopped at G2: no rescue) — The project's first real answer to "can it learn?":
   - a diagnostic harness on the trainer's own loss functions, with Adam then an L-BFGS polish;
   - Rung 1, data only (the representation ceiling);
   - Rung 2, physics + IC only, and the full ratified loss;
@@ -326,7 +326,7 @@ Plans:
 
 **Wave 22** *(blocked on Wave 21 completion)*
 
-- [ ] 60-22-PLAN.md — Wave 22: closeout, final evidence checks, re-derivation by re-scoring, findings and progress records (INST-05, FEAS-03, FEAS-04, FEAS-09)
+- [x] 60-22-PLAN.md — Wave 22: closeout, final evidence checks, re-derivation by re-scoring, findings and progress records (INST-05, FEAS-03, FEAS-04, FEAS-09)
 
 ### Phase 61: Conformance & Instrumentation
 
@@ -400,7 +400,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 22/23 | In Progress | - |
+| 60. Single-System Learnability | 23/23 | Complete (stopped at G2: no rescue) | 2026-10-23 |
 | 61. Conformance & Instrumentation | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 63. Corrected Control | 0/TBD | Skipped at G2 (no rescue), not failed | - |

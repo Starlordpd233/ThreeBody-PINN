@@ -14,8 +14,8 @@ progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 32
-  percent: 97
+  completed_plans: 33
+  percent: 100
 ---
 
 # Project State
@@ -29,10 +29,14 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-21 complete; Gate G2 fired and the sweep found no rescue). Phase 64 next (Phase 60 stopped at G2: no rescue); Phases 61-63 skipped at G2, not failed
-Plan: 22 of 23 (22 waves)
-Status: Phase 64 next (Phase 60 stopped at G2: no rescue), once Phase 60 closes. Wave 22 (60-22) is the only plan left: the full tests, the evidence check, the re-scoring from the committed weights, `60-FINDINGS.md` and the requirement marks. The owner's go-ahead covers it.
-Last activity: 2026-10-23 — Waves 19, 20 and 21 (60-19, 60-20, 60-21) recorded branch not taken
+Phase: 60 (Single-System Learnability) — COMPLETE (all 23 plans in 22 waves; Gate G2 fired and the sweep found no rescue, so the ladder stopped at G2). Phase 64 next (Phase 60 stopped at G2: no rescue); Phases 61-63 skipped at G2, not failed
+Plan: 23 of 23 (22 waves)
+Status: Phase 60 complete, stopped at G2 (no rescue). Phase 64 next, the feasibility verdict; it reads `evidence/g2/stop-handoff.json`. Wave 22 (60-22) closed the phase: the evidence check passed, the committed weights were re-scored on all seven arms, and `60-FINDINGS.md` is written.
+Last activity: 2026-10-23 — Wave 22 (60-22) closed Phase 60: findings written, progress marks set
+
+### Decisions from 60-22 (2026-10-23)
+
+Wave 22 (60-22) closed Phase 60 on the stop path (Gate G2 fired, no rescue; Phase 64 next). `verify_phase60_evidence.py final` printed PHASE60-EVIDENCE-OK (1.291 s, at `2ca6a821`). `rescore --all` crashed on its first real use, from three defects in the unpinned verifier (the data context used as a context manager, the test-split counter read from the wrong attribute, `.to()` called on NumPy arrays); the orchestrator repaired it in `2ca6a821` with four tests, and the one detached run then printed RESCORE-OK, EXIT=0, in 53 s over all seven arms (committed weights re-scored on the CPU in float64 within 1e-12 and on MPS float32 on tier and counts; nothing retrained). The full `tests/phase60` discovery ran before and after that repair: 989 tests in 789.861 s at `e6ff187d` and 992 tests in 787.906 s at `2ca6a821`, both OK (one by-design platform-probe skip); it takes about 13 minutes, not the under-60-s the plan and `60-VALIDATION.md` state. The nine scorer-dependent Phase 59 suites (139 tests, 29.8 s) and the prohibition suites (35 tests, 1.7 s) passed; the other two Phase 38 tests still fail for their unrelated, pre-existing reason. Phase 59 was not re-run: the diff of its inputs since `4df5d4a8` is empty, so the 60-04 log (PHASE59-EVIDENCE-OK, 604 s) stands. `60-FINDINGS.md` (commit `49940029`, SHA-256 `e13243c611912c57390663c952afd73df42d9ca50b656a4f3011b12f63697450`) reports the seven arms (22.378 machine hours; every arm Tier 0, E 1.1432 to 1.2375), Rung 2 and the probes as skipped with the reason no rescue, and Level 3 as not tested (skipped at G2); it calls nothing a verdict. INST-05, FEAS-03, FEAS-04 and FEAS-09 are marked complete in REQUIREMENTS.md (FEAS-04 and FEAS-09 as recorded skipped). The verifier's rescue check has still never run on a real rescue. NEXT: Phase 64.
 
 ### Decisions from 60-19, 60-20 and 60-21 (2026-10-23)
 

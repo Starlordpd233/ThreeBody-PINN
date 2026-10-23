@@ -117,14 +117,14 @@ at any rung shows which part is the bottleneck.
   - The census script and its output are committed and re-derivable.
   - The panel IDs are committed with their rule before any rung runs.
   - No test-split file is opened, and this is asserted, not assumed. [proposal Phase 59]
-- [ ] **FEAS-03**: **Rung 1, the supervised ceiling.** The data-only arm of the INST-05 harness runs at the locked settings on each of the three panel systems, with the L-BFGS polish and within FEAS-01's budget rule.
+- [x] **FEAS-03**: **Rung 1, the supervised ceiling.** The data-only arm of the INST-05 harness runs at the locked settings on each of the three panel systems, with the L-BFGS polish and within FEAS-01's budget rule.
 
   **Acceptance:**
   - Each system has its tier, `h_δ`, `ε_H`, convergence trace and formula comparison recorded.
   - Gate G2 is evaluated and recorded. If Rung 1 is below Tier 1 on 2 or more of 3, the G2 settings sweep (FEAS-01 (vii)) runs data-only on one failing system, and a configuration that reaches Tier 1 there is confirmed on a second failing system:
     - **no rescue:** RETHINK-REPRESENTATION, and the milestone skips to Phase 64;
     - **rescue:** owner checkpoint ④. A locked setting is the bottleneck, and the owner decides whether to continue the ladder on that setting, or to go to the verdict. Phase 60 does not edit `pinn_architecture.md`. If the owner continues, one data-only Rung 1 arm runs at the approved `first_omega_0` on the panel system that neither the sweep nor the confirmation covered, and every remaining Phase 60 arm uses that setting. While checkpoint ④ is unanswered, Rung 2 and the probes are neither run nor skipped. [proposal Phase 60; amendment item 1; 2026-10-17 spec amendment]
-- [ ] **FEAS-04**: **Rung 2, learning from the physics.** Two arms run on the same three systems, each with the L-BFGS polish:
+- [x] **FEAS-04**: **Rung 2, learning from the physics.** Two arms run on the same three systems, each with the L-BFGS polish:
   - **(a) physics + IC only:** the ratified causal physics term with `R_ref` normalization, plus the IC term, and no data term;
   - **(b) the full ratified loss.**
 
@@ -184,7 +184,7 @@ at any rung shows which part is the bottleneck.
   - The survey script and its output are committed and re-derivable.
   - No test-split file is opened, and this is asserted.
   - Its findings are reported, not gating. [amendment items 5–6]
-- [ ] **FEAS-09**: **Hard-stage probes.** The probes run only if the ladder continues past G2. On a continue they use the approved setting. If the ladder stopped at G2, FEAS-09 is recorded as skipped, with one of the same two reasons. The ladder continues past G2 when G2 passed, or the owner continued at checkpoint ④.
+- [x] **FEAS-09**: **Hard-stage probes.** The probes run only if the ladder continues past G2. On a continue they use the approved setting. If the ladder stopped at G2, FEAS-09 is recorded as skipped, with one of the same two reasons. The ladder continues past G2 when G2 passed, or the owner continued at checkpoint ④.
   - **What runs:** on the two FEAS-08 systems, a Rung-1 arm (data only) and a Rung-2b arm (the full ratified loss, with that stage's locked weights), on the INST-05 harness, with the L-BFGS polish.
   - **Budget:** each arm runs under the single-system budget rule, about 12 hours in all.
   - **Purpose:** an early warning of whether the harder stages are reachable at all.
@@ -230,7 +230,7 @@ at any rung shows which part is the bottleneck.
 
 ### Instrumentation (INST)
 
-- [ ] **INST-05**: **The learnability harness.** It is committed, tested tooling under `pinn/verification/` that extends the Phase-38 overfit probe. It trains the production architecture on a fixed panel of training-split systems under a named loss arm: data only, physics + IC, or the full ratified loss. It has:
+- [x] **INST-05**: **The learnability harness.** It is committed, tested tooling under `pinn/verification/` that extends the Phase-38 overfit probe. It trains the production architecture on a fixed panel of training-split systems under a named loss arm: data only, physics + IC, or the full ratified loss. It has:
   - real normalized IC13;
   - the trainer's own loss and residual functions, with no re-implementation;
   - FEAS-01's scorer at a fixed cadence;
@@ -398,10 +398,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FEAS-07 | Phase 59 | Complete |
 | FEAS-08 | Phase 59 | Complete |
 | DIAG-07 | Phase 59 | Complete |
-| INST-05 | Phase 60 | Pending |
-| FEAS-03 | Phase 60 | Pending |
-| FEAS-04 | Phase 60 | Pending |
-| FEAS-09 | Phase 60 | Pending |
+| INST-05 | Phase 60 | Complete |
+| FEAS-03 | Phase 60 | Complete |
+| FEAS-04 | Phase 60 | Complete (recorded as skipped: no rescue) |
+| FEAS-09 | Phase 60 | Complete (recorded as skipped: no rescue) |
 | CONF-10 | Phase 61 | Pending |
 | CONF-11 | Phase 61 | Pending |
 | INST-06 | Phase 61 | Pending |
