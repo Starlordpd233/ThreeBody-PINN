@@ -30,7 +30,7 @@ owner_reply_verbatim:
 actuals:
   tokens: 9870   # chars/4 over the lines added by the three commits since the ledger base (39,480 chars: 2ca6a821 7,134; 49940029 28,225; 00f7f1bc 4,121), excluding this SUMMARY
   tasks: 3
-  commits: 3     # measured at write time with git rev-list --count e6ff187d..HEAD: 2ca6a821 (the orchestrator's verifier repair), 49940029 (the findings) and 00f7f1bc (the progress edits); this SUMMARY's own commit is not counted, as in 60-15 to 60-18
+  commits: 3     # measured at write time with git rev-list --count e6ff187d..HEAD: 2ca6a821 (the orchestrator's verifier repair), 49940029 (the findings) and 00f7f1bc (the progress edits); this SUMMARY's own commits (its first commit and the follow-up that corrects it) are not counted, as in 60-15 to 60-18
   plan_head_before: e6ff187d5e9aa93f4aa7b4082626adf82f04c925
 
 tech-stack:
@@ -117,7 +117,7 @@ coverage:
     human_judgment: true
     rationale: "The meaning of a no-rescue stop belongs to Phase 64 and the owner; this plan reports only the pre-registered path and its evidence. Readability for a non-specialist is a human judgment."
 
-duration: 66min   # calendar time, about: ledger created 16:09:28 CDT, paused about 25 min (16:27 to 16:52 CDT) while the orchestrator repaired the verifier, SUMMARY written about 17:15 CDT
+duration: 60min   # calendar time: ledger created 16:09:28 CDT, paused about 25 min (16:27 to 16:52 CDT) while the orchestrator repaired the verifier, SUMMARY first committed 17:09:33 CDT
 completed: 2026-10-23
 status: complete
 ---
@@ -130,8 +130,8 @@ In plain language: this plan is the final inspection of Phase 60. Nothing trains
 
 ## Performance
 
-- **Duration:** about 66 min of calendar time, of which about 25 min were a pause (see Issues Encountered).
-- **Plan started:** 2026-10-23T21:09:28Z (16:09:28 CDT, when the commit ledger was created). **First stint ended:** about 21:28Z, at the stop below. **Resumed:** 21:52:25Z. **Findings committed:** 22:03:10Z. **Progress records committed:** 22:04:53Z. **SUMMARY written:** about 22:15Z (17:15 CDT).
+- **Duration:** about 60 min of calendar time, of which about 25 min were a pause (see Issues Encountered).
+- **Plan started:** 2026-10-23T21:09:28Z (16:09:28 CDT, when the commit ledger was created). **First stint ended:** about 21:28Z, at the stop below. **Resumed:** 21:52:25Z. **Findings committed:** 22:03:10Z. **Progress records committed:** 22:04:53Z. **SUMMARY first committed:** 22:09:33Z (17:09:33 CDT), then corrected in a follow-up commit (Deviation 17).
 - **Tasks:** 3 of 3 (Task 1 the tracer, Task 2 the findings, Task 3 the progress edits).
 - **Files committed by this executor:** 4 (the findings and three progress files), plus this SUMMARY. The orchestrator's repair commit changed 2 more.
 
@@ -152,14 +152,14 @@ Times are UTC (CDT is five hours earlier). The retained logs are in the evidence
 2. **Test gates, one at a time, nothing beside them (21:10Z to 21:25Z).** The full discovery took 13.2 min. The Phase 59 suites and the prohibition suites took 30.6 s and 1.9 s.
 3. **`final` (21:25:03Z).** `PHASE60-EVIDENCE-OK`, 1.194 s.
 4. **`rescore --all`, first attempt (21:26:02Z), in the plan's command shape.** It failed within about one second: `'DataContext' object does not support the context manager protocol`, `EXIT=1`. This is a verifier error on a never-exercised mode, so I stopped at that step, made no edit, committed nothing, did not re-run it, and returned the full output with a read-only diagnosis (three defects: `with open_real_context(...)` on a plain `DataContext`, `ctx.opened.test_split_opened` where the counter is `ctx.attestation.test_split_opened`, and `.to()` called on NumPy arrays in the MPS half; the existing unit test hid all three by mocking the context). I found the first two by reading and flagged the MPS half and the 1e-12 tolerances as untested risks.
-5. **The orchestrator's repair (16:36 CDT, commit `2ca6a821`).** It touched only `verify_phase60_evidence.py` and `tests/phase60/test_verifier_phase60.py`. It then ran the changed tests (178 tests OK in 82.061 s), a one-arm CPU-only smoke (`RESCORE-OK`, 7 s), the one real detached `rescore --all` (`RESCORE-OK`, `EXIT=0`, 21:33:13Z to 21:34:06Z, 53 s) and the full discovery again (992 tests OK, 13.1 min).
+5. **The orchestrator's repair (commit `2ca6a821`, 21:36:30Z).** It touched only `verify_phase60_evidence.py` and `tests/phase60/test_verifier_phase60.py`. The orchestrator ran a one-arm CPU-only smoke (`RESCORE-OK`, 7 s, from 21:32:24Z), the one real detached `rescore --all` (`RESCORE-OK`, `EXIT=0`, 21:33:13Z to 21:34:06Z, 53 s) and the changed tests (178 tests OK in 82.061 s, finished 21:36:13Z), all on the repaired files before committing them (Deviation 16). After the commit it ran the full discovery again at `2ca6a821` (992 tests OK, 21:36:35Z to 21:49:44Z, 13.1 min).
 6. **Resumed at step 4 (21:52Z).** I re-read the commit, the logs and the tests' output rather than taking them on trust, re-confirmed the preconditions, re-ran the Phase 59 diff (exit 0) and re-ran `final` at the repaired HEAD (`PHASE60-EVIDENCE-OK`, 1.291 s).
 7. **Findings (Task 2).** Written from the committed records, checked by script, committed as `49940029`.
 8. **Progress records (Task 3).** Hand-edited, reviewed as one aggregate diff, `tests.phase60.test_amendment` run before the commit (21 tests OK), committed as `00f7f1bc`, then the plan's Task 3 check run verbatim (rc 0).
 
 ## Verification Results
 
-Every command whose full stdout, stderr, exit code, command, working directory and elapsed time is retained outside the repository is listed with its log. The executor's logs are in `/private/tmp/claude-501/-Users-<user>-Desktop-3-body-problem--worktrees-trainex/3ea947f8-ffa4-48cb-882d-e3390266a246/scratchpad/w22/` (named `w22/` below). The orchestrator's logs are in `.../scratchpad/w22b/` (named `w22b/`) and `$HOME/.cache/3bp-phase60-logs/`. Times are UTC.
+Each row that names a log has its full stdout, stderr, exit code, command, working directory (for the executor's logs) and elapsed time retained outside the repository. The executor's logs are in `/private/tmp/claude-501/-Users-<user>-Desktop-3-body-problem--worktrees-trainex/3ea947f8-ffa4-48cb-882d-e3390266a246/scratchpad/w22/` (named `w22/` below). The orchestrator's logs are in `.../scratchpad/w22b/` (named `w22b/`) and `$HOME/.cache/3bp-phase60-logs/`. Times are UTC.
 
 | Command (start, UTC; run by) | Result | Elapsed | Log |
 |---|---|---|---|
@@ -174,7 +174,7 @@ Every command whose full stdout, stderr, exit code, command, working directory a
 | `verify_phase60_evidence.py final` at `e6ff187d` (21:25:03Z; executor) | `PROTOCOL-OK`, `PREFLIGHT-OK`, `RECORDS-OK`, `G2-OK`, `PHASE60-EVIDENCE-OK`, exit 0 | 1.194 s | `w22/verifier-final.log` |
 | `verify_phase60_evidence.py rescore --all`, attempt 1, before the repair (21:26:02Z; executor) | `'DataContext' object does not support the context manager protocol`, `EXIT=1`; stopped here | about 1 s | `w22/rescore-attempt-1-FAILED.log` (74 bytes, SHA-256 `510da7c1af24ce10c28aa52b84852d6d006bba7dc3662a0538ffca3047eaad37`) and `w22/rescore-attempt-1-NOTE.txt` |
 | `verify_phase60_evidence.py rescore --cpu-only --arm r1-1632`, smoke after the repair (21:32:24Z; orchestrator) | `RESCORE-OK`, `EXIT=0` | 7 s | `$HOME/.cache/3bp-phase60-logs/phase60-rescore-smoke-60-22.log` (SHA-256 `1e25843b7d50834e1f90f580e9d725c857df4442e1ac963e173cafa45b673e0f`) |
-| `verify_phase60_evidence.py rescore --all`, the real run, detached (21:33:13Z; orchestrator) | `RESCORE-OK`, `EXIT=0`, all seven arms, both states, CPU float64 and MPS halves | 53 s (END 21:34:06Z) | `$HOME/.cache/3bp-phase60-logs/phase60-rescore-60-22.log` (SHA-256 `3d9903dc…fd5`, 4 lines: `START=`, `RESCORE-OK`, `EXIT=0`, `END=`; read verbatim by this executor) |
+| `verify_phase60_evidence.py rescore --all`, the real run, detached (21:33:13Z; orchestrator) | `RESCORE-OK`, `EXIT=0`, all seven arms, both states, CPU float64 and MPS halves | 53 s (END 21:34:06Z) | `$HOME/.cache/3bp-phase60-logs/phase60-rescore-60-22.log` (SHA-256 `3d9903dcf4a1daefc8a3a32001dc757537c3d2faf2c512479d607718c15edfd5`, 4 lines: `START=`, `RESCORE-OK`, `EXIT=0`, `END=`; read verbatim by this executor) |
 | `git diff --quiet 4df5d4a8 HEAD -- <the plan's Phase 59 inputs>` (21:25:52Z, then 21:53:00Z; executor) | exit 0 both times (a wider diff adding `tests/phase59` and `scorer-successor.json` also exits 0); the repair touches none of those paths | 0.011 s and 0.014 s | `w22/phase59-reuse-diff.log`, `w22/phase59-reuse-diff-after-fix.log` |
 | `verify_phase60_evidence.py final` at `2ca6a821` (21:53:09Z; executor) | five OK tokens ending `PHASE60-EVIDENCE-OK`, exit 0 | 1.291 s | `w22/verifier-final-after-fix.log` |
 | `verify_phase60_evidence.py final` at the final tree `00f7f1bc` (22:06:34Z; executor) | five OK tokens ending `PHASE60-EVIDENCE-OK`, exit 0 | 1.461 s | `w22/verifier-final-at-final-tree.log` |
@@ -194,9 +194,9 @@ Every command whose full stdout, stderr, exit code, command, working directory a
 2. **Task 2: the findings** - `49940029` (docs): `docs(60-22): write the phase 60 findings`. One file, `60-FINDINGS.md` (191 insertions).
 3. **Task 3: the progress records** - `00f7f1bc` (docs): `docs(planning): close phase 60`. Three files: `REQUIREMENTS.md`, `ROADMAP.md` and `STATE.md` (21 insertions, 17 deletions).
 
-**Plan metadata:** the `docs(60-22)` commit that adds this file (`docs(60-22): record the phase 60 closeout summary`), made with `scripts/agent-commit` under `GIT_AGENT_ID=gsd-executor-60-22` and `GIT_AGENT_OWNED_PATHS` set to this file alone. The two executor commits above used the same agent id and owned exactly the paths they changed.
+**Plan metadata:** the `docs(60-22)` commit that adds this file (`47983d24`, `docs(60-22): record the phase 60 closeout summary`) and a second `docs(60-22)` commit that corrects it (Deviation 17). Both were made with `scripts/agent-commit` under `GIT_AGENT_ID=gsd-executor-60-22` and `GIT_AGENT_OWNED_PATHS` set to this file alone. The two executor commits above used the same agent id and owned exactly the paths they changed.
 
-**Which commit is whose, for the `commits: 3` count.** `2ca6a821` is the orchestrator's. `49940029` and `00f7f1bc` are the executor's. This SUMMARY's commit is not counted.
+**Which commit is whose, for the `commits: 3` count.** `2ca6a821` is the orchestrator's. `49940029` and `00f7f1bc` are the executor's. This SUMMARY's two commits are not counted.
 
 ## Files Created/Modified
 
@@ -211,7 +211,7 @@ No weights file, record, protocol file, pinned module, test file or `runs/` file
 ## Decisions Made
 
 - **Stop first, then resume.** The rescore failure was a verifier error on a never-exercised mode, the case the orchestrator's rule names. I stopped and returned instead of patching the verifier myself, and resumed only on the orchestrator's message.
-- **The post-repair discovery is the gate evidence.** `tests/phase60/test_verifier_phase60.py` and the verifier changed, so the orchestrator re-ran the full discovery once (992 tests). I cite both runs and say why the second supersedes the first. The Phase 59 suites, the prohibition suites and the two excluded Phase 38 tests were not re-run, because no input of theirs changed (the repair touches two files, neither of which they read).
+- **The post-repair discovery is the gate evidence.** `tests/phase60/test_verifier_phase60.py` and the verifier changed, so the orchestrator re-ran the full discovery once (992 tests). I cite both runs and say why the second supersedes the first. The Phase 59 suites, the prohibition suites and the two excluded Phase 38 tests were not re-run, because the orchestrator confirmed that no input of theirs changed (the repair touches only the verifier and its test module).
 - **Phase 59 reuse.** The plan's diff exits 0 before and after the repair, and a wider diff including `tests/phase59` and `scorer-successor.json` also exits 0, so the 60-04 log is cited.
 - **No verdict.** The findings and STATE present RETHINK-REPRESENTATION as the frozen rule's output on "G2 fired and the sweep rescued nothing", recorded in `stop-handoff.json`, which Phase 64 owns and confirms.
 - **FEAS-04 and FEAS-09 read "Complete (recorded as skipped: no rescue)"** in the Traceability table, the wording the orchestrator specified. Their checkboxes are ticked because their skip clauses are met.
@@ -255,7 +255,7 @@ It names no wave, so it is taken as covering this one. This plan asks the owner 
 
 ### Plan text versus what ran
 
-**3. [Test duration] The plan's and `60-VALIDATION.md`'s "under about 60 s" estimate for the `tests/phase60` discovery is stale.** The discovery runs 989 to 992 tests in about 13 minutes (789.861 s and 787.906 s of test time). The plan's own check ran as written, it simply takes that long.
+**3. [Test duration] The plan's and `60-VALIDATION.md`'s "under about 60 s" estimate for the `tests/phase60` discovery is stale.** The discovery runs 989 to 992 tests in about 13 minutes (789.861 s and 787.906 s of test time). The plan's own check ran as written; it simply takes that long.
 
 **4. [Re-run] The full discovery ran twice.** The first run (989 tests, `e6ff187d`) was mine, before the stop. After the repair changed `tests/phase60/test_verifier_phase60.py` and the verifier, the orchestrator re-ran it once (992 tests, `2ca6a821`). I did not re-run it a third time. The 992-test run supersedes the first for the gate, and both are cited. The orchestrator's message gave 787.908 s for the second run; its retained log says 787.906 s, and I cite the log.
 
@@ -291,14 +291,18 @@ It names no wave, so it is taken as covering this one. This plan asks the owner 
 
 **15. [Process] Two sentences in my first draft of the findings were wrong and were fixed before the commit.** One said every arm came in under its 3-hour target (the doubled arm took 5.69 hours, and g2s-1632-w240 ran 1.4% over); the other quoted 4 to 5 GiB of free memory (the range is 3.9 to 5.3). I found both on a read-through and fixed them, and the final script check printed `PROBLEMS: none`.
 
+**16. [Process] The orchestrator's smoke and real rescore runs are timestamped before the repair commit.** The smoke started at 21:32:24Z and the real run at 21:33:13Z, while `2ca6a821` was committed at 21:36:30Z. The repaired verifier file was last modified at 21:32:04Z, before both runs, and it has not changed since, so both runs used the same bytes the commit records (the commit message cites both). The rescore log itself does not record a commit ID. I checked the file modification times for this and did not re-run the 53-second rescore.
+
+**17. [Process] This SUMMARY was committed twice.** After the first commit (`47983d24`) a read-back found: a mistyped, 54-character hash string in Fingerprints; an abbreviated hash in a table row; a written-at time (17:15 CDT) that was later than the real commit time (17:09:33 CDT), and the duration that followed from it; an overstated claim that the unaffected suites "do not read" the repaired files (the orchestrator's confirmation is the basis); a wrong order for the orchestrator's runs; a loose statement of when the amendment test ran; and a claim in Issues Encountered that read as if the results were known when the check failed. The follow-up commit changes only this file. No number in the findings or the records changed.
+
 ---
 
-**Total deviations:** 1 Rule 1 repair (made by the orchestrator, not the executor); 1 owner go-ahead wording; 13 plan-text, log-shape and process notes.
+**Total deviations:** 1 Rule 1 repair (made by the orchestrator, not the executor); 1 owner go-ahead wording; 15 plan-text, log-shape and process notes.
 **Impact on plan:** None on the results. The records, the verdict inputs and the requirement text are unchanged. The repair let the plan's own verification run, and the closeout finished on the recorded path.
 
 ## Issues Encountered
 
-- **The rescore check failed on its first real use (21:26:02Z).** After a clean `final`, `rescore --all` printed `'DataContext' object does not support the context manager protocol` and exited 1 within about a second, before any scoring. Its 74-byte log was preserved. I did not touch the verifier or any pinned file. I read the code to separate the instrument from the data: the records and weights were not in question, because the same weights re-score identically once the check can run. The diagnosis (three defects, and why the unit test missed them) is in Deviation 1.
+- **The rescore check failed on its first real use (21:26:02Z).** After a clean `final`, `rescore --all` printed `'DataContext' object does not support the context manager protocol` and exited 1 within about a second, before any scoring. Its 74-byte log was preserved. I did not touch the verifier or any pinned file. I read the code to separate the instrument from the data: the error arose before any weights were loaded or scored, so it said nothing about the results. The later passing run on the repaired check confirms that every arm re-scores. The diagnosis (three defects, and why the unit test missed them) is in Deviation 1.
 - **The pause.** From about 21:28Z to 21:52Z I had stopped and returned. The orchestrator repaired the check, ran its tests, a smoke run, the real rescore and the full discovery. Nothing in the repository changed while I waited except `2ca6a821`.
 - **One log-shape mismatch** against the plan's literal clause (Deviation 9). No result is in doubt.
 - **No command printed `OWNER-ROUTED`, `OWNER-STOP`, `FAIL-CLOSED`, `G2-HALT`, a refusal or a traceback after the repair.**
@@ -310,7 +314,7 @@ None. This plan added no code, and a scan of every line added since the ledger b
 ## Threat model check
 
 - T-60-07 (repudiation of results): mitigated. `rescore --all` re-derived every result from its committed weights (`RESCORE-OK`), and `final` checked the records, the protocol, the preflight and the Gate G2 files (`PHASE60-EVIDENCE-OK`).
-- T-60-12 (tampering with requirement text at closeout): mitigated. `tests.phase60.test_amendment` ran before and after the progress edits (21 tests OK), and the diff touches only checkboxes and status cells.
+- T-60-12 (tampering with requirement text at closeout): mitigated. `tests.phase60.test_amendment` ran after the progress edits, once before their commit and again inside the plan's Task 3 check after it (21 tests OK both times), and it also ran inside both full discoveries before the edits. The diff touches only checkboxes and status cells.
 - T-60-21 (tampering with STATE.md counters): mitigated. Hand edits only, one aggregate diff review, no gsd-tools state verb, and the frontmatter changes are the two permitted counters.
 - T-60-SC (package installs): none; this plan installed nothing.
 
@@ -325,7 +329,7 @@ None - no external service configuration required.
 ## Next Phase Readiness
 
 - **Phase 64, the feasibility verdict, is next.** It reads `evidence/g2/stop-handoff.json` (verdict field, Level 3 "not tested (skipped at G2)", the seven arms' hours, 22.378 h in all) and `60-FINDINGS.md`. Phases 61 to 63 are marked skipped at G2 (no rescue), not failed.
-- **For the orchestrator, still to set:** STATE.md frontmatter `status`, `stopped_at`, `last_updated`, `last_activity_desc`, `state_head` and `completed_phases`; the "Current focus" line under Project Reference, which still says wave 22 remains; and the two session fields (`stopped_at` / resume file) that `state.record-session` would write. The execute-plan workflow would also have run `state.advance-plan`, `state.update-progress`, `state.record-metric` (a Performance Metrics row for 60-22: duration, 3 tasks, 5 files), `state.add-decision`, `roadmap.update-plan-progress 60` and `requirements.mark-complete`. I did the last three by hand, as directed, and ran none of the verbs.
+- **For the orchestrator, still to set:** STATE.md frontmatter `status`, `stopped_at`, `last_updated`, `last_activity_desc`, `state_head` and `completed_phases`; and the "Current focus" line under Project Reference, which still says wave 22 remains. The execute-plan workflow would also have run `state.advance-plan`, `state.update-progress`, `state.record-metric` (a Performance Metrics row for 60-22: duration, 3 tasks, 5 files), `state.add-decision`, `state.record-session` (the Last session, Stopped At and resume-file fields), `roadmap.update-plan-progress 60` and `requirements.mark-complete`. I made the equivalents of advance-plan, update-progress, add-decision, update-plan-progress and mark-complete by hand, as directed, and ran none of the verbs. `record-metric` and `record-session` were not done.
 - **Not touched:** `60-VALIDATION.md` (status `draft`; its rows 60-22-01 to 60-22-03 still read pending), and the stale "under about 60 s" estimate in it and in the plan.
 - **No Phase 60 process is running**, no arm was launched, and the machine is free.
 
@@ -339,7 +343,7 @@ None - no external service configuration required.
 - `skip-records.json`: `e15ad37d95e452637014f18c0eeb5d1795589717b6b82af14691bc3edd580bf8`
 - `stop-handoff.json`: `7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5`
 - The seven arm `record.json` hashes and the fourteen weights hashes are listed in full in `60-FINDINGS.md`'s evidence index and were matched to the files by script.
-- Retained logs: `phase60-rescore-60-22.log` `3d9903dc01a32001dc757537c3d2faf2c512479d607718c15edfd5` is abbreviated in the table above; its full SHA-256 is `3d9903dcf4a1daefc8a3a32001dc757537c3d2faf2c512479d607718c15edfd5`.
+- The orchestrator's real rescore log, `phase60-rescore-60-22.log`: `3d9903dcf4a1daefc8a3a32001dc757537c3d2faf2c512479d607718c15edfd5`. The other retained logs' hashes are in the Verification Results table.
 - Commits: `2ca6a821` (verifier repair, orchestrator), `49940029` (findings), `00f7f1bc` (progress records); earlier repair `e3841c73`; Phase 59 final `4df5d4a8`.
 
 ---
@@ -350,7 +354,7 @@ None - no external service configuration required.
 
 Checked before this file was written:
 
-- `60-FINDINGS.md`, `REQUIREMENTS.md`, `ROADMAP.md` and `STATE.md` exist and are tracked; commits `2ca6a821`, `49940029` and `00f7f1bc` exist, as do `e3841c73` and `4df5d4a8`; and `git rev-list --count e6ff187d..HEAD` was 3 when the frontmatter was written (this SUMMARY's own commit is not counted).
+- `60-FINDINGS.md`, `REQUIREMENTS.md`, `ROADMAP.md` and `STATE.md` exist and are tracked; commits `2ca6a821`, `49940029` and `00f7f1bc` exist, as do `e3841c73` and `4df5d4a8`; and `git rev-list --count e6ff187d..HEAD` was 3 when the frontmatter was first written (this SUMMARY's own commits are not counted).
 - The plan's acceptance criteria hold on the final tree: `PHASE60-EVIDENCE-OK` (re-run at `00f7f1bc`, 1.461 s) and `RESCORE-OK` are recorded with their logs and elapsed times; the Phase 59 decision is recorded; all test gates pass and the two excluded Phase 38 failures are named as unrelated; the findings carry every arm in the machine-hours table, the skips with the exact reason and Level 3 as "not tested (skipped at G2)", and call nothing a verdict; the Task 2 and Task 3 verify commands exit 0, and the Task 3 commit touches only the three files.
 - The findings blob at HEAD equals the working file, and its SHA-256 appears once in STATE.md. The lines added since the ledger base hold no stub patterns, and the working tree holds only the owner's entries with nothing staged.
 - One plan clause does not hold as written: the rescore log's last line is `END=...`, not `EXIT=0` (Deviation 9). The substance of that clause is met.
