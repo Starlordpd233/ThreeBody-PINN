@@ -713,6 +713,9 @@ def cmd_rescore(args: argparse.Namespace) -> None:
             fail("no arm directories found under evidence/arms/")
 
     card = load_scorecard()
+    # learnability_data.open_real_context returns a plain DataContext (not a context manager);
+    # the process-wide attestation counts every open, so one context serves all arms.
+    ctx = open_real_context(repo_root=REPO_ROOT)
     for arm_dir in target_dirs:
         record_file = arm_dir / "record.json"
         if not record_file.is_file():
@@ -721,84 +724,84 @@ def cmd_rescore(args: argparse.Namespace) -> None:
         spec = arm_spec(record["arm_id"])
         first_omega_0 = float(record["first_omega_0"])
 
-        with open_real_context(repo_root=REPO_ROOT) as ctx:
-            arm_data = load_arm_data(spec, ctx, scorecard=card, dtype=torch.float32, device="cpu")
-            if ctx.opened.test_split_opened != 0:
-                fail(f"rescore opened test split for {arm_dir.name}")
+        arm_data = load_arm_data(spec, ctx, scorecard=card, dtype=torch.float32, device="cpu")
+        attestation = ctx.attestation
+        if attestation is None or attestation.test_split_opened != 0:
+            fail(f"rescore opened the test split, or has no open attestation, for {arm_dir.name}")
 
-            for state_name in ("adam", "polish"):
-                weights_path = arm_dir / f"{state_name}.weights"
-                try:
-                    weights = torch.load(weights_path, map_location="cpu", weights_only=True)
-                except Exception as exc:  # noqa: BLE001
-                    fail(f"cannot load weights {weights_path}: {exc}")
-                if not isinstance(weights, Mapping):
-                    fail(f"weights {weights_path} is not a mapping")
+        for state_name in ("adam", "polish"):
+            weights_path = arm_dir / f"{state_name}.weights"
+            try:
+                weights = torch.load(weights_path, map_location="cpu", weights_only=True)
+            except Exception as exc:  # noqa: BLE001
+                fail(f"cannot load weights {weights_path}: {exc}")
+            if not isinstance(weights, Mapping):
+                fail(f"weights {weights_path} is not a mapping")
 
-                f_sha = sha256_file(weights_path)
-                t_digest = weights_digest(weights)
-                rec_weights = record["states"][state_name]["weights"]
-                if f_sha != rec_weights["sha256"]:
-                    fail(f"weights SHA mismatch for {arm_dir.name} {state_name}")
-                if t_digest != rec_weights["tensor_digest"]:
-                    fail(f"weights tensor digest mismatch for {arm_dir.name} {state_name}")
+            f_sha = sha256_file(weights_path)
+            t_digest = weights_digest(weights)
+            rec_weights = record["states"][state_name]["weights"]
+            if f_sha != rec_weights["sha256"]:
+                fail(f"weights SHA mismatch for {arm_dir.name} {state_name}")
+            if t_digest != rec_weights["tensor_digest"]:
+                fail(f"weights tensor digest mismatch for {arm_dir.name} {state_name}")
 
-                widened = OrderedDict(
-                    (name, tensor.detach().to("cpu").to(torch.float64))
-                    for name, tensor in weights.items()
-                )
+            widened = OrderedDict(
+                (name, tensor.detach().to("cpu").to(torch.float64))
+                for name, tensor in weights.items()
+            )
+            if abs(first_omega_0 - 30.0) < 1e-9:
+                cpu_model = build_network(ArchitectureSpec(seed=SEED), dtype=torch.float64, device="cpu")
+            else:
+                cpu_model = build_network_with_first_omega(first_omega_0, seed=SEED, dtype=torch.float64, device="cpu")
+            cpu_model.load_state_dict(widened)
+
+            cpu_result = score_network(
+                cpu_model,
+                _float32_rounded(arm_data.ic13),
+                _float32_rounded(arm_data.masses),
+                arm_data.score.positions,
+                arm_data.score.inner_pair,
+                arm_data.score.times,
+                scorecard=card,
+                dtype=torch.float64,
+                device=torch.device("cpu"),
+                grid=arm_data.score.grid,
+            )
+            rec_cross = record["states"][state_name]["cross_check"]
+            if cpu_result.tier != rec_cross["tier"]:
+                fail(f"cross check tier mismatch for {arm_dir.name} {state_name}: {cpu_result.tier} != {rec_cross['tier']}")
+            if abs(cpu_result.E - rec_cross["E"]) > 1e-12:
+                fail(f"cross check E mismatch for {arm_dir.name} {state_name}: {cpu_result.E} != {rec_cross['E']}")
+            if abs(cpu_result.eps_h - rec_cross["eps_h"]) > 1e-12:
+                fail(f"cross check eps_h mismatch for {arm_dir.name} {state_name}: {cpu_result.eps_h} != {rec_cross['eps_h']}")
+
+            if not getattr(args, "cpu_only", False):
+                mps_device = torch.device("mps")
                 if abs(first_omega_0 - 30.0) < 1e-9:
-                    cpu_model = build_network(ArchitectureSpec(seed=SEED), dtype=torch.float64, device="cpu")
+                    mps_model = build_network(ArchitectureSpec(seed=SEED), dtype=torch.float32, device=mps_device)
                 else:
-                    cpu_model = build_network_with_first_omega(first_omega_0, seed=SEED, dtype=torch.float64, device="cpu")
-                cpu_model.load_state_dict(widened)
-
-                cpu_result = score_network(
-                    cpu_model,
-                    _float32_rounded(arm_data.ic13),
-                    _float32_rounded(arm_data.masses),
+                    mps_model = build_network_with_first_omega(first_omega_0, seed=SEED, dtype=torch.float32, device=mps_device)
+                mps_model.load_state_dict(weights)
+                mps_result = score_network(
+                    mps_model,
+                    arm_data.ic13,
+                    arm_data.masses,
                     arm_data.score.positions,
                     arm_data.score.inner_pair,
                     arm_data.score.times,
                     scorecard=card,
-                    dtype=torch.float64,
-                    device=torch.device("cpu"),
+                    dtype=torch.float32,
+                    device=mps_device,
                     grid=arm_data.score.grid,
                 )
-                rec_cross = record["states"][state_name]["cross_check"]
-                if cpu_result.tier != rec_cross["tier"]:
-                    fail(f"cross check tier mismatch for {arm_dir.name} {state_name}: {cpu_result.tier} != {rec_cross['tier']}")
-                if abs(cpu_result.E - rec_cross["E"]) > 1e-12:
-                    fail(f"cross check E mismatch for {arm_dir.name} {state_name}: {cpu_result.E} != {rec_cross['E']}")
-                if abs(cpu_result.eps_h - rec_cross["eps_h"]) > 1e-12:
-                    fail(f"cross check eps_h mismatch for {arm_dir.name} {state_name}: {cpu_result.eps_h} != {rec_cross['eps_h']}")
-
-                if not getattr(args, "cpu_only", False):
-                    mps_device = torch.device("mps")
-                    if abs(first_omega_0 - 30.0) < 1e-9:
-                        mps_model = build_network(ArchitectureSpec(seed=SEED), dtype=torch.float32, device=mps_device)
-                    else:
-                        mps_model = build_network_with_first_omega(first_omega_0, seed=SEED, dtype=torch.float32, device=mps_device)
-                    mps_model.load_state_dict(weights)
-                    mps_result = score_network(
-                        mps_model,
-                        arm_data.ic13.to(mps_device),
-                        arm_data.masses.to(mps_device),
-                        arm_data.score.positions.to(mps_device),
-                        arm_data.score.inner_pair.to(mps_device),
-                        arm_data.score.times.to(mps_device),
-                        scorecard=card,
-                        dtype=torch.float32,
-                        device=mps_device,
-                        grid=arm_data.score.grid,
-                    )
-                    rec_score = record["states"][state_name]["score_gold"]
-                    if mps_result.tier != rec_score["tier"]:
-                        fail(f"MPS gold tier mismatch for {arm_dir.name} {state_name}: {mps_result.tier} != {rec_score['tier']}")
-                    if state_name == record.get("better_state") and spec.counted:
-                        c = counts(mps_result.tier, mps_result.E, record["formula"]["E_formula"], scorecard=card)
-                        if c != record["formula"]["counts"]:
-                            fail(f"MPS counts mismatch for {arm_dir.name}")
+                rec_score = record["states"][state_name]["score_gold"]
+                if mps_result.tier != rec_score["tier"]:
+                    fail(f"MPS gold tier mismatch for {arm_dir.name} {state_name}: {mps_result.tier} != {rec_score['tier']}")
+                if state_name == record.get("better_state") and spec.counted:
+                    c = counts(mps_result.tier, mps_result.E, record["formula"]["E_formula"], scorecard=card)
+                    if c != record["formula"]["counts"]:
+                        fail(f"MPS counts mismatch for {arm_dir.name}")
 
     print("RESCORE-OK")
 

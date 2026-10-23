@@ -20,6 +20,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+import numpy as np
 import torch
 
 from pinn.network import ArchitectureSpec, build_network
@@ -28,6 +29,7 @@ from pinn.training.controllers import _tensor_hash
 from pinn.verification import learnability_run
 from pinn.verification.feasibility_scorecard import SCORECARD_SHA256
 from pinn.verification.learnability_arms import SEED
+from pinn.verification.learnability_data import DataContext
 
 VERIFIER_PATH = (
     Path(__file__).resolve().parents[2]
@@ -673,36 +675,75 @@ class RescoreTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def test_rescore_cpu_only_passes_and_fails_on_weight_tampering(self):
+    @staticmethod
+    def _real_context(attestation):
+        """The real ``DataContext`` shape: a frozen dataclass, not a context manager."""
+        return DataContext(
+            allowlist=None,
+            reader=None,
+            attestation=attestation,
+            stats=None,
+            stats_sha256="0" * 64,
+            normalizer_source="test",
+            run_kind="fixture",
+            data_root_source="test",
+        )
+
+    @staticmethod
+    def _real_arm_data():
+        """The real ``ArmData`` shape: numpy float64 arrays, not torch tensors."""
+        return SimpleNamespace(
+            ic13=np.zeros(13, dtype=np.float64),
+            masses=np.ones(3, dtype=np.float64),
+            score=SimpleNamespace(
+                positions=np.zeros((10, 3, 3), dtype=np.float64),
+                inner_pair=(0, 1),
+                times=np.linspace(0.0, 1.0, 10),
+                grid="gold",
+            ),
+        )
+
+    def _run_rescore(self, argv, *, attestation):
         with mock.patch.object(self.module, "open_real_context") as mock_ctx, \
              mock.patch.object(self.module, "load_arm_data") as mock_load_data, \
              mock.patch.object(self.module, "score_network") as mock_score:
-            mock_ctx.return_value.__enter__.return_value = SimpleNamespace(
-                opened=SimpleNamespace(test_split_opened=0)
-            )
-            mock_load_data.return_value = SimpleNamespace(
-                ic13=torch.zeros((1, 13)),
-                masses=torch.ones((1, 3)),
-                score=SimpleNamespace(
-                    positions=torch.zeros((10, 9)),
-                    inner_pair=torch.zeros((10, 3)),
-                    times=torch.zeros((10, 1)),
-                    grid="gold",
-                ),
-            )
+            mock_ctx.return_value = self._real_context(attestation)
+            mock_load_data.return_value = self._real_arm_data()
             mock_score.return_value = SimpleNamespace(tier=1, E=0.05, eps_h=1e-4)
+            return run_main(self.module, argv)
 
-            code, out, err = run_main(self.module, ["rescore", "--cpu-only"])
-            self.assertEqual(code, 0, f"stderr: {err}")
-            self.assertIn("RESCORE-OK", out)
+    def test_rescore_cpu_only_passes_and_fails_on_weight_tampering(self):
+        attestation = SimpleNamespace(test_split_opened=0)
+        code, out, err = self._run_rescore(["rescore", "--cpu-only"], attestation=attestation)
+        self.assertEqual(code, 0, f"stderr: {err}")
+        self.assertIn("RESCORE-OK", out)
 
-            # Corrupt one byte of weights file
-            (self.arm_dir / "adam.weights").write_bytes(b"tampered weights\n")
-            commit_all(self.root, "tamper weights")
-            code, out, err = run_main(self.module, ["rescore", "--cpu-only"])
-            self.assertEqual(code, 1)
-            self.assertIn("FAIL-CLOSED", err)
+        # Corrupt one byte of weights file
+        (self.arm_dir / "adam.weights").write_bytes(b"tampered weights\n")
+        commit_all(self.root, "tamper weights")
+        code, out, err = self._run_rescore(["rescore", "--cpu-only"], attestation=attestation)
+        self.assertEqual(code, 1)
+        self.assertIn("FAIL-CLOSED", err)
 
+    def test_rescore_refuses_when_the_test_split_was_opened(self):
+        attestation = SimpleNamespace(test_split_opened=1)
+        code, out, err = self._run_rescore(["rescore", "--cpu-only"], attestation=attestation)
+        self.assertEqual(code, 1)
+        self.assertIn("FAIL-CLOSED", err)
+        self.assertIn("test split", err)
+
+    def test_rescore_refuses_a_context_with_no_open_attestation(self):
+        code, out, err = self._run_rescore(["rescore", "--cpu-only"], attestation=None)
+        self.assertEqual(code, 1)
+        self.assertIn("FAIL-CLOSED", err)
+        self.assertIn("attestation", err)
+
+    @unittest.skipUnless(torch.backends.mps.is_available(), "the MPS half of rescore needs an MPS device")
+    def test_rescore_mps_half_passes_numpy_arm_data_through_like_the_runner(self):
+        attestation = SimpleNamespace(test_split_opened=0)
+        code, out, err = self._run_rescore(["rescore"], attestation=attestation)
+        self.assertEqual(code, 0, f"stderr: {err}")
+        self.assertIn("RESCORE-OK", out)
 
 if __name__ == "__main__":
     unittest.main()
