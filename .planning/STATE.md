@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-15 complete 2026-10-23 (60-01 to 60-15 and 60-23 done, 16 of 23 plans); the Gate G2 sweep on system 1632 found no rescue (all four settings Tier 0), so the stop path follows; wave 16 (60-16) is next and waits for the owner"
-last_updated: "2026-10-23T14:55:00Z"
+stopped_at: "Phase 60 waves 1-17 complete 2026-10-23 (60-01 to 60-17 and 60-23 done, 18 of 23 plans); the Gate G2 sweep on system 1632 found no rescue (all four settings Tier 0), so waves 16 and 17 recorded branch not taken; wave 18 (60-18, the stop path) is next, and the owner has said to run until Phase 60 is closed"
+last_updated: "2026-10-23T20:50:00Z"
 last_activity: 2026-10-23
-last_activity_desc: Phase 60 wave 15 complete. The sweep-1632 sequence ended SEQUENCE-COMPLETE at 23:18 CDT on 2026-10-22 (four arms, 11.27 h, no pause). All four settings (first_omega_0 60, 120, 240 and 480) ended at Tier 0 (E 1.1569, 1.1561, 1.1539 and 1.1575), and sweep-curve.json records no_rescue. The owner's "should be done now?" was taken as Task 4's finished. A crash in the verifier's sweep-curve check was fixed (e3841c73). Records 003009a3, curve e091916a, summary 42289790.
-state_head: 42289790
+last_activity_desc: Phase 60 waves 16 and 17 complete as branch not taken (d2ab99e6, 6d164a7e). Before that, wave 15 complete. The sweep-1632 sequence ended SEQUENCE-COMPLETE at 23:18 CDT on 2026-10-22 (four arms, 11.27 h, no pause). All four settings (first_omega_0 60, 120, 240 and 480) ended at Tier 0 (E 1.1569, 1.1561, 1.1539 and 1.1575), and sweep-curve.json records no_rescue. The owner's "should be done now?" was taken as Task 4's finished. A crash in the verifier's sweep-curve check was fixed (e3841c73). Records 003009a3, curve e091916a, summary 42289790.
+state_head: 6d164a7e
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 26
-  percent: 79
+  completed_plans: 28
+  percent: 85
 ---
 
 # Project State
@@ -25,14 +25,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-15 complete; Gate G2 fired and the four-setting sweep on system 1632 found no rescue, so the stop path follows; wave 16 waits for the owner)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-17 complete; Gate G2 fired and the sweep found no rescue, so waves 16 and 17 recorded branch not taken; wave 18, the stop path, is next)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-15 complete; Gate G2 fired; the sweep found no rescue)
-Plan: 16 of 23 (22 waves)
-Status: Ready to execute — wave 16 (60-16) waits for the owner's go-ahead
-Last activity: 2026-10-23 — Wave 15 (60-15) complete: the sweep recorded no_rescue, and the verifier's sweep-curve check was fixed
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-17 complete; Gate G2 fired; the sweep found no rescue)
+Plan: 18 of 23 (22 waves)
+Status: Ready to execute — wave 18 (60-18, the stop path) is next; the owner's go-ahead covers waves 16-22
+Last activity: 2026-10-23 — Waves 16 and 17 (60-16, 60-17) recorded branch not taken
+
+### Decisions from 60-16 and 60-17 (2026-10-23)
+
+- The owner's go-ahead, verbatim (2026-10-23, about 11:00 CDT): "okay let's run this until phase 60 is closed." It was taken as covering waves 16-22; it names no wave, so each SUMMARY lists it as a deviation. The Mac was on AC power (71%, charging).
+- Wave 16 (60-16, the single confirmation run): `learnability_g2 branch confirmation` printed `BRANCH-NOT-TAKEN: confirmation (no sweep setting reached Tier 1)`. Nothing launched. Summary `d2ab99e6`.
+- Wave 17 (60-17, owner checkpoint ④): `learnability_g2 branch owner-decision` printed `BRANCH-NOT-TAKEN: owner-decision (no rescue: no sweep setting reached Tier 1)`. The owner was not asked, and no ruling file exists. The go-ahead above is not an answer to checkpoint ④. Summary `6d164a7e`.
+- Each SUMMARY has `status: complete` (so the plan index counts the wave done), `requirements-completed: []` (FEAS-03's confirmation and checkpoint ④ were not run, so FEAS-03 is not claimed), and `commits` and `plan_head_before` nested under `actuals`, as in 60-14 and 60-15.
+- The other branch queries, read-only: `branch stop` prints `BRANCH-TAKEN: stop (no rescue)`; `branch continue-gate` and `branch ladder` print BRANCH-NOT-TAKEN. So 60-18 runs, and 60-19, 60-20 and 60-21 record branch not taken.
 
 ### Decisions from 60-15 (2026-10-23)
 

@@ -301,11 +301,11 @@ Plans:
 
 **Wave 16** *(blocked on Wave 15 completion)*
 
-- [ ] 60-16-PLAN.md — Wave 16: branch Tier-1 setting found, the single confirmation run (FEAS-03)
+- [x] 60-16-PLAN.md — Wave 16: branch Tier-1 setting found, the single confirmation run (FEAS-03) — branch not taken (no rescue)
 
 **Wave 17** *(blocked on Wave 16 completion)*
 
-- [ ] 60-17-PLAN.md — Wave 17: branch rescue or failed confirmation, owner checkpoint ④ and the ruling file (FEAS-03)
+- [x] 60-17-PLAN.md — Wave 17: branch rescue or failed confirmation, owner checkpoint ④ and the ruling file (FEAS-03) — branch not taken (no rescue)
 
 **Wave 18** *(blocked on Wave 17 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 16/23 | In Progress | - |
+| 60. Single-System Learnability | 18/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |
