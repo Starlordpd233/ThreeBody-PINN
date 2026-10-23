@@ -1,0 +1,25 @@
+{
+  "basis": [
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/g2/g2-outcome.json",
+      "sha256": "3e71568fe6d243f16dc930c7b8d49d028967b625e134cf5ba52d4c48b579c529"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/g2/sweep-curve.json",
+      "sha256": "946c0bb9a658f287f074c8768c4cd4a54333df9c7303445fd5d64a5a347706bc"
+    }
+  ],
+  "entries": {
+    "FEAS-04": {
+      "reason": "no rescue",
+      "skipped": true
+    },
+    "FEAS-09": {
+      "reason": "no rescue",
+      "skipped": true
+    }
+  },
+  "level3": "not tested (skipped at G2)",
+  "reason": "no rescue",
+  "schema": "phase60-skip-records/v1"
+}
