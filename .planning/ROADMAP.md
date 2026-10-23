@@ -314,15 +314,15 @@ Plans:
 
 **Wave 19** *(blocked on Wave 18 completion)*
 
-- [ ] 60-19-PLAN.md — Wave 19: branch continue, the R_ref re-measure and GATE-04 at the approved setting (FEAS-04, FEAS-09)
+- [x] 60-19-PLAN.md — Wave 19: branch continue, the R_ref re-measure and GATE-04 at the approved setting (FEAS-04, FEAS-09) — branch not taken (no rescue)
 
 **Wave 20** *(blocked on Wave 19 completion)*
 
-- [ ] 60-20-PLAN.md — Wave 20: branch ladder, Rung 2 (and the uncovered system's Rung 1 on a continue) (FEAS-04, FEAS-03)
+- [x] 60-20-PLAN.md — Wave 20: branch ladder, Rung 2 (and the uncovered system's Rung 1 on a continue) (FEAS-04, FEAS-03) — branch not taken (no rescue)
 
 **Wave 21** *(blocked on Wave 20 completion)*
 
-- [ ] 60-21-PLAN.md — Wave 21: branch ladder, the two hard-stage probes (FEAS-09)
+- [x] 60-21-PLAN.md — Wave 21: branch ladder, the two hard-stage probes (FEAS-09) — branch not taken (no rescue)
 
 **Wave 22** *(blocked on Wave 21 completion)*
 
@@ -400,7 +400,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 19/23 | In Progress | - |
+| 60. Single-System Learnability | 22/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 63. Corrected Control | 0/TBD | Skipped at G2 (no rescue), not failed | - |

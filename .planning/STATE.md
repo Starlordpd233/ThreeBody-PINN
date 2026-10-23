@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-18 complete 2026-10-23 (60-01 to 60-18 and 60-23 done, 19 of 23 plans); the Gate G2 sweep found no rescue, so waves 16 and 17 recorded branch not taken and wave 18 recorded Rung 2 and the probes as skipped with the reason no rescue and wrote the Phase 64 handoff; waves 19-22 remain (60-19, 60-20 and 60-21 should record branch not taken; 60-22 closes the phase), and the owner has said to run until Phase 60 is closed"
-last_updated: "2026-10-23T21:10:00Z"
+stopped_at: "Phase 60 waves 1-21 complete 2026-10-23 (60-01 to 60-21 and 60-23 done, 22 of 23 plans); the Gate G2 sweep found no rescue, waves 16, 17, 19, 20 and 21 recorded branch not taken, and wave 18 recorded Rung 2 and the probes as skipped (reason no rescue) and wrote the Phase 64 handoff; wave 22 (60-22, the closeout) is the last plan, and the owner has said to run until Phase 60 is closed"
+last_updated: "2026-10-23T21:25:00Z"
 last_activity: 2026-10-23
-last_activity_desc: Phase 60 wave 18 complete (the stop path, branch taken, reason no rescue). skip-records.json 9f67d687 and stop-handoff.json 8bfa9875 are committed; the handoff verdict is RETHINK-REPRESENTATION with Level 3 not tested (skipped at G2), and 22.38 machine hours across the seven arms that ran. Phases 61-63 are marked skipped at G2, not failed (d54627d8); summary 4a0dbd9e. Before that, waves 16 and 17 recorded branch not taken (d2ab99e6, 6d164a7e) and wave 15 recorded the no_rescue sweep.
-state_head: 4a0dbd9e
+last_activity_desc: Phase 60 waves 19, 20 and 21 complete as branch not taken (24716b7f, fb36ee4b, 0c74ab68); the continue gate, Rung 2 and the probes do not apply because the ladder stopped at G2 (reason no rescue). Before that, wave 18 recorded the stop path (skip-records.json 9f67d687, stop-handoff.json 8bfa9875, RETHINK-REPRESENTATION handoff, Phases 61-63 skipped at G2), waves 16 and 17 recorded branch not taken, and wave 15 recorded the no_rescue sweep.
+state_head: 0c74ab68
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 29
-  percent: 88
+  completed_plans: 32
+  percent: 97
 ---
 
 # Project State
@@ -25,14 +25,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-18 complete; Gate G2 fired, the sweep found no rescue, and the stop path is recorded; Phases 61-63 skipped at G2; waves 19-22 remain to close Phase 60, then Phase 64)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-21 complete; Gate G2 fired, the sweep found no rescue, and the stop path is recorded; only wave 22, the closeout, remains; then Phase 64)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-18 complete; Gate G2 fired and the sweep found no rescue). Phase 64 next (Phase 60 stopped at G2: no rescue); Phases 61-63 skipped at G2, not failed
-Plan: 19 of 23 (22 waves)
-Status: Phase 64 next (Phase 60 stopped at G2: no rescue), once Phase 60 closes. Waves 19-22 (60-19 to 60-22) still run to close Phase 60: 60-19, 60-20 and 60-21 should each record branch not taken (`branch continue-gate` and `branch ladder` print BRANCH-NOT-TAKEN), and 60-22 closes the phase. The owner's go-ahead covers waves 16-22
-Last activity: 2026-10-23 — Wave 18 (60-18) took the stop branch (no rescue): skip records (`9f67d687`) and the Phase 64 handoff (`8bfa9875`) committed; Phases 61-63 marked skipped at G2
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-21 complete; Gate G2 fired and the sweep found no rescue). Phase 64 next (Phase 60 stopped at G2: no rescue); Phases 61-63 skipped at G2, not failed
+Plan: 22 of 23 (22 waves)
+Status: Phase 64 next (Phase 60 stopped at G2: no rescue), once Phase 60 closes. Wave 22 (60-22) is the only plan left: the full tests, the evidence check, the re-scoring from the committed weights, `60-FINDINGS.md` and the requirement marks. The owner's go-ahead covers it.
+Last activity: 2026-10-23 — Waves 19, 20 and 21 (60-19, 60-20, 60-21) recorded branch not taken
+
+### Decisions from 60-19, 60-20 and 60-21 (2026-10-23)
+
+- All three queries printed BRANCH-NOT-TAKEN, re-run by the executor: `branch continue-gate` -> `BRANCH-NOT-TAKEN: continue-gate (no rescue)`; `branch ladder` -> `BRANCH-NOT-TAKEN: ladder (the ladder stopped at G2: no rescue)` for both 60-20 and 60-21. Nothing was launched, no R_ref was re-measured, no GATE-04 check ran, and the owner was not asked anything. Summaries `24716b7f`, `fb36ee4b` and `0c74ab68`. `verify_phase60_evidence.py g2 --require outcome,skip-records,stop-handoff` printed G2-OK before each.
+- The three plans ran in one executor session, a recorded deviation. Each SUMMARY has `status: complete`, `requirements-completed: []`, and `commits` and `plan_head_before` under `actuals`. The 60-19 SUMMARY states "about 16:04 CDT" and "about 6 min"; it was committed at 16:02:57 after a 15:58:19 start (about 4.6 minutes); it was not amended.
+- No `60-CHECKPOINT-4-RULING.md`, `evidence/continue/` or r2a, r2b, p1, p2b or c- arm exists.
 
 ### Decisions from 60-18 (2026-10-23)
 
