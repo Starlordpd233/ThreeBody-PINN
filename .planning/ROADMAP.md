@@ -297,7 +297,7 @@ Plans:
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
-- [ ] 60-15-PLAN.md — Wave 15: branch G2 fired, the four-setting sweep (FEAS-03)
+- [x] 60-15-PLAN.md — Wave 15: branch G2 fired, the four-setting sweep (FEAS-03)
 
 **Wave 16** *(blocked on Wave 15 completion)*
 
@@ -399,7 +399,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 59. Read-Only Baseline & Scorecard | 10/10 | Complete | 2026-10-17 |
-| 60. Single-System Learnability | 15/23 | In Progress | - |
+| 60. Single-System Learnability | 16/23 | In Progress | - |
 | 61. Conformance & Instrumentation | 0/TBD | Not started | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Not started | - |
 | 63. Corrected Control | 0/TBD | Not started | - |

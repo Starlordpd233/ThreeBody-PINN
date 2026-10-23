@@ -5,17 +5,17 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 60
 current_phase_name: Single-System Learnability
 status: executing
-stopped_at: "Phase 60 waves 1-14 complete 2026-10-22 (60-01 to 60-14 and 60-23 done, 15 of 23 plans); wave 15 (60-15) is running: Gate G2 fired, the sweep-1632 sequence launched 2026-10-22 12:01 CDT, Tasks 1-3 are done and Task 4 waits for the owner's finished"
-last_updated: "2026-10-22T17:10:00Z"
-last_activity: 2026-10-22
-last_activity_desc: Phase 60 wave 15 launched. Plan 60-15's pause and resume steps now use the scripts (c9f96a38). Task 1 printed BRANCH-TAKEN (sweep system 1632), SEQUENCE-NOT-LAUNCHED and ADMIT-OK for g2s-1632-w060, -w120, -w240 and -w480. The owner's go-ahead, "okay let's run that wave 15 now", was taken as Task 2's ready, with the 6 GiB waiver carried over. LAUNCHED sweep-1632 invocation-1 at 12:01:51 CDT (ARM-PID 50359, supervisor 50358); the power guard runs as pid 50836.
-state_head: b25c4b88
+stopped_at: "Phase 60 waves 1-15 complete 2026-10-23 (60-01 to 60-15 and 60-23 done, 16 of 23 plans); the Gate G2 sweep on system 1632 found no rescue (all four settings Tier 0), so the stop path follows; wave 16 (60-16) is next and waits for the owner"
+last_updated: "2026-10-23T14:55:00Z"
+last_activity: 2026-10-23
+last_activity_desc: Phase 60 wave 15 complete. The sweep-1632 sequence ended SEQUENCE-COMPLETE at 23:18 CDT on 2026-10-22 (four arms, 11.27 h, no pause). All four settings (first_omega_0 60, 120, 240 and 480) ended at Tier 0 (E 1.1569, 1.1561, 1.1539 and 1.1575), and sweep-curve.json records no_rescue. The owner's "should be done now?" was taken as Task 4's finished. A crash in the verifier's sweep-curve check was fixed (e3841c73). Records 003009a3, curve e091916a, summary 42289790.
+state_head: 42289790
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 33
-  completed_plans: 25
-  percent: 76
+  completed_plans: 26
+  percent: 79
 ---
 
 # Project State
@@ -25,37 +25,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-14 complete; Gate G2 fired, so wave 15, the four-setting sweep on system 1632, runs detached since 2026-10-22 12:01 CDT)
+**Current focus:** Phase 60 — Single-System Learnability executing (waves 1-15 complete; Gate G2 fired and the four-setting sweep on system 1632 found no rescue, so the stop path follows; wave 16 waits for the owner)
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-14 complete; Gate G2 fired; wave 15, the sweep, is running detached)
-Plan: 15 of 23 (22 waves)
-Status: Executing — 60-15 Tasks 1-3 done; Task 4 waits for the sweep to end and the owner's "finished"
-Last activity: 2026-10-22 — Wave 15 (60-15) launched the sweep on system 1632 at 12:01 CDT
+Phase: 60 (Single-System Learnability) — EXECUTING (waves 1-15 complete; Gate G2 fired; the sweep found no rescue)
+Plan: 16 of 23 (22 waves)
+Status: Ready to execute — wave 16 (60-16) waits for the owner's go-ahead
+Last activity: 2026-10-23 — Wave 15 (60-15) complete: the sweep recorded no_rescue, and the verifier's sweep-curve check was fixed
 
-### Wave 15 in progress (60-15, 2026-10-22)
+### Decisions from 60-15 (2026-10-23)
 
-- The sweep-1632 sequence runs detached, one arm at a time, in grid order: g2s-1632-w060, -w120, -w240 and -w480 (first_omega_0 60, 120, 240 and 480; the locked value is 30). All four run even after a success. The plan estimates about 15 hours, up to about 30. At r1-1632's pace (2.57 h per arm) that is about 10.3 hours if no arm doubles (around 22:20 CDT) and about 20.6 hours if every arm doubles (around 08:40 CDT on Friday 2026-10-23).
-- Before the launch, plan 60-15's Task 2, Task 4 wait stop and Task 4 resume were pointed at the scripts, and Task 3 now starts the power guard (`c9f96a38`, mirroring `768ade36`).
-- Task 1 (HEAD `c9f96a38`, all times CDT):
-  - 11:59:53 `BRANCH-TAKEN: sweep (g2 fired; sweep system 1632)`; 12:00:04 `SEQUENCE-NOT-LAUNCHED`; 12:00:05 dry run `ADMIT-OK` for g2s-1632-w060, -w120, -w240 and -w480.
-  - No competing jobs. AC power at 100%.
-  - Advisory memory was 5.345 GiB (12:00:30) and 5.287 GiB (12:01:35), with 5.16 GB of 6 GB swap in use. Chrome was open but light (its renderer at about 10% of one core).
-- Task 2: the owner's go-ahead, verbatim (about 11:52 CDT): "okay let's run that wave 15 now".
-  - It answered the orchestrator's wave-14 report, which gave Task 2's presentation (the G2 tiers, the four settings on 1632, the duration and pause/guard/resume) and asked whether the 2026-10-21 6 GiB waiver also covers this run.
-  - It was taken as "ready" and as carrying the waiver over.
-  - Task 1's memory number was not in that presentation, a presentation-order deviation for the SUMMARY.
-- Task 3: `LAUNCHED sweep-1632 invocation-1` at 12:01:51 CDT (17:01:51Z).
-  - `--status` at 12:01:57 printed `SEQUENCE-RUNNING` and `ARM-PID 50359`; the supervisor is pid 50358 and caffeinate pid 50360.
-  - The power guard started at 12:02:10 as pid 50836.
-  - The sealed protocol files are clean in git, and launch.json names git_head `c9f96a38` with a fresh launch.
-  - The orchestrator re-checked the supervisor, the arm, caffeinate and the guard from its own shell at 12:04:22; all were alive, on AC power.
-- Task 4 (later session): no 60-15-SUMMARY.md exists by design, and these lines are the Task 1-3 record the SUMMARY will carry. When the owner says "finished", continue plan 60-15 at Task 4 with a continuation executor. Do not re-run Task 1. Start with a read-only `launch_phase60_arm.py --sequence sweep-1632 --status`.
-  - Codes 129, 130 or 143: run `scripts/phase60-resume.sh sweep-1632` (on AC), record its LAUNCHED line and wait again.
-  - Any other stop: relaunch nothing, record the owner stop and report it.
-  - SEQUENCE-COMPLETE: verify and commit the four records first, then write and commit `sweep-curve.json`. The owned paths are exactly the four `evidence/arms/g2s-1632-*` directories, `evidence/g2/sweep-curve.json` and the SUMMARY. Create the plan commit ledger just before the first evidence commit.
-- When the owner says "pause" (before unplugging), run `scripts/phase60-pause.sh` and wait for its result: 0 means safe to unplug, 1 means the owner must look, and 3 means still stopping, so run it again. Never signal an arm by hand. Until the sequence ends, do not edit the 33 pinned files or the protocol, and do not run long test suites.
+- The sweep ran each setting once on system 1632 (g2s-1632-w060, -w120, -w240 and -w480; first_omega_0 60, 120, 240 and 480), seed 42 and MPS float32, in grid order, in one invocation with no pause, stop or resume. It launched at 12:01:51 CDT on 2026-10-22 and ended at 23:18:16 CDT, 11.27 hours in all. The power guard never paused it and exited on its own at 23:28:33. The owner's replies are in the SUMMARY verbatim: "okay let's run that wave 15 now" (taken as "ready", with the 2026-10-21 6 GiB waiver carried over) and "should be done now?" (taken as "finished": the orchestrator had said that asking "done?" starts the check-and-record step).
+- All four settings ended at Tier 0, with valid horizon 0.0 at both 1% and 10%. None was extended, and Adam was the better state on each.
+  - w060: E 1.1569, 2.730 h.
+  - w120: E 1.1561, 2.903 h.
+  - w240: E 1.1539, 3.046 h.
+  - w480: E 1.1575, 2.591 h.
+  - r1-1632 at the locked 30 ended at E 1.1574, so the setting did not move the error. Records and weights: commit `003009a3`.
+- `evidence/g2/sweep-curve.json` (SHA-256 `946c0bb9a658f287f074c8768c4cd4a54333df9c7303445fd5d64a5a347706bc`) records `no_rescue`: all four rows are "below Tier 1", and the confirmation arm and the confirmed setting are null. So there is no confirmation run on system 851 and no rescue, and the plan's stop path follows. It was written once, after the records were committed. Commit `e091916a`; summary `42289790`.
+- Verifier fix (Rule 1, `e3841c73`): `verify_phase60_evidence.py g2 --require outcome,sweep-curve` crashed on its first real curve, because the sweep-curve check called `confirmed_omega` without the scorecard and with tuples in place of row mappings. It now mirrors `learnability_g2._build_sweep_curve`. Three regression tests cover no rescue, a mismatch negative control and a Tier-1 case; the 175 tests of `test_verifier_phase60` and `test_g2` pass, and PROTOCOL-OK holds. The verifier is not one of the 33 pinned files, and the protocol does not seal it. Its rescue, skip-records and stop-handoff checks have still not run on real artifacts; 60-18's stop path will be the first to use skip-records and stop-handoff.
+- Timing: each arm took 2.59-3.05 hours, against the plan's about 3.75. Each budget is sized to the 3-hour cap by the arm's own timing run, and sustained Adam ran between 1.4% slower and 13.8% faster than that run.
+- NEXT, by the plans' branch rules (the `learnability_g2 branch` queries decide): 60-16 (confirmation), 60-17 (owner decision), 60-19 (continue gate), 60-20 (Rung 2) and 60-21 (probes) should each print BRANCH-NOT-TAKEN and commit a "branch not taken" SUMMARY. 60-18 (stop) should print BRANCH-TAKEN with the reason "no rescue", write the skip records and the stop handoff, and mark Phases 61-63 as skipped at G2. 60-22 closes the phase (end-to-end verification, re-scoring from the committed weights, `60-FINDINGS.md`). None of them trains. The owner paces the waves.
+- Wave 15 close: `execute:wave:post` ran `verify.schema-drift` and `ui.safety-gate`, and neither blocked. The non-blocking `verify.codebase-drift` advisory again reports 210 pre-existing structural elements since the last codebase map.
 
 ### Decisions from 60-14 (2026-10-22)
 
@@ -71,7 +63,7 @@ Last activity: 2026-10-22 — Wave 15 (60-15) launched the sweep on system 1632 
   - uncovered system 4658.
   - `evidence/g2/g2-outcome.json` (SHA-256 `3e71568fe6d243f16dc930c7b8d49d028967b625e134cf5ba52d4c48b579c529`) was written once, after the records were committed. Commit `ee739e64`; summary `b25c4b88`. A G2 fire is a recorded branch, not an owner checkpoint by itself.
 - Timing against the plan: polish stopped after about 4.5 s per arm on its five-calls-without-improvement rule, not up to 45 minutes. Sustained Adam ran 5-14% faster than each timing run, so each budget finished under 3 hours. Expect about 2.6 hours per data-only arm on system 1632, plus 2.6 more for each arm that earns its doubling.
-- FOR PLAN 60-15 (done at its launch; see "Wave 15 in progress" above): Task 1 printed BRANCH-TAKEN and admitted the four sweep arms; the owner was asked again about the 6 GiB figure and gave the go-ahead; the plan's pause and resume steps now use the scripts (`c9f96a38`).
+- FOR PLAN 60-15 (done; see "Decisions from 60-15" above): Task 1 printed BRANCH-TAKEN and admitted the four sweep arms; the owner was asked again about the 6 GiB figure and gave the go-ahead; the plan's pause and resume steps now use the scripts (`c9f96a38`).
 - Wave 14 close: `execute:wave:post` ran `verify.schema-drift` and `ui.safety-gate`, and neither blocked. The non-blocking `verify.codebase-drift` advisory reports 210 structural elements since the last codebase map (pre-existing `configs/`, `runs/` and root files, none from this wave); `/gsd-map-codebase` would refresh it.
 
 ### Decisions from 60-13 (2026-10-21)
