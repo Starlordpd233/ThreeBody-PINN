@@ -5,11 +5,11 @@ milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 64
 current_phase_name: Feasibility Verdict
 status: planning
-stopped_at: "Phase 60 closed 2026-10-23 (verification passed, 5/5 success criteria; the ladder stopped at Gate G2 with no rescue); Phases 61-63 skipped at G2, not failed; Phase 64 (Feasibility Verdict) not yet planned"
-last_updated: "2026-10-23T23:05:00Z"
-last_activity: 2026-10-23
-last_activity_desc: Phase 60 verified and closed. An independent gsd-verifier pass (60-VERIFICATION.md) found all five success criteria met on the stop-at-G2 path and no gaps. The closeout (60-22) re-scored all seven arms from their committed weights (RESCORE-OK) after a first-use fix to the verifier (2ca6a821), ran 992 tests OK, and wrote 60-FINDINGS.md. The verifier also found that every trained network is a time-constant predictor; Phase 64 should state that beside the RETHINK-REPRESENTATION label. GAP-59-08 stays open for the owner.
-state_head: 93cb1bcf
+stopped_at: "Phase 64 context gathered 2026-10-25 (64-CONTEXT.md, d3fb9816); not yet planned. Phase 60 closed 2026-10-23 at Gate G2 with no rescue; Phases 61-63 skipped at G2, not failed"
+last_updated: "2026-10-25T16:40:00Z"
+last_activity: 2026-10-25
+last_activity_desc: Phase 64 discussed (all four areas) and its context captured. The verdict states the frozen RETHINK-REPRESENTATION output exactly, with the time-constant-predictor evidence beside it; costs are measured hours on this Mac plus a labelled for-scale figure; the charter is pre-filled for checkpoint one with the owner's purpose recorded verbatim (learning plus a proof of concept). The rented-GPU wording in ROADMAP criterion 3, FEAS-06 and FEAS-10 contradicted the owner's standing Mac-only rule and was removed (bb323a52).
+state_head: d3fb9816
 progress:
   total_phases: 6
   completed_phases: 2
@@ -25,14 +25,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 64 — Feasibility Verdict, not yet planned. Phase 60 is closed (verified; the ladder stopped at Gate G2 with no rescue) and Phases 61-63 are skipped at G2. Phase 64 reads `evidence/g2/stop-handoff.json` and should state the time-constant-predictor observation (see "Decisions from the Phase 60 verification") beside the RETHINK-REPRESENTATION label.
+**Current focus:** Phase 64 — Feasibility Verdict, context gathered 2026-10-25 (`64-CONTEXT.md`), ready to plan. Phase 60 is closed (verified; the ladder stopped at Gate G2 with no rescue) and Phases 61-63 are skipped at G2. Phase 64 reads `evidence/g2/stop-handoff.json`; all computation is on this Mac.
 
 ## Current Position
 
-Phase: 60 (Single-System Learnability) — CLOSED (verified 2026-10-23; all 23 plans in 22 waves; Gate G2 fired and the sweep found no rescue, so the ladder stopped at G2). Phase 64 next, not yet planned; Phases 61-63 skipped at G2, not failed
-Plan: 23 of 23 (22 waves)
-Status: Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`). Phase 64, the feasibility verdict, is next and has not been planned; it reads `evidence/g2/stop-handoff.json`.
-Last activity: 2026-10-23 — Phase 60 verified (gsd-verifier, independent pass) and closed
+Phase: 64 (Feasibility Verdict) — context gathered 2026-10-25; not yet planned. Phase 60 closed and verified 2026-10-23 (Gate G2 fired and the sweep found no rescue); Phases 61-63 skipped at G2, not failed
+Plan: not yet planned (Phase 60 ran 23 of 23 plans in 22 waves)
+Status: Phase 64 context gathered (`64-CONTEXT.md`, `d3fb9816`); next is /gsd-plan-phase 64. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`).
+Last activity: 2026-10-25 — Phase 64 discussed and its context captured
+
+### Decisions from the Phase 64 discussion (2026-10-25)
+
+- The owner discussed all four areas. The decisions are in `64-CONTEXT.md` (D-01 to D-14, `d3fb9816`) and the alternatives in `64-DISCUSSION-LOG.md`.
+- Verdict: the frozen output RETHINK-REPRESENTATION is stated exactly, with the time-constant-predictor evidence side by side, and the label is not amended. Design and recipe fixes are listed unranked for trainex-r5. One figure shows system 1632's real orbit beside the prediction, from the committed weights.
+- The frozen rule records `representation_limit_qualifier: false` on the G2 path without evaluating it (`pinn/verification/feasibility_scorecard.py:735-752`). The verdict explains that `false` here means "not evaluated on this branch". On the committed numbers the amendment's qualifier condition holds anyway: Rung 1 is Tier 0 on all three systems and has a lower E than the formula only on 4658.
+- Cost: measured hours on this Mac plus a labelled for-scale figure, with no GPU figures or routes. The rented-GPU wording in ROADMAP criterion 3, FEAS-06 and FEAS-10 contradicted the owner's standing rule (`PROJECT.md` Constraints, and the trainex-r1 design of 2026-06-10) and was removed in `bb323a52`.
+- Charter: the purpose is recorded verbatim (learning plus a proof of concept: "it's just good to see some positive results coming out"). The draft is pre-filled with a recommended answer per item. Stage 0 gets a real bar and Stages 1-6 are open. GAP-59-08 is decided at checkpoint ① beside the pass bars.
+- Next milestone: v2.5, committed only to its name and its first phase, the trainex-r5 research round.
 
 ### Decisions from the Phase 60 verification (2026-10-23)
 
@@ -914,11 +923,11 @@ v2.0 CTL-PINN Training Viability Slice initialized 2026-07-06. Next: `/gsd-plan-
 
 ## Session Continuity
 
-**Resume file:** docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md (the v2.4 design: the learnability ladder, the feasibility scorecard draft, the phases and their gates, SCOPE-39..44; it builds on pinn_instruction/markdown_conversion/framework-specs/trainex-r4/trainex-r4-ruling.md, whose picks and control it keeps), read together with its 2026-10-11 amendment docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md, which governs where they differ
+**Resume file:** .planning/phases/64-feasibility-verdict/64-CONTEXT.md (the Phase 64 decisions; its canonical references include the v2.4 roadmap proposal `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4-roadmap-proposal.md` and its 2026-10-11 amendments)
 
-Last session: 2026-10-23
-Stopped at: Phase 60 closed and verified 2026-10-23 (stopped at Gate G2: no rescue; Phases 61-63 skipped). Phase 64 (Feasibility Verdict) is not yet planned.
-Next action: plan Phase 64 (/gsd-plan-phase 64 from .worktrees/trainex). Before it, the owner may want to read `.planning/phases/60-single-system-learnability/60-FINDINGS.md` and the observation in `60-VERIFICATION.md` ("Independent observation for Phase 64"). GAP-59-08 is still open for the owner.
+Last session: 2026-10-25
+Stopped at: Phase 64 context gathered 2026-10-25 (`64-CONTEXT.md`, `d3fb9816`). Not yet planned.
+Next action: plan Phase 64 (/gsd-plan-phase 64 from .worktrees/trainex), then show the owner the plan outline before executing. Checkpoint ① (the pre-filled charter, with GAP-59-08 beside the pass bars) comes near the end of execution and blocks the milestone close. All computation is on this Mac.
 
 ## Operator Next Steps
 
@@ -928,14 +937,16 @@ Next action: plan Phase 64 (/gsd-plan-phase 64 from .worktrees/trainex). Before 
 - ~~Plan Phase 59~~ — planned 2026-10-12 (10 plans, 5 waves; plan checker passed).
 - ~~Execute Phase 59~~ — done and verified 2026-10-17 (10/10 plans; `59-VERIFICATION.md` 6/6 success criteria; Gate G1 proceed). Owner page: `59-FINDINGS.md`.
 - ~~Plan Phase 60~~ — planned 2026-10-18 (23 plans, 22 waves; the third plan check found 0 blockers, and its 3 warnings were fixed in an owner-chosen targeted pass).
-- **Execute Phase 60** (`/gsd-execute-phase 60`): the learnability ladder on one Stage-0 system (Rung 1 on 1632, 851 and 4658; Gate G2; Rung 2; the two hard-stage probes). Expect owner stops before the protocol commit, before each multi-hour arm, and at checkpoint ④. Machine time for the arms is roughly 30 to 71 hours, one arm at a time.
+- ~~Execute Phase 60~~ — closed and verified 2026-10-23 (Gate G2 fired and the sweep found no rescue; Phases 61-63 skipped at G2; `60-FINDINGS.md`, `60-VERIFICATION.md`).
+- ~~Discuss Phase 64~~ — done 2026-10-25 (`64-CONTEXT.md`, `d3fb9816`).
+- **Plan and execute Phase 64** (`/gsd-plan-phase 64`, then `/gsd-execute-phase 64`): the verdict, the ladder placement, costs on this Mac, the next milestone, and the pre-filled charter for checkpoint ①. No training runs.
 - **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
   - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
   - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.
-  - **Scope.** It blocks any held-out spend, not v2.4.
+  - **Scope.** It blocks any held-out spend, not v2.4. Phase 64 puts it on checkpoint ① beside the pass bars (`64-CONTEXT.md` D-10).
 - **Owner decisions due at the verdict, no rush** (FEAS-10 charter):
-  - the project's purpose: a paper, a fast predictor, or learning;
-  - the budget, including whether rented GPU time is an option;
+  - ~~the project's purpose~~ — answered 2026-10-25: learning plus a proof of concept (verbatim in `64-CONTEXT.md` D-07);
+  - the budget: how many months of computing on this Mac (rented or cloud GPU time is not an option; standing owner rule, `PROJECT.md` Constraints);
   - the pass bar per stage;
   - approval to rewrite `PROJECT.md`'s "What This Is", which still describes the LLM project.
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
