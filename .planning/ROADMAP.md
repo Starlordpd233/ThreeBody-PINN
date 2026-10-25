@@ -384,7 +384,7 @@ Plans:
      - the best `ε_H` against the locked bar;
      - the result under the pre-registered rule.
   2. It places the project on the readiness ladder (levels 0–9) with the evidence for each level. It reads every result beside the comparison points, the accuracy curves, the survey and the hard-stage probes.
-  3. It states the machine hours spent, and the estimated cost to the next level and to the finish, on this Mac and on a rented GPU, with every assumption stated.
+  3. It states the machine hours spent, and the estimated cost to the next level and to the finish, on this Mac, with every assumption stated. All computation runs on this Mac; no rented or cloud GPU route is costed or proposed (standing owner rule, `PROJECT.md` Constraints; reaffirmed 2026-10-25).
   4. It names the next milestone the result routes to.
   5. The one-page charter is drafted:
      - purpose and definition of done;

@@ -365,7 +365,7 @@ Source: `docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-09-v2.4
 
 ## Constraints
 
-- **Hardware**: Apple M5 Pro (24 GB unified memory, 15-core: 5P+10E), single-machine training — verified 2026-07 (R-3 CLOSED); no cloud/distributed. (Earlier M2 constraint superseded.)
+- **Hardware**: Apple M5 Pro (24 GB unified memory, 15-core: 5P+10E), single-machine training — verified 2026-07 (R-3 CLOSED); no cloud/distributed. (Earlier M2 constraint superseded.) Reaffirmed by the owner 2026-10-25: all training and computation run on this Mac, and plans do not cost, propose or ask about rented or cloud GPU routes.
 - **Model**: Qwen 3.5 2B 4-bit — chosen for local training feasibility on M2
 - **Data format**: Brutus outputs are high-precision text files, not natively LLM-friendly
 - **Dependencies**: No `requirements.txt` exists — environment management needed

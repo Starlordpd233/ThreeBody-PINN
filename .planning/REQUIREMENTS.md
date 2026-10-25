@@ -151,7 +151,7 @@ at any rung shows which part is the bottleneck.
   - the readiness level reached (the amendment's ladder, levels 0–9), with the evidence for each level;
   - each rung beside the comparison points: the formula, the nearest-neighbour copy, and the published results (arXiv:1910.07291, arXiv:2607.23501);
   - the accuracy curves, the survey's findings (FEAS-08) and the hard-stage probes (FEAS-09);
-  - the cost: the machine hours spent, and the estimated cost to the next level and to the finish, on this Mac and on a rented GPU, with every assumption stated.
+  - the cost: the machine hours spent, and the estimated cost to the next level and to the finish, on this Mac, with every assumption stated. All computation runs on this Mac; no rented or cloud GPU route is costed or proposed (standing owner rule, `PROJECT.md` Constraints; reaffirmed 2026-10-25).
 
   It is presented at owner checkpoint ①, together with the FEAS-10 charter.
 
@@ -201,7 +201,7 @@ at any rung shows which part is the bottleneck.
     - each has a position criterion and an energy criterion, never energy alone;
     - each is set from the purpose and the comparison points, and fixed before any held-out exam;
     - the `10⁻⁵` bar is retained or replaced by formal amendment;
-  - **the budget:** how many months, and whether rented GPU time is an option;
+  - **the budget:** how many months of computing on this Mac. Rented or cloud GPU time is not an option (standing owner rule, `PROJECT.md` Constraints; reaffirmed 2026-10-25);
   - **a stop rule.** The draft: a milestone that neither climbs a ladder level nor beats the best fixed-scorecard result means stop or change approach, with no third attempt at the same idea.
 
   It also records that `ctl_instruction.md`'s evaluation section describes results that do not exist (`:2057`, `:2081`, `:2111`), and routes its rewrite to the milestone that sets the bars.
