@@ -35,12 +35,12 @@ Out of scope:
   - The headline states the frozen rule's output exactly as pre-registered: RETHINK-REPRESENTATION, for "G2 fired and the sweep rescued nothing".
   - Directly beside it, a plain box states what the evidence shows. Source: `60-VERIFICATION.md`, "Independent observation for Phase 64".
     - Every trained network learned only each body's average position, so it is a time-constant predictor.
-    - Its accuracy curves stayed flat.
+    - Its accuracy curves levelled off early. `E` fell 25–50-fold in the first ~5% of training, then settled at 1.14–1.24, about 11–12 times the Tier-1 limit (`64-RESEARCH.md`, finding 7). Do not call them "flat".
     - The sweep varied only `first_omega_0`.
     - So the records cannot yet tell a design limit from a limit of the fixed training recipe.
   - Nothing pre-registered changes and the label is not amended. Amending it after seeing the result would need a formal amendment with the owner's sign-off (SCOPE-42, SCOPE-43). The owner chose "Side by side".
 - **D-02: Explain the qualifier field plainly.** This item comes from the agent reading the code. It is not an owner choice.
-  - `stop-handoff.json` records `representation_limit_qualifier: false`. `decision_verdict` returns `false` on the G2 path without evaluating the qualifier, and it refuses a Rung 1 comparison input on that path (`pinn/verification/feasibility_scorecard.py:735-752`).
+  - `stop-handoff.json` records `representation_limit_qualifier: false`. `decision_verdict` returns `false` on the G2 path without evaluating the qualifier, and it refuses a Rung 1 comparison input on that path (`pinn/verification/feasibility_scorecard.py:734-752`).
   - The amendment's text applies the qualifier "whatever the branch" (`docs/work/designs/cross_cutting/v2.4-milestone-proposal/2026-10-11-v2.4-feasibility-amendments.md:187-189`).
   - The two do not conflict in substance. On this branch the label already names the representation as the limit. On the committed numbers the qualifier's condition also holds: Rung 1 is Tier 0 on all three systems, and its E is lower than the formula's only on 4658.
   - The verdict reports the field exactly as recorded. It adds one plain sentence: here `false` means "not evaluated on this branch", not "the condition failed". The verdict does not recompute or change the field.
@@ -60,7 +60,7 @@ Out of scope:
   - a costed first step for v2.5;
   - a clearly labelled for-scale figure for the finish, from published step counts (amendments doc `:227-230`: generation 7 at 12.3 s per step × about 200,000 Adam steps ≈ a month of nonstop computing).
 
-  Every assumption is stated. "Hours to the next level" is not projected from the flat curves.
+  Every assumption is stated. "Hours to the next level" is not projected, because the curves levelled off far above Tier 1.
 - **D-06: This Mac only.** All computation runs on the owner's Mac (Apple M5 Pro, 24 GB). This is a standing owner rule (`.planning/PROJECT.md` Constraints; trainex-r1 design, 2026-06-10). The owner restated it twice in this discussion.
   - The verdict, the charter and the next-milestone proposal contain no GPU figures, prices, speed-up assumptions, tripwires or GPU-dependent routes.
   - The amendments doc's rented-GPU clause (`:222-225`) is superseded. ROADMAP criterion 3, FEAS-06 and the FEAS-10 budget item were corrected in `bb323a52`.
@@ -88,9 +88,16 @@ Out of scope:
   - Any proposed energy bar is written as conditional on the owner's answer.
 - **D-11: Budget.** The budget is how many months of computing on this Mac. The draft offers options and a recommendation. It states the measured per-experiment cost from D-05 so the owner can size it.
 - **D-12: Stop rule.** FEAS-10's draft text is the recommended default: "a milestone that neither climbs a ladder level nor beats the best fixed-scorecard result means stop or change approach, with no third attempt at the same idea."
+  - Today's best result is effectively a constant predictor, so "beats" needs a stated margin.
+  - The draft proposes one as the default, and the owner decides (`64-RESEARCH.md`, Open Question 2).
 - **D-13: Routed items the charter records.**
   - `ctl_instruction.md`'s evaluation section (`:2057`, `:2081`, `:2111`) describes results that do not exist. Its rewrite is routed to the milestone that sets the bars.
   - `PROJECT.md`'s "What This Is" and Core Value still describe the LLM project. A rewrite matching the charter is drafted and applied only on the owner's approval at checkpoint ①.
+    - The title line and the Model constraint also still describe the LLM project.
+    - One extra pre-filled line offers to rewrite those too (`64-RESEARCH.md`, Open Question 3).
+  - GAP-64-01 (`64-GAPS.md`) asks how the 12 requirements of Phases 61–63 are labelled at close, and whether they carry forward to v2.5.
+    - It appears as one pre-filled line, with option A as the default.
+    - The close task applies it only as the owner approves.
 
 ### Next milestone
 - **D-14: v2.5, committed only to its name and first phase.**
@@ -147,7 +154,7 @@ Out of scope:
 - `.planning/phases/59-read-only-baseline-scorecard/evidence/verify_phase59_evidence.py`.
 
 ### Frozen code (read only)
-- `pinn/verification/feasibility_scorecard.py`: `decision_verdict` (`:718-776`); the G2 path is at `:735-752`.
+- `pinn/verification/feasibility_scorecard.py`: `decision_verdict` (`:718-776`); the G2 path is at `:734-752`.
 - `pinn/verification/feasibility_scorer.py`.
 
 ### Spec section the charter routes

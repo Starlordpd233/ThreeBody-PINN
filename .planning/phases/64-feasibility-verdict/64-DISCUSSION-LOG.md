@@ -47,6 +47,7 @@
 | No figure | Numbers and tables only, as in the Phase 59 and 60 findings. | |
 
 **User's choice:** Side by side; Design and recipe; Yes, one figure. Then "Next area".
+**Correction (2026-10-25, from `64-RESEARCH.md` finding 7):** the curves were not flat, as this question and the cost question said. `E` fell 25–50-fold in the first ~5% of training, then levelled off at 1.14–1.24, about 11–12 times the Tier-1 limit. The owner's choices are unaffected. CONTEXT D-01 and D-05 carry the corrected wording.
 **Notes:** While writing CONTEXT.md, the agent checked the code. The frozen rule records `representation_limit_qualifier: false` on the G2 path without evaluating it (`feasibility_scorecard.py:735-752`). CONTEXT D-02 records how the verdict explains this.
 
 ---
