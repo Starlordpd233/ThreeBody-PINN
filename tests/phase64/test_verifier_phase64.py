@@ -2030,5 +2030,181 @@ class StaticGuardTests(unittest.TestCase):
                 )
 
 
+VERDICT_REL = f"{PHASE}/64-VERDICT.md"
+# The verdict and the three files `rules` hashes or scans beside it.
+VERDICT_FIXTURE_RELS = (
+    VERDICT_REL,
+    f"{EVIDENCE}/numbers.json",
+    f"{EVIDENCE}/figure-1632.svg",
+    f"{EVIDENCE}/figure-1632.provenance.json",
+)
+
+
+class VerdictCase(unittest.TestCase):
+    """Shared fixture: byte copies of the verdict and the files ``rules`` reads.
+
+    The real verdict is proven first (``RulesVerdictTests``), then every negative
+    control mutates a byte copy in a temporary repository whose ``REPO_ROOT`` is
+    patched. ``numbers`` is exercised with ``verdict_text`` patched instead: its
+    manifest check re-reads the committed citations through git, which a
+    temporary copy would (correctly) fail.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+        cls.verdict = (ROOT / VERDICT_REL).read_text(encoding="utf-8")
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.root = Path(self.temp_dir.name)
+        for relative in VERDICT_FIXTURE_RELS:
+            copy_bytes(self.root, relative)
+
+    def run_rules(self, text: str) -> tuple[int, str, str]:
+        (self.root / VERDICT_REL).write_text(text, encoding="utf-8")
+        with mock.patch.object(self.module, "REPO_ROOT", self.root):
+            return run_main(self.module, ["rules"])
+
+    def assert_rules_rejected(self, text: str, needle: str) -> str:
+        code, _stdout, stderr = self.run_rules(text)
+        self.assertEqual(code, 1, f"the mutated verdict passed: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+
+class RulesVerdictTests(VerdictCase):
+    """The tracer gate: the real headline passes, and every wording control fails."""
+
+    def test_real_verdict_prints_rules_ok(self):
+        code, out, err = run_main(self.module, ["rules"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["RULES-OK"])
+        self.assertNotIn("FAIL-CLOSED", err)
+
+    def test_module_constants(self):
+        self.assertEqual(len(self.module.EXPECTED_VERDICT_HEADINGS), 15)
+        self.assertEqual(len(self.module.VERDICT_FRONT_MATTER_KEYS), 16)
+        self.assertEqual(
+            self.module.EXPECTED_VERDICT_HEADINGS[0], "## In plain language"
+        )
+        self.assertEqual(
+            self.module.AUDIENCE_LINE,
+            "**Audience:** the project owner, a first-year student; "
+            "no specialist background assumed.",
+        )
+        self.assertIn("rules", self.module.COMMANDS)
+        self.assertEqual(self.module.build_parser().parse_args(["rules"]).command, "rules")
+
+    def test_changed_label_fails(self):
+        mutated = self.verdict.replace(
+            "RETHINK-REPRESENTATION", "RETHINK-REPRESENTATION-OR-RECIPE"
+        )
+        self.assert_rules_rejected(mutated, "RETHINK-REPRESENTATION")
+
+    def test_first_heading_changed_fails(self):
+        mutated = replace_once(
+            self.verdict, "## In plain language", "## The headline"
+        )
+        self.assert_rules_rejected(mutated, "heading")
+
+    def test_audience_line_removed_fails(self):
+        mutated = self.verdict.replace(self.module.AUDIENCE_LINE + "\n\n", "")
+        self.assert_rules_rejected(mutated, "Audience")
+
+    def test_d02_phrase_removed_fails(self):
+        mutated = self.verdict.replace(
+            "not evaluated on this branch", "not evaluated here"
+        )
+        self.assert_rules_rejected(mutated, "not evaluated on this branch")
+
+    def test_box_column_header_renamed_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "What the pre-registered rule says",
+            "What the rule says",
+        )
+        self.assert_rules_rejected(mutated, "What the pre-registered rule says")
+
+    def test_guarded_wording_outside_a_fence_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "## The result under the pre-registered rule",
+            "rented GPU time\n\n## The result under the pre-registered rule",
+        )
+        self.assert_rules_rejected(mutated, "guarded wording")
+
+    def test_guarded_wording_inside_an_owner_quote_passes(self):
+        mutated = replace_once(
+            self.verdict,
+            "## The result under the pre-registered rule",
+            "```owner-quote\nrented GPU time\n```\n\n"
+            "## The result under the pre-registered rule",
+        )
+        code, out, err = self.run_rules(mutated)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["RULES-OK"])
+
+    def test_dollar_digit_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "## The result under the pre-registered rule",
+            "It costs $10 per hour.\n\n## The result under the pre-registered rule",
+        )
+        self.assert_rules_rejected(mutated, "guarded wording")
+
+    def test_banned_adjective_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "## The result under the pre-registered rule",
+            "The curves were flat.\n\n## The result under the pre-registered rule",
+        )
+        self.assert_rules_rejected(mutated, "banned adjective")
+
+    def test_proposal_gloss_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "## The result under the pre-registered rule",
+            "no change to the training recipe can fix it\n\n"
+            "## The result under the pre-registered rule",
+        )
+        self.assert_rules_rejected(mutated, "gloss")
+
+    def test_home_directory_string_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "## The result under the pre-registered rule",
+            f"{Path.home()}\n\n## The result under the pre-registered rule",
+        )
+        self.assert_rules_rejected(mutated, "home prefix")
+
+    def test_status_final_fails(self):
+        mutated = replace_once(
+            self.verdict, "status: awaiting-owner", "status: final"
+        )
+        self.assert_rules_rejected(mutated, "status")
+
+    def test_changed_handoff_digest_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "handoff_sha256: "
+            "7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5",
+            "handoff_sha256: " + "0" * 64,
+        )
+        self.assert_rules_rejected(mutated, "handoff_sha256")
+
+    def test_headings_out_of_order_fail(self):
+        mutated = self.verdict.replace(
+            "## In plain language", "## __SWAP__"
+        ).replace(
+            "## The result under the pre-registered rule", "## In plain language"
+        ).replace(
+            "## __SWAP__", "## The result under the pre-registered rule"
+        )
+        self.assert_rules_rejected(mutated, "heading")
+
+
 if __name__ == "__main__":
     unittest.main()

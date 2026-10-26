@@ -127,6 +127,106 @@ FIGURE_INPUTS = (
 )
 FIGURE_PRODUCERS = (FIGURE_PRODUCER_REL.as_posix(), PRODUCER_REL)
 
+# The verdict (64-04): a plain-language page with a fixed skeleton. The rules
+# mode checks the skeleton, the front-matter schema, the owner's wording rules
+# and (from Task 2) the evidence index; numbers gains a rendered-token check for
+# every entry the manifest marks verdict-required. The fence parser below is a
+# copy of pinn/verification/learnability_ruling.py:72-76 and :119-146 (that
+# module is pinned; the verifier never imports its private functions).
+VERDICT_REL = PHASE_REL / "64-VERDICT.md"
+VERDICT_SCHEMA = "phase64-verdict/v1"
+EXPECTED_VERDICT_HEADINGS = (
+    "## In plain language",
+    "## The result under the pre-registered rule",
+    "## What each rung reached, and where along the window it broke",
+    "## The best ε_H against the locked bar",
+    "## Why every network scored like a constant: the time-constant evidence",
+    "## Accuracy curves",
+    "## Comparison points",
+    "## The survey and the hard-stage probes",
+    "## Readiness ladder",
+    "## Cost on this Mac",
+    "## Candidate fixes for the next milestone (unranked)",
+    "## The next milestone",
+    "## Your decision (owner checkpoint ①)",
+    "## Owner sign-off",
+    "## Evidence index",
+)
+VERDICT_FRONT_MATTER_KEYS = (
+    "schema_version",
+    "status",
+    "gate",
+    "evaluation",
+    "verdict",
+    "representation_limit_qualifier",
+    "owner_decision",
+    "owner_decision_date",
+    "agent_recommendation",
+    "handoff_citation",
+    "handoff_sha256",
+    "numbers_sha256",
+    "figure_sha256",
+    "charter_citation",
+    "ruling_citation",
+    "ruling_sha256",
+)
+VERDICT_STATUSES = ("awaiting-owner", "owner-signed")
+VERDICT_OWNER_DECISIONS = ("pending", "continue", "change-course", "stop")
+VERDICT_RECOMMENDATIONS = ("continue", "change-course", "stop")
+AUDIENCE_LINE = (
+    "**Audience:** the project owner, a first-year student; "
+    "no specialist background assumed."
+)
+COST_SECTION_HEADING = "## Cost on this Mac"
+COST_TO_NEXT_LEVEL_HEADING = "### Cost to the next level"
+NEXT_MILESTONE_HEADING = "## The next milestone"
+D03_HEADING = "## Candidate fixes for the next milestone (unranked)"
+D03_CANDIDATES = (
+    "time-windowed networks",
+    "a different output frame",
+    "new input features or architecture",
+    "a shorter window",
+    "learning rate",
+    "optimizer",
+    "schedule",
+    "network depth",
+)
+REQUIRED_VERDICT_PHRASES = (
+    "RETHINK-REPRESENTATION",
+    "G2 fired and the sweep rescued nothing",
+    "What the pre-registered rule says",
+    "What the evidence shows",
+    "levelled off",
+    "first_omega_0",
+    "the only setting chosen",
+    "representation_limit_qualifier",
+    "not evaluated on this branch",
+    "1 of 3",
+)
+BANNED_WORDING = (
+    (re.compile(r"\bflat(?:ly|ness)?\b", re.IGNORECASE), "the banned adjective"),
+    (
+        re.compile(r"no change to the training recipe can fix it", re.IGNORECASE),
+        "the proposal's gloss",
+    ),
+)
+# 64-RESEARCH Code Example 6, copied verbatim: no rented or cloud wording, no
+# dollar-digit figure, and no GPU cost or speed-up claim outside owner quotes.
+FORBID = re.compile(
+    r"\b(rent(?:ed|ing|al|s)?|cloud|A100|H100|RTX|4090|Colab|AWS|Azure|GCP|"
+    r"RunPod|Lambda Labs|vast\.ai)\b|\$\s?\d",
+    re.IGNORECASE,
+)
+GPU_WORD = re.compile(r"\bGPU\b", re.IGNORECASE)
+GPU_WITH = re.compile(
+    r"\b(buy|bought|purchase|price|pricing|speed-?up|tripwire|hourly|per hour)\b",
+    re.IGNORECASE,
+)
+# Markdown line endings only: str.splitlines would also split on U+2028 and others.
+_LINE_BREAK = re.compile(r"\r\n|\n|\r")
+_FENCE_OPEN = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})[ \t]*(?P<info>.*?)[ \t]*$")
+_FENCE_CLOSE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})[ \t]*$")
+
 
 # The frozen check: the phase base every frozen byte must predate, the eight
 # sealed files named here, the 33 pinned modules read from run-protocol.json at
@@ -2817,6 +2917,272 @@ def cmd_figure(_args: argparse.Namespace) -> None:
     print("FIGURE-OK")
 
 
+def _fenced_blocks(text: str) -> list[tuple[str, list[str]]]:
+    """``[(info string, content lines)]`` for every fenced block of ``text``, Markdown-style.
+
+    Copied from ``pinn/verification/learnability_ruling.py:119-146`` (pinned
+    module, never imported). The closing fence must use the same character and
+    be at least as long as the opening fence.
+    """
+    lines = _LINE_BREAK.split(text)
+    blocks = []
+    index = 0
+    while index < len(lines):
+        opening = _FENCE_OPEN.match(lines[index])
+        if opening is None or (opening["fence"][0] == "`" and "`" in opening["info"]):
+            index += 1
+            continue
+        fence, info = opening["fence"], opening["info"]
+        content = []
+        index += 1
+        while True:
+            if index >= len(lines):
+                fail("a fenced block in the verdict is never closed")
+            closing = _FENCE_CLOSE.match(lines[index])
+            if (
+                closing is not None
+                and closing["fence"][0] == fence[0]
+                and len(closing["fence"]) >= len(fence)
+            ):
+                break
+            content.append(lines[index])
+            index += 1
+        blocks.append((info, content))
+        index += 1
+    return blocks
+
+
+def strip_owner_quotes(text: str) -> str:
+    """Blank every fenced block whose info string is ``owner-quote``.
+
+    The owner's words are allowed to name things the project itself may not
+    propose; everything outside those fences is scanned. A block whose info
+    string names anything else is left untouched.
+    """
+    lines = _LINE_BREAK.split(text)
+    kept: list[str] = []
+    index = 0
+    while index < len(lines):
+        opening = _FENCE_OPEN.match(lines[index])
+        if opening is None or (opening["fence"][0] == "`" and "`" in opening["info"]):
+            kept.append(lines[index])
+            index += 1
+            continue
+        fence, info = opening["fence"], opening["info"]
+        block = [lines[index]]
+        index += 1
+        while True:
+            if index >= len(lines):
+                fail("a fenced block in the verdict is never closed")
+            block.append(lines[index])
+            closing = _FENCE_CLOSE.match(lines[index])
+            if (
+                closing is not None
+                and closing["fence"][0] == fence[0]
+                and len(closing["fence"]) >= len(fence)
+            ):
+                break
+            index += 1
+        if info.strip() == "owner-quote":
+            kept.extend([""] * len(block))
+        else:
+            kept.extend(block)
+        index += 1
+    return "\n".join(kept)
+
+
+def guard_violations(text: str) -> list[tuple[int, str]]:
+    """``[(line number, line)]`` for every line carrying guarded Mac-cost wording."""
+    violations: list[tuple[int, str]] = []
+    for number, line in enumerate(_LINE_BREAK.split(text), 1):
+        if FORBID.search(line) or (GPU_WORD.search(line) and GPU_WITH.search(line)):
+            violations.append((number, line.strip()))
+    return violations
+
+
+def _parse_front_matter(text: str) -> tuple[list[tuple[str, str]], str]:
+    """The verdict's front-matter ``(key, value)`` pairs in order, and the body.
+
+    The format is deliberately strict: a leading ``---`` line, one
+    ``lowercase_key: value`` per line, and a closing ``---`` line. A duplicate
+    key, a quoted value or an unclosed block fails closed.
+    """
+    lines = _LINE_BREAK.split(text)
+    if not lines or lines[0].strip() != "---":
+        fail("the verdict does not open with front matter")
+    pairs: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            return pairs, "\n".join(lines[index + 1 :])
+        match = re.fullmatch(r"([a-z][a-z0-9_]*):[ \t]+(\S(?:.*\S)?)", lines[index])
+        if match is None:
+            fail(f"the verdict front-matter line {index + 1} is not key: value")
+        key = match.group(1)
+        if key in seen:
+            fail(f"the verdict front matter names {key!r} twice")
+        seen.add(key)
+        pairs.append((key, match.group(2)))
+    fail("the verdict front matter is never closed")
+
+
+def _read_text(path: Path, *, what: str) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        fail(f"{what} is unreadable: {path}: {exc}")
+
+
+def verdict_text() -> str:
+    """The verdict's committed text. A module-level seam so tests can mutate it."""
+    path = repo_path(VERDICT_REL, what="the verdict")
+    if not path.is_file():
+        fail(f"the verdict is missing: {VERDICT_REL.as_posix()}")
+    return _read_text(path, what="the verdict")
+
+
+def _heading_indices(lines: Sequence[str], heading: str) -> list[int]:
+    return [index for index, line in enumerate(lines) if line.rstrip() == heading]
+
+
+def _section_body(lines: Sequence[str], heading: str) -> list[str]:
+    """The lines under ``heading`` up to the next level-2 heading."""
+    indices = _heading_indices(lines, heading)
+    if len(indices) != 1:
+        fail(f"the verdict holds {len(indices)} {heading!r} headings, not 1")
+    start = indices[0]
+    for index in range(start + 1, len(lines)):
+        if lines[index].startswith("## "):
+            return list(lines[start + 1 : index])
+    return list(lines[start + 1 :])
+
+
+def _check_verdict_headings(lines: Sequence[str], *, complete: bool) -> None:
+    found = [line.rstrip() for line in lines if line.startswith("## ")]
+    expected = list(EXPECTED_VERDICT_HEADINGS)
+    if complete:
+        if found != expected:
+            fail(
+                "the verdict's level-2 headings are not the 15 expected headings "
+                f"exactly once in order: found {found!r}"
+            )
+        return
+    if not found or found != expected[: len(found)]:
+        fail(
+            "the verdict's level-2 headings are not an in-order prefix of the "
+            f"expected headings: found {found!r}"
+        )
+
+
+def cmd_rules(_args: argparse.Namespace) -> None:
+    """The verdict's document checks: skeleton, schema, wording and evidence index."""
+    text = verdict_text()
+    pairs, body = _parse_front_matter(text)
+    keys = [key for key, _value in pairs]
+    if keys != list(VERDICT_FRONT_MATTER_KEYS):
+        fail(
+            "the verdict front matter keys are not the schema's keys in order: "
+            f"found {keys!r}"
+        )
+    values = dict(pairs)
+    if values["schema_version"] != VERDICT_SCHEMA:
+        fail(
+            f"the verdict schema_version {values['schema_version']!r} is not "
+            f"{VERDICT_SCHEMA!r}"
+        )
+    if values["status"] not in VERDICT_STATUSES:
+        fail(f"the verdict status {values['status']!r} is not allowed")
+    if values["gate"] != "not-run":
+        fail(f"the verdict gate {values['gate']!r} is not 'not-run'")
+    if values["evaluation"] != "preserved-unspent":
+        fail(
+            f"the verdict evaluation {values['evaluation']!r} is not "
+            "'preserved-unspent'"
+        )
+    if values["verdict"] != "RETHINK-REPRESENTATION":
+        fail(f"the verdict label {values['verdict']!r} is not RETHINK-REPRESENTATION")
+    if values["representation_limit_qualifier"] != "false":
+        fail(
+            "the verdict representation_limit_qualifier "
+            f"{values['representation_limit_qualifier']!r} is not 'false'"
+        )
+    if values["owner_decision"] not in VERDICT_OWNER_DECISIONS:
+        fail(f"the verdict owner_decision {values['owner_decision']!r} is not allowed")
+    if values["owner_decision_date"] != "pending" and re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}", values["owner_decision_date"]
+    ) is None:
+        fail(
+            "the verdict owner_decision_date "
+            f"{values['owner_decision_date']!r} is neither pending nor a date"
+        )
+    if values["agent_recommendation"] not in VERDICT_RECOMMENDATIONS:
+        fail(
+            "the verdict agent_recommendation "
+            f"{values['agent_recommendation']!r} is not allowed"
+        )
+    if values["handoff_citation"] != HANDOFF_REL.as_posix():
+        fail(f"the verdict handoff_citation {values['handoff_citation']!r} is wrong")
+    if values["handoff_sha256"] != HANDOFF_SHA256:
+        fail("the verdict handoff_sha256 is not the sealed handoff's SHA-256")
+    numbers_path = repo_path(NUMBERS_REL, what="numbers.json")
+    if values["numbers_sha256"] != sha256_file(numbers_path):
+        fail("the verdict numbers_sha256 is not numbers.json's current SHA-256")
+    figure_path = repo_path(FIGURE_REL, what="the figure SVG")
+    if values["figure_sha256"] != sha256_file(figure_path):
+        fail("the verdict figure_sha256 is not the figure SVG's current SHA-256")
+    if values["charter_citation"] != (PHASE_REL / "64-CHARTER.md").as_posix():
+        fail(f"the verdict charter_citation {values['charter_citation']!r} is wrong")
+    if values["ruling_citation"] != "pending" and not values["ruling_citation"]:
+        fail("the verdict ruling_citation is empty")
+    if values["ruling_sha256"] != "pending" and HEX64.match(
+        values["ruling_sha256"]
+    ) is None:
+        fail("the verdict ruling_sha256 is neither pending nor a 64-hex digest")
+
+    lines = _LINE_BREAK.split(body)
+    audience = [
+        index for index, line in enumerate(lines) if line.rstrip() == AUDIENCE_LINE
+    ]
+    if len(audience) != 1:
+        fail(f"the verdict holds {len(audience)} Audience lines, not 1")
+    first_heading = next(
+        (index for index, line in enumerate(lines) if line.startswith("## ")), None
+    )
+    if first_heading is None or audience[0] > first_heading:
+        fail("the Audience line does not precede the first level-2 heading")
+
+    _check_verdict_headings(lines, complete=False)
+
+    stripped = strip_owner_quotes(body)
+    for phrase in REQUIRED_VERDICT_PHRASES:
+        if phrase not in stripped:
+            fail(f"the verdict lacks the required phrase {phrase!r}")
+    for number, line in guard_violations(stripped):
+        fail(f"the verdict line {number} carries guarded wording: {line}")
+    for pattern, description in BANNED_WORDING:
+        match = pattern.search(stripped)
+        if match is not None:
+            fail(f"the verdict carries {description}: {match.group(0)!r}")
+
+    home = str(Path.home())
+    if home:
+        for what, raw in (
+            ("the verdict", text),
+            ("numbers.json", _read_text(numbers_path, what="numbers.json")),
+            ("the figure SVG", _read_text(figure_path, what="the figure SVG")),
+            (
+                "the figure provenance",
+                _read_text(
+                    repo_path(FIGURE_PROVENANCE_REL, what="the figure provenance"),
+                    what="the figure provenance",
+                ),
+            ),
+        ):
+            if home in raw:
+                fail(f"{what} contains the host home prefix")
+    print("RULES-OK")
+
+
 COMMANDS = {
     "inputs": cmd_inputs,
     "frozen": cmd_frozen,
@@ -2824,6 +3190,7 @@ COMMANDS = {
     "numbers": cmd_numbers,
     "derive": cmd_derive,
     "figure": cmd_figure,
+    "rules": cmd_rules,
 }
 
 
