@@ -118,7 +118,7 @@ FIGURE_SCHEMA = "phase64-figure-provenance/v1"
 FIGURE_ARM = "r1-1632"
 FIGURE_STATE = "polish"
 FIGURE_PRECISION = "CPU float64"
-FIGURE_GROUPS = ("panel-a",)
+FIGURE_GROUPS = ("panel-a", "panel-b", "legend")
 FIGURE_INPUTS = (
     (P60_EVIDENCE_REL / "arms" / FIGURE_ARM / "record.json").as_posix(),
     (P60_EVIDENCE_REL / "arms" / FIGURE_ARM / f"{FIGURE_STATE}.weights").as_posix(),

@@ -16,7 +16,7 @@
   "data_root_source": "git_common_dir_default",
   "figure": {
     "path": ".planning/phases/64-feasibility-verdict/evidence/figure-1632.svg",
-    "sha256": "23d650ab25fda59addc577aebb1ef0c9e7a066a25abbd9cffa7063ed42c2b4de"
+    "sha256": "d9754afaf0aefdf2c4b3f27dfc97b6cac06e4bac4adb63b5b5447efdd69a7695"
   },
   "inputs": [
     {
@@ -40,7 +40,7 @@
   "precision": "CPU float64",
   "producers": {
     ".planning/phases/64-feasibility-verdict/evidence/build_phase64_evidence.py": "d91e0bcd6d529b402570d9121f4553591f7c1a43d5998b95f2902d106d6e7a12",
-    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_figure.py": "81d79e3c40a951ff248333278e161c9c49d7e384dcd56a7888a382d4b3b1bec2"
+    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_figure.py": "263d2277af74056b6e2537203edf029ac48b29724927b71cd609cb170b2d7d9a"
   },
   "schema": "phase64-figure-provenance/v1",
   "series_sha256": "6574144710f53fa6fa86b7d0990fa2801578bf443a5c898ac216d2a939c6f8ec",

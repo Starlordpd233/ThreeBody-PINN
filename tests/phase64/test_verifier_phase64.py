@@ -1624,6 +1624,87 @@ class FigureRenderTests(unittest.TestCase):
         with self.assertRaises(self.producer.FigureError):
             self.producer.render_svg(broken)
 
+    def _panel_b_polylines(self, text: str) -> list[ElementTree.Element]:
+        root = ElementTree.fromstring(text)
+        panel = next(
+            element for element in root.iter() if element.get("id") == "panel-b"
+        )
+        return [
+            element
+            for element in panel.iter()
+            if element.tag.rsplit("}", 1)[-1] == "polyline"
+        ]
+
+    def test_the_panel_b_group_holds_two_error_curves_and_the_limit(self):
+        text = self.producer.render_svg(self.series)
+        root = ElementTree.fromstring(text)
+        panel = next(
+            element for element in root.iter() if element.get("id") == "panel-b"
+        )
+        polylines = [
+            element
+            for element in panel.iter()
+            if element.tag.rsplit("}", 1)[-1] == "polyline"
+        ]
+        self.assertEqual(len(polylines), 2)
+        strokes = [element.get("stroke") for element in polylines]
+        self.assertIn("#1f2328", strokes)  # network error, ink
+        self.assertIn("#57606a", strokes)  # constant predictor, muted grey
+        limits = [
+            element
+            for element in panel.iter()
+            if element.tag.rsplit("}", 1)[-1] == "line"
+            and element.get("stroke") == "#b3261e"
+        ]
+        self.assertEqual(len(limits), 1)
+        self.assertIn("Tier 1 limit (0.1)", text)
+
+    def test_the_two_error_curves_share_their_x_coordinates(self):
+        polylines = self._panel_b_polylines(self.producer.render_svg(self.series))
+        x_lists = []
+        for polyline in polylines:
+            points = polyline.get("points", "").split()
+            x_lists.append([point.split(",")[0] for point in points])
+        self.assertEqual(len(x_lists[0]), len(self.series["times"]))
+        self.assertEqual(x_lists[0], x_lists[1])
+
+    def test_the_legend_lies_inside_the_canvas_below_the_panels(self):
+        report = self.producer.legibility_report(
+            self.series, self.producer.render_svg(self.series)
+        )
+        legend = report["legend"]
+        self.assertGreaterEqual(legend[0], 0.0)
+        self.assertGreaterEqual(legend[1], 0.0)
+        self.assertLessEqual(legend[2], self.producer.VIEW_WIDTH)
+        self.assertLessEqual(legend[3], self.producer.VIEW_HEIGHT)
+        self.assertGreater(
+            legend[1], max(frame[3] for frame in report["frames"].values())
+        )
+
+    def test_the_axis_and_limit_labels_are_drawn(self):
+        text = self.producer.render_svg(self.series)
+        for label in (
+            "x (system units)",
+            "y (system units)",
+            "time (system units)",
+            "error (largest of the body and inner-pair errors)",
+            "Tier 1 limit (0.1)",
+        ):
+            self.assertIn(label, text)
+
+    def test_a_legend_outside_the_canvas_is_refused(self):
+        text = self.producer.render_svg(self.series)
+        moved = text.replace('y="476.0"', 'y="600.0"', 1)
+        self.assertNotEqual(moved, text)
+        with self.assertRaises(self.producer.FigureError):
+            self.producer._check_legibility(self.series, moved)
+
+    def test_a_predicted_track_with_no_extent_is_refused(self):
+        flat = copy.deepcopy(self.series)
+        flat["pred_xy"][0] = [[0.5, 0.1] for _ in flat["times"]]
+        with self.assertRaises(self.producer.FigureError):
+            self.producer._check_legibility(flat, self.producer.render_svg(flat))
+
 
 class FigureModeTests(unittest.TestCase):
     """The committed figure set in a temporary repository, then one mutation each.
@@ -1765,6 +1846,12 @@ class FigureModeTests(unittest.TestCase):
         self.rewrite_with_svg(changed)
         self.assert_rejected("no group with id 'panel-a'")
 
+    def test_a_missing_legend_group_fails(self):
+        changed = self.svg_text.replace('id="legend"', 'id="legend-aa"', 1)
+        self.assertNotEqual(changed, self.svg_text)
+        self.rewrite_with_svg(changed)
+        self.assert_rejected("no group with id 'legend'")
+
     def test_a_non_zero_recorded_attestation_fails(self):
         payload = self.mutated_provenance()
         payload["attestation"]["opened"]["validation"] = 1
@@ -1815,6 +1902,35 @@ class FigureRealTests(unittest.TestCase):
         self.assertEqual(
             payload["figure"]["path"], f"{EVIDENCE}/figure-1632.svg"
         )
+
+    def test_the_committed_svg_names_both_panels_and_the_limit(self):
+        text = FIGURE_SVG_PATH.read_text(encoding="utf-8")
+        for needle in (
+            'id="panel-a"',
+            'id="panel-b"',
+            'id="legend"',
+            "Tier 1 limit (0.1)",
+        ):
+            self.assertIn(needle, text)
+
+    def test_real_error_is_above_tier1_at_every_time(self):
+        producer = load_figure_producer()
+        series = producer.figure_series(ROOT)
+        self.assertEqual(series["tier1"], 0.1)
+        self.assertEqual(len(series["err_net"]), 1001)
+        self.assertTrue(
+            all(value > series["tier1"] for value in series["err_net"]),
+            min(series["err_net"]),
+        )
+        payload = json.loads(
+            (ROOT / EVIDENCE / "numbers.json").read_text(encoding="utf-8")
+        )
+        entry = next(
+            item
+            for item in payload["entries"]
+            if item["id"] == "cpu.r1-1632.polish.n_within_tier1"
+        )
+        self.assertEqual(entry["value"], 0)
 
 
 class OrderedSumTests(unittest.TestCase):

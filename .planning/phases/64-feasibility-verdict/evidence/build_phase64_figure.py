@@ -43,6 +43,7 @@ import math
 import os
 import platform
 import sys
+import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
@@ -72,6 +73,18 @@ PRECISION = "CPU float64"
 
 VIEW_WIDTH = 1200.0
 VIEW_HEIGHT = 560.0
+
+# The layout, in viewBox units. The inset sits between panel A and panel B, and
+# the legend sits below both panels, so the legibility check can measure that
+# nothing overlaps and nothing leaves the canvas.
+PANEL_A = (80.0, 100.0, 330.0, 330.0)
+INSET_LEFT = 450.0
+INSET_TOP = 140.0
+INSET_MINI = 70.0
+INSET_GAP = 15.0
+INSET_RIGHT = INSET_LEFT + 3.0 * INSET_MINI + 2.0 * INSET_GAP
+PANEL_B = (760.0, 100.0, 380.0, 330.0)
+LEGEND = (80.0, 476.0, 1040.0, 68.0)
 
 # The four inputs the provenance names, in path order.
 INPUT_RELS = (
@@ -390,7 +403,7 @@ def _mini_panel(series: Mapping[str, Any], body: int, left: float, top: float,
 
 def _panel_a(series: Mapping[str, Any]) -> list[str]:
     """The real orbit, the network's tracks, the time means and the inset."""
-    left, top, size = 80.0, 100.0, 330.0
+    left, top, size, _height = PANEL_A
     right, bottom = left + size, top + size
     lo, hi, ticks = _xy_domain(series)
     span = hi - lo
@@ -457,7 +470,7 @@ def _panel_a(series: Mapping[str, Any]) -> list[str]:
               anchor="end")
     )
 
-    inset_left, inset_top, mini = 450.0, 140.0, 70.0
+    inset_left, inset_top, mini = INSET_LEFT, INSET_TOP, INSET_MINI
     out.append(
         _text(inset_left, 122.0, "Inset: the network's tracks, magnified",
               size=13.0, weight="bold")
@@ -467,7 +480,7 @@ def _panel_a(series: Mapping[str, Any]) -> list[str]:
             _mini_panel(
                 series,
                 body,
-                inset_left + body * (mini + 15.0),
+                inset_left + body * (mini + INSET_GAP),
                 inset_top,
                 mini,
             )
@@ -482,6 +495,256 @@ def _panel_a(series: Mapping[str, Any]) -> list[str]:
     )
     out.append("</g>")
     return out
+
+
+def _panel_b(series: Mapping[str, Any]) -> list[str]:
+    """The network's error against time, the constant predictor's, the limit."""
+    left, top, width, height = PANEL_B
+    right, bottom = left + width, top + height
+    times = series["times"]
+    t_lo, t_hi = min(times), max(times)
+    y_top = max(max(series["err_net"]), max(series["err_const"]))
+    y_lo, y_hi, y_ticks = _axis(0.0, y_top, 5)
+    _, _, t_ticks = _axis(t_lo, t_hi, 5)
+
+    def bx(value: float) -> float:
+        return left + (float(value) - t_lo) / (t_hi - t_lo) * width
+
+    def by(value: float) -> float:
+        return bottom - (float(value) - y_lo) / (y_hi - y_lo) * height
+
+    out = ['<g id="panel-b">']
+    out.append(
+        _text(left, 80.0, "Panel B: error against time", size=14.0, weight="bold")
+    )
+    out.append(_rect(left, top, width, height, PAPER, INK, 1.0))
+    for tick in y_ticks[1:-1]:
+        out.append(_line(left, by(tick), right, by(tick), GRID, 1.0))
+    for tick in t_ticks[1:-1]:
+        out.append(_line(bx(tick), top, bx(tick), bottom, GRID, 1.0))
+    for tick in t_ticks:
+        out.append(
+            _text(bx(tick), bottom + 14.0, f"{tick:g}", size=10.0, color=MUTED,
+                  anchor="middle")
+        )
+    for tick in y_ticks:
+        out.append(
+            _text(left - 6.0, by(tick) + 3.5, f"{tick:g}", size=10.0, color=MUTED,
+                  anchor="end")
+        )
+    out.append(
+        _text(0.5 * (left + right), bottom + 34.0, "time (system units)", size=11.0,
+              color=MUTED, anchor="middle")
+    )
+    middle = 0.5 * (top + bottom)
+    out.append(
+        _text(
+            714.0,
+            middle,
+            "error (largest of the body and inner-pair errors)",
+            size=11.0,
+            color=MUTED,
+            anchor="middle",
+            transform=f"rotate(-90 714.0 {middle:.1f})",
+        )
+    )
+
+    tier1 = float(series["tier1"])
+    out.append(_line(left, by(tier1), right, by(tier1), LIMIT, 1.5, "6 4"))
+    out.append(
+        _text(
+            right - 4.0,
+            by(tier1) - 6.0,
+            f"Tier 1 limit ({tier1:g})",
+            size=10.0,
+            color=LIMIT,
+            anchor="end",
+        )
+    )
+    # The dashed reference is wider and drawn underneath: the two curves differ
+    # by about 0.006, so a same-width dashed line would disappear behind the
+    # solid network curve and the comparison would be invisible.
+    out.append(
+        _poly(
+            (bx(value) for value in times),
+            (by(value) for value in series["err_const"]),
+            MUTED,
+            3.5,
+            "6 4",
+        )
+    )
+    out.append(
+        _poly(
+            (bx(value) for value in times),
+            (by(value) for value in series["err_net"]),
+            INK,
+            1.5,
+        )
+    )
+    out.append("</g>")
+    return out
+
+
+def _legend() -> list[str]:
+    """The legend inside the canvas: a swatch, then its label, one row at a time."""
+    left, top, width, height = LEGEND
+    out = ['<g id="legend">']
+    out.append(_rect(left, top, width, height, PAPER, GRID, 1.0))
+
+    def entry(
+        x: float,
+        y: float,
+        label: str,
+        *,
+        color: str,
+        stroke: float = 2.0,
+        dash: Optional[str] = None,
+        cross: bool = False,
+    ) -> tuple[list[str], float]:
+        elements: list[str] = []
+        if cross:
+            centre = x + 11.0
+            elements.append(
+                _line(centre - 5.0, y - 4.0, centre + 5.0, y - 4.0, color, stroke)
+            )
+            elements.append(_line(centre, y - 9.0, centre, y + 1.0, color, stroke))
+        else:
+            elements.append(_line(x, y - 4.0, x + 22.0, y - 4.0, color, stroke, dash))
+        text_x = x + 28.0
+        elements.append(_text(text_x, y, label, size=11.0))
+        # 0.55 em per character is a safe upper bound for Helvetica at this size,
+        # so the layout cannot collide even if the renderer picks Arial instead.
+        advance = 28.0 + 0.55 * 11.0 * len(label) + 24.0
+        return elements, x + advance
+
+    x, y = 96.0, 494.0
+    for body, color in enumerate(BODY_COLORS):
+        elements, x = entry(x, y, f"real orbit, body {body + 1}", color=color)
+        out.extend(elements)
+    elements, x = entry(x, y, "network prediction", color=BODY_COLORS[0], stroke=3.0)
+    out.extend(elements)
+
+    x, y = 96.0, 522.0
+    elements, x = entry(x, y, "time-mean position", color=INK, cross=True)
+    out.extend(elements)
+    elements, x = entry(x, y, "network error", color=INK, stroke=2.0)
+    out.extend(elements)
+    elements, x = entry(
+        x,
+        y,
+        "error of guessing each body's average position",
+        color=MUTED,
+        stroke=1.5,
+        dash="6 4",
+    )
+    out.extend(elements)
+    elements, x = entry(x, y, "Tier 1 limit", color=LIMIT, stroke=1.5, dash="6 4")
+    out.extend(elements)
+    out.append("</g>")
+    return out
+
+
+def legibility_report(series: Mapping[str, Any], svg_text: str) -> dict[str, Any]:
+    """Measure the legend, the two panels and each predicted track in the document."""
+    try:
+        root = ElementTree.fromstring(svg_text)
+    except ElementTree.ParseError as exc:
+        fail(f"the rendered SVG is not well-formed XML: {exc}")
+
+    groups = {
+        element.get("id"): element
+        for element in root.iter()
+        if element.get("id") in {"panel-a", "panel-b", "legend"}
+    }
+    for name in ("panel-a", "panel-b", "legend"):
+        if name not in groups:
+            fail(f"the rendered SVG has no group with id {name!r}")
+
+    xs: list[float] = []
+    ys: list[float] = []
+    for element in groups["legend"].iter():
+        tag = element.tag.rsplit("}", 1)[-1]
+        if tag == "text":
+            x, y = float(element.get("x")), float(element.get("y"))
+            size = float(element.get("font-size", "11"))
+            estimate = 0.55 * size * len(element.text or "")
+            anchor = element.get("text-anchor", "start")
+            if anchor == "middle":
+                xs.extend([x - 0.5 * estimate, x + 0.5 * estimate])
+            elif anchor == "end":
+                xs.extend([x - estimate, x])
+            else:
+                xs.extend([x, x + estimate])
+            ys.extend([y - size, y])
+        elif tag == "line":
+            xs.extend([float(element.get("x1")), float(element.get("x2"))])
+            ys.extend([float(element.get("y1")), float(element.get("y2"))])
+        elif tag == "rect":
+            x, y = float(element.get("x")), float(element.get("y"))
+            xs.extend([x, x + float(element.get("width"))])
+            ys.extend([y, y + float(element.get("height"))])
+    legend = [min(xs), min(ys), max(xs), max(ys)]
+
+    frames: dict[str, list[float]] = {}
+    for name in ("panel-a", "panel-b"):
+        rect = next(
+            element
+            for element in groups[name].iter()
+            if element.tag.rsplit("}", 1)[-1] == "rect"
+        )
+        x, y = float(rect.get("x")), float(rect.get("y"))
+        frames[name] = [
+            x,
+            y,
+            x + float(rect.get("width")),
+            y + float(rect.get("height")),
+        ]
+
+    spans = []
+    for track in series["pred_xy"]:
+        track_x = [point[0] for point in track]
+        track_y = [point[1] for point in track]
+        spans.append([max(track_x) - min(track_x), max(track_y) - min(track_y)])
+
+    return {
+        "legend": legend,
+        "frames": frames,
+        "predicted_spans": spans,
+        "min_err_net": min(series["err_net"]),
+        "min_err_const": min(series["err_const"]),
+        "tier1": float(series["tier1"]),
+    }
+
+
+def _check_legibility(series: Mapping[str, Any], svg_text: str) -> dict[str, Any]:
+    """Refuse a figure whose legend escapes the canvas or whose tracks are dots."""
+    report = legibility_report(series, svg_text)
+    legend = report["legend"]
+    if legend[0] < 0.0 or legend[1] < 0.0:
+        fail(f"the legend starts outside the canvas at {legend[0]:.1f},{legend[1]:.1f}")
+    if legend[2] > VIEW_WIDTH or legend[3] > VIEW_HEIGHT:
+        fail(f"the legend ends outside the canvas at {legend[2]:.1f},{legend[3]:.1f}")
+    panel_bottom = max(frame[3] for frame in report["frames"].values())
+    if legend[1] <= panel_bottom + 8.0:
+        fail(
+            f"the legend at y {legend[1]:.1f} overlaps the panels ending at "
+            f"{panel_bottom:.1f}"
+        )
+    if report["frames"]["panel-b"][0] <= INSET_RIGHT + 20.0:
+        fail("panel B starts inside the inset")
+    for body, (span_x, span_y) in enumerate(report["predicted_spans"]):
+        if span_x <= 0.0 or span_y <= 0.0:
+            fail(f"body {body + 1}'s predicted track has no extent: {span_x}x{span_y}")
+    for label in (
+        "x (system units)",
+        "y (system units)",
+        "time (system units)",
+        "error (largest of the body and inner-pair errors)",
+        f"Tier 1 limit ({float(series['tier1']):g})",
+    ):
+        if label not in svg_text:
+            fail(f"the figure is missing the label {label!r}")
+    return report
 
 
 def render_svg(series: Mapping[str, Any]) -> str:
@@ -532,6 +795,8 @@ def render_svg(series: Mapping[str, Any]) -> str:
         ),
     ]
     lines.extend(_panel_a(series))
+    lines.extend(_panel_b(series))
+    lines.extend(_legend())
     lines.append("</svg>")
     return "\n".join(lines) + "\n"
 
@@ -606,7 +871,16 @@ def cmd_figure(*, check: bool) -> int:
     os.chdir(REPO_ROOT)
     series = figure_series(REPO_ROOT)
     svg_text = render_svg(series)
+    report = _check_legibility(series, svg_text)
     provenance = build_provenance(series, svg_text, _inputs(REPO_ROOT))
+    legend = report["legend"]
+    spans = " ".join(
+        f"{span_x:.4f}x{span_y:.4f}" for span_x, span_y in report["predicted_spans"]
+    )
+    print(
+        f"FIGURE-LEGIBLE legend {legend[0]:.1f},{legend[1]:.1f},"
+        f"{legend[2]:.1f},{legend[3]:.1f} predicted {spans}"
+    )
 
     if check:
         if not evidence_io.bytes_identical(
