@@ -191,7 +191,38 @@ D03_CANDIDATES = (
     "schedule",
     "network depth",
 )
+EVIDENCE_INDEX_HEADING = "## Evidence index"
+# The 22 committed files the verdict's evidence index names, in the order the
+# Task 2 action lists them. EVIDENCE_INDEX_COUNT is a literal, never derived
+# from the tuple it checks, so a dropped row fails closed.
+EVIDENCE_INDEX_COUNT = 22
+EVIDENCE_INDEX_PATHS = (
+    HANDOFF_REL.as_posix(),
+    (P60_EVIDENCE_REL / "g2" / "g2-outcome.json").as_posix(),
+    (P60_EVIDENCE_REL / "g2" / "sweep-curve.json").as_posix(),
+    (P60_EVIDENCE_REL / "g2" / "skip-records.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / "r1-1632" / "record.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / "r1-851" / "record.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / "r1-4658" / "record.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / "g2s-1632-w060" / "record.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / "g2s-1632-w120" / "record.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / "g2s-1632-w240" / "record.json").as_posix(),
+    (P60_EVIDENCE_REL / "arms" / "g2s-1632-w480" / "record.json").as_posix(),
+    (P59_EVIDENCE_REL / "baselines" / "baselines.json").as_posix(),
+    (P59_EVIDENCE_REL / "survey" / "survey.json").as_posix(),
+    (P59_EVIDENCE_REL / "survey" / "picks.json").as_posix(),
+    (P59_EVIDENCE_REL / "census" / "census.json").as_posix(),
+    SCORECARD_ARTIFACT_REL.as_posix(),
+    "runs/stage0-v23g7-seed42/status.json",
+    "runs/stage0-v23g7-seed42/summary.json",
+    (P60_EVIDENCE_REL.parent / "60-RUN-PROTOCOL.md").as_posix(),
+    NUMBERS_REL.as_posix(),
+    FIGURE_REL.as_posix(),
+    FIGURE_PROVENANCE_REL.as_posix(),
+)
 REQUIRED_VERDICT_PHRASES = (
+    # D-01: the label, the reason, the two box headers, and the evidence beside
+    # the label including the sweep's step budgets.
     "RETHINK-REPRESENTATION",
     "G2 fired and the sweep rescued nothing",
     "What the pre-registered rule says",
@@ -199,10 +230,43 @@ REQUIRED_VERDICT_PHRASES = (
     "levelled off",
     "first_omega_0",
     "the only setting chosen",
+    "842,770",
+    "994,807",
+    # D-02: the qualifier reported as recorded, and the committed-numbers note.
     "representation_limit_qualifier",
     "not evaluated on this branch",
     "1 of 3",
+    # FEAS-06's empty edge: every unrun item carries its recorded reason.
+    "no rescue",
+    "skipped at G2, not failed",
+    "not tested (skipped at G2)",
+    "no readout branch",
+    # D-04, D-05, D-06 and D-14.
+    "evidence/figure-1632.svg",
+    "official (MPS float32)",
+    "re-derived (CPU float64)",
+    "All computation runs on this Mac",
+    "for scale only",
+    "not projected",
+    "not estimable from this evidence",
+    "GAP-64-03",
+    "the estimated cost to the next level",
+    "Apple M5 Pro",
+    "24 GB",
+    "Level 1",
+    "v2.5",
+    "trainex-r5",
+    "Route B",
+    # The prior-work prohibition: stated as a positive denial, so an inverted
+    # claim ("a novelty claim is made") cannot satisfy it.
+    "No novelty claim is made",
 )
+# The verdict half of the numbers mode: text rules are matched as plain
+# substrings, every other rule at a digit boundary (the Phase 59 pattern).
+VERDICT_TEXT_RULES = frozenset({"STR", "BOOL", "LIT", "OFN"})
+# 64-02's manifest marks 161 entries verdict-required; a literal floor means a
+# manifest edit that drops required_in values fails instead of shrinking.
+VERDICT_REQUIRED_COUNT = 161
 BANNED_WORDING = (
     (re.compile(r"\bflat(?:ly|ness)?\b", re.IGNORECASE), "the banned adjective"),
     (
@@ -2280,10 +2344,54 @@ def check_numbers(
         _check_entry(entry, facts, digest_cache)
 
 
+def check_verdict_renders(payload: Any, text: str) -> None:
+    """Every entry the manifest marks verdict-required must render in the verdict.
+
+    The plan's render map decides *where* each number goes; this check only
+    requires the token to appear somewhere in the document. Text tokens
+    (``STR``, ``BOOL``, ``LIT``, ``OFN``) are matched as plain substrings;
+    numeric tokens at a digit boundary, so ``0.01`` does not match inside
+    ``0.010856``.
+    """
+    if not isinstance(payload, Mapping):
+        fail("numbers.json is not an object")
+    entries = payload.get("entries")
+    if not isinstance(entries, list):
+        fail("numbers.json entries is not a list")
+    required = []
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("a numbers.json entry is not an object")
+        if "verdict" in entry.get("required_in", ()):
+            required.append(entry)
+    if len(required) < VERDICT_REQUIRED_COUNT:
+        fail(
+            f"numbers.json marks {len(required)} entries verdict-required, fewer "
+            f"than the {VERDICT_REQUIRED_COUNT} the manifest held"
+        )
+    for entry in required:
+        entry_id = entry.get("id")
+        render = entry.get("render")
+        rule = entry.get("render_rule")
+        if not isinstance(entry_id, str) or not entry_id:
+            fail(f"a verdict-required entry has no id: {entry!r}")
+        if not isinstance(render, str) or not render:
+            fail(f"entry {entry_id} has no render token")
+        if rule in VERDICT_TEXT_RULES:
+            present = render in text
+        else:
+            present = (
+                re.search(rf"(?<!\d){re.escape(render)}(?!\d)", text) is not None
+            )
+        if not present:
+            fail(f"the verdict does not render the entry {entry_id} ({render!r})")
+
+
 def cmd_numbers(_args: argparse.Namespace) -> None:
     """The manifest: schema, tables, citations, renders and current digests."""
     payload = load_json(repo_path(NUMBERS_REL, what="numbers.json"), what="numbers.json")
     check_numbers(payload)
+    check_verdict_renders(payload, verdict_text())
     print(f"entries {len(payload['entries'])}")
     print("NUMBERS-OK")
 
@@ -3074,6 +3182,127 @@ def _check_verdict_headings(lines: Sequence[str], *, complete: bool) -> None:
         )
 
 
+def _check_cost_to_next_level(lines: Sequence[str]) -> None:
+    """The GAP-64-03 subsection: once, inside Cost on this Mac, with its phrases."""
+    total = len(_heading_indices(lines, COST_TO_NEXT_LEVEL_HEADING))
+    if total != 1:
+        fail(
+            f"the verdict holds {total} {COST_TO_NEXT_LEVEL_HEADING!r} "
+            "subheadings, not 1"
+        )
+    body = _section_body(lines, COST_SECTION_HEADING)
+    starts = [
+        index
+        for index, line in enumerate(body)
+        if line.rstrip() == COST_TO_NEXT_LEVEL_HEADING
+    ]
+    if len(starts) != 1:
+        fail(
+            f"{COST_SECTION_HEADING!r} holds {len(starts)} "
+            f"{COST_TO_NEXT_LEVEL_HEADING!r} subheadings, not 1"
+        )
+    start = starts[0]
+    end = len(body)
+    for index in range(start + 1, len(body)):
+        if body[index].startswith("### "):
+            end = index
+            break
+    span = "\n".join(body[start:end])
+    for phrase in ("not estimable from this evidence", "GAP-64-03"):
+        if phrase not in span:
+            fail(
+                f"{COST_TO_NEXT_LEVEL_HEADING!r} lacks the required phrase "
+                f"{phrase!r}"
+            )
+
+
+def _check_candidate_fixes(lines: Sequence[str]) -> None:
+    """D-03: eight unranked candidates, each a bullet, with no numbered item."""
+    body = _section_body(lines, D03_HEADING)
+    numbered = [line for line in body if re.match(r"^\s*\d+[.)]\s+\S", line)]
+    if numbered:
+        fail(
+            f"{D03_HEADING!r} holds a numbered list item, so the fixes are "
+            f"ranked: {numbered[0]!r}"
+        )
+    bullets = [line for line in body if re.match(r"^\s*[-*]\s+\S", line)]
+    lowered = "\n".join(bullets).lower()
+    for candidate in D03_CANDIDATES:
+        if candidate not in lowered:
+            fail(f"{D03_HEADING!r} lacks the candidate {candidate!r} as a bullet")
+
+
+def _check_next_milestone(lines: Sequence[str]) -> None:
+    body = _section_body(lines, NEXT_MILESTONE_HEADING)
+    if "v2.5" not in "\n".join(body):
+        fail(f"{NEXT_MILESTONE_HEADING!r} does not name v2.5")
+
+
+def _evidence_index_rows(lines: Sequence[str]) -> list[tuple[str, str]]:
+    """The ``(path, digest)`` rows of the evidence-index table.
+
+    Rows without a backticked 64-hex digest cell (the header, the separator and
+    the verifier-command table) are skipped, so only evidence rows are hashed.
+    """
+    rows: list[tuple[str, str]] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        digest = None
+        for cell in cells:
+            match = re.fullmatch(r"`([0-9a-f]{64})`", cell)
+            if match is not None:
+                digest = match.group(1)
+                break
+        if digest is None:
+            continue
+        if len(cells) < 3:
+            fail(f"an evidence-index row holds no path cell: {line!r}")
+        match = re.fullmatch(r"`([^`]+)`", cells[1])
+        if match is None:
+            fail(f"an evidence-index row names no backticked path: {line!r}")
+        rows.append((match.group(1), digest))
+    return rows
+
+
+def _check_evidence_index(lines: Sequence[str]) -> None:
+    """Every evidence-index row names one of the 22 files, with its current digest."""
+    if len(EVIDENCE_INDEX_PATHS) != EVIDENCE_INDEX_COUNT:
+        fail(
+            f"the verifier names {len(EVIDENCE_INDEX_PATHS)} evidence-index paths, "
+            f"not the {EVIDENCE_INDEX_COUNT} the verdict must hold"
+        )
+    body = _section_body(lines, EVIDENCE_INDEX_HEADING)
+    rows = _evidence_index_rows(body)
+    if len(rows) != EVIDENCE_INDEX_COUNT:
+        fail(
+            f"the evidence index holds {len(rows)} hashed rows, not "
+            f"{EVIDENCE_INDEX_COUNT}"
+        )
+    paths = [path for path, _digest in rows]
+    if len(set(paths)) != len(paths):
+        fail("the evidence index names a path twice")
+    if set(paths) != set(EVIDENCE_INDEX_PATHS):
+        missing = sorted(set(EVIDENCE_INDEX_PATHS) - set(paths))
+        extra = sorted(set(paths) - set(EVIDENCE_INDEX_PATHS))
+        fail(
+            "the evidence index does not name the 22 expected files: "
+            f"missing {missing!r}, extra {extra!r}"
+        )
+    for path, recorded in rows:
+        resolved = repo_path(path, what=f"evidence-index row {path}")
+        if not resolved.is_file():
+            fail(f"the evidence-index row {path} is missing")
+        current = sha256_file(resolved)
+        if current != recorded:
+            fail(
+                f"the evidence-index row {path} has a stale SHA-256: "
+                f"recorded {recorded}, current {current}"
+            )
+
+
 def cmd_rules(_args: argparse.Namespace) -> None:
     """The verdict's document checks: skeleton, schema, wording and evidence index."""
     text = verdict_text()
@@ -3151,7 +3380,11 @@ def cmd_rules(_args: argparse.Namespace) -> None:
     if first_heading is None or audience[0] > first_heading:
         fail("the Audience line does not precede the first level-2 heading")
 
-    _check_verdict_headings(lines, complete=False)
+    _check_verdict_headings(lines, complete=True)
+    _check_cost_to_next_level(lines)
+    _check_candidate_fixes(lines)
+    _check_next_milestone(lines)
+    _check_evidence_index(lines)
 
     stripped = strip_owner_quotes(body)
     for phrase in REQUIRED_VERDICT_PHRASES:

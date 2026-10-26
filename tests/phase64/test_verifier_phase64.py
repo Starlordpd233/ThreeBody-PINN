@@ -2031,13 +2031,34 @@ class StaticGuardTests(unittest.TestCase):
 
 
 VERDICT_REL = f"{PHASE}/64-VERDICT.md"
-# The verdict and the three files `rules` hashes or scans beside it.
-VERDICT_FIXTURE_RELS = (
-    VERDICT_REL,
+# The 22 committed files the verdict's evidence index names. `rules` recomputes
+# each row's digest, so the temporary repository holds byte copies of all of
+# them; the verdict itself is added by the fixture tuple below.
+VERDICT_EVIDENCE_RELS = (
+    f"{P60}/g2/stop-handoff.json",
+    f"{P60}/g2/g2-outcome.json",
+    f"{P60}/g2/sweep-curve.json",
+    f"{P60}/g2/skip-records.json",
+    f"{P60}/arms/r1-1632/record.json",
+    f"{P60}/arms/r1-851/record.json",
+    f"{P60}/arms/r1-4658/record.json",
+    f"{P60}/arms/g2s-1632-w060/record.json",
+    f"{P60}/arms/g2s-1632-w120/record.json",
+    f"{P60}/arms/g2s-1632-w240/record.json",
+    f"{P60}/arms/g2s-1632-w480/record.json",
+    f"{P59}/baselines/baselines.json",
+    f"{P59}/survey/survey.json",
+    f"{P59}/survey/picks.json",
+    f"{P59}/census/census.json",
+    "pinn/verification/artifacts/feasibility_scorecard_v1.json",
+    "runs/stage0-v23g7-seed42/status.json",
+    "runs/stage0-v23g7-seed42/summary.json",
+    ".planning/phases/60-single-system-learnability/60-RUN-PROTOCOL.md",
     f"{EVIDENCE}/numbers.json",
     f"{EVIDENCE}/figure-1632.svg",
     f"{EVIDENCE}/figure-1632.provenance.json",
 )
+VERDICT_FIXTURE_RELS = (VERDICT_REL,) + VERDICT_EVIDENCE_RELS
 
 
 class VerdictCase(unittest.TestCase):
@@ -2069,6 +2090,22 @@ class VerdictCase(unittest.TestCase):
 
     def assert_rules_rejected(self, text: str, needle: str) -> str:
         code, _stdout, stderr = self.run_rules(text)
+        self.assertEqual(code, 1, f"the mutated verdict passed: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+    def run_numbers(self, text: str) -> tuple[int, str, str]:
+        """Run ``numbers`` with ``verdict_text`` patched to ``text``.
+
+        The manifest check re-reads the committed citations through git, so the
+        real repository is the fixture here; only the verdict text is synthetic.
+        """
+        with mock.patch.object(self.module, "verdict_text", lambda: text):
+            return run_main(self.module, ["numbers"])
+
+    def assert_numbers_rejected(self, text: str, needle: str) -> str:
+        code, _stdout, stderr = self.run_numbers(text)
         self.assertEqual(code, 1, f"the mutated verdict passed: {stderr}")
         self.assertIn("FAIL-CLOSED", stderr)
         self.assertIn(needle, stderr)
@@ -2204,6 +2241,137 @@ class RulesVerdictTests(VerdictCase):
             "## __SWAP__", "## The result under the pre-registered rule"
         )
         self.assert_rules_rejected(mutated, "heading")
+
+
+class VerdictContentTests(VerdictCase):
+    """Task 2: the full document, the evidence index and the render check."""
+
+    def test_real_verdict_passes_rules(self):
+        code, out, err = run_main(self.module, ["rules"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["RULES-OK"])
+
+    def test_real_verdict_passes_numbers(self):
+        code, out, err = run_main(self.module, ["numbers"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["entries 365", "NUMBERS-OK"])
+
+    def test_module_verdict_constants(self):
+        self.assertEqual(len(self.module.EXPECTED_VERDICT_HEADINGS), 15)
+        self.assertEqual(self.module.VERDICT_REQUIRED_COUNT, 161)
+        self.assertEqual(self.module.EVIDENCE_INDEX_COUNT, 22)
+        self.assertEqual(len(self.module.EVIDENCE_INDEX_PATHS), 22)
+        self.assertEqual(
+            set(self.module.EVIDENCE_INDEX_PATHS), set(VERDICT_EVIDENCE_RELS)
+        )
+        for phrase in (
+            "no rescue",
+            "skipped at G2, not failed",
+            "not tested (skipped at G2)",
+            "no readout branch",
+            "not estimable from this evidence",
+            "GAP-64-03",
+            "the estimated cost to the next level",
+            "All computation runs on this Mac",
+            "evidence/figure-1632.svg",
+            "No novelty claim is made",
+        ):
+            self.assertIn(phrase, self.module.REQUIRED_VERDICT_PHRASES)
+
+    def test_changed_per_arm_e_fails_numbers(self):
+        self.assertIn("1.1569", self.verdict)
+        mutated = self.verdict.replace("1.1569", "1.1568")
+        self.assert_numbers_rejected(mutated, "arm.g2s-1632-w060.E")
+
+    def test_digit_boundary_does_not_match_inside_a_longer_number(self):
+        # The only standalone "0.01" tokens are the two tier limits; after they
+        # change, "0.01" survives only inside longer decimals such as 0.010856.
+        # A plain substring match would wrongly accept the document.
+        mutated = self.verdict.replace("E at most 0.01", "E at most 0.02")
+        self.assertIn("0.01", mutated)
+        self.assert_numbers_rejected(mutated, "tiers.tier2.E_max")
+
+    def test_missing_heading_fails_rules(self):
+        mutated = replace_once(self.verdict, "## Comparison points\n\n", "")
+        self.assert_rules_rejected(mutated, "heading")
+
+    def test_numbered_candidate_list_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "- **Time-windowed networks.**",
+            "1. **Time-windowed networks.**",
+        )
+        self.assert_rules_rejected(mutated, "numbered list item")
+
+    def test_one_candidate_removed_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "- **Optimizer.** Adam and the L-BFGS polish are the only two tried.\n",
+            "",
+        )
+        self.assert_rules_rejected(mutated, "'optimizer'")
+
+    def test_v25_removed_from_the_next_milestone_fails(self):
+        mutated = replace_once(
+            self.verdict,
+            "The next milestone is v2.5, committed only",
+            "The next milestone is the one after this, committed only",
+        )
+        self.assert_rules_rejected(mutated, "does not name v2.5")
+
+    def test_stale_evidence_index_digest_fails(self):
+        digest = "3e71568fe6d243f16dc930c7b8d49d028967b625e134cf5ba52d4c48b579c529"
+        mutated = replace_once(self.verdict, digest, "0" * 64)
+        self.assert_rules_rejected(mutated, "stale SHA-256")
+
+    def test_no_rescue_removed_fails(self):
+        mutated = self.verdict.replace("no rescue", "no attempt")
+        self.assert_rules_rejected(mutated, "no rescue")
+
+    def test_figure_path_removed_fails(self):
+        mutated = self.verdict.replace(
+            "evidence/figure-1632.svg", "evidence/figure.svg"
+        )
+        self.assert_rules_rejected(mutated, "evidence/figure-1632.svg")
+
+    def test_cost_subheading_removed_fails(self):
+        mutated = replace_once(
+            self.verdict, "### Cost to the next level\n\n", ""
+        )
+        self.assert_rules_rejected(mutated, "Cost to the next level")
+
+    def test_cost_subheading_moved_under_another_section_fails(self):
+        # Anchor on the heading line, not the backticked pointer in "In plain
+        # language", which names the same words earlier in the document.
+        start = self.verdict.index("\n### Cost to the next level\n") + 1
+        end = self.verdict.index(
+            "## Candidate fixes for the next milestone (unranked)"
+        )
+        block = self.verdict[start:end]
+        mutated = self.verdict[:start] + self.verdict[end:]
+        mutated = mutated.rstrip("\n") + "\n\n" + block.rstrip("\n") + "\n"
+        self.assert_rules_rejected(mutated, "subheadings, not 1")
+
+    def test_cost_subheading_without_not_estimable_fails(self):
+        mutated = self.verdict.replace(
+            "not estimable from this evidence", "not measurable here"
+        )
+        self.assert_rules_rejected(mutated, "not estimable from this evidence")
+
+    def test_cost_subheading_without_gap_fails(self):
+        mutated = self.verdict.replace("GAP-64-03", "GAP-64-99")
+        self.assert_rules_rejected(mutated, "GAP-64-03")
+
+    def test_an_extra_level_three_subheading_is_not_counted(self):
+        mutated = replace_once(
+            self.verdict,
+            "## Owner sign-off\n",
+            "## Owner sign-off\n\n### A level-three note\n",
+        )
+        code, out, err = self.run_rules(mutated)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["RULES-OK"])
+        self.assertEqual(mutated.count("\n## "), 15)
 
 
 if __name__ == "__main__":
