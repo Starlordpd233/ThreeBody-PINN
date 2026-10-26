@@ -149,7 +149,7 @@ The milestone ends with an evidence-backed go / pivot-training / rethink-represe
   - not graded.
 
   The pre-registered readout takes exactly one branch, (a)–(d). (RUN-06, DIAG-08)
-- [ ] **Phase 64: Feasibility Verdict** — A plain-language verdict, by the pre-registered rule: GO, PIVOT-TRAINING or RETHINK-REPRESENTATION. It states:
+- [x] **Phase 64: Feasibility Verdict** (completed 2026-10-26, verdict RETHINK-REPRESENTATION; owner decision: change-course) — A plain-language verdict, by the pre-registered rule: GO, PIVOT-TRAINING or RETHINK-REPRESENTATION. It states:
   - the level reached on the readiness ladder;
   - every result beside the comparison points;
   - the distance to the locked bar;
@@ -399,31 +399,31 @@ Plans:
 
 **Wave 1**
 
-- [ ] 64-01-PLAN.md — Wave 1: tracer, the verifier's inputs check (the sealed handoff and the label re-derived by the frozen rule), the frozen-path check, and the traceability check for VER-22 (FEAS-06, VER-22)
+- [x] 64-01-PLAN.md — Wave 1: tracer, the verifier's inputs check (the sealed handoff and the label re-derived by the frozen rule), the frozen-path check, and the traceability check for VER-22 (FEAS-06, VER-22)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 64-02-PLAN.md — Wave 2: the number manifest, re-derived from the committed records and, on the CPU in float64, from the committed weights, including the time-constant evidence (FEAS-06, FEAS-10)
+- [x] 64-02-PLAN.md — Wave 2: the number manifest, re-derived from the committed records and, on the CPU in float64, from the committed weights, including the time-constant evidence (FEAS-06, FEAS-10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 64-03-PLAN.md — Wave 3: the one figure, system 1632's real orbit beside the network's prediction, with its provenance (FEAS-06)
+- [x] 64-03-PLAN.md — Wave 3: the one figure, system 1632's real orbit beside the network's prediction, with its provenance (FEAS-06)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 64-04-PLAN.md — Wave 4: the feasibility verdict, plain language first, with its rules check (FEAS-06)
+- [x] 64-04-PLAN.md — Wave 4: the feasibility verdict, plain language first, with its rules check (FEAS-06)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 64-05-PLAN.md — Wave 5: the pre-filled one-page charter with appendices, and the ruling check (FEAS-10, FEAS-06)
+- [x] 64-05-PLAN.md — Wave 5: the pre-filled one-page charter with appendices, and the ruling check (FEAS-10, FEAS-06)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 64-06-PLAN.md — Wave 6: owner checkpoint ①, the decision and the charter in one reply, recorded verbatim (FEAS-06, FEAS-10)
+- [x] 64-06-PLAN.md — Wave 6: owner checkpoint ①, the decision and the charter in one reply, recorded verbatim (FEAS-06, FEAS-10)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 64-07-PLAN.md — Wave 7: apply what the owner approved, tick the requirements, VER-22's binding check and the final check (FEAS-06, FEAS-10, VER-22)
+- [x] 64-07-PLAN.md — Wave 7: apply what the owner approved, tick the requirements, VER-22's binding check and the final check (FEAS-06, FEAS-10, VER-22)
 
 ## Progress
 
@@ -434,7 +434,7 @@ Plans:
 | 61. Conformance & Instrumentation | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 62. Gates & the Small-Family Rung | 0/TBD | Skipped at G2 (no rescue), not failed | - |
 | 63. Corrected Control | 0/TBD | Skipped at G2 (no rescue), not failed | - |
-| 64. Feasibility Verdict | 0/7 | Not started | - |
+| 64. Feasibility Verdict | 7/7 | Complete | 2026-10-26 |
 
 ---
 *v2.4 created 2026-10-09 (`/gsd-new-milestone`). The roadmap was generated inline from the v2.4 proposal, ratified under owner delegation at `0b400dfa`.*

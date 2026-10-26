@@ -140,7 +140,7 @@ at any rung shows which part is the bottleneck.
   - The count of systems that count is compared with the decision rule. On a shortfall, the unreached L-BFGS stage is named as a candidate cause.
   - The accuracy curve (scores against step) is recorded for both panels.
   - Validation-panel scores are reported beside the formula and the nearest-neighbour copy (FEAS-07), as an early, non-gating signal. [proposal Phase 62; amendment items 2, 7]
-- [ ] **FEAS-06**: **The feasibility verdict.** A document, written plain language first, records:
+- [x] **FEAS-06**: **The feasibility verdict.** A document, written plain language first, records:
   - the tier each rung reached, and where along the window each broke;
   - the control's readout branch;
   - the best `ε_H` reached, against the locked bar;
@@ -193,7 +193,7 @@ at any rung shows which part is the bottleneck.
   - Each arm has its tier, `h_δ`, `ε_H` and trace recorded, with the formula comparison where it applies.
   - The results are reported in the verdict and do not gate.
   - If the ladder stopped at G2, FEAS-09 is recorded as skipped, with one of the pre-registered reasons: no rescue, or checkpoint ④ answered go to the verdict. [amendment item 5; 2026-10-17 spec amendment]
-- [ ] **FEAS-10**: **The project charter.** One page, plain language first, drafted for the owner at the verdict:
+- [x] **FEAS-10**: **The project charter.** One page, plain language first, drafted for the owner at the verdict:
   - **the purpose:** a research paper, a practical fast predictor, or learning;
   - **the definition of done;**
   - **the current level on the readiness ladder;**
@@ -310,7 +310,7 @@ The owner sees each and may veto it (owner checkpoint ②; SCOPE-43).
 
 ### Traceability (VER)
 
-- [ ] **VER-22**: **Traceability.** Every v2.4 requirement maps to exactly one phase, with no orphans and no duplicates. This is re-verified at close against the final requirement count, not carried forward from the roadmap-creation check. [VER-21 lineage]
+- [x] **VER-22**: **Traceability.** Every v2.4 requirement maps to exactly one phase, with no orphans and no duplicates. This is re-verified at close against the final requirement count, not carried forward from the roadmap-creation check. [VER-21 lineage]
 
 ## Scope Boundaries (ratified under owner delegation 2026-10-09; SCOPE-39, -41 and -44 amended with owner approval 2026-10-11; hard constraints)
 
@@ -414,9 +414,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FEAS-05 | Phase 62 | Pending |
 | RUN-06 | Phase 63 | Pending |
 | DIAG-08 | Phase 63 | Pending |
-| FEAS-06 | Phase 64 | Pending |
-| FEAS-10 | Phase 64 | Pending |
-| VER-22 | Phase 64 | Pending |
+| FEAS-06 | Phase 64 | Complete |
+| FEAS-10 | Phase 64 | Complete |
+| VER-22 | Phase 64 | Complete |
 
 **Coverage:**
 - v2.4 requirements: 24 total
