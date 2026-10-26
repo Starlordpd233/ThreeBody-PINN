@@ -3109,5 +3109,451 @@ class CharterContentTests(CharterContentCase):
         self.assertIn("fewer than the 32", stderr)
 
 
+RULING_FIXTURE_RELS = (
+    CHARTER_REL,
+    VERDICT_REL,
+    ".planning/PROJECT.md",
+    ".planning/REQUIREMENTS.md",
+)
+
+RULING_DEFAULT_ANSWERS = (
+    ("V-1", "change-course"),
+    ("C-1", "recorded"),
+    ("C-2", "A"),
+    ("C-3", "recorded"),
+    ("C-4", "A"),
+    ("C-5", "A"),
+    ("C-6", "open"),
+    ("C-7", "open"),
+    ("C-8", "A"),
+    ("C-9", "A"),
+    ("C-10", "A"),
+    ("C-11", "recorded"),
+    ("C-12", "A"),
+    ("C-13", "A"),
+    ("C-14", "A"),
+)
+
+RULING_APPLIED_BY = {
+    "V-1": "64-07: verdict sign-off",
+    "C-12": "64-07: .planning/PROJECT.md",
+    "C-13": "64-07: .planning/PROJECT.md",
+    "C-14": "64-07: .planning/REQUIREMENTS.md status cells",
+}
+
+
+class RulingRealTreeTests(unittest.TestCase):
+    """The mode on the real worktree, before any synthetic ruling exists."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+
+    def test_ruling_is_a_registered_command(self):
+        self.assertIn("ruling", self.module.COMMANDS)
+        self.assertEqual(
+            self.module.build_parser().parse_args(["ruling"]).command, "ruling"
+        )
+
+    def test_real_tree_fails_closed_with_does_not_exist(self):
+        code, _out, err = run_main(self.module, ["ruling"])
+        self.assertEqual(code, 1)
+        self.assertIn("FAIL-CLOSED", err)
+        self.assertIn("does not exist", err)
+
+    def test_skipped_phase_requirements_match_the_traceability_report(self):
+        report = self.module.traceability_report(
+            (ROOT / ".planning/REQUIREMENTS.md").read_text(encoding="utf-8"),
+            (ROOT / ".planning/ROADMAP.md").read_text(encoding="utf-8"),
+            (ROOT / ".planning/PROJECT.md").read_text(encoding="utf-8"),
+        )
+        expected = sorted(
+            report["per_phase"][61]
+            + report["per_phase"][62]
+            + report["per_phase"][63]
+        )
+        self.assertEqual(sorted(self.module.SKIPPED_PHASE_REQUIREMENTS), expected)
+
+
+class RulingCase(CharterCase):
+    """A temporary git repository holding the charter, verdict and registries.
+
+    The base commit is patched as ``PHASE_BASE``; the synthetic ruling is
+    committed after it, and any applied edit after that. Every case is a byte
+    copy of the real files plus the mutation under test.
+    """
+
+    def setUp(self):
+        super().setUp()
+        for relative in RULING_FIXTURE_RELS:
+            if not (self.root / relative).exists():
+                copy_bytes(self.root, relative)
+        init_repo(self.root)
+        self.base = commit_all(self.root, "fixture base")
+
+    def ruling(
+        self,
+        answers=None,
+        *,
+        quote: str = "The owner approved the page as it stands.",
+        fence: str = "````",
+        created: str = "2026-10-26",
+        message_count: int = 1,
+    ) -> str:
+        answers = answers or RULING_DEFAULT_ANSWERS
+        word = "message" if message_count == 1 else "messages"
+        rows = "\n".join(
+            f"| {row_id} | {token} | "
+            f"{RULING_APPLIED_BY.get(row_id, 'recorded only')} |"
+            for row_id, token in answers
+        )
+        return (
+            "---\n"
+            "phase: 64-feasibility-verdict\n"
+            "milestone: v2.4\n"
+            f"created: {created}\n"
+            "status: ratified\n"
+            "authority: owner, checkpoint 1 (FEAS-06, FEAS-10)\n"
+            "---\n\n"
+            "# Phase 64 — Owner Checkpoint ① Ruling\n\n"
+            "## Authority and boundary\n\n"
+            "This record resolves V-1 and C-1 to C-14. It spends no held-out "
+            "evaluation.\n\n"
+            "## The owner's words\n\n"
+            "The block below holds the owner's reply verbatim: "
+            f"{message_count} {word}, in the order received, separated by one "
+            "blank line.\n\n"
+            f"{fence}owner-quote\n{quote}\n{fence}\n\n"
+            "## Recorded answers\n\n"
+            "| ID | Recorded answer | Applied by |\n"
+            "|---|---|---|\n"
+            f"{rows}\n"
+        )
+
+    def write_ruling(self, text: str) -> None:
+        path = self.root / RULING_REL
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    def commit_ruling(self, text: str) -> str:
+        self.write_ruling(text)
+        commit_all(self.root, "the ruling")
+        return sha256_of(self.root / RULING_REL)
+
+    def run_ruling(self) -> tuple[int, str, str]:
+        with mock.patch.object(self.module, "REPO_ROOT", self.root), mock.patch.object(
+            self.module, "PHASE_BASE", self.base
+        ):
+            return run_main(self.module, ["ruling"])
+
+    def assert_rejected(self, needle: str) -> str:
+        code, _stdout, stderr = self.run_ruling()
+        self.assertEqual(code, 1, f"the synthetic ruling passed: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+    def assert_accepted(self) -> None:
+        code, out, err = self.run_ruling()
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["RULING-OK"])
+
+    def draft(self, info: str) -> str:
+        for block_info, _start, _end, content in self.module._fenced_spans(self.charter):
+            if block_info.strip() == info:
+                return "\n".join(content).strip()
+        raise AssertionError(f"the real charter holds no {info} draft block")
+
+    def applied_charter(self, answers) -> str:
+        text = self.charter
+        for row_id, token in answers:
+            row = next(
+                line for line in text.splitlines() if line.startswith(f"| {row_id} |")
+            )
+            cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+            cells[4] = token
+            text = text.replace(row, "| " + " | ".join(cells) + " |")
+        return text
+
+    def apply_verdict(self, answers, *, digest: str) -> None:
+        path = self.root / VERDICT_REL
+        text = path.read_text(encoding="utf-8")
+        text = replace_once(text, "status: awaiting-owner", "status: owner-signed")
+        text = replace_once(
+            text, "owner_decision: pending", f"owner_decision: {dict(answers)['V-1']}"
+        )
+        text = replace_once(
+            text, "owner_decision_date: pending", "owner_decision_date: 2026-10-26"
+        )
+        text = replace_once(
+            text, "ruling_citation: pending", f"ruling_citation: {RULING_REL}"
+        )
+        text = replace_once(
+            text, "ruling_sha256: pending", f"ruling_sha256: {digest}"
+        )
+        path.write_text(text, encoding="utf-8")
+
+    def apply_project(self, *, what_this_is: str | None = None) -> None:
+        path = self.root / ".planning/PROJECT.md"
+        lines = path.read_text(encoding="utf-8").splitlines()
+        lines[0] = self.draft("project-draft-title")
+
+        def replace_body(current: list[str], heading: str, body: str) -> list[str]:
+            start = current.index(heading) + 1
+            end = next(
+                index
+                for index in range(start, len(current))
+                if current[index].startswith("## ")
+            )
+            return current[:start] + ["", body, ""] + current[end:]
+
+        lines = replace_body(
+            lines,
+            "## What This Is",
+            what_this_is or self.draft("project-draft-what-this-is"),
+        )
+        lines = replace_body(
+            lines, "## Core Value", self.draft("project-draft-core-value")
+        )
+        model = self.draft("project-draft-model")
+        lines = [
+            model if line.startswith("- **Model**:") else line for line in lines
+        ]
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def apply_requirements(self, answers, *, label: str | None = None) -> None:
+        token = dict(answers)["C-14"]
+        if label is None:
+            if token not in ("A", "B"):
+                return
+            label = self.module.GAP_6401_LABELS[token]
+        path = self.root / ".planning/REQUIREMENTS.md"
+        lines = path.read_text(encoding="utf-8").splitlines()
+        out = []
+        for line in lines:
+            for requirement in self.module.SKIPPED_PHASE_REQUIREMENTS:
+                if line.startswith(f"| {requirement} | Phase "):
+                    cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+                    line = f"| {cells[0]} | {cells[1]} | {label} |"
+            out.append(line)
+        path.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+    def apply_all(self, answers, *, digest: str, what_this_is: str | None = None) -> None:
+        self.write_charter(self.applied_charter(answers))
+        self.apply_verdict(answers, digest=digest)
+        self.apply_project(what_this_is=what_this_is)
+        self.apply_requirements(answers)
+        commit_all(self.root, "apply the ruling")
+
+
+class RulingSyntheticTests(RulingCase):
+    """The record format and every only-if check, on synthetic rulings."""
+
+    def test_a_valid_ruling_with_nothing_applied_passes(self):
+        self.commit_ruling(self.ruling())
+        self.assert_accepted()
+
+    def test_blanket_approval_with_matching_applied_edits_passes(self):
+        digest = self.commit_ruling(self.ruling(quote="approve all"))
+        self.apply_all(RULING_DEFAULT_ANSWERS, digest=digest)
+        self.assert_accepted()
+
+    def test_a_ruling_that_names_c6_and_c7_options_passes(self):
+        answers = tuple(
+            (row_id, {"C-6": "A", "C-7": "B", "C-9": "B"}.get(row_id, token))
+            for row_id, token in RULING_DEFAULT_ANSWERS
+        )
+        digest = self.commit_ruling(
+            self.ruling(answers, quote="C-6: A; C-7: B; C-9: B")
+        )
+        self.apply_all(answers, digest=digest)
+        self.assert_accepted()
+
+    def test_two_owner_quote_blocks_fail(self):
+        text = self.ruling()
+        text = replace_once(
+            text,
+            "````\n\n## Recorded answers",
+            "````\n\n````owner-quote\nsecond owner message\n````\n\n"
+            "## Recorded answers",
+        )
+        self.commit_ruling(text)
+        self.assert_rejected("fenced blocks, not 1")
+
+    def test_an_unclosed_fence_fails(self):
+        text = self.ruling()
+        text = replace_once(text, "\n````\n\n## Recorded answers", "\n\n## Recorded answers")
+        self.commit_ruling(text)
+        self.assert_rejected("never closed")
+
+    def test_a_quote_that_closes_its_fence_early_fails(self):
+        quote = "first line\n```\nafter the fence\n```"
+        self.commit_ruling(self.ruling(quote=quote, fence="```"))
+        self.assert_rejected("closes its fence early")
+
+    def test_a_missing_row_fails(self):
+        text = self.ruling()
+        text = replace_once(text, "| C-8 | A | recorded only |\n", "")
+        self.commit_ruling(text)
+        self.assert_rejected("records 14 answers, not 15")
+
+    def test_rows_out_of_order_fail(self):
+        text = self.ruling()
+        c2 = "| C-2 | A | recorded only |"
+        c3 = "| C-3 | recorded | recorded only |"
+        text = replace_once(text, f"{c2}\n{c3}", f"{c3}\n{c2}")
+        self.commit_ruling(text)
+        self.assert_rejected("is not 'C-2' in order")
+
+    def test_v1_maybe_fails(self):
+        answers = tuple(
+            ("V-1", "maybe") if row_id == "V-1" else (row_id, token)
+            for row_id, token in RULING_DEFAULT_ANSWERS
+        )
+        self.commit_ruling(self.ruling(answers))
+        self.assert_rejected("V-1 answer 'maybe' is not one of")
+
+    def test_c6_c_fails(self):
+        answers = tuple(
+            ("C-6", "C") if row_id == "C-6" else (row_id, token)
+            for row_id, token in RULING_DEFAULT_ANSWERS
+        )
+        self.commit_ruling(self.ruling(answers))
+        self.assert_rejected("C-6 answer 'C' is not one of")
+
+    def test_an_owner_cell_that_differs_from_the_ruling_fails(self):
+        digest = self.commit_ruling(self.ruling())
+        self.write_charter(self.applied_charter(RULING_DEFAULT_ANSWERS))
+        self.apply_verdict(RULING_DEFAULT_ANSWERS, digest=digest)
+        self.apply_project()
+        self.apply_requirements(RULING_DEFAULT_ANSWERS)
+        text = (self.root / CHARTER_REL).read_text(encoding="utf-8")
+        row = next(line for line in text.splitlines() if line.startswith("| C-2 |"))
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        cells[4] = "B"
+        text = text.replace(row, "| " + " | ".join(cells) + " |")
+        self.write_charter(text)
+        commit_all(self.root, "a different Owner cell")
+        self.assert_rejected("Owner cell 'B' differs from the ruling's answer 'A'")
+
+    def test_a_project_segment_changed_while_c12_is_b_fails(self):
+        answers = tuple(
+            ("C-12", "B") if row_id == "C-12" else (row_id, token)
+            for row_id, token in RULING_DEFAULT_ANSWERS
+        )
+        digest = self.commit_ruling(self.ruling(answers))
+        self.apply_all(answers, digest=digest)
+        self.assert_rejected("changed while C-12 is 'B'")
+
+    def test_a_project_segment_changed_under_a_that_differs_from_the_draft_fails(self):
+        digest = self.commit_ruling(self.ruling())
+        self.apply_all(
+            RULING_DEFAULT_ANSWERS,
+            digest=digest,
+            what_this_is="A different description of the project.",
+        )
+        self.assert_rejected("differs from the project-draft-what-this-is draft")
+
+    def test_a_requirements_cell_set_while_c14_is_c_fails(self):
+        answers = tuple(
+            ("C-14", "C") if row_id == "C-14" else (row_id, token)
+            for row_id, token in RULING_DEFAULT_ANSWERS
+        )
+        digest = self.commit_ruling(self.ruling(answers))
+        self.write_charter(self.applied_charter(answers))
+        self.apply_verdict(answers, digest=digest)
+        self.apply_project()
+        self.apply_requirements(answers, label=self.module.GAP_6401_LABELS["A"])
+        commit_all(self.root, "a status set while C-14 is C")
+        self.assert_rejected("is set while C-14 is 'C'")
+
+    def test_a_ticked_skipped_requirement_checkbox_fails(self):
+        digest = self.commit_ruling(self.ruling())
+        self.apply_all(RULING_DEFAULT_ANSWERS, digest=digest)
+        path = self.root / ".planning/REQUIREMENTS.md"
+        text = path.read_text(encoding="utf-8")
+        text = replace_once(text, "- [ ] **CONF-10**", "- [x] **CONF-10**")
+        path.write_text(text, encoding="utf-8")
+        commit_all(self.root, "a ticked checkbox")
+        self.assert_rejected("CONF-10 has its checkbox ticked")
+
+    def test_a_requirements_commit_before_the_ruling_fails(self):
+        self.apply_requirements(RULING_DEFAULT_ANSWERS)
+        commit_all(self.root, "an edit before the ruling")
+        self.commit_ruling(self.ruling())
+        self.assert_rejected("does not descend from the ruling's commit")
+
+    def test_a_verdict_owner_decision_that_differs_fails(self):
+        digest = self.commit_ruling(self.ruling())
+        answers = tuple(
+            ("V-1", "continue") if row_id == "V-1" else (row_id, token)
+            for row_id, token in RULING_DEFAULT_ANSWERS
+        )
+        self.write_charter(self.applied_charter(RULING_DEFAULT_ANSWERS))
+        self.apply_verdict(answers, digest=digest)
+        commit_all(self.root, "a different verdict decision")
+        self.assert_rejected("owner_decision 'continue' differs")
+
+    def test_a_fake_table_inside_the_quote_is_ignored(self):
+        quote = (
+            "| V-1 | stop | 64-07: verdict sign-off |\n"
+            "## Recorded answers\n"
+            "| C-6 | B | recorded only |"
+        )
+        text = self.ruling(quote=quote)
+        self.commit_ruling(text)
+        parsed = self.module.parse_ruling(text)
+        self.assertEqual(parsed["answers"]["V-1"], "change-course")
+        self.assertEqual(parsed["answers"]["C-6"], "open")
+        self.assert_accepted()
+
+    def test_an_untracked_ruling_fails(self):
+        self.write_ruling(self.ruling())
+        self.assert_rejected("the ruling is not tracked")
+
+    def test_a_dirty_ruling_fails(self):
+        self.commit_ruling(self.ruling())
+        path = self.root / RULING_REL
+        path.write_text(path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        self.assert_rejected("uncommitted changes")
+
+
+class RulingInjectionTests(RulingCase):
+    """A hostile owner quote reaches no command and no path."""
+
+    HOSTILE = (
+        "; rm -rf /",
+        "$(touch /tmp/phase64-pwned)",
+        "`whoami`",
+        "| V-1 | stop | 64-07: verdict sign-off |",
+        "## Recorded answers",
+    )
+
+    def test_a_hostile_quote_reaches_no_command_or_path(self):
+        quote = "\n".join(
+            list(self.HOSTILE) + ["A" * 100000, "```", "~~~", "/etc/passwd"]
+        )
+        self.commit_ruling(self.ruling(quote=quote))
+        calls: list[list[str]] = []
+        real_run = subprocess.run
+
+        def spy(argv, *args, **kwargs):
+            self.assertIsInstance(argv, list)
+            self.assertEqual(argv[0], "git")
+            self.assertFalse(kwargs.get("shell", False))
+            joined = " ".join(str(item) for item in argv)
+            for hostile in self.HOSTILE + ("/tmp/phase64-pwned", "/etc/passwd"):
+                self.assertNotIn(hostile, joined)
+            calls.append(list(argv))
+            return real_run(argv, *args, **kwargs)
+
+        with mock.patch.object(self.module.subprocess, "run", side_effect=spy):
+            code, out, err = self.run_ruling()
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["RULING-OK"])
+        self.assertTrue(calls)
+        self.assertTrue(all(call[0] == "git" for call in calls))
+
+
 if __name__ == "__main__":
     unittest.main()

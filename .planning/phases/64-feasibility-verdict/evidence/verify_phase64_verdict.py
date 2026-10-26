@@ -4082,6 +4082,403 @@ def cmd_rules(_args: argparse.Namespace) -> None:
     print("RULES-OK")
 
 
+# ---------------------------------------------------------------------------
+# The ruling: the owner's answer at checkpoint 1, and the edits it authorises
+# ---------------------------------------------------------------------------
+
+RULING_FRONT_MATTER_KEYS = ("phase", "milestone", "created", "status", "authority")
+RULING_STATUS = "ratified"
+RULING_AUTHORITY = "owner, checkpoint 1 (FEAS-06, FEAS-10)"
+RULING_HEADINGS = (
+    "## Authority and boundary",
+    "## The owner's words",
+    "## Recorded answers",
+)
+RULING_TABLE_HEADER = ("ID", "Recorded answer", "Applied by")
+RULING_MESSAGE_SENTENCE = re.compile(
+    r"The block below holds the owner's reply verbatim: (?P<count>\d+) "
+    r"message(?:s)?, in the order received, separated by one blank line\."
+)
+RULING_V1_TOKENS = ("continue", "change-course", "stop")
+RULING_RECORDED_TOKENS = ("recorded", "open")
+RULING_CHANGED_PREFIX = "changed: "
+
+
+def _check_ruling_front_matter(pairs: Sequence[tuple[str, str]]) -> dict[str, str]:
+    keys = [key for key, _value in pairs]
+    if keys != list(RULING_FRONT_MATTER_KEYS):
+        fail(
+            "the ruling front matter keys are not the format's keys in order: "
+            f"found {keys!r}"
+        )
+    values = dict(pairs)
+    if values["phase"] != PHASE_REL.name:
+        fail(f"the ruling phase {values['phase']!r} is not {PHASE_REL.name!r}")
+    if values["milestone"] != "v2.4":
+        fail(f"the ruling milestone {values['milestone']!r} is not 'v2.4'")
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", values["created"]) is None:
+        fail(f"the ruling created {values['created']!r} is not a date")
+    if values["status"] != RULING_STATUS:
+        fail(f"the ruling status {values['status']!r} is not {RULING_STATUS!r}")
+    if values["authority"] != RULING_AUTHORITY:
+        fail(
+            f"the ruling authority {values['authority']!r} is not "
+            f"{RULING_AUTHORITY!r}"
+        )
+    return values
+
+
+def _check_recorded_token(row_id: str, token: str) -> None:
+    """One Recorded answer token, in the vocabulary the charter's row offers."""
+    if token.startswith(RULING_CHANGED_PREFIX):
+        if not token[len(RULING_CHANGED_PREFIX) :].strip():
+            fail(f"the ruling's {row_id} changed answer is empty")
+        return
+    if row_id == "V-1":
+        allowed = RULING_V1_TOKENS
+    elif row_id in CHARTER_RECORDED_IDS:
+        allowed = RULING_RECORDED_TOKENS
+    else:
+        allowed = tuple(CHARTER_ROW_LETTERS[row_id]) + ("open",)
+    if token not in allowed:
+        fail(f"the ruling's {row_id} answer {token!r} is not one of {allowed!r}")
+
+
+def parse_ruling(text: str) -> dict[str, Any]:
+    """The ruling's front matter, one opaque quote, and its 15 recorded answers.
+
+    Only the agent-written Recorded answers table is parsed. The owner's words
+    stay inside one fenced block and are never read as commands, paths or
+    answers: headings and tables inside the fence are blanked before the
+    document's structure is read, and the block must run to the end of its
+    section, so a quote that closes its own fence early leaves visible text
+    behind and is refused rather than trusted. Blanket approval ("approve all",
+    "approve the rest") leaves C-6 and C-7 open (the owner's decision of
+    2026-10-25, GAP-64-02), but that rule cannot be enforced here because the
+    quote is never parsed; it lives in 64-06 Task 2's reply handling. This mode
+    accepts a letter on C-6 or C-7 like any other offered option.
+    """
+    pairs, body = _parse_front_matter(text, what="the ruling")
+    values = _check_ruling_front_matter(pairs)
+    raw_lines = _LINE_BREAK.split(body)
+    visible_body, _blocks = _without_fences(body)
+    lines = _LINE_BREAK.split(visible_body)
+    found = [line.rstrip() for line in lines if line.startswith("## ")]
+    if found != list(RULING_HEADINGS):
+        fail(
+            "the ruling's level-2 headings are not the three expected headings "
+            f"exactly once in order: found {found!r}"
+        )
+
+    def section(heading: str) -> tuple[int, int]:
+        start = lines.index(heading)
+        end = len(lines)
+        for index in range(start + 1, len(lines)):
+            if lines[index].startswith("## "):
+                end = index
+                break
+        return start, end
+
+    spans = _fenced_spans(body)
+    words_start, words_end = section("## The owner's words")
+    words_blocks = [
+        (info, start, content)
+        for info, start, _end, content in spans
+        if words_start < start < words_end
+    ]
+    if len(words_blocks) != 1:
+        fail(
+            "the owner's words section holds "
+            f"{len(words_blocks)} fenced blocks, not 1; a quote that closes its "
+            "fence early is refused"
+        )
+    info, block_start, content = words_blocks[0]
+    if info.strip() != CHARTER_OWNER_QUOTE:
+        fail(
+            "the ruling's one fenced block is not an owner-quote block: "
+            f"info {info!r}"
+        )
+    quote = "\n".join(content).strip()
+    if not quote:
+        fail("the ruling's owner-quote block is empty")
+    sentence_lines = [
+        line.strip() for line in lines[words_start + 1 : words_end] if line.strip()
+    ]
+    if len(sentence_lines) != 1:
+        fail(
+            "the owner's words section holds "
+            f"{len(sentence_lines)} visible lines, not the one message-count "
+            "sentence; a quote that closes its fence early is refused"
+        )
+    match = RULING_MESSAGE_SENTENCE.fullmatch(sentence_lines[0])
+    if match is None:
+        fail("the ruling lacks the message-count sentence in its fixed wording")
+    count = int(match["count"])
+    if count < 1:
+        fail("the ruling's message count is not a positive integer")
+    sentence_index = next(
+        index
+        for index in range(words_start + 1, words_end)
+        if raw_lines[index].strip() == sentence_lines[0]
+    )
+    if sentence_index > block_start:
+        fail("the ruling's message-count sentence follows its owner-quote block")
+
+    answers_start, answers_end = section("## Recorded answers")
+    answer_blocks = [
+        start for _info, start, _end, _content in spans if answers_start < start < answers_end
+    ]
+    if answer_blocks:
+        fail("the ruling's Recorded answers section holds a fenced block")
+    table = [
+        line
+        for line in lines[answers_start + 1 : answers_end]
+        if line.strip().startswith("|")
+    ]
+    if len(table) < 3:
+        fail("the ruling's Recorded answers section holds no table")
+    rows = [_table_cells(line, what="a Recorded answers row") for line in table]
+    if tuple(rows[0]) != RULING_TABLE_HEADER:
+        fail(f"the ruling's table header is {rows[0]!r}, not {list(RULING_TABLE_HEADER)!r}")
+    if any(re.fullmatch(r":?-{3,}:?", cell) is None for cell in rows[1]):
+        fail("the ruling's Recorded answers separator is malformed")
+    data = rows[2:]
+    if len(data) != len(CHARTER_ROW_IDS):
+        fail(
+            f"the ruling records {len(data)} answers, not {len(CHARTER_ROW_IDS)}"
+        )
+    answers: dict[str, str] = {}
+    for expected, row in zip(CHARTER_ROW_IDS, data):
+        if len(row) != 3:
+            fail(f"the ruling row {row[0]!r} holds {len(row)} cells, not 3")
+        if row[0] != expected:
+            fail(f"the ruling's row {row[0]!r} is not {expected!r} in order")
+        _check_recorded_token(expected, row[1])
+        if not row[2]:
+            fail(f"the ruling row {expected} has an empty Applied by cell")
+        answers[expected] = row[1]
+    return {
+        "front_matter": values,
+        "answers": answers,
+        "quote": quote,
+        "message_count": count,
+    }
+
+
+def project_segments(text: str) -> dict[str, str]:
+    """PROJECT.md's title, What This Is, Core Value and Model, stripped."""
+    lines = _LINE_BREAK.split(text)
+    if not lines or not lines[0].startswith("# "):
+        fail("PROJECT.md's first line is not a level-1 title")
+    model = [line.rstrip() for line in lines if line.startswith("- **Model**:")]
+    if len(model) != 1:
+        fail(f"PROJECT.md holds {len(model)} Model lines, not 1")
+
+    def body(heading: str) -> str:
+        section = _section_body(lines, heading, what="PROJECT.md")
+        while section and not section[0].strip():
+            section.pop(0)
+        while section and not section[-1].strip():
+            section.pop()
+        if not section:
+            fail(f"PROJECT.md's {heading} body is empty")
+        return "\n".join(section)
+
+    return {
+        "title": lines[0].rstrip(),
+        "what_this_is": body("## What This Is"),
+        "core_value": body("## Core Value"),
+        "model": model[0],
+    }
+
+
+def _charter_draft_blocks(text: str) -> dict[str, str]:
+    drafts: dict[str, str] = {}
+    for info, _start, _end, content in _fenced_spans(text):
+        name = info.strip()
+        if name in CHARTER_DRAFT_INFOS:
+            drafts[name] = "\n".join(content).strip()
+    return drafts
+
+
+def _check_ruling_applied(
+    charter: str,
+    verdict: str,
+    answers: Mapping[str, str],
+    created: str,
+    ruling_digest: str,
+) -> None:
+    """Every applied owner-dependent edit must match the recorded answer.
+
+    Only-if: an edit that has not been made is not an error, because 64-06
+    commits the ruling before 64-07 applies it. An edit that has been made must
+    be exactly the one the ruling records.
+    """
+    rows = parse_charter_page(charter)
+    for row in rows:
+        cell = row[4]
+        if cell and cell != answers[row[0]]:
+            fail(
+                f"the charter's {row[0]} Owner cell {cell!r} differs from the "
+                f"ruling's answer {answers[row[0]]!r}"
+            )
+
+    pairs, _body = _parse_front_matter(verdict, what="the verdict")
+    values = dict(pairs)
+    v1 = answers["V-1"]
+    if (
+        values["owner_decision"] != "pending"
+        and v1 in RULING_V1_TOKENS
+        and values["owner_decision"] != v1
+    ):
+        fail(
+            f"the verdict's owner_decision {values['owner_decision']!r} differs "
+            f"from the ruling's V-1 answer {v1!r}"
+        )
+    if values["owner_decision_date"] != "pending" and values["owner_decision_date"] != created:
+        fail(
+            f"the verdict's owner_decision_date {values['owner_decision_date']!r} "
+            f"differs from the ruling's created date {created!r}"
+        )
+    if values["ruling_sha256"] != "pending" and values["ruling_sha256"] != ruling_digest:
+        fail("the verdict's ruling_sha256 is not the ruling's SHA-256")
+
+    head = _git("show", f"HEAD:{PROJECT_REL.as_posix()}")
+    base = _git("show", f"{PHASE_BASE}:{PROJECT_REL.as_posix()}")
+    if head.returncode != 0:
+        fail(f"PROJECT.md at HEAD is unreadable: {head.stderr.strip()}")
+    if base.returncode != 0:
+        fail(f"PROJECT.md at the phase base is unreadable: {base.stderr.strip()}")
+    head_segments = project_segments(head.stdout)
+    base_segments = project_segments(base.stdout)
+    drafts = _charter_draft_blocks(charter)
+    for row_id, pairs_of_segments in (
+        ("C-12", ("what_this_is", "core_value")),
+        ("C-13", ("title", "model")),
+    ):
+        token = answers[row_id]
+        for segment in pairs_of_segments:
+            if head_segments[segment] == base_segments[segment]:
+                continue
+            if token == "A":
+                draft_name = {
+                    "what_this_is": "project-draft-what-this-is",
+                    "core_value": "project-draft-core-value",
+                    "title": "project-draft-title",
+                    "model": "project-draft-model",
+                }[segment]
+                if head_segments[segment] != drafts[draft_name]:
+                    fail(
+                        f"PROJECT.md's {segment} changed under {row_id} A but "
+                        f"differs from the {draft_name} draft"
+                    )
+            elif token.startswith(RULING_CHANGED_PREFIX):
+                continue
+            else:
+                fail(
+                    f"PROJECT.md's {segment} changed while {row_id} is {token!r}"
+                )
+
+    requirements = _git("show", f"HEAD:{REQUIREMENTS_REL.as_posix()}")
+    if requirements.returncode != 0:
+        fail(f"REQUIREMENTS.md at HEAD is unreadable: {requirements.stderr.strip()}")
+    requirements_text = requirements.stdout
+    table_block = _slice_between(
+        requirements_text,
+        r"^## Traceability$",
+        r"^---$",
+        what="REQUIREMENTS.md Traceability section",
+    )
+    table = TABLE_ROW.findall(table_block)
+    mapped = sorted(
+        requirement
+        for requirement, phase_text, _status in table
+        if int(phase_text) in (61, 62, 63)
+    )
+    if mapped != sorted(SKIPPED_PHASE_REQUIREMENTS):
+        fail(
+            "REQUIREMENTS.md's Phase 61 to 63 rows are not the twelve skipped "
+            f"requirements: found {mapped!r}"
+        )
+    statuses = {requirement: status for requirement, _phase, status in table}
+    definitions = re.findall(
+        r"^- \[([ xX])\] \*\*([A-Z]+-\d+)\*\*", requirements_text, re.M
+    )
+    states = {requirement: state for state, requirement in definitions}
+    token = answers["C-14"]
+    for requirement in SKIPPED_PHASE_REQUIREMENTS:
+        if requirement not in statuses:
+            fail(f"REQUIREMENTS.md's Traceability table lacks {requirement}")
+        if requirement not in states:
+            fail(f"REQUIREMENTS.md does not define {requirement}")
+        if states[requirement] != " ":
+            fail(f"the skipped requirement {requirement} has its checkbox ticked")
+        status = statuses[requirement]
+        if token in ("A", "B"):
+            expected = GAP_6401_LABELS[token]
+            if status not in ("Pending", expected):
+                fail(
+                    f"{requirement}'s status {status!r} is neither Pending nor "
+                    f"the C-14 {token} label"
+                )
+        elif token in ("C", "open"):
+            if status != "Pending":
+                fail(
+                    f"{requirement}'s status {status!r} is set while C-14 is "
+                    f"{token!r}"
+                )
+
+
+def _check_ruling_commit_order() -> None:
+    """The ruling is committed before any edit it authorises."""
+    added = _git("log", "--diff-filter=A", "--format=%H", "--", RULING_REL.as_posix())
+    if added.returncode != 0:
+        fail(f"git log for the ruling failed: {added.stderr.strip()}")
+    commits = added.stdout.split()
+    if len(commits) != 1:
+        fail(f"the ruling was added in {len(commits)} commits, not 1")
+    ruling_commit = commits[0]
+    edited = _git(
+        "log",
+        "--format=%H",
+        f"{PHASE_BASE}..HEAD",
+        "--",
+        PROJECT_REL.as_posix(),
+        REQUIREMENTS_REL.as_posix(),
+    )
+    if edited.returncode != 0:
+        fail(f"git log for the applied edits failed: {edited.stderr.strip()}")
+    for commit in edited.stdout.split():
+        if not is_ancestor(ruling_commit, commit):
+            fail(
+                f"the commit {commit[:12]} touches PROJECT.md or REQUIREMENTS.md "
+                "but does not descend from the ruling's commit"
+            )
+
+
+def cmd_ruling(_args: argparse.Namespace) -> None:
+    """The owner's answer, and only the edits it records (see parse_ruling)."""
+    path = repo_path(RULING_REL, what="the ruling")
+    if not path.is_file():
+        fail(f"the ruling does not exist: {RULING_REL.as_posix()}")
+    if not is_tracked(RULING_REL.as_posix()):
+        fail("the ruling is not tracked")
+    if not is_clean(RULING_REL.as_posix()):
+        fail("the ruling has uncommitted changes")
+    parsed = parse_ruling(_read_text(path, what="the ruling"))
+    charter = charter_text()
+    _check_charter_drafts(charter)
+    _check_ruling_applied(
+        charter,
+        verdict_text(),
+        parsed["answers"],
+        parsed["front_matter"]["created"],
+        sha256_file(path),
+    )
+    _check_ruling_commit_order()
+    print("RULING-OK")
+
+
 COMMANDS = {
     "inputs": cmd_inputs,
     "frozen": cmd_frozen,
@@ -4091,6 +4488,7 @@ COMMANDS = {
     "figure": cmd_figure,
     "rules": cmd_rules,
     "charter": cmd_charter,
+    "ruling": cmd_ruling,
 }
 
 
