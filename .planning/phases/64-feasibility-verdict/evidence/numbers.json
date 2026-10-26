@@ -1,0 +1,141 @@
+{
+  "attestation": {
+    "blocked_attempts": 0,
+    "data_root_source": "git_common_dir_default",
+    "opened": {
+      "other_under_root": 0,
+      "train": 258,
+      "validation": 0
+    },
+    "refused_before_open": 0,
+    "schema": "phase59-files-opened/v1",
+    "test_split_opened": 0
+  },
+  "entries": [
+    {
+      "derivation": "result.E of the committed r1-1632 record: the official score the arm wrote on the MPS device in float32.",
+      "id": "arm.r1-1632.E",
+      "label": "official-mps-float32",
+      "render": "1.1574",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "key": "result.E",
+        "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json"
+      },
+      "value": 1.157387378319295
+    },
+    {
+      "derivation": "Re-scored from the committed polish weights on the CPU in float64; equals states.polish.cross_check.E within 1e-12 and is never compared with the official E.",
+      "id": "cpu.r1-1632.polish.E",
+      "label": "rederived-cpu-float64",
+      "render": "1.1600",
+      "render_rule": "E4",
+      "required_in": [
+        "verdict"
+      ],
+      "source": {
+        "record": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+        "state": "polish",
+        "weights": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/polish.weights"
+      },
+      "value": 1.1599973904350662
+    },
+    {
+      "derivation": "ordered_sum over the seven records' wall.hours in handoff arm order, the explicit left-to-right += loop from 0.0.",
+      "id": "hours.total",
+      "label": "arithmetic",
+      "render": "22.378",
+      "render_rule": "F3",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "formula": "hours_total"
+      },
+      "value": 22.37828873402778
+    },
+    {
+      "derivation": "The 2026 study's relative energy error over one orbital period, quoted from the Phase 64 research page.",
+      "id": "pub.kollias.energy_range",
+      "label": "cited",
+      "render": "0.02\u20133%",
+      "render_rule": "LIT",
+      "required_in": [
+        "verdict",
+        "charter"
+      ],
+      "source": {
+        "commit": "7fda0a55fc84447ea17abbb4d1188761add94d8a",
+        "path": ".planning/phases/64-feasibility-verdict/64-RESEARCH.md",
+        "token": "to within \u223c 0.02\u20133%"
+      },
+      "value": "0.02\u20133%"
+    }
+  ],
+  "handoff_sha256": "7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5",
+  "inputs": [
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w060/record.json",
+      "sha256": "cf1bc1fac780c21e26c917f4573c4845ccd36ed88136e23658f5a0eb5c960c42"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w120/record.json",
+      "sha256": "893cbcefbda4c8cb061071c6d12044620112750644d68987a3b57d55ea245900"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w240/record.json",
+      "sha256": "391e3f1728b3de287849ca4a7e48ae17da92e8ca48c8f77562caf377d56e4ca1"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/g2s-1632-w480/record.json",
+      "sha256": "b75905c954728001c27a4f9c649281feb7f404358d88a2cdd58822d94909639e"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-1632/record.json",
+      "sha256": "a87273674785128714f5eae4981dcee31fe4c2332dbd84213b7aeaa0098da0b7"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-4658/record.json",
+      "sha256": "dbba558ab41b9b1ba080b8346fc4834dcd0987e046d151a4d443a8e5d94f1ab8"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/arms/r1-851/record.json",
+      "sha256": "3152470de1b34f8e1aa4fe3c0a7f825c32da385eb7636db56a92da50a88baa8a"
+    },
+    {
+      "path": ".planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json",
+      "sha256": "7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5"
+    },
+    {
+      "path": "pinn/verification/artifacts/feasibility_scorecard_v1.json",
+      "sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/checkpoints/stage-0-init.pt",
+      "sha256": "c8eab3e7a8e894da4dc994b91a13189cbdd2109ff4d6ca433a54f24418bfaf7e"
+    },
+    {
+      "path": "runs/stage0-v23g7-seed42/splits.json",
+      "sha256": "5846ae5b55104e55a85d644875c3da187200c3d521f52a9298876d656c6d8903"
+    }
+  ],
+  "plain_language": "Every number the Phase 64 verdict and charter quote, each with the file it comes from and how it was computed, re-derived independently by verify_phase64_verdict.py.",
+  "producer_sha256": {
+    ".planning/phases/64-feasibility-verdict/evidence/build_phase64_evidence.py": "3203d9652719e797e9bf4b5e31628c3fbd3a1259487237902455cfc9153a84ce",
+    "pinn/architecture_spec.py": "3cc1b9c21c6a483b6acfa4be551ea533784aee1872d46b365e66fc50806f5085",
+    "pinn/network.py": "af993b79c7ebeab4b28adcd58dfa6febfa75ef9186b57a6aa67487f40a980a81",
+    "pinn/verification/diagnostic_architecture.py": "d2c1f450c13779bee3ed4e68445491b5f9c2ceb55d5a304e193b048ac23a6eef",
+    "pinn/verification/evidence_io.py": "ca030bae67bb1135134ccf532ae27a77879306e56f036de1854f7794d81451c7",
+    "pinn/verification/feasibility_scorecard.py": "12fcb2306f5131da299637ecd97f3dc0290d5d01a58fbaac8fb3a1864c5edfe5",
+    "pinn/verification/feasibility_scorer.py": "00edf81d59396fe189d476dd3e69473c4291b71bc6af6171da758f68b61f2bc7",
+    "pinn/verification/learnability_arms.py": "1543c1ed25e7be8e1ffd3622f9f6d8c201571eaf53c7a73fcca4aa53f8f91d88",
+    "pinn/verification/learnability_data.py": "1fb28a8f7774ca00f82b5006028e1f4193d56406bdf1b6afb112d5553a6de737",
+    "pinn/verification/learnability_run.py": "a031b9373db7dbd7a15429f7e699fb1743b7f33f2563b6f01ac3166a63bf711c"
+  },
+  "schema": "phase64-numbers/v1",
+  "scorecard_sha256": "f4b17688c05de68b7aa0f62e452baad751989b0ce2ce36828359a53f9e09444b"
+}

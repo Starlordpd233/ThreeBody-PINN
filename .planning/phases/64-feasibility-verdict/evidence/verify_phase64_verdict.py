@@ -17,9 +17,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import subprocess
 import sys
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
 
@@ -38,6 +40,58 @@ P59_EVIDENCE_REL = Path(".planning/phases/59-read-only-baseline-scorecard/eviden
 HANDOFF_REL = P60_EVIDENCE_REL / "g2" / "stop-handoff.json"
 HANDOFF_SHA256 = "7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5"
 HANDOFF_SCHEMA = "phase60-stop-handoff/v1"
+
+# The number manifest (64-02). The verifier carries its own copy of the
+# rendering rules, its own id-to-key table, its own formulas and its own cited
+# tokens: it never imports the producer and never trusts the producer's code.
+NUMBERS_REL = EVIDENCE_REL / "numbers.json"
+NUMBERS_SCHEMA = "phase64-numbers/v1"
+P60_ARMS_REL = P60_EVIDENCE_REL / "arms"
+SCORECARD_ARTIFACT_REL = Path("pinn/verification/artifacts/feasibility_scorecard_v1.json")
+RESEARCH_REL = PHASE_REL / "64-RESEARCH.md"
+RESEARCH_COMMIT = "7fda0a55fc84447ea17abbb4d1188761add94d8a"
+PRODUCER_REL = (EVIDENCE_REL / "build_phase64_evidence.py").as_posix()
+NUMBERS_LABELS = (
+    "official-mps-float32",
+    "rederived-cpu-float64",
+    "committed-record",
+    "arithmetic",
+    "cited",
+)
+NUMBERS_RULES = (
+    "E4",
+    "F0",
+    "F1",
+    "F2",
+    "F3",
+    "F5",
+    "F6",
+    "INT",
+    "EPS",
+    "POW10",
+    "SCI2",
+    "PCT0",
+    "OFN",
+    "STR",
+    "BOOL",
+    "LIT",
+)
+ENTRY_KEYS = frozenset(
+    {
+        "id",
+        "value",
+        "render",
+        "render_rule",
+        "label",
+        "source",
+        "derivation",
+        "required_in",
+    }
+)
+CPU_ENTRY = re.compile(
+    r"^cpu\.(?P<arm>[a-z0-9-]+)\.(?P<state>adam|polish)\.(?P<field>[A-Za-z0-9_]+)$"
+)
+
 
 # The frozen check: the phase base every frozen byte must predate, the eight
 # sealed files named here, the 33 pinned modules read from run-protocol.json at
@@ -732,10 +786,572 @@ def cmd_traceability(_args: argparse.Namespace) -> None:
     print("TRACEABILITY-OK")
 
 
+# ---------------------------------------------------------------------------
+# The number manifest: the verifier's own rendering, tables and checks
+# ---------------------------------------------------------------------------
+
+_SUPERSCRIPT = {
+    "0": "\u2070",
+    "1": "\u00b9",
+    "2": "\u00b2",
+    "3": "\u00b3",
+    "4": "\u2074",
+    "5": "\u2075",
+    "6": "\u2076",
+    "7": "\u2077",
+    "8": "\u2078",
+    "9": "\u2079",
+    "-": "\u207b",
+}
+
+
+def _real(value: Any, rule: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        fail(f"render rule {rule} needs a real number, got {value!r}")
+    number = float(value)
+    if not math.isfinite(number):
+        fail(f"render rule {rule} needs a finite number, got {value!r}")
+    return number
+
+
+def _superscript(exponent: int) -> str:
+    try:
+        return "".join(_SUPERSCRIPT[character] for character in str(int(exponent)))
+    except KeyError as exc:  # pragma: no cover - the table covers every digit and '-'
+        fail(f"cannot render the exponent {exponent!r}: {exc}")
+
+
+def _power_of_ten(value: Any) -> int:
+    number = _real(value, "POW10")
+    if number <= 0.0:
+        fail(f"render rule POW10 needs a positive number, got {value!r}")
+    exponent = int(round(math.log10(number)))
+    if Decimal(repr(number)) != Decimal(10) ** exponent:
+        fail(f"render rule POW10 needs an exact power of ten, got {value!r}")
+    return exponent
+
+
+def render_number(value: Any, rule: str) -> str:
+    """The verifier's own copy of the rendering rule, applied to the IEEE double."""
+    if rule == "E4":
+        return f"{_real(value, rule):.4f}"
+    if rule in {"F0", "F1", "F2", "F3", "F5", "F6"}:
+        return f"{_real(value, rule):.{int(rule[1:])}f}"
+    if rule == "INT":
+        if isinstance(value, bool) or not isinstance(value, int):
+            fail(f"render rule INT needs an int, got {value!r}")
+        return f"{value:,}"
+    if rule == "EPS":
+        number = _real(value, rule)
+        return f"{number:.2f}" if number < 1000.0 else f"{number:,.1f}"
+    if rule == "POW10":
+        return f"10{_superscript(_power_of_ten(value))}"
+    if rule == "SCI2":
+        number = _real(value, rule)
+        if number <= 0.0:
+            fail(f"render rule SCI2 needs a positive number, got {value!r}")
+        exponent = int(math.floor(math.log10(number)))
+        mantissa = number / (10.0**exponent)
+        if round(mantissa, 2) >= 10.0:
+            exponent += 1
+            mantissa = number / (10.0**exponent)
+        return f"{mantissa:.2f} \u00d7 10{_superscript(exponent)}"
+    if rule == "PCT0":
+        return f"{_real(value, rule) * 100.0:.0f}%"
+    if rule == "OFN":
+        if (
+            not isinstance(value, (list, tuple))
+            or len(value) != 2
+            or isinstance(value[0], bool)
+            or isinstance(value[1], bool)
+            or not isinstance(value[0], int)
+            or not isinstance(value[1], int)
+        ):
+            fail(f"render rule OFN needs [count, total] as two ints, got {value!r}")
+        return f"{value[0]} of {value[1]}"
+    if rule == "STR":
+        if not isinstance(value, str):
+            fail(f"render rule STR needs a string, got {value!r}")
+        return value
+    if rule == "BOOL":
+        if not isinstance(value, bool):
+            fail(f"render rule BOOL needs a bool, got {value!r}")
+        return "true" if value else "false"
+    if rule == "LIT":
+        if not isinstance(value, str):
+            fail(f"render rule LIT needs a literal string, got {value!r}")
+        return value
+    fail(f"unknown render rule {rule!r}")
+
+
+def _record_rel(arm_id: str) -> str:
+    return (P60_ARMS_REL / arm_id / "record.json").as_posix()
+
+
+def _weights_rel(arm_id: str, state: str) -> str:
+    return (P60_ARMS_REL / arm_id / f"{state}.weights").as_posix()
+
+
+def _load_json_rel(relative: str, *, what: str) -> Any:
+    return load_json(repo_path(relative, what=what), what=what)
+
+
+def _load_record(arm_id: str) -> Mapping[str, Any]:
+    record = _load_json_rel(_record_rel(arm_id), what=f"record {arm_id}")
+    if not isinstance(record, Mapping):
+        fail(f"record {arm_id} is not an object")
+    return record
+
+
+def committed_table() -> dict[str, tuple[str, str]]:
+    """The verifier's own id-to-key table for the entries read from a record.
+
+    Written here, independently of the producer: a recorded source that does not
+    equal this table's answer fails, so a swapped file or key cannot pass.
+    """
+    return {
+        "arm.r1-1632.E": (_record_rel("r1-1632"), "result.E"),
+    }
+
+
+def formula_hours_total() -> float:
+    """The seven wall.hours in handoff order, through 64-01's ordered_sum."""
+    values = [_field(_load_record(arm_id), "wall.hours") for arm_id in EXPECTED_ARMS]
+    return ordered_sum(values)
+
+
+ARITHMETIC_TABLE: dict[str, tuple[str, Any]] = {
+    "hours.total": ("hours_total", formula_hours_total),
+}
+
+CITED_TABLE: dict[str, tuple[str, str, str]] = {
+    "pub.kollias.energy_range": (
+        RESEARCH_REL.as_posix(),
+        RESEARCH_COMMIT,
+        "to within \u223c 0.02\u20133%",
+    ),
+}
+
+
+def _check_current_file(relative: Any, digest: Any, *, what: str) -> None:
+    """A recorded ``{path, sha256}`` whose digest must equal the file on disk."""
+    if not isinstance(relative, str) or not relative:
+        fail(f"{what} has no path")
+    if not isinstance(digest, str) or HEX64.match(digest) is None:
+        fail(f"{what} has no 64-hex sha256")
+    path = repo_path(relative, what=what)
+    if not path.is_file():
+        fail(f"{what} does not exist: {relative}")
+    disk = sha256_file(path)
+    if disk != digest:
+        fail(f"{what} SHA-256 {disk} != recorded {digest}")
+
+
+def _check_record_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> None:
+    entry_id = entry["id"]
+    table = committed_table()
+    if entry_id not in table:
+        fail(f"entry {entry_id} is not in the verifier's committed-record table")
+    expected_path, expected_key = table[entry_id]
+    if set(source) != {"path", "key"}:
+        fail(f"entry {entry_id} source must hold exactly path and key")
+    if source["path"] != expected_path or source["key"] != expected_key:
+        fail(
+            f"entry {entry_id} source {dict(source)!r} != the table's "
+            f"({expected_path!r}, {expected_key!r})"
+        )
+    record = _load_json_rel(expected_path, what=f"record for {entry_id}")
+    value = _field(record, expected_key)
+    if entry["value"] != value:
+        fail(
+            f"entry {entry_id} value {entry['value']!r} != "
+            f"{expected_path}:{expected_key} {value!r}"
+        )
+
+
+def _check_arithmetic_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> None:
+    entry_id = entry["id"]
+    if set(source) != {"formula"}:
+        fail(f"entry {entry_id} arithmetic source must hold exactly formula")
+    if entry_id not in ARITHMETIC_TABLE:
+        fail(f"entry {entry_id} is not in the verifier's arithmetic table")
+    name, formula = ARITHMETIC_TABLE[entry_id]
+    if source["formula"] != name:
+        fail(f"entry {entry_id} formula {source['formula']!r} != the table's {name!r}")
+    value = formula()
+    if entry["value"] != value:
+        fail(f"entry {entry_id} value {entry['value']!r} != re-derived {value!r}")
+
+
+def _check_cited_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> None:
+    entry_id = entry["id"]
+    if set(source) != {"path", "commit", "token"}:
+        fail(f"entry {entry_id} cited source must hold exactly path, commit and token")
+    if entry_id not in CITED_TABLE:
+        fail(f"entry {entry_id} is not in the verifier's cited table")
+    path, commit, token = CITED_TABLE[entry_id]
+    if (
+        source["path"] != path
+        or source["commit"] != commit
+        or source["token"] != token
+    ):
+        fail(f"entry {entry_id} citation {dict(source)!r} != the table's")
+    if re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+        fail(f"entry {entry_id} commit {commit!r} is not a 40-hex commit")
+    head = _git("rev-parse", "HEAD")
+    head_sha = head.stdout.strip()
+    if head.returncode != 0 or not head_sha:
+        fail(f"cannot resolve HEAD: {head.stderr.strip()}")
+    if not is_ancestor(commit, head_sha):
+        fail(f"entry {entry_id} commit {commit} is not an ancestor of HEAD {head_sha}")
+    shown = _git("show", f"{commit}:{path}")
+    if shown.returncode != 0:
+        fail(f"cannot read {path} at {commit}: {shown.stderr.strip()}")
+    if token not in shown.stdout:
+        fail(
+            f"entry {entry_id} token {token!r} does not occur verbatim in "
+            f"{path} at {commit}"
+        )
+
+
+def _check_rederived_entry(entry: Mapping[str, Any], source: Mapping[str, Any]) -> None:
+    entry_id = entry["id"]
+    if set(source) != {"record", "weights", "state"}:
+        fail(
+            f"entry {entry_id} rederived source must hold exactly record, weights and state"
+        )
+    match = CPU_ENTRY.fullmatch(entry_id)
+    if match is None:
+        fail(f"entry {entry_id} is not a cpu.<arm>.<state>.<field> id")
+    arm_id, state = match.group("arm"), match.group("state")
+    if arm_id not in EXPECTED_ARMS:
+        fail(f"entry {entry_id} names an arm that did not run: {arm_id}")
+    if source["state"] != state:
+        fail(f"entry {entry_id} source state {source['state']!r} != {state!r}")
+    if source["record"] != _record_rel(arm_id):
+        fail(f"entry {entry_id} source record {source['record']!r} is not the arm's record")
+    if source["weights"] != _weights_rel(arm_id, state):
+        fail(f"entry {entry_id} source weights {source['weights']!r} is not the arm's weights")
+    record = _load_record(arm_id)
+    recorded = _field(record, f"states.{state}.weights")
+    weights_rel = _weights_rel(arm_id, state)
+    if recorded.get("file") != f"{state}.weights":
+        fail(f"{arm_id} {state} record names weights file {recorded.get('file')!r}")
+    if not is_tracked(weights_rel) or not is_clean(weights_rel):
+        fail(f"weights {weights_rel} is not tracked and clean")
+    disk = sha256_file(repo_path(weights_rel, what=f"weights {arm_id} {state}"))
+    if disk != recorded.get("sha256"):
+        fail(
+            f"weights SHA-256 {disk} != recorded {recorded.get('sha256')} "
+            f"for {arm_id} {state}"
+        )
+
+
+def _check_entry(entry: Mapping[str, Any]) -> None:
+    entry_id = entry["id"]
+    missing = ENTRY_KEYS - set(entry)
+    extra = set(entry) - ENTRY_KEYS
+    if missing:
+        fail(f"entry {entry_id} lacks keys {sorted(missing)!r}")
+    if extra:
+        fail(f"entry {entry_id} holds unknown keys {sorted(extra)!r}")
+    label = entry["label"]
+    if label not in NUMBERS_LABELS:
+        fail(f"entry {entry_id} has unknown label {label!r}")
+    rule = entry["render_rule"]
+    if rule not in NUMBERS_RULES:
+        fail(f"entry {entry_id} has unknown render_rule {rule!r}")
+    required = entry["required_in"]
+    if not isinstance(required, list):
+        fail(f"entry {entry_id} required_in is not a list")
+    unknown = set(required) - {"verdict", "charter"}
+    if unknown:
+        fail(f"entry {entry_id} is required in unknown documents {sorted(unknown)!r}")
+    if len(set(required)) != len(required):
+        fail(f"entry {entry_id} repeats a required_in document")
+    derivation = entry["derivation"]
+    if not isinstance(derivation, str) or not derivation.strip():
+        fail(f"entry {entry_id} has no derivation")
+    rendered = render_number(entry["value"], rule)
+    if entry["render"] != rendered:
+        fail(f"entry {entry_id} render {entry['render']!r} != re-rendered {rendered!r}")
+    source = entry["source"]
+    if not isinstance(source, Mapping):
+        fail(f"entry {entry_id} source is not an object")
+    if label in {"official-mps-float32", "committed-record"}:
+        _check_record_entry(entry, source)
+    elif label == "arithmetic":
+        _check_arithmetic_entry(entry, source)
+    elif label == "cited":
+        _check_cited_entry(entry, source)
+    else:
+        _check_rederived_entry(entry, source)
+
+
+def check_numbers(payload: Any) -> None:
+    """Re-derive every entry of the manifest with the verifier's own tables."""
+    if not isinstance(payload, Mapping):
+        fail("numbers.json is not an object")
+    if payload.get("schema") != NUMBERS_SCHEMA:
+        fail(f"numbers.json schema {payload.get('schema')!r} != {NUMBERS_SCHEMA!r}")
+    plain = payload.get("plain_language")
+    if not isinstance(plain, str) or not plain.strip():
+        fail("numbers.json plain_language is not a non-empty sentence")
+    if "\n" in plain:
+        fail("numbers.json plain_language is not one sentence on one line")
+
+    producer = payload.get("producer_sha256")
+    if not isinstance(producer, Mapping) or not producer:
+        fail("numbers.json producer_sha256 is not a non-empty mapping")
+    if PRODUCER_REL not in producer:
+        fail(f"numbers.json producer_sha256 does not name {PRODUCER_REL}")
+    for relative, digest in producer.items():
+        _check_current_file(relative, digest, what=f"producer module {relative}")
+
+    for key, relative in (
+        ("scorecard_sha256", SCORECARD_ARTIFACT_REL.as_posix()),
+        ("handoff_sha256", HANDOFF_REL.as_posix()),
+    ):
+        _check_current_file(relative, payload.get(key), what=f"numbers.json {key}")
+    if payload.get("handoff_sha256") != HANDOFF_SHA256:
+        fail(
+            "numbers.json handoff_sha256 "
+            f"{payload.get('handoff_sha256')!r} != the sealed {HANDOFF_SHA256}"
+        )
+
+    inputs = payload.get("inputs")
+    if not isinstance(inputs, list) or not inputs:
+        fail("numbers.json inputs is not a non-empty list")
+    paths = [
+        _check_citation(entry, what=f"numbers.json inputs[{index}]")
+        for index, entry in enumerate(inputs)
+    ]
+    if paths != sorted(paths):
+        fail("numbers.json inputs are not sorted by path")
+    if len(set(paths)) != len(paths):
+        fail("numbers.json inputs name a path twice")
+
+    attestation = payload.get("attestation")
+    if not isinstance(attestation, Mapping):
+        fail("numbers.json attestation is not an object")
+    if attestation.get("schema") != "phase59-files-opened/v1":
+        fail(
+            "numbers.json attestation schema "
+            f"{attestation.get('schema')!r} != 'phase59-files-opened/v1'"
+        )
+
+    entries = payload.get("entries")
+    if not isinstance(entries, list) or not entries:
+        fail("numbers.json entries is not a non-empty list")
+    ids = []
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("a numbers.json entry is not an object")
+        entry_id = entry.get("id")
+        if not isinstance(entry_id, str) or not entry_id:
+            fail(f"a numbers.json entry has no id: {entry!r}")
+        ids.append(entry_id)
+    if ids != sorted(ids):
+        fail(f"numbers.json entries are not sorted by id: {ids!r}")
+    if len(set(ids)) != len(ids):
+        fail("numbers.json holds a duplicate entry id")
+    for entry in entries:
+        _check_entry(entry)
+
+
+def cmd_numbers(_args: argparse.Namespace) -> None:
+    """The manifest: schema, tables, citations, renders and current digests."""
+    payload = load_json(repo_path(NUMBERS_REL, what="numbers.json"), what="numbers.json")
+    check_numbers(payload)
+    print(f"entries {len(payload['entries'])}")
+    print("NUMBERS-OK")
+
+
+def _check_open_attestation(ctx: Any) -> None:
+    """The open attestation must show every counter at zero."""
+    attestation = getattr(ctx, "attestation", None)
+    if attestation is None:
+        fail("the real context carries no open attestation")
+    summary = attestation.summary()
+    if not isinstance(summary, Mapping):
+        fail("the open attestation summary is not an object")
+    if summary.get("schema") != "phase59-files-opened/v1":
+        fail(f"open attestation schema {summary.get('schema')!r} is not phase59-files-opened/v1")
+    opened = summary.get("opened")
+    if not isinstance(opened, Mapping):
+        fail("the open attestation has no opened block")
+    for name, value in (
+        ("test_split_opened", summary.get("test_split_opened")),
+        ("opened.validation", opened.get("validation")),
+        ("opened.other_under_root", opened.get("other_under_root")),
+        ("blocked_attempts", summary.get("blocked_attempts")),
+        ("refused_before_open", summary.get("refused_before_open")),
+    ):
+        if value != 0:
+            fail(f"the open attestation shows {name} {value!r}, not 0")
+
+
+def rederive_state(ctx: Any, card: Any, arm_id: str, state: str) -> dict[str, Any]:
+    """The verifier's own CPU float64 re-score of one committed weights file.
+
+    Independent of the producer's ``derive_state``: it reads the record, checks
+    the weights SHA-256 against it before ``torch.load`` with
+    ``weights_only=True``, builds the CPU float64 network at the record's
+    ``first_omega_0``, and scores the gold reference through the frozen scorer.
+    """
+    from collections import OrderedDict
+
+    import numpy as np
+    import torch
+
+    from pinn.architecture_spec import ArchitectureSpec
+    from pinn.network import build_network
+    from pinn.verification.diagnostic_architecture import build_network_with_first_omega
+    from pinn.verification.feasibility_scorer import network_trajectory, position_errors
+    from pinn.verification.learnability_arms import SEED, arm_spec
+    from pinn.verification.learnability_data import load_arm_data
+    from pinn.verification.learnability_run import _float32_rounded
+
+    if arm_id not in EXPECTED_ARMS:
+        fail(f"{arm_id} is not an arm that ran")
+    if state not in {"adam", "polish"}:
+        fail(f"unknown state {state!r} for arm {arm_id}")
+    record = _load_record(arm_id)
+    recorded = _field(record, f"states.{state}.weights")
+    weights_rel = _weights_rel(arm_id, state)
+    if recorded.get("file") != f"{state}.weights":
+        fail(f"{arm_id} {state} record names weights file {recorded.get('file')!r}")
+    if not is_tracked(weights_rel) or not is_clean(weights_rel):
+        fail(f"weights {weights_rel} is not tracked and clean")
+    weights_path = repo_path(weights_rel, what=f"weights {arm_id} {state}")
+    if not weights_path.is_file():
+        fail(f"weights file is missing: {weights_rel}")
+    disk = sha256_file(weights_path)
+    if disk != recorded.get("sha256"):
+        fail(
+            f"weights SHA-256 {disk} != recorded {recorded.get('sha256')} "
+            f"for {arm_id} {state}"
+        )
+    weights = torch.load(weights_path, map_location="cpu", weights_only=True)
+    if not isinstance(weights, Mapping):
+        fail(f"weights file {weights_rel} is not a mapping")
+    widened = OrderedDict(
+        (name, tensor.detach().to("cpu").to(torch.float64))
+        for name, tensor in weights.items()
+    )
+    first_omega_0 = float(record["first_omega_0"])
+    if abs(first_omega_0 - 30.0) < 1e-9:
+        model = build_network(
+            ArchitectureSpec(seed=SEED), dtype=torch.float64, device="cpu"
+        )
+    else:
+        model = build_network_with_first_omega(
+            first_omega_0, seed=SEED, dtype=torch.float64, device="cpu"
+        )
+    model.load_state_dict(widened)
+    arm_data = load_arm_data(
+        arm_spec(arm_id), ctx, scorecard=card, dtype=torch.float32, device="cpu"
+    )
+    pos, _velocities = network_trajectory(
+        model,
+        _float32_rounded(arm_data.ic13),
+        _float32_rounded(arm_data.masses),
+        arm_data.score.times,
+        dtype=torch.float64,
+        device=torch.device("cpu"),
+    )
+    ref = np.asarray(arm_data.score.positions, dtype=np.float64)
+    e_sys, e_in, _r_sys = position_errors(pos, ref, arm_data.score.inner_pair)
+    return {
+        "pos": pos,
+        "ref": ref,
+        "times": np.asarray(arm_data.score.times, dtype=np.float64),
+        "inner_pair": tuple(arm_data.score.inner_pair),
+        "e_sys": np.asarray(e_sys, dtype=np.float64),
+        "e_in": np.asarray(e_in, dtype=np.float64),
+    }
+
+
+def cpu_value(entry_id: str, derived: Mapping[str, Any]) -> Any:
+    """One re-derived field of a ``cpu.<arm>.<state>.<field>`` entry."""
+    from pinn.verification.feasibility_scorer import tier_defining_error
+
+    match = CPU_ENTRY.fullmatch(entry_id)
+    if match is None:
+        fail(f"{entry_id} is not a cpu.<arm>.<state>.<field> id")
+    field = match.group("field")
+    if field == "E":
+        return tier_defining_error(derived["e_sys"], derived["e_in"])
+    fail(f"{entry_id} names an unknown cpu field {field!r}")
+
+
+def cmd_derive(_args: argparse.Namespace) -> None:
+    """Re-derive every rederived-cpu-float64 entry from the committed weights."""
+    import os
+
+    try:
+        import torch
+
+        from pinn.verification.feasibility_scorecard import load_scorecard
+        from pinn.verification.learnability_data import open_real_context
+    except Exception as exc:  # noqa: BLE001 - fail-closed CLI
+        fail(f"cannot import the CPU re-derivation: {exc}")
+
+    os.chdir(REPO_ROOT)
+    payload = load_json(repo_path(NUMBERS_REL, what="numbers.json"), what="numbers.json")
+    if payload.get("schema") != NUMBERS_SCHEMA:
+        fail(f"numbers.json schema {payload.get('schema')!r} != {NUMBERS_SCHEMA!r}")
+    entries = payload.get("entries")
+    if not isinstance(entries, list) or not entries:
+        fail("numbers.json entries is not a non-empty list")
+
+    torch.set_num_threads(1)
+    card = load_scorecard()
+    ctx = open_real_context(repo_root=REPO_ROOT)
+    _check_open_attestation(ctx)
+
+    cache: dict[tuple[str, str], Mapping[str, Any]] = {}
+    checked = 0
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            fail("a numbers.json entry is not an object")
+        if entry.get("label") != "rederived-cpu-float64":
+            continue
+        entry_id = entry.get("id")
+        match = CPU_ENTRY.fullmatch(entry_id) if isinstance(entry_id, str) else None
+        if match is None:
+            fail(f"entry {entry_id!r} is not a cpu.<arm>.<state>.<field> id")
+        key = (match.group("arm"), match.group("state"))
+        if key not in cache:
+            cache[key] = rederive_state(ctx, card, key[0], key[1])
+        value = cpu_value(entry_id, cache[key])
+        recorded = entry.get("value")
+        if isinstance(value, int) and not isinstance(value, bool):
+            if recorded != value:
+                fail(f"entry {entry_id} value {recorded!r} != re-derived {value!r}")
+        else:
+            if isinstance(recorded, bool) or not isinstance(recorded, (int, float)):
+                fail(f"entry {entry_id} value {recorded!r} is not a number")
+            if abs(float(recorded) - float(value)) > 1e-12:
+                fail(
+                    f"entry {entry_id} value {recorded!r} != re-derived {value!r} "
+                    "beyond 1e-12"
+                )
+        checked += 1
+
+    if checked == 0:
+        fail("numbers.json holds no rederived-cpu-float64 entry")
+    _check_open_attestation(ctx)
+    print(f"cpu entries {checked}")
+    print("DERIVE-OK")
+
+
 COMMANDS = {
     "inputs": cmd_inputs,
     "frozen": cmd_frozen,
     "traceability": cmd_traceability,
+    "numbers": cmd_numbers,
+    "derive": cmd_derive,
 }
 
 

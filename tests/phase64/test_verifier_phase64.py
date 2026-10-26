@@ -15,6 +15,7 @@ import importlib.util
 import io
 import json
 import math
+import os
 import subprocess
 import tempfile
 import unittest
@@ -769,6 +770,212 @@ class TraceabilityPureTests(unittest.TestCase):
     def test_empty_inputs_fail(self):
         error = self.assert_fails(requirements="", roadmap="", project="")
         self.assertIn("exactly once", error)
+
+
+class NumbersTracerTests(unittest.TestCase):
+    """The tracer path: one entry of each kind, from its committed source and back.
+
+    The real manifest is read once and every negative control mutates a deep copy
+    of it in memory. ``cmd_numbers`` loads nothing but ``numbers.json``, so
+    patching ``load_json`` for that one name exercises the same code path a
+    temporary copy of the tree would, without a second checkout of the evidence
+    tree (test-structure refinement, 64-01 deviation 3).
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+        cls.payload = json.loads(
+            (ROOT / EVIDENCE / "numbers.json").read_text(encoding="utf-8")
+        )
+
+    def mutated(self) -> dict:
+        return json.loads(json.dumps(self.payload))
+
+    def entry(self, payload: dict, entry_id: str) -> dict:
+        for entry in payload["entries"]:
+            if entry["id"] == entry_id:
+                return entry
+        raise AssertionError(f"{entry_id} is not in the manifest")
+
+    def assert_rejected(self, payload: dict, needle: str) -> str:
+        original = self.module.load_json
+
+        def patched(path, *, what):
+            if Path(path).name == "numbers.json":
+                return payload
+            return original(path, what=what)
+
+        with mock.patch.object(self.module, "load_json", patched):
+            code, _stdout, stderr = run_main(self.module, ["numbers"])
+        self.assertEqual(code, 1, f"the mutated manifest passed: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+    def test_manifest_holds_exactly_the_four_tracer_entries(self):
+        self.assertEqual(self.payload["schema"], "phase64-numbers/v1")
+        self.assertEqual(
+            [entry["id"] for entry in self.payload["entries"]],
+            [
+                "arm.r1-1632.E",
+                "cpu.r1-1632.polish.E",
+                "hours.total",
+                "pub.kollias.energy_range",
+            ],
+        )
+
+    def test_labels_and_renders(self):
+        entries = {entry["id"]: entry for entry in self.payload["entries"]}
+        self.assertEqual(entries["arm.r1-1632.E"]["label"], "official-mps-float32")
+        self.assertEqual(entries["arm.r1-1632.E"]["render"], "1.1574")
+        self.assertEqual(entries["cpu.r1-1632.polish.E"]["label"], "rederived-cpu-float64")
+        self.assertEqual(entries["cpu.r1-1632.polish.E"]["render"], "1.1600")
+        self.assertEqual(entries["hours.total"]["label"], "arithmetic")
+        self.assertEqual(entries["hours.total"]["render"], "22.378")
+        self.assertEqual(entries["pub.kollias.energy_range"]["label"], "cited")
+        self.assertEqual(entries["pub.kollias.energy_range"]["render"], "0.02\u20133%")
+        for entry in entries.values():
+            self.assertEqual(
+                entry["render"], self.module.render_number(entry["value"], entry["render_rule"])
+            )
+            self.assertTrue(set(entry["required_in"]) <= {"verdict", "charter"})
+
+    def test_official_entry_equals_the_recorded_result(self):
+        record = json.loads(
+            (ROOT / f"{P60}/arms/r1-1632/record.json").read_text(encoding="utf-8")
+        )
+        entry = self.entry(self.payload, "arm.r1-1632.E")
+        self.assertEqual(entry["value"], record["result"]["E"])
+        self.assertEqual(entry["source"]["key"], "result.E")
+        self.assertEqual(
+            entry["source"]["path"], f"{P60}/arms/r1-1632/record.json"
+        )
+
+    def test_hours_total_equals_the_sealed_total_exactly(self):
+        handoff = json.loads(
+            (ROOT / f"{P60}/g2/stop-handoff.json").read_text(encoding="utf-8")
+        )
+        entry = self.entry(self.payload, "hours.total")
+        self.assertEqual(entry["value"], handoff["total_wall_hours"])
+        self.assertEqual(entry["value"], 22.37828873402778)
+
+    def test_hours_total_is_the_ordered_sum_of_the_seven_records(self):
+        handoff = json.loads(
+            (ROOT / f"{P60}/g2/stop-handoff.json").read_text(encoding="utf-8")
+        )
+        values = []
+        for arm in handoff["arms"]:
+            record = json.loads(
+                (ROOT / f"{P60}/arms/{arm['arm_id']}/record.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            values.append(record["wall"]["hours"])
+        total = self.entry(self.payload, "hours.total")["value"]
+        self.assertEqual(total, self.module.ordered_sum(values))
+        # The same pin as OrderedSumTests: math.fsum lands one ulp below.
+        self.assertNotEqual(total, math.fsum(values))
+
+    def test_cpu_entry_equals_the_records_cross_check_and_not_the_official_e(self):
+        record = json.loads(
+            (ROOT / f"{P60}/arms/r1-1632/record.json").read_text(encoding="utf-8")
+        )
+        entry = self.entry(self.payload, "cpu.r1-1632.polish.E")
+        cross_check = record["states"]["polish"]["cross_check"]["E"]
+        self.assertAlmostEqual(entry["value"], cross_check, delta=1e-12)
+        self.assertNotEqual(entry["value"], record["result"]["E"])
+        self.assertGreater(abs(entry["value"] - record["result"]["E"]), 1e-3)
+
+    def test_cited_entry_pins_the_research_page(self):
+        entry = self.entry(self.payload, "pub.kollias.energy_range")
+        self.assertEqual(entry["value"], "0.02\u20133%")
+        self.assertEqual(entry["source"]["token"], "to within \u223c 0.02\u20133%")
+        self.assertEqual(entry["source"]["path"], f"{PHASE}/64-RESEARCH.md")
+        self.assertRegex(entry["source"]["commit"], r"^[0-9a-f]{40}$")
+
+    def test_manifest_has_no_home_directory_string(self):
+        text = (ROOT / EVIDENCE / "numbers.json").read_text(encoding="utf-8")
+        self.assertNotIn(str(Path.home()), text)
+        self.assertNotIn("/Users/", text)
+
+    def test_numbers_prints_its_token(self):
+        code, stdout, stderr = run_main(self.module, ["numbers"])
+        self.assertEqual(code, 0, stderr)
+        self.assertIn("NUMBERS-OK", stdout.splitlines())
+
+    def test_derive_prints_its_token(self):
+        cwd = Path.cwd()
+        try:
+            code, stdout, stderr = run_main(self.module, ["derive"])
+        finally:
+            os.chdir(cwd)
+        self.assertEqual(code, 0, stderr)
+        self.assertIn("DERIVE-OK", stdout.splitlines())
+
+    def test_changed_last_digit_of_the_official_e_fails(self):
+        payload = self.mutated()
+        entry = self.entry(payload, "arm.r1-1632.E")
+        entry["value"] = 1.157387378319296
+        # The render is unchanged, so only the record re-read can catch this.
+        self.assertEqual(
+            self.module.render_number(entry["value"], entry["render_rule"]), entry["render"]
+        )
+        self.assert_rejected(payload, "entry arm.r1-1632.E value")
+
+    def test_cpu_entry_relabelled_as_official_fails(self):
+        payload = self.mutated()
+        self.entry(payload, "cpu.r1-1632.polish.E")["label"] = "official-mps-float32"
+        # The relabelled entry is looked up in the committed-record table, where a
+        # CPU re-derivation has no business being.
+        self.assert_rejected(
+            payload,
+            "entry cpu.r1-1632.polish.E is not in the verifier's committed-record table",
+        )
+
+    def test_superseded_cited_token_fails(self):
+        payload = self.mutated()
+        self.entry(payload, "pub.kollias.energy_range")["source"][
+            "token"
+        ] = "to within \u223c 0.08\u20133%"
+        self.assert_rejected(payload, "citation")
+
+    def test_cited_token_absent_at_its_commit_fails(self):
+        # The table itself is patched to the superseded figure so the run reaches
+        # the verbatim-occurrence check: the phrase is not in the page at 7fda0a55.
+        payload = self.mutated()
+        self.entry(payload, "pub.kollias.energy_range")["source"][
+            "token"
+        ] = "to within \u223c 0.08\u20133%"
+        superseded = {
+            "pub.kollias.energy_range": (
+                self.module.CITED_TABLE["pub.kollias.energy_range"][0],
+                self.module.CITED_TABLE["pub.kollias.energy_range"][1],
+                "to within \u223c 0.08\u20133%",
+            )
+        }
+        with mock.patch.dict(self.module.CITED_TABLE, superseded, clear=True):
+            self.assert_rejected(payload, "does not occur verbatim")
+
+    def test_bad_render_string_fails(self):
+        payload = self.mutated()
+        self.entry(payload, "arm.r1-1632.E")["render"] = "1.1575"
+        self.assert_rejected(payload, "render '1.1575' != re-rendered '1.1574'")
+
+    def test_unknown_render_rule_fails(self):
+        payload = self.mutated()
+        self.entry(payload, "arm.r1-1632.E")["render_rule"] = "E9"
+        self.assert_rejected(payload, "unknown render_rule 'E9'")
+
+    def test_unknown_label_fails(self):
+        payload = self.mutated()
+        self.entry(payload, "hours.total")["label"] = "guessed"
+        self.assert_rejected(payload, "unknown label 'guessed'")
+
+    def test_entries_out_of_id_order_fail(self):
+        payload = self.mutated()
+        payload["entries"].reverse()
+        self.assert_rejected(payload, "entries are not sorted by id")
 
 
 class OrderedSumTests(unittest.TestCase):
