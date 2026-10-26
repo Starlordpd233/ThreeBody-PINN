@@ -766,8 +766,11 @@ def cmd_inputs(_args: argparse.Namespace) -> None:
     print("INPUTS-OK")
 
 
-REQUIREMENTS_REL = Path(".planning/REQUIREMENTS.md")
-ROADMAP_REL = Path(".planning/ROADMAP.md")
+# The v2.4 close (2026-10-26) archived the live requirements and roadmap; the
+# archives hold the same v2.4 text. The removed live path keeps its history.
+REQUIREMENTS_REL = Path(".planning/milestones/v2.4-REQUIREMENTS.md")
+ROADMAP_REL = Path(".planning/milestones/v2.4-ROADMAP.md")
+REQUIREMENTS_LIVE_REL = Path(".planning/REQUIREMENTS.md")
 PROJECT_REL = Path(".planning/PROJECT.md")
 TRACEABLE_PHASES = (59, 60, 61, 62, 63, 64)
 REQUIREMENT_ID = re.compile(r"[A-Z]+-\d+")
@@ -4458,6 +4461,7 @@ def _check_ruling_commit_order() -> None:
         "--",
         PROJECT_REL.as_posix(),
         REQUIREMENTS_REL.as_posix(),
+        REQUIREMENTS_LIVE_REL.as_posix(),
     )
     if edited.returncode != 0:
         fail(f"git log for the applied edits failed: {edited.stderr.strip()}")

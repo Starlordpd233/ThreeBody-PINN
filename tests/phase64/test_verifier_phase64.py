@@ -33,6 +33,9 @@ PHASE = ".planning/phases/64-feasibility-verdict"
 EVIDENCE = f"{PHASE}/evidence"
 P60 = ".planning/phases/60-single-system-learnability/evidence"
 P59 = ".planning/phases/59-read-only-baseline-scorecard/evidence"
+# The v2.4 close archived the live requirements and roadmap; the verifier reads these.
+REQUIREMENTS_REL = ".planning/milestones/v2.4-REQUIREMENTS.md"
+ROADMAP_REL = ".planning/milestones/v2.4-ROADMAP.md"
 VERIFIER_PATH = ROOT / EVIDENCE / "verify_phase64_verdict.py"
 PRODUCER_PATH = ROOT / EVIDENCE / "build_phase64_evidence.py"
 FIGURE_PRODUCER_PATH = ROOT / EVIDENCE / "build_phase64_figure.py"
@@ -644,10 +647,8 @@ class TraceabilityPureTests(unittest.TestCase):
 
     def setUp(self):
         self.module = load_verifier()
-        self.requirements = (ROOT / ".planning/REQUIREMENTS.md").read_text(
-            encoding="utf-8"
-        )
-        self.roadmap = (ROOT / ".planning/ROADMAP.md").read_text(encoding="utf-8")
+        self.requirements = (ROOT / REQUIREMENTS_REL).read_text(encoding="utf-8")
+        self.roadmap = (ROOT / ROADMAP_REL).read_text(encoding="utf-8")
         self.project = (ROOT / ".planning/PROJECT.md").read_text(encoding="utf-8")
 
     def report(
@@ -3208,7 +3209,7 @@ RULING_FIXTURE_RELS = (
     CHARTER_REL,
     VERDICT_REL,
     ".planning/PROJECT.md",
-    ".planning/REQUIREMENTS.md",
+    REQUIREMENTS_REL,
 )
 
 RULING_DEFAULT_ANSWERS = (
@@ -3257,8 +3258,8 @@ class RulingRealTreeTests(unittest.TestCase):
 
     def test_skipped_phase_requirements_match_the_traceability_report(self):
         report = self.module.traceability_report(
-            (ROOT / ".planning/REQUIREMENTS.md").read_text(encoding="utf-8"),
-            (ROOT / ".planning/ROADMAP.md").read_text(encoding="utf-8"),
+            (ROOT / REQUIREMENTS_REL).read_text(encoding="utf-8"),
+            (ROOT / ROADMAP_REL).read_text(encoding="utf-8"),
             (ROOT / ".planning/PROJECT.md").read_text(encoding="utf-8"),
         )
         expected = sorted(
@@ -3428,7 +3429,7 @@ class RulingCase(CharterCase):
             if token not in ("A", "B"):
                 return
             label = self.module.GAP_6401_LABELS[token]
-        path = self.root / ".planning/REQUIREMENTS.md"
+        path = self.root / REQUIREMENTS_REL
         lines = path.read_text(encoding="utf-8").splitlines()
         out = []
         for line in lines:
@@ -3571,7 +3572,7 @@ class RulingSyntheticTests(RulingCase):
     def test_a_ticked_skipped_requirement_checkbox_fails(self):
         digest = self.commit_ruling(self.ruling())
         self.apply_all(RULING_DEFAULT_ANSWERS, digest=digest)
-        path = self.root / ".planning/REQUIREMENTS.md"
+        path = self.root / REQUIREMENTS_REL
         text = path.read_text(encoding="utf-8")
         text = replace_once(text, "- [ ] **CONF-10**", "- [x] **CONF-10**")
         path.write_text(text, encoding="utf-8")
@@ -3683,7 +3684,7 @@ FINAL_FIXTURE_RELS = (
     VERDICT_REL,
     RULING_REL,
     ".planning/PROJECT.md",
-    ".planning/REQUIREMENTS.md",
+    REQUIREMENTS_REL,
 )
 
 
@@ -3842,14 +3843,12 @@ class FinalCompletenessTests(unittest.TestCase):
         self.assert_completeness_fails("is not the ruling's V-1 answer")
 
     def test_an_unticked_feas_10_fails(self):
-        self.mutate(
-            ".planning/REQUIREMENTS.md", "- [x] **FEAS-10**", "- [ ] **FEAS-10**"
-        )
+        self.mutate(REQUIREMENTS_REL, "- [x] **FEAS-10**", "- [ ] **FEAS-10**")
         self.assert_completeness_fails("the requirement FEAS-10 is not ticked")
 
     def test_a_complete_cell_left_pending_fails(self):
         self.mutate(
-            ".planning/REQUIREMENTS.md",
+            REQUIREMENTS_REL,
             "| VER-22 | Phase 64 | Complete |",
             "| VER-22 | Phase 64 | Pending |",
         )

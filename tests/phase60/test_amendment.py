@@ -33,8 +33,9 @@ from pinn.verification.feasibility_scorecard import SCORECARD_SHA256, load_score
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC_PATH = ROOT / ".planning" / "phases" / "60-single-system-learnability" / "60-SPEC.md"
-REQUIREMENTS_PATH = ROOT / ".planning" / "REQUIREMENTS.md"
-ROADMAP_PATH = ROOT / ".planning" / "ROADMAP.md"
+# The v2.4 close archived the live requirements and roadmap with the same v2.4 text.
+REQUIREMENTS_PATH = ROOT / ".planning" / "milestones" / "v2.4-REQUIREMENTS.md"
+ROADMAP_PATH = ROOT / ".planning" / "milestones" / "v2.4-ROADMAP.md"
 SCORECARD_PATH = ROOT / "pinn" / "verification" / "artifacts" / "feasibility_scorecard_v1.json"
 PHASE59_VERIFIER = (
     ROOT
