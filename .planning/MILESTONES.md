@@ -1,5 +1,27 @@
 # Milestones
 
+## v2.4 Stage-0 Feasibility Checkpoint (Closed on its pre-registered exit at Gate G2: 2026-10-26)
+
+**Phases completed:** 3 of 6 phases (59, 60, 64), 40 plans, 103 tasks; Phases 61–63 skipped at Gate G2 (no rescue), not failed; 234 commits, 2026-10-09 → 2026-10-26
+
+**Verdict:** `RETHINK-REPRESENTATION`, the frozen rule's output for "G2 fired and the sweep rescued nothing", stated unamended. **Owner decision:** `change-course` (checkpoint ①, 2026-10-26); all fourteen charter rows C-1..C-14 left open. Requirements: 12/24 Complete; the twelve requirements of Phases 61–63 stay Pending (their label is charter row C-14, open). No graded run, no held-out evaluation, no test-split file opened; all computation on this Mac.
+
+**Key accomplishments:**
+
+- Froze the feasibility scorecard, its comparison points and the census before any rung ran (Phase 59). The FEAS-01 scorer, one allowlisted reader that refuses held-out files, the Stage-0 panels and a read-only survey of all 12,023 training-split records. The two-Kepler formula reaches Tier 1 on 1 of 1,812 training and 0 of 227 validation systems. Gate G1 recorded "proceed": generation 7's physics term supplied 7.19e-07 of the Adam-preconditioned update.
+- Built the INST-05 learnability harness on the trainer's own losses, with the L-BFGS polish, a CPU float64 cross-check and governed pause/resume, and sealed its run protocol (SHA-pinned to 33 modules and 5 inputs) before any real arm (Phase 60).
+- Ran Rung 1 on systems 1632, 851 and 4658 and the four-setting `first_omega_0` sweep (60, 120, 240, 480): every arm ended at Tier 0 (E 1.14–1.24, valid horizon 0.0) after 22.378 machine hours. Gate G2 fired with no rescue; Rung 2 and the hard-stage probes were recorded as skipped, and Phases 61–63 were skipped, not failed.
+- Found, in Phase 60's independent verification, that every trained network learned only each body's average position: its output varies by about 0.3% of the real orbit's variation and its error equals that of the constant mean predictor.
+- Wrote the owner-facing verdict (Phase 64) with every number a labelled, re-derivable manifest entry (365 entries) and a regenerated figure: the frozen label beside the time-constant evidence, Level 1 on the readiness ladder, the cost on this Mac, and eight unranked candidate fixes for `trainex-r5`; plus the one-page charter. VER-22 re-verified at 24/24/24.
+
+**Known gaps:** CONF-10, CONF-11, INST-06, INST-07, SPEC-07, SPEC-08, SPEC-09, SPEC-10 (Phase 61), GATE-05, FEAS-05 (Phase 62), RUN-06, DIAG-08 (Phase 63): skipped at G2 (no rescue), not failed. GAP-59-08 and GAP-64-01 OPEN (owner-routed); GAP-56-02 still DEFERRED.
+
+**Close type:** override closeout. The milestone audit (`milestones/v2.4-MILESTONE-AUDIT.md`) is `gaps_found` only for the twelve skipped-phase requirements (integration 4/4 checks PASS, 0 blockers, 6 warnings), and the owner chose to close over them (2026-10-26). Phase 60 reads `stale` only because its covered `REQUIREMENTS.md` received Phase 64's edits; its verification is `passed`. Known verification overrides: 18 open-artifact items carried forward from the v2.3 close and recorded in STATE.md Deferred Items rather than acknowledged in the archived files (owner decision, 2026-10-26); 0 previously acknowledged.
+
+**Archive:** [roadmap](milestones/v2.4-ROADMAP.md), [requirements](milestones/v2.4-REQUIREMENTS.md), [audit](milestones/v2.4-MILESTONE-AUDIT.md), [gaps](milestones/v2.4-GAPS.md). Learnings: `59-`, `60-`, `64-LEARNINGS.md`. Phase folders 59, 60 and 64 stay in `.planning/phases/` because 18 code and test files hardcode their paths (owner decision, 2026-10-26).
+
+---
+
 ## v2.3 Causal-Weight/SIREN-Scale Recipe Adjudication (Closed on the declared terminal state: 2026-10-04)
 
 **Phases completed:** 6 phases (53–58), 30 plans, 73 tasks (Phase 58 was an adapted closeout with no plans); 172 commits, 2026-08-18 → 2026-10-03

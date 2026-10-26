@@ -323,6 +323,52 @@
 
 ---
 
+## Milestone: v2.4 — Stage-0 Feasibility Checkpoint
+
+**Closed:** 2026-10-26 on its pre-registered exit at Gate G2 (verdict `RETHINK-REPRESENTATION`; owner decision `change-course`, 2026-10-26)
+**Phases:** 6 (59–64; 59, 60 and 64 executed, 61–63 skipped at G2, not failed) | **Plans:** 40
+
+### What Was Built
+- A feasibility scorecard in physical units, frozen with its decision rule before any rung ran, with the FEAS-01 scorer, one allowlisted reader that refuses held-out files, the Stage-0 census and panels, a read-only survey of all 12,023 training-split records, and two comparison points: the two-Kepler formula and a nearest-neighbour copy (Phase 59)
+- DIAG-07's read-only experiments on generation 7's checkpoints, and Gate G1, which recorded "proceed" (Phase 59)
+- INST-05, the learnability harness: the production network on one Stage-0 system at a time, the trainer's own losses, the frozen L-BFGS polish, a CPU float64 cross-check, a closed 42-arm catalog, a run protocol SHA-pinned to 33 modules, admission, a detached supervisor with governed pause and resume, and an independent evidence verifier (Phase 60)
+- Rung 1 on three systems and the four-setting `first_omega_0` sweep: seven arms, 22.378 machine hours, all Tier 0, so G2 fired with no rescue (Phase 60)
+- The owner-facing verdict and charter: a 365-entry numbers manifest re-derived from the committed weights, a regenerated figure, a verifier with an aggregate `final` mode, and the checkpoint ① ruling record (Phase 64)
+
+### What Worked
+- Freezing the ruler and every rung's rules before results: when every arm came back Tier 0, the label followed mechanically and nothing was re-set
+- Gates that may skip phases: the G2 stop path recorded Phases 61–63 as skipped, not failed, and sent the milestone straight to the verdict without spending further runs
+- Reading scores against comparison points: set beside the constant mean predictor, the Tier-0 results showed that the networks had learned only the average position
+- Independent verification: Phase 60's verifier found the time-constant observation, and Phase 64's caught a wording error that 287 passing tests had not
+- Branch plans that end cleanly ("branch not taken", `status: complete`) kept a 23-plan conditional phase legible
+
+### What Was Inefficient
+- The Phase 60 evidence verifier crashed on first real use twice (the sweep-curve and `rescore` checks), because its tests mocked the wrong shapes
+- Phase 60 ran as 23 plans in 22 mostly sequential waves; its suite takes about 13 minutes against a 60 s estimate, and Phases 59 and 64 also missed their feedback-latency targets
+- The pre-registered sweep varied only `first_omega_0`, so the records cannot separate a representation limit from an outcome of the fixed recipe
+- GSD state tooling again mangled STATE.md at close (`milestone.complete` regressed `completed_phases` 3→2, set `percent` to 33 and erased Operator Next Steps); the file was restored from a snapshot and edited by hand
+- Close-time coupling: 18 code and test files hardcode the phase-folder paths, and the Phase 64 verifier and two test modules read the live REQUIREMENTS.md and ROADMAP.md, so the close needed a path repair onto the archives
+
+### Patterns Established
+- A pre-registered ladder whose gates fix their consequences (skip, stop, go to the verdict) before any result
+- A sealed run protocol plus admission: an arm starts only under a drift-free, SHA-pinned protocol
+- Every quoted number is a labelled, sourced manifest entry, re-derived by a verifier that shares no code with the producer
+- Owner answers enter code only through a strict ruling reader, with byte-equal quotes
+- Taken and not-taken branch records for conditional plans
+
+### Key Lessons
+1. Read every score against a no-learning baseline: the constant mean predictor scored within 0.004 of every trained network, which turned "Tier 0" into "learned only the average".
+2. A one-setting rescue sweep cannot separate a representation limit from a recipe outcome; a verdict built on it must say so beside its label.
+3. Exercise every verifier mode on real artifacts before it gates anything; mocks of the wrong shape hide first-use crashes.
+4. When code reads planning files by path, milestone archival needs a planned path repair.
+
+### Cost Observations
+- Model mix: not captured reliably (the Phase 60 executor SUMMARYs record their commits under Claude Sonnet 5.5)
+- Sessions: many (detached multi-hour arms on 2026-10-21 to 2026-10-23, plus planning, owner-checkpoint and verification sessions)
+- Notable: 234 commits, 2026-10-09 → 2026-10-26; 22.378 machine hours of training on this Mac across seven arms; no graded run and no held-out evaluation. Master merge and tag push deliberately NOT performed — owner-controlled integration.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -337,6 +383,7 @@
 | v2.1 | several (inline + closeout chain) | 2 | Diagnose-then-hand-off investigation: read-only forensics over retained artifacts + trainex-r2 ERW package; conformance audit reframed the FAIL as an assembly divergence, seeding conformance-first v2.2 |
 | v2.2 | many | 7 | Conformance-first repair of nine verified divergences plus a preflight conformance gate; the first conformant Stage-0 re-run halted at initialization; closed `stop-incomplete` with the evaluation preserved |
 | v2.3 | many (multi-session run window) | 6 | Recipe adjudication through the governed ERW channel, a SCOPE-38 contract amendment, and a train-free gate; first milestone to close on a roadmap-declared terminal state (`rethink`, evaluation preserved) |
+| v2.4 | many (detached arms + owner checkpoints) | 6 (3 executed) | Feasibility ladder with pre-registered gates: scorecard frozen before any rung; the G2 stop path skipped Phases 61–63 and went straight to an owner verdict (`RETHINK-REPRESENTATION` → `change-course`) |
 
 ### Cumulative Quality
 
@@ -350,6 +397,7 @@
 | v2.1 | 9 | 7/7 requirements; 2/2 phases; integration 3/3 WIRED; package audited PASS (ten checks) | 0 open at close (6 obligations inherited by v2.2) |
 | v2.2 | 38 (34 executed) | 20/24 requirements (2 closed incomplete, 2 not attempted); phases 46–49 verified; Phase 50 closed incomplete | 0 open gaps at close (4 obligations inherited by v2.3) |
 | v2.3 | 30 | 12/15 requirements (2 closed incomplete, 1 not attempted); 6/6 phases; VER-21 15/15; GATE-04 PASS | 0 open gaps at close (GAP-56-02 deferred; 5 obligations inherited) |
+| v2.4 | 40 | 12/24 requirements (12 skipped at G2, not failed); 3/3 executed phases verified; integration 4/4, 0 blockers; VER-22 24/24/24 | 0 blockers at close (GAP-59-08 and GAP-64-01 owner-routed; 14 charter rows open) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -360,3 +408,4 @@
 5. Executable acceptance evidence is part of the specification closure contract
 6. Verify what actually executed against the spec before trusting any result derived from it — a failing gate over a non-conformant run is evidence about the assembly, not the design (v2.1)
 7. Declare the failure branch before it is needed: a pre-named terminal state lets a negative result close cleanly and keeps a single-look evaluation unspent (v2.3)
+8. Read every result against a no-learning baseline before calling it learning: a time-constant predictor can earn the same grade as a trained network (v2.4)

@@ -4,12 +4,12 @@ milestone: v2.4
 milestone_name: Stage-0 Feasibility Checkpoint
 current_phase: 64
 current_phase_name: Feasibility Verdict
-status: completed
-stopped_at: "Phase 64 complete 2026-10-26 (independent verification PASS-WITH-OBSERVATIONS, 6 of 6 Phase 64 roadmap criteria, FEAS-06, FEAS-10 and VER-22 complete). Milestone v2.4 has no remaining phase — Phases 61-63 were skipped at G2, not failed, and Phase 64 closed on the owner's checkpoint one decision, change course. /gsd-complete-milestone, any merge of milestone/v2.4 into master, any push and the GitHub backup remain the owner's or a separate agent's"
-last_updated: "2026-10-26T19:28:43.000Z"
+status: milestone-closed
+stopped_at: "v2.4 archived 2026-10-26 (verdict RETHINK-REPRESENTATION, owner decision change-course); next milestone v2.5 (trainex-r5 research round) not yet started. Any merge of milestone/v2.4 into master, any push and the GitHub backup remain the owner's"
+last_updated: "2026-10-26T22:35:00Z"
 last_activity: 2026-10-26
-last_activity_desc: Phase 64 verified and closed. Owner checkpoint one recorded the owner's reply verbatim (let's change course), which decided V-1 as change-course and left all fourteen charter rows open, so PROJECT.md, the twelve skipped-phase requirement statuses and both framework specs are unchanged from phase base 1ebb1d9b. The phase verifier found one low-severity wording error — the constant-gap sentence scoped to seven arms instead of the three Rung-1 systems — corrected in 67c31af6. Final aggregate check PHASE64-VERDICT-OK on 287 tests OK
-state_head: 67c31af61504c1b88024e0be251426a15fcb8a9e
+last_activity_desc: v2.4 milestone closed and archived (override closeout). The milestone audit is gaps_found for the twelve skipped-phase requirements only; learnings were extracted for Phases 59, 60 and 64; roadmap, requirements and audit are archived under milestones/v2.4-*; phase folders 59, 60 and 64 stay in place by owner decision; charter rows C-1..C-14 stay open; the 18 inherited open-artifact items are recorded below. The next milestone is v2.5, opening with the trainex-r5 research round
+state_head: 38a3ed5eb29d260d827b073a13afc861b5766795
 progress:
   total_phases: 6
   completed_phases: 3
@@ -22,17 +22,20 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-11)
+See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** An evidence-backed answer to whether the CTL-PINN approach can learn three-body motion at all — measured in physical units on a ladder of experiments from one Stage-0 system to the full Stage-0 control, and ending in a go / pivot-training / rethink-representation verdict on which the owner decides whether the project continues.
-**Current focus:** Phase 64 — Feasibility Verdict, executing 2026-10-26 (7 plans in 7 waves, `64-01-PLAN.md` to `64-07-PLAN.md`). Plan 64-06 holds owner checkpoint ①. Phase 60 is closed (verified; the ladder stopped at Gate G2 with no rescue) and Phases 61-63 are skipped at G2. Phase 64 reads `evidence/g2/stop-handoff.json`; all computation is on this Mac.
+**Current focus:** the next milestone, v2.5, opening with the `trainex-r5` research round (v2.4 closed 2026-10-26). All computation is on this Mac.
 
 ## Current Position
 
-Phase: 64 (Feasibility Verdict) — COMPLETE
-Plan: 7 of 7 complete (64-07 applied the owner's checkpoint ① answers, ticked the requirements and closed the phase)
-Status: Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
-Last activity: 2026-10-26 — Phase 64 closed
+**v2.4 CLOSED 2026-10-26 on its pre-registered exit at Gate G2 (verdict `RETHINK-REPRESENTATION`; owner decision `change-course`).**
+Phases 59, 60 and 64 complete and verified; Phases 61–63 skipped at G2 (no rescue), not failed. 12/24 requirements Complete; the twelve skipped-phase requirements stay Pending, and their label is charter row C-14 (open). The milestone audit (`milestones/v2.4-MILESTONE-AUDIT.md`) is `gaps_found` for those twelve only; integration 0 blockers; the owner chose an override closeout. Learnings: `59-`, `60-`, `64-LEARNINGS.md`. Archived under `milestones/v2.4-*` (roadmap, requirements, audit). Phase folders 59, 60 and 64 stay in `.planning/phases/` because 18 code and test files hardcode their paths (owner decision, 2026-10-26).
+
+Last activity: 2026-10-26 — v2.4 archived via `/gsd-complete-milestone` (override closeout; see Deferred Items).
+**Next:** initialize v2.5 (`/gsd-new-milestone`), whose first phase is the `trainex-r5` research round (open-book, diagnosis first). No new long training until it explains the time-constant output. The held-out evaluation stays preserved unspent.
+
+Phase 64 record (kept for reference): Phase 64 complete 2026-10-26; planned 2026-10-25 and executed in 7 waves. The verdict is RETHINK-REPRESENTATION; at owner checkpoint ① the owner decided `change-course` (ruling `64-CHECKPOINT-1-RULING.md`, SHA-256 `b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82`), and every charter row C-1 to C-14 was recorded `open`, so PROJECT.md and the twelve skipped-phase requirement statuses are unchanged. FEAS-06, FEAS-10 and VER-22 are complete, and VER-22 was re-verified at close on the final text: 24 defined, 24 in the traceability table, 24 in the roadmap. Phase 60 closed and verified (5/5 success criteria; `60-VERIFICATION.md`); Phases 61–63 skipped at G2.
 
 ### Decisions from Phase 64 (2026-10-26)
 
@@ -533,6 +536,28 @@ reading; or accept the record. Full record: `evidence/frame-re-ratification/2026
 
 ## Deferred Items
 
+Items deferred at milestone close on 2026-10-26 (v2.4). Owner decision (2026-10-26): record them here only, as at the v2.3 close. The GSD acknowledge tool was not run, because it writes markers into the archived files, so these items will reappear in the next `audit-open` scan.
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | phase39-collocation-slot-multiplicity, phase39-memory-guard-validation | Carried from the v2.0 and v2.3 closes; session records never formally closed |
+| uat | 38-UAT partial (v2.0); 24-UAT, 25-UAT (v1.5) | Carried from the v2.3 close unchanged |
+| verification | 41-, 42-VERIFICATION human_needed (v2.0); 50-VERIFICATION gaps_found (v2.2) | Carried from the v2.3 close unchanged |
+| pending_todo | trainex-r1-research-handoff, d-06-static-epsilon-sensitivity-check | Carried from the v1.6, v2.0 and v2.3 closes |
+| deferred_items | Phase 57: Phase-50 test paths; Phases 46/47: `tests/phase43` paths | Resolved 2026-10-04 (see the v2.3 table below); still listed by the scanner because no acknowledge marker exists |
+| deferred_items | DI-46-05-01 watchdog packaging drift; DI-43-04-02 `tests/phase42` launch gate | Carried; informational |
+| verification_flag | Phases 61–63 have no VERIFICATION.md | Skipped at Gate G2 (no rescue), not failed; no phase directory by design |
+| verification_flag | Phase 60 `stale` | Its covered `REQUIREMENTS.md` received Phase 64's edits (`bb323a52`, `5a447624`); no Phase 60 requirement row changed, and `60-VERIFICATION.md` is `passed` |
+| requirements | CONF-10/11, INST-06/07, SPEC-07..10, GATE-05, FEAS-05, RUN-06, DIAG-08 | Pending: skipped at G2, not failed. Their label and carry-forward are charter row C-14 (GAP-64-01), open |
+| gap | GAP-59-08, GAP-64-01 | OPEN, owner-routed (charter rows C-7 and C-14) |
+| gap | GAP-56-02 | Still DEFERRED (it was SPEC-10's subject, and Phase 61 was skipped) |
+| validation | 59-, 60-, 64-VALIDATION.md at `status: draft` | Nyquist NOT-VALIDATED; `/gsd-validate-phase` not run |
+
+Closeout type: `override_closeout`. The scan reported 18 open items (2 debug, 3 uat, 3 verification, 2 todos, 8 deferred_items; the first six rows above group them), the same 18 as at the v2.3 close, with 0 acknowledged by a prior close. The milestone audit (`milestones/v2.4-MILESTONE-AUDIT.md`) is `gaps_found` for the twelve skipped-phase requirements only, and the owner chose to close over them (2026-10-26). Milestone verdict: `RETHINK-REPRESENTATION`; owner decision `change-course` (`64-CHECKPOINT-1-RULING.md`).
+
+<details>
+<summary>Prior close (v2.3, 2026-10-04)</summary>
+
 Items deferred at milestone close on 2026-10-04 (v2.3). Owner decision: record them here only. The GSD acknowledge tool was not run, because it writes markers into the archived files, so these items will reappear in the next `audit-open` scan.
 
 | Category | Item | Status |
@@ -553,6 +578,8 @@ Items deferred at milestone close on 2026-10-04 (v2.3). Owner decision: record t
 | gap | GAP-56-02 | DEFERRED by the owner to the milestone after `trainex-r4` |
 
 Closeout type: `override_closeout`. The scan reported 18 open items (2 debug, 3 uat, 3 verification, 2 todos, 8 deferred_items; rows above group them), with 0 acknowledged by a prior close. There is no v2.3 milestone audit file (v2.2 precedent). Milestone verdict: owner-signed `rethink` (`58-VERDICT.md`).
+
+</details>
 
 <details>
 <summary>Prior close (v2.0, 2026-07-23)</summary>
@@ -947,19 +974,22 @@ Next action: plan Phase 64 (/gsd-plan-phase 64 from .worktrees/trainex), then sh
 - ~~Plan Phase 60~~ — planned 2026-10-18 (23 plans, 22 waves; the third plan check found 0 blockers, and its 3 warnings were fixed in an owner-chosen targeted pass).
 - ~~Execute Phase 60~~ — closed and verified 2026-10-23 (Gate G2 fired and the sweep found no rescue; Phases 61-63 skipped at G2; `60-FINDINGS.md`, `60-VERIFICATION.md`).
 - ~~Discuss Phase 64~~ — done 2026-10-25 (`64-CONTEXT.md`, `d3fb9816`).
-- **Plan and execute Phase 64** (`/gsd-plan-phase 64`, then `/gsd-execute-phase 64`): the verdict, the ladder placement, costs on this Mac, the next milestone, and the pre-filled charter for checkpoint ①. No training runs.
+- ~~Plan and execute Phase 64~~ — done 2026-10-26: verdict `RETHINK-REPRESENTATION`; at checkpoint ① the owner decided `change-course` and left every charter row open; `64-VERIFICATION.md` PASS-WITH-OBSERVATIONS.
+- ~~v2.4 milestone close~~ — archived 2026-10-26: audit `gaps_found` for the twelve skipped-phase requirements only, learnings extracted for Phases 59, 60 and 64, override closeout, local annotated tag `v2.4`.
+- **Start v2.5** (`/gsd-new-milestone`): its first phase is the `trainex-r5` research round (open-book, diagnosis first), which explains why every trained network learned only each body's average position before any new long training. The eight unranked candidate fixes are in `64-VERDICT.md`.
 - **Owner decision, open: GAP-59-08** (`.planning/phases/59-read-only-baseline-scorecard/59-GAPS.md`).
   - **The finding.** The validation gate and the held-out evaluator compute energy error from finite-difference velocities on the 0.08 data grid. That grid gives 5–38% error even on Brutus's exact answers, so the `1e-5` exam cannot be passed as implemented.
   - **Recommendation.** Option A: autograd velocities, written in by a formal clarifying amendment.
   - **Scope.** It blocks any held-out spend, not v2.4. Phase 64 puts it on checkpoint ① beside the pass bars (`64-CONTEXT.md` D-10).
-- **Owner decisions due at the verdict, no rush** (FEAS-10 charter):
+- **Owner decisions carried forward, open** (FEAS-10 charter rows C-1..C-14 in `64-CHARTER.md`; checkpoint ① on 2026-10-26 left every row open):
   - ~~the project's purpose~~ — answered 2026-10-25: learning plus a proof of concept (verbatim in `64-CONTEXT.md` D-07);
   - the budget: how many months of computing on this Mac (rented or cloud GPU time is not an option; standing owner rule, `PROJECT.md` Constraints);
   - the pass bar per stage;
   - approval to rewrite `PROJECT.md`'s "What This Is", which still describes the LLM project.
 - ~~Hand off `trainex-r4`~~ — done; two engagements recorded with Rule-20 pins in the delivery note.
 - ~~Owner decision still open: where the v2.3 phase folders should live~~ — decided in the v2.4 proposal under owner delegation: they stay in `.planning/phases/` through v2.4; revisit at the v2.4 close.
-- **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` or `milestone/v2.4` to master; pushing tag `v2.3`.
+- **Phase-folder placement after the v2.4 close.** The owner decided on 2026-10-26 that the v2.4 folders 59, 60 and 64 stay in `.planning/phases/`, because 18 code and test files hardcode their paths. The close ran with `--no-archive-phases`, so the v2.3 folders 53–58 also stayed in place; their placement was not separately revisited and remains open.
+- **Owner-controlled integration (NOT performed by the agent):** any merge of `milestone/v2.3` or `milestone/v2.4` to master; pushing tags `v2.3` and `v2.4`.
 - ~~v2.3 milestone close~~ — archived 2026-10-04 (verdict `rethink`).
 - ~~Execute Plan 57-05 only after its precondition is checked.~~ Done 2026-10-03 (generation-7 terminal branch). The fresh complete GATE-04, final-R_ref production conformance, and `admit-run-window` receipt now pass; the next action is the explicit operator authorization before any smoke/band compute.
 - **Keep checkpoint ④'s selection rule fixed.** Seed 42, then 41 and 43 only for structural ineligibility; no observed scientific metric may trigger fallback.
