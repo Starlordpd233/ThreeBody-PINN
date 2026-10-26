@@ -21,6 +21,7 @@ import math
 import re
 import subprocess
 import sys
+import time
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
@@ -4479,6 +4480,236 @@ def cmd_ruling(_args: argparse.Namespace) -> None:
     print("RULING-OK")
 
 
+# ---------------------------------------------------------------------------
+# The final check: every mode, then the completeness the only-if checks omit
+# ---------------------------------------------------------------------------
+
+PHASE64_REQUIREMENTS = ("FEAS-06", "FEAS-10", "VER-22")
+DRAFT_NAME_BY_SEGMENT = {
+    "what_this_is": "project-draft-what-this-is",
+    "core_value": "project-draft-core-value",
+    "title": "project-draft-title",
+    "model": "project-draft-model",
+}
+
+
+def _timed(name: str, action) -> None:
+    """Run one step and print its elapsed seconds, as Phase 59's final does."""
+    started = time.perf_counter()
+    action()
+    print(f"elapsed {name} {time.perf_counter() - started:.3f}")
+
+
+def _head_text(relative: Path) -> str:
+    """A committed file's text at HEAD, the state every applied edit is judged in."""
+    proc = _git("show", f"HEAD:{relative.as_posix()}")
+    if proc.returncode != 0:
+        fail(f"{relative.as_posix()} at HEAD is unreadable: {proc.stderr.strip()}")
+    return proc.stdout
+
+
+def _check_owner_cells(answers: Mapping[str, str]) -> None:
+    """Every Owner cell filled with the ruling's answer for its row (D-13)."""
+    for row in parse_charter_page(charter_text()):
+        if not row[4]:
+            fail(f"the charter row {row[0]} has an empty Owner cell")
+        if row[4] != answers[row[0]]:
+            fail(
+                f"the charter row {row[0]} holds {row[4]!r}, not the ruling's "
+                f"answer {answers[row[0]]!r}"
+            )
+
+
+def _check_charter_decided() -> None:
+    """The charter records that the owner decided, and cites the ruling."""
+    pairs, _body = _parse_front_matter(charter_text(), what="the charter")
+    values = dict(pairs)
+    if values["status"] != "owner-decided":
+        fail(
+            f"the charter status {values['status']!r} is not 'owner-decided', so "
+            "the ruling has not been applied to it"
+        )
+    if values["ruling_citation"] != RULING_REL.as_posix():
+        fail(
+            f"the charter ruling_citation {values['ruling_citation']!r} is not "
+            "the ruling's path"
+        )
+
+
+def _check_verdict_signed(
+    answers: Mapping[str, str], created: str, digest: str
+) -> None:
+    """The verdict is signed, and its decision is the ruling's V-1 exactly."""
+    pairs, _body = _parse_front_matter(verdict_text(), what="the verdict")
+    values = dict(pairs)
+    if values["status"] != "owner-signed":
+        fail(
+            f"the verdict status {values['status']!r} is not 'owner-signed', so "
+            "the owner's decision is not recorded as applied"
+        )
+    if values["owner_decision"] != answers["V-1"]:
+        fail(
+            f"the verdict owner_decision {values['owner_decision']!r} is not the "
+            f"ruling's V-1 answer {answers['V-1']!r}"
+        )
+    if values["owner_decision_date"] != created:
+        fail(
+            f"the verdict owner_decision_date {values['owner_decision_date']!r} "
+            f"is not the ruling's created date {created!r}"
+        )
+    if values["ruling_citation"] != RULING_REL.as_posix():
+        fail(
+            f"the verdict ruling_citation {values['ruling_citation']!r} is not "
+            "the ruling's path"
+        )
+    if values["ruling_sha256"] != digest:
+        fail("the verdict ruling_sha256 is not the ruling's SHA-256")
+
+
+def _check_project_applied(answers: Mapping[str, str]) -> None:
+    """Every approved PROJECT.md rewrite applied; no unapproved one present."""
+    head_segments = project_segments(_head_text(PROJECT_REL))
+    base = _git("show", f"{PHASE_BASE}:{PROJECT_REL.as_posix()}")
+    if base.returncode != 0:
+        fail(f"PROJECT.md at the phase base is unreadable: {base.stderr.strip()}")
+    base_segments = project_segments(base.stdout)
+    drafts = _charter_draft_blocks(charter_text())
+    for row_id, segments in (
+        ("C-12", ("what_this_is", "core_value")),
+        ("C-13", ("title", "model")),
+    ):
+        token = answers[row_id]
+        for segment in segments:
+            changed = head_segments[segment] != base_segments[segment]
+            if token == "A":
+                draft_name = DRAFT_NAME_BY_SEGMENT[segment]
+                if head_segments[segment] != drafts[draft_name]:
+                    fail(
+                        f"PROJECT.md's {segment} is approved by {row_id} A but "
+                        f"differs from the {draft_name} draft"
+                    )
+            elif token.startswith(RULING_CHANGED_PREFIX):
+                continue
+            elif changed:
+                fail(f"PROJECT.md's {segment} changed while {row_id} is {token!r}")
+
+
+def _check_requirements_applied(answers: Mapping[str, str]) -> None:
+    """C-14's label applied (or left Pending), and the three phase requirements ticked."""
+    requirements_text = _head_text(REQUIREMENTS_REL)
+    table_block = _slice_between(
+        requirements_text,
+        r"^## Traceability$",
+        r"^---$",
+        what="REQUIREMENTS.md Traceability section",
+    )
+    statuses = {
+        requirement: status
+        for requirement, _phase, status in TABLE_ROW.findall(table_block)
+    }
+    definitions = re.findall(
+        r"^- \[([ xX])\] \*\*([A-Z]+-\d+)\*\*", requirements_text, re.M
+    )
+    states = {requirement: state for state, requirement in definitions}
+    token = answers["C-14"]
+    for requirement in SKIPPED_PHASE_REQUIREMENTS:
+        if states.get(requirement, "").lower() == "x":
+            fail(f"the skipped requirement {requirement} has its checkbox ticked")
+        status = statuses.get(requirement)
+        if status is None:
+            fail(f"REQUIREMENTS.md's Traceability table lacks {requirement}")
+        if token in ("A", "B"):
+            expected = GAP_6401_LABELS[token]
+            if status != expected:
+                fail(
+                    f"{requirement}'s status {status!r} is not the C-14 {token} "
+                    f"label {expected!r}, so the owner's answer is not applied"
+                )
+        elif status != "Pending":
+            fail(
+                f"{requirement}'s status {status!r} is not Pending while C-14 is "
+                f"{token!r}"
+            )
+    for requirement in PHASE64_REQUIREMENTS:
+        if states.get(requirement, "").lower() != "x":
+            fail(f"the requirement {requirement} is not ticked")
+        if statuses.get(requirement) != "Complete":
+            fail(
+                f"the requirement {requirement}'s status "
+                f"{statuses.get(requirement)!r} is not Complete"
+            )
+
+
+def _check_next_level_cost(lines: Sequence[str]) -> None:
+    """ROADMAP criterion 3 reconciled as GAP-64-03 option A records it."""
+    body = _section_body(lines, COST_SECTION_HEADING)
+    starts = [
+        index
+        for index, line in enumerate(body)
+        if line.rstrip() == COST_TO_NEXT_LEVEL_HEADING
+    ]
+    if len(starts) != 1:
+        fail(
+            f"{COST_SECTION_HEADING!r} holds {len(starts)} "
+            f"{COST_TO_NEXT_LEVEL_HEADING!r} subheadings, not 1"
+        )
+    start = starts[0]
+    end = len(body)
+    for index in range(start + 1, len(body)):
+        if body[index].startswith("### "):
+            end = index
+            break
+    span = "\n".join(body[start:end])
+    for phrase in ("not estimable from this evidence", "GAP-64-03"):
+        if phrase not in span:
+            fail(
+                f"the verdict's {COST_TO_NEXT_LEVEL_HEADING!r} lacks "
+                f"{phrase!r}, so ROADMAP criterion 3's next-level cost item is "
+                "not reconciled"
+            )
+
+
+def check_completeness() -> None:
+    """The if-direction ``ruling`` leaves out: every recorded approval applied.
+
+    ``ruling`` proves that no unapproved edit was made. This proves the other
+    half of the ruling's contract: an approval the ruling records but the tree
+    does not carry fails here. It runs last, so it judges the final text.
+    """
+    path = repo_path(RULING_REL, what="the ruling")
+    if not path.is_file():
+        fail(f"the ruling does not exist: {RULING_REL.as_posix()}")
+    parsed = parse_ruling(_read_text(path, what="the ruling"))
+    answers = parsed["answers"]
+    created = parsed["front_matter"]["created"]
+    digest = sha256_file(path)
+
+    _check_owner_cells(answers)
+    _check_charter_decided()
+    _check_verdict_signed(answers, created, digest)
+    _check_project_applied(answers)
+    _check_requirements_applied(answers)
+    _check_next_level_cost(_LINE_BREAK.split(verdict_text()))
+
+
+def cmd_final(_args: argparse.Namespace) -> None:
+    """Every mode, then the completeness the only-if checks cannot prove."""
+    for name, command in (
+        ("inputs", cmd_inputs),
+        ("frozen", cmd_frozen),
+        ("traceability", cmd_traceability),
+        ("numbers", cmd_numbers),
+        ("derive", cmd_derive),
+        ("figure", cmd_figure),
+        ("rules", cmd_rules),
+        ("charter", cmd_charter),
+        ("ruling", cmd_ruling),
+    ):
+        _timed(name, lambda command=command: command(_args))
+    _timed("completeness", check_completeness)
+    print("PHASE64-VERDICT-OK")
+
+
 COMMANDS = {
     "inputs": cmd_inputs,
     "frozen": cmd_frozen,
@@ -4489,6 +4720,7 @@ COMMANDS = {
     "rules": cmd_rules,
     "charter": cmd_charter,
     "ruling": cmd_ruling,
+    "final": cmd_final,
 }
 
 

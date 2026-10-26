@@ -611,9 +611,9 @@ class TraceabilityRealTests(unittest.TestCase):
         "table 24",
         "roadmap 24",
         "per-phase 59:5 60:4 61:8 62:2 63:2 64:3",
-        "status Complete 7",
+        "status Complete 10",
         "status Complete (recorded as skipped: no rescue) 2",
-        "status Pending 15",
+        "status Pending 12",
         "TRACEABILITY-OK",
     ]
 
@@ -686,9 +686,9 @@ class TraceabilityPureTests(unittest.TestCase):
         self.assertEqual(
             report["statuses"],
             {
-                "Complete": 7,
+                "Complete": 10,
                 "Complete (recorded as skipped: no rescue)": 2,
-                "Pending": 15,
+                "Pending": 12,
             },
         )
 
@@ -786,8 +786,8 @@ class TraceabilityPureTests(unittest.TestCase):
     def test_phase_outside_range_fails(self):
         requirements = replace_once(
             self.requirements,
-            "| FEAS-06 | Phase 64 | Pending |",
-            "| FEAS-06 | Phase 65 | Pending |",
+            "| FEAS-06 | Phase 64 | Complete |",
+            "| FEAS-06 | Phase 65 | Complete |",
         )
         roadmap = replace_once(
             self.roadmap,
@@ -3637,6 +3637,214 @@ class RulingInjectionTests(RulingCase):
         self.assertEqual(out.splitlines(), ["RULING-OK"])
         self.assertTrue(calls)
         self.assertTrue(all(call[0] == "git" for call in calls))
+
+
+FINAL_MODES = (
+    "inputs",
+    "frozen",
+    "traceability",
+    "numbers",
+    "derive",
+    "figure",
+    "rules",
+    "charter",
+    "ruling",
+)
+FINAL_TOKENS = (
+    "INPUTS-OK",
+    "FROZEN-OK",
+    "TRACEABILITY-OK",
+    "NUMBERS-OK",
+    "DERIVE-OK",
+    "FIGURE-OK",
+    "RULES-OK",
+    "CHARTER-OK",
+    "RULING-OK",
+)
+FINAL_FIXTURE_RELS = (
+    CHARTER_REL,
+    VERDICT_REL,
+    RULING_REL,
+    ".planning/PROJECT.md",
+    ".planning/REQUIREMENTS.md",
+)
+
+
+class FinalRealTests(unittest.TestCase):
+    """The aggregate check on the real worktree: every mode, one success line last."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+        cls.code, cls.stdout, cls.stderr = run_main(cls.module, ["final"])
+
+    def test_final_is_a_registered_command(self):
+        self.assertIn("final", self.module.COMMANDS)
+        self.assertEqual(
+            self.module.build_parser().parse_args(["final"]).command, "final"
+        )
+
+    def test_real_tree_prints_the_aggregate_token_last(self):
+        self.assertEqual(self.code, 0, self.stderr)
+        lines = self.stdout.splitlines()
+        self.assertEqual(lines[-1], "PHASE64-VERDICT-OK")
+        self.assertEqual(lines.count("PHASE64-VERDICT-OK"), 1)
+        self.assertNotIn("FAIL-CLOSED", self.stderr)
+
+    def test_every_mode_prints_its_token_and_its_elapsed_line(self):
+        lines = self.stdout.splitlines()
+        self.assertEqual(
+            [line for line in lines if line in FINAL_TOKENS], list(FINAL_TOKENS)
+        )
+        for mode, token in zip(FINAL_MODES, FINAL_TOKENS):
+            index = lines.index(token)
+            self.assertEqual(lines[index + 1].split()[:2], ["elapsed", mode])
+            self.assertGreaterEqual(float(lines[index + 1].split()[2]), 0.0)
+        self.assertEqual(len(self.module.COMMANDS), 10)
+
+
+class FinalCompletenessTests(unittest.TestCase):
+    """The if-direction: an approval the ruling records must be applied.
+
+    Every mode is patched to pass, so each case fails only in the final
+    check's own completeness step; the data-dependent modes stay out of it.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.root = Path(self.temp_dir.name)
+        for relative in FINAL_FIXTURE_RELS:
+            copy_bytes(self.root, relative)
+        # The base commit holds the phase base's PROJECT.md, so a rewrite the
+        # ruling does not approve is a change against it whatever the current
+        # tree holds.
+        base_project = _git(
+            ROOT, "show", f"{self.module.PHASE_BASE}:.planning/PROJECT.md"
+        ).stdout
+        (self.root / ".planning/PROJECT.md").write_text(base_project, encoding="utf-8")
+        init_repo(self.root)
+        self.base = commit_all(self.root, "the phase base")
+        copy_bytes(self.root, ".planning/PROJECT.md")
+        self.commit("the current tree")
+
+    def commit(self, message: str) -> None:
+        if _git(self.root, "status", "--porcelain").stdout.strip():
+            commit_all(self.root, message)
+
+    def write(self, relative: str, text: str) -> None:
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        self.commit(f"mutate {relative}")
+
+    def mutate(self, relative: str, old: str, new: str) -> None:
+        text = (self.root / relative).read_text(encoding="utf-8")
+        self.assertIn(old, text, f"{relative} does not hold {old!r}")
+        self.write(relative, text.replace(old, new, 1))
+
+    def set_answer(self, row_id: str, token: str) -> None:
+        """Record a different answer for one row, as an application would.
+
+        The ruling is rewritten first, its new digest is copied into the signed
+        verdict, and the charter's Owner cell follows, so only the check under
+        test can fail.
+        """
+        ruler = (self.root / RULING_REL).read_text(encoding="utf-8")
+        old = next(
+            line for line in ruler.splitlines() if line.startswith(f"| {row_id} |")
+        )
+        cells = [cell.strip() for cell in old.strip().strip("|").split("|")]
+        cells[1] = token
+        self.write(RULING_REL, ruler.replace(old, "| " + " | ".join(cells) + " |"))
+        digest = sha256_of(self.root / RULING_REL)
+        verdict = (self.root / VERDICT_REL).read_text(encoding="utf-8")
+        current = next(
+            line for line in verdict.splitlines() if line.startswith("ruling_sha256: ")
+        )
+        self.write(VERDICT_REL, verdict.replace(current, f"ruling_sha256: {digest}"))
+        charter = (self.root / CHARTER_REL).read_text(encoding="utf-8")
+        row = next(
+            line for line in charter.splitlines() if line.startswith(f"| {row_id} |")
+        )
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        cells[4] = token
+        self.write(CHARTER_REL, charter.replace(row, "| " + " | ".join(cells) + " |"))
+
+    def run_final(self) -> tuple[int, str, str]:
+        with mock.patch.object(self.module, "REPO_ROOT", self.root), mock.patch.object(
+            self.module, "PHASE_BASE", self.base
+        ):
+            with contextlib.ExitStack() as stack:
+                for mode in FINAL_MODES:
+                    stack.enter_context(
+                        mock.patch.object(
+                            self.module, f"cmd_{mode}", lambda *_a, **_k: None
+                        )
+                    )
+                return run_main(self.module, ["final"])
+
+    def assert_completeness_fails(self, needle: str) -> str:
+        code, stdout, stderr = self.run_final()
+        self.assertEqual(code, 1, f"the mutated tree passed: {stdout}")
+        self.assertNotIn("PHASE64-VERDICT-OK", stdout)
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+    def test_the_current_tree_passes_the_completeness_step(self):
+        code, stdout, stderr = self.run_final()
+        self.assertEqual(code, 0, stderr)
+        self.assertEqual(stdout.splitlines()[-1], "PHASE64-VERDICT-OK")
+        self.assertIn("elapsed completeness", "\n".join(stdout.splitlines()))
+
+    def test_an_approved_c12_that_is_not_applied_fails(self):
+        self.set_answer("C-12", "A")
+        self.assert_completeness_fails(
+            "PROJECT.md's what_this_is is approved by C-12 A but differs"
+        )
+
+    def test_one_empty_owner_cell_fails(self):
+        text = (self.root / CHARTER_REL).read_text(encoding="utf-8")
+        row = next(line for line in text.splitlines() if line.startswith("| C-4 |"))
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        cells[4] = ""
+        self.write(CHARTER_REL, text.replace(row, "| " + " | ".join(cells) + " |"))
+        self.assert_completeness_fails("the charter row C-4 has an empty Owner cell")
+
+    def test_the_verdict_still_awaiting_owner_fails(self):
+        self.mutate(VERDICT_REL, "status: owner-signed", "status: awaiting-owner")
+        self.assert_completeness_fails("is not 'owner-signed'")
+
+    def test_an_owner_decision_that_differs_from_v1_fails(self):
+        self.mutate(VERDICT_REL, "owner_decision: change-course", "owner_decision: continue")
+        self.assert_completeness_fails("is not the ruling's V-1 answer")
+
+    def test_an_unticked_feas_10_fails(self):
+        self.mutate(
+            ".planning/REQUIREMENTS.md", "- [x] **FEAS-10**", "- [ ] **FEAS-10**"
+        )
+        self.assert_completeness_fails("the requirement FEAS-10 is not ticked")
+
+    def test_a_complete_cell_left_pending_fails(self):
+        self.mutate(
+            ".planning/REQUIREMENTS.md",
+            "| VER-22 | Phase 64 | Complete |",
+            "| VER-22 | Phase 64 | Pending |",
+        )
+        self.assert_completeness_fails("the requirement VER-22's status 'Pending'")
+
+    def test_c14_approved_but_the_cells_still_pending_fails(self):
+        self.set_answer("C-14", "A")
+        self.assert_completeness_fails("is not the C-14 A label")
+
+    def test_a_cost_subsection_without_its_citation_fails(self):
+        self.mutate(VERDICT_REL, "GAP-64-03 records the reconciliation", "The gap record notes the reconciliation")
+        self.assert_completeness_fails("GAP-64-03")
 
 
 if __name__ == "__main__":
