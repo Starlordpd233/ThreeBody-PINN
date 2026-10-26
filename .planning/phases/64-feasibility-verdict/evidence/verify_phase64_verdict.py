@@ -3025,15 +3025,16 @@ def cmd_figure(_args: argparse.Namespace) -> None:
     print("FIGURE-OK")
 
 
-def _fenced_blocks(text: str) -> list[tuple[str, list[str]]]:
-    """``[(info string, content lines)]`` for every fenced block of ``text``, Markdown-style.
+def _fenced_spans(text: str) -> list[tuple[str, int, int, list[str]]]:
+    """``[(info, start, end, content lines)]`` for every fenced block of ``text``.
 
     Copied from ``pinn/verification/learnability_ruling.py:119-146`` (pinned
     module, never imported). The closing fence must use the same character and
-    be at least as long as the opening fence.
+    be at least as long as the opening fence. ``start`` and ``end`` are the
+    indices of the opening and closing fence lines.
     """
     lines = _LINE_BREAK.split(text)
-    blocks = []
+    spans = []
     index = 0
     while index < len(lines):
         opening = _FENCE_OPEN.match(lines[index])
@@ -3041,11 +3042,12 @@ def _fenced_blocks(text: str) -> list[tuple[str, list[str]]]:
             index += 1
             continue
         fence, info = opening["fence"], opening["info"]
+        start = index
         content = []
         index += 1
         while True:
             if index >= len(lines):
-                fail("a fenced block in the verdict is never closed")
+                fail("a fenced block in the document is never closed")
             closing = _FENCE_CLOSE.match(lines[index])
             if (
                 closing is not None
@@ -3055,9 +3057,25 @@ def _fenced_blocks(text: str) -> list[tuple[str, list[str]]]:
                 break
             content.append(lines[index])
             index += 1
-        blocks.append((info, content))
+        spans.append((info, start, index, content))
         index += 1
-    return blocks
+    return spans
+
+
+def _fenced_blocks(text: str) -> list[tuple[str, list[str]]]:
+    """``[(info string, content lines)]`` for every fenced block of ``text``."""
+    return [(info, content) for info, _start, _end, content in _fenced_spans(text)]
+
+
+def _without_fences(text: str) -> tuple[str, list[tuple[str, list[str]]]]:
+    """``text`` with every fenced block blanked, and the blocks themselves."""
+    lines = _LINE_BREAK.split(text)
+    spans = _fenced_spans(text)
+    blanked: set[int] = set()
+    for _info, start, end, _content in spans:
+        blanked.update(range(start, end + 1))
+    kept = ["" if index in blanked else line for index, line in enumerate(lines)]
+    return "\n".join(kept), [(info, content) for info, _s, _e, content in spans]
 
 
 def strip_owner_quotes(text: str) -> str:
@@ -3108,16 +3126,19 @@ def guard_violations(text: str) -> list[tuple[int, str]]:
     return violations
 
 
-def _parse_front_matter(text: str) -> tuple[list[tuple[str, str]], str]:
-    """The verdict's front-matter ``(key, value)`` pairs in order, and the body.
+def _parse_front_matter(
+    text: str, *, what: str = "the verdict", reject_quotes: bool = False
+) -> tuple[list[tuple[str, str]], str]:
+    """The document's front-matter ``(key, value)`` pairs in order, and the body.
 
     The format is deliberately strict: a leading ``---`` line, one
     ``lowercase_key: value`` per line, and a closing ``---`` line. A duplicate
-    key, a quoted value or an unclosed block fails closed.
+    key, a quoted value (when ``reject_quotes`` is set) or an unclosed block
+    fails closed.
     """
     lines = _LINE_BREAK.split(text)
     if not lines or lines[0].strip() != "---":
-        fail("the verdict does not open with front matter")
+        fail(f"{what} does not open with front matter")
     pairs: list[tuple[str, str]] = []
     seen: set[str] = set()
     for index in range(1, len(lines)):
@@ -3125,13 +3146,16 @@ def _parse_front_matter(text: str) -> tuple[list[tuple[str, str]], str]:
             return pairs, "\n".join(lines[index + 1 :])
         match = re.fullmatch(r"([a-z][a-z0-9_]*):[ \t]+(\S(?:.*\S)?)", lines[index])
         if match is None:
-            fail(f"the verdict front-matter line {index + 1} is not key: value")
+            fail(f"{what} front-matter line {index + 1} is not key: value")
         key = match.group(1)
         if key in seen:
-            fail(f"the verdict front matter names {key!r} twice")
+            fail(f"{what} front matter names {key!r} twice")
         seen.add(key)
-        pairs.append((key, match.group(2)))
-    fail("the verdict front matter is never closed")
+        value = match.group(2)
+        if reject_quotes and value[:1] in {'"', "'"}:
+            fail(f"{what} front-matter value {key!r} is quoted")
+        pairs.append((key, value))
+    fail(f"{what} front matter is never closed")
 
 
 def _read_text(path: Path, *, what: str) -> str:
@@ -3153,11 +3177,13 @@ def _heading_indices(lines: Sequence[str], heading: str) -> list[int]:
     return [index for index, line in enumerate(lines) if line.rstrip() == heading]
 
 
-def _section_body(lines: Sequence[str], heading: str) -> list[str]:
+def _section_body(
+    lines: Sequence[str], heading: str, *, what: str = "the verdict"
+) -> list[str]:
     """The lines under ``heading`` up to the next level-2 heading."""
     indices = _heading_indices(lines, heading)
     if len(indices) != 1:
-        fail(f"the verdict holds {len(indices)} {heading!r} headings, not 1")
+        fail(f"{what} holds {len(indices)} {heading!r} headings, not 1")
     start = indices[0]
     for index in range(start + 1, len(lines)):
         if lines[index].startswith("## "):
@@ -3303,6 +3329,298 @@ def _check_evidence_index(lines: Sequence[str]) -> None:
             )
 
 
+# ---------------------------------------------------------------------------
+# The charter: the one page the owner answers, and its appendices
+# ---------------------------------------------------------------------------
+
+CHARTER_REL = PHASE_REL / "64-CHARTER.md"
+RULING_REL = PHASE_REL / "64-CHECKPOINT-1-RULING.md"
+CHARTER_SCHEMA = "phase64-charter/v1"
+CHARTER_FRONT_MATTER_KEYS = (
+    "schema_version",
+    "status",
+    "created",
+    "verdict_citation",
+    "numbers_sha256",
+    "ruling_citation",
+)
+CHARTER_STATUSES = ("awaiting-owner", "owner-decided")
+CHARTER_AUDIENCE_LINE = (
+    "**Audience:** the project owner; reading about five minutes; "
+    "replying takes one message."
+)
+PAGE_BEGIN = "<!-- page:begin -->"
+PAGE_END = "<!-- page:end -->"
+PAGE_MAX_LINES = 60
+PAGE_HEADER = ("ID", "Item", "Recommended answer", "Other options", "Owner")
+CHARTER_ROW_IDS = (
+    "V-1",
+    "C-1",
+    "C-2",
+    "C-3",
+    "C-4",
+    "C-5",
+    "C-6",
+    "C-7",
+    "C-8",
+    "C-9",
+    "C-10",
+    "C-11",
+    "C-12",
+    "C-13",
+    "C-14",
+)
+CHARTER_RECORDED_IDS = ("C-1", "C-3", "C-11")
+CHARTER_OPTION_IDS = tuple(
+    row_id
+    for row_id in CHARTER_ROW_IDS
+    if row_id != "V-1" and row_id not in CHARTER_RECORDED_IDS
+)
+# The letters each option row offers on the page; C-6, C-8, C-12 and C-13
+# offer no C, because a third option would invent a choice the plan does not.
+CHARTER_ROW_LETTERS = {
+    "C-2": ("A", "B", "C"),
+    "C-4": ("A", "B", "C"),
+    "C-5": ("A", "B", "C"),
+    "C-6": ("A", "B"),
+    "C-7": ("A", "B", "C"),
+    "C-8": ("A", "B"),
+    "C-9": ("A", "B", "C"),
+    "C-10": ("A", "B", "C"),
+    "C-12": ("A", "B"),
+    "C-13": ("A", "B"),
+    "C-14": ("A", "B", "C"),
+}
+EXPECTED_CHARTER_HEADINGS = (
+    "## In plain language",
+    "## The charter on one page",
+    "## V-1: Your decision on the verdict",
+    "## C-1: Purpose",
+    "## C-2: Definition of done",
+    "## C-3: Current level",
+    "## C-4: Stage-0 pass bar, position criterion",
+    "## C-5: Stage-0 pass bar, energy criterion",
+    "## C-6: The 10⁻⁵ held-out bar",
+    "## C-7: GAP-59-08, how ε_H is measured",
+    "## C-8: Pass bars for Stages 1–6",
+    "## C-9: Budget",
+    "## C-10: Stop rule",
+    "## C-11: The evaluation section of ctl_instruction.md",
+    "## C-12: Rewriting What This Is and Core Value in PROJECT.md",
+    "## C-13: The title line and the Model constraint in PROJECT.md",
+    "## C-14: The requirements of the skipped phases (GAP-64-01)",
+    "## Sources",
+)
+# The owner's decision of 2026-10-25, recorded in 64-GAPS.md GAP-64-02: a
+# blanket approval never covers C-6 or C-7, so each needs its own answer.
+REPLY_RULE_C6_C7 = (
+    "C-6 and C-7 each need their own answer, written with the row's ID, for "
+    'example "C-6: A"; "approve all" and "approve the rest" do not cover '
+    "them, so each stays open until you answer it."
+)
+
+
+def _table_cells(line: str, *, what: str) -> list[str]:
+    stripped = line.strip()
+    if len(stripped) < 2 or not stripped.startswith("|") or not stripped.endswith("|"):
+        fail(f"{what} is not a table row: {line!r}")
+    return [cell.strip() for cell in stripped[1:-1].split("|")]
+
+
+def _page_span(text: str) -> tuple[list[str], int, int]:
+    """The charter's lines and the indices of its two page markers."""
+    lines = _LINE_BREAK.split(text)
+    begins = [index for index, line in enumerate(lines) if line.strip() == PAGE_BEGIN]
+    ends = [index for index, line in enumerate(lines) if line.strip() == PAGE_END]
+    if len(begins) != 1:
+        fail(f"the charter holds {len(begins)} page:begin markers, not 1")
+    if len(ends) != 1:
+        fail(f"the charter holds {len(ends)} page:end markers, not 1")
+    if begins[0] >= ends[0]:
+        fail("the charter's page:end marker precedes its page:begin marker")
+    length = ends[0] - begins[0] + 1
+    if length > PAGE_MAX_LINES:
+        fail(f"the charter page is {length} lines, more than {PAGE_MAX_LINES}")
+    return lines, begins[0], ends[0]
+
+
+def parse_charter_page(text: str) -> list[list[str]]:
+    """The 15 data rows of the charter page, as five-cell lists in page order.
+
+    Only the lines between the page markers are read, and fenced blocks are
+    blanked first, so an appendix draft can never be mistaken for a row.
+    """
+    lines, begin, end = _page_span(text)
+    visible, blocks = _without_fences("\n".join(lines[begin : end + 1]))
+    if blocks:
+        fail("the charter page holds a fenced block")
+    table = [
+        line for line in _LINE_BREAK.split(visible) if line.strip().startswith("|")
+    ]
+    if len(table) < 3:
+        fail("the charter page holds no table")
+    rows = [_table_cells(line, what="a charter page row") for line in table]
+    if tuple(rows[0]) != PAGE_HEADER:
+        fail(f"the charter page header is {rows[0]!r}, not {list(PAGE_HEADER)!r}")
+    if any(re.fullmatch(r":?-{3,}:?", cell) is None for cell in rows[1]):
+        fail("the charter page's table separator is malformed")
+    return rows[2:]
+
+
+def charter_text() -> str:
+    """The charter's text. A module-level seam so tests can mutate it."""
+    path = repo_path(CHARTER_REL, what="the charter")
+    if not path.is_file():
+        fail(f"the charter is missing: {CHARTER_REL.as_posix()}")
+    return _read_text(path, what="the charter")
+
+
+def _check_charter_front_matter(pairs: Sequence[tuple[str, str]]) -> dict[str, str]:
+    keys = [key for key, _value in pairs]
+    if keys != list(CHARTER_FRONT_MATTER_KEYS):
+        fail(
+            "the charter front matter keys are not the schema's keys in order: "
+            f"found {keys!r}"
+        )
+    values = dict(pairs)
+    if values["schema_version"] != CHARTER_SCHEMA:
+        fail(
+            f"the charter schema_version {values['schema_version']!r} is not "
+            f"{CHARTER_SCHEMA!r}"
+        )
+    if values["status"] not in CHARTER_STATUSES:
+        fail(f"the charter status {values['status']!r} is not allowed")
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", values["created"]) is None:
+        fail(f"the charter created {values['created']!r} is not a date")
+    if values["verdict_citation"] != VERDICT_REL.as_posix():
+        fail(
+            f"the charter verdict_citation {values['verdict_citation']!r} is "
+            "not the verdict's path"
+        )
+    numbers_path = repo_path(NUMBERS_REL, what="numbers.json")
+    if values["numbers_sha256"] != sha256_file(numbers_path):
+        fail("the charter numbers_sha256 is not numbers.json's current SHA-256")
+    citation = values["ruling_citation"]
+    if citation not in ("pending", RULING_REL.as_posix()):
+        fail(
+            f"the charter ruling_citation {citation!r} is neither pending nor "
+            f"{RULING_REL.as_posix()!r}"
+        )
+    status = values["status"]
+    if status == "awaiting-owner" and citation != "pending":
+        fail("the charter is awaiting-owner but its ruling_citation is not pending")
+    if status == "owner-decided":
+        if citation != RULING_REL.as_posix():
+            fail(
+                "the charter is owner-decided but its ruling_citation is not "
+                "the ruling's path"
+            )
+        if not repo_path(RULING_REL, what="the ruling").is_file():
+            fail("the charter is owner-decided but the ruling does not exist")
+        if not is_tracked(RULING_REL.as_posix()):
+            fail("the charter is owner-decided but the ruling is not tracked")
+    return values
+
+
+def _check_charter_page(text: str) -> list[list[str]]:
+    """The page's structure, rows, reply note and empty Owner cells."""
+    lines, begin, end = _page_span(text)
+    rows = parse_charter_page(text)
+    if len(rows) != len(CHARTER_ROW_IDS):
+        fail(f"the charter page holds {len(rows)} rows, not {len(CHARTER_ROW_IDS)}")
+    for expected, row in zip(CHARTER_ROW_IDS, rows):
+        if len(row) != 5:
+            fail(f"the charter row {row[0]!r} holds {len(row)} cells, not 5")
+        if row[0] != expected:
+            fail(f"the charter page row {row[0]!r} is not {expected!r} in order")
+        if not row[1]:
+            fail(f"the charter row {expected} has an empty Item cell")
+        if not row[2]:
+            fail(f"the charter row {expected} has an empty Recommended answer")
+        if not row[3]:
+            fail(f"the charter row {expected} has an empty Other options cell")
+        if expected == "V-1":
+            if not row[2].startswith("Change course:"):
+                fail("the charter's V-1 recommendation does not start 'Change course:'")
+            for phrase in ("Continue on this path", "Stop here"):
+                if phrase not in row[3]:
+                    fail(f"the charter's V-1 options lack {phrase!r}")
+        elif expected in CHARTER_RECORDED_IDS:
+            if not row[2].startswith("Recorded:"):
+                fail(f"the charter row {expected} does not start 'Recorded:'")
+            if row[3] != "none":
+                fail(f"the charter row {expected} does not list 'none' as its options")
+        else:
+            if not row[2].startswith("A:"):
+                fail(f"the charter row {expected} does not start 'A:'")
+            for letter in CHARTER_ROW_LETTERS[expected][1:]:
+                if f"{letter}:" not in row[3]:
+                    fail(f"the charter row {expected} does not offer option {letter}")
+    c5 = rows[5]
+    if "conditional on" not in c5[2]:
+        fail("the charter's C-5 recommendation is not conditional on C-7")
+    other = c5[3]
+    try:
+        b_index = other.index("B:")
+        c_index = other.index("C:")
+    except ValueError:
+        fail("the charter's C-5 options do not hold B: and C: in order")
+    if b_index >= c_index:
+        fail("the charter's C-5 options do not hold B: before C:")
+    for segment in (other[b_index:c_index], other[c_index:]):
+        if "conditional on" not in segment:
+            fail("a charter C-5 option is not conditional on the C-7 answer")
+    page = "\n".join(lines[begin : end + 1])
+    if page.count(REPLY_RULE_C6_C7) != 1:
+        fail(
+            "the charter page does not hold the C-6 and C-7 reply sentence "
+            "exactly once"
+        )
+    for phrase in (
+        "How to reply",
+        "approve all",
+        "approve the rest",
+        "including change course for V-1",
+        "recorded as open",
+    ):
+        if phrase not in page:
+            fail(f"the charter's reply note lacks {phrase!r}")
+    if not repo_path(RULING_REL, what="the ruling").is_file():
+        for row in rows:
+            if row[4]:
+                fail(
+                    f"the charter row {row[0]} has an Owner cell filled before "
+                    "the ruling exists"
+                )
+    return rows
+
+
+def cmd_charter(_args: argparse.Namespace) -> None:
+    """The one page the owner answers: schema, headings, rows, quotes, drafts."""
+    text = charter_text()
+    pairs, body = _parse_front_matter(text, what="the charter")
+    _check_charter_front_matter(pairs)
+    lines = _LINE_BREAK.split(body)
+    audience = [
+        index for index, line in enumerate(lines) if line.rstrip() == CHARTER_AUDIENCE_LINE
+    ]
+    if len(audience) != 1:
+        fail(f"the charter holds {len(audience)} Audience lines, not 1")
+    first_heading = next(
+        (index for index, line in enumerate(lines) if line.startswith("## ")), None
+    )
+    if first_heading is None or audience[0] > first_heading:
+        fail("the charter's Audience line does not precede the first heading")
+    found = [line.rstrip() for line in lines if line.startswith("## ")]
+    if found != list(EXPECTED_CHARTER_HEADINGS):
+        fail(
+            "the charter's level-2 headings are not the 18 expected headings "
+            f"exactly once in order: found {found!r}"
+        )
+    _check_charter_page(text)
+    print("CHARTER-OK")
+
+
 def cmd_rules(_args: argparse.Namespace) -> None:
     """The verdict's document checks: skeleton, schema, wording and evidence index."""
     text = verdict_text()
@@ -3424,6 +3742,7 @@ COMMANDS = {
     "derive": cmd_derive,
     "figure": cmd_figure,
     "rules": cmd_rules,
+    "charter": cmd_charter,
 }
 
 

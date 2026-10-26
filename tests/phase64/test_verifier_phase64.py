@@ -2374,5 +2374,447 @@ class VerdictContentTests(VerdictCase):
         self.assertEqual(mutated.count("\n## "), 15)
 
 
+CHARTER_REL = f"{PHASE}/64-CHARTER.md"
+RULING_REL = f"{PHASE}/64-CHECKPOINT-1-RULING.md"
+# `charter` reads numbers.json's digest and the ruling's existence through
+# REPO_ROOT; the temporary repository holds byte copies of both.
+CHARTER_FIXTURE_RELS = (CHARTER_REL, f"{EVIDENCE}/numbers.json")
+
+
+class CharterRealTests(unittest.TestCase):
+    """The tracer gate: the real page passes before any synthetic copy."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+        cls.charter = (ROOT / CHARTER_REL).read_text(encoding="utf-8")
+
+    def test_charter_is_a_registered_command(self):
+        self.assertIn("charter", self.module.COMMANDS)
+        self.assertEqual(
+            self.module.build_parser().parse_args(["charter"]).command, "charter"
+        )
+
+    def test_real_charter_prints_charter_ok(self):
+        code, out, err = run_main(self.module, ["charter"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["CHARTER-OK"])
+        self.assertNotIn("FAIL-CLOSED", err)
+
+    def test_real_page_holds_the_fifteen_rows_in_order(self):
+        rows = self.module.parse_charter_page(self.charter)
+        self.assertEqual(len(self.module.CHARTER_ROW_IDS), 15)
+        self.assertEqual([row[0] for row in rows], list(self.module.CHARTER_ROW_IDS))
+
+    def test_real_page_is_within_the_sixty_line_limit(self):
+        lines = self.charter.splitlines()
+        begin = lines.index(self.module.PAGE_BEGIN)
+        end = lines.index(self.module.PAGE_END)
+        self.assertLessEqual(end - begin + 1, self.module.PAGE_MAX_LINES)
+
+    def test_real_page_has_empty_owner_cells(self):
+        rows = self.module.parse_charter_page(self.charter)
+        self.assertEqual([row[4] for row in rows if row[4]], [])
+
+    def test_real_page_states_the_c6_c7_reply_rule_once(self):
+        lines = self.charter.splitlines()
+        begin = lines.index(self.module.PAGE_BEGIN)
+        end = lines.index(self.module.PAGE_END)
+        page = "\n".join(lines[begin : end + 1])
+        self.assertEqual(page.count(self.module.REPLY_RULE_C6_C7), 1)
+
+    def test_ruling_does_not_exist_after_the_plan(self):
+        self.assertFalse((ROOT / RULING_REL).exists())
+
+
+class CharterCase(unittest.TestCase):
+    """Shared fixture: byte copies of the charter and numbers.json.
+
+    Every negative control mutates the real charter's text in a temporary
+    repository whose ``REPO_ROOT`` is patched, so the checks run against a
+    charter that differs from the committed one only by the mutation. The
+    ``owner-decided`` cases initialise the temporary repository for real,
+    because that branch asks git whether the ruling is tracked.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_verifier()
+        cls.charter = (ROOT / CHARTER_REL).read_text(encoding="utf-8")
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.root = Path(self.temp_dir.name)
+        for relative in CHARTER_FIXTURE_RELS:
+            copy_bytes(self.root, relative)
+
+    def write_charter(self, text: str) -> None:
+        (self.root / CHARTER_REL).write_text(text, encoding="utf-8")
+
+    def run_charter(self, text: str) -> tuple[int, str, str]:
+        self.write_charter(text)
+        with mock.patch.object(self.module, "REPO_ROOT", self.root):
+            return run_main(self.module, ["charter"])
+
+    def assert_rejected(self, text: str, needle: str) -> str:
+        code, _stdout, stderr = self.run_charter(text)
+        self.assertEqual(code, 1, f"the mutated charter passed: {stderr}")
+        self.assertIn("FAIL-CLOSED", stderr)
+        self.assertIn(needle, stderr)
+        return stderr
+
+    def assert_accepted(self, text: str) -> None:
+        code, out, err = self.run_charter(text)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["CHARTER-OK"])
+
+    def row(self, row_id: str) -> str:
+        for line in self.charter.splitlines():
+            if line.startswith(f"| {row_id} |"):
+                return line
+        raise AssertionError(f"the real charter page holds no {row_id} row")
+
+    def cells(self, row_id: str) -> list[str]:
+        return [cell.strip() for cell in self.row(row_id).strip()[1:-1].split("|")]
+
+    def rebuild_row(self, row_id: str, cells: list[str]) -> str:
+        return self.charter.replace(
+            self.row(row_id), "| " + " | ".join(cells) + " |"
+        )
+
+    def decided(self) -> str:
+        return replace_once(
+            replace_once(
+                self.charter,
+                "status: awaiting-owner",
+                "status: owner-decided",
+            ),
+            "ruling_citation: pending",
+            f"ruling_citation: {RULING_REL}",
+        )
+
+
+class CharterPageTests(CharterCase):
+    """The page's structure: markers, length, table, rows and reply note."""
+
+    def test_a_page_of_exactly_sixty_lines_passes(self):
+        # The limit counts both markers, so 25 real lines plus 35 blank lines
+        # is the last page that may pass.
+        mutated = replace_once(
+            self.charter, self.module.PAGE_BEGIN + "\n", self.module.PAGE_BEGIN + "\n" + "\n" * 35
+        )
+        self.assert_accepted(mutated)
+
+    def test_a_page_of_sixty_one_lines_fails(self):
+        mutated = replace_once(
+            self.charter, self.module.PAGE_BEGIN + "\n", self.module.PAGE_BEGIN + "\n" + "\n" * 36
+        )
+        self.assert_rejected(mutated, "more than 60")
+
+    def test_a_missing_page_begin_marker_fails(self):
+        mutated = replace_once(self.charter, self.module.PAGE_BEGIN + "\n", "")
+        self.assert_rejected(mutated, "page:begin markers, not 1")
+
+    def test_a_second_page_end_marker_fails(self):
+        mutated = replace_once(
+            self.charter,
+            self.module.PAGE_END,
+            self.module.PAGE_END + "\n" + self.module.PAGE_END,
+        )
+        self.assert_rejected(mutated, "page:end markers, not 1")
+
+    def test_a_reversed_page_fails(self):
+        mutated = replace_once(self.charter, self.module.PAGE_BEGIN + "\n", "")
+        mutated = replace_once(
+            mutated, self.module.PAGE_END, self.module.PAGE_END + "\n" + self.module.PAGE_BEGIN
+        )
+        self.assert_rejected(mutated, "precedes its page:begin")
+
+    def test_a_fenced_block_on_the_page_fails(self):
+        mutated = replace_once(
+            self.charter,
+            self.module.PAGE_BEGIN + "\n",
+            self.module.PAGE_BEGIN + "\n```\na draft\n```\n",
+        )
+        self.assert_rejected(mutated, "page holds a fenced block")
+
+    def test_a_wrong_table_header_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "| ID | Item | Recommended answer | Other options | Owner |",
+            "| ID | Item | Recommended | Other options | Owner |",
+        )
+        self.assert_rejected(mutated, "page header is")
+
+    def test_a_malformed_separator_fails(self):
+        mutated = replace_once(
+            self.charter, "|---|---|---|---|---|", "|---|---|---|xx|---|"
+        )
+        self.assert_rejected(mutated, "separator is malformed")
+
+    def test_fourteen_rows_fail(self):
+        mutated = replace_once(self.charter, self.row("C-8") + "\n", "")
+        self.assert_rejected(mutated, "14 rows, not 15")
+
+    def test_a_row_out_of_order_fails(self):
+        mutated = replace_once(self.charter, "| C-3 |", "| C-99 |")
+        self.assert_rejected(mutated, "is not 'C-3' in order")
+
+    def test_a_four_cell_row_fails(self):
+        mutated = self.rebuild_row("C-2", ["C-2", "Definition of done", "A: Level 6"])
+        self.assert_rejected(mutated, "holds 3 cells, not 5")
+
+    def test_an_empty_item_cell_fails(self):
+        cells = self.cells("C-2")
+        cells[1] = ""
+        self.assert_rejected(self.rebuild_row("C-2", cells), "empty Item cell")
+
+    def test_an_empty_recommendation_fails(self):
+        cells = self.cells("C-2")
+        cells[2] = ""
+        self.assert_rejected(self.rebuild_row("C-2", cells), "empty Recommended answer")
+
+    def test_empty_other_options_fail(self):
+        cells = self.cells("C-2")
+        cells[3] = ""
+        self.assert_rejected(self.rebuild_row("C-2", cells), "empty Other options cell")
+
+    def test_an_extra_page_heading_fails(self):
+        # A level-2 heading inside the page is caught by the stronger global
+        # heading check, which requires exactly the 18 expected headings.
+        mutated = replace_once(
+            self.charter,
+            "## The charter on one page\n",
+            "## The charter on one page\n\n## A note\n",
+        )
+        self.assert_rejected(mutated, "not the 18 expected headings")
+
+    def test_a_filled_owner_cell_before_the_ruling_fails(self):
+        cells = self.cells("C-2")
+        cells[4] = "A"
+        self.assert_rejected(
+            self.rebuild_row("C-2", cells), "Owner cell filled before"
+        )
+
+    def test_v1_must_start_with_change_course(self):
+        mutated = replace_once(
+            self.charter,
+            "| V-1 | Your decision on the verdict | Change course:",
+            "| V-1 | Your decision on the verdict | Continue:",
+        )
+        self.assert_rejected(mutated, "does not start 'Change course:'")
+
+    def test_v1_must_name_all_three_options(self):
+        mutated = replace_once(
+            self.charter,
+            "Stop here (the held-out evaluation stays unspent)",
+            "Halt",
+        )
+        self.assert_rejected(mutated, "lack 'Stop here'")
+
+    def test_a_recorded_row_must_start_with_recorded(self):
+        mutated = replace_once(
+            self.charter, "| C-1 | Purpose | Recorded:", "| C-1 | Purpose | Fixed:"
+        )
+        self.assert_rejected(mutated, "does not start 'Recorded:'")
+
+    def test_a_recorded_row_lists_no_options(self):
+        cells = self.cells("C-1")
+        cells[3] = "A: something"
+        self.assert_rejected(self.rebuild_row("C-1", cells), "does not list 'none'")
+
+    def test_an_option_row_must_start_with_a(self):
+        cells = self.cells("C-2")
+        cells[2] = "Recommended: Level 6"
+        self.assert_rejected(self.rebuild_row("C-2", cells), "does not start 'A:'")
+
+    def test_an_option_row_must_offer_every_letter(self):
+        cells = self.cells("C-2")
+        cells[3] = "B: Level 3"
+        self.assert_rejected(self.rebuild_row("C-2", cells), "does not offer option C")
+
+    def test_c5_recommendation_must_be_conditional_on_c7(self):
+        mutated = replace_once(
+            self.charter, "conditional on C-7 being A", "after C-7"
+        )
+        self.assert_rejected(mutated, "not conditional on C-7")
+
+    def test_c5_options_must_put_b_before_c(self):
+        cells = self.cells("C-5")
+        options = cells[3]
+        b_index = options.index("B:")
+        c_index = options.index("C:")
+        cells[3] = options[c_index:] + "; " + options[b_index:c_index].rstrip("; ")
+        self.assert_rejected(self.rebuild_row("C-5", cells), "B: before C:")
+
+    def test_a_missing_reply_rule_fails(self):
+        mutated = replace_once(
+            self.charter, self.module.REPLY_RULE_C6_C7, "Each needs its own answer."
+        )
+        self.assert_rejected(mutated, "exactly once")
+
+    def test_a_duplicated_reply_rule_fails(self):
+        mutated = replace_once(
+            self.charter,
+            self.module.REPLY_RULE_C6_C7,
+            self.module.REPLY_RULE_C6_C7 + " " + self.module.REPLY_RULE_C6_C7,
+        )
+        self.assert_rejected(mutated, "exactly once")
+
+    def test_a_reply_note_without_how_to_reply_fails(self):
+        mutated = replace_once(self.charter, "**How to reply.**", "**Reply.**")
+        self.assert_rejected(mutated, "lacks 'How to reply'")
+
+    def test_a_reply_note_without_the_v1_instruction_fails(self):
+        mutated = replace_once(
+            self.charter, "including change course for V-1", "including V-1"
+        )
+        self.assert_rejected(mutated, "lacks 'including change course for V-1'")
+
+
+class CharterFrontMatterTests(CharterCase):
+    """The front matter: schema keys, values, and the two status branches."""
+
+    def test_a_missing_front_matter_fails(self):
+        body = self.charter.split("---\n", 2)[2]
+        self.assert_rejected(body, "does not open with front matter")
+
+    def test_keys_out_of_order_fail(self):
+        mutated = replace_once(self.charter, "ruling_citation: pending\n", "")
+        self.assert_rejected(mutated, "not the schema's keys in order")
+
+    def test_a_duplicate_key_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "status: awaiting-owner\n",
+            "status: awaiting-owner\nstatus: awaiting-owner\n",
+        )
+        self.assert_rejected(mutated, "names 'status' twice")
+
+    def test_a_wrong_schema_version_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "schema_version: phase64-charter/v1",
+            "schema_version: phase64-charter/v2",
+        )
+        self.assert_rejected(mutated, "is not 'phase64-charter/v1'")
+
+    def test_an_unknown_status_fails(self):
+        mutated = replace_once(
+            self.charter, "status: awaiting-owner", "status: decided"
+        )
+        self.assert_rejected(mutated, "status 'decided' is not allowed")
+
+    def test_a_non_date_created_value_fails(self):
+        mutated = replace_once(
+            self.charter, "created: 2026-10-26", "created: October 26, 2026"
+        )
+        self.assert_rejected(mutated, "is not a date")
+
+    def test_a_wrong_verdict_citation_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "verdict_citation: .planning/phases/64-feasibility-verdict/64-VERDICT.md",
+            "verdict_citation: 64-VERDICT.md",
+        )
+        self.assert_rejected(mutated, "is not the verdict's path")
+
+    def test_a_wrong_numbers_digest_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "numbers_sha256: 632e02b21d1ee132f844e5c9592578d5ce32bb31b9673ccb76dc84556511cafa",
+            "numbers_sha256: " + "0" * 64,
+        )
+        self.assert_rejected(mutated, "not numbers.json's current SHA-256")
+
+    def test_a_ruling_citation_that_is_neither_pending_nor_the_path_fails(self):
+        mutated = replace_once(
+            self.charter, "ruling_citation: pending", "ruling_citation: none"
+        )
+        self.assert_rejected(mutated, "neither pending nor")
+
+    def test_awaiting_owner_with_a_ruling_path_fails(self):
+        mutated = replace_once(
+            self.charter,
+            "ruling_citation: pending",
+            f"ruling_citation: {RULING_REL}",
+        )
+        self.assert_rejected(mutated, "awaiting-owner but its ruling_citation")
+
+    def test_owner_decided_with_pending_fails(self):
+        mutated = replace_once(
+            self.charter, "status: awaiting-owner", "status: owner-decided"
+        )
+        self.assert_rejected(mutated, "owner-decided but its ruling_citation")
+
+    def test_owner_decided_without_the_ruling_file_fails(self):
+        self.assert_rejected(self.decided(), "the ruling does not exist")
+
+    def test_owner_decided_with_an_untracked_ruling_fails(self):
+        init_repo(self.root)
+        self.write_charter(self.charter)
+        commit_all(self.root, "fixture")
+        (self.root / RULING_REL).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / RULING_REL).write_text("a ruling\n", encoding="utf-8")
+        self.assert_rejected(self.decided(), "the ruling is not tracked")
+
+    def test_owner_decided_with_a_tracked_ruling_passes(self):
+        init_repo(self.root)
+        (self.root / RULING_REL).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / RULING_REL).write_text("a ruling\n", encoding="utf-8")
+        self.write_charter(self.decided())
+        commit_all(self.root, "fixture")
+        with mock.patch.object(self.module, "REPO_ROOT", self.root):
+            code, out, err = run_main(self.module, ["charter"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out.splitlines(), ["CHARTER-OK"])
+
+
+class CharterPreambleTests(CharterCase):
+    """The Audience line and the 18 level-2 headings around the page."""
+
+    def test_a_missing_audience_line_fails(self):
+        mutated = replace_once(
+            self.charter,
+            self.module.CHARTER_AUDIENCE_LINE + "\n",
+            "",
+        )
+        self.assert_rejected(mutated, "Audience lines, not 1")
+
+    def test_a_duplicated_audience_line_fails(self):
+        mutated = replace_once(
+            self.charter,
+            self.module.CHARTER_AUDIENCE_LINE + "\n",
+            self.module.CHARTER_AUDIENCE_LINE
+            + "\n"
+            + self.module.CHARTER_AUDIENCE_LINE
+            + "\n",
+        )
+        self.assert_rejected(mutated, "Audience lines, not 1")
+
+    def test_an_audience_line_after_the_first_heading_fails(self):
+        mutated = replace_once(
+            self.charter, self.module.CHARTER_AUDIENCE_LINE + "\n", ""
+        )
+        mutated = replace_once(
+            mutated, "## Sources\n", "## Sources\n\n" + self.module.CHARTER_AUDIENCE_LINE + "\n"
+        )
+        self.assert_rejected(mutated, "does not precede the first heading")
+
+    def test_a_renamed_heading_fails(self):
+        mutated = replace_once(
+            self.charter, "## C-9: Budget", "## C-9: The budget"
+        )
+        self.assert_rejected(mutated, "not the 18 expected headings")
+
+    def test_a_missing_charter_file_fails(self):
+        (self.root / CHARTER_REL).unlink()
+        with mock.patch.object(self.module, "REPO_ROOT", self.root):
+            code, _out, stderr = run_main(self.module, ["charter"])
+        self.assertEqual(code, 1)
+        self.assertIn("the charter is missing", stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
