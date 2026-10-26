@@ -79,7 +79,7 @@ Real-run outputs after the commit:
 
 ## Deviations
 
-None. The `ruling` mode needed no Rule-1 fix on its first real use.
+One, and it is in the test suite, not the modes. Two tests written in wave 5 asserted that no checkpoint ruling file exists — correct then, false by design once `4d8dc638` committed the ruling. They failed the suite on the first post-ruling run. `9d9e75f2 fix(64-06): update the two tests that pinned the pre-ruling state` replaces them with durable tests (the ruling is committed and holds one owner-quote block; the real tree prints `RULING-OK`) and leaves the absent-ruling case covered by the synthetic case that asserts the mode rejects an `owner-decided` charter with `the ruling does not exist`. The `ruling` mode itself needed no Rule-1 fix; `RULING-OK` was its first real run's output.
 
 ## For the orchestrator
 
