@@ -2431,8 +2431,11 @@ class CharterRealTests(unittest.TestCase):
         page = "\n".join(lines[begin : end + 1])
         self.assertEqual(page.count(self.module.REPLY_RULE_C6_C7), 1)
 
-    def test_ruling_does_not_exist_after_the_plan(self):
-        self.assertFalse((ROOT / RULING_REL).exists())
+    def test_the_checkpoint_ruling_is_committed(self):
+        ruling = ROOT / RULING_REL
+        self.assertTrue(ruling.is_file())
+        text = ruling.read_text(encoding="utf-8")
+        self.assertEqual(text.count("```owner-quote"), 1)
 
 
 class CharterCase(unittest.TestCase):
@@ -3143,7 +3146,7 @@ RULING_APPLIED_BY = {
 
 
 class RulingRealTreeTests(unittest.TestCase):
-    """The mode on the real worktree, before any synthetic ruling exists."""
+    """The mode on the real worktree, against the committed checkpoint ① ruling."""
 
     @classmethod
     def setUpClass(cls):
@@ -3155,11 +3158,10 @@ class RulingRealTreeTests(unittest.TestCase):
             self.module.build_parser().parse_args(["ruling"]).command, "ruling"
         )
 
-    def test_real_tree_fails_closed_with_does_not_exist(self):
-        code, _out, err = run_main(self.module, ["ruling"])
-        self.assertEqual(code, 1)
-        self.assertIn("FAIL-CLOSED", err)
-        self.assertIn("does not exist", err)
+    def test_real_tree_passes_on_the_committed_ruling(self):
+        code, out, err = run_main(self.module, ["ruling"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("RULING-OK", out)
 
     def test_skipped_phase_requirements_match_the_traceability_report(self):
         report = self.module.traceability_report(
