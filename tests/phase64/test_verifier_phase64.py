@@ -2239,6 +2239,23 @@ class RulesVerdictTests(VerdictCase):
         )
         self.assert_rules_rejected(mutated, "banned adjective")
 
+    def test_owner_signed_with_a_pending_preamble_fails(self):
+        mutated = replace_once(
+            self.verdict, "status: awaiting-owner", "status: owner-signed"
+        )
+        mutated = replace_once(
+            mutated,
+            "The signed record is",
+            "The owner's decision is still pending. The signed record is",
+        )
+        self.assert_rules_rejected(mutated, "still pending")
+
+    def test_owner_signed_with_a_pending_decision_fails(self):
+        mutated = replace_once(
+            self.verdict, "status: awaiting-owner", "status: owner-signed"
+        )
+        self.assert_rules_rejected(mutated, "owner_decision is still pending")
+
     def test_proposal_gloss_fails(self):
         mutated = replace_once(
             self.verdict,

@@ -4039,6 +4039,18 @@ def cmd_rules(_args: argparse.Namespace) -> None:
     if first_heading is None or audience[0] > first_heading:
         fail("the Audience line does not precede the first level-2 heading")
 
+    preamble = "\n".join(lines[:first_heading] if first_heading else lines)
+    if values["status"] == "owner-signed":
+        if "still pending" in preamble:
+            fail(
+                "the verdict preamble says the owner's decision is still pending "
+                "while its front matter records the owner as having signed"
+            )
+        for key in ("owner_decision", "owner_decision_date", "ruling_citation",
+                    "ruling_sha256"):
+            if values[key] == "pending":
+                fail(f"the verdict is owner-signed but its {key} is still pending")
+
     _check_verdict_headings(lines, complete=True)
     _check_cost_to_next_level(lines)
     _check_candidate_fixes(lines)

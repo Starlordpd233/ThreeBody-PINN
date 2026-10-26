@@ -21,7 +21,7 @@ ruling_sha256: b0a80c114d1ddc7994c7e02abdd8105f7ae418c776981cf109951bb8f31fac82
 
 **What this page rests on.** The sealed stop handoff, `.planning/phases/60-single-system-learnability/evidence/g2/stop-handoff.json`, SHA-256 `7ed8223c066e62bd55e527dc703565367a0f9764a253e086a3bc0b4e719d02d5`. The number manifest, `evidence/numbers.json`, SHA-256 `632e02b21d1ee132f844e5c9592578d5ce32bb31b9673ccb76dc84556511cafa`. Every number below is taken from that manifest and re-derived by `evidence/verify_phase64_verdict.py`; none is typed by hand.
 
-**Status.** `awaiting-owner`. The agent's recommendation is `change-course`. The owner's decision is recorded at checkpoint ①, below, and is still pending.
+**Status.** `owner-signed`. The agent's recommendation was `change-course`, and the owner decided `change-course` at checkpoint ① on 2026-10-26. The signed record is `.planning/phases/64-feasibility-verdict/64-CHECKPOINT-1-RULING.md`.
 
 ## In plain language
 
